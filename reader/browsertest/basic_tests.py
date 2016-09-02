@@ -90,7 +90,7 @@ class PresenceOfDownloadButtonOnTOC(AtomicTest):
 
     def run(self):
         # Load Shabbat TOC and scroll to bottom
-        self.load_text_toc("Shabbat").scroll_panel_to_bottom()
+        self.load_text_toc("Shabbat").scroll_nav_panel_to_bottom()
 
         # Check that DL Button is visible and not clickable
         visible = self.driver.execute_script(

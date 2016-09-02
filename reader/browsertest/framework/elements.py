@@ -184,30 +184,31 @@ class AtomicTest(object):
         self.driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
         return self
 
-    def scroll_panel_down(self, pixels):
+    def scroll_reader_panel_down(self, pixels):
         #todo: untested
         #todo: handle multiple panels
         self.driver.execute_script(
-            "var a = $('.content'); a.scrollTop(a.scrollTop() + {});".format(pixels)
+            "var a = $('.textColumn'); a.scrollTop(a.scrollTop() + {});".format(pixels)
         )
         return self
 
-    def scroll_panel_up(self, pixels):
+    def scroll_reader_panel_up(self, pixels):
         #todo: untested
         #todo: handle multiple panels
         self.driver.execute_script(
-            "var a = $('.content'); a.scrollTop(a.scrollTop() - {});".format(pixels)
+            "var a = $('.textColumn'); a.scrollTop(a.scrollTop() - {});".format(pixels)
         )
         return self
 
-    def scroll_panel_to_bottom(self):
+    def scroll_reader_panel_to_bottom(self):
+        #todo: untested
         #todo: handle multiple panels
         self.driver.execute_script(
-            "var a = $('.content'); a.scrollTop(a.prop('scrollHeight'));"
+            "var a = $('.textColumn'); a.scrollTop(a.prop('scrollHeight'));"
         )
         return self
 
-    def scroll_panel_to_top(self):
+    def scroll_reader_panel_to_top(self):
         """Scrolls the first text panel to the top"""
         #todo
         return self
@@ -219,6 +220,12 @@ class AtomicTest(object):
         #todo
         return self
 
+    def scroll_nav_panel_to_bottom(self):
+        # todo: handle multiple panels
+        self.driver.execute_script(
+            "var a = $('.readerNavMenu'); a.scrollTop(a.prop('scrollHeight'));"
+        )
+        return self
 
 
 
