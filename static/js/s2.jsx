@@ -897,7 +897,7 @@ var ReaderApp = React.createClass({
       panel.version         = parentPanel.version;
       panel.versionLanguage = parentPanel.versionLanguage;
     }
-    panel.settings          = panel.settings ? state.settings : Sefaria.util.clone(this.getDefaultPanelSettings()),
+    panel.settings          = panel.settings ? panel.settings : Sefaria.util.clone(this.getDefaultPanelSettings()),
     panel.settings.language = panel.settings.language == "hebrew" ? "hebrew" : "english"; // Don't let connections panels be bilingual
     newPanels[n] = this.makePanelState(panel);
     this.setState({panels: newPanels});
