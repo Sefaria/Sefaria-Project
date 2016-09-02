@@ -511,6 +511,7 @@ body.dark {
   left: 0;
   width: 100%;
   height: 100%;
+  overflow-y: scroll;
   box-sizing: border-box;
   z-index: 101;
   background-color: #F9F9F7;
@@ -518,8 +519,7 @@ body.dark {
 .readerNavMenu .content {
   box-sizing: border-box;
   padding: 80px 10px 10px;
-  height: 100%;
-  overflow-y: scroll;
+  height: auto;
   -webkit-overflow-scrolling: touch;
   font-size: 14px;
 }
@@ -1005,8 +1005,6 @@ a.resourcesLink {
 .readerTextTableOfContents .content {
   padding: 90px 10px 10px;
   box-sizing: border-box;
-  height: 100%;
-  overflow-y: scroll;
   text-align: center;
 }
 .readerTextTableOfContents .content .sectionLink {
