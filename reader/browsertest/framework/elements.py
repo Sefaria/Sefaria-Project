@@ -32,6 +32,10 @@ class AtomicTest(object):
 
     every_build = False  # Run this test on every build?
 
+    # Only use one of the below.
+    include = []  # List of platforms (using cap_to_short_string) to include.  If this is present, only these platforms are included
+    exclude = []  # List of platforms (using cap_to_short_string) to exclude.
+
     def __init__(self, driver, url):
         self.base_url = url
         self.driver = driver
@@ -39,6 +43,8 @@ class AtomicTest(object):
             raise Exception("Missing required variable - test_suite")
         if not self.multi_panel and not self.single_panel:
             raise Exception("Tests must run on at least one of mobile or desktop")
+        if len(self.include) and len(self.exclude):
+            raise Exception("Only one of the 'include' and 'exclude' parameters can be used in a given test")
 
     def set_modal_cookie(self):
         #set cookie to avoid popup interruption
@@ -451,6 +457,15 @@ class Trial(object):
             sys.stdout.flush()
             return TestResult(test, cap, True)
 
+    def _should_test_run(self, mode, test, cap):
+        if (mode == "multi_panel" and not test.multi_panel) or (mode == "single_panel" and not test.single_panel):
+            return False
+        if len(test.include) and self.cap_to_short_string(cap) not in test.include:
+            return False
+        if len(test.exclude) and self.cap_to_short_string(cap) in test.exclude:
+            return False
+        return True
+
     def _test_one(self, test, cap):
         driver = None
         try:
@@ -462,8 +477,10 @@ class Trial(object):
                     'name': "{} on {}".format(test.__name__, self.cap_to_string(cap)),
                     'build': self.build,
                 })
-            if (mode == "multi_panel" and not test.multi_panel) or (mode == "single_panel" and not test.single_panel):
+
+            if not self._should_test_run(mode, test, cap):
                 return None
+
             driver = self._get_driver(cap)
             result = self._run_one_atomic_test(driver, test, cap)
             if self.platform == "sauce":

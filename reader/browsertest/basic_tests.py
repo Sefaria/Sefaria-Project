@@ -86,6 +86,7 @@ class LoadAndVerifyIndepenedentTOC(AtomicTest):
 class PresenceOfDownloadButtonOnTOC(AtomicTest):
     suite_key = "Reader"
     every_build = True
+    exclude = ['And/5.1']  # Android driver doesn't support "Select" class. Haven't found workaround.
 
     def run(self):
         # Load Shabbat TOC and scroll to bottom
