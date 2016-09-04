@@ -897,7 +897,7 @@ var ReaderApp = React.createClass({
       panel.version         = parentPanel.version;
       panel.versionLanguage = parentPanel.versionLanguage;
     }
-    panel.settings          = panel.settings ? state.settings : Sefaria.util.clone(this.getDefaultPanelSettings()),
+    panel.settings          = panel.settings ? panel.settings : Sefaria.util.clone(this.getDefaultPanelSettings()),
     panel.settings.language = panel.settings.language == "hebrew" ? "hebrew" : "english"; // Don't let connections panels be bilingual
     newPanels[n] = this.makePanelState(panel);
     this.setState({panels: newPanels});
@@ -2041,7 +2041,12 @@ var ReaderPanel = React.createClass({
     classes[this.state.settings.language]     = 1;
     classes = classNames(classes);
     var style = {"fontSize": this.state.settings.fontSize + "%"};
-    var hideReaderControls = (this.state.mode === "TextAndConnections" || this.props.hideNavHeader);
+    var hideReaderControls = (
+        this.state.mode === "TextAndConnections" ||
+        this.state.menuOpen === "text toc" ||
+        this.state.menuOpen === "book toc" ||
+        this.props.hideNavHeader
+    );
 
     return (
       <div className={classes}>
