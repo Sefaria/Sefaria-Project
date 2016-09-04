@@ -796,21 +796,21 @@ Sefaria = extend(Sefaria, {
             return;
           }
 
-          // Save split data from each of these
-          var linkData = this._saveLinkData(ref, data.links);
-          var noteData = this._saveNoteData(ref, data.notes);
-          var sheetData = this.sheets._saveSheetsByRefData(ref, data.sheets);
+          // Save link, note, and sheet data, and retain the split data from each of these saves
+          var split_data = {
+              links: this._saveLinkData(ref, data.links),
+              notes: this._saveNoteData(ref, data.notes),
+              sheets: this.sheets._saveSheetsByRefData(ref, data.sheets)
+          };
 
            // Build split related data from individual split data arrays
-          [["links", linkData],["notes", noteData],["sheets", sheetData]].forEach(function(input) {
-            var prop = input[0];
-            var splitData = input[1];
-            for (var ref in splitData) {
-              if (splitData.hasOwnProperty(ref)) {
+          ["links", "notes", "sheets"].forEach(function(obj_type) {
+            for (var ref in split_data[obj_type]) {
+              if (split_data[obj_type].hasOwnProperty(ref)) {
                 if (!(ref in this._related)) {
-                    this._related[ref] = {};
+                    this._related[ref] = {links: [], notes: [], sheets: []};
                 }
-                this._related[ref][prop] = splitData[ref];
+                this._related[ref][obj_type] = split_data[obj_type][ref];
               }
             }
           }, this);
