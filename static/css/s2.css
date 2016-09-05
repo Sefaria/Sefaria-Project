@@ -66,7 +66,7 @@ body.dark {
 .singlePanel #panelWrapBox {
   padding-top: 0;
 }
-.header {
+.headerInner {
   position: fixed;
   top: 0;
   left: 0;
@@ -516,11 +516,10 @@ body.dark {
   background-color: #F9F9F7;
 }
 .readerNavMenu .content {
-  position: absolute;
-  top: 64px;
+  position: relative;
   box-sizing: border-box;
   padding: 30px 10px 10px;
-  height: calc(100% - 64px);
+  height: 100%;
   overflow-y: scroll;
   -webkit-overflow-scrolling: touch;
   font-size: 14px;
@@ -1008,6 +1007,8 @@ a.resourcesLink {
   padding: 30px 10px 10px;
   box-sizing: border-box;
   text-align: center;
+  top: 64px;
+  height: calc(100% - 64px);
 }
 .readerTextTableOfContents .content .sectionLink {
   display: inline-block;
