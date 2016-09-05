@@ -511,7 +511,6 @@ body.dark {
   left: 0;
   width: 100%;
   height: 100%;
-  overflow-y: scroll;
   box-sizing: border-box;
   z-index: 101;
   background-color: #F9F9F7;
@@ -519,7 +518,8 @@ body.dark {
 .readerNavMenu .content {
   box-sizing: border-box;
   padding: 80px 10px 10px;
-  height: auto;
+  height: 100%;
+  overflow-y: scroll;
   -webkit-overflow-scrolling: touch;
   font-size: 14px;
 }
