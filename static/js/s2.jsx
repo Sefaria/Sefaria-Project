@@ -2073,7 +2073,7 @@ var ReaderPanel = React.createClass({
           toggleLanguage={this.toggleLanguage}
           interfaceLang={this.props.interfaceLang}/>)}
 
-        {items.length > 0 ?
+        {(items.length > 0 && !menu) ?
             <div className="readerContent" style={style}>
               {items}
             </div>

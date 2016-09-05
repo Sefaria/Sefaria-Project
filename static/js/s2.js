@@ -2187,7 +2187,7 @@ var ReaderPanel = React.createClass({
         closePanel: this.props.closePanel,
         toggleLanguage: this.toggleLanguage,
         interfaceLang: this.props.interfaceLang }),
-      items.length > 0 ? React.createElement(
+      items.length > 0 && !menu ? React.createElement(
         'div',
         { className: 'readerContent', style: style },
         items
