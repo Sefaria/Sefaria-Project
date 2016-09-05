@@ -223,7 +223,7 @@ class AtomicTest(object):
     def scroll_nav_panel_to_bottom(self):
         # todo: handle multiple panels
         self.driver.execute_script(
-            "var a = $('.readerNavMenu'); a.scrollTop(a.prop('scrollHeight'));"
+            "var a = $('.content'); a.scrollTop(a.prop('scrollHeight'));"
         )
         return self
 
