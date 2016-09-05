@@ -2187,11 +2187,11 @@ var ReaderPanel = React.createClass({
         closePanel: this.props.closePanel,
         toggleLanguage: this.toggleLanguage,
         interfaceLang: this.props.interfaceLang }),
-      React.createElement(
+      items.length > 0 ? React.createElement(
         'div',
         { className: 'readerContent', style: style },
         items
-      ),
+      ) : "",
       menu,
       this.state.displaySettingsOpen ? React.createElement(ReaderDisplayOptionsMenu, {
         settings: this.state.settings,

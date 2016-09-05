@@ -2073,9 +2073,11 @@ var ReaderPanel = React.createClass({
           toggleLanguage={this.toggleLanguage}
           interfaceLang={this.props.interfaceLang}/>)}
 
-        <div className="readerContent" style={style}>
-          {items}
-        </div>
+        {items.length > 0 ?
+            <div className="readerContent" style={style}>
+              {items}
+            </div>
+        :""}
 
         {menu}
         {this.state.displaySettingsOpen ? (<ReaderDisplayOptionsMenu
