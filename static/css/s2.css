@@ -54,9 +54,9 @@ body.dark {
   direction: ltr;
 }
 #panelWrapBox {
-  position: relative;
-  padding-top: 54px;
-  height: 100%;
+  position: absolute;
+  top: 54px;
+  height: calc(100% - 54px);
   box-sizing: border-box;
 }
 #panelWrapBox.wrapBoxScroll {
@@ -511,15 +511,16 @@ body.dark {
   left: 0;
   width: 100%;
   height: 100%;
-  overflow-y: scroll;
   box-sizing: border-box;
   z-index: 101;
   background-color: #F9F9F7;
 }
 .readerNavMenu .content {
+  position: relative;
   box-sizing: border-box;
-  padding: 80px 10px 10px;
-  height: auto;
+  padding: 30px 10px 10px;
+  height: 100%;
+  overflow-y: scroll;
   -webkit-overflow-scrolling: touch;
   font-size: 14px;
 }
@@ -530,7 +531,7 @@ body.dark {
   padding-right: 40px;
 }
 .multiPanel .readerNavMenu .content {
-  padding: 110px 30px;
+  padding: 30px 30px;
 }
 .multiPanel .readerNavMenu.noHeader .content {
   padding-top: 70px;
@@ -1003,9 +1004,11 @@ a.resourcesLink {
   margin-right: 4px;
 }
 .readerTextTableOfContents .content {
-  padding: 90px 10px 10px;
+  padding: 30px 10px 10px;
   box-sizing: border-box;
   text-align: center;
+  top: 64px;
+  height: calc(100% - 64px);
 }
 .readerTextTableOfContents .content .sectionLink {
   display: inline-block;
