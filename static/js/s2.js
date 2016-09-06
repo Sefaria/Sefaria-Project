@@ -2162,7 +2162,7 @@ var ReaderPanel = React.createClass({
     classes[this.state.settings.language] = 1;
     classes = classNames(classes);
     var style = { "fontSize": this.state.settings.fontSize + "%" };
-    var hideReaderControls = this.state.mode === "TextAndConnections" || this.props.hideNavHeader;
+    var hideReaderControls = this.state.mode === "TextAndConnections" || this.state.menuOpen === "text toc" || this.state.menuOpen === "book toc" || this.props.hideNavHeader;
 
     return React.createElement(
       'div',
@@ -2188,11 +2188,11 @@ var ReaderPanel = React.createClass({
         closePanel: this.props.closePanel,
         toggleLanguage: this.toggleLanguage,
         interfaceLang: this.props.interfaceLang }),
-      React.createElement(
+      items.length > 0 && !menu ? React.createElement(
         'div',
         { className: 'readerContent', style: style },
         items
-      ),
+      ) : "",
       menu,
       this.state.displaySettingsOpen ? React.createElement(ReaderDisplayOptionsMenu, {
         settings: this.state.settings,
@@ -5966,13 +5966,14 @@ var TextSegment = React.createClass({
     }
   },
   render: function render() {
+    var linkCountElement;
     if (this.props.showLinkCount) {
       var linkCount = Sefaria.linkCount(this.props.sref, this.props.filter);
       var minOpacity = 20,
           maxOpacity = 70;
       var linkScore = linkCount ? Math.min(linkCount + minOpacity, maxOpacity) / 100.0 : 0;
       var style = { opacity: linkScore };
-      var linkCount = this.props.showLinkCount ? React.createElement(
+      linkCountElement = this.props.showLinkCount ? React.createElement(
         'div',
         { className: 'linkCount sans' },
         React.createElement(
@@ -5987,7 +5988,7 @@ var TextSegment = React.createClass({
         )
       ) : null;
     } else {
-      var linkCount = "";
+      linkCountElement = "";
     }
     var segmentNumber = this.props.segmentNumber ? React.createElement(
       'div',
@@ -6028,7 +6029,7 @@ var TextSegment = React.createClass({
       'span',
       { className: classes, onClick: this.handleClick, 'data-ref': this.props.sref },
       segmentNumber,
-      linkCount,
+      linkCountElement,
       React.createElement('span', { className: 'he', dangerouslySetInnerHTML: { __html: he + " " } }),
       React.createElement('span', { className: 'en', dangerouslySetInnerHTML: { __html: en + " " } }),
       React.createElement('div', { className: 'clearFix' })
