@@ -90,9 +90,9 @@ class PermanenceOfRangedRefs(AtomicTest):
     """
     suite_key = "Reader"
     every_build = True
+    single_panel = False  # Segment clicks on mobile have different semantics  todo: write this for mobile?  It's primarily a data test.
 
     def run(self):
-
         self.load_ref("Shabbat 2a").click_segment("Shabbat 2a:1")
         assert self.find_text_filter("Mishnah Shabbat")
         self.click_segment("Shabbat 2a:2")
