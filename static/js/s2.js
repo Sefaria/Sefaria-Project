@@ -362,7 +362,7 @@ var ReaderApp = React.createClass({
         return true;
       }
 
-      if (prev.mode !== next.mode || prev.menuOpen !== next.menuOpen || next.mode === "Text" && prev.refs.slice(-1)[0] !== next.refs.slice(-1)[0] || next.mode === "TextAndConnections" && prev.highlightedRefs.slice(-1)[0] !== next.highlightedRefs.slice(-1)[0] || (next.mode === "Connections" || next.mode === "TextAndConnections") && prev.filter && !prev.filter.compare(next.filter) || next.mode === "Connections" && !prev.refs.compare(next.refs) || prev.navigationSheetTag !== next.navigationSheetTag || prev.version !== next.version || prev.versionLanguage !== next.versionLanguage || prev.searchQuery != next.searchQuery || prev.appliedSearchFilters && next.appliedSearchFilters && prev.appliedSearchFilters.length !== next.appliedSearchFilters.length || prev.appliedSearchFilters && next.appliedSearchFilters && !prev.appliedSearchFilters.compare(next.appliedSearchFilters) || prev.settings.language != next.settings.language) {
+      if (prev.mode !== next.mode || prev.menuOpen !== next.menuOpen || prev.menuOpen === "book toc" && prev.bookRef !== next.bookRef || next.mode === "Text" && prev.refs.slice(-1)[0] !== next.refs.slice(-1)[0] || next.mode === "TextAndConnections" && prev.highlightedRefs.slice(-1)[0] !== next.highlightedRefs.slice(-1)[0] || (next.mode === "Connections" || next.mode === "TextAndConnections") && prev.filter && !prev.filter.compare(next.filter) || next.mode === "Connections" && !prev.refs.compare(next.refs) || prev.navigationSheetTag !== next.navigationSheetTag || prev.version !== next.version || prev.versionLanguage !== next.versionLanguage || prev.searchQuery != next.searchQuery || prev.appliedSearchFilters && next.appliedSearchFilters && prev.appliedSearchFilters.length !== next.appliedSearchFilters.length || prev.appliedSearchFilters && next.appliedSearchFilters && !prev.appliedSearchFilters.compare(next.appliedSearchFilters) || prev.settings.language != next.settings.language) {
         return true;
       } else if (prev.navigationCategories !== next.navigationCategories) {
         // Handle array comparison, !== could mean one is null or both are arrays
@@ -526,7 +526,6 @@ var ReaderApp = React.createClass({
       url += "&lang=" + histories[0].lang;
     }
     hist = headerPanel ? { state: { header: states[0] }, url: url, title: title } : { state: { panels: states }, url: url, title: title };
-
     for (var i = 1; i < histories.length; i++) {
       if (histories[i - 1].mode === "Text" && histories[i].mode === "Connections") {
         if (i == 1) {
@@ -543,7 +542,14 @@ var ReaderApp = React.createClass({
         } else {
           var replacer = "&p" + i + "=";
           hist.url = hist.url.replace(RegExp(replacer + ".*"), "");
-          hist.url += replacer + histories[i].url + "&w" + i + "=" + histories[i].sources; //.replace("with=", "with" + i + "=").replace("?", "&");
+          hist.url += replacer + histories[i].url;
+          if (histories[i - 1].versionLanguage && histories[i - 1].version) {
+            hist.url += "&l" + i + "=" + histories[i - 1].versionLanguage + "&v" + i + "=" + histories[i - 1].version.replace(/\s/g, "_");
+          }
+          if (histories[i - 1].lang) {
+            hist.url += "&lang" + i + "=" + histories[i - 1].lang;
+          }
+          hist.url += "&w" + i + "=" + histories[i].sources; //.replace("with=", "with" + i + "=").replace("?", "&");
           hist.title += " & " + histories[i].title; // TODO this doesn't trim title properly
         }
       } else {
@@ -660,6 +666,7 @@ var ReaderApp = React.createClass({
         layoutDefault: "segmented",
         layoutTalmud: "continuous",
         layoutTanakh: "segmented",
+        biLayout: "stacked",
         color: "light",
         fontSize: 62.5
       };
@@ -794,8 +801,7 @@ var ReaderApp = React.createClass({
     // However, when carrying a language change to the Tools Panel, do not carry over an incorrect version
     var langChange = state.settings && state.settings.language !== this.state.panels[n].settings.language;
     var next = this.state.panels[n + 1];
-    if (langChange && next && next.mode === "Connections") {
-      /*debugger;*/
+    if (langChange && next && next.mode === "Connections" && state.settings.language !== "bilingual") {
       next.settings.language = state.settings.language;
       if (next.settings.language.substring(0, 2) != this.state.panels[n].versionLanguage) {
         next.versionLanguage = null;
@@ -918,6 +924,7 @@ var ReaderApp = React.createClass({
       panel.version = parentPanel.version;
       panel.versionLanguage = parentPanel.versionLanguage;
     }
+    panel.settings = panel.settings ? panel.settings : Sefaria.util.clone(this.getDefaultPanelSettings()), panel.settings.language = panel.settings.language == "hebrew" ? "hebrew" : "english"; // Don't let connections panels be bilingual
     newPanels[n] = this.makePanelState(panel);
     this.setState({ panels: newPanels });
   },
@@ -1264,6 +1271,16 @@ var Header = React.createClass({
       }.bind(this)
     });
   },
+  showVirtualKeyboardIcon: function showVirtualKeyboardIcon(show) {
+    if (document.getElementById('keyboardInputMaster')) {
+      //if keyboard is open, ignore.
+      return; //this prevents the icon from flashing on every key stroke.
+    }
+    if (this.props.interfaceLang == 'english') {
+      var opacity = show ? 0.4 : 0;
+      $(ReactDOM.findDOMNode(this)).find(".keyboardInputInitiator").css({ "opacity": opacity });
+    }
+  },
   showDesktop: function showDesktop() {
     if (this.props.panelsOpen == 0) {
       var json = cookie("recentlyViewed");
@@ -1310,7 +1327,10 @@ var Header = React.createClass({
   hideTestMessage: function hideTestMessage() {
     this.props.setCentralState({ showTestMessage: false });
   },
-  submitSearch: function submitSearch(query, skipNormalization) {
+  submitSearch: function submitSearch(query, skipNormalization, originalQuery) {
+    // originalQuery is used to handle an edge case - when a varient of a commentator name is passed - e.g. "Rasag".
+    // the name gets normalized, but is ultimately not a ref, so becomes a regular search.
+    // We want to search for the original query, not the normalized name
     var override = query.match(this._searchOverrideRegex());
     if (override) {
       if (Sefaria.site) {
@@ -1326,7 +1346,7 @@ var Header = React.createClass({
       index = Sefaria.index(query);
       if (!index && !skipNormalization) {
         Sefaria.normalizeTitle(query, function (title) {
-          this.submitSearch(title, true);
+          this.submitSearch(title, true, query);
         }.bind(this));
         return;
       }
@@ -1337,14 +1357,14 @@ var Header = React.createClass({
         Sefaria.site.track.event("Search", action, query);
       }
       this.clearSearchBox();
-      this.handleRefClick(query);
+      this.handleRefClick(query); //todo: pass an onError function through here to the panel onError function which redirects to search
     } else {
-      if (Sefaria.site) {
-        Sefaria.site.track.event("Search", "Search Box Search", query);
+        if (Sefaria.site) {
+          Sefaria.site.track.event("Search", "Search Box Search", query);
+        }
+        this.closeSearchAutocomplete();
+        this.showSearch(originalQuery || query);
       }
-      this.closeSearchAutocomplete();
-      this.showSearch(query);
-    }
   },
   closeSearchAutocomplete: function closeSearchAutocomplete() {
     $(ReactDOM.findDOMNode(this)).find("input.search").sefaria_autocomplete("close");
@@ -1406,7 +1426,7 @@ var Header = React.createClass({
 
     var notificationCount = Sefaria.notificationCount || 0;
     var notifcationsClasses = classNames({ notifications: 1, unread: notificationCount > 0 });
-    var nextParam = "?next=" + Sefaria.util.currentPath();
+    var nextParam = "?next=" + encodeURIComponent(Sefaria.util.currentPath());
     var headerMessage = this.props.headerMessage ? React.createElement(
       'div',
       { className: 'testWarning', onClick: this.showTestMessage },
@@ -1459,6 +1479,7 @@ var Header = React.createClass({
       )
     );
     var langSearchPlaceholder = this.props.interfaceLang == 'english' ? "Search" : "הקלד לחיפוש";
+    var vkClassActivator = this.props.interfaceLang == 'english' ? " keyboardInput" : "";
     return React.createElement(
       'div',
       { className: 'header' },
@@ -1488,7 +1509,12 @@ var Header = React.createClass({
           'span',
           { className: 'searchBox' },
           React.createElement(ReaderNavigationMenuSearchButton, { onClick: this.handleSearchButtonClick }),
-          React.createElement('input', { className: 'search', placeholder: langSearchPlaceholder, onKeyUp: this.handleSearchKeyUp })
+          React.createElement('input', { className: "search" + vkClassActivator,
+            placeholder: langSearchPlaceholder,
+            onKeyUp: this.handleSearchKeyUp,
+            onFocus: this.showVirtualKeyboardIcon.bind(this, true),
+            onBlur: this.showVirtualKeyboardIcon.bind(this, false)
+          })
         ),
         React.createElement(
           'a',
@@ -1531,6 +1557,7 @@ var ReaderPanel = React.createClass({
     onRecentClick: React.PropTypes.func,
     onSearchResultClick: React.PropTypes.func,
     onUpdate: React.PropTypes.func,
+    onError: React.PropTypes.func,
     closePanel: React.PropTypes.func,
     closeMenus: React.PropTypes.func,
     setConnectionsFilter: React.PropTypes.func,
@@ -1575,6 +1602,7 @@ var ReaderPanel = React.createClass({
         layoutDefault: "segmented",
         layoutTalmud: "continuous",
         layoutTanakh: "segmented",
+        biLayout: "stacked",
         color: "light",
         fontSize: 62.5
       },
@@ -1637,6 +1665,13 @@ var ReaderPanel = React.createClass({
     } else {
       this.setState(state);
     }
+  },
+  onError: function onError(message) {
+    if (this.props.onError) {
+      this.props.onError(message);
+      return;
+    }
+    this.setState({ "error": message });
   },
   clonePanel: function clonePanel(panel) {
     // Set aside self-referential objects before cloning
@@ -1785,8 +1820,14 @@ var ReaderPanel = React.createClass({
   toggleLanguage: function toggleLanguage() {
     if (this.state.settings.language == "hebrew") {
       this.setOption("language", "english");
+      if (Sefaria.site) {
+        Sefaria.site.track.event("Reader", "Change Language", "english");
+      }
     } else {
       this.setOption("language", "hebrew");
+      if (Sefaria.site) {
+        Sefaria.site.track.event("Reader", "Change Language", "hebrew");
+      }
     }
   },
   openCommentary: function openCommentary(commentator) {
@@ -1911,6 +1952,9 @@ var ReaderPanel = React.createClass({
     return Sefaria.index(book) ? Sefaria.index(book).categories[0] : null;
   },
   currentLayout: function currentLayout() {
+    if (this.state.settings.language == "bilingual") {
+      return this.width > 500 ? this.state.settings.biLayout : "stacked";
+    }
     var category = this.currentCategory();
     if (!category) {
       return "layoutDefault";
@@ -1919,6 +1963,41 @@ var ReaderPanel = React.createClass({
     return this.state.settings[option];
   },
   render: function render() {
+    if (this.state.error) {
+      return React.createElement(
+        'div',
+        { className: 'readerContent' },
+        React.createElement(
+          'div',
+          { className: 'readerError' },
+          React.createElement(
+            'span',
+            { className: 'int-en' },
+            'Something went wrong! Please use the back button or the menus above to get back on track.'
+          ),
+          React.createElement(
+            'span',
+            { className: 'int-he' },
+            'ארעה תקלה במערכת. אנא חזרו לתפריט הראשי או אחורנית על ידי שימוש בכפתורי התפריט או החזור.'
+          ),
+          React.createElement(
+            'div',
+            { className: 'readerErrorText' },
+            React.createElement(
+              'span',
+              { className: 'int-en' },
+              'Error Message: '
+            ),
+            React.createElement(
+              'span',
+              { className: 'int-he' },
+              'שגיאה:'
+            ),
+            this.state.error
+          )
+        )
+      );
+    }
     var items = [];
     if (this.state.mode === "Text" || this.state.mode === "TextAndConnections") {
       items.push(React.createElement(TextColumn, {
@@ -2103,6 +2182,7 @@ var ReaderPanel = React.createClass({
         closeMenus: this.closeMenus,
         openDisplaySettings: this.openDisplaySettings,
         currentLayout: this.currentLayout,
+        onError: this.onError,
         connectionsMode: this.state.filter.length && this.state.connectionsMode === "Connections" ? "Connection Text" : this.state.connectionsMode,
         closePanel: this.props.closePanel,
         toggleLanguage: this.toggleLanguage,
@@ -2118,6 +2198,7 @@ var ReaderPanel = React.createClass({
         multiPanel: this.props.multiPanel,
         setOption: this.setOption,
         currentLayout: this.currentLayout,
+        width: this.width,
         menuOpen: this.state.menuOpen }) : null,
       this.state.displaySettingsOpen ? React.createElement('div', { className: 'mask', onClick: this.closeDisplaySettings }) : null
     );
@@ -2141,6 +2222,7 @@ var ReaderControls = React.createClass({
     currentCategory: React.PropTypes.func.isRequired,
     currentBook: React.PropTypes.func.isRequired,
     currentLayout: React.PropTypes.func.isRequired,
+    onError: React.PropTypes.func.isRequired,
     closePanel: React.PropTypes.func,
     toggleLanguage: React.PropTypes.func,
     currentRef: React.PropTypes.string,
@@ -2169,7 +2251,11 @@ var ReaderControls = React.createClass({
 
     if (title && !oref) {
       // If we don't have this data yet, rerender when we do so we can set the Hebrew title
-      Sefaria.text(title, { context: 1 }, function () {
+      Sefaria.text(title, { context: 1 }, function (data) {
+        if ("error" in data) {
+          this.props.onError(data.error);
+          return;
+        }
         if (this.isMounted()) {
           this.setState({});
         }
@@ -2260,6 +2346,7 @@ var ReaderDisplayOptionsMenu = React.createClass({
     currentLayout: React.PropTypes.func.isRequired,
     menuOpen: React.PropTypes.string.isRequired,
     multiPanel: React.PropTypes.bool.isRequired,
+    width: React.PropTypes.number.isRequired,
     settings: React.PropTypes.object.isRequired
   },
   render: function render() {
@@ -2271,9 +2358,15 @@ var ReaderDisplayOptionsMenu = React.createClass({
       settings: this.props.settings });
 
     var layoutOptions = [{ name: "continuous", fa: "align-justify" }, { name: "segmented", fa: "align-left" }];
+    var biLayoutOptions = [{ name: "stacked", content: "<img src='/static/img/stacked.png' />" }, { name: "heLeft", content: "<img src='/static/img/backs.png' />" }, { name: "heRight", content: "<img src='/static/img/faces.png' />" }];
     var layoutToggle = this.props.settings.language !== "bilingual" ? React.createElement(ToggleSet, {
       name: 'layout',
       options: layoutOptions,
+      setOption: this.props.setOption,
+      currentLayout: this.props.currentLayout,
+      settings: this.props.settings }) : this.props.width > 500 ? React.createElement(ToggleSet, {
+      name: 'biLayout',
+      options: biLayoutOptions,
       setOption: this.props.setOption,
       currentLayout: this.props.currentLayout,
       settings: this.props.settings }) : null;
@@ -2698,7 +2791,7 @@ var ReaderNavigationMenu = React.createClass({
       var title = React.createElement(
         'h1',
         null,
-        React.createElement(LanguageToggleButton, { toggleLanguage: this.props.toggleLanguage }),
+        this.props.multiPanel ? React.createElement(LanguageToggleButton, { toggleLanguage: this.props.toggleLanguage }) : null,
         React.createElement(
           'span',
           { className: 'int-en' },
@@ -5467,7 +5560,7 @@ var TextRange = React.createClass({
     */
     // Place segment numbers again if update affected layout
     if (this.props.basetext || this.props.segmentNumber) {
-      if (this.props.version != prevProps.version || this.props.versionLanguage != prevProps.versionLanguage || prevProps.settings.language !== this.props.settings.language || prevProps.settings.layoutDefault !== this.props.settings.layoutDefault || prevProps.settings.layoutTanakh !== this.props.settings.layoutTanakh || prevProps.settings.layoutTalmud !== this.props.settings.layoutTalmud || prevProps.settings.fontSize !== this.props.settings.fontSize || prevProps.layoutWidth !== this.props.layoutWidth) {
+      if (this.props.version != prevProps.version || this.props.versionLanguage != prevProps.versionLanguage || prevProps.settings.language !== this.props.settings.language || prevProps.settings.layoutDefault !== this.props.settings.layoutDefault || prevProps.settings.layoutTanakh !== this.props.settings.layoutTanakh || prevProps.settings.layoutTalmud !== this.props.settings.layoutTalmud || prevProps.settings.biLayout !== this.props.settings.biLayout || prevProps.settings.fontSize !== this.props.settings.fontSize || prevProps.layoutWidth !== this.props.layoutWidth) {
         // Rerender in case version has changed
         this.forceUpdate();
         // TODO: are these animationFrames still needed?
@@ -5932,7 +6025,8 @@ var TextSegment = React.createClass({
       segmentNumber,
       linkCount,
       React.createElement('span', { className: 'he', dangerouslySetInnerHTML: { __html: he + " " } }),
-      React.createElement('span', { className: 'en', dangerouslySetInnerHTML: { __html: en + " " } })
+      React.createElement('span', { className: 'en', dangerouslySetInnerHTML: { __html: en + " " } }),
+      React.createElement('div', { className: 'clearFix' })
     );
   }
 });
@@ -7047,11 +7141,14 @@ var ToolsPanel = React.createClass({
   render: function render() {
     var editText = this.props.canEditText ? function () {
       var refString = this.props.srefs[0];
+      var currentPath = Sefaria.util.currentPath();
+      debugger;
+      var currentLangParam;
       if (this.props.version) {
-        refString += "/" + this.props.versionLanguage + "/" + this.props.version;
+        refString += "/" + encodeURIComponent(this.props.versionLanguage) + "/" + encodeURIComponent(this.props.version);
       }
       var path = "/edit/" + refString;
-      var nextParam = "?next=" + encodeURIComponent(Sefaria.util.currentPath());
+      var nextParam = "?next=" + encodeURIComponent(currentPath);
       path += nextParam;
       Sefaria.site.track.event("Tools", "Edit Text Click", refString, { hitCallback: function hitCallback() {
           return window.location = path;

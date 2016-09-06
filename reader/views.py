@@ -312,6 +312,7 @@ def s2_props(request):
             "layoutDefault": request.COOKIES.get("layoutDefault", "segmented"),
             "layoutTalmud":  request.COOKIES.get("layoutTalmud", "continuous"),
             "layoutTanakh":  request.COOKIES.get("layoutTanakh", "segmented"),
+            "biLayout":      request.COOKIES.get("biLayout", "stacked"),
             "color":         request.COOKIES.get("color", "light"),
             "fontSize":      request.COOKIES.get("fontSize", 62.5),
         },
@@ -1141,7 +1142,7 @@ def texts_api(request, tref, lang=None, version=None):
             text = TextFamily(oref, version=version, lang=lang, commentary=commentary, context=context, pad=pad, alts=alts).contents()
         except NoVersionFoundError as e:
             # Extended data is used by S2 in TextList.preloadAllCommentaryText()
-            return jsonResponse({"error": unicode(e), "ref": oref.normal(), "versionTitle": version, "lang": lang, "commentator": getattr(oref.index, "commentator", "")})
+            return jsonResponse({"error": unicode(e), "ref": oref.normal(), "versionTitle": version, "lang": lang, "commentator": getattr(oref.index, "commentator", "")}, callback=request.GET.get("callback", None))
 
 
         # Use a padded ref for calculating next and prev
@@ -1224,7 +1225,7 @@ def texts_api(request, tref, lang=None, version=None):
 
         return jsonResponse({"status": "ok"})
 
-    return jsonResponse({"error": "Unsuported HTTP method."})
+    return jsonResponse({"error": "Unsuported HTTP method."}, callback=request.GET.get("callback", None))
 
 
 @catch_error_as_json
@@ -1319,7 +1320,7 @@ def index_api(request, title, v2=False, raw=False):
 
         return jsonResponse({"status": "ok"})
 
-    return jsonResponse({"error": "Unsuported HTTP method."})
+    return jsonResponse({"error": "Unsuported HTTP method."}, callback=request.GET.get("callback", None))
 
 
 @catch_error_as_json
@@ -1352,7 +1353,7 @@ def link_count_api(request, cat1, cat2):
 def word_count_api(request, title, version, language):
     if request.method == "GET":
         counts = VersionSet({"title": title, "versionTitle": version, "language": language}).word_count()
-        resp = jsonResponse({"wordCount": counts})
+        resp = jsonResponse({"wordCount": counts}, callback=request.GET.get("callback", None))
         return resp
 
     elif request.method == "POST":
@@ -1510,7 +1511,7 @@ def link_summary_api(request, ref):
     """
     oref    = Ref(ref)
     summary = oref.linkset().summary(oref)
-    return jsonResponse(summary)
+    return jsonResponse(summary, callback=request.GET.get("callback", None))
 
 
 @catch_error_as_json
@@ -1632,7 +1633,7 @@ def version_status_api(request):
             })
         except Exception:
             pass
-    return jsonResponse(sorted(res, key = lambda x: x["title"] + x["version"]))
+    return jsonResponse(sorted(res, key = lambda x: x["title"] + x["version"]), callback=request.GET.get("callback", None))
 
 
 def version_status_tree_api(request, lang=None):
@@ -1665,7 +1666,7 @@ def version_status_tree_api(request, lang=None):
         "name": "Whole Library" + " ({})".format(lang) if lang else "",
         "path": [],
         "children": simplify_toc(library.get_toc(), [])
-    })
+    }, callback=request.GET.get("callback", None))
 
 
 def visualize_library(request, lang=None, cats=None):
@@ -1807,7 +1808,7 @@ def dictionary_api(request, word):
         for l in ls:
             result.append(l.contents())
         if len(result):
-            return jsonResponse(result)
+            return jsonResponse(result, callback=request.GET.get("callback", None))
     else:
         return jsonResponse({"error": "No information found for given word."})
 
@@ -1967,7 +1968,7 @@ def texts_history_api(request, tref, lang=None, version=None):
 
     summary["lastUpdated"] = updated
 
-    return jsonResponse(summary)
+    return jsonResponse(summary, callback=request.GET.get("callback", None))
 
 
 @catch_error_as_json
