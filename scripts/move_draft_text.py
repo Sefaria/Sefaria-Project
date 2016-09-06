@@ -82,11 +82,13 @@ class ServerTextCopier(object):
                 # post the last node again with dummy text, to make sure an actual version db object is created
                 # then post again to clear the dummy text
                 dummy_text = "This is a dummy text"
+                empty = ""
                 for _ in range(node.depth):
                     dummy_text = [dummy_text]
+                    empty = [empty]
                 version_payload['text'] = dummy_text
                 self._make_post_request_to_server(self._prepare_text_api_call(node.full_title()), version_payload)
-                version_payload['text'] = []
+                version_payload['text'] = empty
                 self._make_post_request_to_server(self._prepare_text_api_call(node.full_title()), version_payload)
             if flags:
                 self._make_post_request_to_server(self._prepare_version_attrs_api_call(ver.title, ver.language, ver.versionTitle), flags)
