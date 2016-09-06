@@ -88,11 +88,8 @@ class LoadSpanningRefAndOpenConnections(AtomicTest):
     every_build = True
 
     def run(self):
-        self.load_ref("Shabbat 32a-32b")
-        # data-ref field for spanning Talmud is currently set incorrectly
-        self.click_segment("Shabbat 32a:1") 
-        #segment = self.driver.find_element_by_css_selector('.segment')
-        #segment.click()
+        self.load_ref("Shabbat 2a-2b")
+        self.click_segment("Shabbat 2a:1") 
         elems = self.driver.find_elements_by_css_selector(".connectionsPanelHeader")
         assert len(elems) == 1
 

@@ -5578,7 +5578,7 @@ var RecentFilterSet = React.createClass({
 
 var LexiconPanel = React.createClass({
   propTypes: {
-    selectedWords: React.PropTypes.string.isRequired,
+    selectedWords: React.PropTypes.string,
     oref:          React.PropTypes.object.isRequired
   },
   getInitialState: function() {
