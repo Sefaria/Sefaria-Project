@@ -83,6 +83,27 @@ class LoadAndVerifyIndepenedentTOC(AtomicTest):
        # self.load_text_toc("Numbers").click_text_toc_section("Numbers 12").back().click_text_toc_section("Numbers 3").back()
 
 
+class PermanenceOfRangedRefs(AtomicTest):
+    """
+    There have been bugs around Links with ranged references.
+    This test checks that they are present, and that they survive to a second click (they had previously been ephemeral.)
+    """
+    suite_key = "Reader"
+    every_build = True
+
+    def run(self):
+
+        self.load_ref("Shabbat 2a").click_segment("Shabbat 2a:1")
+        assert self.find_text_filter("Mishnah Shabbat")
+        self.click_segment("Shabbat 2a:2")
+        assert self.find_text_filter("Mishnah Shabbat")
+
+        self.click_segment("Shabbat 2a:1")
+        assert self.find_text_filter("Mishnah Shabbat")
+        self.click_segment("Shabbat 2a:2")
+        assert self.find_text_filter("Mishnah Shabbat")
+
+
 class PresenceOfDownloadButtonOnTOC(AtomicTest):
     suite_key = "Reader"
     every_build = True

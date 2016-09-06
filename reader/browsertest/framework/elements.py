@@ -120,6 +120,7 @@ class AtomicTest(object):
             WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, ".filterSet > .textRange")))
         else:
             WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, ".textColumn .textRange .segment")))
+            WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, ".linkCountDot")))
         self.set_modal_cookie()
         return self
 
@@ -231,6 +232,7 @@ class AtomicTest(object):
 
     # Connections Panel
     def find_text_filter(self, name):
+        WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, '.textFilter[data-name="{}"]'.format(name))))
         return self.driver.find_element_by_css_selector('.textFilter[data-name="{}"]'.format(name))
 
     def click_text_filter(self, name):
@@ -506,7 +508,6 @@ class Trial(object):
                 sys.stdout.write("A")
             sys.stdout.flush()
             return TestResult(test, cap, False, msg)
-
 
     def _test_on_all(self, test):
         """

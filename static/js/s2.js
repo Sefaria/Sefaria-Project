@@ -5961,13 +5961,14 @@ var TextSegment = React.createClass({
     }
   },
   render: function render() {
+    var linkCountElement;
     if (this.props.showLinkCount) {
       var linkCount = Sefaria.linkCount(this.props.sref, this.props.filter);
       var minOpacity = 20,
           maxOpacity = 70;
       var linkScore = linkCount ? Math.min(linkCount + minOpacity, maxOpacity) / 100.0 : 0;
       var style = { opacity: linkScore };
-      var linkCount = this.props.showLinkCount ? React.createElement(
+      linkCountElement = this.props.showLinkCount ? React.createElement(
         'div',
         { className: 'linkCount sans' },
         React.createElement(
@@ -5982,7 +5983,7 @@ var TextSegment = React.createClass({
         )
       ) : null;
     } else {
-      var linkCount = "";
+      linkCountElement = "";
     }
     var segmentNumber = this.props.segmentNumber ? React.createElement(
       'div',
@@ -6023,7 +6024,7 @@ var TextSegment = React.createClass({
       'span',
       { className: classes, onClick: this.handleClick, 'data-ref': this.props.sref },
       segmentNumber,
-      linkCount,
+      linkCountElement,
       React.createElement('span', { className: 'he', dangerouslySetInnerHTML: { __html: he + " " } }),
       React.createElement('span', { className: 'en', dangerouslySetInnerHTML: { __html: en + " " } }),
       React.createElement('div', { className: 'clearFix' })
