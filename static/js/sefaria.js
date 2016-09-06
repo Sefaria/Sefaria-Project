@@ -417,7 +417,7 @@ Sefaria = extend(Sefaria, {
     }
   },
   ref: function(ref) {
-    // Returns parsed ref info for string `ref`.
+    // Returns parsed ref info for string `ref` which has been preloaded in the cache.
     // Uses this._refmap to find the refkey that has information for this ref.
     // Used in cases when the textual information is not important, so it can
     // be called without worrying about the `settings` parameter for what is available in cache.

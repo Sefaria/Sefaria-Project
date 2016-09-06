@@ -81,6 +81,21 @@ class LoadAndVerifyIndepenedentTOC(AtomicTest):
 
        # self.load_text_toc("Numbers").click_text_toc_section("Numbers 12").back().click_text_toc_section("Numbers 3").back()
 
+
+class LoadSpanningRefAndOpenConnections(AtomicTest):
+    suite_key = "Reader"
+    every_build = True
+
+    def run(self):
+        self.load_ref("Shabbat 32a-32b")
+        # data-ref field for spanning Talmud is currently set incorrectly
+        self.click_segment("Shabbat 32a:1") 
+        #segment = self.driver.find_element_by_css_selector('.segment')
+        #segment.click()
+        elems = self.driver.find_elements_by_css_selector(".connectionsPanelHeader")
+        assert len(elems) == 1
+
+
 class LoadSearchFromURL(AtomicTest):
     suite_key = "Search"
     every_build = True
