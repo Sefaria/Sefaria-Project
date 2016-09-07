@@ -526,6 +526,7 @@ body.dark {
 .singlePanel .readerNavMenu .content {
   top: 58px;
   height: calc(100% - 58px);
+  padding-top: 40px;
 }
 .interface-hebrew.multiPanel .readerNavMenu .content {
   padding-right: 40px;
