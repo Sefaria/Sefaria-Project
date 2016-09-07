@@ -90,7 +90,7 @@ class LoadSpanningRefAndOpenConnections(AtomicTest):
     def run(self):
         self.load_ref("Shabbat 2a-2b")
         self.click_segment("Shabbat 2a:1") 
-        elems = self.driver.find_elements_by_css_selector(".connectionsPanelHeader")
+        elems = self.driver.find_elements_by_css_selector(".textList")
         assert len(elems) == 1
 
 
