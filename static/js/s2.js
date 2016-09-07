@@ -230,7 +230,8 @@ var ReaderApp = React.createClass({
   },
   handlePopState: function handlePopState(event) {
     var state = event.state;
-
+    // console.log("Pop - " + window.location.pathname);
+    // console.log(state);
     if (state) {
       var kind = "";
       if (Sefaria.site) {
@@ -583,8 +584,9 @@ var ReaderApp = React.createClass({
   checkScrollIntentAndTrack: function checkScrollIntentAndTrack() {
     // Record current state of panel refs, and check if it has changed after some delay.  If it remains the same, track analytics.
     var intentDelay = 3000; // Number of milliseconds to demonstrate intent
-
+    // console.log("Setting scroll intent check");
     window.setTimeout(function (initialRefs) {
+      // console.log("Checking scroll intent");
       if (initialRefs.compare(this._refState())) {
         this.trackPageview();
       }
@@ -597,7 +599,7 @@ var ReaderApp = React.createClass({
     var hist = this.makeHistoryState();
     if (replace) {
       history.replaceState(hist.state, hist.title, hist.url);
-
+      // console.log("Replace History - " + hist.url);
       if (this.state.initialAnalyticsTracked) {
         this.checkScrollIntentAndTrack();
       }
@@ -607,7 +609,7 @@ var ReaderApp = React.createClass({
           return;
         } // Never push history with the same URL
         history.pushState(hist.state, hist.title, hist.url);
-
+        // console.log("Push History - " + hist.url);
         this.trackPageview();
         //console.log(hist);
       }
@@ -1001,7 +1003,6 @@ var ReaderApp = React.createClass({
     if (state.panels.length == 0) {
       this.showLibrary();
     }
-
     this.setState(state);
   },
   showLibrary: function showLibrary() {
@@ -5282,22 +5283,23 @@ var TextColumn = React.createClass({
 
       this.props.setTextListHightlight(refs);
     }
-
     this.props.setSelectedWords(selection.toString());
   },
   handleTextLoad: function handleTextLoad() {
     if (this.loadingContentAtTop || !this.initialScrollTopSet) {
+      // console.log("text load, setting scroll");
       this.setScrollPosition();
     }
-
+    // console.log("text load, ais");
     this.adjustInfiniteScroll();
   },
   setScrollPosition: function setScrollPosition() {
+    // console.log("ssp");
     // Called on every update, checking flags on `this` to see if scroll position needs to be set
     if (this.loadingContentAtTop) {
-      var $node = $(ReactDOM.findDOMNode(this));
       // After adding content by infinite scrolling up, scroll back to what the user was just seeing
-
+      // console.log("loading at top");
+      var $node = $(ReactDOM.findDOMNode(this));
       var adjust = 118; // Height of .loadingMessage.base
       var $texts = $node.find(".basetext");
       if ($texts.length < 2) {
@@ -5330,11 +5332,11 @@ var TextColumn = React.createClass({
     // this.adjustInfiniteScroll();
   },
   adjustInfiniteScroll: function adjustInfiniteScroll() {
+    // Add or remove TextRanges from the top or bottom, depending on scroll position
+    // console.log("adjust Infinite Scroll");
     if (!this.isMounted()) {
       return;
     }
-    // Add or remove TextRanges from the top or bottom, depending on scroll position
-
     var node = ReactDOM.findDOMNode(this);
     var refs = this.props.srefs;
     var $lastText = $(node).find(".textRange.basetext").last();
@@ -5382,6 +5384,7 @@ var TextColumn = React.createClass({
     }
   },
   adjustTextListHighlight: function adjustTextListHighlight() {
+    // console.log("atlh");
     // When scrolling while the TextList is open, update which segment should be highlighted.
     if (this.props.multiPanel && this.props.layoutWidth == 100) {
       return; // Hacky - don't move around highlighted segment when scrolling a single panel,
@@ -5604,6 +5607,7 @@ var TextRange = React.createClass({
     return data;
   },
   onTextLoad: function onTextLoad(data) {
+    // console.log("onTextLoad in TextRange");
     // Initiate additional API calls when text data first loads
     if (this.props.basetext && this.props.sref !== data.ref) {
       // Replace ReaderPanel contents ref with the normalized form of the ref, if they differ.
@@ -5719,7 +5723,8 @@ var TextRange = React.createClass({
 
         start = n == 0 ? start : 1;
         for (var i = 0; i < length; i++) {
-          var section = n + data.sections.slice(-2)[0];
+          var startSection = data.sections.slice(-2)[0];
+          var section = typeof startSection == "string" ? Sefaria.hebrew.intToDaf(n + Sefaria.hebrew.dafToInt(startSection)) : n + startSection;
           var number = i + start;
           var ref = baseRef + delim + section + ":" + number;
           segments.push({
@@ -6898,7 +6903,7 @@ var LexiconPanel = React.createClass({
 
   propTypes: {
     selectedWords: React.PropTypes.string,
-    oref: React.PropTypes.object
+    oref: React.PropTypes.object.isRequired
   },
   getInitialState: function getInitialState() {
     return {
@@ -6912,6 +6917,7 @@ var LexiconPanel = React.createClass({
     }
   },
   componentWillReceiveProps: function componentWillReceiveProps(nextProps) {
+    // console.log("component will receive props: ", nextProps.selectedWords);
     if (this.props.selectedWords != nextProps.selectedWords) {
       this.clearLookups();
       this.getLookups(nextProps.selectedWords, nextProps.oref);
@@ -6925,6 +6931,7 @@ var LexiconPanel = React.createClass({
   },
   getLookups: function getLookups(words, oref) {
     if (this.shouldActivate(words)) {
+      // console.log('getting data: ', words, oref.ref);
       Sefaria.lexicon(words, oref.ref, function (data) {
         this.setState({
           loaded: true,
@@ -6934,6 +6941,8 @@ var LexiconPanel = React.createClass({
         var action = data.length == 0 ? "Open No Result" : "Open";
         action += " / " + oref.categories.join("/") + "/" + oref.book;
         Sefaria.site.track.event("Lexicon", action, words);
+
+        // console.log('gotten data from Sefaria.js, state re-set: ', this, data);
       }.bind(this));
     }
   },
@@ -6946,7 +6955,7 @@ var LexiconPanel = React.createClass({
     return inputLength <= 3;
   },
   render: function render() {
-    var ref_cats = this.props.oref.categories.join(", ");
+    var refCats = this.props.oref.categories.join(", ");
     var enEmpty = "No results found.";
     var heEmpty = "לא נמצאו תוצאות";
     if (!this.shouldActivate(this.props.selectedWords)) {
@@ -6955,6 +6964,7 @@ var LexiconPanel = React.createClass({
     }
     var content;
     if (!this.state.loaded) {
+      // console.log("lexicon not yet loaded");
       content = React.createElement(LoadingMessage, { message: 'Looking up words...', heMessage: 'מחפש מילים...' });
     } else if (this.state.entries.length == 0) {
       if (this.props.selectedWords.length == 0) {

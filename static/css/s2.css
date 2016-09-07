@@ -65,6 +65,8 @@ body.dark {
 }
 .singlePanel #panelWrapBox {
   padding-top: 0;
+  height: 100%;
+  top: 0;
 }
 .headerInner {
   position: fixed;
@@ -380,7 +382,6 @@ body.dark {
 .multiPanel.interface-english .textColumn {
   padding-left: 17px;
 }
-
 .multiPanel.interface-hebrew .textColumn {
   padding-right: 17px;
 }
@@ -415,16 +416,14 @@ body.dark {
 .interface-hebrew .readerPanel .en{
   direction: ltr;
 }
-/*.readerPanel.hebrew {
-  direction: rtl;
-}*/
-/*.readerPanel.english {
-  direction: ltr;
-}*/
-.interface-hebrew .readerPanel .readerNavMenu, .readerPanel.hebrew .readerNavSection, .readerPanel.hebrew .readerNavMenu .category{
+.interface-hebrew .readerPanel .readerNavMenu,
+.readerPanel.hebrew .readerNavSection, 
+.readerPanel.hebrew .readerNavMenu .category {
   direction: rtl;
 }
-.interface-english .readerPanel .readerNavMenu, .readerPanel.english .readerNavSection, .readerPanel.english .readerNavMenu .category{
+.interface-english .readerPanel .readerNavMenu,
+.readerPanel.english .readerNavSection,
+ .readerPanel.english .readerNavMenu .category{
   direction: ltr;
 }
 .readerPanel.english .he {
@@ -524,14 +523,16 @@ body.dark {
   -webkit-overflow-scrolling: touch;
   font-size: 14px;
 }
-/* Adjusting for 17px scrollbars, to keep content centered */
-.multiPanel .english .readerNavMenu .content, .multiPanel .bilingual .readerNavMenu .content {
+.singlePanel .readerNavMenu .content {
+  top: 58px;
+  height: calc(100% - 58px);
+  padding-top: 40px;
 }
 .interface-hebrew.multiPanel .readerNavMenu .content {
   padding-right: 40px;
 }
 .multiPanel .readerNavMenu .content {
-  padding: 30px 30px;
+  padding: 30px 30px 70px 30px;
 }
 .multiPanel .readerNavMenu.noHeader .content {
   padding-top: 70px;
@@ -1007,8 +1008,8 @@ a.resourcesLink {
   padding: 30px 10px 10px;
   box-sizing: border-box;
   text-align: center;
-  top: 64px;
-  height: calc(100% - 64px);
+  top: 58px;
+  height: calc(100% - 58px);
 }
 .readerTextTableOfContents .content .sectionLink {
   display: inline-block;

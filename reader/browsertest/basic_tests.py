@@ -83,6 +83,17 @@ class LoadAndVerifyIndepenedentTOC(AtomicTest):
        # self.load_text_toc("Numbers").click_text_toc_section("Numbers 12").back().click_text_toc_section("Numbers 3").back()
 
 
+class LoadSpanningRefAndOpenConnections(AtomicTest):
+    suite_key = "Reader"
+    every_build = True
+
+    def run(self):
+        self.load_ref("Shabbat 2a-2b")
+        self.click_segment("Shabbat 2a:1") 
+        elems = self.driver.find_elements_by_css_selector(".connectionsPanelHeader")
+        assert len(elems) == 1
+
+
 class PermanenceOfRangedRefs(AtomicTest):
     """
     There have been bugs around Links with ranged references.
@@ -90,9 +101,9 @@ class PermanenceOfRangedRefs(AtomicTest):
     """
     suite_key = "Reader"
     every_build = True
+    single_panel = False  # Segment clicks on mobile have different semantics  todo: write this for mobile?  It's primarily a data test.
 
     def run(self):
-
         self.load_ref("Shabbat 2a").click_segment("Shabbat 2a:1")
         assert self.find_text_filter("Mishnah Shabbat")
         self.click_segment("Shabbat 2a:2")
