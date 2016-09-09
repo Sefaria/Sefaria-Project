@@ -256,7 +256,7 @@ body.hebrew #about .he {
 	display: inline-block;
 }
 
-#about.empty #editText,
+#about.empty #editText, 
 #about.empty #addTranslation,
 #about.empty #addVersion {
 	display: none;
@@ -317,7 +317,7 @@ body.bilingual #about.enLocked.heLocked #editText {
 	height: 1px;
 	background: black;
 }
-
+		
 .button {
 	font-weight: bold;
 	font-size: 16px;
@@ -347,7 +347,7 @@ body.bilingual #about.enLocked.heLocked #editText {
 .button.inactive:hover {
 	background: transparent;
 	cursor: normal;
-
+	
 }
 
 .btn.inactive {
@@ -384,7 +384,7 @@ body.bilingual #about.enLocked.heLocked #editText {
 	position: fixed;
 	height: 50px;
 	top: 50%;
-	margin-top: -25px;
+	margin-top: -25px; 
 	line-height: 50px;
 }
 
@@ -396,7 +396,7 @@ body.bilingual #about.enLocked.heLocked #editText {
 	right: 0px;
 }
 
-
+		
 #breadcrumbs {
 	display: block;
 	letter-spacing: 0px;
@@ -455,8 +455,8 @@ body .basetext.noCommentary {
 		margin-top: 10px;
 	}
 
-	body .basetext,
-	body .basetext.noCommentary,
+	body .basetext, 
+	body .basetext.noCommentary, 
 	body .basetext.bilingual,
 	body .basetext.bilingual.heLeft,
 	body .basetext.hebrew,
@@ -473,17 +473,17 @@ body .basetext.noCommentary {
 
 	body .basetext.bilingual .verse > .he {
 		font-size: 20px;
-	}
+	} 
 
 	body .basetext.bilingual .verse > .en {
 		font-size: 16px;
-	}
+	} 
 
 	body .basetext .verseNum {
 		left: -24px;
 		font-size: 15px;
-	}
-
+	} 	
+	 
 	body .commentaryBox {
 		display: none !important;
 		width: 100%;
@@ -494,7 +494,7 @@ body .basetext.noCommentary {
 		padding-top: 10px;
 		box-shadow: 2px -2px 12px #888;
 		z-index: 10;
-	}
+	}  	
 	body .commentaryBox.noCommentary {
 		width: 100%;
 		height: 26px;
@@ -533,7 +533,7 @@ body .basetext.noCommentary {
 	line-height: 1.3;
 	font-family: Georgia, serif;
 	overflow: hidden;
-	z-index: 10;
+	z-index: 10;	
 }
 
 body .textSyncBox {
@@ -614,7 +614,7 @@ body.newText #newTextCompare {
 .sectionTitle .he {
 	font-size: 52px;
 	position: relative;
-	top: 5px;
+	top: 5px;	
 }
 
 .sectionTitle .he.enOnly {
@@ -712,7 +712,7 @@ body.newText #newTextCompare {
 	width: 650px;
 	left: 50%;
 	margin-left: -325px;
-
+	
 }
 .basetext.hebrew .he {
 	display: inline;
@@ -733,13 +733,13 @@ body.newText #newTextCompare {
 	right: -38px;
 	left: auto;
 	margin-top: 14px;
-}
+}	
 .basetext.bilingual.heLeft .verse .verseNum {
 	text-align: center;
 	width: 4%;
 	margin-left: -2%;
 	left: 50%;
-}
+}	
 
 .basetext.bilingual {
 	left: 5%;
@@ -761,7 +761,7 @@ body.newText #newTextCompare {
 	text-align: left;
 	float: left;
 }
-
+		
 .basetext.bilingual .verse > .he {
 	display: block;
 	width: 48%;
@@ -784,7 +784,7 @@ body.newText #newTextCompare {
 	text-align: left;
 	margin-right: 0px;
 }
-
+		
 .basetext.bilingual.heLeft .verse > .he {
 	width: 47%;
 	float: left;
@@ -815,10 +815,10 @@ body.newText #newTextCompare {
 	position: absolute;
 	left: -30px;
 	border-radius: 14px;
-	-moz-user-select: none;
-	-khtml-user-select: none;
-	-webkit-user-select: none;
-	-o-user-select: none;
+	-moz-user-select: none; 
+	-khtml-user-select: none; 
+	-webkit-user-select: none; 
+	-o-user-select: none; 
 }
 
 .verseNum .vnum {
@@ -1042,7 +1042,7 @@ body.newText #newTextCompare {
 	padding-top: 3px;
 	border-top: 1px solid #eee;}*/
 
-#lexicon-modal .pos {
+#lexicon-modal .pos { 
 	font-size: 12px;
 	color: #777;
 }
@@ -1068,10 +1068,10 @@ body.newText #newTextCompare {
 	padding: 7px 0;
 	z-index: 11;
 	background-color: white;
-	-moz-user-select: none;
-	-khtml-user-select: none;
-	-webkit-user-select: none;
-	-o-user-select: none;
+	-moz-user-select: none; 
+	-khtml-user-select: none; 
+	-webkit-user-select: none; 
+	-o-user-select: none; 
 }
 
 .aboutBarBox {
@@ -1232,14 +1232,14 @@ body.noCommentary .aboutBarBox {
 	top: 0px;
 	margin-right: 7%;
 	padding: 0 0 0 15px;
-	height: 100%;
+	height: 100%;  	
 	overflow: hidden;
 }
 
 body.hebrew .commentaryBox .commentary{
 	direction: rtl;
 	text-align: right;
-}
+}		
 
 body.hebrew .commentaryBox .commentary.sheet {
 	direction: ltr;
@@ -1286,7 +1286,7 @@ body .note .anchorText {
 	display: inline !important;
 }
 .enNote {
-	text-align: left !important;
+	text-align: left !important;	
 	direction: ltr !important;
 }
 .enNote .he {
@@ -1335,10 +1335,10 @@ body.hebrew .enNote .anchorText {
 	line-height: 30px;
 	text-align: center;
 	background-color: white;
-	-moz-user-select: none;
-	-khtml-user-select: none;
-	-webkit-user-select: none;
-	-o-user-select: none;
+	-moz-user-select: none; 
+	-khtml-user-select: none; 
+	-webkit-user-select: none; 
+	-o-user-select: none; 
 }
 
 .sourcesBox.noCommentary .sourcesHeader {
@@ -1400,7 +1400,7 @@ body.hebrew .enNote .anchorText {
 .source, .type {
 	display: block;
 	font-size: 15px;
-	padding: 2px 0;
+	padding: 2px 0; 
 	white-space:nowrap;
 	cursor: pointer;
 }
@@ -1468,8 +1468,8 @@ body.hebrew .enNote .anchorText {
 	font-size: 17px;
 }
 
-.commentaryBox .commentary {
-	font-family: serif;
+.commentaryBox .commentary {	
+	font-family: serif;		
 	display: block;
 	font-size: 15px;
 	max-height: 48px;
@@ -1685,7 +1685,7 @@ body .screen .commentaryBox .noteMessage {
 	max-height: 488px;
 	text-align: justify;
 	line-height: 1.2;
-	box-shadow: 2px 2px 12px #333333;
+	box-shadow: 2px 2px 12px #333333;	
 }
 
 .open .commentator.refLink {
@@ -1693,14 +1693,14 @@ body .screen .commentaryBox .noteMessage {
 	text-decoration: none;
 	margin-right: 5px;
 	float: none;
-
+	
 }
 
 .openVerseTitle {
 	font-weight: bold;
 	margin-bottom: 12px;
 	margin-right: 10px;
-	font-size: 16px;
+	font-size: 16px;	
 }
 
 .open .delete {
@@ -1754,10 +1754,10 @@ body .screen .commentaryBox .noteMessage {
 .open #commentatorForm input {
 	font-size: 18px;
 }
-
+		
 .open #commentatorForm .msg {
 	font-size: 15px;
-}
+}		
 
 body.hebrew .open {
 	direction: rtl;
@@ -1778,11 +1778,11 @@ body.hebrew .open .en {
 }
 
 body.hebrew .open .anchorText {
-	float: none;
+	float: none;	
 }
 
 body.hebrew .open .openVerseTitle {
-	display: block;
+	display: block;	
 }
 
 #addSourceTextBox, #addSourceTextarea {
@@ -1852,7 +1852,7 @@ body.hebrew .open .openVerseTitle {
 
 .open.noteMode #commentatorForm {
 	display: none;
-}
+}	
 
 .open.noteMode #addNoteTitleForm {
 	display: inline-block;
@@ -1924,9 +1924,9 @@ body.hebrew #addSourceTextBox .en {
 	cursor: pointer;
 }
 
-.scrollCtl .up {
+.scrollCtl .up { 
 }
-.scrollCtl .down {
+.scrollCtl .down { 
 	position: relative;
 	top: -2px;
 	left: 20px;
@@ -1934,7 +1934,7 @@ body.hebrew #addSourceTextBox .en {
 
 .openScrollCtl {
 	position: absolute;
-	background: white;
+	background: white;			
 	height: 49px;
 	bottom: 0px;
 	text-align: center;
@@ -1949,7 +1949,7 @@ body.hebrew #addSourceTextBox .en {
 	cursor: pointer;
 	position: relative;
 	top: 8px;
-
+	
 }
 
 #cScrollCtl {
@@ -1990,7 +1990,7 @@ body.hebrew #addSourceTextBox .en {
 	overflow: hidden;
 	line-height: 1.2;
 	box-shadow: 2px 2px 12px #333333;
-
+	
 }
 
 
@@ -2006,13 +2006,13 @@ body.hebrew #addSourceTextBox .en {
 }
 
 #selectedControls {
-	margin-top: 20px;
+	margin-top: 20px; 
 	font-size: 16px;
 }
 
 #selectedControls span {
 	margin: 0px 8px;
-	cursor: pointer;
+	cursor: pointer;			
 
 }
 
@@ -2059,13 +2059,13 @@ body.hebrew #addSourceTextBox .en {
 	margin-left: 0px;
 	margin-top: 8px;
 }
-
+		
 #addSourceType #otherType {
 	display: none;
 	margin-left: 8px;
 	width: 264px;
 }
-
+		
 .open textarea {
 	width: 98%;
 	height: 170px;
@@ -2205,13 +2205,13 @@ body #addSourceTextBox .btn.inactive {
 	text-align: justify;
 	line-height: 1.2;
 	box-shadow: 2px 2px 12px #333333;
-
+	
 }
 
 
 #closeAdd {
 	position: absolute;
-	top: 8px;
+	top: 8px; 
 	right: 8px;
 	font-size: 18px;
 	font-family: sans-serif;
@@ -2293,14 +2293,14 @@ body #addSourceTextBox .btn.inactive {
 
 #addVersionHeaderRight {
 	width: 48%;
-	float: right;
+	float: right;	
 }
 
-body.newText #addVersionHeaderLeft {
+body.newText #addVersionHeaderLeft { 
 	display: none;
 }
 
-body.newText #addVersionHeaderRight {
+body.newText #addVersionHeaderRight { 
 	width: 100%;
 	float: none;
 }
@@ -2367,10 +2367,10 @@ body.newText #addVersionHeaderRight input#versionTitle,
 body.newText #addVersionHeaderRight input#versionSource {
 	margin: 0px 18px 0px 4px;
 	width: 464px;
-}
+} 
 
 .compareTitle {
-	margin-bottom: 0px;
+	margin-bottom: 0px; 
 }
 .compareSource {
 	font-size: 14px;
@@ -2380,14 +2380,14 @@ body.newText #addVersionHeaderRight input#versionSource {
 #addVersionHeaderRight {
 
 }
-
+		
 #addVersionHeaderRight div {
 	margin-bottom: 8px;
 }
 
 #addVersionHeaderRight input, #addVersionHeaderRight select {
 	margin-bottom: 0px;
-}
+} 
 
 #cc0Message {
 	display: none;
