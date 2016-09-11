@@ -9,6 +9,7 @@ from sefaria.forms import HTMLPasswordResetForm, SefariaLoginForm
 from sefaria.settings import DOWN_FOR_MAINTENANCE
 
 admin.autodiscover()
+handler500 = 'reader.views.custom_server_error'
 
 # Texts API
 urlpatterns = patterns('reader.views',

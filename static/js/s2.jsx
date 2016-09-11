@@ -5713,16 +5713,16 @@ var LexiconEntry = React.createClass({
                 <span>
                   <a target="_blank"
                       href={('source_url' in lexicon_dtls) ? lexicon_dtls['source_url'] : ""}>
-                    <span className="en">Source: </span>
-                    <span className="he">מקור:</span>
+                    <span className="int-en">Source: </span>
+                    <span className="int-he">מקור:</span>
                     {'source' in lexicon_dtls ? lexicon_dtls['source'] : lexicon_dtls['source_url']}
                   </a>
                 </span>
                 <span>
                   <a target="_blank"
                       href={('attribution_url' in lexicon_dtls) ? lexicon_dtls['attribution_url'] : ""}>
-                    <span className="en">Creator: </span>
-                    <span className="he">יוצר:</span>
+                    <span className="int-en">Creator: </span>
+                    <span className="int-he">יוצר:</span>
                     {'attribution' in lexicon_dtls ? lexicon_dtls['attribution'] : lexicon_dtls['attribution_url']}
                   </a>
                 </span>
@@ -5767,7 +5767,7 @@ var ToolsPanel = React.createClass({
         debugger;
         var currentLangParam;
         if (this.props.version) {
-        refString += "/" + encodeURIComponent(this.props.versionLanguage) + "/" + encodeURIComponent(this.props.version);
+          refString += "/" + encodeURIComponent(this.props.versionLanguage) + "/" + encodeURIComponent(this.props.version);
         }
         var path = "/edit/" + refString;
         var nextParam = "?next=" + encodeURIComponent(currentPath);
