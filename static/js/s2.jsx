@@ -5767,7 +5767,7 @@ var ToolsPanel = React.createClass({
         debugger;
         var currentLangParam;
         if (this.props.version) {
-        refString += "/" + encodeURIComponent(this.props.versionLanguage) + "/" + encodeURIComponent(this.props.version);
+          refString += "/" + encodeURIComponent(this.props.versionLanguage) + "/" + encodeURIComponent(this.props.version);
         }
         var path = "/edit/" + refString;
         var nextParam = "?next=" + encodeURIComponent(currentPath);

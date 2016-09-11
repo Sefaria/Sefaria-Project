@@ -543,7 +543,7 @@ def edit_text(request, ref=None, lang=None, version=None):
                 text = TextFamily(Ref(ref), lang=lang, version=version).contents()
                 text["mode"] = request.path.split("/")[1]
                 mode = text["mode"].capitalize()
-                text["edit_lang"] = lang
+                text["edit_lang"] = lang if lang is not None else request.COOKIES.get('contentLang')
                 text["edit_version"] = version
                 initJSON = json.dumps(text)
         except:
