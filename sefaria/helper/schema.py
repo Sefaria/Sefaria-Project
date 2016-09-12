@@ -3,8 +3,8 @@
 from sefaria.model import *
 
 """
-                                                    IN PROCESS & UNTESTED
-
+Experimental
+These utilities have been used a few times, but are still rough.
 
 To get the existing schema nodes to pass into these functions, easiest is likely:
 Ref("...").index_node
@@ -18,11 +18,14 @@ Todo:
         varnish
 """
 
+
 def insert_last_child(new_node, parent_node):
     return attach_branch(new_node, parent_node, len(parent_node.children))
 
+
 def insert_first_child(new_node, parent_node):
     return attach_branch(new_node, parent_node, 0)
+
 
 def attach_branch(new_node, parent_node, place=0):
     #//todo: mark for commentary refactor?
@@ -54,6 +57,7 @@ def attach_branch(new_node, parent_node, place=0):
     library.rebuild()
     refresh_version_state(index.title)
 
+
 def remove_branch(node):
     #//todo: mark for commentary refactor?
     """
@@ -82,6 +86,7 @@ def remove_branch(node):
     index.save(override_dependencies=True)
     library.rebuild()
     refresh_version_state(index.title)
+
 
 def reorder_children(parent_node, new_order):
     """

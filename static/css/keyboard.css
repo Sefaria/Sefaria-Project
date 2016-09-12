@@ -55,7 +55,7 @@
 }
 #keyboardInputMaster.keyboardInputSize4,
 #keyboardInputMaster.keyboardInputSize4 * {
-  font-size:16px;
+  font-size:14px;
 }
 #keyboardInputMaster.keyboardInputSize5,
 #keyboardInputMaster.keyboardInputSize5 * {
@@ -229,7 +229,7 @@
 #keyboardInputMaster thead tr th span.pressed,
 #keyboardInputMaster tbody tr td table tbody tr td:active,
 #keyboardInputMaster tbody tr td table tbody tr td.pressed {
-  border-top:1px solid #555555 !important;
+  border-top:1px solid #555555;
   border-right:1px solid #d5d5d5;
   border-bottom:1px solid #d5d5d5;
   border-left:1px solid #555555;
