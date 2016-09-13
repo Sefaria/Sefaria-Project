@@ -417,7 +417,7 @@ Sefaria = extend(Sefaria, {
     }
   },
   ref: function(ref) {
-    // Returns parsed ref info for string `ref`.
+    // Returns parsed ref info for string `ref` which has been preloaded in the cache.
     // Uses this._refmap to find the refkey that has information for this ref.
     // Used in cases when the textual information is not important, so it can
     // be called without worrying about the `settings` parameter for what is available in cache.
@@ -509,9 +509,10 @@ Sefaria = extend(Sefaria, {
     }
   },
   _saveLinkData: function(ref, data) {
-    this._saveLinksByRef(data);
+    var l = this._saveLinksByRef(data);
     this._links[ref] = data;
     this._cacheIndexFromLinks(data);
+    return l;
   },
   _cacheIndexFromLinks: function(links) {
     // Cache partial index information (title, Hebrew title, categories) found in link data.
@@ -526,7 +527,7 @@ Sefaria = extend(Sefaria, {
     }
   },
   _saveLinksByRef: function(data) {
-    this._saveItemsByRef(data, this._links);
+    return this._saveItemsByRef(data, this._links);
   },
   _saveItemsByRef: function(data, store) {
     // For a set of items from the API, save each set split by the specific ref the items points to.
@@ -549,6 +550,7 @@ Sefaria = extend(Sefaria, {
         store[ref] = splitItems[ref];
       }
     }
+    return splitItems;
   },
   linksLoaded: function(ref) {
     // Returns true if link data has been loaded for `ref`.
@@ -706,7 +708,7 @@ Sefaria = extend(Sefaria, {
     return notes;
   },
   _saveNoteData: function(ref, data) {
-    this._saveItemsByRef(data, this._notes);
+    return this._saveItemsByRef(data, this._notes);
   },
   _privateNotes: {},
   privateNotes: function(refs, callback) {
@@ -793,11 +795,30 @@ Sefaria = extend(Sefaria, {
           if ("error" in data) { 
             return;
           }
-          this._saveLinkData(ref, data.links);
-          this._saveNoteData(ref, data.notes);
-          this.sheets._saveSheetsByRefData(ref, data.sheets);
+
+          // Save link, note, and sheet data, and retain the split data from each of these saves
+          var split_data = {
+              links: this._saveLinkData(ref, data.links),
+              notes: this._saveNoteData(ref, data.notes),
+              sheets: this.sheets._saveSheetsByRefData(ref, data.sheets)
+          };
+
+           // Build split related data from individual split data arrays
+          ["links", "notes", "sheets"].forEach(function(obj_type) {
+            for (var ref in split_data[obj_type]) {
+              if (split_data[obj_type].hasOwnProperty(ref)) {
+                if (!(ref in this._related)) {
+                    this._related[ref] = {links: [], notes: [], sheets: []};
+                }
+                this._related[ref][obj_type] = split_data[obj_type][ref];
+              }
+            }
+          }, this);
+
+           // Save the original data after the split data - lest a split version overwrite it.
           this._related[ref] = data;
           this._relatedSummaries[ref] = null; // Reset in case previously cached before API returned
+
           callback(data);
         }.bind(this));
     }
@@ -1176,7 +1197,7 @@ Sefaria = extend(Sefaria, {
     },
     _saveSheetsByRefData: function(ref, data) {
       this._sheetsByRef[ref] = data;
-      Sefaria._saveItemsByRef(data, this._sheetsByRef);
+      return Sefaria._saveItemsByRef(data, this._sheetsByRef);
     }
   },
   hebrewCategory: function(cat) {
