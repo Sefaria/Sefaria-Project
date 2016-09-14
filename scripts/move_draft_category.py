@@ -1,24 +1,17 @@
 # -*- coding: utf-8 -*-
 
 import argparse
-import json
-import urllib
-import urllib2
-
+import re
 from sefaria.model import *
-from sefaria.datatype.jagged_array import JaggedTextArray, JaggedArray
-
+from move_draft_text import ServerTextCopier
 try:
     from sefaria.local_settings import SEFARIA_BOT_API_KEY
 except ImportError:
     SEFARIA_BOT_API_KEY = None
 
-from move_draft_text import ServerTextCopier
-
-
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument("category", help="category argument")
+    parser.add_argument("expression", help="regular expression to identify index records")
     parser.add_argument("--noindex", action="store_false", help="Specify this flag when you do not wish to create a new Index record at the destination")
     parser.add_argument("-v", "--versionlist", help="comma separated version list: lang:versionTitle. To copy all versions, simply input 'all'")
     parser.add_argument("-k", "--apikey", help="non default api key", default=SEFARIA_BOT_API_KEY)
@@ -38,10 +31,9 @@ if __name__ == '__main__':
                 lang_vtitle = versionstr.split(":")
                 version_arr.append({'language': lang_vtitle[0], "versionTitle": lang_vtitle[1]})
             args.versionlist = version_arr
-    titles = library.get_indexes_in_category(args.category)
-    if args.commentator:
-        titles = [args.commentator + title for title in titles]
-    print titles
-    for title in titles:
-        copier = ServerTextCopier(args.destination_server, args.apikey, title, args.noindex, args.versionlist, args.links)
+    titles = re.compile(args.expression)
+    indexes = IndexSet({"title": titles})
+    for index in indexes:
+        copier = ServerTextCopier(args.destination_server, args.apikey, index.title,
+                                  args.noindex, args.versionlist, args.links)
         copier.do_copy()
