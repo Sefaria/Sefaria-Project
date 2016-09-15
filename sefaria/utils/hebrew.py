@@ -443,8 +443,8 @@ def hebrew_term(s):
 		"Maharshal":		u'מהרש"ל',
 		"Gur Aryeh":		u'גור אריה',
 		"Tur and Commentaries": u'טור ומפרשים',
-		"Yachin": u'יכין'
-
+		"Yachin": u'יכין',
+        "Harchev Davar": u'הרחב דבר'
 	}
 
 	pseudo_categories = {
