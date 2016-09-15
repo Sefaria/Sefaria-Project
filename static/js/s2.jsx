@@ -4850,13 +4850,13 @@ var TextSegment = React.createClass({
         return false;
     }
     return (
-      <span className={classes} onClick={this.handleClick} data-ref={this.props.sref}>
+      <div className={classes} onClick={this.handleClick} data-ref={this.props.sref}>
         {segmentNumber}
         {linkCountElement}
         <span className="he" dangerouslySetInnerHTML={ {__html: he + " "} }></span>
         <span className="en" dangerouslySetInnerHTML={ {__html: en + " "} }></span>
         <div className="clearFix"></div>
-      </span>
+      </div>
     );
   }
 });
