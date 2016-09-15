@@ -99,7 +99,7 @@ class AtomicTest(object):
 
     # Text Panel
     # Todo: handle the case when the loaded page has different URL - because of scroll
-    def load_ref(self, ref, filter=None):
+    def load_ref(self, ref, filter=None, lang=None):
         """
         takes string ref or object Ref
         :param ref:
@@ -111,8 +111,10 @@ class AtomicTest(object):
         assert isinstance(ref, Ref)
         url = self.base_url + "/" + ref.url()
         if filter is not None:
-            url += "?with={}".format(filter)
-        self.driver.get(url)
+            url += "&with={}".format(filter)
+        if lang is not None:
+             url += "&lang={}".format(lang)
+        self.driver.get(url.replace("&", "?", 1))
         if filter == "all":
             WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, ".categoryFilter")))
         elif filter is not None:
