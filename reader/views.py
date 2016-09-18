@@ -926,7 +926,7 @@ def text_toc(request, oref):
     title         = index.title
     heTitle       = index.get_title(lang='he')
     state         = StateNode(title)
-    versions      = VersionSet({"title": title}, sort=[("language", -1),("versionTitle", 1)])
+    versions      = VersionSet({"title": title}, sort=[("language", 1),("versionTitle", 1)])
 
     categories    = index.categories[:]
     if categories[0] in REORDER_RULES:
