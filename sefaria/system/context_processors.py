@@ -114,6 +114,15 @@ def header_html(request):
         "logged_out_header": LOGGED_OUT_HEADER,
     }
 
+def footer_html(request):
+    if USE_NODE:
+        FOOTER = FOOTER or render_react_component("Footer")
+    else:
+        FOOTER = ""
+    return {
+        "footer": FOOTER,
+    }
+
 
 def calendar_links(request):
     parasha  = calendars.this_weeks_parasha(datetime.now())

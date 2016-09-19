@@ -42,7 +42,7 @@
         interfaceLang: "{{ interfaceLang }}"
         });
     ReactDOM.render(component, container);
-
+    ReactDOM.render(React.createElement(Footer), document.getElementById('footer'));
   });
   {% endautoescape %}
 </script>
