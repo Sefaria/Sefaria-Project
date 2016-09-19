@@ -7086,12 +7086,12 @@ var LexiconEntry = React.createClass({
             href: 'source_url' in lexicon_dtls ? lexicon_dtls['source_url'] : "" },
           React.createElement(
             'span',
-            { className: 'en' },
+            { className: 'int-en' },
             'Source: '
           ),
           React.createElement(
             'span',
-            { className: 'he' },
+            { className: 'int-he' },
             'מקור:'
           ),
           'source' in lexicon_dtls ? lexicon_dtls['source'] : lexicon_dtls['source_url']
@@ -7106,12 +7106,12 @@ var LexiconEntry = React.createClass({
             href: 'attribution_url' in lexicon_dtls ? lexicon_dtls['attribution_url'] : "" },
           React.createElement(
             'span',
-            { className: 'en' },
+            { className: 'int-en' },
             'Creator: '
           ),
           React.createElement(
             'span',
-            { className: 'he' },
+            { className: 'int-he' },
             'יוצר:'
           ),
           'attribution' in lexicon_dtls ? lexicon_dtls['attribution'] : lexicon_dtls['attribution_url']
