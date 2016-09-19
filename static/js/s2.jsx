@@ -5652,7 +5652,7 @@ var LexiconPanel = React.createClass({
       }
     }else{
       var entries = this.state.entries;
-      content =  entries.filter(e => e['parent_lexicon_details']['text_categories'].indexOf(ref_cats) > -1).map(function(entry, i) {
+      content =  entries.filter(e => e['parent_lexicon_details']['text_categories'].indexOf(refCats) > -1).map(function(entry, i) {
             return (<LexiconEntry data={entry} key={i} />)
           });
       content = content.length ? content : <LoadingMessage message={enEmpty} heMessage={heEmpty} />;
