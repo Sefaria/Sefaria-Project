@@ -6977,7 +6977,7 @@ var LexiconPanel = React.createClass({
     } else {
       var entries = this.state.entries;
       content = entries.filter(function (e) {
-        return e['parent_lexicon_details']['text_categories'].indexOf(ref_cats) > -1;
+        return e['parent_lexicon_details']['text_categories'].indexOf(refCats) > -1;
       }).map(function (entry, i) {
         return React.createElement(LexiconEntry, { data: entry, key: i });
       });
