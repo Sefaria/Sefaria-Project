@@ -3217,7 +3217,7 @@ class Ref(object):
     def order_id(self):
         """
         Returns a unique id for this reference that establishes an ordering of references across the whole catalog.
-        This id will change as the ordering of the catalog changes, and may begin to overlap with other numbers because of those changes.
+        This id will change as the ordering of the categories changes, and may begin to overlap with other numbers because of those changes.
         However, at any point in time these ids will be unique across the catalog.
         Used to sort results from ElasticSearch queries
 

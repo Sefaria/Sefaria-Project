@@ -54,9 +54,9 @@ body.dark {
   direction: ltr;
 }
 #panelWrapBox {
-  position: relative;
-  padding-top: 54px;
-  height: 100%;
+  position: absolute;
+  top: 54px;
+  height: calc(100% - 54px);
   box-sizing: border-box;
 }
 #panelWrapBox.wrapBoxScroll {
@@ -65,6 +65,8 @@ body.dark {
 }
 .singlePanel #panelWrapBox {
   padding-top: 0;
+  height: 100%;
+  top: 0;
 }
 .headerInner {
   position: fixed;
@@ -380,7 +382,6 @@ body.dark {
 .multiPanel.interface-english .textColumn {
   padding-left: 17px;
 }
-
 .multiPanel.interface-hebrew .textColumn {
   padding-right: 17px;
 }
@@ -415,16 +416,14 @@ body.dark {
 .interface-hebrew .readerPanel .en{
   direction: ltr;
 }
-/*.readerPanel.hebrew {
-  direction: rtl;
-}*/
-/*.readerPanel.english {
-  direction: ltr;
-}*/
-.interface-hebrew .readerPanel .readerNavMenu, .readerPanel.hebrew .readerNavSection, .readerPanel.hebrew .readerNavMenu .category{
+.interface-hebrew .readerPanel .readerNavMenu,
+.readerPanel.hebrew .readerNavSection, 
+.readerPanel.hebrew .readerNavMenu .category {
   direction: rtl;
 }
-.interface-english .readerPanel .readerNavMenu, .readerPanel.english .readerNavSection, .readerPanel.english .readerNavMenu .category{
+.interface-english .readerPanel .readerNavMenu,
+.readerPanel.english .readerNavSection,
+ .readerPanel.english .readerNavMenu .category{
   direction: ltr;
 }
 .readerPanel.english .he {
@@ -516,21 +515,24 @@ body.dark {
   background-color: #F9F9F7;
 }
 .readerNavMenu .content {
+  position: relative;
   box-sizing: border-box;
-  padding: 80px 10px 10px;
+  padding: 30px 10px 10px;
   height: 100%;
   overflow-y: scroll;
   -webkit-overflow-scrolling: touch;
   font-size: 14px;
 }
-/* Adjusting for 17px scrollbars, to keep content centered */
-.multiPanel .english .readerNavMenu .content, .multiPanel .bilingual .readerNavMenu .content {
+.singlePanel .readerNavMenu .content {
+  top: 58px;
+  height: calc(100% - 58px);
+  padding-top: 40px;
 }
 .interface-hebrew.multiPanel .readerNavMenu .content {
   padding-right: 40px;
 }
 .multiPanel .readerNavMenu .content {
-  padding: 110px 30px;
+  padding: 30px 30px 70px 30px;
 }
 .multiPanel .readerNavMenu.noHeader .content {
   padding-top: 70px;
@@ -1003,11 +1005,11 @@ a.resourcesLink {
   margin-right: 4px;
 }
 .readerTextTableOfContents .content {
-  padding: 90px 10px 10px;
+  padding: 30px 10px 10px;
   box-sizing: border-box;
-  height: 100%;
-  overflow-y: scroll;
   text-align: center;
+  top: 58px;
+  height: calc(100% - 58px);
 }
 .readerTextTableOfContents .content .sectionLink {
   display: inline-block;
