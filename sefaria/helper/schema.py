@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from sefaria.model import *
+import re
 
 """
 Experimental
@@ -216,4 +217,110 @@ def replaceBadNodeTitles(title, bad_char, good_char):
     recurse(data)
     return data
 
+
+def change_node_structure(ja_node, section_names, address_types=None, upsize_in_place=False):
+    """
+    Updates the structure of a JaggedArrayNode to the depth specified by the length of sectionNames.
+
+    When increasing size, any existing text will become the first segment of the new level
+    ["One", "Two", "Three"] -> [["One"], ["Two"], ["Three"]]
+
+    When decreasing size, information is lost as any existing segments are concatenated with " "
+    [["One1", "One2"], ["Two1", "Two2"], ["Three1", "Three2"]] - >["One1 One2", "Two1 Two2", "Three1 Three2"]
+
+    A depth 0 text (i.e. a single string or an empty list) will be treated as if upsize_in_place was set to True
+
+    :param ja_node: JaggedArrayNode to be edited. Must be instance of class: JaggedArrayNode
+
+    :param section_names: sectionNames parameter of restructured node. This determines the depth
+    :param address_types: address_type parameter of restructured node. Defaults to ['Integer'] * len(sectionNames)
+
+    :param upsize_in_place: If True, existing text will stay in tact, but be wrapped in new depth:
+    ["One", "Two", "Three"] -> [["One", "Two", "Three"]]
+    """
+
+    assert isinstance(ja_node, JaggedArrayNode)
+    assert len(section_names) > 0
+
+    old_structure = ja_node.sectionNames
+    delta = len(section_names) - len(old_structure)
+    if upsize_in_place:
+        assert (delta > 0)
+
+    if address_types is None:
+        address_types = ['Integer'] * len(section_names)
+    else:
+        assert len(address_types) == len(section_names)
+
+    ja_node.sectionNames = section_names
+    ja_node.addressTypes = address_types
+    ja_node.depth = len(section_names)
+    index = ja_node.index
+    index.save(override_dependencies=True)
+
+    vs = [v for v in index.versionSet()]
+    vsc = [v for v in library.get_commentary_versions_on_book(index.title)]
+    for v in vs + vsc:
+        assert isinstance(v, Version)
+        if v.get_index() == index:
+            chunk = TextChunk(ja_node.ref(), lang=v.language, vtitle=v.versionTitle)
+        else:
+            ref_name = ja_node.ref().uid()
+            ref_name = ref_name.replace(index.title, v.get_index().title)
+            chunk = TextChunk(Ref(ref_name), lang=v.language, vtitle=v.versionTitle)
+        ja = chunk.ja()
+
+        if upsize_in_place or ja.get_depth() == 0:
+            wrapper = chunk.text
+            for i in range(delta):
+                wrapper = [wrapper]
+            chunk.text = wrapper
+            chunk.save()
+
+        else:
+            ja.resize(delta)
+            chunk.text = ja.array()
+            chunk.save()
+
+    library.rebuild()
+    refresh_version_state(index.title)
+
+    def fix_link(ref_string):
+
+        if delta == 0:
+            return ref_string
+
+        r = Ref(ref_string)
+        if delta < 0:
+            for i in range(delta):
+                if len(r.sections) == 0:
+                    break
+                r.sections.pop()
+                if r.is_range():
+                    r.toSections.pop()
+
+        elif upsize_in_place:
+            for i in range(delta):
+                r.sections.insert(0, 1)
+                if r.is_range():
+                    r.toSections.insert(0, 1)
+        else:
+            for i in range(delta):
+                r.sections.append(1)
+                if r.is_range():
+                    r.toSections.append(1)
+        if r.is_range():
+            return '{}.{}-{}'.format(r.book,
+                                     '.'.join([str(i) for i in r.sections]), '.'.join([str(i) for i in r.toSections],))
+        else:
+            return '{}.{}'.format(r.book, '.'.join([str(i) for i in r.sections]))
+
+    reg = re.compile(ja_node.ref().base_text_and_commentary_regex())
+    ls = LinkSet({'refs': {'$in': [reg]}})
+    for l in ls:
+        for ref_index, ref in enumerate(l.refs):
+            if reg.match(ref):
+                l.refs[ref_index] = fix_link(ref)
+        l.save()
+    # Todo: Handle alt-structs, sheets, history
 
