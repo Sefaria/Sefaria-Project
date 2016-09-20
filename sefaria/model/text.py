@@ -1196,14 +1196,22 @@ class TextChunk(AbstractTextRecord):
     def ja(self):
         return JaggedTextArray(self.text)
 
-    def save(self):
+    def save(self, force_save=False):
+        """
+        For editing in place (i.e. self.text[3] = "Some text"), it is necessary to set force_save to True. This is
+        because by editing in place, both the self.text and the self._original_text fields will get changed,
+        causing the save to abort.
+        :param force_save: If set to True, will force a save even if no change was detected in the text.
+        :return:
+        """
         assert self._saveable, u"Tried to save a read-only text: {}".format(self._oref.normal())
         assert not self._oref.is_range(), u"Only non-range references can be saved: {}".format(self._oref.normal())
         #may support simple ranges in the future.
         #self._oref.is_range() and self._oref.range_index() == len(self._oref.sections) - 1
-        if self.text == self._original_text:
-            logger.warning(u"Aborted save of {}. No change in text.".format(self._oref.normal()))
-            return False
+        if not force_save:
+            if self.text == self._original_text:
+                logger.warning(u"Aborted save of {}. No change in text.".format(self._oref.normal()))
+                return False
 
         self._validate()
         self._sanitize()
