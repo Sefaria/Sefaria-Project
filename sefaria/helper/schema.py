@@ -209,8 +209,8 @@ def replaceBadNodeTitles(title, bad_char, good_char):
                 recurse(each_one)
         elif 'default' not in node:
             node['title'] = node['title'].replace(bad_char, good_char)
-            if node['titles'][0]['lang']
-            node['titles'][0]['text'] = node['titles'][0]['text'].replace(bad_char, good_char)
+            if node['titles'][0]['lang']:
+                node['titles'][0]['text'] = node['titles'][0]['text'].replace(bad_char, good_char)
 
     data = library.get_index(title).nodes.serialize()
     recurse(data)

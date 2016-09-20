@@ -467,7 +467,7 @@ Sefaria = extend(Sefaria, {
       return this._lexiconLookups[cache_key] || [];
     }
     if (cache_key in this._lexiconLookups) {
-        console.log("data from cache: ", this._lexiconLookups[cache_key]);
+        /*console.log("data from cache: ", this._lexiconLookups[cache_key]);*/
         cb(this._lexiconLookups[cache_key]);
     } else if (words.length > 0) {
       var url = "/api/words/" + encodeURIComponent(words)+"?never_split=1";

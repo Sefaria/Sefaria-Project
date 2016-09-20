@@ -118,7 +118,8 @@ class PermanenceOfRangedRefs(AtomicTest):
 class PresenceOfDownloadButtonOnTOC(AtomicTest):
     suite_key = "Reader"
     every_build = True
-    exclude = ['And/5.1']  # Android driver doesn't support "Select" class. Haven't found workaround.
+    exclude = ['And/5.1', 'iPh5s']  # Android driver doesn't support "Select" class. Haven't found workaround.
+                                    # iPhone has an unrelated bug where a screen size refresh mid-test causes this to fail.
 
     def run(self):
         # Load Shabbat TOC and scroll to bottom
