@@ -199,7 +199,7 @@ def refresh_version_state(base_title):
         VersionState(title, {"flags": flags})
 
 
-def replaceBadNodeTitles(title, bad_char, good_char):
+def replaceBadNodeTitles(title, bad_char, good_char, lang):
     '''
     This recurses through the serialized tree changing replacing the previous title of each node to its title with the bad_char replaced by good_char. 
     '''
@@ -208,10 +208,18 @@ def replaceBadNodeTitles(title, bad_char, good_char):
             for each_one in node['nodes']:
                 recurse(each_one)
         elif 'default' not in node:
-            node['title'] = node['title'].replace(bad_char, good_char)
-            if node['titles'][0]['lang']:
-                node['titles'][0]['text'] = node['titles'][0]['text'].replace(bad_char, good_char)
 
+            if 'title' in node:
+                node['title'] = node['title'].replace(bad_char, good_char)
+            if 'titles' in node:
+                which_one = -1
+                if node['titles'][0]['lang'] == lang:
+                    which_one = 0
+                elif len(node['titles']) > 1 and node['titles'][1]['lang'] == lang:
+                    which_one = 1
+                if which_one >= 0:
+                    node['titles'][which_one]['text'] = node['titles'][which_one]['text'].replace(bad_char, good_char)
+ 
     data = library.get_index(title).nodes.serialize()
     recurse(data)
     return data
