@@ -257,6 +257,7 @@ def change_node_structure(ja_node, section_names, address_types=None, upsize_in_
     ja_node.depth = len(section_names)
     index = ja_node.index
     index.save(override_dependencies=True)
+    library.refresh_index_record_in_cache(index)
 
     vs = [v for v in index.versionSet()]
     vsc = [v for v in library.get_commentary_versions_on_book(index.title)]
@@ -265,6 +266,7 @@ def change_node_structure(ja_node, section_names, address_types=None, upsize_in_
         if v.get_index() == index:
             chunk = TextChunk(ja_node.ref(), lang=v.language, vtitle=v.versionTitle)
         else:
+            library.refresh_index_record_in_cache(v.get_index())
             ref_name = ja_node.ref().uid()
             ref_name = ref_name.replace(index.title, v.get_index().title)
             chunk = TextChunk(Ref(ref_name), lang=v.language, vtitle=v.versionTitle)
@@ -292,7 +294,7 @@ def change_node_structure(ja_node, section_names, address_types=None, upsize_in_
 
         r = Ref(ref_string)
         if delta < 0:
-            for i in range(delta):
+            for i in range(-delta):
                 if len(r.sections) == 0:
                     break
                 r.sections.pop()
