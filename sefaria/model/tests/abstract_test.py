@@ -75,7 +75,7 @@ class Test_Mongo_Record_Methods(object):
             "type": "note",
             "public": True
         }
-        model.Note(attrs).save()
+        model.Note(attrs).save() # added to make sure there is a note in the db, if the table is truncated or not extant.
         n1 = model.Note(attrs)
         n2 = model.Note(attrs)
         n3 = model.Note()
