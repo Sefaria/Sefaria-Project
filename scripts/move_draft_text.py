@@ -65,7 +65,7 @@ class ServerTextCopier(object):
             for flag in ver.optional_attrs:
                 if hasattr(ver, flag):
                     flags[flag] = getattr(ver, flag, None)
-            for node_num, node in enumerate(content_nodes):
+            for node_num, node in enumerate(content_nodes,1):
                 print node.full_title(force_update=True)
                 text = JaggedTextArray(ver.content_node(node)).array()
                 version_payload = {
@@ -77,7 +77,7 @@ class ServerTextCopier(object):
                 if len(text) > 0:
                     # only bother posting nodes that have content.
                     found_non_empty_content = True
-                    if node_num == len(content_nodes) - 1:
+                    if node_num == len(content_nodes):
                         self._make_post_request_to_server(self._prepare_text_api_call(
                             node.full_title(force_update=True), count_after=True), version_payload)
                     else:
@@ -105,10 +105,7 @@ class ServerTextCopier(object):
         return 'api/v2/raw/index/{}'.format(index_title.replace(" ", "_"))
 
     def _prepare_text_api_call(self, terminal_ref, count_after=False):
-        if count_after:
-            return 'api/texts/{}?count_after={}&index_after=0'.format(urllib.quote(terminal_ref.replace(" ", "_").encode('utf-8')), 1)
-        else:
-            return 'api/texts/{}?count_after={}&index_after=0'.format(urllib.quote(terminal_ref.replace(" ", "_").encode('utf-8')), 0)
+        return 'api/texts/{}?count_after={}&index_after=0'.format(urllib.quote(terminal_ref.replace(" ", "_").encode('utf-8')), int(count_after))
 
     def _prepare_version_attrs_api_call(self, title, lang, vtitle):
         return "api/version/flags/{}/{}/{}".format(urllib.quote(title), urllib.quote(lang), urllib.quote(vtitle))
