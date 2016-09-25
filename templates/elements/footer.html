@@ -1,8 +1,9 @@
 {% if S2 %}
-<footer id="footer" class="interface-{{ interfaceLang }} static sans">
-    {{ footer }}
-</footer>
-
+    {% autoescape off %}
+        <footer id="footer" class="interface-{{ interfaceLang }} static sans context">
+            {{ footer }}
+        </footer>
+    {% endautoescape %}
 {% else %}
 <footer id="footer" class="{% if class %}{{ class }}{% endif %}">
 	<div class="container">

@@ -114,13 +114,17 @@ def header_html(request):
         "logged_out_header": LOGGED_OUT_HEADER,
     }
 
+FOOTER = None
 def footer_html(request):
+    if request.path == "/data.js":
+        return {}
+    global FOOTER
     if USE_NODE:
-        FOOTER = FOOTER or render_react_component("Footer")
+        FOOTER = FOOTER or render_react_component("Footer", {})
     else:
         FOOTER = ""
     return {
-        "footer": FOOTER,
+        "footer": FOOTER
     }
 
 

@@ -7644,6 +7644,7 @@ if (typeof exports !== 'undefined') {
   exports.ConnectionsPanel    = ConnectionsPanel;
   exports.TextRange           = TextRange;
   exports.TextColumn          = TextColumn;
+  exports.Footer              = Footer;
   exports.setData             = setData;
   exports.unpackDataFromProps = Sefaria.unpackDataFromProps;
 }
