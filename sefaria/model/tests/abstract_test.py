@@ -75,10 +75,9 @@ class Test_Mongo_Record_Methods(object):
             "type": "note",
             "public": True
         }
+        model.Note(attrs).save()
         n1 = model.Note(attrs)
         n2 = model.Note(attrs)
-        n1.save() #added in case the Note collection does not exist from a fresh dump
-        n2.save()
         n3 = model.Note()
         assert n1 is not n2
         assert n1 == n2
