@@ -266,7 +266,7 @@ class AtomicTest(object):
     #Source Sheets
     def load_sheets(self):
         self.driver.get(self.base_url + "/sheets")
-        WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, ".sheet")))
+        WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, ".tagsHeader")))
         self.set_modal_cookie()
         return self
     
