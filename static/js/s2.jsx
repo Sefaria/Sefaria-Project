@@ -5266,7 +5266,8 @@ var TextList = React.createClass({
         // Viewing Text Connections
         var sectionLinks = Sefaria.links(sectionRef);
         var links        = sectionLinks.filter(function(link) {
-          if (Sefaria.util.inArray(link.anchorRef, refs) === -1 && (this.props.multiPanel || !isSingleCommentary) ) {
+          if ( (this.props.multiPanel || !isSingleCommentary) &&
+              Sefaria.splitSpanningRef(link.anchorRef).every(aref => Sefaria.util.inArray(aref, refs) === -1)) {
             // Only show section level links for an individual commentary
             return false;
           }
@@ -5274,7 +5275,8 @@ var TextList = React.createClass({
                   Sefaria.util.inArray(link.category, filter) !== -1 || 
                   Sefaria.util.inArray(link.commentator, filter) !== -1 );
 
-          }.bind(this)).sort(function(a, b) {
+          }.bind(this)
+        ).sort(function(a, b) {
             if (a.anchorVerse !== b.anchorVerse) {
                 return a.anchorVerse - b.anchorVerse;
             } else if ( a.commentaryNum !== b.commentaryNum) {
