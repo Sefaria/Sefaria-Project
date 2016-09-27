@@ -11,6 +11,7 @@ from sefaria.model import library
 from sefaria.model.user_profile import UserProfile
 from sefaria.utils import calendars
 from sefaria.utils.util import short_to_long_lang_code
+from sefaria.utils.hebrew import hebrew_parasha_name
 from reader.views import render_react_component
 
 
@@ -142,6 +143,7 @@ def calendar_links(request):
                 "daf_yomi_link": daf_yomi_link,
                 "parasha_ref":   parasha["ref"],
                 "parasha_name":  parasha["parasha"],
+                "he_parasha_name":hebrew_parasha_name(parasha["parasha"]),
                 "haftara_ref":   parasha["haftara"][0],
                 "daf_yomi_ref":  daf["url"]
             }

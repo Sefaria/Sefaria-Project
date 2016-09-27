@@ -2695,7 +2695,7 @@ var ReaderNavigationMenu = React.createClass({
         siteLinks
       );
 
-      var calendar = Sefaria.calendar ? [React.createElement(TextBlockLink, { sref: Sefaria.calendar.parasha, title: Sefaria.calendar.parashaName, heTitle: 'פרשה', category: 'Tanakh' }), React.createElement(TextBlockLink, { sref: Sefaria.calendar.haftara, title: 'Haftara', heTitle: 'הפטרה', category: 'Tanakh' }), React.createElement(TextBlockLink, { sref: Sefaria.calendar.daf_yomi, title: 'Daf Yomi', heTitle: 'דף יומי', category: 'Talmud' })] : [];
+      var calendar = Sefaria.calendar ? [React.createElement(TextBlockLink, { sref: Sefaria.calendar.parasha, title: Sefaria.calendar.parashaName, heTitle: Sefaria.calendar.heParashaName, category: 'Tanakh' }), React.createElement(TextBlockLink, { sref: Sefaria.calendar.haftara, title: 'Haftara', heTitle: 'הפטרה', category: 'Tanakh' }), React.createElement(TextBlockLink, { sref: Sefaria.calendar.daf_yomi, title: 'Daf Yomi', heTitle: 'דף יומי', category: 'Talmud' })] : [];
       calendar = React.createElement(
         'div',
         { className: 'readerNavCalendar' },
