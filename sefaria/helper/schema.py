@@ -100,6 +100,50 @@ def reorder_children(parent_node, new_order):
     parent_node.index.save()
 
 
+def merge_default_into_parent(parent_node):
+    """
+    In a case where a parent has only one child - a default child - this merges the two together into one Jagged Array node.
+
+    Example Usage:
+    >>> r = Ref('Mei HaShiloach, Volume II, Prophets, Judges')
+    >>> merge_default_into_parent(r.index_node)
+
+    :param parent_node:
+    :return:
+    """
+    assert isinstance(parent_node, SchemaNode)
+    assert len(parent_node.children) == 1
+    assert parent_node.has_default_child()
+    default_node = parent_node.get_default_child()
+    #assumption: there's a grandparent.  todo: handle the case where the parent is the root node of the schema
+    grandparent_node = parent_node.parent
+    index = parent_node.index
+
+    # Repair all versions
+    vs = [v for v in index.versionSet()]
+    vsc = [v for v in library.get_commentary_versions_on_book(index.title)]
+    for v in vs + vsc:
+        assert isinstance(v, Version)
+        grandparent_version_dict = v.sub_content(grandparent_node.version_address())
+        grandparent_version_dict[parent_node.key] = grandparent_version_dict[parent_node.key]["default"]
+        v.save(override_dependencies=True)
+
+    # Rebuild Index
+    new_node = JaggedArrayNode()
+    new_node.key = parent_node.key
+    new_node.title_group = parent_node.title_group
+    new_node.sectionNames = default_node.sectionNames
+    new_node.addressTypes = default_node.addressTypes
+    new_node.depth = default_node.depth
+
+    grandparent_node.children = [c if c.key != parent_node.key else new_node for c in grandparent_node.children]
+
+    # Save index and rebuild library
+    index.save(override_dependencies=True)
+    library.rebuild()
+    refresh_version_state(index.title)
+
+
 def convert_simple_index_to_complex(index):
     """
     The target complex text will have a 'default' node.
