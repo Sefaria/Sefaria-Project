@@ -6505,7 +6505,9 @@ var TextList = React.createClass({
         // Viewing Text Connections
         var sectionLinks = Sefaria.links(sectionRef);
         var links = sectionLinks.filter(function (link) {
-          if (Sefaria.util.inArray(link.anchorRef, refs) === -1 && (this.props.multiPanel || !isSingleCommentary)) {
+          if ((this.props.multiPanel || !isSingleCommentary) && Sefaria.splitSpanningRef(link.anchorRef).every(function (aref) {
+            return Sefaria.util.inArray(aref, refs) === -1;
+          })) {
             // Only show section level links for an individual commentary
             return false;
           }
