@@ -2566,7 +2566,7 @@ a.resourcesLink {
 }
 .hebrew .textRange .numberLabel,
 .bilingual .textRange .numberLabel  {
-  right: -14px;
+  right: -30px;
 }
 .textRange.lowlight .numberLabel {
   color: #999;
