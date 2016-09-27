@@ -8618,7 +8618,7 @@ var SearchFilters = React.createClass({
       ),
       React.createElement(
         'div',
-        { className: 'searchFilterBoxes', style: { display: this.state.displayFilters ? "block" : "none" } },
+        { className: this.state.displayFilters ? "searchFilterBoxes" : "searchFilterBoxes hidden" },
         React.createElement(
           'div',
           { className: 'searchFilterCategoryBox' },

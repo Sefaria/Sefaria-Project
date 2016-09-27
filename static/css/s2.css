@@ -1359,9 +1359,13 @@ a.resourcesLink {
   padding-right: 5px;
 }
 .searchContent .searchFilterBoxes {
-  margin: 10px 0;
-  background: #eee;
-  width: 100%;
+    margin: 10px 0;
+    background: #eee;
+    width: 100%;
+    display: flex;
+}
+.searchFilterBoxes.hidden{
+    display:none;
 }
 .searchContent .searchFilterBoxes li {
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
@@ -1415,14 +1419,13 @@ a.resourcesLink {
 }
 .searchContent .searchFilterCategoryBox,
 .searchContent .searchFilterBookBox {
-  float: left;
   width: 50%;
   height: 150px;
   overflow-y: auto;
 }
 .interface-hebrew .searchContent .searchFilterCategoryBox,
 .interface-hebrew .searchContent .searchFilterBookBox {
-  float: right;
+  /*float: right;*/
 }
 .searchContent .result {
   border-bottom: thin solid #eee;

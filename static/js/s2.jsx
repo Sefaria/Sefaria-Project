@@ -6923,7 +6923,7 @@ var SearchFilters = React.createClass({
         <span className="int-he">סנן לפי כותר   </span>
         <i className={(this.state.displayFilters) ? "fa fa-caret-down fa-angle-down":"fa fa-caret-down"} />
       </div>
-      <div className="searchFilterBoxes" style={{display: this.state.displayFilters?"block":"none"}}>
+      <div className={(this.state.displayFilters) ? "searchFilterBoxes":"searchFilterBoxes hidden"}>
         <div className="searchFilterCategoryBox">
         {this.props.availableFilters.map(function(filter) {
             return (<SearchFilter
