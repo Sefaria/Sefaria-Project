@@ -116,7 +116,10 @@ def merge_default_into_parent(parent_node):
     assert parent_node.has_default_child()
     default_node = parent_node.get_default_child()
     #assumption: there's a grandparent.  todo: handle the case where the parent is the root node of the schema
-    grandparent_node = parent_node.parent
+    is_root = True
+    if parent_node.parent:
+        is_root = False
+        grandparent_node = parent_node.parent
     index = parent_node.index
 
     # Repair all versions
@@ -124,8 +127,11 @@ def merge_default_into_parent(parent_node):
     vsc = [v for v in library.get_commentary_versions_on_book(index.title)]
     for v in vs + vsc:
         assert isinstance(v, Version)
-        grandparent_version_dict = v.sub_content(grandparent_node.version_address())
-        grandparent_version_dict[parent_node.key] = grandparent_version_dict[parent_node.key]["default"]
+        if is_root:
+            v.chapter = v.chapter["default"]
+        else:
+            grandparent_version_dict = v.sub_content(grandparent_node.version_address())
+            grandparent_version_dict[parent_node.key] = grandparent_version_dict[parent_node.key]["default"]
         v.save(override_dependencies=True)
 
     # Rebuild Index
@@ -135,8 +141,10 @@ def merge_default_into_parent(parent_node):
     new_node.sectionNames = default_node.sectionNames
     new_node.addressTypes = default_node.addressTypes
     new_node.depth = default_node.depth
-
-    grandparent_node.children = [c if c.key != parent_node.key else new_node for c in grandparent_node.children]
+    if is_root:
+        index.nodes = new_node
+    else:
+        grandparent_node.children = [c if c.key != parent_node.key else new_node for c in grandparent_node.children]
 
     # Save index and rebuild library
     index.save(override_dependencies=True)
