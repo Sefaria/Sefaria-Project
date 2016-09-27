@@ -251,6 +251,19 @@ def refresh_version_state(base_title):
         VersionState(title, {"flags": flags})
 
 
+def change_node_title(snode, old_title, lang, new_title):
+    """
+    Changes the title of snode specified by old_title and lang, to new_title.
+    If the title changing is the primary english title, cascades to all of the impacted objects
+    :param snode:
+    :param old_title:
+    :param lang:
+    :param new_title:
+    :return:
+    """
+    pass
+
+
 def replaceBadNodeTitles(title, bad_char, good_char, lang):
     '''
     This recurses through the serialized tree changing replacing the previous title of each node to its title with the bad_char replaced by good_char. 

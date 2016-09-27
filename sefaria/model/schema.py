@@ -365,7 +365,7 @@ class TreeNode(object):
         """
         Traverse tree, invoking callback at each node, with kwargs as arguments
         :param callback:
-        :param kwargs: 
+        :param kwargs:
         :return:
         """
         callback(self, **kwargs)
