@@ -556,7 +556,6 @@ def hebrew_parasha_name(value):
 	Returns a Hebrew ref for the english ref passed in.
 	"""
 	from sefaria.model import Term
-	print value
 	if not value:
 		return ""
 	if "-" in value:
