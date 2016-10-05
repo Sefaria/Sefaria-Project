@@ -408,6 +408,9 @@ body.dark {
 .he, .int-he {
   font-size: 120%;
 }
+.int-he .int-he {
+  font-size: inherit;
+}
 .readerPanel .he {
   font-family: "Taamey Frank", "Times New Roman", serif;
   direction: rtl;
@@ -2823,6 +2826,16 @@ a.resourcesLink {
   color: #ccc;
   font-size: 13px;
   margin-top: 8px;
+}
+.notificationsList .int-he {
+  font-size: inherit;
+}
+.notificationsList .notification a{
+  unicode-bidi: plaintext;
+}
+.notification-message-link {
+  display: inline-block;
+  padding: 0 5px;
 }
 .sefariaLogo {
   text-align: center;
