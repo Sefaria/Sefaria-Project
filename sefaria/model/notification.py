@@ -61,6 +61,8 @@ class GlobalNotification(abst.AbstractMongoRecord):
     @staticmethod
     def latest_id():
         n = db.global_notification.find_one({}, {"_id": 1}, sort=[["_id", -1]])
+        if not n:
+            return None
         return n["_id"]
 
     def make_index(self, index):
@@ -230,11 +232,12 @@ class NotificationSet(abst.AbstractMongoSet):
         :return:
         """
         latest_id_for_user = Notification.latest_global_for_user(uid)
-        if GlobalNotification.latest_id() != latest_id_for_user:
+        latest_global_id = GlobalNotification.latest_id()
+        if (latest_id_for_user or latest_global_id) and (latest_global_id != latest_id_for_user):
             if latest_id_for_user is None:
                 GlobalNotificationSet({}, limit=10).register_for_user(uid)
             else:
-                GlobalNotificationSet({"_id": {"$gt": latest_id_for_user}}).register_for_user(uid)
+                GlobalNotificationSet({"_id": {"$gt": latest_id_for_user}}, limit=10).register_for_user(uid)
 
     def unread_for_user(self, uid):
         """
