@@ -2568,6 +2568,9 @@ a.resourcesLink {
 .bilingual .textRange .numberLabel  {
   right: -30px;
 }
+.multiPanel .textRange .numberLabel{
+  display: none;
+}
 .textRange.lowlight .numberLabel {
   color: #999;
 }

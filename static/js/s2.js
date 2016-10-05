@@ -7501,12 +7501,12 @@ var ConfirmAddToSheetPanel = React.createClass({
         { className: 'message' },
         React.createElement(
           'span',
-          { className: 'en' },
+          { className: 'int-en' },
           'Your source has been added.'
         ),
         React.createElement(
           'span',
-          { className: 'he' },
+          { className: 'int-he' },
           'הטקסט נוסף בהצלחה לדף המקורות'
         )
       ),
@@ -7515,13 +7515,13 @@ var ConfirmAddToSheetPanel = React.createClass({
         { className: 'button white', href: "/sheets/" + this.props.sheetId },
         React.createElement(
           'span',
-          { className: 'en' },
+          { className: 'int-en' },
           'Go to Source Sheet ',
           React.createElement('i', { className: 'fa fa-angle-right' })
         ),
         React.createElement(
           'span',
-          { className: 'he' },
+          { className: 'int-he' },
           'עבור לדף המקורות',
           React.createElement('i', { className: 'fa fa-angle-left' })
         )
