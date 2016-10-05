@@ -223,6 +223,18 @@ class Test_Jagged_Text_Array(object):
     def test_resize(self):
         assert ja.JaggedTextArray(twoby).resize(1).resize(-1) == ja.JaggedTextArray(twoby)
 
+    def test_resize_with_empty_string(self):
+        a = ["Foo","Bar","","Quux"]
+        assert ja.JaggedTextArray(a).resize(1).resize(-1) == ja.JaggedTextArray(a)
+
+        # A bug had left [] alone during downsize.
+        b = [["Foo"],["Bar"],[],["Quux"]]
+        c = [["Foo"],["Bar"],[""],["Quux"]]
+
+        jb = ja.JaggedTextArray(b).resize(-1)
+        jc = ja.JaggedTextArray(c).resize(-1)
+        assert jb == jc, "{} != {}".format(jb.array(), jc.array())
+
     def test_flatten_to_array(self):
         assert ja.JaggedTextArray(threeby).flatten_to_array() == [
             "Part 1 Line 1:1", "This is the first second", "First third",

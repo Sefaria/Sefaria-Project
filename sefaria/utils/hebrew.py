@@ -550,3 +550,26 @@ def hebrew_term(s):
 		if term:
 			return term.get_primary_title('he')
 	return ''
+
+
+def hebrew_parasha_name(value):
+	"""
+	Returns a Hebrew ref for the english ref passed in.
+	"""
+	from sefaria.model import Term
+	if not value:
+		return ""
+	if "-" in value:
+		if value == "Lech-Lecha":
+			return hebrew_parasha_name(value.replace("-", " "))
+		else:
+			names = value.split("-")
+			return ("-").join(map(hebrew_parasha_name, names))
+	else:
+		try:
+			term    = Term().load({"name": value, "scheme": "Parasha"})
+			parasha = term.get_titles(lang="he")[0]
+		except Exception, e:
+			print e
+			parasha   = value
+		return parasha

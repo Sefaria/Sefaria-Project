@@ -3,6 +3,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait, Select
 from selenium.webdriver.support.expected_conditions import title_contains, staleness_of, element_to_be_clickable, visibility_of_element_located, invisibility_of_element_located
 
+from sefaria.model import *
 from selenium.webdriver.common.keys import Keys
 
 TEMPER = 10
@@ -52,6 +53,37 @@ class LoadRefAndClickSegment(AtomicTest):
         assert "with=all" in self.driver.current_url, self.driver.current_url
 
         self.click_text_filter("Malbim")
+
+
+class LoadRefAndOpenLexicon(AtomicTest):
+    suite_key = "Reader"
+    single_panel = False
+
+    def run(self):
+        load_ref =  Ref("Numbers 25")
+        click_ref = Ref("Numbers 25.5")
+        self.load_ref(load_ref, lang="he").click_segment(click_ref)
+        assert "Numbers.25.5" in self.driver.current_url, self.driver.current_url
+        assert "with=all" in self.driver.current_url, self.driver.current_url
+        """selector = '.segment[data-ref="{}"]'.format(click_ref.normal())
+        self.driver.execute_script(
+            "var range = document.createRange();" +
+            "var start = document.querySelectorAll('[data-ref=\"Numbers 25:5\"]');" +
+            "var textNode = start.querySelectorAll('span.he')[0].firstChild;" +
+            "range.setStart(textNode, 0);" +
+            "range.setEnd(textNode, 5);" +
+            "window.getSelection().addRange(range);"
+        )"""
+        """actions = ActionChains(self.driver)
+        element = self.driver.find_element_by_css_selector(selector)
+        actions.move_to_element(element)
+        actions.double_click(on_element=element)
+        actions.move_by_offset(50, 0)
+        actions.click_and_hold(on_element=None)
+        actions.move_by_offset(70, 0)
+        actions.release(on_element=None)
+        actions.perform()"""
+        """WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, ".lexicon-content")))"""
 
 
 class LoadRefWithCommentaryAndClickOnCommentator(AtomicTest):
@@ -118,7 +150,8 @@ class PermanenceOfRangedRefs(AtomicTest):
 class PresenceOfDownloadButtonOnTOC(AtomicTest):
     suite_key = "Reader"
     every_build = True
-    exclude = ['And/5.1']  # Android driver doesn't support "Select" class. Haven't found workaround.
+    exclude = ['And/5.1', 'iPh5s']  # Android driver doesn't support "Select" class. Haven't found workaround.
+                                    # iPhone has an unrelated bug where a screen size refresh mid-test causes this to fail.
 
     def run(self):
         # Load Shabbat TOC and scroll to bottom

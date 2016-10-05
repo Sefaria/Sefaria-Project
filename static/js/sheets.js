@@ -3128,9 +3128,18 @@ function rebuildUpdatedSheet(data) {
 		// An editor is currently open -- save current changes as a lastEdit
 		sjs.saveLastEdit($(".cke_editable").eq(0));
 	}
-
+	if (sjs.can_edit || sjs.can_add) {
+		$("#addInterface").insertAfter($("#sources"));
+	}
 	buildSheet(data);
 	sjs.replayLastEdit();
+	if (sjs.can_edit || sjs.can_add) {
+		$(".sheetItem").on("click", ".inlineAddButtonIcon", function(e) {
+			$("#addInterface").insertAfter($(this).parent().closest(".sheetItem"));
+			$(this).parent().closest(".sheetItem").hasClass("source") ? $("#connectionButton").css('display', 'inline-block') : $("#connectionButton").hide();
+		});
+	}
+
 }
 
 

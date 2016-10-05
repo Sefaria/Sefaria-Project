@@ -534,6 +534,9 @@ body.dark {
 .multiPanel .readerNavMenu .content {
   padding: 30px 30px 70px 30px;
 }
+.multiPanel .readerNavMenu .content.hasFooter {
+  padding: 30px 0px 0px 0px;
+}
 .multiPanel .readerNavMenu.noHeader .content {
   padding-top: 70px;
 }
@@ -1351,14 +1354,18 @@ a.resourcesLink {
   color: #999;
   padding-left: 5px;
 }
-.hebrew .searchContent .searchFilterToggle i {
+.interface-hebrew .searchContent .searchFilterToggle i {
   padding-left: 0;
   padding-right: 5px;
 }
 .searchContent .searchFilterBoxes {
-  margin: 10px 0;
-  background: #eee;
-  width: 100%;
+    margin: 10px 0;
+    background: #eee;
+    width: 100%;
+    display: flex;
+}
+.searchFilterBoxes.hidden{
+    display:none;
 }
 .searchContent .searchFilterBoxes li {
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
@@ -1371,7 +1378,7 @@ a.resourcesLink {
 .searchContent .searchFilterBoxes li:hover {
   background-color: #e0e0e0;
 }
-.hebrew .searchContent .searchFilterBoxes li {
+.interface-hebrew .searchContent .searchFilterBoxes li {
   font-family: "Open Sans Hebrew", sans-serif;
   padding: 10px 15px 10px 0;
 }
@@ -1405,21 +1412,20 @@ a.resourcesLink {
   padding-right: 20px;
   color: #999;
 }
-.hebrew .searchContent .searchFilterBoxes li .in-focus-arrow {
+.interface-hebrew .searchContent .searchFilterBoxes li .in-focus-arrow {
   float: left;
   padding-left: 20px;
   padding-right: 0;
 }
 .searchContent .searchFilterCategoryBox,
 .searchContent .searchFilterBookBox {
-  float: left;
   width: 50%;
   height: 150px;
   overflow-y: auto;
 }
-.hebrew .searchContent .searchFilterCategoryBox,
-.hebrew .searchContent .searchFilterBookBox {
-  float: right;
+.interface-hebrew .searchContent .searchFilterCategoryBox,
+.interface-hebrew .searchContent .searchFilterBookBox {
+  /*float: right;*/
 }
 .searchContent .result {
   border-bottom: thin solid #eee;
@@ -2560,7 +2566,10 @@ a.resourcesLink {
 }
 .hebrew .textRange .numberLabel,
 .bilingual .textRange .numberLabel  {
-  right: -14px;
+  right: -30px;
+}
+.multiPanel .textRange .numberLabel{
+  display: none;
 }
 .textRange.lowlight .numberLabel {
   color: #999;
@@ -3207,4 +3216,110 @@ body #keyboardInputMaster tbody tr td table tbody tr td:active,
 body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
     border: 1px solid #eee;
     background: #eee;
+}
+
+
+#footer #siteLanguageToggle {
+  color: #999;
+  margin-top: 15px;
+  font-size: 13px;
+}
+#footer #siteLanguageToggle #siteLanguageToggleLabel {
+  display: block;
+}
+#footer a#siteLanguageEnglish,
+#footer a#siteLanguageHebrew {
+  cursor: pointer;
+  color: #666;
+  display: inline;
+  margin: 0 3px;
+  font-size: 13px;
+}
+#footer #siteLanguageEnglish:hover,
+#footer #siteLanguageHebrew:hover {
+  text-decoration: underline;
+}
+#footer a#siteLanguageHebrew {
+  font-size: 14px;
+}
+#footer {
+  background-color: white;
+  border-top: 1px solid #F4F4F4;
+  overflow: hidden;
+  padding: 18px 40px;
+  text-align: left;
+}
+#footer .section {
+  margin-top: 20px;
+  margin-bottom: 20px;
+}
+#footer .header {
+  font-weight: bold;
+  font-size: 15px;
+  margin-bottom: 3px;
+}
+#footer a {
+  display: block;
+}
+#footer.interface-hebrew, .interface-hebrew #footer{
+  direction: rtl;
+  text-align: right;
+}
+#footer.interface-english .int-he, .interface-english #footer .int-he {
+  display: none;
+}
+#footer.interface-english .int-en, .interface-english #footer .int-en {
+  display: inline;
+}
+#footer.interface-hebrew .int-he, .interface-hebrew #footer .int-he {
+  display: inline;
+  font-size: 120%;
+  text-align: right;
+}
+#footer.interface-hebrew .int-en, .interface-hebrew #footer .int-en {
+  display: none;
+}
+#footerInner {
+  max-width: 900px;
+  margin: 0 auto;
+}
+#footer .section {
+  display: inline-block;
+  vertical-align: top;
+  width: 160px;
+}
+#footer.interface-english .section, .interface-english #footer .section {
+  text-align: left;
+}
+#footer.interface-hebrew .section, .interface-hebrew #footer .section {
+  text-align: right;
+}
+#footer .section .header {
+  color: #666;
+  margin-bottom: 12px;
+  font-weight: normal;
+  font-size: 13px;
+}
+#footer .section.last {
+  float: right;
+  text-align: right;
+  width: 210px;
+  border-left: 1px solid #EAEAEA;
+}
+#footer.interface-hebrew .section.last, .interface-hebrew #footer .section.last {
+  float: left;
+  text-align: left;
+  border-left: none;
+  border-right: 1px solid #EAEAEA;
+}
+#footer .section a {
+  color: #aaa;
+  font-size: 14px;
+  margin: 2px 0;
+}
+#footer .fa {
+  margin: 0 3px;
+}
+.multiPanel .readerNavMenu .content.hasFooter #footer{
+  margin-top: 100px;
 }

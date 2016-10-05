@@ -11,6 +11,7 @@ from sefaria.model import library
 from sefaria.model.user_profile import UserProfile
 from sefaria.utils import calendars
 from sefaria.utils.util import short_to_long_lang_code
+from sefaria.utils.hebrew import hebrew_parasha_name
 from reader.views import render_react_component
 
 
@@ -114,6 +115,19 @@ def header_html(request):
         "logged_out_header": LOGGED_OUT_HEADER,
     }
 
+FOOTER = None
+def footer_html(request):
+    if request.path == "/data.js":
+        return {}
+    global FOOTER
+    if USE_NODE:
+        FOOTER = FOOTER or render_react_component("Footer", {})
+    else:
+        FOOTER = ""
+    return {
+        "footer": FOOTER
+    }
+
 
 def calendar_links(request):
     parasha  = calendars.this_weeks_parasha(datetime.now())
@@ -129,6 +143,7 @@ def calendar_links(request):
                 "daf_yomi_link": daf_yomi_link,
                 "parasha_ref":   parasha["ref"],
                 "parasha_name":  parasha["parasha"],
+                "he_parasha_name":hebrew_parasha_name(parasha["parasha"]),
                 "haftara_ref":   parasha["haftara"][0],
                 "daf_yomi_ref":  daf["url"]
             }

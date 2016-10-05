@@ -2407,7 +2407,8 @@ var ReaderNavigationMenu = React.createClass({
                   navHome={this.navHome}
                   compare={this.props.compare}
                   hideNavHeader={this.props.hideNavHeader}
-                  width={this.width} />
+                  width={this.width}
+                  interfaceLang={this.props.interfaceLang} />
               </div>);
     } else {
       // Root Library Menu
@@ -2482,7 +2483,7 @@ var ReaderNavigationMenu = React.createClass({
                   </div>);
 
       var calendar = Sefaria.calendar ?
-                     [(<TextBlockLink sref={Sefaria.calendar.parasha} title={Sefaria.calendar.parashaName} heTitle="פרשה" category="Tanakh" />),
+                     [(<TextBlockLink sref={Sefaria.calendar.parasha} title={Sefaria.calendar.parashaName} heTitle={Sefaria.calendar.heParashaName} category="Tanakh" />),
                       (<TextBlockLink sref={Sefaria.calendar.haftara} title="Haftara" heTitle="הפטרה" category="Tanakh" />),
                       (<TextBlockLink sref={Sefaria.calendar.daf_yomi} title="Daf Yomi" heTitle="דף יומי" category="Talmud" />)] : [];
       calendar = (<div className="readerNavCalendar"><TwoOrThreeBox content={calendar} width={this.width} /></div>);
@@ -2546,10 +2547,15 @@ var ReaderNavigationMenu = React.createClass({
                     <span className="int-he">האוסף של ספאריה</span>
                   </h1>);
 
+      var footer = this.props.compare ? null :
+                    (<footer id="footer" className={`interface-${this.props.interfaceLang} static sans`}>
+                      <Footer />
+                    </footer> );
       var classes = classNames({readerNavMenu:1, noHeader: !this.props.hideHeader, compare: this.props.compare, home: this.props.home });
+      var contentClasses = classNames({content: 1, hasFooter: footer != null});
       return(<div className={classes} onClick={this.handleClick} key="0">
               {topContent}
-              <div className="content">
+              <div className={contentClasses}>
                 <div className="contentInner">
                   { this.props.compare ? null : title }
                   <ReaderNavigationMenuSection title="Recent" heTitle="נצפו לאחרונה" content={recentlyViewed} />
@@ -2558,6 +2564,7 @@ var ReaderNavigationMenu = React.createClass({
                   { this.props.compare ? null : (<ReaderNavigationMenuSection title="Resources" heTitle="קהילה" content={resources} />) }
                   { this.props.multiPanel ? null : siteLinks }
                 </div>
+                {footer}
               </div>
             </div>);
     }
@@ -2668,7 +2675,10 @@ var ReaderNavigationCategoryMenu = React.createClass({
     hideNavHeader: React.PropTypes.bool
   },
   render: function() {
-
+    var footer = this.props.compare ? null :
+                    (<footer id="footer" className={`interface-${this.props.interfaceLang} static sans`}>
+                      <Footer />
+                    </footer> );
     // Show Talmud with Toggles
     var categories  = this.props.categories[0] === "Talmud" && this.props.categories.length == 1 ? 
                         ["Talmud", "Bavli"] : this.props.categories;
@@ -2702,6 +2712,7 @@ var ReaderNavigationCategoryMenu = React.createClass({
     var catContents    = Sefaria.tocItemsByCategories(categories);
     var navMenuClasses = classNames({readerNavCategoryMenu: 1, readerNavMenu: 1, noHeader: this.props.hideNavHeader});
     var navTopClasses  = classNames({readerNavTop: 1, searchOnly: 1, colorLineOnly: this.props.hideNavHeader});
+    var contentClasses = classNames({content: 1, hasFooter: footer != null});
     return (<div className={navMenuClasses}>
               <div className={navTopClasses}>
                 <CategoryColorLine category={categories[0]} />
@@ -2712,7 +2723,7 @@ var ReaderNavigationCategoryMenu = React.createClass({
                   <span className="he">{Sefaria.hebrewCategory(this.props.category)}</span>
                 </h2>)}
               </div>
-              <div className="content">
+              <div className={contentClasses}>
                 <div className="contentInner">
                   {this.props.hideNavHeader ? (<h1>
                       <LanguageToggleButton toggleLanguage={this.props.toggleLanguage} />
@@ -2722,6 +2733,7 @@ var ReaderNavigationCategoryMenu = React.createClass({
                   {toggle}
                   <ReaderNavigationCategoryMenuContents contents={catContents} categories={categories} width={this.props.width} />
                 </div>
+                {footer}
               </div>
             </div>);
   }
@@ -3510,7 +3522,7 @@ var SheetsHomePage = React.createClass({
         <span className="int-he">דפי המקורות שלי <i className="fa fa-chevron-left"></i></span>
        </div>) : null;
 
-    return (<div className="content">
+    return (<div className="content hasFooter">
               <div className="contentInner">
                 {this.props.hideNavHeader ? (<h1>
                   <span className="int-en">Source Sheets</span>
@@ -3563,6 +3575,9 @@ var SheetsHomePage = React.createClass({
 
                 <TwoOrThreeBox content={tagList} width={this.props.width} />
               </div>
+              <footer id="footer" className="static sans">
+                    <Footer />
+              </footer>
              </div>);
   }
 });
@@ -3626,7 +3641,7 @@ var PartnerSheetsPage = React.createClass({
     }.bind(this)) : (<LoadingMessage />);
 
 
-    return (<div className="content sheetList">
+    return (<div className="content sheetList hasFooter">
                       <div className="contentInner">
                         {this.props.hideNavHeader ? (<h1>
                           <span className="int-en">{this.props.partner}</span>
@@ -3655,7 +3670,10 @@ var PartnerSheetsPage = React.createClass({
 
                         {sheets}
                       </div>
-                    </div>);
+    <footer id="footer" className="static sans">
+                        <Footer />
+                      </footer>
+    </div>);
   }
 
 
@@ -3709,7 +3727,7 @@ var TagSheetsPage = React.createClass({
     sheets = sheets ? sheets.map(function (sheet) {
       return (<PublicSheetListing sheet={sheet} />);
     }) : (<LoadingMessage />);
-    return (<div className="content sheetList">
+    return (<div className="content sheetList hasFooter">
                       <div className="contentInner">
                         {this.props.hideNavHeader ? (<h1>
                           <span className="int-en">{this.props.tag}</span>
@@ -3717,6 +3735,9 @@ var TagSheetsPage = React.createClass({
                         </h1>) : null}
                         {sheets}
                       </div>
+                      <footer id="footer" className="static sans">
+                        <Footer />
+                      </footer>
                     </div>);
   }
 });
@@ -3791,7 +3812,7 @@ var AllSheetsPage = React.createClass({
     sheets = sheets ? sheets.map(function (sheet) {
       return (<PublicSheetListing sheet={sheet} />);
     }) : (<LoadingMessage />);
-    return (<div className="content sheetList">
+    return (<div className="content sheetList hasFooter">
                       <div className="contentInner">
                         {this.props.hideNavHeader ? (<h1>
                           <span className="int-en">All Sheets</span>
@@ -3799,6 +3820,9 @@ var AllSheetsPage = React.createClass({
                         </h1>) : null}
                         {sheets}
                       </div>
+                      <footer id="footer" className="static sans">
+                        <Footer />
+                      </footer>
                     </div>);
   }
 });
@@ -5242,7 +5266,8 @@ var TextList = React.createClass({
         // Viewing Text Connections
         var sectionLinks = Sefaria.links(sectionRef);
         var links        = sectionLinks.filter(function(link) {
-          if (Sefaria.util.inArray(link.anchorRef, refs) === -1 && (this.props.multiPanel || !isSingleCommentary) ) {
+          if ( (this.props.multiPanel || !isSingleCommentary) &&
+              Sefaria.splitSpanningRef(link.anchorRef).every(aref => Sefaria.util.inArray(aref, refs) === -1)) {
             // Only show section level links for an individual commentary
             return false;
           }
@@ -5250,7 +5275,8 @@ var TextList = React.createClass({
                   Sefaria.util.inArray(link.category, filter) !== -1 || 
                   Sefaria.util.inArray(link.commentator, filter) !== -1 );
 
-          }.bind(this)).sort(function(a, b) {
+          }.bind(this)
+        ).sort(function(a, b) {
             if (a.anchorVerse !== b.anchorVerse) {
                 return a.anchorVerse - b.anchorVerse;
             } else if ( a.commentaryNum !== b.commentaryNum) {
@@ -5976,12 +6002,12 @@ var ConfirmAddToSheetPanel = React.createClass({
   render: function() {
     return (<div className="confirmAddToSheetPanel">
               <div className="message">
-                <span className="en">Your source has been added.</span>
-                <span className="he">הטקסט נוסף בהצלחה לדף המקורות</span>
+                <span className="int-en">Your source has been added.</span>
+                <span className="int-he">הטקסט נוסף בהצלחה לדף המקורות</span>
               </div>
               <a className="button white" href={"/sheets/" + this.props.sheetId}>
-                <span className="en">Go to Source Sheet <i className="fa fa-angle-right"></i></span>
-                <span className="he">עבור לדף המקורות<i className="fa fa-angle-left"></i></span>
+                <span className="int-en">Go to Source Sheet <i className="fa fa-angle-right"></i></span>
+                <span className="int-he">עבור לדף המקורות<i className="fa fa-angle-left"></i></span>
               </a>
             </div>);
   }
@@ -6231,7 +6257,7 @@ var SearchPage = React.createClass({
                         initialQuery = { this.props.query }
                         updateQuery = { this.props.onQueryChange } />
                     </div>)}
-                  <div className="content">
+                  <div className="content hasFooter">
                     <div className="contentInner">
                       <div className="searchContentFrame">
                           <h1 classNames={isQueryHebrew?"hebrewQuery":"englishQuery"}>
@@ -6251,6 +6277,9 @@ var SearchPage = React.createClass({
                           </div>
                       </div>
                     </div>
+                    <footer id="footer" className={`interface-${this.props.interfaceLang} static sans`}>
+                      <Footer />
+                    </footer>
                   </div>
                 </div>);
     }
@@ -6896,7 +6925,7 @@ var SearchFilters = React.createClass({
         <span className="int-he">סנן לפי כותר   </span>
         <i className={(this.state.displayFilters) ? "fa fa-caret-down fa-angle-down":"fa fa-caret-down"} />
       </div>
-      <div className="searchFilterBoxes" style={{display: this.state.displayFilters?"block":"none"}}>
+      <div className={(this.state.displayFilters) ? "searchFilterBoxes":"searchFilterBoxes hidden"}>
         <div className="searchFilterCategoryBox">
         {this.props.availableFilters.map(function(filter) {
             return (<SearchFilter
@@ -7157,11 +7186,15 @@ var AccountPanel = React.createClass({
     ];
     connectContent = (<TwoOrThreeBox content={connectContent} width={width} />);
 
+    var footer =  (<footer id="footer" className={`interface-${this.props.interfaceLang} static sans`}>
+                    <Footer />
+                    </footer> );
+
     var classes = {accountPanel: 1, systemPanel: 1, readerNavMenu: 1, noHeader: 1 };
     var classStr = classNames(classes);
     return (
       <div className={classStr}>
-        <div className="content">
+        <div className="content hasFooter">
           <div className="contentInner">
             <h1>
               <span className="int-en">Account</span>
@@ -7172,6 +7205,7 @@ var AccountPanel = React.createClass({
            <ReaderNavigationMenuSection title="Contribute" heTitle="עשייה" content={contributeContent} />
            <ReaderNavigationMenuSection title="Connect" heTitle="התחברות" content={connectContent} />
           </div>
+            {footer}
         </div>
       </div>
       );
@@ -7236,7 +7270,7 @@ var NotificationsPanel = React.createClass({
     var classStr = classNames(classes);
     return (
       <div className={classStr}>
-        <div className="content">
+        <div className="content hasFooter">
           <div className="contentInner">
             <h1>
               <span className="int-en">Notifications</span>
@@ -7246,6 +7280,9 @@ var NotificationsPanel = React.createClass({
               (<div className="notificationsList" dangerouslySetInnerHTML={ {__html: Sefaria.notificationsHtml } }></div>) :
               (<LoginPanel fullPanel={true} />) }
           </div>
+          <footer id="footer" className={`interface-${this.props.interfaceLang} static sans`}>
+                    <Footer />
+                    </footer>
         </div>
       </div>);
   }
@@ -7407,6 +7444,165 @@ var TestMessage = React.createClass({
 });
 
 
+var Footer = React.createClass({
+  render: function(){
+    var currentPath = Sefaria.util.currentPath();
+    var next = encodeURIComponent(currentPath);
+    return (
+        <div id="footerInner">
+          <div className="section">
+
+              <div className="header">
+                  <span className="int-en">About</span>
+                  <span className="int-he">אודות</span>
+              </div>
+              <a href="/about" className="outOfAppLink">
+                  <span className="int-en">What is Sefaria?</span>
+                  <span className="int-he">מהי ספאריה</span>
+              </a>
+              <a href="/help" className="outOfAppLink">
+                  <span className="int-en">Help</span>
+                  <span className="int-he">עזרה</span>
+              </a>
+              <a href="https://blog.sefaria.org" target="_blank" className="outOfAppLink">
+                  <span className="int-en">Blog</span>
+                  <span className="int-he">בלוג</span>
+              </a>
+              <a href="/faq" target="_blank" className="outOfAppLink">
+                  <span className="int-en">FAQ</span>
+                  <span className="int-he">שאלות נפוצות</span>
+              </a>
+              <a href="/team" className="outOfAppLink">
+                  <span className="int-en">Team</span>
+                  <span className="int-he">צוות</span>
+              </a>
+              <a href="/terms" className="outOfAppLink">
+                  <span className="int-en">Terms of Use</span>
+                  <span className="int-he">תנאי שימוש</span>
+              </a>
+              <a href="/privacy-policy" className="outOfAppLink">
+                  <span className="int-en">Privacy Policy</span>
+                  <span className="int-he">מדיניות הפרטיות</span>
+              </a>
+          </div>
+
+          <div className="section">
+              <div className="header">
+                      <span className="int-en">Educators</span>
+                      <span className="int-he">מחנכים</span>
+              </div>
+              <a href="/educators" target="_blank" className="outOfAppLink">
+                  <span className="int-en">Teach with Sefaria</span>
+                  <span className="int-he">למד באמצעות ספאריה</span>
+              </a>
+              <a href="/sheets" className="outOfAppLink">
+                  <span className="int-en">Source Sheets</span>
+                  <span className="int-he">דפי מקורות</span>
+              </a>
+              <a href="/visualizations" className="outOfAppLink">
+                  <span className="int-en">Visualizations</span>
+                  <span className="int-he">עזרים חזותיים</span>
+              </a>
+              <a href="/people" className="outOfAppLink">
+                  <span className="int-en">Authors</span>
+                  <span className="int-he">מחברים</span>
+              </a>
+          </div>
+
+          <div className="section">
+              <div className="header">
+                  <span className="int-en">Developers</span>
+                  <span className="int-he">מפתחים</span>
+              </div>
+              <a href="/developers" target="_blank" className="outOfAppLink">
+                  <span className="int-en">Get Involved</span>
+                  <span className="int-he">הצטרף אלינו</span>
+              </a>
+              <a href="/developers#api" target="_blank" className="outOfAppLink">
+                  <span className="int-en">API Docs</span>
+                  <span className="int-he">מסמכי API</span>
+              </a>
+              <a href="https://github.com/Sefaria/Sefaria-Project" target="_blank" className="outOfAppLink">
+                  <span className="int-en">Fork us on GitHub</span>
+                  <span className="int-he">זלגו חופשי מגיטהאב</span>
+              </a>
+              <a href="https://github.com/Sefaria/Sefaria-Export" target="_blank" className="outOfAppLink">
+                  <span className="int-en">Download our Data</span>
+                  <span className="int-he">הורד את בסיס הנתונים שלנו</span>
+              </a>
+          </div>
+
+          <div className="section">
+              <div className="header">
+                  <span className="int-en">Join Us</span>
+                  <span className="int-he">הצטרף אלינו</span>
+              </div>
+              <a href="/donate" className="outOfAppLink">
+                  <span className="int-en">Donate</span>
+                  <span className="int-he">תרומות</span>
+              </a>
+              <a href="/supporters" className="outOfAppLink">
+                  <span className="int-en">Supporters</span>
+                  <span className="int-he">תומכים</span>
+              </a>
+              <a href="/contribute" target="_blank" className="outOfAppLink">
+                  <span className="int-en">Contribute</span>
+                  <span className="int-he">הצטרף</span>
+              </a>
+              <a href="/jobs" className="outOfAppLink">
+                  <span className="int-en">Jobs</span>
+                  <span className="int-he">דרושים</span>
+              </a>
+          </div>
+
+          <div className="section last">
+              <div className="header">
+                  <span className="int-en">Connect</span>
+                  <span className="int-he">התחבר</span>
+              </div>
+              <a href="http://www.facebook.com/sefaria.org" target="_blank" className="outOfAppLink">
+                  <i className="fa fa-facebook-official"></i>
+                  <span className="int-en">Facebook</span>
+                  <span className="int-he">פייסבוק</span>
+
+              </a>
+              <a href="http://twitter.com/SefariaProject" target="_blank" className="outOfAppLink">
+                  <i className="fa fa-twitter"></i>
+                  <span className="int-en">Twitter</span>
+                  <span className="int-he">טוויטר</span>
+
+              </a>
+              <a href="http://www.youtube.com/user/SefariaProject" target="_blank" className="outOfAppLink">
+                  <i className="fa fa-youtube"></i>
+                  <span className="int-en">YouTube</span>
+                  <span className="int-he">יוטיוב</span>
+
+              </a>
+              <a href="https://groups.google.com/forum/?fromgroups#!forum/sefaria" target="_blank" className="outOfAppLink">
+                  <span className="int-en">Forum</span>
+                  <span className="int-he">פורום</span>
+
+              </a>
+              <a href="mailto:hello@sefaria.org" target="_blank" className="outOfAppLink">
+                  <span className="int-en">Email</span>
+                  <span className="int-he">דוא"ל</span>
+              </a>
+              <div id="siteLanguageToggle">
+                  <div id="siteLanguageToggleLabel">
+                      <span className="int-en">Site Language:</span>
+                      <span className="int-he">שפת האתר</span>
+                  </div>
+                  <a href={"/interface/english?next=" + next} id="siteLanguageEnglish" className="outOfAppLink">English</a>
+                  |
+                  <a href={"/interface/hebrew?next=" + next} id="siteLanguageHebrew" className="outOfAppLink">עברית</a>
+              </div>
+          </div>
+        </div>
+    );
+  }
+});
+
+
 var openInNewTab = function(url) {
   var win = window.open(url, '_blank');
   win.focus();
@@ -7450,6 +7646,7 @@ if (typeof exports !== 'undefined') {
   exports.ConnectionsPanel    = ConnectionsPanel;
   exports.TextRange           = TextRange;
   exports.TextColumn          = TextColumn;
+  exports.Footer              = Footer;
   exports.setData             = setData;
   exports.unpackDataFromProps = Sefaria.unpackDataFromProps;
 }

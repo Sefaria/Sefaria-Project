@@ -1,155 +1,9 @@
 {% if S2 %}
-<footer id="footer" class="interface-{{ interfaceLang }} static sans">
-	<div id="footerInner">
-	<div class="section">
-
-		<div class="header">
-			<span class="int-en">About</span>
-			<span class="int-he">אודות</span>
-		</div>
-		<a href="/about">
-			<span class="int-en">What is Sefaria?</span>
-			<span class="int-he">מהי ספאריה</span>
-		</a>
-		<a href="/help">
-			<span class="int-en">Help</span>
-			<span class="int-he">עזרה</span>
-		</a>	
-		<a href="https://blog.sefaria.org" target="_blank">
-			<span class="int-en">Blog</span>
-			<span class="int-he">בלוג</span>
-		</a>
-		<a href="/faq" target="_blank">
-			<span class="int-en">FAQ</span>
-			<span class="int-he">שאלות נפוצות</span>
-		</a>
-		<a href="/team">
-			<span class="int-en">Team</span>
-			<span class="int-he">צוות</span>
-		</a>
-		<a href="/terms">
-			<span class="int-en">Terms of Use</span>
-			<span class="int-he">תנאי שימוש</span>
-		</a>
-		<a href="/privacy-policy">
-			<span class="int-en">Privacy Policy</span>
-			<span class="int-he">מדיניות הפרטיות</span>
-		</a>			
-	</div>
-
-	<div class="section">
-		<div class="header">
-				<span class="int-en">Educators</span>
-				<span class="int-he">מחנכים</span>
-		</div>
-		<a href="/educators" target="_blank">
-			<span class="int-en">Teach with Sefaria</span>
-			<span class="int-he">למד באמצעות ספאריה</span>
-		</a>
-		<a href="/sheets">
-			<span class="int-en">Source Sheets</span>
-			<span class="int-he">דפי מקורות</span>
-		</a>
-		<a href="/visualizations">
-			<span class="int-en">Visualizations</span>
-			<span class="int-he">עזרים חזותיים</span>
-		</a>
-		<a href="/people">
-			<span class="int-en">Authors</span>
-			<span class="int-he">מחברים</span>
-		</a>
-	</div>
-
-	<div class="section">
-		<div class="header">
-			<span class="int-en">Developers</span>
-			<span class="int-he">מפתחים</span>
-		</div>
-		<a href="/developers" target="_blank">
-			<span class="int-en">Get Involved</span>
-			<span class="int-he">הצטרף אלינו</span>
-		</a>
-		<a href="/developers#api" target="_blank">
-			<span class="int-en">API Docs</span>
-			<span class="int-he">מסמכי API</span>
-		</a>
-		<a href="https://github.com/Sefaria/Sefaria-Project" target="_blank">
-			<span class="int-en">Fork us on GitHub</span>
-			<span class="int-he">זלגו חופשי מגיטהאב</span>
-		</a>
-		<a href="https://github.com/Sefaria/Sefaria-Export" target="_blank">
-			<span class="int-en">Download our Data</span>
-			<span class="int-he">הורד את בסיס הנתונים שלנו</span>
-		</a>
-	</div>
-
-	<div class="section">
-		<div class="header">
-			<span class="int-en">Join Us</span>
-			<span class="int-he">הצטרף אלינו</span>
-		</div>
-		<a href="/donate">
-			<span class="int-en">Donate</span>
-			<span class="int-he">תרומות</span>
-		</a>
-		<a href="/supporters">
-			<span class="int-en">Supporters</span>
-			<span class="int-he">תומכים</span>
-		</a>
-		<a href="/contribute" target="_blank">
-			<span class="int-en">Contribute</span>
-			<span class="int-he">הצטרף</span>
-		</a>
-		<a href="/jobs">
-			<span class="int-en">Jobs</span>
-			<span class="int-he">דרושים</span>
-		</a>
-	</div>
-
-	<div class="section last">
-		<div class="header">
-			<span class="int-en">Connect</span>
-			<span class="int-he">התחבר</span>
-		</div>
-		<a href="http://www.facebook.com/sefaria.org" target="_blank">
-			<i class="fa fa-facebook-official"></i>
-			<span class="int-en">Facebook</span>
-			<span class="int-he">פייסבוק</span>
-
-		</a>
-		<a href="http://twitter.com/SefariaProject" target="_blank">
-			<i class="fa fa-twitter"></i>
-			<span class="int-en">Twitter</span>
-			<span class="int-he">טוויטר</span>
-
-		</a>
-		<a href="http://www.youtube.com/user/SefariaProject" target="_blank">
-			<i class="fa fa-youtube"></i>
-			<span class="int-en">YouTube</span>
-			<span class="int-he">יוטיוב</span>
-
-		</a>
-		<a href="https://groups.google.com/forum/?fromgroups#!forum/sefaria" target="_blank">
-			<span class="int-en">Forum</span>
-			<span class="int-he">פורום</span>
-
-		</a>
-		<a href="mailto:hello@sefaria.org" target="_blank">
-			<span class="int-en">Email</span>
-			<span class="int-he">דוא"ל</span>
-		</a>
-		<div id="siteLanguageToggle">
-			<div id="siteLanguageToggleLabel">
-				<span class="int-en">Site Language:</span>
-				<span class="int-he">שפת האתר</span>
-			</div>
-			<a href="/interface/english?next={{ request.get_full_path }}" id="siteLanguageEnglish">English</a>
-			|
-			<a href="/interface/hebrew?next={{ request.get_full_path }}" id="siteLanguageHebrew">עברית</a>
-		</div>
-	</div>
-</footer>
-
+    {% autoescape off %}
+        <footer id="footer" class="interface-{{ interfaceLang }} static sans context">
+            {{ footer }}
+        </footer>
+    {% endautoescape %}
 {% else %}
 <footer id="footer" class="{% if class %}{{ class }}{% endif %}">
 	<div class="container">
@@ -272,7 +126,6 @@
 				</a>
 			</div>
 		</div>
-	</div>
 	</div>
 </footer>
 {% endif %}

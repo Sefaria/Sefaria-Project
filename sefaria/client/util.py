@@ -42,6 +42,19 @@ def subscribe_to_announce(email, first_name=None, last_name=None, direct_sign_up
     if not sls.NATIONBUILDER:
         return
 
+    name          = first_name + " " + last_name if first_name and last_name else ""
+    method        = "Signed up directly" if direct_sign_up else "Signed up during account creation"
+    message_html  = "%s<br>%s<br>%s" % (name, email, method)
+    subject       = "Mailing list signup"
+    from_email    = "Sefaria <hello@sefaria.org>"
+    to            = "amelia@sefaria.org"
+
+    msg = EmailMultiAlternatives(subject, message_html, from_email, [to])
+    msg.content_subtype = "html"  # Main content is now text/html
+    msg.send()
+
+    return True
+
     tags = ["Announcements_General", "Newsletter_Sign_Up"] if direct_sign_up else ["Announcements_General", "Signed_Up_on_Sefaria"]
     post = {
         "person": {

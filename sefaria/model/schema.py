@@ -364,6 +364,17 @@ class TreeNode(object):
         """
         return not self.parent and not self.children
 
+    def traverse_tree(self, callback, **kwargs):
+        """
+        Traverse tree, invoking callback at each node, with kwargs as arguments
+        :param callback:
+        :param kwargs:
+        :return:
+        """
+        callback(self, **kwargs)
+        for child in self.children:
+            child.traverse_to_string(callback, **kwargs)
+
     def traverse_to_string(self, callback, depth=0, **kwargs):
         st = callback(self, depth, **kwargs)
         st += "".join([child.traverse_to_string(callback, depth + 1, **kwargs) for child in self.children])
