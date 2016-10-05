@@ -25,8 +25,8 @@
 
     {% elif notification.type == "general" %}
         <div>
-            <span class="int-en">{{ notification.content.en }}</span>
-            <span class="int-he">{{ notification.content.he }}</span>
+            <span class="int-en">{% autoescape off %}{{ notification.content.en }}{% endautoescape %}</span>
+            <span class="int-he">{% autoescape off %}{{ notification.content.he }}{% endautoescape %}</span>
         </div>
 
     {% elif notification.type == "version" %}
@@ -35,11 +35,19 @@
                 {{ notification.content.index|text_toc_link }}: {{notification.content.version }}</span>
             <span class="int-he">גרסה חדשה של {{ notification.content.index|text_toc_link }} ב{% if notification.content.language == "en" %}אנגלית{% else %}עברית{% endif %} : {{notification.content.version }}</span>
         </div>
+        <div>
+            <span class="int-en">{% autoescape off %}{{ notification.content.en }}{% endautoescape %}</span>
+            <span class="int-he">{% autoescape off %}{{ notification.content.he }}{% endautoescape %}</span>
+        </div>
 
     {% elif notification.type == "index" %}
         <div>
             <span class="int-en">New Text: {{ notification.content.index|text_toc_link }}</span>
             <span class="int-he">טקסט חדש זמין: {{ notification.content.index|text_toc_link }}</span>
+        </div>
+        <div>
+            <span class="int-en">{% autoescape off %}{{ notification.content.en }}{% endautoescape %}</span>
+            <span class="int-he">{% autoescape off %}{{ notification.content.he }}{% endautoescape %}</span>
         </div>
 
 	{% elif notification.type == "sheet like" %}

@@ -23,11 +23,29 @@ from sefaria.system.database import db
 
 
 class GlobalNotification(abst.AbstractMongoRecord):
+    """
+    "type" attribute can be: "index", "version", or "general"
+
+    value of "content" attribute for type "general":
+        "he"    : hebrew long description (optional)
+        "en"    : english long description (optional)
+    for type "index":
+        "index" : title of index
+        "he"    : hebrew long description (optional)
+        "en"    : english long description (optional)
+    for type "version":
+        "index"     : title of index
+        "version"   : version title
+        "language"  : "en" or "he"
+        "he"        : hebrew long description (optional)
+        "en"        : english long description (optional)
+
+    """
     collection   = 'global_notification'
     history_noun = 'global notification'
 
     required_attrs = [
-        "type", # index, version, general
+        "type",
         "content",
         "date",
     ]
@@ -45,16 +63,28 @@ class GlobalNotification(abst.AbstractMongoRecord):
         n = db.global_notification.find_one({}, {"_id": 1}, sort=[["_id", -1]])
         return n["_id"]
 
-    def new_index(self, index):
+    def make_index(self, index):
         self.type = "index"
         self.content["index"] = index.title
         return self
 
-    def new_version(self, version):
+    def make_version(self, version):
         self.type = "version"
         self.content["version"] = version.versionTitle
         self.content["language"] = version.language
         self.content["index"] = version.title
+        return self
+
+    def set_date(self, date):
+        self.date = date
+        return self
+
+    def set_he(self, msg):
+        self.content["he"] = msg
+        return self
+
+    def set_en(self, msg):
+        self.content["en"] = msg
         return self
 
 
@@ -110,6 +140,7 @@ class Notification(abst.AbstractMongoRecord):
         self.global_id  = global_note._id
         self.uid        = user_id
         self.type       = global_note.type
+        self.date       = global_note.date
         return self
 
     @staticmethod
