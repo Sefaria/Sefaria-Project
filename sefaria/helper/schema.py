@@ -1,6 +1,10 @@
 # -*- coding: utf-8 -*-
 
 from sefaria.model import *
+from sefaria.model.abstract import AbstractMongoRecord
+from sefaria.system.exceptions import InputError
+from sefaria.system.database import db
+from sefaria.sheets import save_sheet
 import re
 
 """
@@ -242,8 +246,12 @@ def change_node_structure(ja_node, section_names, address_types=None, upsize_in_
     assert isinstance(ja_node, JaggedArrayNode)
     assert len(section_names) > 0
 
-    old_structure = ja_node.sectionNames
-    delta = len(section_names) - len(old_structure)
+    if hasattr(ja_node, 'lengths'):
+        print 'WARNING: This node has predefined lengths!'
+        del ja_node.lengths
+
+    # `delta` is difference in depth.  If positive, we're adding depth.
+    delta = len(section_names) - len(ja_node.sectionNames)
     if upsize_in_place:
         assert (delta > 0)
 
@@ -252,22 +260,71 @@ def change_node_structure(ja_node, section_names, address_types=None, upsize_in_
     else:
         assert len(address_types) == len(section_names)
 
+    def fix_ref(ref_string):
+        """
+        Takes a string from link.refs and updates to reflect the new structure.
+        Uses the delta parameter from the main function to determine how to update the ref.
+        `delta` is difference in depth.  If positive, we're adding depth.
+        :param ref_string: A string which can be interpreted as a valid Ref
+        :return: string
+        """
+        if delta == 0:
+            return ref_string
+
+        d = Ref(ref_string)._core_dict()
+
+        if delta < 0: # Making node shallower
+            for i in range(-delta):
+                if len(d["sections"]) == 0:
+                    break
+                d["sections"].pop()
+                d["toSections"].pop()
+
+                # else, making node deeper
+        elif upsize_in_place:
+            for i in range(delta):
+                d["sections"].insert(0, 1)
+                d["toSections"].insert(0, 1)
+        else:
+            for i in range(delta):
+                d["sections"].append(1)
+                d["toSections"].append(1)
+        return Ref(_obj=d).normal()
+
+    commentators = library.get_commentary_version_titles_on_book(ja_node.index.title)
+    commentators = [c.replace(u' on {}'.format(ja_node.ref().normal()), u'') for c in commentators]
+    ref_regex_str = ja_node.ref().regex(anchored=False)
+    identifier = ur"(^{})|(^({}) on {})".format(ref_regex_str, "|".join(commentators), ref_regex_str)
+
+    def needs_fixing(ref_string):
+        if re.search(identifier, ref_string) is None:
+            return False
+        else:
+            return True
+
+    # For downsizing, refs will become invalidated in their current state, so changes must be made before the
+    # structure change.
+    if delta < 0:
+        cascade(ja_node.ref(), rewriter=fix_ref, needs_rewrite=needs_fixing)
+
     ja_node.sectionNames = section_names
     ja_node.addressTypes = address_types
     ja_node.depth = len(section_names)
     index = ja_node.index
     index.save(override_dependencies=True)
+    print 'Index Saved'
     library.refresh_index_record_in_cache(index)
 
     vs = [v for v in index.versionSet()]
     vsc = [v for v in library.get_commentary_versions_on_book(index.title)]
+    print 'Updating Versions'
     for v in vs + vsc:
         assert isinstance(v, Version)
         if v.get_index() == index:
             chunk = TextChunk(ja_node.ref(), lang=v.language, vtitle=v.versionTitle)
         else:
             library.refresh_index_record_in_cache(v.get_index())
-            ref_name = ja_node.ref().uid()
+            ref_name = ja_node.ref().normal()
             ref_name = ref_name.replace(index.title, v.get_index().title)
             chunk = TextChunk(Ref(ref_name), lang=v.language, vtitle=v.versionTitle)
         ja = chunk.ja()
@@ -280,49 +337,147 @@ def change_node_structure(ja_node, section_names, address_types=None, upsize_in_
             chunk.save()
 
         else:
-            ja.resize(delta)
-            chunk.text = ja.array()
+            chunk.text = ja.resize(delta).array()
             chunk.save()
+
+    # For upsizing, we are editing refs to a structure that would not be valid till after the change, therefore
+    # cascading must be performed here
+    if delta > 0:
+        cascade(ja_node.ref(), rewriter=fix_ref, needs_rewrite=needs_fixing)
 
     library.rebuild()
     refresh_version_state(index.title)
+    # For each commentary version, refresh its VS
 
-    def fix_link(ref_string):
 
-        if delta == 0:
-            return ref_string
+def cascade(ref_identifier, rewriter=lambda x: x, needs_rewrite=lambda x: True):
+    """
+    Changes to indexes requires updating any and all data that reference that index. This routine will take a rewriter
+     function an run it on every location that references the updated index.
+    :param ref_identifier: Ref or String that can be used to implement a ref
+    :param rewriter: callback function used to update the field
+    :param needs_rewrite: Criteria for which a save will be triggered. If not set, routine will trigger a save for
+    every item within the set
+    """
 
-        r = Ref(ref_string)
-        if delta < 0:
-            for i in range(-delta):
-                if len(r.sections) == 0:
-                    break
-                r.sections.pop()
-                if r.is_range():
-                    r.toSections.pop()
+    def generic_rewrite(model_set, attr_name='ref', sub_attr_name=None,):
+        """
+        Generic routine to take any derivative of AbstractMongoSet and update the fields outlined by attr_name using
+        the callback function rewriter.
 
-        elif upsize_in_place:
-            for i in range(delta):
-                r.sections.insert(0, 1)
-                if r.is_range():
-                    r.toSections.insert(0, 1)
-        else:
-            for i in range(delta):
-                r.sections.append(1)
-                if r.is_range():
-                    r.toSections.append(1)
-        if r.is_range():
-            return '{}.{}-{}'.format(r.book,
-                                     '.'.join([str(i) for i in r.sections]), '.'.join([str(i) for i in r.toSections],))
-        else:
-            return '{}.{}'.format(r.book, '.'.join([str(i) for i in r.sections]))
+        This routine is heavily inspired by Splicer._generic_set_rewrite
+        :param model_set: Derivative of AbstractMongoSet
+        :param attr_name: name of attribute to update
+        :param sub_attr_name: Use to update nested attributes
+        :return:
+        """
 
-    reg = re.compile(ja_node.ref().base_text_and_commentary_regex())
-    ls = LinkSet({'refs': {'$in': [reg]}})
-    for l in ls:
-        for ref_index, ref in enumerate(l.refs):
-            if reg.match(ref):
-                l.refs[ref_index] = fix_link(ref)
-        l.save()
-    # Todo: Handle alt-structs, sheets, history
+        for record in model_set:
+            assert isinstance(record, AbstractMongoRecord)
+            if sub_attr_name is None:
+                refs = getattr(record, attr_name)
+            else:
+                intermediate_obj = getattr(record, attr_name)
+                refs = intermediate_obj[sub_attr_name]
 
+            if isinstance(refs, list):
+                needs_save = False
+                for ref_num, ref in enumerate(refs):
+                    if needs_rewrite(ref):
+                        needs_save = True
+                        refs[ref_num] = rewriter(ref)
+                if needs_save:
+                    try:
+                        record.save()
+                    except InputError as e:
+                        print 'Bad Data Found: {}'.format(refs)
+                        print e
+            else:
+                if needs_rewrite(refs):
+                    refs = rewriter(refs)
+                    try:
+                        record.save()
+                    except InputError as e:
+                        print 'Bad Data Found: {}'.format(refs)
+                        print e
+
+    def clean_sheets(sheets_to_update):
+
+        def rewrite_source(source):
+            requires_save = False
+            if "ref" in source:
+                try:
+                    ref = Ref(source["ref"])
+                except InputError as e:
+                    print "Error: In _clean_sheets.rewrite_source: failed to instantiate Ref {}".format(source["ref"])
+                else:
+                    if needs_rewrite(source['ref']):
+                        requires_save = True
+                        source["ref"] = rewriter(source['ref'])
+            if "subsources" in source:
+                for subsource in source["subsources"]:
+                    requires_save = rewrite_source(subsource) or requires_save
+            return requires_save
+
+        for sid in sheets_to_update:
+            needs_save = False
+            sheet = db.sheets.find_one({"id": sid})
+            if not sheet:
+                print "Likely error - can't load sheet {}".format(sid)
+            for source in sheet["sources"]:
+                if rewrite_source(source):
+                    needs_save = True
+            if needs_save:
+                sheet["lastModified"] = sheet["dateModified"]
+                save_sheet(sheet, sheet["owner"])
+
+    def update_alt_structs(index):
+
+        assert isinstance(index, Index)
+        if not index.has_alt_structures():
+            return
+        needs_save = False
+
+        for name, struct in index.get_alt_structures().iteritems():
+            for map_node in struct.get_leaf_nodes():
+                assert map_node.depth <= 1, "Need to write some code to handle alt structs with depth > 1!"
+                wr = map_node.wholeRef
+                if needs_rewrite(wr):
+                    needs_save = True
+                    map_node.wholeRef = rewriter(wr)
+                for ref_num, ref in enumerate(map_node.refs):
+                    if needs_rewrite(ref):
+                        needs_save = True
+                        map_node.refs[ref_num] = rewriter(ref)
+        if needs_save:
+            index.save()
+
+    if isinstance(ref_identifier, basestring):
+        ref_identifier = Ref(ref_identifier)
+    assert isinstance(ref_identifier, Ref)
+
+    commentators = library.get_commentary_version_titles_on_book(ref_identifier.book)
+    commentators = [c.replace(u' on {}'.format(ref_identifier.book), u'') for c in commentators]
+    ref_regex_str = ref_identifier.regex(anchored=False)
+    identifier = ur"(^{})|(^({}) on {})".format(ref_regex_str, "|".join(commentators), ref_regex_str)
+    titles = re.compile(identifier)
+
+    print 'Updating Links'
+    generic_rewrite(LinkSet({'refs': titles}), attr_name='refs')
+    print 'Updating Notes'
+    generic_rewrite(NoteSet({'ref': titles}))
+    generic_rewrite(TranslationRequestSet({'ref': titles}))
+    print 'Updatding Sheets'
+    clean_sheets([s['id'] for s in db.sheets.find({"sources.ref": titles}, {"id": 1})])
+    print 'Updating Alternate Structs'
+    update_alt_structs(ref_identifier.index)
+    print 'Updating History'
+    generic_rewrite(HistorySet({'ref': titles}))
+    print 'Still updating history...'
+    generic_rewrite(HistorySet({'new.ref': titles}), attr_name='new', sub_attr_name='ref')
+    print 'still working'
+    generic_rewrite(HistorySet({'new.refs': titles}), attr_name='new', sub_attr_name='refs')
+    print 'the end is near'
+    generic_rewrite(HistorySet({'old.ref': titles}), attr_name='old', sub_attr_name='ref')
+    print 'almost done!'
+    generic_rewrite(HistorySet({'old.refs': titles}), attr_name='old', sub_attr_name='refs')
