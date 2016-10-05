@@ -20,9 +20,9 @@
 
     {% elif notification.type == "version" %}
         <div>
-            <span class="int-en">New {% if notification.content.version.language == "en" %}English{% else %}Hebrew{% endif %} version of
+            <span class="int-en">New {% if notification.content.language == "en" %}English{% else %}Hebrew{% endif %} version of
                 {{ notification.content.index|text_toc_link }}: {{notification.content.version }}</span>
-            <span class="int-he">גרסה חדשה של {{ notification.content.index|text_toc_link }} ב{% if notification.content.version.language == "en" %}אנגלית{% else %}עברית{% endif %} : {{notification.content.version }}</span>
+            <span class="int-he">גרסה חדשה של {{ notification.content.index|text_toc_link }} ב{% if notification.content.language == "en" %}אנגלית{% else %}עברית{% endif %} : {{notification.content.version }}</span>
         </div>
 
     {% elif notification.type == "index" %}

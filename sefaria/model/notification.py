@@ -42,7 +42,7 @@ class GlobalNotification(abst.AbstractMongoRecord):
 
     @staticmethod
     def latest_id():
-        n = db.notifications.find_one({}, {"_id": 1}, sort=[["_id", -1]])
+        n = db.global_notification.find_one({}, {"_id": 1}, sort=[["_id", -1]])
         return n["_id"]
 
     def new_index(self, index):
@@ -53,6 +53,7 @@ class GlobalNotification(abst.AbstractMongoRecord):
     def new_version(self, version):
         self.type = "version"
         self.content["version"] = version.versionTitle
+        self.content["language"] = version.language
         self.content["index"] = version.title
         return self
 
@@ -60,9 +61,12 @@ class GlobalNotification(abst.AbstractMongoRecord):
 class GlobalNotificationSet(abst.AbstractMongoSet):
     recordClass = GlobalNotification
 
+    def __init__(self, query=None, page=0, limit=0, sort=[["_id", -1]]):
+        super(GlobalNotificationSet, self).__init__(query=query, page=page, limit=limit, sort=sort)
+
     def register_for_user(self, uid):
         for global_note in self:
-            Notification().register_global_notification(global_note._id, uid).save()
+            Notification().register_global_notification(global_note, uid).save()
 
 
 class Notification(abst.AbstractMongoRecord):
@@ -94,7 +98,7 @@ class Notification(abst.AbstractMongoRecord):
         if not self.is_global:
             return
 
-        gnote = GlobalNotification.load({"_id": self.global_id})
+        gnote = GlobalNotification().load({"_id": self.global_id})
         if gnote is None:
             logger.error("Tried to load non-existent global notification: {}".format(self.global_id))
 
@@ -111,7 +115,7 @@ class Notification(abst.AbstractMongoRecord):
     @staticmethod
     def latest_global_for_user(uid):
         n = db.notifications.find_one({"uid": uid, "is_global": True}, {"_id": 1}, sort=[["_id", -1]])
-        return n["_id"]
+        return n["_id"] if n else None
 
     def make_sheet_like(self, liker_id=None, sheet_id=None):
         """Make this Notification for a sheet like event"""
@@ -155,6 +159,8 @@ class Notification(abst.AbstractMongoRecord):
         notification = self.contents()
         if "_id" in notification:
             notification["_id"] = self.id
+        if "global_id" in notification:
+            notification["global_id"] = str(notification["global_id"])
         notification["date"] = notification["date"].isoformat()    
     
         return json.dumps(notification)
@@ -194,7 +200,10 @@ class NotificationSet(abst.AbstractMongoSet):
         """
         latest_id_for_user = Notification.latest_global_for_user(uid)
         if GlobalNotification.latest_id() != latest_id_for_user:
-            GlobalNotificationSet({"_id": {"$gt": latest_id_for_user}}).register_for_user(uid)
+            if latest_id_for_user is None:
+                GlobalNotificationSet({}, limit=10).register_for_user(uid)
+            else:
+                GlobalNotificationSet({"_id": {"$gt": latest_id_for_user}}).register_for_user(uid)
 
     def unread_for_user(self, uid):
         """
