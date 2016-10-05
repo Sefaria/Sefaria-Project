@@ -121,6 +121,10 @@ def text_toc_link(indx):
 	"""
 	Return an <a> tag linking to the text TOC for the Index
 	"""
+	from sefaria.model.text import library, AbstractIndex
+	if not isinstance(indx, AbstractIndex):
+		indx = library.get_index(indx)
+
 	en = indx.nodes.primary_title("en") if not indx.is_commentary() else indx.title
 	he = indx.nodes.primary_title("he") if not indx.is_commentary() else indx.heTitle
 	link = u'''
