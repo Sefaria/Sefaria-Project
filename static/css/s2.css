@@ -2822,6 +2822,9 @@ a.resourcesLink {
   padding: 27px 0;
   margin: 0;
 }
+.notificationsList .added-description {
+  padding: 5px 0 0;
+}
 .notificationsPanel .notification .date {
   color: #ccc;
   font-size: 13px;
