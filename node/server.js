@@ -62,6 +62,11 @@ server.post('/ReaderApp/:cachekey', function(req, res) {
   });
 });
 
+server.post('/Footer/:cachekey', function(req, res) {
+  var html  = ReactDOMServer.renderToStaticMarkup(React.createElement(SefariaReact.Footer));
+  res.send(html);
+});
+
 server.listen(settings.PORT, function() {
   console.log('Listening on ' + settings.PORT);
 });

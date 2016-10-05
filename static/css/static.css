@@ -715,29 +715,7 @@
 #visualizationsPage {
   text-align: left;
 }
-#footer #siteLanguageToggle {
-  color: #999;
-  margin-top: 15px;
-  font-size: 13px;
-}
-#footer #siteLanguageToggle #siteLanguageToggleLabel {
-  display: block;
-}
-#footer a#siteLanguageEnglish,
-#footer a#siteLanguageHebrew {
-  cursor: pointer;
-  color: #666;
-  display: inline;
-  margin: 0 3px;
-  font-size: 13px;
-}
-#footer #siteLanguageEnglish:hover,
-#footer #siteLanguageHebrew:hover {
-  text-decoration: underline;
-}
-#footer a#siteLanguageHebrew {
-  font-size: 14px;
-}
+
 .static div.single-button{
   margin: 5% 0;
 }
@@ -1271,84 +1249,7 @@
 #jobsPage li {
   margin: 14px 0;
 }
-#footer {
-  background-color: white;
-  border-top: 1px solid #F4F4F4;
-  overflow: hidden;
-  padding: 18px 40px;
-  text-align: left;
-}
-#footer .section {
-  margin-top: 20px;
-  margin-bottom: 20px;
-}
-#footer .header {
-  font-weight: bold;
-  font-size: 15px;
-  margin-bottom: 3px;
-}
-#footer a {
-  display: block;
-}
-#footer.interface-hebrew {
-  direction: rtl;
-  text-align: right;
-}
-#footer.interface-english .int-he {
-  display: none;
-}
-#footer.interface-english .int-en {
-  display: inline;
-}
-#footer.interface-hebrew .int-he {
-  display: inline;
-  font-size: 120%;
-  text-align: right;
-}
-#footer.interface-hebrew .int-en {
-  display: none;
-}
-#footerInner {
-  max-width: 900px;
-  margin: 0 auto;
-}
-#footer .section {
-  display: inline-block;
-  vertical-align: top;
-  width: 160px;
-}
-#footer.interface-english .section {
-  text-align: left;  
-}
-#footer.interface-hebrew .section {
-  text-align: right;
-}
-#footer .section .header {
-  color: #666;
-  margin-bottom: 12px;
-  font-weight: normal;
-  font-size: 13px;
-}
-#footer .section.last {
-  float: right;
-  text-align: right;
-  width: 210px;
-  border-left: 1px solid #EAEAEA;
-}
-#footer.interface-hebrew .section.last {
-  float: left;
-  text-align: left;
-  border-left: none;
-  border-right: 1px solid #EAEAEA;
-}
-#footer .section a {
-  color: #aaa;
-  font-size: 14px;
-  margin: 2px 0;
-}
-#footer .fa {
-  margin: 0 3px;
-}
+
 #helpPage .section {
   margin-bottom: 60px;
 }

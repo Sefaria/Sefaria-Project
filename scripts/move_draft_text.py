@@ -65,7 +65,7 @@ class ServerTextCopier(object):
             for flag in ver.optional_attrs:
                 if hasattr(ver, flag):
                     flags[flag] = getattr(ver, flag, None)
-            for node in content_nodes:
+            for node_num, node in enumerate(content_nodes,1):
                 print node.full_title(force_update=True)
                 text = JaggedTextArray(ver.content_node(node)).array()
                 version_payload = {
@@ -75,9 +75,14 @@ class ServerTextCopier(object):
                         "text": text
                 }
                 if len(text) > 0:
-                # only bother posting nodes that have content.
+                    # only bother posting nodes that have content.
                     found_non_empty_content = True
-                    self._make_post_request_to_server(self._prepare_text_api_call(node.full_title(force_update=True)), version_payload)
+                    if node_num == len(content_nodes):
+                        self._make_post_request_to_server(self._prepare_text_api_call(
+                            node.full_title(force_update=True), count_after=True), version_payload)
+                    else:
+                        self._make_post_request_to_server(self._prepare_text_api_call(
+                            node.full_title(force_update=True)), version_payload)
             if not found_non_empty_content:
                 # post the last node again with dummy text, to make sure an actual version db object is created
                 # then post again to clear the dummy text
@@ -99,8 +104,8 @@ class ServerTextCopier(object):
     def _prepare_index_api_call(self, index_title):
         return 'api/v2/raw/index/{}'.format(index_title.replace(" ", "_"))
 
-    def _prepare_text_api_call(self, terminal_ref):
-        return 'api/texts/{}?count_after=0&index_after=0'.format(urllib.quote(terminal_ref.replace(" ", "_").encode('utf-8')))
+    def _prepare_text_api_call(self, terminal_ref, count_after=False):
+        return 'api/texts/{}?count_after={}&index_after=0'.format(urllib.quote(terminal_ref.replace(" ", "_").encode('utf-8')), int(count_after))
 
     def _prepare_version_attrs_api_call(self, title, lang, vtitle):
         return "api/version/flags/{}/{}/{}".format(urllib.quote(title), urllib.quote(lang), urllib.quote(vtitle))

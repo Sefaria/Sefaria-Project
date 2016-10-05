@@ -2547,7 +2547,8 @@ var ReaderNavigationMenu = React.createClass({
           navHome: this.navHome,
           compare: this.props.compare,
           hideNavHeader: this.props.hideNavHeader,
-          width: this.width })
+          width: this.width,
+          interfaceLang: this.props.interfaceLang })
       );
     } else {
       // Root Library Menu
@@ -2694,7 +2695,7 @@ var ReaderNavigationMenu = React.createClass({
         siteLinks
       );
 
-      var calendar = Sefaria.calendar ? [React.createElement(TextBlockLink, { sref: Sefaria.calendar.parasha, title: Sefaria.calendar.parashaName, heTitle: 'פרשה', category: 'Tanakh' }), React.createElement(TextBlockLink, { sref: Sefaria.calendar.haftara, title: 'Haftara', heTitle: 'הפטרה', category: 'Tanakh' }), React.createElement(TextBlockLink, { sref: Sefaria.calendar.daf_yomi, title: 'Daf Yomi', heTitle: 'דף יומי', category: 'Talmud' })] : [];
+      var calendar = Sefaria.calendar ? [React.createElement(TextBlockLink, { sref: Sefaria.calendar.parasha, title: Sefaria.calendar.parashaName, heTitle: Sefaria.calendar.heParashaName, category: 'Tanakh' }), React.createElement(TextBlockLink, { sref: Sefaria.calendar.haftara, title: 'Haftara', heTitle: 'הפטרה', category: 'Tanakh' }), React.createElement(TextBlockLink, { sref: Sefaria.calendar.daf_yomi, title: 'Daf Yomi', heTitle: 'דף יומי', category: 'Talmud' })] : [];
       calendar = React.createElement(
         'div',
         { className: 'readerNavCalendar' },
@@ -2805,14 +2806,20 @@ var ReaderNavigationMenu = React.createClass({
         )
       );
 
+      var footer = this.props.compare ? null : React.createElement(
+        'footer',
+        { id: 'footer', className: 'interface-' + this.props.interfaceLang + ' static sans' },
+        React.createElement(Footer, null)
+      );
       var classes = classNames({ readerNavMenu: 1, noHeader: !this.props.hideHeader, compare: this.props.compare, home: this.props.home });
+      var contentClasses = classNames({ content: 1, hasFooter: footer != null });
       return React.createElement(
         'div',
         { className: classes, onClick: this.handleClick, key: '0' },
         topContent,
         React.createElement(
           'div',
-          { className: 'content' },
+          { className: contentClasses },
           React.createElement(
             'div',
             { className: 'contentInner' },
@@ -2822,7 +2829,8 @@ var ReaderNavigationMenu = React.createClass({
             React.createElement(ReaderNavigationMenuSection, { title: 'Calendar', heTitle: 'לוח יומי', content: calendar }),
             this.props.compare ? null : React.createElement(ReaderNavigationMenuSection, { title: 'Resources', heTitle: 'קהילה', content: resources }),
             this.props.multiPanel ? null : siteLinks
-          )
+          ),
+          footer
         )
       );
     }
@@ -2979,7 +2987,11 @@ var ReaderNavigationCategoryMenu = React.createClass({
     hideNavHeader: React.PropTypes.bool
   },
   render: function render() {
-
+    var footer = this.props.compare ? null : React.createElement(
+      'footer',
+      { id: 'footer', className: 'interface-' + this.props.interfaceLang + ' static sans' },
+      React.createElement(Footer, null)
+    );
     // Show Talmud with Toggles
     var categories = this.props.categories[0] === "Talmud" && this.props.categories.length == 1 ? ["Talmud", "Bavli"] : this.props.categories;
 
@@ -3037,6 +3049,7 @@ var ReaderNavigationCategoryMenu = React.createClass({
     var catContents = Sefaria.tocItemsByCategories(categories);
     var navMenuClasses = classNames({ readerNavCategoryMenu: 1, readerNavMenu: 1, noHeader: this.props.hideNavHeader });
     var navTopClasses = classNames({ readerNavTop: 1, searchOnly: 1, colorLineOnly: this.props.hideNavHeader });
+    var contentClasses = classNames({ content: 1, hasFooter: footer != null });
     return React.createElement(
       'div',
       { className: navMenuClasses },
@@ -3063,7 +3076,7 @@ var ReaderNavigationCategoryMenu = React.createClass({
       ),
       React.createElement(
         'div',
-        { className: 'content' },
+        { className: contentClasses },
         React.createElement(
           'div',
           { className: 'contentInner' },
@@ -3084,7 +3097,8 @@ var ReaderNavigationCategoryMenu = React.createClass({
           ) : null,
           toggle,
           React.createElement(ReaderNavigationCategoryMenuContents, { contents: catContents, categories: categories, width: this.props.width })
-        )
+        ),
+        footer
       )
     );
   }
@@ -4259,7 +4273,7 @@ var SheetsHomePage = React.createClass({
 
     return React.createElement(
       'div',
-      { className: 'content' },
+      { className: 'content hasFooter' },
       React.createElement(
         'div',
         { className: 'contentInner' },
@@ -4382,6 +4396,11 @@ var SheetsHomePage = React.createClass({
           )
         ),
         React.createElement(TwoOrThreeBox, { content: tagList, width: this.props.width })
+      ),
+      React.createElement(
+        'footer',
+        { id: 'footer', className: 'static sans' },
+        React.createElement(Footer, null)
       )
     );
   }
@@ -4459,7 +4478,7 @@ var PartnerSheetsPage = React.createClass({
 
     return React.createElement(
       'div',
-      { className: 'content sheetList' },
+      { className: 'content sheetList hasFooter' },
       React.createElement(
         'div',
         { className: 'contentInner' },
@@ -4495,6 +4514,11 @@ var PartnerSheetsPage = React.createClass({
         ) : null,
         this.state.showYourSheetTags ? React.createElement(TwoOrThreeBox, { content: groupTagList, width: this.props.width }) : null,
         sheets
+      ),
+      React.createElement(
+        'footer',
+        { id: 'footer', className: 'static sans' },
+        React.createElement(Footer, null)
       )
     );
   }
@@ -4575,7 +4599,7 @@ var TagSheetsPage = React.createClass({
     }) : React.createElement(LoadingMessage, null);
     return React.createElement(
       'div',
-      { className: 'content sheetList' },
+      { className: 'content sheetList hasFooter' },
       React.createElement(
         'div',
         { className: 'contentInner' },
@@ -4594,6 +4618,11 @@ var TagSheetsPage = React.createClass({
           )
         ) : null,
         sheets
+      ),
+      React.createElement(
+        'footer',
+        { id: 'footer', className: 'static sans' },
+        React.createElement(Footer, null)
       )
     );
   }
@@ -4674,7 +4703,7 @@ var AllSheetsPage = React.createClass({
     }) : React.createElement(LoadingMessage, null);
     return React.createElement(
       'div',
-      { className: 'content sheetList' },
+      { className: 'content sheetList hasFooter' },
       React.createElement(
         'div',
         { className: 'contentInner' },
@@ -4693,6 +4722,11 @@ var AllSheetsPage = React.createClass({
           )
         ) : null,
         sheets
+      ),
+      React.createElement(
+        'footer',
+        { id: 'footer', className: 'static sans' },
+        React.createElement(Footer, null)
       )
     );
   }
@@ -6471,7 +6505,9 @@ var TextList = React.createClass({
         // Viewing Text Connections
         var sectionLinks = Sefaria.links(sectionRef);
         var links = sectionLinks.filter(function (link) {
-          if (Sefaria.util.inArray(link.anchorRef, refs) === -1 && (this.props.multiPanel || !isSingleCommentary)) {
+          if ((this.props.multiPanel || !isSingleCommentary) && Sefaria.splitSpanningRef(link.anchorRef).every(function (aref) {
+            return Sefaria.util.inArray(aref, refs) === -1;
+          })) {
             // Only show section level links for an individual commentary
             return false;
           }
@@ -7465,12 +7501,12 @@ var ConfirmAddToSheetPanel = React.createClass({
         { className: 'message' },
         React.createElement(
           'span',
-          { className: 'en' },
+          { className: 'int-en' },
           'Your source has been added.'
         ),
         React.createElement(
           'span',
-          { className: 'he' },
+          { className: 'int-he' },
           'הטקסט נוסף בהצלחה לדף המקורות'
         )
       ),
@@ -7479,13 +7515,13 @@ var ConfirmAddToSheetPanel = React.createClass({
         { className: 'button white', href: "/sheets/" + this.props.sheetId },
         React.createElement(
           'span',
-          { className: 'en' },
+          { className: 'int-en' },
           'Go to Source Sheet ',
           React.createElement('i', { className: 'fa fa-angle-right' })
         ),
         React.createElement(
           'span',
-          { className: 'he' },
+          { className: 'int-he' },
           'עבור לדף המקורות',
           React.createElement('i', { className: 'fa fa-angle-left' })
         )
@@ -7847,7 +7883,7 @@ var SearchPage = React.createClass({
       ),
       React.createElement(
         'div',
-        { className: 'content' },
+        { className: 'content hasFooter' },
         React.createElement(
           'div',
           { className: 'contentInner' },
@@ -7875,6 +7911,11 @@ var SearchPage = React.createClass({
                 filtersValid: this.props.filtersValid })
             )
           )
+        ),
+        React.createElement(
+          'footer',
+          { id: 'footer', className: 'interface-' + this.props.interfaceLang + ' static sans' },
+          React.createElement(Footer, null)
         )
       )
     );
@@ -8579,7 +8620,7 @@ var SearchFilters = React.createClass({
       ),
       React.createElement(
         'div',
-        { className: 'searchFilterBoxes', style: { display: this.state.displayFilters ? "block" : "none" } },
+        { className: this.state.displayFilters ? "searchFilterBoxes" : "searchFilterBoxes hidden" },
         React.createElement(
           'div',
           { className: 'searchFilterCategoryBox' },
@@ -8913,6 +8954,12 @@ var AccountPanel = React.createClass({
     var connectContent = [React.createElement(BlockLink, { interfaceLink: true, target: 'https://groups.google.com/forum/?fromgroups#!forum/sefaria', title: 'Forum', heTitle: 'פורום' }), React.createElement(BlockLink, { interfaceLink: true, target: 'http://www.facebook.com/sefaria.org', title: 'Facebook', heTitle: 'פייסבוק' }), React.createElement(BlockLink, { interfaceLink: true, target: 'http://twitter.com/SefariaProject', title: 'Twitter', heTitle: 'טוויטר' }), React.createElement(BlockLink, { interfaceLink: true, target: 'http://www.youtube.com/user/SefariaProject', title: 'YouTube', heTitle: 'יוטיוב' }), React.createElement(BlockLink, { interfaceLink: true, target: 'http://www.github.com/Sefaria', title: 'GitHub', heTitle: 'גיטהאב' }), React.createElement(BlockLink, { interfaceLink: true, target: 'mailto:hello@sefaria.org', title: 'Email', heTitle: 'אימייל' })];
     connectContent = React.createElement(TwoOrThreeBox, { content: connectContent, width: width });
 
+    var footer = React.createElement(
+      'footer',
+      { id: 'footer', className: 'interface-' + this.props.interfaceLang + ' static sans' },
+      React.createElement(Footer, null)
+    );
+
     var classes = { accountPanel: 1, systemPanel: 1, readerNavMenu: 1, noHeader: 1 };
     var classStr = classNames(classes);
     return React.createElement(
@@ -8920,7 +8967,7 @@ var AccountPanel = React.createClass({
       { className: classStr },
       React.createElement(
         'div',
-        { className: 'content' },
+        { className: 'content hasFooter' },
         React.createElement(
           'div',
           { className: 'contentInner' },
@@ -8942,7 +8989,8 @@ var AccountPanel = React.createClass({
           React.createElement(ReaderNavigationMenuSection, { title: 'Learn', heTitle: 'לימוד', content: learnContent }),
           React.createElement(ReaderNavigationMenuSection, { title: 'Contribute', heTitle: 'עשייה', content: contributeContent }),
           React.createElement(ReaderNavigationMenuSection, { title: 'Connect', heTitle: 'התחברות', content: connectContent })
-        )
+        ),
+        footer
       )
     );
   }
@@ -9012,7 +9060,7 @@ var NotificationsPanel = React.createClass({
       { className: classStr },
       React.createElement(
         'div',
-        { className: 'content' },
+        { className: 'content hasFooter' },
         React.createElement(
           'div',
           { className: 'contentInner' },
@@ -9031,6 +9079,11 @@ var NotificationsPanel = React.createClass({
             )
           ),
           Sefaria.loggedIn ? React.createElement('div', { className: 'notificationsList', dangerouslySetInnerHTML: { __html: Sefaria.notificationsHtml } }) : React.createElement(LoginPanel, { fullPanel: true })
+        ),
+        React.createElement(
+          'footer',
+          { id: 'footer', className: 'interface-' + this.props.interfaceLang + ' static sans' },
+          React.createElement(Footer, null)
         )
       )
     );
@@ -9254,6 +9307,477 @@ var TestMessage = React.createClass({
   }
 });
 
+var Footer = React.createClass({
+  displayName: 'Footer',
+
+  render: function render() {
+    var currentPath = Sefaria.util.currentPath();
+    var next = encodeURIComponent(currentPath);
+    return React.createElement(
+      'div',
+      { id: 'footerInner' },
+      React.createElement(
+        'div',
+        { className: 'section' },
+        React.createElement(
+          'div',
+          { className: 'header' },
+          React.createElement(
+            'span',
+            { className: 'int-en' },
+            'About'
+          ),
+          React.createElement(
+            'span',
+            { className: 'int-he' },
+            'אודות'
+          )
+        ),
+        React.createElement(
+          'a',
+          { href: '/about', className: 'outOfAppLink' },
+          React.createElement(
+            'span',
+            { className: 'int-en' },
+            'What is Sefaria?'
+          ),
+          React.createElement(
+            'span',
+            { className: 'int-he' },
+            'מהי ספאריה'
+          )
+        ),
+        React.createElement(
+          'a',
+          { href: '/help', className: 'outOfAppLink' },
+          React.createElement(
+            'span',
+            { className: 'int-en' },
+            'Help'
+          ),
+          React.createElement(
+            'span',
+            { className: 'int-he' },
+            'עזרה'
+          )
+        ),
+        React.createElement(
+          'a',
+          { href: 'https://blog.sefaria.org', target: '_blank', className: 'outOfAppLink' },
+          React.createElement(
+            'span',
+            { className: 'int-en' },
+            'Blog'
+          ),
+          React.createElement(
+            'span',
+            { className: 'int-he' },
+            'בלוג'
+          )
+        ),
+        React.createElement(
+          'a',
+          { href: '/faq', target: '_blank', className: 'outOfAppLink' },
+          React.createElement(
+            'span',
+            { className: 'int-en' },
+            'FAQ'
+          ),
+          React.createElement(
+            'span',
+            { className: 'int-he' },
+            'שאלות נפוצות'
+          )
+        ),
+        React.createElement(
+          'a',
+          { href: '/team', className: 'outOfAppLink' },
+          React.createElement(
+            'span',
+            { className: 'int-en' },
+            'Team'
+          ),
+          React.createElement(
+            'span',
+            { className: 'int-he' },
+            'צוות'
+          )
+        ),
+        React.createElement(
+          'a',
+          { href: '/terms', className: 'outOfAppLink' },
+          React.createElement(
+            'span',
+            { className: 'int-en' },
+            'Terms of Use'
+          ),
+          React.createElement(
+            'span',
+            { className: 'int-he' },
+            'תנאי שימוש'
+          )
+        ),
+        React.createElement(
+          'a',
+          { href: '/privacy-policy', className: 'outOfAppLink' },
+          React.createElement(
+            'span',
+            { className: 'int-en' },
+            'Privacy Policy'
+          ),
+          React.createElement(
+            'span',
+            { className: 'int-he' },
+            'מדיניות הפרטיות'
+          )
+        )
+      ),
+      React.createElement(
+        'div',
+        { className: 'section' },
+        React.createElement(
+          'div',
+          { className: 'header' },
+          React.createElement(
+            'span',
+            { className: 'int-en' },
+            'Educators'
+          ),
+          React.createElement(
+            'span',
+            { className: 'int-he' },
+            'מחנכים'
+          )
+        ),
+        React.createElement(
+          'a',
+          { href: '/educators', target: '_blank', className: 'outOfAppLink' },
+          React.createElement(
+            'span',
+            { className: 'int-en' },
+            'Teach with Sefaria'
+          ),
+          React.createElement(
+            'span',
+            { className: 'int-he' },
+            'למד באמצעות ספאריה'
+          )
+        ),
+        React.createElement(
+          'a',
+          { href: '/sheets', className: 'outOfAppLink' },
+          React.createElement(
+            'span',
+            { className: 'int-en' },
+            'Source Sheets'
+          ),
+          React.createElement(
+            'span',
+            { className: 'int-he' },
+            'דפי מקורות'
+          )
+        ),
+        React.createElement(
+          'a',
+          { href: '/visualizations', className: 'outOfAppLink' },
+          React.createElement(
+            'span',
+            { className: 'int-en' },
+            'Visualizations'
+          ),
+          React.createElement(
+            'span',
+            { className: 'int-he' },
+            'עזרים חזותיים'
+          )
+        ),
+        React.createElement(
+          'a',
+          { href: '/people', className: 'outOfAppLink' },
+          React.createElement(
+            'span',
+            { className: 'int-en' },
+            'Authors'
+          ),
+          React.createElement(
+            'span',
+            { className: 'int-he' },
+            'מחברים'
+          )
+        )
+      ),
+      React.createElement(
+        'div',
+        { className: 'section' },
+        React.createElement(
+          'div',
+          { className: 'header' },
+          React.createElement(
+            'span',
+            { className: 'int-en' },
+            'Developers'
+          ),
+          React.createElement(
+            'span',
+            { className: 'int-he' },
+            'מפתחים'
+          )
+        ),
+        React.createElement(
+          'a',
+          { href: '/developers', target: '_blank', className: 'outOfAppLink' },
+          React.createElement(
+            'span',
+            { className: 'int-en' },
+            'Get Involved'
+          ),
+          React.createElement(
+            'span',
+            { className: 'int-he' },
+            'הצטרף אלינו'
+          )
+        ),
+        React.createElement(
+          'a',
+          { href: '/developers#api', target: '_blank', className: 'outOfAppLink' },
+          React.createElement(
+            'span',
+            { className: 'int-en' },
+            'API Docs'
+          ),
+          React.createElement(
+            'span',
+            { className: 'int-he' },
+            'מסמכי API'
+          )
+        ),
+        React.createElement(
+          'a',
+          { href: 'https://github.com/Sefaria/Sefaria-Project', target: '_blank', className: 'outOfAppLink' },
+          React.createElement(
+            'span',
+            { className: 'int-en' },
+            'Fork us on GitHub'
+          ),
+          React.createElement(
+            'span',
+            { className: 'int-he' },
+            'זלגו חופשי מגיטהאב'
+          )
+        ),
+        React.createElement(
+          'a',
+          { href: 'https://github.com/Sefaria/Sefaria-Export', target: '_blank', className: 'outOfAppLink' },
+          React.createElement(
+            'span',
+            { className: 'int-en' },
+            'Download our Data'
+          ),
+          React.createElement(
+            'span',
+            { className: 'int-he' },
+            'הורד את בסיס הנתונים שלנו'
+          )
+        )
+      ),
+      React.createElement(
+        'div',
+        { className: 'section' },
+        React.createElement(
+          'div',
+          { className: 'header' },
+          React.createElement(
+            'span',
+            { className: 'int-en' },
+            'Join Us'
+          ),
+          React.createElement(
+            'span',
+            { className: 'int-he' },
+            'הצטרף אלינו'
+          )
+        ),
+        React.createElement(
+          'a',
+          { href: '/donate', className: 'outOfAppLink' },
+          React.createElement(
+            'span',
+            { className: 'int-en' },
+            'Donate'
+          ),
+          React.createElement(
+            'span',
+            { className: 'int-he' },
+            'תרומות'
+          )
+        ),
+        React.createElement(
+          'a',
+          { href: '/supporters', className: 'outOfAppLink' },
+          React.createElement(
+            'span',
+            { className: 'int-en' },
+            'Supporters'
+          ),
+          React.createElement(
+            'span',
+            { className: 'int-he' },
+            'תומכים'
+          )
+        ),
+        React.createElement(
+          'a',
+          { href: '/contribute', target: '_blank', className: 'outOfAppLink' },
+          React.createElement(
+            'span',
+            { className: 'int-en' },
+            'Contribute'
+          ),
+          React.createElement(
+            'span',
+            { className: 'int-he' },
+            'הצטרף'
+          )
+        ),
+        React.createElement(
+          'a',
+          { href: '/jobs', className: 'outOfAppLink' },
+          React.createElement(
+            'span',
+            { className: 'int-en' },
+            'Jobs'
+          ),
+          React.createElement(
+            'span',
+            { className: 'int-he' },
+            'דרושים'
+          )
+        )
+      ),
+      React.createElement(
+        'div',
+        { className: 'section last' },
+        React.createElement(
+          'div',
+          { className: 'header' },
+          React.createElement(
+            'span',
+            { className: 'int-en' },
+            'Connect'
+          ),
+          React.createElement(
+            'span',
+            { className: 'int-he' },
+            'התחבר'
+          )
+        ),
+        React.createElement(
+          'a',
+          { href: 'http://www.facebook.com/sefaria.org', target: '_blank', className: 'outOfAppLink' },
+          React.createElement('i', { className: 'fa fa-facebook-official' }),
+          React.createElement(
+            'span',
+            { className: 'int-en' },
+            'Facebook'
+          ),
+          React.createElement(
+            'span',
+            { className: 'int-he' },
+            'פייסבוק'
+          )
+        ),
+        React.createElement(
+          'a',
+          { href: 'http://twitter.com/SefariaProject', target: '_blank', className: 'outOfAppLink' },
+          React.createElement('i', { className: 'fa fa-twitter' }),
+          React.createElement(
+            'span',
+            { className: 'int-en' },
+            'Twitter'
+          ),
+          React.createElement(
+            'span',
+            { className: 'int-he' },
+            'טוויטר'
+          )
+        ),
+        React.createElement(
+          'a',
+          { href: 'http://www.youtube.com/user/SefariaProject', target: '_blank', className: 'outOfAppLink' },
+          React.createElement('i', { className: 'fa fa-youtube' }),
+          React.createElement(
+            'span',
+            { className: 'int-en' },
+            'YouTube'
+          ),
+          React.createElement(
+            'span',
+            { className: 'int-he' },
+            'יוטיוב'
+          )
+        ),
+        React.createElement(
+          'a',
+          { href: 'https://groups.google.com/forum/?fromgroups#!forum/sefaria', target: '_blank', className: 'outOfAppLink' },
+          React.createElement(
+            'span',
+            { className: 'int-en' },
+            'Forum'
+          ),
+          React.createElement(
+            'span',
+            { className: 'int-he' },
+            'פורום'
+          )
+        ),
+        React.createElement(
+          'a',
+          { href: 'mailto:hello@sefaria.org', target: '_blank', className: 'outOfAppLink' },
+          React.createElement(
+            'span',
+            { className: 'int-en' },
+            'Email'
+          ),
+          React.createElement(
+            'span',
+            { className: 'int-he' },
+            'דוא"ל'
+          )
+        ),
+        React.createElement(
+          'div',
+          { id: 'siteLanguageToggle' },
+          React.createElement(
+            'div',
+            { id: 'siteLanguageToggleLabel' },
+            React.createElement(
+              'span',
+              { className: 'int-en' },
+              'Site Language:'
+            ),
+            React.createElement(
+              'span',
+              { className: 'int-he' },
+              'שפת האתר'
+            )
+          ),
+          React.createElement(
+            'a',
+            { href: "/interface/english?next=" + next, id: 'siteLanguageEnglish', className: 'outOfAppLink' },
+            'English'
+          ),
+          '|',
+          React.createElement(
+            'a',
+            { href: "/interface/hebrew?next=" + next, id: 'siteLanguageHebrew', className: 'outOfAppLink' },
+            'עברית'
+          )
+        )
+      )
+    );
+  }
+});
+
 var openInNewTab = function openInNewTab(url) {
   var win = window.open(url, '_blank');
   win.focus();
@@ -9294,6 +9818,7 @@ if (typeof exports !== 'undefined') {
   exports.ConnectionsPanel = ConnectionsPanel;
   exports.TextRange = TextRange;
   exports.TextColumn = TextColumn;
+  exports.Footer = Footer;
   exports.setData = setData;
   exports.unpackDataFromProps = Sefaria.unpackDataFromProps;
 }

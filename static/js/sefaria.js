@@ -119,8 +119,7 @@ Sefaria = extend(Sefaria, {
       var pRef = Sefaria.parseRef(ref);
       if (pRef.sections.length == 0) { return pRef.book; }
       var book = pRef.book + " ";
-      var nRef = pRef.ref;
-      var hRef = nRef.replace(/ /g, ":");
+      var hRef = pRef.ref.replace(/ /g, ":");
       return book + hRef.slice(book.length);
   },
   isRef: function(ref) {
@@ -440,16 +439,18 @@ Sefaria = extend(Sefaria, {
       // TODO handle ranging refs, which requires knowledge of the segment count of each included section
       // i.e., in "Shabbat 2a:5-2b:8" what is the last segment of Shabbat 2a?
       // For now, just return the first non-spanning ref.
-      oref.toSections = oref.sections;
-      return [this.humanRef(this.makeRef(oref))];
+      var newRef = Sefaria.util.clone(oref);
+      newRef.toSections = newRef.sections;
+      return [this.humanRef(this.makeRef(newRef))];
     } else {
       var refs  = [];
       var start = oref.sections[oref.sections.length-1];
       var end   = oref.toSections[oref.sections.length-1];
       for (var i = start; i <= end; i++) {
-        oref.sections[oref.sections.length-1]   = i;
-        oref.toSections[oref.sections.length-1] = i;
-        refs.push(this.humanRef(this.makeRef(oref)));
+        newRef = Sefaria.util.clone(oref);
+        newRef.sections[oref.sections.length-1] = i;
+        newRef.toSections[oref.sections.length-1] = i;
+        refs.push(this.humanRef(this.makeRef(newRef)));
       }
       return refs;
     }

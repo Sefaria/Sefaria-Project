@@ -10,6 +10,7 @@ var data = {
   calendar:            {
                           parasha: "{{ parasha_ref }}",
                           parashaName: "{{ parasha_name }}",
+                          heParashaName: "{{ he_parasha_name }}",
                           haftara: "{{ haftara_ref }}",
                           daf_yomi: "{{ daf_yomi_ref }}"
                        },
