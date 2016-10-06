@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
-from sefaria.model import *
+from sefaria.model.text import Index, CommentaryIndex, IndexSet, VersionSet
+from sefaria.model.schema import Term
 from sefaria.system.database import db
 import re
 
@@ -21,7 +22,7 @@ def make_explicit_commentary_index(title):
         'dependence' : 'commentary',
         'authors' : getattr(idx, "authors", None),
         'base_text_titles': [idx.commentaryBook],
-        'work_title': idx.commentator,
+        'collective_title': idx.commentator,
         'auto_linking_scheme': 'commentary_increment_base_text_depth',
         'related_categories': other_categories
     }
@@ -29,7 +30,7 @@ def make_explicit_commentary_index(title):
     nidx = Index(new_idx)
     if hasattr(nidx.nodes, 'lengths'):
         delattr(nidx.nodes, 'lengths')
-    nidx.save()
+
     if not Term().load({"name": idx.commentator}):
         term = Term({"name": idx.commentator, 'scheme': 'commentary_works'})
         titles = [
@@ -51,6 +52,7 @@ def make_explicit_commentary_index(title):
         term.set_titles(titles)
         term.save()
 
+    nidx.save(override_dependencies=True)
     return idx.c_index.title
 
 def del_old_commentator(index):

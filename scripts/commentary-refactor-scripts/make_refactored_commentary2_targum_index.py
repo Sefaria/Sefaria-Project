@@ -8,18 +8,18 @@ from sefaria.utils.hebrew import hebrew_term
 commentary2 = IndexSet({"categories.0": "Commentary2"})
 targums = IndexSet({"categories.1": "Targum"})
 
-targum_work_titles = [('Aramaic Targum', 'to '),('Targum Jonathan', 'on '), ('Onkelos', ''), ('Targum Neofiti', None)]
+targum_collective_titles = [('Aramaic Targum', 'to '),('Targum Jonathan', 'on '), ('Onkelos', ''), ('Targum Neofiti', None)]
 for trg in targums:
     print trg.title
-    for t in targum_work_titles:
+    for t in targum_collective_titles:
         if t[0] in trg.title:
-            work_title = t[0]
+            collective_title = t[0]
             if t[1] is not None:
                 base_book = trg.title.replace(t[0]+' '+t[1], '')
             else:
                 base_book = None
     trg.dependence = 'targum'
-    trg.work_title = work_title
+    trg.collective_title = collective_title
     trg.auto_linking_scheme = None
     if base_book:
         bidx = library.get_index(base_book)
@@ -38,7 +38,7 @@ for com2 in commentary2:
 
     com2.categories = [com2.categories[1], 'Commentary'] + com2.categories[2:]
     com2.dependence = 'commentary'
-    com2.work_title = com2.categories[2]
+    com2.collective_title = com2.categories[2]
     com2.auto_linking_scheme = None
     if len(base_books):
         com2.base_text_titles = base_books
@@ -50,17 +50,17 @@ for com2 in commentary2:
         com2.related_categories = other_categories
     com2.save()
 
-    if not Term().load({"name": com2.work_title}):
-        term = Term({"name": com2.work_title, 'scheme': 'commentary_works'})
+    if not Term().load({"name": com2.collective_title}):
+        term = Term({"name": com2.collective_title, 'scheme': 'commentary_titles'})
         titles = [
             {
                 "lang": "en",
-                "text": com2.work_title,
+                "text": com2.collective_title,
                 "primary": True
             },
             {
                 "lang": "he",
-                "text": hebrew_term(com2.work_title),
+                "text": hebrew_term(com2.collective_title),
                 "primary": True
             }
         ]
