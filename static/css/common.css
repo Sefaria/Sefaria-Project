@@ -785,9 +785,9 @@ text-shadow: 0 1px 0 rgba(255, 255, 255, 0.5);
 }
 
 .toggleOption img {
-  height: 24px;
-  width: 24px;
-  vertical-align: middle;
+  height: 26px;
+  width: 26px;
+  margin-top: 2px;
 }
 
 #sectionNav .toggleOption img {
@@ -2465,6 +2465,10 @@ line-height: 14px;
 }
 .badge-inverse:hover {
   background-color: #1a1a1a;
+}
+
+.clearFix {
+  clear: both;
 }
 
 @media screen and (max-width: 400px) {

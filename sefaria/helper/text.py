@@ -75,6 +75,7 @@ def rename_category(old, new):
 
     library.rebuild_toc()
 
+
 def resize_text(title, new_structure, upsize_in_place=False):
     # todo: Needs to be converted to objects, but no usages seen in the wild.
     """

@@ -3,8 +3,8 @@
 from sefaria.model import *
 
 """
-                                                    IN PROCESS & UNTESTED
-
+Experimental
+These utilities have been used a few times, but are still rough.
 
 To get the existing schema nodes to pass into these functions, easiest is likely:
 Ref("...").index_node
@@ -18,11 +18,14 @@ Todo:
         varnish
 """
 
+
 def insert_last_child(new_node, parent_node):
     return attach_branch(new_node, parent_node, len(parent_node.children))
 
+
 def insert_first_child(new_node, parent_node):
     return attach_branch(new_node, parent_node, 0)
+
 
 def attach_branch(new_node, parent_node, place=0):
     """
@@ -53,6 +56,7 @@ def attach_branch(new_node, parent_node, place=0):
     library.rebuild()
     refresh_version_state(index.title)
 
+
 def remove_branch(node):
     """
     This will delete any text in `node`
@@ -80,6 +84,7 @@ def remove_branch(node):
     index.save(override_dependencies=True)
     library.rebuild()
     refresh_version_state(index.title)
+
 
 def reorder_children(parent_node, new_order):
     """
@@ -192,3 +197,23 @@ def refresh_version_state(base_title):
         flags = vs.flags
         vs.delete()
         VersionState(title, {"flags": flags})
+
+
+def replaceBadNodeTitles(title, bad_char, good_char):
+    '''
+    This recurses through the serialized tree changing replacing the previous title of each node to its title with the bad_char replaced by good_char. 
+    '''
+    def recurse(node):
+        if 'nodes' in node:
+            for each_one in node['nodes']:
+                recurse(each_one)
+        elif 'default' not in node:
+            node['title'] = node['title'].replace(bad_char, good_char)
+            if node['titles'][0]['lang']
+            node['titles'][0]['text'] = node['titles'][0]['text'].replace(bad_char, good_char)
+
+    data = library.get_index(title).nodes.serialize()
+    recurse(data)
+    return data
+
+

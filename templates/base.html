@@ -14,6 +14,8 @@
 
     <link rel="stylesheet" href="/static/css/common.css">
     <link rel="stylesheet" href="/static/font-awesome/css/font-awesome.css">
+    <link rel="stylesheet" type="text/css" href="/static/css/keyboard.css">
+
 
 
     {% if S2 or request.flavour == "mobile" %}
@@ -50,7 +52,6 @@
       {% else %}
       var families = ['Montserrat:400,700', 'Alef:400,700:latin,hebrew' ];
       {% endif %}
-
       WebFont.load({
         google: {
           families: families

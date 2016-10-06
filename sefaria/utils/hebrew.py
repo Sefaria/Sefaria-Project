@@ -442,8 +442,9 @@ def hebrew_term(s):
 		"Modern Works":		u"יצירות מודרניות",
 		"Maharshal":		u'מהרש"ל',
 		"Gur Aryeh":		u'גור אריה',
-		"Tur and Commentaries": u'טור ומפרשים'
-
+		"Tur and Commentaries": u'טור ומפרשים',
+		"Yachin": u'יכין',
+        "Harchev Davar": u'הרחב דבר'
 	}
 
 	pseudo_categories = {

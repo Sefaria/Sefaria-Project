@@ -54,9 +54,9 @@ body.dark {
   direction: ltr;
 }
 #panelWrapBox {
-  position: relative;
-  padding-top: 54px;
-  height: 100%;
+  position: absolute;
+  top: 54px;
+  height: calc(100% - 54px);
   box-sizing: border-box;
 }
 #panelWrapBox.wrapBoxScroll {
@@ -65,6 +65,8 @@ body.dark {
 }
 .singlePanel #panelWrapBox {
   padding-top: 0;
+  height: 100%;
+  top: 0;
 }
 .headerInner {
   position: fixed;
@@ -377,11 +379,10 @@ body.dark {
 }
 /* Adjusting for 17px scrollbars, to keep content centered
    Only done in multiPanel mode now as a proxy for whether scrollbars take up width (on desktop they do, not on mobile) */
-.multiPanel .english .textColumn, .multiPanel .bilingual .textColumn {
+.multiPanel.interface-english .textColumn {
   padding-left: 17px;
 }
-
-.multiPanel .hebrew .textColumn {
+.multiPanel.interface-hebrew .textColumn {
   padding-right: 17px;
 }
 .textColumn .loadingMessage.base {
@@ -415,16 +416,14 @@ body.dark {
 .interface-hebrew .readerPanel .en{
   direction: ltr;
 }
-/*.readerPanel.hebrew {
-  direction: rtl;
-}*/
-/*.readerPanel.english {
-  direction: ltr;
-}*/
-.interface-hebrew .readerPanel .readerNavMenu, .readerPanel.hebrew .readerNavSection, .readerPanel.hebrew .readerNavMenu .category{
+.interface-hebrew .readerPanel .readerNavMenu,
+.readerPanel.hebrew .readerNavSection, 
+.readerPanel.hebrew .readerNavMenu .category {
   direction: rtl;
 }
-.interface-english .readerPanel .readerNavMenu, .readerPanel.english .readerNavSection, .readerPanel.english .readerNavMenu .category{
+.interface-english .readerPanel .readerNavMenu,
+.readerPanel.english .readerNavSection,
+ .readerPanel.english .readerNavMenu .category{
   direction: ltr;
 }
 .readerPanel.english .he {
@@ -516,21 +515,24 @@ body.dark {
   background-color: #F9F9F7;
 }
 .readerNavMenu .content {
+  position: relative;
   box-sizing: border-box;
-  padding: 80px 10px 10px;
+  padding: 30px 10px 10px;
   height: 100%;
   overflow-y: scroll;
   -webkit-overflow-scrolling: touch;
   font-size: 14px;
 }
-/* Adjusting for 17px scrollbars, to keep content centered */
-.multiPanel .english .readerNavMenu .content, .multiPanel .bilingual .readerNavMenu .content {
+.singlePanel .readerNavMenu .content {
+  top: 58px;
+  height: calc(100% - 58px);
+  padding-top: 40px;
 }
 .interface-hebrew.multiPanel .readerNavMenu .content {
   padding-right: 40px;
 }
 .multiPanel .readerNavMenu .content {
-  padding: 110px 30px;
+  padding: 30px 30px 70px 30px;
 }
 .multiPanel .readerNavMenu.noHeader .content {
   padding-top: 70px;
@@ -609,11 +611,11 @@ body.dark {
   float: right;
   text-align: right;
 }
-.readerNavTop .readerOptions img {
-
-}
 .sefariaLogo img {
   width: 110px;
+}
+.readerNavTop .sefariaLogo img {
+  vertical-align: middle;
 }
 .readerNavMenu h1 {
   text-align: center;
@@ -1003,11 +1005,11 @@ a.resourcesLink {
   margin-right: 4px;
 }
 .readerTextTableOfContents .content {
-  padding: 90px 10px 10px;
+  padding: 30px 10px 10px;
   box-sizing: border-box;
-  height: 100%;
-  overflow-y: scroll;
   text-align: center;
+  top: 58px;
+  height: calc(100% - 58px);
 }
 .readerTextTableOfContents .content .sectionLink {
   display: inline-block;
@@ -1022,6 +1024,8 @@ a.resourcesLink {
   background-color: white;
   color: #666;
   cursor: pointer;
+  padding: 0px 6px;
+  box-sizing: border-box;
 }
 .readerTextTableOfContents .content .sectionLink .en {
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
@@ -1606,6 +1610,9 @@ a.resourcesLink {
   color: white;
   border-color: #444;
 }
+.dark .readerControls .readerTextToc .readerTextTocBox {
+  color: white;
+}
 .readerControls.connectionsHeader {
   background-color: #EDEDED;
 }
@@ -1696,8 +1703,7 @@ a.resourcesLink {
   max-width: 60%;
   vertical-align: middle;
   color: #333;
-}
-
+}`
 .readerControls .readerTextToc .readerTextVersion {
   font-style: italic;
   color: #999;
@@ -1715,7 +1721,9 @@ a.resourcesLink {
 }
 .readerOptions img {
   height: 16px;
-  opacity: 0.2;
+}
+.dark .readerOptions img {
+
 }
 .readerOptionsPanel {
   position: absolute;
@@ -1904,26 +1912,56 @@ a.resourcesLink {
   margin: 0;
   padding: .3333em 0;
 }
-.continuous.bilingual .basetext .segment,
-.segmented.bilingual .basetext .segment {
-  margin-bottom: 14px;
-  display: block;
+.continuous .clearFix {
+  display: none;
 }
 .bilingual .segment > .he,
 .bilingual .segment > .en { 
   display: block;
 }
 .bilingual .segment > .en { 
+  text-align: left;
+}
+.bilingual .segment > .he { 
+  text-align: right;
+}
+.stacked.bilingual .basetext .segment {
+  margin-bottom: 14px;
+  display: block;
+}
+.stacked.bilingual .segment > .en { 
   margin-top: 6px;
   text-align: left;
 }
-.bilingual .basetext .segment > .en {
+.stacked.bilingual .basetext .segment > .en {
   margin: 10px 0 20px;
   color: #666;
 }
-.continuous.bilingual .segment.heOnly > .he,
-.continuous.bilingual .segment.enOnly > .en {
+.stacked.bilingual .segment.heOnly > .he,
+.stacked.bilingual .segment.enOnly > .en {
   display: inline;
+}
+.heLeft.bilingual .basetext .text,
+.heRight.bilingual .basetext .text {
+  padding: 30px 0;
+}
+.heLeft.bilingual .segment > .en,
+.heLeft.bilingual .segment > .he,
+.heRight.bilingual .segment > .en,
+.heRight.bilingual .segment > .he {
+  width: 50%;
+  box-sizing: border-box;
+  display: block;
+}
+.heLeft.bilingual .segment > .en,
+.heRight.bilingual .segment > .he {
+  float: right;
+  padding-left: 20px;
+}
+.heRight.bilingual .segment > .en,
+.heLeft.bilingual .segment > .he {
+  float: left;
+  padding-right: 20px;
 }
 .basetext .segment:active,
 .basetext .segment:focus {
@@ -1996,7 +2034,7 @@ a.resourcesLink {
   font-weight: lighter;
   color: #ccc;
   display: block;
-  width: 8px;
+  width: 30px;
   text-align: center;
   -webkit-text-size-adjust: 100%;
   -moz-user-select: none;
@@ -2053,28 +2091,38 @@ a.resourcesLink {
   -webkit-filter: invert(100%);
 }
 .readerPanel.english .segment .segmentNumber {
-  left: -38px;
+  left: -49px;
 }
 .readerPanel.hebrew .segment .segmentNumber,
 .readerPanel.bilingual .segment .segmentNumber {
-  right: -38px;
+  right: -44px;
 }
 .readerPanel.english .segment .linkCount {
-  right: -34px;
+  right: -45px;
 }
 .readerPanel.hebrew .segment .linkCount,
 .readerPanel.bilingual .segment .linkCount {
-  left: -36px;
+  left: -50px;
+}
+.readerPanel.heLeft.bilingual .segment .segmentNumber,
+.readerPanel.heRight.bilingual .segment .segmentNumber {
+  left: 50%;
+  margin-left: -15px;
+  right: auto;
+}
+.readerPanel.heLeft.bilingual .segment .linkCount,
+.readerPanel.heRight.bilingual .segment .linkCount {
+  visibility: hidden;
 }
 .singlePanel .readerPanel.english .segment .segmentNumber {
-  left: -21px;
+  left: -30px;
 }
 .singlePanel .readerPanel.hebrew .segment .segmentNumber,
 .singlePanel .readerPanel.bilingual .segment .segmentNumber {
   right: -28px;
 }
 .singlePanel .readerPanel.english .segment .linkCount {
-  right: -30px;
+  right: -37px;
 }
 .singlePanel .readerPanel.hebrew .segment .linkCount,
 .singlePanel .readerPanel.bilingual .segment .linkCount {
@@ -2771,14 +2819,16 @@ a.resourcesLink {
   text-align: center;
   text-transform: uppercase;
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
-  margin-top: 18px;
-  margin-bottom: 2px;
 }
 #s2Loading {
   text-align: center;
   background-color: #F9F9F7;
   height: 100%;
   color: #666;
+}
+#s2Loading .sefariaLogo {
+  margin-top: 18px;
+  margin-bottom: 2px;
 }
 #s2Loading .loadingMessage {
   position: absolute;
@@ -3094,4 +3144,67 @@ content: "";
 .int-en{
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
 }
-/***  ******************************************* ***/
+
+.searchBox .keyboardInputInitiator {
+    opacity: 0;
+    width: 16px;
+    height: 16px;
+    padding: 4px 7px;
+    background-color: #fff;
+    border-radius: 3px;
+    border: 1px solid #aaa;
+    position: initial;
+    vertical-align: -7px;
+}
+body #keyboardInputMaster {
+    opacity: 1;
+    top: 53px !important;
+    left:70px !important;
+    background-color: #F9F9F7;
+    border: 1px solid #ccc;
+    padding: 5px;
+    box-shadow: none;
+    border-radius: 0.3em;
+}
+body #keyboardInputMaster thead{
+    display: none;
+}
+body #keyboardInputMaster:before {
+  content: '';
+  position: absolute;
+  top: -10px;
+  left: 30px;
+  border-bottom: 10px solid #ccc;
+  border-left: 10px solid transparent;
+  border-right: 10px solid transparent;
+}
+body #keyboardInputMaster:after {
+  content: '';
+  position: absolute;
+  top: -8px;
+  left: 31px;
+  border-bottom: 9px solid #f9f9f9;
+  border-left: 9px solid transparent;
+  border-right: 9px solid transparent;
+}
+body #keyboardInputMaster tbody tr td table{
+    border-spacing: 2px 2px;
+}
+body #keyboardInputMaster tbody tr td table tbody tr td{
+    border: 0.5px solid #eee;
+    background: white;
+    font-family: "Open Sans Hebrew","proxima-nova", sans-serif;
+    min-width: 15px;
+    vertical-align: middle;
+    padding: 2px 8px;
+    text-align: center;
+    font-size: 14px;
+    color: #333;
+
+}
+body #keyboardInputMaster tbody tr td table tbody tr td:hover,
+body #keyboardInputMaster tbody tr td table tbody tr td:active,
+body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
+    border: 1px solid #eee;
+    background: #eee;
+}

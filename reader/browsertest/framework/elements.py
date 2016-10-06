@@ -32,6 +32,10 @@ class AtomicTest(object):
 
     every_build = False  # Run this test on every build?
 
+    # Only use one of the below.
+    include = []  # List of platforms (using cap_to_short_string) to include.  If this is present, only these platforms are included
+    exclude = []  # List of platforms (using cap_to_short_string) to exclude.
+
     def __init__(self, driver, url):
         self.base_url = url
         self.driver = driver
@@ -39,6 +43,8 @@ class AtomicTest(object):
             raise Exception("Missing required variable - test_suite")
         if not self.multi_panel and not self.single_panel:
             raise Exception("Tests must run on at least one of mobile or desktop")
+        if len(self.include) and len(self.exclude):
+            raise Exception("Only one of the 'include' and 'exclude' parameters can be used in a given test")
 
     def set_modal_cookie(self):
         #set cookie to avoid popup interruption
@@ -50,33 +56,46 @@ class AtomicTest(object):
     # Component methods
     def s2(self):
         self.driver.get(self.base_url + "/s2")
-        WebDriverWait(self.driver, TEMPER).until(title_contains("Texts"))
+        WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, ".readerNavCategory")))
         self.set_modal_cookie()
         return self
 
     # TOC
     def load_toc(self):
         self.driver.get(self.base_url + "/texts")
-        WebDriverWait(self.driver, TEMPER).until(title_contains("Texts"))
+        WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, ".readerNavCategory")))
         self.set_modal_cookie()
         return self
 
     def click_toc_category(self, category_name):
+        WebDriverWait(self.driver, TEMPER).until(
+            element_to_be_clickable((By.CSS_SELECTOR, '.readerNavCategory[data-cat="{}"]'.format(category_name)))
+        )
         self.driver.find_element_by_css_selector('.readerNavCategory[data-cat="{}"]'.format(category_name)).click()
-        WebDriverWait(self.driver, TEMPER).until(title_contains(category_name))
+        WebDriverWait(self.driver, TEMPER).until(
+            element_to_be_clickable((By.CSS_SELECTOR, '.refLink'))
+        )
         return self
 
     def click_toc_text(self, text_name):
+        WebDriverWait(self.driver, TEMPER).until(
+            element_to_be_clickable((By.CSS_SELECTOR, '.refLink[data-ref^="{}"]'.format(text_name)))
+        )
         p1 = self.driver.find_element_by_css_selector('.refLink[data-ref^="{}"]'.format(text_name))
         p1.click()
-        WebDriverWait(self.driver, TEMPER).until(title_contains(text_name))
+
+        WebDriverWait(self.driver, TEMPER).until(
+            element_to_be_clickable((By.CSS_SELECTOR, '.segment'))
+        )
         return self
 
-    def click_toc_recent(self, tref, until=None):
+    def click_toc_recent(self, tref):
+        WebDriverWait(self.driver, TEMPER).until(
+            element_to_be_clickable((By.CSS_SELECTOR, '.recentItem[data-ref="{}"]'.format(tref)))
+        )
         recent = self.driver.find_element_by_css_selector('.recentItem[data-ref="{}"]'.format(tref))
         recent.click()
-        until = title_contains(tref) if until is None else until
-        WebDriverWait(self.driver, TEMPER).until(until)
+        WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, '.segment')))
 
     # Text Panel
     # Todo: handle the case when the loaded page has different URL - because of scroll
@@ -95,12 +114,13 @@ class AtomicTest(object):
             url += "?with={}".format(filter)
         self.driver.get(url)
         if filter == "all":
-            WebDriverWait(self.driver, TEMPER).until(presence_of_element_located((By.CSS_SELECTOR, ".categoryFilter")))
+            WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, ".categoryFilter")))
         elif filter is not None:
             # Filters load slower than the main page
-            WebDriverWait(self.driver, TEMPER).until(presence_of_element_located((By.CSS_SELECTOR, ".filterSet > .textRange")))
+            WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, ".filterSet > .textRange")))
         else:
-            WebDriverWait(self.driver, TEMPER).until(presence_of_element_located((By.CSS_SELECTOR, ".textColumn .textRange .segment")))
+            WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, ".textColumn .textRange .segment")))
+            WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, ".linkCountDot")))
         self.set_modal_cookie()
         return self
 
@@ -110,7 +130,7 @@ class AtomicTest(object):
         assert isinstance(ref, Ref)
         url = self.base_url + "/" + ref.url()
         self.driver.get(url)
-        WebDriverWait(self.driver, TEMPER).until(presence_of_element_located((By.CSS_SELECTOR, ".tocContent > :not(.loadingMessage)")))
+        WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, ".tocContent > :not(.loadingMessage)")))
         self.set_modal_cookie()
         return self
 
@@ -120,7 +140,9 @@ class AtomicTest(object):
         assert isinstance(ref, Ref)
         p1 = self.driver.find_element_by_css_selector('.sectionLink[data-ref^="{}"]'.format(ref.url()))
         p1.click()
-        WebDriverWait(self.driver, TEMPER).until(title_contains(ref.normal()))
+        WebDriverWait(self.driver, TEMPER).until(
+            element_to_be_clickable((By.CSS_SELECTOR, '.segment'))
+        )
         return self
 
     #todo:
@@ -131,17 +153,12 @@ class AtomicTest(object):
         if isinstance(ref, basestring):
             ref = Ref(ref)
         assert isinstance(ref, Ref)
-        segment = self.driver.find_element_by_css_selector('.segment[data-ref="{}"]'.format(ref.normal()))
+        selector = '.segment[data-ref="{}"]'.format(ref.normal())
+        WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, selector)))
+        segment = self.driver.find_element_by_css_selector(selector)
         segment.click()
         # Todo: put a data-* attribute on .filterSet, for the multi-panel case
-        WebDriverWait(self.driver, TEMPER).until(presence_of_element_located((By.CSS_SELECTOR, ".textFilter")))
-        return self
-
-    def scroll_to_segment(self, ref):
-        if isinstance(ref, basestring):
-            ref = Ref(ref)
-        assert isinstance(ref, Ref)
-        #todo
+        WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, ".textFilter")))
         return self
 
     # Basic navigation
@@ -155,23 +172,77 @@ class AtomicTest(object):
         self.driver.forward()
         return self
 
-    def scroll_to_top(self):
-        """Scrolls the first text panel to the top"""
+    # Scrolling
+    def scroll_window_down(self, pixels):
+        self.driver.execute_script("window.scrollBy(0,{});".format(pixels))
         return self
 
-    def scroll_to_bottom(self):
-        """Scrolls the first text panel to the top"""
+    def scroll_window_up(self, pixels):
+        self.driver.execute_script("window.scrollBy(0,{});".format(-pixels))
         return self
+
+    def scroll_window_to_bottom(self):
+        self.driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+        return self
+
+    def scroll_reader_panel_down(self, pixels):
+        #todo: untested
+        #todo: handle multiple panels
+        self.driver.execute_script(
+            "var a = $('.textColumn'); a.scrollTop(a.scrollTop() + {});".format(pixels)
+        )
+        return self
+
+    def scroll_reader_panel_up(self, pixels):
+        #todo: untested
+        #todo: handle multiple panels
+        self.driver.execute_script(
+            "var a = $('.textColumn'); a.scrollTop(a.scrollTop() - {});".format(pixels)
+        )
+        return self
+
+    def scroll_reader_panel_to_bottom(self):
+        #todo: untested
+        #todo: handle multiple panels
+        self.driver.execute_script(
+            "var a = $('.textColumn'); a.scrollTop(a.prop('scrollHeight'));"
+        )
+        return self
+
+    def scroll_reader_panel_to_top(self):
+        """Scrolls the first text panel to the top"""
+        #todo
+        return self
+
+    def scroll_to_segment(self, ref):
+        if isinstance(ref, basestring):
+            ref = Ref(ref)
+        assert isinstance(ref, Ref)
+        #todo
+        return self
+
+    def scroll_nav_panel_to_bottom(self):
+        # todo: handle multiple panels
+        self.driver.execute_script(
+            "var a = $('.content'); a.scrollTop(a.prop('scrollHeight'));"
+        )
+        return self
+
+
 
     # Connections Panel
     def find_text_filter(self, name):
+        WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, '.textFilter[data-name="{}"]'.format(name))))
         return self.driver.find_element_by_css_selector('.textFilter[data-name="{}"]'.format(name))
 
     def click_text_filter(self, name):
         f = self.find_text_filter(name)
         assert f, "Can not find text filter {}".format(name)
         f.click()
-        WebDriverWait(self.driver, TEMPER).until(title_contains("with {}".format(name)))
+        WebDriverWait(self.driver, TEMPER).until(
+            element_to_be_clickable((By.CSS_SELECTOR, '.recentFilterSet'))
+        )
+        #WebDriverWait(self.driver, TEMPER).until(title_contains("with {}".format(name)))
         return self
 
     # Search
@@ -180,7 +251,7 @@ class AtomicTest(object):
         if query is not None:
             url += "?q={}".format(query)
         self.driver.get(url)
-        WebDriverWait(self.driver, TEMPER).until(presence_of_element_located((By.CSS_SELECTOR, ".results-count")))
+        WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, ".type-button-total")))
         self.set_modal_cookie()
         return self
 
@@ -189,14 +260,13 @@ class AtomicTest(object):
         elem.send_keys(query)
         elem.send_keys(Keys.RETURN)
         # todo: does this work for a second search?
-        WebDriverWait(self.driver, TEMPER).until(presence_of_element_located((By.CSS_SELECTOR, ".result")))
+        WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, ".result")))
         return self
 
     #Source Sheets
     def load_sheets(self):
-        url = self.base_url + "/sheets"
-        self.driver.get(url)
-        WebDriverWait(self.driver, TEMPER).until(title_contains("Sheet"))
+        self.driver.get(self.base_url + "/sheets")
+        WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, ".sheet")))
         self.set_modal_cookie()
         return self
     
@@ -237,7 +307,7 @@ class ResultSet(object):
         self._indexed_tests = {}
 
     def __str__(self):
-        return "\n".join([str(r) for r in self._test_results]) + "\n\n"
+        return "\n" + "\n".join([str(r) for r in self._test_results]) + "\n\n"
 
     def _aggregate(self):
         if not self._aggregated:
@@ -388,11 +458,22 @@ class Trial(object):
             else:
                 sys.stdout.write("F")
             sys.stdout.flush()
+            #if self.platform == "sauce":
+            #    driver.execute_script("sauce: break")
             return TestResult(test, cap, False, msg)
         else:
             sys.stdout.write("{} - Passed".format(name) if self.isVerbose else ".")
             sys.stdout.flush()
             return TestResult(test, cap, True)
+
+    def _should_test_run(self, mode, test, cap):
+        if (mode == "multi_panel" and not test.multi_panel) or (mode == "single_panel" and not test.single_panel):
+            return False
+        if len(test.include) and self.cap_to_short_string(cap) not in test.include:
+            return False
+        if len(test.exclude) and self.cap_to_short_string(cap) in test.exclude:
+            return False
+        return True
 
     def _test_one(self, test, cap):
         driver = None
@@ -405,8 +486,10 @@ class Trial(object):
                     'name': "{} on {}".format(test.__name__, self.cap_to_string(cap)),
                     'build': self.build,
                 })
-            if (mode == "multi_panel" and not test.multi_panel) or (mode == "single_panel" and not test.single_panel):
+
+            if not self._should_test_run(mode, test, cap):
                 return None
+
             driver = self._get_driver(cap)
             result = self._run_one_atomic_test(driver, test, cap)
             if self.platform == "sauce":
@@ -425,7 +508,6 @@ class Trial(object):
                 sys.stdout.write("A")
             sys.stdout.flush()
             return TestResult(test, cap, False, msg)
-
 
     def _test_on_all(self, test):
         """
