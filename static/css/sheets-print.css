@@ -62,4 +62,8 @@ a {
 { 
     size: auto;
     margin: 18mm 15mm;
-} 
+}
+
+#footer{
+	display: none;
+}
