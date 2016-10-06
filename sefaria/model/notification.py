@@ -89,6 +89,15 @@ class GlobalNotification(abst.AbstractMongoRecord):
         self.content["en"] = msg
         return self
 
+    def to_HTML(self):
+        html = render_to_string("elements/notification.html", {"notification": self}).strip()
+        html = re.sub("\n", "", html)
+        return html
+
+    @property
+    def id(self):
+        return str(self._id)
+
 
 class GlobalNotificationSet(abst.AbstractMongoSet):
     recordClass = GlobalNotification
@@ -99,6 +108,10 @@ class GlobalNotificationSet(abst.AbstractMongoSet):
     def register_for_user(self, uid):
         for global_note in self:
             Notification().register_global_notification(global_note, uid).save()
+
+    def to_HTML(self):
+        html = [n.to_HTML() for n in self]
+        return "".join(html)
 
 
 class Notification(abst.AbstractMongoRecord):
@@ -233,7 +246,7 @@ class NotificationSet(abst.AbstractMongoSet):
         """
         latest_id_for_user = Notification.latest_global_for_user(uid)
         latest_global_id = GlobalNotification.latest_id()
-        if (latest_id_for_user or latest_global_id) and (latest_global_id != latest_id_for_user):
+        if latest_global_id and (latest_global_id != latest_id_for_user):
             if latest_id_for_user is None:
                 GlobalNotificationSet({}, limit=10).register_for_user(uid)
             else:

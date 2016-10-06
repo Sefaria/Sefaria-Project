@@ -524,6 +524,10 @@ def s2_notifications(request):
     return s2_page(request, "notifications")
 
 
+def s2_updates(request):
+    return s2_page(request, "updates")
+
+
 @ensure_csrf_cookie
 def edit_text(request, ref=None, lang=None, version=None):
     """
@@ -1816,6 +1820,23 @@ def dictionary_api(request, word):
         return jsonResponse({"error": "No information found for given word."})
 
 
+@catch_error_as_json
+def updates_api(request):
+    """
+    API for retrieving general notifications.
+    """
+
+    page      = int(request.GET.get("page", 0))
+    page_size = int(request.GET.get("page_size", 10))
+
+    notifications = GlobalNotificationSet({},limit=page_size, page=page)
+
+    return jsonResponse({
+                            "html": notifications.to_HTML(),
+                            "page": page,
+                            "page_size": page_size,
+                            "count": notifications.count()
+                        })
 
 @catch_error_as_json
 def notifications_api(request):
@@ -1825,7 +1846,7 @@ def notifications_api(request):
     if not request.user.is_authenticated():
         return jsonResponse({"error": "You must be logged in to access your notifications."})
 
-    page      = int(request.GET.get("page", 1))
+    page      = int(request.GET.get("page", 0))
     page_size = int(request.GET.get("page_size", 10))
 
     notifications = NotificationSet().recent_for_user(request.user.id, limit=page_size, page=page)

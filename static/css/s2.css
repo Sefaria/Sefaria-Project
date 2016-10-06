@@ -2819,7 +2819,7 @@ a.resourcesLink {
   width: auto;
   border-bottom: 1px solid #ccc;
   border-top: none;
-  padding: 27px 0;
+  padding: 27px 15px;
   margin: 0;
 }
 .notificationsList .added-description {

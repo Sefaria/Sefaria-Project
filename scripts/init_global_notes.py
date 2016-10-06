@@ -3,7 +3,7 @@
 from sefaria.model import *
 from datetime import datetime
 
-NotificationSet().update({"is_global": False})
+#NotificationSet().update({"is_global": False})
 
 
 GlobalNotification()\
