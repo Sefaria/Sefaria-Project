@@ -692,10 +692,11 @@ var ReaderApp = React.createClass({
     // In multi panel mode, set the maximum number of visible panels depending on the window width.
     this.setWindowWidth();
     var panelCap = Math.floor($(window).outerWidth() / this.MIN_PANEL_WIDTH);
-
+    //console.log("Setting panelCap: " + panelCap);
     this.setState({ panelCap: panelCap });
   },
   setWindowWidth: function setWindowWidth() {
+    //console.log("Setting window width: " + $(window).outerWidth());
     this.setState({ windowWidth: $(window).outerWidth() });
   },
   handleNavigationClick: function handleNavigationClick(ref, version, versionLanguage, options) {
@@ -2463,10 +2464,10 @@ var ReaderNavigationMenu = React.createClass({
   },
   setWidth: function setWidth() {
     var width = $(ReactDOM.findDOMNode(this)).width();
-
+    //console.log("Setting RNM width: " + width);
     var winWidth = $(window).width();
     var winHeight = $(window).height();
-
+    //console.log("Window width: " + winWidth + ", Window height: " + winHeight);
     var oldWidth = this.width;
     this.width = width;
     if (oldWidth <= 450 && width > 450 || oldWidth > 450 && width <= 450) {
@@ -5389,9 +5390,10 @@ var TextColumn = React.createClass({
     } else if (lastBottom < windowHeight + 80) {
       // DOWN: add the next section to bottom
       if ($lastText.hasClass("loading")) {
+        //console.log("last text is loading - don't add next section");
         return;
       }
-
+      //console.log("Down! Add next section");
       var currentRef = refs.slice(-1)[0];
       var data = Sefaria.ref(currentRef);
       if (data && data.next) {
@@ -5406,6 +5408,7 @@ var TextColumn = React.createClass({
       var topRef = refs[0];
       var data = Sefaria.ref(topRef);
       if (data && data.prev) {
+        //console.log("Up! Add previous section");
         refs.splice(refs, 0, data.prev);
         this.loadingContentAtTop = true;
         this.props.updateTextColumn(refs);
