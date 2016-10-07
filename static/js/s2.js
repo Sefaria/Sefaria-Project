@@ -475,6 +475,11 @@ var ReaderApp = React.createClass({
             hist.url = "notifications";
             hist.mode = "notifications";
             break;
+          case "updates":
+            hist.title = "New at Sefaria";
+            hist.url = "updates";
+            hist.mode = "updates";
+            break;
         }
       } else if (state.mode === "Text") {
         hist.title = state.refs.slice(-1)[0];
@@ -1323,6 +1328,15 @@ var Header = React.createClass({
     this.props.setCentralState({ menuOpen: "notifications" });
     this.clearSearchBox();
   },
+  showUpdates: function showUpdates() {
+    // todo: not used yet
+    if (typeof sjs !== "undefined") {
+      window.location = "/updates";
+      return;
+    }
+    this.props.setCentralState({ menuOpen: "updates" });
+    this.clearSearchBox();
+  },
   showTestMessage: function showTestMessage() {
     this.props.setCentralState({ showTestMessage: true });
   },
@@ -2152,6 +2166,9 @@ var ReaderPanel = React.createClass({
     } else if (this.state.menuOpen === "notifications") {
       var menu = React.createElement(NotificationsPanel, {
         setUnreadNotificationsCount: this.props.setUnreadNotificationsCount,
+        interfaceLang: this.props.interfaceLang });
+    } else if (this.state.menuOpen === "updates") {
+      var menu = React.createElement(UpdatesPanel, {
         interfaceLang: this.props.interfaceLang });
     } else {
       var menu = null;
@@ -9016,7 +9033,7 @@ var NotificationsPanel = React.createClass({
   },
   getInitialState: function getInitialState() {
     return {
-      page: 2,
+      page: 0,
       loadedToEnd: false,
       loading: false
     };
@@ -9090,6 +9107,83 @@ var NotificationsPanel = React.createClass({
             )
           ),
           Sefaria.loggedIn ? React.createElement('div', { className: 'notificationsList', dangerouslySetInnerHTML: { __html: Sefaria.notificationsHtml } }) : React.createElement(LoginPanel, { fullPanel: true })
+        ),
+        React.createElement(
+          'footer',
+          { id: 'footer', className: 'interface-' + this.props.interfaceLang + ' static sans' },
+          React.createElement(Footer, null)
+        )
+      )
+    );
+  }
+});
+
+var UpdatesPanel = React.createClass({
+  displayName: 'UpdatesPanel',
+
+  propTypes: {
+    interfaceLang: React.PropTypes.string
+  },
+  getInitialState: function getInitialState() {
+    return {
+      page: 0,
+      loadedToEnd: false,
+      loading: false,
+      html: ""
+    };
+  },
+  componentDidMount: function componentDidMount() {
+    $(ReactDOM.findDOMNode(this)).find(".content").bind("scroll", this.handleScroll);
+    this.handleScroll();
+  },
+  handleScroll: function handleScroll() {
+    if (this.state.loadedToEnd || this.state.loading) {
+      return;
+    }
+    var $scrollable = $(ReactDOM.findDOMNode(this)).find(".content");
+    var margin = 100;
+    if ($scrollable.scrollTop() + $scrollable.innerHeight() + margin >= $scrollable[0].scrollHeight) {
+      this.getMoreNotifications();
+    }
+  },
+  getMoreNotifications: function getMoreNotifications() {
+    $.getJSON("/api/updates?page=" + this.state.page, this.loadMoreNotifications);
+    this.setState({ loading: true });
+  },
+  loadMoreNotifications: function loadMoreNotifications(data) {
+    if (data.count < data.page_size) {
+      this.setState({ loadedToEnd: true });
+    }
+    this.state.html += data.html;
+    this.setState({ page: data.page + 1, loading: false, html: this.state.html });
+  },
+  render: function render() {
+    var classes = { notificationsPanel: 1, systemPanel: 1, readerNavMenu: 1, noHeader: 1 };
+    var classStr = classNames(classes);
+    return React.createElement(
+      'div',
+      { className: classStr },
+      React.createElement(
+        'div',
+        { className: 'content hasFooter' },
+        React.createElement(
+          'div',
+          { className: 'contentInner' },
+          React.createElement(
+            'h1',
+            null,
+            React.createElement(
+              'span',
+              { className: 'int-en' },
+              'Updates'
+            ),
+            React.createElement(
+              'span',
+              { className: 'int-he' },
+              'עדכונים'
+            )
+          ),
+          Sefaria.loggedIn ? React.createElement('div', { className: 'notificationsList', dangerouslySetInnerHTML: { __html: this.state.html } }) : React.createElement(LoginPanel, { fullPanel: true })
         ),
         React.createElement(
           'footer',
