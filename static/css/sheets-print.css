@@ -10,7 +10,8 @@
 .sheetsEditNavTop,
 .inlineAddButton,
 .header,
-#addInterface
+#addInterface,
+#footer
 {
 	display: none !important;
 	border: 0;
