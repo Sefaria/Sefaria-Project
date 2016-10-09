@@ -6,10 +6,10 @@ harchevs = IndexSet({"title": {"$regex": "^Harchev Davar"}})
 
 for idx in harchevs:
     print idx.title
-    work_title = "Harchev Davar"
-    base_book = idx.title.replace(work_title+" on ", '')
+    collective_title = "Harchev Davar"
+    base_book = idx.title.replace(collective_title+" on ", '')
     idx.dependence = 'commentary'
-    idx.work_title = work_title
+    idx.collective_title = collective_title
     idx.auto_linking_scheme = None
     bidx = library.get_index(base_book)
     idx.base_text_titles = [base_book]

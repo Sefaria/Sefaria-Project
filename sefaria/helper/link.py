@@ -247,7 +247,7 @@ def rebuild_links_for_title(tref, user=None):
         # If not a valid ref, maybe a title of an entire corpus.
         # Allow group work names, eg. Rashi alone, rebuild for each text we have
         #TODO: there might need to be some error checking done on this
-        title_indices = library.get_indices_by_work_title(tref)
+        title_indices = library.get_indices_by_collective_title(tref)
         for c in title_indices:
             rebuild_links_for_title(c, user)
         return

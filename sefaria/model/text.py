@@ -585,8 +585,8 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
 
         #//TODO: can we do away with this special casing?
         if getattr(self, 'dependence', None) == 'commentary':
-            toc_contents_dict["commentator"]   = self.work_title
-            toc_contents_dict["heCommentator"] = hebrew_term(self.work_title)
+            toc_contents_dict["commentator"]   = self.collective_title
+            toc_contents_dict["heCommentator"] = hebrew_term(self.collective_title)
 
         return toc_contents_dict
 
@@ -1572,8 +1572,8 @@ class TextFamily(object):
         if self._inode.index.is_dependant_text():
             d["commentaryBook"] = getattr(self._inode.index, 'base_text_titles', "")
             d["commentaryCategories"] = getattr(self._inode.index, 'related_categories', "")
-            d["commentator"] = getattr(self._inode.index, 'work_title', "")
-            d["heCommentator"] = hebrew_term(getattr(self._inode.index, work_title, ""))
+            d["commentator"] = getattr(self._inode.index, 'collective_title', "")
+            d["heCommentator"] = hebrew_term(getattr(self._inode.index, collective_title, ""))
 
         d["isComplex"]    = self.isComplex
         d["indexTitle"]   = self._inode.index.title
@@ -3905,8 +3905,8 @@ class Library(object):
         return IndexSet(q) if full_records else IndexSet(q).distinct("title")
 
 
-    def get_indices_by_work_title(self, work_title, full_records=False):
-        q = {'work_title': work_title}
+    def get_indices_by_collective_title(self, collective_title, full_records=False):
+        q = {'collective_title': collective_title}
         return IndexSet(q) if full_records else IndexSet(q).distinct("title")
 
     #TODO: add category filtering here or in another method?
