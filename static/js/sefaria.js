@@ -264,7 +264,6 @@ Sefaria = extend(Sefaria, {
   },
   _saveText: function(data, settings, skipWrap) {
     if (!data || "error" in data) { 
-      console.log("Returning!");
       return;
     }
     settings         = settings || {};
@@ -478,7 +477,7 @@ Sefaria = extend(Sefaria, {
       //console.log(url);
       this._api(url, function(data) {
         this._lexiconLookups[cache_key] = ("error" in data) ? [] : data;
-        console.log("state changed from ajax: ", data);
+        //console.log("state changed from ajax: ", data);
         cb(this._lexiconLookups[cache_key]);
       }.bind(this));
     }else{
@@ -796,6 +795,7 @@ Sefaria = extend(Sefaria, {
           if ("error" in data) { 
             return;
           }
+          var originalData = Sefaria.util.clone(data);
 
           // Save link, note, and sheet data, and retain the split data from each of these saves
           var split_data = {
@@ -816,11 +816,13 @@ Sefaria = extend(Sefaria, {
             }
           }, this);
 
+
            // Save the original data after the split data - lest a split version overwrite it.
-          this._related[ref] = data;
+          this._related[ref] = originalData;
           this._relatedSummaries[ref] = null; // Reset in case previously cached before API returned
 
           callback(data);
+
         }.bind(this));
     }
   },

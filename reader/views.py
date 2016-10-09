@@ -524,6 +524,10 @@ def s2_notifications(request):
     return s2_page(request, "notifications")
 
 
+def s2_updates(request):
+    return s2_page(request, "updates")
+
+
 @ensure_csrf_cookie
 def edit_text(request, ref=None, lang=None, version=None):
     """
@@ -617,6 +621,8 @@ def make_toc_html(oref, zoom=1):
         he_counts, en_counts = state.var("he", "availableTexts"), state.var("en", "availableTexts")
         if getattr(index, "toc_zoom", None):
             zoom = index.toc_zoom
+        elif index.nodes.depth == 1:
+            zoom = 0
         html = make_simple_toc_html(he_counts, en_counts, index.nodes.sectionNames, index.nodes.addressTypes, Ref(index.title), zoom=zoom)
 
     if index.has_alt_structures():
@@ -804,7 +810,7 @@ def make_simple_toc_html(he_toc, en_toc, labels, addresses, context_oref, zoom=1
                         last.normal().rsplit(":", 1)[1] if last.is_segment_level() else "")
 
     html = ""
-    if toc_depth == zoom + 1:
+    if (toc_depth == zoom + 1):
         # We're at the terminal level, generate links (for zoom = 1 this is the section level)
 
         # offsets: list of integers for how much to offset each level of a ref sections
@@ -1020,8 +1026,8 @@ def text_toc_html_fragment(request, title):
     Returns an HTML fragment of the Text TOC for title
     """
     oref = Ref(title)
-    zoom = 0 if not oref.index.is_complex() and oref.index_node.depth == 1 else 1
-    return HttpResponse(make_toc_html(oref, zoom=zoom))    
+    # zoom = 0 if not oref.index.is_complex() and oref.index_node.depth == 1 else 1
+    return HttpResponse(make_toc_html(oref))
 
 
 @ensure_csrf_cookie
@@ -1816,6 +1822,23 @@ def dictionary_api(request, word):
         return jsonResponse({"error": "No information found for given word."})
 
 
+@catch_error_as_json
+def updates_api(request):
+    """
+    API for retrieving general notifications.
+    """
+
+    page      = int(request.GET.get("page", 0))
+    page_size = int(request.GET.get("page_size", 10))
+
+    notifications = GlobalNotificationSet({},limit=page_size, page=page)
+
+    return jsonResponse({
+                            "html": notifications.to_HTML(),
+                            "page": page,
+                            "page_size": page_size,
+                            "count": notifications.count()
+                        })
 
 @catch_error_as_json
 def notifications_api(request):
@@ -1825,7 +1848,7 @@ def notifications_api(request):
     if not request.user.is_authenticated():
         return jsonResponse({"error": "You must be logged in to access your notifications."})
 
-    page      = int(request.GET.get("page", 1))
+    page      = int(request.GET.get("page", 0))
     page_size = int(request.GET.get("page_size", 10))
 
     notifications = NotificationSet().recent_for_user(request.user.id, limit=page_size, page=page)

@@ -9,6 +9,9 @@ import sys
 import re
 from datetime import datetime
 
+import logging
+logger = logging.getLogger(__name__)
+
 import json
 from bson.objectid import ObjectId
 
@@ -17,6 +20,98 @@ from django.template.loader import render_to_string
 from . import abstract as abst
 from . import user_profile
 from sefaria.system.database import db
+
+
+class GlobalNotification(abst.AbstractMongoRecord):
+    """
+    "type" attribute can be: "index", "version", or "general"
+
+    value of "content" attribute for type "general":
+        "he"    : hebrew long description (optional)
+        "en"    : english long description (optional)
+    for type "index":
+        "index" : title of index
+        "he"    : hebrew long description (optional)
+        "en"    : english long description (optional)
+    for type "version":
+        "index"     : title of index
+        "version"   : version title
+        "language"  : "en" or "he"
+        "he"        : hebrew long description (optional)
+        "en"        : english long description (optional)
+
+    """
+    collection   = 'global_notification'
+    history_noun = 'global notification'
+
+    required_attrs = [
+        "type",
+        "content",
+        "date",
+    ]
+
+    optional_attrs = [
+    ]
+
+    def _init_defaults(self):
+        self.content = {}
+        self.type    = "general"
+        self.date = datetime.now()
+
+    @staticmethod
+    def latest_id():
+        n = db.global_notification.find_one({}, {"_id": 1}, sort=[["_id", -1]])
+        if not n:
+            return None
+        return n["_id"]
+
+    def make_index(self, index):
+        self.type = "index"
+        self.content["index"] = index.title
+        return self
+
+    def make_version(self, version):
+        self.type = "version"
+        self.content["version"] = version.versionTitle
+        self.content["language"] = version.language
+        self.content["index"] = version.title
+        return self
+
+    def set_date(self, date):
+        self.date = date
+        return self
+
+    def set_he(self, msg):
+        self.content["he"] = msg
+        return self
+
+    def set_en(self, msg):
+        self.content["en"] = msg
+        return self
+
+    def to_HTML(self):
+        html = render_to_string("elements/notification.html", {"notification": self}).strip()
+        html = re.sub("\n", "", html)
+        return html
+
+    @property
+    def id(self):
+        return str(self._id)
+
+
+class GlobalNotificationSet(abst.AbstractMongoSet):
+    recordClass = GlobalNotification
+
+    def __init__(self, query=None, page=0, limit=0, sort=[["_id", -1]]):
+        super(GlobalNotificationSet, self).__init__(query=query, page=page, limit=limit, sort=sort)
+
+    def register_for_user(self, uid):
+        for global_note in self:
+            Notification().register_global_notification(global_note, uid).save()
+
+    def to_HTML(self):
+        html = [n.to_HTML() for n in self]
+        return "".join(html)
 
 
 class Notification(abst.AbstractMongoRecord):
@@ -29,17 +124,44 @@ class Notification(abst.AbstractMongoRecord):
         "uid",
         "content",
         "read",
+        "is_global"
     ]
     optional_attrs = [
         "read_via",
+        "global_id"
     ]
 
     def _init_defaults(self):
-        self.read     = False
-        self.read_via = None
-        self.type     = "unset"
-        self.content  = {}
-        self.date     = datetime.now()
+        self.read      = False
+        self.read_via  = None
+        self.type      = "unset"
+        self.content   = {}
+        self.date      = datetime.now()
+        self.is_global = False
+
+    def _set_derived_attributes(self):
+        if not self.is_global:
+            return
+
+        gnote = GlobalNotification().load({"_id": self.global_id})
+        if gnote is None:
+            logger.error("Tried to load non-existent global notification: {}".format(self.global_id))
+
+        self.content = gnote.content
+        self.type    = gnote.type
+
+    def register_global_notification(self, global_note, user_id):
+        self.is_global  = True
+        self.global_id  = global_note._id
+        self.uid        = user_id
+        self.type       = global_note.type
+        self.date       = global_note.date
+        return self
+
+    @staticmethod
+    def latest_global_for_user(uid):
+        n = db.notifications.find_one({"uid": uid, "is_global": True}, {"_id": 1}, sort=[["_id", -1]])
+        return n["_id"] if n else None
 
     def make_sheet_like(self, liker_id=None, sheet_id=None):
         """Make this Notification for a sheet like event"""
@@ -83,6 +205,8 @@ class Notification(abst.AbstractMongoRecord):
         notification = self.contents()
         if "_id" in notification:
             notification["_id"] = self.id
+        if "global_id" in notification:
+            notification["global_id"] = str(notification["global_id"])
         notification["date"] = notification["date"].isoformat()    
     
         return json.dumps(notification)
@@ -113,19 +237,42 @@ class NotificationSet(abst.AbstractMongoSet):
     recordClass = Notification
 
     def __init__(self, query=None, page=0, limit=0, sort=[["date", -1]]):
-		super(NotificationSet, self).__init__(query=query, page=page, limit=limit, sort=sort)
+        super(NotificationSet, self).__init__(query=query, page=page, limit=limit, sort=sort)
+
+    def _add_global_messages(self, uid):
+        """
+        Add user Notification records for any new GlobalNotifications
+        :return:
+        """
+        latest_id_for_user = Notification.latest_global_for_user(uid)
+        latest_global_id = GlobalNotification.latest_id()
+        if latest_global_id and (latest_global_id != latest_id_for_user):
+            if latest_id_for_user is None:
+                GlobalNotificationSet({}, limit=10).register_for_user(uid)
+            else:
+                GlobalNotificationSet({"_id": {"$gt": latest_id_for_user}}, limit=10).register_for_user(uid)
 
     def unread_for_user(self, uid):
         """
         Loads the unread notifications for uid.
         """
+        # Add globals ...
+        self._add_global_messages(uid)
         self.__init__(query={"uid": uid, "read": False})
+        return self
+
+    def unread_personal_for_user(self, uid):
+        """
+        Loads the unread notifications for uid.
+        """
+        self.__init__(query={"uid": uid, "read": False, "global": False})
         return self
 
     def recent_for_user(self, uid, page=0, limit=10):
         """
         Loads recent notifications for uid.
         """
+        self._add_global_messages(uid)
         self.__init__(query={"uid": uid}, page=page, limit=limit)
         return self
 

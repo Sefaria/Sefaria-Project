@@ -408,6 +408,9 @@ body.dark {
 .he, .int-he {
   font-size: 120%;
 }
+.int-he .int-he {
+  font-size: inherit;
+}
 .readerPanel .he {
   font-family: "Taamey Frank", "Times New Roman", serif;
   direction: rtl;
@@ -2816,13 +2819,26 @@ a.resourcesLink {
   width: auto;
   border-bottom: 1px solid #ccc;
   border-top: none;
-  padding: 27px 0;
+  padding: 27px 15px;
   margin: 0;
+}
+.notificationsList .added-description {
+  padding: 5px 0 0;
 }
 .notificationsPanel .notification .date {
   color: #ccc;
   font-size: 13px;
   margin-top: 8px;
+}
+.notificationsList .int-he {
+  font-size: inherit;
+}
+.notificationsList .notification a{
+  unicode-bidi: plaintext;
+}
+.notification-message-link {
+  display: inline-block;
+  padding: 0 5px;
 }
 .sefariaLogo {
   text-align: center;
@@ -3321,5 +3337,5 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
   margin: 0 3px;
 }
 .multiPanel .readerNavMenu .content.hasFooter #footer{
-  margin-top: 100px;
+  margin-top: 120px;
 }

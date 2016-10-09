@@ -82,7 +82,7 @@ def strip_tags(html):
     html = html or ""
     s = MLStripper()
     s.feed(html)
-    return s.get_data()
+    return s.get_data().strip()
 
 
 def text_preview(en, he):

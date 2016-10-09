@@ -453,6 +453,11 @@ var ReaderApp = React.createClass({
             hist.url   = "notifications";
             hist.mode  = "notifications";
             break;
+          case "updates":
+            hist.title = "New at Sefaria";
+            hist.url = "updates";
+            hist.mode = "updates";
+            break;
         }
       } else if (state.mode === "Text") {
         hist.title    = state.refs.slice(-1)[0];
@@ -664,11 +669,11 @@ var ReaderApp = React.createClass({
     // In multi panel mode, set the maximum number of visible panels depending on the window width.
     this.setWindowWidth();
     var panelCap = Math.floor($(window).outerWidth() / this.MIN_PANEL_WIDTH);
-    console.log("Setting panelCap: " + panelCap);
+    // console.log("Setting panelCap: " + panelCap);
     this.setState({panelCap: panelCap});
   },
   setWindowWidth: function() {
-    console.log("Setting window width: " + $(window).outerWidth());
+    // console.log("Setting window width: " + $(window).outerWidth());
     this.setState({windowWidth: $(window).outerWidth()});
   },
   handleNavigationClick: function(ref, version, versionLanguage, options) {
@@ -1285,6 +1290,15 @@ var Header = React.createClass({
       return;
     }
     this.props.setCentralState({menuOpen: "notifications"});
+    this.clearSearchBox();
+  },
+  showUpdates: function() {
+    // todo: not used yet
+    if (typeof sjs !== "undefined") {
+      window.location = "/updates";
+      return;
+    }
+    this.props.setCentralState({menuOpen: "updates"});
     this.clearSearchBox();
   },
   showTestMessage: function() {
@@ -2028,6 +2042,10 @@ var ReaderPanel = React.createClass({
                     setUnreadNotificationsCount={this.props.setUnreadNotificationsCount}
                     interfaceLang={this.props.interfaceLang} />);
 
+    } else if (this.state.menuOpen === "updates") {
+      var menu = (<UpdatesPanel
+                    interfaceLang={this.props.interfaceLang} />);
+
     } else {
       var menu = null;
     }
@@ -2328,10 +2346,10 @@ var ReaderNavigationMenu = React.createClass({
   },
   setWidth: function() {
     var width = $(ReactDOM.findDOMNode(this)).width();
-    console.log("Setting RNM width: " + width);
+    // console.log("Setting RNM width: " + width);
     var winWidth = $(window).width();
     var winHeight = $(window).height();
-    console.log("Window width: " + winWidth + ", Window height: " + winHeight);
+    // console.log("Window width: " + winWidth + ", Window height: " + winHeight);
     var oldWidth = this.width;
     this.width = width;
     if ((oldWidth <= 450 && width > 450) || 
@@ -4239,7 +4257,13 @@ var TextColumn = React.createClass({
     if (this.loadingContentAtTop || !this.initialScrollTopSet) {
       // console.log("text load, setting scroll");
       this.setScrollPosition();
+    } else if (!this.scrolledToHighlight && $(ReactDOM.findDOMNode(this)).find(".segment.highlight").length) {
+      // console.log("scroll to highlighted")
+      this.scrollToHighlighted();
+      this.scrolledToHighlight = true;
+      this.initialScrollTopSet = true;
     }
+
     // console.log("text load, ais");
     this.adjustInfiniteScroll();
   },
@@ -4263,7 +4287,7 @@ var TextColumn = React.createClass({
         //console.log(top)
       }
     } else if (!this.scrolledToHighlight && $(ReactDOM.findDOMNode(this)).find(".segment.highlight").length) {
-      //console.log("scroll to highlighted")
+      // console.log("scroll to highlighted")
       // scroll to highlighted segment
       this.scrollToHighlighted();
       this.scrolledToHighlight = true;
@@ -4299,10 +4323,10 @@ var TextColumn = React.createClass({
     } else if ( lastBottom < windowHeight + 80 ) {
       // DOWN: add the next section to bottom
       if ($lastText.hasClass("loading")) { 
-        console.log("last text is loading - don't add next section");
+        // console.log("last text is loading - don't add next section");
         return;
       }
-      console.log("Down! Add next section");
+      // console.log("Down! Add next section");
       var currentRef = refs.slice(-1)[0];
       var data       = Sefaria.ref(currentRef);
       if (data && data.next) {
@@ -4315,7 +4339,7 @@ var TextColumn = React.createClass({
       var topRef = refs[0];
       var data   = Sefaria.ref(topRef);
       if (data && data.prev) {
-        console.log("Up! Add previous section");
+        // console.log("Up! Add previous section");
         refs.splice(refs, 0, data.prev);
         this.loadingContentAtTop = true;
         this.props.updateTextColumn(refs);
@@ -5175,8 +5199,8 @@ var TextList = React.createClass({
           Sefaria.text(commentators[i] + " on " + basetext, {}, function(data) {
             var index = this.waitingFor.indexOf(data.commentator);
             if (index == -1) {
-                console.log("Failed to clear commentator:");
-                console.log(data);
+                // console.log("Failed to clear commentator:");
+                // console.log(data);
                 this.target += 1;
             }
             if (index > -1) {
@@ -7220,7 +7244,7 @@ var NotificationsPanel = React.createClass({
   },
   getInitialState: function() {
     return {
-      page: 2,
+      page: 0,
       loadedToEnd: false,
       loading: false
     };
@@ -7278,6 +7302,64 @@ var NotificationsPanel = React.createClass({
             </h1>
             { Sefaria.loggedIn ? 
               (<div className="notificationsList" dangerouslySetInnerHTML={ {__html: Sefaria.notificationsHtml } }></div>) :
+              (<LoginPanel fullPanel={true} />) }
+          </div>
+          <footer id="footer" className={`interface-${this.props.interfaceLang} static sans`}>
+                    <Footer />
+                    </footer>
+        </div>
+      </div>);
+  }
+});
+
+var UpdatesPanel = React.createClass({
+  propTypes: {
+    interfaceLang:               React.PropTypes.string
+  },
+  getInitialState: function() {
+    return {
+      page: 0,
+      loadedToEnd: false,
+      loading: false,
+      html: ""
+    };
+  },
+  componentDidMount: function() {
+    $(ReactDOM.findDOMNode(this)).find(".content").bind("scroll", this.handleScroll);
+    this.handleScroll()
+  },
+  handleScroll: function() {
+    if (this.state.loadedToEnd || this.state.loading) { return; }
+    var $scrollable = $(ReactDOM.findDOMNode(this)).find(".content");
+    var margin = 100;
+    if($scrollable.scrollTop() + $scrollable.innerHeight() + margin >= $scrollable[0].scrollHeight) {
+      this.getMoreNotifications();
+    }
+  },
+  getMoreNotifications: function() {
+    $.getJSON("/api/updates?page=" + this.state.page, this.loadMoreNotifications);
+    this.setState({loading: true});
+  },
+  loadMoreNotifications: function(data) {
+    if (data.count < data.page_size) {
+      this.setState({loadedToEnd: true});
+    }
+    this.state.html += data.html;
+    this.setState({page: data.page + 1, loading: false, html: this.state.html});
+  },
+  render: function() {
+    var classes = {notificationsPanel: 1, systemPanel: 1, readerNavMenu: 1, noHeader: 1 };
+    var classStr = classNames(classes);
+    return (
+      <div className={classStr}>
+        <div className="content hasFooter">
+          <div className="contentInner">
+            <h1>
+              <span className="int-en">Updates</span>
+              <span className="int-he">עדכונים</span>
+            </h1>
+            { Sefaria.loggedIn ?
+              (<div className="notificationsList" dangerouslySetInnerHTML={ {__html: this.state.html } }></div>) :
               (<LoginPanel fullPanel={true} />) }
           </div>
           <footer id="footer" className={`interface-${this.props.interfaceLang} static sans`}>
