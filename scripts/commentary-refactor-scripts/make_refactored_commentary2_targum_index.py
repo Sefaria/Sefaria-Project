@@ -8,23 +8,29 @@ from sefaria.utils.hebrew import hebrew_term
 commentary2 = IndexSet({"categories.0": "Commentary2"})
 targums = IndexSet({"categories.1": "Targum"})
 
-targum_collective_titles = [('Aramaic Targum', 'to '),('Targum Jonathan', 'on '), ('Onkelos', ''), ('Targum Neofiti', None)]
+targum_collective_titles = [('Aramaic Targum', 'to '),
+                            ('Targum Jonathan', 'on '),
+                            ('Onkelos', ''),
+                            ('Targum Neofiti', None),
+                            ('Targum Jerusalem', None),
+                            ('Tafsir Rasag', None)]
 for trg in targums:
     print trg.title
     for t in targum_collective_titles:
         if t[0] in trg.title:
             collective_title = t[0]
             if t[1] is not None:
-                base_book = trg.title.replace(t[0]+' '+t[1], '')
+                base_books = [trg.title.replace(t[0]+' '+t[1], '')]
             else:
-                base_book = None
+                base_books = ['Genesis', 'Exodus', 'Leviticus', 'Numbers', 'Deuteronomy']
     trg.dependence = 'targum'
     trg.collective_title = collective_title
-    trg.auto_linking_scheme = None
-    if base_book:
-        bidx = library.get_index(base_book)
-        trg.base_text_titles = [base_book]
-        trg.related_categories = [c for c in bidx.categories if c not in trg.categories]
+    trg.auto_linking_scheme = 'match_base_text_depth'
+    if base_books:
+        trg.base_text_titles = base_books
+        for b in base_books:
+            bidx = library.get_index(b)
+            trg.related_categories = [c for c in bidx.categories if c not in trg.categories]
     trg.save()
 
 for com2 in commentary2:
