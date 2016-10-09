@@ -379,6 +379,8 @@ def change_node_structure(ja_node, section_names, address_types=None, upsize_in_
     # structure change.
     if delta < 0:
         cascade(ja_node.ref(), rewriter=fix_ref, needs_rewrite=needs_fixing)
+        # cascade updates the index record, ja_node index gets stale
+        ja_node.index = library.get_index(ja_node.index.title)
 
     ja_node.sectionNames = section_names
     ja_node.addressTypes = address_types
@@ -387,6 +389,8 @@ def change_node_structure(ja_node, section_names, address_types=None, upsize_in_
     index.save(override_dependencies=True)
     print 'Index Saved'
     library.refresh_index_record_in_cache(index)
+    # ensure the index on the ja_node object is updated with the library refresh
+    ja_node.index = library.get_index(ja_node.index.title)
 
     vs = [v for v in index.versionSet()]
     vsc = [v for v in library.get_commentary_versions_on_book(index.title)]
@@ -431,6 +435,7 @@ def cascade(ref_identifier, rewriter=lambda x: x, needs_rewrite=lambda x: True):
     :param rewriter: callback function used to update the field
     :param needs_rewrite: Criteria for which a save will be triggered. If not set, routine will trigger a save for
     every item within the set
+    :param skip_history: Set to True to skip history updates
     """
 
     def generic_rewrite(model_set, attr_name='ref', sub_attr_name=None,):
@@ -518,10 +523,11 @@ def cascade(ref_identifier, rewriter=lambda x: x, needs_rewrite=lambda x: True):
                 if needs_rewrite(wr):
                     needs_save = True
                     map_node.wholeRef = rewriter(wr)
-                for ref_num, ref in enumerate(map_node.refs):
-                    if needs_rewrite(ref):
-                        needs_save = True
-                        map_node.refs[ref_num] = rewriter(ref)
+                if hasattr(map_node, 'refs'):
+                    for ref_num, ref in enumerate(map_node.refs):
+                        if needs_rewrite(ref):
+                            needs_save = True
+                            map_node.refs[ref_num] = rewriter(ref)
         if needs_save:
             index.save()
 
@@ -530,27 +536,28 @@ def cascade(ref_identifier, rewriter=lambda x: x, needs_rewrite=lambda x: True):
     assert isinstance(ref_identifier, Ref)
 
     commentators = library.get_commentary_version_titles_on_book(ref_identifier.book)
-    commentators = [c.replace(u' on {}'.format(ref_identifier.book), u'') for c in commentators]
-    ref_regex_str = ref_identifier.regex(anchored=False)
-    identifier = ur"(^{})|(^({}) on {})".format(ref_regex_str, "|".join(commentators), ref_regex_str)
-    titles = re.compile(identifier)
+    commentators = [item for c in commentators for item in Ref(c).regex(as_list=True)]
+    ref_regex = ref_identifier.regex(anchored=False, as_list=True)
+    identifier = ref_regex + commentators
+    # titles = re.compile(identifier)
+
+    def construct_query(attribute, queries):
+
+        query_list = [{attribute: {'$regex': '^'+query}} for query in queries]
+        return {'$or': query_list}
 
     print 'Updating Links'
-    generic_rewrite(LinkSet({'refs': titles}), attr_name='refs')
+    generic_rewrite(LinkSet(construct_query('refs', identifier)), attr_name='refs')
     print 'Updating Notes'
-    generic_rewrite(NoteSet({'ref': titles}))
-    generic_rewrite(TranslationRequestSet({'ref': titles}))
+    generic_rewrite(NoteSet(construct_query('ref', identifier)))
+    generic_rewrite(TranslationRequestSet(construct_query('ref', identifier)))
     print 'Updatding Sheets'
-    clean_sheets([s['id'] for s in db.sheets.find({"sources.ref": titles}, {"id": 1})])
+    clean_sheets([s['id'] for s in db.sheets.find(construct_query('sources.ref', identifier), {"id": 1})])
     print 'Updating Alternate Structs'
     update_alt_structs(ref_identifier.index)
     print 'Updating History'
-    generic_rewrite(HistorySet({'ref': titles}))
-    print 'Still updating history...'
-    generic_rewrite(HistorySet({'new.ref': titles}), attr_name='new', sub_attr_name='ref')
-    print 'still working'
-    generic_rewrite(HistorySet({'new.refs': titles}), attr_name='new', sub_attr_name='refs')
-    print 'the end is near'
-    generic_rewrite(HistorySet({'old.ref': titles}), attr_name='old', sub_attr_name='ref')
-    print 'almost done!'
-    generic_rewrite(HistorySet({'old.refs': titles}), attr_name='old', sub_attr_name='refs')
+    generic_rewrite(HistorySet(construct_query('ref', identifier)))
+    generic_rewrite(HistorySet(construct_query('new.ref', identifier)), attr_name='new', sub_attr_name='ref')
+    generic_rewrite(HistorySet(construct_query('new.refs', identifier)), attr_name='new', sub_attr_name='refs')
+    generic_rewrite(HistorySet(construct_query('old.ref', identifier)), attr_name='old', sub_attr_name='ref')
+    generic_rewrite(HistorySet(construct_query('old.refs', identifier)), attr_name='old', sub_attr_name='refs')
