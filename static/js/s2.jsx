@@ -3116,7 +3116,8 @@ var ReaderTextTableOfContents = React.createClass({
                            </div>);
     }
     var showModeratorButtons = true;
-    if(/*(this.isTextToc() && this.state.currentVersion && this.state.currentVersion.versionStatus == "locked") ||*/ !Sefaria.is_moderator){
+    if(/*(this.isTextToc() && this.state.currentVersion && this.state.currentVersion.versionStatus == "locked") ||*/ 
+        !Sefaria.is_moderator){
       showModeratorButtons = false;
     }
     var moderatorSection = showModeratorButtons ?
@@ -7321,12 +7322,14 @@ var UpdatesPanel = React.createClass({
       page: 0,
       loadedToEnd: false,
       loading: false,
-      html: ""
+      updates: [],
+      submitting: false,
+      submitCount: 0
     };
   },
   componentDidMount: function() {
     $(ReactDOM.findDOMNode(this)).find(".content").bind("scroll", this.handleScroll);
-    this.handleScroll()
+    this.getMoreNotifications();
   },
   handleScroll: function() {
     if (this.state.loadedToEnd || this.state.loading) { return; }
@@ -7344,12 +7347,50 @@ var UpdatesPanel = React.createClass({
     if (data.count < data.page_size) {
       this.setState({loadedToEnd: true});
     }
-    this.state.html += data.html;
-    this.setState({page: data.page + 1, loading: false, html: this.state.html});
+    this.setState({page: data.page + 1, loading: false, updates: this.state.updates.concat(data.updates)});
   },
+  onDelete: function(id) {
+    $.ajax({
+        url: '/api/updates/' + id,
+        type: 'DELETE',
+        success: function(result) {
+          if (result.status == "ok") {
+              this.setState({updates: this.state.updates.filter(u => u._id != id)});
+          }
+        }.bind(this)
+    });
+  },
+
+  handleSubmit: function(type, content) {
+    this.setState({"submitting": true});
+    var payload = {
+      type: type,
+      content: content
+    };
+    $.ajax({
+      url: "/api/updates",
+      dataType: 'json',
+      type: 'POST',
+      data: {json: JSON.stringify(payload)},
+      success: function(data) {
+        if (data.status == "ok") {
+          payload.date = Date.now();
+          this.state.updates.unshift(payload);
+          this.setState({submitting: false, updates: this.state.updates, submitCount: this.state.submitCount + 1});
+        } else {
+          console.error(data.toString());
+        }
+      }.bind(this),
+      error: function(xhr, status, err) {
+        console.error(this.props.url, status, err.toString());
+      }.bind(this)
+    });
+  },
+
   render: function() {
     var classes = {notificationsPanel: 1, systemPanel: 1, readerNavMenu: 1, noHeader: 1 };
     var classStr = classNames(classes);
+
     return (
       <div className={classStr}>
         <div className="content hasFooter">
@@ -7358,14 +7399,175 @@ var UpdatesPanel = React.createClass({
               <span className="int-en">Updates</span>
               <span className="int-he">עדכונים</span>
             </h1>
-            { Sefaria.loggedIn ?
-              (<div className="notificationsList" dangerouslySetInnerHTML={ {__html: this.state.html } }></div>) :
-              (<LoginPanel fullPanel={true} />) }
+
+            {Sefaria.is_moderator?<NewUpdateForm handleSubmit={this.handleSubmit} key={this.state.submitCount}/>:""}
+
+            <div className="notificationsList">
+            {this.state.updates.map(u =>
+                <SingleUpdate
+                    type={u.type}
+                    content={u.content}
+                    date={u.date}
+                    key={u._id}
+                    id={u._id}
+                    onDelete={this.onDelete}
+                    submitting={this.state.submitting}
+                />
+            )}
+            </div>
           </div>
           <footer id="footer" className={`interface-${this.props.interfaceLang} static sans`}>
                     <Footer />
                     </footer>
         </div>
+      </div>);
+  }
+});
+
+var NewUpdateForm = React.createClass({
+  getInitialState: function() {
+    return {type: 'index', index: '', language: 'en', version: '', en: '', he: ''};
+  },
+  handleEnChange: function(e) {
+    this.setState({en: e.target.value});
+  },
+  handleHeChange: function(e) {
+    this.setState({he: e.target.value});
+  },
+  handleTypeChange: function(e) {
+    this.setState({type: e.target.value});
+  },
+  handleIndexChange: function(e) {
+    this.setState({index: e.target.value});
+  },
+  handleVersionChange: function(e) {
+    this.setState({version: e.target.value});
+  },
+  handleLanguageChange: function(e) {
+    this.setState({language: e.target.value});
+  },
+  handleSubmit: function(e) {
+    e.preventDefault();
+    var content = {
+      "en": this.state.en.trim(),
+      "he": this.state.he.trim()
+    };
+    if (this.state.type == "general") {
+      if (!this.state.en || !this.state.he) {
+        return;
+      }
+    } else {
+      if (!this.state.index) {
+        return;
+      }
+      content["index"] = this.state.index.trim();
+    }
+    if (this.state.type == "version") {
+      if (!this.state.version || !this.state.language) {
+        return;
+      }
+      content["version"] = this.state.version.trim();
+      content["language"] = this.state.language.trim();
+    }
+    this.props.handleSubmit(this.state.type, content);
+
+  },
+  render: function() {
+    return (
+      <form className="globalUpdateForm" onSubmit={this.handleSubmit}>
+        <div>
+          <input type="radio" name="type" value="index" onChange={this.handleTypeChange} checked={this.state.type=="index"}/>Index&nbsp;&nbsp;
+          <input type="radio" name="type" value="version" onChange={this.handleTypeChange} checked={this.state.type=="version"}/>Version&nbsp;&nbsp;
+          <input type="radio" name="type" value="general" onChange={this.handleTypeChange} checked={this.state.type=="general"}/>General&nbsp;&nbsp;
+        </div>
+        <div>
+          {(this.state.type != "general")?<input type="text" placeholder="Index Title" onChange={this.handleIndexChange} />:""}
+          {(this.state.type == "version")?<input type="text" placeholder="Version Title" onChange={this.handleVersionChange}/>:""}
+          {(this.state.type == "version")?<select type="text" placeholder="Version Language" onChange={this.handleLanguageChange}>
+            <option value="en">English</option>
+            <option value="he">Hebrew</option>
+          </select>:""}
+        </div>
+        <div>
+          <textarea
+            placeholder="English Description (optional for Index and Version)"
+            onChange={this.handleEnChange}
+            rows="3"
+            cols="80"
+          />
+        </div>
+        <div>
+          <textarea
+            placeholder="Hebrew Description (optional for Index and Version)"
+            onChange={this.handleHeChange}
+            rows="3"
+            cols="80"
+          />
+        </div>
+        <input type="submit" value="Submit" disabled={this.props.submitting}/>
+      </form>
+    );
+  }
+});
+
+var SingleUpdate = React.createClass({
+  propTypes: {
+    id:         React.PropTypes.string,
+    type:         React.PropTypes.string,
+    content:      React.PropTypes.object,
+    onDelete:     React.PropTypes.func,
+    date:         React.PropTypes.string
+  },
+  onDelete: function() {
+    this.props.onDelete(this.props.id);
+  },
+  render: function() {
+    var title = this.props.content.index;
+     if (title) {
+      var oref    = Sefaria.ref(title);
+      var heTitle = oref ? oref.heTitle : "";      
+    }
+
+    if (title && !oref) {
+      // If we don't have this data yet, rerender when we do so we can set the Hebrew title
+      Sefaria.text(title, {context: 1}, function(data) {
+        if ("error" in data) {return;}
+        if (this.isMounted()) { this.setState({}); }
+      }.bind(this));
+    }
+
+    var url = Sefaria.ref(title)?"/" + Sefaria.normRef(Sefaria.ref(title).book):"/" + Sefaria.normRef(title);
+
+    var d = new Date(this.props.date);
+
+    return (
+      <div className="notification">
+        <div className="date">
+          <span className="int-en">{d.toLocaleDateString("en")}</span>
+          <span className="int-he">{d.toLocaleDateString("he")}</span>
+          {Sefaria.is_moderator?<i className="fa fa-times-circle delete-update-button" onClick={this.onDelete} aria-hidden="true"/>:""}
+        </div>
+
+        {this.props.type == "index"?
+        <div>
+            <span className="int-en">New Text: <a href={url}>{title}</a></span>
+            <span className="int-he">טקסט חדש זמין: <a href={url}>{heTitle}</a></span>
+        </div>
+        :""}
+
+        {this.props.type == "version"?
+        <div>
+            <span className="int-en">New { this.props.content.language == "en"?"English":"Hebrew"} version of <a href={url}>{title}</a>: {this.props.content.version}</span>
+            <span className="int-he">גרסה חדשה של <a href={url}>{heTitle}</a> ב{ this.props.content.language == "en"?"אנגלית":"עברית"} : {this.props.content.version}</span>
+        </div>
+        :""}
+
+        <div>
+            <span className="int-en" dangerouslySetInnerHTML={ {__html: this.props.content.en } } />
+            <span className="int-he" dangerouslySetInnerHTML={ {__html: this.props.content.he } } />
+        </div>
+
+
       </div>);
   }
 });

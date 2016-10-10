@@ -89,10 +89,20 @@ class GlobalNotification(abst.AbstractMongoRecord):
         self.content["en"] = msg
         return self
 
+    """
     def to_HTML(self):
         html = render_to_string("elements/notification.html", {"notification": self}).strip()
         html = re.sub("\n", "", html)
         return html
+    """
+
+    def contents(self):
+        d = super(GlobalNotification, self).contents()
+        d["_id"] = self.id
+        d["date"] = d["date"].isoformat()
+
+        return d
+
 
     @property
     def id(self):
@@ -109,9 +119,16 @@ class GlobalNotificationSet(abst.AbstractMongoSet):
         for global_note in self:
             Notification().register_global_notification(global_note, uid).save()
 
+    def contents(self):
+        return [n.contents() for n in self]
+
+
+    """
     def to_HTML(self):
         html = [n.to_HTML() for n in self]
         return "".join(html)
+    """
+
 
 
 class Notification(abst.AbstractMongoRecord):
@@ -146,9 +163,9 @@ class Notification(abst.AbstractMongoRecord):
         gnote = GlobalNotification().load({"_id": self.global_id})
         if gnote is None:
             logger.error("Tried to load non-existent global notification: {}".format(self.global_id))
-
-        self.content = gnote.content
-        self.type    = gnote.type
+        else:
+            self.content = gnote.content
+            self.type    = gnote.type
 
     def register_global_notification(self, global_note, user_id):
         self.is_global  = True

@@ -42,7 +42,12 @@ GlobalNotification()\
     .set_date(datetime(2016,9,28,20,0,0))\
     .save()
 
+GlobalNotification()\
+    .make_index(library.get_index("Shev_Shmat'ta")) \
+    .set_date(datetime(2016, 10, 9, 16, 0, 0)) \
+    .set_en("") \
+    .set_he(u"") \
+    .save()
 
 #Index: Mei HaShiloah
-#Index: Shev Shmateta
 #General: Ein Mishpat on ??

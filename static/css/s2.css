@@ -2840,6 +2840,19 @@ a.resourcesLink {
   display: inline-block;
   padding: 0 5px;
 }
+.globalUpdateForm input {
+  padding: 5px;
+  margin: 3px;
+}
+.globalUpdateForm input[type="textarea"] {
+}
+.delete-update-button {
+  display: inline-block;
+  color: red;
+  padding: 0 10px;
+  font-size: 75%;
+  cursor: pointer;
+}
 .sefariaLogo {
   text-align: center;
   text-transform: uppercase;
