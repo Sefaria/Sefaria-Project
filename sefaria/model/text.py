@@ -1573,7 +1573,7 @@ class TextFamily(object):
             d["commentaryBook"] = getattr(self._inode.index, 'base_text_titles', "")
             d["commentaryCategories"] = getattr(self._inode.index, 'related_categories', "")
             d["commentator"] = getattr(self._inode.index, 'collective_title', "")
-            d["heCommentator"] = hebrew_term(getattr(self._inode.index, collective_title, ""))
+            d["heCommentator"] = hebrew_term(getattr(self._inode.index, 'collective_title', ""))
 
         d["isComplex"]    = self.isComplex
         d["indexTitle"]   = self._inode.index.title
