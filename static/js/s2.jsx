@@ -7324,7 +7324,8 @@ var UpdatesPanel = React.createClass({
       loading: false,
       updates: [],
       submitting: false,
-      submitCount: 0
+      submitCount: 0,
+      error: null
     };
   },
   componentDidMount: function() {
@@ -7362,7 +7363,7 @@ var UpdatesPanel = React.createClass({
   },
 
   handleSubmit: function(type, content) {
-    this.setState({"submitting": true});
+    this.setState({"submitting": true, "error": null});
     var payload = {
       type: type,
       content: content
@@ -7374,14 +7375,15 @@ var UpdatesPanel = React.createClass({
       data: {json: JSON.stringify(payload)},
       success: function(data) {
         if (data.status == "ok") {
-          payload.date = Date.now();
+          payload.date = Date();
           this.state.updates.unshift(payload);
           this.setState({submitting: false, updates: this.state.updates, submitCount: this.state.submitCount + 1});
         } else {
-          console.error(data.toString());
+          this.setState({"error": "Error - " + data.error});
         }
       }.bind(this),
       error: function(xhr, status, err) {
+        this.setState({"error": "Error - " + err.toString()});
         console.error(this.props.url, status, err.toString());
       }.bind(this)
     });
@@ -7400,7 +7402,7 @@ var UpdatesPanel = React.createClass({
               <span className="int-he">עדכונים</span>
             </h1>
 
-            {Sefaria.is_moderator?<NewUpdateForm handleSubmit={this.handleSubmit} key={this.state.submitCount}/>:""}
+            {Sefaria.is_moderator?<NewUpdateForm handleSubmit={this.handleSubmit} key={this.state.submitCount} error={this.state.error}/>:""}
 
             <div className="notificationsList">
             {this.state.updates.map(u =>
@@ -7425,26 +7427,33 @@ var UpdatesPanel = React.createClass({
 });
 
 var NewUpdateForm = React.createClass({
+  propTypes: {
+    error:               React.PropTypes.string,
+    handleSubmit:        React.PropTypes.func
+  },
   getInitialState: function() {
-    return {type: 'index', index: '', language: 'en', version: '', en: '', he: ''};
+    return {type: 'index', index: '', language: 'en', version: '', en: '', he: '', error: ''};
+  },
+  componentWillReceiveProps(nextProps) {
+    this.setState({"error": nextProps.error});
   },
   handleEnChange: function(e) {
-    this.setState({en: e.target.value});
+    this.setState({en: e.target.value, error: null});
   },
   handleHeChange: function(e) {
-    this.setState({he: e.target.value});
+    this.setState({he: e.target.value, error: null});
   },
   handleTypeChange: function(e) {
-    this.setState({type: e.target.value});
+    this.setState({type: e.target.value, error: null});
   },
   handleIndexChange: function(e) {
-    this.setState({index: e.target.value});
+    this.setState({index: e.target.value, error: null});
   },
   handleVersionChange: function(e) {
-    this.setState({version: e.target.value});
+    this.setState({version: e.target.value, error: null});
   },
   handleLanguageChange: function(e) {
-    this.setState({language: e.target.value});
+    this.setState({language: e.target.value, error: null});
   },
   handleSubmit: function(e) {
     e.preventDefault();
@@ -7454,16 +7463,19 @@ var NewUpdateForm = React.createClass({
     };
     if (this.state.type == "general") {
       if (!this.state.en || !this.state.he) {
+        this.setState({"error": "Both Hebrew and English are required"});
         return;
       }
     } else {
       if (!this.state.index) {
+        this.setState({"error": "Index is required"});
         return;
       }
       content["index"] = this.state.index.trim();
     }
     if (this.state.type == "version") {
       if (!this.state.version || !this.state.language) {
+        this.setState({"error": "Version is required"});
         return;
       }
       content["version"] = this.state.version.trim();
@@ -7505,6 +7517,7 @@ var NewUpdateForm = React.createClass({
           />
         </div>
         <input type="submit" value="Submit" disabled={this.props.submitting}/>
+        <span className="error">{this.state.error}</span>
       </form>
     );
   }
@@ -7524,7 +7537,7 @@ var SingleUpdate = React.createClass({
   render: function() {
     var title = this.props.content.index;
     if (title) {
-      var heTitle = Sefaria.index(title).heTitle;
+      var heTitle = Sefaria.index(title)?Sefaria.index(title).heTitle:"";
     }
 
     var url = Sefaria.ref(title)?"/" + Sefaria.normRef(Sefaria.ref(title).book):"/" + Sefaria.normRef(title);

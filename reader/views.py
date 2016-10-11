@@ -1854,16 +1854,21 @@ def updates_api(request, gid=None):
                 return jsonResponse({"error": "Only Sefaria Moderators can add announcements."})
 
             payload = json.loads(request.POST.get("json"))
-            GlobalNotification(payload).save()
-
-            return jsonResponse({"status": "ok"})
+            try:
+                GlobalNotification(payload).save()
+                return jsonResponse({"status": "ok"})
+            except AssertionError as e:
+                return jsonResponse({"error": e.message})
 
         elif request.user.is_staff:
             @csrf_protect
             def protected_post(request):
                 payload = json.loads(request.POST.get("json"))
-                GlobalNotification(payload).save()
-                return jsonResponse({"status": "ok"})
+                try:
+                    GlobalNotification(payload).save()
+                    return jsonResponse({"status": "ok"})
+                except AssertionError as e:
+                    return jsonResponse({"error": e.message})
 
             return protected_post(request)
         else:

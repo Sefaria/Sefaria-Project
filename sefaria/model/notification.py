@@ -20,7 +20,7 @@ from django.template.loader import render_to_string
 from . import abstract as abst
 from . import user_profile
 from sefaria.system.database import db
-
+from sefaria.system.exceptions import InputError
 
 class GlobalNotification(abst.AbstractMongoRecord):
     """
@@ -52,6 +52,36 @@ class GlobalNotification(abst.AbstractMongoRecord):
 
     optional_attrs = [
     ]
+
+    def _normalize(self):
+        from sefaria.model.text import library
+        if self.type == "index" or self.type == "version":
+            i = library.get_index(self.content.get("index"))
+            self.content["index"] = i.title
+
+    def _validate(self):
+        from sefaria.model.text import library, Version
+        if self.type == "index":
+            assert self.content.get("index")
+            assert library.get_index(self.content.get("index"))
+        elif self.type == "version":
+            i = self.content.get("index")
+            v = self.content.get("version")
+            l = self.content.get("language")
+            assert i
+            assert v
+            assert l
+            version = Version().load({
+                "title": i,
+                "versionTitle": v,
+                "language": l,
+            })
+            assert version, "No Version Found: {}/{}/{}".format(i, v, l)
+        elif self.type == "general":
+            assert self.content.get("en"), "Please provide an English message."
+            assert self.content.get("he"), "Please provide a Hebrew message."
+        else:
+            raise InputError(u"Unknown type for GlobalNotification: {}".format(self.type))
 
     def _init_defaults(self):
         self.content = {}
