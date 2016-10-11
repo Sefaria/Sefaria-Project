@@ -2840,11 +2840,18 @@ a.resourcesLink {
   display: inline-block;
   padding: 0 5px;
 }
-.globalUpdateForm input {
-  padding: 5px;
-  margin: 3px;
+.globalUpdateForm {
+  padding: 15px;
+  background-color: #ddd;
 }
-.globalUpdateForm input[type="textarea"] {
+.globalUpdateForm input[type="text"] {
+  padding: 5px;
+  margin: 8px 0;
+}
+
+.globalUpdateForm input[type="radio"] {
+  padding: 5px;
+  margin: 8px;
 }
 .delete-update-button {
   display: inline-block;

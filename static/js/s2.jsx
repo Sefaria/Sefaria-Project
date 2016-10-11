@@ -7523,17 +7523,8 @@ var SingleUpdate = React.createClass({
   },
   render: function() {
     var title = this.props.content.index;
-     if (title) {
-      var oref    = Sefaria.ref(title);
-      var heTitle = oref ? oref.heTitle : "";      
-    }
-
-    if (title && !oref) {
-      // If we don't have this data yet, rerender when we do so we can set the Hebrew title
-      Sefaria.text(title, {context: 1}, function(data) {
-        if ("error" in data) {return;}
-        if (this.isMounted()) { this.setState({}); }
-      }.bind(this));
+    if (title) {
+      var heTitle = Sefaria.index(title).heTitle;
     }
 
     var url = Sefaria.ref(title)?"/" + Sefaria.normRef(Sefaria.ref(title).book):"/" + Sefaria.normRef(title);
