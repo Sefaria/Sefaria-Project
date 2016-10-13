@@ -262,7 +262,7 @@ class VersionState(abst.AbstractMongoRecord, AbstractSchemaContent):
                 current[lkey]['sparseness'] = 4
 
             # If it's a commentary, it might have many empty places, so just consider bulk amount of text
-            elif (snode.index.is_commentary()
+            elif (snode.index.versions_are_sparse()
                   and len(current[lkey]["availableCounts"])
                   and current[lkey]["availableCounts"][-1] >= 300):
                 current[lkey]['sparseness'] = 2

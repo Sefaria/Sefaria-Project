@@ -5,10 +5,8 @@
 import json
 import pprint
 from sefaria.model import *
-
-base_titles = library.get_indexes_in_category("Torah") \
-              + library.get_indexes_in_category("Prophets") \
-              + library.get_indexes_in_category("Writings")
+#TODO: before running again, make sure this works
+base_titles = library.get_indexes_in_category("Tanakh")
 
 tanach_dict = {}
 for title in base_titles:
@@ -22,7 +20,7 @@ for title in base_titles:
         current_base = base.subref(current_rashi.sections[0:2])
         links = current_rashi.linkset().refs_from(current_rashi)
         for l in links:
-            if l != current_base and l.is_tanach() and (not l.is_commentary()) and ("Targum" not in l.index.categories) and l.is_segment_level():
+            if l != current_base and l.is_tanach() and (not l.is_dependant()) and l.is_segment_level():
                 #print current_base.normal() + " ->  " + l.normal()
                 if tanach_dict[title].get(current_base.normal()):
                     tanach_dict[title][current_base.normal()].append(l.normal())

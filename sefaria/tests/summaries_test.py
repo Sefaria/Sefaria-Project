@@ -49,7 +49,7 @@ class Test_Toc(object):
         global text_titles
         lang_keys = get_lang_keys()
         assert set(node.keys()) >= {'title', 'heTitle', 'sparseness', 'categories'}
-        assert (node['title'] in text_titles) or (not model.Index().load({"title": node['title']}).is_commentary()), node['title']
+        assert (node['title'] in text_titles), node['title']
         assert 'category' not in node
         assert isinstance(node['sparseness'], int)
         #do we need to assert that the title is not equal to any category name?

@@ -56,7 +56,7 @@ class Splicer(object):
     def splice_this_into_next(self, ref):
         assert ref.is_segment_level()
         assert not ref.is_range()
-        assert not ref.is_commentary()
+        #assert not ref.is_commentary()
         self._mode = "join"
         self.first_ref = ref
         self.second_ref = ref.next_segment_ref()
@@ -69,7 +69,7 @@ class Splicer(object):
     def splice_prev_into_this(self, ref):
         assert ref.is_segment_level()
         assert not ref.is_range()
-        assert not ref.is_commentary()
+        #assert not ref.is_commentary()
         self._mode = "join"
         self.second_ref = ref
         self.first_ref = ref.prev_segment_ref()
@@ -89,7 +89,7 @@ class Splicer(object):
     def insert_blank_segment_after(self, ref):
         assert ref.is_segment_level()
         assert not ref.is_range()
-        assert not ref.is_commentary()
+        #assert not ref.is_commentary()
         self._mode = "insert"
         self.first_ref = ref
         self._setup_refs()

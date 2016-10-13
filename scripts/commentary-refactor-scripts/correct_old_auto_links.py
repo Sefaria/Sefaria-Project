@@ -5,7 +5,6 @@ from sefaria.model import *
 
 def correct_commentary_links(oref, text=None, **kwargs):
 
-    assert oref.is_commentary()
     tref = oref.normal()
     base_tref = tref[tref.find(" on ") + 4:]
     base_oref = Ref(base_tref)

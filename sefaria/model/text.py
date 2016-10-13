@@ -298,9 +298,13 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
                 d["alt_structs"][name] = c
         return d
 
-    def is_commentary(self):
-        #//TODO: Find usages and adjust for comemntary refactor
-        return getattr(self, 'dependence', None) == "commentary"
+    def versions_are_sparse(self):
+        """
+            This function is just a convenience function!
+            It's left as legacy code to estimate completion on a sparse text.
+            Do not write code that depends on it.
+        """
+        return getattr(self, 'allow_sparse_text', None) == True
 
     def is_dependant_text(self):
         return getattr(self, 'dependence', None) is not None
