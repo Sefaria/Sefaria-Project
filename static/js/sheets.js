@@ -2063,11 +2063,41 @@ $(function() {
 			break;
 	}
 
+	// fix for touchscreens to access hover elements (in particular menubar)
   $('*').on('touchstart', function () {
 		$(this).trigger('hover');
 	}).on('touchend', function () {
 		$(this).trigger('hover');
 	});
+
+// fix for menu/edit bar jumping on iOS when keyboard loads. A bit of a jerky effect but the best that seems possible now. There's definitely a way to optimize this more.
+if( navigator.userAgent.match(/iPhone|iPad|iPod/i) ) {
+	function updateSheetsEditNavTopPosOnScroll() {
+		$('.sheetsEditNavTop').css('marginTop', $(window).scrollTop()-54 + 'px');
+	}
+
+	$(document)
+		.on('focus', '.cke_editable_inline', function(e) {
+			// Position sheetsEditNavTop absolute and bump it down to the scrollPosition
+			$('.sheetsEditNavTop').css({
+				marginTop: $(window).scrollTop()-54 + 'px',
+			});
+			$(document).scroll(updateSheetsEditNavTopPosOnScroll);
+		})
+		.on('touchstart', '*:not(.cke_editable_inline)', function(e) {
+			if ($(".cke_editable").length == 0) {
+				$('.sheetsEditNavTop').css({
+					position: 'fixed',
+					top: '54px',
+					marginTop: 0
+				});
+				$(document).off('scroll', updateSheetsEditNavTopPosOnScroll);
+			}
+		});
+
+}
+
+
 
 }); // ------------------ End DOM Ready  ------------------
 
