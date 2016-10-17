@@ -312,7 +312,7 @@ class NotificationSet(abst.AbstractMongoSet):
         """
         Loads the unread notifications for uid.
         """
-        self.__init__(query={"uid": uid, "read": False, "global": False})
+        self.__init__(query={"uid": uid, "read": False, "is_global": False})
         return self
 
     def recent_for_user(self, uid, page=0, limit=10):
