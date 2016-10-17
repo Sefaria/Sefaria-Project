@@ -3,8 +3,7 @@
 from sefaria.model import *
 from datetime import datetime
 
-#NotificationSet().update({"is_global": False})
-
+NotificationSet().update({"is_global": False})
 
 GlobalNotification()\
     .make_version(Version().load({'title': 'Kedushat Levi', 'versionTitle': 'Kedushat Levi translated by Rb. Eliyahu Munk'})) \
@@ -45,8 +44,8 @@ GlobalNotification()\
 GlobalNotification()\
     .make_index(library.get_index("Shev_Shmat'ta")) \
     .set_date(datetime(2016, 10, 9, 16, 0, 0)) \
-    .set_en("") \
-    .set_he(u"") \
+    .set_en("Shev Shmat'ta: composed of seven intricate halachic discussions, this work is widely popular in Yeshivah curricula") \
+    .set_he(u"שב שמעעתא, חיבור העוסק בשבע סוגיות תלמודיות סבוכות. נחשב כפופלרי בעולם הישיבות.") \
     .save()
 
 #Index: Mei HaShiloah
