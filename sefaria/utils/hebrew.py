@@ -442,8 +442,9 @@ def hebrew_term(s):
 		"Modern Works":		u"יצירות מודרניות",
 		"Maharshal":		u'מהרש"ל',
 		"Gur Aryeh":		u'גור אריה',
-		"Tur and Commentaries": u'טור ומפרשים'
-
+		"Tur and Commentaries": u'טור ומפרשים',
+		"Yachin": u'יכין',
+        "Harchev Davar": u'הרחב דבר'
 	}
 
 	pseudo_categories = {
@@ -548,3 +549,26 @@ def hebrew_term(s):
 		pass
 
 	return s
+
+
+def hebrew_parasha_name(value):
+	"""
+	Returns a Hebrew ref for the english ref passed in.
+	"""
+	from sefaria.model import Term
+	if not value:
+		return ""
+	if "-" in value:
+		if value == "Lech-Lecha":
+			return hebrew_parasha_name(value.replace("-", " "))
+		else:
+			names = value.split("-")
+			return ("-").join(map(hebrew_parasha_name, names))
+	else:
+		try:
+			term    = Term().load({"name": value, "scheme": "Parasha"})
+			parasha = term.get_titles(lang="he")[0]
+		except Exception, e:
+			print e
+			parasha   = value
+		return parasha

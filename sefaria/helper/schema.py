@@ -1,11 +1,10 @@
 # -*- coding: utf-8 -*-
 
 from sefaria.model import *
-from sefaria.system.database import db
 
 """
-                                                    IN PROCESS & UNTESTED
-
+Experimental
+These utilities have been used a few times, but are still rough.
 
 To get the existing schema nodes to pass into these functions, easiest is likely:
 Ref("...").index_node
@@ -19,11 +18,14 @@ Todo:
         varnish
 """
 
+
 def insert_last_child(new_node, parent_node):
     return attach_branch(new_node, parent_node, len(parent_node.children))
 
+
 def insert_first_child(new_node, parent_node):
     return attach_branch(new_node, parent_node, 0)
+
 
 def attach_branch(new_node, parent_node, place=0):
     """
@@ -44,15 +46,15 @@ def attach_branch(new_node, parent_node, place=0):
     for v in vs + vsc:
         pc = v.content_node(parent_node)
         pc[new_node.key] = new_node.create_skeleton()
-        v.save()
+        v.save(override_dependencies=True)
 
     # Update Index schema and save
     parent_node.children.insert(place, new_node)
     new_node.parent = parent_node
 
-    flags = delete_version_states(index.title)
-    index.save()
-    refresh_version_states(index.title, flags)
+    index.save(override_dependencies=True)
+    library.rebuild()
+    refresh_version_state(index.title)
 
 
 def remove_branch(node):
@@ -75,13 +77,13 @@ def remove_branch(node):
         assert isinstance(v, Version)
         pc = v.content_node(parent)
         del pc[node.key]
-        v.save()
+        v.save(override_dependencies=True)
 
     parent.children = [n for n in parent.children if n.key != node.key]
 
-    flags = delete_version_states(index.title)
-    index.save()
-    refresh_version_states(index.title, flags)
+    index.save(override_dependencies=True)
+    library.rebuild()
+    refresh_version_state(index.title)
 
 
 def reorder_children(parent_node, new_order):
@@ -96,6 +98,58 @@ def reorder_children(parent_node, new_order):
     assert set(child_dict.keys()) == set(new_order)
     parent_node.children = [child_dict[k] for k in new_order]
     parent_node.index.save()
+
+
+def merge_default_into_parent(parent_node):
+    """
+    In a case where a parent has only one child - a default child - this merges the two together into one Jagged Array node.
+
+    Example Usage:
+    >>> r = Ref('Mei HaShiloach, Volume II, Prophets, Judges')
+    >>> merge_default_into_parent(r.index_node)
+
+    :param parent_node:
+    :return:
+    """
+    assert isinstance(parent_node, SchemaNode)
+    assert len(parent_node.children) == 1
+    assert parent_node.has_default_child()
+    default_node = parent_node.get_default_child()
+    #assumption: there's a grandparent.  todo: handle the case where the parent is the root node of the schema
+    is_root = True
+    if parent_node.parent:
+        is_root = False
+        grandparent_node = parent_node.parent
+    index = parent_node.index
+
+    # Repair all versions
+    vs = [v for v in index.versionSet()]
+    vsc = [v for v in library.get_commentary_versions_on_book(index.title)]
+    for v in vs + vsc:
+        assert isinstance(v, Version)
+        if is_root:
+            v.chapter = v.chapter["default"]
+        else:
+            grandparent_version_dict = v.sub_content(grandparent_node.version_address())
+            grandparent_version_dict[parent_node.key] = grandparent_version_dict[parent_node.key]["default"]
+        v.save(override_dependencies=True)
+
+    # Rebuild Index
+    new_node = JaggedArrayNode()
+    new_node.key = parent_node.key
+    new_node.title_group = parent_node.title_group
+    new_node.sectionNames = default_node.sectionNames
+    new_node.addressTypes = default_node.addressTypes
+    new_node.depth = default_node.depth
+    if is_root:
+        index.nodes = new_node
+    else:
+        grandparent_node.children = [c if c.key != parent_node.key else new_node for c in grandparent_node.children]
+
+    # Save index and rebuild library
+    index.save(override_dependencies=True)
+    library.rebuild()
+    refresh_version_state(index.title)
 
 
 def convert_simple_index_to_complex(index):
@@ -118,7 +172,7 @@ def convert_simple_index_to_complex(index):
     for v in vs + vsc:
         assert isinstance(v, Version)
         v.chapter = {"default": v.chapter}
-        v.save()
+        v.save(override_dependencies=True)
 
     # Build new schema
     new_parent = SchemaNode()
@@ -132,9 +186,9 @@ def convert_simple_index_to_complex(index):
     new_parent.append(ja_node)
     index.nodes = new_parent
 
-    flags = delete_version_states(index.title)
-    index.save()
-    refresh_version_states(index.title, flags)
+    index.save(override_dependencies=True)
+    library.rebuild()
+    refresh_version_state(index.title)
 
 
 def change_parent(node, new_parent, place=0):
@@ -161,57 +215,78 @@ def change_parent(node, new_parent, place=0):
         content = old_parent_content.pop(node.key)
         new_parent_content = v.content_node(new_parent)
         new_parent_content[node.key] = content
-        v.save()
+        v.save(override_dependencies=True)
 
     old_parent.children = [n for n in old_parent.children if n.key != node.key]
     new_parent.children.insert(place, node)
     node.parent = new_parent
     new_normal_form = node.ref().normal()
 
-    flags = delete_version_states(index.title)
-    index.save()
+    index.save(override_dependencies=True)
+    library.rebuild()
 
     for link in linkset:
         link.refs = [ref.replace(old_normal_form, new_normal_form) for ref in link.refs]
         link.save()
     # todo: commentary linkset
 
-    refresh_version_states(index.title, flags)
+    refresh_version_state(index.title)
 
 
-def delete_version_states(base_title):
-    d = {}
-
-    vs = db.vstate.find_one({"title": base_title})
-    if vs:
-        d[base_title] = vs["flags"]
-        db.vstate.remove({"_id": vs["_id"]})
-
-    vtitles = library.get_commentary_version_titles_on_book(base_title) + [base_title]
-    for title in vtitles:
-        vs = db.vstate.find_one({"title": title})
-        if vs:
-            d[title] = vs["flags"]
-            db.vstate.remove({"_id": vs["_id"]})
-
-    return d
-
-
-def refresh_version_states(base_title, flag_dict):
+def refresh_version_state(base_title):
     """
     ** VersionState is *not* altered on Index save.  It is only created on Index creation.
     ^ It now seems that VersionState is referenced on Index save
 
     VersionState is *not* automatically updated on Version save.
     The VersionState update on version save happens in texts_api().
-
     VersionState.refresh() assumes the structure of content has not changed.
     To regenerate VersionState, we save the flags, delete the old one, and regenerate a new one.
-
-    :param flag_dict: comes from delete_version_states()
     """
-    VersionState(base_title, {"flags": flag_dict.get(base_title)})
-
     vtitles = library.get_commentary_version_titles_on_book(base_title) + [base_title]
     for title in vtitles:
-        VersionState(title, {"flags": flag_dict.get(title)})
+        vs = VersionState(title)
+        flags = vs.flags
+        vs.delete()
+        VersionState(title, {"flags": flags})
+
+
+def change_node_title(snode, old_title, lang, new_title):
+    """
+    Changes the title of snode specified by old_title and lang, to new_title.
+    If the title changing is the primary english title, cascades to all of the impacted objects
+    :param snode:
+    :param old_title:
+    :param lang:
+    :param new_title:
+    :return:
+    """
+    pass
+
+
+def replaceBadNodeTitles(title, bad_char, good_char, lang):
+    '''
+    This recurses through the serialized tree changing replacing the previous title of each node to its title with the bad_char replaced by good_char. 
+    '''
+    def recurse(node):
+        if 'nodes' in node:
+            for each_one in node['nodes']:
+                recurse(each_one)
+        elif 'default' not in node:
+
+            if 'title' in node:
+                node['title'] = node['title'].replace(bad_char, good_char)
+            if 'titles' in node:
+                which_one = -1
+                if node['titles'][0]['lang'] == lang:
+                    which_one = 0
+                elif len(node['titles']) > 1 and node['titles'][1]['lang'] == lang:
+                    which_one = 1
+                if which_one >= 0:
+                    node['titles'][which_one]['text'] = node['titles'][which_one]['text'].replace(bad_char, good_char)
+ 
+    data = library.get_index(title).nodes.serialize()
+    recurse(data)
+    return data
+
+

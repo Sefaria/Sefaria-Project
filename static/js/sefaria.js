@@ -125,8 +125,10 @@ Sefaria = extend(Sefaria, {
   },
   isRef: function(ref) {
     // Returns true if `ref` appears to be a ref relative to known books in Sefaria.books
-    q = Sefaria.parseRef(ref);
-    return ("book" in q && q.book);
+    var q = Sefaria.parseRef(ref);
+    // We check for Index here in order not to allow a bare commentator name. Something like "Ramban" will return a book, but no Index.
+    // After commentary refactor, we can take off the index check, below.
+    return ("book" in q && q.book && "index" in q && q.index);
   },
   titlesInText: function(text) {
     // Returns an array of the known book titles that appear in text.
@@ -263,7 +265,6 @@ Sefaria = extend(Sefaria, {
   },
   _saveText: function(data, settings, skipWrap) {
     if (!data || "error" in data) { 
-      console.log("Returning!");
       return;
     }
     settings         = settings || {};
@@ -415,7 +416,7 @@ Sefaria = extend(Sefaria, {
     }
   },
   ref: function(ref) {
-    // Returns parsed ref info for string `ref`.
+    // Returns parsed ref info for string `ref` which has been preloaded in the cache.
     // Uses this._refmap to find the refkey that has information for this ref.
     // Used in cases when the textual information is not important, so it can
     // be called without worrying about the `settings` parameter for what is available in cache.
@@ -438,16 +439,18 @@ Sefaria = extend(Sefaria, {
       // TODO handle ranging refs, which requires knowledge of the segment count of each included section
       // i.e., in "Shabbat 2a:5-2b:8" what is the last segment of Shabbat 2a?
       // For now, just return the first non-spanning ref.
-      oref.toSections = oref.sections;
-      return [this.humanRef(this.makeRef(oref))];
+      var newRef = Sefaria.util.clone(oref);
+      newRef.toSections = newRef.sections;
+      return [this.humanRef(this.makeRef(newRef))];
     } else {
       var refs  = [];
       var start = oref.sections[oref.sections.length-1];
       var end   = oref.toSections[oref.sections.length-1];
       for (var i = start; i <= end; i++) {
-        oref.sections[oref.sections.length-1]   = i;
-        oref.toSections[oref.sections.length-1] = i;
-        refs.push(this.humanRef(this.makeRef(oref)));
+        newRef = Sefaria.util.clone(oref);
+        newRef.sections[oref.sections.length-1] = i;
+        newRef.toSections[oref.sections.length-1] = i;
+        refs.push(this.humanRef(this.makeRef(newRef)));
       }
       return refs;
     }
@@ -465,7 +468,7 @@ Sefaria = extend(Sefaria, {
       return this._lexiconLookups[cache_key] || [];
     }
     if (cache_key in this._lexiconLookups) {
-        console.log("data from cache: ", this._lexiconLookups[cache_key]);
+        /*console.log("data from cache: ", this._lexiconLookups[cache_key]);*/
         cb(this._lexiconLookups[cache_key]);
     } else if (words.length > 0) {
       var url = "/api/words/" + encodeURIComponent(words)+"?never_split=1";
@@ -475,7 +478,7 @@ Sefaria = extend(Sefaria, {
       //console.log(url);
       this._api(url, function(data) {
         this._lexiconLookups[cache_key] = ("error" in data) ? [] : data;
-        console.log("state changed from ajax: ", data);
+        //console.log("state changed from ajax: ", data);
         cb(this._lexiconLookups[cache_key]);
       }.bind(this));
     }else{
@@ -507,9 +510,10 @@ Sefaria = extend(Sefaria, {
     }
   },
   _saveLinkData: function(ref, data) {
-    this._saveLinksByRef(data);
+    var l = this._saveLinksByRef(data);
     this._links[ref] = data;
     this._cacheIndexFromLinks(data);
+    return l;
   },
   _cacheIndexFromLinks: function(links) {
     // Cache partial index information (title, Hebrew title, categories) found in link data.
@@ -524,7 +528,7 @@ Sefaria = extend(Sefaria, {
     }
   },
   _saveLinksByRef: function(data) {
-    this._saveItemsByRef(data, this._links);
+    return this._saveItemsByRef(data, this._links);
   },
   _saveItemsByRef: function(data, store) {
     // For a set of items from the API, save each set split by the specific ref the items points to.
@@ -547,6 +551,7 @@ Sefaria = extend(Sefaria, {
         store[ref] = splitItems[ref];
       }
     }
+    return splitItems;
   },
   linksLoaded: function(ref) {
     // Returns true if link data has been loaded for `ref`.
@@ -704,7 +709,7 @@ Sefaria = extend(Sefaria, {
     return notes;
   },
   _saveNoteData: function(ref, data) {
-    this._saveItemsByRef(data, this._notes);
+    return this._saveItemsByRef(data, this._notes);
   },
   _privateNotes: {},
   privateNotes: function(refs, callback) {
@@ -791,12 +796,34 @@ Sefaria = extend(Sefaria, {
           if ("error" in data) { 
             return;
           }
-          this._saveLinkData(ref, data.links);
-          this._saveNoteData(ref, data.notes);
-          this.sheets._saveSheetsByRefData(ref, data.sheets);
-          this._related[ref] = data;
+          var originalData = Sefaria.util.clone(data);
+
+          // Save link, note, and sheet data, and retain the split data from each of these saves
+          var split_data = {
+              links: this._saveLinkData(ref, data.links),
+              notes: this._saveNoteData(ref, data.notes),
+              sheets: this.sheets._saveSheetsByRefData(ref, data.sheets)
+          };
+
+           // Build split related data from individual split data arrays
+          ["links", "notes", "sheets"].forEach(function(obj_type) {
+            for (var ref in split_data[obj_type]) {
+              if (split_data[obj_type].hasOwnProperty(ref)) {
+                if (!(ref in this._related)) {
+                    this._related[ref] = {links: [], notes: [], sheets: []};
+                }
+                this._related[ref][obj_type] = split_data[obj_type][ref];
+              }
+            }
+          }, this);
+
+
+           // Save the original data after the split data - lest a split version overwrite it.
+          this._related[ref] = originalData;
           this._relatedSummaries[ref] = null; // Reset in case previously cached before API returned
+
           callback(data);
+
         }.bind(this));
     }
   },
@@ -1174,7 +1201,7 @@ Sefaria = extend(Sefaria, {
     },
     _saveSheetsByRefData: function(ref, data) {
       this._sheetsByRef[ref] = data;
-      Sefaria._saveItemsByRef(data, this._sheetsByRef);
+      return Sefaria._saveItemsByRef(data, this._sheetsByRef);
     }
   },
   hebrewCategory: function(cat) {

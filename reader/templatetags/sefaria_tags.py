@@ -20,7 +20,7 @@ from sefaria.sheets import get_sheet
 from sefaria.model.user_profile import user_link as ulink
 from sefaria.model.user_profile import user_name as uname
 from sefaria.utils.util import strip_tags as strip_tags_func
-from sefaria.utils.hebrew import hebrew_plural, hebrew_term
+from sefaria.utils.hebrew import hebrew_plural, hebrew_term, hebrew_parasha_name
 from sefaria.utils.hebrew import hebrew_term as translate_hebrew_term
 
 import sefaria.model.text
@@ -95,21 +95,9 @@ def he_ref(value):
 @stringfilter
 def he_parasha(value):
 	"""
-	Returns a Hebrew ref for the english ref passed in.
+	Returns a Hebrew parsha name for the english parsha name passed in.
 	"""
-	if not value:
-		return ""
-
-	def hebrew_parasha(p):
-		try:
-			term    = m.Term().load({"name": p, "scheme": "Parasha"})
-			parasha = term.get_titles(lang="he")[0]
-		except Exception, e:
-			print e
-			parasha   = p
-		return parasha
-	names = value.split("-")
-	return ("-").join(map(hebrew_parasha, names)) if value != "Lech-Lecha" else hebrew_parasha(value)
+	return hebrew_parasha_name(value)
 
 
 @register.filter(is_safe=True)

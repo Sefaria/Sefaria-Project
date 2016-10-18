@@ -120,9 +120,9 @@ var ReaderApp = React.createClass({
           menuOpen: this.props.initialPanels[0].menuOpen,
           version: this.props.initialPanels.length ? this.props.initialPanels[0].version : null,
           versionLanguage: this.props.initialPanels.length ? this.props.initialPanels[0].versionLanguage : null,
-          settings: Sefaria.util.clone(defaultPanelSettings)
+          settings: "settings" in this.props.initialPanels[0] ? extend(Sefaria.util.clone(defaultPanelSettings), this.props.initialPanels[0].settings) : Sefaria.util.clone(defaultPanelSettings)
         };
-        if (p.versionLanguage) {
+        if (p.versionLanguage && !"settings" in this.props.initialPanels[0]) {
           p.settings.language = p.versionLanguage == "he" ? "hebrew" : "english";
         }
         panels.push(p);
@@ -131,14 +131,14 @@ var ReaderApp = React.createClass({
         var panel;
         if (this.props.initialPanels[i].menuOpen == "book toc") {
           panel = {
-            settings: Sefaria.util.clone(defaultPanelSettings),
             menuOpen: this.props.initialPanels[i].menuOpen,
-            bookRef: this.props.initialPanels[i].bookRef
+            bookRef: this.props.initialPanels[i].bookRef,
+            settings: "settings" in this.props.initialPanels[i] ? extend(Sefaria.util.clone(defaultPanelSettings), this.props.initialPanels[i].settings) : Sefaria.util.clone(defaultPanelSettings)
           };
         } else {
           panel = this.clonePanel(this.props.initialPanels[i]);
           panel.settings = Sefaria.util.clone(defaultPanelSettings);
-          if (panel.versionLanguage) {
+          if (panel.versionLanguage && !"settings" in this.props.initialPanels[i]) {
             panel.settings.language = panel.versionLanguage == "he" ? "hebrew" : "english";
           }
         }
@@ -230,7 +230,8 @@ var ReaderApp = React.createClass({
   },
   handlePopState: function handlePopState(event) {
     var state = event.state;
-
+    // console.log("Pop - " + window.location.pathname);
+    // console.log(state);
     if (state) {
       var kind = "";
       if (Sefaria.site) {
@@ -362,7 +363,7 @@ var ReaderApp = React.createClass({
         return true;
       }
 
-      if (prev.mode !== next.mode || prev.menuOpen !== next.menuOpen || next.mode === "Text" && prev.refs.slice(-1)[0] !== next.refs.slice(-1)[0] || next.mode === "TextAndConnections" && prev.highlightedRefs.slice(-1)[0] !== next.highlightedRefs.slice(-1)[0] || (next.mode === "Connections" || next.mode === "TextAndConnections") && prev.filter && !prev.filter.compare(next.filter) || next.mode === "Connections" && !prev.refs.compare(next.refs) || prev.navigationSheetTag !== next.navigationSheetTag || prev.version !== next.version || prev.versionLanguage !== next.versionLanguage || prev.searchQuery != next.searchQuery || prev.appliedSearchFilters && next.appliedSearchFilters && prev.appliedSearchFilters.length !== next.appliedSearchFilters.length || prev.appliedSearchFilters && next.appliedSearchFilters && !prev.appliedSearchFilters.compare(next.appliedSearchFilters) || prev.settings.language != next.settings.language) {
+      if (prev.mode !== next.mode || prev.menuOpen !== next.menuOpen || prev.menuOpen === "book toc" && prev.bookRef !== next.bookRef || next.mode === "Text" && prev.refs.slice(-1)[0] !== next.refs.slice(-1)[0] || next.mode === "TextAndConnections" && prev.highlightedRefs.slice(-1)[0] !== next.highlightedRefs.slice(-1)[0] || (next.mode === "Connections" || next.mode === "TextAndConnections") && prev.filter && !prev.filter.compare(next.filter) || next.mode === "Connections" && !prev.refs.compare(next.refs) || prev.navigationSheetTag !== next.navigationSheetTag || prev.version !== next.version || prev.versionLanguage !== next.versionLanguage || prev.searchQuery != next.searchQuery || prev.appliedSearchFilters && next.appliedSearchFilters && prev.appliedSearchFilters.length !== next.appliedSearchFilters.length || prev.appliedSearchFilters && next.appliedSearchFilters && !prev.appliedSearchFilters.compare(next.appliedSearchFilters) || prev.settings.language != next.settings.language) {
         return true;
       } else if (prev.navigationCategories !== next.navigationCategories) {
         // Handle array comparison, !== could mean one is null or both are arrays
@@ -526,7 +527,6 @@ var ReaderApp = React.createClass({
       url += "&lang=" + histories[0].lang;
     }
     hist = headerPanel ? { state: { header: states[0] }, url: url, title: title } : { state: { panels: states }, url: url, title: title };
-
     for (var i = 1; i < histories.length; i++) {
       if (histories[i - 1].mode === "Text" && histories[i].mode === "Connections") {
         if (i == 1) {
@@ -543,7 +543,14 @@ var ReaderApp = React.createClass({
         } else {
           var replacer = "&p" + i + "=";
           hist.url = hist.url.replace(RegExp(replacer + ".*"), "");
-          hist.url += replacer + histories[i].url + "&w" + i + "=" + histories[i].sources; //.replace("with=", "with" + i + "=").replace("?", "&");
+          hist.url += replacer + histories[i].url;
+          if (histories[i - 1].versionLanguage && histories[i - 1].version) {
+            hist.url += "&l" + i + "=" + histories[i - 1].versionLanguage + "&v" + i + "=" + histories[i - 1].version.replace(/\s/g, "_");
+          }
+          if (histories[i - 1].lang) {
+            hist.url += "&lang" + i + "=" + histories[i - 1].lang;
+          }
+          hist.url += "&w" + i + "=" + histories[i].sources; //.replace("with=", "with" + i + "=").replace("?", "&");
           hist.title += " & " + histories[i].title; // TODO this doesn't trim title properly
         }
       } else {
@@ -577,8 +584,9 @@ var ReaderApp = React.createClass({
   checkScrollIntentAndTrack: function checkScrollIntentAndTrack() {
     // Record current state of panel refs, and check if it has changed after some delay.  If it remains the same, track analytics.
     var intentDelay = 3000; // Number of milliseconds to demonstrate intent
-
+    // console.log("Setting scroll intent check");
     window.setTimeout(function (initialRefs) {
+      // console.log("Checking scroll intent");
       if (initialRefs.compare(this._refState())) {
         this.trackPageview();
       }
@@ -591,7 +599,7 @@ var ReaderApp = React.createClass({
     var hist = this.makeHistoryState();
     if (replace) {
       history.replaceState(hist.state, hist.title, hist.url);
-
+      // console.log("Replace History - " + hist.url);
       if (this.state.initialAnalyticsTracked) {
         this.checkScrollIntentAndTrack();
       }
@@ -601,7 +609,7 @@ var ReaderApp = React.createClass({
           return;
         } // Never push history with the same URL
         history.pushState(hist.state, hist.title, hist.url);
-
+        // console.log("Push History - " + hist.url);
         this.trackPageview();
         //console.log(hist);
       }
@@ -660,6 +668,7 @@ var ReaderApp = React.createClass({
         layoutDefault: "segmented",
         layoutTalmud: "continuous",
         layoutTanakh: "segmented",
+        biLayout: "stacked",
         color: "light",
         fontSize: 62.5
       };
@@ -683,10 +692,11 @@ var ReaderApp = React.createClass({
     // In multi panel mode, set the maximum number of visible panels depending on the window width.
     this.setWindowWidth();
     var panelCap = Math.floor($(window).outerWidth() / this.MIN_PANEL_WIDTH);
-
+    //console.log("Setting panelCap: " + panelCap);
     this.setState({ panelCap: panelCap });
   },
   setWindowWidth: function setWindowWidth() {
+    //console.log("Setting window width: " + $(window).outerWidth());
     this.setState({ windowWidth: $(window).outerWidth() });
   },
   handleNavigationClick: function handleNavigationClick(ref, version, versionLanguage, options) {
@@ -791,12 +801,19 @@ var ReaderApp = React.createClass({
     //console.log(state)
 
     // When the driving panel changes language, carry that to the dependent panel
+    // However, when carrying a language change to the Tools Panel, do not carry over an incorrect version
     var langChange = state.settings && state.settings.language !== this.state.panels[n].settings.language;
     var next = this.state.panels[n + 1];
-    if (langChange && next && next.mode === "Connections") {
+    if (langChange && next && next.mode === "Connections" && state.settings.language !== "bilingual") {
       next.settings.language = state.settings.language;
+      if (next.settings.language.substring(0, 2) != this.state.panels[n].versionLanguage) {
+        next.versionLanguage = null;
+        next.version = null;
+      } else {
+        next.versionLanguage = this.state.panels[n].versionLanguage;
+        next.version = this.state.panels[n].version;
+      }
     }
-
     this.state.panels[n] = extend(this.state.panels[n], state);
     this.setState({ panels: this.state.panels });
   },
@@ -910,6 +927,7 @@ var ReaderApp = React.createClass({
       panel.version = parentPanel.version;
       panel.versionLanguage = parentPanel.versionLanguage;
     }
+    panel.settings = panel.settings ? panel.settings : Sefaria.util.clone(this.getDefaultPanelSettings()), panel.settings.language = panel.settings.language == "hebrew" ? "hebrew" : "english"; // Don't let connections panels be bilingual
     newPanels[n] = this.makePanelState(panel);
     this.setState({ panels: newPanels });
   },
@@ -986,7 +1004,6 @@ var ReaderApp = React.createClass({
     if (state.panels.length == 0) {
       this.showLibrary();
     }
-
     this.setState(state);
   },
   showLibrary: function showLibrary() {
@@ -1256,6 +1273,16 @@ var Header = React.createClass({
       }.bind(this)
     });
   },
+  showVirtualKeyboardIcon: function showVirtualKeyboardIcon(show) {
+    if (document.getElementById('keyboardInputMaster')) {
+      //if keyboard is open, ignore.
+      return; //this prevents the icon from flashing on every key stroke.
+    }
+    if (this.props.interfaceLang == 'english') {
+      var opacity = show ? 0.4 : 0;
+      $(ReactDOM.findDOMNode(this)).find(".keyboardInputInitiator").css({ "opacity": opacity });
+    }
+  },
   showDesktop: function showDesktop() {
     if (this.props.panelsOpen == 0) {
       var json = cookie("recentlyViewed");
@@ -1302,7 +1329,10 @@ var Header = React.createClass({
   hideTestMessage: function hideTestMessage() {
     this.props.setCentralState({ showTestMessage: false });
   },
-  submitSearch: function submitSearch(query, skipNormalization) {
+  submitSearch: function submitSearch(query, skipNormalization, originalQuery) {
+    // originalQuery is used to handle an edge case - when a varient of a commentator name is passed - e.g. "Rasag".
+    // the name gets normalized, but is ultimately not a ref, so becomes a regular search.
+    // We want to search for the original query, not the normalized name
     var override = query.match(this._searchOverrideRegex());
     if (override) {
       if (Sefaria.site) {
@@ -1318,7 +1348,7 @@ var Header = React.createClass({
       index = Sefaria.index(query);
       if (!index && !skipNormalization) {
         Sefaria.normalizeTitle(query, function (title) {
-          this.submitSearch(title, true);
+          this.submitSearch(title, true, query);
         }.bind(this));
         return;
       }
@@ -1329,14 +1359,14 @@ var Header = React.createClass({
         Sefaria.site.track.event("Search", action, query);
       }
       this.clearSearchBox();
-      this.handleRefClick(query);
+      this.handleRefClick(query); //todo: pass an onError function through here to the panel onError function which redirects to search
     } else {
-      if (Sefaria.site) {
-        Sefaria.site.track.event("Search", "Search Box Search", query);
+        if (Sefaria.site) {
+          Sefaria.site.track.event("Search", "Search Box Search", query);
+        }
+        this.closeSearchAutocomplete();
+        this.showSearch(originalQuery || query);
       }
-      this.closeSearchAutocomplete();
-      this.showSearch(query);
-    }
   },
   closeSearchAutocomplete: function closeSearchAutocomplete() {
     $(ReactDOM.findDOMNode(this)).find("input.search").sefaria_autocomplete("close");
@@ -1398,7 +1428,7 @@ var Header = React.createClass({
 
     var notificationCount = Sefaria.notificationCount || 0;
     var notifcationsClasses = classNames({ notifications: 1, unread: notificationCount > 0 });
-    var nextParam = "?next=" + Sefaria.util.currentPath();
+    var nextParam = "?next=" + encodeURIComponent(Sefaria.util.currentPath());
     var headerMessage = this.props.headerMessage ? React.createElement(
       'div',
       { className: 'testWarning', onClick: this.showTestMessage },
@@ -1451,6 +1481,7 @@ var Header = React.createClass({
       )
     );
     var langSearchPlaceholder = this.props.interfaceLang == 'english' ? "Search" : "הקלד לחיפוש";
+    var vkClassActivator = this.props.interfaceLang == 'english' ? " keyboardInput" : "";
     return React.createElement(
       'div',
       { className: 'header' },
@@ -1480,7 +1511,12 @@ var Header = React.createClass({
           'span',
           { className: 'searchBox' },
           React.createElement(ReaderNavigationMenuSearchButton, { onClick: this.handleSearchButtonClick }),
-          React.createElement('input', { className: 'search', placeholder: langSearchPlaceholder, onKeyUp: this.handleSearchKeyUp })
+          React.createElement('input', { className: "search" + vkClassActivator,
+            placeholder: langSearchPlaceholder,
+            onKeyUp: this.handleSearchKeyUp,
+            onFocus: this.showVirtualKeyboardIcon.bind(this, true),
+            onBlur: this.showVirtualKeyboardIcon.bind(this, false)
+          })
         ),
         React.createElement(
           'a',
@@ -1523,6 +1559,7 @@ var ReaderPanel = React.createClass({
     onRecentClick: React.PropTypes.func,
     onSearchResultClick: React.PropTypes.func,
     onUpdate: React.PropTypes.func,
+    onError: React.PropTypes.func,
     closePanel: React.PropTypes.func,
     closeMenus: React.PropTypes.func,
     setConnectionsFilter: React.PropTypes.func,
@@ -1567,6 +1604,7 @@ var ReaderPanel = React.createClass({
         layoutDefault: "segmented",
         layoutTalmud: "continuous",
         layoutTanakh: "segmented",
+        biLayout: "stacked",
         color: "light",
         fontSize: 62.5
       },
@@ -1629,6 +1667,13 @@ var ReaderPanel = React.createClass({
     } else {
       this.setState(state);
     }
+  },
+  onError: function onError(message) {
+    if (this.props.onError) {
+      this.props.onError(message);
+      return;
+    }
+    this.setState({ "error": message });
   },
   clonePanel: function clonePanel(panel) {
     // Set aside self-referential objects before cloning
@@ -1777,8 +1822,14 @@ var ReaderPanel = React.createClass({
   toggleLanguage: function toggleLanguage() {
     if (this.state.settings.language == "hebrew") {
       this.setOption("language", "english");
+      if (Sefaria.site) {
+        Sefaria.site.track.event("Reader", "Change Language", "english");
+      }
     } else {
       this.setOption("language", "hebrew");
+      if (Sefaria.site) {
+        Sefaria.site.track.event("Reader", "Change Language", "hebrew");
+      }
     }
   },
   openCommentary: function openCommentary(commentator) {
@@ -1903,6 +1954,9 @@ var ReaderPanel = React.createClass({
     return Sefaria.index(book) ? Sefaria.index(book).categories[0] : null;
   },
   currentLayout: function currentLayout() {
+    if (this.state.settings.language == "bilingual") {
+      return this.width > 500 ? this.state.settings.biLayout : "stacked";
+    }
     var category = this.currentCategory();
     if (!category) {
       return "layoutDefault";
@@ -1911,6 +1965,41 @@ var ReaderPanel = React.createClass({
     return this.state.settings[option];
   },
   render: function render() {
+    if (this.state.error) {
+      return React.createElement(
+        'div',
+        { className: 'readerContent' },
+        React.createElement(
+          'div',
+          { className: 'readerError' },
+          React.createElement(
+            'span',
+            { className: 'int-en' },
+            'Something went wrong! Please use the back button or the menus above to get back on track.'
+          ),
+          React.createElement(
+            'span',
+            { className: 'int-he' },
+            'ארעה תקלה במערכת. אנא חזרו לתפריט הראשי או אחורנית על ידי שימוש בכפתורי התפריט או החזור.'
+          ),
+          React.createElement(
+            'div',
+            { className: 'readerErrorText' },
+            React.createElement(
+              'span',
+              { className: 'int-en' },
+              'Error Message: '
+            ),
+            React.createElement(
+              'span',
+              { className: 'int-he' },
+              'שגיאה:'
+            ),
+            this.state.error
+          )
+        )
+      );
+    }
     var items = [];
     if (this.state.mode === "Text" || this.state.mode === "TextAndConnections") {
       items.push(React.createElement(TextColumn, {
@@ -2074,7 +2163,7 @@ var ReaderPanel = React.createClass({
     classes[this.state.settings.language] = 1;
     classes = classNames(classes);
     var style = { "fontSize": this.state.settings.fontSize + "%" };
-    var hideReaderControls = this.state.mode === "TextAndConnections" || this.props.hideNavHeader;
+    var hideReaderControls = this.state.mode === "TextAndConnections" || this.state.menuOpen === "text toc" || this.state.menuOpen === "book toc" || this.props.hideNavHeader;
 
     return React.createElement(
       'div',
@@ -2095,21 +2184,23 @@ var ReaderPanel = React.createClass({
         closeMenus: this.closeMenus,
         openDisplaySettings: this.openDisplaySettings,
         currentLayout: this.currentLayout,
+        onError: this.onError,
         connectionsMode: this.state.filter.length && this.state.connectionsMode === "Connections" ? "Connection Text" : this.state.connectionsMode,
         closePanel: this.props.closePanel,
         toggleLanguage: this.toggleLanguage,
         interfaceLang: this.props.interfaceLang }),
-      React.createElement(
+      items.length > 0 && !menu ? React.createElement(
         'div',
         { className: 'readerContent', style: style },
         items
-      ),
+      ) : "",
       menu,
       this.state.displaySettingsOpen ? React.createElement(ReaderDisplayOptionsMenu, {
         settings: this.state.settings,
         multiPanel: this.props.multiPanel,
         setOption: this.setOption,
         currentLayout: this.currentLayout,
+        width: this.width,
         menuOpen: this.state.menuOpen }) : null,
       this.state.displaySettingsOpen ? React.createElement('div', { className: 'mask', onClick: this.closeDisplaySettings }) : null
     );
@@ -2133,6 +2224,7 @@ var ReaderControls = React.createClass({
     currentCategory: React.PropTypes.func.isRequired,
     currentBook: React.PropTypes.func.isRequired,
     currentLayout: React.PropTypes.func.isRequired,
+    onError: React.PropTypes.func.isRequired,
     closePanel: React.PropTypes.func,
     toggleLanguage: React.PropTypes.func,
     currentRef: React.PropTypes.string,
@@ -2161,7 +2253,11 @@ var ReaderControls = React.createClass({
 
     if (title && !oref) {
       // If we don't have this data yet, rerender when we do so we can set the Hebrew title
-      Sefaria.text(title, { context: 1 }, function () {
+      Sefaria.text(title, { context: 1 }, function (data) {
+        if ("error" in data) {
+          this.props.onError(data.error);
+          return;
+        }
         if (this.isMounted()) {
           this.setState({});
         }
@@ -2252,6 +2348,7 @@ var ReaderDisplayOptionsMenu = React.createClass({
     currentLayout: React.PropTypes.func.isRequired,
     menuOpen: React.PropTypes.string.isRequired,
     multiPanel: React.PropTypes.bool.isRequired,
+    width: React.PropTypes.number.isRequired,
     settings: React.PropTypes.object.isRequired
   },
   render: function render() {
@@ -2263,9 +2360,15 @@ var ReaderDisplayOptionsMenu = React.createClass({
       settings: this.props.settings });
 
     var layoutOptions = [{ name: "continuous", fa: "align-justify" }, { name: "segmented", fa: "align-left" }];
+    var biLayoutOptions = [{ name: "stacked", content: "<img src='/static/img/stacked.png' />" }, { name: "heLeft", content: "<img src='/static/img/backs.png' />" }, { name: "heRight", content: "<img src='/static/img/faces.png' />" }];
     var layoutToggle = this.props.settings.language !== "bilingual" ? React.createElement(ToggleSet, {
       name: 'layout',
       options: layoutOptions,
+      setOption: this.props.setOption,
+      currentLayout: this.props.currentLayout,
+      settings: this.props.settings }) : this.props.width > 500 ? React.createElement(ToggleSet, {
+      name: 'biLayout',
+      options: biLayoutOptions,
       setOption: this.props.setOption,
       currentLayout: this.props.currentLayout,
       settings: this.props.settings }) : null;
@@ -2361,10 +2464,10 @@ var ReaderNavigationMenu = React.createClass({
   },
   setWidth: function setWidth() {
     var width = $(ReactDOM.findDOMNode(this)).width();
-
+    //console.log("Setting RNM width: " + width);
     var winWidth = $(window).width();
     var winHeight = $(window).height();
-
+    //console.log("Window width: " + winWidth + ", Window height: " + winHeight);
     var oldWidth = this.width;
     this.width = width;
     if (oldWidth <= 450 && width > 450 || oldWidth > 450 && width <= 450) {
@@ -2445,7 +2548,8 @@ var ReaderNavigationMenu = React.createClass({
           navHome: this.navHome,
           compare: this.props.compare,
           hideNavHeader: this.props.hideNavHeader,
-          width: this.width })
+          width: this.width,
+          interfaceLang: this.props.interfaceLang })
       );
     } else {
       // Root Library Menu
@@ -2592,7 +2696,7 @@ var ReaderNavigationMenu = React.createClass({
         siteLinks
       );
 
-      var calendar = Sefaria.calendar ? [React.createElement(TextBlockLink, { sref: Sefaria.calendar.parasha, title: Sefaria.calendar.parashaName, heTitle: 'פרשה', category: 'Tanakh' }), React.createElement(TextBlockLink, { sref: Sefaria.calendar.haftara, title: 'Haftara', heTitle: 'הפטרה', category: 'Tanakh' }), React.createElement(TextBlockLink, { sref: Sefaria.calendar.daf_yomi, title: 'Daf Yomi', heTitle: 'דף יומי', category: 'Talmud' })] : [];
+      var calendar = Sefaria.calendar ? [React.createElement(TextBlockLink, { sref: Sefaria.calendar.parasha, title: Sefaria.calendar.parashaName, heTitle: Sefaria.calendar.heParashaName, category: 'Tanakh' }), React.createElement(TextBlockLink, { sref: Sefaria.calendar.haftara, title: 'Haftara', heTitle: 'הפטרה', category: 'Tanakh' }), React.createElement(TextBlockLink, { sref: Sefaria.calendar.daf_yomi, title: 'Daf Yomi', heTitle: 'דף יומי', category: 'Talmud' })] : [];
       calendar = React.createElement(
         'div',
         { className: 'readerNavCalendar' },
@@ -2690,7 +2794,7 @@ var ReaderNavigationMenu = React.createClass({
       var title = React.createElement(
         'h1',
         null,
-        React.createElement(LanguageToggleButton, { toggleLanguage: this.props.toggleLanguage }),
+        this.props.multiPanel ? React.createElement(LanguageToggleButton, { toggleLanguage: this.props.toggleLanguage }) : null,
         React.createElement(
           'span',
           { className: 'int-en' },
@@ -2703,14 +2807,20 @@ var ReaderNavigationMenu = React.createClass({
         )
       );
 
+      var footer = this.props.compare ? null : React.createElement(
+        'footer',
+        { id: 'footer', className: 'interface-' + this.props.interfaceLang + ' static sans' },
+        React.createElement(Footer, null)
+      );
       var classes = classNames({ readerNavMenu: 1, noHeader: !this.props.hideHeader, compare: this.props.compare, home: this.props.home });
+      var contentClasses = classNames({ content: 1, hasFooter: footer != null });
       return React.createElement(
         'div',
         { className: classes, onClick: this.handleClick, key: '0' },
         topContent,
         React.createElement(
           'div',
-          { className: 'content' },
+          { className: contentClasses },
           React.createElement(
             'div',
             { className: 'contentInner' },
@@ -2720,7 +2830,8 @@ var ReaderNavigationMenu = React.createClass({
             React.createElement(ReaderNavigationMenuSection, { title: 'Calendar', heTitle: 'לוח יומי', content: calendar }),
             this.props.compare ? null : React.createElement(ReaderNavigationMenuSection, { title: 'Resources', heTitle: 'קהילה', content: resources }),
             this.props.multiPanel ? null : siteLinks
-          )
+          ),
+          footer
         )
       );
     }
@@ -2877,7 +2988,11 @@ var ReaderNavigationCategoryMenu = React.createClass({
     hideNavHeader: React.PropTypes.bool
   },
   render: function render() {
-
+    var footer = this.props.compare ? null : React.createElement(
+      'footer',
+      { id: 'footer', className: 'interface-' + this.props.interfaceLang + ' static sans' },
+      React.createElement(Footer, null)
+    );
     // Show Talmud with Toggles
     var categories = this.props.categories[0] === "Talmud" && this.props.categories.length == 1 ? ["Talmud", "Bavli"] : this.props.categories;
 
@@ -2935,6 +3050,7 @@ var ReaderNavigationCategoryMenu = React.createClass({
     var catContents = Sefaria.tocItemsByCategories(categories);
     var navMenuClasses = classNames({ readerNavCategoryMenu: 1, readerNavMenu: 1, noHeader: this.props.hideNavHeader });
     var navTopClasses = classNames({ readerNavTop: 1, searchOnly: 1, colorLineOnly: this.props.hideNavHeader });
+    var contentClasses = classNames({ content: 1, hasFooter: footer != null });
     return React.createElement(
       'div',
       { className: navMenuClasses },
@@ -2961,7 +3077,7 @@ var ReaderNavigationCategoryMenu = React.createClass({
       ),
       React.createElement(
         'div',
-        { className: 'content' },
+        { className: contentClasses },
         React.createElement(
           'div',
           { className: 'contentInner' },
@@ -2982,7 +3098,8 @@ var ReaderNavigationCategoryMenu = React.createClass({
           ) : null,
           toggle,
           React.createElement(ReaderNavigationCategoryMenuContents, { contents: catContents, categories: categories, width: this.props.width })
-        )
+        ),
+        footer
       )
     );
   }
@@ -4157,7 +4274,7 @@ var SheetsHomePage = React.createClass({
 
     return React.createElement(
       'div',
-      { className: 'content' },
+      { className: 'content hasFooter' },
       React.createElement(
         'div',
         { className: 'contentInner' },
@@ -4280,6 +4397,11 @@ var SheetsHomePage = React.createClass({
           )
         ),
         React.createElement(TwoOrThreeBox, { content: tagList, width: this.props.width })
+      ),
+      React.createElement(
+        'footer',
+        { id: 'footer', className: 'static sans' },
+        React.createElement(Footer, null)
       )
     );
   }
@@ -4357,7 +4479,7 @@ var PartnerSheetsPage = React.createClass({
 
     return React.createElement(
       'div',
-      { className: 'content sheetList' },
+      { className: 'content sheetList hasFooter' },
       React.createElement(
         'div',
         { className: 'contentInner' },
@@ -4393,6 +4515,11 @@ var PartnerSheetsPage = React.createClass({
         ) : null,
         this.state.showYourSheetTags ? React.createElement(TwoOrThreeBox, { content: groupTagList, width: this.props.width }) : null,
         sheets
+      ),
+      React.createElement(
+        'footer',
+        { id: 'footer', className: 'static sans' },
+        React.createElement(Footer, null)
       )
     );
   }
@@ -4473,7 +4600,7 @@ var TagSheetsPage = React.createClass({
     }) : React.createElement(LoadingMessage, null);
     return React.createElement(
       'div',
-      { className: 'content sheetList' },
+      { className: 'content sheetList hasFooter' },
       React.createElement(
         'div',
         { className: 'contentInner' },
@@ -4492,6 +4619,11 @@ var TagSheetsPage = React.createClass({
           )
         ) : null,
         sheets
+      ),
+      React.createElement(
+        'footer',
+        { id: 'footer', className: 'static sans' },
+        React.createElement(Footer, null)
       )
     );
   }
@@ -4572,7 +4704,7 @@ var AllSheetsPage = React.createClass({
     }) : React.createElement(LoadingMessage, null);
     return React.createElement(
       'div',
-      { className: 'content sheetList' },
+      { className: 'content sheetList hasFooter' },
       React.createElement(
         'div',
         { className: 'contentInner' },
@@ -4591,6 +4723,11 @@ var AllSheetsPage = React.createClass({
           )
         ) : null,
         sheets
+      ),
+      React.createElement(
+        'footer',
+        { id: 'footer', className: 'static sans' },
+        React.createElement(Footer, null)
       )
     );
   }
@@ -5181,22 +5318,23 @@ var TextColumn = React.createClass({
 
       this.props.setTextListHightlight(refs);
     }
-
     this.props.setSelectedWords(selection.toString());
   },
   handleTextLoad: function handleTextLoad() {
     if (this.loadingContentAtTop || !this.initialScrollTopSet) {
+      // console.log("text load, setting scroll");
       this.setScrollPosition();
     }
-
+    // console.log("text load, ais");
     this.adjustInfiniteScroll();
   },
   setScrollPosition: function setScrollPosition() {
+    // console.log("ssp");
     // Called on every update, checking flags on `this` to see if scroll position needs to be set
     if (this.loadingContentAtTop) {
-      var $node = $(ReactDOM.findDOMNode(this));
       // After adding content by infinite scrolling up, scroll back to what the user was just seeing
-
+      // console.log("loading at top");
+      var $node = $(ReactDOM.findDOMNode(this));
       var adjust = 118; // Height of .loadingMessage.base
       var $texts = $node.find(".basetext");
       if ($texts.length < 2) {
@@ -5229,11 +5367,11 @@ var TextColumn = React.createClass({
     // this.adjustInfiniteScroll();
   },
   adjustInfiniteScroll: function adjustInfiniteScroll() {
+    // Add or remove TextRanges from the top or bottom, depending on scroll position
+    // console.log("adjust Infinite Scroll");
     if (!this.isMounted()) {
       return;
     }
-    // Add or remove TextRanges from the top or bottom, depending on scroll position
-
     var node = ReactDOM.findDOMNode(this);
     var refs = this.props.srefs;
     var $lastText = $(node).find(".textRange.basetext").last();
@@ -5252,9 +5390,10 @@ var TextColumn = React.createClass({
     } else if (lastBottom < windowHeight + 80) {
       // DOWN: add the next section to bottom
       if ($lastText.hasClass("loading")) {
+        //console.log("last text is loading - don't add next section");
         return;
       }
-
+      //console.log("Down! Add next section");
       var currentRef = refs.slice(-1)[0];
       var data = Sefaria.ref(currentRef);
       if (data && data.next) {
@@ -5269,6 +5408,7 @@ var TextColumn = React.createClass({
       var topRef = refs[0];
       var data = Sefaria.ref(topRef);
       if (data && data.prev) {
+        //console.log("Up! Add previous section");
         refs.splice(refs, 0, data.prev);
         this.loadingContentAtTop = true;
         this.props.updateTextColumn(refs);
@@ -5281,6 +5421,7 @@ var TextColumn = React.createClass({
     }
   },
   adjustTextListHighlight: function adjustTextListHighlight() {
+    // console.log("atlh");
     // When scrolling while the TextList is open, update which segment should be highlighted.
     if (this.props.multiPanel && this.props.layoutWidth == 100) {
       return; // Hacky - don't move around highlighted segment when scrolling a single panel,
@@ -5459,7 +5600,7 @@ var TextRange = React.createClass({
     */
     // Place segment numbers again if update affected layout
     if (this.props.basetext || this.props.segmentNumber) {
-      if (this.props.version != prevProps.version || this.props.versionLanguage != prevProps.versionLanguage || prevProps.settings.language !== this.props.settings.language || prevProps.settings.layoutDefault !== this.props.settings.layoutDefault || prevProps.settings.layoutTanakh !== this.props.settings.layoutTanakh || prevProps.settings.layoutTalmud !== this.props.settings.layoutTalmud || prevProps.settings.fontSize !== this.props.settings.fontSize || prevProps.layoutWidth !== this.props.layoutWidth) {
+      if (this.props.version != prevProps.version || this.props.versionLanguage != prevProps.versionLanguage || prevProps.settings.language !== this.props.settings.language || prevProps.settings.layoutDefault !== this.props.settings.layoutDefault || prevProps.settings.layoutTanakh !== this.props.settings.layoutTanakh || prevProps.settings.layoutTalmud !== this.props.settings.layoutTalmud || prevProps.settings.biLayout !== this.props.settings.biLayout || prevProps.settings.fontSize !== this.props.settings.fontSize || prevProps.layoutWidth !== this.props.layoutWidth) {
         // Rerender in case version has changed
         this.forceUpdate();
         // TODO: are these animationFrames still needed?
@@ -5503,6 +5644,7 @@ var TextRange = React.createClass({
     return data;
   },
   onTextLoad: function onTextLoad(data) {
+    // console.log("onTextLoad in TextRange");
     // Initiate additional API calls when text data first loads
     if (this.props.basetext && this.props.sref !== data.ref) {
       // Replace ReaderPanel contents ref with the normalized form of the ref, if they differ.
@@ -5618,7 +5760,8 @@ var TextRange = React.createClass({
 
         start = n == 0 ? start : 1;
         for (var i = 0; i < length; i++) {
-          var section = n + data.sections.slice(-2)[0];
+          var startSection = data.sections.slice(-2)[0];
+          var section = typeof startSection == "string" ? Sefaria.hebrew.intToDaf(n + Sefaria.hebrew.dafToInt(startSection)) : n + startSection;
           var number = i + start;
           var ref = baseRef + delim + section + ":" + number;
           segments.push({
@@ -5860,13 +6003,14 @@ var TextSegment = React.createClass({
     }
   },
   render: function render() {
+    var linkCountElement;
     if (this.props.showLinkCount) {
       var linkCount = Sefaria.linkCount(this.props.sref, this.props.filter);
       var minOpacity = 20,
           maxOpacity = 70;
       var linkScore = linkCount ? Math.min(linkCount + minOpacity, maxOpacity) / 100.0 : 0;
       var style = { opacity: linkScore };
-      var linkCount = this.props.showLinkCount ? React.createElement(
+      linkCountElement = this.props.showLinkCount ? React.createElement(
         'div',
         { className: 'linkCount sans' },
         React.createElement(
@@ -5881,7 +6025,7 @@ var TextSegment = React.createClass({
         )
       ) : null;
     } else {
-      var linkCount = "";
+      linkCountElement = "";
     }
     var segmentNumber = this.props.segmentNumber ? React.createElement(
       'div',
@@ -5922,9 +6066,10 @@ var TextSegment = React.createClass({
       'span',
       { className: classes, onClick: this.handleClick, 'data-ref': this.props.sref },
       segmentNumber,
-      linkCount,
+      linkCountElement,
       React.createElement('span', { className: 'he', dangerouslySetInnerHTML: { __html: he + " " } }),
-      React.createElement('span', { className: 'en', dangerouslySetInnerHTML: { __html: en + " " } })
+      React.createElement('span', { className: 'en', dangerouslySetInnerHTML: { __html: en + " " } }),
+      React.createElement('div', { className: 'clearFix' })
     );
   }
 });
@@ -6363,7 +6508,9 @@ var TextList = React.createClass({
         // Viewing Text Connections
         var sectionLinks = Sefaria.links(sectionRef);
         var links = sectionLinks.filter(function (link) {
-          if (Sefaria.util.inArray(link.anchorRef, refs) === -1 && (this.props.multiPanel || !isSingleCommentary)) {
+          if ((this.props.multiPanel || !isSingleCommentary) && Sefaria.splitSpanningRef(link.anchorRef).every(function (aref) {
+            return Sefaria.util.inArray(aref, refs) === -1;
+          })) {
             // Only show section level links for an individual commentary
             return false;
           }
@@ -6795,7 +6942,7 @@ var LexiconPanel = React.createClass({
 
   propTypes: {
     selectedWords: React.PropTypes.string,
-    oref: React.PropTypes.object
+    oref: React.PropTypes.object.isRequired
   },
   getInitialState: function getInitialState() {
     return {
@@ -6809,6 +6956,7 @@ var LexiconPanel = React.createClass({
     }
   },
   componentWillReceiveProps: function componentWillReceiveProps(nextProps) {
+    // console.log("component will receive props: ", nextProps.selectedWords);
     if (this.props.selectedWords != nextProps.selectedWords) {
       this.clearLookups();
       this.getLookups(nextProps.selectedWords, nextProps.oref);
@@ -6822,6 +6970,7 @@ var LexiconPanel = React.createClass({
   },
   getLookups: function getLookups(words, oref) {
     if (this.shouldActivate(words)) {
+      // console.log('getting data: ', words, oref.ref);
       Sefaria.lexicon(words, oref.ref, function (data) {
         this.setState({
           loaded: true,
@@ -6831,6 +6980,8 @@ var LexiconPanel = React.createClass({
         var action = data.length == 0 ? "Open No Result" : "Open";
         action += " / " + oref.categories.join("/") + "/" + oref.book;
         Sefaria.site.track.event("Lexicon", action, words);
+
+        // console.log('gotten data from Sefaria.js, state re-set: ', this, data);
       }.bind(this));
     }
   },
@@ -6843,7 +6994,7 @@ var LexiconPanel = React.createClass({
     return inputLength <= 3;
   },
   render: function render() {
-    var ref_cats = this.props.oref.categories.join(", ");
+    var refCats = this.props.oref.categories.join(", ");
     var enEmpty = "No results found.";
     var heEmpty = "לא נמצאו תוצאות";
     if (!this.shouldActivate(this.props.selectedWords)) {
@@ -6852,6 +7003,7 @@ var LexiconPanel = React.createClass({
     }
     var content;
     if (!this.state.loaded) {
+      // console.log("lexicon not yet loaded");
       content = React.createElement(LoadingMessage, { message: 'Looking up words...', heMessage: 'מחפש מילים...' });
     } else if (this.state.entries.length == 0) {
       if (this.props.selectedWords.length == 0) {
@@ -6864,7 +7016,7 @@ var LexiconPanel = React.createClass({
     } else {
       var entries = this.state.entries;
       content = entries.filter(function (e) {
-        return e['parent_lexicon_details']['text_categories'].indexOf(ref_cats) > -1;
+        return e['parent_lexicon_details']['text_categories'].indexOf(refCats) > -1;
       }).map(function (entry, i) {
         return React.createElement(LexiconEntry, { data: entry, key: i });
       });
@@ -6973,12 +7125,12 @@ var LexiconEntry = React.createClass({
             href: 'source_url' in lexicon_dtls ? lexicon_dtls['source_url'] : "" },
           React.createElement(
             'span',
-            { className: 'en' },
+            { className: 'int-en' },
             'Source: '
           ),
           React.createElement(
             'span',
-            { className: 'he' },
+            { className: 'int-he' },
             'מקור:'
           ),
           'source' in lexicon_dtls ? lexicon_dtls['source'] : lexicon_dtls['source_url']
@@ -6993,12 +7145,12 @@ var LexiconEntry = React.createClass({
             href: 'attribution_url' in lexicon_dtls ? lexicon_dtls['attribution_url'] : "" },
           React.createElement(
             'span',
-            { className: 'en' },
+            { className: 'int-en' },
             'Creator: '
           ),
           React.createElement(
             'span',
-            { className: 'he' },
+            { className: 'int-he' },
             'יוצר:'
           ),
           'attribution' in lexicon_dtls ? lexicon_dtls['attribution'] : lexicon_dtls['attribution_url']
@@ -7039,11 +7191,14 @@ var ToolsPanel = React.createClass({
   render: function render() {
     var editText = this.props.canEditText ? function () {
       var refString = this.props.srefs[0];
+      var currentPath = Sefaria.util.currentPath();
+      debugger;
+      var currentLangParam;
       if (this.props.version) {
-        refString += "/" + this.props.versionLanguage + "/" + this.props.version;
+        refString += "/" + encodeURIComponent(this.props.versionLanguage) + "/" + encodeURIComponent(this.props.version);
       }
       var path = "/edit/" + refString;
-      var nextParam = "?next=" + Sefaria.util.currentPath();
+      var nextParam = "?next=" + encodeURIComponent(currentPath);
       path += nextParam;
       Sefaria.site.track.event("Tools", "Edit Text Click", refString, { hitCallback: function hitCallback() {
           return window.location = path;
@@ -7349,12 +7504,12 @@ var ConfirmAddToSheetPanel = React.createClass({
         { className: 'message' },
         React.createElement(
           'span',
-          { className: 'en' },
+          { className: 'int-en' },
           'Your source has been added.'
         ),
         React.createElement(
           'span',
-          { className: 'he' },
+          { className: 'int-he' },
           'הטקסט נוסף בהצלחה לדף המקורות'
         )
       ),
@@ -7363,13 +7518,13 @@ var ConfirmAddToSheetPanel = React.createClass({
         { className: 'button white', href: "/sheets/" + this.props.sheetId },
         React.createElement(
           'span',
-          { className: 'en' },
+          { className: 'int-en' },
           'Go to Source Sheet ',
           React.createElement('i', { className: 'fa fa-angle-right' })
         ),
         React.createElement(
           'span',
-          { className: 'he' },
+          { className: 'int-he' },
           'עבור לדף המקורות',
           React.createElement('i', { className: 'fa fa-angle-left' })
         )
@@ -7731,7 +7886,7 @@ var SearchPage = React.createClass({
       ),
       React.createElement(
         'div',
-        { className: 'content' },
+        { className: 'content hasFooter' },
         React.createElement(
           'div',
           { className: 'contentInner' },
@@ -7759,6 +7914,11 @@ var SearchPage = React.createClass({
                 filtersValid: this.props.filtersValid })
             )
           )
+        ),
+        React.createElement(
+          'footer',
+          { id: 'footer', className: 'interface-' + this.props.interfaceLang + ' static sans' },
+          React.createElement(Footer, null)
         )
       )
     );
@@ -8463,7 +8623,7 @@ var SearchFilters = React.createClass({
       ),
       React.createElement(
         'div',
-        { className: 'searchFilterBoxes', style: { display: this.state.displayFilters ? "block" : "none" } },
+        { className: this.state.displayFilters ? "searchFilterBoxes" : "searchFilterBoxes hidden" },
         React.createElement(
           'div',
           { className: 'searchFilterCategoryBox' },
@@ -8797,6 +8957,12 @@ var AccountPanel = React.createClass({
     var connectContent = [React.createElement(BlockLink, { interfaceLink: true, target: 'https://groups.google.com/forum/?fromgroups#!forum/sefaria', title: 'Forum', heTitle: 'פורום' }), React.createElement(BlockLink, { interfaceLink: true, target: 'http://www.facebook.com/sefaria.org', title: 'Facebook', heTitle: 'פייסבוק' }), React.createElement(BlockLink, { interfaceLink: true, target: 'http://twitter.com/SefariaProject', title: 'Twitter', heTitle: 'טוויטר' }), React.createElement(BlockLink, { interfaceLink: true, target: 'http://www.youtube.com/user/SefariaProject', title: 'YouTube', heTitle: 'יוטיוב' }), React.createElement(BlockLink, { interfaceLink: true, target: 'http://www.github.com/Sefaria', title: 'GitHub', heTitle: 'גיטהאב' }), React.createElement(BlockLink, { interfaceLink: true, target: 'mailto:hello@sefaria.org', title: 'Email', heTitle: 'אימייל' })];
     connectContent = React.createElement(TwoOrThreeBox, { content: connectContent, width: width });
 
+    var footer = React.createElement(
+      'footer',
+      { id: 'footer', className: 'interface-' + this.props.interfaceLang + ' static sans' },
+      React.createElement(Footer, null)
+    );
+
     var classes = { accountPanel: 1, systemPanel: 1, readerNavMenu: 1, noHeader: 1 };
     var classStr = classNames(classes);
     return React.createElement(
@@ -8804,7 +8970,7 @@ var AccountPanel = React.createClass({
       { className: classStr },
       React.createElement(
         'div',
-        { className: 'content' },
+        { className: 'content hasFooter' },
         React.createElement(
           'div',
           { className: 'contentInner' },
@@ -8826,7 +8992,8 @@ var AccountPanel = React.createClass({
           React.createElement(ReaderNavigationMenuSection, { title: 'Learn', heTitle: 'לימוד', content: learnContent }),
           React.createElement(ReaderNavigationMenuSection, { title: 'Contribute', heTitle: 'עשייה', content: contributeContent }),
           React.createElement(ReaderNavigationMenuSection, { title: 'Connect', heTitle: 'התחברות', content: connectContent })
-        )
+        ),
+        footer
       )
     );
   }
@@ -8896,7 +9063,7 @@ var NotificationsPanel = React.createClass({
       { className: classStr },
       React.createElement(
         'div',
-        { className: 'content' },
+        { className: 'content hasFooter' },
         React.createElement(
           'div',
           { className: 'contentInner' },
@@ -8915,6 +9082,11 @@ var NotificationsPanel = React.createClass({
             )
           ),
           Sefaria.loggedIn ? React.createElement('div', { className: 'notificationsList', dangerouslySetInnerHTML: { __html: Sefaria.notificationsHtml } }) : React.createElement(LoginPanel, { fullPanel: true })
+        ),
+        React.createElement(
+          'footer',
+          { id: 'footer', className: 'interface-' + this.props.interfaceLang + ' static sans' },
+          React.createElement(Footer, null)
         )
       )
     );
@@ -9138,6 +9310,477 @@ var TestMessage = React.createClass({
   }
 });
 
+var Footer = React.createClass({
+  displayName: 'Footer',
+
+  render: function render() {
+    var currentPath = Sefaria.util.currentPath();
+    var next = encodeURIComponent(currentPath);
+    return React.createElement(
+      'div',
+      { id: 'footerInner' },
+      React.createElement(
+        'div',
+        { className: 'section' },
+        React.createElement(
+          'div',
+          { className: 'header' },
+          React.createElement(
+            'span',
+            { className: 'int-en' },
+            'About'
+          ),
+          React.createElement(
+            'span',
+            { className: 'int-he' },
+            'אודות'
+          )
+        ),
+        React.createElement(
+          'a',
+          { href: '/about', className: 'outOfAppLink' },
+          React.createElement(
+            'span',
+            { className: 'int-en' },
+            'What is Sefaria?'
+          ),
+          React.createElement(
+            'span',
+            { className: 'int-he' },
+            'מהי ספאריה'
+          )
+        ),
+        React.createElement(
+          'a',
+          { href: '/help', className: 'outOfAppLink' },
+          React.createElement(
+            'span',
+            { className: 'int-en' },
+            'Help'
+          ),
+          React.createElement(
+            'span',
+            { className: 'int-he' },
+            'עזרה'
+          )
+        ),
+        React.createElement(
+          'a',
+          { href: 'https://blog.sefaria.org', target: '_blank', className: 'outOfAppLink' },
+          React.createElement(
+            'span',
+            { className: 'int-en' },
+            'Blog'
+          ),
+          React.createElement(
+            'span',
+            { className: 'int-he' },
+            'בלוג'
+          )
+        ),
+        React.createElement(
+          'a',
+          { href: '/faq', target: '_blank', className: 'outOfAppLink' },
+          React.createElement(
+            'span',
+            { className: 'int-en' },
+            'FAQ'
+          ),
+          React.createElement(
+            'span',
+            { className: 'int-he' },
+            'שאלות נפוצות'
+          )
+        ),
+        React.createElement(
+          'a',
+          { href: '/team', className: 'outOfAppLink' },
+          React.createElement(
+            'span',
+            { className: 'int-en' },
+            'Team'
+          ),
+          React.createElement(
+            'span',
+            { className: 'int-he' },
+            'צוות'
+          )
+        ),
+        React.createElement(
+          'a',
+          { href: '/terms', className: 'outOfAppLink' },
+          React.createElement(
+            'span',
+            { className: 'int-en' },
+            'Terms of Use'
+          ),
+          React.createElement(
+            'span',
+            { className: 'int-he' },
+            'תנאי שימוש'
+          )
+        ),
+        React.createElement(
+          'a',
+          { href: '/privacy-policy', className: 'outOfAppLink' },
+          React.createElement(
+            'span',
+            { className: 'int-en' },
+            'Privacy Policy'
+          ),
+          React.createElement(
+            'span',
+            { className: 'int-he' },
+            'מדיניות הפרטיות'
+          )
+        )
+      ),
+      React.createElement(
+        'div',
+        { className: 'section' },
+        React.createElement(
+          'div',
+          { className: 'header' },
+          React.createElement(
+            'span',
+            { className: 'int-en' },
+            'Educators'
+          ),
+          React.createElement(
+            'span',
+            { className: 'int-he' },
+            'מחנכים'
+          )
+        ),
+        React.createElement(
+          'a',
+          { href: '/educators', target: '_blank', className: 'outOfAppLink' },
+          React.createElement(
+            'span',
+            { className: 'int-en' },
+            'Teach with Sefaria'
+          ),
+          React.createElement(
+            'span',
+            { className: 'int-he' },
+            'למד באמצעות ספאריה'
+          )
+        ),
+        React.createElement(
+          'a',
+          { href: '/sheets', className: 'outOfAppLink' },
+          React.createElement(
+            'span',
+            { className: 'int-en' },
+            'Source Sheets'
+          ),
+          React.createElement(
+            'span',
+            { className: 'int-he' },
+            'דפי מקורות'
+          )
+        ),
+        React.createElement(
+          'a',
+          { href: '/visualizations', className: 'outOfAppLink' },
+          React.createElement(
+            'span',
+            { className: 'int-en' },
+            'Visualizations'
+          ),
+          React.createElement(
+            'span',
+            { className: 'int-he' },
+            'עזרים חזותיים'
+          )
+        ),
+        React.createElement(
+          'a',
+          { href: '/people', className: 'outOfAppLink' },
+          React.createElement(
+            'span',
+            { className: 'int-en' },
+            'Authors'
+          ),
+          React.createElement(
+            'span',
+            { className: 'int-he' },
+            'מחברים'
+          )
+        )
+      ),
+      React.createElement(
+        'div',
+        { className: 'section' },
+        React.createElement(
+          'div',
+          { className: 'header' },
+          React.createElement(
+            'span',
+            { className: 'int-en' },
+            'Developers'
+          ),
+          React.createElement(
+            'span',
+            { className: 'int-he' },
+            'מפתחים'
+          )
+        ),
+        React.createElement(
+          'a',
+          { href: '/developers', target: '_blank', className: 'outOfAppLink' },
+          React.createElement(
+            'span',
+            { className: 'int-en' },
+            'Get Involved'
+          ),
+          React.createElement(
+            'span',
+            { className: 'int-he' },
+            'הצטרף אלינו'
+          )
+        ),
+        React.createElement(
+          'a',
+          { href: '/developers#api', target: '_blank', className: 'outOfAppLink' },
+          React.createElement(
+            'span',
+            { className: 'int-en' },
+            'API Docs'
+          ),
+          React.createElement(
+            'span',
+            { className: 'int-he' },
+            'מסמכי API'
+          )
+        ),
+        React.createElement(
+          'a',
+          { href: 'https://github.com/Sefaria/Sefaria-Project', target: '_blank', className: 'outOfAppLink' },
+          React.createElement(
+            'span',
+            { className: 'int-en' },
+            'Fork us on GitHub'
+          ),
+          React.createElement(
+            'span',
+            { className: 'int-he' },
+            'זלגו חופשי מגיטהאב'
+          )
+        ),
+        React.createElement(
+          'a',
+          { href: 'https://github.com/Sefaria/Sefaria-Export', target: '_blank', className: 'outOfAppLink' },
+          React.createElement(
+            'span',
+            { className: 'int-en' },
+            'Download our Data'
+          ),
+          React.createElement(
+            'span',
+            { className: 'int-he' },
+            'הורד את בסיס הנתונים שלנו'
+          )
+        )
+      ),
+      React.createElement(
+        'div',
+        { className: 'section' },
+        React.createElement(
+          'div',
+          { className: 'header' },
+          React.createElement(
+            'span',
+            { className: 'int-en' },
+            'Join Us'
+          ),
+          React.createElement(
+            'span',
+            { className: 'int-he' },
+            'הצטרף אלינו'
+          )
+        ),
+        React.createElement(
+          'a',
+          { href: '/donate', className: 'outOfAppLink' },
+          React.createElement(
+            'span',
+            { className: 'int-en' },
+            'Donate'
+          ),
+          React.createElement(
+            'span',
+            { className: 'int-he' },
+            'תרומות'
+          )
+        ),
+        React.createElement(
+          'a',
+          { href: '/supporters', className: 'outOfAppLink' },
+          React.createElement(
+            'span',
+            { className: 'int-en' },
+            'Supporters'
+          ),
+          React.createElement(
+            'span',
+            { className: 'int-he' },
+            'תומכים'
+          )
+        ),
+        React.createElement(
+          'a',
+          { href: '/contribute', target: '_blank', className: 'outOfAppLink' },
+          React.createElement(
+            'span',
+            { className: 'int-en' },
+            'Contribute'
+          ),
+          React.createElement(
+            'span',
+            { className: 'int-he' },
+            'הצטרף'
+          )
+        ),
+        React.createElement(
+          'a',
+          { href: '/jobs', className: 'outOfAppLink' },
+          React.createElement(
+            'span',
+            { className: 'int-en' },
+            'Jobs'
+          ),
+          React.createElement(
+            'span',
+            { className: 'int-he' },
+            'דרושים'
+          )
+        )
+      ),
+      React.createElement(
+        'div',
+        { className: 'section last' },
+        React.createElement(
+          'div',
+          { className: 'header' },
+          React.createElement(
+            'span',
+            { className: 'int-en' },
+            'Connect'
+          ),
+          React.createElement(
+            'span',
+            { className: 'int-he' },
+            'התחבר'
+          )
+        ),
+        React.createElement(
+          'a',
+          { href: 'http://www.facebook.com/sefaria.org', target: '_blank', className: 'outOfAppLink' },
+          React.createElement('i', { className: 'fa fa-facebook-official' }),
+          React.createElement(
+            'span',
+            { className: 'int-en' },
+            'Facebook'
+          ),
+          React.createElement(
+            'span',
+            { className: 'int-he' },
+            'פייסבוק'
+          )
+        ),
+        React.createElement(
+          'a',
+          { href: 'http://twitter.com/SefariaProject', target: '_blank', className: 'outOfAppLink' },
+          React.createElement('i', { className: 'fa fa-twitter' }),
+          React.createElement(
+            'span',
+            { className: 'int-en' },
+            'Twitter'
+          ),
+          React.createElement(
+            'span',
+            { className: 'int-he' },
+            'טוויטר'
+          )
+        ),
+        React.createElement(
+          'a',
+          { href: 'http://www.youtube.com/user/SefariaProject', target: '_blank', className: 'outOfAppLink' },
+          React.createElement('i', { className: 'fa fa-youtube' }),
+          React.createElement(
+            'span',
+            { className: 'int-en' },
+            'YouTube'
+          ),
+          React.createElement(
+            'span',
+            { className: 'int-he' },
+            'יוטיוב'
+          )
+        ),
+        React.createElement(
+          'a',
+          { href: 'https://groups.google.com/forum/?fromgroups#!forum/sefaria', target: '_blank', className: 'outOfAppLink' },
+          React.createElement(
+            'span',
+            { className: 'int-en' },
+            'Forum'
+          ),
+          React.createElement(
+            'span',
+            { className: 'int-he' },
+            'פורום'
+          )
+        ),
+        React.createElement(
+          'a',
+          { href: 'mailto:hello@sefaria.org', target: '_blank', className: 'outOfAppLink' },
+          React.createElement(
+            'span',
+            { className: 'int-en' },
+            'Email'
+          ),
+          React.createElement(
+            'span',
+            { className: 'int-he' },
+            'דוא"ל'
+          )
+        ),
+        React.createElement(
+          'div',
+          { id: 'siteLanguageToggle' },
+          React.createElement(
+            'div',
+            { id: 'siteLanguageToggleLabel' },
+            React.createElement(
+              'span',
+              { className: 'int-en' },
+              'Site Language:'
+            ),
+            React.createElement(
+              'span',
+              { className: 'int-he' },
+              'שפת האתר'
+            )
+          ),
+          React.createElement(
+            'a',
+            { href: "/interface/english?next=" + next, id: 'siteLanguageEnglish', className: 'outOfAppLink' },
+            'English'
+          ),
+          '|',
+          React.createElement(
+            'a',
+            { href: "/interface/hebrew?next=" + next, id: 'siteLanguageHebrew', className: 'outOfAppLink' },
+            'עברית'
+          )
+        )
+      )
+    );
+  }
+});
+
 var openInNewTab = function openInNewTab(url) {
   var win = window.open(url, '_blank');
   win.focus();
@@ -9178,6 +9821,7 @@ if (typeof exports !== 'undefined') {
   exports.ConnectionsPanel = ConnectionsPanel;
   exports.TextRange = TextRange;
   exports.TextColumn = TextColumn;
+  exports.Footer = Footer;
   exports.setData = setData;
   exports.unpackDataFromProps = Sefaria.unpackDataFromProps;
 }

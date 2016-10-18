@@ -677,7 +677,7 @@ $(function() {
 		if ("after" in params) {
 			window.location = params["after"];
 		}else if ("next" in params) {
-			window.location = params["next"];
+			window.location = decodeURIComponent(params["next"]);
 		}else if($.cookie('s2') == "true") {
 			window.location = window.location.href.replace("edit/", "");
 		} else {

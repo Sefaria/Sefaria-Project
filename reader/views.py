@@ -17,15 +17,18 @@ import p929
 import socket
 
 from django.views.decorators.cache import cache_page
-from django.template import RequestContext
+from django.template import RequestContext, loader
 from django.template.loader import render_to_string
 from django.shortcuts import render_to_response, get_object_or_404, redirect
 from django.http import Http404, HttpResponse
 from django.contrib.auth.decorators import login_required
 from django.utils.http import urlquote
 from django.utils.encoding import iri_to_uri
-from django.views.decorators.csrf import ensure_csrf_cookie, csrf_exempt, csrf_protect
+from django.views.decorators.csrf import ensure_csrf_cookie, csrf_exempt, csrf_protect, requires_csrf_token
 from django.contrib.auth.models import User
+from django import http
+
+
 
 from sefaria.model import *
 from sefaria.workflows import *
@@ -44,6 +47,7 @@ from sefaria.utils.hebrew import hebrew_plural, hebrew_term, encode_hebrew_numer
 from sefaria.utils.talmud import section_to_daf, daf_to_section
 from sefaria.datatype.jagged_array import JaggedArray
 import sefaria.utils.calendars
+from sefaria.utils.util import short_to_long_lang_code
 import sefaria.tracker as tracker
 from sefaria.system.cache import django_cache_decorator
 from sefaria.settings import USE_VARNISH, USE_NODE, NODE_HOST
@@ -233,7 +237,7 @@ def render_react_component(component, props):
         return render_to_string("elements/loading.html")
 
 
-def make_panel_dict(oref, version, language, filter, mode):
+def make_panel_dict(oref, version, language, filter, mode, **kwargs):
     """
     Returns a dictionary corresponding to the React panel state,
     additionally setting `text` field with textual content.
@@ -246,6 +250,7 @@ def make_panel_dict(oref, version, language, filter, mode):
         }
     else:
         oref = oref.first_available_section_ref()
+        panelDisplayLanguage = kwargs.get("panelDisplayLanguage", None)
         panel = {
             "mode": mode,
             "ref": oref.normal(),
@@ -254,6 +259,12 @@ def make_panel_dict(oref, version, language, filter, mode):
             "versionLanguage": language,
             "filter": filter,
         }
+        if panelDisplayLanguage:
+            panel["settings"] = {"language" : short_to_long_lang_code(panelDisplayLanguage)}
+            # so the connections panel doesnt act on the version NOT currently on display
+            if mode == "Connections" and panelDisplayLanguage != language:
+                panel["version"] = None
+                panel["versionLanguage"] = None
         if mode != "Connections":
             try:
                 text = TextFamily(oref, version=panel["version"], lang=panel["versionLanguage"], commentary=False, context=True, pad=True, alts=True).contents()
@@ -270,7 +281,7 @@ def make_panel_dict(oref, version, language, filter, mode):
     return panel
 
 
-def make_panel_dicts(oref, version, language, filter, multi_panel):
+def make_panel_dicts(oref, version, language, filter, multi_panel, **kwargs):
     """
     Returns an array of panel dictionaries.
     Depending on whether `multi_panel` is True, connections set in `filter` are displayed in either 1 or 2 panels.
@@ -278,12 +289,12 @@ def make_panel_dicts(oref, version, language, filter, multi_panel):
     panels = []
     # filter may have value [], meaning "all".  Therefore we test filter with "is not None".
     if filter is not None and multi_panel:
-        panels += [make_panel_dict(oref, version, language, filter, "Text")]
-        panels += [make_panel_dict(oref, version, language, filter, "Connections")]
+        panels += [make_panel_dict(oref, version, language, filter, "Text", **kwargs)]
+        panels += [make_panel_dict(oref, version, language, filter, "Connections", **kwargs)]
     elif filter is not None and not multi_panel:
-        panels += [make_panel_dict(oref, version, language, filter, "TextAndConnections")]
+        panels += [make_panel_dict(oref, version, language, filter, "TextAndConnections", **kwargs)]
     else:
-        panels += [make_panel_dict(oref, version, language, filter, "Text")]
+        panels += [make_panel_dict(oref, version, language, filter, "Text", **kwargs)]
 
     return panels
 
@@ -304,6 +315,7 @@ def s2_props(request):
             "layoutDefault": request.COOKIES.get("layoutDefault", "segmented"),
             "layoutTalmud":  request.COOKIES.get("layoutTalmud", "continuous"),
             "layoutTanakh":  request.COOKIES.get("layoutTanakh", "segmented"),
+            "biLayout":      request.COOKIES.get("biLayout", "stacked"),
             "color":         request.COOKIES.get("color", "light"),
             "fontSize":      request.COOKIES.get("fontSize", 62.5),
         },
@@ -331,7 +343,7 @@ def s2(request, ref, version=None, lang=None):
     if version and not Version().load({"versionTitle": version, "language": lang}):
         raise Http404
 
-    panels += make_panel_dicts(oref, version, lang, filter, multi_panel)
+    panels += make_panel_dicts(oref, version, lang, filter, multi_panel, **{"panelDisplayLanguage": request.GET.get("lang", None)})
 
     # Handle any panels after 1 which are identified with params like `p2`, `v2`, `l2`.
     i = 2
@@ -350,13 +362,14 @@ def s2(request, ref, version=None, lang=None):
         language = request.GET.get("l{}".format(i))
         filter   = request.GET.get("w{}".format(i)).replace("_", " ").split("+") if request.GET.get("w{}".format(i)) else None
         filter   = [] if filter == ["all"] else filter
+        panelDisplayLanguage = request.GET.get("lang{}".format(i), None)
 
         if version and not Version().load({"versionTitle": version, "language": language}):
             i += 1
             continue  # Stop processing all panels?
             # raise Http404
 
-        panels += make_panel_dicts(oref, version, language, filter, multi_panel)
+        panels += make_panel_dicts(oref, version, language, filter, multi_panel, **{"panelDisplayLanguage": panelDisplayLanguage})
         i += 1
 
     props.update({
@@ -530,7 +543,7 @@ def edit_text(request, ref=None, lang=None, version=None):
                 text = TextFamily(Ref(ref), lang=lang, version=version).contents()
                 text["mode"] = request.path.split("/")[1]
                 mode = text["mode"].capitalize()
-                text["edit_lang"] = lang
+                text["edit_lang"] = lang if lang is not None else request.COOKIES.get('contentLang')
                 text["edit_version"] = version
                 initJSON = json.dumps(text)
         except:
@@ -913,7 +926,7 @@ def text_toc(request, oref):
     title         = index.title
     heTitle       = index.get_title(lang='he')
     state         = StateNode(title)
-    versions      = VersionSet({"title": title}, sort=[["language", -1]])
+    versions      = VersionSet({"title": title})
 
     categories    = index.categories[:]
     if categories[0] in REORDER_RULES:
@@ -1132,15 +1145,21 @@ def texts_api(request, tref, lang=None, version=None):
             text = TextFamily(oref, version=version, lang=lang, commentary=commentary, context=context, pad=pad, alts=alts).contents()
         except NoVersionFoundError as e:
             # Extended data is used by S2 in TextList.preloadAllCommentaryText()
-            return jsonResponse({"error": unicode(e), "ref": oref.normal(), "versionTitle": version, "lang": lang, "commentator": getattr(oref.index, "commentator", "")})
+            return jsonResponse({"error": unicode(e), "ref": oref.normal(), "versionTitle": version, "lang": lang, "commentator": getattr(oref.index, "commentator", "")}, callback=request.GET.get("callback", None))
 
 
         # Use a padded ref for calculating next and prev
         # TODO: what if pad is false and the ref is of an entire book?
         # Should next_section_ref return None in that case?
         oref               = oref.padded_ref() if pad else oref
-        text["next"]       = oref.next_section_ref().normal() if oref.next_section_ref() else None
-        text["prev"]       = oref.prev_section_ref().normal() if oref.prev_section_ref() else None
+        try:
+            text["next"]       = oref.next_section_ref().normal() if oref.next_section_ref() else None
+            text["prev"]       = oref.prev_section_ref().normal() if oref.prev_section_ref() else None
+        except AttributeError as e:
+            # There are edge cases where the TextFamily call above works on a default node, but the next section call here does not.
+            oref = oref.default_child_ref()
+            text["next"] = oref.next_section_ref().normal() if oref.next_section_ref() else None
+            text["prev"] = oref.prev_section_ref().normal() if oref.prev_section_ref() else None
         text["commentary"] = text.get("commentary", [])
         text["sheets"]     = get_sheets_for_ref(tref) if int(request.GET.get("sheets", 0)) else []
 
@@ -1209,7 +1228,7 @@ def texts_api(request, tref, lang=None, version=None):
 
         return jsonResponse({"status": "ok"})
 
-    return jsonResponse({"error": "Unsuported HTTP method."})
+    return jsonResponse({"error": "Unsuported HTTP method."}, callback=request.GET.get("callback", None))
 
 
 @catch_error_as_json
@@ -1304,7 +1323,7 @@ def index_api(request, title, v2=False, raw=False):
 
         return jsonResponse({"status": "ok"})
 
-    return jsonResponse({"error": "Unsuported HTTP method."})
+    return jsonResponse({"error": "Unsuported HTTP method."}, callback=request.GET.get("callback", None))
 
 
 @catch_error_as_json
@@ -1337,7 +1356,7 @@ def link_count_api(request, cat1, cat2):
 def word_count_api(request, title, version, language):
     if request.method == "GET":
         counts = VersionSet({"title": title, "versionTitle": version, "language": language}).word_count()
-        resp = jsonResponse({"wordCount": counts})
+        resp = jsonResponse({"wordCount": counts}, callback=request.GET.get("callback", None))
         return resp
 
     elif request.method == "POST":
@@ -1495,7 +1514,7 @@ def link_summary_api(request, ref):
     """
     oref    = Ref(ref)
     summary = oref.linkset().summary(oref)
-    return jsonResponse(summary)
+    return jsonResponse(summary, callback=request.GET.get("callback", None))
 
 
 @catch_error_as_json
@@ -1617,7 +1636,7 @@ def version_status_api(request):
             })
         except Exception:
             pass
-    return jsonResponse(sorted(res, key = lambda x: x["title"] + x["version"]))
+    return jsonResponse(sorted(res, key = lambda x: x["title"] + x["version"]), callback=request.GET.get("callback", None))
 
 
 def version_status_tree_api(request, lang=None):
@@ -1650,7 +1669,7 @@ def version_status_tree_api(request, lang=None):
         "name": "Whole Library" + " ({})".format(lang) if lang else "",
         "path": [],
         "children": simplify_toc(library.get_toc(), [])
-    })
+    }, callback=request.GET.get("callback", None))
 
 
 def visualize_library(request, lang=None, cats=None):
@@ -1792,7 +1811,7 @@ def dictionary_api(request, word):
         for l in ls:
             result.append(l.contents())
         if len(result):
-            return jsonResponse(result)
+            return jsonResponse(result, callback=request.GET.get("callback", None))
     else:
         return jsonResponse({"error": "No information found for given word."})
 
@@ -1952,7 +1971,7 @@ def texts_history_api(request, tref, lang=None, version=None):
 
     summary["lastUpdated"] = updated
 
-    return jsonResponse(summary)
+    return jsonResponse(summary, callback=request.GET.get("callback", None))
 
 
 @catch_error_as_json
@@ -2925,3 +2944,14 @@ def visual_garden_page(request, g):
     }
 
     return render_to_response('visual_garden.html', template_vars, RequestContext(request))
+
+@requires_csrf_token
+def custom_server_error(request, template_name='500.html'):
+    """
+    500 error handler.
+
+    Templates: `500.html`
+    Context: RequestContext
+    """
+    t = loader.get_template(template_name) # You need to create a 500.html template.
+    return http.HttpResponseServerError(t.render(RequestContext(request, {'request_path': request.path})))
