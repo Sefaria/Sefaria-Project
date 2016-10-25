@@ -979,6 +979,7 @@ Sefaria = extend(Sefaria, {
   _textTocHtml: {},
   commentaryList: function(title) {
     // Returns the list of commentaries for 'title' which are found in Sefaria.toc
+      //TODO: this seems to only list titles with "on" in them. Commentary Refactor (e.g. Ralbag Ruth)?
     var index = this.index(title);
     if (!index) { return []; }
     var cats   = [index.categories[0], "Commentary"];

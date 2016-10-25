@@ -586,10 +586,8 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
         }
         if hasattr(self,"order"):
             toc_contents_dict["order"] = self.order[:]
-
-        #//TODO: can we do away with this special casing?
-        if getattr(self, 'dependence', None) == 'commentary':
-            toc_contents_dict["commentator"]   = self.collective_title
+        if hasattr(self, "collective_title"):
+            toc_contents_dict["commentator"] = self.collective_title
             toc_contents_dict["heCommentator"] = hebrew_term(self.collective_title)
 
         return toc_contents_dict
@@ -656,7 +654,6 @@ class CommentaryIndex(AbstractIndex):
             self.heCommentator = self.heBook = self.heTitle # why both?
 
         # todo: this assumes flat structure
-        # self.nodes = JaggedArrayCommentatorNode(self.b_index.nodes, index=self)
         def extend_leaf_nodes(node):
             node.index = self
 
@@ -1573,11 +1570,17 @@ class TextFamily(object):
         for attr in ["sections", "toSections"]:
             d[attr] = getattr(self._original_oref, attr)[:]
 
-        if self._inode.index.is_dependant_text():
-            d["commentaryBook"] = getattr(self._inode.index, 'base_text_titles', "")
-            d["commentaryCategories"] = getattr(self._inode.index, 'related_categories', "")
+        if getattr(self._inode.index, 'collective_title'):
             d["commentator"] = getattr(self._inode.index, 'collective_title', "")
             d["heCommentator"] = hebrew_term(getattr(self._inode.index, 'collective_title', ""))
+            d["collectiveTitle"] = getattr(self._inode.index, 'collective_title', "")
+            d["heCollectiveTitle"] = hebrew_term(getattr(self._inode.index, 'collective_title', ""))
+
+        if self._inode.index.is_dependant_text():
+            d["commentaryBook"] = getattr(self._inode.index, 'base_text_titles', "")[0]
+            d["commentaryCategories"] = getattr(self._inode.index, 'related_categories', "")
+            d["baseTexTitles"] = getattr(self._inode.index, 'base_text_titles', "")
+            d["relatedCategories"] = getattr(self._inode.index, 'related_categories', "")
 
         d["isComplex"]    = self.isComplex
         d["indexTitle"]   = self._inode.index.title
@@ -1617,9 +1620,9 @@ class TextFamily(object):
             """if d["type"] == "Commentary" and self._context_oref.is_talmud() and len(d["sections"]) > 1:
                 d["title"] = "%s Line %d" % (d["title"], d["sections"][1])"""
 
-        elif self._context_oref.is_commentary():
+        """elif self._context_oref.is_commentary():
             dep = len(d["sections"]) if len(d["sections"]) < 2 else 2
-            d["title"] = d["book"] + " " + ":".join(["%s" % s for s in d["sections"][:dep]])
+            d["title"] = d["book"] + " " + ":".join(["%s" % s for s in d["sections"][:dep]])"""
 
         d["alts"] = self._alts
 
@@ -1750,7 +1753,7 @@ class Ref(object):
         """
         self.index = None
         self.book = None
-        self.type = None
+        self.primary_category = None
         self.sections = []
         self.toSections = []
         self.index_node = None
@@ -1786,20 +1789,22 @@ class Ref(object):
         self._range_index = None
 
     def _validate(self):
+        offset = 0
+        if self.is_bavli():
+            offset = 2
         checks = [self.sections, self.toSections]
         for check in checks:
             if 0 in check:
                 raise InputError(u"{} {} must be greater than 0".format(self.book, self.index_node.sectionNames[check.index(0)]))
             if getattr(self.index_node, "lengths", None) and len(check):
-                offset = self.index_node.address_class(0).storage_offset()
                 if check[0] > self.index_node.lengths[0] + offset:
                     display_size = self.index_node.address_class(0).toStr("en", self.index_node.lengths[0] + offset)
                     raise InputError(u"{} ends at {} {}.".format(self.book, self.index_node.sectionNames[0], display_size))
-            for i in range(len(self.sections)):
-                if self.toSections[i] > self.sections[i]:
-                    break
-                if self.toSections[i] < self.sections[i]:
-                    raise InputError(u"{} is an invalid range.  Ranges must end later than they begin.".format(self.normal()))
+        for i in range(len(self.sections)):
+            if self.toSections > self.sections:
+                break
+            if self.toSections < self.sections:
+                raise InputError(u"{} is an invalid range.  Ranges must end later than they begin.".format(self.normal()))
 
     def __clean_tref(self):
         self.tref = self.tref.strip().replace(u"–", "-").replace("_", " ")  # don't replace : in Hebrew, where it can indicate amud
@@ -1892,8 +1897,8 @@ class Ref(object):
         else:  # This may be a new version, try to build a schema node.
             raise InputError(u"Could not find title in reference: {}".format(self.tref))
 
-        self.type = self.index_node.index.categories[0]
-
+        #self.type = "Commentary" if getattr(self.index_node.index, "dependence", None) == "commentary" else self.index_node.index.categories[0]
+        self.primary_category = getattr(self.index_node.index, "dependence", self.index_node.index.categories[0]).capitalize()
         if title == base:  # Bare book, like "Genesis" or "Rashi on Genesis".
             if self.index_node.is_default():  # Without any further specification, match the parent of the fall-through node
                 self.index_node = self.index_node.parent
@@ -2069,19 +2074,12 @@ class Ref(object):
         """
         return getattr(self.index_node, "addressTypes", None) and len(self.index_node.addressTypes) and self.index_node.addressTypes[0] == "Talmud"
 
-    def is_tanach(self):
-        return u"Tanakh" in self.index.b_index.categories if self.is_commentary() else u"Tanakh" in self.index.categories
-
     def is_bavli(self):
-        #//TODO: mark for commentary refactor?
         """
         Is this a Talmud Bavli or related text reference?
         :return bool:
         """
-        if self.is_commentary():
-            return u"Bavli" in self.index.b_index.categories
-        else:
-            return u"Bavli" in self.index.categories or u"Bavli" in getattr(self.index, 'related_categories', [])
+        return u"Bavli" in self.index.categories or u"Bavli" in getattr(self.index, 'related_categories', [])
 
     def is_commentary(self):
         """
@@ -2089,8 +2087,8 @@ class Ref(object):
 
         :return bool:
         """
-        #// TODO: mark for commentary refactor -deprecate
-        return self.type == "Commentary"
+        # TODO: -deprecate
+        return getattr(self.index, 'dependence', None).capitalize() == "Commentary"
 
     def is_dependant(self):
         return self.index.is_dependant_text()
@@ -2296,7 +2294,7 @@ class Ref(object):
         return {
             "index": self.index,
             "book": self.book,
-            "type": self.type,
+            "primary_category": self.primary_category,
             "index_node": self.index_node,
             "sections": self.sections[:],
             "toSections": self.toSections[:]
@@ -3328,7 +3326,7 @@ class Ref(object):
             "book": self.book,
             "sections": self.sections,
             "toSections": self.toSections,
-            "type": self.type
+            "type": self.primary_category
         }
         d.update(self.index.contents())
         del d["title"]
@@ -3347,9 +3345,6 @@ class Ref(object):
                 raise InputError("Failed to get English normal form for ref")
 
         if len(self.sections) == 0:
-            return normal
-
-        if self.type == "Commentary" and not getattr(self.index, "commentaryCategories", None):
             return normal
 
         normal += u" "

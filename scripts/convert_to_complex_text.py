@@ -137,7 +137,7 @@ def migrate_links_of_ref(orRef, destRef):
         curLinkRef = linkRef1 if orRef.contains(linkRef1) else linkRef2 #make sure we manipulate the right ref
         tranlsatedLinkRef = translate_ref(curLinkRef, orRef, destRef)
         newrefs = [tranlsatedLinkRef.normal(), linkRef2.normal()] if linkRef1 == curLinkRef else [linkRef1.normal(), tranlsatedLinkRef.normal()]
-        tranlsatedLink = Link({'refs': newrefs, 'type': curLinkRef.type})
+        tranlsatedLink = Link({'refs': newrefs, 'type': link.type})
         try:
             tranlsatedLink.save()
             make_link_history_record(curLinkRef, tranlsatedLinkRef)

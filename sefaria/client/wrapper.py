@@ -9,6 +9,7 @@ from sefaria.datatype.jagged_array import JaggedTextArray
 from sefaria.summaries import REORDER_RULES
 from sefaria.system.exceptions import InputError, NoVersionFoundError
 from sefaria.model.user_profile import user_link, public_user_data
+from sefaria.utils.hebrew import hebrew_term
 
 
 def format_link_object_for_client(link, with_text, ref, pos=None):
@@ -29,18 +30,15 @@ def format_link_object_for_client(link, with_text, ref, pos=None):
 
     com["_id"]           = str(link._id)
     com['index_title']   = linkRef.index.title
-    com["category"]      = linkRef.type
+    com["category"]      = linkRef.primary_category #usually the index's categories[0] or "Commentary".
     com["type"]          = link.type
     com["ref"]           = linkRef.tref
     com["anchorRef"]     = anchorRef.normal()
     com["sourceRef"]     = linkRef.normal()
     com["sourceHeRef"]   = linkRef.he_normal()
     com["anchorVerse"]   = anchorRef.sections[-1] if len(anchorRef.sections) else 0
-    com["commentaryNum"] = linkRef.sections[-1] if linkRef.type == "Commentary" else 0
+    com["commentaryNum"] = linkRef.sections[-1] if getattr(linkRef.index, "dependence").capitalize() == "Commentary" else 0
     com["anchorText"]    = getattr(link, "anchorText", "")
-
-    if com["category"] in REORDER_RULES:
-        com["category"] = REORDER_RULES[com["category"]][0]
 
     if with_text:
         text             = TextFamily(linkRef, context=0, commentary=False)
@@ -48,17 +46,13 @@ def format_link_object_for_client(link, with_text, ref, pos=None):
         com["he"]        = text.he if isinstance(text.he, basestring) else JaggedTextArray(text.he).flatten_to_array()
 
     # if the the link is commentary, strip redundant info (e.g. "Rashi on Genesis 4:2" -> "Rashi")
-    if com["type"] == "commentary":
-        com["commentator"]   = linkRef.book.split(" on ")[0]
-        com["heCommentator"] = linkRef.he_book().split(u" על ")[0]
-    else:
-        if com["category"] == "Commentary":
-            com["category"] = "Quoting Commentary"
-        com["commentator"] = linkRef.index.title
-        com["heCommentator"] = linkRef.index.get_title("he") if linkRef.index.get_title("he") else com["commentator"]
+    # this is now simpler, and there is explicit data on the index record for it.
+    if getattr(linkRef.index_node.index, 'collective_title', None):
+        com["commentator"]   = linkRef.index_node.index.collective_title
+        com["heCommentator"] = hebrew_term(com["commentator"])
 
-    if link.type == "targum":
-        com["category"] = "Targum"
+    if com["type"] != "commentary" and com["category"] == "Commentary":
+            com["category"] = "Quoting Commentary"
 
     if linkRef.index_node.primary_title("he"):
         com["heTitle"] = linkRef.index_node.primary_title("he")
