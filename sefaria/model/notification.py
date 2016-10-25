@@ -20,7 +20,7 @@ from django.template.loader import render_to_string
 from . import abstract as abst
 from . import user_profile
 from sefaria.system.database import db
-
+from sefaria.system.exceptions import InputError
 
 class GlobalNotification(abst.AbstractMongoRecord):
     """
@@ -52,6 +52,36 @@ class GlobalNotification(abst.AbstractMongoRecord):
 
     optional_attrs = [
     ]
+
+    def _normalize(self):
+        from sefaria.model.text import library
+        if self.type == "index" or self.type == "version":
+            i = library.get_index(self.content.get("index"))
+            self.content["index"] = i.title
+
+    def _validate(self):
+        from sefaria.model.text import library, Version
+        if self.type == "index":
+            assert self.content.get("index")
+            assert library.get_index(self.content.get("index"))
+        elif self.type == "version":
+            i = self.content.get("index")
+            v = self.content.get("version")
+            l = self.content.get("language")
+            assert i
+            assert v
+            assert l
+            version = Version().load({
+                "title": i,
+                "versionTitle": v,
+                "language": l,
+            })
+            assert version, "No Version Found: {}/{}/{}".format(i, v, l)
+        elif self.type == "general":
+            assert self.content.get("en"), "Please provide an English message."
+            assert self.content.get("he"), "Please provide a Hebrew message."
+        else:
+            raise InputError(u"Unknown type for GlobalNotification: {}".format(self.type))
 
     def _init_defaults(self):
         self.content = {}
@@ -89,10 +119,20 @@ class GlobalNotification(abst.AbstractMongoRecord):
         self.content["en"] = msg
         return self
 
+    """
     def to_HTML(self):
         html = render_to_string("elements/notification.html", {"notification": self}).strip()
         html = re.sub("\n", "", html)
         return html
+    """
+
+    def contents(self):
+        d = super(GlobalNotification, self).contents()
+        d["_id"] = self.id
+        d["date"] = d["date"].isoformat()
+
+        return d
+
 
     @property
     def id(self):
@@ -109,9 +149,16 @@ class GlobalNotificationSet(abst.AbstractMongoSet):
         for global_note in self:
             Notification().register_global_notification(global_note, uid).save()
 
+    def contents(self):
+        return [n.contents() for n in self]
+
+
+    """
     def to_HTML(self):
         html = [n.to_HTML() for n in self]
         return "".join(html)
+    """
+
 
 
 class Notification(abst.AbstractMongoRecord):
@@ -146,9 +193,9 @@ class Notification(abst.AbstractMongoRecord):
         gnote = GlobalNotification().load({"_id": self.global_id})
         if gnote is None:
             logger.error("Tried to load non-existent global notification: {}".format(self.global_id))
-
-        self.content = gnote.content
-        self.type    = gnote.type
+        else:
+            self.content = gnote.content
+            self.type    = gnote.type
 
     def register_global_notification(self, global_note, user_id):
         self.is_global  = True
@@ -265,7 +312,7 @@ class NotificationSet(abst.AbstractMongoSet):
         """
         Loads the unread notifications for uid.
         """
-        self.__init__(query={"uid": uid, "read": False, "global": False})
+        self.__init__(query={"uid": uid, "read": False, "is_global": False})
         return self
 
     def recent_for_user(self, uid, page=0, limit=10):

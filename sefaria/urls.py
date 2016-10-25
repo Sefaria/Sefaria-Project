@@ -194,7 +194,7 @@ urlpatterns += patterns('reader.views',
 urlpatterns += patterns('reader.views',
     (r'^api/notifications/?$', 'notifications_api'),
     (r'^api/notifications/read', 'notifications_read_api'),
-    (r'^api/updates/?$', 'updates_api'),
+    (r'^api/updates/?(?P<gid>.+)?$', 'updates_api'),
 )
 
 # Messages API
