@@ -4120,6 +4120,9 @@ def get_index(bookname):
 
 def process_index_title_change_in_versions(indx, **kwargs):
     VersionSet({"title": kwargs["old"]}).update({"title": kwargs["new"]})
+
+
+def process_index_title_change_in_dependant_records(indx, **kwargs):
     dependent_indices = library.get_dependant_indices(kwargs["old"])
     for didx in dependent_indices:
         pos = didx.base_text_titles.index(kwargs["old"])
