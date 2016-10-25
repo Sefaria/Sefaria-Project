@@ -618,8 +618,8 @@ def make_toc_html(oref, zoom=1):
     else:
         state = StateNode(index.title)
         he_counts, en_counts = state.var("he", "availableTexts"), state.var("en", "availableTexts")
-        if getattr(index, "toc_zoom", None):
-            zoom = index.toc_zoom
+        if getattr(index.nodes, "toc_zoom", None):
+            zoom = index.nodes.toc_zoom
         elif index.nodes.depth == 1:
             zoom = 0
         html = make_simple_toc_html(he_counts, en_counts, index.nodes.sectionNames, index.nodes.addressTypes, Ref(index.title), zoom=zoom)
