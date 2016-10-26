@@ -1578,7 +1578,7 @@ class Ref(object):
         """
         self.index = None
         self.book = None
-        self.primary_category = None
+        self.primary_category = None #used to be named 'type' but that was very confusing
         self.sections = []
         self.toSections = []
         self.index_node = None
