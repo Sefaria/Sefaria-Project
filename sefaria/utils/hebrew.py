@@ -444,6 +444,7 @@ def hebrew_term(s):
 		"Gur Aryeh":		u'גור אריה',
 		"Tur and Commentaries": u'טור ומפרשים',
 		"Yachin": u'יכין',
+		"Boaz": u'בועז',
         "Harchev Davar": u'הרחב דבר'
 	}
 
