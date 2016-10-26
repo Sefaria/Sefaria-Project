@@ -946,7 +946,7 @@ Sefaria = extend(Sefaria, {
       var numberedSections = data.ref.slice(data.book.length+1);
       if (numberedSections) {
         var namedSections    = sections.slice(0, -(numberedSections.length+1));
-        var string           = namedSections + ", " + name +  numberedSections;        
+        var string           = (namedSections ? namedSections + ", " : "") + name +  numberedSections;
       } else {
         var string = sections;
       }
@@ -963,7 +963,7 @@ Sefaria = extend(Sefaria, {
       var numberedSections = data.heRef.slice(data.heTitle.length+1);
       if (numberedSections) {
         var namedSections    = sections.slice(0, -(numberedSections.length+1));
-        var string           = namedSections + ", " + name + " " + numberedSections;        
+        var string           = (namedSections ? namedSections + ", " : "") + name + " " + numberedSections;
       } else {
         string = sections;
       }
