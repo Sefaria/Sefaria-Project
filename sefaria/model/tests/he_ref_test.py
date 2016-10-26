@@ -165,6 +165,23 @@ class Test_parse_he_ref(object):
         assert r.sections[0] == 4
         assert len(r.sections) == 1
 
+    @pytest.mark.failing
+    def test_volume_address(self):
+        assert m.Ref(u"זוהר, ח״א, נד, ב") == m.Ref("Zohar 1:54b")
+        assert m.Ref(u"זוהר, א, נד, ב") == m.Ref("Zohar 1:54b")
+        assert m.Ref(u"זוהר א נד ב") == m.Ref("Zohar 1:54b")
+        assert m.Ref(u"זוהר א נד ע״ב") == m.Ref("Zohar 1:54b")
+        assert m.Ref(u"זוהר ח״א, נד, ב") == m.Ref("Zohar 1:54b")
+        assert m.Ref(u"זוהר ח״א, נד, ב") == m.Ref("Zohar 1:54b")
+        assert m.Ref(u"זוהר חלק א, נד, ב") == m.Ref("Zohar 1:54b")
+        assert m.Ref(u"זוהר חלק א׳, נד, ב") == m.Ref("Zohar 1:54b")
+        assert m.Ref(u'זוהר ח"א, נד, ב') == m.Ref("Zohar 1:54b")
+        assert m.Ref(u'זוהר ח"ב, נד, ב') == m.Ref("Zohar 2:54b")
+        assert m.Ref(u'זוהר ח"א, נד:') == m.Ref("Zohar 1:54b")
+        assert m.Ref(u'זוהר ח"א נד:') == m.Ref("Zohar 1:54b")
+
+        assert m.Ref("Zohar, Volume 2, 23b") == m.Ref("Zohar 2:23b")
+
     def test_two_single_quotes(self):
         r = m.Ref(u"שמות כ''ב")
         assert r.book == 'Exodus'
