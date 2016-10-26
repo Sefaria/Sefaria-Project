@@ -1387,11 +1387,11 @@ class TextFamily(object):
         d["heTitle"]         = self._inode.full_title("he")
         d["titleVariants"]   = self._inode.all_tree_titles("en")
         d["heTitleVariants"] = self._inode.all_tree_titles("he")
+        d["type"]            = getattr(self._original_oref, "primary_category")
+        d["book"]            = getattr(self._original_oref, "book")
 
         for attr in ["categories", "order", "maps"]:
             d[attr] = getattr(self._inode.index, attr, "")
-        for attr in ["book", "type"]:
-            d[attr] = getattr(self._original_oref, attr)
         for attr in ["sections", "toSections"]:
             d[attr] = getattr(self._original_oref, attr)[:]
 
