@@ -187,7 +187,6 @@ class LinkSet(abst.AbstractMongoSet):
 
         return [{"name": key, "count": results[key]["count"], "books": results[key]["books"] } for key in results.keys()]
 
-#//todo: mark for commentary refactor
 def process_index_title_change_in_links(indx, **kwargs):
     print "Cascading Links {} to {}".format(kwargs['old'], kwargs['new'])
     pattern = text.Ref(indx.title).regex()
@@ -234,7 +233,6 @@ def get_link_counts(cat1, cat2):
     link_counts[key] = result
     return result
 
-#//todo: mark for commentary refactor
 def get_category_category_linkset(cat1, cat2):
     """
     Return LinkSet of links between the given book and category.
@@ -248,7 +246,7 @@ def get_category_category_linkset(cat1, cat2):
     clauses = []
 
     for i, cat in enumerate([cat1, cat2]):
-        queries += [{"$and": [{"categories": cat}, {"categories": {"$ne": "Commentary"}}, {"categories": {"$ne": "Commentary2"}}, {"categories": {"$ne": "Targum"}}]}]
+        queries += [{"$and": [{"categories": cat}, {'dependence': {'$in': [False, None]}}]}]
         titles += [text.library.get_indexes_in_category(cat)]
         if len(titles[i]) == 0:
             raise IndexError("No results for {}".format(queries[i]))

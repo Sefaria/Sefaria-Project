@@ -551,9 +551,8 @@ def edit_text(request, ref=None, lang=None, version=None):
                 text["edit_version"] = version
                 initJSON = json.dumps(text)
         except:
-            #// mark for commentary refactor?
             index = library.get_index(ref)
-            if index: # a commentator titlein
+            if index:
                 ref = None
                 initJSON = json.dumps({"mode": "add new", "newTitle": index.contents()['title']})
     else:

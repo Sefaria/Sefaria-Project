@@ -136,7 +136,6 @@ def delete_sheet(id):
         logger.error(u"ERROR deleting sheet {}".format(id))
 
 
-#//todo: mark for commentary refactor
 def make_text_index_document(tref, version, lang):
     """
     Create a document for indexing from the text specified by ref/version/lang
@@ -154,9 +153,7 @@ def make_text_index_document(tref, version, lang):
 
     content = bleach.clean(content, strip=True, tags=())
 
-    if text["type"] == "Talmud":
-        title = text["book"] + " Daf " + text["sections"][0]
-    elif text["type"] == "Commentary" and text["commentaryCategories"][0] == "Talmud":
+    if text["type"] == "Talmud" or "Talmud" in text.get("relatedCategories", []):
         title = text["book"] + " Daf " + text["sections"][0]
     else:
         title = text["book"] + " " + " ".join([u"{} {}".format(p[0], p[1]) for p in zip(text["sectionNames"], text["sections"])])
@@ -165,8 +162,6 @@ def make_text_index_document(tref, version, lang):
     if lang == "he":
         title = text.get("heTitle", "") + " " + title
 
-    if text["categories"][0] in REORDER_RULES:
-        categories = REORDER_RULES[text["categories"][0]] + text["categories"][1:]
     else:
         categories = text["categories"]
 

@@ -15,7 +15,6 @@ except ImportError:
 if USE_VARNISH:
     from sefaria.system.sf_varnish import invalidate_ref, invalidate_linked
 
-#//todo: mark for commentary refactor
 def modify_text(user, oref, vtitle, lang, text, vsource=None, **kwargs):
     """
     Updates a chunk of text, identified by oref, versionTitle, and lang, and records history.
@@ -45,7 +44,7 @@ def modify_text(user, oref, vtitle, lang, text, vsource=None, **kwargs):
                 invalidate_ref(oref.prev_section_ref(), lang=lang, version=vtitle, purge=True)
         if not kwargs.get("skip_links", None):
             from sefaria.helper.link import add_links_from_text
-            # Commentaries generate links to their base text automatically
+            # Some commentaries can generate links to their base text automatically
             linker = oref.autolinker(user=user)
             if linker:
                 linker.refresh_links(**kwargs)

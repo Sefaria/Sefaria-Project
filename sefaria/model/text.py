@@ -2636,7 +2636,6 @@ class Ref(object):
             d = self._core_dict()
             if self.is_talmud():
                 if len(self.sections) == 0: #No daf specified
-                    #//todo: mark for commentary refactor? this might need adjusting
                     section = 3 if "Bavli" in self.index.categories else 1
                     d["sections"].append(section)
                     d["toSections"].append(section)
@@ -3161,7 +3160,6 @@ class Ref(object):
         return self.index.get_title(lang="he")
 
     def _get_normal(self, lang):
-        #//todo: mark for commentary refactor
         normal = self.index_node.full_title(lang)
         if not normal:
             if lang != "en":
