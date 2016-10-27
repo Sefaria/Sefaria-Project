@@ -20,7 +20,7 @@ from text import library, get_index, Index, IndexSet, CommentaryIndex, Version, 
 from link import Link, LinkSet, get_link_counts, get_book_link_collection, get_book_category_linkset
 from note import Note, NoteSet
 from layer import Layer, LayerSet
-from notification import Notification, NotificationSet
+from notification import Notification, NotificationSet, GlobalNotification, GlobalNotificationSet
 from queue import IndexQueue, IndexQueueSet
 from lock import Lock, LockSet, set_lock, release_lock, check_lock, expire_locks
 from translation_request import TranslationRequest, TranslationRequestSet

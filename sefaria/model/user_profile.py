@@ -235,7 +235,7 @@ class UserProfile(object):
 
 def email_unread_notifications(timeframe):
 	"""
-	Looks for all unread notifcations and sends each user one email with a summary.
+	Looks for all unread notifications and sends each user one email with a summary.
 	Marks any sent notifications as "read".
 
 	timeframe may be:
@@ -245,19 +245,21 @@ def email_unread_notifications(timeframe):
 	"""
 	from sefaria.model.notification import NotificationSet
 
-	users = db.notifications.find({"read": False}).distinct("uid")
+	users = db.notifications.find({"read": False, "is_global": False}).distinct("uid")
 
 	for uid in users:
 		profile = UserProfile(id=uid)
 		if profile.settings["email_notifications"] != timeframe and timeframe != 'all':
 			continue
-		notifications = NotificationSet().unread_for_user(uid)
+		notifications = NotificationSet().unread_personal_for_user(uid)
+		if notifications.count() == 0:
+			continue
 		try:
 			user = User.objects.get(id=uid)
 		except User.DoesNotExist:
 			continue
 
-		message_html  = render_to_string("email/notifications_email.html", { "notifications": notifications, "recipient": user.first_name })
+		message_html  = render_to_string("email/notifications_email.html", {"notifications": notifications, "recipient": user.first_name})
 		#message_text = util.strip_tags(message_html)
 		actors_string = notifications.actors_string()
 		verb          = "have" if " and " in actors_string else "has"
@@ -274,8 +276,10 @@ def email_unread_notifications(timeframe):
 
 
 def unread_notifications_count_for_user(uid):
-	"""Returns the number of unread notifcations belonging to user uid"""
-	return db.notifications.find({"uid": uid, "read": False}).count()
+	"""Returns the number of unread notifications belonging to user uid"""
+	# Check for globals to add...
+	from sefaria.model.notification import NotificationSet
+	return NotificationSet().unread_for_user(uid).count()
 
 
 public_user_data_cache = {}

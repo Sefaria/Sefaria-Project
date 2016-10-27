@@ -453,6 +453,11 @@ var ReaderApp = React.createClass({
             hist.url   = "notifications";
             hist.mode  = "notifications";
             break;
+          case "updates":
+            hist.title = "New at Sefaria";
+            hist.url = "updates";
+            hist.mode = "updates";
+            break;
         }
       } else if (state.mode === "Text") {
         hist.title    = state.refs.slice(-1)[0];
@@ -664,11 +669,11 @@ var ReaderApp = React.createClass({
     // In multi panel mode, set the maximum number of visible panels depending on the window width.
     this.setWindowWidth();
     var panelCap = Math.floor($(window).outerWidth() / this.MIN_PANEL_WIDTH);
-    //console.log("Setting panelCap: " + panelCap);
+    // console.log("Setting panelCap: " + panelCap);
     this.setState({panelCap: panelCap});
   },
   setWindowWidth: function() {
-    //console.log("Setting window width: " + $(window).outerWidth());
+    // console.log("Setting window width: " + $(window).outerWidth());
     this.setState({windowWidth: $(window).outerWidth()});
   },
   handleNavigationClick: function(ref, version, versionLanguage, options) {
@@ -1285,6 +1290,15 @@ var Header = React.createClass({
       return;
     }
     this.props.setCentralState({menuOpen: "notifications"});
+    this.clearSearchBox();
+  },
+  showUpdates: function() {
+    // todo: not used yet
+    if (typeof sjs !== "undefined") {
+      window.location = "/updates";
+      return;
+    }
+    this.props.setCentralState({menuOpen: "updates"});
     this.clearSearchBox();
   },
   showTestMessage: function() {
@@ -2028,6 +2042,10 @@ var ReaderPanel = React.createClass({
                     setUnreadNotificationsCount={this.props.setUnreadNotificationsCount}
                     interfaceLang={this.props.interfaceLang} />);
 
+    } else if (this.state.menuOpen === "updates") {
+      var menu = (<UpdatesPanel
+                    interfaceLang={this.props.interfaceLang} />);
+
     } else {
       var menu = null;
     }
@@ -2328,10 +2346,10 @@ var ReaderNavigationMenu = React.createClass({
   },
   setWidth: function() {
     var width = $(ReactDOM.findDOMNode(this)).width();
-    //console.log("Setting RNM width: " + width);
+    // console.log("Setting RNM width: " + width);
     var winWidth = $(window).width();
     var winHeight = $(window).height();
-    //console.log("Window width: " + winWidth + ", Window height: " + winHeight);
+    // console.log("Window width: " + winWidth + ", Window height: " + winHeight);
     var oldWidth = this.width;
     this.width = width;
     if ((oldWidth <= 450 && width > 450) || 
@@ -3098,7 +3116,8 @@ var ReaderTextTableOfContents = React.createClass({
                            </div>);
     }
     var showModeratorButtons = true;
-    if(/*(this.isTextToc() && this.state.currentVersion && this.state.currentVersion.versionStatus == "locked") ||*/ !Sefaria.is_moderator){
+    if(/*(this.isTextToc() && this.state.currentVersion && this.state.currentVersion.versionStatus == "locked") ||*/ 
+        !Sefaria.is_moderator){
       showModeratorButtons = false;
     }
     var moderatorSection = showModeratorButtons ?
@@ -4239,7 +4258,13 @@ var TextColumn = React.createClass({
     if (this.loadingContentAtTop || !this.initialScrollTopSet) {
       // console.log("text load, setting scroll");
       this.setScrollPosition();
+    } else if (!this.scrolledToHighlight && $(ReactDOM.findDOMNode(this)).find(".segment.highlight").length) {
+      // console.log("scroll to highlighted")
+      this.scrollToHighlighted();
+      this.scrolledToHighlight = true;
+      this.initialScrollTopSet = true;
     }
+
     // console.log("text load, ais");
     this.adjustInfiniteScroll();
   },
@@ -4263,7 +4288,7 @@ var TextColumn = React.createClass({
         //console.log(top)
       }
     } else if (!this.scrolledToHighlight && $(ReactDOM.findDOMNode(this)).find(".segment.highlight").length) {
-      //console.log("scroll to highlighted")
+      // console.log("scroll to highlighted")
       // scroll to highlighted segment
       this.scrollToHighlighted();
       this.scrolledToHighlight = true;
@@ -4299,10 +4324,10 @@ var TextColumn = React.createClass({
     } else if ( lastBottom < windowHeight + 80 ) {
       // DOWN: add the next section to bottom
       if ($lastText.hasClass("loading")) { 
-        //console.log("last text is loading - don't add next section");
+        // console.log("last text is loading - don't add next section");
         return;
       }
-      //console.log("Down! Add next section");
+      // console.log("Down! Add next section");
       var currentRef = refs.slice(-1)[0];
       var data       = Sefaria.ref(currentRef);
       if (data && data.next) {
@@ -4315,7 +4340,7 @@ var TextColumn = React.createClass({
       var topRef = refs[0];
       var data   = Sefaria.ref(topRef);
       if (data && data.prev) {
-        //console.log("Up! Add previous section");
+        // console.log("Up! Add previous section");
         refs.splice(refs, 0, data.prev);
         this.loadingContentAtTop = true;
         this.props.updateTextColumn(refs);
@@ -5175,8 +5200,8 @@ var TextList = React.createClass({
           Sefaria.text(commentators[i] + " on " + basetext, {}, function(data) {
             var index = this.waitingFor.indexOf(data.commentator);
             if (index == -1) {
-                console.log("Failed to clear commentator:");
-                console.log(data);
+                // console.log("Failed to clear commentator:");
+                // console.log(data);
                 this.target += 1;
             }
             if (index > -1) {
@@ -7220,7 +7245,7 @@ var NotificationsPanel = React.createClass({
   },
   getInitialState: function() {
     return {
-      page: 2,
+      page: 0,
       loadedToEnd: false,
       loading: false
     };
@@ -7284,6 +7309,269 @@ var NotificationsPanel = React.createClass({
                     <Footer />
                     </footer>
         </div>
+      </div>);
+  }
+});
+
+var UpdatesPanel = React.createClass({
+  propTypes: {
+    interfaceLang:               React.PropTypes.string
+  },
+  getInitialState: function() {
+    return {
+      page: 0,
+      loadedToEnd: false,
+      loading: false,
+      updates: [],
+      submitting: false,
+      submitCount: 0,
+      error: null
+    };
+  },
+  componentDidMount: function() {
+    $(ReactDOM.findDOMNode(this)).find(".content").bind("scroll", this.handleScroll);
+    this.getMoreNotifications();
+  },
+  handleScroll: function() {
+    if (this.state.loadedToEnd || this.state.loading) { return; }
+    var $scrollable = $(ReactDOM.findDOMNode(this)).find(".content");
+    var margin = 100;
+    if($scrollable.scrollTop() + $scrollable.innerHeight() + margin >= $scrollable[0].scrollHeight) {
+      this.getMoreNotifications();
+    }
+  },
+  getMoreNotifications: function() {
+    $.getJSON("/api/updates?page=" + this.state.page, this.loadMoreNotifications);
+    this.setState({loading: true});
+  },
+  loadMoreNotifications: function(data) {
+    if (data.count < data.page_size) {
+      this.setState({loadedToEnd: true});
+    }
+    this.setState({page: data.page + 1, loading: false, updates: this.state.updates.concat(data.updates)});
+  },
+  onDelete: function(id) {
+    $.ajax({
+        url: '/api/updates/' + id,
+        type: 'DELETE',
+        success: function(result) {
+          if (result.status == "ok") {
+              this.setState({updates: this.state.updates.filter(u => u._id != id)});
+          }
+        }.bind(this)
+    });
+  },
+
+  handleSubmit: function(type, content) {
+    this.setState({"submitting": true, "error": null});
+    var payload = {
+      type: type,
+      content: content
+    };
+    $.ajax({
+      url: "/api/updates",
+      dataType: 'json',
+      type: 'POST',
+      data: {json: JSON.stringify(payload)},
+      success: function(data) {
+        if (data.status == "ok") {
+          payload.date = Date();
+          this.state.updates.unshift(payload);
+          this.setState({submitting: false, updates: this.state.updates, submitCount: this.state.submitCount + 1});
+        } else {
+          this.setState({"error": "Error - " + data.error});
+        }
+      }.bind(this),
+      error: function(xhr, status, err) {
+        this.setState({"error": "Error - " + err.toString()});
+        console.error(this.props.url, status, err.toString());
+      }.bind(this)
+    });
+  },
+
+  render: function() {
+    var classes = {notificationsPanel: 1, systemPanel: 1, readerNavMenu: 1, noHeader: 1 };
+    var classStr = classNames(classes);
+
+    return (
+      <div className={classStr}>
+        <div className="content hasFooter">
+          <div className="contentInner">
+            <h1>
+              <span className="int-en">Updates</span>
+              <span className="int-he">עדכונים</span>
+            </h1>
+
+            {Sefaria.is_moderator?<NewUpdateForm handleSubmit={this.handleSubmit} key={this.state.submitCount} error={this.state.error}/>:""}
+
+            <div className="notificationsList">
+            {this.state.updates.map(u =>
+                <SingleUpdate
+                    type={u.type}
+                    content={u.content}
+                    date={u.date}
+                    key={u._id}
+                    id={u._id}
+                    onDelete={this.onDelete}
+                    submitting={this.state.submitting}
+                />
+            )}
+            </div>
+          </div>
+          <footer id="footer" className={`interface-${this.props.interfaceLang} static sans`}>
+                    <Footer />
+                    </footer>
+        </div>
+      </div>);
+  }
+});
+
+var NewUpdateForm = React.createClass({
+  propTypes: {
+    error:               React.PropTypes.string,
+    handleSubmit:        React.PropTypes.func
+  },
+  getInitialState: function() {
+    return {type: 'index', index: '', language: 'en', version: '', en: '', he: '', error: ''};
+  },
+  componentWillReceiveProps(nextProps) {
+    this.setState({"error": nextProps.error});
+  },
+  handleEnChange: function(e) {
+    this.setState({en: e.target.value, error: null});
+  },
+  handleHeChange: function(e) {
+    this.setState({he: e.target.value, error: null});
+  },
+  handleTypeChange: function(e) {
+    this.setState({type: e.target.value, error: null});
+  },
+  handleIndexChange: function(e) {
+    this.setState({index: e.target.value, error: null});
+  },
+  handleVersionChange: function(e) {
+    this.setState({version: e.target.value, error: null});
+  },
+  handleLanguageChange: function(e) {
+    this.setState({language: e.target.value, error: null});
+  },
+  handleSubmit: function(e) {
+    e.preventDefault();
+    var content = {
+      "en": this.state.en.trim(),
+      "he": this.state.he.trim()
+    };
+    if (this.state.type == "general") {
+      if (!this.state.en || !this.state.he) {
+        this.setState({"error": "Both Hebrew and English are required"});
+        return;
+      }
+    } else {
+      if (!this.state.index) {
+        this.setState({"error": "Index is required"});
+        return;
+      }
+      content["index"] = this.state.index.trim();
+    }
+    if (this.state.type == "version") {
+      if (!this.state.version || !this.state.language) {
+        this.setState({"error": "Version is required"});
+        return;
+      }
+      content["version"] = this.state.version.trim();
+      content["language"] = this.state.language.trim();
+    }
+    this.props.handleSubmit(this.state.type, content);
+
+  },
+  render: function() {
+    return (
+      <form className="globalUpdateForm" onSubmit={this.handleSubmit}>
+        <div>
+          <input type="radio" name="type" value="index" onChange={this.handleTypeChange} checked={this.state.type=="index"}/>Index&nbsp;&nbsp;
+          <input type="radio" name="type" value="version" onChange={this.handleTypeChange} checked={this.state.type=="version"}/>Version&nbsp;&nbsp;
+          <input type="radio" name="type" value="general" onChange={this.handleTypeChange} checked={this.state.type=="general"}/>General&nbsp;&nbsp;
+        </div>
+        <div>
+          {(this.state.type != "general")?<input type="text" placeholder="Index Title" onChange={this.handleIndexChange} />:""}
+          {(this.state.type == "version")?<input type="text" placeholder="Version Title" onChange={this.handleVersionChange}/>:""}
+          {(this.state.type == "version")?<select type="text" placeholder="Version Language" onChange={this.handleLanguageChange}>
+            <option value="en">English</option>
+            <option value="he">Hebrew</option>
+          </select>:""}
+        </div>
+        <div>
+          <textarea
+            placeholder="English Description (optional for Index and Version)"
+            onChange={this.handleEnChange}
+            rows="3"
+            cols="80"
+          />
+        </div>
+        <div>
+          <textarea
+            placeholder="Hebrew Description (optional for Index and Version)"
+            onChange={this.handleHeChange}
+            rows="3"
+            cols="80"
+          />
+        </div>
+        <input type="submit" value="Submit" disabled={this.props.submitting}/>
+        <span className="error">{this.state.error}</span>
+      </form>
+    );
+  }
+});
+
+var SingleUpdate = React.createClass({
+  propTypes: {
+    id:         React.PropTypes.string,
+    type:         React.PropTypes.string,
+    content:      React.PropTypes.object,
+    onDelete:     React.PropTypes.func,
+    date:         React.PropTypes.string
+  },
+  onDelete: function() {
+    this.props.onDelete(this.props.id);
+  },
+  render: function() {
+    var title = this.props.content.index;
+    if (title) {
+      var heTitle = Sefaria.index(title)?Sefaria.index(title).heTitle:"";
+    }
+
+    var url = Sefaria.ref(title)?"/" + Sefaria.normRef(Sefaria.ref(title).book):"/" + Sefaria.normRef(title);
+
+    var d = new Date(this.props.date);
+
+    return (
+      <div className="notification">
+        <div className="date">
+          <span className="int-en">{d.toLocaleDateString("en")}</span>
+          <span className="int-he">{d.toLocaleDateString("he")}</span>
+          {Sefaria.is_moderator?<i className="fa fa-times-circle delete-update-button" onClick={this.onDelete} aria-hidden="true"/>:""}
+        </div>
+
+        {this.props.type == "index"?
+        <div>
+            <span className="int-en">New Text: <a href={url}>{title}</a></span>
+            <span className="int-he">טקסט חדש זמין: <a href={url}>{heTitle}</a></span>
+        </div>
+        :""}
+
+        {this.props.type == "version"?
+        <div>
+            <span className="int-en">New { this.props.content.language == "en"?"English":"Hebrew"} version of <a href={url}>{title}</a>: {this.props.content.version}</span>
+            <span className="int-he">גרסה חדשה של <a href={url}>{heTitle}</a> ב{ this.props.content.language == "en"?"אנגלית":"עברית"} : {this.props.content.version}</span>
+        </div>
+        :""}
+
+        <div>
+            <span className="int-en" dangerouslySetInnerHTML={ {__html: this.props.content.en } } />
+            <span className="int-he" dangerouslySetInnerHTML={ {__html: this.props.content.he } } />
+        </div>
+
+
       </div>);
   }
 });

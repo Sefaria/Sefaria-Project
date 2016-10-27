@@ -475,6 +475,11 @@ var ReaderApp = React.createClass({
             hist.url = "notifications";
             hist.mode = "notifications";
             break;
+          case "updates":
+            hist.title = "New at Sefaria";
+            hist.url = "updates";
+            hist.mode = "updates";
+            break;
         }
       } else if (state.mode === "Text") {
         hist.title = state.refs.slice(-1)[0];
@@ -692,11 +697,11 @@ var ReaderApp = React.createClass({
     // In multi panel mode, set the maximum number of visible panels depending on the window width.
     this.setWindowWidth();
     var panelCap = Math.floor($(window).outerWidth() / this.MIN_PANEL_WIDTH);
-    //console.log("Setting panelCap: " + panelCap);
+    // console.log("Setting panelCap: " + panelCap);
     this.setState({ panelCap: panelCap });
   },
   setWindowWidth: function setWindowWidth() {
-    //console.log("Setting window width: " + $(window).outerWidth());
+    // console.log("Setting window width: " + $(window).outerWidth());
     this.setState({ windowWidth: $(window).outerWidth() });
   },
   handleNavigationClick: function handleNavigationClick(ref, version, versionLanguage, options) {
@@ -1321,6 +1326,15 @@ var Header = React.createClass({
       return;
     }
     this.props.setCentralState({ menuOpen: "notifications" });
+    this.clearSearchBox();
+  },
+  showUpdates: function showUpdates() {
+    // todo: not used yet
+    if (typeof sjs !== "undefined") {
+      window.location = "/updates";
+      return;
+    }
+    this.props.setCentralState({ menuOpen: "updates" });
     this.clearSearchBox();
   },
   showTestMessage: function showTestMessage() {
@@ -2153,6 +2167,9 @@ var ReaderPanel = React.createClass({
       var menu = React.createElement(NotificationsPanel, {
         setUnreadNotificationsCount: this.props.setUnreadNotificationsCount,
         interfaceLang: this.props.interfaceLang });
+    } else if (this.state.menuOpen === "updates") {
+      var menu = React.createElement(UpdatesPanel, {
+        interfaceLang: this.props.interfaceLang });
     } else {
       var menu = null;
     }
@@ -2464,10 +2481,10 @@ var ReaderNavigationMenu = React.createClass({
   },
   setWidth: function setWidth() {
     var width = $(ReactDOM.findDOMNode(this)).width();
-    //console.log("Setting RNM width: " + width);
+    // console.log("Setting RNM width: " + width);
     var winWidth = $(window).width();
     var winHeight = $(window).height();
-    //console.log("Window width: " + winWidth + ", Window height: " + winHeight);
+    // console.log("Window width: " + winWidth + ", Window height: " + winHeight);
     var oldWidth = this.width;
     this.width = width;
     if (oldWidth <= 450 && width > 450 || oldWidth > 450 && width <= 450) {
@@ -3638,7 +3655,8 @@ var ReaderTextTableOfContents = React.createClass({
       );
     }
     var showModeratorButtons = true;
-    if ( /*(this.isTextToc() && this.state.currentVersion && this.state.currentVersion.versionStatus == "locked") ||*/!Sefaria.is_moderator) {
+    if ( /*(this.isTextToc() && this.state.currentVersion && this.state.currentVersion.versionStatus == "locked") ||*/
+    !Sefaria.is_moderator) {
       showModeratorButtons = false;
     }
     var moderatorSection = showModeratorButtons ? React.createElement(ModeratorButtons, {
@@ -5324,7 +5342,13 @@ var TextColumn = React.createClass({
     if (this.loadingContentAtTop || !this.initialScrollTopSet) {
       // console.log("text load, setting scroll");
       this.setScrollPosition();
+    } else if (!this.scrolledToHighlight && $(ReactDOM.findDOMNode(this)).find(".segment.highlight").length) {
+      // console.log("scroll to highlighted")
+      this.scrollToHighlighted();
+      this.scrolledToHighlight = true;
+      this.initialScrollTopSet = true;
     }
+
     // console.log("text load, ais");
     this.adjustInfiniteScroll();
   },
@@ -5350,7 +5374,7 @@ var TextColumn = React.createClass({
         //console.log(top)
       }
     } else if (!this.scrolledToHighlight && $(ReactDOM.findDOMNode(this)).find(".segment.highlight").length) {
-        //console.log("scroll to highlighted")
+        // console.log("scroll to highlighted")
         // scroll to highlighted segment
         this.scrollToHighlighted();
         this.scrolledToHighlight = true;
@@ -5390,10 +5414,10 @@ var TextColumn = React.createClass({
     } else if (lastBottom < windowHeight + 80) {
       // DOWN: add the next section to bottom
       if ($lastText.hasClass("loading")) {
-        //console.log("last text is loading - don't add next section");
+        // console.log("last text is loading - don't add next section");
         return;
       }
-      //console.log("Down! Add next section");
+      // console.log("Down! Add next section");
       var currentRef = refs.slice(-1)[0];
       var data = Sefaria.ref(currentRef);
       if (data && data.next) {
@@ -5408,7 +5432,7 @@ var TextColumn = React.createClass({
       var topRef = refs[0];
       var data = Sefaria.ref(topRef);
       if (data && data.prev) {
-        //console.log("Up! Add previous section");
+        // console.log("Up! Add previous section");
         refs.splice(refs, 0, data.prev);
         this.loadingContentAtTop = true;
         this.props.updateTextColumn(refs);
@@ -6402,6 +6426,8 @@ var TextList = React.createClass({
           Sefaria.text(commentators[i] + " on " + basetext, {}, function (data) {
             var index = this.waitingFor.indexOf(data.commentator);
             if (index == -1) {
+              // console.log("Failed to clear commentator:");
+              // console.log(data);
               this.target += 1;
             }
             if (index > -1) {
@@ -9008,7 +9034,7 @@ var NotificationsPanel = React.createClass({
   },
   getInitialState: function getInitialState() {
     return {
-      page: 2,
+      page: 0,
       loadedToEnd: false,
       loading: false
     };
@@ -9088,6 +9114,366 @@ var NotificationsPanel = React.createClass({
           { id: 'footer', className: 'interface-' + this.props.interfaceLang + ' static sans' },
           React.createElement(Footer, null)
         )
+      )
+    );
+  }
+});
+
+var UpdatesPanel = React.createClass({
+  displayName: 'UpdatesPanel',
+
+  propTypes: {
+    interfaceLang: React.PropTypes.string
+  },
+  getInitialState: function getInitialState() {
+    return {
+      page: 0,
+      loadedToEnd: false,
+      loading: false,
+      updates: [],
+      submitting: false,
+      submitCount: 0
+    };
+  },
+  componentDidMount: function componentDidMount() {
+    $(ReactDOM.findDOMNode(this)).find(".content").bind("scroll", this.handleScroll);
+    this.getMoreNotifications();
+  },
+  handleScroll: function handleScroll() {
+    if (this.state.loadedToEnd || this.state.loading) {
+      return;
+    }
+    var $scrollable = $(ReactDOM.findDOMNode(this)).find(".content");
+    var margin = 100;
+    if ($scrollable.scrollTop() + $scrollable.innerHeight() + margin >= $scrollable[0].scrollHeight) {
+      this.getMoreNotifications();
+    }
+  },
+  getMoreNotifications: function getMoreNotifications() {
+    $.getJSON("/api/updates?page=" + this.state.page, this.loadMoreNotifications);
+    this.setState({ loading: true });
+  },
+  loadMoreNotifications: function loadMoreNotifications(data) {
+    if (data.count < data.page_size) {
+      this.setState({ loadedToEnd: true });
+    }
+    this.setState({ page: data.page + 1, loading: false, updates: this.state.updates.concat(data.updates) });
+  },
+  onDelete: function onDelete(id) {
+    $.ajax({
+      url: '/api/updates/' + id,
+      type: 'DELETE',
+      success: function (result) {
+        if (result.status == "ok") {
+          this.setState({ updates: this.state.updates.filter(function (u) {
+              return u._id != id;
+            }) });
+        }
+      }.bind(this)
+    });
+  },
+
+  handleSubmit: function handleSubmit(type, content) {
+    this.setState({ "submitting": true });
+    var payload = {
+      type: type,
+      content: content
+    };
+    $.ajax({
+      url: "/api/updates",
+      dataType: 'json',
+      type: 'POST',
+      data: { json: JSON.stringify(payload) },
+      success: function (data) {
+        if (data.status == "ok") {
+          payload.date = Date.now();
+          this.state.updates.unshift(payload);
+          this.setState({ submitting: false, updates: this.state.updates, submitCount: this.state.submitCount + 1 });
+        } else {}
+      }.bind(this),
+      error: function (xhr, status, err) {}.bind(this)
+    });
+  },
+
+  render: function render() {
+    var _this8 = this;
+
+    var classes = { notificationsPanel: 1, systemPanel: 1, readerNavMenu: 1, noHeader: 1 };
+    var classStr = classNames(classes);
+
+    return React.createElement(
+      'div',
+      { className: classStr },
+      React.createElement(
+        'div',
+        { className: 'content hasFooter' },
+        React.createElement(
+          'div',
+          { className: 'contentInner' },
+          React.createElement(
+            'h1',
+            null,
+            React.createElement(
+              'span',
+              { className: 'int-en' },
+              'Updates'
+            ),
+            React.createElement(
+              'span',
+              { className: 'int-he' },
+              'עדכונים'
+            )
+          ),
+          Sefaria.is_moderator ? React.createElement(NewUpdateForm, { handleSubmit: this.handleSubmit, key: this.state.submitCount }) : "",
+          React.createElement(
+            'div',
+            { className: 'notificationsList' },
+            this.state.updates.map(function (u) {
+              return React.createElement(SingleUpdate, {
+                type: u.type,
+                content: u.content,
+                date: u.date,
+                key: u._id,
+                id: u._id,
+                onDelete: _this8.onDelete,
+                submitting: _this8.state.submitting
+              });
+            })
+          )
+        ),
+        React.createElement(
+          'footer',
+          { id: 'footer', className: 'interface-' + this.props.interfaceLang + ' static sans' },
+          React.createElement(Footer, null)
+        )
+      )
+    );
+  }
+});
+
+var NewUpdateForm = React.createClass({
+  displayName: 'NewUpdateForm',
+
+  getInitialState: function getInitialState() {
+    return { type: 'index', index: '', language: 'en', version: '', en: '', he: '' };
+  },
+  handleEnChange: function handleEnChange(e) {
+    this.setState({ en: e.target.value });
+  },
+  handleHeChange: function handleHeChange(e) {
+    this.setState({ he: e.target.value });
+  },
+  handleTypeChange: function handleTypeChange(e) {
+    this.setState({ type: e.target.value });
+  },
+  handleIndexChange: function handleIndexChange(e) {
+    this.setState({ index: e.target.value });
+  },
+  handleVersionChange: function handleVersionChange(e) {
+    this.setState({ version: e.target.value });
+  },
+  handleLanguageChange: function handleLanguageChange(e) {
+    this.setState({ language: e.target.value });
+  },
+  handleSubmit: function handleSubmit(e) {
+    e.preventDefault();
+    var content = {
+      "en": this.state.en.trim(),
+      "he": this.state.he.trim()
+    };
+    if (this.state.type == "general") {
+      if (!this.state.en || !this.state.he) {
+        return;
+      }
+    } else {
+      if (!this.state.index) {
+        return;
+      }
+      content["index"] = this.state.index.trim();
+    }
+    if (this.state.type == "version") {
+      if (!this.state.version || !this.state.language) {
+        return;
+      }
+      content["version"] = this.state.version.trim();
+      content["language"] = this.state.language.trim();
+    }
+    this.props.handleSubmit(this.state.type, content);
+  },
+  render: function render() {
+    return React.createElement(
+      'form',
+      { className: 'globalUpdateForm', onSubmit: this.handleSubmit },
+      React.createElement(
+        'div',
+        null,
+        React.createElement('input', { type: 'radio', name: 'type', value: 'index', onChange: this.handleTypeChange, checked: this.state.type == "index" }),
+        'Index  ',
+        React.createElement('input', { type: 'radio', name: 'type', value: 'version', onChange: this.handleTypeChange, checked: this.state.type == "version" }),
+        'Version  ',
+        React.createElement('input', { type: 'radio', name: 'type', value: 'general', onChange: this.handleTypeChange, checked: this.state.type == "general" }),
+        'General  '
+      ),
+      React.createElement(
+        'div',
+        null,
+        this.state.type != "general" ? React.createElement('input', { type: 'text', placeholder: 'Index Title', onChange: this.handleIndexChange }) : "",
+        this.state.type == "version" ? React.createElement('input', { type: 'text', placeholder: 'Version Title', onChange: this.handleVersionChange }) : "",
+        this.state.type == "version" ? React.createElement(
+          'select',
+          { type: 'text', placeholder: 'Version Language', onChange: this.handleLanguageChange },
+          React.createElement(
+            'option',
+            { value: 'en' },
+            'English'
+          ),
+          React.createElement(
+            'option',
+            { value: 'he' },
+            'Hebrew'
+          )
+        ) : ""
+      ),
+      React.createElement(
+        'div',
+        null,
+        React.createElement('textarea', {
+          placeholder: 'English Description (optional for Index and Version)',
+          onChange: this.handleEnChange,
+          rows: '3',
+          cols: '80'
+        })
+      ),
+      React.createElement(
+        'div',
+        null,
+        React.createElement('textarea', {
+          placeholder: 'Hebrew Description (optional for Index and Version)',
+          onChange: this.handleHeChange,
+          rows: '3',
+          cols: '80'
+        })
+      ),
+      React.createElement('input', { type: 'submit', value: 'Submit', disabled: this.props.submitting })
+    );
+  }
+});
+
+var SingleUpdate = React.createClass({
+  displayName: 'SingleUpdate',
+
+  propTypes: {
+    id: React.PropTypes.string,
+    type: React.PropTypes.string,
+    content: React.PropTypes.object,
+    onDelete: React.PropTypes.func,
+    date: React.PropTypes.string
+  },
+  onDelete: function onDelete() {
+    this.props.onDelete(this.props.id);
+  },
+  render: function render() {
+    var title = this.props.content.index;
+    if (title) {
+      var oref = Sefaria.ref(title);
+      var heTitle = oref ? oref.heTitle : "";
+    }
+
+    if (title && !oref) {
+      // If we don't have this data yet, rerender when we do so we can set the Hebrew title
+      Sefaria.text(title, { context: 1 }, function (data) {
+        if ("error" in data) {
+          return;
+        }
+        if (this.isMounted()) {
+          this.setState({});
+        }
+      }.bind(this));
+    }
+
+    var url = Sefaria.ref(title) ? "/" + Sefaria.normRef(Sefaria.ref(title).book) : "/" + Sefaria.normRef(title);
+
+    var d = new Date(this.props.date);
+
+    return React.createElement(
+      'div',
+      { className: 'notification' },
+      React.createElement(
+        'div',
+        { className: 'date' },
+        React.createElement(
+          'span',
+          { className: 'int-en' },
+          d.toLocaleDateString("en")
+        ),
+        React.createElement(
+          'span',
+          { className: 'int-he' },
+          d.toLocaleDateString("he")
+        ),
+        Sefaria.is_moderator ? React.createElement('i', { className: 'fa fa-times-circle delete-update-button', onClick: this.onDelete, 'aria-hidden': 'true' }) : ""
+      ),
+      this.props.type == "index" ? React.createElement(
+        'div',
+        null,
+        React.createElement(
+          'span',
+          { className: 'int-en' },
+          'New Text: ',
+          React.createElement(
+            'a',
+            { href: url },
+            title
+          )
+        ),
+        React.createElement(
+          'span',
+          { className: 'int-he' },
+          'טקסט חדש זמין: ',
+          React.createElement(
+            'a',
+            { href: url },
+            heTitle
+          )
+        )
+      ) : "",
+      this.props.type == "version" ? React.createElement(
+        'div',
+        null,
+        React.createElement(
+          'span',
+          { className: 'int-en' },
+          'New ',
+          this.props.content.language == "en" ? "English" : "Hebrew",
+          ' version of ',
+          React.createElement(
+            'a',
+            { href: url },
+            title
+          ),
+          ': ',
+          this.props.content.version
+        ),
+        React.createElement(
+          'span',
+          { className: 'int-he' },
+          'גרסה חדשה של ',
+          React.createElement(
+            'a',
+            { href: url },
+            heTitle
+          ),
+          ' ב',
+          this.props.content.language == "en" ? "אנגלית" : "עברית",
+          ' : ',
+          this.props.content.version
+        )
+      ) : "",
+      React.createElement(
+        'div',
+        null,
+        React.createElement('span', { className: 'int-en', dangerouslySetInnerHTML: { __html: this.props.content.en } }),
+        React.createElement('span', { className: 'int-he', dangerouslySetInnerHTML: { __html: this.props.content.he } })
       )
     );
   }

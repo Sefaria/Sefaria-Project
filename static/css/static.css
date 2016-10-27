@@ -715,7 +715,9 @@
 #visualizationsPage {
   text-align: left;
 }
-
+#visualLibraryPage {
+  padding-top: 70px;
+}
 .static div.single-button{
   margin: 5% 0;
 }

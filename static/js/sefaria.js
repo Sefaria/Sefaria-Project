@@ -119,8 +119,7 @@ Sefaria = extend(Sefaria, {
       var pRef = Sefaria.parseRef(ref);
       if (pRef.sections.length == 0) { return pRef.book; }
       var book = pRef.book + " ";
-      var nRef = pRef.ref;
-      var hRef = nRef.replace(/ /g, ":");
+      var hRef = pRef.ref.replace(/ /g, ":");
       return book + hRef.slice(book.length);
   },
   isRef: function(ref) {
