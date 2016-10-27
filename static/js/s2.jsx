@@ -3268,7 +3268,8 @@ var ModeratorButtons = React.createClass({
   getInitialState: function() {
     return {
       expanded: false,
-      message: null
+      message: null,
+      locked: this.props.versionStatus == "locked"
     }
   },
   expand: function() {
@@ -3277,8 +3278,7 @@ var ModeratorButtons = React.createClass({
   toggleLock: function() {
     var title = this.props.title;
     var url = "/api/locktext/" + title + "/" + this.props.versionLanguage + "/" + this.props.versionTitle;
-    var unlocking = this.props.versionStatus == "locked";
-    if (unlocking) {
+    if (this.state.locked) {
       url += "?action=unlock";
     }
 
@@ -3286,10 +3286,10 @@ var ModeratorButtons = React.createClass({
       if ("error" in data) {
         alert(data.error)
       } else {
-        alert(unlocking ? "Text Unlocked" : "Text Locked");
-        
+        alert(this.state.locked ? "Text Unlocked" : "Text Locked");
+        this.setState({locked: !this.state.locked})
       }
-    }).fail(function() {
+    }.bind(this)).fail(function() {
       alert("Something went wrong. Sorry!");
     });
   },
@@ -3320,7 +3320,7 @@ var ModeratorButtons = React.createClass({
 
     var confirm = prompt("Are you sure you want to delete this text version? Doing so will completely delete this text from Sefaria, including all existing versions and links. This action CANNOT be undone. Type DELETE to confirm.", "");
     if (confirm !== "DELETE") {
-      alert("Delete canceled.")
+      alert("Delete canceled.");
       return;
     }
 
@@ -3339,7 +3339,7 @@ var ModeratorButtons = React.createClass({
     }).fail(function() {
       alert("Something went wrong. Sorry!");
     });
-    this.setState({message: "Deleteing text (this may time a while)..."});
+    this.setState({message: "Deleting text (this may time a while)..."});
   },
   render: function() {
     if (!this.state.expanded) {
@@ -3350,7 +3350,7 @@ var ModeratorButtons = React.createClass({
     var versionButtons = this.props.versionTitle ? 
       (<span className="moderatorVersionButtons">
           <div className="button white" onClick={this.toggleLock}>
-            { this.props.versionStatus == "locked" ? 
+            { this.state.locked ?
                 (<span><i className="fa fa-unlock"></i> Unlock</span>) :
                 (<span><i className="fa fa-lock"></i> Lock</span>) }
           </div>
