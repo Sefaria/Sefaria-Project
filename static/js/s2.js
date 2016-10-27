@@ -3930,7 +3930,8 @@ var ModeratorButtons = React.createClass({
   getInitialState: function getInitialState() {
     return {
       expanded: false,
-      message: null
+      message: null,
+      locked: this.props.versionStatus == "locked"
     };
   },
   expand: function expand() {
@@ -3939,8 +3940,7 @@ var ModeratorButtons = React.createClass({
   toggleLock: function toggleLock() {
     var title = this.props.title;
     var url = "/api/locktext/" + title + "/" + this.props.versionLanguage + "/" + this.props.versionTitle;
-    var unlocking = this.props.versionStatus == "locked";
-    if (unlocking) {
+    if (this.state.locked) {
       url += "?action=unlock";
     }
 
@@ -3948,9 +3948,10 @@ var ModeratorButtons = React.createClass({
       if ("error" in data) {
         alert(data.error);
       } else {
-        alert(unlocking ? "Text Unlocked" : "Text Locked");
+        alert(this.state.locked ? "Text Unlocked" : "Text Locked");
+        this.setState({ locked: !this.state.locked });
       }
-    }).fail(function () {
+    }.bind(this)).fail(function () {
       alert("Something went wrong. Sorry!");
     });
   },
@@ -4000,7 +4001,7 @@ var ModeratorButtons = React.createClass({
     }).fail(function () {
       alert("Something went wrong. Sorry!");
     });
-    this.setState({ message: "Deleteing text (this may time a while)..." });
+    this.setState({ message: "Deleting text (this may time a while)..." });
   },
   render: function render() {
     if (!this.state.expanded) {
@@ -4017,7 +4018,7 @@ var ModeratorButtons = React.createClass({
       React.createElement(
         'div',
         { className: 'button white', onClick: this.toggleLock },
-        this.props.versionStatus == "locked" ? React.createElement(
+        this.state.locked ? React.createElement(
           'span',
           null,
           React.createElement('i', { className: 'fa fa-unlock' }),
@@ -9132,7 +9133,8 @@ var UpdatesPanel = React.createClass({
       loading: false,
       updates: [],
       submitting: false,
-      submitCount: 0
+      submitCount: 0,
+      error: null
     };
   },
   componentDidMount: function componentDidMount() {
@@ -9174,7 +9176,7 @@ var UpdatesPanel = React.createClass({
   },
 
   handleSubmit: function handleSubmit(type, content) {
-    this.setState({ "submitting": true });
+    this.setState({ "submitting": true, "error": null });
     var payload = {
       type: type,
       content: content
@@ -9186,12 +9188,16 @@ var UpdatesPanel = React.createClass({
       data: { json: JSON.stringify(payload) },
       success: function (data) {
         if (data.status == "ok") {
-          payload.date = Date.now();
+          payload.date = Date();
           this.state.updates.unshift(payload);
           this.setState({ submitting: false, updates: this.state.updates, submitCount: this.state.submitCount + 1 });
-        } else {}
+        } else {
+          this.setState({ "error": "Error - " + data.error });
+        }
       }.bind(this),
-      error: function (xhr, status, err) {}.bind(this)
+      error: function (xhr, status, err) {
+        this.setState({ "error": "Error - " + err.toString() });
+      }.bind(this)
     });
   },
 
@@ -9224,7 +9230,7 @@ var UpdatesPanel = React.createClass({
               'עדכונים'
             )
           ),
-          Sefaria.is_moderator ? React.createElement(NewUpdateForm, { handleSubmit: this.handleSubmit, key: this.state.submitCount }) : "",
+          Sefaria.is_moderator ? React.createElement(NewUpdateForm, { handleSubmit: this.handleSubmit, key: this.state.submitCount, error: this.state.error }) : "",
           React.createElement(
             'div',
             { className: 'notificationsList' },
@@ -9254,26 +9260,34 @@ var UpdatesPanel = React.createClass({
 var NewUpdateForm = React.createClass({
   displayName: 'NewUpdateForm',
 
-  getInitialState: function getInitialState() {
-    return { type: 'index', index: '', language: 'en', version: '', en: '', he: '' };
+  propTypes: {
+    error: React.PropTypes.string,
+    handleSubmit: React.PropTypes.func
   },
+  getInitialState: function getInitialState() {
+    return { type: 'index', index: '', language: 'en', version: '', en: '', he: '', error: '' };
+  },
+  componentWillReceiveProps: function componentWillReceiveProps(nextProps) {
+    this.setState({ "error": nextProps.error });
+  },
+
   handleEnChange: function handleEnChange(e) {
-    this.setState({ en: e.target.value });
+    this.setState({ en: e.target.value, error: null });
   },
   handleHeChange: function handleHeChange(e) {
-    this.setState({ he: e.target.value });
+    this.setState({ he: e.target.value, error: null });
   },
   handleTypeChange: function handleTypeChange(e) {
-    this.setState({ type: e.target.value });
+    this.setState({ type: e.target.value, error: null });
   },
   handleIndexChange: function handleIndexChange(e) {
-    this.setState({ index: e.target.value });
+    this.setState({ index: e.target.value, error: null });
   },
   handleVersionChange: function handleVersionChange(e) {
-    this.setState({ version: e.target.value });
+    this.setState({ version: e.target.value, error: null });
   },
   handleLanguageChange: function handleLanguageChange(e) {
-    this.setState({ language: e.target.value });
+    this.setState({ language: e.target.value, error: null });
   },
   handleSubmit: function handleSubmit(e) {
     e.preventDefault();
@@ -9283,16 +9297,19 @@ var NewUpdateForm = React.createClass({
     };
     if (this.state.type == "general") {
       if (!this.state.en || !this.state.he) {
+        this.setState({ "error": "Both Hebrew and English are required" });
         return;
       }
     } else {
       if (!this.state.index) {
+        this.setState({ "error": "Index is required" });
         return;
       }
       content["index"] = this.state.index.trim();
     }
     if (this.state.type == "version") {
       if (!this.state.version || !this.state.language) {
+        this.setState({ "error": "Version is required" });
         return;
       }
       content["version"] = this.state.version.trim();
@@ -9354,7 +9371,12 @@ var NewUpdateForm = React.createClass({
           cols: '80'
         })
       ),
-      React.createElement('input', { type: 'submit', value: 'Submit', disabled: this.props.submitting })
+      React.createElement('input', { type: 'submit', value: 'Submit', disabled: this.props.submitting }),
+      React.createElement(
+        'span',
+        { className: 'error' },
+        this.state.error
+      )
     );
   }
 });
@@ -9375,20 +9397,7 @@ var SingleUpdate = React.createClass({
   render: function render() {
     var title = this.props.content.index;
     if (title) {
-      var oref = Sefaria.ref(title);
-      var heTitle = oref ? oref.heTitle : "";
-    }
-
-    if (title && !oref) {
-      // If we don't have this data yet, rerender when we do so we can set the Hebrew title
-      Sefaria.text(title, { context: 1 }, function (data) {
-        if ("error" in data) {
-          return;
-        }
-        if (this.isMounted()) {
-          this.setState({});
-        }
-      }.bind(this));
+      var heTitle = Sefaria.index(title) ? Sefaria.index(title).heTitle : "";
     }
 
     var url = Sefaria.ref(title) ? "/" + Sefaria.normRef(Sefaria.ref(title).book) : "/" + Sefaria.normRef(title);
