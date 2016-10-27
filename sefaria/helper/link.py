@@ -211,6 +211,11 @@ class BaseStructureAutoLinker(AbstractStructureAutoLinker):
 
 
 class IncrementBaseTextDepthAutoLinker(BaseStructureAutoLinker):
+    def __init__(self, oref, **kwargs):
+        super(IncrementBaseTextDepthAutoLinker, self).__init__(oref, 1, **kwargs)
+
+
+class CommentaryAutoLinker(IncrementBaseTextDepthAutoLinker):
     """
     The classic linker, takes a n-dpeth text and
     links each group of terminal segments to the same n-1 depth terminal segment of the base text
@@ -221,15 +226,11 @@ class IncrementBaseTextDepthAutoLinker(BaseStructureAutoLinker):
     Kohelet 3:2 <-> Sforno on Kohelet 3:2:1, Kohelet 3:2 <-> Sforno on Kohelet 3:2:2, etc.
     for each segment of text (comment) that is in 'Sforno on Kohelet 3:2'.
     """
-    def __init__(self, oref, **kwargs):
-        super(IncrementBaseTextDepthAutoLinker, self).__init__(oref, 1, **kwargs)
-
-
-class CommentaryAutoLinker(IncrementBaseTextDepthAutoLinker):
-    pass
+    class_key = 'commentary_increment_base_text_depth'
 
 
 class MatchBaseTextDepthAutoLinker(BaseStructureAutoLinker):
+    class_key = 'match_base_text_depth'
     def __init__(self, oref, **kwargs):
         super(MatchBaseTextDepthAutoLinker, self).__init__(oref, 0, **kwargs)
 
@@ -259,8 +260,8 @@ def rebuild_links_for_title(tref, user=None):
 # TODO: refactor with lexicon class map into abstract
 class AutoLinkerFactory(object):
     _class_map = {
-        'commentary_increment_base_text_depth' : CommentaryAutoLinker,
-        'match_base_text_depth' : MatchBaseTextDepthAutoLinker
+        CommentaryAutoLinker.class_key           : CommentaryAutoLinker,
+        MatchBaseTextDepthAutoLinker.class_key   : MatchBaseTextDepthAutoLinker
     }
     _key_attr = 'auto_linking_scheme'
     _default_class = CommentaryAutoLinker
