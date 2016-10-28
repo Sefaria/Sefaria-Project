@@ -19,13 +19,13 @@ body {
 	text-align: right;
 	line-height: 8px;
 	position: fixed;
-    bottom: 0;
+	bottom: 0;
 	z-index: 100;
-	background-color: #ccc;
-    height: 50px;
-    left: 0;
-    width: 100%;
-	border-top: 1px solid #777;
+	background-color: #f2f2f2;
+	height: 50px;
+	left: 0;
+	width: 100%;
+	border-top: 1px solid #999;
 }
 
 #fileControlMsg {
@@ -1054,7 +1054,7 @@ body {
 	font-size: 14px;
 	position: relative;
 	left: -5px;
-	top: -14px;
+	top: 7px;
 }
 
 .cke_editable {
