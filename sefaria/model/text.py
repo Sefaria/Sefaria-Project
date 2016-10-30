@@ -3732,14 +3732,19 @@ class Library(object):
         return IndexSet(q) if full_records else IndexSet(q).distinct("title")
 
     #TODO: add category filtering here or in another method?
-    def get_dependant_indices(self, book_title=None, dependence_type=None, full_records=False):
+    def get_dependant_indices(self, book_title=None, dependence_type=None, structure_match=False, full_records=False):
         if dependence_type:
             q = {'dependence': dependence_type}
         else:
             q = {'dependence': {'$exists': True}}
         if book_title:
             q['base_text_titles'] = book_title
+        if structure_match: #get only indices who's "auto_linking_scheme" is one that indicates it has the same structure as the base
+            from sefaria.helper.link import AbstractStructureAutoLinker
+            from sefaria.utils.util import get_all_subclass_attribute
+            q['auto_linking_scheme'] = {'$in': get_all_subclass_attribute(AbstractStructureAutoLinker, "class_key")}
         return IndexSet(q) if full_records else IndexSet(q).distinct("title")
+
 
 
     def get_version_records_for_indexset(self, set):
