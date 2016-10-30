@@ -1395,7 +1395,7 @@ class TextFamily(object):
         for attr in ["sections", "toSections"]:
             d[attr] = getattr(self._original_oref, attr)[:]
 
-        if getattr(self._inode.index, 'collective_title'):
+        if getattr(self._inode.index, 'collective_title', None):
             d["commentator"] = getattr(self._inode.index, 'collective_title', "")
             d["heCommentator"] = hebrew_term(getattr(self._inode.index, 'collective_title', ""))
             d["collectiveTitle"] = getattr(self._inode.index, 'collective_title', "")
