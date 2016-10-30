@@ -153,7 +153,6 @@ class History(abst.AbstractMongoRecord):
 class HistorySet(abst.AbstractMongoSet):
     recordClass = History
 
-#//todo: mark for commentary refactor
 def process_index_title_change_in_history(indx, **kwargs):
     print "Cascading History {} to {}".format(kwargs['old'], kwargs['new'])
     """
@@ -187,7 +186,6 @@ def process_index_title_change_in_history(indx, **kwargs):
         h.title = h.title.replace(kwargs["old"], kwargs["new"], 1)
         h.save()
 
-#//todo: mark for commentary refactor
 def process_version_title_change_in_history(ver, **kwargs):
     """
     Rename a text version title in history records
