@@ -33,7 +33,6 @@ def insert_first_child(new_node, parent_node):
 
 
 def attach_branch(new_node, parent_node, place=0):
-    #//todo: mark for commentary refactor?
     """
     :param new_node: A schema node tree to attach
     :param parent_node: The parent to attach it to
@@ -48,7 +47,7 @@ def attach_branch(new_node, parent_node, place=0):
 
     # Add node to versions & commentary versions
     vs = [v for v in index.versionSet()]
-    vsc = [v for idx in library.get_dependant_indices(index.title, dependence_type='commentary', full_records=True) for v in idx.versionSet()]
+    vsc = [v for idx in library.get_dependant_indices(index.title, dependence_type='commentary', structure_match=True, full_records=True) for v in idx.versionSet()]
     for v in vs + vsc:
         pc = v.content_node(parent_node)
         pc[new_node.key] = new_node.create_skeleton()
@@ -64,7 +63,6 @@ def attach_branch(new_node, parent_node, place=0):
 
 
 def remove_branch(node):
-    #//todo: mark for commentary refactor?
     """
     This will delete any text in `node`
     :param node: SchemaNode to remove
@@ -79,7 +77,7 @@ def remove_branch(node):
     # todo: commentary linkset
 
     vs = [v for v in index.versionSet()]
-    vsc = [v for idx in library.get_dependant_indices(index.title, dependence_type='commentary', full_records=True) for v in idx.versionSet()]
+    vsc = [v for idx in library.get_dependant_indices(index.title, dependence_type='commentary', structure_match=True,  full_records=True) for v in idx.versionSet()]
     for v in vs + vsc:
         assert isinstance(v, Version)
         pc = v.content_node(parent)
@@ -199,7 +197,6 @@ def convert_simple_index_to_complex(index):
 
 
 def change_parent(node, new_parent, place=0):
-    #//todo: mark for commentary refactor?
     """
     :param node:
     :param new_parent:
@@ -216,7 +213,7 @@ def change_parent(node, new_parent, place=0):
     linkset = [l for l in node.ref().linkset()]
 
     vs = [v for v in index.versionSet()]
-    vsc = [v for idx in library.get_dependant_indices(index.title, dependence_type='commentary', full_records=True) for v in idx.versionSet()]
+    vsc = [v for idx in library.get_dependant_indices(index.title, dependence_type='commentary', structure_match=True, full_records=True) for v in idx.versionSet()]
     for v in vs + vsc:
         assert isinstance(v, Version)
         old_parent_content = v.content_node(old_parent)
