@@ -11,6 +11,7 @@
 .inlineAddButton,
 .header,
 #addInterface,
+#fileControls,
 #footer
 {
 	display: none !important;
