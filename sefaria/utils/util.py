@@ -256,8 +256,7 @@ def get_all_subclass_attribute(cls, attr):
     subclasses = get_all_subclasses(cls)
     attr_vals = []
     for s in subclasses:
-        try:
-            attr_val = getattr(s, attr, None)
-            if attr_val:
-                attr_vals.append(attr_val)
+        attr_val = getattr(s, attr, None)
+        if attr_val:
+            attr_vals.append(attr_val)
     return attr_vals
