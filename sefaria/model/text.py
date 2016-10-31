@@ -1409,6 +1409,9 @@ class TextChunk(AbstractTextRecord):
             ind_list.append(total_len)
             total_len += len(tokenizer(segment))
 
+        if len(ind_list) != len(ref_list):
+            raise ValueError("There are more Refs than segments for this TextChunk")
+
         return ind_list,ref_list
 
 
