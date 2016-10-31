@@ -7245,7 +7245,7 @@ var NotificationsPanel = React.createClass({
   },
   getInitialState: function() {
     return {
-      page: 0,
+      page: 1,
       loadedToEnd: false,
       loading: false
     };
