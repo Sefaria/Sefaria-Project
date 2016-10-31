@@ -165,7 +165,6 @@ class Test_parse_he_ref(object):
         assert r.sections[0] == 4
         assert len(r.sections) == 1
 
-    @pytest.mark.failing
     def test_volume_address(self):
         assert m.Ref(u"זוהר, ח״א, נד, ב") == m.Ref("Zohar 1:54b")
         assert m.Ref(u"זוהר, א, נד, ב") == m.Ref("Zohar 1:54b")
