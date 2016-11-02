@@ -223,7 +223,7 @@ def index_sheet(id):
     pud = public_user_data(sheet["owner"])
     doc = {
         "title": sheet["title"],
-        "content": make_sheet_text(sheet),
+        "content": make_sheet_text(sheet, pud),
         "owner_id": sheet["owner"],
         "owner_name": pud["name"],
         "owner_image": pud["imageUrl"],
@@ -241,11 +241,16 @@ def index_sheet(id):
         print e
 
 
-def make_sheet_text(sheet):
+def make_sheet_text(sheet, pud):
     """
     Returns a plain text representation of the content of sheet.
+    :param sheet: The sheet record
+    :param pud: Public User Database record for the author
     """
-    text = u"Source Sheets / Sources Sheet: " + sheet["title"] + u"\n"
+    text = u"Source Sheets / Sources Sheet: " + sheet["title"]
+    if pud.get("name"):
+        text += u"\nBy: " + pud["name"]
+    text += u"\n"
     if sheet.get("tags"):
         text += u" [" + u", ".join(sheet["tags"]) + u"]\n"
     for s in sheet["sources"]:
