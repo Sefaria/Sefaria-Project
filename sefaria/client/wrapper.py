@@ -6,14 +6,12 @@ logger = logging.getLogger(__name__)
 
 from sefaria.model import *
 from sefaria.datatype.jagged_array import JaggedTextArray
-from sefaria.summaries import REORDER_RULES
 from sefaria.system.exceptions import InputError, NoVersionFoundError
 from sefaria.model.user_profile import user_link, public_user_data
 from sefaria.utils.hebrew import hebrew_term
 
 
 def format_link_object_for_client(link, with_text, ref, pos=None):
-    #//todo: mark for comemntary refactor
     """
     :param link: Link object
     :param ref: Ref object of the source of the link
@@ -45,9 +43,6 @@ def format_link_object_for_client(link, with_text, ref, pos=None):
     com["commentaryNum"] = lsections[-1] if len(lsections) == 1 \
             else float('{0}.{1:04d}'.format(*lsections[-2:])) if len(lsections) > 1 else 0
 
-    if com["category"] in REORDER_RULES:
-        com["category"] = REORDER_RULES[com["category"]][0]
-
     if with_text:
         text             = TextFamily(linkRef, context=0, commentary=False)
         com["text"]      = text.text if isinstance(text.text, basestring) else JaggedTextArray(text.text).flatten_to_array()
@@ -55,8 +50,8 @@ def format_link_object_for_client(link, with_text, ref, pos=None):
 
     # if the the link is commentary, strip redundant info (e.g. "Rashi on Genesis 4:2" -> "Rashi")
     # this is now simpler, and there is explicit data on the index record for it.
-    if getattr(linkRef.index_node.index, 'collective_title', None):
-        com["commentator"]   = linkRef.index_node.index.collective_title
+    if getattr(linkRef.index, 'collective_title', None):
+        com["commentator"]   = linkRef.index.collective_title
         com["heCommentator"] = hebrew_term(com["commentator"])
 
     if com["type"] != "commentary" and com["category"] == "Commentary":

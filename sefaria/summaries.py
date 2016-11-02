@@ -110,20 +110,13 @@ ORDER = [
     'Other',
 ]
 
-REORDER_RULES = {
-    "Commentary2": ["Commentary"],
-}
-
 def update_table_of_contents():
     toc = []
     sparseness_dict = get_sparesness_lookup()
     # Add an entry for every text we know about
     indices = IndexSet()
     for i in indices:
-        if i.categories[0] in REORDER_RULES:
-            cats = REORDER_RULES[i.categories[0]] + i.categories[1:]
-        else:
-            cats = i.categories[:]
+        cats = i.categories[:]
         if cats[0] not in ORDER:
             cats.insert(0, "Other")
 
@@ -160,9 +153,6 @@ def update_title_in_toc(toc, index, old_ref=None, recount=True):
     if recount:
         VersionState(index.title).refresh()
     resort_other = False
-
-    if indx_dict["categories"][0] in REORDER_RULES:
-        indx_dict["categories"] = REORDER_RULES[indx_dict["categories"][0]] + indx_dict["categories"][1:]
 
     if indx_dict["categories"][0] not in ORDER:
         indx_dict["categories"].insert(0, "Other")

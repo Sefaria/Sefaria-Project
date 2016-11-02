@@ -177,7 +177,7 @@ class LinkSet(abst.AbstractMongoSet):
                 oref = text.Ref(ref)
             except:
                 continue
-            cat  = oref.index.categories[0]
+            cat  = oref.primary_category
             if (cat not in results):
                 results[cat] = {"count": 0, "books": {}}
             results[cat]["count"] += 1

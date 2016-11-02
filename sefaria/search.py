@@ -26,7 +26,6 @@ from sefaria.system.database import db
 from sefaria.system.exceptions import InputError
 from sefaria.utils.util import strip_tags
 from settings import SEARCH_ADMIN, SEARCH_INDEX_NAME
-from sefaria.summaries import REORDER_RULES
 from sefaria.utils.hebrew import hebrew_term
 import sefaria.model.queue as qu
 

@@ -582,6 +582,8 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
             "title": self.get_title(),
             "heTitle": self.get_title("he"),
             "categories": self.categories[:],
+            "primary_category" : self.get_primary_category(),
+            "dependence" : self.is_dependant_text(),
             "firstSection": firstSection.normal() if firstSection else None
         }
         if hasattr(self,"order"):
@@ -589,8 +591,16 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
         if hasattr(self, "collective_title"):
             toc_contents_dict["commentator"] = self.collective_title
             toc_contents_dict["heCommentator"] = hebrew_term(self.collective_title)
+        if hasattr(self, 'base_text_titles'):
+            toc_contents_dict["base_text_titles"] = self.base_text_titles
 
         return toc_contents_dict
+
+    def get_primary_category(self):
+        if self.is_dependant_text() and len(self.categories) >= 2:
+            return self.categories[1]
+        else:
+            return self.categories[0]
 
 
 class IndexSet(abst.AbstractMongoSet):
@@ -1411,6 +1421,7 @@ class TextFamily(object):
             d["relatedCategories"] = getattr(self._inode.index, 'related_categories', "")
 
         d["isComplex"]    = self.isComplex
+        d["isDependant"] = self._inode.index.is_dependant_text()
         d["indexTitle"]   = self._inode.index.title
         d["heIndexTitle"] = self._inode.index.get_title("he")
         d["sectionRef"]   = self._original_oref.section_ref().normal()
@@ -1725,8 +1736,7 @@ class Ref(object):
         else:  # This may be a new version, try to build a schema node.
             raise InputError(u"Could not find title in reference: {}".format(self.tref))
 
-        #self.type = "Commentary" if getattr(self.index_node.index, "dependence", None) == "commentary" else self.index_node.index.categories[0]
-        self.primary_category = getattr(self.index_node.index, "dependence", self.index_node.index.categories[0]).capitalize()
+        self.primary_category = self.index.get_primary_category()
         if title == base:  # Bare book, like "Genesis" or "Rashi on Genesis".
             if self.index_node.is_default():  # Without any further specification, match the parent of the fall-through node
                 self.index_node = self.index_node.parent
