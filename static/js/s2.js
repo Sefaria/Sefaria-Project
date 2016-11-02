@@ -3262,7 +3262,11 @@ var ReaderTextTableOfContents = React.createClass({
       dlVersionTitle: null,
       dlVersionLanguage: null,
       dlVersionFormat: null,
-      dlReady: false
+      dlReady: false,
+      files: [],
+      uploading: false,
+      uploadError: null,
+      uploadMessage: null
     };
   },
   componentDidMount: function componentDidMount() {
@@ -3433,6 +3437,37 @@ var ReaderTextTableOfContents = React.createClass({
   },
   isVersionPublicDomain: function isVersionPublicDomain(v) {
     return !(v.license && v.license.startsWith("Copyright"));
+  },
+  handleFiles: function handleFiles(event) {
+    this.setState({ files: event.target.files });
+  },
+  uploadFiles: function uploadFiles(event) {
+    event.preventDefault();
+    this.setState({ uploading: true });
+    var formData = new FormData();
+    for (var i = 0; i < this.state.files.length; i++) {
+      var file = this.state.files[i];
+      formData.append('texts[]', file, file.name);
+    }
+    $.ajax({
+      url: "api/text-upload",
+      type: 'POST',
+      data: formData,
+      success: function (data) {
+        if (data.status == "ok") {
+          this.setState({ uploading: false, uploadMessage: data.message, uploadError: null });
+          $("#file-form").get(0).reset(); //Remove selected files from the file selector
+        } else {
+            this.setState({ "uploadError": "Error - " + data.error, uploading: false, uploadMessage: data.message });
+          }
+      }.bind(this),
+      error: function (xhr, status, err) {
+        this.setState({ "uploadError": "Error - " + err.toString(), uploading: false, uploadMessage: null });
+      }.bind(this),
+      cache: false,
+      contentType: false,
+      processData: false
+    });
   },
   render: function render() {
     var _this = this;
@@ -3665,6 +3700,32 @@ var ReaderTextTableOfContents = React.createClass({
       versionLanguage: this.state.currentVersion ? this.state.currentVersion.language : null,
       versionStatus: this.state.currentVersion ? this.state.currentVersion.versionStatus : null }) : null;
 
+    // Uploading
+    var uploadForm = showModeratorButtons ? React.createElement(
+      'div',
+      null,
+      React.createElement(
+        'form',
+        { id: 'file-form', onSubmit: this.uploadFiles },
+        React.createElement('input', { type: 'file', id: 'file-select', multiple: true, onChange: this.handleFiles }),
+        React.createElement(
+          'button',
+          { type: 'submit', id: 'upload-button' },
+          'Upload'
+        )
+      ),
+      this.state.uploadMessage ? React.createElement(
+        'div',
+        { 'class': 'message' },
+        this.state.uploadMessage
+      ) : "",
+      this.state.uploadError ? React.createElement(
+        'div',
+        { 'class': 'error' },
+        this.state.uploadError
+      ) : ""
+    ) : "";
+
     // Downloading
     var dlReady = this.state.dlVersionTitle && this.state.dlVersionFormat && this.state.dlVersionLanguage;
     var downloadButton = React.createElement(
@@ -3735,7 +3796,8 @@ var ReaderTextTableOfContents = React.createClass({
         'a',
         { onClick: this.recordDownload, href: this.versionDlLink(), download: true },
         downloadButton
-      ) : downloadButton
+      ) : downloadButton,
+      uploadForm
     );
 
     var closeClick = this.isBookToc() ? this.props.closePanel : this.props.close;

@@ -528,6 +528,10 @@ def s2_updates(request):
     return s2_page(request, "updates")
 
 
+def s2_modtools(request):
+    return s2_page(request, "modtools")
+
+
 @ensure_csrf_cookie
 def edit_text(request, ref=None, lang=None, version=None):
     """
