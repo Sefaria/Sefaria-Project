@@ -7444,7 +7444,7 @@ var ModeratorToolsPanel = React.createClass({
         {this.state.uploadError?<div class="error">{this.state.uploadError}</div>:""}
       </div>);
 
-    return (Sefaria.is_moderator)?<div className="modTools">{downloadSection}{uploadForm}</div>:"Tools are only available to logged in moderators."
+    return (Sefaria.is_moderator)?<div className="modTools">{downloadSection}{uploadForm}</div>:<div>Tools are only available to logged in moderators.</div>;
   }
 });
 
