@@ -1415,10 +1415,10 @@ class TextFamily(object):
             d["heCollectiveTitle"] = hebrew_term(getattr(self._inode.index, 'collective_title', ""))
 
         if self._inode.index.is_dependant_text():
-            d["commentaryBook"] = getattr(self._inode.index, 'base_text_titles', "")[0]
-            d["commentaryCategories"] = getattr(self._inode.index, 'related_categories', "")
-            d["baseTexTitles"] = getattr(self._inode.index, 'base_text_titles', "")
-            d["relatedCategories"] = getattr(self._inode.index, 'related_categories', "")
+            #d["commentaryBook"] = getattr(self._inode.index, 'base_text_titles', "")
+            #d["commentaryCategories"] = getattr(self._inode.index, 'related_categories', [])
+            d["baseTexTitles"] = getattr(self._inode.index, 'base_text_titles', [])
+            d["relatedCategories"] = getattr(self._inode.index, 'related_categories', [])
 
         d["isComplex"]    = self.isComplex
         d["isDependant"] = self._inode.index.is_dependant_text()
