@@ -1192,7 +1192,7 @@ def texts_api(request, tref, lang=None, version=None):
             return jsonResponse({"error": "Missing 'json' parameter in post data."})
 
         oref = oref.default_child_ref()  # Make sure we're on the textual child
-
+        skip_links = request.GET.get("skip_links", False)
         if not request.user.is_authenticated():
             key = request.POST.get("apikey")
             if not key:
@@ -1201,7 +1201,7 @@ def texts_api(request, tref, lang=None, version=None):
             if not apikey:
                 return jsonResponse({"error": "Unrecognized API key."})
             t = json.loads(j)
-            chunk = tracker.modify_text(apikey["uid"], oref, t["versionTitle"], t["language"], t["text"], t["versionSource"], method="API")
+            chunk = tracker.modify_text(apikey["uid"], oref, t["versionTitle"], t["language"], t["text"], t["versionSource"], method="API", skip_links=skip_links)
             count_after = int(request.GET.get("count_after", 0))
             count_and_index(oref, chunk.lang, chunk.vtitle, count_after)
             return jsonResponse({"status": "ok"})
@@ -1209,7 +1209,6 @@ def texts_api(request, tref, lang=None, version=None):
             @csrf_protect
             def protected_post(request):
                 t = json.loads(j)
-                skip_links = request.GET.get("skip_links", False)
                 chunk = tracker.modify_text(request.user.id, oref, t["versionTitle"], t["language"], t["text"], t["versionSource"], skip_links=skip_links)
                 count_after = int(request.GET.get("count_after", 1))
                 count_and_index(oref, chunk.lang, chunk.vtitle, count_after)
