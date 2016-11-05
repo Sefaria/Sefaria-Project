@@ -35,7 +35,7 @@ def jsonpResponse(data, callback, status=200):
     return HttpResponse("%s(%s)" % (callback, json.dumps(data)), mimetype="application/javascript", status=status)
 
 
-def subscribe_to_announce(email, first_name=None, last_name=None, direct_sign_up=False, bypass_nationbuilder=True):
+def subscribe_to_announce(email, first_name=None, last_name=None, direct_sign_up=False, bypass_nationbuilder=False):
     """
     Subscribes an email address to the Announcement list
     """
