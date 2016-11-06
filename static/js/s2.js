@@ -480,6 +480,11 @@ var ReaderApp = React.createClass({
             hist.url = "updates";
             hist.mode = "updates";
             break;
+          case "modtools":
+            hist.title = "Moderator Tools";
+            hist.url = "modtools";
+            hist.mode = "modtools";
+            break;
         }
       } else if (state.mode === "Text") {
         hist.title = state.refs.slice(-1)[0];
@@ -2170,6 +2175,9 @@ var ReaderPanel = React.createClass({
     } else if (this.state.menuOpen === "updates") {
       var menu = React.createElement(UpdatesPanel, {
         interfaceLang: this.props.interfaceLang });
+    } else if (this.state.menuOpen === "modtools") {
+      var menu = React.createElement(ModeratorToolsPanel, {
+        interfaceLang: this.props.interfaceLang });
     } else {
       var menu = null;
     }
@@ -3654,11 +3662,11 @@ var ReaderTextTableOfContents = React.createClass({
         )
       );
     }
-    var showModeratorButtons = true;
-    if ( /*(this.isTextToc() && this.state.currentVersion && this.state.currentVersion.versionStatus == "locked") ||*/
-    !Sefaria.is_moderator) {
-      showModeratorButtons = false;
-    }
+    var showModeratorButtons = Sefaria.is_moderator;
+    //if(/*(this.isTextToc() && this.state.currentVersion && this.state.currentVersion.versionStatus == "locked") ||*/
+    //    !Sefaria.is_moderator){
+    //  showModeratorButtons = false;
+    //}
     var moderatorSection = showModeratorButtons ? React.createElement(ModeratorButtons, {
       title: title,
       versionTitle: this.state.currentVersion ? this.state.currentVersion.versionTitle : null,
@@ -9120,6 +9128,248 @@ var NotificationsPanel = React.createClass({
   }
 });
 
+var ModeratorToolsPanel = React.createClass({
+  displayName: 'ModeratorToolsPanel',
+
+  propTypes: {
+    interfaceLang: React.PropTypes.string
+  },
+  getInitialState: function getInitialState() {
+    return {
+      // Bulk Download
+      bulk_format: null,
+      bulk_title_pattern: null,
+      bulk_version_title_pattern: null,
+      bulk_language: null,
+      // CSV Upload
+      files: [],
+      uploading: false,
+      uploadError: null,
+      uploadMessage: null
+    };
+  },
+  handleFiles: function handleFiles(event) {
+    this.setState({ files: event.target.files });
+  },
+  uploadFiles: function uploadFiles(event) {
+    event.preventDefault();
+    this.setState({ uploading: true, uploadMessage: "Uploading..." });
+    var formData = new FormData();
+    for (var i = 0; i < this.state.files.length; i++) {
+      var file = this.state.files[i];
+      formData.append('texts[]', file, file.name);
+    }
+    $.ajax({
+      url: "api/text-upload",
+      type: 'POST',
+      data: formData,
+      success: function (data) {
+        if (data.status == "ok") {
+          this.setState({ uploading: false, uploadMessage: data.message, uploadError: null, files: [] });
+          $("#file-form").get(0).reset(); //Remove selected files from the file selector
+        } else {
+            this.setState({ "uploadError": "Error - " + data.error, uploading: false, uploadMessage: data.message });
+          }
+      }.bind(this),
+      error: function (xhr, status, err) {
+        this.setState({ "uploadError": "Error - " + err.toString(), uploading: false, uploadMessage: null });
+      }.bind(this),
+      cache: false,
+      contentType: false,
+      processData: false
+    });
+  },
+
+  onDlTitleChange: function onDlTitleChange(event) {
+    this.setState({ bulk_title_pattern: event.target.value });
+  },
+  onDlVersionChange: function onDlVersionChange(event) {
+    this.setState({ bulk_version_title_pattern: event.target.value });
+  },
+  onDlLanguageSelect: function onDlLanguageSelect(event) {
+    this.setState({ bulk_language: event.target.value });
+  },
+  onDlFormatSelect: function onDlFormatSelect(event) {
+    this.setState({ bulk_format: event.target.value });
+  },
+  bulkVersionDlLink: function bulkVersionDlLink() {
+    var _this8 = this;
+
+    var args = ["format", "title_pattern", "version_title_pattern", "language"].map(function (arg) {
+      return _this8.state["bulk_" + arg] ? arg + '=' + encodeURIComponent(_this8.state["bulk_" + arg]) : "";
+    }).filter(function (a) {
+      return a;
+    }).join("&");
+    return "download/bulk/versions/?" + args;
+  },
+
+  render: function render() {
+    // Bulk Download
+    var dlReady = this.state.bulk_format && (this.state.bulk_title_pattern || this.state.bulk_version_title_pattern);
+    var downloadButton = React.createElement(
+      'div',
+      { className: 'versionDownloadButton' },
+      React.createElement(
+        'div',
+        { className: 'downloadButtonInner' },
+        React.createElement(
+          'span',
+          { className: 'int-en' },
+          'Download'
+        ),
+        React.createElement(
+          'span',
+          { className: 'int-he' },
+          'הורדה'
+        )
+      )
+    );
+    var downloadSection = React.createElement(
+      'div',
+      { className: 'modToolsSection dlSection' },
+      React.createElement(
+        'div',
+        { className: 'dlSectionTitle' },
+        React.createElement(
+          'span',
+          { className: 'int-en' },
+          'Bulk Download Text'
+        ),
+        React.createElement(
+          'span',
+          { className: 'int-he' },
+          'הורדת הטקסט'
+        )
+      ),
+      React.createElement('input', { className: 'dlVersionSelect', type: 'text', placeholder: 'Index Title Pattern', onChange: this.onDlTitleChange }),
+      React.createElement('input', { className: 'dlVersionSelect', type: 'text', placeholder: 'Version Title Pattern', onChange: this.onDlVersionChange }),
+      React.createElement(
+        'select',
+        { className: 'dlVersionSelect dlVersionLanguageSelect', value: this.state.bulk_language || "", onChange: this.onDlLanguageSelect },
+        React.createElement(
+          'option',
+          { disabled: true },
+          'Language'
+        ),
+        React.createElement(
+          'option',
+          { key: 'all', value: '' },
+          'Hebrew & English'
+        ),
+        React.createElement(
+          'option',
+          { key: 'he', value: 'he' },
+          'Hebrew'
+        ),
+        React.createElement(
+          'option',
+          { key: 'en', value: 'en' },
+          'English'
+        )
+      ),
+      React.createElement(
+        'select',
+        { className: 'dlVersionSelect dlVersionFormatSelect', value: this.state.bulk_format || "", onChange: this.onDlFormatSelect },
+        React.createElement(
+          'option',
+          { disabled: true },
+          'File Format'
+        ),
+        React.createElement(
+          'option',
+          { key: 'txt', value: 'txt' },
+          'Text'
+        ),
+        React.createElement(
+          'option',
+          { key: 'csv', value: 'csv' },
+          'CSV'
+        ),
+        React.createElement(
+          'option',
+          { key: 'json', value: 'json' },
+          'JSON'
+        )
+      ),
+      dlReady ? React.createElement(
+        'a',
+        { href: this.bulkVersionDlLink(), download: true },
+        downloadButton
+      ) : downloadButton
+    );
+
+    // Uploading
+    var ulReady = !this.state.uploading && this.state.files.length > 0;
+    var uploadButton = React.createElement(
+      'a',
+      null,
+      React.createElement(
+        'div',
+        { className: 'versionDownloadButton', onClick: this.uploadFiles },
+        React.createElement(
+          'div',
+          { className: 'downloadButtonInner' },
+          React.createElement(
+            'span',
+            { className: 'int-en' },
+            'Upload'
+          ),
+          React.createElement(
+            'span',
+            { className: 'int-he' },
+            'העלאה'
+          )
+        )
+      )
+    );
+    var uploadForm = React.createElement(
+      'div',
+      { className: 'modToolsSection' },
+      React.createElement(
+        'div',
+        { className: 'dlSectionTitle' },
+        React.createElement(
+          'span',
+          { className: 'int-en' },
+          'Bulk Upload CSV'
+        ),
+        React.createElement(
+          'span',
+          { className: 'int-he' },
+          'הורדת הטקסט'
+        )
+      ),
+      React.createElement(
+        'form',
+        { id: 'file-form' },
+        React.createElement('input', { className: 'dlVersionSelect', type: 'file', id: 'file-select', multiple: true, onChange: this.handleFiles }),
+        ulReady ? uploadButton : ""
+      ),
+      this.state.uploadMessage ? React.createElement(
+        'div',
+        { 'class': 'message' },
+        this.state.uploadMessage
+      ) : "",
+      this.state.uploadError ? React.createElement(
+        'div',
+        { 'class': 'error' },
+        this.state.uploadError
+      ) : ""
+    );
+
+    return Sefaria.is_moderator ? React.createElement(
+      'div',
+      { className: 'modTools' },
+      downloadSection,
+      uploadForm
+    ) : React.createElement(
+      'div',
+      null,
+      'Tools are only available to logged in moderators.'
+    );
+  }
+});
+
 var UpdatesPanel = React.createClass({
   displayName: 'UpdatesPanel',
 
@@ -9202,7 +9452,7 @@ var UpdatesPanel = React.createClass({
   },
 
   render: function render() {
-    var _this8 = this;
+    var _this9 = this;
 
     var classes = { notificationsPanel: 1, systemPanel: 1, readerNavMenu: 1, noHeader: 1 };
     var classStr = classNames(classes);
@@ -9241,8 +9491,8 @@ var UpdatesPanel = React.createClass({
                 date: u.date,
                 key: u._id,
                 id: u._id,
-                onDelete: _this8.onDelete,
-                submitting: _this8.state.submitting
+                onDelete: _this9.onDelete,
+                submitting: _this9.state.submitting
               });
             })
           )

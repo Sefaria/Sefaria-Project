@@ -282,6 +282,7 @@ urlpatterns += patterns('reader.views',
     (r'^account/?$', 's2_account'),
     (r'^notifications/?$', 's2_notifications'),
     (r'^updates/?$', 's2_updates'),
+    (r'^modtools/?$', 's2_modtools'),
     (r'^person/(?P<name>.+)$', 'person_page'),
     (r'^people/Talmud/?$', 'talmud_person_index'),
     (r'^people/?$', 'person_index'),
@@ -317,12 +318,14 @@ urlpatterns += patterns('sefaria.views',
 )
 
 
-# Linker js
+# Linker js, text upload & download
 urlpatterns += patterns('sefaria.views',
     (r'^linker\.js$', 'linker_js'),
     (r'^api/regexs/(?P<titles>.+)$', 'title_regex_api'),
     (r'^api/bulktext/(?P<refs>.+)$', 'bulktext_api'),
-    (r'^download/version/(?P<title>.+) - (?P<lang>[he][en]) - (?P<versionTitle>.+)\.(?P<format>json|csv|txt)', 'text_download_api')
+    (r'^download/version/(?P<title>.+) - (?P<lang>[he][en]) - (?P<versionTitle>.+)\.(?P<format>json|csv|txt)', 'text_download_api'),
+    (r'^download/bulk/versions/', 'bulk_download_versions_api'),
+    (r'^api/text-upload$', 'text_upload_api')
 )
 
 # Email Subscribe
