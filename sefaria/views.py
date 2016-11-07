@@ -571,13 +571,13 @@ def bulk_download_versions_api(request):
     with zipfile.ZipFile(file_like_object, "a", zipfile.ZIP_DEFLATED) as zfile:
         for version in vs:
             filebytes = _get_text_version_file(format, version.title, version.language, version.versionTitle)
-            name = u'{} - {} - {}.{}'.format(version.title, version.language, version.versionTitle, format)
-            zfile.writestr(name, filebytes)
+            name = u'{} - {} - {}.{}'.format(version.title, version.language, version.versionTitle, format).encode('utf-8')
+            zfile.writestr(name, filebytes.encode('utf-8'))
 
     content = file_like_object.getvalue()
     response = HttpResponse(content, content_type="application/zip")
-    filename = u"{}-{}-{}-{}.zip".format(filter(str.isalnum, str(title_pattern)), filter(str.isalnum, str(version_title_pattern)), language, format)
-    response["Content-Disposition"] = u'attachment; filename="{}"'.format(filename)
+    filename = u"{}-{}-{}-{}.zip".format(filter(str.isalnum, str(title_pattern)), filter(str.isalnum, str(version_title_pattern)), language, format).encode('utf-8')
+    response["Content-Disposition"] = 'attachment; filename="{}"'.format(filename)
     return response
 
 
