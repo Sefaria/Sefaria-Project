@@ -636,7 +636,7 @@ Sefaria = extend(Sefaria, {
         var index      = Sefaria.index(book);
         bookData.book     = index.title;
         bookData.heBook   = index.heTitle;
-        bookData.category = index.categories[0];
+        bookData.category = category;
         return bookData;
       });
       // Sort the books in the category
