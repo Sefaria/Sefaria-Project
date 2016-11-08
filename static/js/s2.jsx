@@ -2780,7 +2780,7 @@ var ReaderNavigationCategoryMenuContents = React.createClass({
       for (var i = 0; i < this.props.contents.length; i++) {
         var item = this.props.contents[i];
         if (item.category) {
-          if (item.category == "Commentary") { continue; }
+          if (item.category == "Commentary") { continue; } //TODO: show commentary in toc (at bottom of each top level cat)
           var newCats = cats.concat(item.category);
           // Special Case categories which should nest
           var subcats = [ "Mishneh Torah", "Shulchan Arukh", "Midrash Rabbah", "Maharal" ];
@@ -5175,8 +5175,8 @@ var TextList = React.createClass({
     }
   },
   preloadSingleCommentaryText: function(filter) {
-    var basetext   = this.getSectionRef();
-    var commentary = filter[0] + " on " + basetext;
+    var basetext   = this.getSectionRef(); //get the title of the full title for the commentary from the api and use that (only needs the title to end with the base text
+    var commentary = filter[0] + " on " + basetext; //TODO: get rid of "on" special casing switch to hack that only switches out the sections
     this.setState({textLoaded: false, waitForText: true});
     Sefaria.text(commentary, {}, function() {
       if (this.isMounted()) {

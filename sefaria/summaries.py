@@ -108,6 +108,7 @@ ORDER = [
     'Elucidation',
     'Modern Works',
     'Other',
+    'Commentary'
 ]
 
 def update_table_of_contents():
@@ -221,7 +222,7 @@ def add_counts_to_index(indx_dict):
     indx_dict["sparseness"] = max(vs.get_sparseness("he"), vs.get_sparseness("en"))
     return indx_dict
 
-
+#TODO: sort commentaries
 def node_sort_key(a):
     """
     Sort function for texts/categories per below.
