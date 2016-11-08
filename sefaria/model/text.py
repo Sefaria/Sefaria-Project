@@ -174,7 +174,6 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
     history_noun = 'index'
     criteria_field = 'title'
     criteria_override_field = 'oldTitle'  # used when primary attribute changes. field that holds old value.
-    second_save = True
     track_pkeys = True
     pkeys = ["title"]
 
@@ -188,7 +187,7 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
         "sectionNames",       # required for old style simple texts, sometimes erroneously present for commnetary
         "heTitle",            # optional for old style
         "heTitleVariants",    # optional for old style
-        "maps",               # optional for old style
+        # "maps",               # deprecated
         "alt_structs",        # optional for new style
         "default_struct",     # optional for new style
         "order",              # optional for old style and new
@@ -262,8 +261,6 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
             "addressTypes": self.nodes.addressTypes[:]  # This isn't legacy, but it was needed for checkRef
         }
 
-        if getattr(self, "maps", None):
-            d["maps"] = self.maps  #keep an eye on this.  Format likely to change.
         if getattr(self, "order", None):
             d["order"] = self.order[:]
         if getattr(self.nodes, "lengths", None):
@@ -392,14 +389,6 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
             "end": end,
             "endIsApprox": endIsApprox
         })
-
-    #todo: handle lang
-    def get_maps(self):
-        """
-        Returns both those maps explicitly defined on this node and those derived from a term scheme
-        """
-        return getattr(self, "maps", [])
-        #todo: term schemes
 
     # Index changes behavior of load_from_dict, so this circumvents that changed behavior to call load_from_dict on the abstract superclass
     def update_from_dict(self, d):
@@ -596,18 +585,6 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
 
         return True
 
-    def _prepare_second_save(self):
-        if getattr(self, "maps", None) is None:
-            return
-        for i in range(len(self.maps)):
-            nref = Ref(self.maps[i]["to"]).normal()
-            if not nref:
-                raise InputError(u"Couldn't understand text reference: '{}'.".format(self.maps[i]["to"]))
-            lang = "en" #todo: get rid of this assumption
-            existing = library.get_schema_node(self.maps[i]["from"], lang)
-            if existing and not self.same_record(existing.index) and existing.index.title != self.pkeys_orig_values.get("title"):
-                raise InputError(u"'{}' cannot be a shorthand name: a text with this title already exisits.".format(nref))
-            self.maps[i]["to"] = nref
 
     def toc_contents(self):
         """Returns to a dictionary used to represent this text in the library wide Table of Contents"""
@@ -1609,7 +1586,7 @@ class TextFamily(object):
         d["titleVariants"]   = self._inode.all_tree_titles("en")
         d["heTitleVariants"] = self._inode.all_tree_titles("he")
 
-        for attr in ["categories", "order", "maps"]:
+        for attr in ["categories", "order"]:
             d[attr] = getattr(self._inode.index, attr, "")
         for attr in ["book", "type"]:
             d[attr] = getattr(self._original_oref, attr)
