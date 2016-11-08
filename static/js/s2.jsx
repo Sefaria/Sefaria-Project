@@ -7795,6 +7795,10 @@ var Footer = React.createClass({
                   <span className="int-en">Authors</span>
                   <span className="int-he">מחברים</span>
               </a>
+              <a href="/updates" className="outOfAppLink">
+                  <span className="int-en">New Additions</span>
+                  <span className="int-he">מה חדש</span>
+              </a>
           </div>
 
           <div className="section">
