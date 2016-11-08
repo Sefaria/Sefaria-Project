@@ -1292,10 +1292,11 @@ def index_api(request, title, v2=False, raw=False):
         if not j:
             return jsonResponse({"error": "Missing 'json' parameter in post data."})
         j["title"] = title.replace("_", " ")
-        if "versionTitle" in j:
-            if j["versionTitle"] == "Sefaria Community Translation":
-                j["license"] = "CC0"
-                j["licenseVetter"] = True
+        #todo: move this to texts_api, pass the changes down through the tracker and text chunk
+        #if "versionTitle" in j:
+        #    if j["versionTitle"] == "Sefaria Community Translation":
+        #        j["license"] = "CC0"
+        #        j["licenseVetter"] = True
         if not request.user.is_authenticated():
             key = request.POST.get("apikey")
             if not key:
@@ -1307,12 +1308,12 @@ def index_api(request, title, v2=False, raw=False):
         else:
             title = j.get("oldTitle", j.get("title"))
             try:
-                get_index(title) # getting the index just to tell if it exists 
+                get_index(title)  # getting the index just to tell if it exists
                 # Only allow staff and the person who submitted a text to edit
                 if not request.user.is_staff and not user_started_text(request.user.id, title):
                    return jsonResponse({"error": "{} is protected from change.<br/><br/>See a mistake?<br/>Email hello@sefaria.org.".format(title)})
             except BookNameError:
-                pass # if this is a new text, allow any logged in user to submit
+                pass  # if this is a new text, allow any logged in user to submit
         @csrf_protect
         def protected_index_post(request):
             return jsonResponse(
