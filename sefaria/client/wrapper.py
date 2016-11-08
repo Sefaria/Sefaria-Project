@@ -50,17 +50,21 @@ def format_link_object_for_client(link, with_text, ref, pos=None):
 
     # if the the link is commentary, strip redundant info (e.g. "Rashi on Genesis 4:2" -> "Rashi")
     # this is now simpler, and there is explicit data on the index record for it.
-    if getattr(linkRef.index, 'collective_title', None):
-        com["linkTitle"] = {'en': linkRef.index.collective_title, 'he': hebrew_term(linkRef.index.collective_title) }
-        com["commentator"] = linkRef.index.collective_title
-        com["heCommentator"] = hebrew_term(com["commentator"])
+    if com["type"] == "commentary":
+        com["linkGroupTitle"] = {
+            'en': getattr(linkRef.index, 'collective_title', linkRef.index.title),
+            'he': hebrew_term(getattr(linkRef.index, 'collective_title', linkRef.index.get_title("he")))
+        }
+        com["commentator"] = linkRef.index.collective_title # TODO: deprecate
+        com["heCommentator"] = hebrew_term(linkRef.index.collective_title) # TODO: deprecate
     else:
-        com["linkTitle"] = {'en': linkRef.index.title, 'he': linkRef.index.get_title("he")}
-        com["commentator"] = linkRef.index.title
-        com["heCommentator"] = linkRef.index.get_title("he")
+        com["linkGroupTitle"] = {'en': linkRef.index.title, 'he': linkRef.index.get_title("he")}
+        com["commentator"] = linkRef.index.title # TODO: deprecate
+        com["heCommentator"] = linkRef.index.get_title("he") # TODO: deprecate
 
     if com["type"] != "commentary" and com["category"] == "Commentary":
             com["category"] = "Quoting Commentary"
+            #add a fix here for quoting commentary appearing together with commentary in s2 panels
 
     if linkRef.index_node.primary_title("he"):
         com["heTitle"] = linkRef.index_node.primary_title("he")

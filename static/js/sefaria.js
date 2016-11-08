@@ -517,13 +517,13 @@ Sefaria = extend(Sefaria, {
   _cacheIndexFromLinks: function(links) {
     // Cache partial index information (title, Hebrew title, categories) found in link data.
     for (var i=0; i< links.length; i++) {
-      if (this.index(links[i].commentator)) { continue; }
+      if (("linkGroupTitle" in links[i]) && this.index(links[i].linkGroupTitle["en"])) { continue; }
       var index = {
-        title:      links[i].commentator,
-        heTitle:    links[i].heCommentator,
+        title:      links[i].linkGroupTitle["en"],
+        heTitle:    links[i].linkGroupTitle["he"],
         categories: [links[i].category],
       };
-      this.index(links[i].commentator, index);
+      this.index(links[i].linkGroupTitle["en"], index);
     }
   },
   _saveLinksByRef: function(data) {

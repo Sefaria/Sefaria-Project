@@ -377,6 +377,8 @@ def hebrew_plural(s):
 
 
 def hebrew_term(s):
+	if is_hebrew(s):
+		return s
 	"""
 	Simple translations for common Hebrew words
 	"""
