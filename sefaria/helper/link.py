@@ -381,11 +381,24 @@ def rebuild_links_from_text(title, user):
     then rebuilds them. 
     """
     delete_links_from_text(title, user)
-    title    = Ref(title).normal()
-    versions = VersionSet({"title": title})
+    index = library.get_index(title)
+    title = index.nodes.primary_title("en")
+    versions = index.versionSet()
+
+    def add_links_callback(snode, *contents, **kwargs):
+        """
+        :param snode: SchemaContentNode
+        :param contents: Array of one jagged array - the contents of `snode` in one version
+        :param kwargs:
+        :return:
+        """
+        assert len(contents) == 1
+        version = kwargs.get("version")
+        add_links_from_text(snode.ref(), version.language, contents[0], version._id, user)
 
     for version in versions:
-        add_links_from_text(Ref(title), version.language, version.chapter, version._id, user)
+        index.nodes.visit_content(add_links_callback, version.chapter, version=version)
+        # add_links_from_text(Ref(title), version.language, version.chapter, version._id, user)
 
 # --------------------------------------------------------------------------------- #
 

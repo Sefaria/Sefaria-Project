@@ -10152,6 +10152,20 @@ var Footer = React.createClass({
             { className: 'int-he' },
             'מחברים'
           )
+        ),
+        React.createElement(
+          'a',
+          { href: '/updates', className: 'outOfAppLink' },
+          React.createElement(
+            'span',
+            { className: 'int-en' },
+            'New Additions'
+          ),
+          React.createElement(
+            'span',
+            { className: 'int-he' },
+            'מה חדש'
+          )
         )
       ),
       React.createElement(
