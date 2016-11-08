@@ -2340,7 +2340,6 @@ Sefaria.palette.categoryColors = {
   "Apocrypha":          Sefaria.palette.colors.lightpink,
   "Other":              Sefaria.palette.colors.darkblue,
   "Quoting Commentary": Sefaria.palette.colors.orange,
-  "Commentary2":        Sefaria.palette.colors.blue,
   "Sheets":             Sefaria.palette.colors.raspberry,
   "Community":          Sefaria.palette.colors.raspberry,
   "Targum":             Sefaria.palette.colors.lavender,
