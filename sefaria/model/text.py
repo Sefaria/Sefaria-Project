@@ -236,31 +236,33 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
     def is_complex(self):
         return getattr(self, "nodes", None) and self.nodes.has_children()
 
-    def contents(self, v2=False, raw=False, **kwargs):
+    def contents(self, v2=False, raw=False, force_complex=False, **kwargs):
         if not getattr(self, "nodes", None) or raw:  # Commentator
             return super(Index, self).contents()
         elif v2:
             return self.nodes.as_index_contents()
-        return self.legacy_form()
+        return self.legacy_form(force_complex=force_complex)
 
-    def legacy_form(self):
+    def legacy_form(self, force_complex=False):
         """
+        :param force_complex: Forces a complex Index record into legacy form
         :return: Returns an Index object as a flat dictionary, in version one form.
         :raise: Exception if the Index cannot be expressed in the old form
         """
-        if not self.nodes.is_flat():
+        if not self.nodes.is_flat() and not force_complex:
             raise InputError("Index record {} can not be converted to legacy API form".format(self.title))
 
         d = {
             "title": self.title,
             "categories": self.categories[:],
             "titleVariants": self.nodes.all_node_titles("en"),
-            "sectionNames": self.nodes.sectionNames[:],
-            "heSectionNames": map(hebrew_term, self.nodes.sectionNames),
-            "textDepth": len(self.nodes.sectionNames),
-            "addressTypes": self.nodes.addressTypes[:]  # This isn't legacy, but it was needed for checkRef
         }
 
+        if self.nodes.is_flat():
+            d["sectionNames"] = self.nodes.sectionNames[:]
+            d["heSectionNames"] = map(hebrew_term, self.nodes.sectionNames)
+            d["addressTypes"] = self.nodes.addressTypes[:]  # This isn't legacy, but it was needed for checkRef
+            d["textDepth"] = len(self.nodes.sectionNames)
         if getattr(self, "order", None):
             d["order"] = self.order[:]
         if getattr(self.nodes, "lengths", None):
@@ -410,33 +412,34 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
 
                 node.key = d.get("title")
 
-                sn = d.pop("sectionNames", None)
-                if sn:
-                    node.sectionNames = sn
-                    node.depth = len(node.sectionNames)
-                else:
-                    raise InputError(u"Please specify section names for Index record.")
+                if not self.is_complex:
+                    sn = d.pop("sectionNames", None)
+                    if sn:
+                        node.sectionNames = sn
+                        node.depth = len(node.sectionNames)
+                    else:
+                        raise InputError(u"Please specify section names for Index record.")
 
-                if d["categories"][0] == "Talmud":
-                    node.addressTypes = ["Talmud", "Integer"]
-                    if d["categories"][1] == "Bavli" and d.get("heTitle"):
-                        node.checkFirst = {
-                            "he": u"משנה" + " " + d.get("heTitle"),
-                            "en": "Mishnah " + d.get("title")
-                        }
-                elif d["categories"][0] == "Mishnah":
-                    node.addressTypes = ["Perek", "Mishnah"]
-                else:
-                    if getattr(node, "addressTypes", None) is None:
-                        node.addressTypes = ["Integer" for _ in range(node.depth)]
+                    if d["categories"][0] == "Talmud":
+                        node.addressTypes = ["Talmud", "Integer"]
+                        if d["categories"][1] == "Bavli" and d.get("heTitle"):
+                            node.checkFirst = {
+                                "he": u"משנה" + " " + d.get("heTitle"),
+                                "en": "Mishnah " + d.get("title")
+                            }
+                    elif d["categories"][0] == "Mishnah":
+                        node.addressTypes = ["Perek", "Mishnah"]
+                    else:
+                        if getattr(node, "addressTypes", None) is None:
+                            node.addressTypes = ["Integer" for _ in range(node.depth)]
 
-                l = d.pop("length", None)
-                if l:
-                    node.lengths = [l]
+                    l = d.pop("length", None)
+                    if l:
+                        node.lengths = [l]
 
-                ls = d.pop("lengths", None)
-                if ls:
-                    node.lengths = ls  #overwrite if index.length is already there
+                    ls = d.pop("lengths", None)
+                    if ls:
+                        node.lengths = ls  #overwrite if index.length is already there
 
                 #Build titles
                 node.add_title(d["title"], "en", True)

@@ -657,7 +657,7 @@
             if ($(this).val() === "Other") $("#otherCategory").show();
             else $("#otherCategory").hide();
 
-            if ($(this).val() === "Commentary") $("#textStructureFieldSet").hide();
+            if ($(this).val() === "Commentary" || !("depth" in sjs.index)) $("#textStructureFieldSet").hide();
             else $("#textStructureFieldSet").show();
         });
 
@@ -716,8 +716,10 @@
         }
         $("#textCategory").trigger("change");
 
-        
-        if (sjs.index.categories[0] !== "Commentary") {
+        if (!("depth" in sjs.index)) {
+            $("#textStructureFieldSet").hide();
+        }
+        else if (sjs.index.categories[0] !== "Commentary") {
             // Remove a section name box if text depth is 1
             if (sjs.index.sectionNames.length == 1) {
                 $(".sectionType:gt(0)").remove();
@@ -762,11 +764,13 @@
         } else {
             index.categories = (cat == "Other" ? [$("#otherCategory").val()] : (cat ? [cat]: []));
         }
-        var sectionNames = [];
-        $(".sectionType input").each(function() {
-            sectionNames.push($(this).val());
-        });
-        index.sectionNames = sectionNames;
+        if ($("#textStructureFieldSet").is(":visible")) {
+            var sectionNames = [];
+            $(".sectionType input").each(function() {
+                sectionNames.push($(this).val());
+            });
+            index.sectionNames = sectionNames;
+        }
 
         return index;
     };
@@ -775,7 +779,7 @@
     sjs.validateIndex = function(index) {
 
         if (!index.title) {
-            sjs.alert.message("Please give a text title or commentator name.")
+            sjs.alert.message("Please give a text title or commentator name.");
             return false;
         }
 
@@ -790,7 +794,7 @@
         }
 
         if ("categories" in index && index.categories.length === 0) {
-            sjs.alert.message("Please choose a text category.")
+            sjs.alert.message("Please choose a text category.");
             return false;
         }
 
@@ -800,7 +804,7 @@
         }
 
         if ("categories" in index && index.categories === "locked") {
-            sjs.alert.message("Adding new texts to Tanakh, Mishnah and Talmud is currently locked. Please post to our Forum if you need to add a text to these categories.")
+            sjs.alert.message("Adding new texts to Tanakh, Mishnah and Talmud is currently locked. Please post to our Forum if you need to add a text to these categories.");
             return false;
         }
 
@@ -811,11 +815,11 @@
             }
         }
 
-        if ( index.categories[0] !== "Commentary" ) {
+        if ( index.categories[0] !== "Commentary" && $("#textStructureFieldSet").is(":visible") ) {
             // Commentators don't need text structure specified
 
             if (index.sectionNames.length == 0 || index.sectionNames[0] === "") {
-                sjs.alert.message("Please describe at least one level of text structure.")
+                sjs.alert.message("Please describe at least one level of text structure.");
                 return false;
             }
 
@@ -836,7 +840,7 @@
         }
 
         if (containsHebrew(index.title)) {
-            sjs.alert.message("Please enter a primary title in English. Use the Hebrew Title field to specify a title in Hebrew.")
+            sjs.alert.message("Please enter a primary title in English. Use the Hebrew Title field to specify a title in Hebrew.");
             return false;
         }
 

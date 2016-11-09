@@ -583,7 +583,7 @@ def edit_text_info(request, title=None, new_title=None):
         i = library.get_index(title)
         if not (request.user.is_staff or user_started_text(request.user.id, title)):
             return render_to_response('static/generic.html', {"title": "Permission Denied", "content": "The Text Info for %s is locked.<br><br>Please email hello@sefaria.org if you believe edits are needed." % title}, RequestContext(request))
-        indexJSON = json.dumps(i.contents(v2=True) if "toc" in request.GET else i.contents())
+        indexJSON = json.dumps(i.contents(v2=True) if "toc" in request.GET else i.contents(force_complex=True))
         versions = VersionSet({"title": title})
         text_exists = versions.count() > 0
         new = False
@@ -1304,7 +1304,7 @@ def index_api(request, title, v2=False, raw=False):
             apikey = db.apikeys.find_one({"key": key})
             if not apikey:
                 return jsonResponse({"error": "Unrecognized API key."})
-            return jsonResponse(func(apikey["uid"], model.Index, j, method="API", v2=v2, raw=raw).contents(v2=v2, raw=raw))
+            return jsonResponse(func(apikey["uid"], model.Index, j, method="API", v2=v2, raw=raw, force_complex=True).contents(v2=v2, raw=raw, force_complex=True))
         else:
             title = j.get("oldTitle", j.get("title"))
             try:
@@ -1317,7 +1317,7 @@ def index_api(request, title, v2=False, raw=False):
         @csrf_protect
         def protected_index_post(request):
             return jsonResponse(
-                func(request.user.id, model.Index, j, v2=v2, raw=raw).contents(v2=v2, raw=raw)
+                func(request.user.id, model.Index, j, v2=v2, raw=raw, force_complex=True).contents(v2=v2, raw=raw, force_complex=True)
             )
         return protected_index_post(request)
 
