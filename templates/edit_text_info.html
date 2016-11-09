@@ -657,7 +657,7 @@
             if ($(this).val() === "Other") $("#otherCategory").show();
             else $("#otherCategory").hide();
 
-            if ($(this).val() === "Commentary" || !("depth" in sjs.index)) $("#textStructureFieldSet").hide();
+            if ($(this).val() === "Commentary" || !("sectionNames" in sjs.index)) $("#textStructureFieldSet").hide();
             else $("#textStructureFieldSet").show();
         });
 
@@ -716,7 +716,7 @@
         }
         $("#textCategory").trigger("change");
 
-        if (!("depth" in sjs.index)) {
+        if (!("sectionNames" in sjs.index)) {
             $("#textStructureFieldSet").hide();
         }
         else if (sjs.index.categories[0] !== "Commentary") {
