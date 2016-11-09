@@ -412,7 +412,7 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
 
                 node.key = d.get("title")
 
-                if self.nodes.is_flat():
+                if node.is_flat():
                     sn = d.pop("sectionNames", None)
                     if sn:
                         node.sectionNames = sn
