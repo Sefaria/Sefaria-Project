@@ -10,9 +10,10 @@ public_authors = defaultdict(int)
 sheets = db.sheets.find()
 
 for sheet in sheets:
-    authors[sheet["owner"]] += 1
+    owner = sheet.get("owner", 0)
+    authors[owner] += 1
     if "status" in sheet and sheet["status"] == "public":
-        public_authors[sheet["owner"]] += 1
+        public_authors[owner] += 1
 
 sorted_authors        = sorted(authors.iteritems(), key=lambda x: -x[1])
 sorted_public_authors = sorted(public_authors.iteritems(), key=lambda x: -x[1])
