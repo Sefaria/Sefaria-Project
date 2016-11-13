@@ -76,7 +76,10 @@ def make_text(doc):
     version = Version({"chapter": chapter})
 
     index = library.get_index(doc["title"])
-    text = u"\n".join([doc["title"], doc.get("heTitle", ""), doc["versionTitle"], doc["versionSource"]])
+    versionSource = doc["versionSource"]
+    if(versionSource is None):
+        versionSource = ""
+    text = u"\n".join([doc["title"], doc.get("heTitle", ""), doc["versionTitle"], versionSource])
 
     if "versions" in doc:
         if not len(doc["versions"]):

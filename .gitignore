@@ -87,3 +87,7 @@ venv/
 
 # Client secrets for Google OAuth 2.0
 client_secrets.json
+
+
+/random_files
+
