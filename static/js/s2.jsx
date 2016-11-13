@@ -3046,12 +3046,12 @@ var ReaderTextTableOfContents = React.createClass({
           defaultVersionObject = this.state.versions.find(v => (cv.language == v.language && cv.versionTitle == v.versionTitle));
           defaultVersionString += defaultVersionObject ? " (" + defaultVersionObject.versionTitle + ")" : "";
         }
-        currentVersionElement = (<VersionBlock version={cv} currentRef={this.props.currentRef} showHistory={true}/>);
+        currentVersionElement = (<VersionBlock title={title} version={cv} currentRef={this.props.currentRef} showHistory={true}/>);
       }
 
       var [heVersionBlocks, enVersionBlocks] = ["he","en"].map(lang =>
        this.state.versions.filter(v => v.language == lang).map(v =>
-           <VersionBlock version={v} showNotes={true} key={v.versionTitle + "/" + v.language}/>
+           <VersionBlock title={title} version={v} showNotes={true} key={v.versionTitle + "/" + v.language}/>
        )
       );
 
@@ -3215,6 +3215,7 @@ var ReaderTextTableOfContents = React.createClass({
 
 var VersionBlock = React.createClass({
   propTypes: {
+    title:  React.PropTypes.string.isRequired,
     version: React.PropTypes.object.isRequired,
     currentRef: React.PropTypes.string,
     showHistory: React.PropTypes.bool,
@@ -3227,41 +3228,145 @@ var VersionBlock = React.createClass({
       showNotes: false
     }
   },
+  getInitialState: function() {
+    var s = {
+      editing: false,
+      error: null
+    };
+    this.updateableVersionAttributes.forEach(attr => s[attr] = this.props.version[attr]);
+    return s;
+  },
+  updateableVersionAttributes: [
+    "versionSource",
+    "versionNotes",
+    "license",
+    "priority",
+    "digitizedBySefaria"
+  ],
   licenseMap: {
     "Public Domain": "http://en.wikipedia.org/wiki/Public_domain",
     "CC0": "http://creativecommons.org/publicdomain/zero/1.0/",
     "CC-BY": "http://creativecommons.org/licenses/by/3.0/",
     "CC-BY-SA": "http://creativecommons.org/licenses/by-sa/3.0/"
   },
+  onLicenseChange: function(event) {
+    this.setState({license: event.target.value, "error": null});
+  },
+  onVersionSourceChange: function(event) {
+    this.setState({versionSource: event.target.value, "error": null});
+  },
+  onVersionNotesChange: function(event) {
+    this.setState({versionNotes: event.target.value, "error": null});
+  },
+  onPriorityChange: function(event) {
+    this.setState({priority: event.target.value, "error": null});
+  },
+  onDigitizedBySefariaChange: function(event) {
+    this.setState({digitizedBySefaria: !!event.target.value, "error": null});
+  },
+  saveVersionUpdate: function(event) {
+    var v = this.props.version;
+
+    var payloadVersion = {};
+    this.updateableVersionAttributes.forEach(attr => payloadVersion[attr] = this.state[attr]);
+    this.setState({"error": null});
+    $.ajax({
+      url: `/api/version/flags/${this.props.title}/${v.language}/${v.versionTitle}`,
+      dataType: 'json',
+      type: 'POST',
+      data: {json: JSON.stringify(payloadVersion)},
+      success: function(data) {
+        if (data.status == "ok") {
+          document.location.reload(true);
+        } else {
+          this.setState({error: data.error});
+        }
+      }.bind(this),
+      error: function(xhr, status, err) {
+        this.setState({error: err.toString()});
+      }.bind(this)
+    });
+  },
+  openEditor: function() {
+    this.setState({editing:true});
+  },
+  closeEditor: function() {
+    this.setState({editing:false});
+  },
   render: function() {
     var v = this.props.version;
-    var license = this.licenseMap[v.license]?<a href={this.licenseMap[v.license]} target="_blank">{v.license}</a>:v.license;
-    var digitizedBySefaria = v.digitizedBySefaria ? <a className="versionDigitizedBySefaria" href="/digitized-by-sefaria">Digitized by Sefaria</a> : "";
-    var licenseLine = "";
-    if (v.license && v.license != "unknown") { 
-      licenseLine =
-        <span className="versionLicense">
-          {license}
-          {digitizedBySefaria?" - ":""}{digitizedBySefaria}
-        </span>
-      ;
-    }
-        
-    return (
-      <div className = "versionBlock">
-        <div className="versionTitle">{v.versionTitle}</div>
-        <div>
-          <a className="versionSource" target="_blank" href={v.versionSource}>
-          { Sefaria.util.parseURL(v.versionSource).host }
-          </a>
-          {licenseLine?<span>-</span>:""}
-          {licenseLine}
-          {this.props.showHistory?<span>-</span>:""}
-          {this.props.showHistory?<a className="versionHistoryLink" href={`/activity/${Sefaria.normRef(this.props.currentRef)}/${v.language}/${v.versionTitle && v.versionTitle.replace(/\s/g,"_")}`}>Version History &gt;</a>:""}
+
+    if (this.state.editing) {
+      var close_icon = (Sefaria.is_moderator)?<i className="fa fa-times-circle" aria-hidden="true" onClick={this.closeEditor}/>:"";
+
+      var licenses = Object.keys(this.licenseMap);
+      licenses = licenses.includes(v.license) ? licenses : [v.license].concat(licenses);
+
+      return (
+        <div className = "versionBlock">
+          <div className="versionTitle">
+            {v.versionTitle}
+            {close_icon}
+          </div>
+          <div className="error">{this.state.error}</div>
+          <div className="versionEditForm">
+
+            <label for="versionSource">Version Source</label>
+            <input id="versionSource" className="" type="text" value={this.state.versionSource} onChange={this.onVersionSourceChange} />
+
+            <label id="license_label" for="license">License</label>
+            <select id="license" className="" value={this.state.license} onChange={this.onLicenseChange}>
+              {licenses.map(v => <option key={v} value={v}>{v?v:"None"}</option>)}
+            </select>
+
+            <label id="digitzedBySefaria_label" for="digitzedBySefaria">Digitized by Sefaria</label>
+            <input type="checkbox" id="digitzedBySefaria" value={this.state.digitzedBySefaria} onChange={this.onDigitizedBySefariaChange}/>
+
+            <label id="priority_label" for="priority">Priority</label>
+            <input id="priority" className="" type="text" value={this.state.priority} onChange={this.onPriorityChange} />
+
+            <label for="versionNotes">VersionNotes</label>
+            <textarea id="versionNotes" placeholder="Version Notes" onChange={this.onVersionNotesChange} value={this.state.versionNotes} rows="5" cols="40"/>
+
+            <div id="save_button" onClick={this.saveVersionUpdate}>SAVE</div>
+          </div>
         </div>
-        {this.props.showNotes?<div className="versionNotes" dangerouslySetInnerHTML={ {__html: v.versionNotes} }></div>:""}
-      </div>
-    );
+      );
+
+    } else {
+      var license = this.licenseMap[v.license]?<a href={this.licenseMap[v.license]} target="_blank">{v.license}</a>:v.license;
+      var digitizedBySefaria = v.digitizedBySefaria ? <a className="versionDigitizedBySefaria" href="/digitized-by-sefaria">Digitized by Sefaria</a> : "";
+      var licenseLine = "";
+      if (v.license && v.license != "unknown") {
+        licenseLine =
+          <span className="versionLicense">
+            {license}
+            {digitizedBySefaria?" - ":""}{digitizedBySefaria}
+          </span>
+        ;
+      }
+      var edit_icon = (Sefaria.is_moderator)?<i className="fa fa-pencil" aria-hidden="true" onClick={this.openEditor}/>:"";
+
+      return (
+        <div className = "versionBlock">
+          <div className="versionTitle">
+            {v.versionTitle}
+            {edit_icon}
+          </div>
+          <div>
+            <a className="versionSource" target="_blank" href={v.versionSource}>
+            { Sefaria.util.parseURL(v.versionSource).host }
+            </a>
+            {licenseLine?<span>-</span>:""}
+            {licenseLine}
+            {this.props.showHistory?<span>-</span>:""}
+            {this.props.showHistory?<a className="versionHistoryLink" href={`/activity/${Sefaria.normRef(this.props.currentRef)}/${v.language}/${v.versionTitle && v.versionTitle.replace(/\s/g,"_")}`}>Version History &gt;</a>:""}
+          </div>
+          {this.props.showNotes?<div className="versionNotes" dangerouslySetInnerHTML={ {__html: v.versionNotes} }></div>:""}
+        </div>
+      );
+    }
+
   }
 });
 

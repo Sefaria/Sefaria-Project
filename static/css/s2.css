@@ -1010,6 +1010,44 @@ a.resourcesLink {
   color: #999;
   margin-right: 4px;
 }
+.readerTextTableOfContents .versionEditForm {
+    text-align: left;
+    background-color: #ddd;
+    padding: 10px;
+    width: 100%;
+}
+.readerTextTableOfContents .versionEditForm label {
+  display: block;
+  padding: 10px 10px 0 0;
+}
+.readerTextTableOfContents .versionEditForm label#digitzedBySefaria_label,
+.readerTextTableOfContents .versionEditForm label#license_label,
+.readerTextTableOfContents .versionEditForm label#priority_label {
+  display: inline-block;
+}
+.readerTextTableOfContents .versionEditForm #versionSource {
+  width: 98%;
+}
+.readerTextTableOfContents .versionEditForm #priority {
+  width: 25px;
+}
+.readerTextTableOfContents .versionEditForm #digitzedBySefaria {
+  margin-right: 10px;
+}
+.readerTextTableOfContents .versionEditForm #save_button {
+  text-align: center;
+  cursor: pointer;
+  background: #212E50;
+  margin: 10px auto 0;
+  width: 60px;
+  color: white;
+}
+.readerTextTableOfContents .versionTitle .fa {
+  font-size: 10px;
+  vertical-align: super;
+  margin-left: 3px;
+  cursor: pointer;
+}
 .readerTextTableOfContents .content {
   padding: 30px 10px 10px;
   box-sizing: border-box;

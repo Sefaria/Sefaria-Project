@@ -3478,14 +3478,14 @@ var ReaderTextTableOfContents = React.createClass({
           });
           defaultVersionString += defaultVersionObject ? " (" + defaultVersionObject.versionTitle + ")" : "";
         }
-        currentVersionElement = React.createElement(VersionBlock, { version: cv, currentRef: this.props.currentRef, showHistory: true });
+        currentVersionElement = React.createElement(VersionBlock, { title: title, version: cv, currentRef: this.props.currentRef, showHistory: true });
       }
 
       var _map = ["he", "en"].map(function (lang) {
         return _this.state.versions.filter(function (v) {
           return v.language == lang;
         }).map(function (v) {
-          return React.createElement(VersionBlock, { version: v, showNotes: true, key: v.versionTitle + "/" + v.language });
+          return React.createElement(VersionBlock, { title: title, version: v, showNotes: true, key: v.versionTitle + "/" + v.language });
         });
       });
 
@@ -3846,6 +3846,7 @@ var VersionBlock = React.createClass({
   displayName: 'VersionBlock',
 
   propTypes: {
+    title: React.PropTypes.string.isRequired,
     version: React.PropTypes.object.isRequired,
     currentRef: React.PropTypes.string,
     showHistory: React.PropTypes.bool,
@@ -3858,70 +3859,206 @@ var VersionBlock = React.createClass({
       showNotes: false
     };
   },
+  getInitialState: function getInitialState() {
+    var _this2 = this;
+
+    var s = {
+      editing: false,
+      error: null
+    };
+    this.updateableVersionAttributes.forEach(function (attr) {
+      return s[attr] = _this2.props.version[attr];
+    });
+    return s;
+  },
+  updateableVersionAttributes: ["versionSource", "versionNotes", "license", "priority", "digitizedBySefaria"],
   licenseMap: {
     "Public Domain": "http://en.wikipedia.org/wiki/Public_domain",
     "CC0": "http://creativecommons.org/publicdomain/zero/1.0/",
     "CC-BY": "http://creativecommons.org/licenses/by/3.0/",
     "CC-BY-SA": "http://creativecommons.org/licenses/by-sa/3.0/"
   },
+  onLicenseChange: function onLicenseChange(event) {
+    this.setState({ license: event.target.value, "error": null });
+  },
+  onVersionSourceChange: function onVersionSourceChange(event) {
+    this.setState({ versionSource: event.target.value, "error": null });
+  },
+  onVersionNotesChange: function onVersionNotesChange(event) {
+    this.setState({ versionNotes: event.target.value, "error": null });
+  },
+  onPriorityChange: function onPriorityChange(event) {
+    this.setState({ priority: event.target.value, "error": null });
+  },
+  onDigitizedBySefariaChange: function onDigitizedBySefariaChange(event) {
+    this.setState({ digitizedBySefaria: !!event.target.value, "error": null });
+  },
+  saveVersionUpdate: function saveVersionUpdate(event) {
+    var _this3 = this;
+
+    var v = this.props.version;
+
+    var payloadVersion = {};
+    this.updateableVersionAttributes.forEach(function (attr) {
+      return payloadVersion[attr] = _this3.state[attr];
+    });
+    this.setState({ "error": null });
+    $.ajax({
+      url: '/api/version/flags/' + this.props.title + '/' + v.language + '/' + v.versionTitle,
+      dataType: 'json',
+      type: 'POST',
+      data: { json: JSON.stringify(payloadVersion) },
+      success: function (data) {
+        if (data.status == "ok") {
+          document.location.reload(true);
+        } else {
+          this.setState({ error: data.error });
+        }
+      }.bind(this),
+      error: function (xhr, status, err) {
+        this.setState({ error: err.toString() });
+      }.bind(this)
+    });
+  },
+  openEditor: function openEditor() {
+    this.setState({ editing: true });
+  },
+  closeEditor: function closeEditor() {
+    this.setState({ editing: false });
+  },
   render: function render() {
     var v = this.props.version;
-    var license = this.licenseMap[v.license] ? React.createElement(
-      'a',
-      { href: this.licenseMap[v.license], target: '_blank' },
-      v.license
-    ) : v.license;
-    var digitizedBySefaria = v.digitizedBySefaria ? React.createElement(
-      'a',
-      { className: 'versionDigitizedBySefaria', href: '/digitized-by-sefaria' },
-      'Digitized by Sefaria'
-    ) : "";
-    var licenseLine = "";
-    if (v.license && v.license != "unknown") {
-      licenseLine = React.createElement(
-        'span',
-        { className: 'versionLicense' },
-        license,
-        digitizedBySefaria ? " - " : "",
-        digitizedBySefaria
+
+    if (this.state.editing) {
+      var close_icon = Sefaria.is_moderator ? React.createElement('i', { className: 'fa fa-times-circle', 'aria-hidden': 'true', onClick: this.closeEditor }) : "";
+
+      var licenses = Object.keys(this.licenseMap);
+      licenses = licenses.includes(v.license) ? licenses : [v.license].concat(licenses);
+
+      return React.createElement(
+        'div',
+        { className: 'versionBlock' },
+        React.createElement(
+          'div',
+          { className: 'versionTitle' },
+          v.versionTitle,
+          close_icon
+        ),
+        React.createElement(
+          'div',
+          { className: 'error' },
+          this.state.error
+        ),
+        React.createElement(
+          'div',
+          { className: 'versionEditForm' },
+          React.createElement(
+            'label',
+            { 'for': 'versionSource' },
+            'Version Source'
+          ),
+          React.createElement('input', { id: 'versionSource', className: '', type: 'text', value: this.state.versionSource, onChange: this.onVersionSourceChange }),
+          React.createElement(
+            'label',
+            { id: 'license_label', 'for': 'license' },
+            'License'
+          ),
+          React.createElement(
+            'select',
+            { id: 'license', className: '', value: this.state.license, onChange: this.onLicenseChange },
+            licenses.map(function (v) {
+              return React.createElement(
+                'option',
+                { key: v, value: v },
+                v ? v : "None"
+              );
+            })
+          ),
+          React.createElement(
+            'label',
+            { id: 'digitzedBySefaria_label', 'for': 'digitzedBySefaria' },
+            'Digitized by Sefaria'
+          ),
+          React.createElement('input', { type: 'checkbox', id: 'digitzedBySefaria', value: this.state.digitzedBySefaria, onChange: this.onDigitizedBySefariaChange }),
+          React.createElement(
+            'label',
+            { id: 'priority_label', 'for': 'priority' },
+            'Priority'
+          ),
+          React.createElement('input', { id: 'priority', className: '', type: 'text', value: this.state.priority, onChange: this.onPriorityChange }),
+          React.createElement(
+            'label',
+            { 'for': 'versionNotes' },
+            'VersionNotes'
+          ),
+          React.createElement('textarea', { id: 'versionNotes', placeholder: 'Version Notes', onChange: this.onVersionNotesChange, value: this.state.versionNotes, rows: '5', cols: '40' }),
+          React.createElement(
+            'div',
+            { id: 'save_button', onClick: this.saveVersionUpdate },
+            'SAVE'
+          )
+        )
+      );
+    } else {
+      var license = this.licenseMap[v.license] ? React.createElement(
+        'a',
+        { href: this.licenseMap[v.license], target: '_blank' },
+        v.license
+      ) : v.license;
+      var digitizedBySefaria = v.digitizedBySefaria ? React.createElement(
+        'a',
+        { className: 'versionDigitizedBySefaria', href: '/digitized-by-sefaria' },
+        'Digitized by Sefaria'
+      ) : "";
+      var licenseLine = "";
+      if (v.license && v.license != "unknown") {
+        licenseLine = React.createElement(
+          'span',
+          { className: 'versionLicense' },
+          license,
+          digitizedBySefaria ? " - " : "",
+          digitizedBySefaria
+        );
+      }
+      var edit_icon = Sefaria.is_moderator ? React.createElement('i', { className: 'fa fa-pencil', 'aria-hidden': 'true', onClick: this.openEditor }) : "";
+
+      return React.createElement(
+        'div',
+        { className: 'versionBlock' },
+        React.createElement(
+          'div',
+          { className: 'versionTitle' },
+          v.versionTitle,
+          edit_icon
+        ),
+        React.createElement(
+          'div',
+          null,
+          React.createElement(
+            'a',
+            { className: 'versionSource', target: '_blank', href: v.versionSource },
+            Sefaria.util.parseURL(v.versionSource).host
+          ),
+          licenseLine ? React.createElement(
+            'span',
+            null,
+            '-'
+          ) : "",
+          licenseLine,
+          this.props.showHistory ? React.createElement(
+            'span',
+            null,
+            '-'
+          ) : "",
+          this.props.showHistory ? React.createElement(
+            'a',
+            { className: 'versionHistoryLink', href: '/activity/' + Sefaria.normRef(this.props.currentRef) + '/' + v.language + '/' + (v.versionTitle && v.versionTitle.replace(/\s/g, "_")) },
+            'Version History >'
+          ) : ""
+        ),
+        this.props.showNotes ? React.createElement('div', { className: 'versionNotes', dangerouslySetInnerHTML: { __html: v.versionNotes } }) : ""
       );
     }
-
-    return React.createElement(
-      'div',
-      { className: 'versionBlock' },
-      React.createElement(
-        'div',
-        { className: 'versionTitle' },
-        v.versionTitle
-      ),
-      React.createElement(
-        'div',
-        null,
-        React.createElement(
-          'a',
-          { className: 'versionSource', target: '_blank', href: v.versionSource },
-          Sefaria.util.parseURL(v.versionSource).host
-        ),
-        licenseLine ? React.createElement(
-          'span',
-          null,
-          '-'
-        ) : "",
-        licenseLine,
-        this.props.showHistory ? React.createElement(
-          'span',
-          null,
-          '-'
-        ) : "",
-        this.props.showHistory ? React.createElement(
-          'a',
-          { className: 'versionHistoryLink', href: '/activity/' + Sefaria.normRef(this.props.currentRef) + '/' + v.language + '/' + (v.versionTitle && v.versionTitle.replace(/\s/g, "_")) },
-          'Version History >'
-        ) : ""
-      ),
-      this.props.showNotes ? React.createElement('div', { className: 'versionNotes', dangerouslySetInnerHTML: { __html: v.versionNotes } }) : ""
-    );
   }
 });
 
@@ -4262,7 +4399,7 @@ var SheetsHomePage = React.createClass({
   },
 
   render: function render() {
-    var _this2 = this;
+    var _this4 = this;
 
     var trendingTags = this.getTrendingTagsFromCache();
     var topSheets = this.getTopSheetsFromCache();
@@ -4273,7 +4410,7 @@ var SheetsHomePage = React.createClass({
     }
 
     var makeTagButton = function makeTagButton(tag) {
-      return React.createElement(SheetTagButton, { setSheetTag: _this2.props.setSheetTag, tag: tag.tag, count: tag.count, key: tag.tag });
+      return React.createElement(SheetTagButton, { setSheetTag: _this4.props.setSheetTag, tag: tag.tag, count: tag.count, key: tag.tag });
     };
 
     var trendingTags = trendingTags ? trendingTags.slice(0, 6).map(makeTagButton) : [React.createElement(LoadingMessage, null)];
@@ -4399,13 +4536,13 @@ var SheetsHomePage = React.createClass({
               'div',
               { className: 'type-buttons' },
               this._type_sheet_button("Most Used", "הכי בשימוש", function () {
-                return _this2.changeSort("count");
+                return _this4.changeSort("count");
               }, this.props.tagSort == "count"),
               this._type_sheet_button("Alphabetical", "אלפביתי", function () {
-                return _this2.changeSort("alpha");
+                return _this4.changeSort("alpha");
               }, this.props.tagSort == "alpha"),
               this._type_sheet_button("Trending", "פופולרי", function () {
-                return _this2.changeSort("trending");
+                return _this4.changeSort("trending");
               }, this.props.tagSort == "trending")
             )
           )
@@ -7119,7 +7256,7 @@ var LexiconEntry = React.createClass({
     );
   },
   renderLexiconEntrySenses: function renderLexiconEntrySenses(content) {
-    var _this3 = this;
+    var _this5 = this;
 
     var grammar = 'grammar' in content ? '(' + content['grammar']['verbal_stem'] + ')' : "";
     var def = 'definition' in content ? content['definition'] : "";
@@ -7129,7 +7266,7 @@ var LexiconEntry = React.createClass({
       content['notes']
     ) : "";
     var sensesElems = 'senses' in content ? content['senses'].map(function (sense) {
-      return _this3.renderLexiconEntrySenses(sense);
+      return _this5.renderLexiconEntrySenses(sense);
     }) : "";
     var senses = sensesElems.length ? React.createElement(
       'ol',
@@ -7241,11 +7378,11 @@ var ToolsPanel = React.createClass({
     }.bind(this) : null;
 
     var addTranslation = function () {
-      var _this4 = this;
+      var _this6 = this;
 
       var nextParam = "?next=" + Sefaria.util.currentPath();
       Sefaria.site.track.event("Tools", "Add Translation Click", this.props.srefs[0], { hitCallback: function hitCallback() {
-          return window.location = "/translate/" + _this4.props.srefs[0] + nextParam;
+          return window.location = "/translate/" + _this6.props.srefs[0] + nextParam;
         } });
     }.bind(this);
 
@@ -8043,10 +8180,10 @@ var SearchResultList = React.createClass({
     });
   },
   _abortRunningQueries: function _abortRunningQueries() {
-    var _this5 = this;
+    var _this7 = this;
 
     this.state.types.forEach(function (t) {
-      return _this5._abortRunningQuery(t);
+      return _this7._abortRunningQuery(t);
     });
   },
   _abortRunningQuery: function _abortRunningQuery(type) {
@@ -8229,18 +8366,18 @@ var SearchResultList = React.createClass({
     return newHits;
   },
   _buildFilterTree: function _buildFilterTree(aggregation_buckets) {
-    var _this6 = this;
+    var _this8 = this;
 
     //returns object w/ keys 'availableFilters', 'registry'
     //Add already applied filters w/ empty doc count?
     var rawTree = {};
 
     this.props.appliedFilters.forEach(function (fkey) {
-      return _this6._addAvailableFilter(rawTree, fkey, { "docCount": 0 });
+      return _this8._addAvailableFilter(rawTree, fkey, { "docCount": 0 });
     });
 
     aggregation_buckets.forEach(function (f) {
-      return _this6._addAvailableFilter(rawTree, f["key"], { "docCount": f["doc_count"] });
+      return _this8._addAvailableFilter(rawTree, f["key"], { "docCount": f["doc_count"] });
     });
     this._aggregate(rawTree);
     return this._build(rawTree);
@@ -8452,7 +8589,7 @@ var SearchResultList = React.createClass({
     this.setState({ "activeTab": "text" });
   },
   render: function render() {
-    var _this7 = this;
+    var _this9 = this;
 
     if (!this.props.query) {
       // Push this up? Thought is to choose on the SearchPage level whether to show a ResultList or an EmptySearchMessage.
@@ -8466,15 +8603,15 @@ var SearchResultList = React.createClass({
       results = this.state.hits.text.slice(0, this.state.displayedUntil["text"]).map(function (result) {
         return React.createElement(SearchTextResult, {
           data: result,
-          query: _this7.props.query,
+          query: _this9.props.query,
           key: result._id,
-          onResultClick: _this7.props.onResultClick });
+          onResultClick: _this9.props.onResultClick });
       });
     } else if (tab == "sheet") {
       results = this.state.hits.sheet.slice(0, this.state.displayedUntil["sheet"]).map(function (result) {
         return React.createElement(SearchSheetResult, {
           data: result,
-          query: _this7.props.query,
+          query: _this9.props.query,
           key: result._id });
       });
     }
@@ -9193,10 +9330,10 @@ var ModeratorToolsPanel = React.createClass({
     this.setState({ bulk_format: event.target.value });
   },
   bulkVersionDlLink: function bulkVersionDlLink() {
-    var _this8 = this;
+    var _this10 = this;
 
     var args = ["format", "title_pattern", "version_title_pattern", "language"].map(function (arg) {
-      return _this8.state["bulk_" + arg] ? arg + '=' + encodeURIComponent(_this8.state["bulk_" + arg]) : "";
+      return _this10.state["bulk_" + arg] ? arg + '=' + encodeURIComponent(_this10.state["bulk_" + arg]) : "";
     }).filter(function (a) {
       return a;
     }).join("&");
@@ -9452,7 +9589,7 @@ var UpdatesPanel = React.createClass({
   },
 
   render: function render() {
-    var _this9 = this;
+    var _this11 = this;
 
     var classes = { notificationsPanel: 1, systemPanel: 1, readerNavMenu: 1, noHeader: 1 };
     var classStr = classNames(classes);
@@ -9491,8 +9628,8 @@ var UpdatesPanel = React.createClass({
                 date: u.date,
                 key: u._id,
                 id: u._id,
-                onDelete: _this9.onDelete,
-                submitting: _this9.state.submitting
+                onDelete: _this11.onDelete,
+                submitting: _this11.state.submitting
               });
             })
           )
