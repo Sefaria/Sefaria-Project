@@ -959,7 +959,8 @@ class Version(abst.AbstractMongoRecord, AbstractTextRecord, AbstractSchemaConten
         return True
 
     def _normalize(self):
-        pass
+        if getattr(self, "priority", None) is not None:
+            self.priority = float(self.priority)
 
     def get_index(self):
         return library.get_index(self.title)
@@ -3345,7 +3346,7 @@ class Ref(object):
 
         :return list: each list element is an object with keys 'versionTitle' and 'language'
         """
-        fields = ["versionTitle", "versionSource", "language", "status", "license", "versionNotes", "digitizedBySefaria"]
+        fields = ["versionTitle", "versionSource", "language", "status", "license", "versionNotes", "digitizedBySefaria", "priority"]
         return [
             {f: getattr(v, f, "") for f in fields}
             for v in VersionSet(self.condition_query(), proj={f: 1 for f in fields})

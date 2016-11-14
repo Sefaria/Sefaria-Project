@@ -3891,7 +3891,7 @@ var VersionBlock = React.createClass({
     this.setState({ priority: event.target.value, "error": null });
   },
   onDigitizedBySefariaChange: function onDigitizedBySefariaChange(event) {
-    this.setState({ digitizedBySefaria: !!event.target.value, "error": null });
+    this.setState({ digitizedBySefaria: event.target.checked, "error": null });
   },
   saveVersionUpdate: function saveVersionUpdate(event) {
     var _this3 = this;
@@ -3902,7 +3902,7 @@ var VersionBlock = React.createClass({
     this.updateableVersionAttributes.forEach(function (attr) {
       return payloadVersion[attr] = _this3.state[attr];
     });
-    this.setState({ "error": null });
+    this.setState({ "error": "Saving.  Page will reload on success." });
     $.ajax({
       url: '/api/version/flags/' + this.props.title + '/' + v.language + '/' + v.versionTitle,
       dataType: 'json',
@@ -3930,6 +3930,7 @@ var VersionBlock = React.createClass({
     var v = this.props.version;
 
     if (this.state.editing) {
+      // Editing View
       var close_icon = Sefaria.is_moderator ? React.createElement('i', { className: 'fa fa-times-circle', 'aria-hidden': 'true', onClick: this.closeEditor }) : "";
 
       var licenses = Object.keys(this.licenseMap);
@@ -3970,7 +3971,7 @@ var VersionBlock = React.createClass({
               return React.createElement(
                 'option',
                 { key: v, value: v },
-                v ? v : "None"
+                v ? v : "(None Listed)"
               );
             })
           ),
@@ -3979,7 +3980,7 @@ var VersionBlock = React.createClass({
             { id: 'digitzedBySefaria_label', 'for': 'digitzedBySefaria' },
             'Digitized by Sefaria'
           ),
-          React.createElement('input', { type: 'checkbox', id: 'digitzedBySefaria', value: this.state.digitzedBySefaria, onChange: this.onDigitizedBySefariaChange }),
+          React.createElement('input', { type: 'checkbox', id: 'digitzedBySefaria', checked: this.state.digitizedBySefaria, onChange: this.onDigitizedBySefariaChange }),
           React.createElement(
             'label',
             { id: 'priority_label', 'for': 'priority' },
@@ -4000,6 +4001,7 @@ var VersionBlock = React.createClass({
         )
       );
     } else {
+      // Presentation View
       var license = this.licenseMap[v.license] ? React.createElement(
         'a',
         { href: this.licenseMap[v.license], target: '_blank' },

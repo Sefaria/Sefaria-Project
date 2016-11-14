@@ -1048,6 +1048,9 @@ a.resourcesLink {
   margin-left: 3px;
   cursor: pointer;
 }
+.readerTextTableOfContents .versionTitle .error {
+  color: red;
+}
 .readerTextTableOfContents .content {
   padding: 30px 10px 10px;
   box-sizing: border-box;

@@ -3262,14 +3262,14 @@ var VersionBlock = React.createClass({
     this.setState({priority: event.target.value, "error": null});
   },
   onDigitizedBySefariaChange: function(event) {
-    this.setState({digitizedBySefaria: !!event.target.value, "error": null});
+    this.setState({digitizedBySefaria: event.target.checked, "error": null});
   },
   saveVersionUpdate: function(event) {
     var v = this.props.version;
 
     var payloadVersion = {};
     this.updateableVersionAttributes.forEach(attr => payloadVersion[attr] = this.state[attr]);
-    this.setState({"error": null});
+    this.setState({"error": "Saving.  Page will reload on success."});
     $.ajax({
       url: `/api/version/flags/${this.props.title}/${v.language}/${v.versionTitle}`,
       dataType: 'json',
@@ -3297,6 +3297,7 @@ var VersionBlock = React.createClass({
     var v = this.props.version;
 
     if (this.state.editing) {
+      // Editing View
       var close_icon = (Sefaria.is_moderator)?<i className="fa fa-times-circle" aria-hidden="true" onClick={this.closeEditor}/>:"";
 
       var licenses = Object.keys(this.licenseMap);
@@ -3316,11 +3317,11 @@ var VersionBlock = React.createClass({
 
             <label id="license_label" for="license">License</label>
             <select id="license" className="" value={this.state.license} onChange={this.onLicenseChange}>
-              {licenses.map(v => <option key={v} value={v}>{v?v:"None"}</option>)}
+              {licenses.map(v => <option key={v} value={v}>{v?v:"(None Listed)"}</option>)}
             </select>
 
             <label id="digitzedBySefaria_label" for="digitzedBySefaria">Digitized by Sefaria</label>
-            <input type="checkbox" id="digitzedBySefaria" value={this.state.digitzedBySefaria} onChange={this.onDigitizedBySefariaChange}/>
+            <input type="checkbox" id="digitzedBySefaria" checked={this.state.digitizedBySefaria} onChange={this.onDigitizedBySefariaChange}/>
 
             <label id="priority_label" for="priority">Priority</label>
             <input id="priority" className="" type="text" value={this.state.priority} onChange={this.onPriorityChange} />
@@ -3332,8 +3333,8 @@ var VersionBlock = React.createClass({
           </div>
         </div>
       );
-
     } else {
+      // Presentation View
       var license = this.licenseMap[v.license]?<a href={this.licenseMap[v.license]} target="_blank">{v.license}</a>:v.license;
       var digitizedBySefaria = v.digitizedBySefaria ? <a className="versionDigitizedBySefaria" href="/digitized-by-sefaria">Digitized by Sefaria</a> : "";
       var licenseLine = "";
