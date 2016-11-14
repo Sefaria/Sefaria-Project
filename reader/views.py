@@ -583,7 +583,7 @@ def edit_text_info(request, title=None, new_title=None):
         i = library.get_index(title)
         if not (request.user.is_staff or user_started_text(request.user.id, title)):
             return render_to_response('static/generic.html', {"title": "Permission Denied", "content": "The Text Info for %s is locked.<br><br>Please email hello@sefaria.org if you believe edits are needed." % title}, RequestContext(request))
-        indexJSON = json.dumps(i.contents(v2=True) if "toc" in request.GET else i.contents())
+        indexJSON = json.dumps(i.contents(v2=True) if "toc" in request.GET else i.contents(force_complex=True))
         versions = VersionSet({"title": title})
         text_exists = versions.count() > 0
         new = False
@@ -1288,10 +1288,11 @@ def index_api(request, title, v2=False, raw=False):
         if not j:
             return jsonResponse({"error": "Missing 'json' parameter in post data."})
         j["title"] = title.replace("_", " ")
-        if "versionTitle" in j:
-            if j["versionTitle"] == "Sefaria Community Translation":
-                j["license"] = "CC0"
-                j["licenseVetter"] = True
+        #todo: move this to texts_api, pass the changes down through the tracker and text chunk
+        #if "versionTitle" in j:
+        #    if j["versionTitle"] == "Sefaria Community Translation":
+        #        j["license"] = "CC0"
+        #        j["licenseVetter"] = True
         if not request.user.is_authenticated():
             key = request.POST.get("apikey")
             if not key:
@@ -1299,20 +1300,20 @@ def index_api(request, title, v2=False, raw=False):
             apikey = db.apikeys.find_one({"key": key})
             if not apikey:
                 return jsonResponse({"error": "Unrecognized API key."})
-            return jsonResponse(func(apikey["uid"], model.Index, j, method="API", v2=v2, raw=raw).contents(v2=v2, raw=raw))
+            return jsonResponse(func(apikey["uid"], model.Index, j, method="API", v2=v2, raw=raw, force_complex=True).contents(v2=v2, raw=raw, force_complex=True))
         else:
             title = j.get("oldTitle", j.get("title"))
             try:
-                get_index(title) # getting the index just to tell if it exists 
+                get_index(title)  # getting the index just to tell if it exists
                 # Only allow staff and the person who submitted a text to edit
                 if not request.user.is_staff and not user_started_text(request.user.id, title):
                    return jsonResponse({"error": "{} is protected from change.<br/><br/>See a mistake?<br/>Email hello@sefaria.org.".format(title)})
             except BookNameError:
-                pass # if this is a new text, allow any logged in user to submit
+                pass  # if this is a new text, allow any logged in user to submit
         @csrf_protect
         def protected_index_post(request):
             return jsonResponse(
-                func(request.user.id, model.Index, j, v2=v2, raw=raw).contents(v2=v2, raw=raw)
+                func(request.user.id, model.Index, j, v2=v2, raw=raw, force_complex=True).contents(v2=v2, raw=raw, force_complex=True)
             )
         return protected_index_post(request)
 
@@ -1754,8 +1755,13 @@ def lock_text_api(request, title, lang, version):
 @csrf_exempt
 def flag_text_api(request, title, lang, version):
     """
-    API for locking or unlocking a text as a whole.
-    To unlock, include the URL parameter "action=unlock"
+    API for manipulating attributes of versions
+
+    Identifying attributes are not handled:
+        versionTitle, language
+    Non-Identifying attributes are handled :
+        versionSource, versionNotes, license, priority, digitizedBySefaria
+
     """
     if not request.user.is_authenticated():
         key = request.POST.get("apikey")
@@ -1779,7 +1785,7 @@ def flag_text_api(request, title, lang, version):
         return jsonResponse({"status": "ok"})
     elif request.user.is_staff:
         @csrf_protect
-        def protected_post(request):
+        def protected_post(request, title, lang, version):
             flags = json.loads(request.POST.get("json"))
             title   = title.replace("_", " ")
             version = version.replace("_", " ")
@@ -1789,7 +1795,7 @@ def flag_text_api(request, title, lang, version):
                     setattr(vobj, flag, flags[flag])
             vobj.save()
             return jsonResponse({"status": "ok"})
-        return protected_post(request)
+        return protected_post(request, title, lang, version)
     else:
         return jsonResponse({"error": "Unauthorized"})
 

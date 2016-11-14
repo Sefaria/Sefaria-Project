@@ -76,7 +76,8 @@ def make_text(doc):
     version = Version({"chapter": chapter})
 
     index = library.get_index(doc["title"])
-    text = u"\n".join([doc["title"], doc.get("heTitle", ""), doc["versionTitle"], doc["versionSource"]])
+    versionSource = doc["versionSource"] or ""
+    text = u"\n".join([doc["title"], doc.get("heTitle", ""), doc["versionTitle"], versionSource])
 
     if "versions" in doc:
         if not len(doc["versions"]):
@@ -573,6 +574,8 @@ def export_version_csv(index, version_list):
     assert isinstance(version_list, list) or isinstance(version_list, VersionSet)
     assert all(isinstance(v, Version) for v in version_list)
 
+    csv.field_size_limit(sys.maxsize)
+
     output = io.BytesIO()
     writer = csv.writer(output)
 
@@ -613,6 +616,8 @@ def export_merged_csv(index, lang=None):
     assert isinstance(index, Index)
     assert lang in ["en", "he"]
 
+    csv.field_size_limit(sys.maxsize)
+
     output = io.BytesIO()
     writer = csv.writer(output)
 
@@ -649,6 +654,7 @@ def export_merged_csv(index, lang=None):
 
 
 def import_versions_from_stream(csv_stream, columns):
+    csv.field_size_limit(sys.maxsize)
     reader = csv.reader(csv_stream)
     rows = [row for row in reader]
     return _import_versions_from_csv(rows, columns)
@@ -660,6 +666,7 @@ def import_versions_from_file(csv_filename, columns):
     :param columns: zero-based list of column numbers with a new version in them
     :return:
     """
+    csv.field_size_limit(sys.maxsize)
     with open(csv_filename, 'rb') as csvfile:
         reader = csv.reader(csvfile)
         rows = [row for row in reader]

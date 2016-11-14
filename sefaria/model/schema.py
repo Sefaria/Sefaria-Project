@@ -26,7 +26,7 @@ from sefaria.utils.hebrew import decode_hebrew_numeral, encode_hebrew_numeral, e
 
 class TitleGroup(object):
     """
-    A collection of titles.  Used for titles of SchemaNodes, for Maps, and for Terms
+    A collection of titles.  Used for titles of SchemaNodes and for Terms
     """
 
     def __init__(self, serial=None):
@@ -654,9 +654,9 @@ class TitledTreeNode(TreeNode):
 
 
 """
-                ---------------------------------------
-                 Alternate Structure Tree Nodes (maps)
-                ---------------------------------------
+                --------------------------------
+                 Alternate Structure Tree Nodes
+                --------------------------------
 """
 
 

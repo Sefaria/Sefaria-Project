@@ -147,27 +147,6 @@
             </div>
         </div>
     
-    
-        <div class="fieldSet" id="shorthandsFieldSet">
-            <span class="fieldLabel">
-            <div class="help">?
-                <div class="helpText">
-                Shorthands are alternative ways of refering to a particular point or passage in a text.<br><br>
-                For example "Rambam, Hilchot Tshuva" is shorter and more common way to refer to the 7th topic in the first book of Mishneh Torah. From Sefaria's perpective, this segment of text is "Mishneh Torah 1:7", but we we want to capture more human readable forms.<br><br>
-                Shorthands are also used to capture multiple ways to refer to a text. For example, since Sefaria stores Genesis in terms of chapters and verses, "Parsha Toledot" is a shorthand for "Genesis 25:19-28:9". <br><br>
-                Enter the shorthand text in the box on the left, then enter either a single reference or a range on the right.
-                </div>
-            </div>
-            Shorthands<span class="optional">(optional)</span></span>
-            <div id="shorthandsBox">
-                <div class="shorthand"><input class="shorthandFrom" /> ⇾ <input class="shorthandTo"/>
-                <span class="remove">X</span>
-                </div>
-                
-                <div id="addShorthand">add shorthand</div>
-            </div>
-        </div>
-    
         <div class="actions">
             <span id="newIndexSave" class="btn btn-primary btn-large">Save</span>
             <span id="newIndexCancel" class="btn btn-large">Cancel</span>
@@ -272,7 +251,7 @@
         sjs.loadIndexNode(index.schema, $("#tocBuilder"));
         $(".active").removeClass("active");
         $("#tocBuilder").find(".tocNode").first().addClass("rootNode active");
-        // TODO categories, maps, order?
+        // TODO categories, order?
     };
 
 
@@ -668,7 +647,7 @@
             } else {
                 window.location = "/";
             }
-        })
+        });
 
         $("#textTitleVariants, #textHeTitleVariants").tagit({
             allowSpaces: true
@@ -678,17 +657,12 @@
             if ($(this).val() === "Other") $("#otherCategory").show();
             else $("#otherCategory").hide();
 
-            if ($(this).val() === "Commentary") $("#textStructureFieldSet, #shorthandsFieldSet").hide();
-            else $("#textStructureFieldSet, #shorthandsFieldSet").show();
+            if ($(this).val() === "Commentary" || !("sectionNames" in sjs.index)) $("#textStructureFieldSet").hide();
+            else $("#textStructureFieldSet").show();
         });
 
         $("#addSection").click(function() {
             $(this).before("<span class='sectionType'> > <input/> <span class='remove'>X</span></span>");
-        });
-        
-        $("#addShorthand").click(function() {
-            $(this).before('<div class="shorthand"><input class="shorthandFrom" /> ' + 
-                '⇾ <input class="shorthandTo"/> <span class="remove">X</span>');
         });
 
         $(document).on("click", ".remove", function() {
@@ -742,8 +716,10 @@
         }
         $("#textCategory").trigger("change");
 
-        
-        if (sjs.index.categories[0] !== "Commentary") {
+        if (!("sectionNames" in sjs.index)) {
+            $("#textStructureFieldSet").hide();
+        }
+        else if (sjs.index.categories[0] !== "Commentary") {
             // Remove a section name box if text depth is 1
             if (sjs.index.sectionNames.length == 1) {
                 $(".sectionType:gt(0)").remove();
@@ -759,19 +735,6 @@
                 $(this).find("input").val(sjs.index.sectionNames[$(this).index()]);
             });            
         }
-        
-        // Add Shorthand boxes as needed
-        var maps = sjs.index.maps || [];
-        for (var i = 1; i < maps.length; i++) {
-            $("#addShorthand").trigger("click");
-        }
-        
-        // Set content of Shorthands
-        $(".shorthand").each(function(){
-            if (!maps.length) return;
-            $(this).find(".shorthandFrom").val(sjs.index.maps[$(this).index()].from);
-            $(this).find(".shorthandTo").val(sjs.index.maps[$(this).index()].to);
-        });
 
     };
 
@@ -801,21 +764,14 @@
         } else {
             index.categories = (cat == "Other" ? [$("#otherCategory").val()] : (cat ? [cat]: []));
         }
-        var sectionNames = [];
-        $(".sectionType input").each(function() {
-            sectionNames.push($(this).val());
-        });
-        index.sectionNames = sectionNames;
-        var maps = [];
-        $(".shorthand").each(function() {
-            var from = $(this).find(".shorthandFrom").val()
-            var to = $(this).find(".shorthandTo").val()
+        if ($("#textStructureFieldSet").is(":visible")) {
+            var sectionNames = [];
+            $(".sectionType input").each(function() {
+                sectionNames.push($(this).val());
+            });
+            index.sectionNames = sectionNames;
+        }
 
-            if (!from && !to) return;
-            
-            maps.push({"from": from, "to": to});
-        });
-        index.maps = maps;
         return index;
     };
         
@@ -823,7 +779,7 @@
     sjs.validateIndex = function(index) {
 
         if (!index.title) {
-            sjs.alert.message("Please give a text title or commentator name.")
+            sjs.alert.message("Please give a text title or commentator name.");
             return false;
         }
 
@@ -838,7 +794,7 @@
         }
 
         if ("categories" in index && index.categories.length === 0) {
-            sjs.alert.message("Please choose a text category.")
+            sjs.alert.message("Please choose a text category.");
             return false;
         }
 
@@ -848,7 +804,7 @@
         }
 
         if ("categories" in index && index.categories === "locked") {
-            sjs.alert.message("Adding new texts to Tanakh, Mishnah and Talmud is currently locked. Please post to our Forum if you need to add a text to these categories.")
+            sjs.alert.message("Adding new texts to Tanakh, Mishnah and Talmud is currently locked. Please post to our Forum if you need to add a text to these categories.");
             return false;
         }
 
@@ -859,11 +815,11 @@
             }
         }
 
-        if ( index.categories[0] !== "Commentary" ) {
+        if ( index.categories[0] !== "Commentary" && $("#textStructureFieldSet").is(":visible") ) {
             // Commentators don't need text structure specified
 
             if (index.sectionNames.length == 0 || index.sectionNames[0] === "") {
-                sjs.alert.message("Please describe at least one level of text structure.")
+                sjs.alert.message("Please describe at least one level of text structure.");
                 return false;
             }
 
@@ -884,7 +840,7 @@
         }
 
         if (containsHebrew(index.title)) {
-            sjs.alert.message("Please enter a primary title in English. Use the Hebrew Title field to specify a title in Hebrew.")
+            sjs.alert.message("Please enter a primary title in English. Use the Hebrew Title field to specify a title in Hebrew.");
             return false;
         }
 
