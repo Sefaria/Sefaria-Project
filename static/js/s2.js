@@ -3864,14 +3864,15 @@ var VersionBlock = React.createClass({
 
     var s = {
       editing: false,
-      error: null
+      error: null,
+      originalVersionTitle: this.props.version["versionTitle"]
     };
     this.updateableVersionAttributes.forEach(function (attr) {
       return s[attr] = _this2.props.version[attr];
     });
     return s;
   },
-  updateableVersionAttributes: ["versionSource", "versionNotes", "license", "priority", "digitizedBySefaria"],
+  updateableVersionAttributes: ["versionTitle", "versionSource", "versionNotes", "license", "priority", "digitizedBySefaria"],
   licenseMap: {
     "Public Domain": "http://en.wikipedia.org/wiki/Public_domain",
     "CC0": "http://creativecommons.org/publicdomain/zero/1.0/",
@@ -3893,6 +3894,9 @@ var VersionBlock = React.createClass({
   onDigitizedBySefariaChange: function onDigitizedBySefariaChange(event) {
     this.setState({ digitizedBySefaria: event.target.checked, "error": null });
   },
+  onVersionTitleChange: function onVersionTitleChange(event) {
+    this.setState({ versionTitle: event.target.value, "error": null });
+  },
   saveVersionUpdate: function saveVersionUpdate(event) {
     var _this3 = this;
 
@@ -3902,6 +3906,10 @@ var VersionBlock = React.createClass({
     this.updateableVersionAttributes.forEach(function (attr) {
       return payloadVersion[attr] = _this3.state[attr];
     });
+    delete payloadVersion.versionTitle;
+    if (this.state.versionTitle != this.state.originalVersionTitle) {
+      payloadVersion.newVersionTitle = this.state.versionTitle;
+    }
     this.setState({ "error": "Saving.  Page will reload on success." });
     $.ajax({
       url: '/api/version/flags/' + this.props.title + '/' + v.language + '/' + v.versionTitle,
@@ -3941,18 +3949,19 @@ var VersionBlock = React.createClass({
         { className: 'versionBlock' },
         React.createElement(
           'div',
-          { className: 'versionTitle' },
-          v.versionTitle,
-          close_icon
-        ),
-        React.createElement(
-          'div',
           { className: 'error' },
           this.state.error
         ),
         React.createElement(
           'div',
           { className: 'versionEditForm' },
+          React.createElement(
+            'label',
+            { 'for': 'versionTitle', className: '' },
+            'Version Title'
+          ),
+          close_icon,
+          React.createElement('input', { id: 'versionTitle', className: '', type: 'text', value: this.state.versionTitle, onChange: this.onVersionTitleChange }),
           React.createElement(
             'label',
             { 'for': 'versionSource' },
@@ -3989,7 +3998,7 @@ var VersionBlock = React.createClass({
           React.createElement('input', { id: 'priority', className: '', type: 'text', value: this.state.priority, onChange: this.onPriorityChange }),
           React.createElement(
             'label',
-            { 'for': 'versionNotes' },
+            { id: 'versionNotes_label', 'for': 'versionNotes' },
             'VersionNotes'
           ),
           React.createElement('textarea', { id: 'versionNotes', placeholder: 'Version Notes', onChange: this.onVersionNotesChange, value: this.state.versionNotes, rows: '5', cols: '40' }),

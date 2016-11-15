@@ -1017,14 +1017,13 @@ a.resourcesLink {
     width: 100%;
 }
 .readerTextTableOfContents .versionEditForm label {
-  display: block;
+  display: inline-block;
   padding: 10px 10px 0 0;
 }
-.readerTextTableOfContents .versionEditForm label#digitzedBySefaria_label,
-.readerTextTableOfContents .versionEditForm label#license_label,
-.readerTextTableOfContents .versionEditForm label#priority_label {
-  display: inline-block;
+.readerTextTableOfContents .versionEditForm label#versionNotes_label {
+  display: block;
 }
+.readerTextTableOfContents .versionEditForm #versionTitle,
 .readerTextTableOfContents .versionEditForm #versionSource {
   width: 98%;
 }
@@ -1042,7 +1041,8 @@ a.resourcesLink {
   width: 60px;
   color: white;
 }
-.readerTextTableOfContents .versionTitle .fa {
+.readerTextTableOfContents .versionTitle .fa,
+.readerTextTableOfContents .versionEditForm .fa{
   font-size: 10px;
   vertical-align: super;
   margin-left: 3px;

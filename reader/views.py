@@ -1762,13 +1762,13 @@ def lock_text_api(request, title, lang, version):
 @csrf_exempt
 def flag_text_api(request, title, lang, version):
     """
-    API for manipulating attributes of versions
+    API for manipulating attributes of versions.
+    versionTitle changes are handled with an attribute called `newVersionTitle`
 
-    Identifying attributes are not handled:
-        versionTitle, language
-    Non-Identifying attributes are handled :
+    Non-Identifying attributes handled:
         versionSource, versionNotes, license, priority, digitizedBySefaria
 
+    `language` attributes are not handled.
     """
     if not request.user.is_authenticated():
         key = request.POST.get("apikey")
@@ -1785,6 +1785,8 @@ def flag_text_api(request, title, lang, version):
         title   = title.replace("_", " ")
         version = version.replace("_", " ")
         vobj = Version().load({"title": title, "language": lang, "versionTitle": version})
+        if flags.get("newVersionTitle"):
+            vobj.versionTitle = flags.get("newVersionTitle")
         for flag in vobj.optional_attrs:
             if flag in flags:
                 setattr(vobj, flag, flags[flag])
@@ -1797,6 +1799,8 @@ def flag_text_api(request, title, lang, version):
             title   = title.replace("_", " ")
             version = version.replace("_", " ")
             vobj = Version().load({"title": title, "language": lang, "versionTitle": version})
+            if flags.get("newVersionTitle"):
+                vobj.versionTitle = flags.get("newVersionTitle")
             for flag in vobj.optional_attrs:
                 if flag in flags:
                     setattr(vobj, flag, flags[flag])
