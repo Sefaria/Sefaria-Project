@@ -977,29 +977,25 @@ Sefaria = extend(Sefaria, {
     return result;
   },
   _textTocHtml: {},
-  commentaryList: function(title) {
-    // Returns the list of commentaries for 'title' which are found in Sefaria.toc
-      //TODO: this seems to only list titles with "on" in them. Commentary Refactor (e.g. Ralbag Ruth)?
+  commentaryList: function(title, toc) {
+    /** Returns the list of commentaries for 'title' which are found in Sefaria.toc **/
+    var toc = arguments.length <= 1 || arguments[1] === undefined ? Sefaria.util.clone(Sefaria.toc) : arguments[1];
     var index = this.index(title);
     if (!index) { return []; }
-    var cats   = [index.categories[0], "Commentary"];
-    var branch = this.tocItemsByCategories(cats);
-    var commentariesInBranch = function(title, branch) {
-      // Recursively walk a branch of TOC, return a list of all commentaries found on `title`.
-      var results = [];
-      for (var i=0; i < branch.length; i++) {
-        if (branch[i].title) {
-          var split = branch[i].title.split(" on ");
-          if (split.length == 2 && split[1] === title) {
-            results.push(branch[i]);
-          }
-        } else {
-          results = results.concat(commentariesInBranch(title, branch[i].contents));
+    var results = [];
+    for (var i=0; i < toc.length; i++) {
+        var curTocElem = toc[i];
+        if (curTocElem.title) { //this is a book
+            if(curTocElem.dependence == 'Commentary'){
+                if(curTocElem.base_text_titles && Sefaria.util.inArray(title, curTocElem.base_text_titles) != -1){
+                    results.push(curTocElem);
+                }
+            }
+        } else { //this is still a category and might have books under it
+          results = results.concat(Sefaria.commentaryList(title, curTocElem.contents));
         }
-      }
-      return results;
-    };
-    return commentariesInBranch(title, branch);
+    }
+    return results;
   },
   tocItemsByCategories: function(cats) {
     // Returns the TOC items that correspond to the list of categories 'cats'

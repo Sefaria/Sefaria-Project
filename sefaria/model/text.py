@@ -563,7 +563,7 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
             "heTitle": self.get_title("he"),
             "categories": self.categories[:],
             "primary_category" : self.get_primary_category(),
-            "dependence" : self.is_dependant_text(),
+            "dependence" : getattr(self, "dependence", False),
             "firstSection": firstSection.normal() if firstSection else None
         }
         if hasattr(self,"order"):
