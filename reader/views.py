@@ -1270,7 +1270,10 @@ def index_api(request, title, v2=False, raw=False):
     """
     if request.method == "GET":
         try:
-            i = library.get_index(title).contents(v2=v2, raw=raw)
+            if request.GET.get("with_content_counts", False):
+                i = library.get_index(title).contents_with_content_counts()
+            else:
+                i = library.get_index(title).contents(v2=v2, raw=raw)
         except InputError as e:
             node = library.get_schema_node(title)  # If the request were for v1 and fails, this falls back to v2.
             if not node:
