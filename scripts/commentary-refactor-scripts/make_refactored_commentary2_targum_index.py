@@ -23,9 +23,9 @@ for trg in targums:
                 base_books = [trg.title.replace(t[0]+' '+t[1], '')]
             else:
                 base_books = ['Genesis', 'Exodus', 'Leviticus', 'Numbers', 'Deuteronomy']
-    trg.dependence = 'targum'
+    trg.dependence = 'Targum'
     trg.collective_title = collective_title
-    trg.auto_linking_scheme = 'match_base_text_depth'
+    trg.mapping_scheme = 'match_base_text_depth'
     if base_books:
         trg.base_text_titles = base_books
         for b in base_books:
@@ -43,9 +43,9 @@ for com2 in commentary2:
             base_books = [t for t in library.get_indexes_in_category(on_title)]
 
     com2.categories = [com2.categories[1], 'Commentary'] + com2.categories[2:]
-    com2.dependence = 'commentary'
+    com2.dependence = 'Commentary'
     com2.collective_title = com2.categories[2]
-    com2.auto_linking_scheme = None
+    com2.mapping_scheme = None
     if len(base_books):
         com2.base_text_titles = base_books
         other_categories = []

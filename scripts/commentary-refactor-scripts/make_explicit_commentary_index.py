@@ -19,11 +19,11 @@ def make_explicit_commentary_index(title):
         'title': idx.title,
         'categories': [idx.categories[1], idx.categories[0]] + idx.categories[2:],  # the same as the display order
         'schema': idx.schema,
-        'dependence' : 'commentary',
+        'dependence' : 'Commentary',
         'authors' : getattr(idx, "authors", None),
         'base_text_titles': [idx.commentaryBook],
         'collective_title': idx.commentator,
-        'auto_linking_scheme': 'commentary_increment_base_text_depth',
+        'mapping_scheme': 'commentary_increment_base_text_depth',
         'related_categories': other_categories
     }
 

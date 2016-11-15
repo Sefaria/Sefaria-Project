@@ -263,7 +263,7 @@ class AutoLinkerFactory(object):
         CommentaryAutoLinker.class_key           : CommentaryAutoLinker,
         MatchBaseTextDepthAutoLinker.class_key   : MatchBaseTextDepthAutoLinker
     }
-    _key_attr = 'auto_linking_scheme'
+    _key_attr = 'mapping_scheme'
     _default_class = CommentaryAutoLinker
 
     @classmethod

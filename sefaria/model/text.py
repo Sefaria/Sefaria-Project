@@ -206,7 +206,7 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
         "era",
         "dependence", #commentary: to denote commentaries and other potential not standalone texts
         "base_text_titles", #the base book(s) this one is dpenedant on
-        "auto_linking_scheme",
+        "mapping_scheme",
         "collective_title",
         "related_categories"
     ]
@@ -303,7 +303,7 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
             It's left as legacy code to estimate completion on a sparse text.
             Do not write code that depends on it.
         """
-        return getattr(self, 'auto_linking_scheme', None) == 'commentary_increment_base_text_depth'
+        return getattr(self, 'mapping_scheme', None) == 'commentary_increment_base_text_depth'
 
     def is_dependant_text(self):
         return getattr(self, 'dependence', None) is not None
@@ -3638,7 +3638,6 @@ class Library(object):
     def get_content_nodes(self):
         """
         :return: list of all content nodes in the library
-        :param bool with_commentary: If True, returns "X on Y" type titles as well
         """
         nodes = []
         forest = self.get_index_forest()
@@ -3650,7 +3649,6 @@ class Library(object):
     def get_index_forest(self):
         """
         :return: list of root Index nodes.
-        :param bool with_commentary: If True, returns "X on Y" type titles as well
         """
         root_nodes = [i.nodes for i in self._index_map.values()]
         #root_nodes = [i.nodes for i in self.all_index_records()]
@@ -3708,7 +3706,7 @@ class Library(object):
     def get_indexes_in_category(self, category, include_dependant=False, full_records=False):
         """
         :param string category: Name of category
-        :param bool include_commentary: If true includes records of Commentary and Targum
+        :param bool include_dependant: If true includes records of Commentary and Targum
         :param bool full_records: If True will return the actual :class: 'IndexSet' otherwise just the titles
         :return: :class:`IndexSet` of :class:`Index` records in the specified category
         """
@@ -3733,10 +3731,10 @@ class Library(object):
             q = {'dependence': {'$exists': True}}
         if book_title:
             q['base_text_titles'] = book_title
-        if structure_match: #get only indices who's "auto_linking_scheme" is one that indicates it has the same structure as the base
+        if structure_match: #get only indices who's "mapping_scheme" is one that indicates it has the similar underlying schema as the base
             from sefaria.helper.link import AbstractStructureAutoLinker
             from sefaria.utils.util import get_all_subclass_attribute
-            q['auto_linking_scheme'] = {'$in': get_all_subclass_attribute(AbstractStructureAutoLinker, "class_key")}
+            q['mapping_scheme'] = {'$in': get_all_subclass_attribute(AbstractStructureAutoLinker, "class_key")}
         return IndexSet(q) if full_records else IndexSet(q).distinct("title")
 
 
