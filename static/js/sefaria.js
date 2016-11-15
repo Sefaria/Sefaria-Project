@@ -980,7 +980,7 @@ Sefaria = extend(Sefaria, {
   commentaryList: function(title, toc) {
     /** Returns the list of commentaries for 'title' which are found in Sefaria.toc **/
     var toc = arguments.length <= 1 || arguments[1] === undefined ? Sefaria.util.clone(Sefaria.toc) : arguments[1];
-    var index = this.index(title);
+    var index = this.index(title); //TODO: a little bit redundant to do on every recursion
     if (!index) { return []; }
     var results = [];
     for (var i=0; i < toc.length; i++) {
