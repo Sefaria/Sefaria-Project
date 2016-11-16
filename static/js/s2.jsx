@@ -268,10 +268,10 @@ var ReaderApp = React.createClass({
       var indexes = bookNames.map(b => Sefaria.index(b)).filter(i => !!i);
 
       // categories - per text panel
-      var primaryCats = indexes.map(i => (i.categories[0] === "Commentary")? i.categories[1] + " Commentary": i.categories[0]);
+      var primaryCats = indexes.map(i => (i.dependence === "Commentary")? i.categories[0] + " Commentary": i.categories[0]);
       Sefaria.site.track.setPrimaryCategory(primaryCats.join(" | "));
 
-      var secondaryCats = indexes.map(i => (i.categories[0] === "Commentary")?
+      var secondaryCats = indexes.map(i => (i.dependence === "Commentary")?
           ((i.categories.length > 2)?i.categories[2]:""):
           ((i.categories.length > 1)?i.categories[1]:"")
       );
