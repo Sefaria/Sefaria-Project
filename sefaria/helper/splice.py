@@ -14,6 +14,7 @@ class Splicer(object):
         splicer.report()  # optional, to check what it will do
         splicer.execute()
     A merge can be setup with method splice_this_into_next, splice_next_into_this, splice_prev_into_this, or splice_this_into_prev
+    Code wise, this is built from the perspective of merging the second ref into the first, but after numbers get rewritten, it's all equivalent.
 
     Sample usage for inserting a blank segment:
         splicer = Splicer()
@@ -21,7 +22,6 @@ class Splicer(object):
         splicer.report()  # optional, to check what it will do
         splicer.execute()
 
-    Code wise, this is built from the perspective of merging the second ref into the first, but after numbers get rewritten, it's all equivalent.
     """
     def __init__(self):
         self.joiner = u" "
@@ -293,24 +293,6 @@ class Splicer(object):
             if self._save:
                 tc.save()
 
-    """  Logic moved  into _merge_base_text_version_segments
-    def _remove_base_text_version_segments(self, local_ref):
-        assert local_ref.is_segment_level()
-        local_section_ref = local_ref.section_ref()
-        local_segment_number = local_ref.sections[-1]
-
-        # Remove segment from all versions that have it
-        for v in local_section_ref.versionset():
-            tc = TextChunk(local_section_ref, lang=v.language, vtitle=v.versionTitle)
-            if len(tc.text) < local_segment_number:
-                continue
-            tc.text = tc.text[:local_segment_number - 1] + tc.text[local_segment_number:]
-            if self._report:
-                print u"Removing {} ({})".format(local_ref.normal(), v.versionTitle)
-            if self._save:
-                tc.save()
-    """
-
     def _merge_commentary_version_sections(self):
         # Merge comments for all commentary on this text
         for v in self.commentary_versions:
@@ -333,27 +315,6 @@ class Splicer(object):
                 print u"{} ({}) becoming\n{}".format(commentator_segment_ref.normal(), v.versionTitle, u" | ".join(tc.text[self.first_segment_number - 1]))
             if self._save:
                 tc.save()
-
-    """  Logic moved  into _merge_commentary_version_sections
-    def _remove_commentary_versions_sections(self, local_ref):
-        assert local_ref.is_segment_level()
-        local_section_ref = local_ref.section_ref()
-        local_segment_number = local_ref.sections[-1]
-
-        # Remove segment from all commentary on this text
-        for v in self.commentary_versions:
-            assert isinstance(v, Version)
-            commentator_chapter_ref = Ref(v.title).subref(local_section_ref.sections)
-            commentator_line_ref = Ref(v.title).subref(local_ref.sections)
-            tc = TextChunk(commentator_chapter_ref, lang=v.language, vtitle=v.versionTitle)
-            if len(tc.text) < local_segment_number:
-                continue
-            tc.text = tc.text[:local_segment_number - 1] + tc.text[local_segment_number:]
-            if self._report:
-                print u"Removing {} ({})".format(commentator_line_ref.normal(), v.versionTitle)
-            if self._save:
-                tc.save()
-    """
 
     def _needs_rewrite(self, old_ref, commentary=False):
         # There is no difference here between join and insert - anything after first_ref needs to be rewritten
