@@ -3231,12 +3231,14 @@ var VersionBlock = React.createClass({
   getInitialState: function() {
     var s = {
       editing: false,
-      error: null
+      error: null,
+      originalVersionTitle: this.props.version["versionTitle"]
     };
     this.updateableVersionAttributes.forEach(attr => s[attr] = this.props.version[attr]);
     return s;
   },
   updateableVersionAttributes: [
+    "versionTitle",
     "versionSource",
     "versionNotes",
     "license",
@@ -3264,11 +3266,18 @@ var VersionBlock = React.createClass({
   onDigitizedBySefariaChange: function(event) {
     this.setState({digitizedBySefaria: event.target.checked, "error": null});
   },
+  onVersionTitleChange: function(event) {
+    this.setState({versionTitle: event.target.value, "error": null});
+  },
   saveVersionUpdate: function(event) {
     var v = this.props.version;
 
     var payloadVersion = {};
     this.updateableVersionAttributes.forEach(attr => payloadVersion[attr] = this.state[attr]);
+    delete payloadVersion.versionTitle;
+    if (this.state.versionTitle != this.state.originalVersionTitle) {
+      payloadVersion.newVersionTitle = this.state.versionTitle;
+    }
     this.setState({"error": "Saving.  Page will reload on success."});
     $.ajax({
       url: `/api/version/flags/${this.props.title}/${v.language}/${v.versionTitle}`,
@@ -3305,12 +3314,12 @@ var VersionBlock = React.createClass({
 
       return (
         <div className = "versionBlock">
-          <div className="versionTitle">
-            {v.versionTitle}
-            {close_icon}
-          </div>
           <div className="error">{this.state.error}</div>
           <div className="versionEditForm">
+
+            <label for="versionTitle" className="">Version Title</label>
+            {close_icon}
+            <input id="versionTitle" className="" type="text" value={this.state.versionTitle} onChange={this.onVersionTitleChange} />
 
             <label for="versionSource">Version Source</label>
             <input id="versionSource" className="" type="text" value={this.state.versionSource} onChange={this.onVersionSourceChange} />
@@ -3326,7 +3335,7 @@ var VersionBlock = React.createClass({
             <label id="priority_label" for="priority">Priority</label>
             <input id="priority" className="" type="text" value={this.state.priority} onChange={this.onPriorityChange} />
 
-            <label for="versionNotes">VersionNotes</label>
+            <label id="versionNotes_label" for="versionNotes">VersionNotes</label>
             <textarea id="versionNotes" placeholder="Version Notes" onChange={this.onVersionNotesChange} value={this.state.versionNotes} rows="5" cols="40"/>
 
             <div id="save_button" onClick={this.saveVersionUpdate}>SAVE</div>
