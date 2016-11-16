@@ -206,7 +206,7 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
         "era",
         "dependence", #commentary: to denote commentaries and other potential not standalone texts
         "base_text_titles", #the base book(s) this one is dpenedant on
-        "mapping_scheme",
+        "base_text_mapping",
         "collective_title",
         "related_categories"
     ]
@@ -303,7 +303,7 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
             It's left as legacy code to estimate completion on a sparse text.
             Do not write code that depends on it.
         """
-        return getattr(self, 'mapping_scheme', None) == 'commentary_increment_base_text_depth'
+        return getattr(self, 'base_text_mapping', None) == 'commentary_increment_base_text_depth'
 
     def is_dependant_text(self):
         return getattr(self, 'dependence', None) is not None
@@ -573,6 +573,8 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
             toc_contents_dict["heCommentator"] = hebrew_term(self.collective_title)
         if hasattr(self, 'base_text_titles'):
             toc_contents_dict["base_text_titles"] = self.base_text_titles
+        if hasattr(self, 'base_text_mapping'):
+            toc_contents_dict["base_text_mapping"] = self.base_text_titles
 
         return toc_contents_dict
 
@@ -3289,12 +3291,12 @@ class Ref(object):
     def autolinker(self, **kwargs):
         """
         Returns the class best suited to perform auto linking,
-        according to the "mapping_scheme" attr on the Index record.
+        according to the "base_text_mapping" attr on the Index record.
         :return:
         """
         from sefaria.helper.link import AutoLinkerFactory
-        if self.is_dependant() and getattr(self.index, 'mapping_scheme', None):
-            return AutoLinkerFactory.instance_factory(self.index.mapping_scheme, self, **kwargs)
+        if self.is_dependant() and getattr(self.index, 'base_text_mapping', None):
+            return AutoLinkerFactory.instance_factory(self.index.base_text_mapping, self, **kwargs)
         else:
             return None
 
@@ -3731,10 +3733,10 @@ class Library(object):
             q = {'dependence': {'$exists': True}}
         if book_title:
             q['base_text_titles'] = book_title
-        if structure_match: #get only indices who's "mapping_scheme" is one that indicates it has the similar underlying schema as the base
+        if structure_match: #get only indices who's "base_text_mapping" is one that indicates it has the similar underlying schema as the base
             from sefaria.helper.link import AbstractStructureAutoLinker
             from sefaria.utils.util import get_all_subclass_attribute
-            q['mapping_scheme'] = {'$in': get_all_subclass_attribute(AbstractStructureAutoLinker, "class_key")}
+            q['base_text_mapping'] = {'$in': get_all_subclass_attribute(AbstractStructureAutoLinker, "class_key")}
         return IndexSet(q) if full_records else IndexSet(q).distinct("title")
 
 

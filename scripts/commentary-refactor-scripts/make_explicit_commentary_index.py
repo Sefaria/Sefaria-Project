@@ -23,7 +23,7 @@ def make_explicit_commentary_index(title):
         'authors' : getattr(idx, "authors", None),
         'base_text_titles': [idx.commentaryBook],
         'collective_title': idx.commentator,
-        'mapping_scheme': 'commentary_increment_base_text_depth',
+        'base_text_mapping': 'commentary_increment_base_text_depth',
         'related_categories': other_categories
     }
 

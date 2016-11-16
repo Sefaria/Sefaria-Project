@@ -79,7 +79,7 @@ def correct_commentary_links(oref, text=None, **kwargs):
     return fixed_links
 
 old_style_commentary_texts = IndexSet({'dependence' : 'Commentary',
-                             'mapping_scheme': 'commentary_increment_base_text_depth'}).distinct("title")
+                             'base_text_mapping': 'commentary_increment_base_text_depth'}).distinct("title")
 for c in old_style_commentary_texts:
     print c
     rf = Ref(c)
