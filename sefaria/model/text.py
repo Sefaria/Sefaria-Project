@@ -574,7 +574,7 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
         if hasattr(self, 'base_text_titles'):
             toc_contents_dict["base_text_titles"] = self.base_text_titles
         if hasattr(self, 'base_text_mapping'):
-            toc_contents_dict["base_text_mapping"] = self.base_text_titles
+            toc_contents_dict["base_text_mapping"] = self.base_text_mapping
 
         return toc_contents_dict
 
