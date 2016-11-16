@@ -4,12 +4,94 @@ from sefaria.search import delete_text, index_text
 from sefaria.sheets import get_sheets_for_ref, get_sheet, save_sheet
 from sefaria.system.database import db
 
-class Splicer(object):
+
+class AbstractSplicer(object):
+    ### Execution Methods ####
+
+    def __init__(self):
+        self._report = False
+        self._report_error = False
+        self._save = False
+        self._save_text_only = False
+        self._executed = False
+        self._ready = False
+        self._mode = None   # "join" or "insert"  # or "page"?
+        self._rebuild_toc = True
+        self._refresh_states = True
+
+        self.book_ref = None
+        self.index = None
+        self.versionSet = None
+        self.commentary_titles = None
+        self.commentary_versions = None
+
+        self.joiner = u" "
+
+    def report(self):
+        """
+        Report what the splicer will do, but don't make any changes.
+        :return:
+        """
+        if self._executed:
+            print "Already executed"
+            return
+        if not self._ready:
+            print "No job given to Splicer"
+            return
+        self._report = True
+        self._save = False
+        self._run()
+        self._report = False
+
+    def bulk_mode(self):
+        #self._save_text_only = True  # debug
+        self._rebuild_toc = False  # debug/time
+        self._refresh_states = False
+        return self
+
+    def execute(self):
+        """
+        Execute the splice.
+        :return:
+        """
+        if self._executed:
+            print "Already executed"
+            return
+        if not self._ready:
+            print "No job given to Splicer"
+            return
+        self._save = True
+        self._report = True
+        self._run()
+        if self._refresh_states:
+            self.refresh_states()
+        if self._rebuild_toc:
+            self._update_summaries()
+        self._executed = True
+
+
+    def refresh_states(self):
+        # Refresh the version state of main text and commentary
+        print u"\n*** Refreshing States"
+        VersionState(self.index).refresh()
+        for vt in self.commentary_titles:
+            VersionState(vt).refresh()
+
+    def _update_summaries(self):
+        library.update_index_in_toc(self.index.title)
+        for vt in self.commentary_titles:
+            library.update_index_in_toc(vt)
+
+    def _run(self):
+        pass
+
+
+class SegmentSplicer(AbstractSplicer):
     """
     Tool for either merging two segments together, or inserting a new segment.
 
     Sample usage for merge:
-        splicer = Splicer()
+        splicer = SegmentSplicer()
         splicer.splice_this_into_next(Ref("Shabbat 7b:11"))
         splicer.report()  # optional, to check what it will do
         splicer.execute()
@@ -17,39 +99,26 @@ class Splicer(object):
     Code wise, this is built from the perspective of merging the second ref into the first, but after numbers get rewritten, it's all equivalent.
 
     Sample usage for inserting a blank segment:
-        splicer = Splicer()
+        splicer = SegmentSplicer()
         splicer.insert_blank_segment_after(Ref("Shabbat 7b:11"))
         splicer.report()  # optional, to check what it will do
         splicer.execute()
 
     """
     def __init__(self):
-        self.joiner = u" "
+        super(SegmentSplicer, self).__init__()
         self.first_ref = None # In insert mode, this is the ref to insert after
         self.second_ref = None
         self.section_ref = None
-        self.book_ref = None
-        self.index = None
         self.first_segment_number = None   # In insert mode, this is the segment to insert after
         self.second_segment_number = None  # In insert mode, this is the segment inserted.
         self.comment_section_lengths = None
-        self.commentary_titles = None
-        self.commentary_versions = None
-        self.versionSet = None
+
         self.last_segment_number = None
         self.last_segment_ref = None
         self._base_links_to_rewrite = []
         self._commentary_links_to_rewrite = []
-        self._report = False
-        self._report_error = False
-        self._save = False
-        self._save_text_only = False
-        self._executed = False
-        self._ready = False
-        self._mode = None   # "join" or "insert"
         self._sheets_to_update = []
-        self._rebuild_toc = True
-        self._refresh_states = True
 
     ####  Setup methods ####
 
@@ -104,7 +173,7 @@ class Splicer(object):
         self.index = self.book_ref.index
         self.commentary_titles = library.get_commentary_version_titles_on_book(self.first_ref.index.title)
         self.commentary_versions = library.get_commentary_versions_on_book(self.first_ref.index.title)
-        self.versionSet = VersionSet({"title": self.first_ref.index.title})
+        self.versionSet = VersionSet({"title": self.index.title})
         self.last_segment_number = len(self.section_ref.get_state_ja().subarray_with_ref(self.section_ref))
         self.last_segment_ref = self.section_ref.subref(self.last_segment_number)
 
@@ -125,54 +194,10 @@ class Splicer(object):
             ret[vtitle] = len(commentator_segment_ref.get_state_ja().subarray_with_ref(commentator_segment_ref))
         return ret
 
-    ### Execution Methods ####
-
-    def report(self):
-        """
-        Report what the splicer will do, but don't make any changes.
-        :return:
-        """
-        if self._executed:
-            print "Already executed"
-            return
-        if not self._ready:
-            print "No job given to Splicer"
-            return
-        self._report = True
-        self._save = False
-        self._run()
-        self._report = False
-
-    def bulk_mode(self):
-        #self._save_text_only = True  # debug
-        self._rebuild_toc = False  # debug/time
-        self._refresh_states = False
-        return self
-
-    def execute(self):
-        """
-        Execute the splice.
-        :return:
-        """
-        if self._executed:
-            print "Already executed"
-            return
-        if not self._ready:
-            print "No job given to Splicer"
-            return
-        self._save = True
-        self._report = True
-        self._run()
-        if self._refresh_states:
-            self.refresh_states()
-        if self._rebuild_toc:
-            self._update_summaries()
-        self._executed = True
-
     ### Internal Methods ###
     def _run(self):
         if self._report:
-            print u"\n----\n*** Running Splicer in {} mode.\nFirst Ref: {}".format(self._mode, self.first_ref.normal())
+            print u"\n----\n*** Running SegmentSplicer in {} mode.\nFirst Ref: {}".format(self._mode, self.first_ref.normal())
 
         if self._mode == "join":
             print u"\n*** Merging Base Text and removing segment"
@@ -559,20 +584,12 @@ class Splicer(object):
                             if self._save:
                                 delete_text(comment_ref, v.versionTitle, v.language)
 
-    def refresh_states(self):
-        # Refresh the version state of main text and commentary
-        print u"\n*** Refreshing States"
-        VersionState(self.first_ref.index).refresh()
-        for vt in self.commentary_titles:
-            VersionState(vt).refresh()
-
-    def _update_summaries(self):
-        library.update_index_in_toc(self.first_ref.index.title)
-        for vt in self.commentary_titles:
-            library.update_index_in_toc(vt)
-
     def __eq__(self, other):
         return self._mode == other._mode and self.first_ref == other.first_ref and self.second_ref == other.second_ref
 
     def __ne__(self, other):
         return not self.__eq__(other)
+
+
+class SectionSplicer(AbstractSplicer):
+    pass

@@ -443,7 +443,7 @@ def cascade(ref_identifier, rewriter=lambda x: x, needs_rewrite=lambda x: True):
         Generic routine to take any derivative of AbstractMongoSet and update the fields outlined by attr_name using
         the callback function rewriter.
 
-        This routine is heavily inspired by Splicer._generic_set_rewrite
+        This routine is heavily inspired by SegmentSplicer._generic_set_rewrite
         :param model_set: Derivative of AbstractMongoSet
         :param attr_name: name of attribute to update
         :param sub_attr_name: Use to update nested attributes
