@@ -3,7 +3,7 @@ from sefaria.system.exceptions import InputError
 from sefaria.search import delete_text, index_text
 from sefaria.sheets import get_sheets_for_ref, get_sheet, save_sheet
 from sefaria.system.database import db
-
+import regex as re
 
 class AbstractSplicer(object):
     ### Execution Methods ####
@@ -15,7 +15,7 @@ class AbstractSplicer(object):
         self._save_text_only = False
         self._executed = False
         self._ready = False
-        self._mode = None   # "join" or "insert"  # or "page"?
+        self._mode = None
         self._rebuild_toc = True
         self._refresh_states = True
 
@@ -36,7 +36,7 @@ class AbstractSplicer(object):
             print "Already executed"
             return
         if not self._ready:
-            print "No job given to Splicer"
+            print "No complete job given to Splicer"
             return
         self._report = True
         self._save = False
@@ -58,7 +58,7 @@ class AbstractSplicer(object):
             print "Already executed"
             return
         if not self._ready:
-            print "No job given to Splicer"
+            print "No complete job given to Splicer"
             return
         self._save = True
         self._report = True
@@ -68,7 +68,6 @@ class AbstractSplicer(object):
         if self._rebuild_toc:
             self._update_summaries()
         self._executed = True
-
 
     def refresh_states(self):
         # Refresh the version state of main text and commentary
@@ -90,7 +89,7 @@ class SegmentSplicer(AbstractSplicer):
     """
     Tool for either merging two segments together, or inserting a new segment.
 
-    Sample usage for merge:
+    Sample usage for merge: (self._mode = "join")
         splicer = SegmentSplicer()
         splicer.splice_this_into_next(Ref("Shabbat 7b:11"))
         splicer.report()  # optional, to check what it will do
@@ -98,7 +97,7 @@ class SegmentSplicer(AbstractSplicer):
     A merge can be setup with method splice_this_into_next, splice_next_into_this, splice_prev_into_this, or splice_this_into_prev
     Code wise, this is built from the perspective of merging the second ref into the first, but after numbers get rewritten, it's all equivalent.
 
-    Sample usage for inserting a blank segment:
+    Sample usage for inserting a blank segment: (self._mode = "insert")
         splicer = SegmentSplicer()
         splicer.insert_blank_segment_after(Ref("Shabbat 7b:11"))
         splicer.report()  # optional, to check what it will do
@@ -591,5 +590,169 @@ class SegmentSplicer(AbstractSplicer):
         return not self.__eq__(other)
 
 
+class SegmentMap(object):
+    """
+    Order of args is a bit unintuitive
+    """
+    def __init__(self, start_ref, end_ref, start_word=None, end_word=None):
+        assert start_ref.is_segment_level()
+        assert not start_ref.is_range()
+        assert end_ref.is_segment_level()
+        assert not end_ref.is_range()
+        assert end_ref.follows(start_ref)
+        self.start_ref = start_ref
+        self.end_ref = end_ref
+        self.start_word = start_word
+        self.end_word = end_word
+
+    def immediately_follows(self, other):
+        if not other.end_word and not self.start_word and self.start_ref.sections[-1] == other.end_ref.sections[-1] + 1:
+            return True
+        if other.end_word and self.start_word and self.start_word == other.end_word + 1 and self.start_ref == other.end_ref:
+            return True
+        return False
+
+    @staticmethod
+    def _get_partial_text(ref, start_word=None, end_word=None, lang="he", vtitle=None, tokenizer=None):
+        """
+
+        :param ref:
+        :param start_word: inclusive, None means beginning
+        :param end_word: inclusive, None means end
+        :param lang:
+        :param vtitle:
+        :param tokenizer:
+        :return:
+        """
+        assert ref.is_segment_level()
+
+        tokenizer = tokenizer or (lambda s: re.split("\s+", s))
+
+        t = TextChunk(ref, lang, vtitle).text
+        if not start_word and not end_word:
+            return t
+
+        return u" ".join(tokenizer(t)[start_word and start_word - 1: end_word])
+
+
+
 class SectionSplicer(AbstractSplicer):
-    pass
+    """
+    splicer = SectionSplicer()
+    splicer.set_section("Shabbat 2b")
+    splicer.set_segment_map(Ref("Shabbat 2b:1"), Ref("Shabbat 2b:4"))
+    splicer.set_segment_map(Ref("Shabbat 2b:5"), Ref("Shabbat 2b:8"), end_word = 4)
+    splicer.set_segment_map(Ref("Shabbat 2b:8"), Ref("Shabbat 2b:12"), start_word = 5)
+    splicer.report()  # optional, to check what it will do
+    splicer.execute()
+
+    There is only one mode.  self._mode is not used.
+
+    """
+    def __init__(self):
+        super(SectionSplicer, self).__init__()
+        self.section_ref = None
+        self.last_segment_ref = None
+        self.segment_maps = []         # List of SegmentMap objects
+
+    def set_section(self, ref):
+        assert ref.is_section_level()
+        assert not ref.is_range()
+        assert not ref.is_commentary()
+
+        self.section_ref = ref
+        self.last_segment_ref = ref.last_segment_ref()
+        return self
+
+    def set_segment_map(self, start_ref, end_ref, start_word=None, end_word=None):
+        assert self.section_ref, "Please call set_section() before calling set_segment_map()"
+        assert start_ref.section_ref() == self.section_ref()
+        assert end_ref.section_ref() == self.section_ref()
+
+        sm = SegmentMap(start_ref, end_ref, start_word=None, end_word=None)
+        if len(self.segment_maps):
+            assert sm.immediately_follows(self.segment_maps[-1])
+        self.segment_maps += [sm]
+
+        if end_ref == self.last_segment_ref:
+            self._ready = True
+
+    def run(self):
+        if self._report:
+            print u"\n----\n*** Running SectionSplicer on {}\n".format(self.section_ref.normal())
+
+        print u"\n*** Merging Base Text"
+        self._merge_base_text_version_segments()
+
+        print u"\n*** Merging Commentary Text"
+        self._merge_commentary_version_sections()
+
+        # For all of the below -
+        # It takes longer, but we start at the base text, so as not to miss any ranged refs
+        """
+        if not self._save_text_only:
+            # Rewrite links to base text (including links from own commentary)
+            print u"\n*** Rewriting Refs to Base Text"
+            print u"\n*** Rewriting Links"
+            self._generic_set_rewrite(LinkSet(self.section_ref), ref_attr_name="refs", is_set=True)
+
+            # Note refs
+            print u"\n*** Rewriting Note Refs"
+            self._generic_set_rewrite(NoteSet({"ref": {"$regex": self.section_ref.regex()}}))
+
+            # Translation requests
+            print u"\n*** Rewriting Translation Request Refs"
+            self._generic_set_rewrite(TranslationRequestSet({"ref": {"$regex": self.section_ref.regex()}}))
+
+            # History
+            # these can be made faster by splitting up the regex
+            print u"\n*** Rewriting History Refs"
+            self._generic_set_rewrite(HistorySet({"ref": {"$regex": self.section_ref.regex()}}))
+            self._generic_set_rewrite(HistorySet({"new.ref": {"$regex": self.section_ref.regex()}}), ref_attr_name="new",
+                                      sub_ref_attr_name="ref")
+            self._generic_set_rewrite(HistorySet({"new.refs": {"$regex": self.section_ref.regex()}}), ref_attr_name="new",
+                                      sub_ref_attr_name="refs", is_set=True)
+            self._generic_set_rewrite(HistorySet({"old.ref": {"$regex": self.section_ref.regex()}}), ref_attr_name="old",
+                                      sub_ref_attr_name="ref")
+            self._generic_set_rewrite(HistorySet({"old.refs": {"$regex": self.section_ref.regex()}}), ref_attr_name="old",
+                                      sub_ref_attr_name="refs", is_set=True)
+
+            print u"\n*** Rewriting Refs to Commentary"
+            for commentary_title in self.commentary_titles:
+                commentator_chapter_ref = Ref(commentary_title).subref(self.section_ref.sections)
+                # Rewrite links to commentary (including to base text)
+                print u"\n*** {}".format(commentator_chapter_ref.normal())
+                print u"\n*** Rewriting Links"
+                self._generic_set_rewrite(LinkSet(commentator_chapter_ref), ref_attr_name="refs", is_set=True,
+                                          commentary=True)
+                print u"\n*** Rewriting Note Refs"
+                self._generic_set_rewrite(NoteSet({"ref": {"$regex": commentator_chapter_ref.regex()}}), commentary=True)
+                print u"\n*** Rewriting Translation Request Refs"
+                self._generic_set_rewrite(TranslationRequestSet({"ref": {"$regex": commentator_chapter_ref.regex()}}),
+                                          commentary=True)
+
+                # History?
+                # these can be made faster by splitting up the regex
+                print u"\n*** Rewriting History Refs"
+                self._generic_set_rewrite(HistorySet({"ref": {"$regex": commentator_chapter_ref.regex()}}), commentary=True)
+                self._generic_set_rewrite(HistorySet({"new.ref": {"$regex": commentator_chapter_ref.regex()}}),
+                                          ref_attr_name="new", sub_ref_attr_name="ref", commentary=True)
+                self._generic_set_rewrite(HistorySet({"new.refs": {"$regex": commentator_chapter_ref.regex()}}),
+                                          ref_attr_name="new", sub_ref_attr_name="refs", is_set=True, commentary=True)
+                self._generic_set_rewrite(HistorySet({"old.ref": {"$regex": commentator_chapter_ref.regex()}}),
+                                          ref_attr_name="old", sub_ref_attr_name="ref", commentary=True)
+                self._generic_set_rewrite(HistorySet({"old.refs": {"$regex": commentator_chapter_ref.regex()}}),
+                                          ref_attr_name="old", sub_ref_attr_name="refs", is_set=True, commentary=True)
+
+            # Source sheet refs
+            print u"\n*** Rewriting Source Sheet Refs"
+            self._find_sheets()
+            self._clean_sheets()
+
+            # alt structs?
+            print u"\n*** Rewriting Alt Struct Refs"
+            self._rewrite_alt_structs()
+
+            print u"\n*** Pushing changes to Elastic Search"
+            self._clean_elastisearch()
+            """
