@@ -7,8 +7,11 @@ import sefaria.tracker as tracker
 patterns = [
     u"כתרגומו",
     u"ותרגומו",
+    u"תרגומו",
     u"וזהו שתרגם אונקלוס",
-    u"לכך מתרגם"
+    u"אונקלוס",
+    u"לכך מתרגם",
+    u"מתרגם"
 ]
 
 books = [
@@ -27,18 +30,18 @@ for book in books:
         rashi = strip_nikkud(TextChunk(rashi_ref, "he", "On Your Way").text)
 
         # If it matches the pattern
-        if any([pat in rashi for pat in patterns]):
-            onkelos_ref = Ref(rashi_ref.section_ref().normal().replace(rashi_book, onkelos_book))
-
-            d = {
-                "refs": [rashi_ref.normal(), onkelos_ref.normal()],
-                "type": "reference",
-                "auto": True,
-                "generated_by": "Rashi - Onkelos Linker"
-            }
-            tracker.add(28, Link, d)
-            # print rashi
-            print u"{} {}".format(rashi_ref.normal(), onkelos_ref.normal())
-            total += 1
+        for pat in patterns:
+            if pat in rashi:
+                onkelos_ref = Ref(rashi_ref.section_ref().normal().replace(rashi_book, onkelos_book))
+                d = {
+                    "refs": [rashi_ref.normal(), onkelos_ref.normal()],
+                    "type": "reference",
+                    "auto": True,
+                    "generated_by": "Rashi - Onkelos Linker"
+                }
+                tracker.add(28, Link, d)
+                print u"{}\t{}\t{}".format(rashi_ref.normal(), pat, rashi.strip())
+                total += 1
+                break
 
 print "\nLinks: {}".format(total)
