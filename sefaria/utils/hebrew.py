@@ -254,6 +254,62 @@ def sanitize(input_string, punctuation=True):
 	return input_string
 
 
+def decompose_presentation_forms(orig_char):
+	decomp_map = {u'יִ': u'\u05d9\u05b4',
+		u'ﬞ ' : u'\u05bf',
+		u'ײַ': u'\u05f2\u05b7',
+		u'ﬠ': u'\u05e2',
+		u'ﬡ': u'\u05d0',
+		u'ﬢ': u'\u05d3',
+		u'ﬣ': u'\u05d4',
+		u'ﬤ': u'\u05db',
+		u'ﬥ': u'\u05dc',
+		u'ﬦ': u'\u05dd',
+		u'ﬧ': u'\u05e8',
+		u'ﬨ': u'\u05ea',
+		u'שׁ': u'\u05e9\u05c1',
+		u'שׂ': u'\u05e9\u05c2',
+		u'שּׁ': u'\u05e9\u05bc\u05c1',
+		u'שּׂ': u'\u05e9\u05bc\u05c2',
+		u'אַ': u'\u05d0\u05b7',
+		u'אָ': u'\u05d0\u05b8',
+		u'אּ': u'\u05d0\u05bc',
+		u'בּ': u'\u05d1\u05bc',
+		u'גּ': u'\u05d2\u05bc',
+		u'דּ': u'\u05d3\u05bc',
+		u'הּ': u'\u05d4\u05bc',
+		u'וּ': u'\u05d5\u05bc',
+		u'זּ': u'\u05d6\u05bc',
+		u'טּ': u'\u05d8\u05bc',
+		u'יּ': u'\u05d9\u05bc',
+		u'ךּ': u'\u05da\u05bc',
+		u'כּ': u'\u05db\u05bc',
+		u'לּ': u'\u05dc\u05bc',
+		u'מּ': u'\u05de\u05bc',
+		u'נּ': u'\u05e0\u05bc',
+		u'סּ': u'\u05e1\u05bc',
+		u'ףּ': u'\u05e3\u05bc',
+		u'פּ': u'\u05e4\u05bc',
+		u'צּ': u'\u05e6\u05bc',
+		u'קּ': u'\u05e7\u05bc',
+		u'רּ': u'\u05e8\u05bc',
+		u'שּ': u'\u05e9\u05bc',
+		u'תּ': u'\u05ea\u05bc',
+		u'וֹ': u'\u05d5\u05b9',
+		u'בֿ': u'\u05d1\u05bf',
+		u'כֿ': u'\u05db\u05bf',
+		u'פֿ': u'\u05e4\u05bf',
+		u'ﭏ': u'\u05d0\u05dc'
+	}
+	if isinstance(orig_char, str): #needs to be unicode
+		orig_char = unicode(orig_char, 'utf-8')
+	return decomp_map.get(orig_char, u'')
+
+def decompose_presentation_forms_in_str(orig_str):
+	return re.sub(ur"[\uFB1D-\uFB4F]", lambda x: decompose_presentation_forms(x.group(0)) ,orig_str)
+
+
+
 def encode_small_hebrew_numeral(n):
 	"""
 	Takes an integer under 1200 and returns a string encoding it as a Hebrew numeral.
