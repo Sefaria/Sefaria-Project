@@ -6,7 +6,6 @@ from sefaria.system.database import db
 import regex as re
 
 class AbstractSplicer(object):
-    ### Execution Methods ####
 
     def __init__(self):
         self._report = False
@@ -170,8 +169,8 @@ class SegmentSplicer(AbstractSplicer):
         self.section_ref = self.first_ref.section_ref()
         self.book_ref = self.first_ref.context_ref(self.first_ref.index_node.depth)
         self.index = self.book_ref.index
-        self.commentary_titles = library.get_commentary_version_titles_on_book(self.first_ref.index.title)
-        self.commentary_versions = library.get_commentary_versions_on_book(self.first_ref.index.title)
+        self.commentary_titles = library.get_commentary_version_titles_on_book(self.index.title)
+        self.commentary_versions = library.get_commentary_versions_on_book(self.index.title)
         self.versionSet = VersionSet({"title": self.index.title})
         self.last_segment_number = len(self.section_ref.get_state_ja().subarray_with_ref(self.section_ref))
         self.last_segment_ref = self.section_ref.subref(self.last_segment_number)
@@ -604,6 +603,13 @@ class SegmentMap(object):
         self.end_ref = end_ref
         self.start_word = start_word
         self.end_word = end_word
+        self.joiner = u" "
+        self.tokenizer = lambda s: re.split("\s+", s)
+
+        # todo: this is only thought out for base text case...
+        self.first_segment_index = self.start_ref.sections[-1] - 1
+        self.last_segment_index = self.end_ref.sections[-1] - 1
+
 
     def immediately_follows(self, other):
         if not other.end_word and not self.start_word and self.start_ref.sections[-1] == other.end_ref.sections[-1] + 1:
@@ -612,27 +618,32 @@ class SegmentMap(object):
             return True
         return False
 
-    @staticmethod
-    def _get_partial_text(ref, start_word=None, end_word=None, lang="he", vtitle=None, tokenizer=None):
-        """
+    def get_text(self, current_text_chunk):
 
-        :param ref:
-        :param start_word: inclusive, None means beginning
-        :param end_word: inclusive, None means end
-        :param lang:
-        :param vtitle:
-        :param tokenizer:
+        #todo: this is only for base text case...and even that, only w/ the single version that was the measuring stick for words.
+        new_text_list = [self._get_partial_text(current_text_chunk, self.first_segment_index, start_word=self.start_word)
+                          if self.start_word
+                          else current_text_chunk.text[self.first_segment_index]]
+        new_text_list += current_text_chunk.text[self.first_segment_index + 1:self.last_segment_index]
+        new_text_list += [self._get_partial_text(current_text_chunk, self.last_segment_index, end_word=self.end_word)
+                          if self.end_word
+                          else current_text_chunk.text[self.last_segment_index]]
+
+
+        return self.joiner.join(new_text_list)
+
+
+
+    def _get_partial_text(self, section_text_chunk, segment_index, start_word=None, end_word=None):
+        """
+        Returns partial segment string, based on starting and ending words specified.
+        :param section_text_chunk:
+        :param segment_index:
+        :param start_word:
+        :param end_word:
         :return:
         """
-        assert ref.is_segment_level()
-
-        tokenizer = tokenizer or (lambda s: re.split("\s+", s))
-
-        t = TextChunk(ref, lang, vtitle).text
-        if not start_word and not end_word:
-            return t
-
-        return u" ".join(tokenizer(t)[start_word and start_word - 1: end_word])
+        return self.joiner.join(self.tokenizer(section_text_chunk.text[segment_index])[start_word and start_word - 1: end_word])
 
 
 
@@ -662,6 +673,10 @@ class SectionSplicer(AbstractSplicer):
 
         self.section_ref = ref
         self.last_segment_ref = ref.last_segment_ref()
+        self.index = ref.index
+        self.commentary_titles = library.get_commentary_version_titles_on_book(self.index.title)
+        self.commentary_versions = library.get_commentary_versions_on_book(self.index.title)
+        self.versionSet = VersionSet({"title": self.index.title})
         return self
 
     def set_segment_map(self, start_ref, end_ref, start_word=None, end_word=None):
@@ -674,8 +689,21 @@ class SectionSplicer(AbstractSplicer):
             assert sm.immediately_follows(self.segment_maps[-1])
         self.segment_maps += [sm]
 
-        if end_ref == self.last_segment_ref:
+        if end_ref == self.last_segment_ref and not end_word:
+            # If we want to review the complete collection of segments before processing, here's the place.
             self._ready = True
+
+    def _merge_base_text_version_segments(self):
+        # for each version, merge the text
+        for v in self.versionSet:
+            assert isinstance(v, Version)
+            old_length = len(tc.text)
+            tc = TextChunk(self.section_ref, lang=v.language, vtitle=v.versionTitle)
+            tc.text = [seg_map.get_text(tc) for seg_map in self.segment_maps]
+            if self._report:
+                print u"{} {}: Was {} segments.  Now {}.".format(v.versionTitle, self.section_ref.normal(), old_length, len(tc.text))
+            if self._save:
+                tc.save()
 
     def run(self):
         if self._report:
