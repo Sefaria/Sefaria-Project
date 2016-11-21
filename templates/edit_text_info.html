@@ -657,7 +657,7 @@
             if ($(this).val() === "Other") $("#otherCategory").show();
             else $("#otherCategory").hide();
 
-            if ($(this).val() === "Commentary" || !("sectionNames" in sjs.index)) $("#textStructureFieldSet").hide();
+            if ($(this).val() === "Commentary" || (!($("#newIndexMsg").is(":visible")) && !("sectionNames" in sjs.index))) $("#textStructureFieldSet").hide();
             else $("#textStructureFieldSet").show();
         });
 

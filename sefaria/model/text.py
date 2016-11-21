@@ -959,8 +959,11 @@ class Version(abst.AbstractMongoRecord, AbstractTextRecord, AbstractSchemaConten
         return True
 
     def _normalize(self):
-        if getattr(self, "priority", None) is not None:
-            self.priority = float(self.priority)
+        if getattr(self, "priority", None):
+            try:
+                self.priority = float(self.priority)
+            except ValueError as e:
+                self.priority = None
 
     def get_index(self):
         return library.get_index(self.title)

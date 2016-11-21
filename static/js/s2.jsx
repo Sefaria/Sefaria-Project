@@ -3273,7 +3273,11 @@ var VersionBlock = React.createClass({
     var v = this.props.version;
 
     var payloadVersion = {};
-    this.updateableVersionAttributes.forEach(attr => payloadVersion[attr] = this.state[attr]);
+    this.updateableVersionAttributes.forEach(function(attr) {
+      if (this.state[attr] || this.state[attr] != this.props.version[attr]) {
+        payloadVersion[attr] = this.state[attr];
+      }
+    }.bind(this));
     delete payloadVersion.versionTitle;
     if (this.state.versionTitle != this.state.originalVersionTitle) {
       payloadVersion.newVersionTitle = this.state.versionTitle;
