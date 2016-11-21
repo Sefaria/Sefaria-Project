@@ -1,7 +1,7 @@
 import pytest
 
 from sefaria.model import *
-from sefaria.helper.splice import SegmentSplicer, SegmentMap, SectionSplicer
+from sefaria.helper.splice import SegmentSplicer, SegmentMap, SectionSplicer, BlankSegment
 
 
 def test_splice_mode_equivalence():
@@ -147,3 +147,32 @@ class TestSegmentMap(object):
         overlapping_third = SegmentMap(Ref("Shabbat 7a:28"), Ref("Shabbat 7a:28"), start_word=6, end_word=13)
         assert not overlapping_third.immediately_follows(second)
         assert not fourth.immediately_follows(overlapping_third)
+
+
+class TestSegmentMapAdjustment(object):
+    def test_adjustment(self):
+        splicer = SectionSplicer()
+        splicer.set_section(Ref("Shabbat 2b"))
+        splicer.set_segment_map(Ref("Shabbat 2b:1"), Ref("Shabbat 2b:2"))
+        splicer.set_segment_map(Ref("Shabbat 2b:3"), Ref("Shabbat 2b:5"))
+        splicer.set_segment_map(Ref("Shabbat 2b:6"), Ref("Shabbat 2b:12"), end_word=2)
+        splicer.set_segment_map(Ref("Shabbat 2b:12"), Ref("Shabbat 2b:15"), start_word=3, end_word=3)
+        splicer.set_segment_map(Ref("Shabbat 2b:15"), Ref("Shabbat 2b:17"), start_word=4)
+        splicer.set_segment_map(Ref("Shabbat 2b:18"), Ref("Shabbat 2b:18"), end_word=3)
+        splicer.set_segment_map(Ref("Shabbat 2b:18"), Ref("Shabbat 2b:18"), start_word=4, end_word=8)
+        splicer.set_segment_map(Ref("Shabbat 2b:18"), Ref("Shabbat 2b:29"), start_word=9)
+
+        assert len(splicer.adjusted_segment_maps) # Did it derive the new ones?
+
+        target = [
+            SegmentMap(Ref("Shabbat 2b:1"), Ref("Shabbat 2b:2")),
+            SegmentMap(Ref("Shabbat 2b:3"), Ref("Shabbat 2b:5")),
+            SegmentMap(Ref("Shabbat 2b:6"), Ref("Shabbat 2b:12")),
+            SegmentMap(Ref("Shabbat 2b:13"), Ref("Shabbat 2b:15")),
+            SegmentMap(Ref("Shabbat 2b:16"), Ref("Shabbat 2b:17")),
+            SegmentMap(Ref("Shabbat 2b:18"), Ref("Shabbat 2b:18")),
+            BlankSegment(),
+            SegmentMap(Ref("Shabbat 2b:19"), Ref("Shabbat 2b:29")),
+        ]
+
+        assert splicer.adjusted_segment_maps == target
