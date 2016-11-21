@@ -3898,14 +3898,14 @@ var VersionBlock = React.createClass({
     this.setState({ versionTitle: event.target.value, "error": null });
   },
   saveVersionUpdate: function saveVersionUpdate(event) {
-    var _this3 = this;
-
     var v = this.props.version;
 
     var payloadVersion = {};
     this.updateableVersionAttributes.forEach(function (attr) {
-      return payloadVersion[attr] = _this3.state[attr];
-    });
+      if (this.state[attr] || this.state[attr] != this.props.version[attr]) {
+        payloadVersion[attr] = this.state[attr];
+      }
+    }.bind(this));
     delete payloadVersion.versionTitle;
     if (this.state.versionTitle != this.state.originalVersionTitle) {
       payloadVersion.newVersionTitle = this.state.versionTitle;
@@ -4410,7 +4410,7 @@ var SheetsHomePage = React.createClass({
   },
 
   render: function render() {
-    var _this4 = this;
+    var _this3 = this;
 
     var trendingTags = this.getTrendingTagsFromCache();
     var topSheets = this.getTopSheetsFromCache();
@@ -4421,7 +4421,7 @@ var SheetsHomePage = React.createClass({
     }
 
     var makeTagButton = function makeTagButton(tag) {
-      return React.createElement(SheetTagButton, { setSheetTag: _this4.props.setSheetTag, tag: tag.tag, count: tag.count, key: tag.tag });
+      return React.createElement(SheetTagButton, { setSheetTag: _this3.props.setSheetTag, tag: tag.tag, count: tag.count, key: tag.tag });
     };
 
     var trendingTags = trendingTags ? trendingTags.slice(0, 6).map(makeTagButton) : [React.createElement(LoadingMessage, null)];
@@ -4547,13 +4547,13 @@ var SheetsHomePage = React.createClass({
               'div',
               { className: 'type-buttons' },
               this._type_sheet_button("Most Used", "הכי בשימוש", function () {
-                return _this4.changeSort("count");
+                return _this3.changeSort("count");
               }, this.props.tagSort == "count"),
               this._type_sheet_button("Alphabetical", "אלפביתי", function () {
-                return _this4.changeSort("alpha");
+                return _this3.changeSort("alpha");
               }, this.props.tagSort == "alpha"),
               this._type_sheet_button("Trending", "פופולרי", function () {
-                return _this4.changeSort("trending");
+                return _this3.changeSort("trending");
               }, this.props.tagSort == "trending")
             )
           )
@@ -7267,7 +7267,7 @@ var LexiconEntry = React.createClass({
     );
   },
   renderLexiconEntrySenses: function renderLexiconEntrySenses(content) {
-    var _this5 = this;
+    var _this4 = this;
 
     var grammar = 'grammar' in content ? '(' + content['grammar']['verbal_stem'] + ')' : "";
     var def = 'definition' in content ? content['definition'] : "";
@@ -7277,7 +7277,7 @@ var LexiconEntry = React.createClass({
       content['notes']
     ) : "";
     var sensesElems = 'senses' in content ? content['senses'].map(function (sense) {
-      return _this5.renderLexiconEntrySenses(sense);
+      return _this4.renderLexiconEntrySenses(sense);
     }) : "";
     var senses = sensesElems.length ? React.createElement(
       'ol',
@@ -7389,11 +7389,11 @@ var ToolsPanel = React.createClass({
     }.bind(this) : null;
 
     var addTranslation = function () {
-      var _this6 = this;
+      var _this5 = this;
 
       var nextParam = "?next=" + Sefaria.util.currentPath();
       Sefaria.site.track.event("Tools", "Add Translation Click", this.props.srefs[0], { hitCallback: function hitCallback() {
-          return window.location = "/translate/" + _this6.props.srefs[0] + nextParam;
+          return window.location = "/translate/" + _this5.props.srefs[0] + nextParam;
         } });
     }.bind(this);
 
@@ -8191,10 +8191,10 @@ var SearchResultList = React.createClass({
     });
   },
   _abortRunningQueries: function _abortRunningQueries() {
-    var _this7 = this;
+    var _this6 = this;
 
     this.state.types.forEach(function (t) {
-      return _this7._abortRunningQuery(t);
+      return _this6._abortRunningQuery(t);
     });
   },
   _abortRunningQuery: function _abortRunningQuery(type) {
@@ -8377,18 +8377,18 @@ var SearchResultList = React.createClass({
     return newHits;
   },
   _buildFilterTree: function _buildFilterTree(aggregation_buckets) {
-    var _this8 = this;
+    var _this7 = this;
 
     //returns object w/ keys 'availableFilters', 'registry'
     //Add already applied filters w/ empty doc count?
     var rawTree = {};
 
     this.props.appliedFilters.forEach(function (fkey) {
-      return _this8._addAvailableFilter(rawTree, fkey, { "docCount": 0 });
+      return _this7._addAvailableFilter(rawTree, fkey, { "docCount": 0 });
     });
 
     aggregation_buckets.forEach(function (f) {
-      return _this8._addAvailableFilter(rawTree, f["key"], { "docCount": f["doc_count"] });
+      return _this7._addAvailableFilter(rawTree, f["key"], { "docCount": f["doc_count"] });
     });
     this._aggregate(rawTree);
     return this._build(rawTree);
@@ -8600,7 +8600,7 @@ var SearchResultList = React.createClass({
     this.setState({ "activeTab": "text" });
   },
   render: function render() {
-    var _this9 = this;
+    var _this8 = this;
 
     if (!this.props.query) {
       // Push this up? Thought is to choose on the SearchPage level whether to show a ResultList or an EmptySearchMessage.
@@ -8614,15 +8614,15 @@ var SearchResultList = React.createClass({
       results = this.state.hits.text.slice(0, this.state.displayedUntil["text"]).map(function (result) {
         return React.createElement(SearchTextResult, {
           data: result,
-          query: _this9.props.query,
+          query: _this8.props.query,
           key: result._id,
-          onResultClick: _this9.props.onResultClick });
+          onResultClick: _this8.props.onResultClick });
       });
     } else if (tab == "sheet") {
       results = this.state.hits.sheet.slice(0, this.state.displayedUntil["sheet"]).map(function (result) {
         return React.createElement(SearchSheetResult, {
           data: result,
-          query: _this9.props.query,
+          query: _this8.props.query,
           key: result._id });
       });
     }
@@ -9341,10 +9341,10 @@ var ModeratorToolsPanel = React.createClass({
     this.setState({ bulk_format: event.target.value });
   },
   bulkVersionDlLink: function bulkVersionDlLink() {
-    var _this10 = this;
+    var _this9 = this;
 
     var args = ["format", "title_pattern", "version_title_pattern", "language"].map(function (arg) {
-      return _this10.state["bulk_" + arg] ? arg + '=' + encodeURIComponent(_this10.state["bulk_" + arg]) : "";
+      return _this9.state["bulk_" + arg] ? arg + '=' + encodeURIComponent(_this9.state["bulk_" + arg]) : "";
     }).filter(function (a) {
       return a;
     }).join("&");
@@ -9600,7 +9600,7 @@ var UpdatesPanel = React.createClass({
   },
 
   render: function render() {
-    var _this11 = this;
+    var _this10 = this;
 
     var classes = { notificationsPanel: 1, systemPanel: 1, readerNavMenu: 1, noHeader: 1 };
     var classStr = classNames(classes);
@@ -9639,8 +9639,8 @@ var UpdatesPanel = React.createClass({
                 date: u.date,
                 key: u._id,
                 id: u._id,
-                onDelete: _this11.onDelete,
-                submitting: _this11.state.submitting
+                onDelete: _this10.onDelete,
+                submitting: _this10.state.submitting
               });
             })
           )
