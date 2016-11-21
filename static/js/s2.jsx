@@ -2758,7 +2758,7 @@ var ReaderNavigationCategoryMenu = React.createClass({
                       <span className="he">{Sefaria.hebrewCategory(this.props.category)}</span>
                     </h1>) : null}
                   {toggle}
-                  <ReaderNavigationCategoryMenuContents contents={catContents} categories={categories} width={this.props.width} />
+                  <ReaderNavigationCategoryMenuContents contents={catContents} categories={categories} width={this.props.width} topLevel={true}/>
                 </div>
                 {footer}
               </div>
@@ -2772,7 +2772,8 @@ var ReaderNavigationCategoryMenuContents = React.createClass({
   propTypes: {
     contents:   React.PropTypes.array.isRequired,
     categories: React.PropTypes.array.isRequired,
-    width:      React.PropTypes.number
+    width:      React.PropTypes.number,
+    topLevel:   React.PropTypes.bool
   },
   render: function() {
       var content = [];
@@ -2780,16 +2781,15 @@ var ReaderNavigationCategoryMenuContents = React.createClass({
       for (var i = 0; i < this.props.contents.length; i++) {
         var item = this.props.contents[i];
         if (item.category) {
-          if (item.category == "Commentary") { continue; } //TODO: show commentary in toc (at bottom of each top level cat)
           var newCats = cats.concat(item.category);
-          // Special Case categories which should nest
-          var subcats = [ "Mishneh Torah", "Shulchan Arukh", "Midrash Rabbah", "Maharal" ];
-          if (Sefaria.util.inArray(item.category, subcats) > -1) {
+          // Special Case categories which should nest but are normally wouldnt given their depth
+          var subcats = [ "Mishneh Torah", "Shulchan Arukh", "Maharal"];
+          if (Sefaria.util.inArray(item.category, subcats) > -1 || !this.props.topLevel) {
             url = "/texts/" + newCats.join("/");
             content.push((<a href={url}>
                             <span className="catLink" data-cats={newCats.join("|")} key={i}>
                               <span className='en'>{item.category}</span>
-                              <span className='he'>{Sefaria.hebrewCategory(item.category)}</span>
+                              <span className='he'>{item.heCategory}</span>
                             </span>
                           </a>));
             continue;
@@ -2800,7 +2800,7 @@ var ReaderNavigationCategoryMenuContents = React.createClass({
                             <span className='en'>{item.category}</span>
                             <span className='he'>{item.heCategory}</span>
                           </h3>
-                          <ReaderNavigationCategoryMenuContents contents={item.contents} categories={newCats} width={this.props.width} />
+                          <ReaderNavigationCategoryMenuContents contents={item.contents} categories={newCats} width={this.props.width} topLevel={false} />
                         </div>));
         } else {
           // Add a Text
