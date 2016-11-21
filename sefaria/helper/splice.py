@@ -591,25 +591,27 @@ class SegmentSplicer(AbstractSplicer):
 
 class SegmentMap(object):
     """
-    Order of args is a bit unintuitive
+    A range of segments within a single section, with optional word-level specification
     """
+    # Order of args is a bit unintuitive
     def __init__(self, start_ref, end_ref, start_word=None, end_word=None):
         assert start_ref.is_segment_level()
         assert not start_ref.is_range()
         assert end_ref.is_segment_level()
         assert not end_ref.is_range()
-        assert end_ref.follows(start_ref)
+        assert start_ref == end_ref or end_ref.follows(start_ref)
+
         self.start_ref = start_ref
         self.end_ref = end_ref
         self.start_word = start_word
         self.end_word = end_word
+
         self.joiner = u" "
         self.tokenizer = lambda s: re.split("\s+", s)
 
         # todo: this is only thought out for base text case...
         self.first_segment_index = self.start_ref.sections[-1] - 1
         self.last_segment_index = self.end_ref.sections[-1] - 1
-
 
     def immediately_follows(self, other):
         if not other.end_word and not self.start_word and self.start_ref.sections[-1] == other.end_ref.sections[-1] + 1:
