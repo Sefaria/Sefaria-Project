@@ -47,9 +47,7 @@ Sefaria = extend(Sefaria, {
       var book, bookOn, index, nums, i;
       for (i = first.length; i >= 0; i--) {
           book   = first.slice(0, i);
-          bookOn = book.split(" on ");
-          if (book in Sefaria.booksDict || 
-              (bookOn.length == 2 && bookOn[0] in Sefaria.booksDict && bookOn[1] in Sefaria.booksDict)) { 
+          if (book in Sefaria.booksDict) {
               nums = first.slice(i+1);
               break;
           }
