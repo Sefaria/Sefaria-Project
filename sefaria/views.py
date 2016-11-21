@@ -566,7 +566,9 @@ def bulk_download_versions_api(request):
         for version in vs:
             filebytes = _get_text_version_file(format, version.title, version.language, version.versionTitle)
             name = u'{} - {} - {}.{}'.format(version.title, version.language, version.versionTitle, format).encode('utf-8')
-            zfile.writestr(name, filebytes.encode('utf-8'))
+            if isinstance(filebytes, unicode):
+                filebytes = filebytes.encode('utf-8')
+            zfile.writestr(name, filebytes)
 
     content = file_like_object.getvalue()
     response = HttpResponse(content, content_type="application/zip")
