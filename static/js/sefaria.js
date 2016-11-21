@@ -978,16 +978,21 @@ Sefaria = extend(Sefaria, {
   },
   _textTocHtml: {},
   commentaryList: function(title, toc) {
+    var title = arguments.length == 0 || arguments[0] === undefined ? null : arguments[0];
     /** Returns the list of commentaries for 'title' which are found in Sefaria.toc **/
     var toc = arguments.length <= 1 || arguments[1] === undefined ? Sefaria.util.clone(Sefaria.toc) : arguments[1];
-    var index = this.index(title); //TODO: a little bit redundant to do on every recursion
-    if (!index) { return []; }
+    if (title != null){
+        var index = this.index(title); //TODO: a little bit redundant to do on every recursion
+        if (!index) { return []; }
+        title = index.title;
+    }
     var results = [];
     for (var i=0; i < toc.length; i++) {
         var curTocElem = toc[i];
         if (curTocElem.title) { //this is a book
             if(curTocElem.dependence == 'Commentary'){
-                if(curTocElem.base_text_titles && Sefaria.util.inArray(title, curTocElem.base_text_titles) != -1){
+                if((title && curTocElem.base_text_titles && Sefaria.util.inArray(title, curTocElem.base_text_titles) != -1) ||
+                    (title == null)){
                     results.push(curTocElem);
                 }
             }
