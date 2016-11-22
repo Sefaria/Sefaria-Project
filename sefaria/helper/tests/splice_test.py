@@ -182,6 +182,8 @@ class TestSegmentMapAdjustment(object):
 
     def test_get_segment_lookup_dictionary(self):
         d = self.splicer.get_segment_lookup_dictionary()
-        assert d[Ref("Shabbat 2b:16")] == Ref("Shabbat 2b:5")
-        assert d[Ref("Shabbat 2b:4")] == Ref("Shabbat 2b:2")
-        assert d[Ref("Shabbat 2b:22")] == Ref("Shabbat 2b:8")
+        assert d[Ref("Shabbat 2b:16")] == [Ref("Shabbat 2b:5")]
+        assert d[Ref("Shabbat 2b:4")] == [Ref("Shabbat 2b:2")]
+        assert d[Ref("Shabbat 2b:22")] == [Ref("Shabbat 2b:8")]
+        assert d[Ref("Shabbat 2b:15")] == [Ref("Shabbat 2b:4"), Ref("Shabbat 2b:5")]
+        assert d[Ref("Shabbat 2b:18")] == [Ref("Shabbat 2b:6"), Ref("Shabbat 2b:7"), Ref("Shabbat 2b:8")]

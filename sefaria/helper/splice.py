@@ -739,14 +739,34 @@ class SectionSplicer(AbstractSplicer):
             self._ready = True
 
     def get_segment_lookup_dictionary(self):
+        """
+        Returns a dictionary: Ref -> List of Refs
+        Maps Refs in old segmentation to a list of refs in new segmentation that have content from the old ref.
+        :return:
+        """
         result = {}
-        for i, sm in enumerate(self.adjusted_segment_maps):
+        for i, sm in enumerate(self.segment_maps):
             target_ref = self.section_ref.subref(i + 1)
-            if sm.is_blank():
-                continue
             for source_ref in sm.start_ref.to(sm.end_ref).range_list():
-                result[source_ref] = target_ref
+                if result.get(source_ref):
+                    result[source_ref] += [target_ref]
+                else:
+                    result[source_ref] = [target_ref]
         return result
+
+    """
+    This may not actually be useful
+    This returns a dictionary of mappings for non-base, segment aligned versions.
+    result = {}
+    for i, sm in enumerate(self.adjusted_segment_maps):
+        target_ref = self.section_ref.subref(i + 1)
+        if sm.is_blank():
+            continue
+        for source_ref in sm.start_ref.to(sm.end_ref).range_list():
+            result[source_ref] = target_ref
+    return result
+    """
+
 
     def _process_segment_maps(self):
         # Note that we're reusing SegmentMap objects here.  Keep 'em stateless!
