@@ -305,8 +305,10 @@ def decompose_presentation_forms(orig_char):
 		orig_char = unicode(orig_char, 'utf-8')
 	return decomp_map.get(orig_char, u'')
 
+presentation_re = re.compile(ur"[\uFB1D-\uFB4F]")
+
 def decompose_presentation_forms_in_str(orig_str):
-	return re.sub(ur"[\uFB1D-\uFB4F]", lambda x: decompose_presentation_forms(x.group(0)) ,orig_str)
+	return presentation_re.sub(lambda match: decompose_presentation_forms(match.group()),orig_str)
 
 
 
