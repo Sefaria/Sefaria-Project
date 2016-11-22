@@ -599,6 +599,9 @@ class BlankSegment(object):
     def __ne__(self, other):
         return self.__class__ != other.__class__
 
+    def get_text(self, current_text_chunk):
+        return ""
+
 
 class SegmentMap(object):
     """
@@ -627,11 +630,11 @@ class SegmentMap(object):
         self.last_segment_index = self.end_ref.sections[-1] - 1
 
     def __eq__(self, other):
-        if (self.__class__ == other.__class__
-            and self.start_ref == other.start_ref
-            and self.end_ref == other.end_ref
-            and self.start_word == other.start_word
-            and self.end_word == other.end_word):
+        if (self.__class__ == other.__class__ and
+                self.start_ref == other.start_ref and
+                self.end_ref == other.end_ref and
+                self.start_word == other.start_word and
+                self.end_word == other.end_word):
             return True
         return False
 
@@ -659,10 +662,7 @@ class SegmentMap(object):
                           if self.end_word
                           else current_text_chunk.text[self.last_segment_index]]
 
-
         return self.joiner.join(new_text_list)
-
-
 
     def _get_partial_text(self, section_text_chunk, segment_index, start_word=None, end_word=None):
         """
@@ -680,6 +680,7 @@ class SectionSplicer(AbstractSplicer):
     """
     splicer = SectionSplicer()
     splicer.set_section(Ref("Shabbat 2b"))
+    splicer.set_base_version(Version().load({...}))
     splicer.set_segment_map(Ref("Shabbat 2b:1"), Ref("Shabbat 2b:4"))
     splicer.set_segment_map(Ref("Shabbat 2b:5"), Ref("Shabbat 2b:8"), end_word = 4)
     splicer.set_segment_map(Ref("Shabbat 2b:8"), Ref("Shabbat 2b:12"), start_word = 5)
@@ -693,6 +694,7 @@ class SectionSplicer(AbstractSplicer):
         super(SectionSplicer, self).__init__()
         self.section_ref = None
         self.last_segment_ref = None
+        self.base_version = None
         self.segment_maps = []           # List of SegmentMap objects, with word specificity, based on primary version
         self.adjusted_segment_maps = []  # List of SegmentMap objects, with segment specificity, for other versions
 
@@ -709,8 +711,13 @@ class SectionSplicer(AbstractSplicer):
         self.versionSet = VersionSet({"title": self.index.title})
         return self
 
+    def set_base_version(self, base_version):
+        assert isinstance(base_version, Version)
+        self.base_version = base_version
+
     def set_segment_map(self, start_ref, end_ref, start_word=None, end_word=None):
         assert self.section_ref, "Please call set_section() before calling set_segment_map()"
+        assert self.base_version or (not start_word and not end_word), "Word level mappings require a base version."
         assert start_ref.section_ref() == self.section_ref
         assert end_ref.section_ref() == self.section_ref
         assert len(self.segment_maps) or start_ref == self.section_ref.subref(1), "First segment map must begin at start of section."
@@ -721,7 +728,8 @@ class SectionSplicer(AbstractSplicer):
         self.segment_maps += [sm]
 
         if end_ref == self.last_segment_ref and not end_word:
-            self._process_segment_maps()
+            if self.base_version:
+                self._process_segment_maps()
             # If we want to review the complete collection of segments before processing, here's the place.
             self._ready = True
 
@@ -758,17 +766,14 @@ class SectionSplicer(AbstractSplicer):
                 self.adjusted_segment_maps += [SegmentMap(detailed_sm.start_ref, detailed_sm.end_ref)]
                 continue
 
-
-
-
-
     def _merge_base_text_version_segments(self):
         # for each version, merge the text
         for v in self.versionSet:
             assert isinstance(v, Version)
-            old_length = len(tc.text)
+            seg_maps = self.segment_maps if not self.base_version or v == self.base_version else self.adjusted_segment_maps
             tc = TextChunk(self.section_ref, lang=v.language, vtitle=v.versionTitle)
-            tc.text = [seg_map.get_text(tc) for seg_map in self.segment_maps]
+            old_length = len(tc.text)
+            tc.text = [seg_map.get_text(tc) for seg_map in seg_maps]
             if self._report:
                 print u"{} {}: Was {} segments.  Now {}.".format(v.versionTitle, self.section_ref.normal(), old_length, len(tc.text))
             if self._save:
@@ -779,8 +784,7 @@ class SectionSplicer(AbstractSplicer):
             print u"\n----\n*** Running SectionSplicer on {}\n".format(self.section_ref.normal())
 
         print u"\n*** Merging Base Text"
-        self._merge_primary_base_text_version_segments()  # has word boundaries
-        self._merge_other_base_text_versions_segments()  # has full segment boundaries
+        self._merge_base_text_version_segments()
 
         print u"\n*** Merging Commentary Text"
         self._merge_commentary_version_sections()  # Simple for segment boundaries
