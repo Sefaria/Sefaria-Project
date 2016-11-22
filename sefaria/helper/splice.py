@@ -602,6 +602,8 @@ class BlankSegment(object):
     def get_text(self, current_text_chunk):
         return ""
 
+    def is_blank(self):
+        return True
 
 class SegmentMap(object):
     """
@@ -643,6 +645,9 @@ class SegmentMap(object):
 
     def __repr__(self):
         return "SegmentMap({},{},{},{})".format(self.start_ref.normal(), self.end_ref.normal(), self.start_word, self.end_word)
+
+    def is_blank(self):
+        return False
 
     def immediately_follows(self, other):
         if not other.end_word and not self.start_word and self.start_ref.sections[-1] == other.end_ref.sections[-1] + 1:
@@ -732,6 +737,16 @@ class SectionSplicer(AbstractSplicer):
             self._process_segment_maps()
             # If we want to review the complete collection of segments before processing, here's the place.
             self._ready = True
+
+    def get_segment_lookup_dictionary(self):
+        result = {}
+        for i, sm in enumerate(self.adjusted_segment_maps):
+            target_ref = self.section_ref.subref(i + 1)
+            if sm.is_blank():
+                continue
+            for source_ref in sm.start_ref.to(sm.end_ref).range_list():
+                result[source_ref] = target_ref
+        return result
 
     def _process_segment_maps(self):
         # Note that we're reusing SegmentMap objects here.  Keep 'em stateless!

@@ -150,9 +150,10 @@ class TestSegmentMap(object):
 
 
 class TestSegmentMapAdjustment(object):
-    def test_adjustment(self):
+    def setup_method(self, method):
         splicer = SectionSplicer()
         splicer.set_section(Ref("Shabbat 2b"))
+        splicer.set_base_version(Version().load({"title":"Shabbat", "versionTitle":"Wikisource Talmud Bavli", "language":"he"}))
         splicer.set_segment_map(Ref("Shabbat 2b:1"), Ref("Shabbat 2b:2"))
         splicer.set_segment_map(Ref("Shabbat 2b:3"), Ref("Shabbat 2b:5"))
         splicer.set_segment_map(Ref("Shabbat 2b:6"), Ref("Shabbat 2b:12"), end_word=2)
@@ -161,8 +162,10 @@ class TestSegmentMapAdjustment(object):
         splicer.set_segment_map(Ref("Shabbat 2b:18"), Ref("Shabbat 2b:18"), end_word=3)
         splicer.set_segment_map(Ref("Shabbat 2b:18"), Ref("Shabbat 2b:18"), start_word=4, end_word=8)
         splicer.set_segment_map(Ref("Shabbat 2b:18"), Ref("Shabbat 2b:29"), start_word=9)
+        self.splicer = splicer
 
-        assert len(splicer.adjusted_segment_maps) # Did it derive the new ones?
+    def test_adjustment(self):
+        assert len(self.splicer.adjusted_segment_maps) # Did it derive the new ones?
 
         target = [
             SegmentMap(Ref("Shabbat 2b:1"), Ref("Shabbat 2b:2")),
@@ -175,4 +178,10 @@ class TestSegmentMapAdjustment(object):
             SegmentMap(Ref("Shabbat 2b:19"), Ref("Shabbat 2b:29")),
         ]
 
-        assert splicer.adjusted_segment_maps == target
+        assert self.splicer.adjusted_segment_maps == target
+
+    def test_get_segment_lookup_dictionary(self):
+        d = self.splicer.get_segment_lookup_dictionary()
+        assert d[Ref("Shabbat 2b:16")] == Ref("Shabbat 2b:5")
+        assert d[Ref("Shabbat 2b:4")] == Ref("Shabbat 2b:2")
+        assert d[Ref("Shabbat 2b:22")] == Ref("Shabbat 2b:8")
