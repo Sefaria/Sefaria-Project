@@ -439,7 +439,7 @@ class Trial(object):
 
     def _run_one_atomic_test(self, driver, test_class, cap):
         """
-        :param test_class:
+        :param test_class: 
         :return:
         """
         name = "{} / {}".format(test_class.__name__, Trial.cap_to_string(cap))
