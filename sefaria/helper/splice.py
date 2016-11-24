@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 from sefaria.model import *
 from sefaria.system.exceptions import InputError
 from sefaria.search import delete_text, index_text
@@ -605,6 +607,7 @@ class BlankSegment(object):
     def is_blank(self):
         return True
 
+
 class SegmentMap(object):
     """
     A range of segments within a single section, with optional word-level specification
@@ -658,14 +661,18 @@ class SegmentMap(object):
 
     def get_text(self, current_text_chunk):
 
-        #todo: this is only for base text case...and even that, only w/ the single version that was the measuring stick for words.
-        new_text_list = [self._get_partial_text(current_text_chunk, self.first_segment_index, start_word=self.start_word)
-                          if self.start_word
-                          else current_text_chunk.text[self.first_segment_index]]
-        new_text_list += current_text_chunk.text[self.first_segment_index + 1:self.last_segment_index]
-        new_text_list += [self._get_partial_text(current_text_chunk, self.last_segment_index, end_word=self.end_word)
-                          if self.end_word
-                          else current_text_chunk.text[self.last_segment_index]]
+        if self.first_segment_index == self.last_segment_index:
+            new_text_list = [self._get_partial_text(current_text_chunk, self.first_segment_index, start_word=self.start_word, end_word=self.end_word)
+                             if self.start_word or self.end_word
+                             else current_text_chunk.text[self.first_segment_index]]
+        else:
+            new_text_list = [self._get_partial_text(current_text_chunk, self.first_segment_index, start_word=self.start_word)
+                             if self.start_word
+                             else current_text_chunk.text[self.first_segment_index]]
+            new_text_list += current_text_chunk.text[self.first_segment_index + 1:self.last_segment_index]
+            new_text_list += [self._get_partial_text(current_text_chunk, self.last_segment_index, end_word=self.end_word)
+                              if self.end_word
+                              else current_text_chunk.text[self.last_segment_index]]
 
         return self.joiner.join(new_text_list)
 

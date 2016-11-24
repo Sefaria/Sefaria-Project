@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 import pytest
 
 from sefaria.model import *
@@ -148,12 +150,74 @@ class TestSegmentMap(object):
         assert not overlapping_third.immediately_follows(second)
         assert not fourth.immediately_follows(overlapping_third)
 
+class TestSegmentMapPartialVerse(object):
+    """
+    Test Segment-boundary->middle, middle-middle, and middle->segment-boundary with
+    Shabbat 2b:16
+המוציא מרשות לרשות חייב מי לא עסקינן דקא מעייל מרה"ר לרה"י וקא קרי לה הוצאה
+
+    Complete segment
+    Shabbat 2b:17
+    וטעמא מאי כל עקירת חפץ ממקומו תנא הוצאה קרי לה
+
+    Test Previous Segment-boundary->middle, and middle->next segment boundary with:
+    Shabbat 2b:18
+אמר רבינא
+    Shabbat 2b:19
+מתניתין נמי דיקא דקתני יציאות וקא מפרש הכנסה לאלתר
+    Shabbat 2b:20
+ש"מ
+
+
+    Test middle->next middle with:
+    Shabbat 2b:23
+א"ל רב מתנה לאביי
+    Shabbat 2b:24
+הא תמני הויין
+    Shabbat 2b:25
+תרתי סרי הויין
+
+
+    """
+    def setup_method(self, method):
+        splicer = SectionSplicer()
+        splicer.set_section(Ref("Shabbat 2b"))
+        splicer.set_base_version(Version().load({"title": "Shabbat", "versionTitle": "Wikisource Talmud Bavli", "language": "he"}))
+        splicer.set_segment_map(Ref("Shabbat 2b:1"), Ref("Shabbat 2b:15"))                              # 0
+        splicer.set_segment_map(Ref("Shabbat 2b:16"), Ref("Shabbat 2b:16"), end_word=3)                 # 1
+        splicer.set_segment_map(Ref("Shabbat 2b:16"), Ref("Shabbat 2b:16"), start_word=4, end_word=8)   # 2
+        splicer.set_segment_map(Ref("Shabbat 2b:16"), Ref("Shabbat 2b:16"), start_word=9, end_word=9)   # 3
+        splicer.set_segment_map(Ref("Shabbat 2b:16"), Ref("Shabbat 2b:16"), start_word=10)              # 4
+        splicer.set_segment_map(Ref("Shabbat 2b:17"), Ref("Shabbat 2b:17"))                             # 5
+        splicer.set_segment_map(Ref("Shabbat 2b:18"), Ref("Shabbat 2b:19"), end_word=4)                 # 6
+        splicer.set_segment_map(Ref("Shabbat 2b:19"), Ref("Shabbat 2b:20"), start_word=5)               # 7
+        splicer.set_segment_map(Ref("Shabbat 2b:21"), Ref("Shabbat 2b:23"), end_word=2)                 # 8
+        splicer.set_segment_map(Ref("Shabbat 2b:23"), Ref("Shabbat 2b:24"), start_word=3, end_word=2)   # 9
+        splicer.set_segment_map(Ref("Shabbat 2b:24"), Ref("Shabbat 2b:29"), start_word=3)               # 10
+        self.splicer = splicer
+
+    def test_correct_text(self):
+        tc = TextChunk(Ref("Shabbat 2b"), "he", "Wikisource Talmud Bavli")
+
+        assert self.splicer.segment_maps[1].get_text(tc) == u"המוציא מרשות לרשות"
+        assert self.splicer.segment_maps[2].get_text(tc) == u"חייב מי לא עסקינן דקא"
+        assert self.splicer.segment_maps[3].get_text(tc) == u"מעייל"
+        assert self.splicer.segment_maps[4].get_text(tc) == u'מרה"ר לרה"י וקא קרי לה הוצאה'
+
+        assert self.splicer.segment_maps[5].get_text(tc) == u"וטעמא מאי כל עקירת חפץ ממקומו תנא הוצאה קרי לה"
+
+        assert self.splicer.segment_maps[6].get_text(tc) == u"אמר רבינא מתניתין נמי דיקא דקתני"
+        assert self.splicer.segment_maps[7].get_text(tc) == u'יציאות וקא מפרש הכנסה לאלתר ש"מ'
+
+        assert self.splicer.segment_maps[9].get_text(tc) == u"מתנה לאביי הא תמני"
+
+
 
 class TestSegmentMapAdjustment(object):
     def setup_method(self, method):
         splicer = SectionSplicer()
         splicer.set_section(Ref("Shabbat 2b"))
-        splicer.set_base_version(Version().load({"title":"Shabbat", "versionTitle":"Wikisource Talmud Bavli", "language":"he"}))
+        splicer.set_base_version(Version().load({"title": "Shabbat", "versionTitle": "Wikisource Talmud Bavli", "language": "he"}))
         splicer.set_segment_map(Ref("Shabbat 2b:1"), Ref("Shabbat 2b:2"))
         splicer.set_segment_map(Ref("Shabbat 2b:3"), Ref("Shabbat 2b:5"))
         splicer.set_segment_map(Ref("Shabbat 2b:6"), Ref("Shabbat 2b:12"), end_word=2)
