@@ -3122,7 +3122,7 @@ var ReaderNavigationCategoryMenu = React.createClass({
             )
           ) : null,
           toggle,
-          React.createElement(ReaderNavigationCategoryMenuContents, { contents: catContents, categories: categories, width: this.props.width, topLevel: true })
+          React.createElement(ReaderNavigationCategoryMenuContents, { contents: catContents, categories: categories, width: this.props.width, nestLevel: 0 })
         ),
         footer
       )
@@ -3138,7 +3138,7 @@ var ReaderNavigationCategoryMenuContents = React.createClass({
     contents: React.PropTypes.array.isRequired,
     categories: React.PropTypes.array.isRequired,
     width: React.PropTypes.number,
-    topLevel: React.PropTypes.bool
+    nestLevel: React.PropTypes.number
   },
   render: function render() {
     var content = [];
@@ -3149,14 +3149,14 @@ var ReaderNavigationCategoryMenuContents = React.createClass({
         var newCats = cats.concat(item.category);
         // Special Case categories which should nest but are normally wouldnt given their depth
         var subcats = ["Mishneh Torah", "Shulchan Arukh", "Maharal"];
-        if (Sefaria.util.inArray(item.category, subcats) > -1 || !this.props.topLevel) {
+        if (Sefaria.util.inArray(item.category, subcats) > -1 || this.props.nestLevel > 0) {
           url = "/texts/" + newCats.join("/");
           content.push(React.createElement(
             'a',
             { href: url },
             React.createElement(
               'span',
-              { className: 'catLink', 'data-cats': newCats.join("|"), key: i },
+              { className: 'catLink', 'data-cats': newCats.join("|"), key: "cat." + this.props.nestLevel + "." + i },
               React.createElement(
                 'span',
                 { className: 'en' },
@@ -3169,28 +3169,28 @@ var ReaderNavigationCategoryMenuContents = React.createClass({
               )
             )
           ));
-          continue;
-        }
-        // Add a Category
-        content.push(React.createElement(
-          'div',
-          { className: 'category', key: i },
-          React.createElement(
-            'h3',
-            null,
+        } else {
+          // Add a Category
+          content.push(React.createElement(
+            'div',
+            { className: 'category', key: "cat." + this.props.nestLevel + "." + i },
             React.createElement(
-              'span',
-              { className: 'en' },
-              item.category
+              'h3',
+              null,
+              React.createElement(
+                'span',
+                { className: 'en' },
+                item.category
+              ),
+              React.createElement(
+                'span',
+                { className: 'he' },
+                item.heCategory
+              )
             ),
-            React.createElement(
-              'span',
-              { className: 'he' },
-              item.heCategory
-            )
-          ),
-          React.createElement(ReaderNavigationCategoryMenuContents, { contents: item.contents, categories: newCats, width: this.props.width, topLevel: false })
-        ));
+            React.createElement(ReaderNavigationCategoryMenuContents, { contents: item.contents, categories: newCats, width: this.props.width, nestLevel: this.props.nestLevel + 1 })
+          ));
+        }
       } else {
         // Add a Text
         var title = item.title.replace(/(Mishneh Torah,|Shulchan Arukh,|Jerusalem Talmud) /, "");
@@ -3201,7 +3201,7 @@ var ReaderNavigationCategoryMenuContents = React.createClass({
           { href: url },
           React.createElement(
             'span',
-            { className: 'refLink sparse' + item.sparseness, 'data-ref': item.firstSection, key: i },
+            { className: 'refLink sparse' + item.sparseness, 'data-ref': item.firstSection, key: "text." + this.props.nestLevel + "." + i },
             React.createElement(
               'span',
               { className: 'en' },
