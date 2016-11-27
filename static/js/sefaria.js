@@ -381,6 +381,7 @@ Sefaria = extend(Sefaria, {
     return data;
   },
   _index: {}, // Cache for text index records
+  _translateTerms: {},
   index: function(text, index) {
     if (!index) {
       return this._index[text];
@@ -392,6 +393,7 @@ Sefaria = extend(Sefaria, {
     // Unpacks contents of Sefaria.toc into index cache.
     for (var i = 0; i < toc.length; i++) {
       if ("category" in toc[i]) {
+        Sefaria._translateTerms[toc[i].category] = {"en": toc[i].category, "he": toc[i].heCategory}
         Sefaria._cacheIndexFromToc(toc[i].contents)
       } else {
         Sefaria.index(toc[i].title, toc[i]);
@@ -1206,59 +1208,16 @@ Sefaria = extend(Sefaria, {
   hebrewCategory: function(cat) {
     // Returns a string translating `cat` into Hebrew.
     var categories = {
-      "Torah":                "תורה",
-      "Tanakh":               'תנ"ך',
-      "Tanakh":               'תנ"ך',
-      "Prophets":             "נביאים",
-      "Writings":             "כתובים",
-      "Commentary":           "מפרשים",
       "Quoting Commentary":   "פרשנות מצטטת",
-      "Targum":               "תרגומים",
-      "Mishnah":              "משנה",
-      "Tosefta":              "תוספתא",
-      "Talmud":               "תלמוד",
-      "Bavli":                "בבלי",
-      "Yerushalmi":           "ירושלמי",
-      "Rif":                  'רי"ף',
-      "Kabbalah":             "קבלה",
-      "Halakha":              "הלכה",
-      "Halakhah":             "הלכה",
-      "Midrash":              "מדרש",
-      "Aggadic Midrash":      "מדרש אגדה",
-      "Halachic Midrash":     "מדרש הלכה",
-      "Midrash Rabbah":       "מדרש רבה",
-      "Responsa":             'שו"ת',
-      "Rashba":               'רשב"א',
-      "Rambam":               'רמב"ם',
-      "Other":                "אחר",
-      "Siddur":               "סידור",
-      "Liturgy":              "תפילה",
-      "Piyutim":              "פיוטים",
-      "Musar":                "ספרי מוסר",
-      "Chasidut":             "חסידות",
-      "Parshanut":            "פרשנות",
-      "Philosophy":           "מחשבת ישראל",
-      "Apocrypha":            "ספרים חיצונים",
-      "Modern Works":         "עבודות מודרניות",
-      "Seder Zeraim":         "סדר זרעים",
-      "Seder Moed":           "סדר מועד",
-      "Seder Nashim":         "סדר נשים",
-      "Seder Nezikin":        "סדר נזיקין",
-      "Seder Kodashim":       "סדר קדשים",
-      "Seder Toharot":        "סדר טהרות",
-      "Seder Tahorot":        "סדר טהרות",
-      "Dictionary":           "מילון",
-      "Early Jewish Thought": "מחשבת ישראל קדומה",
-      "Minor Tractates":      "מסכתות קטנות",
-      "Rosh":                 'ר"אש',
-      "Maharsha":             'מהרשא',
-      "Mishneh Torah":        "משנה תורה",
-      "Shulchan Arukh":       "שולחן ערוך",
       "Sheets":               "דפי מקורות",
       "Notes":                "הערות",
       "Community":            "קהילה"
     };
-    return cat in categories ? categories[cat] : cat;
+    if(cat in Sefaria._translateTerms){
+        return Sefaria._translateTerms[cat]["he"];
+    }else{
+        return cat in categories ? categories[cat] : cat;
+    }
   },
   search: {
       baseUrl: Sefaria.searchBaseUrl + "/" + Sefaria.searchIndex + "/_search",
