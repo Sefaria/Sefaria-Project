@@ -555,6 +555,16 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
         return True
 
 
+    def get_toc_index_order(self):
+        order = getattr(self, 'order', None)
+        if order:
+            return order[0]
+        elif getattr(self, 'base_text_titles', None):
+            order = max([library.get_index(x).get_toc_index_order() for x in self.base_text_titles])
+            return order
+        return None
+
+
     def toc_contents(self):
         """Returns to a dictionary used to represent this text in the library wide Table of Contents"""
         firstSection = Ref(self.title).first_available_section_ref()
@@ -566,8 +576,9 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
             "dependence" : getattr(self, "dependence", False),
             "firstSection": firstSection.normal() if firstSection else None
         }
-        if hasattr(self,"order"):
-            toc_contents_dict["order"] = self.order[:]
+        ord = self.get_toc_index_order()
+        if ord:
+            toc_contents_dict["order"] = ord
         if hasattr(self, "collective_title"):
             toc_contents_dict["commentator"] = self.collective_title
             toc_contents_dict["heCommentator"] = hebrew_term(self.collective_title)

@@ -239,7 +239,7 @@ def node_sort_key(a):
             return ORDER.index(a["title"])
         except ValueError:
             if "order" in a:
-                return a["order"][0]
+                return a["order"]
             else:
                 return a["title"]
 
