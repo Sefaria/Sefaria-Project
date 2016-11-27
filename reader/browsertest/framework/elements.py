@@ -511,23 +511,34 @@ class Trial(object):
             sys.stdout.flush()
             return TestResult(test, cap, False, msg)
 
-    def _test_on_all(self, test):
+    def _test_on_all(self, test, _caps=None):
         """
         Given a test, test it on all browsers
         :param test:
         :return:
         """
+        caps = _caps or self.caps
         sys.stdout.write("\n{}: ".format(test.__name__) if not self.isVerbose else "")
         sys.stdout.flush()
         if self.parallel:
             p = Pool(self.thread_count)
-            l = len(self.caps)
-            tresults = p.map(_test_one_worker, zip([self]*l, [test]*l, self.caps))
+            l = len(caps)
+            tresults = p.map(_test_one_worker, zip([self]*l, [test]*l, caps))
         else:
             tresults = []
-            for cap in self.caps:
+            for cap in caps:
                 tresults.append(self._test_one(test, cap))
 
+        #test failures twice, in order to avoid false failures
+        failures = [tr for tr in tresults if tr is not None and tr.success is False]
+
+        if len(failures) > 0 and _caps is None:
+            sys.stdout.write("\nRetesting {} configurations on {}: ".format(len(failures), test.__name__)
+                             if not self.isVerbose else "")
+            sys.stdout.flush()
+            second_test_results = self._test_on_all(test, [tr.cap for tr in failures])
+            successes = [tr for tr in tresults if tr is not None and tr.success is True]
+            return successes + second_test_results
         return [t for t in tresults if t is not None]
 
     def run(self):
