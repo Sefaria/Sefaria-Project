@@ -108,7 +108,10 @@ ORDER = [
     'Elucidation',
     'Modern Works',
     'Other',
-    'Commentary'
+]
+
+REVERSE_ORDER = [
+    'Commentary' #Uch, STILL special casing commentary here... anything to be done??
 ]
 
 def update_table_of_contents():
@@ -222,7 +225,6 @@ def add_counts_to_index(indx_dict):
     indx_dict["sparseness"] = max(vs.get_sparseness("he"), vs.get_sparseness("en"))
     return indx_dict
 
-#TODO: sort commentaries
 def node_sort_key(a):
     """
     Sort function for texts/categories per below.
@@ -265,6 +267,7 @@ def sort_toc_node(node, recur=False):
     """
     node = sorted(node, key=node_sort_key)
     node = sorted(node, key=node_sort_sparse)
+    node = sorted(node, key=lambda a: 'zzz' + a["category"] if "category" in a and a["category"] in REVERSE_ORDER else 'a')
 
     if recur:
         for cat in node:
