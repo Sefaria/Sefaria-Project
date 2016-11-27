@@ -421,12 +421,12 @@ body.dark {
 }
 .interface-hebrew .readerPanel .readerNavMenu,
 .readerPanel.hebrew .readerNavSection, 
-.readerPanel.hebrew .readerNavMenu .category {
+.readerPanel.hebrew .readerNavMenu .gridBox {
   direction: rtl;
 }
 .interface-english .readerPanel .readerNavMenu,
 .readerPanel.english .readerNavSection,
- .readerPanel.english .readerNavMenu .category{
+ .readerPanel.english .readerNavMenu .gridBox{
   direction: ltr;
 }
 .readerPanel.english .he {
