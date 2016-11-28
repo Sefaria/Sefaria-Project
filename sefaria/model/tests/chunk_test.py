@@ -18,6 +18,11 @@ def test_text_index_map():
     #make sure the last element in ind_last (start index of last segment) + the last of the last segment == len of the whole string
     assert ind_list[-1]+len(tokenizer(TextChunk(r.all_subrefs()[-1],"he").as_string())) == len(tokenizer(tc.as_string()))
 
+    # Test Range
+    g = Ref('Genesis 1:31-2:2')
+    chunk = g.text('en', 'The Holy Scriptures: A New Translation (JPS 1917)')
+    assert chunk.text_index_map(lambda x: x.split(u' ')) == ([0, 26, 40], [Ref('Genesis 1:31'), Ref('Genesis 2:1'), Ref('Genesis 2:2')])
+
 def test_verse_chunk():
     chunks = [
         TextChunk(Ref("Daniel 2:3"), "en", "The Holy Scriptures: A New Translation (JPS 1917)"),
