@@ -2085,7 +2085,7 @@ class Ref(object):
         self.toSections = [int(x) for x in self.toSections]
 
     def __eq__(self, other):
-        return self.uid() == other.uid()
+        return isinstance(other, Ref) and self.uid() == other.uid()
 
     def __ne__(self, other):
         return not self.__eq__(other)
