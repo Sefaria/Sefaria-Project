@@ -480,6 +480,11 @@ var ReaderApp = React.createClass({
             hist.url = "updates";
             hist.mode = "updates";
             break;
+          case "modtools":
+            hist.title = "Moderator Tools";
+            hist.url = "modtools";
+            hist.mode = "modtools";
+            break;
         }
       } else if (state.mode === "Text") {
         hist.title = state.refs.slice(-1)[0];
@@ -2170,6 +2175,9 @@ var ReaderPanel = React.createClass({
     } else if (this.state.menuOpen === "updates") {
       var menu = React.createElement(UpdatesPanel, {
         interfaceLang: this.props.interfaceLang });
+    } else if (this.state.menuOpen === "modtools") {
+      var menu = React.createElement(ModeratorToolsPanel, {
+        interfaceLang: this.props.interfaceLang });
     } else {
       var menu = null;
     }
@@ -3470,14 +3478,14 @@ var ReaderTextTableOfContents = React.createClass({
           });
           defaultVersionString += defaultVersionObject ? " (" + defaultVersionObject.versionTitle + ")" : "";
         }
-        currentVersionElement = React.createElement(VersionBlock, { version: cv, currentRef: this.props.currentRef, showHistory: true });
+        currentVersionElement = React.createElement(VersionBlock, { title: title, version: cv, currentRef: this.props.currentRef, showHistory: true });
       }
 
       var _map = ["he", "en"].map(function (lang) {
         return _this.state.versions.filter(function (v) {
           return v.language == lang;
         }).map(function (v) {
-          return React.createElement(VersionBlock, { version: v, showNotes: true, key: v.versionTitle + "/" + v.language });
+          return React.createElement(VersionBlock, { title: title, version: v, showNotes: true, key: v.versionTitle + "/" + v.language });
         });
       });
 
@@ -3654,11 +3662,11 @@ var ReaderTextTableOfContents = React.createClass({
         )
       );
     }
-    var showModeratorButtons = true;
-    if ( /*(this.isTextToc() && this.state.currentVersion && this.state.currentVersion.versionStatus == "locked") ||*/
-    !Sefaria.is_moderator) {
-      showModeratorButtons = false;
-    }
+    var showModeratorButtons = Sefaria.is_moderator;
+    //if(/*(this.isTextToc() && this.state.currentVersion && this.state.currentVersion.versionStatus == "locked") ||*/
+    //    !Sefaria.is_moderator){
+    //  showModeratorButtons = false;
+    //}
     var moderatorSection = showModeratorButtons ? React.createElement(ModeratorButtons, {
       title: title,
       versionTitle: this.state.currentVersion ? this.state.currentVersion.versionTitle : null,
@@ -3838,6 +3846,7 @@ var VersionBlock = React.createClass({
   displayName: 'VersionBlock',
 
   propTypes: {
+    title: React.PropTypes.string.isRequired,
     version: React.PropTypes.object.isRequired,
     currentRef: React.PropTypes.string,
     showHistory: React.PropTypes.bool,
@@ -3850,70 +3859,217 @@ var VersionBlock = React.createClass({
       showNotes: false
     };
   },
+  getInitialState: function getInitialState() {
+    var _this2 = this;
+
+    var s = {
+      editing: false,
+      error: null,
+      originalVersionTitle: this.props.version["versionTitle"]
+    };
+    this.updateableVersionAttributes.forEach(function (attr) {
+      return s[attr] = _this2.props.version[attr];
+    });
+    return s;
+  },
+  updateableVersionAttributes: ["versionTitle", "versionSource", "versionNotes", "license", "priority", "digitizedBySefaria"],
   licenseMap: {
     "Public Domain": "http://en.wikipedia.org/wiki/Public_domain",
     "CC0": "http://creativecommons.org/publicdomain/zero/1.0/",
     "CC-BY": "http://creativecommons.org/licenses/by/3.0/",
     "CC-BY-SA": "http://creativecommons.org/licenses/by-sa/3.0/"
   },
+  onLicenseChange: function onLicenseChange(event) {
+    this.setState({ license: event.target.value, "error": null });
+  },
+  onVersionSourceChange: function onVersionSourceChange(event) {
+    this.setState({ versionSource: event.target.value, "error": null });
+  },
+  onVersionNotesChange: function onVersionNotesChange(event) {
+    this.setState({ versionNotes: event.target.value, "error": null });
+  },
+  onPriorityChange: function onPriorityChange(event) {
+    this.setState({ priority: event.target.value, "error": null });
+  },
+  onDigitizedBySefariaChange: function onDigitizedBySefariaChange(event) {
+    this.setState({ digitizedBySefaria: event.target.checked, "error": null });
+  },
+  onVersionTitleChange: function onVersionTitleChange(event) {
+    this.setState({ versionTitle: event.target.value, "error": null });
+  },
+  saveVersionUpdate: function saveVersionUpdate(event) {
+    var v = this.props.version;
+
+    var payloadVersion = {};
+    this.updateableVersionAttributes.forEach(function (attr) {
+      if (this.state[attr] || this.state[attr] != this.props.version[attr]) {
+        payloadVersion[attr] = this.state[attr];
+      }
+    }.bind(this));
+    delete payloadVersion.versionTitle;
+    if (this.state.versionTitle != this.state.originalVersionTitle) {
+      payloadVersion.newVersionTitle = this.state.versionTitle;
+    }
+    this.setState({ "error": "Saving.  Page will reload on success." });
+    $.ajax({
+      url: '/api/version/flags/' + this.props.title + '/' + v.language + '/' + v.versionTitle,
+      dataType: 'json',
+      type: 'POST',
+      data: { json: JSON.stringify(payloadVersion) },
+      success: function (data) {
+        if (data.status == "ok") {
+          document.location.reload(true);
+        } else {
+          this.setState({ error: data.error });
+        }
+      }.bind(this),
+      error: function (xhr, status, err) {
+        this.setState({ error: err.toString() });
+      }.bind(this)
+    });
+  },
+  openEditor: function openEditor() {
+    this.setState({ editing: true });
+  },
+  closeEditor: function closeEditor() {
+    this.setState({ editing: false });
+  },
   render: function render() {
     var v = this.props.version;
-    var license = this.licenseMap[v.license] ? React.createElement(
-      'a',
-      { href: this.licenseMap[v.license], target: '_blank' },
-      v.license
-    ) : v.license;
-    var digitizedBySefaria = v.digitizedBySefaria ? React.createElement(
-      'a',
-      { className: 'versionDigitizedBySefaria', href: '/digitized-by-sefaria' },
-      'Digitized by Sefaria'
-    ) : "";
-    var licenseLine = "";
-    if (v.license && v.license != "unknown") {
-      licenseLine = React.createElement(
-        'span',
-        { className: 'versionLicense' },
-        license,
-        digitizedBySefaria ? " - " : "",
-        digitizedBySefaria
+
+    if (this.state.editing) {
+      // Editing View
+      var close_icon = Sefaria.is_moderator ? React.createElement('i', { className: 'fa fa-times-circle', 'aria-hidden': 'true', onClick: this.closeEditor }) : "";
+
+      var licenses = Object.keys(this.licenseMap);
+      licenses = licenses.includes(v.license) ? licenses : [v.license].concat(licenses);
+
+      return React.createElement(
+        'div',
+        { className: 'versionBlock' },
+        React.createElement(
+          'div',
+          { className: 'error' },
+          this.state.error
+        ),
+        React.createElement(
+          'div',
+          { className: 'versionEditForm' },
+          React.createElement(
+            'label',
+            { 'for': 'versionTitle', className: '' },
+            'Version Title'
+          ),
+          close_icon,
+          React.createElement('input', { id: 'versionTitle', className: '', type: 'text', value: this.state.versionTitle, onChange: this.onVersionTitleChange }),
+          React.createElement(
+            'label',
+            { 'for': 'versionSource' },
+            'Version Source'
+          ),
+          React.createElement('input', { id: 'versionSource', className: '', type: 'text', value: this.state.versionSource, onChange: this.onVersionSourceChange }),
+          React.createElement(
+            'label',
+            { id: 'license_label', 'for': 'license' },
+            'License'
+          ),
+          React.createElement(
+            'select',
+            { id: 'license', className: '', value: this.state.license, onChange: this.onLicenseChange },
+            licenses.map(function (v) {
+              return React.createElement(
+                'option',
+                { key: v, value: v },
+                v ? v : "(None Listed)"
+              );
+            })
+          ),
+          React.createElement(
+            'label',
+            { id: 'digitzedBySefaria_label', 'for': 'digitzedBySefaria' },
+            'Digitized by Sefaria'
+          ),
+          React.createElement('input', { type: 'checkbox', id: 'digitzedBySefaria', checked: this.state.digitizedBySefaria, onChange: this.onDigitizedBySefariaChange }),
+          React.createElement(
+            'label',
+            { id: 'priority_label', 'for': 'priority' },
+            'Priority'
+          ),
+          React.createElement('input', { id: 'priority', className: '', type: 'text', value: this.state.priority, onChange: this.onPriorityChange }),
+          React.createElement(
+            'label',
+            { id: 'versionNotes_label', 'for': 'versionNotes' },
+            'VersionNotes'
+          ),
+          React.createElement('textarea', { id: 'versionNotes', placeholder: 'Version Notes', onChange: this.onVersionNotesChange, value: this.state.versionNotes, rows: '5', cols: '40' }),
+          React.createElement(
+            'div',
+            { id: 'save_button', onClick: this.saveVersionUpdate },
+            'SAVE'
+          )
+        )
+      );
+    } else {
+      // Presentation View
+      var license = this.licenseMap[v.license] ? React.createElement(
+        'a',
+        { href: this.licenseMap[v.license], target: '_blank' },
+        v.license
+      ) : v.license;
+      var digitizedBySefaria = v.digitizedBySefaria ? React.createElement(
+        'a',
+        { className: 'versionDigitizedBySefaria', href: '/digitized-by-sefaria' },
+        'Digitized by Sefaria'
+      ) : "";
+      var licenseLine = "";
+      if (v.license && v.license != "unknown") {
+        licenseLine = React.createElement(
+          'span',
+          { className: 'versionLicense' },
+          license,
+          digitizedBySefaria ? " - " : "",
+          digitizedBySefaria
+        );
+      }
+      var edit_icon = Sefaria.is_moderator ? React.createElement('i', { className: 'fa fa-pencil', 'aria-hidden': 'true', onClick: this.openEditor }) : "";
+
+      return React.createElement(
+        'div',
+        { className: 'versionBlock' },
+        React.createElement(
+          'div',
+          { className: 'versionTitle' },
+          v.versionTitle,
+          edit_icon
+        ),
+        React.createElement(
+          'div',
+          null,
+          React.createElement(
+            'a',
+            { className: 'versionSource', target: '_blank', href: v.versionSource },
+            Sefaria.util.parseURL(v.versionSource).host
+          ),
+          licenseLine ? React.createElement(
+            'span',
+            null,
+            '-'
+          ) : "",
+          licenseLine,
+          this.props.showHistory ? React.createElement(
+            'span',
+            null,
+            '-'
+          ) : "",
+          this.props.showHistory ? React.createElement(
+            'a',
+            { className: 'versionHistoryLink', href: '/activity/' + Sefaria.normRef(this.props.currentRef) + '/' + v.language + '/' + (v.versionTitle && v.versionTitle.replace(/\s/g, "_")) },
+            'Version History >'
+          ) : ""
+        ),
+        this.props.showNotes ? React.createElement('div', { className: 'versionNotes', dangerouslySetInnerHTML: { __html: v.versionNotes } }) : ""
       );
     }
-
-    return React.createElement(
-      'div',
-      { className: 'versionBlock' },
-      React.createElement(
-        'div',
-        { className: 'versionTitle' },
-        v.versionTitle
-      ),
-      React.createElement(
-        'div',
-        null,
-        React.createElement(
-          'a',
-          { className: 'versionSource', target: '_blank', href: v.versionSource },
-          Sefaria.util.parseURL(v.versionSource).host
-        ),
-        licenseLine ? React.createElement(
-          'span',
-          null,
-          '-'
-        ) : "",
-        licenseLine,
-        this.props.showHistory ? React.createElement(
-          'span',
-          null,
-          '-'
-        ) : "",
-        this.props.showHistory ? React.createElement(
-          'a',
-          { className: 'versionHistoryLink', href: '/activity/' + Sefaria.normRef(this.props.currentRef) + '/' + v.language + '/' + (v.versionTitle && v.versionTitle.replace(/\s/g, "_")) },
-          'Version History >'
-        ) : ""
-      ),
-      this.props.showNotes ? React.createElement('div', { className: 'versionNotes', dangerouslySetInnerHTML: { __html: v.versionNotes } }) : ""
-    );
   }
 });
 
@@ -3930,7 +4086,8 @@ var ModeratorButtons = React.createClass({
   getInitialState: function getInitialState() {
     return {
       expanded: false,
-      message: null
+      message: null,
+      locked: this.props.versionStatus == "locked"
     };
   },
   expand: function expand() {
@@ -3939,8 +4096,7 @@ var ModeratorButtons = React.createClass({
   toggleLock: function toggleLock() {
     var title = this.props.title;
     var url = "/api/locktext/" + title + "/" + this.props.versionLanguage + "/" + this.props.versionTitle;
-    var unlocking = this.props.versionStatus == "locked";
-    if (unlocking) {
+    if (this.state.locked) {
       url += "?action=unlock";
     }
 
@@ -3948,9 +4104,10 @@ var ModeratorButtons = React.createClass({
       if ("error" in data) {
         alert(data.error);
       } else {
-        alert(unlocking ? "Text Unlocked" : "Text Locked");
+        alert(this.state.locked ? "Text Unlocked" : "Text Locked");
+        this.setState({ locked: !this.state.locked });
       }
-    }).fail(function () {
+    }.bind(this)).fail(function () {
       alert("Something went wrong. Sorry!");
     });
   },
@@ -4000,7 +4157,7 @@ var ModeratorButtons = React.createClass({
     }).fail(function () {
       alert("Something went wrong. Sorry!");
     });
-    this.setState({ message: "Deleteing text (this may time a while)..." });
+    this.setState({ message: "Deleting text (this may time a while)..." });
   },
   render: function render() {
     if (!this.state.expanded) {
@@ -4017,7 +4174,7 @@ var ModeratorButtons = React.createClass({
       React.createElement(
         'div',
         { className: 'button white', onClick: this.toggleLock },
-        this.props.versionStatus == "locked" ? React.createElement(
+        this.state.locked ? React.createElement(
           'span',
           null,
           React.createElement('i', { className: 'fa fa-unlock' }),
@@ -4253,7 +4410,7 @@ var SheetsHomePage = React.createClass({
   },
 
   render: function render() {
-    var _this2 = this;
+    var _this3 = this;
 
     var trendingTags = this.getTrendingTagsFromCache();
     var topSheets = this.getTopSheetsFromCache();
@@ -4264,7 +4421,7 @@ var SheetsHomePage = React.createClass({
     }
 
     var makeTagButton = function makeTagButton(tag) {
-      return React.createElement(SheetTagButton, { setSheetTag: _this2.props.setSheetTag, tag: tag.tag, count: tag.count, key: tag.tag });
+      return React.createElement(SheetTagButton, { setSheetTag: _this3.props.setSheetTag, tag: tag.tag, count: tag.count, key: tag.tag });
     };
 
     var trendingTags = trendingTags ? trendingTags.slice(0, 6).map(makeTagButton) : [React.createElement(LoadingMessage, null)];
@@ -4390,13 +4547,13 @@ var SheetsHomePage = React.createClass({
               'div',
               { className: 'type-buttons' },
               this._type_sheet_button("Most Used", "הכי בשימוש", function () {
-                return _this2.changeSort("count");
+                return _this3.changeSort("count");
               }, this.props.tagSort == "count"),
               this._type_sheet_button("Alphabetical", "אלפביתי", function () {
-                return _this2.changeSort("alpha");
+                return _this3.changeSort("alpha");
               }, this.props.tagSort == "alpha"),
               this._type_sheet_button("Trending", "פופולרי", function () {
-                return _this2.changeSort("trending");
+                return _this3.changeSort("trending");
               }, this.props.tagSort == "trending")
             )
           )
@@ -7110,7 +7267,7 @@ var LexiconEntry = React.createClass({
     );
   },
   renderLexiconEntrySenses: function renderLexiconEntrySenses(content) {
-    var _this3 = this;
+    var _this4 = this;
 
     var grammar = 'grammar' in content ? '(' + content['grammar']['verbal_stem'] + ')' : "";
     var def = 'definition' in content ? content['definition'] : "";
@@ -7120,7 +7277,7 @@ var LexiconEntry = React.createClass({
       content['notes']
     ) : "";
     var sensesElems = 'senses' in content ? content['senses'].map(function (sense) {
-      return _this3.renderLexiconEntrySenses(sense);
+      return _this4.renderLexiconEntrySenses(sense);
     }) : "";
     var senses = sensesElems.length ? React.createElement(
       'ol',
@@ -7232,11 +7389,11 @@ var ToolsPanel = React.createClass({
     }.bind(this) : null;
 
     var addTranslation = function () {
-      var _this4 = this;
+      var _this5 = this;
 
       var nextParam = "?next=" + Sefaria.util.currentPath();
       Sefaria.site.track.event("Tools", "Add Translation Click", this.props.srefs[0], { hitCallback: function hitCallback() {
-          return window.location = "/translate/" + _this4.props.srefs[0] + nextParam;
+          return window.location = "/translate/" + _this5.props.srefs[0] + nextParam;
         } });
     }.bind(this);
 
@@ -8034,10 +8191,10 @@ var SearchResultList = React.createClass({
     });
   },
   _abortRunningQueries: function _abortRunningQueries() {
-    var _this5 = this;
+    var _this6 = this;
 
     this.state.types.forEach(function (t) {
-      return _this5._abortRunningQuery(t);
+      return _this6._abortRunningQuery(t);
     });
   },
   _abortRunningQuery: function _abortRunningQuery(type) {
@@ -8220,18 +8377,18 @@ var SearchResultList = React.createClass({
     return newHits;
   },
   _buildFilterTree: function _buildFilterTree(aggregation_buckets) {
-    var _this6 = this;
+    var _this7 = this;
 
     //returns object w/ keys 'availableFilters', 'registry'
     //Add already applied filters w/ empty doc count?
     var rawTree = {};
 
     this.props.appliedFilters.forEach(function (fkey) {
-      return _this6._addAvailableFilter(rawTree, fkey, { "docCount": 0 });
+      return _this7._addAvailableFilter(rawTree, fkey, { "docCount": 0 });
     });
 
     aggregation_buckets.forEach(function (f) {
-      return _this6._addAvailableFilter(rawTree, f["key"], { "docCount": f["doc_count"] });
+      return _this7._addAvailableFilter(rawTree, f["key"], { "docCount": f["doc_count"] });
     });
     this._aggregate(rawTree);
     return this._build(rawTree);
@@ -8443,7 +8600,7 @@ var SearchResultList = React.createClass({
     this.setState({ "activeTab": "text" });
   },
   render: function render() {
-    var _this7 = this;
+    var _this8 = this;
 
     if (!this.props.query) {
       // Push this up? Thought is to choose on the SearchPage level whether to show a ResultList or an EmptySearchMessage.
@@ -8457,15 +8614,15 @@ var SearchResultList = React.createClass({
       results = this.state.hits.text.slice(0, this.state.displayedUntil["text"]).map(function (result) {
         return React.createElement(SearchTextResult, {
           data: result,
-          query: _this7.props.query,
+          query: _this8.props.query,
           key: result._id,
-          onResultClick: _this7.props.onResultClick });
+          onResultClick: _this8.props.onResultClick });
       });
     } else if (tab == "sheet") {
       results = this.state.hits.sheet.slice(0, this.state.displayedUntil["sheet"]).map(function (result) {
         return React.createElement(SearchSheetResult, {
           data: result,
-          query: _this7.props.query,
+          query: _this8.props.query,
           key: result._id });
       });
     }
@@ -9034,7 +9191,7 @@ var NotificationsPanel = React.createClass({
   },
   getInitialState: function getInitialState() {
     return {
-      page: 0,
+      page: 1,
       loadedToEnd: false,
       loading: false
     };
@@ -9119,6 +9276,248 @@ var NotificationsPanel = React.createClass({
   }
 });
 
+var ModeratorToolsPanel = React.createClass({
+  displayName: 'ModeratorToolsPanel',
+
+  propTypes: {
+    interfaceLang: React.PropTypes.string
+  },
+  getInitialState: function getInitialState() {
+    return {
+      // Bulk Download
+      bulk_format: null,
+      bulk_title_pattern: null,
+      bulk_version_title_pattern: null,
+      bulk_language: null,
+      // CSV Upload
+      files: [],
+      uploading: false,
+      uploadError: null,
+      uploadMessage: null
+    };
+  },
+  handleFiles: function handleFiles(event) {
+    this.setState({ files: event.target.files });
+  },
+  uploadFiles: function uploadFiles(event) {
+    event.preventDefault();
+    this.setState({ uploading: true, uploadMessage: "Uploading..." });
+    var formData = new FormData();
+    for (var i = 0; i < this.state.files.length; i++) {
+      var file = this.state.files[i];
+      formData.append('texts[]', file, file.name);
+    }
+    $.ajax({
+      url: "api/text-upload",
+      type: 'POST',
+      data: formData,
+      success: function (data) {
+        if (data.status == "ok") {
+          this.setState({ uploading: false, uploadMessage: data.message, uploadError: null, files: [] });
+          $("#file-form").get(0).reset(); //Remove selected files from the file selector
+        } else {
+            this.setState({ "uploadError": "Error - " + data.error, uploading: false, uploadMessage: data.message });
+          }
+      }.bind(this),
+      error: function (xhr, status, err) {
+        this.setState({ "uploadError": "Error - " + err.toString(), uploading: false, uploadMessage: null });
+      }.bind(this),
+      cache: false,
+      contentType: false,
+      processData: false
+    });
+  },
+
+  onDlTitleChange: function onDlTitleChange(event) {
+    this.setState({ bulk_title_pattern: event.target.value });
+  },
+  onDlVersionChange: function onDlVersionChange(event) {
+    this.setState({ bulk_version_title_pattern: event.target.value });
+  },
+  onDlLanguageSelect: function onDlLanguageSelect(event) {
+    this.setState({ bulk_language: event.target.value });
+  },
+  onDlFormatSelect: function onDlFormatSelect(event) {
+    this.setState({ bulk_format: event.target.value });
+  },
+  bulkVersionDlLink: function bulkVersionDlLink() {
+    var _this9 = this;
+
+    var args = ["format", "title_pattern", "version_title_pattern", "language"].map(function (arg) {
+      return _this9.state["bulk_" + arg] ? arg + '=' + encodeURIComponent(_this9.state["bulk_" + arg]) : "";
+    }).filter(function (a) {
+      return a;
+    }).join("&");
+    return "download/bulk/versions/?" + args;
+  },
+
+  render: function render() {
+    // Bulk Download
+    var dlReady = this.state.bulk_format && (this.state.bulk_title_pattern || this.state.bulk_version_title_pattern);
+    var downloadButton = React.createElement(
+      'div',
+      { className: 'versionDownloadButton' },
+      React.createElement(
+        'div',
+        { className: 'downloadButtonInner' },
+        React.createElement(
+          'span',
+          { className: 'int-en' },
+          'Download'
+        ),
+        React.createElement(
+          'span',
+          { className: 'int-he' },
+          'הורדה'
+        )
+      )
+    );
+    var downloadSection = React.createElement(
+      'div',
+      { className: 'modToolsSection dlSection' },
+      React.createElement(
+        'div',
+        { className: 'dlSectionTitle' },
+        React.createElement(
+          'span',
+          { className: 'int-en' },
+          'Bulk Download Text'
+        ),
+        React.createElement(
+          'span',
+          { className: 'int-he' },
+          'הורדת הטקסט'
+        )
+      ),
+      React.createElement('input', { className: 'dlVersionSelect', type: 'text', placeholder: 'Index Title Pattern', onChange: this.onDlTitleChange }),
+      React.createElement('input', { className: 'dlVersionSelect', type: 'text', placeholder: 'Version Title Pattern', onChange: this.onDlVersionChange }),
+      React.createElement(
+        'select',
+        { className: 'dlVersionSelect dlVersionLanguageSelect', value: this.state.bulk_language || "", onChange: this.onDlLanguageSelect },
+        React.createElement(
+          'option',
+          { disabled: true },
+          'Language'
+        ),
+        React.createElement(
+          'option',
+          { key: 'all', value: '' },
+          'Hebrew & English'
+        ),
+        React.createElement(
+          'option',
+          { key: 'he', value: 'he' },
+          'Hebrew'
+        ),
+        React.createElement(
+          'option',
+          { key: 'en', value: 'en' },
+          'English'
+        )
+      ),
+      React.createElement(
+        'select',
+        { className: 'dlVersionSelect dlVersionFormatSelect', value: this.state.bulk_format || "", onChange: this.onDlFormatSelect },
+        React.createElement(
+          'option',
+          { disabled: true },
+          'File Format'
+        ),
+        React.createElement(
+          'option',
+          { key: 'txt', value: 'txt' },
+          'Text'
+        ),
+        React.createElement(
+          'option',
+          { key: 'csv', value: 'csv' },
+          'CSV'
+        ),
+        React.createElement(
+          'option',
+          { key: 'json', value: 'json' },
+          'JSON'
+        )
+      ),
+      dlReady ? React.createElement(
+        'a',
+        { href: this.bulkVersionDlLink(), download: true },
+        downloadButton
+      ) : downloadButton
+    );
+
+    // Uploading
+    var ulReady = !this.state.uploading && this.state.files.length > 0;
+    var uploadButton = React.createElement(
+      'a',
+      null,
+      React.createElement(
+        'div',
+        { className: 'versionDownloadButton', onClick: this.uploadFiles },
+        React.createElement(
+          'div',
+          { className: 'downloadButtonInner' },
+          React.createElement(
+            'span',
+            { className: 'int-en' },
+            'Upload'
+          ),
+          React.createElement(
+            'span',
+            { className: 'int-he' },
+            'העלאה'
+          )
+        )
+      )
+    );
+    var uploadForm = React.createElement(
+      'div',
+      { className: 'modToolsSection' },
+      React.createElement(
+        'div',
+        { className: 'dlSectionTitle' },
+        React.createElement(
+          'span',
+          { className: 'int-en' },
+          'Bulk Upload CSV'
+        ),
+        React.createElement(
+          'span',
+          { className: 'int-he' },
+          'הורדת הטקסט'
+        )
+      ),
+      React.createElement(
+        'form',
+        { id: 'file-form' },
+        React.createElement('input', { className: 'dlVersionSelect', type: 'file', id: 'file-select', multiple: true, onChange: this.handleFiles }),
+        ulReady ? uploadButton : ""
+      ),
+      this.state.uploadMessage ? React.createElement(
+        'div',
+        { 'class': 'message' },
+        this.state.uploadMessage
+      ) : "",
+      this.state.uploadError ? React.createElement(
+        'div',
+        { 'class': 'error' },
+        this.state.uploadError
+      ) : ""
+    );
+
+    return Sefaria.is_moderator ? React.createElement(
+      'div',
+      { className: 'modTools' },
+      downloadSection,
+      uploadForm
+    ) : React.createElement(
+      'div',
+      null,
+      'Tools are only available to logged in moderators.'
+    );
+  }
+});
+
 var UpdatesPanel = React.createClass({
   displayName: 'UpdatesPanel',
 
@@ -9132,7 +9531,8 @@ var UpdatesPanel = React.createClass({
       loading: false,
       updates: [],
       submitting: false,
-      submitCount: 0
+      submitCount: 0,
+      error: null
     };
   },
   componentDidMount: function componentDidMount() {
@@ -9174,7 +9574,7 @@ var UpdatesPanel = React.createClass({
   },
 
   handleSubmit: function handleSubmit(type, content) {
-    this.setState({ "submitting": true });
+    this.setState({ "submitting": true, "error": null });
     var payload = {
       type: type,
       content: content
@@ -9186,17 +9586,21 @@ var UpdatesPanel = React.createClass({
       data: { json: JSON.stringify(payload) },
       success: function (data) {
         if (data.status == "ok") {
-          payload.date = Date.now();
+          payload.date = Date();
           this.state.updates.unshift(payload);
           this.setState({ submitting: false, updates: this.state.updates, submitCount: this.state.submitCount + 1 });
-        } else {}
+        } else {
+          this.setState({ "error": "Error - " + data.error });
+        }
       }.bind(this),
-      error: function (xhr, status, err) {}.bind(this)
+      error: function (xhr, status, err) {
+        this.setState({ "error": "Error - " + err.toString() });
+      }.bind(this)
     });
   },
 
   render: function render() {
-    var _this8 = this;
+    var _this10 = this;
 
     var classes = { notificationsPanel: 1, systemPanel: 1, readerNavMenu: 1, noHeader: 1 };
     var classStr = classNames(classes);
@@ -9224,7 +9628,7 @@ var UpdatesPanel = React.createClass({
               'עדכונים'
             )
           ),
-          Sefaria.is_moderator ? React.createElement(NewUpdateForm, { handleSubmit: this.handleSubmit, key: this.state.submitCount }) : "",
+          Sefaria.is_moderator ? React.createElement(NewUpdateForm, { handleSubmit: this.handleSubmit, key: this.state.submitCount, error: this.state.error }) : "",
           React.createElement(
             'div',
             { className: 'notificationsList' },
@@ -9235,8 +9639,8 @@ var UpdatesPanel = React.createClass({
                 date: u.date,
                 key: u._id,
                 id: u._id,
-                onDelete: _this8.onDelete,
-                submitting: _this8.state.submitting
+                onDelete: _this10.onDelete,
+                submitting: _this10.state.submitting
               });
             })
           )
@@ -9254,26 +9658,34 @@ var UpdatesPanel = React.createClass({
 var NewUpdateForm = React.createClass({
   displayName: 'NewUpdateForm',
 
-  getInitialState: function getInitialState() {
-    return { type: 'index', index: '', language: 'en', version: '', en: '', he: '' };
+  propTypes: {
+    error: React.PropTypes.string,
+    handleSubmit: React.PropTypes.func
   },
+  getInitialState: function getInitialState() {
+    return { type: 'index', index: '', language: 'en', version: '', en: '', he: '', error: '' };
+  },
+  componentWillReceiveProps: function componentWillReceiveProps(nextProps) {
+    this.setState({ "error": nextProps.error });
+  },
+
   handleEnChange: function handleEnChange(e) {
-    this.setState({ en: e.target.value });
+    this.setState({ en: e.target.value, error: null });
   },
   handleHeChange: function handleHeChange(e) {
-    this.setState({ he: e.target.value });
+    this.setState({ he: e.target.value, error: null });
   },
   handleTypeChange: function handleTypeChange(e) {
-    this.setState({ type: e.target.value });
+    this.setState({ type: e.target.value, error: null });
   },
   handleIndexChange: function handleIndexChange(e) {
-    this.setState({ index: e.target.value });
+    this.setState({ index: e.target.value, error: null });
   },
   handleVersionChange: function handleVersionChange(e) {
-    this.setState({ version: e.target.value });
+    this.setState({ version: e.target.value, error: null });
   },
   handleLanguageChange: function handleLanguageChange(e) {
-    this.setState({ language: e.target.value });
+    this.setState({ language: e.target.value, error: null });
   },
   handleSubmit: function handleSubmit(e) {
     e.preventDefault();
@@ -9283,16 +9695,19 @@ var NewUpdateForm = React.createClass({
     };
     if (this.state.type == "general") {
       if (!this.state.en || !this.state.he) {
+        this.setState({ "error": "Both Hebrew and English are required" });
         return;
       }
     } else {
       if (!this.state.index) {
+        this.setState({ "error": "Index is required" });
         return;
       }
       content["index"] = this.state.index.trim();
     }
     if (this.state.type == "version") {
       if (!this.state.version || !this.state.language) {
+        this.setState({ "error": "Version is required" });
         return;
       }
       content["version"] = this.state.version.trim();
@@ -9354,7 +9769,12 @@ var NewUpdateForm = React.createClass({
           cols: '80'
         })
       ),
-      React.createElement('input', { type: 'submit', value: 'Submit', disabled: this.props.submitting })
+      React.createElement('input', { type: 'submit', value: 'Submit', disabled: this.props.submitting }),
+      React.createElement(
+        'span',
+        { className: 'error' },
+        this.state.error
+      )
     );
   }
 });
@@ -9375,20 +9795,7 @@ var SingleUpdate = React.createClass({
   render: function render() {
     var title = this.props.content.index;
     if (title) {
-      var oref = Sefaria.ref(title);
-      var heTitle = oref ? oref.heTitle : "";
-    }
-
-    if (title && !oref) {
-      // If we don't have this data yet, rerender when we do so we can set the Hebrew title
-      Sefaria.text(title, { context: 1 }, function (data) {
-        if ("error" in data) {
-          return;
-        }
-        if (this.isMounted()) {
-          this.setState({});
-        }
-      }.bind(this));
+      var heTitle = Sefaria.index(title) ? Sefaria.index(title).heTitle : "";
     }
 
     var url = Sefaria.ref(title) ? "/" + Sefaria.normRef(Sefaria.ref(title).book) : "/" + Sefaria.normRef(title);
@@ -9892,6 +10299,20 @@ var Footer = React.createClass({
             'span',
             { className: 'int-he' },
             'מחברים'
+          )
+        ),
+        React.createElement(
+          'a',
+          { href: '/updates', className: 'outOfAppLink' },
+          React.createElement(
+            'span',
+            { className: 'int-en' },
+            'New Additions'
+          ),
+          React.createElement(
+            'span',
+            { className: 'int-he' },
+            'מה חדש'
           )
         )
       ),

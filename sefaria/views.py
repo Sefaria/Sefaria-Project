@@ -3,6 +3,8 @@ from datetime import datetime, timedelta
 from urlparse import urlparse
 from collections import defaultdict
 from random import choice
+import io
+import zipfile
 
 from django.utils.translation import ugettext as _
 from django.conf import settings
@@ -531,8 +533,70 @@ def run_tests(request):
     call(["/var/bin/run_tests.sh"])
 
 
+
+
 @catch_error_as_http
 def text_download_api(request, format, title, lang, versionTitle):
+
+    content = _get_text_version_file(format, title, lang, versionTitle)
+
+    content_types = {
+        "json": "application/json; charset=utf-8",
+        "csv": "text/csv; charset=utf-8",
+        "txt": "text/plain; charset=utf-8"
+    }
+    response = HttpResponse(content, content_type=content_types[format])
+    response["Content-Disposition"] = "attachment"
+    return response
+
+
+@staff_member_required
+@catch_error_as_http
+def bulk_download_versions_api(request):
+
+    format = request.GET.get("format")
+    title_pattern = request.GET.get("title_pattern")
+    version_title_pattern = request.GET.get("version_title_pattern")
+    language = request.GET.get("language")
+
+    error = None
+    if not format:
+        error = "A value is required for 'format'"
+    if not title_pattern and not version_title_pattern:
+        error = "A value is required for either 'title_pattern' or 'version_title_pattern'"
+    if error:
+        return jsonResponse({"error": error})
+
+    query = {}
+    if title_pattern:
+        query["title"] = {"$regex": title_pattern}
+    if version_title_pattern:
+        query["versionTitle"] = {"$regex": version_title_pattern}
+    if language:
+        query["language"] = language
+
+    vs = VersionSet(query)
+
+    if vs.count() == 0:
+        return jsonResponse({"error": "No versions found to match query"})
+
+    file_like_object = io.BytesIO()
+    with zipfile.ZipFile(file_like_object, "a", zipfile.ZIP_DEFLATED) as zfile:
+        for version in vs:
+            filebytes = _get_text_version_file(format, version.title, version.language, version.versionTitle)
+            name = u'{} - {} - {}.{}'.format(version.title, version.language, version.versionTitle, format).encode('utf-8')
+            if isinstance(filebytes, unicode):
+                filebytes = filebytes.encode('utf-8')
+            zfile.writestr(name, filebytes)
+
+    content = file_like_object.getvalue()
+    response = HttpResponse(content, content_type="application/zip")
+    filename = u"{}-{}-{}-{}.zip".format(filter(str.isalnum, str(title_pattern)), filter(str.isalnum, str(version_title_pattern)), language, format).encode('utf-8')
+    response["Content-Disposition"] = 'attachment; filename="{}"'.format(filename)
+    return response
+
+
+def _get_text_version_file(format, title, lang, versionTitle):
     from sefaria.export import text_is_copyright, make_json, make_text, prepare_merged_text_for_export, prepare_text_for_export, export_merged_csv, export_version_csv
 
     assert lang in ["en", "he"]
@@ -569,11 +633,24 @@ def text_download_api(request, format, title, lang, versionTitle):
     elif format == "txt" and merged:
         content = make_text(prepare_merged_text_for_export(title, lang=lang))
 
-    content_types = {
-        "json": "application/json; charset=utf-8",
-        "csv": "text/csv; charset=utf-8",
-        "txt": "text/plain; charset=utf-8"
-    }
-    response = HttpResponse(content, content_type=content_types[format])
-    response["Content-Disposition"] = "attachment"
-    return response
+    return content
+
+
+
+@staff_member_required
+def text_upload_api(request):
+    if request.method != "POST":
+        return jsonResponse({"error": "Unsupported Method: {}".format(request.method)})
+
+    from sefaria.export import import_versions_from_stream
+    message = ""
+    files = request.FILES.getlist("texts[]")
+    for f in files:
+        try:
+            import_versions_from_stream(f, [1])
+            message += "Imported: {}.  ".format(f.name)
+        except Exception as e:
+            return jsonResponse({"error": e.message, "message": message})
+
+    message = "Successfully imported {} versions".format(len(files))
+    return jsonResponse({"status": "ok", "message": message})

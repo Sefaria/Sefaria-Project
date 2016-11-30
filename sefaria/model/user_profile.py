@@ -252,6 +252,8 @@ def email_unread_notifications(timeframe):
 		if profile.settings["email_notifications"] != timeframe and timeframe != 'all':
 			continue
 		notifications = NotificationSet().unread_personal_for_user(uid)
+		if notifications.count() == 0:
+			continue
 		try:
 			user = User.objects.get(id=uid)
 		except User.DoesNotExist:
