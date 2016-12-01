@@ -2787,14 +2787,26 @@ var ReaderNavigationCategoryMenuContents = React.createClass({
           // Special Case categories which should nest but are normally wouldnt given their depth
           var subcats = [ "Mishneh Torah", "Shulchan Arukh", "Maharal"];
           if (Sefaria.util.inArray(item.category, subcats) > -1 || this.props.nestLevel > 0) {
-            url = "/texts/" + newCats.join("/");
-            content.push((<a href={url}>
+            if(item.contents.length == 1 && !("category" in item.contents[0])){
+                var chItem = item.contents[0]
+                var title   = chItem.title.replace(/(Mishneh Torah,|Shulchan Arukh,|Jerusalem Talmud) /, "");
+                var heTitle = chItem.heTitle.replace(/(משנה תורה,|תלמוד ירושלמי) /, "");
+                var url     = "/" + Sefaria.normRef(chItem.firstSection);
+                content.push((<a href={url}>
+                                <span className={'refLink sparse' + chItem.sparseness} data-ref={chItem.firstSection} key={"text." + this.props.nestLevel + "." + i}>
+                                  <span className='en'>{title}</span>
+                                  <span className='he'>{heTitle}</span>
+                                </span>
+                              </a>));
+            }else{
+              url = "/texts/" + newCats.join("/");
+              content.push((<a href={url}>
                             <span className="catLink" data-cats={newCats.join("|")} key={"cat." + this.props.nestLevel + "." + i}>
                               <span className='en'>{item.category}</span>
                               <span className='he'>{item.heCategory}</span>
                             </span>
                           </a>));
-
+            }
           }else{
             // Add a Category
             content.push((<div className='category' key={"cat." + this.props.nestLevel + "." + i}>
