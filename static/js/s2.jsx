@@ -2710,7 +2710,7 @@ var ReaderNavigationCategoryMenu = React.createClass({
     var categories  = this.props.categories[0] === "Talmud" && this.props.categories.length == 1 ? 
                         ["Talmud", "Bavli"] : this.props.categories;
 
-    if (categories[0] === "Talmud") {
+    if (categories[0] === "Talmud" && categories.length <= 2) {
       var setBavli = function() {
         this.props.setCategories(["Talmud", "Bavli"]);
       }.bind(this);
@@ -2731,11 +2731,13 @@ var ReaderNavigationCategoryMenu = React.createClass({
                               <span className="he">ירושלמי</span>
                             </span>
                          </div>);
-
+      var catTitle = (categories.length > 1) ? categories[0] +  " " + categories[1] : categories[0];
+      var heCatTitle = (categories.length > 1) ? Sefaria.hebrewCategory(categories[0]) + " " + Sefaria.hebrewCategory(categories[1]): categories[0];
     } else {
       var toggle = null;
+      var catTitle = this.props.category;
+      var heCatTitle = Sefaria.hebrewCategory(this.props.category);
     }
-
     var catContents    = Sefaria.tocItemsByCategories(categories);
     var navMenuClasses = classNames({readerNavCategoryMenu: 1, readerNavMenu: 1, noHeader: this.props.hideNavHeader});
     var navTopClasses  = classNames({readerNavTop: 1, searchOnly: 1, colorLineOnly: this.props.hideNavHeader});
@@ -2746,16 +2748,16 @@ var ReaderNavigationCategoryMenu = React.createClass({
                 {this.props.hideNavHeader ? null : (<ReaderNavigationMenuMenuButton onClick={this.props.navHome} compare={this.props.compare} />)}
                 {this.props.hideNavHeader ? null : (<ReaderNavigationMenuDisplaySettingsButton onClick={this.props.openDisplaySettings} />)}
                 {this.props.hideNavHeader ? null : (<h2>
-                  <span className="en">{this.props.category}</span>
-                  <span className="he">{Sefaria.hebrewCategory(this.props.category)}</span>
+                  <span className="en">{catTitle}</span>
+                  <span className="he">{heCatTitle}</span>
                 </h2>)}
               </div>
               <div className={contentClasses}>
                 <div className="contentInner">
                   {this.props.hideNavHeader ? (<h1>
                       <LanguageToggleButton toggleLanguage={this.props.toggleLanguage} />
-                      <span className="en">{this.props.category}</span>
-                      <span className="he">{Sefaria.hebrewCategory(this.props.category)}</span>
+                      <span className="en">{catTitle}</span>
+                      <span className="he">{heCatTitle}</span>
                     </h1>) : null}
                   {toggle}
                   <ReaderNavigationCategoryMenuContents contents={catContents} categories={categories} width={this.props.width} nestLevel={0}/>
