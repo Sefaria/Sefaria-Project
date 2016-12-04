@@ -6,8 +6,10 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
   <meta property="og:image" content="http://www.sefaria.org/static/img/fb-og-image.png"/>
+  <meta property="og:title" content="{{ title }} | Sefaria"/>
+  <meta property="og:description" content="{{ desc }}">
 
-  <title>{{ ref }}</title>
+  <title>{{ title }}</title>
   <link rel="stylesheet" href="/static/font-awesome/css/font-awesome.css">
   <link rel="stylesheet" type="text/css" href="/static/css/keyboard.css">
   <link rel="stylesheet" href="/static/css/common.css">
@@ -34,7 +36,7 @@
 </head>
 
 <body>
-    
+
   <div id="s2">{% autoescape off %}{{ html }}{% endautoescape %}</div>
 
   <div id="overlay"></div>

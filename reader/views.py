@@ -15,6 +15,7 @@ import zlib
 from bson.json_util import dumps
 import p929
 import socket
+import bleach
 
 from django.views.decorators.cache import cache_page
 from django.template import RequestContext, loader
@@ -385,10 +386,26 @@ def s2(request, ref, version=None, lang=None):
         "initialNavigationCategories": None,
     })
     propsJSON = json.dumps(props)
+
+    try:
+        title = props["initialPanels"][0]["text"].get("ref","")
+        desc = ' '.join(props["initialPanels"][0]["text"].get("text","")) # get english text for section if it exists, and flatten the list
+        if desc == "":
+            desc = ' '.join(props["initialPanels"][0]["text"].get("he","")) # if no english, fall back on hebrew and flatten
+        desc = bleach.clean(desc, strip=True, tags=())
+        desc = desc[:145].rsplit(' ', 1)[0]+"..." # truncate as close to 145 characters as possible while maintaining whole word. Append ellipses.
+
+    except:
+        title = "Sefaria: a Living Library of Jewish Texts Online"
+        desc = "Explore 3,000 years of Jewish texts in Hebrew and English translation."
+
     html = render_react_component("ReaderApp", props)
     return render_to_response('s2.html', {
+
         "propsJSON":      propsJSON,
         "html":           html,
+        "title":          title,
+        "desc":           desc
     }, RequestContext(request))
 
 

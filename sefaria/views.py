@@ -489,6 +489,19 @@ def sheet_stats(request):
         html = "%s: %d\n%s" % (start.strftime("%b %y"), len(n), html)
 
     html = "Unique Source Sheet creators per month:\n\n" + html
+
+
+    html += "\n\nAll time contributors:\n\n"
+    all_sheet_makers = db.sheets.distinct("owner")
+    public_sheet_makers = db.sheets.find({"status": "public"}).distinct("owner")
+    public_contributors = set(db.history.distinct("user")+public_sheet_makers)
+    all_contributors = set(db.history.distinct("user")+all_sheet_makers)
+
+    html += "Public Sheet Makers: %d\n" % len(public_sheet_makers)
+    html += "All Sheet Makers: %d\n" % len(all_sheet_makers)
+    html += "Public Contributors: %d\n" % len(public_contributors)
+    html += "Public Contributors and Source Sheet Makers: %d\n" % len(all_contributors)
+
     return HttpResponse("<pre>" + html + "<pre>")
 
 
