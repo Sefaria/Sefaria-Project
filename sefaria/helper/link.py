@@ -31,7 +31,7 @@ class AbstractAutoLinker(object):
             self._generated_by_string = generated_by_string if generated_by_string else self.__class__.__name__
         self._auto = auto
         if not self._link_type:
-            self._link_type = link_type if link_type else oref.index.dependance
+            self._link_type = link_type if link_type else oref.index.dependance.lower()
         self._user = kwargs.get('user', None)
         self._title = self._requested_oref.index.title
 
