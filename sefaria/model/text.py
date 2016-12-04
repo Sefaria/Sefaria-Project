@@ -3169,7 +3169,7 @@ class Ref(object):
         return d
 
     def he_book(self):
-        return self.index.get_title(lang="he")
+        return self.index_node.full_title("he")
 
     def _get_normal(self, lang):
         normal = self.index_node.full_title(lang)
