@@ -1377,7 +1377,7 @@ class TextChunk(AbstractTextRecord):
         else:
             raise Exception("Called TextChunk.version() on merged TextChunk.")
 
-    def text_index_map(self,tokenizer):
+    def text_index_map(self,tokenizer=lambda x: x.split(u' ')):
         """
         Primarily used for depth-2 texts in order to get index/ref pairs relative to the full text string
          indexes are the word index in word_list
@@ -1386,10 +1386,12 @@ class TextChunk(AbstractTextRecord):
         :return: (list,list,list) - index_list, ref_list, word_list
         """
         ind_list = []
-        ref_list = self._oref.all_subrefs()
+        r = self._oref
+        ref_list = r.range_list() if r.is_range() else r.all_subrefs()
 
         total_len = 0
-        for i,segment in enumerate(self.text):
+        text_list = self.ja().flatten_to_array()
+        for i,segment in enumerate(text_list):
             ind_list.append(total_len)
             total_len += len(tokenizer(segment))
 
@@ -2083,7 +2085,7 @@ class Ref(object):
         self.toSections = [int(x) for x in self.toSections]
 
     def __eq__(self, other):
-        return self.uid() == other.uid()
+        return isinstance(other, Ref) and self.uid() == other.uid()
 
     def __ne__(self, other):
         return not self.__eq__(other)
