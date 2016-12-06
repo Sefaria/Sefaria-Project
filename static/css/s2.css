@@ -1127,6 +1127,9 @@ a.resourcesLink {
   display: block;
   text-align: left;
 }
+.readerTextTableOfContents .content .tocSection.noSubLevels{
+  display: none;
+}
 .readerTextTableOfContents .content .schema-node-contents {
   margin: 0 auto 22px;
   display: block;
