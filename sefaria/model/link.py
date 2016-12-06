@@ -91,6 +91,35 @@ class Link(abst.AbstractMongoRecord):
                     raise DuplicateRecordError(u"A more precise link already exists: {}".format(preciselink.refs[1]))
                 # else: # this is a good new link
 
+    def ref_opposite(self, from_ref, as_tuple=False):
+        """
+        Return the Ref in this link that is opposite the one matched by `from_ref`.
+        The matching of from_ref uses Ref.regex().  Matches are to the specific ref, or below.
+        If neither Ref matches from_ref, None is returned.
+        :param from_ref: A Ref object
+        :param as_tuple: If true, return a tuple (Ref,Ref), where the first Ref is the given from_ref,
+        or one more specific, and the second Ref is the opposing Ref in the link.
+        :return:
+        """
+
+        reg = re.compile(from_ref.regex())
+        if reg.match(self.refs[1]):
+            from_tref = self.refs[1]
+            opposite_tref = self.refs[0]
+        elif reg.match(self.refs[0]):
+            from_tref = self.refs[0]
+            opposite_tref = self.refs[1]
+        else:
+            return None
+
+        if opposite_tref:
+            try:
+                if as_tuple:
+                    return text.Ref(from_tref), text.Ref(opposite_tref)
+                return text.Ref(opposite_tref)
+            except InputError:
+                return None
+
 
 class LinkSet(abst.AbstractMongoSet):
     recordClass = Link
@@ -98,7 +127,8 @@ class LinkSet(abst.AbstractMongoSet):
     def __init__(self, query_or_ref={}, page=0, limit=0):
         '''
         LinkSet can be initialized with a query dictionary, as any other MongoSet.
-        It can also be initialized with a :py:class: `sefaria.text.Ref` object, and will use the :py:meth: `sefaria.text.Ref.regex()` method to return the set of Links that refer to that Ref or below.
+        It can also be initialized with a :py:class: `sefaria.text.Ref` object,
+        and will use the :py:meth: `sefaria.text.Ref.regex()` method to return the set of Links that refer to that Ref or below.
         :param query_or_ref: A query dict, or a :py:class: `sefaria.text.Ref` object
         '''
         try:
@@ -120,7 +150,7 @@ class LinkSet(abst.AbstractMongoSet):
             return self.filter([sources])
 
         # Expand Categories
-        categories  = text.library.get_text_categories()
+        categories = text.library.get_text_categories()
         expanded_sources = []
         for source in sources:
             expanded_sources += [source] if source not in categories else text.library.get_indexes_in_category(source, include_commentary=False)
@@ -133,6 +163,7 @@ class LinkSet(abst.AbstractMongoSet):
 
         return filtered
 
+    # This could be implemented with Link.ref_opposite, but we should speed test it first.
     def refs_from(self, from_ref, as_tuple=False):
         """
         Get a collection of Refs that are opposite the given Ref, or a more specific Ref, in this link set.
