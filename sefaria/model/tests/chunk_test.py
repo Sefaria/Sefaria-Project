@@ -23,6 +23,32 @@ def test_text_index_map():
     chunk = g.text('en', 'The Holy Scriptures: A New Translation (JPS 1917)')
     assert chunk.text_index_map(lambda x: x.split(u' ')) == ([0, 26, 40], [Ref('Genesis 1:31'), Ref('Genesis 2:1'), Ref('Genesis 2:2')])
 
+    #test depth 3 with empty sections
+    r = Ref("Rashi on Joshua")
+    tc = TextChunk(r,"he")
+    ind_list, ref_list = tc.text_index_map()
+    for sub_ref in ref_list:
+        assert sub_ref.is_segment_level()
+    assert ref_list[5] == Ref('Rashi on Joshua 1:4:3')
+    assert ref_list[8] == Ref('Rashi on Joshua 1:7:1')
+
+    #test depth 2 range
+    r = Ref("Rashi on Joshua 1:4-1:7")
+    tc = TextChunk(r,"he")
+    ind_list, ref_list = tc.text_index_map()
+    assert ref_list[5] == Ref('Rashi on Joshua 1:7:1')
+
+    #test depth 3 range with missing super-section (Ramban Chapter 50 is missing)
+    r = Ref("Ramban on Genesis 48-50")
+    tc = TextChunk(r,"he")
+    ind_list, ref_list = tc.text_index_map()
+    assert ref_list[-1] == Ref('Ramban on Genesis 49:33:2')
+
+
+
+    #test depth 2 with empty segments
+    r = Ref("Targum Jerusalem, Genesis")
+
 def test_verse_chunk():
     chunks = [
         TextChunk(Ref("Daniel 2:3"), "en", "The Holy Scriptures: A New Translation (JPS 1917)"),
