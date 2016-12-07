@@ -28,6 +28,9 @@ class AbstractSplicer(object):
 
         self.joiner = u" "
 
+    def is_ready(self):
+        return self._ready
+
     def report(self):
         """
         Report what the splicer will do, but don't make any changes.
@@ -717,7 +720,7 @@ class SectionSplicer(AbstractSplicer):
         assert not ref.is_commentary()
 
         self.section_ref = ref
-        self.last_segment_ref = ref.subref(ref.get_state_ja().sub_array_length([i - 1 for i in ref.sections]))
+        self.last_segment_ref = ref.subref(len(ref.text("he").text)) #ref.subref(ref.get_state_ja().sub_array_length([i - 1 for i in ref.sections]))
         self.index = ref.index
         self.commentary_titles = library.get_commentary_version_titles_on_book(self.index.title)
         self.commentary_versions = library.get_commentary_versions_on_book(self.index.title)
@@ -733,11 +736,11 @@ class SectionSplicer(AbstractSplicer):
         assert self.base_version or (not start_word and not end_word), "Word level mappings require a base version."
         assert start_ref.section_ref() == self.section_ref
         assert end_ref.section_ref() == self.section_ref
-        assert len(self.segment_maps) or start_ref == self.section_ref.subref(1), "First segment map must begin at start of section."
+        assert len(self.segment_maps) or start_ref == self.section_ref.subref(1), "{} - First segment map must begin at start of section.".format(start_ref.normal())
 
         sm = SegmentMap(start_ref, end_ref, start_word=start_word, end_word=end_word)
         if len(self.segment_maps):
-            assert sm.immediately_follows(self.segment_maps[-1])
+            assert sm.immediately_follows(self.segment_maps[-1]), "{} doesn't follow {}".format(sm.start_ref.normal(), self.segment_maps[-1].end_ref.normal())
         self.segment_maps += [sm]
 
         if end_ref == self.last_segment_ref and not end_word:
