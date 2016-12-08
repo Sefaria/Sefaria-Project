@@ -3021,7 +3021,7 @@ var ReaderNavigationCategoryMenu = React.createClass({
     // Show Talmud with Toggles
     var categories = this.props.categories[0] === "Talmud" && this.props.categories.length == 1 ? ["Talmud", "Bavli"] : this.props.categories;
 
-    if (categories[0] === "Talmud") {
+    if (categories[0] === "Talmud" && categories.length <= 2) {
       var setBavli = function () {
         this.props.setCategories(["Talmud", "Bavli"]);
       }.bind(this);
@@ -3068,10 +3068,13 @@ var ReaderNavigationCategoryMenu = React.createClass({
           )
         )
       );
+      var catTitle = categories.length > 1 ? categories[0] + " " + categories[1] : categories[0];
+      var heCatTitle = categories.length > 1 ? Sefaria.hebrewCategory(categories[0]) + " " + Sefaria.hebrewCategory(categories[1]) : categories[0];
     } else {
       var toggle = null;
+      var catTitle = this.props.category;
+      var heCatTitle = Sefaria.hebrewCategory(this.props.category);
     }
-
     var catContents = Sefaria.tocItemsByCategories(categories);
     var navMenuClasses = classNames({ readerNavCategoryMenu: 1, readerNavMenu: 1, noHeader: this.props.hideNavHeader });
     var navTopClasses = classNames({ readerNavTop: 1, searchOnly: 1, colorLineOnly: this.props.hideNavHeader });
@@ -3091,12 +3094,12 @@ var ReaderNavigationCategoryMenu = React.createClass({
           React.createElement(
             'span',
             { className: 'en' },
-            this.props.category
+            catTitle
           ),
           React.createElement(
             'span',
             { className: 'he' },
-            Sefaria.hebrewCategory(this.props.category)
+            heCatTitle
           )
         )
       ),
@@ -3113,16 +3116,16 @@ var ReaderNavigationCategoryMenu = React.createClass({
             React.createElement(
               'span',
               { className: 'en' },
-              this.props.category
+              catTitle
             ),
             React.createElement(
               'span',
               { className: 'he' },
-              Sefaria.hebrewCategory(this.props.category)
+              heCatTitle
             )
           ) : null,
           toggle,
-          React.createElement(ReaderNavigationCategoryMenuContents, { contents: catContents, categories: categories, width: this.props.width, nestLevel: 0 })
+          React.createElement(ReaderNavigationCategoryMenuContents, { contents: catContents, categories: categories, width: this.props.width, category: this.props.category, nestLevel: 0 })
         ),
         footer
       )
@@ -3135,6 +3138,7 @@ var ReaderNavigationCategoryMenuContents = React.createClass({
 
   // Inner content of Category menu (just category title and boxes of)
   propTypes: {
+    category: React.PropTypes.string.isRequired,
     contents: React.PropTypes.array.isRequired,
     categories: React.PropTypes.array.isRequired,
     width: React.PropTypes.number,
@@ -3143,6 +3147,8 @@ var ReaderNavigationCategoryMenuContents = React.createClass({
   render: function render() {
     var content = [];
     var cats = this.props.categories || [];
+    var displayCategory = this.props.category;
+    var displayHeCategory = Sefaria.hebrewCategory(this.props.category);
     for (var i = 0; i < this.props.contents.length; i++) {
       var item = this.props.contents[i];
       if (item.category) {
@@ -3150,25 +3156,52 @@ var ReaderNavigationCategoryMenuContents = React.createClass({
         // Special Case categories which should nest but are normally wouldnt given their depth
         var subcats = ["Mishneh Torah", "Shulchan Arukh", "Maharal"];
         if (Sefaria.util.inArray(item.category, subcats) > -1 || this.props.nestLevel > 0) {
-          url = "/texts/" + newCats.join("/");
-          content.push(React.createElement(
-            'a',
-            { href: url },
-            React.createElement(
-              'span',
-              { className: 'catLink', 'data-cats': newCats.join("|"), key: "cat." + this.props.nestLevel + "." + i },
+          if (item.contents.length == 1 && !("category" in item.contents[0])) {
+            var chItem = item.contents[0];
+            var titleRe = new RegExp('(Mishneh Torah,|Shulchan Arukh,|Jerusalem Talmud|' + displayCategory + ')( on )?');
+            var title = chItem.title == displayCategory ? chItem.title : chItem.title.replace(titleRe, "");
+            var heTitleRe = new RegExp('(\u05DE\u05E9\u05E0\u05D4 \u05EA\u05D5\u05E8\u05D4|\u05EA\u05DC\u05DE\u05D5\u05D3 \u05D9\u05E8\u05D5\u05E9\u05DC\u05DE\u05D9|' + displayHeCategory + ')( \u05E2\u05DC )?');
+            var heTitle = chItem.heTitle == displayHeCategory ? chItem.heTitle : chItem.heTitle.replace(heTitleRe, "");
+            var url = "/" + Sefaria.normRef(chItem.firstSection);
+            content.push(React.createElement(
+              'a',
+              { href: url },
               React.createElement(
                 'span',
-                { className: 'en' },
-                item.category
-              ),
-              React.createElement(
-                'span',
-                { className: 'he' },
-                item.heCategory
+                { className: 'refLink sparse' + chItem.sparseness, 'data-ref': chItem.firstSection, key: "text." + this.props.nestLevel + "." + i },
+                React.createElement(
+                  'span',
+                  { className: 'en' },
+                  title
+                ),
+                React.createElement(
+                  'span',
+                  { className: 'he' },
+                  heTitle
+                )
               )
-            )
-          ));
+            ));
+          } else {
+            url = "/texts/" + newCats.join("/");
+            content.push(React.createElement(
+              'a',
+              { href: url },
+              React.createElement(
+                'span',
+                { className: 'catLink', 'data-cats': newCats.join("|"), key: "cat." + this.props.nestLevel + "." + i },
+                React.createElement(
+                  'span',
+                  { className: 'en' },
+                  item.category
+                ),
+                React.createElement(
+                  'span',
+                  { className: 'he' },
+                  item.heCategory
+                )
+              )
+            ));
+          }
         } else {
           // Add a Category
           content.push(React.createElement(
@@ -3188,13 +3221,15 @@ var ReaderNavigationCategoryMenuContents = React.createClass({
                 item.heCategory
               )
             ),
-            React.createElement(ReaderNavigationCategoryMenuContents, { contents: item.contents, categories: newCats, width: this.props.width, nestLevel: this.props.nestLevel + 1 })
+            React.createElement(ReaderNavigationCategoryMenuContents, { contents: item.contents, categories: newCats, width: this.props.width, nestLevel: this.props.nestLevel + 1, category: this.props.category })
           ));
         }
       } else {
         // Add a Text
-        var title = item.title.replace(/(Mishneh Torah,|Shulchan Arukh,|Jerusalem Talmud) /, "");
-        var heTitle = item.heTitle.replace(/(משנה תורה,|תלמוד ירושלמי) /, "");
+        var titleRe = new RegExp('(Mishneh Torah,|Shulchan Arukh,|Jerusalem Talmud|' + displayCategory + ')( on )?');
+        var title = item.title == displayCategory ? item.title : item.title.replace(titleRe, "");
+        var heTitleRe = new RegExp('(\u05DE\u05E9\u05E0\u05D4 \u05EA\u05D5\u05E8\u05D4|\u05EA\u05DC\u05DE\u05D5\u05D3 \u05D9\u05E8\u05D5\u05E9\u05DC\u05DE\u05D9|' + displayHeCategory + ')( \u05E2\u05DC )?');
+        var heTitle = item.heTitle == displayHeCategory ? item.heTitle : item.heTitle.replace(heTitleRe, "");
         var url = "/" + Sefaria.normRef(item.firstSection);
         content.push(React.createElement(
           'a',

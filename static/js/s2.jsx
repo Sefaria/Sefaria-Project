@@ -2781,6 +2781,8 @@ var ReaderNavigationCategoryMenuContents = React.createClass({
   render: function() {
       var content = [];
       var cats = this.props.categories || [];
+      var displayCategory = this.props.category;
+      var displayHeCategory = Sefaria.hebrewCategory(this.props.category);
       for (var i = 0; i < this.props.contents.length; i++) {
         var item = this.props.contents[i];
         if (item.category) {
@@ -2790,8 +2792,10 @@ var ReaderNavigationCategoryMenuContents = React.createClass({
           if (Sefaria.util.inArray(item.category, subcats) > -1 || this.props.nestLevel > 0) {
             if(item.contents.length == 1 && !("category" in item.contents[0])){
                 var chItem = item.contents[0]
-                var title   = chItem.title.replace(/(Mishneh Torah,|Shulchan Arukh,|Jerusalem Talmud) /, "");
-                var heTitle = chItem.heTitle.replace(/(משנה תורה,|תלמוד ירושלמי) /, "");
+                var titleRe = new RegExp(`(Mishneh Torah,|Shulchan Arukh,|Jerusalem Talmud|${displayCategory})( on )?`);
+                var title   = chItem.title == displayCategory ? chItem.title : chItem.title.replace(titleRe, "");
+                var heTitleRe = new RegExp(`(משנה תורה|תלמוד ירושלמי|${displayHeCategory})( על )?`);
+                var heTitle = chItem.heTitle == displayHeCategory ? chItem.heTitle : chItem.heTitle.replace(heTitleRe, "");
                 var url     = "/" + Sefaria.normRef(chItem.firstSection);
                 content.push((<a href={url}>
                                 <span className={'refLink sparse' + chItem.sparseness} data-ref={chItem.firstSection} key={"text." + this.props.nestLevel + "." + i}>
@@ -2820,10 +2824,10 @@ var ReaderNavigationCategoryMenuContents = React.createClass({
           }
         } else {
           // Add a Text
-          var title   = item.title.replace(/(Mishneh Torah,|Shulchan Arukh,|Jerusalem Talmud) /, "");
-          var title   = title.replace(this.props.category, "");
-          var heTitle = item.heTitle.replace(/(משנה תורה,|תלמוד ירושלמי) /, "");
-          var heTitle   = heTitle.replace(Sefaria.hebrewCategory(this.props.category), "")
+          var titleRe = new RegExp(`(Mishneh Torah,|Shulchan Arukh,|Jerusalem Talmud|${displayCategory})( on )?`);
+          var title   = item.title == displayCategory ? item.title : item.title.replace(titleRe, "");
+          var heTitleRe = new RegExp(`(משנה תורה|תלמוד ירושלמי|${displayHeCategory})( על )?`);
+          var heTitle = item.heTitle == displayHeCategory ? item.heTitle : item.heTitle.replace(heTitleRe, "");
           var url     = "/" + Sefaria.normRef(item.firstSection);
           content.push((<a href={url}>
                           <span className={'refLink sparse' + item.sparseness} data-ref={item.firstSection} key={"text." + this.props.nestLevel + "." + i}>
