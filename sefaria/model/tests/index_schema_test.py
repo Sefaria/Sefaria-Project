@@ -770,6 +770,21 @@ class Test_Schema(object):
 
         i.delete()
 
+    def test_quick_initialization(self):
+        old_style = JaggedArrayNode()
+        old_style.add_title('Title', 'en', primary=True)
+        old_style.add_title(u'כותרת', 'he', primary=True)
+        old_style.key = 'Title'
+        old_style.sectionNames = ['Chapter', 'Verse']
+        old_style.addressTypes = ['Integer', 'Integer']
+        old_style.depth = 2
+
+        quick_way = JaggedArrayNode()
+        quick_way.add_primary_titles('Title', u'כותרת')
+        quick_way.add_structure(['Chapter', 'Verse'])
+
+        assert quick_way.serialize() == old_style.serialize()
+
 class Test_Default_Nodes(object):
     @classmethod
     def setup_class(cls):
