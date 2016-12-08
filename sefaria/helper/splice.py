@@ -712,6 +712,7 @@ class SectionSplicer(AbstractSplicer):
         self.base_version_title = None
         self.base_version_language = None
         self.base_length = None
+        self.base_texts = []
         self.version_list = []
         self.segment_maps = []           # List of SegmentMap objects, with word specificity, based on primary version
         self.adjusted_segment_maps = []  # List of SegmentMap objects, with segment specificity, for other versions
@@ -730,6 +731,9 @@ class SectionSplicer(AbstractSplicer):
         for v in self.version_list:
             v["text_chunk"] = TextChunk(ref, v["language"], v["versionTitle"])
         return self
+
+    def set_base_texts(self, text_dict_list):
+        self.base_texts = text_dict_list
 
     def set_base_version(self, base_version_title, base_version_language):
         self.base_version_title = base_version_title
@@ -919,3 +923,19 @@ class SectionSplicer(AbstractSplicer):
             print u"\n*** Pushing changes to Elastic Search"
             self._clean_elastisearch()
             """
+
+
+class BookSplicer(object):
+    def __init__(self, section_splicers):
+        """
+        Initializes a book splicer from a list of section splicers
+        :param section_splicers: List
+        """
+        assert all([isinstance(a, SectionSplicer) for a in section_splicers])
+        self.section_splicers = section_splicers
+
+    def get_segment_lookup_dictionary(self):
+        res = {}
+        for s in self.section_splicers:
+            res.update(s.get_segment_lookup_dictionary())
+        return res
