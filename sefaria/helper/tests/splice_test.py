@@ -182,7 +182,7 @@ class TestSegmentMapPartialVerse(object):
     def setup_method(self, method):
         splicer = SectionSplicer()
         splicer.set_section(Ref("Shabbat 2b"))
-        splicer.set_base_version(Version().load({"title": "Shabbat", "versionTitle": "Wikisource Talmud Bavli", "language": "he"}))
+        splicer.set_base_version("Wikisource Talmud Bavli", "he")
         splicer.set_segment_map(Ref("Shabbat 2b:1"), Ref("Shabbat 2b:15"))                              # 0
         splicer.set_segment_map(Ref("Shabbat 2b:16"), Ref("Shabbat 2b:16"), end_word=3)                 # 1
         splicer.set_segment_map(Ref("Shabbat 2b:16"), Ref("Shabbat 2b:16"), start_word=4, end_word=8)   # 2
@@ -217,7 +217,7 @@ class TestSegmentMapAdjustment(object):
     def setup_method(self, method):
         splicer = SectionSplicer()
         splicer.set_section(Ref("Shabbat 2b"))
-        splicer.set_base_version(Version().load({"title": "Shabbat", "versionTitle": "Wikisource Talmud Bavli", "language": "he"}))
+        splicer.set_base_version("Wikisource Talmud Bavli", "he")
         splicer.set_segment_map(Ref("Shabbat 2b:1"), Ref("Shabbat 2b:2"))
         splicer.set_segment_map(Ref("Shabbat 2b:3"), Ref("Shabbat 2b:5"))
         splicer.set_segment_map(Ref("Shabbat 2b:6"), Ref("Shabbat 2b:12"), end_word=2)
