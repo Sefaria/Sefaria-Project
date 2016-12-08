@@ -2824,9 +2824,9 @@ var ReaderNavigationCategoryMenuContents = React.createClass({
           }
         } else {
           // Add a Text
-          var titleRe = new RegExp(`(Mishneh Torah,|Shulchan Arukh,|Jerusalem Talmud|${displayCategory})( on )?`);
+          var titleRe = new RegExp(`^(Mishneh Torah,|Shulchan Arukh,|Jerusalem Talmud|${displayCategory})( on )?`);
           var title   = item.title == displayCategory ? item.title : item.title.replace(titleRe, "");
-          var heTitleRe = new RegExp(`(משנה תורה, |תלמוד ירושלמי|${displayHeCategory})( על )?`);
+          var heTitleRe = new RegExp(`^(משנה תורה, |תלמוד ירושלמי|${displayHeCategory})( על )?`);
           var heTitle = item.heTitle == displayHeCategory ? item.heTitle : item.heTitle.replace(heTitleRe, "");
           var url     = "/" + Sefaria.normRef(item.firstSection);
           content.push((<a href={url}>
