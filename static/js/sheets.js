@@ -3100,7 +3100,12 @@ function pollForUpdates() {
 		if ("error" in data) {
 			sjs.alert.flash(data.error);
 		} else if (data.modified) {
-			rebuildUpdatedSheet(data);
+				if ($(".cke_editable").length) {
+				  $("#save").text('Changes Pending...');
+				}
+				else {
+					rebuildUpdatedSheet(data);
+				}
 		}
 	})
 }
