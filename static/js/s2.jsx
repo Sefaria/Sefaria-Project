@@ -2792,9 +2792,9 @@ var ReaderNavigationCategoryMenuContents = React.createClass({
           if (Sefaria.util.inArray(item.category, subcats) > -1 || this.props.nestLevel > 0) {
             if(item.contents.length == 1 && !("category" in item.contents[0])){
                 var chItem = item.contents[0]
-                var titleRe = new RegExp(`(Mishneh Torah,|Shulchan Arukh,|Jerusalem Talmud|${displayCategory})( on )?`);
+                var titleRe = new RegExp(`^(Mishneh Torah,|Shulchan Arukh,|Jerusalem Talmud|${displayCategory})( on )?`);
                 var title   = chItem.title == displayCategory ? chItem.title : chItem.title.replace(titleRe, "");
-                var heTitleRe = new RegExp(`(משנה תורה|תלמוד ירושלמי|${displayHeCategory})( על )?`);
+                var heTitleRe = new RegExp(`^(משנה תורה, |תלמוד ירושלמי|${displayHeCategory})( על )?`);
                 var heTitle = chItem.heTitle == displayHeCategory ? chItem.heTitle : chItem.heTitle.replace(heTitleRe, "");
                 var url     = "/" + Sefaria.normRef(chItem.firstSection);
                 content.push((<a href={url}>
