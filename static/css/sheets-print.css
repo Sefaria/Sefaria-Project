@@ -10,7 +10,9 @@
 .sheetsEditNavTop,
 .inlineAddButton,
 .header,
-#addInterface
+#addInterface,
+#fileControls,
+#footer
 {
 	display: none !important;
 	border: 0;
@@ -62,4 +64,8 @@ a {
 { 
     size: auto;
     margin: 18mm 15mm;
-} 
+}
+
+#footer{
+	display: none;
+}

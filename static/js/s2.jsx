@@ -453,6 +453,16 @@ var ReaderApp = React.createClass({
             hist.url   = "notifications";
             hist.mode  = "notifications";
             break;
+          case "updates":
+            hist.title = "New at Sefaria";
+            hist.url = "updates";
+            hist.mode = "updates";
+            break;
+          case "modtools":
+            hist.title = "Moderator Tools";
+            hist.url = "modtools";
+            hist.mode = "modtools";
+            break;
         }
       } else if (state.mode === "Text") {
         hist.title    = state.refs.slice(-1)[0];
@@ -664,11 +674,11 @@ var ReaderApp = React.createClass({
     // In multi panel mode, set the maximum number of visible panels depending on the window width.
     this.setWindowWidth();
     var panelCap = Math.floor($(window).outerWidth() / this.MIN_PANEL_WIDTH);
-    //console.log("Setting panelCap: " + panelCap);
+    // console.log("Setting panelCap: " + panelCap);
     this.setState({panelCap: panelCap});
   },
   setWindowWidth: function() {
-    //console.log("Setting window width: " + $(window).outerWidth());
+    // console.log("Setting window width: " + $(window).outerWidth());
     this.setState({windowWidth: $(window).outerWidth()});
   },
   handleNavigationClick: function(ref, version, versionLanguage, options) {
@@ -1285,6 +1295,15 @@ var Header = React.createClass({
       return;
     }
     this.props.setCentralState({menuOpen: "notifications"});
+    this.clearSearchBox();
+  },
+  showUpdates: function() {
+    // todo: not used yet
+    if (typeof sjs !== "undefined") {
+      window.location = "/updates";
+      return;
+    }
+    this.props.setCentralState({menuOpen: "updates"});
     this.clearSearchBox();
   },
   showTestMessage: function() {
@@ -2028,6 +2047,14 @@ var ReaderPanel = React.createClass({
                     setUnreadNotificationsCount={this.props.setUnreadNotificationsCount}
                     interfaceLang={this.props.interfaceLang} />);
 
+    } else if (this.state.menuOpen === "updates") {
+      var menu = (<UpdatesPanel
+                    interfaceLang={this.props.interfaceLang} />);
+
+    } else if (this.state.menuOpen === "modtools") {
+      var menu = (<ModeratorToolsPanel
+                    interfaceLang={this.props.interfaceLang} />);
+
     } else {
       var menu = null;
     }
@@ -2328,10 +2355,10 @@ var ReaderNavigationMenu = React.createClass({
   },
   setWidth: function() {
     var width = $(ReactDOM.findDOMNode(this)).width();
-    //console.log("Setting RNM width: " + width);
+    // console.log("Setting RNM width: " + width);
     var winWidth = $(window).width();
     var winHeight = $(window).height();
-    //console.log("Window width: " + winWidth + ", Window height: " + winHeight);
+    // console.log("Window width: " + winWidth + ", Window height: " + winHeight);
     var oldWidth = this.width;
     this.width = width;
     if ((oldWidth <= 450 && width > 450) || 
@@ -3019,12 +3046,12 @@ var ReaderTextTableOfContents = React.createClass({
           defaultVersionObject = this.state.versions.find(v => (cv.language == v.language && cv.versionTitle == v.versionTitle));
           defaultVersionString += defaultVersionObject ? " (" + defaultVersionObject.versionTitle + ")" : "";
         }
-        currentVersionElement = (<VersionBlock version={cv} currentRef={this.props.currentRef} showHistory={true}/>);
+        currentVersionElement = (<VersionBlock title={title} version={cv} currentRef={this.props.currentRef} showHistory={true}/>);
       }
 
       var [heVersionBlocks, enVersionBlocks] = ["he","en"].map(lang =>
        this.state.versions.filter(v => v.language == lang).map(v =>
-           <VersionBlock version={v} showNotes={true} key={v.versionTitle + "/" + v.language}/>
+           <VersionBlock title={title} version={v} showNotes={true} key={v.versionTitle + "/" + v.language}/>
        )
       );
 
@@ -3097,10 +3124,11 @@ var ReaderTextTableOfContents = React.createClass({
                              </select>
                            </div>);
     }
-    var showModeratorButtons = true;
-    if(/*(this.isTextToc() && this.state.currentVersion && this.state.currentVersion.versionStatus == "locked") ||*/ !Sefaria.is_moderator){
-      showModeratorButtons = false;
-    }
+    var showModeratorButtons = Sefaria.is_moderator;
+    //if(/*(this.isTextToc() && this.state.currentVersion && this.state.currentVersion.versionStatus == "locked") ||*/
+    //    !Sefaria.is_moderator){
+    //  showModeratorButtons = false;
+    //}
     var moderatorSection = showModeratorButtons ?
       (<ModeratorButtons 
         title={title}
@@ -3187,6 +3215,7 @@ var ReaderTextTableOfContents = React.createClass({
 
 var VersionBlock = React.createClass({
   propTypes: {
+    title:  React.PropTypes.string.isRequired,
     version: React.PropTypes.object.isRequired,
     currentRef: React.PropTypes.string,
     showHistory: React.PropTypes.bool,
@@ -3199,41 +3228,159 @@ var VersionBlock = React.createClass({
       showNotes: false
     }
   },
+  getInitialState: function() {
+    var s = {
+      editing: false,
+      error: null,
+      originalVersionTitle: this.props.version["versionTitle"]
+    };
+    this.updateableVersionAttributes.forEach(attr => s[attr] = this.props.version[attr]);
+    return s;
+  },
+  updateableVersionAttributes: [
+    "versionTitle",
+    "versionSource",
+    "versionNotes",
+    "license",
+    "priority",
+    "digitizedBySefaria"
+  ],
   licenseMap: {
     "Public Domain": "http://en.wikipedia.org/wiki/Public_domain",
     "CC0": "http://creativecommons.org/publicdomain/zero/1.0/",
     "CC-BY": "http://creativecommons.org/licenses/by/3.0/",
     "CC-BY-SA": "http://creativecommons.org/licenses/by-sa/3.0/"
   },
+  onLicenseChange: function(event) {
+    this.setState({license: event.target.value, "error": null});
+  },
+  onVersionSourceChange: function(event) {
+    this.setState({versionSource: event.target.value, "error": null});
+  },
+  onVersionNotesChange: function(event) {
+    this.setState({versionNotes: event.target.value, "error": null});
+  },
+  onPriorityChange: function(event) {
+    this.setState({priority: event.target.value, "error": null});
+  },
+  onDigitizedBySefariaChange: function(event) {
+    this.setState({digitizedBySefaria: event.target.checked, "error": null});
+  },
+  onVersionTitleChange: function(event) {
+    this.setState({versionTitle: event.target.value, "error": null});
+  },
+  saveVersionUpdate: function(event) {
+    var v = this.props.version;
+
+    var payloadVersion = {};
+    this.updateableVersionAttributes.forEach(function(attr) {
+      if (this.state[attr] || this.state[attr] != this.props.version[attr]) {
+        payloadVersion[attr] = this.state[attr];
+      }
+    }.bind(this));
+    delete payloadVersion.versionTitle;
+    if (this.state.versionTitle != this.state.originalVersionTitle) {
+      payloadVersion.newVersionTitle = this.state.versionTitle;
+    }
+    this.setState({"error": "Saving.  Page will reload on success."});
+    $.ajax({
+      url: `/api/version/flags/${this.props.title}/${v.language}/${v.versionTitle}`,
+      dataType: 'json',
+      type: 'POST',
+      data: {json: JSON.stringify(payloadVersion)},
+      success: function(data) {
+        if (data.status == "ok") {
+          document.location.reload(true);
+        } else {
+          this.setState({error: data.error});
+        }
+      }.bind(this),
+      error: function(xhr, status, err) {
+        this.setState({error: err.toString()});
+      }.bind(this)
+    });
+  },
+  openEditor: function() {
+    this.setState({editing:true});
+  },
+  closeEditor: function() {
+    this.setState({editing:false});
+  },
   render: function() {
     var v = this.props.version;
-    var license = this.licenseMap[v.license]?<a href={this.licenseMap[v.license]} target="_blank">{v.license}</a>:v.license;
-    var digitizedBySefaria = v.digitizedBySefaria ? <a className="versionDigitizedBySefaria" href="/digitized-by-sefaria">Digitized by Sefaria</a> : "";
-    var licenseLine = "";
-    if (v.license && v.license != "unknown") { 
-      licenseLine =
-        <span className="versionLicense">
-          {license}
-          {digitizedBySefaria?" - ":""}{digitizedBySefaria}
-        </span>
-      ;
-    }
-        
-    return (
-      <div className = "versionBlock">
-        <div className="versionTitle">{v.versionTitle}</div>
-        <div>
-          <a className="versionSource" target="_blank" href={v.versionSource}>
-          { Sefaria.util.parseURL(v.versionSource).host }
-          </a>
-          {licenseLine?<span>-</span>:""}
-          {licenseLine}
-          {this.props.showHistory?<span>-</span>:""}
-          {this.props.showHistory?<a className="versionHistoryLink" href={`/activity/${Sefaria.normRef(this.props.currentRef)}/${v.language}/${v.versionTitle && v.versionTitle.replace(/\s/g,"_")}`}>Version History &gt;</a>:""}
+
+    if (this.state.editing) {
+      // Editing View
+      var close_icon = (Sefaria.is_moderator)?<i className="fa fa-times-circle" aria-hidden="true" onClick={this.closeEditor}/>:"";
+
+      var licenses = Object.keys(this.licenseMap);
+      licenses = licenses.includes(v.license) ? licenses : [v.license].concat(licenses);
+
+      return (
+        <div className = "versionBlock">
+          <div className="error">{this.state.error}</div>
+          <div className="versionEditForm">
+
+            <label for="versionTitle" className="">Version Title</label>
+            {close_icon}
+            <input id="versionTitle" className="" type="text" value={this.state.versionTitle} onChange={this.onVersionTitleChange} />
+
+            <label for="versionSource">Version Source</label>
+            <input id="versionSource" className="" type="text" value={this.state.versionSource} onChange={this.onVersionSourceChange} />
+
+            <label id="license_label" for="license">License</label>
+            <select id="license" className="" value={this.state.license} onChange={this.onLicenseChange}>
+              {licenses.map(v => <option key={v} value={v}>{v?v:"(None Listed)"}</option>)}
+            </select>
+
+            <label id="digitzedBySefaria_label" for="digitzedBySefaria">Digitized by Sefaria</label>
+            <input type="checkbox" id="digitzedBySefaria" checked={this.state.digitizedBySefaria} onChange={this.onDigitizedBySefariaChange}/>
+
+            <label id="priority_label" for="priority">Priority</label>
+            <input id="priority" className="" type="text" value={this.state.priority} onChange={this.onPriorityChange} />
+
+            <label id="versionNotes_label" for="versionNotes">VersionNotes</label>
+            <textarea id="versionNotes" placeholder="Version Notes" onChange={this.onVersionNotesChange} value={this.state.versionNotes} rows="5" cols="40"/>
+
+            <div id="save_button" onClick={this.saveVersionUpdate}>SAVE</div>
+          </div>
         </div>
-        {this.props.showNotes?<div className="versionNotes" dangerouslySetInnerHTML={ {__html: v.versionNotes} }></div>:""}
-      </div>
-    );
+      );
+    } else {
+      // Presentation View
+      var license = this.licenseMap[v.license]?<a href={this.licenseMap[v.license]} target="_blank">{v.license}</a>:v.license;
+      var digitizedBySefaria = v.digitizedBySefaria ? <a className="versionDigitizedBySefaria" href="/digitized-by-sefaria">Digitized by Sefaria</a> : "";
+      var licenseLine = "";
+      if (v.license && v.license != "unknown") {
+        licenseLine =
+          <span className="versionLicense">
+            {license}
+            {digitizedBySefaria?" - ":""}{digitizedBySefaria}
+          </span>
+        ;
+      }
+      var edit_icon = (Sefaria.is_moderator)?<i className="fa fa-pencil" aria-hidden="true" onClick={this.openEditor}/>:"";
+
+      return (
+        <div className = "versionBlock">
+          <div className="versionTitle">
+            {v.versionTitle}
+            {edit_icon}
+          </div>
+          <div>
+            <a className="versionSource" target="_blank" href={v.versionSource}>
+            { Sefaria.util.parseURL(v.versionSource).host }
+            </a>
+            {licenseLine?<span>-</span>:""}
+            {licenseLine}
+            {this.props.showHistory?<span>-</span>:""}
+            {this.props.showHistory?<a className="versionHistoryLink" href={`/activity/${Sefaria.normRef(this.props.currentRef)}/${v.language}/${v.versionTitle && v.versionTitle.replace(/\s/g,"_")}`}>Version History &gt;</a>:""}
+          </div>
+          {this.props.showNotes?<div className="versionNotes" dangerouslySetInnerHTML={ {__html: v.versionNotes} }></div>:""}
+        </div>
+      );
+    }
+
   }
 });
 
@@ -3249,7 +3396,8 @@ var ModeratorButtons = React.createClass({
   getInitialState: function() {
     return {
       expanded: false,
-      message: null
+      message: null,
+      locked: this.props.versionStatus == "locked"
     }
   },
   expand: function() {
@@ -3258,8 +3406,7 @@ var ModeratorButtons = React.createClass({
   toggleLock: function() {
     var title = this.props.title;
     var url = "/api/locktext/" + title + "/" + this.props.versionLanguage + "/" + this.props.versionTitle;
-    var unlocking = this.props.versionStatus == "locked";
-    if (unlocking) {
+    if (this.state.locked) {
       url += "?action=unlock";
     }
 
@@ -3267,10 +3414,10 @@ var ModeratorButtons = React.createClass({
       if ("error" in data) {
         alert(data.error)
       } else {
-        alert(unlocking ? "Text Unlocked" : "Text Locked");
-        
+        alert(this.state.locked ? "Text Unlocked" : "Text Locked");
+        this.setState({locked: !this.state.locked})
       }
-    }).fail(function() {
+    }.bind(this)).fail(function() {
       alert("Something went wrong. Sorry!");
     });
   },
@@ -3301,7 +3448,7 @@ var ModeratorButtons = React.createClass({
 
     var confirm = prompt("Are you sure you want to delete this text version? Doing so will completely delete this text from Sefaria, including all existing versions and links. This action CANNOT be undone. Type DELETE to confirm.", "");
     if (confirm !== "DELETE") {
-      alert("Delete canceled.")
+      alert("Delete canceled.");
       return;
     }
 
@@ -3320,7 +3467,7 @@ var ModeratorButtons = React.createClass({
     }).fail(function() {
       alert("Something went wrong. Sorry!");
     });
-    this.setState({message: "Deleteing text (this may time a while)..."});
+    this.setState({message: "Deleting text (this may time a while)..."});
   },
   render: function() {
     if (!this.state.expanded) {
@@ -3331,7 +3478,7 @@ var ModeratorButtons = React.createClass({
     var versionButtons = this.props.versionTitle ? 
       (<span className="moderatorVersionButtons">
           <div className="button white" onClick={this.toggleLock}>
-            { this.props.versionStatus == "locked" ? 
+            { this.state.locked ?
                 (<span><i className="fa fa-unlock"></i> Unlock</span>) :
                 (<span><i className="fa fa-lock"></i> Lock</span>) }
           </div>
@@ -3677,7 +3824,7 @@ var PartnerSheetsPage = React.createClass({
   }
 
 
-})
+});
 
 var PartnerSheetListing = React.createClass({
   propTypes: {
@@ -4239,7 +4386,13 @@ var TextColumn = React.createClass({
     if (this.loadingContentAtTop || !this.initialScrollTopSet) {
       // console.log("text load, setting scroll");
       this.setScrollPosition();
+    } else if (!this.scrolledToHighlight && $(ReactDOM.findDOMNode(this)).find(".segment.highlight").length) {
+      // console.log("scroll to highlighted")
+      this.scrollToHighlighted();
+      this.scrolledToHighlight = true;
+      this.initialScrollTopSet = true;
     }
+
     // console.log("text load, ais");
     this.adjustInfiniteScroll();
   },
@@ -4263,7 +4416,7 @@ var TextColumn = React.createClass({
         //console.log(top)
       }
     } else if (!this.scrolledToHighlight && $(ReactDOM.findDOMNode(this)).find(".segment.highlight").length) {
-      //console.log("scroll to highlighted")
+      // console.log("scroll to highlighted")
       // scroll to highlighted segment
       this.scrollToHighlighted();
       this.scrolledToHighlight = true;
@@ -4299,10 +4452,10 @@ var TextColumn = React.createClass({
     } else if ( lastBottom < windowHeight + 80 ) {
       // DOWN: add the next section to bottom
       if ($lastText.hasClass("loading")) { 
-        //console.log("last text is loading - don't add next section");
+        // console.log("last text is loading - don't add next section");
         return;
       }
-      //console.log("Down! Add next section");
+      // console.log("Down! Add next section");
       var currentRef = refs.slice(-1)[0];
       var data       = Sefaria.ref(currentRef);
       if (data && data.next) {
@@ -4315,7 +4468,7 @@ var TextColumn = React.createClass({
       var topRef = refs[0];
       var data   = Sefaria.ref(topRef);
       if (data && data.prev) {
-        //console.log("Up! Add previous section");
+        // console.log("Up! Add previous section");
         refs.splice(refs, 0, data.prev);
         this.loadingContentAtTop = true;
         this.props.updateTextColumn(refs);
@@ -5175,8 +5328,8 @@ var TextList = React.createClass({
           Sefaria.text(commentators[i] + " on " + basetext, {}, function(data) {
             var index = this.waitingFor.indexOf(data.commentator);
             if (index == -1) {
-                console.log("Failed to clear commentator:");
-                console.log(data);
+                // console.log("Failed to clear commentator:");
+                // console.log(data);
                 this.target += 1;
             }
             if (index > -1) {
@@ -7220,7 +7373,7 @@ var NotificationsPanel = React.createClass({
   },
   getInitialState: function() {
     return {
-      page: 2,
+      page: 1,
       loadedToEnd: false,
       loading: false
     };
@@ -7284,6 +7437,395 @@ var NotificationsPanel = React.createClass({
                     <Footer />
                     </footer>
         </div>
+      </div>);
+  }
+});
+
+
+var ModeratorToolsPanel = React.createClass({
+  propTypes: {
+    interfaceLang: React.PropTypes.string
+  },
+  getInitialState: function () {
+    return {
+      // Bulk Download
+      bulk_format: null,
+      bulk_title_pattern: null,
+      bulk_version_title_pattern: null,
+      bulk_language: null,
+      // CSV Upload
+      files: [],
+      uploading: false,
+      uploadError: null,
+      uploadMessage: null
+    };
+  },
+  handleFiles: function(event) {
+    this.setState({files: event.target.files});
+  },
+  uploadFiles: function(event) {
+    event.preventDefault();
+    this.setState({uploading: true, uploadMessage:"Uploading..."});
+    var formData = new FormData();
+    for (var i = 0; i < this.state.files.length; i++) {
+      var file = this.state.files[i];
+      formData.append('texts[]', file, file.name);
+    }
+    $.ajax({
+      url: "api/text-upload",
+      type: 'POST',
+      data: formData,
+      success: function(data) {
+        if (data.status == "ok") {
+          this.setState({uploading: false, uploadMessage: data.message, uploadError: null, files:[]});
+          $("#file-form").get(0).reset(); //Remove selected files from the file selector
+        } else {
+          this.setState({"uploadError": "Error - " + data.error, uploading: false, uploadMessage: data.message});
+        }
+      }.bind(this),
+      error: function(xhr, status, err) {
+        this.setState({"uploadError": "Error - " + err.toString(), uploading: false, uploadMessage: null});
+      }.bind(this),
+      cache: false,
+      contentType: false,
+      processData: false
+    });
+  },
+
+  onDlTitleChange: function(event) {
+    this.setState({bulk_title_pattern: event.target.value});
+  },
+  onDlVersionChange: function(event) {
+    this.setState({bulk_version_title_pattern: event.target.value});
+  },
+  onDlLanguageSelect: function(event) {
+    this.setState({bulk_language: event.target.value});
+  },
+  onDlFormatSelect: function(event) {
+    this.setState({bulk_format: event.target.value});
+  },
+  bulkVersionDlLink: function() {
+    var args = ["format","title_pattern","version_title_pattern","language"].map(
+        arg => this.state["bulk_" + arg]?`${arg}=${encodeURIComponent(this.state["bulk_"+arg])}`:""
+    ).filter(a => a).join("&");
+    return "download/bulk/versions/?" + args;
+  },
+
+  render: function () {
+    // Bulk Download
+    var dlReady = (this.state.bulk_format && (this.state.bulk_title_pattern || this.state.bulk_version_title_pattern));
+    var downloadButton = <div className="versionDownloadButton">
+        <div className="downloadButtonInner">
+          <span className="int-en">Download</span>
+          <span className="int-he">הורדה</span>
+        </div>
+      </div>;
+    var downloadSection = (
+      <div className="modToolsSection dlSection">
+        <div className="dlSectionTitle">
+          <span className="int-en">Bulk Download Text</span>
+          <span className="int-he">הורדת הטקסט</span>
+        </div>
+        <input className="dlVersionSelect" type="text" placeholder="Index Title Pattern" onChange={this.onDlTitleChange} />
+        <input className="dlVersionSelect" type="text" placeholder="Version Title Pattern" onChange={this.onDlVersionChange}/>
+        <select className="dlVersionSelect dlVersionLanguageSelect" value={this.state.bulk_language || ""} onChange={this.onDlLanguageSelect}>
+          <option disabled>Language</option>
+          <option key="all" value="" >Hebrew & English</option>
+          <option key="he" value="he" >Hebrew</option>
+          <option key="en" value="en" >English</option>
+        </select>
+        <select className="dlVersionSelect dlVersionFormatSelect" value={this.state.bulk_format || ""} onChange={this.onDlFormatSelect}>
+          <option disabled>File Format</option>
+          <option key="txt" value="txt" >Text</option>
+          <option key="csv" value="csv" >CSV</option>
+          <option key="json" value="json" >JSON</option>
+        </select>
+        {dlReady?<a href={this.bulkVersionDlLink()} download>{downloadButton}</a>:downloadButton}
+      </div>);
+
+    // Uploading
+    var ulReady = (!this.state.uploading) && this.state.files.length > 0;
+    var uploadButton = <a><div className="versionDownloadButton" onClick={this.uploadFiles}><div className="downloadButtonInner">
+       <span className="int-en">Upload</span>
+       <span className="int-he">העלאה</span>
+      </div></div></a>;
+    var uploadForm = (
+      <div className="modToolsSection">
+        <div className="dlSectionTitle">
+          <span className="int-en">Bulk Upload CSV</span>
+          <span className="int-he">הורדת הטקסט</span>
+        </div>
+         <form id="file-form">
+           <input className="dlVersionSelect" type="file" id="file-select"  multiple onChange={this.handleFiles}/>
+           {ulReady?uploadButton:""}
+         </form>
+        {this.state.uploadMessage?<div class="message">{this.state.uploadMessage}</div>:""}
+        {this.state.uploadError?<div class="error">{this.state.uploadError}</div>:""}
+      </div>);
+
+    return (Sefaria.is_moderator)?<div className="modTools">{downloadSection}{uploadForm}</div>:<div>Tools are only available to logged in moderators.</div>;
+  }
+});
+
+var UpdatesPanel = React.createClass({
+  propTypes: {
+    interfaceLang:               React.PropTypes.string
+  },
+  getInitialState: function() {
+    return {
+      page: 0,
+      loadedToEnd: false,
+      loading: false,
+      updates: [],
+      submitting: false,
+      submitCount: 0,
+      error: null
+    };
+  },
+  componentDidMount: function() {
+    $(ReactDOM.findDOMNode(this)).find(".content").bind("scroll", this.handleScroll);
+    this.getMoreNotifications();
+  },
+  handleScroll: function() {
+    if (this.state.loadedToEnd || this.state.loading) { return; }
+    var $scrollable = $(ReactDOM.findDOMNode(this)).find(".content");
+    var margin = 100;
+    if($scrollable.scrollTop() + $scrollable.innerHeight() + margin >= $scrollable[0].scrollHeight) {
+      this.getMoreNotifications();
+    }
+  },
+  getMoreNotifications: function() {
+    $.getJSON("/api/updates?page=" + this.state.page, this.loadMoreNotifications);
+    this.setState({loading: true});
+  },
+  loadMoreNotifications: function(data) {
+    if (data.count < data.page_size) {
+      this.setState({loadedToEnd: true});
+    }
+    this.setState({page: data.page + 1, loading: false, updates: this.state.updates.concat(data.updates)});
+  },
+  onDelete: function(id) {
+    $.ajax({
+        url: '/api/updates/' + id,
+        type: 'DELETE',
+        success: function(result) {
+          if (result.status == "ok") {
+              this.setState({updates: this.state.updates.filter(u => u._id != id)});
+          }
+        }.bind(this)
+    });
+  },
+
+  handleSubmit: function(type, content) {
+    this.setState({"submitting": true, "error": null});
+    var payload = {
+      type: type,
+      content: content
+    };
+    $.ajax({
+      url: "/api/updates",
+      dataType: 'json',
+      type: 'POST',
+      data: {json: JSON.stringify(payload)},
+      success: function(data) {
+        if (data.status == "ok") {
+          payload.date = Date();
+          this.state.updates.unshift(payload);
+          this.setState({submitting: false, updates: this.state.updates, submitCount: this.state.submitCount + 1});
+        } else {
+          this.setState({"error": "Error - " + data.error});
+        }
+      }.bind(this),
+      error: function(xhr, status, err) {
+        this.setState({"error": "Error - " + err.toString()});
+        console.error(this.props.url, status, err.toString());
+      }.bind(this)
+    });
+  },
+
+  render: function() {
+    var classes = {notificationsPanel: 1, systemPanel: 1, readerNavMenu: 1, noHeader: 1 };
+    var classStr = classNames(classes);
+
+    return (
+      <div className={classStr}>
+        <div className="content hasFooter">
+          <div className="contentInner">
+            <h1>
+              <span className="int-en">Updates</span>
+              <span className="int-he">עדכונים</span>
+            </h1>
+
+            {Sefaria.is_moderator?<NewUpdateForm handleSubmit={this.handleSubmit} key={this.state.submitCount} error={this.state.error}/>:""}
+
+            <div className="notificationsList">
+            {this.state.updates.map(u =>
+                <SingleUpdate
+                    type={u.type}
+                    content={u.content}
+                    date={u.date}
+                    key={u._id}
+                    id={u._id}
+                    onDelete={this.onDelete}
+                    submitting={this.state.submitting}
+                />
+            )}
+            </div>
+          </div>
+          <footer id="footer" className={`interface-${this.props.interfaceLang} static sans`}>
+                    <Footer />
+                    </footer>
+        </div>
+      </div>);
+  }
+});
+
+var NewUpdateForm = React.createClass({
+  propTypes: {
+    error:               React.PropTypes.string,
+    handleSubmit:        React.PropTypes.func
+  },
+  getInitialState: function() {
+    return {type: 'index', index: '', language: 'en', version: '', en: '', he: '', error: ''};
+  },
+  componentWillReceiveProps(nextProps) {
+    this.setState({"error": nextProps.error});
+  },
+  handleEnChange: function(e) {
+    this.setState({en: e.target.value, error: null});
+  },
+  handleHeChange: function(e) {
+    this.setState({he: e.target.value, error: null});
+  },
+  handleTypeChange: function(e) {
+    this.setState({type: e.target.value, error: null});
+  },
+  handleIndexChange: function(e) {
+    this.setState({index: e.target.value, error: null});
+  },
+  handleVersionChange: function(e) {
+    this.setState({version: e.target.value, error: null});
+  },
+  handleLanguageChange: function(e) {
+    this.setState({language: e.target.value, error: null});
+  },
+  handleSubmit: function(e) {
+    e.preventDefault();
+    var content = {
+      "en": this.state.en.trim(),
+      "he": this.state.he.trim()
+    };
+    if (this.state.type == "general") {
+      if (!this.state.en || !this.state.he) {
+        this.setState({"error": "Both Hebrew and English are required"});
+        return;
+      }
+    } else {
+      if (!this.state.index) {
+        this.setState({"error": "Index is required"});
+        return;
+      }
+      content["index"] = this.state.index.trim();
+    }
+    if (this.state.type == "version") {
+      if (!this.state.version || !this.state.language) {
+        this.setState({"error": "Version is required"});
+        return;
+      }
+      content["version"] = this.state.version.trim();
+      content["language"] = this.state.language.trim();
+    }
+    this.props.handleSubmit(this.state.type, content);
+
+  },
+  render: function() {
+    return (
+      <form className="globalUpdateForm" onSubmit={this.handleSubmit}>
+        <div>
+          <input type="radio" name="type" value="index" onChange={this.handleTypeChange} checked={this.state.type=="index"}/>Index&nbsp;&nbsp;
+          <input type="radio" name="type" value="version" onChange={this.handleTypeChange} checked={this.state.type=="version"}/>Version&nbsp;&nbsp;
+          <input type="radio" name="type" value="general" onChange={this.handleTypeChange} checked={this.state.type=="general"}/>General&nbsp;&nbsp;
+        </div>
+        <div>
+          {(this.state.type != "general")?<input type="text" placeholder="Index Title" onChange={this.handleIndexChange} />:""}
+          {(this.state.type == "version")?<input type="text" placeholder="Version Title" onChange={this.handleVersionChange}/>:""}
+          {(this.state.type == "version")?<select type="text" placeholder="Version Language" onChange={this.handleLanguageChange}>
+            <option value="en">English</option>
+            <option value="he">Hebrew</option>
+          </select>:""}
+        </div>
+        <div>
+          <textarea
+            placeholder="English Description (optional for Index and Version)"
+            onChange={this.handleEnChange}
+            rows="3"
+            cols="80"
+          />
+        </div>
+        <div>
+          <textarea
+            placeholder="Hebrew Description (optional for Index and Version)"
+            onChange={this.handleHeChange}
+            rows="3"
+            cols="80"
+          />
+        </div>
+        <input type="submit" value="Submit" disabled={this.props.submitting}/>
+        <span className="error">{this.state.error}</span>
+      </form>
+    );
+  }
+});
+
+var SingleUpdate = React.createClass({
+  propTypes: {
+    id:         React.PropTypes.string,
+    type:         React.PropTypes.string,
+    content:      React.PropTypes.object,
+    onDelete:     React.PropTypes.func,
+    date:         React.PropTypes.string
+  },
+  onDelete: function() {
+    this.props.onDelete(this.props.id);
+  },
+  render: function() {
+    var title = this.props.content.index;
+    if (title) {
+      var heTitle = Sefaria.index(title)?Sefaria.index(title).heTitle:"";
+    }
+
+    var url = Sefaria.ref(title)?"/" + Sefaria.normRef(Sefaria.ref(title).book):"/" + Sefaria.normRef(title);
+
+    var d = new Date(this.props.date);
+
+    return (
+      <div className="notification">
+        <div className="date">
+          <span className="int-en">{d.toLocaleDateString("en")}</span>
+          <span className="int-he">{d.toLocaleDateString("he")}</span>
+          {Sefaria.is_moderator?<i className="fa fa-times-circle delete-update-button" onClick={this.onDelete} aria-hidden="true"/>:""}
+        </div>
+
+        {this.props.type == "index"?
+        <div>
+            <span className="int-en">New Text: <a href={url}>{title}</a></span>
+            <span className="int-he">טקסט חדש זמין: <a href={url}>{heTitle}</a></span>
+        </div>
+        :""}
+
+        {this.props.type == "version"?
+        <div>
+            <span className="int-en">New { this.props.content.language == "en"?"English":"Hebrew"} version of <a href={url}>{title}</a>: {this.props.content.version}</span>
+            <span className="int-he">גרסה חדשה של <a href={url}>{heTitle}</a> ב{ this.props.content.language == "en"?"אנגלית":"עברית"} : {this.props.content.version}</span>
+        </div>
+        :""}
+
+        <div>
+            <span className="int-en" dangerouslySetInnerHTML={ {__html: this.props.content.en } } />
+            <span className="int-he" dangerouslySetInnerHTML={ {__html: this.props.content.he } } />
+        </div>
+
+
       </div>);
   }
 });
@@ -7506,6 +8048,10 @@ var Footer = React.createClass({
               <a href="/people" className="outOfAppLink">
                   <span className="int-en">Authors</span>
                   <span className="int-he">מחברים</span>
+              </a>
+              <a href="/updates" className="outOfAppLink">
+                  <span className="int-en">New Additions</span>
+                  <span className="int-he">מה חדש</span>
               </a>
           </div>
 

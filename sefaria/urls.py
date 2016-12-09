@@ -194,6 +194,7 @@ urlpatterns += patterns('reader.views',
 urlpatterns += patterns('reader.views',
     (r'^api/notifications/?$', 'notifications_api'),
     (r'^api/notifications/read', 'notifications_read_api'),
+    (r'^api/updates/?(?P<gid>.+)?$', 'updates_api'),
 )
 
 # Messages API
@@ -278,8 +279,10 @@ urlpatterns += patterns('reader.views',
 urlpatterns += patterns('reader.views',
     (r'^s1/?$', 'switch_to_s1'),
     (r'^s2/?$', 'switch_to_s2'),
-    (r'^account?$', 's2_account'),
-    (r'^notifications?$', 's2_notifications'),
+    (r'^account/?$', 's2_account'),
+    (r'^notifications/?$', 's2_notifications'),
+    (r'^updates/?$', 's2_updates'),
+    (r'^modtools/?$', 's2_modtools'),
     (r'^person/(?P<name>.+)$', 'person_page'),
     (r'^people/Talmud/?$', 'talmud_person_index'),
     (r'^people/?$', 'person_index'),
@@ -315,12 +318,14 @@ urlpatterns += patterns('sefaria.views',
 )
 
 
-# Linker js
+# Linker js, text upload & download
 urlpatterns += patterns('sefaria.views',
     (r'^linker\.js$', 'linker_js'),
     (r'^api/regexs/(?P<titles>.+)$', 'title_regex_api'),
     (r'^api/bulktext/(?P<refs>.+)$', 'bulktext_api'),
-    (r'^download/version/(?P<title>.+) - (?P<lang>[he][en]) - (?P<versionTitle>.+)\.(?P<format>json|csv|txt)', 'text_download_api')
+    (r'^download/version/(?P<title>.+) - (?P<lang>[he][en]) - (?P<versionTitle>.+)\.(?P<format>json|csv|txt)', 'text_download_api'),
+    (r'^download/bulk/versions/', 'bulk_download_versions_api'),
+    (r'^api/text-upload$', 'text_upload_api')
 )
 
 # Email Subscribe

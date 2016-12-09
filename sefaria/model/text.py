@@ -174,7 +174,6 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
     history_noun = 'index'
     criteria_field = 'title'
     criteria_override_field = 'oldTitle'  # used when primary attribute changes. field that holds old value.
-    second_save = True
     track_pkeys = True
     pkeys = ["title"]
 
@@ -188,7 +187,7 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
         "sectionNames",       # required for old style simple texts, sometimes erroneously present for commnetary
         "heTitle",            # optional for old style
         "heTitleVariants",    # optional for old style
-        "maps",               # optional for old style
+        "maps",               # deprecated
         "alt_structs",        # optional for new style
         "default_struct",     # optional for new style
         "order",              # optional for old style and new
@@ -237,33 +236,33 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
     def is_complex(self):
         return getattr(self, "nodes", None) and self.nodes.has_children()
 
-    def contents(self, v2=False, raw=False, **kwargs):
+    def contents(self, v2=False, raw=False, force_complex=False, **kwargs):
         if not getattr(self, "nodes", None) or raw:  # Commentator
             return super(Index, self).contents()
         elif v2:
             return self.nodes.as_index_contents()
-        return self.legacy_form()
+        return self.legacy_form(force_complex=force_complex)
 
-    def legacy_form(self):
+    def legacy_form(self, force_complex=False):
         """
+        :param force_complex: Forces a complex Index record into legacy form
         :return: Returns an Index object as a flat dictionary, in version one form.
         :raise: Exception if the Index cannot be expressed in the old form
         """
-        if not self.nodes.is_flat():
+        if not self.nodes.is_flat() and not force_complex:
             raise InputError("Index record {} can not be converted to legacy API form".format(self.title))
 
         d = {
             "title": self.title,
             "categories": self.categories[:],
             "titleVariants": self.nodes.all_node_titles("en"),
-            "sectionNames": self.nodes.sectionNames[:],
-            "heSectionNames": map(hebrew_term, self.nodes.sectionNames),
-            "textDepth": len(self.nodes.sectionNames),
-            "addressTypes": self.nodes.addressTypes[:]  # This isn't legacy, but it was needed for checkRef
         }
 
-        if getattr(self, "maps", None):
-            d["maps"] = self.maps  #keep an eye on this.  Format likely to change.
+        if self.nodes.is_flat():
+            d["sectionNames"] = self.nodes.sectionNames[:]
+            d["heSectionNames"] = map(hebrew_term, self.nodes.sectionNames)
+            d["addressTypes"] = self.nodes.addressTypes[:]  # This isn't legacy, but it was needed for checkRef
+            d["textDepth"] = len(self.nodes.sectionNames)
         if getattr(self, "order", None):
             d["order"] = self.order[:]
         if getattr(self.nodes, "lengths", None):
@@ -393,14 +392,6 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
             "endIsApprox": endIsApprox
         })
 
-    #todo: handle lang
-    def get_maps(self):
-        """
-        Returns both those maps explicitly defined on this node and those derived from a term scheme
-        """
-        return getattr(self, "maps", [])
-        #todo: term schemes
-
     # Index changes behavior of load_from_dict, so this circumvents that changed behavior to call load_from_dict on the abstract superclass
     def update_from_dict(self, d):
         return super(Index, self).load_from_dict(d, is_init=False)
@@ -421,33 +412,34 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
 
                 node.key = d.get("title")
 
-                sn = d.pop("sectionNames", None)
-                if sn:
-                    node.sectionNames = sn
-                    node.depth = len(node.sectionNames)
-                else:
-                    raise InputError(u"Please specify section names for Index record.")
+                if node.is_flat():
+                    sn = d.pop("sectionNames", None)
+                    if sn:
+                        node.sectionNames = sn
+                        node.depth = len(node.sectionNames)
+                    else:
+                        raise InputError(u"Please specify section names for Index record.")
 
-                if d["categories"][0] == "Talmud":
-                    node.addressTypes = ["Talmud", "Integer"]
-                    if d["categories"][1] == "Bavli" and d.get("heTitle"):
-                        node.checkFirst = {
-                            "he": u"משנה" + " " + d.get("heTitle"),
-                            "en": "Mishnah " + d.get("title")
-                        }
-                elif d["categories"][0] == "Mishnah":
-                    node.addressTypes = ["Perek", "Mishnah"]
-                else:
-                    if getattr(node, "addressTypes", None) is None:
-                        node.addressTypes = ["Integer" for _ in range(node.depth)]
+                    if d["categories"][0] == "Talmud":
+                        node.addressTypes = ["Talmud", "Integer"]
+                        if d["categories"][1] == "Bavli" and d.get("heTitle"):
+                            node.checkFirst = {
+                                "he": u"משנה" + " " + d.get("heTitle"),
+                                "en": "Mishnah " + d.get("title")
+                            }
+                    elif d["categories"][0] == "Mishnah":
+                        node.addressTypes = ["Perek", "Mishnah"]
+                    else:
+                        if getattr(node, "addressTypes", None) is None:
+                            node.addressTypes = ["Integer" for _ in range(node.depth)]
 
-                l = d.pop("length", None)
-                if l:
-                    node.lengths = [l]
+                    l = d.pop("length", None)
+                    if l:
+                        node.lengths = [l]
 
-                ls = d.pop("lengths", None)
-                if ls:
-                    node.lengths = ls  #overwrite if index.length is already there
+                    ls = d.pop("lengths", None)
+                    if ls:
+                        node.lengths = ls  #overwrite if index.length is already there
 
                 #Build titles
                 node.add_title(d["title"], "en", True)
@@ -596,18 +588,6 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
 
         return True
 
-    def _prepare_second_save(self):
-        if getattr(self, "maps", None) is None:
-            return
-        for i in range(len(self.maps)):
-            nref = Ref(self.maps[i]["to"]).normal()
-            if not nref:
-                raise InputError(u"Couldn't understand text reference: '{}'.".format(self.maps[i]["to"]))
-            lang = "en" #todo: get rid of this assumption
-            existing = library.get_schema_node(self.maps[i]["from"], lang)
-            if existing and not self.same_record(existing.index) and existing.index.title != self.pkeys_orig_values.get("title"):
-                raise InputError(u"'{}' cannot be a shorthand name: a text with this title already exisits.".format(nref))
-            self.maps[i]["to"] = nref
 
     def toc_contents(self):
         """Returns to a dictionary used to represent this text in the library wide Table of Contents"""
@@ -979,7 +959,11 @@ class Version(abst.AbstractMongoRecord, AbstractTextRecord, AbstractSchemaConten
         return True
 
     def _normalize(self):
-        pass
+        if getattr(self, "priority", None):
+            try:
+                self.priority = float(self.priority)
+            except ValueError as e:
+                self.priority = None
 
     def get_index(self):
         return library.get_index(self.title)
@@ -1409,6 +1393,9 @@ class TextChunk(AbstractTextRecord):
             ind_list.append(total_len)
             total_len += len(tokenizer(segment))
 
+        if len(ind_list) != len(ref_list):
+            raise ValueError("There are more Refs than segments for this TextChunk")
+
         return ind_list,ref_list
 
 
@@ -1606,7 +1593,7 @@ class TextFamily(object):
         d["titleVariants"]   = self._inode.all_tree_titles("en")
         d["heTitleVariants"] = self._inode.all_tree_titles("he")
 
-        for attr in ["categories", "order", "maps"]:
+        for attr in ["categories", "order"]:
             d[attr] = getattr(self._inode.index, attr, "")
         for attr in ["book", "type"]:
             d[attr] = getattr(self._original_oref, attr)
@@ -3362,7 +3349,7 @@ class Ref(object):
 
         :return list: each list element is an object with keys 'versionTitle' and 'language'
         """
-        fields = ["versionTitle", "versionSource", "language", "status", "license", "versionNotes", "digitizedBySefaria"]
+        fields = ["versionTitle", "versionSource", "language", "status", "license", "versionNotes", "digitizedBySefaria", "priority"]
         return [
             {f: getattr(v, f, "") for f in fields}
             for v in VersionSet(self.condition_query(), proj={f: 1 for f in fields})

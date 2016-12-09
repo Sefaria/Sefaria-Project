@@ -15,6 +15,7 @@ except ImportError:
 if USE_VARNISH:
     from sefaria.system.sf_varnish import invalidate_ref, invalidate_linked
 
+
 def modify_text(user, oref, vtitle, lang, text, vsource=None, **kwargs):
     """
     Updates a chunk of text, identified by oref, versionTitle, and lang, and records history.
@@ -59,8 +60,8 @@ def modify_text(user, oref, vtitle, lang, text, vsource=None, **kwargs):
 def add(user, klass, attrs, **kwargs):
     """
     Creates a new instance, saves it, and records the history
-    :param klass: The class we are instanciating
-    :param attrs: Dictionary with the attributes of the class that we are instanciating
+    :param klass: The class we are instantiating
+    :param attrs: Dictionary with the attributes of the class that we are instantiating
     :param user:  Integer user id
     :return:
     """

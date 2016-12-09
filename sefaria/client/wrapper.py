@@ -35,8 +35,13 @@ def format_link_object_for_client(link, with_text, ref, pos=None):
     com["sourceRef"]     = linkRef.normal()
     com["sourceHeRef"]   = linkRef.he_normal()
     com["anchorVerse"]   = anchorRef.sections[-1] if len(anchorRef.sections) else 0
-    com["commentaryNum"] = linkRef.sections[-1] if linkRef.type == "Commentary" else 0
     com["anchorText"]    = getattr(link, "anchorText", "")
+
+    # Pad out the sections list, so that comparison between comment numbers are apples-to-apples
+    lsections = linkRef.sections[:] + [0] * (linkRef.index_node.depth - len(linkRef.sections))
+    # Build a decimal comment number based on the last two digits of the section array
+    com["commentaryNum"] = lsections[-1] if len(lsections) == 1 \
+            else float('{0}.{1:04d}'.format(*lsections[-2:])) if len(lsections) > 1 else 0
 
     if com["category"] in REORDER_RULES:
         com["category"] = REORDER_RULES[com["category"]][0]

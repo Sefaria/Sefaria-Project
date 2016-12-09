@@ -311,8 +311,6 @@ class JaggedArray(object):
                     normalized = normalized or res
         return normalized
 
-
-
     def _upsize(self, _cur=None):
         """
         Returns a jagged array for text which restructures the content of text
@@ -341,6 +339,9 @@ class JaggedArray(object):
         if _cur is None:
             self._store = self._downsize(_cur=self._store)
             return self
+
+        if len(_cur) == 0:
+            return ""
 
         new_text = []
         for segment in _cur:

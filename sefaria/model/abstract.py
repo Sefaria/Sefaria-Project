@@ -34,7 +34,6 @@ class AbstractMongoRecord(object):
     track_pkeys = False
     pkeys = []   # list of fields that others may depend on
     history_noun = None  # Label for history records
-    second_save = False  # Does this object need a two stage save?  Uses _prepare_second_save()
 
     def __init__(self, attrs=None):
         if attrs is None:
@@ -120,10 +119,6 @@ class AbstractMongoRecord(object):
 
         if is_new_obj:
             self._id = _id
-
-        if self.second_save:
-            self._prepare_second_save()
-            getattr(db, self.collection).save(props, w=1)
 
         if self.track_pkeys and not is_new_obj and not override_dependencies:
             for key, old_value in self.pkeys_orig_values.items():
@@ -219,9 +214,6 @@ class AbstractMongoRecord(object):
     def _normalize(self):
         pass
 
-    def _prepare_second_save(self):
-        pass
-
     def _pre_save(self):
         pass
 
@@ -306,6 +298,7 @@ class AbstractMongoSet(collections.Iterable):
         self.records = [r for r in self.records if not condition_callback(r)]
         self.max = len(self.records)
         return self
+
 
 def get_subclasses(c):
     subclasses = c.__subclasses__()

@@ -308,7 +308,7 @@ def encode_hebrew_daf(daf):
 
 
 def strip_nikkud(rawString):
-	return rawString.replace(r"[\u0591-\u05C7]", "")
+	return regex.sub(r"[\u0591-\u05C7]", "", rawString)
 
 
 #todo: rewrite to handle edge case of hebrew words in english texts, and latin characters in Hebrew text
@@ -444,6 +444,7 @@ def hebrew_term(s):
 		"Gur Aryeh":		u'גור אריה',
 		"Tur and Commentaries": u'טור ומפרשים',
 		"Yachin": u'יכין',
+		"Boaz": u'בועז',
         "Harchev Davar": u'הרחב דבר'
 	}
 

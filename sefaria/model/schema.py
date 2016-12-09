@@ -26,7 +26,7 @@ from sefaria.utils.hebrew import decode_hebrew_numeral, encode_hebrew_numeral, e
 
 class TitleGroup(object):
     """
-    A collection of titles.  Used for titles of SchemaNodes, for Maps, and for Terms
+    A collection of titles.  Used for titles of SchemaNodes and for Terms
     """
 
     def __init__(self, serial=None):
@@ -651,9 +651,9 @@ class TitledTreeNode(TreeNode):
 
 
 """
-                ---------------------------------------
-                 Alternate Structure Tree Nodes (maps)
-                ---------------------------------------
+                --------------------------------
+                 Alternate Structure Tree Nodes
+                --------------------------------
 """
 
 
@@ -1344,7 +1344,7 @@ class AddressAliyah(AddressInteger):
 
 class AddressPerek(AddressInteger):
     section_patterns = {
-        "en": ur"""(?:(?:Chapter|chapter|Perek|perek)?\s*)""",  #  the internal ? is a hack to allow an non match, even if 'strict'
+        "en": ur"""(?:(?:Chapter|chapter|Perek|perek)?\s*)""",  #  the internal ? is a hack to allow a non match, even if 'strict'
         "he": ur"""(?:
             \u05e4(?:"|\u05f4|'')?                  # Peh (for 'perek') maybe followed by a quote of some sort
             |\u05e4\u05e8\u05e7\s*                  # or 'perek' spelled out, followed by space
@@ -1359,4 +1359,20 @@ class AddressMishnah(AddressInteger):
             (?:\u05de\u05e9\u05e0\u05d4\s)			# Mishna spelled out, with a space after
             |(?:\u05de(?:"|\u05f4|'')?)				# or Mem (for 'mishna') maybe followed by a quote of some sort
         )"""
+    }
+
+
+class AddressVolume(AddressInteger):
+    """
+    :class:`AddressType` for Volume/חלק addresses
+    """
+
+    section_patterns = {
+        "en": ur"""(?:(?:Volume|volume)?\s*)""",  #  the internal ? is a hack to allow a non match, even if 'strict'
+        "he": ur"""
+        (?:
+          (?:\u05d7(?:\u05dc\u05e7|'|\u05f3)\s+)  # Helek - spelled out or followed by a ' or a geresh - followed by space
+         |(?:\u05d7["\u05f4])                     # chet followed by gershayim or double quote
+        )
+        """
     }
