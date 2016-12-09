@@ -3102,7 +3102,7 @@ function pollForUpdates() {
 		} else if (data.modified) {
 				if ($(".cke_editable").length) {
 					sjs.changesPending = true;
-				  $("#save").text('Changes Pending...');
+				  $("#lastSaved").text('Changes Pending...');
 				}
 				else {
 					rebuildUpdatedSheet(data);
