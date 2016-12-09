@@ -883,7 +883,7 @@ $(function() {
 		stopCkEditorContinuous();
 		var ckeSaveChain = function() {
 
-			if (editor.checkDirty() == true) {
+			if (editor.checkDirty() && !sjs.changesPending ) {
 				autoSave();
 				editor.resetDirty();
 			}
@@ -3101,6 +3101,7 @@ function pollForUpdates() {
 			sjs.alert.flash(data.error);
 		} else if (data.modified) {
 				if ($(".cke_editable").length) {
+					sjs.changesPending = true;
 				  $("#save").text('Changes Pending...');
 				}
 				else {
@@ -3114,6 +3115,7 @@ function pollForUpdates() {
 function startPolling() {
 	// Start a timer to poll server for changes to this sheet
 	stopPolling();
+	sjs.changesPending = false;
 	sjs.pollingStopped = false;
 	var pollChain = function() {
 		pollForUpdates();
@@ -3181,6 +3183,7 @@ function rebuildUpdatedSheet(data) {
 		});
 	}
 
+	sjs.changesPending = false;
 }
 
 
