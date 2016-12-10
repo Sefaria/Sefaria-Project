@@ -2758,7 +2758,7 @@ var ReaderNavigationCategoryMenu = React.createClass({
                       <span className="he">{Sefaria.hebrewCategory(this.props.category)}</span>
                     </h1>) : null}
                   {toggle}
-                  <ReaderNavigationCategoryMenuContents contents={catContents} categories={categories} width={this.props.width} />
+                  <ReaderNavigationCategoryMenuContents contents={catContents} categories={categories} width={this.props.width} category={this.props.category} />
                 </div>
                 {footer}
               </div>
@@ -2770,6 +2770,7 @@ var ReaderNavigationCategoryMenu = React.createClass({
 var ReaderNavigationCategoryMenuContents = React.createClass({
   // Inner content of Category menu (just category title and boxes of)
   propTypes: {
+    category:   React.PropTypes.string.isRequired,
     contents:   React.PropTypes.array.isRequired,
     categories: React.PropTypes.array.isRequired,
     width:      React.PropTypes.number
@@ -2800,12 +2801,14 @@ var ReaderNavigationCategoryMenuContents = React.createClass({
                             <span className='en'>{item.category}</span>
                             <span className='he'>{item.heCategory}</span>
                           </h3>
-                          <ReaderNavigationCategoryMenuContents contents={item.contents} categories={newCats} width={this.props.width} />
+                          <ReaderNavigationCategoryMenuContents contents={item.contents} categories={newCats} width={this.props.width} category={this.props.category}  />
                         </div>));
         } else {
           // Add a Text
           var title   = item.title.replace(/(Mishneh Torah,|Shulchan Arukh,|Jerusalem Talmud) /, "");
+          var title   = title.replace(this.props.category, "");
           var heTitle = item.heTitle.replace(/(משנה תורה,|תלמוד ירושלמי) /, "");
+          var heTitle   = heTitle.replace(Sefaria.hebrewCategory(this.props.category), "")
           var url     = "/" + Sefaria.normRef(item.firstSection);
           content.push((<a href={url}>
                           <span className={'refLink sparse' + item.sparseness} data-ref={item.firstSection} key={i}>

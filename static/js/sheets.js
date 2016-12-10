@@ -875,6 +875,9 @@ $(function() {
 			$('.cke_editable').each(function() {
 				sjs.removeCKEditorByElement(this);
 			});
+		  if ($("#lastSaved").text('Changes Pending...') ) {
+				autoSave();
+			}
 		});
 	}
 
@@ -883,7 +886,7 @@ $(function() {
 		stopCkEditorContinuous();
 		var ckeSaveChain = function() {
 
-			if (editor.checkDirty() == true) {
+			if (editor.checkDirty() && !sjs.changesPending ) {
 				autoSave();
 				editor.resetDirty();
 			}
@@ -3100,7 +3103,13 @@ function pollForUpdates() {
 		if ("error" in data) {
 			sjs.alert.flash(data.error);
 		} else if (data.modified) {
-			rebuildUpdatedSheet(data);
+				if ($(".sheetItem").find(".cke_editable").length) {
+					sjs.changesPending = true;
+				  $("#lastSaved").text('Changes Pending...');
+				}
+				else {
+					rebuildUpdatedSheet(data);
+				}
 		}
 	})
 }
@@ -3109,6 +3118,7 @@ function pollForUpdates() {
 function startPolling() {
 	// Start a timer to poll server for changes to this sheet
 	stopPolling();
+	sjs.changesPending = false;
 	sjs.pollingStopped = false;
 	var pollChain = function() {
 		pollForUpdates();
@@ -3160,15 +3170,19 @@ function rebuildUpdatedSheet(data) {
 	}
 
 	sjs.alert.flash("Sheet updated.");
-	if ($(".cke_editable").length) {
+	if ($(".sheetItem").find(".cke_editable").length) {
 		// An editor is currently open -- save current changes as a lastEdit
 		sjs.saveLastEdit($(".cke_editable").eq(0));
 	}
+	var lastSelectedInterfaceButton = null;
 	if (sjs.can_edit || sjs.can_add) {
 		$("#addInterface").insertAfter($("#sources"));
+		var lastSelectedInterfaceButton = $(".addInterfaceButton.active"); //ensures that add interface remains on the same screen it was previously during a rebuild. So that text in progress can still be added....
+		lastSelectedInterfaceButton.click();
 	}
 	buildSheet(data);
 	sjs.replayLastEdit();
+	lastSelectedInterfaceButton.click();
 	if (sjs.can_edit || sjs.can_add) {
 		$(".sheetItem").on("click", ".inlineAddButtonIcon", function(e) {
 			$("#addInterface").insertAfter($(this).parent().closest(".sheetItem"));
@@ -3176,6 +3190,7 @@ function rebuildUpdatedSheet(data) {
 		});
 	}
 
+	sjs.changesPending = false;
 }
 
 
