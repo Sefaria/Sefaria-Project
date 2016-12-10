@@ -211,8 +211,8 @@
 }
 #homePage #homeCover {
   color: white;
-  height: 560px;
-  padding: 157px 0;
+  height: 570px;
+  padding: 180px 0;
   background-color: #ADA99B;
   box-sizing: border-box;
   text-align: center;
@@ -221,11 +221,11 @@
 }
 #homeCover #homeVideo {
   position: absolute;
+  top: -90px;
   left: 0;
   width: 100%;
   min-width: 1000px;
   z-index: 0;
-  top: 0;
 }
 #homePage #homeCover h1 {
   color: white;
