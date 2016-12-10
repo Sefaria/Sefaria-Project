@@ -1235,11 +1235,15 @@
 #jobsPage {
   font-size: 18px
 }
+#jobsPage h1 {
+  margin-bottom: 0;
+}
 #jobsPage h2 {
   font-size: 22px;
 }
 #jobsPage h2.anchorable {
   padding-top: 90px;
+  margin-top: 0;
 }
 #jobsPage h3 {
   font-size: 16px;
