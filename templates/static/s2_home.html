@@ -20,8 +20,8 @@
 
     <div id="homePage" class="static biReady">
         <div id="homeCover">
-            <video id="homeVideo" preload="auto" autoplay="true" loop="loop" muted="muted" volume="0">
-                <source src="https://www.dropbox.com/s/xuos1k6gl77hgju/home-video-test.mp4?dl=1" type="video/mp4">
+            <video id="homeVideo" poster="/static/img/home-video.jpg" preload="auto" autoplay="true" loop="loop" muted="muted" volume="0">
+                <source src="/static/img/home-video.mp4" type="video/mp4">
             </video>
             <h1>
                 <span class="int-en">A Living Library of Jewish Texts</span>
@@ -306,7 +306,6 @@
 {% endblock %}
 
 {% block js  %}
-    <script src="/static/js/jquery.vide.min.js"></script>
     <script>
     $(function() {
         // Email List

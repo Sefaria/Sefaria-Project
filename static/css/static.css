@@ -192,6 +192,7 @@
 #homePage {
   overflow: hidden;
   color: #333;
+  background-color: transparent;
 }
 /*#homePage .int-en {
   font-family: "adobe-garamond-pro", Georgia, serif;  
@@ -210,14 +211,9 @@
 }
 #homePage #homeCover {
   color: white;
-  /*
-  background-color: #212E50;
-  background-image: url("/static/img/landing.png");
-  background-size: cover;
-  background-position: center;
-  */
   height: 560px;
   padding: 157px 0;
+  background-color: #ADA99B;
   box-sizing: border-box;
   text-align: center;
   overflow: hidden;
@@ -227,6 +223,7 @@
   position: absolute;
   left: 0;
   width: 100%;
+  min-width: 1000px;
   z-index: 0;
   top: 0;
 }
@@ -266,6 +263,9 @@
   width: 720px;
   max-width: 94%;
   margin: auto; 
+}
+#homePage .section:nth-child(even) {
+  background-color: #F9F9F7;
 }
 #homePage .section:nth-child(odd) {
   background-color: white;
