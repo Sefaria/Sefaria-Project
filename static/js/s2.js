@@ -3144,11 +3144,30 @@ var ReaderNavigationCategoryMenuContents = React.createClass({
     width: React.PropTypes.number,
     nestLevel: React.PropTypes.number
   },
+  getRenderedTextTitleString: function getRenderedTextTitleString(title, heTitle) {
+    var whiteList = ['Midrash Mishlei', 'Midrash Tehillim', 'Midrash Tanchuma'];
+    var displayCategory = this.props.category;
+    var displayHeCategory = Sefaria.hebrewCategory(this.props.category);
+    if (whiteList.indexOf(title) == -1) {
+      var replaceTitles = {
+        "en": ['Jerusalem Talmud', displayCategory],
+        "he": ['תלמוד ירושלמי', displayHeCategory]
+      };
+      var replaceOther = {
+        "en": [", ", " on "],
+        "he": [", ", " על "]
+      };
+      //this will replace a categroy name at the beginning of the title string and any connector strings (0 or 1) that follow.
+      var titleRe = new RegExp('^(' + replaceTitles['en'].join("|") + ')(' + replaceOther['en'].join("|") + ')?');
+      var heTitleRe = new RegExp('^(' + replaceTitles['he'].join("|") + ')(' + replaceOther['he'].join("|") + ')?');
+      title = title == displayCategory ? title : title.replace(titleRe, "");
+      heTitle = heTitle == displayHeCategory ? heTitle : heTitle.replace(heTitleRe, "");
+    }
+    return [title, heTitle];
+  },
   render: function render() {
     var content = [];
     var cats = this.props.categories || [];
-    var displayCategory = this.props.category;
-    var displayHeCategory = Sefaria.hebrewCategory(this.props.category);
     for (var i = 0; i < this.props.contents.length; i++) {
       var item = this.props.contents[i];
       if (item.category) {
@@ -3158,10 +3177,12 @@ var ReaderNavigationCategoryMenuContents = React.createClass({
         if (Sefaria.util.inArray(item.category, subcats) > -1 || this.props.nestLevel > 0) {
           if (item.contents.length == 1 && !("category" in item.contents[0])) {
             var chItem = item.contents[0];
-            var titleRe = new RegExp('(Mishneh Torah,|Shulchan Arukh,|Jerusalem Talmud|' + displayCategory + ')( on )?');
-            var title = chItem.title == displayCategory ? chItem.title : chItem.title.replace(titleRe, "");
-            var heTitleRe = new RegExp('(\u05DE\u05E9\u05E0\u05D4 \u05EA\u05D5\u05E8\u05D4|\u05EA\u05DC\u05DE\u05D5\u05D3 \u05D9\u05E8\u05D5\u05E9\u05DC\u05DE\u05D9|' + displayHeCategory + ')( \u05E2\u05DC )?');
-            var heTitle = chItem.heTitle == displayHeCategory ? chItem.heTitle : chItem.heTitle.replace(heTitleRe, "");
+
+            var _getRenderedTextTitle = this.getRenderedTextTitleString(chItem.title, chItem.heTitle),
+                _getRenderedTextTitle2 = _slicedToArray(_getRenderedTextTitle, 2),
+                title = _getRenderedTextTitle2[0],
+                heTitle = _getRenderedTextTitle2[1];
+
             var url = "/" + Sefaria.normRef(chItem.firstSection);
             content.push(React.createElement(
               'a',
@@ -3226,10 +3247,11 @@ var ReaderNavigationCategoryMenuContents = React.createClass({
         }
       } else {
         // Add a Text
-        var titleRe = new RegExp('(Mishneh Torah,|Shulchan Arukh,|Jerusalem Talmud|' + displayCategory + ')( on )?');
-        var title = item.title == displayCategory ? item.title : item.title.replace(titleRe, "");
-        var heTitleRe = new RegExp('(\u05DE\u05E9\u05E0\u05D4 \u05EA\u05D5\u05E8\u05D4|\u05EA\u05DC\u05DE\u05D5\u05D3 \u05D9\u05E8\u05D5\u05E9\u05DC\u05DE\u05D9|' + displayHeCategory + ')( \u05E2\u05DC )?');
-        var heTitle = item.heTitle == displayHeCategory ? item.heTitle : item.heTitle.replace(heTitleRe, "");
+        var _getRenderedTextTitle3 = this.getRenderedTextTitleString(item.title, item.heTitle),
+            _getRenderedTextTitle4 = _slicedToArray(_getRenderedTextTitle3, 2),
+            title = _getRenderedTextTitle4[0],
+            heTitle = _getRenderedTextTitle4[1];
+
         var url = "/" + Sefaria.normRef(item.firstSection);
         content.push(React.createElement(
           'a',
