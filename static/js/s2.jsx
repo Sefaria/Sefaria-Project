@@ -2791,6 +2791,7 @@ var ReaderNavigationCategoryMenuContents = React.createClass({
         "en" : [", ", " on "],
         "he" : [", ", " על "]
       };
+      //this will replace a categroy name at the beginning of the title string and any connector strings (0 or 1) that follow.
       var titleRe = new RegExp(`^(${replaceTitles['en'].join("|")})(${replaceOther['en'].join("|")})?`);
       var heTitleRe = new RegExp(`^(${replaceTitles['he'].join("|")})(${replaceOther['he'].join("|")})?`);
       title   = title == displayCategory ? title : title.replace(titleRe, "");
