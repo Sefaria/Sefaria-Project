@@ -2783,16 +2783,16 @@ var ReaderNavigationCategoryMenuContents = React.createClass({
     var displayCategory = this.props.category;
     var displayHeCategory = Sefaria.hebrewCategory(this.props.category);
     if (whiteList.indexOf(title) == -1){
-      var blackLists = {
+      var replaceTitles = {
         "en": ['Jerusalem Talmud', displayCategory],
         "he": ['תלמוד ירושלמי', displayHeCategory]
       };
-      var blackListsConnectors = {
+      var replaceOther = {
         "en" : [", ", " on "],
         "he" : [", ", " על "]
       };
-      var titleRe = new RegExp(`^(${blackLists['en'].join("|")})(${blackListsConnectors['en'].join("|")})?`);
-      var heTitleRe = new RegExp(`^(${blackLists['he'].join("|")})(${blackListsConnectors['he'].join("|")})?`);
+      var titleRe = new RegExp(`^(${replaceTitles['en'].join("|")})(${replaceOther['en'].join("|")})?`);
+      var heTitleRe = new RegExp(`^(${replaceTitles['he'].join("|")})(${replaceOther['he'].join("|")})?`);
       title   = title == displayCategory ? title : title.replace(titleRe, "");
       heTitle = heTitle == displayHeCategory ? heTitle : heTitle.replace(heTitleRe, "");
     }
