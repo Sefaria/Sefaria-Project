@@ -3165,6 +3165,28 @@ var ReaderNavigationCategoryMenuContents = React.createClass({
     }
     return [title, heTitle];
   },
+
+  getRenderedTextTitleString: function getRenderedTextTitleString(title, heTitle) {
+    var whiteList = ['Midrash Mishlei', 'Midrash Tehillim', 'Midrash Tanchuma'];
+    var displayCategory = this.props.category;
+    var displayHeCategory = Sefaria.hebrewCategory(this.props.category);
+    if (whiteList.indexOf(title) == -1) {
+      var replaceTitles = {
+        "en": ['Jerusalem Talmud', displayCategory],
+        "he": ['תלמוד ירושלמי', displayHeCategory]
+      };
+      var replaceOther = {
+        "en": [", ", " on "],
+        "he": [", ", " על "]
+      };
+      //this will replace a categroy name at the beginning of the title string and any connector strings (0 or 1) that follow.
+      var titleRe = new RegExp('^(' + replaceTitles['en'].join("|") + ')(' + replaceOther['en'].join("|") + ')?');
+      var heTitleRe = new RegExp('^(' + replaceTitles['he'].join("|") + ')(' + replaceOther['he'].join("|") + ')?');
+      title = title == displayCategory ? title : title.replace(titleRe, "");
+      heTitle = heTitle == displayHeCategory ? heTitle : heTitle.replace(heTitleRe, "");
+    }
+    return [title, heTitle];
+  },
   render: function render() {
     var content = [];
     var cats = this.props.categories || [];
@@ -3246,11 +3268,11 @@ var ReaderNavigationCategoryMenuContents = React.createClass({
           ));
         }
       } else {
-        // Add a Text
-        var _getRenderedTextTitle3 = this.getRenderedTextTitleString(item.title, item.heTitle),
-            _getRenderedTextTitle4 = _slicedToArray(_getRenderedTextTitle3, 2),
-            title = _getRenderedTextTitle4[0],
-            heTitle = _getRenderedTextTitle4[1];
+        //Add a Text
+        var _getRenderedTextTitle = this.getRenderedTextTitleString(item.title, item.heTitle),
+            _getRenderedTextTitle2 = _slicedToArray(_getRenderedTextTitle, 2),
+            title = _getRenderedTextTitle2[0],
+            heTitle = _getRenderedTextTitle2[1];
 
         var url = "/" + Sefaria.normRef(item.firstSection);
         content.push(React.createElement(
