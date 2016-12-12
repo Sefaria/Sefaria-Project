@@ -1047,7 +1047,7 @@ class SchemaNode(TitledTreeNode):
         d = {
             "index": self.index,
             "book": self.full_title("en"),
-            "type": self.index.categories[0],
+            "primary_category": self.index.get_primary_category(),
             "index_node": self,
             "sections": [],
             "toSections": []
