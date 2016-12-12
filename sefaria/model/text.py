@@ -591,7 +591,7 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
 
     def get_primary_category(self):
         if self.is_dependant_text() and len(self.categories) >= 2:
-            return self.dependence
+            return self.dependence.capitalize()
         else:
             return self.categories[0]
 
