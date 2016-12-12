@@ -875,9 +875,7 @@ $(function() {
 			$('.cke_editable').each(function() {
 				sjs.removeCKEditorByElement(this);
 			});
-		  if ($("#lastSaved").text('Changes Pending...') ) {
-				autoSave();
-			}
+
 		});
 	}
 
