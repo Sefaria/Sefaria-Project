@@ -764,7 +764,7 @@ def make_alt_toc_html(alt, index):
         elif includeSections:
             # Display each section included in node.wholeRef
             # todo check case where wholeRef points to complex node
-            # todo check case where wholeRef points to book name (root of simple index or commentary index)
+            # todo check case where wholeRef points to book name (root of simple index)
 
             target_ref   = Ref(node.wholeRef)
 
