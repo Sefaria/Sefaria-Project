@@ -134,7 +134,7 @@ def delete_commentary_links(title, user):
 
 def rebuild_commentary_links(title, user):
     """
-    Deletes all of the citation generated links from text 'title'
+    Rebuild all of the citation generated links from text 'title'
     then rebuilds them.
     """
     try:
