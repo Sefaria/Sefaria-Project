@@ -3218,10 +3218,13 @@ var ReaderNavigationCategoryMenuContents = React.createClass({
         ));
       } else {
         //Add a Text
-        var _getRenderedTextTitle = this.getRenderedTextTitleString(item.title, item.heTitle),
-            _getRenderedTextTitle2 = _slicedToArray(_getRenderedTextTitle, 2),
-            title = _getRenderedTextTitle2[0],
-            heTitle = _getRenderedTextTitle2[1];
+
+        var _getRenderedTextTitle = this.getRenderedTextTitleString(item.title, item.heTitle);
+
+        var _getRenderedTextTitle2 = _slicedToArray(_getRenderedTextTitle, 2);
+
+        var title = _getRenderedTextTitle2[0];
+        var heTitle = _getRenderedTextTitle2[1];
 
         var url = "/" + Sefaria.normRef(item.firstSection);
         content.push(React.createElement(
