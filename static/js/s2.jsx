@@ -2775,6 +2775,28 @@ var ReaderNavigationCategoryMenuContents = React.createClass({
     categories: React.PropTypes.array.isRequired,
     width:      React.PropTypes.number
   },
+
+  getRenderedTextTitleString: function(title, heTitle){
+    var whiteList = ['Midrash Mishlei', 'Midrash Tehillim', 'Midrash Tanchuma'];
+    var displayCategory = this.props.category;
+    var displayHeCategory = Sefaria.hebrewCategory(this.props.category);
+    if (whiteList.indexOf(title) == -1){
+      var replaceTitles = {
+        "en": ['Jerusalem Talmud', displayCategory],
+        "he": ['תלמוד ירושלמי', displayHeCategory]
+      };
+      var replaceOther = {
+        "en" : [", ", " on "],
+        "he" : [", ", " על "]
+      };
+      //this will replace a categroy name at the beginning of the title string and any connector strings (0 or 1) that follow.
+      var titleRe = new RegExp(`^(${replaceTitles['en'].join("|")})(${replaceOther['en'].join("|")})?`);
+      var heTitleRe = new RegExp(`^(${replaceTitles['he'].join("|")})(${replaceOther['he'].join("|")})?`);
+      title   = title == displayCategory ? title : title.replace(titleRe, "");
+      heTitle = heTitle == displayHeCategory ? heTitle : heTitle.replace(heTitleRe, "");
+    }
+    return [title, heTitle];
+  },
   render: function() {
       var content = [];
       var cats = this.props.categories || [];
@@ -2804,11 +2826,8 @@ var ReaderNavigationCategoryMenuContents = React.createClass({
                           <ReaderNavigationCategoryMenuContents contents={item.contents} categories={newCats} width={this.props.width} category={this.props.category}  />
                         </div>));
         } else {
-          // Add a Text
-          var title   = item.title.replace(/(Mishneh Torah,|Shulchan Arukh,|Jerusalem Talmud) /, "");
-          var title   = title.replace(this.props.category, "");
-          var heTitle = item.heTitle.replace(/(משנה תורה,|תלמוד ירושלמי) /, "");
-          var heTitle   = heTitle.replace(Sefaria.hebrewCategory(this.props.category), "")
+          //Add a Text
+          var [title, heTitle] = this.getRenderedTextTitleString(item.title, item.heTitle);
           var url     = "/" + Sefaria.normRef(item.firstSection);
           content.push((<a href={url}>
                           <span className={'refLink sparse' + item.sparseness} data-ref={item.firstSection} key={i}>
