@@ -35,7 +35,7 @@ def make_path(doc, format, extension=None):
     """
     Returns the full path and file name for exporting 'doc' in 'format'.
     """
-    if doc["categories"][0] not in ORDER and doc["categories"][0] != "Commentary":
+    if doc["categories"][0] not in ORDER:
         doc["categories"].insert(0, "Other")
     path = "%s/%s/%s/%s/%s/%s.%s" % (SEFARIA_EXPORT_PATH,
                                             format,

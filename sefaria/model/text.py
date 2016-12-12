@@ -1472,7 +1472,6 @@ class TextFamily(object):
             if "heTitle" in d:
                 d["heBook"] = d["heTitle"]
                 d["heTitle"] = self._context_oref.he_normal()
-            #//mark for comemntary refactor?
             """if d["type"] == "Commentary" and self._context_oref.is_talmud() and len(d["sections"]) > 1:
                 d["title"] = "%s Line %d" % (d["title"], d["sections"][1])"""
 
