@@ -947,7 +947,6 @@ def toc_availability_class(toc):
 
 @ensure_csrf_cookie
 def text_toc(request, oref):
-    #//todo: mark for comemntary refactor
     """
     Page representing a single text, showing its Table of Contents and related info.
     """
@@ -963,13 +962,13 @@ def text_toc(request, oref):
     categories    = index.categories[:]
     cat_slices    = [categories[:n+1] for n in range(len(categories))]  # successive sublists of cats, for category links
 
-    c_indexes     = library.get_dependant_indices(book_title=title, dependence_type='commentary', full_records=True)
+    c_indexes     = library.get_dependant_indices(book_title=title, dependence_type='Commentary', full_records=True)
     commentaries  = [i.toc_contents() for i in c_indexes]
 
     if index.is_complex():
         zoom = 1
     else:
-        zoom = 0 if index.nodes.depth == 1 else 2 if "Commentary" in index.categories else 1
+        zoom = 0 if index.nodes.depth == 1 else 2 if index.dependence == "Commentary" else 1
         zoom = int(request.GET.get("zoom", zoom))
     toc_html = make_toc_html(oref, zoom=zoom)
 
@@ -988,7 +987,7 @@ def text_toc(request, oref):
         if talmud and count_strings:
             count_strings["he"] = count_strings["he"].replace("Dappim", "Amudim")
             count_strings["en"] = count_strings["en"].replace("Dappim", "Amudim")
-        if "Commentary" in index.categories and state.get_flag("heComplete"):
+        if index.dependence == "Commentary"  and state.get_flag("heComplete"):
             # Because commentary text is sparse, the code in make_toc_hmtl doens't work for completeness
             # Trust a flag if its set instead
             toc_html = toc_html.replace("heSome", "heAll")
@@ -1065,7 +1064,6 @@ def texts_list(request):
 
 
 def texts_category_list(request, cats):
-    #//todo: mark for comemntary refactor
     """
     Page listing every text in category
     """
@@ -1089,9 +1087,6 @@ def texts_category_list(request, cats):
     if category in ("Bavli", "Yerushalmi"):
         category = "Talmud " + category
         heCategory = hebrew_term("Talmud") + " " + heCategory
-    if "Commentary" in cats:
-        category   = category + " on " + cats[0]
-        heCategory = heCategory + u" על " + hebrew_term(cats[0])
 
     return render_to_response('text_category.html',
                              {
