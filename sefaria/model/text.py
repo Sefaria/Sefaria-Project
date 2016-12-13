@@ -89,7 +89,7 @@ class AbstractIndex(object):
                         _obj={
                             "index": vs.index,
                             "book": vs.index.nodes.full_title("en"),
-                            "type": vs.index.categories[0],
+                            "primary_category": vs.index.get_primary_category(),
                             "index_node": c,
                             "sections": sections,
                             "toSections": sections
@@ -786,7 +786,7 @@ class Version(abst.AbstractMongoRecord, AbstractTextRecord, AbstractSchemaConten
                 return Ref(_obj={
                     "index": i,
                     "book": leaf.full_title("en"),
-                    "type": i.categories[0],
+                    "primary_category": i.get_primary_category(),
                     "index_node": leaf,
                     "sections": [i + 1 for i in indx_array],
                     "toSections": [i + 1 for i in indx_array]
@@ -3888,7 +3888,7 @@ class Library(object):
                 "book": node.full_title("en"),
                 "index_node": node,
                 "index": node.index,
-                "type": node.index.categories[0],
+                "primary_category": node.index.get_primary_category(),
                 "sections": sections,
                 "toSections": sections
             }
@@ -3932,7 +3932,7 @@ class Library(object):
                 "book": node.full_title("en"),
                 "index_node": node,
                 "index": node.index,
-                "type": node.index.categories[0],
+                "primary_category": node.index.get_primary_category(),
                 "sections": sections,
                 "toSections": sections
             }
