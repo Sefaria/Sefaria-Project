@@ -164,7 +164,7 @@ class TermSet(abst.AbstractMongoSet):
 class TermScheme(abst.AbstractMongoRecord):
     """
     A TermScheme is a category of terms.
-    Example: Parsha, Perek
+    Example: Parasha, Perek
     """
     collection = 'term_scheme'
     track_pkeys = True
