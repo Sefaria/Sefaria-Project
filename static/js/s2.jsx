@@ -271,10 +271,10 @@ var ReaderApp = React.createClass({
       var primaryCats = indexes.map(i => (i.dependence === "Commentary")? i.categories[0] + " Commentary": i.categories[0]);
       Sefaria.site.track.setPrimaryCategory(primaryCats.join(" | "));
 
-      var secondaryCats = indexes.map(i => (i.dependence === "Commentary")?
-          ((i.categories.length > 2)?i.categories[2]:""):
-          ((i.categories.length > 1)?i.categories[1]:"")
-      );
+      var secondaryCats = indexes.map(i => {
+          cats = i.categories..filter(cat=> cat != "Commentary").slice(1);
+          return (cats.length >= 1) ? cats[0] : ""
+      });
       Sefaria.site.track.setSecondaryCategory(secondaryCats.join(" | "));
 
       // panel content languages - per text panel
