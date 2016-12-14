@@ -102,6 +102,11 @@ USE_VARNISH_ESI = False
 # Prevent modification of Index records
 DISABLE_INDEX_SAVE = False
 
+# Caching with Cloudflare
+CLOUDFLARE_ZONE = ""
+CLOUDFLARE_EMAIL = ""
+CLOUDFLARE_TOKEN = ""
+
 """ to use logging, in any module:
 # import the logging library
 import logging
