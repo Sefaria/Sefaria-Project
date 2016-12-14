@@ -369,7 +369,7 @@ def change_node_structure(ja_node, section_names, address_types=None, upsize_in_
     ref_regex_str = ja_node.ref().regex(anchored=False)
     identifier = ur"(^{})|(^({}) on {})".format(ref_regex_str, "|".join(commentators), ref_regex_str)
 
-    def needs_fixing(ref_string):
+    def needs_fixing(ref_string, *args):
         if re.search(identifier, ref_string) is None:
             return False
         else:
@@ -430,10 +430,10 @@ def change_node_structure(ja_node, section_names, address_types=None, upsize_in_
 def cascade(ref_identifier, rewriter=lambda x: x, needs_rewrite=lambda x: True):
     """
     Changes to indexes requires updating any and all data that reference that index. This routine will take a rewriter
-     function an run it on every location that references the updated index.
-    :param ref_identifier: Ref or String that can be used to implement a ref
-    :param rewriter: callback function used to update the field
-    :param needs_rewrite: Criteria for which a save will be triggered. If not set, routine will trigger a save for
+     function and run it on every location that references the updated index.
+    :param ref_identifier: Ref or String that can be used to implement a ref (an Index level Ref?  Or Deeper?)
+    :param rewriter: f(String)->String. callback function used to update the field.
+    :param needs_rewrite: f(String, Object)->Boolean. Criteria for which a save will be triggered. If not set, routine will trigger a save for
     every item within the set
     :param skip_history: Set to True to skip history updates
     """
@@ -461,7 +461,7 @@ def cascade(ref_identifier, rewriter=lambda x: x, needs_rewrite=lambda x: True):
             if isinstance(refs, list):
                 needs_save = False
                 for ref_num, ref in enumerate(refs):
-                    if needs_rewrite(ref):
+                    if needs_rewrite(ref, record):
                         needs_save = True
                         refs[ref_num] = rewriter(ref)
                 if needs_save:
@@ -471,7 +471,7 @@ def cascade(ref_identifier, rewriter=lambda x: x, needs_rewrite=lambda x: True):
                         print 'Bad Data Found: {}'.format(refs)
                         print e
             else:
-                if needs_rewrite(refs):
+                if needs_rewrite(refs, record):
                     refs = rewriter(refs)
                     try:
                         record.save()
