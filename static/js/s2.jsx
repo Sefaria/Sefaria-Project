@@ -1856,7 +1856,7 @@ var ReaderPanel = React.createClass({
   },
   currentCategory: function() {
     var book = this.currentBook();
-    return (Sefaria.index(book) ? Sefaria.index(book).categories[0] : null);
+    return (Sefaria.index(book) ? Sefaria.index(book).primary_category : null);
   },
   currentLayout: function() {
     if (this.state.settings.language == "bilingual") {
@@ -1996,7 +1996,7 @@ var ReaderPanel = React.createClass({
                     close={this.closeMenus}
                     title={this.state.bookRef}
                     settingsLanguage={this.state.settings.language == "hebrew"?"he":"en"}
-                    category={Sefaria.index(this.state.bookRef) ? Sefaria.index(this.state.bookRef).categories[0] : null}
+                    category={Sefaria.index(this.state.bookRef) ? Sefaria.index(this.state.bookRef).primary_category : null}
                     currentRef={this.state.bookRef}
                     key={this.state.bookRef}
                     openNav={this.openMenu.bind(null, "navigation")}
@@ -2638,7 +2638,7 @@ var TextBlockLink = React.createClass({
   },
   render: function() {
     var index    = Sefaria.index(this.props.book);
-    var category = this.props.category || index.categories[0];
+    var category = this.props.category || index.primary_category;
     var style    = {"borderColor": Sefaria.palette.categoryColor(category)};
     var title    = this.props.title   || (this.props.showSections ? this.props.sref : this.props.book);
     var heTitle  = this.props.heTitle || (this.props.showSections ? this.props.heRef : index.heTitle);
@@ -4934,7 +4934,7 @@ var TextRange = React.createClass({
       var ref              = this.props.withContext ? data.sectionRef : data.ref;
       var sectionStrings   = Sefaria.sectionString(ref);
       var oref             = Sefaria.ref(ref);
-      var useShortString   = oref && Sefaria.util.inArray(oref.categories[0], ["Tanakh", "Mishnah", "Talmud", "Tosefta", "Commentary"]) !== -1;
+      var useShortString   = oref && Sefaria.util.inArray(oref.primary_category, ["Tanakh", "Mishnah", "Talmud", "Tosefta", "Commentary"]) !== -1;
       var title            = useShortString ? sectionStrings.en.numbered : sectionStrings.en.named;
       var heTitle          = useShortString ? sectionStrings.he.numbered : sectionStrings.he.named;   
     } else if (data && !this.props.basetext) {  
@@ -5544,7 +5544,7 @@ var TextList = React.createClass({
                   showText={this.props.showText}
                   filter={this.props.filter}
                   recentFilters={this.props.recentFilters}
-                  textCategory={oref ? oref.categories[0] : null}
+                  textCategory={oref ? oref.primary_category : null}
                   setFilter={this.props.setFilter}
                   showAllFilters={this.showAllFilters} />
               </div>
@@ -5565,7 +5565,7 @@ var TextList = React.createClass({
                     showText={this.props.showText}
                     filter={this.props.filter}
                     recentFilters={this.props.recentFilters}
-                    textCategory={oref ? oref.categories[0] : null}
+                    textCategory={oref ? oref.primary_category : null}
                     setFilter={this.props.setFilter}
                     showAllFilters={this.showAllFilters} />
                   { content }
@@ -5755,7 +5755,7 @@ var RecentFilterSet = React.createClass({
       return {
           book: filter,
           heBook: index ? index.heTitle : Sefaria.hebrewCategory(filter),
-          category: index ? index.categories[0] : filter };
+          category: index ? index.primary_category : filter };
     });
     topLinks = recentFilters.concat(topLinks).slice(0,5);
 
@@ -5769,7 +5769,7 @@ var RecentFilterSet = React.createClass({
       if (i == topLinks.length) {
         var index = Sefaria.index(filter);
         if (index) {
-          var annotatedFilter = {book: filter, heBook: index.heTitle, category: index.categories[0] };
+          var annotatedFilter = {book: filter, heBook: index.heTitle, category: index.primary_category };
         } else {
           var annotatedFilter = {book: filter, heBook: filter, category: "Other" };
         }

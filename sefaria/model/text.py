@@ -1418,6 +1418,7 @@ class TextFamily(object):
         d["titleVariants"]   = self._inode.all_tree_titles("en")
         d["heTitleVariants"] = self._inode.all_tree_titles("he")
         d["type"]            = getattr(self._original_oref, "primary_category")
+        d["primary_category"] = getattr(self._original_oref, "primary_category")
         d["book"]            = getattr(self._original_oref, "book")
 
         for attr in ["categories", "order"]:
