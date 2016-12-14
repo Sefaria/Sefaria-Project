@@ -272,7 +272,7 @@ var ReaderApp = React.createClass({
       Sefaria.site.track.setPrimaryCategory(primaryCats.join(" | "));
 
       var secondaryCats = indexes.map(i => {
-          var cats = i.categories..filter(cat=> cat != "Commentary").slice(1);
+          var cats = i.categories.filter(cat=> cat != "Commentary").slice(1);
           return (cats.length >= 1) ? cats[0] : ""
       });
       Sefaria.site.track.setSecondaryCategory(secondaryCats.join(" | "));
