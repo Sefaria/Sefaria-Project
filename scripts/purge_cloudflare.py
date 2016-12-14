@@ -1,3 +1,3 @@
-from sefaria.system.cache import purge_cloudflare
+from sefaria.system.cloudflare import purge_cloudflare
 
 purge_cloudflare()
