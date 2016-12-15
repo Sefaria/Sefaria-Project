@@ -204,7 +204,7 @@ class BaseStructureAutoLinker(AbstractStructureAutoLinker):
         if not oref.is_dependant():
             raise Exception("Text must have a base text to link to")
         try:
-            base_oref = Ref(self._requested_oref.index.base_text_titles[0])
+            base_oref = Ref(oref.index.base_text_titles[0])
             super(BaseStructureAutoLinker, self).__init__(oref, depth_up, base_oref, **kwargs)
         except Exception as e:
             raise Exception('Text must have a base text to link to')
