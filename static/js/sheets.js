@@ -495,7 +495,8 @@ $(function() {
 
 		$("#resetSourceTogglesToSheetGroup").click(function() {
 			$(".activeSource").removeClass("bilingual english hebrew sideBySide heLeft heRight stacked");
-
+			$("#sourceLayoutLanguageMenuItems").find(".fa-check").addClass("hidden");
+			setLanguageLayoutCheckBoxes($(".activeSource"));
 			if (sjs.can_edit) {
 				autoSave();
 			}
@@ -1380,6 +1381,7 @@ $(function() {
 				e.stopImmediatePropagation();
 			});
 
+
 			function cleanupActiveSource(target){
 				$(".inlineAddButtonIcon").removeClass("active");
 				$(".activeSource").removeClass("activeSource");
@@ -1398,52 +1400,87 @@ $(function() {
 				$("#sourceButton").click();
 			}
 
+			function setLanguageLayoutCheckBoxes(source) {
+				if (!$(source).hasClass("hebrew") && !$(source).hasClass("bilingual") && !$(source).hasClass("english")) {
+					if (sjs.current.options.language == "hebrew") {
+						$("#sourceLayoutLanguageMenuItems").find(".hebrew .fa-check").removeClass("hidden");
+					}
+					else if (sjs.current.options.language == "bilingual") {
+						$("#sourceLayoutLanguageMenuItems").find(".bilingual .fa-check").removeClass("hidden");
+						$("#sourceLayoutLanguageMenuItems").find("#layoutToggleGroup").removeClass("disabled");
+					}
+					else if (sjs.current.options.language == "english") {
+						$("#sourceLayoutLanguageMenuItems").find(".english .fa-check").removeClass("hidden");
+					}
+
+					if (sjs.current.options.layout == "stacked") {
+						$("#sourceLayoutLanguageMenuItems").find(".stacked .fa-check").removeClass("hidden")
+					}
+					else if (sjs.current.options.layout == "sideBySide") {
+						$("#sourceLayoutLanguageMenuItems").find(".sideBySide .fa-check").removeClass("hidden");
+						$("#sourceLayoutLanguageMenuItems").find("#sideBySideToggleGroup").removeClass("disabled");
+					}
+
+					if (sjs.current.options.langLayout == "heLeft") {
+						$("#sourceLayoutLanguageMenuItems").find(".heLeft .fa-check").removeClass("hidden")
+					}
+					else if (sjs.current.options.langLayout == "heRight") {
+						$("#sourceLayoutLanguageMenuItems").find(".heRight .fa-check").removeClass("hidden")
+					}
+				}
+
+				else {
+					if ($(source).hasClass("hebrew")) {
+						$("#sourceLayoutLanguageMenuItems").find(".hebrew .fa-check").removeClass("hidden");
+					}
+					else if ($(source).hasClass("bilingual")) {
+						$("#sourceLayoutLanguageMenuItems").find(".bilingual .fa-check").removeClass("hidden");
+						$("#sourceLayoutLanguageMenuItems").find("#layoutToggleGroup").removeClass("disabled");
+					}
+					else if ($(source).hasClass("english")) {
+						$("#sourceLayoutLanguageMenuItems").find(".english .fa-check").removeClass("hidden");
+					}
+
+					if ($(source).hasClass("stacked")) {
+						$("#sourceLayoutLanguageMenuItems").find(".stacked .fa-check").removeClass("hidden")
+					}
+					else if ($(source).hasClass("sideBySide")) {
+						$("#sourceLayoutLanguageMenuItems").find(".sideBySide .fa-check").removeClass("hidden");
+						$("#sourceLayoutLanguageMenuItems").find("#sideBySideToggleGroup").removeClass("disabled");
+					}
+
+					if ($(source).hasClass("heLeft")) {
+						$("#sourceLayoutLanguageMenuItems").find(".heLeft .fa-check").removeClass("hidden")
+					}
+					else if ($(source).hasClass("heRight")) {
+						$("#sourceLayoutLanguageMenuItems").find(".heRight .fa-check").removeClass("hidden")
+					}
+				}
+
+			}
+
 			$("#sheet").on("click", ".sheetItem", function (e) {
 			//clicked on a sheet item
 				if ($(e.target).hasClass("inlineAddButtonIcon")) return;
 				if (!$(".readerApp").hasClass("multiPanel")) return; //prevent active source on mobile
 
-			cleanupActiveSource(e.target);
-			$(this).addClass("activeSource");
-			$("#sheetLayoutLanguageMenuItems").hide();
-			$("#sourceLayoutLanguageMenuItems").show();
-			$("#resetText").show();
-			$("#addSourceTitle").show();
-			//$(this).hasClass("source") ? $("#connectionButton").css('display', 'inline-block') : $("#connectionButton").hide();
+				cleanupActiveSource(e.target);
+				$(this).addClass("activeSource");
+				$("#sheetLayoutLanguageMenuItems").hide();
+				$("#sourceLayoutLanguageMenuItems").show();
+				$("#resetText").show();
+				$("#addSourceTitle").show();
+				//$(this).hasClass("source") ? $("#connectionButton").css('display', 'inline-block') : $("#connectionButton").hide();
 
-			//set checkboxes for language/layout menus for active source
-			if ($(this).hasClass("hebrew")) {
-				$("#sourceLayoutLanguageMenuItems").find(".hebrew .fa-check").removeClass("hidden");
-			}
-			else if ( $(this).hasClass("bilingual") ) {
-			 $("#sourceLayoutLanguageMenuItems").find(".bilingual .fa-check").removeClass("hidden");
-			 $("#sourceLayoutLanguageMenuItems").find("#layoutToggleGroup").removeClass("disabled");
-			}
-			else if ( $(this).hasClass("english") ) {
-				$("#sourceLayoutLanguageMenuItems").find(".english .fa-check").removeClass("hidden");
-			}
+				//set checkboxes for language/layout menus for active source
+				setLanguageLayoutCheckBoxes(e.target);
 
-			if ($(this).hasClass("stacked")) {
-				$("#sourceLayoutLanguageMenuItems").find(".stacked .fa-check").removeClass("hidden")
-			}
-			else if ( $(this).hasClass("sideBySide") ) {
-				$("#sourceLayoutLanguageMenuItems").find(".sideBySide .fa-check").removeClass("hidden");
-			    $("#sourceLayoutLanguageMenuItems").find("#sideBySideToggleGroup").removeClass("disabled");
-			}
-
-			if ($(this).hasClass("heLeft")){
-				$("#sourceLayoutLanguageMenuItems").find(".heLeft .fa-check").removeClass("hidden")
-			}
-			else if ($(this).hasClass("heRight")){
-				$("#sourceLayoutLanguageMenuItems").find(".heRight .fa-check").removeClass("hidden")
-			}
-
-			if (!($(this).hasClass("source"))) {
-				$("#resetText").hide();
-				$("#addSourceTitle").hide();
-				$("#sourceLayoutLanguageMenuItems").hide();
-			}
-		});
+				if (!($(this).hasClass("source"))) {
+					$("#resetText").hide();
+					$("#addSourceTitle").hide();
+					$("#sourceLayoutLanguageMenuItems").hide();
+				}
+			});
 
 			$("#sheet").click();
 		}
