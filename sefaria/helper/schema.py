@@ -427,7 +427,7 @@ def change_node_structure(ja_node, section_names, address_types=None, upsize_in_
     # For each commentary version, refresh its VS
 
 
-def cascade(ref_identifier, rewriter=lambda x: x, needs_rewrite=lambda x: True):
+def cascade(ref_identifier, rewriter=lambda x: x, needs_rewrite=lambda x: True, skip_history=False):
     """
     Changes to indexes requires updating any and all data that reference that index. This routine will take a rewriter
      function and run it on every location that references the updated index.
@@ -507,7 +507,7 @@ def cascade(ref_identifier, rewriter=lambda x: x, needs_rewrite=lambda x: True):
                     needs_save = True
             if needs_save:
                 sheet["lastModified"] = sheet["dateModified"]
-                save_sheet(sheet, sheet["owner"])
+                save_sheet(sheet, sheet["owner"], search_override=True)
 
     def update_alt_structs(index):
 
@@ -556,8 +556,9 @@ def cascade(ref_identifier, rewriter=lambda x: x, needs_rewrite=lambda x: True):
     print 'Updating Alternate Structs'
     update_alt_structs(ref_identifier.index)
     print 'Updating History'
-    generic_rewrite(HistorySet(construct_query('ref', identifier)))
-    generic_rewrite(HistorySet(construct_query('new.ref', identifier)), attr_name='new', sub_attr_name='ref')
-    generic_rewrite(HistorySet(construct_query('new.refs', identifier)), attr_name='new', sub_attr_name='refs')
-    generic_rewrite(HistorySet(construct_query('old.ref', identifier)), attr_name='old', sub_attr_name='ref')
-    generic_rewrite(HistorySet(construct_query('old.refs', identifier)), attr_name='old', sub_attr_name='refs')
+    if not skip_history:
+        generic_rewrite(HistorySet(construct_query('ref', identifier)))
+        generic_rewrite(HistorySet(construct_query('new.ref', identifier)), attr_name='new', sub_attr_name='ref')
+        generic_rewrite(HistorySet(construct_query('new.refs', identifier)), attr_name='new', sub_attr_name='refs')
+        generic_rewrite(HistorySet(construct_query('old.ref', identifier)), attr_name='old', sub_attr_name='ref')
+        generic_rewrite(HistorySet(construct_query('old.refs', identifier)), attr_name='old', sub_attr_name='refs')

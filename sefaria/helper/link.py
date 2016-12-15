@@ -53,7 +53,7 @@ def add_commentary_links(oref, user, text=None, **kwargs):
     for each segment of text (comment) that is in 'Sforno on Kohelet 3:2'.
     """
 
-    assert oref.is_commentary()
+    assert kwargs.get("commentary_override", False) or oref.is_commentary()
     tref = oref.normal()
     base_tref = tref[tref.find(" on ") + 4:]
     base_oref = Ref(base_tref)
@@ -119,7 +119,7 @@ def add_commentary_links(oref, user, text=None, **kwargs):
     return found_links
 
 
-def delete_commentary_links(title, user):
+def delete_commentary_links(title, user, **kwargs):
     """
     Deletes all of the citation generated links from text 'title'
     """
@@ -132,7 +132,7 @@ def delete_commentary_links(title, user):
         tracker.delete(user, Link, link._id)
 
 
-def rebuild_commentary_links(title, user):
+def rebuild_commentary_links(title, user, **kwargs):
     """
     Rebuild all of the citation generated links from text 'title'
     then rebuilds them.
@@ -145,8 +145,8 @@ def rebuild_commentary_links(title, user):
         for c in library.get_commentary_version_titles(i.title):
             rebuild_commentary_links(Ref(c), user)
         return
-    delete_commentary_links(title, user)
-    add_commentary_links(Ref(title), user)
+    delete_commentary_links(title, user, **kwargs)
+    add_commentary_links(Ref(title), user, **kwargs)
 
 
 def add_links_from_text(oref, lang, text, text_id, user, **kwargs):
