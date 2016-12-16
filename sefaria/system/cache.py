@@ -112,4 +112,3 @@ def generate_text_toc_cache_key(index_name):
     for zoom in [0,1,2]: #most commonly used values
         keys.append(cache_get_key(*['make_toc_html', index_name], **{'zoom' : zoom}))
     return keys
-

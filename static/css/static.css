@@ -192,6 +192,7 @@
 #homePage {
   overflow: hidden;
   color: #333;
+  background-color: transparent;
 }
 /*#homePage .int-en {
   font-family: "adobe-garamond-pro", Georgia, serif;  
@@ -210,14 +211,21 @@
 }
 #homePage #homeCover {
   color: white;
-  background-color: #212E50;
-  background-image: url("/static/img/landing.png");
-  background-size: cover;
-  background-position: center;
-  height: 560px;
-  padding: 157px 0;
+  height: 570px;
+  padding: 180px 0;
+  background-color: #ADA99B;
   box-sizing: border-box;
   text-align: center;
+  overflow: hidden;
+  position: relative;
+}
+#homeCover #homeVideo {
+  position: absolute;
+  top: -90px;
+  left: 0;
+  width: 100%;
+  min-width: 1200px;
+  z-index: 0;
 }
 #homePage #homeCover h1 {
   color: white;
@@ -230,6 +238,7 @@
   font-size: 22px;
   font-style: italic;
   margin: 0;
+  position: relative;
 }
 #homePage #homeCover .sub .int-he{
   font-style: normal;
@@ -238,12 +247,14 @@
   color: white;
   font-style: normal;
   font-size: 21px;
+  position: relative;
 }
 #homePage #homeCover .button {
   margin-top: 80px;
   text-transform: uppercase;
   padding: 16px 34px;
 }
+
 #homePage .section {
   overflow: hidden;
   padding: 100px 0;
@@ -252,6 +263,9 @@
   width: 720px;
   max-width: 94%;
   margin: auto; 
+}
+#homePage .section:nth-child(even) {
+  background-color: #F9F9F7;
 }
 #homePage .section:nth-child(odd) {
   background-color: white;
