@@ -249,6 +249,7 @@ static_pages = [
     "shraga-silverstein",
     "linker",
     "ios",
+    "mobile",
     "sefaria-edition",
     "sefaria-community-translation",
     "contributed-to-sefaria",
