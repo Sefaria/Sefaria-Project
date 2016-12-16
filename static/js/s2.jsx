@@ -332,6 +332,7 @@ var ReaderApp = React.createClass({
           (prev.menuOpen !== next.menuOpen) ||
           (prev.menuOpen === "book toc" && prev.bookRef !== next.bookRef) ||
           (next.mode === "Text" && prev.refs.slice(-1)[0] !== next.refs.slice(-1)[0]) || 
+          (next.mode === "Text" && !prev.highlightedRefs.compare(next.highlightedRefs)) || 
           (next.mode === "TextAndConnections" && prev.highlightedRefs.slice(-1)[0] !== next.highlightedRefs.slice(-1)[0]) || 
           ((next.mode === "Connections" || next.mode === "TextAndConnections") && prev.filter && !prev.filter.compare(next.filter)) ||
           (next.mode === "Connections" && !prev.refs.compare(next.refs)) ||
@@ -465,19 +466,19 @@ var ReaderApp = React.createClass({
             break;
         }
       } else if (state.mode === "Text") {
-        hist.title    = state.refs.slice(-1)[0];
+        hist.title    = state.highlightedRefs.length ? Sefaria.normRefList(state.highlightedRefs) : state.refs.slice(-1)[0];
         hist.url      = Sefaria.normRef(hist.title);
         hist.version  = state.version;
         hist.versionLanguage = state.versionLanguage;
         hist.mode     = "Text"
       } else if (state.mode === "Connections") {
-        var ref       = state.refs.slice(-1)[0];
+        var ref       = Sefaria.normRefList(state.refs);
         hist.sources  = state.filter.length ? state.filter.join("+") : "all";
         hist.title    = ref  + " with " + (hist.sources === "all" ? "Connections" : hist.sources);
         hist.url      = Sefaria.normRef(ref); // + "?with=" + sources;
         hist.mode     = "Connections"
       } else if (state.mode === "TextAndConnections") {
-        var ref       = state.highlightedRefs.slice(-1)[0];
+        var ref       = Sefaria.normRefList(state.highlightedRefs);
         hist.sources  = state.filter.length ? state.filter[0] : "all";
         hist.title    = ref  + " with " + (hist.sources === "all" ? "Connections" : hist.sources);
         hist.url      = Sefaria.normRef(ref); // + "?with=" + sources;
