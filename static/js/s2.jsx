@@ -609,7 +609,7 @@ var ReaderApp = React.createClass({
       version:              state.version              || null,
       versionLanguage:      state.versionLanguage      || null,
       highlightedRefs:      state.highlightedRefs      || [],
-      recentFilters:        state.filter               || [],
+      recentFilters:        state.recentFilters        || state.filter || [],
       menuOpen:             state.menuOpen             || null, // "navigation", "text toc", "display", "search", "sheets", "home", "book toc"
       navigationCategories: state.navigationCategories || [],
       navigationSheetTag:   state.sheetsTag            || null,
