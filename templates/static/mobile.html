@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+
+{% block title %}Sefaria Mobile Apps{% endblock %}
+
+{% block content %}
+<div id="homePage" class="static">
+    <div id="homeMobile" class="section textRight">
+        <div class="sectionInner">
+            <br><br>
+            <div class="textBox">
+                <h2>
+                    <span class="int-en">Sefaria Mobile</span>
+                    <span class="int-he">ספאריה בנייד</span>
+                </h2>
+                <div class="description">
+                    <span class="int-en">Enjoy Sefaria's entire library and all of its links and interconnections on-the-go. Sefaria’s apps for Android and iOS available to download for free.</span>
+                    <span class="int-he">הספריה המלאה של ספאריה, יחד עם כל הלינקים והקשרים, זמינים בסמארטפון.</span>
+                </div>
+                <a href="https://play.google.com/store/apps/details?id=org.sefaria.sefaria" target="_blank">
+                    <div class="button white control-elem">
+                        <i class="fa fa-android"></i>
+                        <span class="int-en">Get Android App &rsaquo;</span>
+                        <span class="int-he">הורדה לאנדרואיד &rsaquo;</span>
+                    </div>
+                </a>
+                <a href="https://itunes.apple.com/us/app/sefaria/id1163273965?ls=1&mt=8" id="iOSButton" target="_blank">
+                    <div class="button white control-elem">
+                        <i class="fa fa-apple"></i>
+                        <span class="int-en">Get iOS App &rsaquo;</span>
+                        <span class="int-he">הורדה לאייפון &rsaquo;</span>
+                    </div>
+                </a>
+            </div>
+            <div class="imageBox">
+                <a href="/explore">
+                    <img src="/static/img/home-mobile.png" />
+                </a>
+            </div>
+        </div>
+    </div>    
+</div>
+
+{% endblock %}
