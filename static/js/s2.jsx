@@ -5400,14 +5400,11 @@ var TextList = React.createClass({
     var sectionRef         = this.getSectionRef();
     var isSingleCommentary = (filter.length == 1 && Sefaria.index(filter[0]) && Sefaria.index(filter[0]).categories == "Commentary");
 
-    //if (summary.length && !links.length) { debugger; }
     var en = "No connections known" + (filter.length ? " for " + filter.join(", ") : "") + ".";
     var he = "אין קשרים ידועים"       + (filter.length ? " ל"    + filter.join(", ") : "") + ".";
     var loaded  = Sefaria.linksLoaded(sectionRef);
-    var message = !loaded ? 
-                    (<LoadingMessage />) : 
-                      (summary.length === 0 ? 
-                        <LoadingMessage message={en} heMessage={he} /> : null);
+    var noResultsMessage = <LoadingMessage message={en} heMessage={he} />;
+    var message = !loaded ? (<LoadingMessage />) : (summary.length === 0 ? noResultsMessage : null);
     
     var showAllFilters = !filter.length;
     if (!showAllFilters) {
@@ -5461,6 +5458,8 @@ var TextList = React.createClass({
                 return a.sourceRef > b.sourceRef ? 1 : -1;
             }
         });
+
+        var message = !loaded ? (<LoadingMessage />) : (links.length === 0 ? noResultsMessage : null);
         var content = links.length == 0 ? message :
                       this.state.waitForText && !this.state.textLoaded ? 
                         (<LoadingMessage />) : 
@@ -5480,7 +5479,6 @@ var TextList = React.createClass({
                                         onOpenConnectionsClick={this.props.onOpenConnectionsClick} />);
                           }, this);          
       }
-    
     }
 
     var classes = classNames({textList: 1, fullPanel: this.props.fullPanel});
