@@ -536,7 +536,7 @@ def cascade(ref_identifier, rewriter=lambda x: x, needs_rewrite=lambda x: True, 
     assert isinstance(ref_identifier, Ref)
 
     commentators = library.get_commentary_version_titles_on_book(ref_identifier.book)
-    commentators = [item for c in commentators for item in Ref(c).regex(as_list=True)]
+    commentators = [item for c in commentators for item in Ref(c).regex(as_list=True, anchored=False)]
     ref_regex = ref_identifier.regex(anchored=False, as_list=True)
     identifier = ref_regex + commentators
     # titles = re.compile(identifier)
