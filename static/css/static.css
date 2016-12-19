@@ -277,6 +277,23 @@
 #homePage .imageBox {
   display: inline-block;
   width: 300px;
+  text-align: center;
+}
+#homePage .imageBox img {
+  max-width: 100%;
+}
+@media screen and (max-width: 700px) {
+  #homePage .sectionInner {
+    width: 350px;
+  }
+  #homePage .textBox, #homePage .imageBox {
+    max-width: 100%;
+    margin: 0 auto;
+    float: none !important;
+  }
+  #homePage .imageBox {
+    margin-top: 20px;
+  }
 }
 #homePage .imageBox.bordered {
   border: 1px solid #ccc;
