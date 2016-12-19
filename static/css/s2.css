@@ -866,6 +866,13 @@ a.resourcesLink {
 .readerNavCategoryMenu .content .category {
   margin-bottom: 30px;
 }
+.readerNavCategoryMenu .categoryAttribution {
+  color: #999;
+  text-align: center;
+  font-size: 20px;
+  font-style: italic;
+  margin: 16px 0 30px;
+}
 .readerNavMenu .refLink,
 .readerNavMenu .catLink,
 .readerNavMenu .navButton,
@@ -933,6 +940,13 @@ a.resourcesLink {
 .readerTextTableOfContents .readerTextToc .he {
   font-family: "Open Sans Hebrew", sans-serif;
 }
+.readerTextTableOfContents .categoryAttribution {
+  color: #666;
+  text-align: center;
+  font-size: 24px;
+  font-style: italic;
+  margin: 10px 0 28px;
+}
 .readerTextTableOfContents .tocTitle {
   text-align: center;
   font-size: 24px;
@@ -954,7 +968,6 @@ a.resourcesLink {
   text-align: center;
   direction: ltr;
 }
-
 .readerTextTableOfContents .currentVersionBox .versionSelect {
   width: 80%;
   max-width: 300px;
@@ -1714,6 +1727,15 @@ a.resourcesLink {
   color: #999;
   direction: ltr !important;
 }
+.readerControls .readerTextToc.attributed .readerTextTocBox {
+  line-height: 1.2;
+}
+.readerControls .readerTextToc .categoryAttribution {
+  font-style: italic;
+  font-size: 15px;
+  color: #BBB;
+  margin: 0 2px;
+}
 .leftButtons,
 .rightButtons {
   /*position: absolute;
@@ -1762,6 +1784,7 @@ a.resourcesLink {
   font-size: 17px;
   box-sizing: border-box;
   display: block;
+  height: 50px;
 }
 .readerTextTocHeader.readerTextToc {
   font-size: 14px;
@@ -1774,7 +1797,7 @@ a.resourcesLink {
   white-space: nowrap;
   text-overflow: ellipsis;
   overflow: hidden;
-  max-width: 60%;
+  max-width: 70%;
   vertical-align: middle;
   color: #333;
 }`

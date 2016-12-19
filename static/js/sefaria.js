@@ -1016,6 +1016,24 @@ Sefaria = extend(Sefaria, {
     }
     return list;
   },
+  categoryAttribution: function(categories) {
+    var attributions = [
+      {
+        categories: ["Talmud", "Bavli"],
+        english: "The William Davidson Talmud",
+        hebrew: "The William Davidson Talmud"
+      }
+    ];
+    var attribution = null;
+    for (var i = 0; i < attributions.length; i++) {
+      if (categories.length >= attributions[i].categories.length &&
+        attributions[i].categories.compare(categories.slice(0, attributions[i].categories.length))) {
+        attribution = attributions[i];
+        break;
+      }
+    }
+    return attribution;
+  },
   sheets: {
     _trendingTags: null,
     trendingTags: function(callback) {
