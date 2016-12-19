@@ -1288,6 +1288,15 @@ $(function() {
 
 			});
 
+			$("#addcommentDiv .contentToAdd").keypress(function (e) {
+				if(isHebrew($(this).text()) && $(this).text().length > 0) {
+					$(this).addClass("he");
+				}
+				else {
+					$(this).removeClass("he");
+				}
+			});
+
 			$("#addmediaDiv").on("click", ".button", function (e) {
 
 
@@ -2831,7 +2840,7 @@ function buildSource($target, source, appendOrInsert) {
 
 					var commentHtml = "<div " + attributionData + " data-node='" + source.node + "'><span class='commentIcon'><i class='fa fa-comment-o fa'></i></span>" +
 						("userLink" in source ? "<div class='addedBy s2AddedBy'>" + source.userLink + "</div>" : "")	+
-						"<div class='comment " + (sjs.loading ? "" : "new") + "'>" + source.comment + "</div>"
+						"<div class='comment " + (isHebrew(source.comment) ? "he " : "") + (sjs.loading ? "" : "new") + " '>" + source.comment + "</div>"
 
 						  "</div>";
 
