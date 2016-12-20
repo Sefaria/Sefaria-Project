@@ -647,7 +647,7 @@ def text_upload_api(request):
     files = request.FILES.getlist("texts[]")
     for f in files:
         try:
-            import_versions_from_stream(f, [1])
+            import_versions_from_stream(f, [1], request.user.id)
             message += "Imported: {}.  ".format(f.name)
         except Exception as e:
             return jsonResponse({"error": e.message, "message": message})
