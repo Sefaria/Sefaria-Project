@@ -363,7 +363,7 @@ var ReaderApp = React.createClass({
         return true;
       }
 
-      if (prev.mode !== next.mode || prev.menuOpen !== next.menuOpen || prev.menuOpen === "book toc" && prev.bookRef !== next.bookRef || next.mode === "Text" && prev.refs.slice(-1)[0] !== next.refs.slice(-1)[0] || next.mode === "TextAndConnections" && prev.highlightedRefs.slice(-1)[0] !== next.highlightedRefs.slice(-1)[0] || (next.mode === "Connections" || next.mode === "TextAndConnections") && prev.filter && !prev.filter.compare(next.filter) || next.mode === "Connections" && !prev.refs.compare(next.refs) || prev.navigationSheetTag !== next.navigationSheetTag || prev.version !== next.version || prev.versionLanguage !== next.versionLanguage || prev.searchQuery != next.searchQuery || prev.appliedSearchFilters && next.appliedSearchFilters && prev.appliedSearchFilters.length !== next.appliedSearchFilters.length || prev.appliedSearchFilters && next.appliedSearchFilters && !prev.appliedSearchFilters.compare(next.appliedSearchFilters) || prev.settings.language != next.settings.language) {
+      if (prev.mode !== next.mode || prev.menuOpen !== next.menuOpen || prev.menuOpen === "book toc" && prev.bookRef !== next.bookRef || next.mode === "Text" && prev.refs.slice(-1)[0] !== next.refs.slice(-1)[0] || next.mode === "Text" && !prev.highlightedRefs.compare(next.highlightedRefs) || next.mode === "TextAndConnections" && prev.highlightedRefs.slice(-1)[0] !== next.highlightedRefs.slice(-1)[0] || (next.mode === "Connections" || next.mode === "TextAndConnections") && prev.filter && !prev.filter.compare(next.filter) || next.mode === "Connections" && !prev.refs.compare(next.refs) || prev.navigationSheetTag !== next.navigationSheetTag || prev.version !== next.version || prev.versionLanguage !== next.versionLanguage || prev.searchQuery != next.searchQuery || prev.appliedSearchFilters && next.appliedSearchFilters && prev.appliedSearchFilters.length !== next.appliedSearchFilters.length || prev.appliedSearchFilters && next.appliedSearchFilters && !prev.appliedSearchFilters.compare(next.appliedSearchFilters) || prev.settings.language != next.settings.language) {
         return true;
       } else if (prev.navigationCategories !== next.navigationCategories) {
         // Handle array comparison, !== could mean one is null or both are arrays
@@ -487,19 +487,19 @@ var ReaderApp = React.createClass({
             break;
         }
       } else if (state.mode === "Text") {
-        hist.title = state.refs.slice(-1)[0];
+        hist.title = state.highlightedRefs.length ? Sefaria.normRefList(state.highlightedRefs) : state.refs.slice(-1)[0];
         hist.url = Sefaria.normRef(hist.title);
         hist.version = state.version;
         hist.versionLanguage = state.versionLanguage;
         hist.mode = "Text";
       } else if (state.mode === "Connections") {
-        var ref = state.refs.slice(-1)[0];
+        var ref = Sefaria.normRefList(state.refs);
         hist.sources = state.filter.length ? state.filter.join("+") : "all";
         hist.title = ref + " with " + (hist.sources === "all" ? "Connections" : hist.sources);
         hist.url = Sefaria.normRef(ref); // + "?with=" + sources;
         hist.mode = "Connections";
       } else if (state.mode === "TextAndConnections") {
-        var ref = state.highlightedRefs.slice(-1)[0];
+        var ref = Sefaria.normRefList(state.highlightedRefs);
         hist.sources = state.filter.length ? state.filter[0] : "all";
         hist.title = ref + " with " + (hist.sources === "all" ? "Connections" : hist.sources);
         hist.url = Sefaria.normRef(ref); // + "?with=" + sources;
@@ -637,7 +637,7 @@ var ReaderApp = React.createClass({
       version: state.version || null,
       versionLanguage: state.versionLanguage || null,
       highlightedRefs: state.highlightedRefs || [],
-      recentFilters: state.filter || [],
+      recentFilters: state.recentFilters || state.filter || [],
       menuOpen: state.menuOpen || null, // "navigation", "text toc", "display", "search", "sheets", "home", "book toc"
       navigationCategories: state.navigationCategories || [],
       navigationSheetTag: state.sheetsTag || null,
@@ -953,12 +953,17 @@ var ReaderApp = React.createClass({
       this.openTextListAt(n + 1, refs);
     }
   },
-  setConnectionsFilter: function setConnectionsFilter(n, filter) {
+  setConnectionsFilter: function setConnectionsFilter(n, filter, updateRecent) {
     // Set the filter for connections panel at `n`, carry data onto the panel's basetext as well.
     var connectionsPanel = this.state.panels[n];
     var basePanel = this.state.panels[n - 1];
     if (filter) {
-      connectionsPanel.recentFilters.push(filter);
+      if (updateRecent) {
+        if (Sefaria.util.inArray(filter, connectionsPanel.recentFilters) !== -1) {
+          connectionsPanel.recentFilters.toggle(filter);
+        }
+        connectionsPanel.recentFilters = [filter].concat(connectionsPanel.recentFilters);
+      }
       connectionsPanel.filter = [filter];
     } else {
       connectionsPanel.filter = [];
@@ -1826,7 +1831,7 @@ var ReaderPanel = React.createClass({
     // Sets the current filter for Connected Texts (TextList)
     // If updateRecent is true, include the current setting in the list of recent filters.
     if (this.props.setConnectionsFilter) {
-      this.props.setConnectionsFilter(filter);
+      this.props.setConnectionsFilter(filter, updateRecent);
     } else {
       if (updateRecent && filter) {
         if (Sefaria.util.inArray(filter, this.state.recentFilters) !== -1) {
@@ -6695,11 +6700,11 @@ var TextList = React.createClass({
     var sectionRef = this.getSectionRef();
     var isSingleCommentary = filter.length == 1 && Sefaria.index(filter[0]) && Sefaria.index(filter[0]).categories == "Commentary";
 
-    //if (summary.length && !links.length) { debugger; }
     var en = "No connections known" + (filter.length ? " for " + filter.join(", ") : "") + ".";
     var he = "אין קשרים ידועים" + (filter.length ? " ל" + filter.join(", ") : "") + ".";
     var loaded = Sefaria.linksLoaded(sectionRef);
-    var message = !loaded ? React.createElement(LoadingMessage, null) : summary.length === 0 ? React.createElement(LoadingMessage, { message: en, heMessage: he }) : null;
+    var noResultsMessage = React.createElement(LoadingMessage, { message: en, heMessage: he });
+    var message = !loaded ? React.createElement(LoadingMessage, null) : summary.length === 0 ? noResultsMessage : null;
 
     var showAllFilters = !filter.length;
     if (!showAllFilters) {
@@ -6766,6 +6771,8 @@ var TextList = React.createClass({
             return a.sourceRef > b.sourceRef ? 1 : -1;
           }
         });
+
+        var message = !loaded ? React.createElement(LoadingMessage, null) : links.length === 0 ? noResultsMessage : null;
         var content = links.length == 0 ? message : this.state.waitForText && !this.state.textLoaded ? React.createElement(LoadingMessage, null) : links.map(function (link, i) {
           var hideTitle = link.category === "Commentary" && this.props.filter[0] !== "Commentary";
           return React.createElement(TextRange, {
