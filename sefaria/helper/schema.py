@@ -551,7 +551,9 @@ def cascade(ref_identifier, rewriter=lambda x: x, needs_rewrite=lambda x: True, 
     print 'Updating Notes'
     generic_rewrite(NoteSet(construct_query('ref', identifier)))
     generic_rewrite(TranslationRequestSet(construct_query('ref', identifier)))
-    print 'Updatding Sheets'
+    print 'Updating Garden Stops'
+    generic_rewrite(GardenStopSet(construct_query('ref', identifier)))
+    print 'Updating Sheets'
     clean_sheets([s['id'] for s in db.sheets.find(construct_query('sources.ref', identifier), {"id": 1})])
     print 'Updating Alternate Structs'
     update_alt_structs(ref_identifier.index)
