@@ -799,6 +799,13 @@ a.resourcesLink {
 .blockLink + .blockLink {
   margin: 5px 0;
 }
+.blockLink img {
+  margin: 0 8px;
+  height: 16px;
+  width: 16px;
+  opacity: 0.4;
+  vertical-align: -3px;
+}
 .gridBox {
   table-layout: fixed;
 }
