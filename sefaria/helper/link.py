@@ -27,13 +27,15 @@ class AbstractAutoLinker(object):
     """
     def __init__(self, oref, auto=True, generated_by_string=None, link_type=None, **kwargs):
         self._requested_oref = oref
-        if not self._generated_by_string:
+        if not getattr(self, '_generated_by_string', None):
             self._generated_by_string = generated_by_string if generated_by_string else self.__class__.__name__
-        self._auto = auto
-        if not self._link_type:
-            self._link_type = link_type if link_type else oref.index.dependance.lower()
+        if not getattr(self, '_auto', None):
+            self._auto = auto
+        if not getattr(self,'_link_type', None):
+            self._link_type = link_type if link_type else getattr(oref.index, 'dependence', 'Commentary').lower()
         self._user = kwargs.get('user', None)
         self._title = self._requested_oref.index.title
+        self._links = None
 
     def build_links(self, **kwargs):
         raise NotImplementedError
@@ -63,7 +65,6 @@ class AbstractAutoLinker(object):
         self.delete_links()
         return self.build_links()
         # TODO: move this commentator name catching out to the view.
-
 
     def _load_links(self):
         if not self._links:
@@ -203,11 +204,11 @@ class BaseStructureAutoLinker(AbstractStructureAutoLinker):
     def __init__(self, oref, depth_up, **kwargs):
         if not oref.is_dependant():
             raise Exception("Text must have a base text to link to")
-        try:
-            base_oref = Ref(oref.index.base_text_titles[0])
-            super(BaseStructureAutoLinker, self).__init__(oref, depth_up, base_oref, **kwargs)
-        except Exception as e:
-            raise Exception('Text must have a base text to link to')
+        """try:"""
+        base_oref = Ref(oref.index.base_text_titles[0])
+        super(BaseStructureAutoLinker, self).__init__(oref, depth_up, base_oref, **kwargs)
+        """except Exception as e:
+            raise Exception('Text must have a base text to link to')"""
 
 
 class IncrementBaseTextDepthAutoLinker(BaseStructureAutoLinker):
@@ -227,6 +228,7 @@ class CommentaryAutoLinker(IncrementBaseTextDepthAutoLinker):
     for each segment of text (comment) that is in 'Sforno on Kohelet 3:2'.
     """
     class_key = 'commentary_increment_base_text_depth'
+    _generated_by_string = 'add_commentary_links'
 
 
 class MatchBaseTextDepthAutoLinker(BaseStructureAutoLinker):
