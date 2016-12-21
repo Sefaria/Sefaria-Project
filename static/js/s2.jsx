@@ -7328,9 +7328,9 @@ var AccountPanel = React.createClass({
   render: function() {
     var width = typeof window !== "undefined" ? $(window).width() : 1000;
     var accountContent = [
-      (<BlockLink interfaceLink={true} target="/my/profile" title="My Profile" heTitle="פרופיל" image="/static/img/profile.svg" />),
-      (<BlockLink interfaceLink={true} target="/sheets/private" title="My Source Sheets" heTitle="דפי מקורות" image="/static/img/sheet.svg" />),
-      (<BlockLink interfaceLink={true} target="/coming-soon?my-notes" title="My Notes" heTitle="רשומות" image="/static/img/note.svg" />),
+      (<BlockLink interfaceLink={true} target="/my/profile" title="Profile" heTitle="פרופיל" image="/static/img/profile.svg" />),
+      (<BlockLink interfaceLink={true} target="/sheets/private" title="Source Sheets" heTitle="דפי מקורות" image="/static/img/sheet.svg" />),
+      (<BlockLink interfaceLink={true} target="/coming-soon?my-notes" title="Notes" heTitle="רשומות" image="/static/img/note.svg" />),
       (<BlockLink interfaceLink={true} target="/coming-soon?reading-history" title="Reading History" heTitle="היסטורית קריאה" image="/static/img/readinghistory.svg" />),
       (<BlockLink interfaceLink={true} target="/settings/account" title="Settings" heTitle="הגדרות" image="/static/img/settings.svg" />),
       (<BlockLink interfaceLink={true} target="/logout" title="Log Out" heTitle="ניתוק" image="/static/img/logout.svg" />)
