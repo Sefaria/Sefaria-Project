@@ -378,7 +378,9 @@ body.dark {
   background-color: inherit;
 }
 /* Adjusting for 17px scrollbars, to keep content centered
-   Only done in multiPanel mode now as a proxy for whether scrollbars take up width (on desktop they do, not on mobile) */
+   Only done in multiPanel mode now as a proxy for whether scrollbars take up width (on desktop they do, not on mobile) 
+   REMOVED 12/16 - while this previously seemed necessary it now seems to be misaligning layout across browsers.
+*/
 /*
 .multiPanel.interface-english .textColumn {
   padding-left: 17px;

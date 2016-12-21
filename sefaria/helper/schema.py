@@ -120,7 +120,7 @@ def merge_default_into_parent(parent_node):
     assert len(parent_node.children) == 1
     assert parent_node.has_default_child()
     default_node = parent_node.get_default_child()
-    #assumption: there's a grandparent.  todo: handle the case where the parent is the root node of the schema
+    # assumption: there's a grandparent.  todo: handle the case where the parent is the root node of the schema
     is_root = True
     if parent_node.parent:
         is_root = False
@@ -273,6 +273,7 @@ def replaceBadNodeTitles(title, bad_char, good_char, lang):
     '''
     This recurses through the serialized tree changing replacing the previous title of each node to its title with the bad_char replaced by good_char. 
     '''
+
     def recurse(node):
         if 'nodes' in node:
             for each_one in node['nodes']:
@@ -289,7 +290,7 @@ def replaceBadNodeTitles(title, bad_char, good_char, lang):
                     which_one = 1
                 if which_one >= 0:
                     node['titles'][which_one]['text'] = node['titles'][which_one]['text'].replace(bad_char, good_char)
- 
+
     data = library.get_index(title).nodes.serialize()
     recurse(data)
     return data
@@ -346,7 +347,7 @@ def change_node_structure(ja_node, section_names, address_types=None, upsize_in_
 
         d = Ref(ref_string)._core_dict()
 
-        if delta < 0: # Making node shallower
+        if delta < 0:  # Making node shallower
             for i in range(-delta):
                 if len(d["sections"]) == 0:
                     break
@@ -438,7 +439,7 @@ def cascade(ref_identifier, rewriter=lambda x: x, needs_rewrite=lambda x: True, 
     :param skip_history: Set to True to skip history updates
     """
 
-    def generic_rewrite(model_set, attr_name='ref', sub_attr_name=None,):
+    def generic_rewrite(model_set, attr_name='ref', sub_attr_name=None, ):
         """
         Generic routine to take any derivative of AbstractMongoSet and update the fields outlined by attr_name using
         the callback function rewriter.
@@ -539,11 +540,12 @@ def cascade(ref_identifier, rewriter=lambda x: x, needs_rewrite=lambda x: True, 
     commentators = [item for c in commentators for item in Ref(c).regex(as_list=True, anchored=False)]
     ref_regex = ref_identifier.regex(anchored=False, as_list=True)
     identifier = ref_regex + commentators
+
     # titles = re.compile(identifier)
 
     def construct_query(attribute, queries):
 
-        query_list = [{attribute: {'$regex': '^'+query}} for query in queries]
+        query_list = [{attribute: {'$regex': '^' + query}} for query in queries]
         return {'$or': query_list}
 
     print 'Updating Links'

@@ -719,6 +719,9 @@ def _import_versions_from_csv(rows, columns, user_id):
         for row in rows[5:]:
             ref = Ref(row[0])
             print "Saving: {}".format(ref.normal())
-            modify_text(user_id, ref, version_title, version_lang, row[column], type=action)
+            try:
+                modify_text(user_id, ref, version_title, version_lang, row[column], type=action)
+            except InputError:
+                pass
 
 
