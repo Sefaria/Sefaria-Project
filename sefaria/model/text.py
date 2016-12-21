@@ -870,18 +870,21 @@ class AbstractTextRecord(object):
 
     def word_count(self):
         """ Returns the number of words in this text """
-        return self.ja().word_count()
+        return self.ja(remove_html=True).word_count()
 
     def char_count(self):
         """ Returns the number of characters in this text """
-        return self.ja().char_count()
+        return self.ja(remove_html=True).char_count()
 
     def verse_count(self):
         """ Returns the number of verses in this text """
         return self.ja().verse_count()
 
-    def ja(self): #don't cache locally unless change is handled.  Pontential to cache on JA class level
-        return JaggedTextArray(getattr(self, self.text_attr, None))
+    def ja(self, remove_html=False): #don't cache locally unless change is handled.  Pontential to cache on JA class level
+        base_text = getattr(self, self.text_attr, None)
+        if base_text and remove_html:
+            base_text = AbstractTextRecord.remove_html(base_text)
+        return JaggedTextArray(base_text)
 
     def as_string(self):
         content = getattr(self, self.text_attr, None)
@@ -896,9 +899,23 @@ class AbstractTextRecord(object):
     def sanitize_text(cls, t):
         if isinstance(t, list):
             for i, v in enumerate(t):
-                t[i] = TextChunk.sanitize_text(v)
+                t[i] = AbstractTextRecord.sanitize_text(v)
         elif isinstance(t, basestring):
             t = bleach.clean(t, tags=cls.ALLOWED_TAGS, attributes=cls.ALLOWED_ATTRS)
+        else:
+            return False
+        return t
+
+    @staticmethod
+    def remove_html(t):
+        if isinstance(t, list):
+            for i, v in enumerate(t):
+                if isinstance(v, basestring):
+                    t[i] = re.sub('<[^>]+>', u" ", v)
+                else:
+                    t[i] = AbstractTextRecord.remove_html(v)
+        elif isinstance(t, basestring):
+            t = re.sub('<[^>]+>', u" ", t)
         else:
             return False
         return t
@@ -988,13 +1005,16 @@ class Version(abst.AbstractMongoRecord, AbstractTextRecord, AbstractSchemaConten
                 }).section_ref()
         return None
 
-    def ja(self):
+    def ja(self,  remove_html=False):
         # the quickest way to check if this is a complex text
         if isinstance(getattr(self, self.text_attr, None), dict):
             nodes = self.get_index().nodes.get_leaf_nodes()
-            return JaggedTextArray([self.content_node(node) for node in nodes])
+            if remove_html:
+                return JaggedTextArray([AbstractTextRecord.remove_html(self.content_node(node)) for node in nodes])
+            else:
+                return JaggedTextArray([self.content_node(node) for node in nodes])
         else:
-            return super(Version, self).ja()
+            return super(Version, self).ja(remove_html=remove_html)
 
     def is_copyrighted(self):
         return "Copyright" in getattr(self, "license", "")
@@ -1177,8 +1197,11 @@ class TextChunk(AbstractTextRecord):
     def is_empty(self):
         return self.ja().is_empty()
 
-    def ja(self):
-        return JaggedTextArray(self.text)
+    def ja(self, remove_html=False):
+        if remove_html:
+            return JaggedTextArray(AbstractTextRecord.remove_html(self.text))
+        else:
+            return JaggedTextArray(self.text)
 
     def save(self, force_save=False):
         """
