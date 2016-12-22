@@ -379,13 +379,14 @@ body.dark {
 }
 /* Adjusting for 17px scrollbars, to keep content centered
    Only done in multiPanel mode now as a proxy for whether scrollbars take up width (on desktop they do, not on mobile) 
-*/
+  Remove 12/16 -- seems to be causing problems now.
 .multiPanel.interface-english .textColumn {
   padding-left: 17px;
 }
 .multiPanel.interface-hebrew .textColumn {
   padding-right: 17px;
 }
+*/
 .textColumn .loadingMessage.base {
   margin: 30px 0;
   color: #999;
