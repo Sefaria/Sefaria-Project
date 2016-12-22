@@ -1244,7 +1244,7 @@ a.resourcesLink {
     float: none;
     width: auto;
 }
-.readerTextTableOfContents .versionBlocks .versionBlock {
+.readerTextTableOfContents .versionBlock {
   color: #999;
   font-size: 16px;
 }
@@ -1259,7 +1259,7 @@ a.resourcesLink {
   color: #222;
   font-size: 20px;
 }
-.readerTextTableOfContents .versionBlocks .versionBlock .versionNotes {
+.readerTextTableOfContents .versionBlock .versionNotes {
   padding-top: 8px;
 }
 @media (max-width: 450px) {

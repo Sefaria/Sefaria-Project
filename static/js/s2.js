@@ -3483,7 +3483,7 @@ var ReaderTextTableOfContents = React.createClass({
 
     var tocHtml = Sefaria.textTocHtml(this.props.title);
 
-    tocHtml = tocHtml || '<div class="loadingMessage"><span class="int-en">Loading...</span><span class="int-he">טוען...</span></div>';
+    tocHtml = tocHtml || React.createElement(LoadingMessage, null);
 
     var title = this.props.title;
     var heTitle = Sefaria.index(title) ? Sefaria.index(title).heTitle : title;
@@ -3860,13 +3860,9 @@ var ReaderTextTableOfContents = React.createClass({
           this.isTextToc() ? React.createElement(
             'div',
             { className: 'currentVersionBox' },
-            !this.state.versionsLoaded ? React.createElement(
-              'span',
-              null,
-              'Loading...'
-            ) : "",
-            this.state.versionsLoaded ? currentVersionElement : "",
-            this.state.versionsLoaded && this.state.versions.length > 1 ? selectElement : ""
+            !this.state.versionsLoaded ? React.createElement(LoadingMessage, null) : null,
+            this.state.versionsLoaded ? currentVersionElement : null,
+            this.state.versionsLoaded && this.state.versions.length > 1 ? selectElement : null
           ) : null,
           moderatorSection,
           React.createElement('div', { className: 'tocContent', dangerouslySetInnerHTML: { __html: tocHtml }, onClick: this.handleClick }),
@@ -3892,7 +3888,7 @@ var VersionBlock = React.createClass({
     return {
       ref: "",
       showHistory: false,
-      showNotes: false
+      showNotes: true
     };
   },
   getInitialState: function getInitialState() {

@@ -3049,11 +3049,13 @@ var ReaderTextTableOfContents = React.createClass({
   isTextToc: function() {
     return (this.props.mode == "text toc")
   },
-  isVersionPublicDomain: v => !(v.license && v.license.startsWith("Copyright")),
+  isVersionPublicDomain: function(v) {
+    return !(v.license && v.license.startsWith("Copyright"));
+  },
   render: function() {
     var tocHtml = Sefaria.textTocHtml(this.props.title);
 
-    tocHtml = tocHtml || '<div class="loadingMessage"><span class="int-en">Loading...</span><span class="int-he">טוען...</span></div>';
+    tocHtml = tocHtml || <LoadingMessage />;
 
     var title     = this.props.title;
     var heTitle   = Sefaria.index(title) ? Sefaria.index(title).heTitle : title;
@@ -3227,9 +3229,9 @@ var ReaderTextTableOfContents = React.createClass({
                   </div>
                   {this.isTextToc()?
                     <div className="currentVersionBox">
-                        {(!this.state.versionsLoaded) ? (<span>Loading...</span>): ""}
-                        {(this.state.versionsLoaded)? currentVersionElement: ""}
-                        {(this.state.versionsLoaded && this.state.versions.length > 1) ? selectElement: ""}
+                        {(!this.state.versionsLoaded) ? (<LoadingMessage />): null}
+                        {(this.state.versionsLoaded)? currentVersionElement: null}
+                        {(this.state.versionsLoaded && this.state.versions.length > 1) ? selectElement: null}
                     </div>
                   : null}
                   {moderatorSection}
@@ -3255,7 +3257,7 @@ var VersionBlock = React.createClass({
     return {
       ref: "",
       showHistory: false,
-      showNotes: false
+      showNotes: true
     }
   },
   getInitialState: function() {
