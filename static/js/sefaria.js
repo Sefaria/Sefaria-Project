@@ -16,7 +16,8 @@ var Sefaria = Sefaria || {
   _dataLoaded: false,
   toc: [],
   books: [],
-  booksDict: {}
+  booksDict: {},
+  recentlyViewed: [],
 };
 
 Sefaria = extend(Sefaria, {
@@ -2066,7 +2067,7 @@ Sefaria.util = {
         }
     }
 };
-Sefaria.setup =function() {
+Sefaria.setup = function() {
     Sefaria.util.setupPrototypes();
     Sefaria.util.setupJQuery();
     Sefaria.util.setupMisc();

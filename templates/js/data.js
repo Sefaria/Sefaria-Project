@@ -6,7 +6,6 @@ var data = {
   _dataLoaded:         true,
   toc:                 {{ toc_json }},  
   books:               {{ titlesJSON }},
-  booksDict:           {}, // populated by Sefaria.setup()
   calendar:            {
                           parasha: "{{ parasha_ref }}",
                           parashaName: "{{ parasha_name }}",
@@ -21,6 +20,7 @@ var data = {
   notificationCount:   {{ notifications_count|default:'0' }},
   notifications:       {{ notifications_json|default:'[]' }},
   notificationsHtml:   "{{ notifications_html|escape_quotes }}",
+  recentlyViewed:      {{ recentlyViewed|jsonify }},
   interruptingMessage: {{ interrupting_message_json|default:'null' }},
   _email:              "{{ request.user.email|default:'' }}",
   _uid:                {{ request.user.id|default:"null" }}

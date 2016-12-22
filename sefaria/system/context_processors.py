@@ -1,5 +1,7 @@
+# -*- coding: utf-8 -*-
+
 """
-Djagno Context Processors, for decorating all HTTP request with common data.
+Djagno Context Processors, for decorating all HTTP requests with common data.
 """
 import json
 from datetime import datetime
@@ -71,7 +73,10 @@ def language_settings(request):
 
 def notifications(request):
     if not request.user.is_authenticated():
-        return {}
+        import urlparse
+        return {
+            "recentlyViewed": json.loads(urlparse.unquote(request.COOKIES.get("recentlyViewed", '[]')))
+        }
     
     profile = UserProfile(id=request.user.id)
     notifications = profile.recent_notifications()
@@ -81,12 +86,14 @@ def notifications(request):
         interrupting_message_json = json.dumps({"name": interrupting_message, "html": render_to_string("messages/%s.html" % interrupting_message)})
     else:
         interrupting_message_json = "null"
+    mock_recent = [{"ref":"Orot, Lights from Darkness, Land of Israel 5","heRef":"אורות, אורות מאופל, ארץ ישראל ה׳","book":"Orot","version":None,"versionLanguage":None,"position":0},{"ref":"Genesis 1","heRef":"בראשית א׳","book":"Genesis","version":None,"versionLanguage":None,"position":0},{"ref":"Berakhot 2a","heRef":"ברכות ב׳ א","book":"Berakhot","version":None,"versionLanguage":None,"position":0}]
     return {
                 "notifications": notifications, 
                 "notifications_json": notifications_json,
                 "notifications_html": notifications.to_HTML(),
                 "notifications_count": profile.unread_notification_count(),
                 "interrupting_message_json": interrupting_message_json,
+                "recentlyViewed": profile.recentlyViewed,
             }
 
 
@@ -110,6 +117,7 @@ def header_html(request):
         "logged_in_header": LOGGED_IN_HEADER,
         "logged_out_header": LOGGED_OUT_HEADER,
     }
+
 
 FOOTER = None
 def footer_html(request):

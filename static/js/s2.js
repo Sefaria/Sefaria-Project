@@ -1056,12 +1056,11 @@ var ReaderApp = React.createClass({
     }
     var ref = panel.refs[0];
     var oRef = Sefaria.ref(ref);
-    var json = cookie("recentlyViewed");
-    var recent = json ? JSON.parse(json) : [];
+    var recent = Sefaria.recentlyViewed;
     recent = recent.filter(function (item) {
-      return item.ref !== ref; // Remove this item if it's in the list already
+      return item.book !== oRef.indexTitle; // Remove this item if it's in the list already
     });
-    var cookieData = {
+    var recentItem = {
       ref: ref,
       heRef: oRef.heRef,
       book: oRef.indexTitle,
@@ -1069,9 +1068,20 @@ var ReaderApp = React.createClass({
       versionLanguage: panel.versionLanguage,
       position: n
     };
-    recent.splice(0, 0, cookieData);
-    recent = recent.slice(0, 3);
-    cookie("recentlyViewed", JSON.stringify(recent), { path: "/" });
+    recent.splice(0, 0, recentItem);
+    Sefaria.recentlyViewed = recent;
+    if (Sefaria._uid) {
+      $.post("/api/profile", { json: JSON.stringify({ recentlyViewed: recent }) }, function (data) {
+        if ("error" in data) {
+          alert(data.error);
+        }
+      }).fail(function () {
+        alert("Sorry, an Error occurred.");
+      });
+    } else {
+      recent = recent.slice(0, 6);
+      cookie("recentlyViewed", JSON.stringify(recent), { path: "/" });
+    }
   },
   saveOpenPanelsToRecentlyViewed: function saveOpenPanelsToRecentlyViewed() {
     for (var i = this.state.panels.length - 1; i >= 0; i--) {
@@ -1300,8 +1310,7 @@ var Header = React.createClass({
   },
   showDesktop: function showDesktop() {
     if (this.props.panelsOpen == 0) {
-      var json = cookie("recentlyViewed");
-      var recentlyViewed = json ? JSON.parse(json) : null;
+      var recentlyViewed = Sefaria.recentlyViewed;
       if (recentlyViewed && recentlyViewed.length) {
         this.handleRefClick(recentlyViewed[0].ref, recentlyViewed[0].version, recentlyViewed[0].versionLanguage);
       }
@@ -2519,11 +2528,6 @@ var ReaderNavigationMenu = React.createClass({
   showMore: function showMore() {
     this.setState({ showMore: true });
   },
-  getRecentlyViewed: function getRecentlyViewed() {
-    var json = cookie("recentlyViewed");
-    var recentlyViewed = json ? JSON.parse(json) : null;
-    return recentlyViewed;
-  },
   handleClick: function handleClick(event) {
     if (!$(event.target).hasClass("outOfAppLink") && !$(event.target.parentElement).hasClass("outOfAppLink")) {
       event.preventDefault();
@@ -2805,9 +2809,14 @@ var ReaderNavigationMenu = React.createClass({
       );
       topContent = this.props.hideNavHeader ? null : topContent;
 
-      var recentlyViewed = this.getRecentlyViewed();
-      recentlyViewed = recentlyViewed ? recentlyViewed.filter(function (item) {
-        return Sefaria.isRef(item.ref); // after a text has been deleted a recent ref may be invalid.
+      var recentlyViewed = Sefaria.recentlyViewed;
+      recentlyViewed = recentlyViewed.filter(function (item) {
+        // after a text has been deleted a recent ref may be invalid,
+        // but don't try to check when booksDict is not available during server side render
+        if (Object.keys(Sefaria.booksDict).length === 0) {
+          return true;
+        }
+        return Sefaria.isRef(item.ref);
       }).map(function (item) {
         return React.createElement(TextBlockLink, {
           sref: item.ref,
@@ -2818,8 +2827,8 @@ var ReaderNavigationMenu = React.createClass({
           showSections: true,
           recentItem: true,
           position: item.position || 0 });
-      }) : null;
-      recentlyViewed = recentlyViewed ? React.createElement(TwoOrThreeBox, { content: recentlyViewed, width: this.width }) : null;
+      });
+      recentlyViewed = recentlyViewed.length ? React.createElement(TwoOrThreeBox, { content: recentlyViewed, width: this.width }) : null;
 
       var title = React.createElement(
         'h1',
@@ -10640,21 +10649,11 @@ var setData = function setData(data) {
   // Set core data in the module that was loaded in a different scope
   Sefaria.toc = data.toc;
   Sefaria.books = data.books;
+  // Note Sefaria.booksDict in generated on the client from Sefaria.books, but not on the server to save cycles
   Sefaria.calendar = data.calendar;
-  if ("booksDict" in data) {
-    Sefaria.booksDict = data.booksDict;
-  } else {
-    Sefaria._makeBooksDict();
-  }
 
   Sefaria._cacheIndexFromToc(Sefaria.toc);
-
-  if ("recentlyViewed" in data) {
-    // Store data in a mock cookie function
-    // (Node doesn't have direct access to Django's cookies, so pass through props in POST data)
-    var json = decodeURIComponent(data.recentlyViewed);
-    cookie("recentlyViewed", json);
-  }
+  Sefaria.recentlyViewed = data.recentlyViewed;
 
   Sefaria.util._defaultPath = data.path;
   Sefaria.loggedIn = data.loggedIn;

@@ -308,7 +308,7 @@ def s2_props(request):
     return {
         "multiPanel": request.flavour != "mobile" and not "mobile" in request.GET,
         "initialPath": request.get_full_path(),
-        "recentlyViewed": request.COOKIES.get("recentlyViewed", None),
+        "recentlyViewed": request_context.get("recentlyViewed"),
         "loggedIn": request.user.is_authenticated(),
         "interfaceLang": request_context.get("interfaceLang"),
         "initialSettings": {

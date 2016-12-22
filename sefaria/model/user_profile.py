@@ -12,6 +12,7 @@ if not hasattr(sys, '_doc_build'):
 	from django.core.exceptions import ValidationError
 
 from sefaria.model.following import FollowersSet, FolloweesSet
+from sefaria.model.text import Ref
 from sefaria.system.database import db
 
 
@@ -41,6 +42,7 @@ class UserProfile(object):
 		self._id                   = None  # Mongo ID of profile doc
 		self.id                    = id    # user ID
 		self.slug                  = ""
+		self.recentlyViewed        = []
 		self.position              = ""
 		self.organization          = ""
 		self.jewish_education      = []
@@ -206,11 +208,23 @@ class UserProfile(object):
 		self.interrupting_messages.remove(message)
 		self.save()
 
+	def set_recent_item(tref):
+		"""
+		Save `tref` as a recently viewed text at the front of the list. Removes any previous location for that text.
+		Not used yet, need to consider if it's better to store derivable information (ref->heRef) or reprocess it often.
+		"""
+		oref = Ref(tref)
+		recent = [tref for tref in self.recent if Ref(tref).index.title != oref.index.title]
+		self.recent = [tref] + recent
+		self.save()
+
+
 	def to_DICT(self):
 		"""Return a json serializble dictionary this profile"""
 		dictionary = {
 			"id":                    self.id,
 			"slug":                  self.slug,
+			"recentlyViewed":        self.recentlyViewed,
 			"position":              self.position,
 			"organization":          self.organization,
 			"jewish_education":      self.jewish_education,
