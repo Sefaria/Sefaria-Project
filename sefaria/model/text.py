@@ -4210,6 +4210,8 @@ class Library(object):
         if lang is None:
             lang = "he" if is_hebrew(st) else "en"
         if lang == "he":
+            from sefaria.utils.hebrew import strip_nikkud
+            st = strip_nikkud(st)
             unique_titles = {title: 1 for title in self.get_titles_in_string(st, lang)}
             for title in unique_titles.iterkeys():
                 try:
