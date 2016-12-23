@@ -248,6 +248,8 @@ def make_panel_dict(oref, version, language, filter, mode, **kwargs):
             "menuOpen": "book toc",
             "bookRef": oref.normal(),
             "textTocHtml": make_toc_html(oref),
+            "indexDetails": library.get_index(oref.normal()).contents(v2=True),
+            "versions": oref.version_list()
         }
     else:
         oref = oref.first_available_section_ref()

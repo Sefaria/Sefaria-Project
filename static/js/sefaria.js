@@ -227,12 +227,20 @@ Sefaria = extend(Sefaria, {
       //console.log("API return for " + data.ref)
     }.bind(this));
   },
+  _versions: {},
   versions: function(ref, cb) {
     // Returns a list of available text versions for `ref`.
+    var versions = ref in this._versions ? this._versions[ref] : null;
+    if (versions) {
+      if (cb) {cb(versions)}
+      return versions
+    }
     var url = "/api/texts/versions/" + Sefaria.normRef(ref);
     this._api(url, function(data) {
-      cb(data);
+      if (cb) { cb(data); }
+      Sefaria._versions[ref] = data;
     });
+    return versions;
   },
   _textUrl: function(ref, settings) {
     // copy the parts of settings that are used as parameters, but not other
@@ -414,6 +422,21 @@ Sefaria = extend(Sefaria, {
         Sefaria.index(toc[i].title, toc[i]);
       }
     }
+  },
+  _indexDetails: {},
+  indexDetails: function(title, cb) {
+    // Returns detailed index record for `title` which includes info like author and description
+    var details = title in this._indexDetails ? this._indexDetails[title] : null;
+    if (details) {
+      if (cb) {cb(details)}
+      return details;
+    }
+    var url = "/api/v2/index/" + title;
+    this._api(url, function(data) {
+      if (cb) { cb(data); }
+      Sefaria._indexDetails[title] = data;
+    });
+    return details;
   },
   _titleVariants: {},
   normalizeTitle: function(title, callback) {
@@ -1499,6 +1522,12 @@ Sefaria.unpackDataFromProps = function(props) {
       }
       if (panel.textTocHtml) {
         Sefaria._saveTextTocHtml(panel.bookRef, panel.textTocHtml);
+      }
+      if (panel.indexDetails) {
+        Sefaria._indexDetails[panel.bookRef] = panel.indexDetails;
+      }
+      if (panel.versions) {
+        Sefaria._versions[panel.bookRef] = panel.versions;
       }
   }
   if (props.userSheets) {

@@ -3303,6 +3303,7 @@ var ReaderTextTableOfContents = React.createClass({
       versions: [],
       versionsLoaded: false,
       currentVersion: null,
+      showAllVersions: false,
       dlVersionTitle: null,
       dlVersionLanguage: null,
       dlVersionFormat: null,
@@ -3311,7 +3312,7 @@ var ReaderTextTableOfContents = React.createClass({
   },
   componentDidMount: function componentDidMount() {
     this.loadHtml();
-    this.loadVersions();
+    this.loadData();
     this.bindToggles();
     this.shrinkWrap();
     window.addEventListener('resize', this.shrinkWrap);
@@ -3320,13 +3321,14 @@ var ReaderTextTableOfContents = React.createClass({
     window.removeEventListener('resize', this.shrinkWrap);
   },
   componentDidUpdate: function componentDidUpdate(prevProps, prevState) {
-    if (this.props.settingsLanguage != prevProps.settingsLanguage || this.props.version != prevProps.version || this.props.versionLanguage != prevProps.versionLanguage) {
-      this.loadVersions();
+    if (this.props.settingsLanguage != prevProps.settingsLanguage) {
+      this.forceUpdate();
     }
     this.bindToggles();
     this.shrinkWrap();
   },
   loadHtml: function loadHtml() {
+    // Ensure textTocHtml is loaded in to cache, rerenders after data load if needed
     var textTocHtml = Sefaria.textTocHtml(this.props.title);
     if (!textTocHtml) {
       Sefaria.textTocHtml(this.props.title, function () {
@@ -3334,22 +3336,62 @@ var ReaderTextTableOfContents = React.createClass({
       }.bind(this));
     }
   },
-  loadVersions: function loadVersions() {
-    var ref = Sefaria.sectionRef(this.props.currentRef) || this.props.currentRef;
-    if (!ref) {
-      this.setState({ versionsLoaded: true });
-      return;
+  getDataRef: function getDataRef() {
+    // Returns ref to be used to looking up data
+    return Sefaria.sectionRef(this.props.currentRef) || this.props.currentRef;
+  },
+  getData: function getData() {
+    // Gets data about this text from cache, which may be null.
+    var data = Sefaria.text(this.getDataRef(), { context: 1, version: this.props.version, language: this.props.versionLanguage });
+    return data;
+  },
+  loadData: function loadData() {
+    var _this = this;
+
+    // Ensures data this text is in cache, rerenders after data load if needed
+    var details = Sefaria.indexDetails(this.props.title);
+    if (!details) {
+      Sefaria.indexDetails(this.props.title, function () {
+        return _this.forceUpdate();
+      });
     }
-    if (Sefaria.ref(ref)) {
-      Sefaria.text(ref, { context: 1, version: this.props.version, language: this.props.versionLanguage }, this.loadVersionsDataFromText);
-    } else {
-      Sefaria.versions(ref, function (d) {
-        this.setState({ versions: d, versionsLoaded: true });
-      }.bind(this));
+    if (this.isBookToc()) {
+      var versions = Sefaria.versions(ref);
+      if (!versions) {
+        Sefaria.versions(ref, function () {
+          return _this.forceUpdate();
+        });
+      }
+    } else if (this.isTextToc()) {
+      var ref = this.getDataRef();
+      var data = this.getData();
+      if (!data) {
+        Sefaria.text(ref, { context: 1, version: this.props.version, language: this.props.versionLanguage }, function () {
+          return _this.forceUpdate();
+        });
+      }
     }
   },
-  loadVersionsDataFromText: function loadVersionsDataFromText(d) {
-    // For now treat bilinguale as english. TODO show attribution for 2 versions in bilingual case.
+  getVersionsList: function getVersionsList() {
+    if (this.isTextToc()) {
+      var data = this.getData();
+      if (!data) {
+        return null;
+      }
+      return data.versions;
+    } else if (this.isBookToc()) {
+      return Sefaria.versions(this.props.title);
+    }
+  },
+  getCurrentVersion: function getCurrentVersion() {
+    // For now treat bilingual as english. TODO show attribution for 2 versions in bilingual case.
+    if (this.isBookToc()) {
+      return null;
+    }
+    var d = this.getData();
+    if (!d) {
+      return null;
+    }
     var currentLanguage = this.props.settingsLanguage == "he" ? "he" : "en";
     if (currentLanguage == "en" && !d.text.length) {
       currentLanguage = "he";
@@ -3370,11 +3412,7 @@ var ReaderTextTableOfContents = React.createClass({
     };
     currentVersion.merged = !!currentVersion.sources;
 
-    this.setState({
-      versions: d.versions,
-      versionsLoaded: true,
-      currentVersion: currentVersion
-    });
+    return currentVersion;
   },
   handleClick: function handleClick(e) {
     var $a = $(e.target).closest("a");
@@ -3432,17 +3470,11 @@ var ReaderTextTableOfContents = React.createClass({
         $root.find(".tocLevel").each(shrink); // Simple text, no nesting
       }
   },
-  onVersionSelectChange: function onVersionSelectChange(event) {
-    if (event.target.value == 0) {
-      this.props.selectVersion();
-    } else {
-      var i = event.target.value - 1;
-      var v = this.state.versions[i];
-      this.props.selectVersion(v.versionTitle, v.language);
-    }
-    if (this.isTextToc()) {
-      this.props.close();
-    }
+  openVersion: function openVersion(version, language) {
+    // Selects a version and closes this menu to show it.
+    // Calling this functon wihtout parameters resets to default
+    this.props.selectVersion(version, language);
+    this.props.close();
   },
   onDlVersionSelect: function onDlVersionSelect(event) {
     var versionTitle, versionLang;
@@ -3479,7 +3511,7 @@ var ReaderTextTableOfContents = React.createClass({
     return !(v.license && v.license.startsWith("Copyright"));
   },
   render: function render() {
-    var _this = this;
+    var _this2 = this;
 
     var tocHtml = Sefaria.textTocHtml(this.props.title);
 
@@ -3491,12 +3523,18 @@ var ReaderTextTableOfContents = React.createClass({
     var currentVersionElement = null;
     var defaultVersionString = "Default Version";
     var defaultVersionObject = null;
-    var versionBlocks = "";
+    var versionBlocks = null;
+    var showAllVersionsButton = React.createElement(LoadingMessage, null);
     var dl_versions = [];
 
-    if (this.state.versionsLoaded) {
-      var cv = this.state.currentVersion;
-      if (cv && cv.merged) {
+    // Text Details
+    var details = Sefaria.indexDetails(this.props.title);
+    var detailsSection = details ? React.createElement(TextDetails, { index: details }) : null;
+
+    // Current Version (Text TOC only)
+    var cv = this.getCurrentVersion();
+    if (cv) {
+      if (cv.merged) {
         var uniqueSources = cv.sources.filter(function (item, i, ar) {
           return ar.indexOf(item) === i;
         }).join(", ");
@@ -3507,7 +3545,7 @@ var ReaderTextTableOfContents = React.createClass({
           'Merged from ',
           uniqueSources
         );
-      } else if (cv) {
+      } else {
         if (!this.props.version) {
           defaultVersionObject = this.state.versions.find(function (v) {
             return cv.language == v.language && cv.versionTitle == v.versionTitle;
@@ -3516,12 +3554,23 @@ var ReaderTextTableOfContents = React.createClass({
         }
         currentVersionElement = React.createElement(VersionBlock, { title: title, version: cv, currentRef: this.props.currentRef, showHistory: true });
       }
+    }
+
+    // Versions List
+    var versions = this.getVersionsList();
+    if (versions) {
+
+      if (cv) {
+        versions = versions.filter(function (v) {
+          return v.language !== cv.language || v.versionTitle != cv.versionTitle;
+        });
+      }
 
       var _map = ["he", "en"].map(function (lang) {
-        return _this.state.versions.filter(function (v) {
+        return versions.filter(function (v) {
           return v.language == lang;
         }).map(function (v) {
-          return React.createElement(VersionBlock, { title: title, version: v, showNotes: true, key: v.versionTitle + "/" + v.language });
+          return React.createElement(VersionBlock, { title: title, version: v, openVersion: _this2.isTextToc ? _this2.openVersion : null, key: v.versionTitle + "/" + v.language });
         });
       });
 
@@ -3579,131 +3628,38 @@ var ReaderTextTableOfContents = React.createClass({
             null,
             enVersionBlocks
           )
-        ) : "",
-        React.createElement('div', { style: { clear: "both" } })
+        ) : ""
       );
 
-      // Dropdown options for downloadable texts
-      dl_versions = [React.createElement(
-        'option',
-        { key: '/', value: '0', disabled: true },
-        'Version Settings'
-      )];
-      var pdVersions = this.state.versions.filter(this.isVersionPublicDomain);
-      if (cv && cv.merged) {
-        var other_lang = cv.language == "he" ? "en" : "he";
-        dl_versions = dl_versions.concat([React.createElement(
-          'option',
-          { value: "merged/" + cv.language, key: "merged/" + cv.language, 'data-lang': cv.language, 'data-version': 'merged' },
-          'Current Merged Version (',
-          cv.language,
-          ')'
-        ), React.createElement(
-          'option',
-          { value: "merged/" + other_lang, key: "merged/" + other_lang, 'data-lang': other_lang, 'data-version': 'merged' },
-          'Merged Version (',
-          other_lang,
-          ')'
-        )]);
-        dl_versions = dl_versions.concat(pdVersions.map(function (v) {
-          return React.createElement(
-            'option',
-            { value: v.versionTitle + "/" + v.language, key: v.versionTitle + "/" + v.language },
-            v.versionTitle + " (" + v.language + ")"
-          );
-        }));
-      } else if (cv) {
-        if (this.isVersionPublicDomain(cv)) {
-          dl_versions.push(React.createElement(
-            'option',
-            { value: cv.versionTitle + "/" + cv.language, key: cv.versionTitle + "/" + cv.language },
-            'Current Version (',
-            cv.versionTitle + " (" + cv.language + ")",
-            ')'
-          ));
-        }
-        dl_versions = dl_versions.concat([React.createElement(
-          'option',
-          { value: 'merged/he', key: 'merged/he' },
-          'Merged Version (he)'
-        ), React.createElement(
-          'option',
-          { value: 'merged/en', key: 'merged/en' },
-          'Merged Version (en)'
-        )]);
-        dl_versions = dl_versions.concat(pdVersions.filter(function (v) {
-          return v.language != cv.language || v.versionTitle != cv.versionTitle;
-        }).map(function (v) {
-          return React.createElement(
-            'option',
-            { value: v.versionTitle + "/" + v.language, key: v.versionTitle + "/" + v.language },
-            v.versionTitle + " (" + v.language + ")"
-          );
-        }));
-      } else {
-        dl_versions = dl_versions.concat([React.createElement(
-          'option',
-          { value: 'merged/he', key: 'merged/he' },
-          'Merged Version (he)'
-        ), React.createElement(
-          'option',
-          { value: 'merged/en', key: 'merged/en' },
-          'Merged Version (en)'
-        )]);
-        dl_versions = dl_versions.concat(pdVersions.map(function (v) {
-          return React.createElement(
-            'option',
-            { value: v.versionTitle + "/" + v.language, key: v.versionTitle + "/" + v.language },
-            v.versionTitle + " (" + v.language + ")"
-          );
-        }));
+      var classes = classNames({ allVersionsButton: 1, button: 1, white: 1, inactive: this.state.showAllVersions });
+      var showAllVersionsButton = React.createElement(
+        'div',
+        { className: classes, onClick: function onClick() {
+            return _this2.setState({ showAllVersions: true });
+          } },
+        React.createElement(
+          'span',
+          { className: 'int-en' },
+          this.isTextToc() ? "Other Versions" : "Available Versions"
+        ),
+        React.createElement(
+          'span',
+          { className: 'int-he' },
+          this.isTextToc() ? "גרסאות אחרות" : "גרסאות"
+        )
+      );
+      if (versions.length == 0) {
+        showAllVersionsButton = null;
       }
-      // End Dropdown options for downloadable texts
     }
 
     if (this.isTextToc()) {
       var sectionStrings = Sefaria.sectionString(this.props.currentRef);
       var section = sectionStrings.en.named;
       var heSection = sectionStrings.he.named;
-
-      var selectOptions = [];
-      selectOptions.push(React.createElement(
-        'option',
-        { key: '0', value: '0' },
-        defaultVersionString
-      )); // todo: add description of current version.
-      var selectedOption = 0;
-      for (var i = 0; i < this.state.versions.length; i++) {
-        var v = this.state.versions[i];
-        if (v == defaultVersionObject) {
-          continue;
-        }
-        if (this.state.currentVersion.language == v.language && this.state.currentVersion.versionTitle == v.versionTitle) {
-          selectedOption = i + 1;
-        }
-        var versionString = v.versionTitle + " (" + v.language + ")"; // Can not inline this, because of https://github.com/facebook/react-devtools/issues/248
-        selectOptions.push(React.createElement(
-          'option',
-          { key: i + 1, value: i + 1 },
-          versionString
-        ));
-      }
-      var selectElement = React.createElement(
-        'div',
-        { className: 'versionSelect' },
-        React.createElement(
-          'select',
-          { value: selectedOption, onChange: this.onVersionSelectChange },
-          selectOptions
-        )
-      );
     }
-    var showModeratorButtons = Sefaria.is_moderator;
-    //if(/*(this.isTextToc() && this.state.currentVersion && this.state.currentVersion.versionStatus == "locked") ||*/
-    //    !Sefaria.is_moderator){
-    //  showModeratorButtons = false;
-    //}
-    var moderatorSection = showModeratorButtons ? React.createElement(ModeratorButtons, {
+
+    var moderatorSection = Sefaria.is_moderator ? React.createElement(ModeratorButtons, {
       title: title,
       versionTitle: this.state.currentVersion ? this.state.currentVersion.versionTitle : null,
       versionLanguage: this.state.currentVersion ? this.state.currentVersion.language : null,
@@ -3711,6 +3667,80 @@ var ReaderTextTableOfContents = React.createClass({
 
     // Downloading
     var dlReady = this.state.dlVersionTitle && this.state.dlVersionFormat && this.state.dlVersionLanguage;
+    dl_versions = [React.createElement(
+      'option',
+      { key: '/', value: '0', disabled: true },
+      'Version Settings'
+    )];
+    var pdVersions = versions.filter(this.isVersionPublicDomain);
+    if (cv && cv.merged) {
+      var other_lang = cv.language == "he" ? "en" : "he";
+      dl_versions = dl_versions.concat([React.createElement(
+        'option',
+        { value: "merged/" + cv.language, key: "merged/" + cv.language, 'data-lang': cv.language, 'data-version': 'merged' },
+        'Current Merged Version (',
+        cv.language,
+        ')'
+      ), React.createElement(
+        'option',
+        { value: "merged/" + other_lang, key: "merged/" + other_lang, 'data-lang': other_lang, 'data-version': 'merged' },
+        'Merged Version (',
+        other_lang,
+        ')'
+      )]);
+      dl_versions = dl_versions.concat(pdVersions.map(function (v) {
+        return React.createElement(
+          'option',
+          { value: v.versionTitle + "/" + v.language, key: v.versionTitle + "/" + v.language },
+          v.versionTitle + " (" + v.language + ")"
+        );
+      }));
+    } else if (cv) {
+      if (this.isVersionPublicDomain(cv)) {
+        dl_versions.push(React.createElement(
+          'option',
+          { value: cv.versionTitle + "/" + cv.language, key: cv.versionTitle + "/" + cv.language },
+          'Current Version (',
+          cv.versionTitle + " (" + cv.language + ")",
+          ')'
+        ));
+      }
+      dl_versions = dl_versions.concat([React.createElement(
+        'option',
+        { value: 'merged/he', key: 'merged/he' },
+        'Merged Version (he)'
+      ), React.createElement(
+        'option',
+        { value: 'merged/en', key: 'merged/en' },
+        'Merged Version (en)'
+      )]);
+      dl_versions = dl_versions.concat(pdVersions.filter(function (v) {
+        return v.language != cv.language || v.versionTitle != cv.versionTitle;
+      }).map(function (v) {
+        return React.createElement(
+          'option',
+          { value: v.versionTitle + "/" + v.language, key: v.versionTitle + "/" + v.language },
+          v.versionTitle + " (" + v.language + ")"
+        );
+      }));
+    } else {
+      dl_versions = dl_versions.concat([React.createElement(
+        'option',
+        { value: 'merged/he', key: 'merged/he' },
+        'Merged Version (he)'
+      ), React.createElement(
+        'option',
+        { value: 'merged/en', key: 'merged/en' },
+        'Merged Version (en)'
+      )]);
+      dl_versions = dl_versions.concat(pdVersions.map(function (v) {
+        return React.createElement(
+          'option',
+          { value: v.versionTitle + "/" + v.language, key: v.versionTitle + "/" + v.language },
+          v.versionTitle + " (" + v.language + ")"
+        );
+      }));
+    }
     var downloadButton = React.createElement(
       'div',
       { className: 'versionDownloadButton' },
@@ -3733,7 +3763,7 @@ var ReaderTextTableOfContents = React.createClass({
       'div',
       { className: 'dlSection' },
       React.createElement(
-        'div',
+        'h2',
         { className: 'dlSectionTitle' },
         React.createElement(
           'span',
@@ -3831,16 +3861,35 @@ var ReaderTextTableOfContents = React.createClass({
           { className: 'contentInner' },
           React.createElement(
             'div',
-            { className: 'tocTitle' },
+            { className: 'tocTop' },
             React.createElement(
-              'span',
-              { className: 'en' },
-              title
+              'div',
+              { className: 'tocCategory' },
+              React.createElement(
+                'span',
+                { className: 'en' },
+                this.props.category
+              ),
+              React.createElement(
+                'span',
+                { className: 'he' },
+                Sefaria.hebrewCategory(this.props.category)
+              )
             ),
             React.createElement(
-              'span',
-              { className: 'he' },
-              heTitle
+              'div',
+              { className: 'tocTitle' },
+              React.createElement(
+                'span',
+                { className: 'en' },
+                title
+              ),
+              React.createElement(
+                'span',
+                { className: 'he' },
+                heTitle
+              ),
+              moderatorSection
             ),
             this.isTextToc() ? React.createElement(
               'div',
@@ -3855,21 +3904,110 @@ var ReaderTextTableOfContents = React.createClass({
                 { className: 'he' },
                 heSection
               )
-            ) : null
+            ) : null,
+            detailsSection
           ),
-          this.isTextToc() ? React.createElement(
+          React.createElement(
             'div',
-            { className: 'currentVersionBox' },
-            !this.state.versionsLoaded ? React.createElement(LoadingMessage, null) : null,
-            this.state.versionsLoaded ? currentVersionElement : null,
-            this.state.versionsLoaded && this.state.versions.length > 1 ? selectElement : null
-          ) : null,
-          moderatorSection,
+            { className: 'versionsBox' },
+            this.isTextToc() ? React.createElement(
+              'div',
+              { className: 'currentVersionBox' },
+              React.createElement(
+                'h2',
+                null,
+                React.createElement(
+                  'span',
+                  { className: 'int-en' },
+                  'Current Version'
+                ),
+                React.createElement(
+                  'span',
+                  { className: 'int-he' },
+                  'גרסה נוכחית'
+                )
+              ),
+              currentVersionElement || React.createElement(LoadingMessage, null)
+            ) : null,
+            showAllVersionsButton,
+            this.state.showAllVersions ? versionBlocks : null
+          ),
           React.createElement('div', { className: 'tocContent', dangerouslySetInnerHTML: { __html: tocHtml }, onClick: this.handleClick }),
-          versionBlocks,
           downloadSection
         )
       )
+    );
+  }
+});
+
+var TextDetails = React.createClass({
+  displayName: 'TextDetails',
+
+  propTypes: {
+    index: React.PropTypes.object.isRequired
+  },
+  render: function render() {
+    var authorLinks = "authors" in this.props.index ? // TODO Hebrew author names?
+    this.props.index.authors.map(function (author) {
+      return React.createElement(
+        'a',
+        { href: "/person/" + author },
+        author
+      );
+    }) : null;
+
+    var composedLine = null;
+    if ("compDate" in this.props.index || "compPlace" in this.props.index) {
+      var placeTime = [];
+      if ("compPlace" in this.props.index) {
+        placeTime.push(this.props.index.compPlace);
+      }
+      if ("compDate" in this.props.index) {
+        var dateLine = this.props.index.compDate > 0 ? this.props.index.compDate + "CE" : Math.abs(this.props.index.compDate) + "BCE";
+        placeTime.push(dateLine);
+      }
+      composedLine = placeTime.join(", ");
+    }
+    return React.createElement(
+      'div',
+      { className: 'tocDetails' },
+      "authors" in this.props.index ? React.createElement(
+        'div',
+        { className: 'tocDetail' },
+        React.createElement(
+          'span',
+          { className: 'he' },
+          'מחבר: ',
+          authorLinks
+        ),
+        React.createElement(
+          'span',
+          { className: 'en' },
+          'Author: ',
+          authorLinks
+        )
+      ) : null,
+      composedLine ? React.createElement(
+        'div',
+        { className: 'tocDetail' },
+        React.createElement('span', { className: 'he' }),
+        React.createElement(
+          'span',
+          { className: 'en' },
+          'Composed: ',
+          composedLine
+        )
+      ) : null,
+      "enDesc" in this.props.index ? React.createElement(
+        'div',
+        { className: 'tocDetail description' },
+        React.createElement('div', { className: 'he' }),
+        React.createElement(
+          'div',
+          { className: 'en' },
+          React.createElement(ReadMoreText, { text: this.props.index.enDesc })
+        )
+      ) : null
     );
   }
 });
@@ -3882,7 +4020,8 @@ var VersionBlock = React.createClass({
     version: React.PropTypes.object.isRequired,
     currentRef: React.PropTypes.string,
     showHistory: React.PropTypes.bool,
-    showNotes: React.PropTypes.bool
+    showNotes: React.PropTypes.bool,
+    openVersion: React.PropTypes.func
   },
   getDefaultProps: function getDefaultProps() {
     return {
@@ -3892,7 +4031,7 @@ var VersionBlock = React.createClass({
     };
   },
   getInitialState: function getInitialState() {
-    var _this2 = this;
+    var _this3 = this;
 
     var s = {
       editing: false,
@@ -3900,7 +4039,7 @@ var VersionBlock = React.createClass({
       originalVersionTitle: this.props.version["versionTitle"]
     };
     this.updateableVersionAttributes.forEach(function (attr) {
-      return s[attr] = _this2.props.version[attr];
+      return s[attr] = _this3.props.version[attr];
     });
     return s;
   },
@@ -3909,7 +4048,11 @@ var VersionBlock = React.createClass({
     "Public Domain": "http://en.wikipedia.org/wiki/Public_domain",
     "CC0": "http://creativecommons.org/publicdomain/zero/1.0/",
     "CC-BY": "http://creativecommons.org/licenses/by/3.0/",
-    "CC-BY-SA": "http://creativecommons.org/licenses/by-sa/3.0/"
+    "CC-BY-SA": "http://creativecommons.org/licenses/by-sa/3.0/",
+    "CC-BY-NC": "https://creativecommons.org/licenses/by-nc/3.0/"
+  },
+  openVersion: function openVersion() {
+    this.props.openVersion(this.props.version.versionTitle, this.props.version.language);
   },
   onLicenseChange: function onLicenseChange(event) {
     this.setState({ license: event.target.value, "error": null });
@@ -4071,7 +4214,11 @@ var VersionBlock = React.createClass({
         React.createElement(
           'div',
           { className: 'versionTitle' },
-          v.versionTitle,
+          React.createElement(
+            'span',
+            { onClick: this.openVersion },
+            v.versionTitle
+          ),
           edit_icon
         ),
         React.createElement(
@@ -4196,8 +4343,7 @@ var ModeratorButtons = React.createClass({
       return React.createElement(
         'div',
         { className: 'moderatorSectionExpand', onClick: this.expand },
-        React.createElement('i', { className: 'fa fa-cog' }),
-        ' Moderator Tools'
+        React.createElement('i', { className: 'fa fa-cog' })
       );
     }
     var versionButtons = this.props.versionTitle ? React.createElement(
@@ -4265,6 +4411,45 @@ var ModeratorButtons = React.createClass({
       versionButtons,
       textButtons,
       message
+    );
+  }
+});
+
+var ReadMoreText = React.createClass({
+  displayName: 'ReadMoreText',
+
+  propTypes: {
+    text: React.PropTypes.string.isRequired
+  },
+  getInitialState: function getInitialState() {
+    return { expanded: false };
+  },
+
+  render: function render() {
+    var _this4 = this;
+
+    var initialWords = 24;
+    var text = this.state.expanded ? this.props.text : this.props.text.split(" ").slice(0, initialWords).join(" ") + "...";
+    return React.createElement(
+      'div',
+      { className: 'readMoreText' },
+      text,
+      this.state.expanded ? null : React.createElement(
+        'span',
+        { className: 'readMoreLink', onClick: function onClick() {
+            return _this4.setState({ expanded: true });
+          } },
+        React.createElement(
+          'span',
+          { className: 'en' },
+          'Read More ›'
+        ),
+        React.createElement(
+          'span',
+          { className: 'he' },
+          'קרא עוד ›'
+        )
+      )
     );
   }
 });
@@ -4442,7 +4627,7 @@ var SheetsHomePage = React.createClass({
   },
 
   render: function render() {
-    var _this3 = this;
+    var _this5 = this;
 
     var trendingTags = this.getTrendingTagsFromCache();
     var topSheets = this.getTopSheetsFromCache();
@@ -4453,7 +4638,7 @@ var SheetsHomePage = React.createClass({
     }
 
     var makeTagButton = function makeTagButton(tag) {
-      return React.createElement(SheetTagButton, { setSheetTag: _this3.props.setSheetTag, tag: tag.tag, count: tag.count, key: tag.tag });
+      return React.createElement(SheetTagButton, { setSheetTag: _this5.props.setSheetTag, tag: tag.tag, count: tag.count, key: tag.tag });
     };
 
     var trendingTags = trendingTags ? trendingTags.slice(0, 6).map(makeTagButton) : [React.createElement(LoadingMessage, null)];
@@ -4579,13 +4764,13 @@ var SheetsHomePage = React.createClass({
               'div',
               { className: 'type-buttons' },
               this._type_sheet_button("Most Used", "הכי בשימוש", function () {
-                return _this3.changeSort("count");
+                return _this5.changeSort("count");
               }, this.props.tagSort == "count"),
               this._type_sheet_button("Alphabetical", "אלפביתי", function () {
-                return _this3.changeSort("alpha");
+                return _this5.changeSort("alpha");
               }, this.props.tagSort == "alpha"),
               this._type_sheet_button("Trending", "פופולרי", function () {
-                return _this3.changeSort("trending");
+                return _this5.changeSort("trending");
               }, this.props.tagSort == "trending")
             )
           )
@@ -5924,7 +6109,9 @@ var TextRange = React.createClass({
         }, function () {});
       }
       if (data.book) {
+        // Preload datat that is used on Text TOC page
         Sefaria.textTocHtml(data.book, function () {});
+        Sefaria.indexDetails(data.book, function () {});
       }
     }
     this.dataPrefetched = true;
@@ -7301,7 +7488,7 @@ var LexiconEntry = React.createClass({
     );
   },
   renderLexiconEntrySenses: function renderLexiconEntrySenses(content) {
-    var _this4 = this;
+    var _this6 = this;
 
     var grammar = 'grammar' in content ? '(' + content['grammar']['verbal_stem'] + ')' : "";
     var def = 'definition' in content ? content['definition'] : "";
@@ -7311,7 +7498,7 @@ var LexiconEntry = React.createClass({
       content['notes']
     ) : "";
     var sensesElems = 'senses' in content ? content['senses'].map(function (sense) {
-      return _this4.renderLexiconEntrySenses(sense);
+      return _this6.renderLexiconEntrySenses(sense);
     }) : "";
     var senses = sensesElems.length ? React.createElement(
       'ol',
@@ -7423,11 +7610,11 @@ var ToolsPanel = React.createClass({
     }.bind(this) : null;
 
     var addTranslation = function () {
-      var _this5 = this;
+      var _this7 = this;
 
       var nextParam = "?next=" + Sefaria.util.currentPath();
       Sefaria.site.track.event("Tools", "Add Translation Click", this.props.srefs[0], { hitCallback: function hitCallback() {
-          return window.location = "/translate/" + _this5.props.srefs[0] + nextParam;
+          return window.location = "/translate/" + _this7.props.srefs[0] + nextParam;
         } });
     }.bind(this);
 
@@ -8225,10 +8412,10 @@ var SearchResultList = React.createClass({
     });
   },
   _abortRunningQueries: function _abortRunningQueries() {
-    var _this6 = this;
+    var _this8 = this;
 
     this.state.types.forEach(function (t) {
-      return _this6._abortRunningQuery(t);
+      return _this8._abortRunningQuery(t);
     });
   },
   _abortRunningQuery: function _abortRunningQuery(type) {
@@ -8411,18 +8598,18 @@ var SearchResultList = React.createClass({
     return newHits;
   },
   _buildFilterTree: function _buildFilterTree(aggregation_buckets) {
-    var _this7 = this;
+    var _this9 = this;
 
     //returns object w/ keys 'availableFilters', 'registry'
     //Add already applied filters w/ empty doc count?
     var rawTree = {};
 
     this.props.appliedFilters.forEach(function (fkey) {
-      return _this7._addAvailableFilter(rawTree, fkey, { "docCount": 0 });
+      return _this9._addAvailableFilter(rawTree, fkey, { "docCount": 0 });
     });
 
     aggregation_buckets.forEach(function (f) {
-      return _this7._addAvailableFilter(rawTree, f["key"], { "docCount": f["doc_count"] });
+      return _this9._addAvailableFilter(rawTree, f["key"], { "docCount": f["doc_count"] });
     });
     this._aggregate(rawTree);
     return this._build(rawTree);
@@ -8634,7 +8821,7 @@ var SearchResultList = React.createClass({
     this.setState({ "activeTab": "text" });
   },
   render: function render() {
-    var _this8 = this;
+    var _this10 = this;
 
     if (!this.props.query) {
       // Push this up? Thought is to choose on the SearchPage level whether to show a ResultList or an EmptySearchMessage.
@@ -8648,15 +8835,15 @@ var SearchResultList = React.createClass({
       results = this.state.hits.text.slice(0, this.state.displayedUntil["text"]).map(function (result) {
         return React.createElement(SearchTextResult, {
           data: result,
-          query: _this8.props.query,
+          query: _this10.props.query,
           key: result._id,
-          onResultClick: _this8.props.onResultClick });
+          onResultClick: _this10.props.onResultClick });
       });
     } else if (tab == "sheet") {
       results = this.state.hits.sheet.slice(0, this.state.displayedUntil["sheet"]).map(function (result) {
         return React.createElement(SearchSheetResult, {
           data: result,
-          query: _this8.props.query,
+          query: _this10.props.query,
           key: result._id });
       });
     }
@@ -9375,10 +9562,10 @@ var ModeratorToolsPanel = React.createClass({
     this.setState({ bulk_format: event.target.value });
   },
   bulkVersionDlLink: function bulkVersionDlLink() {
-    var _this9 = this;
+    var _this11 = this;
 
     var args = ["format", "title_pattern", "version_title_pattern", "language"].map(function (arg) {
-      return _this9.state["bulk_" + arg] ? arg + '=' + encodeURIComponent(_this9.state["bulk_" + arg]) : "";
+      return _this11.state["bulk_" + arg] ? arg + '=' + encodeURIComponent(_this11.state["bulk_" + arg]) : "";
     }).filter(function (a) {
       return a;
     }).join("&");
@@ -9529,12 +9716,12 @@ var ModeratorToolsPanel = React.createClass({
       ),
       this.state.uploadMessage ? React.createElement(
         'div',
-        { 'class': 'message' },
+        { className: 'message' },
         this.state.uploadMessage
       ) : "",
       this.state.uploadError ? React.createElement(
         'div',
-        { 'class': 'error' },
+        { className: 'error' },
         this.state.uploadError
       ) : ""
     );
@@ -9634,7 +9821,7 @@ var UpdatesPanel = React.createClass({
   },
 
   render: function render() {
-    var _this10 = this;
+    var _this12 = this;
 
     var classes = { notificationsPanel: 1, systemPanel: 1, readerNavMenu: 1, noHeader: 1 };
     var classStr = classNames(classes);
@@ -9673,8 +9860,8 @@ var UpdatesPanel = React.createClass({
                 date: u.date,
                 key: u._id,
                 id: u._id,
-                onDelete: _this10.onDelete,
-                submitting: _this10.state.submitting
+                onDelete: _this12.onDelete,
+                submitting: _this12.state.submitting
               });
             })
           )

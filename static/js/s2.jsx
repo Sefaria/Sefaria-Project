@@ -2887,6 +2887,7 @@ var ReaderTextTableOfContents = React.createClass({
       versions: [],
       versionsLoaded: false,
       currentVersion: null,
+      showAllVersions: false,
       dlVersionTitle: null,
       dlVersionLanguage: null,
       dlVersionFormat: null,
@@ -2895,7 +2896,7 @@ var ReaderTextTableOfContents = React.createClass({
   },
   componentDidMount: function() {
     this.loadHtml();
-    this.loadVersions();
+    this.loadData();
     this.bindToggles();
     this.shrinkWrap();
     window.addEventListener('resize', this.shrinkWrap);
@@ -2904,16 +2905,14 @@ var ReaderTextTableOfContents = React.createClass({
     window.removeEventListener('resize', this.shrinkWrap);
   },
   componentDidUpdate: function(prevProps, prevState) {
-    if ((this.props.settingsLanguage != prevProps.settingsLanguage) ||
-        (this.props.version != prevProps.version) ||
-        (this.props.versionLanguage != prevProps.versionLanguage)
-    ) {
-      this.loadVersions();
+    if ((this.props.settingsLanguage != prevProps.settingsLanguage)) {
+      this.forceUpdate();
     }
     this.bindToggles();
     this.shrinkWrap();
   },
   loadHtml: function() {
+    // Ensure textTocHtml is loaded in to cache, rerenders after data load if needed
     var textTocHtml = Sefaria.textTocHtml(this.props.title);
     if (!textTocHtml) {
       Sefaria.textTocHtml(this.props.title, function() {
@@ -2921,23 +2920,51 @@ var ReaderTextTableOfContents = React.createClass({
       }.bind(this));
     }
   },
-  loadVersions: function() {
-    var ref = Sefaria.sectionRef(this.props.currentRef) || this.props.currentRef;
-    if (!ref) {
-      this.setState({versionsLoaded: true});
-      return;
+  getDataRef: function() {
+    // Returns ref to be used to looking up data
+    return Sefaria.sectionRef(this.props.currentRef) || this.props.currentRef;
+  },
+  getData: function() {
+    // Gets data about this text from cache, which may be null.
+    var data = Sefaria.text(this.getDataRef(), {context: 1, version: this.props.version, language: this.props.versionLanguage});
+    return data; 
+  },
+  loadData: function() {
+    // Ensures data this text is in cache, rerenders after data load if needed
+    var details = Sefaria.indexDetails(this.props.title);
+    if (!details) {
+      Sefaria.indexDetails(this.props.title, () => this.forceUpdate() );
     }
-    if (Sefaria.ref(ref)) {
-      Sefaria.text(
-        ref,
-        {context: 1, version: this.props.version, language: this.props.versionLanguage},
-        this.loadVersionsDataFromText);
-    } else {
-      Sefaria.versions(ref, function(d) {this.setState({ versions: d, versionsLoaded: true})}.bind(this));
+    if (this.isBookToc()) {
+      var versions = Sefaria.versions(ref)
+      if (!versions) {
+        Sefaria.versions(ref, () => this.forceUpdate() );        
+      } 
+    } else if (this.isTextToc()) {
+      var ref  = this.getDataRef();
+      var data = this.getData();
+      if (!data) {
+        Sefaria.text(
+          ref,
+          {context: 1, version: this.props.version, language: this.props.versionLanguage},
+          () => this.forceUpdate());
+      }
     }
   },
-  loadVersionsDataFromText: function(d) {
-    // For now treat bilinguale as english. TODO show attribution for 2 versions in bilingual case.
+  getVersionsList: function() {
+    if (this.isTextToc()) {
+      var data = this.getData();
+      if (!data) { return null; }
+      return data.versions;
+    } else if (this.isBookToc()) {
+      return Sefaria.versions(this.props.title);
+    }
+  },
+  getCurrentVersion: function() {
+    // For now treat bilingual as english. TODO show attribution for 2 versions in bilingual case.
+    if (this.isBookToc()) { return null; }
+    var d = this.getData();
+    if (!d) { return null; }
     var currentLanguage = this.props.settingsLanguage == "he" ? "he" : "en";
     if (currentLanguage == "en" && !d.text.length) {currentLanguage = "he"}
     if (currentLanguage == "he" && !d.he.length) {currentLanguage = "en"}
@@ -2954,11 +2981,7 @@ var ReaderTextTableOfContents = React.createClass({
     };
     currentVersion.merged = !!(currentVersion.sources);
 
-    this.setState({
-                    versions:d.versions, 
-                    versionsLoaded: true,
-                    currentVersion: currentVersion
-                  });
+    return currentVersion;
   },
   handleClick: function(e) {
     var $a = $(e.target).closest("a");
@@ -3013,17 +3036,11 @@ var ReaderTextTableOfContents = React.createClass({
       $root.find(".tocLevel").each(shrink);             // Simple text, no nesting
     }
   },
-  onVersionSelectChange: function(event) {
-    if (event.target.value == 0) {
-      this.props.selectVersion();
-    } else {
-      var i = event.target.value - 1;
-      var v = this.state.versions[i];
-      this.props.selectVersion(v.versionTitle, v.language);
-    }
-    if (this.isTextToc()) {
-      this.props.close();
-    }
+  openVersion: function(version, language) {
+    // Selects a version and closes this menu to show it.
+    // Calling this functon wihtout parameters resets to default
+    this.props.selectVersion(version, language);
+    this.props.close();
   },
   onDlVersionSelect: function(event) {
     var versionTitle, versionLang;
@@ -3060,74 +3077,58 @@ var ReaderTextTableOfContents = React.createClass({
     var title     = this.props.title;
     var heTitle   = Sefaria.index(title) ? Sefaria.index(title).heTitle : title;
 
-
     var currentVersionElement = null;
     var defaultVersionString = "Default Version";
     var defaultVersionObject = null;
-    var versionBlocks = "";
+    var versionBlocks = null;
+    var showAllVersionsButton = <LoadingMessage />;
     var dl_versions = [];
 
-    if (this.state.versionsLoaded) {
-      var cv = this.state.currentVersion;
-      if (cv && cv.merged) {
+    // Text Details 
+    var details = Sefaria.indexDetails(this.props.title);
+    var detailsSection = details ? <TextDetails index={details} /> : null;
+
+    // Current Version (Text TOC only)
+    var cv = this.getCurrentVersion();
+    if (cv) {
+      if (cv.merged) {
         var uniqueSources = cv.sources.filter(function(item, i, ar){ return ar.indexOf(item) === i; }).join(", ");
         defaultVersionString += " (Merged from " + uniqueSources + ")";
         currentVersionElement = (<div className="versionTitle">Merged from { uniqueSources }</div>);
-      } else if (cv) {
+      } else {
         if (!this.props.version) {
           defaultVersionObject = this.state.versions.find(v => (cv.language == v.language && cv.versionTitle == v.versionTitle));
           defaultVersionString += defaultVersionObject ? " (" + defaultVersionObject.versionTitle + ")" : "";
         }
         currentVersionElement = (<VersionBlock title={title} version={cv} currentRef={this.props.currentRef} showHistory={true}/>);
       }
+    }
+
+    // Versions List
+    var versions = this.getVersionsList();
+    if (versions) {
+
+      if (cv) {
+        versions = versions.filter(v => v.language !== cv.language || v.versionTitle != cv.versionTitle);
+      }
 
       var [heVersionBlocks, enVersionBlocks] = ["he","en"].map(lang =>
-       this.state.versions.filter(v => v.language == lang).map(v =>
-           <VersionBlock title={title} version={v} showNotes={true} key={v.versionTitle + "/" + v.language}/>
+       versions.filter(v => v.language == lang).map(v =>
+        <VersionBlock title={title} version={v} openVersion={this.isTextToc ? this.openVersion : null} key={v.versionTitle + "/" + v.language}/>
        )
       );
 
       versionBlocks = <div className="versionBlocks">
         {(!!heVersionBlocks.length)?<div className="versionLanguageBlock"><div className="versionLanguageHeader"><span className="int-en">Hebrew Versions</span><span className="int-he">בעברית</span></div><div>{heVersionBlocks}</div></div>:""}
         {(!!enVersionBlocks.length)?<div className="versionLanguageBlock"><div className="versionLanguageHeader"><span className="int-en">English Versions</span><span className="int-he">באנגלית</span></div><div>{enVersionBlocks}</div></div>:""}
-        <div style={{clear: "both"}}></div>
       </div>;
 
-      // Dropdown options for downloadable texts
-      dl_versions = [<option key="/" value="0" disabled>Version Settings</option>];
-      var pdVersions = this.state.versions.filter(this.isVersionPublicDomain);
-      if (cv && cv.merged) {
-        var other_lang = cv.language == "he" ? "en" : "he";
-        dl_versions = dl_versions.concat([
-          <option value={"merged/" + cv.language} key={"merged/" + cv.language} data-lang={cv.language} data-version="merged">Current Merged Version ({cv.language})</option>,
-          <option value={"merged/" + other_lang} key={"merged/" + other_lang} data-lang={other_lang} data-version="merged">Merged Version ({other_lang})</option>
-        ]);
-        dl_versions = dl_versions.concat(pdVersions.map(v =>
-          <option value={v.versionTitle + "/" + v.language} key={v.versionTitle + "/" + v.language}>{v.versionTitle + " (" + v.language + ")"}</option>
-        ));
-      }
-      else if (cv) {
-        if (this.isVersionPublicDomain(cv)) {
-          dl_versions.push(<option value={cv.versionTitle + "/" + cv.language} key={cv.versionTitle + "/" + cv.language}>Current Version ({cv.versionTitle + " (" + cv.language + ")"})</option>);
-        }
-        dl_versions = dl_versions.concat([
-          <option value="merged/he" key="merged/he">Merged Version (he)</option>,
-          <option value="merged/en" key="merged/en">Merged Version (en)</option>
-        ]);
-        dl_versions = dl_versions.concat(pdVersions.filter(v => v.language != cv.language || v.versionTitle != cv.versionTitle).map(v =>
-          <option value={v.versionTitle + "/" + v.language} key={v.versionTitle + "/" + v.language}>{v.versionTitle + " (" + v.language + ")"}</option>
-        ));
-      }
-      else {
-        dl_versions = dl_versions.concat([
-          <option value="merged/he" key="merged/he">Merged Version (he)</option>,
-          <option value="merged/en" key="merged/en">Merged Version (en)</option>
-        ]);
-        dl_versions = dl_versions.concat(pdVersions.map(v =>
-          <option value={v.versionTitle + "/" + v.language} key={v.versionTitle + "/" + v.language}>{v.versionTitle + " (" + v.language + ")"}</option>
-        ));
-      }
-      // End Dropdown options for downloadable texts
+      var classes = classNames({allVersionsButton: 1, button: 1, white: 1, inactive: this.state.showAllVersions});
+      var showAllVersionsButton = <div className={classes} onClick={() => this.setState({showAllVersions: true})}>
+        <span className="int-en">{this.isTextToc() ? "Other Versions" : "Available Versions"}</span>
+        <span className="int-he">{this.isTextToc() ? "גרסאות אחרות" : "גרסאות"}</span>
+      </div>;
+      if (versions.length == 0) { showAllVersionsButton = null; }
     }
 
 
@@ -3135,42 +3136,51 @@ var ReaderTextTableOfContents = React.createClass({
       var sectionStrings = Sefaria.sectionString(this.props.currentRef);
       var section   = sectionStrings.en.named;
       var heSection = sectionStrings.he.named;
-
-      var selectOptions = [];
-      selectOptions.push(<option key="0" value="0">{defaultVersionString}</option>);    // todo: add description of current version.
-      var selectedOption = 0;
-      for (var i = 0; i < this.state.versions.length; i++) {
-        var v = this.state.versions[i];
-        if (v == defaultVersionObject) {
-          continue;
-        }
-        if (this.state.currentVersion.language == v.language && this.state.currentVersion.versionTitle == v.versionTitle) {
-          selectedOption = i+1;
-        }
-        var versionString = v.versionTitle + " (" + v.language + ")";  // Can not inline this, because of https://github.com/facebook/react-devtools/issues/248
-        selectOptions.push(<option key={i+1} value={i+1} >{ versionString }</option>);
-      }
-      var selectElement = (<div className="versionSelect">
-                             <select value={selectedOption} onChange={this.onVersionSelectChange}>
-                               {selectOptions}
-                             </select>
-                           </div>);
     }
-    var showModeratorButtons = Sefaria.is_moderator;
-    //if(/*(this.isTextToc() && this.state.currentVersion && this.state.currentVersion.versionStatus == "locked") ||*/
-    //    !Sefaria.is_moderator){
-    //  showModeratorButtons = false;
-    //}
-    var moderatorSection = showModeratorButtons ?
+
+    var moderatorSection = Sefaria.is_moderator ?
       (<ModeratorButtons 
         title={title}
         versionTitle={this.state.currentVersion ? this.state.currentVersion.versionTitle : null}
         versionLanguage={this.state.currentVersion ? this.state.currentVersion.language : null}
-        versionStatus={this.state.currentVersion ? this.state.currentVersion.versionStatus: null} />) :
-      null;
+        versionStatus={this.state.currentVersion ? this.state.currentVersion.versionStatus: null} />)
+      : null;
 
     // Downloading
     var dlReady = (this.state.dlVersionTitle && this.state.dlVersionFormat && this.state.dlVersionLanguage);
+    dl_versions = [<option key="/" value="0" disabled>Version Settings</option>];
+    var pdVersions = versions.filter(this.isVersionPublicDomain);
+    if (cv && cv.merged) {
+      var other_lang = cv.language == "he" ? "en" : "he";
+      dl_versions = dl_versions.concat([
+        <option value={"merged/" + cv.language} key={"merged/" + cv.language} data-lang={cv.language} data-version="merged">Current Merged Version ({cv.language})</option>,
+        <option value={"merged/" + other_lang} key={"merged/" + other_lang} data-lang={other_lang} data-version="merged">Merged Version ({other_lang})</option>
+      ]);
+      dl_versions = dl_versions.concat(pdVersions.map(v =>
+        <option value={v.versionTitle + "/" + v.language} key={v.versionTitle + "/" + v.language}>{v.versionTitle + " (" + v.language + ")"}</option>
+      ));
+    }
+    else if (cv) {
+      if (this.isVersionPublicDomain(cv)) {
+        dl_versions.push(<option value={cv.versionTitle + "/" + cv.language} key={cv.versionTitle + "/" + cv.language}>Current Version ({cv.versionTitle + " (" + cv.language + ")"})</option>);
+      }
+      dl_versions = dl_versions.concat([
+        <option value="merged/he" key="merged/he">Merged Version (he)</option>,
+        <option value="merged/en" key="merged/en">Merged Version (en)</option>
+      ]);
+      dl_versions = dl_versions.concat(pdVersions.filter(v => v.language != cv.language || v.versionTitle != cv.versionTitle).map(v =>
+        <option value={v.versionTitle + "/" + v.language} key={v.versionTitle + "/" + v.language}>{v.versionTitle + " (" + v.language + ")"}</option>
+      ));
+    }
+    else {
+      dl_versions = dl_versions.concat([
+        <option value="merged/he" key="merged/he">Merged Version (he)</option>,
+        <option value="merged/en" key="merged/en">Merged Version (en)</option>
+      ]);
+      dl_versions = dl_versions.concat(pdVersions.map(v =>
+        <option value={v.versionTitle + "/" + v.language} key={v.versionTitle + "/" + v.language}>{v.versionTitle + " (" + v.language + ")"}</option>
+      ));
+    }
     var downloadButton = <div className="versionDownloadButton">
         <div className="downloadButtonInner">
           <span className="int-en">Download</span>
@@ -3179,10 +3189,10 @@ var ReaderTextTableOfContents = React.createClass({
       </div>;
     var downloadSection = (
       <div className="dlSection">
-        <div className="dlSectionTitle">
+        <h2 className="dlSectionTitle">
           <span className="int-en">Download Text</span>
           <span className="int-he">הורדת הטקסט</span>
-        </div>
+        </h2>
         <select className="dlVersionSelect dlVersionTitleSelect" value={(this.state.dlVersionTitle && this.state.dlVersionLanguage)?this.state.dlVersionTitle + "/" + this.state.dlVersionLanguage:""} onChange={this.onDlVersionSelect}>
           {dl_versions}
         </select>
@@ -3217,30 +3227,95 @@ var ReaderTextTableOfContents = React.createClass({
               </div>
               <div className="content">
                 <div className="contentInner">
-                  <div className="tocTitle">
-                    <span className="en">{title}</span>
-                    <span className="he">{heTitle}</span>
+                  <div className="tocTop">
+                    <div className="tocCategory">
+                      <span className="en">{this.props.category}</span>
+                      <span className="he">{Sefaria.hebrewCategory(this.props.category)}</span>
+                    </div>
+                    <div className="tocTitle">
+                      <span className="en">{title}</span>
+                      <span className="he">{heTitle}</span>
+                      {moderatorSection}
+                    </div>
                     {this.isTextToc()?
                       <div className="currentSection">
                         <span className="en">{section}</span>
                         <span className="he">{heSection}</span>
                       </div>
                     : null}
+                    {detailsSection}
                   </div>
-                  {this.isTextToc()?
-                    <div className="currentVersionBox">
-                        {(!this.state.versionsLoaded) ? (<LoadingMessage />): null}
-                        {(this.state.versionsLoaded)? currentVersionElement: null}
-                        {(this.state.versionsLoaded && this.state.versions.length > 1) ? selectElement: null}
-                    </div>
-                  : null}
-                  {moderatorSection}
+                  <div className="versionsBox">
+                    {this.isTextToc()?
+                      <div className="currentVersionBox">
+                          <h2>
+                            <span className="int-en">Current Version</span>
+                            <span className="int-he">גרסה נוכחית</span>
+                          </h2>
+                          {currentVersionElement || (<LoadingMessage />)}
+                      </div>
+                    : null}
+                    { showAllVersionsButton }
+                    { this.state.showAllVersions ? versionBlocks : null }
+                  </div>
                   <div className="tocContent" dangerouslySetInnerHTML={ {__html: tocHtml} }  onClick={this.handleClick}></div>
-                  {versionBlocks}
                   {downloadSection}
                 </div>
               </div>
             </div>);
+  }
+});
+
+
+var TextDetails = React.createClass({
+  propTypes: {
+    index: React.PropTypes.object.isRequired
+  },
+  render: function() {
+    var authorLinks = "authors" in this.props.index ? // TODO Hebrew author names?
+      this.props.index.authors.map(function (author) { return <a href={"/person/" + author}>{author}</a> }) : null;
+    
+    var composedLine = null;
+    if ("compDate" in this.props.index || "compPlace" in this.props.index) {
+      var placeTime = [];
+      if ("compPlace" in this.props.index) { placeTime.push(this.props.index.compPlace); }
+      if ("compDate" in this.props.index) {
+        var dateLine = this.props.index.compDate > 0 ? this.props.index.compDate + "CE" : Math.abs(this.props.index.compDate) + "BCE";
+        placeTime.push(dateLine);
+      }
+      composedLine = placeTime.join(", ");
+    }
+    return (
+      <div className="tocDetails">
+        { "authors" in this.props.index ?
+          <div className="tocDetail">
+              <span className="he">
+                מחבר: {authorLinks}
+              </span>
+              <span className="en">
+                Author: {authorLinks}
+              </span>
+          </div>
+          : null }
+        { composedLine ?
+          <div className="tocDetail">
+              <span className="he">
+              </span>
+              <span className="en">
+                Composed: {composedLine}
+              </span>
+          </div>
+          : null }
+        { "enDesc" in this.props.index ?
+          <div className="tocDetail description">
+              <div className="he">
+              </div>
+              <div className="en">
+                <ReadMoreText text={this.props.index.enDesc} />
+              </div>
+          </div>
+          : null }
+      </div>);
   }
 });
 
@@ -3251,7 +3326,8 @@ var VersionBlock = React.createClass({
     version: React.PropTypes.object.isRequired,
     currentRef: React.PropTypes.string,
     showHistory: React.PropTypes.bool,
-    showNotes: React.PropTypes.bool
+    showNotes: React.PropTypes.bool,
+    openVersion: React.PropTypes.func
   },
   getDefaultProps: function() {
     return {
@@ -3281,7 +3357,11 @@ var VersionBlock = React.createClass({
     "Public Domain": "http://en.wikipedia.org/wiki/Public_domain",
     "CC0": "http://creativecommons.org/publicdomain/zero/1.0/",
     "CC-BY": "http://creativecommons.org/licenses/by/3.0/",
-    "CC-BY-SA": "http://creativecommons.org/licenses/by-sa/3.0/"
+    "CC-BY-SA": "http://creativecommons.org/licenses/by-sa/3.0/",
+    "CC-BY-NC": "https://creativecommons.org/licenses/by-nc/3.0/"
+  },
+  openVersion: function() {
+    this.props.openVersion(this.props.version.versionTitle, this.props.version.language);
   },
   onLicenseChange: function(event) {
     this.setState({license: event.target.value, "error": null});
@@ -3396,7 +3476,7 @@ var VersionBlock = React.createClass({
       return (
         <div className = "versionBlock">
           <div className="versionTitle">
-            {v.versionTitle}
+            <span onClick={this.openVersion}>{v.versionTitle}</span>
             {edit_icon}
           </div>
           <div>
@@ -3504,7 +3584,7 @@ var ModeratorButtons = React.createClass({
   render: function() {
     if (!this.state.expanded) {
       return (<div className="moderatorSectionExpand" onClick={this.expand}>
-                <i className="fa fa-cog"></i> Moderator Tools
+                <i className="fa fa-cog"></i>
               </div>);
     }
     var versionButtons = this.props.versionTitle ? 
@@ -3535,6 +3615,30 @@ var ModeratorButtons = React.createClass({
             </div>);
   }
 });
+
+
+var ReadMoreText = React.createClass({
+  propTypes: {
+    text: React.PropTypes.string.isRequired
+  },
+  getInitialState() {
+    return {expanded: false}
+  },
+  render: function() {
+    var initialWords = 24;
+    var text = this.state.expanded ? this.props.text : this.props.text.split(" ").slice(0, initialWords).join (" ") + "...";
+    return <div className="readMoreText">
+      {text}
+      {this.state.expanded ? null : 
+        <span className="readMoreLink" onClick={() => this.setState({expanded: true})}>
+          <span className="en">Read More ›</span>
+          <span className="he">קרא עוד ›</span>
+        </span>
+      }
+    </div>
+  }
+});
+
 
 var SheetsNav = React.createClass({
   // Navigation for Sheets
@@ -4793,7 +4897,11 @@ var TextRange = React.createClass({
          language: this.props.versionLanguage || null
        }, function() {});
      }
-     if (data.book) { Sefaria.textTocHtml(data.book, function() {}); }
+     if (data.book) { 
+        // Preload datat that is used on Text TOC page
+        Sefaria.textTocHtml(data.book, function() {}); 
+        Sefaria.indexDetails(data.book, function() {}); 
+     }
     }
     this.dataPrefetched = true;
   },
@@ -7589,8 +7697,8 @@ var ModeratorToolsPanel = React.createClass({
            <input className="dlVersionSelect" type="file" id="file-select"  multiple onChange={this.handleFiles}/>
            {ulReady?uploadButton:""}
          </form>
-        {this.state.uploadMessage?<div class="message">{this.state.uploadMessage}</div>:""}
-        {this.state.uploadError?<div class="error">{this.state.uploadError}</div>:""}
+        {this.state.uploadMessage?<div className="message">{this.state.uploadMessage}</div>:""}
+        {this.state.uploadError?<div className="error">{this.state.uploadError}</div>:""}
       </div>);
 
     return (Sefaria.is_moderator)?<div className="modTools">{downloadSection}{uploadForm}</div>:<div>Tools are only available to logged in moderators.</div>;

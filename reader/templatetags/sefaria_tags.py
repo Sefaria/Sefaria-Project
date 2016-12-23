@@ -133,7 +133,7 @@ def text_toc_link(indx):
 @register.filter(is_safe=True)
 def person_link(person):
 	"""
-	Return an <a> tag linking to the first availabe text of a particular version.
+	Return an <a> tag linking to a person page.
 	"""
 	link = u'<a href="/person/{}"><span class="int-en">{}</span><span class="int-he">{}</span></a>'.format(person.key, person.primary_name("en"), person.primary_name("he"))
 	return mark_safe(link)
