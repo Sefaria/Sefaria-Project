@@ -865,8 +865,8 @@ class AbstractTextRecord(object):
     """
     """
     text_attr = "chapter"
-    ALLOWED_TAGS    = ("i", "b", "br", "u", "strong", "em", "big", "small", "img", "sup")
-    ALLOWED_ATTRS   = {'i': ['data-commentator', 'data-order'], 'img': lambda name, value: name == 'src' and value.startswith("data:image/")}
+    ALLOWED_TAGS    = ("i", "b", "br", "u", "strong", "em", "big", "small", "img", "sup", "span")
+    ALLOWED_ATTRS   = {'span':['class'], 'i': ['data-commentator', 'data-order'], 'img': lambda name, value: name == 'src' and value.startswith("data:image/")}
 
     def word_count(self):
         """ Returns the number of words in this text """
