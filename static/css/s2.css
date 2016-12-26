@@ -31,10 +31,6 @@ body.dark {
   top: 0;
   width: 100%;
   height: 100%;
-  -moz-user-select: none;
-  -khtml-user-select: none;
-  -webkit-user-select: none;
-  -o-user-select: none;
   z-index: 1000;
 }
 #s2.headerOnly {
@@ -1911,12 +1907,6 @@ a.resourcesLink {
   height: 100%;
   z-index: 102;
   cursor: pointer;
-}
-.textRange, .noteText {
-  -moz-user-select: text;
-  -khtml-user-select: text;
-  -webkit-user-select: text;
-  -o-user-select: text;
 }
 .textRange.basetext {
   width: 100%;
