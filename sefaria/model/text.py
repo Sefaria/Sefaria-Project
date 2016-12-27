@@ -1377,12 +1377,13 @@ class TextChunk(AbstractTextRecord):
         else:
             raise Exception("Called TextChunk.version() on merged TextChunk.")
 
-    def text_index_map(self,tokenizer=lambda x: re.split(u'\s+',x)):
+    def text_index_map(self,tokenizer=lambda x: re.split(u'\s+',x), strict=True):
         """
         Primarily used for depth-2 texts in order to get index/ref pairs relative to the full text string
          indexes are the word index in word_list
 
         tokenizer: f(str)->list(str) - function to split up text
+        strict: if True, throws error if len(ind_list) != len(ref_list). o/w truncates longer array to length of shorter
         :return: (list,list,list) - index_list, ref_list, word_list
         """
         #TODO there is a known error that this will fail if the text version you're using has fewer segments than the VersionState.
@@ -1414,7 +1415,14 @@ class TextChunk(AbstractTextRecord):
             total_len += len(tokenizer(segment))
 
         if len(ind_list) != len(ref_list):
-            raise ValueError("The number of refs doesn't match the number of starting words")
+            if strict:
+                raise ValueError("The number of refs doesn't match the number of starting words. len(refs)={} len(inds)={}".format(len(ref_list),len(ind_list)))
+            else:
+                print "Warning: The number of refs doesn't match the number of starting words. len(refs)={} len(inds)={}".format(len(ref_list),len(ind_list))
+                if len(ind_list) > len(ref_list):
+                    ind_list = ind_list[:len(ref_list)]
+                else:
+                    ref_list = ref_list[:len(ind_list)]
 
         return ind_list,ref_list
 
