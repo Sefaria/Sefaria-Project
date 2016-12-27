@@ -473,7 +473,12 @@ def cascade(ref_identifier, rewriter=lambda x: x, needs_rewrite=lambda x: True, 
                         print e
             else:
                 if needs_rewrite(refs, record):
-                    refs = rewriter(refs)
+                    if sub_attr_name is None:
+                        setattr(record, attr_name, rewriter(refs))
+                    else:
+                        intermediate_obj = getattr(record, attr_name)
+                        intermediate_obj[sub_attr_name] = rewriter(refs)
+
                     try:
                         record.save()
                     except InputError as e:
@@ -559,8 +564,8 @@ def cascade(ref_identifier, rewriter=lambda x: x, needs_rewrite=lambda x: True, 
     clean_sheets([s['id'] for s in db.sheets.find(construct_query('sources.ref', identifier), {"id": 1})])
     print 'Updating Alternate Structs'
     update_alt_structs(ref_identifier.index)
-    print 'Updating History'
     if not skip_history:
+        print 'Updating History'
         generic_rewrite(HistorySet(construct_query('ref', identifier)))
         generic_rewrite(HistorySet(construct_query('new.ref', identifier)), attr_name='new', sub_attr_name='ref')
         generic_rewrite(HistorySet(construct_query('new.refs', identifier)), attr_name='new', sub_attr_name='refs')
