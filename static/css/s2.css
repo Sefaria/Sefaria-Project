@@ -873,6 +873,9 @@ a.resourcesLink {
   font-style: italic;
   margin: 16px 0 30px;
 }
+.readerNavCategoryMenu .categoryAttribution .he {
+  font-style: normal;
+}
 .readerNavMenu .refLink,
 .readerNavMenu .catLink,
 .readerNavMenu .navButton,
@@ -946,6 +949,9 @@ a.resourcesLink {
   font-size: 24px;
   font-style: italic;
   margin: 10px 0 28px;
+}
+.readerTextTableOfContents .categoryAttribution {
+  font-style: normal;
 }
 .readerTextTableOfContents .tocTitle {
   text-align: center;
@@ -1733,8 +1739,11 @@ a.resourcesLink {
 .readerControls .readerTextToc .categoryAttribution {
   font-style: italic;
   font-size: 15px;
-  color: #BBB;
+  color: #999;
   margin: 0 2px;
+}
+.readerControls .readerTextToc .categoryAttribution .he {
+  font-style: normal;
 }
 .leftButtons,
 .rightButtons {
