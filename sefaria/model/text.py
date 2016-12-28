@@ -3548,6 +3548,30 @@ class Ref(object):
         return LinkSet(self)
 
 
+    def distance(self, ref, max_dist=None):
+        """
+
+        :param ref: ref which you want to compare distance with
+        :param max_dist: maximum distance beyond which the function will return -1. it's suggested you set this param b/c alternative is very slow
+        :return: int: num refs between self and ref. -1 if self and ref aren't in the same index
+        """
+        if self.index_node != ref.index_node:
+            return -1
+
+        # convert to base 0
+        sec1 = self.sections
+        sec2 = ref.sections
+        for i in xrange(len(sec1)):
+            sec1[i] -= 1
+        for i in xrange(len(sec2)):
+            sec2[i] -= 1
+
+        distance = self.get_state_ja().distance(sec1,sec2)
+        if max_dist and distance > max_dist:
+            return -1
+        else:
+            return distance
+
 class Library(object):
     """
     Operates as a singleton, through the instance called ``library``.
