@@ -96,7 +96,6 @@ class JaggedArray(object):
             #base case
             return abs(indexes1[-1] - indexes2[-1])
         else:
-            a = self._store
             #recurse
             distance = 0
             temp_start_index = indexes1[:]
@@ -107,8 +106,11 @@ class JaggedArray(object):
                 else:
                     temp_end_index = temp_start_index[:]
                     # max out all indexes greater than first_diff_index
+
+                    temp_subarray_indexes = [i]
                     for j in xrange(first_diff_index+1,N):
-                        temp_end_index[j] = len(a[i]) - 1
+                        temp_end_index[j] = self.sub_array_length(temp_subarray_indexes) - 1
+                        temp_subarray_indexes += [temp_end_index[j]]
                 distance += self.distance(temp_start_index,temp_end_index)
                 temp_start_index[first_diff_index] = i + 1
                 # set all indexes greater than first_diff_index to zero because you've moved on to the next section

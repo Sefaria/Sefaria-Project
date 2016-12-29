@@ -3559,8 +3559,8 @@ class Ref(object):
             return -1
 
         # convert to base 0
-        sec1 = self.sections
-        sec2 = ref.sections
+        sec1 = self.sections[:]
+        sec2 = ref.sections[:]
         for i in xrange(len(sec1)):
             sec1[i] -= 1
         for i in xrange(len(sec2)):
