@@ -111,7 +111,7 @@ def write_urls(urls, filename):
 	out = STATICFILES_DIRS[0] + filename
 	f = open(out, 'w')
 	for url in urls:
-		f.write(url + "\n")
+		f.write(url.encode('utf-8') + "\n")
 	f.close()
 
 
