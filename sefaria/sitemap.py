@@ -70,7 +70,7 @@ def generate_categories_sitemap():
 	"""
 	Creates sitemap for each category page.
 	"""
-	toc   = library.get_toc()
+	toc = library.get_toc()
 	def cat_paths(toc):
 		paths = []
 		for t in toc:
@@ -82,7 +82,7 @@ def generate_categories_sitemap():
 				paths = paths + [cat + "/" + sp for sp in subpaths]
 		return paths
 	paths = cat_paths(toc)
-	urls = ["http://www.sefaria.org/" + p for p in paths]
+	urls = ["http://www.sefaria.org/texts/" + p for p in paths]
 	write_urls(urls, "categories-sitemap.txt")
 
 
