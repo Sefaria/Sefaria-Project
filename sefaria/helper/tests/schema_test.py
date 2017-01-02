@@ -13,6 +13,8 @@ def setup_module():
     if index is not None:
         ls = LinkSet(Ref("Delete Me"))
         ls.delete()
+        ns = NoteSet({"ref": {"$regex": "Delete Me.*"}})
+        ns.delete()
         index.delete()
 
     # Build an index with some nodes
@@ -114,6 +116,8 @@ def teardown_module():
     print 'Cleaning Up'
     ls = LinkSet(Ref("Delete Me"))
     ls.delete()
+    ns = NoteSet({"ref": {"$regex": "Delete Me.*"}})
+    ns.delete()
     v = Version().load({'title': 'Delete Me'})
     v.delete()
     i = Index().load({'title': 'Delete Me'})
@@ -162,7 +166,7 @@ def test_change_node_structure():
     assert isinstance(Link().load({'refs': ['Delete Me, Part1 3:1', 'Shabbat 2a:5'], }), Link)
     assert isinstance(Link().load({'refs': ['Delete Me, Part2 1:1', 'Shabbat 2a:5'], }), Link)
     assert isinstance(Link().load({'refs': ['Delete Me, Part2 3', 'Shabbat 2a:5'], }), Link)
-    assert isinstance(Note().load({'ref': 'Delete Me, Part 1 1:1:1'}), Note)
+    assert isinstance(Note().load({'ref': 'Delete Me, Part1 1:1:1'}), Note)
     assert library.get_index('Delete Me').get_alt_structure('alt').wholeRef == u'Delete Me, Part1 1:2:1-3:1:1'
 
     # decrease depth
@@ -177,5 +181,5 @@ def test_change_node_structure():
     assert isinstance(Link().load({'refs': ['Delete Me, Part1 3', 'Shabbat 2a:5'], }), Link)
     assert isinstance(Link().load({'refs': ['Delete Me, Part2 1:1', 'Shabbat 2a:5'], }), Link)
     assert isinstance(Link().load({'refs': ['Delete Me, Part2 3', 'Shabbat 2a:5'], }), Link)
-    assert isinstance(Note().load({'ref': 'Delete Me, Part 1 1:1'}), Note)
+    assert isinstance(Note().load({'ref': 'Delete Me, Part1 1:1'}), Note)
     assert library.get_index('Delete Me').get_alt_structure('alt').wholeRef == u'Delete Me, Part1 1:2-3:1'
