@@ -88,7 +88,7 @@ Sefaria = extend(Sefaria, {
       return response;
   },
   makeRef: function(q) {
-  // Returns a string ref correpsonding to the parsed ref `q` (aka oref.norma() in pythonn)
+      // Returns a string ref correpsonding to the parsed ref `q` (like Ref.normal() in Python)
       if (!(q.book && q.sections && q.toSections)) {
           return {"error": "Bad input."};
       }
@@ -126,6 +126,21 @@ Sefaria = extend(Sefaria, {
     // We check for Index here in order not to allow a bare commentator name. Something like "Ramban" will return a book, but no Index.
     // After commentary refactor, we can take off the index check, below.
     return ("book" in q && q.book && "index" in q && q.index);
+  },
+  normRefList: function(refs) {
+    // Returns a single string ref corresponding the range expressed in the list of `refs`
+    // e.g. ["Genesis 1:4", "Genesis 1:5", "Genesis 1:6"] -> "Genesis 1:4-6"
+    if (refs.length == 1) {
+      return refs[0];
+    }
+    var pRef = Sefaria.parseRef(refs[0]);
+    var pRefEnd = Sefaria.parseRef(refs[refs.length-1]);
+    if (pRef.book !== pRefEnd.book) {
+      return refs[0]; // We don't handle ranges over multiple nodes of complex texts
+    }
+    var nRef = Sefaria.util.clone(pRef);
+    nRef.toSections = pRefEnd.toSections;
+    return Sefaria.makeRef(nRef);
   },
   titlesInText: function(text) {
     // Returns an array of the known book titles that appear in text.
@@ -895,7 +910,7 @@ Sefaria = extend(Sefaria, {
     if (commentaryList.length) {
       var commentaryHtml = "<div class='altStruct' style='display:none'>" + 
                               commentaryList.map(function(item) {
-                                  return "<a class='refLink' href='" + Sefaria.normRef(item.firstSection) + "' data-ref='" + item.firstSection + "'>" +
+                                  return "<a class='refLink' href='" + Sefaria.normRef(item.firstSection).escapeHtml() + "' data-ref='" + item.firstSection.escapeHtml() + "'>" +
                                             "<span class='en'>" + item.commentator + "</span>" +
                                             "<span class='he'>" + item.heCommentator + "</span>" +
                                           "</a>";

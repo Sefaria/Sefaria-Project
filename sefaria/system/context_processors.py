@@ -45,19 +45,6 @@ def embed_page(request):
 
 
 def language_settings(request):
-
-    # CONTENT
-    # Pull language setting from cookie or Accept-Lanugage header or default to english
-    content = request.COOKIES.get('contentLang') or request.LANGUAGE_CODE or 'english'
-    # URL parameter trumps cookie
-    #content = request.GET.get("lang", content)
-    """content = "bilingual" if content in ("bi", "he-en", "en-he") else content
-    content = 'hebrew' if content in ('he', 'he-il') else content
-    content = "english" if content in ('en') else content"""
-    content = short_to_long_lang_code(content)
-    # Don't allow languages other than what we currently handle
-    content = 'english' if content not in ('english', 'hebrew', 'bilingual') else content
-
     # INTERFACE
     interface = None
     if request.user.is_authenticated():
@@ -69,6 +56,15 @@ def language_settings(request):
         interface = 'hebrew' if interface in ('he', 'he-il') else interface
         # Don't allow languages other than what we currently handle
         interface = 'english' if interface not in ('english', 'hebrew') else interface
+
+    # CONTENT
+    default_content_lang = 'hebrew' if interface == 'hebrew' else 'bilingual'
+    # Pull language setting from cookie or Accept-Lanugage header or default to english
+    content = request.COOKIES.get('contentLang') or default_content_lang
+    content = short_to_long_lang_code(content)
+    # Don't allow languages other than what we currently handle
+    content = default_content_lang if content not in ('english', 'hebrew', 'bilingual') else content
+    # Note: URL parameters may override values set her, handled in reader view.
 
     return {"contentLang": content, "interfaceLang": interface}
 

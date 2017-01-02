@@ -25,6 +25,7 @@ from summaries import ORDER
 from local_settings import SEFARIA_EXPORT_PATH
 from sefaria.system.database import db
 
+
 lang_codes = {
     "he": "Hebrew",
     "en": "English"
@@ -653,11 +654,11 @@ def export_merged_csv(index, lang=None):
     return output.getvalue()
 
 
-def import_versions_from_stream(csv_stream, columns):
+def import_versions_from_stream(csv_stream, columns, user_id):
     csv.field_size_limit(sys.maxsize)
     reader = csv.reader(csv_stream)
     rows = [row for row in reader]
-    return _import_versions_from_csv(rows, columns)
+    return _import_versions_from_csv(rows, columns, user_id)
 
 
 def import_versions_from_file(csv_filename, columns):
@@ -673,24 +674,32 @@ def import_versions_from_file(csv_filename, columns):
     return _import_versions_from_csv(rows, columns)
 
 
-def _import_versions_from_csv(rows, columns):
+def _import_versions_from_csv(rows, columns, user_id):
+    from sefaria.tracker import modify_text
+
     index_title = rows[0][columns[0]]  # assume the same index title for all
     index_node = Ref(index_title).index_node
 
+
+    action = "edit"
     for column in columns:
         # Create version
+        version_title = rows[1][column]
+        version_lang = rows[2][column]
+
         v = Version().load({
             "title": index_title,
-            "versionTitle": rows[1][column],
-            "language": rows[2][column]
+            "versionTitle": version_title,
+            "language": version_lang
         })
 
         if v is None:
+            action = "add"
             v = Version({
                 "chapter": index_node.create_skeleton(),
                 "title": index_title,
-                "versionTitle": rows[1][column],
-                "language": rows[2][column],            # Language
+                "versionTitle": version_title,
+                "language": version_lang,            # Language
                 "versionSource": rows[3][column],       # Version Source
                 "versionNotes": rows[4][column],        # Version Notes
             }).save()
@@ -699,6 +708,9 @@ def _import_versions_from_csv(rows, columns):
         for row in rows[5:]:
             ref = Ref(row[0])
             print "Saving: {}".format(ref.normal())
-            tc = TextChunk(ref, v.language, v.versionTitle)
-            tc.text = row[column]
-            tc.save()
+            try:
+                modify_text(user_id, ref, version_title, version_lang, row[column], type=action)
+            except InputError:
+                pass
+
+

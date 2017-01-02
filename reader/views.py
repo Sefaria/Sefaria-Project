@@ -251,7 +251,7 @@ def make_panel_dict(oref, version, language, filter, mode, **kwargs):
         }
     else:
         oref = oref.first_available_section_ref()
-        panelDisplayLanguage = kwargs.get("panelDisplayLanguage", None)
+        panelDisplayLanguage = kwargs.get("panelDisplayLanguage")
         panel = {
             "mode": mode,
             "ref": oref.normal(),
@@ -344,7 +344,7 @@ def s2(request, ref, version=None, lang=None):
     if version and not Version().load({"versionTitle": version, "language": lang}):
         raise Http404
 
-    panels += make_panel_dicts(oref, version, lang, filter, multi_panel, **{"panelDisplayLanguage": request.GET.get("lang", None)})
+    panels += make_panel_dicts(oref, version, lang, filter, multi_panel, **{"panelDisplayLanguage": request.GET.get("lang", props["initialSettings"]["language"])})
 
     # Handle any panels after 1 which are identified with params like `p2`, `v2`, `l2`.
     i = 2
@@ -363,7 +363,7 @@ def s2(request, ref, version=None, lang=None):
         language = request.GET.get("l{}".format(i))
         filter   = request.GET.get("w{}".format(i)).replace("_", " ").split("+") if request.GET.get("w{}".format(i)) else None
         filter   = [] if filter == ["all"] else filter
-        panelDisplayLanguage = request.GET.get("lang{}".format(i), None)
+        panelDisplayLanguage = request.GET.get("lang{}".format(i), props["initialSettings"]["language"])
 
         if version and not Version().load({"versionTitle": version, "language": language}):
             i += 1

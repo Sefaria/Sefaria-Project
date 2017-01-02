@@ -17,8 +17,13 @@
 {% endblock %}
 
 {% block content %}
+
     <div id="homePage" class="static biReady">
         <div id="homeCover">
+            <video id="homeVideo" poster="/static/img/home-video.jpg" preload="auto" autoplay="true" loop="loop" muted="muted" volume="0">
+                <source src="/static/img/home-video.webm" type="video/webm">
+                <source src="/static/img/home-video.mp4" type="video/mp4">
+            </video>
             <h1>
                 <span class="int-en">A Living Library of Jewish Texts</span>
                 <span class="int-he">ספריה חיה של טקסטים יהודיים</span>
@@ -89,28 +94,33 @@
                         <span class="int-he">ספאריה בנייד</span>
                     </h2>
                     <div class="description">
-                        <span class="int-en">Enjoy Sefaria's entire library and all of its links and interconnections on-the-go. Sefaria’s Android app is now available for free on the Google Play store, with iOS soon to come.</span>
-                        <span class="int-he">הספריה המלאה של ספאריה, יחד עם כל הלינקים והקשרים, זמינים בסמארטפון. אפליקציית האנדרואיד של ספאריה עכשיו זמינה בחינם בחנות Google Play.</span>
+                        <span class="int-en">
+                            Enjoy Sefaria's entire library and all of its links and interconnections on-the-go.
+                            Sefaria’s apps for Android and iOS available to download for free.
+                        </span>
+                        <span class="int-he">
+                            הספריה המלאה של ספאריה, הכוללת את כל הלינקים והקשרים, זמינה גם בנייד.
+                            האפליקציות של ספאריה לאנדרואיד ולאייפון זמינות עכשיו להורדה בחינם.
+                        </span>
+
                     </div>
                     <a href="https://play.google.com/store/apps/details?id=org.sefaria.sefaria" target="_blank">
                         <div class="button white control-elem">
                             <i class="fa fa-android"></i>
                             <span class="int-en">Get Android App &rsaquo;</span>
-                            <span class="int-he">הורדה לאנדרואיד &rsaquo;</span>
+                            <span class="int-he"> הורדה לאנדרואיד &rsaquo;</span>
                         </div>
                     </a>
-                    <a href="/ios" id="iOSButton">
+                    <a href="https://itunes.apple.com/us/app/sefaria/id1163273965?ls=1&mt=8" id="iOSButton" target="_blank">
                         <div class="button white control-elem">
                             <i class="fa fa-apple"></i>
                             <span class="int-en">Get iOS App &rsaquo;</span>
-                            <span class="int-he">הורדה לאייפון &rsaquo;</span>
+                            <span class="int-he"> הורדה לאייפון &rsaquo;</span>
                         </div>
                     </a>
                 </div>
                 <div class="imageBox">
-                    <a href="/explore">
-                        <img src="/static/img/home-mobile.png" />
-                    </a>
+                    <img src="/static/img/home-mobile.png" />
                 </div>
             </div>
         </div>
