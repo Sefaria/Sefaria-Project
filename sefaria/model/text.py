@@ -336,7 +336,7 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
         alt_titles = map(re.escape, full_title_list)
         reg = u'(?P<title>' + u'|'.join(sorted(alt_titles, key=len, reverse=True)) + ur')($|[:., ]+)'
         try:
-            reg = re.compile(reg, max_mem= 256 * 1024 * 1024)
+            reg = re.compile(reg, max_mem=384 * 1024 * 1024)
         except TypeError:
             reg = re.compile(reg)
 
