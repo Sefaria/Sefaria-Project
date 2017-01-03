@@ -76,6 +76,13 @@ class Test_Jagged_Text_Array(object):
         assert ja.JaggedTextArray(threeby) == ja.JaggedTextArray(threeby)
         assert ja.JaggedTextArray(twoby) != ja.JaggedTextArray(threeby)
 
+
+    def test_distance(self):
+        jia = ja.JaggedTextArray(threeby)
+        assert jia.distance([0],[0,0,2]) == 2 #check if padding correctly
+        assert jia.distance([0],[0,2]) == 6 #padding for both inputs
+        assert jia.distance([0,0,1],[2,2,2]) == 25 #recursive distance
+
     def test_subarray(self):
         assert ja.JaggedTextArray(threeby).subarray([0],[0]) == ja.JaggedTextArray([
             ["Part 1 Line 1:1", "This is the first second", "First third"],

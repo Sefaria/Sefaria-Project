@@ -429,6 +429,11 @@ class Test_Ref(object):
         # Used to short circuit, fail to resolve to Malachi, and fail
         assert Ref("Malbim Beur Hamilot on Ezekiel")
 
+    def test_distance(self):
+        r1 = Ref("Genesis 1:3")
+        r2 = Ref("Genesis 3:4")
+        assert r1.distance(r2) == 57
+
 
 class Test_Cache(object):
     def test_index_flush_from_cache(self):

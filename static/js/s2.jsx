@@ -3358,7 +3358,7 @@ var VersionBlock = React.createClass({
     "CC0": "http://creativecommons.org/publicdomain/zero/1.0/",
     "CC-BY": "http://creativecommons.org/licenses/by/3.0/",
     "CC-BY-SA": "http://creativecommons.org/licenses/by-sa/3.0/",
-    "CC-BY-NC": "https://creativecommons.org/licenses/by-nc/3.0/"
+    "CC-BY-NC": "https://creativecommons.org/licenses/by-nc/4.0/"
   },
   openVersion: function() {
     this.props.openVersion(this.props.version.versionTitle, this.props.version.language);
