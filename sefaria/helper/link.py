@@ -89,7 +89,7 @@ class AbstractAutoLinker(object):
         }
         try:
             if not self._user:
-                nlink.save()
+                Link(nlink).save()
             else:
                 tracker.add(self._user, Link, nlink, **kwargs)
         except DuplicateRecordError as e:
