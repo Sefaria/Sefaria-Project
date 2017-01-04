@@ -266,13 +266,53 @@ def change_node_title(snode, old_title, lang, new_title):
     :param new_title:
     :return:
     """
-    pass
+
+    def rewriter(string):
+        return string.replace(old_title, new_title)
+
+    def needs_rewrite(string, *args):
+        return string.find(old_title) >= 0 and snode.index.title == Ref(string).index.title
+
+    if old_title == snode.primary_title():
+        snode.add_title(new_title, lang, replace_primary=True, primary=True)
+        snode.index.save()
+        library.refresh_index_record_in_cache(snode.index)
+        if lang == 'en':
+            cascade(snode.index.title, rewriter=rewriter, needs_rewrite=needs_rewrite)
+    else:
+        snode.add_title(new_title, lang)
+
+    snode.remove_title(old_title, lang)
+
+    snode.index.save(override_dependencies=True)
+    library.refresh_index_record_in_cache(snode.index)
 
 
-def replaceBadNodeTitles(title, bad_char, good_char, lang):
+"""
+def change_char_node_titles(index_title, bad_char, good_char, lang):
     '''
-    This recurses through the serialized tree changing replacing the previous title of each node to its title with the bad_char replaced by good_char. 
+     Replaces all instances of bad_char with good_char in all node titles in the book titled index_title.
+    If the title changing is the primary english title, cascades to all of the impacted objects
+    :param index_title:
+    :param bad_char:
+    :param good_char:
+    :param lang:
+    :return:
     '''
+
+
+    def callback(node, **kwargs):
+        titles = node.get_titles()
+        for each_title in titles:
+            if each_title['lang'] == lang and 'primary' in each_title and each_title['primary']:
+                title = each_title['text']
+
+        change_node_title(snode, old_title,lang)
+
+    root = library.get_index(index_title).nodes
+    root.traverse_tree(callback, False)
+
+
 
     def recurse(node):
         if 'nodes' in node:
@@ -294,6 +334,7 @@ def replaceBadNodeTitles(title, bad_char, good_char, lang):
     data = library.get_index(title).nodes.serialize()
     recurse(data)
     return data
+"""
 
 
 def change_node_structure(ja_node, section_names, address_types=None, upsize_in_place=False):
@@ -450,7 +491,6 @@ def cascade(ref_identifier, rewriter=lambda x: x, needs_rewrite=lambda x: True, 
         :param sub_attr_name: Use to update nested attributes
         :return:
         """
-
         for record in model_set:
             assert isinstance(record, AbstractMongoRecord)
             if sub_attr_name is None:
@@ -476,7 +516,6 @@ def cascade(ref_identifier, rewriter=lambda x: x, needs_rewrite=lambda x: True, 
                     if sub_attr_name is None:
                         setattr(record, attr_name, rewriter(refs))
                     else:
-                        intermediate_obj = getattr(record, attr_name)
                         intermediate_obj[sub_attr_name] = rewriter(refs)
 
                     try:
