@@ -26,7 +26,6 @@ Todo:
 """
 
 
-
 def insert_last_child(new_node, parent_node):
     return attach_branch(new_node, parent_node, len(parent_node.children))
 
@@ -292,7 +291,6 @@ def change_node_title(snode, old_title, lang, new_title):
 
 
 """
-
 def change_char_node_titles(index_title, bad_char, good_char, lang):
     '''
      Replaces all instances of bad_char with good_char in all node titles in the book titled index_title.
@@ -495,6 +493,7 @@ def cascade(ref_identifier, rewriter=lambda x: x, needs_rewrite=lambda x: True, 
         :param sub_attr_name: Use to update nested attributes
         :return:
         """
+
         for record in model_set:
             assert isinstance(record, AbstractMongoRecord)
             if sub_attr_name is None:
@@ -595,7 +594,6 @@ def cascade(ref_identifier, rewriter=lambda x: x, needs_rewrite=lambda x: True, 
 
         query_list = [{attribute: {'$regex': '^' + query}} for query in queries]
         return {'$or': query_list}
-
 
     print 'Updating Links'
     generic_rewrite(LinkSet(construct_query('refs', identifier)), attr_name='refs')
