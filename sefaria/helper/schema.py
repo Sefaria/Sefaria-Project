@@ -5,6 +5,8 @@ from sefaria.model.abstract import AbstractMongoRecord
 from sefaria.system.exceptions import InputError
 from sefaria.system.database import db
 from sefaria.sheets import save_sheet
+from sefaria.utils.util import list_depth
+
 import re
 
 """
@@ -22,6 +24,7 @@ Todo:
         elastic search
         varnish
 """
+
 
 
 def insert_last_child(new_node, parent_node):
@@ -266,13 +269,54 @@ def change_node_title(snode, old_title, lang, new_title):
     :param new_title:
     :return:
     """
-    pass
+
+    def rewriter(string):
+        return string.replace(old_title, new_title)
+
+    def needs_rewrite(string, *args):
+        return string.find(old_title) >= 0 and snode.index.title == Ref(string).index.title
+
+    if old_title == snode.primary_title():
+        snode.add_title(new_title, lang, replace_primary=True, primary=True)
+        snode.index.save()
+        library.refresh_index_record_in_cache(snode.index)
+        if lang == 'en':
+            cascade(snode.index.title, rewriter=rewriter, needs_rewrite=needs_rewrite)
+    else:
+        snode.add_title(new_title, lang)
+
+    snode.remove_title(old_title, lang)
+
+    snode.index.save(override_dependencies=True)
+    library.refresh_index_record_in_cache(snode.index)
 
 
-def replaceBadNodeTitles(title, bad_char, good_char, lang):
+"""
+
+def change_char_node_titles(index_title, bad_char, good_char, lang):
     '''
-    This recurses through the serialized tree changing replacing the previous title of each node to its title with the bad_char replaced by good_char. 
+     Replaces all instances of bad_char with good_char in all node titles in the book titled index_title.
+    If the title changing is the primary english title, cascades to all of the impacted objects
+    :param index_title:
+    :param bad_char:
+    :param good_char:
+    :param lang:
+    :return:
     '''
+
+
+    def callback(node, **kwargs):
+        titles = node.get_titles()
+        for each_title in titles:
+            if each_title['lang'] == lang and 'primary' in each_title and each_title['primary']:
+                title = each_title['text']
+
+        change_node_title(snode, old_title,lang)
+
+    root = library.get_index(index_title).nodes
+    root.traverse_tree(callback, False)
+
+
 
     def recurse(node):
         if 'nodes' in node:
@@ -294,6 +338,7 @@ def replaceBadNodeTitles(title, bad_char, good_char, lang):
     data = library.get_index(title).nodes.serialize()
     recurse(data)
     return data
+"""
 
 
 def change_node_structure(ja_node, section_names, address_types=None, upsize_in_place=False):
@@ -450,7 +495,6 @@ def cascade(ref_identifier, rewriter=lambda x: x, needs_rewrite=lambda x: True, 
         :param sub_attr_name: Use to update nested attributes
         :return:
         """
-
         for record in model_set:
             assert isinstance(record, AbstractMongoRecord)
             if sub_attr_name is None:
@@ -473,6 +517,10 @@ def cascade(ref_identifier, rewriter=lambda x: x, needs_rewrite=lambda x: True, 
                         print e
             else:
                 if needs_rewrite(refs, record):
+                    if sub_attr_name is None:
+                        setattr(record, attr_name, rewriter(refs))
+                    else:
+                        intermediate_obj[sub_attr_name] = rewriter(refs)
                     refs = rewriter(refs)
                     try:
                         record.save()
@@ -548,6 +596,7 @@ def cascade(ref_identifier, rewriter=lambda x: x, needs_rewrite=lambda x: True, 
         query_list = [{attribute: {'$regex': '^' + query}} for query in queries]
         return {'$or': query_list}
 
+
     print 'Updating Links'
     generic_rewrite(LinkSet(construct_query('refs', identifier)), attr_name='refs')
     print 'Updating Notes'
@@ -566,3 +615,92 @@ def cascade(ref_identifier, rewriter=lambda x: x, needs_rewrite=lambda x: True, 
         generic_rewrite(HistorySet(construct_query('new.refs', identifier)), attr_name='new', sub_attr_name='refs')
         generic_rewrite(HistorySet(construct_query('old.ref', identifier)), attr_name='old', sub_attr_name='ref')
         generic_rewrite(HistorySet(construct_query('old.refs', identifier)), attr_name='old', sub_attr_name='refs')
+
+
+def migrate_to_complex_structure(title, schema, mappings, rewriter, needs_rewrite):
+    #print title
+    #print mappings
+    #print json.dumps(schema)
+    print "begin conversion"
+    #TODO: add method on model.Index to change all 3 (title, nodes.key and nodes.primary title)
+
+    #create a new index with a temp file #make sure to later add all the alternate titles
+    old_index = Index().load({"title": title})
+    new_index_contents = {
+        "title": title,
+        "categories": old_index.categories,
+        "schema": schema
+    }
+    #TODO: these are ugly hacks to create a temp index
+    temp_index = Index(new_index_contents)
+    en_title = temp_index.get_title('en')
+    temp_index.title = "Complex {}".format(en_title)
+    he_title = temp_index.get_title('he')
+    temp_index.set_title(u'{} זמני'.format(he_title), 'he')
+    temp_index.save()
+    #the rest of the title variants need to be copied as well but it will create conflicts while the orig index exists, so we do it after removing the old index in completely_delete_index_and_related.py
+
+    #create versions for the main text
+    versions = VersionSet({'title': title})
+    migrate_versions_of_text(versions, mappings, title, temp_index.title, temp_index)
+
+    #are there commentaries? Need to move the text for them to conform to the new structure
+    #basically a repeat process of the above, sans creating the index record
+    commentaries = library.get_commentary_versions_on_book(title)
+    migrate_versions_of_text(commentaries, mappings, title, temp_index.title, temp_index)
+    #duplicate versionstate
+    #TODO: untested
+    vstate_old = VersionState().load({'title':title })
+    vstate_new = VersionState(temp_index)
+    vstate_new.flags = vstate_old.flags
+    vstate_new.save()
+
+    cascade(title, rewriter, needs_rewrite)
+
+
+def migrate_versions_of_text(versions, mappings, orig_title, new_title, base_index):
+    for i, version in enumerate(versions):
+        print version.versionTitle.encode('utf-8')
+        new_version_title = version.title.replace(orig_title, new_title)
+        print new_version_title
+        new_version = Version(
+                {
+                    "chapter": base_index.nodes.create_skeleton(),
+                    "versionTitle": version.versionTitle,
+                    "versionSource": version.versionSource,
+                    "language": version.language,
+                    "title": new_version_title
+                }
+            )
+        for attr in ['status', 'license', 'licenseVetted', 'method', 'versionNotes', 'priority', "digitizedBySefaria", "heversionSource"]:
+            value = getattr(version, attr, None)
+            if value:
+                setattr(new_version, attr, value)
+        new_version.save()
+        for orig_ref in mappings:
+            #this makes the mapping contain the correct text/commentary title
+            orig_ref = orig_ref.replace(orig_title, version.title)
+            print orig_ref
+            orRef = Ref(orig_ref)
+            tc = orRef.text(lang=version.language, vtitle=version.versionTitle)
+            ref_text = tc.text
+
+            #this makes the destination mapping contain both the correct text/commentary title
+            # and have it changed to the temp index title
+            dest_ref = mappings[orig_ref].replace(orig_title, version.title)
+            dest_ref = dest_ref.replace(orig_title, new_title)
+            print dest_ref
+
+            dRef = Ref(dest_ref)
+            ref_depth = dRef.range_index() if dRef.is_range() else len(dRef.sections)
+            text_depth = 0 if isinstance(ref_text, basestring) else list_depth(ref_text) #length hack to fit the correct JA
+            implied_depth = ref_depth + text_depth
+            desired_depth = dRef.index_node.depth
+            for i in range(implied_depth, desired_depth):
+                ref_text = [ref_text]
+
+            new_tc = dRef.text(lang=version.language, vtitle=version.versionTitle)
+            new_tc.versionSource = version.versionSource
+            new_tc.text = ref_text
+            new_tc.save()
+            VersionState(dRef.index.title).refresh()
