@@ -1400,14 +1400,14 @@ class TextChunk(AbstractTextRecord):
         else:
             raise Exception("Called TextChunk.version() on merged TextChunk.")
 
-    def text_index_map(self,tokenizer=lambda x: re.split(u'\s+',x), strict=True):
+    def text_index_map(self, tokenizer=lambda x: re.split(u'\s+', x), strict=True):
         """
         Primarily used for depth-2 texts in order to get index/ref pairs relative to the full text string
          indexes are the word index in word_list
 
         tokenizer: f(str)->list(str) - function to split up text
         strict: if True, throws error if len(ind_list) != len(ref_list). o/w truncates longer array to length of shorter
-        :return: (list,list,list) - index_list, ref_list, word_list
+        :return: (list,list) - index_list (0 based index of start word of each segment ref as compared with the text chunk ref), ref_list
         """
         #TODO there is a known error that this will fail if the text version you're using has fewer segments than the VersionState.
         ind_list = []
@@ -1447,7 +1447,7 @@ class TextChunk(AbstractTextRecord):
                 else:
                     ref_list = ref_list[:len(ind_list)]
 
-        return ind_list,ref_list
+        return ind_list, ref_list
 
 
 
@@ -3941,7 +3941,7 @@ class Library(object):
         :param with_commentary: If true, overrides `commentary` argument and matches BOTH "x on y" style records and simple records
         Note that matching behavior differs between commentary=True and with_commentary=True.
         commentary=True matches 'title', 'commentor' and 'commentee' named groups.
-        with_commentary=True matches only 'title', wether for plain records or commentary records.
+        with_commentary=True matches only 'title', whether for plain records or commentary records.
         :param with_terms:
         :param for_js:
         :return:
@@ -3999,7 +3999,7 @@ class Library(object):
         if not reg:
             re_string = self.all_titles_regex_string(lang, commentary, with_commentary, with_terms)
             try:
-                reg = re.compile(re_string, max_mem=256 * 1024 * 1024)
+                reg = re.compile(re_string, max_mem=512 * 1024 * 1024)
             except TypeError:
                 reg = re.compile(re_string)
             self._title_regexes[key] = reg
