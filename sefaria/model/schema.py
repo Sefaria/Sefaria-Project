@@ -838,8 +838,8 @@ class ArrayMapNode(NumberedTitledTreeNode):
                 depth        = len(first.index_node.sectionNames) - len(first.section_ref().sections)
 
                 d["refs"] = [r.normal() for r in refs]
-                d["addressTypes"] = d.get("addressTypes", []) + first.index_node.addressTypes[depth:]
-                d["sectionNames"] = d.get("sectionNames", []) + first.index_node.sectionNames[depth:]
+                d["addressTypes"] = d.get("addressTypes", []) + first.index_node.addressTypes[depth-1:depth]
+                d["sectionNames"] = d.get("sectionNames", []) + first.index_node.sectionNames[depth-1:depth]
                 d["depth"] += 1
                 d["offset"] = offset
 

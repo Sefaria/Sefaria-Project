@@ -2895,29 +2895,11 @@ var ReaderTextTableOfContents = React.createClass({
     }
   },
   componentDidMount: function() {
-    this.loadHtml();
     this.loadData();
-    this.bindToggles();
-    this.shrinkWrap();
-    window.addEventListener('resize', this.shrinkWrap);
-  },
-  componentWillUnmount: function() {
-    window.removeEventListener('resize', this.shrinkWrap);
   },
   componentDidUpdate: function(prevProps, prevState) {
     if ((this.props.settingsLanguage != prevProps.settingsLanguage)) {
       this.forceUpdate();
-    }
-    this.bindToggles();
-    this.shrinkWrap();
-  },
-  loadHtml: function() {
-    // Ensure textTocHtml is loaded in to cache, rerenders after data load if needed
-    var textTocHtml = Sefaria.textTocHtml(this.props.title);
-    if (!textTocHtml) {
-      Sefaria.textTocHtml(this.props.title, function() {
-        this.forceUpdate();
-      }.bind(this));
     }
   },
   getDataRef: function() {
@@ -2984,6 +2966,7 @@ var ReaderTextTableOfContents = React.createClass({
     return currentVersion;
   },
   handleClick: function(e) {
+    console.log("Text TOC Click")
     var $a = $(e.target).closest("a");
     if ($a.length) {
       var ref = $a.attr("data-ref");
@@ -2992,48 +2975,6 @@ var ReaderTextTableOfContents = React.createClass({
       this.props.close();
       this.props.showBaseText(ref, false, this.props.version, this.props.versionLanguage);
       e.preventDefault();
-    }
-  },
-  bindToggles: function() {
-    // Toggling TOC Alt structures
-    var component = this;
-    $(".altStructToggle").click(function(){
-        $(".altStructToggle").removeClass("active");
-        $(this).addClass("active");
-        var i = $(this).closest("#structToggles").find(".altStructToggle").index(this);
-        $(".altStruct").hide();
-        $(".altStruct").eq(i).show();
-        component.shrinkWrap();
-    });    
-  },
-  shrinkWrap: function() {
-    // Shrink the width of the container of a grid of inline-line block elements,
-    // so that is is tight around its contents thus able to appear centered. 
-    // As far as I can tell, there's no way to do this in pure CSS.
-    // TODO - flexbox should be able to solve this
-    var shrink  = function(i, container) {
-      var $container = $(container);
-      // don't run on complex nodes without sectionlinks
-      if ($container.hasClass("schema-node-toc") && !$container.find(".sectionLink").length) { return; } 
-      var maxWidth   = $container.parent().innerWidth();
-      var itemWidth  = $container.find(".sectionLink").outerWidth(true);
-      var nItems     = $container.find(".sectionLink").length;
-
-      if (maxWidth / itemWidth > nItems) {
-        var width = nItems * itemWidth;
-      } else {
-        var width = Math.floor(maxWidth / itemWidth) * itemWidth;
-      }
-      $container.width(width + "px");
-    };
-    var $root = $(ReactDOM.findDOMNode(this)).find(".altStruct:visible");
-    $root = $root.length ? $root : $(ReactDOM.findDOMNode(this)).find(".tocContent");
-    if ($root.find(".tocSection").length) {             // nested simple text
-      //$root.find(".tocSection").each(shrink); // Don't bother with these for now
-    } else if ($root.find(".schema-node-toc").length) { // complex text or alt struct
-      $root.find(".schema-node-toc, .schema-node-contents").each(shrink); 
-    } else {
-      $root.find(".tocLevel").each(shrink);             // Simple text, no nesting
     }
   },
   openVersion: function(version, language) {
@@ -3070,9 +3011,6 @@ var ReaderTextTableOfContents = React.createClass({
     return !(v.license && v.license.startsWith("Copyright"));
   },
   render: function() {
-    var tocHtml = Sefaria.textTocHtml(this.props.title);
-
-    tocHtml = tocHtml || <LoadingMessage />;
 
     var title     = this.props.title;
     var heTitle   = Sefaria.index(title) ? Sefaria.index(title).heTitle : title;
@@ -3081,8 +3019,7 @@ var ReaderTextTableOfContents = React.createClass({
     var defaultVersionString = "Default Version";
     var defaultVersionObject = null;
     var versionBlocks = null;
-    var showAllVersionsButton = <LoadingMessage />;
-    var dl_versions = [];
+    var downloadSection = null;
 
     // Text Details 
     var details = Sefaria.indexDetails(this.props.title);
@@ -3108,10 +3045,6 @@ var ReaderTextTableOfContents = React.createClass({
     var versions = this.getVersionsList();
     if (versions) {
 
-      if (cv) {
-        versions = versions.filter(v => v.language !== cv.language || v.versionTitle != cv.versionTitle);
-      }
-
       var [heVersionBlocks, enVersionBlocks] = ["he","en"].map(lang =>
        versions.filter(v => v.language == lang).map(v =>
         <VersionBlock title={title} version={v} openVersion={this.isTextToc ? this.openVersion : null} key={v.versionTitle + "/" + v.language}/>
@@ -3131,7 +3064,6 @@ var ReaderTextTableOfContents = React.createClass({
       if (versions.length == 0) { showAllVersionsButton = null; }
     }
 
-
     if (this.isTextToc()) {
       var sectionStrings = Sefaria.sectionString(this.props.currentRef);
       var section   = sectionStrings.en.named;
@@ -3147,66 +3079,68 @@ var ReaderTextTableOfContents = React.createClass({
       : null;
 
     // Downloading
-    var dlReady = (this.state.dlVersionTitle && this.state.dlVersionFormat && this.state.dlVersionLanguage);
-    dl_versions = [<option key="/" value="0" disabled>Version Settings</option>];
-    var pdVersions = versions.filter(this.isVersionPublicDomain);
-    if (cv && cv.merged) {
-      var other_lang = cv.language == "he" ? "en" : "he";
-      dl_versions = dl_versions.concat([
-        <option value={"merged/" + cv.language} key={"merged/" + cv.language} data-lang={cv.language} data-version="merged">Current Merged Version ({cv.language})</option>,
-        <option value={"merged/" + other_lang} key={"merged/" + other_lang} data-lang={other_lang} data-version="merged">Merged Version ({other_lang})</option>
-      ]);
-      dl_versions = dl_versions.concat(pdVersions.map(v =>
-        <option value={v.versionTitle + "/" + v.language} key={v.versionTitle + "/" + v.language}>{v.versionTitle + " (" + v.language + ")"}</option>
-      ));
-    }
-    else if (cv) {
-      if (this.isVersionPublicDomain(cv)) {
-        dl_versions.push(<option value={cv.versionTitle + "/" + cv.language} key={cv.versionTitle + "/" + cv.language}>Current Version ({cv.versionTitle + " (" + cv.language + ")"})</option>);
+    if (versions) {
+      var dlReady = (this.state.dlVersionTitle && this.state.dlVersionFormat && this.state.dlVersionLanguage);
+      var dl_versions = [<option key="/" value="0" disabled>Version Settings</option>];
+      var pdVersions = versions.filter(this.isVersionPublicDomain);
+      if (cv && cv.merged) {
+        var other_lang = cv.language == "he" ? "en" : "he";
+        dl_versions = dl_versions.concat([
+          <option value={"merged/" + cv.language} key={"merged/" + cv.language} data-lang={cv.language} data-version="merged">Current Merged Version ({cv.language})</option>,
+          <option value={"merged/" + other_lang} key={"merged/" + other_lang} data-lang={other_lang} data-version="merged">Merged Version ({other_lang})</option>
+        ]);
+        dl_versions = dl_versions.concat(pdVersions.map(v =>
+          <option value={v.versionTitle + "/" + v.language} key={v.versionTitle + "/" + v.language}>{v.versionTitle + " (" + v.language + ")"}</option>
+        ));
       }
-      dl_versions = dl_versions.concat([
-        <option value="merged/he" key="merged/he">Merged Version (he)</option>,
-        <option value="merged/en" key="merged/en">Merged Version (en)</option>
-      ]);
-      dl_versions = dl_versions.concat(pdVersions.filter(v => v.language != cv.language || v.versionTitle != cv.versionTitle).map(v =>
-        <option value={v.versionTitle + "/" + v.language} key={v.versionTitle + "/" + v.language}>{v.versionTitle + " (" + v.language + ")"}</option>
-      ));
-    }
-    else {
-      dl_versions = dl_versions.concat([
-        <option value="merged/he" key="merged/he">Merged Version (he)</option>,
-        <option value="merged/en" key="merged/en">Merged Version (en)</option>
-      ]);
-      dl_versions = dl_versions.concat(pdVersions.map(v =>
-        <option value={v.versionTitle + "/" + v.language} key={v.versionTitle + "/" + v.language}>{v.versionTitle + " (" + v.language + ")"}</option>
-      ));
-    }
-    var downloadButton = <div className="versionDownloadButton">
-        <div className="downloadButtonInner">
-          <span className="int-en">Download</span>
-          <span className="int-he">הורדה</span>
+      else if (cv) {
+        if (this.isVersionPublicDomain(cv)) {
+          dl_versions.push(<option value={cv.versionTitle + "/" + cv.language} key={cv.versionTitle + "/" + cv.language}>Current Version ({cv.versionTitle + " (" + cv.language + ")"})</option>);
+        }
+        dl_versions = dl_versions.concat([
+          <option value="merged/he" key="merged/he">Merged Version (he)</option>,
+          <option value="merged/en" key="merged/en">Merged Version (en)</option>
+        ]);
+        dl_versions = dl_versions.concat(pdVersions.filter(v => v.language != cv.language || v.versionTitle != cv.versionTitle).map(v =>
+          <option value={v.versionTitle + "/" + v.language} key={v.versionTitle + "/" + v.language}>{v.versionTitle + " (" + v.language + ")"}</option>
+        ));
+      }
+      else {
+        dl_versions = dl_versions.concat([
+          <option value="merged/he" key="merged/he">Merged Version (he)</option>,
+          <option value="merged/en" key="merged/en">Merged Version (en)</option>
+        ]);
+        dl_versions = dl_versions.concat(pdVersions.map(v =>
+          <option value={v.versionTitle + "/" + v.language} key={v.versionTitle + "/" + v.language}>{v.versionTitle + " (" + v.language + ")"}</option>
+        ));
+      }
+      var downloadButton = <div className="versionDownloadButton">
+          <div className="downloadButtonInner">
+            <span className="int-en">Download</span>
+            <span className="int-he">הורדה</span>
+          </div>
+        </div>;
+      var downloadSection = (
+        <div className="dlSection">
+          <h2 className="dlSectionTitle">
+            <span className="int-en">Download Text</span>
+            <span className="int-he">הורדת הטקסט</span>
+          </h2>
+          <select className="dlVersionSelect dlVersionTitleSelect" value={(this.state.dlVersionTitle && this.state.dlVersionLanguage)?this.state.dlVersionTitle + "/" + this.state.dlVersionLanguage:""} onChange={this.onDlVersionSelect}>
+            {dl_versions}
+          </select>
+          <select className="dlVersionSelect dlVersionFormatSelect" value={this.state.dlVersionFormat || ""} onChange={this.onDlFormatSelect}>
+            <option disabled>File Format</option>
+            <option key="txt" value="txt" >Text</option>
+            <option key="csv" value="csv" >CSV</option>
+            <option key="json" value="json" >JSON</option>
+          </select>
+          {dlReady?<a onClick={this.recordDownload} href={this.versionDlLink()} download>{downloadButton}</a>:downloadButton}
         </div>
-      </div>;
-    var downloadSection = (
-      <div className="dlSection">
-        <h2 className="dlSectionTitle">
-          <span className="int-en">Download Text</span>
-          <span className="int-he">הורדת הטקסט</span>
-        </h2>
-        <select className="dlVersionSelect dlVersionTitleSelect" value={(this.state.dlVersionTitle && this.state.dlVersionLanguage)?this.state.dlVersionTitle + "/" + this.state.dlVersionLanguage:""} onChange={this.onDlVersionSelect}>
-          {dl_versions}
-        </select>
-        <select className="dlVersionSelect dlVersionFormatSelect" value={this.state.dlVersionFormat || ""} onChange={this.onDlFormatSelect}>
-          <option disabled>File Format</option>
-          <option key="txt" value="txt" >Text</option>
-          <option key="csv" value="csv" >CSV</option>
-          <option key="json" value="json" >JSON</option>
-        </select>
-        {dlReady?<a onClick={this.recordDownload} href={this.versionDlLink()} download>{downloadButton}</a>:downloadButton}
-      </div>
-    );
+      );
+    }
 
-    var closeClick = (this.isBookToc())?this.props.closePanel:this.props.close;
+    var closeClick = (this.isBookToc()) ? this.props.closePanel : this.props.close;
     return (<div className="readerTextTableOfContents readerNavMenu">
               <CategoryColorLine category={this.props.category} />
               <div className="readerControls">
@@ -3245,20 +3179,22 @@ var ReaderTextTableOfContents = React.createClass({
                     : null}
                     {detailsSection}
                   </div>
-                  <div className="versionsBox">
-                    {this.isTextToc()?
-                      <div className="currentVersionBox">
-                          <h2>
-                            <span className="int-en">Current Version</span>
-                            <span className="int-he">גרסה נוכחית</span>
-                          </h2>
-                          {currentVersionElement || (<LoadingMessage />)}
-                      </div>
-                    : null}
-                    { showAllVersionsButton }
-                    { this.state.showAllVersions ? versionBlocks : null }
+                  {this.isTextToc()?
+                    <div className="currentVersionBox">
+                      {currentVersionElement || (<LoadingMessage />)}
+                    </div>
+                  : null}
+                  {details ? 
+                  <div onClick={this.handleClick}>
+                    <TextTableOfContentsNavigation
+                      schema={details.schema}
+                      commentatorList={Sefaria.commentaryList(this.props.title)}
+                      alts={details.alts}
+                      versionsList={versions}
+                      defaultStruct={"default_struct" in details ? details.default_struct : "default"} 
+                      title={this.props.title} />
                   </div>
-                  <div className="tocContent" dangerouslySetInnerHTML={ {__html: tocHtml} }  onClick={this.handleClick}></div>
+                  : <LoadingMessage />}
                   {downloadSection}
                 </div>
               </div>
@@ -3275,6 +3211,7 @@ var TextDetails = React.createClass({
     var authorLinks = "authors" in this.props.index ? // TODO Hebrew author names?
       this.props.index.authors.map(function (author) { return <a href={"/person/" + author}>{author}</a> }) : null;
     
+    var enDesc = "";
     var composedLine = null;
     if ("compDate" in this.props.index || "compPlace" in this.props.index) {
       var placeTime = [];
@@ -3283,8 +3220,10 @@ var TextDetails = React.createClass({
         var dateLine = this.props.index.compDate > 0 ? this.props.index.compDate + "CE" : Math.abs(this.props.index.compDate) + "BCE";
         placeTime.push(dateLine);
       }
-      composedLine = placeTime.join(", ");
+      composedLine = "Composed: " + placeTime.join(", ");
     }
+    enDesc += composedLine ? composedLine + ". " : "";
+    enDesc += "enDesc" in this.props.index ? this.props.index.enDesc : "";
     return (
       <div className="tocDetails">
         { "authors" in this.props.index ?
@@ -3297,27 +3236,373 @@ var TextDetails = React.createClass({
               </span>
           </div>
           : null }
-        { composedLine ?
-          <div className="tocDetail">
-              <span className="he">
-              </span>
-              <span className="en">
-                Composed: {composedLine}
-              </span>
-          </div>
-          : null }
-        { "enDesc" in this.props.index ?
+        { enDesc.length ?
           <div className="tocDetail description">
               <div className="he">
               </div>
               <div className="en">
-                <ReadMoreText text={this.props.index.enDesc} />
+                <ReadMoreText text={enDesc} />
               </div>
           </div>
           : null }
       </div>);
   }
 });
+
+
+var TextTableOfContentsNavigation = React.createClass({
+  propTypes: {
+    schema:          React.PropTypes.object.isRequired,
+    commentatorList: React.PropTypes.array,
+    alts:            React.PropTypes.object,
+    versionsList:    React.PropTypes.array,
+    defaultStruct:   React.PropTypes.string,
+    title:           React.PropTypes.string.isRequired,
+  },
+  getInitialState: function() {
+    return {
+      tab: this.props.defaultStruct
+    }
+  },
+  componentDidMount: function() {
+    this.shrinkWrap();
+    window.addEventListener('resize', this.shrinkWrap);
+  },
+  componentWillUnmount: function() {
+    window.removeEventListener('resize', this.shrinkWrap);
+  },
+  componentDidUpdate: function(prevProps, prevState) {
+    this.shrinkWrap();
+  },
+  setTab: function(tab) {
+    this.setState({tab: tab});
+  },
+  shrinkWrap: function() {
+    // Shrink the width of the container of a grid of inline-line block elements,
+    // so that is is tight around its contents thus able to appear centered. 
+    // As far as I can tell, there's no way to do this in pure CSS.
+    // TODO - flexbox should be able to solve this
+    var shrink  = function(i, container) {
+      var $container = $(container);
+      // don't run on complex nodes without sectionlinks
+      if ($container.hasClass("schema-node-toc") && !$container.find(".sectionLink").length) { return; } 
+      var maxWidth   = $container.parent().innerWidth();
+      var itemWidth  = $container.find(".sectionLink").outerWidth(true);
+      var nItems     = $container.find(".sectionLink").length;
+
+      if (maxWidth / itemWidth > nItems) {
+        var width = nItems * itemWidth;
+      } else {
+        var width = Math.floor(maxWidth / itemWidth) * itemWidth;
+      }
+      $container.width(width + "px");
+    };
+    var $root = $(ReactDOM.findDOMNode(this));
+    if ($root.find(".tocSection").length) {             // nested simple text
+      //$root.find(".tocSection").each(shrink); // Don't bother with these for now
+    } else if ($root.find(".schema-node-toc").length) { // complex text or alt struct
+      // $root.find(".schema-node-toc, .schema-node-contents").each(shrink); 
+    } else {
+      $root.find(".tocLevel").each(shrink);             // Simple text, no nesting
+    }
+  },
+  render: function() {
+    if (this.props.commentatorList.length || this.props.alts) {
+      var options = [{
+        name: "default",
+        text: "sectionNames" in this.props.schema ? this.props.schema.sectionNames[0] : "Contents",
+        heText: "sectionNames" in this.props.schema ? Sefaria.hebrewSectionName(this.props.schema.sectionNames[0]) : "תוכן",
+        onPress: this.setTab.bind(null, "default")
+      }];
+      if (this.props.alts) {
+        for (var alt in this.props.alts) {
+          if (this.props.alts.hasOwnProperty(alt)) {
+            options.push({
+              name: alt,
+              text: alt,
+              heText: Sefaria.hebrewSectionName(alt),
+              onPress: this.setTab.bind(null, alt)
+            });
+          }
+        }
+      }
+      if (this.props.commentatorList.length) {
+        options.push({
+          name: "commentary",
+          text: "Commentary",
+          heText: "מפרשים",
+          onPress: this.setTab.bind(null, "commentary")
+        });
+      }
+      options = options.sort(function(a, b) {
+        return a.name == this.props.defaultStruct ? -1 :
+                b.name == this.props.defaultStruct ? 1 : 0;
+      }.bind(this));
+      var toggle = <InlineToggleSet
+                      theme={this.props.theme}
+                      options={options}
+                      contentLang={this.props.contentLang}
+                      active={this.state.tab} />;
+    } else {
+      var toggle = null;
+    }
+
+    switch(this.state.tab) {
+      case "default":
+        var content = <SchemaNode
+                          theme={this.props.theme}
+                          schema={this.props.schema}
+                          addressTypes={this.props.schema.addressTypes}
+                          refPath={this.props.title} />;
+        break;
+      case "commentary":
+        var content = <CommentatorList
+                        theme={this.props.theme}
+                        commentatorList={this.props.commentatorList} />;
+        break;
+      default:
+        var content = <SchemaNode
+                          theme={this.props.theme}
+                          schema={this.props.alts[this.state.tab]}
+                          addressTypes={this.props.schema.addressTypes}
+                          refPath={this.props.title} />;
+        break;
+    }
+
+    return (
+      <div className="tocContent">
+        {toggle}
+        {content}
+      </div>
+    );
+  }
+})
+
+
+var InlineToggleSet = React.createClass({
+  propTypes: {
+    options:     React.PropTypes.array.isRequired, // array of object with `name`. `text`, `heText`, `onPress`
+    active:      React.PropTypes.string.isRequired
+  },
+  render: function() {
+    var options = this.props.options.map(function(option, i) {
+      var classes = classNames({altStructToggle: 1, active: this.props.active === option.name});
+      return (
+        <span className={classes} onClick={option.onPress} key={i}>
+            <span className="int-he">{option.heText}</span>
+            <span className="int-en">{option.text}</span>
+        </span>
+      );
+    }.bind(this));
+
+    var dividedOptions = [];
+    for (var i = 0; i < options.length; i++) {
+      dividedOptions.push(options[i])
+      dividedOptions.push(<span className="toggleDivider" key={i+"d"}>|</span>);
+    }
+    dividedOptions = dividedOptions.slice(0,-1);
+
+    return (<div id="structToggles">
+              {dividedOptions}
+            </div>);
+  }
+});
+
+
+var SchemaNode = React.createClass({
+  propTypes: {
+    schema:      React.PropTypes.object.isRequired,
+    refPath:     React.PropTypes.string.isRequired,
+  },
+  render: function() {
+    if (!("nodes" in this.props.schema)) {
+      if (this.props.schema.nodeType === "JaggedArrayNode") {
+        return (
+          <JaggedArrayNode
+            schema={this.props.schema}
+            refPath={this.props.refPath} />
+        );
+      } else if (this.props.schema.nodeType === "ArrayMapNode") {
+        return (
+          <ArrayMapNode
+            schema={this.props.schema} />
+        );
+      }
+
+    } else {
+      var content = this.props.schema.nodes.map(function(node, i) {
+        if ("nodes" in node || "refs" in node) {
+          return (
+            <div className="schema-node-toc" key={i}>
+              <span className="schema-node-title">
+                <span className="he">{node.heTitle} <i className="schema-node-control fa fa-angle-down"></i></span>
+                <span className="en">{node.title} <i className="schema-node-control fa fa-angle-down"></i></span>
+              </span>
+              <div className="schema-node-contents">
+                <SchemaNode
+                  theme={this.props.theme}
+                  schema={node}
+                  contentLang={this.props.contentLang}
+                  refPath={this.props.refPath + ", " + node.title} />
+              </div>
+            </div>);
+        } else if (node.depth == 1) {
+          var path = this.props.refPath + ", " + node.title;
+          return (
+            <a className="schema-node-toc linked" href={Sefaria.normRef(path)} data-ref={path} key={i}>
+              <span className="schema-node-title">
+                <span className="he">{node.heTitle} <i className="schema-node-control fa fa-angle-left"></i></span>
+                <span className="en">{node.title} <i className="schema-node-control fa fa-angle-right"></i></span>
+              </span>
+            </a>);
+        } else {
+          return (
+            <div className="schema-node-toc" key={i}>
+              <span className="schema-node-title">
+                <span className="he">{node.heTitle} <i className="schema-node-control fa fa-angle-down"></i></span>
+                <span className="en">{node.title} <i className="schema-node-control fa fa-angle-down"></i></span>
+              </span>
+              <div className="schema-node-contents">
+                <JaggedArrayNode
+                  theme={this.props.theme}
+                  schema={node}
+                  contentLang={this.props.contentLang}
+                  refPath={this.props.refPath + ", " + node.title} />
+              </div>
+            </div>);
+        }
+      }.bind(this));
+      return (
+        <div className="tocLevel">{content}</div>
+      );
+    }
+  }
+});
+
+
+var JaggedArrayNode = React.createClass({
+  propTypes: {
+    schema:      React.PropTypes.object.isRequired,
+    refPath:     React.PropTypes.string.isRequired
+  },
+  render: function() {
+    return (<JaggedArrayNodeSection
+              depth={this.props.schema.depth}
+              sectionNames={this.props.schema.sectionNames}
+              addressTypes={this.props.schema.addressTypes}
+              contentCounts={this.props.schema.content_counts}
+              refPath={this.props.refPath} />);
+  }
+});
+
+
+var JaggedArrayNodeSection = React.createClass({
+  propTypes: {
+    theme:           React.PropTypes.object.isRequired,
+    depth:           React.PropTypes.number.isRequired,
+    sectionNames:    React.PropTypes.array.isRequired,
+    addressTypes:    React.PropTypes.array.isRequired,
+    contentCounts:   React.PropTypes.oneOfType([
+                        React.PropTypes.array,
+                        React.PropTypes.number
+                      ]),
+    refPath:         React.PropTypes.string.isRequired,
+  },
+  render: function() {
+    if (this.props.depth > 2) {
+      var content = [];
+      for (var i = 0; i < this.props.contentCounts.length; i++) {
+        var enSection = this.props.sectionNames[0] + " " + (i+1);
+        var heSection = Sefaria.hebrewSectionName(this.props.sectionNames[0]) + " " + Sefaria.hebrew.encodeHebrewNumeral(i+1);
+        content.push(
+          <div className="tocSection" key={i}>
+            <div className="sectionName">
+              <span className="he">{heSection}</span>
+              <span className="en">{enSection}</span>
+            </div>
+            <JaggedArrayNodeSection
+              depth={this.props.depth - 1}
+              sectionNames={this.props.sectionNames.slice(1)}
+              addressTypes={this.props.addressTypes.slice(1)}
+              contentCounts={this.props.contentCounts[i]}
+              refPath={this.props.refPath + ":" + (i+1)} />
+          </div>);
+      }
+      return ( <div className="tocLevel">{content}</div> );
+    }
+
+    var contentCounts = this.props.depth == 1 ? new Array(this.props.contentCounts).fill(1) : this.props.contentCounts;
+    var sectionLinks = [];
+    for (var i = 0; i < contentCounts.length; i++) {
+      if (contentCounts[i] == 0) { continue; }
+      if (this.props.addressTypes[0] === "Talmud") {
+        var section = Sefaria.hebrew.intToDaf(i);
+        var heSection = Sefaria.hebrew.encodeHebrewDaf(section);
+      } else {
+        var section = i+1;
+        var heSection = Sefaria.hebrew.encodeHebrewNumeral(i+1);
+      }
+      var ref  = (this.props.refPath + ":" + section).replace(":", " ");
+      var link = (
+        <a className="sectionLink" href={Sefaria.normRef(ref)} data-ref={ref} key={i}>
+          <span className="he">{heSection}</span>
+          <span className="en">{section}</span> 
+        </a>
+      );
+      sectionLinks.push(link);
+    }
+    return (
+      <div className="tocLevel">{sectionLinks}</div>
+    );
+  }
+});
+
+
+var ArrayMapNode = React.createClass({
+  propTypes: {
+    schema:      React.PropTypes.object.isRequired
+  },
+  render: function() {
+    var sectionLinks = this.props.schema.refs.map(function(ref, i) {
+      i += this.props.schema.offset || 0;
+      if (this.props.schema.addressTypes[0] === "Talmud") {
+        var section = Sefaria.hebrew.intToDaf(i);
+        var heSection = Sefaria.hebrew.encodeHebrewDaf(section);
+      } else {
+        var section = i+1;
+        var heSection = Sefaria.hebrew.encodeHebrewNumeral(i+1);
+      }
+      return (
+        <a className="sectionLink" href={Sefaria.normRef(ref)} data-ref={ref} key={i}>
+          <span className="he">{heSection}</span>
+          <span className="en">{section}</span>
+        </a>
+      );
+    }.bind(this));
+
+    return (
+      <div>{sectionLinks}</div>
+    );
+  }
+});
+
+
+var CommentatorList = React.createClass({
+  propTypes: {
+    commentatorList: React.PropTypes.array.isRequired
+  },
+  render: function() {
+    var content = this.props.commentatorList.map(function(commentator, i) {
+      var ref = commentator.firstSection;
+      return (<a className="refLink" href={Sefaria.normRef(ref)} data-ref={ref} key={i}>
+                <span className="he">{commentator.heCommentator}</span>
+                <span className="en">{commentator.commentator}</span>
+            </a>);
+    }.bind(this));
+
+    return (<TwoBox content={content} />);
+  }
+})
 
 
 var VersionBlock = React.createClass({
@@ -4897,10 +5182,9 @@ var TextRange = React.createClass({
          language: this.props.versionLanguage || null
        }, function() {});
      }
-     if (data.book) { 
-        // Preload datat that is used on Text TOC page
-        Sefaria.textTocHtml(data.book, function() {}); 
-        Sefaria.indexDetails(data.book, function() {}); 
+     if (data.indexTitle) { 
+        // Preload data that is used on Text TOC page
+        Sefaria.indexDetails(data.indexTitle, function() {}); 
      }
     }
     this.dataPrefetched = true;

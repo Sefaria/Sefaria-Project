@@ -940,7 +940,6 @@ a.resourcesLink {
 }
 .readerTextTableOfContents .tocTop {
   padding-bottom:  20px;
-  border-bottom: 1px solid #CCC;
 }
 .readerTextTableOfContents .tocCategory {
   color:#999;
@@ -977,15 +976,16 @@ a.resourcesLink {
 }
 .readerTextTableOfContents .tocDetails .description {
   margin-top: 10px;
+  text-align: center;
+  font-style: normal;
   font-size: 16px;
   line-height: 1.4;  
 }
 .readerTextTableOfContents .tocDetails .description .readMoreText {
-  text-align: justify;
   display: block;
 }
-.readerTextTableOfContents .tocDetails .description .readMoreLink{
-  font-style: normal;
+.readerTextTableOfContents .tocDetails .description .readMoreLink {
+  font-style: italic;
   cursor: pointer;
   font-size: 14px;
   color: #666;
@@ -1007,7 +1007,7 @@ a.resourcesLink {
 }
 .readerTextTableOfContents .currentVersionBox .versionTitle {
   display: block;
-  font-size: 20px;
+  font-size: 19px;
   color: #333;
 }
 .readerTextTableOfContents .currentVersionBox .versionSource,
@@ -1136,6 +1136,9 @@ a.resourcesLink {
   color: #999;
   display: inline-block;
   cursor: pointer;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
 }
 .readerTextTableOfContents #structToggles .toggleDivider {
   color: #ccc;
@@ -1196,7 +1199,12 @@ a.resourcesLink {
   display: block;
   margin: 0 auto;
 }
-
+.readerTextTableOfContents .content .tocContent > .tocLevel > .schema-node-toc {
+  margin: 10px 0;
+}
+.readerTextTableOfContents .schema-node-toc {
+  margin: 6px 20px;
+}
 .readerTextTableOfContents .schema-node-toc.depth1 {
     margin: 10px 0 0;
 }

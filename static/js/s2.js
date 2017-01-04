@@ -3311,29 +3311,11 @@ var ReaderTextTableOfContents = React.createClass({
     };
   },
   componentDidMount: function componentDidMount() {
-    this.loadHtml();
     this.loadData();
-    this.bindToggles();
-    this.shrinkWrap();
-    window.addEventListener('resize', this.shrinkWrap);
-  },
-  componentWillUnmount: function componentWillUnmount() {
-    window.removeEventListener('resize', this.shrinkWrap);
   },
   componentDidUpdate: function componentDidUpdate(prevProps, prevState) {
     if (this.props.settingsLanguage != prevProps.settingsLanguage) {
       this.forceUpdate();
-    }
-    this.bindToggles();
-    this.shrinkWrap();
-  },
-  loadHtml: function loadHtml() {
-    // Ensure textTocHtml is loaded in to cache, rerenders after data load if needed
-    var textTocHtml = Sefaria.textTocHtml(this.props.title);
-    if (!textTocHtml) {
-      Sefaria.textTocHtml(this.props.title, function () {
-        this.forceUpdate();
-      }.bind(this));
     }
   },
   getDataRef: function getDataRef() {
@@ -3425,51 +3407,6 @@ var ReaderTextTableOfContents = React.createClass({
       e.preventDefault();
     }
   },
-  bindToggles: function bindToggles() {
-    // Toggling TOC Alt structures
-    var component = this;
-    $(".altStructToggle").click(function () {
-      $(".altStructToggle").removeClass("active");
-      $(this).addClass("active");
-      var i = $(this).closest("#structToggles").find(".altStructToggle").index(this);
-      $(".altStruct").hide();
-      $(".altStruct").eq(i).show();
-      component.shrinkWrap();
-    });
-  },
-  shrinkWrap: function shrinkWrap() {
-    // Shrink the width of the container of a grid of inline-line block elements,
-    // so that is is tight around its contents thus able to appear centered.
-    // As far as I can tell, there's no way to do this in pure CSS.
-    // TODO - flexbox should be able to solve this
-    var shrink = function shrink(i, container) {
-      var $container = $(container);
-      // don't run on complex nodes without sectionlinks
-      if ($container.hasClass("schema-node-toc") && !$container.find(".sectionLink").length) {
-        return;
-      }
-      var maxWidth = $container.parent().innerWidth();
-      var itemWidth = $container.find(".sectionLink").outerWidth(true);
-      var nItems = $container.find(".sectionLink").length;
-
-      if (maxWidth / itemWidth > nItems) {
-        var width = nItems * itemWidth;
-      } else {
-        var width = Math.floor(maxWidth / itemWidth) * itemWidth;
-      }
-      $container.width(width + "px");
-    };
-    var $root = $(ReactDOM.findDOMNode(this)).find(".altStruct:visible");
-    $root = $root.length ? $root : $(ReactDOM.findDOMNode(this)).find(".tocContent");
-    if ($root.find(".tocSection").length) {// nested simple text
-      //$root.find(".tocSection").each(shrink); // Don't bother with these for now
-    } else if ($root.find(".schema-node-toc").length) {
-        // complex text or alt struct
-        $root.find(".schema-node-toc, .schema-node-contents").each(shrink);
-      } else {
-        $root.find(".tocLevel").each(shrink); // Simple text, no nesting
-      }
-  },
   openVersion: function openVersion(version, language) {
     // Selects a version and closes this menu to show it.
     // Calling this functon wihtout parameters resets to default
@@ -3513,10 +3450,6 @@ var ReaderTextTableOfContents = React.createClass({
   render: function render() {
     var _this2 = this;
 
-    var tocHtml = Sefaria.textTocHtml(this.props.title);
-
-    tocHtml = tocHtml || React.createElement(LoadingMessage, null);
-
     var title = this.props.title;
     var heTitle = Sefaria.index(title) ? Sefaria.index(title).heTitle : title;
 
@@ -3524,8 +3457,7 @@ var ReaderTextTableOfContents = React.createClass({
     var defaultVersionString = "Default Version";
     var defaultVersionObject = null;
     var versionBlocks = null;
-    var showAllVersionsButton = React.createElement(LoadingMessage, null);
-    var dl_versions = [];
+    var downloadSection = null;
 
     // Text Details
     var details = Sefaria.indexDetails(this.props.title);
@@ -3559,13 +3491,6 @@ var ReaderTextTableOfContents = React.createClass({
     // Versions List
     var versions = this.getVersionsList();
     if (versions) {
-
-      if (cv) {
-        versions = versions.filter(function (v) {
-          return v.language !== cv.language || v.versionTitle != cv.versionTitle;
-        });
-      }
-
       var _map = ["he", "en"].map(function (lang) {
         return versions.filter(function (v) {
           return v.language == lang;
@@ -3666,151 +3591,153 @@ var ReaderTextTableOfContents = React.createClass({
       versionStatus: this.state.currentVersion ? this.state.currentVersion.versionStatus : null }) : null;
 
     // Downloading
-    var dlReady = this.state.dlVersionTitle && this.state.dlVersionFormat && this.state.dlVersionLanguage;
-    dl_versions = [React.createElement(
-      'option',
-      { key: '/', value: '0', disabled: true },
-      'Version Settings'
-    )];
-    var pdVersions = versions.filter(this.isVersionPublicDomain);
-    if (cv && cv.merged) {
-      var other_lang = cv.language == "he" ? "en" : "he";
-      dl_versions = dl_versions.concat([React.createElement(
+    if (versions) {
+      var dlReady = this.state.dlVersionTitle && this.state.dlVersionFormat && this.state.dlVersionLanguage;
+      var dl_versions = [React.createElement(
         'option',
-        { value: "merged/" + cv.language, key: "merged/" + cv.language, 'data-lang': cv.language, 'data-version': 'merged' },
-        'Current Merged Version (',
-        cv.language,
-        ')'
-      ), React.createElement(
-        'option',
-        { value: "merged/" + other_lang, key: "merged/" + other_lang, 'data-lang': other_lang, 'data-version': 'merged' },
-        'Merged Version (',
-        other_lang,
-        ')'
-      )]);
-      dl_versions = dl_versions.concat(pdVersions.map(function (v) {
-        return React.createElement(
+        { key: '/', value: '0', disabled: true },
+        'Version Settings'
+      )];
+      var pdVersions = versions.filter(this.isVersionPublicDomain);
+      if (cv && cv.merged) {
+        var other_lang = cv.language == "he" ? "en" : "he";
+        dl_versions = dl_versions.concat([React.createElement(
           'option',
-          { value: v.versionTitle + "/" + v.language, key: v.versionTitle + "/" + v.language },
-          v.versionTitle + " (" + v.language + ")"
-        );
-      }));
-    } else if (cv) {
-      if (this.isVersionPublicDomain(cv)) {
-        dl_versions.push(React.createElement(
-          'option',
-          { value: cv.versionTitle + "/" + cv.language, key: cv.versionTitle + "/" + cv.language },
-          'Current Version (',
-          cv.versionTitle + " (" + cv.language + ")",
+          { value: "merged/" + cv.language, key: "merged/" + cv.language, 'data-lang': cv.language, 'data-version': 'merged' },
+          'Current Merged Version (',
+          cv.language,
           ')'
-        ));
+        ), React.createElement(
+          'option',
+          { value: "merged/" + other_lang, key: "merged/" + other_lang, 'data-lang': other_lang, 'data-version': 'merged' },
+          'Merged Version (',
+          other_lang,
+          ')'
+        )]);
+        dl_versions = dl_versions.concat(pdVersions.map(function (v) {
+          return React.createElement(
+            'option',
+            { value: v.versionTitle + "/" + v.language, key: v.versionTitle + "/" + v.language },
+            v.versionTitle + " (" + v.language + ")"
+          );
+        }));
+      } else if (cv) {
+        if (this.isVersionPublicDomain(cv)) {
+          dl_versions.push(React.createElement(
+            'option',
+            { value: cv.versionTitle + "/" + cv.language, key: cv.versionTitle + "/" + cv.language },
+            'Current Version (',
+            cv.versionTitle + " (" + cv.language + ")",
+            ')'
+          ));
+        }
+        dl_versions = dl_versions.concat([React.createElement(
+          'option',
+          { value: 'merged/he', key: 'merged/he' },
+          'Merged Version (he)'
+        ), React.createElement(
+          'option',
+          { value: 'merged/en', key: 'merged/en' },
+          'Merged Version (en)'
+        )]);
+        dl_versions = dl_versions.concat(pdVersions.filter(function (v) {
+          return v.language != cv.language || v.versionTitle != cv.versionTitle;
+        }).map(function (v) {
+          return React.createElement(
+            'option',
+            { value: v.versionTitle + "/" + v.language, key: v.versionTitle + "/" + v.language },
+            v.versionTitle + " (" + v.language + ")"
+          );
+        }));
+      } else {
+        dl_versions = dl_versions.concat([React.createElement(
+          'option',
+          { value: 'merged/he', key: 'merged/he' },
+          'Merged Version (he)'
+        ), React.createElement(
+          'option',
+          { value: 'merged/en', key: 'merged/en' },
+          'Merged Version (en)'
+        )]);
+        dl_versions = dl_versions.concat(pdVersions.map(function (v) {
+          return React.createElement(
+            'option',
+            { value: v.versionTitle + "/" + v.language, key: v.versionTitle + "/" + v.language },
+            v.versionTitle + " (" + v.language + ")"
+          );
+        }));
       }
-      dl_versions = dl_versions.concat([React.createElement(
-        'option',
-        { value: 'merged/he', key: 'merged/he' },
-        'Merged Version (he)'
-      ), React.createElement(
-        'option',
-        { value: 'merged/en', key: 'merged/en' },
-        'Merged Version (en)'
-      )]);
-      dl_versions = dl_versions.concat(pdVersions.filter(function (v) {
-        return v.language != cv.language || v.versionTitle != cv.versionTitle;
-      }).map(function (v) {
-        return React.createElement(
-          'option',
-          { value: v.versionTitle + "/" + v.language, key: v.versionTitle + "/" + v.language },
-          v.versionTitle + " (" + v.language + ")"
-        );
-      }));
-    } else {
-      dl_versions = dl_versions.concat([React.createElement(
-        'option',
-        { value: 'merged/he', key: 'merged/he' },
-        'Merged Version (he)'
-      ), React.createElement(
-        'option',
-        { value: 'merged/en', key: 'merged/en' },
-        'Merged Version (en)'
-      )]);
-      dl_versions = dl_versions.concat(pdVersions.map(function (v) {
-        return React.createElement(
-          'option',
-          { value: v.versionTitle + "/" + v.language, key: v.versionTitle + "/" + v.language },
-          v.versionTitle + " (" + v.language + ")"
-        );
-      }));
-    }
-    var downloadButton = React.createElement(
-      'div',
-      { className: 'versionDownloadButton' },
-      React.createElement(
+      var downloadButton = React.createElement(
         'div',
-        { className: 'downloadButtonInner' },
+        { className: 'versionDownloadButton' },
         React.createElement(
-          'span',
-          { className: 'int-en' },
-          'Download'
-        ),
-        React.createElement(
-          'span',
-          { className: 'int-he' },
-          'הורדה'
+          'div',
+          { className: 'downloadButtonInner' },
+          React.createElement(
+            'span',
+            { className: 'int-en' },
+            'Download'
+          ),
+          React.createElement(
+            'span',
+            { className: 'int-he' },
+            'הורדה'
+          )
         )
-      )
-    );
-    var downloadSection = React.createElement(
-      'div',
-      { className: 'dlSection' },
-      React.createElement(
-        'h2',
-        { className: 'dlSectionTitle' },
+      );
+      var downloadSection = React.createElement(
+        'div',
+        { className: 'dlSection' },
         React.createElement(
-          'span',
-          { className: 'int-en' },
-          'Download Text'
+          'h2',
+          { className: 'dlSectionTitle' },
+          React.createElement(
+            'span',
+            { className: 'int-en' },
+            'Download Text'
+          ),
+          React.createElement(
+            'span',
+            { className: 'int-he' },
+            'הורדת הטקסט'
+          )
         ),
         React.createElement(
-          'span',
-          { className: 'int-he' },
-          'הורדת הטקסט'
-        )
-      ),
-      React.createElement(
-        'select',
-        { className: 'dlVersionSelect dlVersionTitleSelect', value: this.state.dlVersionTitle && this.state.dlVersionLanguage ? this.state.dlVersionTitle + "/" + this.state.dlVersionLanguage : "", onChange: this.onDlVersionSelect },
-        dl_versions
-      ),
-      React.createElement(
-        'select',
-        { className: 'dlVersionSelect dlVersionFormatSelect', value: this.state.dlVersionFormat || "", onChange: this.onDlFormatSelect },
-        React.createElement(
-          'option',
-          { disabled: true },
-          'File Format'
+          'select',
+          { className: 'dlVersionSelect dlVersionTitleSelect', value: this.state.dlVersionTitle && this.state.dlVersionLanguage ? this.state.dlVersionTitle + "/" + this.state.dlVersionLanguage : "", onChange: this.onDlVersionSelect },
+          dl_versions
         ),
         React.createElement(
-          'option',
-          { key: 'txt', value: 'txt' },
-          'Text'
+          'select',
+          { className: 'dlVersionSelect dlVersionFormatSelect', value: this.state.dlVersionFormat || "", onChange: this.onDlFormatSelect },
+          React.createElement(
+            'option',
+            { disabled: true },
+            'File Format'
+          ),
+          React.createElement(
+            'option',
+            { key: 'txt', value: 'txt' },
+            'Text'
+          ),
+          React.createElement(
+            'option',
+            { key: 'csv', value: 'csv' },
+            'CSV'
+          ),
+          React.createElement(
+            'option',
+            { key: 'json', value: 'json' },
+            'JSON'
+          )
         ),
-        React.createElement(
-          'option',
-          { key: 'csv', value: 'csv' },
-          'CSV'
-        ),
-        React.createElement(
-          'option',
-          { key: 'json', value: 'json' },
-          'JSON'
-        )
-      ),
-      dlReady ? React.createElement(
-        'a',
-        { onClick: this.recordDownload, href: this.versionDlLink(), download: true },
-        downloadButton
-      ) : downloadButton
-    );
+        dlReady ? React.createElement(
+          'a',
+          { onClick: this.recordDownload, href: this.versionDlLink(), download: true },
+          downloadButton
+        ) : downloadButton
+      );
+    }
 
     var closeClick = this.isBookToc() ? this.props.closePanel : this.props.close;
     return React.createElement(
@@ -3907,32 +3834,22 @@ var ReaderTextTableOfContents = React.createClass({
             ) : null,
             detailsSection
           ),
-          React.createElement(
+          this.isTextToc() ? React.createElement(
             'div',
-            { className: 'versionsBox' },
-            this.isTextToc() ? React.createElement(
-              'div',
-              { className: 'currentVersionBox' },
-              React.createElement(
-                'h2',
-                null,
-                React.createElement(
-                  'span',
-                  { className: 'int-en' },
-                  'Current Version'
-                ),
-                React.createElement(
-                  'span',
-                  { className: 'int-he' },
-                  'גרסה נוכחית'
-                )
-              ),
-              currentVersionElement || React.createElement(LoadingMessage, null)
-            ) : null,
-            showAllVersionsButton,
-            this.state.showAllVersions ? versionBlocks : null
-          ),
-          React.createElement('div', { className: 'tocContent', dangerouslySetInnerHTML: { __html: tocHtml }, onClick: this.handleClick }),
+            { className: 'currentVersionBox' },
+            currentVersionElement || React.createElement(LoadingMessage, null)
+          ) : null,
+          details ? React.createElement(
+            'div',
+            { onClick: this.handleClick },
+            React.createElement(TextTableOfContentsNavigation, {
+              schema: details.schema,
+              commentatorList: Sefaria.commentaryList(this.props.title),
+              alts: details.alts,
+              versionsList: versions,
+              defaultStruct: "default_struct" in details ? details.default_struct : "default",
+              title: this.props.title })
+          ) : React.createElement(LoadingMessage, null),
           downloadSection
         )
       )
@@ -3956,6 +3873,7 @@ var TextDetails = React.createClass({
       );
     }) : null;
 
+    var enDesc = "";
     var composedLine = null;
     if ("compDate" in this.props.index || "compPlace" in this.props.index) {
       var placeTime = [];
@@ -3966,8 +3884,10 @@ var TextDetails = React.createClass({
         var dateLine = this.props.index.compDate > 0 ? this.props.index.compDate + "CE" : Math.abs(this.props.index.compDate) + "BCE";
         placeTime.push(dateLine);
       }
-      composedLine = placeTime.join(", ");
+      composedLine = "Composed: " + placeTime.join(", ");
     }
+    enDesc += composedLine ? composedLine + ". " : "";
+    enDesc += "enDesc" in this.props.index ? this.props.index.enDesc : "";
     return React.createElement(
       'div',
       { className: 'tocDetails' },
@@ -3987,28 +3907,484 @@ var TextDetails = React.createClass({
           authorLinks
         )
       ) : null,
-      composedLine ? React.createElement(
-        'div',
-        { className: 'tocDetail' },
-        React.createElement('span', { className: 'he' }),
-        React.createElement(
-          'span',
-          { className: 'en' },
-          'Composed: ',
-          composedLine
-        )
-      ) : null,
-      "enDesc" in this.props.index ? React.createElement(
+      enDesc.length ? React.createElement(
         'div',
         { className: 'tocDetail description' },
         React.createElement('div', { className: 'he' }),
         React.createElement(
           'div',
           { className: 'en' },
-          React.createElement(ReadMoreText, { text: this.props.index.enDesc })
+          React.createElement(ReadMoreText, { text: enDesc })
         )
       ) : null
     );
+  }
+});
+
+var TextTableOfContentsNavigation = React.createClass({
+  displayName: 'TextTableOfContentsNavigation',
+
+  propTypes: {
+    schema: React.PropTypes.object.isRequired,
+    commentatorList: React.PropTypes.array,
+    alts: React.PropTypes.object,
+    versionsList: React.PropTypes.array,
+    defaultStruct: React.PropTypes.string,
+    title: React.PropTypes.string.isRequired
+  },
+  getInitialState: function getInitialState() {
+    return {
+      tab: this.props.defaultStruct
+    };
+  },
+  componentDidMount: function componentDidMount() {
+    this.shrinkWrap();
+    window.addEventListener('resize', this.shrinkWrap);
+  },
+  componentWillUnmount: function componentWillUnmount() {
+    window.removeEventListener('resize', this.shrinkWrap);
+  },
+  componentDidUpdate: function componentDidUpdate(prevProps, prevState) {
+    this.shrinkWrap();
+  },
+  setTab: function setTab(tab) {
+    this.setState({ tab: tab });
+  },
+  shrinkWrap: function shrinkWrap() {
+    // Shrink the width of the container of a grid of inline-line block elements,
+    // so that is is tight around its contents thus able to appear centered.
+    // As far as I can tell, there's no way to do this in pure CSS.
+    // TODO - flexbox should be able to solve this
+    var shrink = function shrink(i, container) {
+      var $container = $(container);
+      // don't run on complex nodes without sectionlinks
+      if ($container.hasClass("schema-node-toc") && !$container.find(".sectionLink").length) {
+        return;
+      }
+      var maxWidth = $container.parent().innerWidth();
+      var itemWidth = $container.find(".sectionLink").outerWidth(true);
+      var nItems = $container.find(".sectionLink").length;
+
+      if (maxWidth / itemWidth > nItems) {
+        var width = nItems * itemWidth;
+      } else {
+        var width = Math.floor(maxWidth / itemWidth) * itemWidth;
+      }
+      $container.width(width + "px");
+    };
+    var $root = $(ReactDOM.findDOMNode(this));
+    if ($root.find(".tocSection").length) {// nested simple text
+      //$root.find(".tocSection").each(shrink); // Don't bother with these for now
+    } else if ($root.find(".schema-node-toc").length) {// complex text or alt struct
+        // $root.find(".schema-node-toc, .schema-node-contents").each(shrink);
+      } else {
+          $root.find(".tocLevel").each(shrink); // Simple text, no nesting
+        }
+  },
+  render: function render() {
+    if (this.props.commentatorList.length || this.props.alts) {
+      var options = [{
+        name: "default",
+        text: "sectionNames" in this.props.schema ? this.props.schema.sectionNames[0] : "Contents",
+        heText: "sectionNames" in this.props.schema ? Sefaria.hebrewSectionName(this.props.schema.sectionNames[0]) : "תוכן",
+        onPress: this.setTab.bind(null, "default")
+      }];
+      if (this.props.alts) {
+        for (var alt in this.props.alts) {
+          if (this.props.alts.hasOwnProperty(alt)) {
+            options.push({
+              name: alt,
+              text: alt,
+              heText: Sefaria.hebrewSectionName(alt),
+              onPress: this.setTab.bind(null, alt)
+            });
+          }
+        }
+      }
+      if (this.props.commentatorList.length) {
+        options.push({
+          name: "commentary",
+          text: "Commentary",
+          heText: "מפרשים",
+          onPress: this.setTab.bind(null, "commentary")
+        });
+      }
+      options = options.sort(function (a, b) {
+        return a.name == this.props.defaultStruct ? -1 : b.name == this.props.defaultStruct ? 1 : 0;
+      }.bind(this));
+      var toggle = React.createElement(InlineToggleSet, {
+        theme: this.props.theme,
+        options: options,
+        contentLang: this.props.contentLang,
+        active: this.state.tab });
+    } else {
+      var toggle = null;
+    }
+
+    switch (this.state.tab) {
+      case "default":
+        var content = React.createElement(SchemaNode, {
+          theme: this.props.theme,
+          schema: this.props.schema,
+          addressTypes: this.props.schema.addressTypes,
+          refPath: this.props.title });
+        break;
+      case "commentary":
+        var content = React.createElement(CommentatorList, {
+          theme: this.props.theme,
+          commentatorList: this.props.commentatorList });
+        break;
+      default:
+        var content = React.createElement(SchemaNode, {
+          theme: this.props.theme,
+          schema: this.props.alts[this.state.tab],
+          addressTypes: this.props.schema.addressTypes,
+          refPath: this.props.title });
+        break;
+    }
+
+    return React.createElement(
+      'div',
+      { className: 'tocContent' },
+      toggle,
+      content
+    );
+  }
+});
+
+var InlineToggleSet = React.createClass({
+  displayName: 'InlineToggleSet',
+
+  propTypes: {
+    options: React.PropTypes.array.isRequired, // array of object with `name`. `text`, `heText`, `onPress`
+    active: React.PropTypes.string.isRequired
+  },
+  render: function render() {
+    var options = this.props.options.map(function (option, i) {
+      var classes = classNames({ altStructToggle: 1, active: this.props.active === option.name });
+      return React.createElement(
+        'span',
+        { className: classes, onClick: option.onPress, key: i },
+        React.createElement(
+          'span',
+          { className: 'int-he' },
+          option.heText
+        ),
+        React.createElement(
+          'span',
+          { className: 'int-en' },
+          option.text
+        )
+      );
+    }.bind(this));
+
+    var dividedOptions = [];
+    for (var i = 0; i < options.length; i++) {
+      dividedOptions.push(options[i]);
+      dividedOptions.push(React.createElement(
+        'span',
+        { className: 'toggleDivider', key: i + "d" },
+        '|'
+      ));
+    }
+    dividedOptions = dividedOptions.slice(0, -1);
+
+    return React.createElement(
+      'div',
+      { id: 'structToggles' },
+      dividedOptions
+    );
+  }
+});
+
+var SchemaNode = React.createClass({
+  displayName: 'SchemaNode',
+
+  propTypes: {
+    schema: React.PropTypes.object.isRequired,
+    refPath: React.PropTypes.string.isRequired
+  },
+  render: function render() {
+    if (!("nodes" in this.props.schema)) {
+      if (this.props.schema.nodeType === "JaggedArrayNode") {
+        return React.createElement(JaggedArrayNode, {
+          schema: this.props.schema,
+          refPath: this.props.refPath });
+      } else if (this.props.schema.nodeType === "ArrayMapNode") {
+        return React.createElement(ArrayMapNode, {
+          schema: this.props.schema });
+      }
+    } else {
+      var content = this.props.schema.nodes.map(function (node, i) {
+        if ("nodes" in node || "refs" in node) {
+          return React.createElement(
+            'div',
+            { className: 'schema-node-toc', key: i },
+            React.createElement(
+              'span',
+              { className: 'schema-node-title' },
+              React.createElement(
+                'span',
+                { className: 'he' },
+                node.heTitle,
+                ' ',
+                React.createElement('i', { className: 'schema-node-control fa fa-angle-down' })
+              ),
+              React.createElement(
+                'span',
+                { className: 'en' },
+                node.title,
+                ' ',
+                React.createElement('i', { className: 'schema-node-control fa fa-angle-down' })
+              )
+            ),
+            React.createElement(
+              'div',
+              { className: 'schema-node-contents' },
+              React.createElement(SchemaNode, {
+                theme: this.props.theme,
+                schema: node,
+                contentLang: this.props.contentLang,
+                refPath: this.props.refPath + ", " + node.title })
+            )
+          );
+        } else if (node.depth == 1) {
+          var path = this.props.refPath + ", " + node.title;
+          return React.createElement(
+            'a',
+            { className: 'schema-node-toc linked', href: Sefaria.normRef(path), 'data-ref': path, key: i },
+            React.createElement(
+              'span',
+              { className: 'schema-node-title' },
+              React.createElement(
+                'span',
+                { className: 'he' },
+                node.heTitle,
+                ' ',
+                React.createElement('i', { className: 'schema-node-control fa fa-angle-left' })
+              ),
+              React.createElement(
+                'span',
+                { className: 'en' },
+                node.title,
+                ' ',
+                React.createElement('i', { className: 'schema-node-control fa fa-angle-right' })
+              )
+            )
+          );
+        } else {
+          return React.createElement(
+            'div',
+            { className: 'schema-node-toc', key: i },
+            React.createElement(
+              'span',
+              { className: 'schema-node-title' },
+              React.createElement(
+                'span',
+                { className: 'he' },
+                node.heTitle,
+                ' ',
+                React.createElement('i', { className: 'schema-node-control fa fa-angle-down' })
+              ),
+              React.createElement(
+                'span',
+                { className: 'en' },
+                node.title,
+                ' ',
+                React.createElement('i', { className: 'schema-node-control fa fa-angle-down' })
+              )
+            ),
+            React.createElement(
+              'div',
+              { className: 'schema-node-contents' },
+              React.createElement(JaggedArrayNode, {
+                theme: this.props.theme,
+                schema: node,
+                contentLang: this.props.contentLang,
+                refPath: this.props.refPath + ", " + node.title })
+            )
+          );
+        }
+      }.bind(this));
+      return React.createElement(
+        'div',
+        { className: 'tocLevel' },
+        content
+      );
+    }
+  }
+});
+
+var JaggedArrayNode = React.createClass({
+  displayName: 'JaggedArrayNode',
+
+  propTypes: {
+    schema: React.PropTypes.object.isRequired,
+    refPath: React.PropTypes.string.isRequired
+  },
+  render: function render() {
+    return React.createElement(JaggedArrayNodeSection, {
+      depth: this.props.schema.depth,
+      sectionNames: this.props.schema.sectionNames,
+      addressTypes: this.props.schema.addressTypes,
+      contentCounts: this.props.schema.content_counts,
+      refPath: this.props.refPath });
+  }
+});
+
+var JaggedArrayNodeSection = React.createClass({
+  displayName: 'JaggedArrayNodeSection',
+
+  propTypes: {
+    theme: React.PropTypes.object.isRequired,
+    depth: React.PropTypes.number.isRequired,
+    sectionNames: React.PropTypes.array.isRequired,
+    addressTypes: React.PropTypes.array.isRequired,
+    contentCounts: React.PropTypes.oneOfType([React.PropTypes.array, React.PropTypes.number]),
+    refPath: React.PropTypes.string.isRequired
+  },
+  render: function render() {
+    if (this.props.depth > 2) {
+      var content = [];
+      for (var i = 0; i < this.props.contentCounts.length; i++) {
+        var enSection = this.props.sectionNames[0] + " " + (i + 1);
+        var heSection = Sefaria.hebrewSectionName(this.props.sectionNames[0]) + " " + Sefaria.hebrew.encodeHebrewNumeral(i + 1);
+        content.push(React.createElement(
+          'div',
+          { className: 'tocSection', key: i },
+          React.createElement(
+            'div',
+            { className: 'sectionName' },
+            React.createElement(
+              'span',
+              { className: 'he' },
+              heSection
+            ),
+            React.createElement(
+              'span',
+              { className: 'en' },
+              enSection
+            )
+          ),
+          React.createElement(JaggedArrayNodeSection, {
+            depth: this.props.depth - 1,
+            sectionNames: this.props.sectionNames.slice(1),
+            addressTypes: this.props.addressTypes.slice(1),
+            contentCounts: this.props.contentCounts[i],
+            refPath: this.props.refPath + ":" + (i + 1) })
+        ));
+      }
+      return React.createElement(
+        'div',
+        { className: 'tocLevel' },
+        content
+      );
+    }
+
+    var contentCounts = this.props.depth == 1 ? new Array(this.props.contentCounts).fill(1) : this.props.contentCounts;
+    var sectionLinks = [];
+    for (var i = 0; i < contentCounts.length; i++) {
+      if (contentCounts[i] == 0) {
+        continue;
+      }
+      if (this.props.addressTypes[0] === "Talmud") {
+        var section = Sefaria.hebrew.intToDaf(i);
+        var heSection = Sefaria.hebrew.encodeHebrewDaf(section);
+      } else {
+        var section = i + 1;
+        var heSection = Sefaria.hebrew.encodeHebrewNumeral(i + 1);
+      }
+      var ref = (this.props.refPath + ":" + section).replace(":", " ");
+      var link = React.createElement(
+        'a',
+        { className: 'sectionLink', href: Sefaria.normRef(ref), 'data-ref': ref, key: i },
+        React.createElement(
+          'span',
+          { className: 'he' },
+          heSection
+        ),
+        React.createElement(
+          'span',
+          { className: 'en' },
+          section
+        )
+      );
+      sectionLinks.push(link);
+    }
+    return React.createElement(
+      'div',
+      { className: 'tocLevel' },
+      sectionLinks
+    );
+  }
+});
+
+var ArrayMapNode = React.createClass({
+  displayName: 'ArrayMapNode',
+
+  propTypes: {
+    schema: React.PropTypes.object.isRequired
+  },
+  render: function render() {
+    var sectionLinks = this.props.schema.refs.map(function (ref, i) {
+      i += this.props.schema.offset || 0;
+      if (this.props.schema.addressTypes[0] === "Talmud") {
+        var section = Sefaria.hebrew.intToDaf(i);
+        var heSection = Sefaria.hebrew.encodeHebrewDaf(section);
+      } else {
+        var section = i + 1;
+        var heSection = Sefaria.hebrew.encodeHebrewNumeral(i + 1);
+      }
+      return React.createElement(
+        'a',
+        { className: 'sectionLink', href: Sefaria.normRef(ref), 'data-ref': ref, key: i },
+        React.createElement(
+          'span',
+          { className: 'he' },
+          heSection
+        ),
+        React.createElement(
+          'span',
+          { className: 'en' },
+          section
+        )
+      );
+    }.bind(this));
+
+    return React.createElement(
+      'div',
+      null,
+      sectionLinks
+    );
+  }
+});
+
+var CommentatorList = React.createClass({
+  displayName: 'CommentatorList',
+
+  propTypes: {
+    commentatorList: React.PropTypes.array.isRequired
+  },
+  render: function render() {
+    var content = this.props.commentatorList.map(function (commentator, i) {
+      var ref = commentator.firstSection;
+      return React.createElement(
+        'a',
+        { className: 'refLink', href: Sefaria.normRef(ref), 'data-ref': ref, key: i },
+        React.createElement(
+          'span',
+          { className: 'he' },
+          commentator.heCommentator
+        ),
+        React.createElement(
+          'span',
+          { className: 'en' },
+          commentator.commentator
+        )
+      );
+    }.bind(this));
+
+    return React.createElement(TwoBox, { content: content });
   }
 });
 
@@ -6108,10 +6484,9 @@ var TextRange = React.createClass({
           language: this.props.versionLanguage || null
         }, function () {});
       }
-      if (data.book) {
-        // Preload datat that is used on Text TOC page
-        Sefaria.textTocHtml(data.book, function () {});
-        Sefaria.indexDetails(data.book, function () {});
+      if (data.indexTitle) {
+        // Preload data that is used on Text TOC page
+        Sefaria.indexDetails(data.indexTitle, function () {});
       }
     }
     this.dataPrefetched = true;

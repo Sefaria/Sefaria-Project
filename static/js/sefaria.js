@@ -90,7 +90,7 @@ Sefaria = extend(Sefaria, {
       return response;
   },
   makeRef: function(q) {
-      // Returns a string ref correpsonding to the parsed ref `q` (like Ref.normal() in Python)
+      // Returns a string ref correpsonding to the parsed ref `q` (like Ref.url() in Python)
       if (!(q.book && q.sections && q.toSections)) {
           return {"error": "Bad input."};
       }
@@ -431,7 +431,7 @@ Sefaria = extend(Sefaria, {
       if (cb) {cb(details)}
       return details;
     }
-    var url = "/api/v2/index/" + title;
+    var url = "/api/v2/index/" + title + "?with_content_counts=1";
     this._api(url, function(data) {
       if (cb) { cb(data); }
       Sefaria._indexDetails[title] = data;
@@ -902,71 +902,6 @@ Sefaria = extend(Sefaria, {
     this._relatedSummaries[ref] = summary;
     return summary;
   },
-  textTocHtml: function(title, callback) {
-    // Returns an HTML fragment of the table of contents of the text 'title'
-    if (!title) { return null; }
-    var html = this._textTocHtml[title] || null;
-    if (!callback) {
-      return html;
-    }
-    if (html) {
-      callback(html);
-      return html;
-    } else {
-      $.ajax({
-        url: "/api/toc-html/" + title,
-        dataType: "html",
-        success: function(html) {
-          this._saveTextTocHtml(title, html);
-          callback(this._textTocHtml[title]);
-        }.bind(this)
-      });
-      return null;
-    } 
-  },
-  _makeTextTocHtml: function(title, html) {
-    // Modifies Text TOC HTML received from server
-    // Replaces links and adds commentary section
-    // TODO after S1 is deprecated, merge this logic into server
-    html = html.replace(/ href="\/([^"]*)"/g, ' href="$1" data-ref="$1"');
-    var commentaryList  = this.commentaryList(title);
-    if (commentaryList.length) {
-      var commentaryHtml = "<div class='altStruct' style='display:none'>" + 
-                              commentaryList.map(function(item) {
-                                  return "<a class='refLink' href='" + Sefaria.normRef(item.firstSection).escapeHtml() + "' data-ref='" + item.firstSection.escapeHtml() + "'>" +
-                                            "<span class='en'>" + item.commentator + "</span>" +
-                                            "<span class='he'>" + item.heCommentator + "</span>" +
-                                          "</a>";
-                              }).join("") +
-                            "</div>";
-      var $html = $("<div>" + html + "</div>");
-      var commentaryToggleHtml = "<div class='altStructToggle'>" +
-                                    "<span class='int-en'>Commentary</span>" +
-                                    "<span class='int-he'>מפרשים</span>" +
-                                  "</div>";      
-      if ($html.find("#structToggles").length) {
-        $html.find("#structToggles").append("<span class='toggleDivider'>|</span>" + commentaryToggleHtml);  
-      } else {
-        var togglesHtml = "<div id='structToggles'>" +
-                            "<div class='altStructToggle active'>" +
-                                "<span class='int-en'>Text</span>" +
-                                "<span class='int-he'>טקסט</span>" +
-                              "</div>" + 
-                              "<span class='toggleDivider'>|</span>" + commentaryToggleHtml +
-                          "</div>";
-        $html = $("<div><div class='altStruct'>" + html + "</div></div>");
-        $html.prepend(togglesHtml);   
-      }
-      $html.append(commentaryHtml);
-      html = $html.html();
-    }
-    return html;
-  },
-  _saveTextTocHtml: function(title, html) {
-    // Takes html fragment from /api/toc-html/, modifies and saves it in local cache.
-    html = this._makeTextTocHtml(title, html);
-    this._textTocHtml[title] = html;
-  },
   sectionString: function(ref) {
     // Returns a pair of nice strings (en, he) of the sections indicated in ref. e.g.,
     // "Genesis 4" -> "Chapter 4", "Guide for the Perplexed, Introduction" - > "Introduction"
@@ -1014,7 +949,6 @@ Sefaria = extend(Sefaria, {
 
     return result;
   },
-  _textTocHtml: {},
   commentaryList: function(title) {
     // Returns the list of commentaries for 'title' which are found in Sefaria.toc
     var index = this.index(title);
@@ -1298,6 +1232,75 @@ Sefaria = extend(Sefaria, {
     };
     return cat in categories ? categories[cat] : cat;
   },
+  hebrewSectionName: function(name) {
+    sectionNames = {
+      "Chapter":          "פרק",
+      "Chapters":         "פרקים",
+      "Perek":            "פרק",
+      "Line":             "שורה",
+      "Negative Mitzvah": "מצות לא תעשה",
+      "Positive Mitzvah": "מצות עשה",
+      "Negative Mitzvot": "מצוות לא תעשה",
+      "Positive Mitzvot": "מצוות עשה",
+      "Daf":              "דף",
+      "Paragraph":        "פסקה",
+      "Parsha":           "פרשה",
+      "Parasha":          "פרשה",
+      "Parashah":         "פרשה",
+      "Seif":             "סעיף",
+      "Se'if":            "סעיף",
+      "Siman":            "סימן",
+      "Section":          "חלק",
+      "Verse":            "פסוק",
+      "Sentence":         "משפט",
+      "Sha'ar":           "שער",
+      "Gate":             "שער",
+      "Comment":          "פירוש",
+      "Phrase":           "ביטוי",
+      "Mishna":           "משנה",
+      "Chelek":           "חלק",
+      "Helek":            "חלק",
+      "Year":             "שנה",
+      "Masechet":         "מסכת",
+      "Massechet":        "מסכת",
+      "Letter":           "אות",
+      "Halacha":          "הלכה",
+      "Piska":            "פסקה",
+      "Seif Katan":       "סעיף קטן",
+      "Se'if Katan":      "סעיף קטן",
+      "Volume":           "כרך",
+      "Book":             "ספר",
+      "Shar":             "שער",
+      "Seder":            "סדר",
+      "Part":             "חלק",
+      "Pasuk":            "פסוק",
+      "Sefer":            "ספר",
+      "Teshuva":          "תשובה",
+      "Teshuvot":         "תשובות",
+      "Tosefta":          "תוספתא",
+      "Halakhah":         "הלכה",
+      "Kovetz":           "קובץ",
+      "Path":             "נתיב",
+      "Parshah":          "פרשה",
+      "Midrash":          "מדרש",
+      "Mitzvah":          "מצוה",
+      "Tefillah":         "תפילה",
+      "Torah":            "תורה",
+      "Perush":           "פירוש",
+      "Peirush":          "פירוש",
+      "Aliyah":           "עלייה",
+      "Tikkun":           "תיקון",
+      "Tikkunim":         "תיקונים",
+      "Hilchot":          "הילכות",
+      "Topic":            "נושא",
+      "Contents":         "תוכן",
+      "Article":          "סעיף",
+      "Shoresh":          "שורש",
+      "Story":            "סיפור",
+      "Remez":            "רמז"
+    };
+    return name in sectionNames ? sectionNames[name] : name;
+  },
   search: {
       baseUrl: Sefaria.searchBaseUrl + "/" + Sefaria.searchIndex + "/_search",
       _cache: {},
@@ -1519,9 +1522,6 @@ Sefaria.unpackDataFromProps = function(props) {
       if (panel.text) {
         var settings = {context: 1, version: panel.version, language: panel.versionLanguage};
         Sefaria._saveText(panel.text, settings);
-      }
-      if (panel.textTocHtml) {
-        Sefaria._saveTextTocHtml(panel.bookRef, panel.textTocHtml);
       }
       if (panel.indexDetails) {
         Sefaria._indexDetails[panel.bookRef] = panel.indexDetails;
