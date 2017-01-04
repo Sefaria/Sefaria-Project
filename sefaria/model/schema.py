@@ -383,6 +383,12 @@ class TreeNode(object):
             js["nodes"] = [child.traverse_to_json(callback, depth + 1, **kwargs) for child in self.children]
         return js
 
+    def traverse_to_list(self, callback, depth=0, **kwargs):
+        listy = callback(self, depth, **kwargs)
+        if self.children:
+            listy += reduce(lambda a, b: a + b, [child.traverse_to_list(callback, depth + 1, **kwargs) for child in self.children], [])
+        return listy
+
     def serialize(self, **kwargs):
         d = {}
         if self.children:
@@ -1066,6 +1072,37 @@ class SchemaNode(TitledTreeNode):
         d["sections"] = sections
         d["toSections"] = sections
         return text.Ref(_obj=d)
+
+    def text_index_map(self, tokenizer=lambda x: re.split(u'\s+',x), strict=True, lang='he'):
+        """
+        See TextChunk.text_index_map
+        :param tokenizer:
+        :param strict:
+        :param lang:
+        :return:
+        """
+        def traverse(node, callback, offset=0):
+            index_list, ref_list, temp_offset = callback(node)
+            if node.children:
+                for child in node.children:
+                    temp_index_list, temp_ref_list, temp_offset = traverse(child, callback, offset)
+                    index_list += [i+offset for i in temp_index_list]
+                    ref_list += temp_ref_list
+                    offset += temp_offset
+            else:
+                offset = temp_offset
+            return index_list, ref_list, offset
+
+
+        def callback(node):
+            if not node.children:
+                index_list, ref_list, total_len = node.ref().text(lang).text_index_map(tokenizer,strict=strict)
+                return index_list, ref_list, total_len
+            else:
+                return [],[], 0
+
+        index_list, ref_list, _ = traverse(self, callback)
+        return index_list, ref_list
 
     def __eq__(self, other):
         return self.address() == other.address()

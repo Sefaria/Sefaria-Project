@@ -2,6 +2,7 @@
 
 import pytest
 from sefaria.model import *
+import re
 
 
 def setup_module(module):
@@ -156,3 +157,17 @@ def test_relationships():
     root.last_child().next_sibling() is None
     root.first_leaf().prev_sibling() is None
     root.last_leaf().next_sibling() is None
+
+
+def test_text_index_map():
+    def tokenizer(s):
+        s = re.sub(ur'<.+?>',u'',s).strip()
+        return re.split('\s+', s)
+
+
+    nodes = library.get_index("Megillat Taanit").nodes
+    index_list, ref_list = nodes.text_index_map(tokenizer=tokenizer)
+    assert index_list[1] == 9
+    assert index_list[2] == 20
+    assert index_list[5] == 423
+

@@ -614,6 +614,17 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
 
         return toc_contents_dict
 
+    def text_index_map(self, tokenizer=lambda x: re.split(u'\s+',x), strict=True, lang='he'):
+        """
+        See TextChunk.text_index_map
+        :param tokenizer:
+        :param strict:
+        :param lang:
+        :return:
+        """
+        return self.nodes.text_index_map(tokenizer=tokenizer, strict=strict, lang=lang)
+
+
 
 class IndexSet(abst.AbstractMongoSet):
     """
@@ -1424,7 +1435,7 @@ class TextChunk(AbstractTextRecord):
                 else:
                     ref_list = ref_list[:len(ind_list)]
 
-        return ind_list,ref_list
+        return ind_list, ref_list, total_len
 
 
 
