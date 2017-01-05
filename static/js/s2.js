@@ -4036,12 +4036,12 @@ var SchemaNode = React.createClass({
           schema: this.props.schema,
           refPath: this.props.refPath });
       } else if (this.props.schema.nodeType === "ArrayMapNode") {
-        return React.createElement(ArrayMapNode, {
-          schema: this.props.schema });
+        return React.createElement(ArrayMapNode, { schema: this.props.schema });
       }
     } else {
       var content = this.props.schema.nodes.map(function (node, i) {
         if ("nodes" in node || "refs" in node) {
+          // SchemaNode with children (nodes) or ArrayMapNode with depth (refs)
           return React.createElement(
             'div',
             { className: 'schema-node-toc', key: i },
@@ -4068,11 +4068,14 @@ var SchemaNode = React.createClass({
               { className: 'schema-node-contents' },
               React.createElement(SchemaNode, {
                 schema: node,
-                contentLang: this.props.contentLang,
                 refPath: this.props.refPath + ", " + node.title })
             )
           );
+        } else if (node.nodeType == "ArrayMapNode") {
+          // ArrayMapNode with only wholeRef
+          return React.createElement(ArrayMapNode, { schema: node });
         } else if (node.depth == 1) {
+          // SchemaNode title that points straight to content
           var path = this.props.refPath + ", " + node.title;
           return React.createElement(
             'a',
@@ -4097,6 +4100,7 @@ var SchemaNode = React.createClass({
             )
           );
         } else {
+          // SchemaNode that has a JaggedArray below it
           return React.createElement(
             'div',
             { className: 'schema-node-toc', key: i },
@@ -4146,6 +4150,15 @@ var JaggedArrayNode = React.createClass({
     refPath: React.PropTypes.string.isRequired
   },
   render: function render() {
+    if ("toc_zoom" in this.props.schema) {
+      var zoom = this.props.schema.toc_zoom - 1;
+      return React.createElement(JaggedArrayNodeSection, {
+        depth: this.props.schema.depth - zoom,
+        sectionNames: this.props.schema.sectionNames.slice(0, -zoom),
+        addressTypes: this.props.schema.addressTypes.slice(0, -zoom),
+        contentCounts: this.props.schema.content_counts,
+        refPath: this.props.refPath });
+    }
     return React.createElement(JaggedArrayNodeSection, {
       depth: this.props.schema.depth,
       sectionNames: this.props.schema.sectionNames,
@@ -4165,11 +4178,19 @@ var JaggedArrayNodeSection = React.createClass({
     contentCounts: React.PropTypes.oneOfType([React.PropTypes.array, React.PropTypes.number]),
     refPath: React.PropTypes.string.isRequired
   },
+  contentCountIsEmpty: function contentCountIsEmpty(count) {
+    // Returns true if count is zero or is an an array (of arrays) of zeros.
+    if (typeof count == "number") {
+      return count == 0;
+    }
+    var innerCounts = count.map(this.contentCountIsEmpty);
+    return innerCounts.unique().compare([true]);
+  },
   render: function render() {
     if (this.props.depth > 2) {
       var content = [];
       for (var i = 0; i < this.props.contentCounts.length; i++) {
-        if (!this.props.contentCounts[i]) {
+        if (this.contentCountIsEmpty(this.props.contentCounts[i])) {
           continue;
         }
         if (this.props.addressTypes[0] === "Talmud") {
@@ -4214,7 +4235,7 @@ var JaggedArrayNodeSection = React.createClass({
     var contentCounts = this.props.depth == 1 ? new Array(this.props.contentCounts).fill(1) : this.props.contentCounts;
     var sectionLinks = [];
     for (var i = 0; i < contentCounts.length; i++) {
-      if (contentCounts[i] == 0) {
+      if (this.contentCountIsEmpty(contentCounts[i])) {
         continue;
       }
       if (this.props.addressTypes[0] === "Talmud") {
@@ -4256,36 +4277,61 @@ var ArrayMapNode = React.createClass({
     schema: React.PropTypes.object.isRequired
   },
   render: function render() {
-    var sectionLinks = this.props.schema.refs.map(function (ref, i) {
-      i += this.props.schema.offset || 0;
-      if (this.props.schema.addressTypes[0] === "Talmud") {
-        var section = Sefaria.hebrew.intToDaf(i);
-        var heSection = Sefaria.hebrew.encodeHebrewDaf(section);
-      } else {
-        var section = i + 1;
-        var heSection = Sefaria.hebrew.encodeHebrewNumeral(i + 1);
-      }
+    if ("refs" in this.props.schema) {
+      var sectionLinks = this.props.schema.refs.map(function (ref, i) {
+        i += this.props.schema.offset || 0;
+        if (this.props.schema.addressTypes[0] === "Talmud") {
+          var section = Sefaria.hebrew.intToDaf(i);
+          var heSection = Sefaria.hebrew.encodeHebrewDaf(section);
+        } else {
+          var section = i + 1;
+          var heSection = Sefaria.hebrew.encodeHebrewNumeral(i + 1);
+        }
+        return React.createElement(
+          'a',
+          { className: 'sectionLink', href: Sefaria.normRef(ref), 'data-ref': ref, key: i },
+          React.createElement(
+            'span',
+            { className: 'he' },
+            heSection
+          ),
+          React.createElement(
+            'span',
+            { className: 'en' },
+            section
+          )
+        );
+      }.bind(this));
+
+      return React.createElement(
+        'div',
+        null,
+        sectionLinks
+      );
+    } else {
       return React.createElement(
         'a',
-        { className: 'sectionLink', href: Sefaria.normRef(ref), 'data-ref': ref, key: i },
+        { className: 'schema-node-toc linked', href: Sefaria.normRef(this.props.schema.wholeRef), 'data-ref': this.props.schema.wholeRef },
         React.createElement(
           'span',
-          { className: 'he' },
-          heSection
-        ),
-        React.createElement(
-          'span',
-          { className: 'en' },
-          section
+          { className: 'schema-node-title' },
+          React.createElement(
+            'span',
+            { className: 'he' },
+            this.props.schema.heTitle,
+            ' ',
+            React.createElement('i', { className: 'schema-node-control fa fa-angle-left' })
+          ),
+          React.createElement(
+            'span',
+            { className: 'en' },
+            this.props.schema.title,
+            ' ',
+            React.createElement('i', { className: 'schema-node-control fa fa-angle-right' })
+          )
         )
       );
-    }.bind(this));
-
-    return React.createElement(
-      'div',
-      null,
-      sectionLinks
-    );
+    }
   }
 });
 
@@ -5023,7 +5069,6 @@ var SheetsHomePage = React.createClass({
       )
     );
   },
-
   render: function render() {
     var _this5 = this;
 

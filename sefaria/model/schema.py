@@ -843,13 +843,14 @@ class ArrayMapNode(NumberedTitledTreeNode):
                 d["depth"] += 1
                 d["offset"] = offset
 
-            d["wholeRefPreview"] = self.expand_ref(self.wholeRef, kwargs.get("he_text_ja"), kwargs.get("en_text_ja"))
-            if d.get("refs"):
-                d["refsPreview"] = []
-                for r in d["refs"]:
-                    d["refsPreview"].append(self.expand_ref(r, kwargs.get("he_text_ja"), kwargs.get("en_text_ja")))
-            else:
-                d["refsPreview"] = None
+            if (kwargs.get("include_previews", False)):
+                d["wholeRefPreview"] = self.expand_ref(self.wholeRef, kwargs.get("he_text_ja"), kwargs.get("en_text_ja"))
+                if d.get("refs"):
+                    d["refsPreview"] = []
+                    for r in d["refs"]:
+                        d["refsPreview"].append(self.expand_ref(r, kwargs.get("he_text_ja"), kwargs.get("en_text_ja")))
+                else:
+                    d["refsPreview"] = None
         return d
 
     # Move this over to Ref and cache it?

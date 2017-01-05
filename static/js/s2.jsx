@@ -3416,14 +3416,14 @@ var SchemaNode = React.createClass({
         );
       } else if (this.props.schema.nodeType === "ArrayMapNode") {
         return (
-          <ArrayMapNode
-            schema={this.props.schema} />
+          <ArrayMapNode schema={this.props.schema} />
         );
       }
 
     } else {
       var content = this.props.schema.nodes.map(function(node, i) {
         if ("nodes" in node || "refs" in node) {
+          // SchemaNode with children (nodes) or ArrayMapNode with depth (refs)
           return (
             <div className="schema-node-toc" key={i}>
               <span className="schema-node-title">
@@ -3433,11 +3433,14 @@ var SchemaNode = React.createClass({
               <div className="schema-node-contents">
                 <SchemaNode
                   schema={node}
-                  contentLang={this.props.contentLang}
                   refPath={this.props.refPath + ", " + node.title} />
               </div>
             </div>);
+        } else if (node.nodeType == "ArrayMapNode") {
+          // ArrayMapNode with only wholeRef
+          return <ArrayMapNode schema={node} />;
         } else if (node.depth == 1) {
+          // SchemaNode title that points straight to content
           var path = this.props.refPath + ", " + node.title;
           return (
             <a className="schema-node-toc linked" href={Sefaria.normRef(path)} data-ref={path} key={i}>
@@ -3447,6 +3450,7 @@ var SchemaNode = React.createClass({
               </span>
             </a>);
         } else {
+          // SchemaNode that has a JaggedArray below it
           return (
             <div className="schema-node-toc" key={i}>
               <span className="schema-node-title">
@@ -3476,6 +3480,15 @@ var JaggedArrayNode = React.createClass({
     refPath:     React.PropTypes.string.isRequired
   },
   render: function() {
+    if ("toc_zoom" in this.props.schema) {
+      var zoom = this.props.schema.toc_zoom - 1;
+      return (<JaggedArrayNodeSection
+                depth={this.props.schema.depth - zoom}
+                sectionNames={this.props.schema.sectionNames.slice(0, -zoom)}
+                addressTypes={this.props.schema.addressTypes.slice(0, -zoom)}
+                contentCounts={this.props.schema.content_counts}
+                refPath={this.props.refPath} />);      
+    }
     return (<JaggedArrayNodeSection
               depth={this.props.schema.depth}
               sectionNames={this.props.schema.sectionNames}
@@ -3497,11 +3510,17 @@ var JaggedArrayNodeSection = React.createClass({
                       ]),
     refPath:         React.PropTypes.string.isRequired,
   },
+  contentCountIsEmpty: function(count) {
+    // Returns true if count is zero or is an an array (of arrays) of zeros.
+    if (typeof count == "number") { return count == 0; }
+    var innerCounts = count.map(this.contentCountIsEmpty);
+    return innerCounts.unique().compare([true]);
+  },
   render: function() {
     if (this.props.depth > 2) {
       var content = [];
       for (var i = 0; i < this.props.contentCounts.length; i++) {
-        if (!this.props.contentCounts[i]) { continue; }
+        if (this.contentCountIsEmpty(this.props.contentCounts[i])) { continue; }
         if (this.props.addressTypes[0] === "Talmud") {
           var enSection = Sefaria.hebrew.intToDaf(i);
           var heSection = Sefaria.hebrew.encodeHebrewDaf(enSection);
@@ -3513,7 +3532,7 @@ var JaggedArrayNodeSection = React.createClass({
           <div className="tocSection" key={i}>
             <div className="sectionName">
               <span className="he">{Sefaria.hebrewSectionName(this.props.sectionNames[0]) + " " +heSection}</span>
-              <span className="en">{this.props.sectionNames[0] + " " +enSection}</span>
+              <span className="en">{this.props.sectionNames[0] + " " + enSection}</span>
             </div>
             <JaggedArrayNodeSection
               depth={this.props.depth - 1}
@@ -3529,7 +3548,7 @@ var JaggedArrayNodeSection = React.createClass({
     var contentCounts = this.props.depth == 1 ? new Array(this.props.contentCounts).fill(1) : this.props.contentCounts;
     var sectionLinks = [];
     for (var i = 0; i < contentCounts.length; i++) {
-      if (contentCounts[i] == 0) { continue; }
+      if (this.contentCountIsEmpty(contentCounts[i])) { continue; }
       if (this.props.addressTypes[0] === "Talmud") {
         var section = Sefaria.hebrew.intToDaf(i);
         var heSection = Sefaria.hebrew.encodeHebrewDaf(section);
@@ -3558,26 +3577,35 @@ var ArrayMapNode = React.createClass({
     schema:      React.PropTypes.object.isRequired
   },
   render: function() {
-    var sectionLinks = this.props.schema.refs.map(function(ref, i) {
-      i += this.props.schema.offset || 0;
-      if (this.props.schema.addressTypes[0] === "Talmud") {
-        var section = Sefaria.hebrew.intToDaf(i);
-        var heSection = Sefaria.hebrew.encodeHebrewDaf(section);
-      } else {
-        var section = i+1;
-        var heSection = Sefaria.hebrew.encodeHebrewNumeral(i+1);
-      }
-      return (
-        <a className="sectionLink" href={Sefaria.normRef(ref)} data-ref={ref} key={i}>
-          <span className="he">{heSection}</span>
-          <span className="en">{section}</span>
-        </a>
-      );
-    }.bind(this));
+    if ("refs" in this.props.schema) {
+      var sectionLinks = this.props.schema.refs.map(function(ref, i) {
+        i += this.props.schema.offset || 0;
+        if (this.props.schema.addressTypes[0] === "Talmud") {
+          var section = Sefaria.hebrew.intToDaf(i);
+          var heSection = Sefaria.hebrew.encodeHebrewDaf(section);
+        } else {
+          var section = i+1;
+          var heSection = Sefaria.hebrew.encodeHebrewNumeral(i+1);
+        }
+        return (
+          <a className="sectionLink" href={Sefaria.normRef(ref)} data-ref={ref} key={i}>
+            <span className="he">{heSection}</span>
+            <span className="en">{section}</span>
+          </a>
+        );
+      }.bind(this));
 
-    return (
-      <div>{sectionLinks}</div>
-    );
+      return (<div>{sectionLinks}</div>);
+
+    } else {
+      return (
+        <a className="schema-node-toc linked" href={Sefaria.normRef(this.props.schema.wholeRef)} data-ref={this.props.schema.wholeRef}>
+          <span className="schema-node-title">
+            <span className="he">{this.props.schema.heTitle} <i className="schema-node-control fa fa-angle-left"></i></span>
+            <span className="en">{this.props.schema.title} <i className="schema-node-control fa fa-angle-right"></i></span>
+          </span>
+        </a>);
+    }
   }
 });
 
@@ -4111,7 +4139,6 @@ var SheetsHomePage = React.createClass({
       </div>
     </div>;
   },
-
   render: function() {
     var trendingTags = this.getTrendingTagsFromCache();
     var topSheets    = this.getTopSheetsFromCache();
