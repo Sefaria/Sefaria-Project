@@ -3453,10 +3453,12 @@ var SchemaNode = React.createClass({
           // SchemaNode that has a JaggedArray below it
           return (
             <div className="schema-node-toc" key={i}>
+              { !node.default ?
               <span className="schema-node-title">
                 <span className="he">{node.heTitle} <i className="schema-node-control fa fa-angle-down"></i></span>
                 <span className="en">{node.title} <i className="schema-node-control fa fa-angle-down"></i></span>
               </span>
+              : null }
               <div className="schema-node-contents">
                 <JaggedArrayNode
                   schema={node}

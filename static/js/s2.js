@@ -4104,7 +4104,7 @@ var SchemaNode = React.createClass({
           return React.createElement(
             'div',
             { className: 'schema-node-toc', key: i },
-            React.createElement(
+            !node.default ? React.createElement(
               'span',
               { className: 'schema-node-title' },
               React.createElement(
@@ -4121,7 +4121,7 @@ var SchemaNode = React.createClass({
                 ' ',
                 React.createElement('i', { className: 'schema-node-control fa fa-angle-down' })
               )
-            ),
+            ) : null,
             React.createElement(
               'div',
               { className: 'schema-node-contents' },
