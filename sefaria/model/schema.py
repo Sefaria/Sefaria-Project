@@ -1086,11 +1086,12 @@ class SchemaNode(TitledTreeNode):
             if node.children:
                 for child in node.children:
                     temp_index_list, temp_ref_list, temp_offset = traverse(child, callback, offset)
-                    index_list += [i+offset for i in temp_index_list]
+                    index_list += temp_index_list
                     ref_list += temp_ref_list
-                    offset += temp_offset
+                    offset = temp_offset
             else:
-                offset = temp_offset
+                index_list = [i + offset for i in index_list]
+                offset += temp_offset
             return index_list, ref_list, offset
 
 

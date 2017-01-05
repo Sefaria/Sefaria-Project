@@ -171,3 +171,14 @@ def test_text_index_map():
     assert index_list[2] == 20
     assert index_list[5] == 423
 
+    index = library.get_index("Otzar Midrashim")
+    nodes = index.nodes
+    index_list, ref_list = nodes.text_index_map(tokenizer=tokenizer)
+    mes_list = index.nodes.traverse_to_list(
+        lambda n, _: TextChunk(n.ref(), "he").ja().flatten_to_array() if not n.children else [])
+    mes_str_array = [w for seg in mes_list for w in tokenizer(seg)]
+
+    rand_inds = [1,20,45,1046,len(index_list)-2]
+    for ri in rand_inds:
+        assert u' '.join(tokenizer(ref_list[ri].text("he").text)) == u' '.join(mes_str_array[index_list[ri]:index_list[ri+1]])
+
