@@ -3398,7 +3398,7 @@ var ReaderTextTableOfContents = React.createClass({
   },
   handleClick: function handleClick(e) {
     var $a = $(e.target).closest("a");
-    if ($a.length) {
+    if ($a.length && $a.hasClass("sectionLink")) {
       var ref = $a.attr("data-ref");
       ref = decodeURIComponent(ref);
       ref = Sefaria.humanRef(ref);
@@ -3761,6 +3761,7 @@ var ReaderTextTableOfContents = React.createClass({
               versionsList: versions,
               openVersion: this.openVersion,
               defaultStruct: "default_struct" in details ? details.default_struct : "default",
+              currentRef: this.isTextToc() ? this.props.currentRef : null,
               title: this.props.title })
           ) : React.createElement(LoadingMessage, null),
           downloadSection
@@ -3846,6 +3847,7 @@ var TextTableOfContentsNavigation = React.createClass({
     versionsList: React.PropTypes.array,
     openVersion: React.PropTypes.func,
     defaultStruct: React.PropTypes.string,
+    currentRef: React.PropTypes.string,
     title: React.PropTypes.string.isRequired
   },
   getInitialState: function getInitialState() {
@@ -3955,7 +3957,8 @@ var TextTableOfContentsNavigation = React.createClass({
         var content = React.createElement(VersionsList, {
           versionsList: this.props.versionsList,
           openVersion: this.props.openVersion,
-          title: this.props.title });
+          title: this.props.title,
+          currentRef: this.props.currentRef });
         break;
       default:
         var content = React.createElement(SchemaNode, {
@@ -4313,7 +4316,8 @@ var VersionsList = React.createClass({
   propTypes: {
     versionsList: React.PropTypes.array.isRequired,
     openVersion: React.PropTypes.func.isRequired,
-    title: React.PropTypes.string.isRequired
+    title: React.PropTypes.string.isRequired,
+    currentRef: React.PropTypes.string
   },
   render: function render() {
     var _this2 = this;
@@ -4324,7 +4328,13 @@ var VersionsList = React.createClass({
       return versions.filter(function (v) {
         return v.language == lang;
       }).map(function (v) {
-        return React.createElement(VersionBlock, { title: _this2.props.title, version: v, openVersion: _this2.props.openVersion, key: v.versionTitle + "/" + v.language });
+        return React.createElement(VersionBlock, {
+          title: _this2.props.title,
+          version: v,
+          currentRef: _this2.props.currentRef,
+          firstSectionRef: "firstSectionRef" in v ? v.firstSectionRef : null,
+          openVersion: _this2.props.openVersion,
+          key: v.versionTitle + "/" + v.language });
       });
     });
 
@@ -4394,6 +4404,7 @@ var VersionBlock = React.createClass({
     title: React.PropTypes.string.isRequired,
     version: React.PropTypes.object.isRequired,
     currentRef: React.PropTypes.string,
+    firstSectionref: React.PropTypes.string,
     showHistory: React.PropTypes.bool,
     showNotes: React.PropTypes.bool,
     openVersion: React.PropTypes.func
@@ -4401,7 +4412,7 @@ var VersionBlock = React.createClass({
   getDefaultProps: function getDefaultProps() {
     return {
       ref: "",
-      showHistory: false,
+      showHistory: true,
       showNotes: true
     };
   },
@@ -4427,7 +4438,11 @@ var VersionBlock = React.createClass({
     "CC-BY-NC": "https://creativecommons.org/licenses/by-nc/4.0/"
   },
   openVersion: function openVersion() {
-    this.props.openVersion(this.props.version.versionTitle, this.props.version.language);
+    if (this.props.firstSectionRef) {
+      window.location = "/" + this.props.firstSectionRef + "/" + this.props.version.language + "/" + this.props.version.versionTitle;
+    } else {
+      this.props.openVersion(this.props.version.versionTitle, this.props.version.language);
+    }
   },
   onLicenseChange: function onLicenseChange(event) {
     this.setState({ license: event.target.value, "error": null });

@@ -3374,15 +3374,26 @@ class Ref(object):
 
     def version_list(self):
         """
-        A list of available text versions titles and languages matching this ref
+        A list of available text versions titles and languages matching this ref.
+        If this ref is book level, decorate with the first available section of content per version.
 
         :return list: each list element is an object with keys 'versionTitle' and 'language'
         """
         fields = ["versionTitle", "versionSource", "language", "status", "license", "versionNotes", "digitizedBySefaria", "priority"]
-        return [
-            {f: getattr(v, f, "") for f in fields}
-            for v in VersionSet(self.condition_query(), proj={f: 1 for f in fields})
-        ]
+        versions = VersionSet(self.condition_query())
+        version_list = []
+        if self.is_book_level():
+            for v in  versions:
+                version = {f: getattr(v, f, "") for f in fields}
+                oref = v.first_section_ref() or v.get_index().nodes.first_leaf().first_section_ref()
+                version["firstSectionRef"] = oref.normal()
+                version_list.append(version)
+            return version_list
+        else:
+            return [
+                {f: getattr(v, f, "") for f in fields}
+                for v in VersionSet(self.condition_query(), proj={f: 1 for f in fields})
+            ]
 
     """ String Representations """
     def __str__(self):

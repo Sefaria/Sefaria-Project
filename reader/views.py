@@ -728,15 +728,6 @@ def text_toc(request, oref):
                              RequestContext(request))
 
 
-def text_toc_html_fragment(request, title):
-    """
-    Returns an HTML fragment of the Text TOC for title
-    """
-    oref = Ref(title)
-    # zoom = 0 if not oref.index.is_complex() and oref.index_node.depth == 1 else 1
-    return HttpResponse(make_toc_html(oref))
-
-
 @ensure_csrf_cookie
 def texts_list(request):
     """
