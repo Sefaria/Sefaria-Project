@@ -830,16 +830,16 @@ class ArrayMapNode(NumberedTitledTreeNode):
         d = super(ArrayMapNode, self).serialize(**kwargs)
         if kwargs.get("expand_refs"):
             if getattr(self, "includeSections", None):
+                # We assume that with "includeSections", we're going from depth 0 to depth 1, and expanding "wholeRef"
                 from . import text
 
                 refs         = text.Ref(self.wholeRef).split_spanning_ref()
                 first, last  = refs[0], refs[-1]
                 offset       = first.sections[-2]-1 if first.is_segment_level() else first.sections[-1]-1
-                depth        = len(first.index_node.sectionNames) - len(first.section_ref().sections)
 
                 d["refs"] = [r.normal() for r in refs]
-                d["addressTypes"] = d.get("addressTypes", []) + first.index_node.addressTypes[depth-1:depth]
-                d["sectionNames"] = d.get("sectionNames", []) + first.index_node.sectionNames[depth-1:depth]
+                d["addressTypes"] = first.index_node.addressTypes[-2:-1]
+                d["sectionNames"] = first.index_node.sectionNames[-2:-1]
                 d["depth"] += 1
                 d["offset"] = offset
 
