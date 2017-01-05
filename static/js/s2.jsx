@@ -3501,20 +3501,26 @@ var JaggedArrayNodeSection = React.createClass({
     if (this.props.depth > 2) {
       var content = [];
       for (var i = 0; i < this.props.contentCounts.length; i++) {
-        var enSection = this.props.sectionNames[0] + " " + (i+1);
-        var heSection = Sefaria.hebrewSectionName(this.props.sectionNames[0]) + " " + Sefaria.hebrew.encodeHebrewNumeral(i+1);
+        if (!this.props.contentCounts[i]) { continue; }
+        if (this.props.addressTypes[0] === "Talmud") {
+          var enSection = Sefaria.hebrew.intToDaf(i);
+          var heSection = Sefaria.hebrew.encodeHebrewDaf(enSection);
+        } else {
+          var enSection = i+1;
+          var heSection = Sefaria.hebrew.encodeHebrewNumeral(i+1);
+        }
         content.push(
           <div className="tocSection" key={i}>
             <div className="sectionName">
-              <span className="he">{heSection}</span>
-              <span className="en">{enSection}</span>
+              <span className="he">{Sefaria.hebrewSectionName(this.props.sectionNames[0]) + " " +heSection}</span>
+              <span className="en">{this.props.sectionNames[0] + " " +enSection}</span>
             </div>
             <JaggedArrayNodeSection
               depth={this.props.depth - 1}
               sectionNames={this.props.sectionNames.slice(1)}
               addressTypes={this.props.addressTypes.slice(1)}
               contentCounts={this.props.contentCounts[i]}
-              refPath={this.props.refPath + ":" + (i+1)} />
+              refPath={this.props.refPath + ":" + enSection} />
           </div>);
       }
       return ( <div className="tocLevel">{content}</div> );
