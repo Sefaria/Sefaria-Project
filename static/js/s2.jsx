@@ -2966,7 +2966,6 @@ var ReaderTextTableOfContents = React.createClass({
     return currentVersion;
   },
   handleClick: function(e) {
-    console.log("Text TOC Click")
     var $a = $(e.target).closest("a");
     if ($a.length) {
       var ref = $a.attr("data-ref");
@@ -3025,6 +3024,12 @@ var ReaderTextTableOfContents = React.createClass({
     var details = Sefaria.indexDetails(this.props.title);
     var detailsSection = details ? <TextDetails index={details} /> : null;
 
+    if (this.isTextToc()) {
+      var sectionStrings = Sefaria.sectionString(this.props.currentRef);
+      var section   = sectionStrings.en.named;
+      var heSection = sectionStrings.he.named;
+    }
+
     // Current Version (Text TOC only)
     var cv = this.getCurrentVersion();
     if (cv) {
@@ -3043,32 +3048,6 @@ var ReaderTextTableOfContents = React.createClass({
 
     // Versions List
     var versions = this.getVersionsList();
-    if (versions) {
-
-      var [heVersionBlocks, enVersionBlocks] = ["he","en"].map(lang =>
-       versions.filter(v => v.language == lang).map(v =>
-        <VersionBlock title={title} version={v} openVersion={this.isTextToc ? this.openVersion : null} key={v.versionTitle + "/" + v.language}/>
-       )
-      );
-
-      versionBlocks = <div className="versionBlocks">
-        {(!!heVersionBlocks.length)?<div className="versionLanguageBlock"><div className="versionLanguageHeader"><span className="int-en">Hebrew Versions</span><span className="int-he">בעברית</span></div><div>{heVersionBlocks}</div></div>:""}
-        {(!!enVersionBlocks.length)?<div className="versionLanguageBlock"><div className="versionLanguageHeader"><span className="int-en">English Versions</span><span className="int-he">באנגלית</span></div><div>{enVersionBlocks}</div></div>:""}
-      </div>;
-
-      var classes = classNames({allVersionsButton: 1, button: 1, white: 1, inactive: this.state.showAllVersions});
-      var showAllVersionsButton = <div className={classes} onClick={() => this.setState({showAllVersions: true})}>
-        <span className="int-en">{this.isTextToc() ? "Other Versions" : "Available Versions"}</span>
-        <span className="int-he">{this.isTextToc() ? "גרסאות אחרות" : "גרסאות"}</span>
-      </div>;
-      if (versions.length == 0) { showAllVersionsButton = null; }
-    }
-
-    if (this.isTextToc()) {
-      var sectionStrings = Sefaria.sectionString(this.props.currentRef);
-      var section   = sectionStrings.en.named;
-      var heSection = sectionStrings.he.named;
-    }
 
     var moderatorSection = Sefaria.is_moderator ?
       (<ModeratorButtons 
@@ -3191,6 +3170,7 @@ var ReaderTextTableOfContents = React.createClass({
                       commentatorList={Sefaria.commentaryList(this.props.title)}
                       alts={details.alts}
                       versionsList={versions}
+                      openVersion={this.openVersion}
                       defaultStruct={"default_struct" in details ? details.default_struct : "default"} 
                       title={this.props.title} />
                   </div>
@@ -3251,11 +3231,14 @@ var TextDetails = React.createClass({
 
 
 var TextTableOfContentsNavigation = React.createClass({
+  // The content section of the text table of contents that includes links to text sections,
+  // and tabs for alternate structures, commentary and versions.
   propTypes: {
     schema:          React.PropTypes.object.isRequired,
     commentatorList: React.PropTypes.array,
     alts:            React.PropTypes.object,
     versionsList:    React.PropTypes.array,
+    openVersion:     React.PropTypes.func,
     defaultStruct:   React.PropTypes.string,
     title:           React.PropTypes.string.isRequired,
   },
@@ -3307,62 +3290,68 @@ var TextTableOfContentsNavigation = React.createClass({
     }
   },
   render: function() {
-    if (this.props.commentatorList.length || this.props.alts) {
-      var options = [{
-        name: "default",
-        text: "sectionNames" in this.props.schema ? this.props.schema.sectionNames[0] : "Contents",
-        heText: "sectionNames" in this.props.schema ? Sefaria.hebrewSectionName(this.props.schema.sectionNames[0]) : "תוכן",
-        onPress: this.setTab.bind(null, "default")
-      }];
-      if (this.props.alts) {
-        for (var alt in this.props.alts) {
-          if (this.props.alts.hasOwnProperty(alt)) {
-            options.push({
-              name: alt,
-              text: alt,
-              heText: Sefaria.hebrewSectionName(alt),
-              onPress: this.setTab.bind(null, alt)
-            });
-          }
+    var options = [{
+      name: "default",
+      text: "sectionNames" in this.props.schema ? this.props.schema.sectionNames[0] : "Contents",
+      heText: "sectionNames" in this.props.schema ? Sefaria.hebrewSectionName(this.props.schema.sectionNames[0]) : "תוכן",
+      onPress: this.setTab.bind(null, "default")
+    }];
+    if (this.props.alts) {
+      for (var alt in this.props.alts) {
+        if (this.props.alts.hasOwnProperty(alt)) {
+          options.push({
+            name: alt,
+            text: alt,
+            heText: Sefaria.hebrewSectionName(alt),
+            onPress: this.setTab.bind(null, alt)
+          });
         }
       }
-      if (this.props.commentatorList.length) {
-        options.push({
-          name: "commentary",
-          text: "Commentary",
-          heText: "מפרשים",
-          onPress: this.setTab.bind(null, "commentary")
-        });
-      }
-      options = options.sort(function(a, b) {
-        return a.name == this.props.defaultStruct ? -1 :
-                b.name == this.props.defaultStruct ? 1 : 0;
-      }.bind(this));
-      var toggle = <InlineToggleSet
-                      theme={this.props.theme}
-                      options={options}
-                      contentLang={this.props.contentLang}
-                      active={this.state.tab} />;
-    } else {
-      var toggle = null;
     }
+    options = options.sort(function(a, b) {
+      return a.name == this.props.defaultStruct ? -1 :
+              b.name == this.props.defaultStruct ? 1 : 0;
+    }.bind(this));
+
+    if (this.props.commentatorList.length) {
+      options.push({
+        name: "commentary",
+        text: "Commentary",
+        heText: "מפרשים",
+        onPress: this.setTab.bind(null, "commentary")
+      });
+    }
+
+    options.push({
+      name: "versions",
+      text: "Versions",
+      heText: "גרסאות",
+      onPress: this.setTab.bind(null, "versions")
+    });
+
+    var toggle = <InlineToggleSet
+                    options={options}
+                    active={this.state.tab} />;
 
     switch(this.state.tab) {
       case "default":
         var content = <SchemaNode
-                          theme={this.props.theme}
                           schema={this.props.schema}
                           addressTypes={this.props.schema.addressTypes}
                           refPath={this.props.title} />;
         break;
       case "commentary":
         var content = <CommentatorList
-                        theme={this.props.theme}
                         commentatorList={this.props.commentatorList} />;
+        break;
+      case "versions":
+        var content = <VersionsList
+                        versionsList={this.props.versionsList}
+                        openVersion={this.props.openVersion}
+                        title={this.props.title} />;
         break;
       default:
         var content = <SchemaNode
-                          theme={this.props.theme}
                           schema={this.props.alts[this.state.tab]}
                           addressTypes={this.props.schema.addressTypes}
                           refPath={this.props.title} />;
@@ -3440,7 +3429,6 @@ var SchemaNode = React.createClass({
               </span>
               <div className="schema-node-contents">
                 <SchemaNode
-                  theme={this.props.theme}
                   schema={node}
                   contentLang={this.props.contentLang}
                   refPath={this.props.refPath + ", " + node.title} />
@@ -3464,7 +3452,6 @@ var SchemaNode = React.createClass({
               </span>
               <div className="schema-node-contents">
                 <JaggedArrayNode
-                  theme={this.props.theme}
                   schema={node}
                   contentLang={this.props.contentLang}
                   refPath={this.props.refPath + ", " + node.title} />
@@ -3498,7 +3485,6 @@ var JaggedArrayNode = React.createClass({
 
 var JaggedArrayNodeSection = React.createClass({
   propTypes: {
-    theme:           React.PropTypes.object.isRequired,
     depth:           React.PropTypes.number.isRequired,
     sectionNames:    React.PropTypes.array.isRequired,
     addressTypes:    React.PropTypes.array.isRequired,
@@ -3602,7 +3588,42 @@ var CommentatorList = React.createClass({
 
     return (<TwoBox content={content} />);
   }
-})
+});
+
+
+var VersionsList = React.createClass({
+  propTypes: {
+    versionsList: React.PropTypes.array.isRequired,
+    openVersion:  React.PropTypes.func.isRequired,
+    title:        React.PropTypes.string.isRequired
+  },
+  render: function() {
+    var versions = this.props.versionsList;
+    var [heVersionBlocks, enVersionBlocks] = ["he","en"].map(lang =>
+     versions.filter(v => v.language == lang).map(v =>
+      <VersionBlock title={this.props.title} version={v} openVersion={this.props.openVersion} key={v.versionTitle + "/" + v.language}/>
+     )
+    );
+
+    return (
+      <div className="versionBlocks">
+        {(!!heVersionBlocks.length) ? 
+          <div className="versionLanguageBlock">
+            <div className="versionLanguageHeader">
+              <span className="int-en">Hebrew Versions</span><span className="int-he">בעברית</span>
+            </div>
+            <div>{heVersionBlocks}</div>
+          </div> : null}
+        {(!!enVersionBlocks.length) ? 
+          <div className="versionLanguageBlock">
+            <div className="versionLanguageHeader">
+              <span className="int-en">English Versions</span><span className="int-he">באנגלית</span>
+            </div>
+            <div>{enVersionBlocks}</div>
+          </div>: null}
+      </div>);
+  }
+});
 
 
 var VersionBlock = React.createClass({
@@ -7989,6 +8010,7 @@ var ModeratorToolsPanel = React.createClass({
   }
 });
 
+
 var UpdatesPanel = React.createClass({
   propTypes: {
     interfaceLang:               React.PropTypes.string
@@ -8102,6 +8124,7 @@ var UpdatesPanel = React.createClass({
   }
 });
 
+
 var NewUpdateForm = React.createClass({
   propTypes: {
     error:               React.PropTypes.string,
@@ -8199,6 +8222,7 @@ var NewUpdateForm = React.createClass({
   }
 });
 
+
 var SingleUpdate = React.createClass({
   propTypes: {
     id:         React.PropTypes.string,
@@ -8282,6 +8306,7 @@ var InterruptingMessage = React.createClass({
             </div>);
   }
 });
+
 
 var ThreeBox = React.createClass({
   // Wrap a list of elements into a three column table
@@ -8553,7 +8578,7 @@ var Footer = React.createClass({
               </a>
               <a href="mailto:hello@sefaria.org" target="_blank" className="outOfAppLink">
                   <span className="int-en">Email</span>
-                  <span className="int-he">דוא"ל</span>
+                  <span className="int-he">דוא&quot;ל</span>
               </a>
               <div id="siteLanguageToggle">
                   <div id="siteLanguageToggleLabel">

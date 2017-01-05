@@ -1264,6 +1264,7 @@ a.resourcesLink {
   background-color: transparent;
 }
 .readerTextTableOfContents .versionBlocks {
+  text-align: center;
 }
 .readerTextTableOfContents .versionBlocks .versionLanguageBlock {
   padding-bottom: 30px;

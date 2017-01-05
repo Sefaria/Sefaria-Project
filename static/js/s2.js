@@ -3448,7 +3448,6 @@ var ReaderTextTableOfContents = React.createClass({
     return !(v.license && v.license.startsWith("Copyright"));
   },
   render: function render() {
-    var _this2 = this;
 
     var title = this.props.title;
     var heTitle = Sefaria.index(title) ? Sefaria.index(title).heTitle : title;
@@ -3462,6 +3461,12 @@ var ReaderTextTableOfContents = React.createClass({
     // Text Details
     var details = Sefaria.indexDetails(this.props.title);
     var detailsSection = details ? React.createElement(TextDetails, { index: details }) : null;
+
+    if (this.isTextToc()) {
+      var sectionStrings = Sefaria.sectionString(this.props.currentRef);
+      var section = sectionStrings.en.named;
+      var heSection = sectionStrings.he.named;
+    }
 
     // Current Version (Text TOC only)
     var cv = this.getCurrentVersion();
@@ -3490,99 +3495,6 @@ var ReaderTextTableOfContents = React.createClass({
 
     // Versions List
     var versions = this.getVersionsList();
-    if (versions) {
-      var _map = ["he", "en"].map(function (lang) {
-        return versions.filter(function (v) {
-          return v.language == lang;
-        }).map(function (v) {
-          return React.createElement(VersionBlock, { title: title, version: v, openVersion: _this2.isTextToc ? _this2.openVersion : null, key: v.versionTitle + "/" + v.language });
-        });
-      });
-
-      var _map2 = _slicedToArray(_map, 2);
-
-      var heVersionBlocks = _map2[0];
-      var enVersionBlocks = _map2[1];
-
-
-      versionBlocks = React.createElement(
-        'div',
-        { className: 'versionBlocks' },
-        !!heVersionBlocks.length ? React.createElement(
-          'div',
-          { className: 'versionLanguageBlock' },
-          React.createElement(
-            'div',
-            { className: 'versionLanguageHeader' },
-            React.createElement(
-              'span',
-              { className: 'int-en' },
-              'Hebrew Versions'
-            ),
-            React.createElement(
-              'span',
-              { className: 'int-he' },
-              'בעברית'
-            )
-          ),
-          React.createElement(
-            'div',
-            null,
-            heVersionBlocks
-          )
-        ) : "",
-        !!enVersionBlocks.length ? React.createElement(
-          'div',
-          { className: 'versionLanguageBlock' },
-          React.createElement(
-            'div',
-            { className: 'versionLanguageHeader' },
-            React.createElement(
-              'span',
-              { className: 'int-en' },
-              'English Versions'
-            ),
-            React.createElement(
-              'span',
-              { className: 'int-he' },
-              'באנגלית'
-            )
-          ),
-          React.createElement(
-            'div',
-            null,
-            enVersionBlocks
-          )
-        ) : ""
-      );
-
-      var classes = classNames({ allVersionsButton: 1, button: 1, white: 1, inactive: this.state.showAllVersions });
-      var showAllVersionsButton = React.createElement(
-        'div',
-        { className: classes, onClick: function onClick() {
-            return _this2.setState({ showAllVersions: true });
-          } },
-        React.createElement(
-          'span',
-          { className: 'int-en' },
-          this.isTextToc() ? "Other Versions" : "Available Versions"
-        ),
-        React.createElement(
-          'span',
-          { className: 'int-he' },
-          this.isTextToc() ? "גרסאות אחרות" : "גרסאות"
-        )
-      );
-      if (versions.length == 0) {
-        showAllVersionsButton = null;
-      }
-    }
-
-    if (this.isTextToc()) {
-      var sectionStrings = Sefaria.sectionString(this.props.currentRef);
-      var section = sectionStrings.en.named;
-      var heSection = sectionStrings.he.named;
-    }
 
     var moderatorSection = Sefaria.is_moderator ? React.createElement(ModeratorButtons, {
       title: title,
@@ -3847,6 +3759,7 @@ var ReaderTextTableOfContents = React.createClass({
               commentatorList: Sefaria.commentaryList(this.props.title),
               alts: details.alts,
               versionsList: versions,
+              openVersion: this.openVersion,
               defaultStruct: "default_struct" in details ? details.default_struct : "default",
               title: this.props.title })
           ) : React.createElement(LoadingMessage, null),
@@ -3924,11 +3837,14 @@ var TextDetails = React.createClass({
 var TextTableOfContentsNavigation = React.createClass({
   displayName: 'TextTableOfContentsNavigation',
 
+  // The content section of the text table of contents that includes links to text sections,
+  // and tabs for alternate structures, commentary and versions.
   propTypes: {
     schema: React.PropTypes.object.isRequired,
     commentatorList: React.PropTypes.array,
     alts: React.PropTypes.object,
     versionsList: React.PropTypes.array,
+    openVersion: React.PropTypes.func,
     defaultStruct: React.PropTypes.string,
     title: React.PropTypes.string.isRequired
   },
@@ -3982,61 +3898,67 @@ var TextTableOfContentsNavigation = React.createClass({
         }
   },
   render: function render() {
-    if (this.props.commentatorList.length || this.props.alts) {
-      var options = [{
-        name: "default",
-        text: "sectionNames" in this.props.schema ? this.props.schema.sectionNames[0] : "Contents",
-        heText: "sectionNames" in this.props.schema ? Sefaria.hebrewSectionName(this.props.schema.sectionNames[0]) : "תוכן",
-        onPress: this.setTab.bind(null, "default")
-      }];
-      if (this.props.alts) {
-        for (var alt in this.props.alts) {
-          if (this.props.alts.hasOwnProperty(alt)) {
-            options.push({
-              name: alt,
-              text: alt,
-              heText: Sefaria.hebrewSectionName(alt),
-              onPress: this.setTab.bind(null, alt)
-            });
-          }
+    var options = [{
+      name: "default",
+      text: "sectionNames" in this.props.schema ? this.props.schema.sectionNames[0] : "Contents",
+      heText: "sectionNames" in this.props.schema ? Sefaria.hebrewSectionName(this.props.schema.sectionNames[0]) : "תוכן",
+      onPress: this.setTab.bind(null, "default")
+    }];
+    if (this.props.alts) {
+      for (var alt in this.props.alts) {
+        if (this.props.alts.hasOwnProperty(alt)) {
+          options.push({
+            name: alt,
+            text: alt,
+            heText: Sefaria.hebrewSectionName(alt),
+            onPress: this.setTab.bind(null, alt)
+          });
         }
       }
-      if (this.props.commentatorList.length) {
-        options.push({
-          name: "commentary",
-          text: "Commentary",
-          heText: "מפרשים",
-          onPress: this.setTab.bind(null, "commentary")
-        });
-      }
-      options = options.sort(function (a, b) {
-        return a.name == this.props.defaultStruct ? -1 : b.name == this.props.defaultStruct ? 1 : 0;
-      }.bind(this));
-      var toggle = React.createElement(InlineToggleSet, {
-        theme: this.props.theme,
-        options: options,
-        contentLang: this.props.contentLang,
-        active: this.state.tab });
-    } else {
-      var toggle = null;
     }
+    options = options.sort(function (a, b) {
+      return a.name == this.props.defaultStruct ? -1 : b.name == this.props.defaultStruct ? 1 : 0;
+    }.bind(this));
+
+    if (this.props.commentatorList.length) {
+      options.push({
+        name: "commentary",
+        text: "Commentary",
+        heText: "מפרשים",
+        onPress: this.setTab.bind(null, "commentary")
+      });
+    }
+
+    options.push({
+      name: "versions",
+      text: "Versions",
+      heText: "גרסאות",
+      onPress: this.setTab.bind(null, "versions")
+    });
+
+    var toggle = React.createElement(InlineToggleSet, {
+      options: options,
+      active: this.state.tab });
 
     switch (this.state.tab) {
       case "default":
         var content = React.createElement(SchemaNode, {
-          theme: this.props.theme,
           schema: this.props.schema,
           addressTypes: this.props.schema.addressTypes,
           refPath: this.props.title });
         break;
       case "commentary":
         var content = React.createElement(CommentatorList, {
-          theme: this.props.theme,
           commentatorList: this.props.commentatorList });
+        break;
+      case "versions":
+        var content = React.createElement(VersionsList, {
+          versionsList: this.props.versionsList,
+          openVersion: this.props.openVersion,
+          title: this.props.title });
         break;
       default:
         var content = React.createElement(SchemaNode, {
-          theme: this.props.theme,
           schema: this.props.alts[this.state.tab],
           addressTypes: this.props.schema.addressTypes,
           refPath: this.props.title });
@@ -4142,7 +4064,6 @@ var SchemaNode = React.createClass({
               'div',
               { className: 'schema-node-contents' },
               React.createElement(SchemaNode, {
-                theme: this.props.theme,
                 schema: node,
                 contentLang: this.props.contentLang,
                 refPath: this.props.refPath + ", " + node.title })
@@ -4198,7 +4119,6 @@ var SchemaNode = React.createClass({
               'div',
               { className: 'schema-node-contents' },
               React.createElement(JaggedArrayNode, {
-                theme: this.props.theme,
                 schema: node,
                 contentLang: this.props.contentLang,
                 refPath: this.props.refPath + ", " + node.title })
@@ -4236,7 +4156,6 @@ var JaggedArrayNodeSection = React.createClass({
   displayName: 'JaggedArrayNodeSection',
 
   propTypes: {
-    theme: React.PropTypes.object.isRequired,
     depth: React.PropTypes.number.isRequired,
     sectionNames: React.PropTypes.array.isRequired,
     addressTypes: React.PropTypes.array.isRequired,
@@ -4385,6 +4304,86 @@ var CommentatorList = React.createClass({
     }.bind(this));
 
     return React.createElement(TwoBox, { content: content });
+  }
+});
+
+var VersionsList = React.createClass({
+  displayName: 'VersionsList',
+
+  propTypes: {
+    versionsList: React.PropTypes.array.isRequired,
+    openVersion: React.PropTypes.func.isRequired,
+    title: React.PropTypes.string.isRequired
+  },
+  render: function render() {
+    var _this2 = this;
+
+    var versions = this.props.versionsList;
+
+    var _map = ["he", "en"].map(function (lang) {
+      return versions.filter(function (v) {
+        return v.language == lang;
+      }).map(function (v) {
+        return React.createElement(VersionBlock, { title: _this2.props.title, version: v, openVersion: _this2.props.openVersion, key: v.versionTitle + "/" + v.language });
+      });
+    });
+
+    var _map2 = _slicedToArray(_map, 2);
+
+    var heVersionBlocks = _map2[0];
+    var enVersionBlocks = _map2[1];
+
+
+    return React.createElement(
+      'div',
+      { className: 'versionBlocks' },
+      !!heVersionBlocks.length ? React.createElement(
+        'div',
+        { className: 'versionLanguageBlock' },
+        React.createElement(
+          'div',
+          { className: 'versionLanguageHeader' },
+          React.createElement(
+            'span',
+            { className: 'int-en' },
+            'Hebrew Versions'
+          ),
+          React.createElement(
+            'span',
+            { className: 'int-he' },
+            'בעברית'
+          )
+        ),
+        React.createElement(
+          'div',
+          null,
+          heVersionBlocks
+        )
+      ) : null,
+      !!enVersionBlocks.length ? React.createElement(
+        'div',
+        { className: 'versionLanguageBlock' },
+        React.createElement(
+          'div',
+          { className: 'versionLanguageHeader' },
+          React.createElement(
+            'span',
+            { className: 'int-en' },
+            'English Versions'
+          ),
+          React.createElement(
+            'span',
+            { className: 'int-he' },
+            'באנגלית'
+          )
+        ),
+        React.createElement(
+          'div',
+          null,
+          enVersionBlocks
+        )
+      ) : null
+    );
   }
 });
 
