@@ -1429,7 +1429,7 @@ class TextChunk(AbstractTextRecord):
             if strict:
                 raise ValueError("The number of refs doesn't match the number of starting words. len(refs)={} len(inds)={}".format(len(ref_list),len(ind_list)))
             else:
-                print "Warning: The number of refs doesn't match the number of starting words. len(refs)={} len(inds)={}".format(len(ref_list),len(ind_list))
+                print "Warning: The number of refs doesn't match the number of starting words. len(refs)={} len(inds)={} {}".format(len(ref_list),len(ind_list),str(self._oref))
                 if len(ind_list) > len(ref_list):
                     ind_list = ind_list[:len(ref_list)]
                 else:
