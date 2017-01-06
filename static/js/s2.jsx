@@ -3173,7 +3173,7 @@ var ReaderTextTableOfContents = React.createClass({
                       alts={details.alts}
                       versionsList={versions}
                       openVersion={this.openVersion}
-                      defaultStruct={"default_struct" in details ? details.default_struct : "default"} 
+                      defaultStruct={"default_struct" in details && details.default_struct in details.alts ? details.default_struct : "default"} 
                       currentRef={this.isTextToc() ? this.props.currentRef : null}
                       title={this.props.title} />
                   </div>
