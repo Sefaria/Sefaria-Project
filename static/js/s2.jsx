@@ -3013,6 +3013,8 @@ var ReaderTextTableOfContents = React.createClass({
 
     var title     = this.props.title;
     var heTitle   = Sefaria.index(title) ? Sefaria.index(title).heTitle : title;
+    var category  = this.props.category.replace("2", ""); // TODO Remove replace post Commentary Refactory 
+
 
     var currentVersionElement = null;
     var defaultVersionString = "Default Version";
@@ -3121,7 +3123,7 @@ var ReaderTextTableOfContents = React.createClass({
 
     var closeClick = (this.isBookToc()) ? this.props.closePanel : this.props.close;
     return (<div className="readerTextTableOfContents readerNavMenu">
-              <CategoryColorLine category={this.props.category} />
+              <CategoryColorLine category={category} />
               <div className="readerControls">
                 <div className="readerControlsInner">
                   <div className="leftButtons">
@@ -3142,8 +3144,8 @@ var ReaderTextTableOfContents = React.createClass({
                 <div className="contentInner">
                   <div className="tocTop">
                     <div className="tocCategory">
-                      <span className="en">{this.props.category}</span>
-                      <span className="he">{Sefaria.hebrewCategory(this.props.category)}</span>
+                      <span className="en">{category}</span>
+                      <span className="he">{Sefaria.hebrewCategory(category)}</span>
                     </div>
                     <div className="tocTitle">
                       <span className="en">{title}</span>
@@ -3188,40 +3190,32 @@ var TextDetails = React.createClass({
   propTypes: {
     index: React.PropTypes.object.isRequired
   },
-  render: function() {
-    var authorLinks = "authors" in this.props.index ? // TODO Hebrew author names?
-      this.props.index.authors.map(function (author) { return <a href={"/person/" + author}>{author}</a> }) : null;
-    
-    var enDesc = "";
-    var composedLine = null;
-    if ("compDate" in this.props.index || "compPlace" in this.props.index) {
-      var placeTime = [];
-      if ("compPlace" in this.props.index) { placeTime.push(this.props.index.compPlace); }
-      if ("compDate" in this.props.index) {
-        var dateLine = this.props.index.compDate > 0 ? this.props.index.compDate + "CE" : Math.abs(this.props.index.compDate) + "BCE";
-        placeTime.push(dateLine);
-      }
-      composedLine = "Composed: " + placeTime.join(", ");
+ render: function() {
+    var makeDescriptionText = function(compWord, compPlace, compDate, description) {
+      var composed = compPlace || compDate ? compWord + ": " + [compPlace, compDate].filter(x => !!x).join(" ") : null;
+      return [composed, description].filter(x => !!x).join(". ");
     }
-    enDesc += composedLine ? composedLine + ". " : "";
-    enDesc += "enDesc" in this.props.index ? this.props.index.enDesc : "";
+    var enDesc = makeDescriptionText("Composed", "compPlaceString" in this.props.index ? this.props.index.compPlaceString.en : null, "compDateString" in this.props.index ? this.props.index.compDateString.en : null, this.props.index.enDesc);
+    var heDesc = makeDescriptionText("נוצר/נערך", "compPlaceString" in this.props.index ? this.props.index.compPlaceString.he : null, "compDateString" in this.props.index ? this.props.index.compDateString.he : null, this.props.index.heDesc);
+
     return (
       <div className="tocDetails">
         { "authors" in this.props.index ?
           <div className="tocDetail">
-              <span className="he">
-                מחבר: {authorLinks}
+              <span className="int-he">
+                מחבר: {this.props.index.authors.map(function (author) { return <a href={"/person/" + author.en}>{author.he}</a> })}
               </span>
-              <span className="en">
-                Author: {authorLinks}
+              <span className="int-en">
+                Author: {this.props.index.authors.map(function (author) { return <a href={"/person/" + author.en}>{author.en}</a> })}
               </span>
           </div>
           : null }
         { enDesc.length ?
           <div className="tocDetail description">
-              <div className="he">
+              <div className="int-he">
+                <ReadMoreText text={heDesc} />
               </div>
-              <div className="en">
+              <div className="int-en">
                 <ReadMoreText text={enDesc} />
               </div>
           </div>
@@ -3976,20 +3970,25 @@ var ModeratorButtons = React.createClass({
 
 var ReadMoreText = React.createClass({
   propTypes: {
-    text: React.PropTypes.string.isRequired
+    text: React.PropTypes.string.isRequired,
+    initialWords: React.PropTypes.number,
   },
-  getInitialState() {
-    return {expanded: false}
+  getDefaultProps: function() {
+    return {
+      initialWords: 24
+    }
+  },
+  getInitialState: function() {
+    return {expanded: this.props.text.split(" ").length < this.props.initialWords}
   },
   render: function() {
-    var initialWords = 24;
-    var text = this.state.expanded ? this.props.text : this.props.text.split(" ").slice(0, initialWords).join (" ") + "...";
+    var text = this.state.expanded ? this.props.text : this.props.text.split(" ").slice(0, this.props.initialWords).join (" ") + "...";
     return <div className="readMoreText">
       {text}
       {this.state.expanded ? null : 
         <span className="readMoreLink" onClick={() => this.setState({expanded: true})}>
-          <span className="en">Read More ›</span>
-          <span className="he">קרא עוד ›</span>
+          <span className="int-en">Read More ›</span>
+          <span className="int-he">קרא עוד ›</span>
         </span>
       }
     </div>

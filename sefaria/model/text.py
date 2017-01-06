@@ -238,10 +238,42 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
 
     def contents(self, v2=False, raw=False, force_complex=False, **kwargs):
         if not getattr(self, "nodes", None) or raw:  # Commentator
-            return super(Index, self).contents()
+            contents = super(Index, self).contents()
         elif v2:
-            return self.nodes.as_index_contents()
-        return self.legacy_form(force_complex=force_complex)
+            contents = self.nodes.as_index_contents()
+        else:
+            contents = self.legacy_form(force_complex=force_complex)
+
+        if not raw:
+            contents = self.expand_metadata_on_contents(contents)
+
+        return contents
+
+    def expand_metadata_on_contents(self, contents):
+        """
+        Decorates contents with expanded meta data such as Hebrew author names, human readable date strings etc.
+        :param contents: the initial dictionary of contents
+        :return: a dictionary of contents with additional fields   
+        """
+        authors = self.author_objects()
+        if len(authors):
+            contents["authors"] = [{"en": author.primary_name("en"), "he": author.primary_name("he")} for author in authors]
+
+        composition_time_period = self.composition_time_period()
+        if composition_time_period:
+            contents["compDateString"] = {
+                "en": composition_time_period.period_string("en"),
+                "he": composition_time_period.period_string("he"),
+            }
+
+        composition_place = self.composition_place()
+        if composition_place:
+            contents["compPlaceString"] = {
+                "en": composition_place.primary_name("en"),
+                "he": composition_place.primary_name("he"),
+            }
+
+        return contents
 
     def legacy_form(self, force_complex=False):
         """

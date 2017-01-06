@@ -974,15 +974,21 @@ a.resourcesLink {
 .readerTextTableOfContents .tocDetail {
   margin-bottom: 4px;
 }
+.readerTextTableOfContents .tocDetail .int-en {
+  font-family: "adobe-garamond-pro", Georgia, serif;
+}
+.readerTextTableOfContents .tocDetail .int-he {
+  font-family: "Taamey Frank", "Times New Roman", serif;
+}
 .readerTextTableOfContents .tocDetails .description {
   margin-top: 10px;
-  text-align: center;
   font-style: normal;
   font-size: 16px;
   line-height: 1.4;  
 }
 .readerTextTableOfContents .tocDetails .description .readMoreText {
   display: block;
+  text-align: center;
 }
 .readerTextTableOfContents .tocDetails .description .readMoreLink {
   font-style: italic;

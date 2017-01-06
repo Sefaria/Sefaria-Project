@@ -3451,6 +3451,7 @@ var ReaderTextTableOfContents = React.createClass({
 
     var title = this.props.title;
     var heTitle = Sefaria.index(title) ? Sefaria.index(title).heTitle : title;
+    var category = this.props.category.replace("2", ""); // TODO Remove replace post Commentary Refactory
 
     var currentVersionElement = null;
     var defaultVersionString = "Default Version";
@@ -3655,7 +3656,7 @@ var ReaderTextTableOfContents = React.createClass({
     return React.createElement(
       'div',
       { className: 'readerTextTableOfContents readerNavMenu' },
-      React.createElement(CategoryColorLine, { category: this.props.category }),
+      React.createElement(CategoryColorLine, { category: category }),
       React.createElement(
         'div',
         { className: 'readerControls' },
@@ -3707,12 +3708,12 @@ var ReaderTextTableOfContents = React.createClass({
               React.createElement(
                 'span',
                 { className: 'en' },
-                this.props.category
+                category
               ),
               React.createElement(
                 'span',
                 { className: 'he' },
-                Sefaria.hebrewCategory(this.props.category)
+                Sefaria.hebrewCategory(category)
               )
             ),
             React.createElement(
@@ -3778,30 +3779,17 @@ var TextDetails = React.createClass({
     index: React.PropTypes.object.isRequired
   },
   render: function render() {
-    var authorLinks = "authors" in this.props.index ? // TODO Hebrew author names?
-    this.props.index.authors.map(function (author) {
-      return React.createElement(
-        'a',
-        { href: "/person/" + author },
-        author
-      );
-    }) : null;
+    var makeDescriptionText = function makeDescriptionText(compWord, compPlace, compDate, description) {
+      var composed = compPlace || compDate ? compWord + ": " + [compPlace, compDate].filter(function (x) {
+        return !!x;
+      }).join(" ") : null;
+      return [composed, description].filter(function (x) {
+        return !!x;
+      }).join(". ");
+    };
+    var enDesc = makeDescriptionText("Composed", "compPlaceString" in this.props.index ? this.props.index.compPlaceString.en : null, "compDateString" in this.props.index ? this.props.index.compDateString.en : null, this.props.index.enDesc);
+    var heDesc = makeDescriptionText("נוצר/נערך", "compPlaceString" in this.props.index ? this.props.index.compPlaceString.he : null, "compDateString" in this.props.index ? this.props.index.compDateString.he : null, this.props.index.heDesc);
 
-    var enDesc = "";
-    var composedLine = null;
-    if ("compDate" in this.props.index || "compPlace" in this.props.index) {
-      var placeTime = [];
-      if ("compPlace" in this.props.index) {
-        placeTime.push(this.props.index.compPlace);
-      }
-      if ("compDate" in this.props.index) {
-        var dateLine = this.props.index.compDate > 0 ? this.props.index.compDate + "CE" : Math.abs(this.props.index.compDate) + "BCE";
-        placeTime.push(dateLine);
-      }
-      composedLine = "Composed: " + placeTime.join(", ");
-    }
-    enDesc += composedLine ? composedLine + ". " : "";
-    enDesc += "enDesc" in this.props.index ? this.props.index.enDesc : "";
     return React.createElement(
       'div',
       { className: 'tocDetails' },
@@ -3810,24 +3798,40 @@ var TextDetails = React.createClass({
         { className: 'tocDetail' },
         React.createElement(
           'span',
-          { className: 'he' },
+          { className: 'int-he' },
           'מחבר: ',
-          authorLinks
+          this.props.index.authors.map(function (author) {
+            return React.createElement(
+              'a',
+              { href: "/person/" + author.en },
+              author.he
+            );
+          })
         ),
         React.createElement(
           'span',
-          { className: 'en' },
+          { className: 'int-en' },
           'Author: ',
-          authorLinks
+          this.props.index.authors.map(function (author) {
+            return React.createElement(
+              'a',
+              { href: "/person/" + author.en },
+              author.en
+            );
+          })
         )
       ) : null,
       enDesc.length ? React.createElement(
         'div',
         { className: 'tocDetail description' },
-        React.createElement('div', { className: 'he' }),
         React.createElement(
           'div',
-          { className: 'en' },
+          { className: 'int-he' },
+          React.createElement(ReadMoreText, { text: heDesc })
+        ),
+        React.createElement(
+          'div',
+          { className: 'int-en' },
           React.createElement(ReadMoreText, { text: enDesc })
         )
       ) : null
@@ -4863,17 +4867,21 @@ var ReadMoreText = React.createClass({
   displayName: 'ReadMoreText',
 
   propTypes: {
-    text: React.PropTypes.string.isRequired
+    text: React.PropTypes.string.isRequired,
+    initialWords: React.PropTypes.number
+  },
+  getDefaultProps: function getDefaultProps() {
+    return {
+      initialWords: 24
+    };
   },
   getInitialState: function getInitialState() {
-    return { expanded: false };
+    return { expanded: this.props.text.split(" ").length < this.props.initialWords };
   },
-
   render: function render() {
     var _this4 = this;
 
-    var initialWords = 24;
-    var text = this.state.expanded ? this.props.text : this.props.text.split(" ").slice(0, initialWords).join(" ") + "...";
+    var text = this.state.expanded ? this.props.text : this.props.text.split(" ").slice(0, this.props.initialWords).join(" ") + "...";
     return React.createElement(
       'div',
       { className: 'readMoreText' },
@@ -4885,12 +4893,12 @@ var ReadMoreText = React.createClass({
           } },
         React.createElement(
           'span',
-          { className: 'en' },
+          { className: 'int-en' },
           'Read More ›'
         ),
         React.createElement(
           'span',
-          { className: 'he' },
+          { className: 'int-he' },
           'קרא עוד ›'
         )
       )
