@@ -1072,13 +1072,24 @@ a.resourcesLink {
 .readerTextTableOfContents .versionEditForm #digitzedBySefaria {
   margin-right: 10px;
 }
-.readerTextTableOfContents .versionEditForm #save_button {
+.readerTextTableOfContents .versionEditForm #save_button,
+.readerTextTableOfContents .versionEditForm #delete_button {
   text-align: center;
   cursor: pointer;
+  color: white;
   background: #212E50;
+  padding: 4px 10px;
+  border-radius: 3px;
   margin: 10px auto 0;
   width: 60px;
-  color: white;
+}
+.readerTextTableOfContents .versionEditForm #delete_button {
+  float: right;
+  background: white;
+  color: #999;
+  border: 1px solid #999;
+  width: 100px;
+  margin: 0;
 }
 .readerTextTableOfContents .versionTitle .fa,
 .readerTextTableOfContents .versionEditForm .fa {

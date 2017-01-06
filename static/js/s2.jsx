@@ -3051,13 +3051,7 @@ var ReaderTextTableOfContents = React.createClass({
     // Versions List
     var versions = this.getVersionsList();
 
-    var moderatorSection = Sefaria.is_moderator ?
-      (<ModeratorButtons 
-        title={title}
-        versionTitle={this.state.currentVersion ? this.state.currentVersion.versionTitle : null}
-        versionLanguage={this.state.currentVersion ? this.state.currentVersion.language : null}
-        versionStatus={this.state.currentVersion ? this.state.currentVersion.versionStatus: null} />)
-      : null;
+    var moderatorSection = Sefaria.is_moderator ? (<ModeratorButtons title={title} />) : null;
 
     // Downloading
     if (versions) {
@@ -3698,7 +3692,8 @@ var VersionBlock = React.createClass({
     "versionNotes",
     "license",
     "priority",
-    "digitizedBySefaria"
+    "digitizedBySefaria",
+    "status"
   ],
   licenseMap: {
     "Public Domain": "http://en.wikipedia.org/wiki/Public_domain",
@@ -3729,6 +3724,9 @@ var VersionBlock = React.createClass({
   onDigitizedBySefariaChange: function(event) {
     this.setState({digitizedBySefaria: event.target.checked, "error": null});
   },
+  onLockedChange: function(event) {
+    this.setState({status: event.target.checked ? "locked" : null, "error": null});
+  },  
   onVersionTitleChange: function(event) {
     this.setState({versionTitle: event.target.value, "error": null});
   },
@@ -3761,6 +3759,27 @@ var VersionBlock = React.createClass({
       error: function(xhr, status, err) {
         this.setState({error: err.toString()});
       }.bind(this)
+    });
+  },
+  deleteVersion: function() {
+    if (!confirm("Are you sure you want to delete this text version?")) { return; }
+
+    var title = this.props.title;
+    var url = "/api/texts/" + title + "/" + this.props.version.language + "/" + this.props.version.versionTitle;
+
+    $.ajax({
+      url: url,
+      type: "DELETE",
+      success: function(data) {
+        if ("error" in data) {
+          alert(data.error)
+        } else {
+          alert("Text Version Deleted.");
+          window.location = "/" + Sefaria.normRef(title);
+        }
+      }
+    }).fail(function() {
+      alert("Something went wrong. Sorry!");
     });
   },
   openEditor: function() {
@@ -3802,10 +3821,16 @@ var VersionBlock = React.createClass({
             <label id="priority_label" for="priority">Priority</label>
             <input id="priority" className="" type="text" value={this.state.priority} onChange={this.onPriorityChange} />
 
+            <label id="locked_label" for="locked">Locked</label>
+            <input type="checkbox" id="locked" checked={this.state.status == "locked"} onChange={this.onLockedChange}/>
+
             <label id="versionNotes_label" for="versionNotes">VersionNotes</label>
             <textarea id="versionNotes" placeholder="Version Notes" onChange={this.onVersionNotesChange} value={this.state.versionNotes} rows="5" cols="40"/>
-
-            <div id="save_button" onClick={this.saveVersionUpdate}>SAVE</div>
+            <div>
+              <div id="delete_button" onClick={this.deleteVersion}>Delete Version</div>
+              <div id="save_button" onClick={this.saveVersionUpdate}>SAVE</div>
+              <div className="clearFix"></div>
+            </div>
           </div>
         </div>
       );
@@ -3851,57 +3876,15 @@ var VersionBlock = React.createClass({
 var ModeratorButtons = React.createClass({
   propTypes: {
     title: React.PropTypes.string.isRequired,
-    currentRef: React.PropTypes.string,
-    versionTitle: React.PropTypes.string,
-    versionLanguage: React.PropTypes.string,
-    versionStatus: React.PropTypes.string
   },
   getInitialState: function() {
     return {
       expanded: false,
       message: null,
-      locked: this.props.versionStatus == "locked"
     }
   },
   expand: function() {
     this.setState({expanded: true});
-  },
-  toggleLock: function() {
-    var title = this.props.title;
-    var url = "/api/locktext/" + title + "/" + this.props.versionLanguage + "/" + this.props.versionTitle;
-    if (this.state.locked) {
-      url += "?action=unlock";
-    }
-
-    $.post(url, {}, function(data) {
-      if ("error" in data) {
-        alert(data.error)
-      } else {
-        alert(this.state.locked ? "Text Unlocked" : "Text Locked");
-        this.setState({locked: !this.state.locked})
-      }
-    }.bind(this)).fail(function() {
-      alert("Something went wrong. Sorry!");
-    });
-  },
-  deleteVersion: function() {
-    var title = this.props.title;
-    var url = "/api/texts/" + title + "/" + this.props.versionLanguage + "/" + this.props.versionTitle;
-
-    $.ajax({
-      url: url,
-      type: "DELETE",
-      success: function(data) {
-        if ("error" in data) {
-          alert(data.error)
-        } else {
-          alert("Text Version Deleted.");
-          window.location = "/" + Sefaria.normRef(title);
-        }
-      }
-    }).fail(function() {
-      alert("Something went wrong. Sorry!");
-    });
   },
   editIndex: function() {
     window.location = "/edit/textinfo/" + this.props.title; 
@@ -3938,18 +3921,6 @@ var ModeratorButtons = React.createClass({
                 <i className="fa fa-cog"></i>
               </div>);
     }
-    var versionButtons = this.props.versionTitle ? 
-      (<span className="moderatorVersionButtons">
-          <div className="button white" onClick={this.toggleLock}>
-            { this.state.locked ?
-                (<span><i className="fa fa-unlock"></i> Unlock</span>) :
-                (<span><i className="fa fa-lock"></i> Lock</span>) }
-          </div>
-          <div className="button white" onClick={this.deleteVersion}>
-              <span><i className="fa fa-trash"></i> Delete Version</span>
-          </div>
-       </span>)
-      : null;
     var textButtons = (<span className="moderatorTextButtons">
                           <div className="button white" onClick={this.editIndex}>
                               <span><i className="fa fa-info-circle"></i> Edit Text Info</span>
@@ -3960,7 +3931,6 @@ var ModeratorButtons = React.createClass({
                         </span>);
     var message = this.state.message ? (<div className="moderatorSectionMessage">{this.state.message}</div>) : null; 
     return (<div className="moderatorSection">
-              {versionButtons}
               {textButtons}
               {message}
             </div>);

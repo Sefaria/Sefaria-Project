@@ -3497,11 +3497,7 @@ var ReaderTextTableOfContents = React.createClass({
     // Versions List
     var versions = this.getVersionsList();
 
-    var moderatorSection = Sefaria.is_moderator ? React.createElement(ModeratorButtons, {
-      title: title,
-      versionTitle: this.state.currentVersion ? this.state.currentVersion.versionTitle : null,
-      versionLanguage: this.state.currentVersion ? this.state.currentVersion.language : null,
-      versionStatus: this.state.currentVersion ? this.state.currentVersion.versionStatus : null }) : null;
+    var moderatorSection = Sefaria.is_moderator ? React.createElement(ModeratorButtons, { title: title }) : null;
 
     // Downloading
     if (versions) {
@@ -4487,7 +4483,7 @@ var VersionBlock = React.createClass({
     });
     return s;
   },
-  updateableVersionAttributes: ["versionTitle", "versionSource", "versionNotes", "license", "priority", "digitizedBySefaria"],
+  updateableVersionAttributes: ["versionTitle", "versionSource", "versionNotes", "license", "priority", "digitizedBySefaria", "status"],
   licenseMap: {
     "Public Domain": "http://en.wikipedia.org/wiki/Public_domain",
     "CC0": "http://creativecommons.org/publicdomain/zero/1.0/",
@@ -4516,6 +4512,9 @@ var VersionBlock = React.createClass({
   },
   onDigitizedBySefariaChange: function onDigitizedBySefariaChange(event) {
     this.setState({ digitizedBySefaria: event.target.checked, "error": null });
+  },
+  onLockedChange: function onLockedChange(event) {
+    this.setState({ status: event.target.checked ? "locked" : null, "error": null });
   },
   onVersionTitleChange: function onVersionTitleChange(event) {
     this.setState({ versionTitle: event.target.value, "error": null });
@@ -4549,6 +4548,29 @@ var VersionBlock = React.createClass({
       error: function (xhr, status, err) {
         this.setState({ error: err.toString() });
       }.bind(this)
+    });
+  },
+  deleteVersion: function deleteVersion() {
+    if (!confirm("Are you sure you want to delete this text version?")) {
+      return;
+    }
+
+    var title = this.props.title;
+    var url = "/api/texts/" + title + "/" + this.props.version.language + "/" + this.props.version.versionTitle;
+
+    $.ajax({
+      url: url,
+      type: "DELETE",
+      success: function success(data) {
+        if ("error" in data) {
+          alert(data.error);
+        } else {
+          alert("Text Version Deleted.");
+          window.location = "/" + Sefaria.normRef(title);
+        }
+      }
+    }).fail(function () {
+      alert("Something went wrong. Sorry!");
     });
   },
   openEditor: function openEditor() {
@@ -4621,14 +4643,30 @@ var VersionBlock = React.createClass({
           React.createElement('input', { id: 'priority', className: '', type: 'text', value: this.state.priority, onChange: this.onPriorityChange }),
           React.createElement(
             'label',
+            { id: 'locked_label', 'for': 'locked' },
+            'Locked'
+          ),
+          React.createElement('input', { type: 'checkbox', id: 'locked', checked: this.state.status == "locked", onChange: this.onLockedChange }),
+          React.createElement(
+            'label',
             { id: 'versionNotes_label', 'for': 'versionNotes' },
             'VersionNotes'
           ),
           React.createElement('textarea', { id: 'versionNotes', placeholder: 'Version Notes', onChange: this.onVersionNotesChange, value: this.state.versionNotes, rows: '5', cols: '40' }),
           React.createElement(
             'div',
-            { id: 'save_button', onClick: this.saveVersionUpdate },
-            'SAVE'
+            null,
+            React.createElement(
+              'div',
+              { id: 'delete_button', onClick: this.deleteVersion },
+              'Delete Version'
+            ),
+            React.createElement(
+              'div',
+              { id: 'save_button', onClick: this.saveVersionUpdate },
+              'SAVE'
+            ),
+            React.createElement('div', { className: 'clearFix' })
           )
         )
       );
@@ -4704,58 +4742,16 @@ var ModeratorButtons = React.createClass({
   displayName: 'ModeratorButtons',
 
   propTypes: {
-    title: React.PropTypes.string.isRequired,
-    currentRef: React.PropTypes.string,
-    versionTitle: React.PropTypes.string,
-    versionLanguage: React.PropTypes.string,
-    versionStatus: React.PropTypes.string
+    title: React.PropTypes.string.isRequired
   },
   getInitialState: function getInitialState() {
     return {
       expanded: false,
-      message: null,
-      locked: this.props.versionStatus == "locked"
+      message: null
     };
   },
   expand: function expand() {
     this.setState({ expanded: true });
-  },
-  toggleLock: function toggleLock() {
-    var title = this.props.title;
-    var url = "/api/locktext/" + title + "/" + this.props.versionLanguage + "/" + this.props.versionTitle;
-    if (this.state.locked) {
-      url += "?action=unlock";
-    }
-
-    $.post(url, {}, function (data) {
-      if ("error" in data) {
-        alert(data.error);
-      } else {
-        alert(this.state.locked ? "Text Unlocked" : "Text Locked");
-        this.setState({ locked: !this.state.locked });
-      }
-    }.bind(this)).fail(function () {
-      alert("Something went wrong. Sorry!");
-    });
-  },
-  deleteVersion: function deleteVersion() {
-    var title = this.props.title;
-    var url = "/api/texts/" + title + "/" + this.props.versionLanguage + "/" + this.props.versionTitle;
-
-    $.ajax({
-      url: url,
-      type: "DELETE",
-      success: function success(data) {
-        if ("error" in data) {
-          alert(data.error);
-        } else {
-          alert("Text Version Deleted.");
-          window.location = "/" + Sefaria.normRef(title);
-        }
-      }
-    }).fail(function () {
-      alert("Something went wrong. Sorry!");
-    });
   },
   editIndex: function editIndex() {
     window.location = "/edit/textinfo/" + this.props.title;
@@ -4794,35 +4790,6 @@ var ModeratorButtons = React.createClass({
         React.createElement('i', { className: 'fa fa-cog' })
       );
     }
-    var versionButtons = this.props.versionTitle ? React.createElement(
-      'span',
-      { className: 'moderatorVersionButtons' },
-      React.createElement(
-        'div',
-        { className: 'button white', onClick: this.toggleLock },
-        this.state.locked ? React.createElement(
-          'span',
-          null,
-          React.createElement('i', { className: 'fa fa-unlock' }),
-          ' Unlock'
-        ) : React.createElement(
-          'span',
-          null,
-          React.createElement('i', { className: 'fa fa-lock' }),
-          ' Lock'
-        )
-      ),
-      React.createElement(
-        'div',
-        { className: 'button white', onClick: this.deleteVersion },
-        React.createElement(
-          'span',
-          null,
-          React.createElement('i', { className: 'fa fa-trash' }),
-          ' Delete Version'
-        )
-      )
-    ) : null;
     var textButtons = React.createElement(
       'span',
       { className: 'moderatorTextButtons' },
@@ -4856,7 +4823,6 @@ var ModeratorButtons = React.createClass({
     return React.createElement(
       'div',
       { className: 'moderatorSection' },
-      versionButtons,
       textButtons,
       message
     );
