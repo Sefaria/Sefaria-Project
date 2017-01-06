@@ -568,7 +568,7 @@ def sheet_list_api(request):
 			existing = get_sheet(sheet["id"])
 			if "error" not in existing  and \
 				not can_edit(user, existing) and \
-				not can_add(user, existing):
+				not can_add(request.user, existing):
 
 				return jsonResponse({"error": "You don't have permission to edit this sheet."})
 
