@@ -558,7 +558,8 @@ def sheet_list_api(request):
 		sheet = json.loads(j)
 
 		if apikey:
-			sheet["lastModified"] = get_sheet(sheet["id"])["dateModified"] # Usually lastModified gets set on the frontend, so we need to set it here to match with the previous dateModified so that the check in `save_sheet` returns properly
+			if "id" in sheet:
+				sheet["lastModified"] = get_sheet(sheet["id"])["dateModified"] # Usually lastModified gets set on the frontend, so we need to set it here to match with the previous dateModified so that the check in `save_sheet` returns properly
 			user = User.objects.get(id=apikey["uid"])
 		else:
 			user = request.user
