@@ -171,6 +171,7 @@ def test_text_index_map():
     assert index_list[2] == 20
     assert index_list[5] == 423
 
+    #now let's get serious. run text_index_map and check for rand_inds that each ref at that ind matches the corresponding indices in index_list
     index = library.get_index("Otzar Midrashim")
     nodes = index.nodes
     index_list, ref_list = nodes.text_index_map(tokenizer=tokenizer)
@@ -181,4 +182,7 @@ def test_text_index_map():
     rand_inds = [1,20,45,1046,len(index_list)-2]
     for ri in rand_inds:
         assert u' '.join(tokenizer(ref_list[ri].text("he").text)) == u' '.join(mes_str_array[index_list[ri]:index_list[ri+1]])
+
+
+
 
