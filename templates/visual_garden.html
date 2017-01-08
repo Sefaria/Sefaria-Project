@@ -301,6 +301,7 @@
             .elasticY(true)
             .xUnits(function(start, end, xDomain) { return (end - start) / timeline_bin_size; }) //return  60; }) //Math.abs(end - start) / 10; }) // years in the domain / 40
             .round(dc.round.floor)
+            .on('filtered', redraw_garden)
             .x(d3.scale.linear().domain(tl_extent));
 
         if (config.timeline_scale == "log") {
@@ -515,6 +516,7 @@
             .overlayGeoJson(places.features, "placeLayer", function (d) {
                 return d.id;
             })
+            .on('filtered', redraw_garden)
             .on('preRedraw', function() { // Hack to force map redraw, so that pointRadius gets computed. http://stackoverflow.com/a/33737638/213042
                 mapchart.projection(projection);
             })
