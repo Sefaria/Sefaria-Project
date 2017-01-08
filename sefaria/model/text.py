@@ -1388,7 +1388,7 @@ class TextChunk(AbstractTextRecord):
         else:
             raise Exception("Called TextChunk.version() on merged TextChunk.")
 
-    def all_subrefs(self):
+    def nonempty_subrefs(self):
         """
 
         :return: list of segment refs with content in this TextChunk
@@ -1425,7 +1425,7 @@ class TextChunk(AbstractTextRecord):
         """
         #TODO there is a known error that this will fail if the text version you're using has fewer segments than the VersionState.
         ind_list = []
-        ref_list = self.all_subrefs()
+        ref_list = self.nonempty_subrefs()
 
 
         """
