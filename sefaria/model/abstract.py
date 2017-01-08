@@ -418,6 +418,9 @@ def notify(inst, action, **kwargs):
         logger.debug(u"Notify: " + unicode(inst) + u" is being " + action + u"d.")
         callbacks = deps.get((type(inst), action, None), [])
 
+    if not callbacks:
+        return
+
     for callback in callbacks:
         logger.debug(u"Notify: Calling " + callback.__name__ + u"() for " + inst.__class__.__name__ + " " + action)
         callback(inst, **kwargs)

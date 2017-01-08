@@ -1985,18 +1985,12 @@ function textPreview(ref, $target, callback) {
 	var urlRef = normRef(ref);
 	var getUrl = "/api/texts/" + urlRef + "?commentary=0&context=0";
 	$target.html("Loading text...");
-
-	var data = sjs.cache.get(ref);
-	if (data) {
-		makePreview(data);
-	} else {
-		$.getJSON(getUrl, makePreview)
-			.error(function() {
-				var msg = "<span class='error'>There was an error retrieving this text.</span>";
-				$target.html(msg);
-				callback();
-			});
-	}
+	$.getJSON(getUrl, makePreview)
+		.error(function() {
+			var msg = "<span class='error'>There was an error retrieving this text.</span>";
+			$target.html(msg);
+			callback();
+	});
 
 	function makePreview(data) {
 		sjs.cache.save(data);

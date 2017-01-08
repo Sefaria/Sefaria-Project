@@ -172,7 +172,7 @@ class LinkSet(abst.AbstractMongoSet):
         :param from_ref: A Ref object
         :param as_tuple: If true, return a collection of tuples (Ref,Ref), where the first Ref is the given from_ref,
         or one more specific, and the second Ref is the opposing Ref in the link.
-        :return:
+        :return: List of Ref objects
         """
         reg = re.compile(from_ref.regex())
         refs = []

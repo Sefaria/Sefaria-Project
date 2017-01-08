@@ -492,6 +492,7 @@ def hebrew_term(s):
 		"Yad Ramah":		u"יד רמה",
 		"Raavad":		u'ראב"ד',
 		"Radbaz":		u'רדב"ז',
+		"Pri Yitzhak": u'פרי יצחק',
 		"Tosafot Yom Tov":      u"תוספות יום טוב",
 		"Chidushei Halachot":   u"חידושי הלכות",
 		"Chidushei Agadot":     u"חידושי אגדות",

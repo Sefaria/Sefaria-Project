@@ -163,7 +163,7 @@ def sheet_list(user_id=None):
 	return response
 
 
-def save_sheet(sheet, user_id):
+def save_sheet(sheet, user_id, search_override=False):
 	"""
 	Saves sheet to the db, with user_id as owner.
 	"""
@@ -182,7 +182,7 @@ def save_sheet(sheet, user_id):
 		if sheet["status"] != existing["status"]:
 			status_changed = True
 
-		sheet["views"] = existing["views"] # prevent updating views
+		sheet["views"] = existing["views"]  # prevent updating views
 		existing.update(sheet)
 		sheet = existing
 
@@ -214,7 +214,7 @@ def save_sheet(sheet, user_id):
 
 	db.sheets.update({"id": sheet["id"]}, sheet, True, False)
 
-	if sheet["status"] == "public" and SEARCH_INDEX_ON_SAVE:
+	if sheet["status"] == "public" and SEARCH_INDEX_ON_SAVE and not search_override:
 		search.index_sheet(sheet["id"])
 
 	global last_updated

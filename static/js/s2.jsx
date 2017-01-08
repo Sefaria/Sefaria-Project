@@ -1799,7 +1799,7 @@ var ReaderPanel = React.createClass({
       "Add Note": 1,
       "My Notes": 1,
       "Add Connection": 1,
-      "Add Translation": 1 // Is this used?
+      "Add Translation": 1
     };
     Sefaria.site.track.event("Tools", mode + " Click");
     if (!Sefaria._uid && mode in loginRequired) {
@@ -2675,9 +2675,10 @@ var LanguageToggleButton = React.createClass({
 
 var BlockLink = React.createClass({
   propTypes: {
-    title:    React.PropTypes.string,
-    heTitle:  React.PropTypes.string,
-    target:   React.PropTypes.string,
+    title:         React.PropTypes.string,
+    heTitle:       React.PropTypes.string,
+    target:        React.PropTypes.string,
+    image:         React.PropTypes.string,
     interfaceLink: React.PropTypes.bool
   },
   getDefaultProps: function() {
@@ -2688,6 +2689,7 @@ var BlockLink = React.createClass({
   render: function() {
     var interfaceClass = this.props.interfaceLink ? 'int-' : '';
     return (<a className="blockLink" href={this.props.target}>
+              {this.props.image ? <img src={this.props.image} /> : null}
               <span className={`${interfaceClass}en`}>{this.props.title}</span>
               <span className={`${interfaceClass}he`}>{this.props.heTitle}</span>
            </a>);
@@ -3082,11 +3084,13 @@ var ReaderTextTableOfContents = React.createClass({
   isTextToc: function() {
     return (this.props.mode == "text toc")
   },
-  isVersionPublicDomain: v => !(v.license && v.license.startsWith("Copyright")),
+  isVersionPublicDomain: function(v) {
+    return !(v.license && v.license.startsWith("Copyright"));
+  },
   render: function() {
     var tocHtml = Sefaria.textTocHtml(this.props.title);
 
-    tocHtml = tocHtml || '<div class="loadingMessage"><span class="int-en">Loading...</span><span class="int-he">טוען...</span></div>';
+    tocHtml = tocHtml || <LoadingMessage />;
 
     var title     = this.props.title;
     var heTitle   = Sefaria.index(title) ? Sefaria.index(title).heTitle : title;
@@ -3260,9 +3264,9 @@ var ReaderTextTableOfContents = React.createClass({
                   </div>
                   {this.isTextToc()?
                     <div className="currentVersionBox">
-                        {(!this.state.versionsLoaded) ? (<span>Loading...</span>): ""}
-                        {(this.state.versionsLoaded)? currentVersionElement: ""}
-                        {(this.state.versionsLoaded && this.state.versions.length > 1) ? selectElement: ""}
+                        {(!this.state.versionsLoaded) ? (<LoadingMessage />): null}
+                        {(this.state.versionsLoaded)? currentVersionElement: null}
+                        {(this.state.versionsLoaded && this.state.versions.length > 1) ? selectElement: null}
                     </div>
                   : null}
                   {moderatorSection}
@@ -3288,7 +3292,7 @@ var VersionBlock = React.createClass({
     return {
       ref: "",
       showHistory: false,
-      showNotes: false
+      showNotes: true
     }
   },
   getInitialState: function() {
@@ -3312,7 +3316,8 @@ var VersionBlock = React.createClass({
     "Public Domain": "http://en.wikipedia.org/wiki/Public_domain",
     "CC0": "http://creativecommons.org/publicdomain/zero/1.0/",
     "CC-BY": "http://creativecommons.org/licenses/by/3.0/",
-    "CC-BY-SA": "http://creativecommons.org/licenses/by-sa/3.0/"
+    "CC-BY-SA": "http://creativecommons.org/licenses/by-sa/3.0/",
+    "CC-BY-NC": "https://creativecommons.org/licenses/by-nc/4.0/"
   },
   onLicenseChange: function(event) {
     this.setState({license: event.target.value, "error": null});
@@ -7360,12 +7365,12 @@ var AccountPanel = React.createClass({
   render: function() {
     var width = typeof window !== "undefined" ? $(window).width() : 1000;
     var accountContent = [
-      (<BlockLink interfaceLink={true} target="/my/profile" title="Profile" heTitle="פרופיל"/>),
-      (<BlockLink interfaceLink={true} target="/sheets/private" title="My Source Sheets" heTitle="דפי מקורות" />),
-      (<BlockLink interfaceLink={true} target="/coming-soon?my-notes" title="My Notes" heTitle="רשומות" />),
-      (<BlockLink interfaceLink={true} target="/coming-soon?reading-history" title="Reading History" heTitle="היסטורית קריאה" />),
-      (<BlockLink interfaceLink={true} target="/settings/account" title="Settings" heTitle="הגדרות" />),
-      (<BlockLink interfaceLink={true} target="/logout" title="Log Out" heTitle="ניתוק" />)
+      (<BlockLink interfaceLink={true} target="/my/profile" title="Profile" heTitle="פרופיל" image="/static/img/profile.svg" />),
+      (<BlockLink interfaceLink={true} target="/sheets/private" title="Source Sheets" heTitle="דפי מקורות" image="/static/img/sheet.svg" />),
+      (<BlockLink interfaceLink={true} target="/coming-soon?my-notes" title="Notes" heTitle="רשומות" image="/static/img/note.svg" />),
+      (<BlockLink interfaceLink={true} target="/coming-soon?reading-history" title="Reading History" heTitle="היסטורית קריאה" image="/static/img/readinghistory.svg" />),
+      (<BlockLink interfaceLink={true} target="/settings/account" title="Settings" heTitle="הגדרות" image="/static/img/settings.svg" />),
+      (<BlockLink interfaceLink={true} target="/logout" title="Log Out" heTitle="ניתוק" image="/static/img/logout.svg" />)
     ];
     accountContent = (<TwoOrThreeBox content={accountContent} width={width} />);
 

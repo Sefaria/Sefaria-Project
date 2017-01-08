@@ -1908,7 +1908,7 @@ var ReaderPanel = React.createClass({
       "Add Note": 1,
       "My Notes": 1,
       "Add Connection": 1,
-      "Add Translation": 1 // Is this used?
+      "Add Translation": 1
     };
     Sefaria.site.track.event("Tools", mode + " Click");
     if (!Sefaria._uid && mode in loginRequired) {
@@ -2977,6 +2977,7 @@ var BlockLink = React.createClass({
     title: React.PropTypes.string,
     heTitle: React.PropTypes.string,
     target: React.PropTypes.string,
+    image: React.PropTypes.string,
     interfaceLink: React.PropTypes.bool
   },
   getDefaultProps: function getDefaultProps() {
@@ -2989,6 +2990,7 @@ var BlockLink = React.createClass({
     return React.createElement(
       'a',
       { className: 'blockLink', href: this.props.target },
+      this.props.image ? React.createElement('img', { src: this.props.image }) : null,
       React.createElement(
         'span',
         { className: interfaceClass + 'en' },
@@ -3532,7 +3534,7 @@ var ReaderTextTableOfContents = React.createClass({
 
     var tocHtml = Sefaria.textTocHtml(this.props.title);
 
-    tocHtml = tocHtml || '<div class="loadingMessage"><span class="int-en">Loading...</span><span class="int-he">טוען...</span></div>';
+    tocHtml = tocHtml || React.createElement(LoadingMessage, null);
 
     var title = this.props.title;
     var heTitle = Sefaria.index(title) ? Sefaria.index(title).heTitle : title;
@@ -3909,13 +3911,9 @@ var ReaderTextTableOfContents = React.createClass({
           this.isTextToc() ? React.createElement(
             'div',
             { className: 'currentVersionBox' },
-            !this.state.versionsLoaded ? React.createElement(
-              'span',
-              null,
-              'Loading...'
-            ) : "",
-            this.state.versionsLoaded ? currentVersionElement : "",
-            this.state.versionsLoaded && this.state.versions.length > 1 ? selectElement : ""
+            !this.state.versionsLoaded ? React.createElement(LoadingMessage, null) : null,
+            this.state.versionsLoaded ? currentVersionElement : null,
+            this.state.versionsLoaded && this.state.versions.length > 1 ? selectElement : null
           ) : null,
           moderatorSection,
           React.createElement('div', { className: 'tocContent', dangerouslySetInnerHTML: { __html: tocHtml }, onClick: this.handleClick }),
@@ -3941,7 +3939,7 @@ var VersionBlock = React.createClass({
     return {
       ref: "",
       showHistory: false,
-      showNotes: false
+      showNotes: true
     };
   },
   getInitialState: function getInitialState() {
@@ -3962,7 +3960,8 @@ var VersionBlock = React.createClass({
     "Public Domain": "http://en.wikipedia.org/wiki/Public_domain",
     "CC0": "http://creativecommons.org/publicdomain/zero/1.0/",
     "CC-BY": "http://creativecommons.org/licenses/by/3.0/",
-    "CC-BY-SA": "http://creativecommons.org/licenses/by-sa/3.0/"
+    "CC-BY-SA": "http://creativecommons.org/licenses/by-sa/3.0/",
+    "CC-BY-NC": "https://creativecommons.org/licenses/by-nc/4.0/"
   },
   onLicenseChange: function onLicenseChange(event) {
     this.setState({ license: event.target.value, "error": null });
@@ -9215,7 +9214,7 @@ var AccountPanel = React.createClass({
   },
   render: function render() {
     var width = typeof window !== "undefined" ? $(window).width() : 1000;
-    var accountContent = [React.createElement(BlockLink, { interfaceLink: true, target: '/my/profile', title: 'Profile', heTitle: 'פרופיל' }), React.createElement(BlockLink, { interfaceLink: true, target: '/sheets/private', title: 'My Source Sheets', heTitle: 'דפי מקורות' }), React.createElement(BlockLink, { interfaceLink: true, target: '/coming-soon?my-notes', title: 'My Notes', heTitle: 'רשומות' }), React.createElement(BlockLink, { interfaceLink: true, target: '/coming-soon?reading-history', title: 'Reading History', heTitle: 'היסטורית קריאה' }), React.createElement(BlockLink, { interfaceLink: true, target: '/settings/account', title: 'Settings', heTitle: 'הגדרות' }), React.createElement(BlockLink, { interfaceLink: true, target: '/logout', title: 'Log Out', heTitle: 'ניתוק' })];
+    var accountContent = [React.createElement(BlockLink, { interfaceLink: true, target: '/my/profile', title: 'Profile', heTitle: 'פרופיל', image: '/static/img/profile.svg' }), React.createElement(BlockLink, { interfaceLink: true, target: '/sheets/private', title: 'Source Sheets', heTitle: 'דפי מקורות', image: '/static/img/sheet.svg' }), React.createElement(BlockLink, { interfaceLink: true, target: '/coming-soon?my-notes', title: 'Notes', heTitle: 'רשומות', image: '/static/img/note.svg' }), React.createElement(BlockLink, { interfaceLink: true, target: '/coming-soon?reading-history', title: 'Reading History', heTitle: 'היסטורית קריאה', image: '/static/img/readinghistory.svg' }), React.createElement(BlockLink, { interfaceLink: true, target: '/settings/account', title: 'Settings', heTitle: 'הגדרות', image: '/static/img/settings.svg' }), React.createElement(BlockLink, { interfaceLink: true, target: '/logout', title: 'Log Out', heTitle: 'ניתוק', image: '/static/img/logout.svg' })];
     accountContent = React.createElement(TwoOrThreeBox, { content: accountContent, width: width });
 
     var learnContent = [React.createElement(BlockLink, { interfaceLink: true, target: '/about', title: 'About', heTitle: 'אודות' }), React.createElement(BlockLink, { interfaceLink: true, target: '/help', title: 'Help', heTitle: 'עזרה' }), React.createElement(BlockLink, { interfaceLink: true, target: 'http://blog.sefaria.org', title: 'Blog', heTitle: 'בלוג' }), React.createElement(BlockLink, { interfaceLink: true, target: '/faq', title: 'FAQ', heTitle: 'שאלות נפוצות' }), React.createElement(BlockLink, { interfaceLink: true, target: '/educators', title: 'Educators', heTitle: 'מחנכים' }), React.createElement(BlockLink, { interfaceLink: true, target: '/team', title: 'Team', heTitle: 'צוות' })];
