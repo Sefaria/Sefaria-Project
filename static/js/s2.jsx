@@ -1707,6 +1707,18 @@ var ReaderPanel = React.createClass({
     };
     this.conditionalSetState(state);
   },
+  closePanelSearch: function() {
+    // Assumption: Search in a panel is always within a "compare" panel
+    var state = {
+      // If there's no content to show, return to home
+      menuOpen: this.state.refs.slice(-1)[0] ? null: "compare",
+      // searchQuery: null,
+      // appliedSearchFilters: [],
+      navigationCategories: null,
+      navigationSheetTag: null
+    };
+    this.conditionalSetState(state);
+  },
   openMenu: function(menu) {
     this.conditionalSetState({
       menuOpen: menu,
@@ -2018,7 +2030,7 @@ var ReaderPanel = React.createClass({
                     onResultClick={this.props.onSearchResultClick}
                     openDisplaySettings={this.openDisplaySettings}
                     toggleLanguage={this.toggleLanguage}
-                    close={this.closeMenus}
+                    close={this.closePanelSearch}
                     hideNavHeader={this.props.hideNavHeader}
                     onQueryChange={this.props.onQueryChange}
                     updateAppliedFilter={this.props.updateSearchFilter}

@@ -1632,7 +1632,7 @@ var ReaderPanel = React.createClass({
         color: "light",
         fontSize: 62.5
       },
-      menuOpen: this.props.initialMenu || null, // "navigation", "book toc", "text toc", "display", "search", "sheets", "home"
+      menuOpen: this.props.initialMenu || null, // "navigation", "book toc", "text toc", "display", "search", "sheets", "home", "compare"
       navigationCategories: this.props.initialNavigationCategories || [],
       navigationSheetTag: this.props.initialSheetsTag || null,
       sheetsPartner: this.props.initialPartner || null,
@@ -1804,6 +1804,18 @@ var ReaderPanel = React.createClass({
     var state = {
       // If there's no content to show, return to home
       menuOpen: this.state.refs.slice(-1)[0] ? null : "home",
+      // searchQuery: null,
+      // appliedSearchFilters: [],
+      navigationCategories: null,
+      navigationSheetTag: null
+    };
+    this.conditionalSetState(state);
+  },
+  closePanelSearch: function closePanelSearch() {
+    // Assumption: Search in a panel is always within a "compare" panel
+    var state = {
+      // If there's no content to show, return to home
+      menuOpen: this.state.refs.slice(-1)[0] ? null : "compare",
       // searchQuery: null,
       // appliedSearchFilters: [],
       navigationCategories: null,
@@ -2147,7 +2159,7 @@ var ReaderPanel = React.createClass({
         onResultClick: this.props.onSearchResultClick,
         openDisplaySettings: this.openDisplaySettings,
         toggleLanguage: this.toggleLanguage,
-        close: this.closeMenus,
+        close: this.closePanelSearch,
         hideNavHeader: this.props.hideNavHeader,
         onQueryChange: this.props.onQueryChange,
         updateAppliedFilter: this.props.updateSearchFilter,
@@ -2193,7 +2205,7 @@ var ReaderPanel = React.createClass({
     classes[this.state.settings.language] = 1;
     classes = classNames(classes);
     var style = { "fontSize": this.state.settings.fontSize + "%" };
-    var hideReaderControls = this.state.mode === "TextAndConnections" || this.state.menuOpen === "text toc" || this.state.menuOpen === "book toc" || this.props.hideNavHeader;
+    var hideReaderControls = this.state.mode === "TextAndConnections" || this.state.menuOpen === "text toc" || this.state.menuOpen === "book toc" || this.state.menuOpen === "compare" || this.props.hideNavHeader;
 
     return React.createElement(
       'div',
