@@ -349,7 +349,7 @@ body.dark {
   height: 100%;
   overflow: hidden;
   background-color: inherit;
-  font-family: "adobe-garamond-pro", Georgia, serif;
+  font-family: "adobe-garamond-pro", "Cormorant Garamond", Georgia, serif;
 }
 .readerContent {
   width: 100%;
