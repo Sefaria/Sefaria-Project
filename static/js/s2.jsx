@@ -1535,7 +1535,7 @@ var ReaderPanel = React.createClass({
         color:         "light",
         fontSize:      62.5
       },
-      menuOpen:             this.props.initialMenu || null, // "navigation", "book toc", "text toc", "display", "search", "sheets", "home"
+      menuOpen:             this.props.initialMenu || null, // "navigation", "book toc", "text toc", "display", "search", "sheets", "home", "compare"
       navigationCategories: this.props.initialNavigationCategories || [],
       navigationSheetTag:   this.props.initialSheetsTag || null,
       sheetsPartner:        this.props.initialPartner || null,
@@ -2075,6 +2075,7 @@ var ReaderPanel = React.createClass({
         this.state.mode === "TextAndConnections" ||
         this.state.menuOpen === "text toc" ||
         this.state.menuOpen === "book toc" ||
+        this.state.menuOpen === "compare" ||
         this.props.hideNavHeader
     );
 
