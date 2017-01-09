@@ -614,7 +614,7 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
 
         return toc_contents_dict
 
-    def text_index_map(self, tokenizer=lambda x: re.split(u'\s+',x), strict=True, lang='he'):
+    def text_index_map(self, tokenizer=lambda x: re.split(u'\s+',x), strict=True, lang='he', vtitle=None):
         """
         See TextChunk.text_index_map
         :param tokenizer:
@@ -622,7 +622,7 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
         :param lang:
         :return:
         """
-        return self.nodes.text_index_map(tokenizer=tokenizer, strict=strict, lang=lang)
+        return self.nodes.text_index_map(tokenizer=tokenizer, strict=strict, lang=lang, vtitle=vtitle)
 
 
 

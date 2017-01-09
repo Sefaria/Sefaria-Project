@@ -1073,7 +1073,7 @@ class SchemaNode(TitledTreeNode):
         d["toSections"] = sections
         return text.Ref(_obj=d)
 
-    def text_index_map(self, tokenizer=lambda x: re.split(u'\s+',x), strict=True, lang='he'):
+    def text_index_map(self, tokenizer=lambda x: re.split(u'\s+',x), strict=True, lang='he', vtitle=None):
         """
         See TextChunk.text_index_map
         :param tokenizer:
@@ -1097,7 +1097,7 @@ class SchemaNode(TitledTreeNode):
 
         def callback(node):
             if not node.children:
-                index_list, ref_list, total_len = node.ref().text(lang).text_index_map(tokenizer,strict=strict)
+                index_list, ref_list, total_len = node.ref().text(lang=lang, vtitle=vtitle).text_index_map(tokenizer,strict=strict)
                 return index_list, ref_list, total_len
             else:
                 return [],[], 0
