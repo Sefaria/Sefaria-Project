@@ -441,7 +441,6 @@ def hebrew_term(s):
 	categories = {
 		"Torah":                u"תורה",
 		"Tanakh":               u'תנ"ך',
-		"Tanakh":               u'תנ"ך',
 		"Prophets":             u"נביאים",
 		"Writings":             u"כתובים",
 		"Commentary":           u"מפרשים",
@@ -490,6 +489,7 @@ def hebrew_term(s):
 		"Yad Ramah":		u"יד רמה",
 		"Raavad":		u'ראב"ד',
 		"Radbaz":		u'רדב"ז',
+		"Pri Yitzhak": u'פרי יצחק',
 		"Tosafot Yom Tov":      u"תוספות יום טוב",
 		"Chidushei Halachot":   u"חידושי הלכות",
 		"Chidushei Agadot":     u"חידושי אגדות",
@@ -505,7 +505,8 @@ def hebrew_term(s):
 		"Tur and Commentaries": u'טור ומפרשיו',
 		"Yachin": u'יכין',
 		"Boaz": u'בועז',
-        "Harchev Davar": u'הרחב דבר'
+        "Harchev Davar": u'הרחב דבר',
+		"Guides": u'ספרות עזר'
 	}
 
 	pseudo_categories = {

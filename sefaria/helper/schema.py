@@ -120,7 +120,7 @@ def merge_default_into_parent(parent_node):
     assert len(parent_node.children) == 1
     assert parent_node.has_default_child()
     default_node = parent_node.get_default_child()
-    #assumption: there's a grandparent.  todo: handle the case where the parent is the root node of the schema
+    # assumption: there's a grandparent.  todo: handle the case where the parent is the root node of the schema
     is_root = True
     if parent_node.parent:
         is_root = False
@@ -266,13 +266,54 @@ def change_node_title(snode, old_title, lang, new_title):
     :param new_title:
     :return:
     """
-    pass
+
+    def rewriter(string):
+        return string.replace(old_title, new_title)
+
+    def needs_rewrite(string, *args):
+        return string.find(old_title) >= 0 and snode.index.title == Ref(string).index.title
+
+    if old_title == snode.primary_title():
+        snode.add_title(new_title, lang, replace_primary=True, primary=True)
+        snode.index.save()
+        library.refresh_index_record_in_cache(snode.index)
+        if lang == 'en':
+            cascade(snode.index.title, rewriter=rewriter, needs_rewrite=needs_rewrite)
+    else:
+        snode.add_title(new_title, lang)
+
+    snode.remove_title(old_title, lang)
+
+    snode.index.save(override_dependencies=True)
+    library.refresh_index_record_in_cache(snode.index)
 
 
-def replaceBadNodeTitles(title, bad_char, good_char, lang):
+"""
+def change_char_node_titles(index_title, bad_char, good_char, lang):
     '''
-    This recurses through the serialized tree changing replacing the previous title of each node to its title with the bad_char replaced by good_char. 
+     Replaces all instances of bad_char with good_char in all node titles in the book titled index_title.
+    If the title changing is the primary english title, cascades to all of the impacted objects
+    :param index_title:
+    :param bad_char:
+    :param good_char:
+    :param lang:
+    :return:
     '''
+
+
+    def callback(node, **kwargs):
+        titles = node.get_titles()
+        for each_title in titles:
+            if each_title['lang'] == lang and 'primary' in each_title and each_title['primary']:
+                title = each_title['text']
+
+        change_node_title(snode, old_title,lang)
+
+    root = library.get_index(index_title).nodes
+    root.traverse_tree(callback, False)
+
+
+
     def recurse(node):
         if 'nodes' in node:
             for each_one in node['nodes']:
@@ -289,10 +330,11 @@ def replaceBadNodeTitles(title, bad_char, good_char, lang):
                     which_one = 1
                 if which_one >= 0:
                     node['titles'][which_one]['text'] = node['titles'][which_one]['text'].replace(bad_char, good_char)
- 
+
     data = library.get_index(title).nodes.serialize()
     recurse(data)
     return data
+"""
 
 
 def change_node_structure(ja_node, section_names, address_types=None, upsize_in_place=False):
@@ -346,7 +388,7 @@ def change_node_structure(ja_node, section_names, address_types=None, upsize_in_
 
         d = Ref(ref_string)._core_dict()
 
-        if delta < 0: # Making node shallower
+        if delta < 0:  # Making node shallower
             for i in range(-delta):
                 if len(d["sections"]) == 0:
                     break
@@ -369,7 +411,7 @@ def change_node_structure(ja_node, section_names, address_types=None, upsize_in_
     ref_regex_str = ja_node.ref().regex(anchored=False)
     identifier = ur"(^{})|(^({}) on {})".format(ref_regex_str, "|".join(commentators), ref_regex_str)
 
-    def needs_fixing(ref_string):
+    def needs_fixing(ref_string, *args):
         if re.search(identifier, ref_string) is None:
             return False
         else:
@@ -427,29 +469,28 @@ def change_node_structure(ja_node, section_names, address_types=None, upsize_in_
     # For each commentary version, refresh its VS
 
 
-def cascade(ref_identifier, rewriter=lambda x: x, needs_rewrite=lambda x: True):
+def cascade(ref_identifier, rewriter=lambda x: x, needs_rewrite=lambda x: True, skip_history=False):
     """
     Changes to indexes requires updating any and all data that reference that index. This routine will take a rewriter
-     function an run it on every location that references the updated index.
-    :param ref_identifier: Ref or String that can be used to implement a ref
-    :param rewriter: callback function used to update the field
-    :param needs_rewrite: Criteria for which a save will be triggered. If not set, routine will trigger a save for
+     function and run it on every location that references the updated index.
+    :param ref_identifier: Ref or String that can be used to implement a ref (an Index level Ref?  Or Deeper?)
+    :param rewriter: f(String)->String. callback function used to update the field.
+    :param needs_rewrite: f(String, Object)->Boolean. Criteria for which a save will be triggered. If not set, routine will trigger a save for
     every item within the set
     :param skip_history: Set to True to skip history updates
     """
 
-    def generic_rewrite(model_set, attr_name='ref', sub_attr_name=None,):
+    def generic_rewrite(model_set, attr_name='ref', sub_attr_name=None, ):
         """
         Generic routine to take any derivative of AbstractMongoSet and update the fields outlined by attr_name using
         the callback function rewriter.
 
-        This routine is heavily inspired by Splicer._generic_set_rewrite
+        This routine is heavily inspired by SegmentSplicer._generic_set_rewrite
         :param model_set: Derivative of AbstractMongoSet
         :param attr_name: name of attribute to update
         :param sub_attr_name: Use to update nested attributes
         :return:
         """
-
         for record in model_set:
             assert isinstance(record, AbstractMongoRecord)
             if sub_attr_name is None:
@@ -461,7 +502,7 @@ def cascade(ref_identifier, rewriter=lambda x: x, needs_rewrite=lambda x: True):
             if isinstance(refs, list):
                 needs_save = False
                 for ref_num, ref in enumerate(refs):
-                    if needs_rewrite(ref):
+                    if needs_rewrite(ref, record):
                         needs_save = True
                         refs[ref_num] = rewriter(ref)
                 if needs_save:
@@ -471,8 +512,12 @@ def cascade(ref_identifier, rewriter=lambda x: x, needs_rewrite=lambda x: True):
                         print 'Bad Data Found: {}'.format(refs)
                         print e
             else:
-                if needs_rewrite(refs):
-                    refs = rewriter(refs)
+                if needs_rewrite(refs, record):
+                    if sub_attr_name is None:
+                        setattr(record, attr_name, rewriter(refs))
+                    else:
+                        intermediate_obj[sub_attr_name] = rewriter(refs)
+
                     try:
                         record.save()
                     except InputError as e:
@@ -486,7 +531,7 @@ def cascade(ref_identifier, rewriter=lambda x: x, needs_rewrite=lambda x: True):
             if "ref" in source:
                 try:
                     ref = Ref(source["ref"])
-                except InputError as e:
+                except (InputError, ValueError):
                     print "Error: In _clean_sheets.rewrite_source: failed to instantiate Ref {}".format(source["ref"])
                 else:
                     if needs_rewrite(source['ref']):
@@ -507,7 +552,7 @@ def cascade(ref_identifier, rewriter=lambda x: x, needs_rewrite=lambda x: True):
                     needs_save = True
             if needs_save:
                 sheet["lastModified"] = sheet["dateModified"]
-                save_sheet(sheet, sheet["owner"])
+                save_sheet(sheet, sheet["owner"], search_override=True)
 
     def update_alt_structs(index):
 
@@ -536,14 +581,15 @@ def cascade(ref_identifier, rewriter=lambda x: x, needs_rewrite=lambda x: True):
     assert isinstance(ref_identifier, Ref)
 
     commentators = library.get_commentary_version_titles_on_book(ref_identifier.book)
-    commentators = [item for c in commentators for item in Ref(c).regex(as_list=True)]
+    commentators = [item for c in commentators for item in Ref(c).regex(as_list=True, anchored=False)]
     ref_regex = ref_identifier.regex(anchored=False, as_list=True)
     identifier = ref_regex + commentators
+
     # titles = re.compile(identifier)
 
     def construct_query(attribute, queries):
 
-        query_list = [{attribute: {'$regex': '^'+query}} for query in queries]
+        query_list = [{attribute: {'$regex': '^' + query}} for query in queries]
         return {'$or': query_list}
 
     print 'Updating Links'
@@ -551,13 +597,16 @@ def cascade(ref_identifier, rewriter=lambda x: x, needs_rewrite=lambda x: True):
     print 'Updating Notes'
     generic_rewrite(NoteSet(construct_query('ref', identifier)))
     generic_rewrite(TranslationRequestSet(construct_query('ref', identifier)))
-    print 'Updatding Sheets'
+    print 'Updating Garden Stops'
+    generic_rewrite(GardenStopSet(construct_query('ref', identifier)))
+    print 'Updating Sheets'
     clean_sheets([s['id'] for s in db.sheets.find(construct_query('sources.ref', identifier), {"id": 1})])
     print 'Updating Alternate Structs'
     update_alt_structs(ref_identifier.index)
-    print 'Updating History'
-    generic_rewrite(HistorySet(construct_query('ref', identifier)))
-    generic_rewrite(HistorySet(construct_query('new.ref', identifier)), attr_name='new', sub_attr_name='ref')
-    generic_rewrite(HistorySet(construct_query('new.refs', identifier)), attr_name='new', sub_attr_name='refs')
-    generic_rewrite(HistorySet(construct_query('old.ref', identifier)), attr_name='old', sub_attr_name='ref')
-    generic_rewrite(HistorySet(construct_query('old.refs', identifier)), attr_name='old', sub_attr_name='refs')
+    if not skip_history:
+        print 'Updating History'
+        generic_rewrite(HistorySet(construct_query('ref', identifier)))
+        generic_rewrite(HistorySet(construct_query('new.ref', identifier)), attr_name='new', sub_attr_name='ref')
+        generic_rewrite(HistorySet(construct_query('new.refs', identifier)), attr_name='new', sub_attr_name='refs')
+        generic_rewrite(HistorySet(construct_query('old.ref', identifier)), attr_name='old', sub_attr_name='ref')
+        generic_rewrite(HistorySet(construct_query('old.refs', identifier)), attr_name='old', sub_attr_name='refs')

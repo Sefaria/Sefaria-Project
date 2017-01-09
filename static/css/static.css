@@ -1107,11 +1107,11 @@
 }
 .static .toggleOption {
   background-color: white;
-  color: #999;
+  color: #666;
 }
 .static .toggleOption.active {
-  color: #333;
-  background-color: white;
+  color: #666;
+  background-color: #eee;
 }
 #personPage h1 {
   margin-bottom: 40px;

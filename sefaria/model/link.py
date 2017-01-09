@@ -172,7 +172,7 @@ class LinkSet(abst.AbstractMongoSet):
         :param from_ref: A Ref object
         :param as_tuple: If true, return a collection of tuples (Ref,Ref), where the first Ref is the given from_ref,
         or one more specific, and the second Ref is the opposing Ref in the link.
-        :return:
+        :return: List of Ref objects
         """
         reg = re.compile(from_ref.regex())
         refs = []
@@ -277,6 +277,17 @@ def get_link_counts(cat1, cat2):
 
     link_counts[key] = result
     return result
+
+
+# todo: check vis-a-vis commentary refactor
+def get_category_commentator_linkset(cat, commentator):
+    return LinkSet({"$or": [
+                        {"$and": [{"refs": {"$regex": ur"{} \d".format(t)}},
+                                  {"refs": {"$regex": "^{} on {}".format(commentator, t)}}
+                                  ]
+                         }
+                        for t in text.library.get_indexes_in_category(cat)]
+                    })
 
 
 def get_category_category_linkset(cat1, cat2):

@@ -633,6 +633,12 @@ $(function() {
 
 	});
 
+	$("#removeNikkudot").click(function() {
+		var $target = $(".activeSource").find(".text").find(".he");
+		$target.html(stripNikkud($target.html()));
+		autoSave();
+	});
+
 	$("#addSourceTitle").click(function() {
 		var $target = $(".activeSource");
         var ref = normRef($target.attr("data-ref"));
@@ -1397,6 +1403,7 @@ $(function() {
 				$("#sheetLayoutLanguageMenuItems").show();
 				$("#sourceLayoutLanguageMenuItems").hide();
 				$("#resetText").hide();
+				$("#removeNikkudot").hide();
 				$("#addSourceTitle").hide();
 				if (!$(target).hasClass('inlineAddButtonIcon')) {
 					$(".inlineAddButtonIcon").last().click();
@@ -1479,6 +1486,7 @@ $(function() {
 				$("#sourceLayoutLanguageMenuItems").show();
 				$("#resetText").show();
 				$("#addSourceTitle").show();
+				$("#removeNikkudot").show();
 				//$(this).hasClass("source") ? $("#connectionButton").css('display', 'inline-block') : $("#connectionButton").hide();
 
 				//set checkboxes for language/layout menus for active source
@@ -1487,6 +1495,7 @@ $(function() {
 				if (!($(this).hasClass("source"))) {
 					$("#resetText").hide();
 					$("#addSourceTitle").hide();
+					$("#removeNikkudot").hide();
 					$("#sourceLayoutLanguageMenuItems").hide();
 				}
 			});

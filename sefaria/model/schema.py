@@ -522,9 +522,9 @@ class TitledTreeNode(TreeNode):
         """
         if not self._full_title.get(lang) or force_update:
             if self.is_default():
-                self._full_title[lang] = self.parent.full_title(lang)
+                self._full_title[lang] = self.parent.full_title(lang, force_update)
             elif self.parent:
-                self._full_title[lang] = self.parent.full_title(lang) + ", " + self.primary_title(lang)
+                self._full_title[lang] = self.parent.full_title(lang, force_update) + ", " + self.primary_title(lang)
             else:
                 self._full_title[lang] = self.primary_title(lang)
         return self._full_title[lang]

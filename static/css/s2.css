@@ -31,10 +31,6 @@ body.dark {
   top: 0;
   width: 100%;
   height: 100%;
-  -moz-user-select: none;
-  -khtml-user-select: none;
-  -webkit-user-select: none;
-  -o-user-select: none;
   z-index: 1000;
 }
 #s2.headerOnly {
@@ -378,13 +374,15 @@ body.dark {
   background-color: inherit;
 }
 /* Adjusting for 17px scrollbars, to keep content centered
-   Only done in multiPanel mode now as a proxy for whether scrollbars take up width (on desktop they do, not on mobile) */
+   Only done in multiPanel mode now as a proxy for whether scrollbars take up width (on desktop they do, not on mobile) 
+  Remove 12/16 -- seems to be causing problems now.
 .multiPanel.interface-english .textColumn {
   padding-left: 17px;
 }
 .multiPanel.interface-hebrew .textColumn {
   padding-right: 17px;
 }
+*/
 .textColumn .loadingMessage.base {
   margin: 30px 0;
   color: #999;
@@ -797,6 +795,13 @@ a.resourcesLink {
 }
 .blockLink + .blockLink {
   margin: 5px 0;
+}
+.blockLink img {
+  margin: 0 8px;
+  height: 16px;
+  width: 16px;
+  opacity: 0.4;
+  vertical-align: -3px;
 }
 .gridBox {
   table-layout: fixed;
@@ -1254,7 +1259,7 @@ a.resourcesLink {
     float: none;
     width: auto;
 }
-.readerTextTableOfContents .versionBlocks .versionBlock {
+.readerTextTableOfContents .versionBlock {
   color: #999;
   font-size: 16px;
 }
@@ -1269,7 +1274,7 @@ a.resourcesLink {
   color: #222;
   font-size: 20px;
 }
-.readerTextTableOfContents .versionBlocks .versionBlock .versionNotes {
+.readerTextTableOfContents .versionBlock .versionNotes {
   padding-top: 8px;
 }
 @media (max-width: 450px) {
@@ -1934,12 +1939,6 @@ a.resourcesLink {
   height: 100%;
   z-index: 102;
   cursor: pointer;
-}
-.textRange, .noteText {
-  -moz-user-select: text;
-  -khtml-user-select: text;
-  -webkit-user-select: text;
-  -o-user-select: text;
 }
 .textRange.basetext {
   width: 100%;
@@ -3461,4 +3460,11 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
 }
 .multiPanel .readerNavMenu .content.hasFooter #footer{
   margin-top: 120px;
+}
+
+.gemarra-regular {
+  font-weight: bold;
+}
+.it-text {
+  font-style: italic;
 }
