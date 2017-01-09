@@ -130,20 +130,25 @@
         var stopx = crossfilter(stops);
         var all = stopx.groupAll();
 
-        // URLs
+
+        // State and URLs
         function pushHistory() {
-            var filters = serializeParams();
+            // Get applied filters on this page, serialize to URL and title, and push to the history stack
+            var filters = getFilters();
             //Sefaria.site.track...
             var url;
+            var title = document.title.split(", ")[0];
             if (filters) {
-                filters = "?filters=" + filters;
-                url = window.location.href.split("?")[0] + filters;
+                url = window.location.href.split("?")[0] + "?filters=" + encodeURIComponent(JSON.stringify(filters));
+                title += ", " + filters.map(function(f) {if (!(f instanceof Array)) return f.Filter;}).filter(function(f) {return f;}).join(", ");
             } else {
                 url = window.location.href.split("?")[0]
             }
-            history.pushState({}, document.title, url);
+            document.title = title;
+            history.pushState({}, title, url);
         }
-        function serializeParams() {
+        function getFilters() {
+            // Get the applied filters from this page
             var filters = [];
             for (var i = 0; i < dc.chartRegistry.list().length; i++) {
                 var chart = dc.chartRegistry.list()[i];
@@ -152,7 +157,7 @@
                 }
             }
             if (filters.length > 0) {
-                return encodeURIComponent(JSON.stringify(filters));
+                return filters;
             }
         }
         function getUrlVars() {
@@ -163,8 +168,8 @@
             return vars;
         }
         function deserializeParams(filterparam) {
+            // Given a URL serialized form of a set of filters, deserialize and apply
             var filterObjects = JSON.parse(filterparam);
-            debugger;
             for (var i = 0; i< filterObjects.length; i++)
             {
                 var filter = filterObjects[i].Filter;
@@ -173,6 +178,8 @@
             }
             dc.redrawAll();
         }
+
+
         // Sorting
         function redraw_garden() {
             // Some sort of bug prevents height() resetting from taking in some redraw cases.  A double call takes care of business.
@@ -374,10 +381,6 @@
 
             filterGroup.top = function(k) {
                 all = this.all();
-                /*
-                var top = crossfilter.heapselect(all, 0, all.length, k);
-                return crossfilter.heap.sort(top, 0, top.length);
-                */
                 all.sort(function(a, b) {return b.value - a.value});
                 return all.slice(0,k)
 
