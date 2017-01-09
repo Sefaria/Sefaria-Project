@@ -184,7 +184,7 @@ def save_sheet(sheet, user_id, search_override=False):
 
 		sheet["views"] = existing["views"] 										# prevent updating views
 		sheet["owner"] = existing["owner"] 										# prevent updating owner
-		sheet["likes"] = existing["likes"] if "likes" in existing else None 	# prevent updating likes
+		sheet["likes"] = existing["likes"] if "likes" in existing else [] 		# prevent updating likes
 
 		existing.update(sheet)
 		sheet = existing
