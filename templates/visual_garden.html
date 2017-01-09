@@ -140,7 +140,14 @@
             var title = document.title.split(", ")[0];
             if (filters) {
                 url = window.location.href.split("?")[0] + "?filters=" + encodeURIComponent(JSON.stringify(filters));
-                title += ", " + filters.map(function(f) {if (!(f instanceof Array)) return f.Filter;}).filter(function(f) {return f;}).join(", ");
+                title += ", " + filters
+                                .map(function(f) {
+                                    if (f.Filter instanceof Array)
+                                        {return f.Filter.join("-");}
+                                    else
+                                        {return f.Filter;}
+                                })
+                                .join(", ");
             } else {
                 url = window.location.href.split("?")[0]
             }
