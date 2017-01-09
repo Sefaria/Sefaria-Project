@@ -551,6 +551,8 @@ def sheet_list_api(request):
 			apikey = db.apikeys.find_one({"key": key})
 			if not apikey:
 				return jsonResponse({"error": "Unrecognized API key."})
+		else:
+			apikey = None
 
 		j = request.POST.get("json")
 		if not j:
