@@ -639,14 +639,6 @@ $(function() {
 		autoSave();
 	});
 
-	$("#splitSourceToSegment").click(function() {
-		alert('test');
-		var $target = $(".activeSource").find(".text").find(".he");
-		segmentsToSplit = $target.find(".segment");
-		console.log(segmentsToSplit);
-//		autoSave();
-	});
-
 	$("#addSourceTitle").click(function() {
 		var $target = $(".activeSource");
         var ref = normRef($target.attr("data-ref"));
