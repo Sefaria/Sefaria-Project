@@ -2281,6 +2281,27 @@ class Ref(object):
                     self._range_index = i
                     break
 
+    def all_segment_refs(self):
+        assert isinstance(self.index_node, JaggedArrayNode)
+
+        if self.is_range():
+            input_refs = self.range_list()
+        else:
+            input_refs = [self]
+
+        ref_list = []
+        for temp_ref in input_refs:
+            if temp_ref.is_segment_level():
+                ref_list.append(temp_ref)
+            elif temp_ref.is_section_level():
+                ref_list += temp_ref.all_subrefs()
+            else: #you're higher than section level
+                sub_ja = temp_ref.get_state_ja().subarray_with_ref(temp_ref)
+                ref_list_sections = [temp_ref.subref([i + 1 for i in k ]) for k in sub_ja.non_empty_sections() ]
+                ref_list += [ref_seg for ref_sec in ref_list_sections for ref_seg in ref_sec.all_subrefs()]
+
+        return ref_list
+
     def is_spanning(self):
         """
         :return bool: True if the Ref spans across text sections.
