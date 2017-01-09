@@ -143,7 +143,7 @@
                 title += ", " + filters
                                 .map(function(f) {
                                     if (f.Filter instanceof Array)
-                                        {return f.Filter.join("-");}
+                                        {return "(" + f.Filter.join("-") + ")";}
                                     else
                                         {return f.Filter;}
                                 })
