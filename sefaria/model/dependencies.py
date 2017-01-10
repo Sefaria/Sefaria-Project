@@ -29,6 +29,7 @@ subscribe(version_state.process_index_title_change_in_version_state,    text.Ind
 subscribe(text.process_index_delete_in_core_cache,                      text.Index, "delete")
 subscribe(version_state.process_index_delete_in_version_state,          text.Index, "delete")
 subscribe(link.process_index_delete_in_links,                           text.Index, "delete")
+subscribe(note.process_index_delete_in_notes,                           text.Index, "delete")
 subscribe(text.process_index_delete_in_versions,                        text.Index, "delete")
 subscribe(translation_request.process_index_delete_in_translation_requests, text.Index, "delete")
 subscribe(text.process_index_delete_in_toc,                             text.Index, "delete")

@@ -232,7 +232,8 @@ def process_index_title_change_in_links(indx, **kwargs):
             l.delete()
 
 def process_index_delete_in_links(indx, **kwargs):
-    pattern = text.Ref(indx.title).regex()
+    from sefaria.model.text import prepare_index_regex_for_dependency_process
+    pattern = prepare_index_regex_for_dependency_process(indx)
     LinkSet({"refs": {"$regex": pattern}}).delete()
 
 

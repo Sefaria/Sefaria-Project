@@ -56,3 +56,8 @@ def process_index_title_change_in_notes(indx, **kwargs):
         except Exception:
             logger.warning("Deleting note that failed to save: {}".format(n.ref))
             n.delete()
+
+def process_index_delete_in_notes(indx, **kwargs):
+    from sefaria.model.text import prepare_index_regex_for_dependency_process
+    pattern = prepare_index_regex_for_dependency_process(indx)
+    NoteSet({"ref": {"$regex": pattern}}).delete()
