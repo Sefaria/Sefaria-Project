@@ -4010,6 +4010,24 @@ def get_index(bookname):
     return library.get_index(bookname)
 
 
+def prepare_index_regex_for_dependency_process(index_object):
+    """
+    :return string: Regular Expression which will find any titles that match this index title exactly, or more specifically.
+
+    Simplified version of Ref.regex()
+    """
+    patterns = []
+    patterns.append("$")   # exact match
+    if index_object.nodes.has_titled_continuation():
+        patterns.append(u"({}).".format(u"|".join(index_object.nodes.title_separators)))
+    if index_object.nodes.has_numeric_continuation():
+        patterns.append(":")   # more granualar, exact match followed by :
+        patterns.append(" \d") # extra granularity following space
+
+    escaped_book = re.escape(index_object.title)
+    return "^%s(%s)" % (escaped_book, "|".join(patterns))
+
+
 def process_index_title_change_in_versions(indx, **kwargs):
     VersionSet({"title": kwargs["old"]}).update({"title": kwargs["new"]})
 
