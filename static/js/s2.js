@@ -1023,7 +1023,7 @@ var ReaderApp = React.createClass({
   },
   showLibrary: function showLibrary() {
     if (this.props.multiPanel) {
-      this.setState({ header: this.makePanelState({ menuOpen: "navigation" }) });
+      this.setState({ header: this.makePanelState({ mode: "Header", menuOpen: "navigation" }) });
     } else {
       if (this.state.panels.length) {
         this.state.panels[0].menuOpen = "navigation";
@@ -1035,10 +1035,12 @@ var ReaderApp = React.createClass({
   },
   showSearch: function showSearch(query) {
     this.saveOpenPanelsToRecentlyViewed();
-    var panel = this.makePanelState({ menuOpen: "search", searchQuery: query, searchFiltersValid: false });
+    var panel;
     if (this.props.multiPanel) {
+      panel = this.makePanelState({ mode: "Header", menuOpen: "search", searchQuery: query, searchFiltersValid: false });
       this.setState({ header: panel, panels: [] });
     } else {
+      panel = this.makePanelState({ menuOpen: "search", searchQuery: query, searchFiltersValid: false });
       this.setState({ panels: [panel] });
     }
   },
