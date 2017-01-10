@@ -9,10 +9,6 @@ cats = ["Tanakh", "Targum"]
 def link_targums(prepend, titles):
     for title in titles:
         b_index = library.get_index(title)
-        t_index = library.get_index(prepend + title)
-
-        t_index.categories = cats[:]
-        t_index.save()
 
         if options.verify_mode:
             b_ref = Ref(title)
@@ -34,6 +30,10 @@ def link_targums(prepend, titles):
                 assert not b_ref.is_empty()
 
         else:
+            t_index = library.get_index(prepend + title)
+            t_index.categories = cats[:]
+            t_index.save()
+
             for b_ref in b_index.all_segment_refs():
                 t_ref = Ref(prepend + b_ref.normal())
                 Link({
@@ -49,7 +49,7 @@ if __name__ == '__main__':
 
     options, user_args = parser.parse_args()
 
-    link_targums("Targum Jonathan on ", ["Judges","I_Samuel","II_Samuel","I_Kings","II_Kings","Isaiah","Jeremiah","Ezekiel","Hosea","Joel","Amos","Obadiah","Jonah","Micha","Nahum","Habakkuk","Haggai","Zechariah","Malachi"])
+    link_targums("Targum Jonathan on ", ["Judges","I_Samuel","II_Samuel","I_Kings","II_Kings","Isaiah","Jeremiah","Ezekiel","Hosea","Joel","Amos","Obadiah","Jonah","Micah","Nahum","Habakkuk","Haggai","Zechariah","Malachi"])
     link_targums("Aramaic Targum to ", ["Psalms","Proverbs","Job","Ruth","Lamentations","Ecclesiastes","Esther"])
 
 
