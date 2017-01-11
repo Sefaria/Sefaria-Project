@@ -1023,7 +1023,7 @@ var ReaderApp = React.createClass({
   },
   showLibrary: function showLibrary() {
     if (this.props.multiPanel) {
-      this.setState({ header: this.makePanelState({ menuOpen: "navigation" }) });
+      this.setState({ header: this.makePanelState({ mode: "Header", menuOpen: "navigation" }) });
     } else {
       if (this.state.panels.length) {
         this.state.panels[0].menuOpen = "navigation";
@@ -1035,10 +1035,12 @@ var ReaderApp = React.createClass({
   },
   showSearch: function showSearch(query) {
     this.saveOpenPanelsToRecentlyViewed();
-    var panel = this.makePanelState({ menuOpen: "search", searchQuery: query, searchFiltersValid: false });
+    var panel;
     if (this.props.multiPanel) {
+      panel = this.makePanelState({ mode: "Header", menuOpen: "search", searchQuery: query, searchFiltersValid: false });
       this.setState({ header: panel, panels: [] });
     } else {
+      panel = this.makePanelState({ menuOpen: "search", searchQuery: query, searchFiltersValid: false });
       this.setState({ panels: [panel] });
     }
   },
@@ -1553,8 +1555,26 @@ var Header = React.createClass({
         { className: 'headerNavContent' },
         viewContent
       ) : null,
-      this.state.showTestMessage ? React.createElement(TestMessage, { hide: this.hideTestMessage }) : null
+      this.state.showTestMessage ? React.createElement(TestMessage, { hide: this.hideTestMessage }) : null,
+      React.createElement(GlobalWarningMessage, null)
     );
+  }
+});
+
+var GlobalWarningMessage = React.createClass({
+  displayName: 'GlobalWarningMessage',
+
+  close: function close() {
+    Sefaria.globalWarningMessage = null;
+    this.forceUpdate();
+  },
+  render: function render() {
+    return Sefaria.globalWarningMessage ? React.createElement(
+      'div',
+      { id: 'globalWarningMessage' },
+      React.createElement('i', { className: 'close fa fa-times', onClick: this.close }),
+      React.createElement('div', { dangerouslySetInnerHTML: { __html: Sefaria.globalWarningMessage } })
+    ) : null;
   }
 });
 
@@ -1632,7 +1652,7 @@ var ReaderPanel = React.createClass({
         color: "light",
         fontSize: 62.5
       },
-      menuOpen: this.props.initialMenu || null, // "navigation", "book toc", "text toc", "display", "search", "sheets", "home"
+      menuOpen: this.props.initialMenu || null, // "navigation", "book toc", "text toc", "display", "search", "sheets", "home", "compare"
       navigationCategories: this.props.initialNavigationCategories || [],
       navigationSheetTag: this.props.initialSheetsTag || null,
       sheetsPartner: this.props.initialPartner || null,
@@ -1804,6 +1824,18 @@ var ReaderPanel = React.createClass({
     var state = {
       // If there's no content to show, return to home
       menuOpen: this.state.refs.slice(-1)[0] ? null : "home",
+      // searchQuery: null,
+      // appliedSearchFilters: [],
+      navigationCategories: null,
+      navigationSheetTag: null
+    };
+    this.conditionalSetState(state);
+  },
+  closePanelSearch: function closePanelSearch() {
+    // Assumption: Search in a panel is always within a "compare" panel
+    var state = {
+      // If there's no content to show, return to home
+      menuOpen: this.state.refs.slice(-1)[0] ? null : "compare",
       // searchQuery: null,
       // appliedSearchFilters: [],
       navigationCategories: null,
@@ -2147,7 +2179,7 @@ var ReaderPanel = React.createClass({
         onResultClick: this.props.onSearchResultClick,
         openDisplaySettings: this.openDisplaySettings,
         toggleLanguage: this.toggleLanguage,
-        close: this.closeMenus,
+        close: this.closePanelSearch,
         hideNavHeader: this.props.hideNavHeader,
         onQueryChange: this.props.onQueryChange,
         updateAppliedFilter: this.props.updateSearchFilter,
@@ -2193,7 +2225,7 @@ var ReaderPanel = React.createClass({
     classes[this.state.settings.language] = 1;
     classes = classNames(classes);
     var style = { "fontSize": this.state.settings.fontSize + "%" };
-    var hideReaderControls = this.state.mode === "TextAndConnections" || this.state.menuOpen === "text toc" || this.state.menuOpen === "book toc" || this.props.hideNavHeader;
+    var hideReaderControls = this.state.mode === "TextAndConnections" || this.state.menuOpen === "text toc" || this.state.menuOpen === "book toc" || this.state.menuOpen === "compare" || this.props.hideNavHeader;
 
     return React.createElement(
       'div',

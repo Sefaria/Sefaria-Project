@@ -13,7 +13,7 @@ def test_text_index_map():
     def tokenizer(str):
         return re.split(r"\s+",str)
 
-    ind_list,ref_list = tc.text_index_map(tokenizer)
+    ind_list,ref_list, total_len = tc.text_index_map(tokenizer)
     print len(ind_list), len(ref_list)
     #make sure the last element in ind_last (start index of last segment) + the last of the last segment == len of the whole string
     assert ind_list[-1]+len(tokenizer(TextChunk(r.all_subrefs()[-1],"he").as_string())) == len(tokenizer(tc.as_string()))
@@ -21,12 +21,13 @@ def test_text_index_map():
     # Test Range
     g = Ref('Genesis 1:31-2:2')
     chunk = g.text('en', 'The Holy Scriptures: A New Translation (JPS 1917)')
-    assert chunk.text_index_map(lambda x: x.split(u' ')) == ([0, 26, 40], [Ref('Genesis 1:31'), Ref('Genesis 2:1'), Ref('Genesis 2:2')])
+    ind_list, ref_list, total_len = chunk.text_index_map(lambda x: x.split(u' '))
+    assert (ind_list, ref_list) == ([0, 26, 40], [Ref('Genesis 1:31'), Ref('Genesis 2:1'), Ref('Genesis 2:2')])
 
     #test depth 3 with empty sections
     r = Ref("Rashi on Joshua")
     tc = TextChunk(r,"he")
-    ind_list, ref_list = tc.text_index_map()
+    ind_list, ref_list, total_len = tc.text_index_map()
     for sub_ref in ref_list:
         assert sub_ref.is_segment_level()
     assert ref_list[5] == Ref('Rashi on Joshua 1:4:3')
@@ -35,19 +36,21 @@ def test_text_index_map():
     #test depth 2 range
     r = Ref("Rashi on Joshua 1:4-1:7")
     tc = TextChunk(r,"he")
-    ind_list, ref_list = tc.text_index_map()
+    ind_list, ref_list, total_len = tc.text_index_map()
     assert ref_list[5] == Ref('Rashi on Joshua 1:7:1')
 
     #test depth 3 range with missing super-section (Ramban Chapter 50 is missing)
     r = Ref("Ramban on Genesis 48-50")
     tc = TextChunk(r,"he")
-    ind_list, ref_list = tc.text_index_map()
+    ind_list, ref_list, total_len = tc.text_index_map()
     assert ref_list[-1] == Ref('Ramban on Genesis 49:33:2')
 
 
 
+
+
     #test depth 2 with empty segments
-    r = Ref("Targum Jerusalem, Genesis")
+    #r = Ref("Targum Jerusalem, Genesis")
 
 def test_verse_chunk():
     chunks = [

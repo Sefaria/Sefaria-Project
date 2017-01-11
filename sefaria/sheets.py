@@ -182,7 +182,10 @@ def save_sheet(sheet, user_id, search_override=False):
 		if sheet["status"] != existing["status"]:
 			status_changed = True
 
-		sheet["views"] = existing["views"]  # prevent updating views
+		sheet["views"] = existing["views"] 										# prevent updating views
+		sheet["owner"] = existing["owner"] 										# prevent updating owner
+		sheet["likes"] = existing["likes"] if "likes" in existing else [] 		# prevent updating likes
+
 		existing.update(sheet)
 		sheet = existing
 

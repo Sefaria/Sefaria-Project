@@ -636,6 +636,14 @@ $(function() {
 	$("#removeNikkudot").click(function() {
 		var $target = $(".activeSource").find(".text").find(".he");
 		$target.html(stripNikkud($target.html()));
+		sjs.track.sheets("Remove Nikkudot", ref);
+		autoSave();
+	});
+
+	$("#splitSourceToSegment").click(function() {
+		var $target = $(".activeSource").find(".text");
+		$($target.find(".segment")).replaceWith(function() { return '<p>'+$(this).html()+'</p>'; });
+		sjs.track.sheets("Auto Split Segments", ref);
 		autoSave();
 	});
 
@@ -1404,6 +1412,7 @@ $(function() {
 				$("#sourceLayoutLanguageMenuItems").hide();
 				$("#resetText").hide();
 				$("#removeNikkudot").hide();
+				$("#splitSourceToSegment").hide();
 				$("#addSourceTitle").hide();
 				if (!$(target).hasClass('inlineAddButtonIcon')) {
 					$(".inlineAddButtonIcon").last().click();
@@ -1487,6 +1496,7 @@ $(function() {
 				$("#resetText").show();
 				$("#addSourceTitle").show();
 				$("#removeNikkudot").show();
+				$("#splitSourceToSegment").show();
 				//$(this).hasClass("source") ? $("#connectionButton").css('display', 'inline-block') : $("#connectionButton").hide();
 
 				//set checkboxes for language/layout menus for active source
@@ -1496,6 +1506,7 @@ $(function() {
 					$("#resetText").hide();
 					$("#addSourceTitle").hide();
 					$("#removeNikkudot").hide();
+					$("#splitSourceToSegment").hide();
 					$("#sourceLayoutLanguageMenuItems").hide();
 				}
 			});
