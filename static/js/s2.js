@@ -3435,7 +3435,7 @@ var ReaderTextTableOfContents = React.createClass({
   },
   handleClick: function handleClick(e) {
     var $a = $(e.target).closest("a");
-    if ($a.length && $a.hasClass("sectionLink")) {
+    if ($a.length && ($a.hasClass("sectionLink") || $a.hasClass("linked"))) {
       var ref = $a.attr("data-ref");
       ref = decodeURIComponent(ref);
       ref = Sefaria.humanRef(ref);
@@ -3485,7 +3485,6 @@ var ReaderTextTableOfContents = React.createClass({
     return !(v.license && v.license.startsWith("Copyright"));
   },
   render: function render() {
-
     var title = this.props.title;
     var heTitle = Sefaria.index(title) ? Sefaria.index(title).heTitle : title;
     var category = this.props.category.replace("2", ""); // TODO Remove replace post Commentary Refactory
@@ -3813,15 +3812,19 @@ var TextDetails = React.createClass({
   },
   render: function render() {
     var makeDescriptionText = function makeDescriptionText(compWord, compPlace, compDate, description) {
-      var composed = compPlace || compDate ? compWord + ": " + [compPlace, compDate].filter(function (x) {
+      var composed = compPlace || compDate ? compWord + [compPlace, compDate].filter(function (x) {
         return !!x;
       }).join(" ") : null;
       return [composed, description].filter(function (x) {
         return !!x;
       }).join(". ");
     };
-    var enDesc = makeDescriptionText("Composed", "compPlaceString" in this.props.index ? this.props.index.compPlaceString.en : null, "compDateString" in this.props.index ? this.props.index.compDateString.en : null, this.props.index.enDesc);
-    var heDesc = makeDescriptionText("נוצר/נערך", "compPlaceString" in this.props.index ? this.props.index.compPlaceString.he : null, "compDateString" in this.props.index ? this.props.index.compDateString.he : null, this.props.index.heDesc);
+    var enDesc = makeDescriptionText("Composed in ", "compPlaceString" in this.props.index ? this.props.index.compPlaceString.en : null, "compDateString" in this.props.index ? this.props.index.compDateString.en : null, this.props.index.enDesc);
+    var heDesc = makeDescriptionText("נוצר/נערך ב", "compPlaceString" in this.props.index ? this.props.index.compPlaceString.he : null, "compDateString" in this.props.index ? this.props.index.compDateString.he : null, this.props.index.heDesc);
+
+    if (!("authors" in this.props.index) && !enDesc) {
+      return null;
+    }
 
     return React.createElement(
       'div',
@@ -3854,7 +3857,7 @@ var TextDetails = React.createClass({
           })
         )
       ) : null,
-      enDesc.length ? React.createElement(
+      !!enDesc ? React.createElement(
         'div',
         { className: 'tocDetail description' },
         React.createElement(
@@ -3975,7 +3978,7 @@ var TextTableOfContentsNavigation = React.createClass({
       onPress: this.setTab.bind(null, "versions")
     });
 
-    var toggle = React.createElement(InlineToggleSet, {
+    var toggle = React.createElement(TabbedToggleSet, {
       options: options,
       active: this.state.tab });
 
@@ -4014,8 +4017,8 @@ var TextTableOfContentsNavigation = React.createClass({
   }
 });
 
-var InlineToggleSet = React.createClass({
-  displayName: 'InlineToggleSet',
+var TabbedToggleSet = React.createClass({
+  displayName: 'TabbedToggleSet',
 
   propTypes: {
     options: React.PropTypes.array.isRequired, // array of object with `name`. `text`, `heText`, `onPress`
@@ -4025,36 +4028,33 @@ var InlineToggleSet = React.createClass({
     var options = this.props.options.map(function (option, i) {
       var classes = classNames({ altStructToggle: 1, active: this.props.active === option.name });
       return React.createElement(
-        'span',
-        { className: classes, onClick: option.onPress, key: i },
+        'div',
+        { className: 'altStructToggleBox', key: i },
         React.createElement(
           'span',
-          { className: 'int-he' },
-          option.heText
-        ),
-        React.createElement(
-          'span',
-          { className: 'int-en' },
-          option.text
+          { className: classes, onClick: option.onPress },
+          React.createElement(
+            'span',
+            { className: 'int-he' },
+            option.heText
+          ),
+          React.createElement(
+            'span',
+            { className: 'int-en' },
+            option.text
+          )
         )
       );
     }.bind(this));
 
-    var dividedOptions = [];
-    for (var i = 0; i < options.length; i++) {
-      dividedOptions.push(options[i]);
-      dividedOptions.push(React.createElement(
-        'span',
-        { className: 'toggleDivider', key: i + "d" },
-        '|'
-      ));
-    }
-    dividedOptions = dividedOptions.slice(0, -1);
-
     return React.createElement(
       'div',
-      { id: 'structToggles' },
-      dividedOptions
+      { className: 'structToggles' },
+      React.createElement(
+        'div',
+        { className: 'structTogglesInner' },
+        options
+      )
     );
   }
 });
@@ -4531,7 +4531,7 @@ var VersionBlock = React.createClass({
   openVersion: function openVersion() {
     if (this.props.firstSectionRef) {
       window.location = "/" + this.props.firstSectionRef + "/" + this.props.version.language + "/" + this.props.version.versionTitle;
-    } else {
+    } else if (this.props.openVersion) {
       this.props.openVersion(this.props.version.versionTitle, this.props.version.language);
     }
   },
@@ -4746,7 +4746,7 @@ var VersionBlock = React.createClass({
         ),
         React.createElement(
           'div',
-          null,
+          { className: 'versionDetails' },
           React.createElement(
             'a',
             { className: 'versionSource', target: '_blank', href: v.versionSource },
@@ -4754,22 +4754,22 @@ var VersionBlock = React.createClass({
           ),
           licenseLine ? React.createElement(
             'span',
-            null,
+            { className: 'separator' },
             '-'
-          ) : "",
+          ) : null,
           licenseLine,
           this.props.showHistory ? React.createElement(
             'span',
-            null,
+            { className: 'separator' },
             '-'
-          ) : "",
+          ) : null,
           this.props.showHistory ? React.createElement(
             'a',
             { className: 'versionHistoryLink', href: '/activity/' + Sefaria.normRef(this.props.currentRef) + '/' + v.language + '/' + (v.versionTitle && v.versionTitle.replace(/\s/g, "_")) },
             'Version History >'
           ) : ""
         ),
-        this.props.showNotes ? React.createElement('div', { className: 'versionNotes', dangerouslySetInnerHTML: { __html: v.versionNotes } }) : ""
+        this.props.showNotes && !!v.versionNotes ? React.createElement('div', { className: 'versionNotes', dangerouslySetInnerHTML: { __html: v.versionNotes } }) : ""
       );
     }
   }
@@ -4875,7 +4875,7 @@ var ReadMoreText = React.createClass({
   },
   getDefaultProps: function getDefaultProps() {
     return {
-      initialWords: 24
+      initialWords: 30
     };
   },
   getInitialState: function getInitialState() {
