@@ -7252,7 +7252,7 @@ var LexiconPanel = React.createClass({
     return inputLength <= 3;
   },
   render: function render() {
-    var refCats = this.props.oref.categories.join(", ");
+    var refCats = this.props.oref.categories.join(", "); //TODO: the way to filter by categories is very limiting.
     var enEmpty = "No results found.";
     var heEmpty = "לא נמצאו תוצאות";
     if (!this.shouldActivate(this.props.selectedWords)) {
@@ -7274,7 +7274,7 @@ var LexiconPanel = React.createClass({
     } else {
       var entries = this.state.entries;
       content = entries.filter(function (e) {
-        return e['parent_lexicon_details']['text_categories'].indexOf(refCats) > -1;
+        return e['parent_lexicon_details']['text_categories'].length == 0 || e['parent_lexicon_details']['text_categories'].indexOf(refCats) > -1;
       }).map(function (entry, i) {
         return React.createElement(LexiconEntry, { data: entry, key: i });
       });
