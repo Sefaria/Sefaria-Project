@@ -1555,8 +1555,26 @@ var Header = React.createClass({
         { className: 'headerNavContent' },
         viewContent
       ) : null,
-      this.state.showTestMessage ? React.createElement(TestMessage, { hide: this.hideTestMessage }) : null
+      this.state.showTestMessage ? React.createElement(TestMessage, { hide: this.hideTestMessage }) : null,
+      React.createElement(GlobalWarningMessage, null)
     );
+  }
+});
+
+var GlobalWarningMessage = React.createClass({
+  displayName: 'GlobalWarningMessage',
+
+  close: function close() {
+    Sefaria.globalWarningMessage = null;
+    this.forceUpdate();
+  },
+  render: function render() {
+    return Sefaria.globalWarningMessage ? React.createElement(
+      'div',
+      { id: 'globalWarningMessage' },
+      React.createElement('i', { className: 'close fa fa-times', onClick: this.close }),
+      React.createElement('div', { dangerouslySetInnerHTML: { __html: Sefaria.globalWarningMessage } })
+    ) : null;
   }
 });
 

@@ -1460,7 +1460,24 @@ var Header = React.createClass({
                   {viewContent}
                  </div>) : null}
               { this.state.showTestMessage ? <TestMessage hide={this.hideTestMessage} /> : null}
+              <GlobalWarningMessage />
             </div>);
+  }
+});
+
+
+var GlobalWarningMessage = React.createClass({
+  close: function() {
+    Sefaria.globalWarningMessage = null;
+    this.forceUpdate();
+  },
+  render: function() {
+    return Sefaria.globalWarningMessage ? 
+      <div id="globalWarningMessage">
+        <i className='close fa fa-times' onClick={this.close}></i>
+        <div dangerouslySetInnerHTML={ {__html: Sefaria.globalWarningMessage} }></div>
+      </div>
+      : null;
   }
 });
 
