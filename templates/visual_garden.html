@@ -152,7 +152,7 @@
                 url = window.location.href.split("?")[0]
             }
             document.title = title;
-            history.pushState({}, title, url);
+            history.pushState({filters: filters, title: title}, title, url);
         }
         function getFilters() {
             // Get the applied filters from this page
@@ -174,9 +174,8 @@
             });
             return vars;
         }
-        function deserializeParams(filterparam) {
+        function applyFilters(filterObjects) {
             // Given a URL serialized form of a set of filters, deserialize and apply
-            var filterObjects = JSON.parse(filterparam);
             for (var i = 0; i< filterObjects.length; i++)
             {
                 var filter = filterObjects[i].Filter;
@@ -185,6 +184,12 @@
             }
             dc.redrawAll();
         }
+        function handleStateChange(event) {
+            dc.filterAll();
+            document.title = event.state.title;
+            applyFilters(event.state.filters);
+        }
+        window.addEventListener('popstate', handleStateChange);
 
 
         // Sorting
@@ -655,7 +660,7 @@
         dc.renderAll();
         var urlVars = getUrlVars();
         if ("filters" in urlVars) {
-            deserializeParams(urlVars["filters"]);
+            applyFilters(JSON.parse(urlVars["filters"]));
         }
 
     {% endautoescape %}
