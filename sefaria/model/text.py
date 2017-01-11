@@ -1388,6 +1388,7 @@ class TextChunk(AbstractTextRecord):
         else:
             raise Exception("Called TextChunk.version() on merged TextChunk.")
 
+
     def nonempty_subrefs(self):
         """
 
@@ -1413,6 +1414,7 @@ class TextChunk(AbstractTextRecord):
                              for i, v in enumerate(ja.subarray(ne).mask().array()) if v]
 
         return ref_list
+
 
     def text_index_map(self,tokenizer=lambda x: re.split(u'\s+',x), strict=True):
         """
