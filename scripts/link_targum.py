@@ -49,7 +49,7 @@ if __name__ == '__main__':
 
     options, user_args = parser.parse_args()
 
-    link_targums("Targum Jonathan on ", ["Judges","I_Samuel","II_Samuel","I_Kings","II_Kings","Isaiah","Jeremiah","Ezekiel","Hosea","Joel","Amos","Obadiah","Jonah","Micah","Nahum","Habakkuk","Haggai","Zechariah","Malachi"])
+    link_targums("Targum Jonathan on ", ["Joshua","Judges","I_Samuel","II_Samuel","I_Kings","II_Kings","Isaiah","Jeremiah","Ezekiel","Hosea","Joel","Amos","Obadiah","Jonah","Micah","Nahum","Habakkuk","Zephaniah","Haggai","Zechariah","Malachi"])
     link_targums("Aramaic Targum to ", ["Psalms","Proverbs","Job","Ruth","Lamentations","Ecclesiastes","Esther"])
 
 
