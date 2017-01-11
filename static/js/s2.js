@@ -826,6 +826,32 @@ var ReaderApp = React.createClass({
     this.state.panels[n] = extend(this.state.panels[n], state);
     this.setState({ panels: this.state.panels });
   },
+  addToSourceSheet: function addToSourceSheet(n, selectedSheet, confirmFunction) {
+    // This is invoked from a connections panel
+    var connectionsPanel = this.state.panels[n];
+    var textPanel = this.state.panels[n - 1];
+
+    var source = { refs: connectionsPanel.refs };
+
+    // If version exists in main panel, pass it along, use that for the target language.
+    var version = textPanel.version;
+    var versionLanguage = textPanel.versionLanguage;
+    if (version && versionLanguage) {
+      source["version"] = version;
+      source["versionLanguage"] = versionLanguage;
+    }
+
+    // If something is highlighted and main panel language is not bilingual:
+    // Use main panel language to determine which version this highlight covers.
+    var language = textPanel.settings.language;
+    var selectedWords = connectionsPanel.selectedWords;
+    if (selectedWords && language != "bilingual") {
+      source[language.slice(0, 2)] = selectedWords;
+    }
+
+    var url = "/api/sheets/" + selectedSheet + "/add";
+    $.post(url, { source: JSON.stringify(source) }, confirmFunction);
+  },
   selectVersion: function selectVersion(n, versionName, versionLanguage) {
     // Set the version for panel `n`.
     var panel = this.state.panels[n];
@@ -1155,6 +1181,7 @@ var ReaderApp = React.createClass({
       var setPanelState = this.setPanelState.bind(null, i);
       var setConnectionsFilter = this.setConnectionsFilter.bind(null, i);
       var selectVersion = this.selectVersion.bind(null, i);
+      var addToSourceSheet = this.addToSourceSheet.bind(null, i);
 
       var ref = panel.refs && panel.refs.length ? panel.refs[0] : null;
       var oref = ref ? Sefaria.parseRef(ref) : null;
@@ -1177,6 +1204,7 @@ var ReaderApp = React.createClass({
           onSearchResultClick: onSearchResultClick,
           onNavigationClick: this.handleNavigationClick,
           onRecentClick: this.handleRecentClick,
+          addToSourceSheet: addToSourceSheet,
           onOpenConnectionsClick: onOpenConnectionsClick,
           openComparePanel: openComparePanel,
           setTextListHighlight: setTextListHighlight,
@@ -1619,6 +1647,7 @@ var ReaderPanel = React.createClass({
     registerAvailableFilters: React.PropTypes.func,
     openComparePanel: React.PropTypes.func,
     setUnreadNotificationsCount: React.PropTypes.func,
+    addToSourceSheet: React.PropTypes.func,
     highlightedRefs: React.PropTypes.array,
     hideNavHeader: React.PropTypes.bool,
     multiPanel: React.PropTypes.bool,
@@ -2101,6 +2130,7 @@ var ReaderPanel = React.createClass({
         versionLanguage: this.state.versionLanguage,
         fullPanel: this.props.multiPanel,
         multiPanel: this.props.multiPanel,
+        addToSourceSheet: this.props.addToSourceSheet,
         canEditText: canEditText,
         setFilter: this.setFilter,
         setConnectionsMode: this.setConnectionsMode,
@@ -6337,6 +6367,7 @@ var ConnectionsPanel = React.createClass({
     setConnectionsMode: React.PropTypes.func.isRequired,
     editNote: React.PropTypes.func.isRequired,
     openComparePanel: React.PropTypes.func.isRequired,
+    addToSourceSheet: React.PropTypes.func.isRequired,
     version: React.PropTypes.string,
     versionLanguage: React.PropTypes.string,
     noteBeingEdited: React.PropTypes.object,
@@ -6409,7 +6440,8 @@ var ConnectionsPanel = React.createClass({
         fullPanel: this.props.fullPanel,
         setConnectionsMode: this.props.setConnectionsMode,
         version: this.props.version,
-        versionLanguage: this.props.versionLanguage
+        versionLanguage: this.props.versionLanguage,
+        addToSourceSheet: this.props.addToSourceSheet
       });
     } else if (this.props.mode === "Add Note") {
       content = React.createElement(AddNotePanel, {
@@ -7600,6 +7632,7 @@ var AddToSourceSheetPanel = React.createClass({
   propTypes: {
     srefs: React.PropTypes.array.isRequired,
     setConnectionsMode: React.PropTypes.func.isRequired,
+    addToSourceSheet: React.PropTypes.func.isRequired,
     fullPanel: React.PropTypes.bool,
     version: React.PropTypes.string,
     versionLanguage: React.PropTypes.string
@@ -7621,13 +7654,7 @@ var AddToSourceSheetPanel = React.createClass({
     if (!this.state.selectedSheet) {
       return;
     }
-    var url = "/api/sheets/" + this.state.selectedSheet + "/add";
-    var source = {
-      refs: this.props.srefs,
-      version: this.props.version,
-      versionLanguage: this.props.versionLanguage
-    };
-    $.post(url, { source: JSON.stringify(source) }, this.confirmAdd);
+    this.props.addToSourceSheet(this.state.selectedSheet, this.confirmAdd);
   },
   createSheet: function createSheet(refs) {
     var title = $(ReactDOM.findDOMNode(this)).find("input").val();
