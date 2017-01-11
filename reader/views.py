@@ -282,6 +282,18 @@ def make_panel_dict(oref, version, language, filter, mode, **kwargs):
 
     return panel
 
+def make_search_panel_dict(query, **kwargs):
+    panel = {
+        "menuOpen": "search",
+        "searchQuery": query
+    }
+    panelDisplayLanguage = kwargs.get("panelDisplayLanguage")
+    if panelDisplayLanguage:
+        panel["settings"] = {"language": short_to_long_lang_code(panelDisplayLanguage)}
+
+    return panel
+
+
 
 def make_panel_dicts(oref, version, language, filter, multi_panel, **kwargs):
     """
@@ -353,25 +365,31 @@ def s2(request, ref, version=None, lang=None):
         ref = request.GET.get("p{}".format(i))
         if not ref:
             break
-        try:
-            oref = Ref(ref)
-        except InputError:
-            i += 1
-            continue  # Stop processing all panels?
-            # raise Http404
+        if ref == "search":
+            query = request.GET.get("q{}".format(i))
+            panelDisplayLanguage = request.GET.get("lang{}".format(i), props["initialSettings"]["language"])
+            panels += [make_search_panel_dict(query, **{"panelDisplayLanguage": panelDisplayLanguage})]
+
+        else:
+            try:
+                oref = Ref(ref)
+            except InputError:
+                i += 1
+                continue  # Stop processing all panels?
+                # raise Http404
         
-        version  = request.GET.get("v{}".format(i)).replace(u"_", u" ") if request.GET.get("v{}".format(i)) else None
-        language = request.GET.get("l{}".format(i))
-        filter   = request.GET.get("w{}".format(i)).replace("_", " ").split("+") if request.GET.get("w{}".format(i)) else None
-        filter   = [] if filter == ["all"] else filter
-        panelDisplayLanguage = request.GET.get("lang{}".format(i), props["initialSettings"]["language"])
+            version  = request.GET.get("v{}".format(i)).replace(u"_", u" ") if request.GET.get("v{}".format(i)) else None
+            language = request.GET.get("l{}".format(i))
+            filter   = request.GET.get("w{}".format(i)).replace("_", " ").split("+") if request.GET.get("w{}".format(i)) else None
+            filter   = [] if filter == ["all"] else filter
+            panelDisplayLanguage = request.GET.get("lang{}".format(i), props["initialSettings"]["language"])
 
-        if version and not Version().load({"versionTitle": version, "language": language}):
-            i += 1
-            continue  # Stop processing all panels?
-            # raise Http404
+            if version and not Version().load({"versionTitle": version, "language": language}):
+                i += 1
+                continue  # Stop processing all panels?
+                # raise Http404
 
-        panels += make_panel_dicts(oref, version, language, filter, multi_panel, **{"panelDisplayLanguage": panelDisplayLanguage})
+            panels += make_panel_dicts(oref, version, language, filter, multi_panel, **{"panelDisplayLanguage": panelDisplayLanguage})
         i += 1
 
     props.update({

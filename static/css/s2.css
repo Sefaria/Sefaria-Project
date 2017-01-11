@@ -324,6 +324,23 @@ body.dark {
 .ui-helper-hidden-accessible {
   display: none;
 }
+#globalWarningMessage {
+  position: fixed;
+  width: 100%;
+  z-index: 1000;
+  text-align: center;
+  bottom: 0px;
+  color: white;
+  background-color: #EFB4B6;
+  padding: 14px 20px;
+  box-sizing: border-box;
+  font-family: "proxima-nova", "Helvetica Neue", Helvetica, sans-serif;
+}
+#globalWarningMessage .close {
+ float: right;
+ cursor: pointer;
+ font-size: 20px;
+}
 .multiPanel .readerPanelBox {
   box-sizing: border-box;
 }

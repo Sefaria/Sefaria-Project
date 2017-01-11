@@ -2,6 +2,7 @@
 
 import pytest
 from sefaria.model import *
+import re
 
 
 def setup_module(module):
@@ -156,3 +157,42 @@ def test_relationships():
     root.last_child().next_sibling() is None
     root.first_leaf().prev_sibling() is None
     root.last_leaf().next_sibling() is None
+
+
+def test_text_index_map():
+    def tokenizer(s):
+        s = re.sub(ur'<.+?>',u'',s).strip()
+        return re.split('\s+', s)
+
+
+    nodes = library.get_index("Megillat Taanit").nodes
+    index_list, ref_list = nodes.text_index_map(tokenizer=tokenizer)
+    assert index_list[1] == 9
+    assert index_list[2] == 20
+    assert index_list[5] == 423
+
+    #now let's get serious. run text_index_map and check for rand_inds that each ref at that ind matches the corresponding indices in index_list
+    index = library.get_index("Otzar Midrashim")
+    nodes = index.nodes
+    index_list, ref_list = nodes.text_index_map(tokenizer=tokenizer)
+    mes_list = index.nodes.traverse_to_list(
+        lambda n, _: TextChunk(n.ref(), "he").ja().flatten_to_array() if not n.children else [])
+    mes_str_array = [w for seg in mes_list for w in tokenizer(seg)]
+
+    rand_inds = [1,20,45,1046,len(index_list)-2]
+    for ri in rand_inds:
+        assert u' '.join(tokenizer(ref_list[ri].text("he").text)) == u' '.join(mes_str_array[index_list[ri]:index_list[ri+1]])
+
+    index = library.get_index("Genesis")
+    nodes = index.nodes
+    index_list, ref_list = nodes.text_index_map(tokenizer=tokenizer, lang="he", vtitle="Tanach with Text Only")
+    mes_list = index.nodes.traverse_to_list(
+        lambda n, _: TextChunk(n.ref(), lang="he", vtitle="Tanach with Text Only").ja().flatten_to_array() if not n.children else [])
+    mes_str_array = [w for seg in mes_list for w in tokenizer(seg)]
+
+    rand_inds = [1, 20, 245, len(index_list)-2]
+    for ri in rand_inds:
+        assert u' '.join(tokenizer(ref_list[ri].text(lang="he",vtitle="Tanach with Text Only").text)) == u' '.join(mes_str_array[index_list[ri]:index_list[ri+1]])
+
+
+

@@ -492,7 +492,7 @@ function handleStateChange(event) {
 
     //Open popped books not in currently open books
     var toBeOpened = svg.selectAll(":not(.open).book")
-            .filter(function(d) { return poppedOpenIds.indexOf(d.id) > -1 })
+            .filter(function(d) { return poppedOpenIds.indexOf(d.id) > -1 });
 
     //console.log("handleStateChange", poppedOpenIds, toBeClosed, toBeOpened);
 
