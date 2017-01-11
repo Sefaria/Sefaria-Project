@@ -809,7 +809,6 @@ var ReaderApp = React.createClass({
     this.replaceHistory = Boolean(replaceHistory);
     //console.log(`setPanel State ${n}, replace: ` + this.replaceHistory);
     //console.log(state)
-
     // When the driving panel changes language, carry that to the dependent panel
     // However, when carrying a language change to the Tools Panel, do not carry over an incorrect version
     var langChange = state.settings && state.settings.language !== this.state.panels[n].settings.language;
@@ -831,7 +830,6 @@ var ReaderApp = React.createClass({
     // Set the version for panel `n`.
     var panel = this.state.panels[n];
     var oRef = Sefaria.ref(panel.refs[0]);
-
     if (versionName && versionLanguage) {
       panel.version = versionName;
       panel.versionLanguage = versionLanguage;
@@ -931,13 +929,20 @@ var ReaderApp = React.createClass({
     panel.refs = refs;
     panel.menuOpen = null;
     panel.mode = panel.mode || "Connections";
+    panel.settings = panel.settings ? panel.settings : Sefaria.util.clone(this.getDefaultPanelSettings());
+    panel.settings.language = panel.settings.language == "hebrew" ? "hebrew" : "english"; // Don't let connections panels be bilingual
     if (parentPanel) {
       panel.filter = parentPanel.filter;
       panel.recentFilters = parentPanel.recentFilters;
-      panel.version = parentPanel.version;
-      panel.versionLanguage = parentPanel.versionLanguage;
+      if (panel.settings.language.substring(0, 2) == parentPanel.versionLanguage) {
+        panel.version = parentPanel.version;
+        panel.versionLanguage = parentPanel.versionLanguage;
+      } else {
+        panel.version = null;
+        panel.versionLanguage = null;
+      }
     }
-    panel.settings = panel.settings ? panel.settings : Sefaria.util.clone(this.getDefaultPanelSettings()), panel.settings.language = panel.settings.language == "hebrew" ? "hebrew" : "english"; // Don't let connections panels be bilingual
+
     newPanels[n] = this.makePanelState(panel);
     this.setState({ panels: newPanels });
   },
@@ -1143,7 +1148,7 @@ var ReaderApp = React.createClass({
       var onSearchResultClick = this.props.multiPanel ? this.handleCompareSearchClick.bind(null, i) : this.handleNavigationClick;
       var onTextListClick = null; // this.openPanelAt.bind(null, i);
       var onOpenConnectionsClick = this.openTextListAt.bind(null, i + 1);
-      var setTextListHightlight = this.setTextListHighlight.bind(null, i);
+      var setTextListHighlight = this.setTextListHighlight.bind(null, i);
       var setSelectedWords = this.setSelectedWords.bind(null, i);
       var openComparePanel = this.openComparePanel.bind(null, i);
       var closePanel = this.closePanel.bind(null, i);
@@ -1174,7 +1179,7 @@ var ReaderApp = React.createClass({
           onRecentClick: this.handleRecentClick,
           onOpenConnectionsClick: onOpenConnectionsClick,
           openComparePanel: openComparePanel,
-          setTextListHightlight: setTextListHightlight,
+          setTextListHighlight: setTextListHighlight,
           setConnectionsFilter: setConnectionsFilter,
           setSelectedWords: setSelectedWords,
           selectVersion: selectVersion,
@@ -1620,7 +1625,7 @@ var ReaderPanel = React.createClass({
     masterPanelLanguage: React.PropTypes.string,
     panelsOpen: React.PropTypes.number,
     layoutWidth: React.PropTypes.number,
-    setTextListHightlight: React.PropTypes.func,
+    setTextListHighlight: React.PropTypes.func,
     setSelectedWords: React.PropTypes.func,
     analyticsInitialized: React.PropTypes.bool
   },
@@ -1802,12 +1807,12 @@ var ReaderPanel = React.createClass({
     this.replaceHistory = true;
     this.conditionalSetState({ refs: refs }, this.replaceState);
   },
-  setTextListHightlight: function setTextListHightlight(refs) {
+  setTextListHighlight: function setTextListHighlight(refs) {
     refs = typeof refs === "string" ? [refs] : refs;
     this.replaceHistory = true;
     this.conditionalSetState({ highlightedRefs: refs });
     if (this.props.multiPanel) {
-      this.props.setTextListHightlight(refs);
+      this.props.setTextListHighlight(refs);
     }
   },
   setSelectedWords: function setSelectedWords(words) {
@@ -2075,7 +2080,7 @@ var ReaderPanel = React.createClass({
         updateTextColumn: this.updateTextColumn,
         onSegmentClick: this.handleBaseSegmentClick,
         onCitationClick: this.handleCitationClick,
-        setTextListHightlight: this.setTextListHightlight,
+        setTextListHighlight: this.setTextListHighlight,
         setSelectedWords: this.setSelectedWords,
         panelsOpen: this.props.panelsOpen,
         layoutWidth: this.props.layoutWidth,
@@ -5480,7 +5485,7 @@ var TextColumn = React.createClass({
     updateTextColumn: React.PropTypes.func,
     onSegmentClick: React.PropTypes.func,
     onCitationClick: React.PropTypes.func,
-    setTextListHightlight: React.PropTypes.func,
+    setTextListHighlight: React.PropTypes.func,
     setSelectedWords: React.PropTypes.func,
     onTextLoad: React.PropTypes.func,
     panelsOpen: React.PropTypes.number,
@@ -5556,7 +5561,7 @@ var TextColumn = React.createClass({
         refs.push($(this).attr("data-ref"));
       });
 
-      this.props.setTextListHightlight(refs);
+      this.props.setTextListHighlight(refs);
     }
     this.props.setSelectedWords(selection.toString());
   },
@@ -5689,7 +5694,7 @@ var TextColumn = React.createClass({
         var $segment = $(segment);
         if ($segment.offset().top + $segment.outerHeight() > threshhold) {
           var ref = $segment.attr("data-ref");
-          this.props.setTextListHightlight(ref);
+          this.props.setTextListHighlight(ref);
           //var end = new Date();
           //elapsed = end - start;
           //console.log("Adjusted Text Highlight in: " + elapsed);
@@ -6402,7 +6407,10 @@ var ConnectionsPanel = React.createClass({
       content = React.createElement(AddToSourceSheetPanel, {
         srefs: this.props.srefs,
         fullPanel: this.props.fullPanel,
-        setConnectionsMode: this.props.setConnectionsMode });
+        setConnectionsMode: this.props.setConnectionsMode,
+        version: this.props.version,
+        versionLanguage: this.props.versionLanguage
+      });
     } else if (this.props.mode === "Add Note") {
       content = React.createElement(AddNotePanel, {
         srefs: this.props.srefs,
@@ -7592,7 +7600,9 @@ var AddToSourceSheetPanel = React.createClass({
   propTypes: {
     srefs: React.PropTypes.array.isRequired,
     setConnectionsMode: React.PropTypes.func.isRequired,
-    fullPanel: React.PropTypes.bool
+    fullPanel: React.PropTypes.bool,
+    version: React.PropTypes.string,
+    versionLanguage: React.PropTypes.string
   },
   getInitialState: function getInitialState() {
     return {
@@ -7612,7 +7622,11 @@ var AddToSourceSheetPanel = React.createClass({
       return;
     }
     var url = "/api/sheets/" + this.state.selectedSheet + "/add";
-    var source = { refs: this.props.srefs };
+    var source = {
+      refs: this.props.srefs,
+      version: this.props.version,
+      versionLanguage: this.props.versionLanguage
+    };
     $.post(url, { source: JSON.stringify(source) }, this.confirmAdd);
   },
   createSheet: function createSheet(refs) {
