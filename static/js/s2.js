@@ -1648,7 +1648,7 @@ var ReaderPanel = React.createClass({
       versionLanguage: this.props.initialVersionLanguage,
       highlightedRefs: this.props.initialHighlightedRefs || [],
       recentFilters: [],
-      settings: this.props.intialState.settings || {
+      settings: this.props.initialState.settings || {
         language: "bilingual",
         layoutDefault: "segmented",
         layoutTalmud: "continuous",
@@ -2156,6 +2156,7 @@ var ReaderPanel = React.createClass({
         versionLanguage: this.state.versionLanguage,
         settingsLanguage: this.state.settings.language == "hebrew" ? "he" : "en",
         category: this.currentCategory(),
+        narrowPanel: !this.props.multiPanel,
         currentRef: this.lastCurrentRef(),
         openNav: this.openMenu.bind(null, "navigation"),
         openDisplaySettings: this.openDisplaySettings,
@@ -2171,6 +2172,7 @@ var ReaderPanel = React.createClass({
         settingsLanguage: this.state.settings.language == "hebrew" ? "he" : "en",
         category: Sefaria.index(this.state.bookRef) ? Sefaria.index(this.state.bookRef).categories[0] : null,
         currentRef: this.state.bookRef,
+        narrowPanel: !this.props.multiPanel,
         key: this.state.bookRef,
         openNav: this.openMenu.bind(null, "navigation"),
         openDisplaySettings: this.openDisplaySettings,
@@ -3330,6 +3332,7 @@ var ReaderTextTableOfContents = React.createClass({
     settingsLanguage: React.PropTypes.string.isRequired,
     versionLanguage: React.PropTypes.string,
     version: React.PropTypes.string,
+    narrowPanel: React.PropTypes.bool,
     close: React.PropTypes.func.isRequired,
     openNav: React.PropTypes.func.isRequired,
     showBaseText: React.PropTypes.func.isRequired,
@@ -3497,7 +3500,7 @@ var ReaderTextTableOfContents = React.createClass({
 
     // Text Details
     var details = Sefaria.indexDetails(this.props.title);
-    var detailsSection = details ? React.createElement(TextDetails, { index: details }) : null;
+    var detailsSection = details ? React.createElement(TextDetails, { index: details, narrowPanel: this.props.narrowPanel }) : null;
 
     if (this.isTextToc()) {
       var sectionStrings = Sefaria.sectionString(this.props.currentRef);
@@ -3795,6 +3798,7 @@ var ReaderTextTableOfContents = React.createClass({
               openVersion: this.openVersion,
               defaultStruct: "default_struct" in details && details.default_struct in details.alts ? details.default_struct : "default",
               currentRef: this.isTextToc() ? this.props.currentRef : null,
+              narrowPanel: this.props.narrowPanel,
               title: this.props.title })
           ) : React.createElement(LoadingMessage, null),
           downloadSection
@@ -3808,7 +3812,8 @@ var TextDetails = React.createClass({
   displayName: 'TextDetails',
 
   propTypes: {
-    index: React.PropTypes.object.isRequired
+    index: React.PropTypes.object.isRequired,
+    narrowPanel: React.PropTypes.bool
   },
   render: function render() {
     var makeDescriptionText = function makeDescriptionText(compWord, compPlace, compDate, description) {
@@ -3825,6 +3830,8 @@ var TextDetails = React.createClass({
     if (!("authors" in this.props.index) && !enDesc) {
       return null;
     }
+
+    var initialWords = this.props.narrowPanel ? 12 : 30;
 
     return React.createElement(
       'div',
@@ -3863,12 +3870,12 @@ var TextDetails = React.createClass({
         React.createElement(
           'div',
           { className: 'int-he' },
-          React.createElement(ReadMoreText, { text: heDesc })
+          React.createElement(ReadMoreText, { text: heDesc, initialWords: initialWords })
         ),
         React.createElement(
           'div',
           { className: 'int-en' },
-          React.createElement(ReadMoreText, { text: enDesc })
+          React.createElement(ReadMoreText, { text: enDesc, initialWords: initialWords })
         )
       ) : null
     );
@@ -3888,6 +3895,7 @@ var TextTableOfContentsNavigation = React.createClass({
     openVersion: React.PropTypes.func,
     defaultStruct: React.PropTypes.string,
     currentRef: React.PropTypes.string,
+    multiPanel: React.PropTypes.bool,
     title: React.PropTypes.string.isRequired
   },
   getInitialState: function getInitialState() {
@@ -3980,7 +3988,8 @@ var TextTableOfContentsNavigation = React.createClass({
 
     var toggle = React.createElement(TabbedToggleSet, {
       options: options,
-      active: this.state.tab });
+      active: this.state.tab,
+      narrowPanel: this.props.narrowPanel });
 
     switch (this.state.tab) {
       case "default":
@@ -4022,7 +4031,8 @@ var TabbedToggleSet = React.createClass({
 
   propTypes: {
     options: React.PropTypes.array.isRequired, // array of object with `name`. `text`, `heText`, `onPress`
-    active: React.PropTypes.string.isRequired
+    active: React.PropTypes.string.isRequired,
+    narrowPanel: React.PropTypes.bool
   },
   render: function render() {
     var options = this.props.options.map(function (option, i) {
@@ -4047,14 +4057,26 @@ var TabbedToggleSet = React.createClass({
       );
     }.bind(this));
 
+    if (this.props.narrowPanel) {
+      var rows = [];
+      var rowSize = options.length == 4 ? 2 : 3;
+      for (var i = 0; i < options.length; i += rowSize) {
+        rows.push(options.slice(i, i + rowSize));
+      }
+    } else {
+      var rows = [options];
+    }
+
     return React.createElement(
       'div',
       { className: 'structToggles' },
-      React.createElement(
-        'div',
-        { className: 'structTogglesInner' },
-        options
-      )
+      rows.map(function (row) {
+        return React.createElement(
+          'div',
+          { className: 'structTogglesInner' },
+          row
+        );
+      })
     );
   }
 });

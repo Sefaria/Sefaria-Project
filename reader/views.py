@@ -282,6 +282,7 @@ def make_panel_dict(oref, version, language, filter, mode, **kwargs):
 
     return panel
 
+
 def make_search_panel_dict(query, **kwargs):
     panel = {
         "menuOpen": "search",

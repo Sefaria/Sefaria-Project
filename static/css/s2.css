@@ -1129,10 +1129,10 @@ a.resourcesLink {
 .readerTextTableOfContents .content .sectionLink  .he {
   font-family: "Open Sans Hebrew", sans-serif;
 }
-.interface-hebrew .readerTextTableOfContents .content #structToggles{
+.interface-hebrew .readerTextTableOfContents .content .structToggles{
   direction: rtl;
 }
-.interface-english .readerTextTableOfContents .content #structToggles{
+.interface-english .readerTextTableOfContents .content .structToggles{
   direction: ltr;
 }
 .readerTextTableOfContents .content .structToggles {
@@ -1151,7 +1151,8 @@ a.resourcesLink {
   font-family: "Open Sans Hebrew", sans-serif;
 }
 .readerTextTableOfContents .structToggles .altStructToggleBox {
-  display: table-cell;  
+  display: table-cell;
+  height: 37px;
 }
 .readerTextTableOfContents .structToggles .altStructToggle {
   display: block;
