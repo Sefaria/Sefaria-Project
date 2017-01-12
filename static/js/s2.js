@@ -3911,7 +3911,9 @@ var TextTableOfContentsNavigation = React.createClass({
     window.removeEventListener('resize', this.shrinkWrap);
   },
   componentDidUpdate: function componentDidUpdate(prevProps, prevState) {
-    this.shrinkWrap();
+    if (prevState.tab != this.state.tab && this.state.tab !== "commentary" && this.state.tab != "versions") {
+      this.shrinkWrap();
+    }
   },
   setTab: function setTab(tab) {
     this.setState({ tab: tab });
