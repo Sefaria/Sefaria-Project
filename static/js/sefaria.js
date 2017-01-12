@@ -1850,6 +1850,13 @@ Sefaria.util = {
                         .replace(/([^>\r\n]?)(\r\n|\n\r|\r|\n)/g, '$1<br />$2');
         };
 
+        if (!String.prototype.startsWith) {
+            String.prototype.startsWith = function(searchString, position){
+              position = position || 0;
+              return this.substr(position, searchString.length) === searchString;
+          };
+        }
+
         Array.prototype.compare = function(testArr) {
             if (this.length != testArr.length) return false;
             for (var i = 0; i < testArr.length; i++) {
