@@ -3688,9 +3688,10 @@ var ReaderTextTableOfContents = React.createClass({
     }
 
     var closeClick = this.isBookToc() ? this.props.closePanel : this.props.close;
+    var classes = classNames({ readerTextTableOfContents: 1, readerNavMenu: 1, narrowPanel: this.props.narrowPanel });
     return React.createElement(
       'div',
-      { className: 'readerTextTableOfContents readerNavMenu' },
+      { className: classes },
       React.createElement(CategoryColorLine, { category: category }),
       React.createElement(
         'div',
@@ -3897,7 +3898,7 @@ var TextTableOfContentsNavigation = React.createClass({
     openVersion: React.PropTypes.func,
     defaultStruct: React.PropTypes.string,
     currentRef: React.PropTypes.string,
-    multiPanel: React.PropTypes.bool,
+    narrowPanel: React.PropTypes.bool,
     title: React.PropTypes.string.isRequired
   },
   getInitialState: function getInitialState() {

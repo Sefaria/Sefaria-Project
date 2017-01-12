@@ -1144,6 +1144,9 @@ a.resourcesLink {
 .readerTextTableOfContents .content .structTogglesInner {
   display: table-row;
 }
+.readerTextTableOfContents .content .structTogglesInner + .structTogglesInner > .altStructToggleBox {
+  padding-top: 6px;
+}
 .readerTextTableOfContents .content .structToggles .en {
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
 }
@@ -1186,6 +1189,9 @@ a.resourcesLink {
   padding: 20px 0 40px;
   text-align: left;
 } 
+.readerTextTableOfContents.narrowPanel .tocContent {
+  padding: 0 0 40px;
+}
 .readerTextTableOfContents .content .tocSection {
   margin-bottom: 22px;
   display: block;
