@@ -626,7 +626,8 @@ var ReaderApp = React.createClass({
       displaySettingsOpen:  false,
       tagSort:              state.tagSort              || "count",
       mySheetSort:          state.mySheetSort          || "date",
-      initialAnalyticsTracked: state.initialAnalyticsTracked || false
+      initialAnalyticsTracked: state.initialAnalyticsTracked || false,
+      selectedWords:        state.selectedWords        || null,
     };
     if (this.state && panel.refs.length && !panel.version) {
       var oRef = Sefaria.ref(panel.refs[0]);
@@ -1594,6 +1595,7 @@ var ReaderPanel = React.createClass({
       sheetsPartner:        this.props.initialPartner || null,
       searchQuery:          this.props.initialQuery || null,
       appliedSearchFilters: this.props.initialAppliedSearchFilters || [],
+      selectedWords:        null,
       searchFiltersValid:   false,
       availableFilters:     [],
       filterRegistry:       {},
@@ -1745,7 +1747,7 @@ var ReaderPanel = React.createClass({
     this.replaceHistory = false;
     if (this.props.multiPanel) {
       this.props.setSelectedWords(words);
-    }else{
+    } else {
       this.conditionalSetState({'selectedWords':  words});
     }
   },
@@ -5924,7 +5926,7 @@ var LexiconPanel = React.createClass({
     if(!this.state.loaded) {
       // console.log("lexicon not yet loaded");
       content = (<LoadingMessage message="Looking up words..." heMessage="מחפש מילים..."/>);
-    }else if(this.state.entries.length == 0) {
+    } else if(this.state.entries.length == 0) {
       if (this.props.selectedWords.length == 0) {
         //console.log("empty words: nothing to render");
         return false;
