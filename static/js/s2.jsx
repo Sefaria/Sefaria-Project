@@ -3948,6 +3948,9 @@ var ModeratorButtons = React.createClass({
   editIndex: function() {
     window.location = "/edit/textinfo/" + this.props.title; 
   },
+  addSection: function() { 
+    window.location = "/add/" + this.props.title;
+  },
   deleteIndex: function() {
     var title = this.props.title;
 
@@ -3983,6 +3986,9 @@ var ModeratorButtons = React.createClass({
     var textButtons = (<span className="moderatorTextButtons">
                           <div className="button white" onClick={this.editIndex}>
                               <span><i className="fa fa-info-circle"></i> Edit Text Info</span>
+                          </div>
+                          <div className="button white" onClick={this.addSection}>
+                              <span><i className="fa fa-plus-circle"></i> Add Section</span>
                           </div>
                           <div className="button white" onClick={this.deleteIndex}>
                               <span><i className="fa fa-exclamation-triangle"></i> Delete {this.props.title}</span>

@@ -1047,10 +1047,10 @@ a.resourcesLink {
   margin-right: 4px;
 }
 .readerTextTableOfContents .versionEditForm {
-    text-align: left;
-    background-color: #ddd;
-    padding: 10px;
-    width: 100%;
+  text-align: left;
+  background-color: #ddd;
+  padding: 10px;
+  width: 100%;
 }
 .readerTextTableOfContents .versionEditForm label {
   display: inline-block;

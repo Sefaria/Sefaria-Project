@@ -4820,6 +4820,9 @@ var ModeratorButtons = React.createClass({
   editIndex: function editIndex() {
     window.location = "/edit/textinfo/" + this.props.title;
   },
+  addSection: function addSection() {
+    window.location = "/add/" + this.props.title;
+  },
   deleteIndex: function deleteIndex() {
     var title = this.props.title;
 
@@ -4865,6 +4868,16 @@ var ModeratorButtons = React.createClass({
           null,
           React.createElement('i', { className: 'fa fa-info-circle' }),
           ' Edit Text Info'
+        )
+      ),
+      React.createElement(
+        'div',
+        { className: 'button white', onClick: this.addSection },
+        React.createElement(
+          'span',
+          null,
+          React.createElement('i', { className: 'fa fa-plus-circle' }),
+          ' Add Section'
         )
       ),
       React.createElement(
