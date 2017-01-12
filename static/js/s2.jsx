@@ -3466,7 +3466,7 @@ var SchemaNode = React.createClass({
 
     } else {
       var content = this.props.schema.nodes.map(function(node, i) {
-        if ("nodes" in node || "refs" in node) {
+        if ("nodes" in node || ("refs" in node && node.refs.length)) {
           // SchemaNode with children (nodes) or ArrayMapNode with depth (refs)
           return (
             <div className="schema-node-toc" key={i}>
@@ -3623,7 +3623,7 @@ var ArrayMapNode = React.createClass({
     schema:      React.PropTypes.object.isRequired
   },
   render: function() {
-    if ("refs" in this.props.schema) {
+    if ("refs" in this.props.schema && this.props.schema.refs.length) {
       var sectionLinks = this.props.schema.refs.map(function(ref, i) {
         i += this.props.schema.offset || 0;
         if (this.props.schema.addressTypes[0] === "Talmud") {
