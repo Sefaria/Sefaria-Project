@@ -653,7 +653,8 @@ var ReaderApp = React.createClass({
       displaySettingsOpen: false,
       tagSort: state.tagSort || "count",
       mySheetSort: state.mySheetSort || "date",
-      initialAnalyticsTracked: state.initialAnalyticsTracked || false
+      initialAnalyticsTracked: state.initialAnalyticsTracked || false,
+      selectedWords: state.selectedWords || null
     };
     if (this.state && panel.refs.length && !panel.version) {
       var oRef = Sefaria.ref(panel.refs[0]);
@@ -1692,6 +1693,7 @@ var ReaderPanel = React.createClass({
       sheetsPartner: this.props.initialPartner || null,
       searchQuery: this.props.initialQuery || null,
       appliedSearchFilters: this.props.initialAppliedSearchFilters || [],
+      selectedWords: null,
       searchFiltersValid: false,
       availableFilters: [],
       filterRegistry: {},
@@ -6550,7 +6552,7 @@ var ConnectionsPanelTabs = React.createClass({
         this.props.setConnectionsMode(item["en"]);
       }.bind(this);
       var active = item["en"] === this.props.activeTab;
-      var classes = classNames({ connectionsPanelTab: 1, sans: 1, active: active });
+      var classes = classNames({ connectionsPanelTab: 1, sans: 1, noselect: 1, active: active });
       return React.createElement(
         'div',
         { className: classes, onClick: tabClick, key: item["en"] },
@@ -7561,15 +7563,15 @@ var ToolsButton = React.createClass({
 
     return React.createElement(
       'div',
-      { className: 'toolsButton sans', onClick: this.props.onClick },
+      { className: 'toolsButton sans noselect', onClick: this.props.onClick },
       React.createElement(
         'div',
-        { className: 'int-en' },
+        { className: 'int-en noselect' },
         this.props.en
       ),
       React.createElement(
         'div',
-        { className: 'int-he' },
+        { className: 'int-he noselect' },
         this.props.he
       ),
       icon
@@ -7687,7 +7689,7 @@ var AddToSourceSheetPanel = React.createClass({
     }
     var sheets = Sefaria.sheets.userSheets(Sefaria._uid);
     var sheetsContent = sheets ? sheets.map(function (sheet) {
-      var classes = classNames({ sheet: 1, selected: this.state.selectedSheet == sheet.id });
+      var classes = classNames({ sheet: 1, noselect: 1, selected: this.state.selectedSheet == sheet.id });
       var selectSheet = function () {
         this.setState({ selectedSheet: sheet.id });
       }.bind(this);
@@ -7700,7 +7702,7 @@ var AddToSourceSheetPanel = React.createClass({
     }.bind(this)) : React.createElement(LoadingMessage, null);
     sheetsContent = sheets && sheets.length == 0 ? React.createElement(
       'div',
-      { className: 'sheet' },
+      { className: 'sheet noselect' },
       React.createElement(
         'span',
         { className: 'en' },
@@ -7714,11 +7716,11 @@ var AddToSourceSheetPanel = React.createClass({
     ) : sheetsContent;
     var createSheet = this.state.showNewSheetInput ? React.createElement(
       'div',
-      null,
-      React.createElement('input', { className: 'newSheetInput', placeholder: 'Title your Sheet' }),
+      { className: 'noselect' },
+      React.createElement('input', { className: 'newSheetInput noselect', placeholder: 'Title your Sheet' }),
       React.createElement(
         'div',
-        { className: 'button white small', onClick: this.createSheet },
+        { className: 'button white small noselect', onClick: this.createSheet },
         React.createElement(
           'span',
           { className: 'int-en' },
@@ -7732,7 +7734,7 @@ var AddToSourceSheetPanel = React.createClass({
       )
     ) : React.createElement(
       'div',
-      { className: 'button white', onClick: this.openNewSheet },
+      { className: 'button white noselect', onClick: this.openNewSheet },
       React.createElement(
         'span',
         { className: 'int-en' },
@@ -7757,20 +7759,20 @@ var AddToSourceSheetPanel = React.createClass({
           createSheet,
           React.createElement(
             'div',
-            { className: 'sourceSheetSelector' },
+            { className: 'sourceSheetSelector noselect' },
             sheetsContent
           ),
           React.createElement(
             'div',
-            { className: 'button', onClick: this.addToSourceSheet },
+            { className: 'button noselect', onClick: this.addToSourceSheet },
             React.createElement(
               'span',
-              { className: 'int-en' },
+              { className: 'int-en noselect' },
               'Add to Sheet'
             ),
             React.createElement(
               'span',
-              { className: 'int-he' },
+              { className: 'int-he noselect' },
               'הוסף לדף המקורות'
             )
           )
