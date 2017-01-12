@@ -3827,7 +3827,9 @@ var TextDetails = React.createClass({
     var enDesc = makeDescriptionText("Composed in ", "compPlaceString" in this.props.index ? this.props.index.compPlaceString.en : null, "compDateString" in this.props.index ? this.props.index.compDateString.en : null, this.props.index.enDesc);
     var heDesc = makeDescriptionText("נוצר/נערך ב", "compPlaceString" in this.props.index ? this.props.index.compPlaceString.he : null, "compDateString" in this.props.index ? this.props.index.compDateString.he : null, this.props.index.heDesc);
 
-    if (!("authors" in this.props.index) && !enDesc) {
+    var authors = "authors" in this.props.index ? this.props.index.authors : [];
+
+    if (!authors.length && !enDesc) {
       return null;
     }
 
@@ -3836,14 +3838,14 @@ var TextDetails = React.createClass({
     return React.createElement(
       'div',
       { className: 'tocDetails' },
-      "authors" in this.props.index ? React.createElement(
+      authors.length ? React.createElement(
         'div',
         { className: 'tocDetail' },
         React.createElement(
           'span',
           { className: 'int-he' },
           'מחבר: ',
-          this.props.index.authors.map(function (author) {
+          authors.map(function (author) {
             return React.createElement(
               'a',
               { href: "/person/" + author.en },
@@ -3855,7 +3857,7 @@ var TextDetails = React.createClass({
           'span',
           { className: 'int-en' },
           'Author: ',
-          this.props.index.authors.map(function (author) {
+          authors.map(function (author) {
             return React.createElement(
               'a',
               { href: "/person/" + author.en },
@@ -4072,10 +4074,10 @@ var TabbedToggleSet = React.createClass({
     return React.createElement(
       'div',
       { className: 'structToggles' },
-      rows.map(function (row) {
+      rows.map(function (row, i) {
         return React.createElement(
           'div',
-          { className: 'structTogglesInner' },
+          { className: 'structTogglesInner', key: i },
           row
         );
       })
@@ -4134,7 +4136,7 @@ var SchemaNode = React.createClass({
           );
         } else if (node.nodeType == "ArrayMapNode") {
           // ArrayMapNode with only wholeRef
-          return React.createElement(ArrayMapNode, { schema: node });
+          return React.createElement(ArrayMapNode, { schema: node, key: i });
         } else if (node.depth == 1) {
           // SchemaNode title that points straight to content
           var path = this.props.refPath + ", " + node.title;

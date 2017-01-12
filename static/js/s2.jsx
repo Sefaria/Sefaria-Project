@@ -3231,19 +3231,21 @@ var TextDetails = React.createClass({
     var enDesc = makeDescriptionText("Composed in ", "compPlaceString" in this.props.index ? this.props.index.compPlaceString.en : null, "compDateString" in this.props.index ? this.props.index.compDateString.en : null, this.props.index.enDesc);
     var heDesc = makeDescriptionText("נוצר/נערך ב", "compPlaceString" in this.props.index ? this.props.index.compPlaceString.he : null, "compDateString" in this.props.index ? this.props.index.compDateString.he : null, this.props.index.heDesc);
 
-    if (!("authors" in this.props.index) && !enDesc) { return null; }
+    var authors = "authors" in this.props.index ? this.props.index.authors : [];
+
+    if (!authors.length && !enDesc) { return null; }
 
     var initialWords = this.props.narrowPanel ? 12 : 30;
 
     return (
       <div className="tocDetails">
-        { "authors" in this.props.index ?
+        { authors.length ?
           <div className="tocDetail">
               <span className="int-he">
-                מחבר: {this.props.index.authors.map(function (author) { return <a href={"/person/" + author.en}>{author.he}</a> })}
+                מחבר: {authors.map(function (author) { return <a href={"/person/" + author.en}>{author.he}</a> })}
               </span>
               <span className="int-en">
-                Author: {this.props.index.authors.map(function (author) { return <a href={"/person/" + author.en}>{author.en}</a> })}
+                Author: {authors.map(function (author) { return <a href={"/person/" + author.en}>{author.en}</a> })}
               </span>
           </div>
           : null }
@@ -3437,8 +3439,8 @@ var TabbedToggleSet = React.createClass({
     }
 
     return (<div className="structToggles">
-              {rows.map(function(row) {
-                return (<div className="structTogglesInner">{row}</div>);
+              {rows.map(function(row, i) {
+                return (<div className="structTogglesInner" key={i}>{row}</div>);
               })}
             </div>);
   }
@@ -3482,7 +3484,7 @@ var SchemaNode = React.createClass({
             </div>);
         } else if (node.nodeType == "ArrayMapNode") {
           // ArrayMapNode with only wholeRef
-          return <ArrayMapNode schema={node} />;
+          return <ArrayMapNode schema={node} key={i} />;
         } else if (node.depth == 1) {
           // SchemaNode title that points straight to content
           var path = this.props.refPath + ", " + node.title;
