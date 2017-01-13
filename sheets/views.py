@@ -656,9 +656,36 @@ def add_source_to_sheet_api(request, sheet_id):
 	source = json.loads(request.POST.get("source"))
 	if not source:
 		return jsonResponse({"error": "No source to copy given."})
+
 	if "refs" in source:
-		source["ref"] = Ref(source["refs"][0]).to(Ref(source["refs"][-1])).normal()
+		ref = Ref(source["refs"][0]).to(Ref(source["refs"][-1]))
+		source["ref"] = ref.normal()
 		del source["refs"]
+
+	if "ref" in source:
+		ref = Ref(source["ref"])
+		source["heRef"] = ref.he_normal()
+
+	if "version" in source or "en" in source or "he" in source:
+		text = {}
+		if "en" in source:
+			text["en"] = source["en"]
+			tc = TextChunk(ref, "he", source["version"]) if source.get("versionLanguage") == "he" else TextChunk(ref, "he")
+			text["he"] = tc.ja().flatten_to_string()
+			del source["en"]
+		elif "he" in source:
+			text["he"] = source["he"]
+			tc = TextChunk(ref, "en", source["version"]) if source.get("versionLanguage") == "en" else TextChunk(ref, "en")
+			text["en"] = tc.ja().flatten_to_string()
+			del source["he"]
+		else:  # "version" in source
+			text[source["versionLanguage"]] = TextChunk(ref, source["versionLanguage"], source["version"]).ja().flatten_to_string()
+			other = "he" if source["versionLanguage"] == "en" else "en"
+			text[other] = TextChunk(ref, other).ja().flatten_to_string()
+		source.pop("version", None)
+		source.pop("versionLanguage", None)
+		source["text"] = text
+
 	return jsonResponse(add_source_to_sheet(int(sheet_id), source))
 
 

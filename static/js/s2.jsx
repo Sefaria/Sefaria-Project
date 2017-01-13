@@ -626,7 +626,8 @@ var ReaderApp = React.createClass({
       displaySettingsOpen:  false,
       tagSort:              state.tagSort              || "count",
       mySheetSort:          state.mySheetSort          || "date",
-      initialAnalyticsTracked: state.initialAnalyticsTracked || false
+      initialAnalyticsTracked: state.initialAnalyticsTracked || false,
+      selectedWords:        state.selectedWords        || null,
     };
     if (this.state && panel.refs.length && !panel.version) {
       var oRef = Sefaria.ref(panel.refs[0]);
@@ -798,6 +799,33 @@ var ReaderApp = React.createClass({
     }
     this.state.panels[n] = extend(this.state.panels[n], state);
     this.setState({panels: this.state.panels});
+  },
+  addToSourceSheet: function(n, selectedSheet, confirmFunction) {
+    // This is invoked from a connections panel
+    var connectionsPanel = this.state.panels[n];
+    var textPanel = this.state.panels[n-1];
+
+    var source  = { refs: connectionsPanel.refs };
+
+    // If version exists in main panel, pass it along, use that for the target language.
+    var version =  textPanel.version;
+    var versionLanguage = textPanel.versionLanguage;
+    if (version && versionLanguage) {
+      source["version"] = version;
+      source["versionLanguage"] = versionLanguage;
+    }
+
+    // If something is highlighted and main panel language is not bilingual:
+    // Use main panel language to determine which version this highlight covers.
+    var language = textPanel.settings.language;
+    var selectedWords = connectionsPanel.selectedWords;
+    if (selectedWords && language != "bilingual") {
+      source[language.slice(0,2)] = selectedWords;
+    }
+
+    var url     = "/api/sheets/" + selectedSheet + "/add";
+    $.post(url, {source: JSON.stringify(source)}, confirmFunction);
+
   },
   selectVersion: function(n, versionName, versionLanguage) {
     // Set the version for panel `n`. 
@@ -1121,6 +1149,7 @@ var ReaderApp = React.createClass({
       var setPanelState            = this.setPanelState.bind(null, i);
       var setConnectionsFilter     = this.setConnectionsFilter.bind(null, i);
       var selectVersion            = this.selectVersion.bind(null, i);
+      var addToSourceSheet         = this.addToSourceSheet.bind(null, i);
 
       var ref   = panel.refs && panel.refs.length ? panel.refs[0] : null;
       var oref  = ref ? Sefaria.parseRef(ref) : null;
@@ -1141,6 +1170,7 @@ var ReaderApp = React.createClass({
                       onSearchResultClick={onSearchResultClick}
                       onNavigationClick={this.handleNavigationClick}
                       onRecentClick={this.handleRecentClick}
+                      addToSourceSheet={addToSourceSheet}
                       onOpenConnectionsClick={onOpenConnectionsClick}
                       openComparePanel={openComparePanel}
                       setTextListHighlight={setTextListHighlight}
@@ -1520,6 +1550,7 @@ var ReaderPanel = React.createClass({
     registerAvailableFilters:    React.PropTypes.func,
     openComparePanel:            React.PropTypes.func,
     setUnreadNotificationsCount: React.PropTypes.func,
+    addToSourceSheet:            React.PropTypes.func,
     highlightedRefs:             React.PropTypes.array,
     hideNavHeader:               React.PropTypes.bool,
     multiPanel:                  React.PropTypes.bool,
@@ -1564,6 +1595,7 @@ var ReaderPanel = React.createClass({
       sheetsPartner:        this.props.initialPartner || null,
       searchQuery:          this.props.initialQuery || null,
       appliedSearchFilters: this.props.initialAppliedSearchFilters || [],
+      selectedWords:        null,
       searchFiltersValid:   false,
       availableFilters:     [],
       filterRegistry:       {},
@@ -1715,7 +1747,7 @@ var ReaderPanel = React.createClass({
     this.replaceHistory = false;
     if (this.props.multiPanel) {
       this.props.setSelectedWords(words);
-    }else{
+    } else {
       this.conditionalSetState({'selectedWords':  words});
     }
   },
@@ -1967,6 +1999,7 @@ var ReaderPanel = React.createClass({
           versionLanguage={this.state.versionLanguage}
           fullPanel={this.props.multiPanel}
           multiPanel={this.props.multiPanel}
+          addToSourceSheet={this.props.addToSourceSheet}
           canEditText={canEditText}
           setFilter={this.setFilter}
           setConnectionsMode={this.setConnectionsMode}
@@ -5578,6 +5611,7 @@ var ConnectionsPanel = React.createClass({
     setConnectionsMode:      React.PropTypes.func.isRequired,
     editNote:                React.PropTypes.func.isRequired,
     openComparePanel:        React.PropTypes.func.isRequired,
+    addToSourceSheet:        React.PropTypes.func.isRequired,
     version:                 React.PropTypes.string,
     versionLanguage:         React.PropTypes.string,
     noteBeingEdited:         React.PropTypes.object,
@@ -5655,6 +5689,7 @@ var ConnectionsPanel = React.createClass({
         setConnectionsMode={this.props.setConnectionsMode} 
         version={this.props.version}
         versionLanguage={this.props.versionLanguage}
+        addToSourceSheet={this.props.addToSourceSheet}
       />);
 
     } else if (this.props.mode === "Add Note") {
@@ -5735,7 +5770,7 @@ var ConnectionsPanelTabs = React.createClass({
         this.props.setConnectionsMode(item["en"])
       }.bind(this);
       var active  = item["en"] === this.props.activeTab;
-      var classes = classNames({connectionsPanelTab: 1, sans: 1, active: active});
+      var classes = classNames({connectionsPanelTab: 1, sans: 1, noselect: 1, active: active});
       return (<div className={classes} onClick={tabClick} key={item["en"]}>
                 <span className="int-en">{item["en"]}</span>
                 <span className="int-he">{item["he"]}</span>
@@ -6351,7 +6386,7 @@ var LexiconPanel = React.createClass({
     if(!this.state.loaded) {
       // console.log("lexicon not yet loaded");
       content = (<LoadingMessage message="Looking up words..." heMessage="מחפש מילים..."/>);
-    }else if(this.state.entries.length == 0) {
+    } else if(this.state.entries.length == 0) {
       if (this.props.selectedWords.length == 0) {
         //console.log("empty words: nothing to render");
         return false;
@@ -6533,9 +6568,9 @@ var ToolsButton = React.createClass({
     }
 
     return (
-      <div className="toolsButton sans" onClick={this.props.onClick}>
-        <div className="int-en">{this.props.en}</div>
-        <div className="int-he">{this.props.he}</div>
+      <div className="toolsButton sans noselect" onClick={this.props.onClick}>
+        <div className="int-en noselect">{this.props.en}</div>
+        <div className="int-he noselect">{this.props.he}</div>
         {icon}
       </div>)
   }
@@ -6589,6 +6624,7 @@ var AddToSourceSheetPanel = React.createClass({
   propTypes: {
     srefs:              React.PropTypes.array.isRequired,
     setConnectionsMode: React.PropTypes.func.isRequired,
+    addToSourceSheet:   React.PropTypes.func.isRequired,
     fullPanel:          React.PropTypes.bool,
     version:            React.PropTypes.string,
     versionLanguage:    React.PropTypes.string
@@ -6608,13 +6644,7 @@ var AddToSourceSheetPanel = React.createClass({
   },
   addToSourceSheet: function() {
     if (!this.state.selectedSheet) { return; }
-    var url     = "/api/sheets/" + this.state.selectedSheet + "/add";
-    var source  = {
-      refs: this.props.srefs,
-      version: this.props.version,
-      versionLanguage: this.props.versionLanguage
-    };
-    $.post(url, {source: JSON.stringify(source)}, this.confirmAdd); 
+    this.props.addToSourceSheet(this.state.selectedSheet, this.confirmAdd);
   },
   createSheet: function(refs) {
     var title = $(ReactDOM.findDOMNode(this)).find("input").val();
@@ -6645,24 +6675,24 @@ var AddToSourceSheetPanel = React.createClass({
     }
     var sheets        = Sefaria.sheets.userSheets(Sefaria._uid);
     var sheetsContent = sheets ? sheets.map(function(sheet) {
-      var classes     = classNames({sheet: 1, selected: this.state.selectedSheet == sheet.id});
+      var classes     = classNames({sheet: 1, noselect: 1, selected: this.state.selectedSheet == sheet.id});
       var selectSheet = function() { this.setState({selectedSheet: sheet.id}); }.bind(this);
       var title = sheet.title ? sheet.title.stripHtml() : "Untitled Source Sheet";
       return (<div className={classes} onClick={selectSheet} key={sheet.id}>{title}</div>);
     }.bind(this)) : <LoadingMessage />;
     sheetsContent     = sheets && sheets.length == 0 ? 
-                          (<div className="sheet"><span className="en">You don&rsquo;t have any Source Sheets yet.</span><span className="he">טרם יצרת דפי מקורות</span></div>) :
+                          (<div className="sheet noselect"><span className="en">You don&rsquo;t have any Source Sheets yet.</span><span className="he">טרם יצרת דפי מקורות</span></div>) :
                           sheetsContent;
     var createSheet = this.state.showNewSheetInput ? 
-          (<div>
-            <input className="newSheetInput" placeholder="Title your Sheet"/>
-            <div className="button white small" onClick={this.createSheet} >
+          (<div className="noselect">
+            <input className="newSheetInput noselect" placeholder="Title your Sheet"/>
+            <div className="button white small noselect" onClick={this.createSheet} >
               <span className="int-en">Create</span>
               <span className="int-he">צור חדש</span>
             </div>
            </div>)
           :
-          (<div className="button white" onClick={this.openNewSheet}>
+          (<div className="button white noselect" onClick={this.openNewSheet}>
               <span className="int-en">Start a Source Sheet</span>
               <span className="int-he">צור דף מקורות חדש</span>
           </div>);
@@ -6672,10 +6702,10 @@ var AddToSourceSheetPanel = React.createClass({
         <div className="texts">
           <div className="contentInner">
             {createSheet}
-            <div className="sourceSheetSelector">{sheetsContent}</div>
-            <div className="button" onClick={this.addToSourceSheet}>
-              <span className="int-en">Add to Sheet</span>
-              <span className="int-he">הוסף לדף המקורות</span>
+            <div className="sourceSheetSelector noselect">{sheetsContent}</div>
+            <div className="button noselect" onClick={this.addToSourceSheet}>
+              <span className="int-en noselect">Add to Sheet</span>
+              <span className="int-he noselect">הוסף לדף המקורות</span>
             </div>
           </div>
         </div>

@@ -226,11 +226,23 @@ def save_sheet(sheet, user_id, search_override=False):
 	return sheet
 
 
+def is_valid_source(source):
+	if not ("ref" in source or "outsideText" in source or "outsideBiText" in source or "comment" in source or "media" in source):
+		return False
+
+
 def add_source_to_sheet(id, source):
 	"""
 	Add source to sheet 'id'.
-	Source is a dictionary that includes at least 'ref' and 'text' (with 'en' and 'he')
+	Source is a dictionary that includes one of the following:
+		'ref' (indicating a source)
+		'outsideText' (indicating a single language outside text)
+		'outsideBiText' (indicating a bilingual outside text)
+		'comment' (indicating a comment)
+		'media' (indicating a media object)
 	"""
+	if not is_valid_source(source):
+		return {"error": "Malformed source could not be added to sheet"}
 	sheet = db.sheets.find_one({"id": id})
 	if not sheet:
 		return {"error": "No sheet with id %s." % (id)}
