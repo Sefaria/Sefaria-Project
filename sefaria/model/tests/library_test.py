@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import pytest
-from sefaria.model.text import library, Ref, Index, CommentaryIndex
+from sefaria.model.text import library, Ref, Index
 
 
 
@@ -226,63 +226,59 @@ class Test_Library(object):
         assert "he" in library.langs
         for lang in library.langs:
             assert library._index_title_maps[lang]
-            assert library._index_title_commentary_maps[lang]
+            with pytest.raises(Exception):
+                assert library._index_title_commentary_maps[lang] #should not exist anymore
             assert library._title_node_maps[lang]
-            assert library._title_node_with_commentary_maps[lang]
+            with pytest.raises(Exception):
+                assert library._title_node_with_commentary_maps[lang]
 
     def test_all_index_caches_removed_and_added_simple(self):
 
         assert "Genesis" in library._index_map
         assert "Bereishit" in library._index_title_maps["en"]["Genesis"]
         assert "Bereishit" in library._title_node_maps["en"]
-        assert "Bereishit" in library._title_node_with_commentary_maps["en"]
         assert u"בראשית" in library._index_title_maps["he"]["Genesis"]
         assert u"בראשית" in library._title_node_maps["he"]
-        assert u"בראשית" in library._title_node_with_commentary_maps["he"]
 
         library.remove_index_record_from_cache(library.get_index("Genesis"))
 
         assert "Genesis" not in library._index_map
         assert "Genesis" not in  library._index_title_maps["en"]
         assert "Bereishit" not in library._title_node_maps["en"]
-        assert "Bereishit" not in library._title_node_with_commentary_maps["en"]
         assert "Genesis" not in library._index_title_maps["he"]
         assert u"בראשית" not in library._title_node_maps["he"]
-        assert u"בראשית" not in library._title_node_with_commentary_maps["he"]
 
         library.add_index_record_to_cache(Index().load({"title": "Genesis"}))
 
         assert "Genesis" in library._index_map
         assert "Bereishit" in library._index_title_maps["en"]["Genesis"]
         assert "Bereishit" in library._title_node_maps["en"]
-        assert "Bereishit" in library._title_node_with_commentary_maps["en"]
         assert u"בראשית" in library._index_title_maps["he"]["Genesis"]
         assert u"בראשית" in library._title_node_maps["he"]
-        assert u"בראשית" in library._title_node_with_commentary_maps["he"]
 
 
     def test_all_index_caches_removed_and_added_commentary(self):
         assert "Rashi on Genesis" in library._index_map
-        assert "Rashi on Bereishit" in library._title_node_with_commentary_maps["en"]
-        assert "Rashi on Bereishit" in library._index_title_commentary_maps["en"]["Rashi on Genesis"]
-        assert u'רש"י על בראשית' in library._index_title_commentary_maps["he"]["Rashi on Genesis"]
-        assert u'רש"י על בראשית' in library._title_node_with_commentary_maps["he"]
+        assert "Rashi on Bereishit" in library._title_node_maps["en"]
+        assert "Rashi on Bereishit" in library._index_title_maps["en"]["Rashi on Genesis"]
+        assert u'רש"י על בראשית' in library._index_title_maps["he"]["Rashi on Genesis"]
+        assert u'רש"י על בראשית' in library._title_node_maps["he"]
 
         library.remove_index_record_from_cache(library.get_index("Rashi on Genesis"))
 
         assert "Rashi on Genesis" not in library._index_map
-        assert "Rashi on Bereishit" not in library._title_node_with_commentary_maps["en"]
-        assert "Rashi on Genesis" not in library._index_title_commentary_maps["en"]
-        assert "Rashi on Genesis" not in library._index_title_commentary_maps["he"]
-        assert u'רש"י על בראשית' not in library._title_node_with_commentary_maps["he"]
+        assert "Rashi on Bereishit" not in library._title_node_maps["en"]
+        assert "Rashi on Genesis" not in library._index_title_maps["en"]
+        assert "Rashi on Genesis" not in library._index_title_maps["he"]
+        assert u'רש"י על בראשית' not in library._title_node_maps["he"]
 
-        library.add_index_record_to_cache(CommentaryIndex("Rashi", "Genesis"))
+        library.add_index_record_to_cache(Index().load({"title": "Rashi on Genesis"}))
 
         assert "Rashi on Genesis" in library._index_map
-        assert "Rashi on Bereishit" in library._title_node_with_commentary_maps["en"]
-        assert "Rashi on Bereishit" in library._index_title_commentary_maps["en"]["Rashi on Genesis"]
-        assert u'רש"י על בראשית' in library._index_title_commentary_maps["he"]["Rashi on Genesis"]
-        assert u'רש"י על בראשית' in library._title_node_with_commentary_maps["he"]
+        assert "Rashi on Bereishit" in library._title_node_maps["en"]
+        assert "Rashi on Bereishit" in library._index_title_maps["en"]["Rashi on Genesis"]
+        assert u'רש"י על בראשית' in library._index_title_maps["he"]["Rashi on Genesis"]
+        assert u'רש"י על בראשית' in library._title_node_maps["he"]
 
 
     def test_get_title_node(self):
@@ -295,23 +291,18 @@ class Test_Library(object):
 
 
 def test_get_en_text_titles():
-    txts = [u'Avot', u'Avoth', u'Daniel', u'Dan', u'Dan.', u'Rashi'] # u"Me'or Einayim, Vayera"
+    txts = [u'Avot', u'Avoth', u'Daniel', u'Dan', u'Dan.'] # u"Me'or Einayim, Vayera"
     ctxts = [u'Rashi on Exodus', u'Ramban on Genesis', u'Tosafot on Shabbat', u'Rashi on Gen.', u'Nachmanides on Exodus', u'Nachmanides on Ex.']
     titles = library.full_title_list()
     for txt in txts:
         assert txt in titles
     for txt in ctxts:
-        assert txt not in titles
+        assert txt in titles
 
-    titles = library.full_title_list(with_commentary=True)
-    for txt in txts:
-        assert txt in titles
-    for txt in ctxts:
-        assert txt in titles
 
 
 def test_get_he_text_titles():
-    txts = [u'\u05d1\u05e8\u05d0\u05e9\u05d9\u05ea', u'\u05e9\u05de\u05d5\u05ea', u'\u05d5\u05d9\u05e7\u05e8\u05d0']
+    txts = [u'\u05d1\u05e8\u05d0\u05e9\u05d9\u05ea', u'\u05e9\u05de\u05d5\u05ea', u'\u05d5\u05d9\u05e7\u05e8\u05d0', u'רש"י על בראשית']
     titles = library.full_title_list(lang="he")
     for txt in txts:
         assert txt in titles

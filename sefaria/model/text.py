@@ -3512,9 +3512,9 @@ class Library(object):
 
     def get_index(self, bookname):
         """
-        Factory - returns either an :class:`Index` object or a :class:`CommentaryIndex` object
+        Factory - returns a :class:`Index` object that has the given bookname
 
-        :param string bookname: Name of the book or commentary on book.
+        :param string bookname: Name of the book.
         :return:
         """
         # look for result in indices cache
