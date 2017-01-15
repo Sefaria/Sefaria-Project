@@ -158,7 +158,8 @@ def process_index_title_change_in_history(indx, **kwargs):
     """
     Update all history entries which reference 'old' to 'new'.
     """
-    pattern = text.Ref(indx.title).regex()
+    from sefaria.model.text import prepare_index_regex_for_dependency_process
+    pattern = prepare_index_regex_for_dependency_process(indx)
     pattern = pattern.replace(re.escape(indx.title), re.escape(kwargs["old"]))
     title_pattern = ur'(^{}$)'.format(re.escape(kwargs["old"]))
 

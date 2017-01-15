@@ -3808,14 +3808,6 @@ class Library(object):
         return IndexSet(q) if full_records else IndexSet(q).distinct("title")
 
 
-
-    def get_version_records_for_indexset(self, set):
-        pass
-
-    def get_group_works(self):
-        pass
-
-
     def get_titles_in_string(self, s, lang=None):
         """
         Returns the titles found in the string.

@@ -129,9 +129,6 @@ def test_get_index():
     r = model.library.get_index("Rashi on Exodus")
     assert isinstance(r, model.Index)
     assert u'Rashi on Exodus' == r.title
-    assert u'Rashi on Exodus' in r.titleVariants
-    assert u'Rashi' not in r.titleVariants
-    assert u'Exodus' not in r.titleVariants
 
     r = model.library.get_index("Exodus")
     assert isinstance(r, model.Index)
@@ -143,6 +140,9 @@ def test_text_helpers():
     assert u'Rashbam on Genesis' in res
     assert u'Rashi on Bava Batra' in res
     assert u'Bartenura on Mishnah Oholot' in res
+    assert u'Onkelos Leviticus' in res
+    assert u'Akeidat Yitzchak' in res
+    assert u'Berakhot' not in res
 
     res = model.library.get_indices_by_collective_title("Rashi")
     assert u'Rashi on Bava Batra' in res
@@ -150,13 +150,42 @@ def test_text_helpers():
     assert u'Rashbam on Genesis' not in res
 
     res = model.library.get_indices_by_collective_title("Bartenura")
-    assert u'Rashi on Genesis' in res
+    assert u'Bartenura on Mishnah Shabbat' in res
     assert u'Bartenura on Mishnah Oholot' in res
     assert u'Rashbam on Genesis' not in res
 
-    res = model.library.get_dependant_indices(book_title="Exodus", dependence_type='commentary')
+    res = model.library.get_dependant_indices(book_title="Exodus")
     assert u'Ibn Ezra on Exodus' in res
     assert u'Ramban on Exodus' in res
+    assert u'Meshech Hochma' in res
+    assert u'Abarbanel on Torah' in res
+    assert u'Targum Jonathan on Exodus' in res
+    assert u'Onkelos Exodus' in res
+    assert u'Harchev Davar on Exodus' in res
+
+    assert u'Exodus' not in res
+    assert u'Rashi on Genesis' not in res
+
+    res = model.library.get_dependant_indices(book_title="Exodus", dependence_type='Commentary')
+    assert u'Ibn Ezra on Exodus' in res
+    assert u'Ramban on Exodus' in res
+    assert u'Meshech Hochma' in res
+    assert u'Abarbanel on Torah' in res
+    assert u'Harchev Davar on Exodus' in res
+
+    assert u'Targum Jonathan on Exodus' not in res
+    assert u'Onkelos Exodus' not in res
+    assert u'Exodus' not in res
+    assert u'Rashi on Genesis' not in res
+
+    res = model.library.get_dependant_indices(book_title="Exodus", dependence_type='Commentary', structure_match=True)
+    assert u'Ibn Ezra on Exodus' in res
+    assert u'Ramban on Exodus' in res
+
+    assert u'Harchev Davar on Exodus' not in res
+    assert u'Meshech Hochma' not in res
+    assert u'Abarbanel on Torah' not in res
+    assert u'Exodus' not in res
     assert u'Rashi on Genesis' not in res
 
     cats = model.library.get_text_categories()
@@ -244,24 +273,7 @@ def test_index_delete():
     assert model.Index().load({'title': ti}) is None
     assert model.VersionSet({'title':ti}).count() == 0
 
-    #Commentator
-    from sefaria.helper.text import create_commentator_and_commentary_version
 
-    commentator_name = "Commentator Del"
-    he_commentator_name = u"פרשנדנן"
-    base_book = 'Genesis'
-    base_book2 = 'Pesach Haggadah'
-
-    model.IndexSet({"title": commentator_name}).delete()
-    model.VersionSet({"title": commentator_name + " on " + base_book}).delete()
-    model.VersionSet({"title": commentator_name + " on " + base_book2}).delete()
-
-    create_commentator_and_commentary_version(commentator_name, base_book, 'he', 'test', 'test', he_commentator_name)
-    create_commentator_and_commentary_version(commentator_name, base_book2, 'he', 'test', 'test', he_commentator_name)
-
-    ci = model.Index().load({'title': commentator_name}).delete()
-    assert model.Index().load({'title': commentator_name}) is None
-    assert model.VersionSet({'title':{'$regex': commentator_name}}).count() == 0
 
 
 
@@ -299,31 +311,16 @@ def test_index_name_change():
 
 
 def dep_counts(name):
-    commentators = model.IndexSet({"categories.0": "Commentary"}).distinct("title")
-    ref_patterns = {
-        'alone': r'^{} \d'.format(re.escape(name)),
-        'commentor': r'{} on'.format(re.escape(name)),
-        'commentee': r'^({}) on {} \d'.format("|".join(commentators), re.escape(name))
-    }
-
-    commentee_title_pattern = r'^({}) on {} \d'.format("|".join(commentators), re.escape(name))
-
+    from sefaria.model.text import prepare_index_regex_for_dependency_process
+    pattern = prepare_index_regex_for_dependency_process(indx)
     ret = {
         'version title exact match': model.VersionSet({"title": name}).count(),
-        'version title match commentor': model.VersionSet({"title": {"$regex": ref_patterns["commentor"]}}).count(),
-        'version title match commentee': model.VersionSet({"title": {"$regex": commentee_title_pattern}}).count(),
         'history title exact match': model.HistorySet({"title": name}).count(),
-        'history title match commentor': model.HistorySet({"title": {"$regex": ref_patterns["commentor"]}}).count(),
-        'history title match commentee': model.HistorySet({"title": {"$regex": commentee_title_pattern}}).count(),
+        'note match ': model.NoteSet({"ref": {"$regex": pattern}}).count(),
+        'link match ': model.LinkSet({"refs": {"$regex": pattern}}).count(),
+        'history refs match ': model.HistorySet({"ref": {"$regex": pattern}}).count(),
+        'history new refs match ': model.HistorySet({"new.refs": {"$regex": pattern}}).count()
     }
-
-    for pname, pattern in ref_patterns.items():
-        ret.update({
-            'note match ' + pname: model.NoteSet({"ref": {"$regex": pattern}}).count(),
-            'link match ' + pname: model.LinkSet({"refs": {"$regex": pattern}}).count(),
-            'history refs match ' + pname: model.HistorySet({"ref": {"$regex": pattern}}).count(),
-            'history new refs match ' + pname: model.HistorySet({"new.refs": {"$regex": pattern}}).count()
-        })
 
     return ret
 
