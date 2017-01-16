@@ -45,6 +45,16 @@ before_script:
   # Get rid of the conftest that forces a copy of the datastore to a test db
   - rm ./sefaria/conftest.py
 
+  # special commentary-refactor process, checkout migration branch, run migration
+  - git checkout master-commentary-refactor-migration
+  - git pull > /dev/null &
+  - ./run scripts/commentary-refactor-scripts/make_explicit_commentary_index.py 2> server.error.log > server.log &
+  - ./run scripts/commentary-refactor-scripts/make_refactored_commentary2_targum_index.py 2> server.error.log > server.log &
+  - ./run scripts/commentary-refactor-scripts/fix_misc_indices.py 2> server.error.log > server.log &
+  - ./run scripts/commentary-refactor-scripts/move_bavli_commentaries.py 2> server.error.log > server.log &
+  - git checkout commentary-refactor
+
+
   # Create the user db, and run the django server, redirecting output to log files
   - python manage.py syncdb --noinput
   - python manage.py runserver --insecure 2> server.error.log > server.log &
