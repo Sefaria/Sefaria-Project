@@ -429,6 +429,8 @@ def change_node_structure(ja_node, section_names, address_types=None, upsize_in_
     ja_node.sectionNames = section_names
     ja_node.addressTypes = address_types
     ja_node.depth = len(section_names)
+    ja_node._regexes = {}
+    ja_node._init_address_classes()
     index = ja_node.index
     index.save(override_dependencies=True)
     print 'Index Saved'
