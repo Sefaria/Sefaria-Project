@@ -15,7 +15,7 @@ from sefaria.utils.testing_utils import *
 
 """ SOME SETUP """
 
-text_titles = model.VersionSet({}).distinct('title')
+text_titles = model.IndexSet({}).distinct('title')
 model.library.rebuild_toc()
 scache.delete_cache_elem('toc_cache')
 
@@ -93,18 +93,6 @@ class Test_Toc(object):
         new_index.delete()
         verify_title_existence_in_toc(new_index.title, None)
 
-        #commentator alone should not be in the toc
-        new_commentator = model.Index({
-            "title": "New Toc Commentator Test",
-            "heTitle": u"םפםפכ",
-            "titleVariants": [],
-            "sectionNames": ["Chapter", "Paragraph"],
-            "categories": ["Commentary"]
-        })
-        new_commentator.save()
-        verify_title_existence_in_toc(new_commentator.title, None)
-        new_commentator.delete()
-        verify_title_existence_in_toc(new_commentator.title, None)
 
         new_other_index = model.Index({
             "title": "New Toc Test",
@@ -120,18 +108,14 @@ class Test_Toc(object):
         verify_title_existence_in_toc(new_other_index.title, None)
 
     def test_index_attr_change(self):
-        indx = model.Index().load({"title": "Or HaChaim"})
-        verify_title_existence_in_toc(indx.title, None)
-        verify_title_existence_in_toc(indx.title+' on Genesis', ['Tanakh', 'Commentary', 'Or HaChaim'])
-        indx.titleVariants.append("Or HaChaim HaKadosh")
-        #indx.nodes.add_title("Or HaChaim HaKadosh", "en")
+        indx = model.Index().load({"title": "Or HaChaim on Genesis"})
+        verify_title_existence_in_toc(indx.title, ['Tanakh', 'Commentary', 'Or HaChaim', 'Torah'])
+        indx.nodes.add_title("Or HaChaim HaKadosh", "en")
         indx.save()
-        verify_title_existence_in_toc(indx.title, None)
-        verify_title_existence_in_toc(indx.title+' on Genesis', ['Tanakh', 'Commentary', 'Or HaChaim'])
+        verify_title_existence_in_toc(indx.title, ['Tanakh', 'Commentary', 'Or HaChaim', 'Torah'])
 
         indx2 = model.Index().load({"title": "Sefer Kuzari"}) #Was Tanya, but Tanya has a hebrew title clash problem, momentarily.
         verify_title_existence_in_toc(indx2.title, indx2.categories)
-        #indx2.titleVariants.append("Tanya Test")
         indx2.nodes.add_title("Kuzari Test", "en")
         indx2.save()
         verify_title_existence_in_toc(indx2.title, indx2.categories)
@@ -170,25 +154,4 @@ class Test_Toc(object):
         #new one in it's place
         verify_title_existence_in_toc(old_title, old_toc_path)
 
-    @pytest.mark.deep
-    def test_commentary_index_title_change(self):
-        old_title = 'Sforno'
-        new_title = 'Sforno New'
-        i = model.Index().load({"title": old_title})
-        verify_title_existence_in_toc(old_title, None)
-        verify_title_existence_in_toc(old_title+' on Genesis', ['Tanakh', 'Commentary', 'Sforno'])
-        i.title = new_title
-        i.save()
-        #old title not there
-        verify_title_existence_in_toc(old_title, None)
-        #new one not either since it's just a commentator name
-        verify_title_existence_in_toc(new_title, None)
-        verify_title_existence_in_toc(new_title+' on Genesis', ['Tanakh', 'Commentary', 'Sforno New'])
-        #do testing: make sure new title is in the old place in the toc and that the old title is removed
-        i.title = old_title
-        i.save()
-        #old title not there anymore
-        verify_title_existence_in_toc(new_title, None)
-        #new one in it's place
-        verify_title_existence_in_toc(old_title, None)
-        verify_title_existence_in_toc(old_title+' on Genesis', ['Tanakh', 'Commentary', 'Sforno'])
+
