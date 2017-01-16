@@ -46,8 +46,8 @@ before_script:
   - rm ./sefaria/conftest.py
 
   # special commentary-refactor process, checkout migration branch, run migration
-  - git fetch > /dev/null &
-  - git checkout master-commentary-refactor-migration
+  - git fetch --unshallow > /dev/null &
+  - git checkout --track origin/master-commentary-refactor-migration
   - git pull > /dev/null &
   - ./run scripts/commentary-refactor-scripts/make_explicit_commentary_index.py 2> server.error.log > server.log &
   - ./run scripts/commentary-refactor-scripts/make_refactored_commentary2_targum_index.py 2> server.error.log > server.log &
