@@ -1411,6 +1411,7 @@ class TextChunk(AbstractTextRecord):
         else:
             raise Exception("Called TextChunk.version() on merged TextChunk.")
 
+
     def nonempty_subrefs(self):
         """
 

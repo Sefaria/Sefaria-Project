@@ -653,7 +653,8 @@ var ReaderApp = React.createClass({
       displaySettingsOpen: false,
       tagSort: state.tagSort || "count",
       mySheetSort: state.mySheetSort || "date",
-      initialAnalyticsTracked: state.initialAnalyticsTracked || false
+      initialAnalyticsTracked: state.initialAnalyticsTracked || false,
+      selectedWords: state.selectedWords || null
     };
     if (this.state && panel.refs.length && !panel.version) {
       var oRef = Sefaria.ref(panel.refs[0]);
@@ -809,7 +810,6 @@ var ReaderApp = React.createClass({
     this.replaceHistory = Boolean(replaceHistory);
     //console.log(`setPanel State ${n}, replace: ` + this.replaceHistory);
     //console.log(state)
-
     // When the driving panel changes language, carry that to the dependent panel
     // However, when carrying a language change to the Tools Panel, do not carry over an incorrect version
     var langChange = state.settings && state.settings.language !== this.state.panels[n].settings.language;
@@ -827,11 +827,36 @@ var ReaderApp = React.createClass({
     this.state.panels[n] = extend(this.state.panels[n], state);
     this.setState({ panels: this.state.panels });
   },
+  addToSourceSheet: function addToSourceSheet(n, selectedSheet, confirmFunction) {
+    // This is invoked from a connections panel
+    var connectionsPanel = this.state.panels[n];
+    var textPanel = this.state.panels[n - 1];
+
+    var source = { refs: connectionsPanel.refs };
+
+    // If version exists in main panel, pass it along, use that for the target language.
+    var version = textPanel.version;
+    var versionLanguage = textPanel.versionLanguage;
+    if (version && versionLanguage) {
+      source["version"] = version;
+      source["versionLanguage"] = versionLanguage;
+    }
+
+    // If something is highlighted and main panel language is not bilingual:
+    // Use main panel language to determine which version this highlight covers.
+    var language = textPanel.settings.language;
+    var selectedWords = connectionsPanel.selectedWords;
+    if (selectedWords && language != "bilingual") {
+      source[language.slice(0, 2)] = selectedWords;
+    }
+
+    var url = "/api/sheets/" + selectedSheet + "/add";
+    $.post(url, { source: JSON.stringify(source) }, confirmFunction);
+  },
   selectVersion: function selectVersion(n, versionName, versionLanguage) {
     // Set the version for panel `n`.
     var panel = this.state.panels[n];
     var oRef = Sefaria.ref(panel.refs[0]);
-
     if (versionName && versionLanguage) {
       panel.version = versionName;
       panel.versionLanguage = versionLanguage;
@@ -931,13 +956,20 @@ var ReaderApp = React.createClass({
     panel.refs = refs;
     panel.menuOpen = null;
     panel.mode = panel.mode || "Connections";
+    panel.settings = panel.settings ? panel.settings : Sefaria.util.clone(this.getDefaultPanelSettings());
+    panel.settings.language = panel.settings.language == "hebrew" ? "hebrew" : "english"; // Don't let connections panels be bilingual
     if (parentPanel) {
       panel.filter = parentPanel.filter;
       panel.recentFilters = parentPanel.recentFilters;
-      panel.version = parentPanel.version;
-      panel.versionLanguage = parentPanel.versionLanguage;
+      if (panel.settings.language.substring(0, 2) == parentPanel.versionLanguage) {
+        panel.version = parentPanel.version;
+        panel.versionLanguage = parentPanel.versionLanguage;
+      } else {
+        panel.version = null;
+        panel.versionLanguage = null;
+      }
     }
-    panel.settings = panel.settings ? panel.settings : Sefaria.util.clone(this.getDefaultPanelSettings()), panel.settings.language = panel.settings.language == "hebrew" ? "hebrew" : "english"; // Don't let connections panels be bilingual
+
     newPanels[n] = this.makePanelState(panel);
     this.setState({ panels: newPanels });
   },
@@ -1143,13 +1175,14 @@ var ReaderApp = React.createClass({
       var onSearchResultClick = this.props.multiPanel ? this.handleCompareSearchClick.bind(null, i) : this.handleNavigationClick;
       var onTextListClick = null; // this.openPanelAt.bind(null, i);
       var onOpenConnectionsClick = this.openTextListAt.bind(null, i + 1);
-      var setTextListHightlight = this.setTextListHighlight.bind(null, i);
+      var setTextListHighlight = this.setTextListHighlight.bind(null, i);
       var setSelectedWords = this.setSelectedWords.bind(null, i);
       var openComparePanel = this.openComparePanel.bind(null, i);
       var closePanel = this.closePanel.bind(null, i);
       var setPanelState = this.setPanelState.bind(null, i);
       var setConnectionsFilter = this.setConnectionsFilter.bind(null, i);
       var selectVersion = this.selectVersion.bind(null, i);
+      var addToSourceSheet = this.addToSourceSheet.bind(null, i);
 
       var ref = panel.refs && panel.refs.length ? panel.refs[0] : null;
       var oref = ref ? Sefaria.parseRef(ref) : null;
@@ -1172,9 +1205,10 @@ var ReaderApp = React.createClass({
           onSearchResultClick: onSearchResultClick,
           onNavigationClick: this.handleNavigationClick,
           onRecentClick: this.handleRecentClick,
+          addToSourceSheet: addToSourceSheet,
           onOpenConnectionsClick: onOpenConnectionsClick,
           openComparePanel: openComparePanel,
-          setTextListHightlight: setTextListHightlight,
+          setTextListHighlight: setTextListHighlight,
           setConnectionsFilter: setConnectionsFilter,
           setSelectedWords: setSelectedWords,
           selectVersion: selectVersion,
@@ -1614,13 +1648,14 @@ var ReaderPanel = React.createClass({
     registerAvailableFilters: React.PropTypes.func,
     openComparePanel: React.PropTypes.func,
     setUnreadNotificationsCount: React.PropTypes.func,
+    addToSourceSheet: React.PropTypes.func,
     highlightedRefs: React.PropTypes.array,
     hideNavHeader: React.PropTypes.bool,
     multiPanel: React.PropTypes.bool,
     masterPanelLanguage: React.PropTypes.string,
     panelsOpen: React.PropTypes.number,
     layoutWidth: React.PropTypes.number,
-    setTextListHightlight: React.PropTypes.func,
+    setTextListHighlight: React.PropTypes.func,
     setSelectedWords: React.PropTypes.func,
     analyticsInitialized: React.PropTypes.bool
   },
@@ -1658,6 +1693,7 @@ var ReaderPanel = React.createClass({
       sheetsPartner: this.props.initialPartner || null,
       searchQuery: this.props.initialQuery || null,
       appliedSearchFilters: this.props.initialAppliedSearchFilters || [],
+      selectedWords: null,
       searchFiltersValid: false,
       availableFilters: [],
       filterRegistry: {},
@@ -1802,12 +1838,12 @@ var ReaderPanel = React.createClass({
     this.replaceHistory = true;
     this.conditionalSetState({ refs: refs }, this.replaceState);
   },
-  setTextListHightlight: function setTextListHightlight(refs) {
+  setTextListHighlight: function setTextListHighlight(refs) {
     refs = typeof refs === "string" ? [refs] : refs;
     this.replaceHistory = true;
     this.conditionalSetState({ highlightedRefs: refs });
     if (this.props.multiPanel) {
-      this.props.setTextListHightlight(refs);
+      this.props.setTextListHighlight(refs);
     }
   },
   setSelectedWords: function setSelectedWords(words) {
@@ -2075,7 +2111,7 @@ var ReaderPanel = React.createClass({
         updateTextColumn: this.updateTextColumn,
         onSegmentClick: this.handleBaseSegmentClick,
         onCitationClick: this.handleCitationClick,
-        setTextListHightlight: this.setTextListHightlight,
+        setTextListHighlight: this.setTextListHighlight,
         setSelectedWords: this.setSelectedWords,
         panelsOpen: this.props.panelsOpen,
         layoutWidth: this.props.layoutWidth,
@@ -2096,6 +2132,7 @@ var ReaderPanel = React.createClass({
         versionLanguage: this.state.versionLanguage,
         fullPanel: this.props.multiPanel,
         multiPanel: this.props.multiPanel,
+        addToSourceSheet: this.props.addToSourceSheet,
         canEditText: canEditText,
         setFilter: this.setFilter,
         setConnectionsMode: this.setConnectionsMode,
@@ -5510,7 +5547,7 @@ var TextColumn = React.createClass({
     updateTextColumn: React.PropTypes.func,
     onSegmentClick: React.PropTypes.func,
     onCitationClick: React.PropTypes.func,
-    setTextListHightlight: React.PropTypes.func,
+    setTextListHighlight: React.PropTypes.func,
     setSelectedWords: React.PropTypes.func,
     onTextLoad: React.PropTypes.func,
     panelsOpen: React.PropTypes.number,
@@ -5586,7 +5623,7 @@ var TextColumn = React.createClass({
         refs.push($(this).attr("data-ref"));
       });
 
-      this.props.setTextListHightlight(refs);
+      this.props.setTextListHighlight(refs);
     }
     this.props.setSelectedWords(selection.toString());
   },
@@ -5719,7 +5756,7 @@ var TextColumn = React.createClass({
         var $segment = $(segment);
         if ($segment.offset().top + $segment.outerHeight() > threshhold) {
           var ref = $segment.attr("data-ref");
-          this.props.setTextListHightlight(ref);
+          this.props.setTextListHighlight(ref);
           //var end = new Date();
           //elapsed = end - start;
           //console.log("Adjusted Text Highlight in: " + elapsed);
@@ -6362,6 +6399,7 @@ var ConnectionsPanel = React.createClass({
     setConnectionsMode: React.PropTypes.func.isRequired,
     editNote: React.PropTypes.func.isRequired,
     openComparePanel: React.PropTypes.func.isRequired,
+    addToSourceSheet: React.PropTypes.func.isRequired,
     version: React.PropTypes.string,
     versionLanguage: React.PropTypes.string,
     noteBeingEdited: React.PropTypes.object,
@@ -6432,7 +6470,11 @@ var ConnectionsPanel = React.createClass({
       content = React.createElement(AddToSourceSheetPanel, {
         srefs: this.props.srefs,
         fullPanel: this.props.fullPanel,
-        setConnectionsMode: this.props.setConnectionsMode });
+        setConnectionsMode: this.props.setConnectionsMode,
+        version: this.props.version,
+        versionLanguage: this.props.versionLanguage,
+        addToSourceSheet: this.props.addToSourceSheet
+      });
     } else if (this.props.mode === "Add Note") {
       content = React.createElement(AddNotePanel, {
         srefs: this.props.srefs,
@@ -6540,7 +6582,7 @@ var ConnectionsPanelTabs = React.createClass({
         this.props.setConnectionsMode(item["en"]);
       }.bind(this);
       var active = item["en"] === this.props.activeTab;
-      var classes = classNames({ connectionsPanelTab: 1, sans: 1, active: active });
+      var classes = classNames({ connectionsPanelTab: 1, sans: 1, noselect: 1, active: active });
       return React.createElement(
         'div',
         { className: classes, onClick: tabClick, key: item["en"] },
@@ -7274,7 +7316,7 @@ var LexiconPanel = React.createClass({
     return inputLength <= 3;
   },
   render: function render() {
-    var refCats = this.props.oref.categories.join(", ");
+    var refCats = this.props.oref.categories.join(", "); //TODO: the way to filter by categories is very limiting.
     var enEmpty = "No results found.";
     var heEmpty = "לא נמצאו תוצאות";
     if (!this.shouldActivate(this.props.selectedWords)) {
@@ -7296,7 +7338,7 @@ var LexiconPanel = React.createClass({
     } else {
       var entries = this.state.entries;
       content = entries.filter(function (e) {
-        return e['parent_lexicon_details']['text_categories'].indexOf(refCats) > -1;
+        return e['parent_lexicon_details']['text_categories'].length == 0 || e['parent_lexicon_details']['text_categories'].indexOf(refCats) > -1;
       }).map(function (entry, i) {
         return React.createElement(LexiconEntry, { data: entry, key: i });
       });
@@ -7551,15 +7593,15 @@ var ToolsButton = React.createClass({
 
     return React.createElement(
       'div',
-      { className: 'toolsButton sans', onClick: this.props.onClick },
+      { className: 'toolsButton sans noselect', onClick: this.props.onClick },
       React.createElement(
         'div',
-        { className: 'int-en' },
+        { className: 'int-en noselect' },
         this.props.en
       ),
       React.createElement(
         'div',
-        { className: 'int-he' },
+        { className: 'int-he noselect' },
         this.props.he
       ),
       icon
@@ -7622,7 +7664,10 @@ var AddToSourceSheetPanel = React.createClass({
   propTypes: {
     srefs: React.PropTypes.array.isRequired,
     setConnectionsMode: React.PropTypes.func.isRequired,
-    fullPanel: React.PropTypes.bool
+    addToSourceSheet: React.PropTypes.func.isRequired,
+    fullPanel: React.PropTypes.bool,
+    version: React.PropTypes.string,
+    versionLanguage: React.PropTypes.string
   },
   getInitialState: function getInitialState() {
     return {
@@ -7641,9 +7686,7 @@ var AddToSourceSheetPanel = React.createClass({
     if (!this.state.selectedSheet) {
       return;
     }
-    var url = "/api/sheets/" + this.state.selectedSheet + "/add";
-    var source = { refs: this.props.srefs };
-    $.post(url, { source: JSON.stringify(source) }, this.confirmAdd);
+    this.props.addToSourceSheet(this.state.selectedSheet, this.confirmAdd);
   },
   createSheet: function createSheet(refs) {
     var title = $(ReactDOM.findDOMNode(this)).find("input").val();
@@ -7676,7 +7719,7 @@ var AddToSourceSheetPanel = React.createClass({
     }
     var sheets = Sefaria.sheets.userSheets(Sefaria._uid);
     var sheetsContent = sheets ? sheets.map(function (sheet) {
-      var classes = classNames({ sheet: 1, selected: this.state.selectedSheet == sheet.id });
+      var classes = classNames({ sheet: 1, noselect: 1, selected: this.state.selectedSheet == sheet.id });
       var selectSheet = function () {
         this.setState({ selectedSheet: sheet.id });
       }.bind(this);
@@ -7689,7 +7732,7 @@ var AddToSourceSheetPanel = React.createClass({
     }.bind(this)) : React.createElement(LoadingMessage, null);
     sheetsContent = sheets && sheets.length == 0 ? React.createElement(
       'div',
-      { className: 'sheet' },
+      { className: 'sheet noselect' },
       React.createElement(
         'span',
         { className: 'en' },
@@ -7703,11 +7746,11 @@ var AddToSourceSheetPanel = React.createClass({
     ) : sheetsContent;
     var createSheet = this.state.showNewSheetInput ? React.createElement(
       'div',
-      null,
-      React.createElement('input', { className: 'newSheetInput', placeholder: 'Title your Sheet' }),
+      { className: 'noselect' },
+      React.createElement('input', { className: 'newSheetInput noselect', placeholder: 'Title your Sheet' }),
       React.createElement(
         'div',
-        { className: 'button white small', onClick: this.createSheet },
+        { className: 'button white small noselect', onClick: this.createSheet },
         React.createElement(
           'span',
           { className: 'int-en' },
@@ -7721,7 +7764,7 @@ var AddToSourceSheetPanel = React.createClass({
       )
     ) : React.createElement(
       'div',
-      { className: 'button white', onClick: this.openNewSheet },
+      { className: 'button white noselect', onClick: this.openNewSheet },
       React.createElement(
         'span',
         { className: 'int-en' },
@@ -7746,20 +7789,20 @@ var AddToSourceSheetPanel = React.createClass({
           createSheet,
           React.createElement(
             'div',
-            { className: 'sourceSheetSelector' },
+            { className: 'sourceSheetSelector noselect' },
             sheetsContent
           ),
           React.createElement(
             'div',
-            { className: 'button', onClick: this.addToSourceSheet },
+            { className: 'button noselect', onClick: this.addToSourceSheet },
             React.createElement(
               'span',
-              { className: 'int-en' },
+              { className: 'int-en noselect' },
               'Add to Sheet'
             ),
             React.createElement(
               'span',
-              { className: 'int-he' },
+              { className: 'int-he noselect' },
               'הוסף לדף המקורות'
             )
           )
