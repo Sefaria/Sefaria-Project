@@ -1194,7 +1194,7 @@ a.resourcesLink {
   display: block;
 }
 .readerTextTableOfContents .content .tocContent {
-  padding: 20px 0 40px;
+  padding: 30px 0 40px;
   text-align: left;
 } 
 .readerTextTableOfContents.narrowPanel .tocContent {
