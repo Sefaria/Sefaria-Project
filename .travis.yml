@@ -34,9 +34,9 @@ before_script:
   - sudo apt-get install -y mongodb-org=2.6.6 mongodb-org-server=2.6.6 mongodb-org-shell=2.6.6 mongodb-org-mongos=2.6.6 mongodb-org-tools=2.6.6
 
   # Download and restore the Sefaria database
-  - wget $MONGO_DUMP_URL
-  - tar -xzvf $MONGO_DUMP_FILENAME
-  - mongorestore --drop
+  - wget $MIGRATED_MONGO_DUMP_URL
+  - tar -xzvf $MIGRATED_MONGO_DUMP_FILENAME
+  - mongorestore -d sefaria --drop ./migrated/sefaria
 
   # Copy in settings files tuned for the travis build
   - cp ./sefaria/.travis.settings.py ./sefaria/local_settings.py
@@ -44,17 +44,6 @@ before_script:
 
   # Get rid of the conftest that forces a copy of the datastore to a test db
   - rm ./sefaria/conftest.py
-
-  # special commentary-refactor process, checkout migration branch, run migration
-  - git fetch --unshallow > /dev/null &
-  - git checkout --track origin/master-commentary-refactor-migration
-  - git pull > /dev/null &
-  - ./run scripts/commentary-refactor-scripts/make_explicit_commentary_index.py 2> server.error.log > server.log &
-  - ./run scripts/commentary-refactor-scripts/make_refactored_commentary2_targum_index.py 2> server.error.log > server.log &
-  - ./run scripts/commentary-refactor-scripts/fix_misc_indices.py 2> server.error.log > server.log &
-  - ./run scripts/commentary-refactor-scripts/move_bavli_commentaries.py 2> server.error.log > server.log &
-  - git checkout commentary-refactor
-
 
   # Create the user db, and run the django server, redirecting output to log files
   - python manage.py syncdb --noinput
