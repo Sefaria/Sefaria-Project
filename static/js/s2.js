@@ -4825,7 +4825,7 @@ var VersionBlock = React.createClass({
           this.props.showHistory ? React.createElement(
             'a',
             { className: 'versionHistoryLink', href: '/activity/' + Sefaria.normRef(this.props.currentRef) + '/' + v.language + '/' + (v.versionTitle && v.versionTitle.replace(/\s/g, "_")) },
-            'Version History >'
+            'Version History ›'
           ) : ""
         ),
         this.props.showNotes && !!v.versionNotes ? React.createElement('div', { className: 'versionNotes', dangerouslySetInnerHTML: { __html: v.versionNotes } }) : ""

@@ -3954,7 +3954,7 @@ var VersionBlock = React.createClass({
             {licenseLine ? <span className="separator">-</span>: null}
             {licenseLine}
             {this.props.showHistory ? <span className="separator">-</span>: null}
-            {this.props.showHistory ? <a className="versionHistoryLink" href={`/activity/${Sefaria.normRef(this.props.currentRef)}/${v.language}/${v.versionTitle && v.versionTitle.replace(/\s/g,"_")}`}>Version History &gt;</a>:""}
+            {this.props.showHistory ? <a className="versionHistoryLink" href={`/activity/${Sefaria.normRef(this.props.currentRef)}/${v.language}/${v.versionTitle && v.versionTitle.replace(/\s/g,"_")}`}>Version History&nbsp;›</a>:""}
           </div>
           {this.props.showNotes && !!v.versionNotes ? <div className="versionNotes" dangerouslySetInnerHTML={ {__html: v.versionNotes} }></div>:""}
         </div>
