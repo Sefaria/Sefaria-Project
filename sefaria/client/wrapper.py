@@ -55,8 +55,8 @@ def format_link_object_for_client(link, with_text, ref, pos=None):
             'en': getattr(linkRef.index, 'collective_title', linkRef.index.title),
             'he': hebrew_term(getattr(linkRef.index, 'collective_title', linkRef.index.get_title("he")))
         }
-        com["commentator"] = linkRef.index.collective_title # TODO: deprecate
-        com["heCommentator"] = hebrew_term(linkRef.index.collective_title) # TODO: deprecate
+        com["commentator"] = getattr(linkRef.index, 'collective_title', linkRef.index.title) # TODO: deprecate
+        com["heCommentator"] = hebrew_term(getattr(linkRef.index, 'collective_title', linkRef.index.get_title("he"))) # TODO: deprecate
     else:
         com["linkGroupTitle"] = {'en': linkRef.index.title, 'he': linkRef.index.get_title("he")}
         com["commentator"] = linkRef.index.title # TODO: deprecate
