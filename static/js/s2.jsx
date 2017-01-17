@@ -3543,7 +3543,7 @@ var SchemaNode = React.createClass({
                 <JaggedArrayNode
                   schema={node}
                   contentLang={this.props.contentLang}
-                  refPath={this.props.refPath + ", " + node.title} />
+                  refPath={this.props.refPath + (node.default ? "" : ", " + node.title)} />
               </div>
             </div>);
         }
@@ -3598,6 +3598,20 @@ var JaggedArrayNodeSection = React.createClass({
     var innerCounts = count.map(this.contentCountIsEmpty);
     return innerCounts.unique().compare([true]);
   },
+  refPathTerminal: function(count) {
+    // Returns a string to be added to the end of a section link depending on a content count
+    // Used in cases of "zoomed" JaggedArrays, where `contentCounts` is deeper than `depth` so that zoomed section
+    // links still point to section level.
+    if (typeof count == "number") { return ""; }
+    var terminal = ":";
+    for (var i = 0; i < count.length; i++) {
+      if (count[i]) {
+        terminal += (i+1) + this.refPathTerminal(count[i]);
+        break;
+      }
+    }
+    return terminal;
+  },
   render: function() {
     if (this.props.depth > 2) {
       var content = [];
@@ -3638,7 +3652,7 @@ var JaggedArrayNodeSection = React.createClass({
         var section = i+1;
         var heSection = Sefaria.hebrew.encodeHebrewNumeral(i+1);
       }
-      var ref  = (this.props.refPath + ":" + section).replace(":", " ");
+      var ref  = (this.props.refPath + ":" + section).replace(":", " ") + this.refPathTerminal(contentCounts[i]);
       var link = (
         <a className="sectionLink" href={Sefaria.normRef(ref)} data-ref={ref} key={i}>
           <span className="he">{heSection}</span>
