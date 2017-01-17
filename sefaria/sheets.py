@@ -229,7 +229,7 @@ def save_sheet(sheet, user_id, search_override=False):
 def is_valid_source(source):
 	if not ("ref" in source or "outsideText" in source or "outsideBiText" in source or "comment" in source or "media" in source):
 		return False
-
+	return True
 
 def add_source_to_sheet(id, source):
 	"""
