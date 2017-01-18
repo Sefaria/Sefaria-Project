@@ -6159,15 +6159,43 @@ var SharePanel = React.createClass({
   }
 });
 
+var AddToSourceSheetWindow = React.createClass({
+  propTypes: {
+    srefs:        React.PropTypes.array,
+    close:        React.PropTypes.func,
+    en:           React.PropTypes.string,
+    he:           React.PropTypes.string
+  },
+
+  close: function () {
+    if (this.props.close) {
+      this.props.close();
+    }
+  },
+
+  render: function () {
+    return (<div className="sourceSheetPanelBox">
+      <div className="sourceSheetBoxTitle">
+        <i className="fa fa-times-circle" aria-hidden="true" onClick={this.close}/>
+      </div>
+        <AddToSourceSheetPanel
+          srefs = {this.props.srefs}
+        />
+      </div>);
+  }
+});
 
 var AddToSourceSheetPanel = React.createClass({
+  // In the main app, the function `addToSourceSheet` is executed in the ReaderApp, 
+  // and collects the needed data from highlights and app state.
+  // It is used in external apps, liked gardens.  In those cases, it's wrapped in AddToSourceSheetWindow,
+  // refs and text are passed directly, and the add to source sheets API is invoked from within this object. 
   propTypes: {
-    srefs:              React.PropTypes.array.isRequired,
-    setConnectionsMode: React.PropTypes.func.isRequired,
-    addToSourceSheet:   React.PropTypes.func.isRequired,
+    srefs:              React.PropTypes.array,
+    addToSourceSheet:   React.PropTypes.func,
     fullPanel:          React.PropTypes.bool,
-    version:            React.PropTypes.string,
-    versionLanguage:    React.PropTypes.string
+    en:                 React.PropTypes.string,
+    he:                 React.PropTypes.string
   },
   getInitialState: function() {
     return {
@@ -6184,7 +6212,27 @@ var AddToSourceSheetPanel = React.createClass({
   },
   addToSourceSheet: function() {
     if (!this.state.selectedSheet) { return; }
-    this.props.addToSourceSheet(this.state.selectedSheet, this.confirmAdd);
+    if (this.props.addToSourceSheet) {
+      this.props.addToSourceSheet(this.state.selectedSheet, this.confirmAdd);
+    } else {
+      var url     = "/api/sheets/" + this.state.selectedSheet + "/add";
+      var source = {};
+      if (this.props.srefs) {
+        source.refs = this.props.srefs;
+        if (this.props.en) source.en = this.props.en;
+        if (this.props.he) source.he = this.props.he;
+      } else {
+        if (this.props.en && this.props.he) {
+          source.outsideBiText = {he: this.props.he, en: this.props.en};
+        } else {
+          source.outsideText = this.props.en || this.props.he;
+        }
+      }
+
+
+      source  = {refs: this.props.srefs};
+      $.post(url, {source: JSON.stringify(source)}, this.confirmAdd);
+    }
   },
   createSheet: function(refs) {
     var title = $(ReactDOM.findDOMNode(this)).find("input").val();
@@ -7937,35 +7985,6 @@ var SingleUpdate = React.createClass({
 });
 
 
-var InterruptingMessage = React.createClass({
-  propTypes: {
-    messageName:  React.PropTypes.string.isRequired,
-    messageHTML:  React.PropTypes.string.isRequired,
-    onClose:      React.PropTypes.func.isRequired
-  },
-  componentDidMount: function() {
-    $("#interruptingMessage .button").click(this.close);
-  },
-  close: function() {
-    this.markAsRead();
-    this.props.onClose();
-  },
-  markAsRead: function() {
-    Sefaria._api("/api/interrupting-messages/read/" + this.props.messageName, function(data) {});
-    cookie(this.props.messageName, true, {"path": "/"});
-    Sefaria.site.track.event("Interrupting Message", "read", this.props.messageName,  {nonInteraction: true});
-    Sefaria.interruptingMessage = null;
-  },
-  render: function() {
-    return (<div className="interruptingMessageBox">
-              <div className="overlay" onClick={this.close}></div>
-              <div id="interruptingMessage">
-                  <div id="interruptingMessageClose" onClick={this.close}>×</div>
-                  <div id="interruptingMessageContent" dangerouslySetInnerHTML={ {__html: this.props.messageHTML} }></div>
-              </div>
-            </div>);
-  }
-});
 
 var ThreeBox = React.createClass({
   // Wrap a list of elements into a three column table

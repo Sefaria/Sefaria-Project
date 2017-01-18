@@ -7628,16 +7628,51 @@ var SharePanel = React.createClass({
   }
 });
 
+var AddToSourceSheetWindow = React.createClass({
+  displayName: 'AddToSourceSheetWindow',
+
+  propTypes: {
+    srefs: React.PropTypes.array,
+    close: React.PropTypes.func,
+    en: React.PropTypes.string,
+    he: React.PropTypes.string
+  },
+
+  close: function close() {
+    if (this.props.close) {
+      this.props.close();
+    }
+  },
+
+  render: function render() {
+    return React.createElement(
+      'div',
+      { className: 'sourceSheetPanelBox' },
+      React.createElement(
+        'div',
+        { className: 'sourceSheetBoxTitle' },
+        React.createElement('i', { className: 'fa fa-times-circle', 'aria-hidden': 'true', onClick: this.close })
+      ),
+      React.createElement(AddToSourceSheetPanel, {
+        srefs: this.props.srefs
+      })
+    );
+  }
+});
+
 var AddToSourceSheetPanel = React.createClass({
   displayName: 'AddToSourceSheetPanel',
 
+  // In the main app, the function `addToSourceSheet` is executed in the ReaderApp,
+  // and collects the needed data from highlights and app state.
+  // It is used in external apps, liked gardens.  In those cases, it's wrapped in AddToSourceSheetWindow,
+  // refs and text are passed directly, and the add to source sheets API is invoked from within this object.
   propTypes: {
-    srefs: React.PropTypes.array.isRequired,
-    setConnectionsMode: React.PropTypes.func.isRequired,
-    addToSourceSheet: React.PropTypes.func.isRequired,
+    srefs: React.PropTypes.array,
+    addToSourceSheet: React.PropTypes.func,
     fullPanel: React.PropTypes.bool,
-    version: React.PropTypes.string,
-    versionLanguage: React.PropTypes.string
+    en: React.PropTypes.string,
+    he: React.PropTypes.string
   },
   getInitialState: function getInitialState() {
     return {
@@ -7656,7 +7691,26 @@ var AddToSourceSheetPanel = React.createClass({
     if (!this.state.selectedSheet) {
       return;
     }
-    this.props.addToSourceSheet(this.state.selectedSheet, this.confirmAdd);
+    if (this.props.addToSourceSheet) {
+      this.props.addToSourceSheet(this.state.selectedSheet, this.confirmAdd);
+    } else {
+      var url = "/api/sheets/" + this.state.selectedSheet + "/add";
+      var source = {};
+      if (this.props.srefs) {
+        source.refs = this.props.srefs;
+        if (this.props.en) source.en = this.props.en;
+        if (this.props.he) source.he = this.props.he;
+      } else {
+        if (this.props.en && this.props.he) {
+          source.outsideBiText = { he: this.props.he, en: this.props.en };
+        } else {
+          source.outsideText = this.props.en || this.props.he;
+        }
+      }
+
+      source = { refs: this.props.srefs };
+      $.post(url, { source: JSON.stringify(source) }, this.confirmAdd);
+    }
   },
   createSheet: function createSheet(refs) {
     var title = $(ReactDOM.findDOMNode(this)).find("input").val();
@@ -9991,46 +10045,6 @@ var SingleUpdate = React.createClass({
         null,
         React.createElement('span', { className: 'int-en', dangerouslySetInnerHTML: { __html: this.props.content.en } }),
         React.createElement('span', { className: 'int-he', dangerouslySetInnerHTML: { __html: this.props.content.he } })
-      )
-    );
-  }
-});
-
-var InterruptingMessage = React.createClass({
-  displayName: 'InterruptingMessage',
-
-  propTypes: {
-    messageName: React.PropTypes.string.isRequired,
-    messageHTML: React.PropTypes.string.isRequired,
-    onClose: React.PropTypes.func.isRequired
-  },
-  componentDidMount: function componentDidMount() {
-    $("#interruptingMessage .button").click(this.close);
-  },
-  close: function close() {
-    this.markAsRead();
-    this.props.onClose();
-  },
-  markAsRead: function markAsRead() {
-    Sefaria._api("/api/interrupting-messages/read/" + this.props.messageName, function (data) {});
-    cookie(this.props.messageName, true, { "path": "/" });
-    Sefaria.site.track.event("Interrupting Message", "read", this.props.messageName, { nonInteraction: true });
-    Sefaria.interruptingMessage = null;
-  },
-  render: function render() {
-    return React.createElement(
-      'div',
-      { className: 'interruptingMessageBox' },
-      React.createElement('div', { className: 'overlay', onClick: this.close }),
-      React.createElement(
-        'div',
-        { id: 'interruptingMessage' },
-        React.createElement(
-          'div',
-          { id: 'interruptingMessageClose', onClick: this.close },
-          '×'
-        ),
-        React.createElement('div', { id: 'interruptingMessageContent', dangerouslySetInnerHTML: { __html: this.props.messageHTML } })
       )
     );
   }
