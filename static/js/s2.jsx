@@ -3121,7 +3121,7 @@ var ReaderTextTableOfContents = React.createClass({
     // Versions List
     var versions = this.getVersionsList();
 
-    var moderatorSection = Sefaria.is_moderator ? (<ModeratorButtons title={title} />) : null;
+    var moderatorSection = Sefaria.is_moderator || Sefaria.is_editor ? (<ModeratorButtons title={title} />) : null;
 
     // Downloading
     if (versions) {
@@ -4030,16 +4030,19 @@ var ModeratorButtons = React.createClass({
                 <i className="fa fa-cog"></i>
               </div>);
     }
+    var editTextInfo = <div className="button white" onClick={this.editIndex}>
+                          <span><i className="fa fa-info-circle"></i> Edit Text Info</span>
+                        </div>;
+    var addSection   = <div className="button white" onClick={this.addSection}>
+                          <span><i className="fa fa-plus-circle"></i> Add Section</span>
+                        </div>;
+    var deleteText   = <div className="button white" onClick={this.deleteIndex}>
+                          <span><i className="fa fa-exclamation-triangle"></i> Delete {this.props.title}</span>
+                        </div>
     var textButtons = (<span className="moderatorTextButtons">
-                          <div className="button white" onClick={this.editIndex}>
-                              <span><i className="fa fa-info-circle"></i> Edit Text Info</span>
-                          </div>
-                          <div className="button white" onClick={this.addSection}>
-                              <span><i className="fa fa-plus-circle"></i> Add Section</span>
-                          </div>
-                          <div className="button white" onClick={this.deleteIndex}>
-                              <span><i className="fa fa-exclamation-triangle"></i> Delete {this.props.title}</span>
-                          </div>
+                          {Sefaria.is_moderator ? editTextInfo : null}
+                          {Sefaria.is_moderator || Sefaria.is_editor ? addSection : null}
+                          {Sefaria.is_moderator ? deleteText : null}
                         </span>);
     var message = this.state.message ? (<div className="moderatorSectionMessage">{this.state.message}</div>) : null; 
     return (<div className="moderatorSection">
