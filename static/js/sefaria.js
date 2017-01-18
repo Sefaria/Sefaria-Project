@@ -110,8 +110,8 @@ Sefaria = extend(Sefaria, {
   normRef: function(ref) {
       var norm = Sefaria.makeRef(Sefaria.parseRef(ref));
       if (typeof norm == "object" && "error" in norm) {
-          // Return the original string if the ref doesn't parse
-          return ref;
+          // If the ref doesn't parse, just replace spaces with undescores.
+          return typeof ref === "string" ? ref.replace(/ /g, "_") : ref;
       }
       return norm;
   },

@@ -2249,8 +2249,8 @@ var ReaderControls = React.createClass({
       }.bind(this));
     }
 
-    var versionTitle = this.props.version ? this.props.version.replace(/_/g," "):"";
-    var url = Sefaria.ref(title)?"/" + Sefaria.normRef(Sefaria.ref(title).book):Sefaria.normRef(title);
+    var versionTitle = this.props.version ? this.props.version.replace(/_/g," ") : "";
+    var url = Sefaria.ref(title) ? "/" + Sefaria.normRef(Sefaria.ref(title).book) : Sefaria.normRef(title);
     var centerContent = connectionsHeader ?
       (<div className="readerTextToc">
           <ConnectionsPanelHeader
@@ -2990,6 +2990,7 @@ var ReaderTextTableOfContents = React.createClass({
       Sefaria.indexDetails(this.props.title, () => this.forceUpdate() );
     }
     if (this.isBookToc()) {
+      var ref  = this.getDataRef();
       var versions = Sefaria.versions(ref)
       if (!versions) {
         Sefaria.versions(ref, () => this.forceUpdate() );        
@@ -8769,7 +8770,9 @@ var setData = function(data) {
   }
 
   Sefaria.util._defaultPath = data.path;
-  Sefaria.loggedIn = data.loggedIn;
+  Sefaria.loggedIn          = data.loggedIn;
+  Sefaria.is_moderator      = data.is_moderator;
+  Sefaria.is_editor         = data.is_editor;
 };
 
 

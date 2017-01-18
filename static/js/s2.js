@@ -3410,6 +3410,7 @@ var ReaderTextTableOfContents = React.createClass({
       });
     }
     if (this.isBookToc()) {
+      var ref = this.getDataRef();
       var versions = Sefaria.versions(ref);
       if (!versions) {
         Sefaria.versions(ref, function () {
@@ -3568,7 +3569,7 @@ var ReaderTextTableOfContents = React.createClass({
     // Versions List
     var versions = this.getVersionsList();
 
-    var moderatorSection = Sefaria.is_moderator ? React.createElement(ModeratorButtons, { title: title }) : null;
+    var moderatorSection = Sefaria.is_moderator || Sefaria.is_editor ? React.createElement(ModeratorButtons, { title: title }) : null;
 
     // Downloading
     if (versions) {
@@ -4905,40 +4906,43 @@ var ModeratorButtons = React.createClass({
         React.createElement('i', { className: 'fa fa-cog' })
       );
     }
+    var editTextInfo = React.createElement(
+      'div',
+      { className: 'button white', onClick: this.editIndex },
+      React.createElement(
+        'span',
+        null,
+        React.createElement('i', { className: 'fa fa-info-circle' }),
+        ' Edit Text Info'
+      )
+    );
+    var addSection = React.createElement(
+      'div',
+      { className: 'button white', onClick: this.addSection },
+      React.createElement(
+        'span',
+        null,
+        React.createElement('i', { className: 'fa fa-plus-circle' }),
+        ' Add Section'
+      )
+    );
+    var deleteText = React.createElement(
+      'div',
+      { className: 'button white', onClick: this.deleteIndex },
+      React.createElement(
+        'span',
+        null,
+        React.createElement('i', { className: 'fa fa-exclamation-triangle' }),
+        ' Delete ',
+        this.props.title
+      )
+    );
     var textButtons = React.createElement(
       'span',
       { className: 'moderatorTextButtons' },
-      React.createElement(
-        'div',
-        { className: 'button white', onClick: this.editIndex },
-        React.createElement(
-          'span',
-          null,
-          React.createElement('i', { className: 'fa fa-info-circle' }),
-          ' Edit Text Info'
-        )
-      ),
-      React.createElement(
-        'div',
-        { className: 'button white', onClick: this.addSection },
-        React.createElement(
-          'span',
-          null,
-          React.createElement('i', { className: 'fa fa-plus-circle' }),
-          ' Add Section'
-        )
-      ),
-      React.createElement(
-        'div',
-        { className: 'button white', onClick: this.deleteIndex },
-        React.createElement(
-          'span',
-          null,
-          React.createElement('i', { className: 'fa fa-exclamation-triangle' }),
-          ' Delete ',
-          this.props.title
-        )
-      )
+      Sefaria.is_moderator ? editTextInfo : null,
+      Sefaria.is_moderator || Sefaria.is_editor ? addSection : null,
+      Sefaria.is_moderator ? deleteText : null
     );
     var message = this.state.message ? React.createElement(
       'div',
@@ -11388,6 +11392,8 @@ var setData = function setData(data) {
 
   Sefaria.util._defaultPath = data.path;
   Sefaria.loggedIn = data.loggedIn;
+  Sefaria.is_moderator = data.is_moderator;
+  Sefaria.is_editor = data.is_editor;
 };
 
 if (typeof exports !== 'undefined') {
