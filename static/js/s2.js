@@ -3854,9 +3854,9 @@ var TextDetails = React.createClass({
       var composed = compPlace || compDate ? compWord + [compPlace, compDate].filter(function (x) {
         return !!x;
       }).join(" ") : null;
-      return [composed, description].filter(function (x) {
-        return !!x;
-      }).join(". ");
+      //return [composed, description].filter(x => !!x).join(". ");
+      // holding on displaying descriptions for now
+      return composed;
     };
     var enDesc = makeDescriptionText("Composed in ", "compPlaceString" in this.props.index ? this.props.index.compPlaceString.en : null, "compDateString" in this.props.index ? this.props.index.compDateString.en : null, this.props.index.enDesc);
     var heDesc = makeDescriptionText("נוצר/נערך ב", "compPlaceString" in this.props.index ? this.props.index.compPlaceString.he : null, "compDateString" in this.props.index ? this.props.index.compDateString.he : null, this.props.index.heDesc);
