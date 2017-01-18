@@ -7654,7 +7654,9 @@ var AddToSourceSheetWindow = React.createClass({
         React.createElement('i', { className: 'fa fa-times-circle', 'aria-hidden': 'true', onClick: this.close })
       ),
       React.createElement(AddToSourceSheetPanel, {
-        srefs: this.props.srefs
+        srefs: this.props.srefs,
+        en: this.props.en,
+        he: this.props.he
       })
     );
   }
@@ -10047,6 +10049,31 @@ var SingleUpdate = React.createClass({
         React.createElement('span', { className: 'int-he', dangerouslySetInnerHTML: { __html: this.props.content.he } })
       )
     );
+  }
+});
+
+var InterruptingMessage = React.createClass({
+  displayName: 'InterruptingMessage',
+  propTypes: {
+    messageName: React.PropTypes.string.isRequired,
+    messageHTML: React.PropTypes.string.isRequired,
+    onClose: React.PropTypes.func.isRequired
+  },
+  componentDidMount: function componentDidMount() {
+    $("#interruptingMessage .button").click(this.close);
+  },
+  close: function close() {
+    this.markAsRead();
+    this.props.onClose();
+  },
+  markAsRead: function markAsRead() {
+    Sefaria._api("/api/interrupting-messages/read/" + this.props.messageName, function (data) {});
+    cookie(this.props.messageName, true, { "path": "/" });
+    Sefaria.site.track.event("Interrupting Message", "read", this.props.messageName, { nonInteraction: true });
+    Sefaria.interruptingMessage = null;
+  },
+  render: function render() {
+    return React.createElement('div', { className: 'interruptingMessageBox' }, React.createElement('div', { className: 'overlay', onClick: this.close }), React.createElement('div', { id: 'interruptingMessage' }, React.createElement('div', { id: 'interruptingMessageClose', onClick: this.close }, '×'), React.createElement('div', { id: 'interruptingMessageContent', dangerouslySetInnerHTML: { __html: this.props.messageHTML } })));
   }
 });
 
