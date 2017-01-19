@@ -583,14 +583,26 @@
         sourceSheetAdder = function(event) {
             var data = d3.select($(event.target).parents(".dc-grid-item")[0]).datum();
             var container = document.getElementById('add-to-source-sheet-box');
-            var component = React.createElement(AddToSourceSheetWindow,
+            var component;
+            if (data.ref) {
+                component = React.createElement(AddToSourceSheetWindow,
                     {
                         srefs: [data.ref],
                         he: data.heText,
                         en: data.enText,
                         close: function() { ReactDOM.unmountComponentAtNode(container); }
                     }
-            );
+                );
+            } else {
+                component = React.createElement(AddToSourceSheetWindow,
+                    {
+                        he: "<b>" + data.heTitle + "</b><br/>" + data.heText,
+                        en: "<b>" + data.title + "</b><br/>" + data.enText,
+                        close: function() { ReactDOM.unmountComponentAtNode(container); }
+                    }
+                );
+            }
+
             ReactDOM.render(component, container);
         };
 

@@ -657,12 +657,12 @@ def add_source_to_sheet_api(request, sheet_id):
 	if not source:
 		return jsonResponse({"error": "No source to copy given."})
 
-	if "refs" in source:
+	if "refs" in source and source["refs"]:
 		ref = Ref(source["refs"][0]).to(Ref(source["refs"][-1]))
 		source["ref"] = ref.normal()
 		del source["refs"]
 
-	if "ref" in source:
+	if "ref" in source and source["ref"]:
 		ref = Ref(source["ref"])
 		source["heRef"] = ref.he_normal()
 

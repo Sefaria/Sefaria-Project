@@ -1679,6 +1679,6 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
 }
 
 #visualGardenPage .sourceSheetBoxTitle i {
-  padding-bottom: 10px;
+  padding: 0 10px 10px 0;
   cursor: pointer;
 }

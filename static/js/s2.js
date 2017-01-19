@@ -7645,19 +7645,31 @@ var AddToSourceSheetWindow = React.createClass({
   },
 
   render: function render() {
+    var nextParam = "?next=" + encodeURIComponent(Sefaria.util.currentPath());
+
     return React.createElement(
       'div',
       { className: 'sourceSheetPanelBox' },
       React.createElement(
         'div',
         { className: 'sourceSheetBoxTitle' },
-        React.createElement('i', { className: 'fa fa-times-circle', 'aria-hidden': 'true', onClick: this.close })
+        React.createElement('i', { className: 'fa fa-times-circle', 'aria-hidden': 'true', onClick: this.close }),
+        Sefaria.loggedIn ? "" : React.createElement(
+          'span',
+          null,
+          'In order to add this source to a sheet, please ',
+          React.createElement(
+            'a',
+            { href: "/login" + nextParam },
+            'log in.'
+          )
+        )
       ),
-      React.createElement(AddToSourceSheetPanel, {
+      Sefaria.loggedIn ? React.createElement(AddToSourceSheetPanel, {
         srefs: this.props.srefs,
         en: this.props.en,
         he: this.props.he
-      })
+      }) : ""
     );
   }
 });
@@ -7709,8 +7721,6 @@ var AddToSourceSheetPanel = React.createClass({
           source.outsideText = this.props.en || this.props.he;
         }
       }
-
-      source = { refs: this.props.srefs };
       $.post(url, { source: JSON.stringify(source) }, this.confirmAdd);
     }
   },
@@ -7736,7 +7746,11 @@ var AddToSourceSheetPanel = React.createClass({
     this.setState({ showNewSheetInput: true });
   },
   confirmAdd: function confirmAdd() {
-    Sefaria.site.track.event("Tools", "Add to Source Sheet Save", this.props.srefs.join("/"));
+    if (this.props.srefs) {
+      Sefaria.site.track.event("Tools", "Add to Source Sheet Save", this.props.srefs.join("/"));
+    } else {
+      Sefaria.site.track.event("Tools", "Add to Source Sheet Save", "Outside Source");
+    }
     this.setState({ confirm: true });
   },
   render: function render() {
