@@ -1982,7 +1982,7 @@ var ReaderPanel = React.createClass({
   },
   currentCategory: function currentCategory() {
     var book = this.currentBook();
-    return Sefaria.index(book) ? Sefaria.index(book).primary_category : null;
+    return Sefaria.index(book) ? Sefaria.index(book)['primary_category'] : null;
   },
   currentLayout: function currentLayout() {
     if (this.state.settings.language == "bilingual") {

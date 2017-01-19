@@ -318,7 +318,7 @@ Sefaria = extend(Sefaria, {
 
     var index = {
       title:      data.indexTitle,
-      heTitle:    data.heIndexTitle, // This is incorrect for complex texts
+      heTitle:    data.heIndexTitle, // This is incorrect for complex texts //is it?
       categories: data.categories
     };
     this.index(index.title, index);
@@ -399,9 +399,11 @@ Sefaria = extend(Sefaria, {
   _translateTerms: {},
   index: function(text, index) {
     if (!index) {
-      return this._index[text];
+        return this._index[text];
+    } else if (text in this._index){
+        this._index[text] = extend(this._index[text], index);
     } else {
-      this._index[text] = index;
+        this._index[text] = index;
     }
   },
   _cacheIndexFromToc: function(toc) {
@@ -532,12 +534,16 @@ Sefaria = extend(Sefaria, {
   _cacheIndexFromLinks: function(links) {
     // Cache partial index information (title, Hebrew title, categories) found in link data.
     for (var i=0; i< links.length; i++) {
-      if (("linkGroupTitle" in links[i]) && this.index(links[i].linkGroupTitle["en"])) { continue; }
+      if (("linkGroupTitle" in links[i]) && this.index(links[i].linkGroupTitle["en"])) {
+          //console.log("Skipping ", links[i].linkGroupTitle["en"]);
+          continue;
+      }
       var index = {
         title:      links[i].linkGroupTitle["en"],
         heTitle:    links[i].linkGroupTitle["he"],
         categories: [links[i].category],
       };
+      //console.log("Saving ", links[i].linkGroupTitle["en"]);
       this.index(links[i].linkGroupTitle["en"], index);
     }
   },

@@ -1862,7 +1862,7 @@ var ReaderPanel = React.createClass({
   },
   currentCategory: function() {
     var book = this.currentBook();
-    return (Sefaria.index(book) ? Sefaria.index(book).primary_category : null);
+    return (Sefaria.index(book) ? Sefaria.index(book)['primary_category'] : null);
   },
   currentLayout: function() {
     if (this.state.settings.language == "bilingual") {
