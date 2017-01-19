@@ -315,13 +315,6 @@ Sefaria = extend(Sefaria, {
         Sefaria.text(data.spanningRefs[i], spanning_context_settings, function(data) {})
       }      
     }
-
-    var index = {
-      title:      data.indexTitle,
-      heTitle:    data.heIndexTitle, // This is incorrect for complex texts //is it?
-      categories: data.categories
-    };
-    this.index(index.title, index);
   },
   _splitTextSection: function(data, settings) {
     // Takes data for a section level text and populates cache with segment levels.
@@ -1375,7 +1368,7 @@ Sefaria = extend(Sefaria, {
                       }
                   });
                   /* Test for Commentary2 as well as Commentary */
-                  if (/^Commentary\//.test(applied_filters[i])) {
+                  if (/^Commentary\//.test(applied_filters[i])) { /**TODO: commentary-refactor**/
                       var c2 = "Commentary2/" + applied_filters[i].slice(11);
                       clauses.push({
                           "regexp": {
