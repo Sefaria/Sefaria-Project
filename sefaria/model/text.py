@@ -3675,7 +3675,7 @@ class Library(object):
         :return: list of all section-level Refs in the library
         """
         section_refs = []
-        for indx in self.all_index_records(True):
+        for indx in self.all_index_records():
             try:
                 section_refs += indx.all_section_refs()
             except Exception as e:
