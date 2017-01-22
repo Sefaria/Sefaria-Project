@@ -406,6 +406,7 @@ def change_node_structure(ja_node, section_names, address_types=None, upsize_in_
             for i in range(delta):
                 d["sections"].append(1)
                 d["toSections"].append(1)
+
         return Ref(_obj=d).normal()
 
     commentators = library.get_commentary_version_titles_on_book(ja_node.index.title)
@@ -497,6 +498,7 @@ def cascade(ref_identifier, rewriter=lambda x: x, needs_rewrite=lambda x: True, 
         """
 
         for record in model_set:
+            print record
             assert isinstance(record, AbstractMongoRecord)
             if sub_attr_name is None:
                 refs = getattr(record, attr_name)
@@ -517,12 +519,13 @@ def cascade(ref_identifier, rewriter=lambda x: x, needs_rewrite=lambda x: True, 
                         print 'Bad Data Found: {}'.format(refs)
                         print e
             else:
+                print record.ref
                 if needs_rewrite(refs, record):
                     if sub_attr_name is None:
                         setattr(record, attr_name, rewriter(refs))
                     else:
                         intermediate_obj[sub_attr_name] = rewriter(refs)
-                    refs = rewriter(refs)
+                    #refs = rewriter(refs)
                     try:
                         record.save()
                     except InputError as e:
@@ -617,10 +620,37 @@ def cascade(ref_identifier, rewriter=lambda x: x, needs_rewrite=lambda x: True, 
         generic_rewrite(HistorySet(construct_query('old.refs', identifier)), attr_name='old', sub_attr_name='refs')
 
 
-def migrate_to_complex_structure(title, schema, mappings, rewriter, needs_rewrite):
-    #print title
-    #print mappings
-    #print json.dumps(schema)
+def migrate_to_complex_structure(title, schema, mappings):
+    """
+    Converts book that is simple structure to complex.
+    :param title: title of book
+    :param schema: the new complex structure schema, must be JSON
+    :param mappings: a dictionary mapping references from simple structure to references in complex structure
+                    For example:
+        mappings = {"Midrash Tanchuma 1:1": "Midrash Tanchuma, Bereshit",
+                    "Midrash Tanchuma 1:2": "Midrash Tanchuma, Noach",
+                    ...
+                    "Midrash Tanchuma 2:1": "Midrash Tanchuma, Shemot"}
+    :return:
+    """
+    def needs_rewrite(ref, *args):
+        try:
+            return Ref(ref).index.title == title
+        except InputError:
+            return False
+
+    def rewriter(ref):
+        ref = Ref(ref)
+        for old_ref in mappings:
+            old_ref = Ref(old_ref)
+            if old_ref.contains(ref):
+                old_ref_str = old_ref.normal()
+                new_ref = mappings[old_ref_str]
+                ref_str = ref.normal()
+                return "Complex {}".format(ref_str.replace(old_ref_str, new_ref))
+        return "Complex {}".format(ref)
+
+
     print "begin conversion"
     #TODO: add method on model.Index to change all 3 (title, nodes.key and nodes.primary title)
 
