@@ -2821,7 +2821,8 @@ class Ref(object):
         From current position in jagged array, pad self so that it reaches the last segment ref
         :return:
         """
-        ja = self.get_state_ja(lang=self._lang)
+
+        ja = self.get_state_ja()
 
         r = self
         while not r.is_segment_level():
