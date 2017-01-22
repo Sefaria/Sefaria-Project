@@ -97,6 +97,7 @@
                 </div>
             </div>
         </div>
+    <div id="add-to-source-sheet-box"></div>
     </div>
 </div>
 
@@ -132,7 +133,7 @@
 
 
         // State and URLs
-        function pushHistory() {
+        function pushHistory(replaceHistory) {
             // Get applied filters on this page, serialize to URL and title, and push to the history stack
             var filters = getFilters();
             //Sefaria.site.track...
@@ -152,7 +153,11 @@
                 url = window.location.href.split("?")[0]
             }
             document.title = title;
-            history.pushState({filters: filters, title: title}, title, url);
+            if (replaceHistory) {
+                history.replaceState({filters: filters, title: title}, title, url);
+            } else {
+                history.pushState({filters: filters, title: title}, title, url);
+            }
         }
         function getFilters() {
             // Get the applied filters from this page
@@ -160,7 +165,9 @@
             for (var i = 0; i < dc.chartRegistry.list().length; i++) {
                 var chart = dc.chartRegistry.list()[i];
                 for (var j = 0; j < chart.filters().length; j++){
-                    filters.push({ChartID: chart.chartID(), Filter: chart.filters()[j]});
+                    var filter = chart.filters()[j];
+                    if(filter instanceof Array) filter = filter.slice(); // Native version carries a huge pike of excess data
+                    filters.push({ChartID: chart.chartID(), Filter: filter});
                 }
             }
             if (filters.length > 0) {
@@ -175,16 +182,23 @@
             return vars;
         }
         function applyFilters(filterObjects) {
-            // Given a URL serialized form of a set of filters, deserialize and apply
-            for (var i = 0; i< filterObjects.length; i++)
-            {
-                var filter = filterObjects[i].Filter;
-                if(filter instanceof Array) filter = dc.filters.RangedFilter(filter[0], filter[1]);
-                dc.chartRegistry.list()[filterObjects[i].ChartID-1].filter(filter);
+            if(filterObjects) {
+                // Given a URL serialized form of a set of filters, deserialize and apply
+                for (var i = 0; i < filterObjects.length; i++) {
+                    var filter = filterObjects[i].Filter;
+                    if (filter instanceof Array) filter = dc.filters.RangedFilter(filter[0], filter[1]);
+                    dc.chartRegistry.list()[filterObjects[i].ChartID - 1].filter(filter);
+                }
             }
             dc.redrawAll();
         }
         function handleStateChange(event) {
+
+            if ("header" in event.state) {
+                // Hackily discard react state changes
+                history.back();
+                return;
+            }
             dc.filterAll();
             document.title = event.state.title;
             applyFilters(event.state.filters);
@@ -565,6 +579,33 @@
                 return (r[0].value == 0)? 0 : pointScale(r[0].value);
             });
 
+        // Results
+        sourceSheetAdder = function(event) {
+            var data = d3.select($(event.target).parents(".dc-grid-item")[0]).datum();
+            var container = document.getElementById('add-to-source-sheet-box');
+            var component;
+            if (data.ref) {
+                component = React.createElement(AddToSourceSheetWindow,
+                    {
+                        srefs: [data.ref],
+                        he: data.heText,
+                        en: data.enText,
+                        close: function() { ReactDOM.unmountComponentAtNode(container); }
+                    }
+                );
+            } else {
+                component = React.createElement(AddToSourceSheetWindow,
+                    {
+                        he: "<b>" + data.heTitle + "</b><br/>" + data.heText,
+                        en: "<b>" + data.title + "</b><br/>" + data.enText,
+                        close: function() { ReactDOM.unmountComponentAtNode(container); }
+                    }
+                );
+            }
+
+            ReactDOM.render(component, container);
+        };
+
         results
             .dimension(resultsDim)
             .group(resultsAccessor)
@@ -587,6 +628,7 @@
                                         (data.heTitle ? data.heTitle : data.heRef) +
                                     (data.ref ? "</a>" : "") +
                                 "</span>" +
+                                '<i class="fa fa-external-link" aria-hidden="true" title="Add to Source Sheet" onclick="return sourceSheetAdder(event);"></i>' +
                             "</div>" +
                             "<div class='result-byline'>" +
                                 "<span class='int-en'>" +
@@ -661,6 +703,7 @@
         var urlVars = getUrlVars();
         if ("filters" in urlVars) {
             applyFilters(JSON.parse(urlVars["filters"]));
+            pushHistory(true);
         }
 
     {% endautoescape %}
