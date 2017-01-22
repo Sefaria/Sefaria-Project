@@ -4,6 +4,7 @@ from copy import deepcopy
 import pytest
 
 import sefaria.model as model
+from sefaria.system.exceptions import InputError
 
 
 
@@ -45,7 +46,7 @@ def test_dup_index_save():
     idx = model.Index(d)
     idx.save()
     assert model.IndexSet({"title": title}).count() == 1
-    try:
+    with pytest.raises(InputError) as e_info:
         d2 = {
             "title": title,
             "heTitle": u"פרשן ב",
@@ -55,8 +56,6 @@ def test_dup_index_save():
             "lengths": [50, 501]
         }
         idx2 = model.Index(d2).save()
-    except:
-        pass
 
     assert model.IndexSet({"title": title}).count() == 1
 
