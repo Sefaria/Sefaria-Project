@@ -652,6 +652,22 @@ def check_sheet_modified_api(request, sheet_id, timestamp):
 def add_source_to_sheet_api(request, sheet_id):
 	"""
 	API to add a fully formed source (posted as JSON) to sheet_id.
+
+	The contents of the "source" field will be a dictionary.
+	The input format is similar to, but differs slightly from, the internal format for sources on source sheets.
+	This method reformats the source to the format expected by add_source_to_sheet().
+
+	Fields of input dictionary:
+		either `refs` - an array of string refs, indicating a range
+			or `ref` - a string ref
+			or `outsideText` - a string
+			or `outsideBiText` - a dictionary with string fields "he" and "en"
+			or `comment` - a string
+			or `media` - a URL string
+
+		If the `ref` or `refs` fields are present, the `version`, `he` or `en` fields
+		can further specify the origin or content of text for that ref.
+
 	"""
 	source = json.loads(request.POST.get("source"))
 	if not source:
@@ -666,25 +682,25 @@ def add_source_to_sheet_api(request, sheet_id):
 		ref = Ref(source["ref"])
 		source["heRef"] = ref.he_normal()
 
-	if "version" in source or "en" in source or "he" in source:
-		text = {}
-		if "en" in source:
-			text["en"] = source["en"]
-			tc = TextChunk(ref, "he", source["version"]) if source.get("versionLanguage") == "he" else TextChunk(ref, "he")
-			text["he"] = tc.ja().flatten_to_string()
-			del source["en"]
-		elif "he" in source:
-			text["he"] = source["he"]
-			tc = TextChunk(ref, "en", source["version"]) if source.get("versionLanguage") == "en" else TextChunk(ref, "en")
-			text["en"] = tc.ja().flatten_to_string()
-			del source["he"]
-		else:  # "version" in source
-			text[source["versionLanguage"]] = TextChunk(ref, source["versionLanguage"], source["version"]).ja().flatten_to_string()
-			other = "he" if source["versionLanguage"] == "en" else "en"
-			text[other] = TextChunk(ref, other).ja().flatten_to_string()
-		source.pop("version", None)
-		source.pop("versionLanguage", None)
-		source["text"] = text
+		if "version" in source or "en" in source or "he" in source:
+			text = {}
+			if "en" in source:
+				text["en"] = source["en"]
+				tc = TextChunk(ref, "he", source["version"]) if source.get("versionLanguage") == "he" else TextChunk(ref, "he")
+				text["he"] = tc.ja().flatten_to_string()
+				del source["en"]
+			elif "he" in source:
+				text["he"] = source["he"]
+				tc = TextChunk(ref, "en", source["version"]) if source.get("versionLanguage") == "en" else TextChunk(ref, "en")
+				text["en"] = tc.ja().flatten_to_string()
+				del source["he"]
+			else:  # "version" in source
+				text[source["versionLanguage"]] = TextChunk(ref, source["versionLanguage"], source["version"]).ja().flatten_to_string()
+				other = "he" if source["versionLanguage"] == "en" else "en"
+				text[other] = TextChunk(ref, other).ja().flatten_to_string()
+			source.pop("version", None)
+			source.pop("versionLanguage", None)
+			source["text"] = text
 
 	return jsonResponse(add_source_to_sheet(int(sheet_id), source))
 

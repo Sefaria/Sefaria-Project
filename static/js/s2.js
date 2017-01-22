@@ -828,7 +828,8 @@ var ReaderApp = React.createClass({
     this.setState({ panels: this.state.panels });
   },
   addToSourceSheet: function addToSourceSheet(n, selectedSheet, confirmFunction) {
-    // This is invoked from a connections panel
+    // This is invoked from a connections panel.
+    // It sends a ref-based (i.e. "inside") source
     var connectionsPanel = this.state.panels[n];
     var textPanel = this.state.panels[n - 1];
 
