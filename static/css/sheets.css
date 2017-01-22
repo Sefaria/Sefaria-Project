@@ -517,9 +517,15 @@ body {
 	max-width:691px;
 }
 
-.sheetItem p span {
+.sheetItem p span,
+.sheetItem div.text span {
 	white-space: pre-wrap;
 }
+
+.sheetItem div.text span.gemarra-regular {
+	font-weight: bold;
+}
+
 
 #sheet #sources .sheetItem .sourceNumber.en {
 	position: absolute;

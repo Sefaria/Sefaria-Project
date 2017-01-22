@@ -679,7 +679,7 @@ $(function() {
 	if (sjs.can_edit || sjs.can_add ) {
 		CKEDITOR.disableAutoInline = true;
 		CKEDITOR.config.startupFocus = true;
-		CKEDITOR.config.extraAllowedContent = 'small; span(segment);div(oldComment)';
+		CKEDITOR.config.extraAllowedContent = 'small; span(segment, gemarra-regular, gemarra-italic, it-text); div(oldComment)';
 		CKEDITOR.config.removePlugins = 'magicline';
 
 		if ($.cookie("s2") == "true") {
@@ -804,14 +804,12 @@ $(function() {
 
 			editor.destroy();
 			$("[contenteditable]").attr("contenteditable", "false");
-
-
-		}
+		};
 
 		sjs.removeCKEditorByElement = function(el) {
 			var editor = $(el).ckeditorGet();
 			sjs.removeCKEditor({editor: editor});
-		}
+		};
 
 		sjs.initCKEditor = function(e) {
 			// Don't init again, or while sorting
@@ -831,7 +829,7 @@ $(function() {
 			$(".cke_editable").each(function() {
 				var ed = $(this).ckeditorGet();
 				sjs.removeCKEditor({editor: ed});
-			})
+			});
 
 			// Hide source controls
 			$(".sourceControlsOpen").removeClass("sourceControlsOpen");
@@ -850,7 +848,7 @@ $(function() {
 
 				});
 			}
-		var ed = $(this).ckeditorGet();
+		    var ed = $(this).ckeditorGet();
 
 			if (!$(this).hasClass('contentToAdd')) {
 
@@ -859,8 +857,6 @@ $(function() {
 					$("#lastSaved").text("Saving...");
 				});
 			}
-
-
 		};
 
 
@@ -904,7 +900,7 @@ $(function() {
 				editor.resetDirty();
 			}
 			sjs.ckeSaveChain = setTimeout(ckeSaveChain , 10000)
-		}
+		};
 		sjs.ckeSaveChain = setTimeout(ckeSaveChain , 10000);
 	}
 
