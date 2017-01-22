@@ -589,6 +589,17 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
 
         return toc_contents_dict
 
+    def text_index_map(self, tokenizer=lambda x: re.split(u'\s+',x), strict=True, lang='he', vtitle=None):
+        """
+        See TextChunk.text_index_map
+        :param tokenizer:
+        :param strict:
+        :param lang:
+        :return:
+        """
+        return self.nodes.text_index_map(tokenizer=tokenizer, strict=strict, lang=lang, vtitle=vtitle)
+
+
     def get_primary_category(self):
         if self.is_dependant_text() and len(self.categories) >= 2:
             return self.dependence.capitalize()
@@ -1183,6 +1194,34 @@ class TextChunk(AbstractTextRecord):
         else:
             raise Exception("Called TextChunk.version() on merged TextChunk.")
 
+
+    def nonempty_subrefs(self):
+        """
+
+        :return: list of segment refs with content in this TextChunk
+        """
+        r = self._oref
+        ref_list = []
+        if r.is_range():
+            input_refs = r.range_list()
+        else:
+            input_refs = [r]
+        for temp_ref in input_refs:
+            temp_tc = temp_ref.text(lang=self.lang, vtitle=self.vtitle)
+            ja = temp_tc.ja()
+            jarray = ja.mask().array()
+            if temp_ref.is_segment_level():
+                ref_list.append(temp_ref)
+            elif temp_ref.is_section_level():
+                ref_list += [temp_ref.subref(i + 1) for i, v in enumerate(jarray) if v]
+            else: # higher than section level
+                ref_list += [temp_ref.subref([j + 1 for j in ne] + [i + 1])
+                             for ne in ja.non_empty_sections()
+                             for i, v in enumerate(ja.subarray(ne).mask().array()) if v]
+
+        return ref_list
+
+
     def text_index_map(self,tokenizer=lambda x: re.split(u'\s+',x), strict=True):
         """
         Primarily used for depth-2 texts in order to get index/ref pairs relative to the full text string
@@ -1194,8 +1233,10 @@ class TextChunk(AbstractTextRecord):
         """
         #TODO there is a known error that this will fail if the text version you're using has fewer segments than the VersionState.
         ind_list = []
-        r = self._oref
+        ref_list = self.nonempty_subrefs()
 
+
+        """
         if r.is_range():
             input_refs = r.range_list()
         else:
@@ -1206,31 +1247,32 @@ class TextChunk(AbstractTextRecord):
             if temp_ref.is_segment_level():
                 ref_list.append(temp_ref)
             elif temp_ref.is_section_level():
-                ref_list += temp_ref.all_subrefs()
+                ref_list += temp_ref.all_subrefs(self.lang)
             else: #you're higher than section level
                 sub_ja = temp_ref.get_state_ja().subarray_with_ref(temp_ref)
                 ref_list_sections = [temp_ref.subref([i + 1 for i in k ]) for k in sub_ja.non_empty_sections() ]
-                ref_list += [ref_seg for ref_sec in ref_list_sections for ref_seg in ref_sec.all_subrefs()]
-
+                ref_list += [ref_seg for ref_sec in ref_list_sections for ref_seg in ref_sec.all_subrefs(self.lang)]
+        """
 
 
         total_len = 0
         text_list = self.ja().flatten_to_array()
         for i,segment in enumerate(text_list):
-            ind_list.append(total_len)
-            total_len += len(tokenizer(segment))
+            if len(segment) > 0:
+                ind_list.append(total_len)
+                total_len += len(tokenizer(segment))
 
         if len(ind_list) != len(ref_list):
             if strict:
                 raise ValueError("The number of refs doesn't match the number of starting words. len(refs)={} len(inds)={}".format(len(ref_list),len(ind_list)))
             else:
-                print "Warning: The number of refs doesn't match the number of starting words. len(refs)={} len(inds)={}".format(len(ref_list),len(ind_list))
+                print "Warning: The number of refs doesn't match the number of starting words. len(refs)={} len(inds)={} {}".format(len(ref_list),len(ind_list),str(self._oref))
                 if len(ind_list) > len(ref_list):
                     ind_list = ind_list[:len(ref_list)]
                 else:
                     ref_list = ref_list[:len(ind_list)]
 
-        return ind_list,ref_list
+        return ind_list, ref_list, total_len
 
 
 
@@ -2038,6 +2080,27 @@ class Ref(object):
                     self._range_index = i
                     break
 
+    def all_segment_refs(self):
+        assert isinstance(self.index_node, JaggedArrayNode)
+
+        if self.is_range():
+            input_refs = self.range_list()
+        else:
+            input_refs = [self]
+
+        ref_list = []
+        for temp_ref in input_refs:
+            if temp_ref.is_segment_level():
+                ref_list.append(temp_ref)
+            elif temp_ref.is_section_level():
+                ref_list += temp_ref.all_subrefs()
+            else: #you're higher than section level
+                sub_ja = temp_ref.get_state_ja().subarray_with_ref(temp_ref)
+                ref_list_sections = [temp_ref.subref([i + 1 for i in k ]) for k in sub_ja.non_empty_sections() ]
+                ref_list += [ref_seg for ref_sec in ref_list_sections for ref_seg in ref_sec.all_subrefs()]
+
+        return ref_list
+
     def is_spanning(self):
         """
         :return bool: True if the Ref spans across text sections.
@@ -2594,7 +2657,7 @@ class Ref(object):
             l.append(self.subref(i + 1))
         return l
 
-    def all_subrefs(self):
+    def all_subrefs(self, lang='all'):
         """
         Return a list of all the valid :class:`Ref` objects one level deeper than this :class:`Ref`.
 
@@ -2612,7 +2675,7 @@ class Ref(object):
         # TODO this function should take Version as optional parameter to limit the refs it returns to ones existing in that Version
         assert not self.is_range(), "Ref.all_subrefs() is not intended for use on Ranges"
 
-        size = self.get_state_ja().sub_array_length([i - 1 for i in self.sections])
+        size = self.get_state_ja(lang).sub_array_length([i - 1 for i in self.sections])
         return self.subrefs(size)
 
     def context_ref(self, level=1):
