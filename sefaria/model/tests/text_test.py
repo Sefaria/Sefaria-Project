@@ -6,6 +6,13 @@ import pytest
 import sefaria.model as model
 from sefaria.system.exceptions import InputError
 
+def setup_module(module):
+    title = 'Test Commentator Name'
+    model.IndexSet({"title": title}).delete()
+
+def teardown_module(module):
+    title = 'Test Commentator Name'
+    model.IndexSet({"title": title}).delete()
 
 
 

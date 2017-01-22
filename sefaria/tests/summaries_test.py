@@ -17,7 +17,6 @@ from sefaria.utils.testing_utils import *
 
 text_titles = model.IndexSet({}).distinct('title')
 model.library.rebuild_toc()
-scache.delete_cache_elem('toc_cache')
 
 
 """ THE TESTS """
