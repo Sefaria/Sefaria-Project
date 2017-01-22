@@ -2826,8 +2826,8 @@ class Ref(object):
 
         r = self
         while not r.is_segment_level():
-            subarray = ja.subarray_with_ref(r)
-            r = r.subref([len(subarray)])
+            sublen = ja.sub_array_length([s-1 for s in r.toSections],until_last_nonempty=True)
+            r = r.subref([sublen])
 
         return r
 
