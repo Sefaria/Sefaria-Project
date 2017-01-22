@@ -57,6 +57,9 @@ class Test_Jagged_Array(object):
 
 
 class Test_Jagged_Text_Array(object):
+    def test_until_last_nonempty(self):
+        sparse_ja = ja.JaggedTextArray([["", "", ""], ["", "foo", "", "bar", ""], ["", "", ""],[]])
+        assert sparse_ja.sub_array_length([],until_last_nonempty=True) == 3
 
     def test_count_words(self):
         assert ja.JaggedTextArray(twoby).word_count() == 21
