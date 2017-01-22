@@ -1,3 +1,0 @@
-WARNING:root:Failed to load 're2'.  Falling back to 're' for regular expression parsing. See https://github.com/blockspeiser/Sefaria-Project/wiki/Regular-Expression-Engines
-WARNING:root:Failed to load 're2'.  Falling back to 're' for regular expression parsing. See https://github.com/Sefaria/Sefaria-Project/wiki/Regular-Expression-Engines
-Namespace(auto_links=True, check_text_exists=True, delete_links=True, manual_links=True, ref='Ramban on Deuteronomy')
