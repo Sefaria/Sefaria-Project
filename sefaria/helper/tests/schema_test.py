@@ -131,7 +131,7 @@ def test_migrate_to_complex_structure():
     try:
         library.get_index("Crazy").delete()
         library.get_index("Complex Crazy").delete()
-    except:
+    except IndexError:
         pass
 
     index = Index().load({'title': 'Crazy'})
@@ -213,13 +213,13 @@ def test_migrate_to_complex_structure():
 
     #Test that Crazy has two children named Trump and Americans, test the text, test the links
 
-    crazy_kids = library.get_index("Complex Crazy").nodes.children
+    children = library.get_index("Complex Crazy").nodes.children
 
-    assert crazy_kids[0].full_title() == "Complex Crazy, Trump"
-    assert crazy_kids[1].full_title() == "Complex Crazy, Americans"
+    assert children[0].full_title() == "Complex Crazy, Trump"
+    assert children[1].full_title() == "Complex Crazy, Americans"
 
-    assert TextChunk(crazy_kids[0].ref(), "en", 'Schema Test').text == [p1]
-    assert TextChunk(crazy_kids[1].ref(), "en", "Schema Test").text == ["", p2]
+    assert TextChunk(children[0].ref(), "en", 'Schema Test').text == [p1]
+    assert TextChunk(children[1].ref(), "en", "Schema Test").text == ["", p2]
 
     assert isinstance(Link().load({'refs': ['Complex Crazy, Trump 1', 'Guide for the Perplexed, Part 1'],}), Link)
     assert isinstance(Link().load({'refs': ['Complex Crazy, Americans 2', 'Guide for the Perplexed, Part 2'],}), Link)
