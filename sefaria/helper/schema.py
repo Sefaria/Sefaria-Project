@@ -498,7 +498,6 @@ def cascade(ref_identifier, rewriter=lambda x: x, needs_rewrite=lambda x: True, 
         """
 
         for record in model_set:
-            print record
             assert isinstance(record, AbstractMongoRecord)
             if sub_attr_name is None:
                 refs = getattr(record, attr_name)
@@ -519,7 +518,6 @@ def cascade(ref_identifier, rewriter=lambda x: x, needs_rewrite=lambda x: True, 
                         print 'Bad Data Found: {}'.format(refs)
                         print e
             else:
-                print record.ref
                 if needs_rewrite(refs, record):
                     if sub_attr_name is None:
                         setattr(record, attr_name, rewriter(refs))
