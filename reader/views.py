@@ -222,7 +222,7 @@ def render_react_component(component, props):
         response = urllib2.urlopen(url, encoded_args, NODE_TIMEOUT)
         html = response.read()
         return html
-    except (urllib2.URLError, socket.timeout) as e:
+    except Exception as e:
         # Catch timeouts, however they may come.  Write to file NODE_TIMEOUT_MONITOR, which forever monitors to restart process
         if isinstance(e, socket.timeout) or (hasattr(e, "reason") and isinstance(e.reason, socket.timeout)):
             logger.exception("Node timeout: Fell back to client-side rendering.")
@@ -231,11 +231,9 @@ def render_react_component(component, props):
                 myfile.write(propsJSON)
             return render_to_string("elements/loading.html")
         else:
-            raise
-    except Exception as e:
-        # If anything else goes wrong with Node, just fall back to client-side rendering
-        logger.exception("Fell back to client-side rendering.")
-        return render_to_string("elements/loading.html")
+            # If anything else goes wrong with Node, just fall back to client-side rendering
+            logger.exception("Node error: Fell back to client-side rendering.")
+            return render_to_string("elements/loading.html")
 
 
 def make_panel_dict(oref, version, language, filter, mode, **kwargs):
