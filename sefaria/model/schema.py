@@ -620,6 +620,9 @@ class TitledTreeNode(TreeNode):
         if '-' in self.title_group.primary_title("en"):
             raise InputError("Primary English title may not contain hyphens.")
 
+        if not all(ord(c) for c in self.title_group.primary_title("en")):
+            raise InputError("Primary English title may not contain non-ascii characters")
+
         if not self.default and not self.sharedTitle and not self.get_titles():
             raise IndexSchemaError("Schema node {} must have titles, a shared title node, or be default".format(self))
 
