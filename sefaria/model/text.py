@@ -1436,6 +1436,8 @@ class TextChunk(AbstractTextRecord):
             temp_tc = temp_ref.text(lang=self.lang, vtitle=self.vtitle)
             ja = temp_tc.ja()
             jarray = ja.mask().array()
+
+            #TODO do I need to check if this ref exists for this version?
             if temp_ref.is_segment_level():
                 ref_list.append(temp_ref)
             elif temp_ref.is_section_level():
@@ -1922,10 +1924,14 @@ class Ref(object):
                 if check[0] > self.index_node.lengths[0] + offset:
                     display_size = self.index_node.address_class(0).toStr("en", self.index_node.lengths[0] + offset)
                     raise InputError(u"{} ends at {} {}.".format(self.book, self.index_node.sectionNames[0], display_size))
+
+        if len(self.sections) != len(self.toSections):
+            raise InputError(u"{} is an invalid range. depth of beginning of range must equal depth of end of range")
+
         for i in range(len(self.sections)):
-            if self.toSections > self.sections:
+            if self.toSections[i] > self.sections[i]:
                 break
-            if self.toSections < self.sections:
+            if self.toSections[i] < self.sections[i]:
                 raise InputError(u"{} is an invalid range.  Ranges must end later than they begin.".format(self.normal()))
 
     def __clean_tref(self):
@@ -2842,6 +2848,21 @@ class Ref(object):
         else:
             return None
 
+    def pad_to_last_segment_ref(self):
+        """
+        From current position in jagged array, pad self so that it reaches the last segment ref
+        :return:
+        """
+
+        ja = self.get_state_ja()
+
+        r = self
+        while not r.is_segment_level():
+            sublen = ja.sub_array_length([s-1 for s in r.toSections],until_last_nonempty=True)
+            r = r.subref([sublen])
+
+        return r
+
     def to(self, toref):
         """
         Return a reference that begins at this :class:`Ref`, and ends at toref
@@ -2852,6 +2873,15 @@ class Ref(object):
         assert self.book == toref.book
         d = self._core_dict()
         d["toSections"] = toref.toSections[:]
+
+
+        #pad sections and toSections so they're the same length. easier to just make them both segment level
+        if len(d['sections']) != len(d['toSections']):
+            if not self.is_segment_level():
+                d['sections'] = self.first_available_section_ref().sections + [1]
+            d['toSections'] = toref.pad_to_last_segment_ref().toSections
+
+
         return Ref(_obj=d)
 
     def subref(self, subsections):
@@ -3060,7 +3090,7 @@ class Ref(object):
             [Ref('Shabbat 13b:3-50'), Ref('Shabbat 14a'), Ref('Shabbat 14b:1-3')]
 
         """
-        if not self._spanned_refs:
+        if not self._spanned_refs or True:
 
             if self.index_node.depth == 1 or not self.is_spanning():
                 self._spanned_refs = [self]
@@ -3068,17 +3098,19 @@ class Ref(object):
             else:
                 start, end = self.sections[self.range_index()], self.toSections[self.range_index()]
                 ref_depth = len(self.sections)
+                to_ref_depth = len(self.toSections)
 
                 refs = []
                 for n in range(start, end + 1):
                     d = self._core_dict()
                     if n == start:
                         d["toSections"] = self.sections[0:self.range_index() + 1]
+
                         for i in range(self.range_index() + 1, ref_depth):
-                            d["toSections"] += [self.get_state_ja().sub_array_length([s - 1 for s in d["toSections"][0:i]])]
+                            d["toSections"] += [self.get_state_ja().sub_array_length([s - 1 for s in d["toSections"][0:i]],until_last_nonempty=True)]
                     elif n == end:
                         d["sections"] = self.toSections[0:self.range_index() + 1]
-                        for _ in range(self.range_index() + 1, ref_depth):
+                        for _ in range(self.range_index() + 1, to_ref_depth):
                             d["sections"] += [1]
                     else:
                         d["sections"] = self.sections[0:self.range_index()] + [n]

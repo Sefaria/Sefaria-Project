@@ -249,6 +249,32 @@ class Test_Ref(object):
         assert Ref("Rashi on Exodus 3:1-3:10").range_index() == 1
         assert Ref("Rashi on Exodus 3:1:1-3:1:3").range_index() == 2
 
+    def test_out_of_order_range(self):
+        with pytest.raises(InputError):
+            r = Ref("Leviticus 15 - 13")
+        with pytest.raises(InputError):
+            r = Ref("Leviticus 15:3 - 15:1")
+
+    def test_to_section_segment(self):
+        r = Ref("Leviticus 15")
+        s = Ref("Leviticus 16:3")
+        t = r.to(s)
+        assert t.sections == [15,1]
+        assert t.toSections == [16,3]
+
+        r = Ref("Leviticus 15:3")
+        s = Ref("Leviticus 16")
+        t = r.to(s)
+        assert t.sections == [15,3]
+        assert t.toSections == [16, 34]
+
+    def test_pad_to_last_segment_ref(self):
+        r = Ref("Leviticus 16")
+        assert r.pad_to_last_segment_ref().sections == [16,34]
+
+        r = Ref("Leviticus")
+        assert r.pad_to_last_segment_ref() == r.last_segment_ref()
+
     def test_span_size(self):
         assert Ref("Leviticus 15:3 - 17:12").span_size() == 3
         assert Ref("Leviticus 15-17").span_size() == 3
@@ -298,7 +324,7 @@ class Test_Ref(object):
 
     @pytest.mark.failing
     def test_split_spanning_ref_expanded(self):
-        assert Ref("Leviticus 15:3 - 17:12").split_spanning_ref(True) == [Ref('Leviticus 15:3-33'), Ref('Leviticus 16:1-34'), Ref('Leviticus 17:1-12')]
+        assert Ref("Leviticus 15:3 - 17:12").split_spanning_ref() == [Ref('Leviticus 15:3-33'), Ref('Leviticus 16:1-34'), Ref('Leviticus 17:1-12')]
 
     def test_range_list(self):
         assert Ref("Leviticus 15:12-17").range_list() ==  [Ref('Leviticus 15:12'), Ref('Leviticus 15:13'), Ref('Leviticus 15:14'), Ref('Leviticus 15:15'), Ref('Leviticus 15:16'), Ref('Leviticus 15:17')]

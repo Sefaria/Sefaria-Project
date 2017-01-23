@@ -231,6 +231,7 @@ def is_valid_source(source):
 		return False
 	return True
 
+
 def add_source_to_sheet(id, source):
 	"""
 	Add source to sheet 'id'.
