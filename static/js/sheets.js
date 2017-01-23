@@ -636,14 +636,14 @@ $(function() {
 	$("#removeNikkudot").click(function() {
 		var $target = $(".activeSource").find(".text").find(".he");
 		$target.html(stripNikkud($target.html()));
-		sjs.track.sheets("Remove Nikkudot", ref);
+		sjs.track.sheets("Remove Nikkudot");
 		autoSave();
 	});
 
 	$("#splitSourceToSegment").click(function() {
 		var $target = $(".activeSource").find(".text");
 		$($target.find(".segment")).replaceWith(function() { return '<p>'+$(this).html()+'</p>'; });
-		sjs.track.sheets("Auto Split Segments", ref);
+		sjs.track.sheets("Auto Split Segments");
 		autoSave();
 	});
 
