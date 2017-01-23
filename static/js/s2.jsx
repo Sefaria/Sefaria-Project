@@ -801,7 +801,8 @@ var ReaderApp = React.createClass({
     this.setState({panels: this.state.panels});
   },
   addToSourceSheet: function(n, selectedSheet, confirmFunction) {
-    // This is invoked from a connections panel
+    // This is invoked from a connections panel.
+    // It sends a ref-based (i.e. "inside") source
     var connectionsPanel = this.state.panels[n];
     var textPanel = this.state.panels[n-1];
 
@@ -6639,15 +6640,51 @@ var SharePanel = React.createClass({
   }
 });
 
+var AddToSourceSheetWindow = React.createClass({
+  propTypes: {
+    srefs:        React.PropTypes.array,
+    close:        React.PropTypes.func,
+    en:           React.PropTypes.string,
+    he:           React.PropTypes.string
+  },
+
+  close: function () {
+    if (this.props.close) {
+      this.props.close();
+    }
+  },
+
+  render: function () {
+    var nextParam = "?next=" + encodeURIComponent(Sefaria.util.currentPath());
+
+    return (<div className="sourceSheetPanelBox">
+      <div className="sourceSheetBoxTitle">
+        <i className="fa fa-times-circle" aria-hidden="true" onClick={this.close}/>
+        {Sefaria.loggedIn?"":<span>
+            In order to add this source to a sheet, please <a href={"/login" + nextParam}>log in.</a>
+        </span>}
+      </div>
+      {Sefaria.loggedIn ?
+        <AddToSourceSheetPanel
+          srefs = {this.props.srefs}
+          en = {this.props.en}
+          he = {this.props.he}
+        /> : ""}
+      </div>);
+  }
+});
 
 var AddToSourceSheetPanel = React.createClass({
+  // In the main app, the function `addToSourceSheet` is executed in the ReaderApp, 
+  // and collects the needed data from highlights and app state.
+  // It is used in external apps, liked gardens.  In those cases, it's wrapped in AddToSourceSheetWindow,
+  // refs and text are passed directly, and the add to source sheets API is invoked from within this object. 
   propTypes: {
-    srefs:              React.PropTypes.array.isRequired,
-    setConnectionsMode: React.PropTypes.func.isRequired,
-    addToSourceSheet:   React.PropTypes.func.isRequired,
+    srefs:              React.PropTypes.array,
+    addToSourceSheet:   React.PropTypes.func,
     fullPanel:          React.PropTypes.bool,
-    version:            React.PropTypes.string,
-    versionLanguage:    React.PropTypes.string
+    en:                 React.PropTypes.string,
+    he:                 React.PropTypes.string
   },
   getInitialState: function() {
     return {
@@ -6664,7 +6701,24 @@ var AddToSourceSheetPanel = React.createClass({
   },
   addToSourceSheet: function() {
     if (!this.state.selectedSheet) { return; }
-    this.props.addToSourceSheet(this.state.selectedSheet, this.confirmAdd);
+    if (this.props.addToSourceSheet) {
+      this.props.addToSourceSheet(this.state.selectedSheet, this.confirmAdd);
+    } else {
+      var url     = "/api/sheets/" + this.state.selectedSheet + "/add";
+      var source = {};
+      if (this.props.srefs) {
+        source.refs = this.props.srefs;
+        if (this.props.en) source.en = this.props.en;
+        if (this.props.he) source.he = this.props.he;
+      } else {
+        if (this.props.en && this.props.he) {
+          source.outsideBiText = {he: this.props.he, en: this.props.en};
+        } else {
+          source.outsideText = this.props.en || this.props.he;
+        }
+      }
+      $.post(url, {source: JSON.stringify(source)}, this.confirmAdd);
+    }
   },
   createSheet: function(refs) {
     var title = $(ReactDOM.findDOMNode(this)).find("input").val();
@@ -6686,7 +6740,11 @@ var AddToSourceSheetPanel = React.createClass({
     this.setState({showNewSheetInput: true});
   },
   confirmAdd: function() {
-    Sefaria.site.track.event("Tools", "Add to Source Sheet Save", this.props.srefs.join("/"));
+    if (this.props.srefs) {
+      Sefaria.site.track.event("Tools", "Add to Source Sheet Save", this.props.srefs.join("/"));
+    } else {
+      Sefaria.site.track.event("Tools", "Add to Source Sheet Save", "Outside Source");
+    }
     this.setState({confirm: true});
   },
   render: function() {
@@ -8421,32 +8479,41 @@ var SingleUpdate = React.createClass({
 
 
 var InterruptingMessage = React.createClass({
+  displayName: 'InterruptingMessage',
   propTypes: {
-    messageName:  React.PropTypes.string.isRequired,
-    messageHTML:  React.PropTypes.string.isRequired,
-    onClose:      React.PropTypes.func.isRequired
+    messageName: React.PropTypes.string.isRequired,
+    messageHTML: React.PropTypes.string.isRequired,
+    onClose: React.PropTypes.func.isRequired
   },
-  componentDidMount: function() {
+  componentDidMount: function componentDidMount() {
     $("#interruptingMessage .button").click(this.close);
   },
-  close: function() {
+  close: function close() {
     this.markAsRead();
     this.props.onClose();
   },
-  markAsRead: function() {
-    Sefaria._api("/api/interrupting-messages/read/" + this.props.messageName, function(data) {});
-    cookie(this.props.messageName, true, {"path": "/"});
-    Sefaria.site.track.event("Interrupting Message", "read", this.props.messageName,  {nonInteraction: true});
+  markAsRead: function markAsRead() {
+    Sefaria._api("/api/interrupting-messages/read/" + this.props.messageName, function (data) {});
+    cookie(this.props.messageName, true, { "path": "/" });
+    Sefaria.site.track.event("Interrupting Message", "read", this.props.messageName, { nonInteraction: true });
     Sefaria.interruptingMessage = null;
   },
-  render: function() {
-    return (<div className="interruptingMessageBox">
-              <div className="overlay" onClick={this.close}></div>
-              <div id="interruptingMessage">
-                  <div id="interruptingMessageClose" onClick={this.close}>×</div>
-                  <div id="interruptingMessageContent" dangerouslySetInnerHTML={ {__html: this.props.messageHTML} }></div>
-              </div>
-            </div>);
+  render: function render() {
+    return React.createElement(
+      'div',
+      { className: 'interruptingMessageBox' },
+      React.createElement('div', { className: 'overlay', onClick: this.close }),
+      React.createElement(
+        'div',
+        { id: 'interruptingMessage' },
+        React.createElement(
+          'div',
+          { id: 'interruptingMessageClose', onClick: this.close },
+          '×'
+        ),
+        React.createElement('div', { id: 'interruptingMessageContent', dangerouslySetInnerHTML: { __html: this.props.messageHTML } })
+      )
+    );
   }
 });
 
