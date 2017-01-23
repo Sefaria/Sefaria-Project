@@ -638,26 +638,28 @@ def migrate_to_complex_structure(title, schema, mappings):
             return False
 
     def rewriter(ref):
-    """
-    Converts each reference from the simple text to what it should be in the complex text based on the mappings.
-    Assumes that both the references in the mappings and the references that are passed into the function
-    are not ranges. For example, for the line old_ref.contains(ref), suppose it is:
-    Ref("Genesis 6-7").contains(Ref("Genesis 6:3-4"))
-    This will evaluate to true but then in the return statement,
-    it will not successfully replace the old_ref_str with new_ref.
-    To deal with ranges in the future, split the ranged refs into starting_ref() and ending_ref()
-    and then use in_terms_of() to get the data necessary to properly translate the range.
-    Ranges that cross from one section to another will be cut to only spanning the first section.
-    """
+        """
+        Converts each reference from the simple text to what it should be in the complex text based on the mappings.
+        Assumes that both the references in the mappings and the references that are passed into the function
+        are not ranges. For example, for the line old_ref.contains(ref), suppose it is:
+        Ref("Genesis 6-7").contains(Ref("Genesis 6:3-4"))
+        This will evaluate to true but then in the return statement,
+        it will not successfully replace the old_ref_str with new_ref.
+        To deal with ranges in the future, split the ranged refs into starting_ref() and ending_ref()
+        and then use in_terms_of() to get the data necessary to properly translate the range.
+        Ranges that cross from one section to another will be cut to only spanning the first section.
+        """
         if Ref(ref).is_range():
-            print "Currently does not handle ranged refs."
-            return "Complex {}".format(ref)
-        ref = Ref(ref)
+            print "Currently does not handle ranged refs.  Only handles the starting_ref() of range."
+            ref = Ref(ref).starting_ref()
+        else:
+            ref = Ref(ref)
         for old_ref in mappings:
-            if old_ref.is_range():
-                print "Currently does not handle ranged refs."
-                return "Complex {}".format(ref)
-            old_ref = Ref(old_ref)
+            if Ref(old_ref).is_range():
+                print "Currently does not handle ranged refs.  Only handles the starting_ref() of range."
+                old_ref = Ref(old_ref).starting_ref()
+            else:
+                old_ref = Ref(old_ref)
             if old_ref.contains(ref):
                 old_ref_str = old_ref.normal()
                 new_ref = mappings[old_ref_str]

@@ -1,6 +1,7 @@
 # encoding=utf-8
 from sefaria.model import *
 from sefaria.helper import schema
+from sefaria.system.exceptions import BookNameError
 import pytest
 
 
@@ -131,7 +132,7 @@ def test_migrate_to_complex_structure():
     try:
         library.get_index("Crazy").delete()
         library.get_index("Complex Crazy").delete()
-    except IndexError:
+    except BookNameError:
         pass
 
     index = Index().load({'title': 'Crazy'})
