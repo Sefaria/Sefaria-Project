@@ -412,7 +412,7 @@ def index_all_sections(index_name, skip=0, merged=False, debug=False):
 
     refs = library.ref_list()
     if debug:
-        refs = refs[:100]
+        refs = refs[:10]
     print "Beginning index of %d refs." % len(refs)
 
     for i in range(skip, len(refs)):
@@ -502,9 +502,9 @@ def add_recent_to_queue(ndays):
     for ref in list(refs):
         add_ref_to_index_queue(ref[0], ref[1], ref[2])
 
-def get_current_index_name(merged=False):
-    index_name_a = "{}-a".format(SEARCH_INDEX_NAME if not merged else "merged")
-    index_name_b = "{}-b".format(SEARCH_INDEX_NAME if not merged else "merged")
+def get_current_index_name(merged=False, debug=False):
+    index_name_a = "{}-a{}".format(SEARCH_INDEX_NAME if not merged else "merged", '-debug' if debug else '')
+    index_name_b = "{}-b{}".format(SEARCH_INDEX_NAME if not merged else "merged", '-debug' if debug else '')
 
     try:
         es.open_index(index_name_a)
@@ -523,12 +523,10 @@ def index_all(skip=0, merged=False, debug=False):
     """
     start = datetime.now()
 
-    new_index_name, old_index_name = get_current_index_name(merged=merged)
+    new_index_name, old_index_name = get_current_index_name(merged=merged, debug=debug)
     alias_name = SEARCH_INDEX_NAME if not merged else "merged"
 
     if debug:
-        new_index_name = new_index_name + "-debug"
-        old_index_name = old_index_name + "-debug"
         alias_name = alias_name + "-debug"
 
     create_index(new_index_name, merged=merged)
@@ -542,15 +540,21 @@ def index_all(skip=0, merged=False, debug=False):
                 "alias": alias_name,
                 "index": old_index_name
             }
-        },
-        {
-            "add": {
-                "alias": alias_name,
-                "index": new_index_name
-            }
         }
     ]
+    try:
+        es.update_aliases(alias_actions)
+    except ElasticHttpNotFoundError:
+        pass
+
+    alias_actions = [ {
+        "add": {
+            "alias": alias_name,
+            "index": new_index_name
+        }
+    }]
     es.update_aliases(alias_actions)
+
     clear_index(old_index_name)
     end = datetime.now()
     print "Elapsed time: %s" % str(end-start)
