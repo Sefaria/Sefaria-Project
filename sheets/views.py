@@ -320,7 +320,8 @@ def delete_sheet_api(request, sheet_id):
 		return jsonResponse({"error": "Only the sheet owner may delete a sheet."})
 
 	db.sheets.remove({"id": id})
-	search.delete_sheet(id)
+	index_name, _ = search.get_current_index_name()
+	search.delete_sheet(index_name, id)
 
 	return jsonResponse({"status": "ok"})
 

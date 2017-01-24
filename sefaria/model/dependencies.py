@@ -36,10 +36,11 @@ subscribe(text.process_index_delete_in_toc,                             text.Ind
 # Process in ES
 # todo: handle index name change in ES
 def process_version_title_change_in_search(ver, **kwargs):
-    from sefaria.search import delete_version, index_full_version
+    from sefaria.search import delete_version, index_full_version, get_current_index_name
+    index_name, _ = get_current_index_name()
     index = library.get_index(ver.title)
     delete_version(index, kwargs.get("old"), ver.language)
-    index_full_version(index, kwargs.get("new"), ver.language)
+    index_full_version(index_name, kwargs.get("new"), ver.language)
 
 
 # Version Title Change
