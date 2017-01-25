@@ -15,6 +15,7 @@ from django.utils.safestring import mark_safe
 from django.core.serializers import serialize
 from django.db.models.query import QuerySet
 from django.contrib.sites.models import Site
+from django.contrib.auth.models import Group
 
 from sefaria.sheets import get_sheet
 from sefaria.model.user_profile import user_link as ulink
@@ -91,6 +92,7 @@ def he_ref(value):
 
 	return he
 
+
 @register.filter(is_safe=True)
 @stringfilter
 def he_parasha(value):
@@ -116,6 +118,7 @@ def version_link(v):
 	link = u'<a href="/{}/{}/{}">{}</a>'.format(section_ref.url(), v.language, urllib.quote(v.versionTitle.replace(" ", "_").encode("utf-8")), v.versionTitle)
 	return mark_safe(link)
 
+
 @register.filter(is_safe=True)
 def text_toc_link(indx):
 	"""
@@ -130,13 +133,24 @@ def text_toc_link(indx):
 	link = u'<a href="/{}"><span class="int-en">{}</span><span class="int-he">{}</span></a>'.format(indx.title, en, he)
 	return mark_safe(link)
 
+
 @register.filter(is_safe=True)
 def person_link(person):
 	"""
-	Return an <a> tag linking to the first availabe text of a particular version.
+	Return an <a> tag linking to a person page.
 	"""
 	link = u'<a href="/person/{}"><span class="int-en">{}</span><span class="int-he">{}</span></a>'.format(person.key, person.primary_name("en"), person.primary_name("he"))
 	return mark_safe(link)
+
+
+@register.filter(name='has_group')
+def has_group(user, group_name):
+	try:
+		group =  Group.objects.get(name=group_name)
+		return group in user.groups.all()
+	except:
+		return False
+
 
 @register.filter(is_safe=True)
 def version_source_link(v):
@@ -380,6 +394,7 @@ def get_private_attribute(model_instance, attrib_name):
 def nice_timestamp(timestamp):
 	return dateutil.parser.parse(timestamp).strftime("%m/%d/%y")
 
+
 # Derived from https://djangosnippets.org/snippets/6/
 """
 Template tags for working with lists.
@@ -422,6 +437,7 @@ def partition_into(thelist, n):
 	p = len(thelist) / n
 	return [thelist[p*i:p*(i+1)] for i in range(n - 1)] + [thelist[p*(i+1):]]
 
+
 @register.filter
 def partition_by(thelist, n):
 	"""
@@ -442,6 +458,7 @@ def partition_by(thelist, n):
 	rows = int(math.ceil(float(len(thelist)) / n))
 	newlists = [thelist[r * n : (r + 1) * n] for r in range(rows)]
 	return newlists
+
 
 @register.filter
 def partition_vertical(thelist, n):
@@ -466,9 +483,11 @@ def partition_vertical(thelist, n):
 		newlists[i%n].append(val)
 	return newlists
 
+
 @register.filter
 def date_string_to_date(dateString):
     return(datetime.strptime(dateString, "%Y-%m-%dT%H:%M:%S.%f"))
+
 
 @register.filter(is_safe=True)
 def sheet_via_absolute_link(sheet_id):
