@@ -505,14 +505,21 @@ def add_recent_to_queue(ndays):
 def get_current_index_name(merged=False, debug=False):
     index_name_a = "{}-a{}".format(SEARCH_INDEX_NAME if not merged else "merged", '-debug' if debug else '')
     index_name_b = "{}-b{}".format(SEARCH_INDEX_NAME if not merged else "merged", '-debug' if debug else '')
+    alias_name = "{}{}".format(SEARCH_INDEX_NAME if not merged else "merged",'-debug' if debug else '')
 
+    aliases = es.aliases()
     try:
-        es.open_index(index_name_a)
-        new_index_name = index_name_b
-        old_index_name = index_name_a
-    except ElasticHttpNotFoundError:
+        a_alias = aliases[index_name_a]['aliases']
+        choose_a = alias_name not in a_alias
+    except KeyError:
+        choose_a = True
+
+    if choose_a:
         new_index_name = index_name_a
         old_index_name = index_name_b
+    else:
+        new_index_name = index_name_b
+        old_index_name = index_name_a
 
     return new_index_name, old_index_name
 
