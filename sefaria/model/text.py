@@ -203,7 +203,6 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
         "base_text_titles", #the base book(s) this one is dpenedant on
         "base_text_mapping",
         "collective_title",
-        "related_categories"
     ]
 
     def __unicode__(self):
@@ -1516,7 +1515,6 @@ class TextFamily(object):
             #d["commentaryBook"] = getattr(self._inode.index, 'base_text_titles', "")
             #d["commentaryCategories"] = getattr(self._inode.index, 'related_categories', [])
             d["baseTexTitles"] = getattr(self._inode.index, 'base_text_titles', [])
-            d["relatedCategories"] = getattr(self._inode.index, 'related_categories', [])
 
         d["isComplex"]    = self.isComplex
         d["isDependant"] = self._inode.index.is_dependant_text()
@@ -2018,7 +2016,7 @@ class Ref(object):
         Is this a Talmud Bavli or related text reference?
         :return bool:
         """
-        return u"Bavli" in self.index.categories or u"Bavli" in getattr(self.index, 'related_categories', [])
+        return u"Bavli" in self.index.categories
 
     def is_commentary(self):
         """
