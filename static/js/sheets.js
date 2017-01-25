@@ -1296,7 +1296,7 @@ $(function() {
 				}
 				$target.length == 0 ? buildSource($("#sources"), source, "append") : buildSource($target, source, "insert");
 				autoSave();
-				$(".contentToAdd").html('');
+				$("#addcommentDiv .contentToAdd").html('<br>');
 				$("#sheet").click();
 				//$target.next(".sheetItem").find(".comment").last().trigger("mouseup").focus();
 
@@ -1378,7 +1378,8 @@ $(function() {
 				}
 				$target.length == 0 ? buildSource($("#sources"), source, "append") : buildSource($target, source, "insert");
 				autoSave();
-				$(".contentToAdd").html('');
+				$("#customTextContainer .contentToAdd.en").html('English');
+				$("#customTextContainer .contentToAdd.he").html('עברית');
 				$("#sheet").click();
 				//	$target.next(".sheetItem").find(".comment").last().trigger("mouseup").focus();
 
