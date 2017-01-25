@@ -57,22 +57,17 @@ class AbstractIndex(object):
         if lang == "en":
             return self._title
 
-        if self.is_new_style():
-            return self.nodes.primary_title(lang)
-        else:
-            return getattr(self, "heTitle", None)
+        return self.nodes.primary_title(lang)
 
     def set_title(self, title, lang="en"):
         if lang == "en":
             self._title = title #we need to store the title attr in a physical storage, not that .title is a virtual property
-        if self.is_new_style():
-            if lang == "en":
-                self.nodes.key = title
+            self.nodes.key = title
 
-            old_primary = self.nodes.primary_title(lang)
-            self.nodes.add_title(title, lang, True, True)
-            if old_primary != title: #then remove the old title, we don't want it.
-                self.nodes.remove_title(old_primary, lang)
+        old_primary = self.nodes.primary_title(lang)
+        self.nodes.add_title(title, lang, True, True)
+        if old_primary != title: #then remove the old title, we don't want it.
+            self.nodes.remove_title(old_primary, lang)
 
     title = property(get_title, set_title)
 
