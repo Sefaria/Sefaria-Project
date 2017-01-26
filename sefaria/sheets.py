@@ -217,7 +217,7 @@ def save_sheet(sheet, user_id, search_override=False):
 
 	db.sheets.update({"id": sheet["id"]}, sheet, True, False)
 
-	index_name, _ = search.get_current_index_name()
+	index_name = search.get_new_and_current_index_names()['current']
 	if sheet["status"] == "public" and SEARCH_INDEX_ON_SAVE and not search_override:
 		search.index_sheet(index_name, sheet["id"])
 

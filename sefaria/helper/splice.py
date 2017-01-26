@@ -1,6 +1,6 @@
 from sefaria.model import *
 from sefaria.system.exceptions import InputError
-from sefaria.search import delete_text, index_text, get_current_index_name
+from sefaria.search import delete_text, index_text, get_new_and_current_index_names
 from sefaria.sheets import get_sheets_for_ref, get_sheet, save_sheet
 from sefaria.system.database import db
 
@@ -555,7 +555,7 @@ class Splicer(object):
         if not SEARCH_INDEX_ON_SAVE:
             return
 
-        index_name, _ = get_current_index_name()
+        index_name = get_new_and_current_index_names()['current']
         for v in self.versionSet:
             if self._report:
                 print "ElasticSearch: Reindexing {} / {} / {}".format(self.section_ref.normal(), v.versionTitle, v.language)

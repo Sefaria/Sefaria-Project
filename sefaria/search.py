@@ -101,8 +101,8 @@ def index_text(index_name, oref, version=None, lang=None, bavli_amud=True, merge
 
 def delete_text(oref, version, lang):
     try:
-        not_merged_name, _ = get_current_index_name(False)
-        merged_name, _ = get_current_index_name(True)
+        not_merged_name = get_new_and_current_index_names(False)['current']
+        merged_name = get_new_and_current_index_names(True)['current']
 
         id = make_text_doc_id(oref.normal(), version, lang)
         es.delete(not_merged_name, 'text', id)
@@ -130,7 +130,6 @@ def index_full_version(index_name, index, version, lang):
 
     for ref in index.all_section_refs():
         index_text(index_name, ref, version=version, lang=lang)
-        index_text(index_name, ref, lang=lang, merged=True)
 
 
 def delete_sheet(index_name, id):
@@ -411,7 +410,7 @@ def index_all_sections(index_name, skip=0, merged=False, debug=False):
     doc_count = 0
 
     refs = library.ref_list()
-    if debug:
+    if debug or True:
         refs = refs[:10]
     print "Beginning index of %d refs." % len(refs)
 
@@ -471,7 +470,7 @@ def index_from_queue():
     Index every ref/version/lang found in the index queue.
     Delete queue records on success.
     """
-    index_name, _ = get_current_index_name()
+    index_name = get_new_and_current_index_names()['current']
     queue = db.index_queue.find()
     for item in queue:
         try:
@@ -502,8 +501,7 @@ def add_recent_to_queue(ndays):
     for ref in list(refs):
         add_ref_to_index_queue(ref[0], ref[1], ref[2])
 
-
-def get_current_index_name(merged=False, debug=False):
+def get_new_and_current_index_names(merged=False, debug=False):
     index_name_a = "{}-a{}".format(SEARCH_INDEX_NAME if not merged else "merged", '-debug' if debug else '')
     index_name_b = "{}-b{}".format(SEARCH_INDEX_NAME if not merged else "merged", '-debug' if debug else '')
     alias_name = "{}{}".format(SEARCH_INDEX_NAME if not merged else "merged",'-debug' if debug else '')
@@ -522,7 +520,7 @@ def get_current_index_name(merged=False, debug=False):
         new_index_name = index_name_b
         old_index_name = index_name_a
 
-    return new_index_name, old_index_name
+    return {"new": new_index_name, "current": old_index_name, "alias": alias_name}
 
 
 def index_all(skip=0, merged=False, debug=False):
@@ -531,11 +529,10 @@ def index_all(skip=0, merged=False, debug=False):
     """
     start = datetime.now()
 
-    new_index_name, old_index_name = get_current_index_name(merged=merged, debug=debug)
-    alias_name = SEARCH_INDEX_NAME if not merged else "merged"
-
-    if debug:
-        alias_name = alias_name + "-debug"
+    name_dict = get_new_and_current_index_names(merged=merged, debug=debug)
+    new_index_name = name_dict['new']
+    curr_index_name = name_dict['current']
+    alias_name = name_dict['alias']
 
     create_index(new_index_name, merged=merged)
     index_all_sections(new_index_name, skip=skip, merged=merged, debug=debug)
@@ -546,7 +543,7 @@ def index_all(skip=0, merged=False, debug=False):
         {
             "remove": {
                 "alias": alias_name,
-                "index": old_index_name
+                "index": curr_index_name
             }
         }
     ]
@@ -555,6 +552,7 @@ def index_all(skip=0, merged=False, debug=False):
     except ElasticHttpNotFoundError:
         pass
 
+    clear_index(alias_name) # make sure there are no indexes with the alias_name
     alias_actions = [ {
         "add": {
             "alias": alias_name,
@@ -563,7 +561,7 @@ def index_all(skip=0, merged=False, debug=False):
     }]
     es.update_aliases(alias_actions)
 
-    clear_index(old_index_name)
+    clear_index(curr_index_name)
     end = datetime.now()
     print "Elapsed time: %s" % str(end-start)
 
