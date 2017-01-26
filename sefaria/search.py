@@ -410,7 +410,7 @@ def index_all_sections(index_name, skip=0, merged=False, debug=False):
     doc_count = 0
 
     refs = library.ref_list()
-    if debug or True:
+    if debug:
         refs = refs[:10]
     print "Beginning index of %d refs." % len(refs)
 
