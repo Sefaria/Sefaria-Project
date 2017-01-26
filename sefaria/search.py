@@ -502,6 +502,7 @@ def add_recent_to_queue(ndays):
     for ref in list(refs):
         add_ref_to_index_queue(ref[0], ref[1], ref[2])
 
+
 def get_current_index_name(merged=False, debug=False):
     index_name_a = "{}-a{}".format(SEARCH_INDEX_NAME if not merged else "merged", '-debug' if debug else '')
     index_name_b = "{}-b{}".format(SEARCH_INDEX_NAME if not merged else "merged", '-debug' if debug else '')
@@ -565,7 +566,6 @@ def index_all(skip=0, merged=False, debug=False):
     clear_index(old_index_name)
     end = datetime.now()
     print "Elapsed time: %s" % str(end-start)
-
 
 
 # adapted to python from library.js:sjs.search.get_query_object()
