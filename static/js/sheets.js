@@ -3239,13 +3239,6 @@ function rebuildUpdatedSheet(data) {
 		// An editor is currently open -- save current changes as a lastEdit
 		sjs.saveLastEdit($(".cke_editable").eq(0));
 	}
-	var lastSelectedInterfaceButton = null;
-	if (sjs.can_edit || sjs.can_add) {
-		$("#addInterface").insertAfter($("#sources"));
-		lastSelectedInterfaceButton = $(".addInterfaceButton.active"); //ensures that add interface remains on the same screen it was previously during a rebuild. So that text in progress can still be added....
-		lastSelectedInterfaceButton.click();
-	}
-
 	var topMostVisibleSheetItem = null;
 	var relativeScrollTop = null;
 
@@ -3256,6 +3249,13 @@ function rebuildUpdatedSheet(data) {
 			return false;
 		}
 	});
+
+	if (sjs.can_edit || sjs.can_add) {
+		$("#addInterface").insertAfter($("#sources"));
+		var lastSelectedInterfaceButton = $(".addInterfaceButton.active"); //ensures that add interface remains on the same screen it was previously during a rebuild. So that text in progress can still be added....
+	}
+
+
 	buildSheet(data);
 	sjs.replayLastEdit();
 
@@ -3273,6 +3273,11 @@ function rebuildUpdatedSheet(data) {
 			$("#addInterface").insertAfter($(this).parent().closest(".sheetItem"));
 			$(this).parent().closest(".sheetItem").hasClass("source") ? $("#connectionButton").css('display', 'inline-block') : $("#connectionButton").hide();
 		});
+	}
+
+	if (sjs.can_edit || sjs.can_add) {
+		$("[data-node='" + topMostVisibleSheetItem + "'] .inlineAddButtonIcon").click();
+		lastSelectedInterfaceButton.click();
 	}
 
 	sjs.changesPending = false;
