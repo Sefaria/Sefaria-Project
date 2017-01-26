@@ -3,6 +3,7 @@
 import pytest
 from sefaria.model import *
 import re
+from sefaria.system import exceptions
 
 
 def setup_module(module):
@@ -194,5 +195,12 @@ def test_text_index_map():
     for ri in rand_inds:
         assert u' '.join(tokenizer(ref_list[ri].text(lang="he",vtitle="Tanach with Text Only").text)) == u' '.join(mes_str_array[index_list[ri]:index_list[ri+1]])
 
+
+def non_ascii_test():
+    node = JaggedArrayNode()
+    node.add_primary_titles(u'Title with this\u2019', u'משהו')
+    node.add_structure(['Something'])
+    with pytest.raises(exceptions.InputError):
+        node.validate()
 
 
