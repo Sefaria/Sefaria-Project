@@ -2026,11 +2026,33 @@ Sefaria.util = {
 
         // Protect against browsers without consoles and forgotten console statements
         if(typeof(console) === 'undefined') {
-            var console = {}
+            var console = {};
             console.log = function() {};
         }
     },
-    
+    handleUserCookie: function() {
+        var cookie = (typeof require !== 'undefined') ? Sefaria.util.cookie : $.cookie;
+
+        if (this.loggedIn) {
+            // If logged in, replace cookie with current system details
+            cookie("_user", {
+               _uid: Sefaria._uid,
+               _partner_group: Sefaria._partner_group,
+               _partner_role: Sefaria._partner_role
+            });
+            // And store current uid in analytics id
+            Sefaria._anaytics_uid = Sefaria._uid;
+        } else {
+            // If not logged in, get details from cookie
+            var c = cookie("_user");
+            if (c) {
+            Sefaria._analytics_uid = c._uid;
+            Sefaria._partner_group = c._partner_group;
+            Sefaria._partner_role = c._partner_role;
+            }
+        }
+
+    },
     getSelectionBoundaryElement: function(isStart) {
         // http://stackoverflow.com/questions/1335252/how-can-i-get-the-dom-element-which-contains-the-current-selection
         var range, sel, container;
@@ -2070,6 +2092,7 @@ Sefaria.setup =function() {
     Sefaria.util.setupPrototypes();
     Sefaria.util.setupJQuery();
     Sefaria.util.setupMisc();
+    Sefaria.util.handleUserCookie();
     Sefaria._makeBooksDict();
     Sefaria._cacheIndexFromToc(Sefaria.toc);  
 };
@@ -2299,6 +2322,15 @@ Sefaria.site = {
     },
     setSidebars: function(val) {
         ga('set', 'dimension6', val);
+    },
+    setUserLoggedIn: function(val) {
+        ga('set', 'dimension7', val);
+    },
+    setUserPartnerGroup: function(val) {
+        ga('set', 'dimension8', val);
+    },
+    setUserPartnerRole: function(val) {
+        ga('set', 'dimension9', val);
     },
     sheets: function(action, label) {
         Sefaria.site.track.event("Sheets", action, label);

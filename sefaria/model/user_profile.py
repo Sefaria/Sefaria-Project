@@ -54,6 +54,8 @@ class UserProfile(object):
 		self.linkedin              = ""
 		self.pinned_sheets         = []
 		self.interrupting_messages = ["newUserWelcome"]
+		self.partner_group        = ""
+		self.partner_role         = ""
 
 		self.settings     =  {
 			"email_notifications": "daily",
@@ -226,6 +228,8 @@ class UserProfile(object):
 			"settings":              self.settings,
 			"interrupting_messages": getattr(self, "interrupting_messages", []),
 			"tag_order":             getattr(self, "tag_order", None),
+			"partner_group":         self.partner_group,
+			"partner_role":          self.partner_role
 		}
 		return dictionary
 
