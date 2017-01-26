@@ -2033,22 +2033,26 @@ Sefaria.util = {
     handleUserCookie: function() {
         var cookie = (typeof require !== 'undefined') ? Sefaria.util.cookie : $.cookie;
 
-        if (this.loggedIn) {
+        if (Sefaria.loggedIn) {
             // If logged in, replace cookie with current system details
-            cookie("_user", {
+
+            var expires = new Date(); // starts with current time
+            expires.setTime(expires.getTime() + 2 * 365 * 24 * 3600 * 1000);  // milliseconds
+
+            cookie("_user", JSON.stringify({
                _uid: Sefaria._uid,
                _partner_group: Sefaria._partner_group,
                _partner_role: Sefaria._partner_role
-            });
+            }), { path: "/", expires: expires });
             // And store current uid in analytics id
-            Sefaria._anaytics_uid = Sefaria._uid;
+            Sefaria._analytics_uid = Sefaria._uid;
         } else {
             // If not logged in, get details from cookie
-            var c = cookie("_user");
+            var c = JSON.parse(cookie("_user"));
             if (c) {
-            Sefaria._analytics_uid = c._uid;
-            Sefaria._partner_group = c._partner_group;
-            Sefaria._partner_role = c._partner_role;
+                Sefaria._analytics_uid = c._uid;
+                Sefaria._partner_group = c._partner_group;
+                Sefaria._partner_role = c._partner_role;
             }
         }
 
@@ -2088,15 +2092,6 @@ Sefaria.util = {
         }
     }
 };
-Sefaria.setup =function() {
-    Sefaria.util.setupPrototypes();
-    Sefaria.util.setupJQuery();
-    Sefaria.util.setupMisc();
-    Sefaria.util.handleUserCookie();
-    Sefaria._makeBooksDict();
-    Sefaria._cacheIndexFromToc(Sefaria.toc);  
-};
-Sefaria.setup();
 
 
 Sefaria.hebrew = {
@@ -2323,14 +2318,25 @@ Sefaria.site = {
     setSidebars: function(val) {
         ga('set', 'dimension6', val);
     },
-    setUserLoggedIn: function(val) {
-        ga('set', 'dimension7', val);
+    setUserLoggedIn: function(bool) {
+        ga('set', 'dimension7', bool? "Logged In": "Logged Out");
     },
     setUserPartnerGroup: function(val) {
         ga('set', 'dimension8', val);
     },
     setUserPartnerRole: function(val) {
         ga('set', 'dimension9', val);
+    },
+    setUserID: function(val) {
+        sval = String(val);
+        ga('set', 'userId', sval);
+        ga('set', 'dimension10', sval);
+    },
+    setUserData: function() {
+        Sefaria.site.track.setUserLoggedIn(Sefaria.loggedIn);
+        if (Sefaria._partner_group) Sefaria.site.track.setUserPartnerGroup(Sefaria._partner_group);
+        if (Sefaria._partner_role) Sefaria.site.track.setUserPartnerRole(Sefaria._partner_role);
+        if (Sefaria._analytics_uid) Sefaria.site.track.setUserID(Sefaria._analytics_uid);
     },
     sheets: function(action, label) {
         Sefaria.site.track.event("Sheets", action, label);
@@ -2399,6 +2405,17 @@ Sefaria.palette.categoryColor = function(cat) {
   return "transparent";
 };
 
+
+Sefaria.setup = function() {
+    Sefaria.util.setupPrototypes();
+    Sefaria.util.setupJQuery();
+    Sefaria.util.setupMisc();
+    Sefaria.util.handleUserCookie();
+    Sefaria._makeBooksDict();
+    Sefaria._cacheIndexFromToc(Sefaria.toc);
+    Sefaria.site.track.setUserData();
+};
+Sefaria.setup();
 
 if (typeof module !== 'undefined') {
   module.exports = Sefaria;
