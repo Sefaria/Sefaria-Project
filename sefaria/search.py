@@ -152,7 +152,7 @@ def make_text_index_document(tref, version, lang):
 
     content = bleach.clean(content, strip=True, tags=())
 
-    if text["type"] == "Talmud" or "Talmud" in text.get("relatedCategories", []):
+    if oref.is_talmud():
         title = text["book"] + " Daf " + text["sections"][0]
     else:
         title = text["book"] + " " + " ".join([u"{} {}".format(p[0], p[1]) for p in zip(text["sectionNames"], text["sections"])])
@@ -161,6 +161,9 @@ def make_text_index_document(tref, version, lang):
     if lang == "he":
         title = text.get("heTitle", "") + " " + title
 
+    if getattr(oref.index, "dependence", None) == 'Commentary': #uch, special casing
+        categories = text["categories"][:].remove('Commentary')
+        categories[0] = categories[0] + " Commentaries" #this will create an additional bucket for each top level category's commentary
     else:
         categories = text["categories"]
 
