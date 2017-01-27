@@ -180,7 +180,7 @@ def make_text_index_document(tref, version, lang):
         "categories": categories,
         "order": oref.order_id(),
         # and
-        "path": "/".join(text["categories"] + [oref.index.title])
+        "path": "/".join(categories + [oref.index.title])
     }
 
 
