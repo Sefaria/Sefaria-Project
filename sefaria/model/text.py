@@ -238,10 +238,42 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
 
     def contents(self, v2=False, raw=False, force_complex=False, **kwargs):
         if not getattr(self, "nodes", None) or raw:  # Commentator
-            return super(Index, self).contents()
+            contents = super(Index, self).contents()
         elif v2:
-            return self.nodes.as_index_contents()
-        return self.legacy_form(force_complex=force_complex)
+            contents = self.nodes.as_index_contents()
+        else:
+            contents = self.legacy_form(force_complex=force_complex)
+
+        if not raw:
+            contents = self.expand_metadata_on_contents(contents)
+
+        return contents
+
+    def expand_metadata_on_contents(self, contents):
+        """
+        Decorates contents with expanded meta data such as Hebrew author names, human readable date strings etc.
+        :param contents: the initial dictionary of contents
+        :return: a dictionary of contents with additional fields   
+        """
+        authors = self.author_objects()
+        if len(authors):
+            contents["authors"] = [{"en": author.primary_name("en"), "he": author.primary_name("he")} for author in authors]
+
+        composition_time_period = self.composition_time_period()
+        if composition_time_period:
+            contents["compDateString"] = {
+                "en": composition_time_period.period_string("en"),
+                "he": composition_time_period.period_string("he"),
+            }
+
+        composition_place = self.composition_place()
+        if composition_place:
+            contents["compPlaceString"] = {
+                "en": composition_place.primary_name("en"),
+                "he": composition_place.primary_name("he"),
+            }
+
+        return contents
 
     def legacy_form(self, force_complex=False):
         """
@@ -3469,15 +3501,26 @@ class Ref(object):
 
     def version_list(self):
         """
-        A list of available text versions titles and languages matching this ref
+        A list of available text versions titles and languages matching this ref.
+        If this ref is book level, decorate with the first available section of content per version.
 
         :return list: each list element is an object with keys 'versionTitle' and 'language'
         """
         fields = ["versionTitle", "versionSource", "language", "status", "license", "versionNotes", "digitizedBySefaria", "priority"]
-        return [
-            {f: getattr(v, f, "") for f in fields}
-            for v in VersionSet(self.condition_query(), proj={f: 1 for f in fields})
-        ]
+        versions = VersionSet(self.condition_query())
+        version_list = []
+        if self.is_book_level():
+            for v in  versions:
+                version = {f: getattr(v, f, "") for f in fields}
+                oref = v.first_section_ref() or v.get_index().nodes.first_leaf().first_section_ref()
+                version["firstSectionRef"] = oref.normal()
+                version_list.append(version)
+            return version_list
+        else:
+            return [
+                {f: getattr(v, f, "") for f in fields}
+                for v in VersionSet(self.condition_query(), proj={f: 1 for f in fields})
+            ]
 
     """ String Representations """
     def __str__(self):
