@@ -97,3 +97,31 @@ def reset_all_api_keys():
     keys = db.apikeys.find()
     for key in keys:
         generate_api_key(key["uid"])
+
+
+def markGroup(group_name, partner_group, partner_role):
+    # For users in specified group, update user profiles with given attributes
+    users = User.objects.filter(groups__name=group_name)
+    for user in users:
+        profile = model.UserProfile(id=user.id)
+        profile.partner_group = partner_group
+        profile.partner_role = partner_role
+        profile.save()
+
+
+def markEmailPattern(pattern, partner_group, partner_role):
+    # For all users with matching email, update user profiles with given attributes
+    users = User.objects.filter(email__contains=pattern)
+    for user in users:
+        profile = model.UserProfile(id=user.id)
+        profile.partner_group = partner_group
+        profile.partner_role = partner_role
+        profile.save()
+
+
+def markUserByEmail(email, partner_group, partner_role):
+    # For user with specified email, update user profile with given attributes
+    profile = model.UserProfile(email=email)
+    profile.partner_group = partner_group
+    profile.partner_role = partner_role
+    profile.save()

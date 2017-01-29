@@ -16,10 +16,16 @@ from sefaria.system.database import db
 
 
 class UserProfile(object):
-	def __init__(self, id=None, slug=None):
+	def __init__(self, id=None, slug=None, email=None):
 
-		if slug: # Load profile by slug if passed
+		if slug:  # Load profile by slug, if passed
 			profile = db.profiles.find_one({"slug": slug})
+			if profile:
+				self.__init__(id=profile["id"])
+				return
+
+		if email:  # Load profile by email, if passed.
+			profile = db.profiles.find_one({"email": email})
 			if profile:
 				self.__init__(id=profile["id"])
 				return
