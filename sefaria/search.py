@@ -161,10 +161,10 @@ def make_text_index_document(tref, version, lang):
     if lang == "he":
         title = text.get("heTitle", "") + " " + title
 
-    if getattr(oref.index, "dependence", None) == 'Commentary': #uch, special casing
+    if getattr(oref.index, "dependence", None) == 'Commentary':  # uch, special casing
         categories = text["categories"][:]
         categories.remove('Commentary')
-        categories[0] = categories[0] + " Commentaries" #this will create an additional bucket for each top level category's commentary
+        categories[0] += " Commentaries"  # this will create an additional bucket for each top level category's commentary
     else:
         categories = text["categories"]
 
