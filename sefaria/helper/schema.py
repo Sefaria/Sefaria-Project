@@ -406,6 +406,7 @@ def change_node_structure(ja_node, section_names, address_types=None, upsize_in_
             for i in range(delta):
                 d["sections"].append(1)
                 d["toSections"].append(1)
+
         return Ref(_obj=d).normal()
 
     commentators = library.get_commentary_version_titles_on_book(ja_node.index.title)
@@ -522,7 +523,7 @@ def cascade(ref_identifier, rewriter=lambda x: x, needs_rewrite=lambda x: True, 
                         setattr(record, attr_name, rewriter(refs))
                     else:
                         intermediate_obj[sub_attr_name] = rewriter(refs)
-                    refs = rewriter(refs)
+                    #refs = rewriter(refs)
                     try:
                         record.save()
                     except InputError as e:
@@ -617,10 +618,56 @@ def cascade(ref_identifier, rewriter=lambda x: x, needs_rewrite=lambda x: True, 
         generic_rewrite(HistorySet(construct_query('old.refs', identifier)), attr_name='old', sub_attr_name='refs')
 
 
-def migrate_to_complex_structure(title, schema, mappings, rewriter, needs_rewrite):
-    #print title
-    #print mappings
-    #print json.dumps(schema)
+def migrate_to_complex_structure(title, schema, mappings):
+    """
+    Converts book that is simple structure to complex.
+    :param title: title of book
+    :param schema: the new complex structure schema, must be JSON
+    :param mappings: a dictionary mapping references from simple structure to references in complex structure
+                    For example:
+        mappings = {"Midrash Tanchuma 1:1": "Midrash Tanchuma, Bereshit",
+                    "Midrash Tanchuma 1:2": "Midrash Tanchuma, Noach",
+                    ...
+                    "Midrash Tanchuma 2:1": "Midrash Tanchuma, Shemot"}
+    :return:
+    """
+    def needs_rewrite(ref, *args):
+        try:
+            return Ref(ref).index.title == title
+        except InputError:
+            return False
+
+    def rewriter(ref):
+        """
+        Converts each reference from the simple text to what it should be in the complex text based on the mappings.
+        Assumes that both the references in the mappings and the references that are passed into the function
+        are not ranges. For example, for the line old_ref.contains(ref), suppose it is:
+        Ref("Genesis 6-7").contains(Ref("Genesis 6:3-4"))
+        This will evaluate to true but then in the return statement,
+        it will not successfully replace the old_ref_str with new_ref.
+        To deal with ranges in the future, split the ranged refs into starting_ref() and ending_ref()
+        and then use in_terms_of() to get the data necessary to properly translate the range.
+        Ranges that cross from one section to another will be cut to only spanning the first section.
+        """
+        if Ref(ref).is_range():
+            print "Currently does not handle ranged refs.  Only handles the starting_ref() of range."
+            ref = Ref(ref).starting_ref()
+        else:
+            ref = Ref(ref)
+        for old_ref in mappings:
+            if Ref(old_ref).is_range():
+                print "Currently does not handle ranged refs.  Only handles the starting_ref() of range."
+                old_ref = Ref(old_ref).starting_ref()
+            else:
+                old_ref = Ref(old_ref)
+            if old_ref.contains(ref):
+                old_ref_str = old_ref.normal()
+                new_ref = mappings[old_ref_str]
+                ref_str = ref.normal()
+                return "Complex {}".format(ref_str.replace(old_ref_str, new_ref))
+        return "Complex {}".format(ref)
+
+
     print "begin conversion"
     #TODO: add method on model.Index to change all 3 (title, nodes.key and nodes.primary title)
 

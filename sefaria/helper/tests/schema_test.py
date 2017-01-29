@@ -1,6 +1,7 @@
 # encoding=utf-8
 from sefaria.model import *
 from sefaria.helper import schema
+from sefaria.system.exceptions import BookNameError
 import pytest
 
 
@@ -122,6 +123,112 @@ def teardown_module():
     v.delete()
     i = Index().load({'title': 'Delete Me'})
     i.delete()
+
+
+
+
+@pytest.mark.deep
+def test_migrate_to_complex_structure():
+    try:
+        library.get_index("Crazy").delete()
+        library.get_index("Complex Crazy").delete()
+    except BookNameError:
+        pass
+
+    index = Index().load({'title': 'Crazy'})
+    if index is not None:
+        ls = LinkSet(Ref("Crazy"))
+        ls.delete()
+        ns = NoteSet({"ref": {"$regex": "Crazy.*"}})
+        ns.delete()
+        index.delete()
+
+    # Build an index with some nodes
+    root = JaggedArrayNode()
+    root.add_title('Crazy', 'en', primary=True)
+    root.add_title(u'משוגע', 'he', primary=True)
+    root.key = 'Crazy'
+    root.depth = 2
+    root.addressTypes = ["Integer", "Integer"]
+    root.sectionNames = ["Siman", "Paragraph"]
+    root.validate()
+
+    index = Index({
+        'schema': root.serialize(),
+        'title': 'Crazy',
+        'categories': ['Craziness'],
+    })
+    index.save()
+
+    p1 = "Gonna be a Trump tower in every city?"
+    p2 = "Maybe re-naming every organ of the body to Trump?"
+    chunk = TextChunk(Ref('Crazy 1:1'), 'en', 'Schema Test')
+    chunk.text = p1
+    chunk.save()
+    chunk = TextChunk(Ref("Crazy 2:2"), 'en', 'Schema Test')
+    chunk.text = p2
+    chunk.save()
+
+    Link({
+        'refs': ['Crazy 1:1', 'Guide for the Perplexed, Part 1'],
+        'type': 'None'
+    }).save()
+
+    Link({
+        'refs': ['Crazy 2:2', 'Guide for the Perplexed, Part 2'],
+        'type': 'None'
+    }).save()
+
+    new_schema = SchemaNode()
+    new_schema.key = "Crazy"
+    new_schema.add_title("Crazy", "en", primary=True)
+    new_schema.add_title(u"משוגע", "he", primary=True)
+
+    j1 = JaggedArrayNode()
+    j1.add_title('Trump', 'en', primary=True)
+    j1.add_title(u'טראמפ', 'he', primary=True)
+    j1.key = 'Trump'
+    j1.depth = 1
+    j1.addressTypes = ["Integer"]
+    j1.sectionNames = ["Paragraph"]
+
+    j2 = JaggedArrayNode()
+    j2.add_title('Americans', 'en', primary=True)
+    j2.add_title(u'אמרקיים', 'he', primary=True)
+    j2.key = 'Americans'
+    j2.depth = 1
+    j2.addressTypes = ["Integer"]
+    j2.sectionNames = ["Paragraph"]
+
+    new_schema.append(j1)
+    new_schema.append(j2)
+    new_schema.validate()
+
+
+    mappings = {}
+
+    mappings["Crazy 1"] = "Crazy, Trump"
+    mappings["Crazy 2"] = "Crazy, Americans"
+
+    schema.migrate_to_complex_structure("Crazy", new_schema.serialize(), mappings)
+
+    #Test that Crazy has two children named Trump and Americans, test the text, test the links
+
+    children = library.get_index("Complex Crazy").nodes.children
+
+    assert children[0].full_title() == "Complex Crazy, Trump"
+    assert children[1].full_title() == "Complex Crazy, Americans"
+
+    assert TextChunk(children[0].ref(), "en", 'Schema Test').text == [p1]
+    assert TextChunk(children[1].ref(), "en", "Schema Test").text == ["", p2]
+
+    assert isinstance(Link().load({'refs': ['Complex Crazy, Trump 1', 'Guide for the Perplexed, Part 1'],}), Link)
+    assert isinstance(Link().load({'refs': ['Complex Crazy, Americans 2', 'Guide for the Perplexed, Part 2'],}), Link)
+
+    library.get_index("Complex Crazy").delete()
+    library.get_index("Crazy").delete()
+
+
 
 
 @pytest.mark.deep
