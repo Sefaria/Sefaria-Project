@@ -119,23 +119,29 @@ class JaggedArray(object):
 
             return distance + (indexes2[first_diff_index] - indexes1[first_diff_index])
 
-
-    def sub_array_length(self, indexes=None):
+    def sub_array_length(self, indexes=None, until_last_nonempty=False):
         """
         :param indexes:  a list of 0 based indexes, for digging len(indexes) levels into the array
+        :param until_last_nonempty_section: True if you want to return the length of the last of the last nonempty (super-section, section, segment)
         :return: The length of the array at the provided index
         """
         if indexes is None:
             indexes = []
         a = self._store
-        if len(indexes) == 0:
+        if len(indexes) == 0 and not until_last_nonempty:
             return len(a)
         for i in range(0, len(indexes)):
             if indexes[i] > len(a) - 1:
                 return None
             a = a[indexes[i]]
         try:
-            result = len(a)
+            if until_last_nonempty and len(a) > 0 and type(a[-1]) == list:  # and not at end of `a`
+                curr_result = len(a)
+                while self.sub_array_length(indexes + [curr_result - 1]) == 0 and curr_result > 0:
+                    curr_result -= 1
+                result = curr_result
+            else:
+                result = len(a)
         except TypeError:
             result = 0
         return result

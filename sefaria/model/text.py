@@ -238,10 +238,42 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
 
     def contents(self, v2=False, raw=False, force_complex=False, **kwargs):
         if not getattr(self, "nodes", None) or raw:  # Commentator
-            return super(Index, self).contents()
+            contents = super(Index, self).contents()
         elif v2:
-            return self.nodes.as_index_contents()
-        return self.legacy_form(force_complex=force_complex)
+            contents = self.nodes.as_index_contents()
+        else:
+            contents = self.legacy_form(force_complex=force_complex)
+
+        if not raw:
+            contents = self.expand_metadata_on_contents(contents)
+
+        return contents
+
+    def expand_metadata_on_contents(self, contents):
+        """
+        Decorates contents with expanded meta data such as Hebrew author names, human readable date strings etc.
+        :param contents: the initial dictionary of contents
+        :return: a dictionary of contents with additional fields   
+        """
+        authors = self.author_objects()
+        if len(authors):
+            contents["authors"] = [{"en": author.primary_name("en"), "he": author.primary_name("he")} for author in authors]
+
+        composition_time_period = self.composition_time_period()
+        if composition_time_period:
+            contents["compDateString"] = {
+                "en": composition_time_period.period_string("en"),
+                "he": composition_time_period.period_string("he"),
+            }
+
+        composition_place = self.composition_place()
+        if composition_place:
+            contents["compPlaceString"] = {
+                "en": composition_place.primary_name("en"),
+                "he": composition_place.primary_name("he"),
+            }
+
+        return contents
 
     def legacy_form(self, force_complex=False):
         """
@@ -1427,6 +1459,8 @@ class TextChunk(AbstractTextRecord):
             temp_tc = temp_ref.text(lang=self.lang, vtitle=self.vtitle)
             ja = temp_tc.ja()
             jarray = ja.mask().array()
+
+            #TODO do I need to check if this ref exists for this version?
             if temp_ref.is_segment_level():
                 ref_list.append(temp_ref)
             elif temp_ref.is_section_level():
@@ -1891,10 +1925,14 @@ class Ref(object):
                 if check[0] > self.index_node.lengths[0] + offset:
                     display_size = self.index_node.address_class(0).toStr("en", self.index_node.lengths[0] + offset)
                     raise InputError(u"{} ends at {} {}.".format(self.book, self.index_node.sectionNames[0], display_size))
+
+        if len(self.sections) != len(self.toSections):
+            raise InputError(u"{} is an invalid range. depth of beginning of range must equal depth of end of range")
+
         for i in range(len(self.sections)):
-            if self.toSections > self.sections:
+            if self.toSections[i] > self.sections[i]:
                 break
-            if self.toSections < self.sections:
+            if self.toSections[i] < self.sections[i]:
                 raise InputError(u"{} is an invalid range.  Ranges must end later than they begin.".format(self.normal()))
 
     def __clean_tref(self):
@@ -2811,6 +2849,21 @@ class Ref(object):
         else:
             return None
 
+    def pad_to_last_segment_ref(self):
+        """
+        From current position in jagged array, pad self so that it reaches the last segment ref
+        :return:
+        """
+
+        ja = self.get_state_ja()
+
+        r = self
+        while not r.is_segment_level():
+            sublen = ja.sub_array_length([s-1 for s in r.toSections],until_last_nonempty=True)
+            r = r.subref([sublen])
+
+        return r
+
     def to(self, toref):
         """
         Return a reference that begins at this :class:`Ref`, and ends at toref
@@ -2821,6 +2874,15 @@ class Ref(object):
         assert self.book == toref.book
         d = self._core_dict()
         d["toSections"] = toref.toSections[:]
+
+
+        #pad sections and toSections so they're the same length. easier to just make them both segment level
+        if len(d['sections']) != len(d['toSections']):
+            if not self.is_segment_level():
+                d['sections'] = self.first_available_section_ref().sections + [1]
+            d['toSections'] = toref.pad_to_last_segment_ref().toSections
+
+
         return Ref(_obj=d)
 
     def subref(self, subsections):
@@ -3029,7 +3091,7 @@ class Ref(object):
             [Ref('Shabbat 13b:3-50'), Ref('Shabbat 14a'), Ref('Shabbat 14b:1-3')]
 
         """
-        if not self._spanned_refs:
+        if not self._spanned_refs or True:
 
             if self.index_node.depth == 1 or not self.is_spanning():
                 self._spanned_refs = [self]
@@ -3037,17 +3099,19 @@ class Ref(object):
             else:
                 start, end = self.sections[self.range_index()], self.toSections[self.range_index()]
                 ref_depth = len(self.sections)
+                to_ref_depth = len(self.toSections)
 
                 refs = []
                 for n in range(start, end + 1):
                     d = self._core_dict()
                     if n == start:
                         d["toSections"] = self.sections[0:self.range_index() + 1]
+
                         for i in range(self.range_index() + 1, ref_depth):
-                            d["toSections"] += [self.get_state_ja().sub_array_length([s - 1 for s in d["toSections"][0:i]])]
+                            d["toSections"] += [self.get_state_ja().sub_array_length([s - 1 for s in d["toSections"][0:i]],until_last_nonempty=True)]
                     elif n == end:
                         d["sections"] = self.toSections[0:self.range_index() + 1]
-                        for _ in range(self.range_index() + 1, ref_depth):
+                        for _ in range(self.range_index() + 1, to_ref_depth):
                             d["sections"] += [1]
                     else:
                         d["sections"] = self.sections[0:self.range_index()] + [n]
@@ -3438,15 +3502,26 @@ class Ref(object):
 
     def version_list(self):
         """
-        A list of available text versions titles and languages matching this ref
+        A list of available text versions titles and languages matching this ref.
+        If this ref is book level, decorate with the first available section of content per version.
 
         :return list: each list element is an object with keys 'versionTitle' and 'language'
         """
         fields = ["versionTitle", "versionSource", "language", "status", "license", "versionNotes", "digitizedBySefaria", "priority"]
-        return [
-            {f: getattr(v, f, "") for f in fields}
-            for v in VersionSet(self.condition_query(), proj={f: 1 for f in fields})
-        ]
+        versions = VersionSet(self.condition_query())
+        version_list = []
+        if self.is_book_level():
+            for v in  versions:
+                version = {f: getattr(v, f, "") for f in fields}
+                oref = v.first_section_ref() or v.get_index().nodes.first_leaf().first_section_ref()
+                version["firstSectionRef"] = oref.normal()
+                version_list.append(version)
+            return version_list
+        else:
+            return [
+                {f: getattr(v, f, "") for f in fields}
+                for v in VersionSet(self.condition_query(), proj={f: 1 for f in fields})
+            ]
 
     """ String Representations """
     def __str__(self):

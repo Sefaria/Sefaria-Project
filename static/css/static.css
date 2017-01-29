@@ -1574,6 +1574,10 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
 #visualGardenPage #results .result-ref {
   font-weight: bold;
 }
+#visualGardenPage #results .result-ref i {
+  cursor: pointer;
+  margin: 0 7px;
+}
 #visualGardenPage #results .result-byline {
   font-size: .8em;
 }
@@ -1649,4 +1653,32 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
   stroke: white;
 }
 
+#visualGardenPage .sourceSheetPanelBox {
+    position: fixed;
+    display: block;
+    left: 40%;
+    top: 90px;
+    width: 330px;
+    padding: 20px;
+    background: white;
+    border: #ccc 2px solid;
+}
+#visualGardenPage .sourceSheetPanelBox .contentInner {
+  margin: 0 auto;
+}
+#visualGardenPage .sourceSheetPanelBox .textList .texts {
+  padding: 0 5px;
+  overflow-y: hidden;
+}
+#visualGardenPage .sourceSheetPanelBox .textList {
+  position: static;
+}
 
+#visualGardenPage .sourceSheetPanelBox .sourceSheetSelector {
+  margin: 0;
+}
+
+#visualGardenPage .sourceSheetBoxTitle i {
+  padding: 0 10px 10px 0;
+  cursor: pointer;
+}
