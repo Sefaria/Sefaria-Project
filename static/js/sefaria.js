@@ -2388,7 +2388,7 @@ Sefaria.palette.categoryColor = function(cat) {
   if (cat in Sefaria.palette.categoryColors) {
     return Sefaria.palette.categoryColors[cat];
   }
-  return "transparent";
+  return Sefaria.palette.categoryColors["Other"];
 };
 
 
