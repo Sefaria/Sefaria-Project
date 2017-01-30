@@ -24,14 +24,12 @@ class UserProfile(object):
 				self.__init__(id=profile["id"])
 				return
 
-		if email:  # Load profile by email, if passed.
-			profile = db.profiles.find_one({"email": email})
-			if profile:
-				self.__init__(id=profile["id"])
-				return
-
 		try:
-			user = User.objects.get(id=id)
+			if email and not id:  # Load profile by email, if passed.
+				user = User.objects.get(email=email)
+				id = user.id
+			else:
+				user = User.objects.get(id=id)
 			self.first_name        = user.first_name
 			self.last_name         = user.last_name
 			self.email             = user.email
