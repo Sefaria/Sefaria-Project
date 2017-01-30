@@ -246,6 +246,7 @@ static_pages = [
     "privacy-policy",
     "coming-soon",
     "shraga-silverstein",
+    "william-davidson-talmud",
     "linker",
     "ios",
     "mobile",
