@@ -3775,87 +3775,73 @@ var ReaderTextTableOfContents = React.createClass({
           { className: 'contentInner' },
           React.createElement(
             'div',
-            { className: 'tocTitle' },
+            { className: 'tocTop' },
+            React.createElement(CategoryAttribution, { categories: Sefaria.index(this.props.title).categories }),
             React.createElement(
-              'span',
-              { className: 'en' },
-              title
-            ),
-            React.createElement(
-              'span',
-              { className: 'he' },
-              heTitle
+              'div',
+              { className: 'tocCategory' },
+              React.createElement(
+                'span',
+                { className: 'en' },
+                category
+              ),
+              React.createElement(
+                'span',
+                { className: 'he' },
+                Sefaria.hebrewCategory(category)
+              )
             ),
             React.createElement(
               'div',
-              { className: 'tocTop' },
+              { className: 'tocTitle' },
               React.createElement(
-                'div',
-                { className: 'tocCategory' },
-                React.createElement(
-                  'span',
-                  { className: 'en' },
-                  category
-                ),
-                React.createElement(
-                  'span',
-                  { className: 'he' },
-                  Sefaria.hebrewCategory(category)
-                )
+                'span',
+                { className: 'en' },
+                title
               ),
-              React.createElement(CategoryAttribution, { categories: Sefaria.index(this.props.title).categories }),
               React.createElement(
-                'div',
-                { className: 'tocTitle' },
-                React.createElement(
-                  'span',
-                  { className: 'en' },
-                  title
-                ),
-                React.createElement(
-                  'span',
-                  { className: 'he' },
-                  heTitle
-                ),
-                moderatorSection
+                'span',
+                { className: 'he' },
+                heTitle
               ),
-              this.isTextToc() ? React.createElement(
-                'div',
-                { className: 'currentSection' },
-                React.createElement(
-                  'span',
-                  { className: 'en' },
-                  section
-                ),
-                React.createElement(
-                  'span',
-                  { className: 'he' },
-                  heSection
-                )
-              ) : null,
-              detailsSection
+              moderatorSection
             ),
             this.isTextToc() ? React.createElement(
               'div',
-              { className: 'currentVersionBox' },
-              currentVersionElement || React.createElement(LoadingMessage, null)
+              { className: 'currentSection' },
+              React.createElement(
+                'span',
+                { className: 'en' },
+                section
+              ),
+              React.createElement(
+                'span',
+                { className: 'he' },
+                heSection
+              )
             ) : null,
-            details ? React.createElement(
-              'div',
-              { onClick: this.handleClick },
-              React.createElement(TextTableOfContentsNavigation, {
-                schema: details.schema,
-                commentatorList: Sefaria.commentaryList(this.props.title),
-                alts: details.alts,
-                versionsList: versions,
-                openVersion: this.openVersion,
-                defaultStruct: "default_struct" in details && details.default_struct in details.alts ? details.default_struct : "default",
-                currentRef: this.isTextToc() ? this.props.currentRef : null,
-                narrowPanel: this.props.narrowPanel,
-                title: this.props.title })
-            ) : React.createElement(LoadingMessage, null),
-            downloadSection
-          )
+            detailsSection
+          ),
+          this.isTextToc() ? React.createElement(
+            'div',
+            { className: 'currentVersionBox' },
+            currentVersionElement || React.createElement(LoadingMessage, null)
+          ) : null,
+          details ? React.createElement(
+            'div',
+            { onClick: this.handleClick },
+            React.createElement(TextTableOfContentsNavigation, {
+              schema: details.schema,
+              commentatorList: Sefaria.commentaryList(this.props.title),
+              alts: details.alts,
+              versionsList: versions,
+              openVersion: this.openVersion,
+              defaultStruct: "default_struct" in details && details.default_struct in details.alts ? details.default_struct : "default",
+              currentRef: this.isTextToc() ? this.props.currentRef : null,
+              narrowPanel: this.props.narrowPanel,
+              title: this.props.title })
+          ) : React.createElement(LoadingMessage, null),
+          downloadSection
         )
       )
     );

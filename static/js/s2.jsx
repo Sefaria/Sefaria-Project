@@ -3214,15 +3214,12 @@ var ReaderTextTableOfContents = React.createClass({
               </div>
               <div className="content">
                 <div className="contentInner">
-                  <div className="tocTitle">
-                    <span className="en">{title}</span>
-                    <span className="he">{heTitle}</span>
                   <div className="tocTop">
+                    <CategoryAttribution categories={Sefaria.index(this.props.title).categories} />
                     <div className="tocCategory">
                       <span className="en">{category}</span>
                       <span className="he">{Sefaria.hebrewCategory(category)}</span>
                     </div>
-                    <CategoryAttribution categories={Sefaria.index(this.props.title).categories} />
                     <div className="tocTitle">
                       <span className="en">{title}</span>
                       <span className="he">{heTitle}</span>
@@ -3258,8 +3255,7 @@ var ReaderTextTableOfContents = React.createClass({
                   {downloadSection}
                 </div>
               </div>
-            </div>
-      </div>);
+            </div>);
   }
 });
 
