@@ -808,7 +808,7 @@ class NumberedTitledTreeNode(TitledTreeNode):
         if address_types is None:
             self.addressTypes = ['Integer'] * len(section_names)
         else:
-            self.address_types = address_types
+            self.addressTypes = address_types
 
     def serialize(self, **kwargs):
         d = super(NumberedTitledTreeNode, self).serialize(**kwargs)
