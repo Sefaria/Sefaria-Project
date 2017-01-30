@@ -506,7 +506,10 @@ def hebrew_term(s):
 		"Tur and Commentaries": u'טור ומפרשיו',
 		"Yachin": u'יכין',
 		"Boaz": u'בועז',
-        "Harchev Davar": u'הרחב דבר'
+        "Harchev Davar": u'הרחב דבר',
+		'Grammatica Hebraica': u'דקדוק',
+		'Minchat Shai': u'מנחת שי'
+
 	}
 
 	pseudo_categories = {
