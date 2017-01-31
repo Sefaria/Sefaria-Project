@@ -538,7 +538,7 @@ def cascade(ref_identifier, rewriter=lambda x: x, needs_rewrite=lambda x: True, 
                 try:
                     ref = Ref(source["ref"])
                 except (InputError, ValueError):
-                    print "Error: In _clean_sheets.rewrite_source: failed to instantiate Ref {}".format(source["ref"])
+                    print "Error: In clean_sheets.rewrite_source: failed to instantiate Ref {}".format(source["ref"])
                 else:
                     if needs_rewrite(source['ref']):
                         requires_save = True
