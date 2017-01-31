@@ -611,11 +611,11 @@ def cascade(ref_identifier, rewriter=lambda x: x, needs_rewrite=lambda x: True, 
     update_alt_structs(ref_identifier.index)
     if not skip_history:
         print 'Updating History'
-        generic_rewrite(HistorySet(construct_query('ref', identifier)))
-        generic_rewrite(HistorySet(construct_query('new.ref', identifier)), attr_name='new', sub_attr_name='ref')
-        generic_rewrite(HistorySet(construct_query('new.refs', identifier)), attr_name='new', sub_attr_name='refs')
-        generic_rewrite(HistorySet(construct_query('old.ref', identifier)), attr_name='old', sub_attr_name='ref')
-        generic_rewrite(HistorySet(construct_query('old.refs', identifier)), attr_name='old', sub_attr_name='refs')
+        generic_rewrite(HistorySet(construct_query('ref', identifier), sort=[('ref', 1)]))
+        generic_rewrite(HistorySet(construct_query('new.ref', identifier), sort=[('new.ref', 1)]), attr_name='new', sub_attr_name='ref')
+        generic_rewrite(HistorySet(construct_query('new.refs', identifier), sort=[('new.refs', 1)]), attr_name='new', sub_attr_name='refs')
+        generic_rewrite(HistorySet(construct_query('old.ref', identifier), sort=[('old.ref', 1)]), attr_name='old', sub_attr_name='ref')
+        generic_rewrite(HistorySet(construct_query('old.refs', identifier), sort=[('old.refs', 1)]), attr_name='old', sub_attr_name='refs')
 
 
 def migrate_to_complex_structure(title, schema, mappings):
