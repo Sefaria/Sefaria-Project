@@ -1,6 +1,6 @@
 from sefaria.model import *
 from sefaria.system.exceptions import InputError
-from sefaria.search import delete_text, index_text
+from sefaria.search import delete_text, index_text, get_new_and_current_index_names
 from sefaria.sheets import get_sheets_for_ref, get_sheet, save_sheet
 from sefaria.system.database import db
 
@@ -555,11 +555,12 @@ class Splicer(object):
         if not SEARCH_INDEX_ON_SAVE:
             return
 
+        index_name = get_new_and_current_index_names()['current']
         for v in self.versionSet:
             if self._report:
                 print "ElasticSearch: Reindexing {} / {} / {}".format(self.section_ref.normal(), v.versionTitle, v.language)
             if self._save:
-                index_text(self.section_ref, v.versionTitle, v.language)
+                index_text(index_name, self.section_ref, v.versionTitle, v.language)
 
             # If this is not a Bavli ref, it's been indexed by segment.  Delete the last dangling segment
             if not self.section_ref.is_bavli() and self._mode == "join":
@@ -579,7 +580,7 @@ class Splicer(object):
                     if self._report:
                         print "ElasticSearch: Reindexing {} / {} / {}".format(commentor_section_ref.normal(), v.versionTitle, v.language)
                     if self._save:
-                        index_text(commentor_section_ref, v.versionTitle, v.language)
+                        index_text(index_name, commentor_section_ref, v.versionTitle, v.language)
 
                 last_segment = len(last_commentator_section_ref.get_state_ja().subarray_with_ref(last_commentator_section_ref))
 
