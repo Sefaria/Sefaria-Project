@@ -471,11 +471,12 @@ def index_from_queue():
     Delete queue records on success.
     """
     index_name = get_new_and_current_index_names()['current']
+    index_name_merged = get_new_and_current_index_names(merged=True)['current']
     queue = db.index_queue.find()
     for item in queue:
         try:
             index_text(index_name, Ref(item["ref"]), version=item["version"], lang=item["lang"])
-            index_text(index_name, Ref(item["ref"]), lang=item["lang"], merged=True)
+            index_text(index_name_merged, Ref(item["ref"]), lang=item["lang"], merged=True)
             db.index_queue.remove(item)
         except Exception, e:
             import sys
