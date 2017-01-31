@@ -1292,7 +1292,7 @@ $(function() {
 				}
 				$target.length == 0 ? buildSource($("#sources"), source, "append") : buildSource($target, source, "insert");
 				autoSave();
-				$(".contentToAdd").html('');
+				$("#addcommentDiv .contentToAdd").html('<br>');
 				$("#sheet").click();
 				//$target.next(".sheetItem").find(".comment").last().trigger("mouseup").focus();
 
@@ -1374,7 +1374,8 @@ $(function() {
 				}
 				$target.length == 0 ? buildSource($("#sources"), source, "append") : buildSource($target, source, "insert");
 				autoSave();
-				$(".contentToAdd").html('');
+				$("#customTextContainer .contentToAdd.en").html('English');
+				$("#customTextContainer .contentToAdd.he").html('עברית');
 				$("#sheet").click();
 				//	$target.next(".sheetItem").find(".comment").last().trigger("mouseup").focus();
 
@@ -3234,20 +3235,45 @@ function rebuildUpdatedSheet(data) {
 		// An editor is currently open -- save current changes as a lastEdit
 		sjs.saveLastEdit($(".cke_editable").eq(0));
 	}
-	var lastSelectedInterfaceButton = null;
+	var topMostVisibleSheetItem = null;
+	var relativeScrollTop = null;
+
+	$(".sheetItem").each(function( ){
+		if ( $('body').scrollTop() < $(this).offset().top + $(this).height() ) {
+			topMostVisibleSheetItem = $(this).attr('data-node');
+			relativeScrollTop = $(this).offset().top + $(this).height()-$('body').scrollTop();
+			return false;
+		}
+	});
+
 	if (sjs.can_edit || sjs.can_add) {
 		$("#addInterface").insertAfter($("#sources"));
 		var lastSelectedInterfaceButton = $(".addInterfaceButton.active"); //ensures that add interface remains on the same screen it was previously during a rebuild. So that text in progress can still be added....
-		lastSelectedInterfaceButton.click();
 	}
+
+
 	buildSheet(data);
 	sjs.replayLastEdit();
-	lastSelectedInterfaceButton.click();
+
+	if (topMostVisibleSheetItem == null) {
+		curTextLocation = $("#sourceButton").offset().top - 200
+	} else {
+		curTextLocation = $("[data-node='"+topMostVisibleSheetItem+"']").offset().top  + $("[data-node='"+topMostVisibleSheetItem+"']").height() - relativeScrollTop;
+	}
+
+	$("html, body").scrollTop(curTextLocation);
+
+
 	if (sjs.can_edit || sjs.can_add) {
 		$(".sheetItem").on("click", ".inlineAddButtonIcon", function(e) {
 			$("#addInterface").insertAfter($(this).parent().closest(".sheetItem"));
 			$(this).parent().closest(".sheetItem").hasClass("source") ? $("#connectionButton").css('display', 'inline-block') : $("#connectionButton").hide();
 		});
+	}
+
+	if (sjs.can_edit || sjs.can_add) {
+		$("[data-node='" + topMostVisibleSheetItem + "'] .inlineAddButtonIcon").click();
+		lastSelectedInterfaceButton.click();
 	}
 
 	sjs.changesPending = false;

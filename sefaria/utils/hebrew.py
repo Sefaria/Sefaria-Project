@@ -506,7 +506,9 @@ def hebrew_term(s):
 		"Yachin": u'יכין',
 		"Boaz": u'בועז',
         "Harchev Davar": u'הרחב דבר',
-		"Guides": u'ספרות עזר'
+		"Guides": u'ספרות עזר',
+		'Grammatica Hebraica': u'דקדוק',
+		'Minchat Shai': u'מנחת שי'
 	}
 
 	pseudo_categories = {

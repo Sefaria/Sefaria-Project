@@ -1176,7 +1176,7 @@ a:active {
 		text-align: right !important;
 		width: 100%;
 	}
-	#controls {
+	#controls, #fileControls {
 		display: none;
 	}
 
