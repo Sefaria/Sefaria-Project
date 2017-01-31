@@ -63,7 +63,7 @@ def fix_node_titles():
             return
         things_to_replace = {
             u'\xa0': u'',
-            u'\u051b': u's',
+            u'\u015b': u's',
             u'\u2018': u"'",
             u'\u2019': u"'"
         }
