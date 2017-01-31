@@ -46,7 +46,14 @@ def index_text(index_name, oref, version=None, lang=None, bavli_amud=True, merge
     Index the text designated by ref.
     If no version and lang are given, this function will be called for each available version.
     If `merged` is true, and lang is given, it will index a merged version of this document
-    Currently assumes ref is at section level. 
+
+    :param str index_name: The index name, as provided by `get_new_and_current_index_names`
+    :param str oref: Currently assumes ref is at section level.
+    :param str version: Version being indexed
+    :param str lang: Language of version being indexed
+    :param bool bavli_amud:  Is this Bavli? Bavli text is indexed by section, not segment.
+    :param bool merged: is this a merged index?
+    :return:
     """
     assert isinstance(oref, Ref)
     oref = oref.default_child_ref()
