@@ -18,6 +18,7 @@ from django.utils.log import NullHandler
 logger = logging.getLogger(__name__)
 
 from pyelasticsearch import ElasticSearch
+from pyelasticsearch import ElasticHttpNotFoundError, ElasticHttpError
 
 from sefaria.model import *
 from sefaria.model.text import AbstractIndex
@@ -40,12 +41,19 @@ tracer.addHandler(NullHandler())
 doc_count = 0
 
 
-def index_text(oref, version=None, lang=None, bavli_amud=True, merged=False):
+def index_text(index_name, oref, version=None, lang=None, bavli_amud=True, merged=False):
     """
     Index the text designated by ref.
     If no version and lang are given, this function will be called for each available version.
     If `merged` is true, and lang is given, it will index a merged version of this document
-    Currently assumes ref is at section level. 
+
+    :param str index_name: The index name, as provided by `get_new_and_current_index_names`
+    :param str oref: Currently assumes ref is at section level.
+    :param str version: Version being indexed
+    :param str lang: Language of version being indexed
+    :param bool bavli_amud:  Is this Bavli? Bavli text is indexed by section, not segment.
+    :param bool merged: is this a merged index?
+    :return:
     """
     assert isinstance(oref, Ref)
     oref = oref.default_child_ref()
@@ -55,11 +63,11 @@ def index_text(oref, version=None, lang=None, bavli_amud=True, merged=False):
         raise InputError("index_text() called with version title and merged flag.")
     if not merged and not (version and lang):
         for v in oref.version_list():
-            index_text(oref, version=v["versionTitle"], lang=v["language"], bavli_amud=bavli_amud)
+            index_text(index_name, oref, version=v["versionTitle"], lang=v["language"], bavli_amud=bavli_amud)
         return
     elif merged and not lang:
         for l in ["he", "en"]:
-            index_text(oref, lang=l, bavli_amud=bavli_amud, merged=merged)
+            index_text(index_name, oref, lang=l, bavli_amud=bavli_amud, merged=merged)
         return
 
     # Index each segment of this document individually
@@ -70,7 +78,7 @@ def index_text(oref, version=None, lang=None, bavli_amud=True, merged=False):
         t = TextChunk(oref, lang=lang, vtitle=version) if not merged else TextChunk(oref, lang=lang)
 
         for ref in oref.subrefs(len(t.text)):
-            index_text(ref, version=version, lang=lang, bavli_amud=bavli_amud, merged=merged)
+            index_text(index_name, ref, version=version, lang=lang, bavli_amud=bavli_amud, merged=merged)
         return  # Returning at this level prevents indexing of full chapters
 
     '''   Can't get here after the return above
@@ -89,10 +97,10 @@ def index_text(oref, version=None, lang=None, bavli_amud=True, merged=False):
     if doc:
         try:
             global doc_count
-            search_index = SEARCH_INDEX_NAME if not merged else "merged"
+
             if doc_count % 5000 == 0:
                 logger.info(u"[{}] Indexing {} / {} / {}".format(doc_count, oref.normal(), version, lang))
-            es.index(search_index, 'text', doc, make_text_doc_id(oref.normal(), version, lang))
+            es.index(index_name, 'text', doc, make_text_doc_id(oref.normal(), version, lang))
             doc_count += 1
         except Exception, e:
             logger.error(u"ERROR indexing {} / {} / {} : {}".format(oref.normal(), version, lang, e))
@@ -100,10 +108,13 @@ def index_text(oref, version=None, lang=None, bavli_amud=True, merged=False):
 
 def delete_text(oref, version, lang):
     try:
+        not_merged_name = get_new_and_current_index_names(False)['current']
+        merged_name = get_new_and_current_index_names(True)['current']
+
         id = make_text_doc_id(oref.normal(), version, lang)
-        es.delete(SEARCH_INDEX_NAME, 'text', id)
+        es.delete(not_merged_name, 'text', id)
         id = make_text_doc_id(oref.normal(), None, lang)
-        es.delete("merged", 'text', id)
+        es.delete(merged_name, 'text', id)
     except Exception, e:
         logger.error(u"ERROR deleting {} / {} / {} : {}".format(oref.normal(), version, lang, e))
 
@@ -121,17 +132,16 @@ def delete_version(index, version, lang):
         delete_text(ref, version, lang)
 
 
-def index_full_version(index, version, lang):
+def index_full_version(index_name, index, version, lang):
     assert isinstance(index, AbstractIndex)
 
     for ref in index.all_section_refs():
-        index_text(ref, version=version, lang=lang)
-        index_text(ref, lang=lang, merged=True)
+        index_text(index_name, ref, version=version, lang=lang)
 
 
-def delete_sheet(id):
+def delete_sheet(index_name, id):
     try:
-        es.delete(SEARCH_INDEX_NAME, "sheet", id)
+        es.delete(index_name, "sheet", id)
     except Exception, e:
         logger.error(u"ERROR deleting sheet {}".format(id))
 
@@ -216,7 +226,7 @@ def unicode_number(u):
     return n
 
 
-def index_sheet(id):
+def index_sheet(index_name, id):
     """
     Index source sheet with 'id'.
     """
@@ -237,7 +247,7 @@ def index_sheet(id):
         "sheetId": id,
     }
     try:
-        es.index(SEARCH_INDEX_NAME, 'sheet', doc, id)
+        es.index(index_name, 'sheet', doc, id)
         global doc_count
         doc_count += 1
     except Exception, e:
@@ -287,11 +297,14 @@ def source_text(source):
     return text
 
 
-def create_index(merged=False):
+def create_index(index_name, merged=False):
     """
     Clears the "sefaria" and "merged" indexes and creates it fresh with the below settings.
     """
-    clear_index(merged=merged)
+    try:
+        clear_index(index_name)
+    except ElasticHttpError:
+        logging.warning("Failed to delete non-existent index: {}".format(index_name))
 
     settings = {
         "index" : {
@@ -318,14 +331,15 @@ def create_index(merged=False):
             }
         }
     }
-    es.create_index(SEARCH_INDEX_NAME if not merged else "merged", settings)
+    print 'CReating index {}'.format(index_name)
+    es.create_index(index_name, settings)
 
-    put_text_mapping(merged=merged)
+    put_text_mapping(index_name)
     if not merged:
         put_sheet_mapping()
 
 
-def put_text_mapping(merged=False):
+def put_text_mapping(index_name):
     """
     Settings mapping for the text document type.
     """
@@ -371,7 +385,7 @@ def put_text_mapping(merged=False):
             }
         }
     }
-    es.put_mapping(SEARCH_INDEX_NAME if not merged else "merged", "text", text_mapping)
+    es.put_mapping(index_name, "text", text_mapping)
 
 
 def put_sheet_mapping():
@@ -395,7 +409,7 @@ def put_sheet_mapping():
     return
 
 
-def index_all_sections(skip=0, merged=False):
+def index_all_sections(index_name, skip=0, merged=False, debug=False):
     """
     Step through refs of all sections of available text and index each. 
     """
@@ -403,23 +417,25 @@ def index_all_sections(skip=0, merged=False):
     doc_count = 0
 
     refs = library.ref_list()
+    if debug:
+        refs = refs[:10]
     print "Beginning index of %d refs." % len(refs)
 
     for i in range(skip, len(refs)):
-        index_text(refs[i], merged=merged)
+        index_text(index_name, refs[i], merged=merged)
         if i % 200 == 0:
             print "Indexed Ref #%d" % i
 
     print "Indexed %d documents." % doc_count
 
 
-def index_public_sheets():
+def index_public_sheets(index_name):
     """
     Index all source sheets that are publicly listed.
     """
     ids = db.sheets.find({"status": "public"}).distinct("id")
     for id in ids:
-        index_sheet(id)
+        index_sheet(index_name, id)
 
 
 def index_public_notes():
@@ -431,11 +447,10 @@ def index_public_notes():
     pass
 
 
-def clear_index(merged=False):
+def clear_index(index_name):
     """
     Delete the search index.
     """
-    index_name = SEARCH_INDEX_NAME if not merged else "merged"
     try:
         es.delete_index(index_name)
     except Exception, e:
@@ -462,11 +477,13 @@ def index_from_queue():
     Index every ref/version/lang found in the index queue.
     Delete queue records on success.
     """
+    index_name = get_new_and_current_index_names()['current']
+    index_name_merged = get_new_and_current_index_names(merged=True)['current']
     queue = db.index_queue.find()
     for item in queue:
         try:
-            index_text(Ref(item["ref"]), version=item["version"], lang=item["lang"])
-            index_text(Ref(item["ref"]), lang=item["lang"], merged=True)
+            index_text(index_name, Ref(item["ref"]), version=item["version"], lang=item["lang"])
+            index_text(index_name_merged, Ref(item["ref"]), lang=item["lang"], merged=True)
             db.index_queue.remove(item)
         except Exception, e:
             import sys
@@ -492,20 +509,69 @@ def add_recent_to_queue(ndays):
     for ref in list(refs):
         add_ref_to_index_queue(ref[0], ref[1], ref[2])
 
+def get_new_and_current_index_names(merged=False, debug=False):
+    index_name_a = "{}-a{}".format(SEARCH_INDEX_NAME if not merged else "merged", '-debug' if debug else '')
+    index_name_b = "{}-b{}".format(SEARCH_INDEX_NAME if not merged else "merged", '-debug' if debug else '')
+    alias_name = "{}{}".format(SEARCH_INDEX_NAME if not merged else "merged",'-debug' if debug else '')
 
-def index_all(skip=0, clear=False, merged=False):
+    aliases = es.aliases()
+    try:
+        a_alias = aliases[index_name_a]['aliases']
+        choose_a = alias_name not in a_alias
+    except KeyError:
+        choose_a = True
+
+    if choose_a:
+        new_index_name = index_name_a
+        old_index_name = index_name_b
+    else:
+        new_index_name = index_name_b
+        old_index_name = index_name_a
+
+    return {"new": new_index_name, "current": old_index_name, "alias": alias_name}
+
+
+def index_all(skip=0, merged=False, debug=False):
     """
     Fully create the search index from scratch.
     """
     start = datetime.now()
-    if clear:
-        create_index(merged=merged)
-    index_all_sections(skip=skip, merged=merged)
+
+    name_dict = get_new_and_current_index_names(merged=merged, debug=debug)
+    new_index_name = name_dict['new']
+    curr_index_name = name_dict['current']
+    alias_name = name_dict['alias']
+
+    create_index(new_index_name, merged=merged)
+    index_all_sections(new_index_name, skip=skip, merged=merged, debug=debug)
     if not merged:
-        index_public_sheets()
+        index_public_sheets(new_index_name)
+
+    alias_actions = [
+        {
+            "remove": {
+                "alias": alias_name,
+                "index": curr_index_name
+            }
+        }
+    ]
+    try:
+        es.update_aliases(alias_actions)
+    except ElasticHttpNotFoundError:
+        pass
+
+    clear_index(alias_name) # make sure there are no indexes with the alias_name
+    alias_actions = [ {
+        "add": {
+            "alias": alias_name,
+            "index": new_index_name
+        }
+    }]
+    es.update_aliases(alias_actions)
+
+    clear_index(curr_index_name)
     end = datetime.now()
     print "Elapsed time: %s" % str(end-start)
-
 
 
 # adapted to python from library.js:sjs.search.get_query_object()
