@@ -3514,9 +3514,10 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
 .multiPanel .readerNavMenu .content.hasFooter #footer{
   margin-top: 120px;
 }
-.gemarra-regular {
+.gemarra-regular, .gemarra-italic {
   font-weight: bold;
 }
-.it-text {
+.it-text, .gemarra-italic {
   font-style: italic;
 }
+
