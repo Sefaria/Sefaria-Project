@@ -34,7 +34,7 @@ Install [virtualenv](http://pypi.python.org/pypi/virtualenv) then enter these co
 Now you should see `(venv)` in front of your command prompt. The second command sets your shell to use the Python virtual environment that you've just created. This is something that you have to run everytime you open a new shell and want to run the Sefaria demo. You can always tell if you're in the virtual environment by checking if `(venv)` is at the beginning of your command prompt. 
     
 #### Pip: 
-If you don't already have it in your Python installation, install [pip](http://www.pip-installer.org/en/latest/installing.html). Then use it to install the required Python packages.
+If you don't already have it in your Python installation, install [pip](https://pip.pypa.io/en/stable/installing/). Then use it to install the required Python packages.
 
 	pip install -r requirements.txt
 
