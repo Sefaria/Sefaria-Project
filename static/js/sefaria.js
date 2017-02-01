@@ -3,8 +3,9 @@ if (typeof require !== 'undefined') {
       $         = require('cheerio'),
       extend    = require('extend'),
       param     = require('querystring').stringify,
-      striptags = require('striptags');
-      $.ajax    = function() {}; // Fail gracefully if we reach one of these methods server side
+      striptags = require('striptags'),
+      ga        = function() {}; // Fail gracefully if we reach one of these methods server side
+      $.ajax    = function() {}; // ditto
       $.getJSON = function() {}; // ditto
 } else {
   var INBROWSER = true,
@@ -2131,13 +2132,14 @@ Sefaria.util = {
             }), { path: "/", expires: expires });
             // And store current uid in analytics id
             Sefaria._analytics_uid = Sefaria._uid;
-        } else {
+        } else { 
             // If not logged in, get details from cookie
-            var c = JSON.parse(cookie("_user"));
+            var c = cookie("_user");
             if (c) {
-                Sefaria._analytics_uid = c._uid;
-                Sefaria._partner_group = c._partner_group;
-                Sefaria._partner_role = c._partner_role;
+              c = JSON.parse(c);
+              Sefaria._analytics_uid = c._uid;
+              Sefaria._partner_group = c._partner_group;
+              Sefaria._partner_role = c._partner_role;
             }
         }
 
