@@ -57,6 +57,9 @@ class Test_Jagged_Array(object):
 
 
 class Test_Jagged_Text_Array(object):
+    def test_until_last_nonempty(self):
+        sparse_ja = ja.JaggedTextArray([["", "", ""], ["", "foo", "", "bar", ""], ["", "", ""],[]])
+        assert sparse_ja.sub_array_length([],until_last_nonempty=True) == 3
 
     def test_count_words(self):
         assert ja.JaggedTextArray(twoby).word_count() == 21
@@ -75,6 +78,13 @@ class Test_Jagged_Text_Array(object):
         assert ja.JaggedTextArray(twoby) == ja.JaggedTextArray(twoby)
         assert ja.JaggedTextArray(threeby) == ja.JaggedTextArray(threeby)
         assert ja.JaggedTextArray(twoby) != ja.JaggedTextArray(threeby)
+
+
+    def test_distance(self):
+        jia = ja.JaggedTextArray(threeby)
+        assert jia.distance([0],[0,0,2]) == 2 #check if padding correctly
+        assert jia.distance([0],[0,2]) == 6 #padding for both inputs
+        assert jia.distance([0,0,1],[2,2,2]) == 25 #recursive distance
 
     def test_subarray(self):
         assert ja.JaggedTextArray(threeby).subarray([0],[0]) == ja.JaggedTextArray([

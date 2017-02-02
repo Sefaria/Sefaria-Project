@@ -383,6 +383,12 @@ class TreeNode(object):
             js["nodes"] = [child.traverse_to_json(callback, depth + 1, **kwargs) for child in self.children]
         return js
 
+    def traverse_to_list(self, callback, depth=0, **kwargs):
+        listy = callback(self, depth, **kwargs)
+        if self.children:
+            listy += reduce(lambda a, b: a + b, [child.traverse_to_list(callback, depth + 1, **kwargs) for child in self.children], [])
+        return listy
+
     def serialize(self, **kwargs):
         d = {}
         if self.children:
@@ -830,26 +836,27 @@ class ArrayMapNode(NumberedTitledTreeNode):
         d = super(ArrayMapNode, self).serialize(**kwargs)
         if kwargs.get("expand_refs"):
             if getattr(self, "includeSections", None):
+                # We assume that with "includeSections", we're going from depth 0 to depth 1, and expanding "wholeRef"
                 from . import text
 
                 refs         = text.Ref(self.wholeRef).split_spanning_ref()
                 first, last  = refs[0], refs[-1]
                 offset       = first.sections[-2]-1 if first.is_segment_level() else first.sections[-1]-1
-                depth        = len(first.index_node.sectionNames) - len(first.section_ref().sections)
 
                 d["refs"] = [r.normal() for r in refs]
-                d["addressTypes"] = d.get("addressTypes", []) + first.index_node.addressTypes[depth:]
-                d["sectionNames"] = d.get("sectionNames", []) + first.index_node.sectionNames[depth:]
+                d["addressTypes"] = first.index_node.addressTypes[-2:-1]
+                d["sectionNames"] = first.index_node.sectionNames[-2:-1]
                 d["depth"] += 1
                 d["offset"] = offset
 
-            d["wholeRefPreview"] = self.expand_ref(self.wholeRef, kwargs.get("he_text_ja"), kwargs.get("en_text_ja"))
-            if d.get("refs"):
-                d["refsPreview"] = []
-                for r in d["refs"]:
-                    d["refsPreview"].append(self.expand_ref(r, kwargs.get("he_text_ja"), kwargs.get("en_text_ja")))
-            else:
-                d["refsPreview"] = None
+            if (kwargs.get("include_previews", False)):
+                d["wholeRefPreview"] = self.expand_ref(self.wholeRef, kwargs.get("he_text_ja"), kwargs.get("en_text_ja"))
+                if d.get("refs"):
+                    d["refsPreview"] = []
+                    for r in d["refs"]:
+                        d["refsPreview"].append(self.expand_ref(r, kwargs.get("he_text_ja"), kwargs.get("en_text_ja")))
+                else:
+                    d["refsPreview"] = None
         return d
 
     # Move this over to Ref and cache it?
@@ -1066,6 +1073,38 @@ class SchemaNode(TitledTreeNode):
         d["sections"] = sections
         d["toSections"] = sections
         return text.Ref(_obj=d)
+
+    def text_index_map(self, tokenizer=lambda x: re.split(u'\s+',x), strict=True, lang='he', vtitle=None):
+        """
+        See TextChunk.text_index_map
+        :param tokenizer:
+        :param strict:
+        :param lang:
+        :return:
+        """
+        def traverse(node, callback, offset=0):
+            index_list, ref_list, temp_offset = callback(node)
+            if node.children:
+                for child in node.children:
+                    temp_index_list, temp_ref_list, temp_offset = traverse(child, callback, offset)
+                    index_list += temp_index_list
+                    ref_list += temp_ref_list
+                    offset = temp_offset
+            else:
+                index_list = [i + offset for i in index_list]
+                offset += temp_offset
+            return index_list, ref_list, offset
+
+
+        def callback(node):
+            if not node.children:
+                index_list, ref_list, total_len = node.ref().text(lang=lang, vtitle=vtitle).text_index_map(tokenizer,strict=strict)
+                return index_list, ref_list, total_len
+            else:
+                return [],[], 0
+
+        index_list, ref_list, _ = traverse(self, callback)
+        return index_list, ref_list
 
     def __eq__(self, other):
         return self.address() == other.address()

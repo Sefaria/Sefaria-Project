@@ -238,10 +238,42 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
 
     def contents(self, v2=False, raw=False, force_complex=False, **kwargs):
         if not getattr(self, "nodes", None) or raw:  # Commentator
-            return super(Index, self).contents()
+            contents = super(Index, self).contents()
         elif v2:
-            return self.nodes.as_index_contents()
-        return self.legacy_form(force_complex=force_complex)
+            contents = self.nodes.as_index_contents()
+        else:
+            contents = self.legacy_form(force_complex=force_complex)
+
+        if not raw:
+            contents = self.expand_metadata_on_contents(contents)
+
+        return contents
+
+    def expand_metadata_on_contents(self, contents):
+        """
+        Decorates contents with expanded meta data such as Hebrew author names, human readable date strings etc.
+        :param contents: the initial dictionary of contents
+        :return: a dictionary of contents with additional fields   
+        """
+        authors = self.author_objects()
+        if len(authors):
+            contents["authors"] = [{"en": author.primary_name("en"), "he": author.primary_name("he")} for author in authors]
+
+        composition_time_period = self.composition_time_period()
+        if composition_time_period:
+            contents["compDateString"] = {
+                "en": composition_time_period.period_string("en"),
+                "he": composition_time_period.period_string("he"),
+            }
+
+        composition_place = self.composition_place()
+        if composition_place:
+            contents["compPlaceString"] = {
+                "en": composition_place.primary_name("en"),
+                "he": composition_place.primary_name("he"),
+            }
+
+        return contents
 
     def legacy_form(self, force_complex=False):
         """
@@ -613,6 +645,17 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
                     pass
 
         return toc_contents_dict
+
+    def text_index_map(self, tokenizer=lambda x: re.split(u'\s+',x), strict=True, lang='he', vtitle=None):
+        """
+        See TextChunk.text_index_map
+        :param tokenizer:
+        :param strict:
+        :param lang:
+        :return:
+        """
+        return self.nodes.text_index_map(tokenizer=tokenizer, strict=strict, lang=lang, vtitle=vtitle)
+
 
 
 class IndexSet(abst.AbstractMongoSet):
@@ -1377,18 +1420,51 @@ class TextChunk(AbstractTextRecord):
         else:
             raise Exception("Called TextChunk.version() on merged TextChunk.")
 
-    def text_index_map(self,tokenizer=lambda x: re.split(u'\s+',x)):
+
+    def nonempty_subrefs(self):
+        """
+
+        :return: list of segment refs with content in this TextChunk
+        """
+        r = self._oref
+        ref_list = []
+        if r.is_range():
+            input_refs = r.range_list()
+        else:
+            input_refs = [r]
+        for temp_ref in input_refs:
+            temp_tc = temp_ref.text(lang=self.lang, vtitle=self.vtitle)
+            ja = temp_tc.ja()
+            jarray = ja.mask().array()
+
+            #TODO do I need to check if this ref exists for this version?
+            if temp_ref.is_segment_level():
+                ref_list.append(temp_ref)
+            elif temp_ref.is_section_level():
+                ref_list += [temp_ref.subref(i + 1) for i, v in enumerate(jarray) if v]
+            else: # higher than section level
+                ref_list += [temp_ref.subref([j + 1 for j in ne] + [i + 1])
+                             for ne in ja.non_empty_sections()
+                             for i, v in enumerate(ja.subarray(ne).mask().array()) if v]
+
+        return ref_list
+
+
+    def text_index_map(self,tokenizer=lambda x: re.split(u'\s+',x), strict=True):
         """
         Primarily used for depth-2 texts in order to get index/ref pairs relative to the full text string
          indexes are the word index in word_list
 
         tokenizer: f(str)->list(str) - function to split up text
+        strict: if True, throws error if len(ind_list) != len(ref_list). o/w truncates longer array to length of shorter
         :return: (list,list,list) - index_list, ref_list, word_list
         """
         #TODO there is a known error that this will fail if the text version you're using has fewer segments than the VersionState.
         ind_list = []
-        r = self._oref
+        ref_list = self.nonempty_subrefs()
 
+
+        """
         if r.is_range():
             input_refs = r.range_list()
         else:
@@ -1399,24 +1475,32 @@ class TextChunk(AbstractTextRecord):
             if temp_ref.is_segment_level():
                 ref_list.append(temp_ref)
             elif temp_ref.is_section_level():
-                ref_list += temp_ref.all_subrefs()
+                ref_list += temp_ref.all_subrefs(self.lang)
             else: #you're higher than section level
                 sub_ja = temp_ref.get_state_ja().subarray_with_ref(temp_ref)
                 ref_list_sections = [temp_ref.subref([i + 1 for i in k ]) for k in sub_ja.non_empty_sections() ]
-                ref_list += [ref_seg for ref_sec in ref_list_sections for ref_seg in ref_sec.all_subrefs()]
-
+                ref_list += [ref_seg for ref_sec in ref_list_sections for ref_seg in ref_sec.all_subrefs(self.lang)]
+        """
 
 
         total_len = 0
         text_list = self.ja().flatten_to_array()
         for i,segment in enumerate(text_list):
-            ind_list.append(total_len)
-            total_len += len(tokenizer(segment))
+            if len(segment) > 0:
+                ind_list.append(total_len)
+                total_len += len(tokenizer(segment))
 
         if len(ind_list) != len(ref_list):
-            raise ValueError("The number of refs doesn't match the number of starting words")
+            if strict:
+                raise ValueError("The number of refs doesn't match the number of starting words. len(refs)={} len(inds)={}".format(len(ref_list),len(ind_list)))
+            else:
+                print "Warning: The number of refs doesn't match the number of starting words. len(refs)={} len(inds)={} {}".format(len(ref_list),len(ind_list),str(self._oref))
+                if len(ind_list) > len(ref_list):
+                    ind_list = ind_list[:len(ref_list)]
+                else:
+                    ref_list = ref_list[:len(ind_list)]
 
-        return ind_list,ref_list
+        return ind_list, ref_list, total_len
 
 
 
@@ -1840,10 +1924,14 @@ class Ref(object):
                 if check[0] > self.index_node.lengths[0] + offset:
                     display_size = self.index_node.address_class(0).toStr("en", self.index_node.lengths[0] + offset)
                     raise InputError(u"{} ends at {} {}.".format(self.book, self.index_node.sectionNames[0], display_size))
+
+        if len(self.sections) != len(self.toSections):
+            raise InputError(u"{} is an invalid range. depth of beginning of range must equal depth of end of range")
+
         for i in range(len(self.sections)):
-            if self.toSections > self.sections:
+            if self.toSections[i] > self.sections[i]:
                 break
-            if self.toSections < self.sections:
+            if self.toSections[i] < self.sections[i]:
                 raise InputError(u"{} is an invalid range.  Ranges must end later than they begin.".format(self.normal()))
 
     def __clean_tref(self):
@@ -2232,6 +2320,27 @@ class Ref(object):
                     self._range_depth = self.index_node.depth - i
                     self._range_index = i
                     break
+
+    def all_segment_refs(self):
+        assert isinstance(self.index_node, JaggedArrayNode)
+
+        if self.is_range():
+            input_refs = self.range_list()
+        else:
+            input_refs = [self]
+
+        ref_list = []
+        for temp_ref in input_refs:
+            if temp_ref.is_segment_level():
+                ref_list.append(temp_ref)
+            elif temp_ref.is_section_level():
+                ref_list += temp_ref.all_subrefs()
+            else: #you're higher than section level
+                sub_ja = temp_ref.get_state_ja().subarray_with_ref(temp_ref)
+                ref_list_sections = [temp_ref.subref([i + 1 for i in k ]) for k in sub_ja.non_empty_sections() ]
+                ref_list += [ref_seg for ref_sec in ref_list_sections for ref_seg in ref_sec.all_subrefs()]
+
+        return ref_list
 
     def is_spanning(self):
         """
@@ -2739,6 +2848,21 @@ class Ref(object):
         else:
             return None
 
+    def pad_to_last_segment_ref(self):
+        """
+        From current position in jagged array, pad self so that it reaches the last segment ref
+        :return:
+        """
+
+        ja = self.get_state_ja()
+
+        r = self
+        while not r.is_segment_level():
+            sublen = ja.sub_array_length([s-1 for s in r.toSections],until_last_nonempty=True)
+            r = r.subref([sublen])
+
+        return r
+
     def to(self, toref):
         """
         Return a reference that begins at this :class:`Ref`, and ends at toref
@@ -2749,6 +2873,15 @@ class Ref(object):
         assert self.book == toref.book
         d = self._core_dict()
         d["toSections"] = toref.toSections[:]
+
+
+        #pad sections and toSections so they're the same length. easier to just make them both segment level
+        if len(d['sections']) != len(d['toSections']):
+            if not self.is_segment_level():
+                d['sections'] = self.first_available_section_ref().sections + [1]
+            d['toSections'] = toref.pad_to_last_segment_ref().toSections
+
+
         return Ref(_obj=d)
 
     def subref(self, subsections):
@@ -2789,7 +2922,7 @@ class Ref(object):
             l.append(self.subref(i + 1))
         return l
 
-    def all_subrefs(self):
+    def all_subrefs(self, lang='all'):
         """
         Return a list of all the valid :class:`Ref` objects one level deeper than this :class:`Ref`.
 
@@ -2807,7 +2940,7 @@ class Ref(object):
         # TODO this function should take Version as optional parameter to limit the refs it returns to ones existing in that Version
         assert not self.is_range(), "Ref.all_subrefs() is not intended for use on Ranges"
 
-        size = self.get_state_ja().sub_array_length([i - 1 for i in self.sections])
+        size = self.get_state_ja(lang).sub_array_length([i - 1 for i in self.sections])
         return self.subrefs(size)
 
     def context_ref(self, level=1):
@@ -2957,7 +3090,7 @@ class Ref(object):
             [Ref('Shabbat 13b:3-50'), Ref('Shabbat 14a'), Ref('Shabbat 14b:1-3')]
 
         """
-        if not self._spanned_refs:
+        if not self._spanned_refs or True:
 
             if self.index_node.depth == 1 or not self.is_spanning():
                 self._spanned_refs = [self]
@@ -2965,17 +3098,19 @@ class Ref(object):
             else:
                 start, end = self.sections[self.range_index()], self.toSections[self.range_index()]
                 ref_depth = len(self.sections)
+                to_ref_depth = len(self.toSections)
 
                 refs = []
                 for n in range(start, end + 1):
                     d = self._core_dict()
                     if n == start:
                         d["toSections"] = self.sections[0:self.range_index() + 1]
+
                         for i in range(self.range_index() + 1, ref_depth):
-                            d["toSections"] += [self.get_state_ja().sub_array_length([s - 1 for s in d["toSections"][0:i]])]
+                            d["toSections"] += [self.get_state_ja().sub_array_length([s - 1 for s in d["toSections"][0:i]],until_last_nonempty=True)]
                     elif n == end:
                         d["sections"] = self.toSections[0:self.range_index() + 1]
-                        for _ in range(self.range_index() + 1, ref_depth):
+                        for _ in range(self.range_index() + 1, to_ref_depth):
                             d["sections"] += [1]
                     else:
                         d["sections"] = self.sections[0:self.range_index()] + [n]
@@ -3366,15 +3501,26 @@ class Ref(object):
 
     def version_list(self):
         """
-        A list of available text versions titles and languages matching this ref
+        A list of available text versions titles and languages matching this ref.
+        If this ref is book level, decorate with the first available section of content per version.
 
         :return list: each list element is an object with keys 'versionTitle' and 'language'
         """
         fields = ["versionTitle", "versionSource", "language", "status", "license", "versionNotes", "digitizedBySefaria", "priority"]
-        return [
-            {f: getattr(v, f, "") for f in fields}
-            for v in VersionSet(self.condition_query(), proj={f: 1 for f in fields})
-        ]
+        versions = VersionSet(self.condition_query())
+        version_list = []
+        if self.is_book_level():
+            for v in  versions:
+                version = {f: getattr(v, f, "") for f in fields}
+                oref = v.first_section_ref() or v.get_index().nodes.first_leaf().first_section_ref()
+                version["firstSectionRef"] = oref.normal()
+                version_list.append(version)
+            return version_list
+        else:
+            return [
+                {f: getattr(v, f, "") for f in fields}
+                for v in VersionSet(self.condition_query(), proj={f: 1 for f in fields})
+            ]
 
     """ String Representations """
     def __str__(self):
@@ -3539,6 +3685,30 @@ class Ref(object):
         from . import LinkSet
         return LinkSet(self)
 
+
+    def distance(self, ref, max_dist=None):
+        """
+
+        :param ref: ref which you want to compare distance with
+        :param max_dist: maximum distance beyond which the function will return -1. it's suggested you set this param b/c alternative is very slow
+        :return: int: num refs between self and ref. -1 if self and ref aren't in the same index
+        """
+        if self.index_node != ref.index_node:
+            return -1
+
+        # convert to base 0
+        sec1 = self.sections[:]
+        sec2 = ref.sections[:]
+        for i in xrange(len(sec1)):
+            sec1[i] -= 1
+        for i in xrange(len(sec2)):
+            sec2[i] -= 1
+
+        distance = self.get_state_ja().distance(sec1,sec2)
+        if max_dist and distance > max_dist:
+            return -1
+        else:
+            return distance
 
 class Library(object):
     """
@@ -4210,6 +4380,8 @@ class Library(object):
         if lang is None:
             lang = "he" if is_hebrew(st) else "en"
         if lang == "he":
+            from sefaria.utils.hebrew import strip_nikkud
+            st = strip_nikkud(st)
             unique_titles = {title: 1 for title in self.get_titles_in_string(st, lang)}
             for title in unique_titles.iterkeys():
                 try:

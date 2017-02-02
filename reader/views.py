@@ -222,7 +222,7 @@ def render_react_component(component, props):
         response = urllib2.urlopen(url, encoded_args, NODE_TIMEOUT)
         html = response.read()
         return html
-    except (urllib2.URLError, socket.timeout) as e:
+    except Exception as e:
         # Catch timeouts, however they may come.  Write to file NODE_TIMEOUT_MONITOR, which forever monitors to restart process
         if isinstance(e, socket.timeout) or (hasattr(e, "reason") and isinstance(e.reason, socket.timeout)):
             logger.exception("Node timeout: Fell back to client-side rendering.")
@@ -231,11 +231,9 @@ def render_react_component(component, props):
                 myfile.write(propsJSON)
             return render_to_string("elements/loading.html")
         else:
-            raise
-    except Exception as e:
-        # If anything else goes wrong with Node, just fall back to client-side rendering
-        logger.exception("Fell back to client-side rendering.")
-        return render_to_string("elements/loading.html")
+            # If anything else goes wrong with Node, just fall back to client-side rendering
+            logger.exception("Node error: Fell back to client-side rendering.")
+            return render_to_string("elements/loading.html")
 
 
 def make_panel_dict(oref, version, language, filter, mode, **kwargs):
@@ -247,7 +245,8 @@ def make_panel_dict(oref, version, language, filter, mode, **kwargs):
         panel = {
             "menuOpen": "book toc",
             "bookRef": oref.normal(),
-            "textTocHtml": make_toc_html(oref),
+            "indexDetails": library.get_index(oref.normal()).contents_with_content_counts(),
+            "versions": oref.version_list()
         }
     else:
         oref = oref.first_available_section_ref()
@@ -280,6 +279,19 @@ def make_panel_dict(oref, version, language, filter, mode, **kwargs):
                 panel["highlightedRefs"] = [subref.normal() for subref in oref.range_list()]
 
     return panel
+
+
+def make_search_panel_dict(query, **kwargs):
+    panel = {
+        "menuOpen": "search",
+        "searchQuery": query
+    }
+    panelDisplayLanguage = kwargs.get("panelDisplayLanguage")
+    if panelDisplayLanguage:
+        panel["settings"] = {"language": short_to_long_lang_code(panelDisplayLanguage)}
+
+    return panel
+
 
 
 def make_panel_dicts(oref, version, language, filter, multi_panel, **kwargs):
@@ -352,25 +364,31 @@ def s2(request, ref, version=None, lang=None):
         ref = request.GET.get("p{}".format(i))
         if not ref:
             break
-        try:
-            oref = Ref(ref)
-        except InputError:
-            i += 1
-            continue  # Stop processing all panels?
-            # raise Http404
+        if ref == "search":
+            query = request.GET.get("q{}".format(i))
+            panelDisplayLanguage = request.GET.get("lang{}".format(i), props["initialSettings"]["language"])
+            panels += [make_search_panel_dict(query, **{"panelDisplayLanguage": panelDisplayLanguage})]
+
+        else:
+            try:
+                oref = Ref(ref)
+            except InputError:
+                i += 1
+                continue  # Stop processing all panels?
+                # raise Http404
         
-        version  = request.GET.get("v{}".format(i)).replace(u"_", u" ") if request.GET.get("v{}".format(i)) else None
-        language = request.GET.get("l{}".format(i))
-        filter   = request.GET.get("w{}".format(i)).replace("_", " ").split("+") if request.GET.get("w{}".format(i)) else None
-        filter   = [] if filter == ["all"] else filter
-        panelDisplayLanguage = request.GET.get("lang{}".format(i), props["initialSettings"]["language"])
+            version  = request.GET.get("v{}".format(i)).replace(u"_", u" ") if request.GET.get("v{}".format(i)) else None
+            language = request.GET.get("l{}".format(i))
+            filter   = request.GET.get("w{}".format(i)).replace("_", " ").split("+") if request.GET.get("w{}".format(i)) else None
+            filter   = [] if filter == ["all"] else filter
+            panelDisplayLanguage = request.GET.get("lang{}".format(i), props["initialSettings"]["language"])
 
-        if version and not Version().load({"versionTitle": version, "language": language}):
-            i += 1
-            continue  # Stop processing all panels?
-            # raise Http404
+            if version and not Version().load({"versionTitle": version, "language": language}):
+                i += 1
+                continue  # Stop processing all panels?
+                # raise Http404
 
-        panels += make_panel_dicts(oref, version, language, filter, multi_panel, **{"panelDisplayLanguage": panelDisplayLanguage})
+            panels += make_panel_dicts(oref, version, language, filter, multi_panel, **{"panelDisplayLanguage": panelDisplayLanguage})
         i += 1
 
     props.update({
@@ -623,6 +641,7 @@ def edit_text_info(request, title=None, new_title=None):
                              'new': new,
                              },
                              RequestContext(request))
+
 
 @django_cache_decorator(6000)
 def make_toc_html(oref, zoom=1):
@@ -1045,15 +1064,6 @@ def text_toc(request, oref):
     return render_to_response('text_toc.html',
                              template_vars,
                              RequestContext(request))
-
-
-def text_toc_html_fragment(request, title):
-    """
-    Returns an HTML fragment of the Text TOC for title
-    """
-    oref = Ref(title)
-    # zoom = 0 if not oref.index.is_complex() and oref.index_node.depth == 1 else 1
-    return HttpResponse(make_toc_html(oref))
 
 
 @ensure_csrf_cookie

@@ -137,7 +137,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument("title", help="title argument")
     parser.add_argument("--noindex", action="store_false", help="Specify this flag when you do not wish to create a new Index record at the destination")
-    parser.add_argument("-v", "--versionlist", help="comma separated version list: lang:versionTitle. To copy all versions, simply input 'all'")
+    parser.add_argument("-v", "--versionlist", help="pipe separated version list: lang:versionTitle. To copy all versions, simply input 'all'")
     parser.add_argument("-k", "--apikey", help="non default api key", default=SEFARIA_BOT_API_KEY)
     parser.add_argument("-d", "--destination_server", help="override destination server", default='http://eph.sefaria.org')
     parser.add_argument("-l", "--links", default=0, type=int, help="Enter '1' to move manual links on this text as well, '2' to move auto links")

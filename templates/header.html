@@ -210,8 +210,6 @@
 <link rel="stylesheet" type="text/css" href="/static/css/keyboard.css">
 <link rel="stylesheet" type="text/css" href="/static/css/tooltipster.css" />
 
-{% endif %}
-
 {% if GLOBAL_WARNING %}
 	{% autoescape off %}
 	<div id="globalWarning">
@@ -219,4 +217,6 @@
 		<i class="fa fa-warning"></i>
 		{{ GLOBAL_WARNING_MESSAGE }}</div>
 	{% endautoescape %}
+{% endif %}
+
 {% endif %}

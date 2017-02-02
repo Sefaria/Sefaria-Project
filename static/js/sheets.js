@@ -633,6 +633,20 @@ $(function() {
 
 	});
 
+	$("#removeNikkudot").click(function() {
+		var $target = $(".activeSource").find(".text").find(".he");
+		$target.html(stripNikkud($target.html()));
+		sjs.track.sheets("Remove Nikkudot");
+		autoSave();
+	});
+
+	$("#splitSourceToSegment").click(function() {
+		var $target = $(".activeSource").find(".text");
+		$($target.find(".segment")).replaceWith(function() { return '<p>'+$(this).html()+'</p>'; });
+		sjs.track.sheets("Auto Split Segments");
+		autoSave();
+	});
+
 	$("#addSourceTitle").click(function() {
 		var $target = $(".activeSource");
         var ref = normRef($target.attr("data-ref"));
@@ -1397,6 +1411,8 @@ $(function() {
 				$("#sheetLayoutLanguageMenuItems").show();
 				$("#sourceLayoutLanguageMenuItems").hide();
 				$("#resetText").hide();
+				$("#removeNikkudot").hide();
+				$("#splitSourceToSegment").hide();
 				$("#addSourceTitle").hide();
 				if (!$(target).hasClass('inlineAddButtonIcon')) {
 					$(".inlineAddButtonIcon").last().click();
@@ -1479,6 +1495,8 @@ $(function() {
 				$("#sourceLayoutLanguageMenuItems").show();
 				$("#resetText").show();
 				$("#addSourceTitle").show();
+				$("#removeNikkudot").show();
+				$("#splitSourceToSegment").show();
 				//$(this).hasClass("source") ? $("#connectionButton").css('display', 'inline-block') : $("#connectionButton").hide();
 
 				//set checkboxes for language/layout menus for active source
@@ -1487,6 +1505,8 @@ $(function() {
 				if (!($(this).hasClass("source"))) {
 					$("#resetText").hide();
 					$("#addSourceTitle").hide();
+					$("#removeNikkudot").hide();
+					$("#splitSourceToSegment").hide();
 					$("#sourceLayoutLanguageMenuItems").hide();
 				}
 			});
@@ -3411,7 +3431,7 @@ function deleteSheet() {
 
 // Regexes for identifying divine names with or without nikkud / trop
 // Currently ignores אֵל & צְבָאוֹת & שדי
-sjs.divineRE  = /([\s.,\u05BE;:'"\-]|^)([משהוכלב]?[\u0591-\u05C7]*)(י[\u0591-\u05C7]*ה[\u0591-\u05C7]*ו[\u0591-\u05C7]*ה[\u0591-\u05C7]*|יי|יקוק|ה\')(?=[\s.,;:'"\-]|$)/g;
+sjs.divineRE  = /([\s.,\u05BE;:'"\-]|^)([משהוכלב]?[\u0591-\u05C7]*)(י[\u0591-\u05C7]*ה[\u0591-\u05C7]*ו[\u0591-\u05C7]*ה[\u0591-\u05C7]*|יְיָ|יי|יקוק|ה\')(?=[\s.,;:'"\-]|$)/g;
 
 sjs.adoshemRE = /([\s.,\u05BE;:'"\-]|^)([משהוכלב]?[\u0591-\u05C7]*)(א[\u0591-\u05C7]*ד[\u0591-\u05C7]*נ[\u0591-\u05C7]*י[\u0591-\u05C7]*|אדושם)(?=[\s.,;:'"\-]|$)/g;
 

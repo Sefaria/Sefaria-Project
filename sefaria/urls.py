@@ -34,7 +34,6 @@ urlpatterns = patterns('reader.views',
     (r'^api/counts/words/(?P<title>.+)/(?P<version>.+)/(?P<language>.+)$', 'word_count_api'),
     (r'^api/counts/(?P<title>.+)$', 'counts_api'),
     (r'^api/preview/(?P<title>.+)$', 'text_preview_api'),
-    (r'^api/toc-html/(?P<title>.+)$', 'text_toc_html_fragment'),
 )
 
 # Reviews API
@@ -310,6 +309,7 @@ urlpatterns += patterns('',
     (r'^textmap/?$', lambda x: HttpResponseRedirect('/static/files/Sefaria-Text-Map-June-2016.pdf')),
     (r'^workshop/?$', lambda x: HttpResponseRedirect('/static/files/Sefaria_SummerMeeting_2016.pdf')),
     (r'^ideasforteaching/?$', lambda x: HttpResponseRedirect('/static/files/Sefaria_Teacher_Generated_Ideas_for_Your_Classroom.pdf')),
+    (r'^gala/?$', lambda x: HttpResponseRedirect('https://www.501auctions.com/sefaria')),
 )
 
 # Packaged JavaScript

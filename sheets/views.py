@@ -10,7 +10,7 @@ from django.http import Http404
 
 # noinspection PyUnresolvedReferences
 from django.http import HttpResponse, HttpResponseRedirect
-from django.views.decorators.csrf import ensure_csrf_cookie
+from django.views.decorators.csrf import ensure_csrf_cookie, csrf_exempt
 from django.contrib.auth.decorators import login_required
 from django.contrib.admin.views.decorators import staff_member_required
 
@@ -534,7 +534,7 @@ def partner_sheets_tag(request, partner, tag):
 	group = partner.replace("_", " ")
 	return sheets_tag(request, tag, public=False, group=group)
 
-
+@csrf_exempt
 def sheet_list_api(request):
 	"""
 	API for listing available sheets
@@ -545,22 +545,40 @@ def sheet_list_api(request):
 	# Save a sheet
 	if request.method == "POST":
 		if not request.user.is_authenticated():
-			return jsonResponse({"error": "You must be logged in to save."})
+			key = request.POST.get("apikey")
+			if not key:
+				return jsonResponse({"error": "You must be logged in or use an API key to save."})
+			apikey = db.apikeys.find_one({"key": key})
+			if not apikey:
+				return jsonResponse({"error": "Unrecognized API key."})
+		else:
+			apikey = None
 
 		j = request.POST.get("json")
 		if not j:
 			return jsonResponse({"error": "No JSON given in post data."})
 		sheet = json.loads(j)
 
+		if apikey:
+			if "id" in sheet:
+				sheet["lastModified"] = get_sheet(sheet["id"])["dateModified"] # Usually lastModified gets set on the frontend, so we need to set it here to match with the previous dateModified so that the check in `save_sheet` returns properly
+			user = User.objects.get(id=apikey["uid"])
+		else:
+			user = request.user
+
 		if "id" in sheet:
 			existing = get_sheet(sheet["id"])
 			if "error" not in existing  and \
-				not can_edit(request.user, existing) and \
+				not can_edit(user, existing) and \
 				not can_add(request.user, existing):
 
 				return jsonResponse({"error": "You don't have permission to edit this sheet."})
 
-		responseSheet = save_sheet(sheet, request.user.id)
+		if "group" in sheet:
+			if sheet["group"] not in [group.name for group in user.groups.all()]:
+				sheet["group"] = None
+
+		responseSheet = save_sheet(sheet, user.id)
 		if "rebuild" in responseSheet and responseSheet["rebuild"]:
 			# Don't bother adding user links if this data won't be used to rebuild the sheet
 			responseSheet["sources"] = annotate_user_links(responseSheet["sources"])
@@ -634,13 +652,56 @@ def check_sheet_modified_api(request, sheet_id, timestamp):
 def add_source_to_sheet_api(request, sheet_id):
 	"""
 	API to add a fully formed source (posted as JSON) to sheet_id.
+
+	The contents of the "source" field will be a dictionary.
+	The input format is similar to, but differs slightly from, the internal format for sources on source sheets.
+	This method reformats the source to the format expected by add_source_to_sheet().
+
+	Fields of input dictionary:
+		either `refs` - an array of string refs, indicating a range
+			or `ref` - a string ref
+			or `outsideText` - a string
+			or `outsideBiText` - a dictionary with string fields "he" and "en"
+			or `comment` - a string
+			or `media` - a URL string
+
+		If the `ref` or `refs` fields are present, the `version`, `he` or `en` fields
+		can further specify the origin or content of text for that ref.
+
 	"""
 	source = json.loads(request.POST.get("source"))
 	if not source:
 		return jsonResponse({"error": "No source to copy given."})
-	if "refs" in source:
-		source["ref"] = Ref(source["refs"][0]).to(Ref(source["refs"][-1])).normal()
+
+	if "refs" in source and source["refs"]:
+		ref = Ref(source["refs"][0]).to(Ref(source["refs"][-1]))
+		source["ref"] = ref.normal()
 		del source["refs"]
+
+	if "ref" in source and source["ref"]:
+		ref = Ref(source["ref"])
+		source["heRef"] = ref.he_normal()
+
+		if "version" in source or "en" in source or "he" in source:
+			text = {}
+			if "en" in source:
+				text["en"] = source["en"]
+				tc = TextChunk(ref, "he", source["version"]) if source.get("versionLanguage") == "he" else TextChunk(ref, "he")
+				text["he"] = tc.ja().flatten_to_string()
+				del source["en"]
+			elif "he" in source:
+				text["he"] = source["he"]
+				tc = TextChunk(ref, "en", source["version"]) if source.get("versionLanguage") == "en" else TextChunk(ref, "en")
+				text["en"] = tc.ja().flatten_to_string()
+				del source["he"]
+			else:  # "version" in source
+				text[source["versionLanguage"]] = TextChunk(ref, source["versionLanguage"], source["version"]).ja().flatten_to_string()
+				other = "he" if source["versionLanguage"] == "en" else "en"
+				text[other] = TextChunk(ref, other).ja().flatten_to_string()
+			source.pop("version", None)
+			source.pop("versionLanguage", None)
+			source["text"] = text
+
 	return jsonResponse(add_source_to_sheet(int(sheet_id), source))
 
 

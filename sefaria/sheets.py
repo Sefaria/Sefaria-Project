@@ -163,7 +163,7 @@ def sheet_list(user_id=None):
 	return response
 
 
-def save_sheet(sheet, user_id):
+def save_sheet(sheet, user_id, search_override=False):
 	"""
 	Saves sheet to the db, with user_id as owner.
 	"""
@@ -182,7 +182,10 @@ def save_sheet(sheet, user_id):
 		if sheet["status"] != existing["status"]:
 			status_changed = True
 
-		sheet["views"] = existing["views"] # prevent updating views
+		sheet["views"] = existing["views"] 										# prevent updating views
+		sheet["owner"] = existing["owner"] 										# prevent updating owner
+		sheet["likes"] = existing["likes"] if "likes" in existing else [] 		# prevent updating likes
+
 		existing.update(sheet)
 		sheet = existing
 
@@ -214,7 +217,7 @@ def save_sheet(sheet, user_id):
 
 	db.sheets.update({"id": sheet["id"]}, sheet, True, False)
 
-	if sheet["status"] == "public" and SEARCH_INDEX_ON_SAVE:
+	if sheet["status"] == "public" and SEARCH_INDEX_ON_SAVE and not search_override:
 		search.index_sheet(sheet["id"])
 
 	global last_updated
@@ -223,11 +226,24 @@ def save_sheet(sheet, user_id):
 	return sheet
 
 
+def is_valid_source(source):
+	if not ("ref" in source or "outsideText" in source or "outsideBiText" in source or "comment" in source or "media" in source):
+		return False
+	return True
+
+
 def add_source_to_sheet(id, source):
 	"""
 	Add source to sheet 'id'.
-	Source is a dictionary that includes at least 'ref' and 'text' (with 'en' and 'he')
+	Source is a dictionary that includes one of the following:
+		'ref' (indicating a source)
+		'outsideText' (indicating a single language outside text)
+		'outsideBiText' (indicating a bilingual outside text)
+		'comment' (indicating a comment)
+		'media' (indicating a media object)
 	"""
+	if not is_valid_source(source):
+		return {"error": "Malformed source could not be added to sheet"}
 	sheet = db.sheets.find_one({"id": id})
 	if not sheet:
 		return {"error": "No sheet with id %s." % (id)}

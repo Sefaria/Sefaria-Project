@@ -97,6 +97,7 @@
                 </div>
             </div>
         </div>
+    <div id="add-to-source-sheet-box"></div>
     </div>
 </div>
 
@@ -105,7 +106,7 @@
 {% block js %}
     <script>
     {% autoescape off %}
-        $("#content").removeClass("interface-hebrew").addClass("interface-english") // Force LTR presentation
+        $("#content").removeClass("interface-hebrew").addClass("interface-english"); // Force LTR presentation
         d3.geo.tile=function(){function t(){var t=Math.max(Math.log(n)/Math.LN2-8,0),h=Math.round(t+e),o=Math.pow(2,t-h+8),u=[(r[0]-n/2)/o,(r[1]-n/2)/o],l=[],c=d3.range(Math.max(0,Math.floor(-u[0])),Math.max(0,Math.ceil(a[0]/o-u[0]))),M=d3.range(Math.max(0,Math.floor(-u[1])),Math.max(0,Math.ceil(a[1]/o-u[1])));return M.forEach(function(t){c.forEach(function(a){l.push([a,t,h])})}),l.translate=u,l.scale=o,l}var a=[960,500],n=256,r=[a[0]/2,a[1]/2],e=0;return t.size=function(n){return arguments.length?(a=n,t):a},t.scale=function(a){return arguments.length?(n=a,t):n},t.translate=function(a){return arguments.length?(r=a,t):r},t.zoomDelta=function(a){return arguments.length?(e=+a,t):e},t};
         var config = {{ config }};
         var places = {{ places }};
@@ -120,7 +121,7 @@
          ["#f7fbff","#deebf7","#c6dbef","#9ecae1","#6baed6","#4292c6","#2171b5","#08519c","#08306b"], // Blues
          ["#f7fcf5","#e5f5e0","#c7e9c0","#a1d99b","#74c476","#41ab5d","#238b45","#006d2c","#00441b"], // Greens
          ["#fff5eb","#fee6ce","#fdd0a2","#fdae6b","#fd8d3c","#f16913","#d94801","#a63603","#7f2704"], // Oranges
-         ["#fff5f0","#fee0d2","#fcbba1","#fc9272","#fb6a4a","#ef3b2c","#cb181d","#a50f15","#67000d"],  // Reds
+         ["#fff5f0","#fee0d2","#fcbba1","#fc9272","#fb6a4a","#ef3b2c","#cb181d","#a50f15","#67000d"]  // Reds
         ];
 
         stops.forEach(function (d) {
@@ -131,9 +132,84 @@
         var all = stopx.groupAll();
 
 
+        // State and URLs
+        function pushHistory(replaceHistory) {
+            // Get applied filters on this page, serialize to URL and title, and push to the history stack
+            var filters = getFilters();
+            //Sefaria.site.track...
+            var url;
+            var title = document.title.split(", ")[0];
+            if (filters) {
+                url = window.location.href.split("?")[0] + "?filters=" + encodeURIComponent(JSON.stringify(filters));
+                title += ", " + filters
+                                .map(function(f) {
+                                    if (f.Filter instanceof Array)
+                                        {return "(" + f.Filter.join("-") + ")";}
+                                    else
+                                        {return f.Filter;}
+                                })
+                                .join(", ");
+            } else {
+                url = window.location.href.split("?")[0]
+            }
+            document.title = title;
+            if (replaceHistory) {
+                history.replaceState({filters: filters, title: title}, title, url);
+            } else {
+                history.pushState({filters: filters, title: title}, title, url);
+            }
+        }
+        function getFilters() {
+            // Get the applied filters from this page
+            var filters = [];
+            for (var i = 0; i < dc.chartRegistry.list().length; i++) {
+                var chart = dc.chartRegistry.list()[i];
+                for (var j = 0; j < chart.filters().length; j++){
+                    var filter = chart.filters()[j];
+                    if(filter instanceof Array) filter = filter.slice(); // Native version carries a huge pike of excess data
+                    filters.push({ChartID: chart.chartID(), Filter: filter});
+                }
+            }
+            if (filters.length > 0) {
+                return filters;
+            }
+        }
+        function getUrlVars() {
+            var vars = {};
+            var parts = window.location.href.replace(/[?&]+([^=&]+)=([^&]*)/gi, function(m,key,value) {
+                vars[key] = decodeURIComponent(value);
+            });
+            return vars;
+        }
+        function applyFilters(filterObjects) {
+            if(filterObjects) {
+                // Given a URL serialized form of a set of filters, deserialize and apply
+                for (var i = 0; i < filterObjects.length; i++) {
+                    var filter = filterObjects[i].Filter;
+                    if (filter instanceof Array) filter = dc.filters.RangedFilter(filter[0], filter[1]);
+                    dc.chartRegistry.list()[filterObjects[i].ChartID - 1].filter(filter);
+                }
+            }
+            dc.redrawAll();
+        }
+        function handleStateChange(event) {
+
+            if ("header" in event.state) {
+                // Hackily discard react state changes
+                history.back();
+                return;
+            }
+            dc.filterAll();
+            document.title = event.state.title;
+            applyFilters(event.state.filters);
+        }
+        window.addEventListener('popstate', handleStateChange);
+
+
         // Sorting
         function redraw_garden() {
             // Some sort of bug prevents height() resetting from taking in some redraw cases.  A double call takes care of business.
+            pushHistory();
             dc.redrawAll();
             dc.redrawAll();
         }
@@ -258,6 +334,7 @@
             .elasticY(true)
             .xUnits(function(start, end, xDomain) { return (end - start) / timeline_bin_size; }) //return  60; }) //Math.abs(end - start) / 10; }) // years in the domain / 40
             .round(dc.round.floor)
+            .on('filtered', redraw_garden)
             .x(d3.scale.linear().domain(tl_extent));
 
         if (config.timeline_scale == "log") {
@@ -330,10 +407,6 @@
 
             filterGroup.top = function(k) {
                 all = this.all();
-                /*
-                var top = crossfilter.heapselect(all, 0, all.length, k);
-                return crossfilter.heap.sort(top, 0, top.length);
-                */
                 all.sort(function(a, b) {return b.value - a.value});
                 return all.slice(0,k)
 
@@ -472,6 +545,7 @@
             .overlayGeoJson(places.features, "placeLayer", function (d) {
                 return d.id;
             })
+            .on('filtered', redraw_garden)
             .on('preRedraw', function() { // Hack to force map redraw, so that pointRadius gets computed. http://stackoverflow.com/a/33737638/213042
                 mapchart.projection(projection);
             })
@@ -505,6 +579,33 @@
                 return (r[0].value == 0)? 0 : pointScale(r[0].value);
             });
 
+        // Results
+        sourceSheetAdder = function(event) {
+            var data = d3.select($(event.target).parents(".dc-grid-item")[0]).datum();
+            var container = document.getElementById('add-to-source-sheet-box');
+            var component;
+            if (data.ref) {
+                component = React.createElement(AddToSourceSheetWindow,
+                    {
+                        srefs: [data.ref],
+                        he: data.heText,
+                        en: data.enText,
+                        close: function() { ReactDOM.unmountComponentAtNode(container); }
+                    }
+                );
+            } else {
+                component = React.createElement(AddToSourceSheetWindow,
+                    {
+                        he: "<b>" + data.heTitle + "</b><br/>" + data.heText,
+                        en: "<b>" + data.title + "</b><br/>" + data.enText,
+                        close: function() { ReactDOM.unmountComponentAtNode(container); }
+                    }
+                );
+            }
+
+            ReactDOM.render(component, container);
+        };
+
         results
             .dimension(resultsDim)
             .group(resultsAccessor)
@@ -527,6 +628,7 @@
                                         (data.heTitle ? data.heTitle : data.heRef) +
                                     (data.ref ? "</a>" : "") +
                                 "</span>" +
+                                '<i class="fa fa-external-link" aria-hidden="true" title="Add to Source Sheet" onclick="return sourceSheetAdder(event);"></i>' +
                             "</div>" +
                             "<div class='result-byline'>" +
                                 "<span class='int-en'>" +
@@ -598,6 +700,11 @@
         // End pagination
 
         dc.renderAll();
+        var urlVars = getUrlVars();
+        if ("filters" in urlVars) {
+            applyFilters(JSON.parse(urlVars["filters"]));
+            pushHistory(true);
+        }
 
     {% endautoescape %}
     </script>
