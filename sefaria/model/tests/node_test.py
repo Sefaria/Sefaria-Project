@@ -351,6 +351,7 @@ class Test_Titles(object):
         s = SchemaNode()
         s.key = "root"
         s.add_title("root", "en", primary=True)
+        s.add_title(u"שורש", "he", primary=True)
         s.add_title("alt root", "en")
 
         s2 = SchemaNode()

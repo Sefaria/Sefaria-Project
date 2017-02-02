@@ -28,12 +28,33 @@ class TitleGroup(object):
     """
     A collection of titles.  Used for titles of SchemaNodes and for Terms
     """
+    langs = ["en", "he"]
+    required_attrs = [
+        "lang",
+        "text"
+    ]
+    optional_attrs = [
+        "primary",
+        "presentation"
+    ]
 
     def __init__(self, serial=None):
         self.titles = []
         self._primary_title = {}
         if serial:
             self.load(serial)
+
+    def validate(self):
+        for lang in self.langs:
+            if not self.primary_title(lang):
+                raise InputError("Title Group must have a {} primary title".format(lang))
+        for title in self.titles:
+            if not set(title.keys()) == set(self.required_attrs) and not set(title.keys()) <= set(self.required_attrs+self.optional_attrs):
+                raise InputError("Title Group titles must only contain the following keys: {}".format(self.required_attrs+self.optional_attrs))
+        if '-' in self.primary_title("en"):
+            raise InputError("Primary English title may not contain hyphens.")
+
+
 
     def load(self, serial=None):
         if serial:
@@ -147,8 +168,9 @@ class Term(abst.AbstractMongoRecord):
 
     def _validate(self):
         super(Term, self)._validate()
-        if any((c in '-') for c in self.title_group.primary_title("en")):
-            raise InputError("Primary English title may not contain hyphens.")
+        if self.name != self.get_primary_title():
+            raise InputError("Term name does not match primary title")
+        self.title_group.validate()
 
     def _normalize(self):
         self.titles = self.title_group.titles
@@ -156,7 +178,7 @@ class Term(abst.AbstractMongoRecord):
     def get_titles(self, lang=None):
         return self.title_group.all_titles(lang)
 
-    def get_primary_title(self, lang=None):
+    def get_primary_title(self, lang='en'):
         return self.title_group.primary_title(lang)
 
 
@@ -620,17 +642,17 @@ class TitledTreeNode(TreeNode):
     def validate(self):
         super(TitledTreeNode, self).validate()
 
-        if '-' in self.title_group.primary_title("en"):
-            raise InputError("Primary English title may not contain hyphens.")
-
         if not self.default and not self.sharedTitle and not self.get_titles():
             raise IndexSchemaError("Schema node {} must have titles, a shared title node, or be default".format(self))
 
         if self.default and (self.get_titles() or self.sharedTitle):
             raise IndexSchemaError("Schema node {} - default nodes can not have titles".format(self))
 
-        if not self.default and not self.primary_title("en"):
-            raise IndexSchemaError("Schema node {} missing primary English title".format(self))
+        if not self.default:
+            try:
+                self.title_group.validate()
+            except InputError as e:
+                raise IndexSchemaError("Schema node {} has invalid titles: {}".format(self, e))
 
         if self.children and len([c for c in self.children if c.default]) > 1:
             raise IndexSchemaError("Schema Structure Node {} has more than one default child.".format(self.key))

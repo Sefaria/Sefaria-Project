@@ -3,6 +3,7 @@
 import pytest
 from sefaria.model import *
 import re
+from sefaria.system.exceptions import InputError
 
 
 def setup_module(module):
@@ -195,4 +196,17 @@ def test_text_index_map():
         assert u' '.join(tokenizer(ref_list[ri].text(lang="he",vtitle="Tanach with Text Only").text)) == u' '.join(mes_str_array[index_list[ri]:index_list[ri+1]])
 
 
+    def ja_node_with_hyphens():
+        node = JaggedArrayNode()
+        node.add_primary_titles(u'Title with-this', u'משהו')
+        node.add_structure(['Something'])
+        with pytest.raises(InputError):
+            node.validate()
 
+    def ja_node_without_primary():
+        node = JaggedArrayNode()
+        node.add_title(u'Title with this', 'en')
+        node.add_title(u'משהו', 'he')
+        node.add_structure(['Something'])
+        with pytest.raises(InputError):
+            node.validate()
