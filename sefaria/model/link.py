@@ -38,7 +38,7 @@ class Link(abst.AbstractMongoRecord):
         self.auto = getattr(self, 'auto', False)
         self.generated_by = getattr(self, "generated_by", None)
         self.source_text_oid = getattr(self, "source_text_oid", None)
-        self.type = getattr(self, "source_text_oid", "").lower()
+        self.type = getattr(self, "type", "").lower()
         self.refs = [text.Ref(self.refs[0]).normal(), text.Ref(self.refs[1]).normal()]
 
         if getattr(self, "_id", None):
