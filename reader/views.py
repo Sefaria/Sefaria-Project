@@ -407,9 +407,13 @@ def s2(request, ref, version=None, lang=None):
 
     try:
         title = props["initialPanels"][0]["text"].get("ref","")
-        desc = ' '.join(props["initialPanels"][0]["text"].get("text","")) # get english text for section if it exists, and flatten the list
+        try:
+            segmentIndex = (props["initialPanels"][0]["text"].get("sections",""))[1]-1
+        except:
+            segmentIndex = 0
+        desc = props["initialPanels"][0]["text"].get("text","")[segmentIndex] # get english text for section & first segment it exists
         if desc == "":
-            desc = ' '.join(props["initialPanels"][0]["text"].get("he","")) # if no english, fall back on hebrew and flatten
+            desc = props["initialPanels"][0]["text"].get("he", "")[segmentIndex]  # if no english, fall back on hebrew
         desc = bleach.clean(desc, strip=True, tags=())
         desc = desc[:145].rsplit(' ', 1)[0]+"..." # truncate as close to 145 characters as possible while maintaining whole word. Append ellipses.
 
