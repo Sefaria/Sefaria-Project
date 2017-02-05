@@ -268,12 +268,32 @@ def write_text_doc_to_disk(doc=None):
         if not out:
             print "Skipping %s - no content" % doc["title"]
             return
-        path = make_path(doc, format[0],extension=format[2] if len(format) == 3 else None)
+        path = make_path(doc, format[0], extension=format[2] if len(format) == 3 else None)
         if not os.path.exists(os.path.dirname(path)):
             os.makedirs(os.path.dirname(path))
         with open(path, "w") as f:
             f.write(out.encode('utf-8'))
 
+def convert_talmud_formating(data):
+    if isinstance(data, basestring): #using base string to get both str and unicode
+        p = re.compile(r'<span\s+class="gemarra-regular">(.+?)<\/span>')
+        data = p.sub(r'<b>\1</b>', data)
+        p = re.compile(r'<span\s+class="gemarra-italic">(.+?)<\/span>')
+        data = p.sub(r'<b><i>\1</i></b>', data)
+        p = re.compile(r'<span\s+class="it-text">(.+?)<\/span>')
+        data = p.sub(r'<i>\1</i>', data)
+        return data
+    elif isinstance(data, list):
+        new_list = []
+        for item in data:
+            new_list.append(convert_talmud_formating(item))
+        return new_list
+    elif isinstance(data, dict):
+        for key, value in data.iteritems():
+            data[key] = convert_talmud_formating(value)
+        return data
+    else:
+        return data
 
 def prepare_text_for_export(text):
     """
@@ -289,7 +309,11 @@ def prepare_text_for_export(text):
 
     text["heTitle"] = index.nodes.primary_title("he")
     text["categories"] = index.categories
+
     text["text"] = text.get("text", None) or text.get("chapter", "")
+
+    if index.categories[0] == "Talmud" and index.categories[1] == "Bavli":
+        text["text"] = convert_talmud_formating(text["text"])
 
     if index.is_complex():
         text["original_text"] = deepcopy(text["text"])
