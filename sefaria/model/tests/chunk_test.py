@@ -217,15 +217,16 @@ def test_validate():
         Ref("Shabbat 7a"),
         Ref("Shabbat 7a-8b"),
         Ref("Shabbat 7a:12"),
-        Ref("Shabbat 7a:12-23"),
-        Ref("Shabbat 7a:12-7b:3"),
+        Ref("Shabbat 7a:2-9"),
+        Ref("Shabbat 7a:2-7b:3"),
         Ref("Rashi on Shabbat 7a"),
         Ref("Rashi on Shabbat 7a-8b"),
         Ref("Rashi on Shabbat 7a:12"),
-        Ref("Rashi on Shabbat 7a:12-23"),
-        Ref("Rashi on Shabbat 7a:12-7b:3")
+        Ref("Rashi on Shabbat 7a:2-9"),
+        Ref("Rashi on Shabbat 7a:2-7b:3")
     ]
     for ref in passing_refs:
+        print ref
         TextChunk(ref, lang="he")._validate()
 
 
