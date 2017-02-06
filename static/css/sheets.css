@@ -679,21 +679,6 @@ body {
 	font-size: 24px;
 }
 
-/* Allows line height to change with font-size */
-.source .text .he span,
-.source .text .en span,
-#title span,
-.comment span,
-.outside span,
-.outsideBi .text .he span,
-.outsideBi .text .en span  {
-	display: inline-block;
-}
-
-.source .text .he .segment,
-.source .text .en .segment {
-	display: inline;
-}
 
 #sheet.english .en {
 	display: block;
