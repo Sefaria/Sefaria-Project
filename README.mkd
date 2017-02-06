@@ -80,7 +80,7 @@ A MongoDB dump of our database is available at http://dev.sefaria.org/static/dum
 This will create (or overwrite) a mongo database called `sefaria`.
 
 #### Set up Django's local server
-`manage.py` is used to run and to manage the local server.  Is is located in the root directory of the `Sefaria-Project` code base. 
+`manage.py` is used to run and to manage the local server.  It is located in the root directory of the `Sefaria-Project` code base. 
 
 Django auth features run on a separate database. To init this database and set up Django's auth system, switch to the root directory of the `Sefaria-Project` code base, and run: 
 
