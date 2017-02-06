@@ -1535,11 +1535,17 @@ def links_api(request, link_id_or_ref=None):
             for i in j:
                 try:
                     retval = post_single_link(request, i, uid, **kwargs)
-                    res.append("Link: {} | {} Saved".format(retval["ref"], retval["anchorRef"]))
+                    res.append({"status": "ok. Link: {} | {} Saved".format(retval["ref"], retval["anchorRef"])})
                 except Exception as e:
                     res.append({"error": "Link: {} | {} Error: {}".format(i["refs"][0], i["refs"][1], unicode(e))})
 
-            return jsonResponse(res[:100]) if request.GET.get("limit_link_response", None) else jsonResponse(res)
+            try:
+                res_slice = request.GET.get("truncate_response", None)
+                if res_slice:
+                    res_slice = int(res_slice)
+            except Exception as e:
+                res_slice = None
+            return jsonResponse(res[:res_slice])
         else:
             return jsonResponse(post_single_link(request, j, uid, **kwargs))
 
