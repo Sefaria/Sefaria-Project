@@ -441,7 +441,6 @@ def hebrew_term(s):
 	categories = {
 		"Torah":                u"תורה",
 		"Tanakh":               u'תנ"ך',
-		"Tanakh":               u'תנ"ך',
 		"Prophets":             u"נביאים",
 		"Writings":             u"כתובים",
 		"Commentary":           u"מפרשים",
@@ -507,9 +506,9 @@ def hebrew_term(s):
 		"Yachin": u'יכין',
 		"Boaz": u'בועז',
         "Harchev Davar": u'הרחב דבר',
+		"Guides": u'ספרות עזר',
 		'Grammatica Hebraica': u'דקדוק',
 		'Minchat Shai': u'מנחת שי'
-
 	}
 
 	pseudo_categories = {

@@ -1540,15 +1540,21 @@ def post_single_link(request, link):
         if not apikey:
             return {"error": "Unrecognized API key."}
         obj = func(apikey["uid"], model.Link, link, method="API")
-        if USE_VARNISH:
-            revarnish_link(obj)
+        try:
+            if USE_VARNISH:
+                revarnish_link(obj)
+        except Exception as e:
+            logger.error(e)
         response = format_object_for_client(obj)
     else:
         @csrf_protect
         def protected_link_post(req):
             obj=func(req.user.id, model.Link, link)
-            if USE_VARNISH:
-                revarnish_link(obj)
+            try:
+                if USE_VARNISH:
+                    revarnish_link(obj)
+            except Exception as e:
+                logger.error(e)
             resp = format_object_for_client(obj)
             return resp
         response = protected_link_post(request)

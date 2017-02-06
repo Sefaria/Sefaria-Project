@@ -44,18 +44,20 @@
     </script>
 
     {% if not OFFLINE %}
-    <script src="https://use.typekit.net/aeg8div.js"></script>
     <script src="//ajax.googleapis.com/ajax/libs/webfont/1.5.10/webfont.js"></script>
-    <script>try{Typekit.load({ async: true });}catch(e){}</script>
     <script>
       {% if S2 %}
-      var families = ['Open Sans Hebrew:400,700:latin,hebrew', 'Montserrat:400,700', 'Alef:400,700:latin,hebrew' ];
+        var families = ['Crimson Text:400,700', 'Open Sans Hebrew:400,700:hebrew', 'Alef:400,700:hebrew' ]
       {% else %}
-      var families = ['Montserrat:400,700', 'Alef:400,700:latin,hebrew' ];
+        var families = ['Montserrat:400,700', 'Alef:400,700:latin,hebrew' ];
       {% endif %}
       WebFont.load({
         google: {
-          families: families
+          families: families,
+          text: 'ḥḤ'
+        },
+        typekit: {
+          id: 'aeg8div'
         }
       });
     </script>
