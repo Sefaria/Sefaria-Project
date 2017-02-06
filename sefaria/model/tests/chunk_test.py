@@ -216,12 +216,12 @@ def test_validate():
         Ref("Shabbat"),
         Ref("Shabbat 7a"),
         Ref("Shabbat 7a-8b"),
-        Ref("Shabbat 7a:12"),
+        Ref("Shabbat 7a:9"),
         Ref("Shabbat 7a:2-9"),
         Ref("Shabbat 7a:2-7b:3"),
         Ref("Rashi on Shabbat 7a"),
         Ref("Rashi on Shabbat 7a-8b"),
-        Ref("Rashi on Shabbat 7a:12"),
+        Ref("Rashi on Shabbat 7a:9"),
         Ref("Rashi on Shabbat 7a:2-9"),
         Ref("Rashi on Shabbat 7a:2-7b:3")
     ]
