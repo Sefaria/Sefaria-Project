@@ -541,8 +541,8 @@ def index_all(skip=0, merged=False, debug=False):
     new_index_name = name_dict['new']
     curr_index_name = name_dict['current']
     alias_name = name_dict['alias']
-
-    create_index(new_index_name, merged=merged)
+    if skip == 0:
+        create_index(new_index_name, merged=merged)
     index_all_sections(new_index_name, skip=skip, merged=merged, debug=debug)
     if not merged:
         index_public_sheets(new_index_name)
