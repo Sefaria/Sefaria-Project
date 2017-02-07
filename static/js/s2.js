@@ -2345,8 +2345,10 @@ var ReaderControls = React.createClass({
     if (title) {
       var oref = Sefaria.ref(title);
       var heTitle = oref ? oref.heTitle : "";
+      var categoryAttribution = oref && Sefaria.categoryAttribution(oref.categories) ? React.createElement(CategoryAttribution, { categories: oref.categories }) : null;
     } else {
       var heTitle = "";
+      var categoryAttribution = null;
     }
 
     var mode = this.props.currentMode();
@@ -2366,6 +2368,7 @@ var ReaderControls = React.createClass({
       }.bind(this));
     }
 
+    var showVersion = this.props.versionLanguage == "en" && (this.props.settings.language == "english" || this.props.settings.language == "bilingual");
     var versionTitle = this.props.version ? this.props.version.replace(/_/g, " ") : "";
     var url = Sefaria.ref(title) ? "/" + Sefaria.normRef(Sefaria.ref(title).book) : Sefaria.normRef(title);
     var centerContent = connectionsHeader ? React.createElement(
@@ -2382,11 +2385,11 @@ var ReaderControls = React.createClass({
       { href: url },
       React.createElement(
         'div',
-        { className: 'readerTextToc', onClick: this.openTextToc },
-        title ? React.createElement('i', { className: 'fa fa-caret-down invisible' }) : null,
+        { className: "readerTextToc" + (categoryAttribution ? ' attributed' : ''), onClick: this.openTextToc },
         React.createElement(
           'div',
           { className: 'readerTextTocBox' },
+          title ? React.createElement('i', { className: 'fa fa-caret-down invisible' }) : null,
           React.createElement(
             'span',
             { className: 'en' },
@@ -2398,7 +2401,7 @@ var ReaderControls = React.createClass({
             heTitle
           ),
           title ? React.createElement('i', { className: 'fa fa-caret-down' }) : null,
-          this.props.versionLanguage == "en" && this.props.settings.language == "english" ? React.createElement(
+          showVersion ? React.createElement(
             'span',
             { className: 'readerTextVersion' },
             React.createElement(
@@ -2406,7 +2409,8 @@ var ReaderControls = React.createClass({
               { className: 'en' },
               versionTitle
             )
-          ) : null
+          ) : null,
+          categoryAttribution
         )
       )
     );
@@ -3201,6 +3205,7 @@ var ReaderNavigationCategoryMenu = React.createClass({
             )
           ) : null,
           toggle,
+          React.createElement(CategoryAttribution, { categories: categories }),
           React.createElement(ReaderNavigationCategoryMenuContents, { contents: catContents, categories: categories, width: this.props.width, category: this.props.category })
         ),
         footer
@@ -3772,6 +3777,7 @@ var ReaderTextTableOfContents = React.createClass({
           React.createElement(
             'div',
             { className: 'tocTop' },
+            React.createElement(CategoryAttribution, { categories: Sefaria.index(this.props.title).categories }),
             React.createElement(
               'div',
               { className: 'tocCategory' },
@@ -4956,6 +4962,31 @@ var ModeratorButtons = React.createClass({
       textButtons,
       message
     );
+  }
+});
+
+var CategoryAttribution = React.createClass({
+  displayName: 'CategoryAttribution',
+
+  propTypes: {
+    categories: React.PropTypes.array.isRequired
+  },
+  render: function render() {
+    var attribution = Sefaria.categoryAttribution(this.props.categories);
+    return attribution ? React.createElement(
+      'div',
+      { className: 'categoryAttribution' },
+      React.createElement(
+        'span',
+        { className: 'en' },
+        attribution.english
+      ),
+      React.createElement(
+        'span',
+        { className: 'he' },
+        attribution.hebrew
+      )
+    ) : null;
   }
 });
 
@@ -8147,7 +8178,6 @@ var ToolsPanel = React.createClass({
     var editText = this.props.canEditText ? function () {
       var refString = this.props.srefs[0];
       var currentPath = Sefaria.util.currentPath();
-      debugger;
       var currentLangParam;
       if (this.props.version) {
         refString += "/" + encodeURIComponent(this.props.versionLanguage) + "/" + encodeURIComponent(this.props.version);

@@ -22,13 +22,15 @@
   </script>
 
   {% if not OFFLINE %}
-  <script src="https://use.typekit.net/aeg8div.js"></script>
-  <script>try{Typekit.load({ async: true });}catch(e){}</script>
   <script src="//ajax.googleapis.com/ajax/libs/webfont/1.5.10/webfont.js"></script>
   <script>
     WebFont.load({
       google: {
-        families: ['Open Sans Hebrew:400,700:latin,hebrew' ]
+        families: ['Crimson Text:400,700', 'Open Sans Hebrew:400,700:hebrew'],
+        text: 'ḥḤ'
+      },
+      typekit: {
+        id: 'aeg8div'
       }
     });
   </script>

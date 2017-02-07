@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+
+{% block title %}The William Davidson Talmud{% endblock %}
+
+{% block css %}
+    #davidsonTalmud {
+        text-align: justify;
+    }
+    #davidsonTalmud p {
+        margin-bottom: 20px;
+    }
+    #cardBlock {
+        background: white;
+        border: 1px solid #F2F2F2;
+        border-top: 6px solid #ccb479;
+        padding: 50px 60px;
+        margin-bottom: 60px
+    }
+    @media screen and (max-width: 500px) {
+      #cardBlock {
+        padding: 40px 20px;
+      }
+    }
+    #davidsonTalmud h1 {
+        display: inline-block;
+        border-bottom: 1px solid #CCC;
+        color: black;
+        text-transform: uppercase;
+        padding-bottom: 10px;
+        margin-bottom: 50px;
+        font-family: inherit;
+
+    }
+    #cardBlock p {
+        color: #666;
+    }
+    #davidsonTalmud h2 {
+        font-family: inherit;
+        color: black;
+        border: none;
+        text-transform: none;
+        font-size: 24px;
+        font-style: italic;
+        margin-bottom: 4px;
+        padding: 0;
+    }
+    #davidsonDates {
+        margin-bottom: 20px;
+    }
+    #davidsonPhoto {
+        float: left;
+        margin: 0 22px 22px 0;
+    }
+    #davidsonQuote {
+        font-style: italic;
+        margin-top: 10px;
+    }
+    #davidsonLicense {
+        margin-top: 60px;
+        font-size: 14px;
+    }
+    #davidsonLicense a {
+        text-decoration: underline;
+    }
+{% endblock %}
+
+{% block content %}
+
+<div id="davidsonTalmud" class="container static">
+    <div class="inner">
+        <div id="cardBlock">
+            <center><h1>The William Davidson Talmud</h1></center>
+
+            <p><a href="/texts/Talmud">The William Davidson Talmud</a> is a free digital edition of the Babylonian Talmud with parallel translations, interlinked to major commentaries, biblical citations, Midrash, Halakhah, and an ever-growing library of Jewish texts. As with all of Sefaria, The William Davidson Talmud will continually evolve as we add additional translations, commentaries, and connections.</p>
+            <p>It will ultimately include Rabbi Adin Steinsaltz Even-Israel’s complete Modern Hebrew and English translations of the Talmud. Through the generous support of The William Davidson Foundation, these translations are now available with a <a href="https://creativecommons.org/licenses/by-nc/4.0/legalcode" target="_blank">Creative Commons non-commercial license</a>, making them free for use and re-use &mdash; even beyond Sefaria.</p>
+        </div>
+
+        <img id="davidsonPhoto" src="/static/img/william-davidson.jpg">
+        <h2>William Davidson</h2>
+        <div id="davidsonDates">March 13, 1922 – December 5, 2009</div>
+
+        <p>William Davidson was an internationally recognized businessman and lifelong philanthropist who cherished above all else his family and his Jewish heritage. Throughout his life, he supported projects and organizations that preserved and enhanced Jewish life and continuity. From his parents he learned that success in business provides the means for helping others. This family philosophy shaped his life.</p>
+         
+        <p>An expert in making troubled companies profitable, he transformed a struggling, family-owned automotive-glass fabricating firm into one of the world’s largest manufacturers of architectural and automotive glass. He also was the owner of several professional sports teams, including the Detroit Pistons basketball team. A native of Detroit, Michigan, he earned his bachelor of business degree from the University of Michigan and his law degree from Wayne State University.</p>
+         
+        <p>In 2005, he established the William Davidson Foundation, a private, family foundation to advance for future generations the economic, cultural and civic vitality of Southeast Michigan, the State of Israel and the Jewish community. “One of the secrets to a fulfilling life,” he once said, “is to be able to do things for other people.”  To commemorate his life and extend his spirit of generosity, the Talmud, as translated in English and Modern Hebrew by Rabbi Adin Steinsaltz, is now accessible to all.</p>
+
+        <p id="davidsonQuote">
+            . . . Moses charged us with the Teaching<br>
+            As the heritage of the congregation of Jacob.<br>
+            <a href="/Deuteronomy.33.4">Deuteronomy 33:4</a>
+        </p>
+
+        <div id="davidsonLicense">The William Davidson digital edition of the Koren Noé Talmud, with commentary by Rabbi Adin Steinsaltz Even-Israel, was released with a <a href="https://creativecommons.org/licenses/by-nc/4.0/legalcode" target="_blank">CC BY-NC</a> license by <a href="https://www.korenpub.com/koren_en_usd/declaration.html/" target="_blank">Koren Publishers</a>.</div>
+    </div>
+</div>
+
+{% endblock %}

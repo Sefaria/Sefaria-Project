@@ -638,6 +638,7 @@ $(function() {
 		} else {
 			// this is a known text
 			$.extend(sjs.editing, parseRef($("#newTextName").val()));
+			sjs.editing.indexTitle   = sjs.editing.index.title.split(",")[0];
 			sjs.editing.sectionNames = sjs.editing.index.sectionNames;
 			sjs.editing.textDepth    = sjs.editing.sectionNames.length; 	
 			sjs.editing.text = [""];
@@ -679,7 +680,11 @@ $(function() {
 		}else if ("next" in params) {
 			window.location = decodeURIComponent(params["next"]);
 		}else if($.cookie('s2') == "true") {
-			window.location = window.location.href.replace("edit/", "");
+			if (window.location.href.includes("edit/")) {
+				window.location = window.location.href.replace("edit/", "");
+			} else {
+				window.location = "/" + sjs.editing.indexTitle;
+			}
 		} else {
 			sjs.clearNewText();
 			sjs._direction = 0;
@@ -3474,7 +3479,6 @@ sjs.showNewText = function () {
 	// * book, sections, toSections -- what is being edited
 	// * text - the text being edited or "" if new text
 	// * versionTitle, versionSource or "" if new text
-	
 	sjs.clearNewText();
 
 	$("body").addClass("editMode");
@@ -4185,6 +4189,12 @@ function saveText(text) {
 				}
 			} else if("next" in params){
 				window.location = params["next"];
+			}else if($.cookie('s2') == "true") {
+				if (window.location.href.includes("edit/")) {
+					window.location = window.location.href.replace("edit/", "");
+				} else {
+					window.location = "/" + sjs.editing.indexTitle;
+				}
 			}else {
 				hardRefresh(ref);
 				sjs.editing = {};

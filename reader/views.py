@@ -1506,8 +1506,11 @@ def links_api(request, link_id_or_ref=None):
             # func = save_note if "type" in j and j["type"] == "note" else save_link
             #obj = func(apikey["uid"], model.Link, link, **kwargs)
             obj = func(uid, model.Link, link, **kwargs)
-            if USE_VARNISH:
-                revarnish_link(obj)
+            try:
+                if USE_VARNISH:
+                    revarnish_link(obj)
+            except Exception as e:
+                logger.error(e)
             return format_object_for_client(obj)
 
         # delegate according to single/multiple objects posted

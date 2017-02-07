@@ -4,7 +4,7 @@ import re
 from itertools import groupby
 
 from sefaria.model import *
-from sefaria.helper.splice import Splicer
+from sefaria.helper.splice import SegmentSplicer
 
 
 
@@ -75,7 +75,7 @@ to_split = ["Nedarim.25b.9",
     "Zevachim 15b:17",
 ]
 for r in to_split:
-    s = Splicer().insert_blank_segment_after(Ref(r))
+    s = SegmentSplicer().insert_blank_segment_after(Ref(r))
     #s._save_text_only = True
     s._rebuild_toc = False
     s._refresh_states = True
@@ -92,7 +92,7 @@ to_merge = ["Zevachim.66a.23", # merge into previous 22
     "Arakhin 34a:30",
     "Keritot 28b:37"]
 for r in to_merge:
-    s = Splicer().splice_this_into_prev(Ref(r))
+    s = SegmentSplicer().splice_this_into_prev(Ref(r))
     #s._save_text_only = True
     s._rebuild_toc = False
     s._refresh_states = True
@@ -138,7 +138,7 @@ for booklist in booklists:
                         print u"(ma) Bare Mishnah word"
                         m_count += 1
                         try:
-                            splc = Splicer().splice_this_into_next(current["ref"]).bulk_mode()
+                            splc = SegmentSplicer().splice_this_into_next(current["ref"]).bulk_mode()
                             if live:
                                 splc.execute()
                             else:
@@ -157,7 +157,7 @@ for booklist in booklists:
                         print u"(ga) Bare Gemara word"
                         g_count += 1
                         try:
-                            splc = Splicer().splice_this_into_next(current["ref"]).bulk_mode()
+                            splc = SegmentSplicer().splice_this_into_next(current["ref"]).bulk_mode()
                             if live:
                                 splc.execute()
                             else:
