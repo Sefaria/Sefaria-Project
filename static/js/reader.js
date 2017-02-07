@@ -638,6 +638,7 @@ $(function() {
 		} else {
 			// this is a known text
 			$.extend(sjs.editing, parseRef($("#newTextName").val()));
+			sjs.editing.indexTitle   = sjs.editing.index.title.split(",")[0];
 			sjs.editing.sectionNames = sjs.editing.index.sectionNames;
 			sjs.editing.textDepth    = sjs.editing.sectionNames.length; 	
 			sjs.editing.text = [""];
@@ -3474,7 +3475,6 @@ sjs.showNewText = function () {
 	// * book, sections, toSections -- what is being edited
 	// * text - the text being edited or "" if new text
 	// * versionTitle, versionSource or "" if new text
-	
 	sjs.clearNewText();
 
 	$("body").addClass("editMode");

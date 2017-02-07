@@ -8178,7 +8178,6 @@ var ToolsPanel = React.createClass({
     var editText = this.props.canEditText ? function () {
       var refString = this.props.srefs[0];
       var currentPath = Sefaria.util.currentPath();
-      debugger;
       var currentLangParam;
       if (this.props.version) {
         refString += "/" + encodeURIComponent(this.props.versionLanguage) + "/" + encodeURIComponent(this.props.version);
