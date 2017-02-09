@@ -1028,6 +1028,7 @@ var ReaderApp = React.createClass({
   },
   showLibrary: function() {
     if (this.props.multiPanel) {
+      this.saveOpenPanelsToRecentlyViewed();
       this.setState({header: this.makePanelState({mode: "Header", menuOpen: "navigation"})});
     } else {
       if (this.state.panels.length) {
@@ -1061,32 +1062,14 @@ var ReaderApp = React.createClass({
     if (panel.mode == "Connections" || !panel.refs.length) { return; }
     var ref  = panel.refs[0];
     var oRef = Sefaria.ref(ref);
-    var recent = Sefaria.recentlyViewed;
-    recent = recent.filter(function(item) {
-      return item.book !== oRef.indexTitle; // Remove this item if it's in the list already
-    });
     var recentItem = {
       ref: ref,
       heRef: oRef.heRef,
       book: oRef.indexTitle,
       version: panel.version,
       versionLanguage: panel.versionLanguage,
-      position: n
     };
-    recent.splice(0, 0, recentItem);
-    Sefaria.recentlyViewed = recent;
-    if (Sefaria._uid) {
-        $.post("/api/profile", {json: JSON.stringify({recentlyViewed: recent})}, function(data) {
-          if ("error" in data) {
-            alert(data.error);
-          }
-        }).fail(function() {
-          alert("Sorry, an Error occurred.");
-        });    
-    } else {
-      recent = recent.slice(0, 6);
-      cookie("recentlyViewed", JSON.stringify(recent), {path: "/"});      
-    }
+    Sefaria.saveRecentItem(recentItem);
   },
   saveOpenPanelsToRecentlyViewed: function() {
     for (var i = this.state.panels.length-1; i >= 0; i--) {
@@ -2727,7 +2710,7 @@ var TextBlockLink = React.createClass({
   },
   render: function() {
     var index    = Sefaria.index(this.props.book);
-    var category = this.props.category || index.categories[0];
+    var category = this.props.category || (index ? index.categories[0] : "Other");
     var style    = {"borderColor": Sefaria.palette.categoryColor(category)};
     var title    = this.props.title   || (this.props.showSections ? this.props.sref : this.props.book);
     var heTitle  = this.props.heTitle || (this.props.showSections ? this.props.heRef : index.heTitle);

@@ -410,7 +410,7 @@ Sefaria = extend(Sefaria, {
   _index: {}, // Cache for text index records
   index: function(text, index) {
     if (!index) {
-      return this._index[text];
+      return text in this._index ? this._index[text] : null;
     } else {
       this._index[text] = index;
     }
@@ -1008,6 +1008,47 @@ Sefaria = extend(Sefaria, {
     }
     return attribution;
   },
+  saveRecentItem: function(recentItem) {
+    var recent = Sefaria.recentlyViewed;
+    recent = recent.filter(function(item) {
+      return item.book !== recentItem.book; // Remove this item if it's in the list already
+    });
+    recent.splice(0, 0, recentItem);
+    Sefaria.recentlyViewed = recent;
+    if (Sefaria._uid) {
+        $.post("/api/profile", {json: JSON.stringify({recentlyViewed: recent.map(Sefaria.packRecentItem)})}, function(data) {
+          if ("error" in data) {
+            alert(data.error);
+          }
+        }).fail(function() {
+          alert("Sorry, an Error occurred.");
+        });    
+    } else {
+      var cookie = INBROWSER ? $.cookie : Sefaria.util.cookie;
+      recent = recent.slice(0, 6);
+      cookie("recentlyViewed", JSON.stringify(recent), {path: "/"});      
+    }
+  },
+  packRecentItem: function(item) {
+    // Returns an array which represents the object `item` with less overhead.
+    var packed = [item.ref, item.heRef];
+    if (item.version && item.versionLangauge) {
+      packed = packed.concat([item.version, item.versionLanguage]);
+    }
+    return packed;
+  },
+  unpackRecentItem: function(item) {
+    // Returns an object which preprsents the array `item` with fields expanded
+    var oRef = Sefaria.parseRef(item[0]);
+    var unpacked = {
+      ref: item[0],
+      heHref: item[1],
+      book: oRef.index,
+      version: item.length > 2 ? item[2] : null,
+      versionLanguage: item.length > 3 > item[3]
+    };
+    return unpacked;
+  },
   sheets: {
     _trendingTags: null,
     trendingTags: function(callback) {
@@ -1512,6 +1553,7 @@ Sefaria = extend(Sefaria, {
     // Transform books array into a dictionary for quick lookup
     // Which is worse: the cycles wasted in computing this on the client
     // or the bandwitdh wasted in letting the server computer once and trasmiting the same data twice in differnt form?
+    this.booksDict = {};
     for (var i = 0; i < this.books.length; i++) {
       this.booksDict[this.books[i]] = 1;
     }    
@@ -2118,7 +2160,7 @@ Sefaria.util = {
         }
     },
     handleUserCookie: function() {
-        var cookie = (typeof require !== 'undefined') ? Sefaria.util.cookie : $.cookie;
+        var cookie = INBROWSER ? $.cookie : Sefaria.util.cookie;
 
         if (Sefaria.loggedIn) {
             // If logged in, replace cookie with current system details
@@ -2502,6 +2544,7 @@ Sefaria.setup = function() {
     Sefaria.util.handleUserCookie();
     Sefaria._makeBooksDict();
     Sefaria._cacheIndexFromToc(Sefaria.toc);
+    Sefaria.recentlyViewed = Sefaria.recentlyViewed.map(Sefaria.unpackRecentItem);
     Sefaria.site.track.setUserData();
 };
 Sefaria.setup();

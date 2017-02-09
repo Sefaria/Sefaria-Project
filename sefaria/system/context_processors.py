@@ -74,8 +74,10 @@ def language_settings(request):
 def user_and_notifications(request):
     if not request.user.is_authenticated():
         import urlparse
+        recent = json.loads(urlparse.unquote(request.COOKIES.get("recentlyViewed", '[]')))
+        recent = [] if len(recent) and isinstance(recent[0], dict) else recent # ignore old style cookies
         return {
-            "recentlyViewed": json.loads(urlparse.unquote(request.COOKIES.get("recentlyViewed", '[]')))
+            "recentlyViewed": recent
         }
     
     profile = UserProfile(id=request.user.id)
