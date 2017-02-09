@@ -545,7 +545,7 @@ class JaggedTextArray(JaggedArray):
     def _wcnt(self, jta):
         """ Returns the number of words in an undecorated jagged array """
         if isinstance(jta, basestring):
-            return len(jta.split(" "))
+            return len(re.split("\s+", jta.strip()))
         elif isinstance(jta, list):
             return sum([self._wcnt(i) for i in jta])
         else:

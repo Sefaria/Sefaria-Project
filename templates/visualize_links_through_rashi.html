@@ -2,8 +2,8 @@
 
 {% load sefaria_tags %}
 
-{% block title %}Visualizing the Sefaria Library{% if lang %} ({{ lang }}){% endif %}{% endblock %}
-{% block ogimage %}<meta property="og:image" content="/static/img/sunburst.png"/>{% endblock %}
+{% block title %}Visualizing the Torah Connections through Rashi's Commentary{% if lang %} ({{ lang }}){% endif %}{% endblock %}
+{% block ogimage %}<meta property="og:image" content="/static/img/links-through-rashi.png"/>{% endblock %}
 {% block head %}
     {% if not OFFLINE %}
     <script src="https://use.typekit.net/aeg8div.js"></script>
@@ -12,7 +12,7 @@
     <script>
       WebFont.load({
         google: {
-          families: ['Montserrat:400,700', 'Open Sans Hebrew:400,700:latin,hebrew' ]
+          families: ['Open Sans Hebrew:400,700:latin,hebrew' ]
         }
       });
     </script>
@@ -21,14 +21,37 @@
 {%  endblock %}
 
 {% block css %}
+#rashiLinksContainer {
+  padding-top: 70px;
+  width: 1080px;
+  max-width: 100%;
+  margin: 0 auto;
+}
+#chart {
+  width: 680px;
+  float: right;
+}
+#description {
+  width: 400px;
+  float: right;
+  padding-top: 50px;
+}
+#description h1 {
+  margin-bottom: 20px;
+  font-size: 24px;
+  font-weight: bold;
+}
+#description h1 .int-en {
+  font-family: "adobe-garamond-pro", Georgia, serif;
+}
+#description li {
+  margin: 18px 0;
+}
 .node {
   font: 300 11px "Helvetica Neue", Helvetica, Arial, sans-serif;
   fill: #bbb;
-  opacity: 0;
-}
-
-.node:hover {
-  fill: #000;
+  opacity: 0.1;
+  cursor: pointer;
 }
 
 .link {
@@ -43,7 +66,8 @@
 .node--target {
   opacity: 1;
   font-weight: 700;
-  font-size: 1em;
+  font-size: 13px;
+  fill: #000;
 }
 
 .node--source {
@@ -67,11 +91,32 @@
 .link--target {
   stroke: #2ca02c;
 }
-
+.green {
+  color: #2ca02c;
+}
+.red {
+  color: #d62728;
+}
 {% endblock %}
 
 {% block content %}
-<div id="chart"></div>
+  <div id="rashiLinksContainer" class="static">
+    <div id="description">
+      <h1>
+        <span class="int-en">Links through Rashi</span>
+        <span class="int-he">Links through Rashi</span>
+      </h1>
+      <p>This visualization show links between verses of Torah that are connected by virtue of Rashi <i>quoting</i> one verse while <i>commenting</i> on another.</p>
+      <ul>
+        <li>Hover over the grey ring to reveal connections.
+        <li>A <span class="green">green</span> line means Rashi quotes the selected verse in his commentary on the connected verse.</li>
+        <li>A <span class="red">red</span> line means Rashi quotes the connected verse when commenting on the selected verse.</li>
+        <li>Click a verse to open it with Rashi's commentary.</li>
+      </ul>
+    </div>
+    <div id="chart"></div>
+    <div class="clearFix"></div>
+  </div>
 {% endblock %}
 
 {% block js %}
@@ -80,7 +125,7 @@
 
         var load_url = "{{ json_file }}";
 
-var diameter = 960,
+var diameter = 680,
     radius = diameter / 2,
     innerRadius = radius - 120;
 
@@ -202,6 +247,12 @@ function packageImports(nodes) {
   return imports;
 }
 
+$(function() {
+  $("#chart").on("click", ".node", function() {
+    var ref = Sefaria.normRef($(this).text());
+    window.open("/" + ref + "?with=Rashi");
+  })
+});
     {% endautoescape %}
     </script>
 {% endblock %}

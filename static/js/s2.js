@@ -2345,8 +2345,10 @@ var ReaderControls = React.createClass({
     if (title) {
       var oref = Sefaria.ref(title);
       var heTitle = oref ? oref.heTitle : "";
+      var categoryAttribution = oref && Sefaria.categoryAttribution(oref.categories) ? React.createElement(CategoryAttribution, { categories: oref.categories }) : null;
     } else {
       var heTitle = "";
+      var categoryAttribution = null;
     }
 
     var mode = this.props.currentMode();
@@ -2382,11 +2384,11 @@ var ReaderControls = React.createClass({
       { href: url },
       React.createElement(
         'div',
-        { className: 'readerTextToc', onClick: this.openTextToc },
-        title ? React.createElement('i', { className: 'fa fa-caret-down invisible' }) : null,
+        { className: "readerTextToc" + (categoryAttribution ? ' attributed' : ''), onClick: this.openTextToc },
         React.createElement(
           'div',
           { className: 'readerTextTocBox' },
+          title ? React.createElement('i', { className: 'fa fa-caret-down invisible' }) : null,
           React.createElement(
             'span',
             { className: 'en' },
@@ -2406,7 +2408,8 @@ var ReaderControls = React.createClass({
               { className: 'en' },
               versionTitle
             )
-          ) : null
+          ) : null,
+          categoryAttribution
         )
       )
     );
@@ -3201,6 +3204,7 @@ var ReaderNavigationCategoryMenu = React.createClass({
             )
           ) : null,
           toggle,
+          React.createElement(CategoryAttribution, { categories: categories }),
           React.createElement(ReaderNavigationCategoryMenuContents, { contents: catContents, categories: categories, width: this.props.width, category: this.props.category })
         ),
         footer
@@ -3772,6 +3776,7 @@ var ReaderTextTableOfContents = React.createClass({
           React.createElement(
             'div',
             { className: 'tocTop' },
+            React.createElement(CategoryAttribution, { categories: Sefaria.index(this.props.title).categories }),
             React.createElement(
               'div',
               { className: 'tocCategory' },
@@ -4956,6 +4961,31 @@ var ModeratorButtons = React.createClass({
       textButtons,
       message
     );
+  }
+});
+
+var CategoryAttribution = React.createClass({
+  displayName: 'CategoryAttribution',
+
+  propTypes: {
+    categories: React.PropTypes.array.isRequired
+  },
+  render: function render() {
+    var attribution = Sefaria.categoryAttribution(this.props.categories);
+    return attribution ? React.createElement(
+      'div',
+      { className: 'categoryAttribution' },
+      React.createElement(
+        'span',
+        { className: 'en' },
+        attribution.english
+      ),
+      React.createElement(
+        'span',
+        { className: 'he' },
+        attribution.hebrew
+      )
+    ) : null;
   }
 });
 

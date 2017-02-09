@@ -2231,8 +2231,11 @@ var ReaderControls = React.createClass({
     if (title) {
       var oref    = Sefaria.ref(title);
       var heTitle = oref ? oref.heTitle : "";      
+      var categoryAttribution = oref && Sefaria.categoryAttribution(oref.categories) ? 
+                                  <CategoryAttribution categories={oref.categories} /> : null;
     } else {
       var heTitle = "";
+      var categoryAttribution = null;
     }
 
     var mode              = this.props.currentMode();
@@ -2262,13 +2265,14 @@ var ReaderControls = React.createClass({
             interfaceLang={this.props.interfaceLang}/>
         </div>) :
       (<a href={url}>
-          <div className="readerTextToc" onClick={this.openTextToc}>
-            { title ? (<i className="fa fa-caret-down invisible"></i>) : null }
+          <div className={"readerTextToc" + (categoryAttribution ? ' attributed' : '')} onClick={this.openTextToc}>
             <div className="readerTextTocBox">
+              { title ? (<i className="fa fa-caret-down invisible"></i>) : null }
               <span className="en">{title}</span>
               <span className="he">{heTitle}</span>
               { title ? (<i className="fa fa-caret-down"></i>) : null }
               { (this.props.versionLanguage == "en" && this.props.settings.language == "english") ? (<span className="readerTextVersion"><span className="en">{versionTitle}</span></span>) : null}
+              {categoryAttribution}
             </div>
           </div>
         </a>);
@@ -2838,6 +2842,7 @@ var ReaderNavigationCategoryMenu = React.createClass({
                       <span className="he">{Sefaria.hebrewCategory(this.props.category)}</span>
                     </h1>) : null}
                   {toggle}
+                  <CategoryAttribution categories={categories} />
                   <ReaderNavigationCategoryMenuContents contents={catContents} categories={categories} width={this.props.width} category={this.props.category} />
                 </div>
                 {footer}
@@ -3210,6 +3215,7 @@ var ReaderTextTableOfContents = React.createClass({
               <div className="content">
                 <div className="contentInner">
                   <div className="tocTop">
+                    <CategoryAttribution categories={Sefaria.index(this.props.title).categories} />
                     <div className="tocCategory">
                       <span className="en">{category}</span>
                       <span className="he">{Sefaria.hebrewCategory(category)}</span>
@@ -4056,6 +4062,20 @@ var ModeratorButtons = React.createClass({
   }
 });
 
+
+var CategoryAttribution = React.createClass({
+      propTypes: {
+      categories: React.PropTypes.array.isRequired
+    },
+      render: function() {
+      var attribution = Sefaria.categoryAttribution(this.props.categories);
+      return attribution ?
+      <div className="categoryAttribution">
+        <span className="en">{attribution.english}</span>
+        <span className="he">{attribution.hebrew}</span>
+      </div> : null;
+    }
+});
 
 var ReadMoreText = React.createClass({
   propTypes: {
