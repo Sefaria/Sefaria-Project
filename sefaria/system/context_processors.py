@@ -71,7 +71,7 @@ def language_settings(request):
     return {"contentLang": content, "interfaceLang": interface}
 
 
-def notifications(request):
+def user_and_notifications(request):
     if not request.user.is_authenticated():
         import urlparse
         return {
@@ -88,13 +88,15 @@ def notifications(request):
         interrupting_message_json = "null"
     mock_recent = [{"ref":"Orot, Lights from Darkness, Land of Israel 5","heRef":"אורות, אורות מאופל, ארץ ישראל ה׳","book":"Orot","version":None,"versionLanguage":None,"position":0},{"ref":"Genesis 1","heRef":"בראשית א׳","book":"Genesis","version":None,"versionLanguage":None,"position":0},{"ref":"Berakhot 2a","heRef":"ברכות ב׳ א","book":"Berakhot","version":None,"versionLanguage":None,"position":0}]
     return {
-                "notifications": notifications, 
-                "notifications_json": notifications_json,
-                "notifications_html": notifications.to_HTML(),
-                "notifications_count": profile.unread_notification_count(),
-                "interrupting_message_json": interrupting_message_json,
-                "recentlyViewed": profile.recentlyViewed,
-            }
+        "notifications": notifications,
+        "notifications_json": notifications_json,
+        "notifications_html": notifications.to_HTML(),
+        "notifications_count": profile.unread_notification_count(),
+        "recentlyViewed": profile.recentlyViewed,
+        "interrupting_message_json": interrupting_message_json,
+        "partner_group": profile.partner_group,
+        "partner_role": profile.partner_role
+    }
 
 
 LOGGED_OUT_HEADER = None

@@ -370,7 +370,7 @@ body.dark {
   height: 100%;
   overflow: hidden;
   background-color: inherit;
-  font-family: "adobe-garamond-pro", Georgia, serif;
+  font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
 }
 .readerContent {
   width: 100%;
@@ -896,6 +896,16 @@ a.resourcesLink {
 .readerNavCategoryMenu .content .category {
   margin-bottom: 30px;
 }
+.readerNavCategoryMenu .categoryAttribution {
+  color: #999;
+  text-align: center;
+  font-size: 20px;
+  font-style: italic;
+  margin: 16px 0 30px;
+}
+.readerNavCategoryMenu .categoryAttribution .he {
+  font-style: normal;
+}
 .readerNavMenu .refLink,
 .readerNavMenu .catLink,
 .readerNavMenu .navButton,
@@ -963,6 +973,16 @@ a.resourcesLink {
 .readerTextTableOfContents .readerTextToc .he {
   font-family: "Open Sans Hebrew", sans-serif;
 }
+.readerTextTableOfContents .categoryAttribution {
+  color: #666;
+  text-align: center;
+  font-size: 24px;
+  font-style: italic;
+  margin: 10px 0 28px;
+}
+.readerTextTableOfContents .categoryAttribution .he {
+  font-style: normal;
+}
 .readerTextTableOfContents .tocTop {
   padding-bottom: 15px;
 }
@@ -992,6 +1012,11 @@ a.resourcesLink {
   margin-top: 30px;
   color: #999;
   font-style: italic;
+}
+.readerTextTableOfContents .currentVersionBox .versionSelect {
+  width: 80%;
+  max-width: 300px;
+  margin: 20px auto 5px;
 }
 .readerTextTableOfContents .tocDetails a {
   color: #999;
@@ -1766,6 +1791,18 @@ a.resourcesLink {
   color: #999;
   direction: ltr !important;
 }
+.readerControls .readerTextToc.attributed .readerTextTocBox {
+  line-height: 1.2;
+}
+.readerControls .readerTextToc .categoryAttribution {
+  font-style: italic;
+  font-size: 15px;
+  color: #999;
+  margin: 0 2px;
+}
+.readerControls .readerTextToc .categoryAttribution .he {
+  font-style: normal;
+}
 .leftButtons,
 .rightButtons {
   /*position: absolute;
@@ -1814,6 +1851,7 @@ a.resourcesLink {
   font-size: 17px;
   box-sizing: border-box;
   display: block;
+  height: 50px;
 }
 .readerTextTocHeader.readerTextToc {
   font-size: 14px;
@@ -1826,7 +1864,7 @@ a.resourcesLink {
   white-space: nowrap;
   text-overflow: ellipsis;
   overflow: hidden;
-  max-width: 60%;
+  max-width: 70%;
   vertical-align: middle;
   color: #333;
 }`
@@ -3476,4 +3514,10 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
 .multiPanel .readerNavMenu .content.hasFooter #footer{
   margin-top: 120px;
 }
+.gemarra-regular, .gemarra-italic {
+  font-weight: bold;
 }
+.it-text, .gemarra-italic {
+  font-style: italic;
+}
+

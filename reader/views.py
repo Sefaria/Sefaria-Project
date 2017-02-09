@@ -1536,15 +1536,21 @@ def post_single_link(request, link):
         if not apikey:
             return {"error": "Unrecognized API key."}
         obj = func(apikey["uid"], model.Link, link, method="API")
-        if USE_VARNISH:
-            revarnish_link(obj)
+        try:
+            if USE_VARNISH:
+                revarnish_link(obj)
+        except Exception as e:
+            logger.error(e)
         response = format_object_for_client(obj)
     else:
         @csrf_protect
         def protected_link_post(req):
             obj=func(req.user.id, model.Link, link)
-            if USE_VARNISH:
-                revarnish_link(obj)
+            try:
+                if USE_VARNISH:
+                    revarnish_link(obj)
+            except Exception as e:
+                logger.error(e)
             resp = format_object_for_client(obj)
             return resp
         response = protected_link_post(request)
@@ -1733,10 +1739,10 @@ def visualize_parasha_colors(request):
     return render_to_response('visual_parasha_colors.html', {}, RequestContext(request))
 
 
-def visualize_rashi_interlinks(request):
+def visualize_links_through_rashi(request):
     level = request.GET.get("level", 1)
     json_file = "../static/files/torah_rashi_torah.json" if level == 1 else "../static/files/tanach_rashi_tanach.json"
-    return render_to_response('visualize_links_via_rashi.html', {"json_file": json_file}, RequestContext(request))
+    return render_to_response('visualize_links_through_rashi.html', {"json_file": json_file}, RequestContext(request))
 
 
 @catch_error_as_json

@@ -3,8 +3,9 @@ if (typeof require !== 'undefined') {
       $         = require('cheerio'),
       extend    = require('extend'),
       param     = require('querystring').stringify,
-      striptags = require('striptags');
-      $.ajax    = function() {}; // Fail gracefully if we reach one of these methods server side
+      striptags = require('striptags'),
+      ga        = function() {}; // Fail gracefully if we reach one of these methods server side
+      $.ajax    = function() {}; // ditto
       $.getJSON = function() {}; // ditto
 } else {
   var INBROWSER = true,
@@ -988,6 +989,24 @@ Sefaria = extend(Sefaria, {
       if (!found) { return []; }
     }
     return list;
+  },
+  categoryAttribution: function(categories) {
+    var attributions = [
+      {
+        categories: ["Talmud", "Bavli"],
+        english: "The William Davidson Talmud",
+        hebrew: "תלמוד מהדורת ויליאם דוידסון"
+      }
+    ];
+    var attribution = null;
+    for (var i = 0; i < attributions.length; i++) {
+      if (categories.length >= attributions[i].categories.length &&
+        attributions[i].categories.compare(categories.slice(0, attributions[i].categories.length))) {
+        attribution = attributions[i];
+        break;
+      }
+    }
+    return attribution;
   },
   sheets: {
     _trendingTags: null,
@@ -2094,11 +2113,38 @@ Sefaria.util = {
 
         // Protect against browsers without consoles and forgotten console statements
         if(typeof(console) === 'undefined') {
-            var console = {}
+            var console = {};
             console.log = function() {};
         }
     },
-    
+    handleUserCookie: function() {
+        var cookie = (typeof require !== 'undefined') ? Sefaria.util.cookie : $.cookie;
+
+        if (Sefaria.loggedIn) {
+            // If logged in, replace cookie with current system details
+
+            var expires = new Date(); // starts with current time
+            expires.setTime(expires.getTime() + 2 * 365 * 24 * 3600 * 1000);  // milliseconds
+
+            cookie("_user", JSON.stringify({
+               _uid: Sefaria._uid,
+               _partner_group: Sefaria._partner_group,
+               _partner_role: Sefaria._partner_role
+            }), { path: "/", expires: expires });
+            // And store current uid in analytics id
+            Sefaria._analytics_uid = Sefaria._uid;
+        } else { 
+            // If not logged in, get details from cookie
+            var c = cookie("_user");
+            if (c) {
+              c = JSON.parse(c);
+              Sefaria._analytics_uid = c._uid;
+              Sefaria._partner_group = c._partner_group;
+              Sefaria._partner_role = c._partner_role;
+            }
+        }
+
+    },
     getSelectionBoundaryElement: function(isStart) {
         // http://stackoverflow.com/questions/1335252/how-can-i-get-the-dom-element-which-contains-the-current-selection
         var range, sel, container;
@@ -2134,14 +2180,6 @@ Sefaria.util = {
         }
     }
 };
-Sefaria.setup = function() {
-    Sefaria.util.setupPrototypes();
-    Sefaria.util.setupJQuery();
-    Sefaria.util.setupMisc();
-    Sefaria._makeBooksDict();
-    Sefaria._cacheIndexFromToc(Sefaria.toc);  
-};
-Sefaria.setup();
 
 
 Sefaria.hebrew = {
@@ -2368,6 +2406,26 @@ Sefaria.site = {
     setSidebars: function(val) {
         ga('set', 'dimension6', val);
     },
+    setUserLoggedIn: function(bool) {
+        ga('set', 'dimension7', bool? "Logged In": "Logged Out");
+    },
+    setUserPartnerGroup: function(val) {
+        ga('set', 'dimension8', val);
+    },
+    setUserPartnerRole: function(val) {
+        ga('set', 'dimension9', val);
+    },
+    setUserID: function(val) {
+        sval = String(val);
+        ga('set', 'userId', sval);
+        ga('set', 'dimension10', sval);
+    },
+    setUserData: function() {
+        Sefaria.site.track.setUserLoggedIn(Sefaria.loggedIn);
+        if (Sefaria._partner_group) Sefaria.site.track.setUserPartnerGroup(Sefaria._partner_group);
+        if (Sefaria._partner_role) Sefaria.site.track.setUserPartnerRole(Sefaria._partner_role);
+        if (Sefaria._analytics_uid) Sefaria.site.track.setUserID(Sefaria._analytics_uid);
+    },
     sheets: function(action, label) {
         Sefaria.site.track.event("Sheets", action, label);
     },
@@ -2383,6 +2441,7 @@ Sefaria.site = {
     }
   }
 };
+
 
 Sefaria.palette = {
   colors: {
@@ -2435,6 +2494,17 @@ Sefaria.palette.categoryColor = function(cat) {
   return "transparent";
 };
 
+
+Sefaria.setup = function() {
+    Sefaria.util.setupPrototypes();
+    Sefaria.util.setupJQuery();
+    Sefaria.util.setupMisc();
+    Sefaria.util.handleUserCookie();
+    Sefaria._makeBooksDict();
+    Sefaria._cacheIndexFromToc(Sefaria.toc);
+    Sefaria.site.track.setUserData();
+};
+Sefaria.setup();
 
 if (typeof module !== 'undefined') {
   module.exports = Sefaria;

@@ -25,7 +25,9 @@ var data = {
   globalWarningMessage: {% if GLOBAL_WARNING %}"{{ GLOBAL_WARNING_MESSAGE}}"{% else %}null{% endif %},
   interruptingMessage: {{ interrupting_message_json|default:'null' }},
   _email:              "{{ request.user.email|default:'' }}",
-  _uid:                {{ request.user.id|default:"null" }}
+  _uid:                {{ request.user.id|default:"null" }},
+  _partner_group:      "{{ partner_group }}",
+  _partner_role:       "{{ partner_role }}"
 };
 
 for (var prop in data) {

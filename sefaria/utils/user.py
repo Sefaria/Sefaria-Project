@@ -97,3 +97,46 @@ def reset_all_api_keys():
     keys = db.apikeys.find()
     for key in keys:
         generate_api_key(key["uid"])
+
+
+def markGroup(group_name, partner_group, partner_role, silent=True):
+    # For users in specified group, update user profiles with given attributes
+    users = User.objects.filter(groups__name=group_name)
+    if len(users) == 0:
+        print "Could not find any users in group {}".format(group_name)
+        return
+    for user in users:
+        if not silent:
+            print "Marking {} as {} {}".format(user.email, partner_role, partner_group)
+        profile = model.UserProfile(id=user.id)
+        profile.partner_group = partner_group
+        profile.partner_role = partner_role
+        profile.save()
+
+
+def markEmailPattern(pattern, partner_group, partner_role, silent=True):
+    # For all users with matching email, update user profiles with given attributes
+    users = User.objects.filter(email__contains=pattern)
+    if len(users) == 0:
+        print "Could not find any users matching {}".format(pattern)
+        return
+    for user in users:
+        if not silent:
+            print "Marking {} as {} {}".format(user.email, partner_role, partner_group)
+        profile = model.UserProfile(id=user.id)
+        profile.partner_group = partner_group
+        profile.partner_role = partner_role
+        profile.save()
+
+
+def markUserByEmail(email, partner_group, partner_role, silent=True):
+    # For user with specified email, update user profile with given attributes
+    profile = model.UserProfile(email=email)
+    if not profile or profile.email != email:
+        print "Can not find {} != {}".format(email, profile.email)
+        return
+    if not silent:
+        print "Marking {} as {} {}".format(profile.email, partner_role, partner_group)
+    profile.partner_group = partner_group
+    profile.partner_role = partner_role
+    profile.save()
