@@ -53,8 +53,14 @@ class AbstractAutoLinker(object):
         links = self._load_links()
         for link in links:
             if USE_VARNISH:
-                invalidate_ref(Ref(link.refs[0]))
-                invalidate_ref(Ref(link.refs[1]))
+                try:
+                    invalidate_ref(Ref(link.refs[0]))
+                except InputError:
+                    pass
+                try:
+                    invalidate_ref(Ref(link.refs[1]))
+                except InputError:
+                    pass
             self._delete_link(link)
 
     def rebuild_links(self, **kwargs):
@@ -191,7 +197,10 @@ class AbstractStructureAutoLinker(AbstractAutoLinker):
                 if self._title not in r:  #current base ref
                     continue
                 if USE_VARNISH:
-                    invalidate_ref(Ref(r))
+                    try:
+                        invalidate_ref(Ref(r))
+                    except InputError:
+                        pass
                 if r not in found_links:
                     self._delete_link(exLink)
                 break
