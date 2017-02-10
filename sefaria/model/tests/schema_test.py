@@ -196,14 +196,14 @@ def test_text_index_map():
         assert u' '.join(tokenizer(ref_list[ri].text(lang="he",vtitle="Tanach with Text Only").text)) == u' '.join(mes_str_array[index_list[ri]:index_list[ri+1]])
 
 
-    def ja_node_with_hyphens():
+    def test_ja_node_with_hyphens():
         node = JaggedArrayNode()
         node.add_primary_titles(u'Title with-this', u'משהו')
         node.add_structure(['Something'])
         with pytest.raises(InputError):
             node.validate()
 
-    def ja_node_without_primary():
+    def test_ja_node_without_primary():
         node = JaggedArrayNode()
         node.add_title(u'Title with this', 'en')
         node.add_title(u'משהו', 'he')
@@ -211,7 +211,7 @@ def test_text_index_map():
         with pytest.raises(InputError):
             node.validate()
 
-    def non_ascii_test():
+    def test_non_ascii():
         node = JaggedArrayNode()
         node.add_primary_titles(u'Title with this\u2019', u'משהו')
         node.add_structure(['Something'])
