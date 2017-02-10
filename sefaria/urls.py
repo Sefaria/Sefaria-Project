@@ -246,6 +246,7 @@ static_pages = [
     "privacy-policy",
     "coming-soon",
     "shraga-silverstein",
+    "william-davidson-talmud",
     "linker",
     "ios",
     "mobile",
@@ -295,7 +296,7 @@ urlpatterns += patterns('reader.views',
     (r'^visualize/library/?(?P<cats>.*)/?$', 'visualize_library'),
     (r'^visualize/toc$', 'visualize_toc'),
     (r'^visualize/parasha-colors$', 'visualize_parasha_colors'),
-    (r'^visualize/links_through_rashi$', 'visualize_rashi_interlinks'),
+    (r'^visualize/links-through-rashi$', 'visualize_links_through_rashi'),
 )
 
 # Redirects to Forum, Wiki, etc

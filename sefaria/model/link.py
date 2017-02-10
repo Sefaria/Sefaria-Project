@@ -266,6 +266,18 @@ def get_link_counts(cat1, cat2):
     link_counts[key] = result
     return result
 
+
+# todo: check vis-a-vis commentary refactor
+def get_category_commentator_linkset(cat, commentator):
+    return LinkSet({"$or": [
+                        {"$and": [{"refs": {"$regex": ur"{} \d".format(t)}},
+                                  {"refs": {"$regex": "^{} on {}".format(commentator, t)}}
+                                  ]
+                         }
+                        for t in text.library.get_indexes_in_category(cat)]
+                    })
+
+
 def get_category_category_linkset(cat1, cat2):
     """
     Return LinkSet of links between the given book and category.

@@ -31,7 +31,7 @@ from sefaria.system.database import db
 def log_text(user, action, oref, lang, vtitle, old_text, new_text, **kwargs):
 
     if isinstance(new_text, list):
-        if not isinstance(old_text, list):  # is this neccesary? the TextChunk should handle it.
+        if not isinstance(old_text, list):  # is this necessary? the TextChunk should handle it.
             old_text = [old_text]
         maxlength = max(len(old_text), len(new_text))
         for i in reversed(range(maxlength)):
@@ -60,13 +60,14 @@ def log_text(user, action, oref, lang, vtitle, old_text, new_text, **kwargs):
         "revert_patch": patch,
         "user": user,
         "date": datetime.now(),
-        "revision": next_revision_num(),
+        #"revision": next_revision_num(),
         "message": kwargs.get("message", ""), # is this used?
         "rev_type": "{} text".format(action),
         "method": kwargs.get("method", "Site")
     }
 
     History(log).save()
+
 
 def log_update(user, klass, old_dict, new_dict, **kwargs):
     kind = klass.history_noun
@@ -88,7 +89,7 @@ def log_add(user, klass, new_dict, **kwargs):
 
 def _log_general(user, kind, old_dict, new_dict, rev_type, **kwargs):
     log = {
-        "revision": next_revision_num(),
+        #"revision": next_revision_num(),
         "user": user,
         "old": old_dict,
         "new": new_dict,

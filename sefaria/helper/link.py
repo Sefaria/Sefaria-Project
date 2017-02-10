@@ -356,7 +356,10 @@ def add_links_from_text(oref, lang, text, text_id, user, **kwargs):
                 if r == oref.normal():  # current base ref
                     continue
                 if USE_VARNISH:
-                    invalidate_ref(Ref(r))
+                    try:
+                        invalidate_ref(Ref(r))
+                    except InputError:
+                        pass
                 if r not in found:
                     tracker.delete(user, Link, exLink._id)
                 break
@@ -372,8 +375,14 @@ def delete_links_from_text(title, user):
     links    = LinkSet({"refs.0": {"$regex": regex}, "generated_by": "add_links_from_text"})
     for link in links:
         if USE_VARNISH:
-            invalidate_ref(Ref(link.refs[0]))
-            invalidate_ref(Ref(link.refs[1]))
+            try:
+                invalidate_ref(Ref(link.refs[0]))
+            except InputError:
+                pass
+            try:
+                invalidate_ref(Ref(link.refs[1]))
+            except InputError:
+                pass
         tracker.delete(user, Link, link._id)
 
 

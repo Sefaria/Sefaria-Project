@@ -407,9 +407,13 @@ def s2(request, ref, version=None, lang=None):
 
     try:
         title = props["initialPanels"][0]["text"].get("ref","")
-        desc = ' '.join(props["initialPanels"][0]["text"].get("text","")) # get english text for section if it exists, and flatten the list
+        try:
+            segmentIndex = (props["initialPanels"][0]["text"].get("sections",""))[1]-1
+        except:
+            segmentIndex = 0
+        desc = props["initialPanels"][0]["text"].get("text","")[segmentIndex] # get english text for section & first segment it exists
         if desc == "":
-            desc = ' '.join(props["initialPanels"][0]["text"].get("he","")) # if no english, fall back on hebrew and flatten
+            desc = props["initialPanels"][0]["text"].get("he", "")[segmentIndex]  # if no english, fall back on hebrew
         desc = bleach.clean(desc, strip=True, tags=())
         desc = desc[:145].rsplit(' ', 1)[0]+"..." # truncate as close to 145 characters as possible while maintaining whole word. Append ellipses.
 
@@ -1471,6 +1475,11 @@ def links_api(request, link_id_or_ref=None):
     Currently also handles post notes.
     """
     #TODO: can we distinguish between a link_id (mongo id) for POSTs and a ref for GETs?
+    """
+    NOTE: This function is not written like the other functions with a post method.
+    It's attempting a cleaner way to distinguish between csrf proteced use and API use bu juggling some variables around
+    Rather than duplicating functionality.
+    """
     if request.method == "GET":
         callback=request.GET.get("callback", None)
         if link_id_or_ref is None:
@@ -1482,25 +1491,57 @@ def links_api(request, link_id_or_ref=None):
         return jsonResponse(get_links(link_id_or_ref, with_text), callback)
 
     if request.method == "POST":
+        def post_single_link(request, link, uid, **kwargs):
+            func = tracker.update if "_id" in link else tracker.add
+            # use the correct function if params indicate this is a note save
+            # func = save_note if "type" in j and j["type"] == "note" else save_link
+            #obj = func(apikey["uid"], model.Link, link, **kwargs)
+            obj = func(uid, model.Link, link, **kwargs)
+            try:
+                if USE_VARNISH:
+                    revarnish_link(obj)
+            except Exception as e:
+                logger.error(e)
+            return format_object_for_client(obj)
+
         # delegate according to single/multiple objects posted
+        if not request.user.is_authenticated():
+            key = request.POST.get("apikey")
+            if not key:
+                return {"error": "You must be logged in or use an API key to add, edit or delete links."}
+            apikey = db.apikeys.find_one({"key": key})
+            if not apikey:
+                return {"error": "Unrecognized API key."}
+            uid = apikey["uid"]
+            kwargs = {"method": "API"}
+        else:
+            uid = request.user.id
+            kwargs = {}
+            post_single_link = csrf_protect(post_single_link)
+
         j = request.POST.get("json")
         if not j:
             return jsonResponse({"error": "Missing 'json' parameter in post data."})
 
         j = json.loads(j)
         if isinstance(j, list):
-            #todo: this seems goofy.  It's at least a bit more expensive than need be.
             res = []
             for i in j:
                 try:
-                    res.append(post_single_link(request, i))
-                except DuplicateRecordError as e:
-                    res.append({"error": unicode(e)})
+                    retval = post_single_link(request, i, uid, **kwargs)
+                    res.append({"status": "ok. Link: {} | {} Saved".format(retval["ref"], retval["anchorRef"])})
+                except Exception as e:
+                    res.append({"error": "Link: {} | {} Error: {}".format(i["refs"][0], i["refs"][1], unicode(e))})
 
-            return jsonResponse(res)
-
+            try:
+                res_slice = request.GET.get("truncate_response", None)
+                if res_slice:
+                    res_slice = int(res_slice)
+            except Exception as e:
+                res_slice = None
+            return jsonResponse(res[:res_slice])
         else:
-            return jsonResponse(post_single_link(request, j))
+            return jsonResponse(post_single_link(request, j, uid, **kwargs))
 
     if request.method == "DELETE":
         if not link_id_or_ref:
@@ -1511,35 +1552,6 @@ def links_api(request, link_id_or_ref=None):
         )
 
     return jsonResponse({"error": "Unsuported HTTP method."})
-
-
-def post_single_link(request, link):
-    func = tracker.update if "_id" in link else tracker.add
-        # use the correct function if params indicate this is a note save
-        # func = save_note if "type" in j and j["type"] == "note" else save_link
-
-    if not request.user.is_authenticated():
-        key = request.POST.get("apikey")
-        if not key:
-            return {"error": "You must be logged in or use an API key to add, edit or delete links."}
-
-        apikey = db.apikeys.find_one({"key": key})
-        if not apikey:
-            return {"error": "Unrecognized API key."}
-        obj = func(apikey["uid"], model.Link, link, method="API")
-        if USE_VARNISH:
-            revarnish_link(obj)
-        response = format_object_for_client(obj)
-    else:
-        @csrf_protect
-        def protected_link_post(req):
-            obj=func(req.user.id, model.Link, link)
-            if USE_VARNISH:
-                revarnish_link(obj)
-            resp = format_object_for_client(obj)
-            return resp
-        response = protected_link_post(request)
-    return response
 
 
 @catch_error_as_json
@@ -1724,10 +1736,10 @@ def visualize_parasha_colors(request):
     return render_to_response('visual_parasha_colors.html', {}, RequestContext(request))
 
 
-def visualize_rashi_interlinks(request):
+def visualize_links_through_rashi(request):
     level = request.GET.get("level", 1)
     json_file = "../static/files/torah_rashi_torah.json" if level == 1 else "../static/files/tanach_rashi_tanach.json"
-    return render_to_response('visualize_links_via_rashi.html', {"json_file": json_file}, RequestContext(request))
+    return render_to_response('visualize_links_through_rashi.html', {"json_file": json_file}, RequestContext(request))
 
 
 @catch_error_as_json

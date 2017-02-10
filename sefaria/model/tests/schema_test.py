@@ -210,3 +210,10 @@ def test_text_index_map():
         node.add_structure(['Something'])
         with pytest.raises(InputError):
             node.validate()
+
+    def non_ascii_test():
+        node = JaggedArrayNode()
+        node.add_primary_titles(u'Title with this\u2019', u'משהו')
+        node.add_structure(['Something'])
+        with pytest.raises(exceptions.InputError):
+            node.validate()
