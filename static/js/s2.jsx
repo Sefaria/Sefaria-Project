@@ -2904,9 +2904,10 @@ var ReaderNavigationCategoryMenuContents = React.createClass({
         } else {
           //Add a Text
           var [title, heTitle] = this.getRenderedTextTitleString(item.title, item.heTitle);
-          var url     = "/" + Sefaria.normRef(item.firstSection);
+          var ref = Sefaria.recentRefForText(item.title) || item.firstSection;
+          var url = "/" + Sefaria.normRef(ref);
           content.push((<a href={url}>
-                          <span className={'refLink sparse' + item.sparseness} data-ref={item.firstSection} key={i}>
+                          <span className={'refLink sparse' + item.sparseness} data-ref={ref} key={i}>
                             <span className='en'>{title}</span>
                             <span className='he'>{heTitle}</span>
                           </span>

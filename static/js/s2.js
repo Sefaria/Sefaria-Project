@@ -3302,13 +3302,14 @@ var ReaderNavigationCategoryMenuContents = React.createClass({
         var title = _getRenderedTextTitle2[0];
         var heTitle = _getRenderedTextTitle2[1];
 
-        var url = "/" + Sefaria.normRef(item.firstSection);
+        var ref = Sefaria.recentRefForText(item.title) || item.firstSection;
+        var url = "/" + Sefaria.normRef(ref);
         content.push(React.createElement(
           'a',
           { href: url },
           React.createElement(
             'span',
-            { className: 'refLink sparse' + item.sparseness, 'data-ref': item.firstSection, key: i },
+            { className: 'refLink sparse' + item.sparseness, 'data-ref': ref, key: i },
             React.createElement(
               'span',
               { className: 'en' },

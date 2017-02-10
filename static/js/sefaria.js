@@ -1050,6 +1050,15 @@ Sefaria = extend(Sefaria, {
     };
     return unpacked;
   },
+  recentRefForText: function(title) {
+    // Return the most recently visited ref for text `title` or null if `title` is not present in recentlyViewed.
+    for (var i = 0; i < Sefaria.recentlyViewed.length; i++) {
+      if (Sefaria.recentlyViewed[i].book === title) {
+        return Sefaria.recentlyViewed[i].ref;
+      }
+    }
+    return null;
+  },
   sheets: {
     _trendingTags: null,
     trendingTags: function(callback) {
