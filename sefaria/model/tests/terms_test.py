@@ -136,7 +136,7 @@ class Test_Terms_Validation(object):
                 ]
             }).save()
 
-        """ for ascii validation
+        # for ascii validation
         with pytest.raises(InputError):
             Term({
                 "name": u"Test Fail Six\u2019", # primary contains non ascii
@@ -155,4 +155,4 @@ class Test_Terms_Validation(object):
                     }
                 ]
             }).save()
-            """
+
