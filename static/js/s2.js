@@ -2360,6 +2360,7 @@ var ReaderControls = React.createClass({
       }.bind(this));
     }
 
+    var showVersion = this.props.versionLanguage == "en" && (this.props.settings.language == "english" || this.props.settings.language == "bilingual");
     var versionTitle = this.props.version ? this.props.version.replace(/_/g, " ") : "";
     var url = Sefaria.ref(title) ? "/" + Sefaria.normRef(Sefaria.ref(title).book) : Sefaria.normRef(title);
     var centerContent = connectionsHeader ? React.createElement(
@@ -2392,7 +2393,7 @@ var ReaderControls = React.createClass({
             heTitle
           ),
           title ? React.createElement('i', { className: 'fa fa-caret-down' }) : null,
-          this.props.versionLanguage == "en" && this.props.settings.language == "english" ? React.createElement(
+          showVersion ? React.createElement(
             'span',
             { className: 'readerTextVersion' },
             React.createElement(
@@ -8169,7 +8170,6 @@ var ToolsPanel = React.createClass({
     var editText = this.props.canEditText ? function () {
       var refString = this.props.srefs[0];
       var currentPath = Sefaria.util.currentPath();
-      debugger;
       var currentLangParam;
       if (this.props.version) {
         refString += "/" + encodeURIComponent(this.props.versionLanguage) + "/" + encodeURIComponent(this.props.version);

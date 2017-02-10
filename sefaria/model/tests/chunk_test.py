@@ -226,6 +226,7 @@ def test_validate():
         Ref("Rashi on Shabbat 7a:2-7b:3")
     ]
     for ref in passing_refs:
+        print ref
         TextChunk(ref, lang="he")._validate()
 
 

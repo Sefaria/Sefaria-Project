@@ -2245,6 +2245,7 @@ var ReaderControls = React.createClass({
       }.bind(this));
     }
 
+    var showVersion = this.props.versionLanguage == "en" && (this.props.settings.language == "english" || this.props.settings.language == "bilingual");
     var versionTitle = this.props.version ? this.props.version.replace(/_/g," ") : "";
     var url = Sefaria.ref(title) ? "/" + Sefaria.normRef(Sefaria.ref(title).book) : Sefaria.normRef(title);
     var centerContent = connectionsHeader ?
@@ -2263,7 +2264,7 @@ var ReaderControls = React.createClass({
               <span className="en">{title}</span>
               <span className="he">{heTitle}</span>
               { title ? (<i className="fa fa-caret-down"></i>) : null }
-              { (this.props.versionLanguage == "en" && this.props.settings.language == "english") ? (<span className="readerTextVersion"><span className="en">{versionTitle}</span></span>) : null}
+              { showVersion ? (<span className="readerTextVersion"><span className="en">{versionTitle}</span></span>) : null}
               {categoryAttribution}
             </div>
           </div>
@@ -6539,7 +6540,6 @@ var ToolsPanel = React.createClass({
     var editText  = this.props.canEditText ? function() {
         var refString = this.props.srefs[0];
         var currentPath = Sefaria.util.currentPath();
-        debugger;
         var currentLangParam;
         if (this.props.version) {
           refString += "/" + encodeURIComponent(this.props.versionLanguage) + "/" + encodeURIComponent(this.props.version);
