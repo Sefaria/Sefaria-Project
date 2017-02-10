@@ -1015,8 +1015,9 @@ Sefaria = extend(Sefaria, {
     });
     recent.splice(0, 0, recentItem);
     Sefaria.recentlyViewed = recent;
+    var packedRecent = recent.map(Sefaria.packRecentItem);
     if (Sefaria._uid) {
-        $.post("/api/profile", {json: JSON.stringify({recentlyViewed: recent.map(Sefaria.packRecentItem)})}, function(data) {
+        $.post("/api/profile", {json: JSON.stringify({recentlyViewed: packedRecent})}, function(data) {
           if ("error" in data) {
             alert(data.error);
           }
@@ -1025,8 +1026,8 @@ Sefaria = extend(Sefaria, {
         });    
     } else {
       var cookie = INBROWSER ? $.cookie : Sefaria.util.cookie;
-      recent = recent.slice(0, 6);
-      cookie("recentlyViewed", JSON.stringify(recent), {path: "/"});      
+      packedRecent = packedRecent.slice(0, 6);
+      cookie("recentlyViewed", JSON.stringify(packedRecent), {path: "/"});      
     }
   },
   packRecentItem: function(item) {
@@ -1042,7 +1043,7 @@ Sefaria = extend(Sefaria, {
     var oRef = Sefaria.parseRef(item[0]);
     var unpacked = {
       ref: item[0],
-      heHref: item[1],
+      heRef: item[1],
       book: oRef.index,
       version: item.length > 2 ? item[2] : null,
       versionLanguage: item.length > 3 > item[3]
