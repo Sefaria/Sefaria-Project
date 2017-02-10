@@ -146,7 +146,6 @@ class Test_Terms_Validation(object):
                         "lang": "en",
                         "text": u"Test Fail Six\u2019",
                         "primary": True
-                        "attrjunk" : "three"
                     },
                     {
                         "lang": "he",
