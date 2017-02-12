@@ -13,6 +13,8 @@ def setup_module(module):
 def teardown_module(module):
     title = 'Test Commentator Name'
     model.IndexSet({"title": title}).delete()
+    """title = 'Test Commentator Name'
+    model.IndexSet({"title": title}).delete()"""
 
 
 
@@ -67,6 +69,151 @@ def test_dup_index_save():
     assert model.IndexSet({"title": title}).count() == 1
 
 
+def test_invalid_index_save_no_existing_base_text():
+    title = 'Bartenura (The Next Generation)'
+    model.IndexSet({"title": title}).delete()
+    d = {
+         "categories" : [
+            "Mishnah",
+            "Commentary",
+            "Bartenura",
+            "Seder Zeraim"
+        ],
+        "base_text_titles": ["Gargamel"],
+        "title" : title,
+        "schema" : {
+            "titles" : [
+                {
+                    "lang" : "en",
+                    "text" : title,
+                    "primary" : True
+                },
+                {
+                    "lang" : "he",
+                    "text" : "פרשן",
+                    "primary" : True
+                }
+            ],
+            "nodeType" : "JaggedArrayNode",
+            "depth" : 2,
+            "sectionNames" : [
+                "Section",
+                "Line"
+            ],
+            "addressTypes" : [
+                "Integer",
+                "Integer"
+            ],
+            "key": title
+        },
+    }
+    idx = model.Index(d)
+    with pytest.raises(InputError) as e_info:
+        idx.save()
+    assert e_info.message == "Base Text Titles must point to existing texts in the system."
+    assert model.IndexSet({"title": title}).count() == 0
+
+
+def test_invalid_index_save_no_hebrew_category():
+    title = 'Bartenura (The Next Generation)'
+    model.IndexSet({"title": title}).delete()
+    d = {
+         "categories" : [
+            "Mishnah",
+            "Commentary",
+            "Bartenura",
+            "Gargamel"
+        ],
+        "title" : title,
+        "schema" : {
+            "titles" : [
+                {
+                    "lang" : "en",
+                    "text" : title,
+                    "primary" : True
+                },
+                {
+                    "lang" : "he",
+                    "text" : "פרשן",
+                    "primary" : True
+                }
+            ],
+            "nodeType" : "JaggedArrayNode",
+            "depth" : 2,
+            "sectionNames" : [
+                "Section",
+                "Line"
+            ],
+            "addressTypes" : [
+                "Integer",
+                "Integer"
+            ],
+            "key": title
+        },
+    }
+    idx = model.Index(d)
+    with pytest.raises(InputError) as e_info:
+        idx.save()
+    assert e_info.message == "You must add a hebrew translation Term for any new Category title: Gargamel."
+    assert model.IndexSet({"title": title}).count() == 0
+
+
+def test_invalid_index_save_no_hebrew_collective_title():
+    title = 'Bartenura (The Next Generation)'
+    model.IndexSet({"title": title}).delete()
+    d = {
+         "categories" : [
+            "Mishnah",
+            "Commentary",
+            "Bartenura"
+            "Gargamel"
+        ],
+        "collective_title": 'Gargamel',
+        "title" : title,
+        "schema" : {
+            "titles" : [
+                {
+                    "lang" : "en",
+                    "text" : title,
+                    "primary" : True
+                },
+                {
+                    "lang" : "he",
+                    "text" : "פרשן",
+                    "primary" : True
+                }
+            ],
+            "nodeType" : "JaggedArrayNode",
+            "depth" : 2,
+            "sectionNames" : [
+                "Section",
+                "Line"
+            ],
+            "addressTypes" : [
+                "Integer",
+                "Integer"
+            ],
+            "key": title
+        },
+    }
+    idx = model.Index(d)
+    with pytest.raises(InputError) as e_info:
+        idx.save()
+    assert e_info.message == "You must add a hebrew translation Term for any new Collective Title: Gargamel."
+    assert model.IndexSet({"title": title}).count() == 0
+
+
+
+"""def test_add_old_commentator():
+    title = "Old Commentator Record"
+    commentator = {
+        "title": title,
+        "heTitle": u"פרשן ב",
+        "titleVariants": [title],
+        "sectionNames": ["", ""],
+        "categories": ["Commentary"],
+    }
+    commentator_idx = model.Index(commentator).save()"""
 
 
 def test_index_title_setter():

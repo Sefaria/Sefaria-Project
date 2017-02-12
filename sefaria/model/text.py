@@ -545,6 +545,17 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
             if any((c in '.-') for c in cat):
                 raise InputError("Categories may not contain periods or hyphens.")
 
+        for btitle in getattr(self, "base_text_titles", []):
+            if not library.get_index(btitle):
+                raise InputError("Base Text Titles must point to existing texts in the system.")
+
+        for cat in self.categories:
+            if not hebrew_term(cat):
+                raise InputError("You must add a hebrew translation Term for any new Category title: {}.".format(cat))
+
+        if getattr(self, "collective_title", None) and not hebrew_term(getattr(self, "collective_title", None)):
+            raise InputError("You must add a hebrew translation Term for any new Collective Title: {}.".format(self.collective_title))
+
         #complex style records- all records should now conform to this
         if self.nodes:
             # Make sure that all primary titles match
