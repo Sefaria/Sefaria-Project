@@ -16,7 +16,7 @@ def test_text_index_map():
         return re.split(r"\s+",str)
 
     ind_list,ref_list, total_len = tc.text_index_map(tokenizer)
-    print len(ind_list), len(ref_list)
+    #print len(ind_list), len(ref_list)
     #make sure the last element in ind_last (start index of last segment) + the last of the last segment == len of the whole string
     assert ind_list[-1]+len(tokenizer(TextChunk(r.all_subrefs()[-1],"he").as_string())) == len(tokenizer(tc.as_string()))
 
