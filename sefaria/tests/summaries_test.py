@@ -98,7 +98,7 @@ class Test_Toc(object):
             "heTitle": u"פםפם",
             "titleVariants": [],
             "sectionNames": ["Chapter", "Paragraph"],
-            "categories": ["Testing"]
+            "categories": ["Law"]
         })
         verify_title_existence_in_toc(new_other_index.title, None)
         new_other_index.save()

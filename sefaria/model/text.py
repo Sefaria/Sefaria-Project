@@ -546,7 +546,9 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
                 raise InputError("Categories may not contain periods or hyphens.")
 
         for btitle in getattr(self, "base_text_titles", []):
-            if not library.get_index(btitle):
+            try:
+                library.get_index(btitle)
+            except BookNameError:
                 raise InputError("Base Text Titles must point to existing texts in the system.")
 
         for cat in self.categories:
