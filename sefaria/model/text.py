@@ -204,6 +204,7 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
         "base_text_titles", #the base book(s) this one is dpenedant on
         "base_text_mapping",
         "collective_title",
+        "is_cited",  # only indexes with this attribute set to True will be picked up as a citation in a text by default
     ]
 
     def __unicode__(self):
