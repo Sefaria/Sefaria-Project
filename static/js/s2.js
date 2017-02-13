@@ -171,18 +171,19 @@ var ReaderApp = React.createClass({
     this.updateHistoryState(true); // make sure initial page state is in history, (passing true to replace)
     window.addEventListener("popstate", this.handlePopState);
     window.addEventListener("resize", this.setPanelCap);
-    window.addEventListener("beforeunload", this.saveOpenPanelsToRecentlyViewed);
     this.setPanelCap();
     if (this.props.headerMode) {
       $(".inAppLink").on("click", this.handleInAppLinkClick);
     }
+    // Save all initial panels to recently viewed
+    this.state.panels.map(this.saveRecentlyViewed);
+
     // Set S2 cookie, putting user into S2 mode site wide
     cookie("s2", true, { path: "/" });
   },
   componentWillUnmount: function componentWillUnmount() {
     window.removeEventListener("popstate", this.handlePopState);
     window.removeEventListener("resize", this.setPanelCap);
-    window.removeEventListener("beforeunload", this.saveOpenPanelsToRecentlyViewed);
   },
   componentWillUpdate: function componentWillUpdate(nextProps, nextState) {},
   componentDidUpdate: function componentDidUpdate(prevProps, prevState) {
@@ -738,7 +739,6 @@ var ReaderApp = React.createClass({
   handleCompareSearchClick: function handleCompareSearchClick(n, ref, version, versionLanguage, options) {
     // Handle clicking a search result in a compare panel, so that clicks don't clobber open panels
     // todo: support options.highlight, passed up from SearchTextResult.handleResultClick()
-    this.saveOpenPanelsToRecentlyViewed();
     this.replacePanel(n, ref, version, versionLanguage);
   },
   handleInAppLinkClick: function handleInAppLinkClick(e) {
@@ -824,8 +824,25 @@ var ReaderApp = React.createClass({
         next.version = this.state.panels[n].version;
       }
     }
+    if (this.didPanelRefChange(this.state.panels[n], state)) {
+      this.saveRecentlyViewed(state);
+    }
     this.state.panels[n] = extend(this.state.panels[n], state);
     this.setState({ panels: this.state.panels });
+  },
+  didPanelRefChange: function didPanelRefChange(prevPanel, nextPanel) {
+    // Returns true if nextPanel represents a change in current ref (including version change) from prevPanel.
+    if (nextPanel.menu || nextPanel.mode == "Connections" || !nextPanel.refs || nextPanel.refs.length == 0 || !prevPanel.refs || prevPanel.refs.length == 0) {
+      return false;
+    }
+    if (nextPanel.refs.compare(prevPanel.refs)) {
+      if (nextPanel.version !== prevPanel.version) {
+        return true;
+      }
+    } else {
+      return true;
+    }
+    return false;
   },
   addToSourceSheet: function addToSourceSheet(n, selectedSheet, confirmFunction) {
     // This is invoked from a connections panel.
@@ -919,6 +936,7 @@ var ReaderApp = React.createClass({
 
     this.setHeaderState({ menuOpen: null });
     this.setState({ panels: [panel] });
+    this.saveRecentlyViewed(panel);
   },
   openPanelAt: function openPanelAt(n, ref, version, versionLanguage) {
     // Open a new panel after `n` with the new ref
@@ -936,6 +954,7 @@ var ReaderApp = React.createClass({
     newPanels.splice(n + 1, 0, panel);
     this.setState({ panels: newPanels });
     this.setHeaderState({ menuOpen: null });
+    this.saveRecentlyViewed(panel);
   },
   openPanelAtEnd: function openPanelAtEnd(ref, version, versionLanguage) {
     this.openPanelAt(this.state.panels.length + 1, ref, version, versionLanguage);
@@ -1023,6 +1042,7 @@ var ReaderApp = React.createClass({
     // Opens a text in in place of the panel currently open at `n`.
     this.state.panels[n] = this.makePanelState({ refs: [ref], version: version, versionLanguage: versionLanguage, mode: "Text" });
     this.setState({ panels: this.state.panels });
+    this.saveRecentlyViewed(this.state.panels[n]);
   },
   openComparePanel: function openComparePanel(n) {
     var comparePanel = this.makePanelState({
@@ -1034,7 +1054,6 @@ var ReaderApp = React.createClass({
   },
   closePanel: function closePanel(n) {
     // Removes the panel in position `n`, as well as connections panel in position `n+1` if it exists.
-    this.saveRecentlyViewed(this.state.panels[n], n);
     if (this.state.panels.length == 1 && n == 0) {
       this.state.panels = [];
     } else {
@@ -1056,7 +1075,6 @@ var ReaderApp = React.createClass({
   },
   showLibrary: function showLibrary() {
     if (this.props.multiPanel) {
-      this.saveOpenPanelsToRecentlyViewed();
       this.setState({ header: this.makePanelState({ mode: "Header", menuOpen: "navigation" }) });
     } else {
       if (this.state.panels.length) {
@@ -1068,7 +1086,6 @@ var ReaderApp = React.createClass({
     }
   },
   showSearch: function showSearch(query) {
-    this.saveOpenPanelsToRecentlyViewed();
     var panel;
     if (this.props.multiPanel) {
       panel = this.makePanelState({ mode: "Header", menuOpen: "search", searchQuery: query, searchFiltersValid: false });
@@ -1086,20 +1103,21 @@ var ReaderApp = React.createClass({
       this.setPanelState(0, updates);
     }
   },
-  saveRecentlyViewed: function saveRecentlyViewed(panel, n) {
+  saveRecentlyViewed: function saveRecentlyViewed(panel) {
     if (panel.mode == "Connections" || !panel.refs.length) {
       return;
     }
-    var ref = panel.refs[0];
-    var oRef = Sefaria.ref(ref);
-    var recentItem = {
-      ref: ref,
-      heRef: oRef.heRef,
-      book: oRef.indexTitle,
-      version: panel.version,
-      versionLanguage: panel.versionLanguage
-    };
-    Sefaria.saveRecentItem(recentItem);
+    var ref = panel.refs.slice(-1)[0];
+    Sefaria.ref(ref, function (oRef) {
+      var recentItem = {
+        ref: ref,
+        heRef: oRef.heRef,
+        book: oRef.indexTitle,
+        version: panel.version,
+        versionLanguage: panel.versionLanguage
+      };
+      Sefaria.saveRecentItem(recentItem);
+    });
   },
   saveOpenPanelsToRecentlyViewed: function saveOpenPanelsToRecentlyViewed() {
     for (var i = this.state.panels.length - 1; i >= 0; i--) {
@@ -11457,8 +11475,7 @@ var setData = function setData(data) {
   Sefaria.calendar = data.calendar;
 
   Sefaria._cacheIndexFromToc(Sefaria.toc);
-  Sefaria.recentlyViewed = data.recentlyViewed;
-
+  Sefaria.recentlyViewed = data.recentlyViewed.map(Sefaria.unpackRecentItem);
   Sefaria.util._defaultPath = data.path;
   Sefaria.loggedIn = data.loggedIn;
   Sefaria.is_moderator = data.is_moderator;

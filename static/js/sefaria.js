@@ -454,15 +454,33 @@ Sefaria = extend(Sefaria, {
         });        
     }
   },
-  ref: function(ref) {
-    // Returns parsed ref info for string `ref` which has been preloaded in the cache.
+  ref: function(ref, callback) {
+    // Returns parsed ref info for string `ref` from cache, or async from API if `callback` is present
     // Uses this._refmap to find the refkey that has information for this ref.
     // Used in cases when the textual information is not important, so it can
     // be called without worrying about the `settings` parameter for what is available in cache.
-    if (!ref) { return null; }
-    var versionedKey = this._refmap[this._refKey(ref)] || this._refmap[this._refKey(ref, {context:1})];
-    if (versionedKey) { return this._getOrBuildTextData(versionedKey);  }
-    return null;
+    var result = null;
+    if (ref) {
+      var versionedKey = this._refmap[this._refKey(ref)] || this._refmap[this._refKey(ref, {context:1})];
+      if (versionedKey) { result = this._getOrBuildTextData(versionedKey);  }
+    }
+    if (callback && result) {
+      callback(result);
+    } else if (callback) {
+      // To avoid an extra API call, first look for any open API calls to this ref (regardless of params)
+      var openApiCalls = Object.keys(Sefaria._apiCallbacks);
+      var urlPattern = "/api/texts/" + Sefaria.normRef(ref);
+      for (var i = 0; i < openApiCalls.length; i++) {
+        if (openApiCalls[i].startsWith(urlPattern)) {
+          Sefaria._apiCallbacks[openApiCalls[i]].splice(0, 0, callback);
+        }
+      }
+      // If no open calls found, call thet texts API.
+      // Called with context:1 because this is our most common mode, maximize change of saving an API Call
+      Sefaria.text(ref, {context: 1}, callback);
+    } else {
+      return result;
+    }
   },
   sectionRef: function(ref) {
     // Returns the section level ref for `ref` or null if no data is available
@@ -1010,6 +1028,7 @@ Sefaria = extend(Sefaria, {
   },
   saveRecentItem: function(recentItem) {
     var recent = Sefaria.recentlyViewed;
+    if (recent.length && recent[0].ref == recentItem.ref) { return; }
     recent = recent.filter(function(item) {
       return item.book !== recentItem.book; // Remove this item if it's in the list already
     });
@@ -1046,7 +1065,7 @@ Sefaria = extend(Sefaria, {
       heRef: item[1],
       book: oRef.index,
       version: item.length > 2 ? item[2] : null,
-      versionLanguage: item.length > 3 > item[3]
+      versionLanguage: item.length > 3 ? item[3] : null
     };
     return unpacked;
   },
