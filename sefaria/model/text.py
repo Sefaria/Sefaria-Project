@@ -204,6 +204,7 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
         "base_text_titles", #the base book(s) this one is dpenedant on
         "base_text_mapping",
         "collective_title",
+        "is_cited",  # only indexes with this attribute set to True will be picked up as a citation in a text by default
     ]
 
     def __unicode__(self):
@@ -3535,6 +3536,7 @@ class Library(object):
         self._title_node_maps = {lang:{} for lang in self.langs}
 
         # Lists of full titles, keys are string generated from a combination of language code, "commentators", "commentary", and "terms".  See method `full_title_list()`
+        # Contains a list of only those titles from which citations are recognized in the auto-linker. Keyed by "citing-<lang>"
         self._full_title_lists = {}
 
         # Lists of full titles, including simple and commentary texts, keyed by language
@@ -3751,7 +3753,8 @@ class Library(object):
         self.add_index_record_to_cache(new_index, rebuild=True)
 
     #todo: the for_js path here does not appear to be in use.
-    def all_titles_regex_string(self, lang="en", with_terms=False): #, for_js=False):
+    #todo: Rename, as method not gauraunteed to return all titles
+    def all_titles_regex_string(self, lang="en", with_terms=False, citing_only=False): #, for_js=False):
         """
         :param lang: "en" or "he"
         :param commentary: If true matches ONLY commentary records
@@ -3760,15 +3763,22 @@ class Library(object):
         commentary=True matches 'title', 'commentor' and 'commentee' named groups.
         with_commentary=True matches only 'title', whether for plain records or commentary records.
         :param with_terms:
+        :param citing_only: Match only those texts which have is_cited set to True
         :param for_js:
         :return:
         """
         key = lang
-        key += "_terms" if with_terms else ""
+        if citing_only:
+            key += "_citations"
+        elif with_terms:
+            key += "_terms"
         re_string = self._title_regex_strings.get(key)
         if not re_string:
             re_string = u""
-            simple_books = map(re.escape, self.full_title_list(lang, with_terms=with_terms))
+            if citing_only:
+                simple_books = map(re.escape, self.citing_title_list(lang))
+            else:
+                simple_books = map(re.escape, self.full_title_list(lang, with_terms=with_terms))
             simple_book_part = ur'|'.join(sorted(simple_books, key=len, reverse=True))  # Match longer titles first
 
             # re_string += ur'(?:^|[ ([{>,-]+)' if for_js else u''  # Why don't we check for word boundaries internally as well?
@@ -3783,7 +3793,7 @@ class Library(object):
         return re_string
 
     #WARNING: Do NOT put the compiled re2 object into redis.  It gets corrupted.
-    def all_titles_regex(self, lang="en", with_terms=False):
+    def all_titles_regex(self, lang="en", with_terms=False, citing_only=False):
         """
         :return: A regular expression object that will match any known title in the library in the provided language
         :param lang: "en" or "he"
@@ -3792,11 +3802,14 @@ class Library(object):
 
         Uses re2 if available.  See https://github.com/Sefaria/Sefaria-Project/wiki/Regular-Expression-Engines
         """
-        key = "all_titles_regex_" + lang
-        key += "_terms" if with_terms else ""
+        if citing_only:
+            key = "citing_titles_regex_" + lang
+        else:
+            key = "all_titles_regex_" + lang
+            key += "_terms" if with_terms else ""
         reg = self._title_regexes.get(key)
         if not reg:
-            re_string = self.all_titles_regex_string(lang, with_terms)
+            re_string = self.all_titles_regex_string(lang, with_terms, citing_only)
             try:
                 reg = re.compile(re_string, max_mem=512 * 1024 * 1024)
             except TypeError:
@@ -3820,6 +3833,22 @@ class Library(object):
                 titles += self.get_term_dict(lang).keys()
             self._full_title_lists[key] = titles
         return titles
+
+    def citing_title_list(self, lang="en"):
+        """
+        :param lang: "he" or "en"
+        :return: list of all titles that can be recognized as an inline citation
+        """
+        key = "citing-{}".format(lang)
+        titles = self._full_title_lists.get(key)
+        if not titles:
+            titles = []
+            for i in IndexSet():
+                if getattr(i, "is_cited", False):
+                    titles.extend(self._index_title_maps[lang][i.title])
+            self._full_title_lists[key] = titles
+        return titles
+
 
     def ref_list(self):
         """
@@ -3959,7 +3988,7 @@ class Library(object):
         return IndexSet(q) if full_records else IndexSet(q).distinct("title")
 
 
-    def get_titles_in_string(self, s, lang=None):
+    def get_titles_in_string(self, s, lang=None, citing_only=False):
         """
         Returns the titles found in the string.
 
@@ -3975,7 +4004,7 @@ class Library(object):
         elif lang=="he":
             return [m.group('title') for m in self.all_titles_regex(lang).finditer(s)]
 
-    def get_refs_in_string(self, st, lang=None):
+    def get_refs_in_string(self, st, lang=None, citing_only=False):
         """
         Returns an list of Ref objects derived from string
 
@@ -3991,7 +4020,7 @@ class Library(object):
         if lang == "he":
             from sefaria.utils.hebrew import strip_nikkud
             st = strip_nikkud(st)
-            unique_titles = {title: 1 for title in self.get_titles_in_string(st, lang)}
+            unique_titles = {title: 1 for title in self.get_titles_in_string(st, lang, citing_only)}
             for title in unique_titles.iterkeys():
                 try:
                     res = self._build_all_refs_from_string(title, st)
