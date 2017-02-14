@@ -16,16 +16,20 @@ from sefaria.system.database import db
 
 
 class UserProfile(object):
-	def __init__(self, id=None, slug=None):
+	def __init__(self, id=None, slug=None, email=None):
 
-		if slug: # Load profile by slug if passed
+		if slug:  # Load profile by slug, if passed
 			profile = db.profiles.find_one({"slug": slug})
 			if profile:
 				self.__init__(id=profile["id"])
 				return
 
 		try:
-			user = User.objects.get(id=id)
+			if email and not id:  # Load profile by email, if passed.
+				user = User.objects.get(email=email)
+				id = user.id
+			else:
+				user = User.objects.get(id=id)
 			self.first_name        = user.first_name
 			self.last_name         = user.last_name
 			self.email             = user.email
@@ -54,6 +58,8 @@ class UserProfile(object):
 		self.linkedin              = ""
 		self.pinned_sheets         = []
 		self.interrupting_messages = ["newUserWelcome"]
+		self.partner_group        = ""
+		self.partner_role         = ""
 
 		self.settings     =  {
 			"email_notifications": "daily",
@@ -226,6 +232,8 @@ class UserProfile(object):
 			"settings":              self.settings,
 			"interrupting_messages": getattr(self, "interrupting_messages", []),
 			"tag_order":             getattr(self, "tag_order", None),
+			"partner_group":         self.partner_group,
+			"partner_role":          self.partner_role
 		}
 		return dictionary
 

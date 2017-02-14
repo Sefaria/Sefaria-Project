@@ -69,7 +69,7 @@ def language_settings(request):
     return {"contentLang": content, "interfaceLang": interface}
 
 
-def notifications(request):
+def user_and_notifications(request):
     if not request.user.is_authenticated():
         return {}
     
@@ -82,12 +82,14 @@ def notifications(request):
     else:
         interrupting_message_json = "null"
     return {
-                "notifications": notifications, 
-                "notifications_json": notifications_json,
-                "notifications_html": notifications.to_HTML(),
-                "notifications_count": profile.unread_notification_count(),
-                "interrupting_message_json": interrupting_message_json,
-            }
+        "notifications": notifications,
+        "notifications_json": notifications_json,
+        "notifications_html": notifications.to_HTML(),
+        "notifications_count": profile.unread_notification_count(),
+        "interrupting_message_json": interrupting_message_json,
+        "partner_group": profile.partner_group,
+        "partner_role": profile.partner_role
+    }
 
 
 LOGGED_OUT_HEADER = None

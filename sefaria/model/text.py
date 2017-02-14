@@ -63,14 +63,14 @@ class AbstractIndex(object):
 
     def set_title(self, title, lang="en"):
         if lang == "en":
-            self._title = title #we need to store the title attr in a physical storage, not that .title is a virtual property
+            self._title = title  # we need to store the title attr in a physical storage, not that .title is a virtual property
         if self.is_new_style():
             if lang == "en":
                 self.nodes.key = title
 
             old_primary = self.nodes.primary_title(lang)
             self.nodes.add_title(title, lang, True, True)
-            if old_primary != title: #then remove the old title, we don't want it.
+            if old_primary != title:  # then remove the old title, we don't want it.
                 self.nodes.remove_title(old_primary, lang)
 
     title = property(get_title, set_title)
@@ -368,7 +368,7 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
         alt_titles = map(re.escape, full_title_list)
         reg = u'(?P<title>' + u'|'.join(sorted(alt_titles, key=len, reverse=True)) + ur')($|[:., ]+)'
         try:
-            reg = re.compile(reg, max_mem= 256 * 1024 * 1024)
+            reg = re.compile(reg, max_mem=384 * 1024 * 1024)
         except TypeError:
             reg = re.compile(reg)
 
@@ -908,23 +908,26 @@ class AbstractTextRecord(object):
     """
     """
     text_attr = "chapter"
-    ALLOWED_TAGS    = ("i", "b", "br", "u", "strong", "em", "big", "small", "img", "sup")
-    ALLOWED_ATTRS   = {'i': ['data-commentator', 'data-order'], 'img': lambda name, value: name == 'src' and value.startswith("data:image/")}
+    ALLOWED_TAGS    = ("i", "b", "br", "u", "strong", "em", "big", "small", "img", "sup", "span")
+    ALLOWED_ATTRS   = {'span':['class'], 'i': ['data-commentator', 'data-order'], 'img': lambda name, value: name == 'src' and value.startswith("data:image/")}
 
     def word_count(self):
         """ Returns the number of words in this text """
-        return self.ja().word_count()
+        return self.ja(remove_html=True).word_count()
 
     def char_count(self):
         """ Returns the number of characters in this text """
-        return self.ja().char_count()
+        return self.ja(remove_html=True).char_count()
 
     def verse_count(self):
         """ Returns the number of verses in this text """
         return self.ja().verse_count()
 
-    def ja(self): #don't cache locally unless change is handled.  Pontential to cache on JA class level
-        return JaggedTextArray(getattr(self, self.text_attr, None))
+    def ja(self, remove_html=False): #don't cache locally unless change is handled.  Pontential to cache on JA class level
+        base_text = getattr(self, self.text_attr, None)
+        if base_text and remove_html:
+            base_text = AbstractTextRecord.remove_html(base_text)
+        return JaggedTextArray(base_text)
 
     def as_string(self):
         content = getattr(self, self.text_attr, None)
@@ -939,9 +942,23 @@ class AbstractTextRecord(object):
     def sanitize_text(cls, t):
         if isinstance(t, list):
             for i, v in enumerate(t):
-                t[i] = TextChunk.sanitize_text(v)
+                t[i] = AbstractTextRecord.sanitize_text(v)
         elif isinstance(t, basestring):
             t = bleach.clean(t, tags=cls.ALLOWED_TAGS, attributes=cls.ALLOWED_ATTRS)
+        else:
+            return False
+        return t
+
+    @staticmethod
+    def remove_html(t):
+        if isinstance(t, list):
+            for i, v in enumerate(t):
+                if isinstance(v, basestring):
+                    t[i] = re.sub('<[^>]+>', u" ", v)
+                else:
+                    t[i] = AbstractTextRecord.remove_html(v)
+        elif isinstance(t, basestring):
+            t = re.sub('<[^>]+>', u" ", t)
         else:
             return False
         return t
@@ -1031,13 +1048,16 @@ class Version(abst.AbstractMongoRecord, AbstractTextRecord, AbstractSchemaConten
                 }).section_ref()
         return None
 
-    def ja(self):
+    def ja(self,  remove_html=False):
         # the quickest way to check if this is a complex text
         if isinstance(getattr(self, self.text_attr, None), dict):
             nodes = self.get_index().nodes.get_leaf_nodes()
-            return JaggedTextArray([self.content_node(node) for node in nodes])
+            if remove_html:
+                return JaggedTextArray([AbstractTextRecord.remove_html(self.content_node(node)) for node in nodes])
+            else:
+                return JaggedTextArray([self.content_node(node) for node in nodes])
         else:
-            return super(Version, self).ja()
+            return super(Version, self).ja(remove_html=remove_html)
 
     def is_copyrighted(self):
         return "Copyright" in getattr(self, "license", "")
@@ -1220,8 +1240,11 @@ class TextChunk(AbstractTextRecord):
     def is_empty(self):
         return self.ja().is_empty()
 
-    def ja(self):
-        return JaggedTextArray(self.text)
+    def ja(self, remove_html=False):
+        if remove_html:
+            return JaggedTextArray(AbstractTextRecord.remove_html(self.text))
+        else:
+            return JaggedTextArray(self.text)
 
     def save(self, force_save=False):
         """
@@ -1449,39 +1472,18 @@ class TextChunk(AbstractTextRecord):
 
         return ref_list
 
-
-    def text_index_map(self,tokenizer=lambda x: re.split(u'\s+',x), strict=True):
+    def text_index_map(self, tokenizer=lambda x: re.split(u'\s+', x), strict=True):
         """
         Primarily used for depth-2 texts in order to get index/ref pairs relative to the full text string
          indexes are the word index in word_list
 
         tokenizer: f(str)->list(str) - function to split up text
         strict: if True, throws error if len(ind_list) != len(ref_list). o/w truncates longer array to length of shorter
-        :return: (list,list,list) - index_list, ref_list, word_list
+        :return: (list,list) - index_list (0 based index of start word of each segment ref as compared with the text chunk ref), ref_list
         """
         #TODO there is a known error that this will fail if the text version you're using has fewer segments than the VersionState.
         ind_list = []
         ref_list = self.nonempty_subrefs()
-
-
-        """
-        if r.is_range():
-            input_refs = r.range_list()
-        else:
-            input_refs = [r]
-
-        ref_list = []
-        for temp_ref in input_refs:
-            if temp_ref.is_segment_level():
-                ref_list.append(temp_ref)
-            elif temp_ref.is_section_level():
-                ref_list += temp_ref.all_subrefs(self.lang)
-            else: #you're higher than section level
-                sub_ja = temp_ref.get_state_ja().subarray_with_ref(temp_ref)
-                ref_list_sections = [temp_ref.subref([i + 1 for i in k ]) for k in sub_ja.non_empty_sections() ]
-                ref_list += [ref_seg for ref_sec in ref_list_sections for ref_seg in ref_sec.all_subrefs(self.lang)]
-        """
-
 
         total_len = 0
         text_list = self.ja().flatten_to_array()
@@ -1501,7 +1503,6 @@ class TextChunk(AbstractTextRecord):
                     ref_list = ref_list[:len(ind_list)]
 
         return ind_list, ref_list, total_len
-
 
 
 # Mirrors the construction of the old get_text() method.
@@ -4056,7 +4057,7 @@ class Library(object):
         :param with_commentary: If true, overrides `commentary` argument and matches BOTH "x on y" style records and simple records
         Note that matching behavior differs between commentary=True and with_commentary=True.
         commentary=True matches 'title', 'commentor' and 'commentee' named groups.
-        with_commentary=True matches only 'title', wether for plain records or commentary records.
+        with_commentary=True matches only 'title', whether for plain records or commentary records.
         :param with_terms:
         :param for_js:
         :return:
@@ -4114,7 +4115,7 @@ class Library(object):
         if not reg:
             re_string = self.all_titles_regex_string(lang, commentary, with_commentary, with_terms)
             try:
-                reg = re.compile(re_string, max_mem=256 * 1024 * 1024)
+                reg = re.compile(re_string, max_mem=512 * 1024 * 1024)
             except TypeError:
                 reg = re.compile(re_string)
             self._title_regexes[key] = reg
