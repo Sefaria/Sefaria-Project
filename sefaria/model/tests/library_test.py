@@ -262,6 +262,22 @@ class Test_get_titles_in_text(object):
         for a in [bible_mid, bible_begin, bible_end]:
             assert {u"שמות"} <= set(library.get_titles_in_string(a, "he", citing_only=citing_only))
 
+    @pytest.mark.parametrize(('citing_only'), (True, False))
+    def test_citing_only_en(self, citing_only):
+        titles = library.get_titles_in_string(texts['weird_ref'], lang='en', citing_only=citing_only)
+        if citing_only:
+            assert set(titles) == {'Leviticus'}
+        else:
+            assert set(titles) == {'Leviticus', 'The Book of Maccabees I'}
+
+    @pytest.mark.parametrize(('citing_only'), (True, False))
+    def test_citing_only_he(self, citing_only):
+        titles = library.get_titles_in_string(texts['weird_ref_he'], lang='he', citing_only=citing_only)
+        if citing_only:
+            assert set(titles) == {u'ויקרא'}
+        else:
+            assert set(titles) == {u'ויקרא', u'ספר מקבים א'}
+
 
 class Test_Library(object):
     def test_cache_populated_on_instanciation(self):
