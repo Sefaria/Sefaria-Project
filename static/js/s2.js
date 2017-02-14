@@ -2657,8 +2657,7 @@ var ReaderNavigationMenu = React.createClass({
         React.createElement(RecentPanel, (_React$createElement = {
           toggleLanguage: this.props.toggleLanguage,
           multiPanel: this.props.multiPanel,
-          closeNav: this.closeNav,
-          setCategories: this.props.setCategories
+          closeNav: this.closeNav
         }, _defineProperty(_React$createElement, 'toggleLanguage', this.props.toggleLanguage), _defineProperty(_React$createElement, 'openDisplaySettings', this.props.openDisplaySettings), _defineProperty(_React$createElement, 'navHome', this.navHome), _defineProperty(_React$createElement, 'compare', this.props.compare), _defineProperty(_React$createElement, 'hideNavHeader', this.props.hideNavHeader), _defineProperty(_React$createElement, 'width', this.width), _defineProperty(_React$createElement, 'interfaceLang', this.props.interfaceLang), _React$createElement))
       );
     } else if (this.props.categories.length) {
@@ -2723,21 +2722,13 @@ var ReaderNavigationMenu = React.createClass({
           React.createElement('img', { src: '/static/img/arrow-left.png' })
         )
       );
-      if (this.width < 450) {
-        categories = this.state.showMore ? categories : categories.slice(0, 9).concat(more);
-        categories = React.createElement(
-          'div',
-          { className: 'readerNavCategories' },
-          React.createElement(TwoBox, { content: categories })
-        );
-      } else {
-        categories = this.state.showMore ? categories : categories.slice(0, 8).concat(more);
-        categories = React.createElement(
-          'div',
-          { className: 'readerNavCategories' },
-          React.createElement(ThreeBox, { content: categories })
-        );
-      }
+      var nCats = this.width < 450 ? 9 : 8;
+      categories = this.state.showMore ? categories : categories.slice(0, nCats).concat(more);
+      categories = React.createElement(
+        'div',
+        { className: 'readerNavCategories' },
+        React.createElement(TwoOrThreeBox, { content: categories, width: this.width })
+      );
 
       var siteLinks = Sefaria._uid ? [React.createElement(
         'a',
@@ -2903,8 +2894,9 @@ var ReaderNavigationMenu = React.createClass({
       );
       topContent = this.props.hideNavHeader ? null : topContent;
 
+      var nRecent = this.width < 450 ? 4 : 6;
       var recentlyViewed = Sefaria.recentlyViewed;
-      var hasMore = recentlyViewed.length > 6;
+      var hasMore = recentlyViewed.length > nRecent;
       recentlyViewed = recentlyViewed.filter(function (item) {
         // after a text has been deleted a recent ref may be invalid,
         // but don't try to check when booksDict is not available during server side render
@@ -2921,7 +2913,7 @@ var ReaderNavigationMenu = React.createClass({
           versionLanguage: item.versionLanguage,
           showSections: true,
           recentItem: true });
-      }).slice(0, hasMore ? 5 : 6);
+      }).slice(0, hasMore ? nRecent - 1 : nRecent);
       if (hasMore) {
         recentlyViewed.push(React.createElement(
           'div',
@@ -3135,10 +3127,13 @@ var ReaderNavigationCategoryMenu = React.createClass({
     categories: React.PropTypes.array.isRequired,
     closeNav: React.PropTypes.func.isRequired,
     setCategories: React.PropTypes.func.isRequired,
+    toggleLanguage: React.PropTypes.func.isRequired,
+    openDisplaySettings: React.PropTypes.func.isRequired,
     navHome: React.PropTypes.func.isRequired,
     width: React.PropTypes.number,
     compare: React.PropTypes.bool,
-    hideNavHeader: React.PropTypes.bool
+    hideNavHeader: React.PropTypes.bool,
+    interfaceLang: React.PropTypes.string
   },
   render: function render() {
     var footer = this.props.compare ? null : React.createElement(
@@ -10105,8 +10100,13 @@ var RecentPanel = React.createClass({
   displayName: 'RecentPanel',
 
   propTypes: {
+    closeNav: React.PropTypes.func.isRequired,
     toggleLanguage: React.PropTypes.func.isRequired,
-    multiPanel: React.PropTypes.bool,
+    openDisplaySettings: React.PropTypes.func.isRequired,
+    navHome: React.PropTypes.func.isRequired,
+    width: React.PropTypes.number,
+    compare: React.PropTypes.bool,
+    hideNavHeader: React.PropTypes.bool,
     interfaceLang: React.PropTypes.string
   },
   render: function render() {
@@ -10131,18 +10131,46 @@ var RecentPanel = React.createClass({
     });
     var recentContent = React.createElement(TwoOrThreeBox, { content: recentItems, width: width });
 
-    var classes = { recentPanel: 1, systemPanel: 1, readerNavMenu: 1, noHeader: 1 };
-    var classStr = classNames(classes);
+    var footer = this.props.compare ? null : React.createElement(
+      'footer',
+      { id: 'footer', className: 'interface-' + this.props.interfaceLang + ' static sans' },
+      React.createElement(Footer, null)
+    );
+
+    var navMenuClasses = classNames({ recentPanel: 1, readerNavMenu: 1, noHeader: this.props.hideNavHeader });
+    var navTopClasses = classNames({ readerNavTop: 1, searchOnly: 1, colorLineOnly: this.props.hideNavHeader });
+    var contentClasses = classNames({ content: 1, hasFooter: footer != null });
     return React.createElement(
       'div',
-      { className: classStr },
+      { className: navMenuClasses },
+      this.props.hideNavHeader ? null : React.createElement(
+        'div',
+        { className: navTopClasses },
+        React.createElement(CategoryColorLine, { category: "Other" }),
+        React.createElement(ReaderNavigationMenuMenuButton, { onClick: this.props.navHome, compare: this.props.compare }),
+        React.createElement(ReaderNavigationMenuDisplaySettingsButton, { onClick: this.props.openDisplaySettings }),
+        React.createElement(
+          'h2',
+          null,
+          React.createElement(
+            'span',
+            { className: 'int-en' },
+            'Recent'
+          ),
+          React.createElement(
+            'span',
+            { className: 'int-he' },
+            'נצפו לאחרונה'
+          )
+        )
+      ),
       React.createElement(
         'div',
-        { className: 'content hasFooter' },
+        { className: contentClasses },
         React.createElement(
           'div',
           { className: 'contentInner' },
-          React.createElement(
+          this.props.hideNavHeader ? React.createElement(
             'h1',
             null,
             this.props.multiPanel ? React.createElement(LanguageToggleButton, { toggleLanguage: this.props.toggleLanguage }) : null,
@@ -10156,14 +10184,10 @@ var RecentPanel = React.createClass({
               { className: 'int-he' },
               'נצפו לאחרונה'
             )
-          ),
+          ) : null,
           recentContent
         ),
-        React.createElement(
-          'footer',
-          { id: 'footer', className: 'interface-' + this.props.interfaceLang + ' static sans' },
-          React.createElement(Footer, null)
-        )
+        footer
       )
     );
   }

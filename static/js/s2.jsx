@@ -2514,7 +2514,6 @@ var ReaderNavigationMenu = React.createClass({
                   toggleLanguage={this.props.toggleLanguage}
                   multiPanel={this.props.multiPanel}
                   closeNav={this.closeNav}
-                  setCategories={this.props.setCategories}
                   toggleLanguage={this.props.toggleLanguage}
                   openDisplaySettings={this.props.openDisplaySettings}
                   navHome={this.navHome}
@@ -2573,13 +2572,10 @@ var ReaderNavigationMenu = React.createClass({
                       <span className="en">More <img src="/static/img/arrow-right.png" /></span>
                       <span className="he">עוד <img src="/static/img/arrow-left.png" /></span>
                   </div>);
-      if (this.width < 450) {
-        categories = this.state.showMore ? categories : categories.slice(0,9).concat(more);
-        categories = (<div className="readerNavCategories"><TwoBox content={categories} /></div>);
-      } else {
-        categories = this.state.showMore ? categories : categories.slice(0,8).concat(more);
-        categories = (<div className="readerNavCategories"><ThreeBox content={categories} /></div>);
-      }
+      var nCats  = this.width < 450 ? 9 : 8;
+      categories = this.state.showMore ? categories : categories.slice(0, nCats).concat(more);
+      categories = (<div className="readerNavCategories"><TwoOrThreeBox content={categories} width={this.width} /></div>);
+
 
       var siteLinks = Sefaria._uid ? 
                     [(<a className="siteLink outOfAppLink" key='profile' href="/my/profile">
@@ -2654,8 +2650,9 @@ var ReaderNavigationMenu = React.createClass({
       topContent = this.props.hideNavHeader ? null : topContent;
 
 
+      var nRecent = this.width < 450 ? 4 : 6;
       var recentlyViewed = Sefaria.recentlyViewed;
-      var hasMore = recentlyViewed.length > 6;
+      var hasMore = recentlyViewed.length > nRecent;
       recentlyViewed = recentlyViewed.filter(function(item){
         // after a text has been deleted a recent ref may be invalid,
         // but don't try to check when booksDict is not available during server side render
@@ -2670,7 +2667,7 @@ var ReaderNavigationMenu = React.createClass({
                   versionLanguage={item.versionLanguage}
                   showSections={true}
                   recentItem={true} />)
-      }).slice(0, hasMore ? 5 : 6);
+      }).slice(0, hasMore ? nRecent-1 : nRecent);
       if (hasMore) {
         recentlyViewed.push(
           <div className="readerNavCategory readerNavMore" style={{"borderColor": Sefaria.palette.colors.darkblue}} onClick={this.props.setCategories.bind(null, ["recent"])}>
@@ -2806,14 +2803,17 @@ var BlockLink = React.createClass({
 var ReaderNavigationCategoryMenu = React.createClass({
   // Navigation Menu for a single category of texts (e.g., "Tanakh", "Bavli")
   propTypes: {
-    category:      React.PropTypes.string.isRequired,
-    categories:    React.PropTypes.array.isRequired,
-    closeNav:      React.PropTypes.func.isRequired,
-    setCategories: React.PropTypes.func.isRequired,
-    navHome:       React.PropTypes.func.isRequired,
-    width:         React.PropTypes.number,
-    compare:       React.PropTypes.bool,
-    hideNavHeader: React.PropTypes.bool
+    category:            React.PropTypes.string.isRequired,
+    categories:          React.PropTypes.array.isRequired,
+    closeNav:            React.PropTypes.func.isRequired,
+    setCategories:       React.PropTypes.func.isRequired,
+    toggleLanguage:      React.PropTypes.func.isRequired,
+    openDisplaySettings: React.PropTypes.func.isRequired,
+    navHome:             React.PropTypes.func.isRequired,
+    width:               React.PropTypes.number,
+    compare:             React.PropTypes.bool,
+    hideNavHeader:       React.PropTypes.bool,
+    interfaceLang:       React.PropTypes.string
   },
   render: function() {
     var footer = this.props.compare ? null :
@@ -8062,9 +8062,14 @@ var AccountPanel = React.createClass({
 
 var RecentPanel = React.createClass({
   propTypes: {
-    toggleLanguage: React.PropTypes.func.isRequired,
-    multiPanel:     React.PropTypes.bool,
-    interfaceLang:  React.PropTypes.string,
+    closeNav:            React.PropTypes.func.isRequired,
+    toggleLanguage:      React.PropTypes.func.isRequired,
+    openDisplaySettings: React.PropTypes.func.isRequired,
+    navHome:             React.PropTypes.func.isRequired,
+    width:               React.PropTypes.number,
+    compare:             React.PropTypes.bool,
+    hideNavHeader:       React.PropTypes.bool,
+    interfaceLang:       React.PropTypes.string
   },
   render: function() {
     var width = typeof window !== "undefined" ? $(window).width() : 1000;
@@ -8086,22 +8091,39 @@ var RecentPanel = React.createClass({
     });
     var recentContent = (<TwoOrThreeBox content={recentItems} width={width} />);
 
-    var classes = {recentPanel: 1, systemPanel: 1, readerNavMenu: 1, noHeader: 1 };
-    var classStr = classNames(classes);
+    var footer = this.props.compare ? null :
+                    (<footer id="footer" className={`interface-${this.props.interfaceLang} static sans`}>
+                      <Footer />
+                    </footer> );
+
+
+    var navMenuClasses = classNames({recentPanel: 1, readerNavMenu: 1, noHeader: this.props.hideNavHeader});
+    var navTopClasses  = classNames({readerNavTop: 1, searchOnly: 1, colorLineOnly: this.props.hideNavHeader});
+    var contentClasses = classNames({content: 1, hasFooter: footer != null});
     return (
-      <div className={classStr}>
-        <div className="content hasFooter">
+      <div className={navMenuClasses}>
+        {this.props.hideNavHeader ? null : 
+          <div className={navTopClasses}>
+            <CategoryColorLine category={"Other"} />
+            <ReaderNavigationMenuMenuButton onClick={this.props.navHome} compare={this.props.compare} />
+            <ReaderNavigationMenuDisplaySettingsButton onClick={this.props.openDisplaySettings} />
+            <h2>
+              <span className="int-en">Recent</span>
+              <span className="int-he">נצפו לאחרונה</span>
+            </h2>
+        </div>}
+        <div className={contentClasses}>
           <div className="contentInner">
-            <h1>
+            {this.props.hideNavHeader ? 
+              <h1>
               { this.props.multiPanel ? <LanguageToggleButton toggleLanguage={this.props.toggleLanguage} /> : null }
               <span className="int-en">Recent</span>
               <span className="int-he">נצפו לאחרונה</span>
             </h1>
+            : null }
             {recentContent}
           </div>
-          <footer id="footer" className={`interface-${this.props.interfaceLang} static sans`}>
-            <Footer />
-          </footer>
+          {footer}
         </div>
       </div>
       );
