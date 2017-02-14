@@ -30,6 +30,8 @@ def setup_module(module):
     texts['3dig'] = u'(תהילים קי"ט)'
     texts['2with_lead'] = u'(ראה דברים ד,ז; דברים ד,ח)'
     texts['ignored_middle'] = u'(תהלים לז, א) אל תתחר במרעים ולא עוד אלא שדרכיו מצליחין שנא תהלים י, ה יחילו דרכיו בכל עת ולא עוד אלא שזוכה בדין שנאמר מרום משפטיך מנגדו ולא עוד אלא שרואה בשונאיו שנאמר כל צורריו יפיח בהם איני והאמר ר יוחנן משום רש בן יוחי מותר להתגרות ברשעים בעולם הזה שנא (משלי כח, ד)'
+    texts['weird_ref'] = u"In this string The Book of Maccabees I 1.2 should match the long regex only, but Leviticus 12.4 should match both of them"
+    texts['weird_ref_he'] = u"המקור (ספר מקבים א א ב) אמור לעבוד רק בחיפוש המלא, אבל המקור (ויקרא יב ד) צריך לעבוד בשניהם"
 
 
 class Test_get_refs_in_text(object):
@@ -72,6 +74,14 @@ class Test_get_refs_in_text(object):
         assert library.get_refs_in_string(s, "en", citing_only=citing_only) == [Ref("Rashi on Genesis 2:5:3")]
         assert library.get_refs_in_string(s2, "en", citing_only=citing_only) == [Ref("Rashi on Genesis 3:4"), Ref("Exodus 5:2")]
         assert library.get_refs_in_string(s3, "en", citing_only=citing_only) == [Ref("Genesis 2:3")]
+
+    @pytest.mark.parametrize(('citing_only'), (True, False))
+    def test_citing_only(self, citing_only):
+        matched_refs = library.get_refs_in_string(texts['weird_ref'], lang='en', citing_only=citing_only)
+        if citing_only:
+            assert matched_refs == [Ref("Leviticus 12.4")]
+        else:
+            assert matched_refs == [Ref("The Book of Maccabees I 1.2"), Ref("Leviticus 12.4")]
 
 
 class Test_he_get_refs_in_text(object):
@@ -182,6 +192,14 @@ class Test_he_get_refs_in_text(object):
         st = u' בִּשְׁמוֹ שֶׁאָמַר שֶׁזֶּה בְּחִינַת (יְשְׁעַיָה ל"ח): "וַיַּסֵּב חִזְקִיָּהוּ פָּנָיו'
         ref = library.get_refs_in_string(st, citing_only=citing_only)
         assert len(ref) == 1
+
+    @pytest.mark.parametrize(('citing_only'), (True, False))
+    def test_citing_only_he(self, citing_only):
+        matched_refs = library.get_refs_in_string(texts['weird_ref_he'], lang='he', citing_only=citing_only)
+        if citing_only:
+            assert matched_refs == [Ref("Leviticus 12.4")]
+        else:
+            assert matched_refs == [Ref("Leviticus 12.4"), Ref("The Book of Maccabees I 1.2")]
 
 
     @pytest.mark.failing
