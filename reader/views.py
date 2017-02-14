@@ -1333,7 +1333,7 @@ def index_api(request, title, v2=False, raw=False):
             apikey = db.apikeys.find_one({"key": key})
             if not apikey:
                 return jsonResponse({"error": "Unrecognized API key."})
-            return jsonResponse(func(apikey["uid"], model.Index, j, method="API", v2=v2, raw=raw, force_complex=True).contents(v2=v2, raw=raw, force_complex=True))
+            return jsonResponse(func(apikey["uid"], model.Index, j, method="API").contents())
         else:
             title = j.get("oldTitle", j.get("title"))
             try:
@@ -1491,7 +1491,7 @@ def links_api(request, link_id_or_ref=None):
         return jsonResponse(get_links(link_id_or_ref, with_text), callback)
 
     if request.method == "POST":
-        def post_single_link(request, link, uid, **kwargs):
+        def _internal_do_post(request, link, uid, **kwargs):
             func = tracker.update if "_id" in link else tracker.add
             # use the correct function if params indicate this is a note save
             # func = save_note if "type" in j and j["type"] == "note" else save_link
@@ -1517,7 +1517,7 @@ def links_api(request, link_id_or_ref=None):
         else:
             uid = request.user.id
             kwargs = {}
-            post_single_link = csrf_protect(post_single_link)
+            _internal_do_post = csrf_protect(_internal_do_post)
 
         j = request.POST.get("json")
         if not j:
@@ -1528,7 +1528,7 @@ def links_api(request, link_id_or_ref=None):
             res = []
             for i in j:
                 try:
-                    retval = post_single_link(request, i, uid, **kwargs)
+                    retval = _internal_do_post(request, i, uid, **kwargs)
                     res.append({"status": "ok. Link: {} | {} Saved".format(retval["ref"], retval["anchorRef"])})
                 except Exception as e:
                     res.append({"error": "Link: {} | {} Error: {}".format(i["refs"][0], i["refs"][1], unicode(e))})
@@ -1541,7 +1541,7 @@ def links_api(request, link_id_or_ref=None):
                 res_slice = None
             return jsonResponse(res[:res_slice])
         else:
-            return jsonResponse(post_single_link(request, j, uid, **kwargs))
+            return jsonResponse(_internal_do_post(request, j, uid, **kwargs))
 
     if request.method == "DELETE":
         if not link_id_or_ref:
@@ -1844,6 +1844,58 @@ def flag_text_api(request, title, lang, version):
     else:
         return jsonResponse({"error": "Unauthorized"})
 
+@catch_error_as_json
+@csrf_exempt
+def terms_api(request, name):
+    """
+    API for adding a Term to the Term collection.
+    This is mainly to be used for adding hebrew internationalization language for section names, categories and commentators
+    """
+    """
+    NOTE: This function is not written like the other functions with a post method.
+    It's attempting a cleaner way to distinguish between csrf proteced use and API use bu juggling some variables around
+    Rather than duplicating functionality.
+    """
+    if request.method == "GET":
+        term = Term().load({'name': name})
+        return jsonResponse(term.contents(), callback=request.GET.get("callback", None))
+
+    if request.method == "POST":
+        def _internal_do_post(request, term, uid, **kwargs):
+            func = tracker.update if request.GET.get("update", False) else tracker.add
+            return func(uid, model.Term, term, **kwargs).contents()
+
+        # delegate according to single/multiple objects posted
+        if not request.user.is_authenticated():
+            key = request.POST.get("apikey")
+            if not key:
+                return {"error": "You must be logged in or use an API key to add, edit or delete terms."}
+            apikey = db.apikeys.find_one({"key": key})
+            if not apikey:
+                return {"error": "Unrecognized API key."}
+            user = User.objects.get(id=apikey["uid"])
+            if not user.is_staff:
+                return jsonResponse({"error": "Only Sefaria Moderators can add or edit terms."})
+            uid = apikey["uid"]
+            kwargs = {"method": "API"}
+        elif request.user.is_staff:
+            uid = request.user.id
+            kwargs = {}
+            _internal_do_post = csrf_protect(_internal_do_post)
+        else:
+            return jsonResponse({"error": "Only Sefaria Moderators can add or edit terms."})
+
+        j = request.POST.get("json")
+        if not j:
+            return jsonResponse({"error": "Missing 'json' parameter in post data."})
+        j = json.loads(j)
+        return jsonResponse(_internal_do_post(request, j, uid, **kwargs))
+
+    if request.method == "DELETE":
+        return jsonResponse({"error": "Unsuported HTTP method."}) #TODO: support this?
+
+    return jsonResponse({"error": "Unsuported HTTP method."})
+
 
 @catch_error_as_json
 def dictionary_api(request, word):
@@ -1871,6 +1923,8 @@ def dictionary_api(request, word):
             return jsonResponse(result, callback=request.GET.get("callback", None))
     else:
         return jsonResponse({"error": "No information found for given word."})
+
+
 
 
 @catch_error_as_json
