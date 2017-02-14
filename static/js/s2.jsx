@@ -399,7 +399,8 @@ var ReaderApp = React.createClass({
             break;
           case "navigation":
             var cats   = state.navigationCategories ? state.navigationCategories.join("/") : "";
-            hist.title = cats ? state.navigationCategories.join(", ") + " | Sefaria" : "Texts | Sefaria";
+            hist.title = cats ? state.navigationCategories.join(", ") + " | Sefaria" : "Table of Contents | Sefaria";
+            hist.title = cats == "recent" ? "Recently Viewed Texts | Sefaria" : hist.title;
             hist.url   = "texts" + (cats ? "/" + cats : "");
             hist.mode  = "navigation";
             break;
@@ -456,7 +457,7 @@ var ReaderApp = React.createClass({
             hist.mode  = "notifications";
             break;
           case "updates":
-            hist.title = "New at Sefaria";
+            hist.title = "New on Sefaria";
             hist.url = "updates";
             hist.mode = "updates";
             break;
@@ -1566,7 +1567,7 @@ var ReaderPanel = React.createClass({
     masterPanelLanguage:         React.PropTypes.string,
     panelsOpen:                  React.PropTypes.number,
     layoutWidth:                 React.PropTypes.number,
-    setTextListHighlight:       React.PropTypes.func,
+    setTextListHighlight:        React.PropTypes.func,
     setSelectedWords:            React.PropTypes.func,
     analyticsInitialized:        React.PropTypes.bool
   },
@@ -2126,7 +2127,6 @@ var ReaderPanel = React.createClass({
       var menu = (<AccountPanel
                     interfaceLang={this.props.interfaceLang} />);
 
-
     } else if (this.state.menuOpen === "notifications") {
       var menu = (<NotificationsPanel 
                     setUnreadNotificationsCount={this.props.setUnreadNotificationsCount}
@@ -2423,6 +2423,7 @@ var ReaderNavigationMenu = React.createClass({
     closeNav:      React.PropTypes.func.isRequired,
     openNav:       React.PropTypes.func.isRequired,
     openSearch:    React.PropTypes.func.isRequired,
+    openMenu:      React.PropTypes.func.isRequired,
     onTextClick:   React.PropTypes.func.isRequired,
     onRecentClick: React.PropTypes.func.isRequired,
     closePanel:    React.PropTypes.func,
@@ -2507,8 +2508,23 @@ var ReaderNavigationMenu = React.createClass({
     }
   },  
   render: function() {
-    if (this.props.categories.length) {
-      // List of Text in a Category
+    if (this.props.categories.length && this.props.categories[0] == "recent") {
+      return (<div onClick={this.handleClick}>
+                <RecentPanel 
+                  toggleLanguage={this.props.toggleLanguage}
+                  multiPanel={this.props.multiPanel}
+                  closeNav={this.closeNav}
+                  setCategories={this.props.setCategories}
+                  toggleLanguage={this.props.toggleLanguage}
+                  openDisplaySettings={this.props.openDisplaySettings}
+                  navHome={this.navHome}
+                  compare={this.props.compare}
+                  hideNavHeader={this.props.hideNavHeader}
+                  width={this.width}
+                  interfaceLang={this.props.interfaceLang} />
+              </div>);
+    } else if (this.props.categories.length) {
+      // List of Texts in a Category
       return (<div className="readerNavMenu" onClick={this.handleClick} >
                 <ReaderNavigationCategoryMenu
                   categories={this.props.categories}
@@ -2639,6 +2655,7 @@ var ReaderNavigationMenu = React.createClass({
 
 
       var recentlyViewed = Sefaria.recentlyViewed;
+      var hasMore = recentlyViewed.length > 6;
       recentlyViewed = recentlyViewed.filter(function(item){
         // after a text has been deleted a recent ref may be invalid,
         // but don't try to check when booksDict is not available during server side render
@@ -2652,9 +2669,15 @@ var ReaderNavigationMenu = React.createClass({
                   version={item.version}
                   versionLanguage={item.versionLanguage}
                   showSections={true}
-                  recentItem={true}
-                  position={item.position || 0} />)
-      });
+                  recentItem={true} />)
+      }).slice(0, hasMore ? 5 : 6);
+      if (hasMore) {
+        recentlyViewed.push(
+          <div className="readerNavCategory readerNavMore" style={{"borderColor": Sefaria.palette.colors.darkblue}} onClick={this.props.setCategories.bind(null, ["recent"])}>
+            <span className="en">More <img src="/static/img/arrow-right.png" /></span>
+            <span className="he">עוד <img src="/static/img/arrow-left.png" /></span>
+          </div>);
+      }
       recentlyViewed = recentlyViewed.length ? <TwoOrThreeBox content={recentlyViewed} width={this.width} /> : null;
 
       var title = (<h1>
@@ -8037,6 +8060,55 @@ var AccountPanel = React.createClass({
 });
 
 
+var RecentPanel = React.createClass({
+  propTypes: {
+    toggleLanguage: React.PropTypes.func.isRequired,
+    multiPanel:     React.PropTypes.bool,
+    interfaceLang:  React.PropTypes.string,
+  },
+  render: function() {
+    var width = typeof window !== "undefined" ? $(window).width() : 1000;
+
+    var recentItems = Sefaria.recentlyViewed.filter(function(item){
+      // after a text has been deleted a recent ref may be invalid,
+      // but don't try to check when booksDict is not available during server side render
+      if (Object.keys(Sefaria.booksDict).length === 0) { return true; }
+      return Sefaria.isRef(item.ref); 
+    }).map(function(item) {
+      return (<TextBlockLink 
+                sref={item.ref}
+                heRef={item.heRef}
+                book={item.book}
+                version={item.version}
+                versionLanguage={item.versionLanguage}
+                showSections={true}
+                recentItem={true} />)
+    });
+    var recentContent = (<TwoOrThreeBox content={recentItems} width={width} />);
+
+    var classes = {recentPanel: 1, systemPanel: 1, readerNavMenu: 1, noHeader: 1 };
+    var classStr = classNames(classes);
+    return (
+      <div className={classStr}>
+        <div className="content hasFooter">
+          <div className="contentInner">
+            <h1>
+              { this.props.multiPanel ? <LanguageToggleButton toggleLanguage={this.props.toggleLanguage} /> : null }
+              <span className="int-en">Recent</span>
+              <span className="int-he">נצפו לאחרונה</span>
+            </h1>
+            {recentContent}
+          </div>
+          <footer id="footer" className={`interface-${this.props.interfaceLang} static sans`}>
+            <Footer />
+          </footer>
+        </div>
+      </div>
+      );
+  }
+});
+
+
 var NotificationsPanel = React.createClass({
   propTypes: {
     setUnreadNotificationsCount: React.PropTypes.func.isRequired,
@@ -8105,8 +8177,8 @@ var NotificationsPanel = React.createClass({
               (<LoginPanel fullPanel={true} />) }
           </div>
           <footer id="footer" className={`interface-${this.props.interfaceLang} static sans`}>
-                    <Footer />
-                    </footer>
+            <Footer />
+          </footer>
         </div>
       </div>);
   }
@@ -8853,7 +8925,7 @@ var setData = function(data) {
   Sefaria.calendar  = data.calendar;
 
   Sefaria._cacheIndexFromToc(Sefaria.toc);
-  Sefaria.recentlyViewed    = data.recentlyViewed.map(Sefaria.unpackRecentItem);
+  Sefaria.recentlyViewed    = data.recentlyViewed ? data.recentlyViewed.map(Sefaria.unpackRecentItem) : [];
   Sefaria.util._defaultPath = data.path;
   Sefaria.loggedIn          = data.loggedIn;
   Sefaria.is_moderator      = data.is_moderator;

@@ -436,10 +436,11 @@ def s2_texts_category(request, cats):
     List of texts in a category.
     """
     cats       = cats.split("/")
-    toc        = library.get_toc()
-    cat_toc    = get_or_make_summary_node(toc, cats, make_if_not_found=False)
-    if cat_toc is None:
-        return s2_texts(request)
+    if cats != ["recent"]:
+        toc        = library.get_toc()
+        cat_toc    = get_or_make_summary_node(toc, cats, make_if_not_found=False)
+        if cat_toc is None:
+            return s2_texts(request)
 
     props = s2_props(request)
     props.update({

@@ -4,6 +4,8 @@ var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = [
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
 
+function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
 function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
 
 if (typeof require !== 'undefined') {
@@ -421,7 +423,8 @@ var ReaderApp = React.createClass({
             break;
           case "navigation":
             var cats = state.navigationCategories ? state.navigationCategories.join("/") : "";
-            hist.title = cats ? state.navigationCategories.join(", ") + " | Sefaria" : "Texts | Sefaria";
+            hist.title = cats ? state.navigationCategories.join(", ") + " | Sefaria" : "Table of Contents | Sefaria";
+            hist.title = cats == "recent" ? "Recently Viewed Texts | Sefaria" : hist.title;
             hist.url = "texts" + (cats ? "/" + cats : "");
             hist.mode = "navigation";
             break;
@@ -477,7 +480,7 @@ var ReaderApp = React.createClass({
             hist.mode = "notifications";
             break;
           case "updates":
-            hist.title = "New at Sefaria";
+            hist.title = "New on Sefaria";
             hist.url = "updates";
             hist.mode = "updates";
             break;
@@ -2557,6 +2560,7 @@ var ReaderNavigationMenu = React.createClass({
     closeNav: React.PropTypes.func.isRequired,
     openNav: React.PropTypes.func.isRequired,
     openSearch: React.PropTypes.func.isRequired,
+    openMenu: React.PropTypes.func.isRequired,
     onTextClick: React.PropTypes.func.isRequired,
     onRecentClick: React.PropTypes.func.isRequired,
     closePanel: React.PropTypes.func,
@@ -2644,8 +2648,21 @@ var ReaderNavigationMenu = React.createClass({
     }
   },
   render: function render() {
-    if (this.props.categories.length) {
-      // List of Text in a Category
+    if (this.props.categories.length && this.props.categories[0] == "recent") {
+      var _React$createElement;
+
+      return React.createElement(
+        'div',
+        { onClick: this.handleClick },
+        React.createElement(RecentPanel, (_React$createElement = {
+          toggleLanguage: this.props.toggleLanguage,
+          multiPanel: this.props.multiPanel,
+          closeNav: this.closeNav,
+          setCategories: this.props.setCategories
+        }, _defineProperty(_React$createElement, 'toggleLanguage', this.props.toggleLanguage), _defineProperty(_React$createElement, 'openDisplaySettings', this.props.openDisplaySettings), _defineProperty(_React$createElement, 'navHome', this.navHome), _defineProperty(_React$createElement, 'compare', this.props.compare), _defineProperty(_React$createElement, 'hideNavHeader', this.props.hideNavHeader), _defineProperty(_React$createElement, 'width', this.width), _defineProperty(_React$createElement, 'interfaceLang', this.props.interfaceLang), _React$createElement))
+      );
+    } else if (this.props.categories.length) {
+      // List of Texts in a Category
       return React.createElement(
         'div',
         { className: 'readerNavMenu', onClick: this.handleClick },
@@ -2887,6 +2904,7 @@ var ReaderNavigationMenu = React.createClass({
       topContent = this.props.hideNavHeader ? null : topContent;
 
       var recentlyViewed = Sefaria.recentlyViewed;
+      var hasMore = recentlyViewed.length > 6;
       recentlyViewed = recentlyViewed.filter(function (item) {
         // after a text has been deleted a recent ref may be invalid,
         // but don't try to check when booksDict is not available during server side render
@@ -2902,9 +2920,26 @@ var ReaderNavigationMenu = React.createClass({
           version: item.version,
           versionLanguage: item.versionLanguage,
           showSections: true,
-          recentItem: true,
-          position: item.position || 0 });
-      });
+          recentItem: true });
+      }).slice(0, hasMore ? 5 : 6);
+      if (hasMore) {
+        recentlyViewed.push(React.createElement(
+          'div',
+          { className: 'readerNavCategory readerNavMore', style: { "borderColor": Sefaria.palette.colors.darkblue }, onClick: this.props.setCategories.bind(null, ["recent"]) },
+          React.createElement(
+            'span',
+            { className: 'en' },
+            'More ',
+            React.createElement('img', { src: '/static/img/arrow-right.png' })
+          ),
+          React.createElement(
+            'span',
+            { className: 'he' },
+            'עוד ',
+            React.createElement('img', { src: '/static/img/arrow-left.png' })
+          )
+        ));
+      }
       recentlyViewed = recentlyViewed.length ? React.createElement(TwoOrThreeBox, { content: recentlyViewed, width: this.width }) : null;
 
       var title = React.createElement(
@@ -10066,6 +10101,74 @@ var AccountPanel = React.createClass({
   }
 });
 
+var RecentPanel = React.createClass({
+  displayName: 'RecentPanel',
+
+  propTypes: {
+    toggleLanguage: React.PropTypes.func.isRequired,
+    multiPanel: React.PropTypes.bool,
+    interfaceLang: React.PropTypes.string
+  },
+  render: function render() {
+    var width = typeof window !== "undefined" ? $(window).width() : 1000;
+
+    var recentItems = Sefaria.recentlyViewed.filter(function (item) {
+      // after a text has been deleted a recent ref may be invalid,
+      // but don't try to check when booksDict is not available during server side render
+      if (Object.keys(Sefaria.booksDict).length === 0) {
+        return true;
+      }
+      return Sefaria.isRef(item.ref);
+    }).map(function (item) {
+      return React.createElement(TextBlockLink, {
+        sref: item.ref,
+        heRef: item.heRef,
+        book: item.book,
+        version: item.version,
+        versionLanguage: item.versionLanguage,
+        showSections: true,
+        recentItem: true });
+    });
+    var recentContent = React.createElement(TwoOrThreeBox, { content: recentItems, width: width });
+
+    var classes = { recentPanel: 1, systemPanel: 1, readerNavMenu: 1, noHeader: 1 };
+    var classStr = classNames(classes);
+    return React.createElement(
+      'div',
+      { className: classStr },
+      React.createElement(
+        'div',
+        { className: 'content hasFooter' },
+        React.createElement(
+          'div',
+          { className: 'contentInner' },
+          React.createElement(
+            'h1',
+            null,
+            this.props.multiPanel ? React.createElement(LanguageToggleButton, { toggleLanguage: this.props.toggleLanguage }) : null,
+            React.createElement(
+              'span',
+              { className: 'int-en' },
+              'Recent'
+            ),
+            React.createElement(
+              'span',
+              { className: 'int-he' },
+              'נצפו לאחרונה'
+            )
+          ),
+          recentContent
+        ),
+        React.createElement(
+          'footer',
+          { id: 'footer', className: 'interface-' + this.props.interfaceLang + ' static sans' },
+          React.createElement(Footer, null)
+        )
+      )
+    );
+  }
+});
+
 var NotificationsPanel = React.createClass({
   displayName: 'NotificationsPanel',
 
@@ -11475,7 +11578,7 @@ var setData = function setData(data) {
   Sefaria.calendar = data.calendar;
 
   Sefaria._cacheIndexFromToc(Sefaria.toc);
-  Sefaria.recentlyViewed = data.recentlyViewed.map(Sefaria.unpackRecentItem);
+  Sefaria.recentlyViewed = data.recentlyViewed ? data.recentlyViewed.map(Sefaria.unpackRecentItem) : [];
   Sefaria.util._defaultPath = data.path;
   Sefaria.loggedIn = data.loggedIn;
   Sefaria.is_moderator = data.is_moderator;
