@@ -4000,9 +4000,9 @@ class Library(object):
             lang = "he" if is_hebrew(s) else "en"
         if lang=="en":
             #todo: combine into one regex
-            return [m.group('title') for m in self.all_titles_regex(lang).finditer(s)]
+            return [m.group('title') for m in self.all_titles_regex(lang, citing_only=citing_only).finditer(s)]
         elif lang=="he":
-            return [m.group('title') for m in self.all_titles_regex(lang).finditer(s)]
+            return [m.group('title') for m in self.all_titles_regex(lang, citing_only=citing_only).finditer(s)]
 
     def get_refs_in_string(self, st, lang=None, citing_only=False):
         """
@@ -4029,7 +4029,7 @@ class Library(object):
                 else:
                     refs += res
         else:  # lang == "en"
-            for match in self.all_titles_regex(lang).finditer(st):
+            for match in self.all_titles_regex(lang, citing_only=citing_only).finditer(st):
                 title = match.group('title')
                 if not title:
                     continue
