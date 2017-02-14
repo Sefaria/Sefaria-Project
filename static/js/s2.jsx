@@ -2874,32 +2874,10 @@ var ReaderNavigationCategoryMenuContents = React.createClass({
         "he": ['תלמוד ירושלמי', displayHeCategory]
       };
       var replaceOther = {
-        "en" : [", ", " on "],
+        "en" : [", ", " on ", " to ", " of "],
         "he" : [", ", " על "]
       };
-      //this will replace a categroy name at the beginning of the title string and any connector strings (0 or 1) that follow.
-      var titleRe = new RegExp(`^(${replaceTitles['en'].join("|")})(${replaceOther['en'].join("|")})?`);
-      var heTitleRe = new RegExp(`^(${replaceTitles['he'].join("|")})(${replaceOther['he'].join("|")})?`);
-      title   = title == displayCategory ? title : title.replace(titleRe, "");
-      heTitle = heTitle == displayHeCategory ? heTitle : heTitle.replace(heTitleRe, "");
-    }
-    return [title, heTitle];
-  },
-
-  getRenderedTextTitleString: function(title, heTitle){
-    var whiteList = ['Midrash Mishlei', 'Midrash Tehillim', 'Midrash Tanchuma'];
-    var displayCategory = this.props.category;
-    var displayHeCategory = Sefaria.hebrewTerm(this.props.category);
-    if (whiteList.indexOf(title) == -1){
-      var replaceTitles = {
-        "en": ['Jerusalem Talmud', displayCategory],
-        "he": ['תלמוד ירושלמי', displayHeCategory]
-      };
-      var replaceOther = {
-        "en" : [", ", " on "],
-        "he" : [", ", " על "]
-      };
-      //this will replace a categroy name at the beginning of the title string and any connector strings (0 or 1) that follow.
+      //this will replace a category name at the beginning of the title string and any connector strings (0 or 1) that follow.
       var titleRe = new RegExp(`^(${replaceTitles['en'].join("|")})(${replaceOther['en'].join("|")})?`);
       var heTitleRe = new RegExp(`^(${replaceTitles['he'].join("|")})(${replaceOther['he'].join("|")})?`);
       title   = title == displayCategory ? title : title.replace(titleRe, "");
