@@ -4,7 +4,7 @@ import re
 from sefaria.model import *
 
 index_list = []
-categories = ["Tanakh", "Tosefta", "Talmud"]
+categories = ["Tanakh", "Tosefta", "Talmud", "Mishnah"]
 for category in categories:
     index_list.extend(library.get_indexes_in_category(category, full_records=True))
 
