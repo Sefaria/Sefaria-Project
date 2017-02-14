@@ -889,7 +889,7 @@ Sefaria = extend(Sefaria, {
       if (!section) { debugger; }
       return {
         book: section[0].category,
-        heBook: Sefaria.hebrewCategory(section[0].category),
+        heBook: Sefaria.hebrewTerm(section[0].category),
         category: "Community",
         count: section.length
       };
