@@ -339,7 +339,7 @@ def add_links_from_text(oref, lang, text, text_id, user, **kwargs):
         found = []  # The normal refs of the links found in this text
         links = []  # New link objects created by this processes
 
-        if kwargs.get('citing_only'):
+        if kwargs.get('citing_only') is not None:
             citing_only = kwargs['citing_only']
         else:
             citing_only = True
