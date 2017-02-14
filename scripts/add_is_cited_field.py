@@ -4,7 +4,7 @@ import re
 from sefaria.model import *
 
 index_list = []
-categories = ["Tanakh", "Tosefta", "Talmud"]
+categories = ["Tanakh", "Tosefta", "Talmud", "Mishnah"]
 for category in categories:
     index_list.extend(library.get_indexes_in_category(category, full_records=True))
 
@@ -19,11 +19,15 @@ midrashim = filter(lambda x: None if x.title in bad_midrashim else True,
 index_list.extend(midrashim)
 
 for i in library.get_indexes_in_category("Torah"):
-    index_list.extend(library.get_dependant_indices(i, full_records=True))
+    commentaries = library.get_dependant_indices(i, full_records=True)
+    commentaries = filter(lambda x: None if x.title == 'Shney Luchot HaBrit' else True, commentaries)
+    index_list.extend(commentaries)
+
 
 mishneh_torah = library.get_indexes_in_category("Mishneh Torah", full_records=True)
 index_list.extend(filter(lambda x: re.search("^Mishneh", x.title), mishneh_torah))
 
 for i in index_list:
+    print "adding {}".format(i.title)
     i.is_cited = True
     i.save()
