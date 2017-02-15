@@ -3271,20 +3271,17 @@ h2.splitHeader .he {
    color:#333;
    margin-bottom: 6px;
 }
-
 .sheet.userSheet {
    font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
    font-size: 14px;
    color:#999;
   text-decoration: none;
 }
-
 /*  Add back in when we're ready for tag/edit hover buttons on 'My Sheets'
 .sheet.userSheet:hover .sheetEditButtons {
 	display: inline-block;
 }
 */
-
 .sheet.userSheet .sheetEditButtons {
   font-size: 24px;
   height: 32px;
@@ -3302,30 +3299,23 @@ h2.splitHeader .he {
   text-decoration: none;
 
 }
-
 .sheetButton:hover {
   text-decoration: underline;
 }
-
 .sheetButton{
   border: 1px solid #fff;
 }
-
-
 .sheetButton.active {
   border: 1px solid #333;
 }
-
 .tagString a {
   text-decoration: none;
   color: #999;
 }
-
 .tagString a:after {
 content: ", ";
 color: #999;
 }
-
 .tagString a:last-child:after {
 content: "";
 }
@@ -3348,7 +3338,6 @@ content: "";
 .int-en{
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
 }
-
 .searchBox .keyboardInputInitiator {
     opacity: 0;
     width: 16px;
@@ -3412,8 +3401,66 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
     border: 1px solid #eee;
     background: #eee;
 }
-
-
+#editGroupPageContainerInner {
+  position: relative;
+}
+#editGroupPage .int-en {
+  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+}
+#editGroupPage .int-he {
+  font-family: "Open Sans Hebrew", sans-serif;
+}
+#editGroupPage .field {
+  box-sizing: border-box;
+  width: 100%;
+  display: inline-block;
+  vertical-align: top;
+  padding: 10px;
+}
+#editGroupPage .field.halfWidth {
+  width: 50%;
+  display: inline-block;
+}
+#editGroupPage .field.quarterWidth {
+  width: 25%;
+  display: inline-block;
+}
+#editGroupPage .field.threeQuarterWidth {
+  width: 75%;
+  display: inline-block;
+}
+#editGroupPage .field label {
+  display: block;
+  margin-bottom: 15px;
+}
+#editGroupPage input,
+#editGroupPage textarea {
+  display: block;
+  width: 100%;
+  padding: 15px 12px;
+  border-radius: 5px;
+  border: none;
+  box-sizing: border-box;
+  color: #333;
+}
+#editGroupPage .groupIcon,
+#editGroupPage .groupCover {
+  width: 100%;
+  margin-bottom: 5px;
+}
+#editGroupPage .helperText {
+  color: #999;
+  font-size: 13px;
+}
+#editGroupPage .groupHeaderBox {
+  width: 100%;
+  background-color: white;
+  margin-bottom: 5px;
+}
+#editGroupPage .groupHeader {
+  float: right;
+  max-width: 100%;
+}
 #footer #siteLanguageToggle {
   color: #999;
   margin-top: 15px;

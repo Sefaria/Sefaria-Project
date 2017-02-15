@@ -424,7 +424,7 @@ var ReaderApp = React.createClass({
             break;
           case "sheets":
             if (states[i].sheetsPartner) {
-                hist.url   = "partners/" + state.sheetsPartner.replace(/\s/g,"_");
+                hist.url   = "groups/" + state.sheetsPartner.replace(/\s/g,"_");
                 hist.title = state.sheetsPartner + " | Sefaria Source Sheets";
                 hist.mode  = "sheets tag";
             } else if (states[i].navigationSheetTag) {
@@ -4330,6 +4330,7 @@ var SheetsHomePage = React.createClass({
   }
 });
 
+
 var PartnerSheetsPage = React.createClass({
   getInitialState: function() {
     return {
@@ -4423,9 +4424,8 @@ var PartnerSheetsPage = React.createClass({
                       </footer>
     </div>);
   }
-
-
 });
+
 
 var PartnerSheetListing = React.createClass({
   propTypes: {
@@ -4448,6 +4448,167 @@ var PartnerSheetListing = React.createClass({
 
   }
 });
+
+
+var EditGroupPage = React.createClass({
+  propTypes: {
+    initialData:  React.PropTypes.object // If present this view is for editing a group, otherwise for creating a new group
+  },
+  getInitialState: function() {
+    return this.props.initialData || {
+        name: null,
+        description: null,
+        websiteUrl: null,
+        headerUrl: null,
+        coverUrl: null,
+        iconUrl: null,
+    };
+  },
+  uploadImage: function(field) {
+    // Sets the state of `field` of the resulting image URL
+    var url = prompt("Enter an image URL", this.state[field]);
+    var state = {};
+    state[field] = url;
+    this.setState(state);
+  },
+  handleInputChange: function(e) {
+    console.log(e.target.value);
+    var idToField = {
+      groupName: "name",
+      groupWebsite: "websiteUrl",
+      groupDescription: "description"
+    }
+    var field = idToField[e.target.id];
+    var state = {};
+    state[field] = e.target.value;
+    this.setState(state);
+
+  },
+  save: function() {
+    var groupData = this.state;
+    if (this.props.initialData && this.props.initialData.name !== groupData.name) {
+      groupData["previousName"] = this.props.initialData.name;
+    }
+    $.post("/api/groups", {json: JSON.stringify(this.state)}, function(data) {
+        if ("error" in data) {
+            alert(data.error);
+        } else {
+            window.location = "/groups/" + this.state.name.replace(/ /g, "-");
+        }
+    }.bind(this)).fail(function() {
+        alert("Sorry, an error occurred.");
+    });
+  },
+  render: function() {
+    return (
+      <div id="editGroupPage">
+        {this.props.initialData 
+          ? <h1>
+              <span className="int-en">Edit Group</span>
+              <span className="int-he">Edit Group</span>
+            </h1>
+          : <h1>
+              <span className="int-en">Create a Group</span>
+              <span className="int-he">Create a Group</span>
+            </h1>}
+
+        <div id="saveCancelButtons">
+            <a className="button transparent control-elem" href="/my/groups">
+                <span className="int-en">Cancel</span>
+                <span className="int-he">בטל</span>
+            </a>
+            <div id="saveGroup" className="button blue control-elem" onClick={this.save}>
+                <span className="int-en">Save</span>
+                <span className="int-he">שמור</span>
+            </div>
+        </div>
+
+        <div className="field halfWidth">
+          <label>
+            <span className="int-en">Group Name</span>
+            <span className="int-he">Group Name</span>
+          </label>
+          <input id="groupName" value={this.state.name||""} onChange={this.handleInputChange}/>
+        </div>
+
+        <div className="field halfWidth">
+          <label>
+            <span className="int-en">Website</span>
+            <span className="int-he">Website</span>
+          </label>
+          <input id="groupWebsite" value={this.state.websiteUrl||""} onChange={this.handleInputChange}/>
+        </div>
+
+        <div className="field">
+          <label>
+            <span className="int-en">Description</span>
+            <span className="int-he">Description</span>
+          </label>
+          <textarea id="groupDescription" onChange={this.handleInputChange}>{this.state.description||null}</textarea>
+        </div>
+
+        <div className="field quarterWidth">
+          <label>
+            <span className="int-en">Group Icon</span>
+            <span className="int-he">Group Icon</span>
+          </label>
+          {this.state.iconUrl 
+            ? <img className="groupIcon" src={this.state.iconUrl} />
+            : <div className="groupIcon placeholder"></div>}
+          <div className="button white" onClick={this.uploadImage.bind(null, "iconUrl")}>
+            <span className="int-en">Upload Icon</span>
+            <span className="int-he">Upload Icon</span>
+          </div>
+          <div className="helperText">
+            <span className="int-en">Recommended size: 350px x 350px or larger</span>
+            <span className="int-he">Recommended size: 350px x 350px or larger</span>
+          </div>
+        </div>
+
+        <div className="field threeQuarterWidth">
+          <label>
+            <span className="int-en">Cover Image</span>
+            <span className="int-he">Cover Image</span>
+          </label>
+          {this.state.coverUrl 
+            ? <img className="groupCover" src={this.state.coverUrl} />
+            : <div className="groupCover placeholder"></div>}
+          <div className="button white" onClick={this.uploadImage.bind(null, "coverUrl")}>
+            <span className="int-en">Upload Cover</span>
+            <span className="int-he">Upload Cover</span>
+          </div>
+          <div className="helperText">
+            <span className="int-en">Recommended size: 1000px x 350px or larger</span>
+            <span className="int-he">Recommended size: 1000px x 350px or larger</span>
+          </div>
+        </div>
+
+        <div className="field">
+          <label>
+            <span className="int-en">Default Sheet Header</span>
+            <span className="int-he">Default Sheet Header</span>
+          </label>
+          {this.state.coverUrl 
+            ? <div className="groupHeaderBox">
+                <img className="groupHeader" src={this.state.headerUrl} />
+                <div className="clearFix"></div>
+              </div>
+            : <div className="groupHeader placeholder"></div>}
+          <div className="button white" onClick={this.uploadImage.bind(null, "headerUrl")}>
+            <span className="int-en">Upload Image</span>
+            <span className="int-he">Upload Image</span>
+          </div>
+          <div className="helperText">
+            <span className="int-en">Recommended size: 1000px width to fill sheet, smaller images align right</span>
+            <span className="int-he">Recommended size: 1000px width to fill sheet, smaller images align right</span>
+          </div>
+        </div>
+
+
+      </div>);
+  }
+});
+
 
 
 var TagSheetsPage = React.createClass({

@@ -441,6 +441,19 @@ def partner_page(request, partner):
 											}, RequestContext(request))
 
 
+def edit_group_page(request, group=None):
+	if group:
+		group = group.replace("-", " ").replace("_", " ")
+		group = Group().load({"name": group})
+		if not group:
+			raise Http404
+		groupData = group.contents()
+	else:
+		groupData = None
+
+	return render_to_response('edit_group.html', {"groupData": groupData}, RequestContext(request))	
+
+
 def groups_page(request):
 	groups = GroupSet(sort=[["name", 1]])
 	return render_to_response("groups.html",
@@ -448,15 +461,18 @@ def groups_page(request):
 								RequestContext(request))
 
 
-@staff_member_required
+@login_required
 def groups_api(request):
 	j = request.POST.get("json")
 	if not j:
 		return jsonResponse({"error": "No JSON given in post data."})
 	group = json.loads(j)
 	if request.method == "POST":
-		existing = GroupSet({"name": group["name"]})
+		existing = GroupSet({"name": group.get("previousName", group["name"])})
 		if len(existing):
+			# TODO check poster is a group admin
+			if False and existing.name not in [g.name for g in request.user.groups.all()]:
+				return jsonResponse({"error": "You do not have permission to edit this group."})
 			existing.update(group)
 			existing.save()
 		else:
@@ -465,8 +481,15 @@ def groups_api(request):
 		return jsonResponse({"status": "ok"})
 
 	elif request.method == "DELETE":
-		GroupSet(group).delete()
-		return jsonResponse({"status": "ok"})
+		existing = GroupSet({"name": group.get("previousName", group["name"])})
+		if len(existing):
+			# TODO check poster is a group admin
+			if False and existing.name not in [g.name for g in request.user.groups.all()]:
+				return jsonResponse({"error": "You do not have permission to edit this group."})
+			else:
+				GroupSet({"name": group["name"]}).delete()
+		else:
+			return jsonResponse({"error": "Group named %s does not exist" % group["name"]})
 
 	else:
 		return jsonResponse({"error": "Unsupported HTTP method."})

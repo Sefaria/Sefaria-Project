@@ -16,12 +16,15 @@ class Group(abst.AbstractMongoRecord):
     history_noun = 'group'
 
     required_attrs = [
-        "name",         # string name of group
-        "tag_order",    # list of strings, display order for sheet tags
-        "headerUrl",   # url of an image to use in header
-        "coverUrl",    # url of an image to use as cover
+        "name",        # string name of group
     ]
     optional_attrs = [
+        "description", # string text of short description
+        "websiteUrl",  # url for group website
+        "headerUrl",   # url of an image to use in header
+        "coverUrl",    # url of an image to use as cover
+        "iconUrl",     # url of an image to use as icon
+        "tag_order",   # list of strings, display order for sheet tags       
     ]
 
     def _normalize(self):

@@ -16,7 +16,7 @@
     <div class="row static-text">
         <div id="groups">
                 {% for group in groups %}
-                <a class="group" href="/partners/{{ group.name|url_safe }}">
+                <a class="group" href="/groups/{{ group.name|url_safe }}">
                     <img class="groupHeader" src="{{ group.headerUrl }}">
                     <img class="groupCover" src="{{ group.coverUrl }}">
                     <div class="groupName">{{ group.name }}</div>

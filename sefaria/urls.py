@@ -209,17 +209,17 @@ urlpatterns += patterns('reader.views',
 
 # Groups
 urlpatterns += patterns('sheets.views',
-    (r'^groups/?', 'groups_page'),
+    (r'^groups/?$', 'groups_page'),
     (r'^api/groups$', 'groups_api'),
+    (r'^groups/new$', 'edit_group_page'),
+    (r'^groups/(?P<group>[^/]+)/settings$', 'edit_group_page'),
+    (r'^groups/(?P<partner>[^/]+)$', 'partner_page'),
     (r'^partners/(?P<partner>[^/]+)$', 'partner_page'),
     (r'^partners/(?P<partner>[^/]+)/tags/(?P<tag>.+)$', 'partner_sheets_tag'),
     (r'^api/partners/(?P<partner>[^/]+)$', 'private_sheet_list_api'),
     (r'^api/partners/tag-list/(?P<partner>[^/]+)$', 'group_tag_list_api'),
 )
 
-# Redirects for setting interface language
-urlpatterns += patterns('reader.views',
-)
 
 # Registration
 urlpatterns += patterns('',

@@ -5493,7 +5493,6 @@ var PartnerSheetsPage = React.createClass({
       )
     );
   }
-
 });
 
 var PartnerSheetListing = React.createClass({
@@ -5533,6 +5532,292 @@ var PartnerSheetListing = React.createClass({
           'span',
           { className: 'tagString' },
           tagString
+        )
+      )
+    );
+  }
+});
+
+var EditGroupPage = React.createClass({
+  displayName: 'EditGroupPage',
+
+  propTypes: {
+    initialData: React.PropTypes.object // If present this view is for editing a group, otherwise for creating a new group
+  },
+  getInitialState: function getInitialState() {
+    return this.props.initialData || {
+      name: null,
+      description: null,
+      websiteUrl: null,
+      headerUrl: null,
+      coverUrl: null,
+      iconUrl: null
+    };
+  },
+  save: function save() {},
+  render: function render() {
+    return React.createElement(
+      'div',
+      { id: 'editGroupPage' },
+      this.props.initialData ? React.createElement(
+        'h1',
+        null,
+        React.createElement(
+          'span',
+          { className: 'int-en' },
+          'Edit Group'
+        ),
+        React.createElement(
+          'span',
+          { className: 'int-he' },
+          'Edit Group'
+        )
+      ) : React.createElement(
+        'h1',
+        null,
+        React.createElement(
+          'span',
+          { className: 'int-en' },
+          'Create a Group'
+        ),
+        React.createElement(
+          'span',
+          { className: 'int-he' },
+          'Create a Group'
+        )
+      ),
+      React.createElement(
+        'div',
+        { id: 'saveCancelButtons' },
+        React.createElement(
+          'a',
+          { 'class': 'button transparent control-elem', href: '/my/groups' },
+          React.createElement(
+            'span',
+            { className: 'int-en' },
+            'Cancel'
+          ),
+          React.createElement(
+            'span',
+            { className: 'int-he' },
+            'בטל'
+          )
+        ),
+        React.createElement(
+          'div',
+          { id: 'saveGroup', 'class': 'button blue control-elem', onClick: this.save },
+          React.createElement(
+            'span',
+            { className: 'int-en' },
+            'Save'
+          ),
+          React.createElement(
+            'span',
+            { className: 'int-he' },
+            'שמור'
+          )
+        )
+      ),
+      React.createElement(
+        'div',
+        { className: 'field halfWidth' },
+        React.createElement(
+          'label',
+          null,
+          React.createElement(
+            'span',
+            { className: 'int-en' },
+            'Group Name'
+          ),
+          React.createElement(
+            'span',
+            { className: 'int-he' },
+            'Group Name'
+          )
+        ),
+        React.createElement('input', { id: 'groupName', value: this.state.name || "" })
+      ),
+      React.createElement(
+        'div',
+        { className: 'field halfWidth' },
+        React.createElement(
+          'label',
+          null,
+          React.createElement(
+            'span',
+            { className: 'int-en' },
+            'Website'
+          ),
+          React.createElement(
+            'span',
+            { className: 'int-he' },
+            'Website'
+          )
+        ),
+        React.createElement('input', { id: 'groupWebsite', value: this.state.websiteUrl || "" })
+      ),
+      React.createElement(
+        'div',
+        { className: 'field' },
+        React.createElement(
+          'label',
+          null,
+          React.createElement(
+            'span',
+            { className: 'int-en' },
+            'Description'
+          ),
+          React.createElement(
+            'span',
+            { className: 'int-he' },
+            'Description'
+          )
+        ),
+        React.createElement(
+          'textarea',
+          { id: 'groupDescription' },
+          this.state.description || null
+        )
+      ),
+      React.createElement(
+        'div',
+        { className: 'field quarterWidth' },
+        React.createElement(
+          'label',
+          null,
+          React.createElement(
+            'span',
+            { className: 'int-en' },
+            'Group Icon'
+          ),
+          React.createElement(
+            'span',
+            { className: 'int-he' },
+            'Group Icon'
+          )
+        ),
+        this.state.iconUrl ? React.createElement('img', { className: 'groupIcon', src: this.state.iconUrl }) : React.createElement('div', { className: 'groupIcon placeholder' }),
+        React.createElement(
+          'div',
+          { className: 'button' },
+          React.createElement(
+            'span',
+            { className: 'int-en' },
+            'Upload Icon'
+          ),
+          React.createElement(
+            'span',
+            { className: 'int-he' },
+            'Upload Icon'
+          )
+        ),
+        React.createElement(
+          'div',
+          { className: 'helperText' },
+          React.createElement(
+            'span',
+            { className: 'int-en' },
+            'Recommended size: 350px x 350px or larger'
+          ),
+          React.createElement(
+            'span',
+            { className: 'int-he' },
+            'Recommended size: 350px x 350px or larger'
+          )
+        )
+      ),
+      React.createElement(
+        'div',
+        { className: 'field threeQuarterWidth' },
+        React.createElement(
+          'label',
+          null,
+          React.createElement(
+            'span',
+            { className: 'int-en' },
+            'Cover Image'
+          ),
+          React.createElement(
+            'span',
+            { className: 'int-he' },
+            'Cover Image'
+          )
+        ),
+        this.state.coverUrl ? React.createElement('img', { className: 'groupCover', src: this.state.coverUrl }) : React.createElement('div', { className: 'groupCover placeholder' }),
+        React.createElement(
+          'div',
+          { className: 'button' },
+          React.createElement(
+            'span',
+            { className: 'int-en' },
+            'Upload Cover'
+          ),
+          React.createElement(
+            'span',
+            { className: 'int-he' },
+            'Upload Cover'
+          )
+        ),
+        React.createElement(
+          'div',
+          { className: 'helperText' },
+          React.createElement(
+            'span',
+            { className: 'int-en' },
+            'Recommended size: 1000px x 350px or larger'
+          ),
+          React.createElement(
+            'span',
+            { className: 'int-he' },
+            'Recommended size: 1000px x 350px or larger'
+          )
+        )
+      ),
+      React.createElement(
+        'div',
+        { className: 'field' },
+        React.createElement(
+          'label',
+          null,
+          React.createElement(
+            'span',
+            { className: 'int-en' },
+            'Default Sheet Header'
+          ),
+          React.createElement(
+            'span',
+            { className: 'int-he' },
+            'Default Sheet Header'
+          )
+        ),
+        this.state.coverUrl ? React.createElement('img', { className: 'groupCover', src: this.state.headerUrl }) : React.createElement('div', { className: 'groupCover placeholder' }),
+        React.createElement(
+          'div',
+          { className: 'button' },
+          React.createElement(
+            'span',
+            { className: 'int-en' },
+            'Upload Image'
+          ),
+          React.createElement(
+            'span',
+            { className: 'int-he' },
+            'Upload Image'
+          )
+        ),
+        React.createElement(
+          'div',
+          { className: 'helperText' },
+          React.createElement(
+            'span',
+            { className: 'int-en' },
+            'Recommended size: 1000px width to fill sheet, smaller images align right'
+          ),
+          React.createElement(
+            'span',
+            { className: 'int-he' },
+            'Recommended size: 1000px width to fill sheet, smaller images align right'
+          )
         )
       )
     );

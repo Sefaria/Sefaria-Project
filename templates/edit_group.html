@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% load sefaria_tags %}
+
+
+{% block title %}Edit Your Profile on Sefaria.org{% endblock %}
+
+{% block content %}
+{% if S2 %}
+<div id="editGroupPageContainer" class="static biReady">
+  <div id="editGroupPageContainerInner" class="inner">
+    <h1>Loading...</h1>
+  </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block js %}
+
+<script {% if DEBUG %}type="text/jsx;harmony=true"{% endif %}>
+    {% autoescape off %}
+    {% include "js/django-csrf.js" %}
+    $(function() {
+
+      var props = {
+      	initialData: {{ groupData|jsonify }}
+      };
+
+      var container = document.getElementById('editGroupPageContainerInner');
+      var component = React.createElement(EditGroupPage, props);
+      ReactDOM.render(component, container);
+    });
+    {% endautoescape %}
+
+</script>
+{% endblock %}
