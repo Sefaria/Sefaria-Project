@@ -9,12 +9,14 @@ from sefaria.system.exceptions import InputError
 def setup_module(module):
     title = 'Test Commentator Name'
     model.IndexSet({"title": title}).delete()
+    title = 'Bartenura (The Next Generation)'
+    model.IndexSet({"title": title}).delete()
 
 def teardown_module(module):
     title = 'Test Commentator Name'
     model.IndexSet({"title": title}).delete()
-    """title = 'Test Commentator Name'
-    model.IndexSet({"title": title}).delete()"""
+    title = 'Bartenura (The Next Generation)'
+    model.IndexSet({"title": title}).delete()
 
 
 
@@ -212,7 +214,8 @@ def test_invalid_index_save_no_hebrew_collective_title():
         "sectionNames": ["", ""],
         "categories": ["Commentary"],
     }
-    commentator_idx = model.Index(commentator).save()"""
+    commentator_idx = model.Index(commentator).save()
+    assert getattr(commentator_idx, "nodes", None) is not None"""
 
 
 def test_index_title_setter():

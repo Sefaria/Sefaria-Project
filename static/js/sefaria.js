@@ -412,12 +412,15 @@ Sefaria = extend(Sefaria, {
     // Unpacks contents of Sefaria.toc into index cache.
     for (var i = 0; i < toc.length; i++) {
       if ("category" in toc[i]) {
-        Sefaria._translateTerms[toc[i].category] = {"en": toc[i].category, "he": toc[i].heCategory}
+        Sefaria._translateTerms[toc[i].category] = {"en": toc[i].category, "he": toc[i].heCategory};
         Sefaria._cacheIndexFromToc(toc[i].contents)
       } else {
         Sefaria.index(toc[i].title, toc[i]);
       }
     }
+  },
+  _cacheHebrewTerms: function(terms) {
+      Sefaria._translateTerms = extend(terms, Sefaria._translateTerms);
   },
   _indexDetails: {},
   indexDetails: function(title, cb) {
@@ -886,7 +889,7 @@ Sefaria = extend(Sefaria, {
       if (!section) { debugger; }
       return {
         book: section[0].category,
-        heBook: Sefaria.hebrewCategory(section[0].category),
+        heBook: Sefaria.hebrewTerm(section[0].category),
         category: "Community",
         count: section.length
       };
@@ -1195,7 +1198,7 @@ Sefaria = extend(Sefaria, {
       return Sefaria._saveItemsByRef(data, this._sheetsByRef);
     }
   },
-  hebrewCategory: function(cat) {
+  hebrewTerm: function(name) {
     // Returns a string translating `cat` into Hebrew.
     var categories = {
       "Quoting Commentary":   "פרשנות מצטטת",
@@ -1203,80 +1206,11 @@ Sefaria = extend(Sefaria, {
       "Notes":                "הערות",
       "Community":            "קהילה"
     };
-    if(cat in Sefaria._translateTerms){
-        return Sefaria._translateTerms[cat]["he"];
+    if(name in Sefaria._translateTerms){
+        return Sefaria._translateTerms[name]["he"];
     }else{
-        return cat in categories ? categories[cat] : cat;
+        return name in categories ? categories[name] : name;
     }
-  },
-  hebrewSectionName: function(name) {
-    sectionNames = {
-      "Chapter":          "פרק",
-      "Chapters":         "פרקים",
-      "Perek":            "פרק",
-      "Line":             "שורה",
-      "Negative Mitzvah": "מצות לא תעשה",
-      "Positive Mitzvah": "מצות עשה",
-      "Negative Mitzvot": "מצוות לא תעשה",
-      "Positive Mitzvot": "מצוות עשה",
-      "Daf":              "דף",
-      "Paragraph":        "פסקה",
-      "Parsha":           "פרשה",
-      "Parasha":          "פרשה",
-      "Parashah":         "פרשה",
-      "Seif":             "סעיף",
-      "Se'if":            "סעיף",
-      "Siman":            "סימן",
-      "Section":          "חלק",
-      "Verse":            "פסוק",
-      "Sentence":         "משפט",
-      "Sha'ar":           "שער",
-      "Gate":             "שער",
-      "Comment":          "פירוש",
-      "Phrase":           "ביטוי",
-      "Mishna":           "משנה",
-      "Chelek":           "חלק",
-      "Helek":            "חלק",
-      "Year":             "שנה",
-      "Masechet":         "מסכת",
-      "Massechet":        "מסכת",
-      "Letter":           "אות",
-      "Halacha":          "הלכה",
-      "Piska":            "פסקה",
-      "Seif Katan":       "סעיף קטן",
-      "Se'if Katan":      "סעיף קטן",
-      "Volume":           "כרך",
-      "Book":             "ספר",
-      "Shar":             "שער",
-      "Seder":            "סדר",
-      "Part":             "חלק",
-      "Pasuk":            "פסוק",
-      "Sefer":            "ספר",
-      "Teshuva":          "תשובה",
-      "Teshuvot":         "תשובות",
-      "Tosefta":          "תוספתא",
-      "Halakhah":         "הלכה",
-      "Kovetz":           "קובץ",
-      "Path":             "נתיב",
-      "Parshah":          "פרשה",
-      "Midrash":          "מדרש",
-      "Mitzvah":          "מצוה",
-      "Tefillah":         "תפילה",
-      "Torah":            "תורה",
-      "Perush":           "פירוש",
-      "Peirush":          "פירוש",
-      "Aliyah":           "עלייה",
-      "Tikkun":           "תיקון",
-      "Tikkunim":         "תיקונים",
-      "Hilchot":          "הילכות",
-      "Topic":            "נושא",
-      "Contents":         "תוכן",
-      "Article":          "סעיף",
-      "Shoresh":          "שורש",
-      "Story":            "סיפור",
-      "Remez":            "רמז"
-    };
-    return name in sectionNames ? sectionNames[name] : name;
   },
   search: {
       baseUrl: Sefaria.searchBaseUrl + "/" + Sefaria.searchIndex + "/_search",
@@ -2457,6 +2391,7 @@ Sefaria.setup = function() {
     Sefaria.util.handleUserCookie();
     Sefaria._makeBooksDict();
     Sefaria._cacheIndexFromToc(Sefaria.toc);
+    Sefaria._cacheHebrewTerms(Sefaria.terms);
     Sefaria.site.track.setUserData();
 };
 Sefaria.setup();

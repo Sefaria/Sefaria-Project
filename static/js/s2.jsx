@@ -2542,7 +2542,7 @@ var ReaderNavigationMenu = React.createClass({
       categories = categories.map(function(cat) {
         var style = {"borderColor": Sefaria.palette.categoryColor(cat)};
         var openCat = function(e) {e.preventDefault(); this.props.setCategories([cat])}.bind(this);
-        var heCat   = Sefaria.hebrewCategory(cat);
+        var heCat   = Sefaria.hebrewTerm(cat);
         return (<a href={`/texts/${cat}`}>
                   <div className="readerNavCategory" data-cat={cat} style={style} onClick={openCat}>
                     <span className="en">{cat}</span>
@@ -2817,11 +2817,11 @@ var ReaderNavigationCategoryMenu = React.createClass({
                             </span>
                          </div>);
       var catTitle = (categories.length > 1) ? categories[0] +  " " + categories[1] : categories[0];
-      var heCatTitle = (categories.length > 1) ? Sefaria.hebrewCategory(categories[0]) + " " + Sefaria.hebrewCategory(categories[1]): categories[0];
+      var heCatTitle = (categories.length > 1) ? Sefaria.hebrewTerm(categories[0]) + " " + Sefaria.hebrewTerm(categories[1]): categories[0];
     } else {
       var toggle = null;
       var catTitle = this.props.category;
-      var heCatTitle = Sefaria.hebrewCategory(this.props.category);
+      var heCatTitle = Sefaria.hebrewTerm(this.props.category);
     }
     var catContents    = Sefaria.tocItemsByCategories(categories);
     var navMenuClasses = classNames({readerNavCategoryMenu: 1, readerNavMenu: 1, noHeader: this.props.hideNavHeader});
@@ -2867,39 +2867,17 @@ var ReaderNavigationCategoryMenuContents = React.createClass({
   getRenderedTextTitleString: function(title, heTitle){
     var whiteList = ['Midrash Mishlei', 'Midrash Tehillim', 'Midrash Tanchuma'];
     var displayCategory = this.props.category;
-    var displayHeCategory = Sefaria.hebrewCategory(this.props.category);
+    var displayHeCategory = Sefaria.hebrewTerm(this.props.category);
     if (whiteList.indexOf(title) == -1){
       var replaceTitles = {
         "en": ['Jerusalem Talmud', displayCategory],
         "he": ['תלמוד ירושלמי', displayHeCategory]
       };
       var replaceOther = {
-        "en" : [", ", " on "],
+        "en" : [", ", " on ", " to ", " of "],
         "he" : [", ", " על "]
       };
-      //this will replace a categroy name at the beginning of the title string and any connector strings (0 or 1) that follow.
-      var titleRe = new RegExp(`^(${replaceTitles['en'].join("|")})(${replaceOther['en'].join("|")})?`);
-      var heTitleRe = new RegExp(`^(${replaceTitles['he'].join("|")})(${replaceOther['he'].join("|")})?`);
-      title   = title == displayCategory ? title : title.replace(titleRe, "");
-      heTitle = heTitle == displayHeCategory ? heTitle : heTitle.replace(heTitleRe, "");
-    }
-    return [title, heTitle];
-  },
-
-  getRenderedTextTitleString: function(title, heTitle){
-    var whiteList = ['Midrash Mishlei', 'Midrash Tehillim', 'Midrash Tanchuma'];
-    var displayCategory = this.props.category;
-    var displayHeCategory = Sefaria.hebrewCategory(this.props.category);
-    if (whiteList.indexOf(title) == -1){
-      var replaceTitles = {
-        "en": ['Jerusalem Talmud', displayCategory],
-        "he": ['תלמוד ירושלמי', displayHeCategory]
-      };
-      var replaceOther = {
-        "en" : [", ", " on "],
-        "he" : [", ", " על "]
-      };
-      //this will replace a categroy name at the beginning of the title string and any connector strings (0 or 1) that follow.
+      //this will replace a category name at the beginning of the title string and any connector strings (0 or 1) that follow.
       var titleRe = new RegExp(`^(${replaceTitles['en'].join("|")})(${replaceOther['en'].join("|")})?`);
       var heTitleRe = new RegExp(`^(${replaceTitles['he'].join("|")})(${replaceOther['he'].join("|")})?`);
       title   = title == displayCategory ? title : title.replace(titleRe, "");
@@ -3254,7 +3232,7 @@ var ReaderTextTableOfContents = React.createClass({
                     <CategoryAttribution categories={Sefaria.index(this.props.title).categories} />
                     <div className="tocCategory">
                       <span className="en">{category}</span>
-                      <span className="he">{Sefaria.hebrewCategory(category)}</span>
+                      <span className="he">{Sefaria.hebrewTerm(category)}</span>
                     </div>
                     <div className="tocTitle">
                       <span className="en">{title}</span>
@@ -3412,7 +3390,7 @@ var TextTableOfContentsNavigation = React.createClass({
     var options = [{
       name: "default",
       text: "sectionNames" in this.props.schema ? this.props.schema.sectionNames[0] : "Contents",
-      heText: "sectionNames" in this.props.schema ? Sefaria.hebrewSectionName(this.props.schema.sectionNames[0]) : "תוכן",
+      heText: "sectionNames" in this.props.schema ? Sefaria.hebrewTerm(this.props.schema.sectionNames[0]) : "תוכן",
       onPress: this.setTab.bind(null, "default")
     }];
     if (this.props.alts) {
@@ -3421,7 +3399,7 @@ var TextTableOfContentsNavigation = React.createClass({
           options.push({
             name: alt,
             text: alt,
-            heText: Sefaria.hebrewSectionName(alt),
+            heText: Sefaria.hebrewTerm(alt),
             onPress: this.setTab.bind(null, alt)
           });
         }
@@ -3673,7 +3651,7 @@ var JaggedArrayNodeSection = React.createClass({
         content.push(
           <div className="tocSection" key={i}>
             <div className="sectionName">
-              <span className="he">{Sefaria.hebrewSectionName(this.props.sectionNames[0]) + " " +heSection}</span>
+              <span className="he">{Sefaria.hebrewTerm(this.props.sectionNames[0]) + " " +heSection}</span>
               <span className="en">{this.props.sectionNames[0] + " " + enSection}</span>
             </div>
             <JaggedArrayNodeSection
@@ -6211,7 +6189,7 @@ var AllFilterSet = React.createClass({
           srefs={this.props.srefs}
           key={i}
           category={cat.category}
-          heCategory={Sefaria.hebrewCategory(cat.category)}
+          heCategory={Sefaria.hebrewTerm(cat.category)}
           count={cat.count} 
           books={cat.books}
           filter={this.props.filter}
@@ -6339,7 +6317,7 @@ var RecentFilterSet = React.createClass({
       var index = Sefaria.index(filter);
       return {
           book: filter,
-          heBook: index ? index.heTitle : Sefaria.hebrewCategory(filter),
+          heBook: index ? index.heTitle : Sefaria.hebrewTerm(filter),
           category: index ? index.primary_category : filter };
     });
     topLinks = recentFilters.concat(topLinks).slice(0,5);

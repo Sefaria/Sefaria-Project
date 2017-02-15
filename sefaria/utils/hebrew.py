@@ -452,6 +452,16 @@ def hebrew_term(s):
 	return ''
 
 
+def get_simple_term_mapping():
+	from sefaria.model import TermSet, Term
+	hebrew_mapping = {}
+	terms = TermSet()
+	for term in terms:
+		hebrew_mapping[term.name] = {"en": term.get_primary_title("en"), "he": term.get_primary_title("he")}
+	return hebrew_mapping
+
+
+
 def hebrew_parasha_name(value):
 	"""
 	Returns a Hebrew ref for the english ref passed in.

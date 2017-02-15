@@ -4,7 +4,8 @@ var Sefaria = Sefaria || {};
 
 var data = {
   _dataLoaded:         true,
-  toc:                 {{ toc_json }},  
+  toc:                 {{ toc_json }},
+  terms:               {{ terms_json}},
   books:               {{ titlesJSON }},
   booksDict:           {}, // populated by Sefaria.setup()
   calendar:            {

@@ -1,12 +1,8 @@
 'use strict';
 
-var _React$createClass;
-
 var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
-
-function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
 
 function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
 
@@ -2352,8 +2348,10 @@ var ReaderControls = React.createClass({
     if (title) {
       var oref = Sefaria.ref(title);
       var heTitle = oref ? oref.heTitle : "";
+      var categoryAttribution = oref && Sefaria.categoryAttribution(oref.categories) ? React.createElement(CategoryAttribution, { categories: oref.categories }) : null;
     } else {
       var heTitle = "";
+      var categoryAttribution = null;
     }
 
     var mode = this.props.currentMode();
@@ -2373,6 +2371,7 @@ var ReaderControls = React.createClass({
       }.bind(this));
     }
 
+    var showVersion = this.props.versionLanguage == "en" && (this.props.settings.language == "english" || this.props.settings.language == "bilingual");
     var versionTitle = this.props.version ? this.props.version.replace(/_/g, " ") : "";
     var url = Sefaria.ref(title) ? "/" + Sefaria.normRef(Sefaria.ref(title).book) : Sefaria.normRef(title);
     var centerContent = connectionsHeader ? React.createElement(
@@ -2389,11 +2388,11 @@ var ReaderControls = React.createClass({
       { href: url },
       React.createElement(
         'div',
-        { className: 'readerTextToc', onClick: this.openTextToc },
-        title ? React.createElement('i', { className: 'fa fa-caret-down invisible' }) : null,
+        { className: "readerTextToc" + (categoryAttribution ? ' attributed' : ''), onClick: this.openTextToc },
         React.createElement(
           'div',
           { className: 'readerTextTocBox' },
+          title ? React.createElement('i', { className: 'fa fa-caret-down invisible' }) : null,
           React.createElement(
             'span',
             { className: 'en' },
@@ -2405,7 +2404,7 @@ var ReaderControls = React.createClass({
             heTitle
           ),
           title ? React.createElement('i', { className: 'fa fa-caret-down' }) : null,
-          this.props.versionLanguage == "en" && this.props.settings.language == "english" ? React.createElement(
+          showVersion ? React.createElement(
             'span',
             { className: 'readerTextVersion' },
             React.createElement(
@@ -2413,7 +2412,8 @@ var ReaderControls = React.createClass({
               { className: 'en' },
               versionTitle
             )
-          ) : null
+          ) : null,
+          categoryAttribution
         )
       )
     );
@@ -2668,7 +2668,7 @@ var ReaderNavigationMenu = React.createClass({
         var openCat = function (e) {
           e.preventDefault();this.props.setCategories([cat]);
         }.bind(this);
-        var heCat = Sefaria.hebrewCategory(cat);
+        var heCat = Sefaria.hebrewTerm(cat);
         return React.createElement(
           'a',
           { href: '/texts/' + cat },
@@ -3155,11 +3155,11 @@ var ReaderNavigationCategoryMenu = React.createClass({
         )
       );
       var catTitle = categories.length > 1 ? categories[0] + " " + categories[1] : categories[0];
-      var heCatTitle = categories.length > 1 ? Sefaria.hebrewCategory(categories[0]) + " " + Sefaria.hebrewCategory(categories[1]) : categories[0];
+      var heCatTitle = categories.length > 1 ? Sefaria.hebrewTerm(categories[0]) + " " + Sefaria.hebrewTerm(categories[1]) : categories[0];
     } else {
       var toggle = null;
       var catTitle = this.props.category;
-      var heCatTitle = Sefaria.hebrewCategory(this.props.category);
+      var heCatTitle = Sefaria.hebrewTerm(this.props.category);
     }
     var catContents = Sefaria.tocItemsByCategories(categories);
     var navMenuClasses = classNames({ readerNavCategoryMenu: 1, readerNavMenu: 1, noHeader: this.props.hideNavHeader });
@@ -3211,6 +3211,7 @@ var ReaderNavigationCategoryMenu = React.createClass({
             )
           ) : null,
           toggle,
+          React.createElement(CategoryAttribution, { categories: categories }),
           React.createElement(ReaderNavigationCategoryMenuContents, { contents: catContents, categories: categories, width: this.props.width, category: this.props.category, nestLevel: 0 })
         ),
         footer
@@ -3219,7 +3220,7 @@ var ReaderNavigationCategoryMenu = React.createClass({
   }
 });
 
-var ReaderNavigationCategoryMenuContents = React.createClass((_React$createClass = {
+var ReaderNavigationCategoryMenuContents = React.createClass({
   displayName: 'ReaderNavigationCategoryMenuContents',
 
   // Inner content of Category menu (just category title and boxes of)
@@ -3233,90 +3234,90 @@ var ReaderNavigationCategoryMenuContents = React.createClass((_React$createClass
   getRenderedTextTitleString: function getRenderedTextTitleString(title, heTitle) {
     var whiteList = ['Midrash Mishlei', 'Midrash Tehillim', 'Midrash Tanchuma'];
     var displayCategory = this.props.category;
-    var displayHeCategory = Sefaria.hebrewCategory(this.props.category);
+    var displayHeCategory = Sefaria.hebrewTerm(this.props.category);
     if (whiteList.indexOf(title) == -1) {
       var replaceTitles = {
         "en": ['Jerusalem Talmud', displayCategory],
         "he": ['תלמוד ירושלמי', displayHeCategory]
       };
       var replaceOther = {
-        "en": [", ", " on "],
+        "en": [", ", " on ", " to ", " of "],
         "he": [", ", " על "]
       };
-      //this will replace a categroy name at the beginning of the title string and any connector strings (0 or 1) that follow.
+      //this will replace a category name at the beginning of the title string and any connector strings (0 or 1) that follow.
       var titleRe = new RegExp('^(' + replaceTitles['en'].join("|") + ')(' + replaceOther['en'].join("|") + ')?');
       var heTitleRe = new RegExp('^(' + replaceTitles['he'].join("|") + ')(' + replaceOther['he'].join("|") + ')?');
       title = title == displayCategory ? title : title.replace(titleRe, "");
       heTitle = heTitle == displayHeCategory ? heTitle : heTitle.replace(heTitleRe, "");
     }
     return [title, heTitle];
-  }
+  },
+  render: function render() {
+    var content = [];
+    var cats = this.props.categories || [];
+    for (var i = 0; i < this.props.contents.length; i++) {
+      var item = this.props.contents[i];
+      if (item.category) {
+        var newCats = cats.concat(item.category);
+        // Special Case categories which should nest but are normally wouldnt given their depth
+        var subcats = ["Mishneh Torah", "Shulchan Arukh", "Maharal"];
+        if (Sefaria.util.inArray(item.category, subcats) > -1 || this.props.nestLevel > 0) {
+          if (item.contents.length == 1 && !("category" in item.contents[0])) {
+            var chItem = item.contents[0];
 
-}, _defineProperty(_React$createClass, 'getRenderedTextTitleString', function getRenderedTextTitleString(title, heTitle) {
-  var whiteList = ['Midrash Mishlei', 'Midrash Tehillim', 'Midrash Tanchuma'];
-  var displayCategory = this.props.category;
-  var displayHeCategory = Sefaria.hebrewCategory(this.props.category);
-  if (whiteList.indexOf(title) == -1) {
-    var replaceTitles = {
-      "en": ['Jerusalem Talmud', displayCategory],
-      "he": ['תלמוד ירושלמי', displayHeCategory]
-    };
-    var replaceOther = {
-      "en": [", ", " on "],
-      "he": [", ", " על "]
-    };
-    //this will replace a categroy name at the beginning of the title string and any connector strings (0 or 1) that follow.
-    var titleRe = new RegExp('^(' + replaceTitles['en'].join("|") + ')(' + replaceOther['en'].join("|") + ')?');
-    var heTitleRe = new RegExp('^(' + replaceTitles['he'].join("|") + ')(' + replaceOther['he'].join("|") + ')?');
-    title = title == displayCategory ? title : title.replace(titleRe, "");
-    heTitle = heTitle == displayHeCategory ? heTitle : heTitle.replace(heTitleRe, "");
-  }
-  return [title, heTitle];
-}), _defineProperty(_React$createClass, 'render', function render() {
-  var content = [];
-  var cats = this.props.categories || [];
-  for (var i = 0; i < this.props.contents.length; i++) {
-    var item = this.props.contents[i];
-    if (item.category) {
-      var newCats = cats.concat(item.category);
-      // Special Case categories which should nest but are normally wouldnt given their depth
-      var subcats = ["Mishneh Torah", "Shulchan Arukh", "Maharal"];
-      if (Sefaria.util.inArray(item.category, subcats) > -1 || this.props.nestLevel > 0) {
-        if (item.contents.length == 1 && !("category" in item.contents[0])) {
-          var chItem = item.contents[0];
+            var _getRenderedTextTitle = this.getRenderedTextTitleString(chItem.title, chItem.heTitle),
+                _getRenderedTextTitle2 = _slicedToArray(_getRenderedTextTitle, 2),
+                title = _getRenderedTextTitle2[0],
+                heTitle = _getRenderedTextTitle2[1];
 
-          var _getRenderedTextTitle = this.getRenderedTextTitleString(chItem.title, chItem.heTitle),
-              _getRenderedTextTitle2 = _slicedToArray(_getRenderedTextTitle, 2),
-              title = _getRenderedTextTitle2[0],
-              heTitle = _getRenderedTextTitle2[1];
-
-          var url = "/" + Sefaria.normRef(chItem.firstSection);
-          content.push(React.createElement(
-            'a',
-            { href: url },
-            React.createElement(
-              'span',
-              { className: 'refLink sparse' + chItem.sparseness, 'data-ref': chItem.firstSection, key: "text." + this.props.nestLevel + "." + i },
+            var url = "/" + Sefaria.normRef(chItem.firstSection);
+            content.push(React.createElement(
+              'a',
+              { href: url },
               React.createElement(
                 'span',
-                { className: 'en' },
-                title
-              ),
-              React.createElement(
-                'span',
-                { className: 'he' },
-                heTitle
+                { className: 'refLink sparse' + chItem.sparseness, 'data-ref': chItem.firstSection, key: "text." + this.props.nestLevel + "." + i },
+                React.createElement(
+                  'span',
+                  { className: 'en' },
+                  title
+                ),
+                React.createElement(
+                  'span',
+                  { className: 'he' },
+                  heTitle
+                )
               )
-            )
-          ));
+            ));
+          } else {
+            url = "/texts/" + newCats.join("/");
+            content.push(React.createElement(
+              'a',
+              { href: url },
+              React.createElement(
+                'span',
+                { className: 'catLink', 'data-cats': newCats.join("|"), key: "cat." + this.props.nestLevel + "." + i },
+                React.createElement(
+                  'span',
+                  { className: 'en' },
+                  item.category
+                ),
+                React.createElement(
+                  'span',
+                  { className: 'he' },
+                  item.heCategory
+                )
+              )
+            ));
+          }
         } else {
-          url = "/texts/" + newCats.join("/");
+          // Add a Category
           content.push(React.createElement(
-            'a',
-            { href: url },
+            'div',
+            { className: 'category', key: "cat." + this.props.nestLevel + "." + i },
             React.createElement(
-              'span',
-              { className: 'catLink', 'data-cats': newCats.join("|"), key: "cat." + this.props.nestLevel + "." + i },
+              'h3',
+              null,
               React.createElement(
                 'span',
                 { className: 'en' },
@@ -3327,84 +3328,64 @@ var ReaderNavigationCategoryMenuContents = React.createClass((_React$createClass
                 { className: 'he' },
                 item.heCategory
               )
-            )
+            ),
+            React.createElement(ReaderNavigationCategoryMenuContents, { contents: item.contents, categories: newCats, width: this.props.width, nestLevel: this.props.nestLevel + 1, category: this.props.category })
           ));
         }
       } else {
-        // Add a Category
+        //Add a Text
+        var _getRenderedTextTitle3 = this.getRenderedTextTitleString(item.title, item.heTitle),
+            _getRenderedTextTitle4 = _slicedToArray(_getRenderedTextTitle3, 2),
+            title = _getRenderedTextTitle4[0],
+            heTitle = _getRenderedTextTitle4[1];
+
+        var url = "/" + Sefaria.normRef(item.firstSection);
         content.push(React.createElement(
-          'div',
-          { className: 'category', key: "cat." + this.props.nestLevel + "." + i },
+          'a',
+          { href: url },
           React.createElement(
-            'h3',
-            null,
+            'span',
+            { className: 'refLink sparse' + item.sparseness, 'data-ref': item.firstSection, key: "text." + this.props.nestLevel + "." + i },
             React.createElement(
               'span',
               { className: 'en' },
-              item.category
+              title
             ),
             React.createElement(
               'span',
               { className: 'he' },
-              item.heCategory
+              heTitle
             )
-          ),
-          React.createElement(ReaderNavigationCategoryMenuContents, { contents: item.contents, categories: newCats, width: this.props.width, nestLevel: this.props.nestLevel + 1, category: this.props.category })
+          )
         ));
       }
-    } else {
-      //Add a Text
-      var _getRenderedTextTitle3 = this.getRenderedTextTitleString(item.title, item.heTitle),
-          _getRenderedTextTitle4 = _slicedToArray(_getRenderedTextTitle3, 2),
-          title = _getRenderedTextTitle4[0],
-          heTitle = _getRenderedTextTitle4[1];
-
-      var url = "/" + Sefaria.normRef(item.firstSection);
-      content.push(React.createElement(
-        'a',
-        { href: url },
-        React.createElement(
-          'span',
-          { className: 'refLink sparse' + item.sparseness, 'data-ref': item.firstSection, key: "text." + this.props.nestLevel + "." + i },
-          React.createElement(
-            'span',
-            { className: 'en' },
-            title
-          ),
-          React.createElement(
-            'span',
-            { className: 'he' },
-            heTitle
-          )
-        )
-      ));
     }
-  }
-  var boxedContent = [];
-  var currentRun = [];
-  for (var i = 0; i < content.length; i++) {
-    // Walk through content looking for runs of texts/subcats to group together into a table
-    if (content[i].type == "div") {
-      // this is a subcategory
-      if (currentRun.length) {
-        boxedContent.push(React.createElement(TwoOrThreeBox, { content: currentRun, width: this.props.width, key: i }));
-        currentRun = [];
+    var boxedContent = [];
+    var currentRun = [];
+    for (var i = 0; i < content.length; i++) {
+      // Walk through content looking for runs of texts/subcats to group together into a table
+      if (content[i].type == "div") {
+        // this is a subcategory
+        if (currentRun.length) {
+          boxedContent.push(React.createElement(TwoOrThreeBox, { content: currentRun, width: this.props.width, key: i }));
+          currentRun = [];
+        }
+        boxedContent.push(content[i]);
+      } else {
+        // this is a single text
+        currentRun.push(content[i]);
       }
-      boxedContent.push(content[i]);
-    } else {
-      // this is a single text
-      currentRun.push(content[i]);
     }
+    if (currentRun.length) {
+      boxedContent.push(React.createElement(TwoOrThreeBox, { content: currentRun, width: this.props.width, key: i }));
+    }
+    return React.createElement(
+      'div',
+      null,
+      boxedContent
+    );
   }
-  if (currentRun.length) {
-    boxedContent.push(React.createElement(TwoOrThreeBox, { content: currentRun, width: this.props.width, key: i }));
-  }
-  return React.createElement(
-    'div',
-    null,
-    boxedContent
-  );
-}), _React$createClass));
+});
 
 var ReaderTextTableOfContents = React.createClass({
   displayName: 'ReaderTextTableOfContents',
@@ -3825,6 +3806,7 @@ var ReaderTextTableOfContents = React.createClass({
           React.createElement(
             'div',
             { className: 'tocTop' },
+            React.createElement(CategoryAttribution, { categories: Sefaria.index(this.props.title).categories }),
             React.createElement(
               'div',
               { className: 'tocCategory' },
@@ -3836,7 +3818,7 @@ var ReaderTextTableOfContents = React.createClass({
               React.createElement(
                 'span',
                 { className: 'he' },
-                Sefaria.hebrewCategory(category)
+                Sefaria.hebrewTerm(category)
               )
             ),
             React.createElement(
@@ -4043,7 +4025,7 @@ var TextTableOfContentsNavigation = React.createClass({
     var options = [{
       name: "default",
       text: "sectionNames" in this.props.schema ? this.props.schema.sectionNames[0] : "Contents",
-      heText: "sectionNames" in this.props.schema ? Sefaria.hebrewSectionName(this.props.schema.sectionNames[0]) : "תוכן",
+      heText: "sectionNames" in this.props.schema ? Sefaria.hebrewTerm(this.props.schema.sectionNames[0]) : "תוכן",
       onPress: this.setTab.bind(null, "default")
     }];
     if (this.props.alts) {
@@ -4052,7 +4034,7 @@ var TextTableOfContentsNavigation = React.createClass({
           options.push({
             name: alt,
             text: alt,
-            heText: Sefaria.hebrewSectionName(alt),
+            heText: Sefaria.hebrewTerm(alt),
             onPress: this.setTab.bind(null, alt)
           });
         }
@@ -4376,7 +4358,7 @@ var JaggedArrayNodeSection = React.createClass({
             React.createElement(
               'span',
               { className: 'he' },
-              Sefaria.hebrewSectionName(this.props.sectionNames[0]) + " " + heSection
+              Sefaria.hebrewTerm(this.props.sectionNames[0]) + " " + heSection
             ),
             React.createElement(
               'span',
@@ -5006,6 +4988,31 @@ var ModeratorButtons = React.createClass({
       textButtons,
       message
     );
+  }
+});
+
+var CategoryAttribution = React.createClass({
+  displayName: 'CategoryAttribution',
+
+  propTypes: {
+    categories: React.PropTypes.array.isRequired
+  },
+  render: function render() {
+    var attribution = Sefaria.categoryAttribution(this.props.categories);
+    return attribution ? React.createElement(
+      'div',
+      { className: 'categoryAttribution' },
+      React.createElement(
+        'span',
+        { className: 'en' },
+        attribution.english
+      ),
+      React.createElement(
+        'span',
+        { className: 'he' },
+        attribution.hebrew
+      )
+    ) : null;
   }
 });
 
@@ -7687,7 +7694,7 @@ var AllFilterSet = React.createClass({
         srefs: this.props.srefs,
         key: i,
         category: cat.category,
-        heCategory: Sefaria.hebrewCategory(cat.category),
+        heCategory: Sefaria.hebrewTerm(cat.category),
         count: cat.count,
         books: cat.books,
         filter: this.props.filter,
@@ -7862,7 +7869,7 @@ var RecentFilterSet = React.createClass({
       var index = Sefaria.index(filter);
       return {
         book: filter,
-        heBook: index ? index.heTitle : Sefaria.hebrewCategory(filter),
+        heBook: index ? index.heTitle : Sefaria.hebrewTerm(filter),
         category: index ? index.primary_category : filter };
     });
     topLinks = recentFilters.concat(topLinks).slice(0, 5);
