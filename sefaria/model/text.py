@@ -1259,13 +1259,15 @@ class TextChunk(AbstractTextRecord):
             raise Exception("Called TextChunk.version() on merged TextChunk.")
 
 
-    def nonempty_subrefs(self):
+    def nonempty_segment_refs(self):
         """
 
         :return: list of segment refs with content in this TextChunk
         """
         r = self._oref
         ref_list = []
+
+
         if r.is_range():
             input_refs = r.range_list()
         else:
@@ -1277,7 +1279,8 @@ class TextChunk(AbstractTextRecord):
 
             #TODO do I need to check if this ref exists for this version?
             if temp_ref.is_segment_level():
-                ref_list.append(temp_ref)
+                if jarray: #it's an int if ref is segment_level
+                    ref_list.append(temp_ref)
             elif temp_ref.is_section_level():
                 ref_list += [temp_ref.subref(i + 1) for i, v in enumerate(jarray) if v]
             else: # higher than section level
@@ -1298,7 +1301,7 @@ class TextChunk(AbstractTextRecord):
         """
         #TODO there is a known error that this will fail if the text version you're using has fewer segments than the VersionState.
         ind_list = []
-        ref_list = self.nonempty_subrefs()
+        ref_list = self.nonempty_segment_refs()
 
         total_len = 0
         text_list = self.ja().flatten_to_array()

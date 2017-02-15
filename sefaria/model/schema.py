@@ -956,6 +956,9 @@ class SchemaNode(TitledTreeNode):
     def validate(self):
         super(SchemaNode, self).validate()
 
+        if not all(ord(c) < 128 for c in self.title_group.primary_title("en")):
+            raise InputError("Primary English title may not contain non-ascii characters")
+
         if not getattr(self, "key", None):
             raise IndexSchemaError("Schema node missing key")
 
