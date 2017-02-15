@@ -645,22 +645,22 @@ class TitledTreeNode(TreeNode):
         super(TitledTreeNode, self).validate()
 
         if not self.default and not self.sharedTitle and not self.get_titles():
-            raise IndexSchemaError("Schema node {} must have titles, a shared title node, or be default".format(self))
+            raise IndexSchemaError(u"Schema node {} must have titles, a shared title node, or be default".format(self))
 
         if self.default and (self.get_titles() or self.sharedTitle):
-            raise IndexSchemaError("Schema node {} - default nodes can not have titles".format(self))
+            raise IndexSchemaError(u"Schema node {} - default nodes can not have titles".format(self))
 
         if not self.default:
             try:
                 self.title_group.validate()
             except InputError as e:
-                raise IndexSchemaError("Schema node {} has invalid titles: {}".format(self, e))
+                raise IndexSchemaError(u"Schema node {} has invalid titles: {}".format(self, e))
 
         if self.children and len([c for c in self.children if c.default]) > 1:
-            raise IndexSchemaError("Schema Structure Node {} has more than one default child.".format(self.key))
+            raise IndexSchemaError(u"Schema Structure Node {} has more than one default child.".format(self.key))
 
         if self.sharedTitle and Term().load({"name": self.sharedTitle}).titles != self.get_titles():
-            raise IndexSchemaError("Schema node {} with sharedTitle can not have explicit titles".format(self))
+            raise IndexSchemaError(u"Schema node {} with sharedTitle can not have explicit titles".format(self))
 
         #if not self.default and not self.primary_title("he"):
         #    raise IndexSchemaError("Schema node {} missing primary Hebrew title".format(self.key))
@@ -955,6 +955,9 @@ class SchemaNode(TitledTreeNode):
 
     def validate(self):
         super(SchemaNode, self).validate()
+
+        if not all(ord(c) < 128 for c in self.title_group.primary_title("en")):
+            raise InputError("Primary English title may not contain non-ascii characters")
 
         if not getattr(self, "key", None):
             raise IndexSchemaError("Schema node missing key")
