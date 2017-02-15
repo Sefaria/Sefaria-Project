@@ -215,5 +215,5 @@ def test_non_ascii():
     node = JaggedArrayNode()
     node.add_primary_titles(u'Title with this\u2019', u'משהו')
     node.add_structure(['Something'])
-    with pytest.raises(exceptions.InputError):
+    with pytest.raises(InputError):
         node.validate()
