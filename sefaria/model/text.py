@@ -200,11 +200,11 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
         "pubPlace",
         "errorMargin",
         "era",
-        "dependence", # Values: "Commentary" or "Targum" - to denote commentaries and other potential not standalone texts
-        "base_text_titles", # the base book(s) this one is dependant on
-        "base_text_mapping", # string that matches a key in sefaria.helper.link.AutoLinkerFactory._class_map
-        "collective_title", # String value for a group of index records - the former commentator name. Requires a matching term.
-        "is_cited",  # only indexes with this attribute set to True will be picked up as a citation in a text by default
+        "dependence", # (str) Values: "Commentary" or "Targum" - to denote commentaries and other potential not standalone texts
+        "base_text_titles", # (list) the base book(s) this one is dependant on
+        "base_text_mapping", # (str) string that matches a key in sefaria.helper.link.AutoLinkerFactory._class_map
+        "collective_title", # (str) string value for a group of index records - the former commentator name. Requires a matching term.
+        "is_cited",  # (bool) only indexes with this attribute set to True will be picked up as a citation in a text by default
     ]
 
     def __unicode__(self):
