@@ -1714,6 +1714,7 @@ class TextFamily(object):
         d["indexTitle"]   = self._inode.index.title
         d["heIndexTitle"] = self._inode.index.get_title("he")
         d["sectionRef"]   = self._original_oref.section_ref().normal()
+        d["heSectionRef"] = self._original_oref.section_ref().he_normal()
         d["isSpanning"]   = self._original_oref.is_spanning()
         if d["isSpanning"]:
             d["spanningRefs"] = [r.normal() for r in self._original_oref.split_spanning_ref()]

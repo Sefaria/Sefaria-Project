@@ -306,6 +306,7 @@ Sefaria = extend(Sefaria, {
       // Save a copy of the data at context level
       var newData        = Sefaria.util.clone(data);
       newData.ref        = data.sectionRef;
+      newData.heRef      = data.heSectionRef;
       newData.sections   = data.sections.slice(0,-1);
       newData.toSections = data.toSections.slice(0,-1);
       var context_settings = (settings.language && settings.version) ? {
