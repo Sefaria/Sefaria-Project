@@ -285,7 +285,7 @@ def titlecase(text):
             match = MAC_MC.match(word)
             if match:
                 tc_line.append("%s%s" % (match.group(1).capitalize(),
-                                         titlecase(match.group(2), callback)))
+                                         titlecase(match.group(2))))
                 continue
 
             if INLINE_PERIOD.search(word) or (not all_caps and UC_ELSEWHERE.match(word)):
@@ -296,12 +296,12 @@ def titlecase(text):
                 continue
 
             if "/" in word and "//" not in word:
-                slashed = map(lambda t: titlecase(t, callback), word.split('/'))
+                slashed = map(lambda t: titlecase(t), word.split('/'))
                 tc_line.append("/".join(slashed))
                 continue
 
             if '-' in word:
-                hyphenated = map(lambda t: titlecase(t, callback), word.split('-'))
+                hyphenated = map(lambda t: titlecase(t), word.split('-'))
                 tc_line.append("-".join(hyphenated))
                 continue
 
