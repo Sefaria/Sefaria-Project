@@ -24,7 +24,7 @@
 
 				<center>
 					{% if group %}
-						<img id="partnerLogo" src="{{ group.coverUrl }}" alt="{{ group.name }}">
+						<img id="groupLogo" src="{{ group.coverUrl }}" alt="{{ group.name }}">
 					{% else %}
 						<h1>{{ title }}</h1>
 					{% endif %}
@@ -40,7 +40,7 @@
 					<div id="groups">
 						Your Groups: 
 						{% for group in groups %}
-						<a class="groupLink" href="/partners/{{ group.name|url_safe }}">{{ group.name }}</a>
+						<a class="groupLink" href="/groups/{{ group.name|url_safe }}">{{ group.name }}</a>
 						{% endfor %}
 					</div>
 					{% endif %}
@@ -52,7 +52,7 @@
 
 					{% if group and not in_group and not user.id %}
 					<span id="loginMsg">
-						If you are a member of the {{ group.name }} group, <a href="/login?next=/partners/{{ group.name|url_safe }}/tags/{{ tag }}">login</a> to view private group sheets.
+						If you are a member of the {{ group.name }} group, <a href="/login?next=/groups/{{ group.name|url_safe }}/tags/{{ tag }}">login</a> to view private group sheets.
 					</span>
 					<div class="clear"></div>
 					{% endif %}

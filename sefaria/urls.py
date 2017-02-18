@@ -213,11 +213,12 @@ urlpatterns += patterns('sheets.views',
     (r'^api/groups$', 'groups_api'),
     (r'^groups/new$', 'edit_group_page'),
     (r'^groups/(?P<group>[^/]+)/settings$', 'edit_group_page'),
-    (r'^groups/(?P<partner>[^/]+)$', 'partner_page'),
-    (r'^partners/(?P<partner>[^/]+)$', 'partner_page'),
-    (r'^partners/(?P<partner>[^/]+)/tags/(?P<tag>.+)$', 'partner_sheets_tag'),
-    (r'^api/partners/(?P<partner>[^/]+)$', 'private_sheet_list_api'),
-    (r'^api/partners/tag-list/(?P<partner>[^/]+)$', 'group_tag_list_api'),
+    (r'^groups/(?P<group>[^/]+)$', 'group_page'),
+    (r'^groups/(?P<group>[^/]+)/tags/(?P<tag>.+)$', 'group_sheets_tag'),
+    (r'^api/groups/(?P<group>[^/]+)$', 'private_sheet_list_api'),
+    (r'^api/groups/tag-list/(?P<group>[^/]+)$', 'group_tag_list_api'),
+    (r'^partners/(?P<group>[^/]+)$', 'group_page'),
+    (r'^partners/(?P<group>[^/]+)/tags/(?P<tag>.+)$', 'group_sheets_tag'),
 )
 
 

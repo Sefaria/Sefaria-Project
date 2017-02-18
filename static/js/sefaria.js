@@ -1077,13 +1077,13 @@ Sefaria = extend(Sefaria, {
       return sheets;
     },
     _groupTagList: null,
-    groupTagList: function(partner, callback) {
+    groupTagList: function(group, callback) {
       // Returns a list of all public source sheet tags, ordered by populartiy
       var tags = this._groupTagList;
       if (tags) {
         if (callback) { callback(tags); }
       } else {
-        var url = "/api/partners/tag-list/"+partner;
+        var url = "/api/groups/tag-list/" + group;
          Sefaria._api(url, function(data) {
             this._groupTagList = data;
              if (callback) { callback(data); }
@@ -1092,18 +1092,18 @@ Sefaria = extend(Sefaria, {
       return tags;
     },
 
-    _partnerSheets: {},
-    partnerSheets: function(partner, callback, sortBy) {
-      // Returns a list of source sheets belonging to partner org
+    _groupSheets: {},
+    groupSheets: function(group, callback, sortBy) {
+      // Returns a list of source sheets belonging to a group
       // Member of group will get all sheets. Others only public facing ones.
       sortBy = typeof sortBy == "undefined" ? "date" : sortBy;
-      var sheets = this._partnerSheets[partner];
+      var sheets = this._groupSheets[group];
       if (sheets) {
         if (callback) { callback(sheets); }
       } else {
-        var url = "/api/partners/"+partner;
+        var url = "/api/groups/" + group;
          Sefaria._api(url, function(data) {
-            this._partnerSheets[partner] = data.sheets;
+            this._groupSheets[group] = data.sheets;
             if (callback) { callback(data.sheets); }
           }.bind(this));
 
@@ -1555,8 +1555,8 @@ Sefaria.unpackDataFromProps = function(props) {
   if (props.userTags) {
     Sefaria.sheets._userTagList = props.userTags;
   }
-  if (props.partnerSheets) {
-    Sefaria.sheets._partnerSheets[props.initialPartner] = props.partnerSheets;
+  if (props.groupSheets) {
+    Sefaria.sheets._groupSheets[props.initialGroup] = props.groupSheets;
   }
   if (props.publicSheets) {
     Sefaria.sheets._publicSheets = props.publicSheets;

@@ -96,7 +96,7 @@
 					<div id="groups">
 						Your Groups: 
 						{% for group in groups %}
-						<a class="groupLink" href="/partners/{{ group.name|url_safe }}">{{ group.name }}</a>
+						<a class="groupLink" href="/groups/{{ group.name|url_safe }}">{{ group.name }}</a>
 						{% endfor %}
 					</div>
 					{% endif %}

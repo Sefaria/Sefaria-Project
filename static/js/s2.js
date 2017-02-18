@@ -32,7 +32,7 @@ var ReaderApp = React.createClass({
     initialRefs: React.PropTypes.array,
     initialFilter: React.PropTypes.array,
     initialMenu: React.PropTypes.string,
-    initialPartner: React.PropTypes.string,
+    initialGroup: React.PropTypes.string,
     initialQuery: React.PropTypes.string,
     initialSearchFilters: React.PropTypes.array,
     initialSheetsTag: React.PropTypes.string,
@@ -51,7 +51,7 @@ var ReaderApp = React.createClass({
       initialRefs: [],
       initialFilter: null,
       initialMenu: null,
-      initialPartner: null,
+      initialGroup: null,
       initialQuery: null,
       initialSearchFilters: [],
       initialSheetsTag: null,
@@ -109,7 +109,7 @@ var ReaderApp = React.createClass({
         appliedSearchFilters: this.props.initialSearchFilters,
         navigationCategories: this.props.initialNavigationCategories,
         sheetsTag: this.props.initialSheetsTag,
-        partner: this.props.initialPartner,
+        group: this.props.initialGroup,
         settings: Sefaria.util.clone(defaultPanelSettings)
       };
       header = this.makePanelState(headerState);
@@ -445,9 +445,9 @@ var ReaderApp = React.createClass({
             hist.mode = "search";
             break;
           case "sheets":
-            if (states[i].sheetsPartner) {
-              hist.url = "partners/" + state.sheetsPartner.replace(/\s/g, "_");
-              hist.title = state.sheetsPartner + " | Sefaria Source Sheets";
+            if (states[i].sheetsGroup) {
+              hist.url = "groups/" + state.sheetsGroup.replace(/\s/g, "-");
+              hist.title = state.sheetsGroup + " | Sefaria Group";
               hist.mode = "sheets tag";
             } else if (states[i].navigationSheetTag) {
               if (states[i].navigationSheetTag == "My Sheets") {
@@ -641,7 +641,7 @@ var ReaderApp = React.createClass({
       menuOpen: state.menuOpen || null, // "navigation", "text toc", "display", "search", "sheets", "home", "book toc"
       navigationCategories: state.navigationCategories || [],
       navigationSheetTag: state.sheetsTag || null,
-      sheetsPartner: state.partner || null,
+      sheetsGroup: state.group || null,
       searchQuery: state.searchQuery || null,
       appliedSearchFilters: state.appliedSearchFilters || [],
       searchFiltersValid: state.searchFiltersValid || false,
@@ -1691,7 +1691,7 @@ var ReaderPanel = React.createClass({
       menuOpen: this.props.initialMenu || null, // "navigation", "book toc", "text toc", "display", "search", "sheets", "home", "compare"
       navigationCategories: this.props.initialNavigationCategories || [],
       navigationSheetTag: this.props.initialSheetsTag || null,
-      sheetsPartner: this.props.initialPartner || null,
+      sheetsGroup: this.props.initialGroup || null,
       searchQuery: this.props.initialQuery || null,
       appliedSearchFilters: this.props.initialAppliedSearchFilters || [],
       selectedWords: null,
@@ -2235,7 +2235,7 @@ var ReaderPanel = React.createClass({
         hideNavHeader: this.props.hideNavHeader,
         toggleLanguage: this.toggleLanguage,
         tag: this.state.navigationSheetTag,
-        partner: this.state.sheetsPartner,
+        group: this.state.sheetsGroup,
         tagSort: this.state.tagSort,
         mySheetSort: this.state.mySheetSort,
         setMySheetSort: this.setMySheetSort,
@@ -5077,11 +5077,11 @@ var SheetsNav = React.createClass({
     } else if (this.props.tag == "All Sheets") {
       var content = React.createElement(AllSheetsPage, {
         hideNavHeader: this.props.hideNavHeader });
-    } else if (this.props.tag == "sefaria-partners") {
-      var content = React.createElement(PartnerSheetsPage, {
+    } else if (this.props.tag == "sefaria-groups") {
+      var content = React.createElement(GroupSheetsPage, {
         hideNavHeader: this.props.hideNavHeader,
         multiPanel: this.props.multiPanel,
-        partner: this.props.partner });
+        group: this.props.group });
     } else if (this.props.tag) {
       var content = React.createElement(TagSheetsPage, {
         tag: this.props.tag,
@@ -5377,8 +5377,8 @@ var SheetsHomePage = React.createClass({
   }
 });
 
-var PartnerSheetsPage = React.createClass({
-  displayName: 'PartnerSheetsPage',
+var GroupSheetsPage = React.createClass({
+  displayName: 'GroupSheetsPage',
 
   getInitialState: function getInitialState() {
     return {
@@ -5390,16 +5390,16 @@ var PartnerSheetsPage = React.createClass({
     this.ensureData();
   },
   getSheetsFromCache: function getSheetsFromCache() {
-    return Sefaria.sheets.partnerSheets(this.props.partner);
+    return Sefaria.sheets.groupSheets(this.props.group);
   },
   getSheetsFromAPI: function getSheetsFromAPI() {
-    Sefaria.sheets.partnerSheets(this.props.partner, this.onDataLoad);
+    Sefaria.sheets.groupSheets(this.props.group, this.onDataLoad);
   },
   getTagsFromCache: function getTagsFromCache() {
-    return Sefaria.sheets.groupTagList(this.props.partner);
+    return Sefaria.sheets.groupTagList(this.props.group);
   },
   getTagsFromAPI: function getTagsFromAPI() {
-    Sefaria.sheets.partnerSheets(this.props.partner, this.onDataLoad);
+    Sefaria.sheets.groupSheets(this.props.group, this.onDataLoad);
   },
   onDataLoad: function onDataLoad(data) {
     this.forceUpdate();
@@ -5444,7 +5444,7 @@ var PartnerSheetsPage = React.createClass({
       return Sefaria.util.inArray(this.state.sheetFilterTag, sheet.tags) >= 0;
     }.bind(this)) : sheets;
     sheets = sheets ? sheets.map(function (sheet) {
-      return React.createElement(PartnerSheetListing, { sheet: sheet, multiPanel: this.props.multiPanel, setSheetTag: this.props.setSheetTag });
+      return React.createElement(GroupSheetListing, { sheet: sheet, multiPanel: this.props.multiPanel, setSheetTag: this.props.setSheetTag });
     }.bind(this)) : React.createElement(LoadingMessage, null);
 
     return React.createElement(
@@ -5459,12 +5459,12 @@ var PartnerSheetsPage = React.createClass({
           React.createElement(
             'span',
             { className: 'int-en' },
-            this.props.partner
+            this.props.group
           ),
           React.createElement(
             'span',
             { className: 'int-he' },
-            this.props.partner
+            this.props.group
           )
         ) : null,
         this.props.hideNavHeader ? React.createElement(
@@ -5495,8 +5495,8 @@ var PartnerSheetsPage = React.createClass({
   }
 });
 
-var PartnerSheetListing = React.createClass({
-  displayName: 'PartnerSheetListing',
+var GroupSheetListing = React.createClass({
+  displayName: 'GroupSheetListing',
 
   propTypes: {
     sheet: React.PropTypes.object.isRequired
@@ -5554,7 +5554,39 @@ var EditGroupPage = React.createClass({
       iconUrl: null
     };
   },
-  save: function save() {},
+  uploadImage: function uploadImage(field) {
+    // Sets the state of `field` of the resulting image URL
+    var url = prompt("Enter an image URL", this.state[field]);
+    var state = {};
+    state[field] = url;
+    this.setState(state);
+  },
+  handleInputChange: function handleInputChange(e) {
+    var idToField = {
+      groupName: "name",
+      groupWebsite: "websiteUrl",
+      groupDescription: "description"
+    };
+    var field = idToField[e.target.id];
+    var state = {};
+    state[field] = e.target.value;
+    this.setState(state);
+  },
+  save: function save() {
+    var groupData = this.state;
+    if (this.props.initialData && this.props.initialData.name !== groupData.name) {
+      groupData["previousName"] = this.props.initialData.name;
+    }
+    $.post("/api/groups", { json: JSON.stringify(this.state) }, function (data) {
+      if ("error" in data) {
+        alert(data.error);
+      } else {
+        window.location = "/groups/" + this.state.name.replace(/ /g, "-");
+      }
+    }.bind(this)).fail(function () {
+      alert("Sorry, an error occurred.");
+    });
+  },
   render: function render() {
     return React.createElement(
       'div',
@@ -5591,7 +5623,7 @@ var EditGroupPage = React.createClass({
         { id: 'saveCancelButtons' },
         React.createElement(
           'a',
-          { 'class': 'button transparent control-elem', href: '/my/groups' },
+          { className: 'button transparent control-elem', href: '/my/groups' },
           React.createElement(
             'span',
             { className: 'int-en' },
@@ -5605,7 +5637,7 @@ var EditGroupPage = React.createClass({
         ),
         React.createElement(
           'div',
-          { id: 'saveGroup', 'class': 'button blue control-elem', onClick: this.save },
+          { id: 'saveGroup', className: 'button blue control-elem', onClick: this.save },
           React.createElement(
             'span',
             { className: 'int-en' },
@@ -5635,7 +5667,7 @@ var EditGroupPage = React.createClass({
             'Group Name'
           )
         ),
-        React.createElement('input', { id: 'groupName', value: this.state.name || "" })
+        React.createElement('input', { id: 'groupName', value: this.state.name || "", onChange: this.handleInputChange })
       ),
       React.createElement(
         'div',
@@ -5654,7 +5686,7 @@ var EditGroupPage = React.createClass({
             'Website'
           )
         ),
-        React.createElement('input', { id: 'groupWebsite', value: this.state.websiteUrl || "" })
+        React.createElement('input', { id: 'groupWebsite', value: this.state.websiteUrl || "", onChange: this.handleInputChange })
       ),
       React.createElement(
         'div',
@@ -5675,7 +5707,7 @@ var EditGroupPage = React.createClass({
         ),
         React.createElement(
           'textarea',
-          { id: 'groupDescription' },
+          { id: 'groupDescription', onChange: this.handleInputChange },
           this.state.description || null
         )
       ),
@@ -5699,7 +5731,7 @@ var EditGroupPage = React.createClass({
         this.state.iconUrl ? React.createElement('img', { className: 'groupIcon', src: this.state.iconUrl }) : React.createElement('div', { className: 'groupIcon placeholder' }),
         React.createElement(
           'div',
-          { className: 'button' },
+          { className: 'button white', onClick: this.uploadImage.bind(null, "iconUrl") },
           React.createElement(
             'span',
             { className: 'int-en' },
@@ -5746,7 +5778,7 @@ var EditGroupPage = React.createClass({
         this.state.coverUrl ? React.createElement('img', { className: 'groupCover', src: this.state.coverUrl }) : React.createElement('div', { className: 'groupCover placeholder' }),
         React.createElement(
           'div',
-          { className: 'button' },
+          { className: 'button white', onClick: this.uploadImage.bind(null, "coverUrl") },
           React.createElement(
             'span',
             { className: 'int-en' },
@@ -5790,10 +5822,15 @@ var EditGroupPage = React.createClass({
             'Default Sheet Header'
           )
         ),
-        this.state.coverUrl ? React.createElement('img', { className: 'groupCover', src: this.state.headerUrl }) : React.createElement('div', { className: 'groupCover placeholder' }),
+        this.state.coverUrl ? React.createElement(
+          'div',
+          { className: 'groupHeaderBox' },
+          React.createElement('img', { className: 'groupHeader', src: this.state.headerUrl }),
+          React.createElement('div', { className: 'clearFix' })
+        ) : React.createElement('div', { className: 'groupHeader placeholder' }),
         React.createElement(
           'div',
-          { className: 'button' },
+          { className: 'button white', onClick: this.uploadImage.bind(null, "headerUrl") },
           React.createElement(
             'span',
             { className: 'int-en' },

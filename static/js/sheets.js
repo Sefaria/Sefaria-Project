@@ -556,8 +556,8 @@ $(function() {
 		if (group != "None") {
 			sjs.track.sheets("Share with Group", group);
 			var groupUrl = group.replace(/ /g, "_");
-			$("#partnerLogo").attr("src", $(this).attr("data-image")).show()
-				.closest("a").attr("href", "/partners/" + groupUrl );
+			$("#groupLogo").attr("src", $(this).attr("data-image")).show()
+				.closest("a").attr("href", "/groups/" + groupUrl );
 			$("#sheetHeader").show();
 			
 			$(".groupSharing").show();
@@ -1737,8 +1737,8 @@ $(function() {
 			changeSharing();
 			if ($(this).val()!="None") {
 				var groupUrl = $(this).val().replace(/ /g, "_");
-				$("#partnerLogo").attr("src", $("#sourceSheetGroupSelect option:selected").attr("data-image")).show()
-					.closest("a").attr("href", "/partners/" + groupUrl);
+				$("#groupLogo").attr("src", $("#sourceSheetGroupSelect option:selected").attr("data-image")).show()
+					.closest("a").attr("href", "/groups/" + groupUrl);
 				$("#sheetHeader").show();
 				$(".groupName").text($(this).val());
 			}
@@ -2786,7 +2786,7 @@ function buildSheet(data){
 		$(".individualSharing").hide();
 		var groupUrl = data.group.replace(/ /g, "_");
 		var groupImage = $(".groupOption[data-group='"+ data.group + "']").attr("data-image"); 
-		$("#partnerLogo").attr("src", groupImage).show();
+		$("#groupLogo").attr("src", groupImage).show();
 		$("#sourceSheetGroupSelect").val(data.group);
 	} else {
 		$(".groupSharing").hide();

@@ -23,7 +23,7 @@ var ReaderApp = React.createClass({
     initialRefs:                 React.PropTypes.array,
     initialFilter:               React.PropTypes.array,
     initialMenu:                 React.PropTypes.string,
-    initialPartner:              React.PropTypes.string,
+    initialGroup:                React.PropTypes.string,
     initialQuery:                React.PropTypes.string,
     initialSearchFilters:        React.PropTypes.array,
     initialSheetsTag:            React.PropTypes.string,
@@ -42,7 +42,7 @@ var ReaderApp = React.createClass({
       initialRefs:                 [],
       initialFilter:               null,
       initialMenu:                 null,
-      initialPartner:              null,
+      initialGroup:                null,
       initialQuery:                null,
       initialSearchFilters:        [],
       initialSheetsTag:            null,
@@ -100,7 +100,7 @@ var ReaderApp = React.createClass({
         appliedSearchFilters: this.props.initialSearchFilters,
         navigationCategories: this.props.initialNavigationCategories,
         sheetsTag: this.props.initialSheetsTag,
-        partner: this.props.initialPartner,
+        group: this.props.initialGroup,
         settings: Sefaria.util.clone(defaultPanelSettings)
       };
       header = this.makePanelState(headerState);
@@ -423,9 +423,9 @@ var ReaderApp = React.createClass({
             hist.mode  = "search";
             break;
           case "sheets":
-            if (states[i].sheetsPartner) {
-                hist.url   = "groups/" + state.sheetsPartner.replace(/\s/g,"_");
-                hist.title = state.sheetsPartner + " | Sefaria Source Sheets";
+            if (states[i].sheetsGroup) {
+                hist.url   = "groups/" + state.sheetsGroup.replace(/\s/g,"-");
+                hist.title = state.sheetsGroup + " | Sefaria Group";
                 hist.mode  = "sheets tag";
             } else if (states[i].navigationSheetTag) {
               if (states[i].navigationSheetTag == "My Sheets") {
@@ -614,7 +614,7 @@ var ReaderApp = React.createClass({
       menuOpen:             state.menuOpen             || null, // "navigation", "text toc", "display", "search", "sheets", "home", "book toc"
       navigationCategories: state.navigationCategories || [],
       navigationSheetTag:   state.sheetsTag            || null,
-      sheetsPartner:        state.partner              || null,
+      sheetsGroup:        state.group              || null,
       searchQuery:          state.searchQuery          || null,
       appliedSearchFilters: state.appliedSearchFilters || [],
       searchFiltersValid:   state.searchFiltersValid   || false,
@@ -1593,7 +1593,7 @@ var ReaderPanel = React.createClass({
       menuOpen:             this.props.initialMenu || null, // "navigation", "book toc", "text toc", "display", "search", "sheets", "home", "compare"
       navigationCategories: this.props.initialNavigationCategories || [],
       navigationSheetTag:   this.props.initialSheetsTag || null,
-      sheetsPartner:        this.props.initialPartner || null,
+      sheetsGroup:        this.props.initialGroup || null,
       searchQuery:          this.props.initialQuery || null,
       appliedSearchFilters: this.props.initialAppliedSearchFilters || [],
       selectedWords:        null,
@@ -2106,7 +2106,7 @@ var ReaderPanel = React.createClass({
                     hideNavHeader={this.props.hideNavHeader}
                     toggleLanguage={this.toggleLanguage}
                     tag={this.state.navigationSheetTag}
-                    partner={this.state.sheetsPartner}
+                    group={this.state.sheetsGroup}
                     tagSort={this.state.tagSort}
                     mySheetSort={this.state.mySheetSort}
                     setMySheetSort={this.setMySheetSort}
@@ -4153,11 +4153,11 @@ var SheetsNav = React.createClass({
       var content = (<AllSheetsPage
                         hideNavHeader={this.props.hideNavHeader} />);
 
-    } else if (this.props.tag == "sefaria-partners") {
-      var content = (<PartnerSheetsPage
+    } else if (this.props.tag == "sefaria-groups") {
+      var content = (<GroupSheetsPage
                         hideNavHeader={this.props.hideNavHeader}
                         multiPanel={this.props.multiPanel}
-                        partner={this.props.partner} />);
+                        group={this.props.group} />);
 
     } else if (this.props.tag) {
       var content = (<TagSheetsPage 
@@ -4331,7 +4331,7 @@ var SheetsHomePage = React.createClass({
 });
 
 
-var PartnerSheetsPage = React.createClass({
+var GroupSheetsPage = React.createClass({
   getInitialState: function() {
     return {
       showYourSheetTags: false,
@@ -4342,16 +4342,16 @@ var PartnerSheetsPage = React.createClass({
     this.ensureData();
   },
   getSheetsFromCache: function() {
-    return  Sefaria.sheets.partnerSheets(this.props.partner);
+    return  Sefaria.sheets.groupSheets(this.props.group);
   },
   getSheetsFromAPI: function() {
-     Sefaria.sheets.partnerSheets(this.props.partner, this.onDataLoad);
+     Sefaria.sheets.groupSheets(this.props.group, this.onDataLoad);
   },
   getTagsFromCache: function() {
-    return Sefaria.sheets.groupTagList(this.props.partner)
+    return Sefaria.sheets.groupTagList(this.props.group)
   },
   getTagsFromAPI: function() {
-    Sefaria.sheets.partnerSheets(this.props.partner, this.onDataLoad);
+    Sefaria.sheets.groupSheets(this.props.group, this.onDataLoad);
   },
   onDataLoad: function(data) {
     this.forceUpdate();
@@ -4386,15 +4386,15 @@ var PartnerSheetsPage = React.createClass({
       return Sefaria.util.inArray(this.state.sheetFilterTag, sheet.tags) >= 0;
     }.bind(this)) : sheets;
     sheets = sheets ? sheets.map(function(sheet) {
-      return (<PartnerSheetListing sheet={sheet} multiPanel={this.props.multiPanel} setSheetTag={this.props.setSheetTag} />);
+      return (<GroupSheetListing sheet={sheet} multiPanel={this.props.multiPanel} setSheetTag={this.props.setSheetTag} />);
     }.bind(this)) : (<LoadingMessage />);
 
 
     return (<div className="content sheetList hasFooter">
                       <div className="contentInner">
                         {this.props.hideNavHeader ? (<h1>
-                          <span className="int-en">{this.props.partner}</span>
-                          <span className="int-he">{this.props.partner}</span>
+                          <span className="int-en">{this.props.group}</span>
+                          <span className="int-he">{this.props.group}</span>
                         </h1>) : null}
 
                         {this.props.hideNavHeader ?
@@ -4427,7 +4427,7 @@ var PartnerSheetsPage = React.createClass({
 });
 
 
-var PartnerSheetListing = React.createClass({
+var GroupSheetListing = React.createClass({
   propTypes: {
     sheet:      React.PropTypes.object.isRequired,
   },

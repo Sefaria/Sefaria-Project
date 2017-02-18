@@ -409,12 +409,12 @@ def sheets_list(request, type=None):
 	return render_to_response('sheets_list.html', response, RequestContext(request))
 
 
-def partner_page(request, partner):
+def group_page(request, group):
 	"""
-	Views the partner page for 'partner' which lists sheets in the partner group.
+	Views the g
 	"""
-	partner = partner.replace("-", " ").replace("_", " ")
-	group   = Group().load({"name": partner})
+	group = group.replace("-", " ").replace("_", " ")
+	group   = Group().load({"name": group})
 	if not group:
 		raise Http404
 
@@ -455,6 +455,9 @@ def edit_group_page(request, group=None):
 
 
 def groups_page(request):
+	"""
+	Page listing all public groups
+	"""
 	groups = GroupSet(sort=[["name", 1]])
 	return render_to_response("groups.html",
 								{"groups": groups},
@@ -551,12 +554,13 @@ def private_sheets_tag(request, tag):
 	return sheets_tag(request, tag, public=False)
 
 
-def partner_sheets_tag(request, partner, tag):
+def group_sheets_tag(request, group, tag):
 	"""
-	Wrapper for sheet_tag for partner tags
+	Wrapper for sheet_tag for group tags
 	"""
-	group = partner.replace("_", " ")
+	group = group.replace("_", " ")
 	return sheets_tag(request, tag, public=False, group=group)
+
 
 @csrf_exempt
 def sheet_list_api(request):
@@ -623,15 +627,15 @@ def user_sheet_list_api_with_sort(request, user_id, sort_by="date"):
 		return jsonResponse({"error": "You are not authorized to view that."})
 	return jsonResponse(user_sheets(user_id,sort_by), callback=request.GET.get("callback", None))
 
-def private_sheet_list_api(request, partner):
-	partner = partner.replace("-", " ").replace("_", " ")
-	group   = Group().load({"name": partner})
+def private_sheet_list_api(request, group):
+	group = group.replace("-", " ").replace("_", " ")
+	group   = Group().load({"name": group})
 	if not group:
 		raise Http404
 	if request.user.is_authenticated() and group.name in [g.name for g in request.user.groups.all()]:
-		return jsonResponse(partner_sheets(partner, True), callback=request.GET.get("callback", None))
+		return jsonResponse(group_sheets(group, True), callback=request.GET.get("callback", None))
 	else:
-		return jsonResponse(partner_sheets(partner, False), callback=request.GET.get("callback", None))
+		return jsonResponse(group_sheets(group, False), callback=request.GET.get("callback", None))
 
 
 def public_sheet_list_api(request):
@@ -827,12 +831,12 @@ def user_tag_list_api(request, user_id):
 	response["Cache-Control"] = "max-age=3600"
 	return response
 
-def group_tag_list_api(request, partner):
+def group_tag_list_api(request, group):
 	"""
 	API to retrieve the list of public tags ordered by count.
 	"""
-	partner = partner.replace("-", " ").replace("_", " ")
-	response = sheet_tag_counts({ "group": partner })
+	group = group.replace("-", " ").replace("_", " ")
+	response = sheet_tag_counts({ "group": group })
 	response = jsonResponse(response, callback=request.GET.get("callback", None))
 	response["Cache-Control"] = "max-age=3600"
 	return response

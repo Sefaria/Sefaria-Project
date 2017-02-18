@@ -42,7 +42,7 @@ from sefaria.client.util import jsonResponse
 from sefaria.history import text_history, get_maximal_collapsed_activity, top_contributors, make_leaderboard, make_leaderboard_condition, text_at_revision, record_version_deletion, record_index_deletion
 from sefaria.system.decorators import catch_error_as_json
 from sefaria.summaries import flatten_toc, get_or_make_summary_node, REORDER_RULES
-from sefaria.sheets import get_sheets_for_ref, get_public_sheets, get_sheets_by_tag, user_sheets, user_tags, recent_public_tags, sheet_to_dict, get_top_sheets, make_tag_list, partner_sheets
+from sefaria.sheets import get_sheets_for_ref, get_public_sheets, get_sheets_by_tag, user_sheets, user_tags, recent_public_tags, sheet_to_dict, get_top_sheets, make_tag_list, group_sheets
 from sefaria.utils.util import list_depth, text_preview
 from sefaria.utils.hebrew import hebrew_plural, hebrew_term, encode_hebrew_numeral, encode_hebrew_daf, is_hebrew, strip_cantillation, has_cantillation
 from sefaria.utils.talmud import section_to_daf, daf_to_section
@@ -489,15 +489,16 @@ def s2_sheets(request):
         "html":           html,
     }, RequestContext(request))
 
-def s2_group_sheets(request, partner, authenticated):
+
+def s2_group_sheets(request, group, authenticated):
     props = s2_props(request)
     props.update({
         "initialMenu":     "sheets",
-        "initialSheetsTag": "sefaria-partners",
-        "initialPartner": partner,
+        "initialSheetsTag": "sefaria-groups",
+        "initialGroup": group,
     })
 
-    props["partnerSheets"] = partner_sheets(partner,authenticated)["sheets"]
+    props["groupSheets"] = group_sheets(group, authenticated)["sheets"]
 
     html = render_react_component("ReaderApp", props)
     return render_to_response('s2.html', {
