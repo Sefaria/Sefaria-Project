@@ -3,6 +3,7 @@ group.py
 Writes to MongoDB Collection: groups
 """
 from . import abstract as abst
+from sefaria.sheets import group_sheets, sheet_tag_counts
 
 import logging
 logger = logging.getLogger(__name__)
@@ -32,6 +33,14 @@ class Group(abst.AbstractMongoRecord):
 
     def _validate(self):
         return True
+
+    def contents(self, with_content=False, authenticated=False):
+        contents = super(Group, self).contents()
+        if with_content:
+            contents["sheets"]  = group_sheets(self.name, authenticated)["sheets"]
+            contents["tags"]    = sheet_tag_counts({"group": self.name})
+            contents["members"] = []
+        return contents
 
 
 class GroupSet(abst.AbstractMongoSet):

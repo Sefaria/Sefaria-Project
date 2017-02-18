@@ -210,7 +210,7 @@ urlpatterns += patterns('reader.views',
 # Groups
 urlpatterns += patterns('sheets.views',
     (r'^groups/?$', 'groups_page'),
-    (r'^api/groups$', 'groups_api'),
+    (r'^api/groups(/(?P<group>[^/]+))?$', 'groups_api'),
     (r'^groups/new$', 'edit_group_page'),
     (r'^groups/(?P<group>[^/]+)/settings$', 'edit_group_page'),
     (r'^groups/(?P<group>[^/]+)$', 'group_page'),

@@ -29,12 +29,11 @@ from django.views.decorators.csrf import ensure_csrf_cookie, csrf_exempt, csrf_p
 from django.contrib.auth.models import User
 from django import http
 
-
-
 from sefaria.model import *
 from sefaria.workflows import *
 from sefaria.reviews import *
 from sefaria.model.user_profile import user_link, user_started_text, unread_notifications_count_for_user
+from sefaria.model.group import GroupSet
 from sefaria.client.wrapper import format_object_for_client, format_note_object_for_client, get_notes, get_links
 from sefaria.system.exceptions import InputError, PartialRefInputError, BookNameError, NoVersionFoundError, DuplicateRecordError
 # noinspection PyUnresolvedReferences
@@ -495,10 +494,12 @@ def s2_group_sheets(request, group, authenticated):
     props.update({
         "initialMenu":     "sheets",
         "initialSheetsTag": "sefaria-groups",
-        "initialGroup": group,
+        "initialGroup":     group,
     })
-
-    props["groupSheets"] = group_sheets(group, authenticated)["sheets"]
+    group = GroupSet({"name": group})
+    if not len(group):
+        raise Http404
+    props["groupData"] = group[0].contents(with_content=True, authenticated=authenticated)
 
     html = render_react_component("ReaderApp", props)
     return render_to_response('s2.html', {

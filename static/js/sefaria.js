@@ -1076,40 +1076,6 @@ Sefaria = extend(Sefaria, {
         }
       return sheets;
     },
-    _groupTagList: null,
-    groupTagList: function(group, callback) {
-      // Returns a list of all public source sheet tags, ordered by populartiy
-      var tags = this._groupTagList;
-      if (tags) {
-        if (callback) { callback(tags); }
-      } else {
-        var url = "/api/groups/tag-list/" + group;
-         Sefaria._api(url, function(data) {
-            this._groupTagList = data;
-             if (callback) { callback(data); }
-          }.bind(this));
-        }
-      return tags;
-    },
-
-    _groupSheets: {},
-    groupSheets: function(group, callback, sortBy) {
-      // Returns a list of source sheets belonging to a group
-      // Member of group will get all sheets. Others only public facing ones.
-      sortBy = typeof sortBy == "undefined" ? "date" : sortBy;
-      var sheets = this._groupSheets[group];
-      if (sheets) {
-        if (callback) { callback(sheets); }
-      } else {
-        var url = "/api/groups/" + group;
-         Sefaria._api(url, function(data) {
-            this._groupSheets[group] = data.sheets;
-            if (callback) { callback(data.sheets); }
-          }.bind(this));
-
-        }
-      return sheets;
-    },
     _userSheets: {},
     userSheets: function(uid, callback, sortBy) {
       // Returns a list of source sheets belonging to `uid`
@@ -1193,6 +1159,21 @@ Sefaria = extend(Sefaria, {
       this._sheetsByRef[ref] = data;
       return Sefaria._saveItemsByRef(data, this._sheetsByRef);
     }
+  },
+  _groups: {},
+  groups: function(group, callback) {
+    // Returns a list of all public source sheet tags, ordered by populartiy
+    var group = this._groups[group];
+    if (group) {
+      if (callback) { callback(group); }
+    } else {
+      var url = "/api/groups/" + group;
+       Sefaria._api(url, function(data) {
+          this._groups[group] = data;
+           if (callback) { callback(data); }
+        }.bind(this));
+      }
+    return group;
   },
   hebrewCategory: function(cat) {
     // Returns a string translating `cat` into Hebrew.
@@ -1555,9 +1536,6 @@ Sefaria.unpackDataFromProps = function(props) {
   if (props.userTags) {
     Sefaria.sheets._userTagList = props.userTags;
   }
-  if (props.groupSheets) {
-    Sefaria.sheets._groupSheets[props.initialGroup] = props.groupSheets;
-  }
   if (props.publicSheets) {
     Sefaria.sheets._publicSheets = props.publicSheets;
   }
@@ -1572,6 +1550,9 @@ Sefaria.unpackDataFromProps = function(props) {
   }
   if (props.topSheets) {
     Sefaria.sheets._topSheets = props.topSheets;
+  }
+  if (props.groupData) {
+    Sefaria._groups[props.initialGroup] = props.groupData;
   }
 };
 

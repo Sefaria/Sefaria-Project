@@ -49,6 +49,7 @@ def user_sheets(user_id, sort_by="date"):
 	}
 	return response
 
+
 def group_sheets(group, authenticated):
     if authenticated == True:
         query = {"status": {"$in": ["unlisted", "public"]}, "group": group}

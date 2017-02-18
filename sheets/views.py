@@ -411,7 +411,7 @@ def sheets_list(request, type=None):
 
 def group_page(request, group):
 	"""
-	Views the g
+	Main page for group `group`
 	"""
 	group = group.replace("-", " ").replace("_", " ")
 	group   = Group().load({"name": group})
@@ -464,8 +464,22 @@ def groups_page(request):
 								RequestContext(request))
 
 
+def groups_api(request, group=None):
+	if request.method == "GET":
+		if not group:
+			return jsonResponse({"error": "Please specify a group name"})	
+		is_member = request.user.is_authenticated() and group in [g.name for g in request.user.groups.all()]
+		group = GroupSet({"name": group})
+		if not group:
+			return jsonResponse({"error": "No group named '%s'" % group})
+		group_content = group.contents(with_content=True, authenticated=is_member)
+		jsonResponse(group_content)
+	else:
+		return groups_post_api(request)
+
+
 @login_required
-def groups_api(request):
+def groups_post_api(request):
 	j = request.POST.get("json")
 	if not j:
 		return jsonResponse({"error": "No JSON given in post data."})

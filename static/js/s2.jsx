@@ -4332,49 +4332,45 @@ var SheetsHomePage = React.createClass({
 
 
 var GroupSheetsPage = React.createClass({
+  propTypes: {
+    group: React.PropTypes.string.isRequired,
+    width: React.PropTypes.number
+  },
   getInitialState: function() {
     return {
-      showYourSheetTags: false,
-      sheetFilterTag: null
+      showTags: false,
+      sheetFilterTag: null,
+      tab: "sheets"
     };
   },
   componentDidMount: function() {
     this.ensureData();
   },
-  getSheetsFromCache: function() {
-    return  Sefaria.sheets.groupSheets(this.props.group);
-  },
-  getSheetsFromAPI: function() {
-     Sefaria.sheets.groupSheets(this.props.group, this.onDataLoad);
-  },
-  getTagsFromCache: function() {
-    return Sefaria.sheets.groupTagList(this.props.group)
-  },
-  getTagsFromAPI: function() {
-    Sefaria.sheets.groupSheets(this.props.group, this.onDataLoad);
-  },
   onDataLoad: function(data) {
     this.forceUpdate();
   },
   ensureData: function() {
-    if (!this.getSheetsFromCache()) { this.getSheetsFromAPI(); }
-    if (!this.getTagsFromCache())   { this.getTagsFromAPI(); }
+    if (!Sefaria.groups(this.props.group)) { 
+      Sefaria.groups(this.props.group, this.onDataLoad);
+    }
+  },
+  setTab: function(tab) {
+    this.setState({tab: tab});
   },
   toggleSheetTags: function() {
-    this.state.showYourSheetTags ? this.setState({showYourSheetTags: false}) : this.setState({showYourSheetTags: true});
+    this.state.showTags ? this.setState({showTags: false}) : this.setState({showTags: true});
   },
   filterYourSheetsByTag: function (tag) {
     if (tag.tag == this.state.sheetFilterTag) {
-       this.setState({sheetFilterTag: null, showYourSheetTags: false});
+       this.setState({sheetFilterTag: null, showTags: false});
     } else {
-      this.setState({sheetFilterTag: tag.tag, showYourSheetTags: false});
+      this.setState({sheetFilterTag: tag.tag, showTags: false});
     }
   },
-
-
-    render: function() {
-    var sheets = this.getSheetsFromCache();
-    var groupTagList = this.getTagsFromCache();
+  render: function() {
+    var group        = Sefaria.groups(this.props.group);
+    var sheets       = group ? group.sheets : null;
+    var groupTagList = group ? group.tags : null;
 
     groupTagList = groupTagList ? groupTagList.map(function (tag) {
         var filterThisTag = this.filterYourSheetsByTag.bind(this, tag);
@@ -4388,41 +4384,62 @@ var GroupSheetsPage = React.createClass({
     sheets = sheets ? sheets.map(function(sheet) {
       return (<GroupSheetListing sheet={sheet} multiPanel={this.props.multiPanel} setSheetTag={this.props.setSheetTag} />);
     }.bind(this)) : (<LoadingMessage />);
+ 
+    return (<div className="content groupsPage sheetList hasFooter">
+             {group && group.coverUrl ? 
+              <img className="groupCover" src={group.coverUrl} /> 
+                : null } 
+              <div className="contentInner">
 
+                {this.props.hideNavHeader ? (<h1>
+                  <span className="int-en">{this.props.group}</span>
+                  <span className="int-he">{this.props.group}</span>
+                </h1>) : null}
 
-    return (<div className="content sheetList hasFooter">
-                      <div className="contentInner">
-                        {this.props.hideNavHeader ? (<h1>
-                          <span className="int-en">{this.props.group}</span>
-                          <span className="int-he">{this.props.group}</span>
-                        </h1>) : null}
+                <div className="tabs">
+                  <a className="bubbleTab active" onClick={this.setTab.bind(null, "sheets")}>
+                    <span className="int-en">Sheets</span>
+                    <span className="int-he">Sheets</span>                   
+                  </a>
+                  <a className="bubbleTab" onClick={this.setTab.bind(null, "members")}>
+                    <span className="int-en">Members</span>
+                    <span className="int-he">Members</span>                   
+                  </a>
+                  <a className="bubbleTab" href={"/groups/" + this.props.group.replace(/\s/g, "-") + "/settings"}>
+                    <span className="int-en">Settings</span>
+                    <span className="int-he">Settings</span>          
+                  </a>
+                </div>
 
-                        {this.props.hideNavHeader ?
-                         (<h2 className="splitHeader">
-                            <span className="int-en" onClick={this.toggleSheetTags}>Filter By Tag <i className="fa fa-angle-down"></i></span>
-                            <span className="int-he" onClick={this.toggleSheetTags}>סנן לפי תווית<i className="fa fa-angle-down"></i></span>{/*
-                            <span className="en actionText">Sort By:
-                              <select value={this.props.mySheetSort} onChange={this.changeSortYourSheets}>
-                               <option value="date">Recent</option>
-                               <option value="views">Most Viewed</option>
-                             </select> <i className="fa fa-angle-down"></i></span>
-                            <span className="he actionText">סנן לפי:
-                              <select value={this.props.mySheetSort} onChange={this.changeSortYourSheets}>
-                               <option value="date">הכי חדש</option>
-                               <option value="views">הכי נצפה</option>
-                             </select> <i className="fa fa-angle-down"></i></span>
-                             */}
+                {this.props.hideNavHeader ?
+                 (<h2 className="splitHeader">
+                    <span className="filterByTag" onClick={this.toggleSheetTags}>
+                      <span className="int-en" >Filter By Tag <i className="fa fa-angle-down"></i></span>
+                      <span className="int-he">סנן לפי תווית<i className="fa fa-angle-down"></i></span>
+                     </span>
+                    {/*
+                    <span className="en actionText">Sort By:
+                      <select value={this.props.mySheetSort} onChange={this.changeSortYourSheets}>
+                       <option value="date">Recent</option>
+                       <option value="views">Most Viewed</option>
+                     </select> <i className="fa fa-angle-down"></i></span>
+                    <span className="he actionText">סנן לפי:
+                      <select value={this.props.mySheetSort} onChange={this.changeSortYourSheets}>
+                       <option value="date">הכי חדש</option>
+                       <option value="views">הכי נצפה</option>
+                     </select> <i className="fa fa-angle-down"></i></span>
+                     */}
 
-                          </h2>) : null }
+                  </h2>) : null }
 
-                        {this.state.showYourSheetTags ? <TwoOrThreeBox content={groupTagList} width={this.props.width} /> : null}
+                {this.state.showTags ? <TwoOrThreeBox content={groupTagList} width={this.props.width} /> : null}
 
-                        {sheets}
-                      </div>
-    <footer id="footer" className="static sans">
-                        <Footer />
-                      </footer>
-    </div>);
+                {sheets}
+              </div>
+            <footer id="footer" className="static sans">
+              <Footer />
+            </footer>
+            </div>);
   }
 });
 

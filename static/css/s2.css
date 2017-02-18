@@ -50,11 +50,9 @@ body.dark {
         -ms-user-select: none; /* Internet Explorer/Edge */
             user-select: none; /* Non-prefixed version, Chrome */
 }
-
 input.noselect {
     -webkit-user-select: auto; /* Safari/Opera -- required for Safari to allow inputs to be accessible. See http://caniuse.com/#feat=user-select-none "Known Issues" for details  TODO Check back to see if bug is fixed in future version */
 }
-
 .interface-hebrew #panelWrapBox{
   direction: rtl;
 }
@@ -115,7 +113,6 @@ input.noselect {
   padding: 0;
   text-align: left;
 }
-
 .header .searchBox input{
   background-color: transparent; /*for firefox */
 }
@@ -3255,7 +3252,6 @@ h2.splitHeader .he {
   text-transform: none;
   cursor: pointer;
 }
-
 .sheetsNewButton {
   text-align:center;
   margin-bottom: 30px;
@@ -3276,6 +3272,9 @@ h2.splitHeader .he {
    font-size: 14px;
    color:#999;
   text-decoration: none;
+}
+.filterByTag {
+  cursor: pointer;
 }
 /*  Add back in when we're ready for tag/edit hover buttons on 'My Sheets'
 .sheet.userSheet:hover .sheetEditButtons {
@@ -3318,6 +3317,24 @@ color: #999;
 }
 .tagString a:last-child:after {
 content: "";
+}
+#s2 .readerNavMenu.noHeader .groupsPage.content {
+  padding-top: 10px;
+}
+.groupsPage .groupCover {
+  max-width: 100%;
+  display: block;
+  margin: 0 auto;
+}
+.groupsPage h1 {
+  margin-top: 20px;
+}
+.groupsPage .tabs {
+  text-align: center;
+  margin-bottom: 20px;
+}
+.groupsPage .bubbleTab {
+  font-size: 18px;
 }
 /*** Interface lang - merge with static.css? ***/
 .readerApp.interface-hebrew .int-en{
@@ -3393,7 +3410,6 @@ body #keyboardInputMaster tbody tr td table tbody tr td{
     text-align: center;
     font-size: 14px;
     color: #333;
-
 }
 body #keyboardInputMaster tbody tr td table tbody tr td:hover,
 body #keyboardInputMaster tbody tr td table tbody tr td:active,
@@ -3571,4 +3587,22 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
 .it-text, .gemarra-italic {
   font-style: italic;
 }
-
+.bubbleTab {
+  padding: 10px 20px;
+  margin: 3px;
+  background-color: white;
+  border-radius: 20px;
+  border: 1px solid #DADADA;
+  display: inline-block;
+  font-size: 12px;
+  color: #999;
+  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  letter-spacing: 1px;
+  cursor: pointer;
+}
+.bubbleTab:hover {
+  text-decoration: none;
+}
+.bubbleTab.active {
+  color: #333;
+}
