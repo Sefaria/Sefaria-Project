@@ -3242,10 +3242,13 @@ class Ref(object):
         if not self.index_node == other.index_node:
             return False
 
+        me = self.as_ranged_segment_ref()
+        you = other.as_ranged_segment_ref()
+
         return (
-            (not self.starting_ref().follows(other.starting_ref()))
+            (not me.starting_ref().follows(you.starting_ref()))
             and
-            (not self.ending_ref().precedes(other.ending_ref()))
+            (not me.ending_ref().precedes(you.ending_ref()))
         )
 
     def precedes(self, other):
