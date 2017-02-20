@@ -1540,6 +1540,7 @@ class TextFamily(object):
         d["indexTitle"]   = self._inode.index.title
         d["heIndexTitle"] = self._inode.index.get_title("he")
         d["sectionRef"]   = self._original_oref.section_ref().normal()
+        d["heSectionRef"] = self._original_oref.section_ref().he_normal()
         d["isSpanning"]   = self._original_oref.is_spanning()
         if d["isSpanning"]:
             d["spanningRefs"] = [r.normal() for r in self._original_oref.split_spanning_ref()]
@@ -3039,10 +3040,13 @@ class Ref(object):
         if not self.index_node == other.index_node:
             return False
 
+        me = self.as_ranged_segment_ref()
+        you = other.as_ranged_segment_ref()
+
         return (
-            (not self.starting_ref().follows(other.starting_ref()))
+            (not me.starting_ref().follows(you.starting_ref()))
             and
-            (not self.ending_ref().precedes(other.ending_ref()))
+            (not me.ending_ref().precedes(you.ending_ref()))
         )
 
     def precedes(self, other):
