@@ -1110,8 +1110,8 @@ def merge_texts(text, sources):
     if depth > 2:
         results = []
         result_sources = []
-        for x in range(max(map(len, text))):
-            translations = map(None, *text)[x]
+        for x in range(max(map(len, text))):    # Let longest text determine how many times to iterate
+            translations = map(None, *text)[x]  # transpose, and take section x
             remove_nones = lambda x: x or []
             result, source = merge_texts(map(remove_nones, translations), sources)
             results.append(result)
@@ -1124,12 +1124,12 @@ def merge_texts(text, sources):
     if depth == 1:
         text = map(lambda x: [x], text)
 
-    merged = map(None, *text)
+    merged = map(None, *text)  # transpose
     text = []
     text_sources = []
     for verses in merged:
         # Look for the first non empty version (which will be the oldest, or one with highest priority)
-        index, value = 0, 0
+        index, value = 0, u""
         for i, version in enumerate(verses):
             if version:
                 index = i
@@ -1444,13 +1444,15 @@ class TextChunk(AbstractTextRecord):
             raise Exception("Called TextChunk.version() on merged TextChunk.")
 
 
-    def nonempty_subrefs(self):
+    def nonempty_segment_refs(self):
         """
 
         :return: list of segment refs with content in this TextChunk
         """
         r = self._oref
         ref_list = []
+
+
         if r.is_range():
             input_refs = r.range_list()
         else:
@@ -1462,7 +1464,8 @@ class TextChunk(AbstractTextRecord):
 
             #TODO do I need to check if this ref exists for this version?
             if temp_ref.is_segment_level():
-                ref_list.append(temp_ref)
+                if jarray: #it's an int if ref is segment_level
+                    ref_list.append(temp_ref)
             elif temp_ref.is_section_level():
                 ref_list += [temp_ref.subref(i + 1) for i, v in enumerate(jarray) if v]
             else: # higher than section level
@@ -1483,7 +1486,7 @@ class TextChunk(AbstractTextRecord):
         """
         #TODO there is a known error that this will fail if the text version you're using has fewer segments than the VersionState.
         ind_list = []
-        ref_list = self.nonempty_subrefs()
+        ref_list = self.nonempty_segment_refs()
 
         total_len = 0
         text_list = self.ja().flatten_to_array()
@@ -1711,6 +1714,7 @@ class TextFamily(object):
         d["indexTitle"]   = self._inode.index.title
         d["heIndexTitle"] = self._inode.index.get_title("he")
         d["sectionRef"]   = self._original_oref.section_ref().normal()
+        d["heSectionRef"] = self._original_oref.section_ref().he_normal()
         d["isSpanning"]   = self._original_oref.is_spanning()
         if d["isSpanning"]:
             d["spanningRefs"] = [r.normal() for r in self._original_oref.split_spanning_ref()]
@@ -3239,10 +3243,13 @@ class Ref(object):
         if not self.index_node == other.index_node:
             return False
 
+        me = self.as_ranged_segment_ref()
+        you = other.as_ranged_segment_ref()
+
         return (
-            (not self.starting_ref().follows(other.starting_ref()))
+            (not me.starting_ref().follows(you.starting_ref()))
             and
-            (not self.ending_ref().precedes(other.ending_ref()))
+            (not me.ending_ref().precedes(you.ending_ref()))
         )
 
     def precedes(self, other):
