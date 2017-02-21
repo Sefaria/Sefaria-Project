@@ -109,6 +109,8 @@ def setup_module():
         'ref': 'Delete Me, Part1 1:1'
 
     }).save()
+
+    VersionState("Delete Me").refresh()
     print 'End of test setup'
 
 
@@ -129,25 +131,30 @@ def teardown_module():
 
 @pytest.mark.deep
 def test_migrate_to_complex_structure():
+    mappings = {}
+    mappings["MigrateBook 1-2"] = "MigrateBook, Part 1"
+    mappings["MigrateBook 3:1-3"] = "MigrateBook, Part 2"
+    mappings["MigrateBook 4"] = "MigrateBook, Part 3"
+
     try:
-        library.get_index("Crazy").delete()
-        library.get_index("Complex Crazy").delete()
+        library.get_index("MigrateBook").delete()
+        library.get_index("Complex MigrateBook").delete()
     except BookNameError:
         pass
 
-    index = Index().load({'title': 'Crazy'})
+    index = Index().load({'title': 'MigrateBook'})
     if index is not None:
-        ls = LinkSet(Ref("Crazy"))
+        ls = LinkSet(Ref("MigrateBook"))
         ls.delete()
-        ns = NoteSet({"ref": {"$regex": "Crazy.*"}})
+        ns = NoteSet({"ref": {"$regex": "MigrateBook.*"}})
         ns.delete()
         index.delete()
 
     # Build an index with some nodes
     root = JaggedArrayNode()
-    root.add_title('Crazy', 'en', primary=True)
-    root.add_title(u'משוגע', 'he', primary=True)
-    root.key = 'Crazy'
+    root.add_title('MigrateBook', 'en', primary=True)
+    root.add_title(u'הספר', 'he', primary=True)
+    root.key = 'MigrateBook'
     root.depth = 2
     root.addressTypes = ["Integer", "Integer"]
     root.sectionNames = ["Siman", "Paragraph"]
@@ -155,78 +162,116 @@ def test_migrate_to_complex_structure():
 
     index = Index({
         'schema': root.serialize(),
-        'title': 'Crazy',
-        'categories': ['Craziness'],
+        'title': 'MigrateBook',
+        'categories': ['Other'],
     })
     index.save()
 
-    p1 = "Gonna be a Trump tower in every city?"
-    p2 = "Maybe re-naming every organ of the body to Trump?"
-    chunk = TextChunk(Ref('Crazy 1:1'), 'en', 'Schema Test')
+    p1 = "This should eventually end up in MigrateBook, Part 1, 1:1"
+    p2 = "This should eventually end up in MigrateBook, Part 1, 2:2"
+    p3 = "This should eventually end up in MigrateBook, Part 2, 3"
+    p4 = "This should eventually end up in MigrateBook, Part 3, 1"
+    p5 = "This will eventually go nowhere"
+    p6 = "This text is just to allow for range 3:1-5"
+    chunk = TextChunk(Ref('MigrateBook 1:1'), 'en', 'Schema Test')
     chunk.text = p1
     chunk.save()
-    chunk = TextChunk(Ref("Crazy 2:2"), 'en', 'Schema Test')
+    chunk = TextChunk(Ref("MigrateBook 2:2"), 'en', 'Schema Test')
     chunk.text = p2
+    chunk.save()
+    chunk = TextChunk(Ref("MigrateBook 3:3"), 'en', 'Schema Test')
+    chunk.text = p3
+    chunk.save()
+    chunk = TextChunk(Ref("MigrateBook 3:5"), 'en', 'Schema Test')
+    chunk.text = p6
+    chunk.save()
+    chunk = TextChunk(Ref("MigrateBook 4:1"), 'en', 'Schema Test')
+    chunk.text = p4
+    chunk.save()
+    chunk = TextChunk(Ref("MigrateBook 5:4"), 'en', 'Schema Test')
+    chunk.text = p5
     chunk.save()
 
     Link({
-        'refs': ['Crazy 1:1', 'Guide for the Perplexed, Part 1'],
+        'refs': ['MigrateBook 1:1', 'Guide for the Perplexed, Part 1'],
         'type': 'None'
     }).save()
 
     Link({
-        'refs': ['Crazy 2:2', 'Guide for the Perplexed, Part 2'],
+        'refs': ['MigrateBook 2:2', 'Guide for the Perplexed, Part 1 2'],
         'type': 'None'
     }).save()
 
+    Link({
+        'refs': ['MigrateBook 3:3', 'Guide for the Perplexed, Part 2 4-8'],
+        'type': 'None'
+    }).save()
+
+    Link({
+        'refs': ['MigrateBook 4:1', 'Guide for the Perplexed, Part 3 1'],
+        'type': 'None'
+    }).save()
+
+    Link({
+        'refs': ['MigrateBook 5:4', 'Guide for the Perplexed, Introduction, Introduction 3'],
+        'type': 'None'
+    }).save()
+
+    Link({
+        'refs': ['MigrateBook 1-2', 'Genesis 1-2'],
+        'type': 'None'
+    }).save()
+
+    Link({
+        'refs': ['MigrateBook 1:1-2', 'Genesis 3'],
+        'type': 'None'
+    }).save()
+    Link({
+      'refs': ['MigrateBook 3-4', 'Exodus 1'],
+        'type': 'None'
+    }).save() #MigrateBook 3 maps to nothing but MigrateBook 4 maps to Part 3 so just maps to Part 3
+
+    VersionState("MigrateBook").refresh()
+
     new_schema = SchemaNode()
-    new_schema.key = "Crazy"
-    new_schema.add_title("Crazy", "en", primary=True)
-    new_schema.add_title(u"משוגע", "he", primary=True)
+    new_schema.key = "MigrateBook"
+    new_schema.add_title("MigrateBook", "en", primary=True)
+    new_schema.add_title(u"הספר", "he", primary=True)
 
-    j1 = JaggedArrayNode()
-    j1.add_title('Trump', 'en', primary=True)
-    j1.add_title(u'טראמפ', 'he', primary=True)
-    j1.key = 'Trump'
-    j1.depth = 1
-    j1.addressTypes = ["Integer"]
-    j1.sectionNames = ["Paragraph"]
+    depths = [2, 1, 2, 1, 1, 1, 1, 1, 1, 1]
+    for i in range(10):
+        ja = JaggedArrayNode()
+        ja.add_title('Part {}'.format(i+1), 'en', primary=True)
+        ja.add_title(u'חלק {}'.format(i+1), 'he', primary=True)
+        ja.key = str(i)
+        ja.depth = depths[i]
+        ja.addressTypes = ["Integer"] * depths[i]
+        ja.sectionNames = ["Paragraph"] * depths[i]
+        new_schema.append(ja)
 
-    j2 = JaggedArrayNode()
-    j2.add_title('Americans', 'en', primary=True)
-    j2.add_title(u'אמרקיים', 'he', primary=True)
-    j2.key = 'Americans'
-    j2.depth = 1
-    j2.addressTypes = ["Integer"]
-    j2.sectionNames = ["Paragraph"]
-
-    new_schema.append(j1)
-    new_schema.append(j2)
     new_schema.validate()
 
+    schema.migrate_to_complex_structure("MigrateBook", new_schema.serialize(), mappings)
+    children = library.get_index("Complex MigrateBook").nodes.children
 
-    mappings = {}
+    assert children[0].full_title() == "Complex MigrateBook, Part 1"
+    assert children[1].full_title() == "Complex MigrateBook, Part 2"
 
-    mappings["Crazy 1"] = "Crazy, Trump"
-    mappings["Crazy 2"] = "Crazy, Americans"
+    assert TextChunk(children[0].ref(), "en", 'Schema Test').text == [[p1], ["", p2]]
+    assert TextChunk(children[1].ref(), "en", "Schema Test").text == ["", "", p3]
+    assert TextChunk(children[2].ref(), "en", "Schema Test").text == [[p4]]
 
-    schema.migrate_to_complex_structure("Crazy", new_schema.serialize(), mappings)
+    assert isinstance(Link().load({'refs': ['Complex MigrateBook, Part 1 1:1', 'Guide for the Perplexed, Part 1'],}), Link)
+    assert isinstance(Link().load({'refs': ['Complex MigrateBook, Part 1 2:2', 'Guide for the Perplexed, Part 1 2'],}), Link)
+    assert isinstance(Link().load({'refs': ['Complex MigrateBook, Part 2 3', 'Guide for the Perplexed, Part 2 4-8'],}), Link)
+    assert isinstance(Link().load({'refs': ['Complex MigrateBook, Part 3 1', 'Guide for the Perplexed, Part 3 1'],}), Link)
+    assert Link().load({'refs': ['Complex MigrateBook 5:4', 'Guide for the Perplexed, Introduction, Introduction, 3'],}) is None
+    assert isinstance(Link().load({'refs': ['Complex MigrateBook, Part 1 1-2', 'Genesis 1-2'],}), Link)
+    assert isinstance(Link().load({'refs': ['Complex MigrateBook, Part 1 1:1-2', 'Genesis 3'],}), Link)
+    assert isinstance(Link().load({'refs': ['Complex MigrateBook, Part 3', 'Exodus 1'],}), Link)
 
-    #Test that Crazy has two children named Trump and Americans, test the text, test the links
-
-    children = library.get_index("Complex Crazy").nodes.children
-
-    assert children[0].full_title() == "Complex Crazy, Trump"
-    assert children[1].full_title() == "Complex Crazy, Americans"
-
-    assert TextChunk(children[0].ref(), "en", 'Schema Test').text == [p1]
-    assert TextChunk(children[1].ref(), "en", "Schema Test").text == ["", p2]
-
-    assert isinstance(Link().load({'refs': ['Complex Crazy, Trump 1', 'Guide for the Perplexed, Part 1'],}), Link)
-    assert isinstance(Link().load({'refs': ['Complex Crazy, Americans 2', 'Guide for the Perplexed, Part 2'],}), Link)
-
-    library.get_index("Complex Crazy").delete()
-    library.get_index("Crazy").delete()
+    library.get_index("Complex MigrateBook").delete()
+    library.get_index("MigrateBook").delete()
 
 
 
