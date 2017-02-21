@@ -579,6 +579,13 @@ class Test_comparisons(object):
         assert Ref("Exodus").contains(Ref("Exodus 6:2"))
         assert Ref("Exodus").contains(Ref("Exodus 6:2-12"))
 
+        assert not Ref("Exodus 6:2").contains(Ref("Exodus 6"))
+        assert not Ref("Exodus 6:2-12").contains(Ref("Exodus 6"))
+
+        assert not Ref("Exodus 6").contains(Ref("Exodus"))
+        assert not Ref("Exodus 6:2").contains(Ref("Exodus"))
+        assert not Ref("Exodus 6:2-12").contains(Ref("Exodus"))
+
         assert Ref("Rashi on Genesis 5:10-20").contains(Ref("Rashi on Genesis 5:18-20"))
         assert not Ref("Rashi on Genesis 5:10-20").contains(Ref("Rashi on Genesis 5:21-25"))
         assert not Ref("Rashi on Genesis 5:10-20").contains(Ref("Rashi on Genesis 5:15-25"))

@@ -1333,7 +1333,7 @@ def index_api(request, title, v2=False, raw=False):
             apikey = db.apikeys.find_one({"key": key})
             if not apikey:
                 return jsonResponse({"error": "Unrecognized API key."})
-            return jsonResponse(func(apikey["uid"], model.Index, j, method="API").contents())
+                return jsonResponse(func(apikey["uid"], model.Index, j, method="API", v2=v2, raw=raw, force_complex=True).contents(v2=v2, raw=raw, force_complex=True))
         else:
             title = j.get("oldTitle", j.get("title"))
             try:
