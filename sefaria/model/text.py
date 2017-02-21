@@ -1445,7 +1445,7 @@ class TextFamily(object):
             for key, struct in oref.index.get_alt_structures().iteritems():
                 # Assuming these are in order, continue if it is before ours, break if we see one after
                 for n in struct.get_leaf_nodes():
-                    wholeRef = Ref(n.wholeRef).as_ranged_segment_ref()
+                    wholeRef = Ref(n.wholeRef).default_child_ref().as_ranged_segment_ref()
                     if wholeRef.ending_ref().precedes(oref):
                         continue
                     if wholeRef.starting_ref().follows(oref):
