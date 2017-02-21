@@ -5667,7 +5667,7 @@ var EditGroupPage = React.createClass({
         { id: 'saveCancelButtons' },
         React.createElement(
           'a',
-          { className: 'button transparent control-elem', href: '/my/groups' },
+          { className: 'button transparent control-elem', href: this.props.initialData ? "/groups/" + this.state.name.replace(/ /g, "-") : "/my/groups" },
           React.createElement(
             'span',
             { className: 'int-en' },

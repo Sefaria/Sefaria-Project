@@ -4530,7 +4530,7 @@ var EditGroupPage = React.createClass({
             </h1>}
 
         <div id="saveCancelButtons">
-            <a className="button transparent control-elem" href="/my/groups">
+            <a className="button transparent control-elem" href={this.props.initialData ? "/groups/" + this.state.name.replace(/ /g, "-") : "/my/groups"}>
                 <span className="int-en">Cancel</span>
                 <span className="int-he">בטל</span>
             </a>

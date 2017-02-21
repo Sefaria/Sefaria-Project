@@ -468,10 +468,10 @@ def groups_api(request, group=None):
 	if request.method == "GET":
 		if not group:
 			return jsonResponse({"error": "Please specify a group name"})	
-		is_member = request.user.is_authenticated() and group in [g.name for g in request.user.groups.all()]
-		group = GroupSet({"name": group})
+		group = Group().load({"name": group})
 		if not group:
 			return jsonResponse({"error": "No group named '%s'" % group})
+		is_member = request.is_authenticated() and groups.is_member(request.user.id)
 		group_content = group.contents(with_content=True, authenticated=is_member)
 		jsonResponse(group_content)
 	else:
@@ -485,23 +485,24 @@ def groups_post_api(request):
 		return jsonResponse({"error": "No JSON given in post data."})
 	group = json.loads(j)
 	if request.method == "POST":
-		existing = GroupSet({"name": group.get("previousName", group["name"])})
-		if len(existing):
-			# TODO check poster is a group admin
-			if False and existing.name not in [g.name for g in request.user.groups.all()]:
+		existing = Group().load({"name": group.get("previousName", group["name"])})
+		if existing:
+			# check poster is a group admin
+			if request.user.id not in existing.admins:
 				return jsonResponse({"error": "You do not have permission to edit this group."})
-			existing.update(group)
+			existing.load_from_dict(group)
 			existing.save()
 		else:
+			group["admins"] = [request.user.id]
+			group["publishers"] = []
+			group["members"] = []
 			Group(group).save()
-			DjangoGroup.objects.create(name=group["name"])
 		return jsonResponse({"status": "ok"})
 
 	elif request.method == "DELETE":
-		existing = GroupSet({"name": group.get("previousName", group["name"])})
-		if len(existing):
-			# TODO check poster is a group admin
-			if False and existing.name not in [g.name for g in request.user.groups.all()]:
+		existing = Group().load({"name": group.get("previousName", group["name"])})
+		if existing:
+			if request.user.id not in existing.admins:
 				return jsonResponse({"error": "You do not have permission to edit this group."})
 			else:
 				GroupSet({"name": group["name"]}).delete()

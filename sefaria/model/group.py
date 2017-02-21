@@ -20,6 +20,9 @@ class Group(abst.AbstractMongoRecord):
         "name",        # string name of group
     ]
     optional_attrs = [
+        "admins",      # array or uids
+        "publishers",  # array of uids
+        "members",     # array of uids
         "description", # string text of short description
         "websiteUrl",  # url for group website
         "headerUrl",   # url of an image to use in header
@@ -41,6 +44,12 @@ class Group(abst.AbstractMongoRecord):
             contents["tags"]    = sheet_tag_counts({"group": self.name})
             contents["members"] = []
         return contents
+
+    def is_member(self, uid):
+        """
+        Returns true if `uid` is a member of this group, in any role
+        """
+        return uid in (self.admins + self.publishers + self.members)
 
 
 class GroupSet(abst.AbstractMongoSet):
