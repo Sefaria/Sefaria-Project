@@ -3561,6 +3561,8 @@ class Library(object):
         # Table of Contents
         self._toc = None
         self._toc_json = None
+        self._search_filter_toc = None
+        self._search_filter_toc_json = None
         self._category_id_dict = None
         self._toc_size = 16
 
@@ -3597,6 +3599,12 @@ class Library(object):
         scache.delete_cache_elem('toc_json_cache')
         scache.set_cache_elem('toc_cache', self.get_toc(), 600000)
         scache.set_cache_elem('toc_json_cache', self.get_toc_json(), 600000)
+
+        scache.delete_cache_elem('search_filter_toc_cache')
+        scache.delete_cache_elem('search_filter_toc_json_cache')
+        scache.set_cache_elem('search_filter_toc_cache', self.get_search_filter_toc(), 600000)
+        scache.set_cache_elem('search_filter_toc_json_cache', self.get_search_filter_toc_json(), 600000)
+
         scache.delete_template_cache("texts_list")
         scache.delete_template_cache("texts_dashboard")
         self._full_title_list_jsons = {}
@@ -3611,6 +3619,8 @@ class Library(object):
     def rebuild_toc(self):
         self._toc = None
         self._toc_json = None
+        self._search_filter_toc = None
+        self._search_filter_toc_json = None
         self._category_id_dict = None
         self._reset_toc_derivate_objects()
 
@@ -3638,17 +3648,45 @@ class Library(object):
                 scache.set_cache_elem('toc_json_cache', self._toc_json)
         return self._toc_json
 
+    def get_search_filter_toc(self):
+        """
+        Returns table of contents object from cache,
+        DB or by generating it, as needed.
+        """
+        if not self._search_filter_toc:
+            self._search_filter_toc = scache.get_cache_elem('search_filter_toc_cache')
+            if not self._search_filter_toc:
+                from sefaria.summaries import update_search_filter_table_of_contents
+                self._search_filter_toc = update_search_filter_table_of_contents()
+                scache.set_cache_elem('search_filter_toc_cache', self._search_filter_toc)
+        return self._search_filter_toc
+
+    def get_search_filter_toc_json(self):
+        """
+        Returns JSON representation of TOC.
+        """
+        if not self._search_filter_toc_json:
+            self._search_filter_toc_json = scache.get_cache_elem('search_filter_toc_json_cache')
+            if not self._search_filter_toc_json:
+                self._search_filter_toc_json = json.dumps(self.get_search_filter_toc())
+                scache.set_cache_elem('search_filter_toc_json_cache', self._search_filter_toc_json)
+        return self._search_filter_toc_json
+
     def recount_index_in_toc(self, indx):
         from sefaria.summaries import update_title_in_toc
         self._toc = update_title_in_toc(self.get_toc(), indx, recount=True)
+        self._search_filter_toc = update_title_in_toc(self.get_search_filter_toc(), indx, recount=False, for_search=True)
         self._toc_json = None
+        self._search_filter_toc_json = None
         self._category_id_dict = None
         self._reset_toc_derivate_objects()
 
     def delete_index_from_toc(self, bookname):
         from sefaria.summaries import recur_delete_element_from_toc
         self._toc = recur_delete_element_from_toc(bookname, self.get_toc())
+        self._search_filter_toc = recur_delete_element_from_toc(bookname, self.get_search_filter_toc())
         self._toc_json = None
+        self._search_filter_toc_json = None
         self._category_id_dict = None
         self._reset_toc_derivate_objects()
 
@@ -3660,7 +3698,9 @@ class Library(object):
         """
         from sefaria.summaries import update_title_in_toc
         self._toc = update_title_in_toc(self.get_toc(), indx, old_ref=old_ref, recount=False)
+        self._search_filter_toc = update_title_in_toc(self.get_search_filter_toc(), indx, old_ref=old_ref, recount=False, for_search=True)
         self._toc_json = None
+        self._search_filter_toc_json = None
         self._category_id_dict = None
         self._reset_toc_derivate_objects()
 
