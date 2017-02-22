@@ -571,7 +571,7 @@ def index_all(skip=0, merged=False, debug=False):
     print "Elapsed time: %s" % str(end-start)
 
 
-def index_all_commentary_refactor(skip=0, merged=False):
+def index_all_commentary_refactor(skip=0, merged=False, debug=False):
     start = datetime.now()
 
     new_index_name = '{}-c'.format(SEARCH_INDEX_NAME if not merged else 'merged')
