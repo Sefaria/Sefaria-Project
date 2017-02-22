@@ -16,6 +16,7 @@ class SegementFixer:
 
     def standardize_tag(self, element):
         """
+        Takes an html "span" element and attempts to merge into an identical neighbor, then calls standardize
         :param Tag element:
         """
 
@@ -29,7 +30,7 @@ class SegementFixer:
 
         previous_element = element.previousSibling
         if previous_element is None:
-            self.standardize(element)
+            self._standardize(element)
 
         elif isinstance(previous_element, NavigableString):
             if previous_element.isspace():
@@ -38,18 +39,18 @@ class SegementFixer:
                 return
 
             else:
-                self.standardize(element)
+                self._standardize(element)
                 return
 
         elif element['class'] == ['it-text']:
             if previous_element.name == 'i':
                 previous_element.append(element)
-            self.standardize(element)
+            self._standardize(element)
 
         elif element['class'] == ['gemarra-regular']:
             if previous_element.name == 'b':
                 previous_element.append(element)
-            self.standardize(element)
+            self._standardize(element)
 
         elif element['class'] == ['gemarra-italic']:
             """
@@ -69,10 +70,12 @@ class SegementFixer:
                 self.standardize_tag(element)
 
             else:
-                self.standardize(element)
+                self._standardize(element)
 
-    def standardize(self, span):
+    def _standardize(self, span):
         """
+        Converts <span> elements with css attributes into <b> or <i> elements. Removes redundant elements and all css
+        attributes.
         :param Tag span:
         """
         if span['class'] == [u'it-text']:
@@ -89,6 +92,7 @@ class SegementFixer:
 
         elif span['class'] == [u'gemarra-italic']:
             if span.parent.name == 'b' or span.parent.name == 'i':
+                # This requirement is fulfilled within the logic of standaridze_tag.
                 raise AttributeError("gemarra-italic cannot have 'b' or 'i' as a parent!")
             else:
                 span.name = 'i'
@@ -167,3 +171,51 @@ if __name__ == '__main__':
             rebuild_links_from_text(tractate, arguments.user)
 
 
+class Test_SegmentFixer(object):
+
+    def test_base_cases(self):
+        fixer = SegementFixer()
+
+        test_bold = '<span class="gemarra-regular">this should be bold</span>'
+        test_italic = '<span class="it-text">this should be italic</span>'
+        test_combined = '<span class="gemarra-italic">this should be bold and italic</span>'
+        test_extra_class = '<span class="gemarra-regular other_class">this should be bold</span>'
+
+        assert fixer.fix_segment(test_bold) == '<b>this should be bold</b>'
+        assert fixer.fix_segment(test_italic) == '<i>this should be italic</i>'
+        assert fixer.fix_segment(test_combined) == '<b><i>this should be bold and italic</i></b>'
+        assert fixer.fix_segment(test_extra_class) == '<b>this should be bold</b>'
+
+    def test_merging(self):
+        fixer = SegementFixer()
+
+        bold = '<span class="gemarra-regular">this should be bold</span> <span class="gemarra-regular">so should this</span>'
+        no_merge = '<span class="gemarra-regular">this should be bold</span> some text <span class="gemarra-regular">so should this</span>'
+        italic = '<span class="it-text">this should be italic</span> <span class="it-text">so should this</span>'
+        no_merge_italic = '<span class="it-text">this should be italic</span> some text <span class="it-text">so should this</span>'
+        b_and_i = '<span class="gemarra-regular">this should be bold</span> <span class="it-text">this is italic</span>'
+        void_tag = 'mishnah <br> <span class="gemarra-regular">this should be bold</span> <span class="gemarra-regular">so should this</span>'
+
+        assert fixer.fix_segment(bold) == '<b>this should be bold so should this</b>'
+        assert fixer.fix_segment(no_merge) == '<b>this should be bold</b> some text <b>so should this</b>'
+        assert fixer.fix_segment(italic) == '<i>this should be italic so should this</i>'
+        assert fixer.fix_segment(no_merge_italic) == '<i>this should be italic</i> some text <i>so should this</i>'
+        assert fixer.fix_segment(b_and_i) == '<b>this should be bold</b> <i>this is italic</i>'
+        assert fixer.fix_segment(void_tag) == 'mishnah <br/> <b>this should be bold so should this</b>'
+
+    def test_gemarra_italic(self):
+        fixer = SegementFixer()
+
+        bold_before = '<span class="gemarra-regular">this should be bold</span> <span class="gemarra-italic">this is italic</span>'
+        bold_after = '<span class="gemarra-italic">this should be bold and italic</span> <span class="gemarra-regular">this is just bold</span>'
+        italic_before = '<span class="it-text">this should be italic</span> <span class="gemarra-italic">this is bold</span>'
+        italic_after = '<span class="gemarra-italic">this should be bold and italic</span> <span class="it-text">this is just italic</span>'
+        consecutive = '<span class="gemarra-italic">this should be bold and italic</span> <span class="gemarra-italic">so should this</span>'
+        recursive = '<span class="gemarra-regular">this is bold</span> <span class="gemarra-italic">this should be bold and italic</span> <span class="gemarra-italic">so should this</span>'
+
+        assert fixer.fix_segment(bold_before) == '<b>this should be bold <i>this is italic</i></b>'
+        assert fixer.fix_segment(bold_after) == '<b><i>this should be bold and italic</i> this is just bold</b>'
+        assert fixer.fix_segment(italic_before) == '<i>this should be italic <b>this is bold</b></i>'
+        assert fixer.fix_segment(italic_after) == '<b><i>this should be bold and italic</i></b> <i>this is just italic</i>'
+        assert fixer.fix_segment(consecutive) == '<b><i>this should be bold and italic so should this</i></b>'
+        assert fixer.fix_segment(recursive) == '<b>this is bold <i>this should be bold and italic so should this</i></b>'
