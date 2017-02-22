@@ -7,6 +7,9 @@ from sefaria.model import *
 from bs4 import BeautifulSoup, Tag, NavigableString
 from sefaria.helper.link import rebuild_links_from_text
 
+mesechtot = ["Berakhot", "Shabbat", "Eruvin", "Pesachim", "Beitzah", "Chagigah", "Gittin", "Ketubot", "Kiddushin",
+             "Megillah", "Moed Katan", "Nazir", "Nedarim", "Rosh Hashanah", "Sotah", "Sukkah", "Taanit", "Yevamot",
+             "Yoma", "Bava Kamma", "Bava Metzia", "Bava Batra"]
 
 class SegementFixer:
 
@@ -132,7 +135,7 @@ def fix_tractate(tractate):
 def span_attrs(tractate_list=None):
     classes = set()
     if tractate_list is None:
-        tractate_list = library.get_indexes_in_category("Bavli")[:22]
+        tractate_list = mesechtot
     if isinstance(tractate_list, basestring):
         tractate_list = [tractate_list]
     for tractate in tractate_list:
@@ -233,7 +236,7 @@ if __name__ == '__main__':
         if arguments.user <= 0:
             raise argparse.ArgumentTypeError("A user id must be supplied if linking is desired")
 
-    for tractate in library.get_indexes_in_category('Bavli')[:22]:
+    for tractate in mesechtot:
         print "formatting tractate {}".format(tractate)
         fix_tractate(tractate)
         if arguments.link:
