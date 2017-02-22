@@ -37,7 +37,7 @@ def titles_json(request):
 
 
 def toc(request):
-    return {"toc": library.get_toc(), "toc_json": library.get_toc_json()}
+    return {"toc": library.get_toc(), "toc_json": library.get_toc_json(), "search_toc_json": library.get_search_filter_toc_json()}
 
 def terms(request):
     return {"terms_json": json.dumps(get_simple_term_mapping())}

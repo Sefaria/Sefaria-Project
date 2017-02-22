@@ -5,6 +5,7 @@ var Sefaria = Sefaria || {};
 var data = {
   _dataLoaded:         true,
   toc:                 {{ toc_json }},
+  search_toc:          {{ search_toc_json }},
   terms:               {{ terms_json}},
   books:               {{ titlesJSON }},
   booksDict:           {}, // populated by Sefaria.setup()
