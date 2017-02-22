@@ -3,7 +3,7 @@
 import re
 import copy
 import argparse
-from sefaria.model.text import library, Ref
+from sefaria.model import *
 from bs4 import BeautifulSoup, Tag, NavigableString
 from sefaria.helper.link import rebuild_links_from_text
 
