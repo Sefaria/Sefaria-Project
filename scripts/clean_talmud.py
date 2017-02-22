@@ -107,11 +107,12 @@ class SegementFixer:
         for element in list(self.soup.body.children):
             self.standardize_tag(element)
         cleaned = u''.join([unicode(i) for i in self.soup.body.children])
+        cleaned = re.sub(u'\s+', u' ', cleaned)
         cleaned = re.sub(ur'<i> (.*?)</i>', ur' <i>\1</i>',cleaned)
         cleaned = re.sub(ur'<b> (.*?)</b>', ur' <b>\1</b>', cleaned)
         cleaned = re.sub(ur'<i>(.*?) </i>', ur'<i>\1</i> ', cleaned)
         cleaned = re.sub(ur'<b>(.*?) </b>', ur'<b>\1</b> ', cleaned)
-        return cleaned
+        return cleaned.strip()
 
 
 def fix_tractate(tractate):
@@ -174,18 +175,18 @@ class SegmentFixerTester(object):
         fixer = SegementFixer()
 
         bold = '<span class="gemarra-regular">this should be bold</span> <span class="gemarra-regular">so should this</span>'
-        no_merge = '<span class="gemarra-regular">this should be bold</span> some text <span class="gemarra-regular">so should this</span>'
+        no_merge = '  <span class="gemarra-regular">this should be bold</span> some text <span class="gemarra-regular">so should this</span> '
         italic = '<span class="it-text">this should be italic</span> <span class="it-text">so should this</span>'
-        no_merge_italic = '<span class="it-text">this should be italic</span> some text <span class="it-text">so should this</span>'
-        b_and_i = '<span class="gemarra-regular">this should be bold</span> <span class="it-text">this is italic</span>'
+        no_merge_italic = '<span class="it-text">this should be italic</span> some text <span class="it-text">so should this</span>  '
+        b_and_i = '  <span class="gemarra-regular">this should be bold</span> <span class="it-text">this is italic</span>'
         void_tag = 'mishnah <br> <span class="gemarra-regular">this should be bold</span> <span class="gemarra-regular">so should this</span>'
 
-        assert fixer.fix_segment(bold) == '<b>this should be bold so should this</b>'
-        assert fixer.fix_segment(no_merge) == '<b>this should be bold</b> some text <b>so should this</b>'
-        assert fixer.fix_segment(italic) == '<i>this should be italic so should this</i>'
-        assert fixer.fix_segment(no_merge_italic) == '<i>this should be italic</i> some text <i>so should this</i>'
-        assert fixer.fix_segment(b_and_i) == '<b>this should be bold</b> <i>this is italic</i>'
-        assert fixer.fix_segment(void_tag) == 'mishnah <br/> <b>this should be bold so should this</b>'
+        assert fixer.fix_segment(bold) == '<b>this should be bold so should this</b>', fixer.fix_segment(bold)
+        assert fixer.fix_segment(no_merge) == '<b>this should be bold</b> some text <b>so should this</b>', fixer.fix_segment(no_merge)
+        assert fixer.fix_segment(italic) == '<i>this should be italic so should this</i>', fixer.fix_segment(italic)
+        assert fixer.fix_segment(no_merge_italic) == '<i>this should be italic</i> some text <i>so should this</i>', fixer.fix_segment(no_merge_italic)
+        assert fixer.fix_segment(b_and_i) == '<b>this should be bold</b> <i>this is italic</i>', fixer.fix_segment(b_and_i)
+        assert fixer.fix_segment(void_tag) == 'mishnah <br/> <b>this should be bold so should this</b>', fixer.fix_segment(void_tag)
 
     @staticmethod
     def test_gemarra_italic():
