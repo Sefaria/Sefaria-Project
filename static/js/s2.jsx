@@ -7475,9 +7475,7 @@ var SearchResultList = React.createClass({
       function walk(branch, parentNode) {
           var node = new Sefaria.search.FilterNode();
 
-          //Remove after commentary refactor
           node["docCount"] = 0;
-          //
 
           if("category" in branch) { // Category node
 
@@ -7507,7 +7505,7 @@ var SearchResultList = React.createClass({
               var i;
 
               for (i = 0; i < path.length; i++) {
-                //For TOC nodes that we don't have results for, we catch the exception below.  For commentary / commentary2, we catch it here.
+                //For TOC nodes that we don't have results for, we catch the exception below.
                 rawNode = rawNode[path[i]];
               }
               node["docCount"] += rawNode.docCount;
