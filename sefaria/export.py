@@ -255,7 +255,8 @@ def clear_exports():
             rmtree(SEFARIA_EXPORT_PATH + "/" + format[0])
     if os.path.exists(SEFARIA_EXPORT_PATH + "/schemas"):
         rmtree(SEFARIA_EXPORT_PATH + "/schemas")
-
+    if os.path.exists(SEFARIA_EXPORT_PATH + "/links"):
+        rmtree(SEFARIA_EXPORT_PATH + "/links")
 
 def write_text_doc_to_disk(doc=None):
     """
@@ -267,12 +268,32 @@ def write_text_doc_to_disk(doc=None):
         if not out:
             print "Skipping %s - no content" % doc["title"]
             return
-        path = make_path(doc, format[0],extension=format[2] if len(format) == 3 else None)
+        path = make_path(doc, format[0], extension=format[2] if len(format) == 3 else None)
         if not os.path.exists(os.path.dirname(path)):
             os.makedirs(os.path.dirname(path))
         with open(path, "w") as f:
             f.write(out.encode('utf-8'))
 
+def convert_talmud_formating(data):
+    if isinstance(data, basestring): #using base string to get both str and unicode
+        p = re.compile(r'<span\s+class="gemarra-regular">(.+?)<\/span>')
+        data = p.sub(r'<b>\1</b>', data)
+        p = re.compile(r'<span\s+class="gemarra-italic">(.+?)<\/span>')
+        data = p.sub(r'<b><i>\1</i></b>', data)
+        p = re.compile(r'<span\s+class="it-text">(.+?)<\/span>')
+        data = p.sub(r'<i>\1</i>', data)
+        return data
+    elif isinstance(data, list):
+        new_list = []
+        for item in data:
+            new_list.append(convert_talmud_formating(item))
+        return new_list
+    elif isinstance(data, dict):
+        for key, value in data.iteritems():
+            data[key] = convert_talmud_formating(value)
+        return data
+    else:
+        return data
 
 def prepare_text_for_export(text):
     """
@@ -288,7 +309,11 @@ def prepare_text_for_export(text):
 
     text["heTitle"] = index.nodes.primary_title("he")
     text["categories"] = index.categories
+
     text["text"] = text.get("text", None) or text.get("chapter", "")
+
+    if index.categories[0] == "Talmud" and index.categories[1] == "Bavli":
+        text["text"] = convert_talmud_formating(text["text"])
 
     if index.is_complex():
         text["original_text"] = deepcopy(text["text"])
@@ -465,40 +490,51 @@ def export_links():
     path = SEFARIA_EXPORT_PATH + "/links/"
     if not os.path.exists(os.path.dirname(path)):
         os.makedirs(os.path.dirname(path))
-    with open(path + "links.csv", 'wb') as csvfile:
-        writer = csv.writer(csvfile)
-        writer.writerow([
-            "Citation 1",
-            "Citation 2",
-            "Conection Type",
-            "Text 1",
-            "Text 2",
-            "Category 1",
-            "Category 2",
-        ])
-        links = db.links.find().sort([["refs.0", 1]])
-        for i,link in enumerate(links):
+
+    link_file_number = 0
+    links = db.links.find().sort([["refs.0", 1]])
+    new_links_file_size = 300000
+    for i, link in enumerate(links):
+        if i % new_links_file_size == 0:
+            filename = '{}links{}.csv'.format(path, link_file_number)
             try:
-                oref1 = Ref(link["refs"][0])
-                oref2 = Ref(link["refs"][1])
-            except InputError:
-                continue
-
+                csvfile.close()
+            except:
+                pass
+            csvfile = open(filename, 'wb')
+            writer = csv.writer(csvfile)
             writer.writerow([
-                link["refs"][0],
-                link["refs"][1],
-                link["type"],
-                oref1.book,
-                oref2.book,
-                oref1.index.categories[0],
-                oref2.index.categories[0],
+                    "Citation 1",
+                    "Citation 2",
+                    "Conection Type",
+                    "Text 1",
+                    "Text 2",
+                    "Category 1",
+                    "Category 2",
             ])
+            link_file_number += 1
 
-            book_link = tuple(sorted([oref1.index.title, oref2.index.title]))
-            links_by_book[book_link] += 1
-            if link["type"] not in ("commentary", "Commentary", "targum", "Targum"):
-                links_by_book_without_commentary[book_link] += 1
-    
+        try:
+            oref1 = Ref(link["refs"][0])
+            oref2 = Ref(link["refs"][1])
+        except InputError:
+            continue
+
+        writer.writerow([
+            link["refs"][0],
+            link["refs"][1],
+            link["type"],
+            oref1.book,
+            oref2.book,
+            oref1.index.categories[0],
+            oref2.index.categories[0],
+        ])
+
+        book_link = tuple(sorted([oref1.index.title, oref2.index.title]))
+        links_by_book[book_link] += 1
+        if link["type"] not in ("commentary", "Commentary", "targum", "Targum"):
+            links_by_book_without_commentary[book_link] += 1
+
     def write_aggregate_file(counter, filename):
         with open(SEFARIA_EXPORT_PATH + "/links/%s" % filename, 'wb') as csvfile:
             writer = csv.writer(csvfile)
