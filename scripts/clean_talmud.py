@@ -153,27 +153,10 @@ def span_attrs(tractate_list=None):
         print "Found lots and lots of things"
 
 
-if __name__ == '__main__':
+class SegmentFixerTester(object):
 
-    argparser = argparse.ArgumentParser()
-    argparser.add_argument("-l", "--link", action="store_true", help="Pass this flag to link the text. Requires a user id to run")
-    argparser.add_argument("-u", "--user", default=-1, type=int, help="User id for the auto-linker")
-
-    arguments = argparser.parse_args()
-    if arguments.link:
-        if arguments.user <= 0:
-            raise argparse.ArgumentTypeError("A user id must be supplied if linking is desired")
-
-    for tractate in library.get_indexes_in_category('Bavli')[:22]:
-        print "formatting tractate {}".format(tractate)
-        fix_tractate(tractate)
-        if arguments.link:
-            rebuild_links_from_text(tractate, arguments.user)
-
-
-class Test_SegmentFixer(object):
-
-    def test_base_cases(self):
+    @staticmethod
+    def test_base_cases():
         fixer = SegementFixer()
 
         test_bold = '<span class="gemarra-regular">this should be bold</span>'
@@ -186,7 +169,8 @@ class Test_SegmentFixer(object):
         assert fixer.fix_segment(test_combined) == '<b><i>this should be bold and italic</i></b>'
         assert fixer.fix_segment(test_extra_class) == '<b>this should be bold</b>'
 
-    def test_merging(self):
+    @staticmethod
+    def test_merging():
         fixer = SegementFixer()
 
         bold = '<span class="gemarra-regular">this should be bold</span> <span class="gemarra-regular">so should this</span>'
@@ -203,7 +187,8 @@ class Test_SegmentFixer(object):
         assert fixer.fix_segment(b_and_i) == '<b>this should be bold</b> <i>this is italic</i>'
         assert fixer.fix_segment(void_tag) == 'mishnah <br/> <b>this should be bold so should this</b>'
 
-    def test_gemarra_italic(self):
+    @staticmethod
+    def test_gemarra_italic():
         fixer = SegementFixer()
 
         bold_before = '<span class="gemarra-regular">this should be bold</span> <span class="gemarra-italic">this is italic</span>'
@@ -216,6 +201,39 @@ class Test_SegmentFixer(object):
         assert fixer.fix_segment(bold_before) == '<b>this should be bold <i>this is italic</i></b>'
         assert fixer.fix_segment(bold_after) == '<b><i>this should be bold and italic</i> this is just bold</b>'
         assert fixer.fix_segment(italic_before) == '<i>this should be italic <b>this is bold</b></i>'
-        assert fixer.fix_segment(italic_after) == '<b><i>this should be bold and italic</i></b> <i>this is just italic</i>'
+        assert fixer.fix_segment(
+            italic_after) == '<b><i>this should be bold and italic</i></b> <i>this is just italic</i>'
         assert fixer.fix_segment(consecutive) == '<b><i>this should be bold and italic so should this</i></b>'
-        assert fixer.fix_segment(recursive) == '<b>this is bold <i>this should be bold and italic so should this</i></b>'
+        assert fixer.fix_segment(
+            recursive) == '<b>this is bold <i>this should be bold and italic so should this</i></b>'
+
+    @staticmethod
+    def run_tests():
+        SegmentFixerTester.test_base_cases()
+        SegmentFixerTester.test_merging()
+        SegmentFixerTester.test_gemarra_italic()
+        print "All tests passes successfully"
+
+
+if __name__ == '__main__':
+
+    argparser = argparse.ArgumentParser()
+    argparser.add_argument("-l", "--link", action="store_true", help="Pass this flag to link the text. Requires a user id to run")
+    argparser.add_argument("-u", "--user", default=-1, type=int, help="User id for the auto-linker")
+    argparser.add_argument("-t", "--test", action="store_true", help="Run the tests without making any changes")
+
+    arguments = argparser.parse_args()
+    if arguments.test:
+        SegmentFixerTester.run_tests()
+        import sys
+        sys.exit(0)
+
+    if arguments.link:
+        if arguments.user <= 0:
+            raise argparse.ArgumentTypeError("A user id must be supplied if linking is desired")
+
+    for tractate in library.get_indexes_in_category('Bavli')[:22]:
+        print "formatting tractate {}".format(tractate)
+        fix_tractate(tractate)
+        if arguments.link:
+            rebuild_links_from_text(tractate, arguments.user)
