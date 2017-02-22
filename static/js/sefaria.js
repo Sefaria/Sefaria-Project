@@ -1348,14 +1348,6 @@ Sefaria = extend(Sefaria, {
                       }
                   });
                   /* Test for Commentary2 as well as Commentary */
-                  if (/^Commentary\//.test(applied_filters[i])) { /**TODO: commentary-refactor**/
-                      var c2 = "Commentary2/" + applied_filters[i].slice(11);
-                      clauses.push({
-                          "regexp": {
-                              "path": RegExp.escape(c2) + ".*"
-                          }
-                      });
-                  }
               }
               if (type) {
                   o['query'] = {

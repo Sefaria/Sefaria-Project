@@ -282,7 +282,10 @@ def node_sort_key(a):
         try:
             return ORDER.index(a["category"])
         except ValueError:
-           return 'zz' + a["category"]
+            temp_cat_name = a["category"].replace(" Commentaries", "")
+            if temp_cat_name in TOP_CATEGORIES:
+                return ORDER.index(temp_cat_name) + 0.5
+            return 'zz' + a["category"]
     elif "title" in a:
         try:
             return ORDER.index(a["title"])

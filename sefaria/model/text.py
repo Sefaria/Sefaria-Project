@@ -4022,13 +4022,21 @@ class Library(object):
 
     #TODO: add category filtering here or in another method?
     def get_dependant_indices(self, book_title=None, dependence_type=None, structure_match=False, full_records=False):
+        """
+        Replacement for all get commentary title methods
+        :param book_title: Title of the base text. If book_title is None, returns all matching dependent texts
+        :param dependence_type: none, "Commentary" or "Targum" - generally used to get Commentary and leave out Targum.  If none, returns all indexes.
+        :param structure_match: If True, returns records that follow the base text structure
+        :param full_records: If True, returns an IndexSet, if False returns list of titles.
+        :return: IndexSet or List of titles.
+        """
         if dependence_type:
             q = {'dependence': dependence_type}
         else:
             q = {'dependence': {'$exists': True}}
         if book_title:
             q['base_text_titles'] = book_title
-        if structure_match: #get only indices who's "base_text_mapping" is one that indicates it has the similar underlying schema as the base
+        if structure_match:  # get only indices who's "base_text_mapping" is one that indicates it has the similar underlying schema as the base
             from sefaria.helper.link import AbstractStructureAutoLinker
             from sefaria.utils.util import get_all_subclass_attribute
             q['base_text_mapping'] = {'$in': get_all_subclass_attribute(AbstractStructureAutoLinker, "class_key")}
