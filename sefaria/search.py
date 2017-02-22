@@ -571,6 +571,20 @@ def index_all(skip=0, merged=False, debug=False):
     print "Elapsed time: %s" % str(end-start)
 
 
+def index_all_commentary_refactor(skip=0, merged=False):
+    start = datetime.now()
+
+    new_index_name = '{}-c'.format(SEARCH_INDEX_NAME if not merged else 'merged')
+
+    if skip == 0:
+        create_index(new_index_name, merged=merged)
+    index_all_sections(new_index_name, skip=skip, merged=merged, debug=debug)
+    if not merged:
+        index_public_sheets(new_index_name)
+
+    end = datetime.now()
+    print "Elapsed time: %s" % str(end-start)
+
 # adapted to python from library.js:sjs.search.get_query_object()
 def query(q, override=False):
 
