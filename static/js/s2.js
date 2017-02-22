@@ -9347,8 +9347,8 @@ var SearchResultList = React.createClass({
 
     var commentaryNode = new Sefaria.search.FilterNode();
 
-    for (var j = 0; j < Sefaria.toc.length; j++) {
-      var b = walk.call(this, Sefaria.toc[j]);
+    for (var j = 0; j < Sefaria.search_toc.length; j++) {
+      var b = walk.call(this, Sefaria.search_toc[j]);
       if (b) filters.push(b);
 
       // Remove after commentary refactor ?
@@ -9381,34 +9381,17 @@ var SearchResultList = React.createClass({
     function walk(branch, parentNode) {
       var node = new Sefaria.search.FilterNode();
 
-      //Remove after commentary refactor
       node["docCount"] = 0;
-      //
 
       if ("category" in branch) {
         // Category node
-        // Remove after commentary refactor
-        if (branch["category"] == "Commentary") {
-          // Special case commentary
-          path.unshift(branch["category"]); // Place "Commentary" at the *beginning* of the path
-          extend(node, {
-            "title": parentNode.title,
-            "path": path.join("/"),
-            "heTitle": parentNode.heTitle
-          });
-        } else {
-          // End commentary code
 
-          path.push(branch["category"]); // Place this category at the *end* of the path
-          extend(node, {
-            "title": path.slice(-1)[0],
-            "path": path.join("/"),
-            "heTitle": branch["heCategory"]
-          });
-
-          // Remove after commentary refactor
-        }
-        // End commentary code
+        path.push(branch["category"]); // Place this category at the *end* of the path
+        extend(node, {
+          "title": path.slice(-1)[0],
+          "path": path.join("/"),
+          "heTitle": branch["heCategory"]
+        });
 
         for (var j = 0; j < branch["contents"].length; j++) {
           var b = walk.call(this, branch["contents"][j], node);
@@ -9428,54 +9411,20 @@ var SearchResultList = React.createClass({
         var rawNode = rawTree;
         var i;
 
-        // Remove try and entire catch after commentary refactor
-        try {
-          for (i = 0; i < path.length; i++) {
-            //For TOC nodes that we don't have results for, we catch the exception below.  For commentary / commentary2, we catch it here.
-            rawNode = rawNode[path[i]];
-          }
-          node["docCount"] += rawNode.docCount;
-        } catch (e) {
-          if (path[0] == "Commentary") {
-            rawNode = rawTree["Commentary2"];
-            for (i = 1; i < path.length; i++) {
-              rawNode = rawNode[path[i]];
-            }
-            node["docCount"] += rawNode.docCount;
-          } else {
-            throw e;
-          }
+        for (i = 0; i < path.length; i++) {
+          //For TOC nodes that we don't have results for, we catch the exception below.
+          rawNode = rawNode[path[i]];
         }
+        node["docCount"] += rawNode.docCount;
 
         // Do we need both of these in the registry?
         registry[node.getId()] = node;
         registry[node.path] = node;
 
-        // Remove after commentary refactor
-        if ("category" in branch && branch["category"] == "Commentary") {
-          // Special case commentary
-          commentaryNode.append(node);
-          path.shift();
-          return false;
-        }
-        // End commentary code
-
         path.pop();
         return node;
       } catch (e) {
-        // Remove after commentary refactor
-        if ("category" in branch && branch["category"] == "Commentary") {
-          // Special case commentary
-          path.shift();
-        } else {
-          // End commentary code
-
-          path.pop();
-
-          // Remove after commentary refactor
-        }
-        // End commentary code
-
+        path.pop();
         return false;
       }
     }
