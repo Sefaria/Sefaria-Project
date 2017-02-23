@@ -5115,7 +5115,8 @@ var SheetsNav = React.createClass({
       var content = React.createElement(GroupPage, {
         hideNavHeader: this.props.hideNavHeader,
         multiPanel: this.props.multiPanel,
-        group: this.props.group });
+        group: this.props.group,
+        width: this.state.width });
     } else if (this.props.tag) {
       var content = React.createElement(TagSheetsPage, {
         tag: this.props.tag,
@@ -5472,28 +5473,42 @@ var GroupPage = React.createClass({
     }.bind(this)) : sheets;
     sheets = sheets ? sheets.map(function (sheet) {
       return React.createElement(GroupSheetListing, { sheet: sheet, multiPanel: this.props.multiPanel, setSheetTag: this.props.setSheetTag });
-    }.bind(this)) : React.createElement(LoadingMessage, null);
+    }.bind(this)) : [React.createElement(LoadingMessage, null)];
 
     return React.createElement(
       'div',
-      { className: 'content groupsPage sheetList hasFooter' },
+      { className: 'content groupPage sheetList hasFooter' },
       React.createElement(
         'div',
         { className: 'contentInner' },
         group.imageUrl ? React.createElement('img', { className: 'groupImage', src: group.imageUrl }) : null,
         React.createElement(
-          'h1',
-          null,
+          'div',
+          { className: 'groupInfo' },
           React.createElement(
-            'span',
-            { className: 'int-en' },
-            this.props.group
+            'h1',
+            null,
+            React.createElement(
+              'span',
+              { className: 'int-en' },
+              this.props.group
+            ),
+            React.createElement(
+              'span',
+              { className: 'int-he' },
+              this.props.group
+            )
           ),
-          React.createElement(
-            'span',
-            { className: 'int-he' },
-            this.props.group
-          )
+          group.websiteUrl ? React.createElement(
+            'a',
+            { className: 'groupWebsite', target: '_blank', href: group.websiteUrl },
+            group.websiteUrl
+          ) : null,
+          group.description ? React.createElement(
+            'div',
+            { className: 'groupDescription' },
+            group.description
+          ) : null
         ),
         React.createElement(
           'div',
@@ -5541,7 +5556,7 @@ var GroupPage = React.createClass({
             )
           )
         ),
-        this.props.hideNavHeader ? React.createElement(
+        groupTagList && groupTagList.length ? React.createElement(
           'h2',
           { className: 'splitHeader' },
           React.createElement(
@@ -5562,7 +5577,32 @@ var GroupPage = React.createClass({
           )
         ) : null,
         this.state.showTags ? React.createElement(TwoOrThreeBox, { content: groupTagList, width: this.props.width }) : null,
-        sheets
+        sheets.length ? sheets : React.createElement(
+          'div',
+          { className: 'emptyMessage' },
+          React.createElement(
+            'span',
+            { className: 'int-en' },
+            'There are no sheets in this group yet. ',
+            React.createElement(
+              'a',
+              { href: '/sheets/new' },
+              'Start a sheet'
+            ),
+            '.'
+          ),
+          React.createElement(
+            'span',
+            { className: 'int-he' },
+            'There are no sheets in this group yet. ',
+            React.createElement(
+              'a',
+              { href: '/sheets/new' },
+              'Start a sheet'
+            ),
+            '.'
+          )
+        )
       ),
       React.createElement(
         'footer',

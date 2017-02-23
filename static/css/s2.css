@@ -3173,34 +3173,28 @@ input {
 .lexicon-results .entry .definition-content{
     color: #444;
 }
-
 .lexicon-results ol {
 	list-style-position: inside;
 }
-
 .lexicon-results .entry .definition li.sense{
 	margin-left: 15px;
 	padding: 0px;
 	/*margin: 0;*/
 }
-
 .lexicon-results .entry .definition ol.senses{
 	/*list-style-type: none;*/
 	padding-left: 0px;
 }
-
 .lexicon-results .entry .definition > li.sense{
 	/*list-style-type: none;*/
 	margin-left: 0px;
 }
-
 .lexicon-results .entry ol.definition {
 	list-style-type: none;
 	padding-top: 2px;
 	padding-left: 0px;
     margin: 0px;
 }
-
 /*.sense + .sense {
 	margin-top: 3px;
 	padding-top: 3px;
@@ -3209,36 +3203,30 @@ input {
 /*.lexicon-results a {
 	font-size: 12px;
 }*/
-
 .lexicon-results .attribution{
 
 }
-
 .lexicon-results .attribution span{
   display: block;
 }
-
 .lexicon-results .attribution a{
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
   color: #aaa;
   font-size: 10px;
 }
-
 .lexicon-content .headword.en, .lexicon-content .headword.he,
 .lexicon-content .definition-content.en, .lexicon-content .definition-content.he,
 .lexicon-content .lexicon-results .attribution{
   display: inline;
 }
-
 .lexicon-content .headword.he, .lexicon-content .definition-content.he{
   direction: rtl;
 }
-
 .lexicon-content .headword.en, .lexicon-content .definition-content.en{
   direction: ltr;
 }
 h2.splitHeader {
-  margin-bottom:50px;
+  margin-bottom: 10px;
   text-align: left;
 }
 h2.splitHeader .en {
@@ -3256,11 +3244,9 @@ h2.splitHeader .he {
   text-align:center;
   margin-bottom: 30px;
 }
-
 .sheetsNewButton a {
   font-color: inherit;
 }
-
 .sheet.userSheet .sheetTitle  {
    font-family: "adobe-garamond-pro", Georgia, serif;
    font-size: 20px;
@@ -3275,6 +3261,7 @@ h2.splitHeader .he {
 }
 .filterByTag {
   cursor: pointer;
+  text-transform: none
 }
 /*  Add back in when we're ready for tag/edit hover buttons on 'My Sheets'
 .sheet.userSheet:hover .sheetEditButtons {
@@ -3355,20 +3342,41 @@ content: "";
   color: #999;
   font-size: 15px;
 }
-.groupsPage .groupImage {
+.groupPage .groupImage {
   height: 200px;
   display: block;
   margin: 0 auto 50px;
 }
-.groupsPage h1 {
-  margin-top: 20px;
+.groupInfo {
+  margin-bottom: 50px;
 }
-.groupsPage .tabs {
+.groupPage h1 {
+  margin-top: 20px;
+  height: auto;
+}
+.groupPage .groupWebsite {
+  display: block;
+  text-align: center;
+  font-size: 17px;
+  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  margin-bottom: 20px;
+  color: #999;
+}
+.groupPage .groupDescription {
+  font-size: 16px;
+}
+.groupPage .tabs {
   text-align: center;
   margin-bottom: 20px;
 }
-.groupsPage .bubbleTab {
+.groupPage .bubbleTab {
   font-size: 16px;
+}
+.groupPage .emptyMessage {
+  text-align: center;
+}
+.groupPage .emptyMessage a {
+  text-decoration: underline;
 }
 /*** Interface lang - merge with static.css? ***/
 .readerApp.interface-hebrew .int-en{

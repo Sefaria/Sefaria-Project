@@ -4192,7 +4192,8 @@ var SheetsNav = React.createClass({
       var content = (<GroupPage
                         hideNavHeader={this.props.hideNavHeader}
                         multiPanel={this.props.multiPanel}
-                        group={this.props.group} />);
+                        group={this.props.group}
+                        width={this.state.width} />);
 
     } else if (this.props.tag) {
       var content = (<TagSheetsPage 
@@ -4418,19 +4419,29 @@ var GroupPage = React.createClass({
     }.bind(this)) : sheets;
     sheets = sheets ? sheets.map(function(sheet) {
       return (<GroupSheetListing sheet={sheet} multiPanel={this.props.multiPanel} setSheetTag={this.props.setSheetTag} />);
-    }.bind(this)) : (<LoadingMessage />);
+    }.bind(this)) : [<LoadingMessage />];
  
-    return (<div className="content groupsPage sheetList hasFooter">
+    return (<div className="content groupPage sheetList hasFooter">
               <div className="contentInner">
 
                 {group.imageUrl ? 
                   <img className="groupImage" src={group.imageUrl} />
                   : null }
 
-                <h1>
-                  <span className="int-en">{this.props.group}</span>
-                  <span className="int-he">{this.props.group}</span>
-                </h1>
+                <div className="groupInfo">
+                  <h1>
+                    <span className="int-en">{this.props.group}</span>
+                    <span className="int-he">{this.props.group}</span>
+                  </h1>
+
+                  {group.websiteUrl ? 
+                    <a className="groupWebsite" target="_blank" href={group.websiteUrl}>{group.websiteUrl}</a>
+                    : null }
+
+                  {group.description ?
+                    <div className="groupDescription">{group.description}</div>
+                    : null }
+                </div>
 
                 <div className="tabs">
                   <a className="bubbleTab active" onClick={this.setTab.bind(null, "sheets")}>
@@ -4447,13 +4458,13 @@ var GroupPage = React.createClass({
                   </a>
                 </div>
 
-                {this.props.hideNavHeader ?
-                 (<h2 className="splitHeader">
+                { groupTagList && groupTagList.length ?
+                  (<h2 className="splitHeader">
                     <span className="filterByTag" onClick={this.toggleSheetTags}>
                       <span className="int-en" >Filter By Tag <i className="fa fa-angle-down"></i></span>
                       <span className="int-he">סנן לפי תווית<i className="fa fa-angle-down"></i></span>
                      </span>
-                    {/*
+                     {/*
                     <span className="en actionText">Sort By:
                       <select value={this.props.mySheetSort} onChange={this.changeSortYourSheets}>
                        <option value="date">Recent</option>
@@ -4465,12 +4476,16 @@ var GroupPage = React.createClass({
                        <option value="views">הכי נצפה</option>
                      </select> <i className="fa fa-angle-down"></i></span>
                      */}
-
-                  </h2>) : null }
+                  </h2>) : null}
 
                 {this.state.showTags ? <TwoOrThreeBox content={groupTagList} width={this.props.width} /> : null}
 
-                {sheets}
+                {sheets.length ? 
+                  sheets 
+                  : <div className="emptyMessage">
+                    <span className="int-en">There are no sheets in this group yet. <a href="/sheets/new">Start a sheet</a>.</span>
+                    <span className="int-he">There are no sheets in this group yet. <a href="/sheets/new">Start a sheet</a>.</span>          
+                  </div> }
               </div>
             <footer id="footer" className="static sans">
               <Footer />
