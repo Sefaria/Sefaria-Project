@@ -236,12 +236,12 @@ class CommentaryAutoLinker(IncrementBaseTextDepthAutoLinker):
     Kohelet 3:2 <-> Sforno on Kohelet 3:2:1, Kohelet 3:2 <-> Sforno on Kohelet 3:2:2, etc.
     for each segment of text (comment) that is in 'Sforno on Kohelet 3:2'.
     """
-    class_key = 'commentary_increment_base_text_depth'
+    class_key = 'many_to_one'
     _generated_by_string = 'add_commentary_links'
 
 
 class MatchBaseTextDepthAutoLinker(BaseStructureAutoLinker):
-    class_key = 'match_base_text_depth'
+    class_key = 'one_to_one'
     def __init__(self, oref, **kwargs):
         super(MatchBaseTextDepthAutoLinker, self).__init__(oref, 0, **kwargs)
 

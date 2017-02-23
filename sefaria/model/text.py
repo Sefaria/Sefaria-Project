@@ -331,7 +331,7 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
             It's left as legacy code to estimate completion on a sparse text.
             Do not write code that depends on it.
         """
-        return getattr(self, 'base_text_mapping', None) == 'commentary_increment_base_text_depth'
+        return getattr(self, 'base_text_mapping', None) == 'many_to_one'
 
     def is_dependant_text(self):
         return getattr(self, 'dependence', None) is not None
