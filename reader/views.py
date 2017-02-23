@@ -508,6 +508,11 @@ def s2_group_sheets(request, group, authenticated):
     }, RequestContext(request))
 
 
+@login_required
+def s2_my_groups(request):
+    return s2_page(request, "myGroups")
+
+
 def s2_sheets_by_tag(request, tag):
     """
     Page of sheets by tag.

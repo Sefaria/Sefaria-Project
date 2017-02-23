@@ -27,7 +27,9 @@ class Group(abst.AbstractMongoRecord):
         "websiteUrl",  # url for group website
         "headerUrl",   # url of an image to use in header
         "coverUrl",    # url of an image to use as cover
-        "iconUrl",     # url of an image to use as icon
+        "imageUrl",    # url of an image to use as icon
+        "iconUrl",     # TODO Remove
+        "listed",      # Bool, whether to list group publicly
         "tag_order",   # list of strings, display order for sheet tags       
     ]
 
@@ -45,12 +47,33 @@ class Group(abst.AbstractMongoRecord):
             contents["members"] = []
         return contents
 
+    def listing_contents(self):
+        contents = {
+            "name": self.name,
+            "imageUrl": getattr(self, "imageUrl", None),
+            "memberCount": self.member_count()
+        }
+        return contents
+
+    def all_members(self):
+        """
+        Returns a list of all group members, regardless of sole
+        """
+        return (self.admins + self.publishers + self.members)
+
     def is_member(self, uid):
         """
         Returns true if `uid` is a member of this group, in any role
         """
-        return uid in (self.admins + self.publishers + self.members)
+        return uid in self.all_members()
+
+    def member_count(self):
+        return len(self.all_members())
 
 
 class GroupSet(abst.AbstractMongoSet):
     recordClass = Group
+
+    def for_user(self, uid):
+        self.__init__({"$or": [{"admins": uid}, {"publishers": uid}, {"members": uid}]}, sort=[("name", 1)])
+        return self

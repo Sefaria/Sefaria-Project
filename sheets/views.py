@@ -21,7 +21,7 @@ from django.contrib.auth.models import Group as DjangoGroup
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaIoBaseUpload
 
-from reader.views import s2_sheets, s2_sheets_by_tag, s2_group_sheets
+from reader.views import s2_sheets, s2_sheets_by_tag, s2_group_sheets, s2_my_groups
 
 # noinspection PyUnresolvedReferences
 from sefaria.client.util import jsonResponse, HttpResponse
@@ -441,6 +441,10 @@ def group_page(request, group):
 											}, RequestContext(request))
 
 
+def my_groups_page(request):
+	return s2_my_groups(request)	
+
+
 def edit_group_page(request, group=None):
 	if group:
 		group = group.replace("-", " ").replace("_", " ")
@@ -467,7 +471,10 @@ def groups_page(request):
 def groups_api(request, group=None):
 	if request.method == "GET":
 		if not group:
-			return jsonResponse({"error": "Please specify a group name"})	
+			return jsonResponse({
+				"private": [g.listing_contents() for g in GroupSet().for_user(request.user.id)],
+				"public": [g.listing_contents() for g in GroupSet({"listed": True})]
+			})	
 		group = Group().load({"name": group})
 		if not group:
 			return jsonResponse({"error": "No group named '%s'" % group})

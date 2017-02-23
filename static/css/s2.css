@@ -3296,7 +3296,6 @@ h2.splitHeader .he {
   cursor: pointer;
   color: #999;
   text-decoration: none;
-
 }
 .sheetButton:hover {
   text-decoration: underline;
@@ -3318,13 +3317,48 @@ color: #999;
 .tagString a:last-child:after {
 content: "";
 }
-#s2 .readerNavMenu.noHeader .groupsPage.content {
-  padding-top: 10px;
+.groupsList {
+  margin-top: 30px;
 }
-.groupsPage .groupCover {
-  max-width: 100%;
+.groupListing {
+  padding: 30px 0;
+}
+.groupListing + .groupListing {
+  border-top: 1px solid #ccc;
+}
+.groupListingImageBox {
+  background-color: white;
+  width: 60px;
+  height: 60px;
+  float: left;
+  margin-right: 20px;
+}
+.groupListingImage {
+  height: 100%;
+  width: 100%;
+}
+.groupListingImage.default {
+  width: 80%;
+  height: 80%;
+  margin: 10%;
+}
+.groupListingName {
   display: block;
-  margin: 0 auto;
+  font-size: 24px;
+  color: #666;
+  margin-bottom: 5px;
+}
+.groupListingName:hover {
+  color: #333;
+}
+.groupListingDetails {
+  color: #999;
+  font-size: 15px;
+}
+.groupsPage .groupImage {
+  height: 200px;
+  display: block;
+  margin: 0 auto 50px;
 }
 .groupsPage h1 {
   margin-top: 20px;
@@ -3459,7 +3493,14 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
   box-sizing: border-box;
   color: #333;
 }
-#editGroupPage .groupIcon,
+#groupDescription:focus {
+  outline: none;
+}
+#editGroupPage .groupImage {
+  max-width: 200px;
+  margin-bottom: 5px;
+  display: block;
+},
 #editGroupPage .groupCover {
   width: 100%;
   margin-bottom: 5px;

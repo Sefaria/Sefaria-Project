@@ -445,7 +445,7 @@ var ReaderApp = React.createClass({
             }
             break;
           case "account":
-            hist.title = "Sefaria About";
+            hist.title = "Sefaria Account";
             hist.url   = "account";
             hist.mode  = "account";
             break;
@@ -453,6 +453,11 @@ var ReaderApp = React.createClass({
             hist.title = "Sefaria Notifcations";
             hist.url   = "notifications";
             hist.mode  = "notifications";
+            break;
+          case "myGroups":
+            hist.title = "Sefaria Groups";
+            hist.url = "my/groups";
+            hist.mode = "myGroups";
             break;
           case "updates":
             hist.title = "New at Sefaria";
@@ -721,6 +726,10 @@ var ReaderApp = React.createClass({
       this.showLibrary();
     } else if (path == "sheets") {
       this.showSheets();
+    } else if (path == "sheets/private") {
+      this.showMySheets();
+    } else if (path == "my/groups") {
+      this.showMyGroups();
     } else if (Sefaria.isRef(path)) {
       this.openPanel(Sefaria.humanRef(path));
     }
@@ -1057,6 +1066,22 @@ var ReaderApp = React.createClass({
       this.setPanelState(0, updates);
     }
   },
+  showMySheets: function() {
+    var updates = {menuOpen: "sheets", sheetsTag: "My Sheets"};
+    if (this.props.multiPanel) {
+      this.setHeaderState(updates);
+    } else {
+      this.setPanelState(0, updates);
+    }
+  },
+  showMyGroups: function() {
+    var updates = {menuOpen: "myGroups"};
+    if (this.props.multiPanel) {
+      this.setHeaderState(updates);
+    } else {
+      this.setPanelState(0, updates);
+    }
+  },
   saveRecentlyViewed: function(panel, n) {
     if (panel.mode == "Connections" || !panel.refs.length) { return; }
     var ref  = panel.refs[0];
@@ -1128,6 +1153,7 @@ var ReaderApp = React.createClass({
                     updateSearchFilter={this.updateSearchFilterInHeader}
                     registerAvailableFilters={this.updateAvailableFiltersInHeader}
                     setUnreadNotificationsCount={this.setUnreadNotificationsCount}
+                    handleInAppLinkClick={this.handleInAppLinkClick}
                     headerMode={this.props.headerMode}
                     panelsOpen={panelStates.length}
                     analyticsInitialized={this.state.initialAnalyticsTracked} />) : null;
@@ -1232,6 +1258,7 @@ var Header = React.createClass({
     updateSearchFilter:          React.PropTypes.func,
     registerAvailableFilters:    React.PropTypes.func,
     setUnreadNotificationsCount: React.PropTypes.func,
+    handleInAppLinkClick: React.PropTypes.func,
     headerMesssage:              React.PropTypes.string,
     panelsOpen:                  React.PropTypes.number,
     analyticsInitialized:        React.PropTypes.bool,
@@ -1444,6 +1471,7 @@ var Header = React.createClass({
                           updateSearchFilter={this.props.updateSearchFilter}
                           registerAvailableFilters={this.props.registerAvailableFilters}
                           setUnreadNotificationsCount={this.props.setUnreadNotificationsCount}
+                          handleInAppLinkClick={this.props.handleInAppLinkClick}
                           hideNavHeader={true}
                           analyticsInitialized={this.props.analyticsInitialized}/>) : null;
 
@@ -1530,7 +1558,7 @@ var ReaderPanel = React.createClass({
     initialQuery:                React.PropTypes.string,
     initialAppliedSearchFilters: React.PropTypes.array,
     initialSheetsTag:            React.PropTypes.string,
-    initialState:                React.PropTypes.object, // if present, trumps all props above
+    initialState:                React.PropTypes.object, // if present, overrides all props above
     interfaceLang:               React.PropTypes.string,
     setCentralState:             React.PropTypes.func,
     onSegmentClick:              React.PropTypes.func,
@@ -2116,12 +2144,17 @@ var ReaderPanel = React.createClass({
 
     } else if (this.state.menuOpen === "account") {
       var menu = (<AccountPanel
+                    handleInAppLinkClick={this.props.handleInAppLinkClick}
                     interfaceLang={this.props.interfaceLang} />);
 
 
     } else if (this.state.menuOpen === "notifications") {
       var menu = (<NotificationsPanel 
                     setUnreadNotificationsCount={this.props.setUnreadNotificationsCount}
+                    interfaceLang={this.props.interfaceLang} />);
+
+    } else if (this.state.menuOpen === "myGroups") {
+      var menu = (<MyGroupsPanel
                     interfaceLang={this.props.interfaceLang} />);
 
     } else if (this.state.menuOpen === "updates") {
@@ -2756,6 +2789,7 @@ var BlockLink = React.createClass({
     heTitle:       React.PropTypes.string,
     target:        React.PropTypes.string,
     image:         React.PropTypes.string,
+    inAppLink:     React.PropTypes.bool,
     interfaceLink: React.PropTypes.bool
   },
   getDefaultProps: function() {
@@ -2765,7 +2799,8 @@ var BlockLink = React.createClass({
   },
   render: function() {
     var interfaceClass = this.props.interfaceLink ? 'int-' : '';
-    return (<a className="blockLink" href={this.props.target}>
+    var classes = classNames({blockLink: 1, inAppLink: this.props.inAppLink})
+    return (<a className={classes} href={this.props.target}>
               {this.props.image ? <img src={this.props.image} /> : null}
               <span className={`${interfaceClass}en`}>{this.props.title}</span>
               <span className={`${interfaceClass}he`}>{this.props.heTitle}</span>
@@ -4154,7 +4189,7 @@ var SheetsNav = React.createClass({
                         hideNavHeader={this.props.hideNavHeader} />);
 
     } else if (this.props.tag == "sefaria-groups") {
-      var content = (<GroupSheetsPage
+      var content = (<GroupPage
                         hideNavHeader={this.props.hideNavHeader}
                         multiPanel={this.props.multiPanel}
                         group={this.props.group} />);
@@ -4331,7 +4366,7 @@ var SheetsHomePage = React.createClass({
 });
 
 
-var GroupSheetsPage = React.createClass({
+var GroupPage = React.createClass({
   propTypes: {
     group: React.PropTypes.string.isRequired,
     width: React.PropTypes.number
@@ -4386,15 +4421,16 @@ var GroupSheetsPage = React.createClass({
     }.bind(this)) : (<LoadingMessage />);
  
     return (<div className="content groupsPage sheetList hasFooter">
-             {group && group.coverUrl ? 
-              <img className="groupCover" src={group.coverUrl} /> 
-                : null } 
               <div className="contentInner">
 
-                {this.props.hideNavHeader ? (<h1>
+                {group.imageUrl ? 
+                  <img className="groupImage" src={group.imageUrl} />
+                  : null }
+
+                <h1>
                   <span className="int-en">{this.props.group}</span>
                   <span className="int-he">{this.props.group}</span>
-                </h1>) : null}
+                </h1>
 
                 <div className="tabs">
                   <a className="bubbleTab active" onClick={this.setTab.bind(null, "sheets")}>
@@ -4476,9 +4512,8 @@ var EditGroupPage = React.createClass({
         name: null,
         description: null,
         websiteUrl: null,
+        imageUrl: null,
         headerUrl: null,
-        coverUrl: null,
-        iconUrl: null,
     };
   },
   uploadImage: function(field) {
@@ -4564,39 +4599,21 @@ var EditGroupPage = React.createClass({
           <textarea id="groupDescription" onChange={this.handleInputChange}>{this.state.description||null}</textarea>
         </div>
 
-        <div className="field quarterWidth">
+        <div className="field">
           <label>
-            <span className="int-en">Group Icon</span>
-            <span className="int-he">Group Icon</span>
+            <span className="int-en">Group Image</span>
+            <span className="int-he">Group Image</span>
           </label>
-          {this.state.iconUrl 
-            ? <img className="groupIcon" src={this.state.iconUrl} />
-            : <div className="groupIcon placeholder"></div>}
-          <div className="button white" onClick={this.uploadImage.bind(null, "iconUrl")}>
-            <span className="int-en">Upload Icon</span>
-            <span className="int-he">Upload Icon</span>
+          {this.state.imageUrl 
+            ? <img className="groupImage" src={this.state.imageUrl} />
+            : <div className="groupImage placeholder"></div>}
+          <div className="button white" onClick={this.uploadImage.bind(null, "imageUrl")}>
+            <span className="int-en">Upload Image</span>
+            <span className="int-he">Upload Image</span>
           </div>
           <div className="helperText">
             <span className="int-en">Recommended size: 350px x 350px or larger</span>
             <span className="int-he">Recommended size: 350px x 350px or larger</span>
-          </div>
-        </div>
-
-        <div className="field threeQuarterWidth">
-          <label>
-            <span className="int-en">Cover Image</span>
-            <span className="int-he">Cover Image</span>
-          </label>
-          {this.state.coverUrl 
-            ? <img className="groupCover" src={this.state.coverUrl} />
-            : <div className="groupCover placeholder"></div>}
-          <div className="button white" onClick={this.uploadImage.bind(null, "coverUrl")}>
-            <span className="int-en">Upload Cover</span>
-            <span className="int-he">Upload Cover</span>
-          </div>
-          <div className="helperText">
-            <span className="int-en">Recommended size: 1000px x 350px or larger</span>
-            <span className="int-he">Recommended size: 1000px x 350px or larger</span>
           </div>
         </div>
 
@@ -8139,12 +8156,18 @@ var AccountPanel = React.createClass({
   propTypes: {
     interfaceLang: React.PropTypes.string,
   },
+  componentDidMount: function() {
+    console.log($(".inAppLink"))
+    $(".inAppLink").on("click", this.props.handleInAppLinkClick);
+  },
   render: function() {
     var width = typeof window !== "undefined" ? $(window).width() : 1000;
     var accountContent = [
       (<BlockLink interfaceLink={true} target="/my/profile" title="Profile" heTitle="פרופיל" image="/static/img/profile.svg" />),
-      (<BlockLink interfaceLink={true} target="/sheets/private" title="Source Sheets" heTitle="דפי מקורות" image="/static/img/sheet.svg" />),
-      (<BlockLink interfaceLink={true} target="/coming-soon?my-notes" title="Notes" heTitle="רשומות" image="/static/img/note.svg" />),
+      (<BlockLink interfaceLink={true} target="/sheets/private" inAppLink={true} title="Source Sheets" heTitle="דפי מקורות" image="/static/img/sheet.svg" />),
+      (Sefaria.is_moderator
+       ? (<BlockLink interfaceLink={true} target="/my/groups" inAppLink={true} title="Groups" heTitle="קבוצות" image="/static/img/group.svg" />)
+       : (<BlockLink interfaceLink={true} target="/coming-soon?my-notes" title="Notes" heTitle="רשומות" image="/static/img/note.svg" />)),
       (<BlockLink interfaceLink={true} target="/coming-soon?reading-history" title="Reading History" heTitle="היסטורית קריאה" image="/static/img/readinghistory.svg" />),
       (<BlockLink interfaceLink={true} target="/settings/account" title="Settings" heTitle="הגדרות" image="/static/img/settings.svg" />),
       (<BlockLink interfaceLink={true} target="/logout" title="Log Out" heTitle="ניתוק" image="/static/img/logout.svg" />)
@@ -8280,6 +8303,82 @@ var NotificationsPanel = React.createClass({
                     </footer>
         </div>
       </div>);
+  }
+});
+
+
+var MyGroupsPanel = React.createClass({
+  propTypes: {
+    interfaceLang: React.PropTypes.string,
+  },
+  componentDidMount: function() {
+    if (!Sefaria.groupsList()) {
+      Sefaria.groupsList(function() {
+        this.forceUpdate();
+      }.bind(this));
+    }
+  },
+  render: function() {
+    var groupsList = Sefaria.groupsList();
+    var classes = {myGroupsPanel: 1, systemPanel: 1, readerNavMenu: 1, noHeader: 1 };
+    var classStr = classNames(classes);
+    return (
+      <div className={classStr}>
+        <div className="content hasFooter">
+          <div className="contentInner">
+            <h1>
+              <span className="int-en">My Groups</span>
+              <span className="int-he">הקבוצות שלי</span>
+            </h1>
+            <center>
+              <a className="button white" href="/groups/new">
+                <span className="int-en">Create a Group</span>
+                <span className="int-he">ליצור קבוצה</span>
+              </a>
+            </center>
+
+            <div className="groupsList">
+              { groupsList ? 
+                  groupsList.private.map(function(item) {
+                    return <GroupListing data={item} />
+                  })
+                  : <LoadingMessage />
+              }
+            </div>
+
+          </div>
+          <footer id="footer" className={`interface-${this.props.interfaceLang} static sans`}>
+            <Footer />
+          </footer>
+        </div>
+      </div>);
+  }
+});
+
+
+var GroupListing = React.createClass({
+  propTypes: {
+    data: React.PropTypes.object.isRequired,
+  },
+  render: function() {
+    var imageUrl = this.props.data.imageUrl || "/static/img/group.svg"
+    var imageClass = classNames({groupListingImage: 1, default: !this.props.data.imageUrl});
+    var groupUrl = "/groups/" + this.props.data.name.replace(/\s/g, "-")
+    return (<div className="groupListing">
+              <a href={groupUrl}>
+                <div className="groupListingImageBox">
+                  <img className={imageClass} src={imageUrl} />
+                </div>
+              </a>
+              <a href={groupUrl} className="groupListingName">{this.props.data.name}</a>
+              <div className="groupListingDetails">
+                <span className="groupListingMemberCount">
+                  <span className="int-en">{this.props.data.memberCount} Members</span>
+                  <span className="int-he">{this.props.data.memberCount} חברים</span>          
+                </span>
+              </div>
+              <div className="clearFix"></div>
+            </div>);
   }
 });
 

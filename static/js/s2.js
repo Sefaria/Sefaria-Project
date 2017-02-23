@@ -466,7 +466,7 @@ var ReaderApp = React.createClass({
             }
             break;
           case "account":
-            hist.title = "Sefaria About";
+            hist.title = "Sefaria Account";
             hist.url = "account";
             hist.mode = "account";
             break;
@@ -474,6 +474,11 @@ var ReaderApp = React.createClass({
             hist.title = "Sefaria Notifcations";
             hist.url = "notifications";
             hist.mode = "notifications";
+            break;
+          case "myGroups":
+            hist.title = "Sefaria Groups";
+            hist.url = "my/groups";
+            hist.mode = "myGroups";
             break;
           case "updates":
             hist.title = "New at Sefaria";
@@ -748,6 +753,10 @@ var ReaderApp = React.createClass({
       this.showLibrary();
     } else if (path == "sheets") {
       this.showSheets();
+    } else if (path == "sheets/private") {
+      this.showMySheets();
+    } else if (path == "my/groups") {
+      this.showMyGroups();
     } else if (Sefaria.isRef(path)) {
       this.openPanel(Sefaria.humanRef(path));
     }
@@ -1085,6 +1094,22 @@ var ReaderApp = React.createClass({
       this.setPanelState(0, updates);
     }
   },
+  showMySheets: function showMySheets() {
+    var updates = { menuOpen: "sheets", sheetsTag: "My Sheets" };
+    if (this.props.multiPanel) {
+      this.setHeaderState(updates);
+    } else {
+      this.setPanelState(0, updates);
+    }
+  },
+  showMyGroups: function showMyGroups() {
+    var updates = { menuOpen: "myGroups" };
+    if (this.props.multiPanel) {
+      this.setHeaderState(updates);
+    } else {
+      this.setPanelState(0, updates);
+    }
+  },
   saveRecentlyViewed: function saveRecentlyViewed(panel, n) {
     if (panel.mode == "Connections" || !panel.refs.length) {
       return;
@@ -1159,6 +1184,7 @@ var ReaderApp = React.createClass({
       updateSearchFilter: this.updateSearchFilterInHeader,
       registerAvailableFilters: this.updateAvailableFiltersInHeader,
       setUnreadNotificationsCount: this.setUnreadNotificationsCount,
+      handleInAppLinkClick: this.handleInAppLinkClick,
       headerMode: this.props.headerMode,
       panelsOpen: panelStates.length,
       analyticsInitialized: this.state.initialAnalyticsTracked }) : null;
@@ -1270,6 +1296,7 @@ var Header = React.createClass({
     updateSearchFilter: React.PropTypes.func,
     registerAvailableFilters: React.PropTypes.func,
     setUnreadNotificationsCount: React.PropTypes.func,
+    handleInAppLinkClick: React.PropTypes.func,
     headerMesssage: React.PropTypes.string,
     panelsOpen: React.PropTypes.number,
     analyticsInitialized: React.PropTypes.bool
@@ -1484,6 +1511,7 @@ var Header = React.createClass({
       updateSearchFilter: this.props.updateSearchFilter,
       registerAvailableFilters: this.props.registerAvailableFilters,
       setUnreadNotificationsCount: this.props.setUnreadNotificationsCount,
+      handleInAppLinkClick: this.props.handleInAppLinkClick,
       hideNavHeader: true,
       analyticsInitialized: this.props.analyticsInitialized }) : null;
 
@@ -1628,7 +1656,7 @@ var ReaderPanel = React.createClass({
     initialQuery: React.PropTypes.string,
     initialAppliedSearchFilters: React.PropTypes.array,
     initialSheetsTag: React.PropTypes.string,
-    initialState: React.PropTypes.object, // if present, trumps all props above
+    initialState: React.PropTypes.object, // if present, overrides all props above
     interfaceLang: React.PropTypes.string,
     setCentralState: React.PropTypes.func,
     onSegmentClick: React.PropTypes.func,
@@ -2244,10 +2272,14 @@ var ReaderPanel = React.createClass({
         key: this.state.key });
     } else if (this.state.menuOpen === "account") {
       var menu = React.createElement(AccountPanel, {
+        handleInAppLinkClick: this.props.handleInAppLinkClick,
         interfaceLang: this.props.interfaceLang });
     } else if (this.state.menuOpen === "notifications") {
       var menu = React.createElement(NotificationsPanel, {
         setUnreadNotificationsCount: this.props.setUnreadNotificationsCount,
+        interfaceLang: this.props.interfaceLang });
+    } else if (this.state.menuOpen === "myGroups") {
+      var menu = React.createElement(MyGroupsPanel, {
         interfaceLang: this.props.interfaceLang });
     } else if (this.state.menuOpen === "updates") {
       var menu = React.createElement(UpdatesPanel, {
@@ -3054,6 +3086,7 @@ var BlockLink = React.createClass({
     heTitle: React.PropTypes.string,
     target: React.PropTypes.string,
     image: React.PropTypes.string,
+    inAppLink: React.PropTypes.bool,
     interfaceLink: React.PropTypes.bool
   },
   getDefaultProps: function getDefaultProps() {
@@ -3063,9 +3096,10 @@ var BlockLink = React.createClass({
   },
   render: function render() {
     var interfaceClass = this.props.interfaceLink ? 'int-' : '';
+    var classes = classNames({ blockLink: 1, inAppLink: this.props.inAppLink });
     return React.createElement(
       'a',
-      { className: 'blockLink', href: this.props.target },
+      { className: classes, href: this.props.target },
       this.props.image ? React.createElement('img', { src: this.props.image }) : null,
       React.createElement(
         'span',
@@ -5078,7 +5112,7 @@ var SheetsNav = React.createClass({
       var content = React.createElement(AllSheetsPage, {
         hideNavHeader: this.props.hideNavHeader });
     } else if (this.props.tag == "sefaria-groups") {
-      var content = React.createElement(GroupSheetsPage, {
+      var content = React.createElement(GroupPage, {
         hideNavHeader: this.props.hideNavHeader,
         multiPanel: this.props.multiPanel,
         group: this.props.group });
@@ -5377,8 +5411,8 @@ var SheetsHomePage = React.createClass({
   }
 });
 
-var GroupSheetsPage = React.createClass({
-  displayName: 'GroupSheetsPage',
+var GroupPage = React.createClass({
+  displayName: 'GroupPage',
 
   propTypes: {
     group: React.PropTypes.string.isRequired,
@@ -5443,11 +5477,11 @@ var GroupSheetsPage = React.createClass({
     return React.createElement(
       'div',
       { className: 'content groupsPage sheetList hasFooter' },
-      group && group.coverUrl ? React.createElement('img', { className: 'groupCover', src: group.coverUrl }) : null,
       React.createElement(
         'div',
         { className: 'contentInner' },
-        this.props.hideNavHeader ? React.createElement(
+        group.imageUrl ? React.createElement('img', { className: 'groupImage', src: group.imageUrl }) : null,
+        React.createElement(
           'h1',
           null,
           React.createElement(
@@ -5460,7 +5494,7 @@ var GroupSheetsPage = React.createClass({
             { className: 'int-he' },
             this.props.group
           )
-        ) : null,
+        ),
         React.createElement(
           'div',
           { className: 'tabs' },
@@ -5593,9 +5627,8 @@ var EditGroupPage = React.createClass({
       name: null,
       description: null,
       websiteUrl: null,
-      headerUrl: null,
-      coverUrl: null,
-      iconUrl: null
+      imageUrl: null,
+      headerUrl: null
     };
   },
   uploadImage: function uploadImage(field) {
@@ -5757,34 +5790,34 @@ var EditGroupPage = React.createClass({
       ),
       React.createElement(
         'div',
-        { className: 'field quarterWidth' },
+        { className: 'field' },
         React.createElement(
           'label',
           null,
           React.createElement(
             'span',
             { className: 'int-en' },
-            'Group Icon'
+            'Group Image'
           ),
           React.createElement(
             'span',
             { className: 'int-he' },
-            'Group Icon'
+            'Group Image'
           )
         ),
-        this.state.iconUrl ? React.createElement('img', { className: 'groupIcon', src: this.state.iconUrl }) : React.createElement('div', { className: 'groupIcon placeholder' }),
+        this.state.imageUrl ? React.createElement('img', { className: 'groupImage', src: this.state.imageUrl }) : React.createElement('div', { className: 'groupImage placeholder' }),
         React.createElement(
           'div',
-          { className: 'button white', onClick: this.uploadImage.bind(null, "iconUrl") },
+          { className: 'button white', onClick: this.uploadImage.bind(null, "imageUrl") },
           React.createElement(
             'span',
             { className: 'int-en' },
-            'Upload Icon'
+            'Upload Image'
           ),
           React.createElement(
             'span',
             { className: 'int-he' },
-            'Upload Icon'
+            'Upload Image'
           )
         ),
         React.createElement(
@@ -5799,53 +5832,6 @@ var EditGroupPage = React.createClass({
             'span',
             { className: 'int-he' },
             'Recommended size: 350px x 350px or larger'
-          )
-        )
-      ),
-      React.createElement(
-        'div',
-        { className: 'field threeQuarterWidth' },
-        React.createElement(
-          'label',
-          null,
-          React.createElement(
-            'span',
-            { className: 'int-en' },
-            'Cover Image'
-          ),
-          React.createElement(
-            'span',
-            { className: 'int-he' },
-            'Cover Image'
-          )
-        ),
-        this.state.coverUrl ? React.createElement('img', { className: 'groupCover', src: this.state.coverUrl }) : React.createElement('div', { className: 'groupCover placeholder' }),
-        React.createElement(
-          'div',
-          { className: 'button white', onClick: this.uploadImage.bind(null, "coverUrl") },
-          React.createElement(
-            'span',
-            { className: 'int-en' },
-            'Upload Cover'
-          ),
-          React.createElement(
-            'span',
-            { className: 'int-he' },
-            'Upload Cover'
-          )
-        ),
-        React.createElement(
-          'div',
-          { className: 'helperText' },
-          React.createElement(
-            'span',
-            { className: 'int-en' },
-            'Recommended size: 1000px x 350px or larger'
-          ),
-          React.createElement(
-            'span',
-            { className: 'int-he' },
-            'Recommended size: 1000px x 350px or larger'
           )
         )
       ),
@@ -10365,9 +10351,12 @@ var AccountPanel = React.createClass({
   propTypes: {
     interfaceLang: React.PropTypes.string
   },
+  componentDidMount: function componentDidMount() {
+    $(".inAppLink").on("click", this.props.handleInAppLinkClick);
+  },
   render: function render() {
     var width = typeof window !== "undefined" ? $(window).width() : 1000;
-    var accountContent = [React.createElement(BlockLink, { interfaceLink: true, target: '/my/profile', title: 'Profile', heTitle: 'פרופיל', image: '/static/img/profile.svg' }), React.createElement(BlockLink, { interfaceLink: true, target: '/sheets/private', title: 'Source Sheets', heTitle: 'דפי מקורות', image: '/static/img/sheet.svg' }), React.createElement(BlockLink, { interfaceLink: true, target: '/coming-soon?my-notes', title: 'Notes', heTitle: 'רשומות', image: '/static/img/note.svg' }), React.createElement(BlockLink, { interfaceLink: true, target: '/coming-soon?reading-history', title: 'Reading History', heTitle: 'היסטורית קריאה', image: '/static/img/readinghistory.svg' }), React.createElement(BlockLink, { interfaceLink: true, target: '/settings/account', title: 'Settings', heTitle: 'הגדרות', image: '/static/img/settings.svg' }), React.createElement(BlockLink, { interfaceLink: true, target: '/logout', title: 'Log Out', heTitle: 'ניתוק', image: '/static/img/logout.svg' })];
+    var accountContent = [React.createElement(BlockLink, { interfaceLink: true, target: '/my/profile', title: 'Profile', heTitle: 'פרופיל', image: '/static/img/profile.svg' }), React.createElement(BlockLink, { interfaceLink: true, target: '/sheets/private', inAppLink: true, title: 'Source Sheets', heTitle: 'דפי מקורות', image: '/static/img/sheet.svg' }), Sefaria.is_moderator ? React.createElement(BlockLink, { interfaceLink: true, target: '/my/groups', inAppLink: true, title: 'Groups', heTitle: 'קבוצות', image: '/static/img/group.svg' }) : React.createElement(BlockLink, { interfaceLink: true, target: '/coming-soon?my-notes', title: 'Notes', heTitle: 'רשומות', image: '/static/img/note.svg' }), React.createElement(BlockLink, { interfaceLink: true, target: '/coming-soon?reading-history', title: 'Reading History', heTitle: 'היסטורית קריאה', image: '/static/img/readinghistory.svg' }), React.createElement(BlockLink, { interfaceLink: true, target: '/settings/account', title: 'Settings', heTitle: 'הגדרות', image: '/static/img/settings.svg' }), React.createElement(BlockLink, { interfaceLink: true, target: '/logout', title: 'Log Out', heTitle: 'ניתוק', image: '/static/img/logout.svg' })];
     accountContent = React.createElement(TwoOrThreeBox, { content: accountContent, width: width });
 
     var learnContent = [React.createElement(BlockLink, { interfaceLink: true, target: '/about', title: 'About', heTitle: 'אודות' }), React.createElement(BlockLink, { interfaceLink: true, target: '/help', title: 'Help', heTitle: 'עזרה' }), React.createElement(BlockLink, { interfaceLink: true, target: 'http://blog.sefaria.org', title: 'Blog', heTitle: 'בלוג' }), React.createElement(BlockLink, { interfaceLink: true, target: '/faq', title: 'FAQ', heTitle: 'שאלות נפוצות' }), React.createElement(BlockLink, { interfaceLink: true, target: '/educators', title: 'Educators', heTitle: 'מחנכים' }), React.createElement(BlockLink, { interfaceLink: true, target: '/team', title: 'Team', heTitle: 'צוות' })];
@@ -10511,6 +10500,134 @@ var NotificationsPanel = React.createClass({
           React.createElement(Footer, null)
         )
       )
+    );
+  }
+});
+
+var MyGroupsPanel = React.createClass({
+  displayName: 'MyGroupsPanel',
+
+  propTypes: {
+    interfaceLang: React.PropTypes.string
+  },
+  componentDidMount: function componentDidMount() {
+    if (!Sefaria.groupsList()) {
+      Sefaria.groupsList(function () {
+        this.forceUpdate();
+      }.bind(this));
+    }
+  },
+  render: function render() {
+    var groupsList = Sefaria.groupsList();
+    var classes = { myGroupsPanel: 1, systemPanel: 1, readerNavMenu: 1, noHeader: 1 };
+    var classStr = classNames(classes);
+    return React.createElement(
+      'div',
+      { className: classStr },
+      React.createElement(
+        'div',
+        { className: 'content hasFooter' },
+        React.createElement(
+          'div',
+          { className: 'contentInner' },
+          React.createElement(
+            'h1',
+            null,
+            React.createElement(
+              'span',
+              { className: 'int-en' },
+              'My Groups'
+            ),
+            React.createElement(
+              'span',
+              { className: 'int-he' },
+              'הקבוצות שלי'
+            )
+          ),
+          React.createElement(
+            'center',
+            null,
+            React.createElement(
+              'a',
+              { className: 'button white', href: '/groups/new' },
+              React.createElement(
+                'span',
+                { className: 'int-en' },
+                'Create a Group'
+              ),
+              React.createElement(
+                'span',
+                { className: 'int-he' },
+                'ליצור קבוצה'
+              )
+            )
+          ),
+          React.createElement(
+            'div',
+            { className: 'groupsList' },
+            groupsList ? groupsList.private.map(function (item) {
+              return React.createElement(GroupListing, { data: item });
+            }) : React.createElement(LoadingMessage, null)
+          )
+        ),
+        React.createElement(
+          'footer',
+          { id: 'footer', className: 'interface-' + this.props.interfaceLang + ' static sans' },
+          React.createElement(Footer, null)
+        )
+      )
+    );
+  }
+});
+
+var GroupListing = React.createClass({
+  displayName: 'GroupListing',
+
+  propTypes: {
+    data: React.PropTypes.object.isRequired
+  },
+  render: function render() {
+    var imageUrl = this.props.data.imageUrl || "/static/img/group.svg";
+    var imageClass = classNames({ groupListingImage: 1, default: !this.props.data.imageUrl });
+    var groupUrl = "/groups/" + this.props.data.name.replace(/\s/g, "-");
+    return React.createElement(
+      'div',
+      { className: 'groupListing' },
+      React.createElement(
+        'a',
+        { href: groupUrl },
+        React.createElement(
+          'div',
+          { className: 'groupListingImageBox' },
+          React.createElement('img', { className: imageClass, src: imageUrl })
+        )
+      ),
+      React.createElement(
+        'a',
+        { href: groupUrl, className: 'groupListingName' },
+        this.props.data.name
+      ),
+      React.createElement(
+        'div',
+        { className: 'groupListingDetails' },
+        React.createElement(
+          'span',
+          { className: 'groupListingMemberCount' },
+          React.createElement(
+            'span',
+            { className: 'int-en' },
+            this.props.data.memberCount,
+            ' Members'
+          ),
+          React.createElement(
+            'span',
+            { className: 'int-he' },
+            this.props.data.memberCount,
+            ' חברים'
+          )
+        )
+      ),
+      React.createElement('div', { className: 'clearFix' })
     );
   }
 });

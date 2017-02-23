@@ -1162,11 +1162,11 @@ Sefaria = extend(Sefaria, {
   },
   _groups: {},
   groups: function(group, callback) {
-    // Returns a list of all public source sheet tags, ordered by populartiy
+    // Returns data for an individual group
     var group = this._groups[group];
     if (group) {
       if (callback) { callback(group); }
-    } else {
+    } else if (callback) {
       var url = "/api/groups/" + group;
        Sefaria._api(url, function(data) {
           this._groups[group] = data;
@@ -1174,6 +1174,20 @@ Sefaria = extend(Sefaria, {
         }.bind(this));
       }
     return group;
+  },
+  _groupsList: null,
+  groupsList: function(callback) {
+    // Returns list of public and private groups
+    if (this._groupsList) {
+      if (callback) { callback(this._groupsList); }
+    } else if (callback) {
+      var url = "/api/groups";
+       Sefaria._api(url, function(data) {
+          this._groupsList = data;
+           if (callback) { callback(data); }
+        }.bind(this));
+      }
+    return this._groupsList;
   },
   hebrewCategory: function(cat) {
     // Returns a string translating `cat` into Hebrew.
