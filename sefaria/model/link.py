@@ -251,14 +251,14 @@ def get_link_counts(cat1, cat2):
     for c in [cat1, cat2]:
         ts = text.library.get_indexes_in_category(c)
         if len(ts) == 0:
-            return {"error": "No results for {}".format(q)}
+            return {"error": "No results for {}".format(c)}
         titles.append(ts)
 
     result = []
     for title1 in titles[0]:
         for title2 in titles[1]:
-            re1 = text.Ref(title1).regex()
-            re2 = text.Ref(title2).regex()
+            re1 = r"^{} \d".format(title1)
+            re2 = r"^{} \d".format(title2)
             links = LinkSet({"$and": [{"refs": {"$regex": re1}}, {"refs": {"$regex": re2}}]})  # db.links.find({"$and": [{"refs": {"$regex": re1}}, {"refs": {"$regex": re2}}]})
             if links.count():
                 result.append({"book1": title1.replace(" ","-"), "book2": title2.replace(" ", "-"), "count": links.count()})
