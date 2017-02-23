@@ -376,7 +376,7 @@ class StateNode(object):
         if title:
             snode = library.get_schema_node(title)
             if not snode:
-                snode = library.get_schema_node(title, with_commentary=True)
+                snode = library.get_schema_node(title)
             if not snode:
                 raise InputError(u"Can not resolve name: {}".format(title))
             if snode.is_default():

@@ -201,8 +201,8 @@ def linker_js(request):
     Javascript of Linker plugin.
     """
     attrs = {
-        "book_titles": json.dumps(model.library.full_title_list("en", with_commentary=True, with_commentators=False)
-                      + model.library.full_title_list("he", with_commentary=True, with_commentators=False))
+        "book_titles": json.dumps(model.library.full_title_list("en")
+                      + model.library.full_title_list("he"))
     }
     return render_to_response("js/linker.js", attrs, RequestContext(request), mimetype= "text/javascript")
 

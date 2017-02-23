@@ -3802,11 +3802,6 @@ class Library(object):
     def all_titles_regex_string(self, lang="en", with_terms=False): #, for_js=False):
         """
         :param lang: "en" or "he"
-        :param commentary: If true matches ONLY commentary records
-        :param with_commentary: If true, overrides `commentary` argument and matches BOTH "x on y" style records and simple records
-        Note that matching behavior differs between commentary=True and with_commentary=True.
-        commentary=True matches 'title', 'commentor' and 'commentee' named groups.
-        with_commentary=True matches only 'title', whether for plain records or commentary records.
         :param with_terms:
         :param for_js:
         :return:

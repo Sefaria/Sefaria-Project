@@ -1284,7 +1284,7 @@ def table_of_contents_api(request):
 
 @catch_error_as_json
 def text_titles_api(request):
-    return jsonResponse({"books": model.library.full_title_list(with_commentary=True)}, callback=request.GET.get("callback", None))
+    return jsonResponse({"books": model.library.full_title_list()}, callback=request.GET.get("callback", None))
 
 
 @catch_error_as_json
