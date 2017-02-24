@@ -4420,6 +4420,7 @@ var GroupPage = React.createClass({
     var group        = Sefaria.groups(this.props.group);
     var sheets       = group ? group.sheets : null;
     var groupTagList = group ? group.tags : null;
+    var isAdmin      = group && group.admins.map((user) => {user.uid}).filter((x) => { x == Sefaria._uid}).length !== 0;
 
     groupTagList = groupTagList ? groupTagList.map(function (tag) {
         var filterThisTag = this.filterYourSheetsByTag.bind(this, tag);
@@ -4465,10 +4466,12 @@ var GroupPage = React.createClass({
                     <span className="int-en">Members</span>
                     <span className="int-he">Members</span>                   
                   </a>
-                  <a className="bubbleTab" href={"/groups/" + this.props.group.replace(/\s/g, "-") + "/settings"}>
-                    <span className="int-en">Settings</span>
-                    <span className="int-he">Settings</span>          
-                  </a>
+                  { isAdmin ? 
+                    <a className="bubbleTab" href={"/groups/" + this.props.group.replace(/\s/g, "-") + "/settings"}>
+                      <span className="int-en">Settings</span>
+                      <span className="int-he">Settings</span>          
+                    </a>
+                    : null }
                 </div>
 
                 { groupTagList && groupTagList.length ?

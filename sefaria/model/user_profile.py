@@ -307,7 +307,8 @@ def public_user_data(uid):
 		"name": profile.full_name,
 		"profileUrl": "/profile/" + profile.slug,
 		"imageUrl": profile.gravatar_url_small,
-		"isStaff": is_staff
+		"isStaff": is_staff,
+		"uid": uid
 	}
 	public_user_data_cache[uid] = data
 	return data

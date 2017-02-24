@@ -4,6 +4,7 @@ Writes to MongoDB Collection: groups
 """
 from . import abstract as abst
 from sefaria.sheets import group_sheets, sheet_tag_counts
+from sefaria.model.user_profile import public_user_data
 
 import logging
 logger = logging.getLogger(__name__)
@@ -42,9 +43,11 @@ class Group(abst.AbstractMongoRecord):
     def contents(self, with_content=False, authenticated=False):
         contents = super(Group, self).contents()
         if with_content:
-            contents["sheets"]  = group_sheets(self.name, authenticated)["sheets"]
-            contents["tags"]    = sheet_tag_counts({"group": self.name})
-            contents["members"] = []
+            contents["sheets"]     = group_sheets(self.name, authenticated)["sheets"]
+            contents["tags"]       = sheet_tag_counts({"group": self.name})
+            contents["admins"]     = [public_user_data(uid) for uid in contents["admins"]]
+            contents["publishers"] = [public_user_data(uid) for uid in contents["publishers"]]
+            contents["members"]    = [public_user_data(uid) for uid in contents["members"]]
         return contents
 
     def listing_contents(self):

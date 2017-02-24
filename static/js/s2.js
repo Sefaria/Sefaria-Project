@@ -5488,6 +5488,11 @@ var GroupPage = React.createClass({
     var group = Sefaria.groups(this.props.group);
     var sheets = group ? group.sheets : null;
     var groupTagList = group ? group.tags : null;
+    var isAdmin = group && group.admins.map(function (user) {
+      user.uid;
+    }).filter(function (x) {
+      x == Sefaria._uid;
+    }).length !== 0;
 
     groupTagList = groupTagList ? groupTagList.map(function (tag) {
       var filterThisTag = this.filterYourSheetsByTag.bind(this, tag);
@@ -5575,7 +5580,7 @@ var GroupPage = React.createClass({
               'Members'
             )
           ),
-          React.createElement(
+          isAdmin ? React.createElement(
             'a',
             { className: 'bubbleTab', href: "/groups/" + this.props.group.replace(/\s/g, "-") + "/settings" },
             React.createElement(
@@ -5588,7 +5593,7 @@ var GroupPage = React.createClass({
               { className: 'int-he' },
               'Settings'
             )
-          )
+          ) : null
         ),
         groupTagList && groupTagList.length ? React.createElement(
           'h2',
