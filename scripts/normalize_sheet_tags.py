@@ -25,9 +25,17 @@ for sheet in sheets:
 	oldTags = olddoc["tags"];
 
 	for tag in oldTags:
-		normTags.append(titlecase(tag))
+		if "," in tag:
+			commaSeparatedTags = tag.split(',')
+			for commaSeparatedTag in commaSeparatedTags:
+				normTags.append(titlecase(commaSeparatedTag.strip()))
+
+		else:
+			normTags.append(titlecase(tag))
 
 	newdoc = olddoc
+	normTags = list(set(normTags)) 	# tags list should be unique
+
 	newdoc["tags"] = normTags
 
 
@@ -40,4 +48,3 @@ for sheet in sheets:
 
 
 	db.sheets.update({'_id': olddoc["_id"]}, newdoc );
-	
