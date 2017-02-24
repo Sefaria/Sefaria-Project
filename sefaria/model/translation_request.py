@@ -187,11 +187,8 @@ def process_version_state_change_in_translation_requests(version, **kwargs):
 
 
 def process_index_delete_in_translation_requests(indx, **kwargs):
-    if indx.is_commentary():
-        pattern = ur'^{} on '.format(re.escape(indx.title))
-    else:
-        commentators = text.IndexSet({"categories.0": "Commentary"}).distinct("title")
-        pattern = ur"(^{} \d)|^({}) on {} \d".format(re.escape(indx.title), "|".join(commentators), re.escape(indx.title))
+    from sefaria.model.text import prepare_index_regex_for_dependency_process
+    pattern = prepare_index_regex_for_dependency_process(indx)
     TranslationRequestSet({"refs": {"$regex": pattern}}).delete()
 
 

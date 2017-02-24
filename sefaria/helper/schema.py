@@ -26,6 +26,24 @@ Todo:
 """
 
 
+def handle_dependant_indices(title):
+    """
+    A generic method for handling dependant commentaries for methods in this package
+    :param title: Title of book being changed
+    """
+    dependant_indices = library.get_dependant_indices(title, dependence_type='commentary', structure_match=True,
+                                                      full_records=True)
+    if dependant_indices.count() == 0:
+        return
+
+    print "{}Warning! Commentary linking will be removed for {} texts{}".\
+        format('\033[93m', dependant_indices.count(), '\033[0m')  # The text prints in yellow
+
+    for record in dependant_indices:
+        record.base_text_mapping = None
+        record.save()
+
+
 def insert_last_child(new_node, parent_node):
     return attach_branch(new_node, parent_node, len(parent_node.children))
 
@@ -49,8 +67,7 @@ def attach_branch(new_node, parent_node, place=0):
 
     # Add node to versions & commentary versions
     vs = [v for v in index.versionSet()]
-    vsc = [v for v in library.get_commentary_versions_on_book(index.title)]
-    for v in vs + vsc:
+    for v in vs:
         pc = v.content_node(parent_node)
         pc[new_node.key] = new_node.create_skeleton()
         v.save(override_dependencies=True)
@@ -62,6 +79,8 @@ def attach_branch(new_node, parent_node, place=0):
     index.save(override_dependencies=True)
     library.rebuild()
     refresh_version_state(index.title)
+
+    handle_dependant_indices(index.title)
 
 
 def remove_branch(node):
@@ -79,8 +98,7 @@ def remove_branch(node):
     # todo: commentary linkset
 
     vs = [v for v in index.versionSet()]
-    vsc = [v for v in library.get_commentary_versions_on_book(index.title)]
-    for v in vs + vsc:
+    for v in vs:
         assert isinstance(v, Version)
         pc = v.content_node(parent)
         del pc[node.key]
@@ -91,6 +109,8 @@ def remove_branch(node):
     index.save(override_dependencies=True)
     library.rebuild()
     refresh_version_state(index.title)
+
+    handle_dependant_indices(index.title)
 
 
 def reorder_children(parent_node, new_order):
@@ -131,8 +151,7 @@ def merge_default_into_parent(parent_node):
 
     # Repair all versions
     vs = [v for v in index.versionSet()]
-    vsc = [v for v in library.get_commentary_versions_on_book(index.title)]
-    for v in vs + vsc:
+    for v in vs:
         assert isinstance(v, Version)
         if is_root:
             v.chapter = v.chapter["default"]
@@ -158,6 +177,8 @@ def merge_default_into_parent(parent_node):
     library.rebuild()
     refresh_version_state(index.title)
 
+    handle_dependant_indices(index.title)
+
 
 def convert_simple_index_to_complex(index):
     """
@@ -175,8 +196,7 @@ def convert_simple_index_to_complex(index):
 
     # Repair all version
     vs = [v for v in index.versionSet()]
-    vsc = [v for v in library.get_commentary_versions_on_book(index.title)]
-    for v in vs + vsc:
+    for v in vs:
         assert isinstance(v, Version)
         v.chapter = {"default": v.chapter}
         v.save(override_dependencies=True)
@@ -197,6 +217,8 @@ def convert_simple_index_to_complex(index):
     library.rebuild()
     refresh_version_state(index.title)
 
+    handle_dependant_indices(index.title)
+
 
 def change_parent(node, new_parent, place=0):
     """
@@ -215,7 +237,6 @@ def change_parent(node, new_parent, place=0):
     linkset = [l for l in node.ref().linkset()]
 
     vs = [v for v in index.versionSet()]
-    vsc = [v for v in library.get_commentary_versions_on_book(index.title)]
     for v in vs + vsc:
         assert isinstance(v, Version)
         old_parent_content = v.content_node(old_parent)
@@ -239,8 +260,10 @@ def change_parent(node, new_parent, place=0):
 
     refresh_version_state(index.title)
 
+    handle_dependant_indices(index.title)
 
-def refresh_version_state(base_title):
+
+def refresh_version_state(title):
     """
     ** VersionState is *not* altered on Index save.  It is only created on Index creation.
     ^ It now seems that VersionState is referenced on Index save
@@ -250,12 +273,11 @@ def refresh_version_state(base_title):
     VersionState.refresh() assumes the structure of content has not changed.
     To regenerate VersionState, we save the flags, delete the old one, and regenerate a new one.
     """
-    vtitles = library.get_commentary_version_titles_on_book(base_title) + [base_title]
-    for title in vtitles:
-        vs = VersionState(title)
-        flags = vs.flags
-        vs.delete()
-        VersionState(title, {"flags": flags})
+
+    vs = VersionState(title)
+    flags = vs.flags
+    vs.delete()
+    VersionState(title, {"flags": flags})
 
 
 def change_node_title(snode, old_title, lang, new_title):
@@ -409,10 +431,7 @@ def change_node_structure(ja_node, section_names, address_types=None, upsize_in_
 
         return Ref(_obj=d).normal()
 
-    commentators = library.get_commentary_version_titles_on_book(ja_node.index.title)
-    commentators = [c.replace(u' on {}'.format(ja_node.ref().normal()), u'') for c in commentators]
-    ref_regex_str = ja_node.ref().regex(anchored=False)
-    identifier = ur"(^{})|(^({}) on {})".format(ref_regex_str, "|".join(commentators), ref_regex_str)
+    identifier = ja_node.ref().regex(anchored=False)
 
     def needs_fixing(ref_string, *args):
         if re.search(identifier, ref_string) is None:
@@ -440,9 +459,8 @@ def change_node_structure(ja_node, section_names, address_types=None, upsize_in_
     ja_node.index = library.get_index(ja_node.index.title)
 
     vs = [v for v in index.versionSet()]
-    vsc = [v for v in library.get_commentary_versions_on_book(index.title)]
     print 'Updating Versions'
-    for v in vs + vsc:
+    for v in vs:
         assert isinstance(v, Version)
         if v.get_index() == index:
             chunk = TextChunk(ja_node.ref(), lang=v.language, vtitle=v.versionTitle)
@@ -471,7 +489,8 @@ def change_node_structure(ja_node, section_names, address_types=None, upsize_in_
 
     library.rebuild()
     refresh_version_state(index.title)
-    # For each commentary version, refresh its VS
+
+    handle_dependant_indices(index.title)
 
 
 def cascade(ref_identifier, rewriter=lambda x: x, needs_rewrite=lambda x: True, skip_history=False):
@@ -586,10 +605,7 @@ def cascade(ref_identifier, rewriter=lambda x: x, needs_rewrite=lambda x: True, 
         ref_identifier = Ref(ref_identifier)
     assert isinstance(ref_identifier, Ref)
 
-    commentators = library.get_commentary_version_titles_on_book(ref_identifier.book)
-    commentators = [item for c in commentators for item in Ref(c).regex(as_list=True, anchored=False)]
-    ref_regex = ref_identifier.regex(anchored=False, as_list=True)
-    identifier = ref_regex + commentators
+    identifier = ref_identifier.regex(anchored=False, as_list=True)
 
     # titles = re.compile(identifier)
 
@@ -693,8 +709,6 @@ def migrate_to_complex_structure(title, schema, mappings):
 
     #are there commentaries? Need to move the text for them to conform to the new structure
     #basically a repeat process of the above, sans creating the index record
-    commentaries = library.get_commentary_versions_on_book(title)
-    migrate_versions_of_text(commentaries, mappings, title, temp_index.title, temp_index)
     #duplicate versionstate
     #TODO: untested
     vstate_old = VersionState().load({'title':title })
@@ -703,6 +717,8 @@ def migrate_to_complex_structure(title, schema, mappings):
     vstate_new.save()
 
     cascade(title, rewriter, needs_rewrite)
+
+    handle_dependant_indices(title)
 
 
 def migrate_versions_of_text(versions, mappings, orig_title, new_title, base_index):

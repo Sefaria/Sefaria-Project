@@ -25,7 +25,7 @@ def test_rename_category():
 
 
 def test_get_commentary_texts_list():
-    l = tm.library.get_commentary_version_titles()
+    l = tm.library.get_dependant_indices()
     assert u'Baal HaTurim on Genesis' in l
     assert u'Bartenura on Mishnah Eduyot' in l
     assert u'Tosafot on Pesachim' in l
