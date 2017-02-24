@@ -36,7 +36,7 @@ def make_path(doc, format, extension=None):
     """
     Returns the full path and file name for exporting 'doc' in 'format'.
     """
-    if doc["categories"][0] not in ORDER and doc["categories"][0] != "Commentary":
+    if doc["categories"][0] not in ORDER:
         doc["categories"].insert(0, "Other")
     path = "%s/%s/%s/%s/%s/%s.%s" % (SEFARIA_EXPORT_PATH,
                                             format,
@@ -418,25 +418,15 @@ def export_all_merged():
             if prepped_text:
                 write_text_doc_to_disk(prepped_text)
 
-
 def export_schemas():
     path = SEFARIA_EXPORT_PATH + "/schemas/"
     if not os.path.exists(path):
         os.makedirs(path)
-    for i in library.all_index_records(with_commentary=True):
+    for i in library.all_index_records():
         title = i.title.replace(" ", "_")
         with open(path + title + ".json", "w") as f:
             try:
-                if not isinstance(i, CommentaryIndex):
-                    f.write(make_json(i.contents(v2=True)).encode('utf-8'))
-                else:
-                    explicit_commentary_index = {
-                        'title': i.title,
-                        'categories': [i.categories[1], i.categories[0]] + i.categories[2:],  # the same as the display order
-                        'schema': i.schema,
-                        'authors' : getattr(i, "authors", None),
-                    }
-                    f.write(make_json(explicit_commentary_index).encode('utf-8'))
+                f.write(make_json(i.contents(v2=True)).encode('utf-8'))
 
             except InputError as e:
                 print "InputError: %s" % e
@@ -451,7 +441,6 @@ def export_toc():
     toc = library.get_toc()
     with open(SEFARIA_EXPORT_PATH + "/table_of_contents.json", "w") as f:
         f.write(make_json(toc).encode('utf-8'))
-
 
 def export_links():
     """
@@ -498,7 +487,7 @@ def export_links():
             links_by_book[book_link] += 1
             if link["type"] not in ("commentary", "Commentary", "targum", "Targum"):
                 links_by_book_without_commentary[book_link] += 1
-    
+
     def write_aggregate_file(counter, filename):
         with open(SEFARIA_EXPORT_PATH + "/links/%s" % filename, 'wb') as csvfile:
             writer = csv.writer(csvfile)

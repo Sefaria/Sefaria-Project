@@ -40,7 +40,7 @@ from sefaria.system.exceptions import InputError, PartialRefInputError, BookName
 from sefaria.client.util import jsonResponse
 from sefaria.history import text_history, get_maximal_collapsed_activity, top_contributors, make_leaderboard, make_leaderboard_condition, text_at_revision, record_version_deletion, record_index_deletion
 from sefaria.system.decorators import catch_error_as_json
-from sefaria.summaries import flatten_toc, get_or_make_summary_node, REORDER_RULES
+from sefaria.summaries import flatten_toc, get_or_make_summary_node
 from sefaria.sheets import get_sheets_for_ref, get_public_sheets, get_sheets_by_tag, user_sheets, user_tags, recent_public_tags, sheet_to_dict, get_top_sheets, make_tag_list, group_sheets
 from sefaria.utils.util import list_depth, text_preview
 from sefaria.utils.hebrew import hebrew_plural, hebrew_term, encode_hebrew_numeral, encode_hebrew_daf, is_hebrew, strip_cantillation, has_cantillation
@@ -602,7 +602,7 @@ def edit_text(request, ref=None, lang=None, version=None):
                 initJSON = json.dumps(text)
         except:
             index = library.get_index(ref)
-            if index: # a commentator titlein
+            if index:
                 ref = None
                 initJSON = json.dumps({"mode": "add new", "newTitle": index.contents()['title']})
     else:
@@ -794,7 +794,7 @@ def make_alt_toc_html(alt, index):
         elif includeSections:
             # Display each section included in node.wholeRef
             # todo check case where wholeRef points to complex node
-            # todo check case where wholeRef points to book name (root of simple index or commentary index)
+            # todo check case where wholeRef points to book name (root of simple index)
 
             target_ref   = Ref(node.wholeRef)
 
@@ -990,20 +990,15 @@ def text_toc(request, oref):
     versions      = VersionSet({"title": title})
 
     categories    = index.categories[:]
-    if categories[0] in REORDER_RULES:
-        categories = REORDER_RULES[categories[0]] + categories[1:]
-    if categories[0] == "Commentary":
-        categories = [categories[1], "Commentary", index.toc_contents()["commentator"]]
     cat_slices    = [categories[:n+1] for n in range(len(categories))]  # successive sublists of cats, for category links
 
-    c_titles      = model.library.get_commentary_version_titles_on_book(title, with_commentary2=True)
-    c_indexes     = [library.get_index(commentary) for commentary in c_titles]
+    c_indexes     = library.get_dependant_indices(book_title=title, dependence_type='Commentary', full_records=True)
     commentaries  = [i.toc_contents() for i in c_indexes]
 
     if index.is_complex():
         zoom = 1
     else:
-        zoom = 0 if index.nodes.depth == 1 else 2 if "Commentary" in index.categories else 1
+        zoom = 0 if index.nodes.depth == 1 else 2 if getattr(index, 'dependence', None) == "Commentary" else 1
         zoom = int(request.GET.get("zoom", zoom))
     toc_html = make_toc_html(oref, zoom=zoom)
 
@@ -1022,15 +1017,14 @@ def text_toc(request, oref):
         if talmud and count_strings:
             count_strings["he"] = count_strings["he"].replace("Dappim", "Amudim")
             count_strings["en"] = count_strings["en"].replace("Dappim", "Amudim")
-        if "Commentary" in index.categories and state.get_flag("heComplete"):
+        if getattr(index, 'dependence', None) == "Commentary"  and state.get_flag("heComplete"):
             # Because commentary text is sparse, the code in make_toc_hmtl doens't work for completeness
             # Trust a flag if its set instead
             toc_html = toc_html.replace("heSome", "heAll")
 
     auths = index.author_objects()
     index_contents = index.contents(v2=True)
-    if index_contents["categories"][0] in REORDER_RULES:
-        index_contents["categories"] = REORDER_RULES[index_contents["categories"][0]] + index_contents["categories"][1:]
+
 
     template_vars = {
          "index":         index_contents,
@@ -1114,9 +1108,6 @@ def texts_category_list(request, cats):
     if category in ("Bavli", "Yerushalmi"):
         category = "Talmud " + category
         heCategory = hebrew_term("Talmud") + " " + heCategory
-    if "Commentary" in cats:
-        category   = category + " on " + cats[0]
-        heCategory = heCategory + u" על " + hebrew_term(cats[0])
 
     return render_to_response('text_category.html',
                              {
@@ -1300,7 +1291,7 @@ def table_of_contents_api(request):
 
 @catch_error_as_json
 def text_titles_api(request):
-    return jsonResponse({"books": model.library.full_title_list(with_commentary=True)}, callback=request.GET.get("callback", None))
+    return jsonResponse({"books": model.library.full_title_list()}, callback=request.GET.get("callback", None))
 
 
 @catch_error_as_json
@@ -1507,7 +1498,7 @@ def links_api(request, link_id_or_ref=None):
         return jsonResponse(get_links(link_id_or_ref, with_text), callback)
 
     if request.method == "POST":
-        def post_single_link(request, link, uid, **kwargs):
+        def _internal_do_post(request, link, uid, **kwargs):
             func = tracker.update if "_id" in link else tracker.add
             # use the correct function if params indicate this is a note save
             # func = save_note if "type" in j and j["type"] == "note" else save_link
@@ -1533,7 +1524,7 @@ def links_api(request, link_id_or_ref=None):
         else:
             uid = request.user.id
             kwargs = {}
-            post_single_link = csrf_protect(post_single_link)
+            _internal_do_post = csrf_protect(_internal_do_post)
 
         j = request.POST.get("json")
         if not j:
@@ -1544,7 +1535,7 @@ def links_api(request, link_id_or_ref=None):
             res = []
             for i in j:
                 try:
-                    retval = post_single_link(request, i, uid, **kwargs)
+                    retval = _internal_do_post(request, i, uid, **kwargs)
                     res.append({"status": "ok. Link: {} | {} Saved".format(retval["ref"], retval["anchorRef"])})
                 except Exception as e:
                     res.append({"error": "Link: {} | {} Error: {}".format(i["refs"][0], i["refs"][1], unicode(e))})
@@ -1557,7 +1548,7 @@ def links_api(request, link_id_or_ref=None):
                 res_slice = None
             return jsonResponse(res[:res_slice])
         else:
-            return jsonResponse(post_single_link(request, j, uid, **kwargs))
+            return jsonResponse(_internal_do_post(request, j, uid, **kwargs))
 
     if request.method == "DELETE":
         if not link_id_or_ref:
@@ -1860,6 +1851,58 @@ def flag_text_api(request, title, lang, version):
     else:
         return jsonResponse({"error": "Unauthorized"})
 
+@catch_error_as_json
+@csrf_exempt
+def terms_api(request, name):
+    """
+    API for adding a Term to the Term collection.
+    This is mainly to be used for adding hebrew internationalization language for section names, categories and commentators
+    """
+    """
+    NOTE: This function is not written like the other functions with a post method.
+    It's attempting a cleaner way to distinguish between csrf proteced use and API use bu juggling some variables around
+    Rather than duplicating functionality.
+    """
+    if request.method == "GET":
+        term = Term().load({'name': name})
+        return jsonResponse(term.contents(), callback=request.GET.get("callback", None))
+
+    if request.method == "POST":
+        def _internal_do_post(request, term, uid, **kwargs):
+            func = tracker.update if request.GET.get("update", False) else tracker.add
+            return func(uid, model.Term, term, **kwargs).contents()
+
+        # delegate according to single/multiple objects posted
+        if not request.user.is_authenticated():
+            key = request.POST.get("apikey")
+            if not key:
+                return {"error": "You must be logged in or use an API key to add, edit or delete terms."}
+            apikey = db.apikeys.find_one({"key": key})
+            if not apikey:
+                return {"error": "Unrecognized API key."}
+            user = User.objects.get(id=apikey["uid"])
+            if not user.is_staff:
+                return jsonResponse({"error": "Only Sefaria Moderators can add or edit terms."})
+            uid = apikey["uid"]
+            kwargs = {"method": "API"}
+        elif request.user.is_staff:
+            uid = request.user.id
+            kwargs = {}
+            _internal_do_post = csrf_protect(_internal_do_post)
+        else:
+            return jsonResponse({"error": "Only Sefaria Moderators can add or edit terms."})
+
+        j = request.POST.get("json")
+        if not j:
+            return jsonResponse({"error": "Missing 'json' parameter in post data."})
+        j = json.loads(j)
+        return jsonResponse(_internal_do_post(request, j, uid, **kwargs))
+
+    if request.method == "DELETE":
+        return jsonResponse({"error": "Unsuported HTTP method."}) #TODO: support this?
+
+    return jsonResponse({"error": "Unsuported HTTP method."})
+
 
 @catch_error_as_json
 def dictionary_api(request, word):
@@ -1887,6 +1930,8 @@ def dictionary_api(request, word):
             return jsonResponse(result, callback=request.GET.get("callback", None))
     else:
         return jsonResponse({"error": "No information found for given word."})
+
+
 
 
 @catch_error_as_json

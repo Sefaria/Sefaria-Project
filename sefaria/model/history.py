@@ -154,20 +154,15 @@ class History(abst.AbstractMongoRecord):
 class HistorySet(abst.AbstractMongoSet):
     recordClass = History
 
-
 def process_index_title_change_in_history(indx, **kwargs):
     print "Cascading History {} to {}".format(kwargs['old'], kwargs['new'])
     """
     Update all history entries which reference 'old' to 'new'.
     """
-    if indx.is_commentary():
-        pattern = ur'{} on '.format(re.escape(kwargs["old"]))
-        title_pattern = ur'(^{}$)|({} on)'.format(re.escape(kwargs["old"]), re.escape(kwargs["old"]))
-    else:
-        pattern = text.Ref(indx.title).base_text_and_commentary_regex()
-        pattern = pattern.replace(re.escape(indx.title), re.escape(kwargs["old"]))
-        commentators = text.library.get_commentary_version_titles_on_book(kwargs["old"], with_commentary2=True)
-        title_pattern = ur'(^{}$)|(^({}) on {}$)'.format(re.escape(kwargs["old"]), "|".join(commentators), re.escape(kwargs["old"]))
+    from sefaria.model.text import prepare_index_regex_for_dependency_process
+    pattern = prepare_index_regex_for_dependency_process(indx)
+    pattern = pattern.replace(re.escape(indx.title), re.escape(kwargs["old"]))
+    title_pattern = ur'(^{}$)'.format(re.escape(kwargs["old"]))
 
     text_hist = HistorySet({"ref": {"$regex": pattern}})
     print "Cascading Text History {} to {}".format(kwargs['old'], kwargs['new'])
@@ -192,7 +187,6 @@ def process_index_title_change_in_history(indx, **kwargs):
     for h in title_hist:
         h.title = h.title.replace(kwargs["old"], kwargs["new"], 1)
         h.save()
-
 
 def process_version_title_change_in_history(ver, **kwargs):
     """

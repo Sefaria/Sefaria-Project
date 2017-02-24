@@ -201,8 +201,8 @@ def linker_js(request):
     Javascript of Linker plugin.
     """
     attrs = {
-        "book_titles": json.dumps(model.library.full_title_list("en", with_commentary=True, with_commentators=False)
-                      + model.library.full_title_list("he", with_commentary=True, with_commentators=False))
+        "book_titles": json.dumps(model.library.full_title_list("en")
+                      + model.library.full_title_list("he"))
     }
     return render_to_response("js/linker.js", attrs, RequestContext(request), mimetype= "text/javascript")
 
@@ -365,10 +365,10 @@ def reset_ref(request, tref):
 
 
 @staff_member_required
-def rebuild_commentary_links(request, title):
-    from sefaria.helper.link import rebuild_commentary_links as rebuild
+def rebuild_auto_links(request, title):
+    from sefaria.helper.link import rebuild_links_for_title as rebuild
     rebuild(title, request.user.id)
-    return HttpResponseRedirect("/?m=Commentary-Links-Rebuilt-on-%s" % title)
+    return HttpResponseRedirect("/?m=Automatic-Links-Rebuilt-on-%s" % title)
 
 
 @staff_member_required
@@ -402,12 +402,6 @@ def cache_dump(request):
     }
     return jsonResponse(resp)
 
-@staff_member_required
-def create_commentator_version(request, commentator, book, lang, vtitle, vsource):
-    from sefaria.helper.text import create_commentator_and_commentary_version
-    ht = request.GET.get("heTitle", None)
-    create_commentator_and_commentary_version(commentator, book, lang, vtitle, vsource, ht)
-    return HttpResponseRedirect("/add/%s" % commentator)
 
 
 @staff_member_required
