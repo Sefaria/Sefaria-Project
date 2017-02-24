@@ -10,14 +10,15 @@ for dgroup in groups:
 		continue
 	print dgroup.name
 	admins = [u.id for u in dgroup.user_set.all()]
+	group = Group().load({"name": dgroup.name})
 	fields = {
 		"name": dgroup.name,
 		"admins": admins,
 		"publishers": [],
 		"members": [],
 	}
-	group = Group().load({"name": dgroup.name})
 	if group:
+		fields["imageUrl"] = getattr(group, "coverUrl", None)
 		group.load_from_dict(fields)
 		group.save()
 	else:
