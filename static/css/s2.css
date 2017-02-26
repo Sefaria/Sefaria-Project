@@ -1322,6 +1322,7 @@ a.resourcesLink {
   padding: 0 30px;
   margin: 25px 0;
   box-sizing: border-box;
+  cursor: pointer;
 }
 .readerTextTableOfContents .versionBlock .versionTitle {
   display: block;
