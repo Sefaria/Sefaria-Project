@@ -334,3 +334,24 @@ def short_to_long_lang_code(code):
     elif code in ("en"):
         code = "english"
     return code
+
+
+def get_all_subclasses(cls):
+    subclasses = set()
+    work = [cls]
+    while work:
+        parent = work.pop()
+        for child in parent.__subclasses__():
+            if child not in subclasses:
+                subclasses.add(child)
+                work.append(child)
+    return subclasses
+
+def get_all_subclass_attribute(cls, attr):
+    subclasses = get_all_subclasses(cls)
+    attr_vals = []
+    for s in subclasses:
+        attr_val = getattr(s, attr, None)
+        if attr_val:
+            attr_vals.append(attr_val)
+    return attr_vals

@@ -17,9 +17,6 @@ for x in ["titleVariants", "titleVariants_1"]:
 
 #Covert Indexes to new format
 for indx in IndexSet():
-    if indx.is_commentary():
-        print "Skipping " + indx.title
-        continue
     print indx.title
     try:
         indx.save()

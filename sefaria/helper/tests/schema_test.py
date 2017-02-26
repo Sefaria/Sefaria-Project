@@ -54,7 +54,7 @@ def setup_module():
     index = Index({
         'schema': root.serialize(),
         'title': 'Delete Me',
-        'categories': ['Dummy'],
+        'categories': ['Tanakh'],
         'alt_structs': {'alt': alt.serialize()}
     })
     index.save()
@@ -127,8 +127,7 @@ def teardown_module():
     i.delete()
 
 
-
-
+@pytest.mark.failing
 @pytest.mark.deep
 def test_migrate_to_complex_structure():
     mappings = {}
@@ -164,7 +163,6 @@ def test_migrate_to_complex_structure():
         'schema': root.serialize(),
         'title': 'MigrateBook',
         'categories': ['Other'],
-    })
     index.save()
 
     p1 = "This should eventually end up in MigrateBook, Part 1, 1:1"

@@ -39,11 +39,8 @@ def remove_old_index_and_rename(idx_title):
 
     vs = VersionSet({'title': idx_title})
 
-    commentaries = library.get_commentary_versions_on_book(idx_title)
 
-    #delete History - for versions and commentary versions
-    commentators = library.get_commentator_titles()
-    pattern = ur"(^{} \d)|(^({}) on {} \d)".format(idx_title, "|".join(commentators), idx_title)
+    pattern = Ref(idx_title).regex(anchored=True)
 
     print "deleting history for {}".format(idx_title)
     HistorySet({"ref": {"$regex": pattern}}).delete()
@@ -52,13 +49,11 @@ def remove_old_index_and_rename(idx_title):
     HistorySet({"new.refs": {"$regex": pattern}})
 
     print "deleting version states for {}".format(idx_title)
-    VersionStateSet({"title": {"$regex": ur"(^{})|(^({}) on {})".format(idx_title, "|".join(commentators), idx_title)}}).delete()
+    VersionStateSet({"title": idx_title}).delete()
     print "deleting translation requests for {}".format(idx_title)
-    TranslationRequestSet({'ref': {"$regex": ur"(^{})|(^({}) on {})".format(idx_title, "|".join(commentators), idx_title)}}).delete()
+    TranslationRequestSet({'ref': {"$regex": pattern}}).delete()
 
 
-    print "deleting commentaries for {}".format(idx_title)
-    commentaries.delete()
     print "deleting versions of {}".format(idx_title)
     vs.delete()
     print "deleting {}".format(idx_title)

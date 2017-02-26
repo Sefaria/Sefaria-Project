@@ -24,7 +24,7 @@ class Test_Lexicon_Lookup(object):
     def test_hts_lookup(self):
         word = "Ma'aser Sheni"
         word2 = "Am Ha'aretz"
-        word3 = "Av HaTumah"
+        word3 = "Bikurim"
         lookup_ref = "Mishnah Maaser Sheni 3"
         # ["lookup_ref", "never_split", "always_split"]
         results = LexiconLookupAggregator.lexicon_lookup(word)

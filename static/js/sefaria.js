@@ -17,7 +17,8 @@ var Sefaria = Sefaria || {
   _dataLoaded: false,
   toc: [],
   books: [],
-  booksDict: {}
+  booksDict: {},
+  recentlyViewed: [],
 };
 
 Sefaria = extend(Sefaria, {
@@ -48,9 +49,7 @@ Sefaria = extend(Sefaria, {
       var book, bookOn, index, nums, i;
       for (i = first.length; i >= 0; i--) {
           book   = first.slice(0, i);
-          bookOn = book.split(" on ");
-          if (book in Sefaria.booksDict || 
-              (bookOn.length == 2 && bookOn[0] in Sefaria.booksDict && bookOn[1] in Sefaria.booksDict)) { 
+          if (book in Sefaria.booksDict) {
               nums = first.slice(i+1);
               break;
           }
@@ -327,13 +326,6 @@ Sefaria = extend(Sefaria, {
         Sefaria.text(data.spanningRefs[i], spanning_context_settings, function(data) {})
       }      
     }
-
-    var index = {
-      title:      data.indexTitle,
-      heTitle:    data.heIndexTitle, // This is incorrect for complex texts
-      categories: data.categories
-    };
-    this.index(index.title, index);
   },
   _splitTextSection: function(data, settings) {
     // Takes data for a section level text and populates cache with segment levels.
@@ -408,9 +400,12 @@ Sefaria = extend(Sefaria, {
     return data;
   },
   _index: {}, // Cache for text index records
+  _translateTerms: {},
   index: function(text, index) {
     if (!index) {
       return this._index[text];
+    } else if (text in this._index){
+      this._index[text] = extend(this._index[text], index);
     } else {
       this._index[text] = index;
     }
@@ -419,11 +414,15 @@ Sefaria = extend(Sefaria, {
     // Unpacks contents of Sefaria.toc into index cache.
     for (var i = 0; i < toc.length; i++) {
       if ("category" in toc[i]) {
+        Sefaria._translateTerms[toc[i].category] = {"en": toc[i].category, "he": toc[i].heCategory};
         Sefaria._cacheIndexFromToc(toc[i].contents)
       } else {
         Sefaria.index(toc[i].title, toc[i]);
       }
     }
+  },
+  _cacheHebrewTerms: function(terms) {
+      Sefaria._translateTerms = extend(terms, Sefaria._translateTerms);
   },
   _indexDetails: {},
   indexDetails: function(title, cb) {
@@ -454,15 +453,33 @@ Sefaria = extend(Sefaria, {
         });        
     }
   },
-  ref: function(ref) {
-    // Returns parsed ref info for string `ref` which has been preloaded in the cache.
+  ref: function(ref, callback) {
+    // Returns parsed ref info for string `ref` from cache, or async from API if `callback` is present
     // Uses this._refmap to find the refkey that has information for this ref.
     // Used in cases when the textual information is not important, so it can
     // be called without worrying about the `settings` parameter for what is available in cache.
-    if (!ref) { return null; }
-    var versionedKey = this._refmap[this._refKey(ref)] || this._refmap[this._refKey(ref, {context:1})];
-    if (versionedKey) { return this._getOrBuildTextData(versionedKey);  }
-    return null;
+    var result = null;
+    if (ref) {
+      var versionedKey = this._refmap[this._refKey(ref)] || this._refmap[this._refKey(ref, {context:1})];
+      if (versionedKey) { result = this._getOrBuildTextData(versionedKey);  }
+    }
+    if (callback && result) {
+      callback(result);
+    } else if (callback) {
+      // To avoid an extra API call, first look for any open API calls to this ref (regardless of params)
+      var openApiCalls = Object.keys(Sefaria._apiCallbacks);
+      var urlPattern = "/api/texts/" + Sefaria.normRef(ref);
+      for (var i = 0; i < openApiCalls.length; i++) {
+        if (openApiCalls[i].startsWith(urlPattern)) {
+          Sefaria._apiCallbacks[openApiCalls[i]].splice(0, 0, callback);
+        }
+      }
+      // If no open calls found, call thet texts API.
+      // Called with context:1 because this is our most common mode, maximize change of saving an API Call
+      Sefaria.text(ref, {context: 1}, callback);
+    } else {
+      return result;
+    }
   },
   sectionRef: function(ref) {
     // Returns the section level ref for `ref` or null if no data is available
@@ -557,13 +574,17 @@ Sefaria = extend(Sefaria, {
   _cacheIndexFromLinks: function(links) {
     // Cache partial index information (title, Hebrew title, categories) found in link data.
     for (var i=0; i< links.length; i++) {
-      if (this.index(links[i].commentator)) { continue; }
+      if (("linkGroupTitle" in links[i]) && this.index(links[i].linkGroupTitle["en"])) {
+          //console.log("Skipping ", links[i].linkGroupTitle["en"]);
+          continue;
+      }
       var index = {
-        title:      links[i].commentator,
-        heTitle:    links[i].heCommentator,
+        title:      links[i].linkGroupTitle["en"],
+        heTitle:    links[i].linkGroupTitle["he"],
         categories: [links[i].category],
       };
-      this.index(links[i].commentator, index);
+      //console.log("Saving ", links[i].linkGroupTitle["en"]);
+      this.index(links[i].linkGroupTitle["en"], index);
     }
   },
   _saveLinksByRef: function(data) {
@@ -614,7 +635,7 @@ Sefaria = extend(Sefaria, {
      return links.filter(function(link){
         return (filter.length == 0 ||
                 Sefaria.util.inArray(link.category, filter) !== -1 || 
-                Sefaria.util.inArray(link.commentator, filter) !== -1 );
+                Sefaria.util.inArray(link["linkGroupTitle"]["en"], filter) !== -1 );
       }); 
   },
   _linkSummaries: {},
@@ -643,10 +664,10 @@ Sefaria = extend(Sefaria, {
       }
       var category = summary[link.category];
       // Count Book
-      if (link.commentator in category.books) {
-        category.books[link.commentator].count += 1;
+      if (link["linkGroupTitle"]["en"] in category.books) {
+        category.books[link["linkGroupTitle"]["en"]].count += 1;
       } else {
-        category.books[link.commentator] = {count: 1};
+        category.books[link["linkGroupTitle"]["en"]] = {count: 1};
       }
     }
     // Add Zero counts for every commentator in this section not already in list
@@ -661,8 +682,8 @@ Sefaria = extend(Sefaria, {
           if (!("Commentary" in summary)) {
             summary["Commentary"] = {count: 0, books: {}};
           }
-          if (!(l.commentator in summary["Commentary"].books)) {
-            summary["Commentary"].books[l.commentator] = {count: 0};
+          if (!(l["linkGroupTitle"]["en"] in summary["Commentary"].books)) {
+            summary["Commentary"].books[l["linkGroupTitle"]["en"]] = {count: 0};
           }
         }
       }
@@ -676,7 +697,7 @@ Sefaria = extend(Sefaria, {
         var index      = Sefaria.index(book);
         bookData.book     = index.title;
         bookData.heBook   = index.heTitle;
-        bookData.category = index.categories[0];
+        bookData.category = category;
         return bookData;
       });
       // Sort the books in the category
@@ -888,7 +909,7 @@ Sefaria = extend(Sefaria, {
       if (!section) { debugger; }
       return {
         book: section[0].category,
-        heBook: Sefaria.hebrewCategory(section[0].category),
+        heBook: Sefaria.hebrewTerm(section[0].category),
         category: "Community",
         count: section.length
       };
@@ -951,28 +972,30 @@ Sefaria = extend(Sefaria, {
 
     return result;
   },
-  commentaryList: function(title) {
-    // Returns the list of commentaries for 'title' which are found in Sefaria.toc
-    var index = this.index(title);
-    if (!index) { return []; }
-    var cats   = [index.categories[0], "Commentary"];
-    var branch = this.tocItemsByCategories(cats);
-    var commentariesInBranch = function(title, branch) {
-      // Recursively walk a branch of TOC, return a list of all commentaries found on `title`.
-      var results = [];
-      for (var i=0; i < branch.length; i++) {
-        if (branch[i].title) {
-          var split = branch[i].title.split(" on ");
-          if (split.length == 2 && split[1] === title) {
-            results.push(branch[i]);
-          }
-        } else {
-          results = results.concat(commentariesInBranch(title, branch[i].contents));
+  commentaryList: function(title, toc) {
+    var title = arguments.length == 0 || arguments[0] === undefined ? null : arguments[0];
+    /** Returns the list of commentaries for 'title' which are found in Sefaria.toc **/
+    var toc = arguments.length <= 1 || arguments[1] === undefined ? Sefaria.util.clone(Sefaria.toc) : arguments[1];
+    if (title != null){
+        var index = this.index(title); //TODO: a little bit redundant to do on every recursion
+        if (!index) { return []; }
+        title = index.title;
+    }
+    var results = [];
+    for (var i=0; i < toc.length; i++) {
+        var curTocElem = toc[i];
+        if (curTocElem.title) { //this is a book
+            if(curTocElem.dependence == 'Commentary'){
+                if((title && curTocElem.base_text_titles && Sefaria.util.inArray(title, curTocElem.base_text_titles) != -1) ||
+                    (title == null)){
+                    results.push(curTocElem);
+                }
+            }
+        } else { //this is still a category and might have books under it
+          results = results.concat(Sefaria.commentaryList(title, curTocElem.contents));
         }
-      }
-      return results;
-    };
-    return commentariesInBranch(title, branch);
+    }
+    return results;
   },
   tocItemsByCategories: function(cats) {
     // Returns the TOC items that correspond to the list of categories 'cats'
@@ -1007,6 +1030,58 @@ Sefaria = extend(Sefaria, {
       }
     }
     return attribution;
+  },
+  saveRecentItem: function(recentItem) {
+    var recent = Sefaria.recentlyViewed;
+    if (recent.length && recent[0].ref == recentItem.ref) { return; }
+    recent = recent.filter(function(item) {
+      return item.book !== recentItem.book; // Remove this item if it's in the list already
+    });
+    recent.splice(0, 0, recentItem);
+    Sefaria.recentlyViewed = recent;
+    var packedRecent = recent.map(Sefaria.packRecentItem);
+    if (Sefaria._uid) {
+        $.post("/api/profile", {json: JSON.stringify({recentlyViewed: packedRecent})}, function(data) {
+          if ("error" in data) {
+            alert(data.error);
+          }
+        }).fail(function() {
+          alert("Sorry, an Error occurred.");
+        });    
+    } else {
+      var cookie = INBROWSER ? $.cookie : Sefaria.util.cookie;
+      packedRecent = packedRecent.slice(0, 6);
+      cookie("recentlyViewed", JSON.stringify(packedRecent), {path: "/"});      
+    }
+  },
+  packRecentItem: function(item) {
+    // Returns an array which represents the object `item` with less overhead.
+    var packed = [item.ref, item.heRef];
+    if (item.version && item.versionLangauge) {
+      packed = packed.concat([item.version, item.versionLanguage]);
+    }
+    return packed;
+  },
+  unpackRecentItem: function(item) {
+    // Returns an object which preprsents the array `item` with fields expanded
+    var oRef = Sefaria.parseRef(item[0]);
+    var unpacked = {
+      ref: item[0],
+      heRef: item[1],
+      book: oRef.index,
+      version: item.length > 2 ? item[2] : null,
+      versionLanguage: item.length > 3 ? item[3] : null
+    };
+    return unpacked;
+  },
+  recentRefForText: function(title) {
+    // Return the most recently visited ref for text `title` or null if `title` is not present in recentlyViewed.
+    for (var i = 0; i < Sefaria.recentlyViewed.length; i++) {
+      if (Sefaria.recentlyViewed[i].book === title) {
+        return Sefaria.recentlyViewed[i].ref;
+      }
+    }
+    return null;
   },
   sheets: {
     _trendingTags: null,
@@ -1195,131 +1270,19 @@ Sefaria = extend(Sefaria, {
       return Sefaria._saveItemsByRef(data, this._sheetsByRef);
     }
   },
-  hebrewCategory: function(cat) {
+  hebrewTerm: function(name) {
     // Returns a string translating `cat` into Hebrew.
     var categories = {
-      "Torah":                "תורה",
-      "Tanakh":               'תנ"ך',
-      "Tanakh":               'תנ"ך',
-      "Prophets":             "נביאים",
-      "Writings":             "כתובים",
-      "Commentary":           "מפרשים",
       "Quoting Commentary":   "פרשנות מצטטת",
-      "Targum":               "תרגומים",
-      "Mishnah":              "משנה",
-      "Tosefta":              "תוספתא",
-      "Talmud":               "תלמוד",
-      "Bavli":                "בבלי",
-      "Yerushalmi":           "ירושלמי",
-      "Rif":                  'רי"ף',
-      "Kabbalah":             "קבלה",
-      "Halakha":              "הלכה",
-      "Halakhah":             "הלכה",
-      "Midrash":              "מדרש",
-      "Aggadic Midrash":      "מדרש אגדה",
-      "Halachic Midrash":     "מדרש הלכה",
-      "Midrash Rabbah":       "מדרש רבה",
-      "Responsa":             'שו"ת',
-      "Rashba":               'רשב"א',
-      "Rambam":               'רמב"ם',
-      "Other":                "אחר",
-      "Siddur":               "סידור",
-      "Liturgy":              "תפילה",
-      "Piyutim":              "פיוטים",
-      "Musar":                "ספרי מוסר",
-      "Chasidut":             "חסידות",
-      "Parshanut":            "פרשנות",
-      "Philosophy":           "מחשבת ישראל",
-      "Apocrypha":            "ספרים חיצונים",
-      "Modern Works":         "עבודות מודרניות",
-      "Seder Zeraim":         "סדר זרעים",
-      "Seder Moed":           "סדר מועד",
-      "Seder Nashim":         "סדר נשים",
-      "Seder Nezikin":        "סדר נזיקין",
-      "Seder Kodashim":       "סדר קדשים",
-      "Seder Toharot":        "סדר טהרות",
-      "Seder Tahorot":        "סדר טהרות",
-      "Dictionary":           "מילון",
-      "Early Jewish Thought": "מחשבת ישראל קדומה",
-      "Minor Tractates":      "מסכתות קטנות",
-      "Rosh":                 'ר"אש',
-      "Maharsha":             'מהרשא',
-      "Mishneh Torah":        "משנה תורה",
-      "Shulchan Arukh":       "שולחן ערוך",
       "Sheets":               "דפי מקורות",
       "Notes":                "הערות",
       "Community":            "קהילה"
     };
-    return cat in categories ? categories[cat] : cat;
-  },
-  hebrewSectionName: function(name) {
-    sectionNames = {
-      "Chapter":          "פרק",
-      "Chapters":         "פרקים",
-      "Perek":            "פרק",
-      "Line":             "שורה",
-      "Negative Mitzvah": "מצות לא תעשה",
-      "Positive Mitzvah": "מצות עשה",
-      "Negative Mitzvot": "מצוות לא תעשה",
-      "Positive Mitzvot": "מצוות עשה",
-      "Daf":              "דף",
-      "Paragraph":        "פסקה",
-      "Parsha":           "פרשה",
-      "Parasha":          "פרשה",
-      "Parashah":         "פרשה",
-      "Seif":             "סעיף",
-      "Se'if":            "סעיף",
-      "Siman":            "סימן",
-      "Section":          "חלק",
-      "Verse":            "פסוק",
-      "Sentence":         "משפט",
-      "Sha'ar":           "שער",
-      "Gate":             "שער",
-      "Comment":          "פירוש",
-      "Phrase":           "ביטוי",
-      "Mishna":           "משנה",
-      "Chelek":           "חלק",
-      "Helek":            "חלק",
-      "Year":             "שנה",
-      "Masechet":         "מסכת",
-      "Massechet":        "מסכת",
-      "Letter":           "אות",
-      "Halacha":          "הלכה",
-      "Piska":            "פסקה",
-      "Seif Katan":       "סעיף קטן",
-      "Se'if Katan":      "סעיף קטן",
-      "Volume":           "כרך",
-      "Book":             "ספר",
-      "Shar":             "שער",
-      "Seder":            "סדר",
-      "Part":             "חלק",
-      "Pasuk":            "פסוק",
-      "Sefer":            "ספר",
-      "Teshuva":          "תשובה",
-      "Teshuvot":         "תשובות",
-      "Tosefta":          "תוספתא",
-      "Halakhah":         "הלכה",
-      "Kovetz":           "קובץ",
-      "Path":             "נתיב",
-      "Parshah":          "פרשה",
-      "Midrash":          "מדרש",
-      "Mitzvah":          "מצוה",
-      "Tefillah":         "תפילה",
-      "Torah":            "תורה",
-      "Perush":           "פירוש",
-      "Peirush":          "פירוש",
-      "Aliyah":           "עלייה",
-      "Tikkun":           "תיקון",
-      "Tikkunim":         "תיקונים",
-      "Hilchot":          "הילכות",
-      "Topic":            "נושא",
-      "Contents":         "תוכן",
-      "Article":          "סעיף",
-      "Shoresh":          "שורש",
-      "Story":            "סיפור",
-      "Remez":            "רמז"
-    };
-    return name in sectionNames ? sectionNames[name] : name;
+    if(name in Sefaria._translateTerms){
+        return Sefaria._translateTerms[name]["he"];
+    }else{
+        return name in categories ? categories[name] : name;
+    }
   },
   search: {
       baseUrl: Sefaria.searchBaseUrl + "/" + Sefaria.searchIndex + "/_search",
@@ -1456,14 +1419,6 @@ Sefaria = extend(Sefaria, {
                       }
                   });
                   /* Test for Commentary2 as well as Commentary */
-                  if (/^Commentary\//.test(applied_filters[i])) {
-                      var c2 = "Commentary2/" + applied_filters[i].slice(11);
-                      clauses.push({
-                          "regexp": {
-                              "path": RegExp.escape(c2) + ".*"
-                          }
-                      });
-                  }
               }
               if (type) {
                   o['query'] = {
@@ -1512,6 +1467,7 @@ Sefaria = extend(Sefaria, {
     // Transform books array into a dictionary for quick lookup
     // Which is worse: the cycles wasted in computing this on the client
     // or the bandwitdh wasted in letting the server computer once and trasmiting the same data twice in differnt form?
+    this.booksDict = {};
     for (var i = 0; i < this.books.length; i++) {
       this.booksDict[this.books[i]] = 1;
     }    
@@ -2118,7 +2074,7 @@ Sefaria.util = {
         }
     },
     handleUserCookie: function() {
-        var cookie = (typeof require !== 'undefined') ? Sefaria.util.cookie : $.cookie;
+        var cookie = INBROWSER ? $.cookie : Sefaria.util.cookie;
 
         if (Sefaria.loggedIn) {
             // If logged in, replace cookie with current system details
@@ -2442,6 +2398,7 @@ Sefaria.site = {
   }
 };
 
+
 Sefaria.palette = {
   colors: {
     darkteal:  "#004e5f",
@@ -2480,7 +2437,6 @@ Sefaria.palette.categoryColors = {
   "Apocrypha":          Sefaria.palette.colors.lightpink,
   "Other":              Sefaria.palette.colors.darkblue,
   "Quoting Commentary": Sefaria.palette.colors.orange,
-  "Commentary2":        Sefaria.palette.colors.blue,
   "Sheets":             Sefaria.palette.colors.raspberry,
   "Community":          Sefaria.palette.colors.raspberry,
   "Targum":             Sefaria.palette.colors.lavender,
@@ -2490,7 +2446,7 @@ Sefaria.palette.categoryColor = function(cat) {
   if (cat in Sefaria.palette.categoryColors) {
     return Sefaria.palette.categoryColors[cat];
   }
-  return "transparent";
+  return Sefaria.palette.categoryColors["Other"];
 };
 
 
@@ -2501,6 +2457,8 @@ Sefaria.setup = function() {
     Sefaria.util.handleUserCookie();
     Sefaria._makeBooksDict();
     Sefaria._cacheIndexFromToc(Sefaria.toc);
+    Sefaria.recentlyViewed = Sefaria.recentlyViewed.map(Sefaria.unpackRecentItem);
+    Sefaria._cacheHebrewTerms(Sefaria.terms);
     Sefaria.site.track.setUserData();
 };
 Sefaria.setup();
