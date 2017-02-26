@@ -46,11 +46,11 @@
 	Loading...
 </div>
 <div id="path"></div>
-<script src="http://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
 <script>
 $(function() {
     var startWalk = function(start, fallback){
-    	$.getJSON("http://www.sefaria.org/api/texts/" + start + "?context=0&callback=?", function(data) {
+    	$.getJSON("https://www.sefaria.org/api/texts/" + start + "?context=0&callback=?", function(data) {
 	    		var html = "<div class='titles'>" + 
 	    						"<div class='heTitle he'>" + data.heTitle + "</div>" +
 	    						"<div class='title en'>" + data.ref + "</div>" +
@@ -59,7 +59,7 @@ $(function() {
 							"<div class='text he'>" + data.he + "</div>";
 
 				$("#randomWalk").html(html);
-				$("#path").append( "<a href='http://www.sefaria.org/" + start + "' target='_blank'>" + start + "</a> > " );
+				$("#path").append( "<a href='https://www.sefaria.org/" + start + "' target='_blank'>" + start + "</a> > " );
 
 				if (data.commentary && data.commentary.length) {
 					var ref = null
