@@ -3792,7 +3792,7 @@ var VersionsList = React.createClass({
       <VersionBlock 
         title={this.props.title} 
         version={v} 
-        currentRef={this.props.currentRef}
+        currentRef={this.props.currentRef || this.props.title}
         firstSectionRef={"firstSectionRef" in v ? v.firstSectionRef : null}
         openVersion={this.props.openVersion} 
         key={v.versionTitle + "/" + v.language}/>
@@ -3832,7 +3832,6 @@ var VersionBlock = React.createClass({
   },
   getDefaultProps: function() {
     return {
-      ref: "",
       showHistory: true,
       showNotes: true
     }
