@@ -127,7 +127,6 @@
                   {% for cat in toc %}
                   <option value="{{ cat.category}}">{{ cat.category }}</option>
                   {% endfor %}
-                  <option value="Commentary">Commentary</option>
 
                 </select> <input id="otherCategory" />
         </div>
@@ -657,8 +656,6 @@
             if ($(this).val() === "Other") $("#otherCategory").show();
             else $("#otherCategory").hide();
 
-            if ($(this).val() === "Commentary" || (!($("#newIndexMsg").is(":visible")) && !("sectionNames" in sjs.index))) $("#textStructureFieldSet").hide();
-            else $("#textStructureFieldSet").show();
         });
 
         $("#addSection").click(function() {
