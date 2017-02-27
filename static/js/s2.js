@@ -5484,10 +5484,28 @@ var GroupPage = React.createClass({
       this.setState({ sheetFilterTag: tag.tag, showTags: false });
     }
   },
+  memberList: function memberList() {
+    var group = Sefaria.groups(this.props.group);
+    if (!group) {
+      return null;
+    }
+    var admins = group.admins.map(function (member) {
+      member.role = "Admin";return member;
+    });
+    var publishers = group.publishers.map(function (member) {
+      member.role = "Publisher";return member;
+    });
+    var members = group.members.map(function (member) {
+      member.role = "Member";return member;
+    });
+
+    return admins.concat(publishers, members);
+  },
   render: function render() {
     var group = Sefaria.groups(this.props.group);
     var sheets = group ? group.sheets : null;
     var groupTagList = group ? group.tags : null;
+    var members = this.memberList();
     var isAdmin = group && group.admins.map(function (user) {
       user.uid;
     }).filter(function (x) {
@@ -5554,7 +5572,7 @@ var GroupPage = React.createClass({
           { className: 'tabs' },
           React.createElement(
             'a',
-            { className: 'bubbleTab active', onClick: this.setTab.bind(null, "sheets") },
+            { className: classNames({ bubbleTab: 1, active: this.state.tab == "sheets" }), onClick: this.setTab.bind(null, "sheets") },
             React.createElement(
               'span',
               { className: 'int-en' },
@@ -5568,7 +5586,7 @@ var GroupPage = React.createClass({
           ),
           React.createElement(
             'a',
-            { className: 'bubbleTab', onClick: this.setTab.bind(null, "members") },
+            { className: classNames({ bubbleTab: 1, active: this.state.tab == "members" }), onClick: this.setTab.bind(null, "members") },
             React.createElement(
               'span',
               { className: 'int-en' },
@@ -5595,53 +5613,60 @@ var GroupPage = React.createClass({
             )
           ) : null
         ),
-        groupTagList && groupTagList.length ? React.createElement(
-          'h2',
-          { className: 'splitHeader' },
-          React.createElement(
-            'span',
-            { className: 'filterByTag', onClick: this.toggleSheetTags },
+        this.state.tab == "sheets" ? React.createElement(
+          'div',
+          null,
+          groupTagList && groupTagList.length ? React.createElement(
+            'h2',
+            { className: 'splitHeader' },
+            React.createElement(
+              'span',
+              { className: 'filterByTag', onClick: this.toggleSheetTags },
+              React.createElement(
+                'span',
+                { className: 'int-en' },
+                'Filter By Tag ',
+                React.createElement('i', { className: 'fa fa-angle-down' })
+              ),
+              React.createElement(
+                'span',
+                { className: 'int-he' },
+                'סנן לפי תווית',
+                React.createElement('i', { className: 'fa fa-angle-down' })
+              )
+            )
+          ) : null,
+          this.state.showTags ? React.createElement(TwoOrThreeBox, { content: groupTagList, width: this.props.width }) : null,
+          sheets.length ? sheets : React.createElement(
+            'div',
+            { className: 'emptyMessage' },
             React.createElement(
               'span',
               { className: 'int-en' },
-              'Filter By Tag ',
-              React.createElement('i', { className: 'fa fa-angle-down' })
+              'There are no sheets in this group yet. ',
+              React.createElement(
+                'a',
+                { href: '/sheets/new' },
+                'Start a sheet'
+              ),
+              '.'
             ),
             React.createElement(
               'span',
               { className: 'int-he' },
-              'סנן לפי תווית',
-              React.createElement('i', { className: 'fa fa-angle-down' })
+              'There are no sheets in this group yet. ',
+              React.createElement(
+                'a',
+                { href: '/sheets/new' },
+                'Start a sheet'
+              ),
+              '.'
             )
           )
         ) : null,
-        this.state.showTags ? React.createElement(TwoOrThreeBox, { content: groupTagList, width: this.props.width }) : null,
-        sheets.length ? sheets : React.createElement(
-          'div',
-          { className: 'emptyMessage' },
-          React.createElement(
-            'span',
-            { className: 'int-en' },
-            'There are no sheets in this group yet. ',
-            React.createElement(
-              'a',
-              { href: '/sheets/new' },
-              'Start a sheet'
-            ),
-            '.'
-          ),
-          React.createElement(
-            'span',
-            { className: 'int-he' },
-            'There are no sheets in this group yet. ',
-            React.createElement(
-              'a',
-              { href: '/sheets/new' },
-              'Start a sheet'
-            ),
-            '.'
-          )
-        )
+        this.state.tab == "members" ? members.map(function (member) {
+          return React.createElement(GroupMemberListing, { member: member, isAdmin: isAdmin });
+        }) : null
       ),
       React.createElement(
         'footer',
@@ -5690,6 +5715,41 @@ var GroupSheetListing = React.createClass({
           { className: 'tagString' },
           tagString
         )
+      )
+    );
+  }
+});
+
+var GroupMemberListing = React.createClass({
+  displayName: 'GroupMemberListing',
+
+  propTypes: {
+    member: React.PropTypes.object.isRequired,
+    isAdmin: React.PropTypes.bool
+  },
+  render: function render() {
+    return React.createElement(
+      'div',
+      { className: 'groupMemberListing' },
+      React.createElement(
+        'a',
+        { href: this.props.member.profileUrl },
+        React.createElement('img', { className: 'groupMemberListingProfileImage', src: this.props.member.imageUrl })
+      ),
+      React.createElement(
+        'a',
+        { href: this.props.member.profileUrl, className: 'groupMemberListingName' },
+        this.props.member.name
+      ),
+      React.createElement(
+        'div',
+        { className: 'groupMemberListingRoleBox' },
+        React.createElement(
+          'span',
+          { className: 'groupMemberListingRole' },
+          this.props.member.role
+        ),
+        this.props.isAdmin ? React.createElement('div', { className: 'groupMemberListingActions' }) : null
       )
     );
   }

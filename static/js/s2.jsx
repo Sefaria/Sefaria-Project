@@ -4411,15 +4411,25 @@ var GroupPage = React.createClass({
   },
   filterYourSheetsByTag: function (tag) {
     if (tag.tag == this.state.sheetFilterTag) {
-       this.setState({sheetFilterTag: null, showTags: false});
+      this.setState({sheetFilterTag: null, showTags: false});
     } else {
       this.setState({sheetFilterTag: tag.tag, showTags: false});
     }
+  },
+  memberList: function() {
+    var group = Sefaria.groups(this.props.group);
+    if (!group) { return null; }
+    var admins = group.admins.map(function(member) {member.role = "Admin"; return member; });
+    var publishers = group.publishers.map(function(member) {member.role = "Publisher"; return member; });
+    var members = group.members.map(function(member) {member.role = "Member"; return member; });
+    
+    return admins.concat(publishers, members);
   },
   render: function() {
     var group        = Sefaria.groups(this.props.group);
     var sheets       = group ? group.sheets : null;
     var groupTagList = group ? group.tags : null;
+    var members      = this.memberList();
     var isAdmin      = group && group.admins.map((user) => {user.uid}).filter((x) => { x == Sefaria._uid}).length !== 0;
 
     groupTagList = groupTagList ? groupTagList.map(function (tag) {
@@ -4435,6 +4445,7 @@ var GroupPage = React.createClass({
       return (<GroupSheetListing sheet={sheet} multiPanel={this.props.multiPanel} setSheetTag={this.props.setSheetTag} />);
     }.bind(this)) : [<LoadingMessage />];
  
+
     return (<div className="content groupPage sheetList hasFooter">
               <div className="contentInner">
 
@@ -4458,11 +4469,11 @@ var GroupPage = React.createClass({
                 </div>
 
                 <div className="tabs">
-                  <a className="bubbleTab active" onClick={this.setTab.bind(null, "sheets")}>
+                  <a className={classNames({bubbleTab: 1, active: this.state.tab == "sheets"})} onClick={this.setTab.bind(null, "sheets")}>
                     <span className="int-en">Sheets</span>
                     <span className="int-he">Sheets</span>                   
                   </a>
-                  <a className="bubbleTab" onClick={this.setTab.bind(null, "members")}>
+                  <a className={classNames({bubbleTab: 1, active: this.state.tab == "members"})} onClick={this.setTab.bind(null, "members")}>
                     <span className="int-en">Members</span>
                     <span className="int-he">Members</span>                   
                   </a>
@@ -4474,34 +4485,45 @@ var GroupPage = React.createClass({
                     : null }
                 </div>
 
-                { groupTagList && groupTagList.length ?
-                  (<h2 className="splitHeader">
-                    <span className="filterByTag" onClick={this.toggleSheetTags}>
-                      <span className="int-en" >Filter By Tag <i className="fa fa-angle-down"></i></span>
-                      <span className="int-he">סנן לפי תווית<i className="fa fa-angle-down"></i></span>
-                     </span>
-                     {/*
-                    <span className="en actionText">Sort By:
-                      <select value={this.props.mySheetSort} onChange={this.changeSortYourSheets}>
-                       <option value="date">Recent</option>
-                       <option value="views">Most Viewed</option>
-                     </select> <i className="fa fa-angle-down"></i></span>
-                    <span className="he actionText">סנן לפי:
-                      <select value={this.props.mySheetSort} onChange={this.changeSortYourSheets}>
-                       <option value="date">הכי חדש</option>
-                       <option value="views">הכי נצפה</option>
-                     </select> <i className="fa fa-angle-down"></i></span>
-                     */}
-                  </h2>) : null}
+                { this.state.tab == "sheets" ?
+                  <div>
+                  { groupTagList && groupTagList.length ?
+                    (<h2 className="splitHeader">
+                      <span className="filterByTag" onClick={this.toggleSheetTags}>
+                        <span className="int-en" >Filter By Tag <i className="fa fa-angle-down"></i></span>
+                        <span className="int-he">סנן לפי תווית<i className="fa fa-angle-down"></i></span>
+                       </span>
+                       {/*
+                      <span className="en actionText">Sort By:
+                        <select value={this.props.mySheetSort} onChange={this.changeSortYourSheets}>
+                         <option value="date">Recent</option>
+                         <option value="views">Most Viewed</option>
+                       </select> <i className="fa fa-angle-down"></i></span>
+                      <span className="he actionText">סנן לפי:
+                        <select value={this.props.mySheetSort} onChange={this.changeSortYourSheets}>
+                         <option value="date">הכי חדש</option>
+                         <option value="views">הכי נצפה</option>
+                       </select> <i className="fa fa-angle-down"></i></span>
+                       */}
+                    </h2>) : null}
 
-                {this.state.showTags ? <TwoOrThreeBox content={groupTagList} width={this.props.width} /> : null}
+                  {this.state.showTags ? <TwoOrThreeBox content={groupTagList} width={this.props.width} /> : null}
 
-                {sheets.length ? 
-                  sheets 
-                  : <div className="emptyMessage">
-                    <span className="int-en">There are no sheets in this group yet. <a href="/sheets/new">Start a sheet</a>.</span>
-                    <span className="int-he">There are no sheets in this group yet. <a href="/sheets/new">Start a sheet</a>.</span>          
-                  </div> }
+                  {sheets.length ? 
+                    sheets 
+                    : <div className="emptyMessage">
+                      <span className="int-en">There are no sheets in this group yet. <a href="/sheets/new">Start a sheet</a>.</span>
+                      <span className="int-he">There are no sheets in this group yet. <a href="/sheets/new">Start a sheet</a>.</span>          
+                    </div> }
+                  </div>
+                  : null }
+
+                  {this.state.tab == "members" ? 
+                   members.map(function(member) {
+                    return <GroupMemberListing member={member} isAdmin={isAdmin} />;
+                   })
+                  : null }
+
               </div>
             <footer id="footer" className="static sans">
               <Footer />
@@ -4513,7 +4535,7 @@ var GroupPage = React.createClass({
 
 var GroupSheetListing = React.createClass({
   propTypes: {
-    sheet:      React.PropTypes.object.isRequired,
+    sheet: React.PropTypes.object.isRequired,
   },
   render: function() {
     var sheet = this.props.sheet;
@@ -4532,6 +4554,36 @@ var GroupSheetListing = React.createClass({
 
   }
 });
+
+
+var GroupMemberListing = React.createClass({
+  propTypes: {
+    member:      React.PropTypes.object.isRequired,
+    isAdmin:     React.PropTypes.bool
+  },
+  render: function() {
+    return (
+      <div className="groupMemberListing">
+        <a href={this.props.member.profileUrl}>
+          <img className="groupMemberListingProfileImage" src={this.props.member.imageUrl} />
+        </a>
+        
+        <a href={this.props.member.profileUrl} className="groupMemberListingName">
+          {this.props.member.name}
+        </a>
+
+        <div className="groupMemberListingRoleBox">
+          <span className="groupMemberListingRole">{this.props.member.role}</span>
+          {this.props.isAdmin ? 
+            <div className="groupMemberListingActions"></div>
+            : null }
+        </div>
+
+      </div>);
+
+  }
+});
+
 
 
 var EditGroupPage = React.createClass({
@@ -8140,7 +8192,6 @@ var AccountPanel = React.createClass({
     interfaceLang: React.PropTypes.string,
   },
   componentDidMount: function() {
-    console.log($(".inAppLink"))
     $(".inAppLink").on("click", this.props.handleInAppLinkClick);
   },
   render: function() {

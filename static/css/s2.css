@@ -3343,7 +3343,8 @@ content: "";
   font-size: 15px;
 }
 .groupPage .groupImage {
-  height: 200px;
+  max-height: 200px;
+  max-width: 100%;
   display: block;
   margin: 0 auto 50px;
 }
@@ -3353,6 +3354,9 @@ content: "";
 .groupPage h1 {
   margin-top: 20px;
   height: auto;
+}
+.groupPage a:hover {
+  color: inherit;
 }
 .groupPage .groupWebsite {
   display: block;
@@ -3377,6 +3381,30 @@ content: "";
 }
 .groupPage .emptyMessage a {
   text-decoration: underline;
+}
+.groupPage .groupMemberListing {
+  padding: 24px 0;
+  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  font-size: 20px;
+}
+.groupMemberListing + .groupMemberListing {
+  border-top: 1px solid #CCC;
+}
+.groupMemberListingProfileImage {
+  height: 50px;
+  width: 50px;
+  vertical-align: middle;
+}
+.groupMemberListingName {
+  color: #666;
+  margin: 0 20px;
+}
+.groupMemberListingRoleBox {
+  float: right;
+  line-height: 50px;
+}
+.groupMemberListingRole {
+  color: #666;
 }
 /*** Interface lang - merge with static.css? ***/
 .readerApp.interface-hebrew .int-en{
