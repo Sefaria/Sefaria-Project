@@ -7546,7 +7546,7 @@ var TextList = React.createClass({
 
     var en = "No connections known" + (filter.length ? " for " + filter.join(", ") : "") + ".";
     var he = "אין קשרים ידועים" + (filter.length ? " ל" + filter.map(function (f) {
-      return Sefaria.index(f) ? Sefaria.index(f)['heTitle'] : Sefaria.hebrewTerm(f);
+      return Sefaria.hebrewTerm(f);
     }).join(", ") : "") + ".";
     var loaded = Sefaria.linksLoaded(sectionRef);
     var noResultsMessage = React.createElement(LoadingMessage, { message: en, heMessage: he });
