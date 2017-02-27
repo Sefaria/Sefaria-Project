@@ -38,6 +38,7 @@ class Link(abst.AbstractMongoRecord):
         self.auto = getattr(self, 'auto', False)
         self.generated_by = getattr(self, "generated_by", None)
         self.source_text_oid = getattr(self, "source_text_oid", None)
+        self.type = getattr(self, "type", "").lower()
         self.refs = [text.Ref(self.refs[0]).normal(), text.Ref(self.refs[1]).normal()]
 
         if getattr(self, "_id", None):
@@ -208,7 +209,7 @@ class LinkSet(abst.AbstractMongoSet):
                 oref = text.Ref(ref)
             except:
                 continue
-            cat  = oref.index.categories[0]
+            cat  = oref.primary_category
             if (cat not in results):
                 results[cat] = {"count": 0, "books": {}}
             results[cat]["count"] += 1
@@ -218,15 +219,10 @@ class LinkSet(abst.AbstractMongoSet):
 
         return [{"name": key, "count": results[key]["count"], "books": results[key]["books"] } for key in results.keys()]
 
-
 def process_index_title_change_in_links(indx, **kwargs):
-    #TODO: think about these functions in commentary refactor
     print "Cascading Links {} to {}".format(kwargs['old'], kwargs['new'])
-    if indx.is_commentary():
-        pattern = r'^{} on '.format(re.escape(kwargs["old"]))
-    else:
-        pattern = text.Ref(indx.title).base_text_and_commentary_regex()
-        pattern = pattern.replace(re.escape(indx.title), re.escape(kwargs["old"]))
+    pattern = text.Ref(indx.title).regex()
+    pattern = pattern.replace(re.escape(indx.title), re.escape(kwargs["old"]))
     links = LinkSet({"refs": {"$regex": pattern}})
     for l in links:
         l.refs = [r.replace(kwargs["old"], kwargs["new"], 1) if re.search(pattern, r) else r for r in l.refs]
@@ -236,13 +232,9 @@ def process_index_title_change_in_links(indx, **kwargs):
             logger.warning("Deleting link that failed to save: {} - {}".format(l.refs[0], l.refs[1]))
             l.delete()
 
-
 def process_index_delete_in_links(indx, **kwargs):
-    if indx.is_commentary():
-        pattern = ur'^{} on '.format(re.escape(indx.title))
-    else:
-        commentators = text.IndexSet({"categories.0": "Commentary"}).distinct("title")
-        pattern = ur"(^{} \d)|^({}) on {} \d".format(re.escape(indx.title), "|".join(commentators), re.escape(indx.title))
+    from sefaria.model.text import prepare_index_regex_for_dependency_process
+    pattern = prepare_index_regex_for_dependency_process(indx)
     LinkSet({"refs": {"$regex": pattern}}).delete()
 
 
@@ -255,15 +247,11 @@ def get_link_counts(cat1, cat2):
     if link_counts.get(key):
         return link_counts[key]
 
-    queries = []
-    for c in [cat1, cat2]:
-        queries.append({"$and": [{"categories": c}, {"categories": {"$ne": "Commentary"}}, {"categories": {"$ne": "Commentary2"}}, {"categories": {"$ne": "Targum"}}]})
-
     titles = []
-    for q in queries:
-        ts = db.index.find(q).distinct("title")
+    for c in [cat1, cat2]:
+        ts = text.library.get_indexes_in_category(c)
         if len(ts) == 0:
-            return {"error": "No results for {}".format(q)}
+            return {"error": "No results for {}".format(c)}
         titles.append(ts)
 
     result = []
@@ -303,8 +291,8 @@ def get_category_category_linkset(cat1, cat2):
     clauses = []
 
     for i, cat in enumerate([cat1, cat2]):
-        queries += [{"$and": [{"categories": cat}, {"categories": {"$ne": "Commentary"}}, {"categories": {"$ne": "Commentary2"}}, {"categories": {"$ne": "Targum"}}]}]
-        titles += [text.IndexSet(queries[i]).distinct("title")]
+        queries += [{"$and": [{"categories": cat}, {'dependence': {'$in': [False, None]}}]}]
+        titles += [text.library.get_indexes_in_category(cat)]
         if len(titles[i]) == 0:
             raise IndexError("No results for {}".format(queries[i]))
 
@@ -321,7 +309,6 @@ def get_category_category_linkset(cat1, cat2):
 
     return LinkSet({"$and": [{"$or": clauses[0]}, {"$or": clauses[1]}]})
 
-
 def get_book_category_linkset(book, cat):
     """
     Return LinkSet of links between the given book and category.
@@ -329,14 +316,12 @@ def get_book_category_linkset(book, cat):
     :param cat: String
     :return:
     """
-    query = {"$and": [{"categories": cat}, {"categories": {"$ne": "Commentary"}}, {"categories": {"$ne": "Commentary2"}}, {"categories": {"$ne": "Targum"}}]}
-
-    titles = text.IndexSet(query).distinct("title")
+    titles = text.library.get_indexes_in_category(cat)
     if len(titles) == 0:
         return {"error": "No results for {}".format(query)}
 
-    book_re = r'^{} \d'.format(book)
-    cat_re = r'^({}) \d'.format('|'.join(titles))
+    book_re = text.Ref(book).regex()
+    cat_re = r'^({}) \d'.format('|'.join(titles)) #todo: generalize this regex
 
     return LinkSet({"$and": [{"refs": {"$regex": book_re}}, {"refs": {"$regex": cat_re}}]})
 

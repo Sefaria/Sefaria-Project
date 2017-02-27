@@ -45,12 +45,16 @@ body.dark {
 }
 .noselect {
   -webkit-touch-callout: none; /* iOS Safari */
-    -webkit-user-select: none; /* Chrome/Safari/Opera */
+    -webkit-user-select: none; /* Safari/Opera */
        -moz-user-select: none; /* Firefox */
         -ms-user-select: none; /* Internet Explorer/Edge */
-            user-select: none; /* Non-prefixed version, currently
-                                  not supported by any browser */
+            user-select: none; /* Non-prefixed version, Chrome */
 }
+
+input.noselect {
+    -webkit-user-select: auto; /* Safari/Opera -- required for Safari to allow inputs to be accessible. See http://caniuse.com/#feat=user-select-none "Known Issues" for details  TODO Check back to see if bug is fixed in future version */
+}
+
 .interface-hebrew #panelWrapBox{
   direction: rtl;
 }
@@ -444,12 +448,12 @@ body.dark {
 }
 .interface-hebrew .readerPanel .readerNavMenu,
 .readerPanel.hebrew .readerNavSection, 
-.readerPanel.hebrew .readerNavMenu .category {
+.readerPanel.hebrew .readerNavMenu .gridBox {
   direction: rtl;
 }
 .interface-english .readerPanel .readerNavMenu,
 .readerPanel.english .readerNavSection,
- .readerPanel.english .readerNavMenu .category{
+ .readerPanel.english .readerNavMenu .gridBox{
   direction: ltr;
 }
 .readerPanel.english .he {

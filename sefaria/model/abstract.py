@@ -139,8 +139,9 @@ class AbstractMongoRecord(object):
         if self.is_new():
             raise InputError(u"Can not delete {} that doesn't exist in database.".format(type(self).__name__))
 
-        getattr(db, self.collection).remove({"_id": self._id})
         notify(self, "delete")
+        getattr(db, self.collection).remove({"_id": self._id})
+
 
     def delete_by_query(self, query):
         r = self.load(query)

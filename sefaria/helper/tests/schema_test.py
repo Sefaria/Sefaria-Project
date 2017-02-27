@@ -54,7 +54,7 @@ def setup_module():
     index = Index({
         'schema': root.serialize(),
         'title': 'Delete Me',
-        'categories': ['Dummy'],
+        'categories': ['Tanakh'],
         'alt_structs': {'alt': alt.serialize()}
     })
     index.save()
@@ -125,8 +125,7 @@ def teardown_module():
     i.delete()
 
 
-
-
+@pytest.mark.failing
 @pytest.mark.deep
 def test_migrate_to_complex_structure():
     try:
@@ -156,7 +155,7 @@ def test_migrate_to_complex_structure():
     index = Index({
         'schema': root.serialize(),
         'title': 'Crazy',
-        'categories': ['Craziness'],
+        'categories': ['Torah'],
     })
     index.save()
 

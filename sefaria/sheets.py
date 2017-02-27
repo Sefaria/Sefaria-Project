@@ -14,7 +14,7 @@ from sefaria.system.database import db
 from sefaria.model.notification import Notification, NotificationSet
 from sefaria.model.following import FollowersSet
 from sefaria.model.user_profile import UserProfile, annotate_user_list, public_user_data, user_link
-from sefaria.utils.util import strip_tags, string_overlap
+from sefaria.utils.util import strip_tags, string_overlap,titlecase
 from sefaria.system.exceptions import InputError
 from history import record_sheet_publication, delete_sheet_publication
 from settings import SEARCH_INDEX_ON_SAVE
@@ -217,8 +217,9 @@ def save_sheet(sheet, user_id, search_override=False):
 
 	db.sheets.update({"id": sheet["id"]}, sheet, True, False)
 
-	index_name = search.get_new_and_current_index_names()['current']
+
 	if sheet["status"] == "public" and SEARCH_INDEX_ON_SAVE and not search_override:
+		index_name = search.get_new_and_current_index_names()['current']
 		search.index_sheet(index_name, sheet["id"])
 
 	global last_updated
@@ -445,7 +446,8 @@ def update_sheet_tags(sheet_id, tags):
 	Sets the tag list for sheet_id to those listed in list 'tags'.
 	"""
 	tags = list(set(tags)) 	# tags list should be unique
-	db.sheets.update({"id": sheet_id}, {"$set": {"tags": tags}})
+	normalizedTags = [titlecase(tag) for tag in tags]
+	db.sheets.update({"id": sheet_id}, {"$set": {"tags": normalizedTags}})
 
 	return {"status": "ok"}
 

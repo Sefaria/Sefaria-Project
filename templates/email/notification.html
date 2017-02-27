@@ -22,7 +22,7 @@
 		{{ notification.content.follower|user_link|absolute_link }} is now following you.
 	
 	{% elif notification.type == "discuss" %}
-		{{ notification.content.adder|user_link|absolute_link }} added a note to a <a href="http://www.sefaria.org{{ notification.content.discussion_path|url_safe }}">discussion you follow</a>.
+		{{ notification.content.adder|user_link|absolute_link }} added a note to a <a href="https://www.sefaria.org{{ notification.content.discussion_path|url_safe }}">discussion you follow</a>.
 
 	{% elif notification.type == "unset" %}
 		This is a notification without a type, it shouldn't exist.

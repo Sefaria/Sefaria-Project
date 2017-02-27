@@ -16,7 +16,7 @@ def test_text_index_map():
         return re.split(r"\s+",str)
 
     ind_list,ref_list, total_len = tc.text_index_map(tokenizer)
-    print len(ind_list), len(ref_list)
+    #print len(ind_list), len(ref_list)
     #make sure the last element in ind_last (start index of last segment) + the last of the last segment == len of the whole string
     assert ind_list[-1]+len(tokenizer(TextChunk(r.all_subrefs()[-1],"he").as_string())) == len(tokenizer(tc.as_string()))
 
@@ -231,7 +231,7 @@ def test_validate():
 
 def test_save():
     # Delete any old ghost
-    vs = ["Hadran Test", "Pirkei Avot Test", "Rashi on Pirkei Avot Test"]
+    vs = ["Hadran Test", "Pirkei Avot Test", "Rashi on Exodus Test"]
     for vt in vs:
         try:
             Version().load({"versionTitle": vt}).delete()
@@ -347,59 +347,64 @@ def test_save():
 
     v.delete()
 
+    with pytest.raises(Exception) as e_info:
+        # create new version for a non existing commentary, depth 3 - should fail
+        v = Version({
+            "language": "en",
+            "title": "Rashi on Pirkei Avot",
+            "versionSource": "http://foobar.com",
+            "versionTitle": "Rashi on Pirkei Avot Test",
+            "chapter": []
+        }).save()
 
-
-    # create new version, depth 3 - commentary
     v = Version({
         "language": "en",
-        "title": "Rashi on Pirkei Avot",
+        "title": "Rashi on Exodus",
         "versionSource": "http://foobar.com",
-        "versionTitle": "Rashi on Pirkei Avot Test",
+        "versionTitle": "Rashi on Exodus Test",
         "chapter": []
     }).save()
-
-
     # write to new verse of new chapter
-    c = TextChunk(Ref("Rashi on Pirkei Avot 2:3"), "en", "Rashi on Pirkei Avot Test")
+    c = TextChunk(Ref("Rashi on Exodus 2:3"), "en", "Rashi on Exodus Test")
     c.text = ["Text for 2:3:1", "Text for 2:3:2"]
     c.save()
 
     # extend to new verse of later chapter
-    c = TextChunk(Ref("Rashi on Pirkei Avot 3:4:3"), "en", "Rashi on Pirkei Avot Test")
+    c = TextChunk(Ref("Rashi on Exodus 3:4:3"), "en", "Rashi on Exodus Test")
     c.text = "Text for 3:4:3"
     c.save()
 
     # write new chapter beyond created range
     # test that blank space isn't saved
-    c = TextChunk(Ref("Rashi on Pirkei Avot 5"), "en", "Rashi on Pirkei Avot Test")
+    c = TextChunk(Ref("Rashi on Exodus 5"), "en", "Rashi on Exodus Test")
     c.text = [["Text for 5:1:1"], ["Text for 5:2:1", "", ""], ["Text for 5:3:1","Text for 5:3:2", "     ", "", " "],["Text for 5:4:1", "", "  "]]
     c.save()
 
     # write new chapter within created range
-    c = TextChunk(Ref("Rashi on Pirkei Avot 4"), "en", "Rashi on Pirkei Avot Test")
+    c = TextChunk(Ref("Rashi on Exodus 4"), "en", "Rashi on Exodus Test")
     c.text = [["Text for 4:1:1", "Text for 4:1:2", "Text for 4:1:3", "Text for 4:1:4"]]
     c.save()
 
     # write within explicitly created chapter
-    c = TextChunk(Ref("Rashi on Pirkei Avot 3:5:1"), "en", "Rashi on Pirkei Avot Test")
+    c = TextChunk(Ref("Rashi on Exodus 3:5:1"), "en", "Rashi on Exodus Test")
     c.text = "Text for 3:5:1"
     c.save()
-    c = TextChunk(Ref("Rashi on Pirkei Avot 3:3:3"), "en", "Rashi on Pirkei Avot Test")
+    c = TextChunk(Ref("Rashi on Exodus 3:3:3"), "en", "Rashi on Exodus Test")
     c.text = "Text for 3:3:3"
     c.save()
 
     # write within implicitly created chapter
-    c = TextChunk(Ref("Rashi on Pirkei Avot 1:5"), "en", "Rashi on Pirkei Avot Test")
+    c = TextChunk(Ref("Rashi on Exodus 1:5"), "en", "Rashi on Exodus Test")
     c.text = ["Text for 1:5", "Text for 1:5:2"]
     c.save()
 
     # Rewrite
-    c = TextChunk(Ref("Rashi on Pirkei Avot 4:1:2"), "en", "Rashi on Pirkei Avot Test")
+    c = TextChunk(Ref("Rashi on Exodus 4:1:2"), "en", "Rashi on Exodus Test")
     c.text = "New Text for 4:1:2"
     c.save()
 
     # verify
-    c = TextChunk(Ref("Rashi on Pirkei Avot"), "en", "Rashi on Pirkei Avot Test")
+    c = TextChunk(Ref("Rashi on Exodus"), "en", "Rashi on Exodus Test")
     assert c.text == [
         [[], [], [], [], ["Text for 1:5", "Text for 1:5:2"]],
         [[], [], ["Text for 2:3:1", "Text for 2:3:2"]],
