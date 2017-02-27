@@ -663,30 +663,31 @@ def migrate_to_complex_structure(title, schema, mappings):
         orig_ref = our_ref
         our_ref = Ref(our_ref)
         results = []
-        for our_ref in [our_ref.starting_ref(), our_ref.ending_ref()]:
+        for our_ref in [our_ref.starting_ref(), our_ref.ending_ref()]:  #split it up in case it is a range
             for map_ref in mappings:
                 map_ref = Ref(map_ref)
-                print "******"
-                print map_ref
-                print our_ref
-                try:
-                    terms = our_ref.in_terms_of(map_ref)
-                except:
-                    our_ref.in_terms_of(map_ref)
-                if map_ref.contains(our_ref) and type(terms) is list:
+
+                #if map_ref contains our ref, then this is the map_ref we use to translate our_ref from simple to complex
+                if map_ref.contains(our_ref):
+                    map_ref_str = map_ref.normal()
+                    new_ref_str = mappings[map_ref_str] #Complex text's ref will be based on new_ref_str in either case
+
                     if map_ref.is_range():
-                        terms_str = ""
-                        for term in terms:
-                            terms_str += "{}:".format(term)
-                        terms_str = terms_str[0:-1]
-                        new_ref_str = mappings[map_ref.normal()]
-                        results.append(Ref("Complex {} {}".format(new_ref_str, terms_str)))
+                        terms = our_ref.in_terms_of(map_ref)
+                        new_ref = Ref("Complex {}".format(new_ref_str))
+                        d = new_ref._core_dict()
+                        d['sections'] = terms   #we construct new ref based on results of in_terms_of()
+                        d['toSections'] = terms
+                        results.append(Ref(_obj=d))
                     else:
-                        map_ref_str = map_ref.normal()
-                        new_ref_str = mappings[map_ref_str]
                         our_ref_str = our_ref.normal()
                         results.append(Ref("Complex {}".format(our_ref_str.replace(map_ref_str, new_ref_str))))
 
+        '''
+        now, since we split our_ref into its starting_ref and ending_ref, we now try to construct a new ref that
+        is a range from the first to the second.  if only the starting_ref or only the ending_ref produced a result,
+        we use that one result
+        '''
         if len(results) == 2:
             return results[0].to(results[1]).normal()
         elif len(results) == 1:
