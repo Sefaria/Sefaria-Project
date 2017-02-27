@@ -360,7 +360,7 @@ def prepare_merged_text_for_export(title, lang=None):
         "title": title,
         "language": lang,
         "versionTitle": "merged",
-        "versionSource": "http://www.sefaria.org/%s" % title.replace(" ", "_"),
+        "versionSource": "https://www.sefaria.org/%s" % title.replace(" ", "_"),
     }
     text_docs = db.texts.find({"title": title, "language": lang}).sort([["priority", -1], ["_id", 1]])
 
