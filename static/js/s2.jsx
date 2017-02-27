@@ -6029,7 +6029,7 @@ var TextList = React.createClass({
     var isSingleCommentary = (filter.length == 1 && Sefaria.index(filter[0]) && Sefaria.index(filter[0]).categories == "Commentary");
 
     var en = "No connections known" + (filter.length ? " for " + filter.join(", ") : "") + ".";
-    var he = "אין קשרים ידועים"       + (filter.length ? " ל"    + filter.join(", ") : "") + ".";
+    var he = "אין קשרים ידועים"       + (filter.length ? " ל"    + filter.map(f => Sefaria.index(f) ? Sefaria.index(f)['heTitle'] : Sefaria.hebrewTerm(f)).join(", ") : "") + ".";
     var loaded  = Sefaria.linksLoaded(sectionRef);
     var noResultsMessage = <LoadingMessage message={en} heMessage={he} />;
     var message = !loaded ? (<LoadingMessage />) : (summary.length === 0 ? noResultsMessage : null);
