@@ -3135,7 +3135,7 @@ var ReaderTextTableOfContents = React.createClass({
   render: function() {
     var title     = this.props.title;
     var heTitle   = Sefaria.index(title) ? Sefaria.index(title).heTitle : title;
-    var category  = this.props.category
+    var category  = this.props.category;
 
     var currentVersionElement = null;
     var defaultVersionString = "Default Version";
@@ -3237,7 +3237,44 @@ var ReaderTextTableOfContents = React.createClass({
     }
 
     var closeClick = (this.isBookToc()) ? this.props.closePanel : this.props.close;
-    var classes = classNames({readerTextTableOfContents:1, readerNavMenu:1, narrowPanel: this.props.narrowPanel})
+    var classes = classNames({readerTextTableOfContents:1, readerNavMenu:1, narrowPanel: this.props.narrowPanel});
+    var categories = Sefaria.index(this.props.title).categories;
+
+    // JSON-LD breadcrumbs (https://developers.google.com/search/docs/data-types/breadcrumbs)
+    var lastPosition = 1;
+    var breadcrumbJsonList = [{
+      "@type": "ListItem",
+      "position": 1,
+      "item": {
+          "@id": "/texts",
+          "name": "Texts"
+      }
+    }];
+    Array.prototype.push.apply(breadcrumbJsonList, categories.map(function(c, i, a) {
+      lastPosition = i + 2;
+      return {
+        "@type": "ListItem",
+        "position": lastPosition,
+        "item": {
+          "@id": "/texts/" + a.slice(0, i + 1).join("/"),
+          "name": c
+        }}
+    }));
+    breadcrumbJsonList.push({
+        "@type": "ListItem",
+        "position": lastPosition + 1,
+        "item": {
+          "@id": "/" + title.replace(" ", "_"),
+          "name": title
+        }});
+
+    var breadcrumbJsonObject = {
+      "@context": "http://schema.org",
+      "@type": "BreadcrumbList",
+      "itemListElement": breadcrumbJsonList
+    };
+
+
     return (<div className={classes}>
               <CategoryColorLine category={category} />
               <div className="readerControls">
@@ -3259,7 +3296,10 @@ var ReaderTextTableOfContents = React.createClass({
               <div className="content">
                 <div className="contentInner">
                   <div className="tocTop">
-                    <CategoryAttribution categories={Sefaria.index(this.props.title).categories} />
+                    <CategoryAttribution categories={categories} />
+                    <script type="application/ld+json">
+                        {JSON.stringify(breadcrumbJsonObject)}
+                    </script>                    
                     <div className="tocCategory">
                       <span className="en">{category}</span>
                       <span className="he">{Sefaria.hebrewTerm(category)}</span>
@@ -3494,7 +3534,7 @@ var TextTableOfContentsNavigation = React.createClass({
       </div>
     );
   }
-})
+});
 
 
 var TabbedToggleSet = React.createClass({
