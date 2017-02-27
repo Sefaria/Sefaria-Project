@@ -79,7 +79,7 @@ class UserProfile(object):
 		self.followees = FolloweesSet(self.id)
 
 		# Gravatar
-		default_image           = "http://www.sefaria.org/static/img/profile-default.png"
+		default_image           = "https://www.sefaria.org/static/img/profile-default.png"
 		gravatar_base           = "http://www.gravatar.com/avatar/" + hashlib.md5(self.email.lower()).hexdigest() + "?"
 		self.gravatar_url       = gravatar_base + urllib.urlencode({'d':default_image, 's':str(250)})
 		self.gravatar_url_small = gravatar_base + urllib.urlencode({'d':default_image, 's':str(80)})
