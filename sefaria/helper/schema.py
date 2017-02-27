@@ -573,7 +573,7 @@ def cascade(ref_identifier, rewriter=lambda x: x, needs_rewrite=lambda x: True, 
             sheet = db.sheets.find_one({"id": sid})
             if not sheet:
                 print "Likely error - can't load sheet {}".format(sid)
-            for count, source in enumerate(sheet["sources"]):
+            for source in sheet["sources"]:
                 if rewrite_source(source):
                     needs_save = True
             if needs_save:
@@ -657,19 +657,8 @@ def migrate_to_complex_structure(title, schema, mappings):
     def rewriter(our_ref):
         """
         Converts each reference from the simple text to what it should be in the complex text based on the mappings.
-        Assumes that both the references in the mappings and the references that are passed into the function
-        are not ranges. For example, for the line old_ref.contains(ref), suppose it is:
-        Ref("Genesis 6-7").contains(Ref("Genesis 6:3-4"))
-        This will evaluate to true but then in the return statement,
-        it will not successfully replace the old_ref_str with new_ref.
-        To deal with ranges in the future, split the ranged refs into starting_ref() and ending_ref()
-        and then use in_terms_of() to get the data necessary to properly translate the range.
-        Ranges that cross from one section to another will be cut to only spanning the first section.
-        Cases:
-
-        3. Mapping is not a range but our ref is a range -- replace works fine
-
-        4. Mapping is a range and the ref in question is a range --
+        :param our_ref: reference in the simple text's form
+        returns reference in the complex text's form
         """
         orig_ref = our_ref
         our_ref = Ref(our_ref)
@@ -709,7 +698,7 @@ def migrate_to_complex_structure(title, schema, mappings):
     for my_index, my_ref in enumerate(mappings):
         for other_index, other_ref in enumerate(mappings):
             if my_index != other_index and Ref(my_ref).as_ranged_segment_ref().overlaps(Ref(other_ref).as_ranged_segment_ref()):
-                print "Mapping is incorrectly defined.  References should not overlap, but {} overlaps with {}.".format(my_ref, other_ref)
+                print "Mapping is incorrectly defined.  Mapping references should not overlap, but {} overlaps with {}.".format(my_ref, other_ref)
                 return
 
 

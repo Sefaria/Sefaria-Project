@@ -163,6 +163,7 @@ def test_migrate_to_complex_structure():
         'schema': root.serialize(),
         'title': 'MigrateBook',
         'categories': ['Other'],
+    })
     index.save()
 
     p1 = "This should eventually end up in MigrateBook, Part 1, 1:1"
