@@ -3291,7 +3291,7 @@ var ReaderTextTableOfContents = React.createClass({
                       versionsList={versions}
                       openVersion={this.openVersion}
                       defaultStruct={"default_struct" in details && details.default_struct in details.alts ? details.default_struct : "default"} 
-                      currentRef={this.isTextToc() ? this.props.currentRef : null}
+                      currentRef={this.props.currentRef}
                       narrowPanel={this.props.narrowPanel}
                       title={this.props.title} />
                   </div>

@@ -3174,8 +3174,6 @@ class Ref(object):
         #Todo: handle complex texts.  Right now, all complex results are grouped under the root of the text
 
         cats = self.index.categories[:]
-        if len(cats) >= 1 and cats[0] == "Commentary":
-            cats = cats[1:2] + ["Commentary"] + cats[2:]
 
         key = "/".join(cats + [self.index.title])
         try:
