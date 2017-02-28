@@ -2859,6 +2859,9 @@ var ReaderNavigationCategoryMenu = React.createClass({
     return (<div className={navMenuClasses}>
               <div className={navTopClasses}>
                 <CategoryColorLine category={categories[0]} />
+                <script type="application/ld+json">
+                    {Sefaria.jsonld.catCrumbs(categories)}
+                </script>
                 {this.props.hideNavHeader ? null : (<ReaderNavigationMenuMenuButton onClick={this.props.navHome} compare={this.props.compare} />)}
                 {this.props.hideNavHeader ? null : (<ReaderNavigationMenuDisplaySettingsButton onClick={this.props.openDisplaySettings} />)}
                 {this.props.hideNavHeader ? null : (<h2>
@@ -3240,40 +3243,6 @@ var ReaderTextTableOfContents = React.createClass({
     var classes = classNames({readerTextTableOfContents:1, readerNavMenu:1, narrowPanel: this.props.narrowPanel});
     var categories = Sefaria.index(this.props.title).categories;
 
-    // JSON-LD breadcrumbs (https://developers.google.com/search/docs/data-types/breadcrumbs)
-    var lastPosition = 1;
-    var breadcrumbJsonList = [{
-      "@type": "ListItem",
-      "position": 1,
-      "item": {
-          "@id": "/texts",
-          "name": "Texts"
-      }
-    }];
-    Array.prototype.push.apply(breadcrumbJsonList, categories.map(function(c, i, a) {
-      lastPosition = i + 2;
-      return {
-        "@type": "ListItem",
-        "position": lastPosition,
-        "item": {
-          "@id": "/texts/" + a.slice(0, i + 1).join("/"),
-          "name": c
-        }}
-    }));
-    breadcrumbJsonList.push({
-        "@type": "ListItem",
-        "position": lastPosition + 1,
-        "item": {
-          "@id": "/" + title.replace(" ", "_"),
-          "name": title
-        }});
-
-    var breadcrumbJsonObject = {
-      "@context": "http://schema.org",
-      "@type": "BreadcrumbList",
-      "itemListElement": breadcrumbJsonList
-    };
-
 
     return (<div className={classes}>
               <CategoryColorLine category={category} />
@@ -3298,7 +3267,7 @@ var ReaderTextTableOfContents = React.createClass({
                   <div className="tocTop">
                     <CategoryAttribution categories={categories} />
                     <script type="application/ld+json">
-                        {JSON.stringify(breadcrumbJsonObject)}
+                        {Sefaria.jsonld.catCrumbs(categories, title)}
                     </script>                    
                     <div className="tocCategory">
                       <span className="en">{category}</span>

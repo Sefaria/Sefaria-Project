@@ -3212,6 +3212,11 @@ var ReaderNavigationCategoryMenu = React.createClass({
         'div',
         { className: navTopClasses },
         React.createElement(CategoryColorLine, { category: categories[0] }),
+        React.createElement(
+          'script',
+          { type: 'application/ld+json' },
+          Sefaria.jsonld.catCrumbs(categories)
+        ),
         this.props.hideNavHeader ? null : React.createElement(ReaderNavigationMenuMenuButton, { onClick: this.props.navHome, compare: this.props.compare }),
         this.props.hideNavHeader ? null : React.createElement(ReaderNavigationMenuDisplaySettingsButton, { onClick: this.props.openDisplaySettings }),
         this.props.hideNavHeader ? null : React.createElement(
@@ -3805,40 +3810,6 @@ var ReaderTextTableOfContents = React.createClass({
     var classes = classNames({ readerTextTableOfContents: 1, readerNavMenu: 1, narrowPanel: this.props.narrowPanel });
     var categories = Sefaria.index(this.props.title).categories;
 
-    // JSON-LD breadcrumbs (https://developers.google.com/search/docs/data-types/breadcrumbs)
-    var lastPosition = 1;
-    var breadcrumbJsonList = [{
-      "@type": "ListItem",
-      "position": 1,
-      "item": {
-        "@id": "/texts",
-        "name": "Texts"
-      }
-    }];
-    Array.prototype.push.apply(breadcrumbJsonList, categories.map(function (c, i, a) {
-      lastPosition = i + 2;
-      return {
-        "@type": "ListItem",
-        "position": lastPosition,
-        "item": {
-          "@id": "/texts/" + a.slice(0, i + 1).join("/"),
-          "name": c
-        } };
-    }));
-    breadcrumbJsonList.push({
-      "@type": "ListItem",
-      "position": lastPosition + 1,
-      "item": {
-        "@id": "/" + title.replace(" ", "_"),
-        "name": title
-      } });
-
-    var breadcrumbJsonObject = {
-      "@context": "http://schema.org",
-      "@type": "BreadcrumbList",
-      "itemListElement": breadcrumbJsonList
-    };
-
     return React.createElement(
       'div',
       { className: classes },
@@ -3892,7 +3863,7 @@ var ReaderTextTableOfContents = React.createClass({
             React.createElement(
               'script',
               { type: 'application/ld+json' },
-              JSON.stringify(breadcrumbJsonObject)
+              Sefaria.jsonld.catCrumbs(categories, title)
             ),
             React.createElement(
               'div',
