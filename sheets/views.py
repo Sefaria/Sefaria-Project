@@ -16,7 +16,6 @@ from django.contrib.admin.views.decorators import staff_member_required
 
 # noinspection PyUnresolvedReferences
 from django.contrib.auth.models import User
-from django.contrib.auth.models import Group as DjangoGroup
 
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaIoBaseUpload
@@ -69,7 +68,7 @@ def new_sheet(request):
 			if db.sheets.find_one({"id": sheet_id})["options"]["assignable"] == 1:
 				return assigned_sheet(request, sheet_id)
 
-	owner_groups  = get_user_groups(request.user)
+	owner_groups  = get_user_groups(request.user.id)
 	query         = {"owner": request.user.id or -1 }
 	hide_video    = db.sheets.find(query).count() > 2
 
@@ -96,7 +95,7 @@ def can_edit(user, sheet):
 		return True
 	if sheet["options"]["collaboration"] == "group-can-edit":
 		if "group" in sheet:
-			if sheet["group"] in [group.name for group in user.groups.all()]:
+			if sheet["group"] in [group.name for group in get_user_groups(request.user.id)]:
 				return True
 
 	return False
@@ -120,18 +119,17 @@ def can_add(user, sheet):
 		return True
 	if sheet["options"]["collaboration"] == "group-can-add":
 		if "group" in sheet:
-			if sheet["group"] in [group.name for group in user.groups.all()]:
+			if sheet["group"] in [group.name for group in get_user_groups(request.user.id)]:
 				return True
 
 	return False
 
 
-def get_user_groups(user):
+def get_user_groups(uid):
 	"""
 	Returns a list of Groups that user belongs to.
 	"""
-	groups = [g.name for g in user.groups.all()]
-	return GroupSet({"name": {"$in": groups }}, sort=[["name", 1]])
+	return GroupSet().for_user(uid)
 
 
 def make_sheet_class_string(sheet):
@@ -171,7 +169,7 @@ def view_sheet(request, sheet_id):
 	try:
 		owner = User.objects.get(id=sheet["owner"])
 		author = owner.first_name + " " + owner.last_name
-		owner_groups = get_user_groups(request.user) if sheet["owner"] == request.user.id else None
+		owner_groups = get_user_groups(request.user.id) if sheet["owner"] == request.user.id else None
 	except User.DoesNotExist:
 		author = "Someone Mysterious"
 		owner_groups = None
@@ -227,7 +225,7 @@ def view_visual_sheet(request, sheet_id):
 	try:
 		owner = User.objects.get(id=sheet["owner"])
 		author = owner.first_name + " " + owner.last_name
-		owner_groups = get_user_groups(request.user) if sheet["owner"] == request.user.id else None
+		owner_groups = get_user_groups(request.user.id) if sheet["owner"] == request.user.id else None
 	except User.DoesNotExist:
 		author = "Someone Mysterious"
 		owner_groups = None
@@ -277,7 +275,7 @@ def assigned_sheet(request, assignment_id):
 
 	assigner        = UserProfile(id=sheet["owner"])
 	assigner_id	    = assigner.id
-	owner_groups    = get_user_groups(request.user)
+	owner_groups    = get_user_groups(request.user.id)
 
 	sheet_class     = make_sheet_class_string(sheet)
 	can_edit_flag   = True
@@ -361,7 +359,7 @@ def sheets_list(request, type=None):
 										"your_sheets": your,
 										"your_tags":   your_tags,
 										"collapse_private": collapse,
-										"groups": get_user_groups(request.user)
+										"groups": get_user_groups(request.user.id)
 									},
 									RequestContext(request))
 
@@ -389,7 +387,7 @@ def sheets_list(request, type=None):
 
 		query              = {"owner": request.user.id or -1 }
 		response["title"]  = "Your Source Sheets"
-		response["groups"] = get_user_groups(request.user)
+		response["groups"] = get_user_groups(request.user.id)
 		tags               = sheet_tag_counts(query)
 		tags               = order_tags_for_user(tags, request.user.id)
 
@@ -418,7 +416,7 @@ def group_page(request, group):
 	if not group:
 		raise Http404
 
-	if request.user.is_authenticated() and group.name in [g.name for g in request.user.groups.all()]:
+	if request.user.is_authenticated() and group.name in [g.name for g in get_user_groups(request.user.id)]:
 		if not request.COOKIES.get('s1'):
 			return s2_group_sheets(request, group.name, True)
 		in_group = True
@@ -478,7 +476,7 @@ def groups_api(request, group=None):
 		group = Group().load({"name": group})
 		if not group:
 			return jsonResponse({"error": "No group named '%s'" % group})
-		is_member = request.is_authenticated() and groups.is_member(request.user.id)
+		is_member = request.is_authenticated() and group.is_member(request.user.id)
 		group_content = group.contents(with_content=True, authenticated=is_member)
 		jsonResponse(group_content)
 	else:
@@ -553,7 +551,7 @@ def sheets_tag(request, tag, public=True, group=None):
 	else:
 		sheets = get_sheets_by_tag(tag, uid=request.user.id)
 
-	in_group = request.user.is_authenticated() and group in [g.name for g in request.user.groups.all()]
+	in_group = request.user.is_authenticated() and group in [g.name for g in get_user_groups(request.user.id)]
 	groupCover = Group().load({"name": group}).coverUrl if Group().load({"name": group}) else None
 
 	return render_to_response('tag.html', {
@@ -644,17 +642,19 @@ def user_sheet_list_api(request, user_id):
 		return jsonResponse({"error": "You are not authorized to view that."})
 	return jsonResponse(sheet_list(user_id), callback=request.GET.get("callback", None))
 
+
 def user_sheet_list_api_with_sort(request, user_id, sort_by="date"):
 	if int(user_id) != request.user.id:
 		return jsonResponse({"error": "You are not authorized to view that."})
 	return jsonResponse(user_sheets(user_id,sort_by), callback=request.GET.get("callback", None))
+
 
 def private_sheet_list_api(request, group):
 	group = group.replace("-", " ").replace("_", " ")
 	group   = Group().load({"name": group})
 	if not group:
 		raise Http404
-	if request.user.is_authenticated() and group.name in [g.name for g in request.user.groups.all()]:
+	if request.user.is_authenticated() and group.name in [g.name for g in get_user_groups(request.user.id)]:
 		return jsonResponse(group_sheets(group, True), callback=request.GET.get("callback", None))
 	else:
 		return jsonResponse(group_sheets(group, False), callback=request.GET.get("callback", None))
@@ -852,6 +852,7 @@ def user_tag_list_api(request, user_id):
 	response = jsonResponse(response, callback=request.GET.get("callback", None))
 	response["Cache-Control"] = "max-age=3600"
 	return response
+
 
 def group_tag_list_api(request, group):
 	"""

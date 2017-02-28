@@ -1067,7 +1067,8 @@ var ReaderApp = React.createClass({
     }
   },
   showMySheets: function() {
-    var updates = {menuOpen: "sheets", sheetsTag: "My Sheets"};
+    console.log("SMS")
+    var updates = {menuOpen: "sheets", navigationSheetTag: "My Sheets"};
     if (this.props.multiPanel) {
       this.setHeaderState(updates);
     } else {
