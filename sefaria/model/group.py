@@ -3,7 +3,6 @@ group.py
 Writes to MongoDB Collection: groups
 """
 from . import abstract as abst
-from sefaria.sheets import group_sheets, sheet_tag_counts
 from sefaria.model.user_profile import public_user_data
 
 import logging
@@ -17,6 +16,9 @@ class Group(abst.AbstractMongoRecord):
     collection = 'groups'
     history_noun = 'group'
 
+    track_pkeys = True
+    pkeys = ["name"]
+
     required_attrs = [
         "name",        # string name of group
     ]
@@ -29,7 +31,6 @@ class Group(abst.AbstractMongoRecord):
         "headerUrl",   # url of an image to use in header
         "coverUrl",    # url of an image to use as cover
         "imageUrl",    # url of an image to use as icon
-        "iconUrl",     # TODO Remove
         "listed",      # Bool, whether to list group publicly
         "tag_order",   # list of strings, display order for sheet tags       
     ]
@@ -41,6 +42,7 @@ class Group(abst.AbstractMongoRecord):
         return True
 
     def contents(self, with_content=False, authenticated=False):
+        from sefaria.sheets import group_sheets, sheet_tag_counts
         contents = super(Group, self).contents()
         if with_content:
             contents["sheets"]     = group_sheets(self.name, authenticated)["sheets"]
@@ -80,3 +82,13 @@ class GroupSet(abst.AbstractMongoSet):
     def for_user(self, uid):
         self.__init__({"$or": [{"admins": uid}, {"publishers": uid}, {"members": uid}]}, sort=[("name", 1)])
         return self
+
+
+def process_group_name_change_in_sheets(group, **kwargs):
+    """
+    When a group's name changes, update all the sheets in this group to follow
+    """
+    from sefaria.system.database import db
+    from pprint import pprint
+    pprint(kwargs)
+    db.sheets.update_many({"group": kwargs["old"]}, {"$set": {"group": kwargs["new"]}})

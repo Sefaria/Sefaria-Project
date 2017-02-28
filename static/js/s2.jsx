@@ -4431,7 +4431,7 @@ var GroupPage = React.createClass({
     var sheets       = group ? group.sheets : null;
     var groupTagList = group ? group.tags : null;
     var members      = this.memberList();
-    var isAdmin      = group && group.admins.map((user) => {user.uid}).filter((x) => { x == Sefaria._uid}).length !== 0;
+    var isAdmin      = group && group.admins.filter(function(x) { return x.uid == Sefaria._uid } ).length !== 0;
 
     groupTagList = groupTagList ? groupTagList.map(function (tag) {
         var filterThisTag = this.filterYourSheetsByTag.bind(this, tag);

@@ -5506,10 +5506,8 @@ var GroupPage = React.createClass({
     var sheets = group ? group.sheets : null;
     var groupTagList = group ? group.tags : null;
     var members = this.memberList();
-    var isAdmin = group && group.admins.map(function (user) {
-      user.uid;
-    }).filter(function (x) {
-      x == Sefaria._uid;
+    var isAdmin = group && group.admins.filter(function (x) {
+      return x.uid == Sefaria._uid;
     }).length !== 0;
 
     groupTagList = groupTagList ? groupTagList.map(function (tag) {
