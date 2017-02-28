@@ -20,6 +20,36 @@
 {% block content %}
 
 <div id="personPage" class="biReady container static">
+    <script type="application/ld+json">
+      {% autoescape off %}
+        {
+          "@context": "http://schema.org",
+          "@type": "BreadcrumbList",
+          "itemListElement": [{
+            "@type": "ListItem",
+            "position": 1,
+            "item": {
+              {% if post_talmudic %}
+                "@id": "/people",
+                "name": "Authors",
+              {% else %}
+                "@id": "/people/talmud",
+                "name": "People in the Talmud",
+              {% endif %}
+            }
+          },
+          {
+            "@type": "ListItem",
+            "position": 2,
+            "item": {
+              "@id": "/person/{{ key }}",
+              "name": "{{ primary_name.en }}",
+            }
+          }]
+        }
+      {% endautoescape %}
+    </script>
+
     <div class="inner">
         <h1>
             <span class="int-en">{{ primary_name.en }}</span>
@@ -101,15 +131,15 @@
                 {% endfor %}
             </div>
             {% endif %}
+            {% if places %}
             <div id="person-graphic-column">
                 <h3>
                     <span class="int-en">Map</span>
                     <span class="int-he">מפה</span>
                 </h3>
-                {% if places %}
                     <div id="place-map"></div>
-                {% endif %}
             </div>
+            {% endif %}
         </div>
     </div>
 </div>
