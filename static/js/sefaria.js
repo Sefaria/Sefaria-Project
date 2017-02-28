@@ -1280,8 +1280,12 @@ Sefaria = extend(Sefaria, {
     };
     if(name in Sefaria._translateTerms){
         return Sefaria._translateTerms[name]["he"];
-    }else{
-        return name in categories ? categories[name] : name;
+    }else if (name in categories){
+        return  categories[name];
+    }else if (Sefaria.index(name)){
+        return Sefaria.index(name).heTitle;
+    }else {
+        return name;
     }
   },
   search: {

@@ -34,7 +34,7 @@ from sefaria.settings import DISABLE_INDEX_SAVE, USE_VARNISH
 
 """
                 ----------------------------------
-                 Index, IndexSet, CommentaryIndex
+                         Index, IndexSet
                 ----------------------------------
 """
 
@@ -162,10 +162,8 @@ class AbstractIndex(object):
 class Index(abst.AbstractMongoRecord, AbstractIndex):
     """
     Index objects define the names and structure of texts stored in the system.
+    There is an Index object for every text.
 
-    There is an Index object for every simple text and for every commentator (e.g. "Rashi").
-
-    Commentaries (like "Rashi on Exodus") are instantiated with :class:`CommentaryIndex` objects.
     """
     collection = 'index'
     history_noun = 'index'
