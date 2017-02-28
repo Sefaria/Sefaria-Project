@@ -24,8 +24,7 @@ for dgroup in groups:
 	else:
 		Group(fields).save()
 
-
-db.groups.create_index("name")
+db.groups.create_index("name", unique=True)
 db.groups.create_index("admins")
 db.groups.create_index("publishers")
 db.groups.create_index("members")

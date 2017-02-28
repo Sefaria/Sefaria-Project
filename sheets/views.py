@@ -489,15 +489,21 @@ def groups_post_api(request):
 	if not j:
 		return jsonResponse({"error": "No JSON given in post data."})
 	group = json.loads(j)
+	from pprint import pprint
+	pprint(group)
 	if request.method == "POST":
 		existing = Group().load({"name": group.get("previousName", group["name"])})
 		if existing:
+			# Don't overwrite existing group when posting to create a new group
+			if "new" in group:
+				return jsonResponse({"error": "A group with this name already exists."})
 			# check poster is a group admin
 			if request.user.id not in existing.admins:
 				return jsonResponse({"error": "You do not have permission to edit this group."})
 			existing.load_from_dict(group)
 			existing.save()
 		else:
+			del group["new"]
 			group["admins"] = [request.user.id]
 			group["publishers"] = []
 			group["members"] = []

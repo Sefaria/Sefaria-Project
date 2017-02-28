@@ -4621,15 +4621,18 @@ var EditGroupPage = React.createClass({
 
   },
   save: function() {
-    var groupData = this.state;
+    var groupData = Sefaria.util.clone(this.state);
+    if (!this.props.initialData) {
+      groupData["new"] = true;
+    }
     if (this.props.initialData && this.props.initialData.name !== groupData.name) {
       groupData["previousName"] = this.props.initialData.name;
     }
-    $.post("/api/groups", {json: JSON.stringify(this.state)}, function(data) {
+    $.post("/api/groups", {json: JSON.stringify(groupData)}, function(data) {
         if ("error" in data) {
-            alert(data.error);
+          alert(data.error);
         } else {
-            window.location = "/groups/" + this.state.name.replace(/ /g, "-");
+          window.location = "/groups/" + this.state.name.replace(/ /g, "-");
         }
     }.bind(this)).fail(function() {
         alert("Sorry, an error occurred.");
