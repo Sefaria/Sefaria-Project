@@ -3328,6 +3328,7 @@ content: "";
   width: 80%;
   height: 80%;
   margin: 10%;
+  opacity: 0.4;
 }
 .groupListingName {
   display: block;
