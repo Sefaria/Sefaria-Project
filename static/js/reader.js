@@ -4133,7 +4133,7 @@ function readNewVersion() {
 	
 	if ($("#originalRadio").prop("checked")) {
 		version["versionTitle"] = "Sefaria Community Translation";
-		version["versionSource"] = "http://www.sefaria.org";
+		version["versionSource"] = "https://www.sefaria.org";
 	} else {
 		version["versionTitle"] = $("#versionTitle").val();
 		var source = $("#versionSource").val();

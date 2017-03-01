@@ -34,7 +34,7 @@ from sefaria.settings import DISABLE_INDEX_SAVE, USE_VARNISH
 
 """
                 ----------------------------------
-                 Index, IndexSet, CommentaryIndex
+                         Index, IndexSet
                 ----------------------------------
 """
 
@@ -162,10 +162,8 @@ class AbstractIndex(object):
 class Index(abst.AbstractMongoRecord, AbstractIndex):
     """
     Index objects define the names and structure of texts stored in the system.
+    There is an Index object for every text.
 
-    There is an Index object for every simple text and for every commentator (e.g. "Rashi").
-
-    Commentaries (like "Rashi on Exodus") are instantiated with :class:`CommentaryIndex` objects.
     """
     collection = 'index'
     history_noun = 'index'
@@ -331,7 +329,7 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
             It's left as legacy code to estimate completion on a sparse text.
             Do not write code that depends on it.
         """
-        return getattr(self, 'base_text_mapping', None) == 'commentary_increment_base_text_depth'
+        return getattr(self, 'base_text_mapping', None) == 'many_to_one'
 
     def is_dependant_text(self):
         return getattr(self, 'dependence', None) is not None
@@ -3174,8 +3172,6 @@ class Ref(object):
         #Todo: handle complex texts.  Right now, all complex results are grouped under the root of the text
 
         cats = self.index.categories[:]
-        if len(cats) >= 1 and cats[0] == "Commentary":
-            cats = cats[1:2] + ["Commentary"] + cats[2:]
 
         key = "/".join(cats + [self.index.title])
         try:
@@ -3804,11 +3800,6 @@ class Library(object):
     def all_titles_regex_string(self, lang="en", with_terms=False, citing_only=False): #, for_js=False):
         """
         :param lang: "en" or "he"
-        :param commentary: If true matches ONLY commentary records
-        :param with_commentary: If true, overrides `commentary` argument and matches BOTH "x on y" style records and simple records
-        Note that matching behavior differs between commentary=True and with_commentary=True.
-        commentary=True matches 'title', 'commentor' and 'commentee' named groups.
-        with_commentary=True matches only 'title', whether for plain records or commentary records.
         :param with_terms:
         :param citing_only: Match only those texts which have is_cited set to True
         :param for_js:

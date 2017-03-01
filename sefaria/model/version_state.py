@@ -96,7 +96,7 @@ class VersionState(abst.AbstractMongoRecord, AbstractSchemaContent):
     def __init__(self, index=None, attrs=None, proj=None):
         """
         :param index: Index record or name of Index
-        :type index: text.Index|text.CommentaryIndex|string
+        :type index: text.Index|string
         :return:
         """
         super(VersionState, self).__init__(attrs)
@@ -376,7 +376,7 @@ class StateNode(object):
         if title:
             snode = library.get_schema_node(title)
             if not snode:
-                snode = library.get_schema_node(title, with_commentary=True)
+                snode = library.get_schema_node(title)
             if not snode:
                 raise InputError(u"Can not resolve name: {}".format(title))
             if snode.is_default():
