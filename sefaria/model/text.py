@@ -3800,7 +3800,7 @@ class Library(object):
     def all_titles_regex_string(self, lang="en", with_terms=False, citing_only=False): #, for_js=False):
         """
         :param lang: "en" or "he"
-        :param with_terms:
+        :param with_terms: Include terms in regex.  (Will have no effect if citing_only is True)
         :param citing_only: Match only those texts which have is_cited set to True
         :param for_js:
         :return:
@@ -3835,7 +3835,8 @@ class Library(object):
         """
         :return: A regular expression object that will match any known title in the library in the provided language
         :param lang: "en" or "he"
-        :param bool with_terms: Default False.  If True, include shared titles ('terms')
+        :param bool with_terms: Default False.  If True, include shared titles ('terms'). (Will have no effect if citing_only is True)
+        :param citing_only: Match only those texts which have is_cited set to True
         :raise: InputError: if lang == "he" and commentary == True
 
         Uses re2 if available.  See https://github.com/Sefaria/Sefaria-Project/wiki/Regular-Expression-Engines
