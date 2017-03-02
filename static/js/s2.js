@@ -5663,8 +5663,12 @@ var GroupPage = React.createClass({
           )
         ) : null,
         this.state.tab == "members" ? members.map(function (member) {
-          return React.createElement(GroupMemberListing, { member: member, isAdmin: isAdmin });
-        }) : null
+          return React.createElement(GroupMemberListing, {
+            member: member,
+            isAdmin: isAdmin,
+            groupName: this.props.group,
+            onDataChange: this.onDataLoad });
+        }.bind(this)) : null
       ),
       React.createElement(
         'footer',
@@ -5723,7 +5727,9 @@ var GroupMemberListing = React.createClass({
 
   propTypes: {
     member: React.PropTypes.object.isRequired,
-    isAdmin: React.PropTypes.bool
+    isAdmin: React.PropTypes.bool,
+    groupName: React.PropTypes.string,
+    onDataChange: React.PropTypes.func
   },
   render: function render() {
     return React.createElement(
@@ -5747,8 +5753,96 @@ var GroupMemberListing = React.createClass({
           { className: 'groupMemberListingRole' },
           this.props.member.role
         ),
-        this.props.isAdmin ? React.createElement('div', { className: 'groupMemberListingActions' }) : null
+        this.props.isAdmin ? React.createElement(GroupMemberListingActions, { member: this.props.member, groupName: this.props.groupName, onDataChange: this.props.onDataChange }) : null
       )
+    );
+  }
+});
+
+var GroupMemberListingActions = React.createClass({
+  displayName: 'GroupMemberListingActions',
+
+  propTypes: {
+    member: React.PropTypes.object.isRequired,
+    groupName: React.PropTypes.string.isRequired,
+    forSelf: React.PropTypes.bool,
+    onDataChange: React.PropTypes.func.isRequired
+  },
+  getInitialState: function getInitialState() {
+    return {
+      menuOpen: false
+    };
+  },
+  toggleMenu: function toggleMenu() {
+    this.setState({ menuOpen: !this.state.menuOpen });
+  },
+  setRole: function setRole(role) {
+    $.post("/api/groups/" + this.props.groupName + "/set-role/" + this.props.member.uid + "/" + role, function (data) {
+      if ("error" in data) {
+        alert(data.error);
+      } else {
+        Sefaria._groups[data.name] = data;
+        this.props.onDataChange();
+      }
+    }.bind(this));
+  },
+  removeMember: function removeMember() {
+    if (confirm("Are you sure you want to remove " + this.props.member.name + " from this group?")) {
+      this.setRole("remove");
+    }
+  },
+  render: function render() {
+    return React.createElement(
+      'div',
+      { className: 'groupMemberListingActions', onClick: this.toggleMenu },
+      React.createElement(
+        'div',
+        { className: 'groupMemberListingActionsButton' },
+        React.createElement('i', { className: 'fa fa-gear' })
+      ),
+      this.state.menuOpen ? React.createElement(
+        'div',
+        { className: 'groupMemberListingActionsMenu' },
+        React.createElement(
+          'div',
+          { className: 'action', onClick: this.setRole.bind(this, "admin") },
+          React.createElement(
+            'span',
+            { className: classNames({ role: 1, current: this.props.member.role == "Admin" }) },
+            'Admin'
+          ),
+          '- can invite & edit settings'
+        ),
+        React.createElement(
+          'div',
+          { className: 'action', onClick: this.setRole.bind(this, "publisher") },
+          React.createElement(
+            'span',
+            { className: classNames({ role: 1, current: this.props.member.role == "Publisher" }) },
+            'Publisher'
+          ),
+          '- can publish'
+        ),
+        React.createElement(
+          'div',
+          { className: 'action', onClick: this.setRole.bind(this, "member") },
+          React.createElement(
+            'span',
+            { className: classNames({ role: 1, current: this.props.member.role == "Member" }) },
+            'Member'
+          ),
+          '- can view & share within group'
+        ),
+        React.createElement(
+          'div',
+          { className: 'action', onClick: this.removeMember },
+          React.createElement(
+            'span',
+            { className: 'role' },
+            'Remove'
+          )
+        )
+      ) : null
     );
   }
 });

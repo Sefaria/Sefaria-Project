@@ -476,9 +476,9 @@ def groups_api(request, group=None):
 		group = Group().load({"name": group})
 		if not group:
 			return jsonResponse({"error": "No group named '%s'" % group})
-		is_member = request.is_authenticated() and group.is_member(request.user.id)
+		is_member = request.user.is_authenticated() and group.is_member(request.user.id)
 		group_content = group.contents(with_content=True, authenticated=is_member)
-		jsonResponse(group_content)
+		return jsonResponse(group_content)
 	else:
 		return groups_post_api(request)
 
@@ -522,6 +522,33 @@ def groups_post_api(request):
 
 	else:
 		return jsonResponse({"error": "Unsupported HTTP method."})
+
+
+@login_required
+def groups_role_api(request, group_name, uid, role):
+	"""
+	API for setting a group members role, or removing them from a group.
+	"""
+	if request.method != "POST":
+		return jsonResponse({"error": "Unsupported HTTP method."})
+	group = Group().load({"name": group_name})
+	if not group:
+		return jsonResponse({"error": "No group named %s." % group_name})
+	if request.user.id not in group.admins:
+		return jsonResponse({"error": "You must be a group admin to change member roles."})
+	uid = int(uid)
+	user = UserProfile(uid)
+	if not user.exists():
+		return jsonResponse({"error": "No user with the specified ID exists."})
+	if role not in ("member", "publisher", "admin", "remove"):
+		return jsonResponse({"error": "Unknown group member role."})
+	if role == "remove":
+		group.remove_member(uid)
+	else:
+		group.add_member(uid, role)
+
+	group_content = group.contents(with_content=True, authenticated=True)
+	return jsonResponse(group_content)
 
 
 def sheet_stats(request):

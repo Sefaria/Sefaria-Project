@@ -4521,8 +4521,12 @@ var GroupPage = React.createClass({
 
                   {this.state.tab == "members" ? 
                    members.map(function(member) {
-                    return <GroupMemberListing member={member} isAdmin={isAdmin} />;
-                   })
+                    return <GroupMemberListing 
+                              member={member}
+                              isAdmin={isAdmin}
+                              groupName={this.props.group}
+                              onDataChange={this.onDataLoad} />;
+                   }.bind(this))
                   : null }
 
               </div>
@@ -4559,8 +4563,10 @@ var GroupSheetListing = React.createClass({
 
 var GroupMemberListing = React.createClass({
   propTypes: {
-    member:      React.PropTypes.object.isRequired,
-    isAdmin:     React.PropTypes.bool
+    member:       React.PropTypes.object.isRequired,
+    isAdmin:      React.PropTypes.bool,
+    groupName:    React.PropTypes.string,
+    onDataChange: React.PropTypes.func,
   },
   render: function() {
     return (
@@ -4576,15 +4582,73 @@ var GroupMemberListing = React.createClass({
         <div className="groupMemberListingRoleBox">
           <span className="groupMemberListingRole">{this.props.member.role}</span>
           {this.props.isAdmin ? 
-            <div className="groupMemberListingActions"></div>
+            <GroupMemberListingActions member={this.props.member} groupName={this.props.groupName} onDataChange={this.props.onDataChange} />
             : null }
         </div>
 
       </div>);
-
   }
 });
 
+
+var GroupMemberListingActions = React.createClass({
+  propTypes: {
+    member:       React.PropTypes.object.isRequired,
+    groupName:    React.PropTypes.string.isRequired,
+    forSelf:      React.PropTypes.bool,
+    onDataChange: React.PropTypes.func.isRequired
+  },
+  getInitialState: function() {
+    return {
+      menuOpen: false
+    }
+  },
+  toggleMenu: function() {
+    this.setState({menuOpen: !this.state.menuOpen});
+  },
+  setRole: function(role) {
+    $.post("/api/groups/" + this.props.groupName + "/set-role/" + this.props.member.uid + "/" + role, function(data) {
+      if ("error" in data) {
+        alert(data.error)
+      } else {
+        Sefaria._groups[data.name] = data;
+        this.props.onDataChange();
+      }
+    }.bind(this));
+  },
+  removeMember: function() {
+    if (confirm("Are you sure you want to remove " + this.props.member.name + " from this group?")) {
+      this.setRole("remove");
+    }
+  },
+  render: function() {
+    return (
+      <div className="groupMemberListingActions" onClick={this.toggleMenu}>
+        <div className="groupMemberListingActionsButton">
+          <i className="fa fa-gear"></i>
+        </div>        
+        {this.state.menuOpen ? 
+          <div className="groupMemberListingActionsMenu">
+            <div className="action" onClick={this.setRole.bind(this, "admin")}>
+              <span className={classNames({role: 1, current: this.props.member.role == "Admin"})}>Admin</span>
+              - can invite & edit settings
+            </div>
+            <div className="action" onClick={this.setRole.bind(this, "publisher")}>
+              <span className={classNames({role: 1, current: this.props.member.role == "Publisher"})}>Publisher</span>
+              - can publish
+            </div>
+            <div className="action" onClick={this.setRole.bind(this, "member")}>
+              <span className={classNames({role: 1, current: this.props.member.role == "Member"})}>Member</span>
+              - can view & share within group
+            </div>
+            <div className="action" onClick={this.removeMember}>
+              <span className="role">Remove</span>
+            </div>
+          </div>
+        : null }
+      </div>);
+  }
+});
 
 
 var EditGroupPage = React.createClass({

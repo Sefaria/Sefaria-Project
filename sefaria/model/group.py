@@ -60,6 +60,29 @@ class Group(abst.AbstractMongoRecord):
         }
         return contents
 
+    def add_member(self, uid, role):
+        """
+        Adds `uid` as member of the group in `role`.
+        If `uid` is already a member, changes their role to `role`.
+        """
+        self.remove_member(uid)
+        if role == "admin":
+            self.admins.append(uid)
+        elif role == "publisher":
+            self.publishers.append(uid)
+        else:
+            self.members.append(uid)
+        self.save()
+
+    def remove_member(self, uid):
+        """
+        Remove `uid` from this group.
+        """
+        self.admins     = [user_id for user_id in self.admins if user_id != uid]
+        self.publishers = [user_id for user_id in self.publishers if user_id != uid]
+        self.members    = [user_id for user_id in self.members if user_id != uid]
+        self.save()
+
     def all_members(self):
         """
         Returns a list of all group members, regardless of sole

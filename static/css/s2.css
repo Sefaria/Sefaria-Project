@@ -3407,6 +3407,50 @@ content: "";
 .groupMemberListingRole {
   color: #666;
 }
+.groupMemberListingActions {
+  position: relative;
+  display: inline-block;
+  background-color: white; 
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  margin-left: 12px;
+  line-height: 36px
+}
+.groupMemberListingActionsButton {
+  cursor: pointer;
+  padding: 0 12px;
+  font-size: 18px;
+  color: #CCC;
+}
+.groupMemberListingActionsMenu {
+  position: absolute;
+  right: 0;
+  top: 46px;
+  width: 300px;
+  background-color: white; 
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  color: #999;
+  font-size: 15px;
+  z-index: 1;
+}
+.groupMemberListingActionsMenu .action {
+  padding: 4px 10px;
+  cursor: pointer;
+}
+.groupMemberListingActionsMenu .action:hover {
+  background-color: #eee;
+}
+.groupMemberListingActionsMenu .action + .action {
+  border-top: 1px solid #ccc;
+}
+.groupMemberListingActionsMenu .role {
+  font-size: 17px;
+  margin-right: 4px;
+}
+.groupMemberListingActionsMenu .role.current {
+  color: #666;
+}
 /*** Interface lang - merge with static.css? ***/
 .readerApp.interface-hebrew .int-en{
   display: none;

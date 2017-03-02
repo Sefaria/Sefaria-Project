@@ -211,16 +211,16 @@ urlpatterns += patterns('reader.views',
 # Groups
 urlpatterns += patterns('sheets.views',
     (r'^groups/?$', 'groups_page'),
-    (r'^api/groups(/(?P<group>[^/]+))?$', 'groups_api'),
     (r'^groups/new$', 'edit_group_page'),
     (r'^groups/(?P<group>[^/]+)/settings$', 'edit_group_page'),
     (r'^groups/(?P<group>[^/]+)$', 'group_page'),
     (r'^groups/(?P<group>[^/]+)/tags/(?P<tag>.+)$', 'group_sheets_tag'),
     (r'^my/groups$', 'my_groups_page'),
-    (r'^api/groups/(?P<group>[^/]+)$', 'private_sheet_list_api'),
-    (r'^api/groups/tag-list/(?P<group>[^/]+)$', 'group_tag_list_api'),
     (r'^partners/(?P<group>[^/]+)$', 'group_page'),
     (r'^partners/(?P<group>[^/]+)/tags/(?P<tag>.+)$', 'group_sheets_tag'),
+    (r'^api/groups(/(?P<group>[^/]+))?$', 'groups_api'),
+    (r'^api/groups/(?P<group_name>[^/]+)/set-role/(?P<uid>\d+)/(?P<role>[^/]+)$', 'groups_role_api'),
+    (r'^api/groups/(?P<group_name>[^/]+)/invite/(?P<uid_or_email>)$', 'groups_invite_api'),
 )
 
 

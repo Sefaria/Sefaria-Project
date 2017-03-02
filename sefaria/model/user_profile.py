@@ -166,6 +166,12 @@ class UserProfile(object):
 
 		return None
 
+	def exists(self):
+		"""
+		Returns True if this is a real existing user, not simply a mock profile.
+		"""
+		return bool(self.date_joined)
+
 	def assign_slug(self):
 		"""
 		Set the slug according to the profile name,
