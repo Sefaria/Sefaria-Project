@@ -101,7 +101,7 @@ def generate_sheets_sitemap():
 
 
 def generate_people_sitemap():
-	urls = ["https://www.sefaria.org/person/{}".format(p.key) for p in PersonSet()]
+	urls = ["https://www.sefaria.org/person/{}".format(p.key.replace(" ", "%20")) for p in PersonSet()]
 	write_urls(urls, "person-sitemap.txt")
 
 
@@ -154,6 +154,7 @@ def generate_sitemaps():
 	generate_sheets_sitemap()
 	generate_texts_toc_sitemap()
 	generate_categories_sitemap()
+	generate_people_sitemap()
 	n = generate_texts_sitemaps()
 
 	maps = ["static-sitemap.txt", "sheets-sitemap.txt", "text-toc-sitemap.txt", "categories-sitemap.txt", "person-sitemap.txt"]
