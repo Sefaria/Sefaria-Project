@@ -1417,9 +1417,11 @@ Sefaria = extend(Sefaria, {
               //Filtered query.  Add clauses.  Don't re-request potential filters.
               var clauses = [];
               for (var i = 0; i < applied_filters.length; i++) {
+
+                  var filterSuffix = applied_filters[i].indexOf("/") != -1 ? ".*" : "/.*"; //filters with '/' might be leading to books. also, very unlikely they'll match an false positives
                   clauses.push({
                       "regexp": {
-                          "path": RegExp.escape(applied_filters[i]) + "/.*"
+                          "path": RegExp.escape(applied_filters[i]) + filterSuffix
                       }
                   });
                   /* Test for Commentary2 as well as Commentary */
