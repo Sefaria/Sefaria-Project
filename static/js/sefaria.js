@@ -1419,7 +1419,7 @@ Sefaria = extend(Sefaria, {
               for (var i = 0; i < applied_filters.length; i++) {
                   clauses.push({
                       "regexp": {
-                          "path": RegExp.escape(applied_filters[i]) + ".*"
+                          "path": RegExp.escape(applied_filters[i]) + "/.*"
                       }
                   });
                   /* Test for Commentary2 as well as Commentary */
