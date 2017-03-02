@@ -2859,6 +2859,9 @@ var ReaderNavigationCategoryMenu = React.createClass({
     return (<div className={navMenuClasses}>
               <div className={navTopClasses}>
                 <CategoryColorLine category={categories[0]} />
+                <script type="application/ld+json">
+                    {Sefaria.jsonld.catCrumbs(categories)}
+                </script>
                 {this.props.hideNavHeader ? null : (<ReaderNavigationMenuMenuButton onClick={this.props.navHome} compare={this.props.compare} />)}
                 {this.props.hideNavHeader ? null : (<ReaderNavigationMenuDisplaySettingsButton onClick={this.props.openDisplaySettings} />)}
                 {this.props.hideNavHeader ? null : (<h2>
@@ -3135,7 +3138,7 @@ var ReaderTextTableOfContents = React.createClass({
   render: function() {
     var title     = this.props.title;
     var heTitle   = Sefaria.index(title) ? Sefaria.index(title).heTitle : title;
-    var category  = this.props.category
+    var category  = this.props.category;
 
     var currentVersionElement = null;
     var defaultVersionString = "Default Version";
@@ -3237,7 +3240,10 @@ var ReaderTextTableOfContents = React.createClass({
     }
 
     var closeClick = (this.isBookToc()) ? this.props.closePanel : this.props.close;
-    var classes = classNames({readerTextTableOfContents:1, readerNavMenu:1, narrowPanel: this.props.narrowPanel})
+    var classes = classNames({readerTextTableOfContents:1, readerNavMenu:1, narrowPanel: this.props.narrowPanel});
+    var categories = Sefaria.index(this.props.title).categories;
+
+
     return (<div className={classes}>
               <CategoryColorLine category={category} />
               <div className="readerControls">
@@ -3259,7 +3265,10 @@ var ReaderTextTableOfContents = React.createClass({
               <div className="content">
                 <div className="contentInner">
                   <div className="tocTop">
-                    <CategoryAttribution categories={Sefaria.index(this.props.title).categories} />
+                    <CategoryAttribution categories={categories} />
+                    <script type="application/ld+json">
+                        {Sefaria.jsonld.catCrumbs(categories, title)}
+                    </script>                    
                     <div className="tocCategory">
                       <span className="en">{category}</span>
                       <span className="he">{Sefaria.hebrewTerm(category)}</span>
@@ -3494,7 +3503,7 @@ var TextTableOfContentsNavigation = React.createClass({
       </div>
     );
   }
-})
+});
 
 
 var TabbedToggleSet = React.createClass({
@@ -6029,7 +6038,7 @@ var TextList = React.createClass({
     var isSingleCommentary = (filter.length == 1 && Sefaria.index(filter[0]) && Sefaria.index(filter[0]).categories == "Commentary");
 
     var en = "No connections known" + (filter.length ? " for " + filter.join(", ") : "") + ".";
-    var he = "אין קשרים ידועים"       + (filter.length ? " ל"    + filter.join(", ") : "") + ".";
+    var he = "אין קשרים ידועים"       + (filter.length ? " ל"    + filter.map(f => Sefaria.hebrewTerm(f)).join(", ") : "") + ".";
     var loaded  = Sefaria.linksLoaded(sectionRef);
     var noResultsMessage = <LoadingMessage message={en} heMessage={he} />;
     var message = !loaded ? (<LoadingMessage />) : (summary.length === 0 ? noResultsMessage : null);

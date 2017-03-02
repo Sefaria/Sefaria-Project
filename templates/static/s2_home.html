@@ -11,6 +11,36 @@
     <meta property="og:type" content="website"/>
     <meta property="og:url" content="https://www.sefaria.org"/>
     <meta property="og:image" content="https://www.sefaria.org/static/img/fb-og-image.png"/>
+    {% autoescape off %}
+    <script type="application/ld+json">
+    {
+      "@context": "http://schema.org",
+      "@type": "WebSite",
+      "name": "Sefaria",
+      "url": "https://www.sefaria.org",
+      "potentialAction": {
+        "@type": "SearchAction",
+        "target": "https://www.sefaria.org/search?q={search_term_string}",
+        "query-input": "required name=search_term_string"
+      }
+    }
+    </script>
+
+    <script type="application/ld+json">
+    {
+      "@context": "http://schema.org",
+      "@type": "Organization",
+      "name": "Sefaria",
+      "url": "https://www.sefaria.org",
+      "logo": "https://www.sefaria.org/static/img/sefaria.svg",
+      "sameAs": [
+        "https://www.facebook.com/sefaria.org/",
+        "https://twitter.com/sefariaproject",
+        "https://www.youtube.com/user/SefariaProject"
+      ]
+    }
+    </script>
+    {% endautoescape %}
 {% endblock %}
 
 {% block css %}

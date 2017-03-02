@@ -1280,8 +1280,12 @@ Sefaria = extend(Sefaria, {
     };
     if(name in Sefaria._translateTerms){
         return Sefaria._translateTerms[name]["he"];
-    }else{
-        return name in categories ? categories[name] : name;
+    }else if (name in categories){
+        return  categories[name];
+    }else if (Sefaria.index(name)){
+        return Sefaria.index(name).heTitle;
+    }else {
+        return name;
     }
   },
   search: {
@@ -1415,7 +1419,7 @@ Sefaria = extend(Sefaria, {
               for (var i = 0; i < applied_filters.length; i++) {
                   clauses.push({
                       "regexp": {
-                          "path": RegExp.escape(applied_filters[i]) + ".*"
+                          "path": RegExp.escape(applied_filters[i]) + "/.*"
                       }
                   });
                   /* Test for Commentary2 as well as Commentary */
@@ -2320,6 +2324,54 @@ Sefaria.hebrew = {
     i = amud == "a" ? i * 2 : i*2 +1;
     return i;
   }
+};
+
+Sefaria.jsonld = {
+    // Methods for producing JSON-LD snippets for use in "rich snippets" - semantic markup.
+    // Resultant JSON strings need to be wrapped in "script" tags.  e.g.
+    // <script type="application/ld+json">
+    //   {Sefaria.jsonld.catCrumbs(categories, title)}
+    // </script>
+    catCrumbs: function(cats, title) {
+       // JSON-LD breadcrumbs (https://developers.google.com/search/docs/data-types/breadcrumbs)
+        var lastPosition = 1;
+        var breadcrumbJsonList = [{
+          "@type": "ListItem",
+          "position": 1,
+          "item": {
+              "@id": "/texts",
+              "name": "Texts"
+          }
+        }];
+        Array.prototype.push.apply(breadcrumbJsonList, cats.map(function(c, i, a) {
+          lastPosition = i + 2;
+          return {
+            "@type": "ListItem",
+            "position": lastPosition,
+            "item": {
+              "@id": "/texts/" + a.slice(0, i + 1).join("/"),
+              "name": c
+            }}
+        }));
+
+        if (title) {
+            breadcrumbJsonList.push({
+                "@type": "ListItem",
+                "position": lastPosition + 1,
+                "item": {
+                  "@id": "/" + title.replace(" ", "_"),
+                  "name": title
+                }});
+        }
+
+        return JSON.stringify({
+          "@context": "http://schema.org",
+          "@type": "BreadcrumbList",
+          "itemListElement": breadcrumbJsonList
+        });
+    }
+       
+        
 };
 
 Sefaria.site = { 

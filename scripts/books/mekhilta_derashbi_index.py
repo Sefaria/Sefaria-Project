@@ -74,5 +74,4 @@ footnote_index = {
     "categories": ["Commentary"]
 }
 
-# CommentaryIndex(footnote_index).save()
 post_texts_api(footnote_index, "Footnotes")

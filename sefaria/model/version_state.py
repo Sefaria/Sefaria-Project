@@ -96,7 +96,7 @@ class VersionState(abst.AbstractMongoRecord, AbstractSchemaContent):
     def __init__(self, index=None, attrs=None, proj=None):
         """
         :param index: Index record or name of Index
-        :type index: text.Index|text.CommentaryIndex|string
+        :type index: text.Index|string
         :return:
         """
         super(VersionState, self).__init__(attrs)
