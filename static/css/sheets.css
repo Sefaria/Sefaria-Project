@@ -1973,8 +1973,21 @@ a.tagit-close {
 	content: "X"
 }
 
-.moveSourceUp img, .moveSourceDown img  {
+.moveSourceUp img, .moveSourceDown img, .diagramSource img  {
     width:16px;
+}
+
+.source .diagram, .diagramTools {
+	display: none;
+}
+
+.splitDiagramSegment, .noSelect {
+	-webkit-touch-callout: none;
+	-webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+
 }
 
 #sheet.hebrew .outsideWrapper .en, #sheet.english .outsideWrapper .en .outsideWrapper .he {

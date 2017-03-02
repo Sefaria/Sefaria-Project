@@ -1120,6 +1120,7 @@ $(function() {
 								"<div class='moveSourceLeft' title='Outdent Source'><img src='/static/img/outdent.png'></div>" +
 								"<div class='moveSourceUp' title='Move Source Up'><img src='/static/img/triangle-up.svg'></div>" +
 								"<div class='moveSourceDown' title='Move Source Down'><img src='/static/img/triangle-down.svg'></div>" +
+								"<div class='diagramSource' title='Diagram Source'><img src='/static/img/tools-write-note.svg'></div>" +
 							"</div>";
 
 		var adderControls = "<div id='sourceControls' class='sideControls'>" +
@@ -1784,6 +1785,75 @@ $(function() {
 
 	});
 
+	$(".diagramSource").live("click", function() {
+		var curDiagram = $(this).closest(".sheetItem").find(".diagram");
+		var curText = $(this).closest(".sheetItem").find(".text");
+
+		console.log(curDiagram.css('display'));
+		if (curDiagram.css('display') == "none") {
+			$(this).closest(".sheetItem").find(".diagramTools").show();
+			curDiagram.show();
+			curText.hide();
+			if (curDiagram.find(".en").html() == "") {
+				curDiagram.find(".en").html("<div class='diagramSegment'>"+curText.find(".en").html().stripHtml()+"</div>")
+			}
+			if (curDiagram.find(".he").html() == "") {
+				curDiagram.find(".he").html("<div class='diagramSegment'>"+curText.find(".he").html().stripHtml()+"</div>")
+			}
+
+		}
+		else {
+			$(this).closest(".sheetItem").find(".diagramTools").hide();
+			curDiagram.hide();
+			curText.show();
+		}
+
+	});
+
+	$(".diagramTools").on('click', '.editToggle', function() {
+
+		if ($(this).text() == "Edit") {
+			$(this).text('View');
+			$("#sources").sortable("disable"); //disable dragging while in diagram edit mode....
+	}
+
+		else /*view mode */ {
+			$(this).text('Edit');
+		$("#sources").sortable("enable"); //enable dragging while in diagram view mode....
+		}
+
+	});
+
+	$(".diagramTools").on('click', '.splitDiagramSegment', function() {
+		var selectedRange = window.getSelection(); //.getRangeAt(0);
+		console.log(selectedRange);
+
+		var curDiagramSegment = $(selectedRange.focusNode);
+		var textBefore = curDiagramSegment.text().slice(0,selectedRange.anchorOffset);
+		var selectedText = curDiagramSegment.text().slice(selectedRange.anchorOffset,selectedRange.focusOffset);
+		var textAfter = curDiagramSegment.text().slice(selectedRange.focusOffset);
+
+		$(curDiagramSegment.parent()).after("<div class='diagramSegment'>"+textAfter+"</div>");
+		$(curDiagramSegment.parent()).after("<div class='diagramSegment'>"+selectedText+"</div>");
+		$(curDiagramSegment.parent()).text(textBefore);
+
+		$(".diagram .he, .diagram .en").off();
+
+		$(".diagram .he, .diagram .en").on("mousedown", '.diagramSegment', function() {
+			$(".diagramSegment").removeClass("noSelect");
+			$(".diagramSegment").not(this).addClass("noSelect");
+		});
+
+		autoSave();
+
+	});
+
+
+	$(".diagram .he, .diagram .en").on("mousedown", '.diagramSegment', function() {
+		$(".diagramSegment").removeClass("noSelect");
+		$(".diagramSegment").not(this).addClass("noSelect");
+	});
+
 
 	$(".moveSourceRight").live("click", function() {
 
@@ -2219,7 +2289,7 @@ function addSource(q, source, appendOrInsert) {
 	var refLink = badRef == true ? "#" : "/"+makeRef(q).replace(/'/g, "&apos;");
 
 
-	var newsource = "<li " + attributionData + "data-ref='" + enRef.replace(/'/g, "&apos;") + "'" + " data-heRef='" + heRef.replace(/'/g, "&apos;") + "'" + " data-node='" + node + "'>" +"<div class='sourceNumber he'></div><div class='sourceNumber en'></div>" +"<div class='customTitle'></div>" +"<div class='he'>" + "<span class='title'>" +"<a class='he' href='" + refLink + "' target='_blank'><span class='ref'></span>" + heRef.replace(/\d+(\-\d+)?/g, "").replace(/([0-9][b|a]| ב| א):.+/,"$1") + " </a>" + "</span>" +"<div class='text'>" +"<div class='he'>" + (source && source.text ? source.text.he : "") + "</div>" +"</div>" +"</div>" +"<div class='en'>" +"<span class='title'>" +"<a class='en' href='" + refLink + "' target='_blank'><span class='ref'>" + enRef.replace(/([0-9][b|a]| ב| א):.+/,"$1") + "</span> </a>" +"</span>" +"<div class='text'>" +"<div class='en'>" + (source && source.text ? source.text.en : "") + "</div>" + "</div>" +"</div>" + "<div class='clear'></div>" + attributionLink + appendInlineAddButton() + "</li>";
+	var newsource = "<li " + attributionData + "data-ref='" + enRef.replace(/'/g, "&apos;") + "'" + " data-heRef='" + heRef.replace(/'/g, "&apos;") + "'" + " data-node='" + node + "'>" +"<div class='sourceNumber he'></div><div class='sourceNumber en'></div>" +"<div class='customTitle'></div>" +"<div class='diagramTools'><span class='editToggle'>Edit</span> <span class='splitDiagramSegment'>Split</span></div>" +"<div class='he'>" + "<span class='title'>" +"<a class='he' href='" + refLink + "' target='_blank'><span class='ref'></span>" + heRef.replace(/\d+(\-\d+)?/g, "").replace(/([0-9][b|a]| ב| א):.+/,"$1") + " </a>" + "</span>" +"<div class='text'>" +"<div class='he'>" + (source && source.text ? source.text.he : "") + "</div>" +"</div>" + "<div class='diagram'><div class='he'></div></div>" + "</div>" + "<div class='en'>" +"<span class='title'>" +"<a class='en' href='" + refLink + "' target='_blank'><span class='ref'>" + enRef.replace(/([0-9][b|a]| ב| א):.+/,"$1") + "</span> </a>" +"</span>" +"<div class='text'>" +"<div class='en'>" + (source && source.text ? source.text.en : "") + "</div>" + "</div>" + "<div class='diagram'><div class='en'></div></div>" +"</div>" + "<div class='clear'></div>" + attributionLink + appendInlineAddButton() + "</li>";
 
 	if (appendOrInsert == "append") {
 		$("#sources").append(newsource);
@@ -2508,6 +2578,9 @@ function readSource($target) {
 		source["heRef"] = $target.attr("data-heRef");
 		source["text"] = {en: $target.find(".text").find(".en").html(), 
 						  he: $target.find(".text").find(".he").html()};
+
+		source["diagram"] = {en: $target.find(".diagram").find(".en").html(),
+						  he: $target.find(".diagram").find(".he").html()};
 
 		//Set source layout
 		if ($target.hasClass("stacked")) {
@@ -2844,6 +2917,11 @@ function buildSource($target, source, appendOrInsert) {
 		if (source.title) {
 			$(".customTitle").last().html(source.title).css('display', 'inline-block');
 			$(".sheetItem").last().addClass("hasCustom");
+		}
+
+		if (source.diagram) {
+			$(".diagram .en").last().html(source.diagram.en);
+			$(".diagram .he").last().html(source.diagram.he);
 		}
 
 	} else if ("comment" in source) {
