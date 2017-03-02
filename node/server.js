@@ -27,6 +27,7 @@ var renderReaderApp = function(props, data, timer) {
   }
   data.path     = props.path;
   data.loggedIn = props.loggedIn;
+  data._uid     = props._uid;
   SefariaReact.setData(data);
   SefariaReact.unpackDataFromProps(props);
   log("Time to set data: %dms", timer.elapsed());

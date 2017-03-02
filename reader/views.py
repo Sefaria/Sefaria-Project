@@ -321,6 +321,7 @@ def s2_props(request):
         "initialPath": request.get_full_path(),
         "recentlyViewed": request.COOKIES.get("recentlyViewed", None),
         "loggedIn": request.user.is_authenticated(),
+        "_uid": request.user.id,
         "interfaceLang": request_context.get("interfaceLang"),
         "initialSettings": {
             "language":      request_context.get("contentLang"),

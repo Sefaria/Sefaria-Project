@@ -12184,6 +12184,7 @@ var setData = function setData(data) {
 
   Sefaria.util._defaultPath = data.path;
   Sefaria.loggedIn = data.loggedIn;
+  Sefaria._uid = data._uid;
   Sefaria.is_moderator = data.is_moderator;
   Sefaria.is_editor = data.is_editor;
 };

@@ -3298,11 +3298,11 @@ h2.splitHeader .he {
   color: #999;
 }
 .tagString a:after {
-content: ", ";
-color: #999;
+  content: ", ";
+  color: #999;
 }
 .tagString a:last-child:after {
-content: "";
+  content: "";
 }
 .groupsList {
   margin-top: 30px;
@@ -3388,15 +3388,15 @@ content: "";
   padding-bottom: 20px;
 }
 #groupInvitationInput {
-    padding: 14px 30px;
-    width: 492px;
-    border-radius: 4px;
-    outline: 0;
-    border: 1px solid #E6e6e6;
-    margin-right: 10px;
-    font-size: 18px;
-    position: relative;
-    top: 3px;
+  padding: 14px 30px;
+  width: 492px;
+  border-radius: 4px;
+  outline: 0;
+  border: 1px solid #E6e6e6;
+  margin-right: 10px;
+  font-size: 18px;
+  position: relative;
+  top: 3px;
 }
 .groupPage .groupMemberListing {
   padding: 24px 0;
