@@ -8,7 +8,6 @@ var data = {
   search_toc:          {{ search_toc_json }},
   terms:               {{ terms_json}},
   books:               {{ titlesJSON }},
-  booksDict:           {}, // populated by Sefaria.setup()
   calendar:            {
                           parasha: "{{ parasha_ref }}",
                           parashaName: "{{ parasha_name }}",
@@ -24,6 +23,7 @@ var data = {
   notificationCount:   {{ notifications_count|default:'0' }},
   notifications:       {{ notifications_json|default:'[]' }},
   notificationsHtml:   "{{ notifications_html|escape_quotes }}",
+  recentlyViewed:      {{ recentlyViewed|jsonify }},
   globalWarningMessage: {% if GLOBAL_WARNING %}"{{ GLOBAL_WARNING_MESSAGE}}"{% else %}null{% endif %},
   interruptingMessage: {{ interrupting_message_json|default:'null' }},
   _email:              "{{ request.user.email|default:'' }}",

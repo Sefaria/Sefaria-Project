@@ -574,7 +574,7 @@ def index_all(skip=0, merged=False, debug=False):
 def index_all_commentary_refactor(skip=0, merged=False, debug=False):
     start = datetime.now()
 
-    new_index_name = '{}-c'.format(SEARCH_INDEX_NAME if not merged else 'merged')
+    new_index_name = '{}-b'.format(SEARCH_INDEX_NAME if not merged else 'merged')
 
     if skip == 0:
         create_index(new_index_name, merged=merged)

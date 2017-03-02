@@ -186,6 +186,7 @@ class Person(abst.AbstractMongoRecord):
                 features.append(geojson.Feature(geometry=loc, id=key, properties=data))
         return geojson.dumps(geojson.FeatureCollection(features))
 
+
 class PersonSet(abst.AbstractMongoSet):
     recordClass = Person
 

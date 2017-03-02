@@ -34,9 +34,9 @@ before_script:
   - sudo apt-get install -y mongodb-org=2.6.6 mongodb-org-server=2.6.6 mongodb-org-shell=2.6.6 mongodb-org-mongos=2.6.6 mongodb-org-tools=2.6.6
 
   # Download and restore the Sefaria database
-  - wget $MIGRATED_MONGO_DUMP_URL
-  - tar -xzvf $MIGRATED_MONGO_DUMP_FILENAME
-  - mongorestore -d sefaria --drop ./migrated/sefaria
+  - wget $MONGO_DUMP_URL
+  - tar -xzvf $MONGO_DUMP_FILENAME
+  - mongorestore --drop
 
   # Copy in settings files tuned for the travis build
   - cp ./sefaria/.travis.settings.py ./sefaria/local_settings.py

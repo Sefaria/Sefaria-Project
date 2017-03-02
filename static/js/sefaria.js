@@ -17,7 +17,8 @@ var Sefaria = Sefaria || {
   _dataLoaded: false,
   toc: [],
   books: [],
-  booksDict: {}
+  booksDict: {},
+  recentlyViewed: [],
 };
 
 Sefaria = extend(Sefaria, {
@@ -402,11 +403,11 @@ Sefaria = extend(Sefaria, {
   _translateTerms: {},
   index: function(text, index) {
     if (!index) {
-        return this._index[text];
+      return this._index[text];
     } else if (text in this._index){
-        this._index[text] = extend(this._index[text], index);
+      this._index[text] = extend(this._index[text], index);
     } else {
-        this._index[text] = index;
+      this._index[text] = index;
     }
   },
   _cacheIndexFromToc: function(toc) {
@@ -452,15 +453,33 @@ Sefaria = extend(Sefaria, {
         });        
     }
   },
-  ref: function(ref) {
-    // Returns parsed ref info for string `ref` which has been preloaded in the cache.
+  ref: function(ref, callback) {
+    // Returns parsed ref info for string `ref` from cache, or async from API if `callback` is present
     // Uses this._refmap to find the refkey that has information for this ref.
     // Used in cases when the textual information is not important, so it can
     // be called without worrying about the `settings` parameter for what is available in cache.
-    if (!ref) { return null; }
-    var versionedKey = this._refmap[this._refKey(ref)] || this._refmap[this._refKey(ref, {context:1})];
-    if (versionedKey) { return this._getOrBuildTextData(versionedKey);  }
-    return null;
+    var result = null;
+    if (ref) {
+      var versionedKey = this._refmap[this._refKey(ref)] || this._refmap[this._refKey(ref, {context:1})];
+      if (versionedKey) { result = this._getOrBuildTextData(versionedKey);  }
+    }
+    if (callback && result) {
+      callback(result);
+    } else if (callback) {
+      // To avoid an extra API call, first look for any open API calls to this ref (regardless of params)
+      var openApiCalls = Object.keys(Sefaria._apiCallbacks);
+      var urlPattern = "/api/texts/" + Sefaria.normRef(ref);
+      for (var i = 0; i < openApiCalls.length; i++) {
+        if (openApiCalls[i].startsWith(urlPattern)) {
+          Sefaria._apiCallbacks[openApiCalls[i]].splice(0, 0, callback);
+        }
+      }
+      // If no open calls found, call thet texts API.
+      // Called with context:1 because this is our most common mode, maximize change of saving an API Call
+      Sefaria.text(ref, {context: 1}, callback);
+    } else {
+      return result;
+    }
   },
   sectionRef: function(ref) {
     // Returns the section level ref for `ref` or null if no data is available
@@ -1012,6 +1031,58 @@ Sefaria = extend(Sefaria, {
     }
     return attribution;
   },
+  saveRecentItem: function(recentItem) {
+    var recent = Sefaria.recentlyViewed;
+    if (recent.length && recent[0].ref == recentItem.ref) { return; }
+    recent = recent.filter(function(item) {
+      return item.book !== recentItem.book; // Remove this item if it's in the list already
+    });
+    recent.splice(0, 0, recentItem);
+    Sefaria.recentlyViewed = recent;
+    var packedRecent = recent.map(Sefaria.packRecentItem);
+    if (Sefaria._uid) {
+        $.post("/api/profile", {json: JSON.stringify({recentlyViewed: packedRecent})}, function(data) {
+          if ("error" in data) {
+            alert(data.error);
+          }
+        }).fail(function() {
+          alert("Sorry, an Error occurred.");
+        });    
+    } else {
+      var cookie = INBROWSER ? $.cookie : Sefaria.util.cookie;
+      packedRecent = packedRecent.slice(0, 6);
+      cookie("recentlyViewed", JSON.stringify(packedRecent), {path: "/"});      
+    }
+  },
+  packRecentItem: function(item) {
+    // Returns an array which represents the object `item` with less overhead.
+    var packed = [item.ref, item.heRef];
+    if (item.version && item.versionLangauge) {
+      packed = packed.concat([item.version, item.versionLanguage]);
+    }
+    return packed;
+  },
+  unpackRecentItem: function(item) {
+    // Returns an object which preprsents the array `item` with fields expanded
+    var oRef = Sefaria.parseRef(item[0]);
+    var unpacked = {
+      ref: item[0],
+      heRef: item[1],
+      book: oRef.index,
+      version: item.length > 2 ? item[2] : null,
+      versionLanguage: item.length > 3 ? item[3] : null
+    };
+    return unpacked;
+  },
+  recentRefForText: function(title) {
+    // Return the most recently visited ref for text `title` or null if `title` is not present in recentlyViewed.
+    for (var i = 0; i < Sefaria.recentlyViewed.length; i++) {
+      if (Sefaria.recentlyViewed[i].book === title) {
+        return Sefaria.recentlyViewed[i].ref;
+      }
+    }
+    return null;
+  },
   sheets: {
     _trendingTags: null,
     trendingTags: function(callback) {
@@ -1203,9 +1274,13 @@ Sefaria = extend(Sefaria, {
       "Community":            "קהילה"
     };
     if (name in Sefaria._translateTerms) {
-      return Sefaria._translateTerms[name]["he"];
+        return Sefaria._translateTerms[name]["he"];
+    } else if (name in categories) {
+        return  categories[name];
+    } else if (Sefaria.index(name)) {
+        return Sefaria.index(name).heTitle;
     } else {
-      return name in categories ? categories[name] : name;
+        return name;
     }
   },
   search: {
@@ -1337,9 +1412,11 @@ Sefaria = extend(Sefaria, {
               //Filtered query.  Add clauses.  Don't re-request potential filters.
               var clauses = [];
               for (var i = 0; i < applied_filters.length; i++) {
+
+                  var filterSuffix = applied_filters[i].indexOf("/") != -1 ? ".*" : "/.*"; //filters with '/' might be leading to books. also, very unlikely they'll match an false positives
                   clauses.push({
                       "regexp": {
-                          "path": RegExp.escape(applied_filters[i]) + ".*"
+                          "path": RegExp.escape(applied_filters[i]) + filterSuffix
                       }
                   });
                   /* Test for Commentary2 as well as Commentary */
@@ -1391,6 +1468,7 @@ Sefaria = extend(Sefaria, {
     // Transform books array into a dictionary for quick lookup
     // Which is worse: the cycles wasted in computing this on the client
     // or the bandwitdh wasted in letting the server computer once and trasmiting the same data twice in differnt form?
+    this.booksDict = {};
     for (var i = 0; i < this.books.length; i++) {
       this.booksDict[this.books[i]] = 1;
     }    
@@ -1997,7 +2075,7 @@ Sefaria.util = {
         }
     },
     handleUserCookie: function() {
-        var cookie = (typeof require !== 'undefined') ? Sefaria.util.cookie : $.cookie;
+        var cookie = INBROWSER ? $.cookie : Sefaria.util.cookie;
 
         if (Sefaria.loggedIn) {
             // If logged in, replace cookie with current system details
@@ -2245,6 +2323,54 @@ Sefaria.hebrew = {
   }
 };
 
+Sefaria.jsonld = {
+    // Methods for producing JSON-LD snippets for use in "rich snippets" - semantic markup.
+    // Resultant JSON strings need to be wrapped in "script" tags.  e.g.
+    // <script type="application/ld+json">
+    //   {Sefaria.jsonld.catCrumbs(categories, title)}
+    // </script>
+    catCrumbs: function(cats, title) {
+       // JSON-LD breadcrumbs (https://developers.google.com/search/docs/data-types/breadcrumbs)
+        var lastPosition = 1;
+        var breadcrumbJsonList = [{
+          "@type": "ListItem",
+          "position": 1,
+          "item": {
+              "@id": "/texts",
+              "name": "Texts"
+          }
+        }];
+        Array.prototype.push.apply(breadcrumbJsonList, cats.map(function(c, i, a) {
+          lastPosition = i + 2;
+          return {
+            "@type": "ListItem",
+            "position": lastPosition,
+            "item": {
+              "@id": "/texts/" + a.slice(0, i + 1).join("/"),
+              "name": c
+            }}
+        }));
+
+        if (title) {
+            breadcrumbJsonList.push({
+                "@type": "ListItem",
+                "position": lastPosition + 1,
+                "item": {
+                  "@id": "/" + title.replace(" ", "_"),
+                  "name": title
+                }});
+        }
+
+        return JSON.stringify({
+          "@context": "http://schema.org",
+          "@type": "BreadcrumbList",
+          "itemListElement": breadcrumbJsonList
+        });
+    }
+       
+        
+};
+
 Sefaria.site = { 
   track: {
     // Helper functions for event tracking (with Google Analytics and Mixpanel)
@@ -2321,6 +2447,7 @@ Sefaria.site = {
   }
 };
 
+
 Sefaria.palette = {
   colors: {
     darkteal:  "#004e5f",
@@ -2379,6 +2506,7 @@ Sefaria.setup = function() {
     Sefaria.util.handleUserCookie();
     Sefaria._makeBooksDict();
     Sefaria._cacheIndexFromToc(Sefaria.toc);
+    Sefaria.recentlyViewed = Sefaria.recentlyViewed.map(Sefaria.unpackRecentItem);
     Sefaria._cacheHebrewTerms(Sefaria.terms);
     Sefaria.site.track.setUserData();
 };

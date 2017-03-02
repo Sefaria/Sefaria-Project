@@ -559,7 +559,7 @@ input.noselect {
   padding-right: 40px;
 }
 .multiPanel .readerNavMenu .content {
-  padding: 30px 30px 70px 30px;
+  padding: 80px 30px 70px 30px;
 }
 .multiPanel .readerNavMenu .content.hasFooter {
   padding: 30px 0px 0px 0px;
@@ -1319,6 +1319,7 @@ a.resourcesLink {
   padding: 0 30px;
   margin: 25px 0;
   box-sizing: border-box;
+  cursor: pointer;
 }
 .readerTextTableOfContents .versionBlock .versionTitle {
   display: block;
