@@ -5662,13 +5662,18 @@ var GroupPage = React.createClass({
             )
           )
         ) : null,
-        this.state.tab == "members" ? members.map(function (member) {
-          return React.createElement(GroupMemberListing, {
-            member: member,
-            isAdmin: isAdmin,
-            groupName: this.props.group,
-            onDataChange: this.onDataLoad });
-        }.bind(this)) : null
+        this.state.tab == "members" ? React.createElement(
+          'div',
+          null,
+          isAdmin ? React.createElement(GroupInvitationBox, { groupName: this.props.group, onDataChange: this.onDataLoad }) : null,
+          members.map(function (member) {
+            return React.createElement(GroupMemberListing, {
+              member: member,
+              isAdmin: isAdmin,
+              groupName: this.props.group,
+              onDataChange: this.onDataLoad });
+          }.bind(this))
+        ) : null
       ),
       React.createElement(
         'footer',
@@ -5717,6 +5722,41 @@ var GroupSheetListing = React.createClass({
           { className: 'tagString' },
           tagString
         )
+      )
+    );
+  }
+});
+
+var GroupInvitationBox = React.createClass({
+  displayName: 'GroupInvitationBox',
+
+  propTypes: {
+    groupName: React.PropTypes.string.isRequired,
+    onDataChange: React.PropTypes.func.isRequired
+  },
+  onInviteClick: function onInviteClick() {
+    this.inviteByEmail($("#groupInvitationInput").val());
+  },
+  inviteByEmail: function inviteByEmail(email) {
+    $.post("/api/groups/" + this.props.groupName + "/invite/" + email, function (data) {
+      if ("error" in data) {
+        alert(data.error);
+      } else {
+        Sefaria._groups[data.name] = data;
+        $("#groupInvitationInput").val("");
+        this.props.onDataChange();
+      }
+    }.bind(this));
+  },
+  render: function render() {
+    return React.createElement(
+      'div',
+      { className: 'groupInvitationBox' },
+      React.createElement('input', { id: 'groupInvitationInput', placeholder: 'Email Address' }),
+      React.createElement(
+        'div',
+        { className: 'button', onClick: this.onInviteClick },
+        'Invite'
       )
     );
   }

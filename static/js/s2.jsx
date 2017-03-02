@@ -4520,13 +4520,16 @@ var GroupPage = React.createClass({
                   : null }
 
                   {this.state.tab == "members" ? 
-                   members.map(function(member) {
-                    return <GroupMemberListing 
-                              member={member}
-                              isAdmin={isAdmin}
-                              groupName={this.props.group}
-                              onDataChange={this.onDataLoad} />;
-                   }.bind(this))
+                    <div>
+                     {isAdmin ? <GroupInvitationBox groupName={this.props.group} onDataChange={this.onDataLoad}/> : null }
+                     { members.map(function(member) {
+                      return <GroupMemberListing 
+                                member={member}
+                                isAdmin={isAdmin}
+                                groupName={this.props.group}
+                                onDataChange={this.onDataLoad} />;
+                     }.bind(this)) }
+                    </div>
                   : null }
 
               </div>
@@ -4559,6 +4562,34 @@ var GroupSheetListing = React.createClass({
 
   }
 });
+
+var GroupInvitationBox = React.createClass({
+  propTypes: {
+    groupName: React.PropTypes.string.isRequired,
+    onDataChange: React.PropTypes.func.isRequired,
+  },
+  onInviteClick: function() {
+    this.inviteByEmail($("#groupInvitationInput").val());
+  },
+  inviteByEmail: function(email) {
+    $.post("/api/groups/" + this.props.groupName + "/invite/" + email, function(data) {
+      if ("error" in data) {
+        alert(data.error)
+      } else {
+        Sefaria._groups[data.name] = data;
+        $("#groupInvitationInput").val("")
+        this.props.onDataChange();
+      }
+    }.bind(this));
+  },
+  render: function() {
+    return (<div className="groupInvitationBox">
+                <input id="groupInvitationInput" placeholder="Email Address" />
+                <div className="button" onClick={this.onInviteClick}>Invite</div>
+              </div>);
+  }
+});
+
 
 
 var GroupMemberListing = React.createClass({

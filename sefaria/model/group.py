@@ -60,7 +60,7 @@ class Group(abst.AbstractMongoRecord):
         }
         return contents
 
-    def add_member(self, uid, role):
+    def add_member(self, uid, role="member"):
         """
         Adds `uid` as member of the group in `role`.
         If `uid` is already a member, changes their role to `role`.

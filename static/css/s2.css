@@ -3372,7 +3372,7 @@ content: "";
 }
 .groupPage .tabs {
   text-align: center;
-  margin-bottom: 20px;
+  margin-bottom: 60px;
 }
 .groupPage .bubbleTab {
   font-size: 16px;
@@ -3382,6 +3382,21 @@ content: "";
 }
 .groupPage .emptyMessage a {
   text-decoration: underline;
+}
+.groupInvitationBox {
+  border-bottom: 1px solid #CCC;
+  padding-bottom: 20px;
+}
+#groupInvitationInput {
+    padding: 14px 30px;
+    width: 492px;
+    border-radius: 4px;
+    outline: 0;
+    border: 1px solid #E6e6e6;
+    margin-right: 10px;
+    font-size: 18px;
+    position: relative;
+    top: 3px;
 }
 .groupPage .groupMemberListing {
   padding: 24px 0;

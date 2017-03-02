@@ -551,6 +551,26 @@ def groups_role_api(request, group_name, uid, role):
 	return jsonResponse(group_content)
 
 
+@login_required
+def groups_invite_api(request, group_name, uid_or_email):
+	"""
+	API for setting a group members role, or removing them from a group.
+	"""
+	if request.method != "POST":
+		return jsonResponse({"error": "Unsupported HTTP method."})
+	group = Group().load({"name": group_name})
+	if not group:
+		return jsonResponse({"error": "No group named %s." % group_name})
+	if request.user.id not in group.admins:
+		return jsonResponse({"error": "You must be a group admin to invite new members."})
+	user = UserProfile(email=uid_or_email)
+	if not user.exists():
+		return jsonResponse({"error": "No user with this email address currently exists."})
+	group.add_member(user.id)
+
+	group_content = group.contents(with_content=True, authenticated=True)
+	return jsonResponse(group_content)
+
 def sheet_stats(request):
 	pass
 
