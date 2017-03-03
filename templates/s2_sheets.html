@@ -263,7 +263,7 @@
 
 	<div id="bsdHeader">בס"ד</div>
 	<div id="sheetHeader" {% if sheet_group == None %}style="display:none"{% endif %}>
-		{% if sheet_group and sheet.headerUrl %}
+		{% if sheet_group and sheet_group.headerUrl %}
 		<a href="/groups/{{ sheet_group.name|url_safe }}">
 			<img id="groupLogo" src="{{ sheet_group.headerUrl }}" />
 		</a>

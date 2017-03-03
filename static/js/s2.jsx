@@ -4735,13 +4735,12 @@ var EditGroupPage = React.createClass({
   },
   uploadImage: function(field) {
     // Sets the state of `field` of the resulting image URL
-    var url = prompt("Enter an image URL", this.state[field]);
+    var url = prompt("Enter an image URL", this.state[field] || "");
     var state = {};
     state[field] = url;
     this.setState(state);
   },
   handleInputChange: function(e) {
-    console.log(e.target.value);
     var idToField = {
       groupName: "name",
       groupWebsite: "websiteUrl",
@@ -4751,7 +4750,6 @@ var EditGroupPage = React.createClass({
     var state = {};
     state[field] = e.target.value;
     this.setState(state);
-
   },
   save: function() {
     var groupData = Sefaria.util.clone(this.state);
@@ -4842,7 +4840,7 @@ var EditGroupPage = React.createClass({
             <span className="int-en">Default Sheet Header</span>
             <span className="int-he">Default Sheet Header</span>
           </label>
-          {this.state.coverUrl 
+          {this.state.headerUrl 
             ? <div className="groupHeaderBox">
                 <img className="groupHeader" src={this.state.headerUrl} />
                 <div className="clearFix"></div>

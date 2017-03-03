@@ -5956,7 +5956,7 @@ var EditGroupPage = React.createClass({
   },
   uploadImage: function uploadImage(field) {
     // Sets the state of `field` of the resulting image URL
-    var url = prompt("Enter an image URL", this.state[field]);
+    var url = prompt("Enter an image URL", this.state[field] || "");
     var state = {};
     state[field] = url;
     this.setState(state);
@@ -6178,7 +6178,7 @@ var EditGroupPage = React.createClass({
             'Default Sheet Header'
           )
         ),
-        this.state.coverUrl ? React.createElement(
+        this.state.headerUrl ? React.createElement(
           'div',
           { className: 'groupHeaderBox' },
           React.createElement('img', { className: 'groupHeader', src: this.state.headerUrl }),
