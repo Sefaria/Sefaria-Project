@@ -676,7 +676,7 @@ def sheet_list_api(request):
 				return jsonResponse({"error": "You don't have permission to edit this sheet."})
 
 		if "group" in sheet:
-			if sheet["group"] not in [group.name for group in user.groups.all()]:
+			if sheet["group"] not in [g.name for g in get_user_groups(request.user.id)]:
 				sheet["group"] = None
 
 		responseSheet = save_sheet(sheet, user.id)

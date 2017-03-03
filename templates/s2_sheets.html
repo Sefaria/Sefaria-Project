@@ -263,7 +263,7 @@
 
 	<div id="bsdHeader">בס"ד</div>
 	<div id="sheetHeader" {% if sheet_group == None %}style="display:none"{% endif %}>
-		{% if sheet_group %}
+		{% if sheet_group and sheet.headerUrl %}
 		<a href="/groups/{{ sheet_group.name|url_safe }}">
 			<img id="groupLogo" src="{{ sheet_group.headerUrl }}" />
 		</a>
@@ -519,7 +519,7 @@
             <option value="None">None</option>
 
     		{% for group in owner_groups %}
-              <option value="{{ group.name }}" data-group="{{ group.name }}" data-image="{{ group.headerUrl }}">{{ group.name }}</option>
+              <option value="{{ group.name }}" data-group="{{ group.name }}" data-image="{{ group.headerUrl|default:'' }}">{{ group.name }}</option>
 			{% endfor %}
         </select>
     </div>
