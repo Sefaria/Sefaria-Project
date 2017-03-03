@@ -1824,7 +1824,7 @@ $(function() {
 
 	});
 
-	$(".diagramTools").on('click', '.splitDiagramSegment', function() {
+	$(".splitDiagramSegment").on('click', 'div', function() {
 		var selectedRange = window.getSelection(); //.getRangeAt(0);
 		console.log(selectedRange);
 
@@ -1832,9 +1832,10 @@ $(function() {
 		var textBefore = curDiagramSegment.text().slice(0,selectedRange.anchorOffset);
 		var selectedText = curDiagramSegment.text().slice(selectedRange.anchorOffset,selectedRange.focusOffset);
 		var textAfter = curDiagramSegment.text().slice(selectedRange.focusOffset);
+    var diagramTag = $(this).attr('class');
 
 		$(curDiagramSegment.parent()).after("<div class='diagramSegment'>"+textAfter+"</div>");
-		$(curDiagramSegment.parent()).after("<div class='diagramSegment'>"+selectedText+"</div>");
+		$(curDiagramSegment.parent()).after("<div class='diagramSegment "+diagramTag+"'>"+selectedText+"</div>");
 		$(curDiagramSegment.parent()).text(textBefore);
 
 		$(".diagram .he, .diagram .en").off();
@@ -1844,6 +1845,14 @@ $(function() {
 			$(".diagramSegment").not(this).addClass("noSelect");
 		});
 
+		$(".diagram .he, .diagram .en").on("mouseup", '.diagramSegment', function() {
+			if(window.getSelection().anchorOffset !== window.getSelection().focusOffset ) {
+				$(".diagramTagWindow").show();
+			}
+		});
+
+		$(".diagramTagWindow").hide();
+
 		autoSave();
 
 	});
@@ -1852,6 +1861,12 @@ $(function() {
 	$(".diagram .he, .diagram .en").on("mousedown", '.diagramSegment', function() {
 		$(".diagramSegment").removeClass("noSelect");
 		$(".diagramSegment").not(this).addClass("noSelect");
+	});
+
+	$(".diagram .he, .diagram .en").on("mouseup", '.diagramSegment', function() {
+		if(window.getSelection().anchorOffset !== window.getSelection().focusOffset ) {
+			$(".diagramTagWindow").show();
+		}
 	});
 
 
@@ -2289,7 +2304,7 @@ function addSource(q, source, appendOrInsert) {
 	var refLink = badRef == true ? "#" : "/"+makeRef(q).replace(/'/g, "&apos;");
 
 
-	var newsource = "<li " + attributionData + "data-ref='" + enRef.replace(/'/g, "&apos;") + "'" + " data-heRef='" + heRef.replace(/'/g, "&apos;") + "'" + " data-node='" + node + "'>" +"<div class='sourceNumber he'></div><div class='sourceNumber en'></div>" +"<div class='customTitle'></div>" +"<div class='diagramTools'><span class='editToggle'>Edit</span> <span class='splitDiagramSegment'>Split</span></div>" +"<div class='he'>" + "<span class='title'>" +"<a class='he' href='" + refLink + "' target='_blank'><span class='ref'></span>" + heRef.replace(/\d+(\-\d+)?/g, "").replace(/([0-9][b|a]| ב| א):.+/,"$1") + " </a>" + "</span>" +"<div class='text'>" +"<div class='he'>" + (source && source.text ? source.text.he : "") + "</div>" +"</div>" + "<div class='diagram'><div class='he'></div></div>" + "</div>" + "<div class='en'>" +"<span class='title'>" +"<a class='en' href='" + refLink + "' target='_blank'><span class='ref'>" + enRef.replace(/([0-9][b|a]| ב| א):.+/,"$1") + "</span> </a>" +"</span>" +"<div class='text'>" +"<div class='en'>" + (source && source.text ? source.text.en : "") + "</div>" + "</div>" + "<div class='diagram'><div class='en'></div></div>" +"</div>" + "<div class='clear'></div>" + attributionLink + appendInlineAddButton() + "</li>";
+	var newsource = "<li " + attributionData + "data-ref='" + enRef.replace(/'/g, "&apos;") + "'" + " data-heRef='" + heRef.replace(/'/g, "&apos;") + "'" + " data-node='" + node + "'>" +"<div class='sourceNumber he'></div><div class='sourceNumber en'></div>" +"<div class='customTitle'></div>" +"<div class='diagramTools'><span class='editToggle'>Edit</span> <div class='diagramTagWindow'><div class='colorSelect splitDiagramSegment'><div class='blue'></div><div class='green'></div><div class='yellow'></div><div class='pink'></div><div class='purple'></div><div class='white'></div></div></div></div>" +"<div class='he'>" + "<span class='title'>" +"<a class='he' href='" + refLink + "' target='_blank'><span class='ref'></span>" + heRef.replace(/\d+(\-\d+)?/g, "").replace(/([0-9][b|a]| ב| א):.+/,"$1") + " </a>" + "</span>" +"<div class='text'>" +"<div class='he'>" + (source && source.text ? source.text.he : "") + "</div>" +"</div>" + "<div class='diagram'><div class='he'></div></div>" + "</div>" + "<div class='en'>" +"<span class='title'>" +"<a class='en' href='" + refLink + "' target='_blank'><span class='ref'>" + enRef.replace(/([0-9][b|a]| ב| א):.+/,"$1") + "</span> </a>" +"</span>" +"<div class='text'>" +"<div class='en'>" + (source && source.text ? source.text.en : "") + "</div>" + "</div>" + "<div class='diagram'><div class='en'></div></div>" +"</div>" + "<div class='clear'></div>" + attributionLink + appendInlineAddButton() + "</li>";
 
 	if (appendOrInsert == "append") {
 		$("#sources").append(newsource);

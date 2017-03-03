@@ -1977,7 +1977,7 @@ a.tagit-close {
     width:16px;
 }
 
-.source .diagram, .diagramTools {
+.source .diagram, .diagramTools, .diagramTagWindow {
 	display: none;
 }
 
@@ -1989,6 +1989,45 @@ a.tagit-close {
     user-select: none;
 
 }
+
+/* Diagram tag colors */
+
+.yellow {
+	background-color: #dfcd97;
+}
+
+.pink {
+	background-color: #dd9c9e;
+}
+.blue {
+	background-color: #80def2;
+}
+.green {
+	background-color: #a3e1bb;
+}
+.white {
+	background-color: #fff;
+}
+
+.purple {
+	background-color: #cb98d5;
+}
+
+.colorSelect {
+	text-align:center;
+	margin-top: -30px;
+}
+
+.colorSelect div {
+	width:15px;
+	height:15px;
+	border:1px solid #E8E8E8;
+    border-radius: 50%;
+	display:inline-block;
+	margin:5px;
+	cursor: pointer;
+}
+
 
 #sheet.hebrew .outsideWrapper .en, #sheet.english .outsideWrapper .en .outsideWrapper .he {
 	display: block;
