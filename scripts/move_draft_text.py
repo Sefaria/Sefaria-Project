@@ -51,8 +51,14 @@ class ServerTextCopier(object):
     def do_copy(self):
         self.load_objects()
         if self._post_index:
+<<<<<<< Updated upstream
             idx_contents = self._index_obj.contents(raw=True)
             idx_title = self._index_obj.title
+=======
+            if isinstance(self._index_obj, Index):
+                idx_contents = self._index_obj.contents(raw=True)
+                idx_title = self._index_obj.title
+>>>>>>> Stashed changes
             self._make_post_request_to_server(self._prepare_index_api_call(idx_title), idx_contents)
         content_nodes = self._index_obj.nodes.get_leaf_nodes()
         for ver in self._version_objs:

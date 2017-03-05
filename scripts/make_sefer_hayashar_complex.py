@@ -48,7 +48,7 @@ def make_map_for_simple_to_complex(en_chapters, he_chapters):
             mappings["Sefer HaYashar 1:{}".format(count)] = "Sefer HaYashar, {} {}".format(en_chapters[0], count)
 
     for count, ch_title in enumerate(en_chapters):
-        if count not in [0, 19, 20, 21]:
+        if count not in [0, 1, 19, 20, 21]:
             mappings["Sefer HaYashar {}".format(count)] = "Sefer HaYashar, {}".format(en_chapters[count])
 
     return mappings
@@ -124,10 +124,3 @@ if __name__ == "__main__":
     index = create_schema()
     mappings = make_map_for_simple_to_complex(en_chapters, he_chapters)
     migrate_to_complex_structure("Sefer HaYashar", index, mappings)
-
-    library.get_index("Sefer HaYashar").delete()
-    i = library.get_index("Complex Sefer HaYashar")
-    i.set_title("Sefer HaYashar")
-    i.set_title(u"ספר הישר", lang="he")
-    i.save()
-

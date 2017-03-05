@@ -136,8 +136,8 @@ def test_migrate_to_complex_structure():
     mappings["MigrateBook 4"] = "MigrateBook, Part 3"
 
     try:
-        library.get_index("MigrateBook").delete()
         library.get_index("Complex MigrateBook").delete()
+        library.get_index("MigrateBook").delete()
     except BookNameError:
         pass
 
@@ -172,9 +172,14 @@ def test_migrate_to_complex_structure():
     p4 = "This should eventually end up in MigrateBook, Part 3, 1"
     p5 = "This will eventually go nowhere"
     p6 = "This text is just to allow for range 3:1-5"
+    p7 = "This text is for 1:2-5"
     chunk = TextChunk(Ref('MigrateBook 1:1'), 'en', 'Schema Test')
     chunk.text = p1
     chunk.save()
+    for i in range(4):
+        chunk = TextChunk(Ref("MigrateBook 1:{}".format(i+2)), 'en', 'Schema Test')
+        chunk.text = p7
+        chunk.save()
     chunk = TextChunk(Ref("MigrateBook 2:2"), 'en', 'Schema Test')
     chunk.text = p2
     chunk.save()
@@ -217,18 +222,9 @@ def test_migrate_to_complex_structure():
     }).save()
 
     Link({
-        'refs': ['MigrateBook 1-2', 'Genesis 1-2'],
+        'refs': ['MigrateBook 1:2-5', 'Genesis 3'],
         'type': 'None'
     }).save()
-
-    Link({
-        'refs': ['MigrateBook 1:1-2', 'Genesis 3'],
-        'type': 'None'
-    }).save()
-    Link({
-      'refs': ['MigrateBook 3-4', 'Exodus 1'],
-        'type': 'None'
-    }).save() #MigrateBook 3 maps to nothing but MigrateBook 4 maps to Part 3 so just maps to Part 3
 
     VersionState("MigrateBook").refresh()
 
@@ -251,25 +247,22 @@ def test_migrate_to_complex_structure():
     new_schema.validate()
 
     schema.migrate_to_complex_structure("MigrateBook", new_schema.serialize(), mappings)
-    children = library.get_index("Complex MigrateBook").nodes.children
+    children = library.get_index("MigrateBook").nodes.children
 
-    assert children[0].full_title() == "Complex MigrateBook, Part 1"
-    assert children[1].full_title() == "Complex MigrateBook, Part 2"
+    assert children[0].full_title() == "MigrateBook, Part 1"
+    assert children[1].full_title() == "MigrateBook, Part 2"
 
-    assert TextChunk(children[0].ref(), "en", 'Schema Test').text == [[p1], ["", p2]]
+    assert TextChunk(children[0].ref(), "en", 'Schema Test').text == [[p1, p7, p7, p7, p7], ["", p2]]
     assert TextChunk(children[1].ref(), "en", "Schema Test").text == ["", "", p3]
     assert TextChunk(children[2].ref(), "en", "Schema Test").text == [[p4]]
 
-    assert isinstance(Link().load({'refs': ['Complex MigrateBook, Part 1 1:1', 'Guide for the Perplexed, Part 1'],}), Link)
-    assert isinstance(Link().load({'refs': ['Complex MigrateBook, Part 1 2:2', 'Guide for the Perplexed, Part 1 2'],}), Link)
-    assert isinstance(Link().load({'refs': ['Complex MigrateBook, Part 2 3', 'Guide for the Perplexed, Part 2 4-8'],}), Link)
-    assert isinstance(Link().load({'refs': ['Complex MigrateBook, Part 3 1', 'Guide for the Perplexed, Part 3 1'],}), Link)
-    assert Link().load({'refs': ['Complex MigrateBook 5:4', 'Guide for the Perplexed, Introduction, Introduction, 3'],}) is None
-    assert isinstance(Link().load({'refs': ['Complex MigrateBook, Part 1 1-2', 'Genesis 1-2'],}), Link)
-    assert isinstance(Link().load({'refs': ['Complex MigrateBook, Part 1 1:1-2', 'Genesis 3'],}), Link)
-    assert isinstance(Link().load({'refs': ['Complex MigrateBook, Part 3', 'Exodus 1'],}), Link)
+    assert isinstance(Link().load({'refs': ['MigrateBook, Part 1 1:1', 'Guide for the Perplexed, Part 1'],}), Link)
+    assert isinstance(Link().load({'refs': ['MigrateBook, Part 1 2:2', 'Guide for the Perplexed, Part 1 2'],}), Link)
+    assert isinstance(Link().load({'refs': ['MigrateBook, Part 2 3', 'Guide for the Perplexed, Part 2 4-8'],}), Link)
+    assert isinstance(Link().load({'refs': ['MigrateBook, Part 3 1', 'Guide for the Perplexed, Part 3 1'],}), Link)
+    assert Link().load({'refs': ['MigrateBook 5:4', 'Guide for the Perplexed, Introduction, Introduction, 3'],}) is None
+    assert isinstance(Link().load({'refs': ['MigrateBook, Part 1 1:2-5', 'Genesis 3'],}), Link)
 
-    library.get_index("Complex MigrateBook").delete()
     library.get_index("MigrateBook").delete()
 
 
