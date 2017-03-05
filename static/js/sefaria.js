@@ -574,17 +574,17 @@ Sefaria = extend(Sefaria, {
   _cacheIndexFromLinks: function(links) {
     // Cache partial index information (title, Hebrew title, categories) found in link data.
     for (var i=0; i< links.length; i++) {
-      if (("linkGroupTitle" in links[i]) && this.index(links[i].linkGroupTitle["en"])) {
-          //console.log("Skipping ", links[i].linkGroupTitle["en"]);
+      if (("collectiveTitle" in links[i]) && this.index(links[i].collectiveTitle["en"])) {
+          //console.log("Skipping ", links[i].collectiveTitle["en"]);
           continue;
       }
       var index = {
-        title:      links[i].linkGroupTitle["en"],
-        heTitle:    links[i].linkGroupTitle["he"],
+        title:      links[i].collectiveTitle["en"],
+        heTitle:    links[i].collectiveTitle["he"],
         categories: [links[i].category],
       };
-      //console.log("Saving ", links[i].linkGroupTitle["en"]);
-      this.index(links[i].linkGroupTitle["en"], index);
+      //console.log("Saving ", links[i].collectiveTitle["en"]);
+      this.index(links[i].collectiveTitle["en"], index);
     }
   },
   _saveLinksByRef: function(data) {
@@ -635,7 +635,7 @@ Sefaria = extend(Sefaria, {
      return links.filter(function(link){
         return (filter.length == 0 ||
                 Sefaria.util.inArray(link.category, filter) !== -1 || 
-                Sefaria.util.inArray(link["linkGroupTitle"]["en"], filter) !== -1 );
+                Sefaria.util.inArray(link["collectiveTitle"]["en"], filter) !== -1 );
       }); 
   },
   _linkSummaries: {},
@@ -664,10 +664,10 @@ Sefaria = extend(Sefaria, {
       }
       var category = summary[link.category];
       // Count Book
-      if (link["linkGroupTitle"]["en"] in category.books) {
-        category.books[link["linkGroupTitle"]["en"]].count += 1;
+      if (link["collectiveTitle"]["en"] in category.books) {
+        category.books[link["collectiveTitle"]["en"]].count += 1;
       } else {
-        category.books[link["linkGroupTitle"]["en"]] = {count: 1};
+        category.books[link["collectiveTitle"]["en"]] = {count: 1};
       }
     }
     // Add Zero counts for every commentator in this section not already in list
@@ -682,8 +682,8 @@ Sefaria = extend(Sefaria, {
           if (!("Commentary" in summary)) {
             summary["Commentary"] = {count: 0, books: {}};
           }
-          if (!(l["linkGroupTitle"]["en"] in summary["Commentary"].books)) {
-            summary["Commentary"].books[l["linkGroupTitle"]["en"]] = {count: 0};
+          if (!(l["collectiveTitle"]["en"] in summary["Commentary"].books)) {
+            summary["Commentary"].books[l["collectiveTitle"]["en"]] = {count: 0};
           }
         }
       }

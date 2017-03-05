@@ -237,8 +237,7 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
         return getattr(self, "nodes", None) and self.nodes.has_children()
 
     def contents(self, v2=False, raw=False, force_complex=False, **kwargs):
-        # leaving this here since it's not harmful, but there should not be any more records with no 'nodes'
-        if not getattr(self, "nodes", None) or raw:  # Commentator
+        if raw:
             contents = super(Index, self).contents()
         elif v2:
             # adds a set of legacy fields like 'titleVariants', expands alt structures with preview, etc.
@@ -619,8 +618,10 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
         if ord:
             toc_contents_dict["order"] = ord
         if hasattr(self, "collective_title"):
-            toc_contents_dict["commentator"] = self.collective_title
-            toc_contents_dict["heCommentator"] = hebrew_term(self.collective_title)
+            toc_contents_dict["commentator"] = self.collective_title # todo: deprecate Only used in s1 js code
+            toc_contents_dict["heCommentator"] = hebrew_term(self.collective_title) # todo: deprecate Only used in s1 js code
+            toc_contents_dict["collectiveTitle"] = self.collective_title
+            toc_contents_dict["heCollectiveTitle"] = hebrew_term(self.collective_title)
         if hasattr(self, 'base_text_titles'):
             toc_contents_dict["base_text_titles"] = self.base_text_titles
         if hasattr(self, 'base_text_mapping'):
@@ -1523,8 +1524,8 @@ class TextFamily(object):
             d[attr] = getattr(self._original_oref, attr)[:]
 
         if getattr(self._inode.index, 'collective_title', None):
-            d["commentator"] = getattr(self._inode.index, 'collective_title', "")
-            d["heCommentator"] = hebrew_term(getattr(self._inode.index, 'collective_title', ""))
+            d["commentator"] = getattr(self._inode.index, 'collective_title', "") # todo: deprecate Only used in s1 js code
+            d["heCommentator"] = hebrew_term(getattr(self._inode.index, 'collective_title', "")) # todo: deprecate Only used in s1 js code
             d["collectiveTitle"] = getattr(self._inode.index, 'collective_title', "")
             d["heCollectiveTitle"] = hebrew_term(getattr(self._inode.index, 'collective_title', ""))
 

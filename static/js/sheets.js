@@ -1242,10 +1242,10 @@ $(function() {
 						var categorySum = {}
 						for (var i = 0; i < data.commentary.length; i++) {
 							var c = data.commentary[i];
-							if (categorySum[c.commentator]) {
-								categorySum[c.commentator]++;
+							if (categorySum[c.collectiveTitle['en']]) {
+								categorySum[c.collectiveTitle['en']]++;
 							} else {
-								categorySum[c.commentator] = 1;
+								categorySum[c.collectiveTitle['en']] = 1;
 							}
 						}
 						var categories = [];
@@ -1266,7 +1266,7 @@ $(function() {
 
 							for (var i = 0; i < data.commentary.length; i++) {
 								var c = data.commentary[i];
-								if (categories[j] == c.commentator) {
+								if (categories[j] == c.collectiveTitle['en']) {
 									dataRefs = dataRefs + c.sourceRef + ";";
 									//continue;
 								}
@@ -1986,8 +1986,8 @@ $(function() {
 
 	// Add All Connections 
     function SortBySourceRef(x,y) {
-		  if (x.commentator < y.commentator) return -1;
-		  if (x.commentator > y.commentator) return 1;
+		  if (x.collectiveTitle['en'] < y.collectiveTitle['en']) return -1;
+		  if (x.collectiveTitle['en'] > y.collectiveTitle['en']) return 1;
 		  if (x.anchorVerse < y.anchorVerse) return -1;
 		  if (x.anchorVerse > y.anchorVerse) return 1;
 		  if (x.commentaryNum < y.commentaryNum) return -1;
@@ -2019,10 +2019,10 @@ $(function() {
 				var categorySum = {}
 				for (var i = 0; i < data.commentary.length; i++) {
 					var c = data.commentary[i];
-					if (categorySum[c.commentator]) {
-						categorySum[c.commentator]++;
+					if (categorySum[c.collectiveTitle['en']]) {
+						categorySum[c.collectiveTitle['en']]++;
 					} else {
-						categorySum[c.commentator] = 1;
+						categorySum[c.collectiveTitle['en']] = 1;
 					}
 				}
 				var categories = [];
@@ -2042,7 +2042,7 @@ $(function() {
 					var count = 0;
 					for (var i = 0; i < data.commentary.length; i++) {
 						var c = data.commentary[i];
-						if ($.inArray(c.commentator, categoriesToAdd) == -1) {
+						if ($.inArray(c.collectiveTitle['en'], categoriesToAdd) == -1) {
 							continue;
 						}
 						var source = {
