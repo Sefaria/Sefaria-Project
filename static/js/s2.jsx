@@ -23,7 +23,7 @@ var ReaderApp = React.createClass({
     initialRefs:                 React.PropTypes.array,
     initialFilter:               React.PropTypes.array,
     initialMenu:                 React.PropTypes.string,
-    initialPartner:              React.PropTypes.string,
+    initialGroup:                React.PropTypes.string,
     initialQuery:                React.PropTypes.string,
     initialSearchFilters:        React.PropTypes.array,
     initialSheetsTag:            React.PropTypes.string,
@@ -42,7 +42,7 @@ var ReaderApp = React.createClass({
       initialRefs:                 [],
       initialFilter:               null,
       initialMenu:                 null,
-      initialPartner:              null,
+      initialGroup:                null,
       initialQuery:                null,
       initialSearchFilters:        [],
       initialSheetsTag:            null,
@@ -100,7 +100,7 @@ var ReaderApp = React.createClass({
         appliedSearchFilters: this.props.initialSearchFilters,
         navigationCategories: this.props.initialNavigationCategories,
         sheetsTag: this.props.initialSheetsTag,
-        partner: this.props.initialPartner,
+        group: this.props.initialGroup,
         settings: Sefaria.util.clone(defaultPanelSettings)
       };
       header = this.makePanelState(headerState);
@@ -425,9 +425,9 @@ var ReaderApp = React.createClass({
             hist.mode  = "search";
             break;
           case "sheets":
-            if (states[i].sheetsPartner) {
-                hist.url   = "partners/" + state.sheetsPartner.replace(/\s/g,"_");
-                hist.title = state.sheetsPartner + " | Sefaria Source Sheets";
+            if (states[i].sheetsGroup) {
+                hist.url   = "groups/" + state.sheetsGroup.replace(/\s/g,"-");
+                hist.title = state.sheetsGroup + " | Sefaria Group";
                 hist.mode  = "sheets tag";
             } else if (states[i].navigationSheetTag) {
               if (states[i].navigationSheetTag == "My Sheets") {
@@ -447,7 +447,7 @@ var ReaderApp = React.createClass({
             }
             break;
           case "account":
-            hist.title = "Sefaria About";
+            hist.title = "Sefaria Account";
             hist.url   = "account";
             hist.mode  = "account";
             break;
@@ -455,6 +455,11 @@ var ReaderApp = React.createClass({
             hist.title = "Sefaria Notifcations";
             hist.url   = "notifications";
             hist.mode  = "notifications";
+            break;
+          case "myGroups":
+            hist.title = "Sefaria Groups";
+            hist.url = "my/groups";
+            hist.mode = "myGroups";
             break;
           case "updates":
             hist.title = "New on Sefaria";
@@ -616,7 +621,7 @@ var ReaderApp = React.createClass({
       menuOpen:             state.menuOpen             || null, // "navigation", "text toc", "display", "search", "sheets", "home", "book toc"
       navigationCategories: state.navigationCategories || [],
       navigationSheetTag:   state.sheetsTag            || null,
-      sheetsPartner:        state.partner              || null,
+      sheetsGroup:        state.group              || null,
       searchQuery:          state.searchQuery          || null,
       appliedSearchFilters: state.appliedSearchFilters || [],
       searchFiltersValid:   state.searchFiltersValid   || false,
@@ -722,6 +727,10 @@ var ReaderApp = React.createClass({
       this.showLibrary();
     } else if (path == "sheets") {
       this.showSheets();
+    } else if (path == "sheets/private") {
+      this.showMySheets();
+    } else if (path == "my/groups") {
+      this.showMyGroups();
     } else if (Sefaria.isRef(path)) {
       this.openPanel(Sefaria.humanRef(path));
     }
@@ -1074,6 +1083,23 @@ var ReaderApp = React.createClass({
       this.setPanelState(0, updates);
     }
   },
+  showMySheets: function() {
+    console.log("SMS")
+    var updates = {menuOpen: "sheets", navigationSheetTag: "My Sheets"};
+    if (this.props.multiPanel) {
+      this.setHeaderState(updates);
+    } else {
+      this.setPanelState(0, updates);
+    }
+  },
+  showMyGroups: function() {
+    var updates = {menuOpen: "myGroups"};
+    if (this.props.multiPanel) {
+      this.setHeaderState(updates);
+    } else {
+      this.setPanelState(0, updates);
+    }
+  },
   saveRecentlyViewed: function(panel) {
     if (panel.mode == "Connections" || !panel.refs.length) { return; }
     var ref  = panel.refs.slice(-1)[0];
@@ -1138,6 +1164,7 @@ var ReaderApp = React.createClass({
                     updateSearchFilter={this.updateSearchFilterInHeader}
                     registerAvailableFilters={this.updateAvailableFiltersInHeader}
                     setUnreadNotificationsCount={this.setUnreadNotificationsCount}
+                    handleInAppLinkClick={this.handleInAppLinkClick}
                     headerMode={this.props.headerMode}
                     panelsOpen={panelStates.length}
                     analyticsInitialized={this.state.initialAnalyticsTracked} />) : null;
@@ -1242,6 +1269,7 @@ var Header = React.createClass({
     updateSearchFilter:          React.PropTypes.func,
     registerAvailableFilters:    React.PropTypes.func,
     setUnreadNotificationsCount: React.PropTypes.func,
+    handleInAppLinkClick: React.PropTypes.func,
     headerMesssage:              React.PropTypes.string,
     panelsOpen:                  React.PropTypes.number,
     analyticsInitialized:        React.PropTypes.bool,
@@ -1453,6 +1481,7 @@ var Header = React.createClass({
                           updateSearchFilter={this.props.updateSearchFilter}
                           registerAvailableFilters={this.props.registerAvailableFilters}
                           setUnreadNotificationsCount={this.props.setUnreadNotificationsCount}
+                          handleInAppLinkClick={this.props.handleInAppLinkClick}
                           hideNavHeader={true}
                           analyticsInitialized={this.props.analyticsInitialized}/>) : null;
 
@@ -1539,7 +1568,7 @@ var ReaderPanel = React.createClass({
     initialQuery:                React.PropTypes.string,
     initialAppliedSearchFilters: React.PropTypes.array,
     initialSheetsTag:            React.PropTypes.string,
-    initialState:                React.PropTypes.object, // if present, trumps all props above
+    initialState:                React.PropTypes.object, // if present, overrides all props above
     interfaceLang:               React.PropTypes.string,
     setCentralState:             React.PropTypes.func,
     onSegmentClick:              React.PropTypes.func,
@@ -1602,7 +1631,7 @@ var ReaderPanel = React.createClass({
       menuOpen:             this.props.initialMenu || null, // "navigation", "book toc", "text toc", "display", "search", "sheets", "home", "compare"
       navigationCategories: this.props.initialNavigationCategories || [],
       navigationSheetTag:   this.props.initialSheetsTag || null,
-      sheetsPartner:        this.props.initialPartner || null,
+      sheetsGroup:        this.props.initialGroup || null,
       searchQuery:          this.props.initialQuery || null,
       appliedSearchFilters: this.props.initialAppliedSearchFilters || [],
       selectedWords:        null,
@@ -2115,7 +2144,7 @@ var ReaderPanel = React.createClass({
                     hideNavHeader={this.props.hideNavHeader}
                     toggleLanguage={this.toggleLanguage}
                     tag={this.state.navigationSheetTag}
-                    partner={this.state.sheetsPartner}
+                    group={this.state.sheetsGroup}
                     tagSort={this.state.tagSort}
                     mySheetSort={this.state.mySheetSort}
                     setMySheetSort={this.setMySheetSort}
@@ -2125,11 +2154,16 @@ var ReaderPanel = React.createClass({
 
     } else if (this.state.menuOpen === "account") {
       var menu = (<AccountPanel
+                    handleInAppLinkClick={this.props.handleInAppLinkClick}
                     interfaceLang={this.props.interfaceLang} />);
 
     } else if (this.state.menuOpen === "notifications") {
       var menu = (<NotificationsPanel 
                     setUnreadNotificationsCount={this.props.setUnreadNotificationsCount}
+                    interfaceLang={this.props.interfaceLang} />);
+
+    } else if (this.state.menuOpen === "myGroups") {
+      var menu = (<MyGroupsPanel
                     interfaceLang={this.props.interfaceLang} />);
 
     } else if (this.state.menuOpen === "updates") {
@@ -2782,6 +2816,7 @@ var BlockLink = React.createClass({
     heTitle:       React.PropTypes.string,
     target:        React.PropTypes.string,
     image:         React.PropTypes.string,
+    inAppLink:     React.PropTypes.bool,
     interfaceLink: React.PropTypes.bool
   },
   getDefaultProps: function() {
@@ -2791,7 +2826,8 @@ var BlockLink = React.createClass({
   },
   render: function() {
     var interfaceClass = this.props.interfaceLink ? 'int-' : '';
-    return (<a className="blockLink" href={this.props.target}>
+    var classes = classNames({blockLink: 1, inAppLink: this.props.inAppLink})
+    return (<a className={classes} href={this.props.target}>
               {this.props.image ? <img src={this.props.image} /> : null}
               <span className={`${interfaceClass}en`}>{this.props.title}</span>
               <span className={`${interfaceClass}he`}>{this.props.heTitle}</span>
@@ -4204,11 +4240,12 @@ var SheetsNav = React.createClass({
       var content = (<AllSheetsPage
                         hideNavHeader={this.props.hideNavHeader} />);
 
-    } else if (this.props.tag == "sefaria-partners") {
-      var content = (<PartnerSheetsPage
+    } else if (this.props.tag == "sefaria-groups") {
+      var content = (<GroupPage
                         hideNavHeader={this.props.hideNavHeader}
                         multiPanel={this.props.multiPanel}
-                        partner={this.props.partner} />);
+                        group={this.props.group}
+                        width={this.state.width} />);
 
     } else if (this.props.tag) {
       var content = (<TagSheetsPage 
@@ -4381,50 +4418,58 @@ var SheetsHomePage = React.createClass({
   }
 });
 
-var PartnerSheetsPage = React.createClass({
+
+var GroupPage = React.createClass({
+  propTypes: {
+    group: React.PropTypes.string.isRequired,
+    width: React.PropTypes.number
+  },
   getInitialState: function() {
     return {
-      showYourSheetTags: false,
-      sheetFilterTag: null
+      showTags: false,
+      sheetFilterTag: null,
+      tab: "sheets"
     };
   },
   componentDidMount: function() {
     this.ensureData();
   },
-  getSheetsFromCache: function() {
-    return  Sefaria.sheets.partnerSheets(this.props.partner);
-  },
-  getSheetsFromAPI: function() {
-     Sefaria.sheets.partnerSheets(this.props.partner, this.onDataLoad);
-  },
-  getTagsFromCache: function() {
-    return Sefaria.sheets.groupTagList(this.props.partner)
-  },
-  getTagsFromAPI: function() {
-    Sefaria.sheets.partnerSheets(this.props.partner, this.onDataLoad);
-  },
   onDataLoad: function(data) {
     this.forceUpdate();
   },
   ensureData: function() {
-    if (!this.getSheetsFromCache()) { this.getSheetsFromAPI(); }
-    if (!this.getTagsFromCache())   { this.getTagsFromAPI(); }
+    if (!Sefaria.groups(this.props.group)) { 
+      Sefaria.groups(this.props.group, this.onDataLoad);
+    }
+  },
+  setTab: function(tab) {
+    this.setState({tab: tab});
   },
   toggleSheetTags: function() {
-    this.state.showYourSheetTags ? this.setState({showYourSheetTags: false}) : this.setState({showYourSheetTags: true});
+    this.state.showTags ? this.setState({showTags: false}) : this.setState({showTags: true});
   },
   filterYourSheetsByTag: function (tag) {
     if (tag.tag == this.state.sheetFilterTag) {
-       this.setState({sheetFilterTag: null, showYourSheetTags: false});
+      this.setState({sheetFilterTag: null, showTags: false});
     } else {
-      this.setState({sheetFilterTag: tag.tag, showYourSheetTags: false});
+      this.setState({sheetFilterTag: tag.tag, showTags: false});
     }
   },
-
-
-    render: function() {
-    var sheets = this.getSheetsFromCache();
-    var groupTagList = this.getTagsFromCache();
+  memberList: function() {
+    var group = Sefaria.groups(this.props.group);
+    if (!group) { return null; }
+    var admins = group.admins.map(function(member) {member.role = "Admin"; return member; });
+    var publishers = group.publishers.map(function(member) {member.role = "Publisher"; return member; });
+    var members = group.members.map(function(member) {member.role = "Member"; return member; });
+    
+    return admins.concat(publishers, members);
+  },
+  render: function() {
+    var group        = Sefaria.groups(this.props.group);
+    var sheets       = group ? group.sheets : null;
+    var groupTagList = group ? group.tags : null;
+    var members      = this.memberList();
+    var isAdmin      = group && group.admins.filter(function(x) { return x.uid == Sefaria._uid } ).length !== 0;
 
     groupTagList = groupTagList ? groupTagList.map(function (tag) {
         var filterThisTag = this.filterYourSheetsByTag.bind(this, tag);
@@ -4436,51 +4481,107 @@ var PartnerSheetsPage = React.createClass({
       return Sefaria.util.inArray(this.state.sheetFilterTag, sheet.tags) >= 0;
     }.bind(this)) : sheets;
     sheets = sheets ? sheets.map(function(sheet) {
-      return (<PartnerSheetListing sheet={sheet} multiPanel={this.props.multiPanel} setSheetTag={this.props.setSheetTag} />);
-    }.bind(this)) : (<LoadingMessage />);
+      return (<GroupSheetListing sheet={sheet} multiPanel={this.props.multiPanel} setSheetTag={this.props.setSheetTag} />);
+    }.bind(this)) : [<LoadingMessage />];
+ 
 
+    return (<div className="content groupPage sheetList hasFooter">
+              <div className="contentInner">
 
-    return (<div className="content sheetList hasFooter">
-                      <div className="contentInner">
-                        {this.props.hideNavHeader ? (<h1>
-                          <span className="int-en">{this.props.partner}</span>
-                          <span className="int-he">{this.props.partner}</span>
-                        </h1>) : null}
+                {group.imageUrl ? 
+                  <img className="groupImage" src={group.imageUrl} />
+                  : null }
 
-                        {this.props.hideNavHeader ?
-                         (<h2 className="splitHeader">
-                            <span className="int-en" onClick={this.toggleSheetTags}>Filter By Tag <i className="fa fa-angle-down"></i></span>
-                            <span className="int-he" onClick={this.toggleSheetTags}>סנן לפי תווית<i className="fa fa-angle-down"></i></span>{/*
-                            <span className="en actionText">Sort By:
-                              <select value={this.props.mySheetSort} onChange={this.changeSortYourSheets}>
-                               <option value="date">Recent</option>
-                               <option value="views">Most Viewed</option>
-                             </select> <i className="fa fa-angle-down"></i></span>
-                            <span className="he actionText">סנן לפי:
-                              <select value={this.props.mySheetSort} onChange={this.changeSortYourSheets}>
-                               <option value="date">הכי חדש</option>
-                               <option value="views">הכי נצפה</option>
-                             </select> <i className="fa fa-angle-down"></i></span>
-                             */}
+                <div className="groupInfo">
+                  <h1>
+                    <span className="int-en">{this.props.group}</span>
+                    <span className="int-he">{this.props.group}</span>
+                  </h1>
 
-                          </h2>) : null }
+                  {group.websiteUrl ? 
+                    <a className="groupWebsite" target="_blank" href={group.websiteUrl}>{group.websiteUrl}</a>
+                    : null }
 
-                        {this.state.showYourSheetTags ? <TwoOrThreeBox content={groupTagList} width={this.props.width} /> : null}
+                  {group.description ?
+                    <div className="groupDescription">{group.description}</div>
+                    : null }
+                </div>
 
-                        {sheets}
-                      </div>
-    <footer id="footer" className="static sans">
-                        <Footer />
-                      </footer>
-    </div>);
+                <div className="tabs">
+                  <a className={classNames({bubbleTab: 1, active: this.state.tab == "sheets"})} onClick={this.setTab.bind(null, "sheets")}>
+                    <span className="int-en">Sheets</span>
+                    <span className="int-he">Sheets</span>                   
+                  </a>
+                  <a className={classNames({bubbleTab: 1, active: this.state.tab == "members"})} onClick={this.setTab.bind(null, "members")}>
+                    <span className="int-en">Members</span>
+                    <span className="int-he">Members</span>                   
+                  </a>
+                  { isAdmin ? 
+                    <a className="bubbleTab" href={"/groups/" + this.props.group.replace(/\s/g, "-") + "/settings"}>
+                      <span className="int-en">Settings</span>
+                      <span className="int-he">Settings</span>          
+                    </a>
+                    : null }
+                </div>
+
+                { this.state.tab == "sheets" ?
+                  <div>
+                  { groupTagList && groupTagList.length ?
+                    (<h2 className="splitHeader">
+                      <span className="filterByTag" onClick={this.toggleSheetTags}>
+                        <span className="int-en" >Filter By Tag <i className="fa fa-angle-down"></i></span>
+                        <span className="int-he">סנן לפי תווית<i className="fa fa-angle-down"></i></span>
+                       </span>
+                       {/*
+                      <span className="en actionText">Sort By:
+                        <select value={this.props.mySheetSort} onChange={this.changeSortYourSheets}>
+                         <option value="date">Recent</option>
+                         <option value="views">Most Viewed</option>
+                       </select> <i className="fa fa-angle-down"></i></span>
+                      <span className="he actionText">סנן לפי:
+                        <select value={this.props.mySheetSort} onChange={this.changeSortYourSheets}>
+                         <option value="date">הכי חדש</option>
+                         <option value="views">הכי נצפה</option>
+                       </select> <i className="fa fa-angle-down"></i></span>
+                       */}
+                    </h2>) : null}
+
+                  {this.state.showTags ? <TwoOrThreeBox content={groupTagList} width={this.props.width} /> : null}
+
+                  {sheets.length ? 
+                    sheets 
+                    : <div className="emptyMessage">
+                      <span className="int-en">There are no sheets in this group yet. <a href="/sheets/new">Start a sheet</a>.</span>
+                      <span className="int-he">There are no sheets in this group yet. <a href="/sheets/new">Start a sheet</a>.</span>          
+                    </div> }
+                  </div>
+                  : null }
+
+                  {this.state.tab == "members" ? 
+                    <div>
+                     {isAdmin ? <GroupInvitationBox groupName={this.props.group} onDataChange={this.onDataLoad}/> : null }
+                     { members.map(function(member) {
+                      return <GroupMemberListing 
+                                member={member}
+                                isAdmin={isAdmin}
+                                groupName={this.props.group}
+                                onDataChange={this.onDataLoad} />;
+                     }.bind(this)) }
+                    </div>
+                  : null }
+
+              </div>
+            <footer id="footer" className="static sans">
+              <Footer />
+            </footer>
+            </div>);
   }
-
-
 });
 
-var PartnerSheetListing = React.createClass({
+
+var GroupSheetListing = React.createClass({
   propTypes: {
-    sheet:      React.PropTypes.object.isRequired,
+    sheet: React.PropTypes.object.isRequired,
   },
   render: function() {
     var sheet = this.props.sheet;
@@ -4499,6 +4600,267 @@ var PartnerSheetListing = React.createClass({
 
   }
 });
+
+var GroupInvitationBox = React.createClass({
+  propTypes: {
+    groupName: React.PropTypes.string.isRequired,
+    onDataChange: React.PropTypes.func.isRequired,
+  },
+  onInviteClick: function() {
+    this.inviteByEmail($("#groupInvitationInput").val());
+  },
+  inviteByEmail: function(email) {
+    $.post("/api/groups/" + this.props.groupName + "/invite/" + email, function(data) {
+      if ("error" in data) {
+        alert(data.error)
+      } else {
+        Sefaria._groups[data.name] = data;
+        $("#groupInvitationInput").val("")
+        this.props.onDataChange();
+      }
+    }.bind(this));
+  },
+  render: function() {
+    return (<div className="groupInvitationBox">
+                <input id="groupInvitationInput" placeholder="Email Address" />
+                <div className="button" onClick={this.onInviteClick}>Invite</div>
+              </div>);
+  }
+});
+
+
+
+var GroupMemberListing = React.createClass({
+  propTypes: {
+    member:       React.PropTypes.object.isRequired,
+    isAdmin:      React.PropTypes.bool,
+    groupName:    React.PropTypes.string,
+    onDataChange: React.PropTypes.func,
+  },
+  render: function() {
+    return (
+      <div className="groupMemberListing">
+        <a href={this.props.member.profileUrl}>
+          <img className="groupMemberListingProfileImage" src={this.props.member.imageUrl} />
+        </a>
+        
+        <a href={this.props.member.profileUrl} className="groupMemberListingName">
+          {this.props.member.name}
+        </a>
+
+        <div className="groupMemberListingRoleBox">
+          <span className="groupMemberListingRole">{this.props.member.role}</span>
+          {this.props.isAdmin ? 
+            <GroupMemberListingActions member={this.props.member} groupName={this.props.groupName} onDataChange={this.props.onDataChange} />
+            : null }
+        </div>
+
+      </div>);
+  }
+});
+
+
+var GroupMemberListingActions = React.createClass({
+  propTypes: {
+    member:       React.PropTypes.object.isRequired,
+    groupName:    React.PropTypes.string.isRequired,
+    forSelf:      React.PropTypes.bool,
+    onDataChange: React.PropTypes.func.isRequired
+  },
+  getInitialState: function() {
+    return {
+      menuOpen: false
+    }
+  },
+  toggleMenu: function() {
+    this.setState({menuOpen: !this.state.menuOpen});
+  },
+  setRole: function(role) {
+    $.post("/api/groups/" + this.props.groupName + "/set-role/" + this.props.member.uid + "/" + role, function(data) {
+      if ("error" in data) {
+        alert(data.error)
+      } else {
+        Sefaria._groups[data.name] = data;
+        this.props.onDataChange();
+      }
+    }.bind(this));
+  },
+  removeMember: function() {
+    if (confirm("Are you sure you want to remove " + this.props.member.name + " from this group?")) {
+      this.setRole("remove");
+    }
+  },
+  render: function() {
+    return (
+      <div className="groupMemberListingActions" onClick={this.toggleMenu}>
+        <div className="groupMemberListingActionsButton">
+          <i className="fa fa-gear"></i>
+        </div>        
+        {this.state.menuOpen ? 
+          <div className="groupMemberListingActionsMenu">
+            <div className="action" onClick={this.setRole.bind(this, "admin")}>
+              <span className={classNames({role: 1, current: this.props.member.role == "Admin"})}>Admin</span>
+              - can invite & edit settings
+            </div>
+            <div className="action" onClick={this.setRole.bind(this, "publisher")}>
+              <span className={classNames({role: 1, current: this.props.member.role == "Publisher"})}>Publisher</span>
+              - can publish
+            </div>
+            <div className="action" onClick={this.setRole.bind(this, "member")}>
+              <span className={classNames({role: 1, current: this.props.member.role == "Member"})}>Member</span>
+              - can view & share within group
+            </div>
+            <div className="action" onClick={this.removeMember}>
+              <span className="role">Remove</span>
+            </div>
+          </div>
+        : null }
+      </div>);
+  }
+});
+
+
+var EditGroupPage = React.createClass({
+  propTypes: {
+    initialData:  React.PropTypes.object // If present this view is for editing a group, otherwise for creating a new group
+  },
+  getInitialState: function() {
+    return this.props.initialData || {
+        name: null,
+        description: null,
+        websiteUrl: null,
+        imageUrl: null,
+        headerUrl: null,
+    };
+  },
+  uploadImage: function(field) {
+    // Sets the state of `field` of the resulting image URL
+    var url = prompt("Enter an image URL", this.state[field] || "");
+    var state = {};
+    state[field] = url;
+    this.setState(state);
+  },
+  handleInputChange: function(e) {
+    var idToField = {
+      groupName: "name",
+      groupWebsite: "websiteUrl",
+      groupDescription: "description"
+    }
+    var field = idToField[e.target.id];
+    var state = {};
+    state[field] = e.target.value;
+    this.setState(state);
+  },
+  save: function() {
+    var groupData = Sefaria.util.clone(this.state);
+    if (!this.props.initialData) {
+      groupData["new"] = true;
+    }
+    if (this.props.initialData && this.props.initialData.name !== groupData.name) {
+      groupData["previousName"] = this.props.initialData.name;
+    }
+    $.post("/api/groups", {json: JSON.stringify(groupData)}, function(data) {
+        if ("error" in data) {
+          alert(data.error);
+        } else {
+          window.location = "/groups/" + this.state.name.replace(/ /g, "-");
+        }
+    }.bind(this)).fail(function() {
+        alert("Sorry, an error occurred.");
+    });
+  },
+  render: function() {
+    return (
+      <div id="editGroupPage">
+        {this.props.initialData 
+          ? <h1>
+              <span className="int-en">Edit Group</span>
+              <span className="int-he">Edit Group</span>
+            </h1>
+          : <h1>
+              <span className="int-en">Create a Group</span>
+              <span className="int-he">Create a Group</span>
+            </h1>}
+
+        <div id="saveCancelButtons">
+            <a className="button transparent control-elem" href={this.props.initialData ? "/groups/" + this.state.name.replace(/ /g, "-") : "/my/groups"}>
+                <span className="int-en">Cancel</span>
+                <span className="int-he">בטל</span>
+            </a>
+            <div id="saveGroup" className="button blue control-elem" onClick={this.save}>
+                <span className="int-en">Save</span>
+                <span className="int-he">שמור</span>
+            </div>
+        </div>
+
+        <div className="field halfWidth">
+          <label>
+            <span className="int-en">Group Name</span>
+            <span className="int-he">Group Name</span>
+          </label>
+          <input id="groupName" value={this.state.name||""} onChange={this.handleInputChange}/>
+        </div>
+
+        <div className="field halfWidth">
+          <label>
+            <span className="int-en">Website</span>
+            <span className="int-he">Website</span>
+          </label>
+          <input id="groupWebsite" value={this.state.websiteUrl||""} onChange={this.handleInputChange}/>
+        </div>
+
+        <div className="field">
+          <label>
+            <span className="int-en">Description</span>
+            <span className="int-he">Description</span>
+          </label>
+          <textarea id="groupDescription" onChange={this.handleInputChange}>{this.state.description||null}</textarea>
+        </div>
+
+        <div className="field">
+          <label>
+            <span className="int-en">Group Image</span>
+            <span className="int-he">Group Image</span>
+          </label>
+          {this.state.imageUrl 
+            ? <img className="groupImage" src={this.state.imageUrl} />
+            : <div className="groupImage placeholder"></div>}
+          <div className="button white" onClick={this.uploadImage.bind(null, "imageUrl")}>
+            <span className="int-en">Upload Image</span>
+            <span className="int-he">Upload Image</span>
+          </div>
+          <div className="helperText">
+            <span className="int-en">Recommended size: 350px x 350px or larger</span>
+            <span className="int-he">Recommended size: 350px x 350px or larger</span>
+          </div>
+        </div>
+
+        <div className="field">
+          <label>
+            <span className="int-en">Default Sheet Header</span>
+            <span className="int-he">Default Sheet Header</span>
+          </label>
+          {this.state.headerUrl 
+            ? <div className="groupHeaderBox">
+                <img className="groupHeader" src={this.state.headerUrl} />
+                <div className="clearFix"></div>
+              </div>
+            : <div className="groupHeader placeholder"></div>}
+          <div className="button white" onClick={this.uploadImage.bind(null, "headerUrl")}>
+            <span className="int-en">Upload Image</span>
+            <span className="int-he">Upload Image</span>
+          </div>
+          <div className="helperText">
+            <span className="int-en">Recommended size: 1000px width to fill sheet, smaller images align right</span>
+            <span className="int-he">Recommended size: 1000px width to fill sheet, smaller images align right</span>
+          </div>
+        </div>
+
+
+      </div>);
+  }
+});
+
 
 
 var TagSheetsPage = React.createClass({
@@ -7964,12 +8326,17 @@ var AccountPanel = React.createClass({
   propTypes: {
     interfaceLang: React.PropTypes.string,
   },
+  componentDidMount: function() {
+    $(".inAppLink").on("click", this.props.handleInAppLinkClick);
+  },
   render: function() {
     var width = typeof window !== "undefined" ? $(window).width() : 1000;
     var accountContent = [
       (<BlockLink interfaceLink={true} target="/my/profile" title="Profile" heTitle="פרופיל" image="/static/img/profile.svg" />),
-      (<BlockLink interfaceLink={true} target="/sheets/private" title="Source Sheets" heTitle="דפי מקורות" image="/static/img/sheet.svg" />),
-      (<BlockLink interfaceLink={true} target="/coming-soon?my-notes" title="Notes" heTitle="רשומות" image="/static/img/note.svg" />),
+      (<BlockLink interfaceLink={true} target="/sheets/private" inAppLink={true} title="Source Sheets" heTitle="דפי מקורות" image="/static/img/sheet.svg" />),
+      (Sefaria.is_moderator
+       ? (<BlockLink interfaceLink={true} target="/my/groups" inAppLink={true} title="Groups" heTitle="קבוצות" image="/static/img/group.svg" />)
+       : (<BlockLink interfaceLink={true} target="/coming-soon?my-notes" title="Notes" heTitle="רשומות" image="/static/img/note.svg" />)),
       (<BlockLink interfaceLink={true} target="/texts/recent" title="Reading History" heTitle="היסטורית קריאה" image="/static/img/readinghistory.svg" />),
       (<BlockLink interfaceLink={true} target="/settings/account" title="Settings" heTitle="הגדרות" image="/static/img/settings.svg" />),
       (<BlockLink interfaceLink={true} target="/logout" title="Log Out" heTitle="ניתוק" image="/static/img/logout.svg" />)
@@ -8176,6 +8543,82 @@ var NotificationsPanel = React.createClass({
           </footer>
         </div>
       </div>);
+  }
+});
+
+
+var MyGroupsPanel = React.createClass({
+  propTypes: {
+    interfaceLang: React.PropTypes.string,
+  },
+  componentDidMount: function() {
+    if (!Sefaria.groupsList()) {
+      Sefaria.groupsList(function() {
+        this.forceUpdate();
+      }.bind(this));
+    }
+  },
+  render: function() {
+    var groupsList = Sefaria.groupsList();
+    var classes = {myGroupsPanel: 1, systemPanel: 1, readerNavMenu: 1, noHeader: 1 };
+    var classStr = classNames(classes);
+    return (
+      <div className={classStr}>
+        <div className="content hasFooter">
+          <div className="contentInner">
+            <h1>
+              <span className="int-en">My Groups</span>
+              <span className="int-he">הקבוצות שלי</span>
+            </h1>
+            <center>
+              <a className="button white" href="/groups/new">
+                <span className="int-en">Create a Group</span>
+                <span className="int-he">ליצור קבוצה</span>
+              </a>
+            </center>
+
+            <div className="groupsList">
+              { groupsList ? 
+                  groupsList.private.map(function(item) {
+                    return <GroupListing data={item} />
+                  })
+                  : <LoadingMessage />
+              }
+            </div>
+
+          </div>
+          <footer id="footer" className={`interface-${this.props.interfaceLang} static sans`}>
+            <Footer />
+          </footer>
+        </div>
+      </div>);
+  }
+});
+
+
+var GroupListing = React.createClass({
+  propTypes: {
+    data: React.PropTypes.object.isRequired,
+  },
+  render: function() {
+    var imageUrl = this.props.data.imageUrl || "/static/img/group.svg"
+    var imageClass = classNames({groupListingImage: 1, default: !this.props.data.imageUrl});
+    var groupUrl = "/groups/" + this.props.data.name.replace(/\s/g, "-")
+    return (<div className="groupListing">
+              <a href={groupUrl}>
+                <div className="groupListingImageBox">
+                  <img className={imageClass} src={imageUrl} />
+                </div>
+              </a>
+              <a href={groupUrl} className="groupListingName">{this.props.data.name}</a>
+              <div className="groupListingDetails">
+                <span className="groupListingMemberCount">
+                  <span className="int-en">{this.props.data.memberCount} Members</span>
+                  <span className="int-he">{this.props.data.memberCount} חברים</span>          
+                </span>
+              </div>
+              <div className="clearFix"></div>
+            </div>);
   }
 });
 
@@ -8923,6 +9366,7 @@ var setData = function(data) {
   Sefaria.recentlyViewed    = data.recentlyViewed ? data.recentlyViewed.map(Sefaria.unpackRecentItem) : [];
   Sefaria.util._defaultPath = data.path;
   Sefaria.loggedIn          = data.loggedIn;
+  Sefaria._uid              = data._uid;
   Sefaria.is_moderator      = data.is_moderator;
   Sefaria.is_editor         = data.is_editor;
 };

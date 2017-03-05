@@ -1152,40 +1152,6 @@ Sefaria = extend(Sefaria, {
         }
       return sheets;
     },
-    _groupTagList: null,
-    groupTagList: function(partner, callback) {
-      // Returns a list of all public source sheet tags, ordered by populartiy
-      var tags = this._groupTagList;
-      if (tags) {
-        if (callback) { callback(tags); }
-      } else {
-        var url = "/api/partners/tag-list/"+partner;
-         Sefaria._api(url, function(data) {
-            this._groupTagList = data;
-             if (callback) { callback(data); }
-          }.bind(this));
-        }
-      return tags;
-    },
-
-    _partnerSheets: {},
-    partnerSheets: function(partner, callback, sortBy) {
-      // Returns a list of source sheets belonging to partner org
-      // Member of group will get all sheets. Others only public facing ones.
-      sortBy = typeof sortBy == "undefined" ? "date" : sortBy;
-      var sheets = this._partnerSheets[partner];
-      if (sheets) {
-        if (callback) { callback(sheets); }
-      } else {
-        var url = "/api/partners/"+partner;
-         Sefaria._api(url, function(data) {
-            this._partnerSheets[partner] = data.sheets;
-            if (callback) { callback(data.sheets); }
-          }.bind(this));
-
-        }
-      return sheets;
-    },
     _userSheets: {},
     userSheets: function(uid, callback, sortBy) {
       // Returns a list of source sheets belonging to `uid`
@@ -1270,21 +1236,50 @@ Sefaria = extend(Sefaria, {
       return Sefaria._saveItemsByRef(data, this._sheetsByRef);
     }
   },
+  _groups: {},
+  groups: function(group, callback) {
+    // Returns data for an individual group
+    var group = this._groups[group];
+    if (group) {
+      if (callback) { callback(group); }
+    } else if (callback) {
+      var url = "/api/groups/" + group;
+       Sefaria._api(url, function(data) {
+          this._groups[group] = data;
+           if (callback) { callback(data); }
+        }.bind(this));
+      }
+    return group;
+  },
+  _groupsList: null,
+  groupsList: function(callback) {
+    // Returns list of public and private groups
+    if (this._groupsList) {
+      if (callback) { callback(this._groupsList); }
+    } else if (callback) {
+      var url = "/api/groups";
+       Sefaria._api(url, function(data) {
+          this._groupsList = data;
+           if (callback) { callback(data); }
+        }.bind(this));
+      }
+    return this._groupsList;
+  },
   hebrewTerm: function(name) {
-    // Returns a string translating `cat` into Hebrew.
+    // Returns a string translating `name` into Hebrew.
     var categories = {
       "Quoting Commentary":   "פרשנות מצטטת",
       "Sheets":               "דפי מקורות",
       "Notes":                "הערות",
       "Community":            "קהילה"
     };
-    if(name in Sefaria._translateTerms){
+    if (name in Sefaria._translateTerms) {
         return Sefaria._translateTerms[name]["he"];
-    }else if (name in categories){
+    } else if (name in categories) {
         return  categories[name];
-    }else if (Sefaria.index(name)){
+    } else if (Sefaria.index(name)) {
         return Sefaria.index(name).heTitle;
-    }else {
+    } else {
         return name;
     }
   },
@@ -1417,9 +1412,11 @@ Sefaria = extend(Sefaria, {
               //Filtered query.  Add clauses.  Don't re-request potential filters.
               var clauses = [];
               for (var i = 0; i < applied_filters.length; i++) {
+
+                  var filterSuffix = applied_filters[i].indexOf("/") != -1 ? ".*" : "/.*"; //filters with '/' might be leading to books. also, very unlikely they'll match an false positives
                   clauses.push({
                       "regexp": {
-                          "path": RegExp.escape(applied_filters[i]) + "/.*"
+                          "path": RegExp.escape(applied_filters[i]) + filterSuffix
                       }
                   });
                   /* Test for Commentary2 as well as Commentary */
@@ -1516,9 +1513,6 @@ Sefaria.unpackDataFromProps = function(props) {
   if (props.userTags) {
     Sefaria.sheets._userTagList = props.userTags;
   }
-  if (props.partnerSheets) {
-    Sefaria.sheets._partnerSheets[props.initialPartner] = props.partnerSheets;
-  }
   if (props.publicSheets) {
     Sefaria.sheets._publicSheets = props.publicSheets;
   }
@@ -1533,6 +1527,9 @@ Sefaria.unpackDataFromProps = function(props) {
   }
   if (props.topSheets) {
     Sefaria.sheets._topSheets = props.topSheets;
+  }
+  if (props.groupData) {
+    Sefaria._groups[props.initialGroup] = props.groupData;
   }
 };
 

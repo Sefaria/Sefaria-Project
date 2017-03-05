@@ -30,6 +30,9 @@ static_urls = [
 	"https://www.sefaria.org/copyright-policy",
 	"https://www.sefaria.org/terms",
 	"https://www.sefaria.org/privacy-policy",
+	"https://www.sefaria.org/updates",
+	"https://www.sefaria.org/people",
+	"https://www.sefaria.org/people/Talmud"
 ]
 
 
@@ -97,6 +100,11 @@ def generate_sheets_sitemap():
 	write_urls(urls, "sheets-sitemap.txt")
 
 
+def generate_people_sitemap():
+	urls = ["https://www.sefaria.org/person/{}".format(p.key.replace(" ", "%20")) for p in PersonSet()]
+	write_urls(urls, "person-sitemap.txt")
+
+
 def generate_static_sitemap(): 
 	"""
 	Creates a sitemap of static content listed above.
@@ -146,9 +154,10 @@ def generate_sitemaps():
 	generate_sheets_sitemap()
 	generate_texts_toc_sitemap()
 	generate_categories_sitemap()
+	generate_people_sitemap()
 	n = generate_texts_sitemaps()
 
-	maps = ["static-sitemap.txt", "sheets-sitemap.txt", "text-toc-sitemap.txt", "categories-sitemap.txt"]
+	maps = ["static-sitemap.txt", "sheets-sitemap.txt", "text-toc-sitemap.txt", "categories-sitemap.txt", "person-sitemap.txt"]
 	maps += ["texts-sitemap%d.txt" % i for i in range(n)]
 
 	generate_sitemap_index(maps)

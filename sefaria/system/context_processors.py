@@ -41,8 +41,10 @@ def titles_json(request):
 def toc(request):
     return {"toc": library.get_toc(), "toc_json": library.get_toc_json(), "search_toc_json": library.get_search_filter_toc_json()}
 
+
 def terms(request):
     return {"terms_json": json.dumps(get_simple_term_mapping())}
+
 
 def embed_page(request):
     return {"EMBED": "embed" in request.GET}
@@ -116,6 +118,8 @@ def header_html(request):
     if USE_NODE:
         LOGGED_OUT_HEADER = LOGGED_OUT_HEADER or render_react_component("ReaderApp", {"headerMode": True, "loggedIn": False})
         LOGGED_IN_HEADER = LOGGED_IN_HEADER or render_react_component("ReaderApp", {"headerMode": True, "loggedIn": True})
+        LOGGED_OUT_HEADER = "" if "s2Loading" in LOGGED_OUT_HEADER else LOGGED_OUT_HEADER
+        LOGGED_IN_HEADER = "" if "s2Loading" in LOGGED_IN_HEADER else LOGGED_IN_HEADER
     else:
         LOGGED_OUT_HEADER = ""
         LOGGED_IN_HEADER = ""
@@ -132,6 +136,7 @@ def footer_html(request):
     global FOOTER
     if USE_NODE:
         FOOTER = FOOTER or render_react_component("Footer", {})
+        FOOTER = "" if "s2Loading" in FOOTER else FOOTER
     else:
         FOOTER = ""
     return {

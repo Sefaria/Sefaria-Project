@@ -19,8 +19,8 @@
         		<h1>
                     <div class="sub">
                         {% if group %}
-                        <a id="back" href="/partners/{{ group|url_safe}}">
-                            <img id="partnerLogo" src="{{ groupCover }}" alt="{{ group }}">
+                        <a id="back" href="/groups/{{ group|url_safe}}">
+                            <img id="groupsrLogo" src="{{ groupCover }}" alt="{{ group }}">
                         </a>
                         Source Sheets
                         {% elif public %}
@@ -33,7 +33,7 @@
                 </h1>
 
                 {% if group %}
-                  <a id="back" href="/partners/{{ group|url_safe}}">{{ group }}'s sheets &raquo;</a>
+                  <a id="back" href="/groups/{{ group|url_safe}}">{{ group }}'s sheets &raquo;</a>
 
                 {% elif public %}
         		  <span id="back"> 
@@ -46,7 +46,7 @@
         		</div>
                     {% if group and not in_group and not request.user.is_authenticated %}
                     <span id="loginMsg">
-                        If you are a member of the {{ group }} group, <a href="/login?next=/partners/{{ group|url_safe }}">login</a> to view private group sheets.
+                        If you are a member of the {{ group }} group, <a href="/login?next=/groups/{{ group|url_safe }}">login</a> to view private group sheets.
                     </span>
                     {% endif %}
             </div>
