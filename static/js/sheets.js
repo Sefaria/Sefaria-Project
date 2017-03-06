@@ -1789,7 +1789,6 @@ $(function() {
 		var curDiagram = $(this).closest(".sheetItem").find(".diagram");
 		var curText = $(this).closest(".sheetItem").find(".text");
 
-		console.log(curDiagram.css('display'));
 		if (curDiagram.css('display') == "none") {
 			$(this).closest(".sheetItem").find(".diagramTools").show();
 			curDiagram.show();
@@ -1810,6 +1809,18 @@ $(function() {
 
 	});
 
+	$(".diagramTools").on('click', '.resetDiagram', function() {
+
+		var curDiagram = $(this).closest(".sheetItem").find(".diagram");
+		var curText = $(this).closest(".sheetItem").find(".text");
+		curDiagram.find(".en").html("<div class='diagramSegment'>"+curText.find(".en").html().stripHtml()+"</div>");
+		curDiagram.find(".he").html("<div class='diagramSegment'>"+curText.find(".he").html().stripHtml()+"</div>");
+		autoSave();
+
+
+	});
+
+
 	$(".diagramTools").on('click', '.editToggle', function() {
 
 		if ($(this).text() == "Edit") {
@@ -1826,7 +1837,6 @@ $(function() {
 
 	$(".splitDiagramSegment").on('click', 'div', function() {
 		var selectedRange = window.getSelection(); //.getRangeAt(0);
-		console.log(selectedRange);
 
 		var curDiagramSegment = $(selectedRange.focusNode);
 		var textBefore = curDiagramSegment.text().slice(0,selectedRange.anchorOffset);
@@ -1851,11 +1861,12 @@ $(function() {
 		$(".diagram .he, .diagram .en").on("mousedown", '.diagramSegment', function() {
 			$(".diagramSegment").removeClass("noSelect");
 			$(".diagramSegment").not(this).addClass("noSelect");
+	 		$(".diagramTagWindow").hide();
+
 		});
 
 		$(".diagram .he, .diagram .en").on("mouseup", '.diagramSegment', function(e) {
 			if (window.getSelection().anchorOffset !== window.getSelection().focusOffset) {
-				console.log(e);
 				$(".diagramTagWindow").show().css({
 					"top": e.clientY,
 					"left": e.clientX
@@ -2301,7 +2312,7 @@ function addSource(q, source, appendOrInsert) {
 	var refLink = badRef == true ? "#" : "/"+makeRef(q).replace(/'/g, "&apos;");
 
 
-	var newsource = "<li " + attributionData + "data-ref='" + enRef.replace(/'/g, "&apos;") + "'" + " data-heRef='" + heRef.replace(/'/g, "&apos;") + "'" + " data-node='" + node + "'>" +"<div class='sourceNumber he'></div><div class='sourceNumber en'></div>" +"<div class='customTitle'></div>" +"<div class='diagramTools'><span class='editToggle'>Edit</span> <div class='diagramTagWindow'><div class='colorSelect splitDiagramSegment'><div class='blue'></div><div class='green'></div><div class='yellow'></div><div class='pink'></div><div class='purple'></div><div class='white'></div></div></div></div>" +"<div class='he'>" + "<span class='title'>" +"<a class='he' href='" + refLink + "' target='_blank'><span class='ref'></span>" + heRef.replace(/\d+(\-\d+)?/g, "").replace(/([0-9][b|a]| ב| א):.+/,"$1") + " </a>" + "</span>" +"<div class='text'>" +"<div class='he'>" + (source && source.text ? source.text.he : "") + "</div>" +"</div>" + "<div class='diagram'><div class='he'></div></div>" + "</div>" + "<div class='en'>" +"<span class='title'>" +"<a class='en' href='" + refLink + "' target='_blank'><span class='ref'>" + enRef.replace(/([0-9][b|a]| ב| א):.+/,"$1") + "</span> </a>" +"</span>" +"<div class='text'>" +"<div class='en'>" + (source && source.text ? source.text.en : "") + "</div>" + "</div>" + "<div class='diagram'><div class='en'></div></div>" +"</div>" + "<div class='clear'></div>" + attributionLink + appendInlineAddButton() + "</li>";
+	var newsource = "<li " + attributionData + "data-ref='" + enRef.replace(/'/g, "&apos;") + "'" + " data-heRef='" + heRef.replace(/'/g, "&apos;") + "'" + " data-node='" + node + "'>" +"<div class='sourceNumber he'></div><div class='sourceNumber en'></div>" +"<div class='customTitle'></div>" +"<div class='diagramTools'><span class='editToggle'>Edit</span> <span class='resetDiagram'>Reset</span> <div class='diagramTagWindow'><div class='colorSelect splitDiagramSegment'><div class='blue'></div><div class='green'></div><div class='yellow'></div><div class='pink'></div><div class='purple'></div><div class='white'></div></div></div></div>" +"<div class='he'>" + "<span class='title'>" +"<a class='he' href='" + refLink + "' target='_blank'><span class='ref'></span>" + heRef.replace(/\d+(\-\d+)?/g, "").replace(/([0-9][b|a]| ב| א):.+/,"$1") + " </a>" + "</span>" +"<div class='text'>" +"<div class='he'>" + (source && source.text ? source.text.he : "") + "</div>" +"</div>" + "<div class='diagram'><div class='he'></div></div>" + "</div>" + "<div class='en'>" +"<span class='title'>" +"<a class='en' href='" + refLink + "' target='_blank'><span class='ref'>" + enRef.replace(/([0-9][b|a]| ב| א):.+/,"$1") + "</span> </a>" +"</span>" +"<div class='text'>" +"<div class='en'>" + (source && source.text ? source.text.en : "") + "</div>" + "</div>" + "<div class='diagram'><div class='en'></div></div>" +"</div>" + "<div class='clear'></div>" + attributionLink + appendInlineAddButton() + "</li>";
 
 	if (appendOrInsert == "append") {
 		$("#sources").append(newsource);
