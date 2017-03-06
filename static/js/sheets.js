@@ -1835,6 +1835,25 @@ $(function() {
 
 	});
 
+	$(".diagramTools").on('click', '.segmentedContinuousToggle', function() {
+
+		if ($(this).text() == "Continuous") {
+			$(this).text('Segmented');
+			$('.diagramSegment').css({'display': 'block'});
+	}
+
+		else /*view mode */ {
+			$(this).text('Continuous');
+			$('.diagramSegment').css({'display': 'inline'});
+		}
+
+	});
+
+
+
+
+
+
 	$(".splitDiagramSegment").on('click', 'div', function() {
 		var selectedRange = window.getSelection(); //.getRangeAt(0);
 
@@ -2312,7 +2331,7 @@ function addSource(q, source, appendOrInsert) {
 	var refLink = badRef == true ? "#" : "/"+makeRef(q).replace(/'/g, "&apos;");
 
 
-	var newsource = "<li " + attributionData + "data-ref='" + enRef.replace(/'/g, "&apos;") + "'" + " data-heRef='" + heRef.replace(/'/g, "&apos;") + "'" + " data-node='" + node + "'>" +"<div class='sourceNumber he'></div><div class='sourceNumber en'></div>" +"<div class='customTitle'></div>" +"<div class='diagramTools'><span class='editToggle'>Edit</span> <span class='resetDiagram'>Reset</span> <div class='diagramTagWindow'><div class='colorSelect splitDiagramSegment'><div class='blue'></div><div class='green'></div><div class='yellow'></div><div class='pink'></div><div class='purple'></div><div class='white'></div></div></div></div>" +"<div class='he'>" + "<span class='title'>" +"<a class='he' href='" + refLink + "' target='_blank'><span class='ref'></span>" + heRef.replace(/\d+(\-\d+)?/g, "").replace(/([0-9][b|a]| ב| א):.+/,"$1") + " </a>" + "</span>" +"<div class='text'>" +"<div class='he'>" + (source && source.text ? source.text.he : "") + "</div>" +"</div>" + "<div class='diagram'><div class='he'></div></div>" + "</div>" + "<div class='en'>" +"<span class='title'>" +"<a class='en' href='" + refLink + "' target='_blank'><span class='ref'>" + enRef.replace(/([0-9][b|a]| ב| א):.+/,"$1") + "</span> </a>" +"</span>" +"<div class='text'>" +"<div class='en'>" + (source && source.text ? source.text.en : "") + "</div>" + "</div>" + "<div class='diagram'><div class='en'></div></div>" +"</div>" + "<div class='clear'></div>" + attributionLink + appendInlineAddButton() + "</li>";
+	var newsource = "<li " + attributionData + "data-ref='" + enRef.replace(/'/g, "&apos;") + "'" + " data-heRef='" + heRef.replace(/'/g, "&apos;") + "'" + " data-node='" + node + "'>" +"<div class='sourceNumber he'></div><div class='sourceNumber en'></div>" +"<div class='customTitle'></div>" +"<div class='diagramTools'><span class='editToggle'>Edit</span> <span class='segmentedContinuousToggle'>Continuous</span> <span class='resetDiagram'>Reset</span> <div class='diagramTagWindow'><div class='colorSelect splitDiagramSegment'><div class='blue'></div><div class='green'></div><div class='yellow'></div><div class='pink'></div><div class='purple'></div><div class='white'></div></div></div></div>" +"<div class='he'>" + "<span class='title'>" +"<a class='he' href='" + refLink + "' target='_blank'><span class='ref'></span>" + heRef.replace(/\d+(\-\d+)?/g, "").replace(/([0-9][b|a]| ב| א):.+/,"$1") + " </a>" + "</span>" +"<div class='text'>" +"<div class='he'>" + (source && source.text ? source.text.he : "") + "</div>" +"</div>" + "<div class='diagram'><div class='he'></div></div>" + "</div>" + "<div class='en'>" +"<span class='title'>" +"<a class='en' href='" + refLink + "' target='_blank'><span class='ref'>" + enRef.replace(/([0-9][b|a]| ב| א):.+/,"$1") + "</span> </a>" +"</span>" +"<div class='text'>" +"<div class='en'>" + (source && source.text ? source.text.en : "") + "</div>" + "</div>" + "<div class='diagram'><div class='en'></div></div>" +"</div>" + "<div class='clear'></div>" + attributionLink + appendInlineAddButton() + "</li>";
 
 	if (appendOrInsert == "append") {
 		$("#sources").append(newsource);

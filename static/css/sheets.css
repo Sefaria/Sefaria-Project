@@ -1987,6 +1987,10 @@ a.tagit-close {
 
 }
 
+.diagramSegment {
+	display: inline;
+}
+
 .splitDiagramSegment, .noSelect {
 	-webkit-touch-callout: none;
 	-webkit-user-select: none;
