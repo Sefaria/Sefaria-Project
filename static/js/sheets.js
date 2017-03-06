@@ -1837,6 +1837,14 @@ $(function() {
 		$(curDiagramSegment.parent()).after("<div class='diagramSegment'>"+textAfter+"</div>");
 		$(curDiagramSegment.parent()).after("<div class='diagramSegment "+diagramTag+"'>"+selectedText+"</div>");
 		$(curDiagramSegment.parent()).text(textBefore);
+		resetDiagramInteractivity();
+		$(".diagramTagWindow").hide();
+
+		autoSave();
+
+	});
+
+  function resetDiagramInteractivity() {
 
 		$(".diagram .he, .diagram .en").off();
 
@@ -1845,29 +1853,18 @@ $(function() {
 			$(".diagramSegment").not(this).addClass("noSelect");
 		});
 
-		$(".diagram .he, .diagram .en").on("mouseup", '.diagramSegment', function() {
-			if(window.getSelection().anchorOffset !== window.getSelection().focusOffset ) {
-				$(".diagramTagWindow").show();
+		$(".diagram .he, .diagram .en").on("mouseup", '.diagramSegment', function(e) {
+			if (window.getSelection().anchorOffset !== window.getSelection().focusOffset) {
+				console.log(e);
+				$(".diagramTagWindow").show().css({
+					"top": e.clientY,
+					"left": e.clientX
+				});
 			}
 		});
+	}
 
-		$(".diagramTagWindow").hide();
-
-		autoSave();
-
-	});
-
-
-	$(".diagram .he, .diagram .en").on("mousedown", '.diagramSegment', function() {
-		$(".diagramSegment").removeClass("noSelect");
-		$(".diagramSegment").not(this).addClass("noSelect");
-	});
-
-	$(".diagram .he, .diagram .en").on("mouseup", '.diagramSegment', function() {
-		if(window.getSelection().anchorOffset !== window.getSelection().focusOffset ) {
-			$(".diagramTagWindow").show();
-		}
-	});
+	resetDiagramInteractivity();
 
 
 	$(".moveSourceRight").live("click", function() {

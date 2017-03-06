@@ -1981,6 +1981,12 @@ a.tagit-close {
 	display: none;
 }
 
+.diagramTagWindow {
+  	position: fixed;
+	z-index: 2;
+
+}
+
 .splitDiagramSegment, .noSelect {
 	-webkit-touch-callout: none;
 	-webkit-user-select: none;
