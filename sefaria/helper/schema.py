@@ -635,28 +635,55 @@ def cascade(ref_identifier, rewriter=lambda x: x, needs_rewrite=lambda x: True, 
         generic_rewrite(HistorySet(construct_query('old.refs', identifier), sort=[('old.refs', 1)]), attr_name='old', sub_attr_name='refs')
 
 
-def generateSegmentMapping(title, mapping):
+def generateSegmentMapping(title, mapping, output_file=None):
     segment_map = {}
     vs = Index().load({"title": title}).versionState().contents()['content']['_all']['availableTexts']
     for orig_ref in mapping:
         orig_ref_str = orig_ref
         orig_ref = Ref(orig_ref)
+        refs = []
+
+        #now create an array, refs that holds the orig_ref in addition to all of its children
         if orig_ref.is_range():
-            refs = orig_ref.range_list()
+            depth = orig_ref.range_depth()
+            if depth == 1:
+                refs = orig_ref.range_list()
+            elif depth == 2:
+                top_level_refs = orig_ref.split_spanning_ref()
+                segment_refs = orig_ref.range_list()
+                refs = top_level_refs + segment_refs
+            elif depth == 3:
+                top_level_refs = orig_ref.split_spanning_ref()
+                section_refs = orig_ref.range_list()
+                segment_refs = orig_ref.as_ranged_segment_ref().range_list()
+                refs = top_level_refs + section_refs + segment_refs
         else:
-            refs = orig_ref.as_ranged_segment_ref().range_list()
+            refs = orig_ref.all_subrefs()
+            if not refs[0].is_segment_level():
+                len_refs = len(refs)
+                segment_refs = []
+                for i in range(len_refs):
+                    segment_refs += refs[i].all_subrefs()
+                assert segment_refs[0].is_segment_level()
+                refs += segment_refs
+            refs += [orig_ref]
+
+        #segment_value is the value of the mapping that the user inputted
+        segment_value = "Complex {}".format(mapping[orig_ref_str])
+
+        #now iterate over the refs and create the key/value pairs to put into segment_map
         for each_ref in refs:
-            segment_value = "Complex {}".format(mapping[orig_ref_str]) #segment_value is the value of the mapping that the user inputted
             assert each_ref not in segment_map, "Invalid map ranges: Two overlap at reference {}".format(each_ref)
             if each_ref == orig_ref:
                 segment_map[each_ref.normal()] = segment_value
             else:
-                #get in_terms_of() info to construct new reference
-                d = each_ref._core_dict()
+                '''
+                get in_terms_of() info to construct a string that represents the complex index's new reference.
+                construct the new reference by appending the results of in_terms_of() onto
+                segment_value -- where segment_value is the value that the parameter, mapping, returns for the key of orig_ref
+                '''
                 append_arr = each_ref.in_terms_of(orig_ref)
                 assert append_arr, "{} cannot be computed to be in_terms_of() {}".format(each_ref, orig_ref)
-
-                #construct the complex text's ref by appending the results of in_terms_of onto the map's original value
                 append_str = ""
                 for count, element in enumerate(append_arr):
                     if count == 0:
@@ -664,6 +691,14 @@ def generateSegmentMapping(title, mapping):
                     else:
                         append_str += ":{}".format(element)
                 segment_map[each_ref.normal()] = segment_value + append_str
+
+    #output results so that this map can be used again for other purposes
+    print segment_map
+    if output_file:
+        output_file = open(output_file, 'w')
+        for key in segment_map:
+            output_file.write("KEY: {}, VALUE: {}".format(key, segment_map[key]))
+        output_file.close()
     return segment_map
 
 
@@ -686,7 +721,7 @@ def migrate_to_complex_structure(title, schema, mappings, validate_mapping=False
     def needs_rewrite(ref, *args):
         try:
             return Ref(ref).index.title == title
-        except InputError:
+        except AttributeError:
             return False
 
 
@@ -710,7 +745,7 @@ def migrate_to_complex_structure(title, schema, mappings, validate_mapping=False
 
 
 
-    segment_map = generateSegmentMapping(title, mappings)
+    segment_map = generateSegmentMapping(title, mappings, "output_"+title+"_.txt")
 
     print "begin conversion"
     #TODO: add method on model.Index to change all 3 (title, nodes.key and nodes.primary title)

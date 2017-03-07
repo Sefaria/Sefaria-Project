@@ -226,6 +226,12 @@ def test_migrate_to_complex_structure():
         'type': 'None'
     }).save()
 
+    Link({
+        'refs': ['MigrateBook 2', 'Genesis 2'],
+        'type': 'None'
+    }).save()
+
+
     VersionState("MigrateBook").refresh()
 
     new_schema = SchemaNode()
@@ -262,8 +268,10 @@ def test_migrate_to_complex_structure():
     assert isinstance(Link().load({'refs': ['MigrateBook, Part 3 1', 'Guide for the Perplexed, Part 3 1'],}), Link)
     assert Link().load({'refs': ['MigrateBook 5:4', 'Guide for the Perplexed, Introduction, Introduction, 3'],}) is None
     assert isinstance(Link().load({'refs': ['MigrateBook, Part 1 1:2-5', 'Genesis 3'],}), Link)
+    assert isinstance(Link().load({'refs': ['MigrateBook, Part 1 2', 'Genesis 2'],}), Link)
 
     library.get_index("MigrateBook").delete()
+
 
 
 
