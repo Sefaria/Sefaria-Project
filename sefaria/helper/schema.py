@@ -693,7 +693,6 @@ def generateSegmentMapping(title, mapping, output_file=None):
                 segment_map[each_ref.normal()] = segment_value + append_str
 
     #output results so that this map can be used again for other purposes
-    print segment_map
     if output_file:
         output_file = open(output_file, 'w')
         for key in segment_map:
