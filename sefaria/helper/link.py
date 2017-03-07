@@ -70,7 +70,6 @@ class AbstractAutoLinker(object):
         """
         self.delete_links()
         return self.build_links()
-        # TODO: move this commentator name catching out to the view.
 
     def _load_links(self):
         if not self._links:

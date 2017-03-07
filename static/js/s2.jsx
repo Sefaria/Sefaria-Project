@@ -3813,8 +3813,8 @@ var CommentatorList = React.createClass({
     var content = this.props.commentatorList.map(function(commentator, i) {
       var ref = commentator.firstSection;
       return (<a className="refLink" href={Sefaria.normRef(ref)} data-ref={ref} key={i}>
-                <span className="he">{commentator.heCommentator}</span>
-                <span className="en">{commentator.commentator}</span>
+                <span className="he">{commentator.heCollectiveTitle}</span>
+                <span className="en">{commentator.collectiveTitle}</span>
             </a>);
     }.bind(this));
 
@@ -6436,6 +6436,7 @@ var TextList = React.createClass({
         content = content.length ? content : <LoadingMessage message="No notes here." />;
       } else {
         // Viewing Text Connections
+          //debugger;
         var sectionLinks = Sefaria.links(sectionRef);
         var links        = sectionLinks.filter(function(link) {
           if ( (this.props.multiPanel || !isSingleCommentary) &&
@@ -6445,7 +6446,7 @@ var TextList = React.createClass({
           }
           return (filter.length == 0 ||
                   Sefaria.util.inArray(link.category, filter) !== -1 || 
-                  Sefaria.util.inArray(link.commentator, filter) !== -1 );
+                  Sefaria.util.inArray(link.collectiveTitle["en"], filter) !== -1 );
 
           }.bind(this)
         ).sort(function(a, b) {
