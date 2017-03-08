@@ -1977,7 +1977,7 @@ a.tagit-close {
     width:16px;
 }
 
-.source .diagram, .diagramTools, .diagramTagWindow, .addTagPanel {
+.source .diagram, .diagramTools, .diagramTagWindow, .addTagPanel, .diagramFilterTags {
 	display: none;
 }
 
@@ -1999,6 +1999,10 @@ a.tagit-close {
     -ms-user-select: none;
     user-select: none;
 
+}
+
+.digramToolMenuItem {
+	display: inline-block;
 }
 
 /* Diagram tag colors */

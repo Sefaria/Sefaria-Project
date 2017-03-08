@@ -1835,6 +1835,19 @@ $(function() {
 
 	});
 
+	$(".diagramTools").on('click', '.diagramFilter', function() {
+
+		if ($(".diagramFilterTags").css('display') == "none") {
+			$(".diagramFilterTags").show();
+	}
+
+		else /*view mode */ {
+			$(".diagramFilterTags").hide();
+		}
+
+	});
+
+
 	$(".diagramTools").on('click', '.segmentedContinuousToggle', function() {
 
 		if ($(this).text() == "Continuous") {
@@ -1866,9 +1879,11 @@ $(function() {
 		var newTagName = $(this).closest(".addTagPanel").find(".newTag").val();
 		var newTagColor = $(this).closest(".addTagPanel").find(".colorSelect .active").css('background-color');
 		$(".sheetDiagramTags").append('<div class="splitDiagramSegment"><div style="background-color: '+newTagColor+'">'+newTagName+'</div></div>');
+		$(".diagramFilterTags").append('<input type="checkbox" name="diagramFilterTags" value="'+newTagName+'" checked="checked"> <span style="background-color: '+newTagColor+'">'+newTagName+'</span><br>');
 		$(".tagSelector").show();
 		$(".addTagPanel").hide();
 		resetSplitDiagramSegment();
+		resetDiagramFilterTags();
 	});
 
 
@@ -1922,6 +1937,20 @@ $(function() {
 	}
 
 	resetDiagramInteractivity();
+
+  function resetDiagramFilterTags() {
+		$(".diagramFilterTags").off();
+		$(".diagramFilterTags").on("click", "input[type='checkbox'][name='diagramFilterTags']", function(e) {
+			if (!($(this)[0].checked)) {
+				$(".diagramSegment[data-tag='" + $(this)[0].value + "']").hide();
+			}
+			else {
+				$(".diagramSegment[data-tag='" + $(this)[0].value + "']").show();
+			}
+		});
+	}
+
+	resetDiagramFilterTags();
 
 
 	$(".moveSourceRight").live("click", function() {
@@ -2362,7 +2391,11 @@ function addSource(q, source, appendOrInsert) {
 		+"<div class='sourceNumber he'></div><div class='sourceNumber en'></div>"
 		+"<div class='customTitle'></div>"
 		+"<div class='diagramTools'>"
-			+"<span class='editToggle'>Edit</span> <span class='segmentedContinuousToggle'>Continuous</span> <span class='resetDiagram'>Reset</span>"
+			+"<div class='editToggle digramToolMenuItem'>Edit</div> <div class='segmentedContinuousToggle digramToolMenuItem'>Continuous</div> <div class='resetDiagram digramToolMenuItem'>Reset</div> "
+			+"<div class='diagramFilter digramToolMenuItem'>Filter"
+				+"<div class='diagramFilterTags'>"
+				+"</div>"
+			+"</div>"
 			+"<div class='diagramTagWindow'>"
 
 				+"<div class='tagSelector'>"
@@ -2989,6 +3022,7 @@ function buildSheet(data){
 	if ("diagramTags" in data) {
 		for (var i = 0; i < data.diagramTags.length; i++) {
 			$(".sheetDiagramTags").append('<div class="splitDiagramSegment"><div style="background-color: '+data.diagramTags[i].color+'">'+data.diagramTags[i].name+'</div></div>');
+			$(".diagramFilterTags").append('<input type="checkbox" name="diagramFilterTags" value="'+data.diagramTags[i].name+'" checked="checked"> <span style="background-color: '+data.diagramTags[i].color+'">'+data.diagramTags[i].name+'</span><br>');
 		}
 	}
 }
