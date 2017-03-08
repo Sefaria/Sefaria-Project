@@ -49,11 +49,12 @@ def user_sheets(user_id, sort_by="date"):
 	}
 	return response
 
-def partner_sheets(partner, authenticated):
+
+def group_sheets(group, authenticated):
     if authenticated == True:
-        query = {"status": {"$in": ["unlisted", "public"]}, "group": partner}
+        query = {"status": {"$in": ["unlisted", "public"]}, "group": group}
     else:
-        query = {"status": "public", "group": partner}
+        query = {"status": "public", "group": group}
 
     sheets = db.sheets.find(query).sort([["title", 1]])
     response = {

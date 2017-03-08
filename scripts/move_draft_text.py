@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import argparse
+import os
 import json
 import urllib
 import urllib2
@@ -50,12 +51,8 @@ class ServerTextCopier(object):
     def do_copy(self):
         self.load_objects()
         if self._post_index:
-            if isinstance(self._index_obj, CommentaryIndex):
-                idx_contents = self._index_obj.c_index.contents(raw=True)
-                idx_title = self._index_obj.c_index.title
-            elif isinstance(self._index_obj, Index):
-                idx_contents = self._index_obj.contents(raw=True)
-                idx_title = self._index_obj.title
+            idx_contents = self._index_obj.contents(raw=True)
+            idx_title = self._index_obj.title
             self._make_post_request_to_server(self._prepare_index_api_call(idx_title), idx_contents)
         content_nodes = self._index_obj.nodes.get_leaf_nodes()
         for ver in self._version_objs:
@@ -155,3 +152,12 @@ if __name__ == '__main__':
             args.versionlist = version_arr
     copier = ServerTextCopier(args.destination_server, args.apikey, args.title, args.noindex, args.versionlist, args.links)
     copier.do_copy()
+
+    try:
+        url = os.environ["SLACK_URL"]
+        message = json.dumps({'text': 'Upload Complete'})
+        request = urllib2.Request(url, message)
+        urllib2.urlopen(request)
+
+    except KeyError:
+        pass

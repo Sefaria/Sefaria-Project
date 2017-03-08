@@ -21,6 +21,7 @@ urlpatterns = patterns('reader.views',
     (r'^api/texts/(?P<tref>.+)/(?P<lang>\w\w)/(?P<version>.+)$', 'texts_api'),
     (r'^api/texts/(?P<tref>.+)$', 'texts_api'),
     (r'^api/index/?$', 'table_of_contents_api'),
+    (r'^api/search-filter-index/?$', 'search_filter_table_of_contents_api'),
     (r'^api/index/titles/?$', 'text_titles_api'),
     (r'^api/v2/raw/index/(?P<title>.+)$', 'index_api', {'v2': True, 'raw': True}),
     (r'^api/v2/index/(?P<title>.+)$', 'index_api', {'v2': True}),
@@ -210,17 +211,19 @@ urlpatterns += patterns('reader.views',
 
 # Groups
 urlpatterns += patterns('sheets.views',
-    (r'^groups/?', 'groups_page'),
-    (r'^api/groups$', 'groups_api'),
-    (r'^partners/(?P<partner>[^/]+)$', 'partner_page'),
-    (r'^partners/(?P<partner>[^/]+)/tags/(?P<tag>.+)$', 'partner_sheets_tag'),
-    (r'^api/partners/(?P<partner>[^/]+)$', 'private_sheet_list_api'),
-    (r'^api/partners/tag-list/(?P<partner>[^/]+)$', 'group_tag_list_api'),
+    (r'^groups/?$', 'groups_page'),
+    (r'^groups/new$', 'edit_group_page'),
+    (r'^groups/(?P<group>[^/]+)/settings$', 'edit_group_page'),
+    (r'^groups/(?P<group>[^/]+)$', 'group_page'),
+    (r'^groups/(?P<group>[^/]+)/tags/(?P<tag>.+)$', 'group_sheets_tag'),
+    (r'^my/groups$', 'my_groups_page'),
+    (r'^partners/(?P<group>[^/]+)$', 'group_page'),
+    (r'^partners/(?P<group>[^/]+)/tags/(?P<tag>.+)$', 'group_sheets_tag'),
+    (r'^api/groups(/(?P<group>[^/]+))?$', 'groups_api'),
+    (r'^api/groups/(?P<group_name>[^/]+)/set-role/(?P<uid>\d+)/(?P<role>[^/]+)$', 'groups_role_api'),
+    (r'^api/groups/(?P<group_name>[^/]+)/invite/(?P<uid_or_email>[^/]+)$', 'groups_invite_api'),
 )
 
-# Redirects for setting interface language
-urlpatterns += patterns('reader.views',
-)
 
 # Registration
 urlpatterns += patterns('',

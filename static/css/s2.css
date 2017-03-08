@@ -50,11 +50,9 @@ body.dark {
         -ms-user-select: none; /* Internet Explorer/Edge */
             user-select: none; /* Non-prefixed version, Chrome */
 }
-
 input.noselect {
     -webkit-user-select: auto; /* Safari/Opera -- required for Safari to allow inputs to be accessible. See http://caniuse.com/#feat=user-select-none "Known Issues" for details  TODO Check back to see if bug is fixed in future version */
 }
-
 .interface-hebrew #panelWrapBox{
   direction: rtl;
 }
@@ -115,7 +113,6 @@ input.noselect {
   padding: 0;
   text-align: left;
 }
-
 .header .searchBox input{
   background-color: transparent; /*for firefox */
 }
@@ -562,7 +559,7 @@ input.noselect {
   padding-right: 40px;
 }
 .multiPanel .readerNavMenu .content {
-  padding: 30px 30px 70px 30px;
+  padding: 80px 30px 70px 30px;
 }
 .multiPanel .readerNavMenu .content.hasFooter {
   padding: 30px 0px 0px 0px;
@@ -1322,6 +1319,7 @@ a.resourcesLink {
   padding: 0 30px;
   margin: 25px 0;
   box-sizing: border-box;
+  cursor: pointer;
 }
 .readerTextTableOfContents .versionBlock .versionTitle {
   display: block;
@@ -3176,34 +3174,28 @@ input {
 .lexicon-results .entry .definition-content{
     color: #444;
 }
-
 .lexicon-results ol {
 	list-style-position: inside;
 }
-
 .lexicon-results .entry .definition li.sense{
 	margin-left: 15px;
 	padding: 0px;
 	/*margin: 0;*/
 }
-
 .lexicon-results .entry .definition ol.senses{
 	/*list-style-type: none;*/
 	padding-left: 0px;
 }
-
 .lexicon-results .entry .definition > li.sense{
 	/*list-style-type: none;*/
 	margin-left: 0px;
 }
-
 .lexicon-results .entry ol.definition {
 	list-style-type: none;
 	padding-top: 2px;
 	padding-left: 0px;
     margin: 0px;
 }
-
 /*.sense + .sense {
 	margin-top: 3px;
 	padding-top: 3px;
@@ -3212,36 +3204,30 @@ input {
 /*.lexicon-results a {
 	font-size: 12px;
 }*/
-
 .lexicon-results .attribution{
 
 }
-
 .lexicon-results .attribution span{
   display: block;
 }
-
 .lexicon-results .attribution a{
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
   color: #aaa;
   font-size: 10px;
 }
-
 .lexicon-content .headword.en, .lexicon-content .headword.he,
 .lexicon-content .definition-content.en, .lexicon-content .definition-content.he,
 .lexicon-content .lexicon-results .attribution{
   display: inline;
 }
-
 .lexicon-content .headword.he, .lexicon-content .definition-content.he{
   direction: rtl;
 }
-
 .lexicon-content .headword.en, .lexicon-content .definition-content.en{
   direction: ltr;
 }
 h2.splitHeader {
-  margin-bottom:50px;
+  margin-bottom: 10px;
   text-align: left;
 }
 h2.splitHeader .en {
@@ -3255,36 +3241,34 @@ h2.splitHeader .he {
   text-transform: none;
   cursor: pointer;
 }
-
 .sheetsNewButton {
   text-align:center;
   margin-bottom: 30px;
 }
-
 .sheetsNewButton a {
   font-color: inherit;
 }
-
 .sheet.userSheet .sheetTitle  {
    font-family: "adobe-garamond-pro", Georgia, serif;
    font-size: 20px;
    color:#333;
    margin-bottom: 6px;
 }
-
 .sheet.userSheet {
    font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
    font-size: 14px;
    color:#999;
   text-decoration: none;
 }
-
+.filterByTag {
+  cursor: pointer;
+  text-transform: none
+}
 /*  Add back in when we're ready for tag/edit hover buttons on 'My Sheets'
 .sheet.userSheet:hover .sheetEditButtons {
 	display: inline-block;
 }
 */
-
 .sheet.userSheet .sheetEditButtons {
   font-size: 24px;
   height: 32px;
@@ -3300,34 +3284,188 @@ h2.splitHeader .he {
   cursor: pointer;
   color: #999;
   text-decoration: none;
-
 }
-
 .sheetButton:hover {
   text-decoration: underline;
 }
-
 .sheetButton{
   border: 1px solid #fff;
 }
-
-
 .sheetButton.active {
   border: 1px solid #333;
 }
-
 .tagString a {
   text-decoration: none;
   color: #999;
 }
-
 .tagString a:after {
-content: ", ";
-color: #999;
+  content: ", ";
+  color: #999;
 }
-
 .tagString a:last-child:after {
-content: "";
+  content: "";
+}
+.groupsList {
+  margin-top: 30px;
+}
+.groupListing {
+  padding: 30px 0;
+}
+.groupListing + .groupListing {
+  border-top: 1px solid #ccc;
+}
+.groupListingImageBox {
+  background-color: white;
+  width: 60px;
+  height: 60px;
+  float: left;
+  margin-right: 20px;
+}
+.groupListingImage {
+  height: 100%;
+  width: 100%;
+}
+.groupListingImage.default {
+  width: 80%;
+  height: 80%;
+  margin: 10%;
+  opacity: 0.4;
+}
+.groupListingName {
+  display: block;
+  font-size: 24px;
+  color: #666;
+  margin-bottom: 5px;
+}
+.groupListingName:hover {
+  color: #333;
+}
+.groupListingDetails {
+  color: #999;
+  font-size: 15px;
+}
+.groupPage .groupImage {
+  max-height: 200px;
+  max-width: 100%;
+  display: block;
+  margin: 0 auto 50px;
+}
+.groupInfo {
+  margin-bottom: 50px;
+}
+.groupPage h1 {
+  margin-top: 20px;
+  height: auto;
+}
+.groupPage a:hover {
+  color: inherit;
+}
+.groupPage .groupWebsite {
+  display: block;
+  text-align: center;
+  font-size: 17px;
+  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  margin-bottom: 20px;
+  color: #999;
+}
+.groupPage .groupDescription {
+  font-size: 16px;
+}
+.groupPage .tabs {
+  text-align: center;
+  margin-bottom: 60px;
+}
+.groupPage .bubbleTab {
+  font-size: 16px;
+}
+.groupPage .emptyMessage {
+  text-align: center;
+}
+.groupPage .emptyMessage a {
+  text-decoration: underline;
+}
+.groupInvitationBox {
+  border-bottom: 1px solid #CCC;
+  padding-bottom: 20px;
+}
+#groupInvitationInput {
+  padding: 14px 30px;
+  width: 492px;
+  border-radius: 4px;
+  outline: 0;
+  border: 1px solid #E6e6e6;
+  margin-right: 10px;
+  font-size: 18px;
+  position: relative;
+  top: 3px;
+}
+.groupPage .groupMemberListing {
+  padding: 24px 0;
+  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  font-size: 20px;
+}
+.groupMemberListing + .groupMemberListing {
+  border-top: 1px solid #CCC;
+}
+.groupMemberListingProfileImage {
+  height: 50px;
+  width: 50px;
+  vertical-align: middle;
+}
+.groupMemberListingName {
+  color: #666;
+  margin: 0 20px;
+}
+.groupMemberListingRoleBox {
+  float: right;
+  line-height: 50px;
+}
+.groupMemberListingRole {
+  color: #666;
+}
+.groupMemberListingActions {
+  position: relative;
+  display: inline-block;
+  background-color: white; 
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  margin-left: 12px;
+  line-height: 36px
+}
+.groupMemberListingActionsButton {
+  cursor: pointer;
+  padding: 0 12px;
+  font-size: 18px;
+  color: #CCC;
+}
+.groupMemberListingActionsMenu {
+  position: absolute;
+  right: 0;
+  top: 46px;
+  width: 300px;
+  background-color: white; 
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  color: #999;
+  font-size: 15px;
+  z-index: 1;
+}
+.groupMemberListingActionsMenu .action {
+  padding: 4px 10px;
+  cursor: pointer;
+}
+.groupMemberListingActionsMenu .action:hover {
+  background-color: #eee;
+}
+.groupMemberListingActionsMenu .action + .action {
+  border-top: 1px solid #ccc;
+}
+.groupMemberListingActionsMenu .role {
+  font-size: 17px;
+  margin-right: 4px;
+}
+.groupMemberListingActionsMenu .role.current {
+  color: #666;
 }
 /*** Interface lang - merge with static.css? ***/
 .readerApp.interface-hebrew .int-en{
@@ -3348,7 +3486,6 @@ content: "";
 .int-en{
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
 }
-
 .searchBox .keyboardInputInitiator {
     opacity: 0;
     width: 16px;
@@ -3404,7 +3541,6 @@ body #keyboardInputMaster tbody tr td table tbody tr td{
     text-align: center;
     font-size: 14px;
     color: #333;
-
 }
 body #keyboardInputMaster tbody tr td table tbody tr td:hover,
 body #keyboardInputMaster tbody tr td table tbody tr td:active,
@@ -3412,8 +3548,73 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
     border: 1px solid #eee;
     background: #eee;
 }
-
-
+#editGroupPageContainerInner {
+  position: relative;
+}
+#editGroupPage .int-en {
+  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+}
+#editGroupPage .int-he {
+  font-family: "Open Sans Hebrew", sans-serif;
+}
+#editGroupPage .field {
+  box-sizing: border-box;
+  width: 100%;
+  display: inline-block;
+  vertical-align: top;
+  padding: 10px;
+}
+#editGroupPage .field.halfWidth {
+  width: 50%;
+  display: inline-block;
+}
+#editGroupPage .field.quarterWidth {
+  width: 25%;
+  display: inline-block;
+}
+#editGroupPage .field.threeQuarterWidth {
+  width: 75%;
+  display: inline-block;
+}
+#editGroupPage .field label {
+  display: block;
+  margin-bottom: 15px;
+}
+#editGroupPage input,
+#editGroupPage textarea {
+  display: block;
+  width: 100%;
+  padding: 15px 12px;
+  border-radius: 5px;
+  border: none;
+  box-sizing: border-box;
+  color: #333;
+}
+#groupDescription:focus {
+  outline: none;
+}
+#editGroupPage .groupImage {
+  max-width: 200px;
+  margin-bottom: 5px;
+  display: block;
+},
+#editGroupPage .groupCover {
+  width: 100%;
+  margin-bottom: 5px;
+}
+#editGroupPage .helperText {
+  color: #999;
+  font-size: 13px;
+}
+#editGroupPage .groupHeaderBox {
+  width: 100%;
+  background-color: white;
+  margin-bottom: 5px;
+}
+#editGroupPage .groupHeader {
+  float: right;
+  max-width: 100%;
+}
 #footer #siteLanguageToggle {
   color: #999;
   margin-top: 15px;
@@ -3524,4 +3725,22 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
 .it-text, .gemarra-italic {
   font-style: italic;
 }
-
+.bubbleTab {
+  padding: 10px 25px;
+  margin: 3px;
+  background-color: white;
+  border-radius: 20px;
+  border: 1px solid #DADADA;
+  display: inline-block;
+  font-size: 12px;
+  color: #999;
+  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  letter-spacing: 1px;
+  cursor: pointer;
+}
+.bubbleTab:hover {
+  text-decoration: none;
+}
+.bubbleTab.active {
+  color: #333;
+}

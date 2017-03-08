@@ -29,12 +29,11 @@ from django.views.decorators.csrf import ensure_csrf_cookie, csrf_exempt, csrf_p
 from django.contrib.auth.models import User
 from django import http
 
-
-
 from sefaria.model import *
 from sefaria.workflows import *
 from sefaria.reviews import *
 from sefaria.model.user_profile import user_link, user_started_text, unread_notifications_count_for_user
+from sefaria.model.group import GroupSet
 from sefaria.client.wrapper import format_object_for_client, format_note_object_for_client, get_notes, get_links
 from sefaria.system.exceptions import InputError, PartialRefInputError, BookNameError, NoVersionFoundError, DuplicateRecordError
 # noinspection PyUnresolvedReferences
@@ -42,7 +41,7 @@ from sefaria.client.util import jsonResponse
 from sefaria.history import text_history, get_maximal_collapsed_activity, top_contributors, make_leaderboard, make_leaderboard_condition, text_at_revision, record_version_deletion, record_index_deletion
 from sefaria.system.decorators import catch_error_as_json
 from sefaria.summaries import flatten_toc, get_or_make_summary_node
-from sefaria.sheets import get_sheets_for_ref, get_public_sheets, get_sheets_by_tag, user_sheets, user_tags, recent_public_tags, sheet_to_dict, get_top_sheets, make_tag_list, partner_sheets
+from sefaria.sheets import get_sheets_for_ref, get_public_sheets, get_sheets_by_tag, user_sheets, user_tags, recent_public_tags, sheet_to_dict, get_top_sheets, make_tag_list, group_sheets
 from sefaria.utils.util import list_depth, text_preview
 from sefaria.utils.hebrew import hebrew_plural, hebrew_term, encode_hebrew_numeral, encode_hebrew_daf, is_hebrew, strip_cantillation, has_cantillation
 from sefaria.utils.talmud import section_to_daf, daf_to_section
@@ -320,8 +319,9 @@ def s2_props(request):
     return {
         "multiPanel": request.flavour != "mobile" and not "mobile" in request.GET,
         "initialPath": request.get_full_path(),
-        "recentlyViewed": request.COOKIES.get("recentlyViewed", None),
+        "recentlyViewed": request_context.get("recentlyViewed"),
         "loggedIn": request.user.is_authenticated(),
+        "_uid": request.user.id,
         "interfaceLang": request_context.get("interfaceLang"),
         "initialSettings": {
             "language":      request_context.get("contentLang"),
@@ -436,10 +436,11 @@ def s2_texts_category(request, cats):
     List of texts in a category.
     """
     cats       = cats.split("/")
-    toc        = library.get_toc()
-    cat_toc    = get_or_make_summary_node(toc, cats, make_if_not_found=False)
-    if cat_toc is None:
-        return s2_texts(request)
+    if cats != ["recent"]:
+        toc        = library.get_toc()
+        cat_toc    = get_or_make_summary_node(toc, cats, make_if_not_found=False)
+        if cat_toc is None:
+            return s2_texts(request)
 
     props = s2_props(request)
     props.update({
@@ -489,21 +490,29 @@ def s2_sheets(request):
         "html":           html,
     }, RequestContext(request))
 
-def s2_group_sheets(request, partner, authenticated):
+
+def s2_group_sheets(request, group, authenticated):
     props = s2_props(request)
     props.update({
         "initialMenu":     "sheets",
-        "initialSheetsTag": "sefaria-partners",
-        "initialPartner": partner,
+        "initialSheetsTag": "sefaria-groups",
+        "initialGroup":     group,
     })
-
-    props["partnerSheets"] = partner_sheets(partner,authenticated)["sheets"]
+    group = GroupSet({"name": group})
+    if not len(group):
+        raise Http404
+    props["groupData"] = group[0].contents(with_content=True, authenticated=authenticated)
 
     html = render_react_component("ReaderApp", props)
     return render_to_response('s2.html', {
         "propsJSON": json.dumps(props),
         "html": html,
     }, RequestContext(request))
+
+
+@login_required
+def s2_my_groups(request):
+    return s2_page(request, "myGroups")
 
 
 def s2_sheets_by_tag(request, tag):
@@ -1181,7 +1190,7 @@ def texts_api(request, tref, lang=None, version=None):
             text = TextFamily(oref, version=version, lang=lang, commentary=commentary, context=context, pad=pad, alts=alts).contents()
         except NoVersionFoundError as e:
             # Extended data is used by S2 in TextList.preloadAllCommentaryText()
-            return jsonResponse({"error": unicode(e), "ref": oref.normal(), "versionTitle": version, "lang": lang, "commentator": getattr(oref.index, "commentator", "")}, callback=request.GET.get("callback", None))
+            return jsonResponse({"error": unicode(e), "ref": oref.normal(), "versionTitle": version, "lang": lang}, callback=request.GET.get("callback", None))
 
 
         # Use a padded ref for calculating next and prev
@@ -1280,6 +1289,11 @@ def parashat_hashavua_api(request):
 @catch_error_as_json
 def table_of_contents_api(request):
     return jsonResponse(library.get_toc(), callback=request.GET.get("callback", None))
+
+
+@catch_error_as_json
+def search_filter_table_of_contents_api(request):
+    return jsonResponse(library.get_search_filter_toc(), callback=request.GET.get("callback", None))
 
 
 @catch_error_as_json

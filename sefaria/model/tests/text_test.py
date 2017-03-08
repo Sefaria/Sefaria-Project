@@ -482,7 +482,7 @@ def dep_counts(name):
 
 def test_version_word_count():
     #simple
-    assert model.Version().load({"title": "Genesis", "language": "he", "versionTitle": "Tanach with Ta'amei Hamikra"}).word_count() == 17860
+    assert model.Version().load({"title": "Genesis", "language": "he", "versionTitle": "Tanach with Ta'amei Hamikra"}).word_count() == 20813
     assert model.Version().load({"title": "Rashi on Shabbat", "language": "he"}).word_count() > 0
     #complex
     assert model.Version().load({"title": "Pesach Haggadah", "language": "he"}).word_count() > 0

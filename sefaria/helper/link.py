@@ -70,7 +70,6 @@ class AbstractAutoLinker(object):
         """
         self.delete_links()
         return self.build_links()
-        # TODO: move this commentator name catching out to the view.
 
     def _load_links(self):
         if not self._links:
@@ -339,7 +338,12 @@ def add_links_from_text(oref, lang, text, text_id, user, **kwargs):
         found = []  # The normal refs of the links found in this text
         links = []  # New link objects created by this processes
 
-        refs = library.get_refs_in_string(text, lang)
+        if kwargs.get('citing_only') is not None:
+            citing_only = kwargs['citing_only']
+        else:
+            citing_only = True
+
+        refs = library.get_refs_in_string(text, lang, citing_only=citing_only)
 
         for linked_oref in refs:
             link = {
