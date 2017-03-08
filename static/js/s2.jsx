@@ -2895,9 +2895,6 @@ var ReaderNavigationCategoryMenu = React.createClass({
     return (<div className={navMenuClasses}>
               <div className={navTopClasses}>
                 <CategoryColorLine category={categories[0]} />
-                <script type="application/ld+json">
-                    {Sefaria.jsonld.catCrumbs(categories)}
-                </script>
                 {this.props.hideNavHeader ? null : (<ReaderNavigationMenuMenuButton onClick={this.props.navHome} compare={this.props.compare} />)}
                 {this.props.hideNavHeader ? null : (<ReaderNavigationMenuDisplaySettingsButton onClick={this.props.openDisplaySettings} />)}
                 {this.props.hideNavHeader ? null : (<h2>
@@ -3302,9 +3299,6 @@ var ReaderTextTableOfContents = React.createClass({
                 <div className="contentInner">
                   <div className="tocTop">
                     <CategoryAttribution categories={categories} />
-                    <script type="application/ld+json">
-                        {Sefaria.jsonld.catCrumbs(categories, title)}
-                    </script>                    
                     <div className="tocCategory">
                       <span className="en">{category}</span>
                       <span className="he">{Sefaria.hebrewTerm(category)}</span>

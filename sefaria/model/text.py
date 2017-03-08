@@ -3495,7 +3495,6 @@ class Ref(object):
         else:
             return None
 
-
     def distance(self, ref, max_dist=None):
         """
 
@@ -3519,6 +3518,7 @@ class Ref(object):
             return -1
         else:
             return distance
+
 
 class Library(object):
     """

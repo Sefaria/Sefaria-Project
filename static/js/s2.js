@@ -3246,11 +3246,6 @@ var ReaderNavigationCategoryMenu = React.createClass({
         'div',
         { className: navTopClasses },
         React.createElement(CategoryColorLine, { category: categories[0] }),
-        React.createElement(
-          'script',
-          { type: 'application/ld+json' },
-          Sefaria.jsonld.catCrumbs(categories)
-        ),
         this.props.hideNavHeader ? null : React.createElement(ReaderNavigationMenuMenuButton, { onClick: this.props.navHome, compare: this.props.compare }),
         this.props.hideNavHeader ? null : React.createElement(ReaderNavigationMenuDisplaySettingsButton, { onClick: this.props.openDisplaySettings }),
         this.props.hideNavHeader ? null : React.createElement(
@@ -3894,11 +3889,6 @@ var ReaderTextTableOfContents = React.createClass({
             'div',
             { className: 'tocTop' },
             React.createElement(CategoryAttribution, { categories: categories }),
-            React.createElement(
-              'script',
-              { type: 'application/ld+json' },
-              Sefaria.jsonld.catCrumbs(categories, title)
-            ),
             React.createElement(
               'div',
               { className: 'tocCategory' },
@@ -4591,12 +4581,12 @@ var CommentatorList = React.createClass({
         React.createElement(
           'span',
           { className: 'he' },
-          commentator.heCommentator
+          commentator.heCollectiveTitle
         ),
         React.createElement(
           'span',
           { className: 'en' },
-          commentator.commentator
+          commentator.collectiveTitle
         )
       );
     }.bind(this));
@@ -8170,6 +8160,7 @@ var TextList = React.createClass({
         content = content.length ? content : React.createElement(LoadingMessage, { message: 'No notes here.' });
       } else {
         // Viewing Text Connections
+        //debugger;
         var sectionLinks = Sefaria.links(sectionRef);
         var links = sectionLinks.filter(function (link) {
           if ((this.props.multiPanel || !isSingleCommentary) && Sefaria.splitSpanningRef(link.anchorRef).every(function (aref) {
@@ -8178,7 +8169,7 @@ var TextList = React.createClass({
             // Only show section level links for an individual commentary
             return false;
           }
-          return filter.length == 0 || Sefaria.util.inArray(link.category, filter) !== -1 || Sefaria.util.inArray(link.commentator, filter) !== -1;
+          return filter.length == 0 || Sefaria.util.inArray(link.category, filter) !== -1 || Sefaria.util.inArray(link.collectiveTitle["en"], filter) !== -1;
         }.bind(this)).sort(function (a, b) {
           if (a.anchorVerse !== b.anchorVerse) {
             return a.anchorVerse - b.anchorVerse;

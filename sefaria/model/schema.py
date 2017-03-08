@@ -377,7 +377,11 @@ class TreeNode(object):
     def prev_leaf(self):
         return self._prev_in_list(self.root().get_leaf_nodes())
 
-    # todo: replace with `not self.parent` for speed
+    def ancestors(self):
+        if not self.parent:
+            return []
+        return self.parent.ancestors() + [self.parent]
+
     def is_root(self):
         return not self.parent
 
