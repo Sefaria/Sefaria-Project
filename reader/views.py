@@ -404,21 +404,18 @@ def s2(request, ref, version=None, lang=None):
         "initialNavigationCategories": None,
     })
     propsJSON = json.dumps(props)
+    title = primary_ref.normal()
 
     try:
-        title = props["initialPanels"][0]["text"].get("ref","")
-        try:
-            segmentIndex = (props["initialPanels"][0]["text"].get("sections",""))[1]-1
-        except:
-            segmentIndex = 0
-        desc = props["initialPanels"][0]["text"].get("text","")[segmentIndex] # get english text for section & first segment it exists
+        segmentIndex = primary_ref.sections[-1] - 1 if primary_ref.is_segment_level() else 0
+        enText = props["initialPanels"][0]["text"].get("text",[])
+        desc = enText[segmentIndex] if segmentIndex < len(enText) else ""  # get english text for section if it exists
         if desc == "":
             desc = props["initialPanels"][0]["text"].get("he", "")[segmentIndex]  # if no english, fall back on hebrew
         desc = bleach.clean(desc, strip=True, tags=())
-        desc = desc[:145].rsplit(' ', 1)[0]+"..." # truncate as close to 145 characters as possible while maintaining whole word. Append ellipses.
+        desc = desc[:145].rsplit(' ', 1)[0] + "..."  # truncate as close to 145 characters as possible while maintaining whole word. Append ellipses.
 
-    except:
-        title = "Sefaria: a Living Library of Jewish Texts Online"
+    except IndexError:
         desc = "Explore 3,000 years of Jewish texts in Hebrew and English translation."
 
     html = render_react_component("ReaderApp", props)
@@ -630,7 +627,6 @@ def ld_cat_crumbs(cats=None, title=None, oref=None):
         breadcrumbJsonList += [_crumb(nextPosition, "/" + title.replace(" ", "_"), title)]
         nextPosition += 1
 
-        #todo: test default nodes
         if oref and oref.index_node != oref.index.nodes:
             for snode in oref.index_node.ancestors()[1:] + [oref.index_node]:
                 if snode.is_default():
