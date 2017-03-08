@@ -1977,21 +1977,22 @@ a.tagit-close {
     width:16px;
 }
 
-.source .diagram, .diagramTools, .diagramTagWindow {
+.source .diagram, .diagramTools, .diagramTagWindow, .addTagPanel {
 	display: none;
 }
 
 .diagramTagWindow {
   	position: fixed;
 	z-index: 2;
-
+	width: 270px;
+	background-color: #fff;
 }
 
 .diagramSegment {
 	display: inline;
 }
 
-.splitDiagramSegment, .noSelect {
+.splitDiagramSegment, .noSelect, .colorSelect div, .addTagPanel, .newTag {
 	-webkit-touch-callout: none;
 	-webkit-user-select: none;
     -moz-user-select: none;
@@ -2002,40 +2003,55 @@ a.tagit-close {
 
 /* Diagram tag colors */
 
-.yellow {
-	background-color: #dfcd97;
+.diagram-label-green {
+    background-color: #61BD4F;
+}
+.diagram-label-yellow {
+	background-color: #F2D600
 }
 
-.pink {
-	background-color: #dd9c9e;
+.diagram-label-orange {
+	background-color: #FFAB4A
 }
-.blue {
-	background-color: #80def2;
-}
-.green {
-	background-color: #a3e1bb;
-}
-.white {
-	background-color: #fff;
+.diagram-label-red {
+	background-color: #EB5A46
 }
 
-.purple {
-	background-color: #cb98d5;
+.diagram-label-purple {
+	background-color: #C377E0
 }
 
+.diagram-label-blue {
+	background-color: #0079BF
+}
+.diagram-label-sky {
+	background-color: #00C2E0
+}
+
+.diagram-label-lime {
+	background-color: #51E898
+}
+
+.diagram-label-pink {
+	background-color: #FF80CE
+}
 .colorSelect {
 	text-align:center;
-	margin-top: -30px;
 }
 
 .colorSelect div {
-	width:15px;
-	height:15px;
-	border:1px solid #E8E8E8;
-    border-radius: 50%;
-	display:inline-block;
+	width: 34px;
+	height:30px;
+    border-radius: 5px;
 	margin:5px;
+	display: inline-block;
 	cursor: pointer;
+	border: 1px transparent solid;
+
+}
+
+.colorSelect div.active {
+	border: 1px black solid;
 }
 
 

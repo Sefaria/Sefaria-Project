@@ -1851,27 +1851,52 @@ $(function() {
 
 
 
+	$(".tagSelector").on('click', '.addNewDiagramTag', function() {
+		$(".tagSelector").hide();
+		$(".addTagPanel").show();
+	});
 
-
-
-	$(".splitDiagramSegment").on('click', 'div', function() {
-		var selectedRange = window.getSelection(); //.getRangeAt(0);
-
-		var curDiagramSegment = $(selectedRange.focusNode);
-		var textBefore = curDiagramSegment.text().slice(0,selectedRange.anchorOffset);
-		var selectedText = curDiagramSegment.text().slice(selectedRange.anchorOffset,selectedRange.focusOffset);
-		var textAfter = curDiagramSegment.text().slice(selectedRange.focusOffset);
-    var diagramTag = $(this).attr('class');
-
-		$(curDiagramSegment.parent()).after("<div class='diagramSegment'>"+textAfter+"</div>");
-		$(curDiagramSegment.parent()).after("<div class='diagramSegment "+diagramTag+"'>"+selectedText+"</div>");
-		$(curDiagramSegment.parent()).text(textBefore);
-		resetDiagramInteractivity();
-		$(".diagramTagWindow").hide();
-
-		autoSave();
+	$(".colorSelect").on('click', 'div', function() {
+		$(".colorSelect div").removeClass('active');
+		$(this).addClass('active');
 
 	});
+
+	$(".addTagPanel").on('click', '.addNewTagButton', function() {
+		var newTagName = $(this).closest(".addTagPanel").find(".newTag").val();
+		var newTagColor = $(this).closest(".addTagPanel").find(".colorSelect .active").css('background-color');
+		$(".sheetDiagramTags").append('<div class="splitDiagramSegment"><div style="background-color: '+newTagColor+'">'+newTagName+'</div></div>');
+		$(".tagSelector").show();
+		$(".addTagPanel").hide();
+		resetSplitDiagramSegment();
+	});
+
+
+
+
+  function resetSplitDiagramSegment() {
+		$(".splitDiagramSegment").off;
+		$(".splitDiagramSegment").on('click', 'div', function() {
+			var selectedRange = window.getSelection(); //.getRangeAt(0);
+
+			var curDiagramSegment = $(selectedRange.focusNode);
+			var textBefore = curDiagramSegment.text().slice(0, selectedRange.anchorOffset);
+			var selectedText = curDiagramSegment.text().slice(selectedRange.anchorOffset, selectedRange.focusOffset);
+			var textAfter = curDiagramSegment.text().slice(selectedRange.focusOffset);
+			var diagramTag = $(this).text();
+			var tagBgColor = $(this).css('background-color');
+
+			$(curDiagramSegment.parent()).after("<div class='diagramSegment'>" + textAfter + "</div>");
+			$(curDiagramSegment.parent()).after("<div class='diagramSegment' style='background-color: " + tagBgColor + "' data-tag='" + diagramTag + "'>" + selectedText + "</div>");
+			$(curDiagramSegment.parent()).text(textBefore);
+			resetDiagramInteractivity();
+			$(".diagramTagWindow").hide();
+
+			autoSave();
+
+		});
+	}
+	resetSplitDiagramSegment();
 
   function resetDiagramInteractivity() {
 
@@ -1886,6 +1911,8 @@ $(function() {
 
 		$(".diagram .he, .diagram .en").on("mouseup", '.diagramSegment', function(e) {
 			if (window.getSelection().anchorOffset !== window.getSelection().focusOffset) {
+				$("tagSelector").show();
+				$("addTagPanel").hide();
 				$(".diagramTagWindow").show().css({
 					"top": e.clientY,
 					"left": e.clientX
@@ -2310,10 +2337,10 @@ function addSource(q, source, appendOrInsert) {
 		};
 	}
 
-	var addedByMe = (source && source.addedBy && source.addedBy == sjs._uid) || 
+	var addedByMe = (source && source.addedBy && source.addedBy == sjs._uid) ||
 					(!source && sjs.can_add);
 
-	var attributionLink = (source && "userLink" in source ? "<div class='addedBy'>Added by " + source.userLink + "</div>" : 
+	var attributionLink = (source && "userLink" in source ? "<div class='addedBy'>Added by " + source.userLink + "</div>" :
 							addedByMe && !source ? "<div class='addedBy'>Added by " + sjs._userLink + "</div>" : "");
 
 	if (source && "node" in source) {
@@ -2324,14 +2351,39 @@ function addSource(q, source, appendOrInsert) {
 	}
 
 	var attributionData = attributionDataString((source ? source.addedBy : null), !source, "source");
-	
+
 	var enRef = badRef == true ? source.ref : humanRef(q.ref);
 	var heRef = source && source.text ? source.heRef : "";
-	
+
 	var refLink = badRef == true ? "#" : "/"+makeRef(q).replace(/'/g, "&apos;");
 
 
-	var newsource = "<li " + attributionData + "data-ref='" + enRef.replace(/'/g, "&apos;") + "'" + " data-heRef='" + heRef.replace(/'/g, "&apos;") + "'" + " data-node='" + node + "'>" +"<div class='sourceNumber he'></div><div class='sourceNumber en'></div>" +"<div class='customTitle'></div>" +"<div class='diagramTools'><span class='editToggle'>Edit</span> <span class='segmentedContinuousToggle'>Continuous</span> <span class='resetDiagram'>Reset</span> <div class='diagramTagWindow'><div class='colorSelect splitDiagramSegment'><div class='blue'></div><div class='green'></div><div class='yellow'></div><div class='pink'></div><div class='purple'></div><div class='white'></div></div></div></div>" +"<div class='he'>" + "<span class='title'>" +"<a class='he' href='" + refLink + "' target='_blank'><span class='ref'></span>" + heRef.replace(/\d+(\-\d+)?/g, "").replace(/([0-9][b|a]| ב| א):.+/,"$1") + " </a>" + "</span>" +"<div class='text'>" +"<div class='he'>" + (source && source.text ? source.text.he : "") + "</div>" +"</div>" + "<div class='diagram'><div class='he'></div></div>" + "</div>" + "<div class='en'>" +"<span class='title'>" +"<a class='en' href='" + refLink + "' target='_blank'><span class='ref'>" + enRef.replace(/([0-9][b|a]| ב| א):.+/,"$1") + "</span> </a>" +"</span>" +"<div class='text'>" +"<div class='en'>" + (source && source.text ? source.text.en : "") + "</div>" + "</div>" + "<div class='diagram'><div class='en'></div></div>" +"</div>" + "<div class='clear'></div>" + attributionLink + appendInlineAddButton() + "</li>";
+	var newsource = "<li " + attributionData + "data-ref='" + enRef.replace(/'/g, "&apos;") + "'" + " data-heRef='" + heRef.replace(/'/g, "&apos;") + "'" + " data-node='" + node + "'>"
+		+"<div class='sourceNumber he'></div><div class='sourceNumber en'></div>"
+		+"<div class='customTitle'></div>"
+		+"<div class='diagramTools'>"
+			+"<span class='editToggle'>Edit</span> <span class='segmentedContinuousToggle'>Continuous</span> <span class='resetDiagram'>Reset</span>"
+			+"<div class='diagramTagWindow'>"
+
+				+"<div class='tagSelector'>"
+					+"<div><strong>Tags</strong></div>"
+					+"<div class='sheetDiagramTags'></div>"
+					+"<button class='addNewDiagramTag'>Add New Tag</button>"
+				+"</div>"
+
+				+"<div class='addTagPanel'>"
+					+"<div><strong>Create Tag</strong></div>"
+					+"<div>Name</div>"
+					+"<input type='text' class='newTag'>"
+					+"<div>Select a Color</div>"
+					+"<div class='colorSelect'>"
+						+"<div class='diagram-label-green'></div><div class='diagram-label-yellow'></div><div class='diagram-label-orange'></div><div class='diagram-label-red'></div><div class='diagram-label-purple'></div><div class='diagram-label-blue'></div><div class='diagram-label-sky'></div><div class='diagram-label-lime'></div><div class='diagram-label-pink'></div>"
+					+"</div>"
+					+"<button class='addNewTagButton'>Create</button>"
+				+"</div>"
+			+"</div>"
+		+"</div>"
+		+"<div class='he'>" + "<span class='title'>" +"<a class='he' href='" + refLink + "' target='_blank'><span class='ref'></span>" + heRef.replace(/\d+(\-\d+)?/g, "").replace(/([0-9][b|a]| ב| א):.+/,"$1") + " </a>" + "</span>" +"<div class='text'>" +"<div class='he'>" + (source && source.text ? source.text.he : "") + "</div>" +"</div>" + "<div class='diagram'><div class='he'></div></div>" + "</div>" + "<div class='en'>" +"<span class='title'>" +"<a class='en' href='" + refLink + "' target='_blank'><span class='ref'>" + enRef.replace(/([0-9][b|a]| ב| א):.+/,"$1") + "</span> </a>" +"</span>" +"<div class='text'>" +"<div class='en'>" + (source && source.text ? source.text.en : "") + "</div>" + "</div>" + "<div class='diagram'><div class='en'></div></div>" +"</div>" + "<div class='clear'></div>" + attributionLink + appendInlineAddButton() + "</li>";
 
 	if (appendOrInsert == "append") {
 		$("#sources").append(newsource);
@@ -2573,6 +2625,21 @@ function readSheet() {
 				sjs.track.sheets("Group Can Edit Click");
 				break;
 
+		}
+
+		if ($(".sheetDiagramTags").first().children()) {
+			sheet.diagramTags = [];
+			$(".sheetDiagramTags").first().children().each(function( i ) {
+				sheet.diagramTags[i] = {};
+				var currentName = $(this).find('div').text();
+				var currentColor = $(this).find('div').css('background-color');
+				console.log(currentName);
+				console.log(currentColor);
+
+				sheet.diagramTags[i].name = currentName;
+				sheet.diagramTags[i].color = currentColor;
+
+			});
 		}
 	}
 
@@ -2919,6 +2986,11 @@ function buildSheet(data){
 
 	$("#sources").css("min-height","");
 
+	if ("diagramTags" in data) {
+		for (var i = 0; i < data.diagramTags.length; i++) {
+			$(".sheetDiagramTags").append('<div class="splitDiagramSegment"><div style="background-color: '+data.diagramTags[i].color+'">'+data.diagramTags[i].name+'</div></div>');
+		}
+	}
 }
 	
 
