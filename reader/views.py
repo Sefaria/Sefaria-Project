@@ -415,7 +415,7 @@ def s2(request, ref, version=None, lang=None):
         desc = bleach.clean(desc, strip=True, tags=())
         desc = desc[:145].rsplit(' ', 1)[0] + "..."  # truncate as close to 145 characters as possible while maintaining whole word. Append ellipses.
 
-    except IndexError:
+    except (IndexError, KeyError):
         desc = "Explore 3,000 years of Jewish texts in Hebrew and English translation."
 
     html = render_react_component("ReaderApp", props)
