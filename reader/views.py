@@ -320,7 +320,7 @@ def s2_props(request):
     return {
         "multiPanel": request.flavour != "mobile" and not "mobile" in request.GET,
         "initialPath": request.get_full_path(),
-        "recentlyViewed": request.COOKIES.get("recentlyViewed", None),
+        "recentlyViewed": request_context.get("recentlyViewed"),
         "loggedIn": request.user.is_authenticated(),
         "interfaceLang": request_context.get("interfaceLang"),
         "initialSettings": {
@@ -436,10 +436,11 @@ def s2_texts_category(request, cats):
     List of texts in a category.
     """
     cats       = cats.split("/")
-    toc        = library.get_toc()
-    cat_toc    = get_or_make_summary_node(toc, cats, make_if_not_found=False)
-    if cat_toc is None:
-        return s2_texts(request)
+    if cats != ["recent"]:
+        toc        = library.get_toc()
+        cat_toc    = get_or_make_summary_node(toc, cats, make_if_not_found=False)
+        if cat_toc is None:
+            return s2_texts(request)
 
     props = s2_props(request)
     props.update({
@@ -1280,6 +1281,11 @@ def parashat_hashavua_api(request):
 @catch_error_as_json
 def table_of_contents_api(request):
     return jsonResponse(library.get_toc(), callback=request.GET.get("callback", None))
+
+
+@catch_error_as_json
+def search_filter_table_of_contents_api(request):
+    return jsonResponse(library.get_search_filter_toc(), callback=request.GET.get("callback", None))
 
 
 @catch_error_as_json
