@@ -404,14 +404,17 @@ def s2(request, ref, version=None, lang=None):
         "initialNavigationCategories": None,
     })
     propsJSON = json.dumps(props)
-    title = primary_ref.normal()
+    title = primary_ref.normal() + " | Sefaria"
 
     try:
-        segmentIndex = primary_ref.sections[-1] - 1 if primary_ref.is_segment_level() else 0
-        enText = props["initialPanels"][0]["text"].get("text",[])
-        desc = enText[segmentIndex] if segmentIndex < len(enText) else ""  # get english text for section if it exists
-        if desc == "":
-            desc = props["initialPanels"][0]["text"].get("he", "")[segmentIndex]  # if no english, fall back on hebrew
+        if primary_ref.is_book_level():
+            desc = getattr(primary_ref.index, 'enDesc', "")  # Todo: better fallback
+        else:
+            segmentIndex = primary_ref.sections[-1] - 1 if primary_ref.is_segment_level() else 0
+            enText = props["initialPanels"][0]["text"].get("text",[])
+            desc = enText[segmentIndex] if segmentIndex < len(enText) else ""  # get english text for section if it exists
+            if desc == "":
+                desc = props["initialPanels"][0]["text"].get("he", "")[segmentIndex]  # if no english, fall back on hebrew
         desc = bleach.clean(desc, strip=True, tags=())
         desc = desc[:145].rsplit(' ', 1)[0] + "..."  # truncate as close to 145 characters as possible while maintaining whole word. Append ellipses.
 
@@ -420,13 +423,11 @@ def s2(request, ref, version=None, lang=None):
 
     html = render_react_component("ReaderApp", props)
     return render_to_response('s2.html', {
-
         "propsJSON":      propsJSON,
         "html":           html,
         "title":          title,
         "desc":           desc,
         "ldBreadcrumbs":  ld_cat_crumbs(oref=primary_ref)
-
     }, RequestContext(request))
 
 
@@ -440,6 +441,9 @@ def s2_texts_category(request, cats):
         cat_toc    = get_or_make_summary_node(toc, cats, make_if_not_found=False)
         if cat_toc is None:
             return s2_texts(request)
+        title = u", ".join(cats) + u" | Sefaria" if len(cats) else u"Table of Contents | Sefaria"
+    else:
+        title = u"Recently Viewed | Sefaria"
 
     props = s2_props(request)
     props.update({
@@ -450,6 +454,8 @@ def s2_texts_category(request, cats):
     return render_to_response('s2.html', {
         "propsJSON":        json.dumps(props),
         "html":             html,
+        "title":            title,
+        # "desc": desc,  # todo, when cat descriptions have a home in our db.
         "ldBreadcrumbs":    ld_cat_crumbs(cats)
     }, RequestContext(request))
 
@@ -460,16 +466,23 @@ def s2_search(request):
     """
     search_filters = request.GET.get("filters").split("|") if request.GET.get("filters") else []
 
+    initialQuery = urllib.unquote(request.GET.get("q")) if request.GET.get("q") else ""
+
+    title = (initialQuery + " | ") if initialQuery else ""
+    title += "Sefaria Search"
+
     props = s2_props(request)
     props.update({
         "initialMenu": "search",
-        "initialQuery": urllib.unquote(request.GET.get("q")) if request.GET.get("q") else "",
+        "initialQuery": initialQuery,
         "initialSearchFilters": search_filters,
     })
     html = render_react_component("ReaderApp", props)
     return render_to_response('s2.html', {
         "propsJSON": json.dumps(props),
         "html":      html,
+        "title":     title,
+        "desc":      "Search 3,000 years of Jewish texts in Hebrew and English translation."
     }, RequestContext(request))
 
 
@@ -585,6 +598,7 @@ def s2_modtools(request):
 JSON - LD snippets for use in "rich snippets" - semantic markup.
 """
 
+
 def _crumb(pos, id, name):
     return {
         "@type": "ListItem",
@@ -593,6 +607,7 @@ def _crumb(pos, id, name):
             "@id": id,
             "name": name
         }}
+
 
 def ld_cat_crumbs(cats=None, title=None, oref=None):
     """
