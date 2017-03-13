@@ -340,7 +340,7 @@ def s2(request, ref, version=None, lang=None):
     Reader App.
     """
     try:
-        oref = Ref(ref)
+        primary_ref = oref = Ref(ref)
     except InputError:
         raise Http404
    
@@ -404,21 +404,18 @@ def s2(request, ref, version=None, lang=None):
         "initialNavigationCategories": None,
     })
     propsJSON = json.dumps(props)
+    title = primary_ref.normal()
 
     try:
-        title = props["initialPanels"][0]["text"].get("ref","")
-        try:
-            segmentIndex = (props["initialPanels"][0]["text"].get("sections",""))[1]-1
-        except:
-            segmentIndex = 0
-        desc = props["initialPanels"][0]["text"].get("text","")[segmentIndex] # get english text for section & first segment it exists
+        segmentIndex = primary_ref.sections[-1] - 1 if primary_ref.is_segment_level() else 0
+        enText = props["initialPanels"][0]["text"].get("text",[])
+        desc = enText[segmentIndex] if segmentIndex < len(enText) else ""  # get english text for section if it exists
         if desc == "":
             desc = props["initialPanels"][0]["text"].get("he", "")[segmentIndex]  # if no english, fall back on hebrew
         desc = bleach.clean(desc, strip=True, tags=())
-        desc = desc[:145].rsplit(' ', 1)[0]+"..." # truncate as close to 145 characters as possible while maintaining whole word. Append ellipses.
+        desc = desc[:145].rsplit(' ', 1)[0] + "..."  # truncate as close to 145 characters as possible while maintaining whole word. Append ellipses.
 
-    except:
-        title = "Sefaria: a Living Library of Jewish Texts Online"
+    except (IndexError, KeyError):
         desc = "Explore 3,000 years of Jewish texts in Hebrew and English translation."
 
     html = render_react_component("ReaderApp", props)
@@ -427,7 +424,9 @@ def s2(request, ref, version=None, lang=None):
         "propsJSON":      propsJSON,
         "html":           html,
         "title":          title,
-        "desc":           desc
+        "desc":           desc,
+        "ldBreadcrumbs":  ld_cat_crumbs(oref=primary_ref)
+
     }, RequestContext(request))
 
 
@@ -449,8 +448,9 @@ def s2_texts_category(request, cats):
     })
     html = render_react_component("ReaderApp", props)
     return render_to_response('s2.html', {
-        "propsJSON": json.dumps(props),
-        "html":      html,
+        "propsJSON":        json.dumps(props),
+        "html":             html,
+        "ldBreadcrumbs":    ld_cat_crumbs(cats)
     }, RequestContext(request))
 
 
@@ -578,6 +578,77 @@ def s2_updates(request):
 
 def s2_modtools(request):
     return s2_page(request, "modtools")
+
+
+
+"""
+JSON - LD snippets for use in "rich snippets" - semantic markup.
+"""
+
+def _crumb(pos, id, name):
+    return {
+        "@type": "ListItem",
+        "position": pos,
+        "item": {
+            "@id": id,
+            "name": name
+        }}
+
+def ld_cat_crumbs(cats=None, title=None, oref=None):
+    """
+    JSON - LD breadcrumbs(https://developers.google.com/search/docs/data-types/breadcrumbs)
+    :param cats: List of category names
+    :param title: String
+    :return: serialized json-ld object, for inclusion in <script> tag.
+    """
+
+    if cats is None and title is None and oref is None:
+        return u""
+
+    # Fill in missing information
+    if oref is not None:
+        assert isinstance(oref, Ref)
+        if cats is None:
+            cats = oref.index.categories[:]
+        if title is None:
+            title = oref.index.title
+    elif title is not None and cats is None:
+        cats = library.get_index(title).categories[:]
+
+
+    breadcrumbJsonList = [_crumb(1, "/texts", "Texts")]
+    nextPosition = 2
+
+    for i,c in enumerate(cats):
+        breadcrumbJsonList += [_crumb(nextPosition, "/texts/" + "/".join(cats[0:i+1]), c)]
+        nextPosition += 1
+
+    if title:
+        breadcrumbJsonList += [_crumb(nextPosition, "/" + title.replace(" ", "_"), title)]
+        nextPosition += 1
+
+        if oref and oref.index_node != oref.index.nodes:
+            for snode in oref.index_node.ancestors()[1:] + [oref.index_node]:
+                if snode.is_default():
+                    continue
+                breadcrumbJsonList += [_crumb(nextPosition, "/" + snode.ref().url(), snode.primary_title("en"))]
+                nextPosition += 1
+
+        #todo: range?
+        if oref and getattr(oref.index_node, "depth", None) and not oref.is_range():
+            depth = oref.index_node.depth
+            for i in range(len(oref.sections)):
+                breadcrumbJsonList += [_crumb(nextPosition,
+                                              "/" + oref.context_ref(depth - i - 1).url(),
+                                              oref.index_node.sectionNames[i] + u" " + oref.normal_section(i, "en"))
+                                       ]
+                nextPosition += 1
+
+    return json.dumps({
+        "@context": "http://schema.org",
+        "@type": "BreadcrumbList",
+        "itemListElement": breadcrumbJsonList
+    })
 
 
 @ensure_csrf_cookie

@@ -2245,7 +2245,8 @@ class Ref(object):
 
         :return bool:
         """
-        #TODO: errors on complex refs
+        if getattr(self.index_node, "depth", None) is None:
+            return False
         return len(self.sections) == self.index_node.depth - 1
 
     def is_segment_level(self):
@@ -2263,7 +2264,8 @@ class Ref(object):
 
         :return bool:
         """
-        #TODO: errors on complex refs
+        if getattr(self.index_node, "depth", None) is None:
+            return False
         return len(self.sections) == self.index_node.depth
 
     """ Methods to generate new Refs based on this Ref """
@@ -3495,7 +3497,6 @@ class Ref(object):
         else:
             return None
 
-
     def distance(self, ref, max_dist=None):
         """
 
@@ -3519,6 +3520,7 @@ class Ref(object):
             return -1
         else:
             return distance
+
 
 class Library(object):
     """

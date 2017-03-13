@@ -2896,9 +2896,6 @@ var ReaderNavigationCategoryMenu = React.createClass({
     return (<div className={navMenuClasses}>
               <div className={navTopClasses}>
                 <CategoryColorLine category={categories[0]} />
-                <script type="application/ld+json">
-                    {Sefaria.jsonld.catCrumbs(categories)}
-                </script>
                 {this.props.hideNavHeader ? null : (<ReaderNavigationMenuMenuButton onClick={this.props.navHome} compare={this.props.compare} />)}
                 {this.props.hideNavHeader ? null : (<ReaderNavigationMenuDisplaySettingsButton onClick={this.props.openDisplaySettings} />)}
                 {this.props.hideNavHeader ? null : (<h2>
@@ -3303,9 +3300,6 @@ var ReaderTextTableOfContents = React.createClass({
                 <div className="contentInner">
                   <div className="tocTop">
                     <CategoryAttribution categories={categories} />
-                    <script type="application/ld+json">
-                        {Sefaria.jsonld.catCrumbs(categories, title)}
-                    </script>                    
                     <div className="tocCategory">
                       <span className="en">{category}</span>
                       <span className="he">{Sefaria.hebrewTerm(category)}</span>
@@ -3813,7 +3807,7 @@ var CommentatorList = React.createClass({
   render: function() {
     var content = this.props.commentatorList.map(function(commentator, i) {
       var ref = commentator.firstSection;
-      return (<a className="refLink" href={Sefaria.normRef(ref)} data-ref={ref} key={i}>
+      return (<a className="refLink linked" href={Sefaria.normRef(ref)} data-ref={ref} key={i}>
                 <span className="he">{commentator.heCollectiveTitle}</span>
                 <span className="en">{commentator.collectiveTitle}</span>
             </a>);
@@ -6020,7 +6014,7 @@ var TextSegment = React.createClass({
       //Click of citation
       var ref = Sefaria.humanRef($(event.target).attr("data-ref"));
       this.props.onCitationClick(ref, this.props.sref);
-      event.stopPropagation();
+      event.stopPropagation(); //add prevent default
       Sefaria.site.track.event("Reader", "Citation Link Click", ref);
     } else if (this.props.onSegmentClick) {
       this.props.onSegmentClick(this.props.sref);

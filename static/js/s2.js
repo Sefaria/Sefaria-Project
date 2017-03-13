@@ -3247,11 +3247,6 @@ var ReaderNavigationCategoryMenu = React.createClass({
         'div',
         { className: navTopClasses },
         React.createElement(CategoryColorLine, { category: categories[0] }),
-        React.createElement(
-          'script',
-          { type: 'application/ld+json' },
-          Sefaria.jsonld.catCrumbs(categories)
-        ),
         this.props.hideNavHeader ? null : React.createElement(ReaderNavigationMenuMenuButton, { onClick: this.props.navHome, compare: this.props.compare }),
         this.props.hideNavHeader ? null : React.createElement(ReaderNavigationMenuDisplaySettingsButton, { onClick: this.props.openDisplaySettings }),
         this.props.hideNavHeader ? null : React.createElement(
@@ -3895,11 +3890,6 @@ var ReaderTextTableOfContents = React.createClass({
             'div',
             { className: 'tocTop' },
             React.createElement(CategoryAttribution, { categories: categories }),
-            React.createElement(
-              'script',
-              { type: 'application/ld+json' },
-              Sefaria.jsonld.catCrumbs(categories, title)
-            ),
             React.createElement(
               'div',
               { className: 'tocCategory' },
@@ -4588,7 +4578,7 @@ var CommentatorList = React.createClass({
       var ref = commentator.firstSection;
       return React.createElement(
         'a',
-        { className: 'refLink', href: Sefaria.normRef(ref), 'data-ref': ref, key: i },
+        { className: 'refLink linked', href: Sefaria.normRef(ref), 'data-ref': ref, key: i },
         React.createElement(
           'span',
           { className: 'he' },
@@ -7654,7 +7644,7 @@ var TextSegment = React.createClass({
       //Click of citation
       var ref = Sefaria.humanRef($(event.target).attr("data-ref"));
       this.props.onCitationClick(ref, this.props.sref);
-      event.stopPropagation();
+      event.stopPropagation(); //add prevent default
       Sefaria.site.track.event("Reader", "Citation Link Click", ref);
     } else if (this.props.onSegmentClick) {
       this.props.onSegmentClick(this.props.sref);
