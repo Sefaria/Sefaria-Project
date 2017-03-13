@@ -1925,7 +1925,8 @@ var ReaderPanel = React.createClass({
     });
   },
   setWidth: function() {
-    this.width = $(ReactDOM.findDOMNode(this)).width();
+    this.setState({width: $(ReactDOM.findDOMNode(this)).width()});
+    //console.log("Setting panel width", this.width);
   },
   setSheetTagSort: function(sort) {
     this.conditionalSetState({
@@ -2178,7 +2179,7 @@ var ReaderPanel = React.createClass({
       var menu = null;
     }
 
-    var classes  = {readerPanel: 1, narrowColumn: this.width < 730};
+    var classes  = {readerPanel: 1, narrowColumn: this.state.width < 730};
     classes[this.currentLayout()]             = 1;
     classes[this.state.settings.color]        = 1;
     classes[this.state.settings.language]     = 1;
@@ -2229,7 +2230,7 @@ var ReaderPanel = React.createClass({
                                               multiPanel={this.props.multiPanel}
                                               setOption={this.setOption}
                                               currentLayout={this.currentLayout}
-                                              width={this.width} 
+                                              width={this.state.width} 
                                               menuOpen={this.state.menuOpen} />) : null}
         {this.state.displaySettingsOpen ? (<div className="mask" onClick={this.closeDisplaySettings}></div>) : null}
 
@@ -3408,7 +3409,7 @@ var TextTableOfContentsNavigation = React.createClass({
     openVersion:     React.PropTypes.func,
     defaultStruct:   React.PropTypes.string,
     currentRef:      React.PropTypes.string,
-    narrowPanel:      React.PropTypes.bool,
+    narrowPanel:     React.PropTypes.bool,
     title:           React.PropTypes.string.isRequired,
   },
   getInitialState: function() {
@@ -5312,7 +5313,7 @@ var TextColumn = React.createClass({
     updateTextColumn:      React.PropTypes.func,
     onSegmentClick:        React.PropTypes.func,
     onCitationClick:       React.PropTypes.func,
-    setTextListHighlight: React.PropTypes.func,
+    setTextListHighlight:  React.PropTypes.func,
     setSelectedWords:      React.PropTypes.func,
     onTextLoad:            React.PropTypes.func,
     panelsOpen:            React.PropTypes.number,
@@ -5370,11 +5371,14 @@ var TextColumn = React.createClass({
     }
   },
   handleScroll: function(event) {
+    console.log("scroll")
     if (this.justScrolled) {
+      console.log("pass scroll")
       this.justScrolled = false;
       return;
     }
     if (this.props.highlightedRefs.length) {
+      console.log("Calling debouncedAdjustTextListHighlight")
       this.debouncedAdjustTextListHighlight();
     }
     this.adjustInfiniteScroll();   
@@ -5411,11 +5415,11 @@ var TextColumn = React.createClass({
     this.adjustInfiniteScroll();
   },
   setScrollPosition: function() {
-    // console.log("ssp");
+    console.log("ssp");
     // Called on every update, checking flags on `this` to see if scroll position needs to be set
     if (this.loadingContentAtTop) {
       // After adding content by infinite scrolling up, scroll back to what the user was just seeing
-      // console.log("loading at top");
+      console.log("loading at top");
       var $node   = $(ReactDOM.findDOMNode(this));
       var adjust  = 118; // Height of .loadingMessage.base
       var $texts  = $node.find(".basetext");
@@ -5427,16 +5431,17 @@ var TextColumn = React.createClass({
         this.justScrolled = true;
         ReactDOM.findDOMNode(this).scrollTop = top;
         this.scrollToHighlighted();
-        //console.log(top)
+        console.log(top)
       }
     } else if (!this.scrolledToHighlight && $(ReactDOM.findDOMNode(this)).find(".segment.highlight").length) {
-      // console.log("scroll to highlighted")
+       console.log("scroll to highlighted")
       // scroll to highlighted segment
       this.scrollToHighlighted();
       this.scrolledToHighlight = true;
       this.initialScrollTopSet = true;
+      this.justScrolled        = true;
     } else if (!this.initialScrollTopSet) {
-      //console.log("initial scroll to 30")
+      console.log("initial scroll to 30")
       // initial value set below 0 so you can scroll up for previous
       var node = ReactDOM.findDOMNode(this);
       node.scrollTop = 30;
@@ -5469,7 +5474,7 @@ var TextColumn = React.createClass({
         // console.log("last text is loading - don't add next section");
         return;
       }
-      // console.log("Down! Add next section");
+      console.log("Down! Add next section");
       var currentRef = refs.slice(-1)[0];
       var data       = Sefaria.ref(currentRef);
       if (data && data.next) {
@@ -5482,7 +5487,7 @@ var TextColumn = React.createClass({
       var topRef = refs[0];
       var data   = Sefaria.ref(topRef);
       if (data && data.prev) {
-        // console.log("Up! Add previous section");
+        console.log("Up! Add previous section");
         refs.splice(refs, 0, data.prev);
         this.loadingContentAtTop = true;
         this.props.updateTextColumn(refs);
@@ -5493,7 +5498,8 @@ var TextColumn = React.createClass({
     }
   },
   adjustTextListHighlight: function() {
-    // console.log("atlh");
+    console.log("adjustTextListHighlight");
+
     // When scrolling while the TextList is open, update which segment should be highlighted.
     if (this.props.multiPanel && this.props.layoutWidth == 100) {
       return; // Hacky - don't move around highlighted segment when scrolling a single panel,
@@ -5523,7 +5529,6 @@ var TextColumn = React.createClass({
     }.bind(this);
 
     adjustTextListHighlightInner();
-    //window.requestAnimationFrame(adjustTextListHighlightInner);
       
       /*
       // Caching segment heights
@@ -5553,6 +5558,8 @@ var TextColumn = React.createClass({
   },
   scrollToHighlighted: function() {
     window.requestAnimationFrame(function() {
+      if (!this.isMounted()) { return; }
+      console.log("scroll to highlighted - animation frame")
       var $container   = $(ReactDOM.findDOMNode(this));
       var $readerPanel = $container.closest(".readerPanel");
       var $highlighted = $container.find(".segment.highlight").first();
@@ -5648,8 +5655,7 @@ var TextRange = React.createClass({
     if (data && !this.dataPrefetched) {
       // If data was populated server side, onTextLoad was never called
       this.onTextLoad(data);
-    }
-    if (this.props.basetext || this.props.segmentNumber) { 
+    } else if (this.props.basetext || this.props.segmentNumber) { 
       this.placeSegmentNumbers();
     }
     window.addEventListener('resize', this.handleResize);
@@ -5658,12 +5664,6 @@ var TextRange = React.createClass({
     window.removeEventListener('resize', this.handleResize);
   },
   componentDidUpdate: function(prevProps, prevState) {
-    /* Doesn't seem to be need in addition to below
-    // Reload text if version changed
-    if (this.props.version != prevProps.version || this.props.versionLanguage != prevProps.versionLanguage) {
-      this.getText(true);
-    }
-    */
     // Place segment numbers again if update affected layout
     if (this.props.basetext || this.props.segmentNumber) {
       if (this.props.version != prevProps.version ||
@@ -5676,13 +5676,20 @@ var TextRange = React.createClass({
           prevProps.settings.fontSize !== this.props.settings.fontSize ||
           prevProps.layoutWidth !== this.props.layoutWidth) {
             // Rerender in case version has changed
-            this.forceUpdate();
+            this.forceUpdate(function() {
+              if (this.isMounted()) {
+                this.placeSegmentNumbers();
+              } 
+            }.bind(this));
+
             // TODO: are these animationFrames still needed?
+            /*
             window.requestAnimationFrame(function() { 
               if (this.isMounted()) {
                 this.placeSegmentNumbers();
               }
-            }.bind(this));        
+            }.bind(this));
+            */     
       }
     }
   },
@@ -5715,7 +5722,7 @@ var TextRange = React.createClass({
     return data;
   },
   onTextLoad: function(data) {
-    // console.log("onTextLoad in TextRange");
+    //console.log("onTextLoad in TextRange", data.ref);
     // Initiate additional API calls when text data first loads
     if (this.props.basetext && this.props.sref !== data.ref) {
       // Replace ReaderPanel contents ref with the normalized form of the ref, if they differ.
@@ -5731,8 +5738,9 @@ var TextRange = React.createClass({
     }
 
     if (this.isMounted()) { 
-      this.forceUpdate();
-      this.placeSegmentNumbers();
+      this.forceUpdate(function() {
+        this.placeSegmentNumbers();
+      }.bind(this));
     }
   },
   prefetchData: function() {
@@ -5847,6 +5855,9 @@ var TextRange = React.createClass({
     return segments;
   },
   placeSegmentNumbers: function() {
+    //console.log("placeSegmentNumbers", this.props.sref);
+    //debugger
+    //console.trace();
     // Set the vertical offsets for segment numbers and link counts, which are dependent
     // on the rendered height of the text of each segment.
     var $text  = $(ReactDOM.findDOMNode(this));
