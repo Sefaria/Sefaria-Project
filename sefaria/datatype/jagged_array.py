@@ -382,7 +382,7 @@ class JaggedArray(object):
 
     def normalize(self, terminal_depth=None, _cur=None, depth=1):
         """
-        :param terminal_depth: The desired depth before whcih everything should be arrays
+        :param terminal_depth: The desired depth before which everything should be arrays
         :return: Bool if there were any actual modifications made or not. 
         Normalizes the array so on any given depth, there are either arrays (incl empty) or primitives, not both.
         e.g. [[], ""] becomes [[], []]
@@ -408,6 +408,7 @@ class JaggedArray(object):
                     normalized = normalized or res
         return normalized
 
+    # todo: move to JaggedTextArray?
     def _upsize(self, _cur=None):
         """
         Returns a jagged array for text which restructures the content of text
@@ -426,6 +427,7 @@ class JaggedArray(object):
                 new_text.append(self._upsize(segment))
         return new_text
 
+    # todo: move to JaggedTextArray?
     def _downsize(self, _cur=None):
         """
         Returns a jagged array for text which restructures the content of text
@@ -485,7 +487,7 @@ class JaggedArray(object):
 
     def flatten_to_array(self, _cur=None):
         if _cur is None:
-            if isinstance(self._store, basestring):
+            if not isinstance(self._store, list):
                 return [self._store]
             return self.flatten_to_array(_cur=self._store)
 
@@ -590,7 +592,7 @@ class JaggedTextArray(JaggedArray):
         if _cur == None:
             self._store = self.trim_ending_whitespace(self._store)
             return self
-        if not isinstance(_cur, list): # shouldn't get here
+        if not isinstance(_cur, list):  # shouldn't get here
             return _cur
         if not len(_cur):
             return _cur
