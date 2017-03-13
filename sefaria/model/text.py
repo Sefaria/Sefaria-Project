@@ -639,7 +639,6 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
         """
         return self.nodes.text_index_map(tokenizer=tokenizer, strict=strict, lang=lang, vtitle=vtitle)
 
-
     def get_primary_category(self):
         if self.is_dependant_text() and len(self.categories) >= 2:
             return self.dependence.capitalize()
