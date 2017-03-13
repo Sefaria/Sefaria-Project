@@ -11013,7 +11013,7 @@ var GroupListing = React.createClass({
         { className: 'groupListingDetails' },
         React.createElement(
           'span',
-          { className: 'groupListingMemberCount' },
+          { className: 'groupListingDetail groupListingMemberCount' },
           React.createElement(
             'span',
             { className: 'int-en' },
@@ -11025,6 +11025,27 @@ var GroupListing = React.createClass({
             { className: 'int-he' },
             this.props.data.memberCount,
             ' חברים'
+          )
+        ),
+        React.createElement(
+          'span',
+          { className: 'groupListingDetailSeparator' },
+          '•'
+        ),
+        React.createElement(
+          'span',
+          { className: 'groupListingDetail groupListingSheetCount' },
+          React.createElement(
+            'span',
+            { className: 'int-en' },
+            this.props.data.sheetCount,
+            ' Sheets'
+          ),
+          React.createElement(
+            'span',
+            { className: 'int-he' },
+            this.props.data.sheetCount,
+            ' דפים'
           )
         )
       ),

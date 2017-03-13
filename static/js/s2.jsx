@@ -8642,9 +8642,14 @@ var GroupListing = React.createClass({
               </a>
               <a href={groupUrl} className="groupListingName">{this.props.data.name}</a>
               <div className="groupListingDetails">
-                <span className="groupListingMemberCount">
+                <span className="groupListingDetail groupListingMemberCount">
                   <span className="int-en">{this.props.data.memberCount} Members</span>
                   <span className="int-he">{this.props.data.memberCount} חברים</span>          
+                </span>
+                <span className="groupListingDetailSeparator">•</span>
+                <span className="groupListingDetail groupListingSheetCount">
+                  <span className="int-en">{this.props.data.sheetCount} Sheets</span>
+                  <span className="int-he">{this.props.data.sheetCount} דפים</span>          
                 </span>
               </div>
               <div className="clearFix"></div>

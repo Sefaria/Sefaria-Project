@@ -3345,6 +3345,9 @@ h2.splitHeader .he {
   color: #999;
   font-size: 15px;
 }
+.groupListingDetailSeparator {
+  margin: 8px;
+}
 .groupPage .groupImage {
   max-height: 200px;
   max-width: 100%;

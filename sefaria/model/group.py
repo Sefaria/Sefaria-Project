@@ -56,7 +56,8 @@ class Group(abst.AbstractMongoRecord):
         contents = {
             "name": self.name,
             "imageUrl": getattr(self, "imageUrl", None),
-            "memberCount": self.member_count()
+            "memberCount": self.member_count(),
+            "sheetCount": self.sheet_count(),
         }
         return contents
 
@@ -96,7 +97,13 @@ class Group(abst.AbstractMongoRecord):
         return uid in self.all_members()
 
     def member_count(self):
+        """Returns the number of members in this group"""
         return len(self.all_members())
+
+    def sheet_count(self):
+        """Returns the number of sheets in this group"""
+        from sefaria.system.database import db
+        return db.sheets.find({"group": self.name}).count()
 
 
 class GroupSet(abst.AbstractMongoSet):
