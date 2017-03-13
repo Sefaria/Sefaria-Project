@@ -58,12 +58,14 @@ def invalidate_ref(oref, lang=None, version=None, purge=False):
     manager.run("ban", 'obj.http.url ~ "/api/texts/{}"'.format(url_regex(oref)), secret=secret)
     manager.run("ban", 'obj.http.url ~ "/api/links/{}"'.format(url_regex(oref)), secret=secret)
 
+
 def invalidate_linked(oref):
     for linkref in {r.section_ref() for r in oref.linkset().refs_from(oref)}:
         invalidate_ref(linkref)
 
+
 def invalidate_counts(indx):
-    if isinstance(indx, Index) or isinstance(indx, CommentaryIndex):
+    if isinstance(indx, Index):
         oref = Ref(indx.title)
         url = oref.url()
     elif isinstance(indx, basestring):
@@ -74,13 +76,15 @@ def invalidate_counts(indx):
 
     purge_url("{}/api/preview/{}".format(FRONT_END_URL, url))
     purge_url("{}/api/counts/{}".format(FRONT_END_URL, url))
+    purge_url("{}/api/v2/index/{}?with_content_counts=1".format(FRONT_END_URL, url))
 
     # Assume this is unnecesary, given that the specific URLs will have been purged/banned by the save action
     # oref = Ref(indx.title)
     # invalidate_ref(oref)
 
+
 def invalidate_index(indx):
-    if isinstance(indx, Index) or isinstance(indx, CommentaryIndex):
+    if isinstance(indx, Index):
         try:
             oref = Ref(indx.title)
             url = oref.url()
@@ -96,6 +100,7 @@ def invalidate_index(indx):
     purge_url("{}/api/index/{}".format(FRONT_END_URL, url))
     purge_url("{}/api/v2/raw/index/{}".format(FRONT_END_URL, url))
     purge_url("{}/api/v2/index/{}".format(FRONT_END_URL, url))
+    purge_url("{}/api/v2/index/{}?with_content_counts=1".format(FRONT_END_URL, url))
 
 
 def invalidate_title(title):

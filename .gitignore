@@ -27,6 +27,7 @@
 
 # OS generated files #
 ######################
+.DS_Store
 .DS_Store?
 ehthumbs.db
 Icon?
@@ -86,3 +87,7 @@ venv/
 
 # Client secrets for Google OAuth 2.0
 client_secrets.json
+
+
+/random_files
+

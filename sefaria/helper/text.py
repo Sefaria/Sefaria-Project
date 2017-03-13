@@ -31,34 +31,6 @@ def add_spelling(category, old, new, lang="en"):
                 i.save()
 
 
-def create_commentator_and_commentary_version(commentator_name, existing_book, lang, vtitle, vsource, he_commentator_name):
-    existing_index = Index().load({'title':existing_book})
-    if existing_index is None:
-        raise ValueError('{} is not a name of an existing text!'.format(existing_book))
-
-    commentator_index = Index().load({'title':commentator_name})
-    if commentator_index is None:
-        if not he_commentator_name:
-            raise ValueError("New index record needs Hebrew Title")
-        index_json = {
-            "title":commentator_name,
-            "titleVariants":[],
-            "heTitle" : he_commentator_name,
-            "heTitleVariants":[],
-            "categories":["Commentary"]
-        }
-        commentator_index = Index(index_json)
-        commentator_index.save()
-
-    new_version = Version(
-                {
-                    "chapter": existing_index.nodes.create_skeleton(),
-                    "versionTitle": vtitle,
-                    "versionSource": vsource,
-                    "language": lang,
-                    "title": "{} on {}".format(commentator_name, existing_book)
-                }
-    ).save()
 
 def rename_category(old, new):
     """
@@ -74,6 +46,7 @@ def rename_category(old, new):
         i.save()
 
     library.rebuild_toc()
+
 
 def resize_text(title, new_structure, upsize_in_place=False):
     # todo: Needs to be converted to objects, but no usages seen in the wild.
@@ -400,6 +373,7 @@ def get_core_link_stats():
 
 
 def get_library_stats():
+    #//todo: mark for commentary refactor?
     def aggregate_stats(toc_node, path):
         simple_nodes = []
         for x in toc_node:

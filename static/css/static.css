@@ -34,7 +34,7 @@
 .static .control-elem, .static .control-elem .int-en{
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
 }
-.static .control-elem .int-he{
+.static .control-elem .int-he {
   font-family: "Open Sans Hebrew", sans-serif;
 }
 .static .sans .int-en, .static.sans .int-en, .static .sans {
@@ -192,6 +192,7 @@
 #homePage {
   overflow: hidden;
   color: #333;
+  background-color: transparent;
 }
 /*#homePage .int-en {
   font-family: "adobe-garamond-pro", Georgia, serif;  
@@ -210,14 +211,21 @@
 }
 #homePage #homeCover {
   color: white;
-  background-color: #212E50;
-  background-image: url("/static/img/landing.png");
-  background-size: cover;
-  background-position: center;
-  height: 560px;
-  padding: 157px 0;
+  height: 570px;
+  padding: 180px 0;
+  background-color: #ADA99B;
   box-sizing: border-box;
   text-align: center;
+  overflow: hidden;
+  position: relative;
+}
+#homeCover #homeVideo {
+  position: absolute;
+  top: -90px;
+  left: 0;
+  width: 100%;
+  min-width: 1200px;
+  z-index: 0;
 }
 #homePage #homeCover h1 {
   color: white;
@@ -230,6 +238,7 @@
   font-size: 22px;
   font-style: italic;
   margin: 0;
+  position: relative;
 }
 #homePage #homeCover .sub .int-he{
   font-style: normal;
@@ -238,12 +247,14 @@
   color: white;
   font-style: normal;
   font-size: 21px;
+  position: relative;
 }
 #homePage #homeCover .button {
   margin-top: 80px;
   text-transform: uppercase;
   padding: 16px 34px;
 }
+
 #homePage .section {
   overflow: hidden;
   padding: 100px 0;
@@ -252,6 +263,9 @@
   width: 720px;
   max-width: 94%;
   margin: auto; 
+}
+#homePage .section:nth-child(even) {
+  background-color: #F9F9F7;
 }
 #homePage .section:nth-child(odd) {
   background-color: white;
@@ -263,6 +277,23 @@
 #homePage .imageBox {
   display: inline-block;
   width: 300px;
+  text-align: center;
+}
+#homePage .imageBox img {
+  max-width: 100%;
+}
+@media screen and (max-width: 700px) {
+  #homePage .sectionInner {
+    width: 350px;
+  }
+  #homePage .textBox, #homePage .imageBox {
+    max-width: 100%;
+    margin: 0 auto;
+    float: none !important;
+  }
+  #homePage .imageBox {
+    margin-top: 20px;
+  }
 }
 #homePage .imageBox.bordered {
   border: 1px solid #ccc;
@@ -715,28 +746,8 @@
 #visualizationsPage {
   text-align: left;
 }
-#footer #siteLanguageToggle {
-  color: #999;
-  margin-top: 15px;
-  font-size: 13px;
-}
-#footer #siteLanguageToggle #siteLanguageToggleLabel {
-  display: block;
-}
-#footer a#siteLanguageEnglish,
-#footer a#siteLanguageHebrew {
-  cursor: pointer;
-  color: #666;
-  display: inline;
-  margin: 0 3px;
-  font-size: 13px;
-}
-#footer #siteLanguageEnglish:hover,
-#footer #siteLanguageHebrew:hover {
-  text-decoration: underline;
-}
-#footer a#siteLanguageHebrew {
-  font-size: 14px;
+#visualLibraryPage {
+  padding-top: 70px;
 }
 .static div.single-button{
   margin: 5% 0;
@@ -1096,11 +1107,11 @@
 }
 .static .toggleOption {
   background-color: white;
-  color: #999;
+  color: #666;
 }
 .static .toggleOption.active {
-  color: #333;
-  background-color: white;
+  color: #666;
+  background-color: #eee;
 }
 #personPage h1 {
   margin-bottom: 40px;
@@ -1256,13 +1267,14 @@
   font-size: 18px
 }
 #jobsPage h1 {
-  margin-bottom: 0px;
+  margin-bottom: 0;
 }
 #jobsPage h2 {
   font-size: 22px;
 }
 #jobsPage h2.anchorable {
   padding-top: 90px;
+  margin-top: 0;
 }
 #jobsPage h3 {
   font-size: 16px;
@@ -1271,84 +1283,7 @@
 #jobsPage li {
   margin: 14px 0;
 }
-#footer {
-  background-color: white;
-  border-top: 1px solid #F4F4F4;
-  overflow: hidden;
-  padding: 18px 40px;
-  text-align: left;
-}
-#footer .section {
-  margin-top: 20px;
-  margin-bottom: 20px;
-}
-#footer .header {
-  font-weight: bold;
-  font-size: 15px;
-  margin-bottom: 3px;
-}
-#footer a {
-  display: block;
-}
-#footer.interface-hebrew {
-  direction: rtl;
-  text-align: right;
-}
-#footer.interface-english .int-he {
-  display: none;
-}
-#footer.interface-english .int-en {
-  display: inline;
-}
-#footer.interface-hebrew .int-he {
-  display: inline;
-  font-size: 120%;
-  text-align: right;
-}
-#footer.interface-hebrew .int-en {
-  display: none;
-}
-#footerInner {
-  max-width: 900px;
-  margin: 0 auto;
-}
-#footer .section {
-  display: inline-block;
-  vertical-align: top;
-  width: 160px;
-}
-#footer.interface-english .section {
-  text-align: left;  
-}
-#footer.interface-hebrew .section {
-  text-align: right;
-}
-#footer .section .header {
-  color: #666;
-  margin-bottom: 12px;
-  font-weight: normal;
-  font-size: 13px;
-}
-#footer .section.last {
-  float: right;
-  text-align: right;
-  width: 210px;
-  border-left: 1px solid #EAEAEA;
-}
-#footer.interface-hebrew .section.last {
-  float: left;
-  text-align: left;
-  border-left: none;
-  border-right: 1px solid #EAEAEA;
-}
-#footer .section a {
-  color: #aaa;
-  font-size: 14px;
-  margin: 2px 0;
-}
-#footer .fa {
-  margin: 0 3px;
-}
+
 #helpPage .section {
   margin-bottom: 60px;
 }
@@ -1575,7 +1510,7 @@
   font-family: 'Taamey Frank', 'Times New Roman', serif;
 }
 #visualGardenPage .int-en {
-  font-family: adobe-garamond-pro, Georgia, serif;
+  font-family: "adobe-garamond-pro", Georgia, serif;
 }
 #visualGardenPage h1 {
   font-size: 36px;
@@ -1638,6 +1573,10 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
 }
 #visualGardenPage #results .result-ref {
   font-weight: bold;
+}
+#visualGardenPage #results .result-ref i {
+  cursor: pointer;
+  margin: 0 7px;
 }
 #visualGardenPage #results .result-byline {
   font-size: .8em;
@@ -1714,4 +1653,32 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
   stroke: white;
 }
 
+#visualGardenPage .sourceSheetPanelBox {
+    position: fixed;
+    display: block;
+    left: 40%;
+    top: 90px;
+    width: 330px;
+    padding: 20px;
+    background: white;
+    border: #ccc 2px solid;
+}
+#visualGardenPage .sourceSheetPanelBox .contentInner {
+  margin: 0 auto;
+}
+#visualGardenPage .sourceSheetPanelBox .textList .texts {
+  padding: 0 5px;
+  overflow-y: hidden;
+}
+#visualGardenPage .sourceSheetPanelBox .textList {
+  position: static;
+}
 
+#visualGardenPage .sourceSheetPanelBox .sourceSheetSelector {
+  margin: 0;
+}
+
+#visualGardenPage .sourceSheetBoxTitle i {
+  padding: 0 10px 10px 0;
+  cursor: pointer;
+}

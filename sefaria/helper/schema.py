@@ -1,10 +1,17 @@
 # -*- coding: utf-8 -*-
 
 from sefaria.model import *
+from sefaria.model.abstract import AbstractMongoRecord
+from sefaria.system.exceptions import InputError
+from sefaria.system.database import db
+from sefaria.sheets import save_sheet
+from sefaria.utils.util import list_depth
+
+import re
 
 """
-                                                    IN PROCESS & UNTESTED
-
+Experimental
+These utilities have been used a few times, but are still rough.
 
 To get the existing schema nodes to pass into these functions, easiest is likely:
 Ref("...").index_node
@@ -18,11 +25,32 @@ Todo:
         varnish
 """
 
+
+def handle_dependant_indices(title):
+    """
+    A generic method for handling dependant commentaries for methods in this package
+    :param title: Title of book being changed
+    """
+    dependant_indices = library.get_dependant_indices(title, dependence_type='commentary', structure_match=True,
+                                                      full_records=True)
+    if dependant_indices.count() == 0:
+        return
+
+    print "{}Warning! Commentary linking will be removed for {} texts{}".\
+        format('\033[93m', dependant_indices.count(), '\033[0m')  # The text prints in yellow
+
+    for record in dependant_indices:
+        record.base_text_mapping = None
+        record.save()
+
+
 def insert_last_child(new_node, parent_node):
     return attach_branch(new_node, parent_node, len(parent_node.children))
 
+
 def insert_first_child(new_node, parent_node):
     return attach_branch(new_node, parent_node, 0)
+
 
 def attach_branch(new_node, parent_node, place=0):
     """
@@ -39,8 +67,7 @@ def attach_branch(new_node, parent_node, place=0):
 
     # Add node to versions & commentary versions
     vs = [v for v in index.versionSet()]
-    vsc = [v for v in library.get_commentary_versions_on_book(index.title)]
-    for v in vs + vsc:
+    for v in vs:
         pc = v.content_node(parent_node)
         pc[new_node.key] = new_node.create_skeleton()
         v.save(override_dependencies=True)
@@ -52,6 +79,9 @@ def attach_branch(new_node, parent_node, place=0):
     index.save(override_dependencies=True)
     library.rebuild()
     refresh_version_state(index.title)
+
+    handle_dependant_indices(index.title)
+
 
 def remove_branch(node):
     """
@@ -68,8 +98,7 @@ def remove_branch(node):
     # todo: commentary linkset
 
     vs = [v for v in index.versionSet()]
-    vsc = [v for v in library.get_commentary_versions_on_book(index.title)]
-    for v in vs + vsc:
+    for v in vs:
         assert isinstance(v, Version)
         pc = v.content_node(parent)
         del pc[node.key]
@@ -80,6 +109,9 @@ def remove_branch(node):
     index.save(override_dependencies=True)
     library.rebuild()
     refresh_version_state(index.title)
+
+    handle_dependant_indices(index.title)
+
 
 def reorder_children(parent_node, new_order):
     """
@@ -93,6 +125,59 @@ def reorder_children(parent_node, new_order):
     assert set(child_dict.keys()) == set(new_order)
     parent_node.children = [child_dict[k] for k in new_order]
     parent_node.index.save()
+
+
+def merge_default_into_parent(parent_node):
+    """
+    In a case where a parent has only one child - a default child - this merges the two together into one Jagged Array node.
+
+    Example Usage:
+    >>> r = Ref('Mei HaShiloach, Volume II, Prophets, Judges')
+    >>> merge_default_into_parent(r.index_node)
+
+    :param parent_node:
+    :return:
+    """
+    assert isinstance(parent_node, SchemaNode)
+    assert len(parent_node.children) == 1
+    assert parent_node.has_default_child()
+    default_node = parent_node.get_default_child()
+    # assumption: there's a grandparent.  todo: handle the case where the parent is the root node of the schema
+    is_root = True
+    if parent_node.parent:
+        is_root = False
+        grandparent_node = parent_node.parent
+    index = parent_node.index
+
+    # Repair all versions
+    vs = [v for v in index.versionSet()]
+    for v in vs:
+        assert isinstance(v, Version)
+        if is_root:
+            v.chapter = v.chapter["default"]
+        else:
+            grandparent_version_dict = v.sub_content(grandparent_node.version_address())
+            grandparent_version_dict[parent_node.key] = grandparent_version_dict[parent_node.key]["default"]
+        v.save(override_dependencies=True)
+
+    # Rebuild Index
+    new_node = JaggedArrayNode()
+    new_node.key = parent_node.key
+    new_node.title_group = parent_node.title_group
+    new_node.sectionNames = default_node.sectionNames
+    new_node.addressTypes = default_node.addressTypes
+    new_node.depth = default_node.depth
+    if is_root:
+        index.nodes = new_node
+    else:
+        grandparent_node.children = [c if c.key != parent_node.key else new_node for c in grandparent_node.children]
+
+    # Save index and rebuild library
+    index.save(override_dependencies=True)
+    library.rebuild()
+    refresh_version_state(index.title)
+
+    handle_dependant_indices(index.title)
 
 
 def convert_simple_index_to_complex(index):
@@ -111,8 +196,7 @@ def convert_simple_index_to_complex(index):
 
     # Repair all version
     vs = [v for v in index.versionSet()]
-    vsc = [v for v in library.get_commentary_versions_on_book(index.title)]
-    for v in vs + vsc:
+    for v in vs:
         assert isinstance(v, Version)
         v.chapter = {"default": v.chapter}
         v.save(override_dependencies=True)
@@ -133,6 +217,8 @@ def convert_simple_index_to_complex(index):
     library.rebuild()
     refresh_version_state(index.title)
 
+    handle_dependant_indices(index.title)
+
 
 def change_parent(node, new_parent, place=0):
     """
@@ -151,7 +237,6 @@ def change_parent(node, new_parent, place=0):
     linkset = [l for l in node.ref().linkset()]
 
     vs = [v for v in index.versionSet()]
-    vsc = [v for v in library.get_commentary_versions_on_book(index.title)]
     for v in vs + vsc:
         assert isinstance(v, Version)
         old_parent_content = v.content_node(old_parent)
@@ -175,8 +260,10 @@ def change_parent(node, new_parent, place=0):
 
     refresh_version_state(index.title)
 
+    handle_dependant_indices(index.title)
 
-def refresh_version_state(base_title):
+
+def refresh_version_state(title):
     """
     ** VersionState is *not* altered on Index save.  It is only created on Index creation.
     ^ It now seems that VersionState is referenced on Index save
@@ -186,9 +273,497 @@ def refresh_version_state(base_title):
     VersionState.refresh() assumes the structure of content has not changed.
     To regenerate VersionState, we save the flags, delete the old one, and regenerate a new one.
     """
-    vtitles = library.get_commentary_version_titles_on_book(base_title) + [base_title]
-    for title in vtitles:
-        vs = VersionState(title)
-        flags = vs.flags
-        vs.delete()
-        VersionState(title, {"flags": flags})
+
+    vs = VersionState(title)
+    flags = vs.flags
+    vs.delete()
+    VersionState(title, {"flags": flags})
+
+
+def change_node_title(snode, old_title, lang, new_title):
+    """
+    Changes the title of snode specified by old_title and lang, to new_title.
+    If the title changing is the primary english title, cascades to all of the impacted objects
+    :param snode:
+    :param old_title:
+    :param lang:
+    :param new_title:
+    :return:
+    """
+
+    def rewriter(string):
+        return string.replace(old_title, new_title)
+
+    def needs_rewrite(string, *args):
+        return string.find(old_title) >= 0 and snode.index.title == Ref(string).index.title
+
+    if old_title == snode.primary_title():
+        snode.add_title(new_title, lang, replace_primary=True, primary=True)
+        snode.index.save()
+        library.refresh_index_record_in_cache(snode.index)
+        if lang == 'en':
+            cascade(snode.index.title, rewriter=rewriter, needs_rewrite=needs_rewrite)
+    else:
+        snode.add_title(new_title, lang)
+
+    snode.remove_title(old_title, lang)
+
+    snode.index.save(override_dependencies=True)
+    library.refresh_index_record_in_cache(snode.index)
+
+
+"""
+def change_char_node_titles(index_title, bad_char, good_char, lang):
+    '''
+     Replaces all instances of bad_char with good_char in all node titles in the book titled index_title.
+    If the title changing is the primary english title, cascades to all of the impacted objects
+    :param index_title:
+    :param bad_char:
+    :param good_char:
+    :param lang:
+    :return:
+    '''
+
+
+    def callback(node, **kwargs):
+        titles = node.get_titles()
+        for each_title in titles:
+            if each_title['lang'] == lang and 'primary' in each_title and each_title['primary']:
+                title = each_title['text']
+
+        change_node_title(snode, old_title,lang)
+
+    root = library.get_index(index_title).nodes
+    root.traverse_tree(callback, False)
+
+
+
+    def recurse(node):
+        if 'nodes' in node:
+            for each_one in node['nodes']:
+                recurse(each_one)
+        elif 'default' not in node:
+
+            if 'title' in node:
+                node['title'] = node['title'].replace(bad_char, good_char)
+            if 'titles' in node:
+                which_one = -1
+                if node['titles'][0]['lang'] == lang:
+                    which_one = 0
+                elif len(node['titles']) > 1 and node['titles'][1]['lang'] == lang:
+                    which_one = 1
+                if which_one >= 0:
+                    node['titles'][which_one]['text'] = node['titles'][which_one]['text'].replace(bad_char, good_char)
+
+    data = library.get_index(title).nodes.serialize()
+    recurse(data)
+    return data
+"""
+
+
+def change_node_structure(ja_node, section_names, address_types=None, upsize_in_place=False):
+    """
+    Updates the structure of a JaggedArrayNode to the depth specified by the length of sectionNames.
+
+    When increasing size, any existing text will become the first segment of the new level
+    ["One", "Two", "Three"] -> [["One"], ["Two"], ["Three"]]
+
+    When decreasing size, information is lost as any existing segments are concatenated with " "
+    [["One1", "One2"], ["Two1", "Two2"], ["Three1", "Three2"]] - >["One1 One2", "Two1 Two2", "Three1 Three2"]
+
+    A depth 0 text (i.e. a single string or an empty list) will be treated as if upsize_in_place was set to True
+
+    :param ja_node: JaggedArrayNode to be edited. Must be instance of class: JaggedArrayNode
+
+    :param section_names: sectionNames parameter of restructured node. This determines the depth
+    :param address_types: address_type parameter of restructured node. Defaults to ['Integer'] * len(sectionNames)
+
+    :param upsize_in_place: If True, existing text will stay in tact, but be wrapped in new depth:
+    ["One", "Two", "Three"] -> [["One", "Two", "Three"]]
+    """
+
+    assert isinstance(ja_node, JaggedArrayNode)
+    assert len(section_names) > 0
+
+    if hasattr(ja_node, 'lengths'):
+        print 'WARNING: This node has predefined lengths!'
+        del ja_node.lengths
+
+    # `delta` is difference in depth.  If positive, we're adding depth.
+    delta = len(section_names) - len(ja_node.sectionNames)
+    if upsize_in_place:
+        assert (delta > 0)
+
+    if address_types is None:
+        address_types = ['Integer'] * len(section_names)
+    else:
+        assert len(address_types) == len(section_names)
+
+    def fix_ref(ref_string):
+        """
+        Takes a string from link.refs and updates to reflect the new structure.
+        Uses the delta parameter from the main function to determine how to update the ref.
+        `delta` is difference in depth.  If positive, we're adding depth.
+        :param ref_string: A string which can be interpreted as a valid Ref
+        :return: string
+        """
+        if delta == 0:
+            return ref_string
+
+        d = Ref(ref_string)._core_dict()
+
+        if delta < 0:  # Making node shallower
+            for i in range(-delta):
+                if len(d["sections"]) == 0:
+                    break
+                d["sections"].pop()
+                d["toSections"].pop()
+
+                # else, making node deeper
+        elif upsize_in_place:
+            for i in range(delta):
+                d["sections"].insert(0, 1)
+                d["toSections"].insert(0, 1)
+        else:
+            for i in range(delta):
+                d["sections"].append(1)
+                d["toSections"].append(1)
+
+        return Ref(_obj=d).normal()
+
+    identifier = ja_node.ref().regex(anchored=False)
+
+    def needs_fixing(ref_string, *args):
+        if re.search(identifier, ref_string) is None:
+            return False
+        else:
+            return True
+
+    # For downsizing, refs will become invalidated in their current state, so changes must be made before the
+    # structure change.
+    if delta < 0:
+        cascade(ja_node.ref(), rewriter=fix_ref, needs_rewrite=needs_fixing)
+        # cascade updates the index record, ja_node index gets stale
+        ja_node.index = library.get_index(ja_node.index.title)
+
+    ja_node.sectionNames = section_names
+    ja_node.addressTypes = address_types
+    ja_node.depth = len(section_names)
+    ja_node._regexes = {}
+    ja_node._init_address_classes()
+    index = ja_node.index
+    index.save(override_dependencies=True)
+    print 'Index Saved'
+    library.refresh_index_record_in_cache(index)
+    # ensure the index on the ja_node object is updated with the library refresh
+    ja_node.index = library.get_index(ja_node.index.title)
+
+    vs = [v for v in index.versionSet()]
+    print 'Updating Versions'
+    for v in vs:
+        assert isinstance(v, Version)
+        if v.get_index() == index:
+            chunk = TextChunk(ja_node.ref(), lang=v.language, vtitle=v.versionTitle)
+        else:
+            library.refresh_index_record_in_cache(v.get_index())
+            ref_name = ja_node.ref().normal()
+            ref_name = ref_name.replace(index.title, v.get_index().title)
+            chunk = TextChunk(Ref(ref_name), lang=v.language, vtitle=v.versionTitle)
+        ja = chunk.ja()
+
+        if upsize_in_place or ja.get_depth() == 0:
+            wrapper = chunk.text
+            for i in range(delta):
+                wrapper = [wrapper]
+            chunk.text = wrapper
+            chunk.save()
+
+        else:
+            chunk.text = ja.resize(delta).array()
+            chunk.save()
+
+    # For upsizing, we are editing refs to a structure that would not be valid till after the change, therefore
+    # cascading must be performed here
+    if delta > 0:
+        cascade(ja_node.ref(), rewriter=fix_ref, needs_rewrite=needs_fixing)
+
+    library.rebuild()
+    refresh_version_state(index.title)
+
+    handle_dependant_indices(index.title)
+
+
+def cascade(ref_identifier, rewriter=lambda x: x, needs_rewrite=lambda x: True, skip_history=False):
+    """
+    Changes to indexes requires updating any and all data that reference that index. This routine will take a rewriter
+     function and run it on every location that references the updated index.
+    :param ref_identifier: Ref or String that can be used to implement a ref (an Index level Ref?  Or Deeper?)
+    :param rewriter: f(String)->String. callback function used to update the field.
+    :param needs_rewrite: f(String, Object)->Boolean. Criteria for which a save will be triggered. If not set, routine will trigger a save for
+    every item within the set
+    :param skip_history: Set to True to skip history updates
+    """
+
+    def generic_rewrite(model_set, attr_name='ref', sub_attr_name=None, ):
+        """
+        Generic routine to take any derivative of AbstractMongoSet and update the fields outlined by attr_name using
+        the callback function rewriter.
+
+        This routine is heavily inspired by SegmentSplicer._generic_set_rewrite
+        :param model_set: Derivative of AbstractMongoSet
+        :param attr_name: name of attribute to update
+        :param sub_attr_name: Use to update nested attributes
+        :return:
+        """
+
+        for record in model_set:
+            assert isinstance(record, AbstractMongoRecord)
+            if sub_attr_name is None:
+                refs = getattr(record, attr_name)
+            else:
+                intermediate_obj = getattr(record, attr_name)
+                refs = intermediate_obj[sub_attr_name]
+
+            if isinstance(refs, list):
+                needs_save = False
+                for ref_num, ref in enumerate(refs):
+                    if needs_rewrite(ref, record):
+                        needs_save = True
+                        refs[ref_num] = rewriter(ref)
+                if needs_save:
+                    try:
+                        record.save()
+                    except InputError as e:
+                        print 'Bad Data Found: {}'.format(refs)
+                        print e
+            else:
+                if needs_rewrite(refs, record):
+                    if sub_attr_name is None:
+                        setattr(record, attr_name, rewriter(refs))
+                    else:
+                        intermediate_obj[sub_attr_name] = rewriter(refs)
+
+                    try:
+                        record.save()
+                    except InputError as e:
+                        print 'Bad Data Found: {}'.format(refs)
+                        print e
+
+    def clean_sheets(sheets_to_update):
+
+        def rewrite_source(source):
+            requires_save = False
+            if "ref" in source:
+                try:
+                    ref = Ref(source["ref"])
+                except (InputError, ValueError):
+                    print "Error: In clean_sheets.rewrite_source: failed to instantiate Ref {}".format(source["ref"])
+                else:
+                    if needs_rewrite(source['ref']):
+                        requires_save = True
+                        source["ref"] = rewriter(source['ref'])
+            if "subsources" in source:
+                for subsource in source["subsources"]:
+                    requires_save = rewrite_source(subsource) or requires_save
+            return requires_save
+
+        for sid in sheets_to_update:
+            needs_save = False
+            sheet = db.sheets.find_one({"id": sid})
+            if not sheet:
+                print "Likely error - can't load sheet {}".format(sid)
+            for source in sheet["sources"]:
+                if rewrite_source(source):
+                    needs_save = True
+            if needs_save:
+                sheet["lastModified"] = sheet["dateModified"]
+                save_sheet(sheet, sheet["owner"], search_override=True)
+
+    def update_alt_structs(index):
+
+        assert isinstance(index, Index)
+        if not index.has_alt_structures():
+            return
+        needs_save = False
+
+        for name, struct in index.get_alt_structures().iteritems():
+            for map_node in struct.get_leaf_nodes():
+                assert map_node.depth <= 1, "Need to write some code to handle alt structs with depth > 1!"
+                wr = map_node.wholeRef
+                if needs_rewrite(wr):
+                    needs_save = True
+                    map_node.wholeRef = rewriter(wr)
+                if hasattr(map_node, 'refs'):
+                    for ref_num, ref in enumerate(map_node.refs):
+                        if needs_rewrite(ref):
+                            needs_save = True
+                            map_node.refs[ref_num] = rewriter(ref)
+        if needs_save:
+            index.save()
+
+    if isinstance(ref_identifier, basestring):
+        ref_identifier = Ref(ref_identifier)
+    assert isinstance(ref_identifier, Ref)
+
+    identifier = ref_identifier.regex(anchored=False, as_list=True)
+
+    # titles = re.compile(identifier)
+
+    def construct_query(attribute, queries):
+
+        query_list = [{attribute: {'$regex': '^' + query}} for query in queries]
+        return {'$or': query_list}
+
+    print 'Updating Links'
+    generic_rewrite(LinkSet(construct_query('refs', identifier)), attr_name='refs')
+    print 'Updating Notes'
+    generic_rewrite(NoteSet(construct_query('ref', identifier)))
+    generic_rewrite(TranslationRequestSet(construct_query('ref', identifier)))
+    print 'Updating Garden Stops'
+    generic_rewrite(GardenStopSet(construct_query('ref', identifier)))
+    print 'Updating Sheets'
+    clean_sheets([s['id'] for s in db.sheets.find(construct_query('sources.ref', identifier), {"id": 1})])
+    print 'Updating Alternate Structs'
+    update_alt_structs(ref_identifier.index)
+    if not skip_history:
+        print 'Updating History'
+        generic_rewrite(HistorySet(construct_query('ref', identifier), sort=[('ref', 1)]))
+        generic_rewrite(HistorySet(construct_query('new.ref', identifier), sort=[('new.ref', 1)]), attr_name='new', sub_attr_name='ref')
+        generic_rewrite(HistorySet(construct_query('new.refs', identifier), sort=[('new.refs', 1)]), attr_name='new', sub_attr_name='refs')
+        generic_rewrite(HistorySet(construct_query('old.ref', identifier), sort=[('old.ref', 1)]), attr_name='old', sub_attr_name='ref')
+        generic_rewrite(HistorySet(construct_query('old.refs', identifier), sort=[('old.refs', 1)]), attr_name='old', sub_attr_name='refs')
+
+
+def migrate_to_complex_structure(title, schema, mappings):
+    """
+    Converts book that is simple structure to complex.
+    :param title: title of book
+    :param schema: the new complex structure schema, must be JSON
+    :param mappings: a dictionary mapping references from simple structure to references in complex structure
+                    For example:
+        mappings = {"Midrash Tanchuma 1:1": "Midrash Tanchuma, Bereshit",
+                    "Midrash Tanchuma 1:2": "Midrash Tanchuma, Noach",
+                    ...
+                    "Midrash Tanchuma 2:1": "Midrash Tanchuma, Shemot"}
+    :return:
+    """
+    def needs_rewrite(ref, *args):
+        try:
+            return Ref(ref).index.title == title
+        except InputError:
+            return False
+
+    def rewriter(ref):
+        """
+        Converts each reference from the simple text to what it should be in the complex text based on the mappings.
+        Assumes that both the references in the mappings and the references that are passed into the function
+        are not ranges. For example, for the line old_ref.contains(ref), suppose it is:
+        Ref("Genesis 6-7").contains(Ref("Genesis 6:3-4"))
+        This will evaluate to true but then in the return statement,
+        it will not successfully replace the old_ref_str with new_ref.
+        To deal with ranges in the future, split the ranged refs into starting_ref() and ending_ref()
+        and then use in_terms_of() to get the data necessary to properly translate the range.
+        Ranges that cross from one section to another will be cut to only spanning the first section.
+        """
+        if Ref(ref).is_range():
+            print "Currently does not handle ranged refs.  Only handles the starting_ref() of range."
+            ref = Ref(ref).starting_ref()
+        else:
+            ref = Ref(ref)
+        for old_ref in mappings:
+            if Ref(old_ref).is_range():
+                print "Currently does not handle ranged refs.  Only handles the starting_ref() of range."
+                old_ref = Ref(old_ref).starting_ref()
+            else:
+                old_ref = Ref(old_ref)
+            if old_ref.contains(ref):
+                old_ref_str = old_ref.normal()
+                new_ref = mappings[old_ref_str]
+                ref_str = ref.normal()
+                return "Complex {}".format(ref_str.replace(old_ref_str, new_ref))
+        return "Complex {}".format(ref)
+
+
+    print "begin conversion"
+    #TODO: add method on model.Index to change all 3 (title, nodes.key and nodes.primary title)
+
+    #create a new index with a temp file #make sure to later add all the alternate titles
+    old_index = Index().load({"title": title})
+    new_index_contents = {
+        "title": title,
+        "categories": old_index.categories,
+        "schema": schema
+    }
+    #TODO: these are ugly hacks to create a temp index
+    temp_index = Index(new_index_contents)
+    en_title = temp_index.get_title('en')
+    temp_index.title = "Complex {}".format(en_title)
+    he_title = temp_index.get_title('he')
+    temp_index.set_title(u'{} זמני'.format(he_title), 'he')
+    temp_index.save()
+    #the rest of the title variants need to be copied as well but it will create conflicts while the orig index exists, so we do it after removing the old index in completely_delete_index_and_related.py
+
+    #create versions for the main text
+    versions = VersionSet({'title': title})
+    migrate_versions_of_text(versions, mappings, title, temp_index.title, temp_index)
+
+    #are there commentaries? Need to move the text for them to conform to the new structure
+    #basically a repeat process of the above, sans creating the index record
+    #duplicate versionstate
+    #TODO: untested
+    vstate_old = VersionState().load({'title':title })
+    vstate_new = VersionState(temp_index)
+    vstate_new.flags = vstate_old.flags
+    vstate_new.save()
+
+    cascade(title, rewriter, needs_rewrite)
+
+    handle_dependant_indices(title)
+
+
+def migrate_versions_of_text(versions, mappings, orig_title, new_title, base_index):
+    for i, version in enumerate(versions):
+        print version.versionTitle.encode('utf-8')
+        new_version_title = version.title.replace(orig_title, new_title)
+        print new_version_title
+        new_version = Version(
+                {
+                    "chapter": base_index.nodes.create_skeleton(),
+                    "versionTitle": version.versionTitle,
+                    "versionSource": version.versionSource,
+                    "language": version.language,
+                    "title": new_version_title
+                }
+            )
+        for attr in ['status', 'license', 'licenseVetted', 'method', 'versionNotes', 'priority', "digitizedBySefaria", "heversionSource"]:
+            value = getattr(version, attr, None)
+            if value:
+                setattr(new_version, attr, value)
+        new_version.save()
+        for orig_ref in mappings:
+            #this makes the mapping contain the correct text/commentary title
+            orig_ref = orig_ref.replace(orig_title, version.title)
+            print orig_ref
+            orRef = Ref(orig_ref)
+            tc = orRef.text(lang=version.language, vtitle=version.versionTitle)
+            ref_text = tc.text
+
+            #this makes the destination mapping contain both the correct text/commentary title
+            # and have it changed to the temp index title
+            dest_ref = mappings[orig_ref].replace(orig_title, version.title)
+            dest_ref = dest_ref.replace(orig_title, new_title)
+            print dest_ref
+
+            dRef = Ref(dest_ref)
+            ref_depth = dRef.range_index() if dRef.is_range() else len(dRef.sections)
+            text_depth = 0 if isinstance(ref_text, basestring) else list_depth(ref_text) #length hack to fit the correct JA
+            implied_depth = ref_depth + text_depth
+            desired_depth = dRef.index_node.depth
+            for i in range(implied_depth, desired_depth):
+                ref_text = [ref_text]
+
+            new_tc = dRef.text(lang=version.language, vtitle=version.versionTitle)
+            new_tc.versionSource = version.versionSource
+            new_tc.text = ref_text
+            new_tc.save()
+            VersionState(dRef.index.title).refresh()

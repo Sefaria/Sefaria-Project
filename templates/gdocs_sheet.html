@@ -133,7 +133,7 @@ body {
 	margin-left: -40px;
 }
 
-#sheetHeader #partnerLogo {
+#sheetHeader #groupLogo {
 	max-width: 90%;
 }
 
@@ -2081,11 +2081,11 @@ a {
 
 		<!-- <div id="sheetHeader" {% if sheet_group == None %}style="display:none"{% endif %}>
 			{% if sheet_group %}
-			<a href="/partners/{{ sheet_group.name|url_safe }}">
-				<img id="partnerLogo" src="{{ sheet_group.headerUrl }}" />
+			<a href="/groups/{{ sheet_group.name|url_safe }}">
+				<img id="groupLogo" src="{{ sheet_group.headerUrl }}" />
 			</a>
 			{% else %}
-				<img id="partnerLogo" style="display:none;" />
+				<img id="groupLogo" style="display:none;" />
 			{% endif %}
 		</div> -->
 
@@ -2133,13 +2133,8 @@ a {
 							{% include "gdocs_text_source.html" with lang="en" source=source boxed=sheet.options.boxed %}
 						{% else %}
 							{% if source.options.sourceLayout == "stacked" %}
-								{% if source.options.sourceLangLayout == "heLeft" %}
-									{% include "gdocs_text_source.html" with lang="he" source=source boxed=sheet.options.boxed %}
-									{% include "gdocs_text_source.html" with lang="en" source=source boxed=sheet.options.boxed %}
-								{% else %}
-									{% include "gdocs_text_source.html" with lang="en" source=source boxed=sheet.options.boxed %}
-									{% include "gdocs_text_source.html" with lang="he" source=source boxed=sheet.options.boxed %}
-								{% endif %}
+								{% include "gdocs_text_source.html" with lang="he" source=source boxed=sheet.options.boxed %}
+								{% include "gdocs_text_source.html" with lang="en" source=source boxed=sheet.options.boxed %}
 							{% else %}
 								<table border="0"><tr><td>
 								{% if source.options.sourceLangLayout == "heLeft" %}

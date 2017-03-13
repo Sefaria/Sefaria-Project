@@ -57,6 +57,9 @@ class Test_Jagged_Array(object):
 
 
 class Test_Jagged_Text_Array(object):
+    def test_until_last_nonempty(self):
+        sparse_ja = ja.JaggedTextArray([["", "", ""], ["", "foo", "", "bar", ""], ["", "", ""],[]])
+        assert sparse_ja.sub_array_length([],until_last_nonempty=True) == 3
 
     def test_count_words(self):
         assert ja.JaggedTextArray(twoby).word_count() == 21
@@ -75,6 +78,13 @@ class Test_Jagged_Text_Array(object):
         assert ja.JaggedTextArray(twoby) == ja.JaggedTextArray(twoby)
         assert ja.JaggedTextArray(threeby) == ja.JaggedTextArray(threeby)
         assert ja.JaggedTextArray(twoby) != ja.JaggedTextArray(threeby)
+
+
+    def test_distance(self):
+        jia = ja.JaggedTextArray(threeby)
+        assert jia.distance([0],[0,0,2]) == 2 #check if padding correctly
+        assert jia.distance([0],[0,2]) == 6 #padding for both inputs
+        assert jia.distance([0,0,1],[2,2,2]) == 25 #recursive distance
 
     def test_subarray(self):
         assert ja.JaggedTextArray(threeby).subarray([0],[0]) == ja.JaggedTextArray([
@@ -222,6 +232,18 @@ class Test_Jagged_Text_Array(object):
 
     def test_resize(self):
         assert ja.JaggedTextArray(twoby).resize(1).resize(-1) == ja.JaggedTextArray(twoby)
+
+    def test_resize_with_empty_string(self):
+        a = ["Foo","Bar","","Quux"]
+        assert ja.JaggedTextArray(a).resize(1).resize(-1) == ja.JaggedTextArray(a)
+
+        # A bug had left [] alone during downsize.
+        b = [["Foo"],["Bar"],[],["Quux"]]
+        c = [["Foo"],["Bar"],[""],["Quux"]]
+
+        jb = ja.JaggedTextArray(b).resize(-1)
+        jc = ja.JaggedTextArray(c).resize(-1)
+        assert jb == jc, "{} != {}".format(jb.array(), jc.array())
 
     def test_flatten_to_array(self):
         assert ja.JaggedTextArray(threeby).flatten_to_array() == [

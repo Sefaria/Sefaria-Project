@@ -42,8 +42,8 @@ def migrate_to_complex_structure(title, schema, mappings):
 
     #are there commentaries? Need to move the text for them to conform to the new structure
     #basically a repeat process of the above, sans creating the index record
-    commentaries = library.get_commentary_versions_on_book(title)
-    migrate_versions_of_text(commentaries, mappings, title, temp_index.title, temp_index)
+    #commentaries = library.get_commentary_versions_on_book(title)
+    #migrate_versions_of_text(commentaries, mappings, title, temp_index.title, temp_index)
     #duplicate versionstate
     #TODO: untested
     vstate_old = VersionState().load({'title':title })
@@ -103,8 +103,9 @@ def migrate_versions_of_text(versions, mappings, orig_title, new_title, base_ind
             new_tc.save()
             VersionState(dRef.index.title).refresh()
             #links
-            if dRef.is_commentary():
-                add_commentary_links(dRef, 8646)
+            linker = dref.autolinker(user=8646)
+            if linker:
+                linker.refresh_links()
             add_links_from_text(dRef, new_version.language, new_tc.text, new_version._id, 8646)
             if i == 0: #links are the same across versions
                 migrate_links_of_ref(orRef, dRef)
@@ -136,7 +137,7 @@ def migrate_links_of_ref(orRef, destRef):
         curLinkRef = linkRef1 if orRef.contains(linkRef1) else linkRef2 #make sure we manipulate the right ref
         tranlsatedLinkRef = translate_ref(curLinkRef, orRef, destRef)
         newrefs = [tranlsatedLinkRef.normal(), linkRef2.normal()] if linkRef1 == curLinkRef else [linkRef1.normal(), tranlsatedLinkRef.normal()]
-        tranlsatedLink = Link({'refs': newrefs, 'type': curLinkRef.type})
+        tranlsatedLink = Link({'refs': newrefs, 'type': link.type})
         try:
             tranlsatedLink.save()
             make_link_history_record(curLinkRef, tranlsatedLinkRef)

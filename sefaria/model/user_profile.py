@@ -12,20 +12,25 @@ if not hasattr(sys, '_doc_build'):
 	from django.core.exceptions import ValidationError
 
 from sefaria.model.following import FollowersSet, FolloweesSet
+from sefaria.model.text import Ref
 from sefaria.system.database import db
 
 
 class UserProfile(object):
-	def __init__(self, id=None, slug=None):
+	def __init__(self, id=None, slug=None, email=None):
 
-		if slug: # Load profile by slug if passed
+		if slug:  # Load profile by slug, if passed
 			profile = db.profiles.find_one({"slug": slug})
 			if profile:
 				self.__init__(id=profile["id"])
 				return
 
 		try:
-			user = User.objects.get(id=id)
+			if email and not id:  # Load profile by email, if passed.
+				user = User.objects.get(email=email)
+				id = user.id
+			else:
+				user = User.objects.get(id=id)
 			self.first_name        = user.first_name
 			self.last_name         = user.last_name
 			self.email             = user.email
@@ -41,6 +46,7 @@ class UserProfile(object):
 		self._id                   = None  # Mongo ID of profile doc
 		self.id                    = id    # user ID
 		self.slug                  = ""
+		self.recentlyViewed        = []
 		self.position              = ""
 		self.organization          = ""
 		self.jewish_education      = []
@@ -54,6 +60,8 @@ class UserProfile(object):
 		self.linkedin              = ""
 		self.pinned_sheets         = []
 		self.interrupting_messages = ["newUserWelcome"]
+		self.partner_group        = ""
+		self.partner_role         = ""
 
 		self.settings     =  {
 			"email_notifications": "daily",
@@ -73,7 +81,7 @@ class UserProfile(object):
 		self.followees = FolloweesSet(self.id)
 
 		# Gravatar
-		default_image           = "http://www.sefaria.org/static/img/profile-default.png"
+		default_image           = "https://www.sefaria.org/static/img/profile-default.png"
 		gravatar_base           = "http://www.gravatar.com/avatar/" + hashlib.md5(self.email.lower()).hexdigest() + "?"
 		self.gravatar_url       = gravatar_base + urllib.urlencode({'d':default_image, 's':str(250)})
 		self.gravatar_url_small = gravatar_base + urllib.urlencode({'d':default_image, 's':str(80)})
@@ -160,6 +168,12 @@ class UserProfile(object):
 
 		return None
 
+	def exists(self):
+		"""
+		Returns True if this is a real existing user, not simply a mock profile.
+		"""
+		return bool(self.date_joined)
+
 	def assign_slug(self):
 		"""
 		Set the slug according to the profile name,
@@ -206,11 +220,23 @@ class UserProfile(object):
 		self.interrupting_messages.remove(message)
 		self.save()
 
+	def set_recent_item(tref):
+		"""
+		Save `tref` as a recently viewed text at the front of the list. Removes any previous location for that text.
+		Not used yet, need to consider if it's better to store derivable information (ref->heRef) or reprocess it often.
+		"""
+		oref = Ref(tref)
+		recent = [tref for tref in self.recent if Ref(tref).index.title != oref.index.title]
+		self.recent = [tref] + recent
+		self.save()
+
+
 	def to_DICT(self):
 		"""Return a json serializble dictionary this profile"""
 		dictionary = {
 			"id":                    self.id,
 			"slug":                  self.slug,
+			"recentlyViewed":        self.recentlyViewed,
 			"position":              self.position,
 			"organization":          self.organization,
 			"jewish_education":      self.jewish_education,
@@ -226,6 +252,8 @@ class UserProfile(object):
 			"settings":              self.settings,
 			"interrupting_messages": getattr(self, "interrupting_messages", []),
 			"tag_order":             getattr(self, "tag_order", None),
+			"partner_group":         self.partner_group,
+			"partner_role":          self.partner_role
 		}
 		return dictionary
 
@@ -235,7 +263,7 @@ class UserProfile(object):
 
 def email_unread_notifications(timeframe):
 	"""
-	Looks for all unread notifcations and sends each user one email with a summary.
+	Looks for all unread notifications and sends each user one email with a summary.
 	Marks any sent notifications as "read".
 
 	timeframe may be:
@@ -245,19 +273,21 @@ def email_unread_notifications(timeframe):
 	"""
 	from sefaria.model.notification import NotificationSet
 
-	users = db.notifications.find({"read": False}).distinct("uid")
+	users = db.notifications.find({"read": False, "is_global": False}).distinct("uid")
 
 	for uid in users:
 		profile = UserProfile(id=uid)
 		if profile.settings["email_notifications"] != timeframe and timeframe != 'all':
 			continue
-		notifications = NotificationSet().unread_for_user(uid)
+		notifications = NotificationSet().unread_personal_for_user(uid)
+		if notifications.count() == 0:
+			continue
 		try:
 			user = User.objects.get(id=uid)
 		except User.DoesNotExist:
 			continue
 
-		message_html  = render_to_string("email/notifications_email.html", { "notifications": notifications, "recipient": user.first_name })
+		message_html  = render_to_string("email/notifications_email.html", {"notifications": notifications, "recipient": user.first_name})
 		#message_text = util.strip_tags(message_html)
 		actors_string = notifications.actors_string()
 		verb          = "have" if " and " in actors_string else "has"
@@ -274,8 +304,10 @@ def email_unread_notifications(timeframe):
 
 
 def unread_notifications_count_for_user(uid):
-	"""Returns the number of unread notifcations belonging to user uid"""
-	return db.notifications.find({"uid": uid, "read": False}).count()
+	"""Returns the number of unread notifications belonging to user uid"""
+	# Check for globals to add...
+	from sefaria.model.notification import NotificationSet
+	return NotificationSet().unread_for_user(uid).count()
 
 
 public_user_data_cache = {}
@@ -295,7 +327,8 @@ def public_user_data(uid):
 		"name": profile.full_name,
 		"profileUrl": "/profile/" + profile.slug,
 		"imageUrl": profile.gravatar_url_small,
-		"isStaff": is_staff
+		"isStaff": is_staff,
+		"uid": uid
 	}
 	public_user_data_cache[uid] = data
 	return data

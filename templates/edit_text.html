@@ -310,7 +310,9 @@
 		langMode: "{{ contentLang }}".substring(0,2)
 	});
     if("edit_lang" in sjs.current){
-        sjs.langMode = sjs.current["edit_lang"];
+        /*console.log("langMode: ", sjs.langMode);
+        console.log("edit_lang: ", sjs.current["edit_lang"].substring(0,2));*/
+        sjs.langMode = sjs.current["edit_lang"].substring(0,2);
     }
 
 {% endautoescape %}

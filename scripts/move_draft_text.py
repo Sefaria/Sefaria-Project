@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import argparse
+import os
 import json
 import urllib
 import urllib2
@@ -50,12 +51,8 @@ class ServerTextCopier(object):
     def do_copy(self):
         self.load_objects()
         if self._post_index:
-            if isinstance(self._index_obj, CommentaryIndex):
-                idx_contents = self._index_obj.c_index.contents(raw=True)
-                idx_title = self._index_obj.c_index.title
-            elif isinstance(self._index_obj, Index):
-                idx_contents = self._index_obj.contents(raw=True)
-                idx_title = self._index_obj.title
+            idx_contents = self._index_obj.contents(raw=True)
+            idx_title = self._index_obj.title
             self._make_post_request_to_server(self._prepare_index_api_call(idx_title), idx_contents)
         content_nodes = self._index_obj.nodes.get_leaf_nodes()
         for ver in self._version_objs:
@@ -65,7 +62,7 @@ class ServerTextCopier(object):
             for flag in ver.optional_attrs:
                 if hasattr(ver, flag):
                     flags[flag] = getattr(ver, flag, None)
-            for node in content_nodes:
+            for node_num, node in enumerate(content_nodes,1):
                 print node.full_title(force_update=True)
                 text = JaggedTextArray(ver.content_node(node)).array()
                 version_payload = {
@@ -75,18 +72,25 @@ class ServerTextCopier(object):
                         "text": text
                 }
                 if len(text) > 0:
-                # only bother posting nodes that have content.
+                    # only bother posting nodes that have content.
                     found_non_empty_content = True
-                    self._make_post_request_to_server(self._prepare_text_api_call(node.full_title(force_update=True)), version_payload)
+                    if node_num == len(content_nodes):
+                        self._make_post_request_to_server(self._prepare_text_api_call(
+                            node.full_title(force_update=True), count_after=True), version_payload)
+                    else:
+                        self._make_post_request_to_server(self._prepare_text_api_call(
+                            node.full_title(force_update=True)), version_payload)
             if not found_non_empty_content:
                 # post the last node again with dummy text, to make sure an actual version db object is created
                 # then post again to clear the dummy text
                 dummy_text = "This is a dummy text"
+                empty = ""
                 for _ in range(node.depth):
                     dummy_text = [dummy_text]
+                    empty = [empty]
                 version_payload['text'] = dummy_text
                 self._make_post_request_to_server(self._prepare_text_api_call(node.full_title()), version_payload)
-                version_payload['text'] = []
+                version_payload['text'] = empty
                 self._make_post_request_to_server(self._prepare_text_api_call(node.full_title()), version_payload)
             if flags:
                 self._make_post_request_to_server(self._prepare_version_attrs_api_call(ver.title, ver.language, ver.versionTitle), flags)
@@ -97,8 +101,8 @@ class ServerTextCopier(object):
     def _prepare_index_api_call(self, index_title):
         return 'api/v2/raw/index/{}'.format(index_title.replace(" ", "_"))
 
-    def _prepare_text_api_call(self, terminal_ref):
-        return 'api/texts/{}?count_after=0&index_after=0'.format(urllib.quote(terminal_ref.replace(" ", "_").encode('utf-8')))
+    def _prepare_text_api_call(self, terminal_ref, count_after=False):
+        return 'api/texts/{}?count_after={}&index_after=0'.format(urllib.quote(terminal_ref.replace(" ", "_").encode('utf-8')), int(count_after))
 
     def _prepare_version_attrs_api_call(self, title, lang, vtitle):
         return "api/version/flags/{}/{}/{}".format(urllib.quote(title), urllib.quote(lang), urllib.quote(vtitle))
@@ -130,7 +134,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument("title", help="title argument")
     parser.add_argument("--noindex", action="store_false", help="Specify this flag when you do not wish to create a new Index record at the destination")
-    parser.add_argument("-v", "--versionlist", help="comma separated version list: lang:versionTitle. To copy all versions, simply input 'all'")
+    parser.add_argument("-v", "--versionlist", help="pipe separated version list: lang:versionTitle. To copy all versions, simply input 'all'")
     parser.add_argument("-k", "--apikey", help="non default api key", default=SEFARIA_BOT_API_KEY)
     parser.add_argument("-d", "--destination_server", help="override destination server", default='http://eph.sefaria.org')
     parser.add_argument("-l", "--links", default=0, type=int, help="Enter '1' to move manual links on this text as well, '2' to move auto links")
@@ -148,3 +152,12 @@ if __name__ == '__main__':
             args.versionlist = version_arr
     copier = ServerTextCopier(args.destination_server, args.apikey, args.title, args.noindex, args.versionlist, args.links)
     copier.do_copy()
+
+    try:
+        url = os.environ["SLACK_URL"]
+        message = json.dumps({'text': 'Upload Complete'})
+        request = urllib2.Request(url, message)
+        urllib2.urlopen(request)
+
+    except KeyError:
+        pass

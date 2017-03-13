@@ -5,30 +5,80 @@
 	
 	{% if notification.type == "message" %}
 		<div>
-			{{ notification.content.sender|user_link }} sent you a message:&nbsp;&nbsp;&nbsp;
-			{% autoescape off %}{{ notification.content.message|truncatechars:240 }}{% endautoescape %}
-			<div class="messageText">{% autoescape off %}{{ notification.content.message }}{% endautoescape %}</div>
+            <div>
+                <span class="int-en">{{ notification.content.sender|user_link }} sent you a message:</span>
+                <span class="int-he">{{ notification.content.sender|user_link }} שלח/ה לך הודעה:</span>
+            </div>
+
+            {% autoescape off %}{{ notification.content.message|truncatechars:240 }}{% endautoescape %}
+
+            <div class="messageText">{% autoescape off %}{{ notification.content.message }}{% endautoescape %}</div>
 		</div>
-		<div class="btn btn-mini messageView" data-recipient='{{ notification.content.sender }}'>View</div>
-		<div class="btn btn-mini messageReply" data-recipient='{{ notification.content.sender }}'>Reply</div>
-	
+		<a class="notification-message-link" data-recipient='{{ notification.content.sender }}'>
+            <span class="int-en">View</span>
+            <span class="int-he">צפה</span>
+        </a>
+		<a class="notification-message-link" data-recipient='{{ notification.content.sender }}'>
+            <span class="int-en">Reply</span>
+            <span class="int-he">השב</span>
+        </a>
+
+    {% elif notification.type == "general" %}
+        <div>
+            <span class="int-en">{% autoescape off %}{{ notification.content.en }}{% endautoescape %}</span>
+            <span class="int-he">{% autoescape off %}{{ notification.content.he }}{% endautoescape %}</span>
+        </div>
+
+    {% elif notification.type == "version" %}
+        <div>
+            <span class="int-en">New {% if notification.content.language == "en" %}English{% else %}Hebrew{% endif %} version of
+                {{ notification.content.index|text_toc_link }}: {{notification.content.version }}</span>
+            <span class="int-he">גרסה חדשה של {{ notification.content.index|text_toc_link }} ב{% if notification.content.language == "en" %}אנגלית{% else %}עברית{% endif %} : {{notification.content.version }}</span>
+        </div>
+        <div class="added-description">
+            <span class="int-en">{% autoescape off %}{{ notification.content.en }}{% endautoescape %}</span>
+            <span class="int-he">{% autoescape off %}{{ notification.content.he }}{% endautoescape %}</span>
+        </div>
+
+    {% elif notification.type == "index" %}
+        <div>
+            <span class="int-en">New Text: {{ notification.content.index|text_toc_link }}</span>
+            <span class="int-he">טקסט חדש זמין: {{ notification.content.index|text_toc_link }}</span>
+        </div>
+        <div class="added-description">
+            <span class="int-en">{% autoescape off %}{{ notification.content.en }}{% endautoescape %}</span>
+            <span class="int-he">{% autoescape off %}{{ notification.content.he }}{% endautoescape %}</span>
+        </div>
 
 	{% elif notification.type == "sheet like" %}
-		{{ notification.content.liker|user_link }} likes your Source Sheet, {{ notification.content.sheet_id|sheet_link }}.
-
+        <div>
+            <span class="int-en">{{ notification.content.liker|user_link }} likes your Source Sheet, {{ notification.content.sheet_id|sheet_link }}.</span>
+            <span class="int-he">{{ notification.content.liker|user_link }}  אהב/ה את דף המקורות {{ notification.content.sheet_id|sheet_link }} שלך.</span>
+        </div>
 	{% elif notification.type == "sheet publish" %}
-		{{ notification.content.publisher|user_link }} published a new Source Sheet, {{ notification.content.sheet_id|sheet_link }}.
-
+        <div>
+            <span class="int-en">{{ notification.content.publisher|user_link }} published a new Source Sheet, {{ notification.content.sheet_id|sheet_link }}.</span>
+            <span class="int-he">{{ notification.content.publisher|user_link }} פרסם/ה דף מקורות חדש, {{ notification.content.sheet_id|sheet_link }}.</span>
+        </div>
 	{% elif notification.type == "follow" %}
-		{{ notification.content.follower|user_link }} is now following you.
-
+        <div>
+            <span class="int-en">{{ notification.content.follower|user_link }} is now following you.</span>
+            <span class="int-he"> כעת עוקב/ת אחרייך{{ notification.content.follower|user_link }} </span>
+        </div>
 	{% elif notification.type == "discuss" %}
-		{{ notification.content.adder|user_link }} added a note to a <a href="{{ notification.content.discussion_path|url_safe }}">discussion you follow</a>.
-
+        <div>
+            <span class="int-en">{{ notification.content.adder|user_link }} added a note to a <a href="{{ notification.content.discussion_path|url_safe }}">discussion you follow</a>.</span>
+            <span class="int-he">{{ notification.content.adder|user_link }}  הוסיף/ה תגובה ל<a href="{{ notification.content.discussion_path|url_safe }}">שיחה אחריה את/ה עוקב/ת</a></span>
+        </div>
 	{% elif notification.type == "unset" %}
-		This is a notification without a type, it shouldn't exist.
-	
+        <div>
+            This is a notification without a type, it shouldn't exist.
+        </div>
+
 	{% endif %}
-	<div class="date">{{ notification.date|naturaltime }}</div>
+	<div class="date">
+        <span class="int-en">{{ notification.date|naturaltime }}</span>
+        <span class="int-he">{{ notification.date|date:'d/m/y H:m'}}</span>
+    </div>
 
 </div>

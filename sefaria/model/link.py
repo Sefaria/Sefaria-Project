@@ -38,6 +38,7 @@ class Link(abst.AbstractMongoRecord):
         self.auto = getattr(self, 'auto', False)
         self.generated_by = getattr(self, "generated_by", None)
         self.source_text_oid = getattr(self, "source_text_oid", None)
+        self.type = getattr(self, "type", "").lower()
         self.refs = [text.Ref(self.refs[0]).normal(), text.Ref(self.refs[1]).normal()]
 
         if getattr(self, "_id", None):
@@ -91,6 +92,35 @@ class Link(abst.AbstractMongoRecord):
                     raise DuplicateRecordError(u"A more precise link already exists: {}".format(preciselink.refs[1]))
                 # else: # this is a good new link
 
+    def ref_opposite(self, from_ref, as_tuple=False):
+        """
+        Return the Ref in this link that is opposite the one matched by `from_ref`.
+        The matching of from_ref uses Ref.regex().  Matches are to the specific ref, or below.
+        If neither Ref matches from_ref, None is returned.
+        :param from_ref: A Ref object
+        :param as_tuple: If true, return a tuple (Ref,Ref), where the first Ref is the given from_ref,
+        or one more specific, and the second Ref is the opposing Ref in the link.
+        :return:
+        """
+
+        reg = re.compile(from_ref.regex())
+        if reg.match(self.refs[1]):
+            from_tref = self.refs[1]
+            opposite_tref = self.refs[0]
+        elif reg.match(self.refs[0]):
+            from_tref = self.refs[0]
+            opposite_tref = self.refs[1]
+        else:
+            return None
+
+        if opposite_tref:
+            try:
+                if as_tuple:
+                    return text.Ref(from_tref), text.Ref(opposite_tref)
+                return text.Ref(opposite_tref)
+            except InputError:
+                return None
+
 
 class LinkSet(abst.AbstractMongoSet):
     recordClass = Link
@@ -98,7 +128,8 @@ class LinkSet(abst.AbstractMongoSet):
     def __init__(self, query_or_ref={}, page=0, limit=0):
         '''
         LinkSet can be initialized with a query dictionary, as any other MongoSet.
-        It can also be initialized with a :py:class: `sefaria.text.Ref` object, and will use the :py:meth: `sefaria.text.Ref.regex()` method to return the set of Links that refer to that Ref or below.
+        It can also be initialized with a :py:class: `sefaria.text.Ref` object,
+        and will use the :py:meth: `sefaria.text.Ref.regex()` method to return the set of Links that refer to that Ref or below.
         :param query_or_ref: A query dict, or a :py:class: `sefaria.text.Ref` object
         '''
         try:
@@ -120,7 +151,7 @@ class LinkSet(abst.AbstractMongoSet):
             return self.filter([sources])
 
         # Expand Categories
-        categories  = text.library.get_text_categories()
+        categories = text.library.get_text_categories()
         expanded_sources = []
         for source in sources:
             expanded_sources += [source] if source not in categories else text.library.get_indexes_in_category(source, include_commentary=False)
@@ -133,6 +164,7 @@ class LinkSet(abst.AbstractMongoSet):
 
         return filtered
 
+    # This could be implemented with Link.ref_opposite, but we should speed test it first.
     def refs_from(self, from_ref, as_tuple=False):
         """
         Get a collection of Refs that are opposite the given Ref, or a more specific Ref, in this link set.
@@ -141,7 +173,7 @@ class LinkSet(abst.AbstractMongoSet):
         :param from_ref: A Ref object
         :param as_tuple: If true, return a collection of tuples (Ref,Ref), where the first Ref is the given from_ref,
         or one more specific, and the second Ref is the opposing Ref in the link.
-        :return:
+        :return: List of Ref objects
         """
         reg = re.compile(from_ref.regex())
         refs = []
@@ -177,7 +209,7 @@ class LinkSet(abst.AbstractMongoSet):
                 oref = text.Ref(ref)
             except:
                 continue
-            cat  = oref.index.categories[0]
+            cat  = oref.primary_category
             if (cat not in results):
                 results[cat] = {"count": 0, "books": {}}
             results[cat]["count"] += 1
@@ -189,13 +221,9 @@ class LinkSet(abst.AbstractMongoSet):
 
 
 def process_index_title_change_in_links(indx, **kwargs):
-    #TODO: think about these functions in commentary refactor
     print "Cascading Links {} to {}".format(kwargs['old'], kwargs['new'])
-    if indx.is_commentary():
-        pattern = r'^{} on '.format(re.escape(kwargs["old"]))
-    else:
-        pattern = text.Ref(indx.title).base_text_and_commentary_regex()
-        pattern = pattern.replace(re.escape(indx.title), re.escape(kwargs["old"]))
+    pattern = text.Ref(indx.title).regex()
+    pattern = pattern.replace(re.escape(indx.title), re.escape(kwargs["old"]))
     links = LinkSet({"refs": {"$regex": pattern}})
     for l in links:
         l.refs = [r.replace(kwargs["old"], kwargs["new"], 1) if re.search(pattern, r) else r for r in l.refs]
@@ -207,11 +235,8 @@ def process_index_title_change_in_links(indx, **kwargs):
 
 
 def process_index_delete_in_links(indx, **kwargs):
-    if indx.is_commentary():
-        pattern = ur'^{} on '.format(re.escape(indx.title))
-    else:
-        commentators = text.IndexSet({"categories.0": "Commentary"}).distinct("title")
-        pattern = ur"(^{} \d)|^({}) on {} \d".format(re.escape(indx.title), "|".join(commentators), re.escape(indx.title))
+    from sefaria.model.text import prepare_index_regex_for_dependency_process
+    pattern = prepare_index_regex_for_dependency_process(indx)
     LinkSet({"refs": {"$regex": pattern}}).delete()
 
 
@@ -224,15 +249,11 @@ def get_link_counts(cat1, cat2):
     if link_counts.get(key):
         return link_counts[key]
 
-    queries = []
-    for c in [cat1, cat2]:
-        queries.append({"$and": [{"categories": c}, {"categories": {"$ne": "Commentary"}}, {"categories": {"$ne": "Commentary2"}}, {"categories": {"$ne": "Targum"}}]})
-
     titles = []
-    for q in queries:
-        ts = db.index.find(q).distinct("title")
+    for c in [cat1, cat2]:
+        ts = text.library.get_indexes_in_category(c)
         if len(ts) == 0:
-            return {"error": "No results for {}".format(q)}
+            return {"error": "No results for {}".format(c)}
         titles.append(ts)
 
     result = []
@@ -248,6 +269,17 @@ def get_link_counts(cat1, cat2):
     return result
 
 
+# todo: check vis-a-vis commentary refactor
+def get_category_commentator_linkset(cat, commentator):
+    return LinkSet({"$or": [
+                        {"$and": [{"refs": {"$regex": ur"{} \d".format(t)}},
+                                  {"refs": {"$regex": "^{} on {}".format(commentator, t)}}
+                                  ]
+                         }
+                        for t in text.library.get_indexes_in_category(cat)]
+                    })
+
+
 def get_category_category_linkset(cat1, cat2):
     """
     Return LinkSet of links between the given book and category.
@@ -261,8 +293,8 @@ def get_category_category_linkset(cat1, cat2):
     clauses = []
 
     for i, cat in enumerate([cat1, cat2]):
-        queries += [{"$and": [{"categories": cat}, {"categories": {"$ne": "Commentary"}}, {"categories": {"$ne": "Commentary2"}}, {"categories": {"$ne": "Targum"}}]}]
-        titles += [text.IndexSet(queries[i]).distinct("title")]
+        queries += [{"$and": [{"categories": cat}, {'dependence': {'$in': [False, None]}}]}]
+        titles += [text.library.get_indexes_in_category(cat)]
         if len(titles[i]) == 0:
             raise IndexError("No results for {}".format(queries[i]))
 
@@ -287,14 +319,12 @@ def get_book_category_linkset(book, cat):
     :param cat: String
     :return:
     """
-    query = {"$and": [{"categories": cat}, {"categories": {"$ne": "Commentary"}}, {"categories": {"$ne": "Commentary2"}}, {"categories": {"$ne": "Targum"}}]}
-
-    titles = text.IndexSet(query).distinct("title")
+    titles = text.library.get_indexes_in_category(cat)
     if len(titles) == 0:
         return {"error": "No results for {}".format(query)}
 
-    book_re = r'^{} \d'.format(book)
-    cat_re = r'^({}) \d'.format('|'.join(titles))
+    book_re = text.Ref(book).regex()
+    cat_re = r'^({}) \d'.format('|'.join(titles)) #todo: generalize this regex
 
     return LinkSet({"$and": [{"refs": {"$regex": book_re}}, {"refs": {"$regex": cat_re}}]})
 

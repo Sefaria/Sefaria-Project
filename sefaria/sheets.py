@@ -14,7 +14,7 @@ from sefaria.system.database import db
 from sefaria.model.notification import Notification, NotificationSet
 from sefaria.model.following import FollowersSet
 from sefaria.model.user_profile import UserProfile, annotate_user_list, public_user_data, user_link
-from sefaria.utils.util import strip_tags, string_overlap
+from sefaria.utils.util import strip_tags, string_overlap,titlecase
 from sefaria.system.exceptions import InputError
 from history import record_sheet_publication, delete_sheet_publication
 from settings import SEARCH_INDEX_ON_SAVE
@@ -49,11 +49,12 @@ def user_sheets(user_id, sort_by="date"):
 	}
 	return response
 
-def partner_sheets(partner, authenticated):
+
+def group_sheets(group, authenticated):
     if authenticated == True:
-        query = {"status": {"$in": ["unlisted", "public"]}, "group": partner}
+        query = {"status": {"$in": ["unlisted", "public"]}, "group": group}
     else:
-        query = {"status": "public", "group": partner}
+        query = {"status": "public", "group": group}
 
     sheets = db.sheets.find(query).sort([["title", 1]])
     response = {
@@ -163,7 +164,7 @@ def sheet_list(user_id=None):
 	return response
 
 
-def save_sheet(sheet, user_id):
+def save_sheet(sheet, user_id, search_override=False):
 	"""
 	Saves sheet to the db, with user_id as owner.
 	"""
@@ -182,7 +183,10 @@ def save_sheet(sheet, user_id):
 		if sheet["status"] != existing["status"]:
 			status_changed = True
 
-		sheet["views"] = existing["views"] # prevent updating views
+		sheet["views"] = existing["views"] 										# prevent updating views
+		sheet["owner"] = existing["owner"] 										# prevent updating owner
+		sheet["likes"] = existing["likes"] if "likes" in existing else [] 		# prevent updating likes
+
 		existing.update(sheet)
 		sheet = existing
 
@@ -214,8 +218,10 @@ def save_sheet(sheet, user_id):
 
 	db.sheets.update({"id": sheet["id"]}, sheet, True, False)
 
-	if sheet["status"] == "public" and SEARCH_INDEX_ON_SAVE:
-		search.index_sheet(sheet["id"])
+
+	if sheet["status"] == "public" and SEARCH_INDEX_ON_SAVE and not search_override:
+		index_name = search.get_new_and_current_index_names()['current']
+		search.index_sheet(index_name, sheet["id"])
 
 	global last_updated
 	last_updated[sheet["id"]] = sheet["dateModified"]
@@ -223,11 +229,24 @@ def save_sheet(sheet, user_id):
 	return sheet
 
 
+def is_valid_source(source):
+	if not ("ref" in source or "outsideText" in source or "outsideBiText" in source or "comment" in source or "media" in source):
+		return False
+	return True
+
+
 def add_source_to_sheet(id, source):
 	"""
 	Add source to sheet 'id'.
-	Source is a dictionary that includes at least 'ref' and 'text' (with 'en' and 'he')
+	Source is a dictionary that includes one of the following:
+		'ref' (indicating a source)
+		'outsideText' (indicating a single language outside text)
+		'outsideBiText' (indicating a bilingual outside text)
+		'comment' (indicating a comment)
+		'media' (indicating a media object)
 	"""
+	if not is_valid_source(source):
+		return {"error": "Malformed source could not be added to sheet"}
 	sheet = db.sheets.find_one({"id": id})
 	if not sheet:
 		return {"error": "No sheet with id %s." % (id)}
@@ -428,7 +447,8 @@ def update_sheet_tags(sheet_id, tags):
 	Sets the tag list for sheet_id to those listed in list 'tags'.
 	"""
 	tags = list(set(tags)) 	# tags list should be unique
-	db.sheets.update({"id": sheet_id}, {"$set": {"tags": tags}})
+	normalizedTags = [titlecase(tag) for tag in tags]
+	db.sheets.update({"id": sheet_id}, {"$set": {"tags": normalizedTags}})
 
 	return {"status": "ok"}
 

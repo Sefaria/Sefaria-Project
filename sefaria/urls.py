@@ -9,6 +9,7 @@ from sefaria.forms import HTMLPasswordResetForm, SefariaLoginForm
 from sefaria.settings import DOWN_FOR_MAINTENANCE
 
 admin.autodiscover()
+handler500 = 'reader.views.custom_server_error'
 
 # Texts API
 urlpatterns = patterns('reader.views',
@@ -20,6 +21,7 @@ urlpatterns = patterns('reader.views',
     (r'^api/texts/(?P<tref>.+)/(?P<lang>\w\w)/(?P<version>.+)$', 'texts_api'),
     (r'^api/texts/(?P<tref>.+)$', 'texts_api'),
     (r'^api/index/?$', 'table_of_contents_api'),
+    (r'^api/search-filter-index/?$', 'search_filter_table_of_contents_api'),
     (r'^api/index/titles/?$', 'text_titles_api'),
     (r'^api/v2/raw/index/(?P<title>.+)$', 'index_api', {'v2': True, 'raw': True}),
     (r'^api/v2/index/(?P<title>.+)$', 'index_api', {'v2': True}),
@@ -33,7 +35,7 @@ urlpatterns = patterns('reader.views',
     (r'^api/counts/words/(?P<title>.+)/(?P<version>.+)/(?P<language>.+)$', 'word_count_api'),
     (r'^api/counts/(?P<title>.+)$', 'counts_api'),
     (r'^api/preview/(?P<title>.+)$', 'text_preview_api'),
-    (r'^api/toc-html/(?P<title>.+)$', 'text_toc_html_fragment'),
+    (r'^api/terms/(?P<name>.+)$', 'terms_api')
 )
 
 # Reviews API
@@ -193,6 +195,7 @@ urlpatterns += patterns('reader.views',
 urlpatterns += patterns('reader.views',
     (r'^api/notifications/?$', 'notifications_api'),
     (r'^api/notifications/read', 'notifications_read_api'),
+    (r'^api/updates/?(?P<gid>.+)?$', 'updates_api'),
 )
 
 # Messages API
@@ -208,17 +211,19 @@ urlpatterns += patterns('reader.views',
 
 # Groups
 urlpatterns += patterns('sheets.views',
-    (r'^groups/?', 'groups_page'),
-    (r'^api/groups$', 'groups_api'),
-    (r'^partners/(?P<partner>[^/]+)$', 'partner_page'),
-    (r'^partners/(?P<partner>[^/]+)/tags/(?P<tag>.+)$', 'partner_sheets_tag'),
-    (r'^api/partners/(?P<partner>[^/]+)$', 'private_sheet_list_api'),
-    (r'^api/partners/tag-list/(?P<partner>[^/]+)$', 'group_tag_list_api'),
+    (r'^groups/?$', 'groups_page'),
+    (r'^groups/new$', 'edit_group_page'),
+    (r'^groups/(?P<group>[^/]+)/settings$', 'edit_group_page'),
+    (r'^groups/(?P<group>[^/]+)$', 'group_page'),
+    (r'^groups/(?P<group>[^/]+)/tags/(?P<tag>.+)$', 'group_sheets_tag'),
+    (r'^my/groups$', 'my_groups_page'),
+    (r'^partners/(?P<group>[^/]+)$', 'group_page'),
+    (r'^partners/(?P<group>[^/]+)/tags/(?P<tag>.+)$', 'group_sheets_tag'),
+    (r'^api/groups(/(?P<group>[^/]+))?$', 'groups_api'),
+    (r'^api/groups/(?P<group_name>[^/]+)/set-role/(?P<uid>\d+)/(?P<role>[^/]+)$', 'groups_role_api'),
+    (r'^api/groups/(?P<group_name>[^/]+)/invite/(?P<uid_or_email>[^/]+)$', 'groups_invite_api'),
 )
 
-# Redirects for setting interface language
-urlpatterns += patterns('reader.views',
-)
 
 # Registration
 urlpatterns += patterns('',
@@ -245,8 +250,10 @@ static_pages = [
     "privacy-policy",
     "coming-soon",
     "shraga-silverstein",
+    "william-davidson-talmud",
     "linker",
     "ios",
+    "mobile",
     "sefaria-edition",
     "sefaria-community-translation",
     "contributed-to-sefaria",
@@ -277,8 +284,10 @@ urlpatterns += patterns('reader.views',
 urlpatterns += patterns('reader.views',
     (r'^s1/?$', 'switch_to_s1'),
     (r'^s2/?$', 'switch_to_s2'),
-    (r'^account?$', 's2_account'),
-    (r'^notifications?$', 's2_notifications'),
+    (r'^account/?$', 's2_account'),
+    (r'^notifications/?$', 's2_notifications'),
+    (r'^updates/?$', 's2_updates'),
+    (r'^modtools/?$', 's2_modtools'),
     (r'^person/(?P<name>.+)$', 'person_page'),
     (r'^people/Talmud/?$', 'talmud_person_index'),
     (r'^people/?$', 'person_index'),
@@ -291,7 +300,7 @@ urlpatterns += patterns('reader.views',
     (r'^visualize/library/?(?P<cats>.*)/?$', 'visualize_library'),
     (r'^visualize/toc$', 'visualize_toc'),
     (r'^visualize/parasha-colors$', 'visualize_parasha_colors'),
-    (r'^visualize/links_through_rashi$', 'visualize_rashi_interlinks'),
+    (r'^visualize/links-through-rashi$', 'visualize_links_through_rashi'),
 )
 
 # Redirects to Forum, Wiki, etc
@@ -305,6 +314,7 @@ urlpatterns += patterns('',
     (r'^textmap/?$', lambda x: HttpResponseRedirect('/static/files/Sefaria-Text-Map-June-2016.pdf')),
     (r'^workshop/?$', lambda x: HttpResponseRedirect('/static/files/Sefaria_SummerMeeting_2016.pdf')),
     (r'^ideasforteaching/?$', lambda x: HttpResponseRedirect('/static/files/Sefaria_Teacher_Generated_Ideas_for_Your_Classroom.pdf')),
+    (r'^gala/?$', lambda x: HttpResponseRedirect('https://www.501auctions.com/sefaria')),
 )
 
 # Packaged JavaScript
@@ -314,12 +324,14 @@ urlpatterns += patterns('sefaria.views',
 )
 
 
-# Linker js
+# Linker js, text upload & download
 urlpatterns += patterns('sefaria.views',
     (r'^linker\.js$', 'linker_js'),
     (r'^api/regexs/(?P<titles>.+)$', 'title_regex_api'),
     (r'^api/bulktext/(?P<refs>.+)$', 'bulktext_api'),
-    (r'^download/version/(?P<title>.+) - (?P<lang>[he][en]) - (?P<versionTitle>.+)\.(?P<format>json|csv|txt)', 'text_download_api')
+    (r'^download/version/(?P<title>.+) - (?P<lang>[he][en]) - (?P<versionTitle>.+)\.(?P<format>json|csv|txt)', 'text_download_api'),
+    (r'^download/bulk/versions/', 'bulk_download_versions_api'),
+    (r'^api/text-upload$', 'text_upload_api')
 )
 
 # Email Subscribe
@@ -338,7 +350,7 @@ urlpatterns += patterns('',
     (r'^admin/reset/toc$', 'sefaria.views.rebuild_toc'),
     (r'^admin/reset/(?P<tref>.+)$', 'sefaria.views.reset_ref'),
     (r'^admin/delete/orphaned-counts', 'sefaria.views.delete_orphaned_counts'),
-    (r'^admin/rebuild/commentary-links/(?P<title>.+)$', 'sefaria.views.rebuild_commentary_links'),
+    (r'^admin/rebuild/auto-links/(?P<title>.+)$', 'sefaria.views.rebuild_auto_links'),
     (r'^admin/rebuild/citation-links/(?P<title>.+)$', 'sefaria.views.rebuild_citation_links'),
     (r'^admin/delete/citation-links/(?P<title>.+)$', 'sefaria.views.delete_citation_links'),
     (r'^admin/cache/stats', 'sefaria.views.cache_stats'),
@@ -346,7 +358,6 @@ urlpatterns += patterns('',
     (r'^admin/run/tests', 'sefaria.views.run_tests'),
     (r'^admin/export/all', 'sefaria.views.export_all'),
     (r'^admin/error', 'sefaria.views.cause_error'),
-    (r'^admin/create/commentary-version/(?P<commentator>.+)/(?P<book>.+)/(?P<lang>.+)/(?P<vtitle>.+)/(?P<vsource>.+)$', 'sefaria.views.create_commentator_version'),
     (r'^admin/contest-results', 'sefaria.views.list_contest_results'),
     (r'^admin/translation-requests-stats', 'sefaria.views.translation_requests_stats'),
     (r'^admin/sheet-stats', 'sefaria.views.sheet_stats'),

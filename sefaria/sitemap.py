@@ -13,23 +13,26 @@ from settings import STATICFILES_DIRS
 
 
 static_urls = [
-	"http://www.sefaria.org",
-	"http://www.sefaria.org/explore",
-	"http://www.sefaria.org/translation-requests",
-	"http://www.sefaria.org/contribute",
-	"http://www.sefaria.org/texts",
-	"http://www.sefaria.org/activity",
-	"http://www.sefaria.org/educators",
-	"http://www.sefaria.org/sheets",
-	"http://www.sefaria.org/sheets/public",
-	"http://www.sefaria.org/sheets/tags",
-	"http://www.sefaria.org/developers",
-	"http://www.sefaria.org/login",
-	"http://www.sefaria.org/register",
-	"http://www.sefaria.org/related-projects",
-	"http://www.sefaria.org/copyright-policy",
-	"http://www.sefaria.org/terms",
-	"http://www.sefaria.org/privacy-policy",
+	"https://www.sefaria.org",
+	"https://www.sefaria.org/explore",
+	"https://www.sefaria.org/translation-requests",
+	"https://www.sefaria.org/contribute",
+	"https://www.sefaria.org/texts",
+	"https://www.sefaria.org/activity",
+	"https://www.sefaria.org/educators",
+	"https://www.sefaria.org/sheets",
+	"https://www.sefaria.org/sheets/public",
+	"https://www.sefaria.org/sheets/tags",
+	"https://www.sefaria.org/developers",
+	"https://www.sefaria.org/login",
+	"https://www.sefaria.org/register",
+	"https://www.sefaria.org/related-projects",
+	"https://www.sefaria.org/copyright-policy",
+	"https://www.sefaria.org/terms",
+	"https://www.sefaria.org/privacy-policy",
+	"https://www.sefaria.org/updates",
+	"https://www.sefaria.org/people",
+	"https://www.sefaria.org/people/Talmud"
 ]
 
 
@@ -47,7 +50,7 @@ def generate_texts_sitemaps():
 	Returns the number of files written (each sitemap can have only 50k URLs)
 	"""
 	refs = library.ref_list()
-	urls = ["http://www.sefaria.org/" + oref.url() for oref in refs]
+	urls = ["https://www.sefaria.org/" + oref.url() for oref in refs]
 
 	maps = list(chunks(urls, 40000))
 
@@ -62,7 +65,7 @@ def generate_texts_toc_sitemap():
 	Creates a sitemap for each text table of contents page.
 	"""
 	titles = flatten_toc(library.get_toc())
-	urls = ["http://www.sefaria.org/" + Ref(title).url() for title in titles]
+	urls = ["https://www.sefaria.org/" + Ref(title).url() for title in titles]
 	write_urls(urls, "text-toc-sitemap.txt")
 
 
@@ -70,7 +73,7 @@ def generate_categories_sitemap():
 	"""
 	Creates sitemap for each category page.
 	"""
-	toc   = library.get_toc()
+	toc = library.get_toc()
 	def cat_paths(toc):
 		paths = []
 		for t in toc:
@@ -82,7 +85,7 @@ def generate_categories_sitemap():
 				paths = paths + [cat + "/" + sp for sp in subpaths]
 		return paths
 	paths = cat_paths(toc)
-	urls = ["http://www.sefaria.org/" + p for p in paths]
+	urls = ["https://www.sefaria.org/texts/" + p for p in paths]
 	write_urls(urls, "categories-sitemap.txt")
 
 
@@ -92,9 +95,14 @@ def generate_sheets_sitemap():
 	"""
 	query = {"status": "public"}
 	public = db.sheets.find(query).distinct("id")
-	urls = ["http://www.sefaria.org/sheets/" + str(id) for id in public]
+	urls = ["https://www.sefaria.org/sheets/" + str(id) for id in public]
 
 	write_urls(urls, "sheets-sitemap.txt")
+
+
+def generate_people_sitemap():
+	urls = ["https://www.sefaria.org/person/{}".format(p.key.replace(" ", "%20")) for p in PersonSet()]
+	write_urls(urls, "person-sitemap.txt")
 
 
 def generate_static_sitemap(): 
@@ -111,7 +119,7 @@ def write_urls(urls, filename):
 	out = STATICFILES_DIRS[0] + filename
 	f = open(out, 'w')
 	for url in urls:
-		f.write(url + "\n")
+		f.write(url.encode('utf-8') + "\n")
 	f.close()
 
 
@@ -121,7 +129,7 @@ def generate_sitemap_index(sitemaps):
 	for m in sitemaps:
 		xml += """
 		   <sitemap>
-			  <loc>http://www.sefaria.org/static/%s</loc>
+			  <loc>https://www.sefaria.org/static/%s</loc>
 			  <lastmod>%s</lastmod>
 		   </sitemap>
 		   """ % (m, now)
@@ -146,9 +154,10 @@ def generate_sitemaps():
 	generate_sheets_sitemap()
 	generate_texts_toc_sitemap()
 	generate_categories_sitemap()
+	generate_people_sitemap()
 	n = generate_texts_sitemaps()
 
-	maps = ["static-sitemap.txt", "sheets-sitemap.txt", "text-toc-sitemap.txt", "categories-sitemap.txt"]
+	maps = ["static-sitemap.txt", "sheets-sitemap.txt", "text-toc-sitemap.txt", "categories-sitemap.txt", "person-sitemap.txt"]
 	maps += ["texts-sitemap%d.txt" % i for i in range(n)]
 
 	generate_sitemap_index(maps)

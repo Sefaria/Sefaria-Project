@@ -2,8 +2,8 @@
 
 {% block title %}Explore Sefaria{% endblock %}
 {% block head %}
-<meta property="og:image" content="http://www.sefaria.org/static/img/explorer.png" />
-<script src="http://d3js.org/d3.v3.min.js"></script>
+<meta property="og:image" content="https://www.sefaria.org/static/img/explorer.png" />
+<script src="https://d3js.org/d3.v3.min.js"></script>
 {%  endblock %}
 {% block css %}
 	#languageToggle {
@@ -492,7 +492,7 @@ function handleStateChange(event) {
 
     //Open popped books not in currently open books
     var toBeOpened = svg.selectAll(":not(.open).book")
-            .filter(function(d) { return poppedOpenIds.indexOf(d.id) > -1 })
+            .filter(function(d) { return poppedOpenIds.indexOf(d.id) > -1 });
 
     //console.log("handleStateChange", poppedOpenIds, toBeClosed, toBeOpened);
 

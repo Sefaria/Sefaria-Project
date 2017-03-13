@@ -19,13 +19,13 @@ body {
 	text-align: right;
 	line-height: 8px;
 	position: fixed;
-    bottom: 0;
+	bottom: 0;
 	z-index: 100;
-	background-color: #ccc;
-    height: 50px;
-    left: 0;
-    width: 100%;
-	border-top: 1px solid #777;
+	background-color: #f2f2f2;
+	height: 50px;
+	left: 0;
+	width: 100%;
+	border-top: 1px solid #999;
 }
 
 #fileControlMsg {
@@ -121,7 +121,7 @@ body {
 	margin-left: -40px;
 }
 
-#sheetHeader #partnerLogo {
+#sheetHeader #groupLogo {
 	max-width: 90%;
 }
 
@@ -517,9 +517,15 @@ body {
 	max-width:691px;
 }
 
-.sheetItem p span {
+.sheetItem p span,
+.sheetItem div.text span {
 	white-space: pre-wrap;
 }
+
+.sheetItem div.text span.gemarra-regular {
+	font-weight: bold;
+}
+
 
 #sheet #sources .sheetItem .sourceNumber.en {
 	position: absolute;
@@ -673,21 +679,6 @@ body {
 	font-size: 24px;
 }
 
-/* Allows line height to change with font-size */
-.source .text .he span,
-.source .text .en span,
-#title span,
-.comment span,
-.outside span,
-.outsideBi .text .he span,
-.outsideBi .text .en span  {
-	display: inline-block;
-}
-
-.source .text .he .segment,
-.source .text .en .segment {
-	display: inline;
-}
 
 #sheet.english .en {
 	display: block;
@@ -1054,7 +1045,7 @@ body {
 	font-size: 14px;
 	position: relative;
 	left: -5px;
-	top: -14px;
+	top: 7px;
 }
 
 .cke_editable {
@@ -1170,7 +1161,7 @@ a:active {
 		text-align: right !important;
 		width: 100%;
 	}
-	#controls {
+	#controls, #fileControls {
 		display: none;
 	}
 

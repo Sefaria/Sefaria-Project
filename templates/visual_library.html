@@ -17,7 +17,7 @@
       });
     </script>
     {% endif %}
-    <script src="http://d3js.org/d3.v3.js"></script>
+    <script src="https://d3js.org/d3.v3.js"></script>
 {%  endblock %}
 
 {% block css %}
@@ -73,22 +73,20 @@
 {% block content %}
 
 <div id="visualLibraryPage" class="container static">
-    <div class="inner">
-        <div class="section">
-            <div id="controls">
-                <div id="rightbox">
-                    <div id="langselect"></div>
-                    <div id="clicktozoom">Click Graph to Zoom</div>
-                </div>
-                <div id="title"></div>
-                <div id="subtitle"></div>
-                <div id="explanation" style="visibility: hidden;">
-                    <div id="text-title"></div>
-                    <div id="word-count"></div>
-                </div>
+    <div class="section">
+        <div id="controls">
+            <div id="rightbox">
+                <div id="langselect"></div>
+                <div id="clicktozoom">Click Graph to Zoom</div>
             </div>
-            <div id="chart"></div>
+            <div id="title"></div>
+            <div id="subtitle"></div>
+            <div id="explanation" style="visibility: hidden;">
+                <div id="text-title"></div>
+                <div id="word-count"></div>
+            </div>
         </div>
+        <div id="chart"></div>
     </div>
 </div>
 

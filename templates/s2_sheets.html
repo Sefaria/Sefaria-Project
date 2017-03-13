@@ -19,8 +19,7 @@
         <meta property="og:title" content="Sefaria Source Sheet Builder"/>
     {% endif %}
     <meta property="og:type" content="website"/>
-    <meta property="og:url" content="http://www.sefaria.org"/>
-    <meta property="og:image" content="http://www.sefaria.org/static/img/fb-og-image.png"/>
+    <meta property="og:image" content="https://www.sefaria.org/static/img/fb-og-image.png"/>
     <link rel="stylesheet" type="text/css" href="/static/css/tooltipster.css" />
 
 
@@ -118,7 +117,14 @@
 				<div class="optionItem" id="resetText">
 					<img src="/static/img/reset%20text.png"> Reset Source Text</div>
 
-				<div class="optionItem" id="addSourceTitle">
+   				<div class="optionLink" id="splitSourceToSegment">
+					<i class="fa fa-file-o hidden"></i> Auto-Segment Source Text</div>
+
+
+				<div class="optionLink" id="removeNikkudot">
+					<i class="fa fa-file-o hidden"></i> Remove Source Nikkudot</div>
+
+                <div class="optionItem" id="addSourceTitle">
 					 <i class="fa fa-pencil"></i> Add Source Title</div>
             {% endif %}
                 <div class="line"></div>
@@ -257,12 +263,12 @@
 
 	<div id="bsdHeader">בס"ד</div>
 	<div id="sheetHeader" {% if sheet_group == None %}style="display:none"{% endif %}>
-		{% if sheet_group %}
-		<a href="/partners/{{ sheet_group.name|url_safe }}">
-			<img id="partnerLogo" src="{{ sheet_group.headerUrl }}" />
+		{% if sheet_group and sheet_group.headerUrl %}
+		<a href="/groups/{{ sheet_group.name|url_safe }}">
+			<img id="groupLogo" src="{{ sheet_group.headerUrl }}" />
 		</a>
 		{% else %}
-			<img id="partnerLogo" style="display:none;" />
+			<img id="groupLogo" style="display:none;" />
 		{% endif %}
 	</div>
 	<div id="title">
@@ -385,7 +391,7 @@
 
             <div id="addcommentDiv">
                 <div class="inlineAddDesc">Comment on this section</div>
-                <div class="contentToAdd" tabindex="0"></div>
+                <div class="contentToAdd" tabindex="0"><br></div>
                 <div class="button">Add to Sheet</div>
             </div>
         </div>
@@ -398,7 +404,7 @@
 	<div id="empty" class="well">
 
 		<div class="fa fa-times remove"></div>
-		<iframe width="560" height="336" src="http://www.youtube.com/embed/iac0GoaH2lY?rel=0" frameborder="0" allowfullscreen></iframe>
+        <iframe width="560" height="315" src="https://www.youtube.com/embed/mWOsy_Gvjos?rel=0" frameborder="0" allowfullscreen></iframe>
 
 		<h3>Watch a 3 minute intro video or <a id="readmore">read more</a>.</h3>
 		<div id="howItWorks">
@@ -419,7 +425,7 @@
 	{% endif %}
 
 	<div id="printFooter">
-		<img src="/static/img/fb-og-image.png">
+		<img src="/static/img/samekh.png">
 		<div>
 			Made with the Sefaria Source Sheet Builder<br>
 			www.sefaria.org/sheets
@@ -440,6 +446,7 @@
 
 <div id="belowSheet"></div>
 
+<div id="footer"></div>
 
 <div id="addSourceModal" class="modal s2Modal">
 			<div id="closeAddSource" class="icon-remove"></div>
@@ -512,7 +519,7 @@
             <option value="None">None</option>
 
     		{% for group in owner_groups %}
-              <option value="{{ group.name }}" data-group="{{ group.name }}" data-image="{{ group.headerUrl }}">{{ group.name }}</option>
+              <option value="{{ group.name }}" data-group="{{ group.name }}" data-image="{{ group.headerUrl|default:'' }}">{{ group.name }}</option>
 			{% endfor %}
         </select>
     </div>

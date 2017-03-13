@@ -25,6 +25,7 @@ from summaries import ORDER
 from local_settings import SEFARIA_EXPORT_PATH
 from sefaria.system.database import db
 
+
 lang_codes = {
     "he": "Hebrew",
     "en": "English"
@@ -35,7 +36,7 @@ def make_path(doc, format, extension=None):
     """
     Returns the full path and file name for exporting 'doc' in 'format'.
     """
-    if doc["categories"][0] not in ORDER and doc["categories"][0] != "Commentary":
+    if doc["categories"][0] not in ORDER:
         doc["categories"].insert(0, "Other")
     path = "%s/%s/%s/%s/%s/%s.%s" % (SEFARIA_EXPORT_PATH,
                                             format,
@@ -76,7 +77,8 @@ def make_text(doc):
     version = Version({"chapter": chapter})
 
     index = library.get_index(doc["title"])
-    text = u"\n".join([doc["title"], doc.get("heTitle", ""), doc["versionTitle"], doc["versionSource"]])
+    versionSource = doc["versionSource"] or ""
+    text = u"\n".join([doc["title"], doc.get("heTitle", ""), doc["versionTitle"], versionSource])
 
     if "versions" in doc:
         if not len(doc["versions"]):
@@ -358,7 +360,7 @@ def prepare_merged_text_for_export(title, lang=None):
         "title": title,
         "language": lang,
         "versionTitle": "merged",
-        "versionSource": "http://www.sefaria.org/%s" % title.replace(" ", "_"),
+        "versionSource": "https://www.sefaria.org/%s" % title.replace(" ", "_"),
     }
     text_docs = db.texts.find({"title": title, "language": lang}).sort([["priority", -1], ["_id", 1]])
 
@@ -416,25 +418,15 @@ def export_all_merged():
             if prepped_text:
                 write_text_doc_to_disk(prepped_text)
 
-
 def export_schemas():
     path = SEFARIA_EXPORT_PATH + "/schemas/"
     if not os.path.exists(path):
         os.makedirs(path)
-    for i in library.all_index_records(with_commentary=True):
+    for i in library.all_index_records():
         title = i.title.replace(" ", "_")
         with open(path + title + ".json", "w") as f:
             try:
-                if not isinstance(i, CommentaryIndex):
-                    f.write(make_json(i.contents(v2=True)).encode('utf-8'))
-                else:
-                    explicit_commentary_index = {
-                        'title': i.title,
-                        'categories': [i.categories[1], i.categories[0]] + i.categories[2:],  # the same as the display order
-                        'schema': i.schema,
-                        'authors' : getattr(i, "authors", None),
-                    }
-                    f.write(make_json(explicit_commentary_index).encode('utf-8'))
+                f.write(make_json(i.contents(v2=True)).encode('utf-8'))
 
             except InputError as e:
                 print "InputError: %s" % e
@@ -449,7 +441,6 @@ def export_toc():
     toc = library.get_toc()
     with open(SEFARIA_EXPORT_PATH + "/table_of_contents.json", "w") as f:
         f.write(make_json(toc).encode('utf-8'))
-
 
 def export_links():
     """
@@ -496,7 +487,7 @@ def export_links():
             links_by_book[book_link] += 1
             if link["type"] not in ("commentary", "Commentary", "targum", "Targum"):
                 links_by_book_without_commentary[book_link] += 1
-    
+
     def write_aggregate_file(counter, filename):
         with open(SEFARIA_EXPORT_PATH + "/links/%s" % filename, 'wb') as csvfile:
             writer = csv.writer(csvfile)
@@ -584,6 +575,8 @@ def export_version_csv(index, version_list):
     assert isinstance(version_list, list) or isinstance(version_list, VersionSet)
     assert all(isinstance(v, Version) for v in version_list)
 
+    csv.field_size_limit(sys.maxsize)
+
     output = io.BytesIO()
     writer = csv.writer(output)
 
@@ -624,6 +617,8 @@ def export_merged_csv(index, lang=None):
     assert isinstance(index, Index)
     assert lang in ["en", "he"]
 
+    csv.field_size_limit(sys.maxsize)
+
     output = io.BytesIO()
     writer = csv.writer(output)
 
@@ -659,33 +654,52 @@ def export_merged_csv(index, lang=None):
     return output.getvalue()
 
 
-def import_versions(csv_filename, columns):
+def import_versions_from_stream(csv_stream, columns, user_id):
+    csv.field_size_limit(sys.maxsize)
+    reader = csv.reader(csv_stream)
+    rows = [row for row in reader]
+    return _import_versions_from_csv(rows, columns, user_id)
+
+
+def import_versions_from_file(csv_filename, columns):
     """
     Import the versions in the columns listed in `columns`
     :param columns: zero-based list of column numbers with a new version in them
     :return:
     """
+    csv.field_size_limit(sys.maxsize)
     with open(csv_filename, 'rb') as csvfile:
         reader = csv.reader(csvfile)
         rows = [row for row in reader]
+    return _import_versions_from_csv(rows, columns)
+
+
+def _import_versions_from_csv(rows, columns, user_id):
+    from sefaria.tracker import modify_text
 
     index_title = rows[0][columns[0]]  # assume the same index title for all
     index_node = Ref(index_title).index_node
 
+
+    action = "edit"
     for column in columns:
         # Create version
+        version_title = rows[1][column]
+        version_lang = rows[2][column]
+
         v = Version().load({
             "title": index_title,
-            "versionTitle": rows[1][column],
-            "language": rows[2][column]
+            "versionTitle": version_title,
+            "language": version_lang
         })
 
         if v is None:
+            action = "add"
             v = Version({
                 "chapter": index_node.create_skeleton(),
                 "title": index_title,
-                "versionTitle": rows[1][column],
-                "language": rows[2][column],            # Language
+                "versionTitle": version_title,
+                "language": version_lang,            # Language
                 "versionSource": rows[3][column],       # Version Source
                 "versionNotes": rows[4][column],        # Version Notes
             }).save()
@@ -694,6 +708,9 @@ def import_versions(csv_filename, columns):
         for row in rows[5:]:
             ref = Ref(row[0])
             print "Saving: {}".format(ref.normal())
-            tc = TextChunk(ref, v.language, v.versionTitle)
-            tc.text = row[column]
-            tc.save()
+            try:
+                modify_text(user_id, ref, version_title, version_lang, row[column], type=action)
+            except InputError:
+                pass
+
+

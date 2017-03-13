@@ -31,10 +31,6 @@ body.dark {
   top: 0;
   width: 100%;
   height: 100%;
-  -moz-user-select: none;
-  -khtml-user-select: none;
-  -webkit-user-select: none;
-  -o-user-select: none;
   z-index: 1000;
 }
 #s2.headerOnly {
@@ -47,6 +43,16 @@ body.dark {
   height: 100%;
   top: 0;
 }
+.noselect {
+  -webkit-touch-callout: none; /* iOS Safari */
+    -webkit-user-select: none; /* Safari/Opera */
+       -moz-user-select: none; /* Firefox */
+        -ms-user-select: none; /* Internet Explorer/Edge */
+            user-select: none; /* Non-prefixed version, Chrome */
+}
+input.noselect {
+    -webkit-user-select: auto; /* Safari/Opera -- required for Safari to allow inputs to be accessible. See http://caniuse.com/#feat=user-select-none "Known Issues" for details  TODO Check back to see if bug is fixed in future version */
+}
 .interface-hebrew #panelWrapBox{
   direction: rtl;
 }
@@ -54,9 +60,9 @@ body.dark {
   direction: ltr;
 }
 #panelWrapBox {
-  position: relative;
-  padding-top: 54px;
-  height: 100%;
+  position: absolute;
+  top: 54px;
+  height: calc(100% - 54px);
   box-sizing: border-box;
 }
 #panelWrapBox.wrapBoxScroll {
@@ -65,6 +71,8 @@ body.dark {
 }
 .singlePanel #panelWrapBox {
   padding-top: 0;
+  height: 100%;
+  top: 0;
 }
 .headerInner {
   position: fixed;
@@ -105,7 +113,6 @@ body.dark {
   padding: 0;
   text-align: left;
 }
-
 .header .searchBox input{
   background-color: transparent; /*for firefox */
 }
@@ -326,6 +333,23 @@ body.dark {
 .ui-helper-hidden-accessible {
   display: none;
 }
+#globalWarningMessage {
+  position: fixed;
+  width: 100%;
+  z-index: 1000;
+  text-align: center;
+  bottom: 0px;
+  color: white;
+  background-color: #EFB4B6;
+  padding: 14px 20px;
+  box-sizing: border-box;
+  font-family: "proxima-nova", "Helvetica Neue", Helvetica, sans-serif;
+}
+#globalWarningMessage .close {
+ float: right;
+ cursor: pointer;
+ font-size: 20px;
+}
 .multiPanel .readerPanelBox {
   box-sizing: border-box;
 }
@@ -347,7 +371,7 @@ body.dark {
   height: 100%;
   overflow: hidden;
   background-color: inherit;
-  font-family: "adobe-garamond-pro", Georgia, serif;
+  font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
 }
 .readerContent {
   width: 100%;
@@ -376,14 +400,15 @@ body.dark {
   background-color: inherit;
 }
 /* Adjusting for 17px scrollbars, to keep content centered
-   Only done in multiPanel mode now as a proxy for whether scrollbars take up width (on desktop they do, not on mobile) */
+   Only done in multiPanel mode now as a proxy for whether scrollbars take up width (on desktop they do, not on mobile) 
+  Remove 12/16 -- seems to be causing problems now.
 .multiPanel.interface-english .textColumn {
   padding-left: 17px;
 }
-
 .multiPanel.interface-hebrew .textColumn {
   padding-right: 17px;
 }
+*/
 .textColumn .loadingMessage.base {
   margin: 30px 0;
   color: #999;
@@ -407,6 +432,9 @@ body.dark {
 .he, .int-he {
   font-size: 120%;
 }
+.int-he .int-he {
+  font-size: inherit;
+}
 .readerPanel .he {
   font-family: "Taamey Frank", "Times New Roman", serif;
   direction: rtl;
@@ -415,16 +443,14 @@ body.dark {
 .interface-hebrew .readerPanel .en{
   direction: ltr;
 }
-/*.readerPanel.hebrew {
-  direction: rtl;
-}*/
-/*.readerPanel.english {
-  direction: ltr;
-}*/
-.interface-hebrew .readerPanel .readerNavMenu, .readerPanel.hebrew .readerNavSection, .readerPanel.hebrew .readerNavMenu .category{
+.interface-hebrew .readerPanel .readerNavMenu,
+.readerPanel.hebrew .readerNavSection, 
+.readerPanel.hebrew .readerNavMenu .gridBox {
   direction: rtl;
 }
-.interface-english .readerPanel .readerNavMenu, .readerPanel.english .readerNavSection, .readerPanel.english .readerNavMenu .category{
+.interface-english .readerPanel .readerNavMenu,
+.readerPanel.english .readerNavSection,
+ .readerPanel.english .readerNavMenu .gridBox{
   direction: ltr;
 }
 .readerPanel.english .he {
@@ -516,21 +542,27 @@ body.dark {
   background-color: #F9F9F7;
 }
 .readerNavMenu .content {
+  position: relative;
   box-sizing: border-box;
-  padding: 80px 10px 10px;
+  padding: 30px 10px 10px;
   height: 100%;
   overflow-y: scroll;
   -webkit-overflow-scrolling: touch;
   font-size: 14px;
 }
-/* Adjusting for 17px scrollbars, to keep content centered */
-.multiPanel .english .readerNavMenu .content, .multiPanel .bilingual .readerNavMenu .content {
+.singlePanel .readerNavMenu .content {
+  top: 58px;
+  height: calc(100% - 58px);
+  padding-top: 40px;
 }
 .interface-hebrew.multiPanel .readerNavMenu .content {
   padding-right: 40px;
 }
 .multiPanel .readerNavMenu .content {
-  padding: 110px 30px;
+  padding: 80px 30px 70px 30px;
+}
+.multiPanel .readerNavMenu .content.hasFooter {
+  padding: 30px 0px 0px 0px;
 }
 .multiPanel .readerNavMenu.noHeader .content {
   padding-top: 70px;
@@ -790,6 +822,13 @@ a.resourcesLink {
 .blockLink + .blockLink {
   margin: 5px 0;
 }
+.blockLink img {
+  margin: 0 8px;
+  height: 16px;
+  width: 16px;
+  opacity: 0.4;
+  vertical-align: -3px;
+}
 .gridBox {
   table-layout: fixed;
 }
@@ -858,6 +897,16 @@ a.resourcesLink {
 .readerNavCategoryMenu .content .category {
   margin-bottom: 30px;
 }
+.readerNavCategoryMenu .categoryAttribution {
+  color: #999;
+  text-align: center;
+  font-size: 20px;
+  font-style: italic;
+  margin: 16px 0 30px;
+}
+.readerNavCategoryMenu .categoryAttribution .he {
+  font-style: normal;
+}
 .readerNavMenu .refLink,
 .readerNavMenu .catLink,
 .readerNavMenu .navButton,
@@ -866,7 +915,7 @@ a.resourcesLink {
   margin: 0px;
   padding: 10px 8px;
   box-sizing: border-box;
-  color: black;
+  color: #333;
   font-size: 16px;
   font-weight: 400;
   background-color: white;
@@ -925,67 +974,96 @@ a.resourcesLink {
 .readerTextTableOfContents .readerTextToc .he {
   font-family: "Open Sans Hebrew", sans-serif;
 }
-.readerTextTableOfContents .tocTitle {
+.readerTextTableOfContents .categoryAttribution {
+  color: #666;
   text-align: center;
   font-size: 24px;
-  margin-bottom: 20px;
+  font-style: italic;
+  margin: 10px 0 28px;
+}
+.readerTextTableOfContents .categoryAttribution .he {
+  font-style: normal;
+}
+.readerTextTableOfContents .tocTop {
+  padding-bottom: 15px;
+}
+.readerTextTableOfContents .tocCategory {
+  color:#999;
+  font-size: 14px;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+  letter-spacing: 1px;
+}
+.readerTextTableOfContents .tocTitle {
+  text-align: center;
+  font-size: 28px;
   line-height: 1.3;
 }
-.readerTextTableOfContents .tocTitle .currentSection {
-  font-size: 12px;
+.readerTextTableOfContents .currentSection {
+  font-size: 17px;
   color: #999;
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
   margin-top: 6px;
   letter-spacing: 1px;
 }
-.readerTextTableOfContents .tocTitle .currentSection .he {
+.readerTextTableOfContents .currentSection .he {
   font-family: "Open Sans Hebrew", sans-serif;
 }
-.readerTextTableOfContents .currentVersionBox {
-  margin-bottom: 50px;
-  text-align: center;
-  direction: ltr;
+.readerTextTableOfContents .tocDetails {
+  margin-top: 30px;
+  color: #999;
+  font-style: italic;
 }
-
 .readerTextTableOfContents .currentVersionBox .versionSelect {
   width: 80%;
   max-width: 300px;
   margin: 20px auto 5px;
 }
-.readerTextTableOfContents .currentVersionBox .versionSelect select {
-  width: 100%;
-  background-color: white;
-  font-size: 14px;
-  height: 3em;
-  border-color: #ccc;
-  border-radius: 3px;
-  color: #333;
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
-}
-.readerTextTableOfContents .currentVersionBox .versionBlock span,
-.readerTextTableOfContents .currentVersionBox .versionBlock  a {
-  margin: 3px;
+.readerTextTableOfContents .tocDetails a {
   color: #999;
 }
-.readerTextTableOfContents .currentVersionBox .versionTitle {
-  display: block;
-  font-size: 17px;
-  color: #333;
+.readerTextTableOfContents .tocDetail {
+  margin-bottom: 4px;
 }
-.readerTextTableOfContents .currentVersionBox .versionSource,
-.readerTextTableOfContents .currentVersionBox .versionLicense,
-.readerTextTableOfContents .currentVersionBox .versionHistoryLink {
-  display: inline-block;
-  font-size: 13px;
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+.readerTextTableOfContents .tocDetail .int-en {
+  font-family: "adobe-garamond-pro", Georgia, serif;
+}
+.readerTextTableOfContents .tocDetail .int-he {
+  font-family: "Taamey Frank", "Times New Roman", serif;
+}
+.readerTextTableOfContents .tocDetails .description {
+  margin: 6px 0 16px;
+  font-style: normal;
+  font-size: 16px;
+  line-height: 1.4;  
+}
+.readerTextTableOfContents .tocDetails .description .readMoreText {
+  display: block;
+  text-align: center;
+}
+.readerTextTableOfContents .tocDetails .description .readMoreLink {
+  font-style: italic;
+  cursor: pointer;
+  font-size: 14px;
+  color: #666;
+  margin: 0 5px;
+}
+.readerTextTableOfContents .currentVersionBox {
+  margin-bottom: 18px;
+}
+.readerTextTableOfContents .currentVersionBox .versionBlock {
+  margin: 0;
 }
 .readerTextTableOfContents .moderatorSection {
-  margin-bottom: 30px;
+  margin-top: 20px;
 }
 .readerTextTableOfContents .moderatorSectionExpand {
+  display: inline;
   cursor: pointer;
   color: #666;
-  margin-bottom: 14px;
+  margin: 7px 6px 0px;
+  font-size: 14px;
+  position: absolute;
 }
 .readerTextTableOfContents .moderatorSectionExpand:hover {
   text-decoration: underline;
@@ -1002,12 +1080,66 @@ a.resourcesLink {
   color: #999;
   margin-right: 4px;
 }
-.readerTextTableOfContents .content {
-  padding: 90px 10px 10px;
-  box-sizing: border-box;
-  height: 100%;
-  overflow-y: scroll;
+.readerTextTableOfContents .versionEditForm {
+  text-align: left;
+  background-color: #ddd;
+  padding: 10px;
+  width: 100%;
+}
+.readerTextTableOfContents .versionEditForm label {
+  display: inline-block;
+  padding: 10px 10px 0 0;
+}
+.readerTextTableOfContents .versionEditForm label#versionNotes_label {
+  display: block;
+}
+.readerTextTableOfContents .versionEditForm #versionTitle,
+.readerTextTableOfContents .versionEditForm #versionSource,
+.readerTextTableOfContents .versionEditForm #versionNotes
+ {
+  width: 98%;
+}
+.readerTextTableOfContents .versionEditForm #priority {
+  width: 25px;
+}
+.readerTextTableOfContents .versionEditForm #digitzedBySefaria {
+  margin-right: 10px;
+}
+.readerTextTableOfContents .versionEditForm #save_button,
+.readerTextTableOfContents .versionEditForm #delete_button {
   text-align: center;
+  cursor: pointer;
+  color: white;
+  background: #212E50;
+  padding: 4px 10px;
+  border-radius: 3px;
+  margin: 10px auto 0;
+  width: 60px;
+}
+.readerTextTableOfContents .versionEditForm #delete_button {
+  float: right;
+  background: white;
+  color: #999;
+  border: 1px solid #999;
+  width: 100px;
+  margin: 0;
+}
+.readerTextTableOfContents .versionTitle .fa,
+.readerTextTableOfContents .versionEditForm .fa {
+  font-size: 10px;
+  vertical-align: super;
+  margin-left: 3px;
+  cursor: pointer;
+}
+.readerTextTableOfContents .versionTitle .error {
+  color: red;
+}
+.readerTextTableOfContents .content {
+  padding: 30px 10px 10px;
+  box-sizing: border-box;
+  text-align: center;
+  top: 58px;
+  height: calc(100% - 58px);
 }
 .readerTextTableOfContents .content .sectionLink {
   display: inline-block;
@@ -1031,31 +1163,50 @@ a.resourcesLink {
 .readerTextTableOfContents .content .sectionLink  .he {
   font-family: "Open Sans Hebrew", sans-serif;
 }
-.interface-hebrew .readerTextTableOfContents .content #structToggles{
+.interface-hebrew .readerTextTableOfContents .content .structToggles{
   direction: rtl;
 }
-.interface-english .readerTextTableOfContents .content #structToggles{
+.interface-english .readerTextTableOfContents .content .structToggles{
   direction: ltr;
 }
-.readerTextTableOfContents .content #structToggles {
-  margin-bottom: 20px;
-  text-align: center;
+.readerTextTableOfContents .content .structToggles {
+  margin-bottom: 40px;
+  display: table;
+  table-layout: fixed;
+  width: 100%;
 }
-.readerTextTableOfContents .content #structToggles .en {
+.readerTextTableOfContents .content .structTogglesInner {
+  display: table-row;
+}
+.readerTextTableOfContents .content .structTogglesInner + .structTogglesInner > .altStructToggleBox {
+  padding-top: 6px;
+}
+.readerTextTableOfContents .content .structToggles .en {
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
 }
-.readerTextTableOfContents .content #structToggles .he {
+.readerTextTableOfContents .content .structToggles .he {
   font-family: "Open Sans Hebrew", sans-serif;
 }
-.readerTextTableOfContents #structToggles .altStructToggle.active {
-  color: black;
+.readerTextTableOfContents .structToggles .altStructToggleBox {
+  display: table-cell;
+  height: 37px;
 }
-.readerTextTableOfContents #structToggles .altStructToggle {
+.readerTextTableOfContents .structToggles .altStructToggle {
+  display: block;
+  padding: 8px;
   color: #999;
-  display: inline-block;
   cursor: pointer;
+  font-size: 13px;
+  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  border-bottom: 1px solid #CCC;
 }
-.readerTextTableOfContents #structToggles .toggleDivider {
+.readerTextTableOfContents .structToggles .altStructToggle.active {
+  color: black;
+  border-bottom: 4px solid #CCC;
+}
+.readerTextTableOfContents .structToggles .toggleDivider {
   color: #ccc;
   margin: 0 8px;
 }
@@ -1069,14 +1220,19 @@ a.resourcesLink {
   display: block;
 }
 .readerTextTableOfContents .content .tocContent {
-  padding: 50px 0;
-  border-top: 1px solid #ccc;
+  padding: 30px 0 40px;
   text-align: left;
 } 
+.readerTextTableOfContents.narrowPanel .tocContent {
+  padding: 0 0 40px;
+}
 .readerTextTableOfContents .content .tocSection {
   margin-bottom: 22px;
   display: block;
   text-align: left;
+}
+.readerTextTableOfContents .content .tocSection.noSubLevels{
+  display: none;
 }
 .readerTextTableOfContents .content .schema-node-contents {
   margin: 0 auto 22px;
@@ -1111,36 +1267,11 @@ a.resourcesLink {
   display: block;
   margin: 0 auto;
 }
-
-.readerTextTableOfContents .schema-node-toc.depth1 {
-    margin: 10px 0 0;
+.readerTextTableOfContents .content .tocContent > .tocLevel > .schema-node-toc {
+  margin: 10px 0;
 }
-.readerTextTableOfContents .schema-node-toc.depth2 {
-    margin: 6px 20px 0;
-}
-
-.readerTextTableOfContents .schema-node-toc.depth3 {
-    margin: 6px 40px 0;
-}
-
-.readerTextTableOfContents .schema-node-toc.depth4 {
-    margin: 6px 60px 0;
-}
-
-.readerTextTableOfContents .schema-node-toc.depth5 {
-    margin: 6px 80px 0;
-}
-
-.readerTextTableOfContents .schema-node-toc.depth6 {
-    margin: 6px 100px 0;
-}
-
-.readerTextTableOfContents .schema-node-toc.depth7 {
-    margin: 6px 120px 0;
-}
-
-.readerTextTableOfContents .schema-node-toc.depth8 {
-    margin: 6px 140px 0;
+.readerTextTableOfContents .schema-node-toc {
+  margin: 6px 20px;
 }
 .readerTextTableOfContents .altStruct .refLink {
   width: 49%;
@@ -1157,13 +1288,24 @@ a.resourcesLink {
 .hebrew .readerTextTableOfContents .content .tocContent {
   text-align: right;
 }
-
+.readerTextTableOfContents .versionsBox {
+  padding: 20px 0;
+}
+.readerTextTableOfContents .button.allVersionsButton {
+  color: #999;
+  text-transform: uppercase;
+  font-size: 15px;
+  padding: 12px 50px;
+  margin: 20px 0;
+}
+.readerTextTableOfContents .allVersionsButton.inactive {
+  background-color: transparent;
+}
 .readerTextTableOfContents .versionBlocks {
-  border-top: 1px solid #ccc;
-  padding-bottom: 50px;
+  text-align: center;
 }
 .readerTextTableOfContents .versionBlocks .versionLanguageBlock {
-  padding-top: 50px;
+  padding-bottom: 30px;
   clear: both;
 }
 .readerTextTableOfContents .versionBlocks .versionLanguageHeader {
@@ -1173,59 +1315,66 @@ a.resourcesLink {
   color: #999;
   padding: 10px 0;
 }
-.readerTextTableOfContents .versionBlocks .versionBlock {
-  padding: 10px 30px;
-  width: 50%;
-  float: left;
+.readerTextTableOfContents .versionBlock {
+  padding: 0 30px;
+  margin: 25px 0;
   box-sizing: border-box;
+  cursor: pointer;
 }
-.readerTextTableOfContents .versionBlocks .versionBlock:only-child {
-    float: none;
-    width: auto;
+.readerTextTableOfContents .versionBlock .versionTitle {
+  display: block;
+  font-size: 18px;
+  color: #333;
 }
-.readerTextTableOfContents .versionBlocks .versionBlock {
+.readerTextTableOfContents .versionBlock a {
   color: #999;
-  font-size: 16px;
 }
-.readerTextTableOfContents .versionBlocks .versionBlock a.versionSource,
-.readerTextTableOfContents .versionBlocks .versionBlock .versionLicense,
-.readerTextTableOfContents .versionBlocks .versionBlock .versionLicense a {
+.readerTextTableOfContents .versionBlock .versionDetails {
+  display: inline-block;
+  font-size: 12px;
+  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
   color: #999;
-  font-size: 16px;
+}
+.readerTextTableOfContents .versionBlock .versionDetails .separator {
   margin: 0 3px;
 }
-.readerTextTableOfContents .versionBlocks .versionBlock .versionTitle {
-  color: #222;
-  font-size: 20px;
+.readerTextTableOfContents .versionBlocks .versionBlock .versionTitle:hover {
+  text-decoration: underline;
 }
-.readerTextTableOfContents .versionBlocks .versionBlock .versionNotes {
-  padding-top: 8px;
+.readerTextTableOfContents .versionBlock .versionNotes {
+  padding-top: 4px;
+  color: #999;
 }
-@media (max-width: 450px) {
-  .readerTextTableOfContents .versionBlocks .versionBlock {
-    float: none;
-    width: auto;
-  }
+.modTools {
+  width: 50%;
+  margin: 0 auto;
 }
-
-
+.modTools .modToolsSection {
+  clear: both;
+  padding: 50px;
+  border-top: 1px solid #ccc;
+}
 .readerTextTableOfContents .content .dlSection {
   clear: both;
   padding-top: 50px;
   border-top: 1px solid #ccc;
 }
-.readerTextTableOfContents .content .dlSectionTitle {
-    font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+.modTools .dlSectionTitle {
+    width: 60%;
+    margin: 0 auto;
+}
+.modTools .dlSectionTitle,
+.readerTextTableOfContents .content h2 {
     text-transform: uppercase;
-    letter-spacing: .2em;
     color: #999;
     padding: 10px 0;
+    margin-bottom: 14px;
 }
-.readerTextTableOfContents .content .dlSectionTitle .he {
-    font-family: "Open Sans Hebrew", sans-serif;
-    direction: rtl;
-    text-align: right;
+.modTools .dlVersionSelect { 
+  display: block;
 }
+
+.modTools .dlVersionSelect,
 .readerTextTableOfContents .content .dlVersionSelect {
     width: 60%;
     margin: 10px auto;
@@ -1237,7 +1386,7 @@ a.resourcesLink {
     color: #333;
     font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
 }
-
+.modTools .versionDownloadButton,
 .readerTextTableOfContents .content .versionDownloadButton {
     width: 60%;
     margin: 10px auto;
@@ -1249,15 +1398,18 @@ a.resourcesLink {
     color: #ccc;
     font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
 }
+.modTools .versionDownloadButton .downloadButtonInner,
 .readerTextTableOfContents .content .versionDownloadButton .downloadButtonInner {
     font-size: 16px;
     padding: 10px;
 }
+.modTools .versionDownloadButton .he,
 .readerTextTableOfContents .content .versionDownloadButton .he {
     font-family: "Open Sans Hebrew", sans-serif;
     direction: rtl;
     text-align: right;
 }
+.modTools a .versionDownloadButton,
 .readerTextTableOfContents .content a .versionDownloadButton {
     border-color: #212E50;
     background-color: #212E50;
@@ -1349,14 +1501,18 @@ a.resourcesLink {
   color: #999;
   padding-left: 5px;
 }
-.hebrew .searchContent .searchFilterToggle i {
+.interface-hebrew .searchContent .searchFilterToggle i {
   padding-left: 0;
   padding-right: 5px;
 }
 .searchContent .searchFilterBoxes {
-  margin: 10px 0;
-  background: #eee;
-  width: 100%;
+    margin: 10px 0;
+    background: #eee;
+    width: 100%;
+    display: flex;
+}
+.searchFilterBoxes.hidden{
+    display:none;
 }
 .searchContent .searchFilterBoxes li {
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
@@ -1369,7 +1525,7 @@ a.resourcesLink {
 .searchContent .searchFilterBoxes li:hover {
   background-color: #e0e0e0;
 }
-.hebrew .searchContent .searchFilterBoxes li {
+.interface-hebrew .searchContent .searchFilterBoxes li {
   font-family: "Open Sans Hebrew", sans-serif;
   padding: 10px 15px 10px 0;
 }
@@ -1403,21 +1559,20 @@ a.resourcesLink {
   padding-right: 20px;
   color: #999;
 }
-.hebrew .searchContent .searchFilterBoxes li .in-focus-arrow {
+.interface-hebrew .searchContent .searchFilterBoxes li .in-focus-arrow {
   float: left;
   padding-left: 20px;
   padding-right: 0;
 }
 .searchContent .searchFilterCategoryBox,
 .searchContent .searchFilterBookBox {
-  float: left;
   width: 50%;
   height: 150px;
   overflow-y: auto;
 }
-.hebrew .searchContent .searchFilterCategoryBox,
-.hebrew .searchContent .searchFilterBookBox {
-  float: right;
+.interface-hebrew .searchContent .searchFilterCategoryBox,
+.interface-hebrew .searchContent .searchFilterBookBox {
+  /*float: right;*/
 }
 .searchContent .result {
   border-bottom: thin solid #eee;
@@ -1638,6 +1793,18 @@ a.resourcesLink {
   color: #999;
   direction: ltr !important;
 }
+.readerControls .readerTextToc.attributed .readerTextTocBox {
+  line-height: 1.2;
+}
+.readerControls .readerTextToc .categoryAttribution {
+  font-style: italic;
+  font-size: 15px;
+  color: #999;
+  margin: 0 2px;
+}
+.readerControls .readerTextToc .categoryAttribution .he {
+  font-style: normal;
+}
 .leftButtons,
 .rightButtons {
   /*position: absolute;
@@ -1686,6 +1853,7 @@ a.resourcesLink {
   font-size: 17px;
   box-sizing: border-box;
   display: block;
+  height: 50px;
 }
 .readerTextTocHeader.readerTextToc {
   font-size: 14px;
@@ -1698,7 +1866,7 @@ a.resourcesLink {
   white-space: nowrap;
   text-overflow: ellipsis;
   overflow: hidden;
-  max-width: 60%;
+  max-width: 70%;
   vertical-align: middle;
   color: #333;
 }`
@@ -1826,12 +1994,6 @@ a.resourcesLink {
   height: 100%;
   z-index: 102;
   cursor: pointer;
-}
-.textRange, .noteText {
-  -moz-user-select: text;
-  -khtml-user-select: text;
-  -webkit-user-select: text;
-  -o-user-select: text;
 }
 .textRange.basetext {
   width: 100%;
@@ -2558,7 +2720,10 @@ a.resourcesLink {
 }
 .hebrew .textRange .numberLabel,
 .bilingual .textRange .numberLabel  {
-  right: -14px;
+  right: -30px;
+}
+.multiPanel .textRange .numberLabel{
+  display: none;
 }
 .textRange.lowlight .numberLabel {
   color: #999;
@@ -2805,13 +2970,52 @@ a.resourcesLink {
   width: auto;
   border-bottom: 1px solid #ccc;
   border-top: none;
-  padding: 27px 0;
+  padding: 27px 15px;
   margin: 0;
+}
+.notificationsList .added-description {
+  padding: 5px 0 0;
 }
 .notificationsPanel .notification .date {
   color: #ccc;
   font-size: 13px;
   margin-top: 8px;
+}
+.notificationsList .int-he {
+  font-size: inherit;
+}
+.notificationsList .notification a{
+  unicode-bidi: plaintext;
+}
+.notification-message-link {
+  display: inline-block;
+  padding: 0 5px;
+}
+.globalUpdateForm {
+  padding: 15px;
+  background-color: #ddd;
+}
+.globalUpdateForm .error {
+  color: red;
+  font-size: 90%;
+  display: inline-block;
+  padding: 0 10px;
+}
+.globalUpdateForm input[type="text"] {
+  padding: 5px;
+  margin: 8px 0;
+}
+
+.globalUpdateForm input[type="radio"] {
+  padding: 5px;
+  margin: 8px;
+}
+.delete-update-button {
+  display: inline-block;
+  color: red;
+  padding: 0 10px;
+  font-size: 75%;
+  cursor: pointer;
 }
 .sefariaLogo {
   text-align: center;
@@ -2970,34 +3174,28 @@ input {
 .lexicon-results .entry .definition-content{
     color: #444;
 }
-
 .lexicon-results ol {
 	list-style-position: inside;
 }
-
 .lexicon-results .entry .definition li.sense{
 	margin-left: 15px;
 	padding: 0px;
 	/*margin: 0;*/
 }
-
 .lexicon-results .entry .definition ol.senses{
 	/*list-style-type: none;*/
 	padding-left: 0px;
 }
-
 .lexicon-results .entry .definition > li.sense{
 	/*list-style-type: none;*/
 	margin-left: 0px;
 }
-
 .lexicon-results .entry ol.definition {
 	list-style-type: none;
 	padding-top: 2px;
 	padding-left: 0px;
     margin: 0px;
 }
-
 /*.sense + .sense {
 	margin-top: 3px;
 	padding-top: 3px;
@@ -3006,36 +3204,30 @@ input {
 /*.lexicon-results a {
 	font-size: 12px;
 }*/
-
 .lexicon-results .attribution{
 
 }
-
 .lexicon-results .attribution span{
   display: block;
 }
-
 .lexicon-results .attribution a{
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
   color: #aaa;
   font-size: 10px;
 }
-
 .lexicon-content .headword.en, .lexicon-content .headword.he,
 .lexicon-content .definition-content.en, .lexicon-content .definition-content.he,
 .lexicon-content .lexicon-results .attribution{
   display: inline;
 }
-
 .lexicon-content .headword.he, .lexicon-content .definition-content.he{
   direction: rtl;
 }
-
 .lexicon-content .headword.en, .lexicon-content .definition-content.en{
   direction: ltr;
 }
 h2.splitHeader {
-  margin-bottom:50px;
+  margin-bottom: 10px;
   text-align: left;
 }
 h2.splitHeader .en {
@@ -3049,36 +3241,34 @@ h2.splitHeader .he {
   text-transform: none;
   cursor: pointer;
 }
-
 .sheetsNewButton {
   text-align:center;
   margin-bottom: 30px;
 }
-
 .sheetsNewButton a {
   font-color: inherit;
 }
-
 .sheet.userSheet .sheetTitle  {
    font-family: "adobe-garamond-pro", Georgia, serif;
    font-size: 20px;
    color:#333;
    margin-bottom: 6px;
 }
-
 .sheet.userSheet {
    font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
    font-size: 14px;
    color:#999;
   text-decoration: none;
 }
-
+.filterByTag {
+  cursor: pointer;
+  text-transform: none
+}
 /*  Add back in when we're ready for tag/edit hover buttons on 'My Sheets'
 .sheet.userSheet:hover .sheetEditButtons {
 	display: inline-block;
 }
 */
-
 .sheet.userSheet .sheetEditButtons {
   font-size: 24px;
   height: 32px;
@@ -3094,34 +3284,188 @@ h2.splitHeader .he {
   cursor: pointer;
   color: #999;
   text-decoration: none;
-
 }
-
 .sheetButton:hover {
   text-decoration: underline;
 }
-
 .sheetButton{
   border: 1px solid #fff;
 }
-
-
 .sheetButton.active {
   border: 1px solid #333;
 }
-
 .tagString a {
   text-decoration: none;
   color: #999;
 }
-
 .tagString a:after {
-content: ", ";
-color: #999;
+  content: ", ";
+  color: #999;
 }
-
 .tagString a:last-child:after {
-content: "";
+  content: "";
+}
+.groupsList {
+  margin-top: 30px;
+}
+.groupListing {
+  padding: 30px 0;
+}
+.groupListing + .groupListing {
+  border-top: 1px solid #ccc;
+}
+.groupListingImageBox {
+  background-color: white;
+  width: 60px;
+  height: 60px;
+  float: left;
+  margin-right: 20px;
+}
+.groupListingImage {
+  height: 100%;
+  width: 100%;
+}
+.groupListingImage.default {
+  width: 80%;
+  height: 80%;
+  margin: 10%;
+  opacity: 0.4;
+}
+.groupListingName {
+  display: block;
+  font-size: 24px;
+  color: #666;
+  margin-bottom: 5px;
+}
+.groupListingName:hover {
+  color: #333;
+}
+.groupListingDetails {
+  color: #999;
+  font-size: 15px;
+}
+.groupPage .groupImage {
+  max-height: 200px;
+  max-width: 100%;
+  display: block;
+  margin: 0 auto 50px;
+}
+.groupInfo {
+  margin-bottom: 50px;
+}
+.groupPage h1 {
+  margin-top: 20px;
+  height: auto;
+}
+.groupPage a:hover {
+  color: inherit;
+}
+.groupPage .groupWebsite {
+  display: block;
+  text-align: center;
+  font-size: 17px;
+  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  margin-bottom: 20px;
+  color: #999;
+}
+.groupPage .groupDescription {
+  font-size: 16px;
+}
+.groupPage .tabs {
+  text-align: center;
+  margin-bottom: 60px;
+}
+.groupPage .bubbleTab {
+  font-size: 16px;
+}
+.groupPage .emptyMessage {
+  text-align: center;
+}
+.groupPage .emptyMessage a {
+  text-decoration: underline;
+}
+.groupInvitationBox {
+  border-bottom: 1px solid #CCC;
+  padding-bottom: 20px;
+}
+#groupInvitationInput {
+  padding: 14px 30px;
+  width: 492px;
+  border-radius: 4px;
+  outline: 0;
+  border: 1px solid #E6e6e6;
+  margin-right: 10px;
+  font-size: 18px;
+  position: relative;
+  top: 3px;
+}
+.groupPage .groupMemberListing {
+  padding: 24px 0;
+  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  font-size: 20px;
+}
+.groupMemberListing + .groupMemberListing {
+  border-top: 1px solid #CCC;
+}
+.groupMemberListingProfileImage {
+  height: 50px;
+  width: 50px;
+  vertical-align: middle;
+}
+.groupMemberListingName {
+  color: #666;
+  margin: 0 20px;
+}
+.groupMemberListingRoleBox {
+  float: right;
+  line-height: 50px;
+}
+.groupMemberListingRole {
+  color: #666;
+}
+.groupMemberListingActions {
+  position: relative;
+  display: inline-block;
+  background-color: white; 
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  margin-left: 12px;
+  line-height: 36px
+}
+.groupMemberListingActionsButton {
+  cursor: pointer;
+  padding: 0 12px;
+  font-size: 18px;
+  color: #CCC;
+}
+.groupMemberListingActionsMenu {
+  position: absolute;
+  right: 0;
+  top: 46px;
+  width: 300px;
+  background-color: white; 
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  color: #999;
+  font-size: 15px;
+  z-index: 1;
+}
+.groupMemberListingActionsMenu .action {
+  padding: 4px 10px;
+  cursor: pointer;
+}
+.groupMemberListingActionsMenu .action:hover {
+  background-color: #eee;
+}
+.groupMemberListingActionsMenu .action + .action {
+  border-top: 1px solid #ccc;
+}
+.groupMemberListingActionsMenu .role {
+  font-size: 17px;
+  margin-right: 4px;
+}
+.groupMemberListingActionsMenu .role.current {
+  color: #666;
 }
 /*** Interface lang - merge with static.css? ***/
 .readerApp.interface-hebrew .int-en{
@@ -3142,7 +3486,6 @@ content: "";
 .int-en{
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
 }
-
 .searchBox .keyboardInputInitiator {
     opacity: 0;
     width: 16px;
@@ -3198,11 +3541,206 @@ body #keyboardInputMaster tbody tr td table tbody tr td{
     text-align: center;
     font-size: 14px;
     color: #333;
-
 }
 body #keyboardInputMaster tbody tr td table tbody tr td:hover,
 body #keyboardInputMaster tbody tr td table tbody tr td:active,
 body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
     border: 1px solid #eee;
     background: #eee;
+}
+#editGroupPageContainerInner {
+  position: relative;
+}
+#editGroupPage .int-en {
+  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+}
+#editGroupPage .int-he {
+  font-family: "Open Sans Hebrew", sans-serif;
+}
+#editGroupPage .field {
+  box-sizing: border-box;
+  width: 100%;
+  display: inline-block;
+  vertical-align: top;
+  padding: 10px;
+}
+#editGroupPage .field.halfWidth {
+  width: 50%;
+  display: inline-block;
+}
+#editGroupPage .field.quarterWidth {
+  width: 25%;
+  display: inline-block;
+}
+#editGroupPage .field.threeQuarterWidth {
+  width: 75%;
+  display: inline-block;
+}
+#editGroupPage .field label {
+  display: block;
+  margin-bottom: 15px;
+}
+#editGroupPage input,
+#editGroupPage textarea {
+  display: block;
+  width: 100%;
+  padding: 15px 12px;
+  border-radius: 5px;
+  border: none;
+  box-sizing: border-box;
+  color: #333;
+}
+#groupDescription:focus {
+  outline: none;
+}
+#editGroupPage .groupImage {
+  max-width: 200px;
+  margin-bottom: 5px;
+  display: block;
+},
+#editGroupPage .groupCover {
+  width: 100%;
+  margin-bottom: 5px;
+}
+#editGroupPage .helperText {
+  color: #999;
+  font-size: 13px;
+}
+#editGroupPage .groupHeaderBox {
+  width: 100%;
+  background-color: white;
+  margin-bottom: 5px;
+}
+#editGroupPage .groupHeader {
+  float: right;
+  max-width: 100%;
+}
+#footer #siteLanguageToggle {
+  color: #999;
+  margin-top: 15px;
+  font-size: 13px;
+}
+#footer #siteLanguageToggle #siteLanguageToggleLabel {
+  display: block;
+}
+#footer a#siteLanguageEnglish,
+#footer a#siteLanguageHebrew {
+  cursor: pointer;
+  color: #666;
+  display: inline;
+  margin: 0 3px;
+  font-size: 13px;
+}
+#footer #siteLanguageEnglish:hover,
+#footer #siteLanguageHebrew:hover {
+  text-decoration: underline;
+}
+#footer a#siteLanguageHebrew {
+  font-size: 14px;
+}
+#footer {
+  background-color: white;
+  border-top: 1px solid #F4F4F4;
+  overflow: hidden;
+  padding: 18px 40px;
+  text-align: left;
+}
+#footer .section {
+  margin-top: 20px;
+  margin-bottom: 20px;
+}
+#footer .header {
+  font-weight: bold;
+  font-size: 15px;
+  margin-bottom: 3px;
+}
+#footer a {
+  display: block;
+}
+#footer.interface-hebrew, .interface-hebrew #footer{
+  direction: rtl;
+  text-align: right;
+}
+#footer.interface-english .int-he, .interface-english #footer .int-he {
+  display: none;
+}
+#footer.interface-english .int-en, .interface-english #footer .int-en {
+  display: inline;
+}
+#footer.interface-hebrew .int-he, .interface-hebrew #footer .int-he {
+  display: inline;
+  font-size: 120%;
+  text-align: right;
+}
+#footer.interface-hebrew .int-en, .interface-hebrew #footer .int-en {
+  display: none;
+}
+#footerInner {
+  max-width: 900px;
+  margin: 0 auto;
+}
+#footer .section {
+  display: inline-block;
+  vertical-align: top;
+  width: 160px;
+}
+#footer.interface-english .section, .interface-english #footer .section {
+  text-align: left;
+}
+#footer.interface-hebrew .section, .interface-hebrew #footer .section {
+  text-align: right;
+}
+#footer .section .header {
+  color: #666;
+  margin-bottom: 12px;
+  font-weight: normal;
+  font-size: 13px;
+}
+#footer .section.last {
+  float: right;
+  text-align: right;
+  width: 210px;
+  border-left: 1px solid #EAEAEA;
+}
+#footer.interface-hebrew .section.last, .interface-hebrew #footer .section.last {
+  float: left;
+  text-align: left;
+  border-left: none;
+  border-right: 1px solid #EAEAEA;
+}
+#footer .section a {
+  color: #aaa;
+  font-size: 14px;
+  margin: 2px 0;
+}
+#footer .fa {
+  margin: 0 3px;
+}
+.multiPanel .readerNavMenu .content.hasFooter #footer{
+  margin-top: 120px;
+}
+.gemarra-regular, .gemarra-italic {
+  font-weight: bold;
+}
+.it-text, .gemarra-italic {
+  font-style: italic;
+}
+.bubbleTab {
+  padding: 10px 25px;
+  margin: 3px;
+  background-color: white;
+  border-radius: 20px;
+  border: 1px solid #DADADA;
+  display: inline-block;
+  font-size: 12px;
+  color: #999;
+  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  letter-spacing: 1px;
+  cursor: pointer;
+}
+.bubbleTab:hover {
+  text-decoration: none;
+}
+.bubbleTab.active {
+  color: #333;
 }

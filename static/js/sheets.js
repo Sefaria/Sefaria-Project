@@ -495,7 +495,8 @@ $(function() {
 
 		$("#resetSourceTogglesToSheetGroup").click(function() {
 			$(".activeSource").removeClass("bilingual english hebrew sideBySide heLeft heRight stacked");
-
+			$("#sourceLayoutLanguageMenuItems").find(".fa-check").addClass("hidden");
+			setLanguageLayoutCheckBoxes($(".activeSource"));
 			if (sjs.can_edit) {
 				autoSave();
 			}
@@ -555,8 +556,8 @@ $(function() {
 		if (group != "None") {
 			sjs.track.sheets("Share with Group", group);
 			var groupUrl = group.replace(/ /g, "_");
-			$("#partnerLogo").attr("src", $(this).attr("data-image")).show()
-				.closest("a").attr("href", "/partners/" + groupUrl );
+			$("#groupLogo").attr("src", $(this).attr("data-image")).show()
+				.closest("a").attr("href", "/groups/" + groupUrl );
 			$("#sheetHeader").show();
 			
 			$(".groupSharing").show();
@@ -632,6 +633,20 @@ $(function() {
 
 	});
 
+	$("#removeNikkudot").click(function() {
+		var $target = $(".activeSource").find(".text").find(".he");
+		$target.html(stripNikkud($target.html()));
+		sjs.track.sheets("Remove Nikkudot");
+		autoSave();
+	});
+
+	$("#splitSourceToSegment").click(function() {
+		var $target = $(".activeSource").find(".text");
+		$($target.find(".segment")).replaceWith(function() { return '<p>'+$(this).html()+'</p>'; });
+		sjs.track.sheets("Auto Split Segments");
+		autoSave();
+	});
+
 	$("#addSourceTitle").click(function() {
 		var $target = $(".activeSource");
         var ref = normRef($target.attr("data-ref"));
@@ -664,7 +679,7 @@ $(function() {
 	if (sjs.can_edit || sjs.can_add ) {
 		CKEDITOR.disableAutoInline = true;
 		CKEDITOR.config.startupFocus = true;
-		CKEDITOR.config.extraAllowedContent = 'small; span(segment);div(oldComment)';
+		CKEDITOR.config.extraAllowedContent = 'small; span(segment, gemarra-regular, gemarra-italic, it-text); div(oldComment)';
 		CKEDITOR.config.removePlugins = 'magicline';
 
 		if ($.cookie("s2") == "true") {
@@ -789,14 +804,12 @@ $(function() {
 
 			editor.destroy();
 			$("[contenteditable]").attr("contenteditable", "false");
-
-
-		}
+		};
 
 		sjs.removeCKEditorByElement = function(el) {
 			var editor = $(el).ckeditorGet();
 			sjs.removeCKEditor({editor: editor});
-		}
+		};
 
 		sjs.initCKEditor = function(e) {
 			// Don't init again, or while sorting
@@ -816,7 +829,7 @@ $(function() {
 			$(".cke_editable").each(function() {
 				var ed = $(this).ckeditorGet();
 				sjs.removeCKEditor({editor: ed});
-			})
+			});
 
 			// Hide source controls
 			$(".sourceControlsOpen").removeClass("sourceControlsOpen");
@@ -835,7 +848,7 @@ $(function() {
 
 				});
 			}
-		var ed = $(this).ckeditorGet();
+		    var ed = $(this).ckeditorGet();
 
 			if (!$(this).hasClass('contentToAdd')) {
 
@@ -844,8 +857,6 @@ $(function() {
 					$("#lastSaved").text("Saving...");
 				});
 			}
-
-
 		};
 
 
@@ -875,6 +886,7 @@ $(function() {
 			$('.cke_editable').each(function() {
 				sjs.removeCKEditorByElement(this);
 			});
+
 		});
 	}
 
@@ -883,12 +895,12 @@ $(function() {
 		stopCkEditorContinuous();
 		var ckeSaveChain = function() {
 
-			if (editor.checkDirty() == true) {
+			if (editor.checkDirty() && !sjs.changesPending ) {
 				autoSave();
 				editor.resetDirty();
 			}
 			sjs.ckeSaveChain = setTimeout(ckeSaveChain , 10000)
-		}
+		};
 		sjs.ckeSaveChain = setTimeout(ckeSaveChain , 10000);
 	}
 
@@ -1230,10 +1242,10 @@ $(function() {
 						var categorySum = {}
 						for (var i = 0; i < data.commentary.length; i++) {
 							var c = data.commentary[i];
-							if (categorySum[c.commentator]) {
-								categorySum[c.commentator]++;
+							if (categorySum[c.collectiveTitle['en']]) {
+								categorySum[c.collectiveTitle['en']]++;
 							} else {
-								categorySum[c.commentator] = 1;
+								categorySum[c.collectiveTitle['en']] = 1;
 							}
 						}
 						var categories = [];
@@ -1254,7 +1266,7 @@ $(function() {
 
 							for (var i = 0; i < data.commentary.length; i++) {
 								var c = data.commentary[i];
-								if (categories[j] == c.commentator) {
+								if (categories[j] == c.collectiveTitle['en']) {
 									dataRefs = dataRefs + c.sourceRef + ";";
 									//continue;
 								}
@@ -1280,10 +1292,19 @@ $(function() {
 				}
 				$target.length == 0 ? buildSource($("#sources"), source, "append") : buildSource($target, source, "insert");
 				autoSave();
-				$(".contentToAdd").html('');
+				$("#addcommentDiv .contentToAdd").html('<br>');
 				$("#sheet").click();
 				//$target.next(".sheetItem").find(".comment").last().trigger("mouseup").focus();
 
+			});
+
+			$("#addcommentDiv .contentToAdd").keypress(function (e) {
+				if(isHebrew($(this).text()) && $(this).text().length > 0) {
+					$(this).addClass("he");
+				}
+				else {
+					$(this).removeClass("he");
+				}
 			});
 
 			$("#addmediaDiv").on("click", ".button", function (e) {
@@ -1353,7 +1374,8 @@ $(function() {
 				}
 				$target.length == 0 ? buildSource($("#sources"), source, "append") : buildSource($target, source, "insert");
 				autoSave();
-				$(".contentToAdd").html('');
+				$("#customTextContainer .contentToAdd.en").html('English');
+				$("#customTextContainer .contentToAdd.he").html('עברית');
 				$("#sheet").click();
 				//	$target.next(".sheetItem").find(".comment").last().trigger("mouseup").focus();
 
@@ -1379,12 +1401,15 @@ $(function() {
 				e.stopImmediatePropagation();
 			});
 
+
 			function cleanupActiveSource(target){
 				$(".inlineAddButtonIcon").removeClass("active");
 				$(".activeSource").removeClass("activeSource");
 				$("#sheetLayoutLanguageMenuItems").show();
 				$("#sourceLayoutLanguageMenuItems").hide();
 				$("#resetText").hide();
+				$("#removeNikkudot").hide();
+				$("#splitSourceToSegment").hide();
 				$("#addSourceTitle").hide();
 				if (!$(target).hasClass('inlineAddButtonIcon')) {
 					$(".inlineAddButtonIcon").last().click();
@@ -1397,52 +1422,91 @@ $(function() {
 				$("#sourceButton").click();
 			}
 
+			function setLanguageLayoutCheckBoxes(source) {
+				if (!$(source).hasClass("hebrew") && !$(source).hasClass("bilingual") && !$(source).hasClass("english")) {
+					if (sjs.current.options.language == "hebrew") {
+						$("#sourceLayoutLanguageMenuItems").find(".hebrew .fa-check").removeClass("hidden");
+					}
+					else if (sjs.current.options.language == "bilingual") {
+						$("#sourceLayoutLanguageMenuItems").find(".bilingual .fa-check").removeClass("hidden");
+						$("#sourceLayoutLanguageMenuItems").find("#layoutToggleGroup").removeClass("disabled");
+					}
+					else if (sjs.current.options.language == "english") {
+						$("#sourceLayoutLanguageMenuItems").find(".english .fa-check").removeClass("hidden");
+					}
+
+					if (sjs.current.options.layout == "stacked") {
+						$("#sourceLayoutLanguageMenuItems").find(".stacked .fa-check").removeClass("hidden")
+					}
+					else if (sjs.current.options.layout == "sideBySide") {
+						$("#sourceLayoutLanguageMenuItems").find(".sideBySide .fa-check").removeClass("hidden");
+						$("#sourceLayoutLanguageMenuItems").find("#sideBySideToggleGroup").removeClass("disabled");
+					}
+
+					if (sjs.current.options.langLayout == "heLeft") {
+						$("#sourceLayoutLanguageMenuItems").find(".heLeft .fa-check").removeClass("hidden")
+					}
+					else if (sjs.current.options.langLayout == "heRight") {
+						$("#sourceLayoutLanguageMenuItems").find(".heRight .fa-check").removeClass("hidden")
+					}
+				}
+
+				else {
+					if ($(source).hasClass("hebrew")) {
+						$("#sourceLayoutLanguageMenuItems").find(".hebrew .fa-check").removeClass("hidden");
+					}
+					else if ($(source).hasClass("bilingual")) {
+						$("#sourceLayoutLanguageMenuItems").find(".bilingual .fa-check").removeClass("hidden");
+						$("#sourceLayoutLanguageMenuItems").find("#layoutToggleGroup").removeClass("disabled");
+					}
+					else if ($(source).hasClass("english")) {
+						$("#sourceLayoutLanguageMenuItems").find(".english .fa-check").removeClass("hidden");
+					}
+
+					if ($(source).hasClass("stacked")) {
+						$("#sourceLayoutLanguageMenuItems").find(".stacked .fa-check").removeClass("hidden")
+					}
+					else if ($(source).hasClass("sideBySide")) {
+						$("#sourceLayoutLanguageMenuItems").find(".sideBySide .fa-check").removeClass("hidden");
+						$("#sourceLayoutLanguageMenuItems").find("#sideBySideToggleGroup").removeClass("disabled");
+					}
+
+					if ($(source).hasClass("heLeft")) {
+						$("#sourceLayoutLanguageMenuItems").find(".heLeft .fa-check").removeClass("hidden")
+					}
+					else if ($(source).hasClass("heRight")) {
+						$("#sourceLayoutLanguageMenuItems").find(".heRight .fa-check").removeClass("hidden")
+					}
+				}
+
+			}
+
 			$("#sheet").on("click", ".sheetItem", function (e) {
 			//clicked on a sheet item
 				if ($(e.target).hasClass("inlineAddButtonIcon")) return;
 				if (!$(".readerApp").hasClass("multiPanel")) return; //prevent active source on mobile
 
-			cleanupActiveSource(e.target);
-			$(this).addClass("activeSource");
-			$("#sheetLayoutLanguageMenuItems").hide();
-			$("#sourceLayoutLanguageMenuItems").show();
-			$("#resetText").show();
-			$("#addSourceTitle").show();
-			//$(this).hasClass("source") ? $("#connectionButton").css('display', 'inline-block') : $("#connectionButton").hide();
+				cleanupActiveSource(e.target);
+				$(this).addClass("activeSource");
+				$("#sheetLayoutLanguageMenuItems").hide();
+				$("#sourceLayoutLanguageMenuItems").show();
+				$("#resetText").show();
+				$("#addSourceTitle").show();
+				$("#removeNikkudot").show();
+				$("#splitSourceToSegment").show();
+				//$(this).hasClass("source") ? $("#connectionButton").css('display', 'inline-block') : $("#connectionButton").hide();
 
-			//set checkboxes for language/layout menus for active source
-			if ($(this).hasClass("hebrew")) {
-				$("#sourceLayoutLanguageMenuItems").find(".hebrew .fa-check").removeClass("hidden");
-			}
-			else if ( $(this).hasClass("bilingual") ) {
-			 $("#sourceLayoutLanguageMenuItems").find(".bilingual .fa-check").removeClass("hidden");
-			 $("#sourceLayoutLanguageMenuItems").find("#layoutToggleGroup").removeClass("disabled");
-			}
-			else if ( $(this).hasClass("english") ) {
-				$("#sourceLayoutLanguageMenuItems").find(".english .fa-check").removeClass("hidden");
-			}
+				//set checkboxes for language/layout menus for active source
+				setLanguageLayoutCheckBoxes(e.target);
 
-			if ($(this).hasClass("stacked")) {
-				$("#sourceLayoutLanguageMenuItems").find(".stacked .fa-check").removeClass("hidden")
-			}
-			else if ( $(this).hasClass("sideBySide") ) {
-				$("#sourceLayoutLanguageMenuItems").find(".sideBySide .fa-check").removeClass("hidden");
-			    $("#sourceLayoutLanguageMenuItems").find("#sideBySideToggleGroup").removeClass("disabled");
-			}
-
-			if ($(this).hasClass("heLeft")){
-				$("#sourceLayoutLanguageMenuItems").find(".heLeft .fa-check").removeClass("hidden")
-			}
-			else if ($(this).hasClass("heRight")){
-				$("#sourceLayoutLanguageMenuItems").find(".heRight .fa-check").removeClass("hidden")
-			}
-
-			if (!($(this).hasClass("source"))) {
-				$("#resetText").hide();
-				$("#addSourceTitle").hide();
-				$("#sourceLayoutLanguageMenuItems").hide();
-			}
-		});
+				if (!($(this).hasClass("source"))) {
+					$("#resetText").hide();
+					$("#addSourceTitle").hide();
+					$("#removeNikkudot").hide();
+					$("#splitSourceToSegment").hide();
+					$("#sourceLayoutLanguageMenuItems").hide();
+				}
+			});
 
 			$("#sheet").click();
 		}
@@ -1673,8 +1737,8 @@ $(function() {
 			changeSharing();
 			if ($(this).val()!="None") {
 				var groupUrl = $(this).val().replace(/ /g, "_");
-				$("#partnerLogo").attr("src", $("#sourceSheetGroupSelect option:selected").attr("data-image")).show()
-					.closest("a").attr("href", "/partners/" + groupUrl);
+				$("#groupLogo").attr("src", $("#sourceSheetGroupSelect option:selected").attr("data-image")).show()
+					.closest("a").attr("href", "/groups/" + groupUrl);
 				$("#sheetHeader").show();
 				$(".groupName").text($(this).val());
 			}
@@ -1922,8 +1986,8 @@ $(function() {
 
 	// Add All Connections 
     function SortBySourceRef(x,y) {
-		  if (x.commentator < y.commentator) return -1;
-		  if (x.commentator > y.commentator) return 1;
+		  if (x.collectiveTitle['en'] < y.collectiveTitle['en']) return -1;
+		  if (x.collectiveTitle['en'] > y.collectiveTitle['en']) return 1;
 		  if (x.anchorVerse < y.anchorVerse) return -1;
 		  if (x.anchorVerse > y.anchorVerse) return 1;
 		  if (x.commentaryNum < y.commentaryNum) return -1;
@@ -1955,10 +2019,10 @@ $(function() {
 				var categorySum = {}
 				for (var i = 0; i < data.commentary.length; i++) {
 					var c = data.commentary[i];
-					if (categorySum[c.commentator]) {
-						categorySum[c.commentator]++;
+					if (categorySum[c.collectiveTitle['en']]) {
+						categorySum[c.collectiveTitle['en']]++;
 					} else {
-						categorySum[c.commentator] = 1;
+						categorySum[c.collectiveTitle['en']] = 1;
 					}
 				}
 				var categories = [];
@@ -1978,7 +2042,7 @@ $(function() {
 					var count = 0;
 					for (var i = 0; i < data.commentary.length; i++) {
 						var c = data.commentary[i];
-						if ($.inArray(c.commentator, categoriesToAdd) == -1) {
+						if ($.inArray(c.collectiveTitle['en'], categoriesToAdd) == -1) {
 							continue;
 						}
 						var source = {
@@ -2063,6 +2127,42 @@ $(function() {
 			break;
 	}
 
+	// fix for touchscreens to access hover elements (in particular menubar)
+  $('*').on('touchstart', function () {
+		$(this).trigger('hover');
+	}).on('touchend', function () {
+		$(this).trigger('hover');
+	});
+
+// fix for menu/edit bar jumping on iOS when keyboard loads. A bit of a jerky effect but the best that seems possible now. There's definitely a way to optimize this more.
+if( navigator.userAgent.match(/iPhone|iPad|iPod/i) ) {
+	function updateSheetsEditNavTopPosOnScroll() {
+		$('.sheetsEditNavTop').css('marginTop', $(window).scrollTop()-54 + 'px');
+	}
+
+	$(document)
+		.on('focus', '.cke_editable_inline', function(e) {
+			// Position sheetsEditNavTop absolute and bump it down to the scrollPosition
+			$('.sheetsEditNavTop').css({
+				marginTop: $(window).scrollTop()-54 + 'px',
+			});
+			$(document).scroll(updateSheetsEditNavTopPosOnScroll);
+		})
+		.on('touchstart', '*:not(.cke_editable_inline)', function(e) {
+			if ($(".cke_editable").length == 0) {
+				$('.sheetsEditNavTop').css({
+					position: 'fixed',
+					top: '54px',
+					marginTop: 0
+				});
+				$(document).off('scroll', updateSheetsEditNavTopPosOnScroll);
+			}
+		});
+
+}
+
+
+
 }); // ------------------ End DOM Ready  ------------------
 
 
@@ -2119,7 +2219,7 @@ function addSource(q, source, appendOrInsert) {
 	var refLink = badRef == true ? "#" : "/"+makeRef(q).replace(/'/g, "&apos;");
 
 
-	var newsource = "<li " + attributionData + "data-ref='" + enRef.replace(/'/g, "&apos;") + "'" + " data-heRef='" + heRef.replace(/'/g, "&apos;") + "'" + " data-node='" + node + "'>" +"<div class='sourceNumber he'></div><div class='sourceNumber en'></div>" +"<div class='customTitle'></div>" +"<div class='he'>" + "<span class='title'>" +"<a class='he' href='" + refLink + "' target='_blank'><span class='ref'></span>" + heRef.replace(/\d+(\-\d+)?/g, "").replace(/([0-9][b|a]| ב| א):.+/,"$1") + " <span class='ui-icon ui-icon-extlink'></a>" + "</span>" +"<div class='text'>" +"<div class='he'>" + (source && source.text ? source.text.he : "") + "</div>" +"</div>" +"</div>" +"<div class='en'>" +"<span class='title'>" +"<a class='en' href='" + refLink + "' target='_blank'><span class='ref'>" + enRef.replace(/([0-9][b|a]| ב| א):.+/,"$1") + "</span> <span class='ui-icon ui-icon-extlink'></a>" +"</span>" +"<div class='text'>" +"<div class='en'>" + (source && source.text ? source.text.en : "") + "</div>" + "</div>" +"</div>" + "<div class='clear'></div>" + attributionLink + appendInlineAddButton() + "</li>";
+	var newsource = "<li " + attributionData + "data-ref='" + enRef.replace(/'/g, "&apos;") + "'" + " data-heRef='" + heRef.replace(/'/g, "&apos;") + "'" + " data-node='" + node + "'>" +"<div class='sourceNumber he'></div><div class='sourceNumber en'></div>" +"<div class='customTitle'></div>" +"<div class='he'>" + "<span class='title'>" +"<a class='he' href='" + refLink + "' target='_blank'><span class='ref'></span>" + heRef.replace(/\d+(\-\d+)?/g, "").replace(/([0-9][b|a]| ב| א):.+/,"$1") + " </a>" + "</span>" +"<div class='text'>" +"<div class='he'>" + (source && source.text ? source.text.he : "") + "</div>" +"</div>" +"</div>" +"<div class='en'>" +"<span class='title'>" +"<a class='en' href='" + refLink + "' target='_blank'><span class='ref'>" + enRef.replace(/([0-9][b|a]| ב| א):.+/,"$1") + "</span> </a>" +"</span>" +"<div class='text'>" +"<div class='en'>" + (source && source.text ? source.text.en : "") + "</div>" + "</div>" +"</div>" + "<div class='clear'></div>" + attributionLink + appendInlineAddButton() + "</li>";
 
 	if (appendOrInsert == "append") {
 		$("#sources").append(newsource);
@@ -2686,7 +2786,7 @@ function buildSheet(data){
 		$(".individualSharing").hide();
 		var groupUrl = data.group.replace(/ /g, "_");
 		var groupImage = $(".groupOption[data-group='"+ data.group + "']").attr("data-image"); 
-		$("#partnerLogo").attr("src", groupImage).show();
+		$("#groupLogo").attr("src", groupImage).show();
 		$("#sourceSheetGroupSelect").val(data.group);
 	} else {
 		$(".groupSharing").hide();
@@ -2757,7 +2857,7 @@ function buildSource($target, source, appendOrInsert) {
 
 					var commentHtml = "<div " + attributionData + " data-node='" + source.node + "'><span class='commentIcon'><i class='fa fa-comment-o fa'></i></span>" +
 						("userLink" in source ? "<div class='addedBy s2AddedBy'>" + source.userLink + "</div>" : "")	+
-						"<div class='comment " + (sjs.loading ? "" : "new") + "'>" + source.comment + "</div>"
+						"<div class='comment " + (isHebrew(source.comment) ? "he " : "") + (sjs.loading ? "" : "new") + " '>" + source.comment + "</div>"
 
 						  "</div>";
 
@@ -3064,7 +3164,13 @@ function pollForUpdates() {
 		if ("error" in data) {
 			sjs.alert.flash(data.error);
 		} else if (data.modified) {
-			rebuildUpdatedSheet(data);
+				if ($(".sheetItem").find(".cke_editable").length) {
+					sjs.changesPending = true;
+				  $("#lastSaved").text('Changes Pending...');
+				}
+				else {
+					rebuildUpdatedSheet(data);
+				}
 		}
 	})
 }
@@ -3073,6 +3179,7 @@ function pollForUpdates() {
 function startPolling() {
 	// Start a timer to poll server for changes to this sheet
 	stopPolling();
+	sjs.changesPending = false;
 	sjs.pollingStopped = false;
 	var pollChain = function() {
 		pollForUpdates();
@@ -3124,13 +3231,52 @@ function rebuildUpdatedSheet(data) {
 	}
 
 	sjs.alert.flash("Sheet updated.");
-	if ($(".cke_editable").length) {
+	if ($(".sheetItem").find(".cke_editable").length) {
 		// An editor is currently open -- save current changes as a lastEdit
 		sjs.saveLastEdit($(".cke_editable").eq(0));
 	}
+	var topMostVisibleSheetItem = null;
+	var relativeScrollTop = null;
+
+	$(".sheetItem").each(function( ){
+		if ( $('body').scrollTop() < $(this).offset().top + $(this).height() ) {
+			topMostVisibleSheetItem = $(this).attr('data-node');
+			relativeScrollTop = $(this).offset().top + $(this).height()-$('body').scrollTop();
+			return false;
+		}
+	});
+
+	if (sjs.can_edit || sjs.can_add) {
+		$("#addInterface").insertAfter($("#sources"));
+		var lastSelectedInterfaceButton = $(".addInterfaceButton.active"); //ensures that add interface remains on the same screen it was previously during a rebuild. So that text in progress can still be added....
+	}
+
 
 	buildSheet(data);
 	sjs.replayLastEdit();
+
+	if (topMostVisibleSheetItem == null) {
+		curTextLocation = $("#sourceButton").offset().top - 200
+	} else {
+		curTextLocation = $("[data-node='"+topMostVisibleSheetItem+"']").offset().top  + $("[data-node='"+topMostVisibleSheetItem+"']").height() - relativeScrollTop;
+	}
+
+	$("html, body").scrollTop(curTextLocation);
+
+
+	if (sjs.can_edit || sjs.can_add) {
+		$(".sheetItem").on("click", ".inlineAddButtonIcon", function(e) {
+			$("#addInterface").insertAfter($(this).parent().closest(".sheetItem"));
+			$(this).parent().closest(".sheetItem").hasClass("source") ? $("#connectionButton").css('display', 'inline-block') : $("#connectionButton").hide();
+		});
+	}
+
+	if (sjs.can_edit || sjs.can_add) {
+		$("[data-node='" + topMostVisibleSheetItem + "'] .inlineAddButtonIcon").click();
+		lastSelectedInterfaceButton.click();
+	}
+
+	sjs.changesPending = false;
 }
 
 
@@ -3307,7 +3453,7 @@ function deleteSheet() {
 
 // Regexes for identifying divine names with or without nikkud / trop
 // Currently ignores אֵל & צְבָאוֹת & שדי
-sjs.divineRE  = /([\s.,\u05BE;:'"\-]|^)([משהוכלב]?[\u0591-\u05C7]*)(י[\u0591-\u05C7]*ה[\u0591-\u05C7]*ו[\u0591-\u05C7]*ה[\u0591-\u05C7]*|יי|יקוק|ה\')(?=[\s.,;:'"\-]|$)/g;
+sjs.divineRE  = /([\s.,\u05BE;:'"\-]|^)([משהוכלב]?[\u0591-\u05C7]*)(י[\u0591-\u05C7]*ה[\u0591-\u05C7]*ו[\u0591-\u05C7]*ה[\u0591-\u05C7]*|יְיָ|יי|יקוק|ה\')(?=[\s.,;:'"\-]|$)/g;
 
 sjs.adoshemRE = /([\s.,\u05BE;:'"\-]|^)([משהוכלב]?[\u0591-\u05C7]*)(א[\u0591-\u05C7]*ד[\u0591-\u05C7]*נ[\u0591-\u05C7]*י[\u0591-\u05C7]*|אדושם)(?=[\s.,;:'"\-]|$)/g;
 

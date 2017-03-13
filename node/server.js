@@ -22,11 +22,11 @@ var log = settings.DEBUG ? console.log : function() {};
 
 var renderReaderApp = function(props, data, timer) {
   // Returns HTML of ReaderApp component given `props` and `data`
-  if ("recentlyViewed" in props) {
-    data.recentlyViewed = props.recentlyViewed;
-  }
-  data.path     = props.path;
-  data.loggedIn = props.loggedIn;
+  data.path           = props.path;
+  data.loggedIn       = props.loggedIn;
+  data._uid     = props._uid;
+  data.recentlyViewed = props.recentlyViewed;
+
   SefariaReact.setData(data);
   SefariaReact.unpackDataFromProps(props);
   log("Time to set data: %dms", timer.elapsed());
@@ -60,6 +60,11 @@ server.post('/ReaderApp/:cachekey', function(req, res) {
       res.end("There was an error accessing /data.js.");
     }
   });
+});
+
+server.post('/Footer/:cachekey', function(req, res) {
+  var html  = ReactDOMServer.renderToStaticMarkup(React.createElement(SefariaReact.Footer));
+  res.send(html);
 });
 
 server.listen(settings.PORT, function() {

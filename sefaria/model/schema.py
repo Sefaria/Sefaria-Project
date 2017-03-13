@@ -26,14 +26,37 @@ from sefaria.utils.hebrew import decode_hebrew_numeral, encode_hebrew_numeral, e
 
 class TitleGroup(object):
     """
-    A collection of titles.  Used for titles of SchemaNodes, for Maps, and for Terms
+    A collection of titles.  Used for titles of SchemaNodes and for Terms
     """
+    langs = ["en", "he"]
+    required_attrs = [
+        "lang",
+        "text"
+    ]
+    optional_attrs = [
+        "primary",
+        "presentation"
+    ]
 
     def __init__(self, serial=None):
         self.titles = []
         self._primary_title = {}
         if serial:
             self.load(serial)
+
+    def validate(self):
+        for lang in self.langs:
+            if not self.primary_title(lang):
+                raise InputError("Title Group must have a {} primary title".format(lang))
+        for title in self.titles:
+            if not set(title.keys()) == set(self.required_attrs) and not set(title.keys()) <= set(self.required_attrs+self.optional_attrs):
+                raise InputError("Title Group titles must only contain the following keys: {}".format(self.required_attrs+self.optional_attrs))
+        if '-' in self.primary_title("en"):
+            raise InputError("Primary English title may not contain hyphens.")
+        if not all(ord(c) < 128 for c in self.primary_title("en")):
+            raise InputError("Primary English title may not contain non-ascii characters")
+
+
 
     def load(self, serial=None):
         if serial:
@@ -147,14 +170,18 @@ class Term(abst.AbstractMongoRecord):
 
     def _validate(self):
         super(Term, self)._validate()
-        if any((c in '-') for c in self.title_group.primary_title("en")):
-            raise InputError("Primary English title may not contain hyphens.")
+        if self.name != self.get_primary_title():
+            raise InputError("Term name does not match primary title")
+        self.title_group.validate()
 
     def _normalize(self):
         self.titles = self.title_group.titles
 
     def get_titles(self, lang=None):
         return self.title_group.all_titles(lang)
+
+    def get_primary_title(self, lang='en'):
+        return self.title_group.primary_title(lang)
 
 
 class TermSet(abst.AbstractMongoSet):
@@ -164,7 +191,7 @@ class TermSet(abst.AbstractMongoSet):
 class TermScheme(abst.AbstractMongoRecord):
     """
     A TermScheme is a category of terms.
-    Example: Parsha, Perek
+    Example: Parasha, Perek
     """
     collection = 'term_scheme'
     track_pkeys = True
@@ -350,7 +377,11 @@ class TreeNode(object):
     def prev_leaf(self):
         return self._prev_in_list(self.root().get_leaf_nodes())
 
-    # todo: replace with `not self.parent` for speed
+    def ancestors(self):
+        if not self.parent:
+            return []
+        return self.parent.ancestors() + [self.parent]
+
     def is_root(self):
         return not self.parent
 
@@ -360,6 +391,17 @@ class TreeNode(object):
         :return bool:
         """
         return not self.parent and not self.children
+
+    def traverse_tree(self, callback, **kwargs):
+        """
+        Traverse tree, invoking callback at each node, with kwargs as arguments
+        :param callback:
+        :param kwargs:
+        :return:
+        """
+        callback(self, **kwargs)
+        for child in self.children:
+            child.traverse_to_string(callback, **kwargs)
 
     def traverse_to_string(self, callback, depth=0, **kwargs):
         st = callback(self, depth, **kwargs)
@@ -371,6 +413,12 @@ class TreeNode(object):
         if self.children:
             js["nodes"] = [child.traverse_to_json(callback, depth + 1, **kwargs) for child in self.children]
         return js
+
+    def traverse_to_list(self, callback, depth=0, **kwargs):
+        listy = callback(self, depth, **kwargs)
+        if self.children:
+            listy += reduce(lambda a, b: a + b, [child.traverse_to_list(callback, depth + 1, **kwargs) for child in self.children], [])
+        return listy
 
     def serialize(self, **kwargs):
         d = {}
@@ -511,9 +559,9 @@ class TitledTreeNode(TreeNode):
         """
         if not self._full_title.get(lang) or force_update:
             if self.is_default():
-                self._full_title[lang] = self.parent.full_title(lang)
+                self._full_title[lang] = self.parent.full_title(lang, force_update)
             elif self.parent:
-                self._full_title[lang] = self.parent.full_title(lang) + ", " + self.primary_title(lang)
+                self._full_title[lang] = self.parent.full_title(lang, force_update) + ", " + self.primary_title(lang)
             else:
                 self._full_title[lang] = self.primary_title(lang)
         return self._full_title[lang]
@@ -593,26 +641,30 @@ class TitledTreeNode(TreeNode):
         self.sharedTitle = term
         self._process_terms()
 
+    def add_primary_titles(self, en_title, he_title):
+        self.add_title(en_title, 'en', primary=True)
+        self.add_title(he_title, 'he', primary=True)
+
     def validate(self):
         super(TitledTreeNode, self).validate()
 
-        if '-' in self.title_group.primary_title("en"):
-            raise InputError("Primary English title may not contain hyphens.")
-
         if not self.default and not self.sharedTitle and not self.get_titles():
-            raise IndexSchemaError("Schema node {} must have titles, a shared title node, or be default".format(self))
+            raise IndexSchemaError(u"Schema node {} must have titles, a shared title node, or be default".format(self))
 
         if self.default and (self.get_titles() or self.sharedTitle):
-            raise IndexSchemaError("Schema node {} - default nodes can not have titles".format(self))
+            raise IndexSchemaError(u"Schema node {} - default nodes can not have titles".format(self))
 
-        if not self.default and not self.primary_title("en"):
-            raise IndexSchemaError("Schema node {} missing primary English title".format(self))
+        if not self.default:
+            try:
+                self.title_group.validate()
+            except InputError as e:
+                raise IndexSchemaError(u"Schema node {} has invalid titles: {}".format(self, e))
 
         if self.children and len([c for c in self.children if c.default]) > 1:
-            raise IndexSchemaError("Schema Structure Node {} has more than one default child.".format(self.key))
+            raise IndexSchemaError(u"Schema Structure Node {} has more than one default child.".format(self.key))
 
         if self.sharedTitle and Term().load({"name": self.sharedTitle}).titles != self.get_titles():
-            raise IndexSchemaError("Schema node {} with sharedTitle can not have explicit titles".format(self))
+            raise IndexSchemaError(u"Schema node {} with sharedTitle can not have explicit titles".format(self))
 
         #if not self.default and not self.primary_title("he"):
         #    raise IndexSchemaError("Schema node {} missing primary Hebrew title".format(self.key))
@@ -640,9 +692,9 @@ class TitledTreeNode(TreeNode):
 
 
 """
-                ---------------------------------------
-                 Alternate Structure Tree Nodes (maps)
-                ---------------------------------------
+                --------------------------------
+                 Alternate Structure Tree Nodes
+                --------------------------------
 """
 
 
@@ -688,6 +740,10 @@ class NumberedTitledTreeNode(TitledTreeNode):
         for p in ["addressTypes", "sectionNames"]:
             if len(getattr(self, p)) != self.depth:
                 raise IndexSchemaError("Parameter {} in {} {} does not have depth {}".format(p, self.__class__.__name__, self.key, self.depth))
+
+        for sec in getattr(self, 'sectionNames', []):
+            if any((c in '.-\\/') for c in sec):
+                raise InputError("Text Structure names may not contain periods, hyphens or slashes.")
 
     def address_class(self, depth):
         return self._addressTypes[depth]
@@ -781,6 +837,14 @@ class NumberedTitledTreeNode(TitledTreeNode):
 
         return ret
 
+    def add_structure(self, section_names, address_types=None):
+        self.depth = len(section_names)
+        self.sectionNames = section_names
+        if address_types is None:
+            self.addressTypes = ['Integer'] * len(section_names)
+        else:
+            self.addressTypes = address_types
+
     def serialize(self, **kwargs):
         d = super(NumberedTitledTreeNode, self).serialize(**kwargs)
         if kwargs.get("translate_sections"):
@@ -807,26 +871,27 @@ class ArrayMapNode(NumberedTitledTreeNode):
         d = super(ArrayMapNode, self).serialize(**kwargs)
         if kwargs.get("expand_refs"):
             if getattr(self, "includeSections", None):
+                # We assume that with "includeSections", we're going from depth 0 to depth 1, and expanding "wholeRef"
                 from . import text
 
                 refs         = text.Ref(self.wholeRef).split_spanning_ref()
                 first, last  = refs[0], refs[-1]
                 offset       = first.sections[-2]-1 if first.is_segment_level() else first.sections[-1]-1
-                depth        = len(first.index_node.sectionNames) - len(first.section_ref().sections)
 
                 d["refs"] = [r.normal() for r in refs]
-                d["addressTypes"] = d.get("addressTypes", []) + first.index_node.addressTypes[depth:]
-                d["sectionNames"] = d.get("sectionNames", []) + first.index_node.sectionNames[depth:]
+                d["addressTypes"] = first.index_node.addressTypes[-2:-1]
+                d["sectionNames"] = first.index_node.sectionNames[-2:-1]
                 d["depth"] += 1
                 d["offset"] = offset
 
-            d["wholeRefPreview"] = self.expand_ref(self.wholeRef, kwargs.get("he_text_ja"), kwargs.get("en_text_ja"))
-            if d.get("refs"):
-                d["refsPreview"] = []
-                for r in d["refs"]:
-                    d["refsPreview"].append(self.expand_ref(r, kwargs.get("he_text_ja"), kwargs.get("en_text_ja")))
-            else:
-                d["refsPreview"] = None
+            if (kwargs.get("include_previews", False)):
+                d["wholeRefPreview"] = self.expand_ref(self.wholeRef, kwargs.get("he_text_ja"), kwargs.get("en_text_ja"))
+                if d.get("refs"):
+                    d["refsPreview"] = []
+                    for r in d["refs"]:
+                        d["refsPreview"].append(self.expand_ref(r, kwargs.get("he_text_ja"), kwargs.get("en_text_ja")))
+                else:
+                    d["refsPreview"] = None
         return d
 
     # Move this over to Ref and cache it?
@@ -895,6 +960,9 @@ class SchemaNode(TitledTreeNode):
     def validate(self):
         super(SchemaNode, self).validate()
 
+        if not all(ord(c) < 128 for c in self.title_group.primary_title("en")):
+            raise InputError("Primary English title may not contain non-ascii characters")
+
         if not getattr(self, "key", None):
             raise IndexSchemaError("Schema node missing key")
 
@@ -917,6 +985,12 @@ class SchemaNode(TitledTreeNode):
 
     def create_skeleton(self):
         return self.create_content(lambda n: [])
+
+    def add_primary_titles(self, en_title, he_title, key_as_title=True):
+        self.add_title(en_title, 'en', primary=True)
+        self.add_title(he_title, 'he', primary=True)
+        if key_as_title:
+            self.key = en_title
 
     def visit_content(self, callback, *contents, **kwargs):
         """
@@ -1011,7 +1085,7 @@ class SchemaNode(TitledTreeNode):
         d = {
             "index": self.index,
             "book": self.full_title("en"),
-            "type": self.index.categories[0],
+            "primary_category": self.index.get_primary_category(),
             "index_node": self,
             "sections": [],
             "toSections": []
@@ -1037,6 +1111,38 @@ class SchemaNode(TitledTreeNode):
         d["sections"] = sections
         d["toSections"] = sections
         return text.Ref(_obj=d)
+
+    def text_index_map(self, tokenizer=lambda x: re.split(u'\s+',x), strict=True, lang='he', vtitle=None):
+        """
+        See TextChunk.text_index_map
+        :param tokenizer:
+        :param strict:
+        :param lang:
+        :return:
+        """
+        def traverse(node, callback, offset=0):
+            index_list, ref_list, temp_offset = callback(node)
+            if node.children:
+                for child in node.children:
+                    temp_index_list, temp_ref_list, temp_offset = traverse(child, callback, offset)
+                    index_list += temp_index_list
+                    ref_list += temp_ref_list
+                    offset = temp_offset
+            else:
+                index_list = [i + offset for i in index_list]
+                offset += temp_offset
+            return index_list, ref_list, offset
+
+
+        def callback(node):
+            if not node.children:
+                index_list, ref_list, total_len = node.ref().text(lang=lang, vtitle=vtitle).text_index_map(tokenizer,strict=strict)
+                return index_list, ref_list, total_len
+            else:
+                return [],[], 0
+
+        index_list, ref_list, _ = traverse(self, callback)
+        return index_list, ref_list
 
     def __eq__(self, other):
         return self.address() == other.address()
@@ -1193,6 +1299,9 @@ class AddressType(object):
             punctuation = kwargs.get("punctuation", True)
             return encode_hebrew_numeral(i, punctuation=punctuation)
 
+    def storage_offset(self):
+        return 0
+
 
 class AddressTalmud(AddressType):
     """
@@ -1293,6 +1402,9 @@ class AddressTalmud(AddressType):
         else: #shouldn't get here
             return {name: number}
 
+    def storage_offset(self):
+        return 2
+
 
 class AddressInteger(AddressType):
     """
@@ -1333,7 +1445,7 @@ class AddressAliyah(AddressInteger):
 
 class AddressPerek(AddressInteger):
     section_patterns = {
-        "en": ur"""(?:(?:Chapter|chapter|Perek|perek)?\s*)""",  #  the internal ? is a hack to allow an non match, even if 'strict'
+        "en": ur"""(?:(?:Chapter|chapter|Perek|perek)?\s*)""",  #  the internal ? is a hack to allow a non match, even if 'strict'
         "he": ur"""(?:
             \u05e4(?:"|\u05f4|'')?                  # Peh (for 'perek') maybe followed by a quote of some sort
             |\u05e4\u05e8\u05e7\s*                  # or 'perek' spelled out, followed by space
@@ -1348,4 +1460,20 @@ class AddressMishnah(AddressInteger):
             (?:\u05de\u05e9\u05e0\u05d4\s)			# Mishna spelled out, with a space after
             |(?:\u05de(?:"|\u05f4|'')?)				# or Mem (for 'mishna') maybe followed by a quote of some sort
         )"""
+    }
+
+
+class AddressVolume(AddressInteger):
+    """
+    :class:`AddressType` for Volume/חלק addresses
+    """
+
+    section_patterns = {
+        "en": ur"""(?:(?:Volume|volume)?\s*)""",  #  the internal ? is a hack to allow a non match, even if 'strict'
+        "he": ur"""
+        (?:
+          (?:\u05d7(?:\u05dc\u05e7|'|\u05f3)\s+)  # Helek - spelled out or followed by a ' or a geresh - followed by space
+         |(?:\u05d7["\u05f4])                     # chet followed by gershayim or double quote
+        )
+        """
     }

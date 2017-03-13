@@ -96,7 +96,7 @@ class VersionState(abst.AbstractMongoRecord, AbstractSchemaContent):
     def __init__(self, index=None, attrs=None, proj=None):
         """
         :param index: Index record or name of Index
-        :type index: text.Index|text.CommentaryIndex|string
+        :type index: text.Index|string
         :return:
         """
         super(VersionState, self).__init__(attrs)
@@ -262,7 +262,7 @@ class VersionState(abst.AbstractMongoRecord, AbstractSchemaContent):
                 current[lkey]['sparseness'] = 4
 
             # If it's a commentary, it might have many empty places, so just consider bulk amount of text
-            elif (snode.index.is_commentary()
+            elif (snode.index.versions_are_sparse()
                   and len(current[lkey]["availableCounts"])
                   and current[lkey]["availableCounts"][-1] >= 300):
                 current[lkey]['sparseness'] = 2
@@ -376,7 +376,7 @@ class StateNode(object):
         if title:
             snode = library.get_schema_node(title)
             if not snode:
-                snode = library.get_schema_node(title, with_commentary=True)
+                snode = library.get_schema_node(title)
             if not snode:
                 raise InputError(u"Can not resolve name: {}".format(title))
             if snode.is_default():
@@ -479,13 +479,7 @@ def refresh_all_states():
     for index in indices:
         logger.debug(u"Rebuilding state for {}".format(index.title))
         try:
-            if index.is_commentary():
-                c_re = "^{} on ".format(index.title)
-                texts = VersionSet({"title": {"$regex": c_re}}).distinct("title")
-                for text in texts:
-                    VersionState(text).refresh()
-            else:
-                VersionState(index).refresh()
+            VersionState(index).refresh()
         except Exception as e:
             logger.warning(u"Got exception rebuilding state for {}: {}".format(index.title, e))
 
@@ -496,23 +490,10 @@ def process_index_delete_in_version_state(indx, **kwargs):
     from sefaria.system.database import db
     db.vstate.remove({"title": indx.title})
 
-
 def process_index_title_change_in_version_state(indx, **kwargs):
-
     VersionStateSet({"title": kwargs["old"]}).update({"title": kwargs["new"]})
-    if indx.is_commentary():  # and "commentaryBook" not in d:  # looks useless
-        commentator_re = "^(%s) on " % kwargs["old"]
-    else:
-        commentators = text.library.get_commentary_version_titles_on_book(kwargs["old"], with_commentary2=True)
-        commentator_re = r"^({}) on {}$".format("|".join(commentators), kwargs["old"])
-    old_titles = VersionStateSet({"title": {"$regex": commentator_re}}).distinct("title")
-    old_new = [(title, title.replace(kwargs["old"], kwargs["new"], 1)) for title in old_titles]
-    for pair in old_new:
-        VersionStateSet({"title": pair[0]}).update({"title": pair[1]})
 
 
 def create_version_state_on_index_creation(indx, **kwargs):
-    if indx.is_commentary():
-        return
     # If it's already there, this should be harmless
     VersionState(indx.title).save()
