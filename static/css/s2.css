@@ -3324,6 +3324,7 @@ h2.splitHeader .he {
 .groupListingImage {
   height: 100%;
   width: 100%;
+  object-fit: cover;
 }
 .groupListingImage.default {
   width: 80%;
