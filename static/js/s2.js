@@ -5713,6 +5713,7 @@ var GroupPage = React.createClass({
             return React.createElement(GroupMemberListing, {
               member: member,
               isAdmin: isAdmin,
+              isSelf: member.uid == Sefaria._uid,
               groupName: this.props.group,
               onDataChange: this.onDataLoad });
           }.bind(this))
@@ -5811,6 +5812,7 @@ var GroupMemberListing = React.createClass({
   propTypes: {
     member: React.PropTypes.object.isRequired,
     isAdmin: React.PropTypes.bool,
+    isSelf: React.PropTypes.bool,
     groupName: React.PropTypes.string,
     onDataChange: React.PropTypes.func
   },
@@ -5836,7 +5838,12 @@ var GroupMemberListing = React.createClass({
           { className: 'groupMemberListingRole' },
           this.props.member.role
         ),
-        this.props.isAdmin ? React.createElement(GroupMemberListingActions, { member: this.props.member, groupName: this.props.groupName, onDataChange: this.props.onDataChange }) : null
+        this.props.isAdmin || this.props.isSelf ? React.createElement(GroupMemberListingActions, {
+          member: this.props.member,
+          groupName: this.props.groupName,
+          isAdmin: this.props.isAdmin,
+          isSelf: this.props.isSelf,
+          onDataChange: this.props.onDataChange }) : null
       )
     );
   }
@@ -5848,7 +5855,8 @@ var GroupMemberListingActions = React.createClass({
   propTypes: {
     member: React.PropTypes.object.isRequired,
     groupName: React.PropTypes.string.isRequired,
-    forSelf: React.PropTypes.bool,
+    isAdmin: React.PropTypes.bool,
+    isSelf: React.PropTypes.bool,
     onDataChange: React.PropTypes.func.isRequired
   },
   getInitialState: function getInitialState() {
@@ -5860,6 +5868,12 @@ var GroupMemberListingActions = React.createClass({
     this.setState({ menuOpen: !this.state.menuOpen });
   },
   setRole: function setRole(role) {
+    if (this.props.isSelf && this.props.isAdmin && role !== "admin") {
+      if (!confirm("Are you want to change your group role? You won't be able to undo this action unless another admin restores your permissions.")) {
+        return;
+      }
+    }
+
     $.post("/api/groups/" + this.props.groupName + "/set-role/" + this.props.member.uid + "/" + role, function (data) {
       if ("error" in data) {
         alert(data.error);
@@ -5870,7 +5884,9 @@ var GroupMemberListingActions = React.createClass({
     }.bind(this));
   },
   removeMember: function removeMember() {
-    if (confirm("Are you sure you want to remove " + this.props.member.name + " from this group?")) {
+    var message = this.props.isSelf ? "Are you sure you want to leave this group?" : "Are you sure you want to remove " + this.props.member.name + " from this group?";
+
+    if (confirm(message)) {
       this.setRole("remove");
     }
   },
@@ -5886,7 +5902,7 @@ var GroupMemberListingActions = React.createClass({
       this.state.menuOpen ? React.createElement(
         'div',
         { className: 'groupMemberListingActionsMenu' },
-        React.createElement(
+        this.props.isAdmin ? React.createElement(
           'div',
           { className: 'action', onClick: this.setRole.bind(this, "admin") },
           React.createElement(
@@ -5895,8 +5911,8 @@ var GroupMemberListingActions = React.createClass({
             'Admin'
           ),
           '- can invite & edit settings'
-        ),
-        React.createElement(
+        ) : null,
+        this.props.isAdmin ? React.createElement(
           'div',
           { className: 'action', onClick: this.setRole.bind(this, "publisher") },
           React.createElement(
@@ -5905,8 +5921,8 @@ var GroupMemberListingActions = React.createClass({
             'Publisher'
           ),
           '- can publish'
-        ),
-        React.createElement(
+        ) : null,
+        this.props.isAdmin ? React.createElement(
           'div',
           { className: 'action', onClick: this.setRole.bind(this, "member") },
           React.createElement(
@@ -5915,14 +5931,14 @@ var GroupMemberListingActions = React.createClass({
             'Member'
           ),
           '- can view & share within group'
-        ),
+        ) : null,
         React.createElement(
           'div',
           { className: 'action', onClick: this.removeMember },
           React.createElement(
             'span',
             { className: 'role' },
-            'Remove'
+            this.props.isSelf ? "Leave Group" : "Remove"
           )
         )
       ) : null

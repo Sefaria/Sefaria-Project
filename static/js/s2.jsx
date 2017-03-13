@@ -4559,6 +4559,7 @@ var GroupPage = React.createClass({
                       return <GroupMemberListing 
                                 member={member}
                                 isAdmin={isAdmin}
+                                isSelf={member.uid == Sefaria._uid}
                                 groupName={this.props.group}
                                 onDataChange={this.onDataLoad} />;
                      }.bind(this)) }
@@ -4624,11 +4625,11 @@ var GroupInvitationBox = React.createClass({
 });
 
 
-
 var GroupMemberListing = React.createClass({
   propTypes: {
     member:       React.PropTypes.object.isRequired,
     isAdmin:      React.PropTypes.bool,
+    isSelf:       React.PropTypes.bool,
     groupName:    React.PropTypes.string,
     onDataChange: React.PropTypes.func,
   },
@@ -4645,8 +4646,13 @@ var GroupMemberListing = React.createClass({
 
         <div className="groupMemberListingRoleBox">
           <span className="groupMemberListingRole">{this.props.member.role}</span>
-          {this.props.isAdmin ? 
-            <GroupMemberListingActions member={this.props.member} groupName={this.props.groupName} onDataChange={this.props.onDataChange} />
+          {this.props.isAdmin || this.props.isSelf ? 
+            <GroupMemberListingActions 
+              member={this.props.member}
+              groupName={this.props.groupName}
+              isAdmin={this.props.isAdmin}
+              isSelf={this.props.isSelf}
+              onDataChange={this.props.onDataChange} />
             : null }
         </div>
 
@@ -4659,7 +4665,8 @@ var GroupMemberListingActions = React.createClass({
   propTypes: {
     member:       React.PropTypes.object.isRequired,
     groupName:    React.PropTypes.string.isRequired,
-    forSelf:      React.PropTypes.bool,
+    isAdmin:      React.PropTypes.bool,
+    isSelf:       React.PropTypes.bool,
     onDataChange: React.PropTypes.func.isRequired
   },
   getInitialState: function() {
@@ -4671,6 +4678,12 @@ var GroupMemberListingActions = React.createClass({
     this.setState({menuOpen: !this.state.menuOpen});
   },
   setRole: function(role) {
+    if (this.props.isSelf && this.props.isAdmin && role !== "admin") {
+      if (!confirm("Are you want to change your group role? You won't be able to undo this action unless another admin restores your permissions.")) {
+        return;
+      }
+    }
+
     $.post("/api/groups/" + this.props.groupName + "/set-role/" + this.props.member.uid + "/" + role, function(data) {
       if ("error" in data) {
         alert(data.error)
@@ -4681,7 +4694,11 @@ var GroupMemberListingActions = React.createClass({
     }.bind(this));
   },
   removeMember: function() {
-    if (confirm("Are you sure you want to remove " + this.props.member.name + " from this group?")) {
+    var message = this.props.isSelf ?
+      "Are you sure you want to leave this group?" :
+      "Are you sure you want to remove " + this.props.member.name + " from this group?";
+
+    if (confirm(message)) {
       this.setRole("remove");
     }
   },
@@ -4693,20 +4710,26 @@ var GroupMemberListingActions = React.createClass({
         </div>        
         {this.state.menuOpen ? 
           <div className="groupMemberListingActionsMenu">
-            <div className="action" onClick={this.setRole.bind(this, "admin")}>
-              <span className={classNames({role: 1, current: this.props.member.role == "Admin"})}>Admin</span>
-              - can invite & edit settings
-            </div>
-            <div className="action" onClick={this.setRole.bind(this, "publisher")}>
-              <span className={classNames({role: 1, current: this.props.member.role == "Publisher"})}>Publisher</span>
-              - can publish
-            </div>
-            <div className="action" onClick={this.setRole.bind(this, "member")}>
-              <span className={classNames({role: 1, current: this.props.member.role == "Member"})}>Member</span>
-              - can view & share within group
-            </div>
+            {this.props.isAdmin ? 
+              <div className="action" onClick={this.setRole.bind(this, "admin")}>
+                <span className={classNames({role: 1, current: this.props.member.role == "Admin"})}>Admin</span>
+                - can invite & edit settings
+              </div>
+              : null }
+            {this.props.isAdmin ? 
+              <div className="action" onClick={this.setRole.bind(this, "publisher")}>
+                <span className={classNames({role: 1, current: this.props.member.role == "Publisher"})}>Publisher</span>
+                - can publish
+              </div>
+              : null }
+            {this.props.isAdmin ? 
+              <div className="action" onClick={this.setRole.bind(this, "member")}>
+                <span className={classNames({role: 1, current: this.props.member.role == "Member"})}>Member</span>
+                - can view & share within group
+              </div>
+              : null}
             <div className="action" onClick={this.removeMember}>
-              <span className="role">Remove</span>
+              <span className="role">{this.props.isSelf ? "Leave Group" : "Remove"}</span>
             </div>
           </div>
         : null }

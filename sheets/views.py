@@ -535,14 +535,17 @@ def groups_role_api(request, group_name, uid, role):
 	group = Group().load({"name": group_name})
 	if not group:
 		return jsonResponse({"error": "No group named %s." % group_name})
-	if request.user.id not in group.admins:
-		return jsonResponse({"error": "You must be a group admin to change member roles."})
 	uid = int(uid)
+	if request.user.id not in group.admins:
+		if not (uid == request.user.id and role == "remove"): # non admins can remove themselves
+			return jsonResponse({"error": "You must be a group admin to change member roles."})
 	user = UserProfile(uid)
 	if not user.exists():
 		return jsonResponse({"error": "No user with the specified ID exists."})
 	if role not in ("member", "publisher", "admin", "remove"):
 		return jsonResponse({"error": "Unknown group member role."})
+	if uid == request.user.id and group.admins == [request.user.id] and role != "admin":
+		return jsonResponse({"error": "This action would leave the group without any admins. Please appoint another admin first."})
 	if role == "remove":
 		group.remove_member(uid)
 	else:
