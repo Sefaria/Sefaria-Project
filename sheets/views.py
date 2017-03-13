@@ -480,18 +480,16 @@ def groups_api(request, group=None):
 		group_content = group.contents(with_content=True, authenticated=is_member)
 		return jsonResponse(group_content)
 	else:
-		return groups_post_api(request)
+		return groups_post_api(request, group_name=group)
 
 
 @login_required
-def groups_post_api(request):
-	j = request.POST.get("json")
-	if not j:
-		return jsonResponse({"error": "No JSON given in post data."})
-	group = json.loads(j)
-	from pprint import pprint
-	pprint(group)
+def groups_post_api(request, group_name=None):
 	if request.method == "POST":
+		j = request.POST.get("json")
+		if not j:
+			return jsonResponse({"error": "No JSON given in post data."})
+		group = json.loads(j)
 		existing = Group().load({"name": group.get("previousName", group["name"])})
 		if existing:
 			# Don't overwrite existing group when posting to create a new group
@@ -511,14 +509,17 @@ def groups_post_api(request):
 		return jsonResponse({"status": "ok"})
 
 	elif request.method == "DELETE":
-		existing = Group().load({"name": group.get("previousName", group["name"])})
+		if not group_name:
+			return jsonResponse({"error": "Please specify a group name in the URL."})
+		existing = Group().load({"name": group_name})
 		if existing:
 			if request.user.id not in existing.admins:
-				return jsonResponse({"error": "You do not have permission to edit this group."})
+				return jsonResponse({"error": "You do not have permission to delete this group."})
 			else:
-				GroupSet({"name": group["name"]}).delete()
+				GroupSet({"name": group_name}).delete()
+				return jsonResponse({"status": "ok"})
 		else:
-			return jsonResponse({"error": "Group named %s does not exist" % group["name"]})
+			return jsonResponse({"error": "Group named %s does not exist" % group_name})
 
 	else:
 		return jsonResponse({"error": "Unsupported HTTP method."})

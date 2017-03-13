@@ -112,6 +112,13 @@ def process_group_name_change_in_sheets(group, **kwargs):
     When a group's name changes, update all the sheets in this group to follow
     """
     from sefaria.system.database import db
-    from pprint import pprint
-    pprint(kwargs)
+
     db.sheets.update_many({"group": kwargs["old"]}, {"$set": {"group": kwargs["new"]}})
+
+
+def process_group_delete_in_sheets(group, **kwargs):
+    """
+    When a group deleted, move any sheets out of the group.
+    """
+    from sefaria.system.database import db
+    db.sheets.update_many({"group": group.name}, {"$set": {"group": ""}})

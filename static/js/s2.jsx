@@ -4746,6 +4746,24 @@ var EditGroupPage = React.createClass({
     state[field] = e.target.value;
     this.setState(state);
   },
+  delete: function() {
+    if (confirm("Are you sure you want to delete this group? This cannot be undone.")) {
+     $.ajax({
+        url: "/api/groups/" + this.props.initialData.name,
+        type: "DELETE",
+        success: function(data) {
+          if ("error" in data) {
+            alert(data.error);
+          } else {
+            window.location = "/my/groups";
+          }
+        },
+        fail: function() {
+          alert("Sorry, an error occurred.");
+        } 
+      });
+    }
+  },
   save: function() {
     var groupData = Sefaria.util.clone(this.state);
     if (!this.props.initialData) {
@@ -4851,6 +4869,12 @@ var EditGroupPage = React.createClass({
           </div>
         </div>
 
+        {this.props.initialData ? 
+          <div className="deleteGroup" onClick={this.delete}>
+            <span className="int-en">Delete Group</span>
+            <span className="int-he">Delete Group</span>
+          </div>
+          : null}
 
       </div>);
   }

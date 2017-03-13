@@ -3615,6 +3615,16 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
   float: right;
   max-width: 100%;
 }
+#editGroupPage .deleteGroup {
+  cursor: pointer;
+  cursor: pointer;
+  margin: 30px 10px;
+  color: #999;
+  text-align: right;
+}
+#editGroupPage .deleteGroup:hover {
+  text-decoration: underline;
+}
 #footer #siteLanguageToggle {
   color: #999;
   margin-top: 15px;
