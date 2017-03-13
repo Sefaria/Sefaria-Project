@@ -5945,12 +5945,20 @@ var EditGroupPage = React.createClass({
       headerUrl: null
     };
   },
+  componentDidMount: function componentDidMount() {
+    $(window).on("beforeunload", function () {
+      if (this.changed) {
+        return "You have unsaved changes to your group.";
+      }
+    }.bind(this));
+  },
   uploadImage: function uploadImage(field) {
     // Sets the state of `field` of the resulting image URL
     var url = prompt("Enter an image URL", this.state[field] || "");
     var state = {};
     state[field] = url;
     this.setState(state);
+    this.changed = true;
   },
   handleInputChange: function handleInputChange(e) {
     var idToField = {
@@ -5962,6 +5970,7 @@ var EditGroupPage = React.createClass({
     var state = {};
     state[field] = e.target.value;
     this.setState(state);
+    this.changed = true;
   },
   delete: function _delete() {
     if (confirm("Are you sure you want to delete this group? This cannot be undone.")) {
