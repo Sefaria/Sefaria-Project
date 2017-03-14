@@ -404,7 +404,7 @@ def s2(request, ref, version=None, lang=None):
         "initialNavigationCategories": None,
     })
     propsJSON = json.dumps(props)
-    title = primary_ref.normal() + " | Sefaria"
+    title = primary_ref.normal()
 
     try:
         if primary_ref.is_book_level():
@@ -441,9 +441,9 @@ def s2_texts_category(request, cats):
         cat_toc    = get_or_make_summary_node(toc, cats, make_if_not_found=False)
         if cat_toc is None:
             return s2_texts(request)
-        title = u", ".join(cats) + u" | Sefaria" if len(cats) else u"Table of Contents | Sefaria"
+        title = u", ".join(cats) if len(cats) else u"Table of Contents"
     else:
-        title = u"Recently Viewed | Sefaria"
+        title = u"Recently Viewed"
 
     props = s2_props(request)
     props.update({
@@ -468,8 +468,7 @@ def s2_search(request):
 
     initialQuery = urllib.unquote(request.GET.get("q")) if request.GET.get("q") else ""
 
-    title = (initialQuery + " | ") if initialQuery else ""
-    title += "Sefaria Search"
+    title = initialQuery if initialQuery else ""
 
     props = s2_props(request)
     props.update({
