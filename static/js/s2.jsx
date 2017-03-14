@@ -4762,6 +4762,7 @@ var EditGroupPage = React.createClass({
   uploadImage: function(field) {
     // Sets the state of `field` of the resulting image URL
     var url = prompt("Enter an image URL", this.state[field] || "");
+    if (url === null) { return; }
     var state = {};
     state[field] = url;
     this.setState(state);
