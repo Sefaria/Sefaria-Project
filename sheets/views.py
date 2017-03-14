@@ -570,7 +570,16 @@ def groups_invite_api(request, group_name, uid_or_email):
 	user = UserProfile(email=uid_or_email)
 	if not user.exists():
 		return jsonResponse({"error": "No user with this email address currently exists."})
+	
+	is_new_member = not group.is_member(user.id)
 	group.add_member(user.id)
+
+	if is_new_member:
+		print "Make notification"
+		from sefaria.model.notification import Notification
+		notification = Notification({"uid": user.id})
+		notification.make_group_add(adder_id=request.user.id, group_name=group_name)
+		notification.save()
 
 	group_content = group.contents(with_content=True, authenticated=True)
 	return jsonResponse(group_content)

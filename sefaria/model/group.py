@@ -74,7 +74,7 @@ class Group(abst.AbstractMongoRecord):
         else:
             self.members.append(uid)
         self.save()
-
+        
     def remove_member(self, uid):
         """
         Remove `uid` from this group.
