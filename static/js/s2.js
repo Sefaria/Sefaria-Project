@@ -2041,7 +2041,8 @@ var ReaderPanel = React.createClass({
     });
   },
   setWidth: function setWidth() {
-    this.width = $(ReactDOM.findDOMNode(this)).width();
+    this.setState({ width: $(ReactDOM.findDOMNode(this)).width() });
+    //console.log("Setting panel width", this.width);
   },
   setSheetTagSort: function setSheetTagSort(sort) {
     this.conditionalSetState({
@@ -2205,6 +2206,7 @@ var ReaderPanel = React.createClass({
       var onRecentClick = this.state.menuOpen === "compare" || !this.props.onRecentClick ? openInPanel : this.props.onRecentClick;
 
       var menu = React.createElement(ReaderNavigationMenu, {
+        key: this.state.navigationCategories.join("-"),
         home: this.state.menuOpen === "home",
         compare: this.state.menuOpen === "compare",
         interfaceLang: this.props.interfaceLang,
@@ -2307,7 +2309,7 @@ var ReaderPanel = React.createClass({
       var menu = null;
     }
 
-    var classes = { readerPanel: 1, narrowColumn: this.width < 730 };
+    var classes = { readerPanel: 1, narrowColumn: this.state.width < 730 };
     classes[this.currentLayout()] = 1;
     classes[this.state.settings.color] = 1;
     classes[this.state.settings.language] = 1;
@@ -2350,7 +2352,7 @@ var ReaderPanel = React.createClass({
         multiPanel: this.props.multiPanel,
         setOption: this.setOption,
         currentLayout: this.currentLayout,
-        width: this.width,
+        width: this.state.width,
         menuOpen: this.state.menuOpen }) : null,
       this.state.displaySettingsOpen ? React.createElement('div', { className: 'mask', onClick: this.closeDisplaySettings }) : null
     );
@@ -3246,11 +3248,6 @@ var ReaderNavigationCategoryMenu = React.createClass({
         'div',
         { className: navTopClasses },
         React.createElement(CategoryColorLine, { category: categories[0] }),
-        React.createElement(
-          'script',
-          { type: 'application/ld+json' },
-          Sefaria.jsonld.catCrumbs(categories)
-        ),
         this.props.hideNavHeader ? null : React.createElement(ReaderNavigationMenuMenuButton, { onClick: this.props.navHome, compare: this.props.compare }),
         this.props.hideNavHeader ? null : React.createElement(ReaderNavigationMenuDisplaySettingsButton, { onClick: this.props.openDisplaySettings }),
         this.props.hideNavHeader ? null : React.createElement(
@@ -3894,11 +3891,6 @@ var ReaderTextTableOfContents = React.createClass({
             'div',
             { className: 'tocTop' },
             React.createElement(CategoryAttribution, { categories: categories }),
-            React.createElement(
-              'script',
-              { type: 'application/ld+json' },
-              Sefaria.jsonld.catCrumbs(categories, title)
-            ),
             React.createElement(
               'div',
               { className: 'tocCategory' },
@@ -4587,16 +4579,16 @@ var CommentatorList = React.createClass({
       var ref = commentator.firstSection;
       return React.createElement(
         'a',
-        { className: 'refLink', href: Sefaria.normRef(ref), 'data-ref': ref, key: i },
+        { className: 'refLink linked', href: Sefaria.normRef(ref), 'data-ref': ref, key: i },
         React.createElement(
           'span',
           { className: 'he' },
-          commentator.heCommentator
+          commentator.heCollectiveTitle
         ),
         React.createElement(
           'span',
           { className: 'en' },
-          commentator.commentator
+          commentator.collectiveTitle
         )
       );
     }.bind(this));
@@ -5722,6 +5714,7 @@ var GroupPage = React.createClass({
             return React.createElement(GroupMemberListing, {
               member: member,
               isAdmin: isAdmin,
+              isSelf: member.uid == Sefaria._uid,
               groupName: this.props.group,
               onDataChange: this.onDataLoad });
           }.bind(this))
@@ -5820,6 +5813,7 @@ var GroupMemberListing = React.createClass({
   propTypes: {
     member: React.PropTypes.object.isRequired,
     isAdmin: React.PropTypes.bool,
+    isSelf: React.PropTypes.bool,
     groupName: React.PropTypes.string,
     onDataChange: React.PropTypes.func
   },
@@ -5845,7 +5839,12 @@ var GroupMemberListing = React.createClass({
           { className: 'groupMemberListingRole' },
           this.props.member.role
         ),
-        this.props.isAdmin ? React.createElement(GroupMemberListingActions, { member: this.props.member, groupName: this.props.groupName, onDataChange: this.props.onDataChange }) : null
+        this.props.isAdmin || this.props.isSelf ? React.createElement(GroupMemberListingActions, {
+          member: this.props.member,
+          groupName: this.props.groupName,
+          isAdmin: this.props.isAdmin,
+          isSelf: this.props.isSelf,
+          onDataChange: this.props.onDataChange }) : null
       )
     );
   }
@@ -5857,7 +5856,8 @@ var GroupMemberListingActions = React.createClass({
   propTypes: {
     member: React.PropTypes.object.isRequired,
     groupName: React.PropTypes.string.isRequired,
-    forSelf: React.PropTypes.bool,
+    isAdmin: React.PropTypes.bool,
+    isSelf: React.PropTypes.bool,
     onDataChange: React.PropTypes.func.isRequired
   },
   getInitialState: function getInitialState() {
@@ -5869,6 +5869,12 @@ var GroupMemberListingActions = React.createClass({
     this.setState({ menuOpen: !this.state.menuOpen });
   },
   setRole: function setRole(role) {
+    if (this.props.isSelf && this.props.isAdmin && role !== "admin") {
+      if (!confirm("Are you want to change your group role? You won't be able to undo this action unless another admin restores your permissions.")) {
+        return;
+      }
+    }
+
     $.post("/api/groups/" + this.props.groupName + "/set-role/" + this.props.member.uid + "/" + role, function (data) {
       if ("error" in data) {
         alert(data.error);
@@ -5879,7 +5885,9 @@ var GroupMemberListingActions = React.createClass({
     }.bind(this));
   },
   removeMember: function removeMember() {
-    if (confirm("Are you sure you want to remove " + this.props.member.name + " from this group?")) {
+    var message = this.props.isSelf ? "Are you sure you want to leave this group?" : "Are you sure you want to remove " + this.props.member.name + " from this group?";
+
+    if (confirm(message)) {
       this.setRole("remove");
     }
   },
@@ -5895,7 +5903,7 @@ var GroupMemberListingActions = React.createClass({
       this.state.menuOpen ? React.createElement(
         'div',
         { className: 'groupMemberListingActionsMenu' },
-        React.createElement(
+        this.props.isAdmin ? React.createElement(
           'div',
           { className: 'action', onClick: this.setRole.bind(this, "admin") },
           React.createElement(
@@ -5904,8 +5912,8 @@ var GroupMemberListingActions = React.createClass({
             'Admin'
           ),
           '- can invite & edit settings'
-        ),
-        React.createElement(
+        ) : null,
+        this.props.isAdmin ? React.createElement(
           'div',
           { className: 'action', onClick: this.setRole.bind(this, "publisher") },
           React.createElement(
@@ -5914,8 +5922,8 @@ var GroupMemberListingActions = React.createClass({
             'Publisher'
           ),
           '- can publish'
-        ),
-        React.createElement(
+        ) : null,
+        this.props.isAdmin ? React.createElement(
           'div',
           { className: 'action', onClick: this.setRole.bind(this, "member") },
           React.createElement(
@@ -5924,14 +5932,14 @@ var GroupMemberListingActions = React.createClass({
             'Member'
           ),
           '- can view & share within group'
-        ),
+        ) : null,
         React.createElement(
           'div',
           { className: 'action', onClick: this.removeMember },
           React.createElement(
             'span',
             { className: 'role' },
-            'Remove'
+            this.props.isSelf ? "Leave Group" : "Remove"
           )
         )
       ) : null
@@ -5954,12 +5962,20 @@ var EditGroupPage = React.createClass({
       headerUrl: null
     };
   },
+  componentDidMount: function componentDidMount() {
+    $(window).on("beforeunload", function () {
+      if (this.changed) {
+        return "You have unsaved changes to your group.";
+      }
+    }.bind(this));
+  },
   uploadImage: function uploadImage(field) {
     // Sets the state of `field` of the resulting image URL
     var url = prompt("Enter an image URL", this.state[field] || "");
     var state = {};
     state[field] = url;
     this.setState(state);
+    this.changed = true;
   },
   handleInputChange: function handleInputChange(e) {
     var idToField = {
@@ -5971,6 +5987,25 @@ var EditGroupPage = React.createClass({
     var state = {};
     state[field] = e.target.value;
     this.setState(state);
+    this.changed = true;
+  },
+  delete: function _delete() {
+    if (confirm("Are you sure you want to delete this group? This cannot be undone.")) {
+      $.ajax({
+        url: "/api/groups/" + this.props.initialData.name,
+        type: "DELETE",
+        success: function success(data) {
+          if ("error" in data) {
+            alert(data.error);
+          } else {
+            window.location = "/my/groups";
+          }
+        },
+        fail: function fail() {
+          alert("Sorry, an error occurred.");
+        }
+      });
+    }
   },
   save: function save() {
     var groupData = Sefaria.util.clone(this.state);
@@ -6212,7 +6247,21 @@ var EditGroupPage = React.createClass({
             'Recommended size: 1000px width to fill sheet, smaller images align right'
           )
         )
-      )
+      ),
+      this.props.initialData ? React.createElement(
+        'div',
+        { className: 'deleteGroup', onClick: this.delete },
+        React.createElement(
+          'span',
+          { className: 'int-en' },
+          'Delete Group'
+        ),
+        React.createElement(
+          'span',
+          { className: 'int-he' },
+          'Delete Group'
+        )
+      ) : null
     );
   }
 });
@@ -6983,12 +7032,11 @@ var TextColumn = React.createClass({
     this.adjustInfiniteScroll();
   },
   setScrollPosition: function setScrollPosition() {
-    // console.log("ssp");
     // Called on every update, checking flags on `this` to see if scroll position needs to be set
     if (this.loadingContentAtTop) {
-      // After adding content by infinite scrolling up, scroll back to what the user was just seeing
-      // console.log("loading at top");
       var $node = $(ReactDOM.findDOMNode(this));
+      // After adding content by infinite scrolling up, scroll back to what the user was just seeing
+
       var adjust = 118; // Height of .loadingMessage.base
       var $texts = $node.find(".basetext");
       if ($texts.length < 2) {
@@ -7001,21 +7049,19 @@ var TextColumn = React.createClass({
         this.justScrolled = true;
         ReactDOM.findDOMNode(this).scrollTop = top;
         this.scrollToHighlighted();
-        //console.log(top)
       }
     } else if (!this.scrolledToHighlight && $(ReactDOM.findDOMNode(this)).find(".segment.highlight").length) {
-        // console.log("scroll to highlighted")
-        // scroll to highlighted segment
-        this.scrollToHighlighted();
-        this.scrolledToHighlight = true;
-        this.initialScrollTopSet = true;
-      } else if (!this.initialScrollTopSet) {
-        //console.log("initial scroll to 30")
-        // initial value set below 0 so you can scroll up for previous
-        var node = ReactDOM.findDOMNode(this);
-        node.scrollTop = 30;
-        this.initialScrollTopSet = true;
-      }
+      // scroll to highlighted segment
+      this.scrollToHighlighted();
+      this.scrolledToHighlight = true;
+      this.initialScrollTopSet = true;
+      this.justScrolled = true;
+    } else if (!this.initialScrollTopSet) {
+      // initial value set below 0 so you can scroll up for previous
+      var node = ReactDOM.findDOMNode(this);
+      node.scrollTop = 30;
+      this.initialScrollTopSet = true;
+    }
     // This fixes loading of next content when current content is short in viewport,
     // but breaks loading highlighted ref, jumping back up to top of section
     // this.adjustInfiniteScroll();
@@ -7047,7 +7093,7 @@ var TextColumn = React.createClass({
         // console.log("last text is loading - don't add next section");
         return;
       }
-      // console.log("Down! Add next section");
+
       var currentRef = refs.slice(-1)[0];
       var data = Sefaria.ref(currentRef);
       if (data && data.next) {
@@ -7062,7 +7108,6 @@ var TextColumn = React.createClass({
       var topRef = refs[0];
       var data = Sefaria.ref(topRef);
       if (data && data.prev) {
-        // console.log("Up! Add previous section");
         refs.splice(refs, 0, data.prev);
         this.loadingContentAtTop = true;
         this.props.updateTextColumn(refs);
@@ -7075,7 +7120,7 @@ var TextColumn = React.createClass({
     }
   },
   adjustTextListHighlight: function adjustTextListHighlight() {
-    // console.log("atlh");
+
     // When scrolling while the TextList is open, update which segment should be highlighted.
     if (this.props.multiPanel && this.props.layoutWidth == 100) {
       return; // Hacky - don't move around highlighted segment when scrolling a single panel,
@@ -7107,7 +7152,6 @@ var TextColumn = React.createClass({
     }.bind(this);
 
     adjustTextListHighlightInner();
-    //window.requestAnimationFrame(adjustTextListHighlightInner);
 
     /*
     // Caching segment heights
@@ -7136,6 +7180,10 @@ var TextColumn = React.createClass({
   },
   scrollToHighlighted: function scrollToHighlighted() {
     window.requestAnimationFrame(function () {
+      if (!this.isMounted()) {
+        return;
+      }
+
       var $container = $(ReactDOM.findDOMNode(this));
       var $readerPanel = $container.closest(".readerPanel");
       var $highlighted = $container.find(".segment.highlight").first();
@@ -7236,8 +7284,7 @@ var TextRange = React.createClass({
     if (data && !this.dataPrefetched) {
       // If data was populated server side, onTextLoad was never called
       this.onTextLoad(data);
-    }
-    if (this.props.basetext || this.props.segmentNumber) {
+    } else if (this.props.basetext || this.props.segmentNumber) {
       this.placeSegmentNumbers();
     }
     window.addEventListener('resize', this.handleResize);
@@ -7246,23 +7293,24 @@ var TextRange = React.createClass({
     window.removeEventListener('resize', this.handleResize);
   },
   componentDidUpdate: function componentDidUpdate(prevProps, prevState) {
-    /* Doesn't seem to be need in addition to below
-    // Reload text if version changed
-    if (this.props.version != prevProps.version || this.props.versionLanguage != prevProps.versionLanguage) {
-      this.getText(true);
-    }
-    */
     // Place segment numbers again if update affected layout
     if (this.props.basetext || this.props.segmentNumber) {
       if (this.props.version != prevProps.version || this.props.versionLanguage != prevProps.versionLanguage || prevProps.settings.language !== this.props.settings.language || prevProps.settings.layoutDefault !== this.props.settings.layoutDefault || prevProps.settings.layoutTanakh !== this.props.settings.layoutTanakh || prevProps.settings.layoutTalmud !== this.props.settings.layoutTalmud || prevProps.settings.biLayout !== this.props.settings.biLayout || prevProps.settings.fontSize !== this.props.settings.fontSize || prevProps.layoutWidth !== this.props.layoutWidth) {
         // Rerender in case version has changed
-        this.forceUpdate();
-        // TODO: are these animationFrames still needed?
-        window.requestAnimationFrame(function () {
+        this.forceUpdate(function () {
           if (this.isMounted()) {
             this.placeSegmentNumbers();
           }
         }.bind(this));
+
+        // TODO: are these animationFrames still needed?
+        /*
+        window.requestAnimationFrame(function() { 
+          if (this.isMounted()) {
+            this.placeSegmentNumbers();
+          }
+        }.bind(this));
+        */
       }
     }
   },
@@ -7298,7 +7346,7 @@ var TextRange = React.createClass({
     return data;
   },
   onTextLoad: function onTextLoad(data) {
-    // console.log("onTextLoad in TextRange");
+    //console.log("onTextLoad in TextRange", data.ref);
     // Initiate additional API calls when text data first loads
     if (this.props.basetext && this.props.sref !== data.ref) {
       // Replace ReaderPanel contents ref with the normalized form of the ref, if they differ.
@@ -7314,8 +7362,9 @@ var TextRange = React.createClass({
     }
 
     if (this.isMounted()) {
-      this.forceUpdate();
-      this.placeSegmentNumbers();
+      this.forceUpdate(function () {
+        this.placeSegmentNumbers();
+      }.bind(this));
     }
   },
   prefetchData: function prefetchData() {
@@ -7432,6 +7481,9 @@ var TextRange = React.createClass({
     return segments;
   },
   placeSegmentNumbers: function placeSegmentNumbers() {
+    //console.log("placeSegmentNumbers", this.props.sref);
+    //debugger
+    //console.trace();
     // Set the vertical offsets for segment numbers and link counts, which are dependent
     // on the rendered height of the text of each segment.
     var $text = $(ReactDOM.findDOMNode(this));
@@ -7650,7 +7702,7 @@ var TextSegment = React.createClass({
       //Click of citation
       var ref = Sefaria.humanRef($(event.target).attr("data-ref"));
       this.props.onCitationClick(ref, this.props.sref);
-      event.stopPropagation();
+      event.stopPropagation(); //add prevent default
       Sefaria.site.track.event("Reader", "Citation Link Click", ref);
     } else if (this.props.onSegmentClick) {
       this.props.onSegmentClick(this.props.sref);
@@ -8170,6 +8222,7 @@ var TextList = React.createClass({
         content = content.length ? content : React.createElement(LoadingMessage, { message: 'No notes here.' });
       } else {
         // Viewing Text Connections
+        //debugger;
         var sectionLinks = Sefaria.links(sectionRef);
         var links = sectionLinks.filter(function (link) {
           if ((this.props.multiPanel || !isSingleCommentary) && Sefaria.splitSpanningRef(link.anchorRef).every(function (aref) {
@@ -8178,7 +8231,7 @@ var TextList = React.createClass({
             // Only show section level links for an individual commentary
             return false;
           }
-          return filter.length == 0 || Sefaria.util.inArray(link.category, filter) !== -1 || Sefaria.util.inArray(link.commentator, filter) !== -1;
+          return filter.length == 0 || Sefaria.util.inArray(link.category, filter) !== -1 || Sefaria.util.inArray(link.collectiveTitle["en"], filter) !== -1;
         }.bind(this)).sort(function (a, b) {
           if (a.anchorVerse !== b.anchorVerse) {
             return a.anchorVerse - b.anchorVerse;
@@ -10986,7 +11039,7 @@ var GroupListing = React.createClass({
         { className: 'groupListingDetails' },
         React.createElement(
           'span',
-          { className: 'groupListingMemberCount' },
+          { className: 'groupListingDetail groupListingMemberCount' },
           React.createElement(
             'span',
             { className: 'int-en' },
@@ -10998,6 +11051,27 @@ var GroupListing = React.createClass({
             { className: 'int-he' },
             this.props.data.memberCount,
             ' חברים'
+          )
+        ),
+        React.createElement(
+          'span',
+          { className: 'groupListingDetailSeparator' },
+          '•'
+        ),
+        React.createElement(
+          'span',
+          { className: 'groupListingDetail groupListingSheetCount' },
+          React.createElement(
+            'span',
+            { className: 'int-en' },
+            this.props.data.sheetCount,
+            ' Sheets'
+          ),
+          React.createElement(
+            'span',
+            { className: 'int-he' },
+            this.props.data.sheetCount,
+            ' דפים'
           )
         )
       ),

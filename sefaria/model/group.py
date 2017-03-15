@@ -56,7 +56,8 @@ class Group(abst.AbstractMongoRecord):
         contents = {
             "name": self.name,
             "imageUrl": getattr(self, "imageUrl", None),
-            "memberCount": self.member_count()
+            "memberCount": self.member_count(),
+            "sheetCount": self.sheet_count(),
         }
         return contents
 
@@ -73,7 +74,7 @@ class Group(abst.AbstractMongoRecord):
         else:
             self.members.append(uid)
         self.save()
-
+        
     def remove_member(self, uid):
         """
         Remove `uid` from this group.
@@ -96,7 +97,13 @@ class Group(abst.AbstractMongoRecord):
         return uid in self.all_members()
 
     def member_count(self):
+        """Returns the number of members in this group"""
         return len(self.all_members())
+
+    def sheet_count(self):
+        """Returns the number of sheets in this group"""
+        from sefaria.system.database import db
+        return db.sheets.find({"group": self.name}).count()
 
 
 class GroupSet(abst.AbstractMongoSet):
@@ -112,6 +119,13 @@ def process_group_name_change_in_sheets(group, **kwargs):
     When a group's name changes, update all the sheets in this group to follow
     """
     from sefaria.system.database import db
-    from pprint import pprint
-    pprint(kwargs)
+
     db.sheets.update_many({"group": kwargs["old"]}, {"$set": {"group": kwargs["new"]}})
+
+
+def process_group_delete_in_sheets(group, **kwargs):
+    """
+    When a group deleted, move any sheets out of the group.
+    """
+    from sefaria.system.database import db
+    db.sheets.update_many({"group": group.name}, {"$set": {"group": ""}})
