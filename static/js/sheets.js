@@ -1027,7 +1027,7 @@ $(function() {
 			autoSave();
 		};
 
-		sjs.sortOptions = { 
+		sjs.sortOptions = {
 							start: sjs.sortStart,
 							stop: sjs.sortStop,
 							cancel: ':input, button, .cke_editable, #addInterface',
@@ -1064,6 +1064,9 @@ $(function() {
 
 
 		$("#sources").sortable(sjs.sortOptions);
+		if ($("#sheet").hasClass("highlightMode")) {
+			$("#sources").sortable("disable"); //disable dragging while in diagram edit mode....
+		}
 	}
 
 
@@ -2567,6 +2570,7 @@ function readSheet() {
 		sheet.options.layout        = $("#sheet").hasClass("stacked") ? "stacked" : "sideBySide";
 		sheet.options.langLayout    = $("#sheet").hasClass("heLeft") ? "heLeft" : "heRight";
 		sheet.options.divineNames   = $(".divineNamesOption .fa-check").not(".hidden").parent().attr("id");
+		sheet.options.highlightMode = $("#sheet").hasClass("highlightMode") ? 1 : 0;
 	}
 
 	if (sjs.is_owner) {
@@ -2629,9 +2633,6 @@ function readSheet() {
 				sheet.diagramTags[i] = {};
 				var currentName = $(this).find('div').text();
 				var currentColor = $(this).find('div').css('background-color');
-				console.log(currentName);
-				console.log(currentColor);
-
 				sheet.diagramTags[i].name = currentName;
 				sheet.diagramTags[i].color = currentColor;
 
@@ -2912,6 +2913,7 @@ function buildSheet(data){
 	if (data.options.numbered) { $("#numbered").trigger("click"); } 
 	if (data.options.bsd)      { $("#bsd").trigger("click"); } 
 	if (data.options.boxed)    { $("#boxed").trigger("click"); } 
+	if (data.options.highlightMode)    { $("#highlightToggle").trigger("click"); }
 	if (data.options.assignable)    { $("#makeSheetAssignableButton").trigger("click"); }
 	else {$("#StopCollectingAssignmentsButton").trigger("click");}
 
@@ -3612,33 +3614,32 @@ function exportToDrive() {
 	});
 }
 
+function fillEmptyDiagramSegments() {
+		$( ".diagram" ).each(function( index ) {
+			if ($(this).find(".en").html() == "") {
+				$(this).find(".en").html("<div class='diagramSegment'>"+$(this).find(".en").html().stripHtml()+"</div>")
+			}
+			if ($(this).find(".he").html() == "") {
+				$(this).find(".he").html("<div class='diagramSegment'>"+$(this).find(".he").html().stripHtml()+"</div>")
+			}
+
+		});
+}
+
 function toggleHighlighter() {
-		var curDiagram = $(".diagram").first();
-		var curText = $(".text").first();
-
-		if (curDiagram.css('display') == "none") {
-			$(".diagramTools").show();
-			$(".diagram").show();
-			$(".text").hide();
+	if ($("#sheet").hasClass("highlightMode")) {
+		$("#sheet").removeClass("highlightMode")
+		if ($("#sources").data('ui-sortable')) {
+			$("#sources").sortable("enable"); //disable dragging while in diagram edit mode....
+		}
+	}
+	else {
+		$("#sheet").addClass("highlightMode")
+		if ($("#sources").data('ui-sortable')) {
 			$("#sources").sortable("disable"); //disable dragging while in diagram edit mode....
-
-
-			$( ".diagram" ).each(function( index ) {
-				if ($(this).find(".en").html() == "") {
-					$(this).find(".en").html("<div class='diagramSegment'>"+$(this).find(".en").html().stripHtml()+"</div>")
-				}
-				if ($(this).find(".he").html() == "") {
-					$(this).find(".he").html("<div class='diagramSegment'>"+$(this).find(".he").html().stripHtml()+"</div>")
-				}
-
-			});
 		}
-		else {
-			$(".diagramTools").hide();
-			$(".diagram").hide();
-			$(".text").show();
-			$("#sources").sortable("enable"); //enable dragging while in diagram view mode....
-		}
+	}
+	autoSave();
 }
 
 function showEmebed() {

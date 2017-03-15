@@ -1981,6 +1981,15 @@ a.tagit-close {
 	display: none;
 }
 
+#sheet.highlightMode #sources .sheetItem .diagram, #sheet.highlightMode #sources .sheetItem .diagramTools {
+	display: block;
+}
+
+#sheet.highlightMode #sources .sheetItem .text {
+	display: none;
+}
+
+
 .diagramTagWindow {
   	position: fixed;
 	z-index: 2;
