@@ -1859,11 +1859,22 @@ $(function() {
 		$(".splitDiagramSegment").off;
 		$(".splitDiagramSegment").on('click', 'div', function() {
 			var selectedRange = window.getSelection(); //.getRangeAt(0);
+			var firstSelectedCharacter;
+			var lastSelectedCharacter;
+			if (selectedRange.anchorOffset < selectedRange.focusOffset) {
+				firstSelectedCharacter = selectedRange.anchorOffset;
+				lastSelectedCharacter = selectedRange.focusOffset;
+			}
+			else {
+				firstSelectedCharacter = selectedRange.focusOffset;
+				lastSelectedCharacter = selectedRange.anchorOffset;
+			}
+
 
 			var curDiagramSegment = $(selectedRange.focusNode);
-			var textBefore = curDiagramSegment.text().slice(0, selectedRange.anchorOffset);
-			var selectedText = curDiagramSegment.text().slice(selectedRange.anchorOffset, selectedRange.focusOffset);
-			var textAfter = curDiagramSegment.text().slice(selectedRange.focusOffset);
+			var textBefore = curDiagramSegment.text().slice(0, firstSelectedCharacter);
+			var selectedText = curDiagramSegment.text().slice(firstSelectedCharacter, lastSelectedCharacter);
+			var textAfter = curDiagramSegment.text().slice(lastSelectedCharacter);
 			var diagramTag = $(this).text();
 			var tagBgColor = $(this).css('background-color');
 
