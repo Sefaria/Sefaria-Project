@@ -938,6 +938,8 @@ $(function() {
 	$("#exportToDrive").click(exportToDrive);
 
 
+	$("#highlightToggle").click(toggleHighlighter);
+
 	// ------- Sheet Tags --------------
 	sjs.sheetTagger.init(sjs.current.id, sjs.current.tags);
 	$("#editTags").click(sjs.sheetTagger.show);
@@ -1120,7 +1122,6 @@ $(function() {
 								"<div class='moveSourceLeft' title='Outdent Source'><img src='/static/img/outdent.png'></div>" +
 								"<div class='moveSourceUp' title='Move Source Up'><img src='/static/img/triangle-up.svg'></div>" +
 								"<div class='moveSourceDown' title='Move Source Down'><img src='/static/img/triangle-down.svg'></div>" +
-								"<div class='diagramSource' title='Diagram Source'><img src='/static/img/tools-write-note.svg'></div>" +
 							"</div>";
 
 		var adderControls = "<div id='sourceControls' class='sideControls'>" +
@@ -1785,30 +1786,6 @@ $(function() {
 
 	});
 
-	$(".diagramSource").live("click", function() {
-		var curDiagram = $(this).closest(".sheetItem").find(".diagram");
-		var curText = $(this).closest(".sheetItem").find(".text");
-
-		if (curDiagram.css('display') == "none") {
-			$(this).closest(".sheetItem").find(".diagramTools").show();
-			curDiagram.show();
-			curText.hide();
-			if (curDiagram.find(".en").html() == "") {
-				curDiagram.find(".en").html("<div class='diagramSegment'>"+curText.find(".en").html().stripHtml()+"</div>")
-			}
-			if (curDiagram.find(".he").html() == "") {
-				curDiagram.find(".he").html("<div class='diagramSegment'>"+curText.find(".he").html().stripHtml()+"</div>")
-			}
-
-		}
-		else {
-			$(this).closest(".sheetItem").find(".diagramTools").hide();
-			curDiagram.hide();
-			curText.show();
-		}
-
-	});
-
 	$(".diagramTools").on('click', '.resetDiagram', function() {
 
 		var curDiagram = $(this).closest(".sheetItem").find(".diagram");
@@ -1820,20 +1797,6 @@ $(function() {
 
 	});
 
-
-	$(".diagramTools").on('click', '.editToggle', function() {
-
-		if ($(this).text() == "Edit") {
-			$(this).text('View');
-			$("#sources").sortable("disable"); //disable dragging while in diagram edit mode....
-	}
-
-		else /*view mode */ {
-			$(this).text('Edit');
-		$("#sources").sortable("enable"); //enable dragging while in diagram view mode....
-		}
-
-	});
 
 	$(".diagramTools").on('click', '.diagramFilter', function() {
 
@@ -2391,7 +2354,7 @@ function addSource(q, source, appendOrInsert) {
 		+"<div class='sourceNumber he'></div><div class='sourceNumber en'></div>"
 		+"<div class='customTitle'></div>"
 		+"<div class='diagramTools'>"
-			+"<div class='editToggle digramToolMenuItem'>Edit</div> <div class='segmentedContinuousToggle digramToolMenuItem'>Continuous</div> <div class='resetDiagram digramToolMenuItem'>Reset</div> "
+			+"<div class='segmentedContinuousToggle digramToolMenuItem'>Continuous</div> <div class='resetDiagram digramToolMenuItem'>Reset</div> "
 			+"<div class='diagramFilter digramToolMenuItem'>Filter"
 				+"<div class='diagramFilterTags'>"
 				+"</div>"
@@ -3647,6 +3610,35 @@ function exportToDrive() {
 			}
 		}
 	});
+}
+
+function toggleHighlighter() {
+		var curDiagram = $(".diagram").first();
+		var curText = $(".text").first();
+
+		if (curDiagram.css('display') == "none") {
+			$(".diagramTools").show();
+			$(".diagram").show();
+			$(".text").hide();
+			$("#sources").sortable("disable"); //disable dragging while in diagram edit mode....
+
+
+			$( ".diagram" ).each(function( index ) {
+				if ($(this).find(".en").html() == "") {
+					$(this).find(".en").html("<div class='diagramSegment'>"+$(this).find(".en").html().stripHtml()+"</div>")
+				}
+				if ($(this).find(".he").html() == "") {
+					$(this).find(".he").html("<div class='diagramSegment'>"+$(this).find(".he").html().stripHtml()+"</div>")
+				}
+
+			});
+		}
+		else {
+			$(".diagramTools").hide();
+			$(".diagram").hide();
+			$(".text").show();
+			$("#sources").sortable("enable"); //enable dragging while in diagram view mode....
+		}
 }
 
 function showEmebed() {
