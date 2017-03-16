@@ -4054,6 +4054,7 @@ class Library(object):
 
         :param string st: the input string
         :param lang: "he" or "en"
+        :param citing_only: boolean whether to use only records explicitly marked as being referenced in text.
         :return: list of :class:`Ref` objects
         """
         # todo: only match titles of content nodes
@@ -4064,8 +4065,8 @@ class Library(object):
         if lang == "he":
             from sefaria.utils.hebrew import strip_nikkud
             st = strip_nikkud(st)
-            unique_titles = {title: 1 for title in self.get_titles_in_string(st, lang, citing_only)}
-            for title in unique_titles.iterkeys():
+            unique_titles = set(self.get_titles_in_string(st, lang, citing_only))
+            for title in unique_titles:
                 try:
                     res = self._build_all_refs_from_string(title, st)
                 except AssertionError as e:
@@ -4086,6 +4087,28 @@ class Library(object):
                 else:
                     refs += res
         return refs
+
+    def get_wrapped_refs_string(self, st, lang=None, citing_only=False):
+        """
+        Returns a string with the list of Ref objects derived from string wrapped in <a> tags
+
+        :param string st: the input string
+        :param lang: "he" or "en"
+        :param citing_only: boolean whether to use only records explicitly marked as being referenced in text
+        :return: string:
+        """
+        # todo: only match titles of content nodes
+        if lang is None:
+            lang = "he" if is_hebrew(st) else "en"
+        from sefaria.utils.hebrew import strip_nikkud
+        st = strip_nikkud(st)
+        unique_titles = set(self.get_titles_in_string(st, lang, citing_only))
+        for title in unique_titles:
+            try:
+                st = self._wrap_all_refs_in_string(title, st, lang)
+            except AssertionError as e:
+                logger.info(u"Skipping Schema Node: {}".format(title))
+        return st
 
     # do we want to move this to the schema node? We'd still have to pass the title...
     def get_regex_string(self, title, lang, for_js=False):
@@ -4181,11 +4204,12 @@ class Library(object):
                 continue
         return refs
 
+    # todo: handle ranges in inline refs
     def _wrap_all_refs_in_string(self, title=None, st=None, lang="he"):
         """
         Returns string with all references wrapped in <a> tags
-        :param title:
-        :param st:
+        :param title: The title of the text to wrap ref links to
+        :param st: The string to wrap
         :param lang:
         :return:
         """
