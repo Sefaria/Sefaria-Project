@@ -222,11 +222,12 @@ class LinkSet(abst.AbstractMongoSet):
 
 def process_index_title_change_in_links(indx, **kwargs):
     print "Cascading Links {} to {}".format(kwargs['old'], kwargs['new'])
-    pattern = text.Ref(indx.title).regex()
-    pattern = pattern.replace(re.escape(indx.title), re.escape(kwargs["old"]))
-    links = LinkSet({"refs": {"$regex": pattern}})
+    patterns = [pattern.replace(re.escape(indx.title), re.escape(kwargs["old"]))
+                for pattern in text.Ref(indx.title).regex(as_list=True)]
+    queries = [{'refs': {'$regex': pattern}} for pattern in patterns]
+    links = LinkSet({"$or": queries})
     for l in links:
-        l.refs = [r.replace(kwargs["old"], kwargs["new"], 1) if re.search(pattern, r) else r for r in l.refs]
+        l.refs = [r.replace(kwargs["old"], kwargs["new"], 1) if re.search(u'|'.join(patterns), r) else r for r in l.refs]
         try:
             l.save()
         except InputError: #todo: this belongs in a better place - perhaps in abstract
