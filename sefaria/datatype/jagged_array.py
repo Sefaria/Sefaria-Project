@@ -571,7 +571,7 @@ class JaggedTextArray(JaggedArray):
     def modify_by_function(self, func, _cur=None):
         """ Returns the number of characters in an undecorated jagged array """
         if _cur is None:
-            return self.modify_by_function(_cur=self._store)
+            return self.modify_by_function(func, _cur=self._store)
         if isinstance(_cur, basestring):
             return func(_cur)
         elif isinstance(_cur, list):
