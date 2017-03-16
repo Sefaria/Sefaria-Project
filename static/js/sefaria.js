@@ -209,7 +209,8 @@ Sefaria = extend(Sefaria, {
       context:    settings.context    || 0,
       pad:        settings.pad        || 0,
       version:    settings.version    || null,
-      language:   settings.language   || null
+      language:   settings.language   || null,
+      wrapLinks:  settings.wrapLinks  || 1
     };
     var key = this._textKey(ref, settings);
     if (!cb) {
@@ -247,7 +248,8 @@ Sefaria = extend(Sefaria, {
     var params = param({
       commentary: settings.commentary,
       context:    settings.context,
-      pad:        settings.pad
+      pad:        settings.pad,
+      wrapLinks:  settings.wrapLinks
     });
     var url = "/api/texts/" + Sefaria.normRef(ref);
     if (settings.language && settings.version) {

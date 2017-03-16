@@ -1377,7 +1377,7 @@ class TextFamily(object):
         "he": "heSources"
     }
 
-    def __init__(self, oref, context=1, commentary=True, version=None, lang=None, pad=True, alts=False):
+    def __init__(self, oref, context=1, commentary=True, version=None, lang=None, pad=True, alts=False, wrapLinks=False):
         """
         :param oref:
         :param context:
@@ -1386,6 +1386,7 @@ class TextFamily(object):
         :param lang:
         :param pad:
         :param alts: Adds notes of where alt elements begin
+        :param wrapLinks: whether to return the text requested with all internal citations marked up as html links <a>
         :return:
         """
         if pad:
@@ -1419,7 +1420,10 @@ class TextFamily(object):
             else:
                 c = TextChunk(oref, language)
             self._chunks[language] = c
-            setattr(self, self.text_attr_map[language], c.text)
+            if wrapLinks:
+                setattr(self, self.text_attr_map[language], c.ja().modify_by_function(lambda s: library.get_wrapped_refs_string(s, lang=language, citing_only=True)))
+            else:
+                setattr(self, self.text_attr_map[language], c.text)
 
         if oref.is_spanning():
             self.spanning = True
