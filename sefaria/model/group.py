@@ -92,9 +92,13 @@ class Group(abst.AbstractMongoRecord):
 
     def is_member(self, uid):
         """
-        Returns true if `uid` is a member of this group, in any role
+        Returns True if `uid` is a member of this group, in any role
         """
         return uid in self.all_members()
+
+    def can_publish(self, uid):
+        """ Returns True if `uid` has permission to publish sheets in this group"""
+        return uid in (self.admins + self.publishers)
 
     def member_count(self):
         """Returns the number of members in this group"""
