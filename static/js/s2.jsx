@@ -1476,7 +1476,7 @@ var Header = React.createClass({
                           onNavTextClick={this.props.onRefClick}
                           onSearchResultClick={this.props.onRefClick}
                           onRecentClick={this.props.onRecentClick}
-                          setDefaultLanguage={this.props.setDefaultLanguage}
+                          setDefaultOption={this.props.setDefaultOption}
                           onQueryChange={this.props.onQueryChange}
                           updateSearchFilter={this.props.updateSearchFilter}
                           registerAvailableFilters={this.props.registerAvailableFilters}
@@ -1582,7 +1582,7 @@ var ReaderPanel = React.createClass({
     closePanel:                  React.PropTypes.func,
     closeMenus:                  React.PropTypes.func,
     setConnectionsFilter:        React.PropTypes.func,
-    setDefaultLanguage:          React.PropTypes.func,
+    setDefaultOption:            React.PropTypes.func,
     selectVersion:               React.PropTypes.func,
     onQueryChange:               React.PropTypes.func,
     updateSearchFilter:          React.PropTypes.func,

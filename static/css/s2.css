@@ -453,6 +453,10 @@ input.noselect {
  .readerPanel.english .readerNavMenu .gridBox{
   direction: ltr;
 }
+.readerPanel.bilingual .readerNavSection,
+ .readerPanel.bilingual .readerNavMenu .gridBox{
+  direction: ltr;
+}
 .readerPanel.english .he {
   display: none;
 }
