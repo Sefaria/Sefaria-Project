@@ -4036,7 +4036,6 @@ class Library(object):
             q['base_text_mapping'] = {'$in': get_all_subclass_attribute(AbstractStructureAutoLinker, "class_key")}
         return IndexSet(q) if full_records else IndexSet(q).distinct("title")
 
-
     def get_titles_in_string(self, s, lang=None, citing_only=False):
         """
         Returns the titles found in the string.
@@ -4047,11 +4046,7 @@ class Library(object):
         """
         if not lang:
             lang = "he" if is_hebrew(s) else "en"
-        if lang=="en":
-            #todo: combine into one regex
-            return [m.group('title') for m in self.all_titles_regex(lang, citing_only=citing_only).finditer(s)]
-        elif lang=="he":
-            return [m.group('title') for m in self.all_titles_regex(lang, citing_only=citing_only).finditer(s)]
+        return [m.group('title') for m in self.all_titles_regex(lang, citing_only=citing_only).finditer(s)]
 
     def get_refs_in_string(self, st, lang=None, citing_only=False):
         """
@@ -4112,6 +4107,25 @@ class Library(object):
                     [)}]										# zero-width: literal ')' or brace
                 )"""
 
+    def _get_ref_from_match(self, ref_match, node, lang):
+        sections = []
+        gs = ref_match.groupdict()
+        for i in range(0, node.depth):
+            gname = u"a{}".format(i)
+            if gs.get(gname) is not None:
+                sections.append(node._addressTypes[i].toNumber(lang, gs.get(gname)))
+
+        _obj = {
+            "tref": ref_match.group(),
+            "book": node.full_title("en"),
+            "index_node": node,
+            "index": node.index,
+            "primary_category": node.index.get_primary_category(),
+            "sections": sections,
+            "toSections": sections
+        }
+        return Ref(_obj=_obj)
+
     #todo: handle ranges in inline refs
     def _build_ref_from_string(self, title=None, st=None, lang="en"):
         """
@@ -4133,24 +4147,8 @@ class Library(object):
         reg = regex.compile(re_string, regex.VERBOSE)
         ref_match = reg.match(st)
         if ref_match:
-            sections = []
-            gs = ref_match.groupdict()
-            for i in range(0, node.depth):
-                gname = u"a{}".format(i)
-                if gs.get(gname) is not None:
-                    sections.append(node._addressTypes[i].toNumber(lang, gs.get(gname)))
-
-            _obj = {
-                "tref": ref_match.group(),
-                "book": node.full_title("en"),
-                "index_node": node,
-                "index": node.index,
-                "primary_category": node.index.get_primary_category(),
-                "sections": sections,
-                "toSections": sections
-            }
             try:
-                return [Ref(_obj=_obj)]
+                return [self._get_ref_from_match(ref_match, node, lang)]
             except InputError:
                 return []
         else:
@@ -4177,27 +4175,36 @@ class Library(object):
 
         reg = regex.compile(re_string, regex.VERBOSE)
         for ref_match in reg.finditer(st):
-            sections = []
-            gs = ref_match.groupdict()
-            for i in range(0, node.depth):
-                gname = u"a{}".format(i)
-                if gs.get(gname) is not None:
-                    sections.append(node._addressTypes[i].toNumber(lang, gs.get(gname)))
-
-            _obj = {
-                "tref": ref_match.group(),
-                "book": node.full_title("en"),
-                "index_node": node,
-                "index": node.index,
-                "primary_category": node.index.get_primary_category(),
-                "sections": sections,
-                "toSections": sections
-            }
             try:
-                refs.append(Ref(_obj=_obj))
+                refs.append(self._get_ref_from_match(ref_match, node, lang))
             except InputError:
                 continue
         return refs
+
+    def _wrap_all_refs_in_string(self, title=None, st=None, lang="he"):
+        """
+        Returns string with all references wrapped in <a> tags
+        :param title:
+        :param st:
+        :param lang:
+        :return:
+        """
+        node = self.get_schema_node(title, lang)
+        assert isinstance(node, JaggedArrayNode)  # Assumes that node is a JaggedArrayNode
+
+        def _wrap_ref_match(match):
+            ref = self._get_ref_from_match(match, node, lang)
+            return u"<a href='/{}'>{}</a>".format(ref.url(), match.group(0))
+
+        try:
+            re_string = self.get_regex_string(title, lang)
+        except AttributeError as e:
+            logger.warning(u"Library._wrap_all_refs_in_string() failed to create regex for: {}.  {}".format(title, e))
+            return st
+
+        reg = regex.compile(re_string, regex.VERBOSE)
+
+        return reg.sub(_wrap_ref_match, st)
 
     def category_id_dict(self, toc=None, cat_head="", code_head=""):
         if toc is None:
