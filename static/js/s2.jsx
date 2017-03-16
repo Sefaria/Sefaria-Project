@@ -4810,6 +4810,7 @@ var EditGroupPage = React.createClass({
         if ("error" in data) {
           alert(data.error);
         } else {
+          this.changed = false;
           window.location = "/groups/" + this.state.name.replace(/ /g, "-");
         }
     }.bind(this)).fail(function() {
