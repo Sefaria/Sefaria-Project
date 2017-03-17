@@ -431,6 +431,7 @@ def change_node_structure(ja_node, section_names, address_types=None, upsize_in_
 
         return Ref(_obj=d).normal()
 
+
     identifier = ja_node.ref().regex(anchored=False)
 
     def needs_fixing(ref_string, *args):
@@ -634,7 +635,42 @@ def cascade(ref_identifier, rewriter=lambda x: x, needs_rewrite=lambda x: True, 
         generic_rewrite(HistorySet(construct_query('old.refs', identifier), sort=[('old.refs', 1)]), attr_name='old', sub_attr_name='refs')
 
 
-def migrate_to_complex_structure(title, schema, mappings):
+def generateSegmentMapping(title, mapping):
+    segment_map = {}
+    vs = Index().load({"title": title}).versionState().contents()['content']['_all']['availableTexts']
+    for orig_ref in mapping:
+        orig_ref_str = orig_ref
+        orig_ref = Ref(orig_ref)
+        if orig_ref.is_range():
+            refs = orig_ref.range_list()
+        else:
+            refs = orig_ref.as_ranged_segment_ref().range_list()
+        for each_ref in refs:
+            segment_value = "Complex {}".format(mapping[orig_ref_str]) #segment_value is the value of the mapping that the user inputted
+            assert each_ref not in segment_map, "Invalid map ranges: Two overlap at reference {}".format(each_ref)
+            if each_ref == orig_ref:
+                segment_map[each_ref.normal()] = segment_value
+            else:
+                #get in_terms_of() info to construct new reference
+                d = each_ref._core_dict()
+                append_arr = each_ref.in_terms_of(orig_ref)
+                assert append_arr, "{} cannot be computed to be in_terms_of() {}".format(each_ref, orig_ref)
+
+                #construct the complex text's ref by appending the results of in_terms_of onto the map's original value
+                append_str = ""
+                for count, element in enumerate(append_arr):
+                    if count == 0:
+                        append_str = " {}".format(element)
+                    else:
+                        append_str += ":{}".format(element)
+                segment_map[each_ref.normal()] = segment_value + append_str
+    return segment_map
+
+
+
+
+
+def migrate_to_complex_structure(title, schema, mappings, validate_mapping=False):
     """
     Converts book that is simple structure to complex.
     :param title: title of book
@@ -653,36 +689,28 @@ def migrate_to_complex_structure(title, schema, mappings):
         except InputError:
             return False
 
-    def rewriter(ref):
-        """
-        Converts each reference from the simple text to what it should be in the complex text based on the mappings.
-        Assumes that both the references in the mappings and the references that are passed into the function
-        are not ranges. For example, for the line old_ref.contains(ref), suppose it is:
-        Ref("Genesis 6-7").contains(Ref("Genesis 6:3-4"))
-        This will evaluate to true but then in the return statement,
-        it will not successfully replace the old_ref_str with new_ref.
-        To deal with ranges in the future, split the ranged refs into starting_ref() and ending_ref()
-        and then use in_terms_of() to get the data necessary to properly translate the range.
-        Ranges that cross from one section to another will be cut to only spanning the first section.
-        """
-        if Ref(ref).is_range():
-            print "Currently does not handle ranged refs.  Only handles the starting_ref() of range."
-            ref = Ref(ref).starting_ref()
-        else:
-            ref = Ref(ref)
-        for old_ref in mappings:
-            if Ref(old_ref).is_range():
-                print "Currently does not handle ranged refs.  Only handles the starting_ref() of range."
-                old_ref = Ref(old_ref).starting_ref()
-            else:
-                old_ref = Ref(old_ref)
-            if old_ref.contains(ref):
-                old_ref_str = old_ref.normal()
-                new_ref = mappings[old_ref_str]
-                ref_str = ref.normal()
-                return "Complex {}".format(ref_str.replace(old_ref_str, new_ref))
-        return "Complex {}".format(ref)
 
+    def rewriter(ref):
+        ref = Ref(ref)
+        if ref.is_range():
+            start = ref.starting_ref().normal()
+            end = ref.ending_ref().normal()
+            if start in segment_map and end in segment_map:
+                return Ref(segment_map[start]).to(Ref(segment_map[end])).normal()
+            elif start in segment_map:
+                return segment_map[start]
+            elif end in segment_map:
+                return segment_map[end]
+            else:
+                return "Complex {}".format(ref.normal())
+        elif ref.normal() not in segment_map:
+            return "Complex {}".format(ref.normal())
+        else:
+            return segment_map[ref.normal()]
+
+
+
+    segment_map = generateSegmentMapping(title, mappings)
 
     print "begin conversion"
     #TODO: add method on model.Index to change all 3 (title, nodes.key and nodes.primary title)
@@ -720,6 +748,13 @@ def migrate_to_complex_structure(title, schema, mappings):
 
     handle_dependant_indices(title)
 
+    Index().load({"title": title}).delete()
+
+    #re-name the temporary index, "Complex ..." to the original title
+    i = library.get_index("Complex {}".format(en_title))
+    i.set_title(title)
+    i.set_title(he_title, lang="he")
+    i.save()
 
 def migrate_versions_of_text(versions, mappings, orig_title, new_title, base_index):
     for i, version in enumerate(versions):

@@ -16,7 +16,7 @@ def map_(x, map_array):
 
 def get_parshiot():
     en_he_parshiot = []
-    with open("data/tmp/parsha.csv") as parsha_file:
+    with open("../data/tmp/parsha.csv") as parsha_file:
         parshiot = csv.reader(parsha_file)
         parshiot.next()
         order = 1
@@ -173,6 +173,7 @@ def swap_text(ref, vtitle):
 
 if __name__ == "__main__":
     #move english
+    '''
     refs = ["1:15", "1:22", "1:23", "1:24", "1:25", "1:35", "1:48", "1:49", "1:50"]
     outer_info = [12, 11, 10, 10, 11]
     map_array = []
@@ -184,6 +185,12 @@ if __name__ == "__main__":
         swap_text(ref, "Rabbi Mike Feuer, Jerusalem Anthology")
     for ref in refs:
         swap_text(ref, "Sefaria Community Translation")
+    tc = TextChunk(Ref("Midrash Tanchuma 8:1"), vtitle="C 2011")
+    new_tc = TextChunk(Ref("Midrash Tanchuma 3:8:1"), vtitle="C 2011")
+    new_tc.text = tc.text[0] + " " + tc.text[1]
+    new_tc.save()
+    tc.text = []
+    tc.save()
     cascade("Midrash Tanchuma", rewriter, needs_rewrite)
 
     #make it complex
@@ -196,7 +203,7 @@ if __name__ == "__main__":
     except InputError:
         pass
     migrate_to_complex_structure("Midrash Tanchuma", book.serialize(), mappings)
-
+    '''
     #increase depth
     i = library.get_index("Complex Midrash Tanchuma")
     nodes = i.nodes.children
@@ -206,3 +213,11 @@ if __name__ == "__main__":
             continue
         new_names = ["Siman", "Paragraph"]
         change_node_structure(node, new_names)
+
+
+    #get rid of "Complex" in title by deleting old one and renaming new one
+    library.get_index("Midrash Tanchuma").delete()
+    i = library.get_index("Complex Midrash Tanchuma")
+    i.set_title("Midrash Tanchuma")
+    i.set_title(u"מדרש תנחומא", lang="he")
+    i.save()
