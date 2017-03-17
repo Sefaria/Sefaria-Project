@@ -431,6 +431,7 @@ def change_node_structure(ja_node, section_names, address_types=None, upsize_in_
 
         return Ref(_obj=d).normal()
 
+
     identifier = ja_node.ref().regex(anchored=False)
 
     def needs_fixing(ref_string, *args):
@@ -572,7 +573,7 @@ def cascade(ref_identifier, rewriter=lambda x: x, needs_rewrite=lambda x: True, 
             sheet = db.sheets.find_one({"id": sid})
             if not sheet:
                 print "Likely error - can't load sheet {}".format(sid)
-            for source in sheet["sources"]:
+            for count, source in enumerate(sheet["sources"]):
                 if rewrite_source(source):
                     needs_save = True
             if needs_save:
@@ -653,7 +654,7 @@ def migrate_to_complex_structure(title, schema, mappings):
         except InputError:
             return False
 
-    def rewriter(ref):
+    def rewriter(our_ref):
         """
         Converts each reference from the simple text to what it should be in the complex text based on the mappings.
         Assumes that both the references in the mappings and the references that are passed into the function
@@ -664,24 +665,52 @@ def migrate_to_complex_structure(title, schema, mappings):
         To deal with ranges in the future, split the ranged refs into starting_ref() and ending_ref()
         and then use in_terms_of() to get the data necessary to properly translate the range.
         Ranges that cross from one section to another will be cut to only spanning the first section.
+        Cases:
+
+        3. Mapping is not a range but our ref is a range -- replace works fine
+
+        4. Mapping is a range and the ref in question is a range --
         """
-        if Ref(ref).is_range():
-            print "Currently does not handle ranged refs.  Only handles the starting_ref() of range."
-            ref = Ref(ref).starting_ref()
+        orig_ref = our_ref
+        our_ref = Ref(our_ref)
+        results = []
+        for our_ref in [our_ref.starting_ref(), our_ref.ending_ref()]:
+            for map_ref in mappings:
+                map_ref = Ref(map_ref)
+                print "******"
+                print map_ref
+                print our_ref
+                try:
+                    terms = our_ref.in_terms_of(map_ref)
+                except:
+                    our_ref.in_terms_of(map_ref)
+                if map_ref.contains(our_ref) and type(terms) is list:
+                    if map_ref.is_range():
+                        terms_str = ""
+                        for term in terms:
+                            terms_str += "{}:".format(term)
+                        terms_str = terms_str[0:-1]
+                        new_ref_str = mappings[map_ref.normal()]
+                        results.append(Ref("Complex {} {}".format(new_ref_str, terms_str)))
+                    else:
+                        map_ref_str = map_ref.normal()
+                        new_ref_str = mappings[map_ref_str]
+                        our_ref_str = our_ref.normal()
+                        results.append(Ref("Complex {}".format(our_ref_str.replace(map_ref_str, new_ref_str))))
+
+        if len(results) == 2:
+            return results[0].to(results[1]).normal()
+        elif len(results) == 1:
+            return results[0].normal()
         else:
-            ref = Ref(ref)
-        for old_ref in mappings:
-            if Ref(old_ref).is_range():
-                print "Currently does not handle ranged refs.  Only handles the starting_ref() of range."
-                old_ref = Ref(old_ref).starting_ref()
-            else:
-                old_ref = Ref(old_ref)
-            if old_ref.contains(ref):
-                old_ref_str = old_ref.normal()
-                new_ref = mappings[old_ref_str]
-                ref_str = ref.normal()
-                return "Complex {}".format(ref_str.replace(old_ref_str, new_ref))
-        return "Complex {}".format(ref)
+            return "Complex {}".format(our_ref)
+
+    print "validating mapping"
+    for my_index, my_ref in enumerate(mappings):
+        for other_index, other_ref in enumerate(mappings):
+            if my_index != other_index and Ref(my_ref).as_ranged_segment_ref().overlaps(Ref(other_ref).as_ranged_segment_ref()):
+                print "Mapping is incorrectly defined.  References should not overlap, but {} overlaps with {}.".format(my_ref, other_ref)
+                return
 
 
     print "begin conversion"

@@ -16,7 +16,7 @@ def map_(x, map_array):
 
 def get_parshiot():
     en_he_parshiot = []
-    with open("data/tmp/parsha.csv") as parsha_file:
+    with open("/data/tmp/parsha.csv") as parsha_file:
         parshiot = csv.reader(parsha_file)
         parshiot.next()
         order = 1
@@ -184,6 +184,12 @@ if __name__ == "__main__":
         swap_text(ref, "Rabbi Mike Feuer, Jerusalem Anthology")
     for ref in refs:
         swap_text(ref, "Sefaria Community Translation")
+    tc = TextChunk(Ref("Midrash Tanchuma 8:1"), vtitle="C 2011")
+    new_tc = TextChunk(Ref("Midrash Tanchuma 3:8:1"), vtitle="C 2011")
+    new_tc.text = tc.text[0] + " " + tc.text[1]
+    new_tc.save()
+    tc.text = []
+    tc.save()
     cascade("Midrash Tanchuma", rewriter, needs_rewrite)
 
     #make it complex
@@ -206,3 +212,11 @@ if __name__ == "__main__":
             continue
         new_names = ["Siman", "Paragraph"]
         change_node_structure(node, new_names)
+
+
+    #get rid of "Complex" in title by deleting old one and renaming new one
+    library.get_index("Midrash Tanchuma").delete()
+    i = library.get_index("Complex Midrash Tanchuma")
+    i.set_title("Midrash Tanchuma")
+    i.set_title(u"מדרש תנחומא", lang="he")
+    i.save()
