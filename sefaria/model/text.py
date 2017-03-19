@@ -402,6 +402,53 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
     def publication_time_period(self):
         return self._get_time_period("pubDate")
 
+    def best_time_period(self):
+        """
+
+        :return: TimePeriod: First tries to return `compDate`. Deals with ranges and negative values for compDate
+        If no compDate, looks at author info
+        """
+        author = self.author_objects()[0] if len(self.author_objects()) > 0 else None
+        start, end, startIsApprox, endIsApprox = None, None, None, None
+
+        if getattr(self, "compDate", None):
+            errorMargin = int(getattr(self, "errorMargin", 0))
+            self.startIsApprox = self.endIsApprox = errorMargin > 0
+
+            try:
+                year = int(getattr(self, "compDate"))
+                start = year - errorMargin
+                end = year + errorMargin
+            except ValueError as e:
+                years = getattr(self, "compDate").split("-")
+                if years[0] == "" and len(years) == 3:  #Fix for first value being negative
+                    years[0] = -int(years[1])
+                    years[1] = int(years[2])
+                start = int(years[0]) - errorMargin
+                end = int(years[1]) + errorMargin
+
+        elif author and author.mostAccurateTimePeriod():
+            tp = author.mostAccurateTimePeriod()
+            start = tp.start
+            end = tp.end
+            startIsApprox = tp.startIsApprox
+            endIsApprox = tp.endIsApprox
+
+        if not start is None:
+            from sefaria.model.time import TimePeriod
+            if not startIsApprox is None:
+                return TimePeriod({
+                    "start": start,
+                    "end": end,
+                    "startIsApprox": startIsApprox,
+                    "endIsApprox": endIsApprox
+                })
+            else:
+                return TimePeriod({
+                    "start": start,
+                    "end": end
+                })
+
     def _get_time_period(self, date_field, margin_field=None):
         from . import time
         if not getattr(self, date_field, None):
