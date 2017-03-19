@@ -7,7 +7,7 @@
     m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
     })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
 
-    ga('create', '{{ GOOGLE_ANALYTICS_CODE }}', 'auto');  // Replace with your property ID.
+    ga('create', '{{ GOOGLE_ANALYTICS_CODE }}', 'auto');
     // Send first pageview after S2 is loaded, so that more data can be added.
     // ga('send', 'pageview');
 

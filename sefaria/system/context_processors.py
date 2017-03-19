@@ -92,7 +92,11 @@ def user_and_notifications(request):
         interrupting_message_json = json.dumps({"name": interrupting_message, "html": render_to_string("messages/%s.html" % interrupting_message)})
     else:
         interrupting_message_json = "null"
-    mock_recent = [{"ref":"Orot, Lights from Darkness, Land of Israel 5","heRef":"אורות, אורות מאופל, ארץ ישראל ה׳","book":"Orot","version":None,"versionLanguage":None,"position":0},{"ref":"Genesis 1","heRef":"בראשית א׳","book":"Genesis","version":None,"versionLanguage":None,"position":0},{"ref":"Berakhot 2a","heRef":"ברכות ב׳ א","book":"Berakhot","version":None,"versionLanguage":None,"position":0}]
+
+    # Temp for Groups testing, remove when groups icon is live for all
+    from sefaria.model.group import GroupSet
+    has_groups = len(GroupSet().for_user(request.user.id)) > 0
+
     return {
         "notifications": notifications,
         "notifications_json": notifications_json,
@@ -101,7 +105,8 @@ def user_and_notifications(request):
         "recentlyViewed": profile.recentlyViewed,
         "interrupting_message_json": interrupting_message_json,
         "partner_group": profile.partner_group,
-        "partner_role": profile.partner_role
+        "partner_role": profile.partner_role,
+        "has_groups": has_groups
     }
 
 

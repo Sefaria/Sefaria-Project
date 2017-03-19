@@ -639,7 +639,6 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
         """
         return self.nodes.text_index_map(tokenizer=tokenizer, strict=strict, lang=lang, vtitle=vtitle)
 
-
     def get_primary_category(self):
         if self.is_dependant_text() and len(self.categories) >= 2:
             return self.dependence.capitalize()
@@ -2245,7 +2244,8 @@ class Ref(object):
 
         :return bool:
         """
-        #TODO: errors on complex refs
+        if getattr(self.index_node, "depth", None) is None:
+            return False
         return len(self.sections) == self.index_node.depth - 1
 
     def is_segment_level(self):
@@ -2263,7 +2263,8 @@ class Ref(object):
 
         :return bool:
         """
-        #TODO: errors on complex refs
+        if getattr(self.index_node, "depth", None) is None:
+            return False
         return len(self.sections) == self.index_node.depth
 
     """ Methods to generate new Refs based on this Ref """
@@ -3495,7 +3496,6 @@ class Ref(object):
         else:
             return None
 
-
     def distance(self, ref, max_dist=None):
         """
 
@@ -3519,6 +3519,7 @@ class Ref(object):
             return -1
         else:
             return distance
+
 
 class Library(object):
     """

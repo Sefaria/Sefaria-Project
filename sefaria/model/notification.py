@@ -22,6 +22,7 @@ from . import user_profile
 from sefaria.system.database import db
 from sefaria.system.exceptions import InputError
 
+
 class GlobalNotification(abst.AbstractMongoRecord):
     """
     "type" attribute can be: "index", "version", or "general"
@@ -152,13 +153,11 @@ class GlobalNotificationSet(abst.AbstractMongoSet):
     def contents(self):
         return [n.contents() for n in self]
 
-
     """
     def to_HTML(self):
         html = [n.to_HTML() for n in self]
         return "".join(html)
     """
-
 
 
 class Notification(abst.AbstractMongoRecord):
@@ -236,11 +235,18 @@ class Notification(abst.AbstractMongoRecord):
         self.content["follower"] = follower_id
         return self
 
+    def make_group_add(self, adder_id, group_name):
+        """Make this Notification for being added to a group"""
+        self.type                  = "group add"
+        self.content["adder"]      = adder_id
+        self.content["group_name"] = group_name
+        return self
+
     def make_discuss(self, adder_id=None, discussion_path=None):
         """Make this Notification for a new note added to a conversation event"""
         self.type                         = "discuss"
         self.content["adder"]             = adder_id
-        self.content["discussion_path"] = discussion_path
+        self.content["discussion_path"]   = discussion_path
         return self
 
     def mark_read(self, via="site"):
@@ -275,6 +281,7 @@ class Notification(abst.AbstractMongoRecord):
             "sheet like":    "liker",
             "sheet publish": "publisher", 
             "follow":        "follower",
+            "group add":     "adder",
             "discuss":       "adder",
         }
         return self.content[keys[self.type]]

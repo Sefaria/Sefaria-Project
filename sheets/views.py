@@ -480,18 +480,16 @@ def groups_api(request, group=None):
 		group_content = group.contents(with_content=True, authenticated=is_member)
 		return jsonResponse(group_content)
 	else:
-		return groups_post_api(request)
+		return groups_post_api(request, group_name=group)
 
 
 @login_required
-def groups_post_api(request):
-	j = request.POST.get("json")
-	if not j:
-		return jsonResponse({"error": "No JSON given in post data."})
-	group = json.loads(j)
-	from pprint import pprint
-	pprint(group)
+def groups_post_api(request, group_name=None):
 	if request.method == "POST":
+		j = request.POST.get("json")
+		if not j:
+			return jsonResponse({"error": "No JSON given in post data."})
+		group = json.loads(j)
 		existing = Group().load({"name": group.get("previousName", group["name"])})
 		if existing:
 			# Don't overwrite existing group when posting to create a new group
@@ -511,14 +509,17 @@ def groups_post_api(request):
 		return jsonResponse({"status": "ok"})
 
 	elif request.method == "DELETE":
-		existing = Group().load({"name": group.get("previousName", group["name"])})
+		if not group_name:
+			return jsonResponse({"error": "Please specify a group name in the URL."})
+		existing = Group().load({"name": group_name})
 		if existing:
 			if request.user.id not in existing.admins:
-				return jsonResponse({"error": "You do not have permission to edit this group."})
+				return jsonResponse({"error": "You do not have permission to delete this group."})
 			else:
-				GroupSet({"name": group["name"]}).delete()
+				GroupSet({"name": group_name}).delete()
+				return jsonResponse({"status": "ok"})
 		else:
-			return jsonResponse({"error": "Group named %s does not exist" % group["name"]})
+			return jsonResponse({"error": "Group named %s does not exist" % group_name})
 
 	else:
 		return jsonResponse({"error": "Unsupported HTTP method."})
@@ -534,14 +535,17 @@ def groups_role_api(request, group_name, uid, role):
 	group = Group().load({"name": group_name})
 	if not group:
 		return jsonResponse({"error": "No group named %s." % group_name})
-	if request.user.id not in group.admins:
-		return jsonResponse({"error": "You must be a group admin to change member roles."})
 	uid = int(uid)
+	if request.user.id not in group.admins:
+		if not (uid == request.user.id and role == "remove"): # non admins can remove themselves
+			return jsonResponse({"error": "You must be a group admin to change member roles."})
 	user = UserProfile(uid)
 	if not user.exists():
 		return jsonResponse({"error": "No user with the specified ID exists."})
 	if role not in ("member", "publisher", "admin", "remove"):
 		return jsonResponse({"error": "Unknown group member role."})
+	if uid == request.user.id and group.admins == [request.user.id] and role != "admin":
+		return jsonResponse({"error": "This action would leave the group without any admins. Please appoint another admin first."})
 	if role == "remove":
 		group.remove_member(uid)
 	else:
@@ -566,7 +570,16 @@ def groups_invite_api(request, group_name, uid_or_email):
 	user = UserProfile(email=uid_or_email)
 	if not user.exists():
 		return jsonResponse({"error": "No user with this email address currently exists."})
+	
+	is_new_member = not group.is_member(user.id)
 	group.add_member(user.id)
+
+	if is_new_member:
+		print "Make notification"
+		from sefaria.model.notification import Notification
+		notification = Notification({"uid": user.id})
+		notification.make_group_add(adder_id=request.user.id, group_name=group_name)
+		notification.save()
 
 	group_content = group.contents(with_content=True, authenticated=True)
 	return jsonResponse(group_content)
@@ -678,7 +691,13 @@ def sheet_list_api(request):
 		if "group" in sheet:
 			if sheet["group"] not in [g.name for g in get_user_groups(request.user.id)]:
 				sheet["group"] = None
-
+			"""
+			if not Group().load({"name": sheet["group"]}).can_publish(request.user.id) and sheet["status"] == "public":
+				sheet["error"] = "You don't have permission to publish sheets in this group, or edit public sheets in this group."
+				sheet["status"] = "unlisted"
+				sheet["rebuild"] = True
+				return jsonResponse(sheet)
+			"""
 		responseSheet = save_sheet(sheet, user.id)
 		if "rebuild" in responseSheet and responseSheet["rebuild"]:
 			# Don't bother adding user links if this data won't be used to rebuild the sheet

@@ -9,6 +9,11 @@
   <meta property="og:image" content="https://www.sefaria.org/static/img/fb-og-image.png"/>
   <meta property="og:title" content="{{ title }} | Sefaria"/>
   <meta property="og:description" content="{{ desc }}">
+  {% if ldBreadcrumbs %}{% autoescape off %}
+  <script type="application/ld+json">
+  {{ ldBreadcrumbs }}
+  </script>
+  {% endautoescape %}{% endif %}
 
   <title>{{ title }}</title>
   <link rel="stylesheet" href="/static/font-awesome/css/font-awesome.css">

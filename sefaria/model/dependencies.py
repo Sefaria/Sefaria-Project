@@ -87,10 +87,11 @@ subscribe(cascade_delete(garden.GardenStopRelationSet, "garden", "key"),   garde
 # from stop to stop rel
 
 # Notifications
-subscribe(cascade_delete(notification.NotificationSet, "global_id", "_id"),notification.GlobalNotification, "delete")
+subscribe(cascade_delete(notification.NotificationSet, "global_id", "_id"),  notification.GlobalNotification, "delete")
 
 # Groups 
 subscribe(group.process_group_name_change_in_sheets,                         group.Group, "attributeChange", "name")
+subscribe(group.process_group_delete_in_sheets,                              group.Group, "delete")
 
 
 # todo: notes? reviews?
