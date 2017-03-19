@@ -2297,6 +2297,7 @@ a.resourcesLink {
   font-weight: bold;
   letter-spacing: 1px;
   cursor: pointer;
+  color: #333;
 }
 .refLink:hover {
   text-decoration: underline;
