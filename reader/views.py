@@ -1267,7 +1267,7 @@ def texts_api(request, tref, lang=None, version=None):
         version    = version.replace("_", " ") if version else None
         layer_name = request.GET.get("layer", None)
         alts       = bool(int(request.GET.get("alts", True)))
-        wrapLinks = bool(int(request.GET.get("wrapLinks", True)))
+        wrapLinks = bool(int(request.GET.get("wrapLinks", False)))
 
 
         try:
