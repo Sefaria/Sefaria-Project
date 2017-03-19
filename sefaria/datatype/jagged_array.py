@@ -569,7 +569,7 @@ class JaggedTextArray(JaggedArray):
             return 0
 
     def modify_by_function(self, func, _cur=None):
-        """ Returns the number of characters in an undecorated jagged array """
+        """ Returns the jagged array but with each terminal string processed by func"""
         if _cur is None:
             return self.modify_by_function(func, _cur=self._store)
         if isinstance(_cur, basestring):

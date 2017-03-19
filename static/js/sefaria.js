@@ -287,12 +287,11 @@ Sefaria = extend(Sefaria, {
       return segmentData;
     }
   },
-  _saveText: function(data, settings, skipWrap) {
+  _saveText: function(data, settings) {
     if (!data || "error" in data) { 
       return;
     }
     settings         = settings || {};
-    data             = skipWrap ? data : this._wrapRefs(data);
     var key          = this._textKey(data.ref, settings);
     this._texts[key] = data;
 
@@ -314,7 +313,7 @@ Sefaria = extend(Sefaria, {
           version: settings.version,
           language: settings.language
       }:{};
-      this._saveText(newData, context_settings, true);
+      this._saveText(newData, context_settings);
     }
     if (data.isSpanning) {
       var spanning_context_settings = (settings.language && settings.version) ? {
@@ -364,7 +363,7 @@ Sefaria = extend(Sefaria, {
           version: settings.version,
           language: settings.language
       } : {};
-      this._saveText(segment_data, context_settings, true);
+      this._saveText(segment_data, context_settings);
 
       context_settings.context = 1;
       var contextKey = this._textKey(ref, context_settings);

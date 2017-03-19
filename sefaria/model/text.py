@@ -4115,12 +4115,12 @@ class Library(object):
         return st
 
     # do we want to move this to the schema node? We'd still have to pass the title...
-    def get_regex_string(self, title, lang, for_js=False):
+    def get_regex_string(self, title, lang, for_js=False, anchored=False):
         node = self.get_schema_node(title, lang)
         assert isinstance(node, JaggedArrayNode)  # Assumes that node is a JaggedArrayNode
 
         if lang == "en" or for_js:  # Javascript doesn't support look behinds.
-            return node.full_regex(title, lang, for_js=for_js, match_range=for_js, compiled=False, anchored=(not for_js))
+            return node.full_regex(title, lang, for_js=for_js, match_range=for_js, compiled=False, anchored=anchored)
 
         elif lang == "he":
             return ur"""(?<=							# look behind for opening brace
@@ -4166,7 +4166,7 @@ class Library(object):
         assert isinstance(node, JaggedArrayNode)  # Assumes that node is a JaggedArrayNode
 
         try:
-            re_string = self.get_regex_string(title, lang)
+            re_string = self.get_regex_string(title, lang, anchored=True)
         except AttributeError as e:
             logger.warning(u"Library._build_ref_from_string() failed to create regex for: {}.  {}".format(title, e))
             return []
@@ -4222,7 +4222,7 @@ class Library(object):
 
         def _wrap_ref_match(match):
             ref = self._get_ref_from_match(match, node, lang)
-            return u"<a href='/{}'>{}</a>".format(ref.url(), match.group(0))
+            return u'<a class ="refLink" href="/{}" data-ref="{}">{}</a>'.format(ref.url(), ref.normal(), match.group(0))
 
         try:
             re_string = self.get_regex_string(title, lang)
