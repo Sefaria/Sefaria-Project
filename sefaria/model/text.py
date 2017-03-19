@@ -405,7 +405,8 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
     def best_time_period(self):
         """
 
-        :return: TimePeriod: First tries to return `compDate
+        :return: TimePeriod: First tries to return `compDate`. Deals with ranges and negative values for compDate
+        If no compDate, looks at author info
         """
         author = self.author_objects()[0] if len(self.author_objects()) > 0 else None
         start, end, startIsApprox, endIsApprox = None, None, None, None
