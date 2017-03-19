@@ -4762,6 +4762,7 @@ var EditGroupPage = React.createClass({
   uploadImage: function(field) {
     // Sets the state of `field` of the resulting image URL
     var url = prompt("Enter an image URL", this.state[field] || "");
+    if (url === null) { return; }
     var state = {};
     state[field] = url;
     this.setState(state);
@@ -4809,6 +4810,7 @@ var EditGroupPage = React.createClass({
         if ("error" in data) {
           alert(data.error);
         } else {
+          this.changed = false;
           window.location = "/groups/" + this.state.name.replace(/ /g, "-");
         }
     }.bind(this)).fail(function() {
@@ -8397,7 +8399,7 @@ var AccountPanel = React.createClass({
     var accountContent = [
       (<BlockLink interfaceLink={true} target="/my/profile" title="Profile" heTitle="פרופיל" image="/static/img/profile.svg" />),
       (<BlockLink interfaceLink={true} target="/sheets/private" inAppLink={true} title="Source Sheets" heTitle="דפי מקורות" image="/static/img/sheet.svg" />),
-      (Sefaria.is_moderator
+      (Sefaria.is_moderator || Sefaria.has_groups
        ? (<BlockLink interfaceLink={true} target="/my/groups" inAppLink={true} title="Groups" heTitle="קבוצות" image="/static/img/group.svg" />)
        : (<BlockLink interfaceLink={true} target="/coming-soon?my-notes" title="Notes" heTitle="רשומות" image="/static/img/note.svg" />)),
       (<BlockLink interfaceLink={true} target="/texts/recent" title="Reading History" heTitle="היסטורית קריאה" image="/static/img/readinghistory.svg" />),
