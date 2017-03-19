@@ -232,6 +232,7 @@ def test_migrate_to_complex_structure():
     }).save()
 
 
+
     VersionState("MigrateBook").refresh()
 
     new_schema = SchemaNode()

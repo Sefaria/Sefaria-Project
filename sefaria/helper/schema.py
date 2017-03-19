@@ -635,9 +635,26 @@ def cascade(ref_identifier, rewriter=lambda x: x, needs_rewrite=lambda x: True, 
         generic_rewrite(HistorySet(construct_query('old.refs', identifier), sort=[('old.refs', 1)]), attr_name='old', sub_attr_name='refs')
 
 
-def generateSegmentMapping(title, mapping, output_file=None):
+def generate_segment_mapping(title, mapping, output_file=None):
+    '''
+    :param title: title of Index record
+    :param mapping: mapping is a dict where each key is a reference in the original simple Index and each value is a reference in the new complex Index
+    such as mapping['Zohar 1:2a'] = 'Zohar, Genesis'
+    :param output_file:
+    :return segment_map: segment_map is the dict based on mapping
+
+    The function takes each key/value pair in mapping and adds this key/value pair to the segment_map,
+    and it also adds every possible key/value pair that are descendants of the key/value pairs in mapping to the segment_map.
+    In the above example,
+    segment_map['Zohar 1:2a'] = 'Zohar, Genesis'
+    segment_map['Zohar 1:2a:1'] = 'Zohar, Genesis 1'
+    segment_map['Zohar 1:2a:2'] = 'Zohar, Genesis 2'
+    etc.
+
+    :return segment_map:
+    '''
+
     segment_map = {}
-    vs = Index().load({"title": title}).versionState().contents()['content']['_all']['availableTexts']
     for orig_ref in mapping:
         orig_ref_str = orig_ref
         orig_ref = Ref(orig_ref)
@@ -684,23 +701,21 @@ def generateSegmentMapping(title, mapping, output_file=None):
                 '''
                 append_arr = each_ref.in_terms_of(orig_ref)
                 assert append_arr, "{} cannot be computed to be in_terms_of() {}".format(each_ref, orig_ref)
-                append_str = ""
-                for count, element in enumerate(append_arr):
-                    if count == 0:
-                        append_str = " {}".format(element)
-                    else:
-                        append_str += ":{}".format(element)
-                segment_map[each_ref.normal()] = segment_value + append_str
+                segment_ref = Ref(segment_value)
+                core_dict = segment_ref._core_dict()
+                core_dict['sections'] += append_arr
+                core_dict['toSections'] += append_arr
+
+                segment_map[each_ref.normal()] = Ref(_obj=core_dict).normal()
 
     #output results so that this map can be used again for other purposes
     if output_file:
         output_file = open(output_file, 'w')
+        assert type(output_file) is file
         for key in segment_map:
-            output_file.write("KEY: {}, VALUE: {}".format(key, segment_map[key]))
+            output_file.write("KEY: {}, VALUE: {}".format(key, segment_map[key])+"\n")
         output_file.close()
     return segment_map
-
-
 
 
 
@@ -720,7 +735,7 @@ def migrate_to_complex_structure(title, schema, mappings, validate_mapping=False
     def needs_rewrite(ref, *args):
         try:
             return Ref(ref).index.title == title
-        except AttributeError:
+        except InputError:
             return False
 
 
@@ -742,9 +757,6 @@ def migrate_to_complex_structure(title, schema, mappings, validate_mapping=False
         else:
             return segment_map[ref.normal()]
 
-
-
-    segment_map = generateSegmentMapping(title, mappings, "output_"+title+"_.txt")
 
     print "begin conversion"
     #TODO: add method on model.Index to change all 3 (title, nodes.key and nodes.primary title)
@@ -778,6 +790,7 @@ def migrate_to_complex_structure(title, schema, mappings, validate_mapping=False
     vstate_new.flags = vstate_old.flags
     vstate_new.save()
 
+    segment_map = generate_segment_mapping(title, mappings, "output_"+title+"_.txt")
     cascade(title, rewriter, needs_rewrite)
 
     handle_dependant_indices(title)
