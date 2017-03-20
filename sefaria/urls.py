@@ -315,6 +315,7 @@ urlpatterns += patterns('',
     (r'^workshop/?$', lambda x: HttpResponseRedirect('/static/files/Sefaria_SummerMeeting_2016.pdf')),
     (r'^ideasforteaching/?$', lambda x: HttpResponseRedirect('/static/files/Sefaria_Teacher_Generated_Ideas_for_Your_Classroom.pdf')),
     (r'^gala/?$', lambda x: HttpResponseRedirect('https://www.501auctions.com/sefaria')),
+    (r'^jfn?$', lambda x: HttpResponseRedirect('https://www.sefaria.org/sheets/60494')),
 )
 
 # Packaged JavaScript
