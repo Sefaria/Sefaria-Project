@@ -556,8 +556,8 @@ $(function() {
 		if (group != "None") {
 			sjs.track.sheets("Share with Group", group);
 			var groupUrl = group.replace(/ /g, "_");
-			$("#partnerLogo").attr("src", $(this).attr("data-image")).show()
-				.closest("a").attr("href", "/partners/" + groupUrl );
+			$("#groupLogo").attr("src", $(this).attr("data-image")).show()
+				.closest("a").attr("href", "/groups/" + groupUrl );
 			$("#sheetHeader").show();
 			
 			$(".groupSharing").show();
@@ -1242,10 +1242,10 @@ $(function() {
 						var categorySum = {}
 						for (var i = 0; i < data.commentary.length; i++) {
 							var c = data.commentary[i];
-							if (categorySum[c.commentator]) {
-								categorySum[c.commentator]++;
+							if (categorySum[c.collectiveTitle['en']]) {
+								categorySum[c.collectiveTitle['en']]++;
 							} else {
-								categorySum[c.commentator] = 1;
+								categorySum[c.collectiveTitle['en']] = 1;
 							}
 						}
 						var categories = [];
@@ -1266,7 +1266,7 @@ $(function() {
 
 							for (var i = 0; i < data.commentary.length; i++) {
 								var c = data.commentary[i];
-								if (categories[j] == c.commentator) {
+								if (categories[j] == c.collectiveTitle['en']) {
 									dataRefs = dataRefs + c.sourceRef + ";";
 									//continue;
 								}
@@ -1737,8 +1737,8 @@ $(function() {
 			changeSharing();
 			if ($(this).val()!="None") {
 				var groupUrl = $(this).val().replace(/ /g, "_");
-				$("#partnerLogo").attr("src", $("#sourceSheetGroupSelect option:selected").attr("data-image")).show()
-					.closest("a").attr("href", "/partners/" + groupUrl);
+				$("#groupLogo").attr("src", $("#sourceSheetGroupSelect option:selected").attr("data-image")).show()
+					.closest("a").attr("href", "/groups/" + groupUrl);
 				$("#sheetHeader").show();
 				$(".groupName").text($(this).val());
 			}
@@ -1986,8 +1986,8 @@ $(function() {
 
 	// Add All Connections 
     function SortBySourceRef(x,y) {
-		  if (x.commentator < y.commentator) return -1;
-		  if (x.commentator > y.commentator) return 1;
+		  if (x.collectiveTitle['en'] < y.collectiveTitle['en']) return -1;
+		  if (x.collectiveTitle['en'] > y.collectiveTitle['en']) return 1;
 		  if (x.anchorVerse < y.anchorVerse) return -1;
 		  if (x.anchorVerse > y.anchorVerse) return 1;
 		  if (x.commentaryNum < y.commentaryNum) return -1;
@@ -2019,10 +2019,10 @@ $(function() {
 				var categorySum = {}
 				for (var i = 0; i < data.commentary.length; i++) {
 					var c = data.commentary[i];
-					if (categorySum[c.commentator]) {
-						categorySum[c.commentator]++;
+					if (categorySum[c.collectiveTitle['en']]) {
+						categorySum[c.collectiveTitle['en']]++;
 					} else {
-						categorySum[c.commentator] = 1;
+						categorySum[c.collectiveTitle['en']] = 1;
 					}
 				}
 				var categories = [];
@@ -2042,7 +2042,7 @@ $(function() {
 					var count = 0;
 					for (var i = 0; i < data.commentary.length; i++) {
 						var c = data.commentary[i];
-						if ($.inArray(c.commentator, categoriesToAdd) == -1) {
+						if ($.inArray(c.collectiveTitle['en'], categoriesToAdd) == -1) {
 							continue;
 						}
 						var source = {
@@ -2666,7 +2666,6 @@ function handleSave() {
 	var sheet = readSheet();
 	saveSheet(sheet, true);
 	sjs.track.sheets("Save New Sheet");
-
 }
 
 
@@ -2695,7 +2694,6 @@ function saveSheet(sheet, reload) {
 			startPollingIfNeeded(); // Start or stop polling if collab/group status has changed
 			promptToPublish();      // If conditions are right, prompt to publish
 			$("#lastSaved").text("All changes saved in Sefaria")
-
 		} 
 
 		if ("error" in data) {
@@ -2786,7 +2784,7 @@ function buildSheet(data){
 		$(".individualSharing").hide();
 		var groupUrl = data.group.replace(/ /g, "_");
 		var groupImage = $(".groupOption[data-group='"+ data.group + "']").attr("data-image"); 
-		$("#partnerLogo").attr("src", groupImage).show();
+		$("#groupLogo").attr("src", groupImage).show();
 		$("#sourceSheetGroupSelect").val(data.group);
 	} else {
 		$(".groupSharing").hide();

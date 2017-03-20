@@ -3,7 +3,9 @@
 from sefaria.model import *
 from sefaria.utils.hebrew import strip_nikkud
 import sefaria.tracker as tracker
+from sefaria.system.exceptions import DuplicateRecordError
 
+"""
 patterns = [
     u"כתרגומו",
     u"ותרגומו",
@@ -13,6 +15,9 @@ patterns = [
     u"לכך מתרגם",
     u"מתרגם"
 ]
+"""
+# Missed this one.
+patterns = [u"אנקלוס"]
 
 books = [
     "Genesis", "Exodus", "Leviticus", "Numbers", "Deuteronomy"
@@ -22,7 +27,6 @@ for book in books:
     rashi_book = "Rashi on " + book
     onkelos_book = "Onkelos " + book
     i = library.get_index(rashi_book)
-    assert isinstance(i, CommentaryIndex)
     all_rashis = i.all_segment_refs()
 
     # Loop through all of the Rashis
@@ -39,8 +43,11 @@ for book in books:
                     "auto": True,
                     "generated_by": "Rashi - Onkelos Linker"
                 }
-                tracker.add(28, Link, d)
-                print u"{}\t{}\t{}".format(rashi_ref.normal(), pat, rashi.strip())
+                try:
+                    tracker.add(28, Link, d)
+                    print u"{}\t{}\t{}".format(rashi_ref.normal(), pat, rashi.strip())
+                except DuplicateRecordError:
+                    print u"Link already exists for {}".format(rashi_ref.normal())
                 total += 1
                 break
 

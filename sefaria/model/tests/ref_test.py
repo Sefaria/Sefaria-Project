@@ -458,6 +458,27 @@ class Test_Ref(object):
         r2 = Ref("Genesis 3:4")
         assert r1.distance(r2) == 57
 
+    def test_is_segment_level(self):
+        assert Ref("Leviticus 15:3").is_segment_level()
+        assert not Ref("Leviticus 15").is_segment_level()
+        assert not Ref("Rashi on Leviticus 15:3").is_segment_level()
+        assert Ref("Rashi on Leviticus 15:3:1").is_segment_level()
+        assert not Ref("Leviticus").is_segment_level() # JA root
+        assert not Ref("Orot").is_segment_level() # schema node
+        assert not Ref("Orot,_Lights_from_Darkness,_Land_of_Israel").is_segment_level() # JA root in complex text
+        assert not Ref("Orot,_Lights_from_Darkness,_Land_of_Israel.4").is_segment_level()
+        assert Ref("Orot,_Lights_from_Darkness,_Land_of_Israel.4.1").is_segment_level()
+
+    def test_is_section_level(self):
+        assert not Ref("Leviticus 15:3").is_section_level()
+        assert Ref("Leviticus 15").is_section_level()
+        assert Ref("Rashi on Leviticus 15:3").is_section_level()
+        assert not Ref("Rashi on Leviticus 15:3:1").is_section_level()
+        assert not Ref("Leviticus").is_section_level()  # JA root
+        assert not Ref("Orot").is_section_level()  # schema node
+        assert not Ref("Orot,_Lights_from_Darkness,_Land_of_Israel").is_section_level()  # JA root in complex text
+        assert Ref("Orot,_Lights_from_Darkness,_Land_of_Israel.4").is_section_level()
+        assert not Ref("Orot,_Lights_from_Darkness,_Land_of_Israel.4.1").is_section_level()
 
 class Test_Cache(object):
     def test_index_flush_from_cache(self):
@@ -578,6 +599,13 @@ class Test_comparisons(object):
         assert Ref("Exodus").contains(Ref("Exodus 6"))
         assert Ref("Exodus").contains(Ref("Exodus 6:2"))
         assert Ref("Exodus").contains(Ref("Exodus 6:2-12"))
+
+        assert not Ref("Exodus 6:2").contains(Ref("Exodus 6"))
+        assert not Ref("Exodus 6:2-12").contains(Ref("Exodus 6"))
+
+        assert not Ref("Exodus 6").contains(Ref("Exodus"))
+        assert not Ref("Exodus 6:2").contains(Ref("Exodus"))
+        assert not Ref("Exodus 6:2-12").contains(Ref("Exodus"))
 
         assert Ref("Rashi on Genesis 5:10-20").contains(Ref("Rashi on Genesis 5:18-20"))
         assert not Ref("Rashi on Genesis 5:10-20").contains(Ref("Rashi on Genesis 5:21-25"))

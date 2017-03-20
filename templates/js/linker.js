@@ -18,7 +18,7 @@
     /* Adapted from: https://plainjs.com/javascript/manipulation/unwrap-a-dom-element-35/ */
     function unwrap(el) { var parent = el.parentNode; while (el.firstChild) parent.insertBefore(el.firstChild, el); parent.removeChild(el);}
 
-    var base_url = window.location.protocol + '//www.sefaria.org/';
+    var base_url = 'https://www.sefaria.org/';
     var bookTitles = {{ book_titles }};
     var popUpElem;
     var heBox;

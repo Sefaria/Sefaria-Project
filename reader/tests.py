@@ -182,8 +182,8 @@ class ApiTest(SefariaTestCase):
         self.assertTrue(len(data["he"]) > 0)
         self.assertTrue(len(data["commentary"]) > 0)
         self.assertEqual(data["book"],        "Rashi on Genesis")
-        self.assertEqual(data["commentator"], "Rashi")
-        self.assertEqual(data["categories"],  ['Commentary', 'Tanakh', 'Rashi'])
+        self.assertEqual(data["collectiveTitle"], "Rashi")
+        self.assertEqual(data["categories"],  ["Tanakh","Commentary","Rashi","Torah"])
         self.assertEqual(data["sections"],    [2,3])
         self.assertEqual(data["toSections"],  [2,3])
 
@@ -194,8 +194,8 @@ class ApiTest(SefariaTestCase):
         self.assertTrue(len(data["he"]) > 0)
         self.assertTrue(len(data["commentary"]) > 0)
         self.assertEqual(data["book"],        "Tosafot on Sukkah")
-        self.assertEqual(data["commentator"], "Tosafot")
-        self.assertEqual(data["categories"],  ['Commentary', 'Talmud', 'Tosafot'])
+        self.assertEqual(data["collectiveTitle"], "Tosafot")
+        self.assertEqual(data["categories"],   ["Talmud","Bavli","Commentary","Tosafot","Seder Moed"])
         self.assertEqual(data["sections"],    ["2a", 1, 1])
         self.assertEqual(data["toSections"],  ["2a", 1, 1])
 
@@ -242,8 +242,7 @@ class ApiTest(SefariaTestCase):
         response = c.get('/api/index/Rashi')
         self.assertEqual(200, response.status_code)  
         data = json.loads(response.content)
-        self.assertEqual(data["title"],      "Rashi")
-        self.assertEqual(data["categories"], ["Commentary"])
+        self.assertEqual(data["error"], "No book named 'Rashi'.")
 
     def text_api_get_toc(self):
         response = c.get('/api/index')
@@ -625,7 +624,7 @@ class PostTextNameChange(SefariaTestCase):
 
         #toc changed
         toc = json.loads(c.get("/api/index").content)
-        tutils.verify_title_existence_in_toc(new["title"], orig['categories'])
+        tutils.verify_title_existence_in_toc(new["title"], expected_toc_location=orig['categories'])
 
         self.assertEqual(2, NoteSet({"ref": {"$regex": "^Name Changed"}}).count())
         self.assertEqual(3, LinkSet({"refs": {"$regex": "^Name Changed"}}).count())
@@ -656,7 +655,7 @@ class PostTextNameChange(SefariaTestCase):
         self.assertEqual(1, NoteSet({"ref": {"$regex": "^Name Changed"}}).count())  # Notes are note removed
 
 
-class PostCommentatorNameChange(SefariaTestCase):
+"""class PostCommentatorNameChange(SefariaTestCase):
     def setUp(self):
         self.make_test_user()
 
@@ -737,6 +736,7 @@ class PostCommentatorNameChange(SefariaTestCase):
         #toc changed
         toc = json.loads(c.get("/api/index").content)
         tutils.verify_title_existence_in_toc(new["title"], None)
+"""
 
 
 class PostTextTest(SefariaTestCase):
@@ -782,7 +782,7 @@ class PostTextTest(SefariaTestCase):
 
         #test the toc is updated
         toc = json.loads(c.get("/api/index").content)
-        tutils.verify_title_existence_in_toc(index['title'], index['categories'])
+        tutils.verify_title_existence_in_toc(index['title'], expected_toc_location=index['categories'])
 
         # Post Text (with English citation)
         text = { 
@@ -861,7 +861,7 @@ class PostTextTest(SefariaTestCase):
         #todo: better way to do this?
         self.assertEqual(0, LinkSet({"refs": {"$regex": textRegex}}).count())
 
-    def test_post_commentary_text(self):
+    """def test_post_commentary_text(self):
         """
         Tests:
             Posting a new commentator index
@@ -900,6 +900,7 @@ class PostTextTest(SefariaTestCase):
         data = json.loads(response.content)
         self.assertNotIn("error", data)
         self.assertEqual(3, LinkSet({"refs": {"$regex": "^Ploni on Job"}}).count())
+    """
 
     def test_post_to_default_node(self):
         text = {

@@ -25,7 +25,7 @@
 				</a>
 				{% for tag in sheet.tags %}
 					{% if group %}
-					<a href="/partners/{{ group|url_safe }}/tags/{{ tag }}" class="tag">{{ tag }}</a>
+					<a href="/groups/{{ group|url_safe }}/tags/{{ tag }}" class="tag">{{ tag }}</a>
 					{% elif not public %}
 					<a href="/sheets/private/tags/{{ tag }}" class="tag">{{ tag }}</a>
 					{% else %}

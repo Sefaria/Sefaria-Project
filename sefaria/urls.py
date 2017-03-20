@@ -21,6 +21,7 @@ urlpatterns = patterns('reader.views',
     (r'^api/texts/(?P<tref>.+)/(?P<lang>\w\w)/(?P<version>.+)$', 'texts_api'),
     (r'^api/texts/(?P<tref>.+)$', 'texts_api'),
     (r'^api/index/?$', 'table_of_contents_api'),
+    (r'^api/search-filter-index/?$', 'search_filter_table_of_contents_api'),
     (r'^api/index/titles/?$', 'text_titles_api'),
     (r'^api/v2/raw/index/(?P<title>.+)$', 'index_api', {'v2': True, 'raw': True}),
     (r'^api/v2/index/(?P<title>.+)$', 'index_api', {'v2': True}),
@@ -34,6 +35,7 @@ urlpatterns = patterns('reader.views',
     (r'^api/counts/words/(?P<title>.+)/(?P<version>.+)/(?P<language>.+)$', 'word_count_api'),
     (r'^api/counts/(?P<title>.+)$', 'counts_api'),
     (r'^api/preview/(?P<title>.+)$', 'text_preview_api'),
+    (r'^api/terms/(?P<name>.+)$', 'terms_api')
 )
 
 # Reviews API
@@ -209,17 +211,19 @@ urlpatterns += patterns('reader.views',
 
 # Groups
 urlpatterns += patterns('sheets.views',
-    (r'^groups/?', 'groups_page'),
-    (r'^api/groups$', 'groups_api'),
-    (r'^partners/(?P<partner>[^/]+)$', 'partner_page'),
-    (r'^partners/(?P<partner>[^/]+)/tags/(?P<tag>.+)$', 'partner_sheets_tag'),
-    (r'^api/partners/(?P<partner>[^/]+)$', 'private_sheet_list_api'),
-    (r'^api/partners/tag-list/(?P<partner>[^/]+)$', 'group_tag_list_api'),
+    (r'^groups/?$', 'groups_page'),
+    (r'^groups/new$', 'edit_group_page'),
+    (r'^groups/(?P<group>[^/]+)/settings$', 'edit_group_page'),
+    (r'^groups/(?P<group>[^/]+)$', 'group_page'),
+    (r'^groups/(?P<group>[^/]+)/tags/(?P<tag>.+)$', 'group_sheets_tag'),
+    (r'^my/groups$', 'my_groups_page'),
+    (r'^partners/(?P<group>[^/]+)$', 'group_page'),
+    (r'^partners/(?P<group>[^/]+)/tags/(?P<tag>.+)$', 'group_sheets_tag'),
+    (r'^api/groups(/(?P<group>[^/]+))?$', 'groups_api'),
+    (r'^api/groups/(?P<group_name>[^/]+)/set-role/(?P<uid>\d+)/(?P<role>[^/]+)$', 'groups_role_api'),
+    (r'^api/groups/(?P<group_name>[^/]+)/invite/(?P<uid_or_email>[^/]+)$', 'groups_invite_api'),
 )
 
-# Redirects for setting interface language
-urlpatterns += patterns('reader.views',
-)
 
 # Registration
 urlpatterns += patterns('',
@@ -346,7 +350,7 @@ urlpatterns += patterns('',
     (r'^admin/reset/toc$', 'sefaria.views.rebuild_toc'),
     (r'^admin/reset/(?P<tref>.+)$', 'sefaria.views.reset_ref'),
     (r'^admin/delete/orphaned-counts', 'sefaria.views.delete_orphaned_counts'),
-    (r'^admin/rebuild/commentary-links/(?P<title>.+)$', 'sefaria.views.rebuild_commentary_links'),
+    (r'^admin/rebuild/auto-links/(?P<title>.+)$', 'sefaria.views.rebuild_auto_links'),
     (r'^admin/rebuild/citation-links/(?P<title>.+)$', 'sefaria.views.rebuild_citation_links'),
     (r'^admin/delete/citation-links/(?P<title>.+)$', 'sefaria.views.delete_citation_links'),
     (r'^admin/cache/stats', 'sefaria.views.cache_stats'),
@@ -354,7 +358,6 @@ urlpatterns += patterns('',
     (r'^admin/run/tests', 'sefaria.views.run_tests'),
     (r'^admin/export/all', 'sefaria.views.export_all'),
     (r'^admin/error', 'sefaria.views.cause_error'),
-    (r'^admin/create/commentary-version/(?P<commentator>.+)/(?P<book>.+)/(?P<lang>.+)/(?P<vtitle>.+)/(?P<vsource>.+)$', 'sefaria.views.create_commentator_version'),
     (r'^admin/contest-results', 'sefaria.views.list_contest_results'),
     (r'^admin/translation-requests-stats', 'sefaria.views.translation_requests_stats'),
     (r'^admin/sheet-stats', 'sefaria.views.sheet_stats'),

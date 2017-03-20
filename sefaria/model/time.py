@@ -80,7 +80,7 @@ class TimePeriod(abst.AbstractMongoRecord):
     ]
 
     def __str__(self):
-        return self.primary_name("en") + u" ({})".format(self.type)
+        return vars(self).__str__()
 
     def __repr__(self):
         return self.__str__()

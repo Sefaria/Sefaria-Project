@@ -65,7 +65,7 @@ def invalidate_linked(oref):
 
 
 def invalidate_counts(indx):
-    if isinstance(indx, Index) or isinstance(indx, CommentaryIndex):
+    if isinstance(indx, Index):
         oref = Ref(indx.title)
         url = oref.url()
     elif isinstance(indx, basestring):
@@ -84,7 +84,7 @@ def invalidate_counts(indx):
 
 
 def invalidate_index(indx):
-    if isinstance(indx, Index) or isinstance(indx, CommentaryIndex):
+    if isinstance(indx, Index):
         try:
             oref = Ref(indx.title)
             url = oref.url()

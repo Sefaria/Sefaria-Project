@@ -84,7 +84,7 @@ def remove_old_counts():
             print "Checking " + count["title"]
             try:
                 i = model.library.get_index(count["title"])
-                if i.is_commentary() and model.VersionSet({"title": i.title}).count() == 0:
+                if model.VersionSet({"title": i.title}).count() == 0:
                     print u"Old count for Commentary with no content: %s" % count["title"]
                     db.vstate.remove({"_id": count["_id"]})                    
             except BookNameError:

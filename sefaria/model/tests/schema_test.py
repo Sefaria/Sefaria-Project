@@ -3,7 +3,7 @@
 import pytest
 from sefaria.model import *
 import re
-from sefaria.system import exceptions
+from sefaria.system.exceptions import InputError
 
 
 def setup_module(module):
@@ -148,16 +148,20 @@ def setup_module(module):
 
 
 def test_relationships():
-    root.first_child().first_child() is root.first_leaf()
-    root.last_child().last_child() is root.last_leaf()
-    root.first_child().next_sibling().prev_sibling() is root.first_child()
-    root.first_child().last_child().next_leaf() is root.first_child().next_sibling().first_child()
-    root.first_child().next_sibling().first_child().prev_leaf() is root.first_child().last_child()
+    assert root.first_child().first_child() is root.first_leaf()
+    assert root.last_child().last_child() is root.last_leaf()
+    assert root.first_child().next_sibling().prev_sibling() is root.first_child()
+    assert root.first_child().last_child().next_leaf() is root.first_child().next_sibling().first_child()
+    assert root.first_child().next_sibling().first_child().prev_leaf() is root.first_child().last_child()
 
-    root.first_child().prev_sibling() is None
-    root.last_child().next_sibling() is None
-    root.first_leaf().prev_sibling() is None
-    root.last_leaf().next_sibling() is None
+    assert root.first_child().prev_sibling() is None
+    assert root.last_child().next_sibling() is None
+    assert root.first_leaf().prev_sibling() is None
+    assert root.last_leaf().next_sibling() is None
+
+
+def test_ancestors():
+    assert root.last_leaf().ancestors() == [root, root.last_child()]
 
 
 def test_text_index_map():
@@ -196,11 +200,24 @@ def test_text_index_map():
         assert u' '.join(tokenizer(ref_list[ri].text(lang="he",vtitle="Tanach with Text Only").text)) == u' '.join(mes_str_array[index_list[ri]:index_list[ri+1]])
 
 
-def non_ascii_test():
+def test_ja_node_with_hyphens():
+    node = JaggedArrayNode()
+    node.add_primary_titles(u'Title with-this', u'משהו')
+    node.add_structure(['Something'])
+    with pytest.raises(InputError):
+        node.validate()
+
+def test_ja_node_without_primary():
+    node = JaggedArrayNode()
+    node.add_title(u'Title with this', 'en')
+    node.add_title(u'משהו', 'he')
+    node.add_structure(['Something'])
+    with pytest.raises(InputError):
+        node.validate()
+
+def test_non_ascii():
     node = JaggedArrayNode()
     node.add_primary_titles(u'Title with this\u2019', u'משהו')
     node.add_structure(['Something'])
-    with pytest.raises(exceptions.InputError):
+    with pytest.raises(InputError):
         node.validate()
-
-

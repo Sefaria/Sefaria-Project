@@ -2315,6 +2315,7 @@ body.newText #addVersionHeaderRight {
 
 #textTypeForm .option {
 	margin-right: 30px;
+	font-size: 22px;
 }
 
 #textTypeForm .option input {
@@ -2781,4 +2782,3 @@ input[type="file"] {
 
   line-height: 28px;
 }
-

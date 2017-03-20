@@ -128,8 +128,8 @@ def text_toc_link(indx):
 	if not isinstance(indx, AbstractIndex):
 		indx = library.get_index(indx)
 
-	en = indx.nodes.primary_title("en") if not indx.is_commentary() else indx.title
-	he = indx.nodes.primary_title("he") if not indx.is_commentary() else indx.heTitle
+	en = indx.nodes.primary_title("en")
+	he = indx.nodes.primary_title("he")
 	link = u'<a href="/{}"><span class="int-en">{}</span><span class="int-he">{}</span></a>'.format(indx.title, en, he)
 	return mark_safe(link)
 
@@ -197,6 +197,9 @@ def user_link(uid):
 def user_name(uid):
 	return mark_safe(uname(uid))
 
+@register.filter(is_safe=True)
+def group_link(group_name):
+	return mark_safe("<a href='/groups/%s'>%s</a>" % (group_name.replace(" ", "_"), group_name))
 
 @register.filter(is_safe=True)
 def lang_code(code):

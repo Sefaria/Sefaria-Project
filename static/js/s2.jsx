@@ -23,7 +23,7 @@ var ReaderApp = React.createClass({
     initialRefs:                 React.PropTypes.array,
     initialFilter:               React.PropTypes.array,
     initialMenu:                 React.PropTypes.string,
-    initialPartner:              React.PropTypes.string,
+    initialGroup:                React.PropTypes.string,
     initialQuery:                React.PropTypes.string,
     initialSearchFilters:        React.PropTypes.array,
     initialSheetsTag:            React.PropTypes.string,
@@ -42,7 +42,7 @@ var ReaderApp = React.createClass({
       initialRefs:                 [],
       initialFilter:               null,
       initialMenu:                 null,
-      initialPartner:              null,
+      initialGroup:                null,
       initialQuery:                null,
       initialSearchFilters:        [],
       initialSheetsTag:            null,
@@ -100,7 +100,7 @@ var ReaderApp = React.createClass({
         appliedSearchFilters: this.props.initialSearchFilters,
         navigationCategories: this.props.initialNavigationCategories,
         sheetsTag: this.props.initialSheetsTag,
-        partner: this.props.initialPartner,
+        group: this.props.initialGroup,
         settings: Sefaria.util.clone(defaultPanelSettings)
       };
       header = this.makePanelState(headerState);
@@ -162,18 +162,19 @@ var ReaderApp = React.createClass({
     this.updateHistoryState(true); // make sure initial page state is in history, (passing true to replace)
     window.addEventListener("popstate", this.handlePopState);
     window.addEventListener("resize", this.setPanelCap);
-    window.addEventListener("beforeunload", this.saveOpenPanelsToRecentlyViewed);
     this.setPanelCap();
     if (this.props.headerMode) {
       $(".inAppLink").on("click", this.handleInAppLinkClick);
     }
+    // Save all initial panels to recently viewed
+    this.state.panels.map(this.saveRecentlyViewed);
+
     // Set S2 cookie, putting user into S2 mode site wide
     cookie("s2", true, {path: "/"});
   },
   componentWillUnmount: function() {
     window.removeEventListener("popstate", this.handlePopState);
     window.removeEventListener("resize", this.setPanelCap);
-    window.removeEventListener("beforeunload", this.saveOpenPanelsToRecentlyViewed);
   },
   componentWillUpdate: function(nextProps, nextState) {
   },
@@ -268,13 +269,13 @@ var ReaderApp = React.createClass({
       var indexes = bookNames.map(b => Sefaria.index(b)).filter(i => !!i);
 
       // categories - per text panel
-      var primaryCats = indexes.map(i => (i.categories[0] === "Commentary")? i.categories[1] + " Commentary": i.categories[0]);
+      var primaryCats = indexes.map(i => (i.dependence === "Commentary")? i.categories[0] + " Commentary": i.categories[0]);
       Sefaria.site.track.setPrimaryCategory(primaryCats.join(" | "));
 
-      var secondaryCats = indexes.map(i => (i.categories[0] === "Commentary")?
-          ((i.categories.length > 2)?i.categories[2]:""):
-          ((i.categories.length > 1)?i.categories[1]:"")
-      );
+      var secondaryCats = indexes.map(i => {
+          var cats = i.categories.filter(cat=> cat != "Commentary").slice(1);
+          return (cats.length >= 1) ? cats[0] : ""
+      });
       Sefaria.site.track.setSecondaryCategory(secondaryCats.join(" | "));
 
       // panel content languages - per text panel
@@ -398,7 +399,8 @@ var ReaderApp = React.createClass({
             break;
           case "navigation":
             var cats   = state.navigationCategories ? state.navigationCategories.join("/") : "";
-            hist.title = cats ? state.navigationCategories.join(", ") + " | Sefaria" : "Texts | Sefaria";
+            hist.title = cats ? state.navigationCategories.join(", ") + " | Sefaria" : "Table of Contents | Sefaria";
+            hist.title = cats == "recent" ? "Recently Viewed Texts | Sefaria" : hist.title;
             hist.url   = "texts" + (cats ? "/" + cats : "");
             hist.mode  = "navigation";
             break;
@@ -423,9 +425,9 @@ var ReaderApp = React.createClass({
             hist.mode  = "search";
             break;
           case "sheets":
-            if (states[i].sheetsPartner) {
-                hist.url   = "partners/" + state.sheetsPartner.replace(/\s/g,"_");
-                hist.title = state.sheetsPartner + " | Sefaria Source Sheets";
+            if (states[i].sheetsGroup) {
+                hist.url   = "groups/" + state.sheetsGroup.replace(/\s/g,"-");
+                hist.title = state.sheetsGroup + " | Sefaria Group";
                 hist.mode  = "sheets tag";
             } else if (states[i].navigationSheetTag) {
               if (states[i].navigationSheetTag == "My Sheets") {
@@ -445,7 +447,7 @@ var ReaderApp = React.createClass({
             }
             break;
           case "account":
-            hist.title = "Sefaria About";
+            hist.title = "Sefaria Account";
             hist.url   = "account";
             hist.mode  = "account";
             break;
@@ -454,8 +456,13 @@ var ReaderApp = React.createClass({
             hist.url   = "notifications";
             hist.mode  = "notifications";
             break;
+          case "myGroups":
+            hist.title = "Sefaria Groups";
+            hist.url = "my/groups";
+            hist.mode = "myGroups";
+            break;
           case "updates":
-            hist.title = "New at Sefaria";
+            hist.title = "New on Sefaria";
             hist.url = "updates";
             hist.mode = "updates";
             break;
@@ -614,7 +621,7 @@ var ReaderApp = React.createClass({
       menuOpen:             state.menuOpen             || null, // "navigation", "text toc", "display", "search", "sheets", "home", "book toc"
       navigationCategories: state.navigationCategories || [],
       navigationSheetTag:   state.sheetsTag            || null,
-      sheetsPartner:        state.partner              || null,
+      sheetsGroup:        state.group              || null,
       searchQuery:          state.searchQuery          || null,
       appliedSearchFilters: state.appliedSearchFilters || [],
       searchFiltersValid:   state.searchFiltersValid   || false,
@@ -711,7 +718,6 @@ var ReaderApp = React.createClass({
   handleCompareSearchClick: function(n, ref, version, versionLanguage, options) {
     // Handle clicking a search result in a compare panel, so that clicks don't clobber open panels
     // todo: support options.highlight, passed up from SearchTextResult.handleResultClick()
-    this.saveOpenPanelsToRecentlyViewed();
     this.replacePanel(n, ref, version, versionLanguage);
   },
   handleInAppLinkClick: function(e) {
@@ -721,6 +727,10 @@ var ReaderApp = React.createClass({
       this.showLibrary();
     } else if (path == "sheets") {
       this.showSheets();
+    } else if (path == "sheets/private") {
+      this.showMySheets();
+    } else if (path == "my/groups") {
+      this.showMyGroups();
     } else if (Sefaria.isRef(path)) {
       this.openPanel(Sefaria.humanRef(path));
     }
@@ -797,8 +807,23 @@ var ReaderApp = React.createClass({
             next.version = this.state.panels[n].version;
         }
     }
+    if (this.didPanelRefChange(this.state.panels[n], state)) {
+      this.saveRecentlyViewed(state);
+    }
     this.state.panels[n] = extend(this.state.panels[n], state);
     this.setState({panels: this.state.panels});
+  },
+  didPanelRefChange: function(prevPanel, nextPanel) {
+    // Returns true if nextPanel represents a change in current ref (including version change) from prevPanel.
+    if (nextPanel.menu || nextPanel.mode == "Connections" || 
+        !nextPanel.refs || nextPanel.refs.length == 0 ||
+        !prevPanel.refs || prevPanel.refs.length == 0 ) { return false; }
+    if (nextPanel.refs.compare(prevPanel.refs)) {
+      if (nextPanel.version !== prevPanel.version) { return true; }
+    } else {
+      return true;
+    }
+    return false;
   },
   addToSourceSheet: function(n, selectedSheet, confirmFunction) {
     // This is invoked from a connections panel.
@@ -891,6 +916,7 @@ var ReaderApp = React.createClass({
 
     this.setHeaderState({menuOpen: null});
     this.setState({panels: [panel]});
+    this.saveRecentlyViewed(panel);
   },
   openPanelAt: function(n, ref, version, versionLanguage) {
     // Open a new panel after `n` with the new ref
@@ -908,6 +934,7 @@ var ReaderApp = React.createClass({
     newPanels.splice(n+1, 0, panel);
     this.setState({panels: newPanels});
     this.setHeaderState({menuOpen: null});
+    this.saveRecentlyViewed(panel);
   },
   openPanelAtEnd: function(ref, version, versionLanguage) {
     this.openPanelAt(this.state.panels.length+1, ref, version, versionLanguage);
@@ -995,6 +1022,7 @@ var ReaderApp = React.createClass({
     // Opens a text in in place of the panel currently open at `n`.
     this.state.panels[n] = this.makePanelState({refs: [ref], version: version, versionLanguage: versionLanguage, mode: "Text"});
     this.setState({panels: this.state.panels});
+    this.saveRecentlyViewed(this.state.panels[n]);
   },
   openComparePanel: function(n) {
     var comparePanel = this.makePanelState({
@@ -1006,7 +1034,6 @@ var ReaderApp = React.createClass({
   },
   closePanel: function(n) {
     // Removes the panel in position `n`, as well as connections panel in position `n+1` if it exists.
-    this.saveRecentlyViewed(this.state.panels[n], n);
     if (this.state.panels.length == 1 && n == 0) {
       this.state.panels = [];
     } else {
@@ -1039,7 +1066,6 @@ var ReaderApp = React.createClass({
     }
   },
   showSearch: function(query) {
-    this.saveOpenPanelsToRecentlyViewed();
     var panel;
     if (this.props.multiPanel) {
       panel = this.makePanelState({mode: "Header", menuOpen: "search", searchQuery: query, searchFiltersValid:  false});
@@ -1057,26 +1083,36 @@ var ReaderApp = React.createClass({
       this.setPanelState(0, updates);
     }
   },
-  saveRecentlyViewed: function(panel, n) {
+  showMySheets: function() {
+    console.log("SMS")
+    var updates = {menuOpen: "sheets", navigationSheetTag: "My Sheets"};
+    if (this.props.multiPanel) {
+      this.setHeaderState(updates);
+    } else {
+      this.setPanelState(0, updates);
+    }
+  },
+  showMyGroups: function() {
+    var updates = {menuOpen: "myGroups"};
+    if (this.props.multiPanel) {
+      this.setHeaderState(updates);
+    } else {
+      this.setPanelState(0, updates);
+    }
+  },
+  saveRecentlyViewed: function(panel) {
     if (panel.mode == "Connections" || !panel.refs.length) { return; }
-    var ref  = panel.refs[0];
-    var oRef = Sefaria.ref(ref);
-    var json = cookie("recentlyViewed");
-    var recent = json ? JSON.parse(json) : [];
-    recent = recent.filter(function(item) {
-      return item.ref !== ref; // Remove this item if it's in the list already
+    var ref  = panel.refs.slice(-1)[0];
+    Sefaria.ref(ref, function(oRef) {
+      var recentItem = {
+        ref: ref,
+        heRef: oRef.heRef,
+        book: oRef.indexTitle,
+        version: panel.version,
+        versionLanguage: panel.versionLanguage,
+      };
+      Sefaria.saveRecentItem(recentItem);      
     });
-    var cookieData = {
-      ref: ref,
-      heRef: oRef.heRef,
-      book: oRef.indexTitle,
-      version: panel.version,
-      versionLanguage: panel.versionLanguage,
-      position: n
-    };
-    recent.splice(0, 0, cookieData);
-    recent = recent.slice(0, 3);
-    cookie("recentlyViewed", JSON.stringify(recent), {path: "/"});
   },
   saveOpenPanelsToRecentlyViewed: function() {
     for (var i = this.state.panels.length-1; i >= 0; i--) {
@@ -1128,6 +1164,7 @@ var ReaderApp = React.createClass({
                     updateSearchFilter={this.updateSearchFilterInHeader}
                     registerAvailableFilters={this.updateAvailableFiltersInHeader}
                     setUnreadNotificationsCount={this.setUnreadNotificationsCount}
+                    handleInAppLinkClick={this.handleInAppLinkClick}
                     headerMode={this.props.headerMode}
                     panelsOpen={panelStates.length}
                     analyticsInitialized={this.state.initialAnalyticsTracked} />) : null;
@@ -1232,6 +1269,7 @@ var Header = React.createClass({
     updateSearchFilter:          React.PropTypes.func,
     registerAvailableFilters:    React.PropTypes.func,
     setUnreadNotificationsCount: React.PropTypes.func,
+    handleInAppLinkClick: React.PropTypes.func,
     headerMesssage:              React.PropTypes.string,
     panelsOpen:                  React.PropTypes.number,
     analyticsInitialized:        React.PropTypes.bool,
@@ -1302,8 +1340,7 @@ var Header = React.createClass({
   },
   showDesktop: function() {
     if (this.props.panelsOpen == 0) {
-      var json = cookie("recentlyViewed");
-      var recentlyViewed = json ? JSON.parse(json) : null;
+      var recentlyViewed = Sefaria.recentlyViewed;
       if (recentlyViewed && recentlyViewed.length) {
         this.handleRefClick(recentlyViewed[0].ref, recentlyViewed[0].version, recentlyViewed[0].versionLanguage);
       }
@@ -1439,11 +1476,12 @@ var Header = React.createClass({
                           onNavTextClick={this.props.onRefClick}
                           onSearchResultClick={this.props.onRefClick}
                           onRecentClick={this.props.onRecentClick}
-                          setDefaultLanguage={this.props.setDefaultLanguage}
+                          setDefaultOption={this.props.setDefaultOption}
                           onQueryChange={this.props.onQueryChange}
                           updateSearchFilter={this.props.updateSearchFilter}
                           registerAvailableFilters={this.props.registerAvailableFilters}
                           setUnreadNotificationsCount={this.props.setUnreadNotificationsCount}
+                          handleInAppLinkClick={this.props.handleInAppLinkClick}
                           hideNavHeader={true}
                           analyticsInitialized={this.props.analyticsInitialized}/>) : null;
 
@@ -1530,7 +1568,7 @@ var ReaderPanel = React.createClass({
     initialQuery:                React.PropTypes.string,
     initialAppliedSearchFilters: React.PropTypes.array,
     initialSheetsTag:            React.PropTypes.string,
-    initialState:                React.PropTypes.object, // if present, trumps all props above
+    initialState:                React.PropTypes.object, // if present, overrides all props above
     interfaceLang:               React.PropTypes.string,
     setCentralState:             React.PropTypes.func,
     onSegmentClick:              React.PropTypes.func,
@@ -1544,7 +1582,7 @@ var ReaderPanel = React.createClass({
     closePanel:                  React.PropTypes.func,
     closeMenus:                  React.PropTypes.func,
     setConnectionsFilter:        React.PropTypes.func,
-    setDefaultLanguage:          React.PropTypes.func,
+    setDefaultOption:            React.PropTypes.func,
     selectVersion:               React.PropTypes.func,
     onQueryChange:               React.PropTypes.func,
     updateSearchFilter:          React.PropTypes.func,
@@ -1558,7 +1596,7 @@ var ReaderPanel = React.createClass({
     masterPanelLanguage:         React.PropTypes.string,
     panelsOpen:                  React.PropTypes.number,
     layoutWidth:                 React.PropTypes.number,
-    setTextListHighlight:       React.PropTypes.func,
+    setTextListHighlight:        React.PropTypes.func,
     setSelectedWords:            React.PropTypes.func,
     analyticsInitialized:        React.PropTypes.bool
   },
@@ -1593,7 +1631,7 @@ var ReaderPanel = React.createClass({
       menuOpen:             this.props.initialMenu || null, // "navigation", "book toc", "text toc", "display", "search", "sheets", "home", "compare"
       navigationCategories: this.props.initialNavigationCategories || [],
       navigationSheetTag:   this.props.initialSheetsTag || null,
-      sheetsPartner:        this.props.initialPartner || null,
+      sheetsGroup:        this.props.initialGroup || null,
       searchQuery:          this.props.initialQuery || null,
       appliedSearchFilters: this.props.initialAppliedSearchFilters || [],
       selectedWords:        null,
@@ -1887,7 +1925,8 @@ var ReaderPanel = React.createClass({
     });
   },
   setWidth: function() {
-    this.width = $(ReactDOM.findDOMNode(this)).width();
+    this.setState({width: $(ReactDOM.findDOMNode(this)).width()});
+    //console.log("Setting panel width", this.width);
   },
   setSheetTagSort: function(sort) {
     this.conditionalSetState({
@@ -1930,7 +1969,7 @@ var ReaderPanel = React.createClass({
   },
   currentCategory: function() {
     var book = this.currentBook();
-    return (Sefaria.index(book) ? Sefaria.index(book).categories[0] : null);
+    return (Sefaria.index(book) ? Sefaria.index(book)['primary_category'] : null);
   },
   currentLayout: function() {
     if (this.state.settings.language == "bilingual") {
@@ -2027,6 +2066,7 @@ var ReaderPanel = React.createClass({
       var onRecentClick = this.state.menuOpen === "compare" || !this.props.onRecentClick ? openInPanel : this.props.onRecentClick;
 
       var menu = (<ReaderNavigationMenu 
+                    key={this.state.navigationCategories.join("-")}
                     home={this.state.menuOpen === "home"}
                     compare={this.state.menuOpen === "compare"}
                     interfaceLang={this.props.interfaceLang}
@@ -2072,7 +2112,7 @@ var ReaderPanel = React.createClass({
                     close={this.closeMenus}
                     title={this.state.bookRef}
                     settingsLanguage={this.state.settings.language == "hebrew"?"he":"en"}
-                    category={Sefaria.index(this.state.bookRef) ? Sefaria.index(this.state.bookRef).categories[0] : null}
+                    category={Sefaria.index(this.state.bookRef) ? Sefaria.index(this.state.bookRef).primary_category : null}
                     currentRef={this.state.bookRef}
                     narrowPanel={!this.props.multiPanel}
                     key={this.state.bookRef}
@@ -2106,7 +2146,7 @@ var ReaderPanel = React.createClass({
                     hideNavHeader={this.props.hideNavHeader}
                     toggleLanguage={this.toggleLanguage}
                     tag={this.state.navigationSheetTag}
-                    partner={this.state.sheetsPartner}
+                    group={this.state.sheetsGroup}
                     tagSort={this.state.tagSort}
                     mySheetSort={this.state.mySheetSort}
                     setMySheetSort={this.setMySheetSort}
@@ -2116,12 +2156,16 @@ var ReaderPanel = React.createClass({
 
     } else if (this.state.menuOpen === "account") {
       var menu = (<AccountPanel
+                    handleInAppLinkClick={this.props.handleInAppLinkClick}
                     interfaceLang={this.props.interfaceLang} />);
-
 
     } else if (this.state.menuOpen === "notifications") {
       var menu = (<NotificationsPanel 
                     setUnreadNotificationsCount={this.props.setUnreadNotificationsCount}
+                    interfaceLang={this.props.interfaceLang} />);
+
+    } else if (this.state.menuOpen === "myGroups") {
+      var menu = (<MyGroupsPanel
                     interfaceLang={this.props.interfaceLang} />);
 
     } else if (this.state.menuOpen === "updates") {
@@ -2136,7 +2180,7 @@ var ReaderPanel = React.createClass({
       var menu = null;
     }
 
-    var classes  = {readerPanel: 1, narrowColumn: this.width < 730};
+    var classes  = {readerPanel: 1, narrowColumn: this.state.width < 730};
     classes[this.currentLayout()]             = 1;
     classes[this.state.settings.color]        = 1;
     classes[this.state.settings.language]     = 1;
@@ -2187,7 +2231,7 @@ var ReaderPanel = React.createClass({
                                               multiPanel={this.props.multiPanel}
                                               setOption={this.setOption}
                                               currentLayout={this.currentLayout}
-                                              width={this.width} 
+                                              width={this.state.width} 
                                               menuOpen={this.state.menuOpen} />) : null}
         {this.state.displaySettingsOpen ? (<div className="mask" onClick={this.closeDisplaySettings}></div>) : null}
 
@@ -2231,7 +2275,7 @@ var ReaderControls = React.createClass({
     if (title) {
       var oref    = Sefaria.ref(title);
       var heTitle = oref ? oref.heTitle : "";      
-      var categoryAttribution = oref && Sefaria.categoryAttribution(oref.categories) ? 
+      var categoryAttribution = oref && Sefaria.categoryAttribution(oref.categories) ?
                                   <CategoryAttribution categories={oref.categories} /> : null;
     } else {
       var heTitle = "";
@@ -2415,6 +2459,7 @@ var ReaderNavigationMenu = React.createClass({
     closeNav:      React.PropTypes.func.isRequired,
     openNav:       React.PropTypes.func.isRequired,
     openSearch:    React.PropTypes.func.isRequired,
+    openMenu:      React.PropTypes.func.isRequired,
     onTextClick:   React.PropTypes.func.isRequired,
     onRecentClick: React.PropTypes.func.isRequired,
     closePanel:    React.PropTypes.func,
@@ -2464,11 +2509,6 @@ var ReaderNavigationMenu = React.createClass({
   showMore: function() {
     this.setState({showMore: true});
   },
-  getRecentlyViewed: function() {
-    var json = cookie("recentlyViewed");
-    var recentlyViewed = json ? JSON.parse(json) : null;
-    return recentlyViewed;
-  },
   handleClick: function(event) {
     if (!$(event.target).hasClass("outOfAppLink") && !$(event.target.parentElement).hasClass("outOfAppLink")) {
       event.preventDefault();
@@ -2504,8 +2544,22 @@ var ReaderNavigationMenu = React.createClass({
     }
   },  
   render: function() {
-    if (this.props.categories.length) {
-      // List of Text in a Category
+    if (this.props.categories.length && this.props.categories[0] == "recent") {
+      return (<div onClick={this.handleClick}>
+                <RecentPanel 
+                  toggleLanguage={this.props.toggleLanguage}
+                  multiPanel={this.props.multiPanel}
+                  closeNav={this.closeNav}
+                  toggleLanguage={this.props.toggleLanguage}
+                  openDisplaySettings={this.props.openDisplaySettings}
+                  navHome={this.navHome}
+                  compare={this.props.compare}
+                  hideNavHeader={this.props.hideNavHeader}
+                  width={this.width}
+                  interfaceLang={this.props.interfaceLang} />
+              </div>);
+    } else if (this.props.categories.length) {
+      // List of Texts in a Category
       return (<div className="readerNavMenu" onClick={this.handleClick} >
                 <ReaderNavigationCategoryMenu
                   categories={this.props.categories}
@@ -2542,7 +2596,7 @@ var ReaderNavigationMenu = React.createClass({
       categories = categories.map(function(cat) {
         var style = {"borderColor": Sefaria.palette.categoryColor(cat)};
         var openCat = function(e) {e.preventDefault(); this.props.setCategories([cat])}.bind(this);
-        var heCat   = Sefaria.hebrewCategory(cat);
+        var heCat   = Sefaria.hebrewTerm(cat);
         return (<a href={`/texts/${cat}`}>
                   <div className="readerNavCategory" data-cat={cat} style={style} onClick={openCat}>
                     <span className="en">{cat}</span>
@@ -2554,13 +2608,10 @@ var ReaderNavigationMenu = React.createClass({
                       <span className="en">More <img src="/static/img/arrow-right.png" /></span>
                       <span className="he">עוד <img src="/static/img/arrow-left.png" /></span>
                   </div>);
-      if (this.width < 450) {
-        categories = this.state.showMore ? categories : categories.slice(0,9).concat(more);
-        categories = (<div className="readerNavCategories"><TwoBox content={categories} /></div>);
-      } else {
-        categories = this.state.showMore ? categories : categories.slice(0,8).concat(more);
-        categories = (<div className="readerNavCategories"><ThreeBox content={categories} /></div>);
-      }
+      var nCats  = this.width < 450 ? 9 : 8;
+      categories = this.state.showMore ? categories : categories.slice(0, nCats).concat(more);
+      categories = (<div className="readerNavCategories"><TwoOrThreeBox content={categories} width={this.width} /></div>);
+
 
       var siteLinks = Sefaria._uid ? 
                     [(<a className="siteLink outOfAppLink" key='profile' href="/my/profile">
@@ -2635,9 +2686,14 @@ var ReaderNavigationMenu = React.createClass({
       topContent = this.props.hideNavHeader ? null : topContent;
 
 
-      var recentlyViewed = this.getRecentlyViewed();
-      recentlyViewed = recentlyViewed ? recentlyViewed.filter(function(item){
-        return Sefaria.isRef(item.ref); // after a text has been deleted a recent ref may be invalid.
+      var nRecent = this.width < 450 ? 4 : 6;
+      var recentlyViewed = Sefaria.recentlyViewed;
+      var hasMore = recentlyViewed.length > nRecent;
+      recentlyViewed = recentlyViewed.filter(function(item){
+        // after a text has been deleted a recent ref may be invalid,
+        // but don't try to check when booksDict is not available during server side render
+        if (Object.keys(Sefaria.booksDict).length === 0) { return true; }
+        return Sefaria.isRef(item.ref); 
       }).map(function(item) {
         return (<TextBlockLink 
                   sref={item.ref}
@@ -2646,10 +2702,16 @@ var ReaderNavigationMenu = React.createClass({
                   version={item.version}
                   versionLanguage={item.versionLanguage}
                   showSections={true}
-                  recentItem={true}
-                  position={item.position || 0} />)
-      }) : null;
-      recentlyViewed = recentlyViewed ? <TwoOrThreeBox content={recentlyViewed} width={this.width} /> : null;
+                  recentItem={true} />)
+      }).slice(0, hasMore ? nRecent-1 : nRecent);
+      if (hasMore) {
+        recentlyViewed.push(
+          <div className="readerNavCategory readerNavMore" style={{"borderColor": Sefaria.palette.colors.darkblue}} onClick={this.props.setCategories.bind(null, ["recent"])}>
+            <span className="en">More <img src="/static/img/arrow-right.png" /></span>
+            <span className="he">עוד <img src="/static/img/arrow-left.png" /></span>
+          </div>);
+      }
+      recentlyViewed = recentlyViewed.length ? <TwoOrThreeBox content={recentlyViewed} width={this.width} /> : null;
 
       var title = (<h1>
                     { this.props.multiPanel ? <LanguageToggleButton toggleLanguage={this.props.toggleLanguage} /> : null }
@@ -2721,7 +2783,7 @@ var TextBlockLink = React.createClass({
   },
   render: function() {
     var index    = Sefaria.index(this.props.book);
-    var category = this.props.category || index.categories[0];
+    var category = this.props.category || (index ? index.primary_category : "Other");
     var style    = {"borderColor": Sefaria.palette.categoryColor(category)};
     var title    = this.props.title   || (this.props.showSections ? this.props.sref : this.props.book);
     var heTitle  = this.props.heTitle || (this.props.showSections ? this.props.heRef : index.heTitle);
@@ -2756,6 +2818,7 @@ var BlockLink = React.createClass({
     heTitle:       React.PropTypes.string,
     target:        React.PropTypes.string,
     image:         React.PropTypes.string,
+    inAppLink:     React.PropTypes.bool,
     interfaceLink: React.PropTypes.bool
   },
   getDefaultProps: function() {
@@ -2765,7 +2828,8 @@ var BlockLink = React.createClass({
   },
   render: function() {
     var interfaceClass = this.props.interfaceLink ? 'int-' : '';
-    return (<a className="blockLink" href={this.props.target}>
+    var classes = classNames({blockLink: 1, inAppLink: this.props.inAppLink})
+    return (<a className={classes} href={this.props.target}>
               {this.props.image ? <img src={this.props.image} /> : null}
               <span className={`${interfaceClass}en`}>{this.props.title}</span>
               <span className={`${interfaceClass}he`}>{this.props.heTitle}</span>
@@ -2777,14 +2841,17 @@ var BlockLink = React.createClass({
 var ReaderNavigationCategoryMenu = React.createClass({
   // Navigation Menu for a single category of texts (e.g., "Tanakh", "Bavli")
   propTypes: {
-    category:      React.PropTypes.string.isRequired,
-    categories:    React.PropTypes.array.isRequired,
-    closeNav:      React.PropTypes.func.isRequired,
-    setCategories: React.PropTypes.func.isRequired,
-    navHome:       React.PropTypes.func.isRequired,
-    width:         React.PropTypes.number,
-    compare:       React.PropTypes.bool,
-    hideNavHeader: React.PropTypes.bool
+    category:            React.PropTypes.string.isRequired,
+    categories:          React.PropTypes.array.isRequired,
+    closeNav:            React.PropTypes.func.isRequired,
+    setCategories:       React.PropTypes.func.isRequired,
+    toggleLanguage:      React.PropTypes.func.isRequired,
+    openDisplaySettings: React.PropTypes.func.isRequired,
+    navHome:             React.PropTypes.func.isRequired,
+    width:               React.PropTypes.number,
+    compare:             React.PropTypes.bool,
+    hideNavHeader:       React.PropTypes.bool,
+    interfaceLang:       React.PropTypes.string
   },
   render: function() {
     var footer = this.props.compare ? null :
@@ -2795,7 +2862,7 @@ var ReaderNavigationCategoryMenu = React.createClass({
     var categories  = this.props.categories[0] === "Talmud" && this.props.categories.length == 1 ? 
                         ["Talmud", "Bavli"] : this.props.categories;
 
-    if (categories[0] === "Talmud") {
+    if (categories[0] === "Talmud" && categories.length <= 2) {
       var setBavli = function() {
         this.props.setCategories(["Talmud", "Bavli"]);
       }.bind(this);
@@ -2816,11 +2883,13 @@ var ReaderNavigationCategoryMenu = React.createClass({
                               <span className="he">ירושלמי</span>
                             </span>
                          </div>);
-
+      var catTitle = (categories.length > 1) ? categories[0] +  " " + categories[1] : categories[0];
+      var heCatTitle = (categories.length > 1) ? Sefaria.hebrewTerm(categories[0]) + " " + Sefaria.hebrewTerm(categories[1]): categories[0];
     } else {
       var toggle = null;
+      var catTitle = this.props.category;
+      var heCatTitle = Sefaria.hebrewTerm(this.props.category);
     }
-
     var catContents    = Sefaria.tocItemsByCategories(categories);
     var navMenuClasses = classNames({readerNavCategoryMenu: 1, readerNavMenu: 1, noHeader: this.props.hideNavHeader});
     var navTopClasses  = classNames({readerNavTop: 1, searchOnly: 1, colorLineOnly: this.props.hideNavHeader});
@@ -2831,20 +2900,20 @@ var ReaderNavigationCategoryMenu = React.createClass({
                 {this.props.hideNavHeader ? null : (<ReaderNavigationMenuMenuButton onClick={this.props.navHome} compare={this.props.compare} />)}
                 {this.props.hideNavHeader ? null : (<ReaderNavigationMenuDisplaySettingsButton onClick={this.props.openDisplaySettings} />)}
                 {this.props.hideNavHeader ? null : (<h2>
-                  <span className="en">{this.props.category}</span>
-                  <span className="he">{Sefaria.hebrewCategory(this.props.category)}</span>
+                  <span className="en">{catTitle}</span>
+                  <span className="he">{heCatTitle}</span>
                 </h2>)}
               </div>
               <div className={contentClasses}>
                 <div className="contentInner">
                   {this.props.hideNavHeader ? (<h1>
                       <LanguageToggleButton toggleLanguage={this.props.toggleLanguage} />
-                      <span className="en">{this.props.category}</span>
-                      <span className="he">{Sefaria.hebrewCategory(this.props.category)}</span>
+                      <span className="en">{catTitle}</span>
+                      <span className="he">{heCatTitle}</span>
                     </h1>) : null}
                   {toggle}
                   <CategoryAttribution categories={categories} />
-                  <ReaderNavigationCategoryMenuContents contents={catContents} categories={categories} width={this.props.width} category={this.props.category} />
+                  <ReaderNavigationCategoryMenuContents contents={catContents} categories={categories} width={this.props.width} category={this.props.category} nestLevel={0} />
                 </div>
                 {footer}
               </div>
@@ -2859,23 +2928,23 @@ var ReaderNavigationCategoryMenuContents = React.createClass({
     category:   React.PropTypes.string.isRequired,
     contents:   React.PropTypes.array.isRequired,
     categories: React.PropTypes.array.isRequired,
-    width:      React.PropTypes.number
+    width:      React.PropTypes.number,
+    nestLevel:   React.PropTypes.number
   },
-
   getRenderedTextTitleString: function(title, heTitle){
     var whiteList = ['Midrash Mishlei', 'Midrash Tehillim', 'Midrash Tanchuma'];
     var displayCategory = this.props.category;
-    var displayHeCategory = Sefaria.hebrewCategory(this.props.category);
+    var displayHeCategory = Sefaria.hebrewTerm(this.props.category);
     if (whiteList.indexOf(title) == -1){
       var replaceTitles = {
         "en": ['Jerusalem Talmud', displayCategory],
         "he": ['תלמוד ירושלמי', displayHeCategory]
       };
       var replaceOther = {
-        "en" : [", ", " on "],
+        "en" : [", ", " on ", " to ", " of "],
         "he" : [", ", " על "]
       };
-      //this will replace a categroy name at the beginning of the title string and any connector strings (0 or 1) that follow.
+      //this will replace a category name at the beginning of the title string and any connector strings (0 or 1) that follow.
       var titleRe = new RegExp(`^(${replaceTitles['en'].join("|")})(${replaceOther['en'].join("|")})?`);
       var heTitleRe = new RegExp(`^(${replaceTitles['he'].join("|")})(${replaceOther['he'].join("|")})?`);
       title   = title == displayCategory ? title : title.replace(titleRe, "");
@@ -2889,34 +2958,46 @@ var ReaderNavigationCategoryMenuContents = React.createClass({
       for (var i = 0; i < this.props.contents.length; i++) {
         var item = this.props.contents[i];
         if (item.category) {
-          if (item.category == "Commentary") { continue; }
           var newCats = cats.concat(item.category);
-          // Special Case categories which should nest
-          var subcats = [ "Mishneh Torah", "Shulchan Arukh", "Midrash Rabbah", "Maharal" ];
-          if (Sefaria.util.inArray(item.category, subcats) > -1) {
-            url = "/texts/" + newCats.join("/");
-            content.push((<a href={url}>
-                            <span className="catLink" data-cats={newCats.join("|")} key={i}>
+          // Special Case categories which should nest but are normally wouldnt given their depth
+          var subcats = [ "Mishneh Torah", "Shulchan Arukh", "Maharal"];
+          if (Sefaria.util.inArray(item.category, subcats) > -1 || this.props.nestLevel > 0) {
+            if(item.contents.length == 1 && !("category" in item.contents[0])){
+                var chItem = item.contents[0]
+                var [title, heTitle] = this.getRenderedTextTitleString(chItem.title, chItem.heTitle);
+                var url     = "/" + Sefaria.normRef(chItem.firstSection);
+                content.push((<a href={url}>
+                                <span className={'refLink sparse' + chItem.sparseness} data-ref={chItem.firstSection} key={"text." + this.props.nestLevel + "." + i}>
+                                  <span className='en'>{title}</span>
+                                  <span className='he'>{heTitle}</span>
+                                </span>
+                              </a>));
+            }else{
+              url = "/texts/" + newCats.join("/");
+              content.push((<a href={url}>
+                            <span className="catLink" data-cats={newCats.join("|")} key={"cat." + this.props.nestLevel + "." + i}>
                               <span className='en'>{item.category}</span>
-                              <span className='he'>{Sefaria.hebrewCategory(item.category)}</span>
+                              <span className='he'>{item.heCategory}</span>
                             </span>
                           </a>));
-            continue;
+            }
+          }else{
+            // Add a Category
+            content.push((<div className='category' key={"cat." + this.props.nestLevel + "." + i}>
+                            <h3>
+                              <span className='en'>{item.category}</span>
+                              <span className='he'>{item.heCategory}</span>
+                            </h3>
+                            <ReaderNavigationCategoryMenuContents contents={item.contents} categories={newCats} width={this.props.width} nestLevel={this.props.nestLevel + 1} category={this.props.category}  />
+                          </div>));
           }
-          // Add a Category
-          content.push((<div className='category' key={i}>
-                          <h3>
-                            <span className='en'>{item.category}</span>
-                            <span className='he'>{item.heCategory}</span>
-                          </h3>
-                          <ReaderNavigationCategoryMenuContents contents={item.contents} categories={newCats} width={this.props.width} category={this.props.category}  />
-                        </div>));
         } else {
           //Add a Text
           var [title, heTitle] = this.getRenderedTextTitleString(item.title, item.heTitle);
-          var url     = "/" + Sefaria.normRef(item.firstSection);
+          var ref = Sefaria.recentRefForText(item.title) || item.firstSection;
+          var url = "/" + Sefaria.normRef(ref);
           content.push((<a href={url}>
-                          <span className={'refLink sparse' + item.sparseness} data-ref={item.firstSection} key={i}>
+                          <span className={'refLink sparse' + item.sparseness} data-ref={ref} key={"text." + this.props.nestLevel + "." + i}>
                             <span className='en'>{title}</span>
                             <span className='he'>{heTitle}</span>
                           </span>
@@ -3092,7 +3173,7 @@ var ReaderTextTableOfContents = React.createClass({
   render: function() {
     var title     = this.props.title;
     var heTitle   = Sefaria.index(title) ? Sefaria.index(title).heTitle : title;
-    var category  = this.props.category.replace("2", ""); // TODO Remove replace post Commentary Refactory 
+    var category  = this.props.category;
 
     var currentVersionElement = null;
     var defaultVersionString = "Default Version";
@@ -3194,7 +3275,10 @@ var ReaderTextTableOfContents = React.createClass({
     }
 
     var closeClick = (this.isBookToc()) ? this.props.closePanel : this.props.close;
-    var classes = classNames({readerTextTableOfContents:1, readerNavMenu:1, narrowPanel: this.props.narrowPanel})
+    var classes = classNames({readerTextTableOfContents:1, readerNavMenu:1, narrowPanel: this.props.narrowPanel});
+    var categories = Sefaria.index(this.props.title).categories;
+
+
     return (<div className={classes}>
               <CategoryColorLine category={category} />
               <div className="readerControls">
@@ -3216,10 +3300,10 @@ var ReaderTextTableOfContents = React.createClass({
               <div className="content">
                 <div className="contentInner">
                   <div className="tocTop">
-                    <CategoryAttribution categories={Sefaria.index(this.props.title).categories} />
+                    <CategoryAttribution categories={categories} />
                     <div className="tocCategory">
                       <span className="en">{category}</span>
-                      <span className="he">{Sefaria.hebrewCategory(category)}</span>
+                      <span className="he">{Sefaria.hebrewTerm(category)}</span>
                     </div>
                     <div className="tocTitle">
                       <span className="en">{title}</span>
@@ -3248,7 +3332,7 @@ var ReaderTextTableOfContents = React.createClass({
                       versionsList={versions}
                       openVersion={this.openVersion}
                       defaultStruct={"default_struct" in details && details.default_struct in details.alts ? details.default_struct : "default"} 
-                      currentRef={this.isTextToc() ? this.props.currentRef : null}
+                      currentRef={this.props.currentRef}
                       narrowPanel={this.props.narrowPanel}
                       title={this.props.title} />
                   </div>
@@ -3320,7 +3404,7 @@ var TextTableOfContentsNavigation = React.createClass({
     openVersion:     React.PropTypes.func,
     defaultStruct:   React.PropTypes.string,
     currentRef:      React.PropTypes.string,
-    narrowPanel:      React.PropTypes.bool,
+    narrowPanel:     React.PropTypes.bool,
     title:           React.PropTypes.string.isRequired,
   },
   getInitialState: function() {
@@ -3377,7 +3461,7 @@ var TextTableOfContentsNavigation = React.createClass({
     var options = [{
       name: "default",
       text: "sectionNames" in this.props.schema ? this.props.schema.sectionNames[0] : "Contents",
-      heText: "sectionNames" in this.props.schema ? Sefaria.hebrewSectionName(this.props.schema.sectionNames[0]) : "תוכן",
+      heText: "sectionNames" in this.props.schema ? Sefaria.hebrewTerm(this.props.schema.sectionNames[0]) : "תוכן",
       onPress: this.setTab.bind(null, "default")
     }];
     if (this.props.alts) {
@@ -3386,7 +3470,7 @@ var TextTableOfContentsNavigation = React.createClass({
           options.push({
             name: alt,
             text: alt,
-            heText: Sefaria.hebrewSectionName(alt),
+            heText: Sefaria.hebrewTerm(alt),
             onPress: this.setTab.bind(null, alt)
           });
         }
@@ -3451,7 +3535,7 @@ var TextTableOfContentsNavigation = React.createClass({
       </div>
     );
   }
-})
+});
 
 
 var TabbedToggleSet = React.createClass({
@@ -3495,7 +3579,7 @@ var TabbedToggleSet = React.createClass({
 var SchemaNode = React.createClass({
   propTypes: {
     schema:      React.PropTypes.object.isRequired,
-    refPath:     React.PropTypes.string.isRequired,
+    refPath:     React.PropTypes.string.isRequired
   },
   render: function() {
     if (!("nodes" in this.props.schema)) {
@@ -3530,7 +3614,7 @@ var SchemaNode = React.createClass({
         } else if (node.nodeType == "ArrayMapNode") {
           // ArrayMapNode with only wholeRef
           return <ArrayMapNode schema={node} key={i} />;
-        } else if (node.depth == 1) {
+        } else if (node.depth == 1 && !node.default) {
           // SchemaNode title that points straight to content
           var path = this.props.refPath + ", " + node.title;
           return (
@@ -3638,7 +3722,7 @@ var JaggedArrayNodeSection = React.createClass({
         content.push(
           <div className="tocSection" key={i}>
             <div className="sectionName">
-              <span className="he">{Sefaria.hebrewSectionName(this.props.sectionNames[0]) + " " +heSection}</span>
+              <span className="he">{Sefaria.hebrewTerm(this.props.sectionNames[0]) + " " +heSection}</span>
               <span className="en">{this.props.sectionNames[0] + " " + enSection}</span>
             </div>
             <JaggedArrayNodeSection
@@ -3651,7 +3735,6 @@ var JaggedArrayNodeSection = React.createClass({
       }
       return ( <div className="tocLevel">{content}</div> );
     }
-
     var contentCounts = this.props.depth == 1 ? new Array(this.props.contentCounts).fill(1) : this.props.contentCounts;
     var sectionLinks = [];
     for (var i = 0; i < contentCounts.length; i++) {
@@ -3724,9 +3807,9 @@ var CommentatorList = React.createClass({
   render: function() {
     var content = this.props.commentatorList.map(function(commentator, i) {
       var ref = commentator.firstSection;
-      return (<a className="refLink" href={Sefaria.normRef(ref)} data-ref={ref} key={i}>
-                <span className="he">{commentator.heCommentator}</span>
-                <span className="en">{commentator.commentator}</span>
+      return (<a className="refLink linked" href={Sefaria.normRef(ref)} data-ref={ref} key={i}>
+                <span className="he">{commentator.heCollectiveTitle}</span>
+                <span className="en">{commentator.collectiveTitle}</span>
             </a>);
     }.bind(this));
 
@@ -3749,7 +3832,7 @@ var VersionsList = React.createClass({
       <VersionBlock 
         title={this.props.title} 
         version={v} 
-        currentRef={this.props.currentRef}
+        currentRef={this.props.currentRef || this.props.title}
         firstSectionRef={"firstSectionRef" in v ? v.firstSectionRef : null}
         openVersion={this.props.openVersion} 
         key={v.versionTitle + "/" + v.language}/>
@@ -3789,7 +3872,6 @@ var VersionBlock = React.createClass({
   },
   getDefaultProps: function() {
     return {
-      ref: "",
       showHistory: true,
       showNotes: true
     }
@@ -4153,11 +4235,12 @@ var SheetsNav = React.createClass({
       var content = (<AllSheetsPage
                         hideNavHeader={this.props.hideNavHeader} />);
 
-    } else if (this.props.tag == "sefaria-partners") {
-      var content = (<PartnerSheetsPage
+    } else if (this.props.tag == "sefaria-groups") {
+      var content = (<GroupPage
                         hideNavHeader={this.props.hideNavHeader}
                         multiPanel={this.props.multiPanel}
-                        partner={this.props.partner} />);
+                        group={this.props.group}
+                        width={this.state.width} />);
 
     } else if (this.props.tag) {
       var content = (<TagSheetsPage 
@@ -4330,50 +4413,58 @@ var SheetsHomePage = React.createClass({
   }
 });
 
-var PartnerSheetsPage = React.createClass({
+
+var GroupPage = React.createClass({
+  propTypes: {
+    group: React.PropTypes.string.isRequired,
+    width: React.PropTypes.number
+  },
   getInitialState: function() {
     return {
-      showYourSheetTags: false,
-      sheetFilterTag: null
+      showTags: false,
+      sheetFilterTag: null,
+      tab: "sheets"
     };
   },
   componentDidMount: function() {
     this.ensureData();
   },
-  getSheetsFromCache: function() {
-    return  Sefaria.sheets.partnerSheets(this.props.partner);
-  },
-  getSheetsFromAPI: function() {
-     Sefaria.sheets.partnerSheets(this.props.partner, this.onDataLoad);
-  },
-  getTagsFromCache: function() {
-    return Sefaria.sheets.groupTagList(this.props.partner)
-  },
-  getTagsFromAPI: function() {
-    Sefaria.sheets.partnerSheets(this.props.partner, this.onDataLoad);
-  },
   onDataLoad: function(data) {
     this.forceUpdate();
   },
   ensureData: function() {
-    if (!this.getSheetsFromCache()) { this.getSheetsFromAPI(); }
-    if (!this.getTagsFromCache())   { this.getTagsFromAPI(); }
+    if (!Sefaria.groups(this.props.group)) { 
+      Sefaria.groups(this.props.group, this.onDataLoad);
+    }
+  },
+  setTab: function(tab) {
+    this.setState({tab: tab});
   },
   toggleSheetTags: function() {
-    this.state.showYourSheetTags ? this.setState({showYourSheetTags: false}) : this.setState({showYourSheetTags: true});
+    this.state.showTags ? this.setState({showTags: false}) : this.setState({showTags: true});
   },
   filterYourSheetsByTag: function (tag) {
     if (tag.tag == this.state.sheetFilterTag) {
-       this.setState({sheetFilterTag: null, showYourSheetTags: false});
+      this.setState({sheetFilterTag: null, showTags: false});
     } else {
-      this.setState({sheetFilterTag: tag.tag, showYourSheetTags: false});
+      this.setState({sheetFilterTag: tag.tag, showTags: false});
     }
   },
-
-
-    render: function() {
-    var sheets = this.getSheetsFromCache();
-    var groupTagList = this.getTagsFromCache();
+  memberList: function() {
+    var group = Sefaria.groups(this.props.group);
+    if (!group) { return null; }
+    var admins = group.admins.map(function(member) {member.role = "Admin"; return member; });
+    var publishers = group.publishers.map(function(member) {member.role = "Publisher"; return member; });
+    var members = group.members.map(function(member) {member.role = "Member"; return member; });
+    
+    return admins.concat(publishers, members);
+  },
+  render: function() {
+    var group        = Sefaria.groups(this.props.group);
+    var sheets       = group ? group.sheets : null;
+    var groupTagList = group ? group.tags : null;
+    var members      = this.memberList();
+    var isAdmin      = group && group.admins.filter(function(x) { return x.uid == Sefaria._uid } ).length !== 0;
 
     groupTagList = groupTagList ? groupTagList.map(function (tag) {
         var filterThisTag = this.filterYourSheetsByTag.bind(this, tag);
@@ -4385,51 +4476,108 @@ var PartnerSheetsPage = React.createClass({
       return Sefaria.util.inArray(this.state.sheetFilterTag, sheet.tags) >= 0;
     }.bind(this)) : sheets;
     sheets = sheets ? sheets.map(function(sheet) {
-      return (<PartnerSheetListing sheet={sheet} multiPanel={this.props.multiPanel} setSheetTag={this.props.setSheetTag} />);
-    }.bind(this)) : (<LoadingMessage />);
+      return (<GroupSheetListing sheet={sheet} multiPanel={this.props.multiPanel} setSheetTag={this.props.setSheetTag} />);
+    }.bind(this)) : [<LoadingMessage />];
+ 
 
+    return (<div className="content groupPage sheetList hasFooter">
+              <div className="contentInner">
 
-    return (<div className="content sheetList hasFooter">
-                      <div className="contentInner">
-                        {this.props.hideNavHeader ? (<h1>
-                          <span className="int-en">{this.props.partner}</span>
-                          <span className="int-he">{this.props.partner}</span>
-                        </h1>) : null}
+                {group.imageUrl ? 
+                  <img className="groupImage" src={group.imageUrl} />
+                  : null }
 
-                        {this.props.hideNavHeader ?
-                         (<h2 className="splitHeader">
-                            <span className="int-en" onClick={this.toggleSheetTags}>Filter By Tag <i className="fa fa-angle-down"></i></span>
-                            <span className="int-he" onClick={this.toggleSheetTags}>סנן לפי תווית<i className="fa fa-angle-down"></i></span>{/*
-                            <span className="en actionText">Sort By:
-                              <select value={this.props.mySheetSort} onChange={this.changeSortYourSheets}>
-                               <option value="date">Recent</option>
-                               <option value="views">Most Viewed</option>
-                             </select> <i className="fa fa-angle-down"></i></span>
-                            <span className="he actionText">סנן לפי:
-                              <select value={this.props.mySheetSort} onChange={this.changeSortYourSheets}>
-                               <option value="date">הכי חדש</option>
-                               <option value="views">הכי נצפה</option>
-                             </select> <i className="fa fa-angle-down"></i></span>
-                             */}
+                <div className="groupInfo">
+                  <h1>
+                    <span className="int-en">{this.props.group}</span>
+                    <span className="int-he">{this.props.group}</span>
+                  </h1>
 
-                          </h2>) : null }
+                  {group.websiteUrl ? 
+                    <a className="groupWebsite" target="_blank" href={group.websiteUrl}>{group.websiteUrl}</a>
+                    : null }
 
-                        {this.state.showYourSheetTags ? <TwoOrThreeBox content={groupTagList} width={this.props.width} /> : null}
+                  {group.description ?
+                    <div className="groupDescription">{group.description}</div>
+                    : null }
+                </div>
 
-                        {sheets}
-                      </div>
-    <footer id="footer" className="static sans">
-                        <Footer />
-                      </footer>
-    </div>);
+                <div className="tabs">
+                  <a className={classNames({bubbleTab: 1, active: this.state.tab == "sheets"})} onClick={this.setTab.bind(null, "sheets")}>
+                    <span className="int-en">Sheets</span>
+                    <span className="int-he">Sheets</span>                   
+                  </a>
+                  <a className={classNames({bubbleTab: 1, active: this.state.tab == "members"})} onClick={this.setTab.bind(null, "members")}>
+                    <span className="int-en">Members</span>
+                    <span className="int-he">Members</span>                   
+                  </a>
+                  { isAdmin ? 
+                    <a className="bubbleTab" href={"/groups/" + this.props.group.replace(/\s/g, "-") + "/settings"}>
+                      <span className="int-en">Settings</span>
+                      <span className="int-he">Settings</span>          
+                    </a>
+                    : null }
+                </div>
+
+                { this.state.tab == "sheets" ?
+                  <div>
+                  { groupTagList && groupTagList.length ?
+                    (<h2 className="splitHeader">
+                      <span className="filterByTag" onClick={this.toggleSheetTags}>
+                        <span className="int-en" >Filter By Tag <i className="fa fa-angle-down"></i></span>
+                        <span className="int-he">סנן לפי תווית<i className="fa fa-angle-down"></i></span>
+                       </span>
+                       {/*
+                      <span className="en actionText">Sort By:
+                        <select value={this.props.mySheetSort} onChange={this.changeSortYourSheets}>
+                         <option value="date">Recent</option>
+                         <option value="views">Most Viewed</option>
+                       </select> <i className="fa fa-angle-down"></i></span>
+                      <span className="he actionText">סנן לפי:
+                        <select value={this.props.mySheetSort} onChange={this.changeSortYourSheets}>
+                         <option value="date">הכי חדש</option>
+                         <option value="views">הכי נצפה</option>
+                       </select> <i className="fa fa-angle-down"></i></span>
+                       */}
+                    </h2>) : null}
+
+                  {this.state.showTags ? <TwoOrThreeBox content={groupTagList} width={this.props.width} /> : null}
+
+                  {sheets.length ? 
+                    sheets 
+                    : <div className="emptyMessage">
+                      <span className="int-en">There are no sheets in this group yet. <a href="/sheets/new">Start a sheet</a>.</span>
+                      <span className="int-he">There are no sheets in this group yet. <a href="/sheets/new">Start a sheet</a>.</span>          
+                    </div> }
+                  </div>
+                  : null }
+
+                  {this.state.tab == "members" ? 
+                    <div>
+                     {isAdmin ? <GroupInvitationBox groupName={this.props.group} onDataChange={this.onDataLoad}/> : null }
+                     { members.map(function(member) {
+                      return <GroupMemberListing 
+                                member={member}
+                                isAdmin={isAdmin}
+                                isSelf={member.uid == Sefaria._uid}
+                                groupName={this.props.group}
+                                onDataChange={this.onDataLoad} />;
+                     }.bind(this)) }
+                    </div>
+                  : null }
+
+              </div>
+            <footer id="footer" className="static sans">
+              <Footer />
+            </footer>
+            </div>);
   }
-
-
 });
 
-var PartnerSheetListing = React.createClass({
+
+var GroupSheetListing = React.createClass({
   propTypes: {
-    sheet:      React.PropTypes.object.isRequired,
+    sheet: React.PropTypes.object.isRequired,
   },
   render: function() {
     var sheet = this.props.sheet;
@@ -4448,6 +4596,324 @@ var PartnerSheetListing = React.createClass({
 
   }
 });
+
+var GroupInvitationBox = React.createClass({
+  propTypes: {
+    groupName: React.PropTypes.string.isRequired,
+    onDataChange: React.PropTypes.func.isRequired,
+  },
+  onInviteClick: function() {
+    this.inviteByEmail($("#groupInvitationInput").val());
+  },
+  inviteByEmail: function(email) {
+    $.post("/api/groups/" + this.props.groupName + "/invite/" + email, function(data) {
+      if ("error" in data) {
+        alert(data.error)
+      } else {
+        Sefaria._groups[data.name] = data;
+        $("#groupInvitationInput").val("")
+        this.props.onDataChange();
+      }
+    }.bind(this));
+  },
+  render: function() {
+    return (<div className="groupInvitationBox">
+                <input id="groupInvitationInput" placeholder="Email Address" />
+                <div className="button" onClick={this.onInviteClick}>Invite</div>
+              </div>);
+  }
+});
+
+
+var GroupMemberListing = React.createClass({
+  propTypes: {
+    member:       React.PropTypes.object.isRequired,
+    isAdmin:      React.PropTypes.bool,
+    isSelf:       React.PropTypes.bool,
+    groupName:    React.PropTypes.string,
+    onDataChange: React.PropTypes.func,
+  },
+  render: function() {
+    return (
+      <div className="groupMemberListing">
+        <a href={this.props.member.profileUrl}>
+          <img className="groupMemberListingProfileImage" src={this.props.member.imageUrl} />
+        </a>
+        
+        <a href={this.props.member.profileUrl} className="groupMemberListingName">
+          {this.props.member.name}
+        </a>
+
+        <div className="groupMemberListingRoleBox">
+          <span className="groupMemberListingRole">{this.props.member.role}</span>
+          {this.props.isAdmin || this.props.isSelf ? 
+            <GroupMemberListingActions 
+              member={this.props.member}
+              groupName={this.props.groupName}
+              isAdmin={this.props.isAdmin}
+              isSelf={this.props.isSelf}
+              onDataChange={this.props.onDataChange} />
+            : null }
+        </div>
+
+      </div>);
+  }
+});
+
+
+var GroupMemberListingActions = React.createClass({
+  propTypes: {
+    member:       React.PropTypes.object.isRequired,
+    groupName:    React.PropTypes.string.isRequired,
+    isAdmin:      React.PropTypes.bool,
+    isSelf:       React.PropTypes.bool,
+    onDataChange: React.PropTypes.func.isRequired
+  },
+  getInitialState: function() {
+    return {
+      menuOpen: false
+    }
+  },
+  toggleMenu: function() {
+    this.setState({menuOpen: !this.state.menuOpen});
+  },
+  setRole: function(role) {
+    if (this.props.isSelf && this.props.isAdmin && role !== "admin") {
+      if (!confirm("Are you want to change your group role? You won't be able to undo this action unless another admin restores your permissions.")) {
+        return;
+      }
+    }
+
+    $.post("/api/groups/" + this.props.groupName + "/set-role/" + this.props.member.uid + "/" + role, function(data) {
+      if ("error" in data) {
+        alert(data.error)
+      } else {
+        Sefaria._groups[data.name] = data;
+        this.props.onDataChange();
+      }
+    }.bind(this));
+  },
+  removeMember: function() {
+    var message = this.props.isSelf ?
+      "Are you sure you want to leave this group?" :
+      "Are you sure you want to remove " + this.props.member.name + " from this group?";
+
+    if (confirm(message)) {
+      this.setRole("remove");
+    }
+  },
+  render: function() {
+    return (
+      <div className="groupMemberListingActions" onClick={this.toggleMenu}>
+        <div className="groupMemberListingActionsButton">
+          <i className="fa fa-gear"></i>
+        </div>        
+        {this.state.menuOpen ? 
+          <div className="groupMemberListingActionsMenu">
+            {this.props.isAdmin ? 
+              <div className="action" onClick={this.setRole.bind(this, "admin")}>
+                <span className={classNames({role: 1, current: this.props.member.role == "Admin"})}>Admin</span>
+                - can invite & edit settings
+              </div>
+              : null }
+            {this.props.isAdmin ? 
+              <div className="action" onClick={this.setRole.bind(this, "publisher")}>
+                <span className={classNames({role: 1, current: this.props.member.role == "Publisher"})}>Publisher</span>
+                - can publish
+              </div>
+              : null }
+            {this.props.isAdmin ? 
+              <div className="action" onClick={this.setRole.bind(this, "member")}>
+                <span className={classNames({role: 1, current: this.props.member.role == "Member"})}>Member</span>
+                - can view & share within group
+              </div>
+              : null}
+            <div className="action" onClick={this.removeMember}>
+              <span className="role">{this.props.isSelf ? "Leave Group" : "Remove"}</span>
+            </div>
+          </div>
+        : null }
+      </div>);
+  }
+});
+
+
+var EditGroupPage = React.createClass({
+  propTypes: {
+    initialData:  React.PropTypes.object // If present this view is for editing a group, otherwise for creating a new group
+  },
+  getInitialState: function() {
+    return this.props.initialData || {
+        name: null,
+        description: null,
+        websiteUrl: null,
+        imageUrl: null,
+        headerUrl: null,
+    };
+  },
+  componentDidMount: function() {
+    $(window).on("beforeunload", function() {
+      if (this.changed) {
+        return "You have unsaved changes to your group.";
+      }
+    }.bind(this));
+  },
+  uploadImage: function(field) {
+    // Sets the state of `field` of the resulting image URL
+    var url = prompt("Enter an image URL", this.state[field] || "");
+    if (url === null) { return; }
+    var state = {};
+    state[field] = url;
+    this.setState(state);
+    this.changed = true;
+  },
+  handleInputChange: function(e) {
+    var idToField = {
+      groupName: "name",
+      groupWebsite: "websiteUrl",
+      groupDescription: "description"
+    }
+    var field = idToField[e.target.id];
+    var state = {};
+    state[field] = e.target.value;
+    this.setState(state);
+    this.changed = true;
+  },
+  delete: function() {
+    if (confirm("Are you sure you want to delete this group? This cannot be undone.")) {
+     $.ajax({
+        url: "/api/groups/" + this.props.initialData.name,
+        type: "DELETE",
+        success: function(data) {
+          if ("error" in data) {
+            alert(data.error);
+          } else {
+            window.location = "/my/groups";
+          }
+        },
+        fail: function() {
+          alert("Sorry, an error occurred.");
+        } 
+      });
+    }
+  },
+  save: function() {
+    var groupData = Sefaria.util.clone(this.state);
+    if (!this.props.initialData) {
+      groupData["new"] = true;
+    }
+    if (this.props.initialData && this.props.initialData.name !== groupData.name) {
+      groupData["previousName"] = this.props.initialData.name;
+    }
+    $.post("/api/groups", {json: JSON.stringify(groupData)}, function(data) {
+        if ("error" in data) {
+          alert(data.error);
+        } else {
+          this.changed = false;
+          window.location = "/groups/" + this.state.name.replace(/ /g, "-");
+        }
+    }.bind(this)).fail(function() {
+        alert("Sorry, an error occurred.");
+    });
+  },
+  render: function() {
+    return (
+      <div id="editGroupPage">
+        {this.props.initialData 
+          ? <h1>
+              <span className="int-en">Edit Group</span>
+              <span className="int-he">Edit Group</span>
+            </h1>
+          : <h1>
+              <span className="int-en">Create a Group</span>
+              <span className="int-he">Create a Group</span>
+            </h1>}
+
+        <div id="saveCancelButtons">
+            <a className="button transparent control-elem" href={this.props.initialData ? "/groups/" + this.state.name.replace(/ /g, "-") : "/my/groups"}>
+                <span className="int-en">Cancel</span>
+                <span className="int-he">בטל</span>
+            </a>
+            <div id="saveGroup" className="button blue control-elem" onClick={this.save}>
+                <span className="int-en">Save</span>
+                <span className="int-he">שמור</span>
+            </div>
+        </div>
+
+        <div className="field halfWidth">
+          <label>
+            <span className="int-en">Group Name</span>
+            <span className="int-he">Group Name</span>
+          </label>
+          <input id="groupName" value={this.state.name||""} onChange={this.handleInputChange}/>
+        </div>
+
+        <div className="field halfWidth">
+          <label>
+            <span className="int-en">Website</span>
+            <span className="int-he">Website</span>
+          </label>
+          <input id="groupWebsite" value={this.state.websiteUrl||""} onChange={this.handleInputChange}/>
+        </div>
+
+        <div className="field">
+          <label>
+            <span className="int-en">Description</span>
+            <span className="int-he">Description</span>
+          </label>
+          <textarea id="groupDescription" onChange={this.handleInputChange}>{this.state.description||null}</textarea>
+        </div>
+
+        <div className="field">
+          <label>
+            <span className="int-en">Group Image</span>
+            <span className="int-he">Group Image</span>
+          </label>
+          {this.state.imageUrl 
+            ? <img className="groupImage" src={this.state.imageUrl} />
+            : <div className="groupImage placeholder"></div>}
+          <div className="button white" onClick={this.uploadImage.bind(null, "imageUrl")}>
+            <span className="int-en">Upload Image</span>
+            <span className="int-he">Upload Image</span>
+          </div>
+          <div className="helperText">
+            <span className="int-en">Recommended size: 350px x 350px or larger</span>
+            <span className="int-he">Recommended size: 350px x 350px or larger</span>
+          </div>
+        </div>
+
+        <div className="field">
+          <label>
+            <span className="int-en">Default Sheet Header</span>
+            <span className="int-he">Default Sheet Header</span>
+          </label>
+          {this.state.headerUrl 
+            ? <div className="groupHeaderBox">
+                <img className="groupHeader" src={this.state.headerUrl} />
+                <div className="clearFix"></div>
+              </div>
+            : <div className="groupHeader placeholder"></div>}
+          <div className="button white" onClick={this.uploadImage.bind(null, "headerUrl")}>
+            <span className="int-en">Upload Image</span>
+            <span className="int-he">Upload Image</span>
+          </div>
+          <div className="helperText">
+            <span className="int-en">Recommended size: 1000px width to fill sheet, smaller images align right</span>
+            <span className="int-he">Recommended size: 1000px width to fill sheet, smaller images align right</span>
+          </div>
+        </div>
+
+        {this.props.initialData ? 
+          <div className="deleteGroup" onClick={this.delete}>
+            <span className="int-en">Delete Group</span>
+            <span className="int-he">Delete Group</span>
+          </div>
+          : null}
+
+      </div>);
+  }
+});
+
 
 
 var TagSheetsPage = React.createClass({
@@ -4899,7 +5365,7 @@ var TextColumn = React.createClass({
     updateTextColumn:      React.PropTypes.func,
     onSegmentClick:        React.PropTypes.func,
     onCitationClick:       React.PropTypes.func,
-    setTextListHighlight: React.PropTypes.func,
+    setTextListHighlight:  React.PropTypes.func,
     setSelectedWords:      React.PropTypes.func,
     onTextLoad:            React.PropTypes.func,
     panelsOpen:            React.PropTypes.number,
@@ -4957,11 +5423,14 @@ var TextColumn = React.createClass({
     }
   },
   handleScroll: function(event) {
+    console.log("scroll")
     if (this.justScrolled) {
+      console.log("pass scroll")
       this.justScrolled = false;
       return;
     }
     if (this.props.highlightedRefs.length) {
+      console.log("Calling debouncedAdjustTextListHighlight")
       this.debouncedAdjustTextListHighlight();
     }
     this.adjustInfiniteScroll();   
@@ -4998,11 +5467,11 @@ var TextColumn = React.createClass({
     this.adjustInfiniteScroll();
   },
   setScrollPosition: function() {
-    // console.log("ssp");
+    console.log("ssp");
     // Called on every update, checking flags on `this` to see if scroll position needs to be set
     if (this.loadingContentAtTop) {
       // After adding content by infinite scrolling up, scroll back to what the user was just seeing
-      // console.log("loading at top");
+      console.log("loading at top");
       var $node   = $(ReactDOM.findDOMNode(this));
       var adjust  = 118; // Height of .loadingMessage.base
       var $texts  = $node.find(".basetext");
@@ -5014,16 +5483,17 @@ var TextColumn = React.createClass({
         this.justScrolled = true;
         ReactDOM.findDOMNode(this).scrollTop = top;
         this.scrollToHighlighted();
-        //console.log(top)
+        console.log(top)
       }
     } else if (!this.scrolledToHighlight && $(ReactDOM.findDOMNode(this)).find(".segment.highlight").length) {
-      // console.log("scroll to highlighted")
+       console.log("scroll to highlighted")
       // scroll to highlighted segment
       this.scrollToHighlighted();
       this.scrolledToHighlight = true;
       this.initialScrollTopSet = true;
+      this.justScrolled        = true;
     } else if (!this.initialScrollTopSet) {
-      //console.log("initial scroll to 30")
+      console.log("initial scroll to 30")
       // initial value set below 0 so you can scroll up for previous
       var node = ReactDOM.findDOMNode(this);
       node.scrollTop = 30;
@@ -5056,7 +5526,7 @@ var TextColumn = React.createClass({
         // console.log("last text is loading - don't add next section");
         return;
       }
-      // console.log("Down! Add next section");
+      console.log("Down! Add next section");
       var currentRef = refs.slice(-1)[0];
       var data       = Sefaria.ref(currentRef);
       if (data && data.next) {
@@ -5069,7 +5539,7 @@ var TextColumn = React.createClass({
       var topRef = refs[0];
       var data   = Sefaria.ref(topRef);
       if (data && data.prev) {
-        // console.log("Up! Add previous section");
+        console.log("Up! Add previous section");
         refs.splice(refs, 0, data.prev);
         this.loadingContentAtTop = true;
         this.props.updateTextColumn(refs);
@@ -5080,7 +5550,8 @@ var TextColumn = React.createClass({
     }
   },
   adjustTextListHighlight: function() {
-    // console.log("atlh");
+    console.log("adjustTextListHighlight");
+
     // When scrolling while the TextList is open, update which segment should be highlighted.
     if (this.props.multiPanel && this.props.layoutWidth == 100) {
       return; // Hacky - don't move around highlighted segment when scrolling a single panel,
@@ -5110,7 +5581,6 @@ var TextColumn = React.createClass({
     }.bind(this);
 
     adjustTextListHighlightInner();
-    //window.requestAnimationFrame(adjustTextListHighlightInner);
       
       /*
       // Caching segment heights
@@ -5140,6 +5610,8 @@ var TextColumn = React.createClass({
   },
   scrollToHighlighted: function() {
     window.requestAnimationFrame(function() {
+      if (!this.isMounted()) { return; }
+      console.log("scroll to highlighted - animation frame")
       var $container   = $(ReactDOM.findDOMNode(this));
       var $readerPanel = $container.closest(".readerPanel");
       var $highlighted = $container.find(".segment.highlight").first();
@@ -5235,8 +5707,7 @@ var TextRange = React.createClass({
     if (data && !this.dataPrefetched) {
       // If data was populated server side, onTextLoad was never called
       this.onTextLoad(data);
-    }
-    if (this.props.basetext || this.props.segmentNumber) { 
+    } else if (this.props.basetext || this.props.segmentNumber) { 
       this.placeSegmentNumbers();
     }
     window.addEventListener('resize', this.handleResize);
@@ -5245,12 +5716,6 @@ var TextRange = React.createClass({
     window.removeEventListener('resize', this.handleResize);
   },
   componentDidUpdate: function(prevProps, prevState) {
-    /* Doesn't seem to be need in addition to below
-    // Reload text if version changed
-    if (this.props.version != prevProps.version || this.props.versionLanguage != prevProps.versionLanguage) {
-      this.getText(true);
-    }
-    */
     // Place segment numbers again if update affected layout
     if (this.props.basetext || this.props.segmentNumber) {
       if (this.props.version != prevProps.version ||
@@ -5263,13 +5728,20 @@ var TextRange = React.createClass({
           prevProps.settings.fontSize !== this.props.settings.fontSize ||
           prevProps.layoutWidth !== this.props.layoutWidth) {
             // Rerender in case version has changed
-            this.forceUpdate();
+            this.forceUpdate(function() {
+              if (this.isMounted()) {
+                this.placeSegmentNumbers();
+              } 
+            }.bind(this));
+
             // TODO: are these animationFrames still needed?
+            /*
             window.requestAnimationFrame(function() { 
               if (this.isMounted()) {
                 this.placeSegmentNumbers();
               }
-            }.bind(this));        
+            }.bind(this));
+            */     
       }
     }
   },
@@ -5302,7 +5774,7 @@ var TextRange = React.createClass({
     return data;
   },
   onTextLoad: function(data) {
-    // console.log("onTextLoad in TextRange");
+    //console.log("onTextLoad in TextRange", data.ref);
     // Initiate additional API calls when text data first loads
     if (this.props.basetext && this.props.sref !== data.ref) {
       // Replace ReaderPanel contents ref with the normalized form of the ref, if they differ.
@@ -5318,8 +5790,9 @@ var TextRange = React.createClass({
     }
 
     if (this.isMounted()) { 
-      this.forceUpdate();
-      this.placeSegmentNumbers();
+      this.forceUpdate(function() {
+        this.placeSegmentNumbers();
+      }.bind(this));
     }
   },
   prefetchData: function() {
@@ -5434,6 +5907,9 @@ var TextRange = React.createClass({
     return segments;
   },
   placeSegmentNumbers: function() {
+    //console.log("placeSegmentNumbers", this.props.sref);
+    //debugger
+    //console.trace();
     // Set the vertical offsets for segment numbers and link counts, which are dependent
     // on the rendered height of the text of each segment.
     var $text  = $(ReactDOM.findDOMNode(this));
@@ -5481,7 +5957,7 @@ var TextRange = React.createClass({
       var ref              = this.props.withContext ? data.sectionRef : data.ref;
       var sectionStrings   = Sefaria.sectionString(ref);
       var oref             = Sefaria.ref(ref);
-      var useShortString   = oref && Sefaria.util.inArray(oref.categories[0], ["Tanakh", "Mishnah", "Talmud", "Tosefta", "Commentary"]) !== -1;
+      var useShortString   = oref && Sefaria.util.inArray(oref.primary_category, ["Tanakh", "Mishnah", "Talmud", "Tosefta", "Commentary"]) !== -1;
       var title            = useShortString ? sectionStrings.en.numbered : sectionStrings.en.named;
       var heTitle          = useShortString ? sectionStrings.he.numbered : sectionStrings.he.named;   
     } else if (data && !this.props.basetext) {  
@@ -5596,7 +6072,7 @@ var TextSegment = React.createClass({
       //Click of citation
       var ref = Sefaria.humanRef($(event.target).attr("data-ref"));
       this.props.onCitationClick(ref, this.props.sref);
-      event.stopPropagation();
+      event.stopPropagation(); //add prevent default
       Sefaria.site.track.event("Reader", "Citation Link Click", ref);
     } else if (this.props.onSegmentClick) {
       this.props.onSegmentClick(this.props.sref);
@@ -5903,8 +6379,8 @@ var TextList = React.createClass({
     }
   },
   preloadSingleCommentaryText: function(filter) {
-    var basetext   = this.getSectionRef();
-    var commentary = filter[0] + " on " + basetext;
+    var basetext   = this.getSectionRef(); //get the title of the full title for the commentary from the api and use that (only needs the title to end with the base text
+    var commentary = filter[0] + " on " + basetext; //TODO: get rid of "on" special casing switch to hack that only switches out the sections
     this.setState({textLoaded: false, waitForText: true});
     Sefaria.text(commentary, {}, function() {
       if (this.isMounted()) {
@@ -5987,7 +6463,7 @@ var TextList = React.createClass({
     var isSingleCommentary = (filter.length == 1 && Sefaria.index(filter[0]) && Sefaria.index(filter[0]).categories == "Commentary");
 
     var en = "No connections known" + (filter.length ? " for " + filter.join(", ") : "") + ".";
-    var he = "אין קשרים ידועים"       + (filter.length ? " ל"    + filter.join(", ") : "") + ".";
+    var he = "אין קשרים ידועים"       + (filter.length ? " ל"    + filter.map(f => Sefaria.hebrewTerm(f)).join(", ") : "") + ".";
     var loaded  = Sefaria.linksLoaded(sectionRef);
     var noResultsMessage = <LoadingMessage message={en} heMessage={he} />;
     var message = !loaded ? (<LoadingMessage />) : (summary.length === 0 ? noResultsMessage : null);
@@ -6023,6 +6499,7 @@ var TextList = React.createClass({
         content = content.length ? content : <LoadingMessage message="No notes here." />;
       } else {
         // Viewing Text Connections
+          //debugger;
         var sectionLinks = Sefaria.links(sectionRef);
         var links        = sectionLinks.filter(function(link) {
           if ( (this.props.multiPanel || !isSingleCommentary) &&
@@ -6032,7 +6509,7 @@ var TextList = React.createClass({
           }
           return (filter.length == 0 ||
                   Sefaria.util.inArray(link.category, filter) !== -1 || 
-                  Sefaria.util.inArray(link.commentator, filter) !== -1 );
+                  Sefaria.util.inArray(link.collectiveTitle["en"], filter) !== -1 );
 
           }.bind(this)
         ).sort(function(a, b) {
@@ -6094,7 +6571,7 @@ var TextList = React.createClass({
                   showText={this.props.showText}
                   filter={this.props.filter}
                   recentFilters={this.props.recentFilters}
-                  textCategory={oref ? oref.categories[0] : null}
+                  textCategory={oref ? oref.primary_category : null}
                   setFilter={this.props.setFilter}
                   showAllFilters={this.showAllFilters} />
               </div>
@@ -6115,7 +6592,7 @@ var TextList = React.createClass({
                     showText={this.props.showText}
                     filter={this.props.filter}
                     recentFilters={this.props.recentFilters}
-                    textCategory={oref ? oref.categories[0] : null}
+                    textCategory={oref ? oref.primary_category : null}
                     setFilter={this.props.setFilter}
                     showAllFilters={this.showAllFilters} />
                   { content }
@@ -6176,7 +6653,7 @@ var AllFilterSet = React.createClass({
           srefs={this.props.srefs}
           key={i}
           category={cat.category}
-          heCategory={Sefaria.hebrewCategory(cat.category)}
+          heCategory={Sefaria.hebrewTerm(cat.category)}
           count={cat.count} 
           books={cat.books}
           filter={this.props.filter}
@@ -6304,8 +6781,8 @@ var RecentFilterSet = React.createClass({
       var index = Sefaria.index(filter);
       return {
           book: filter,
-          heBook: index ? index.heTitle : Sefaria.hebrewCategory(filter),
-          category: index ? index.categories[0] : filter };
+          heBook: index ? index.heTitle : Sefaria.hebrewTerm(filter),
+          category: index ? index.primary_category : filter };
     });
     topLinks = recentFilters.concat(topLinks).slice(0,5);
 
@@ -6319,7 +6796,7 @@ var RecentFilterSet = React.createClass({
       if (i == topLinks.length) {
         var index = Sefaria.index(filter);
         if (index) {
-          var annotatedFilter = {book: filter, heBook: index.heTitle, category: index.categories[0] };
+          var annotatedFilter = {book: filter, heBook: index.heTitle, category: index.primary_category };
         } else {
           var annotatedFilter = {book: filter, heBook: filter, category: "Other" };
         }
@@ -7432,8 +7909,8 @@ var SearchResultList = React.createClass({
       var commentaryNode = new Sefaria.search.FilterNode();
 
 
-      for(var j = 0; j < Sefaria.toc.length; j++) {
-          var b = walk.call(this, Sefaria.toc[j]);
+      for(var j = 0; j < Sefaria.search_toc.length; j++) {
+          var b = walk.call(this, Sefaria.search_toc[j]);
           if (b) filters.push(b);
 
           // Remove after commentary refactor ?
@@ -7462,37 +7939,21 @@ var SearchResultList = React.createClass({
       function walk(branch, parentNode) {
           var node = new Sefaria.search.FilterNode();
 
-          //Remove after commentary refactor
           node["docCount"] = 0;
-          //
 
           if("category" in branch) { // Category node
-              // Remove after commentary refactor
-              if(branch["category"] == "Commentary") { // Special case commentary
-                  path.unshift(branch["category"]);  // Place "Commentary" at the *beginning* of the path
-                   extend(node, {
-                       "title": parentNode.title,
-                       "path": path.join("/"),
-                       "heTitle": parentNode.heTitle
-                   });
-              } else {
-              // End commentary code
 
-                path.push(branch["category"]);  // Place this category at the *end* of the path
-                extend(node, {
-                  "title": path.slice(-1)[0],
-                  "path": path.join("/"),
-                  "heTitle": branch["heCategory"]
-                });
+            path.push(branch["category"]);  // Place this category at the *end* of the path
+            extend(node, {
+              "title": path.slice(-1)[0],
+              "path": path.join("/"),
+              "heTitle": branch["heCategory"]
+            });
 
-              // Remove after commentary refactor
-              }
-              // End commentary code
-
-              for(var j = 0; j < branch["contents"].length; j++) {
-                  var b = walk.call(this, branch["contents"][j], node);
-                  if (b) node.append(b);
-              }
+            for(var j = 0; j < branch["contents"].length; j++) {
+                var b = walk.call(this, branch["contents"][j], node);
+                if (b) node.append(b);
+            }
           }
           else if ("title" in branch) { // Text Node
               path.push(branch["title"]);
@@ -7507,55 +7968,23 @@ var SearchResultList = React.createClass({
               var rawNode = rawTree;
               var i;
 
-              // Remove try and entire catch after commentary refactor
-              try {
-                for (i = 0; i < path.length; i++) {
-                  //For TOC nodes that we don't have results for, we catch the exception below.  For commentary / commentary2, we catch it here.
-                  rawNode = rawNode[path[i]];
-                }
-                node["docCount"] += rawNode.docCount;
+              for (i = 0; i < path.length; i++) {
+                //For TOC nodes that we don't have results for, we catch the exception below.
+                rawNode = rawNode[path[i]];
               }
-              catch (e) {
-                if (path[0] == "Commentary") {
-                  rawNode = rawTree["Commentary2"];
-                  for (i = 1; i < path.length; i++) {
-                    rawNode = rawNode[path[i]];
-                  }
-                  node["docCount"] += rawNode.docCount;
-                } else {
-                  throw e; 
-                }
-              }
+              node["docCount"] += rawNode.docCount;
+
 
               // Do we need both of these in the registry?
               registry[node.getId()] = node;
               registry[node.path] = node;
 
-              // Remove after commentary refactor
-              if(("category" in branch) && (branch["category"] == "Commentary")) {  // Special case commentary
-                  commentaryNode.append(node);
-                  path.shift();
-                  return false;
-              }
-              // End commentary code
-
               path.pop();
               return node;
           }
           catch (e) {
-              // Remove after commentary refactor
-              if(("category" in branch) && (branch["category"] == "Commentary")) {  // Special case commentary
-                  path.shift();
-              } else {
-              // End commentary code
-
-                path.pop();
-
-              // Remove after commentary refactor
-              }
-              // End commentary code
-
-              return false;
+            path.pop();
+            return false;
           }
       }
     },
@@ -7961,13 +8390,18 @@ var AccountPanel = React.createClass({
   propTypes: {
     interfaceLang: React.PropTypes.string,
   },
+  componentDidMount: function() {
+    $(".inAppLink").on("click", this.props.handleInAppLinkClick);
+  },
   render: function() {
     var width = typeof window !== "undefined" ? $(window).width() : 1000;
     var accountContent = [
       (<BlockLink interfaceLink={true} target="/my/profile" title="Profile" heTitle="פרופיל" image="/static/img/profile.svg" />),
-      (<BlockLink interfaceLink={true} target="/sheets/private" title="Source Sheets" heTitle="דפי מקורות" image="/static/img/sheet.svg" />),
-      (<BlockLink interfaceLink={true} target="/coming-soon?my-notes" title="Notes" heTitle="רשומות" image="/static/img/note.svg" />),
-      (<BlockLink interfaceLink={true} target="/coming-soon?reading-history" title="Reading History" heTitle="היסטורית קריאה" image="/static/img/readinghistory.svg" />),
+      (<BlockLink interfaceLink={true} target="/sheets/private" inAppLink={true} title="Source Sheets" heTitle="דפי מקורות" image="/static/img/sheet.svg" />),
+      (Sefaria.is_moderator || Sefaria.has_groups
+       ? (<BlockLink interfaceLink={true} target="/my/groups" inAppLink={true} title="Groups" heTitle="קבוצות" image="/static/img/group.svg" />)
+       : (<BlockLink interfaceLink={true} target="/coming-soon?my-notes" title="Notes" heTitle="רשומות" image="/static/img/note.svg" />)),
+      (<BlockLink interfaceLink={true} target="/texts/recent" title="Reading History" heTitle="היסטורית קריאה" image="/static/img/readinghistory.svg" />),
       (<BlockLink interfaceLink={true} target="/settings/account" title="Settings" heTitle="הגדרות" image="/static/img/settings.svg" />),
       (<BlockLink interfaceLink={true} target="/logout" title="Log Out" heTitle="ניתוק" image="/static/img/logout.svg" />)
     ];
@@ -8023,6 +8457,77 @@ var AccountPanel = React.createClass({
            <ReaderNavigationMenuSection title="Connect" heTitle="התחברות" content={connectContent} />
           </div>
             {footer}
+        </div>
+      </div>
+      );
+  }
+});
+
+
+var RecentPanel = React.createClass({
+  propTypes: {
+    closeNav:            React.PropTypes.func.isRequired,
+    toggleLanguage:      React.PropTypes.func.isRequired,
+    openDisplaySettings: React.PropTypes.func.isRequired,
+    navHome:             React.PropTypes.func.isRequired,
+    width:               React.PropTypes.number,
+    compare:             React.PropTypes.bool,
+    hideNavHeader:       React.PropTypes.bool,
+    interfaceLang:       React.PropTypes.string
+  },
+  render: function() {
+    var width = typeof window !== "undefined" ? $(window).width() : 1000;
+
+    var recentItems = Sefaria.recentlyViewed.filter(function(item){
+      // after a text has been deleted a recent ref may be invalid,
+      // but don't try to check when booksDict is not available during server side render
+      if (Object.keys(Sefaria.booksDict).length === 0) { return true; }
+      return Sefaria.isRef(item.ref); 
+    }).map(function(item) {
+      return (<TextBlockLink 
+                sref={item.ref}
+                heRef={item.heRef}
+                book={item.book}
+                version={item.version}
+                versionLanguage={item.versionLanguage}
+                showSections={true}
+                recentItem={true} />)
+    });
+    var recentContent = (<TwoOrThreeBox content={recentItems} width={width} />);
+
+    var footer = this.props.compare ? null :
+                    (<footer id="footer" className={`interface-${this.props.interfaceLang} static sans`}>
+                      <Footer />
+                    </footer> );
+
+
+    var navMenuClasses = classNames({recentPanel: 1, readerNavMenu: 1, noHeader: this.props.hideNavHeader});
+    var navTopClasses  = classNames({readerNavTop: 1, searchOnly: 1, colorLineOnly: this.props.hideNavHeader});
+    var contentClasses = classNames({content: 1, hasFooter: footer != null});
+    return (
+      <div className={navMenuClasses}>
+        {this.props.hideNavHeader ? null : 
+          <div className={navTopClasses}>
+            <CategoryColorLine category={"Other"} />
+            <ReaderNavigationMenuMenuButton onClick={this.props.navHome} compare={this.props.compare} />
+            <ReaderNavigationMenuDisplaySettingsButton onClick={this.props.openDisplaySettings} />
+            <h2>
+              <span className="int-en">Recent</span>
+              <span className="int-he">נצפו לאחרונה</span>
+            </h2>
+        </div>}
+        <div className={contentClasses}>
+          <div className="contentInner">
+            {this.props.hideNavHeader ? 
+              <h1>
+              { this.props.multiPanel ? <LanguageToggleButton toggleLanguage={this.props.toggleLanguage} /> : null }
+              <span className="int-en">Recent</span>
+              <span className="int-he">נצפו לאחרונה</span>
+            </h1>
+            : null }
+            {recentContent}
+          </div>
+          {footer}
         </div>
       </div>
       );
@@ -8098,10 +8603,91 @@ var NotificationsPanel = React.createClass({
               (<LoginPanel fullPanel={true} />) }
           </div>
           <footer id="footer" className={`interface-${this.props.interfaceLang} static sans`}>
-                    <Footer />
-                    </footer>
+            <Footer />
+          </footer>
         </div>
       </div>);
+  }
+});
+
+
+var MyGroupsPanel = React.createClass({
+  propTypes: {
+    interfaceLang: React.PropTypes.string,
+  },
+  componentDidMount: function() {
+    if (!Sefaria.groupsList()) {
+      Sefaria.groupsList(function() {
+        this.forceUpdate();
+      }.bind(this));
+    }
+  },
+  render: function() {
+    var groupsList = Sefaria.groupsList();
+    var classes = {myGroupsPanel: 1, systemPanel: 1, readerNavMenu: 1, noHeader: 1 };
+    var classStr = classNames(classes);
+    return (
+      <div className={classStr}>
+        <div className="content hasFooter">
+          <div className="contentInner">
+            <h1>
+              <span className="int-en">My Groups</span>
+              <span className="int-he">הקבוצות שלי</span>
+            </h1>
+            <center>
+              <a className="button white" href="/groups/new">
+                <span className="int-en">Create a Group</span>
+                <span className="int-he">ליצור קבוצה</span>
+              </a>
+            </center>
+
+            <div className="groupsList">
+              { groupsList ? 
+                  groupsList.private.map(function(item) {
+                    return <GroupListing data={item} />
+                  })
+                  : <LoadingMessage />
+              }
+            </div>
+
+          </div>
+          <footer id="footer" className={`interface-${this.props.interfaceLang} static sans`}>
+            <Footer />
+          </footer>
+        </div>
+      </div>);
+  }
+});
+
+
+var GroupListing = React.createClass({
+  propTypes: {
+    data: React.PropTypes.object.isRequired,
+  },
+  render: function() {
+    var imageUrl = this.props.data.imageUrl || "/static/img/group.svg"
+    var imageClass = classNames({groupListingImage: 1, default: !this.props.data.imageUrl});
+    var groupUrl = "/groups/" + this.props.data.name.replace(/\s/g, "-")
+    return (<div className="groupListing">
+              <a href={groupUrl}>
+                <div className="groupListingImageBox">
+                  <img className={imageClass} src={imageUrl} />
+                </div>
+              </a>
+              <a href={groupUrl} className="groupListingName">{this.props.data.name}</a>
+              <div className="groupListingDetails">
+                <span className="groupListingDetail groupListingMemberCount">
+                  <span className="int-en">{this.props.data.memberCount} Members</span>
+                  <span className="int-he">{this.props.data.memberCount} חברים</span>          
+                </span>
+                <span className="groupListingDetailSeparator">•</span>
+                <span className="groupListingDetail groupListingSheetCount">
+                  <span className="int-en">{this.props.data.sheetCount} Sheets</span>
+                  <span className="int-he">{this.props.data.sheetCount} דפים</span>          
+                </span>
+              </div>
+              <div className="clearFix"></div>
+            </div>);
   }
 });
 
@@ -8842,24 +9428,14 @@ var setData = function(data) {
   // Set core data in the module that was loaded in a different scope
   Sefaria.toc       = data.toc;
   Sefaria.books     = data.books;
+  // Note Sefaria.booksDict in generated on the client from Sefaria.books, but not on the server to save cycles
   Sefaria.calendar  = data.calendar;
-  if ("booksDict" in data) {
-    Sefaria.booksDict = data.booksDict;
-  } else {
-    Sefaria._makeBooksDict();
-  }
 
-  Sefaria._cacheIndexFromToc(Sefaria.toc);  
-
-  if ("recentlyViewed" in data) {
-    // Store data in a mock cookie function
-    // (Node doesn't have direct access to Django's cookies, so pass through props in POST data)
-    var json = decodeURIComponent(data.recentlyViewed);
-    cookie("recentlyViewed", json);
-  }
-
+  Sefaria._cacheIndexFromToc(Sefaria.toc);
+  Sefaria.recentlyViewed    = data.recentlyViewed ? data.recentlyViewed.map(Sefaria.unpackRecentItem) : [];
   Sefaria.util._defaultPath = data.path;
   Sefaria.loggedIn          = data.loggedIn;
+  Sefaria._uid              = data._uid;
   Sefaria.is_moderator      = data.is_moderator;
   Sefaria.is_editor         = data.is_editor;
 };

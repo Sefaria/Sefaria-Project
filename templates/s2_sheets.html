@@ -19,7 +19,7 @@
         <meta property="og:title" content="Sefaria Source Sheet Builder"/>
     {% endif %}
     <meta property="og:type" content="website"/>
-    <meta property="og:image" content="http://www.sefaria.org/static/img/fb-og-image.png"/>
+    <meta property="og:image" content="https://www.sefaria.org/static/img/fb-og-image.png"/>
     <link rel="stylesheet" type="text/css" href="/static/css/tooltipster.css" />
 
 
@@ -263,12 +263,12 @@
 
 	<div id="bsdHeader">בס"ד</div>
 	<div id="sheetHeader" {% if sheet_group == None %}style="display:none"{% endif %}>
-		{% if sheet_group %}
-		<a href="/partners/{{ sheet_group.name|url_safe }}">
-			<img id="partnerLogo" src="{{ sheet_group.headerUrl }}" />
+		{% if sheet_group and sheet_group.headerUrl %}
+		<a href="/groups/{{ sheet_group.name|url_safe }}">
+			<img id="groupLogo" src="{{ sheet_group.headerUrl }}" />
 		</a>
 		{% else %}
-			<img id="partnerLogo" style="display:none;" />
+			<img id="groupLogo" style="display:none;" />
 		{% endif %}
 	</div>
 	<div id="title">
@@ -519,7 +519,7 @@
             <option value="None">None</option>
 
     		{% for group in owner_groups %}
-              <option value="{{ group.name }}" data-group="{{ group.name }}" data-image="{{ group.headerUrl }}">{{ group.name }}</option>
+              <option value="{{ group.name }}" data-group="{{ group.name }}" data-image="{{ group.headerUrl|default:'' }}">{{ group.name }}</option>
 			{% endfor %}
         </select>
     </div>
