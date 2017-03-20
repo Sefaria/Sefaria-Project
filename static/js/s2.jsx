@@ -3579,7 +3579,7 @@ var TabbedToggleSet = React.createClass({
 var SchemaNode = React.createClass({
   propTypes: {
     schema:      React.PropTypes.object.isRequired,
-    refPath:     React.PropTypes.string.isRequired,
+    refPath:     React.PropTypes.string.isRequired
   },
   render: function() {
     if (!("nodes" in this.props.schema)) {
@@ -3614,7 +3614,7 @@ var SchemaNode = React.createClass({
         } else if (node.nodeType == "ArrayMapNode") {
           // ArrayMapNode with only wholeRef
           return <ArrayMapNode schema={node} key={i} />;
-        } else if (node.depth == 1) {
+        } else if (node.depth == 1 && !node.default) {
           // SchemaNode title that points straight to content
           var path = this.props.refPath + ", " + node.title;
           return (
@@ -3735,7 +3735,6 @@ var JaggedArrayNodeSection = React.createClass({
       }
       return ( <div className="tocLevel">{content}</div> );
     }
-
     var contentCounts = this.props.depth == 1 ? new Array(this.props.contentCounts).fill(1) : this.props.contentCounts;
     var sectionLinks = [];
     for (var i = 0; i < contentCounts.length; i++) {
