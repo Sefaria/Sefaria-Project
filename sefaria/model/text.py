@@ -4268,8 +4268,12 @@ class Library(object):
         assert isinstance(node, JaggedArrayNode)  # Assumes that node is a JaggedArrayNode
 
         def _wrap_ref_match(match):
-            ref = self._get_ref_from_match(match, node, lang)
-            return u'<a class ="refLink" href="/{}" data-ref="{}">{}</a>'.format(ref.url(), ref.normal(), match.group(0))
+            try:
+                ref = self._get_ref_from_match(match, node, lang)
+                return u'<a class ="refLink" href="/{}" data-ref="{}">{}</a>'.format(ref.url(), ref.normal(), match.group(0))
+            except InputError as e:
+                logger.warning(u"Wrap Ref Warning: Ref:({}) {}".format(match.group(0), e.message))
+                return match.group(0)
 
         try:
             re_string = self.get_regex_string(title, lang)
