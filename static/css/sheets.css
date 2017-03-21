@@ -2052,6 +2052,30 @@ a.tagit-close {
 	text-align:center;
 }
 
+.diagramSegment::before {
+    content: attr(data-tag) ;
+
+    font-size: 10px;
+    position:absolute;
+    z-index: 999;
+    white-space:nowrap;
+    background:#000;
+    color:#e0e0e0;
+    padding:0px 7px;
+	margin-top: -24px;
+    line-height: 24px;
+    height: 24px;
+
+    opacity: 0;
+    transition:opacity 0.4s ease-out;
+
+    }
+
+.diagramSegment:hover::before {
+    opacity: 1;
+    }
+
+
 .colorSelect div {
 	width: 34px;
 	height:30px;
