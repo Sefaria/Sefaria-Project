@@ -2696,9 +2696,28 @@ function readSource($target) {
 		source["text"] = {en: $target.find(".text").find(".en").html(), 
 						  he: $target.find(".text").find(".he").html()};
 
-		source["diagram"] = {en: $target.find(".diagram").find(".en").html(),
-						  he: $target.find(".diagram").find(".he").html()};
+		if ($target.find(".diagram").find(".en").html() != "" || $target.find(".diagram").find(".he").html() != "") {
+			source["diagram"] = {en: [], he: []};
+			$target.find(".diagram").find(".en").find(".diagramSegment").each(function(i){
 
+				source.diagram.en[i] = {};
+				var currenttext = $(this).text();
+				var currenttag = $(this).attr('data-tag');
+
+				console.log($(this))
+
+				source.diagram.en[i].text = currenttext;
+				source.diagram.en[i].tag = currenttag;
+			});
+
+			$target.find(".diagram").find(".he").find(".diagramSegment").each(function(i){
+				source.diagram.he[i] = {};
+				var currenttext = $(this).text();
+				var currenttag = $(this).attr('data-tag');
+				source.diagram.he[i].text = currenttext;
+				source.diagram.he[i].tag = currenttag;
+			});
+		}
 		//Set source layout
 		if ($target.hasClass("stacked")) {
 			var sourceLayout = "stacked"
@@ -2997,7 +3016,7 @@ function buildSheet(data){
 
 	if ("diagramTags" in data) {
 		for (var i = 0; i < data.diagramTags.length; i++) {
-			$(".sheetDiagramTags").append('<div class="splitDiagramSegment"><div style="background-color: '+data.diagramTags[i].color+'">'+data.diagramTags[i].name+'</div></div>');
+			$(".sheetDiagramTags").append('<div class="splitDiagramSegment" data-tagname="'+data.diagramTags[i].name+'"><div style="background-color: '+data.diagramTags[i].color+'">'+data.diagramTags[i].name+'</div></div>');
 			$(".diagramFilterTags").append('<input type="checkbox" name="diagramFilterTags" value="'+data.diagramTags[i].name+'" checked="checked"> <span style="background-color: '+data.diagramTags[i].color+'">'+data.diagramTags[i].name+'</span><br>');
 		}
 	}
@@ -3044,9 +3063,36 @@ function buildSource($target, source, appendOrInsert) {
 		}
 
 		if (source.diagram) {
-			$(".diagram .en").last().html(source.diagram.en);
-			$(".diagram .he").last().html(source.diagram.he);
+			var enDiagramHTML = '';
+			var heDiagramHTML = '';
+			for (var i = 0; i < source.diagram.en.length; i++) {
+				var diagramTagHTML = source.diagram.en[i].tag ? ' data-tag="'+ source.diagram.en[i].tag +'" ': '';
+				var diagramTagColorHTML = '';
+				if (diagramTagHTML != '') {
+					var diagramTagColor = sjs.current.diagramTags.find(tag => source.diagram.en[i].tag ).color;
+					diagramTagColorHTML = 'style="background-color: '+diagramTagColor+'"';
+				}
+
+
+				enDiagramHTML = enDiagramHTML + '<div class="diagramSegment" '+ diagramTagColorHTML + diagramTagHTML  +'">'+source.diagram.en[i].text+'</div>'
+			}
+
+			for (var i = 0; i < source.diagram.he.length; i++) {
+				var diagramTagHTML = source.diagram.he[i].tag ? ' data-tag="'+ source.diagram.he[i].tag +'" ': '';
+				var diagramTagColorHTML = '';
+				if (diagramTagHTML != '') {
+					var diagramTagColor = sjs.current.diagramTags.find(tag => source.diagram.he[i].tag ).color;
+					diagramTagColorHTML = 'style="background-color: '+diagramTagColor+'"';
+				}
+
+
+				heDiagramHTML = heDiagramHTML + '<div class="diagramSegment" '+ diagramTagColorHTML + diagramTagHTML  +'">'+source.diagram.he[i].text+'</div>'
+			}
+
+			$(".diagram .en").last().html(enDiagramHTML);
+			$(".diagram .he").last().html(heDiagramHTML);
 		}
+
 
 	} else if ("comment" in source) {
 		var attributionData = attributionDataString(source.addedBy, source.isNew, "commentWrapper");
@@ -3628,10 +3674,10 @@ function exportToDrive() {
 function fillEmptyDiagramSegments() {
 		$( ".diagram" ).each(function( index ) {
 			if ($(this).find(".en").html() == "") {
-				$(this).find(".en").html("<div class='diagramSegment'>"+$(this).find(".en").html().stripHtml()+"</div>")
+				$(this).find(".en").html("<div class='diagramSegment'>"+$(this).siblings('.text').find('.en').html().stripHtml()+"</div>")
 			}
 			if ($(this).find(".he").html() == "") {
-				$(this).find(".he").html("<div class='diagramSegment'>"+$(this).find(".he").html().stripHtml()+"</div>")
+				$(this).find(".he").html("<div class='diagramSegment'>"+$(this).siblings('.text').find('.he').html().stripHtml()+"</div>")
 			}
 
 		});
@@ -3650,7 +3696,10 @@ function toggleHighlighter() {
 			$("#sources").sortable("disable"); //disable dragging while in diagram edit mode....
 		}
 	}
-	autoSave();
+	if ($(".sheetItem").length >0) {
+		fillEmptyDiagramSegments();
+		autoSave();
+		}
 }
 
 function showEmebed() {
