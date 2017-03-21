@@ -32,6 +32,19 @@ lang_codes = {
 }
 
 
+def log_error(msg):
+    msg = '{}\n'.format(msg)
+    log_error.all_errors.append(msg)
+    sys.stderr.write(msg)
+log_error.all_errors = []
+
+
+def print_errors():
+    if len(log_error.all_errors):
+        sys.stderr.write('\n___ERRORS___\n')
+    for i, error in enumerate(log_error.all_errors):
+        sys.stderr.write('{}. {}'.format(i, error))
+
 def make_path(doc, format, extension=None):
     """
     Returns the full path and file name for exporting 'doc' in 'format'.
@@ -271,36 +284,23 @@ def write_text_doc_to_disk(doc=None):
         path = make_path(doc, format[0], extension=format[2] if len(format) == 3 else None)
         if not os.path.exists(os.path.dirname(path)):
             os.makedirs(os.path.dirname(path))
-        with open(path, "w") as f:
-            f.write(out.encode('utf-8'))
-
-def convert_talmud_formating(data):
-    if isinstance(data, basestring): #using base string to get both str and unicode
-        p = re.compile(r'<span\s+class="gemarra-regular">(.+?)<\/span>')
-        data = p.sub(r'<b>\1</b>', data)
-        p = re.compile(r'<span\s+class="gemarra-italic">(.+?)<\/span>')
-        data = p.sub(r'<b><i>\1</i></b>', data)
-        p = re.compile(r'<span\s+class="it-text">(.+?)<\/span>')
-        data = p.sub(r'<i>\1</i>', data)
-        return data
-    elif isinstance(data, list):
-        new_list = []
-        for item in data:
-            new_list.append(convert_talmud_formating(item))
-        return new_list
-    elif isinstance(data, dict):
-        for key, value in data.iteritems():
-            data[key] = convert_talmud_formating(value)
-        return data
-    else:
-        return data
+        try:
+            with open(path, "w") as f:
+                f.write(out.encode('utf-8'))
+        except IOError as e:
+            log_error('failed to write to disk: {}'.format(str(e)))
 
 def prepare_text_for_export(text):
     """
     Exports 'text' (a document from the texts collection, or virtual merged document)
     by preparing it as a export document and passing to 'write_text_doc_to_disk'.
     """
-    print text["title"]
+    try:
+        print text["title"]
+    except KeyError as e:
+        log_error('text does\'t contain "title": {}'.format(str(text)))
+        return
+
     try:
         index = library.get_index(text["title"])
     except Exception as e:
@@ -311,9 +311,6 @@ def prepare_text_for_export(text):
     text["categories"] = index.categories
 
     text["text"] = text.get("text", None) or text.get("chapter", "")
-
-    if index.categories[0] == "Talmud" and index.categories[1] == "Bavli":
-        text["text"] = convert_talmud_formating(text["text"])
 
     if index.is_complex():
         text["original_text"] = deepcopy(text["text"])
@@ -368,6 +365,7 @@ def export_texts():
         if text_is_copyright(text):
             # Don't export copyrighted texts.
             continue
+
         prepped_text = prepare_text_for_export(text)
         if prepped_text:
             write_text_doc_to_disk(prepped_text)
@@ -438,17 +436,22 @@ def export_all_merged():
             continue
 
         print title
+        if not title:
+            log_error('None title in texts')
+            continue
         for lang in ("he", "en"):
             prepped_text = prepare_merged_text_for_export(title, lang=lang)
             if prepped_text:
                 write_text_doc_to_disk(prepped_text)
 
 def export_schemas():
+    print('exporting schemas...')
     path = SEFARIA_EXPORT_PATH + "/schemas/"
     if not os.path.exists(path):
         os.makedirs(path)
     for i in library.all_index_records():
         title = i.title.replace(" ", "_")
+
         with open(path + title + ".json", "w") as f:
             try:
                 f.write(make_json(i.contents(v2=True)).encode('utf-8'))
@@ -457,6 +460,8 @@ def export_schemas():
                 print "InputError: %s" % e
                 with open(SEFARIA_EXPORT_PATH + "/errors.log", "a") as error_log:
                     error_log.write("%s - InputError: %s\n" % (datetime.now(), e))
+            except Exception as e:
+                log_error('schemas error on {}: {}'.format(title, str(e)))
 
 
 def export_toc():
@@ -593,6 +598,8 @@ def export_all():
     export_toc()
     export_tag_graph()
     make_export_log()
+    print_errors()
+
 
 
 # CSV Version import export format:
