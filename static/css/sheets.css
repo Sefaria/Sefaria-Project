@@ -2052,7 +2052,7 @@ a.tagit-close {
 	text-align:center;
 }
 
-.diagramSegment::before {
+.diagramSegment[data-tag]::before {
     content: attr(data-tag) ;
 
     font-size: 10px;
@@ -2071,7 +2071,7 @@ a.tagit-close {
 
     }
 
-.diagramSegment:hover::before {
+.diagramSegment[data-tag]:hover::before {
     opacity: 1;
     }
 
