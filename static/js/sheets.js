@@ -1902,6 +1902,9 @@ $(function() {
 		});
 
 		$(".diagram .he, .diagram .en").on("mouseup", '.diagramSegment', function(e) {
+
+			if ($(e.target).attr('data-tag')) return;
+
 			if (window.getSelection().anchorOffset !== window.getSelection().focusOffset) {
 				$("tagSelector").show();
 				$("addTagPanel").hide();
@@ -2704,7 +2707,6 @@ function readSource($target) {
 				var currenttext = $(this).text();
 				var currenttag = $(this).attr('data-tag');
 
-				console.log($(this))
 
 				source.diagram.en[i].text = currenttext;
 				source.diagram.en[i].tag = currenttag;
