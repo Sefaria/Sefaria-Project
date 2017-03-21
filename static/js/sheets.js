@@ -3071,7 +3071,7 @@ function buildSource($target, source, appendOrInsert) {
 				var diagramTagHTML = source.diagram.en[i].tag ? ' data-tag="'+ source.diagram.en[i].tag +'" ': '';
 				var diagramTagColorHTML = '';
 				if (diagramTagHTML != '') {
-					var diagramTagColor = sjs.current.diagramTags.find(tag => source.diagram.en[i].tag ).color;
+					var diagramTagColor = sjs.current.diagramTags.find(tag => source.diagram.en[i].tag == tag.name).color;
 					diagramTagColorHTML = 'style="background-color: '+diagramTagColor+'"';
 				}
 
@@ -3083,7 +3083,7 @@ function buildSource($target, source, appendOrInsert) {
 				var diagramTagHTML = source.diagram.he[i].tag ? ' data-tag="'+ source.diagram.he[i].tag +'" ': '';
 				var diagramTagColorHTML = '';
 				if (diagramTagHTML != '') {
-					var diagramTagColor = sjs.current.diagramTags.find(tag => source.diagram.he[i].tag ).color;
+					var diagramTagColor = sjs.current.diagramTags.find(tag => source.diagram.he[i].tag == tag.name ).color;
 					diagramTagColorHTML = 'style="background-color: '+diagramTagColor+'"';
 				}
 
