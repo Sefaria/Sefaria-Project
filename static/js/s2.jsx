@@ -621,9 +621,11 @@ var ReaderApp = React.createClass({
       menuOpen:             state.menuOpen             || null, // "navigation", "text toc", "display", "search", "sheets", "home", "book toc"
       navigationCategories: state.navigationCategories || [],
       navigationSheetTag:   state.sheetsTag            || null,
-      sheetsGroup:        state.group              || null,
+      sheetsGroup:          state.group                || null,
       searchQuery:          state.searchQuery          || null,
       appliedSearchFilters: state.appliedSearchFilters || [],
+      searchField:          state.searchField          || "content",
+      searchSortType:       state.searchSortType       || "chronological",
       searchFiltersValid:   state.searchFiltersValid   || false,
       availableFilters:     state.availableFilters     || [],
       filterRegistry:       state.filterRegistry       || {},
@@ -1180,7 +1182,7 @@ var ReaderApp = React.createClass({
       var onSearchResultClick      = this.props.multiPanel ? this.handleCompareSearchClick.bind(null, i) : this.handleNavigationClick;
       var onTextListClick          = null; // this.openPanelAt.bind(null, i);
       var onOpenConnectionsClick   = this.openTextListAt.bind(null, i+1);
-      var setTextListHighlight    = this.setTextListHighlight.bind(null, i);
+      var setTextListHighlight     = this.setTextListHighlight.bind(null, i);
       var setSelectedWords         = this.setSelectedWords.bind(null, i);
       var openComparePanel         = this.openComparePanel.bind(null, i);
       var closePanel               = this.closePanel.bind(null, i);
@@ -1567,6 +1569,8 @@ var ReaderPanel = React.createClass({
     initialMenu:                 React.PropTypes.string,
     initialQuery:                React.PropTypes.string,
     initialAppliedSearchFilters: React.PropTypes.array,
+    initialField:                React.PropTypes.string,
+    initialSortType:             React.PropTypes.oneOf(["relevance", "chronological"]),
     initialSheetsTag:            React.PropTypes.string,
     initialState:                React.PropTypes.object, // if present, overrides all props above
     interfaceLang:               React.PropTypes.string,
@@ -1631,9 +1635,11 @@ var ReaderPanel = React.createClass({
       menuOpen:             this.props.initialMenu || null, // "navigation", "book toc", "text toc", "display", "search", "sheets", "home", "compare"
       navigationCategories: this.props.initialNavigationCategories || [],
       navigationSheetTag:   this.props.initialSheetsTag || null,
-      sheetsGroup:        this.props.initialGroup || null,
+      sheetsGroup:          this.props.initialGroup || null,
       searchQuery:          this.props.initialQuery || null,
       appliedSearchFilters: this.props.initialAppliedSearchFilters || [],
+      searchField:          this.props.initialSearchField || "content",
+      searchSortType:       this.props.initialSearchSortType || "chronological",
       selectedWords:        null,
       searchFiltersValid:   false,
       availableFilters:     [],
@@ -2135,7 +2141,9 @@ var ReaderPanel = React.createClass({
                     updateAppliedFilter={this.props.updateSearchFilter}
                     availableFilters={this.state.availableFilters}
                     filtersValid={this.state.searchFiltersValid}
-                    registerAvailableFilters={this.props.registerAvailableFilters} />);
+                    registerAvailableFilters={this.props.registerAvailableFilters}
+                    field={this.state.searchField}
+                    sortType={this.state.searchSortType}/>);
 
     } else if (this.state.menuOpen === "sheets") {
       var menu = (<SheetsNav
@@ -7526,7 +7534,9 @@ var SearchPage = React.createClass({
         registerAvailableFilters: React.PropTypes.func,
         availableFilters:     React.PropTypes.array,
         filtersValid:         React.PropTypes.bool,
-        hideNavHeader:        React.PropTypes.bool
+        hideNavHeader:        React.PropTypes.bool,
+        field:                React.PropTypes.string,
+        sortType:             React.PropTypes.oneOf(["relevance","chronological"])
     },
     getInitialState: function() {
         return {};
@@ -7568,7 +7578,9 @@ var SearchPage = React.createClass({
                                   updateAppliedFilter = {this.props.updateAppliedFilter}
                                   registerAvailableFilters={this.props.registerAvailableFilters}
                                   availableFilters={this.props.availableFilters}
-                                  filtersValid={this.props.filtersValid} />
+                                  filtersValid={this.props.filtersValid}
+                                  field={this.props.field}
+                                  sortType={this.props.sortType}/>
                           </div>
                       </div>
                     </div>
@@ -7626,6 +7638,8 @@ var SearchResultList = React.createClass({
         filtersValid:         React.PropTypes.bool,
         availableFilters:     React.PropTypes.array,
         updateAppliedFilter:  React.PropTypes.func,
+        field:                React.PropTypes.string,
+        sortType:            React.PropTypes.oneOf(["relevance", "chronological"]),
         registerAvailableFilters: React.PropTypes.func
     },
     initialQuerySize: 100,
@@ -7719,11 +7733,18 @@ var SearchResultList = React.createClass({
         this.setState({moreToLoad: this.state.moreToLoad});
         return;
       }
+      
+      var field = "content";
+      if (type == "text") {
+        field = this.props.field;
+      }
       var query_props = {
         query: this.props.query,
         type: type,
         size: this.backgroundQuerySize,
         from: last,
+        field: field,
+        sort_type: this.props.sortType,
         error: function() {  console.log("Failure in SearchResultList._loadRemainder"); },
         success: function(data) {
           var hitArray = (type == "text")?this._process_text_hits(data.hits.hits):data.hits.hits;
@@ -7761,6 +7782,8 @@ var SearchResultList = React.createClass({
             query: props.query,
             type: "sheet",
             size: this.initialQuerySize,
+            field: "content",
+            sort_type: props.sortType,
             success: function(data) {
                 this.updateRunningQuery("sheet", null);
                   this.setState({
@@ -7783,6 +7806,8 @@ var SearchResultList = React.createClass({
             get_filters: !props.filtersValid,
             applied_filters: request_applied,
             size: this.initialQuerySize,
+            field: props.field,
+            sort_type: props.sortType,
             success: function(data) {
                 this.updateRunningQuery("text", null);
                 var hitArray = this._process_text_hits(data.hits.hits);
@@ -8283,10 +8308,11 @@ var SearchTextResult = React.createClass({
 
         function get_snippet_markup() {
             var snippet;
-            // if (data.highlight && data.highlight["content"]) {
-            snippet = data.highlight["content"].join("...");
+            var field = Object.keys(data.highlight)[0]; //there should only be one key
+            // if (data.highlight && data.highlight[field]) {
+            snippet = data.highlight[field].join("...");
             // } else {
-            //     snippet = s["content"];  // We're filtering out content, because it's *huge*, especially on Sheets
+            //     snippet = s[field];  // We're filtering out content, because it's *huge*, especially on Sheets
             // }
             snippet = $("<div>" + snippet.replace(/^[ .,;:!-)\]]+/, "") + "</div>").html();
             return {__html:snippet}

@@ -14,6 +14,8 @@ import bleach
 os.environ['DJANGO_SETTINGS_MODULE'] = "settings"
 
 import logging
+import json
+import math
 from django.utils.log import NullHandler
 logger = logging.getLogger(__name__)
 
@@ -30,7 +32,7 @@ from settings import SEARCH_ADMIN, SEARCH_INDEX_NAME
 from sefaria.utils.hebrew import hebrew_term
 import sefaria.model.queue as qu
 
-
+pagerank_dict = {r: v for r, v in json.load(open("pagerank.json","rb"))}
 es = ElasticSearch(SEARCH_ADMIN)
 tracer = logging.getLogger('elasticsearch.trace')
 tracer.setLevel(logging.INFO)
@@ -176,6 +178,13 @@ def make_text_index_document(tref, version, lang):
     else:
         categories = text["categories"]
 
+    index = oref.index
+    tp = index.best_time_period()
+    if not tp is None:
+        comp_start_date = tp.start
+    else:
+        comp_start_date = 3000  # far in the future
+
     return {
         "title": title, 
         "ref": oref.normal(),
@@ -187,8 +196,14 @@ def make_text_index_document(tref, version, lang):
         "he_content": content if (lang == "he") else "",
         "categories": categories,
         "order": oref.order_id(),
-        # and
-        "path": "/".join(categories + [oref.index.title])
+        "path": "/".join(categories + [oref.index.title]),
+        "pagerank": math.log(pagerank_dict[oref.normal()]) + 20 if oref.normal() in pagerank_dict else 1.0,
+        "comp_date": comp_start_date,
+        "hebmorph_standard": content,
+        "hebmorph_semi_exact": content,
+        "aggresive_ngram": content,
+        "naive_lemmatizer": content,
+        "infreq": content
     }
 
 
@@ -374,6 +389,35 @@ def put_text_mapping(index_name):
                 "order": {
                     'type': 'string',
                     'index': 'not_analyzed'
+                },
+                "pagerank": {
+                    'type': 'double',
+                    'index': 'not_analyzed'
+                },
+                "comp_date": {
+                    'type': 'integer',
+                    'index': 'not_analyzed'
+                },
+                "aggresive_ngram": {
+                    'type': 'string',
+                    'analyzer': 'sefaria-aggresive-ngram'
+                },
+                "infreq": {
+                    'type': 'string',
+                    'analyzer': 'sefaria-infreq'
+                },
+                "hebmorph_standard": {
+                    'type': 'string',
+                    'analyzer': 'hebrew'
+                },
+                "hebmorph_semi_exact": {
+                    'type': 'string',
+                    'analyzer': 'hebrew',
+                    'search_analyzer': 'sefaria-semi-exact'
+                },
+                "naive_lemmatizer": {
+                    'type': 'string',
+                    'analyzer': 'sefaria-naive-lemmatizer'
                 },
                 "he_content": {
                     'type': 'string',
