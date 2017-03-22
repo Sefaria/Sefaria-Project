@@ -5,19 +5,16 @@ from sefaria.utils.hebrew import strip_nikkud
 import sefaria.tracker as tracker
 from sefaria.system.exceptions import DuplicateRecordError
 
-"""
 patterns = [
     u"כתרגומו",
     u"ותרגומו",
     u"תרגומו",
     u"וזהו שתרגם אונקלוס",
     u"אונקלוס",
+    u"אנקלוס",
     u"לכך מתרגם",
     u"מתרגם"
 ]
-"""
-# Missed this one.
-patterns = [u"אנקלוס"]
 
 books = [
     "Genesis", "Exodus", "Leviticus", "Numbers", "Deuteronomy"
