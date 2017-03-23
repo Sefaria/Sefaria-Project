@@ -427,7 +427,7 @@ def rebuild_links_from_text(title, user):
 # --------------------------------------------------------------------------------- #
 
 
-def create_link_cluster(refs, user, link_type="", attrs=None, exception_pairs=None):
+def create_link_cluster(refs, user, link_type="", attrs=None, exception_pairs=None, exception_range = None):
     total = 0
     for i, ref in enumerate(refs):
         for j in range(i + 1, len(refs)):

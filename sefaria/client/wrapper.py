@@ -151,6 +151,7 @@ def get_links(tref, with_text=True):
     for link in linkset:
         # each link contains 2 refs in a list
         # find the position (0 or 1) of "anchor", the one we're getting links for
+        # If both sides of the ref are in the same section of a text, only one direction will be used.  bug? maybe not.
         if reRef:
             pos = 0 if re.match(reRef, link.refs[0]) else 1
         else:

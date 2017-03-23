@@ -437,22 +437,26 @@ def test_index_name_change():
 
     #Simple Text
     tests = [
-        (u"Exodus", u"Movement of Ja People"),  # Simple Text
-        (u"Rashi", u"The Vintner")              # Commentator
+        (u"The Book of Maccabees I", u"Movement of Ja People"),  # Simple Text
+        # (u"Rashi", u"The Vintner")              # Commentator Invalid after commentary refactor?
     ]
 
     for old, new in tests:
-        for cnt in dep_counts(new).values():
+        index = model.Index().load({"title": old})
+
+        # Make sure that the test isn't passing just because we've been comparing 0 to 0
+        assert all([cnt > 0 for cnt in dep_counts(old, index)])
+
+        for cnt in dep_counts(new, index).values():
             assert cnt == 0
 
-        old_counts = dep_counts(old)
+        old_counts = dep_counts(old, index)
 
-        index = model.Index().load({"title": old})
         old_index = deepcopy(index)
         #new_in_alt = new in index.titleVariants
         index.title = new
         index.save()
-        assert old_counts == dep_counts(new)
+        assert old_counts == dep_counts(new, index)
 
         index.title = old
         #if not new_in_alt:
@@ -460,21 +464,28 @@ def test_index_name_change():
             index.titleVariants.remove(new)
         index.save()
         #assert old_index == index   #needs redo of titling, above, i suspect
-        assert old_counts == dep_counts(old)
-        for cnt in dep_counts(new).values():
+        assert old_counts == dep_counts(old, index)
+        for cnt in dep_counts(new, index).values():
             assert cnt == 0
 
 
-def dep_counts(name):
+def dep_counts(name, indx):
+
+    def construct_query(attribute, queries):
+        query_list = [{attribute: {'$regex': query}} for query in queries]
+        return {'$or': query_list}
+
     from sefaria.model.text import prepare_index_regex_for_dependency_process
-    pattern = prepare_index_regex_for_dependency_process(indx)
+    patterns = prepare_index_regex_for_dependency_process(indx, as_list=True)
+    patterns = [pattern.replace(re.escape(indx.title), re.escape(name)) for pattern in patterns]
+
     ret = {
-        'version title exact match': model.VersionSet({"title": name}).count(),
-        'history title exact match': model.HistorySet({"title": name}).count(),
-        'note match ': model.NoteSet({"ref": {"$regex": pattern}}).count(),
-        'link match ': model.LinkSet({"refs": {"$regex": pattern}}).count(),
-        'history refs match ': model.HistorySet({"ref": {"$regex": pattern}}).count(),
-        'history new refs match ': model.HistorySet({"new.refs": {"$regex": pattern}}).count()
+        'version title exact match': model.VersionSet({"title": name}, sort=[('title', 1)]).count(),
+        'history title exact match': model.HistorySet({"title": name}, sort=[('title', 1)]).count(),
+        'note match ': model.NoteSet(construct_query("ref", patterns), sort=[('ref', 1)]).count(),
+        'link match ': model.LinkSet(construct_query("refs", patterns)).count(),
+        'history refs match ': model.HistorySet(construct_query("ref", patterns), sort=[('ref', 1)]).count(),
+        'history new refs match ': model.HistorySet(construct_query("new.refs", patterns), sort=[('new.refs', 1)]).count()
     }
 
     return ret

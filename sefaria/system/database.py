@@ -50,6 +50,7 @@ def ensure_indices():
     db.history.ensure_index("new.ref")
     db.history.ensure_index("old.refs")
     db.history.ensure_index("old.ref")
+    db.history.ensure_index("title")
     db.index.ensure_index("title")
     db.index_queue.ensure_index([("lang", pymongo.ASCENDING), ("version", pymongo.ASCENDING), ("ref", pymongo.ASCENDING)], unique=True)
     db.links.ensure_index("refs")

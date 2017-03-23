@@ -4291,7 +4291,7 @@ var SchemaNode = React.createClass({
         } else if (node.nodeType == "ArrayMapNode") {
           // ArrayMapNode with only wholeRef
           return React.createElement(ArrayMapNode, { schema: node, key: i });
-        } else if (node.depth == 1) {
+        } else if (node.depth == 1 && !node.default) {
           // SchemaNode title that points straight to content
           var path = this.props.refPath + ", " + node.title;
           return React.createElement(
@@ -4464,7 +4464,6 @@ var JaggedArrayNodeSection = React.createClass({
         content
       );
     }
-
     var contentCounts = this.props.depth == 1 ? new Array(this.props.contentCounts).fill(1) : this.props.contentCounts;
     var sectionLinks = [];
     for (var i = 0; i < contentCounts.length; i++) {
