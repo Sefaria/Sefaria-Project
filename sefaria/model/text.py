@@ -4148,6 +4148,8 @@ class Library(object):
                     refs += res
         return refs
 
+
+
     def get_wrapped_refs_string(self, st, lang=None, citing_only=False):
         """
         Returns a string with the list of Ref objects derived from string wrapped in <a> tags
@@ -4218,24 +4220,7 @@ class Library(object):
         :param st: The source text for this reference
         :return: Ref
         """
-        node = self.get_schema_node(title, lang)
-        assert isinstance(node, JaggedArrayNode)  # Assumes that node is a JaggedArrayNode
-
-        try:
-            re_string = self.get_regex_string(title, lang, anchored=True)
-        except AttributeError as e:
-            logger.warning(u"Library._build_ref_from_string() failed to create regex for: {}.  {}".format(title, e))
-            return []
-
-        reg = regex.compile(re_string, regex.VERBOSE)
-        ref_match = reg.match(st)
-        if ref_match:
-            try:
-                return [self._get_ref_from_match(ref_match, node, lang)]
-            except InputError:
-                return []
-        else:
-            return []
+        return self._internal_ref_from_string(title, st, lang, stIsAnchored=True)
 
     #todo: handle ranges in inline refs
     def _build_all_refs_from_string(self, title=None, st=None, lang="he"):
@@ -4246,23 +4231,34 @@ class Library(object):
         :param st: The source text for this reference
         :return: list of Refs
         """
-        node = self.get_schema_node(title, lang)
-        assert isinstance(node, JaggedArrayNode)  # Assumes that node is a JaggedArrayNode
+        return self._internal_ref_from_string(title, st, lang)
 
-        refs = []
-        try:
-            re_string = self.get_regex_string(title, lang)
-        except AttributeError as e:
-            logger.warning(u"Library._build_all_refs_from_string() failed to create regex for: {}.  {}".format(title, e))
+    def _internal_ref_from_string(self, title=None, st=None, lang=None, stIsAnchored=False, return_locations = False):
+
+            node = self.get_schema_node(title, lang)
+            assert isinstance(node, JaggedArrayNode)  # Assumes that node is a JaggedArrayNode
+
+            refs = []
+            try:
+                re_string = self.get_regex_string(title, lang, anchored=stIsAnchored)
+            except AttributeError as e:
+                logger.warning(
+                    u"Library._internal_ref_from_string() failed to create regex for: {}.  {}".format(title, e))
+                return refs
+
+            reg = regex.compile(re_string, regex.VERBOSE)
+            if stIsAnchored:
+                matches = [reg.match(st)]
+            else:
+                matches = reg.finditer(st)
+            for ref_match in matches:
+                try:
+                    res = (self._get_ref_from_match(ref_match, node, lang), ref_match.span()) if return_locations else self._get_ref_from_match(ref_match, node, lang)
+                    refs.append(res)
+                except InputError:
+                    continue
             return refs
 
-        reg = regex.compile(re_string, regex.VERBOSE)
-        for ref_match in reg.finditer(st):
-            try:
-                refs.append(self._get_ref_from_match(ref_match, node, lang))
-            except InputError:
-                continue
-        return refs
 
     # todo: handle ranges in inline refs
     def _wrap_all_refs_in_string(self, title=None, st=None, lang="he"):
