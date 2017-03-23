@@ -639,7 +639,6 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
 
         return True
 
-
     def get_toc_index_order(self):
         order = getattr(self, 'order', None)
         if order:
@@ -648,7 +647,6 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
             order = max([library.get_index(x).get_toc_index_order() for x in self.base_text_titles])
             return order
         return None
-
 
     def toc_contents(self):
         """Returns to a dictionary used to represent this text in the library wide Table of Contents"""
