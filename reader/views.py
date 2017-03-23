@@ -226,8 +226,13 @@ def render_react_component(component, props):
         if isinstance(e, socket.timeout) or (hasattr(e, "reason") and isinstance(e.reason, socket.timeout)):
             logger.exception("Node timeout: Fell back to client-side rendering.")
             with open(NODE_TIMEOUT_MONITOR, "a") as myfile:
-                myfile.write("Node timeout: Fell back to client-side rendering. \nRequest Props:\n")
-                myfile.write(propsJSON)
+                myfile.write("Timeout at {}: {} / {} / {} / {}").format(
+                    datetime.now().isoformat(),
+                    props.get("initialPath"),
+                    "MultiPanel" if props.get("multiPanel", True) else "Mobile",
+                    "Logged In" if props.get("loggedIn", False) else "Logged Out",
+                    props.get("interfaceLang")
+                )
             return render_to_string("elements/loading.html")
         else:
             # If anything else goes wrong with Node, just fall back to client-side rendering

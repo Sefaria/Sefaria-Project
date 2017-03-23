@@ -260,6 +260,15 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
         if len(authors):
             contents["authors"] = [{"en": author.primary_name("en"), "he": author.primary_name("he")} for author in authors]
 
+        if getattr(self, "collective_title", None):
+            contents["collective_title"] = {"en": self.collective_title, "he": hebrew_term(self.collective_title)}
+
+        if getattr(self, "base_text_titles", None):
+            contents["base_text_titles"] = [{"en": btitle, "he": hebrew_term(btitle)} for btitle in self.base_text_titles]
+
+        contents["heCategories"] = map(hebrew_term, self.categories)
+
+
         composition_time_period = self.composition_time_period()
         if composition_time_period:
             contents["compDateString"] = {
