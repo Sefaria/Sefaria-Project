@@ -1973,12 +1973,12 @@ var ReaderPanel = React.createClass({
   },
   currentLayout: function() {
     if (this.state.settings.language == "bilingual") {
-      return this.width > 500 ? this.state.settings.biLayout : "stacked";
+      return this.state.width > 500 ? this.state.settings.biLayout : "stacked";
     }
     var category = this.currentCategory();
     if (!category) { return "layoutDefault"; }
     var option = category === "Tanakh" || category === "Talmud" ? "layout" + category : "layoutDefault";
-    return this.state.settings[option];  
+    return this.state.settings[option];
   },
   render: function() {
     if (this.state.error) {
