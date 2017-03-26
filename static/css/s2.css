@@ -2330,6 +2330,20 @@ a.resourcesLink {
 .textRange .actionLinks .he {
   font-family: "Open Sans Hebrew", sans-serif;
 }
+
+/* Footnotes */
+.segment sup {
+  margin-left: .2em;
+  margin-right: .2em;
+  text-decoration: underline;
+}
+.segment i.footnote {
+  display: none;
+  font-size: .8em;
+  margin-left: 1em;
+  margin-right: 1em;
+}
+
 .connectionsPanelHeader{
   display: flex;
   justify-content: space-between;
@@ -3762,3 +3776,4 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
 .bubbleTab.active {
   color: #333;
 }
+
