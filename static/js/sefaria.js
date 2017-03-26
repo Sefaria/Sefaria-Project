@@ -1382,7 +1382,7 @@ Sefaria = extend(Sefaria, {
               o["query"] = {
                   "function_score": {
                       "field_value_factor": {
-                          "field": "pagerank"
+                          "field": "comp_date_int"
                       }
                   }
               }

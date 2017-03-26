@@ -146,6 +146,7 @@ def delete_sheet(index_name, id):
 
 
 def make_text_index_document(tref, version, lang):
+    from sefaria.utils.hebrew import strip_cantillation
     """
     Create a document for indexing from the text specified by ref/version/lang
     """
@@ -161,6 +162,7 @@ def make_text_index_document(tref, version, lang):
         content = " ".join(content)
 
     content = bleach.clean(content, strip=True, tags=())
+    content = strip_cantillation(content, strip_vowels=True)
 
     if oref.is_talmud():
         title = text["book"] + " Daf " + text["sections"][0]
@@ -203,6 +205,7 @@ def make_text_index_document(tref, version, lang):
         "hebmorph_semi_exact": content,
         "aggresive_ngram": content,
         "naive_lemmatizer": content,
+        "comp_date_int": comp_date_curve(comp_start_date),
         "infreq": content
     }
 
@@ -236,6 +239,22 @@ def unicode_number(u):
     for i in range(len(u)):
         n += ord(u[i])
     return n
+
+
+def comp_date_curve(date):
+    # return 1 + math.exp(-date/613)
+    if date < 0:
+        offset = 0
+    elif 0 <= date < 650:
+        offset = 200
+    elif 650 <= date < 1050:
+        offset = 400
+    elif 1050 <= date < 1500:
+        offset = 800
+    else:
+        offset = 1000
+
+    return -(offset + date) / 1000
 
 
 def index_sheet(index_name, id):
@@ -391,6 +410,10 @@ def put_text_mapping(index_name):
                     'index': 'not_analyzed'
                 },
                 "pagerank": {
+                    'type': 'double',
+                    'index': 'not_analyzed'
+                },
+                "comp_date_int": {
                     'type': 'double',
                     'index': 'not_analyzed'
                 },

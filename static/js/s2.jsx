@@ -624,7 +624,7 @@ var ReaderApp = React.createClass({
       sheetsGroup:          state.group                || null,
       searchQuery:          state.searchQuery          || null,
       appliedSearchFilters: state.appliedSearchFilters || [],
-      searchField:          state.searchField          || "content",
+      searchField:          state.searchField          || "hebmorph_semi_exact",
       searchSortType:       state.searchSortType       || "chronological",
       searchFiltersValid:   state.searchFiltersValid   || false,
       availableFilters:     state.availableFilters     || [],
@@ -781,6 +781,26 @@ var ReaderApp = React.createClass({
     this.setPanelState(0, {
       availableFilters: this.state.panels[0].availableFilters,
       appliedSearchFilters: this.getAppliedSearchFilters(this.state.panels[0].availableFilters)
+    });
+  },
+  updateSearchOptionFieldInPanel: function(field) {
+    this.setPanelState(0, {
+      searchField: field
+    });
+  },
+  updateSearchOptionFieldInHeader: function(field) {
+    this.setHeaderState({
+      searchField: field
+    });
+  },
+  updateSearchOptionSortInPanel: function(sort) {
+    this.setPanelState(0, {
+      searchSortType: sort
+    });    
+  },
+  updateSearchOptionSortInHeader: function(sort) {
+    this.setHeaderState({
+      searchSortType: sort
     });
   },
   getAppliedSearchFilters: function(availableFilters) {
@@ -1164,6 +1184,8 @@ var ReaderApp = React.createClass({
                     showSearch={this.showSearch}
                     onQueryChange={this.updateQueryInHeader}
                     updateSearchFilter={this.updateSearchFilterInHeader}
+                    updateSearchOptionField={this.updateSearchOptionFieldInHeader}
+                    updateSearchOptionSort={this.updateSearchOptionSortInHeader}
                     registerAvailableFilters={this.updateAvailableFiltersInHeader}
                     setUnreadNotificationsCount={this.setUnreadNotificationsCount}
                     handleInAppLinkClick={this.handleInAppLinkClick}
@@ -1220,6 +1242,8 @@ var ReaderApp = React.createClass({
                       setDefaultOption={this.setDefaultOption}
                       onQueryChange={this.updateQueryInPanel}
                       updateSearchFilter={this.updateSearchFilterInPanel}
+                      updateSearchOptionField={this.updateSearchOptionFieldInPanel}
+                      updateSearchOptionSort={this.updateSearchOptionSortInPanel}
                       registerAvailableFilters={this.updateAvailableFiltersInPanel}
                       setUnreadNotificationsCount={this.setUnreadNotificationsCount}
                       closePanel={closePanel}
@@ -1269,6 +1293,8 @@ var Header = React.createClass({
     setDefaultOption:            React.PropTypes.func,
     onQueryChange:               React.PropTypes.func,
     updateSearchFilter:          React.PropTypes.func,
+    updateSearchOptionField:     React.PropTypes.func,
+    updateSearchOptionSort:      React.PropTypes.func,
     registerAvailableFilters:    React.PropTypes.func,
     setUnreadNotificationsCount: React.PropTypes.func,
     handleInAppLinkClick: React.PropTypes.func,
@@ -1481,6 +1507,8 @@ var Header = React.createClass({
                           setDefaultOption={this.props.setDefaultOption}
                           onQueryChange={this.props.onQueryChange}
                           updateSearchFilter={this.props.updateSearchFilter}
+                          updateSearchOptionField={this.props.updateSearchOptionField}
+                          updateSearchOptionSort={this.props.updateSearchOptionSort}
                           registerAvailableFilters={this.props.registerAvailableFilters}
                           setUnreadNotificationsCount={this.props.setUnreadNotificationsCount}
                           handleInAppLinkClick={this.props.handleInAppLinkClick}
@@ -1590,6 +1618,8 @@ var ReaderPanel = React.createClass({
     selectVersion:               React.PropTypes.func,
     onQueryChange:               React.PropTypes.func,
     updateSearchFilter:          React.PropTypes.func,
+    updateSearchOptionField:     React.PropTypes.func,
+    updateSearchOptionSort:      React.PropTypes.func,
     registerAvailableFilters:    React.PropTypes.func,
     openComparePanel:            React.PropTypes.func,
     setUnreadNotificationsCount: React.PropTypes.func,
@@ -2139,6 +2169,8 @@ var ReaderPanel = React.createClass({
                     hideNavHeader={this.props.hideNavHeader}
                     onQueryChange={this.props.onQueryChange}
                     updateAppliedFilter={this.props.updateSearchFilter}
+                    updateAppliedOptionField={this.props.updateSearchOptionField}
+                    updateAppliedOptionSort={this.props.updateSearchOptionSort}
                     availableFilters={this.state.availableFilters}
                     filtersValid={this.state.searchFiltersValid}
                     registerAvailableFilters={this.props.registerAvailableFilters}
@@ -7531,6 +7563,8 @@ var SearchPage = React.createClass({
         onResultClick:        React.PropTypes.func,
         onQueryChange:        React.PropTypes.func,
         updateAppliedFilter:  React.PropTypes.func,
+        updateAppliedOptionField: React.PropTypes.func,
+        updateAppliedOptionSort:  React.PropTypes.func,
         registerAvailableFilters: React.PropTypes.func,
         availableFilters:     React.PropTypes.array,
         filtersValid:         React.PropTypes.bool,
@@ -7576,6 +7610,8 @@ var SearchPage = React.createClass({
                                   appliedFilters = {this.props.appliedFilters}
                                   onResultClick={this.props.onResultClick}
                                   updateAppliedFilter = {this.props.updateAppliedFilter}
+                                  updateAppliedOptionField={this.props.updateAppliedOptionField}
+                                  updateAppliedOptionSort={this.props.updateAppliedOptionSort}
                                   registerAvailableFilters={this.props.registerAvailableFilters}
                                   availableFilters={this.props.availableFilters}
                                   filtersValid={this.props.filtersValid}
@@ -7638,6 +7674,8 @@ var SearchResultList = React.createClass({
         filtersValid:         React.PropTypes.bool,
         availableFilters:     React.PropTypes.array,
         updateAppliedFilter:  React.PropTypes.func,
+        updateAppliedOptionField: React.PropTypes.func,
+        updateAppliedOptionSort:  React.PropTypes.func,
         field:                React.PropTypes.string,
         sortType:            React.PropTypes.oneOf(["relevance", "chronological"]),
         registerAvailableFilters: React.PropTypes.func
@@ -7724,6 +7762,9 @@ var SearchResultList = React.createClass({
         // Execute a second query to apply filters after an initial query which got available filters
         else if ((this.props.filtersValid != newProps.filtersValid) && this.props.appliedFilters.length > 0) {
            this._executeQueries(newProps);
+        }
+        else if (this.props.field != newProps.field || this.props.sortType != newProps.sortType) {
+          this._executeQueries(newProps);
         }
     },
     _loadRemainder: function(type, last, total, currentHits) {
@@ -8071,8 +8112,15 @@ var SearchResultList = React.createClass({
                                   activeTab = {this.state.activeTab}
                                   clickTextButton = {this.showTexts}
                                   clickSheetButton = {this.showSheets} />);
+        var searchOptions    = (<SearchOptions 
+                                  field = {this.props.field}
+                                  sortType = {this.props.sortType}
+                                  activeTab = {this.state.activeTab}
+                                  updateAppliedOptionField={this.props.updateAppliedOptionField}
+                                  updateAppliedOptionSort={this.props.updateAppliedOptionSort}/>);
         return (
           <div>
+            { searchOptions }
             { searchFilters }
             { queryFullyLoaded || haveResults ? results : loadingMessage }
           </div>
@@ -8080,6 +8128,141 @@ var SearchResultList = React.createClass({
     }
 });
 
+var SearchOptions = React.createClass({
+  propTypes: {
+    field:                     React.PropTypes.string,
+    sortType:                  React.PropTypes.oneOf(["relevance", "chronological"]),
+    activeTab:                 React.PropTypes.oneOf(["sheet", "text"]),
+    updateAppliedOptionField:  React.PropTypes.func,
+    updateAppliedOptionSort:   React.PropTypes.func
+  },
+  getInitialState: function() {
+    var fieldArray = [
+      {
+        "param": "hebmorph_semi_exact",
+        "title": "Exact 1",
+        "heTitle": "מדויק 1",
+        "selected": true
+      },
+      {
+        "param": "content",
+        "title": "Exact 2",
+        "heTitle": "מדויק 2",
+        "selected": false
+      },
+      {
+        "param": "aggresive_ngram",
+        "title": "Broad 1",
+        "heTitle": "רחב 1",
+        "selected": false
+      },
+      {
+        "param": "hebmorph_standard",
+        "title": "Broad 2",
+        "heTitle": "רחב 2",
+        "selected": false
+      },
+      {
+        "param": "naive_lemmatizer",
+        "title": "Broad 3",
+        "heTitle": "רחב 3",
+        "selected": false
+      }
+    ];
+
+    var sortArray = [
+      {
+        "param": "chronological",
+        "title": "Chronological",
+        "heTitle": "כרונולוגי",
+        "selected": true
+      },
+      {
+        "param": "relevance",
+        "title": "Relevance",
+        "heTitle": "שייכות",
+        "selected": false
+      }
+    ];
+    return {
+      displayOptions: false,
+      fieldArray: fieldArray,
+      sortArray: sortArray
+    }
+  },
+  toggleOptionView: function() {
+    this.setState({displayOptions: !this.state.displayOptions});
+  },
+  toggleOptionField: function(field) {
+    this.state.fieldArray.map(function(tempField) {
+      tempField.selected = tempField.param == field;
+    });
+    this.setState({fieldArray: this.state.fieldArray});
+  },
+  toggleOptionSort: function(sort) {
+    this.state.sortArray.map(function(tempSort) {
+      tempSort.selected = tempSort.param == sort;
+    });
+    this.setState({sortArray: this.state.sortArray});
+  },
+  render: function() {
+
+    var filter_panel = (<div>
+      <div className="searchFilterToggle" onClick={this.toggleOptionView}>
+        <span className="int-en">Options   </span>
+        <span className="int-he">אפשריות   </span>
+        <i className={(this.state.displayOptions) ? "fa fa-caret-down fa-angle-down":"fa fa-caret-down"} />
+      </div>
+      <div className={(this.state.displayOptions) ? "searchFilterBoxes":"searchFilterBoxes hidden"}>
+        <div className="searchFilterCategoryBox">
+          {this.state.fieldArray.map(function(option) {
+              return (<SearchOption
+                  option={option}
+                  updateSelected={this.props.updateAppliedOptionField}
+                  toggleOption={this.toggleOptionField}/>);
+          }.bind(this))}
+        </div>
+        <div className="searchFilterBookBox">
+          {this.state.sortArray.map(function(option) {
+              return (<SearchOption
+                  option={option}
+                  updateSelected={this.props.updateAppliedOptionSort}
+                  toggleOption={this.toggleOptionSort}/>);
+          }.bind(this))}
+        </div>
+        <div style={{clear: "both"}}/>
+      </div>
+    </div>);
+
+    return (
+      <div className="searchTopMatter">
+        { (this.props.activeTab == "text") ? filter_panel : "" }
+      </div>);
+  }
+});
+
+var SearchOption = React.createClass({
+  propTypes: {
+    option:           React.PropTypes.object,
+    updateSelected:   React.PropTypes.func,
+    toggleOption:     React.PropTypes.func
+  },
+  handleOptionClick: function(evt) {
+    this.props.updateSelected(this.props.option.param);
+    this.props.toggleOption(this.props.option.param);
+  },
+  render: function() {
+    return(
+      <li onClick={this.handleFocusCategory}>
+        <input type="checkbox" id={this.props.option.type + this.props.option.param} className="filter" checked={this.props.option.selected} onChange={this.handleOptionClick}/>
+        <label onClick={this.handleOptionClick}><span></span></label>
+        <span className="int-en"><span className="filter-title">{this.props.option.title}</span></span>
+        <span className="int-he" dir="rtl"><span className="filter-title">{this.props.option.heTitle}</span></span>
+        {this.props.isInFocus?<span className="int-en"><i className="in-focus-arrow fa fa-caret-right"/></span>:""}
+        {this.props.isInFocus?<span className="int-he"><i className="in-focus-arrow fa fa-caret-left"/></span>:""}
+      </li>);
+  }
+});
 
 var SearchFilters = React.createClass({
   propTypes: {
