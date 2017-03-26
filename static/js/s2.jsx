@@ -2960,7 +2960,7 @@ var ReaderNavigationCategoryMenuContents = React.createClass({
         if (item.category) {
           var newCats = cats.concat(item.category);
           // Special Case categories which should nest but are normally wouldnt given their depth
-          var subcats = [ "Mishneh Torah", "Shulchan Arukh", "Maharal"];
+          var subcats = ["Mishneh Torah", "Shulchan Arukh", "Maharal"];
           if (Sefaria.util.inArray(item.category, subcats) > -1 || this.props.nestLevel > 0) {
             if(item.contents.length == 1 && !("category" in item.contents[0])){
                 var chItem = item.contents[0]
