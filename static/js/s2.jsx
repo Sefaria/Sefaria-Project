@@ -1973,12 +1973,12 @@ var ReaderPanel = React.createClass({
   },
   currentLayout: function() {
     if (this.state.settings.language == "bilingual") {
-      return this.width > 500 ? this.state.settings.biLayout : "stacked";
+      return this.state.width > 500 ? this.state.settings.biLayout : "stacked";
     }
     var category = this.currentCategory();
     if (!category) { return "layoutDefault"; }
     var option = category === "Tanakh" || category === "Talmud" ? "layout" + category : "layoutDefault";
-    return this.state.settings[option];  
+    return this.state.settings[option];
   },
   render: function() {
     if (this.state.error) {
@@ -2960,7 +2960,7 @@ var ReaderNavigationCategoryMenuContents = React.createClass({
         if (item.category) {
           var newCats = cats.concat(item.category);
           // Special Case categories which should nest but are normally wouldnt given their depth
-          var subcats = [ "Mishneh Torah", "Shulchan Arukh", "Maharal"];
+          var subcats = ["Mishneh Torah", "Shulchan Arukh", "Maharal"];
           if (Sefaria.util.inArray(item.category, subcats) > -1 || this.props.nestLevel > 0) {
             if(item.contents.length == 1 && !("category" in item.contents[0])){
                 var chItem = item.contents[0]
@@ -5486,14 +5486,14 @@ var TextColumn = React.createClass({
         console.log(top)
       }
     } else if (!this.scrolledToHighlight && $(ReactDOM.findDOMNode(this)).find(".segment.highlight").length) {
-       console.log("scroll to highlighted")
+       console.log("scroll to highlighted");
       // scroll to highlighted segment
       this.scrollToHighlighted();
       this.scrolledToHighlight = true;
       this.initialScrollTopSet = true;
       this.justScrolled        = true;
     } else if (!this.initialScrollTopSet) {
-      console.log("initial scroll to 30")
+      console.log("initial scroll to 30");
       // initial value set below 0 so you can scroll up for previous
       var node = ReactDOM.findDOMNode(this);
       node.scrollTop = 30;
@@ -5611,7 +5611,7 @@ var TextColumn = React.createClass({
   scrollToHighlighted: function() {
     window.requestAnimationFrame(function() {
       if (!this.isMounted()) { return; }
-      console.log("scroll to highlighted - animation frame")
+      console.log("scroll to highlighted - animation frame");
       var $container   = $(ReactDOM.findDOMNode(this));
       var $readerPanel = $container.closest(".readerPanel");
       var $highlighted = $container.find(".segment.highlight").first();
@@ -5868,7 +5868,7 @@ var TextRange = React.createClass({
           en: en[i], 
           he: he[i],
           number: number,
-          highlight: highlight && number >= data.sections.slice(-1)[0] && number <= data.toSections.slice(-1)[0],
+          highlight: highlight && number >= data.sections.slice(-1)[0] && number <= data.toSections.slice(-1)[0]
         });
       }      
     } else {
@@ -5899,7 +5899,7 @@ var TextRange = React.createClass({
             highlight: highlight && 
                         ((n == 0 && number >= data.sections.slice(-1)[0]) || 
                          (n == topLength-1 && number <= data.toSections.slice(-1)[0]) ||
-                         (n > 0 && n < topLength -1)),
+                         (n > 0 && n < topLength -1))
           });
         }
       }
@@ -5923,10 +5923,10 @@ var TextRange = React.createClass({
       elemsAtPosition[top] = list;  
     };
     $text.find(".linkCount").each(setTop);
-    elemsAtPosition = {} // resetting because we only want it to track segmentNumbers
+    elemsAtPosition = {};  // resetting because we only want it to track segmentNumbers
     $text.find(".segmentNumber").each(setTop).show();
     var fixCollision = function ($elems) {
-      // Takes an array of jQuery elements that all currenlty appear at the same top position
+      // Takes an array of jQuery elements that all currently appear at the same top position
       if ($elems.length == 1) { return; }
       if ($elems.length == 2) {
         var adjust = 8;
@@ -5950,6 +5950,10 @@ var TextRange = React.createClass({
     $text.find(".segmentNumber").show();
     $text.find(".linkCount").show();
 
+  },
+  onFootnoteClick: function(event) {
+      $(event.target).closest("sup").next("i.footnote").toggle();
+      this.placeSegmentNumbers();
   },
   render: function() {
     var data = this.getText();
@@ -5991,6 +5995,7 @@ var TextRange = React.createClass({
             filter={this.props.filter}
             onSegmentClick={this.props.onSegmentClick}
             onCitationClick={this.props.onCitationClick}
+            onFootnoteClick={this.onFootnoteClick}
             key={i + segment.ref} />
       );
     }.bind(this));
@@ -6065,7 +6070,8 @@ var TextSegment = React.createClass({
     showLinkCount:   React.PropTypes.bool,
     filter:          React.PropTypes.array,
     onCitationClick: React.PropTypes.func,
-    onSegmentClick:  React.PropTypes.func
+    onSegmentClick:  React.PropTypes.func,
+    onFootnoteClick: React.PropTypes.func
   },
   handleClick: function(event) {
     if ($(event.target).hasClass("refLink")) {
@@ -6075,6 +6081,10 @@ var TextSegment = React.createClass({
       this.props.onCitationClick(ref, this.props.sref);
       event.stopPropagation();
       Sefaria.site.track.event("Reader", "Citation Link Click", ref);
+    } else if ($(event.target).is("sup") || $(event.target).parents("sup").size()) {
+      debugger;
+      this.props.onFootnoteClick(event);
+      event.stopPropagation();
     } else if (this.props.onSegmentClick) {
       this.props.onSegmentClick(this.props.sref);
       Sefaria.site.track.event("Reader", "Text Segment Click", this.props.sref);

@@ -2093,7 +2093,7 @@ var ReaderPanel = React.createClass({
   },
   currentLayout: function currentLayout() {
     if (this.state.settings.language == "bilingual") {
-      return this.width > 500 ? this.state.settings.biLayout : "stacked";
+      return this.state.width > 500 ? this.state.settings.biLayout : "stacked";
     }
     var category = this.currentCategory();
     if (!category) {
@@ -7503,7 +7503,7 @@ var TextRange = React.createClass({
     elemsAtPosition = {}; // resetting because we only want it to track segmentNumbers
     $text.find(".segmentNumber").each(setTop).show();
     var fixCollision = function fixCollision($elems) {
-      // Takes an array of jQuery elements that all currenlty appear at the same top position
+      // Takes an array of jQuery elements that all currently appear at the same top position
       if ($elems.length == 1) {
         return;
       }
@@ -7527,6 +7527,10 @@ var TextRange = React.createClass({
     }
     $text.find(".segmentNumber").show();
     $text.find(".linkCount").show();
+  },
+  onFootnoteClick: function onFootnoteClick(event) {
+    $(event.target).closest("sup").next("i.footnote").toggle();
+    this.placeSegmentNumbers();
   },
   render: function render() {
     var data = this.getText();
@@ -7563,6 +7567,7 @@ var TextRange = React.createClass({
         filter: this.props.filter,
         onSegmentClick: this.props.onSegmentClick,
         onCitationClick: this.props.onCitationClick,
+        onFootnoteClick: this.onFootnoteClick,
         key: i + segment.ref });
     }.bind(this));
     textSegments = textSegments.length ? textSegments : this.props.basetext ? "" : React.createElement(LoadingMessage, null);
@@ -7698,7 +7703,8 @@ var TextSegment = React.createClass({
     showLinkCount: React.PropTypes.bool,
     filter: React.PropTypes.array,
     onCitationClick: React.PropTypes.func,
-    onSegmentClick: React.PropTypes.func
+    onSegmentClick: React.PropTypes.func,
+    onFootnoteClick: React.PropTypes.func
   },
   handleClick: function handleClick(event) {
     if ($(event.target).hasClass("refLink")) {
@@ -7707,6 +7713,10 @@ var TextSegment = React.createClass({
       this.props.onCitationClick(ref, this.props.sref);
       event.stopPropagation(); //add prevent default
       Sefaria.site.track.event("Reader", "Citation Link Click", ref);
+    } else if ($(event.target).is("sup") || $(event.target).parents("sup").size()) {
+      debugger;
+      this.props.onFootnoteClick(event);
+      event.stopPropagation();
     } else if (this.props.onSegmentClick) {
       this.props.onSegmentClick(this.props.sref);
       Sefaria.site.track.event("Reader", "Text Segment Click", this.props.sref);
