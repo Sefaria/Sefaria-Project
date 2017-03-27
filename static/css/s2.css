@@ -2340,8 +2340,9 @@ a.resourcesLink {
 .segment i.footnote {
   display: none;
   font-size: .8em;
-  margin-left: 1em;
-  margin-right: 1em;
+  margin-left: .5em;
+  margin-right: .5em;
+  color: #999;
 }
 
 .connectionsPanelHeader{
