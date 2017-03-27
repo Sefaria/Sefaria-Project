@@ -1879,6 +1879,7 @@ $(function() {
 			$(curDiagramSegment.parent()).text(textBefore);
 			resetDiagramInteractivity();
 			$(".diagramTagWindow").hide();
+			$(".diagramSegment:empty").remove();
 
 			autoSave();
 
