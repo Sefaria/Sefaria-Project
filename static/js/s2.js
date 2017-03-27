@@ -3802,15 +3802,15 @@ var ReaderTextTableOfContents = React.createClass({
         ),
         React.createElement(
           'select',
-          { className: 'dlVersionSelect dlVersionTitleSelect', value: this.state.dlVersionTitle && this.state.dlVersionLanguage ? this.state.dlVersionTitle + "/" + this.state.dlVersionLanguage : "", onChange: this.onDlVersionSelect },
+          { className: 'dlVersionSelect dlVersionTitleSelect', value: this.state.dlVersionTitle && this.state.dlVersionLanguage ? this.state.dlVersionTitle + "/" + this.state.dlVersionLanguage : "0", onChange: this.onDlVersionSelect },
           dl_versions
         ),
         React.createElement(
           'select',
-          { className: 'dlVersionSelect dlVersionFormatSelect', value: this.state.dlVersionFormat || "", onChange: this.onDlFormatSelect },
+          { className: 'dlVersionSelect dlVersionFormatSelect', value: this.state.dlVersionFormat || "0", onChange: this.onDlFormatSelect },
           React.createElement(
             'option',
-            { disabled: true },
+            { key: 'none', value: '0', disabled: true },
             'File Format'
           ),
           React.createElement(
@@ -4002,7 +4002,7 @@ var TextDetails = React.createClass({
           authors.map(function (author) {
             return React.createElement(
               'a',
-              { href: "/person/" + author.en },
+              { key: author.en, href: "/person/" + author.en },
               author.he
             );
           })
@@ -4014,7 +4014,7 @@ var TextDetails = React.createClass({
           authors.map(function (author) {
             return React.createElement(
               'a',
-              { href: "/person/" + author.en },
+              { key: author.en, href: "/person/" + author.en },
               author.en
             );
           })

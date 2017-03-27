@@ -3260,11 +3260,11 @@ var ReaderTextTableOfContents = React.createClass({
             <span className="int-en">Download Text</span>
             <span className="int-he">הורדת הטקסט</span>
           </h2>
-          <select className="dlVersionSelect dlVersionTitleSelect" value={(this.state.dlVersionTitle && this.state.dlVersionLanguage)?this.state.dlVersionTitle + "/" + this.state.dlVersionLanguage:""} onChange={this.onDlVersionSelect}>
+          <select className="dlVersionSelect dlVersionTitleSelect" value={(this.state.dlVersionTitle && this.state.dlVersionLanguage)?this.state.dlVersionTitle + "/" + this.state.dlVersionLanguage:"0"} onChange={this.onDlVersionSelect}>
             {dl_versions}
           </select>
-          <select className="dlVersionSelect dlVersionFormatSelect" value={this.state.dlVersionFormat || ""} onChange={this.onDlFormatSelect}>
-            <option disabled>File Format</option>
+          <select className="dlVersionSelect dlVersionFormatSelect" value={this.state.dlVersionFormat || "0"} onChange={this.onDlFormatSelect}>
+            <option key="none" value="0" disabled>File Format</option>
             <option key="txt" value="txt" >Text</option>
             <option key="csv" value="csv" >CSV</option>
             <option key="json" value="json" >JSON</option>
@@ -3356,7 +3356,7 @@ var TextDetails = React.createClass({
       //return [composed, description].filter(x => !!x).join(". ");
       // holding on displaying descriptions for now
       return composed;
-    }
+    };
     var enDesc = makeDescriptionText("Composed in ", "compPlaceString" in this.props.index ? this.props.index.compPlaceString.en : null, "compDateString" in this.props.index ? this.props.index.compDateString.en : null, this.props.index.enDesc);
     var heDesc = makeDescriptionText("נוצר/נערך ב", "compPlaceString" in this.props.index ? this.props.index.compPlaceString.he : null, "compDateString" in this.props.index ? this.props.index.compDateString.he : null, this.props.index.heDesc);
 
@@ -3371,10 +3371,10 @@ var TextDetails = React.createClass({
         { authors.length ?
           <div className="tocDetail">
               <span className="int-he">
-                מחבר: {authors.map(function (author) { return <a href={"/person/" + author.en}>{author.he}</a> })}
+                מחבר: {authors.map(author => <a key={author.en} href={"/person/" + author.en}>{author.he}</a> )}
               </span>
               <span className="int-en">
-                Author: {authors.map(function (author) { return <a href={"/person/" + author.en}>{author.en}</a> })}
+                Author: {authors.map(author => <a key={author.en} href={"/person/" + author.en}>{author.en}</a> )}
               </span>
           </div>
           : null }
