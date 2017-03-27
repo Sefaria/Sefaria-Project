@@ -1854,11 +1854,9 @@ $(function() {
 
 
 
-
-  function resetSplitDiagramSegment() {
-		$(".splitDiagramSegment").off;
-		$(".splitDiagramSegment").on('click', 'div', function() {
-			var selectedRange = window.getSelection(); //.getRangeAt(0);
+	function splitSelectedText(selection, diagramTag, tagBgColor) {
+			var selectedRange = selection;
+			console.log(selectedRange);
 			var firstSelectedCharacter;
 			var lastSelectedCharacter;
 			if (selectedRange.anchorOffset < selectedRange.focusOffset) {
@@ -1875,8 +1873,6 @@ $(function() {
 			var textBefore = curDiagramSegment.text().slice(0, firstSelectedCharacter);
 			var selectedText = curDiagramSegment.text().slice(firstSelectedCharacter, lastSelectedCharacter);
 			var textAfter = curDiagramSegment.text().slice(lastSelectedCharacter);
-			var diagramTag = $(this).text();
-			var tagBgColor = $(this).css('background-color');
 
 			$(curDiagramSegment.parent()).after("<div class='diagramSegment'>" + textAfter + "</div>");
 			$(curDiagramSegment.parent()).after("<div class='diagramSegment' style='background-color: " + tagBgColor + "' data-tag='" + diagramTag + "'>" + selectedText + "</div>");
@@ -1886,6 +1882,12 @@ $(function() {
 
 			autoSave();
 
+	}
+
+  function resetSplitDiagramSegment() {
+		$(".splitDiagramSegment").off;
+		$(".splitDiagramSegment").on('click', 'div', function() {
+			splitSelectedText(window.getSelection(),$(this).text(),$(this).css('background-color'));
 		});
 	}
 	resetSplitDiagramSegment();
@@ -1903,9 +1905,16 @@ $(function() {
 
 		$(".diagram .he, .diagram .en").on("mouseup", '.diagramSegment', function(e) {
 
-			if ($(e.target).attr('data-tag')) return;
+			if ($(e.target).attr('data-tag')) { //if clicking on a highlight that already is tagged, select whole highlight and open window.
+				var range = document.createRange();
+				console.log(e)
+				range.selectNodeContents(e.currentTarget);
+				var sel = window.getSelection();
+				sel.removeAllRanges();
+				sel.addRange(range);
+			};
 
-			if (window.getSelection().anchorOffset !== window.getSelection().focusOffset) {
+			if (window.getSelection().anchorOffset !== window.getSelection().focusOffset) { //check if there's any selection
 				$("tagSelector").show();
 				$("addTagPanel").hide();
 				$(".diagramTagWindow").show().css({
