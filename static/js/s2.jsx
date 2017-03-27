@@ -2958,12 +2958,13 @@ var ReaderNavigationCategoryMenuContents = React.createClass({
       for (var i = 0; i < this.props.contents.length; i++) {
         var item = this.props.contents[i];
         if (item.category) {
+          // Category
           var newCats = cats.concat(item.category);
-          // Special Case categories which should nest but are normally wouldnt given their depth
+          // Special Case categories which should nest but normally wouldn't given their depth
           var subcats = ["Mishneh Torah", "Shulchan Arukh", "Maharal"];
           if (Sefaria.util.inArray(item.category, subcats) > -1 || this.props.nestLevel > 0) {
             if(item.contents.length == 1 && !("category" in item.contents[0])){
-                var chItem = item.contents[0]
+                var chItem = item.contents[0];
                 var [title, heTitle] = this.getRenderedTextTitleString(chItem.title, chItem.heTitle);
                 var url     = "/" + Sefaria.normRef(chItem.firstSection);
                 content.push((<a href={url}>
@@ -2972,7 +2973,8 @@ var ReaderNavigationCategoryMenuContents = React.createClass({
                                   <span className='he'>{heTitle}</span>
                                 </span>
                               </a>));
-            }else{
+            } else {
+              // Create a link to a subcategory
               url = "/texts/" + newCats.join("/");
               content.push((<a href={url}>
                             <span className="catLink" data-cats={newCats.join("|")} key={"cat." + this.props.nestLevel + "." + i}>
@@ -2981,7 +2983,7 @@ var ReaderNavigationCategoryMenuContents = React.createClass({
                             </span>
                           </a>));
             }
-          }else{
+          } else {
             // Add a Category
             content.push((<div className='category' key={"cat." + this.props.nestLevel + "." + i}>
                             <h3>
@@ -2992,7 +2994,7 @@ var ReaderNavigationCategoryMenuContents = React.createClass({
                           </div>));
           }
         } else {
-          //Add a Text
+          // Add a Text
           var [title, heTitle] = this.getRenderedTextTitleString(item.title, item.heTitle);
           var ref = Sefaria.recentRefForText(item.title) || item.firstSection;
           var url = "/" + Sefaria.normRef(ref);

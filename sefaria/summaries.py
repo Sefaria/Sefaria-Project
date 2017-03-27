@@ -100,6 +100,7 @@ ORDER = [
     'Philosophy',
     'Parshanut',
     'Chasidut',
+        "R' Tzadok HaKohen",
     'Musar',
     'Responsa',
         "Rashba",
