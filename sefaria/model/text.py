@@ -4233,31 +4233,50 @@ class Library(object):
         """
         return self._internal_ref_from_string(title, st, lang)
 
-    def _internal_ref_from_string(self, title=None, st=None, lang=None, stIsAnchored=False, return_locations = False):
+    def _build_all_refs_from_string_w_locations(self, title=None, st=None, lang=None, stIsAnchored=False, with_bad_refs = False):
+        return self._internal_ref_from_string(title = title, st=st, lang=lang, stIsAnchored=stIsAnchored, return_locations = True, with_bad_refs= with_bad_refs)
 
-            node = self.get_schema_node(title, lang)
-            assert isinstance(node, JaggedArrayNode)  # Assumes that node is a JaggedArrayNode
+    def _internal_ref_from_string(self, title=None, st=None, lang=None, stIsAnchored=False, return_locations = False, with_bad_refs = False):
+        """
 
-            refs = []
-            try:
-                re_string = self.get_regex_string(title, lang, anchored=stIsAnchored)
-            except AttributeError as e:
-                logger.warning(
-                    u"Library._internal_ref_from_string() failed to create regex for: {}.  {}".format(title, e))
-                return refs
+        :param title:
+        :param st:
+        :param lang:
+        :param stIsAnchored:
+        :param return_locations:
+        :param with_bad_refs: True if you want all title matches to be returned
+        :return:
+        """
 
-            reg = regex.compile(re_string, regex.VERBOSE)
-            if stIsAnchored:
-                matches = [reg.match(st)]
-            else:
-                matches = reg.finditer(st)
-            for ref_match in matches:
-                try:
-                    res = (self._get_ref_from_match(ref_match, node, lang), ref_match.span()) if return_locations else self._get_ref_from_match(ref_match, node, lang)
-                    refs.append(res)
-                except InputError:
-                    continue
+        node = self.get_schema_node(title, lang)
+        assert isinstance(node, JaggedArrayNode)  # Assumes that node is a JaggedArrayNode
+
+        refs = []
+        non_refs = []
+        try:
+            re_string = self.get_regex_string(title, lang, anchored=stIsAnchored)
+        except AttributeError as e:
+            logger.warning(
+                u"Library._internal_ref_from_string() failed to create regex for: {}.  {}".format(title, e))
             return refs
+
+        reg = regex.compile(re_string, regex.VERBOSE)
+        if stIsAnchored:
+            matches = [reg.match(st)]
+        else:
+            matches = reg.finditer(st)
+        for ref_match in matches:
+            try:
+                res = (self._get_ref_from_match(ref_match, node, lang), ref_match.span()) if return_locations else self._get_ref_from_match(ref_match, node, lang)
+                refs.append(res)
+            except InputError:
+                if with_bad_refs:
+                    non_refs += [(ref_match.group(), ref_match.span())] if return_locations else [ref_match.group()]
+                else:
+                    continue
+        if with_bad_refs:
+            refs = (refs, non_refs)
+        return refs
 
 
     # todo: handle ranges in inline refs
