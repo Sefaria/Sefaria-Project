@@ -1357,6 +1357,11 @@ Sefaria = extend(Sefaria, {
               "query": query.replace(/(\S)"(\S)/g, '$1\u05f4$2'), //Replace internal quotes with gershaim.
           };
 
+          if (field != "hebmorph_semi_exact" && field != "content") {
+              //TODO: this is hacky. just for beta right now. add slop to query
+              core_query['match_phrase'][field]['slop'] = 10;
+          }
+
           var o = {
               "from": from,
               "size": size,
@@ -1379,6 +1384,7 @@ Sefaria = extend(Sefaria, {
                   {"order": {}}                 // the sort field name is "order"
               ];
           } else if (sort_type == "relevance") {
+
               o["query"] = {
                   "function_score": {
                       "field_value_factor": {

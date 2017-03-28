@@ -162,7 +162,7 @@ def make_text_index_document(tref, version, lang):
         content = " ".join(content)
 
     content = bleach.clean(content, strip=True, tags=())
-    content = strip_cantillation(content, strip_vowels=True)
+    content = strip_cantillation(content, strip_vowels=False)
 
     if oref.is_talmud():
         title = text["book"] + " Daf " + text["sections"][0]
@@ -183,7 +183,7 @@ def make_text_index_document(tref, version, lang):
     index = oref.index
     tp = index.best_time_period()
     if not tp is None:
-        comp_start_date = tp.start
+        comp_start_date = int(tp.start)
     else:
         comp_start_date = 3000  # far in the future
 

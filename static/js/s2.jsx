@@ -7824,7 +7824,7 @@ var SearchResultList = React.createClass({
             type: "sheet",
             size: this.initialQuerySize,
             field: "content",
-            sort_type: props.sortType,
+            sort_type: "chronological",
             success: function(data) {
                 this.updateRunningQuery("sheet", null);
                   this.setState({
