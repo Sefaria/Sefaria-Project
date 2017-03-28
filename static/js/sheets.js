@@ -3701,12 +3701,14 @@ function fillEmptyDiagramSegments() {
 function toggleHighlighter() {
 	if ($("#sheet").hasClass("highlightMode")) {
 		$("#sheet").removeClass("highlightMode")
+		$("#highlightModeDisplay").hide();
 		if ($("#sources").data('ui-sortable')) {
 			$("#sources").sortable("enable"); //disable dragging while in diagram edit mode....
 		}
 	}
 	else {
 		$("#sheet").addClass("highlightMode")
+		$("#highlightModeDisplay").show();
 		if ($("#sources").data('ui-sortable')) {
 			$("#sources").sortable("disable"); //disable dragging while in diagram edit mode....
 		}

@@ -76,7 +76,7 @@ body {
 	padding: 7px 5px;
 	border-radius: 5px;
 	color: #888;
-	background-color: #eee;
+	background-color: #f2f2f2;
 }
 
 .sheetsMenuBarItem #lastSaved {
@@ -2050,6 +2050,20 @@ a.tagit-close {
 }
 .colorSelect {
 	text-align:center;
+}
+
+#highlightModeDisplay {
+	display: none;
+	position: fixed;
+	z-index: 100;
+	top: 70px;
+	right: 140px;
+	text-align: center;
+	font-size: 12px;
+	padding: 7px 5px;
+	color: #888;
+	background-color: #f2f2f2;
+
 }
 
 .diagramSegment[data-tag]::before {
