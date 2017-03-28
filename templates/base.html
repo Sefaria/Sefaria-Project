@@ -49,7 +49,7 @@
       {% if S2 %}
         WebFont.load({
           google: {
-            families: ['Crimson Text:400,700', 'Open Sans Hebrew:400,700:hebrew'],
+            families: ['Crimson Text:400,700'],
             text: 'ḥḤ'
           },
           typekit: {
@@ -58,7 +58,7 @@
         });
         WebFont.load({
           google: {
-            families: ['Alef:400,700:hebrew'] // The dotted h causes Alef not to load.
+            families: ['Alef:400,700:hebrew', 'Open Sans Hebrew:400,700:hebrew'] // The dotted h causes Alef not to load.
           }});
       {% else %}
         WebFont.load({
