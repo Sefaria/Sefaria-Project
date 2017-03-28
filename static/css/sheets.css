@@ -224,7 +224,7 @@ body {
 	white-space: nowrap;
 }
 .optionItem:hover,
-.optionTitle:hover, .optionLink:hover, .languageToggleOption div:hover, .layoutToggleOption div:hover .sideBySideToggleOption div:hover {
+.optionTitle:hover, .optionLink:hover, .languageToggleOption div:hover, .layoutToggleOption div:hover, .sideBySideToggleOption div:hover {
 	background: #08c;
 	color:white;
 }
