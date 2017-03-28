@@ -3334,8 +3334,9 @@ var ReaderNavigationCategoryMenuContents = React.createClass({
     for (var i = 0; i < this.props.contents.length; i++) {
       var item = this.props.contents[i];
       if (item.category) {
+        // Category
         var newCats = cats.concat(item.category);
-        // Special Case categories which should nest but are normally wouldnt given their depth
+        // Special Case categories which should nest but normally wouldn't given their depth
         var subcats = ["Mishneh Torah", "Shulchan Arukh", "Maharal"];
         if (Sefaria.util.inArray(item.category, subcats) > -1 || this.props.nestLevel > 0) {
           if (item.contents.length == 1 && !("category" in item.contents[0])) {
@@ -3368,6 +3369,7 @@ var ReaderNavigationCategoryMenuContents = React.createClass({
               )
             ));
           } else {
+            // Create a link to a subcategory
             url = "/texts/" + newCats.join("/");
             content.push(React.createElement(
               'a',
@@ -3411,7 +3413,7 @@ var ReaderNavigationCategoryMenuContents = React.createClass({
           ));
         }
       } else {
-        //Add a Text
+        // Add a Text
 
         var _getRenderedTextTitle3 = this.getRenderedTextTitleString(item.title, item.heTitle);
 
@@ -3802,15 +3804,15 @@ var ReaderTextTableOfContents = React.createClass({
         ),
         React.createElement(
           'select',
-          { className: 'dlVersionSelect dlVersionTitleSelect', value: this.state.dlVersionTitle && this.state.dlVersionLanguage ? this.state.dlVersionTitle + "/" + this.state.dlVersionLanguage : "", onChange: this.onDlVersionSelect },
+          { className: 'dlVersionSelect dlVersionTitleSelect', value: this.state.dlVersionTitle && this.state.dlVersionLanguage ? this.state.dlVersionTitle + "/" + this.state.dlVersionLanguage : "0", onChange: this.onDlVersionSelect },
           dl_versions
         ),
         React.createElement(
           'select',
-          { className: 'dlVersionSelect dlVersionFormatSelect', value: this.state.dlVersionFormat || "", onChange: this.onDlFormatSelect },
+          { className: 'dlVersionSelect dlVersionFormatSelect', value: this.state.dlVersionFormat || "0", onChange: this.onDlFormatSelect },
           React.createElement(
             'option',
-            { disabled: true },
+            { key: 'none', value: '0', disabled: true },
             'File Format'
           ),
           React.createElement(
@@ -4002,7 +4004,7 @@ var TextDetails = React.createClass({
           authors.map(function (author) {
             return React.createElement(
               'a',
-              { href: "/person/" + author.en },
+              { key: author.en, href: "/person/" + author.en },
               author.he
             );
           })
@@ -4014,7 +4016,7 @@ var TextDetails = React.createClass({
           authors.map(function (author) {
             return React.createElement(
               'a',
-              { href: "/person/" + author.en },
+              { key: author.en, href: "/person/" + author.en },
               author.en
             );
           })
@@ -7714,7 +7716,6 @@ var TextSegment = React.createClass({
       event.stopPropagation(); //add prevent default
       Sefaria.site.track.event("Reader", "Citation Link Click", ref);
     } else if ($(event.target).is("sup") || $(event.target).parents("sup").size()) {
-      debugger;
       this.props.onFootnoteClick(event);
       event.stopPropagation();
     } else if (this.props.onSegmentClick) {

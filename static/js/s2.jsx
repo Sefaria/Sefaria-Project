@@ -2958,12 +2958,13 @@ var ReaderNavigationCategoryMenuContents = React.createClass({
       for (var i = 0; i < this.props.contents.length; i++) {
         var item = this.props.contents[i];
         if (item.category) {
+          // Category
           var newCats = cats.concat(item.category);
-          // Special Case categories which should nest but are normally wouldnt given their depth
+          // Special Case categories which should nest but normally wouldn't given their depth
           var subcats = ["Mishneh Torah", "Shulchan Arukh", "Maharal"];
           if (Sefaria.util.inArray(item.category, subcats) > -1 || this.props.nestLevel > 0) {
             if(item.contents.length == 1 && !("category" in item.contents[0])){
-                var chItem = item.contents[0]
+                var chItem = item.contents[0];
                 var [title, heTitle] = this.getRenderedTextTitleString(chItem.title, chItem.heTitle);
                 var url     = "/" + Sefaria.normRef(chItem.firstSection);
                 content.push((<a href={url}>
@@ -2972,7 +2973,8 @@ var ReaderNavigationCategoryMenuContents = React.createClass({
                                   <span className='he'>{heTitle}</span>
                                 </span>
                               </a>));
-            }else{
+            } else {
+              // Create a link to a subcategory
               url = "/texts/" + newCats.join("/");
               content.push((<a href={url}>
                             <span className="catLink" data-cats={newCats.join("|")} key={"cat." + this.props.nestLevel + "." + i}>
@@ -2981,7 +2983,7 @@ var ReaderNavigationCategoryMenuContents = React.createClass({
                             </span>
                           </a>));
             }
-          }else{
+          } else {
             // Add a Category
             content.push((<div className='category' key={"cat." + this.props.nestLevel + "." + i}>
                             <h3>
@@ -2992,7 +2994,7 @@ var ReaderNavigationCategoryMenuContents = React.createClass({
                           </div>));
           }
         } else {
-          //Add a Text
+          // Add a Text
           var [title, heTitle] = this.getRenderedTextTitleString(item.title, item.heTitle);
           var ref = Sefaria.recentRefForText(item.title) || item.firstSection;
           var url = "/" + Sefaria.normRef(ref);
@@ -3260,11 +3262,11 @@ var ReaderTextTableOfContents = React.createClass({
             <span className="int-en">Download Text</span>
             <span className="int-he">הורדת הטקסט</span>
           </h2>
-          <select className="dlVersionSelect dlVersionTitleSelect" value={(this.state.dlVersionTitle && this.state.dlVersionLanguage)?this.state.dlVersionTitle + "/" + this.state.dlVersionLanguage:""} onChange={this.onDlVersionSelect}>
+          <select className="dlVersionSelect dlVersionTitleSelect" value={(this.state.dlVersionTitle && this.state.dlVersionLanguage)?this.state.dlVersionTitle + "/" + this.state.dlVersionLanguage:"0"} onChange={this.onDlVersionSelect}>
             {dl_versions}
           </select>
-          <select className="dlVersionSelect dlVersionFormatSelect" value={this.state.dlVersionFormat || ""} onChange={this.onDlFormatSelect}>
-            <option disabled>File Format</option>
+          <select className="dlVersionSelect dlVersionFormatSelect" value={this.state.dlVersionFormat || "0"} onChange={this.onDlFormatSelect}>
+            <option key="none" value="0" disabled>File Format</option>
             <option key="txt" value="txt" >Text</option>
             <option key="csv" value="csv" >CSV</option>
             <option key="json" value="json" >JSON</option>
@@ -3356,7 +3358,7 @@ var TextDetails = React.createClass({
       //return [composed, description].filter(x => !!x).join(". ");
       // holding on displaying descriptions for now
       return composed;
-    }
+    };
     var enDesc = makeDescriptionText("Composed in ", "compPlaceString" in this.props.index ? this.props.index.compPlaceString.en : null, "compDateString" in this.props.index ? this.props.index.compDateString.en : null, this.props.index.enDesc);
     var heDesc = makeDescriptionText("נוצר/נערך ב", "compPlaceString" in this.props.index ? this.props.index.compPlaceString.he : null, "compDateString" in this.props.index ? this.props.index.compDateString.he : null, this.props.index.heDesc);
 
@@ -3371,10 +3373,10 @@ var TextDetails = React.createClass({
         { authors.length ?
           <div className="tocDetail">
               <span className="int-he">
-                מחבר: {authors.map(function (author) { return <a href={"/person/" + author.en}>{author.he}</a> })}
+                מחבר: {authors.map(author => <a key={author.en} href={"/person/" + author.en}>{author.he}</a> )}
               </span>
               <span className="int-en">
-                Author: {authors.map(function (author) { return <a href={"/person/" + author.en}>{author.en}</a> })}
+                Author: {authors.map(author => <a key={author.en} href={"/person/" + author.en}>{author.en}</a> )}
               </span>
           </div>
           : null }
@@ -6082,7 +6084,6 @@ var TextSegment = React.createClass({
       event.stopPropagation();
       Sefaria.site.track.event("Reader", "Citation Link Click", ref);
     } else if ($(event.target).is("sup") || $(event.target).parents("sup").size()) {
-      debugger;
       this.props.onFootnoteClick(event);
       event.stopPropagation();
     } else if (this.props.onSegmentClick) {
