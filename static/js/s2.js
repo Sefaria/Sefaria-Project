@@ -7716,7 +7716,6 @@ var TextSegment = React.createClass({
       event.stopPropagation(); //add prevent default
       Sefaria.site.track.event("Reader", "Citation Link Click", ref);
     } else if ($(event.target).is("sup") || $(event.target).parents("sup").size()) {
-      debugger;
       this.props.onFootnoteClick(event);
       event.stopPropagation();
     } else if (this.props.onSegmentClick) {
