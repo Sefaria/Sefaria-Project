@@ -44,22 +44,32 @@
     </script>
 
     {% if not OFFLINE %}
-    <script src="//ajax.googleapis.com/ajax/libs/webfont/1.5.10/webfont.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/webfont/1.6.26/webfont.js"></script>
     <script>
       {% if S2 %}
-        var families = ['Crimson Text:400,700', 'Open Sans Hebrew:400,700:hebrew', 'Alef:400,700:hebrew' ]
+        WebFont.load({
+          google: {
+            families: ['Crimson Text:400,700'],
+            text: 'ḥḤ'
+          },
+          typekit: {
+            id: 'aeg8div'
+          }
+        });
+        WebFont.load({
+          google: {
+            families: ['Alef:400,700:hebrew', 'Open Sans Hebrew:400,700:hebrew'] // The dotted h causes Alef not to load.
+          }});
       {% else %}
-        var families = ['Montserrat:400,700', 'Alef:400,700:latin,hebrew' ];
+        WebFont.load({
+          google: {
+            families: ['Montserrat:400,700', 'Alef:400,700:latin,hebrew' ]
+          },
+          typekit: {
+            id: 'aeg8div'
+          }
+        });
       {% endif %}
-      WebFont.load({
-        google: {
-          families: families,
-          text: 'ḥḤ'
-        },
-        typekit: {
-          id: 'aeg8div'
-        }
-      });
     </script>
     {% endif %}
 </head>

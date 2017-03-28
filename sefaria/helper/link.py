@@ -427,7 +427,7 @@ def rebuild_links_from_text(title, user):
 # --------------------------------------------------------------------------------- #
 
 
-def create_link_cluster(refs, user, link_type="", attrs=None, exception_pairs=None):
+def create_link_cluster(refs, user, link_type="", attrs=None, exception_pairs=None, exception_range = None):
     total = 0
     for i, ref in enumerate(refs):
         for j in range(i + 1, len(refs)):
@@ -435,6 +435,9 @@ def create_link_cluster(refs, user, link_type="", attrs=None, exception_pairs=No
 
             # If this link matches an exception pair, skip it.
             if all([any([r.startswith(name) for r in ref_strings]) for pair in exception_pairs for name in pair]):
+                continue
+            # If this link matches an exception range, skip it.
+            if refs[i].section_ref() is refs[j].section_ref():
                 continue
 
             d = {

@@ -76,6 +76,8 @@ public_total = db.sheets.find({"status": "public"}).count()
 
 for sheet in sheets: 
 	global language
+        if "sources" not in sheet:
+            continue
 	count_sources(sheet["sources"], sheet["id"])
 	if "options" in sheet and "language" in sheet["options"]:
 		languages[sheet["options"]["language"]] += 1

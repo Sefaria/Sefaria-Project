@@ -1221,7 +1221,7 @@ class AddressType(object):
         """
         The regular expression part that matches this address reference, wrapped with section names, if provided
         :param lang: "en" or "he"
-        :param group_id: The id of the regular expression group the this match will be catured in
+        :param group_id: The id of the regular expression group the this match will be captured in
         :param kwargs: 'strict' kwarg indicates that section names are required to match
         :return string: regex component
         """
