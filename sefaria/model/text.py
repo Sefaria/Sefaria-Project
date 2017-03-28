@@ -4161,7 +4161,7 @@ class Library(object):
         if lang is None:
             lang = "he" if is_hebrew(st) else "en"
         from sefaria.utils.hebrew import strip_nikkud
-        st = strip_nikkud(st)
+        #st = strip_nikkud(st) doing this causes the final result to lose vowels and cantiallation
         unique_titles = set(self.get_titles_in_string(st, lang, citing_only))
         for title in unique_titles:
             try:
