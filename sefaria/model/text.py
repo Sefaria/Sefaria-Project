@@ -32,6 +32,7 @@ from sefaria.datatype.jagged_array import JaggedTextArray, JaggedArray
 from sefaria.settings import DISABLE_INDEX_SAVE, USE_VARNISH
 
 
+
 """
                 ----------------------------------
                          Index, IndexSet
@@ -1475,7 +1476,13 @@ class TextFamily(object):
                 c = TextChunk(oref, language)
             self._chunks[language] = c
             if wrapLinks:
-                setattr(self, self.text_attr_map[language], c.ja().modify_by_function(lambda s: library.get_wrapped_refs_string(s, lang=language, citing_only=True)))
+                #only wrap links if we know there ARE links
+                v = Version().load({"title": c.version().title, "versionTitle": c.version().versionTitle, "language": c.lang})
+                from . import LinkSet
+                if LinkSet({"generated_by":"add_links_from_text", "source_text_oid": v._id}).count() > 0:
+                    setattr(self, self.text_attr_map[language], c.ja().modify_by_function(lambda s: library.get_wrapped_refs_string(s, lang=language, citing_only=True)))
+                else:
+                    setattr(self, self.text_attr_map[language], c.text)
             else:
                 setattr(self, self.text_attr_map[language], c.text)
 
