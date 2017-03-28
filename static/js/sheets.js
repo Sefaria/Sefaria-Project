@@ -1894,36 +1894,39 @@ $(function() {
 	resetSplitDiagramSegment();
 
   function resetDiagramInteractivity() {
+		if (sjs.is_owner||sjs.can_edit) {
 
-		$(".diagram .he, .diagram .en").off();
+			$(".diagram .he, .diagram .en").off();
 
-		$(".diagram .he, .diagram .en").on("mousedown", '.diagramSegment', function() {
-			$(".diagramSegment").removeClass("noSelect");
-			$(".diagramSegment").not(this).addClass("noSelect");
-	 		$(".diagramTagWindow").hide();
+			$(".diagram .he, .diagram .en").on("mousedown", '.diagramSegment', function() {
+				$(".diagramSegment").removeClass("noSelect");
+				$(".diagramSegment").not(this).addClass("noSelect");
+				$(".diagramTagWindow").hide();
 
-		});
+			});
 
-		$(".diagram .he, .diagram .en").on("mouseup", '.diagramSegment', function(e) {
+			$(".diagram .he, .diagram .en").on("mouseup", '.diagramSegment', function(e) {
 
-			if ($(e.target).attr('data-tag')) { //if clicking on a highlight that already is tagged, select whole highlight and open window.
-				var range = document.createRange();
-				console.log(e)
-				range.selectNodeContents(e.currentTarget);
-				var sel = window.getSelection();
-				sel.removeAllRanges();
-				sel.addRange(range);
-			};
+				if ($(e.target).attr('data-tag')) { //if clicking on a highlight that already is tagged, select whole highlight and open window.
+					var range = document.createRange();
+					console.log(e)
+					range.selectNodeContents(e.currentTarget);
+					var sel = window.getSelection();
+					sel.removeAllRanges();
+					sel.addRange(range);
+				}
+				;
 
-			if (window.getSelection().anchorOffset !== window.getSelection().focusOffset) { //check if there's any selection
-				$("tagSelector").show();
-				$("addTagPanel").hide();
-				$(".diagramTagWindow").show().css({
-					"top": e.clientY,
-					"left": e.clientX
-				});
-			}
-		});
+				if (window.getSelection().anchorOffset !== window.getSelection().focusOffset) { //check if there's any selection
+					$("tagSelector").show();
+					$("addTagPanel").hide();
+					$(".diagramTagWindow").show().css({
+						"top": e.clientY,
+						"left": e.clientX
+					});
+				}
+			});
+		}
 	}
 
 	resetDiagramInteractivity();

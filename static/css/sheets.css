@@ -2054,22 +2054,22 @@ a.tagit-close {
 
 .diagramSegment[data-tag]::before {
     content: attr(data-tag) ;
-
-    font-size: 10px;
+    font-size: 12px;
     position:absolute;
-    z-index: 999;
+    z-index: 2;
     white-space:nowrap;
-    background:#000;
-    color:#e0e0e0;
+    background:#fff;
+    color:#999;
+	border-radius: 3px;
+	border: 1px solid #999;
     padding:0px 7px;
 	margin-top: -24px;
     line-height: 24px;
     height: 24px;
-
     opacity: 0;
     transition:opacity 0.4s ease-out;
-
     }
+
 
 .diagramSegment[data-tag]:hover::before {
     opacity: 1;
