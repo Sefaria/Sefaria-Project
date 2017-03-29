@@ -199,7 +199,7 @@ def make_text_index_document(tref, version, lang):
         "categories": categories,
         "order": oref.order_id(),
         "path": "/".join(categories + [oref.index.title]),
-        "pagerank": math.log(pagerank_dict[oref.normal()]) + 20 if oref.normal() in pagerank_dict else 1.0,
+        "pagerank": math.log(pagerank_dict[oref.section_ref().normal()]) + 20 if oref.section_ref().normal() in pagerank_dict else 1.0,
         "comp_date": comp_start_date,
         "hebmorph_standard": content,
         "hebmorph_semi_exact": content,

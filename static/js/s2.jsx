@@ -8147,12 +8147,21 @@ var SearchOptions = React.createClass({
     updateAppliedOptionSort:   React.PropTypes.func
   },
   getInitialState: function() {
+
+    return {
+      displayOptions: false
+    }
+  },
+  toggleOptionView: function() {
+    this.setState({displayOptions: !this.state.displayOptions});
+  },
+  render: function() {
     var fieldArray = [
       {
         "param": "hebmorph_semi_exact",
         "title": "Exact 1",
         "heTitle": "מדויק 1",
-        "selected": true
+        "selected": false
       },
       {
         "param": "content",
@@ -8194,29 +8203,18 @@ var SearchOptions = React.createClass({
         "selected": false
       }
     ];
-    return {
-      displayOptions: false,
-      fieldArray: fieldArray,
-      sortArray: sortArray
-    }
-  },
-  toggleOptionView: function() {
-    this.setState({displayOptions: !this.state.displayOptions});
-  },
-  toggleOptionField: function(field) {
-    this.state.fieldArray.map(function(tempField) {
-      tempField.selected = tempField.param == field;
+    
+    fieldArray.map((fieldObj)=>{
+      fieldObj.selected = fieldObj.param == this.props.field;
+      return fieldObj;
     });
-    this.setState({fieldArray: this.state.fieldArray});
-  },
-  toggleOptionSort: function(sort) {
-    this.state.sortArray.map(function(tempSort) {
-      tempSort.selected = tempSort.param == sort;
+    
+    sortArray.map((sortObj)=>{
+      sortObj.selected = sortObj.param == this.props.sortType;
+      return sortObj;
     });
-    this.setState({sortArray: this.state.sortArray});
-  },
-  render: function() {
-
+    
+    
     var filter_panel = (<div>
       <div className="searchFilterToggle" onClick={this.toggleOptionView}>
         <span className="int-en">Options   </span>
@@ -8225,19 +8223,17 @@ var SearchOptions = React.createClass({
       </div>
       <div className={(this.state.displayOptions) ? "searchFilterBoxes":"searchFilterBoxes hidden"}>
         <div className="searchFilterCategoryBox">
-          {this.state.fieldArray.map(function(option) {
+          {fieldArray.map(function(option) {
               return (<SearchOption
                   option={option}
-                  updateSelected={this.props.updateAppliedOptionField}
-                  toggleOption={this.toggleOptionField}/>);
+                  updateSelected={this.props.updateAppliedOptionField}/>);
           }.bind(this))}
         </div>
         <div className="searchFilterBookBox">
-          {this.state.sortArray.map(function(option) {
+          {sortArray.map(function(option) {
               return (<SearchOption
                   option={option}
-                  updateSelected={this.props.updateAppliedOptionSort}
-                  toggleOption={this.toggleOptionSort}/>);
+                  updateSelected={this.props.updateAppliedOptionSort}/>);
           }.bind(this))}
         </div>
         <div style={{clear: "both"}}/>
@@ -8254,12 +8250,10 @@ var SearchOptions = React.createClass({
 var SearchOption = React.createClass({
   propTypes: {
     option:           React.PropTypes.object,
-    updateSelected:   React.PropTypes.func,
-    toggleOption:     React.PropTypes.func
+    updateSelected:   React.PropTypes.func
   },
   handleOptionClick: function(evt) {
     this.props.updateSelected(this.props.option.param);
-    this.props.toggleOption(this.props.option.param);
   },
   render: function() {
     return(
