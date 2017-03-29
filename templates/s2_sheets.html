@@ -87,8 +87,10 @@
 					<img src="/static/img/print.png"> Print</div>
                 <div class="optionItem" id="visualize">
 					<a href="/sheets/visual/{{sheet.id}}"><i class="fa fa-picture-o"></i>Visualize</a></div>
+                {% if not new_sheet %}
                 <div class="optionItem" id="highlightToggle">
-					<i class="fa fa-pencil"></i>Highlighter</div>
+					<i class="fa fa-pencil"></i>Toggle Highlight Mode</div>
+   				{% endif %}
             </div>
         </div>
         <div class="sheetsMenuBarItem" id="formatMenu">Format
@@ -224,6 +226,13 @@
             </div>
         </div>
             {% endif %}
+
+        <div class="sheetsMenuBarItem" id="highlightMenu">Highlight Tools
+			<div class="optionsMenu">
+                <div class="optionItem segmentedContinuousToggle">Continuous</div>
+
+            </div>
+        </div>
 
     <div class="sheetsMenuBarItem">
              <span id="lastSaved">

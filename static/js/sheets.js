@@ -1814,7 +1814,7 @@ $(function() {
 	});
 
 
-	$(".diagramTools").on('click', '.segmentedContinuousToggle', function() {
+	$("#highlightMenu .optionsMenu").on('click', '.segmentedContinuousToggle', function() {
 
 		if ($(this).text() == "Continuous") {
 			$(this).text('Segmented');
@@ -2384,7 +2384,7 @@ function addSource(q, source, appendOrInsert) {
 		+"<div class='sourceNumber he'></div><div class='sourceNumber en'></div>"
 		+"<div class='customTitle'></div>"
 		+"<div class='diagramTools'>"
-			+"<div class='segmentedContinuousToggle digramToolMenuItem'>Continuous</div> <div class='resetDiagram digramToolMenuItem'>Reset</div> "
+			+"<div class='resetDiagram digramToolMenuItem'>Reset</div> "
 			+"<div class='diagramFilter digramToolMenuItem'>Filter"
 				+"<div class='diagramFilterTags'>"
 				+"</div>"
@@ -3702,6 +3702,7 @@ function toggleHighlighter() {
 	if ($("#sheet").hasClass("highlightMode")) {
 		$("#sheet").removeClass("highlightMode")
 		$("#highlightModeDisplay").hide();
+		$("#highlightMenu").css('display','none');
 		if ($("#sources").data('ui-sortable')) {
 			$("#sources").sortable("enable"); //disable dragging while in diagram edit mode....
 		}
@@ -3709,6 +3710,7 @@ function toggleHighlighter() {
 	else {
 		$("#sheet").addClass("highlightMode")
 		$("#highlightModeDisplay").show();
+		$("#highlightMenu").css('display','inline-block');
 		if ($("#sources").data('ui-sortable')) {
 			$("#sources").sortable("disable"); //disable dragging while in diagram edit mode....
 		}

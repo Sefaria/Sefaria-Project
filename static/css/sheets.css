@@ -1510,7 +1510,7 @@ img {
   z-index: 6;
 }
 
-#fileMenu:hover .optionsMenu, #formatMenu:hover .optionsMenu, #insertMenu:hover .optionsMenu {
+#fileMenu:hover .optionsMenu, #formatMenu:hover .optionsMenu, #insertMenu:hover .optionsMenu, #highlightMenu:hover .optionsMenu  {
 	display: block;
 	top:45px;
 	left:20px;
@@ -1989,6 +1989,10 @@ a.tagit-close {
 	display: none;
 }
 
+#highlightMenu {
+	display: none;
+}
+
 
 .diagramTagWindow {
   	position: fixed;
@@ -2082,6 +2086,7 @@ a.tagit-close {
     height: 24px;
     opacity: 0;
     transition:opacity 0.4s ease-out;
+	pointer-events: none;
     }
 
 
