@@ -204,9 +204,7 @@ def make_text_index_document(tref, version, lang):
         "hebmorph_standard": content_wo_cant,
         "hebmorph_semi_exact": content_wo_cant,
         "aggresive_ngram": content_wo_cant,
-        "naive_lemmatizer": content_wo_cant,
-        #"comp_date_int": comp_date_curve(comp_start_date),
-        #"infreq": content_wo_cant
+        "naive_lemmatizer": content_wo_cant
     }
 
 
@@ -413,10 +411,6 @@ def put_text_mapping(index_name):
                     'type': 'double',
                     'index': 'not_analyzed'
                 },
-                #"comp_date_int": {
-                #    'type': 'double',
-                #    'index': 'not_analyzed'
-                #},
                 "comp_date": {
                     'type': 'integer',
                     'index': 'not_analyzed'
@@ -425,10 +419,6 @@ def put_text_mapping(index_name):
                     'type': 'string',
                     'analyzer': 'sefaria-aggresive-ngram'
                 },
-                #"infreq": {
-                #    'type': 'string',
-                #    'analyzer': 'sefaria-infreq'
-                #},
                 "hebmorph_standard": {
                     'type': 'string',
                     'analyzer': 'hebrew'
