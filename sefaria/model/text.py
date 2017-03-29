@@ -260,6 +260,15 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
         if len(authors):
             contents["authors"] = [{"en": author.primary_name("en"), "he": author.primary_name("he")} for author in authors]
 
+        if getattr(self, "collective_title", None):
+            contents["collective_title"] = {"en": self.collective_title, "he": hebrew_term(self.collective_title)}
+
+        if getattr(self, "base_text_titles", None):
+            contents["base_text_titles"] = [{"en": btitle, "he": hebrew_term(btitle)} for btitle in self.base_text_titles]
+
+        contents["heCategories"] = map(hebrew_term, self.categories)
+
+
         composition_time_period = self.composition_time_period()
         if composition_time_period:
             contents["compDateString"] = {
@@ -429,10 +438,11 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
 
         elif author and author.mostAccurateTimePeriod():
             tp = author.mostAccurateTimePeriod()
-            start = tp.start
-            end = tp.end
-            startIsApprox = tp.startIsApprox
-            endIsApprox = tp.endIsApprox
+            tpvars = vars(tp)
+            start = tp.start if "start" in tpvars else None
+            end = tp.end if "end" in tpvars else None
+            startIsApprox = tp.startIsApprox if "startIsApprox" in tpvars else None
+            endIsApprox = tp.endIsApprox if "endIsApprox" in tpvars else None
 
         if not start is None:
             from sefaria.model.time import TimePeriod
@@ -639,7 +649,6 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
 
         return True
 
-
     def get_toc_index_order(self):
         order = getattr(self, 'order', None)
         if order:
@@ -648,7 +657,6 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
             order = max([library.get_index(x).get_toc_index_order() for x in self.base_text_titles])
             return order
         return None
-
 
     def toc_contents(self):
         """Returns to a dictionary used to represent this text in the library wide Table of Contents"""
