@@ -7784,6 +7784,11 @@ var SearchResultList = React.createClass({
         this.setState({moreToLoad: this.state.moreToLoad});
         return;
       }
+
+      var querySize = this.backgroundQuerySize;
+      if (last + querySize > this.maxResultSize) {
+        querySize = this.maxResultSize - last;
+      }
       
       var field = "content";
       if (type == "text") {
@@ -7792,7 +7797,7 @@ var SearchResultList = React.createClass({
       var query_props = {
         query: this.props.query,
         type: type,
-        size: this.backgroundQuerySize,
+        size: querySize,
         from: last,
         field: field,
         sort_type: this.props.sortType,
