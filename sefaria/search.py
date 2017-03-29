@@ -28,11 +28,13 @@ from sefaria.model.user_profile import user_link, public_user_data
 from sefaria.system.database import db
 from sefaria.system.exceptions import InputError
 from sefaria.utils.util import strip_tags
-from settings import SEARCH_ADMIN, SEARCH_INDEX_NAME
+from settings import SEARCH_ADMIN, SEARCH_INDEX_NAME, STATICFILES_DIRS
 from sefaria.utils.hebrew import hebrew_term
 import sefaria.model.queue as qu
 
-pagerank_dict = {r: v for r, v in json.load(open("pagerank.json","rb"))}
+
+
+pagerank_dict = {r: v for r, v in json.load(open(STATICFILES_DIRS[0] + "pagerank.json","rb"))}
 es = ElasticSearch(SEARCH_ADMIN)
 tracer = logging.getLogger('elasticsearch.trace')
 tracer.setLevel(logging.INFO)
