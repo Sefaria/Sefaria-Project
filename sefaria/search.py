@@ -162,7 +162,7 @@ def make_text_index_document(tref, version, lang):
         content = " ".join(content)
 
     content = bleach.clean(content, strip=True, tags=())
-    content = strip_cantillation(content, strip_vowels=False)
+    content_wo_cant = strip_cantillation(content, strip_vowels=False)
 
     if oref.is_talmud():
         title = text["book"] + " Daf " + text["sections"][0]
@@ -201,12 +201,12 @@ def make_text_index_document(tref, version, lang):
         "path": "/".join(categories + [oref.index.title]),
         "pagerank": math.log(pagerank_dict[oref.section_ref().normal()]) + 20 if oref.section_ref().normal() in pagerank_dict else 1.0,
         "comp_date": comp_start_date,
-        "hebmorph_standard": content,
-        "hebmorph_semi_exact": content,
-        "aggresive_ngram": content,
-        "naive_lemmatizer": content,
-        "comp_date_int": comp_date_curve(comp_start_date),
-        "infreq": content
+        "hebmorph_standard": content_wo_cant,
+        "hebmorph_semi_exact": content_wo_cant,
+        "aggresive_ngram": content_wo_cant,
+        "naive_lemmatizer": content_wo_cant,
+        #"comp_date_int": comp_date_curve(comp_start_date),
+        #"infreq": content_wo_cant
     }
 
 
@@ -413,10 +413,10 @@ def put_text_mapping(index_name):
                     'type': 'double',
                     'index': 'not_analyzed'
                 },
-                "comp_date_int": {
-                    'type': 'double',
-                    'index': 'not_analyzed'
-                },
+                #"comp_date_int": {
+                #    'type': 'double',
+                #    'index': 'not_analyzed'
+                #},
                 "comp_date": {
                     'type': 'integer',
                     'index': 'not_analyzed'
@@ -425,10 +425,10 @@ def put_text_mapping(index_name):
                     'type': 'string',
                     'analyzer': 'sefaria-aggresive-ngram'
                 },
-                "infreq": {
-                    'type': 'string',
-                    'analyzer': 'sefaria-infreq'
-                },
+                #"infreq": {
+                #    'type': 'string',
+                #    'analyzer': 'sefaria-infreq'
+                #},
                 "hebmorph_standard": {
                     'type': 'string',
                     'analyzer': 'hebrew'
