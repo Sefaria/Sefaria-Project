@@ -2890,7 +2890,6 @@ function handleSave() {
 	var sheet = readSheet();
 	saveSheet(sheet, true);
 	sjs.track.sheets("Save New Sheet");
-
 }
 
 
@@ -2919,7 +2918,6 @@ function saveSheet(sheet, reload) {
 			startPollingIfNeeded(); // Start or stop polling if collab/group status has changed
 			promptToPublish();      // If conditions are right, prompt to publish
 			$("#lastSaved").text("All changes saved in Sefaria")
-
 		} 
 
 		if ("error" in data) {

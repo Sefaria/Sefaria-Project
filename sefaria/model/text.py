@@ -260,6 +260,15 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
         if len(authors):
             contents["authors"] = [{"en": author.primary_name("en"), "he": author.primary_name("he")} for author in authors]
 
+        if getattr(self, "collective_title", None):
+            contents["collective_title"] = {"en": self.collective_title, "he": hebrew_term(self.collective_title)}
+
+        if getattr(self, "base_text_titles", None):
+            contents["base_text_titles"] = [{"en": btitle, "he": hebrew_term(btitle)} for btitle in self.base_text_titles]
+
+        contents["heCategories"] = map(hebrew_term, self.categories)
+
+
         composition_time_period = self.composition_time_period()
         if composition_time_period:
             contents["compDateString"] = {
@@ -401,6 +410,53 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
 
     def publication_time_period(self):
         return self._get_time_period("pubDate")
+
+    def best_time_period(self):
+        """
+
+        :return: TimePeriod: First tries to return `compDate`. Deals with ranges and negative values for compDate
+        If no compDate, looks at author info
+        """
+        author = self.author_objects()[0] if len(self.author_objects()) > 0 else None
+        start, end, startIsApprox, endIsApprox = None, None, None, None
+
+        if getattr(self, "compDate", None):
+            errorMargin = int(getattr(self, "errorMargin", 0))
+            self.startIsApprox = self.endIsApprox = errorMargin > 0
+
+            try:
+                year = int(getattr(self, "compDate"))
+                start = year - errorMargin
+                end = year + errorMargin
+            except ValueError as e:
+                years = getattr(self, "compDate").split("-")
+                if years[0] == "" and len(years) == 3:  #Fix for first value being negative
+                    years[0] = -int(years[1])
+                    years[1] = int(years[2])
+                start = int(years[0]) - errorMargin
+                end = int(years[1]) + errorMargin
+
+        elif author and author.mostAccurateTimePeriod():
+            tp = author.mostAccurateTimePeriod()
+            start = tp.start
+            end = tp.end
+            startIsApprox = tp.startIsApprox
+            endIsApprox = tp.endIsApprox
+
+        if not start is None:
+            from sefaria.model.time import TimePeriod
+            if not startIsApprox is None:
+                return TimePeriod({
+                    "start": start,
+                    "end": end,
+                    "startIsApprox": startIsApprox,
+                    "endIsApprox": endIsApprox
+                })
+            else:
+                return TimePeriod({
+                    "start": start,
+                    "end": end
+                })
 
     def _get_time_period(self, date_field, margin_field=None):
         from . import time
@@ -592,7 +648,6 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
 
         return True
 
-
     def get_toc_index_order(self):
         order = getattr(self, 'order', None)
         if order:
@@ -601,7 +656,6 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
             order = max([library.get_index(x).get_toc_index_order() for x in self.base_text_titles])
             return order
         return None
-
 
     def toc_contents(self):
         """Returns to a dictionary used to represent this text in the library wide Table of Contents"""
@@ -4231,7 +4285,7 @@ def get_index(bookname):
     return library.get_index(bookname)
 
 
-def prepare_index_regex_for_dependency_process(index_object):
+def prepare_index_regex_for_dependency_process(index_object, as_list=False):
     """
     :return string: Regular Expression which will find any titles that match this index title exactly, or more specifically.
 
@@ -4246,7 +4300,10 @@ def prepare_index_regex_for_dependency_process(index_object):
         patterns.append(" \d") # extra granularity following space
 
     escaped_book = re.escape(index_object.title)
-    return "^%s(%s)" % (escaped_book, "|".join(patterns))
+    if as_list:
+        return ["^{}{}".format(escaped_book, p) for p in patterns]
+    else:
+        return "^%s(%s)" % (escaped_book, "|".join(patterns))
 
 
 def process_index_title_change_in_versions(indx, **kwargs):
@@ -4254,7 +4311,7 @@ def process_index_title_change_in_versions(indx, **kwargs):
 
 
 def process_index_title_change_in_dependant_records(indx, **kwargs):
-    dependent_indices = library.get_dependant_indices(kwargs["old"])
+    dependent_indices = library.get_dependant_indices(kwargs["old"], full_records=True)
     for didx in dependent_indices:
         pos = didx.base_text_titles.index(kwargs["old"])
         didx.base_text_titles.pop(pos)

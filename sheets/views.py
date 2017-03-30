@@ -691,7 +691,13 @@ def sheet_list_api(request):
 		if "group" in sheet:
 			if sheet["group"] not in [g.name for g in get_user_groups(request.user.id)]:
 				sheet["group"] = None
-
+			"""
+			if not Group().load({"name": sheet["group"]}).can_publish(request.user.id) and sheet["status"] == "public":
+				sheet["error"] = "You don't have permission to publish sheets in this group, or edit public sheets in this group."
+				sheet["status"] = "unlisted"
+				sheet["rebuild"] = True
+				return jsonResponse(sheet)
+			"""
 		responseSheet = save_sheet(sheet, user.id)
 		if "rebuild" in responseSheet and responseSheet["rebuild"]:
 			# Don't bother adding user links if this data won't be used to rebuild the sheet

@@ -100,6 +100,9 @@ ORDER = [
     'Philosophy',
     'Parshanut',
     'Chasidut',
+        "Early Works",
+        "Breslov",
+        "R' Tzadok HaKohen",
     'Musar',
     'Responsa',
         "Rashba",
@@ -129,8 +132,9 @@ TOP_CATEGORIES = [
 ]
 
 REVERSE_ORDER = [
-    'Commentary' #Uch, STILL special casing commentary here... anything to be done??
+    'Commentary'  # Uch, STILL special casing commentary here... anything to be done??
 ]
+
 
 def update_table_of_contents():
     toc = []
@@ -145,6 +149,7 @@ def update_table_of_contents():
         node.append(text_dict)
     # Recursively sort categories and texts
     return sort_toc_node(toc, recur=True)
+
 
 def update_search_filter_table_of_contents():
     search_toc = []
@@ -238,7 +243,7 @@ def get_or_make_summary_node(summary, nodes, contents_only=True, make_if_not_fou
     Used recursively on sub-summaries.
     """
     if len(nodes) == 1:
-    # Basecase, only need to search through one level
+    #  Basecase, only need to search through one level
         for node in summary:
             if node.get("category") == nodes[0]:
                 return node["contents"] if contents_only else node

@@ -31,10 +31,10 @@
             "item": {
               {% if post_talmudic %}
                 "@id": "/people",
-                "name": "Authors",
+                "name": "Authors"
               {% else %}
                 "@id": "/people/talmud",
-                "name": "People in the Talmud",
+                "name": "People in the Talmud"
               {% endif %}
             }
           },
@@ -43,7 +43,7 @@
             "position": 2,
             "item": {
               "@id": "/person/{{ key }}",
-              "name": "{{ primary_name.en }}",
+              "name": "{{ primary_name.en }}"
             }
           }]
         }

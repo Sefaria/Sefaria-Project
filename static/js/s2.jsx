@@ -1476,7 +1476,7 @@ var Header = React.createClass({
                           onNavTextClick={this.props.onRefClick}
                           onSearchResultClick={this.props.onRefClick}
                           onRecentClick={this.props.onRecentClick}
-                          setDefaultLanguage={this.props.setDefaultLanguage}
+                          setDefaultOption={this.props.setDefaultOption}
                           onQueryChange={this.props.onQueryChange}
                           updateSearchFilter={this.props.updateSearchFilter}
                           registerAvailableFilters={this.props.registerAvailableFilters}
@@ -1582,7 +1582,7 @@ var ReaderPanel = React.createClass({
     closePanel:                  React.PropTypes.func,
     closeMenus:                  React.PropTypes.func,
     setConnectionsFilter:        React.PropTypes.func,
-    setDefaultLanguage:          React.PropTypes.func,
+    setDefaultOption:            React.PropTypes.func,
     selectVersion:               React.PropTypes.func,
     onQueryChange:               React.PropTypes.func,
     updateSearchFilter:          React.PropTypes.func,
@@ -1973,12 +1973,12 @@ var ReaderPanel = React.createClass({
   },
   currentLayout: function() {
     if (this.state.settings.language == "bilingual") {
-      return this.width > 500 ? this.state.settings.biLayout : "stacked";
+      return this.state.width > 500 ? this.state.settings.biLayout : "stacked";
     }
     var category = this.currentCategory();
     if (!category) { return "layoutDefault"; }
     var option = category === "Tanakh" || category === "Talmud" ? "layout" + category : "layoutDefault";
-    return this.state.settings[option];  
+    return this.state.settings[option];
   },
   render: function() {
     if (this.state.error) {
@@ -2958,12 +2958,13 @@ var ReaderNavigationCategoryMenuContents = React.createClass({
       for (var i = 0; i < this.props.contents.length; i++) {
         var item = this.props.contents[i];
         if (item.category) {
+          // Category
           var newCats = cats.concat(item.category);
-          // Special Case categories which should nest but are normally wouldnt given their depth
-          var subcats = [ "Mishneh Torah", "Shulchan Arukh", "Maharal"];
+          // Special Case categories which should nest but normally wouldn't given their depth
+          var subcats = ["Mishneh Torah", "Shulchan Arukh", "Maharal"];
           if (Sefaria.util.inArray(item.category, subcats) > -1 || this.props.nestLevel > 0) {
             if(item.contents.length == 1 && !("category" in item.contents[0])){
-                var chItem = item.contents[0]
+                var chItem = item.contents[0];
                 var [title, heTitle] = this.getRenderedTextTitleString(chItem.title, chItem.heTitle);
                 var url     = "/" + Sefaria.normRef(chItem.firstSection);
                 content.push((<a href={url}>
@@ -2972,7 +2973,8 @@ var ReaderNavigationCategoryMenuContents = React.createClass({
                                   <span className='he'>{heTitle}</span>
                                 </span>
                               </a>));
-            }else{
+            } else {
+              // Create a link to a subcategory
               url = "/texts/" + newCats.join("/");
               content.push((<a href={url}>
                             <span className="catLink" data-cats={newCats.join("|")} key={"cat." + this.props.nestLevel + "." + i}>
@@ -2981,7 +2983,7 @@ var ReaderNavigationCategoryMenuContents = React.createClass({
                             </span>
                           </a>));
             }
-          }else{
+          } else {
             // Add a Category
             content.push((<div className='category' key={"cat." + this.props.nestLevel + "." + i}>
                             <h3>
@@ -2992,7 +2994,7 @@ var ReaderNavigationCategoryMenuContents = React.createClass({
                           </div>));
           }
         } else {
-          //Add a Text
+          // Add a Text
           var [title, heTitle] = this.getRenderedTextTitleString(item.title, item.heTitle);
           var ref = Sefaria.recentRefForText(item.title) || item.firstSection;
           var url = "/" + Sefaria.normRef(ref);
@@ -3260,11 +3262,11 @@ var ReaderTextTableOfContents = React.createClass({
             <span className="int-en">Download Text</span>
             <span className="int-he">הורדת הטקסט</span>
           </h2>
-          <select className="dlVersionSelect dlVersionTitleSelect" value={(this.state.dlVersionTitle && this.state.dlVersionLanguage)?this.state.dlVersionTitle + "/" + this.state.dlVersionLanguage:""} onChange={this.onDlVersionSelect}>
+          <select className="dlVersionSelect dlVersionTitleSelect" value={(this.state.dlVersionTitle && this.state.dlVersionLanguage)?this.state.dlVersionTitle + "/" + this.state.dlVersionLanguage:"0"} onChange={this.onDlVersionSelect}>
             {dl_versions}
           </select>
-          <select className="dlVersionSelect dlVersionFormatSelect" value={this.state.dlVersionFormat || ""} onChange={this.onDlFormatSelect}>
-            <option disabled>File Format</option>
+          <select className="dlVersionSelect dlVersionFormatSelect" value={this.state.dlVersionFormat || "0"} onChange={this.onDlFormatSelect}>
+            <option key="none" value="0" disabled>File Format</option>
             <option key="txt" value="txt" >Text</option>
             <option key="csv" value="csv" >CSV</option>
             <option key="json" value="json" >JSON</option>
@@ -3356,7 +3358,7 @@ var TextDetails = React.createClass({
       //return [composed, description].filter(x => !!x).join(". ");
       // holding on displaying descriptions for now
       return composed;
-    }
+    };
     var enDesc = makeDescriptionText("Composed in ", "compPlaceString" in this.props.index ? this.props.index.compPlaceString.en : null, "compDateString" in this.props.index ? this.props.index.compDateString.en : null, this.props.index.enDesc);
     var heDesc = makeDescriptionText("נוצר/נערך ב", "compPlaceString" in this.props.index ? this.props.index.compPlaceString.he : null, "compDateString" in this.props.index ? this.props.index.compDateString.he : null, this.props.index.heDesc);
 
@@ -3371,10 +3373,10 @@ var TextDetails = React.createClass({
         { authors.length ?
           <div className="tocDetail">
               <span className="int-he">
-                מחבר: {authors.map(function (author) { return <a href={"/person/" + author.en}>{author.he}</a> })}
+                מחבר: {authors.map(author => <a key={author.en} href={"/person/" + author.en}>{author.he}</a> )}
               </span>
               <span className="int-en">
-                Author: {authors.map(function (author) { return <a href={"/person/" + author.en}>{author.en}</a> })}
+                Author: {authors.map(author => <a key={author.en} href={"/person/" + author.en}>{author.en}</a> )}
               </span>
           </div>
           : null }
@@ -3579,7 +3581,7 @@ var TabbedToggleSet = React.createClass({
 var SchemaNode = React.createClass({
   propTypes: {
     schema:      React.PropTypes.object.isRequired,
-    refPath:     React.PropTypes.string.isRequired,
+    refPath:     React.PropTypes.string.isRequired
   },
   render: function() {
     if (!("nodes" in this.props.schema)) {
@@ -3614,7 +3616,7 @@ var SchemaNode = React.createClass({
         } else if (node.nodeType == "ArrayMapNode") {
           // ArrayMapNode with only wholeRef
           return <ArrayMapNode schema={node} key={i} />;
-        } else if (node.depth == 1) {
+        } else if (node.depth == 1 && !node.default) {
           // SchemaNode title that points straight to content
           var path = this.props.refPath + ", " + node.title;
           return (
@@ -3735,7 +3737,6 @@ var JaggedArrayNodeSection = React.createClass({
       }
       return ( <div className="tocLevel">{content}</div> );
     }
-
     var contentCounts = this.props.depth == 1 ? new Array(this.props.contentCounts).fill(1) : this.props.contentCounts;
     var sectionLinks = [];
     for (var i = 0; i < contentCounts.length; i++) {
@@ -4762,6 +4763,7 @@ var EditGroupPage = React.createClass({
   uploadImage: function(field) {
     // Sets the state of `field` of the resulting image URL
     var url = prompt("Enter an image URL", this.state[field] || "");
+    if (url === null) { return; }
     var state = {};
     state[field] = url;
     this.setState(state);
@@ -4809,6 +4811,7 @@ var EditGroupPage = React.createClass({
         if ("error" in data) {
           alert(data.error);
         } else {
+          this.changed = false;
           window.location = "/groups/" + this.state.name.replace(/ /g, "-");
         }
     }.bind(this)).fail(function() {
@@ -5485,14 +5488,14 @@ var TextColumn = React.createClass({
         console.log(top)
       }
     } else if (!this.scrolledToHighlight && $(ReactDOM.findDOMNode(this)).find(".segment.highlight").length) {
-       console.log("scroll to highlighted")
+       console.log("scroll to highlighted");
       // scroll to highlighted segment
       this.scrollToHighlighted();
       this.scrolledToHighlight = true;
       this.initialScrollTopSet = true;
       this.justScrolled        = true;
     } else if (!this.initialScrollTopSet) {
-      console.log("initial scroll to 30")
+      console.log("initial scroll to 30");
       // initial value set below 0 so you can scroll up for previous
       var node = ReactDOM.findDOMNode(this);
       node.scrollTop = 30;
@@ -5610,7 +5613,7 @@ var TextColumn = React.createClass({
   scrollToHighlighted: function() {
     window.requestAnimationFrame(function() {
       if (!this.isMounted()) { return; }
-      console.log("scroll to highlighted - animation frame")
+      console.log("scroll to highlighted - animation frame");
       var $container   = $(ReactDOM.findDOMNode(this));
       var $readerPanel = $container.closest(".readerPanel");
       var $highlighted = $container.find(".segment.highlight").first();
@@ -5867,7 +5870,7 @@ var TextRange = React.createClass({
           en: en[i], 
           he: he[i],
           number: number,
-          highlight: highlight && number >= data.sections.slice(-1)[0] && number <= data.toSections.slice(-1)[0],
+          highlight: highlight && number >= data.sections.slice(-1)[0] && number <= data.toSections.slice(-1)[0]
         });
       }      
     } else {
@@ -5898,7 +5901,7 @@ var TextRange = React.createClass({
             highlight: highlight && 
                         ((n == 0 && number >= data.sections.slice(-1)[0]) || 
                          (n == topLength-1 && number <= data.toSections.slice(-1)[0]) ||
-                         (n > 0 && n < topLength -1)),
+                         (n > 0 && n < topLength -1))
           });
         }
       }
@@ -5922,10 +5925,10 @@ var TextRange = React.createClass({
       elemsAtPosition[top] = list;  
     };
     $text.find(".linkCount").each(setTop);
-    elemsAtPosition = {} // resetting because we only want it to track segmentNumbers
+    elemsAtPosition = {};  // resetting because we only want it to track segmentNumbers
     $text.find(".segmentNumber").each(setTop).show();
     var fixCollision = function ($elems) {
-      // Takes an array of jQuery elements that all currenlty appear at the same top position
+      // Takes an array of jQuery elements that all currently appear at the same top position
       if ($elems.length == 1) { return; }
       if ($elems.length == 2) {
         var adjust = 8;
@@ -5949,6 +5952,10 @@ var TextRange = React.createClass({
     $text.find(".segmentNumber").show();
     $text.find(".linkCount").show();
 
+  },
+  onFootnoteClick: function(event) {
+      $(event.target).closest("sup").next("i.footnote").toggle();
+      this.placeSegmentNumbers();
   },
   render: function() {
     var data = this.getText();
@@ -5990,6 +5997,7 @@ var TextRange = React.createClass({
             filter={this.props.filter}
             onSegmentClick={this.props.onSegmentClick}
             onCitationClick={this.props.onCitationClick}
+            onFootnoteClick={this.onFootnoteClick}
             key={i + segment.ref} />
       );
     }.bind(this));
@@ -6064,7 +6072,8 @@ var TextSegment = React.createClass({
     showLinkCount:   React.PropTypes.bool,
     filter:          React.PropTypes.array,
     onCitationClick: React.PropTypes.func,
-    onSegmentClick:  React.PropTypes.func
+    onSegmentClick:  React.PropTypes.func,
+    onFootnoteClick: React.PropTypes.func
   },
   handleClick: function(event) {
     if ($(event.target).hasClass("refLink")) {
@@ -6073,6 +6082,9 @@ var TextSegment = React.createClass({
       this.props.onCitationClick(ref, this.props.sref);
       event.stopPropagation(); //add prevent default
       Sefaria.site.track.event("Reader", "Citation Link Click", ref);
+    } else if ($(event.target).is("sup") || $(event.target).parents("sup").size()) {
+      this.props.onFootnoteClick(event);
+      event.stopPropagation();
     } else if (this.props.onSegmentClick) {
       this.props.onSegmentClick(this.props.sref);
       Sefaria.site.track.event("Reader", "Text Segment Click", this.props.sref);
@@ -8397,7 +8409,7 @@ var AccountPanel = React.createClass({
     var accountContent = [
       (<BlockLink interfaceLink={true} target="/my/profile" title="Profile" heTitle="פרופיל" image="/static/img/profile.svg" />),
       (<BlockLink interfaceLink={true} target="/sheets/private" inAppLink={true} title="Source Sheets" heTitle="דפי מקורות" image="/static/img/sheet.svg" />),
-      (Sefaria.is_moderator
+      (Sefaria.is_moderator || Sefaria.has_groups
        ? (<BlockLink interfaceLink={true} target="/my/groups" inAppLink={true} title="Groups" heTitle="קבוצות" image="/static/img/group.svg" />)
        : (<BlockLink interfaceLink={true} target="/coming-soon?my-notes" title="Notes" heTitle="רשומות" image="/static/img/note.svg" />)),
       (<BlockLink interfaceLink={true} target="/texts/recent" title="Reading History" heTitle="היסטורית קריאה" image="/static/img/readinghistory.svg" />),

@@ -431,6 +431,7 @@ def change_node_structure(ja_node, section_names, address_types=None, upsize_in_
 
         return Ref(_obj=d).normal()
 
+
     identifier = ja_node.ref().regex(anchored=False)
 
     def needs_fixing(ref_string, *args):
@@ -634,7 +635,91 @@ def cascade(ref_identifier, rewriter=lambda x: x, needs_rewrite=lambda x: True, 
         generic_rewrite(HistorySet(construct_query('old.refs', identifier), sort=[('old.refs', 1)]), attr_name='old', sub_attr_name='refs')
 
 
-def migrate_to_complex_structure(title, schema, mappings):
+def generate_segment_mapping(title, mapping, output_file=None):
+    '''
+    :param title: title of Index record
+    :param mapping: mapping is a dict where each key is a reference in the original simple Index and each value is a reference in the new complex Index
+    such as mapping['Zohar 1:2a'] = 'Zohar, Genesis'
+    :param output_file:
+    :return segment_map: segment_map is the dict based on mapping
+
+    The function takes each key/value pair in mapping and adds this key/value pair to the segment_map,
+    and it also adds every possible key/value pair that are descendants of the key/value pairs in mapping to the segment_map.
+    In the above example,
+    segment_map['Zohar 1:2a'] = 'Zohar, Genesis'
+    segment_map['Zohar 1:2a:1'] = 'Zohar, Genesis 1'
+    segment_map['Zohar 1:2a:2'] = 'Zohar, Genesis 2'
+    etc.
+
+    :return segment_map:
+    '''
+
+    segment_map = {}
+    for orig_ref in mapping:
+        orig_ref_str = orig_ref
+        orig_ref = Ref(orig_ref)
+        refs = []
+
+        #now create an array, refs that holds the orig_ref in addition to all of its children
+        if orig_ref.is_range():
+            depth = orig_ref.range_depth()
+            if depth == 1:
+                refs = orig_ref.range_list()
+            elif depth == 2:
+                top_level_refs = orig_ref.split_spanning_ref()
+                segment_refs = orig_ref.range_list()
+                refs = top_level_refs + segment_refs
+            elif depth == 3:
+                top_level_refs = orig_ref.split_spanning_ref()
+                section_refs = orig_ref.range_list()
+                segment_refs = orig_ref.as_ranged_segment_ref().range_list()
+                refs = top_level_refs + section_refs + segment_refs
+        else:
+            refs = orig_ref.all_subrefs()
+            if not refs[0].is_segment_level():
+                len_refs = len(refs)
+                segment_refs = []
+                for i in range(len_refs):
+                    segment_refs += refs[i].all_subrefs()
+                assert segment_refs[0].is_segment_level()
+                refs += segment_refs
+            refs += [orig_ref]
+
+        #segment_value is the value of the mapping that the user inputted
+        segment_value = "Complex {}".format(mapping[orig_ref_str])
+
+        #now iterate over the refs and create the key/value pairs to put into segment_map
+        for each_ref in refs:
+            assert each_ref not in segment_map, "Invalid map ranges: Two overlap at reference {}".format(each_ref)
+            if each_ref == orig_ref:
+                segment_map[each_ref.normal()] = segment_value
+            else:
+                '''
+                get in_terms_of() info to construct a string that represents the complex index's new reference.
+                construct the new reference by appending the results of in_terms_of() onto
+                segment_value -- where segment_value is the value that the parameter, mapping, returns for the key of orig_ref
+                '''
+                append_arr = each_ref.in_terms_of(orig_ref)
+                assert append_arr, "{} cannot be computed to be in_terms_of() {}".format(each_ref, orig_ref)
+                segment_ref = Ref(segment_value)
+                core_dict = segment_ref._core_dict()
+                core_dict['sections'] += append_arr
+                core_dict['toSections'] += append_arr
+
+                segment_map[each_ref.normal()] = Ref(_obj=core_dict).normal()
+
+    #output results so that this map can be used again for other purposes
+    if output_file:
+        output_file = open(output_file, 'w')
+        assert type(output_file) is file
+        for key in segment_map:
+            output_file.write("KEY: {}, VALUE: {}".format(key, segment_map[key])+"\n")
+        output_file.close()
+    return segment_map
+
+
+
+def migrate_to_complex_structure(title, schema, mappings, validate_mapping=False):
     """
     Converts book that is simple structure to complex.
     :param title: title of book
@@ -653,35 +738,24 @@ def migrate_to_complex_structure(title, schema, mappings):
         except InputError:
             return False
 
+
     def rewriter(ref):
-        """
-        Converts each reference from the simple text to what it should be in the complex text based on the mappings.
-        Assumes that both the references in the mappings and the references that are passed into the function
-        are not ranges. For example, for the line old_ref.contains(ref), suppose it is:
-        Ref("Genesis 6-7").contains(Ref("Genesis 6:3-4"))
-        This will evaluate to true but then in the return statement,
-        it will not successfully replace the old_ref_str with new_ref.
-        To deal with ranges in the future, split the ranged refs into starting_ref() and ending_ref()
-        and then use in_terms_of() to get the data necessary to properly translate the range.
-        Ranges that cross from one section to another will be cut to only spanning the first section.
-        """
-        if Ref(ref).is_range():
-            print "Currently does not handle ranged refs.  Only handles the starting_ref() of range."
-            ref = Ref(ref).starting_ref()
-        else:
-            ref = Ref(ref)
-        for old_ref in mappings:
-            if Ref(old_ref).is_range():
-                print "Currently does not handle ranged refs.  Only handles the starting_ref() of range."
-                old_ref = Ref(old_ref).starting_ref()
+        ref = Ref(ref)
+        if ref.is_range():
+            start = ref.starting_ref().normal()
+            end = ref.ending_ref().normal()
+            if start in segment_map and end in segment_map:
+                return Ref(segment_map[start]).to(Ref(segment_map[end])).normal()
+            elif start in segment_map:
+                return segment_map[start]
+            elif end in segment_map:
+                return segment_map[end]
             else:
-                old_ref = Ref(old_ref)
-            if old_ref.contains(ref):
-                old_ref_str = old_ref.normal()
-                new_ref = mappings[old_ref_str]
-                ref_str = ref.normal()
-                return "Complex {}".format(ref_str.replace(old_ref_str, new_ref))
-        return "Complex {}".format(ref)
+                return "Complex {}".format(ref.normal())
+        elif ref.normal() not in segment_map:
+            return "Complex {}".format(ref.normal())
+        else:
+            return segment_map[ref.normal()]
 
 
     print "begin conversion"
@@ -716,10 +790,18 @@ def migrate_to_complex_structure(title, schema, mappings):
     vstate_new.flags = vstate_old.flags
     vstate_new.save()
 
+    segment_map = generate_segment_mapping(title, mappings, "output_"+title+"_.txt")
     cascade(title, rewriter, needs_rewrite)
 
     handle_dependant_indices(title)
 
+    Index().load({"title": title}).delete()
+
+    #re-name the temporary index, "Complex ..." to the original title
+    i = library.get_index("Complex {}".format(en_title))
+    i.set_title(title)
+    i.set_title(he_title, lang="he")
+    i.save()
 
 def migrate_versions_of_text(versions, mappings, orig_title, new_title, base_index):
     for i, version in enumerate(versions):
