@@ -1477,3 +1477,18 @@ class AddressVolume(AddressInteger):
         )
         """
     }
+
+
+class AddressHalakhah(AddressInteger):
+
+    """
+    :class:`AddressType` for Halakhah/הלכה addresses
+    """
+
+    section_patterns = {
+        "en": ur"""(?:(?:Halakhah|halakhah)?\s*)""",  #  the internal ? is a hack to allow a non match, even if 'strict'
+        "he": ur"""(?:
+            \u05d4\u05dc?                  # Heh or Heh lamed (for 'halakhah') followed by a quote of some sort
+            |\u05d4\u05dc\u05db\u05d4\s*                  # or 'halkhah' spelled out, followed by space
+        )"""
+    }
