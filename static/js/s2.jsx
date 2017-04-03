@@ -8534,8 +8534,9 @@ var SearchTextResult = React.createClass({
             // } else {
             //     snippet = s[field];  // We're filtering out content, because it's *huge*, especially on Sheets
             // }
+            let dir = Sefaria.hebrew.isHebrew(snippet) ? "rtl" : "ltr";
             snippet = $("<div>" + snippet.replace(/^[ .,;:!-)\]]+/, "") + "</div>").html();
-            return {__html:snippet}
+            return {markup:{__html:snippet}, dir: dir};
         }
 
         var more_results_caret =
@@ -8567,6 +8568,8 @@ var SearchTextResult = React.createClass({
                         }.bind(this))}
             </div>) : null;
 
+        var snippetMarkup = get_snippet_markup();
+
         return (
             <div className="result text_result">
                 <a href={href} onClick={this.handleResultClick}>
@@ -8574,7 +8577,7 @@ var SearchTextResult = React.createClass({
                         <span className="en">{s.ref}</span>
                         <span className="he">{s.heRef}</span>
                     </div>
-                    <div className="snippet" dangerouslySetInnerHTML={get_snippet_markup()} ></div>
+                    <div className="snippet" dir={snippetMarkup.dir} dangerouslySetInnerHTML={snippetMarkup.markup} ></div>
                     <div className="version" >{s.version}</div>
                 </a>
                 {more_results_indicator}
