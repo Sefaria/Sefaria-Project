@@ -624,7 +624,7 @@ var ReaderApp = React.createClass({
       sheetsGroup:          state.group                || null,
       searchQuery:          state.searchQuery          || null,
       appliedSearchFilters: state.appliedSearchFilters || [],
-      searchField:          state.searchField          || "hebmorph_semi_exact",
+      searchField:          state.searchField          || "content",
       searchSortType:       state.searchSortType       || "chronological",
       searchFiltersValid:   state.searchFiltersValid   || false,
       availableFilters:     state.availableFilters     || [],
@@ -7805,7 +7805,7 @@ var SearchResultList = React.createClass({
         error: function() {  console.log("Failure in SearchResultList._loadRemainder"); },
         success: function(data) {
           var hitArray = (type == "text")?this._process_text_hits(data.hits.hits):data.hits.hits;
-          var nextHits = currentHits.concat(hitArray);
+          var nextHits = this._remove_duplicate_text_hits(currentHits.concat(hitArray));
           this.state.hits[type] = nextHits;
           
           this.setState({hits: this.state.hits});
@@ -7869,7 +7869,7 @@ var SearchResultList = React.createClass({
             sort_type: props.sortType,
             success: function(data) {
                 this.updateRunningQuery("text", null, false);
-                var hitArray = this._process_text_hits(data.hits.hits);
+                var hitArray = this._remove_duplicate_text_hits(this._process_text_hits(data.hits.hits));
                 this.setState({
                   hits: extend(this.state.hits, {"text": hitArray}),
                   totals: extend(this.state.totals, {"text": data.hits.total})
@@ -7906,6 +7906,31 @@ var SearchResultList = React.createClass({
             });
             this.updateRunningQuery(null, null, false);
         }
+    },
+    _remove_duplicate_text_hits: function(hits) {
+
+      if (this.props.sortType != "relevance") {
+        return hits;
+      } else {
+        var refHash = {};
+        var newHits = hits.filter((result, iresult) => {
+          let ref = result._source.ref;
+          let refExists = refHash[ref];
+          //only apply filter if you're sorting by relevance. sorting by chrono keeps refs in the correct order
+          if (!refExists) {
+            refHash[ref] = true;
+            //console.log("adding", ref, iresult);
+            return true;
+          } else {
+            //console.log("filtering", ref, iresult);
+            return false;
+          }
+        }).map((result) => {
+          result.duplicates = null;
+          return result;
+        });
+        return newHits;
+      }
     },
     _process_text_hits: function(hits) {
         var comparingRef = null;
