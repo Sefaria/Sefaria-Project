@@ -2343,7 +2343,8 @@ a.resourcesLink {
   font-size: .8em;
   margin-left: .5em;
   margin-right: .5em;
-  color: #999;
+  color: #888;
+  font-style: normal;
 }
 
 .connectionsPanelHeader{

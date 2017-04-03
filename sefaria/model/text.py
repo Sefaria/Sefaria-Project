@@ -439,10 +439,11 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
 
         elif author and author.mostAccurateTimePeriod():
             tp = author.mostAccurateTimePeriod()
-            start = tp.start
-            end = tp.end
-            startIsApprox = tp.startIsApprox
-            endIsApprox = tp.endIsApprox
+            tpvars = vars(tp)
+            start = tp.start if "start" in tpvars else None
+            end = tp.end if "end" in tpvars else None
+            startIsApprox = tp.startIsApprox if "startIsApprox" in tpvars else None
+            endIsApprox = tp.endIsApprox if "endIsApprox" in tpvars else None
 
         if not start is None:
             from sefaria.model.time import TimePeriod
@@ -2816,6 +2817,8 @@ class Ref(object):
         assert not self.is_range(), "Ref.all_subrefs() is not intended for use on Ranges"
 
         size = self.get_state_ja(lang).sub_array_length([i - 1 for i in self.sections])
+        if size is None:
+            size = 0
         return self.subrefs(size)
 
     def context_ref(self, level=1):
