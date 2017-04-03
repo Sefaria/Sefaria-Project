@@ -32,6 +32,19 @@ lang_codes = {
 }
 
 
+def log_error(msg):
+    msg = '{}\n'.format(msg)
+    log_error.all_errors.append(msg)
+    sys.stderr.write(msg)
+log_error.all_errors = []
+
+
+def print_errors():
+    if len(log_error.all_errors):
+        sys.stderr.write('\n___ERRORS___\n')
+    for i, error in enumerate(log_error.all_errors):
+        sys.stderr.write('{}. {}'.format(i, error))
+
 def make_path(doc, format, extension=None):
     """
     Returns the full path and file name for exporting 'doc' in 'format'.
@@ -255,7 +268,8 @@ def clear_exports():
             rmtree(SEFARIA_EXPORT_PATH + "/" + format[0])
     if os.path.exists(SEFARIA_EXPORT_PATH + "/schemas"):
         rmtree(SEFARIA_EXPORT_PATH + "/schemas")
-
+    if os.path.exists(SEFARIA_EXPORT_PATH + "/links"):
+        rmtree(SEFARIA_EXPORT_PATH + "/links")
 
 def write_text_doc_to_disk(doc=None):
     """
@@ -267,19 +281,26 @@ def write_text_doc_to_disk(doc=None):
         if not out:
             print "Skipping %s - no content" % doc["title"]
             return
-        path = make_path(doc, format[0],extension=format[2] if len(format) == 3 else None)
+        path = make_path(doc, format[0], extension=format[2] if len(format) == 3 else None)
         if not os.path.exists(os.path.dirname(path)):
             os.makedirs(os.path.dirname(path))
-        with open(path, "w") as f:
-            f.write(out.encode('utf-8'))
-
+        try:
+            with open(path, "w") as f:
+                f.write(out.encode('utf-8'))
+        except IOError as e:
+            log_error('failed to write to disk: {}'.format(str(e)))
 
 def prepare_text_for_export(text):
     """
     Exports 'text' (a document from the texts collection, or virtual merged document)
     by preparing it as a export document and passing to 'write_text_doc_to_disk'.
     """
-    print text["title"]
+    try:
+        print text["title"]
+    except KeyError as e:
+        log_error('text does\'t contain "title": {}'.format(str(text)))
+        return
+
     try:
         index = library.get_index(text["title"])
     except Exception as e:
@@ -288,6 +309,7 @@ def prepare_text_for_export(text):
 
     text["heTitle"] = index.nodes.primary_title("he")
     text["categories"] = index.categories
+
     text["text"] = text.get("text", None) or text.get("chapter", "")
 
     if index.is_complex():
@@ -343,6 +365,7 @@ def export_texts():
         if text_is_copyright(text):
             # Don't export copyrighted texts.
             continue
+
         prepped_text = prepare_text_for_export(text)
         if prepped_text:
             write_text_doc_to_disk(prepped_text)
@@ -413,17 +436,22 @@ def export_all_merged():
             continue
 
         print title
+        if not title:
+            log_error('None title in texts')
+            continue
         for lang in ("he", "en"):
             prepped_text = prepare_merged_text_for_export(title, lang=lang)
             if prepped_text:
                 write_text_doc_to_disk(prepped_text)
 
 def export_schemas():
+    print('exporting schemas...')
     path = SEFARIA_EXPORT_PATH + "/schemas/"
     if not os.path.exists(path):
         os.makedirs(path)
     for i in library.all_index_records():
         title = i.title.replace(" ", "_")
+
         with open(path + title + ".json", "w") as f:
             try:
                 f.write(make_json(i.contents(v2=True)).encode('utf-8'))
@@ -432,6 +460,8 @@ def export_schemas():
                 print "InputError: %s" % e
                 with open(SEFARIA_EXPORT_PATH + "/errors.log", "a") as error_log:
                     error_log.write("%s - InputError: %s\n" % (datetime.now(), e))
+            except Exception as e:
+                log_error('schemas error on {}: {}'.format(title, str(e)))
 
 
 def export_toc():
@@ -454,39 +484,50 @@ def export_links():
     path = SEFARIA_EXPORT_PATH + "/links/"
     if not os.path.exists(os.path.dirname(path)):
         os.makedirs(os.path.dirname(path))
-    with open(path + "links.csv", 'wb') as csvfile:
-        writer = csv.writer(csvfile)
-        writer.writerow([
-            "Citation 1",
-            "Citation 2",
-            "Conection Type",
-            "Text 1",
-            "Text 2",
-            "Category 1",
-            "Category 2",
-        ])
-        links = db.links.find().sort([["refs.0", 1]])
-        for i,link in enumerate(links):
+
+    link_file_number = 0
+    links = db.links.find().sort([["refs.0", 1]])
+    new_links_file_size = 300000
+    for i, link in enumerate(links):
+        if i % new_links_file_size == 0:
+            filename = '{}links{}.csv'.format(path, link_file_number)
             try:
-                oref1 = Ref(link["refs"][0])
-                oref2 = Ref(link["refs"][1])
-            except InputError:
-                continue
-
+                csvfile.close()
+            except:
+                pass
+            csvfile = open(filename, 'wb')
+            writer = csv.writer(csvfile)
             writer.writerow([
-                link["refs"][0],
-                link["refs"][1],
-                link["type"],
-                oref1.book,
-                oref2.book,
-                oref1.index.categories[0],
-                oref2.index.categories[0],
+                    "Citation 1",
+                    "Citation 2",
+                    "Conection Type",
+                    "Text 1",
+                    "Text 2",
+                    "Category 1",
+                    "Category 2",
             ])
+            link_file_number += 1
 
-            book_link = tuple(sorted([oref1.index.title, oref2.index.title]))
-            links_by_book[book_link] += 1
-            if link["type"] not in ("commentary", "Commentary", "targum", "Targum"):
-                links_by_book_without_commentary[book_link] += 1
+        try:
+            oref1 = Ref(link["refs"][0])
+            oref2 = Ref(link["refs"][1])
+        except InputError:
+            continue
+
+        writer.writerow([
+            link["refs"][0],
+            link["refs"][1],
+            link["type"],
+            oref1.book,
+            oref2.book,
+            oref1.index.categories[0],
+            oref2.index.categories[0],
+        ])
+
+        book_link = tuple(sorted([oref1.index.title, oref2.index.title]))
+        links_by_book[book_link] += 1
+        if link["type"] not in ("commentary", "Commentary", "targum", "Targum"):
+            links_by_book_without_commentary[book_link] += 1
 
     def write_aggregate_file(counter, filename):
         with open(SEFARIA_EXPORT_PATH + "/links/%s" % filename, 'wb') as csvfile:
@@ -557,6 +598,8 @@ def export_all():
     export_toc()
     export_tag_graph()
     make_export_log()
+    print_errors()
+
 
 
 # CSV Version import export format:
