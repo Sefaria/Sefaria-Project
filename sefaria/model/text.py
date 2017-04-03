@@ -1477,7 +1477,8 @@ class TextFamily(object):
                 c = TextChunk(oref, language)
             self._chunks[language] = c
             if wrapLinks:
-                #only wrap links if we know there ARE links
+                #only wrap links if we know there ARE links- get the version, since that's the only reliable way to get it's ObjectId
+                #then count how many links came from that version. If any- do the wrapping.
                 v = Version().load({"title": c.version().title, "versionTitle": c.version().versionTitle, "language": c.lang})
                 from . import LinkSet
                 if LinkSet({"generated_by":"add_links_from_text", "source_text_oid": v._id}).count() > 0:
