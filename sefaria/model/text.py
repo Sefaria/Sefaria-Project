@@ -3947,7 +3947,6 @@ class Library(object):
             self._full_title_lists[key] = titles
         return titles
 
-
     def ref_list(self):
         """
         :return: list of all section-level Refs in the library
