@@ -1106,6 +1106,11 @@ class TextChunk(AbstractTextRecord):
             args += u", {}".format(self.vtitle)
         return u"{}({})".format(self.__class__.__name__, args)
 
+    def version_ids(self):
+        vtitle_query = [{'versionTitle': v.versionTitle} for v in self._versions]
+        query = {"title": self._oref.index.title, "$or": vtitle_query}
+        return VersionSet(query).distinct("_id")
+
     def is_empty(self):
         return self.ja().is_empty()
 
@@ -1479,9 +1484,8 @@ class TextFamily(object):
             if wrapLinks:
                 #only wrap links if we know there ARE links- get the version, since that's the only reliable way to get it's ObjectId
                 #then count how many links came from that version. If any- do the wrapping.
-                v = Version().load({"title": c.version().title, "versionTitle": c.version().versionTitle, "language": c.lang})
                 from . import LinkSet
-                if LinkSet({"generated_by":"add_links_from_text", "source_text_oid": v._id}).count() > 0:
+                if LinkSet({"generated_by":"add_links_from_text", "source_text_oid": {"$in": c.version_ids()}}).count() > 0:
                     setattr(self, self.text_attr_map[language], c.ja().modify_by_function(lambda s: library.get_wrapped_refs_string(s, lang=language, citing_only=True)))
                 else:
                     setattr(self, self.text_attr_map[language], c.text)
