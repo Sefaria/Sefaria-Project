@@ -125,8 +125,6 @@ Sefaria = extend(Sefaria, {
   isRef: function(ref) {
     // Returns true if `ref` appears to be a ref relative to known books in Sefaria.books
     var q = Sefaria.parseRef(ref);
-    // We check for Index here in order not to allow a bare commentator name. Something like "Ramban" will return a book, but no Index.
-    // After commentary refactor, we can take off the index check, below.
     return ("book" in q && q.book);
   },
   normRefList: function(refs) {
