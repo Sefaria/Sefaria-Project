@@ -474,7 +474,7 @@ Sefaria = extend(Sefaria, {
           Sefaria._apiCallbacks[openApiCalls[i]].splice(0, 0, callback);
         }
       }
-      // If no open calls found, call thet texts API.
+      // If no open calls found, call the texts API.
       // Called with context:1 because this is our most common mode, maximize change of saving an API Call
       Sefaria.text(ref, {context: 1}, callback);
     } else {

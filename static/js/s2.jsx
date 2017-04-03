@@ -5233,7 +5233,7 @@ var SheetTagLink = React.createClass({
     this.props.setSheetTag(this.props.tag);
   },
   render: function() {
-    return (<a href={`/sheets/tag/${this.props.tag}`} onClick={this.handleTagClick}>{this.props.tag}</a>);
+    return (<a href={`/sheets/tags/${this.props.tag}`} onClick={this.handleTagClick}>{this.props.tag}</a>);
   }
 });
 
