@@ -166,6 +166,10 @@ def make_text_index_document(tref, version, lang):
     content = bleach.clean(content, strip=True, tags=())
     content_wo_cant = strip_cantillation(content, strip_vowels=False)
 
+    if re.match(ur'^\s*[\(\[].+[\)\]]\s*$',content):
+        return False #don't bother indexing. this segment is surrounded by parens
+
+
     if oref.is_talmud():
         title = text["book"] + " Daf " + text["sections"][0]
     else:
@@ -189,6 +193,29 @@ def make_text_index_document(tref, version, lang):
     else:
         comp_start_date = 3000  # far in the future
 
+    is_short = len(content_wo_cant) < 30
+    prev_ref = oref.prev_segment_ref()
+    next_ref = oref.next_segment_ref()
+    if prev_ref and prev_ref.section_ref() == oref.section_ref():
+        prev_text = TextFamily(prev_ref, context=0, commentary=False, version=version, lang=lang).contents()
+        prev_content = prev_text["he"] if lang == 'he' else prev_text["text"]
+        if not prev_content:
+            prev_content = u""
+        else:
+            prev_content = bleach.clean(content, strip=True, tags=())
+    else:
+        prev_content = u""
+
+    if next_ref and next_ref.section_ref() == oref.section_ref():
+        next_text = TextFamily(next_ref, context=0, commentary=False, version=version, lang=lang).contents()
+        next_content = next_text["he"] if lang == 'he' else next_text["text"]
+        if not prev_content:
+            next_content = u""
+        else:
+            next_content = bleach.clean(content, strip=True, tags=())
+    else:
+        next_content = u""
+
     return {
         "title": title, 
         "ref": oref.normal(),
@@ -206,7 +233,9 @@ def make_text_index_document(tref, version, lang):
         "hebmorph_standard": content_wo_cant,
         "hebmorph_semi_exact": content_wo_cant,
         "aggresive_ngram": content_wo_cant,
-        "naive_lemmatizer": content_wo_cant
+        "naive_lemmatizer": content_wo_cant,
+        "prev_content": prev_content,
+        "next_content": next_content
     }
 
 
@@ -634,6 +663,20 @@ def index_all_commentary_refactor(skip=0, merged=False, debug=False):
     start = datetime.now()
 
     new_index_name = '{}-b'.format(SEARCH_INDEX_NAME if not merged else 'merged')
+
+    if skip == 0:
+        create_index(new_index_name, merged=merged)
+    index_all_sections(new_index_name, skip=skip, merged=merged, debug=debug)
+    if not merged:
+        index_public_sheets(new_index_name)
+
+    end = datetime.now()
+    print "Elapsed time: %s" % str(end-start)
+
+def index_all_noah_beta(skip=0, merged=False, debug=False):
+    start = datetime.now()
+
+    new_index_name = '{}-d'.format(SEARCH_INDEX_NAME if not merged else 'merged')
 
     if skip == 0:
         create_index(new_index_name, merged=merged)
