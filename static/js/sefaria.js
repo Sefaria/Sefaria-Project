@@ -125,9 +125,7 @@ Sefaria = extend(Sefaria, {
   isRef: function(ref) {
     // Returns true if `ref` appears to be a ref relative to known books in Sefaria.books
     var q = Sefaria.parseRef(ref);
-    // We check for Index here in order not to allow a bare commentator name. Something like "Ramban" will return a book, but no Index.
-    // After commentary refactor, we can take off the index check, below.
-    return ("book" in q && q.book && "index" in q && q.index);
+    return ("book" in q && q.book);
   },
   normRefList: function(refs) {
     // Returns a single string ref corresponding the range expressed in the list of `refs`
@@ -474,7 +472,7 @@ Sefaria = extend(Sefaria, {
           Sefaria._apiCallbacks[openApiCalls[i]].splice(0, 0, callback);
         }
       }
-      // If no open calls found, call thet texts API.
+      // If no open calls found, call the texts API.
       // Called with context:1 because this is our most common mode, maximize change of saving an API Call
       Sefaria.text(ref, {context: 1}, callback);
     } else {

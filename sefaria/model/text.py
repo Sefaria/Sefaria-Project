@@ -2806,6 +2806,8 @@ class Ref(object):
         assert not self.is_range(), "Ref.all_subrefs() is not intended for use on Ranges"
 
         size = self.get_state_ja(lang).sub_array_length([i - 1 for i in self.sections])
+        if size is None:
+            size = 0
         return self.subrefs(size)
 
     def context_ref(self, level=1):
@@ -3944,7 +3946,6 @@ class Library(object):
                     titles.extend(self._index_title_maps[lang][i.title])
             self._full_title_lists[key] = titles
         return titles
-
 
     def ref_list(self):
         """

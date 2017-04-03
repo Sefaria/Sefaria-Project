@@ -154,7 +154,7 @@ class LinkSet(abst.AbstractMongoSet):
         categories = text.library.get_text_categories()
         expanded_sources = []
         for source in sources:
-            expanded_sources += [source] if source not in categories else text.library.get_indexes_in_category(source, include_commentary=False)
+            expanded_sources += [source] if source not in categories else text.library.get_indexes_in_category(source)
 
         regexes = [text.Ref(source).regex() for source in expanded_sources]
         filtered = []
