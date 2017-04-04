@@ -1593,6 +1593,7 @@ class TextFamily(object):
         d["indexTitle"]   = self._inode.index.title
         d["heIndexTitle"] = self._inode.index.get_title("he")
         d["sectionRef"]   = self._original_oref.section_ref().normal()
+        d["firstAvailableSectionRef"] = self._original_oref.first_available_section_ref().normal()
         d["heSectionRef"] = self._original_oref.section_ref().he_normal()
         d["isSpanning"]   = self._original_oref.is_spanning()
         if d["isSpanning"]:
@@ -2918,13 +2919,13 @@ class Ref(object):
 
     def starting_refs_of_span(self, deep_range=False):
         """
-            >>> Ref("Zohar 1:3b:12-3:12b:1").stating_refs_of_span()
+            >>> Ref("Zohar 1:3b:12-3:12b:1").starting_refs_of_span()
             [Ref("Zohar 1:3b:12"),Ref("Zohar 2"),Ref("Zohar 3")]
-            >>> Ref("Zohar 1:3b:12-1:4b:12").stating_refs_of_span(True)
+            >>> Ref("Zohar 1:3b:12-1:4b:12").starting_refs_of_span(True)
             [Ref("Zohar 1:3b:12"),Ref("Zohar 1:4a"),Ref("Zohar 1:4b")]
-            >>> Ref("Zohar 1:3b:12-1:4b:12").stating_refs_of_span(False)
+            >>> Ref("Zohar 1:3b:12-1:4b:12").starting_refs_of_span(False)
             [Ref("Zohar 1:3b:12")]
-            >>> Ref("Genesis 12:1-14:3").stating_refs_of_span()
+            >>> Ref("Genesis 12:1-14:3").starting_refs_of_span()
             [Ref("Genesis 12:1"), Ref("Genesis 13"), Ref("Genesis 14")]
 
         :param deep_range: Default: False.  If True, returns list of refs at whatever level the range is.  If False, only returns refs for the 0th index, whether ranged or not.

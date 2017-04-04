@@ -284,7 +284,7 @@ Sefaria = extend(Sefaria, {
     }
   },
   _saveText: function(data, settings, skipWrap) {
-    if (!data || "error" in data) { 
+    if (!data || "error" in data) {
       return;
     }
     settings         = settings || {};
@@ -295,11 +295,10 @@ Sefaria = extend(Sefaria, {
     var refkey           = this._refKey(data.ref, settings);
     this._refmap[refkey] = key;
 
-    if (// data.ref == data.sectionRef // Not segment level ref
-        data.textDepth - data.sections.length == 1 // Section level ref
-        && !data.isSpanning) {
+    var levelsUp = data.textDepth - data.sections.length;
+    if (levelsUp == 1 && !data.isSpanning) { // Section level ref
       this._splitTextSection(data, settings);
-    } else if (settings.context) {
+    } else if (settings.context && levelsUp <= 1) {  // Do we really want this to run on spanning section refs?
       // Save a copy of the data at context level
       var newData        = Sefaria.util.clone(data);
       newData.ref        = data.sectionRef;

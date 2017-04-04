@@ -5425,14 +5425,14 @@ var TextColumn = React.createClass({
     }
   },
   handleScroll: function(event) {
-    console.log("scroll")
+    console.log("scroll");
     if (this.justScrolled) {
-      console.log("pass scroll")
+      console.log("pass scroll");
       this.justScrolled = false;
       return;
     }
     if (this.props.highlightedRefs.length) {
-      console.log("Calling debouncedAdjustTextListHighlight")
+      console.log("Calling debouncedAdjustTextListHighlight");
       this.debouncedAdjustTextListHighlight();
     }
     this.adjustInfiniteScroll();   
@@ -5700,6 +5700,7 @@ var TextRange = React.createClass({
     onNavigationClick:      React.PropTypes.func,
     onCompareClick:         React.PropTypes.func,
     onOpenConnectionsClick: React.PropTypes.func,
+    showBaseText:           React.PropTypes.func,
     panelsOpen:             React.PropTypes.number,
     layoutWidth:            React.PropTypes.number,
     showActionLinks:        React.PropTypes.bool
@@ -5781,7 +5782,13 @@ var TextRange = React.createClass({
     if (this.props.basetext && this.props.sref !== data.ref) {
       // Replace ReaderPanel contents ref with the normalized form of the ref, if they differ.
       // Pass parameter to showBaseText to replaceHistory - normalization should't add a step to history
-      this.props.showBaseText(data.ref, true);
+      this.props.showBaseText(data.ref, true, this.props.version, this.props.versionLanguage);
+      return;
+    }
+
+    // If this is a ref to a super-section, rewrite it to first available section
+    if (data.textDepth - data.sections.length > 1) {
+      this.props.showBaseText(data.firstAvailableSectionRef, true, this.props.version, this.props.versionLanguage);
       return;
     }
 
@@ -5798,7 +5805,7 @@ var TextRange = React.createClass({
     }
   },
   prefetchData: function() {
-    // Prefetch addtional data (next, prev, links, notes etc) for this ref
+    // Prefetch additional data (next, prev, links, notes etc) for this ref
     if (this.dataPrefetched) { return; }
 
     var data = this.getText();
