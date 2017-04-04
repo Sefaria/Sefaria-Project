@@ -1284,7 +1284,7 @@ Sefaria = extend(Sefaria, {
     }
   },
   search: {
-      baseUrl: Sefaria.searchBaseUrl + "/" + Sefaria.searchIndex + "/_search",
+      baseUrl: Sefaria.searchBaseUrl + "/" + Sefaria.searchIndex + "-d" + "/_search",
       _cache: {},
       cache: function(key, result) {
           if (result !== undefined) {
