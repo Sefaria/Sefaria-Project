@@ -2193,7 +2193,11 @@ Sefaria.hebrew = {
     500: "\u05EA\u05E7",
     600: "\u05EA\u05E8",
     700: "\u05EA\u05E9",
-    800: "\u05EA\u05EA"
+    800: "\u05EA\u05EA",
+    900: "\u05EA\u05EA\u05E7",
+    1000: "\u05EA\u05EA\u05E8",
+    1100: "\u05EA\u05EA\u05E9",
+    1200: "\u05EA\u05EA\u05EA"
   },
   decodeHebrewNumeral: function(h) {
     // Takes a string representing a Hebrew numeral and returns it integer value. 
@@ -2203,7 +2207,7 @@ Sefaria.hebrew = {
       return values[h];
     } 
     
-    var n = 0
+    var n = 0;
     for (c in h) {
       n += values[h[c]];
     }
@@ -2212,31 +2216,31 @@ Sefaria.hebrew = {
   },
   encodeHebrewNumeral: function(n) {
     // Takes an integer and returns a string encoding it as a Hebrew numeral. 
-    if (n >= 900) {
+    if (n >= 1300) {
       return n;
     }
 
     var values = Sefaria.hebrew.hebrewNumerals;
-
-    if (n === 15 || n === 16) {
-      return values[n];
-    }
     
     var heb = "";
     if (n >= 100) { 
       var hundreds = n - (n % 100);
       heb += values[hundreds];
       n -= hundreds;
-    } 
-    if (n >= 10) {
-      var tens = n - (n % 10);
-      heb += values[tens];
-      n -= tens;
     }
-    
-    if (n > 0) {
-      heb += values[n]; 
-    } 
+    if (n === 15 || n === 16) {
+      // Catch 15/16 no matter what the hundreds column says
+      heb += values[n];
+    } else {
+      if (n >= 10) {
+        var tens = n - (n % 10);
+        heb += values[tens];
+        n -= tens;
+      }
+      if (n > 0) {
+        heb += values[n];
+      }
+    }
     
     return heb;
   },
