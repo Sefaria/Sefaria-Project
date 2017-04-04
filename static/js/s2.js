@@ -7362,7 +7362,7 @@ var TextRange = React.createClass({
     }
 
     // If this is a ref to a super-section, rewrite it to first available section
-    if (data.textDepth - data.sections.length > 1) {
+    if (data.textDepth - data.sections.length > 1 && data.firstAvailableSectionRef) {
       this.props.showBaseText(data.firstAvailableSectionRef, true, this.props.version, this.props.versionLanguage);
       return;
     }

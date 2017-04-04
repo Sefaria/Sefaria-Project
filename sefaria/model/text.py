@@ -1593,7 +1593,10 @@ class TextFamily(object):
         d["indexTitle"]   = self._inode.index.title
         d["heIndexTitle"] = self._inode.index.get_title("he")
         d["sectionRef"]   = self._original_oref.section_ref().normal()
-        d["firstAvailableSectionRef"] = self._original_oref.first_available_section_ref().normal()
+        try:
+            d["firstAvailableSectionRef"] = self._original_oref.first_available_section_ref().normal()
+        except AttributeError:
+            pass
         d["heSectionRef"] = self._original_oref.section_ref().he_normal()
         d["isSpanning"]   = self._original_oref.is_spanning()
         if d["isSpanning"]:
