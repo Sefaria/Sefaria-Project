@@ -285,6 +285,8 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
 
         return contents
 
+
+
     def legacy_form(self, force_complex=False):
         """
         :param force_complex: Forces a complex Index record into legacy form
@@ -657,6 +659,15 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
             order = max([library.get_index(x).get_toc_index_order() for x in self.base_text_titles])
             return order
         return None
+
+    def slim_toc_contents(self):
+        toc_contents_dict = {
+            "title": self.get_title(),
+            "heTitle": self.get_title("he"),
+        }
+        ord = self.get_toc_index_order()
+        if ord:
+            toc_contents_dict["order"] = ord
 
     def toc_contents(self):
         """Returns to a dictionary used to represent this text in the library wide Table of Contents"""
