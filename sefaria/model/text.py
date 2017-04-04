@@ -669,6 +669,8 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
         if ord:
             toc_contents_dict["order"] = ord
 
+        return toc_contents_dict
+
     def toc_contents(self):
         """Returns to a dictionary used to represent this text in the library wide Table of Contents"""
         firstSection = Ref(self.title).first_available_section_ref()
