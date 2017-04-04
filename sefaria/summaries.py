@@ -159,7 +159,7 @@ def update_search_filter_table_of_contents():
     for i in indices:
         cats = get_toc_categories(i, for_search=True)
         node = get_or_make_summary_node(search_toc, cats)
-        toc_contents = i.slim_toc_contents()
+        text_dict = i.slim_toc_contents()
         text_dict["sparseness"] = sparseness_dict[text_dict["title"]]
         node.append(text_dict)
     # Recursively sort categories and texts
