@@ -3394,6 +3394,7 @@ h2.splitHeader .he {
 }
 .groupPage .groupDescription {
   font-size: 16px;
+  text-align: center;
 }
 .groupPage .tabs {
   text-align: center;
@@ -3600,7 +3601,7 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
   width: 75%;
   display: inline-block;
 }
-#editGroupPage .field label {
+#editGroupPage .field > label {
   display: block;
   margin-bottom: 15px;
 }
@@ -3613,6 +3614,14 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
   border: none;
   box-sizing: border-box;
   color: #333;
+}
+#editGroupPage .hiddenFileInput {
+  width: 0.1px;
+  height: 0.1px;
+  opacity: 0;
+  overflow: hidden;
+  position: absolute;
+  z-index: -1;
 }
 #groupDescription:focus {
   outline: none;

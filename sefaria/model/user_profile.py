@@ -230,7 +230,6 @@ class UserProfile(object):
 		self.recent = [tref] + recent
 		self.save()
 
-
 	def to_DICT(self):
 		"""Return a json serializble dictionary this profile"""
 		dictionary = {

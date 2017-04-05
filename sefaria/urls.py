@@ -335,6 +335,12 @@ urlpatterns += patterns('sefaria.views',
     (r'^api/text-upload$', 'text_upload_api')
 )
 
+# File Uploads
+urlpatterns += patterns('sefaria.views',
+    (r'^api/file/upload$', 'file_upload'),
+)
+
+
 # Email Subscribe
 urlpatterns += patterns('sefaria.views',
     (r'^api/subscribe/(?P<email>.+)$', 'subscribe'),

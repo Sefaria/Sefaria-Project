@@ -4760,14 +4760,54 @@ var EditGroupPage = React.createClass({
       }
     }.bind(this));
   },
-  uploadImage: function(field) {
-    // Sets the state of `field` of the resulting image URL
-    var url = prompt("Enter an image URL", this.state[field] || "");
-    if (url === null) { return; }
+  handleImageChange: function(e) {
+    var MAX_IMAGE_MB = 2;
+    var MAX_IMAGE_SIZE = MAX_IMAGE_MB * 1024 * 1024;
+    var idToField = {
+      groupHeader: "headerUrl",
+      groupImage: "imageUrl",
+    }
+    var field = idToField[e.target.id];
+    var file = e.currentTarget.files[0];
+    if (file.size > MAX_IMAGE_SIZE) {
+      alert("Images must be smaller than " + MAX_IMAGE_MB + "MB.");
+      return;
+    }
+    var formData = new FormData();
+    formData.append("file", e.currentTarget.files[0])
+    $.ajax({
+        url: '/api/file/upload',
+        data: formData,
+        type: 'POST',
+        contentType: false,
+        processData: false,
+        success: function(data) {
+          if ("error" in data) {
+            alert(data.error);
+            this.clearUploading(field);
+          } else {
+            var state = {};
+            state[field] = data.url;
+            this.setState(state);
+            this.changed = true;
+          }
+        }.bind(this),
+        fail: function() {
+          alert("Unfortunately an error occurred uploading your file.")
+          this.clearUploading(field);
+        }
+    });
+    this.setUploading(field);
+  },
+  setUploading: function(field) {
     var state = {};
-    state[field] = url;
+    state[field] = "/static/img/loading.gif";
     this.setState(state);
-    this.changed = true;
+  },
+  clearUploading: function(field) {
+    var state = {};
+    state[field] = null;
+    this.setState(state);
   },
   handleInputChange: function(e) {
     var idToField = {
@@ -4807,6 +4847,9 @@ var EditGroupPage = React.createClass({
     if (this.props.initialData && this.props.initialData.name !== groupData.name) {
       groupData["previousName"] = this.props.initialData.name;
     }
+    if (groupData["headerUrl"] == "/static/img/loading.gif") { groupData["headerUrl"] = null; }
+    if (groupData["imageUrl"] == "/static/img/loading.gif") { groupData["imageUrl"] = null; }
+
     $.post("/api/groups", {json: JSON.stringify(groupData)}, function(data) {
         if ("error" in data) {
           alert(data.error);
@@ -4863,7 +4906,7 @@ var EditGroupPage = React.createClass({
             <span className="int-en">Description</span>
             <span className="int-he">Description</span>
           </label>
-          <textarea id="groupDescription" onChange={this.handleInputChange}>{this.state.description||null}</textarea>
+          <textarea id="groupDescription" onChange={this.handleInputChange} value={this.state.description||null}></textarea>
         </div>
 
         <div className="field">
@@ -4874,10 +4917,12 @@ var EditGroupPage = React.createClass({
           {this.state.imageUrl 
             ? <img className="groupImage" src={this.state.imageUrl} />
             : <div className="groupImage placeholder"></div>}
-          <div className="button white" onClick={this.uploadImage.bind(null, "imageUrl")}>
-            <span className="int-en">Upload Image</span>
-            <span className="int-he">Upload Image</span>
-          </div>
+          <FileInput
+             name="groupImage"
+             accept="image/*"
+             text="Upload Image"
+             className="button white"
+             onChange={this.handleImageChange} />
           <div className="helperText">
             <span className="int-en">Recommended size: 350px x 350px or larger</span>
             <span className="int-he">Recommended size: 350px x 350px or larger</span>
@@ -4895,10 +4940,12 @@ var EditGroupPage = React.createClass({
                 <div className="clearFix"></div>
               </div>
             : <div className="groupHeader placeholder"></div>}
-          <div className="button white" onClick={this.uploadImage.bind(null, "headerUrl")}>
-            <span className="int-en">Upload Image</span>
-            <span className="int-he">Upload Image</span>
-          </div>
+          <FileInput 
+             name="groupHeader"
+             accept="image/*"
+             text="Upload Image"
+             className="button white"
+             onChange={this.handleImageChange} />
           <div className="helperText">
             <span className="int-en">Recommended size: 1000px width to fill sheet, smaller images align right</span>
             <span className="int-he">Recommended size: 1000px width to fill sheet, smaller images align right</span>
@@ -4916,6 +4963,86 @@ var EditGroupPage = React.createClass({
   }
 });
 
+var FileInput = React.createClass({
+  handleChange: function(e) {
+    if (this.props.onChange) { this.props.onChange(e); }
+  },
+  render: function() {
+    return (<div>
+              <label htmlFor={this.props.name} className={this.props.className}>{this.props.text}</label>
+              <input 
+                type="file" 
+                id={this.props.name} 
+                name={this.props.name} 
+                className="hiddenFileInput"
+                accept={this.props.accept}
+                onChange={this.handleChange} />
+            </div>);
+  }
+})
+
+// https://github.com/captivationsoftware/react-file-input
+var FileInputX = React.createClass({
+  getInitialState: function() {
+    return {
+      value: '',
+      styles: {
+        parent: {
+          position: 'relative'
+        },
+        file: {
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          opacity: 0,
+          width: '100%',
+          zIndex: 1
+        },
+        text: {
+          position: 'relative',
+          zIndex: -1
+        }
+      }
+    };
+  },
+
+  handleChange: function(e) {
+    this.setState({
+      value: e.target.value.split(/(\\|\/)/g).pop()
+    });
+    if (this.props.onChange) this.props.onChange(e);
+  },
+
+  render: function() {
+    return React.DOM.div({
+        style: this.state.styles.parent
+      },
+
+      // Actual file input
+      React.DOM.input({
+        type: 'file',
+        name: this.props.name,
+        className: this.props.className,
+        onChange: this.handleChange,
+        disabled: this.props.disabled,
+        accept: this.props.accept,
+        style: this.state.styles.file
+      }),
+
+      // Emulated file input
+      React.DOM.input({
+        type: 'text',
+        tabIndex: -1,
+        name: this.props.name + '_filename',
+        value: this.state.value,
+        className: this.props.className,
+        onChange: function() {},
+        placeholder: this.props.placeholder,
+        disabled: this.props.disabled,
+        style: this.state.styles.text
+      }));
+  }
+});
 
 
 var TagSheetsPage = React.createClass({
