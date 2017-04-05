@@ -284,7 +284,7 @@ Sefaria = extend(Sefaria, {
     }
   },
   _saveText: function(data, settings, skipWrap) {
-    if (!data || "error" in data) { 
+    if (!data || "error" in data) {
       return;
     }
     settings         = settings || {};
@@ -295,11 +295,10 @@ Sefaria = extend(Sefaria, {
     var refkey           = this._refKey(data.ref, settings);
     this._refmap[refkey] = key;
 
-    if (// data.ref == data.sectionRef // Not segment level ref
-        data.textDepth - data.sections.length == 1 // Section level ref
-        && !data.isSpanning) {
+    var levelsUp = data.textDepth - data.sections.length;
+    if (levelsUp == 1 && !data.isSpanning) { // Section level ref
       this._splitTextSection(data, settings);
-    } else if (settings.context) {
+    } else if (settings.context && levelsUp <= 1) {  // Do we really want this to run on spanning section refs?
       // Save a copy of the data at context level
       var newData        = Sefaria.util.clone(data);
       newData.ref        = data.sectionRef;
@@ -984,6 +983,7 @@ Sefaria = extend(Sefaria, {
         var curTocElem = toc[i];
         if (curTocElem.title) { //this is a book
             if(curTocElem.dependence == 'Commentary'){
+                //if((title && curTocElem.base_text_titles && curTocElem.base_text_titles.filter(function(btitle){ return btitle["title"] == title}).length == 1)
                 if((title && curTocElem.base_text_titles && Sefaria.util.inArray(title, curTocElem.base_text_titles) != -1) ||
                     (title == null)){
                     results.push(curTocElem);
@@ -2194,7 +2194,11 @@ Sefaria.hebrew = {
     500: "\u05EA\u05E7",
     600: "\u05EA\u05E8",
     700: "\u05EA\u05E9",
-    800: "\u05EA\u05EA"
+    800: "\u05EA\u05EA",
+    900: "\u05EA\u05EA\u05E7",
+    1000: "\u05EA\u05EA\u05E8",
+    1100: "\u05EA\u05EA\u05E9",
+    1200: "\u05EA\u05EA\u05EA"
   },
   decodeHebrewNumeral: function(h) {
     // Takes a string representing a Hebrew numeral and returns it integer value. 
@@ -2204,7 +2208,7 @@ Sefaria.hebrew = {
       return values[h];
     } 
     
-    var n = 0
+    var n = 0;
     for (c in h) {
       n += values[h[c]];
     }
@@ -2213,31 +2217,31 @@ Sefaria.hebrew = {
   },
   encodeHebrewNumeral: function(n) {
     // Takes an integer and returns a string encoding it as a Hebrew numeral. 
-    if (n >= 900) {
+    if (n >= 1300) {
       return n;
     }
 
     var values = Sefaria.hebrew.hebrewNumerals;
-
-    if (n === 15 || n === 16) {
-      return values[n];
-    }
     
     var heb = "";
     if (n >= 100) { 
       var hundreds = n - (n % 100);
       heb += values[hundreds];
       n -= hundreds;
-    } 
-    if (n >= 10) {
-      var tens = n - (n % 10);
-      heb += values[tens];
-      n -= tens;
     }
-    
-    if (n > 0) {
-      heb += values[n]; 
-    } 
+    if (n === 15 || n === 16) {
+      // Catch 15/16 no matter what the hundreds column says
+      heb += values[n];
+    } else {
+      if (n >= 10) {
+        var tens = n - (n % 10);
+        heb += values[tens];
+        n -= tens;
+      }
+      if (n > 0) {
+        heb += values[n];
+      }
+    }
     
     return heb;
   },

@@ -7398,6 +7398,7 @@ var TextRange = React.createClass({
     onNavigationClick: React.PropTypes.func,
     onCompareClick: React.PropTypes.func,
     onOpenConnectionsClick: React.PropTypes.func,
+    showBaseText: React.PropTypes.func,
     panelsOpen: React.PropTypes.number,
     layoutWidth: React.PropTypes.number,
     showActionLinks: React.PropTypes.bool
@@ -7474,7 +7475,13 @@ var TextRange = React.createClass({
     if (this.props.basetext && this.props.sref !== data.ref) {
       // Replace ReaderPanel contents ref with the normalized form of the ref, if they differ.
       // Pass parameter to showBaseText to replaceHistory - normalization should't add a step to history
-      this.props.showBaseText(data.ref, true);
+      this.props.showBaseText(data.ref, true, this.props.version, this.props.versionLanguage);
+      return;
+    }
+
+    // If this is a ref to a super-section, rewrite it to first available section
+    if (data.textDepth - data.sections.length > 1 && data.firstAvailableSectionRef) {
+      this.props.showBaseText(data.firstAvailableSectionRef, true, this.props.version, this.props.versionLanguage);
       return;
     }
 
@@ -7491,7 +7498,7 @@ var TextRange = React.createClass({
     }
   },
   prefetchData: function prefetchData() {
-    // Prefetch addtional data (next, prev, links, notes etc) for this ref
+    // Prefetch additional data (next, prev, links, notes etc) for this ref
     if (this.dataPrefetched) {
       return;
     }
@@ -9920,9 +9927,9 @@ var SearchResultList = React.createClass({
       error: false
     };
   },
-  updateRunningQuery: function updateRunningQuery(type, ajax) {
+  updateRunningQuery: function updateRunningQuery(type, ajax, isLoadingRemainder) {
     this.state.runningQueries[type] = ajax;
-    this.state.isQueryRunning[type] = !!ajax;
+    this.state.isQueryRunning[type] = !!ajax && !isLoadingRemainder;
     this.setState({
       runningQueries: this.state.runningQueries,
       isQueryRunning: this.state.isQueryRunning
@@ -9939,7 +9946,7 @@ var SearchResultList = React.createClass({
     if (this.state.runningQueries[type]) {
       this.state.runningQueries[type].abort();
     }
-    this.updateRunningQuery(type, null);
+    this.updateRunningQuery(type, null, false);
   },
   componentDidMount: function componentDidMount() {
     this._executeQueries();
@@ -9990,6 +9997,7 @@ var SearchResultList = React.createClass({
   _loadRemainder: function _loadRemainder(type, last, total, currentHits) {
     // Having loaded "last" results, and with "total" results to load, load the rest, this.backgroundQuerySize at a time
     if (last >= total || last >= this.maxResultSize) {
+      this.updateRunningQuery(type, null, false);
       this.state.moreToLoad[type] = false;
       this.setState({ moreToLoad: this.state.moreToLoad });
       return;
@@ -10015,7 +10023,8 @@ var SearchResultList = React.createClass({
         applied_filters: this.props.appliedFilters
       });
     }
-    Sefaria.search.execute_query(query_props);
+    var runningLoadRemainderQuery = Sefaria.search.execute_query(query_props);
+    this.updateRunningQuery(type, runningLoadRemainderQuery, true);
   },
   _executeQueries: function _executeQueries(props) {
     //This takes a props object, so as to be able to handle being called from componentWillReceiveProps with newProps
@@ -10037,7 +10046,7 @@ var SearchResultList = React.createClass({
       type: "sheet",
       size: this.initialQuerySize,
       success: function (data) {
-        this.updateRunningQuery("sheet", null);
+        this.updateRunningQuery("sheet", null, false);
         this.setState({
           hits: extend(this.state.hits, { "sheet": data.hits.hits }),
           totals: extend(this.state.totals, { "sheet": data.hits.total })
@@ -10058,7 +10067,7 @@ var SearchResultList = React.createClass({
       applied_filters: request_applied,
       size: this.initialQuerySize,
       success: function (data) {
-        this.updateRunningQuery("text", null);
+        this.updateRunningQuery("text", null, false);
         var hitArray = this._process_text_hits(data.hits.hits);
         this.setState({
           hits: extend(this.state.hits, { "text": hitArray }),
@@ -10081,8 +10090,8 @@ var SearchResultList = React.createClass({
       error: this._handle_error
     });
 
-    this.updateRunningQuery("text", runningTextQuery);
-    this.updateRunningQuery("sheet", runningSheetQuery);
+    this.updateRunningQuery("text", runningTextQuery, false);
+    this.updateRunningQuery("sheet", runningSheetQuery, false);
   },
   _handle_error: function _handle_error(jqXHR, textStatus, errorThrown) {
     if (textStatus == "abort") {
@@ -10094,7 +10103,7 @@ var SearchResultList = React.createClass({
       this.setState({
         error: true
       });
-      this.updateRunningQuery(null);
+      this.updateRunningQuery(null, null, false);
     }
   },
   _process_text_hits: function _process_text_hits(hits) {
