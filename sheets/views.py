@@ -95,7 +95,7 @@ def can_edit(user, sheet):
 		return True
 	if sheet["options"]["collaboration"] == "group-can-edit":
 		if "group" in sheet:
-			if sheet["group"] in [group.name for group in get_user_groups(request.user.id)]:
+			if sheet["group"] in [group.name for group in get_user_groups(user.id)]:
 				return True
 
 	return False
@@ -119,7 +119,7 @@ def can_add(user, sheet):
 		return True
 	if sheet["options"]["collaboration"] == "group-can-add":
 		if "group" in sheet:
-			if sheet["group"] in [group.name for group in get_user_groups(request.user.id)]:
+			if sheet["group"] in [group.name for group in get_user_groups(user.id)]:
 				return True
 
 	return False
