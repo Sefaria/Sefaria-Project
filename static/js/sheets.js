@@ -1830,6 +1830,31 @@ $(function() {
 
 
 
+	function saveNewlyCreatedTag(newTagName,newTagColor) {
+		if (newTagName !== "Create New" && newTagName !== "") {
+			$(".sheetDiagramTags").append('<div class="splitDiagramSegment" data-tagname="' + newTagName + '"><div class="colorSwatch" style="background-color: ' + newTagColor + '"></div><div class="tagName">' + newTagName + '</div><div class="editCheckToggle"></div></div>');
+			$(".diagramFilterTags").append('<input type="checkbox" name="diagramFilterTags" value="' + newTagName + '" checked="checked"> <span style="background-color: ' + newTagColor + '">' + newTagName + '</span><br>');
+			resetSplitDiagramSegment();
+			resetDiagramFilterTags();
+			autoSave();
+		}
+
+		$(".createNewDiagramTag .tagName").text("Create New")
+	}
+
+
+	$(".createNewDiagramTag .tagName").keydown(function(e){
+		if (e.which == 13) {
+      e.preventDefault();
+			$(".createNewDiagramTag .tagName").blur();
+		}
+	});
+
+	$(".createNewDiagramTag .tagName").focusout(function(e){
+      e.preventDefault();
+			saveNewlyCreatedTag($(e.target).text(),$(e.target).siblings('.colorSwatch').first().css('background-color'));
+	});
+
 	$(".tagSelector").on('click', '.addNewDiagramTag', function() {
 		$(".tagSelector").hide();
 		$(".addTagPanel").show();
@@ -1844,19 +1869,19 @@ $(function() {
 	$(".addTagPanel").on('click', '.addNewTagButton', function() {
 		var newTagName = $(this).closest(".addTagPanel").find(".newTag").val();
 		var newTagColor = $(this).closest(".addTagPanel").find(".colorSelect .active").css('background-color');
-		$(".sheetDiagramTags").append('<div class="splitDiagramSegment"><div style="background-color: '+newTagColor+'">'+newTagName+'</div></div>');
+		$(".sheetDiagramTags").append('<div class="splitDiagramSegment" data-tagname="'+newTagName+'"><div class="colorSwatch" style="background-color: '+newTagColor+'"></div><div class="tagName">'+newTagName+'</div><div class="editCheckToggle"></div></div>');
 		$(".diagramFilterTags").append('<input type="checkbox" name="diagramFilterTags" value="'+newTagName+'" checked="checked"> <span style="background-color: '+newTagColor+'">'+newTagName+'</span><br>');
 		$(".tagSelector").show();
 		$(".addTagPanel").hide();
 		resetSplitDiagramSegment();
 		resetDiagramFilterTags();
+		autoSave();
 	});
 
 
 
 	function splitSelectedText(selection, diagramTag, tagBgColor) {
 			var selectedRange = selection;
-			console.log(selectedRange);
 			var firstSelectedCharacter;
 			var lastSelectedCharacter;
 			if (selectedRange.anchorOffset < selectedRange.focusOffset) {
@@ -1870,6 +1895,7 @@ $(function() {
 
 
 			var curDiagramSegment = $(selectedRange.focusNode);
+			if (curDiagramSegment.parent().hasClass('tagName')) return;
 			var textBefore = curDiagramSegment.text().slice(0, firstSelectedCharacter);
 			var selectedText = curDiagramSegment.text().slice(firstSelectedCharacter, lastSelectedCharacter);
 			var textAfter = curDiagramSegment.text().slice(lastSelectedCharacter);
@@ -1888,7 +1914,7 @@ $(function() {
   function resetSplitDiagramSegment() {
 		$(".splitDiagramSegment").off;
 		$(".splitDiagramSegment").on('click', 'div', function() {
-			splitSelectedText(window.getSelection(),$(this).text(),$(this).css('background-color'));
+			splitSelectedText(window.getSelection(),$(this).parent().find('.tagName').text(),$(this).parent().find('.colorSwatch').css('background-color'));
 		});
 	}
 	resetSplitDiagramSegment();
@@ -1909,13 +1935,11 @@ $(function() {
 
 				if ($(e.target).attr('data-tag')) { //if clicking on a highlight that already is tagged, select whole highlight and open window.
 					var range = document.createRange();
-					console.log(e)
 					range.selectNodeContents(e.currentTarget);
 					var sel = window.getSelection();
 					sel.removeAllRanges();
 					sel.addRange(range);
 				}
-				;
 
 				if (window.getSelection().anchorOffset !== window.getSelection().focusOffset) { //check if there's any selection
 					$("tagSelector").show();
@@ -2392,8 +2416,9 @@ function addSource(q, source, appendOrInsert) {
 			+"<div class='diagramTagWindow'>"
 
 				+"<div class='tagSelector'>"
-					+"<div><strong>Tags</strong></div>"
+					+"<div><strong>Add Highlight</strong></div>"
 					+"<div class='sheetDiagramTags'></div>"
+					+"<div class='createNewDiagramTag'><div class='colorSwatch'></div><div class='tagName' contenteditable='true'>Create New</div></div>"
 					+"<button class='addNewDiagramTag'>Add New Tag</button>"
 				+"</div>"
 
@@ -3029,7 +3054,7 @@ function buildSheet(data){
 
 	if ("diagramTags" in data) {
 		for (var i = 0; i < data.diagramTags.length; i++) {
-			$(".sheetDiagramTags").append('<div class="splitDiagramSegment" data-tagname="'+data.diagramTags[i].name+'"><div style="background-color: '+data.diagramTags[i].color+'">'+data.diagramTags[i].name+'</div></div>');
+			$(".sheetDiagramTags").append('<div class="splitDiagramSegment" data-tagname="'+data.diagramTags[i].name+'"><div class="colorSwatch" style="background-color: '+data.diagramTags[i].color+'"></div><div class="tagName">'+data.diagramTags[i].name+'</div><div class="editCheckToggle"></div></div>');
 			$(".diagramFilterTags").append('<input type="checkbox" name="diagramFilterTags" value="'+data.diagramTags[i].name+'" checked="checked"> <span style="background-color: '+data.diagramTags[i].color+'">'+data.diagramTags[i].name+'</span><br>');
 		}
 	}

@@ -2018,6 +2018,21 @@ a.tagit-close {
 	display: inline-block;
 }
 
+.colorSwatch {
+	width: 10px;
+	height: 10px;
+	display: inline-block;
+	border: 1px solid #333;
+}
+
+.createNewDiagramTag {
+	font-style: italic;
+}
+
+.tagName {
+	display: inline-block;
+}
+
 /* Diagram tag colors */
 
 .diagram-label-green {
