@@ -697,6 +697,32 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
 
         return toc_contents_dict
 
+
+    def get_expanded_base_texts(self):
+        if len(getattr(self, 'base_text_titles', [])) > 1:
+            return [{"title": btitle, "firstSection": self.get_first_ref_in_base_text(btitle)} for btitle in self.base_text_titles]
+        else:
+            return None
+
+    def get_first_ref_in_base_text(self, base_text_title):
+        #we can add other methods of determining the correct first ref of a base text here. e.g. by schema nodes corresponding to base texts
+        linkset_first =  self.get_first_ref_in_base_text_linkset(base_text_title)
+        return linkset_first if linkset_first else None
+
+    def get_first_ref_in_base_text_linkset(self, base_text_title):
+        from . import LinkSet
+        orig_ref = Ref(self.title)
+        base_text_ref = Ref(base_text_title)
+        ls = LinkSet(
+            {'$and': [{'refs': {'$regex': orig_ref.regex()}}, {'refs': {'$regex': base_text_ref.regex()}}],
+             "generated_by": {"$ne": "add_links_from_text"}}
+        )
+        refs_from = ls.refs_from(base_text_ref)
+        sorted_refs_from = sorted(refs_from, key=lambda r: r.order_id())
+        if len(sorted_refs_from):
+            return sorted_refs_from[0].section_ref()
+        return None
+
     def text_index_map(self, tokenizer=lambda x: re.split(u'\s+',x), strict=True, lang='he', vtitle=None):
         """
         See TextChunk.text_index_map
