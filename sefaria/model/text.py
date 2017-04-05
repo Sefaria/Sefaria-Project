@@ -697,7 +697,7 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
 
         return toc_contents_dict
 
-
+    #todo: the next 3 functions seem to come at an unacceptable performance cost. Need to review performance or when they are called. 
     def get_expanded_base_texts(self):
         if len(getattr(self, 'base_text_titles', [])) > 1:
             return [{"title": btitle, "firstSection": self.get_first_ref_in_base_text(btitle)} for btitle in self.base_text_titles]
