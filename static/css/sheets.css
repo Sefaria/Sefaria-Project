@@ -2022,7 +2022,12 @@ a.tagit-close {
 	width: 10px;
 	height: 10px;
 	display: inline-block;
-	border: 1px solid #333;
+	border: 3px solid transparent;
+
+}
+
+.colorSwatch.active {
+	border: 3px solid red;
 }
 
 .createNewDiagramTag {
@@ -2033,40 +2038,6 @@ a.tagit-close {
 	display: inline-block;
 }
 
-/* Diagram tag colors */
-
-.diagram-label-green {
-    background-color: #61BD4F;
-}
-.diagram-label-yellow {
-	background-color: #F2D600
-}
-
-.diagram-label-orange {
-	background-color: #FFAB4A
-}
-.diagram-label-red {
-	background-color: #EB5A46
-}
-
-.diagram-label-purple {
-	background-color: #C377E0
-}
-
-.diagram-label-blue {
-	background-color: #0079BF
-}
-.diagram-label-sky {
-	background-color: #00C2E0
-}
-
-.diagram-label-lime {
-	background-color: #51E898
-}
-
-.diagram-label-pink {
-	background-color: #FF80CE
-}
 .colorSelect {
 	text-align:center;
 }
@@ -2119,10 +2090,6 @@ a.tagit-close {
 	cursor: pointer;
 	border: 1px transparent solid;
 
-}
-
-.colorSelect div.active {
-	border: 1px black solid;
 }
 
 

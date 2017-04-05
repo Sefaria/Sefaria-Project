@@ -1852,30 +1852,13 @@ $(function() {
 
 	$(".createNewDiagramTag .tagName").focusout(function(e){
       e.preventDefault();
-			saveNewlyCreatedTag($(e.target).text(),$(e.target).siblings('.colorSwatch').first().css('background-color'));
+			saveNewlyCreatedTag($(e.target).text(),$(e.target).siblings('.colorSwatch.active').css('background-color'));
 	});
 
-	$(".tagSelector").on('click', '.addNewDiagramTag', function() {
-		$(".tagSelector").hide();
-		$(".addTagPanel").show();
-	});
-
-	$(".colorSelect").on('click', 'div', function() {
-		$(".colorSelect div").removeClass('active');
+	$(".createNewDiagramTag").on('click', '.colorSwatch', function() {
+		$(".colorSwatch").removeClass('active');
 		$(this).addClass('active');
 
-	});
-
-	$(".addTagPanel").on('click', '.addNewTagButton', function() {
-		var newTagName = $(this).closest(".addTagPanel").find(".newTag").val();
-		var newTagColor = $(this).closest(".addTagPanel").find(".colorSelect .active").css('background-color');
-		$(".sheetDiagramTags").append('<div class="splitDiagramSegment" data-tagname="'+newTagName+'"><div class="colorSwatch" style="background-color: '+newTagColor+'"></div><div class="tagName">'+newTagName+'</div><div class="editCheckToggle"></div></div>');
-		$(".diagramFilterTags").append('<input type="checkbox" name="diagramFilterTags" value="'+newTagName+'" checked="checked"> <span style="background-color: '+newTagColor+'">'+newTagName+'</span><br>');
-		$(".tagSelector").show();
-		$(".addTagPanel").hide();
-		resetSplitDiagramSegment();
-		resetDiagramFilterTags();
-		autoSave();
 	});
 
 
@@ -1943,7 +1926,6 @@ $(function() {
 
 				if (window.getSelection().anchorOffset !== window.getSelection().focusOffset) { //check if there's any selection
 					$("tagSelector").show();
-					$("addTagPanel").hide();
 					$(".diagramTagWindow").show().css({
 						"top": e.clientY,
 						"left": e.clientX
@@ -2418,19 +2400,19 @@ function addSource(q, source, appendOrInsert) {
 				+"<div class='tagSelector'>"
 					+"<div><strong>Add Highlight</strong></div>"
 					+"<div class='sheetDiagramTags'></div>"
-					+"<div class='createNewDiagramTag'><div class='colorSwatch'></div><div class='tagName' contenteditable='true'>Create New</div></div>"
+					+"<div class='createNewDiagramTag'>"
+						+"<div class='colorSwatch' style='background-color: #004e5f'></div>"
+						+"<div class='colorSwatch' style='background-color: #5d956f'></div>"
+						+"<div class='colorSwatch' style='background-color: #9ab8cb'></div>"
+						+"<div class='colorSwatch' style='background-color: #cb6158'></div>"
+						+"<div class='colorSwatch' style='background-color: #c7a7b4'></div>"
+						+"<div class='colorSwatch' style='background-color: #ab4e66'></div>"
+						+"<div class='colorSwatch' style='background-color: #7f85a9'></div>"
+						+"<div class='colorSwatch' style='background-color: #ccb479'></div>"
+						+"<div class='colorSwatch' style='background-color: #5a99b7'></div>"
+						+"<div class='colorSwatch' style='background-color: #97b386'></div>"
+					+	"<div class='tagName' contenteditable='true'>Create New</div></div>"
 					+"<button class='addNewDiagramTag'>Add New Tag</button>"
-				+"</div>"
-
-				+"<div class='addTagPanel'>"
-					+"<div><strong>Create Tag</strong></div>"
-					+"<div>Name</div>"
-					+"<input type='text' class='newTag'>"
-					+"<div>Select a Color</div>"
-					+"<div class='colorSelect'>"
-						+"<div class='diagram-label-green'></div><div class='diagram-label-yellow'></div><div class='diagram-label-orange'></div><div class='diagram-label-red'></div><div class='diagram-label-purple'></div><div class='diagram-label-blue'></div><div class='diagram-label-sky'></div><div class='diagram-label-lime'></div><div class='diagram-label-pink'></div>"
-					+"</div>"
-					+"<button class='addNewTagButton'>Create</button>"
 				+"</div>"
 			+"</div>"
 		+"</div>"
