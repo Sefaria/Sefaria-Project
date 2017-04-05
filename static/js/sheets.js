@@ -1853,12 +1853,26 @@ $(function() {
 	$(".createNewDiagramTag .tagName").focusout(function(e){
       e.preventDefault();
 			saveNewlyCreatedTag($(e.target).text(),$(e.target).siblings('.colorSwatch.active').css('background-color'));
+			$('.colorSwatch').removeClass('active');
+			$('.colorSwatch').css('display', '');
+			$('.createNewDiagramTag .colorSwatch').eq($('.splitDiagramSegment').length % 10).addClass('active');
+
 	});
 
 	$(".createNewDiagramTag").on('click', '.colorSwatch', function() {
-		$(".colorSwatch").removeClass('active');
-		$(this).addClass('active');
+		if ($('.createNewDiagramTag .colorSwatch:visible').length > 1) {
+			$(".colorSwatch").removeClass('active');
+			$(this).addClass('active');
+			$(".createNewDiagramTag .colorSwatch").hide();
+			$(".createNewDiagramTag .colorSwatch.active").css("display","inline-block");
+		}
+		else {
+			$(".createNewDiagramTag .colorSwatch").css("display","inline-block");
+		}
+	});
 
+	$(".diagramTagWindow").on('mousedown', '.save', function() {
+		$(".diagramTagWindow").hide();
 	});
 
 
@@ -2401,7 +2415,7 @@ function addSource(q, source, appendOrInsert) {
 					+"<div><strong>Add Highlight</strong></div>"
 					+"<div class='sheetDiagramTags'></div>"
 					+"<div class='createNewDiagramTag'>"
-						+"<div class='colorSwatch' style='background-color: #004e5f'></div>"
+						+"<div class='colorSwatch active' style='background-color: #004e5f'></div>"
 						+"<div class='colorSwatch' style='background-color: #5d956f'></div>"
 						+"<div class='colorSwatch' style='background-color: #9ab8cb'></div>"
 						+"<div class='colorSwatch' style='background-color: #cb6158'></div>"
@@ -2412,7 +2426,7 @@ function addSource(q, source, appendOrInsert) {
 						+"<div class='colorSwatch' style='background-color: #5a99b7'></div>"
 						+"<div class='colorSwatch' style='background-color: #97b386'></div>"
 					+	"<div class='tagName' contenteditable='true'>Create New</div></div>"
-					+"<button class='addNewDiagramTag'>Add New Tag</button>"
+					+"<button class='save'>Save</button>"
 				+"</div>"
 			+"</div>"
 		+"</div>"

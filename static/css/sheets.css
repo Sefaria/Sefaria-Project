@@ -2026,8 +2026,11 @@ a.tagit-close {
 
 }
 
+.createNewDiagramTag .colorSwatch {
+	display: none;
+}
 .colorSwatch.active {
-	border: 3px solid red;
+	display: inline-block;
 }
 
 .createNewDiagramTag {
