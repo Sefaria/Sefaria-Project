@@ -2066,7 +2066,7 @@ var ReaderPanel = React.createClass({
       var onRecentClick = this.state.menuOpen === "compare" || !this.props.onRecentClick ? openInPanel : this.props.onRecentClick;
 
       var menu = (<ReaderNavigationMenu 
-                    key={this.state.navigationCategories.join("-")}
+                    key={this.state.navigationCategories ? this.state.navigationCategories.join("-") : "navHome"}
                     home={this.state.menuOpen === "home"}
                     compare={this.state.menuOpen === "compare"}
                     interfaceLang={this.props.interfaceLang}
