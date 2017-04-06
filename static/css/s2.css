@@ -1250,15 +1250,13 @@ a.resourcesLink {
   font-size: 16px;
   display: inline-block;
   margin-bottom: 10px;
+  cursor: pointer;
 }
 .readerTextTableOfContents .content .schema-node-title .he {
   font-family: "Open Sans Hebrew", sans-serif;
 }
 .readerTextTableOfContents .content .schema-node-toc {
   display: block;
-}
-.readerTextTableOfContents .content .schema-node-toc.linked {
-  cursor: pointer;
 }
 .readerTextTableOfContents .content .schema-node-contents.closed {
   display: none;

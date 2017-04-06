@@ -4254,6 +4254,16 @@ var SchemaNode = React.createClass({
     schema: React.PropTypes.object.isRequired,
     refPath: React.PropTypes.string.isRequired
   },
+  getInitialState: function getInitialState() {
+    var nChildren = "nodes" in this.props.schema ? this.props.schema.length : 0;
+    return {
+      collapsed: new Array(nChildren).fill(false)
+    };
+  },
+  toggleCollapse: function toggleCollapse(i) {
+    this.state.collapsed[i] = !this.state.collapsed[i];
+    this.setState({ collapsed: this.state.collapsed });
+  },
   render: function render() {
     if (!("nodes" in this.props.schema)) {
       if (this.props.schema.nodeType === "JaggedArrayNode") {
@@ -4272,29 +4282,29 @@ var SchemaNode = React.createClass({
             { className: 'schema-node-toc', key: i },
             React.createElement(
               'span',
-              { className: 'schema-node-title' },
+              { className: 'schema-node-title', onClick: this.toggleCollapse.bind(null, i) },
               React.createElement(
                 'span',
                 { className: 'he' },
                 node.heTitle,
                 ' ',
-                React.createElement('i', { className: 'schema-node-control fa fa-angle-down' })
+                React.createElement('i', { className: "schema-node-control fa fa-angle-" + (this.state.collapsed[i] ? "left" : "down") })
               ),
               React.createElement(
                 'span',
                 { className: 'en' },
                 node.title,
                 ' ',
-                React.createElement('i', { className: 'schema-node-control fa fa-angle-down' })
+                React.createElement('i', { className: "schema-node-control fa fa-angle-" + (this.state.collapsed[i] ? "right" : "down") })
               )
             ),
-            React.createElement(
+            !this.state.collapsed[i] ? React.createElement(
               'div',
               { className: 'schema-node-contents' },
               React.createElement(SchemaNode, {
                 schema: node,
                 refPath: this.props.refPath + ", " + node.title })
-            )
+            ) : null
           );
         } else if (node.nodeType == "ArrayMapNode") {
           // ArrayMapNode with only wholeRef
@@ -4331,30 +4341,30 @@ var SchemaNode = React.createClass({
             { className: 'schema-node-toc', key: i },
             !node.default ? React.createElement(
               'span',
-              { className: 'schema-node-title' },
+              { className: 'schema-node-title', onClick: this.toggleCollapse.bind(null, i) },
               React.createElement(
                 'span',
                 { className: 'he' },
                 node.heTitle,
                 ' ',
-                React.createElement('i', { className: 'schema-node-control fa fa-angle-down' })
+                React.createElement('i', { className: "schema-node-control fa fa-angle-" + (this.state.collapsed[i] ? "left" : "down") })
               ),
               React.createElement(
                 'span',
                 { className: 'en' },
                 node.title,
                 ' ',
-                React.createElement('i', { className: 'schema-node-control fa fa-angle-down' })
+                React.createElement('i', { className: "schema-node-control fa fa-angle-" + (this.state.collapsed[i] ? "right" : "down") })
               )
             ) : null,
-            React.createElement(
+            !this.state.collapsed[i] ? React.createElement(
               'div',
               { className: 'schema-node-contents' },
               React.createElement(JaggedArrayNode, {
                 schema: node,
                 contentLang: this.props.contentLang,
                 refPath: this.props.refPath + (node.default ? "" : ", " + node.title) })
-            )
+            ) : null
           );
         }
       }.bind(this));

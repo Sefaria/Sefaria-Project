@@ -3585,6 +3585,16 @@ var SchemaNode = React.createClass({
     schema:      React.PropTypes.object.isRequired,
     refPath:     React.PropTypes.string.isRequired
   },
+  getInitialState: function() {
+    var nChildren = "nodes" in this.props.schema ? this.props.schema.length : 0;
+    return {
+      collapsed: new Array(nChildren).fill(false)
+    }
+  },
+  toggleCollapse: function(i) {
+    this.state.collapsed[i] = !this.state.collapsed[i];
+    this.setState({collapsed: this.state.collapsed});
+  },
   render: function() {
     if (!("nodes" in this.props.schema)) {
       if (this.props.schema.nodeType === "JaggedArrayNode") {
@@ -3605,15 +3615,17 @@ var SchemaNode = React.createClass({
           // SchemaNode with children (nodes) or ArrayMapNode with depth (refs)
           return (
             <div className="schema-node-toc" key={i}>
-              <span className="schema-node-title">
-                <span className="he">{node.heTitle} <i className="schema-node-control fa fa-angle-down"></i></span>
-                <span className="en">{node.title} <i className="schema-node-control fa fa-angle-down"></i></span>
+              <span className="schema-node-title" onClick={this.toggleCollapse.bind(null, i)}>
+                <span className="he">{node.heTitle} <i className={"schema-node-control fa fa-angle-" + (this.state.collapsed[i] ? "left" : "down")}></i></span>
+                <span className="en">{node.title} <i className={"schema-node-control fa fa-angle-" + (this.state.collapsed[i] ? "right" : "down")}></i></span>
               </span>
+              {!this.state.collapsed[i] ? 
               <div className="schema-node-contents">
                 <SchemaNode
                   schema={node}
                   refPath={this.props.refPath + ", " + node.title} />
               </div>
+              : null }
             </div>);
         } else if (node.nodeType == "ArrayMapNode") {
           // ArrayMapNode with only wholeRef
@@ -3633,17 +3645,19 @@ var SchemaNode = React.createClass({
           return (
             <div className="schema-node-toc" key={i}>
               { !node.default ?
-              <span className="schema-node-title">
-                <span className="he">{node.heTitle} <i className="schema-node-control fa fa-angle-down"></i></span>
-                <span className="en">{node.title} <i className="schema-node-control fa fa-angle-down"></i></span>
+              <span className="schema-node-title" onClick={this.toggleCollapse.bind(null, i)}>
+                <span className="he">{node.heTitle} <i className={"schema-node-control fa fa-angle-" + (this.state.collapsed[i] ? "left" : "down")}></i></span>
+                <span className="en">{node.title} <i className={"schema-node-control fa fa-angle-" + (this.state.collapsed[i] ? "right" : "down")}></i></span>
               </span>
               : null }
+              { !this.state.collapsed[i] ? 
               <div className="schema-node-contents">
                 <JaggedArrayNode
                   schema={node}
                   contentLang={this.props.contentLang}
                   refPath={this.props.refPath + (node.default ? "" : ", " + node.title)} />
               </div>
+              : null }
             </div>);
         }
       }.bind(this));
