@@ -17,7 +17,7 @@ class Group(abst.AbstractMongoRecord):
     history_noun = 'group'
 
     track_pkeys = True
-    pkeys = ["name"]
+    pkeys = ["name", "headerUrl", "imageUrl", "coverUrl"]
 
     required_attrs = [
         "name",        # string name of group
@@ -29,8 +29,8 @@ class Group(abst.AbstractMongoRecord):
         "description", # string text of short description
         "websiteUrl",  # url for group website
         "headerUrl",   # url of an image to use in header
-        "coverUrl",    # url of an image to use as cover
         "imageUrl",    # url of an image to use as icon
+        "coverUrl",    # url of an image to use as cover
         "listed",      # Bool, whether to list group publicly
         "tag_order",   # list of strings, display order for sheet tags       
     ]
@@ -40,6 +40,13 @@ class Group(abst.AbstractMongoRecord):
 
     def _validate(self):
         return True
+
+    def _pre_save(self):
+        image_fields = ("imageUrl", "headerUrl", "coverUrl")
+        for field in image_fields:
+            old, new = self.pkeys_orig_values.get(field, None), getattr(self, field, None)
+            if old != new:
+                self._handle_image_change(old, new)
 
     def contents(self, with_content=False, authenticated=False):
         from sefaria.sheets import group_sheets, sheet_tag_counts
@@ -108,6 +115,19 @@ class Group(abst.AbstractMongoRecord):
         """Returns the number of sheets in this group"""
         from sefaria.system.database import db
         return db.sheets.find({"group": self.name}).count()
+
+    def _handle_image_change(self, old, new):
+        """
+        When image fields change:
+        1) delete images that are no longer referenced
+        2) remove new images from the orphaned files list.
+        """
+        from sefaria.s3 import HostedFile
+
+        if old:
+            HostedFile(url=old).delete()
+        if new:
+            HostedFile(url=new).remove_from_orphaned_list()
 
 
 class GroupSet(abst.AbstractMongoSet):

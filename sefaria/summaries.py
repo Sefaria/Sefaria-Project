@@ -96,6 +96,7 @@ ORDER = [
         "Zohar",
     'Liturgy',
         'Siddur',
+        'Haggadah',
         'Piyutim',
     'Philosophy',
     'Parshanut',
@@ -159,10 +160,7 @@ def update_search_filter_table_of_contents():
     for i in indices:
         cats = get_toc_categories(i, for_search=True)
         node = get_or_make_summary_node(search_toc, cats)
-        toc_contents = i.toc_contents()
-        text_dict = {"title": toc_contents["title"], "heTitle": toc_contents["heTitle"]}
-        if "order" in toc_contents:
-            text_dict["order"] = toc_contents["order"]
+        text_dict = i.slim_toc_contents()
         text_dict["sparseness"] = sparseness_dict[text_dict["title"]]
         node.append(text_dict)
     # Recursively sort categories and texts
@@ -202,16 +200,10 @@ def update_title_in_toc(toc, index, old_ref=None, recount=True, for_search=False
     * recount - whether or not to perform a new count of available text
     """
     resort_other = False
-    indx_dict = index.toc_contents()
+    indx_dict = index.toc_contents() if not for_search else index.slim_toc_contents()
     cats = get_toc_categories(index, for_search=for_search)
     """if cats[0] == "Other":
         resort_other = True"""
-    if for_search:
-        stripped_indx_dict = {"title": indx_dict["title"], "heTitle": indx_dict["heTitle"]}
-        if "order" in indx_dict:
-            stripped_indx_dict["order"] = indx_dict["order"]
-        indx_dict = stripped_indx_dict
-
     if recount:
         VersionState(index.title).refresh()
 
