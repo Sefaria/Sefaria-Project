@@ -401,14 +401,16 @@ input.noselect {
 }
 /* Adjusting for 17px scrollbars, to keep content centered
    Only done in multiPanel mode now as a proxy for whether scrollbars take up width (on desktop they do, not on mobile) 
-  Remove 12/16 -- seems to be causing problems now.
+  Removed 12/16 -- seems to be causing problems now.
+  Restored 4/17 -- problem recurred and fixed by storing CSS, what's changing?
+*/
 .multiPanel.interface-english .textColumn {
   padding-left: 17px;
 }
 .multiPanel.interface-hebrew .textColumn {
   padding-right: 17px;
 }
-*/
+
 .textColumn .loadingMessage.base {
   margin: 30px 0;
   color: #999;
@@ -563,7 +565,7 @@ input.noselect {
   padding-right: 40px;
 }
 .multiPanel .readerNavMenu .content {
-  padding: 80px 30px 70px 30px;
+  padding: 30px 30px 70px 30px;
 }
 .multiPanel .readerNavMenu .content.hasFooter {
   padding: 30px 0px 0px 0px;
@@ -571,7 +573,7 @@ input.noselect {
 .multiPanel .readerNavMenu.noHeader .content {
   padding-top: 70px;
 }
-.multiPanel .readerNavMenu.noHeader.compare .content {
+.multiPanel .readerNavMenu.compare .content {
   padding-top: 80px;
 }
 .readerNavMenu .content .contentInner {
@@ -1248,15 +1250,13 @@ a.resourcesLink {
   font-size: 16px;
   display: inline-block;
   margin-bottom: 10px;
+  cursor: pointer;
 }
 .readerTextTableOfContents .content .schema-node-title .he {
   font-family: "Open Sans Hebrew", sans-serif;
 }
 .readerTextTableOfContents .content .schema-node-toc {
   display: block;
-}
-.readerTextTableOfContents .content .schema-node-toc.linked {
-  cursor: pointer;
 }
 .readerTextTableOfContents .content .schema-node-contents.closed {
   display: none;
@@ -1790,6 +1790,12 @@ a.resourcesLink {
   display: inline-block;
   cursor: pointer;
   vertical-align: middle;
+}
+.readerControls .readerTextToc a {
+  color: inherit;
+}
+.readerControls .readerTextToc a:hover {
+  text-decoration: none;
 }
 .readerControls.connectionsHeader .readerTextToc {
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
@@ -3760,7 +3766,7 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
 #footer .fa {
   margin: 0 3px;
 }
-.multiPanel .readerNavMenu .content.hasFooter #footer{
+.multiPanel .readerNavMenu .content.hasFooter #footer {
   margin-top: 120px;
 }
 .gemarra-regular, .gemarra-italic {
@@ -3768,6 +3774,9 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
 }
 .it-text, .gemarra-italic {
   font-style: italic;
+}
+.categoryAttribution a {
+  color: inherit;
 }
 .bubbleTab {
   padding: 10px 25px;

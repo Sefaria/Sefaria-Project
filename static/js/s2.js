@@ -2206,7 +2206,7 @@ var ReaderPanel = React.createClass({
       var onRecentClick = this.state.menuOpen === "compare" || !this.props.onRecentClick ? openInPanel : this.props.onRecentClick;
 
       var menu = React.createElement(ReaderNavigationMenu, {
-        key: this.state.navigationCategories.join("-"),
+        key: this.state.navigationCategories ? this.state.navigationCategories.join("-") : "navHome",
         home: this.state.menuOpen === "home",
         compare: this.state.menuOpen === "compare",
         interfaceLang: this.props.interfaceLang,
@@ -2431,14 +2431,14 @@ var ReaderControls = React.createClass({
         toggleLanguage: this.props.toggleLanguage,
         interfaceLang: this.props.interfaceLang })
     ) : React.createElement(
-      'a',
-      { href: url },
+      'div',
+      { className: "readerTextToc" + (categoryAttribution ? ' attributed' : ''), onClick: this.openTextToc },
       React.createElement(
         'div',
-        { className: "readerTextToc" + (categoryAttribution ? ' attributed' : ''), onClick: this.openTextToc },
+        { className: 'readerTextTocBox' },
         React.createElement(
-          'div',
-          { className: 'readerTextTocBox' },
+          'a',
+          { href: url },
           title ? React.createElement('i', { className: 'fa fa-caret-down invisible' }) : null,
           React.createElement(
             'span',
@@ -2459,7 +2459,13 @@ var ReaderControls = React.createClass({
               { className: 'en' },
               versionTitle
             )
-          ) : null,
+          ) : null
+        ),
+        React.createElement(
+          'div',
+          { onClick: function onClick(e) {
+              e.stopPropagation();
+            } },
           categoryAttribution
         )
       )
@@ -4243,6 +4249,16 @@ var SchemaNode = React.createClass({
     schema: React.PropTypes.object.isRequired,
     refPath: React.PropTypes.string.isRequired
   },
+  getInitialState: function getInitialState() {
+    var nChildren = "nodes" in this.props.schema ? this.props.schema.length : 0;
+    return {
+      collapsed: new Array(nChildren).fill(false)
+    };
+  },
+  toggleCollapse: function toggleCollapse(i) {
+    this.state.collapsed[i] = !this.state.collapsed[i];
+    this.setState({ collapsed: this.state.collapsed });
+  },
   render: function render() {
     if (!("nodes" in this.props.schema)) {
       if (this.props.schema.nodeType === "JaggedArrayNode") {
@@ -4261,29 +4277,29 @@ var SchemaNode = React.createClass({
             { className: 'schema-node-toc', key: i },
             React.createElement(
               'span',
-              { className: 'schema-node-title' },
+              { className: 'schema-node-title', onClick: this.toggleCollapse.bind(null, i) },
               React.createElement(
                 'span',
                 { className: 'he' },
                 node.heTitle,
                 ' ',
-                React.createElement('i', { className: 'schema-node-control fa fa-angle-down' })
+                React.createElement('i', { className: "schema-node-control fa fa-angle-" + (this.state.collapsed[i] ? "left" : "down") })
               ),
               React.createElement(
                 'span',
                 { className: 'en' },
                 node.title,
                 ' ',
-                React.createElement('i', { className: 'schema-node-control fa fa-angle-down' })
+                React.createElement('i', { className: "schema-node-control fa fa-angle-" + (this.state.collapsed[i] ? "right" : "down") })
               )
             ),
-            React.createElement(
+            !this.state.collapsed[i] ? React.createElement(
               'div',
               { className: 'schema-node-contents' },
               React.createElement(SchemaNode, {
                 schema: node,
                 refPath: this.props.refPath + ", " + node.title })
-            )
+            ) : null
           );
         } else if (node.nodeType == "ArrayMapNode") {
           // ArrayMapNode with only wholeRef
@@ -4320,30 +4336,30 @@ var SchemaNode = React.createClass({
             { className: 'schema-node-toc', key: i },
             !node.default ? React.createElement(
               'span',
-              { className: 'schema-node-title' },
+              { className: 'schema-node-title', onClick: this.toggleCollapse.bind(null, i) },
               React.createElement(
                 'span',
                 { className: 'he' },
                 node.heTitle,
                 ' ',
-                React.createElement('i', { className: 'schema-node-control fa fa-angle-down' })
+                React.createElement('i', { className: "schema-node-control fa fa-angle-" + (this.state.collapsed[i] ? "left" : "down") })
               ),
               React.createElement(
                 'span',
                 { className: 'en' },
                 node.title,
                 ' ',
-                React.createElement('i', { className: 'schema-node-control fa fa-angle-down' })
+                React.createElement('i', { className: "schema-node-control fa fa-angle-" + (this.state.collapsed[i] ? "right" : "down") })
               )
             ) : null,
-            React.createElement(
+            !this.state.collapsed[i] ? React.createElement(
               'div',
               { className: 'schema-node-contents' },
               React.createElement(JaggedArrayNode, {
                 schema: node,
                 contentLang: this.props.contentLang,
                 refPath: this.props.refPath + (node.default ? "" : ", " + node.title) })
-            )
+            ) : null
           );
         }
       }.bind(this));
@@ -5082,14 +5098,18 @@ var CategoryAttribution = React.createClass({
       'div',
       { className: 'categoryAttribution' },
       React.createElement(
-        'span',
-        { className: 'en' },
-        attribution.english
-      ),
-      React.createElement(
-        'span',
-        { className: 'he' },
-        attribution.hebrew
+        'a',
+        { href: attribution.link },
+        React.createElement(
+          'span',
+          { className: 'en' },
+          attribution.english
+        ),
+        React.createElement(
+          'span',
+          { className: 'he' },
+          attribution.hebrew
+        )
       )
     ) : null;
   }
@@ -7202,6 +7222,18 @@ var TextColumn = React.createClass({
       // Remove a section scrolled out of view on bottom
       refs = refs.slice(0, -1);
       this.props.updateTextColumn(refs);
+    } else if (windowTop < 21 && !this.loadingContentAtTop) {
+      // UP: add the previous section above then adjust scroll position so page doesn't jump
+      var topRef = refs[0];
+      var data = Sefaria.ref(topRef);
+      if (data && data.prev) {
+        refs.splice(refs, 0, data.prev);
+        this.loadingContentAtTop = true;
+        this.props.updateTextColumn(refs);
+        if (Sefaria.site) {
+          Sefaria.site.track.event("Reader", "Infinite Scroll", "Up");
+        }
+      }
     } else if (lastBottom < windowHeight + 80) {
       // DOWN: add the next section to bottom
       if ($lastText.hasClass("loading")) {
@@ -7216,18 +7248,6 @@ var TextColumn = React.createClass({
         this.props.updateTextColumn(refs);
         if (Sefaria.site) {
           Sefaria.site.track.event("Reader", "Infinite Scroll", "Down");
-        }
-      }
-    } else if (windowTop < 21 && !this.loadingContentAtTop) {
-      // UP: add the previous section above then adjust scroll position so page doesn't jump
-      var topRef = refs[0];
-      var data = Sefaria.ref(topRef);
-      if (data && data.prev) {
-        refs.splice(refs, 0, data.prev);
-        this.loadingContentAtTop = true;
-        this.props.updateTextColumn(refs);
-        if (Sefaria.site) {
-          Sefaria.site.track.event("Reader", "Infinite Scroll", "Up");
         }
       }
     } else {
@@ -10915,7 +10935,7 @@ var RecentPanel = React.createClass({
       React.createElement(Footer, null)
     );
 
-    var navMenuClasses = classNames({ recentPanel: 1, readerNavMenu: 1, noHeader: this.props.hideNavHeader });
+    var navMenuClasses = classNames({ recentPanel: 1, readerNavMenu: 1, noHeader: this.props.hideNavHeader, compare: this.props.compare });
     var navTopClasses = classNames({ readerNavTop: 1, searchOnly: 1, colorLineOnly: this.props.hideNavHeader });
     var contentClasses = classNames({ content: 1, hasFooter: footer != null });
     return React.createElement(
