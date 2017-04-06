@@ -1016,7 +1016,8 @@ Sefaria = extend(Sefaria, {
       {
         categories: ["Talmud", "Bavli"],
         english: "The William Davidson Talmud",
-        hebrew: "תלמוד מהדורת ויליאם דוידסון"
+        hebrew: "תלמוד מהדורת ויליאם דוידסון",
+        link: "/william-davidson-talmud"
       }
     ];
     var attribution = null;

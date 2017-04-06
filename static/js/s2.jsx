@@ -2309,18 +2309,20 @@ var ReaderControls = React.createClass({
             toggleLanguage={this.props.toggleLanguage}
             interfaceLang={this.props.interfaceLang}/>
         </div>) :
-      (<a href={url}>
-          <div className={"readerTextToc" + (categoryAttribution ? ' attributed' : '')} onClick={this.openTextToc}>
-            <div className="readerTextTocBox">
-              { title ? (<i className="fa fa-caret-down invisible"></i>) : null }
-              <span className="en">{title}</span>
-              <span className="he">{heTitle}</span>
-              { title ? (<i className="fa fa-caret-down"></i>) : null }
-              { showVersion ? (<span className="readerTextVersion"><span className="en">{versionTitle}</span></span>) : null}
-              {categoryAttribution}
-            </div>
+      (<div className={"readerTextToc" + (categoryAttribution ? ' attributed' : '')} onClick={this.openTextToc}>
+        <div className="readerTextTocBox">
+          <a href={url}>
+            { title ? (<i className="fa fa-caret-down invisible"></i>) : null }
+            <span className="en">{title}</span>
+            <span className="he">{heTitle}</span>
+            { title ? (<i className="fa fa-caret-down"></i>) : null }
+            { showVersion ? (<span className="readerTextVersion"><span className="en">{versionTitle}</span></span>) : null}
+          </a>
+          <div onClick={(e) => {e.stopPropagation();}}>
+            {categoryAttribution}
           </div>
-        </a>);
+        </div>
+      </div>);
     var leftControls = hideHeader || connectionsHeader ? null :
       (<div className="leftButtons">
           {this.props.multiPanel ? (<ReaderNavigationMenuCloseButton onClick={this.props.closePanel} />) : null}
@@ -4155,10 +4157,13 @@ var CategoryAttribution = React.createClass({
       render: function() {
       var attribution = Sefaria.categoryAttribution(this.props.categories);
       return attribution ?
-      <div className="categoryAttribution">
-        <span className="en">{attribution.english}</span>
-        <span className="he">{attribution.hebrew}</span>
-      </div> : null;
+        <div className="categoryAttribution">
+          <a href={attribution.link}>
+            <span className="en">{attribution.english}</span>
+            <span className="he">{attribution.hebrew}</span>
+          </a>
+        </div> 
+        : null;
     }
 });
 

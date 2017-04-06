@@ -2431,14 +2431,14 @@ var ReaderControls = React.createClass({
         toggleLanguage: this.props.toggleLanguage,
         interfaceLang: this.props.interfaceLang })
     ) : React.createElement(
-      'a',
-      { href: url },
+      'div',
+      { className: "readerTextToc" + (categoryAttribution ? ' attributed' : ''), onClick: this.openTextToc },
       React.createElement(
         'div',
-        { className: "readerTextToc" + (categoryAttribution ? ' attributed' : ''), onClick: this.openTextToc },
+        { className: 'readerTextTocBox' },
         React.createElement(
-          'div',
-          { className: 'readerTextTocBox' },
+          'a',
+          { href: url },
           title ? React.createElement('i', { className: 'fa fa-caret-down invisible' }) : null,
           React.createElement(
             'span',
@@ -2459,7 +2459,13 @@ var ReaderControls = React.createClass({
               { className: 'en' },
               versionTitle
             )
-          ) : null,
+          ) : null
+        ),
+        React.createElement(
+          'div',
+          { onClick: function onClick(e) {
+              e.stopPropagation();
+            } },
           categoryAttribution
         )
       )
@@ -5090,14 +5096,18 @@ var CategoryAttribution = React.createClass({
       'div',
       { className: 'categoryAttribution' },
       React.createElement(
-        'span',
-        { className: 'en' },
-        attribution.english
-      ),
-      React.createElement(
-        'span',
-        { className: 'he' },
-        attribution.hebrew
+        'a',
+        { href: attribution.link },
+        React.createElement(
+          'span',
+          { className: 'en' },
+          attribution.english
+        ),
+        React.createElement(
+          'span',
+          { className: 'he' },
+          attribution.hebrew
+        )
       )
     ) : null;
   }
@@ -7210,6 +7220,18 @@ var TextColumn = React.createClass({
       // Remove a section scrolled out of view on bottom
       refs = refs.slice(0, -1);
       this.props.updateTextColumn(refs);
+    } else if (windowTop < 21 && !this.loadingContentAtTop) {
+      // UP: add the previous section above then adjust scroll position so page doesn't jump
+      var topRef = refs[0];
+      var data = Sefaria.ref(topRef);
+      if (data && data.prev) {
+        refs.splice(refs, 0, data.prev);
+        this.loadingContentAtTop = true;
+        this.props.updateTextColumn(refs);
+        if (Sefaria.site) {
+          Sefaria.site.track.event("Reader", "Infinite Scroll", "Up");
+        }
+      }
     } else if (lastBottom < windowHeight + 80) {
       // DOWN: add the next section to bottom
       if ($lastText.hasClass("loading")) {
@@ -7224,18 +7246,6 @@ var TextColumn = React.createClass({
         this.props.updateTextColumn(refs);
         if (Sefaria.site) {
           Sefaria.site.track.event("Reader", "Infinite Scroll", "Down");
-        }
-      }
-    } else if (windowTop < 21 && !this.loadingContentAtTop) {
-      // UP: add the previous section above then adjust scroll position so page doesn't jump
-      var topRef = refs[0];
-      var data = Sefaria.ref(topRef);
-      if (data && data.prev) {
-        refs.splice(refs, 0, data.prev);
-        this.loadingContentAtTop = true;
-        this.props.updateTextColumn(refs);
-        if (Sefaria.site) {
-          Sefaria.site.track.event("Reader", "Infinite Scroll", "Up");
         }
       }
     } else {

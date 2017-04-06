@@ -1793,6 +1793,12 @@ a.resourcesLink {
   cursor: pointer;
   vertical-align: middle;
 }
+.readerControls .readerTextToc a {
+  color: inherit;
+}
+.readerControls .readerTextToc a:hover {
+  text-decoration: none;
+}
 .readerControls.connectionsHeader .readerTextToc {
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
   text-transform: uppercase;
@@ -3761,7 +3767,7 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
 #footer .fa {
   margin: 0 3px;
 }
-.multiPanel .readerNavMenu .content.hasFooter #footer{
+.multiPanel .readerNavMenu .content.hasFooter #footer {
   margin-top: 120px;
 }
 .gemarra-regular, .gemarra-italic {
@@ -3769,6 +3775,9 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
 }
 .it-text, .gemarra-italic {
   font-style: italic;
+}
+.categoryAttribution a {
+  color: inherit;
 }
 .bubbleTab {
   padding: 10px 25px;
