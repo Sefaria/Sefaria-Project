@@ -1832,7 +1832,7 @@ $(function() {
 
 	function saveNewlyCreatedTag(newTagName,newTagColor) {
 		if (newTagName !== "Create New" && newTagName !== "") {
-			$(".sheetDiagramTags").append('<div class="splitDiagramSegment" data-tagname="' + newTagName + '"><div class="colorSwatch" style="background-color: ' + newTagColor + '"></div><div class="tagName">' + newTagName + '</div><div class="editCheckToggle"></div></div>');
+			$(".sheetDiagramTags").append('<div class="splitDiagramSegment" data-tagname="' + newTagName + '"><div class="colorSwatch active" style="background-color: ' + newTagColor + '"></div><div class="tagName">' + newTagName + '</div><div class="editCheckToggle"></div></div>');
 			$(".diagramFilterTags").append('<input type="checkbox" name="diagramFilterTags" value="' + newTagName + '" checked="checked"> <span style="background-color: ' + newTagColor + '">' + newTagName + '</span><br>');
 			resetSplitDiagramSegment();
 			resetDiagramFilterTags();
@@ -1853,8 +1853,8 @@ $(function() {
 	$(".createNewDiagramTag .tagName").focusout(function(e){
       e.preventDefault();
 			saveNewlyCreatedTag($(e.target).text(),$(e.target).siblings('.colorSwatch.active').css('background-color'));
-			$('.colorSwatch').removeClass('active');
-			$('.colorSwatch').css('display', '');
+			$('.createNewDiagramTag .colorSwatch').removeClass('active');
+			$('.createNewDiagramTag .colorSwatch').css('display', '');
 			$('.createNewDiagramTag .colorSwatch').eq($('.splitDiagramSegment').length % 10).addClass('active');
 
 	});
@@ -2679,8 +2679,8 @@ function readSheet() {
 			sheet.diagramTags = [];
 			$(".sheetDiagramTags").first().children().each(function( i ) {
 				sheet.diagramTags[i] = {};
-				var currentName = $(this).find('div').text();
-				var currentColor = $(this).find('div').css('background-color');
+				var currentName = $(this).find('.tagName').text();
+				var currentColor = $(this).find('.colorSwatch').css('background-color');
 				sheet.diagramTags[i].name = currentName;
 				sheet.diagramTags[i].color = currentColor;
 
@@ -3050,7 +3050,18 @@ function buildSheet(data){
 
 	if ("diagramTags" in data) {
 		for (var i = 0; i < data.diagramTags.length; i++) {
-			$(".sheetDiagramTags").append('<div class="splitDiagramSegment" data-tagname="'+data.diagramTags[i].name+'"><div class="colorSwatch" style="background-color: '+data.diagramTags[i].color+'"></div><div class="tagName">'+data.diagramTags[i].name+'</div><div class="editCheckToggle"></div></div>');
+			$(".sheetDiagramTags").append('<div class="splitDiagramSegment" data-tagname="'+data.diagramTags[i].name+'"><div class="colorSwatch active" style="background-color: '+data.diagramTags[i].color+'"></div>'
+						+"<div class='colorSwatch' style='background-color: #004e5f'></div>"
+						+"<div class='colorSwatch' style='background-color: #5d956f'></div>"
+						+"<div class='colorSwatch' style='background-color: #9ab8cb'></div>"
+						+"<div class='colorSwatch' style='background-color: #cb6158'></div>"
+						+"<div class='colorSwatch' style='background-color: #c7a7b4'></div>"
+						+"<div class='colorSwatch' style='background-color: #ab4e66'></div>"
+						+"<div class='colorSwatch' style='background-color: #7f85a9'></div>"
+						+"<div class='colorSwatch' style='background-color: #ccb479'></div>"
+						+"<div class='colorSwatch' style='background-color: #5a99b7'></div>"
+						+"<div class='colorSwatch' style='background-color: #97b386'></div>"
+				+'<div class="tagName">'+data.diagramTags[i].name+'</div><div class="editCheckToggle">✎</div></div>');
 			$(".diagramFilterTags").append('<input type="checkbox" name="diagramFilterTags" value="'+data.diagramTags[i].name+'" checked="checked"> <span style="background-color: '+data.diagramTags[i].color+'">'+data.diagramTags[i].name+'</span><br>');
 		}
 	}

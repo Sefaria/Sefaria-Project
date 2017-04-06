@@ -2005,6 +2005,11 @@ a.tagit-close {
 	display: inline;
 }
 
+.editCheckToggle {
+    display: inline-block;
+    float: right;
+}
+
 .splitDiagramSegment, .noSelect, .colorSelect div, .addTagPanel, .newTag {
 	-webkit-touch-callout: none;
 	-webkit-user-select: none;
@@ -2021,14 +2026,11 @@ a.tagit-close {
 .colorSwatch {
 	width: 10px;
 	height: 10px;
-	display: inline-block;
+	display: none;
 	border: 3px solid transparent;
 
 }
 
-.createNewDiagramTag .colorSwatch {
-	display: none;
-}
 .colorSwatch.active {
 	display: inline-block;
 }
