@@ -96,6 +96,7 @@ ORDER = [
         "Zohar",
     'Liturgy',
         'Siddur',
+        'Haggadah',
         'Piyutim',
     'Philosophy',
     'Parshanut',
