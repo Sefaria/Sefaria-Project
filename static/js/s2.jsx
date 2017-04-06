@@ -5645,10 +5645,21 @@ var TextColumn = React.createClass({
     var windowHeight = $(node).outerHeight();
     var windowTop    = node.scrollTop;
     var windowBottom = windowTop + windowHeight;
-    if (lastTop > (windowHeight + 100) && refs.length > 1) { 
+    if (lastTop > (windowHeight + 100) && refs.length > 1) {
       // Remove a section scrolled out of view on bottom
       refs = refs.slice(0,-1);
       this.props.updateTextColumn(refs);
+    } else if (windowTop < 21 && !this.loadingContentAtTop) {
+      // UP: add the previous section above then adjust scroll position so page doesn't jump
+      var topRef = refs[0];
+      var data   = Sefaria.ref(topRef);
+      if (data && data.prev) {
+        console.log("Up! Add previous section");
+        refs.splice(refs, 0, data.prev);
+        this.loadingContentAtTop = true;
+        this.props.updateTextColumn(refs);
+        if (Sefaria.site) { Sefaria.site.track.event("Reader", "Infinite Scroll", "Up"); }
+      }
     } else if ( lastBottom < windowHeight + 80 ) {
       // DOWN: add the next section to bottom
       if ($lastText.hasClass("loading")) { 
@@ -5663,18 +5674,7 @@ var TextColumn = React.createClass({
         this.props.updateTextColumn(refs);
         if (Sefaria.site) { Sefaria.site.track.event("Reader", "Infinite Scroll", "Down"); }
       }
-    } else if (windowTop < 21 && !this.loadingContentAtTop) {
-      // UP: add the previous section above then adjust scroll position so page doesn't jump
-      var topRef = refs[0];
-      var data   = Sefaria.ref(topRef);
-      if (data && data.prev) {
-        console.log("Up! Add previous section");
-        refs.splice(refs, 0, data.prev);
-        this.loadingContentAtTop = true;
-        this.props.updateTextColumn(refs);
-        if (Sefaria.site) { Sefaria.site.track.event("Reader", "Infinite Scroll", "Up"); }
-      }
-    } else {
+    }  else {
       // nothing happens
     }
   },
