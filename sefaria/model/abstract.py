@@ -142,7 +142,6 @@ class AbstractMongoRecord(object):
         notify(self, "delete")
         getattr(db, self.collection).remove({"_id": self._id})
 
-
     def delete_by_query(self, query):
         r = self.load(query)
         if r:
@@ -399,7 +398,7 @@ def notify(inst, action, **kwargs):
     """
 
     actions_reqs = {
-        "attributeChange": ["attr", "old", "new"],
+        "attributeChange": ["attr"],
         "save": [],
         "delete": [],
         "create": []

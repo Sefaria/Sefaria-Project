@@ -1181,7 +1181,7 @@ a:active {
 
 }
 
-body.embeded #controls {
+body.embeded #controls, body.embeded .header, body.embeded #footer, body.embeded #fileControls {
 	display: none;
 }
 

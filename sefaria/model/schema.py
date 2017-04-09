@@ -876,7 +876,7 @@ class ArrayMapNode(NumberedTitledTreeNode):
 
                 refs         = text.Ref(self.wholeRef).split_spanning_ref()
                 first, last  = refs[0], refs[-1]
-                offset       = first.sections[-2]-1 if first.is_segment_level() else first.sections[-1]-1
+                offset       = first.sections[-2] - 1 if first.is_segment_level() else first.sections[-1] - 1
 
                 d["refs"] = [r.normal() for r in refs]
                 d["addressTypes"] = first.index_node.addressTypes[-2:-1]
@@ -965,6 +965,9 @@ class SchemaNode(TitledTreeNode):
 
         if not getattr(self, "key", None):
             raise IndexSchemaError("Schema node missing key")
+
+        if "." in self.key:  # Mongo doesn't like . in keys
+            raise IndexSchemaError("'.' is not allowed in key names.")
 
         if self.default and self.key != "default":
             raise IndexSchemaError("'default' nodes need to have key name 'default'")
@@ -1221,7 +1224,7 @@ class AddressType(object):
         """
         The regular expression part that matches this address reference, wrapped with section names, if provided
         :param lang: "en" or "he"
-        :param group_id: The id of the regular expression group the this match will be catured in
+        :param group_id: The id of the regular expression group the this match will be captured in
         :param kwargs: 'strict' kwarg indicates that section names are required to match
         :return string: regex component
         """
@@ -1428,7 +1431,6 @@ class AddressInteger(AddressType):
             return int(s)
         elif lang == "he":
             return decode_hebrew_numeral(s)
-
 
 
 class AddressAliyah(AddressInteger):

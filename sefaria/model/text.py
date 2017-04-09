@@ -260,6 +260,15 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
         if len(authors):
             contents["authors"] = [{"en": author.primary_name("en"), "he": author.primary_name("he")} for author in authors]
 
+        if getattr(self, "collective_title", None):
+            contents["collective_title"] = {"en": self.collective_title, "he": hebrew_term(self.collective_title)}
+
+        if getattr(self, "base_text_titles", None):
+            contents["base_text_titles"] = [{"en": btitle, "he": hebrew_term(btitle)} for btitle in self.base_text_titles]
+
+        contents["heCategories"] = map(hebrew_term, self.categories)
+
+
         composition_time_period = self.composition_time_period()
         if composition_time_period:
             contents["compDateString"] = {
@@ -275,6 +284,8 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
             }
 
         return contents
+
+
 
     def legacy_form(self, force_complex=False):
         """
@@ -429,10 +440,11 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
 
         elif author and author.mostAccurateTimePeriod():
             tp = author.mostAccurateTimePeriod()
-            start = tp.start
-            end = tp.end
-            startIsApprox = tp.startIsApprox
-            endIsApprox = tp.endIsApprox
+            tpvars = vars(tp)
+            start = tp.start if "start" in tpvars else None
+            end = tp.end if "end" in tpvars else None
+            startIsApprox = tp.startIsApprox if "startIsApprox" in tpvars else None
+            endIsApprox = tp.endIsApprox if "endIsApprox" in tpvars else None
 
         if not start is None:
             from sefaria.model.time import TimePeriod
@@ -639,7 +651,6 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
 
         return True
 
-
     def get_toc_index_order(self):
         order = getattr(self, 'order', None)
         if order:
@@ -649,6 +660,16 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
             return order
         return None
 
+    def slim_toc_contents(self):
+        toc_contents_dict = {
+            "title": self.get_title(),
+            "heTitle": self.get_title("he"),
+        }
+        ord = self.get_toc_index_order()
+        if ord:
+            toc_contents_dict["order"] = ord
+
+        return toc_contents_dict
 
     def toc_contents(self):
         """Returns to a dictionary used to represent this text in the library wide Table of Contents"""
@@ -675,6 +696,32 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
             toc_contents_dict["base_text_mapping"] = self.base_text_mapping
 
         return toc_contents_dict
+
+    #todo: the next 3 functions seem to come at an unacceptable performance cost. Need to review performance or when they are called. 
+    def get_expanded_base_texts(self):
+        if len(getattr(self, 'base_text_titles', [])) > 1:
+            return [{"title": btitle, "firstSection": self.get_first_ref_in_base_text(btitle)} for btitle in self.base_text_titles]
+        else:
+            return None
+
+    def get_first_ref_in_base_text(self, base_text_title):
+        #we can add other methods of determining the correct first ref of a base text here. e.g. by schema nodes corresponding to base texts
+        linkset_first =  self.get_first_ref_in_base_text_linkset(base_text_title)
+        return linkset_first if linkset_first else None
+
+    def get_first_ref_in_base_text_linkset(self, base_text_title):
+        from . import LinkSet
+        orig_ref = Ref(self.title)
+        base_text_ref = Ref(base_text_title)
+        ls = LinkSet(
+            {'$and': [{'refs': {'$regex': orig_ref.regex()}}, {'refs': {'$regex': base_text_ref.regex()}}],
+             "generated_by": {"$ne": "add_links_from_text"}}
+        )
+        refs_from = ls.refs_from(base_text_ref)
+        sorted_refs_from = sorted(refs_from, key=lambda r: r.order_id())
+        if len(sorted_refs_from):
+            return sorted_refs_from[0].section_ref()
+        return None
 
     def text_index_map(self, tokenizer=lambda x: re.split(u'\s+',x), strict=True, lang='he', vtitle=None):
         """
@@ -1585,6 +1632,10 @@ class TextFamily(object):
         d["indexTitle"]   = self._inode.index.title
         d["heIndexTitle"] = self._inode.index.get_title("he")
         d["sectionRef"]   = self._original_oref.section_ref().normal()
+        try:
+            d["firstAvailableSectionRef"] = self._original_oref.first_available_section_ref().normal()
+        except AttributeError:
+            pass
         d["heSectionRef"] = self._original_oref.section_ref().he_normal()
         d["isSpanning"]   = self._original_oref.is_spanning()
         if d["isSpanning"]:
@@ -2798,6 +2849,8 @@ class Ref(object):
         assert not self.is_range(), "Ref.all_subrefs() is not intended for use on Ranges"
 
         size = self.get_state_ja(lang).sub_array_length([i - 1 for i in self.sections])
+        if size is None:
+            size = 0
         return self.subrefs(size)
 
     def context_ref(self, level=1):
@@ -2908,13 +2961,13 @@ class Ref(object):
 
     def starting_refs_of_span(self, deep_range=False):
         """
-            >>> Ref("Zohar 1:3b:12-3:12b:1").stating_refs_of_span()
+            >>> Ref("Zohar 1:3b:12-3:12b:1").starting_refs_of_span()
             [Ref("Zohar 1:3b:12"),Ref("Zohar 2"),Ref("Zohar 3")]
-            >>> Ref("Zohar 1:3b:12-1:4b:12").stating_refs_of_span(True)
+            >>> Ref("Zohar 1:3b:12-1:4b:12").starting_refs_of_span(True)
             [Ref("Zohar 1:3b:12"),Ref("Zohar 1:4a"),Ref("Zohar 1:4b")]
-            >>> Ref("Zohar 1:3b:12-1:4b:12").stating_refs_of_span(False)
+            >>> Ref("Zohar 1:3b:12-1:4b:12").starting_refs_of_span(False)
             [Ref("Zohar 1:3b:12")]
-            >>> Ref("Genesis 12:1-14:3").stating_refs_of_span()
+            >>> Ref("Genesis 12:1-14:3").starting_refs_of_span()
             [Ref("Genesis 12:1"), Ref("Genesis 13"), Ref("Genesis 14")]
 
         :param deep_range: Default: False.  If True, returns list of refs at whatever level the range is.  If False, only returns refs for the 0th index, whether ranged or not.
@@ -3937,7 +3990,6 @@ class Library(object):
             self._full_title_lists[key] = titles
         return titles
 
-
     def ref_list(self):
         """
         :return: list of all section-level Refs in the library
@@ -4278,7 +4330,7 @@ def get_index(bookname):
     return library.get_index(bookname)
 
 
-def prepare_index_regex_for_dependency_process(index_object):
+def prepare_index_regex_for_dependency_process(index_object, as_list=False):
     """
     :return string: Regular Expression which will find any titles that match this index title exactly, or more specifically.
 
@@ -4293,7 +4345,10 @@ def prepare_index_regex_for_dependency_process(index_object):
         patterns.append(" \d") # extra granularity following space
 
     escaped_book = re.escape(index_object.title)
-    return "^%s(%s)" % (escaped_book, "|".join(patterns))
+    if as_list:
+        return ["^{}{}".format(escaped_book, p) for p in patterns]
+    else:
+        return "^%s(%s)" % (escaped_book, "|".join(patterns))
 
 
 def process_index_title_change_in_versions(indx, **kwargs):
@@ -4301,7 +4356,7 @@ def process_index_title_change_in_versions(indx, **kwargs):
 
 
 def process_index_title_change_in_dependant_records(indx, **kwargs):
-    dependent_indices = library.get_dependant_indices(kwargs["old"])
+    dependent_indices = library.get_dependant_indices(kwargs["old"], full_records=True)
     for didx in dependent_indices:
         pos = didx.base_text_titles.index(kwargs["old"])
         didx.base_text_titles.pop(pos)

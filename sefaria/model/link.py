@@ -154,7 +154,7 @@ class LinkSet(abst.AbstractMongoSet):
         categories = text.library.get_text_categories()
         expanded_sources = []
         for source in sources:
-            expanded_sources += [source] if source not in categories else text.library.get_indexes_in_category(source, include_commentary=False)
+            expanded_sources += [source] if source not in categories else text.library.get_indexes_in_category(source)
 
         regexes = [text.Ref(source).regex() for source in expanded_sources]
         filtered = []
@@ -222,11 +222,12 @@ class LinkSet(abst.AbstractMongoSet):
 
 def process_index_title_change_in_links(indx, **kwargs):
     print "Cascading Links {} to {}".format(kwargs['old'], kwargs['new'])
-    pattern = text.Ref(indx.title).regex()
-    pattern = pattern.replace(re.escape(indx.title), re.escape(kwargs["old"]))
-    links = LinkSet({"refs": {"$regex": pattern}})
+    patterns = [pattern.replace(re.escape(indx.title), re.escape(kwargs["old"]))
+                for pattern in text.Ref(indx.title).regex(as_list=True)]
+    queries = [{'refs': {'$regex': pattern}} for pattern in patterns]
+    links = LinkSet({"$or": queries})
     for l in links:
-        l.refs = [r.replace(kwargs["old"], kwargs["new"], 1) if re.search(pattern, r) else r for r in l.refs]
+        l.refs = [r.replace(kwargs["old"], kwargs["new"], 1) if re.search(u'|'.join(patterns), r) else r for r in l.refs]
         try:
             l.save()
         except InputError: #todo: this belongs in a better place - perhaps in abstract

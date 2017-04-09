@@ -147,6 +147,9 @@
 .static .page-title{
   margin-bottom: 50px;
 }
+.static label.button {
+  height: auto;
+}
 .static .row{
 
 }

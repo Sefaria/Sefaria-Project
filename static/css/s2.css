@@ -401,14 +401,16 @@ input.noselect {
 }
 /* Adjusting for 17px scrollbars, to keep content centered
    Only done in multiPanel mode now as a proxy for whether scrollbars take up width (on desktop they do, not on mobile) 
-  Remove 12/16 -- seems to be causing problems now.
+  Removed 12/16 -- seems to be causing problems now.
+  Restored 4/17 -- problem recurred and fixed by storing CSS, what's changing?
+*/
 .multiPanel.interface-english .textColumn {
   padding-left: 17px;
 }
 .multiPanel.interface-hebrew .textColumn {
   padding-right: 17px;
 }
-*/
+
 .textColumn .loadingMessage.base {
   margin: 30px 0;
   color: #999;
@@ -563,7 +565,7 @@ input.noselect {
   padding-right: 40px;
 }
 .multiPanel .readerNavMenu .content {
-  padding: 80px 30px 70px 30px;
+  padding: 30px 30px 70px 30px;
 }
 .multiPanel .readerNavMenu .content.hasFooter {
   padding: 30px 0px 0px 0px;
@@ -571,7 +573,7 @@ input.noselect {
 .multiPanel .readerNavMenu.noHeader .content {
   padding-top: 70px;
 }
-.multiPanel .readerNavMenu.noHeader.compare .content {
+.multiPanel .readerNavMenu.compare .content {
   padding-top: 80px;
 }
 .readerNavMenu .content .contentInner {
@@ -1248,15 +1250,13 @@ a.resourcesLink {
   font-size: 16px;
   display: inline-block;
   margin-bottom: 10px;
+  cursor: pointer;
 }
 .readerTextTableOfContents .content .schema-node-title .he {
   font-family: "Open Sans Hebrew", sans-serif;
 }
 .readerTextTableOfContents .content .schema-node-toc {
   display: block;
-}
-.readerTextTableOfContents .content .schema-node-toc.linked {
-  cursor: pointer;
 }
 .readerTextTableOfContents .content .schema-node-contents.closed {
   display: none;
@@ -1790,6 +1790,12 @@ a.resourcesLink {
   display: inline-block;
   cursor: pointer;
   vertical-align: middle;
+}
+.readerControls .readerTextToc a {
+  color: inherit;
+}
+.readerControls .readerTextToc a:hover {
+  text-decoration: none;
 }
 .readerControls.connectionsHeader .readerTextToc {
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
@@ -2330,6 +2336,22 @@ a.resourcesLink {
 .textRange .actionLinks .he {
   font-family: "Open Sans Hebrew", sans-serif;
 }
+
+/* Footnotes */
+.segment sup {
+  margin-left: .2em;
+  margin-right: .2em;
+  text-decoration: underline;
+}
+.segment i.footnote {
+  display: none;
+  font-size: .8em;
+  margin-left: .5em;
+  margin-right: .5em;
+  color: #888;
+  font-style: normal;
+}
+
 .connectionsPanelHeader{
   display: flex;
   justify-content: space-between;
@@ -3378,6 +3400,7 @@ h2.splitHeader .he {
 }
 .groupPage .groupDescription {
   font-size: 16px;
+  text-align: center;
 }
 .groupPage .tabs {
   text-align: center;
@@ -3584,7 +3607,7 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
   width: 75%;
   display: inline-block;
 }
-#editGroupPage .field label {
+#editGroupPage .field > label {
   display: block;
   margin-bottom: 15px;
 }
@@ -3597,6 +3620,14 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
   border: none;
   box-sizing: border-box;
   color: #333;
+}
+#editGroupPage .hiddenFileInput {
+  width: 0.1px;
+  height: 0.1px;
+  opacity: 0;
+  overflow: hidden;
+  position: absolute;
+  z-index: -1;
 }
 #groupDescription:focus {
   outline: none;
@@ -3734,7 +3765,7 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
 #footer .fa {
   margin: 0 3px;
 }
-.multiPanel .readerNavMenu .content.hasFooter #footer{
+.multiPanel .readerNavMenu .content.hasFooter #footer {
   margin-top: 120px;
 }
 .gemarra-regular, .gemarra-italic {
@@ -3742,6 +3773,9 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
 }
 .it-text, .gemarra-italic {
   font-style: italic;
+}
+.categoryAttribution a {
+  color: inherit;
 }
 .bubbleTab {
   padding: 10px 25px;
@@ -3762,3 +3796,4 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
 .bubbleTab.active {
   color: #333;
 }
+

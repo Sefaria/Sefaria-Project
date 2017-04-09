@@ -1,10 +1,11 @@
+import io
+import os
+import zipfile
 import json
 from datetime import datetime, timedelta
 from urlparse import urlparse
 from collections import defaultdict
 from random import choice
-import io
-import zipfile
 
 from django.utils.translation import ugettext as _
 from django.conf import settings
@@ -16,11 +17,13 @@ from django.utils.http import is_safe_url
 from django.contrib.auth import authenticate
 from django.contrib.auth import REDIRECT_FIELD_NAME, login as auth_login, logout as auth_logout
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
+from django.contrib.auth.decorators import login_required
 from django.contrib.sites.models import get_current_site
 from django.contrib.admin.views.decorators import staff_member_required
 from django.views.decorators.debug import sensitive_post_parameters
 from django.views.decorators.cache import never_cache
 from django.views.decorators.csrf import csrf_protect
+
 
 import sefaria.model as model
 import sefaria.system.cache as scache
@@ -260,6 +263,28 @@ def bulktext_api(request, refs):
         resp = jsonResponse(res, cb)
         resp['Access-Control-Allow-Origin'] = '*'
         return resp
+
+@login_required
+def file_upload(request):
+    from tempfile import NamedTemporaryFile
+    from sefaria.s3 import HostedFile
+    if request.method == "POST":
+        MAX_FILE_MB = 2
+        MAX_FILE_SIZE = MAX_FILE_MB * 1024 * 1024
+        uploaded_file = request.FILES['file']
+        if uploaded_file.size > MAX_FILE_SIZE:
+            return jsonResponse({"error": "Uploaded files must be smaller than %dMB." % MAX_FILE_MB})
+        name, extension = os.path.splitext(uploaded_file.name)
+        with NamedTemporaryFile(suffix=extension) as temp_file:
+            temp_file.write(uploaded_file.read())
+            hosted_file = HostedFile(filepath=temp_file.name, content_type=uploaded_file.content_type)
+            try:
+                url = hosted_file.upload()
+                return jsonResponse({"status": "success", "url": url})
+            except: 
+                return jsonResponse({"error": "There was an error uploading your file."})
+    else:
+        return jsonResponse({"error": "Unsupported HTTP method."})
 
 
 @staff_member_required
