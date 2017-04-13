@@ -1736,15 +1736,22 @@ $(function() {
 	$("#sourceSheetGroupSelect").change(function() {
 			changeSharing();
 			if ($(this).val()!="None") {
+				var $el = $("#sourceSheetGroupSelect option:selected");
 				var groupUrl = $(this).val().replace(/ /g, "_");
-				$("#groupLogo").attr("src", $("#sourceSheetGroupSelect option:selected").attr("data-image")).show()
+				$("#groupLogo").attr("src", $el.attr("data-image")).show()
 					.closest("a").attr("href", "/groups/" + groupUrl);
 				$("#sheetHeader").show();
 				$(".groupName").text($(this).val());
+				if (parseInt($el.attr("data-can-publish"))) {
+					$("#sourceSheetsAccessOptions").show();
+				} else {
+					$("#sourceSheetsAccessOptions").hide();
+				}
 			}
 			else {
 				$("#sheetHeader").hide();
 				$(".groupName").text("your group");
+				$("#sourceSheetsAccessOptions").show();
 			}
 	});
 
@@ -1755,9 +1762,6 @@ $(function() {
 
 		autoSave();
 		sjs.alert.flash("Sharing settings saved.")
-
-
-
 	});
 
 
@@ -2783,12 +2787,19 @@ function buildSheet(data){
 		$(".groupSharing").show();
 		$(".groupName").text(data.group);
 		$(".individualSharing").hide();
-		var groupUrl = data.group.replace(/ /g, "_");
-		var groupImage = $(".groupOption[data-group='"+ data.group + "']").attr("data-image"); 
-		$("#groupLogo").attr("src", groupImage).show();
 		$("#sourceSheetGroupSelect").val(data.group);
+		var groupUrl = data.group.replace(/ /g, "_");
+		var $el = $("#sourceSheetGroupSelect option:selected");
+		var groupImage = $el.attr("data-image"); 
+		$("#groupLogo").attr("src", groupImage).show();
+		if (parseInt($el.attr("data-can-publish"))) {
+			$("#sourceSheetsAccessOptions").show();
+		} else {
+			$("#sourceSheetsAccessOptions").hide();
+		}
 	} else {
 		$(".groupSharing").hide();
+		$("#sourceSheetsAccessOptions").show();
 		$(".individualSharing").show();
 	}
 

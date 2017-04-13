@@ -500,7 +500,7 @@
         <input id="shareURL" value="{{ request.META.HTTP_HOST }}/sheets/{{sheet.id}}" readonly="readonly"/>
     </div>
 
-    <div class="content">
+    <div class="content" id="sourceSheetsAccessOptions">
         <div class="inputHeader"><i class='fa fa-unlock-alt'></i> Access</div>
         <select id="sourceSheetShareSelect">
           <option value="private">Private</option>
@@ -519,7 +519,13 @@
             <option value="None">None</option>
 
     		{% for group in owner_groups %}
-              <option value="{{ group.name }}" data-group="{{ group.name }}" data-image="{{ group.headerUrl|default:'' }}">{{ group.name }}</option>
+                <option 
+                    value="{{ group.name }}" 
+                    data-group="{{ group.name }}" 
+                    data-image="{{ group.headerUrl|default:'' }}"
+                    data-can-publish="{% if group.canPublish %}1{% else %}0{% endif %}">
+                    {{ group.name }}
+                </option>
 			{% endfor %}
         </select>
     </div>
