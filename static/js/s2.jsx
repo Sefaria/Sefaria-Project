@@ -4605,13 +4605,13 @@ var GroupSheetListing = React.createClass({
     var title = sheet.title ? sheet.title.stripHtml() : "Untitled Source Sheet";
     var url = "/sheets/" + sheet.id;
 
-    if (sheet.tags === undefined) sheet.tags = [];
-      var tagString = sheet.tags.map(function (tag) {
+    if (sheet.tags === undefined) { sheet.tags = []; }
+    var tagString = sheet.tags.map(function (tag) {
           return(<SheetTagLink setSheetTag={this.props.setSheetTag} tag={tag} key={tag} />);
     },this);
 
     return (<div className="sheet userSheet">
-                <a className="sheetTitle" href={url} key={url}>{title}</a>
+                <a className="sheetTitle" href={url} key={url}>{title}</a> <SheetAccessIcon sheet={sheet} />
                 <div>{sheet.ownerName} · {sheet.views} Views · {sheet.modified} · <span className="tagString">{tagString}</span></div>
               </div>);
 
@@ -5280,7 +5280,7 @@ var MySheetsPage = React.createClass({
       return Sefaria.util.inArray(this.state.sheetFilterTag, sheet.tags) >= 0;
     }.bind(this)) : sheets;
     sheets = sheets ? sheets.map(function(sheet) {
-      return (<PrivateSheetListing sheet={sheet} multiPanel={this.props.multiPanel} setSheetTag={this.props.setSheetTag} />);
+      return (<PrivateSheetListing sheet={sheet} multiPanel={this.props.multiPanel} setSheetTag={this.props.setSheetTag} key={sheet.id} />);
     }.bind(this)) : (<LoadingMessage />);
 
     var userTagList = this.getTagsFromCache();
@@ -5331,8 +5331,8 @@ var MySheetsPage = React.createClass({
 
 var PrivateSheetListing = React.createClass({
   propTypes: {
-    sheet:      React.PropTypes.object.isRequired,
-    multiPanel: React.PropTypes.bool,
+    sheet:       React.PropTypes.object.isRequired,
+    multiPanel:  React.PropTypes.bool,
     setSheetTag: React.PropTypes.func.isRequired
   },
   render: function() {
@@ -5340,8 +5340,6 @@ var PrivateSheetListing = React.createClass({
     var editSheetTags = function() { console.log(sheet.id)}.bind(this);
     var title = sheet.title ? sheet.title.stripHtml() : "Untitled Source Sheet";
     var url = "/sheets/" + sheet.id;
-
-
 
     if (sheet.tags === undefined) sheet.tags = [];
       var tagString = sheet.tags.map(function (tag) {
@@ -5357,17 +5355,33 @@ var PrivateSheetListing = React.createClass({
                   <span><i className="fa fa-tag"></i> </span>
                 </div>
 
-                <a className="sheetTitle" href={url}>{title}</a>
+                <a className="sheetTitle" href={url}>{title}</a>  <SheetAccessIcon sheet={sheet} />
                 <div>{sheet.views} Views · {sheet.modified} · <span className="tagString">{tagString}</span></div>
             </div>);
     } else {
       return (<a className="sheet userSheet" href={url} key={url}>
-                <div className="sheetTitle">{title}</div>
+                <div className="sheetTitle">{title}</div> <SheetAccessIcon sheet={sheet} />
                 <div>{sheet.views} Views · {sheet.modified} · <span className="tagString">{tagString}</span></div>
               </a>);
     }
   }
 });
+
+
+var SheetAccessIcon = React.createClass({
+  propTypes: {
+    sheet: React.PropTypes.object.isRequired
+  },
+  render: function() {
+    var sheet = this.props.sheet;
+    console.log(sheet)
+    var msg = "group" in sheet ? "Listed for Group members only" : "Private";
+    return (sheet.status == "unlisted") ? 
+      (<i className="fa fa-lock" title={msg}></i>)
+      : null;
+  }
+});
+
 
 var SheetTagLink = React.createClass({
   propTypes: {

@@ -610,6 +610,7 @@ def groups_invite_api(request, group_name, uid_or_email):
 	group_content = group.contents(with_content=True, authenticated=True)
 	return jsonResponse(group_content)
 
+
 def sheet_stats(request):
 	pass
 

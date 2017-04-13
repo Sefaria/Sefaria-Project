@@ -555,7 +555,7 @@ $(function() {
 		var group = $(this).attr("data-group");
 		if (group != "None") {
 			sjs.track.sheets("Share with Group", group);
-			var groupUrl = group.replace(/ /g, "_");
+			var groupUrl = group.replace(/ /g, "-");
 			$("#groupLogo").attr("src", $(this).attr("data-image")).show()
 				.closest("a").attr("href", "/groups/" + groupUrl );
 			$("#sheetHeader").show();
@@ -1737,7 +1737,7 @@ $(function() {
 		changeSharing();
 		if ($(this).val()!="None") {
 			var $el = $("#sourceSheetGroupSelect option:selected");
-			var groupUrl = $(this).val().replace(/ /g, "_");
+			var groupUrl = $(this).val().replace(/ /g, "-");
 			$("#groupLogo").attr("src", $el.attr("data-image")).show()
 				.closest("a").attr("href", "/groups/" + groupUrl);
 			$("#sheetHeader").show();
@@ -2784,7 +2784,7 @@ function buildSheet(data){
 		$(".groupName").text(data.group);
 		$(".individualSharing").hide();
 		$("#sourceSheetGroupSelect").val(data.group);
-		var groupUrl = data.group.replace(/ /g, "_");
+		var groupUrl = data.group.replace(/ /g, "-");
 		var $el = $("#sourceSheetGroupSelect option:selected");
 		var groupImage = $el.attr("data-image"); 
 
