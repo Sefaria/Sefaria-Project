@@ -85,7 +85,7 @@ def new_sheet(request):
 
 def can_edit(user, sheet):
 	"""
-	Returns true if user can edit sheet.
+	Returns True if user can edit sheet.
 	"""
 	if sheet["owner"] == user.id:
 		return True
@@ -105,8 +105,8 @@ def can_edit(user, sheet):
 
 def can_add(user, sheet):
 	"""
-	Returns true if user has adding persmission on sheet.
-	Returns false if user has the higher permission "can_edit"
+	Returns True if user has adding persmission on sheet.
+	Returns False if user has the higher permission "can_edit"
 	"""
 	if not user.is_authenticated():
 		return False
@@ -126,6 +126,19 @@ def can_add(user, sheet):
 			except:
 				return False
 
+	return False
+
+
+def can_publish(user, sheet):
+	"""
+	Returns True if user and sheet both belong to the same Group, and user has publish rights in that group
+	Returns False otherwise, including if the sheet is not in a Group at all
+	"""
+	if "group" in sheet:
+		try:
+			return Group().load({"name": sheet["group"]}).can_publish(user.id)
+		except:
+			return False
 	return False
 
 
@@ -180,19 +193,20 @@ def view_sheet(request, sheet_id):
 	try:
 		owner = User.objects.get(id=sheet["owner"])
 		author = owner.first_name + " " + owner.last_name
-		owner_groups = get_user_groups(request.user.id) if sheet["owner"] == request.user.id else None
+		owner_groups = get_user_groups(request.user.id)
 	except User.DoesNotExist:
 		author = "Someone Mysterious"
 		owner_groups = None
 
-	sheet_class     = make_sheet_class_string(sheet)
-	can_edit_flag   = can_edit(request.user, sheet)
-	can_add_flag    = can_add(request.user, sheet)
-	sheet_group     = Group().load({"name": sheet["group"]}) if "group" in sheet and sheet["group"] != "None" else None
-	embed_flag      = "embed" in request.GET
-	likes           = sheet.get("likes", [])
-	like_count      = len(likes)
-	viewer_is_liker = request.user.id in likes
+	sheet_class      = make_sheet_class_string(sheet)
+	sheet_group      = Group().load({"name": sheet["group"]}) if "group" in sheet and sheet["group"] != "None" else None
+	can_edit_flag    = can_edit(request.user, sheet)
+	can_add_flag     = can_add(request.user, sheet)
+	can_publish_flag = sheet_group.can_publish(request.user.id) if sheet_group else False
+	embed_flag       = "embed" in request.GET
+	likes            = sheet.get("likes", [])
+	like_count       = len(likes)
+	viewer_is_liker  = request.user.id in likes
 
 
 	return render_to_response('sheets.html' if request.COOKIES.get('s1') else 's2_sheets.html', {"sheetJSON": json.dumps(sheet),
@@ -200,6 +214,7 @@ def view_sheet(request, sheet_id):
 												"sheet_class": sheet_class,
 												"can_edit": can_edit_flag,
 												"can_add": can_add_flag,
+												"can_publish": can_publish_flag,
 												"title": sheet["title"],
 												"author": author,
 												"is_owner": request.user.id == sheet["owner"],
@@ -695,7 +710,8 @@ def sheet_list_api(request):
 			existing = get_sheet(sheet["id"])
 			if "error" not in existing  and \
 				not can_edit(user, existing) and \
-				not can_add(request.user, existing):
+				not can_add(request.user, existing) and \
+				not can_publish(request.user, existing):
 
 				return jsonResponse({"error": "You don't have permission to edit this sheet."})
 		else: 
@@ -707,8 +723,7 @@ def sheet_list_api(request):
 				# Don't allow non Group members to add a sheet to a group
 				sheet["group"] = None
 
-			can_publish = Group().load({"name": sheet["group"]}).can_publish(request.user.id)
-			if not can_publish:
+			if not can_publish(request.user, sheet):
 				if not existing:
 					sheet["status"] = "unlisted"
 				else: 

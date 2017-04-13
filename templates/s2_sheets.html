@@ -235,9 +235,8 @@
     </div>
 	{% if new_sheet %}
         <span id="save" class="button"><i class="fa fa-floppy-o"></i> Save</span>
-	{% endif %}
 
-    {% if is_owner and not new_sheet %}
+    {% elif is_owner or can_publish %}
         <span id="share" class="button"><img src="/static/img/share.png"> Share</span>
 	{% endif %}
 
@@ -513,7 +512,7 @@
     </div>
 
    {% if owner_groups %}
-    <div class="content">
+    <div class="content" id="sourceSheetGroupOptions">
         <div class="inputHeader"><i class='fa fa-group'></i> Group</div>
         <select id="sourceSheetGroupSelect">
             <option value="None">None</option>
@@ -686,6 +685,7 @@ Footer depends on full bootstrap grid, which isn't loaded in sheets.html
 		assigner_id: {{ assigner_id|default:"null" }},
 		can_edit: {% if can_edit %}true{% else %}false{% endif %},
         can_add: {% if can_add %}true{% else %}false{% endif %},
+        can_publish: {% if can_publish %}true{% else %}false{% endif %}, // group dependent, only set for non owners
 		is_owner: {% if is_owner %}true{% else %}false{% endif %},
 		editing: {},
 		ref: {},
