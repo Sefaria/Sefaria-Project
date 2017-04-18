@@ -26,6 +26,7 @@ class Group(abst.AbstractMongoRecord):
         "admins",      # array or uids
         "publishers",  # array of uids
         "members",     # array of uids
+        "invitations", # array of dictionaries representing outstanding invitations
         "description", # string text of short description
         "websiteUrl",  # url for group website
         "headerUrl",   # url of an image to use in header
@@ -52,11 +53,12 @@ class Group(abst.AbstractMongoRecord):
         from sefaria.sheets import group_sheets, sheet_tag_counts
         contents = super(Group, self).contents()
         if with_content:
-            contents["sheets"]     = group_sheets(self.name, authenticated)["sheets"]
-            contents["tags"]       = sheet_tag_counts({"group": self.name})
-            contents["admins"]     = [public_user_data(uid) for uid in contents["admins"]]
-            contents["publishers"] = [public_user_data(uid) for uid in contents["publishers"]]
-            contents["members"]    = [public_user_data(uid) for uid in contents["members"]]
+            contents["sheets"]      = group_sheets(self.name, authenticated)["sheets"]
+            contents["tags"]        = sheet_tag_counts({"group": self.name})
+            contents["admins"]      = [public_user_data(uid) for uid in contents["admins"]]
+            contents["publishers"]  = [public_user_data(uid) for uid in contents["publishers"]]
+            contents["members"]     = [public_user_data(uid) for uid in contents["members"]]
+            contents["invitations"] = getattr(self, "invitations", []) if authenticated else []
         return contents
 
     def listing_contents(self):
@@ -91,6 +93,50 @@ class Group(abst.AbstractMongoRecord):
         self.members    = [user_id for user_id in self.members if user_id != uid]
         self.save()
 
+    def invite_member(self, email, inviter, role="member"):
+        """
+        Invites a person by email to sign up for a Sefaria and join a group. 
+        Creates on outstanding inviations record for `email` / `role` 
+        and sends an invitation to `email`.
+        """
+        self.remove_invitation(email)
+        self.invitations = [{"email": email, "role": role}] + self.invitations 
+        self.send_invitation(email, inviter)
+        self.save()
+
+    def remove_invitation(self, email):
+        """
+        Removes any outstanding invitations for `email`.
+        """
+        if not getattr(self, "invitations", None):
+            self.invitations = []
+        else:
+            self.invitations = [invite for invite in self.invitations if invite["email"] != email]
+        self.save()
+
+    def send_invitation(self, email, inviter_id):
+        """
+        Sends an email inviation to `email` from `invited_id`.
+        """
+        from django.core.mail import EmailMultiAlternatives
+        from django.template.loader import render_to_string
+        from sefaria.model import UserProfile
+
+        inviter       = UserProfile(id=inviter_id)
+        message_html  = render_to_string("email/group_signup_invitation_email.html", 
+                                        {
+                                            "inviter": inviter.full_name,
+                                            "groupName": self.name,
+                                            "registerUrl": "/register?next=%s" % self.url
+                                        })
+        subject       = "%s invited you to join a group on Sefaria" % (inviter.full_name)
+        from_email    = "Sefaria <hello@sefaria.org>"
+        to            = email
+
+        msg = EmailMultiAlternatives(subject, message_html, from_email, [to])
+        msg.content_subtype = "html"  # Main content is now text/html
+        msg.send()
+
     def all_members(self):
         """
         Returns a list of all group members, regardless of sole
@@ -115,6 +161,11 @@ class Group(abst.AbstractMongoRecord):
         """Returns the number of sheets in this group"""
         from sefaria.system.database import db
         return db.sheets.find({"group": self.name}).count()
+
+    @property
+    def url(self):
+        """Returns the URL path for this group"""
+        return "/groups/%s" % self.name.replace(" ", "-")
 
     def _handle_image_change(self, old, new):
         """

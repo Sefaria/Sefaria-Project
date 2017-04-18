@@ -66,7 +66,9 @@ def register(request):
             user = authenticate(email=form.cleaned_data['email'],
                                 password=form.cleaned_data['password1'])
             auth_login(request, user)
-            p = UserProfile(id=user.id).assign_slug()
+            p = UserProfile(id=user.id)
+            p.assign_slug()
+            p.join_invited_groups()
             p.settings["interface_language"] = request_context.get("interfaceLang")
             p.save()
             if "noredirect" in request.POST:

@@ -4477,8 +4477,9 @@ var GroupPage = React.createClass({
     var admins = group.admins.map(function(member) {member.role = "Admin"; return member; });
     var publishers = group.publishers.map(function(member) {member.role = "Publisher"; return member; });
     var members = group.members.map(function(member) {member.role = "Member"; return member; });
+    var invitations = group.invitations.map(function(member) {member.role = "Invitation"; return member; });
     
-    return admins.concat(publishers, members);
+    return admins.concat(publishers, members, invitations);
   },
   render: function() {
     var group        = Sefaria.groups(this.props.group);
@@ -4618,6 +4619,7 @@ var GroupSheetListing = React.createClass({
   }
 });
 
+
 var GroupInvitationBox = React.createClass({
   propTypes: {
     groupName: React.PropTypes.string.isRequired,
@@ -4655,6 +4657,15 @@ var GroupMemberListing = React.createClass({
     onDataChange: React.PropTypes.func,
   },
   render: function() {
+    if (this.props.member.role == "Invitation") {
+      return this.props.isAdmin ? 
+        <GroupInvitationListing 
+          member={this.props.member}
+          groupName={this.props.groupName}
+          onDataChange={this.props.onDataChange} /> 
+        : null;
+    } 
+
     return (
       <div className="groupMemberListing">
         <a href={this.props.member.profileUrl}>
@@ -4682,17 +4693,46 @@ var GroupMemberListing = React.createClass({
 });
 
 
+var GroupInvitationListing = React.createClass({
+  propTypes: {
+    member:       React.PropTypes.object.isRequired,
+    groupName:    React.PropTypes.string,
+    onDataChange: React.PropTypes.func,
+  },
+  render: function() {
+    return (
+      <div className="groupMemberListing">
+        <span className="groupInvitationListing">
+          {this.props.member.email}
+        </span>
+
+        <div className="groupMemberListingRoleBox">
+          <span className="groupMemberListingRole">Invited</span>
+          <GroupMemberListingActions 
+            member={this.props.member}
+            groupName={this.props.groupName}
+            isInvitation={true}
+            onDataChange={this.props.onDataChange} />
+        </div>
+
+      </div>);
+  }
+});
+
+
 var GroupMemberListingActions = React.createClass({
   propTypes: {
     member:       React.PropTypes.object.isRequired,
     groupName:    React.PropTypes.string.isRequired,
     isAdmin:      React.PropTypes.bool,
     isSelf:       React.PropTypes.bool,
+    isInvitation: React.PropTypes.bool,
     onDataChange: React.PropTypes.func.isRequired
   },
   getInitialState: function() {
     return {
-      menuOpen: false
+      menuOpen: false,
+      invitationResent: false
     }
   },
   toggleMenu: function() {
@@ -4723,6 +4763,29 @@ var GroupMemberListingActions = React.createClass({
       this.setRole("remove");
     }
   },
+  resendInvitation: function() {
+    $.post("/api/groups/" + this.props.groupName + "/invite/" + this.props.member.email, function(data) {
+      if ("error" in data) {
+        alert(data.error)
+      } else {
+        Sefaria._groups[data.name] = data;
+        this.props.onDataChange();
+        this.setState({"invitationResent": true});
+      }
+    }.bind(this));
+  },
+  removeInvitation: function() {
+    if (confirm("Are you sure you want to remove this invitation?")) {
+      $.post("/api/groups/" + this.props.groupName + "/invite/" + this.props.member.email + "/uninvite", function(data) {
+        if ("error" in data) {
+          alert(data.error)
+        } else {
+          Sefaria._groups[data.name] = data;
+          this.props.onDataChange();
+        }
+      }.bind(this));      
+    }
+  },
   render: function() {
     return (
       <div className="groupMemberListingActions" onClick={this.toggleMenu}>
@@ -4749,9 +4812,27 @@ var GroupMemberListingActions = React.createClass({
                 - can view & share within group
               </div>
               : null}
-            <div className="action" onClick={this.removeMember}>
-              <span className="role">{this.props.isSelf ? "Leave Group" : "Remove"}</span>
-            </div>
+            {this.props.isAdmin || this.props.isSelf ? 
+              <div className="action" onClick={this.removeMember}>
+                <span className="role">{this.props.isSelf ? "Leave Group" : "Remove"}</span>
+              </div>
+            : null }
+            {this.props.isInvitation  && !this.state.invitationResent ? 
+              <div className="action" onClick={this.resendInvitation}>
+                <span className="role">Resend Invitation</span>
+              </div>
+              : null}
+            {this.props.isInvitation  && this.state.invitationResent ? 
+              <div className="action">
+                <span className="role">Invitation Resent</span>
+              </div>
+              : null}
+            {this.props.isInvitation ? 
+              <div className="action" onClick={this.removeInvitation}>
+                <span className="role">Remove</span>
+
+              </div>
+              : null}
           </div>
         : null }
       </div>);

@@ -582,9 +582,9 @@ def groups_role_api(request, group_name, uid, role):
 
 
 @login_required
-def groups_invite_api(request, group_name, uid_or_email):
+def groups_invite_api(request, group_name, uid_or_email, uninvite=False):
 	"""
-	API for setting a group members role, or removing them from a group.
+	API for adding or removing group members, or group invitations
 	"""
 	if request.method != "POST":
 		return jsonResponse({"error": "Unsupported HTTP method."})
@@ -593,19 +593,22 @@ def groups_invite_api(request, group_name, uid_or_email):
 		return jsonResponse({"error": "No group named %s." % group_name})
 	if request.user.id not in group.admins:
 		return jsonResponse({"error": "You must be a group admin to invite new members."})
+	
 	user = UserProfile(email=uid_or_email)
 	if not user.exists():
-		return jsonResponse({"error": "No user with this email address currently exists."})
-	
-	is_new_member = not group.is_member(user.id)
-	group.add_member(user.id)
+		if uninvite:
+			group.remove_invitation(uid_or_email)
+		else:
+			group.invite_member(uid_or_email, request.user.id)
+	else:
+		is_new_member = not group.is_member(user.id)
+		group.add_member(user.id)
 
-	if is_new_member:
-		print "Make notification"
-		from sefaria.model.notification import Notification
-		notification = Notification({"uid": user.id})
-		notification.make_group_add(adder_id=request.user.id, group_name=group_name)
-		notification.save()
+		if is_new_member:
+			from sefaria.model.notification import Notification
+			notification = Notification({"uid": user.id})
+			notification.make_group_add(adder_id=request.user.id, group_name=group_name)
+			notification.save()
 
 	group_content = group.contents(with_content=True, authenticated=True)
 	return jsonResponse(group_content)
