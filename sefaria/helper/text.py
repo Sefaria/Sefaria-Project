@@ -223,7 +223,7 @@ def merge_text(a, b):
     return out
 
 
-def modify_text_by_function(title, vtitle, lang, func, uid, **kwargs):
+def modify_text_by_function(title, vtitle, lang, rewrite_function, uid, needs_rewrite_function=lambda x: True, **kwargs):
     """
     Walks ever segment contained in title, calls func on the text and saves the result.
     """
@@ -234,8 +234,8 @@ def modify_text_by_function(title, vtitle, lang, func, uid, **kwargs):
         segment_refs = section_ref.subrefs(len(section.text) if section.text else 0)
         if segment_refs:
             for i in range(len(section.text)):
-                if section.text[i] and len(section.text[i]):
-                    text = func(section.text[i])
+                if section.text[i] and len(section.text[i]) and needs_rewrite_function(section.text[i]):
+                    text = rewrite_function(section.text[i])
                     modify_text(uid, segment_refs[i], vtitle, lang, text, **kwargs)
 
 
