@@ -3,7 +3,7 @@ from sefaria.model import *
 from sefaria.system.exceptions import *
 import csv
 
-def check_doubles(all_links, double_links, ref1, ref2):
+def get_doubles(all_links, double_links, ref1, ref2):
     if ref1 not in all_links:
         all_links[ref1] = [ref2]
     else:
@@ -18,6 +18,29 @@ def check_doubles(all_links, double_links, ref1, ref2):
                 double_links[ref1].add(ref2)
 
         all_links[ref1].append(ref2)
+
+
+def get_doubles_for_delete(all_links, double_links, ref1, ref2):
+    if ref1 not in all_links:
+        all_links[ref1] = [ref2]
+    else:
+        insert = True
+        for each_ref in all_links[ref1]:
+            if each_ref.book != ref2.book or each_ref == ref2:
+                continue
+            general = None
+            if each_ref.contains(ref2):
+                general = each_ref
+            elif ref2.contains(each_ref):
+                general = ref2
+            if general:
+                print general.normal()
+                print ref1.normal()
+                refs = sorted([general.normal(), ref1.normal()])
+                double_links.add(str(refs))
+
+        all_links[ref1].append(ref2)
+
 
 def get_links(category):
     ls = []
@@ -43,9 +66,11 @@ if __name__ == "__main__":
     invalid_refs = open("invalid refs.txt", 'w')
     count = 0
     categories = ["Tanakh"]
+    delete = True
+    handle_doubles = get_doubles_for_delete if delete == True else get_doubles
     for category in categories:
         all_links = {}
-        double_links = {}
+        double_links = set() if delete == True else {}
         for l in get_links(category):
             count += 1
             if count % 100000 == 0:
@@ -65,15 +90,17 @@ if __name__ == "__main__":
 
             if not invalid:
                 if ref1.primary_category != category: #only care about commentaries
-                    check_doubles(all_links, double_links, ref1, ref2)
+                    handle_doubles(all_links, double_links, ref1, ref2)
                 elif ref2.primary_category != category:
-                    check_doubles(all_links, double_links, ref2, ref1)
+                    handle_doubles(all_links, double_links, ref2, ref1)
                 else:
                     assert ref1.primary_category == ref2.primary_category == category
         print "DOUBLE LINKS for {}:".format(category)
         print len(double_links)
         print "ALL LINKS"
         print len(all_links)
+        import pdb
+        pdb.set_trace()
         sum, avg = get_pairs(double_links)
         print "SUM {}; AVG {}".format(sum, avg)
         dbl_links_out = open("double_links_{}.csv".format(category), 'w')
@@ -82,4 +109,5 @@ if __name__ == "__main__":
            print_each = each.normal().replace(",", ";")
            csvwriter.writerow([print_each, str(double_links[each])])
         dbl_links_out.close()
+
     invalid_refs.close()
