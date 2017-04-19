@@ -21,11 +21,11 @@ class Group(abst.AbstractMongoRecord):
 
     required_attrs = [
         "name",        # string name of group
-    ]
-    optional_attrs = [
         "admins",      # array or uids
         "publishers",  # array of uids
         "members",     # array of uids
+    ]
+    optional_attrs = [
         "invitations", # array of dictionaries representing outstanding invitations
         "description", # string text of short description
         "websiteUrl",  # url for group website
