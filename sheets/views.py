@@ -146,6 +146,8 @@ def get_user_groups(uid):
 	"""
 	Returns a list of Groups that user belongs to.
 	"""
+	if not uid:
+		return None
 	groups = GroupSet().for_user(uid)
 	groups = [ {
 					"name": group.name,
@@ -193,21 +195,26 @@ def view_sheet(request, sheet_id):
 	try:
 		owner = User.objects.get(id=sheet["owner"])
 		author = owner.first_name + " " + owner.last_name
-		owner_groups = get_user_groups(request.user.id)
+		owner_groups = get_user_groups(request.user.id) if sheet["owner"] == request.user.id else None
 	except User.DoesNotExist:
 		author = "Someone Mysterious"
 		owner_groups = None
 
 	sheet_class      = make_sheet_class_string(sheet)
 	sheet_group      = Group().load({"name": sheet["group"]}) if "group" in sheet and sheet["group"] != "None" else None
-	can_edit_flag    = can_edit(request.user, sheet)
-	can_add_flag     = can_add(request.user, sheet)
-	can_publish_flag = sheet_group.can_publish(request.user.id) if sheet_group else False
 	embed_flag       = "embed" in request.GET
 	likes            = sheet.get("likes", [])
 	like_count       = len(likes)
-	viewer_is_liker  = request.user.id in likes
-
+	if request.user.is_authenticated():
+		can_edit_flag    = can_edit(request.user, sheet)
+		can_add_flag     = can_add(request.user, sheet)
+		can_publish_flag = sheet_group.can_publish(request.user.id) if sheet_group else False
+		viewer_is_liker  = request.user.id in likes
+	else:
+		can_edit_flag    = False
+		can_add_flag     = False
+		can_publish_flag = False
+		viewer_is_liker  = False
 
 	return render_to_response('sheets.html' if request.COOKIES.get('s1') else 's2_sheets.html', {"sheetJSON": json.dumps(sheet),
 												"sheet": sheet,
