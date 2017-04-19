@@ -2,6 +2,8 @@ import boto3
 import uuid
 import os
 import datetime
+from tempfile import NamedTemporaryFile
+
 
 from sefaria.settings import AWS_ACCESS_KEY, AWS_SECRET_KEY, S3_BUCKET
 from sefaria.system.database import db
@@ -15,12 +17,16 @@ bucket = s3.Bucket(S3_BUCKET)
 
 
 class HostedFile(object):
+
 	def __init__(self, filepath=None, content_type=None, url=None):
 		self.filepath = filepath
 		self.content_type = content_type
 		self.url = url
 
 	def upload(self):
+		"""
+		Uploads self.filepath to S3.
+		"""
 		if not self.filepath:
 			raise Exception("No filepath set to upload.")
 		path, extension = os.path.splitext(self.filepath)
@@ -31,6 +37,9 @@ class HostedFile(object):
 		return self.url
 
 	def delete(self):
+		"""
+		Deletes self.url from S3.
+		"""
 		if not self.url:
 			raise Exception("No URL set to delete.")
 		filename = self.url.split("/")[-1]

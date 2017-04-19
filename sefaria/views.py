@@ -266,25 +266,35 @@ def bulktext_api(request, refs):
         resp['Access-Control-Allow-Origin'] = '*'
         return resp
 
+
 @login_required
-def file_upload(request):
-    from tempfile import NamedTemporaryFile
+def file_upload(request, resize_image=True):
+    from PIL import Image
     from sefaria.s3 import HostedFile
     if request.method == "POST":
         MAX_FILE_MB = 2
         MAX_FILE_SIZE = MAX_FILE_MB * 1024 * 1024
+        MAX_FILE_DIMENSIONS = (1048, 1048)
         uploaded_file = request.FILES['file']
         if uploaded_file.size > MAX_FILE_SIZE:
             return jsonResponse({"error": "Uploaded files must be smaller than %dMB." % MAX_FILE_MB})
         name, extension = os.path.splitext(uploaded_file.name)
-        with NamedTemporaryFile(suffix=extension) as temp_file:
-            temp_file.write(uploaded_file.read())
-            hosted_file = HostedFile(filepath=temp_file.name, content_type=uploaded_file.content_type)
-            try:
-                url = hosted_file.upload()
-                return jsonResponse({"status": "success", "url": url})
-            except: 
-                return jsonResponse({"error": "There was an error uploading your file."})
+        with NamedTemporaryFile(suffix=extension) as temp_uploaded_file:
+            temp_uploaded_file.write(uploaded_file.read())
+            
+            with NamedTemporaryFile(suffix=extension) as temp_resized_file:
+                image = Image.open(temp_uploaded_file)
+                if resize_image:
+                    image.thumbnail(MAX_FILE_DIMENSIONS, Image.ANTIALIAS)
+                image.save(temp_resized_file, optimize=True, quality=70)
+
+                name, extension = os.path.splitext(temp_resized_file.name)
+                hosted_file = HostedFile(filepath=temp_resized_file.name, content_type=uploaded_file.content_type)
+                try:
+                    url = hosted_file.upload()
+                    return jsonResponse({"status": "success", "url": url})
+                except: 
+                    return jsonResponse({"error": "There was an error uploading your file."})
     else:
         return jsonResponse({"error": "Unsupported HTTP method."})
 

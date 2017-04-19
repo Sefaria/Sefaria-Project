@@ -5455,7 +5455,6 @@ var SheetAccessIcon = React.createClass({
   },
   render: function() {
     var sheet = this.props.sheet;
-    console.log(sheet)
     var msg = "group" in sheet ? "Listed for Group members only" : "Private";
     return (sheet.status == "unlisted") ? 
       (<i className="fa fa-lock" title={msg}></i>)
@@ -5666,14 +5665,14 @@ var TextColumn = React.createClass({
     }
   },
   handleScroll: function(event) {
-    console.log("scroll");
+    //console.log("scroll");
     if (this.justScrolled) {
       console.log("pass scroll");
       this.justScrolled = false;
       return;
     }
     if (this.props.highlightedRefs.length) {
-      console.log("Calling debouncedAdjustTextListHighlight");
+      //console.log("Calling debouncedAdjustTextListHighlight");
       this.debouncedAdjustTextListHighlight();
     }
     this.adjustInfiniteScroll();   
