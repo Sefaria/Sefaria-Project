@@ -35,6 +35,10 @@ import sefaria.model.queue as qu
 
 
 pagerank_dict = {r: v for r, v in json.load(open(STATICFILES_DIRS[0] + "pagerank.json","rb"))}
+sheetrank_dict = json.load(open("sheetrank.json", "rb"))
+all_gemara_indexes = library.get_indexes_in_category("Bavli")
+davidson_indexes = all_gemara_indexes[:all_gemara_indexes.index("Bava Batra") + 1]
+
 es = ElasticSearch(SEARCH_ADMIN)
 tracer = logging.getLogger('elasticsearch.trace')
 tracer.setLevel(logging.INFO)
@@ -56,6 +60,8 @@ def index_text(index_name, oref, version=None, lang=None, bavli_amud=True, merge
     :param bool merged: is this a merged index?
     :return:
     """
+    #TODO it seems that `bavli_amud` is never set...?
+
     assert isinstance(oref, Ref)
     oref = oref.default_child_ref()
 
@@ -73,7 +79,8 @@ def index_text(index_name, oref, version=None, lang=None, bavli_amud=True, merge
 
     # Index each segment of this document individually
     padded_oref = oref.padded_ref()
-    if bavli_amud and padded_oref.is_bavli():  # Index bavli by amud. and commentaries by line
+
+    if bavli_amud and padded_oref.is_bavli() and padded_oref.index.title not in davidson_indexes:  # Index bavli by amud. and commentaries by line
         pass
     elif len(padded_oref.sections) < len(padded_oref.index_node.sectionNames):
         t = TextChunk(oref, lang=lang, vtitle=version) if not merged else TextChunk(oref, lang=lang)
@@ -125,7 +132,7 @@ def delete_version(index, version, lang):
 
     refs = []
 
-    if Ref(index.title).is_bavli():
+    if Ref(index.title).is_bavli() and index.title not in davidson_indexes:
         refs += index.all_section_refs()
     refs += index.all_segment_refs()
 
@@ -169,8 +176,7 @@ def make_text_index_document(tref, version, lang):
     if re.match(ur'^\s*[\(\[].+[\)\]]\s*$',content):
         return False #don't bother indexing. this segment is surrounded by parens
 
-
-    if oref.is_talmud():
+    if oref.is_talmud() and oref.index.title not in davidson_indexes:
         title = text["book"] + " Daf " + text["sections"][0]
     else:
         title = text["book"] + " " + " ".join([u"{} {}".format(p[0], p[1]) for p in zip(text["sectionNames"], text["sections"])])
@@ -216,6 +222,10 @@ def make_text_index_document(tref, version, lang):
     else:
         next_content = u""
 
+    seg_ref = oref
+    if oref.is_section_level():
+        seg_ref = oref.all_subrefs()[0]
+
     return {
         "title": title, 
         "ref": oref.normal(),
@@ -229,6 +239,7 @@ def make_text_index_document(tref, version, lang):
         "order": oref.order_id(),
         "path": "/".join(categories + [oref.index.title]),
         "pagerank": math.log(pagerank_dict[oref.section_ref().normal()]) + 20 if oref.section_ref().normal() in pagerank_dict else 1.0,
+        "sheetrank": (1.0 + sheetrank_dict[seg_ref.normal()] / 5)**2 if seg_ref.normal() in sheetrank_dict else (1.0 / 5) ** 2,
         "comp_date": comp_start_date,
         "hebmorph_standard": content_wo_cant,
         "hebmorph_semi_exact": content_wo_cant,
