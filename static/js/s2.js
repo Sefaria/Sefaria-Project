@@ -5695,10 +5695,10 @@ var GroupPage = React.createClass({
         this.state.tab == "sheets" ? React.createElement(
           'div',
           null,
-          groupTagList && groupTagList.length ? React.createElement(
+          React.createElement(
             'h2',
             { className: 'splitHeader' },
-            React.createElement(
+            groupTagList && groupTagList.length ? React.createElement(
               'span',
               { className: 'filterByTag', onClick: this.toggleSheetTags },
               React.createElement(
@@ -5713,7 +5713,7 @@ var GroupPage = React.createClass({
                 'סנן לפי תווית',
                 React.createElement('i', { className: 'fa fa-angle-down' })
               )
-            ),
+            ) : null,
             React.createElement(
               'span',
               { className: 'int-en actionText' },
@@ -5766,7 +5766,7 @@ var GroupPage = React.createClass({
               ' ',
               React.createElement('i', { className: 'fa fa-angle-down' })
             )
-          ) : null,
+          ),
           this.state.showTags ? React.createElement(TwoOrThreeBox, { content: groupTagList, width: this.props.width }) : null,
           sheets.length ? sheets : React.createElement(
             'div',

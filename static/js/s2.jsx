@@ -4556,12 +4556,13 @@ var GroupPage = React.createClass({
 
                 { this.state.tab == "sheets" ?
                   <div>
-                  { groupTagList && groupTagList.length ?
-                    (<h2 className="splitHeader">
+                    <h2 className="splitHeader">
+                      { groupTagList && groupTagList.length ?
                       <span className="filterByTag" onClick={this.toggleSheetTags}>
                         <span className="int-en" >Filter By Tag <i className="fa fa-angle-down"></i></span>
                         <span className="int-he">סנן לפי תווית<i className="fa fa-angle-down"></i></span>
                        </span>
+                       : null }
                     
                         <span className="int-en actionText">Sort By:
                           <select value={this.state.sheetSort} onChange={this.changeSheetSort}>
@@ -4575,8 +4576,7 @@ var GroupPage = React.createClass({
                            <option value="alphabetical">Alphabetical</option>
                            <option value="views">הכי נצפה</option>
                          </select> <i className="fa fa-angle-down"></i></span>
-                       
-                    </h2>) : null}
+                    </h2>
 
                   {this.state.showTags ? <TwoOrThreeBox content={groupTagList} width={this.props.width} /> : null}
 
