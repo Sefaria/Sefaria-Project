@@ -5522,6 +5522,7 @@ var GroupPage = React.createClass({
     return {
       showTags: false,
       sheetFilterTag: null,
+      sheetSort: "date",
       tab: "sheets"
     };
   },
@@ -5536,21 +5537,30 @@ var GroupPage = React.createClass({
       Sefaria.groups(this.props.group, this.onDataLoad);
     }
   },
+  getData: function getData() {
+    return Sefaria.groups(this.props.group, this.state.sheetSort);
+  },
   setTab: function setTab(tab) {
     this.setState({ tab: tab });
   },
   toggleSheetTags: function toggleSheetTags() {
     this.state.showTags ? this.setState({ showTags: false }) : this.setState({ showTags: true });
   },
-  filterYourSheetsByTag: function filterYourSheetsByTag(tag) {
-    if (tag.tag == this.state.sheetFilterTag) {
+  setSheetTag: function setSheetTag(tag) {
+    this.setState({ sheetFilterTag: tag, showTags: false });
+  },
+  handleTagButtonClick: function handleTagButtonClick(tag) {
+    if (tag == this.state.sheetFilterTag) {
       this.setState({ sheetFilterTag: null, showTags: false });
     } else {
-      this.setState({ sheetFilterTag: tag.tag, showTags: false });
+      this.setSheetTag(tag);
     }
   },
+  changeSheetSort: function changeSheetSort(event) {
+    this.setState({ sheetSort: event.target.value });
+  },
   memberList: function memberList() {
-    var group = Sefaria.groups(this.props.group);
+    var group = this.getData();
     if (!group) {
       return null;
     }
@@ -5570,7 +5580,7 @@ var GroupPage = React.createClass({
     return admins.concat(publishers, members, invitations);
   },
   render: function render() {
-    var group = Sefaria.groups(this.props.group);
+    var group = this.getData();
     var sheets = group ? group.sheets : null;
     var groupTagList = group ? group.tags : null;
     var members = this.memberList();
@@ -5579,7 +5589,7 @@ var GroupPage = React.createClass({
     }).length !== 0;
 
     groupTagList = groupTagList ? groupTagList.map(function (tag) {
-      var filterThisTag = this.filterYourSheetsByTag.bind(this, tag);
+      var filterThisTag = this.handleTagButtonClick.bind(this, tag.tag);
       var classes = classNames({ navButton: 1, sheetButton: 1, active: this.state.sheetFilterTag == tag.tag });
       return React.createElement(
         'div',
@@ -5595,7 +5605,10 @@ var GroupPage = React.createClass({
       return Sefaria.util.inArray(this.state.sheetFilterTag, sheet.tags) >= 0;
     }.bind(this)) : sheets;
     sheets = sheets ? sheets.map(function (sheet) {
-      return React.createElement(GroupSheetListing, { sheet: sheet, multiPanel: this.props.multiPanel, setSheetTag: this.props.setSheetTag });
+      return React.createElement(GroupSheetListing, {
+        sheet: sheet,
+        multiPanel: this.props.multiPanel,
+        setSheetTag: this.setSheetTag });
     }.bind(this)) : [React.createElement(LoadingMessage, null)];
 
     return React.createElement(
@@ -5700,6 +5713,58 @@ var GroupPage = React.createClass({
                 'סנן לפי תווית',
                 React.createElement('i', { className: 'fa fa-angle-down' })
               )
+            ),
+            React.createElement(
+              'span',
+              { className: 'int-en actionText' },
+              'Sort By:',
+              React.createElement(
+                'select',
+                { value: this.state.sheetSort, onChange: this.changeSheetSort },
+                React.createElement(
+                  'option',
+                  { value: 'date' },
+                  'Recent'
+                ),
+                React.createElement(
+                  'option',
+                  { value: 'alphabetical' },
+                  'Alphabetical'
+                ),
+                React.createElement(
+                  'option',
+                  { value: 'views' },
+                  'Most Viewed'
+                )
+              ),
+              ' ',
+              React.createElement('i', { className: 'fa fa-angle-down' })
+            ),
+            React.createElement(
+              'span',
+              { className: 'int-he actionText' },
+              'סנן לפי:',
+              React.createElement(
+                'select',
+                { value: this.state.sheetSort, onChange: this.changeSheetSort },
+                React.createElement(
+                  'option',
+                  { value: 'date' },
+                  'הכי חדש'
+                ),
+                React.createElement(
+                  'option',
+                  { value: 'alphabetical' },
+                  'Alphabetical'
+                ),
+                React.createElement(
+                  'option',
+                  { value: 'views' },
+                  'הכי נצפה'
+                )
+              ),
+              ' ',
+              React.createElement('i', { className: 'fa fa-angle-down' })
             )
           ) : null,
           this.state.showTags ? React.createElement(TwoOrThreeBox, { content: groupTagList, width: this.props.width }) : null,
@@ -5757,7 +5822,8 @@ var GroupSheetListing = React.createClass({
   displayName: 'GroupSheetListing',
 
   propTypes: {
-    sheet: React.PropTypes.object.isRequired
+    sheet: React.PropTypes.object.isRequired,
+    setSheetTag: React.PropTypes.func.isRequired
   },
   render: function render() {
     var sheet = this.props.sheet;

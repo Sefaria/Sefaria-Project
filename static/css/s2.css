@@ -1733,7 +1733,7 @@ a.resourcesLink {
   margin: 50px 0 30px;
   height: auto
 }
-.readerSheetsNav .tagsHeader .actionText{
+.readerSheetsNav .tagsHeader .actionText {
   display: block;
   margin-top: 20px;
   text-transform: none;
@@ -3266,6 +3266,9 @@ h2.splitHeader .he {
   float:right;
   text-transform: none;
   cursor: pointer;
+}
+.splitHeader .actionText select {
+  margin-left: 6px;
 }
 .sheetsNewButton {
   text-align:center;
