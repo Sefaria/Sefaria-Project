@@ -5514,6 +5514,7 @@ var GroupPage = React.createClass({
     return {
       showTags: false,
       sheetFilterTag: null,
+      sheetSort: "date",
       tab: "sheets"
     };
   },
@@ -5528,21 +5529,30 @@ var GroupPage = React.createClass({
       Sefaria.groups(this.props.group, this.onDataLoad);
     }
   },
+  getData: function getData() {
+    return Sefaria.groups(this.props.group, this.state.sheetSort);
+  },
   setTab: function setTab(tab) {
     this.setState({ tab: tab });
   },
   toggleSheetTags: function toggleSheetTags() {
     this.state.showTags ? this.setState({ showTags: false }) : this.setState({ showTags: true });
   },
-  filterYourSheetsByTag: function filterYourSheetsByTag(tag) {
-    if (tag.tag == this.state.sheetFilterTag) {
+  setSheetTag: function setSheetTag(tag) {
+    this.setState({ sheetFilterTag: tag, showTags: false });
+  },
+  handleTagButtonClick: function handleTagButtonClick(tag) {
+    if (tag == this.state.sheetFilterTag) {
       this.setState({ sheetFilterTag: null, showTags: false });
     } else {
-      this.setState({ sheetFilterTag: tag.tag, showTags: false });
+      this.setSheetTag(tag);
     }
   },
+  changeSheetSort: function changeSheetSort(event) {
+    this.setState({ sheetSort: event.target.value });
+  },
   memberList: function memberList() {
-    var group = Sefaria.groups(this.props.group);
+    var group = this.getData();
     if (!group) {
       return null;
     }
@@ -5555,11 +5565,14 @@ var GroupPage = React.createClass({
     var members = group.members.map(function (member) {
       member.role = "Member";return member;
     });
+    var invitations = group.invitations.map(function (member) {
+      member.role = "Invitation";return member;
+    });
 
-    return admins.concat(publishers, members);
+    return admins.concat(publishers, members, invitations);
   },
   render: function render() {
-    var group = Sefaria.groups(this.props.group);
+    var group = this.getData();
     var sheets = group ? group.sheets : null;
     var groupTagList = group ? group.tags : null;
     var members = this.memberList();
@@ -5568,7 +5581,7 @@ var GroupPage = React.createClass({
     }).length !== 0;
 
     groupTagList = groupTagList ? groupTagList.map(function (tag) {
-      var filterThisTag = this.filterYourSheetsByTag.bind(this, tag);
+      var filterThisTag = this.handleTagButtonClick.bind(this, tag.tag);
       var classes = classNames({ navButton: 1, sheetButton: 1, active: this.state.sheetFilterTag == tag.tag });
       return React.createElement(
         'div',
@@ -5584,7 +5597,10 @@ var GroupPage = React.createClass({
       return Sefaria.util.inArray(this.state.sheetFilterTag, sheet.tags) >= 0;
     }.bind(this)) : sheets;
     sheets = sheets ? sheets.map(function (sheet) {
-      return React.createElement(GroupSheetListing, { sheet: sheet, multiPanel: this.props.multiPanel, setSheetTag: this.props.setSheetTag });
+      return React.createElement(GroupSheetListing, {
+        sheet: sheet,
+        multiPanel: this.props.multiPanel,
+        setSheetTag: this.setSheetTag });
     }.bind(this)) : [React.createElement(LoadingMessage, null)];
 
     return React.createElement(
@@ -5689,6 +5705,58 @@ var GroupPage = React.createClass({
                 '\u05E1\u05E0\u05DF \u05DC\u05E4\u05D9 \u05EA\u05D5\u05D5\u05D9\u05EA',
                 React.createElement('i', { className: 'fa fa-angle-down' })
               )
+            ),
+            React.createElement(
+              'span',
+              { className: 'int-en actionText' },
+              'Sort By:',
+              React.createElement(
+                'select',
+                { value: this.state.sheetSort, onChange: this.changeSheetSort },
+                React.createElement(
+                  'option',
+                  { value: 'date' },
+                  'Recent'
+                ),
+                React.createElement(
+                  'option',
+                  { value: 'alphabetical' },
+                  'Alphabetical'
+                ),
+                React.createElement(
+                  'option',
+                  { value: 'views' },
+                  'Most Viewed'
+                )
+              ),
+              ' ',
+              React.createElement('i', { className: 'fa fa-angle-down' })
+            ),
+            React.createElement(
+              'span',
+              { className: 'int-he actionText' },
+              'סנן לפי:',
+              React.createElement(
+                'select',
+                { value: this.state.sheetSort, onChange: this.changeSheetSort },
+                React.createElement(
+                  'option',
+                  { value: 'date' },
+                  'הכי חדש'
+                ),
+                React.createElement(
+                  'option',
+                  { value: 'alphabetical' },
+                  'Alphabetical'
+                ),
+                React.createElement(
+                  'option',
+                  { value: 'views' },
+                  'הכי נצפה'
+                )
+              ),
+              ' ',
+              React.createElement('i', { className: 'fa fa-angle-down' })
             )
           ) : null,
           this.state.showTags ? React.createElement(TwoOrThreeBox, { content: groupTagList, width: this.props.width }) : null,
@@ -5746,14 +5814,17 @@ var GroupSheetListing = React.createClass({
   displayName: 'GroupSheetListing',
 
   propTypes: {
-    sheet: React.PropTypes.object.isRequired
+    sheet: React.PropTypes.object.isRequired,
+    setSheetTag: React.PropTypes.func.isRequired
   },
   render: function render() {
     var sheet = this.props.sheet;
     var title = sheet.title ? sheet.title.stripHtml() : "Untitled Source Sheet";
     var url = "/sheets/" + sheet.id;
 
-    if (sheet.tags === undefined) sheet.tags = [];
+    if (sheet.tags === undefined) {
+      sheet.tags = [];
+    }
     var tagString = sheet.tags.map(function (tag) {
       return React.createElement(SheetTagLink, { setSheetTag: this.props.setSheetTag, tag: tag, key: tag });
     }, this);
@@ -5766,6 +5837,8 @@ var GroupSheetListing = React.createClass({
         { className: 'sheetTitle', href: url, key: url },
         title
       ),
+      ' ',
+      React.createElement(SheetAccessIcon, { sheet: sheet }),
       React.createElement(
         'div',
         null,
@@ -5831,6 +5904,13 @@ var GroupMemberListing = React.createClass({
     onDataChange: React.PropTypes.func
   },
   render: function render() {
+    if (this.props.member.role == "Invitation") {
+      return this.props.isAdmin ? React.createElement(GroupInvitationListing, {
+        member: this.props.member,
+        groupName: this.props.groupName,
+        onDataChange: this.props.onDataChange }) : null;
+    }
+
     return React.createElement(
       'div',
       { className: 'groupMemberListing' },
@@ -5863,6 +5943,41 @@ var GroupMemberListing = React.createClass({
   }
 });
 
+var GroupInvitationListing = React.createClass({
+  displayName: 'GroupInvitationListing',
+
+  propTypes: {
+    member: React.PropTypes.object.isRequired,
+    groupName: React.PropTypes.string,
+    onDataChange: React.PropTypes.func
+  },
+  render: function render() {
+    return React.createElement(
+      'div',
+      { className: 'groupMemberListing' },
+      React.createElement(
+        'span',
+        { className: 'groupInvitationListing' },
+        this.props.member.email
+      ),
+      React.createElement(
+        'div',
+        { className: 'groupMemberListingRoleBox' },
+        React.createElement(
+          'span',
+          { className: 'groupMemberListingRole' },
+          'Invited'
+        ),
+        React.createElement(GroupMemberListingActions, {
+          member: this.props.member,
+          groupName: this.props.groupName,
+          isInvitation: true,
+          onDataChange: this.props.onDataChange })
+      )
+    );
+  }
+});
+
 var GroupMemberListingActions = React.createClass({
   displayName: 'GroupMemberListingActions',
 
@@ -5871,11 +5986,13 @@ var GroupMemberListingActions = React.createClass({
     groupName: React.PropTypes.string.isRequired,
     isAdmin: React.PropTypes.bool,
     isSelf: React.PropTypes.bool,
+    isInvitation: React.PropTypes.bool,
     onDataChange: React.PropTypes.func.isRequired
   },
   getInitialState: function getInitialState() {
     return {
-      menuOpen: false
+      menuOpen: false,
+      invitationResent: false
     };
   },
   toggleMenu: function toggleMenu() {
@@ -5902,6 +6019,29 @@ var GroupMemberListingActions = React.createClass({
 
     if (confirm(message)) {
       this.setRole("remove");
+    }
+  },
+  resendInvitation: function resendInvitation() {
+    $.post("/api/groups/" + this.props.groupName + "/invite/" + this.props.member.email, function (data) {
+      if ("error" in data) {
+        alert(data.error);
+      } else {
+        Sefaria._groups[data.name] = data;
+        this.props.onDataChange();
+        this.setState({ "invitationResent": true });
+      }
+    }.bind(this));
+  },
+  removeInvitation: function removeInvitation() {
+    if (confirm("Are you sure you want to remove this invitation?")) {
+      $.post("/api/groups/" + this.props.groupName + "/invite/" + this.props.member.email + "/uninvite", function (data) {
+        if ("error" in data) {
+          alert(data.error);
+        } else {
+          Sefaria._groups[data.name] = data;
+          this.props.onDataChange();
+        }
+      }.bind(this));
     }
   },
   render: function render() {
@@ -5946,7 +6086,7 @@ var GroupMemberListingActions = React.createClass({
           ),
           '- can view & share within group'
         ) : null,
-        React.createElement(
+        this.props.isAdmin || this.props.isSelf ? React.createElement(
           'div',
           { className: 'action', onClick: this.removeMember },
           React.createElement(
@@ -5954,7 +6094,34 @@ var GroupMemberListingActions = React.createClass({
             { className: 'role' },
             this.props.isSelf ? "Leave Group" : "Remove"
           )
-        )
+        ) : null,
+        this.props.isInvitation && !this.state.invitationResent ? React.createElement(
+          'div',
+          { className: 'action', onClick: this.resendInvitation },
+          React.createElement(
+            'span',
+            { className: 'role' },
+            'Resend Invitation'
+          )
+        ) : null,
+        this.props.isInvitation && this.state.invitationResent ? React.createElement(
+          'div',
+          { className: 'action' },
+          React.createElement(
+            'span',
+            { className: 'role' },
+            'Invitation Resent'
+          )
+        ) : null,
+        this.props.isInvitation ? React.createElement(
+          'div',
+          { className: 'action', onClick: this.removeInvitation },
+          React.createElement(
+            'span',
+            { className: 'role' },
+            'Remove'
+          )
+        ) : null
       ) : null
     );
   }
@@ -6690,7 +6857,7 @@ var MySheetsPage = React.createClass({
       return Sefaria.util.inArray(this.state.sheetFilterTag, sheet.tags) >= 0;
     }.bind(this)) : sheets;
     sheets = sheets ? sheets.map(function (sheet) {
-      return React.createElement(PrivateSheetListing, { sheet: sheet, multiPanel: this.props.multiPanel, setSheetTag: this.props.setSheetTag });
+      return React.createElement(PrivateSheetListing, { sheet: sheet, multiPanel: this.props.multiPanel, setSheetTag: this.props.setSheetTag, key: sheet.id });
     }.bind(this)) : React.createElement(LoadingMessage, null);
 
     var userTagList = this.getTagsFromCache();
@@ -6858,6 +7025,8 @@ var PrivateSheetListing = React.createClass({
           { className: 'sheetTitle', href: url },
           title
         ),
+        '  ',
+        React.createElement(SheetAccessIcon, { sheet: sheet }),
         React.createElement(
           'div',
           null,
@@ -6881,6 +7050,8 @@ var PrivateSheetListing = React.createClass({
           { className: 'sheetTitle' },
           title
         ),
+        ' ',
+        React.createElement(SheetAccessIcon, { sheet: sheet }),
         React.createElement(
           'div',
           null,
@@ -6896,6 +7067,19 @@ var PrivateSheetListing = React.createClass({
         )
       );
     }
+  }
+});
+
+var SheetAccessIcon = React.createClass({
+  displayName: 'SheetAccessIcon',
+
+  propTypes: {
+    sheet: React.PropTypes.object.isRequired
+  },
+  render: function render() {
+    var sheet = this.props.sheet;
+    var msg = "group" in sheet ? "Listed for Group members only" : "Private";
+    return sheet.status == "unlisted" ? React.createElement('i', { className: 'fa fa-lock', title: msg }) : null;
   }
 });
 
@@ -7126,11 +7310,13 @@ var TextColumn = React.createClass({
     }
   },
   handleScroll: function handleScroll(event) {
+    //console.log("scroll");
     if (this.justScrolled) {
       this.justScrolled = false;
       return;
     }
     if (this.props.highlightedRefs.length) {
+      //console.log("Calling debouncedAdjustTextListHighlight");
       this.debouncedAdjustTextListHighlight();
     }
     this.adjustInfiniteScroll();

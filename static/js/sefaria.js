@@ -1237,19 +1237,39 @@ Sefaria = extend(Sefaria, {
     }
   },
   _groups: {},
-  groups: function(group, callback) {
+  groups: function(group, sortBy, callback) {
     // Returns data for an individual group
     var group = this._groups[group];
     if (group) {
+      group.sheets = this._sortSheets(group.sheets, sortBy);
       if (callback) { callback(group); }
     } else if (callback) {
       var url = "/api/groups/" + group;
        Sefaria._api(url, function(data) {
           this._groups[group] = data;
+          data.sheets = this._sortSheets(data.sheets, sortBy);
            if (callback) { callback(data); }
         }.bind(this));
       }
     return group;
+  },
+  _sortSheets: function(sheets, sortBy) {
+    if (!sheets) { return sheets; }
+
+    var sorters = {
+      date: function(a, b) {
+        return Date.parse(b.modified) - Date.parse(a.modified);
+      },
+      alphabetical: function(a, b) {
+        return a.title.stripHtml().trim() > b.title.stripHtml().trim() ? 1 : -1;
+      },
+      views: function(a, b) {
+        return b.views - a.views;
+      }
+    };
+
+    sheets.sort(sorters[sortBy]);
+    return sheets;
   },
   _groupsList: null,
   groupsList: function(callback) {

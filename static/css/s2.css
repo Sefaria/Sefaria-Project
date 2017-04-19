@@ -1733,7 +1733,7 @@ a.resourcesLink {
   margin: 50px 0 30px;
   height: auto
 }
-.readerSheetsNav .tagsHeader .actionText{
+.readerSheetsNav .tagsHeader .actionText {
   display: block;
   margin-top: 20px;
   text-transform: none;
@@ -3268,6 +3268,9 @@ h2.splitHeader .he {
   text-transform: none;
   cursor: pointer;
 }
+.splitHeader .actionText select {
+  margin-left: 6px;
+}
 .sheetsNewButton {
   text-align:center;
   margin-bottom: 30px;
@@ -3448,6 +3451,11 @@ h2.splitHeader .he {
   color: #666;
   margin: 0 20px;
 }
+.groupInvitationListing {
+  display: inline-block;
+  min-height: 50px;
+  line-height: 50px;
+}
 .groupMemberListingRoleBox {
   float: right;
   line-height: 50px;
@@ -3474,7 +3482,6 @@ h2.splitHeader .he {
   position: absolute;
   right: 0;
   top: 46px;
-  width: 300px;
   background-color: white; 
   border: 1px solid #ccc;
   border-radius: 4px;
@@ -3485,6 +3492,7 @@ h2.splitHeader .he {
 .groupMemberListingActionsMenu .action {
   padding: 4px 10px;
   cursor: pointer;
+  white-space: nowrap;
 }
 .groupMemberListingActionsMenu .action:hover {
   background-color: #eee;
