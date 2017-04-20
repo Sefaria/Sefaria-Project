@@ -5522,6 +5522,7 @@ var GroupPage = React.createClass({
     return {
       showTags: false,
       sheetFilterTag: null,
+      sheetSort: "date",
       tab: "sheets"
     };
   },
@@ -5536,21 +5537,30 @@ var GroupPage = React.createClass({
       Sefaria.groups(this.props.group, this.onDataLoad);
     }
   },
+  getData: function getData() {
+    return Sefaria.groups(this.props.group, this.state.sheetSort);
+  },
   setTab: function setTab(tab) {
     this.setState({ tab: tab });
   },
   toggleSheetTags: function toggleSheetTags() {
     this.state.showTags ? this.setState({ showTags: false }) : this.setState({ showTags: true });
   },
-  filterYourSheetsByTag: function filterYourSheetsByTag(tag) {
-    if (tag.tag == this.state.sheetFilterTag) {
+  setSheetTag: function setSheetTag(tag) {
+    this.setState({ sheetFilterTag: tag, showTags: false });
+  },
+  handleTagButtonClick: function handleTagButtonClick(tag) {
+    if (tag == this.state.sheetFilterTag) {
       this.setState({ sheetFilterTag: null, showTags: false });
     } else {
-      this.setState({ sheetFilterTag: tag.tag, showTags: false });
+      this.setSheetTag(tag);
     }
   },
+  changeSheetSort: function changeSheetSort(event) {
+    this.setState({ sheetSort: event.target.value });
+  },
   memberList: function memberList() {
-    var group = Sefaria.groups(this.props.group);
+    var group = this.getData();
     if (!group) {
       return null;
     }
@@ -5563,11 +5573,14 @@ var GroupPage = React.createClass({
     var members = group.members.map(function (member) {
       member.role = "Member";return member;
     });
+    var invitations = group.invitations.map(function (member) {
+      member.role = "Invitation";return member;
+    });
 
-    return admins.concat(publishers, members);
+    return admins.concat(publishers, members, invitations);
   },
   render: function render() {
-    var group = Sefaria.groups(this.props.group);
+    var group = this.getData();
     var sheets = group ? group.sheets : null;
     var groupTagList = group ? group.tags : null;
     var members = this.memberList();
@@ -5576,7 +5589,7 @@ var GroupPage = React.createClass({
     }).length !== 0;
 
     groupTagList = groupTagList ? groupTagList.map(function (tag) {
-      var filterThisTag = this.filterYourSheetsByTag.bind(this, tag);
+      var filterThisTag = this.handleTagButtonClick.bind(this, tag.tag);
       var classes = classNames({ navButton: 1, sheetButton: 1, active: this.state.sheetFilterTag == tag.tag });
       return React.createElement(
         'div',
@@ -5592,7 +5605,10 @@ var GroupPage = React.createClass({
       return Sefaria.util.inArray(this.state.sheetFilterTag, sheet.tags) >= 0;
     }.bind(this)) : sheets;
     sheets = sheets ? sheets.map(function (sheet) {
-      return React.createElement(GroupSheetListing, { sheet: sheet, multiPanel: this.props.multiPanel, setSheetTag: this.props.setSheetTag });
+      return React.createElement(GroupSheetListing, {
+        sheet: sheet,
+        multiPanel: this.props.multiPanel,
+        setSheetTag: this.setSheetTag });
     }.bind(this)) : [React.createElement(LoadingMessage, null)];
 
     return React.createElement(
@@ -5679,10 +5695,10 @@ var GroupPage = React.createClass({
         this.state.tab == "sheets" ? React.createElement(
           'div',
           null,
-          groupTagList && groupTagList.length ? React.createElement(
+          React.createElement(
             'h2',
             { className: 'splitHeader' },
-            React.createElement(
+            groupTagList && groupTagList.length ? React.createElement(
               'span',
               { className: 'filterByTag', onClick: this.toggleSheetTags },
               React.createElement(
@@ -5697,8 +5713,60 @@ var GroupPage = React.createClass({
                 'סנן לפי תווית',
                 React.createElement('i', { className: 'fa fa-angle-down' })
               )
+            ) : null,
+            React.createElement(
+              'span',
+              { className: 'int-en actionText' },
+              'Sort By:',
+              React.createElement(
+                'select',
+                { value: this.state.sheetSort, onChange: this.changeSheetSort },
+                React.createElement(
+                  'option',
+                  { value: 'date' },
+                  'Recent'
+                ),
+                React.createElement(
+                  'option',
+                  { value: 'alphabetical' },
+                  'Alphabetical'
+                ),
+                React.createElement(
+                  'option',
+                  { value: 'views' },
+                  'Most Viewed'
+                )
+              ),
+              ' ',
+              React.createElement('i', { className: 'fa fa-angle-down' })
+            ),
+            React.createElement(
+              'span',
+              { className: 'int-he actionText' },
+              'סנן לפי:',
+              React.createElement(
+                'select',
+                { value: this.state.sheetSort, onChange: this.changeSheetSort },
+                React.createElement(
+                  'option',
+                  { value: 'date' },
+                  'הכי חדש'
+                ),
+                React.createElement(
+                  'option',
+                  { value: 'alphabetical' },
+                  'Alphabetical'
+                ),
+                React.createElement(
+                  'option',
+                  { value: 'views' },
+                  'הכי נצפה'
+                )
+              ),
+              ' ',
+              React.createElement('i', { className: 'fa fa-angle-down' })
             )
-          ) : null,
+          ),
           this.state.showTags ? React.createElement(TwoOrThreeBox, { content: groupTagList, width: this.props.width }) : null,
           sheets.length ? sheets : React.createElement(
             'div',
@@ -5754,7 +5822,8 @@ var GroupSheetListing = React.createClass({
   displayName: 'GroupSheetListing',
 
   propTypes: {
-    sheet: React.PropTypes.object.isRequired
+    sheet: React.PropTypes.object.isRequired,
+    setSheetTag: React.PropTypes.func.isRequired
   },
   render: function render() {
     var sheet = this.props.sheet;
@@ -5804,19 +5873,48 @@ var GroupInvitationBox = React.createClass({
     groupName: React.PropTypes.string.isRequired,
     onDataChange: React.PropTypes.func.isRequired
   },
+  getInitialState: function getInitialState() {
+    return {
+      inviting: false,
+      message: null
+    };
+  },
   onInviteClick: function onInviteClick() {
-    this.inviteByEmail($("#groupInvitationInput").val());
+    if (!this.state.inviting) {
+      this.inviteByEmail($("#groupInvitationInput").val());
+    }
+  },
+  flashMessage: function flashMessage(message) {
+    this.setState({ message: message });
+    setTimeout(function () {
+      this.setState({ message: null });
+    }.bind(this), 3000);
   },
   inviteByEmail: function inviteByEmail(email) {
+    if (!this.validateEmail(email)) {
+      this.flashMessage("That isn't a valid email address.");
+      return;
+    }
+    this.setState({ inviting: true, message: "Inviting..." });
     $.post("/api/groups/" + this.props.groupName + "/invite/" + email, function (data) {
       if ("error" in data) {
         alert(data.error);
+        this.setState({ message: null, inviting: false });
       } else {
-        Sefaria._groups[data.name] = data;
+        Sefaria._groups[this.props.groupName] = data.group;
         $("#groupInvitationInput").val("");
+        this.flashMessage(data.message);
+        this.setState({ inviting: false });
         this.props.onDataChange();
       }
+    }.bind(this)).fail(function () {
+      alert("There was an error sending your invitation.");
+      this.setState({ message: null, inviting: false });
     }.bind(this));
+  },
+  validateEmail: function validateEmail(email) {
+    var re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+    return re.test(email);
   },
   render: function render() {
     return React.createElement(
@@ -5826,8 +5924,22 @@ var GroupInvitationBox = React.createClass({
       React.createElement(
         'div',
         { className: 'button', onClick: this.onInviteClick },
-        'Invite'
-      )
+        React.createElement(
+          'span',
+          { className: 'int-en' },
+          'Invite'
+        ),
+        React.createElement(
+          'span',
+          { className: 'int-he' },
+          'Invite'
+        )
+      ),
+      this.state.message ? React.createElement(
+        'div',
+        { className: 'groupInvitationBoxMessage' },
+        this.state.message
+      ) : null
     );
   }
 });
@@ -5843,6 +5955,13 @@ var GroupMemberListing = React.createClass({
     onDataChange: React.PropTypes.func
   },
   render: function render() {
+    if (this.props.member.role == "Invitation") {
+      return this.props.isAdmin ? React.createElement(GroupInvitationListing, {
+        member: this.props.member,
+        groupName: this.props.groupName,
+        onDataChange: this.props.onDataChange }) : null;
+    }
+
     return React.createElement(
       'div',
       { className: 'groupMemberListing' },
@@ -5875,6 +5994,41 @@ var GroupMemberListing = React.createClass({
   }
 });
 
+var GroupInvitationListing = React.createClass({
+  displayName: 'GroupInvitationListing',
+
+  propTypes: {
+    member: React.PropTypes.object.isRequired,
+    groupName: React.PropTypes.string,
+    onDataChange: React.PropTypes.func
+  },
+  render: function render() {
+    return React.createElement(
+      'div',
+      { className: 'groupMemberListing' },
+      React.createElement(
+        'span',
+        { className: 'groupInvitationListing' },
+        this.props.member.email
+      ),
+      React.createElement(
+        'div',
+        { className: 'groupMemberListingRoleBox' },
+        React.createElement(
+          'span',
+          { className: 'groupMemberListingRole' },
+          'Invited'
+        ),
+        React.createElement(GroupMemberListingActions, {
+          member: this.props.member,
+          groupName: this.props.groupName,
+          isInvitation: true,
+          onDataChange: this.props.onDataChange })
+      )
+    );
+  }
+});
+
 var GroupMemberListingActions = React.createClass({
   displayName: 'GroupMemberListingActions',
 
@@ -5883,11 +6037,13 @@ var GroupMemberListingActions = React.createClass({
     groupName: React.PropTypes.string.isRequired,
     isAdmin: React.PropTypes.bool,
     isSelf: React.PropTypes.bool,
+    isInvitation: React.PropTypes.bool,
     onDataChange: React.PropTypes.func.isRequired
   },
   getInitialState: function getInitialState() {
     return {
-      menuOpen: false
+      menuOpen: false,
+      invitationResent: false
     };
   },
   toggleMenu: function toggleMenu() {
@@ -5914,6 +6070,29 @@ var GroupMemberListingActions = React.createClass({
 
     if (confirm(message)) {
       this.setRole("remove");
+    }
+  },
+  resendInvitation: function resendInvitation() {
+    $.post("/api/groups/" + this.props.groupName + "/invite/" + this.props.member.email, function (data) {
+      if ("error" in data) {
+        alert(data.error);
+      } else {
+        Sefaria._groups[this.props.groupName] = data.group;
+        this.props.onDataChange();
+        this.setState({ "invitationResent": true });
+      }
+    }.bind(this));
+  },
+  removeInvitation: function removeInvitation() {
+    if (confirm("Are you sure you want to remove this invitation?")) {
+      $.post("/api/groups/" + this.props.groupName + "/invite/" + this.props.member.email + "/uninvite", function (data) {
+        if ("error" in data) {
+          alert(data.error);
+        } else {
+          Sefaria._groups[this.props.groupName] = data.group;
+          this.props.onDataChange();
+        }
+      }.bind(this));
     }
   },
   render: function render() {
@@ -5958,7 +6137,7 @@ var GroupMemberListingActions = React.createClass({
           ),
           '- can view & share within group'
         ) : null,
-        React.createElement(
+        this.props.isAdmin || this.props.isSelf ? React.createElement(
           'div',
           { className: 'action', onClick: this.removeMember },
           React.createElement(
@@ -5966,7 +6145,34 @@ var GroupMemberListingActions = React.createClass({
             { className: 'role' },
             this.props.isSelf ? "Leave Group" : "Remove"
           )
-        )
+        ) : null,
+        this.props.isInvitation && !this.state.invitationResent ? React.createElement(
+          'div',
+          { className: 'action', onClick: this.resendInvitation },
+          React.createElement(
+            'span',
+            { className: 'role' },
+            'Resend Invitation'
+          )
+        ) : null,
+        this.props.isInvitation && this.state.invitationResent ? React.createElement(
+          'div',
+          { className: 'action' },
+          React.createElement(
+            'span',
+            { className: 'role' },
+            'Invitation Resent'
+          )
+        ) : null,
+        this.props.isInvitation ? React.createElement(
+          'div',
+          { className: 'action', onClick: this.removeInvitation },
+          React.createElement(
+            'span',
+            { className: 'role' },
+            'Remove'
+          )
+        ) : null
       ) : null
     );
   }
@@ -6923,7 +7129,6 @@ var SheetAccessIcon = React.createClass({
   },
   render: function render() {
     var sheet = this.props.sheet;
-
     var msg = "group" in sheet ? "Listed for Group members only" : "Private";
     return sheet.status == "unlisted" ? React.createElement('i', { className: 'fa fa-lock', title: msg }) : null;
   }
@@ -7156,11 +7361,13 @@ var TextColumn = React.createClass({
     }
   },
   handleScroll: function handleScroll(event) {
+    //console.log("scroll");
     if (this.justScrolled) {
       this.justScrolled = false;
       return;
     }
     if (this.props.highlightedRefs.length) {
+      //console.log("Calling debouncedAdjustTextListHighlight");
       this.debouncedAdjustTextListHighlight();
     }
     this.adjustInfiniteScroll();

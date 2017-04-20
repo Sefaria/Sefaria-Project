@@ -4444,6 +4444,7 @@ var GroupPage = React.createClass({
     return {
       showTags: false,
       sheetFilterTag: null,
+      sheetSort: "date",
       tab: "sheets"
     };
   },
@@ -4458,37 +4459,47 @@ var GroupPage = React.createClass({
       Sefaria.groups(this.props.group, this.onDataLoad);
     }
   },
+  getData: function() {
+    return Sefaria.groups(this.props.group, this.state.sheetSort);
+  },
   setTab: function(tab) {
     this.setState({tab: tab});
   },
   toggleSheetTags: function() {
     this.state.showTags ? this.setState({showTags: false}) : this.setState({showTags: true});
   },
-  filterYourSheetsByTag: function (tag) {
-    if (tag.tag == this.state.sheetFilterTag) {
+  setSheetTag: function(tag) {
+    this.setState({sheetFilterTag: tag, showTags: false});
+  },
+  handleTagButtonClick: function (tag) {
+    if (tag == this.state.sheetFilterTag) {
       this.setState({sheetFilterTag: null, showTags: false});
     } else {
-      this.setState({sheetFilterTag: tag.tag, showTags: false});
+      this.setSheetTag(tag);
     }
   },
+  changeSheetSort: function(event) {
+    this.setState({sheetSort: event.target.value})
+  },
   memberList: function() {
-    var group = Sefaria.groups(this.props.group);
+    var group = this.getData();
     if (!group) { return null; }
     var admins = group.admins.map(function(member) {member.role = "Admin"; return member; });
     var publishers = group.publishers.map(function(member) {member.role = "Publisher"; return member; });
     var members = group.members.map(function(member) {member.role = "Member"; return member; });
+    var invitations = group.invitations.map(function(member) {member.role = "Invitation"; return member; });
     
-    return admins.concat(publishers, members);
+    return admins.concat(publishers, members, invitations);
   },
   render: function() {
-    var group        = Sefaria.groups(this.props.group);
+    var group        = this.getData();
     var sheets       = group ? group.sheets : null;
     var groupTagList = group ? group.tags : null;
     var members      = this.memberList();
     var isAdmin      = group && group.admins.filter(function(x) { return x.uid == Sefaria._uid } ).length !== 0;
 
     groupTagList = groupTagList ? groupTagList.map(function (tag) {
-        var filterThisTag = this.filterYourSheetsByTag.bind(this, tag);
+        var filterThisTag = this.handleTagButtonClick.bind(this, tag.tag);
         var classes = classNames({navButton: 1, sheetButton: 1, active: this.state.sheetFilterTag == tag.tag});
         return (<div className={classes} onClick={filterThisTag} key={tag.tag}>{tag.tag} ({tag.count})</div>);
       }.bind(this)) : null;
@@ -4497,7 +4508,10 @@ var GroupPage = React.createClass({
       return Sefaria.util.inArray(this.state.sheetFilterTag, sheet.tags) >= 0;
     }.bind(this)) : sheets;
     sheets = sheets ? sheets.map(function(sheet) {
-      return (<GroupSheetListing sheet={sheet} multiPanel={this.props.multiPanel} setSheetTag={this.props.setSheetTag} />);
+      return (<GroupSheetListing 
+                sheet={sheet} 
+                multiPanel={this.props.multiPanel} 
+                setSheetTag={this.setSheetTag} />);
     }.bind(this)) : [<LoadingMessage />];
  
 
@@ -4542,25 +4556,27 @@ var GroupPage = React.createClass({
 
                 { this.state.tab == "sheets" ?
                   <div>
-                  { groupTagList && groupTagList.length ?
-                    (<h2 className="splitHeader">
+                    <h2 className="splitHeader">
+                      { groupTagList && groupTagList.length ?
                       <span className="filterByTag" onClick={this.toggleSheetTags}>
                         <span className="int-en" >Filter By Tag <i className="fa fa-angle-down"></i></span>
                         <span className="int-he">סנן לפי תווית<i className="fa fa-angle-down"></i></span>
                        </span>
-                       {/*
-                      <span className="en actionText">Sort By:
-                        <select value={this.props.mySheetSort} onChange={this.changeSortYourSheets}>
-                         <option value="date">Recent</option>
-                         <option value="views">Most Viewed</option>
-                       </select> <i className="fa fa-angle-down"></i></span>
-                      <span className="he actionText">סנן לפי:
-                        <select value={this.props.mySheetSort} onChange={this.changeSortYourSheets}>
-                         <option value="date">הכי חדש</option>
-                         <option value="views">הכי נצפה</option>
-                       </select> <i className="fa fa-angle-down"></i></span>
-                       */}
-                    </h2>) : null}
+                       : null }
+                    
+                        <span className="int-en actionText">Sort By:
+                          <select value={this.state.sheetSort} onChange={this.changeSheetSort}>
+                           <option value="date">Recent</option>
+                           <option value="alphabetical">Alphabetical</option>
+                           <option value="views">Most Viewed</option>
+                         </select> <i className="fa fa-angle-down"></i></span>
+                        <span className="int-he actionText">סנן לפי:
+                          <select value={this.state.sheetSort} onChange={this.changeSheetSort}>
+                           <option value="date">הכי חדש</option>
+                           <option value="alphabetical">Alphabetical</option>
+                           <option value="views">הכי נצפה</option>
+                         </select> <i className="fa fa-angle-down"></i></span>
+                    </h2>
 
                   {this.state.showTags ? <TwoOrThreeBox content={groupTagList} width={this.props.width} /> : null}
 
@@ -4598,7 +4614,8 @@ var GroupPage = React.createClass({
 
 var GroupSheetListing = React.createClass({
   propTypes: {
-    sheet: React.PropTypes.object.isRequired,
+    sheet:       React.PropTypes.object.isRequired,
+    setSheetTag: React.PropTypes.func.isRequired
   },
   render: function() {
     var sheet = this.props.sheet;
@@ -4618,29 +4635,65 @@ var GroupSheetListing = React.createClass({
   }
 });
 
+
 var GroupInvitationBox = React.createClass({
   propTypes: {
     groupName: React.PropTypes.string.isRequired,
     onDataChange: React.PropTypes.func.isRequired,
   },
+  getInitialState: function() {
+    return {
+      inviting: false,
+      message: null
+    };
+  },
   onInviteClick: function() {
-    this.inviteByEmail($("#groupInvitationInput").val());
+    if (!this.state.inviting) {
+      this.inviteByEmail($("#groupInvitationInput").val());
+    }
+  },
+  flashMessage: function(message) {
+    this.setState({message: message});
+    setTimeout(function() {
+      this.setState({message: null});
+    }.bind(this), 3000);
   },
   inviteByEmail: function(email) {
+    if (!this.validateEmail(email)) {
+      this.flashMessage("That isn't a valid email address.")
+      return;
+    }
+    this.setState({inviting: true, message: "Inviting..."})
     $.post("/api/groups/" + this.props.groupName + "/invite/" + email, function(data) {
       if ("error" in data) {
-        alert(data.error)
+        alert(data.error);
+        this.setState({message: null, inviting: false});
       } else {
-        Sefaria._groups[data.name] = data;
-        $("#groupInvitationInput").val("")
+        Sefaria._groups[this.props.groupName] = data.group;
+        $("#groupInvitationInput").val("");
+        this.flashMessage(data.message);
+        this.setState({inviting: false})
         this.props.onDataChange();
       }
+    }.bind(this)).fail(function() {
+        alert("There was an error sending your invitation.");
+        this.setState({message: null, inviting: false});      
     }.bind(this));
+  },
+  validateEmail: function(email) {
+    var re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+    return re.test(email);
   },
   render: function() {
     return (<div className="groupInvitationBox">
                 <input id="groupInvitationInput" placeholder="Email Address" />
-                <div className="button" onClick={this.onInviteClick}>Invite</div>
+                <div className="button" onClick={this.onInviteClick}>
+                  <span className="int-en">Invite</span>
+                  <span className="int-he">Invite</span>
+                </div>
+                {this.state.message ?
+                  <div className="groupInvitationBoxMessage">{this.state.message}</div>
+                  : null}
               </div>);
   }
 });
@@ -4655,6 +4708,15 @@ var GroupMemberListing = React.createClass({
     onDataChange: React.PropTypes.func,
   },
   render: function() {
+    if (this.props.member.role == "Invitation") {
+      return this.props.isAdmin ? 
+        <GroupInvitationListing 
+          member={this.props.member}
+          groupName={this.props.groupName}
+          onDataChange={this.props.onDataChange} /> 
+        : null;
+    } 
+
     return (
       <div className="groupMemberListing">
         <a href={this.props.member.profileUrl}>
@@ -4682,17 +4744,46 @@ var GroupMemberListing = React.createClass({
 });
 
 
+var GroupInvitationListing = React.createClass({
+  propTypes: {
+    member:       React.PropTypes.object.isRequired,
+    groupName:    React.PropTypes.string,
+    onDataChange: React.PropTypes.func,
+  },
+  render: function() {
+    return (
+      <div className="groupMemberListing">
+        <span className="groupInvitationListing">
+          {this.props.member.email}
+        </span>
+
+        <div className="groupMemberListingRoleBox">
+          <span className="groupMemberListingRole">Invited</span>
+          <GroupMemberListingActions 
+            member={this.props.member}
+            groupName={this.props.groupName}
+            isInvitation={true}
+            onDataChange={this.props.onDataChange} />
+        </div>
+
+      </div>);
+  }
+});
+
+
 var GroupMemberListingActions = React.createClass({
   propTypes: {
     member:       React.PropTypes.object.isRequired,
     groupName:    React.PropTypes.string.isRequired,
     isAdmin:      React.PropTypes.bool,
     isSelf:       React.PropTypes.bool,
+    isInvitation: React.PropTypes.bool,
     onDataChange: React.PropTypes.func.isRequired
   },
   getInitialState: function() {
     return {
-      menuOpen: false
+      menuOpen: false,
+      invitationResent: false
     }
   },
   toggleMenu: function() {
@@ -4723,6 +4814,29 @@ var GroupMemberListingActions = React.createClass({
       this.setRole("remove");
     }
   },
+  resendInvitation: function() {
+    $.post("/api/groups/" + this.props.groupName + "/invite/" + this.props.member.email, function(data) {
+      if ("error" in data) {
+        alert(data.error)
+      } else {
+        Sefaria._groups[this.props.groupName] = data.group;
+        this.props.onDataChange();
+        this.setState({"invitationResent": true});
+      }
+    }.bind(this));
+  },
+  removeInvitation: function() {
+    if (confirm("Are you sure you want to remove this invitation?")) {
+      $.post("/api/groups/" + this.props.groupName + "/invite/" + this.props.member.email + "/uninvite", function(data) {
+        if ("error" in data) {
+          alert(data.error)
+        } else {
+          Sefaria._groups[this.props.groupName] = data.group;
+          this.props.onDataChange();
+        }
+      }.bind(this));      
+    }
+  },
   render: function() {
     return (
       <div className="groupMemberListingActions" onClick={this.toggleMenu}>
@@ -4749,9 +4863,27 @@ var GroupMemberListingActions = React.createClass({
                 - can view & share within group
               </div>
               : null}
-            <div className="action" onClick={this.removeMember}>
-              <span className="role">{this.props.isSelf ? "Leave Group" : "Remove"}</span>
-            </div>
+            {this.props.isAdmin || this.props.isSelf ? 
+              <div className="action" onClick={this.removeMember}>
+                <span className="role">{this.props.isSelf ? "Leave Group" : "Remove"}</span>
+              </div>
+            : null }
+            {this.props.isInvitation  && !this.state.invitationResent ? 
+              <div className="action" onClick={this.resendInvitation}>
+                <span className="role">Resend Invitation</span>
+              </div>
+              : null}
+            {this.props.isInvitation  && this.state.invitationResent ? 
+              <div className="action">
+                <span className="role">Invitation Resent</span>
+              </div>
+              : null}
+            {this.props.isInvitation ? 
+              <div className="action" onClick={this.removeInvitation}>
+                <span className="role">Remove</span>
+
+              </div>
+              : null}
           </div>
         : null }
       </div>);
@@ -5374,7 +5506,6 @@ var SheetAccessIcon = React.createClass({
   },
   render: function() {
     var sheet = this.props.sheet;
-    console.log(sheet)
     var msg = "group" in sheet ? "Listed for Group members only" : "Private";
     return (sheet.status == "unlisted") ? 
       (<i className="fa fa-lock" title={msg}></i>)
@@ -5585,14 +5716,14 @@ var TextColumn = React.createClass({
     }
   },
   handleScroll: function(event) {
-    console.log("scroll");
+    //console.log("scroll");
     if (this.justScrolled) {
       console.log("pass scroll");
       this.justScrolled = false;
       return;
     }
     if (this.props.highlightedRefs.length) {
-      console.log("Calling debouncedAdjustTextListHighlight");
+      //console.log("Calling debouncedAdjustTextListHighlight");
       this.debouncedAdjustTextListHighlight();
     }
     this.adjustInfiniteScroll();   

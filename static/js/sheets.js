@@ -2789,7 +2789,7 @@ function buildSheet(data){
 		var groupImage = $el.attr("data-image"); 
 
 		$("#groupLogo").attr("src", groupImage).show();
-		if (parseInt($el.attr("data-can-publish"))) {
+		if (parseInt($el.attr("data-can-publish")) || sjs.can_publish) {
 			$("#sourceSheetsAccessOptions").show();
 		} else {
 			$("#sourceSheetsAccessOptions").hide();

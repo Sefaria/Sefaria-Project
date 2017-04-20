@@ -292,8 +292,18 @@ def absolute_link(value):
 	<a href='/Job.3.4'>Job 3:4</a> --> <a href='http://www.sefaria.org/Job.3.4'>Job 3:4</a>
 	"""
 	# run twice to account for either single or double quotes
-	absolute = value.replace("href='/", "href='http://%s/" % domain)
-	absolute = absolute.replace('href="/', 'href="http://%s/' % domain)
+	absolute = value.replace("href='/", "href='https://%s/" % domain)
+	absolute = absolute.replace('href="/', 'href="https://%s/' % domain)
+	return mark_safe(absolute)
+
+
+@register.filter(is_safe=True)
+def absolute_url(value):
+	"""
+	Takes a string with path starting with "/" and returls url with domain and protocol.
+	"""
+	# run twice to account for either single or double quotes
+	absolute = "https://%s%s" % (domain, value)
 	return mark_safe(absolute)
 
 
