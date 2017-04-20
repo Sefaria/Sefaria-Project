@@ -2,68 +2,280 @@
 
 {% block title %}Technology for Jewish Educators | Sefaria.org{% endblock %}
 
+{% block head %}
+    <meta property="og:title" content="Technology for Jewish Educators | Sefaria.org"/>
+    <meta property="og:type" content="website"/>
+    <meta property="og:url" content="https://www.sefaria.org/educators"/>
+    <meta property="og:image" content="https://www.sefaria.org/static/img/fb-og-image.png"/>
+{% endblock %}
+
+{% block css %}
+{% endblock %}
+
 {% block content %}
 
-<div id="educators" class="container doc">
+    <div id="edPage" class="static">
+        <div id="edCover">
+            <h1>
+                Teach with Sefaria
+            </h1>
+            <div class="sub">
+                Make 3,000 years of Jewish texts accessible to your students.
+            </div>
+            <a href="#">
+                <div class="button control-elem">
+                    Sign up to get updates | Get the Newsletter
+                </div>
+            </a>
+        </div>
 
-<h1>Teaching with Sefaria</h1>
-<div class="row">
-	<div class="span12 docBrief">
-		<p>Sefaria is working on the ambitious goal of creating a free, comprehensive, publicly licensed database of Jewish texts and their interconnections. Along the way we're also creating interactive tools to empower educators and make Jewish learning more engaging.</p> 
-	</div>
-</div>
+        <div id="edLearn" class="section textLeft">
+            <div class="sectionInner">
+                <div class="textBox">
+                    <h2>
+                        Partnership Initiative
+                    </h2>
+                    <div class="description">
+                        Work with our team to improve pedagogy for teaching Jewish texts, and to foster a more innovative spirit within the community of Jewish educators.
+                    </div>
+                    <a href="#">
+                        <div class="button white control-elem">
+                            Learn More &rsaquo;
+                        </div>
+                        <div class="button white control-elem">
+                            Past Cohorts &rsaquo;
+                        </div>
+                    </a>
+                </div>
+                <div class="imageBox">
+                    <img src="/static/img/partnership-initiative-image.png" />
+                </div>
+            </div>
+        </div>
 
-<div class="row">
-	<div class="span12">
-	<p><b>Digital learning is coming</b>, and we all know it. Sefaria is making sure that the texts and tools of digital learning for the Jewish tradition are publicly licensed and open source. Below are a few tools and ideas for how Sefaria can help your classroom. But beyond what Sefaria can offer you, consider the following question:</p>
-	<p><b>What if the learning in your classroom contributed something to the world of learning outside?</b> Put another way, what if your students felt that they weren't just taking in knowledge, but were also sharing it back to others who would value it? You can learn more about how Sefaria shares collective knowledge with the world on our <a href="/contribute">Guide to Contributing</a>.</p>
-	
-	</div>
-</div>
+
+        <div id="edNews" class="section textRight">
+            <div class="sectionInner">
+                <div class="textBox">
+                    <h2>
+                        Educator News
+                    </h2>
+                    <div class="description">
+                        Find out what’s new at Sefaria. Explore new ideas for using Sefaria in your classroom.
+                        </span>
+
+                    </div>
+                    <a href="#">
+                        <div class="button white control-elem">
+                            In the Classroom &rsaquo;
+                        </div>
+                    </a>
+                    <a href="#">
+                        <div class="button white control-elem">
+                            Education Blog &rsaquo;
+                        </div>
+                    </a>
+                </div>
+                <div class="imageBox">
+                    <img src="/static/img/ed-news.png" />
+                </div>
+            </div>
+        </div>
 
 
-<div class="row">
-	<span class="span12"><h2><a href="/sheets">Sefaria Source Sheet Builder</a></h2></span>
-	<div class="span6">
-		<p>Our first app built on top of the Sefaria database, we made the Source Sheet Builder after hearing countless horror stories of the hoops educators jump through to make their source sheets.</p>
-		<ul>
-		<li>Create interactive, bilingual source sheets without the copy and paste.</li>
-		<li>Print, save PDFs, or share a link on email, Facebook or Twitter.</li>
-		<li>Give students one click access to a source's context and additional related texts.</li>
-		<li>Keep your sheets private or publish them to share with the Sefaria community.</li>
-		</ul>
-	</div>
-	<div class="span6" style="text-align:center;">
-		<a href="/sheets"><img id="sheetsImg" src="/static/img/sheets.png"></a>
-	</div>
-</div>
+        <div id="edSheets" class="section textLeft">
+            <div class="sectionInner">
+                <div class="textBox">
+                    <h2>
+                        Sheets
+                    </h2>
+                    <div class="description">
+                        Create, collaborate, get inspired. Browse through thousands of Sefaria sheets or start your own.
+                    </div>
+                    <a href="/sheets/new">
+                        <div class="button control-elem">
+                            Start a New Sheet &rsaquo;
+                        </div>
+                    </a>
+                </div>
+                <div class="imageBox">
+                    <a  href="#">
+                        <div class="button white control-elem">
+                            Trending
+                        </div>
+                    </a>
+                    <a  href="#">
+                        <div class="button white control-elem">
+                            Assignments
+                        </div>
+                    </a>
+                    <a  href="#">
+                        <div class="button white control-elem">
+                            Highlight
+                        </div>
+                    </a>
+                    <a  href="#">
+                        <div class="button white control-elem">
+                            Collaborative
+                        </div>
+                    </a>
+                    <a  href="#">
+                        <div class="button white control-elem">
+                            Visualize
+                        </div>
+                    </a>
 
-<div class="row" id="studentProjects">
-	<span class="span12"><h2>Projects for Students</h2></span>
-	<span class="span12">
-		<p>Sefaria allows students to work independently or in chavruta while keeping the results of their work in a place that is shared with a larger group. Sefaria's simple interface makes it easier for students to start exploring Jewish text indenpendently, while at the same time giving them a chance to contribute to something larger.</p>
-	</span>
-	<span class="span4">
-		<h3>Assign Connections</h3>
-		<p>Imagine asking 20 bright students to find a source with something to bear on the topic you're discussing. Now imagine those 20 perspective were tied together in one visible, interactive place. Sefaria allows you to visualize and record the conversations of your classroom. Learn more about <a href="/contribute#connections">adding connections on Sefaria</a>.</p>
-	</span>
-	<span class="span4">
-		<h3>Assign Translations</h3>
-		<p>Sefaria is perfect for breaking big projects into smaller pieces, giving your class a chance to perform a siyum on completing a project together. Sefaria lets everyone work on their own assignment, lets you see who is completing what, and allows students to review and offer corrections on each other's work. Learn more about <a href="/contribute#translate">translating on Sefaria</a>.</p>
-	</span>
-	<span class="span4">	
-		<h3>Assign Source Sheets</h3>
-		<p>A comprehensive source sheeet, complete with a student's interpretations on each source and their connections, is a great assignment for bringing together and synthesizing many points of view. Along the way students can add texts or translations that aren't yet available. Learn more about the <a href="/sheets">Sefaria Source Sheet Builder</a>.</p>
-	</span>
-</div>
+                </div>
+            </div>
+        </div>
 
-<div class="row">
-	<span class="span12"><h2>Optimized for iPad</h2></span>
-	<span class="span12">
-		<p>Sefaria's interfaces are optimized for iPad and other tablets to promote face to face learning. If your classroom includes iPads, try using Sefaria as a free resource for exploring texts and their interconnections.</p>
-	</span>
-</div>
 
-</div>
+        <div id="edLibrary" class="section textRight">
+            <div class="sectionInner">
+                <div class="textBox">
+                    <h2>
+                        Library
+                    </h2>
+                    <div class="description">
+                        Tanakh, Talmud, Commentaries, Liturgy and more. Sefaria’s vast library puts thousands of years of Jewish wisdom, in Hebrew and in English translation, at your  ngertips.
+                    </div>
+                </div>
+                <div class="imageBox">
+                    <a  href="#">
+                        <div class="button white control-elem">
+                            Lexicon
+                        </div>
+                    </a>
+                    <a  href="#">
+                        <div class="button white control-elem">
+                            Connections
+                        </div>
+                    </a>
+                    <a  href="#">
+                        <div class="button white control-elem">
+                            Request a Text
+                        </div>
+                    </a>
+                    <a  href="#">
+                        <div class="button white control-elem">
+                            Tutorials
+                        </div>
+                    </a>
+                </div>
+            </div>
+        </div>
 
+        <div id="edGroups" class="section textLeft">
+            <div class="sectionInner">
+                <div class="textBox">
+                    <h2>
+                        Groups
+                    </h2>
+                    <div class="description">
+                        Enjoy your own private Sefaria! Share materials with students or colleagues from your own school or around the world.
+                    </div>
+                    <a href="#">
+                        <div class="button white control-elem">
+                            Your Groups &rsaquo;
+                        </div>
+                    </a>
+                    <a href="#">
+                        <div class="button white control-elem">
+                            How to use a Group &rsaquo;
+                        </div>
+                    </a>
+                </div>
+                <div class="imageBox">
+                    <img src="static/img/ed-groups.png" />
+                </div>
+            </div>
+        </div>
+
+        <div id="edLearnMore" class="section center">
+            <div class="sectionInner">
+                <h2>
+                    Learn More
+                </h2>
+                <div class="description">
+                    Have more questions? Check out our tutorials or contact the Education Department.
+                </div>
+                <a href="#">
+                    <div class="button white control-elem">
+                        Get in Touch &rsaquo;
+                    </div>
+                </a>
+                <a href="#">
+                    <div class="button white control-elem">
+                        More How-tos &rsaquo;
+                    </div>
+                </a>
+            </div>
+        </div>
+
+        <div id="edHelp" class="section center">
+            <div class="sectionInner">
+                <h2>
+                    We Need Your Help
+                </h2>
+                <div class="description">
+                    Sefaria is an open source, non-profit project. Support us by making a tax-deductible donation.
+                </div>
+                <a href="/donate">
+                    <div class="button control-elem">
+                        Make a Donation
+                    </div>
+                </a>
+            </div>
+        </div>
+
+        <div id="edConnect" class="section center">
+            <div class="sectionInner">
+                <h2>
+                    Stay Connected
+                </h2>
+                <div id="mailingListBox">
+                    <div id="mailingListTitle" class="sans">
+                        Subscribe to our mailing list
+                    </div>
+                    <input id="mailingListEmail" placeholder="Email Address">
+                    <span id="subscribe" class="button control-elem">
+                        Subscribe
+                    </span>
+                    <div id="subscribeMsg">&nbsp;</div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+{% endblock %}
+
+{% block js  %}
+    <script>
+    $(function() {
+        // Email List
+        $("#subscribe").click(function() {
+            var email = $("#mailingListEmail").val();
+            if (Sefaria.util.isValidEmailAddress(email)) {
+                Sefaria.site.track.event("Educators", "Subscribe from Education Homepage", "");
+                $("#subscribeMsg").html("<i>Subscribing...</i>").show();
+                $.post("/api/subscribe/" + email, function(data) {
+                    if ("error" in data) {
+                        $("#subscribeMsg").text(data.error).show();
+                    } else {
+                        $("#subscribeMsg").text("Subscribed! Welcome to our list.").show();
+                    }
+                }).error(function(data) {
+                    $("#subscribeMsg").text("Sorry, there was an error.").show();
+                })
+            } else {
+                $("#subscribeMsg").text("Sorry, that's not a valid email address.").show();
+            }
+        });
+        $("#mailingListEmail").keyup(function(e){
+            if (e.keyCode === 13) {
+                $("#subscribe").trigger("click");
+            }
+        });
+    });
+    </script>
 {% endblock %}
