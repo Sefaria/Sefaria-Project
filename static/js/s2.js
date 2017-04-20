@@ -5873,19 +5873,48 @@ var GroupInvitationBox = React.createClass({
     groupName: React.PropTypes.string.isRequired,
     onDataChange: React.PropTypes.func.isRequired
   },
+  getInitialState: function getInitialState() {
+    return {
+      inviting: false,
+      message: null
+    };
+  },
   onInviteClick: function onInviteClick() {
-    this.inviteByEmail($("#groupInvitationInput").val());
+    if (!this.state.inviting) {
+      this.inviteByEmail($("#groupInvitationInput").val());
+    }
+  },
+  flashMessage: function flashMessage(message) {
+    this.setState({ message: message });
+    setTimeout(function () {
+      this.setState({ message: null });
+    }.bind(this), 3000);
   },
   inviteByEmail: function inviteByEmail(email) {
+    if (!this.validateEmail(email)) {
+      this.flashMessage("That isn't a valid email address.");
+      return;
+    }
+    this.setState({ inviting: true, message: "Inviting..." });
     $.post("/api/groups/" + this.props.groupName + "/invite/" + email, function (data) {
       if ("error" in data) {
         alert(data.error);
+        this.setState({ message: null, inviting: false });
       } else {
-        Sefaria._groups[data.name] = data;
+        Sefaria._groups[this.props.groupName] = data.group;
         $("#groupInvitationInput").val("");
+        this.flashMessage(data.message);
+        this.setState({ inviting: false });
         this.props.onDataChange();
       }
+    }.bind(this)).fail(function () {
+      alert("There was an error sending your invitation.");
+      this.setState({ message: null, inviting: false });
     }.bind(this));
+  },
+  validateEmail: function validateEmail(email) {
+    var re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+    return re.test(email);
   },
   render: function render() {
     return React.createElement(
@@ -5895,8 +5924,22 @@ var GroupInvitationBox = React.createClass({
       React.createElement(
         'div',
         { className: 'button', onClick: this.onInviteClick },
-        'Invite'
-      )
+        React.createElement(
+          'span',
+          { className: 'int-en' },
+          'Invite'
+        ),
+        React.createElement(
+          'span',
+          { className: 'int-he' },
+          'Invite'
+        )
+      ),
+      this.state.message ? React.createElement(
+        'div',
+        { className: 'groupInvitationBoxMessage' },
+        this.state.message
+      ) : null
     );
   }
 });
@@ -6034,7 +6077,7 @@ var GroupMemberListingActions = React.createClass({
       if ("error" in data) {
         alert(data.error);
       } else {
-        Sefaria._groups[data.name] = data;
+        Sefaria._groups[this.props.groupName] = data.group;
         this.props.onDataChange();
         this.setState({ "invitationResent": true });
       }
@@ -6046,7 +6089,7 @@ var GroupMemberListingActions = React.createClass({
         if ("error" in data) {
           alert(data.error);
         } else {
-          Sefaria._groups[data.name] = data;
+          Sefaria._groups[this.props.groupName] = data.group;
           this.props.onDataChange();
         }
       }.bind(this));

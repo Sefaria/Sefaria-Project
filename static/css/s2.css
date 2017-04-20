@@ -3433,6 +3433,11 @@ h2.splitHeader .he {
   position: relative;
   top: 3px;
 }
+.groupInvitationBoxMessage {
+  font-size: 18px;
+  padding: 12px 0 0;
+  text-align: center;
+}
 .groupPage .groupMemberListing {
   padding: 24px 0;
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
