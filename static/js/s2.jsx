@@ -4556,12 +4556,13 @@ var GroupPage = React.createClass({
 
                 { this.state.tab == "sheets" ?
                   <div>
-                  { groupTagList && groupTagList.length ?
-                    (<h2 className="splitHeader">
+                    <h2 className="splitHeader">
+                      { groupTagList && groupTagList.length ?
                       <span className="filterByTag" onClick={this.toggleSheetTags}>
                         <span className="int-en" >Filter By Tag <i className="fa fa-angle-down"></i></span>
                         <span className="int-he">סנן לפי תווית<i className="fa fa-angle-down"></i></span>
                        </span>
+                       : null }
                     
                         <span className="int-en actionText">Sort By:
                           <select value={this.state.sheetSort} onChange={this.changeSheetSort}>
@@ -4575,8 +4576,7 @@ var GroupPage = React.createClass({
                            <option value="alphabetical">Alphabetical</option>
                            <option value="views">הכי נצפה</option>
                          </select> <i className="fa fa-angle-down"></i></span>
-                       
-                    </h2>) : null}
+                    </h2>
 
                   {this.state.showTags ? <TwoOrThreeBox content={groupTagList} width={this.props.width} /> : null}
 
@@ -4641,24 +4641,59 @@ var GroupInvitationBox = React.createClass({
     groupName: React.PropTypes.string.isRequired,
     onDataChange: React.PropTypes.func.isRequired,
   },
+  getInitialState: function() {
+    return {
+      inviting: false,
+      message: null
+    };
+  },
   onInviteClick: function() {
-    this.inviteByEmail($("#groupInvitationInput").val());
+    if (!this.state.inviting) {
+      this.inviteByEmail($("#groupInvitationInput").val());
+    }
+  },
+  flashMessage: function(message) {
+    this.setState({message: message});
+    setTimeout(function() {
+      this.setState({message: null});
+    }.bind(this), 3000);
   },
   inviteByEmail: function(email) {
+    if (!this.validateEmail(email)) {
+      this.flashMessage("That isn't a valid email address.")
+      return;
+    }
+    this.setState({inviting: true, message: "Inviting..."})
     $.post("/api/groups/" + this.props.groupName + "/invite/" + email, function(data) {
       if ("error" in data) {
-        alert(data.error)
+        alert(data.error);
+        this.setState({message: null, inviting: false});
       } else {
-        Sefaria._groups[data.name] = data;
-        $("#groupInvitationInput").val("")
+        Sefaria._groups[this.props.groupName] = data.group;
+        $("#groupInvitationInput").val("");
+        this.flashMessage(data.message);
+        this.setState({inviting: false})
         this.props.onDataChange();
       }
+    }.bind(this)).fail(function() {
+        alert("There was an error sending your invitation.");
+        this.setState({message: null, inviting: false});      
     }.bind(this));
+  },
+  validateEmail: function(email) {
+    var re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+    return re.test(email);
   },
   render: function() {
     return (<div className="groupInvitationBox">
                 <input id="groupInvitationInput" placeholder="Email Address" />
-                <div className="button" onClick={this.onInviteClick}>Invite</div>
+                <div className="button" onClick={this.onInviteClick}>
+                  <span className="int-en">Invite</span>
+                  <span className="int-he">Invite</span>
+                </div>
+                {this.state.message ?
+                  <div className="groupInvitationBoxMessage">{this.state.message}</div>
+                  : null}
               </div>);
   }
 });
@@ -4784,7 +4819,7 @@ var GroupMemberListingActions = React.createClass({
       if ("error" in data) {
         alert(data.error)
       } else {
-        Sefaria._groups[data.name] = data;
+        Sefaria._groups[this.props.groupName] = data.group;
         this.props.onDataChange();
         this.setState({"invitationResent": true});
       }
@@ -4796,7 +4831,7 @@ var GroupMemberListingActions = React.createClass({
         if ("error" in data) {
           alert(data.error)
         } else {
-          Sefaria._groups[data.name] = data;
+          Sefaria._groups[this.props.groupName] = data.group;
           this.props.onDataChange();
         }
       }.bind(this));      

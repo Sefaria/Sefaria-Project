@@ -605,20 +605,25 @@ def groups_invite_api(request, group_name, uid_or_email, uninvite=False):
 	if not user.exists():
 		if uninvite:
 			group.remove_invitation(uid_or_email)
+			message = "Invitation removed."
 		else:
 			group.invite_member(uid_or_email, request.user.id)
+			message = "Invitation sent."
 	else:
 		is_new_member = not group.is_member(user.id)
-		group.add_member(user.id)
 
 		if is_new_member:
+			group.add_member(user.id)
 			from sefaria.model.notification import Notification
 			notification = Notification({"uid": user.id})
 			notification.make_group_add(adder_id=request.user.id, group_name=group_name)
 			notification.save()
+			message = "Group member added."
+		else:
+			message = "%s is already a member of this group." % user.full_name
 
 	group_content = group.contents(with_content=True, authenticated=True)
-	return jsonResponse(group_content)
+	return jsonResponse({"group": group_content, "message": message})
 
 
 def sheet_stats(request):
