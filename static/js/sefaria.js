@@ -214,7 +214,7 @@ Sefaria = extend(Sefaria, {
     if (!cb) {
       return this._getOrBuildTextData(key, ref, settings);
     }          
-    if (key in this._texts) {
+    if (key in this._texts && !("updateFromAPI" in this._texts[key])) {
       var data = this._getOrBuildTextData(key, ref, settings);
       cb(data);
       return data;
@@ -225,6 +225,7 @@ Sefaria = extend(Sefaria, {
       cb(data);
       //console.log("API return for " + data.ref)
     }.bind(this));
+    return null;
   },
   _versions: {},
   versions: function(ref, cb) {

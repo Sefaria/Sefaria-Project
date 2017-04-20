@@ -271,10 +271,10 @@ def make_panel_dict(oref, version, language, filter, mode, **kwargs):
                 panel["versionLanguage"] = None
         if mode != "Connections":
             try:
-                text = TextFamily(oref, version=panel["version"], lang=panel["versionLanguage"], commentary=False, context=True, pad=True, alts=True, wrapLinks=True).contents()
+                text = TextFamily(oref, version=panel["version"], lang=panel["versionLanguage"], commentary=False, context=True, pad=True, alts=True, wrapLinks=False).contents()
             except NoVersionFoundError:
                 text = {}
-
+            text["updateFromAPI"] = True
             text["next"] = oref.next_section_ref().normal() if oref.next_section_ref() else None
             text["prev"] = oref.prev_section_ref().normal() if oref.prev_section_ref() else None
             panel["text"] = text
