@@ -5261,7 +5261,7 @@ var TagSheetsPage = React.createClass({
   render: function() {
     var sheets = this.getSheetsFromCache();
     sheets = sheets ? sheets.map(function (sheet) {
-      return (<PublicSheetListing sheet={sheet} />);
+      return (<PublicSheetListing sheet={sheet} key={sheet.id} />);
     }) : (<LoadingMessage />);
     return (<div className="content sheetList hasFooter">
                       <div className="contentInner">
@@ -5454,7 +5454,7 @@ var MySheetsPage = React.createClass({
       return Sefaria.util.inArray(this.state.sheetFilterTag, sheet.tags) >= 0;
     }.bind(this)) : sheets;
     sheets = sheets ? sheets.map(function(sheet) {
-      return (<PrivateSheetListing sheet={sheet} multiPanel={this.props.multiPanel} setSheetTag={this.props.setSheetTag} key={sheet.id} />);
+      return (<PrivateSheetListing sheet={sheet} setSheetTag={this.props.setSheetTag} key={sheet.id} />);
     }.bind(this)) : (<LoadingMessage />);
 
     var userTagList = this.getTagsFromCache();
@@ -5506,38 +5506,22 @@ var MySheetsPage = React.createClass({
 var PrivateSheetListing = React.createClass({
   propTypes: {
     sheet:       React.PropTypes.object.isRequired,
-    multiPanel:  React.PropTypes.bool,
     setSheetTag: React.PropTypes.func.isRequired
   },
   render: function() {
     var sheet = this.props.sheet;
-    var editSheetTags = function() { console.log(sheet.id)}.bind(this);
     var title = sheet.title ? sheet.title.stripHtml() : "Untitled Source Sheet";
     var url = "/sheets/" + sheet.id;
 
     if (sheet.tags === undefined) sheet.tags = [];
       var tagString = sheet.tags.map(function (tag) {
           return(<SheetTagLink setSheetTag={this.props.setSheetTag} tag={tag} key={tag} />);
-    },this);
+    }, this);
 
-    if (this.props.multiPanel) {
-      return (<div className="sheet userSheet" href={url} key={url}>
-                 <a className="sheetEditButtons" href={url}>
-                  <span><i className="fa fa-pencil"></i> </span>
-                </a>
-                <div className="sheetEditButtons" onClick={editSheetTags}>
-                  <span><i className="fa fa-tag"></i> </span>
-                </div>
-
-                <a className="sheetTitle" href={url}>{title}</a>  <SheetAccessIcon sheet={sheet} />
-                <div>{sheet.views} Views · {sheet.modified} · <span className="tagString">{tagString}</span></div>
-            </div>);
-    } else {
-      return (<a className="sheet userSheet" href={url} key={url}>
-                <div className="sheetTitle">{title}</div> <SheetAccessIcon sheet={sheet} />
-                <div>{sheet.views} Views · {sheet.modified} · <span className="tagString">{tagString}</span></div>
-              </a>);
-    }
+   return (<div className="sheet userSheet" href={url} key={url}>
+              <a className="sheetTitle" href={url}>{title}</a>  <SheetAccessIcon sheet={sheet} />
+              <div>{sheet.views} Views · {sheet.modified} · <span className="tagString">{tagString}</span></div>
+          </div>);
   }
 });
 

@@ -6702,7 +6702,7 @@ var TagSheetsPage = React.createClass({
   render: function render() {
     var sheets = this.getSheetsFromCache();
     sheets = sheets ? sheets.map(function (sheet) {
-      return React.createElement(PublicSheetListing, { sheet: sheet });
+      return React.createElement(PublicSheetListing, { sheet: sheet, key: sheet.id });
     }) : React.createElement(LoadingMessage, null);
     return React.createElement(
       'div',
@@ -6964,7 +6964,7 @@ var MySheetsPage = React.createClass({
       return Sefaria.util.inArray(this.state.sheetFilterTag, sheet.tags) >= 0;
     }.bind(this)) : sheets;
     sheets = sheets ? sheets.map(function (sheet) {
-      return React.createElement(PrivateSheetListing, { sheet: sheet, multiPanel: this.props.multiPanel, setSheetTag: this.props.setSheetTag, key: sheet.id });
+      return React.createElement(PrivateSheetListing, { sheet: sheet, setSheetTag: this.props.setSheetTag, key: sheet.id });
     }.bind(this)) : React.createElement(LoadingMessage, null);
 
     var userTagList = this.getTagsFromCache();
@@ -7089,12 +7089,10 @@ var PrivateSheetListing = React.createClass({
 
   propTypes: {
     sheet: React.PropTypes.object.isRequired,
-    multiPanel: React.PropTypes.bool,
     setSheetTag: React.PropTypes.func.isRequired
   },
   render: function render() {
     var sheet = this.props.sheet;
-    var editSheetTags = function () {}.bind(this);
     var title = sheet.title ? sheet.title.stripHtml() : "Untitled Source Sheet";
     var url = "/sheets/" + sheet.id;
 
@@ -7103,77 +7101,30 @@ var PrivateSheetListing = React.createClass({
       return React.createElement(SheetTagLink, { setSheetTag: this.props.setSheetTag, tag: tag, key: tag });
     }, this);
 
-    if (this.props.multiPanel) {
-      return React.createElement(
-        'div',
-        { className: 'sheet userSheet', href: url, key: url },
-        React.createElement(
-          'a',
-          { className: 'sheetEditButtons', href: url },
-          React.createElement(
-            'span',
-            null,
-            React.createElement('i', { className: 'fa fa-pencil' }),
-            ' '
-          )
-        ),
-        React.createElement(
-          'div',
-          { className: 'sheetEditButtons', onClick: editSheetTags },
-          React.createElement(
-            'span',
-            null,
-            React.createElement('i', { className: 'fa fa-tag' }),
-            ' '
-          )
-        ),
-        React.createElement(
-          'a',
-          { className: 'sheetTitle', href: url },
-          title
-        ),
-        '  ',
-        React.createElement(SheetAccessIcon, { sheet: sheet }),
-        React.createElement(
-          'div',
-          null,
-          sheet.views,
-          ' Views · ',
-          sheet.modified,
-          ' · ',
-          React.createElement(
-            'span',
-            { className: 'tagString' },
-            tagString
-          )
-        )
-      );
-    } else {
-      return React.createElement(
+    return React.createElement(
+      'div',
+      { className: 'sheet userSheet', href: url, key: url },
+      React.createElement(
         'a',
-        { className: 'sheet userSheet', href: url, key: url },
+        { className: 'sheetTitle', href: url },
+        title
+      ),
+      '  ',
+      React.createElement(SheetAccessIcon, { sheet: sheet }),
+      React.createElement(
+        'div',
+        null,
+        sheet.views,
+        ' Views · ',
+        sheet.modified,
+        ' · ',
         React.createElement(
-          'div',
-          { className: 'sheetTitle' },
-          title
-        ),
-        ' ',
-        React.createElement(SheetAccessIcon, { sheet: sheet }),
-        React.createElement(
-          'div',
-          null,
-          sheet.views,
-          ' Views · ',
-          sheet.modified,
-          ' · ',
-          React.createElement(
-            'span',
-            { className: 'tagString' },
-            tagString
-          )
+          'span',
+          { className: 'tagString' },
+          tagString
         )
-      );
-    }
+      )
+    );
   }
 });
 
