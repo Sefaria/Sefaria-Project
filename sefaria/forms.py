@@ -80,7 +80,7 @@ class NewUserForm(EmailUserCreationForm):
             mailingLists.append("Signed_Up_on_Sefaria")
 
         if self.cleaned_data["subscribe_educator"]:
-            mailingLists.append("Educator_Newsletter")
+            mailingLists.append("Announcements_Edu")
 
         if mailingLists:
             try:

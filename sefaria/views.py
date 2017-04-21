@@ -185,7 +185,7 @@ def subscribe(request, email):
         return jsonResponse({"error": "Sorry, there was an error."})
 
 def subscribe_educators(request, email):
-    if subscribe_to_list(["Announcements_General", "Educator_Newsletter"], email, direct_sign_up=True):
+    if subscribe_to_list(["Announcements_General", "Announcements_Edu"], email, direct_sign_up=True):
         return jsonResponse({"status": "ok"})
     else:
         return jsonResponse({"error": "Sorry, there was an error."})
