@@ -5247,6 +5247,7 @@ var SheetsNav = React.createClass({
         { className: 'readerNavTop searchOnly', key: 'navTop' },
         React.createElement(CategoryColorLine, { category: 'Sheets' }),
         React.createElement(ReaderNavigationMenuMenuButton, { onClick: this.props.openNav }),
+        React.createElement('div', { className: 'readerOptions' }),
         React.createElement(
           'h2',
           null,

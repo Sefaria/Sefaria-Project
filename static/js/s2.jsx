@@ -4289,6 +4289,7 @@ var SheetsNav = React.createClass({
                  (<div className="readerNavTop searchOnly" key="navTop">
                     <CategoryColorLine category="Sheets" />
                     <ReaderNavigationMenuMenuButton onClick={this.props.openNav} />
+                    <div className="readerOptions"></div>
                     <h2>
                       <span className="int-en">{enTitle}</span>
                       <span className="int-he">{heTitle}</span>
@@ -4348,12 +4349,12 @@ var SheetsHomePage = React.createClass({
   _type_sheet_button: function(en, he, on_click, active) {
     var classes = classNames({"type-button": 1, active: active});
 
-      return <div className={classes} onClick={on_click}>
-      <div className="type-button-title">
-        <span className="int-en">{en}</span>
-        <span className="int-he">{he}</span>
-      </div>
-    </div>;
+    return <div className={classes} onClick={on_click}>
+              <div className="type-button-title">
+                <span className="int-en">{en}</span>
+                <span className="int-he">{he}</span>
+              </div>
+            </div>;
   },
   render: function() {
     var trendingTags = this.getTrendingTagsFromCache();
