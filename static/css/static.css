@@ -673,7 +673,7 @@
   border: 1px solid #bbb;
   width: 100%;
   box-sizing: border-box;
-  color: #999;
+  color: #333;
   font-size: 14px;
 }
 .registrationContent #id_subscribe_announce, .registrationContent #id_subscribe_educator {
