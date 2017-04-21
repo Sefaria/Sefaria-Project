@@ -34,7 +34,7 @@ from sefaria.settings import DISABLE_INDEX_SAVE, USE_VARNISH
 
 """
                 ----------------------------------
-                 Index, IndexSet, CommentaryIndex
+                         Index, IndexSet
                 ----------------------------------
 """
 
@@ -162,10 +162,8 @@ class AbstractIndex(object):
 class Index(abst.AbstractMongoRecord, AbstractIndex):
     """
     Index objects define the names and structure of texts stored in the system.
+    There is an Index object for every text.
 
-    There is an Index object for every simple text and for every commentator (e.g. "Rashi").
-
-    Commentaries (like "Rashi on Exodus") are instantiated with :class:`CommentaryIndex` objects.
     """
     collection = 'index'
     history_noun = 'index'
@@ -239,8 +237,7 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
         return getattr(self, "nodes", None) and self.nodes.has_children()
 
     def contents(self, v2=False, raw=False, force_complex=False, **kwargs):
-        # leaving this here since it's not harmful, but there should not be any more records with no 'nodes'
-        if not getattr(self, "nodes", None) or raw:  # Commentator
+        if raw:
             contents = super(Index, self).contents()
         elif v2:
             # adds a set of legacy fields like 'titleVariants', expands alt structures with preview, etc.
@@ -262,6 +259,15 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
         authors = self.author_objects()
         if len(authors):
             contents["authors"] = [{"en": author.primary_name("en"), "he": author.primary_name("he")} for author in authors]
+
+        if getattr(self, "collective_title", None):
+            contents["collective_title"] = {"en": self.collective_title, "he": hebrew_term(self.collective_title)}
+
+        if getattr(self, "base_text_titles", None):
+            contents["base_text_titles"] = [{"en": btitle, "he": hebrew_term(btitle)} for btitle in self.base_text_titles]
+
+        contents["heCategories"] = map(hebrew_term, self.categories)
+
 
         composition_time_period = self.composition_time_period()
         if composition_time_period:
@@ -404,6 +410,53 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
 
     def publication_time_period(self):
         return self._get_time_period("pubDate")
+
+    def best_time_period(self):
+        """
+
+        :return: TimePeriod: First tries to return `compDate`. Deals with ranges and negative values for compDate
+        If no compDate, looks at author info
+        """
+        author = self.author_objects()[0] if len(self.author_objects()) > 0 else None
+        start, end, startIsApprox, endIsApprox = None, None, None, None
+
+        if getattr(self, "compDate", None):
+            errorMargin = int(getattr(self, "errorMargin", 0))
+            self.startIsApprox = self.endIsApprox = errorMargin > 0
+
+            try:
+                year = int(getattr(self, "compDate"))
+                start = year - errorMargin
+                end = year + errorMargin
+            except ValueError as e:
+                years = getattr(self, "compDate").split("-")
+                if years[0] == "" and len(years) == 3:  #Fix for first value being negative
+                    years[0] = -int(years[1])
+                    years[1] = int(years[2])
+                start = int(years[0]) - errorMargin
+                end = int(years[1]) + errorMargin
+
+        elif author and author.mostAccurateTimePeriod():
+            tp = author.mostAccurateTimePeriod()
+            start = tp.start
+            end = tp.end
+            startIsApprox = tp.startIsApprox
+            endIsApprox = tp.endIsApprox
+
+        if not start is None:
+            from sefaria.model.time import TimePeriod
+            if not startIsApprox is None:
+                return TimePeriod({
+                    "start": start,
+                    "end": end,
+                    "startIsApprox": startIsApprox,
+                    "endIsApprox": endIsApprox
+                })
+            else:
+                return TimePeriod({
+                    "start": start,
+                    "end": end
+                })
 
     def _get_time_period(self, date_field, margin_field=None):
         from . import time
@@ -595,7 +648,6 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
 
         return True
 
-
     def get_toc_index_order(self):
         order = getattr(self, 'order', None)
         if order:
@@ -604,7 +656,6 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
             order = max([library.get_index(x).get_toc_index_order() for x in self.base_text_titles])
             return order
         return None
-
 
     def toc_contents(self):
         """Returns to a dictionary used to represent this text in the library wide Table of Contents"""
@@ -621,8 +672,10 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
         if ord:
             toc_contents_dict["order"] = ord
         if hasattr(self, "collective_title"):
-            toc_contents_dict["commentator"] = self.collective_title
-            toc_contents_dict["heCommentator"] = hebrew_term(self.collective_title)
+            toc_contents_dict["commentator"] = self.collective_title # todo: deprecate Only used in s1 js code
+            toc_contents_dict["heCommentator"] = hebrew_term(self.collective_title) # todo: deprecate Only used in s1 js code
+            toc_contents_dict["collectiveTitle"] = self.collective_title
+            toc_contents_dict["heCollectiveTitle"] = hebrew_term(self.collective_title)
         if hasattr(self, 'base_text_titles'):
             toc_contents_dict["base_text_titles"] = self.base_text_titles
         if hasattr(self, 'base_text_mapping'):
@@ -639,7 +692,6 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
         :return:
         """
         return self.nodes.text_index_map(tokenizer=tokenizer, strict=strict, lang=lang, vtitle=vtitle)
-
 
     def get_primary_category(self):
         if self.is_dependant_text() and len(self.categories) >= 2:
@@ -723,7 +775,7 @@ class AbstractTextRecord(object):
     """
     text_attr = "chapter"
     ALLOWED_TAGS    = ("i", "b", "br", "u", "strong", "em", "big", "small", "img", "sup", "span")
-    ALLOWED_ATTRS   = {'span':['class'], 'i': ['data-commentator', 'data-order'], 'img': lambda name, value: name == 'src' and value.startswith("data:image/")}
+    ALLOWED_ATTRS   = {'span':['class'], 'i': ['data-commentator', 'data-order', 'class'], 'img': lambda name, value: name == 'src' and value.startswith("data:image/")}
 
     def word_count(self):
         """ Returns the number of words in this text """
@@ -1525,8 +1577,8 @@ class TextFamily(object):
             d[attr] = getattr(self._original_oref, attr)[:]
 
         if getattr(self._inode.index, 'collective_title', None):
-            d["commentator"] = getattr(self._inode.index, 'collective_title', "")
-            d["heCommentator"] = hebrew_term(getattr(self._inode.index, 'collective_title', ""))
+            d["commentator"] = getattr(self._inode.index, 'collective_title', "") # todo: deprecate Only used in s1 js code
+            d["heCommentator"] = hebrew_term(getattr(self._inode.index, 'collective_title', "")) # todo: deprecate Only used in s1 js code
             d["collectiveTitle"] = getattr(self._inode.index, 'collective_title', "")
             d["heCollectiveTitle"] = hebrew_term(getattr(self._inode.index, 'collective_title', ""))
 
@@ -2246,7 +2298,8 @@ class Ref(object):
 
         :return bool:
         """
-        #TODO: errors on complex refs
+        if getattr(self.index_node, "depth", None) is None:
+            return False
         return len(self.sections) == self.index_node.depth - 1
 
     def is_segment_level(self):
@@ -2264,7 +2317,8 @@ class Ref(object):
 
         :return bool:
         """
-        #TODO: errors on complex refs
+        if getattr(self.index_node, "depth", None) is None:
+            return False
         return len(self.sections) == self.index_node.depth
 
     """ Methods to generate new Refs based on this Ref """
@@ -3496,7 +3550,6 @@ class Ref(object):
         else:
             return None
 
-
     def distance(self, ref, max_dist=None):
         """
 
@@ -3521,6 +3574,7 @@ class Ref(object):
         else:
             return distance
 
+
 class Library(object):
     """
     Operates as a singleton, through the instance called ``library``.
@@ -3541,6 +3595,7 @@ class Library(object):
         self._title_node_maps = {lang:{} for lang in self.langs}
 
         # Lists of full titles, keys are string generated from a combination of language code, "commentators", "commentary", and "terms".  See method `full_title_list()`
+        # Contains a list of only those titles from which citations are recognized in the auto-linker. Keyed by "citing-<lang>"
         self._full_title_lists = {}
 
         # Lists of full titles, including simple and commentary texts, keyed by language
@@ -3797,19 +3852,27 @@ class Library(object):
         self.add_index_record_to_cache(new_index, rebuild=True)
 
     #todo: the for_js path here does not appear to be in use.
-    def all_titles_regex_string(self, lang="en", with_terms=False): #, for_js=False):
+    #todo: Rename, as method not gauraunteed to return all titles
+    def all_titles_regex_string(self, lang="en", with_terms=False, citing_only=False): #, for_js=False):
         """
         :param lang: "en" or "he"
-        :param with_terms:
+        :param with_terms: Include terms in regex.  (Will have no effect if citing_only is True)
+        :param citing_only: Match only those texts which have is_cited set to True
         :param for_js:
         :return:
         """
         key = lang
-        key += "_terms" if with_terms else ""
+        if citing_only:
+            key += "_citations"
+        elif with_terms:
+            key += "_terms"
         re_string = self._title_regex_strings.get(key)
         if not re_string:
             re_string = u""
-            simple_books = map(re.escape, self.full_title_list(lang, with_terms=with_terms))
+            if citing_only:
+                simple_books = map(re.escape, self.citing_title_list(lang))
+            else:
+                simple_books = map(re.escape, self.full_title_list(lang, with_terms=with_terms))
             simple_book_part = ur'|'.join(sorted(simple_books, key=len, reverse=True))  # Match longer titles first
 
             # re_string += ur'(?:^|[ ([{>,-]+)' if for_js else u''  # Why don't we check for word boundaries internally as well?
@@ -3824,20 +3887,24 @@ class Library(object):
         return re_string
 
     #WARNING: Do NOT put the compiled re2 object into redis.  It gets corrupted.
-    def all_titles_regex(self, lang="en", with_terms=False):
+    def all_titles_regex(self, lang="en", with_terms=False, citing_only=False):
         """
         :return: A regular expression object that will match any known title in the library in the provided language
         :param lang: "en" or "he"
-        :param bool with_terms: Default False.  If True, include shared titles ('terms')
+        :param bool with_terms: Default False.  If True, include shared titles ('terms'). (Will have no effect if citing_only is True)
+        :param citing_only: Match only those texts which have is_cited set to True
         :raise: InputError: if lang == "he" and commentary == True
 
         Uses re2 if available.  See https://github.com/Sefaria/Sefaria-Project/wiki/Regular-Expression-Engines
         """
-        key = "all_titles_regex_" + lang
-        key += "_terms" if with_terms else ""
+        if citing_only:
+            key = "citing_titles_regex_" + lang
+        else:
+            key = "all_titles_regex_" + lang
+            key += "_terms" if with_terms else ""
         reg = self._title_regexes.get(key)
         if not reg:
-            re_string = self.all_titles_regex_string(lang, with_terms)
+            re_string = self.all_titles_regex_string(lang, with_terms, citing_only)
             try:
                 reg = re.compile(re_string, max_mem=512 * 1024 * 1024)
             except TypeError:
@@ -3861,6 +3928,22 @@ class Library(object):
                 titles += self.get_term_dict(lang).keys()
             self._full_title_lists[key] = titles
         return titles
+
+    def citing_title_list(self, lang="en"):
+        """
+        :param lang: "he" or "en"
+        :return: list of all titles that can be recognized as an inline citation
+        """
+        key = "citing-{}".format(lang)
+        titles = self._full_title_lists.get(key)
+        if not titles:
+            titles = []
+            for i in IndexSet():
+                if getattr(i, "is_cited", False):
+                    titles.extend(self._index_title_maps[lang][i.title])
+            self._full_title_lists[key] = titles
+        return titles
+
 
     def ref_list(self):
         """
@@ -4008,7 +4091,7 @@ class Library(object):
         return IndexSet(q) if full_records else IndexSet(q).distinct("title")
 
 
-    def get_titles_in_string(self, s, lang=None):
+    def get_titles_in_string(self, s, lang=None, citing_only=False):
         """
         Returns the titles found in the string.
 
@@ -4020,11 +4103,11 @@ class Library(object):
             lang = "he" if is_hebrew(s) else "en"
         if lang=="en":
             #todo: combine into one regex
-            return [m.group('title') for m in self.all_titles_regex(lang).finditer(s)]
+            return [m.group('title') for m in self.all_titles_regex(lang, citing_only=citing_only).finditer(s)]
         elif lang=="he":
-            return [m.group('title') for m in self.all_titles_regex(lang).finditer(s)]
+            return [m.group('title') for m in self.all_titles_regex(lang, citing_only=citing_only).finditer(s)]
 
-    def get_refs_in_string(self, st, lang=None):
+    def get_refs_in_string(self, st, lang=None, citing_only=False):
         """
         Returns an list of Ref objects derived from string
 
@@ -4040,7 +4123,7 @@ class Library(object):
         if lang == "he":
             from sefaria.utils.hebrew import strip_nikkud
             st = strip_nikkud(st)
-            unique_titles = {title: 1 for title in self.get_titles_in_string(st, lang)}
+            unique_titles = {title: 1 for title in self.get_titles_in_string(st, lang, citing_only)}
             for title in unique_titles.iterkeys():
                 try:
                     res = self._build_all_refs_from_string(title, st)
@@ -4049,7 +4132,7 @@ class Library(object):
                 else:
                     refs += res
         else:  # lang == "en"
-            for match in self.all_titles_regex(lang).finditer(st):
+            for match in self.all_titles_regex(lang, citing_only=citing_only).finditer(st):
                 title = match.group('title')
                 if not title:
                     continue
@@ -4202,7 +4285,7 @@ def get_index(bookname):
     return library.get_index(bookname)
 
 
-def prepare_index_regex_for_dependency_process(index_object):
+def prepare_index_regex_for_dependency_process(index_object, as_list=False):
     """
     :return string: Regular Expression which will find any titles that match this index title exactly, or more specifically.
 
@@ -4217,7 +4300,10 @@ def prepare_index_regex_for_dependency_process(index_object):
         patterns.append(" \d") # extra granularity following space
 
     escaped_book = re.escape(index_object.title)
-    return "^%s(%s)" % (escaped_book, "|".join(patterns))
+    if as_list:
+        return ["^{}{}".format(escaped_book, p) for p in patterns]
+    else:
+        return "^%s(%s)" % (escaped_book, "|".join(patterns))
 
 
 def process_index_title_change_in_versions(indx, **kwargs):
@@ -4225,7 +4311,7 @@ def process_index_title_change_in_versions(indx, **kwargs):
 
 
 def process_index_title_change_in_dependant_records(indx, **kwargs):
-    dependent_indices = library.get_dependant_indices(kwargs["old"])
+    dependent_indices = library.get_dependant_indices(kwargs["old"], full_records=True)
     for didx in dependent_indices:
         pos = didx.base_text_titles.index(kwargs["old"])
         didx.base_text_titles.pop(pos)

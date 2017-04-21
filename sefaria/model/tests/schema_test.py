@@ -148,16 +148,20 @@ def setup_module(module):
 
 
 def test_relationships():
-    root.first_child().first_child() is root.first_leaf()
-    root.last_child().last_child() is root.last_leaf()
-    root.first_child().next_sibling().prev_sibling() is root.first_child()
-    root.first_child().last_child().next_leaf() is root.first_child().next_sibling().first_child()
-    root.first_child().next_sibling().first_child().prev_leaf() is root.first_child().last_child()
+    assert root.first_child().first_child() is root.first_leaf()
+    assert root.last_child().last_child() is root.last_leaf()
+    assert root.first_child().next_sibling().prev_sibling() is root.first_child()
+    assert root.first_child().last_child().next_leaf() is root.first_child().next_sibling().first_child()
+    assert root.first_child().next_sibling().first_child().prev_leaf() is root.first_child().last_child()
 
-    root.first_child().prev_sibling() is None
-    root.last_child().next_sibling() is None
-    root.first_leaf().prev_sibling() is None
-    root.last_leaf().next_sibling() is None
+    assert root.first_child().prev_sibling() is None
+    assert root.last_child().next_sibling() is None
+    assert root.first_leaf().prev_sibling() is None
+    assert root.last_leaf().next_sibling() is None
+
+
+def test_ancestors():
+    assert root.last_leaf().ancestors() == [root, root.last_child()]
 
 
 def test_text_index_map():

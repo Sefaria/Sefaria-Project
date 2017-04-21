@@ -41,8 +41,10 @@ def titles_json(request):
 def toc(request):
     return {"toc": library.get_toc(), "toc_json": library.get_toc_json(), "search_toc_json": library.get_search_filter_toc_json()}
 
+
 def terms(request):
     return {"terms_json": json.dumps(get_simple_term_mapping())}
+
 
 def embed_page(request):
     return {"EMBED": "embed" in request.GET}
@@ -90,7 +92,11 @@ def user_and_notifications(request):
         interrupting_message_json = json.dumps({"name": interrupting_message, "html": render_to_string("messages/%s.html" % interrupting_message)})
     else:
         interrupting_message_json = "null"
-    mock_recent = [{"ref":"Orot, Lights from Darkness, Land of Israel 5","heRef":"אורות, אורות מאופל, ארץ ישראל ה׳","book":"Orot","version":None,"versionLanguage":None,"position":0},{"ref":"Genesis 1","heRef":"בראשית א׳","book":"Genesis","version":None,"versionLanguage":None,"position":0},{"ref":"Berakhot 2a","heRef":"ברכות ב׳ א","book":"Berakhot","version":None,"versionLanguage":None,"position":0}]
+
+    # Temp for Groups testing, remove when groups icon is live for all
+    from sefaria.model.group import GroupSet
+    has_groups = len(GroupSet().for_user(request.user.id)) > 0
+
     return {
         "notifications": notifications,
         "notifications_json": notifications_json,
@@ -99,7 +105,8 @@ def user_and_notifications(request):
         "recentlyViewed": profile.recentlyViewed,
         "interrupting_message_json": interrupting_message_json,
         "partner_group": profile.partner_group,
-        "partner_role": profile.partner_role
+        "partner_role": profile.partner_role,
+        "has_groups": has_groups
     }
 
 
@@ -116,6 +123,8 @@ def header_html(request):
     if USE_NODE:
         LOGGED_OUT_HEADER = LOGGED_OUT_HEADER or render_react_component("ReaderApp", {"headerMode": True, "loggedIn": False})
         LOGGED_IN_HEADER = LOGGED_IN_HEADER or render_react_component("ReaderApp", {"headerMode": True, "loggedIn": True})
+        LOGGED_OUT_HEADER = "" if "s2Loading" in LOGGED_OUT_HEADER else LOGGED_OUT_HEADER
+        LOGGED_IN_HEADER = "" if "s2Loading" in LOGGED_IN_HEADER else LOGGED_IN_HEADER
     else:
         LOGGED_OUT_HEADER = ""
         LOGGED_IN_HEADER = ""
@@ -132,6 +141,7 @@ def footer_html(request):
     global FOOTER
     if USE_NODE:
         FOOTER = FOOTER or render_react_component("Footer", {})
+        FOOTER = "" if "s2Loading" in FOOTER else FOOTER
     else:
         FOOTER = ""
     return {

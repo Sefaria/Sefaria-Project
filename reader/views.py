@@ -29,12 +29,11 @@ from django.views.decorators.csrf import ensure_csrf_cookie, csrf_exempt, csrf_p
 from django.contrib.auth.models import User
 from django import http
 
-
-
 from sefaria.model import *
 from sefaria.workflows import *
 from sefaria.reviews import *
 from sefaria.model.user_profile import user_link, user_started_text, unread_notifications_count_for_user
+from sefaria.model.group import GroupSet
 from sefaria.client.wrapper import format_object_for_client, format_note_object_for_client, get_notes, get_links
 from sefaria.system.exceptions import InputError, PartialRefInputError, BookNameError, NoVersionFoundError, DuplicateRecordError
 # noinspection PyUnresolvedReferences
@@ -42,7 +41,7 @@ from sefaria.client.util import jsonResponse
 from sefaria.history import text_history, get_maximal_collapsed_activity, top_contributors, make_leaderboard, make_leaderboard_condition, text_at_revision, record_version_deletion, record_index_deletion
 from sefaria.system.decorators import catch_error_as_json
 from sefaria.summaries import flatten_toc, get_or_make_summary_node
-from sefaria.sheets import get_sheets_for_ref, get_public_sheets, get_sheets_by_tag, user_sheets, user_tags, recent_public_tags, sheet_to_dict, get_top_sheets, make_tag_list, partner_sheets
+from sefaria.sheets import get_sheets_for_ref, get_public_sheets, get_sheets_by_tag, user_sheets, user_tags, recent_public_tags, sheet_to_dict, get_top_sheets, make_tag_list, group_sheets
 from sefaria.utils.util import list_depth, text_preview
 from sefaria.utils.hebrew import hebrew_plural, hebrew_term, encode_hebrew_numeral, encode_hebrew_daf, is_hebrew, strip_cantillation, has_cantillation
 from sefaria.utils.talmud import section_to_daf, daf_to_section
@@ -227,8 +226,13 @@ def render_react_component(component, props):
         if isinstance(e, socket.timeout) or (hasattr(e, "reason") and isinstance(e.reason, socket.timeout)):
             logger.exception("Node timeout: Fell back to client-side rendering.")
             with open(NODE_TIMEOUT_MONITOR, "a") as myfile:
-                myfile.write("Node timeout: Fell back to client-side rendering. \nRequest Props:\n")
-                myfile.write(propsJSON)
+                myfile.write("Timeout at {}: {} / {} / {} / {}").format(
+                    datetime.now().isoformat(),
+                    props.get("initialPath"),
+                    "MultiPanel" if props.get("multiPanel", True) else "Mobile",
+                    "Logged In" if props.get("loggedIn", False) else "Logged Out",
+                    props.get("interfaceLang")
+                )
             return render_to_string("elements/loading.html")
         else:
             # If anything else goes wrong with Node, just fall back to client-side rendering
@@ -322,6 +326,7 @@ def s2_props(request):
         "initialPath": request.get_full_path(),
         "recentlyViewed": request_context.get("recentlyViewed"),
         "loggedIn": request.user.is_authenticated(),
+        "_uid": request.user.id,
         "interfaceLang": request_context.get("interfaceLang"),
         "initialSettings": {
             "language":      request_context.get("contentLang"),
@@ -340,7 +345,7 @@ def s2(request, ref, version=None, lang=None):
     Reader App.
     """
     try:
-        oref = Ref(ref)
+        primary_ref = oref = Ref(ref)
     except InputError:
         raise Http404
    
@@ -404,30 +409,30 @@ def s2(request, ref, version=None, lang=None):
         "initialNavigationCategories": None,
     })
     propsJSON = json.dumps(props)
+    title = primary_ref.normal()
 
     try:
-        title = props["initialPanels"][0]["text"].get("ref","")
-        try:
-            segmentIndex = (props["initialPanels"][0]["text"].get("sections",""))[1]-1
-        except:
-            segmentIndex = 0
-        desc = props["initialPanels"][0]["text"].get("text","")[segmentIndex] # get english text for section & first segment it exists
-        if desc == "":
-            desc = props["initialPanels"][0]["text"].get("he", "")[segmentIndex]  # if no english, fall back on hebrew
+        if primary_ref.is_book_level():
+            desc = getattr(primary_ref.index, 'enDesc', "")  # Todo: better fallback
+        else:
+            segmentIndex = primary_ref.sections[-1] - 1 if primary_ref.is_segment_level() else 0
+            enText = props["initialPanels"][0]["text"].get("text",[])
+            desc = enText[segmentIndex] if segmentIndex < len(enText) else ""  # get english text for section if it exists
+            if desc == "":
+                desc = props["initialPanels"][0]["text"].get("he", "")[segmentIndex]  # if no english, fall back on hebrew
         desc = bleach.clean(desc, strip=True, tags=())
-        desc = desc[:145].rsplit(' ', 1)[0]+"..." # truncate as close to 145 characters as possible while maintaining whole word. Append ellipses.
+        desc = desc[:145].rsplit(' ', 1)[0] + "..."  # truncate as close to 145 characters as possible while maintaining whole word. Append ellipses.
 
-    except:
-        title = "Sefaria: a Living Library of Jewish Texts Online"
+    except (IndexError, KeyError):
         desc = "Explore 3,000 years of Jewish texts in Hebrew and English translation."
 
     html = render_react_component("ReaderApp", props)
     return render_to_response('s2.html', {
-
         "propsJSON":      propsJSON,
         "html":           html,
         "title":          title,
-        "desc":           desc
+        "desc":           desc,
+        "ldBreadcrumbs":  ld_cat_crumbs(oref=primary_ref)
     }, RequestContext(request))
 
 
@@ -441,6 +446,9 @@ def s2_texts_category(request, cats):
         cat_toc    = get_or_make_summary_node(toc, cats, make_if_not_found=False)
         if cat_toc is None:
             return s2_texts(request)
+        title = u", ".join(cats) if len(cats) else u"Table of Contents"
+    else:
+        title = u"Recently Viewed"
 
     props = s2_props(request)
     props.update({
@@ -449,8 +457,11 @@ def s2_texts_category(request, cats):
     })
     html = render_react_component("ReaderApp", props)
     return render_to_response('s2.html', {
-        "propsJSON": json.dumps(props),
-        "html":      html,
+        "propsJSON":        json.dumps(props),
+        "html":             html,
+        "title":            title,
+        # "desc": desc,  # todo, when cat descriptions have a home in our db.
+        "ldBreadcrumbs":    ld_cat_crumbs(cats)
     }, RequestContext(request))
 
 
@@ -460,16 +471,22 @@ def s2_search(request):
     """
     search_filters = request.GET.get("filters").split("|") if request.GET.get("filters") else []
 
+    initialQuery = urllib.unquote(request.GET.get("q")) if request.GET.get("q") else ""
+
+    title = initialQuery if initialQuery else ""
+
     props = s2_props(request)
     props.update({
         "initialMenu": "search",
-        "initialQuery": urllib.unquote(request.GET.get("q")) if request.GET.get("q") else "",
+        "initialQuery": initialQuery,
         "initialSearchFilters": search_filters,
     })
     html = render_react_component("ReaderApp", props)
     return render_to_response('s2.html', {
         "propsJSON": json.dumps(props),
         "html":      html,
+        "title":     title,
+        "desc":      "Search 3,000 years of Jewish texts in Hebrew and English translation."
     }, RequestContext(request))
 
 
@@ -490,21 +507,29 @@ def s2_sheets(request):
         "html":           html,
     }, RequestContext(request))
 
-def s2_group_sheets(request, partner, authenticated):
+
+def s2_group_sheets(request, group, authenticated):
     props = s2_props(request)
     props.update({
         "initialMenu":     "sheets",
-        "initialSheetsTag": "sefaria-partners",
-        "initialPartner": partner,
+        "initialSheetsTag": "sefaria-groups",
+        "initialGroup":     group,
     })
-
-    props["partnerSheets"] = partner_sheets(partner,authenticated)["sheets"]
+    group = GroupSet({"name": group})
+    if not len(group):
+        raise Http404
+    props["groupData"] = group[0].contents(with_content=True, authenticated=authenticated)
 
     html = render_react_component("ReaderApp", props)
     return render_to_response('s2.html', {
         "propsJSON": json.dumps(props),
         "html": html,
     }, RequestContext(request))
+
+
+@login_required
+def s2_my_groups(request):
+    return s2_page(request, "myGroups")
 
 
 def s2_sheets_by_tag(request, tag):
@@ -570,6 +595,79 @@ def s2_updates(request):
 
 def s2_modtools(request):
     return s2_page(request, "modtools")
+
+
+
+"""
+JSON - LD snippets for use in "rich snippets" - semantic markup.
+"""
+
+
+def _crumb(pos, id, name):
+    return {
+        "@type": "ListItem",
+        "position": pos,
+        "item": {
+            "@id": id,
+            "name": name
+        }}
+
+
+def ld_cat_crumbs(cats=None, title=None, oref=None):
+    """
+    JSON - LD breadcrumbs(https://developers.google.com/search/docs/data-types/breadcrumbs)
+    :param cats: List of category names
+    :param title: String
+    :return: serialized json-ld object, for inclusion in <script> tag.
+    """
+
+    if cats is None and title is None and oref is None:
+        return u""
+
+    # Fill in missing information
+    if oref is not None:
+        assert isinstance(oref, Ref)
+        if cats is None:
+            cats = oref.index.categories[:]
+        if title is None:
+            title = oref.index.title
+    elif title is not None and cats is None:
+        cats = library.get_index(title).categories[:]
+
+
+    breadcrumbJsonList = [_crumb(1, "/texts", "Texts")]
+    nextPosition = 2
+
+    for i,c in enumerate(cats):
+        breadcrumbJsonList += [_crumb(nextPosition, "/texts/" + "/".join(cats[0:i+1]), c)]
+        nextPosition += 1
+
+    if title:
+        breadcrumbJsonList += [_crumb(nextPosition, "/" + title.replace(" ", "_"), title)]
+        nextPosition += 1
+
+        if oref and oref.index_node != oref.index.nodes:
+            for snode in oref.index_node.ancestors()[1:] + [oref.index_node]:
+                if snode.is_default():
+                    continue
+                breadcrumbJsonList += [_crumb(nextPosition, "/" + snode.ref().url(), snode.primary_title("en"))]
+                nextPosition += 1
+
+        #todo: range?
+        if oref and getattr(oref.index_node, "depth", None) and not oref.is_range():
+            depth = oref.index_node.depth
+            for i in range(len(oref.sections)):
+                breadcrumbJsonList += [_crumb(nextPosition,
+                                              "/" + oref.context_ref(depth - i - 1).url(),
+                                              oref.index_node.sectionNames[i] + u" " + oref.normal_section(i, "en"))
+                                       ]
+                nextPosition += 1
+
+    return json.dumps({
+        "@context": "http://schema.org",
+        "@type": "BreadcrumbList",
+        "itemListElement": breadcrumbJsonList
+    })
 
 
 @ensure_csrf_cookie
@@ -1182,7 +1280,7 @@ def texts_api(request, tref, lang=None, version=None):
             text = TextFamily(oref, version=version, lang=lang, commentary=commentary, context=context, pad=pad, alts=alts).contents()
         except NoVersionFoundError as e:
             # Extended data is used by S2 in TextList.preloadAllCommentaryText()
-            return jsonResponse({"error": unicode(e), "ref": oref.normal(), "versionTitle": version, "lang": lang, "commentator": getattr(oref.index, "commentator", "")}, callback=request.GET.get("callback", None))
+            return jsonResponse({"error": unicode(e), "ref": oref.normal(), "versionTitle": version, "lang": lang}, callback=request.GET.get("callback", None))
 
 
         # Use a padded ref for calculating next and prev

@@ -574,17 +574,17 @@ Sefaria = extend(Sefaria, {
   _cacheIndexFromLinks: function(links) {
     // Cache partial index information (title, Hebrew title, categories) found in link data.
     for (var i=0; i< links.length; i++) {
-      if (("linkGroupTitle" in links[i]) && this.index(links[i].linkGroupTitle["en"])) {
-          //console.log("Skipping ", links[i].linkGroupTitle["en"]);
+      if (("collectiveTitle" in links[i]) && this.index(links[i].collectiveTitle["en"])) {
+          //console.log("Skipping ", links[i].collectiveTitle["en"]);
           continue;
       }
       var index = {
-        title:      links[i].linkGroupTitle["en"],
-        heTitle:    links[i].linkGroupTitle["he"],
+        title:      links[i].collectiveTitle["en"],
+        heTitle:    links[i].collectiveTitle["he"],
         categories: [links[i].category],
       };
-      //console.log("Saving ", links[i].linkGroupTitle["en"]);
-      this.index(links[i].linkGroupTitle["en"], index);
+      //console.log("Saving ", links[i].collectiveTitle["en"]);
+      this.index(links[i].collectiveTitle["en"], index);
     }
   },
   _saveLinksByRef: function(data) {
@@ -635,7 +635,7 @@ Sefaria = extend(Sefaria, {
      return links.filter(function(link){
         return (filter.length == 0 ||
                 Sefaria.util.inArray(link.category, filter) !== -1 || 
-                Sefaria.util.inArray(link["linkGroupTitle"]["en"], filter) !== -1 );
+                Sefaria.util.inArray(link["collectiveTitle"]["en"], filter) !== -1 );
       }); 
   },
   _linkSummaries: {},
@@ -664,10 +664,10 @@ Sefaria = extend(Sefaria, {
       }
       var category = summary[link.category];
       // Count Book
-      if (link["linkGroupTitle"]["en"] in category.books) {
-        category.books[link["linkGroupTitle"]["en"]].count += 1;
+      if (link["collectiveTitle"]["en"] in category.books) {
+        category.books[link["collectiveTitle"]["en"]].count += 1;
       } else {
-        category.books[link["linkGroupTitle"]["en"]] = {count: 1};
+        category.books[link["collectiveTitle"]["en"]] = {count: 1};
       }
     }
     // Add Zero counts for every commentator in this section not already in list
@@ -682,8 +682,8 @@ Sefaria = extend(Sefaria, {
           if (!("Commentary" in summary)) {
             summary["Commentary"] = {count: 0, books: {}};
           }
-          if (!(l["linkGroupTitle"]["en"] in summary["Commentary"].books)) {
-            summary["Commentary"].books[l["linkGroupTitle"]["en"]] = {count: 0};
+          if (!(l["collectiveTitle"]["en"] in summary["Commentary"].books)) {
+            summary["Commentary"].books[l["collectiveTitle"]["en"]] = {count: 0};
           }
         }
       }
@@ -1152,40 +1152,6 @@ Sefaria = extend(Sefaria, {
         }
       return sheets;
     },
-    _groupTagList: null,
-    groupTagList: function(partner, callback) {
-      // Returns a list of all public source sheet tags, ordered by populartiy
-      var tags = this._groupTagList;
-      if (tags) {
-        if (callback) { callback(tags); }
-      } else {
-        var url = "/api/partners/tag-list/"+partner;
-         Sefaria._api(url, function(data) {
-            this._groupTagList = data;
-             if (callback) { callback(data); }
-          }.bind(this));
-        }
-      return tags;
-    },
-
-    _partnerSheets: {},
-    partnerSheets: function(partner, callback, sortBy) {
-      // Returns a list of source sheets belonging to partner org
-      // Member of group will get all sheets. Others only public facing ones.
-      sortBy = typeof sortBy == "undefined" ? "date" : sortBy;
-      var sheets = this._partnerSheets[partner];
-      if (sheets) {
-        if (callback) { callback(sheets); }
-      } else {
-        var url = "/api/partners/"+partner;
-         Sefaria._api(url, function(data) {
-            this._partnerSheets[partner] = data.sheets;
-            if (callback) { callback(data.sheets); }
-          }.bind(this));
-
-        }
-      return sheets;
-    },
     _userSheets: {},
     userSheets: function(uid, callback, sortBy) {
       // Returns a list of source sheets belonging to `uid`
@@ -1270,21 +1236,50 @@ Sefaria = extend(Sefaria, {
       return Sefaria._saveItemsByRef(data, this._sheetsByRef);
     }
   },
+  _groups: {},
+  groups: function(group, callback) {
+    // Returns data for an individual group
+    var group = this._groups[group];
+    if (group) {
+      if (callback) { callback(group); }
+    } else if (callback) {
+      var url = "/api/groups/" + group;
+       Sefaria._api(url, function(data) {
+          this._groups[group] = data;
+           if (callback) { callback(data); }
+        }.bind(this));
+      }
+    return group;
+  },
+  _groupsList: null,
+  groupsList: function(callback) {
+    // Returns list of public and private groups
+    if (this._groupsList) {
+      if (callback) { callback(this._groupsList); }
+    } else if (callback) {
+      var url = "/api/groups";
+       Sefaria._api(url, function(data) {
+          this._groupsList = data;
+           if (callback) { callback(data); }
+        }.bind(this));
+      }
+    return this._groupsList;
+  },
   hebrewTerm: function(name) {
-    // Returns a string translating `cat` into Hebrew.
+    // Returns a string translating `name` into Hebrew.
     var categories = {
       "Quoting Commentary":   "פרשנות מצטטת",
       "Sheets":               "דפי מקורות",
       "Notes":                "הערות",
       "Community":            "קהילה"
     };
-    if(name in Sefaria._translateTerms){
+    if (name in Sefaria._translateTerms) {
         return Sefaria._translateTerms[name]["he"];
-    }else if (name in categories){
+    } else if (name in categories) {
         return  categories[name];
-    }else if (Sefaria.index(name)){
+    } else if (Sefaria.index(name)) {
         return Sefaria.index(name).heTitle;
-    }else {
+    } else {
         return name;
     }
   },
@@ -1417,9 +1412,11 @@ Sefaria = extend(Sefaria, {
               //Filtered query.  Add clauses.  Don't re-request potential filters.
               var clauses = [];
               for (var i = 0; i < applied_filters.length; i++) {
+
+                  var filterSuffix = applied_filters[i].indexOf("/") != -1 ? ".*" : "/.*"; //filters with '/' might be leading to books. also, very unlikely they'll match an false positives
                   clauses.push({
                       "regexp": {
-                          "path": RegExp.escape(applied_filters[i]) + ".*"
+                          "path": RegExp.escape(applied_filters[i]) + filterSuffix
                       }
                   });
                   /* Test for Commentary2 as well as Commentary */
@@ -1516,9 +1513,6 @@ Sefaria.unpackDataFromProps = function(props) {
   if (props.userTags) {
     Sefaria.sheets._userTagList = props.userTags;
   }
-  if (props.partnerSheets) {
-    Sefaria.sheets._partnerSheets[props.initialPartner] = props.partnerSheets;
-  }
   if (props.publicSheets) {
     Sefaria.sheets._publicSheets = props.publicSheets;
   }
@@ -1533,6 +1527,9 @@ Sefaria.unpackDataFromProps = function(props) {
   }
   if (props.topSheets) {
     Sefaria.sheets._topSheets = props.topSheets;
+  }
+  if (props.groupData) {
+    Sefaria._groups[props.initialGroup] = props.groupData;
   }
 };
 
@@ -1689,7 +1686,7 @@ Sefaria.util = {
         var wait = false;                 // Initially, we're not waiting
         return function () {              // We return a throttled function
             if (!wait) {                  // If we're not waiting
-                func.call();          // Execute users function
+                func.call();              // Execute users function
                 wait = true;              // Prevent future invocations
                 setTimeout(function () {  // After a period of time
                     wait = false;         // And allow future invocations

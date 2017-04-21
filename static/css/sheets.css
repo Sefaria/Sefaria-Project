@@ -121,7 +121,7 @@ body {
 	margin-left: -40px;
 }
 
-#sheetHeader #partnerLogo {
+#sheetHeader #groupLogo {
 	max-width: 90%;
 }
 
@@ -1181,7 +1181,7 @@ a:active {
 
 }
 
-body.embeded #controls {
+body.embeded #controls, body.embeded .header, body.embeded #footer, body.embeded #fileControls {
 	display: none;
 }
 

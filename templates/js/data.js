@@ -20,6 +20,7 @@ var data = {
   loggedIn:            {% if user.is_authenticated %}true{% else %}false{% endif %},
   is_moderator:        {% if user.is_staff %}true{% else %}false{% endif %},
   is_editor:           {% if user|has_group:"Editors" %}true{% else %}false{% endif %},
+  has_groups:          {% if has_groups %}true{% else %}false{% endif %},
   notificationCount:   {{ notifications_count|default:'0' }},
   notifications:       {{ notifications_json|default:'[]' }},
   notificationsHtml:   "{{ notifications_html|escape_quotes }}",

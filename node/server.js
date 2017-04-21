@@ -24,7 +24,9 @@ var renderReaderApp = function(props, data, timer) {
   // Returns HTML of ReaderApp component given `props` and `data`
   data.path           = props.path;
   data.loggedIn       = props.loggedIn;
+  data._uid     = props._uid;
   data.recentlyViewed = props.recentlyViewed;
+
   SefariaReact.setData(data);
   SefariaReact.unpackDataFromProps(props);
   log("Time to set data: %dms", timer.elapsed());

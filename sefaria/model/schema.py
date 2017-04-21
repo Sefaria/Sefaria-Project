@@ -377,7 +377,11 @@ class TreeNode(object):
     def prev_leaf(self):
         return self._prev_in_list(self.root().get_leaf_nodes())
 
-    # todo: replace with `not self.parent` for speed
+    def ancestors(self):
+        if not self.parent:
+            return []
+        return self.parent.ancestors() + [self.parent]
+
     def is_root(self):
         return not self.parent
 
@@ -1217,7 +1221,7 @@ class AddressType(object):
         """
         The regular expression part that matches this address reference, wrapped with section names, if provided
         :param lang: "en" or "he"
-        :param group_id: The id of the regular expression group the this match will be catured in
+        :param group_id: The id of the regular expression group the this match will be captured in
         :param kwargs: 'strict' kwarg indicates that section names are required to match
         :return string: regex component
         """
