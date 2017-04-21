@@ -12433,7 +12433,7 @@ var Footer = React.createClass({
         ),
         React.createElement(
           'a',
-          { href: '/educators', target: '_blank', className: 'outOfAppLink' },
+          { href: '/educators', className: 'outOfAppLink' },
           React.createElement(
             'span',
             { className: 'int-en' },

@@ -9633,7 +9633,7 @@ var Footer = React.createClass({
                       <span className="int-en">Educators</span>
                       <span className="int-he">מחנכים</span>
               </div>
-              <a href="/educators" target="_blank" className="outOfAppLink">
+              <a href="/educators" className="outOfAppLink">
                   <span className="int-en">Teach with Sefaria</span>
                   <span className="int-he">למד באמצעות ספאריה</span>
               </a>
