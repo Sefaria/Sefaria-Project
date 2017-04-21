@@ -341,6 +341,7 @@ urlpatterns += patterns('sefaria.views',
 # Email Subscribe
 urlpatterns += patterns('sefaria.views',
     (r'^api/subscribe/(?P<email>.+)$', 'subscribe'),
+    (r'^api/subscribe-educator-newsletter/(?P<email>.+)$', 'subscribe_educators'),
 )
 
 # Admin

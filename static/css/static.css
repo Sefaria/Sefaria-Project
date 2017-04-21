@@ -647,7 +647,6 @@
 }
 
 .registrationContent {
-  text-align: center;
   margin: 1% auto 0;
   width: 320px;
 }
@@ -674,6 +673,14 @@
   color: #999;
   font-size: 14px;
 }
+.registrationContent #id_subscribe_announce, .registrationContent #id_subscribe_educator {
+  width: auto;
+}
+
+.registrationContent .helptext {
+  font-size: 16px;
+}
+
 .registrationContent ::placeholder {
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif; 
   color: #999;

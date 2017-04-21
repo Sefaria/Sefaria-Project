@@ -24,11 +24,11 @@
             </div>
 
             {% if user.email %}
-            <a href="#">
-                <div class="button control-elem">
-                    Get the Newsletter
-                </div>
-            </a>
+            <div id="educatorSubscribeButton" class="button control-elem" data-email="{{ user.email  }}">
+                Get the Newsletter
+            </div>
+            <div id="subscribeEdMsg">&nbsp;</div>
+
             {% else %}
             <a href="#">
                 <div class="button control-elem">
@@ -286,6 +286,24 @@
                 $("#subscribeMsg").text("Sorry, that's not a valid email address.").show();
             }
         });
+
+        $("#educatorSubscribeButton").click(function() {
+            var email = $("#educatorSubscribeButton").attr("data-email");
+            if (Sefaria.util.isValidEmailAddress(email)) {
+                $("#subscribeEdMsg").html("<i>Subscribing...</i>").show();
+                $.post("/api/subscribe-educator-newsletter/" + email, function(data) {
+                    if ("error" in data) {
+                        $("#subscribeEdMsg").text(data.error).show();
+                    } else {
+                        $("#subscribeEdMsg").text("Subscribed! Welcome to our list.").show();
+                    }
+                }).error(function(data) {
+                    $("#subscribeEdMsg").text("Sorry, there was an error.").show();
+                })
+            }
+        });
+
+
         $("#mailingListEmail").keyup(function(e){
             if (e.keyCode === 13) {
                 $("#subscribe").trigger("click");
