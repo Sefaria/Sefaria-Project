@@ -1486,6 +1486,10 @@
 #edPage .imageBox img {
   max-width: 100%;
 }
+#edPage .imageBox a .button.fullWidth {
+  width: 300px;
+}
+
 @media screen and (max-width: 700px) {
   #edPage .sectionInner {
     width: 350px;
@@ -1522,14 +1526,6 @@
   width: 240px;
   margin-bottom: 8px;
   text-align: center;
-}
-#edPage .section .button .fa {
-  color: #ccc;
-  font-size: 25px;
-  /*margin: 0 3px;
-  position: absolute;
-  left: 11px;
-  top: 10px;*/
 }
 #edPage .section.center {
   text-align: center;

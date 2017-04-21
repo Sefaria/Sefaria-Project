@@ -22,17 +22,28 @@
             <div class="sub">
                 Make 3,000 years of Jewish texts accessible to your students.
             </div>
+
+            {% if user.email %}
             <a href="#">
                 <div class="button control-elem">
-                    Sign up to get updates | Get the Newsletter
+                    Get the Newsletter
                 </div>
             </a>
+            {% else %}
+            <a href="#">
+                <div class="button control-elem">
+                    Sign up to get updates
+                </div>
+            </a>
+
+            {% endif %}
         </div>
 
         <div id="edLearn" class="section textLeft">
             <div class="sectionInner">
                 <div class="textBox">
                     <h2>
+                        <img src="/static/img/network-icon.svg"/>
                         Partnership Initiative
                     </h2>
                     <div class="description">
@@ -48,7 +59,7 @@
                     </a>
                 </div>
                 <div class="imageBox">
-                    <img src="/static/img/partnership-initiative-image.png" />
+                    <img src="/static/img/partnership-initiative-image.png" alt="Image of teachers at a Sefaria educator partnership initative presentation" />
                 </div>
             </div>
         </div>
@@ -58,6 +69,7 @@
             <div class="sectionInner">
                 <div class="textBox">
                     <h2>
+                        <img src="/static/img/newspaper-icon.svg"/>
                         Educator News
                     </h2>
                     <div class="description">
@@ -77,7 +89,7 @@
                     </a>
                 </div>
                 <div class="imageBox">
-                    <img src="/static/img/ed-news.png" />
+                    <img src="/static/img/ed-news.png" alt="Closeup Image of Sefaria on an iPad"/>
                 </div>
             </div>
         </div>
@@ -87,6 +99,7 @@
             <div class="sectionInner">
                 <div class="textBox">
                     <h2>
+                        <img src="/static/img/file-icon.svg"/>
                         Sheets
                     </h2>
                     <div class="description">
@@ -100,27 +113,27 @@
                 </div>
                 <div class="imageBox">
                     <a  href="#">
-                        <div class="button white control-elem">
+                        <div class="button white control-elem fullWidth">
                             Trending
                         </div>
                     </a>
                     <a  href="#">
-                        <div class="button white control-elem">
+                        <div class="button white control-elem fullWidth">
                             Assignments
                         </div>
                     </a>
                     <a  href="#">
-                        <div class="button white control-elem">
+                        <div class="button white control-elem fullWidth">
                             Highlight
                         </div>
                     </a>
                     <a  href="#">
-                        <div class="button white control-elem">
+                        <div class="button white control-elem fullWidth">
                             Collaborative
                         </div>
                     </a>
                     <a  href="#">
-                        <div class="button white control-elem">
+                        <div class="button white control-elem fullWidth">
                             Visualize
                         </div>
                     </a>
@@ -134,6 +147,7 @@
             <div class="sectionInner">
                 <div class="textBox">
                     <h2>
+                        <img src="/static/img/book-icon.svg"/>
                         Library
                     </h2>
                     <div class="description">
@@ -142,22 +156,22 @@
                 </div>
                 <div class="imageBox">
                     <a  href="#">
-                        <div class="button white control-elem">
+                        <div class="button white control-elem fullWidth">
                             Lexicon
                         </div>
                     </a>
                     <a  href="#">
-                        <div class="button white control-elem">
+                        <div class="button white control-elem fullWidth">
                             Connections
                         </div>
                     </a>
                     <a  href="#">
-                        <div class="button white control-elem">
+                        <div class="button white control-elem fullWidth">
                             Request a Text
                         </div>
                     </a>
                     <a  href="#">
-                        <div class="button white control-elem">
+                        <div class="button white control-elem fullWidth">
                             Tutorials
                         </div>
                     </a>
@@ -169,6 +183,7 @@
             <div class="sectionInner">
                 <div class="textBox">
                     <h2>
+                        <img src="/static/img/share-icon.svg"/>
                         Groups
                     </h2>
                     <div class="description">
@@ -186,7 +201,7 @@
                     </a>
                 </div>
                 <div class="imageBox">
-                    <img src="static/img/ed-groups.png" />
+                    <img src="static/img/ed-groups.png" alt="Image of teacher withe students using Sefaria"/>
                 </div>
             </div>
         </div>
