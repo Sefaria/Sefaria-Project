@@ -1115,26 +1115,24 @@ var ReaderApp = React.createClass({
   },
   showSheets: function showSheets() {
     var updates = { menuOpen: "sheets" };
-    if (this.props.multiPanel) {
-      this.setHeaderState(updates);
-    } else {
-      this.setPanelState(0, updates);
-    }
+    this.setStateInHeaderOrSinglePanel(updates);
   },
   showMySheets: function showMySheets() {
     var updates = { menuOpen: "sheets", navigationSheetTag: "My Sheets" };
-    if (this.props.multiPanel) {
-      this.setHeaderState(updates);
-    } else {
-      this.setPanelState(0, updates);
-    }
+    this.setStateInHeaderOrSinglePanel(updates);
   },
   showMyGroups: function showMyGroups() {
     var updates = { menuOpen: "myGroups" };
+    this.setStateInHeaderOrSinglePanel(updates);
+  },
+  setStateInHeaderOrSinglePanel: function setStateInHeaderOrSinglePanel(state) {
+    // Updates state in the header panel if we're in mutli-panel, else in the first panel if we're in single panel
+    // If we're in single panel mode but `this.state.panels` is empty, make a default first panel
     if (this.props.multiPanel) {
-      this.setHeaderState(updates);
+      this.setHeaderState(state);
     } else {
-      this.setPanelState(0, updates);
+      state = this.makePanelState(state);
+      this.setState({ panels: [state] });
     }
   },
   saveRecentlyViewed: function saveRecentlyViewed(panel) {
@@ -1212,6 +1210,9 @@ var ReaderApp = React.createClass({
     var panels = [];
     for (var i = 0; i < panelStates.length; i++) {
       var panel = this.clonePanel(panelStates[i]);
+      if (!("settings" in panel)) {
+        debugger;
+      }
       var offset = widths.reduce(function (prev, curr, index, arr) {
         return index < i ? prev + curr : prev;
       }, 0);
