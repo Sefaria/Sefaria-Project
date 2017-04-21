@@ -2436,7 +2436,10 @@ a.resourcesLink {
 .addToSourceSheetPanel.textList.fullPanel .texts {
   padding: 0 50px;
 }
-.textList .texts,
+.textList .texts {
+  padding: 60px 30px 80px 30px;
+}
+.textList.fullPanel .texts,
 .textList .fullFilterView {
   padding: 30px 30px 80px 30px;
 }
