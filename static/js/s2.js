@@ -5602,6 +5602,9 @@ var GroupPage = React.createClass({
     var sheets = group ? group.sheets : null;
     var groupTagList = group ? group.tags : null;
     var members = this.memberList();
+    var isMember = members && members.filter(function (x) {
+      return x.uid == Sefaria._uid;
+    }).length !== 0;
     var isAdmin = group && group.admins.filter(function (x) {
       return x.uid == Sefaria._uid;
     }).length !== 0;
@@ -5717,7 +5720,7 @@ var GroupPage = React.createClass({
         this.state.tab == "sheets" ? React.createElement(
           'div',
           null,
-          React.createElement(
+          sheets.length ? React.createElement(
             'h2',
             { className: 'splitHeader' },
             groupTagList && groupTagList.length ? React.createElement(
@@ -5788,9 +5791,9 @@ var GroupPage = React.createClass({
               ' ',
               React.createElement('i', { className: 'fa fa-angle-down' })
             )
-          ),
+          ) : null,
           this.state.showTags ? React.createElement(TwoOrThreeBox, { content: groupTagList, width: this.props.width }) : null,
-          sheets.length ? sheets : React.createElement(
+          sheets.length ? sheets : isMember ? React.createElement(
             'div',
             { className: 'emptyMessage' },
             React.createElement(
@@ -5814,6 +5817,19 @@ var GroupPage = React.createClass({
                 'Start a sheet'
               ),
               '.'
+            )
+          ) : React.createElement(
+            'div',
+            { className: 'emptyMessage' },
+            React.createElement(
+              'span',
+              { className: 'int-en' },
+              'There are no public sheets in this group yet.'
+            ),
+            React.createElement(
+              'span',
+              { className: 'int-he' },
+              'There are no public sheets in this group yet.'
             )
           )
         ) : null,
@@ -11417,9 +11433,9 @@ var MyGroupsPanel = React.createClass({
           React.createElement(
             'div',
             { className: 'groupsList' },
-            groupsList ? groupsList.private.map(function (item) {
+            groupsList ? groupsList.private.length ? groupsList.private.map(function (item) {
               return React.createElement(GroupListing, { data: item });
-            }) : React.createElement(LoadingMessage, null)
+            }) : React.createElement(LoadingMessage, { message: 'You aren\'t a member of any groups yet.', heMessage: 'You aren\'t a member of any groups yet.' }) : React.createElement(LoadingMessage, null)
           )
         ),
         React.createElement(

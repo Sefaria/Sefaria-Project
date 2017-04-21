@@ -4512,6 +4512,7 @@ var GroupPage = React.createClass({
     var sheets       = group ? group.sheets : null;
     var groupTagList = group ? group.tags : null;
     var members      = this.memberList();
+    var isMember     = members && members.filter(function(x) { return x.uid == Sefaria._uid } ).length !== 0;
     var isAdmin      = group && group.admins.filter(function(x) { return x.uid == Sefaria._uid } ).length !== 0;
 
     groupTagList = groupTagList ? groupTagList.map(function (tag) {
@@ -4575,6 +4576,7 @@ var GroupPage = React.createClass({
 
                 { this.state.tab == "sheets" ?
                   <div>
+                    {sheets.length ?
                     <h2 className="splitHeader">
                       { groupTagList && groupTagList.length ?
                       <span className="filterByTag" onClick={this.toggleSheetTags}>
@@ -4582,29 +4584,35 @@ var GroupPage = React.createClass({
                         <span className="int-he">סנן לפי תווית<i className="fa fa-angle-down"></i></span>
                        </span>
                        : null }
-                    
-                        <span className="int-en actionText">Sort By:
-                          <select value={this.state.sheetSort} onChange={this.changeSheetSort}>
-                           <option value="date">Recent</option>
-                           <option value="alphabetical">Alphabetical</option>
-                           <option value="views">Most Viewed</option>
-                         </select> <i className="fa fa-angle-down"></i></span>
-                        <span className="int-he actionText">סנן לפי:
-                          <select value={this.state.sheetSort} onChange={this.changeSheetSort}>
-                           <option value="date">הכי חדש</option>
-                           <option value="alphabetical">Alphabetical</option>
-                           <option value="views">הכי נצפה</option>
-                         </select> <i className="fa fa-angle-down"></i></span>
+                      
+                          <span className="int-en actionText">Sort By:
+                            <select value={this.state.sheetSort} onChange={this.changeSheetSort}>
+                             <option value="date">Recent</option>
+                             <option value="alphabetical">Alphabetical</option>
+                             <option value="views">Most Viewed</option>
+                           </select> <i className="fa fa-angle-down"></i></span>
+                          <span className="int-he actionText">סנן לפי:
+                            <select value={this.state.sheetSort} onChange={this.changeSheetSort}>
+                             <option value="date">הכי חדש</option>
+                             <option value="alphabetical">Alphabetical</option>
+                             <option value="views">הכי נצפה</option>
+                           </select> <i className="fa fa-angle-down"></i></span>
                     </h2>
+                    : null }
 
                   {this.state.showTags ? <TwoOrThreeBox content={groupTagList} width={this.props.width} /> : null}
 
                   {sheets.length ? 
                     sheets 
-                    : <div className="emptyMessage">
-                      <span className="int-en">There are no sheets in this group yet. <a href="/sheets/new">Start a sheet</a>.</span>
-                      <span className="int-he">There are no sheets in this group yet. <a href="/sheets/new">Start a sheet</a>.</span>          
-                    </div> }
+                    : (isMember ? 
+                          <div className="emptyMessage">
+                            <span className="int-en">There are no sheets in this group yet. <a href="/sheets/new">Start a sheet</a>.</span>
+                            <span className="int-he">There are no sheets in this group yet. <a href="/sheets/new">Start a sheet</a>.</span>          
+                          </div>
+                        : <div className="emptyMessage">
+                            <span className="int-en">There are no public sheets in this group yet.</span>
+                            <span className="int-he">There are no public sheets in this group yet.</span>          
+                          </div>)}
                   </div>
                   : null }
 
@@ -8984,9 +8992,11 @@ var MyGroupsPanel = React.createClass({
 
             <div className="groupsList">
               { groupsList ? 
-                  groupsList.private.map(function(item) {
-                    return <GroupListing data={item} />
-                  })
+                  (groupsList.private.length ?
+                    groupsList.private.map(function(item) {
+                      return <GroupListing data={item} />
+                    })
+                    : <LoadingMessage message="You aren't a member of any groups yet." heMessage="You aren't a member of any groups yet." />)
                   : <LoadingMessage />
               }
             </div>

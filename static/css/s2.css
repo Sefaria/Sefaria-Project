@@ -3337,6 +3337,9 @@ h2.splitHeader .he {
 .groupsList {
   margin-top: 30px;
 }
+.groupsList .loadingMessage {
+  text-align: center;
+}
 .groupListing {
   padding: 30px 0;
 }
