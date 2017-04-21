@@ -81,6 +81,9 @@ var ReaderApp = React.createClass({
           versionLanguage: initialPanel.versionLanguage || null,
           searchQuery: this.props.initialQuery,
           appliedSearchFilters: this.props.initialSearchFilters,
+          navigationCategories: this.props.initialNavigationCategories,
+          sheetsTag: this.props.initialSheetsTag,
+          group: this.props.initialGroup,
           settings: Sefaria.util.clone(defaultPanelSettings)
         };
         if (panels[0].versionLanguage) {
@@ -621,7 +624,7 @@ var ReaderApp = React.createClass({
       menuOpen:             state.menuOpen             || null, // "navigation", "text toc", "display", "search", "sheets", "home", "book toc"
       navigationCategories: state.navigationCategories || [],
       navigationSheetTag:   state.sheetsTag            || null,
-      sheetsGroup:        state.group              || null,
+      sheetsGroup:          state.group                || null,
       searchQuery:          state.searchQuery          || null,
       appliedSearchFilters: state.appliedSearchFilters || [],
       searchFiltersValid:   state.searchFiltersValid   || false,
@@ -1631,7 +1634,7 @@ var ReaderPanel = React.createClass({
       menuOpen:             this.props.initialMenu || null, // "navigation", "book toc", "text toc", "display", "search", "sheets", "home", "compare"
       navigationCategories: this.props.initialNavigationCategories || [],
       navigationSheetTag:   this.props.initialSheetsTag || null,
-      sheetsGroup:        this.props.initialGroup || null,
+      sheetsGroup:          this.props.initialGroup || null,
       searchQuery:          this.props.initialQuery || null,
       appliedSearchFilters: this.props.initialAppliedSearchFilters || [],
       selectedWords:        null,
@@ -2152,7 +2155,7 @@ var ReaderPanel = React.createClass({
                     setMySheetSort={this.setMySheetSort}
                     setSheetTagSort={this.setSheetTagSort}
                     setSheetTag={this.setSheetTag}
-                    key={this.state.key} />);
+                    key={"SheetsNav"} />);
 
     } else if (this.state.menuOpen === "account") {
       var menu = (<AccountPanel

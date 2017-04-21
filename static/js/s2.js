@@ -92,6 +92,9 @@ var ReaderApp = React.createClass({
           versionLanguage: initialPanel.versionLanguage || null,
           searchQuery: this.props.initialQuery,
           appliedSearchFilters: this.props.initialSearchFilters,
+          navigationCategories: this.props.initialNavigationCategories,
+          sheetsTag: this.props.initialSheetsTag,
+          group: this.props.initialGroup,
           settings: Sefaria.util.clone(defaultPanelSettings)
         };
         if (panels[0].versionLanguage) {
@@ -2287,7 +2290,7 @@ var ReaderPanel = React.createClass({
         setMySheetSort: this.setMySheetSort,
         setSheetTagSort: this.setSheetTagSort,
         setSheetTag: this.setSheetTag,
-        key: this.state.key });
+        key: "SheetsNav" });
     } else if (this.state.menuOpen === "account") {
       var menu = React.createElement(AccountPanel, {
         handleInAppLinkClick: this.props.handleInAppLinkClick,
