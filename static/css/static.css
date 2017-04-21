@@ -25,6 +25,9 @@
   margin: 0 auto;
   padding: 124px 0 100px;
 }
+#register.static .inner {
+  width: 100%;
+}
 .static .int-en {
   font-family: "adobe-garamond-pro", Georgia, serif;
 }

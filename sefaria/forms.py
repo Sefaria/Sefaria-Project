@@ -33,7 +33,7 @@ class NewUserForm(EmailUserCreationForm):
     subscribe_announce = forms.BooleanField(label="Receive important announcements", help_text="Receive important announcements", initial=True, required=False)
     subscribe_educator = forms.BooleanField(label="Receive our educator newsletter", help_text="Receive our educator newsletter", initial=False, required=False)
     if not DEBUG:
-        captcha = ReCaptchaField(attrs={'theme' : 'clean'})
+        captcha = ReCaptchaField(attrs={'theme' : 'white'})
     
     class Meta:
         model = User
@@ -43,10 +43,10 @@ class NewUserForm(EmailUserCreationForm):
         super(EmailUserCreationForm, self).__init__(*args, **kwargs)
         del self.fields['password2']
         self.fields.keyOrder = ["email", "first_name", "last_name", "password1"]
-        self.fields.keyOrder.append("subscribe_announce")
-        self.fields.keyOrder.append("subscribe_educator")
         if not DEBUG:
             self.fields.keyOrder.append("captcha")
+        self.fields.keyOrder.append("subscribe_announce")
+        self.fields.keyOrder.append("subscribe_educator")
 
     def clean_email(self):
         email = self.cleaned_data["email"]
