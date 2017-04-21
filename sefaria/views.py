@@ -80,7 +80,10 @@ def register(request):
                 next = request.POST.get("next", "/") + "?welcome=to-sefaria"
                 return HttpResponseRedirect(next)
     else:
-        form = NewUserForm()
+        if request.REQUEST.get('educator', ''):
+            form = NewUserForm(initial={'subscribe_educator': True})
+        else:
+            form = NewUserForm()
 
     return render_to_response("registration/register.html", 
                                 {'form' : form, 'next': next}, 
