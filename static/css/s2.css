@@ -3422,6 +3422,20 @@ h2.splitHeader .he {
   border-bottom: 1px solid #CCC;
   padding-bottom: 20px;
 }
+.groupSheetListingPinButton {
+  float: right;
+  display: none;
+  opacity: 0.3;
+  cursor: pointer;
+  margin-top: 7px;
+}
+.sheet:hover .groupSheetListingPinButton.active {
+  display: block;
+}
+.groupSheetListingPinButton.pinned {
+  display: block;
+  opacity: 0.6;
+}
 #groupInvitationInput {
   padding: 14px 30px;
   width: 492px;

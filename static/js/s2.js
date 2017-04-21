@@ -5579,6 +5579,24 @@ var GroupPage = React.createClass({
 
     return admins.concat(publishers, members, invitations);
   },
+  pinSheet: function pinSheet(sheetId) {
+    if (this.pinning) {
+      return;
+    }
+    $.post("/api/groups/" + this.props.group + "/pin-sheet/" + sheetId, function (data) {
+      if ("error" in data) {
+        alert(data.error);
+      } else {
+        Sefaria._groups[this.props.group] = data.group;
+        this.onDataLoad();
+      }
+      this.pinning = false;
+    }.bind(this)).fail(function () {
+      alert("There was an error pinning your sheet.");
+      this.pinning = false;
+    }.bind(this));
+    this.pinning = true;
+  },
   render: function render() {
     var group = this.getData();
     var sheets = group ? group.sheets : null;
@@ -5607,8 +5625,12 @@ var GroupPage = React.createClass({
     sheets = sheets ? sheets.map(function (sheet) {
       return React.createElement(GroupSheetListing, {
         sheet: sheet,
+        pinned: group.pinnedSheets.indexOf(sheet.id) != -1,
+        isAdmin: isAdmin,
         multiPanel: this.props.multiPanel,
-        setSheetTag: this.setSheetTag });
+        pinSheet: this.pinSheet.bind(null, sheet.id),
+        setSheetTag: this.setSheetTag,
+        key: sheet.id });
     }.bind(this)) : [React.createElement(LoadingMessage, null)];
 
     return React.createElement(
@@ -5805,7 +5827,8 @@ var GroupPage = React.createClass({
               isAdmin: isAdmin,
               isSelf: member.uid == Sefaria._uid,
               groupName: this.props.group,
-              onDataChange: this.onDataLoad });
+              onDataChange: this.onDataLoad,
+              key: member.uid });
           }.bind(this))
         ) : null
       ),
@@ -5823,7 +5846,10 @@ var GroupSheetListing = React.createClass({
 
   propTypes: {
     sheet: React.PropTypes.object.isRequired,
-    setSheetTag: React.PropTypes.func.isRequired
+    setSheetTag: React.PropTypes.func.isRequired,
+    pinSheet: React.PropTypes.func,
+    pinned: React.PropTypes.bool,
+    isAdmin: React.PropTypes.bool
   },
   render: function render() {
     var sheet = this.props.sheet;
@@ -5837,9 +5863,18 @@ var GroupSheetListing = React.createClass({
       return React.createElement(SheetTagLink, { setSheetTag: this.props.setSheetTag, tag: tag, key: tag });
     }, this);
 
+    var pinButtonClasses = classNames({ groupSheetListingPinButton: 1, pinned: this.props.pinned, active: this.props.isAdmin });
+    var pinMessage = this.props.pinned && this.props.isAdmin ? "Pinned Sheet - click to unpin" : this.props.pinned ? "Pinned Sheet" : "Pin Sheet";
+    var pinButton = React.createElement(
+      'div',
+      { className: pinButtonClasses, onClick: this.props.isAdmin ? this.props.pinSheet : null },
+      React.createElement('img', { src: '/static/img/pin.svg', title: pinMessage })
+    );
+
     return React.createElement(
       'div',
       { className: 'sheet userSheet' },
+      pinButton,
       React.createElement(
         'a',
         { className: 'sheetTitle', href: url, key: url },

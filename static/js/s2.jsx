@@ -4491,6 +4491,22 @@ var GroupPage = React.createClass({
     
     return admins.concat(publishers, members, invitations);
   },
+  pinSheet: function(sheetId) {
+    if (this.pinning) { return; }
+    $.post("/api/groups/" + this.props.group + "/pin-sheet/" + sheetId, function(data) {
+      if ("error" in data) {
+        alert(data.error);
+      } else {
+        Sefaria._groups[this.props.group] = data.group;
+        this.onDataLoad();
+      }
+      this.pinning = false;
+    }.bind(this)).fail(function() {
+        alert("There was an error pinning your sheet.");
+        this.pinning = false;     
+    }.bind(this));
+    this.pinning = true;
+  },
   render: function() {
     var group        = this.getData();
     var sheets       = group ? group.sheets : null;
@@ -4510,11 +4526,14 @@ var GroupPage = React.createClass({
     sheets = sheets ? sheets.map(function(sheet) {
       return (<GroupSheetListing 
                 sheet={sheet} 
-                multiPanel={this.props.multiPanel} 
-                setSheetTag={this.setSheetTag} />);
+                pinned={group.pinnedSheets.indexOf(sheet.id) != -1}
+                isAdmin={isAdmin}
+                multiPanel={this.props.multiPanel}
+                pinSheet={this.pinSheet.bind(null, sheet.id)} 
+                setSheetTag={this.setSheetTag}
+                key={sheet.id} />);
     }.bind(this)) : [<LoadingMessage />];
  
-
     return (<div className="content groupPage sheetList hasFooter">
               <div className="contentInner">
 
@@ -4598,7 +4617,8 @@ var GroupPage = React.createClass({
                                 isAdmin={isAdmin}
                                 isSelf={member.uid == Sefaria._uid}
                                 groupName={this.props.group}
-                                onDataChange={this.onDataLoad} />;
+                                onDataChange={this.onDataLoad}
+                                key={member.uid} />;
                      }.bind(this)) }
                     </div>
                   : null }
@@ -4615,7 +4635,10 @@ var GroupPage = React.createClass({
 var GroupSheetListing = React.createClass({
   propTypes: {
     sheet:       React.PropTypes.object.isRequired,
-    setSheetTag: React.PropTypes.func.isRequired
+    setSheetTag: React.PropTypes.func.isRequired,
+    pinSheet:    React.PropTypes.func,
+    pinned:      React.PropTypes.bool,
+    isAdmin:     React.PropTypes.bool
   },
   render: function() {
     var sheet = this.props.sheet;
@@ -4627,7 +4650,16 @@ var GroupSheetListing = React.createClass({
           return(<SheetTagLink setSheetTag={this.props.setSheetTag} tag={tag} key={tag} />);
     },this);
 
+
+    var pinButtonClasses = classNames({groupSheetListingPinButton: 1, pinned: this.props.pinned, active: this.props.isAdmin});
+    var pinMessage = this.props.pinned && this.props.isAdmin ? "Pinned Sheet - click to unpin" :
+                      this.props.pinned ? "Pinned Sheet" : "Pin Sheet";
+    var pinButton = <div className={pinButtonClasses} onClick={this.props.isAdmin ? this.props.pinSheet : null}>
+                      <img src="/static/img/pin.svg" title={pinMessage} />
+                    </div>
+
     return (<div className="sheet userSheet">
+                {pinButton}
                 <a className="sheetTitle" href={url} key={url}>{title}</a> <SheetAccessIcon sheet={sheet} />
                 <div>{sheet.ownerName} · {sheet.views} Views · {sheet.modified} · <span className="tagString">{tagString}</span></div>
               </div>);

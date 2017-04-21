@@ -222,6 +222,7 @@ urlpatterns += patterns('sheets.views',
     (r'^api/groups(/(?P<group>[^/]+))?$', 'groups_api'),
     (r'^api/groups/(?P<group_name>[^/]+)/set-role/(?P<uid>\d+)/(?P<role>[^/]+)$', 'groups_role_api'),
     (r'^api/groups/(?P<group_name>[^/]+)/invite/(?P<uid_or_email>[^/]+)(?P<uninvite>\/uninvite)?$', 'groups_invite_api'),
+    (r'^api/groups/(?P<group_name>[^/]+)/pin-sheet/(?P<sheet_id>\d+)', 'groups_pin_sheet_api'),
 )
 
 # Registration
