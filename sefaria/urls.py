@@ -264,6 +264,7 @@ static_pages = [
     "meetup1",
     "meetup2",
     "random-walk-through-torah",
+    "educators",
 ]
 
 # Static and Semi Static Content
@@ -307,7 +308,6 @@ urlpatterns += patterns('reader.views',
 urlpatterns += patterns('',
     (r'^forum/?$', lambda x: HttpResponseRedirect('https://groups.google.com/forum/?fromgroups#!forum/sefaria')),
     (r'^wiki/?$', lambda x: HttpResponseRedirect('https://github.com/Sefaria/Sefaria-Project/wiki')),
-    (r'^educators/?$', lambda x: HttpResponseRedirect('https://github.com/Sefaria/Sefaria-Project/wiki/Sefaria-for-Educators')),
     (r'^developers/?$', lambda x: HttpResponseRedirect('https://github.com/Sefaria/Sefaria-Project/wiki#developers')),
     (r'^contribute/?$', lambda x: HttpResponseRedirect('https://github.com/Sefaria/Sefaria-Project/wiki/Guide-to-Contributing')),
     (r'^faq/?$', lambda x: HttpResponseRedirect('https://github.com/Sefaria/Sefaria-Project/wiki#frequently-asked-questions')),
@@ -342,6 +342,7 @@ urlpatterns += patterns('sefaria.views',
 # Email Subscribe
 urlpatterns += patterns('sefaria.views',
     (r'^api/subscribe/(?P<email>.+)$', 'subscribe'),
+    (r'^api/subscribe-educator-newsletter/(?P<email>.+)$', 'subscribe_educators'),
 )
 
 # Admin

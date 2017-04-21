@@ -28,7 +28,7 @@ from django.views.decorators.csrf import csrf_protect
 import sefaria.model as model
 import sefaria.system.cache as scache
 
-from sefaria.client.util import jsonResponse, subscribe_to_announce
+from sefaria.client.util import jsonResponse, subscribe_to_list
 from sefaria.forms import NewUserForm
 from sefaria.settings import MAINTENANCE_MESSAGE, USE_VARNISH
 from sefaria.model.user_profile import UserProfile, user_links
@@ -80,7 +80,10 @@ def register(request):
                 next = request.POST.get("next", "/") + "?welcome=to-sefaria"
                 return HttpResponseRedirect(next)
     else:
-        form = NewUserForm()
+        if request.REQUEST.get('educator', ''):
+            form = NewUserForm(initial={'subscribe_educator': True})
+        else:
+            form = NewUserForm()
 
     return render_to_response("registration/register.html", 
                                 {'form' : form, 'next': next}, 
@@ -179,7 +182,13 @@ def accounts(request):
 
 
 def subscribe(request, email):
-    if subscribe_to_announce(email, direct_sign_up=True):
+    if subscribe_to_list(["Announcements_General", "Newsletter_Sign_Up"], email, direct_sign_up=True):
+        return jsonResponse({"status": "ok"})
+    else:
+        return jsonResponse({"error": "Sorry, there was an error."})
+
+def subscribe_educators(request, email):
+    if subscribe_to_list(["Announcements_General", "Announcements_Edu"], email, direct_sign_up=True):
         return jsonResponse({"status": "ok"})
     else:
         return jsonResponse({"error": "Sorry, there was an error."})
