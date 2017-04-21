@@ -93,10 +93,6 @@ def user_and_notifications(request):
     else:
         interrupting_message_json = "null"
 
-    # Temp for Groups testing, remove when groups icon is live for all
-    from sefaria.model.group import GroupSet
-    has_groups = len(GroupSet().for_user(request.user.id)) > 0
-
     return {
         "notifications": notifications,
         "notifications_json": notifications_json,
@@ -106,7 +102,6 @@ def user_and_notifications(request):
         "interrupting_message_json": interrupting_message_json,
         "partner_group": profile.partner_group,
         "partner_role": profile.partner_role,
-        "has_groups": has_groups
     }
 
 
