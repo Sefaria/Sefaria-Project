@@ -279,6 +279,7 @@ def bulktext_api(request, refs):
 @login_required
 def file_upload(request, resize_image=True):
     from PIL import Image
+    from tempfile import NamedTemporaryFile
     from sefaria.s3 import HostedFile
     if request.method == "POST":
         MAX_FILE_MB = 2
