@@ -872,7 +872,7 @@ a.resourcesLink {
   top: 2px;
 }
 .readerNavMenu .siteLinks {
-  margin-top: 20px;
+  margin: 20px 0 50px;
   text-align: center;
 }
 .readerNavMenu .siteLinks .siteLink {
@@ -2437,7 +2437,10 @@ a.resourcesLink {
 .addToSourceSheetPanel.textList.fullPanel .texts {
   padding: 0 50px;
 }
-.textList .texts,
+.textList .texts {
+  padding: 60px 30px 80px 30px;
+}
+.textList.fullPanel .texts,
 .textList .fullFilterView {
   padding: 30px 30px 80px 30px;
 }
@@ -3294,11 +3297,6 @@ h2.splitHeader .he {
   cursor: pointer;
   text-transform: none
 }
-/*  Add back in when we're ready for tag/edit hover buttons on 'My Sheets'
-.sheet.userSheet:hover .sheetEditButtons {
-	display: inline-block;
-}
-*/
 .sheet.userSheet .sheetEditButtons {
   font-size: 24px;
   height: 32px;
@@ -3337,6 +3335,9 @@ h2.splitHeader .he {
 }
 .groupsList {
   margin-top: 30px;
+}
+.groupsList .loadingMessage {
+  text-align: center;
 }
 .groupListing {
   padding: 30px 0;
@@ -3422,6 +3423,20 @@ h2.splitHeader .he {
 .groupInvitationBox {
   border-bottom: 1px solid #CCC;
   padding-bottom: 20px;
+}
+.groupSheetListingPinButton {
+  float: right;
+  display: none;
+  opacity: 0.3;
+  cursor: pointer;
+  margin-top: 7px;
+}
+.sheet:hover .groupSheetListingPinButton.active {
+  display: block;
+}
+.groupSheetListingPinButton.pinned {
+  display: block;
+  opacity: 0.6;
 }
 #groupInvitationInput {
   padding: 14px 30px;

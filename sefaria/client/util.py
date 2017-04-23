@@ -35,10 +35,8 @@ def jsonpResponse(data, callback, status=200):
     return HttpResponse("%s(%s)" % (callback, json.dumps(data)), mimetype="application/javascript", status=status)
 
 
-def subscribe_to_announce(email, first_name=None, last_name=None, direct_sign_up=False, bypass_nationbuilder=False):
-    """
-    Subscribes an email address to the Announcement list
-    """
+def subscribe_to_list(lists, email, first_name=None, last_name=None, direct_sign_up=False, bypass_nationbuilder=False):
+
     if not sls.NATIONBUILDER:
         return
 
@@ -56,7 +54,7 @@ def subscribe_to_announce(email, first_name=None, last_name=None, direct_sign_up
 
         return True
 
-    tags = ["Announcements_General", "Newsletter_Sign_Up"] if direct_sign_up else ["Announcements_General", "Signed_Up_on_Sefaria"]
+    tags = lists
     post = {
         "person": {
             "email": email,

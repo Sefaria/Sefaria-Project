@@ -174,40 +174,20 @@ def get_links(tref, with_text=True):
                 com_orefs = original_com_oref.split_spanning_ref()
                 for com_oref in com_orefs:
                     top_oref = com_oref.top_section_ref()
-
                     # Lookup and save top level text, only if we haven't already
                     top_nref = top_oref.normal()
                     if top_nref not in texts:
-                        texts[top_nref] = TextFamily(top_oref, context=0, commentary=False, pad=False).contents()
-                        for t in ["text", "he"]:
-                            texts[top_nref][t] = JaggedTextArray(texts[top_nref][t])
-                    sections, toSections = com_oref.sections[1:], com_oref.toSections[1:]
-                    for t in ["text", "he"]:
-                        res = texts[top_nref][t].subarray(
-                            [i - 1 for i in sections],
-                            [i - 1 for i in toSections]
-                        ).array()
-                        if t not in com:
-                            com[t] = res
+                        texts[top_nref] = {lang: TextChunk(top_oref, lang).ja() for lang in ["he", "en"]}
+                    sections = [i - 1 for i in com_oref.sections[1:]]
+                    toSections = [i - 1 for i in com_oref.toSections[1:]]
+                    for lang, attr in [("he", "he"), ("en", "text")]:
+                        res = texts[top_nref][lang].subarray(sections, toSections).array()
+                        if attr not in com:
+                            com[attr] = res
                         else:
-                            if isinstance(com[t], basestring):
-                                com[t] = [com[t]]
-                            com[t] += res
-                        '''
-                        next_section = grab_section_from_text(sections, texts[top_nref][t], toSections)
-                        if t not in com:
-                            com[t] = next_section
-                        elif isinstance(com[t], list):
-                            if isinstance(next_section, list):
-                                com[t] += next_section
-                            else:
-                                com[t] += [next_section]
-                        else: #com[t] is string
-                            if isinstance(next_section, list):
-                                com[t] = [com[t]] + next_section
-                            else:
-                                com[t] += u" " + next_section
-                        '''
+                            if isinstance(com[attr], basestring):
+                                com[attr] = [com[attr]]
+                            com[attr] += res
             links.append(com)
         except NoVersionFoundError as e:
             logger.warning("Trying to get non existent text for ref '{}'. Link refs were: {}".format(top_nref, link.refs))

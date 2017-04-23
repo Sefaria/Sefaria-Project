@@ -1242,20 +1242,22 @@ Sefaria = extend(Sefaria, {
     // Returns data for an individual group
     var group = this._groups[group];
     if (group) {
-      group.sheets = this._sortSheets(group.sheets, sortBy);
+      this._sortSheets(group, sortBy);
       if (callback) { callback(group); }
     } else if (callback) {
       var url = "/api/groups/" + group;
        Sefaria._api(url, function(data) {
           this._groups[group] = data;
-          data.sheets = this._sortSheets(data.sheets, sortBy);
-           if (callback) { callback(data); }
+          this._sortSheets(data, sortBy);
+          callback(data);
         }.bind(this));
       }
     return group;
   },
-  _sortSheets: function(sheets, sortBy) {
-    if (!sheets) { return sheets; }
+  _sortSheets: function(group, sortBy) {
+    // Taks an object representing a group and sorts its sheets in place according to `sortBy`.
+    // Also honors ordering of any sheets in `group.pinned_sheets`
+    if (!group.sheets) { return; }
 
     var sorters = {
       date: function(a, b) {
@@ -1268,9 +1270,16 @@ Sefaria = extend(Sefaria, {
         return b.views - a.views;
       }
     };
-
-    sheets.sort(sorters[sortBy]);
-    return sheets;
+    var sortPinned = function(a, b) {
+      var ai = group.pinnedSheets.indexOf(a.id);
+      var bi = group.pinnedSheets.indexOf(b.id);
+      if (ai == -1 && bi == -1) { return 0; }
+      if (ai == -1) { return 1; }
+      if (bi == -1) { return -1; }
+      return  ai < bi ? -1 : 1;
+    };
+    group.sheets.sort(sorters[sortBy]);
+    group.sheets.sort(sortPinned);
   },
   _groupsList: null,
   groupsList: function(callback) {

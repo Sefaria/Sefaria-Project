@@ -2163,7 +2163,7 @@ class Ref(object):
         :return bool:
         """
         # TODO: -deprecate
-        return getattr(self.index, 'dependence', None).capitalize() == "Commentary"
+        return getattr(self.index, 'dependence', "").capitalize() == "Commentary"
 
     def is_dependant(self):
         return self.index.is_dependant_text()
@@ -4129,7 +4129,6 @@ class Library(object):
             q = {"categories": category}
 
         return IndexSet(q) if full_records else IndexSet(q).distinct("title")
-
 
     def get_indices_by_collective_title(self, collective_title, full_records=False):
         q = {'collective_title': collective_title}
