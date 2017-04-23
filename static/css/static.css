@@ -25,6 +25,9 @@
   margin: 0 auto;
   padding: 124px 0 100px;
 }
+#register.static .inner {
+  width: 100%;
+}
 .static .int-en {
   font-family: "adobe-garamond-pro", Georgia, serif;
 }
@@ -647,7 +650,6 @@
 }
 
 .registrationContent {
-  text-align: center;
   margin: 1% auto 0;
   width: 320px;
 }
@@ -671,9 +673,17 @@
   border: 1px solid #bbb;
   width: 100%;
   box-sizing: border-box;
-  color: #999;
+  color: #333;
   font-size: 14px;
 }
+.registrationContent #id_subscribe_announce, .registrationContent #id_subscribe_educator {
+  width: auto;
+}
+
+.registrationContent .helptext {
+  font-size: 16px;
+}
+
 .registrationContent ::placeholder {
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif; 
   color: #999;
@@ -1399,6 +1409,217 @@
 }
 #legalTabs a.current {
   background-color: white;
+}
+
+#edPage {
+  overflow: hidden;
+  color: #333;
+  background-color: transparent;
+}
+/*#edPage .int-en {
+  font-family: "adobe-garamond-pro", Georgia, serif;
+}
+#edPage .int-he {
+  font-family: "Alef", "Helvetica Neue", Helvetica, Ariel, san-serif;
+}*/
+/*#edPage .button .int-en {
+  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+}*/
+/*#edPage .button .int-he {
+  font-family: "Open Sans Hebrew", sans-serif;
+}*/
+#edPage .section {
+  margin-bottom: 0;
+}
+#edPage #edCover {
+  color: white;
+  height: 570px;
+  padding: 180px 0;
+  box-sizing: border-box;
+  text-align: center;
+  overflow: hidden;
+  position: relative;
+  background-image: url(/static/img/edheader.png);
+  background-size: cover;
+  background-color: #ADA99B;
+  background-position: center;
+}
+
+#edPage #edCover h1 {
+  color: white;
+  font-weight: normal;
+  font-size: 49px;
+  height: 70px;
+  margin-bottom: 30px;
+}
+#edPage #edCover .sub {
+  font-size: 22px;
+  font-style: italic;
+  margin: 0;
+  position: relative;
+}
+#edPage #edCover a {
+  color: white;
+  font-style: normal;
+  font-size: 21px;
+  position: relative;
+}
+#edPage #edCover .button {
+  margin-top: 80px;
+  padding: 16px 34px;
+}
+
+#edPage .section {
+  overflow: hidden;
+  padding: 100px 0;
+}
+#edPage .sectionInner {
+  width: 720px;
+  max-width: 94%;
+  margin: auto;
+}
+#edPage .section:nth-child(odd) {
+  background-color: #F9F9F7;
+}
+#edPage .section:nth-child(even) {
+  background-color: white;
+}
+#edPage .textBox {
+  display: inline-block;
+  width: 350px;
+}
+#edPage .imageBox {
+  display: inline-block;
+  width: 300px;
+  text-align: center;
+}
+#edPage .imageBox img {
+  max-width: 100%;
+}
+#edPage .imageBox a .button.fullWidth {
+  width: 300px;
+}
+
+@media screen and (max-width: 700px) {
+  #edPage .sectionInner {
+    width: 350px;
+  }
+  #edPage .textBox, #edPage .imageBox {
+    max-width: 100%;
+    margin: 0 auto;
+    float: none !important;
+  }
+  #edPage .imageBox {
+    margin-top: 20px;
+  }
+}
+#edPage .imageBox.bordered {
+  border: 1px solid #ccc;
+}
+#edPage .imageBox.bordered img {
+  display: block;
+}
+#edPage .textLeft .textBox {
+  float: left;
+}
+#edPage .textLeft .imageBox {
+  float: right;
+}
+#edPage .textRight .textBox {
+  float: right;
+}
+#edPage .textRight .imageBox {
+  float: left;
+}
+#edPage .section a .button {
+  display: block;
+  width: 240px;
+  margin-bottom: 8px;
+  text-align: center;
+}
+#edPage .section.center {
+  text-align: center;
+}
+#edPage .section.center .button {
+  margin-left: auto;
+  margin-right: auto;
+}
+#edPage h1, #edPage h2 {
+    font-family: "adobe-garamond-pro", Georgia, serif;
+}
+
+#edPage h2 {
+  margin: 0 0 12px 0;
+  padding: 0;
+  font-style: italic;
+  font-size: 28px;
+  font-weight: normal;
+  letter-spacing: 1px;
+  text-transform: none;
+  border: none;
+  color:  #666;
+}
+
+#edPage .description {
+  margin: 26px 0 34px 0;
+  color: #999;
+  font-size: 17px;
+  font-style: italic;
+  line-height: 1.2;
+}
+#edPage .dedication {
+  margin: -12px 0 34px;
+  color: #999;
+  font-size: 17px;
+  font-style: italic;
+  line-height: 1.2;
+}
+#edPage .section .button {
+  margin: 0;
+  position: relative;
+}
+#edPage a {
+  color: #999;
+  font-size: 16px;
+}
+#edPage a.refLink {
+  color: #333;
+  font-size: 16px;
+  padding: 12px 0px 15px;
+}
+#edHelp .description {
+  margin: 30px 0 40px;
+}
+#edConnect h2 {
+  margin-bottom: 30px;
+}
+#edConnect #mailingListTitle {
+  margin-bottom: 40px;
+  color: #999;
+  font-size: 14px;
+}
+#edConnect #mailingListEmail {
+  padding: 14px 24px;
+  margin: -4px 8px 0 0;
+  width: 240px;
+  font-size: 16px;
+}
+#edConnect #mailingListEmail::-webkit-input-placeholder { /* Chrome/Opera/Safari */
+  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+}
+#edConnect #mailingListEmail::-moz-placeholder { /* Firefox 19+ */
+  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+}
+#edConnect #mailingListEmail:-ms-input-placeholder { /* IE 10+ */
+  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+}
+#edConnect #mailingListEmail:-moz-placeholder { /* Firefox 18- */
+  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+}
+#edConnect #subscribeMsg {
+  margin-top: 40px;
+  font-size: 20px;
+  display: none;
 }
 
 #groupsPage {

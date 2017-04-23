@@ -580,12 +580,14 @@ def s2_texts(request):
     return s2_page(request, "navigation")
 
 
+@login_required
 def s2_account(request):
     return s2_page(request, "account")
 
 
+@login_required
 def s2_notifications(request):
-    # TODO Server Side rendering
+    # Notifications content is not rendered server side
     return s2_page(request, "notifications")
 
 
@@ -593,6 +595,7 @@ def s2_updates(request):
     return s2_page(request, "updates")
 
 
+@login_required
 def s2_modtools(request):
     return s2_page(request, "modtools")
 
