@@ -81,6 +81,9 @@ var ReaderApp = React.createClass({
           versionLanguage: initialPanel.versionLanguage || null,
           searchQuery: this.props.initialQuery,
           appliedSearchFilters: this.props.initialSearchFilters,
+          navigationCategories: this.props.initialNavigationCategories,
+          sheetsTag: this.props.initialSheetsTag,
+          group: this.props.initialGroup,
           settings: Sefaria.util.clone(defaultPanelSettings)
         };
         if (panels[0].versionLanguage) {
@@ -621,7 +624,7 @@ var ReaderApp = React.createClass({
       menuOpen:             state.menuOpen             || null, // "navigation", "text toc", "display", "search", "sheets", "home", "book toc"
       navigationCategories: state.navigationCategories || [],
       navigationSheetTag:   state.sheetsTag            || null,
-      sheetsGroup:        state.group              || null,
+      sheetsGroup:          state.group                || null,
       searchQuery:          state.searchQuery          || null,
       appliedSearchFilters: state.appliedSearchFilters || [],
       searchFiltersValid:   state.searchFiltersValid   || false,
@@ -1077,27 +1080,24 @@ var ReaderApp = React.createClass({
   },
   showSheets: function() {
     var updates = {menuOpen: "sheets"};
-    if (this.props.multiPanel) {
-      this.setHeaderState(updates);
-    } else {
-      this.setPanelState(0, updates);
-    }
+    this.setStateInHeaderOrSinglePanel(updates);
   },
   showMySheets: function() {
-    console.log("SMS")
     var updates = {menuOpen: "sheets", navigationSheetTag: "My Sheets"};
-    if (this.props.multiPanel) {
-      this.setHeaderState(updates);
-    } else {
-      this.setPanelState(0, updates);
-    }
+    this.setStateInHeaderOrSinglePanel(updates);
   },
   showMyGroups: function() {
     var updates = {menuOpen: "myGroups"};
+    this.setStateInHeaderOrSinglePanel(updates);
+  },
+  setStateInHeaderOrSinglePanel: function(state) {
+    // Updates state in the header panel if we're in mutli-panel, else in the first panel if we're in single panel
+    // If we're in single panel mode but `this.state.panels` is empty, make a default first panel
     if (this.props.multiPanel) {
-      this.setHeaderState(updates);
+      this.setHeaderState(state);
     } else {
-      this.setPanelState(0, updates);
+      state = this.makePanelState(state);
+      this.setState({panels: [state]});
     }
   },
   saveRecentlyViewed: function(panel) {
@@ -1172,6 +1172,7 @@ var ReaderApp = React.createClass({
     var panels = [];
     for (var i = 0; i < panelStates.length; i++) {
       var panel                    = this.clonePanel(panelStates[i]);
+      if (!("settings" in panel )) { debugger; }
       var offset                   = widths.reduce(function(prev, curr, index, arr) { return index < i ? prev+curr : prev}, 0);
       var width                    = widths[i];
       var style                    = (this.state.layoutOrientation=="ltr")?{width: width + unit, left: offset + unit}:{width: width + unit, right: offset + unit};
@@ -1631,7 +1632,7 @@ var ReaderPanel = React.createClass({
       menuOpen:             this.props.initialMenu || null, // "navigation", "book toc", "text toc", "display", "search", "sheets", "home", "compare"
       navigationCategories: this.props.initialNavigationCategories || [],
       navigationSheetTag:   this.props.initialSheetsTag || null,
-      sheetsGroup:        this.props.initialGroup || null,
+      sheetsGroup:          this.props.initialGroup || null,
       searchQuery:          this.props.initialQuery || null,
       appliedSearchFilters: this.props.initialAppliedSearchFilters || [],
       selectedWords:        null,
@@ -2152,7 +2153,7 @@ var ReaderPanel = React.createClass({
                     setMySheetSort={this.setMySheetSort}
                     setSheetTagSort={this.setSheetTagSort}
                     setSheetTag={this.setSheetTag}
-                    key={this.state.key} />);
+                    key={"SheetsNav"} />);
 
     } else if (this.state.menuOpen === "account") {
       var menu = (<AccountPanel
@@ -4288,6 +4289,7 @@ var SheetsNav = React.createClass({
                  (<div className="readerNavTop searchOnly" key="navTop">
                     <CategoryColorLine category="Sheets" />
                     <ReaderNavigationMenuMenuButton onClick={this.props.openNav} />
+                    <div className="readerOptions"></div>
                     <h2>
                       <span className="int-en">{enTitle}</span>
                       <span className="int-he">{heTitle}</span>
@@ -4347,12 +4349,12 @@ var SheetsHomePage = React.createClass({
   _type_sheet_button: function(en, he, on_click, active) {
     var classes = classNames({"type-button": 1, active: active});
 
-      return <div className={classes} onClick={on_click}>
-      <div className="type-button-title">
-        <span className="int-en">{en}</span>
-        <span className="int-he">{he}</span>
-      </div>
-    </div>;
+    return <div className={classes} onClick={on_click}>
+              <div className="type-button-title">
+                <span className="int-en">{en}</span>
+                <span className="int-he">{he}</span>
+              </div>
+            </div>;
   },
   render: function() {
     var trendingTags = this.getTrendingTagsFromCache();
@@ -4491,11 +4493,28 @@ var GroupPage = React.createClass({
     
     return admins.concat(publishers, members, invitations);
   },
+  pinSheet: function(sheetId) {
+    if (this.pinning) { return; }
+    $.post("/api/groups/" + this.props.group + "/pin-sheet/" + sheetId, function(data) {
+      if ("error" in data) {
+        alert(data.error);
+      } else {
+        Sefaria._groups[this.props.group] = data.group;
+        this.onDataLoad();
+      }
+      this.pinning = false;
+    }.bind(this)).fail(function() {
+        alert("There was an error pinning your sheet.");
+        this.pinning = false;     
+    }.bind(this));
+    this.pinning = true;
+  },
   render: function() {
     var group        = this.getData();
     var sheets       = group ? group.sheets : null;
     var groupTagList = group ? group.tags : null;
     var members      = this.memberList();
+    var isMember     = members && members.filter(function(x) { return x.uid == Sefaria._uid } ).length !== 0;
     var isAdmin      = group && group.admins.filter(function(x) { return x.uid == Sefaria._uid } ).length !== 0;
 
     groupTagList = groupTagList ? groupTagList.map(function (tag) {
@@ -4510,11 +4529,14 @@ var GroupPage = React.createClass({
     sheets = sheets ? sheets.map(function(sheet) {
       return (<GroupSheetListing 
                 sheet={sheet} 
-                multiPanel={this.props.multiPanel} 
-                setSheetTag={this.setSheetTag} />);
+                pinned={group.pinnedSheets.indexOf(sheet.id) != -1}
+                isAdmin={isAdmin}
+                multiPanel={this.props.multiPanel}
+                pinSheet={this.pinSheet.bind(null, sheet.id)} 
+                setSheetTag={this.setSheetTag}
+                key={sheet.id} />);
     }.bind(this)) : [<LoadingMessage />];
  
-
     return (<div className="content groupPage sheetList hasFooter">
               <div className="contentInner">
 
@@ -4556,6 +4578,7 @@ var GroupPage = React.createClass({
 
                 { this.state.tab == "sheets" ?
                   <div>
+                    {sheets.length ?
                     <h2 className="splitHeader">
                       { groupTagList && groupTagList.length ?
                       <span className="filterByTag" onClick={this.toggleSheetTags}>
@@ -4563,29 +4586,35 @@ var GroupPage = React.createClass({
                         <span className="int-he">סנן לפי תווית<i className="fa fa-angle-down"></i></span>
                        </span>
                        : null }
-                    
-                        <span className="int-en actionText">Sort By:
-                          <select value={this.state.sheetSort} onChange={this.changeSheetSort}>
-                           <option value="date">Recent</option>
-                           <option value="alphabetical">Alphabetical</option>
-                           <option value="views">Most Viewed</option>
-                         </select> <i className="fa fa-angle-down"></i></span>
-                        <span className="int-he actionText">סנן לפי:
-                          <select value={this.state.sheetSort} onChange={this.changeSheetSort}>
-                           <option value="date">הכי חדש</option>
-                           <option value="alphabetical">Alphabetical</option>
-                           <option value="views">הכי נצפה</option>
-                         </select> <i className="fa fa-angle-down"></i></span>
+                      
+                          <span className="int-en actionText">Sort By:
+                            <select value={this.state.sheetSort} onChange={this.changeSheetSort}>
+                             <option value="date">Recent</option>
+                             <option value="alphabetical">Alphabetical</option>
+                             <option value="views">Most Viewed</option>
+                           </select> <i className="fa fa-angle-down"></i></span>
+                          <span className="int-he actionText">סנן לפי:
+                            <select value={this.state.sheetSort} onChange={this.changeSheetSort}>
+                             <option value="date">הכי חדש</option>
+                             <option value="alphabetical">Alphabetical</option>
+                             <option value="views">הכי נצפה</option>
+                           </select> <i className="fa fa-angle-down"></i></span>
                     </h2>
+                    : null }
 
                   {this.state.showTags ? <TwoOrThreeBox content={groupTagList} width={this.props.width} /> : null}
 
                   {sheets.length ? 
                     sheets 
-                    : <div className="emptyMessage">
-                      <span className="int-en">There are no sheets in this group yet. <a href="/sheets/new">Start a sheet</a>.</span>
-                      <span className="int-he">There are no sheets in this group yet. <a href="/sheets/new">Start a sheet</a>.</span>          
-                    </div> }
+                    : (isMember ? 
+                          <div className="emptyMessage">
+                            <span className="int-en">There are no sheets in this group yet. <a href="/sheets/new">Start a sheet</a>.</span>
+                            <span className="int-he">There are no sheets in this group yet. <a href="/sheets/new">Start a sheet</a>.</span>          
+                          </div>
+                        : <div className="emptyMessage">
+                            <span className="int-en">There are no public sheets in this group yet.</span>
+                            <span className="int-he">There are no public sheets in this group yet.</span>          
+                          </div>)}
                   </div>
                   : null }
 
@@ -4598,7 +4627,8 @@ var GroupPage = React.createClass({
                                 isAdmin={isAdmin}
                                 isSelf={member.uid == Sefaria._uid}
                                 groupName={this.props.group}
-                                onDataChange={this.onDataLoad} />;
+                                onDataChange={this.onDataLoad}
+                                key={member.uid} />;
                      }.bind(this)) }
                     </div>
                   : null }
@@ -4615,7 +4645,10 @@ var GroupPage = React.createClass({
 var GroupSheetListing = React.createClass({
   propTypes: {
     sheet:       React.PropTypes.object.isRequired,
-    setSheetTag: React.PropTypes.func.isRequired
+    setSheetTag: React.PropTypes.func.isRequired,
+    pinSheet:    React.PropTypes.func,
+    pinned:      React.PropTypes.bool,
+    isAdmin:     React.PropTypes.bool
   },
   render: function() {
     var sheet = this.props.sheet;
@@ -4627,7 +4660,16 @@ var GroupSheetListing = React.createClass({
           return(<SheetTagLink setSheetTag={this.props.setSheetTag} tag={tag} key={tag} />);
     },this);
 
+
+    var pinButtonClasses = classNames({groupSheetListingPinButton: 1, pinned: this.props.pinned, active: this.props.isAdmin});
+    var pinMessage = this.props.pinned && this.props.isAdmin ? "Pinned Sheet - click to unpin" :
+                      this.props.pinned ? "Pinned Sheet" : "Pin Sheet";
+    var pinButton = <div className={pinButtonClasses} onClick={this.props.isAdmin ? this.props.pinSheet : null}>
+                      <img src="/static/img/pin.svg" title={pinMessage} />
+                    </div>
+
     return (<div className="sheet userSheet">
+                {pinButton}
                 <a className="sheetTitle" href={url} key={url}>{title}</a> <SheetAccessIcon sheet={sheet} />
                 <div>{sheet.ownerName} · {sheet.views} Views · {sheet.modified} · <span className="tagString">{tagString}</span></div>
               </div>);
@@ -5219,7 +5261,7 @@ var TagSheetsPage = React.createClass({
   render: function() {
     var sheets = this.getSheetsFromCache();
     sheets = sheets ? sheets.map(function (sheet) {
-      return (<PublicSheetListing sheet={sheet} />);
+      return (<PublicSheetListing sheet={sheet} key={sheet.id} />);
     }) : (<LoadingMessage />);
     return (<div className="content sheetList hasFooter">
                       <div className="contentInner">
@@ -5412,7 +5454,7 @@ var MySheetsPage = React.createClass({
       return Sefaria.util.inArray(this.state.sheetFilterTag, sheet.tags) >= 0;
     }.bind(this)) : sheets;
     sheets = sheets ? sheets.map(function(sheet) {
-      return (<PrivateSheetListing sheet={sheet} multiPanel={this.props.multiPanel} setSheetTag={this.props.setSheetTag} key={sheet.id} />);
+      return (<PrivateSheetListing sheet={sheet} setSheetTag={this.props.setSheetTag} key={sheet.id} />);
     }.bind(this)) : (<LoadingMessage />);
 
     var userTagList = this.getTagsFromCache();
@@ -5464,38 +5506,22 @@ var MySheetsPage = React.createClass({
 var PrivateSheetListing = React.createClass({
   propTypes: {
     sheet:       React.PropTypes.object.isRequired,
-    multiPanel:  React.PropTypes.bool,
     setSheetTag: React.PropTypes.func.isRequired
   },
   render: function() {
     var sheet = this.props.sheet;
-    var editSheetTags = function() { console.log(sheet.id)}.bind(this);
     var title = sheet.title ? sheet.title.stripHtml() : "Untitled Source Sheet";
     var url = "/sheets/" + sheet.id;
 
     if (sheet.tags === undefined) sheet.tags = [];
       var tagString = sheet.tags.map(function (tag) {
           return(<SheetTagLink setSheetTag={this.props.setSheetTag} tag={tag} key={tag} />);
-    },this);
+    }, this);
 
-    if (this.props.multiPanel) {
-      return (<div className="sheet userSheet" href={url} key={url}>
-                 <a className="sheetEditButtons" href={url}>
-                  <span><i className="fa fa-pencil"></i> </span>
-                </a>
-                <div className="sheetEditButtons" onClick={editSheetTags}>
-                  <span><i className="fa fa-tag"></i> </span>
-                </div>
-
-                <a className="sheetTitle" href={url}>{title}</a>  <SheetAccessIcon sheet={sheet} />
-                <div>{sheet.views} Views · {sheet.modified} · <span className="tagString">{tagString}</span></div>
-            </div>);
-    } else {
-      return (<a className="sheet userSheet" href={url} key={url}>
-                <div className="sheetTitle">{title}</div> <SheetAccessIcon sheet={sheet} />
-                <div>{sheet.views} Views · {sheet.modified} · <span className="tagString">{tagString}</span></div>
-              </a>);
-    }
+   return (<div className="sheet userSheet" href={url} key={url}>
+              <a className="sheetTitle" href={url}>{title}</a>  <SheetAccessIcon sheet={sheet} />
+              <div>{sheet.views} Views · {sheet.modified} · <span className="tagString">{tagString}</span></div>
+          </div>);
   }
 });
 
@@ -8709,9 +8735,7 @@ var AccountPanel = React.createClass({
     var accountContent = [
       (<BlockLink interfaceLink={true} target="/my/profile" title="Profile" heTitle="פרופיל" image="/static/img/profile.svg" />),
       (<BlockLink interfaceLink={true} target="/sheets/private" inAppLink={true} title="Source Sheets" heTitle="דפי מקורות" image="/static/img/sheet.svg" />),
-      (Sefaria.is_moderator || Sefaria.has_groups
-       ? (<BlockLink interfaceLink={true} target="/my/groups" inAppLink={true} title="Groups" heTitle="קבוצות" image="/static/img/group.svg" />)
-       : (<BlockLink interfaceLink={true} target="/coming-soon?my-notes" title="Notes" heTitle="רשומות" image="/static/img/note.svg" />)),
+      (<BlockLink interfaceLink={true} target="/my/groups" inAppLink={true} title="Groups" heTitle="קבוצות" image="/static/img/group.svg" />),
       (<BlockLink interfaceLink={true} target="/texts/recent" title="Reading History" heTitle="היסטורית קריאה" image="/static/img/readinghistory.svg" />),
       (<BlockLink interfaceLink={true} target="/settings/account" title="Settings" heTitle="הגדרות" image="/static/img/settings.svg" />),
       (<BlockLink interfaceLink={true} target="/logout" title="Log Out" heTitle="ניתוק" image="/static/img/logout.svg" />)
@@ -8954,9 +8978,11 @@ var MyGroupsPanel = React.createClass({
 
             <div className="groupsList">
               { groupsList ? 
-                  groupsList.private.map(function(item) {
-                    return <GroupListing data={item} />
-                  })
+                  (groupsList.private.length ?
+                    groupsList.private.map(function(item) {
+                      return <GroupListing data={item} />
+                    })
+                    : <LoadingMessage message="You aren't a member of any groups yet." heMessage="You aren't a member of any groups yet." />)
                   : <LoadingMessage />
               }
             </div>
@@ -9607,7 +9633,7 @@ var Footer = React.createClass({
                       <span className="int-en">Educators</span>
                       <span className="int-he">מחנכים</span>
               </div>
-              <a href="/educators" target="_blank" className="outOfAppLink">
+              <a href="/educators" className="outOfAppLink">
                   <span className="int-en">Teach with Sefaria</span>
                   <span className="int-he">למד באמצעות ספאריה</span>
               </a>

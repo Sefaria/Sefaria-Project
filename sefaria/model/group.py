@@ -20,20 +20,21 @@ class Group(abst.AbstractMongoRecord):
     pkeys = ["name", "headerUrl", "imageUrl", "coverUrl"]
 
     required_attrs = [
-        "name",        # string name of group
-        "admins",      # array or uids
-        "publishers",  # array of uids
-        "members",     # array of uids
+        "name",          # string name of group
+        "admins",        # array or uids
+        "publishers",    # array of uids
+        "members",       # array of uids
     ]
     optional_attrs = [
-        "invitations", # array of dictionaries representing outstanding invitations
-        "description", # string text of short description
-        "websiteUrl",  # url for group website
-        "headerUrl",   # url of an image to use in header
-        "imageUrl",    # url of an image to use as icon
-        "coverUrl",    # url of an image to use as cover
-        "listed",      # Bool, whether to list group publicly
-        "tag_order",   # list of strings, display order for sheet tags       
+        "invitations",   # array of dictionaries representing outstanding invitations
+        "description",   # string text of short description
+        "websiteUrl",    # url for group website
+        "headerUrl",     # url of an image to use in header
+        "imageUrl",      # url of an image to use as icon
+        "coverUrl",      # url of an image to use as cover
+        "pinned_sheets", # list of sheet ids, pinned to top
+        "listed",        # Bool, whether to list group publicly
+        "tag_order",     # list of strings, display order for sheet tags       
     ]
 
     def _normalize(self):
@@ -52,13 +53,14 @@ class Group(abst.AbstractMongoRecord):
     def contents(self, with_content=False, authenticated=False):
         from sefaria.sheets import group_sheets, sheet_tag_counts
         contents = super(Group, self).contents()
-        if with_content:
-            contents["sheets"]      = group_sheets(self.name, authenticated)["sheets"]
-            contents["tags"]        = sheet_tag_counts({"group": self.name})
-            contents["admins"]      = [public_user_data(uid) for uid in contents["admins"]]
-            contents["publishers"]  = [public_user_data(uid) for uid in contents["publishers"]]
-            contents["members"]     = [public_user_data(uid) for uid in contents["members"]]
-            contents["invitations"] = getattr(self, "invitations", []) if authenticated else []
+        if with_content: 
+            contents["sheets"]       = group_sheets(self.name, authenticated)["sheets"]
+            contents["tags"]         = sheet_tag_counts({"group": self.name})
+            contents["admins"]       = [public_user_data(uid) for uid in contents["admins"]]
+            contents["publishers"]   = [public_user_data(uid) for uid in contents["publishers"]]
+            contents["members"]      = [public_user_data(uid) for uid in contents["members"]]
+            contents["invitations"]  = getattr(self, "invitations", []) if authenticated else []
+            contents["pinnedSheets"] = getattr(self, "pinned_sheets", [])
         return contents
 
     def listing_contents(self):
@@ -166,6 +168,17 @@ class Group(abst.AbstractMongoRecord):
     def url(self):
         """Returns the URL path for this group"""
         return "/groups/%s" % self.name.replace(" ", "-")
+
+    def pin_sheet(self, sheet_id):
+        """
+        Adds or removes `sheet_id` from the list of pinned sheets
+        """
+        self.pinned_sheets = getattr(self, "pinned_sheets", [])
+        if sheet_id in self.pinned_sheets:
+            self.pinned_sheets = [id for id in self.pinned_sheets if id != sheet_id]
+        else:
+            self.pinned_sheets = [sheet_id] + self.pinned_sheets
+        self.save()
 
     def _handle_image_change(self, old, new):
         """

@@ -626,6 +626,22 @@ def groups_invite_api(request, group_name, uid_or_email, uninvite=False):
 	return jsonResponse({"group": group_content, "message": message})
 
 
+@login_required 
+def groups_pin_sheet_api(request, group_name, sheet_id):
+	if request.method != "POST":
+		return jsonResponse({"error": "Unsupported HTTP method."})
+	group = Group().load({"name": group_name})
+	if not group:
+		return jsonResponse({"error": "No group named %s." % group_name})
+	if request.user.id not in group.admins:
+		return jsonResponse({"error": "You must be a group admin to invite new members."})
+
+	sheet_id = int(sheet_id)
+	group.pin_sheet(sheet_id)
+	group_content = group.contents(with_content=True, authenticated=True)
+	return jsonResponse({"group": group_content, "status": "success"})
+
+
 def sheet_stats(request):
 	pass
 
