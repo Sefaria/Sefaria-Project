@@ -228,15 +228,28 @@ def modify_text_by_function(title, vtitle, lang, rewrite_function, uid, needs_re
     Walks ever segment contained in title, calls func on the text and saves the result.
     """
     from sefaria.tracker import modify_text
-    section_refs = library.get_index(title).all_section_refs()
-    for section_ref in section_refs:
-        section = section_ref.text(vtitle=vtitle, lang=lang)
-        segment_refs = section_ref.subrefs(len(section.text) if section.text else 0)
-        if segment_refs:
-            for i in range(len(section.text)):
-                if section.text[i] and len(section.text[i]) and needs_rewrite_function(section.text[i]):
-                    text = rewrite_function(section.text[i])
-                    modify_text(uid, segment_refs[i], vtitle, lang, text, **kwargs)
+
+    leaf_nodes = library.get_index(title).nodes.get_leaf_nodes()
+    for leaf in leaf_nodes:
+        oref = leaf.ref()
+        ja = oref.text(lang, vtitle).ja()
+        assert isinstance(ja, JaggedTextArray)
+        ja.modify_by_function(rewrite_function)
+        if needs_rewrite_function(ja.array()):
+            modify_text(uid, oref, vtitle, lang, ja.array(), **kwargs)
+
+
+
+
+    # section_refs = library.get_index(title).all_section_refs()
+    # for section_ref in section_refs:
+    #     section = section_ref.text(vtitle=vtitle, lang=lang)
+    #     segment_refs = section_ref.subrefs(len(section.text) if section.text else 0)
+    #     if segment_refs:
+    #         for i in range(len(section.text)):
+    #             if section.text[i] and len(section.text[i]) and needs_rewrite_function(section.text[i]):
+    #                 text = rewrite_function(section.text[i])
+    #                 modify_text(uid, segment_refs[i], vtitle, lang, text, **kwargs)
 
 
 def split_text_section(oref, lang, old_version_title, new_version_title):
