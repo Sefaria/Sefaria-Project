@@ -1433,13 +1433,13 @@
 }
 #edPage #edCover {
   color: white;
-  height: 570px;
+  height: 660px;
   padding: 180px 0;
   box-sizing: border-box;
   text-align: center;
   overflow: hidden;
   position: relative;
-  background-image: url(/static/img/edheader.png);
+  background-image: url(/static/img/edheader.jpg);
   background-size: cover;
   background-color: #ADA99B;
   background-position: center;
