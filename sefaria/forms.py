@@ -12,7 +12,7 @@ from django.contrib.auth.models import User, Group
 from django.contrib.auth.forms import *
 from emailusernames.forms import EmailUserCreationForm, EmailAuthenticationForm
 from emailusernames.utils import get_user, user_exists
-from sefaria.client.util import subscribe_to_announce
+from sefaria.client.util import subscribe_to_list
 from captcha.fields import ReCaptchaField
 from sefaria.local_settings import DEBUG
 
@@ -30,9 +30,10 @@ class NewUserForm(EmailUserCreationForm):
     first_name = forms.CharField(widget=forms.TextInput(attrs={'placeholder': u'First Name | שם פרטי', 'autocomplete': 'off'}))
     last_name = forms.CharField(widget=forms.TextInput(attrs={'placeholder': u'Last Name | שם משפחה', 'autocomplete': 'off'}))
     password1 = forms.CharField(widget=forms.PasswordInput(attrs={'placeholder': u'Password | סיסמא', 'autocomplete': 'off'}))
-    #subscribe_announce = forms.BooleanField(label="Receive important announcements",  initial=True, required=False)
+    subscribe_announce = forms.BooleanField(label="Receive important announcements", help_text="Receive important announcements", initial=True, required=False)
+    subscribe_educator = forms.BooleanField(label="Receive our educator newsletter", help_text="Receive our educator newsletter", initial=False, required=False)
     if not DEBUG:
-        captcha = ReCaptchaField(attrs={'theme' : 'clean'})
+        captcha = ReCaptchaField(attrs={'theme' : 'white'})
     
     class Meta:
         model = User
@@ -42,9 +43,10 @@ class NewUserForm(EmailUserCreationForm):
         super(EmailUserCreationForm, self).__init__(*args, **kwargs)
         del self.fields['password2']
         self.fields.keyOrder = ["email", "first_name", "last_name", "password1"]
-        #self.fields.keyOrder.append("subscribe_announce")
         if not DEBUG:
             self.fields.keyOrder.append("captcha")
+        self.fields.keyOrder.append("subscribe_announce")
+        self.fields.keyOrder.append("subscribe_educator")
 
     def clean_email(self):
         email = self.cleaned_data["email"]
@@ -70,12 +72,22 @@ class NewUserForm(EmailUserCreationForm):
                
         if commit:
             user.save()
-        """if self.cleaned_data["subscribe_announce"]:
+
+        mailingLists = []
+
+        if self.cleaned_data["subscribe_announce"]:
+            mailingLists.append("Announcements_General")
+            mailingLists.append("Signed_Up_on_Sefaria")
+
+        if self.cleaned_data["subscribe_educator"]:
+            mailingLists.append("Announcements_Edu")
+
+        if mailingLists:
             try:
-                subscribe_to_announce(user.email, first_name=user.first_name, last_name=user.last_name)
+                subscribe_to_list(mailingLists, user.email, first_name=user.first_name, last_name=user.last_name)
             except:
                 pass
-        """
+
         return user
 
 

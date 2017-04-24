@@ -146,6 +146,8 @@ def get_user_groups(uid):
 	"""
 	Returns a list of Groups that user belongs to.
 	"""
+	if not uid:
+		return None
 	groups = GroupSet().for_user(uid)
 	groups = [ {
 					"name": group.name,
@@ -193,21 +195,26 @@ def view_sheet(request, sheet_id):
 	try:
 		owner = User.objects.get(id=sheet["owner"])
 		author = owner.first_name + " " + owner.last_name
-		owner_groups = get_user_groups(request.user.id)
+		owner_groups = get_user_groups(request.user.id) if sheet["owner"] == request.user.id else None
 	except User.DoesNotExist:
 		author = "Someone Mysterious"
 		owner_groups = None
 
 	sheet_class      = make_sheet_class_string(sheet)
 	sheet_group      = Group().load({"name": sheet["group"]}) if "group" in sheet and sheet["group"] != "None" else None
-	can_edit_flag    = can_edit(request.user, sheet)
-	can_add_flag     = can_add(request.user, sheet)
-	can_publish_flag = sheet_group.can_publish(request.user.id) if sheet_group else False
 	embed_flag       = "embed" in request.GET
 	likes            = sheet.get("likes", [])
 	like_count       = len(likes)
-	viewer_is_liker  = request.user.id in likes
-
+	if request.user.is_authenticated():
+		can_edit_flag    = can_edit(request.user, sheet)
+		can_add_flag     = can_add(request.user, sheet)
+		can_publish_flag = sheet_group.can_publish(request.user.id) if sheet_group else False
+		viewer_is_liker  = request.user.id in likes
+	else:
+		can_edit_flag    = False
+		can_add_flag     = False
+		can_publish_flag = False
+		viewer_is_liker  = False
 
 	return render_to_response('sheets.html' if request.COOKIES.get('s1') else 's2_sheets.html', {"sheetJSON": json.dumps(sheet),
 												"sheet": sheet,
@@ -582,9 +589,9 @@ def groups_role_api(request, group_name, uid, role):
 
 
 @login_required
-def groups_invite_api(request, group_name, uid_or_email):
+def groups_invite_api(request, group_name, uid_or_email, uninvite=False):
 	"""
-	API for setting a group members role, or removing them from a group.
+	API for adding or removing group members, or group invitations
 	"""
 	if request.method != "POST":
 		return jsonResponse({"error": "Unsupported HTTP method."})
@@ -593,22 +600,46 @@ def groups_invite_api(request, group_name, uid_or_email):
 		return jsonResponse({"error": "No group named %s." % group_name})
 	if request.user.id not in group.admins:
 		return jsonResponse({"error": "You must be a group admin to invite new members."})
+	
 	user = UserProfile(email=uid_or_email)
 	if not user.exists():
-		return jsonResponse({"error": "No user with this email address currently exists."})
-	
-	is_new_member = not group.is_member(user.id)
-	group.add_member(user.id)
+		if uninvite:
+			group.remove_invitation(uid_or_email)
+			message = "Invitation removed."
+		else:
+			group.invite_member(uid_or_email, request.user.id)
+			message = "Invitation sent."
+	else:
+		is_new_member = not group.is_member(user.id)
 
-	if is_new_member:
-		print "Make notification"
-		from sefaria.model.notification import Notification
-		notification = Notification({"uid": user.id})
-		notification.make_group_add(adder_id=request.user.id, group_name=group_name)
-		notification.save()
+		if is_new_member:
+			group.add_member(user.id)
+			from sefaria.model.notification import Notification
+			notification = Notification({"uid": user.id})
+			notification.make_group_add(adder_id=request.user.id, group_name=group_name)
+			notification.save()
+			message = "Group member added."
+		else:
+			message = "%s is already a member of this group." % user.full_name
 
 	group_content = group.contents(with_content=True, authenticated=True)
-	return jsonResponse(group_content)
+	return jsonResponse({"group": group_content, "message": message})
+
+
+@login_required 
+def groups_pin_sheet_api(request, group_name, sheet_id):
+	if request.method != "POST":
+		return jsonResponse({"error": "Unsupported HTTP method."})
+	group = Group().load({"name": group_name})
+	if not group:
+		return jsonResponse({"error": "No group named %s." % group_name})
+	if request.user.id not in group.admins:
+		return jsonResponse({"error": "You must be a group admin to invite new members."})
+
+	sheet_id = int(sheet_id)
+	group.pin_sheet(sheet_id)
+	group_content = group.contents(with_content=True, authenticated=True)
+	return jsonResponse({"group": group_content, "status": "success"})
 
 
 def sheet_stats(request):

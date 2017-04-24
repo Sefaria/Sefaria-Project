@@ -872,7 +872,7 @@ a.resourcesLink {
   top: 2px;
 }
 .readerNavMenu .siteLinks {
-  margin-top: 20px;
+  margin: 20px 0 50px;
   text-align: center;
 }
 .readerNavMenu .siteLinks .siteLink {
@@ -1733,7 +1733,7 @@ a.resourcesLink {
   margin: 50px 0 30px;
   height: auto
 }
-.readerSheetsNav .tagsHeader .actionText{
+.readerSheetsNav .tagsHeader .actionText {
   display: block;
   margin-top: 20px;
   text-transform: none;
@@ -2336,7 +2336,6 @@ a.resourcesLink {
 .textRange .actionLinks .he {
   font-family: "Open Sans Hebrew", sans-serif;
 }
-
 /* Footnotes */
 .segment sup {
   margin-left: .2em;
@@ -2351,7 +2350,9 @@ a.resourcesLink {
   color: #888;
   font-style: normal;
 }
-
+.segment img {
+  max-width: 100%;
+}
 .connectionsPanelHeader{
   display: flex;
   justify-content: space-between;
@@ -2436,7 +2437,10 @@ a.resourcesLink {
 .addToSourceSheetPanel.textList.fullPanel .texts {
   padding: 0 50px;
 }
-.textList .texts,
+.textList .texts {
+  padding: 60px 30px 80px 30px;
+}
+.textList.fullPanel .texts,
 .textList .fullFilterView {
   padding: 30px 30px 80px 30px;
 }
@@ -3267,6 +3271,9 @@ h2.splitHeader .he {
   text-transform: none;
   cursor: pointer;
 }
+.splitHeader .actionText select {
+  margin-left: 6px;
+}
 .sheetsNewButton {
   text-align:center;
   margin-bottom: 30px;
@@ -3290,11 +3297,6 @@ h2.splitHeader .he {
   cursor: pointer;
   text-transform: none
 }
-/*  Add back in when we're ready for tag/edit hover buttons on 'My Sheets'
-.sheet.userSheet:hover .sheetEditButtons {
-	display: inline-block;
-}
-*/
 .sheet.userSheet .sheetEditButtons {
   font-size: 24px;
   height: 32px;
@@ -3333,6 +3335,9 @@ h2.splitHeader .he {
 }
 .groupsList {
   margin-top: 30px;
+}
+.groupsList .loadingMessage {
+  text-align: center;
 }
 .groupListing {
   padding: 30px 0;
@@ -3419,6 +3424,20 @@ h2.splitHeader .he {
   border-bottom: 1px solid #CCC;
   padding-bottom: 20px;
 }
+.groupSheetListingPinButton {
+  float: right;
+  display: none;
+  opacity: 0.3;
+  cursor: pointer;
+  margin-top: 7px;
+}
+.sheet:hover .groupSheetListingPinButton.active {
+  display: block;
+}
+.groupSheetListingPinButton.pinned {
+  display: block;
+  opacity: 0.6;
+}
 #groupInvitationInput {
   padding: 14px 30px;
   width: 492px;
@@ -3429,6 +3448,11 @@ h2.splitHeader .he {
   font-size: 18px;
   position: relative;
   top: 3px;
+}
+.groupInvitationBoxMessage {
+  font-size: 18px;
+  padding: 12px 0 0;
+  text-align: center;
 }
 .groupPage .groupMemberListing {
   padding: 24px 0;
@@ -3446,6 +3470,11 @@ h2.splitHeader .he {
 .groupMemberListingName {
   color: #666;
   margin: 0 20px;
+}
+.groupInvitationListing {
+  display: inline-block;
+  min-height: 50px;
+  line-height: 50px;
 }
 .groupMemberListingRoleBox {
   float: right;
@@ -3473,7 +3502,6 @@ h2.splitHeader .he {
   position: absolute;
   right: 0;
   top: 46px;
-  width: 300px;
   background-color: white; 
   border: 1px solid #ccc;
   border-radius: 4px;
@@ -3484,6 +3512,7 @@ h2.splitHeader .he {
 .groupMemberListingActionsMenu .action {
   padding: 4px 10px;
   cursor: pointer;
+  white-space: nowrap;
 }
 .groupMemberListingActionsMenu .action:hover {
   background-color: #eee;

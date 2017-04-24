@@ -2141,7 +2141,7 @@ class Ref(object):
         :return bool:
         """
         # TODO: -deprecate
-        return getattr(self.index, 'dependence', None).capitalize() == "Commentary"
+        return getattr(self.index, 'dependence', "").capitalize() == "Commentary"
 
     def is_dependant(self):
         return self.index.is_dependant_text()
@@ -4108,7 +4108,6 @@ class Library(object):
 
         return IndexSet(q) if full_records else IndexSet(q).distinct("title")
 
-
     def get_indices_by_collective_title(self, collective_title, full_records=False):
         q = {'collective_title': collective_title}
         return IndexSet(q) if full_records else IndexSet(q).distinct("title")
@@ -4134,7 +4133,6 @@ class Library(object):
             from sefaria.utils.util import get_all_subclass_attribute
             q['base_text_mapping'] = {'$in': get_all_subclass_attribute(AbstractStructureAutoLinker, "class_key")}
         return IndexSet(q) if full_records else IndexSet(q).distinct("title")
-
 
     def get_titles_in_string(self, s, lang=None, citing_only=False):
         """
