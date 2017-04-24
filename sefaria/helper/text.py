@@ -234,9 +234,9 @@ def modify_text_by_function(title, vtitle, lang, rewrite_function, uid, needs_re
         oref = leaf.ref()
         ja = oref.text(lang, vtitle).ja()
         assert isinstance(ja, JaggedTextArray)
-        ja.modify_by_function(rewrite_function)
+        modified_text = ja.modify_by_function(rewrite_function)
         if needs_rewrite_function(ja.array()):
-            modify_text(uid, oref, vtitle, lang, ja.array(), **kwargs)
+            modify_text(uid, oref, vtitle, lang, modified_text, **kwargs)
 
 
 
