@@ -2259,7 +2259,8 @@ $(function() {
 			$("#publishPromptModal #prompt").hide();
 			$("#publishPromptModal #published").show();
 			sjs.current.promptedToPublish = Date();
-			$("#sharePublic").trigger("click");
+			$("#sourceSheetShareSelect").val('public');
+			autoSave();
 			sjs.track.sheets("Publish Prompt Accept");
 		});
 		$("#publishPromptModal .later").click(function(){
