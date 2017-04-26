@@ -2008,6 +2008,7 @@ a.tagit-close {
 .editCheckToggle {
     display: inline-block;
     float: right;
+    height: 22px;
 }
 
 .splitDiagramSegment, .noSelect, .colorSelect div, .addTagPanel, .newTag {
