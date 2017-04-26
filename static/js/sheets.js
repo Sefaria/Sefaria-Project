@@ -1861,7 +1861,7 @@ $(function() {
 
 	$(".createNewDiagramTag").on('click', '.colorSwatch', function() {
 		if ($('.createNewDiagramTag .colorSwatch:visible').length > 1) {
-			$(".colorSwatch").removeClass('active');
+			$(".createNewDiagramTag .colorSwatch").removeClass('active');
 			$(this).addClass('active');
 			$(".createNewDiagramTag .colorSwatch").hide();
 			$(".createNewDiagramTag .colorSwatch.active").css("display","inline-block");
@@ -2413,7 +2413,7 @@ function addSource(q, source, appendOrInsert) {
 			+"<div class='diagramTagWindow'>"
 
 				+"<div class='tagSelector'>"
-					+"<div><strong>Add Highlight</strong></div>"
+					+"<div class='tagSelectorTitle'>Add Highlight</div>"
 					+"<div class='sheetDiagramTags'></div>"
 					+"<div class='createNewDiagramTag'>"
 						+"<div class='colorSwatch active' style='background-color: #004e5f'></div>"
@@ -2427,7 +2427,7 @@ function addSource(q, source, appendOrInsert) {
 						+"<div class='colorSwatch' style='background-color: #5a99b7'></div>"
 						+"<div class='colorSwatch' style='background-color: #97b386'></div>"
 					+	"<div class='tagName' contenteditable='true'>Create New</div></div>"
-					+"<button class='save'>Save</button>"
+					+"<div class='save button'>Save</div>"
 				+"</div>"
 			+"</div>"
 		+"</div>"

@@ -1997,8 +1997,19 @@ a.tagit-close {
 .diagramTagWindow {
   	position: fixed;
 	z-index: 2;
-	width: 270px;
-	background-color: #fff;
+	width: 320px;
+	background-color: #f9f9f7;
+	border-radius: 3px;
+	border: 1px solid #ccc;
+	font-family: "proxima-nova","Helvetica Neue","Helvetica",sans-serif;
+
+}
+
+.diagramTagWindow .save.button {
+    margin: 20px;
+    width: 280px;
+    text-align: center;
+
 }
 
 .diagramSegment {
@@ -2009,6 +2020,22 @@ a.tagit-close {
     display: inline-block;
     float: right;
     height: 22px;
+}
+
+
+.tagSelectorTitle {
+	font-weight: 400;
+    text-align: center;
+    margin: 20px;
+}
+
+.splitDiagramSegment, .createNewDiagramTag {
+	background-color: #fff;
+	margin: 10px 20px;
+	border-radius: 3px;
+	border: 1px solid #ccc;
+	padding: 5px 10px;
+	font-size: 16px;
 }
 
 .splitDiagramSegment, .noSelect, .colorSelect div, .addTagPanel, .newTag {
@@ -2029,7 +2056,8 @@ a.tagit-close {
 	height: 10px;
 	display: none;
 	border: 3px solid transparent;
-
+	margin-right: 5px;
+	border-radius: 3px;
 }
 
 .colorSwatch.active {
