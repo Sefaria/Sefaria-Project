@@ -167,7 +167,7 @@ def test_spanning_family():
 
 def test_family_chapter_result_no_merge():
     families = [
-        TextFamily(Ref("Midrash Tanchuma.1.2")),  # this is supposed to get a version with exactly 1 en and 1 he.  The data may change.
+        TextFamily(Ref("Onkelos Exodus 12")),  # this is supposed to get a version with exactly 1 en and 1 he.  The data may change.
         TextFamily(Ref("Daniel 2")),
         TextFamily(Ref("Daniel 4"), lang="en", version="The Holy Scriptures: A New Translation (JPS 1917)"),
         TextFamily(Ref("Daniel 4"), lang="he", version="Tanach with Nikkud")
