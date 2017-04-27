@@ -2727,7 +2727,7 @@ var ReaderNavigationMenu = React.createClass({
       );
     } else {
       // Root Library Menu
-      var categories = ["Tanakh", "Mishnah", "Talmud", "Midrash", "Halakhah", "Kabbalah", "Liturgy", "Philosophy", "Tosefta", "Chasidut", "Musar", "Responsa", "Apocrypha", "Modern Works", "Other"];
+      var categories = ["Tanakh", "Mishnah", "Talmud", "Midrash", "Halakhah", "Kabbalah", "Liturgy", "Philosophy", "Tanaitic", "Chasidut", "Musar", "Responsa", "Apocrypha", "Modern Works", "Other"];
       categories = categories.map(function (cat) {
         var style = { "borderColor": Sefaria.palette.categoryColor(cat) };
         var openCat = function (e) {
@@ -7921,7 +7921,7 @@ var TextRange = React.createClass({
       var ref = this.props.withContext ? data.sectionRef : data.ref;
       var sectionStrings = Sefaria.sectionString(ref);
       var oref = Sefaria.ref(ref);
-      var useShortString = oref && Sefaria.util.inArray(oref.primary_category, ["Tanakh", "Mishnah", "Talmud", "Tosefta", "Commentary"]) !== -1;
+      var useShortString = oref && Sefaria.util.inArray(oref.primary_category, ["Tanakh", "Mishnah", "Talmud", "Tanaitic", "Commentary"]) !== -1;
       var title = useShortString ? sectionStrings.en.numbered : sectionStrings.en.named;
       var heTitle = useShortString ? sectionStrings.he.numbered : sectionStrings.he.named;
     } else if (data && !this.props.basetext) {
