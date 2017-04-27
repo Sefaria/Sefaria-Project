@@ -1414,6 +1414,7 @@ $(function() {
 				$("#sourceLayoutLanguageMenuItems").hide();
 				$("#resetText").hide();
 				$("#removeNikkudot").hide();
+				$(".resetDiagram").hide();
 				$("#splitSourceToSegment").hide();
 				$("#addSourceTitle").hide();
 				if (!$(target).hasClass('inlineAddButtonIcon')) {
@@ -1498,6 +1499,7 @@ $(function() {
 				$("#resetText").show();
 				$("#addSourceTitle").show();
 				$("#removeNikkudot").show();
+				$(".resetDiagram").show();
 				$("#splitSourceToSegment").show();
 				//$(this).hasClass("source") ? $("#connectionButton").css('display', 'inline-block') : $("#connectionButton").hide();
 
@@ -1789,30 +1791,15 @@ $(function() {
 
 	});
 
-	$(".diagramTools").on('click', '.resetDiagram', function() {
-
-		var curDiagram = $(this).closest(".sheetItem").find(".diagram");
-		var curText = $(this).closest(".sheetItem").find(".text");
+	$("#highlightMenu .optionsMenu").on('click', '.resetDiagram', function() {
+		var curDiagram = $(".activeSource").find(".diagram");
+		var curText = $(".activeSource").find(".text");
 		curDiagram.find(".en").html("<div class='diagramSegment'>"+curText.find(".en").html().stripHtml()+"</div>");
 		curDiagram.find(".he").html("<div class='diagramSegment'>"+curText.find(".he").html().stripHtml()+"</div>");
 		autoSave();
 
 
 	});
-
-
-	$(".diagramTools").on('click', '.diagramFilter', function() {
-
-		if ($(".diagramFilterTags").css('display') == "none") {
-			$(".diagramFilterTags").show();
-	}
-
-		else /*view mode */ {
-			$(".diagramFilterTags").hide();
-		}
-
-	});
-
 
 	$("#highlightMenu .optionsMenu").on('click', '.segmentedContinuousToggle', function() {
 
@@ -1871,7 +1858,7 @@ $(function() {
 		}
 	});
 
-	$(".diagramTagWindow").on('mousedown', '.save', function() {
+	$(".diagramTagWindow").on('click', '.save', function() {
 		$(".diagramTagWindow").hide();
 	});
 
@@ -1909,9 +1896,9 @@ $(function() {
 	}
 
   function resetSplitDiagramSegment() {
-		$(".splitDiagramSegment").off;
-		$(".splitDiagramSegment").on('click', 'div', function() {
-			splitSelectedText(window.getSelection(),$(this).parent().find('.tagName').text(),$(this).parent().find('.colorSwatch').css('background-color'));
+		$(".sheetDiagramTags").off;
+		$(".sheetDiagramTags").on('click', '.splitDiagramSegment', function() {
+			splitSelectedText(window.getSelection(),$(this).find('.tagName').text(),$(this).find('.colorSwatch').css('background-color'));
 		});
 	}
 	resetSplitDiagramSegment();
@@ -1940,9 +1927,15 @@ $(function() {
 
 				if (window.getSelection().anchorOffset !== window.getSelection().focusOffset) { //check if there's any selection
 					$("tagSelector").show();
+					console.log(e);
+					console.log(e.clientY);
+					console.log(e.clientX);
+
+					console.log(window.getSelection());
+
 					$(".diagramTagWindow").show().css({
-						"top": e.clientY,
-						"left": e.clientX
+						"top": e.pageY,
+						"left": e.pageX
 					});
 				}
 			});
@@ -2404,33 +2397,6 @@ function addSource(q, source, appendOrInsert) {
 	var newsource = "<li " + attributionData + "data-ref='" + enRef.replace(/'/g, "&apos;") + "'" + " data-heRef='" + heRef.replace(/'/g, "&apos;") + "'" + " data-node='" + node + "'>"
 		+"<div class='sourceNumber he'></div><div class='sourceNumber en'></div>"
 		+"<div class='customTitle'></div>"
-		+"<div class='diagramTools'>"
-			+"<div class='resetDiagram digramToolMenuItem'>Reset</div> "
-			+"<div class='diagramFilter digramToolMenuItem'>Filter"
-				+"<div class='diagramFilterTags'>"
-				+"</div>"
-			+"</div>"
-			+"<div class='diagramTagWindow'>"
-
-				+"<div class='tagSelector'>"
-					+"<div class='tagSelectorTitle'>Add Highlight</div>"
-					+"<div class='sheetDiagramTags'></div>"
-					+"<div class='createNewDiagramTag'>"
-						+"<div class='colorSwatch active' style='background-color: #004e5f'></div>"
-						+"<div class='colorSwatch' style='background-color: #5d956f'></div>"
-						+"<div class='colorSwatch' style='background-color: #9ab8cb'></div>"
-						+"<div class='colorSwatch' style='background-color: #cb6158'></div>"
-						+"<div class='colorSwatch' style='background-color: #c7a7b4'></div>"
-						+"<div class='colorSwatch' style='background-color: #ab4e66'></div>"
-						+"<div class='colorSwatch' style='background-color: #7f85a9'></div>"
-						+"<div class='colorSwatch' style='background-color: #ccb479'></div>"
-						+"<div class='colorSwatch' style='background-color: #5a99b7'></div>"
-						+"<div class='colorSwatch' style='background-color: #97b386'></div>"
-					+	"<div class='tagName' contenteditable='true'>Create New</div></div>"
-					+"<div class='save button'>Save</div>"
-				+"</div>"
-			+"</div>"
-		+"</div>"
 		+"<div class='he'>" + "<span class='title'>" +"<a class='he' href='" + refLink + "' target='_blank'><span class='ref'></span>" + heRef.replace(/\d+(\-\d+)?/g, "").replace(/([0-9][b|a]| ב| א):.+/,"$1") + " </a>" + "</span>" +"<div class='text'>" +"<div class='he'>" + (source && source.text ? source.text.he : "") + "</div>" +"</div>" + "<div class='diagram'><div class='he'></div></div>" + "</div>" + "<div class='en'>" +"<span class='title'>" +"<a class='en' href='" + refLink + "' target='_blank'><span class='ref'>" + enRef.replace(/([0-9][b|a]| ב| א):.+/,"$1") + "</span> </a>" +"</span>" +"<div class='text'>" +"<div class='en'>" + (source && source.text ? source.text.en : "") + "</div>" + "</div>" + "<div class='diagram'><div class='en'></div></div>" +"</div>" + "<div class='clear'></div>" + attributionLink + appendInlineAddButton() + "</li>";
 
 	if (appendOrInsert == "append") {

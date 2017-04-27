@@ -1977,11 +1977,11 @@ a.tagit-close {
     width:16px;
 }
 
-.source .diagram, .diagramTools, .diagramTagWindow, .addTagPanel, .diagramFilterTags {
+.source .diagram, .diagramTools, .diagramTagWindow, .addTagPanel {
 	display: none;
 }
 
-#sheet.highlightMode #sources .sheetItem .diagram, #sheet.highlightMode #sources .sheetItem .diagramTools {
+#sheet.highlightMode #sources .sheetItem .diagram, #sheet.highlightMode .diagramTools {
 	display: block;
 }
 
@@ -1995,7 +1995,7 @@ a.tagit-close {
 
 
 .diagramTagWindow {
-  	position: fixed;
+  	position: absolute;
 	z-index: 2;
 	width: 320px;
 	background-color: #f9f9f7;
@@ -2036,6 +2036,7 @@ a.tagit-close {
 	border: 1px solid #ccc;
 	padding: 5px 10px;
 	font-size: 16px;
+	cursor: pointer;
 }
 
 .splitDiagramSegment, .noSelect, .colorSelect div, .addTagPanel, .newTag {
@@ -2045,10 +2046,6 @@ a.tagit-close {
     -ms-user-select: none;
     user-select: none;
 
-}
-
-.digramToolMenuItem {
-	display: inline-block;
 }
 
 .colorSwatch {
