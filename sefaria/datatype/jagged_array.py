@@ -29,7 +29,6 @@ class JaggedArray(object):
     def array(self):
         return self._store
 
-
     def is_first(self, indexes1, indexes2):
         """
 
