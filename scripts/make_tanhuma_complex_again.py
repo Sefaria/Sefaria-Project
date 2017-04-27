@@ -165,6 +165,7 @@ if __name__ == "__main__":
     except InputError:
         pass
     migrate_to_complex_structure("Midrash Tanchuma", book.serialize(), mappings)
+
     #increase depth
     i = library.get_index("Midrash Tanchuma")
     nodes = i.nodes.children
