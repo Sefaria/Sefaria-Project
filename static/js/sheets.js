@@ -1842,7 +1842,7 @@ $(function() {
 			saveNewlyCreatedTag($(e.target).text(),$(e.target).siblings('.colorSwatch.active').css('background-color'));
 			$('.createNewDiagramTag .colorSwatch').removeClass('active');
 			$('.createNewDiagramTag .colorSwatch').css('display', '');
-			$('.createNewDiagramTag .colorSwatch').eq($('.splitDiagramSegment').length % 10).addClass('active');
+			$('.createNewDiagramTag .colorSwatch').eq($('.splitDiagramSegment').length % 8).addClass('active'); //select the next color in the list
 
 	});
 
@@ -3018,16 +3018,14 @@ function buildSheet(data){
 	if ("diagramTags" in data) {
 		for (var i = 0; i < data.diagramTags.length; i++) {
 			$(".sheetDiagramTags").append('<div class="splitDiagramSegment" data-tagname="'+data.diagramTags[i].name+'"><div class="colorSwatch active" style="background-color: '+data.diagramTags[i].color+'"></div>'
-						+"<div class='colorSwatch' style='background-color: #004e5f'></div>"
-						+"<div class='colorSwatch' style='background-color: #5d956f'></div>"
-						+"<div class='colorSwatch' style='background-color: #9ab8cb'></div>"
-						+"<div class='colorSwatch' style='background-color: #cb6158'></div>"
-						+"<div class='colorSwatch' style='background-color: #c7a7b4'></div>"
-						+"<div class='colorSwatch' style='background-color: #ab4e66'></div>"
-						+"<div class='colorSwatch' style='background-color: #7f85a9'></div>"
-						+"<div class='colorSwatch' style='background-color: #ccb479'></div>"
-						+"<div class='colorSwatch' style='background-color: #5a99b7'></div>"
-						+"<div class='colorSwatch' style='background-color: #97b386'></div>"
+						+"<div class='colorSwatch' style='background-color: #bd9eb6'></div>"
+						+"<div class='colorSwatch' style='background-color: #afcab8'></div>"
+						+"<div class='colorSwatch' style='background-color: #e5dabd'></div>"
+						+"<div class='colorSwatch' style='background-color: #bd9eb6'></div>"
+						+"<div class='colorSwatch' style='background-color: #bd9796'></div>"
+						+"<div class='colorSwatch' style='background-color: #a4b7de'></div>"
+						+"<div class='colorSwatch' style='background-color: #e8dde5'></div>"
+						+"<div class='colorSwatch' style='background-color: #d2ddc9'></div>"
 				+'<div class="tagName">'+data.diagramTags[i].name+'</div><div class="editCheckToggle">✎</div></div>');
 			$(".diagramFilterTags").append('<input type="checkbox" name="diagramFilterTags" value="'+data.diagramTags[i].name+'" checked="checked"> <span style="background-color: '+data.diagramTags[i].color+'">'+data.diagramTags[i].name+'</span><br>');
 		}
