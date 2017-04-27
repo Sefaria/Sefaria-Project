@@ -1270,7 +1270,7 @@ var Header = React.createClass({
     updateSearchFilter:          React.PropTypes.func,
     registerAvailableFilters:    React.PropTypes.func,
     setUnreadNotificationsCount: React.PropTypes.func,
-    handleInAppLinkClick: React.PropTypes.func,
+    handleInAppLinkClick:        React.PropTypes.func,
     headerMesssage:              React.PropTypes.string,
     panelsOpen:                  React.PropTypes.number,
     analyticsInitialized:        React.PropTypes.bool,
@@ -2588,7 +2588,7 @@ var ReaderNavigationMenu = React.createClass({
         "Kabbalah",
         "Liturgy",
         "Philosophy",
-        "Tosefta",
+        "Tanaitic",
         "Chasidut",
         "Musar",
         "Responsa",
@@ -4173,7 +4173,7 @@ var CategoryAttribution = React.createClass({
       var attribution = Sefaria.categoryAttribution(this.props.categories);
       return attribution ?
         <div className="categoryAttribution">
-          <a href={attribution.link}>
+          <a href={attribution.link} className="outOfAppLink">
             <span className="en">{attribution.english}</span>
             <span className="he">{attribution.hebrew}</span>
           </a>
@@ -6287,7 +6287,7 @@ var TextRange = React.createClass({
       var ref              = this.props.withContext ? data.sectionRef : data.ref;
       var sectionStrings   = Sefaria.sectionString(ref);
       var oref             = Sefaria.ref(ref);
-      var useShortString   = oref && Sefaria.util.inArray(oref.primary_category, ["Tanakh", "Mishnah", "Talmud", "Tosefta", "Commentary"]) !== -1;
+      var useShortString   = oref && Sefaria.util.inArray(oref.primary_category, ["Tanakh", "Mishnah", "Talmud", "Tanaitic", "Commentary"]) !== -1;
       var title            = useShortString ? sectionStrings.en.numbered : sectionStrings.en.named;
       var heTitle          = useShortString ? sectionStrings.he.numbered : sectionStrings.he.named;   
     } else if (data && !this.props.basetext) {  
