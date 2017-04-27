@@ -298,7 +298,7 @@ Sefaria = extend(Sefaria, {
     this._refmap[refkey] = key;
 
     var levelsUp = data.textDepth - data.sections.length;
-    if (levelsUp == 1 && !data.isSpanning) { // Section level ref
+    if (levelsUp == 1 && !data.isSpanning /*&& !data.updateFromAPI*/) { // Section level ref
       this._splitTextSection(data, settings);
     } else if (settings.context && levelsUp <= 1) {  // Do we really want this to run on spanning section refs?
       // Save a copy of the data at context level
@@ -365,7 +365,7 @@ Sefaria = extend(Sefaria, {
 
       context_settings.context = 1;
       var contextKey = this._textKey(ref, context_settings);
-      this._texts[contextKey] = {buildable: "Add Context", ref: ref, sectionRef: sectionRef};
+      this._texts[contextKey] = {buildable: "Add Context", ref: ref, sectionRef: sectionRef, updateFromAPI:data.updateFromAPI};
 
       var refkey           = this._refKey(ref, context_settings);
       this._refmap[refkey] = contextKey;
