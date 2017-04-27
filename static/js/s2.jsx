@@ -2011,6 +2011,7 @@ var ReaderPanel = React.createClass({
           multiPanel={this.props.multiPanel}
           mode={this.state.mode}
           settings={Sefaria.util.clone(this.state.settings)}
+          interfaceLang={this.props.interfaceLang}
           setOption={this.setOption}
           showBaseText={this.showBaseText} 
           updateTextColumn={this.updateTextColumn}
@@ -5680,6 +5681,7 @@ var TextColumn = React.createClass({
     multiPanel:            React.PropTypes.bool,
     mode:                  React.PropTypes.string,
     settings:              React.PropTypes.object,
+    interfaceLang:         React.PropTypes.string,
     showBaseText:          React.PropTypes.func,
     updateTextColumn:      React.PropTypes.func,
     onSegmentClick:        React.PropTypes.func,
@@ -5698,6 +5700,7 @@ var TextColumn = React.createClass({
     node.addEventListener("scroll", this.handleScroll);
     this.setScrollPosition();
     this.adjustInfiniteScroll();
+    this.setPaddingForScrollbar();
   },
   componentWillUnmount: function() {
     var node = ReactDOM.findDOMNode(this);
@@ -5942,6 +5945,17 @@ var TextColumn = React.createClass({
         $container.scrollTo($highlighted, 0, {offset: -offset});
       }
     }.bind(this));
+  },
+  setPaddingForScrollbar: function() {
+    // Scrollbars take up spacing, causing the centering of TextColumn to be slightly off center
+    // compared to the header. This functions sets appropriate padding to compensate.
+    var width      = Sefaria.util.getScrollbarWidth();
+    var $container = $(ReactDOM.findDOMNode(this));
+    if (this.props.interfaceLang == "hebrew") {
+      $container.css({paddingRight: width, paddingLeft: 0});
+    } else {
+      $container.css({paddingRight: 0, paddingLeft: width});
+    }
   },
   render: function() {
     var classes = classNames({textColumn: 1, connectionsOpen: this.props.mode === "TextAndConnections"});
