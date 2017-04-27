@@ -1270,7 +1270,7 @@ var Header = React.createClass({
     updateSearchFilter:          React.PropTypes.func,
     registerAvailableFilters:    React.PropTypes.func,
     setUnreadNotificationsCount: React.PropTypes.func,
-    handleInAppLinkClick: React.PropTypes.func,
+    handleInAppLinkClick:        React.PropTypes.func,
     headerMesssage:              React.PropTypes.string,
     panelsOpen:                  React.PropTypes.number,
     analyticsInitialized:        React.PropTypes.bool,
@@ -4173,7 +4173,7 @@ var CategoryAttribution = React.createClass({
       var attribution = Sefaria.categoryAttribution(this.props.categories);
       return attribution ?
         <div className="categoryAttribution">
-          <a href={attribution.link}>
+          <a href={attribution.link} className="outOfAppLink">
             <span className="en">{attribution.english}</span>
             <span className="he">{attribution.hebrew}</span>
           </a>

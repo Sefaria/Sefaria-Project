@@ -5111,7 +5111,7 @@ var CategoryAttribution = React.createClass({
       { className: 'categoryAttribution' },
       React.createElement(
         'a',
-        { href: attribution.link },
+        { href: attribution.link, className: 'outOfAppLink' },
         React.createElement(
           'span',
           { className: 'en' },
