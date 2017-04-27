@@ -3637,8 +3637,8 @@ var SchemaNode = React.createClass({
           return (
             <a className="schema-node-toc linked" href={Sefaria.normRef(path)} data-ref={path} key={i}>
               <span className="schema-node-title">
-                <span className="he">{node.heTitle} <i className="schema-node-control fa fa-angle-left"></i></span>
-                <span className="en">{node.title} <i className="schema-node-control fa fa-angle-right"></i></span>
+                <span className="he">{node.heTitle}</span>
+                <span className="en">{node.title}</span>
               </span>
             </a>);
         } else {

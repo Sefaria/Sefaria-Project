@@ -4325,16 +4325,12 @@ var SchemaNode = React.createClass({
               React.createElement(
                 'span',
                 { className: 'he' },
-                node.heTitle,
-                ' ',
-                React.createElement('i', { className: 'schema-node-control fa fa-angle-left' })
+                node.heTitle
               ),
               React.createElement(
                 'span',
                 { className: 'en' },
-                node.title,
-                ' ',
-                React.createElement('i', { className: 'schema-node-control fa fa-angle-right' })
+                node.title
               )
             )
           );

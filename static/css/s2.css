@@ -1277,6 +1277,9 @@ a.resourcesLink {
 .readerTextTableOfContents .schema-node-toc {
   margin: 6px 20px;
 }
+.readerTextTableOfContents .content .schema-node-toc.linked:hover .schema-node-title {
+  text-decoration: underline;
+}
 .readerTextTableOfContents .altStruct .refLink {
   width: 49%;
   margin: 3px;
