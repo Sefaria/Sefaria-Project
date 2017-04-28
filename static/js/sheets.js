@@ -1896,12 +1896,10 @@ $(function() {
 	}
 
   function resetSplitDiagramSegment() {
-		$(".sheetDiagramTags").off;
-		$(".sheetDiagramTags").on('click', '.splitDiagramSegment', function() {
+		$(".sheetDiagramTags").off().on('click', '.splitDiagramSegment', function() {
 			splitSelectedText(window.getSelection(),$(this).find('.tagName').text(),$(this).find('.colorSwatch').css('background-color'));
 		});
-		$(".splitDiagramSegment").off;
-		$(".splitDiagramSegment").on('click', '.editCheckToggle', function(e) {
+		$(".splitDiagramSegment").off().on('click', '.editCheckToggle', function(e) {
 			e.stopPropagation();
 			sjs.selection = saveSelection();
 			var curTag = $(this).siblings('.tagName');
@@ -1909,7 +1907,7 @@ $(function() {
 			curTag.attr("contenteditable", "true");
 			curTag.focus();
 		});
-		$(".splitDiagramSegment").on('focusout', '.tagName', function(e) {
+		$(".splitDiagramSegment").off().on('focusout', '.tagName', function(e) {
 			$(this).attr("contenteditable", "false");
 			$(".diagramSegment[data-tag='" + curTagName + "']").attr('data-tag', $(this).text() );
 			restoreSelection(sjs.selection);
