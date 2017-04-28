@@ -1819,7 +1819,7 @@ $(function() {
 
 	function saveNewlyCreatedTag(newTagName,newTagColor) {
 		if (newTagName !== "Create New" && newTagName !== "") {
-			$(".sheetDiagramTags").append('<div class="splitDiagramSegment" data-tagname="' + newTagName + '"><div class="colorSwatch active" style="background-color: ' + newTagColor + '"></div><div class="tagName">' + newTagName + '</div><div class="editCheckToggle"></div></div>');
+			$(".sheetDiagramTags").append('<div class="splitDiagramSegment" data-tagname="' + newTagName + '"><div class="colorSwatch active" style="background-color: ' + newTagColor + '"></div><div class="tagName">' + newTagName + '</div><div class="editCheckToggle">✎</div></div>');
 			$(".diagramFilterTags").append('<input type="checkbox" name="diagramFilterTags" value="' + newTagName + '" checked="checked"> <span style="background-color: ' + newTagColor + '">' + newTagName + '</span><br>');
 			resetSplitDiagramSegment();
 			resetDiagramFilterTags();
@@ -1900,8 +1900,49 @@ $(function() {
 		$(".sheetDiagramTags").on('click', '.splitDiagramSegment', function() {
 			splitSelectedText(window.getSelection(),$(this).find('.tagName').text(),$(this).find('.colorSwatch').css('background-color'));
 		});
+		$(".splitDiagramSegment").off;
+		$(".splitDiagramSegment").on('click', '.editCheckToggle', function(e) {
+			e.stopPropagation();
+			sjs.selection = saveSelection();
+			var curTag = $(this).siblings('.tagName');
+			curTagName = curTag.text();
+			curTag.attr("contenteditable", "true");
+			curTag.focus();
+		});
+		$(".splitDiagramSegment").on('focusout', '.tagName', function(e) {
+			$(this).attr("contenteditable", "false");
+			$(".diagramSegment[data-tag='" + curTagName + "']").attr('data-tag', $(this).text() );
+			restoreSelection(sjs.selection);
+			autoSave();
+		});
 	}
 	resetSplitDiagramSegment();
+
+	 function saveSelection() {
+			if (window.getSelection) {
+					sel = window.getSelection();
+					if (sel.getRangeAt && sel.rangeCount) {
+							return sel.getRangeAt(0);
+					}
+			} else if (document.selection && document.selection.createRange) {
+					return document.selection.createRange();
+			}
+			return null;
+	 }
+
+	function restoreSelection(range) {
+			if (range) {
+					if (window.getSelection) {
+							sel = window.getSelection();
+							sel.removeAllRanges();
+							sel.addRange(range);
+					} else if (document.selection && range.select) {
+							range.select();
+					}
+			}
+	}
+
+
 
   function resetDiagramInteractivity() {
 		if (sjs.is_owner||sjs.can_edit) {
@@ -1927,12 +1968,6 @@ $(function() {
 
 				if (window.getSelection().anchorOffset !== window.getSelection().focusOffset) { //check if there's any selection
 					$("tagSelector").show();
-					console.log(e);
-					console.log(e.clientY);
-					console.log(e.clientX);
-
-					console.log(window.getSelection());
-
 					$(".diagramTagWindow").show().css({
 						"top": e.pageY,
 						"left": e.pageX
