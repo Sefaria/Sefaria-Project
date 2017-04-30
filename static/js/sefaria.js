@@ -983,6 +983,7 @@ Sefaria = extend(Sefaria, {
         var curTocElem = toc[i];
         if (curTocElem.title) { //this is a book
             if(curTocElem.dependence == 'Commentary'){
+                //if((title && curTocElem.base_text_titles && curTocElem.base_text_titles.filter(function(btitle){ return btitle["title"] == title}).length == 1)
                 if((title && curTocElem.base_text_titles && Sefaria.util.inArray(title, curTocElem.base_text_titles) != -1) ||
                     (title == null)){
                     results.push(curTocElem);
@@ -1015,7 +1016,8 @@ Sefaria = extend(Sefaria, {
       {
         categories: ["Talmud", "Bavli"],
         english: "The William Davidson Talmud",
-        hebrew: "תלמוד מהדורת ויליאם דוידסון"
+        hebrew: "תלמוד מהדורת ויליאם דוידסון",
+        link: "/william-davidson-talmud"
       }
     ];
     var attribution = null;
@@ -1234,19 +1236,48 @@ Sefaria = extend(Sefaria, {
     }
   },
   _groups: {},
-  groups: function(group, callback) {
+  groups: function(group, sortBy, callback) {
     // Returns data for an individual group
     var group = this._groups[group];
     if (group) {
+      this._sortSheets(group, sortBy);
       if (callback) { callback(group); }
     } else if (callback) {
       var url = "/api/groups/" + group;
        Sefaria._api(url, function(data) {
           this._groups[group] = data;
-           if (callback) { callback(data); }
+          this._sortSheets(data, sortBy);
+          callback(data);
         }.bind(this));
       }
     return group;
+  },
+  _sortSheets: function(group, sortBy) {
+    // Taks an object representing a group and sorts its sheets in place according to `sortBy`.
+    // Also honors ordering of any sheets in `group.pinned_sheets`
+    if (!group.sheets) { return; }
+
+    var sorters = {
+      date: function(a, b) {
+        return Date.parse(b.modified) - Date.parse(a.modified);
+      },
+      alphabetical: function(a, b) {
+        return a.title.stripHtml().trim() > b.title.stripHtml().trim() ? 1 : -1;
+      },
+      views: function(a, b) {
+        return b.views - a.views;
+      }
+    };
+    var sortPinned = function(a, b) {
+      var ai = group.pinnedSheets.indexOf(a.id);
+      var bi = group.pinnedSheets.indexOf(b.id);
+      if (ai == -1 && bi == -1) { return 0; }
+      if (ai == -1) { return 1; }
+      if (bi == -1) { return -1; }
+      return  ai < bi ? -1 : 1;
+    };
+    group.sheets.sort(sorters[sortBy]);
+    group.sheets.sort(sortPinned);
   },
   _groupsList: null,
   groupsList: function(callback) {
@@ -2132,6 +2163,21 @@ Sefaria.util = {
                return container.nodeType === 3 ? container.parentNode : container;
             }   
         }
+    },
+    _scrollbarWidth: null,
+    getScrollbarWidth: function() {
+      // Returns the size of the browser scrollbars in pixels
+      // May be 0 for browser that hide scrollbars when not in use
+      if (Sefaria.util._scrollbarWidth !== null) {
+        return Sefaria.util._scrollbarWidth;
+      }
+      $("body").append(
+        '<div id="scrollbarTestA" style="display:none;overflow:scroll">' +
+          '<div id="scrollbarTestB"></div>' +
+        '</div>');
+        Sefaria.util._scrollbarWidth = $("#scrollbarTestA").width() - $("#scrollbarTestB").width();
+        $("#scrollbarTestA").remove();
+        return Sefaria.util._scrollbarWidth;
     }
 };
 
@@ -2193,7 +2239,11 @@ Sefaria.hebrew = {
     500: "\u05EA\u05E7",
     600: "\u05EA\u05E8",
     700: "\u05EA\u05E9",
-    800: "\u05EA\u05EA"
+    800: "\u05EA\u05EA",
+    900: "\u05EA\u05EA\u05E7",
+    1000: "\u05EA\u05EA\u05E8",
+    1100: "\u05EA\u05EA\u05E9",
+    1200: "\u05EA\u05EA\u05EA"
   },
   decodeHebrewNumeral: function(h) {
     // Takes a string representing a Hebrew numeral and returns it integer value. 
@@ -2203,7 +2253,7 @@ Sefaria.hebrew = {
       return values[h];
     } 
     
-    var n = 0
+    var n = 0;
     for (c in h) {
       n += values[h[c]];
     }
@@ -2212,31 +2262,31 @@ Sefaria.hebrew = {
   },
   encodeHebrewNumeral: function(n) {
     // Takes an integer and returns a string encoding it as a Hebrew numeral. 
-    if (n >= 900) {
+    if (n >= 1300) {
       return n;
     }
 
     var values = Sefaria.hebrew.hebrewNumerals;
-
-    if (n === 15 || n === 16) {
-      return values[n];
-    }
     
     var heb = "";
     if (n >= 100) { 
       var hundreds = n - (n % 100);
       heb += values[hundreds];
       n -= hundreds;
-    } 
-    if (n >= 10) {
-      var tens = n - (n % 10);
-      heb += values[tens];
-      n -= tens;
     }
-    
-    if (n > 0) {
-      heb += values[n]; 
-    } 
+    if (n === 15 || n === 16) {
+      // Catch 15/16 no matter what the hundreds column says
+      heb += values[n];
+    } else {
+      if (n >= 10) {
+        var tens = n - (n % 10);
+        heb += values[tens];
+        n -= tens;
+      }
+      if (n > 0) {
+        heb += values[n];
+      }
+    }
     
     return heb;
   },
@@ -2427,7 +2477,7 @@ Sefaria.palette.categoryColors = {
   "Kabbalah":           Sefaria.palette.colors.purple,
   "Philosophy":         Sefaria.palette.colors.lavender,
   "Liturgy":            Sefaria.palette.colors.darkpink,
-  "Tosefta":            Sefaria.palette.colors.teal,
+  "Tanaitic":           Sefaria.palette.colors.teal,
   "Parshanut":          Sefaria.palette.colors.paleblue,
   "Chasidut":           Sefaria.palette.colors.lightgreen,
   "Musar":              Sefaria.palette.colors.raspberry,

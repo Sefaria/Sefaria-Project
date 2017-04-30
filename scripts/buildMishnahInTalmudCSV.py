@@ -2,7 +2,7 @@ from sefaria.model import *
 from sefaria.model.schema import AddressTalmud
 import csv
 
-ls = LinkSet({"type":'Mishnah in Talmud'})
+ls = LinkSet({"type":'mishnah in talmud'})
 ds = []
 for l in ls:
     talref, mref = [Ref(r) for r in l.refs]

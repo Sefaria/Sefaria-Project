@@ -4,7 +4,7 @@ sjs.flags = {
 		ckfocus: false,
 	 };
 
-sjs.can_save = (sjs.can_edit || sjs.can_add);
+sjs.can_save = (sjs.can_edit || sjs.can_add || sjs.can_publish);
 
 sjs.current = sjs.current || {
 	options: {
@@ -555,7 +555,7 @@ $(function() {
 		var group = $(this).attr("data-group");
 		if (group != "None") {
 			sjs.track.sheets("Share with Group", group);
-			var groupUrl = group.replace(/ /g, "_");
+			var groupUrl = group.replace(/ /g, "-");
 			$("#groupLogo").attr("src", $(this).attr("data-image")).show()
 				.closest("a").attr("href", "/groups/" + groupUrl );
 			$("#sheetHeader").show();
@@ -1652,7 +1652,7 @@ $(function() {
 	});
 
 	function changeSharing() {
-			if ($("#sourceSheetGroupSelect").val()=="None"||($("#sourceSheetGroupSelect").val() == null)) {
+			if ($("#sourceSheetGroupSelect").val() == "None" || ($("#sourceSheetGroupSelect").val() == null)) {
 
 				switch ($("#sourceSheetShareSelect").val()) {
 
@@ -1730,22 +1730,29 @@ $(function() {
 	}
 
 	$("#sourceSheetShareSelect").change(function() {
-			changeSharing();
+		changeSharing();
 	});
 
 	$("#sourceSheetGroupSelect").change(function() {
-			changeSharing();
-			if ($(this).val()!="None") {
-				var groupUrl = $(this).val().replace(/ /g, "_");
-				$("#groupLogo").attr("src", $("#sourceSheetGroupSelect option:selected").attr("data-image")).show()
-					.closest("a").attr("href", "/groups/" + groupUrl);
-				$("#sheetHeader").show();
-				$(".groupName").text($(this).val());
+		changeSharing();
+		if ($(this).val()!="None") {
+			var $el = $("#sourceSheetGroupSelect option:selected");
+			var groupUrl = $(this).val().replace(/ /g, "-");
+			$("#groupLogo").attr("src", $el.attr("data-image")).show()
+				.closest("a").attr("href", "/groups/" + groupUrl);
+			$("#sheetHeader").show();
+			$(".groupName").text($(this).val());
+			if (parseInt($el.attr("data-can-publish"))) {
+				$("#sourceSheetsAccessOptions").show();
+			} else {
+				$("#sourceSheetsAccessOptions").hide();
 			}
-			else {
-				$("#sheetHeader").hide();
-				$(".groupName").text("your group");
-			}
+		}
+		else {
+			$("#sheetHeader").hide();
+			$(".groupName").text("your group");
+			$("#sourceSheetsAccessOptions").show();
+		}
 	});
 
 
@@ -1755,9 +1762,6 @@ $(function() {
 
 		autoSave();
 		sjs.alert.flash("Sharing settings saved.")
-
-
-
 	});
 
 
@@ -2377,8 +2381,6 @@ function readSheet() {
 		sheet.promptedToPublish = sjs.current.promptedToPublish || false;
 	}
 
-
-
 	sheet.title    = $("#title").html();
 	sheet.sources  = readSources($("#sources"));
 	sheet.options  = {};
@@ -2390,10 +2392,8 @@ function readSheet() {
 		sheet.attribution = $("#author").html();
 	}
 
-
 	if (sjs.assignment_id) sheet.assignment_id = sjs.assignment_id;
 	if (sjs.assigner_id) sheet.assigner_id = sjs.assigner_id;
-
 
 	if (sjs.can_add) {
 		// Adders can't change saved options
@@ -2410,7 +2410,7 @@ function readSheet() {
 		sheet.options.divineNames   = $(".divineNamesOption .fa-check").not(".hidden").parent().attr("id");
 	}
 
-	if (sjs.is_owner) {
+	if (sjs.is_owner || sjs.can_publish) {
 		switch ($("#sharingType").data("sharing") || $("#sharingModal input[type='radio'][name='sharingOptions']:checked").val() ) {
 
 			case 'private':
@@ -2783,13 +2783,27 @@ function buildSheet(data){
 		$(".groupSharing").show();
 		$(".groupName").text(data.group);
 		$(".individualSharing").hide();
-		var groupUrl = data.group.replace(/ /g, "_");
-		var groupImage = $(".groupOption[data-group='"+ data.group + "']").attr("data-image"); 
-		$("#groupLogo").attr("src", groupImage).show();
 		$("#sourceSheetGroupSelect").val(data.group);
+		var groupUrl = data.group.replace(/ /g, "-");
+		var $el = $("#sourceSheetGroupSelect option:selected");
+		var groupImage = $el.attr("data-image"); 
+
+		$("#groupLogo").attr("src", groupImage).show();
+		if (parseInt($el.attr("data-can-publish")) || sjs.can_publish) {
+			$("#sourceSheetsAccessOptions").show();
+		} else {
+			$("#sourceSheetsAccessOptions").hide();
+		}
 	} else {
 		$(".groupSharing").hide();
+		$("#sourceSheetsAccessOptions").show();
 		$(".individualSharing").show();
+	}
+
+	if (sjs.is_owner) {
+		$("#sourceSheetGroupOptions").show();
+	} else {		
+		$("#sourceSheetGroupOptions").hide();
 	}
 
 
