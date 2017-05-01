@@ -1965,6 +1965,8 @@ $(function() {
 				}
 
 				if (window.getSelection().anchorOffset !== window.getSelection().focusOffset) { //check if there's any selection
+					$('.createNewDiagramTag .colorSwatch').removeClass('active');
+					$('.createNewDiagramTag .colorSwatch').eq($('.splitDiagramSegment').length % 8).addClass('active'); //select the next color in the list
 					$("tagSelector").show();
 					$(".diagramTagWindow").show().css({
 						"top": e.pageY,
