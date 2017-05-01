@@ -692,6 +692,9 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
             toc_contents_dict["heCollectiveTitle"] = hebrew_term(self.collective_title)
         if hasattr(self, 'base_text_titles'):
             toc_contents_dict["base_text_titles"] = self.base_text_titles
+            if "collectiveTitle" not in toc_contents_dict:
+                toc_contents_dict["collectiveTitle"] = self.title
+                toc_contents_dict["heCollectiveTitle"] = self.get_title("he")
         if hasattr(self, 'base_text_mapping'):
             toc_contents_dict["base_text_mapping"] = self.base_text_mapping
 
