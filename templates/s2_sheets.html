@@ -230,9 +230,9 @@
         <div class="sheetsMenuBarItem" id="highlightMenu">Highlight Tools
 			<div class="optionsMenu">
                 <div class="optionItem segmentedContinuousToggle">Continuous</div>
-                <div class='optionItem resetDiagram'>Reset</div>
-
-
+                {% if can_edit or can_add %}
+                    <div class='optionItem resetDiagram'>Reset</div>
+                {% endif %}
 				<div class="optionGroup">
 					<div class="optionTitle">Filter <i class='fa fa-caret-right'></i></div>
 					<div class="subMenu">
