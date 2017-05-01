@@ -76,6 +76,10 @@ venv/
 ##################
 /data/backup
 
+# Private Data Files # 
+##################
+/data/private
+
 # Logs #
 ########
 /logs

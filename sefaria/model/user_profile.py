@@ -191,6 +191,16 @@ class UserProfile(object):
 
 		return self
 
+	def join_invited_groups(self):
+		"""
+		Add this user as a member of any group for which there is an outstanding invitation.
+		"""
+		from sefaria.model import GroupSet
+		groups = GroupSet({"invitations.email": self.email})
+		for group in groups:
+			group.add_member(self.id)
+			group.remove_invitation(self.email)
+
 	def follows(self, uid):
 		"""Returns true if this user follows uid"""
 		return uid in self.followees.uids
@@ -229,7 +239,6 @@ class UserProfile(object):
 		recent = [tref for tref in self.recent if Ref(tref).index.title != oref.index.title]
 		self.recent = [tref] + recent
 		self.save()
-
 
 	def to_DICT(self):
 		"""Return a json serializble dictionary this profile"""

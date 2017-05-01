@@ -125,9 +125,7 @@ Sefaria = extend(Sefaria, {
   isRef: function(ref) {
     // Returns true if `ref` appears to be a ref relative to known books in Sefaria.books
     var q = Sefaria.parseRef(ref);
-    // We check for Index here in order not to allow a bare commentator name. Something like "Ramban" will return a book, but no Index.
-    // After commentary refactor, we can take off the index check, below.
-    return ("book" in q && q.book && "index" in q && q.index);
+    return ("book" in q && q.book);
   },
   normRefList: function(refs) {
     // Returns a single string ref corresponding the range expressed in the list of `refs`
@@ -286,7 +284,7 @@ Sefaria = extend(Sefaria, {
     }
   },
   _saveText: function(data, settings, skipWrap) {
-    if (!data || "error" in data) { 
+    if (!data || "error" in data) {
       return;
     }
     settings         = settings || {};
@@ -297,11 +295,10 @@ Sefaria = extend(Sefaria, {
     var refkey           = this._refKey(data.ref, settings);
     this._refmap[refkey] = key;
 
-    if (// data.ref == data.sectionRef // Not segment level ref
-        data.textDepth - data.sections.length == 1 // Section level ref
-        && !data.isSpanning) {
+    var levelsUp = data.textDepth - data.sections.length;
+    if (levelsUp == 1 && !data.isSpanning) { // Section level ref
       this._splitTextSection(data, settings);
-    } else if (settings.context) {
+    } else if (settings.context && levelsUp <= 1) {  // Do we really want this to run on spanning section refs?
       // Save a copy of the data at context level
       var newData        = Sefaria.util.clone(data);
       newData.ref        = data.sectionRef;
@@ -474,7 +471,7 @@ Sefaria = extend(Sefaria, {
           Sefaria._apiCallbacks[openApiCalls[i]].splice(0, 0, callback);
         }
       }
-      // If no open calls found, call thet texts API.
+      // If no open calls found, call the texts API.
       // Called with context:1 because this is our most common mode, maximize change of saving an API Call
       Sefaria.text(ref, {context: 1}, callback);
     } else {
@@ -986,6 +983,7 @@ Sefaria = extend(Sefaria, {
         var curTocElem = toc[i];
         if (curTocElem.title) { //this is a book
             if(curTocElem.dependence == 'Commentary'){
+                //if((title && curTocElem.base_text_titles && curTocElem.base_text_titles.filter(function(btitle){ return btitle["title"] == title}).length == 1)
                 if((title && curTocElem.base_text_titles && Sefaria.util.inArray(title, curTocElem.base_text_titles) != -1) ||
                     (title == null)){
                     results.push(curTocElem);
@@ -1018,7 +1016,8 @@ Sefaria = extend(Sefaria, {
       {
         categories: ["Talmud", "Bavli"],
         english: "The William Davidson Talmud",
-        hebrew: "תלמוד מהדורת ויליאם דוידסון"
+        hebrew: "תלמוד מהדורת ויליאם דוידסון",
+        link: "/william-davidson-talmud"
       }
     ];
     var attribution = null;
@@ -1237,19 +1236,48 @@ Sefaria = extend(Sefaria, {
     }
   },
   _groups: {},
-  groups: function(group, callback) {
+  groups: function(group, sortBy, callback) {
     // Returns data for an individual group
     var group = this._groups[group];
     if (group) {
+      this._sortSheets(group, sortBy);
       if (callback) { callback(group); }
     } else if (callback) {
       var url = "/api/groups/" + group;
        Sefaria._api(url, function(data) {
           this._groups[group] = data;
-           if (callback) { callback(data); }
+          this._sortSheets(data, sortBy);
+          callback(data);
         }.bind(this));
       }
     return group;
+  },
+  _sortSheets: function(group, sortBy) {
+    // Taks an object representing a group and sorts its sheets in place according to `sortBy`.
+    // Also honors ordering of any sheets in `group.pinned_sheets`
+    if (!group.sheets) { return; }
+
+    var sorters = {
+      date: function(a, b) {
+        return Date.parse(b.modified) - Date.parse(a.modified);
+      },
+      alphabetical: function(a, b) {
+        return a.title.stripHtml().trim() > b.title.stripHtml().trim() ? 1 : -1;
+      },
+      views: function(a, b) {
+        return b.views - a.views;
+      }
+    };
+    var sortPinned = function(a, b) {
+      var ai = group.pinnedSheets.indexOf(a.id);
+      var bi = group.pinnedSheets.indexOf(b.id);
+      if (ai == -1 && bi == -1) { return 0; }
+      if (ai == -1) { return 1; }
+      if (bi == -1) { return -1; }
+      return  ai < bi ? -1 : 1;
+    };
+    group.sheets.sort(sorters[sortBy]);
+    group.sheets.sort(sortPinned);
   },
   _groupsList: null,
   groupsList: function(callback) {
@@ -2196,7 +2224,11 @@ Sefaria.hebrew = {
     500: "\u05EA\u05E7",
     600: "\u05EA\u05E8",
     700: "\u05EA\u05E9",
-    800: "\u05EA\u05EA"
+    800: "\u05EA\u05EA",
+    900: "\u05EA\u05EA\u05E7",
+    1000: "\u05EA\u05EA\u05E8",
+    1100: "\u05EA\u05EA\u05E9",
+    1200: "\u05EA\u05EA\u05EA"
   },
   decodeHebrewNumeral: function(h) {
     // Takes a string representing a Hebrew numeral and returns it integer value. 
@@ -2206,7 +2238,7 @@ Sefaria.hebrew = {
       return values[h];
     } 
     
-    var n = 0
+    var n = 0;
     for (c in h) {
       n += values[h[c]];
     }
@@ -2215,31 +2247,31 @@ Sefaria.hebrew = {
   },
   encodeHebrewNumeral: function(n) {
     // Takes an integer and returns a string encoding it as a Hebrew numeral. 
-    if (n >= 900) {
+    if (n >= 1300) {
       return n;
     }
 
     var values = Sefaria.hebrew.hebrewNumerals;
-
-    if (n === 15 || n === 16) {
-      return values[n];
-    }
     
     var heb = "";
     if (n >= 100) { 
       var hundreds = n - (n % 100);
       heb += values[hundreds];
       n -= hundreds;
-    } 
-    if (n >= 10) {
-      var tens = n - (n % 10);
-      heb += values[tens];
-      n -= tens;
     }
-    
-    if (n > 0) {
-      heb += values[n]; 
-    } 
+    if (n === 15 || n === 16) {
+      // Catch 15/16 no matter what the hundreds column says
+      heb += values[n];
+    } else {
+      if (n >= 10) {
+        var tens = n - (n % 10);
+        heb += values[tens];
+        n -= tens;
+      }
+      if (n > 0) {
+        heb += values[n];
+      }
+    }
     
     return heb;
   },

@@ -90,11 +90,9 @@
         </div>
     </div>
 
-    {% if not request.flavour == "mobile" %}
-        {% block footer %}
-            {% include "elements/footer.html" with class=contentLang %}
-        {% endblock %}
-    {% endif %}
+    {% block footer %}
+        {% include "elements/footer.html" with class=contentLang %}
+    {% endblock %}
 
     {% include "js/jquery.html" %}
     <script src="/static/js/jquery.tooltipster.min.js"></script>

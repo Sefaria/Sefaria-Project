@@ -2,7 +2,7 @@
 
 from sefaria.model import *
 
-indices = library.get_indexes_in_category('Tanach', include_commentary=True, full_records=True)
+indices = library.get_indexes_in_category('Tanach', include_dependant=True, full_records=True)
 
 for idx in indices:
     pos = idx.categories.index('Tanach')

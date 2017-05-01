@@ -122,7 +122,7 @@ class AbstractMongoRecord(object):
 
         if self.track_pkeys and not is_new_obj and not override_dependencies:
             for key, old_value in self.pkeys_orig_values.items():
-                if old_value != getattr(self, key):
+                if old_value != getattr(self, key, None):
                     notify(self, "attributeChange", attr=key, old=old_value, new=getattr(self, key))
 
         if not override_dependencies:
@@ -141,7 +141,6 @@ class AbstractMongoRecord(object):
 
         notify(self, "delete")
         getattr(db, self.collection).remove({"_id": self._id})
-
 
     def delete_by_query(self, query):
         r = self.load(query)
@@ -399,7 +398,7 @@ def notify(inst, action, **kwargs):
     """
 
     actions_reqs = {
-        "attributeChange": ["attr", "old", "new"],
+        "attributeChange": ["attr"],
         "save": [],
         "delete": [],
         "create": []

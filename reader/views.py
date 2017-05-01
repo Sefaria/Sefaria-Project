@@ -580,12 +580,14 @@ def s2_texts(request):
     return s2_page(request, "navigation")
 
 
+@login_required
 def s2_account(request):
     return s2_page(request, "account")
 
 
+@login_required
 def s2_notifications(request):
-    # TODO Server Side rendering
+    # Notifications content is not rendered server side
     return s2_page(request, "notifications")
 
 
@@ -593,6 +595,7 @@ def s2_updates(request):
     return s2_page(request, "updates")
 
 
+@login_required
 def s2_modtools(request):
     return s2_page(request, "modtools")
 
@@ -1283,9 +1286,7 @@ def texts_api(request, tref, lang=None, version=None):
             return jsonResponse({"error": unicode(e), "ref": oref.normal(), "versionTitle": version, "lang": lang}, callback=request.GET.get("callback", None))
 
 
-        # Use a padded ref for calculating next and prev
-        # TODO: what if pad is false and the ref is of an entire book?
-        # Should next_section_ref return None in that case?
+        # TODO: what if pad is false and the ref is of an entire book? Should next_section_ref return None in that case?
         oref               = oref.padded_ref() if pad else oref
         try:
             text["next"]       = oref.next_section_ref().normal() if oref.next_section_ref() else None

@@ -257,9 +257,8 @@
 
 	{% if new_sheet %}
         <span id="save" class="button"><i class="fa fa-floppy-o"></i> Save</span>
-	{% endif %}
 
-    {% if is_owner and not new_sheet %}
+    {% elif is_owner or can_publish %}
         <span id="share" class="button"><img src="/static/img/share.png"> Share</span>
 	{% endif %}
 
@@ -543,7 +542,7 @@
         <input id="shareURL" value="{{ request.META.HTTP_HOST }}/sheets/{{sheet.id}}" readonly="readonly"/>
     </div>
 
-    <div class="content">
+    <div class="content" id="sourceSheetsAccessOptions">
         <div class="inputHeader"><i class='fa fa-unlock-alt'></i> Access</div>
         <select id="sourceSheetShareSelect">
           <option value="private">Private</option>
@@ -556,13 +555,19 @@
     </div>
 
    {% if owner_groups %}
-    <div class="content">
+    <div class="content" id="sourceSheetGroupOptions">
         <div class="inputHeader"><i class='fa fa-group'></i> Group</div>
         <select id="sourceSheetGroupSelect">
             <option value="None">None</option>
 
     		{% for group in owner_groups %}
-              <option value="{{ group.name }}" data-group="{{ group.name }}" data-image="{{ group.headerUrl|default:'' }}">{{ group.name }}</option>
+                <option 
+                    value="{{ group.name }}" 
+                    data-group="{{ group.name }}" 
+                    data-image="{{ group.headerUrl|default:'' }}"
+                    data-can-publish="{% if group.canPublish %}1{% else %}0{% endif %}">
+                    {{ group.name }}
+                </option>
 			{% endfor %}
         </select>
     </div>
@@ -687,9 +692,9 @@
 		<div class="btn ok">OK</div>
 	</div>
 	<div id="notPublished" style="display:none;">
-		<div class="header">No problem, this sheet is still private.</div>
+		<div class="header">No problem, this sheet is still not listed on Sefaria.</div>
 
-		<p>If you change your mind, you can always make a sheet public in the <span class="label">Options</span> menu under  <span class="label">Sharing</span>.</p>
+        <p>You can make your sheet public in the future from the <span class="label">Share</span> menu.</p>
 
 		<div class="btn ok">OK</div>
 	</div>
@@ -723,6 +728,7 @@ Footer depends on full bootstrap grid, which isn't loaded in sheets.html
 		assigner_id: {{ assigner_id|default:"null" }},
 		can_edit: {% if can_edit %}true{% else %}false{% endif %},
         can_add: {% if can_add %}true{% else %}false{% endif %},
+        can_publish: {% if can_publish %}true{% else %}false{% endif %}, // group dependent, only set for non owners
 		is_owner: {% if is_owner %}true{% else %}false{% endif %},
 		editing: {},
 		ref: {},
