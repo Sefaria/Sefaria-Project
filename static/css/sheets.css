@@ -2033,10 +2033,16 @@ a.tagit-close {
 	background-color: #fff;
 	margin: 10px 20px;
 	border-radius: 3px;
-	border: 1px solid #ccc;
+	border: 1px solid transparent;
+	color: #999;
 	padding: 5px 10px;
 	font-size: 16px;
 	cursor: pointer;
+}
+
+.splitDiagramSegment.active, .createNewDiagramTag.active {
+	border: 1px solid #ccc;
+	color: #333;
 }
 
 .splitDiagramSegment, .noSelect, .colorSelect div, .addTagPanel, .newTag {
@@ -2089,7 +2095,7 @@ a.tagit-close {
 
 .diagramSegment[data-tag]::before {
     content: attr(data-tag) ;
-    font-size: 12px;
+    font-size: 14px;
     position:absolute;
     z-index: 2;
     white-space:nowrap;

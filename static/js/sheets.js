@@ -1859,7 +1859,10 @@ $(function() {
 	});
 
 	$(".diagramTagWindow").on('click', '.save', function() {
+		restoreSelection(sjs.selection);
+		splitSelectedText(window.getSelection(),$(".splitDiagramSegment.active").find('.tagName').text(),$(".splitDiagramSegment.active").find('.colorSwatch').css('background-color'));
 		$(".diagramTagWindow").hide();
+		$(".splitDiagramSegment").removeClass('active');
 	});
 
 
@@ -1898,7 +1901,8 @@ $(function() {
   function resetSplitDiagramSegment() {
 		$(".sheetDiagramTags").off()
 		$(".sheetDiagramTags").on('click', '.splitDiagramSegment', function() {
-			splitSelectedText(window.getSelection(),$(this).find('.tagName').text(),$(this).find('.colorSwatch').css('background-color'));
+			$(".splitDiagramSegment").removeClass('active');
+			$(this).addClass('active');
 		});
 		$(".splitDiagramSegment").on('click', '.editCheckToggle', function(e) {
 			e.stopPropagation();
@@ -1952,20 +1956,22 @@ $(function() {
 				$(".diagramSegment").removeClass("noSelect");
 				$(".diagramSegment").not(this).addClass("noSelect");
 				$(".diagramTagWindow").hide();
-
 			});
 
 			$(".diagram .he, .diagram .en").on("mouseup", '.diagramSegment', function(e) {
-
 				if ($(e.target).attr('data-tag')) { //if clicking on a highlight that already is tagged, select whole highlight and open window.
 					var range = document.createRange();
 					range.selectNodeContents(e.currentTarget);
 					var sel = window.getSelection();
 					sel.removeAllRanges();
 					sel.addRange(range);
+					var curTagName = $(e.target).attr('data-tag');
+					$(".splitDiagramSegment[data-tagname='" + curTagName  + "']").addClass('active');
+
 				}
 
 				if (window.getSelection().anchorOffset !== window.getSelection().focusOffset) { //check if there's any selection
+					sjs.selection = saveSelection();
 					$('.createNewDiagramTag .colorSwatch').removeClass('active');
 					$('.createNewDiagramTag .colorSwatch').eq($('.splitDiagramSegment').length % 8).addClass('active'); //select the next color in the list
 					$("tagSelector").show();
