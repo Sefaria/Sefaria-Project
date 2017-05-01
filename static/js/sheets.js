@@ -1860,7 +1860,9 @@ $(function() {
 
 	$(".diagramTagWindow").on('click', '.save', function() {
 		restoreSelection(sjs.selection);
-		splitSelectedText(window.getSelection(),$(".splitDiagramSegment.active").find('.tagName').text(),$(".splitDiagramSegment.active").find('.colorSwatch').css('background-color'));
+		if ($(".splitDiagramSegment.active").length > 0) {
+			splitSelectedText(window.getSelection(), $(".splitDiagramSegment.active").find('.tagName').text(), $(".splitDiagramSegment.active").find('.colorSwatch').css('background-color'));
+		}
 		$(".diagramTagWindow").hide();
 		$(".splitDiagramSegment").removeClass('active');
 	});
