@@ -5,6 +5,9 @@ body {
 	overflow-x: visible;
 	font-family: "proxima-nova","Helvetica Neue","Helvetica",sans-serif;
 }
+*[contenteditable] {
+    -webkit-user-select: auto !important;
+}
 
 #right {
 	width: 510px;
