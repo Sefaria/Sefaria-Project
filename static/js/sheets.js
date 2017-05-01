@@ -1846,7 +1846,7 @@ $(function() {
 			saveNewlyCreatedTag($(e.target).text(),$(e.target).siblings('.colorSwatch.active').css('background-color'));
 			$('.createNewDiagramTag .colorSwatch').removeClass('active');
 			$('.createNewDiagramTag .colorSwatch').css('display', '');
-			$('.createNewDiagramTag .colorSwatch').eq($('.splitDiagramSegment').length % 8).addClass('active'); //select the next color in the list
+			$('.createNewDiagramTag .colorSwatch').eq($('.splitDiagramSegment').length % 7).addClass('active'); //select the next color in the list
 
 	});
 
@@ -1981,7 +1981,7 @@ $(function() {
 				if (window.getSelection().anchorOffset !== window.getSelection().focusOffset) { //check if there's any selection
 					sjs.selection = saveSelection();
 					$('.createNewDiagramTag .colorSwatch').removeClass('active');
-					$('.createNewDiagramTag .colorSwatch').eq($('.splitDiagramSegment').length % 8).addClass('active'); //select the next color in the list
+					$('.createNewDiagramTag .colorSwatch').eq($('.splitDiagramSegment').length % 7).addClass('active'); //select the next color in the list
 					$("tagSelector").show();
 					$(".diagramTagWindow").show().css({
 						"top": e.pageY,
@@ -3082,7 +3082,6 @@ function buildSheet(data){
 						+"<div class='colorSwatch' style='background-color: #bd9eb6'></div>"
 						+"<div class='colorSwatch' style='background-color: #afcab8'></div>"
 						+"<div class='colorSwatch' style='background-color: #e5dabd'></div>"
-						+"<div class='colorSwatch' style='background-color: #bd9eb6'></div>"
 						+"<div class='colorSwatch' style='background-color: #bd9796'></div>"
 						+"<div class='colorSwatch' style='background-color: #a4b7de'></div>"
 						+"<div class='colorSwatch' style='background-color: #e8dde5'></div>"
