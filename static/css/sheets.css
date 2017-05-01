@@ -2120,6 +2120,10 @@ a.tagit-close {
     opacity: 1;
     }
 
+.diagramFilterTags:hover {
+	background-color: #f2f2f2;
+	color: #000;
+}
 
 .colorSelect div {
 	width: 34px;
