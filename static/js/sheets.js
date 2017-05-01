@@ -1995,6 +1995,7 @@ $(function() {
 						"top": e.pageY,
 						"left": e.pageX
 					});
+ 					$(".createNewDiagramTag .tagName").attr("contenteditable", "true");
 				}
 			});
 		}
