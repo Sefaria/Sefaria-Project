@@ -1888,14 +1888,22 @@ $(function() {
 
 
 			var curDiagramSegment = $(selectedRange.focusNode);
-			if (curDiagramSegment.parent().hasClass('tagName')) return;
-			var textBefore = curDiagramSegment.text().slice(0, firstSelectedCharacter);
-			var selectedText = curDiagramSegment.text().slice(firstSelectedCharacter, lastSelectedCharacter);
-			var textAfter = curDiagramSegment.text().slice(lastSelectedCharacter);
 
-			$(curDiagramSegment.parent()).after("<div class='diagramSegment'>" + textAfter + "</div>");
-			$(curDiagramSegment.parent()).after("<div class='diagramSegment' style='background-color: " + tagBgColor + "' data-tag='" + diagramTag + "'>" + selectedText + "</div>");
-			$(curDiagramSegment.parent()).text(textBefore);
+			if ($(curDiagramSegment[0]).hasClass('diagramSegment')) { //firefox returns this if selection object already contains a tag
+				$(curDiagramSegment[0]).css('background-color', tagBgColor).attr('data-tag', diagramTag);
+			}
+
+			else {
+
+				if (curDiagramSegment.parent().hasClass('tagName')) return;
+				var textBefore = curDiagramSegment.text().slice(0, firstSelectedCharacter);
+				var selectedText = curDiagramSegment.text().slice(firstSelectedCharacter, lastSelectedCharacter);
+				var textAfter = curDiagramSegment.text().slice(lastSelectedCharacter);
+
+				$(curDiagramSegment.parent()).after("<div class='diagramSegment'>" + textAfter + "</div>");
+				$(curDiagramSegment.parent()).after("<div class='diagramSegment' style='background-color: " + tagBgColor + "' data-tag='" + diagramTag + "'>" + selectedText + "</div>");
+				$(curDiagramSegment.parent()).text(textBefore);
+			}
 			resetDiagramInteractivity();
 			$(".diagramTagWindow").hide();
 			$(".splitDiagramSegment").removeClass('active');
