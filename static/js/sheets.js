@@ -3076,6 +3076,7 @@ function buildSheet(data){
 	$("#sources").css("min-height","");
 
 	if ("diagramTags" in data) {
+		$(".sheetDiagramTags").empty();
 		for (var i = 0; i < data.diagramTags.length; i++) {
 			$(".sheetDiagramTags").append('<div class="splitDiagramSegment" data-tagname="'+data.diagramTags[i].name+'"><div class="colorSwatch active" style="background-color: '+data.diagramTags[i].color+'"></div>'
 						+"<div class='colorSwatch' style='background-color: #bd9eb6'></div>"
