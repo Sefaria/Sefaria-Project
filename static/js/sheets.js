@@ -1963,7 +1963,7 @@ $(function() {
 
 
   function resetDiagramInteractivity() {
-		if (sjs.is_owner||sjs.can_edit) {
+		if (sjs.is_owner) {
 
 			$(".diagram .he, .diagram .en").off();
 
