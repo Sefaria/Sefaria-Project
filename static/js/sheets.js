@@ -1892,6 +1892,7 @@ $(function() {
 			$(curDiagramSegment.parent()).text(textBefore);
 			resetDiagramInteractivity();
 			$(".diagramTagWindow").hide();
+			$(".splitDiagramSegment").removeClass('active');
 			$(".diagramSegment:empty").remove();
 
 			autoSave();
@@ -1956,6 +1957,7 @@ $(function() {
 				$(".diagramSegment").removeClass("noSelect");
 				$(".diagramSegment").not(this).addClass("noSelect");
 				$(".diagramTagWindow").hide();
+				$(".splitDiagramSegment").removeClass('active');
 			});
 
 			$(".diagram .he, .diagram .en").on("mouseup", '.diagramSegment', function(e) {
