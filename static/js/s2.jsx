@@ -1406,8 +1406,9 @@ var Header = React.createClass({
     }
 
     var index;
-    if (query in Sefaria.booksDict) {
-      index = Sefaria.index(query);
+    var normal_query = query.trim().toFirstCapital();
+    if (normal_query in Sefaria.booksDict) {
+      index = Sefaria.index(normal_query);
       if (!index && !skipNormalization) {
         Sefaria.normalizeTitle(query, function(title) {
           this.submitSearch(title, true, query)
@@ -1415,11 +1416,11 @@ var Header = React.createClass({
         return;
       }
     }
-    if (Sefaria.isRef(query)) {
+    if (Sefaria.isRef(normal_query)) {
       var action = index? "Search Box Navigation - Book": "Search Box Navigation - Citation";
       if (Sefaria.site) { Sefaria.site.track.event("Search", action, query); }
       this.clearSearchBox();
-      this.handleRefClick(query);  //todo: pass an onError function through here to the panel onError function which redirects to search
+      this.handleRefClick(normal_query);  //todo: pass an onError function through here to the panel onError function which redirects to search
     } else {
       if (Sefaria.site) { Sefaria.site.track.event("Search", "Search Box Search", query); }
       this.closeSearchAutocomplete();
