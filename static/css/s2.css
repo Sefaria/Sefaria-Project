@@ -1277,6 +1277,9 @@ a.resourcesLink {
 .readerTextTableOfContents .schema-node-toc {
   margin: 6px 20px;
 }
+.readerTextTableOfContents .content .schema-node-toc.linked:hover .schema-node-title {
+  text-decoration: underline;
+}
 .readerTextTableOfContents .altStruct .refLink {
   width: 49%;
   margin: 3px;
@@ -2261,18 +2264,18 @@ a.resourcesLink {
   -webkit-filter: invert(100%);
 }
 .readerPanel.english .segment .segmentNumber {
-  left: -49px;
+  left: -48px;
 }
 .readerPanel.hebrew .segment .segmentNumber,
 .readerPanel.bilingual .segment .segmentNumber {
-  right: -44px;
+  right: -46px;
 }
 .readerPanel.english .segment .linkCount {
-  right: -45px;
+  right: -46px;
 }
 .readerPanel.hebrew .segment .linkCount,
 .readerPanel.bilingual .segment .linkCount {
-  left: -50px;
+  left: -48px;
 }
 .readerPanel.heLeft.bilingual .segment .segmentNumber,
 .readerPanel.heRight.bilingual .segment .segmentNumber {
@@ -2337,7 +2340,6 @@ a.resourcesLink {
 .textRange .actionLinks .he {
   font-family: "Open Sans Hebrew", sans-serif;
 }
-
 /* Footnotes */
 .segment sup {
   margin-left: .2em;
@@ -2352,7 +2354,9 @@ a.resourcesLink {
   color: #888;
   font-style: normal;
 }
-
+.segment img {
+  max-width: 100%;
+}
 .connectionsPanelHeader{
   display: flex;
   justify-content: space-between;

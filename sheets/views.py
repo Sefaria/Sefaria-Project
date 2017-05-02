@@ -759,7 +759,7 @@ def sheet_list_api(request):
 				if not existing:
 					sheet["status"] = "unlisted"
 				else: 
-					if existing["group"] != sheet["group"]:
+					if existing.get("group", None) != sheet["group"]:
 						# Don't allow non Group publishers to add a new public sheet
 						sheet["status"] = "unlisted"
 					elif existing["status"] != sheet["status"]:
