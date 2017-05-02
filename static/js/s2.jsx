@@ -4168,21 +4168,22 @@ var ModeratorButtons = React.createClass({
 
 
 var CategoryAttribution = React.createClass({
-      propTypes: {
-      categories: React.PropTypes.array.isRequired
-    },
-      render: function() {
-      var attribution = Sefaria.categoryAttribution(this.props.categories);
-      return attribution ?
-        <div className="categoryAttribution">
-          <a href={attribution.link} className="outOfAppLink">
-            <span className="en">{attribution.english}</span>
-            <span className="he">{attribution.hebrew}</span>
-          </a>
-        </div> 
-        : null;
-    }
+  propTypes: {
+    categories: React.PropTypes.array.isRequired
+  },
+  render: function() {
+    var attribution = Sefaria.categoryAttribution(this.props.categories);
+    return attribution ?
+      <div className="categoryAttribution">
+        <a href={attribution.link} className="outOfAppLink">
+          <span className="en">{attribution.english}</span>
+          <span className="he">{attribution.hebrew}</span>
+        </a>
+      </div> 
+      : null;
+  }
 });
+
 
 var ReadMoreText = React.createClass({
   propTypes: {
@@ -5175,69 +5176,6 @@ var FileInput = React.createClass({
             </div>);
   }
 })
-
-// https://github.com/captivationsoftware/react-file-input
-var FileInputX = React.createClass({
-  getInitialState: function() {
-    return {
-      value: '',
-      styles: {
-        parent: {
-          position: 'relative'
-        },
-        file: {
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          opacity: 0,
-          width: '100%',
-          zIndex: 1
-        },
-        text: {
-          position: 'relative',
-          zIndex: -1
-        }
-      }
-    };
-  },
-
-  handleChange: function(e) {
-    this.setState({
-      value: e.target.value.split(/(\\|\/)/g).pop()
-    });
-    if (this.props.onChange) this.props.onChange(e);
-  },
-
-  render: function() {
-    return React.DOM.div({
-        style: this.state.styles.parent
-      },
-
-      // Actual file input
-      React.DOM.input({
-        type: 'file',
-        name: this.props.name,
-        className: this.props.className,
-        onChange: this.handleChange,
-        disabled: this.props.disabled,
-        accept: this.props.accept,
-        style: this.state.styles.file
-      }),
-
-      // Emulated file input
-      React.DOM.input({
-        type: 'text',
-        tabIndex: -1,
-        name: this.props.name + '_filename',
-        value: this.state.value,
-        className: this.props.className,
-        onChange: function() {},
-        placeholder: this.props.placeholder,
-        disabled: this.props.disabled,
-        style: this.state.styles.text
-      }));
-  }
-});
 
 
 var TagSheetsPage = React.createClass({
@@ -7487,6 +7425,7 @@ var SharePanel = React.createClass({
   }
 });
 
+
 var AddToSourceSheetWindow = React.createClass({
   propTypes: {
     srefs:        React.PropTypes.array,
@@ -7520,6 +7459,7 @@ var AddToSourceSheetWindow = React.createClass({
       </div>);
   }
 });
+
 
 var AddToSourceSheetPanel = React.createClass({
   // In the main app, the function `addToSourceSheet` is executed in the ReaderApp, 
