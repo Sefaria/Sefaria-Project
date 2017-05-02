@@ -1976,15 +1976,15 @@ a.tagit-close {
 	content: "X"
 }
 
-.moveSourceUp img, .moveSourceDown img, .diagramSource img  {
+.moveSourceUp img, .moveSourceDown img, .highlighterSource img  {
     width:16px;
 }
 
-.source .diagram, .diagramTools, .diagramTagWindow, .addTagPanel {
+.source .highlighter, .highlighterTools, .highlighterTagWindow, .addTagPanel {
 	display: none;
 }
 
-#sheet.highlightMode #sources .sheetItem .diagram, #sheet.highlightMode .diagramTools {
+#sheet.highlightMode #sources .sheetItem .highlighter, #sheet.highlightMode .highlighterTools {
 	display: block;
 }
 
@@ -1997,7 +1997,7 @@ a.tagit-close {
 }
 
 
-.diagramTagWindow {
+.highlighterTagWindow {
   	position: absolute;
 	z-index: 3;
 	width: 320px;
@@ -2008,14 +2008,14 @@ a.tagit-close {
 
 }
 
-.diagramTagWindow .save.button {
+.highlighterTagWindow .save.button {
     margin: 20px;
     width: 280px;
     text-align: center;
 
 }
 
-.diagramSegment {
+.highlighterSegment {
 	display: inline;
 }
 
@@ -2032,7 +2032,7 @@ a.tagit-close {
     margin: 20px;
 }
 
-.splitDiagramSegment, .createNewDiagramTag {
+.splitHighlighterSegment, .createNewHighlighterTag {
 	background-color: #fff;
 	margin: 10px 20px;
 	border-radius: 3px;
@@ -2043,12 +2043,12 @@ a.tagit-close {
 	cursor: pointer;
 }
 
-.splitDiagramSegment.active, .createNewDiagramTag.active {
+.splitHighlighterSegment.active, .createNewHighlighterTag.active {
 	border: 1px solid #ccc;
 	color: #333;
 }
 
-.splitDiagramSegment, .noSelect, .colorSelect div, .addTagPanel, .newTag {
+.splitHighlighterSegment, .noSelect, .colorSelect div, .addTagPanel, .newTag {
 	-webkit-touch-callout: none;
 	-webkit-user-select: none;
     -moz-user-select: none;
@@ -2070,7 +2070,7 @@ a.tagit-close {
 	display: inline-block;
 }
 
-.createNewDiagramTag {
+.createNewHighlighterTag {
 	font-style: italic;
 }
 
@@ -2096,7 +2096,7 @@ a.tagit-close {
 
 }
 
-.diagramSegment[data-tag]::before {
+.highlighterSegment[data-tag]::before {
     content: attr(data-tag) ;
     font-size: 14px;
     position:absolute;
@@ -2116,11 +2116,11 @@ a.tagit-close {
     }
 
 
-.diagramSegment[data-tag]:hover::before {
+.highlighterSegment[data-tag]:hover::before {
     opacity: 1;
     }
 
-.diagramFilterTags:hover {
+.highlighterFilterTags:hover {
 	background-color: #f2f2f2;
 	color: #000;
 }

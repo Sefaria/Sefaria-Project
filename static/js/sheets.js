@@ -1065,7 +1065,7 @@ $(function() {
 
 		$("#sources").sortable(sjs.sortOptions);
 		if ($("#sheet").hasClass("highlightMode")) {
-			$("#sources").sortable("disable"); //disable dragging while in diagram edit mode....
+			$("#sources").sortable("disable"); //disable dragging while in highlighter edit mode....
 		}
 	}
 
@@ -1414,7 +1414,7 @@ $(function() {
 				$("#sourceLayoutLanguageMenuItems").hide();
 				$("#resetText").hide();
 				$("#removeNikkudot").hide();
-				$(".resetDiagram").hide();
+				$(".resetHighlighter").hide();
 				$("#splitSourceToSegment").hide();
 				$("#addSourceTitle").hide();
 				if (!$(target).hasClass('inlineAddButtonIcon')) {
@@ -1499,7 +1499,7 @@ $(function() {
 				$("#resetText").show();
 				$("#addSourceTitle").show();
 				$("#removeNikkudot").show();
-				$(".resetDiagram").show();
+				$(".resetHighlighter").show();
 				$("#splitSourceToSegment").show();
 				//$(this).hasClass("source") ? $("#connectionButton").css('display', 'inline-block') : $("#connectionButton").hide();
 
@@ -1795,11 +1795,11 @@ $(function() {
 
 	});
 
-	$("#highlightMenu .optionsMenu").on('click', '.resetDiagram', function() {
-		var curDiagram = $(".activeSource").find(".diagram");
+	$("#highlightMenu .optionsMenu").on('click', '.resetHighlighter', function() {
+		var curHighlighter = $(".activeSource").find(".highlighter");
 		var curText = $(".activeSource").find(".text");
-		curDiagram.find(".en").html("<div class='diagramSegment'>"+curText.find(".en").html().stripHtml()+"</div>");
-		curDiagram.find(".he").html("<div class='diagramSegment'>"+curText.find(".he").html().stripHtml()+"</div>");
+		curHighlighter.find(".en").html("<div class='highlighterSegment'>"+curText.find(".en").html().stripHtml()+"</div>");
+		curHighlighter.find(".he").html("<div class='highlighterSegment'>"+curText.find(".he").html().stripHtml()+"</div>");
 		autoSave();
 
 
@@ -1809,12 +1809,12 @@ $(function() {
 
 		if ($(this).text() == "Continuous") {
 			$(this).text('Segmented');
-			$('.diagramSegment').css({'display': 'block'});
+			$('.highlighterSegment').css({'display': 'block'});
 	}
 
 		else /*view mode */ {
 			$(this).text('Continuous');
-			$('.diagramSegment').css({'display': 'inline'});
+			$('.highlighterSegment').css({'display': 'inline'});
 		}
 
 	});
@@ -1823,57 +1823,57 @@ $(function() {
 
 	function saveNewlyCreatedTag(newTagName,newTagColor) {
 		if (newTagName !== "Create New" && newTagName !== "") {
-			$(".sheetDiagramTags").append('<div class="splitDiagramSegment" data-tagname="' + newTagName + '"><div class="colorSwatch active" style="background-color: ' + newTagColor + '"></div><div class="tagName">' + newTagName + '</div><div class="editCheckToggle">✎</div></div>');
-			$(".diagramFilterTags").append('<input type="checkbox" name="diagramFilterTags" value="' + newTagName + '" checked="checked"> <span style="background-color: ' + newTagColor + '">' + newTagName + '</span><br>');
-			resetSplitDiagramSegment();
-			resetDiagramFilterTags();
+			$(".sheetHighlighterTags").append('<div class="splitHighlighterSegment" data-tagname="' + newTagName + '"><div class="colorSwatch active" style="background-color: ' + newTagColor + '"></div><div class="tagName">' + newTagName + '</div><div class="editCheckToggle">✎</div></div>');
+			$(".highlighterFilterTags").append('<input type="checkbox" name="highlighterFilterTags" value="' + newTagName + '" checked="checked"> <span style="background-color: ' + newTagColor + '">' + newTagName + '</span><br>');
+			resetSplitHighlighterSegment();
+			resetHighlighterFilterTags();
 			autoSave();
 		}
 
-		$(".createNewDiagramTag .tagName").text("Create New")
+		$(".createNewHighlighterTag .tagName").text("Create New")
 	}
 
 
-	$(".createNewDiagramTag .tagName").keydown(function(e){
+	$(".createNewHighlighterTag .tagName").keydown(function(e){
 		if (e.which == 13) {
       e.preventDefault();
-			$(".createNewDiagramTag .tagName").blur();
+			$(".createNewHighlighterTag .tagName").blur();
 		}
 	});
 
-	$(".createNewDiagramTag .tagName").focusout(function(e){
+	$(".createNewHighlighterTag .tagName").focusout(function(e){
       e.preventDefault();
 			saveNewlyCreatedTag($(e.target).text(),$(e.target).siblings('.colorSwatch.active').css('background-color'));
-			$('.createNewDiagramTag .colorSwatch').removeClass('active');
-			$('.createNewDiagramTag .colorSwatch').css('display', '');
-			$('.createNewDiagramTag .colorSwatch').eq($('.splitDiagramSegment').length % 7).addClass('active'); //select the next color in the list
+			$('.createNewHighlighterTag .colorSwatch').removeClass('active');
+			$('.createNewHighlighterTag .colorSwatch').css('display', '');
+			$('.createNewHighlighterTag .colorSwatch').eq($('.splitHighlighterSegment').length % 7).addClass('active'); //select the next color in the list
 
 	});
 
-	$(".createNewDiagramTag").on('click', '.colorSwatch', function() {
-		if ($('.createNewDiagramTag .colorSwatch:visible').length > 1) {
-			$(".createNewDiagramTag .colorSwatch").removeClass('active');
+	$(".createNewHighlighterTag").on('click', '.colorSwatch', function() {
+		if ($('.createNewHighlighterTag .colorSwatch:visible').length > 1) {
+			$(".createNewHighlighterTag .colorSwatch").removeClass('active');
 			$(this).addClass('active');
-			$(".createNewDiagramTag .colorSwatch").hide();
-			$(".createNewDiagramTag .colorSwatch.active").css("display","inline-block");
+			$(".createNewHighlighterTag .colorSwatch").hide();
+			$(".createNewHighlighterTag .colorSwatch.active").css("display","inline-block");
 		}
 		else {
-			$(".createNewDiagramTag .colorSwatch").css("display","inline-block");
+			$(".createNewHighlighterTag .colorSwatch").css("display","inline-block");
 		}
 	});
 
-	$(".diagramTagWindow").on('click', '.save', function() {
+	$(".highlighterTagWindow").on('click', '.save', function() {
 		restoreSelection(sjs.selection);
-		if ($(".splitDiagramSegment.active").length > 0) {
-			splitSelectedText(window.getSelection(), $(".splitDiagramSegment.active").find('.tagName').text(), $(".splitDiagramSegment.active").find('.colorSwatch').css('background-color'));
+		if ($(".splitHighlighterSegment.active").length > 0) {
+			splitSelectedText(window.getSelection(), $(".splitHighlighterSegment.active").find('.tagName').text(), $(".splitHighlighterSegment.active").find('.colorSwatch').css('background-color'));
 		}
-		$(".diagramTagWindow").hide();
-		$(".splitDiagramSegment").removeClass('active');
+		$(".highlighterTagWindow").hide();
+		$(".splitHighlighterSegment").removeClass('active');
 	});
 
 
 
-	function splitSelectedText(selection, diagramTag, tagBgColor) {
+	function splitSelectedText(selection, highlighterTag, tagBgColor) {
 			var selectedRange = selection;
 			var firstSelectedCharacter;
 			var lastSelectedCharacter;
@@ -1887,39 +1887,39 @@ $(function() {
 			}
 
 
-			var curDiagramSegment = $(selectedRange.focusNode);
+			var curHighlighterSegment = $(selectedRange.focusNode);
 
-			if ($(curDiagramSegment[0]).hasClass('diagramSegment')) { //firefox returns this if selection object already contains a tag
-				$(curDiagramSegment[0]).css('background-color', tagBgColor).attr('data-tag', diagramTag);
+			if ($(curHighlighterSegment[0]).hasClass('highlighterSegment')) { //firefox returns this if selection object already contains a tag
+				$(curHighlighterSegment[0]).css('background-color', tagBgColor).attr('data-tag', highlighterTag);
 			}
 
 			else {
 
-				if (curDiagramSegment.parent().hasClass('tagName')) return;
-				var textBefore = curDiagramSegment.text().slice(0, firstSelectedCharacter);
-				var selectedText = curDiagramSegment.text().slice(firstSelectedCharacter, lastSelectedCharacter);
-				var textAfter = curDiagramSegment.text().slice(lastSelectedCharacter);
+				if (curHighlighterSegment.parent().hasClass('tagName')) return;
+				var textBefore = curHighlighterSegment.text().slice(0, firstSelectedCharacter);
+				var selectedText = curHighlighterSegment.text().slice(firstSelectedCharacter, lastSelectedCharacter);
+				var textAfter = curHighlighterSegment.text().slice(lastSelectedCharacter);
 
-				$(curDiagramSegment.parent()).after("<div class='diagramSegment'>" + textAfter + "</div>");
-				$(curDiagramSegment.parent()).after("<div class='diagramSegment' style='background-color: " + tagBgColor + "' data-tag='" + diagramTag + "'>" + selectedText + "</div>");
-				$(curDiagramSegment.parent()).text(textBefore);
+				$(curHighlighterSegment.parent()).after("<div class='highlighterSegment'>" + textAfter + "</div>");
+				$(curHighlighterSegment.parent()).after("<div class='highlighterSegment' style='background-color: " + tagBgColor + "' data-tag='" + highlighterTag + "'>" + selectedText + "</div>");
+				$(curHighlighterSegment.parent()).text(textBefore);
 			}
-			resetDiagramInteractivity();
-			$(".diagramTagWindow").hide();
-			$(".splitDiagramSegment").removeClass('active');
-			$(".diagramSegment:empty").remove();
+			resetHighlighterInteractivity();
+			$(".highlighterTagWindow").hide();
+			$(".splitHighlighterSegment").removeClass('active');
+			$(".highlighterSegment:empty").remove();
 
 			autoSave();
 
 	}
 
-  function resetSplitDiagramSegment() {
-		$(".sheetDiagramTags").off()
-		$(".sheetDiagramTags").on('click', '.splitDiagramSegment', function() {
-			$(".splitDiagramSegment").removeClass('active');
+  function resetSplitHighlighterSegment() {
+		$(".sheetHighlighterTags").off()
+		$(".sheetHighlighterTags").on('click', '.splitHighlighterSegment', function() {
+			$(".splitHighlighterSegment").removeClass('active');
 			$(this).addClass('active');
 		});
-		$(".splitDiagramSegment").on('click', '.editCheckToggle', function(e) {
+		$(".splitHighlighterSegment").on('click', '.editCheckToggle', function(e) {
 			e.stopPropagation();
 			sjs.selection = saveSelection();
 			var curTag = $(this).siblings('.tagName');
@@ -1927,14 +1927,14 @@ $(function() {
 			curTag.attr("contenteditable", "true");
 			curTag.focus();
 		});
-		$(".splitDiagramSegment").on('focusout', '.tagName', function(e) {
+		$(".splitHighlighterSegment").on('focusout', '.tagName', function(e) {
 			$(this).attr("contenteditable", "false");
-			$(".diagramSegment[data-tag='" + curTagName + "']").attr('data-tag', $(this).text() );
+			$(".highlighterSegment[data-tag='" + curTagName + "']").attr('data-tag', $(this).text() );
 			restoreSelection(sjs.selection);
 			autoSave();
 		});
 	}
-	resetSplitDiagramSegment();
+	resetSplitHighlighterSegment();
 
 	 function saveSelection() {
 			if (window.getSelection) {
@@ -1962,19 +1962,19 @@ $(function() {
 
 
 
-  function resetDiagramInteractivity() {
+  function resetHighlighterInteractivity() {
 		if (sjs.is_owner) {
 
-			$(".diagram .he, .diagram .en").off();
+			$(".highlighter .he, .highlighter .en").off();
 
-			$(".diagram .he, .diagram .en").on("mousedown", '.diagramSegment', function() {
-				$(".diagramSegment").removeClass("noSelect");
-				$(".diagramSegment").not(this).addClass("noSelect");
-				$(".diagramTagWindow").hide();
-				$(".splitDiagramSegment").removeClass('active');
+			$(".highlighter .he, .highlighter .en").on("mousedown", '.highlighterSegment', function() {
+				$(".highlighterSegment").removeClass("noSelect");
+				$(".highlighterSegment").not(this).addClass("noSelect");
+				$(".highlighterTagWindow").hide();
+				$(".splitHighlighterSegment").removeClass('active');
 			});
 
-			$(".diagram .he, .diagram .en").on("mouseup", '.diagramSegment', function(e) {
+			$(".highlighter .he, .highlighter .en").on("mouseup", '.highlighterSegment', function(e) {
 				if ($(e.target).attr('data-tag')) { //if clicking on a highlight that already is tagged, select whole highlight and open window.
 					var range = document.createRange();
 					range.selectNodeContents(e.currentTarget);
@@ -1982,40 +1982,40 @@ $(function() {
 					sel.removeAllRanges();
 					sel.addRange(range);
 					var curTagName = $(e.target).attr('data-tag');
-					$(".splitDiagramSegment[data-tagname='" + curTagName  + "']").addClass('active');
+					$(".splitHighlighterSegment[data-tagname='" + curTagName  + "']").addClass('active');
 
 				}
 
 				if (window.getSelection().anchorOffset !== window.getSelection().focusOffset) { //check if there's any selection
 					sjs.selection = saveSelection();
-					$('.createNewDiagramTag .colorSwatch').removeClass('active');
-					$('.createNewDiagramTag .colorSwatch').eq($('.splitDiagramSegment').length % 7).addClass('active'); //select the next color in the list
+					$('.createNewHighlighterTag .colorSwatch').removeClass('active');
+					$('.createNewHighlighterTag .colorSwatch').eq($('.splitHighlighterSegment').length % 7).addClass('active'); //select the next color in the list
 					$("tagSelector").show();
-					$(".diagramTagWindow").show().css({
+					$(".highlighterTagWindow").show().css({
 						"top": e.pageY,
 						"left": e.pageX
 					});
- 					$(".createNewDiagramTag .tagName").attr("contenteditable", "true");
+ 					$(".createNewHighlighterTag .tagName").attr("contenteditable", "true");
 				}
 			});
 		}
 	}
 
-	resetDiagramInteractivity();
+	resetHighlighterInteractivity();
 
-  function resetDiagramFilterTags() {
-		$(".diagramFilterTags").off();
-		$(".diagramFilterTags").on("click", "input[type='checkbox'][name='diagramFilterTags']", function(e) {
+  function resetHighlighterFilterTags() {
+		$(".highlighterFilterTags").off();
+		$(".highlighterFilterTags").on("click", "input[type='checkbox'][name='highlighterFilterTags']", function(e) {
 			if (!($(this)[0].checked)) {
-				$(".diagramSegment[data-tag='" + $(this)[0].value + "']").hide();
+				$(".highlighterSegment[data-tag='" + $(this)[0].value + "']").hide();
 			}
 			else {
-				$(".diagramSegment[data-tag='" + $(this)[0].value + "']").show();
+				$(".highlighterSegment[data-tag='" + $(this)[0].value + "']").show();
 			}
 		});
 	}
 
-	resetDiagramFilterTags();
+	resetHighlighterFilterTags();
 
 
 	$(".moveSourceRight").live("click", function() {
@@ -2456,7 +2456,7 @@ function addSource(q, source, appendOrInsert) {
 	var newsource = "<li " + attributionData + "data-ref='" + enRef.replace(/'/g, "&apos;") + "'" + " data-heRef='" + heRef.replace(/'/g, "&apos;") + "'" + " data-node='" + node + "'>"
 		+"<div class='sourceNumber he'></div><div class='sourceNumber en'></div>"
 		+"<div class='customTitle'></div>"
-		+"<div class='he'>" + "<span class='title'>" +"<a class='he' href='" + refLink + "' target='_blank'><span class='ref'></span>" + heRef.replace(/\d+(\-\d+)?/g, "").replace(/([0-9][b|a]| ב| א):.+/,"$1") + " </a>" + "</span>" +"<div class='text'>" +"<div class='he'>" + (source && source.text ? source.text.he : "") + "</div>" +"</div>" + "<div class='diagram'><div class='he'></div></div>" + "</div>" + "<div class='en'>" +"<span class='title'>" +"<a class='en' href='" + refLink + "' target='_blank'><span class='ref'>" + enRef.replace(/([0-9][b|a]| ב| א):.+/,"$1") + "</span> </a>" +"</span>" +"<div class='text'>" +"<div class='en'>" + (source && source.text ? source.text.en : "") + "</div>" + "</div>" + "<div class='diagram'><div class='en'></div></div>" +"</div>" + "<div class='clear'></div>" + attributionLink + appendInlineAddButton() + "</li>";
+		+"<div class='he'>" + "<span class='title'>" +"<a class='he' href='" + refLink + "' target='_blank'><span class='ref'></span>" + heRef.replace(/\d+(\-\d+)?/g, "").replace(/([0-9][b|a]| ב| א):.+/,"$1") + " </a>" + "</span>" +"<div class='text'>" +"<div class='he'>" + (source && source.text ? source.text.he : "") + "</div>" +"</div>" + "<div class='highlighter'><div class='he'></div></div>" + "</div>" + "<div class='en'>" +"<span class='title'>" +"<a class='en' href='" + refLink + "' target='_blank'><span class='ref'>" + enRef.replace(/([0-9][b|a]| ב| א):.+/,"$1") + "</span> </a>" +"</span>" +"<div class='text'>" +"<div class='en'>" + (source && source.text ? source.text.en : "") + "</div>" + "</div>" + "<div class='highlighter'><div class='en'></div></div>" +"</div>" + "<div class='clear'></div>" + attributionLink + appendInlineAddButton() + "</li>";
 
 	if (appendOrInsert == "append") {
 		$("#sources").append(newsource);
@@ -2697,14 +2697,14 @@ function readSheet() {
 
 		}
 
-		if ($(".sheetDiagramTags").first().children()) {
-			sheet.diagramTags = [];
-			$(".sheetDiagramTags").first().children().each(function( i ) {
-				sheet.diagramTags[i] = {};
+		if ($(".sheetHighlighterTags").first().children()) {
+			sheet.highlighterTags = [];
+			$(".sheetHighlighterTags").first().children().each(function( i ) {
+				sheet.highlighterTags[i] = {};
 				var currentName = $(this).find('.tagName').text();
 				var currentColor = $(this).find('.colorSwatch').css('background-color');
-				sheet.diagramTags[i].name = currentName;
-				sheet.diagramTags[i].color = currentColor;
+				sheet.highlighterTags[i].name = currentName;
+				sheet.highlighterTags[i].color = currentColor;
 
 			});
 		}
@@ -2755,25 +2755,25 @@ function readSource($target) {
 		source["text"] = {en: $target.find(".text").find(".en").html(), 
 						  he: $target.find(".text").find(".he").html()};
 
-		if ($target.find(".diagram").find(".en").html() != "" || $target.find(".diagram").find(".he").html() != "") {
-			source["diagram"] = {en: [], he: []};
-			$target.find(".diagram").find(".en").find(".diagramSegment").each(function(i){
+		if ($target.find(".highlighter").find(".en").html() != "" || $target.find(".highlighter").find(".he").html() != "") {
+			source["highlighter"] = {en: [], he: []};
+			$target.find(".highlighter").find(".en").find(".highlighterSegment").each(function(i){
 
-				source.diagram.en[i] = {};
+				source.highlighter.en[i] = {};
 				var currenttext = $(this).text();
 				var currenttag = $(this).attr('data-tag');
 
 
-				source.diagram.en[i].text = currenttext;
-				source.diagram.en[i].tag = currenttag;
+				source.highlighter.en[i].text = currenttext;
+				source.highlighter.en[i].tag = currenttag;
 			});
 
-			$target.find(".diagram").find(".he").find(".diagramSegment").each(function(i){
-				source.diagram.he[i] = {};
+			$target.find(".highlighter").find(".he").find(".highlighterSegment").each(function(i){
+				source.highlighter.he[i] = {};
 				var currenttext = $(this).text();
 				var currenttag = $(this).attr('data-tag');
-				source.diagram.he[i].text = currenttext;
-				source.diagram.he[i].tag = currenttag;
+				source.highlighter.he[i].text = currenttext;
+				source.highlighter.he[i].tag = currenttag;
 			});
 		}
 		//Set source layout
@@ -3084,10 +3084,10 @@ function buildSheet(data){
 
 	$("#sources").css("min-height","");
 
-	if ("diagramTags" in data) {
-		$(".sheetDiagramTags").empty();
-		for (var i = 0; i < data.diagramTags.length; i++) {
-			$(".sheetDiagramTags").append('<div class="splitDiagramSegment" data-tagname="'+data.diagramTags[i].name+'"><div class="colorSwatch active" style="background-color: '+data.diagramTags[i].color+'"></div>'
+	if ("highlighterTags" in data) {
+		$(".sheetHighlighterTags").empty();
+		for (var i = 0; i < data.highlighterTags.length; i++) {
+			$(".sheetHighlighterTags").append('<div class="splitHighlighterSegment" data-tagname="'+data.highlighterTags[i].name+'"><div class="colorSwatch active" style="background-color: '+data.highlighterTags[i].color+'"></div>'
 						+"<div class='colorSwatch' style='background-color: #bd9eb6'></div>"
 						+"<div class='colorSwatch' style='background-color: #afcab8'></div>"
 						+"<div class='colorSwatch' style='background-color: #e5dabd'></div>"
@@ -3095,8 +3095,8 @@ function buildSheet(data){
 						+"<div class='colorSwatch' style='background-color: #a4b7de'></div>"
 						+"<div class='colorSwatch' style='background-color: #e8dde5'></div>"
 						+"<div class='colorSwatch' style='background-color: #d2ddc9'></div>"
-				+'<div class="tagName">'+data.diagramTags[i].name+'</div><div class="editCheckToggle">✎</div></div>');
-			$(".diagramFilterTags").append('<input type="checkbox" name="diagramFilterTags" value="'+data.diagramTags[i].name+'" checked="checked"> <span style="background-color: '+data.diagramTags[i].color+'">'+data.diagramTags[i].name+'</span><br>');
+				+'<div class="tagName">'+data.highlighterTags[i].name+'</div><div class="editCheckToggle">✎</div></div>');
+			$(".highlighterFilterTags").append('<input type="checkbox" name="highlighterFilterTags" value="'+data.highlighterTags[i].name+'" checked="checked"> <span style="background-color: '+data.highlighterTags[i].color+'">'+data.highlighterTags[i].name+'</span><br>');
 		}
 	}
 }
@@ -3141,35 +3141,35 @@ function buildSource($target, source, appendOrInsert) {
 			$(".sheetItem").last().addClass("hasCustom");
 		}
 
-		if (source.diagram) {
-			var enDiagramHTML = '';
-			var heDiagramHTML = '';
-			for (var i = 0; i < source.diagram.en.length; i++) {
-				var diagramTagHTML = source.diagram.en[i].tag ? ' data-tag="'+ source.diagram.en[i].tag +'" ': '';
-				var diagramTagColorHTML = '';
-				if (diagramTagHTML != '') {
-					var diagramTagColor = sjs.current.diagramTags.find(tag => source.diagram.en[i].tag == tag.name).color;
-					diagramTagColorHTML = 'style="background-color: '+diagramTagColor+'"';
+		if (source.highlighter) {
+			var enHighlighterHTML = '';
+			var heHighlighterHTML = '';
+			for (var i = 0; i < source.highlighter.en.length; i++) {
+				var highlighterTagHTML = source.highlighter.en[i].tag ? ' data-tag="'+ source.highlighter.en[i].tag +'" ': '';
+				var highlighterTagColorHTML = '';
+				if (highlighterTagHTML != '') {
+					var highlighterTagColor = sjs.current.highlighterTags.find(tag => source.highlighter.en[i].tag == tag.name).color;
+					highlighterTagColorHTML = 'style="background-color: '+highlighterTagColor+'"';
 				}
 
 
-				enDiagramHTML = enDiagramHTML + '<div class="diagramSegment" '+ diagramTagColorHTML + diagramTagHTML  +'">'+source.diagram.en[i].text+'</div>'
+				enHighlighterHTML = enHighlighterHTML + '<div class="highlighterSegment" '+ highlighterTagColorHTML + highlighterTagHTML  +'">'+source.highlighter.en[i].text+'</div>'
 			}
 
-			for (var i = 0; i < source.diagram.he.length; i++) {
-				var diagramTagHTML = source.diagram.he[i].tag ? ' data-tag="'+ source.diagram.he[i].tag +'" ': '';
-				var diagramTagColorHTML = '';
-				if (diagramTagHTML != '') {
-					var diagramTagColor = sjs.current.diagramTags.find(tag => source.diagram.he[i].tag == tag.name ).color;
-					diagramTagColorHTML = 'style="background-color: '+diagramTagColor+'"';
+			for (var i = 0; i < source.highlighter.he.length; i++) {
+				var highlighterTagHTML = source.highlighter.he[i].tag ? ' data-tag="'+ source.highlighter.he[i].tag +'" ': '';
+				var highlighterTagColorHTML = '';
+				if (highlighterTagHTML != '') {
+					var highlighterTagColor = sjs.current.highlighterTags.find(tag => source.highlighter.he[i].tag == tag.name ).color;
+					highlighterTagColorHTML = 'style="background-color: '+highlighterTagColor+'"';
 				}
 
 
-				heDiagramHTML = heDiagramHTML + '<div class="diagramSegment" '+ diagramTagColorHTML + diagramTagHTML  +'">'+source.diagram.he[i].text+'</div>'
+				heHighlighterHTML = heHighlighterHTML + '<div class="highlighterSegment" '+ highlighterTagColorHTML + highlighterTagHTML  +'">'+source.highlighter.he[i].text+'</div>'
 			}
 
-			$(".diagram .en").last().html(enDiagramHTML);
-			$(".diagram .he").last().html(heDiagramHTML);
+			$(".highlighter .en").last().html(enHighlighterHTML);
+			$(".highlighter .he").last().html(heHighlighterHTML);
 		}
 
 
@@ -3750,13 +3750,13 @@ function exportToDrive() {
 	});
 }
 
-function fillEmptyDiagramSegments() {
-		$( ".diagram" ).each(function( index ) {
+function fillEmptyHighlighterSegments() {
+		$( ".highlighter" ).each(function( index ) {
 			if ($(this).find(".en").html() == "") {
-				$(this).find(".en").html("<div class='diagramSegment'>"+$(this).siblings('.text').find('.en').html().stripHtml()+"</div>")
+				$(this).find(".en").html("<div class='highlighterSegment'>"+$(this).siblings('.text').find('.en').html().stripHtml()+"</div>")
 			}
 			if ($(this).find(".he").html() == "") {
-				$(this).find(".he").html("<div class='diagramSegment'>"+$(this).siblings('.text').find('.he').html().stripHtml()+"</div>")
+				$(this).find(".he").html("<div class='highlighterSegment'>"+$(this).siblings('.text').find('.he').html().stripHtml()+"</div>")
 			}
 
 		});
@@ -3768,7 +3768,7 @@ function toggleHighlighter() {
 		$("#highlightModeDisplay").hide();
 		$("#highlightMenu").css('display','none');
 		if ($("#sources").data('ui-sortable')) {
-			$("#sources").sortable("enable"); //disable dragging while in diagram edit mode....
+			$("#sources").sortable("enable"); //disable dragging while in highlighter edit mode....
 		}
 	}
 	else {
@@ -3776,11 +3776,11 @@ function toggleHighlighter() {
 		$("#highlightModeDisplay").show();
 		$("#highlightMenu").css('display','inline-block');
 		if ($("#sources").data('ui-sortable')) {
-			$("#sources").sortable("disable"); //disable dragging while in diagram edit mode....
+			$("#sources").sortable("disable"); //disable dragging while in highlighter edit mode....
 		}
 	}
 	if ($(".sheetItem").length >0) {
-		fillEmptyDiagramSegments();
+		fillEmptyHighlighterSegments();
 		autoSave();
 		}
 }
