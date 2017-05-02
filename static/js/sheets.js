@@ -1838,6 +1838,13 @@ $(function() {
 		if (e.which == 13) {
       e.preventDefault();
 			$(".createNewHighlighterTag .tagName").blur();
+			$(this).text('');
+		}
+	});
+
+	$(".createNewHighlighterTag .tagName").focus(function(e){
+		if ($(this).text()=="Create New") {
+			$(this).text('');
 		}
 	});
 
@@ -1921,7 +1928,6 @@ $(function() {
 		});
 		$(".splitHighlighterSegment").on('click', '.editCheckToggle', function(e) {
 			e.stopPropagation();
-			sjs.selection = saveSelection();
 			var curTag = $(this).siblings('.tagName');
 			curTagName = curTag.text();
 			curTag.attr("contenteditable", "true");
@@ -1930,7 +1936,6 @@ $(function() {
 		$(".splitHighlighterSegment").on('focusout', '.tagName', function(e) {
 			$(this).attr("contenteditable", "false");
 			$(".highlighterSegment[data-tag='" + curTagName + "']").attr('data-tag', $(this).text() );
-			restoreSelection(sjs.selection);
 			autoSave();
 		});
 	}
