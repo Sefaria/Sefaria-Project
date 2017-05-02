@@ -1824,7 +1824,7 @@ $(function() {
 	function saveNewlyCreatedTag(newTagName,newTagColor) {
 		if (newTagName !== "Create New" && newTagName !== "") {
 			$(".sheetHighlighterTags").append('<div class="splitHighlighterSegment" data-tagname="' + newTagName + '"><div class="colorSwatch active" style="background-color: ' + newTagColor + '"></div><div class="tagName">' + newTagName + '</div><div class="editCheckToggle">✎</div></div>');
-			$(".highlighterFilterTags").append('<input type="checkbox" name="highlighterFilterTags" value="' + newTagName + '" checked="checked"> <span style="background-color: ' + newTagColor + '">' + newTagName + '</span><br>');
+			$(".highlighterFilterTags").append('<div class="highlightFilterSelection"><input type="checkbox" name="highlighterFilterTags" id ="'+newTagName+'_highlighterTag" value="' + newTagName + '" checked="checked"> <label for="'+newTagName+'_highlighterTag" style="background-color: ' + newTagColor + '">' + newTagName + '</label></div>');
 			resetSplitHighlighterSegment();
 			resetHighlighterFilterTags();
 			autoSave();
@@ -3101,7 +3101,7 @@ function buildSheet(data){
 						+"<div class='colorSwatch' style='background-color: #e8dde5'></div>"
 						+"<div class='colorSwatch' style='background-color: #d2ddc9'></div>"
 				+'<div class="tagName">'+data.highlighterTags[i].name+'</div><div class="editCheckToggle">✎</div></div>');
-			$(".highlighterFilterTags").append('<input type="checkbox" name="highlighterFilterTags" value="'+data.highlighterTags[i].name+'" checked="checked"> <span style="background-color: '+data.highlighterTags[i].color+'">'+data.highlighterTags[i].name+'</span><br>');
+			$(".highlighterFilterTags").append('<div class="highlightFilterSelection"><input type="checkbox" name="highlighterFilterTags" id="'+data.highlighterTags[i].name+'_highlighterTag" value="'+data.highlighterTags[i].name+'" checked="checked"> <label for="'+ data.highlighterTags[i].name +'_highlighterTag" style="background-color: '+data.highlighterTags[i].color+'">'+data.highlighterTags[i].name+'</label></div>');
 		}
 	}
 }

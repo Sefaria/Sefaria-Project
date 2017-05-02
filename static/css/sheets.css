@@ -2017,6 +2017,7 @@ a.tagit-close {
 
 .highlighterSegment {
 	display: inline;
+	margin-top: 10px;
 }
 
 .editCheckToggle {
@@ -2120,6 +2121,21 @@ a.tagit-close {
     opacity: 1;
     }
 
+.highlightFilterSelection {
+	padding: 10px 12px;
+}
+
+.highlightFilterSelection label {
+	font-size: 17px;
+}
+
+.highlightFilterSelection input {
+	margin: 0;
+}
+
+.highlighterFilterTags{
+	padding: 5px 0;
+}
 .highlighterFilterTags:hover {
 	background-color: #f2f2f2;
 	color: #000;
