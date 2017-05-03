@@ -1920,106 +1920,10 @@ $(function() {
 
 	}
 
-  function resetSplitHighlighterSegment() {
-		$(".sheetHighlighterTags").off();
-		$(".sheetHighlighterTags").on('click', '.splitHighlighterSegment', function() {
-			$(".splitHighlighterSegment").removeClass('active');
-			$(this).addClass('active');
-		});
-		$(".splitHighlighterSegment").off();
-		$(".splitHighlighterSegment").on('click', '.editCheckToggle', function(e) {
-			e.stopPropagation();
-			var curTag = $(this).siblings('.tagName');
-			curTagName = curTag.text();
-			curTag.attr("contenteditable", "true");
-			curTag.focus();
-		});
-		$(".splitHighlighterSegment").on('focusout', '.tagName', function(e) {
-			$(this).attr("contenteditable", "false");
-			$(".highlighterSegment[data-tag='" + curTagName + "']").attr('data-tag', $(this).text() );
-			autoSave();
-		});
-	}
 	resetSplitHighlighterSegment();
 
-	 function saveSelection() {
-			if (window.getSelection) {
-					sel = window.getSelection();
-					if (sel.getRangeAt && sel.rangeCount) {
-							return sel.getRangeAt(0);
-					}
-			} else if (document.selection && document.selection.createRange) {
-					return document.selection.createRange();
-			}
-			return null;
-	 }
-
-	function restoreSelection(range) {
-			if (range) {
-					if (window.getSelection) {
-							sel = window.getSelection();
-							sel.removeAllRanges();
-							sel.addRange(range);
-					} else if (document.selection && range.select) {
-							range.select();
-					}
-			}
-	}
-
-
-
-  function resetHighlighterInteractivity() {
-		if (sjs.is_owner) {
-
-			$(".highlighter .he, .highlighter .en").off();
-
-			$(".highlighter .he, .highlighter .en").on("mousedown", '.highlighterSegment', function() {
-				$(".highlighterSegment").removeClass("noSelect");
-				$(".highlighterSegment").not(this).addClass("noSelect");
-				$(".highlighterTagWindow").hide();
-				$(".splitHighlighterSegment").removeClass('active');
-			});
-
-			$(".highlighter .he, .highlighter .en").on("mouseup", '.highlighterSegment', function(e) {
-				if ($(e.target).attr('data-tag')) { //if clicking on a highlight that already is tagged, select whole highlight and open window.
-					var range = document.createRange();
-					range.selectNodeContents(e.currentTarget);
-					var sel = window.getSelection();
-					sel.removeAllRanges();
-					sel.addRange(range);
-					var curTagName = $(e.target).attr('data-tag');
-					$(".splitHighlighterSegment[data-tagname='" + curTagName  + "']").addClass('active');
-
-				}
-
-				if (window.getSelection().anchorOffset !== window.getSelection().focusOffset) { //check if there's any selection
-					sjs.selection = saveSelection();
-					$('.createNewHighlighterTag .colorSwatch').removeClass('active');
-					$('.createNewHighlighterTag .colorSwatch').eq($('.splitHighlighterSegment').length % 7).addClass('active'); //select the next color in the list
-					$("tagSelector").show();
-					$(".highlighterTagWindow").show().css({
-						"top": e.pageY,
-						"left": e.pageX
-					});
- 					$(".createNewHighlighterTag .tagName").attr("contenteditable", "true");
-				}
-			});
-		}
-	}
 
 	resetHighlighterInteractivity();
-
-  function resetHighlighterFilterTags() {
-		$(".highlighterFilterTags").off();
-		$(".highlighterFilterTags").on("click", "input[type='checkbox'][name='highlighterFilterTags']", function(e) {
-			if (!($(this)[0].checked)) {
-				$(".highlighterSegment[data-tag='" + $(this)[0].value + "']").hide();
-			}
-			else {
-				$(".highlighterSegment[data-tag='" + $(this)[0].value + "']").show();
-			}
-		});
-	}
 
 	resetHighlighterFilterTags();
 
@@ -2404,7 +2308,6 @@ if( navigator.userAgent.match(/iPhone|iPad|iPod/i) ) {
 
 
 }); // ------------------ End DOM Ready  ------------------
-
 
 function addSource(q, source, appendOrInsert) {
 	// Add a new source to the DOM.
@@ -3923,6 +3826,7 @@ var afterAction = function() {
 		$("#save").show();
 		$("#fileControlMsg").hide();
 	}
+	resetHighlighterInteractivity();
 };
 
 // ------------------ Upload locally stored images to Imgur ------------------
@@ -3977,3 +3881,103 @@ var addmediaUploadImageToImgur = function(imageData) {
 };
 
 $("#addmediaFileSelector").change(addmediaChooseFile);
+
+
+function resetSplitHighlighterSegment() {
+	$(".sheetHighlighterTags").off();
+	$(".sheetHighlighterTags").on('click', '.splitHighlighterSegment', function() {
+		$(".splitHighlighterSegment").removeClass('active');
+		$(this).addClass('active');
+	});
+	$(".splitHighlighterSegment").off();
+	$(".splitHighlighterSegment").on('click', '.editCheckToggle', function(e) {
+		e.stopPropagation();
+		var curTag = $(this).siblings('.tagName');
+		curTagName = curTag.text();
+		curTag.attr("contenteditable", "true");
+		curTag.focus();
+	});
+	$(".splitHighlighterSegment").on('focusout', '.tagName', function(e) {
+		$(this).attr("contenteditable", "false");
+		$(".highlighterSegment[data-tag='" + curTagName + "']").attr('data-tag', $(this).text() );
+		autoSave();
+	});
+}
+
+
+
+function resetHighlighterInteractivity() {
+	if (sjs.is_owner) {
+
+		$(".highlighter .he, .highlighter .en").off();
+
+		$(".highlighter .he, .highlighter .en").on("mousedown", '.highlighterSegment', function() {
+			$(".highlighterSegment").removeClass("noSelect");
+			$(".highlighterSegment").not(this).addClass("noSelect");
+			$(".highlighterTagWindow").hide();
+			$(".splitHighlighterSegment").removeClass('active');
+		});
+
+		$(".highlighter .he, .highlighter .en").on("mouseup", '.highlighterSegment', function(e) {
+			if ($(e.target).attr('data-tag')) { //if clicking on a highlight that already is tagged, select whole highlight and open window.
+				var range = document.createRange();
+				range.selectNodeContents(e.currentTarget);
+				var sel = window.getSelection();
+				sel.removeAllRanges();
+				sel.addRange(range);
+				var curTagName = $(e.target).attr('data-tag');
+				$(".splitHighlighterSegment[data-tagname='" + curTagName  + "']").addClass('active');
+
+			}
+
+			if (window.getSelection().anchorOffset !== window.getSelection().focusOffset) { //check if there's any selection
+				sjs.selection = saveSelection();
+				$('.createNewHighlighterTag .colorSwatch').removeClass('active');
+				$('.createNewHighlighterTag .colorSwatch').eq($('.splitHighlighterSegment').length % 7).addClass('active'); //select the next color in the list
+				$("tagSelector").show();
+				$(".highlighterTagWindow").show().css({
+					"top": e.pageY,
+					"left": e.pageX
+				});
+				$(".createNewHighlighterTag .tagName").attr("contenteditable", "true");
+			}
+		});
+	}
+}
+
+
+function resetHighlighterFilterTags() {
+	$(".highlighterFilterTags").off();
+	$(".highlighterFilterTags").on("click", "input[type='checkbox'][name='highlighterFilterTags']", function(e) {
+		if (!($(this)[0].checked)) {
+			$(".highlighterSegment[data-tag='" + $(this)[0].value + "']").hide();
+		}
+		else {
+			$(".highlighterSegment[data-tag='" + $(this)[0].value + "']").show();
+		}
+	});
+}
+
+ function saveSelection() {
+		if (window.getSelection) {
+				sel = window.getSelection();
+				if (sel.getRangeAt && sel.rangeCount) {
+						return sel.getRangeAt(0);
+				}
+		} else if (document.selection && document.selection.createRange) {
+				return document.selection.createRange();
+		}
+		return null;
+ }
+
+function restoreSelection(range) {
+		if (range) {
+				if (window.getSelection) {
+						sel = window.getSelection();
+						sel.removeAllRanges();
+						sel.addRange(range);
+				} else if (document.selection && range.select) {
+						range.select();
+				}
+		}
+}
