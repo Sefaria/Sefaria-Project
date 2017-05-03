@@ -1921,11 +1921,12 @@ $(function() {
 	}
 
   function resetSplitHighlighterSegment() {
-		$(".sheetHighlighterTags").off()
+		$(".sheetHighlighterTags").off();
 		$(".sheetHighlighterTags").on('click', '.splitHighlighterSegment', function() {
 			$(".splitHighlighterSegment").removeClass('active');
 			$(this).addClass('active');
 		});
+		$(".splitHighlighterSegment").off();
 		$(".splitHighlighterSegment").on('click', '.editCheckToggle', function(e) {
 			e.stopPropagation();
 			var curTag = $(this).siblings('.tagName');
