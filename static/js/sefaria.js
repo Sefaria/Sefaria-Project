@@ -719,14 +719,17 @@ Sefaria = extend(Sefaria, {
       return categoryData;
     });
     // Sort the categories
+    var categoryOrder = Sefaria.toc.map(function(cat) { return cat.category; });
     summaryList.sort(function(a, b) {
       // always put Commentary first 
       if      (a.category === "Commentary") { return -1; }
       else if (b.category === "Commentary") { return  1; }
-      // always put Modern Works last
-      if      (a.category === "Modern Works") { return  1; }
-      else if (b.category === "Modern Works") { return -1; }
-      return b.count - a.count;
+      
+      var orderA = categoryOrder.indexOf(a.category);
+      var orderB = categoryOrder.indexOf(b.category);
+      orderA = orderA == -1 ? categoryOrder.length : orderA;
+      orderB = orderB == -1 ? categoryOrder.length : orderB;
+      return orderA - orderB;
     });
     return summaryList;
   },

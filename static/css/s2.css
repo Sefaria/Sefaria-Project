@@ -1776,6 +1776,21 @@ a.resourcesLink {
 .readerControls.connectionsHeader {
   background-color: #EDEDED;
 }
+.connectionsPanelHeader .connectionsHeaderTitle {
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-weight: lighter;
+}
+.connectionsPanelHeader .connectionsHeaderTitle.active {
+  text-transform: none;
+  cursor: pointer;
+}
+.connectionsHeaderTitle .fa-chevron-left {
+  margin-right: 6px;
+}
+.connectionsHeaderTitle .fa-chevron-right {
+  margin-left: 6px;
+}
 .readerControls .readerControlsInner {
   position: relative;
   width: 700px;
@@ -2582,17 +2597,16 @@ a.resourcesLink {
 }
 .categoryFilter {
   text-transform: uppercase;
-  padding: 12px;
-  text-align: center;
-  font-size: 15px;
+  padding: 17px 34px;
+  font-size: 17px;
   cursor: pointer;
   line-height: 18px;
   color: #333;
 }
 .textFilter {
-  padding: 12px 4px;
-  text-align: center;
-  font-size: 15px;
+  padding: 12px 34px;
+  border-top: 1px solid #ccc;
+  font-size: 17px;
   line-height: 1.2;
   display: block;
   cursor: pointer;
@@ -2766,7 +2780,7 @@ a.resourcesLink {
 .myNotesPanel .texts .contentInner,
 .addToSourceSheetPanel .texts .contentInner,
 .addNotePanel .texts .contentInner {
-  margin: 60px auto;
+  margin: 20px auto;
 }
 .readerPanel.bilingual .toolsPanel .he {
   display: none;
@@ -2777,16 +2791,12 @@ a.resourcesLink {
   font-size: 18px;
 }
 .toolsButton {
-  background-color: white;
   color: #666;
-  border: 1px solid #F7F7F7;
-  border-radius: 7px;
+  border-top: 1px solid #CCC;
   cursor: pointer;
-  text-transform: uppercase;
-  font-size: 14px;
+  font-size: 16px;
   letter-spacing: 1px;
   padding: 20px 26px;
-  margin: 10px 0;
   display: flex;
   justify-content: space-between;
 }
