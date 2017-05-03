@@ -3540,8 +3540,7 @@ function rebuildUpdatedSheet(data) {
 
 	sjs.changesPending = false;
 	if (data.options.highlightMode)    { $("#highlightToggle").trigger("click"); }
-	
-
+	$(".highlighterTagWindow").hide();
 }
 
 
