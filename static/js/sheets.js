@@ -3968,7 +3968,7 @@ function resetHighlighterInteractivity() {
 				$("tagSelector").show();
 				$(".highlighterTagWindow").show().css({
 					"top": e.pageY,
-					"left": e.pageX
+					"left": $(".highlighterTagWindow").width() + e.pageX < window.innerWidth ? e.pageX : window.innerWidth - $(".highlighterTagWindow").width() - 40
 				});
 				$(".createNewHighlighterTag .tagName").attr("contenteditable", "true");
 			}
