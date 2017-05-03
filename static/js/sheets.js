@@ -1871,7 +1871,10 @@ $(function() {
 
 	$(".highlighterTagWindow").on('click', '.save', function() {
 		restoreSelection(sjs.selection);
-		if ($(".splitHighlighterSegment.active").length > 0) {
+		if ($(".splitHighlighterSegment.active").length == 0) {
+				restoreSelectedText(window.getSelection());
+			}
+		else {
 			splitSelectedText(window.getSelection(), $(".splitHighlighterSegment.active").find('.tagName').text(), $(".splitHighlighterSegment.active").find('.colorSwatch').css('background-color'));
 		}
 		$(".highlighterTagWindow").hide();
@@ -1879,6 +1882,31 @@ $(function() {
 	});
 
 
+	function restoreSelectedText(selection) {
+		if (selection.anchorOffset < 0) return;
+		var curHighlighterSegment = $(selection.focusNode);
+		if ($(curHighlighterSegment[0]).hasClass('highlighterSegment')) { //firefox returns this if selection object already contains a tag
+			$(curHighlighterSegment[0]).css('background-color', '').removeAttr('data-tag','');
+		}
+		else {
+			$(curHighlighterSegment.parent()).css('background-color', '').removeAttr('data-tag','');
+		}
+		mergeSameClassAdjacentHighlighterSegments();
+	}
+
+	function mergeSameClassAdjacentHighlighterSegments() {
+		$( ".highlighterSegment" ).each(function( index ) {
+			if (($(this).attr('data-tag')) == $(this).next().attr('data-tag') && $(this).next().text() != '')  {
+				var textToPrepend = $(this).text();
+				var nextText = $(this).next().text();
+				textToPrepend = textToPrepend + nextText;
+				$(this).next().text(textToPrepend);
+				$(this).remove();
+			}
+		});
+		$(".highlighterSegment:empty").remove();
+		autoSave();
+	}
 
 	function splitSelectedText(selection, highlighterTag, tagBgColor) {
 			var selectedRange = selection;
@@ -1915,9 +1943,7 @@ $(function() {
 			$(".highlighterTagWindow").hide();
 			$(".splitHighlighterSegment").removeClass('active');
 			$(".highlighterSegment:empty").remove();
-
-			autoSave();
-
+			mergeSameClassAdjacentHighlighterSegments();
 	}
 
 	resetSplitHighlighterSegment();
@@ -3886,8 +3912,13 @@ $("#addmediaFileSelector").change(addmediaChooseFile);
 function resetSplitHighlighterSegment() {
 	$(".sheetHighlighterTags").off();
 	$(".sheetHighlighterTags").on('click', '.splitHighlighterSegment', function() {
-		$(".splitHighlighterSegment").removeClass('active');
-		$(this).addClass('active');
+		if ($(this).hasClass("active")) {
+			$(".splitHighlighterSegment").removeClass('active');
+		}
+		else {
+			$(".splitHighlighterSegment").removeClass('active');
+			$(this).addClass('active');
+		}
 	});
 	$(".splitHighlighterSegment").off();
 	$(".splitHighlighterSegment").on('click', '.editCheckToggle', function(e) {
