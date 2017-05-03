@@ -68,6 +68,7 @@ class Link(abst.AbstractMongoRecord):
                     samelink.auto = self.auto
                     samelink.generated_by = self.generated_by
                     samelink.source_text_oid = self.source_text_oid
+                    samelink.type = self.type
                     samelink.refs = self.refs  #in case the refs are reversed. switch them around
                     samelink.save()
                     raise DuplicateRecordError(u"Updated existing link with auto generation data {} - {}".format(self.refs[0], self.refs[1]))
@@ -76,20 +77,14 @@ class Link(abst.AbstractMongoRecord):
                     raise DuplicateRecordError(u"Link already exists {} - {}. Try editing instead.".format(self.refs[0], self.refs[1]))
 
             else:
+                #find a potential link that already has a more precise ref of either of this link's refs.
                 preciselink = Link().load(
-                    {'$and':
-                        [
-                            {'refs': self.refs[0]},
-                            {'refs':
-                                {'$regex': text.Ref(self.refs[1]).regex()}
-                            }
-                        ]
-                    }
+                    {'$and':[text.Ref(self.refs[0]).ref_regex_query(), text.Ref(self.refs[1]).ref_regex_query()]}
                 )
 
                 if preciselink:
                     # logger.debug("save_link: More specific link exists: " + link["refs"][1] + " and " + preciselink["refs"][1])
-                    raise DuplicateRecordError(u"A more precise link already exists: {}".format(preciselink.refs[1]))
+                    raise DuplicateRecordError(u"A more precise link already exists: {} - {}".format(preciselink.refs[0], preciselink.refs[1]))
                 # else: # this is a good new link
 
     def ref_opposite(self, from_ref, as_tuple=False):
