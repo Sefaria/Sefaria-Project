@@ -2065,6 +2065,7 @@ a.tagit-close {
 	border: 3px solid transparent;
 	margin-right: 5px;
 	border-radius: 3px;
+    margin-bottom: -2px;
 }
 
 .colorSwatch.active {
@@ -2100,15 +2101,16 @@ a.tagit-close {
 .highlighterSegment[data-tag]::before {
     content: attr(data-tag) ;
     font-size: 14px;
+	font-family: "proxima-nova","Helvetica Neue","Helvetica",sans-serif;
     position:absolute;
     z-index: 2;
     white-space:nowrap;
     background:#fff;
-    color:#999;
+    color:#666;
 	border-radius: 3px;
 	border: 1px solid #999;
     padding:0px 7px;
-	margin-top: -24px;
+	margin-top: -30px;
     line-height: 24px;
     height: 24px;
     opacity: 0;
