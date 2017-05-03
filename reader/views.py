@@ -1366,7 +1366,7 @@ def texts_api(request, tref, lang=None, version=None):
 
         return jsonResponse({"status": "ok"})
 
-    return jsonResponse({"error": "Unsuported HTTP method."}, callback=request.GET.get("callback", None))
+    return jsonResponse({"error": "Unsupported HTTP method."}, callback=request.GET.get("callback", None))
 
 
 @catch_error_as_json
@@ -1470,7 +1470,7 @@ def index_api(request, title, v2=False, raw=False):
 
         return jsonResponse({"status": "ok"})
 
-    return jsonResponse({"error": "Unsuported HTTP method."}, callback=request.GET.get("callback", None))
+    return jsonResponse({"error": "Unsupported HTTP method."}, callback=request.GET.get("callback", None))
 
 
 @catch_error_as_json
@@ -1658,7 +1658,7 @@ def links_api(request, link_id_or_ref=None):
             tracker.delete(request.user.id, model.Link, link_id_or_ref, callback=revarnish_link)
         )
 
-    return jsonResponse({"error": "Unsuported HTTP method."})
+    return jsonResponse({"error": "Unsupported HTTP method."})
 
 
 @catch_error_as_json
@@ -1749,7 +1749,7 @@ def notes_api(request, note_id_or_ref):
             tracker.delete(request.user.id, model.Note, note_id_or_ref)
         )
 
-    return jsonResponse({"error": "Unsuported HTTP method."})
+    return jsonResponse({"error": "Unsupported HTTP method."})
 
 
 @catch_error_as_json
@@ -1999,9 +1999,14 @@ def terms_api(request, name):
         return jsonResponse(_internal_do_post(request, j, uid, **kwargs))
 
     if request.method == "DELETE":
-        return jsonResponse({"error": "Unsuported HTTP method."}) #TODO: support this?
+        return jsonResponse({"error": "Unsupported HTTP method."}) #TODO: support this?
 
-    return jsonResponse({"error": "Unsuported HTTP method."})
+    return jsonResponse({"error": "Unsupported HTTP method."})
+
+
+def name_api(request, name):
+    if request.method != "GET":
+        return jsonResponse({"error": "Unsupported HTTP method."})
 
 
 @catch_error_as_json
@@ -2206,7 +2211,7 @@ def texts_history_api(request, tref, lang=None, version=None):
     API for retrieving history information about a given text.
     """
     if request.method != "GET":
-        return jsonResponse({"error": "Unsuported HTTP method."})
+        return jsonResponse({"error": "Unsupported HTTP method."})
 
     tref = model.Ref(tref).normal()
     refRe = '^%s$|^%s:' % (tref, tref)
@@ -2303,7 +2308,7 @@ def reviews_api(request, tref=None, lang=None, version=None, review_id=None):
         return jsonResponse(delete_review(review_id, request.user.id))
 
     else:
-        return jsonResponse({"error": "Unsuported HTTP method."})
+        return jsonResponse({"error": "Unsupported HTTP method."})
 
 
 @ensure_csrf_cookie
