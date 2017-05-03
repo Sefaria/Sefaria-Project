@@ -3538,12 +3538,13 @@ function rebuildUpdatedSheet(data) {
 		lastSelectedInterfaceButton.click();
 	}
 
-	sjs.changesPending = false;
 	if (data.options.highlightMode)    { $("#highlightToggle").trigger("click"); }
-
+	$(".highlighterTagWindow").hide();
 	resetSplitHighlighterSegment();
 	resetHighlighterFilterTags();
 	resetHighlighterInteractivity();
+
+	sjs.changesPending = false;
 
 }
 
