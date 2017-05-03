@@ -2003,10 +2003,38 @@ def terms_api(request, name):
 
     return jsonResponse({"error": "Unsupported HTTP method."})
 
-
+@catch_error_as_json
 def name_api(request, name):
     if request.method != "GET":
         return jsonResponse({"error": "Unsupported HTTP method."})
+
+    try:
+        lang = "he" if is_hebrew(name) else "en"
+        ref = Ref(name)
+        inode = ref.index_node
+        assert isinstance(inode, SchemaNode)
+        # titles_follow = inode.has_titled_continuation()
+        d = {
+            "is_ref": True,
+            "is_book": ref.is_book_level(),
+            "is_node": len(ref.sections) == 0,
+            "normal": ref.normal() if lang == "en" else ref.he_normal(),
+            # "number_follows": inode.has_numeric_continuation(),
+            # "titles_follow": titles_follow,
+            "completions": [c.full_title() for c in inode.children if not c.is_default()],
+            # ADD textual completions as well
+            "examples": []
+        }
+
+    except InputError:
+        d = {
+            "is_ref": False,
+            "is_book": False,
+            "is_node": False,
+            "completions": []
+        }
+
+    return jsonResponse(d)
 
 
 @catch_error_as_json
