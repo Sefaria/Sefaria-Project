@@ -28,15 +28,16 @@ class SpellChecker(object):
             self.letters = hebrew.ALPHABET_22
         self.WORDS = defaultdict(int)
 
-    @staticmethod
-    def words(text):
-        return re.findall(r'\w+', text.lower())
+    def words(self, text):
+        if self.lang == "en":
+            return re.findall(r'\w+', text.lower())
+        return re.split(ur"\s+", text)
 
     def train_phrases(self, phrases):
         for p in phrases:
+            if self.lang == "he":
+                p = hebrew.normalize_final_letters_in_str(p)
             for w in self.words(p):
-                if self.lang == "he":
-                    w = hebrew.normalize_final_letters_in_str(w)
                 self.WORDS[w] += 1
 
     def train_words(self, words):
