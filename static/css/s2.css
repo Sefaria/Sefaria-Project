@@ -2612,6 +2612,12 @@ a.resourcesLink {
   cursor: pointer;
   color: #333;
 }
+.categoryFilterGroup .connectionsCount {
+  color: #999;
+  font-weight: lighter;
+  letter-spacing: 1px;
+  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+}
 .categoryFilterGroup a:hover {
   text-decoration: none;
 }
@@ -2791,14 +2797,12 @@ a.resourcesLink {
   font-size: 18px;
 }
 .toolsButton {
-  color: #666;
+  color: #333;
   border-top: 1px solid #CCC;
   cursor: pointer;
   font-size: 16px;
   letter-spacing: 1px;
-  padding: 20px 26px;
-  display: flex;
-  justify-content: space-between;
+  padding: 20px 26px 20px 0;
 }
 .toolsButton .en {
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
@@ -2807,11 +2811,13 @@ a.resourcesLink {
   /*float: right;*/
   color: #ccc;
   font-size: 22px;
+  margin-right: 15px;
 }
 .toolsButton img.toolsButtonIcon {
   width: 22px;
   height: 22px;
   opacity: 0.2;
+  vertical-align: middle;
 }
 /*.hebrew .toolsButton .toolsButtonIcon {
   float: left;

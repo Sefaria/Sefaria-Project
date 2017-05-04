@@ -2344,12 +2344,14 @@ var ReaderPanel = React.createClass({
         settings: this.state.settings,
         setOption: this.setOption,
         setConnectionsMode: this.setConnectionsMode,
+        setConnectionsCategory: this.setConnectionsCategory,
         openMenu: this.openMenu,
         closeMenus: this.closeMenus,
         openDisplaySettings: this.openDisplaySettings,
         currentLayout: this.currentLayout,
         onError: this.onError,
         connectionsMode: this.state.filter.length && this.state.connectionsMode === "Connections" ? "Connection Text" : this.state.connectionsMode,
+        connectionsCategory: this.state.connectionsCategory,
         closePanel: this.props.closePanel,
         toggleLanguage: this.toggleLanguage,
         interfaceLang: this.props.interfaceLang }),
@@ -2381,6 +2383,7 @@ var ReaderControls = React.createClass({
     showBaseText: React.PropTypes.func.isRequired,
     setOption: React.PropTypes.func.isRequired,
     setConnectionsMode: React.PropTypes.func.isRequired,
+    setConnectionsCategory: React.PropTypes.func.isRequired,
     openMenu: React.PropTypes.func.isRequired,
     openDisplaySettings: React.PropTypes.func.isRequired,
     closeMenus: React.PropTypes.func.isRequired,
@@ -2395,6 +2398,7 @@ var ReaderControls = React.createClass({
     version: React.PropTypes.string,
     versionLanguage: React.PropTypes.string,
     connectionsMode: React.PropTypes.string,
+    connectionsCategory: React.PropTypes.string,
     multiPanel: React.PropTypes.bool,
     interfaceLang: React.PropTypes.string
   },
@@ -2438,7 +2442,9 @@ var ReaderControls = React.createClass({
       { className: 'readerTextToc' },
       React.createElement(ConnectionsPanelHeader, {
         connectionsMode: this.props.connectionsMode,
+        previousCategory: this.props.connectionsCategory,
         setConnectionsMode: this.props.setConnectionsMode,
+        setConnectionsCategory: this.props.setConnectionsCategory,
         closePanel: this.props.closePanel,
         toggleLanguage: this.props.toggleLanguage,
         interfaceLang: this.props.interfaceLang })
@@ -8349,8 +8355,9 @@ var ConnectionsPanelHeader = React.createClass({
 
   propTypes: {
     connectionsMode: React.PropTypes.string.isRequired, // "Resources", "ConnectionsList", "TextList" etc
-    breadcrumbs: React.PropTypes.array,
+    previousCategory: React.PropTypes.string,
     setConnectionsMode: React.PropTypes.func.isRequired,
+    setConnectionsCategory: React.PropTypes.func.isRequired,
     closePanel: React.PropTypes.func.isRequired,
     toggleLanguage: React.PropTypes.func.isRequired,
     interfaceLang: React.PropTypes.string.isRequired
@@ -8369,6 +8376,23 @@ var ConnectionsPanelHeader = React.createClass({
           'div',
           { className: 'int-he' },
           'משאבים'
+        ) : null
+      );
+    } else if (this.props.previousCategory && this.props.connectionsMode == "TextList") {
+      var title = React.createElement(
+        'div',
+        { className: 'connectionsHeaderTitle active', onClick: this.props.setConnectionsCategory.bind(null, this.props.previousCategory) },
+        this.props.interfaceLang == "english" ? React.createElement(
+          'div',
+          { className: 'int-en' },
+          React.createElement('i', { className: 'fa fa-chevron-left' }),
+          this.props.previousCategory
+        ) : null,
+        this.props.interfaceLang == "hebrew" ? React.createElement(
+          'div',
+          { className: 'int-he' },
+          React.createElement('i', { className: 'fa fa-chevron-right' }),
+          Sefaria.hebrewTerm(this.props.previousCategory)
         ) : null
       );
     } else {
@@ -8414,14 +8438,14 @@ var ResourcesList = React.createClass({
     return React.createElement(
       'div',
       { className: 'resourcesList' },
-      React.createElement(ToolsButton, { en: 'Other Text', he: 'השווה', image: 'tools-compare.svg', onClick: this.props.openComparePanel }),
-      React.createElement(ToolsButton, { en: 'Sheets', he: 'הוסף לדף מקורות', image: 'tools-add-to-sheet.svg', onClick: function () {
+      React.createElement(ToolsButton, { en: 'Other Text', he: 'השווה', icon: 'search', onClick: this.props.openComparePanel }),
+      React.createElement(ToolsButton, { en: 'Sheets', he: 'הוסף לדף מקורות', image: 'sheet.svg', onClick: function () {
           this.props.setConnectionsMode("Add to Source Sheet");
         }.bind(this) }),
-      React.createElement(ToolsButton, { en: 'Notes', he: 'הרשומות שלי', image: 'tools-my-notes.svg', onClick: function () {
+      React.createElement(ToolsButton, { en: 'Notes', he: 'הרשומות שלי', image: 'tools-write-note.svg', onClick: function () {
           this.props.setConnectionsMode("My Notes");
         }.bind(this) }),
-      React.createElement(ToolsButton, { en: 'Tools', he: 'הרשומות שלי', image: 'tools-my-notes.svg', onClick: function () {
+      React.createElement(ToolsButton, { en: 'Tools', he: 'הרשומות שלי', icon: 'gear', onClick: function () {
           this.props.setConnectionsMode("Tools");
         }.bind(this) })
     );
@@ -8592,7 +8616,7 @@ var TextFilter = React.createClass({
     var name = this.props.book == this.props.category ? this.props.book.toUpperCase() : this.props.book;
     var count = this.props.hideCounts || !this.props.count ? "" : React.createElement(
       'span',
-      { className: 'enInHe' },
+      { className: 'enInHe connectionsCount' },
       ' (',
       this.props.count,
       ')'
@@ -9410,17 +9434,17 @@ var ToolsButton = React.createClass({
     return React.createElement(
       'div',
       { className: 'toolsButton sans noselect', onClick: this.props.onClick },
+      icon,
       React.createElement(
-        'div',
+        'span',
         { className: 'int-en noselect' },
         this.props.en
       ),
       React.createElement(
-        'div',
+        'span',
         { className: 'int-he noselect' },
         this.props.he
-      ),
-      icon
+      )
     );
   }
 });
