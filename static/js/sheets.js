@@ -3970,7 +3970,7 @@ function resetHighlighterInteractivity() {
 		});
 
 		$(".highlighter .he, .highlighter .en").on("mouseup", '.highlighterSegment', function(e) {
-			if ($(e.target).attr('data-tag')) { //if clicking on a highlight that already is tagged, select whole highlight and open window.
+			if ($(e.target).attr('data-tag') && !$(e.target).hasClass("noSelect") ) { //if clicking on a highlight that already is tagged, select whole highlight and open window.
 				var range = document.createRange();
 				range.selectNodeContents(e.currentTarget);
 				var sel = window.getSelection();
