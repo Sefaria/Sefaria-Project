@@ -21,6 +21,7 @@ class SpellChecker(object):
 
     def __init__(self, lang):
         assert lang in ["en", "he"]
+        self.lang = lang
         if lang == "en":
             self.letters = u'abcdefghijklmnopqrstuvwxyz'
         else:
@@ -34,10 +35,14 @@ class SpellChecker(object):
     def train_phrases(self, phrases):
         for p in phrases:
             for w in self.words(p):
+                if self.lang == "he":
+                    w = hebrew.normalize_final_letters_in_str(w)
                 self.WORDS[w] += 1
 
     def train_words(self, words):
         for w in words:
+            if self.lang == "he":
+                w = hebrew.normalize_final_letters_in_str(w)
             self.WORDS[w] += 1
 
     def _edits1(self, word):
@@ -54,9 +59,24 @@ class SpellChecker(object):
         return (e2 for e1 in self._edits1(word) for e2 in self._edits1(e1) if e2 in self.WORDS)
 
     def _known(self, words):
-        "The subset of `words` that appear in the dictionary of WORDS."
+        """The subset of `words` that appear in the dictionary of WORDS."""
         return set(w for w in words if w in self.WORDS)
 
+    """
+    Do we need this, as well as correct_token?
+    def candidates(self, word):
+        return self._known([word]) or self._known(self._edits1(word)) or self._known_edits2(word) or [word]
+    """
+
+    def correct_token(self, token):
+        candidates = self._known([token]) or self._known(self._edits1(token)) or self._known_edits2(token) or [token]
+        return max(candidates, key=self.WORDS.get)
+
+    def correct_phrase(self, text):
+        if self.lang == "he":
+            text = hebrew.normalize_final_letters_in_str(text)
+        tokens = self.words(text)
+        return [self.correct_token(token) for token in tokens]
 
     """
     def P(word, N=sum(WORDS.values())):
@@ -71,5 +91,4 @@ class SpellChecker(object):
         return (known([word]) or known(edits1(word)) or known(edits2(word)) or [word])
 
     """
-
 

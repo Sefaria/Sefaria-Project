@@ -22,6 +22,7 @@ except ImportError:
 
 from . import abstract as abst
 from schema import deserialize_tree, SchemaNode, JaggedArrayNode, TitledTreeNode, AddressTalmud, TermSet, TitleGroup
+from autospell import SpellChecker
 
 import sefaria.system.cache as scache
 from sefaria.system.exceptions import InputError, BookNameError, PartialRefInputError, IndexSchemaError, NoVersionFoundError
@@ -30,7 +31,6 @@ from sefaria.utils.hebrew import is_hebrew, hebrew_term
 from sefaria.utils.util import list_depth
 from sefaria.datatype.jagged_array import JaggedTextArray, JaggedArray
 from sefaria.settings import DISABLE_INDEX_SAVE, USE_VARNISH
-
 
 """
                 ----------------------------------
@@ -3655,7 +3655,7 @@ class Library(object):
         # Maps, keyed by language, from titles to schema nodes
         self._title_node_maps = {lang:{} for lang in self.langs}
 
-        # Lists of full titles, keys are string generated from a combination of language code, "commentators", "commentary", and "terms".  See method `full_title_list()`
+        # Lists of full titles, keys are string generated from a combination of language code and "terms".  See method `full_title_list()`
         # Contains a list of only those titles from which citations are recognized in the auto-linker. Keyed by "citing-<lang>"
         self._full_title_lists = {}
 
@@ -3679,6 +3679,9 @@ class Library(object):
         self._search_filter_toc_json = None
         self._category_id_dict = None
         self._toc_size = 16
+
+        # Spell Checking and Autocompleting
+        self._spell_checker = {}
 
         if not hasattr(sys, '_doc_build'):  # Can't build cache without DB
             self._build_core_maps()
@@ -3785,6 +3788,19 @@ class Library(object):
                 self._search_filter_toc_json = json.dumps(self.get_search_filter_toc())
                 scache.set_cache_elem('search_filter_toc_json_cache', self._search_filter_toc_json)
         return self._search_filter_toc_json
+
+    def build_autospell(self):
+        self._spell_checker = {lang: SpellChecker(lang) for lang in self.langs}
+        for lang in self.langs:
+            sc = SpellChecker(lang)
+            sc.train_phrases(self.full_title_list(lang, False))  # With terms?
+            self._spell_checker[lang] = sc
+
+    def correct_phrase(self, phrase):
+        if not self._spell_checker:
+            self.build_autospell()  # better to do this at build time
+        sc = self._spell_checker["he" if is_hebrew(phrase) else "en"]
+        return sc.correct_phrase(phrase)
 
     def recount_index_in_toc(self, indx):
         from sefaria.summaries import update_title_in_toc
