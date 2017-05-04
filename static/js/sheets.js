@@ -1865,9 +1865,11 @@ $(function() {
 			$(this).addClass('active');
 			$(".createNewHighlighterTag .colorSwatch").hide();
 			$(".createNewHighlighterTag .colorSwatch.active").css("display","inline-block");
+			$(this).siblings('.tagName').eq(0).show();
 		}
 		else {
 			$(".createNewHighlighterTag .colorSwatch").css("display","inline-block");
+			$(this).siblings('.tagName').eq(0).hide();
 		}
 	});
 
