@@ -1819,6 +1819,8 @@ $(function() {
 
 	});
 
+	$(".highlighterTagWindow").on('click','.close-button', function() {closeHighlighterTagWindow()});
+
 
 
 	function saveNewlyCreatedTag(newTagName,newTagColor) {
@@ -1877,9 +1879,7 @@ $(function() {
 		else {
 			splitSelectedText(window.getSelection(), $(".splitHighlighterSegment.active").find('.tagName').text(), $(".splitHighlighterSegment.active").find('.colorSwatch').css('background-color'));
 		}
-		$("#tempSelectOverride").remove();
-		$(".highlighterTagWindow").hide();
-		$(".splitHighlighterSegment").removeClass('active');
+	closeHighlighterTagWindow();
 	});
 
 
@@ -1941,10 +1941,8 @@ $(function() {
 				$(curHighlighterSegment.parent()).text(textBefore);
 			}
 			resetHighlighterInteractivity();
-			$(".highlighterTagWindow").hide();
-			$(".splitHighlighterSegment").removeClass('active');
+			closeHighlighterTagWindow();
 			$(".highlighterSegment:empty").remove();
-			$("#tempSelectOverride").remove();
 			mergeSameClassAdjacentHighlighterSegments();
 	}
 
@@ -3090,7 +3088,7 @@ function buildSource($target, source, appendOrInsert) {
 				}
 
 
-				enHighlighterHTML = enHighlighterHTML + '<div class="highlighterSegment" '+ highlighterTagColorHTML + highlighterTagHTML  +'">'+source.highlighter.en[i].text+'</div>'
+				enHighlighterHTML = enHighlighterHTML + '<div class="highlighterSegment" '+ highlighterTagColorHTML + highlighterTagHTML  +'>'+source.highlighter.en[i].text+'</div>'
 			}
 
 			for (var i = 0; i < source.highlighter.he.length; i++) {
@@ -3102,7 +3100,7 @@ function buildSource($target, source, appendOrInsert) {
 				}
 
 
-				heHighlighterHTML = heHighlighterHTML + '<div class="highlighterSegment" '+ highlighterTagColorHTML + highlighterTagHTML  +'">'+source.highlighter.he[i].text+'</div>'
+				heHighlighterHTML = heHighlighterHTML + '<div class="highlighterSegment" '+ highlighterTagColorHTML + highlighterTagHTML  +'>'+source.highlighter.he[i].text+'</div>'
 			}
 
 			$(".highlighter .en").last().html(enHighlighterHTML);
@@ -3541,7 +3539,7 @@ function rebuildUpdatedSheet(data) {
 	}
 
 	if (data.options.highlightMode)    { $("#highlightToggle").trigger("click"); }
-	$(".highlighterTagWindow").hide();
+	closeHighlighterTagWindow();
 	resetSplitHighlighterSegment();
 	resetHighlighterFilterTags();
 	resetHighlighterInteractivity();
@@ -3964,9 +3962,7 @@ function resetHighlighterInteractivity() {
 		$(".highlighter .he, .highlighter .en").on("mousedown", '.highlighterSegment', function() {
 			$(".highlighterSegment").removeClass("noSelect");
 			$(".highlighterSegment").not(this).addClass("noSelect");
-			$(".highlighterTagWindow").hide();
-			$("#tempSelectOverride").remove();
-			$(".splitHighlighterSegment").removeClass('active');
+			closeHighlighterTagWindow();
 		});
 
 		$(".highlighter .he, .highlighter .en").on("mouseup", '.highlighterSegment', function(e) {
@@ -3996,6 +3992,11 @@ function resetHighlighterInteractivity() {
 	}
 }
 
+function closeHighlighterTagWindow() {
+	$("#tempSelectOverride").remove();
+	$(".highlighterTagWindow").hide();
+	$(".splitHighlighterSegment").removeClass('active');
+}
 
 function resetHighlighterFilterTags() {
 	$(".highlighterFilterTags").off();
