@@ -1803,7 +1803,7 @@ class Ref(object):
         """
         self.index = None
         self.book = None
-        self.primary_category = None #used to be named 'type' but that was very confusing
+        self.primary_category = None  # used to be named 'type' but that was very confusing
         self.sections = []
         self.toSections = []
         self.index_node = None
@@ -1958,20 +1958,25 @@ class Ref(object):
                 self.book = self.index_node.full_title("en")
             return
 
+        reg = None
         try:
             reg = self.index_node.full_regex(title, self._lang)  # Try to treat this as a JaggedArray
         except AttributeError:
-            # We matched a schema node followed by an illegal number. (Are there other cases here?)
-            matched = self.index_node.full_title(self._lang)
-            msg = u"Partial reference match for '{}' - failed to find continuation for '{}'.\nValid continuations are:\n".format(self.tref, matched)
-            continuations = []
-            for child in self.index_node.children:
-                continuations += child.all_node_titles(self._lang)
-            msg += u",\n".join(continuations)
-            raise PartialRefInputError(msg, matched, continuations)
+            if self.index.has_alt_structures():
+                # Give an opportunity for alt structure parsing, below
+                pass
+            else:
+                # We matched a schema node followed by an illegal number. (Are there other cases here?)
+                matched = self.index_node.full_title(self._lang)
+                msg = u"Partial reference match for '{}' - failed to find continuation for '{}'.\nValid continuations are:\n".format(self.tref, matched)
+                continuations = []
+                for child in self.index_node.children:
+                    continuations += child.all_node_titles(self._lang)
+                msg += u",\n".join(continuations)
+                raise PartialRefInputError(msg, matched, continuations)
 
         # Numbered Structure node - try numbered structure parsing
-        if self.index_node.children and getattr(self.index_node, "_addressTypes", None):
+        if reg and self.index_node.children and getattr(self.index_node, "_addressTypes", None):
             try:
                 struct_indexes = self.__get_sections(reg, base)
                 self.index_node = reduce(lambda a, i: a.children[i], [s - 1 for s in struct_indexes], self.index_node)
@@ -1987,7 +1992,7 @@ class Ref(object):
             return
 
         # Content node -  Match primary structure address (may be stage two of numbered structure parsing)
-        if not self.index_node.children and getattr(self.index_node, "_addressTypes", None):
+        if reg and not self.index_node.children and getattr(self.index_node, "_addressTypes", None):
             try:
                 self.sections = self.__get_sections(reg, base)
             except InputError:
@@ -2027,11 +2032,14 @@ class Ref(object):
                                 pass
 
                         # Alt struct map node -  (may be stage two of numbered structure parsing)
-                        if title == base:  #not a repetition of similar test above - title may have changed in numbered structure parsing
+                        if title == base:  # not a repetition of similar test above - title may have changed in numbered structure parsing
                             alt_struct_indexes = []
                         else:
-                            alt_struct_indexes = self.__get_sections(reg, base)
-                        new_tref = alt_struct_node.get_ref_from_sections(alt_struct_indexes)
+                            alt_struct_indexes = self.__get_sections(reg, base, use_node=alt_struct_node)
+                        try:
+                            new_tref = alt_struct_node.get_ref_from_sections(alt_struct_indexes)
+                        except IndexError:
+                            raise InputError(u"Sections {} not found in {}".format(alt_struct_indexes, alt_struct_node.full_title()))
                         if new_tref:
                             self.__reinit_tref(new_tref)
                             return
@@ -3893,7 +3901,7 @@ class Library(object):
 
         self.remove_index_record_from_cache(index_object, old_title=old_title, rebuild=False)
         new_index = None
-        new_index = Index().load({"title":index_object.title})
+        new_index = Index().load({"title": index_object.title})
         assert new_index, u"No Index record found for {}: {}".format(index_object.__class__.__name__, index_object.title)
         self.add_index_record_to_cache(new_index, rebuild=True)
 
