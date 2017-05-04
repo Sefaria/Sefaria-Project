@@ -16,7 +16,9 @@ import math
 ### Change to all caps for constants
 GERESH = u"\u05F3"
 GERSHAYIM = u"\u05F4"
-
+ALPHABET_22 = u"אבגדהוזחטיכלמנסעפצקרשת"
+FINAL_LETTERS = u"םןץףך"
+ALPHABET_27 = ALPHABET_22 + FINAL_LETTERS
 
 def heb_to_int(unicode_char):
 	"""Converts a single Hebrew unicode character into its Hebrew numerical equivalent."""
@@ -308,8 +310,27 @@ def decompose_presentation_forms(orig_char):
 presentation_re = re.compile(ur"[\uFB1D-\uFB4F]")
 
 def decompose_presentation_forms_in_str(orig_str):
-	return presentation_re.sub(lambda match: decompose_presentation_forms(match.group()),orig_str)
+	return presentation_re.sub(lambda match: decompose_presentation_forms(match.group()), orig_str)
 
+
+def normalize_final_letters(orig_char):
+
+	decomp_map = {
+		u"\u05DA": u"\u05DB",		# khaf sofit
+		u"\u05DD": u"\u05DE",		# mem sofit
+		u"\u05DF": u"\u05E0", 		# nun sofit
+		u"\u05E3": u"\u05E4", 		# peh sofit
+		u"\u05E5": u"\u05E6", 		# tzadi sofit
+	}
+
+	if isinstance(orig_char, str): #needs to be unicode
+		orig_char = unicode(orig_char, 'utf-8')
+	return decomp_map.get(orig_char, u'')
+
+final_letter_re = re.compile(u"[" + FINAL_LETTERS + u"]")
+
+def normalize_final_letters_in_str(orig_str):
+	return final_letter_re.sub(lambda match: normalize_final_letters(match.group()), orig_str)
 
 
 def encode_small_hebrew_numeral(n):
