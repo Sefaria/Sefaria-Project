@@ -35,7 +35,7 @@ import sefaria.model.queue as qu
 
 
 pagerank_dict = {r: v for r, v in json.load(open(STATICFILES_DIRS[0] + "pagerank.json","rb"))}
-sheetrank_dict = json.load(open("sheetrank.json", "rb"))
+sheetrank_dict = json.load(open(STATICFILES_DIRS[0] + "sheetrank.json", "rb"))
 all_gemara_indexes = library.get_indexes_in_category("Bavli")
 davidson_indexes = all_gemara_indexes[:all_gemara_indexes.index("Bava Batra") + 1]
 
@@ -239,7 +239,7 @@ def make_text_index_document(tref, version, lang):
         "order": oref.order_id(),
         "path": "/".join(categories + [oref.index.title]),
         "pagerank": math.log(pagerank_dict[oref.section_ref().normal()]) + 20 if oref.section_ref().normal() in pagerank_dict else 1.0,
-        "sheetrank": (1.0 + sheetrank_dict[seg_ref.normal()] / 5)**2 if seg_ref.normal() in sheetrank_dict else (1.0 / 5) ** 2,
+        "sheetrank": (1.0 + sheetrank_dict[seg_ref.normal()]["count"] / 5)**2 if seg_ref.normal() in sheetrank_dict else (1.0 / 5) ** 2,
         "comp_date": comp_start_date,
         "hebmorph_standard": content_wo_cant,
         "hebmorph_semi_exact": content_wo_cant,
