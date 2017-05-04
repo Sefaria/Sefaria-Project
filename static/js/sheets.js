@@ -1877,6 +1877,7 @@ $(function() {
 		else {
 			splitSelectedText(window.getSelection(), $(".splitHighlighterSegment.active").find('.tagName').text(), $(".splitHighlighterSegment.active").find('.colorSwatch').css('background-color'));
 		}
+		$("#tempSelectOverride").remove();
 		$(".highlighterTagWindow").hide();
 		$(".splitHighlighterSegment").removeClass('active');
 	});
@@ -1943,6 +1944,7 @@ $(function() {
 			$(".highlighterTagWindow").hide();
 			$(".splitHighlighterSegment").removeClass('active');
 			$(".highlighterSegment:empty").remove();
+			$("#tempSelectOverride").remove();
 			mergeSameClassAdjacentHighlighterSegments();
 	}
 
@@ -3921,10 +3923,12 @@ function resetSplitHighlighterSegment() {
 	$(".sheetHighlighterTags").on('click', '.splitHighlighterSegment', function() {
 		if ($(this).hasClass("active")) {
 			$(".splitHighlighterSegment").removeClass('active');
+			injectSelectionColor("#D2DCFF");
 		}
 		else {
 			$(".splitHighlighterSegment").removeClass('active');
 			$(this).addClass('active');
+			injectSelectionColor($(this).find('.colorSwatch.active').css('background-color'));
 		}
 	});
 	$(".splitHighlighterSegment").off();
@@ -3942,7 +3946,15 @@ function resetSplitHighlighterSegment() {
 	});
 }
 
-
+function injectSelectionColor(color) {
+	sel = window.getSelection();
+	sel.removeAllRanges();
+	$("#tempSelectOverride").remove();
+  var div = $("<div />", {
+    html: '&shy;<style id="tempSelectOverride">*::selection { background: '+color+'; }</style>'
+  }).appendTo("body");
+	setTimeout(function(){ sel.addRange(sjs.selection); }, 20);
+}
 
 function resetHighlighterInteractivity() {
 	if (sjs.is_owner) {
@@ -3953,6 +3965,7 @@ function resetHighlighterInteractivity() {
 			$(".highlighterSegment").removeClass("noSelect");
 			$(".highlighterSegment").not(this).addClass("noSelect");
 			$(".highlighterTagWindow").hide();
+			$("#tempSelectOverride").remove();
 			$(".splitHighlighterSegment").removeClass('active');
 		});
 
