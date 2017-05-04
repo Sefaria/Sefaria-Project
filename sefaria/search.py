@@ -226,6 +226,8 @@ def make_text_index_document(tref, version, lang):
     if oref.is_section_level():
         seg_ref = oref.all_subrefs()[0]
 
+    pagerank = math.log(pagerank_dict[oref.section_ref().normal()]) + 20 if oref.section_ref().normal() in pagerank_dict else 1.0
+    sheetrank = (1.0 + sheetrank_dict[seg_ref.normal()]["count"] / 5)**2 if seg_ref.normal() in sheetrank_dict else (1.0 / 5) ** 2
     return {
         "title": title, 
         "ref": oref.normal(),
@@ -238,8 +240,9 @@ def make_text_index_document(tref, version, lang):
         "categories": categories,
         "order": oref.order_id(),
         "path": "/".join(categories + [oref.index.title]),
-        "pagerank": math.log(pagerank_dict[oref.section_ref().normal()]) + 20 if oref.section_ref().normal() in pagerank_dict else 1.0,
-        "sheetrank": (1.0 + sheetrank_dict[seg_ref.normal()]["count"] / 5)**2 if seg_ref.normal() in sheetrank_dict else (1.0 / 5) ** 2,
+        "pagerank": pagerank,
+        "sheetrank": sheetrank,
+        "pagesheetrank": pagerank * sheetrank,
         "comp_date": comp_start_date,
         "hebmorph_standard": content_wo_cant,
         "hebmorph_semi_exact": content_wo_cant,
