@@ -2528,6 +2528,8 @@ function loadSource(data, $target, optionStr) {
 		$("html, body").animate({scrollTop: top}, 300);
 	}
 
+	if ($("#sheet").hasClass("highlightMode")) { fillEmptyHighlighterSegments() }
+
 	autoSave();
 }
 
