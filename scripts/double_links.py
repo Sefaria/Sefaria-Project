@@ -14,7 +14,8 @@ class DoubleLinks:
         self.general_auto_specific_manual = 0
         self.specific_auto_general_manual = 0
         self.both_manual = 0
-        
+        self.bad_ids = {}
+
 
     def get_doubles_for_delete(self, ref1, ref2):
         if ref1 not in self.all_links:
@@ -90,15 +91,14 @@ class DoubleLinks:
             self.midrash += 1
 
 
-
-    
     def get_links(self, category):
         ls = []
         indexes = library.get_indexes_in_category(category)
         for index in indexes:
             ls += LinkSet(Ref(index))
         return ls
-    
+
+
     
     def delete_links_and_output_results(self):
         how_many = 0
@@ -119,13 +119,59 @@ class DoubleLinks:
         print "Midrash links: {}".format(self.midrash)
 
 
+
+    def get_exact_doubles(self):
+        ls = LinkSet()
+        link_refs = {}
+        count = 0
+        for l in ls:
+            refs = tuple(sorted(l.refs))
+            if refs in link_refs:
+                count += 1
+                if refs not in self.bad_ids:
+                    prev = link_refs[refs]
+                    self.bad_ids[refs] = [l._id, prev]
+                else:
+                    self.bad_ids[refs].append(l._id)
+            else:
+                link_refs[refs] = l._id
+
+
+    def delete_exact_doubles(self):
+        total = 0
+        max_num = 0
+        which_one = []
+        deleted_num = 0
+        for each in self.bad_ids:
+            ids = self.bad_ids[each]
+            if len(ids) > max_num:
+                max_num = len(ids)
+                which_one = ids[0]
+            for id in ids[1:]:
+                l = Link().load({"_id": id})
+                assert l
+                l.delete()
+                deleted_num += 1
+            total += len(ids)
+
+
+        print "Number of refs that have more than one link: {}".format(len(self.bad_ids))
+        print "Number of links deleted: {}".format(deleted_num)
+        print "Number of links total: {}".format(total)
+        print "ID {} of Ref with {} links.".format(which_one, max_num)
+
+
+
+
 if __name__ == "__main__":
-    invalid_refs = open("invalid refs.txt", 'w')
+    DL = DoubleLinks()
+    DL.get_exact_doubles()
+    DL.delete_exact_doubles()
+
+
     count = 0
     category = "Tanakh"
     delete = True
-    DL = DoubleLinks()
-
     for l in DL.get_links(category):
         count += 1
         if count % 10000 == 0:
@@ -135,12 +181,10 @@ if __name__ == "__main__":
         try:
             ref1 = Ref(ref1)
         except InputError:
-            invalid_refs.write(ref1+"\n")
             invalid = True
         try:
             ref2 = Ref(ref2)
         except InputError:
-            invalid_refs.write(ref2+"\n")
             invalid = True
 
         if not invalid:
@@ -152,7 +196,3 @@ if __name__ == "__main__":
                 assert ref1.primary_category == ref2.primary_category == category
 
     DL.delete_links_and_output_results()
-
-
-    invalid_refs.close()
-
