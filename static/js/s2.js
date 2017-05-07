@@ -92,6 +92,9 @@ var ReaderApp = React.createClass({
           versionLanguage: initialPanel.versionLanguage || null,
           searchQuery: this.props.initialQuery,
           appliedSearchFilters: this.props.initialSearchFilters,
+          navigationCategories: this.props.initialNavigationCategories,
+          sheetsTag: this.props.initialSheetsTag,
+          group: this.props.initialGroup,
           settings: Sefaria.util.clone(defaultPanelSettings)
         };
         if (panels[0].versionLanguage) {
@@ -1112,26 +1115,24 @@ var ReaderApp = React.createClass({
   },
   showSheets: function showSheets() {
     var updates = { menuOpen: "sheets" };
-    if (this.props.multiPanel) {
-      this.setHeaderState(updates);
-    } else {
-      this.setPanelState(0, updates);
-    }
+    this.setStateInHeaderOrSinglePanel(updates);
   },
   showMySheets: function showMySheets() {
     var updates = { menuOpen: "sheets", navigationSheetTag: "My Sheets" };
-    if (this.props.multiPanel) {
-      this.setHeaderState(updates);
-    } else {
-      this.setPanelState(0, updates);
-    }
+    this.setStateInHeaderOrSinglePanel(updates);
   },
   showMyGroups: function showMyGroups() {
     var updates = { menuOpen: "myGroups" };
+    this.setStateInHeaderOrSinglePanel(updates);
+  },
+  setStateInHeaderOrSinglePanel: function setStateInHeaderOrSinglePanel(state) {
+    // Updates state in the header panel if we're in mutli-panel, else in the first panel if we're in single panel
+    // If we're in single panel mode but `this.state.panels` is empty, make a default first panel
     if (this.props.multiPanel) {
-      this.setHeaderState(updates);
+      this.setHeaderState(state);
     } else {
-      this.setPanelState(0, updates);
+      state = this.makePanelState(state);
+      this.setState({ panels: [state] });
     }
   },
   saveRecentlyViewed: function saveRecentlyViewed(panel) {
@@ -1209,6 +1210,9 @@ var ReaderApp = React.createClass({
     var panels = [];
     for (var i = 0; i < panelStates.length; i++) {
       var panel = this.clonePanel(panelStates[i]);
+      if (!("settings" in panel)) {
+        debugger;
+      }
       var offset = widths.reduce(function (prev, curr, index, arr) {
         return index < i ? prev + curr : prev;
       }, 0);
@@ -1448,8 +1452,9 @@ var Header = React.createClass({
     }
 
     var index;
-    if (query in Sefaria.booksDict) {
-      index = Sefaria.index(query);
+    var normal_query = query.trim().toFirstCapital();
+    if (normal_query in Sefaria.booksDict) {
+      index = Sefaria.index(normal_query);
       if (!index && !skipNormalization) {
         Sefaria.normalizeTitle(query, function (title) {
           this.submitSearch(title, true, query);
@@ -1457,13 +1462,13 @@ var Header = React.createClass({
         return;
       }
     }
-    if (Sefaria.isRef(query)) {
+    if (Sefaria.isRef(normal_query)) {
       var action = index ? "Search Box Navigation - Book" : "Search Box Navigation - Citation";
       if (Sefaria.site) {
         Sefaria.site.track.event("Search", action, query);
       }
       this.clearSearchBox();
-      this.handleRefClick(query); //todo: pass an onError function through here to the panel onError function which redirects to search
+      this.handleRefClick(normal_query); //todo: pass an onError function through here to the panel onError function which redirects to search
     } else {
         if (Sefaria.site) {
           Sefaria.site.track.event("Search", "Search Box Search", query);
@@ -2152,6 +2157,7 @@ var ReaderPanel = React.createClass({
         multiPanel: this.props.multiPanel,
         mode: this.state.mode,
         settings: Sefaria.util.clone(this.state.settings),
+        interfaceLang: this.props.interfaceLang,
         setOption: this.setOption,
         showBaseText: this.showBaseText,
         updateTextColumn: this.updateTextColumn,
@@ -2287,7 +2293,7 @@ var ReaderPanel = React.createClass({
         setMySheetSort: this.setMySheetSort,
         setSheetTagSort: this.setSheetTagSort,
         setSheetTag: this.setSheetTag,
-        key: this.state.key });
+        key: "SheetsNav" });
     } else if (this.state.menuOpen === "account") {
       var menu = React.createElement(AccountPanel, {
         handleInAppLinkClick: this.props.handleInAppLinkClick,
@@ -2723,7 +2729,7 @@ var ReaderNavigationMenu = React.createClass({
       );
     } else {
       // Root Library Menu
-      var categories = ["Tanakh", "Mishnah", "Talmud", "Midrash", "Halakhah", "Kabbalah", "Liturgy", "Philosophy", "Tosefta", "Chasidut", "Musar", "Responsa", "Apocrypha", "Modern Works", "Other"];
+      var categories = ["Tanakh", "Mishnah", "Talmud", "Midrash", "Halakhah", "Kabbalah", "Liturgy", "Philosophy", "Tanaitic", "Chasidut", "Musar", "Responsa", "Apocrypha", "Modern Works", "Other"];
       categories = categories.map(function (cat) {
         var style = { "borderColor": Sefaria.palette.categoryColor(cat) };
         var openCat = function (e) {
@@ -4255,9 +4261,9 @@ var SchemaNode = React.createClass({
     refPath: React.PropTypes.string.isRequired
   },
   getInitialState: function getInitialState() {
-    var nChildren = "nodes" in this.props.schema ? this.props.schema.length : 0;
+    var nChildren = "nodes" in this.props.schema ? this.props.schema.nodes.length : 0;
     return {
-      collapsed: new Array(nChildren).fill(false)
+      collapsed: new Array(nChildren).fill(true)
     };
   },
   toggleCollapse: function toggleCollapse(i) {
@@ -4321,16 +4327,12 @@ var SchemaNode = React.createClass({
               React.createElement(
                 'span',
                 { className: 'he' },
-                node.heTitle,
-                ' ',
-                React.createElement('i', { className: 'schema-node-control fa fa-angle-left' })
+                node.heTitle
               ),
               React.createElement(
                 'span',
                 { className: 'en' },
-                node.title,
-                ' ',
-                React.createElement('i', { className: 'schema-node-control fa fa-angle-right' })
+                node.title
               )
             )
           );
@@ -5107,7 +5109,7 @@ var CategoryAttribution = React.createClass({
       { className: 'categoryAttribution' },
       React.createElement(
         'a',
-        { href: attribution.link },
+        { href: attribution.link, className: 'outOfAppLink' },
         React.createElement(
           'span',
           { className: 'en' },
@@ -5243,6 +5245,7 @@ var SheetsNav = React.createClass({
         { className: 'readerNavTop searchOnly', key: 'navTop' },
         React.createElement(CategoryColorLine, { category: 'Sheets' }),
         React.createElement(ReaderNavigationMenuMenuButton, { onClick: this.props.openNav }),
+        React.createElement('div', { className: 'readerOptions' }),
         React.createElement(
           'h2',
           null,
@@ -5522,6 +5525,7 @@ var GroupPage = React.createClass({
     return {
       showTags: false,
       sheetFilterTag: null,
+      sheetSort: "date",
       tab: "sheets"
     };
   },
@@ -5536,21 +5540,30 @@ var GroupPage = React.createClass({
       Sefaria.groups(this.props.group, this.onDataLoad);
     }
   },
+  getData: function getData() {
+    return Sefaria.groups(this.props.group, this.state.sheetSort);
+  },
   setTab: function setTab(tab) {
     this.setState({ tab: tab });
   },
   toggleSheetTags: function toggleSheetTags() {
     this.state.showTags ? this.setState({ showTags: false }) : this.setState({ showTags: true });
   },
-  filterYourSheetsByTag: function filterYourSheetsByTag(tag) {
-    if (tag.tag == this.state.sheetFilterTag) {
+  setSheetTag: function setSheetTag(tag) {
+    this.setState({ sheetFilterTag: tag, showTags: false });
+  },
+  handleTagButtonClick: function handleTagButtonClick(tag) {
+    if (tag == this.state.sheetFilterTag) {
       this.setState({ sheetFilterTag: null, showTags: false });
     } else {
-      this.setState({ sheetFilterTag: tag.tag, showTags: false });
+      this.setSheetTag(tag);
     }
   },
+  changeSheetSort: function changeSheetSort(event) {
+    this.setState({ sheetSort: event.target.value });
+  },
   memberList: function memberList() {
-    var group = Sefaria.groups(this.props.group);
+    var group = this.getData();
     if (!group) {
       return null;
     }
@@ -5563,20 +5576,44 @@ var GroupPage = React.createClass({
     var members = group.members.map(function (member) {
       member.role = "Member";return member;
     });
+    var invitations = group.invitations.map(function (member) {
+      member.role = "Invitation";return member;
+    });
 
-    return admins.concat(publishers, members);
+    return admins.concat(publishers, members, invitations);
+  },
+  pinSheet: function pinSheet(sheetId) {
+    if (this.pinning) {
+      return;
+    }
+    $.post("/api/groups/" + this.props.group + "/pin-sheet/" + sheetId, function (data) {
+      if ("error" in data) {
+        alert(data.error);
+      } else {
+        Sefaria._groups[this.props.group] = data.group;
+        this.onDataLoad();
+      }
+      this.pinning = false;
+    }.bind(this)).fail(function () {
+      alert("There was an error pinning your sheet.");
+      this.pinning = false;
+    }.bind(this));
+    this.pinning = true;
   },
   render: function render() {
-    var group = Sefaria.groups(this.props.group);
+    var group = this.getData();
     var sheets = group ? group.sheets : null;
     var groupTagList = group ? group.tags : null;
     var members = this.memberList();
+    var isMember = members && members.filter(function (x) {
+      return x.uid == Sefaria._uid;
+    }).length !== 0;
     var isAdmin = group && group.admins.filter(function (x) {
       return x.uid == Sefaria._uid;
     }).length !== 0;
 
     groupTagList = groupTagList ? groupTagList.map(function (tag) {
-      var filterThisTag = this.filterYourSheetsByTag.bind(this, tag);
+      var filterThisTag = this.handleTagButtonClick.bind(this, tag.tag);
       var classes = classNames({ navButton: 1, sheetButton: 1, active: this.state.sheetFilterTag == tag.tag });
       return React.createElement(
         'div',
@@ -5592,7 +5629,14 @@ var GroupPage = React.createClass({
       return Sefaria.util.inArray(this.state.sheetFilterTag, sheet.tags) >= 0;
     }.bind(this)) : sheets;
     sheets = sheets ? sheets.map(function (sheet) {
-      return React.createElement(GroupSheetListing, { sheet: sheet, multiPanel: this.props.multiPanel, setSheetTag: this.props.setSheetTag });
+      return React.createElement(GroupSheetListing, {
+        sheet: sheet,
+        pinned: group.pinnedSheets.indexOf(sheet.id) != -1,
+        isAdmin: isAdmin,
+        multiPanel: this.props.multiPanel,
+        pinSheet: this.pinSheet.bind(null, sheet.id),
+        setSheetTag: this.setSheetTag,
+        key: sheet.id });
     }.bind(this)) : [React.createElement(LoadingMessage, null)];
 
     return React.createElement(
@@ -5679,10 +5723,10 @@ var GroupPage = React.createClass({
         this.state.tab == "sheets" ? React.createElement(
           'div',
           null,
-          groupTagList && groupTagList.length ? React.createElement(
+          sheets.length ? React.createElement(
             'h2',
             { className: 'splitHeader' },
-            React.createElement(
+            groupTagList && groupTagList.length ? React.createElement(
               'span',
               { className: 'filterByTag', onClick: this.toggleSheetTags },
               React.createElement(
@@ -5697,10 +5741,62 @@ var GroupPage = React.createClass({
                 'סנן לפי תווית',
                 React.createElement('i', { className: 'fa fa-angle-down' })
               )
+            ) : null,
+            React.createElement(
+              'span',
+              { className: 'int-en actionText' },
+              'Sort By:',
+              React.createElement(
+                'select',
+                { value: this.state.sheetSort, onChange: this.changeSheetSort },
+                React.createElement(
+                  'option',
+                  { value: 'date' },
+                  'Recent'
+                ),
+                React.createElement(
+                  'option',
+                  { value: 'alphabetical' },
+                  'Alphabetical'
+                ),
+                React.createElement(
+                  'option',
+                  { value: 'views' },
+                  'Most Viewed'
+                )
+              ),
+              ' ',
+              React.createElement('i', { className: 'fa fa-angle-down' })
+            ),
+            React.createElement(
+              'span',
+              { className: 'int-he actionText' },
+              'סנן לפי:',
+              React.createElement(
+                'select',
+                { value: this.state.sheetSort, onChange: this.changeSheetSort },
+                React.createElement(
+                  'option',
+                  { value: 'date' },
+                  'הכי חדש'
+                ),
+                React.createElement(
+                  'option',
+                  { value: 'alphabetical' },
+                  'Alphabetical'
+                ),
+                React.createElement(
+                  'option',
+                  { value: 'views' },
+                  'הכי נצפה'
+                )
+              ),
+              ' ',
+              React.createElement('i', { className: 'fa fa-angle-down' })
             )
           ) : null,
           this.state.showTags ? React.createElement(TwoOrThreeBox, { content: groupTagList, width: this.props.width }) : null,
-          sheets.length ? sheets : React.createElement(
+          sheets.length ? sheets : isMember ? React.createElement(
             'div',
             { className: 'emptyMessage' },
             React.createElement(
@@ -5725,6 +5821,19 @@ var GroupPage = React.createClass({
               ),
               '.'
             )
+          ) : React.createElement(
+            'div',
+            { className: 'emptyMessage' },
+            React.createElement(
+              'span',
+              { className: 'int-en' },
+              'There are no public sheets in this group yet.'
+            ),
+            React.createElement(
+              'span',
+              { className: 'int-he' },
+              'There are no public sheets in this group yet.'
+            )
           )
         ) : null,
         this.state.tab == "members" ? React.createElement(
@@ -5737,7 +5846,8 @@ var GroupPage = React.createClass({
               isAdmin: isAdmin,
               isSelf: member.uid == Sefaria._uid,
               groupName: this.props.group,
-              onDataChange: this.onDataLoad });
+              onDataChange: this.onDataLoad,
+              key: member.uid });
           }.bind(this))
         ) : null
       ),
@@ -5754,26 +5864,43 @@ var GroupSheetListing = React.createClass({
   displayName: 'GroupSheetListing',
 
   propTypes: {
-    sheet: React.PropTypes.object.isRequired
+    sheet: React.PropTypes.object.isRequired,
+    setSheetTag: React.PropTypes.func.isRequired,
+    pinSheet: React.PropTypes.func,
+    pinned: React.PropTypes.bool,
+    isAdmin: React.PropTypes.bool
   },
   render: function render() {
     var sheet = this.props.sheet;
     var title = sheet.title ? sheet.title.stripHtml() : "Untitled Source Sheet";
     var url = "/sheets/" + sheet.id;
 
-    if (sheet.tags === undefined) sheet.tags = [];
+    if (sheet.tags === undefined) {
+      sheet.tags = [];
+    }
     var tagString = sheet.tags.map(function (tag) {
       return React.createElement(SheetTagLink, { setSheetTag: this.props.setSheetTag, tag: tag, key: tag });
     }, this);
 
+    var pinButtonClasses = classNames({ groupSheetListingPinButton: 1, pinned: this.props.pinned, active: this.props.isAdmin });
+    var pinMessage = this.props.pinned && this.props.isAdmin ? "Pinned Sheet - click to unpin" : this.props.pinned ? "Pinned Sheet" : "Pin Sheet";
+    var pinButton = React.createElement(
+      'div',
+      { className: pinButtonClasses, onClick: this.props.isAdmin ? this.props.pinSheet : null },
+      React.createElement('img', { src: '/static/img/pin.svg', title: pinMessage })
+    );
+
     return React.createElement(
       'div',
       { className: 'sheet userSheet' },
+      pinButton,
       React.createElement(
         'a',
         { className: 'sheetTitle', href: url, key: url },
         title
       ),
+      ' ',
+      React.createElement(SheetAccessIcon, { sheet: sheet }),
       React.createElement(
         'div',
         null,
@@ -5800,19 +5927,48 @@ var GroupInvitationBox = React.createClass({
     groupName: React.PropTypes.string.isRequired,
     onDataChange: React.PropTypes.func.isRequired
   },
+  getInitialState: function getInitialState() {
+    return {
+      inviting: false,
+      message: null
+    };
+  },
   onInviteClick: function onInviteClick() {
-    this.inviteByEmail($("#groupInvitationInput").val());
+    if (!this.state.inviting) {
+      this.inviteByEmail($("#groupInvitationInput").val());
+    }
+  },
+  flashMessage: function flashMessage(message) {
+    this.setState({ message: message });
+    setTimeout(function () {
+      this.setState({ message: null });
+    }.bind(this), 3000);
   },
   inviteByEmail: function inviteByEmail(email) {
+    if (!this.validateEmail(email)) {
+      this.flashMessage("That isn't a valid email address.");
+      return;
+    }
+    this.setState({ inviting: true, message: "Inviting..." });
     $.post("/api/groups/" + this.props.groupName + "/invite/" + email, function (data) {
       if ("error" in data) {
         alert(data.error);
+        this.setState({ message: null, inviting: false });
       } else {
-        Sefaria._groups[data.name] = data;
+        Sefaria._groups[this.props.groupName] = data.group;
         $("#groupInvitationInput").val("");
+        this.flashMessage(data.message);
+        this.setState({ inviting: false });
         this.props.onDataChange();
       }
+    }.bind(this)).fail(function () {
+      alert("There was an error sending your invitation.");
+      this.setState({ message: null, inviting: false });
     }.bind(this));
+  },
+  validateEmail: function validateEmail(email) {
+    var re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+    return re.test(email);
   },
   render: function render() {
     return React.createElement(
@@ -5822,8 +5978,22 @@ var GroupInvitationBox = React.createClass({
       React.createElement(
         'div',
         { className: 'button', onClick: this.onInviteClick },
-        'Invite'
-      )
+        React.createElement(
+          'span',
+          { className: 'int-en' },
+          'Invite'
+        ),
+        React.createElement(
+          'span',
+          { className: 'int-he' },
+          'Invite'
+        )
+      ),
+      this.state.message ? React.createElement(
+        'div',
+        { className: 'groupInvitationBoxMessage' },
+        this.state.message
+      ) : null
     );
   }
 });
@@ -5839,6 +6009,13 @@ var GroupMemberListing = React.createClass({
     onDataChange: React.PropTypes.func
   },
   render: function render() {
+    if (this.props.member.role == "Invitation") {
+      return this.props.isAdmin ? React.createElement(GroupInvitationListing, {
+        member: this.props.member,
+        groupName: this.props.groupName,
+        onDataChange: this.props.onDataChange }) : null;
+    }
+
     return React.createElement(
       'div',
       { className: 'groupMemberListing' },
@@ -5871,6 +6048,41 @@ var GroupMemberListing = React.createClass({
   }
 });
 
+var GroupInvitationListing = React.createClass({
+  displayName: 'GroupInvitationListing',
+
+  propTypes: {
+    member: React.PropTypes.object.isRequired,
+    groupName: React.PropTypes.string,
+    onDataChange: React.PropTypes.func
+  },
+  render: function render() {
+    return React.createElement(
+      'div',
+      { className: 'groupMemberListing' },
+      React.createElement(
+        'span',
+        { className: 'groupInvitationListing' },
+        this.props.member.email
+      ),
+      React.createElement(
+        'div',
+        { className: 'groupMemberListingRoleBox' },
+        React.createElement(
+          'span',
+          { className: 'groupMemberListingRole' },
+          'Invited'
+        ),
+        React.createElement(GroupMemberListingActions, {
+          member: this.props.member,
+          groupName: this.props.groupName,
+          isInvitation: true,
+          onDataChange: this.props.onDataChange })
+      )
+    );
+  }
+});
+
 var GroupMemberListingActions = React.createClass({
   displayName: 'GroupMemberListingActions',
 
@@ -5879,11 +6091,13 @@ var GroupMemberListingActions = React.createClass({
     groupName: React.PropTypes.string.isRequired,
     isAdmin: React.PropTypes.bool,
     isSelf: React.PropTypes.bool,
+    isInvitation: React.PropTypes.bool,
     onDataChange: React.PropTypes.func.isRequired
   },
   getInitialState: function getInitialState() {
     return {
-      menuOpen: false
+      menuOpen: false,
+      invitationResent: false
     };
   },
   toggleMenu: function toggleMenu() {
@@ -5910,6 +6124,29 @@ var GroupMemberListingActions = React.createClass({
 
     if (confirm(message)) {
       this.setRole("remove");
+    }
+  },
+  resendInvitation: function resendInvitation() {
+    $.post("/api/groups/" + this.props.groupName + "/invite/" + this.props.member.email, function (data) {
+      if ("error" in data) {
+        alert(data.error);
+      } else {
+        Sefaria._groups[this.props.groupName] = data.group;
+        this.props.onDataChange();
+        this.setState({ "invitationResent": true });
+      }
+    }.bind(this));
+  },
+  removeInvitation: function removeInvitation() {
+    if (confirm("Are you sure you want to remove this invitation?")) {
+      $.post("/api/groups/" + this.props.groupName + "/invite/" + this.props.member.email + "/uninvite", function (data) {
+        if ("error" in data) {
+          alert(data.error);
+        } else {
+          Sefaria._groups[this.props.groupName] = data.group;
+          this.props.onDataChange();
+        }
+      }.bind(this));
     }
   },
   render: function render() {
@@ -5954,7 +6191,7 @@ var GroupMemberListingActions = React.createClass({
           ),
           '- can view & share within group'
         ) : null,
-        React.createElement(
+        this.props.isAdmin || this.props.isSelf ? React.createElement(
           'div',
           { className: 'action', onClick: this.removeMember },
           React.createElement(
@@ -5962,7 +6199,34 @@ var GroupMemberListingActions = React.createClass({
             { className: 'role' },
             this.props.isSelf ? "Leave Group" : "Remove"
           )
-        )
+        ) : null,
+        this.props.isInvitation && !this.state.invitationResent ? React.createElement(
+          'div',
+          { className: 'action', onClick: this.resendInvitation },
+          React.createElement(
+            'span',
+            { className: 'role' },
+            'Resend Invitation'
+          )
+        ) : null,
+        this.props.isInvitation && this.state.invitationResent ? React.createElement(
+          'div',
+          { className: 'action' },
+          React.createElement(
+            'span',
+            { className: 'role' },
+            'Invitation Resent'
+          )
+        ) : null,
+        this.props.isInvitation ? React.createElement(
+          'div',
+          { className: 'action', onClick: this.removeInvitation },
+          React.createElement(
+            'span',
+            { className: 'role' },
+            'Remove'
+          )
+        ) : null
       ) : null
     );
   }
@@ -6436,7 +6700,7 @@ var TagSheetsPage = React.createClass({
   render: function render() {
     var sheets = this.getSheetsFromCache();
     sheets = sheets ? sheets.map(function (sheet) {
-      return React.createElement(PublicSheetListing, { sheet: sheet });
+      return React.createElement(PublicSheetListing, { sheet: sheet, key: sheet.id });
     }) : React.createElement(LoadingMessage, null);
     return React.createElement(
       'div',
@@ -6698,7 +6962,7 @@ var MySheetsPage = React.createClass({
       return Sefaria.util.inArray(this.state.sheetFilterTag, sheet.tags) >= 0;
     }.bind(this)) : sheets;
     sheets = sheets ? sheets.map(function (sheet) {
-      return React.createElement(PrivateSheetListing, { sheet: sheet, multiPanel: this.props.multiPanel, setSheetTag: this.props.setSheetTag });
+      return React.createElement(PrivateSheetListing, { sheet: sheet, setSheetTag: this.props.setSheetTag, key: sheet.id });
     }.bind(this)) : React.createElement(LoadingMessage, null);
 
     var userTagList = this.getTagsFromCache();
@@ -6823,12 +7087,10 @@ var PrivateSheetListing = React.createClass({
 
   propTypes: {
     sheet: React.PropTypes.object.isRequired,
-    multiPanel: React.PropTypes.bool,
     setSheetTag: React.PropTypes.func.isRequired
   },
   render: function render() {
     var sheet = this.props.sheet;
-    var editSheetTags = function () {}.bind(this);
     var title = sheet.title ? sheet.title.stripHtml() : "Untitled Source Sheet";
     var url = "/sheets/" + sheet.id;
 
@@ -6837,73 +7099,43 @@ var PrivateSheetListing = React.createClass({
       return React.createElement(SheetTagLink, { setSheetTag: this.props.setSheetTag, tag: tag, key: tag });
     }, this);
 
-    if (this.props.multiPanel) {
-      return React.createElement(
-        'div',
-        { className: 'sheet userSheet', href: url, key: url },
-        React.createElement(
-          'a',
-          { className: 'sheetEditButtons', href: url },
-          React.createElement(
-            'span',
-            null,
-            React.createElement('i', { className: 'fa fa-pencil' }),
-            ' '
-          )
-        ),
-        React.createElement(
-          'div',
-          { className: 'sheetEditButtons', onClick: editSheetTags },
-          React.createElement(
-            'span',
-            null,
-            React.createElement('i', { className: 'fa fa-tag' }),
-            ' '
-          )
-        ),
-        React.createElement(
-          'a',
-          { className: 'sheetTitle', href: url },
-          title
-        ),
-        React.createElement(
-          'div',
-          null,
-          sheet.views,
-          ' Views · ',
-          sheet.modified,
-          ' · ',
-          React.createElement(
-            'span',
-            { className: 'tagString' },
-            tagString
-          )
-        )
-      );
-    } else {
-      return React.createElement(
+    return React.createElement(
+      'div',
+      { className: 'sheet userSheet', href: url, key: url },
+      React.createElement(
         'a',
-        { className: 'sheet userSheet', href: url, key: url },
+        { className: 'sheetTitle', href: url },
+        title
+      ),
+      '  ',
+      React.createElement(SheetAccessIcon, { sheet: sheet }),
+      React.createElement(
+        'div',
+        null,
+        sheet.views,
+        ' Views · ',
+        sheet.modified,
+        ' · ',
         React.createElement(
-          'div',
-          { className: 'sheetTitle' },
-          title
-        ),
-        React.createElement(
-          'div',
-          null,
-          sheet.views,
-          ' Views · ',
-          sheet.modified,
-          ' · ',
-          React.createElement(
-            'span',
-            { className: 'tagString' },
-            tagString
-          )
+          'span',
+          { className: 'tagString' },
+          tagString
         )
-      );
-    }
+      )
+    );
+  }
+});
+
+var SheetAccessIcon = React.createClass({
+  displayName: 'SheetAccessIcon',
+
+  propTypes: {
+    sheet: React.PropTypes.object.isRequired
+  },
+  render: function render() {
+    var sheet = this.props.sheet;
+    var msg = "group" in sheet ? "Listed for Group members only" : "Private";
+    return sheet.status == "unlisted" ? React.createElement('i', { className: 'fa fa-lock', title: msg }) : null;
   }
 });
 
@@ -7076,6 +7308,7 @@ var TextColumn = React.createClass({
     multiPanel: React.PropTypes.bool,
     mode: React.PropTypes.string,
     settings: React.PropTypes.object,
+    interfaceLang: React.PropTypes.string,
     showBaseText: React.PropTypes.func,
     updateTextColumn: React.PropTypes.func,
     onSegmentClick: React.PropTypes.func,
@@ -7094,6 +7327,7 @@ var TextColumn = React.createClass({
     node.addEventListener("scroll", this.handleScroll);
     this.setScrollPosition();
     this.adjustInfiniteScroll();
+    this.setPaddingForScrollbar();
   },
   componentWillUnmount: function componentWillUnmount() {
     var node = ReactDOM.findDOMNode(this);
@@ -7134,11 +7368,13 @@ var TextColumn = React.createClass({
     }
   },
   handleScroll: function handleScroll(event) {
+    //console.log("scroll");
     if (this.justScrolled) {
       this.justScrolled = false;
       return;
     }
     if (this.props.highlightedRefs.length) {
+      //console.log("Calling debouncedAdjustTextListHighlight");
       this.debouncedAdjustTextListHighlight();
     }
     this.adjustInfiniteScroll();
@@ -7338,6 +7574,17 @@ var TextColumn = React.createClass({
         $container.scrollTo($highlighted, 0, { offset: -offset });
       }
     }.bind(this));
+  },
+  setPaddingForScrollbar: function setPaddingForScrollbar() {
+    // Scrollbars take up spacing, causing the centering of TextColumn to be slightly off center
+    // compared to the header. This functions sets appropriate padding to compensate.
+    var width = Sefaria.util.getScrollbarWidth();
+    var $container = $(ReactDOM.findDOMNode(this));
+    if (this.props.interfaceLang == "hebrew") {
+      $container.css({ paddingRight: width, paddingLeft: 0 });
+    } else {
+      $container.css({ paddingRight: 0, paddingLeft: width });
+    }
   },
   render: function render() {
     var classes = classNames({ textColumn: 1, connectionsOpen: this.props.mode === "TextAndConnections" });
@@ -7685,7 +7932,7 @@ var TextRange = React.createClass({
       var ref = this.props.withContext ? data.sectionRef : data.ref;
       var sectionStrings = Sefaria.sectionString(ref);
       var oref = Sefaria.ref(ref);
-      var useShortString = oref && Sefaria.util.inArray(oref.primary_category, ["Tanakh", "Mishnah", "Talmud", "Tosefta", "Commentary"]) !== -1;
+      var useShortString = oref && Sefaria.util.inArray(oref.primary_category, ["Tanakh", "Mishnah", "Talmud", "Tanaitic", "Commentary"]) !== -1;
       var title = useShortString ? sectionStrings.en.numbered : sectionStrings.en.named;
       var heTitle = useShortString ? sectionStrings.he.numbered : sectionStrings.he.named;
     } else if (data && !this.props.basetext) {
@@ -10847,7 +11094,7 @@ var AccountPanel = React.createClass({
   },
   render: function render() {
     var width = typeof window !== "undefined" ? $(window).width() : 1000;
-    var accountContent = [React.createElement(BlockLink, { interfaceLink: true, target: '/my/profile', title: 'Profile', heTitle: 'פרופיל', image: '/static/img/profile.svg' }), React.createElement(BlockLink, { interfaceLink: true, target: '/sheets/private', inAppLink: true, title: 'Source Sheets', heTitle: 'דפי מקורות', image: '/static/img/sheet.svg' }), Sefaria.is_moderator || Sefaria.has_groups ? React.createElement(BlockLink, { interfaceLink: true, target: '/my/groups', inAppLink: true, title: 'Groups', heTitle: 'קבוצות', image: '/static/img/group.svg' }) : React.createElement(BlockLink, { interfaceLink: true, target: '/coming-soon?my-notes', title: 'Notes', heTitle: 'רשומות', image: '/static/img/note.svg' }), React.createElement(BlockLink, { interfaceLink: true, target: '/texts/recent', title: 'Reading History', heTitle: 'היסטורית קריאה', image: '/static/img/readinghistory.svg' }), React.createElement(BlockLink, { interfaceLink: true, target: '/settings/account', title: 'Settings', heTitle: 'הגדרות', image: '/static/img/settings.svg' }), React.createElement(BlockLink, { interfaceLink: true, target: '/logout', title: 'Log Out', heTitle: 'ניתוק', image: '/static/img/logout.svg' })];
+    var accountContent = [React.createElement(BlockLink, { interfaceLink: true, target: '/my/profile', title: 'Profile', heTitle: 'פרופיל', image: '/static/img/profile.svg' }), React.createElement(BlockLink, { interfaceLink: true, target: '/sheets/private', inAppLink: true, title: 'Source Sheets', heTitle: 'דפי מקורות', image: '/static/img/sheet.svg' }), React.createElement(BlockLink, { interfaceLink: true, target: '/my/groups', inAppLink: true, title: 'Groups', heTitle: 'קבוצות', image: '/static/img/group.svg' }), React.createElement(BlockLink, { interfaceLink: true, target: '/texts/recent', title: 'Reading History', heTitle: 'היסטורית קריאה', image: '/static/img/readinghistory.svg' }), React.createElement(BlockLink, { interfaceLink: true, target: '/settings/account', title: 'Settings', heTitle: 'הגדרות', image: '/static/img/settings.svg' }), React.createElement(BlockLink, { interfaceLink: true, target: '/logout', title: 'Log Out', heTitle: 'ניתוק', image: '/static/img/logout.svg' })];
     accountContent = React.createElement(TwoOrThreeBox, { content: accountContent, width: width });
 
     var learnContent = [React.createElement(BlockLink, { interfaceLink: true, target: '/about', title: 'About', heTitle: 'אודות' }), React.createElement(BlockLink, { interfaceLink: true, target: '/help', title: 'Help', heTitle: 'עזרה' }), React.createElement(BlockLink, { interfaceLink: true, target: 'http://blog.sefaria.org', title: 'Blog', heTitle: 'בלוג' }), React.createElement(BlockLink, { interfaceLink: true, target: '/faq', title: 'FAQ', heTitle: 'שאלות נפוצות' }), React.createElement(BlockLink, { interfaceLink: true, target: '/educators', title: 'Educators', heTitle: 'מחנכים' }), React.createElement(BlockLink, { interfaceLink: true, target: '/team', title: 'Team', heTitle: 'צוות' })];
@@ -11153,9 +11400,9 @@ var MyGroupsPanel = React.createClass({
           React.createElement(
             'div',
             { className: 'groupsList' },
-            groupsList ? groupsList.private.map(function (item) {
+            groupsList ? groupsList.private.length ? groupsList.private.map(function (item) {
               return React.createElement(GroupListing, { data: item });
-            }) : React.createElement(LoadingMessage, null)
+            }) : React.createElement(LoadingMessage, { message: 'You aren\'t a member of any groups yet.', heMessage: 'You aren\'t a member of any groups yet.' }) : React.createElement(LoadingMessage, null)
           )
         ),
         React.createElement(
@@ -12197,7 +12444,7 @@ var Footer = React.createClass({
         ),
         React.createElement(
           'a',
-          { href: '/educators', target: '_blank', className: 'outOfAppLink' },
+          { href: '/educators', className: 'outOfAppLink' },
           React.createElement(
             'span',
             { className: 'int-en' },

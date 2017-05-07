@@ -122,7 +122,7 @@ class AbstractMongoRecord(object):
 
         if self.track_pkeys and not is_new_obj and not override_dependencies:
             for key, old_value in self.pkeys_orig_values.items():
-                if old_value != getattr(self, key):
+                if old_value != getattr(self, key, None):
                     notify(self, "attributeChange", attr=key, old=old_value, new=getattr(self, key))
 
         if not override_dependencies:
@@ -437,9 +437,21 @@ def cascade(set_class, attr):
     See examples in dependencies.py
     :param set_class: The set class of the impacted model
     :param attr: The name of the impacted class attribute (fk) that holds the references to the changed attribute (pk)
+        There is support for nested attributes one level deep, e.g. "contents.value"
     :return: a function that will update 'attr' in 'set_class' and can be passed to subscribe()
     """
-    return lambda obj, **kwargs: set_class({attr: kwargs["old"]}).update({attr: kwargs["new"]})
+    attrs = attr.split(".")
+    if len(attrs) == 1:
+        return lambda obj, **kwargs: set_class({attr: kwargs["old"]}).update({attr: kwargs["new"]})
+    elif len(attrs) == 2:
+        def foo(obj, **kwargs):
+            for rec in set_class({attr: kwargs["old"]}):
+                new_dict = {k: (v if k != attrs[1] else kwargs["new"]) for k, v in getattr(rec, attrs[0]).items()}
+                setattr(rec, attrs[0], new_dict)
+                rec.save()
+        return foo
+    else:
+        raise InputError("cascade does not support attributes deeper than two levels")
 
 
 def cascade_to_list(set_class, attr):
@@ -463,6 +475,7 @@ def cascade_delete(set_class, fk_attr, pk_attr):
     See examples in dependencies.py
     :param set_class: The set class of the impacted model
     :param fk_attr: The name of the impacted class attribute (fk) that holds the references to the primary identifier (pk)
+            There is support for nested attributes of arbitrary depth - e.g. "contents.subcontents.value"
     :return: a function that will delete values of 'set_class' where 'attr' matches
     """
     return lambda obj, **kwargs: set_class({fk_attr: getattr(obj, pk_attr)}).delete()

@@ -442,8 +442,8 @@ Sefaria = extend(Sefaria, {
         callback(this._titleVariants[title]); 
     }
     else {
-        this._api("/api/index/" + title, function(data) {
-          for (var i = 0; i < data.titleVariants.length; i ++) {
+        this._api("/api/v2/index/" + title, function(data) {
+          for (var i = 0; i < data.titleVariants.length; i++) {
             Sefaria._titleVariants[data.titleVariants[i]] = data.title;
           }
           callback(data.title);
@@ -1236,19 +1236,48 @@ Sefaria = extend(Sefaria, {
     }
   },
   _groups: {},
-  groups: function(group, callback) {
+  groups: function(group, sortBy, callback) {
     // Returns data for an individual group
     var group = this._groups[group];
     if (group) {
+      this._sortSheets(group, sortBy);
       if (callback) { callback(group); }
     } else if (callback) {
       var url = "/api/groups/" + group;
        Sefaria._api(url, function(data) {
           this._groups[group] = data;
-           if (callback) { callback(data); }
+          this._sortSheets(data, sortBy);
+          callback(data);
         }.bind(this));
       }
     return group;
+  },
+  _sortSheets: function(group, sortBy) {
+    // Taks an object representing a group and sorts its sheets in place according to `sortBy`.
+    // Also honors ordering of any sheets in `group.pinned_sheets`
+    if (!group.sheets) { return; }
+
+    var sorters = {
+      date: function(a, b) {
+        return Date.parse(b.modified) - Date.parse(a.modified);
+      },
+      alphabetical: function(a, b) {
+        return a.title.stripHtml().trim() > b.title.stripHtml().trim() ? 1 : -1;
+      },
+      views: function(a, b) {
+        return b.views - a.views;
+      }
+    };
+    var sortPinned = function(a, b) {
+      var ai = group.pinnedSheets.indexOf(a.id);
+      var bi = group.pinnedSheets.indexOf(b.id);
+      if (ai == -1 && bi == -1) { return 0; }
+      if (ai == -1) { return 1; }
+      if (bi == -1) { return -1; }
+      return  ai < bi ? -1 : 1;
+    };
+    group.sheets.sort(sorters[sortBy]);
+    group.sheets.sort(sortPinned);
   },
   _groupsList: null,
   groupsList: function(callback) {
@@ -1466,7 +1495,7 @@ Sefaria = extend(Sefaria, {
   _makeBooksDict: function() {
     // Transform books array into a dictionary for quick lookup
     // Which is worse: the cycles wasted in computing this on the client
-    // or the bandwitdh wasted in letting the server computer once and trasmiting the same data twice in differnt form?
+    // or the bandwidth wasted in letting the server computer once and transmitting the same data twice in different form?
     this.booksDict = {};
     for (var i = 0; i < this.books.length; i++) {
       this.booksDict[this.books[i]] = 1;
@@ -2134,6 +2163,21 @@ Sefaria.util = {
                return container.nodeType === 3 ? container.parentNode : container;
             }   
         }
+    },
+    _scrollbarWidth: null,
+    getScrollbarWidth: function() {
+      // Returns the size of the browser scrollbars in pixels
+      // May be 0 for browser that hide scrollbars when not in use
+      if (Sefaria.util._scrollbarWidth !== null) {
+        return Sefaria.util._scrollbarWidth;
+      }
+      $("body").append(
+        '<div id="scrollbarTestA" style="display:none;overflow:scroll">' +
+          '<div id="scrollbarTestB"></div>' +
+        '</div>');
+        Sefaria.util._scrollbarWidth = $("#scrollbarTestA").width() - $("#scrollbarTestB").width();
+        $("#scrollbarTestA").remove();
+        return Sefaria.util._scrollbarWidth;
     }
 };
 
@@ -2433,7 +2477,7 @@ Sefaria.palette.categoryColors = {
   "Kabbalah":           Sefaria.palette.colors.purple,
   "Philosophy":         Sefaria.palette.colors.lavender,
   "Liturgy":            Sefaria.palette.colors.darkpink,
-  "Tosefta":            Sefaria.palette.colors.teal,
+  "Tanaitic":           Sefaria.palette.colors.teal,
   "Parshanut":          Sefaria.palette.colors.paleblue,
   "Chasidut":           Sefaria.palette.colors.lightgreen,
   "Musar":              Sefaria.palette.colors.raspberry,

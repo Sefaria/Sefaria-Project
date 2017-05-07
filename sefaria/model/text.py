@@ -692,6 +692,9 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
             toc_contents_dict["heCollectiveTitle"] = hebrew_term(self.collective_title)
         if hasattr(self, 'base_text_titles'):
             toc_contents_dict["base_text_titles"] = self.base_text_titles
+            if "collectiveTitle" not in toc_contents_dict:
+                toc_contents_dict["collectiveTitle"] = self.title
+                toc_contents_dict["heCollectiveTitle"] = self.get_title("he")
         if hasattr(self, 'base_text_mapping'):
             toc_contents_dict["base_text_mapping"] = self.base_text_mapping
 
@@ -2141,7 +2144,7 @@ class Ref(object):
         :return bool:
         """
         # TODO: -deprecate
-        return getattr(self.index, 'dependence', None).capitalize() == "Commentary"
+        return getattr(self.index, 'dependence', "").capitalize() == "Commentary"
 
     def is_dependant(self):
         return self.index.is_dependant_text()
@@ -3114,6 +3117,18 @@ class Ref(object):
                 return ["{}{}".format(escaped_book, p) for p in patterns]
             else:
                 return "%s(%s)" % (escaped_book, "|".join(patterns))
+
+
+    def ref_regex_query(self):
+        """
+        Convenience method to wrap the lines of logic used to generate a broken out list of ref queries from one regex. 
+        The regex in the list will naturally all be anchored. 
+        :return: dict of the form {"$or" [{"refs": {"$regex": r1}},{"refs": {"$regex": r2}}...]}
+        """
+        reg_list = self.regex(as_list=True)
+        ref_clauses = [{"refs": {"$regex": r}} for r in reg_list]
+        return {"$or": ref_clauses}
+
 
     """ Comparisons """
     def overlaps(self, other):
@@ -4108,7 +4123,6 @@ class Library(object):
 
         return IndexSet(q) if full_records else IndexSet(q).distinct("title")
 
-
     def get_indices_by_collective_title(self, collective_title, full_records=False):
         q = {'collective_title': collective_title}
         return IndexSet(q) if full_records else IndexSet(q).distinct("title")
@@ -4134,7 +4148,6 @@ class Library(object):
             from sefaria.utils.util import get_all_subclass_attribute
             q['base_text_mapping'] = {'$in': get_all_subclass_attribute(AbstractStructureAutoLinker, "class_key")}
         return IndexSet(q) if full_records else IndexSet(q).distinct("title")
-
 
     def get_titles_in_string(self, s, lang=None, citing_only=False):
         """

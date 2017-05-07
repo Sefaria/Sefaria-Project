@@ -29,7 +29,6 @@ class JaggedArray(object):
     def array(self):
         return self._store
 
-
     def is_first(self, indexes1, indexes2):
         """
 
@@ -568,8 +567,17 @@ class JaggedTextArray(JaggedArray):
         else:
             return 0
 
+    def modify_by_function(self, func, _cur=None):
+        """ Returns the jagged array but with each terminal string processed by func"""
+        if _cur is None:
+            return self.modify_by_function(func, _cur=self._store)
+        if isinstance(_cur, basestring):
+            return func(_cur)
+        elif isinstance(_cur, list):
+            return [self.modify_by_function(func, i) for i in _cur]
+
     def flatten_to_array(self, _cur=None):
-        # Identical to superclass, but coerces to string
+        # Flatten deep jagged array to flat array
 
         if _cur is None:
             if isinstance(self._store, basestring):
