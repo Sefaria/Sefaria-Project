@@ -624,7 +624,9 @@ var ReaderApp = React.createClass({
       sheetsGroup:          state.group                || null,
       searchQuery:          state.searchQuery          || null,
       appliedSearchFilters: state.appliedSearchFilters || [],
-      searchField:          state.searchField          || "content",
+      searchFieldExact:     "hebmorph_semi_exact",
+      searchFieldBroad:     "naive_lemmatizer",
+      searchField:          state.searchField          || "hebmorph_semi_exact",
       searchSortType:       state.searchSortType       || "chronological",
       searchFiltersValid:   state.searchFiltersValid   || false,
       availableFilters:     state.availableFilters     || [],
@@ -1668,7 +1670,9 @@ var ReaderPanel = React.createClass({
       sheetsGroup:          this.props.initialGroup || null,
       searchQuery:          this.props.initialQuery || null,
       appliedSearchFilters: this.props.initialAppliedSearchFilters || [],
-      searchField:          this.props.initialSearchField || "content",
+      searchFieldExact:     "hebmorph_semi_exact",
+      searchFieldBroad:     "naive_lemmatizer",
+      searchField:          this.props.initialSearchField || "hebmorph_semi_exact",
       searchSortType:       this.props.initialSearchSortType || "chronological",
       selectedWords:        null,
       searchFiltersValid:   false,
@@ -2174,6 +2178,8 @@ var ReaderPanel = React.createClass({
                     availableFilters={this.state.availableFilters}
                     filtersValid={this.state.searchFiltersValid}
                     registerAvailableFilters={this.props.registerAvailableFilters}
+                    exactField={this.state.searchFieldExact}
+                    broadField={this.state.searchFieldBroad}
                     field={this.state.searchField}
                     sortType={this.state.searchSortType}/>);
 
@@ -7579,6 +7585,8 @@ var SearchPage = React.createClass({
         availableFilters:     React.PropTypes.array,
         filtersValid:         React.PropTypes.bool,
         hideNavHeader:        React.PropTypes.bool,
+        exactField:           React.PropTypes.string,
+        broadField:           React.PropTypes.string,
         field:                React.PropTypes.string,
         sortType:             React.PropTypes.oneOf(["relevance","chronological"])
     },
@@ -7625,6 +7633,8 @@ var SearchPage = React.createClass({
                                   registerAvailableFilters={this.props.registerAvailableFilters}
                                   availableFilters={this.props.availableFilters}
                                   filtersValid={this.props.filtersValid}
+                                  exactField={this.props.exactField}
+                                  broadField={this.props.broadField}
                                   field={this.props.field}
                                   sortType={this.props.sortType}/>
                           </div>
@@ -7686,6 +7696,8 @@ var SearchResultList = React.createClass({
         updateAppliedFilter:  React.PropTypes.func,
         updateAppliedOptionField: React.PropTypes.func,
         updateAppliedOptionSort:  React.PropTypes.func,
+        exactField:           React.PropTypes.string,
+        broadField:           React.PropTypes.string,
         field:                React.PropTypes.string,
         sortType:            React.PropTypes.oneOf(["relevance", "chronological"]),
         registerAvailableFilters: React.PropTypes.func
@@ -8151,19 +8163,18 @@ var SearchResultList = React.createClass({
                                   availableFilters={this.props.availableFilters}
                                   appliedFilters = {this.props.appliedFilters}
                                   updateAppliedFilter = {this.props.updateAppliedFilter}
+                                  updateAppliedOptionField = {this.props.updateAppliedOptionField}
+                                  updateAppliedOptionSort = {this.props.updateAppliedOptionSort}
+                                  exactField = {this.props.exactField}
+                                  broadField = {this.props.broadField}
+                                  optionField = {this.props.field}
+                                  sortType = {this.props.sortType}
                                   isQueryRunning = {this.state.isQueryRunning[tab]}
                                   activeTab = {this.state.activeTab}
                                   clickTextButton = {this.showTexts}
                                   clickSheetButton = {this.showSheets} />);
-        var searchOptions    = (<SearchOptions 
-                                  field = {this.props.field}
-                                  sortType = {this.props.sortType}
-                                  activeTab = {this.state.activeTab}
-                                  updateAppliedOptionField={this.props.updateAppliedOptionField}
-                                  updateAppliedOptionSort={this.props.updateAppliedOptionSort}/>);
         return (
           <div>
-            { searchOptions }
             { searchFilters }
             { queryFullyLoaded || haveResults ? results : loadingMessage }
           </div>
@@ -8310,6 +8321,12 @@ var SearchFilters = React.createClass({
     appliedFilters:       React.PropTypes.array,
     availableFilters:     React.PropTypes.array,
     updateAppliedFilter:  React.PropTypes.func,
+    updateAppliedOptionField: React.PropTypes.func,
+    updateAppliedOptionSort: React.PropTypes.func,
+    exactField:           React.PropTypes.string,
+    broadField:           React.PropTypes.string,
+    optionField:          React.PropTypes.string,
+    sortType:             React.PropTypes.string,
     isQueryRunning:       React.PropTypes.bool,
     activeTab:            React.PropTypes.string,
     clickTextButton:      React.PropTypes.func,
@@ -8319,7 +8336,8 @@ var SearchFilters = React.createClass({
     return {
       openedCategory: null,
       openedCategoryBooks: [],
-      displayFilters: !!this.props.appliedFilters.length
+      displayFilters: !!this.props.appliedFilters.length,
+      isExactSearch: this.props.optionField === this.props.exactField
     }
   },
   getDefaultProps: function() {
@@ -8337,7 +8355,8 @@ var SearchFilters = React.createClass({
         || (newProps.availableFilters.length == 0)) {
       this.setState({
         openedCategory: null,
-        openedCategoryBooks: []
+        openedCategoryBooks: [],
+        isExactSearch: this.props.optionField === this.props.exactField
       });
     }
     // todo: logically, we should be unapplying filters as well.
@@ -8373,6 +8392,16 @@ var SearchFilters = React.createClass({
   },
   toggleFilterView: function() {
     this.setState({displayFilters: !this.state.displayFilters});
+  },
+  toggleExactSearch: function() {
+    let newExactSearch = !this.state.isExactSearch;
+    if (newExactSearch) {
+      this.props.updateAppliedOptionField(this.props.exactField);
+    } else {
+      this.props.updateAppliedOptionField(this.props.broadField);
+    }
+    this.setState({isExactSearch: newExactSearch});
+
   },
   _type_button: function(en_singular, en_plural, he_singular, he_plural, total, on_click, active) {
     // if (!total) { return "" }
@@ -8413,28 +8442,36 @@ var SearchFilters = React.createClass({
       </div>);
     var filter_panel = (<div>
       <div className="searchFilterToggle" onClick={this.toggleFilterView}>
-        <span className="int-en">Filter by Text   </span>
-        <span className="int-he">סנן לפי כותר   </span>
+        <span className="int-en">Filter   </span>
+        <span className="int-he">סינון   </span>
         <i className={(this.state.displayFilters) ? "fa fa-caret-down fa-angle-down":"fa fa-caret-down"} />
       </div>
       <div className={(this.state.displayFilters) ? "searchFilterBoxes":"searchFilterBoxes hidden"}>
-        <div className="searchFilterCategoryBox">
-        {this.props.availableFilters.map(function(filter) {
-            return (<SearchFilter
-                filter={filter}
-                isInFocus={this.state.openedCategory === filter}
-                focusCategory={this.handleFocusCategory}
-                updateSelected={this.props.updateAppliedFilter}
-                key={filter.path}/>);
-        }.bind(this))}
+        <div className="searchFilterBoxRow">
+          <div className="searchFilterCategoryBox">
+          {this.props.availableFilters.map(function(filter) {
+              return (<SearchFilter
+                  filter={filter}
+                  isInFocus={this.state.openedCategory === filter}
+                  focusCategory={this.handleFocusCategory}
+                  updateSelected={this.props.updateAppliedFilter}
+                  key={filter.path}/>);
+          }.bind(this))}
+          </div>
+          <div className="searchFilterBookBox">
+          {this.state.openedCategoryBooks.map(function(filter) {
+              return (<SearchFilter
+                  filter={filter}
+                  updateSelected={this.props.updateAppliedFilter}
+                  key={filter.path}/>);
+          }.bind(this))}
+          </div>
         </div>
-        <div className="searchFilterBookBox">
-        {this.state.openedCategoryBooks.map(function(filter) {
-            return (<SearchFilter
-                filter={filter}
-                updateSelected={this.props.updateAppliedFilter}
-                key={filter.path}/>);
-        }.bind(this))}
+        <div className="searchFilterExactBox">
+          <SearchFilterExactBox
+            selected={this.state.isExactSearch}
+            checkBoxClick={this.toggleExactSearch}
+            />
         </div>
         <div style={{clear: "both"}}/>
       </div>
@@ -8451,7 +8488,23 @@ var SearchFilters = React.createClass({
   }
 });
 
-
+var SearchFilterExactBox = React.createClass({
+  propTypes: {
+    selected:      React.PropTypes.bool,
+    checkBoxClick: React.PropTypes.func
+  },
+  handleClick: function() {
+    this.props.checkBoxClick();
+  },
+  render: function() {
+    return (<li onClick={this.handleFocusCategory}>
+      <input type="checkbox" id="searchFilterExactBox" className="filter" checked={this.props.selected == 1} onChange={this.handleClick}/>
+      <label onClick={this.handleClick} for={"searchFilterExactBox"}><span></span></label>
+      <span className="int-en"><span className="filter-title">{"Only show exact matches"}</span></span>
+      <span className="int-he" dir="rtl"><span className="filter-title">{"Only show exact matches (HE)"}</span></span>
+    </li>);
+  }
+});
 var SearchFilter = React.createClass({
   propTypes: {
     filter:         React.PropTypes.object.isRequired,

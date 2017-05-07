@@ -1436,8 +1436,8 @@ a.resourcesLink {
 }
 .searchContent .searchTopMatter {
   padding-bottom: 10px;
-  border-bottom: 1px solid #ccc;
   margin-bottom: 30px;
+  position: relative;
 }
 .searchContent .searchTopMatter.loading {
   border-bottom: none;
@@ -1510,10 +1510,23 @@ a.resourcesLink {
   padding-right: 5px;
 }
 .searchContent .searchFilterBoxes {
-    margin: 10px 0;
-    background: #eee;
+    margin-top: 10px;
+    background: white;
     width: 100%;
     display: flex;
+    flex-direction: column;
+    position: absolute;
+    z-index: 1;
+    -webkit-border-radius: 7px;
+    -moz-border-radius: 7px;
+    border-radius: 7px;
+    border: 1px solid #ccc;
+}
+
+.searchContent .searchFilterBoxes .searchFilterBoxRow {
+  display: flex;
+  flex-direction: row;
+  width: 100%;
 }
 .searchFilterBoxes.hidden{
     display:none;
@@ -1521,12 +1534,12 @@ a.resourcesLink {
 .searchContent .searchFilterBoxes li {
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
   display: block;
-  padding: 12px 0 12px 15px;
+  padding: 15px 0 15px 15px;
   font-size: 14px;
   letter-spacing: 1px;
   cursor: pointer;
 }
-.searchContent .searchFilterBoxes li:hover {
+.searchContent .searchFilterBoxRow li:hover {
   background-color: #e0e0e0;
 }
 .interface-hebrew .searchContent .searchFilterBoxes li {
@@ -1568,6 +1581,12 @@ a.resourcesLink {
   padding-left: 20px;
   padding-right: 0;
 }
+
+.searchFilterBoxes .searchFilterExactBox {
+  border-top: 1px solid #ccc;
+  padding: 5px 5px 5px 0;
+}
+
 .searchContent .searchFilterCategoryBox,
 .searchContent .searchFilterBookBox {
   width: 50%;
