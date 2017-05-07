@@ -271,10 +271,10 @@ def make_panel_dict(oref, version, language, filter, mode, **kwargs):
                 panel["versionLanguage"] = None
         if mode != "Connections":
             try:
-                text = TextFamily(oref, version=panel["version"], lang=panel["versionLanguage"], commentary=False, context=True, pad=True, alts=True).contents()
+                text = TextFamily(oref, version=panel["version"], lang=panel["versionLanguage"], commentary=False, context=True, pad=True, alts=True, wrapLinks=False).contents()
             except NoVersionFoundError:
                 text = {}
-
+            text["updateFromAPI"] = True
             text["next"] = oref.next_section_ref().normal() if oref.next_section_ref() else None
             text["prev"] = oref.prev_section_ref().normal() if oref.prev_section_ref() else None
             panel["text"] = text
@@ -1275,12 +1275,14 @@ def texts_api(request, tref, lang=None, version=None):
         version    = version.replace("_", " ") if version else None
         layer_name = request.GET.get("layer", None)
         alts       = bool(int(request.GET.get("alts", True)))
+        wrapLinks = bool(int(request.GET.get("wrapLinks", False)))
+
 
         try:
-            text = TextFamily(oref, version=version, lang=lang, commentary=commentary, context=context, pad=pad, alts=alts).contents()
+            text = TextFamily(oref, version=version, lang=lang, commentary=commentary, context=context, pad=pad, alts=alts, wrapLinks=wrapLinks).contents()
         except AttributeError as e:
             oref = oref.default_child_ref()
-            text = TextFamily(oref, version=version, lang=lang, commentary=commentary, context=context, pad=pad, alts=alts).contents()
+            text = TextFamily(oref, version=version, lang=lang, commentary=commentary, context=context, pad=pad, alts=alts, wrapLinks=wrapLinks).contents()
         except NoVersionFoundError as e:
             # Extended data is used by S2 in TextList.preloadAllCommentaryText()
             return jsonResponse({"error": unicode(e), "ref": oref.normal(), "versionTitle": version, "lang": lang}, callback=request.GET.get("callback", None))
@@ -1364,7 +1366,7 @@ def texts_api(request, tref, lang=None, version=None):
 
         return jsonResponse({"status": "ok"})
 
-    return jsonResponse({"error": "Unsuported HTTP method."}, callback=request.GET.get("callback", None))
+    return jsonResponse({"error": "Unsupported HTTP method."}, callback=request.GET.get("callback", None))
 
 
 @catch_error_as_json
@@ -1468,7 +1470,7 @@ def index_api(request, title, v2=False, raw=False):
 
         return jsonResponse({"status": "ok"})
 
-    return jsonResponse({"error": "Unsuported HTTP method."}, callback=request.GET.get("callback", None))
+    return jsonResponse({"error": "Unsupported HTTP method."}, callback=request.GET.get("callback", None))
 
 
 @catch_error_as_json
@@ -1656,7 +1658,7 @@ def links_api(request, link_id_or_ref=None):
             tracker.delete(request.user.id, model.Link, link_id_or_ref, callback=revarnish_link)
         )
 
-    return jsonResponse({"error": "Unsuported HTTP method."})
+    return jsonResponse({"error": "Unsupported HTTP method."})
 
 
 @catch_error_as_json
@@ -1747,7 +1749,7 @@ def notes_api(request, note_id_or_ref):
             tracker.delete(request.user.id, model.Note, note_id_or_ref)
         )
 
-    return jsonResponse({"error": "Unsuported HTTP method."})
+    return jsonResponse({"error": "Unsupported HTTP method."})
 
 
 @catch_error_as_json
@@ -1997,9 +1999,42 @@ def terms_api(request, name):
         return jsonResponse(_internal_do_post(request, j, uid, **kwargs))
 
     if request.method == "DELETE":
-        return jsonResponse({"error": "Unsuported HTTP method."}) #TODO: support this?
+        return jsonResponse({"error": "Unsupported HTTP method."}) #TODO: support this?
 
-    return jsonResponse({"error": "Unsuported HTTP method."})
+    return jsonResponse({"error": "Unsupported HTTP method."})
+
+@catch_error_as_json
+def name_api(request, name):
+    if request.method != "GET":
+        return jsonResponse({"error": "Unsupported HTTP method."})
+
+    try:
+        lang = "he" if is_hebrew(name) else "en"
+        ref = Ref(name)
+        inode = ref.index_node
+        assert isinstance(inode, SchemaNode)
+        # titles_follow = inode.has_titled_continuation()
+        d = {
+            "is_ref": True,
+            "is_book": ref.is_book_level(),
+            "is_node": len(ref.sections) == 0,
+            "normal": ref.normal() if lang == "en" else ref.he_normal(),
+            # "number_follows": inode.has_numeric_continuation(),
+            # "titles_follow": titles_follow,
+            "completions": [c.full_title() for c in inode.children if not c.is_default()],
+            # ADD textual completions as well
+            "examples": []
+        }
+
+    except InputError:
+        d = {
+            "is_ref": False,
+            "is_book": False,
+            "is_node": False,
+            "completions": []
+        }
+
+    return jsonResponse(d)
 
 
 @catch_error_as_json
@@ -2204,7 +2239,7 @@ def texts_history_api(request, tref, lang=None, version=None):
     API for retrieving history information about a given text.
     """
     if request.method != "GET":
-        return jsonResponse({"error": "Unsuported HTTP method."})
+        return jsonResponse({"error": "Unsupported HTTP method."})
 
     tref = model.Ref(tref).normal()
     refRe = '^%s$|^%s:' % (tref, tref)
@@ -2301,7 +2336,7 @@ def reviews_api(request, tref=None, lang=None, version=None, review_id=None):
         return jsonResponse(delete_review(review_id, request.user.id))
 
     else:
-        return jsonResponse({"error": "Unsuported HTTP method."})
+        return jsonResponse({"error": "Unsupported HTTP method."})
 
 
 @ensure_csrf_cookie

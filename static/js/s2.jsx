@@ -6103,7 +6103,7 @@ var TextRange = React.createClass({
       language: this.props.versionLanguage || null
     };
     var data = Sefaria.text(this.props.sref, settings);
-    if (!data) { // If we don't have data yet, call again with a callback to trigger API call
+    if (!data || "updateFromAPI" in data) { // If we don't have data yet, call again with a callback to trigger API call
       Sefaria.text(this.props.sref, settings, this.onTextLoad);
     }
     return data;
@@ -6417,9 +6417,10 @@ var TextSegment = React.createClass({
   handleClick: function(event) {
     if ($(event.target).hasClass("refLink")) {
       //Click of citation
+      event.preventDefault();//add prevent default
       var ref = Sefaria.humanRef($(event.target).attr("data-ref"));
       this.props.onCitationClick(ref, this.props.sref);
-      event.stopPropagation(); //add prevent default
+      event.stopPropagation();
       Sefaria.site.track.event("Reader", "Citation Link Click", ref);
     } else if ($(event.target).is("sup") || $(event.target).parents("sup").size()) {
       this.props.onFootnoteClick(event);
