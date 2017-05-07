@@ -4,6 +4,7 @@
 http://norvig.com/spell-correct.html
 http://scottlobdell.me/2015/02/writing-autocomplete-engine-scratch-python/
 """
+import pygtrie as trie
 from collections import Counter, defaultdict
 from sefaria.utils import hebrew
 import logging
@@ -15,6 +16,21 @@ try:
 except ImportError:
     logging.warning("Failed to load 're2'.  Falling back to 're' for regular expression parsing. See https://github.com/blockspeiser/Sefaria-Project/wiki/Regular-Expression-Engines")
     import re
+
+
+class TitleTrie(trie.CharTrie):
+    def __init__(self, lang, library=None, *args, **kwargs):
+        assert lang in ["en", "he"]
+        assert library
+        super(TitleTrie, self).__init__(*args, **kwargs)
+        self.lang = lang
+        self.library = library
+
+        title_node_dict = self.library.get_title_node_dict(self.lang)
+        for title, snode in title_node_dict.iteritems():
+            if self.lang == "he":
+                norm_title = hebrew.normalize_final_letters_in_str(title)
+                self[norm_title] = {title: title, "node": snode}
 
 
 class SpellChecker(object):

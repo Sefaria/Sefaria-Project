@@ -22,7 +22,7 @@ except ImportError:
 
 from . import abstract as abst
 from schema import deserialize_tree, SchemaNode, JaggedArrayNode, TitledTreeNode, AddressTalmud, TermSet, TitleGroup
-from autospell import SpellChecker, AutoCompleter
+from autospell import SpellChecker, AutoCompleter, TitleTrie
 
 import sefaria.system.cache as scache
 from sefaria.system.exceptions import InputError, BookNameError, PartialRefInputError, IndexSchemaError, NoVersionFoundError
@@ -3683,6 +3683,7 @@ class Library(object):
         # Spell Checking and Autocompleting
         self._spell_checker = {}
         self._auto_completer = {}
+        self._title_trie = {}
 
         if not hasattr(sys, '_doc_build'):  # Can't build cache without DB
             self._build_core_maps()
@@ -3712,6 +3713,7 @@ class Library(object):
         self._title_regexes = {}
         self._spell_checker = {}
         self._auto_completer = {}
+        self._title_trie = {}
         # TOC is handled separately since it can be edited in place
 
     def _reset_toc_derivate_objects(self):
@@ -3793,6 +3795,7 @@ class Library(object):
         return self._search_filter_toc_json
 
     def build_autospell(self):
+        self._title_trie = {lang: TitleTrie(lang, library) for lang in self.langs}
         self._spell_checker = {lang: SpellChecker(lang, self.full_title_list(lang, False)) for lang in self.langs}
         self._auto_completer = {lang: AutoCompleter(lang, self.full_title_list(lang, False)) for lang in self.langs}
 
