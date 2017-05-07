@@ -25,7 +25,7 @@ class AutoCompleter(object):
         self.library = library
         self.title_trie = TitleTrie(lang, library, *args, **kwargs)
         self.spell_checker = SpellChecker(lang, titles)
-        self.ngram_matcher = NGramMatcher(lang, titles)
+        self.ngram_matcher = NGramMatcher(lang, library)
 
     def complete(self, instring, limit=0):
         return Completions(self, self.lang, instring, limit).process()
@@ -52,14 +52,14 @@ class Completions(object):
         # Match titles that begin exactly this way
         self.add_new_continuations_from_string(self.normal_string)
         if self.limit and len(self.completions) >= self.limit:
-            return self.completions
+            return self.completions[:self.limit or None]
 
         # single misspellings
         single_edits = self.auto_completer.spell_checker.single_edits(self.normal_string)
         for edit in single_edits:
             self.add_new_continuations_from_string(edit)
             if self.limit and len(self.completions) >= self.limit:
-                return self.completions
+                return self.completions[:self.limit or None]
 
         # double misspellings
         """
@@ -70,9 +70,13 @@ class Completions(object):
                 return self.completions
         """
         # This string of characters, or a minor variations thereof, deeper in the string
-        self.completions += self.auto_completer.ngram_matcher.guess_titles(
+        for suggestion in self.auto_completer.ngram_matcher.guess_titles(
             self.auto_completer.spell_checker.correct_phrase(self.normal_string)
-        )
+        ):
+            completion_set = set(self.completions)
+            if suggestion not in completion_set:
+                self.completions += [suggestion]
+
         return self.completions[:self.limit or None]
 
     def add_new_continuations_from_string(self, str):
@@ -109,9 +113,8 @@ class Completions(object):
 
 
 class TitleTrie(trie.CharTrie):
-    def __init__(self, lang, library=None, *args, **kwargs):
+    def __init__(self, lang, library, *args, **kwargs):
         assert lang in ["en", "he"]
-        assert library
         super(TitleTrie, self).__init__(*args, **kwargs)
         self.lang = lang
         self.library = library
@@ -207,20 +210,24 @@ class SpellChecker(object):
 class NGramMatcher(object):
     MIN_N_GRAM_SIZE = 3
 
-    def __init__(self, lang, titles=None):
+    def __init__(self, lang, library):
         assert lang in ["en", "he"]
         self.lang = lang
-        self.token_to_title = defaultdict(list)
+        self.library = library
+        self.token_to_titles = defaultdict(list)
         self.n_gram_to_tokens = defaultdict(set)
-        if titles:
-            self._learn_titles(titles)
 
-    def _learn_titles(self, titles):
-        for title in titles:
-            title = title.lower().replace(u"-", u" ").replace(u"(", u" ").replace(u")", u" ").replace(u"'", u" ")
-            tokens = title.split()
+        title_node_dict = self.library.get_title_node_dict(self.lang)
+        for title in title_node_dict.keys():
+            if self.lang == "he":
+                norm_title = hebrew.normalize_final_letters_in_str(title)
+            else:
+                #todo: check me
+                norm_title = title.lower().replace(u"-", u" ").replace(u"(", u" ").replace(u")", u" ").replace(u"'", u" ")
+
+            tokens = norm_title.split()
             for token in tokens:
-                self.token_to_title[token].append(title)
+                self.token_to_titles[token].append(title)
                 for string_size in xrange(self.MIN_N_GRAM_SIZE, len(token) + 1):
                     n_gram = token[:string_size]
                     self.n_gram_to_tokens[n_gram].add(token)
@@ -233,13 +240,13 @@ class NGramMatcher(object):
         return real_tokens
 
     def _get_scored_titles_uncollapsed(self, real_tokens):
-        exercises__scores = []
+        possibilities__scores = []
         for token in real_tokens:
-            possible_exercises = self.token_to_title.get(token, [])
-            for exercise_name in possible_exercises:
-                score = float(len(token)) / len(exercise_name.replace(" ", ""))
-                exercises__scores.append((exercise_name, score))
-        return exercises__scores
+            possibilities = self.token_to_titles.get(token, [])
+            for title in possibilities:
+                score = float(len(token)) / len(title.replace(" ", ""))
+                possibilities__scores.append((title, score))
+        return possibilities__scores
 
     def _combined_title_scores(self, titles__scores, num_tokens):
         collapsed_title_to_score = defaultdict(int)
