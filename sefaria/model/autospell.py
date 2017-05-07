@@ -79,7 +79,7 @@ class Completions(object):
                     self.completions += [suggestion]
         except ValueError:
             pass
-        
+
         return self.completions[:self.limit or None]
 
     def add_new_continuations_from_string(self, str):
@@ -186,7 +186,7 @@ class SpellChecker(object):
     """
 
     def correct_token(self, token):
-        candidates = self._known([token]) or self._known(self.single_edits(token)) or self._known_edits2(token) or [token]
+        candidates = self._known([token]) or self._known(self.single_edits(token)) or [token] #self._known_edits2(token) or [token]
         return max(candidates, key=self.WORDS.get)
 
     def correct_phrase(self, text):
