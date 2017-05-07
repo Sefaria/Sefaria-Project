@@ -2008,8 +2008,15 @@ def name_api(request, name):
     if request.method != "GET":
         return jsonResponse({"error": "Unsupported HTTP method."})
 
+    # todo: move me to library build
+    if not library._spell_checker:
+        library.build_autospell()  # better to do this at build time
+
+    # Number of results to return.  0 indicates no limit
+    LIMIT = request.GET.get("limit") or 10
+    lang = "he" if is_hebrew(name) else "en"
+
     try:
-        lang = "he" if is_hebrew(name) else "en"
         ref = Ref(name)
         inode = ref.index_node
         assert isinstance(inode, SchemaNode)
@@ -2021,17 +2028,46 @@ def name_api(request, name):
             "normal": ref.normal() if lang == "en" else ref.he_normal(),
             # "number_follows": inode.has_numeric_continuation(),
             # "titles_follow": titles_follow,
-            "completions": [c.full_title() for c in inode.children if not c.is_default()],
+            "completions": [c.full_title(lang) for c in inode.children if not c.is_default()],
             # ADD textual completions as well
             "examples": []
         }
 
     except InputError:
+        completions = []  # titles
+        nodes_covered = set()
+
+        # Match titles that begin exactly this way
+        all_continuations = library.title_trie(lang).items(name)[::-1]
+
+        # Use one title for each book before any duplicate match titles
+        # Prefer primary titles
+        non_primary_matches = []
+        for k, v in all_continuations:
+            if v["is_primary"]:
+                completions += [v["title"]]
+                nodes_covered.add(v["node"])
+            else:
+                non_primary_matches += [(k, v)]
+
+        # Iterate through non primary ones, until we cover the whole node-space
+        duplicate_matches = []
+        for k, v in non_primary_matches:
+            if v["node"] not in nodes_covered:
+                completions += [v["title"]]
+                nodes_covered.add(v["node"])
+            else:
+                duplicate_matches += [(k,v)]
+
+
+        # Small misspellings that allow this to be interpreted as a title start
+        # This string of characters, or a misspelling thereof, deeper in the string
+
         d = {
             "is_ref": False,
             "is_book": False,
             "is_node": False,
-            "completions": []
+            "completions": completions
         }
 
     return jsonResponse(d)

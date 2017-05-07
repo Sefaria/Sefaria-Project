@@ -3821,6 +3821,9 @@ class Library(object):
         self._spell_checker = {lang: SpellChecker(lang, self.full_title_list(lang, False)) for lang in self.langs}
         self._auto_completer = {lang: AutoCompleter(lang, self.full_title_list(lang, False)) for lang in self.langs}
 
+    def title_trie(self, lang):
+        return self._title_trie[lang]
+
     def complete_titles(self, phrase):
         if not self._spell_checker:
             self.build_autospell()  # better to do this at build time

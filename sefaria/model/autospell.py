@@ -30,7 +30,9 @@ class TitleTrie(trie.CharTrie):
         for title, snode in title_node_dict.iteritems():
             if self.lang == "he":
                 norm_title = hebrew.normalize_final_letters_in_str(title)
-                self[norm_title] = {title: title, "node": snode}
+            else:
+                norm_title = title.lower()
+            self[norm_title] = {"title": title, "node": snode, "is_primary": title == snode.primary_title(lang)}
 
 
 class SpellChecker(object):
