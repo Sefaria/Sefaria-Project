@@ -70,13 +70,16 @@ class Completions(object):
                 return self.completions
         """
         # This string of characters, or a minor variations thereof, deeper in the string
-        for suggestion in self.auto_completer.ngram_matcher.guess_titles(
-            self.auto_completer.spell_checker.correct_phrase(self.normal_string)
-        ):
-            completion_set = set(self.completions)
-            if suggestion not in completion_set:
-                self.completions += [suggestion]
-
+        try:
+            for suggestion in self.auto_completer.ngram_matcher.guess_titles(
+                self.auto_completer.spell_checker.correct_phrase(self.normal_string)
+            ):
+                completion_set = set(self.completions)
+                if suggestion not in completion_set:
+                    self.completions += [suggestion]
+        except ValueError:
+            pass
+        
         return self.completions[:self.limit or None]
 
     def add_new_continuations_from_string(self, str):
