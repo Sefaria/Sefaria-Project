@@ -18,6 +18,96 @@ except ImportError:
     import re
 
 
+class AutoCompleter(object):
+    def __init__(self, lang, library, titles, *args, **kwargs):
+        assert lang in ["en", "he"]
+        self.lang = lang
+        self.library = library
+        self.title_trie = TitleTrie(lang, library, *args, **kwargs)
+        self.spell_checker = SpellChecker(lang, titles)
+        self.ngram_matcher = NGramMatcher(lang, titles)
+
+    def complete(self, instring, limit=0):
+        return Completions(self, self.lang, instring, limit).process()
+
+
+class Completions(object):
+    def __init__(self, auto_completer, lang, instring, limit=0):
+        assert lang in ["en", "he"]
+
+        self.auto_completer = auto_completer
+        self.lang = lang
+        self.instring = instring
+        self.limit = limit
+        if lang == "he":
+            self.normal_string = hebrew.normalize_final_letters_in_str(instring)
+        else:
+            self.normal_string = instring.lower()
+
+        self.nodes_covered = set()
+        self.completions = []  # titles to return
+        self.duplicate_matches = []  # (key, {}) pairs, as constructed in TitleTrie
+
+    def process(self):
+        # Match titles that begin exactly this way
+        self.add_new_continuations_from_string(self.normal_string)
+        if self.limit and len(self.completions) >= self.limit:
+            return self.completions
+
+        # single misspellings
+        single_edits = self.auto_completer.spell_checker.single_edits(self.normal_string)
+        for edit in single_edits:
+            self.add_new_continuations_from_string(edit)
+            if self.limit and len(self.completions) >= self.limit:
+                return self.completions
+
+        # double misspellings
+        """
+        double_edits = (e2 for e1 in single_edits for e2 in self.auto_completer.spell_checker.single_edits(e1))
+        for edit in double_edits:
+            self.add_new_continuations_from_string(edit)
+            if self.limit and len(self.completions) >= self.limit:
+                return self.completions
+        """
+        # This string of characters, or a minor variations thereof, deeper in the string
+        self.completions += self.auto_completer.ngram_matcher.guess_titles(
+            self.auto_completer.spell_checker.correct_phrase(self.normal_string)
+        )
+        return self.completions[:self.limit or None]
+
+    def add_new_continuations_from_string(self, str):
+        """
+        :param str: String of beginning characters
+        Adds titles to self.completions, noting covered nodes in self.nodes_covered
+        :return:
+        """
+
+        try:
+            all_continuations = self.auto_completer.title_trie.items(str)[::-1]
+        except KeyError:
+            return []
+
+        # Use one title for each book before any duplicate match titles
+        # Prefer primary titles
+        # todo: don't list all subtree titles, if string doesn't cover base title
+        non_primary_matches = []
+        for k, v in all_continuations:
+            if v["is_primary"] and v["node"] not in self.nodes_covered:
+                self.completions += [v["title"]]
+                self.nodes_covered.add(v["node"])
+            else:
+                non_primary_matches += [(k, v)]
+
+        # Iterate through non primary ones, until we cover the whole node-space
+        for k, v in non_primary_matches:
+            if v["node"] not in self.nodes_covered:
+                self.completions += [v["title"]]
+                self.nodes_covered.add(v["node"])
+            else:
+                # todo: Check if this is in there already?
+                self.duplicate_matches += [(k, v)]
+
+
 class TitleTrie(trie.CharTrie):
     def __init__(self, lang, library=None, *args, **kwargs):
         assert lang in ["en", "he"]
@@ -66,7 +156,7 @@ class SpellChecker(object):
                 w = hebrew.normalize_final_letters_in_str(w)
             self.WORDS[w] += 1
 
-    def _edits1(self, word):
+    def single_edits(self, word):
         """All edits that are one edit away from `word`."""
         splits     = [(word[:i], word[i:])    for i in range(len(word) + 1)]
         deletes    = [L + R[1:]               for L, R in splits if R]
@@ -77,7 +167,7 @@ class SpellChecker(object):
 
     def _known_edits2(self, word):
         """All edits that are two edits away from `word`."""
-        return (e2 for e1 in self._edits1(word) for e2 in self._edits1(e1) if e2 in self.WORDS)
+        return (e2 for e1 in self.single_edits(word) for e2 in self.single_edits(e1) if e2 in self.WORDS)
 
     def _known(self, words):
         """The subset of `words` that appear in the dictionary of WORDS."""
@@ -86,11 +176,11 @@ class SpellChecker(object):
     """
     Do we need this, as well as correct_token?
     def candidates(self, word):
-        return self._known([word]) or self._known(self._edits1(word)) or self._known_edits2(word) or [word]
+        return self._known([word]) or self._known(self.single_edits(word)) or self._known_edits2(word) or [word]
     """
 
     def correct_token(self, token):
-        candidates = self._known([token]) or self._known(self._edits1(token)) or self._known_edits2(token) or [token]
+        candidates = self._known([token]) or self._known(self.single_edits(token)) or self._known_edits2(token) or [token]
         return max(candidates, key=self.WORDS.get)
 
     def correct_phrase(self, text):
@@ -114,7 +204,7 @@ class SpellChecker(object):
     """
 
 
-class AutoCompleter(object):
+class NGramMatcher(object):
     MIN_N_GRAM_SIZE = 3
 
     def __init__(self, lang, titles=None):

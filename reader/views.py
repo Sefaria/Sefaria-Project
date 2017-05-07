@@ -2008,10 +2008,6 @@ def name_api(request, name):
     if request.method != "GET":
         return jsonResponse({"error": "Unsupported HTTP method."})
 
-    # todo: move me to library build
-    if not library._spell_checker:
-        library.build_autospell()  # better to do this at build time
-
     # Number of results to return.  0 indicates no limit
     LIMIT = request.GET.get("limit") or 10
     lang = "he" if is_hebrew(name) else "en"
@@ -2034,46 +2030,11 @@ def name_api(request, name):
         }
 
     except InputError:
-        name = name.lower()
-
-        completions = []  # titles
-        nodes_covered = set()
-
-        # Match titles that begin exactly this way
-        try:
-            all_continuations = library.title_trie(lang).items(name)[::-1]
-        except:
-            pass
-            #todo: ...
-        
-        # Use one title for each book before any duplicate match titles
-        # Prefer primary titles
-        non_primary_matches = []
-        for k, v in all_continuations:
-            if v["is_primary"]:
-                completions += [v["title"]]
-                nodes_covered.add(v["node"])
-            else:
-                non_primary_matches += [(k, v)]
-
-        # Iterate through non primary ones, until we cover the whole node-space
-        duplicate_matches = []
-        for k, v in non_primary_matches:
-            if v["node"] not in nodes_covered:
-                completions += [v["title"]]
-                nodes_covered.add(v["node"])
-            else:
-                duplicate_matches += [(k,v)]
-
-
-        # Small misspellings that allow this to be interpreted as a title start
-        # This string of characters, or a misspelling thereof, deeper in the string
-
         d = {
             "is_ref": False,
             "is_book": False,
             "is_node": False,
-            "completions": completions
+            "completions": library.auto_completer(lang).complete(name, LIMIT)
         }
 
     return jsonResponse(d)

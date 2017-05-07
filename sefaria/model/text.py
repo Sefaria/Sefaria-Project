@@ -22,7 +22,7 @@ except ImportError:
 
 from . import abstract as abst
 from schema import deserialize_tree, SchemaNode, JaggedArrayNode, TitledTreeNode, AddressTalmud, TermSet, TitleGroup
-from autospell import SpellChecker, AutoCompleter, TitleTrie
+from autospell import AutoCompleter
 
 import sefaria.system.cache as scache
 from sefaria.system.exceptions import InputError, BookNameError, PartialRefInputError, IndexSchemaError, NoVersionFoundError
@@ -3703,9 +3703,7 @@ class Library(object):
         self._toc_size = 16
 
         # Spell Checking and Autocompleting
-        self._spell_checker = {}
         self._auto_completer = {}
-        self._title_trie = {}
 
         if not hasattr(sys, '_doc_build'):  # Can't build cache without DB
             self._build_core_maps()
@@ -3733,9 +3731,7 @@ class Library(object):
         self._full_title_list_jsons = {}
         self._title_regex_strings = {}
         self._title_regexes = {}
-        self._spell_checker = {}
         self._auto_completer = {}
-        self._title_trie = {}
         # TOC is handled separately since it can be edited in place
 
     def _reset_toc_derivate_objects(self):
@@ -3816,21 +3812,16 @@ class Library(object):
                 scache.set_cache_elem('search_filter_toc_json_cache', self._search_filter_toc_json)
         return self._search_filter_toc_json
 
-    def build_autospell(self):
-        self._title_trie = {lang: TitleTrie(lang, library) for lang in self.langs}
-        self._spell_checker = {lang: SpellChecker(lang, self.full_title_list(lang, False)) for lang in self.langs}
-        self._auto_completer = {lang: AutoCompleter(lang, self.full_title_list(lang, False)) for lang in self.langs}
+    def build_auto_completer(self):
+        self._auto_completer = {
+            lang: AutoCompleter(lang, library, self.full_title_list(lang, False)) for lang in self.langs
+        }
 
-    def title_trie(self, lang):
-        return self._title_trie[lang]
-
-    def complete_titles(self, phrase):
-        if not self._spell_checker:
-            self.build_autospell()  # better to do this at build time
-        lang = "he" if is_hebrew(phrase) else "en"
-        sc = self._spell_checker[lang]
-        ac = self._auto_completer[lang]
-        return ac.guess_titles(sc.correct_phrase(phrase))
+    def auto_completer(self, lang):
+        #todo: refactor repetative test below?
+        if not self._auto_completer:
+            self.build_auto_completer()
+        return self._auto_completer[lang]
 
     def recount_index_in_toc(self, indx):
         from sefaria.summaries import update_title_in_toc
