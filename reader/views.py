@@ -2034,12 +2034,18 @@ def name_api(request, name):
         }
 
     except InputError:
+        name = name.lower()
+
         completions = []  # titles
         nodes_covered = set()
 
         # Match titles that begin exactly this way
-        all_continuations = library.title_trie(lang).items(name)[::-1]
-
+        try:
+            all_continuations = library.title_trie(lang).items(name)[::-1]
+        except:
+            pass
+            #todo: ...
+        
         # Use one title for each book before any duplicate match titles
         # Prefer primary titles
         non_primary_matches = []
