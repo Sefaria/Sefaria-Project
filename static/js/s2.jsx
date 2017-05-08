@@ -1314,7 +1314,15 @@ var Header = React.createClass({
       source: function(request, response) {
         Sefaria.lookup(
             request.term,
-            d => response(d["completions"]),
+            d => {
+              if (d["is_ref"]) {
+                var results = d["completions"].slice();
+                results.push(`${this._searchOverridePre}${request.term}${this._searchOverridePost}`);
+                response(results);
+              } else {
+                response(d["completions"]);
+              }
+            },
             e => response([])
         );
       }.bind(this)
@@ -1418,7 +1426,7 @@ var Header = React.createClass({
 
     Sefaria.lookup(query, function(d) {
       if (d["is_ref"]) {
-        var action = d["is_node"] ? "Search Box Navigation - Book": "Search Box Navigation - Citation";
+        var action = d["is_book"] ? "Search Box Navigation - Book": "Search Box Navigation - Citation";
         Sefaria.site.track.event("Search", action, query);
         this.clearSearchBox();
         this.handleRefClick(d["normal"]);  //todo: pass an onError function through here to the panel onError function which redirects to search

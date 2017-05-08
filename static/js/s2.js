@@ -1355,8 +1355,16 @@ var Header = React.createClass({
       }.bind(this),
 
       source: function (request, response) {
+        var _this = this;
+
         Sefaria.lookup(request.term, function (d) {
-          return response(d["completions"]);
+          if (d["is_ref"]) {
+            var results = d["completions"].slice();
+            results.push('' + _this._searchOverridePre + request.term + _this._searchOverridePost);
+            response(results);
+          } else {
+            response(d["completions"]);
+          }
         }, function (e) {
           return response([]);
         });
@@ -1465,7 +1473,7 @@ var Header = React.createClass({
 
     Sefaria.lookup(query, function (d) {
       if (d["is_ref"]) {
-        var action = d["is_node"] ? "Search Box Navigation - Book" : "Search Box Navigation - Citation";
+        var action = d["is_book"] ? "Search Box Navigation - Book" : "Search Box Navigation - Citation";
         Sefaria.site.track.event("Search", action, query);
         this.clearSearchBox();
         this.handleRefClick(d["normal"]); //todo: pass an onError function through here to the panel onError function which redirects to search
@@ -3554,13 +3562,13 @@ var ReaderTextTableOfContents = React.createClass({
     return data;
   },
   loadData: function loadData() {
-    var _this = this;
+    var _this2 = this;
 
     // Ensures data this text is in cache, rerenders after data load if needed
     var details = Sefaria.indexDetails(this.props.title);
     if (!details) {
       Sefaria.indexDetails(this.props.title, function () {
-        return _this.forceUpdate();
+        return _this2.forceUpdate();
       });
     }
     if (this.isBookToc()) {
@@ -3568,7 +3576,7 @@ var ReaderTextTableOfContents = React.createClass({
       var versions = Sefaria.versions(ref);
       if (!versions) {
         Sefaria.versions(ref, function () {
-          return _this.forceUpdate();
+          return _this2.forceUpdate();
         });
       }
     } else if (this.isTextToc()) {
@@ -3576,7 +3584,7 @@ var ReaderTextTableOfContents = React.createClass({
       var data = this.getData();
       if (!data) {
         Sefaria.text(ref, { context: 1, version: this.props.version, language: this.props.versionLanguage }, function () {
-          return _this.forceUpdate();
+          return _this2.forceUpdate();
         });
       }
     }
@@ -4649,7 +4657,7 @@ var VersionsList = React.createClass({
     currentRef: React.PropTypes.string
   },
   render: function render() {
-    var _this2 = this;
+    var _this3 = this;
 
     var versions = this.props.versionsList;
 
@@ -4658,11 +4666,11 @@ var VersionsList = React.createClass({
         return v.language == lang;
       }).map(function (v) {
         return React.createElement(VersionBlock, {
-          title: _this2.props.title,
+          title: _this3.props.title,
           version: v,
-          currentRef: _this2.props.currentRef || _this2.props.title,
+          currentRef: _this3.props.currentRef || _this3.props.title,
           firstSectionRef: "firstSectionRef" in v ? v.firstSectionRef : null,
-          openVersion: _this2.props.openVersion,
+          openVersion: _this3.props.openVersion,
           key: v.versionTitle + "/" + v.language });
       });
     });
@@ -4745,7 +4753,7 @@ var VersionBlock = React.createClass({
     };
   },
   getInitialState: function getInitialState() {
-    var _this3 = this;
+    var _this4 = this;
 
     var s = {
       editing: false,
@@ -4753,7 +4761,7 @@ var VersionBlock = React.createClass({
       originalVersionTitle: this.props.version["versionTitle"]
     };
     this.updateableVersionAttributes.forEach(function (attr) {
-      return s[attr] = _this3.props.version[attr];
+      return s[attr] = _this4.props.version[attr];
     });
     return s;
   },
@@ -5164,7 +5172,7 @@ var ReadMoreText = React.createClass({
     return { expanded: this.props.text.split(" ").length < this.props.initialWords };
   },
   render: function render() {
-    var _this4 = this;
+    var _this5 = this;
 
     var text = this.state.expanded ? this.props.text : this.props.text.split(" ").slice(0, this.props.initialWords).join(" ") + "...";
     return React.createElement(
@@ -5174,7 +5182,7 @@ var ReadMoreText = React.createClass({
       this.state.expanded ? null : React.createElement(
         'span',
         { className: 'readMoreLink', onClick: function onClick() {
-            return _this4.setState({ expanded: true });
+            return _this5.setState({ expanded: true });
           } },
         React.createElement(
           'span',
@@ -5365,7 +5373,7 @@ var SheetsHomePage = React.createClass({
     );
   },
   render: function render() {
-    var _this5 = this;
+    var _this6 = this;
 
     var trendingTags = this.getTrendingTagsFromCache();
     var topSheets = this.getTopSheetsFromCache();
@@ -5376,7 +5384,7 @@ var SheetsHomePage = React.createClass({
     }
 
     var makeTagButton = function makeTagButton(tag) {
-      return React.createElement(SheetTagButton, { setSheetTag: _this5.props.setSheetTag, tag: tag.tag, count: tag.count, key: tag.tag });
+      return React.createElement(SheetTagButton, { setSheetTag: _this6.props.setSheetTag, tag: tag.tag, count: tag.count, key: tag.tag });
     };
 
     var trendingTags = trendingTags ? trendingTags.slice(0, 6).map(makeTagButton) : [React.createElement(LoadingMessage, null)];
@@ -5502,13 +5510,13 @@ var SheetsHomePage = React.createClass({
               'div',
               { className: 'type-buttons' },
               this._type_sheet_button("Most Used", "הכי בשימוש", function () {
-                return _this5.changeSort("count");
+                return _this6.changeSort("count");
               }, this.props.tagSort == "count"),
               this._type_sheet_button("Alphabetical", "אלפביתי", function () {
-                return _this5.changeSort("alpha");
+                return _this6.changeSort("alpha");
               }, this.props.tagSort == "alpha"),
               this._type_sheet_button("Trending", "פופולרי", function () {
-                return _this5.changeSort("trending");
+                return _this6.changeSort("trending");
               }, this.props.tagSort == "trending")
             )
           )
@@ -9233,7 +9241,7 @@ var LexiconEntry = React.createClass({
     );
   },
   renderLexiconEntrySenses: function renderLexiconEntrySenses(content) {
-    var _this6 = this;
+    var _this7 = this;
 
     var grammar = 'grammar' in content ? '(' + content['grammar']['verbal_stem'] + ')' : "";
     var def = 'definition' in content ? content['definition'] : "";
@@ -9243,7 +9251,7 @@ var LexiconEntry = React.createClass({
       content['notes']
     ) : "";
     var sensesElems = 'senses' in content ? content['senses'].map(function (sense) {
-      return _this6.renderLexiconEntrySenses(sense);
+      return _this7.renderLexiconEntrySenses(sense);
     }) : "";
     var senses = sensesElems.length ? React.createElement(
       'ol',
@@ -9354,11 +9362,11 @@ var ToolsPanel = React.createClass({
     }.bind(this) : null;
 
     var addTranslation = function () {
-      var _this7 = this;
+      var _this8 = this;
 
       var nextParam = "?next=" + Sefaria.util.currentPath();
       Sefaria.site.track.event("Tools", "Add Translation Click", this.props.srefs[0], { hitCallback: function hitCallback() {
-          return window.location = "/translate/" + _this7.props.srefs[0] + nextParam;
+          return window.location = "/translate/" + _this8.props.srefs[0] + nextParam;
         } });
     }.bind(this);
 
@@ -10227,10 +10235,10 @@ var SearchResultList = React.createClass({
     });
   },
   _abortRunningQueries: function _abortRunningQueries() {
-    var _this8 = this;
+    var _this9 = this;
 
     this.state.types.forEach(function (t) {
-      return _this8._abortRunningQuery(t);
+      return _this9._abortRunningQuery(t);
     });
   },
   _abortRunningQuery: function _abortRunningQuery(type) {
@@ -10415,18 +10423,18 @@ var SearchResultList = React.createClass({
     return newHits;
   },
   _buildFilterTree: function _buildFilterTree(aggregation_buckets) {
-    var _this9 = this;
+    var _this10 = this;
 
     //returns object w/ keys 'availableFilters', 'registry'
     //Add already applied filters w/ empty doc count?
     var rawTree = {};
 
     this.props.appliedFilters.forEach(function (fkey) {
-      return _this9._addAvailableFilter(rawTree, fkey, { "docCount": 0 });
+      return _this10._addAvailableFilter(rawTree, fkey, { "docCount": 0 });
     });
 
     aggregation_buckets.forEach(function (f) {
-      return _this9._addAvailableFilter(rawTree, f["key"], { "docCount": f["doc_count"] });
+      return _this10._addAvailableFilter(rawTree, f["key"], { "docCount": f["doc_count"] });
     });
     this._aggregate(rawTree);
     return this._build(rawTree);
@@ -10587,7 +10595,7 @@ var SearchResultList = React.createClass({
     this.setState({ "activeTab": "text" });
   },
   render: function render() {
-    var _this10 = this;
+    var _this11 = this;
 
     if (!this.props.query) {
       // Push this up? Thought is to choose on the SearchPage level whether to show a ResultList or an EmptySearchMessage.
@@ -10601,15 +10609,15 @@ var SearchResultList = React.createClass({
       results = this.state.hits.text.slice(0, this.state.displayedUntil["text"]).map(function (result) {
         return React.createElement(SearchTextResult, {
           data: result,
-          query: _this10.props.query,
+          query: _this11.props.query,
           key: result._id,
-          onResultClick: _this10.props.onResultClick });
+          onResultClick: _this11.props.onResultClick });
       });
     } else if (tab == "sheet") {
       results = this.state.hits.sheet.slice(0, this.state.displayedUntil["sheet"]).map(function (result) {
         return React.createElement(SearchSheetResult, {
           data: result,
-          query: _this10.props.query,
+          query: _this11.props.query,
           key: result._id });
       });
     }
@@ -11577,10 +11585,10 @@ var ModeratorToolsPanel = React.createClass({
     this.setState({ bulk_format: event.target.value });
   },
   bulkVersionDlLink: function bulkVersionDlLink() {
-    var _this11 = this;
+    var _this12 = this;
 
     var args = ["format", "title_pattern", "version_title_pattern", "language"].map(function (arg) {
-      return _this11.state["bulk_" + arg] ? arg + '=' + encodeURIComponent(_this11.state["bulk_" + arg]) : "";
+      return _this12.state["bulk_" + arg] ? arg + '=' + encodeURIComponent(_this12.state["bulk_" + arg]) : "";
     }).filter(function (a) {
       return a;
     }).join("&");
@@ -11836,7 +11844,7 @@ var UpdatesPanel = React.createClass({
   },
 
   render: function render() {
-    var _this12 = this;
+    var _this13 = this;
 
     var classes = { notificationsPanel: 1, systemPanel: 1, readerNavMenu: 1, noHeader: 1 };
     var classStr = classNames(classes);
@@ -11875,8 +11883,8 @@ var UpdatesPanel = React.createClass({
                 date: u.date,
                 key: u._id,
                 id: u._id,
-                onDelete: _this12.onDelete,
-                submitting: _this12.state.submitting
+                onDelete: _this13.onDelete,
+                submitting: _this13.state.submitting
               });
             })
           )
