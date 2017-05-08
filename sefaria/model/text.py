@@ -3827,7 +3827,11 @@ class Library(object):
         }
 
     def auto_completer(self, lang):
-        return self._auto_completer[lang]
+        try:
+            return self._auto_completer[lang]
+        except KeyError:
+            self.build_auto_completer()  # I worry that these could pile up.
+            return self._auto_completer[lang]
 
     def recount_index_in_toc(self, indx):
         from sefaria.summaries import update_title_in_toc

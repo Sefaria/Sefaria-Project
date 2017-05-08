@@ -2020,7 +2020,7 @@ def name_api(request, name):
         completions = [name.capitalize()] + library.auto_completer(lang).next_steps_from_node(name)
 
         if LIMIT == 0 or len(completions) < LIMIT:
-            current = {t:1 for t in completions}
+            current = {t: 1 for t in completions}
             additional_results = library.auto_completer(lang).complete(name, LIMIT)
             for res in additional_results:
                 if res not in current:
