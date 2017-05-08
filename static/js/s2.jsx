@@ -1304,11 +1304,25 @@ var Header = React.createClass({
     } );
     $(ReactDOM.findDOMNode(this)).find("input.search").sefaria_autocomplete({
       position: {my: "left-12 top+14", at: "left bottom"},
+      minLength: 3,
       select: function( event, ui ) {
         $(ReactDOM.findDOMNode(this)).find("input.search").val(ui.item.value);  //This will disappear when the next line executes, but the eye can sometimes catch it.
         this.submitSearch(ui.item.value);
         return false;
       }.bind(this),
+
+      source: function(request, response) {
+        $.ajax({
+          dataType: "json",
+          url: "/api/name/" + request.term,
+          error: function() {response([]);},
+          success: function(data) {
+            response(data["completions"])
+          }.bind(this)
+        });
+      }.bind(this),
+
+      /*
       source: function( request, response ) {
         // Commented out code will only put the "Search for: " in the list if the search is an exact match.
         //var exact = false;
@@ -1327,7 +1341,7 @@ var Header = React.createClass({
         }
         //}
         response(resp);
-      }.bind(this)
+      }.bind(this)*/
     });
   },
   showVirtualKeyboardIcon: function(show){

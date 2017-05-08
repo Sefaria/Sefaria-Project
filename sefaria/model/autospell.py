@@ -40,8 +40,11 @@ class AutoCompleter(object):
             normal_string = hebrew.normalize_final_letters_in_str(instring)
         else:
             normal_string = instring.lower()
-        return [v["title"] for k, v in self.title_trie.items(normal_string + u",", shallow=True)]
 
+        try:
+            return [v["title"] for k, v in self.title_trie.items(normal_string + u",", shallow=True)]
+        except KeyError:
+            return []
 
 class Completions(object):
     def __init__(self, auto_completer, lang, instring, limit=0):
@@ -140,7 +143,12 @@ class TitleTrie(trie.CharTrie):
                 norm_title = hebrew.normalize_final_letters_in_str(title)
             else:
                 norm_title = title.lower()
-            self[norm_title] = {"title": title, "node": snode, "is_primary": title == snode.primary_title(lang)}
+            self[norm_title] = {
+                "title": title,
+                "node": snode,
+                "normal": snode.primary_title("en"),
+                "is_primary": title == snode.primary_title(lang)
+            }
 
 
 class SpellChecker(object):

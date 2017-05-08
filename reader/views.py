@@ -2009,14 +2009,13 @@ def name_api(request, name):
         return jsonResponse({"error": "Unsupported HTTP method."})
 
     # Number of results to return.  0 indicates no limit
-    LIMIT = request.GET.get("limit") or 10
+    LIMIT = request.GET.get("limit") or 16
     lang = "he" if is_hebrew(name) else "en"
 
     try:
         ref = Ref(name)
         inode = ref.index_node
         assert isinstance(inode, SchemaNode)
-        # titles_follow = inode.has_titled_continuation()
         d = {
             "is_ref": True,
             "is_book": ref.is_book_level(),
