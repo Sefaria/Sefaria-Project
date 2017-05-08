@@ -161,9 +161,9 @@ class SpellChecker(object):
         assert lang in ["en", "he"]
         self.lang = lang
         if lang == "en":
-            self.letters = u'abcdefghijklmnopqrstuvwxyz'
+            self.letters = u"abcdefghijklmnopqrstuvwxyz'."
         else:
-            self.letters = hebrew.ALPHABET_22
+            self.letters = hebrew.ALPHABET_22 + hebrew.GERESH + hebrew.GERSHAYIM + u'".' + u"'"
         self.WORDS = defaultdict(int)
         if phrases:
             self.train_phrases(phrases)

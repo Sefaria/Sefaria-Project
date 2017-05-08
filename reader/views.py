@@ -2023,7 +2023,7 @@ def name_api(request, name):
             "normal": ref.normal(),
             # "number_follows": inode.has_numeric_continuation(),
             # "titles_follow": titles_follow,
-            "completions": library.auto_completer(lang).next_steps_from_node(name),
+            "completions": [name.capitalize()] + library.auto_completer(lang).next_steps_from_node(name),
             # ADD textual completions as well
             "examples": []
         }
