@@ -3755,6 +3755,7 @@ class Library(object):
         Ref.clear_cache()
         if include_toc:
             self.rebuild_toc()
+        self.build_auto_completer()
 
     def rebuild_toc(self):
         self._toc = None
@@ -3818,9 +3819,6 @@ class Library(object):
         }
 
     def auto_completer(self, lang):
-        #todo: refactor repetative test below?
-        if not self._auto_completer:
-            self.build_auto_completer()
         return self._auto_completer[lang]
 
     def recount_index_in_toc(self, indx):
@@ -4404,7 +4402,7 @@ class Library(object):
         return d
 
 library = Library()
-
+library.build_auto_completer()
 
 # Deprecated
 def get_index(bookname):
