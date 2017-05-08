@@ -1326,27 +1326,6 @@ var Header = React.createClass({
             e => response([])
         );
       }.bind(this)
-
-      /*
-      source: function( request, response ) {
-        // Commented out code will only put the "Search for: " in the list if the search is an exact match.
-        //var exact = false;
-        var matches = $.map( Sefaria.books, function(tag) {
-            if ( tag.toUpperCase().indexOf(request.term.toUpperCase()) === 0 ) {
-              //if (tag.toUpperCase() == request.term.toUpperCase()) {
-              //  exact = true;
-              //}
-              return tag;
-            }
-          });
-        var resp = matches.slice(0, 16); // limits return to 16 items
-        //if (exact) {
-        if (resp.length > 0) {
-          resp.push(`${this._searchOverridePre}${request.term}${this._searchOverridePost}`);
-        }
-        //}
-        response(resp);
-      }.bind(this)*/
     });
   },
   showVirtualKeyboardIcon: function(show){
@@ -1412,10 +1391,7 @@ var Header = React.createClass({
   hideTestMessage: function() { 
     this.props.setCentralState({showTestMessage: false});
   },
-  submitSearch: function(query) {  //, skipNormalization, originalQuery) {
-    // originalQuery is used to handle an edge case - when a varient of a commentator name is passed - e.g. "Rasag".
-    // the name gets normalized, but is ultimately not a ref, so becomes a regular search.
-    // We want to search for the original query, not the normalized name
+  submitSearch: function(query) {
     var override = query.match(this._searchOverrideRegex());
     if (override) {
       if (Sefaria.site) { Sefaria.site.track.event("Search", "Search Box Navigation - Book Override", override[1]); }
@@ -1436,30 +1412,6 @@ var Header = React.createClass({
         this.showSearch(query);
       }
     }.bind(this));
-
-    /*
-    var index;
-    var normal_query = query.trim().toFirstCapital();
-    if (normal_query in Sefaria.booksDict) {
-      index = Sefaria.index(normal_query);
-      if (!index && !skipNormalization) {
-        Sefaria.normalizeTitle(query, function(title) {
-          this.submitSearch(title, true, query)
-        }.bind(this));
-        return;
-      }
-    }
-    if (Sefaria.isRef(normal_query)) {
-      var action = index? "Search Box Navigation - Book": "Search Box Navigation - Citation";
-      if (Sefaria.site) { Sefaria.site.track.event("Search", action, query); }
-      this.clearSearchBox();
-      this.handleRefClick(normal_query);  //todo: pass an onError function through here to the panel onError function which redirects to search
-    } else {
-      if (Sefaria.site) { Sefaria.site.track.event("Search", "Search Box Search", query); }
-      this.closeSearchAutocomplete();
-      this.showSearch(originalQuery || query);
-    }
-    */
   },
   closeSearchAutocomplete: function() {
     $(ReactDOM.findDOMNode(this)).find("input.search").sefaria_autocomplete("close");
