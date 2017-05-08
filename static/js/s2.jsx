@@ -8337,6 +8337,7 @@ var SearchFilters = React.createClass({
       openedCategory: null,
       openedCategoryBooks: [],
       displayFilters: !!this.props.appliedFilters.length,
+      displaySort: false,
       isExactSearch: this.props.optionField === this.props.exactField
     }
   },
@@ -8391,7 +8392,10 @@ var SearchFilters = React.createClass({
     })
   },
   toggleFilterView: function() {
-    this.setState({displayFilters: !this.state.displayFilters});
+    this.setState({displayFilters: !this.state.displayFilters, displaySort: false});
+  },
+  toggleSortView: function() {
+    this.setState({displaySort: !this.state.displaySort, displayFilters: false});
   },
   toggleExactSearch: function() {
     let newExactSearch = !this.state.isExactSearch;
@@ -8477,17 +8481,58 @@ var SearchFilters = React.createClass({
       </div>
     </div>);
 
+    var sort_panel = (<div>
+      <div className="searchFilterToggle" onClick={this.toggleSortView}>
+        <span className="int-en">Sort   </span>
+        <span className="int-he">מיון   </span>
+        <i className={(this.state.displaySort) ? "fa fa-caret-down fa-angle-down":"fa fa-caret-down"} />
+      </div>
+      <div className={(this.state.displaySort) ? "searchSortBox":"searchSortBox hidden"}>
+        <SearchSortBox
+          updateAppliedOptionSort={this.props.updateAppliedOptionSort}
+          sortType={this.props.sortType}/>
+      </div>
+    </div>);
     return (
       <div className={ classNames({searchTopMatter: 1, loading: this.props.isQueryRunning}) }>
         <div className="searchStatusLine">
           { (this.props.isQueryRunning) ? runningQueryLine : buttons }
           { (this.props.availableFilters.length > 0 && this.props.activeTab == "text") ? selected_filters : ""}
         </div>
-        { (this.props.availableFilters.length > 0 && this.props.activeTab == "text") ? filter_panel : "" }
+        { (this.props.availableFilters.length > 0 && this.props.activeTab == "text") ?
+            (<div className="filterSortFlexbox">
+              {filter_panel}
+              {sort_panel}
+            </div>)
+            : "" }
       </div>);
   }
 });
-
+var SearchSortBox = React.createClass({
+  propTypes: {
+    updateAppliedOptionSort: React.PropTypes.func,
+    sortType:                React.PropTypes.oneOf(["chronological", "relevance"])
+  },
+  handleClick: function() {
+    if (this.props.sortType === "chronological") {
+      this.props.updateAppliedOptionSort("relevance");
+    } else {
+      this.props.updateAppliedOptionSort("chronological");
+    }
+  },
+  render: function() {
+    return (<div>
+      <li onClick={this.handleClick} className={{unselected: this.props.sortType === "chronological"}}>
+        <span className="int-en"><span className="filter-title">{"Chronological"}</span></span>
+        <span className="int-he" dir="rtl"><span className="filter-title">{"Chronological (HE)"}</span></span>
+      </li>
+      <li onClick={this.handleClick}>
+        <span className="int-en"><span className="filter-title">{"Relevance"}</span></span>
+        <span className="int-he" dir="rtl"><span className="filter-title">{"Relevance (HE)"}</span></span>
+      </li>
+    </div>);
+  }
+});
 var SearchFilterExactBox = React.createClass({
   propTypes: {
     selected:      React.PropTypes.bool,

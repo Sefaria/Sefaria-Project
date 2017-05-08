@@ -1439,8 +1439,13 @@ a.resourcesLink {
   margin-bottom: 30px;
   position: relative;
 }
+
 .searchContent .searchTopMatter.loading {
   border-bottom: none;
+}
+.searchTopMatter .filterSortFlexbox {
+  display: flex;
+  justify-content: space-between;
 }
 .searchContent .searchStatusLine {
   padding: 0 0 36px 0;
@@ -1585,6 +1590,41 @@ a.resourcesLink {
 .searchFilterBoxes .searchFilterExactBox {
   border-top: 1px solid #ccc;
   padding: 5px 5px 5px 0;
+}
+.searchContent .searchSortBox {
+    margin-top: 10px;
+    background: white;
+    width: auto;
+    position: absolute;
+    right: 0;
+    z-index: 1;
+    -webkit-border-radius: 7px;
+    -moz-border-radius: 7px;
+    border-radius: 7px;
+    border: 1px solid #ccc;
+}
+.searchSortBox.hidden{
+    display:none;
+}
+.searchContent .searchSortBox li {
+  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  display: block;
+  padding: 15px;
+  font-size: 14px;
+  letter-spacing: 1px;
+  cursor: pointer;
+}
+.searchContent .searchSortBox li:hover {
+  background-color: #e0e0e0;
+}
+
+.searchContent .searchSortBox li .unselected {
+  color: #ccc;
+}
+
+.interface-hebrew .searchContent .searchSortBox li {
+  font-family: "Open Sans Hebrew", sans-serif;
+  padding: 10px 15px 10px 0;
 }
 
 .searchContent .searchFilterCategoryBox,
