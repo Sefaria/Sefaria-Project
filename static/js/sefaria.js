@@ -480,6 +480,24 @@ Sefaria = extend(Sefaria, {
       return result;
     }
   },
+  _lookups: {},
+  lookup: function(name, callback, onError) {
+    onError = onError || function() {};
+    if (name in this._lookups) {
+        callback(this._lookups[name]);
+    }
+    else {
+        $.ajax({
+          dataType: "json",
+          url: "/api/name/" + name, 
+          error: onError,
+          success: function(data) {
+              this._lookups[name] = data;
+              callback(data);
+          }.bind(this)
+        });
+    }
+  },
   sectionRef: function(ref) {
     // Returns the section level ref for `ref` or null if no data is available
     var oref = this.ref(ref);

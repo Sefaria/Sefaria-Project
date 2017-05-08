@@ -1312,15 +1312,12 @@ var Header = React.createClass({
       }.bind(this),
 
       source: function(request, response) {
-        $.ajax({
-          dataType: "json",
-          url: "/api/name/" + request.term,
-          error: function() {response([]);},
-          success: function(data) {
-            response(data["completions"])
-          }.bind(this)
-        });
-      }.bind(this),
+        Sefaria.lookup(
+            request.term,
+            d => response(d["completions"]),
+            e => response([])
+        );
+      }.bind(this)
 
       /*
       source: function( request, response ) {
@@ -1407,7 +1404,7 @@ var Header = React.createClass({
   hideTestMessage: function() { 
     this.props.setCentralState({showTestMessage: false});
   },
-  submitSearch: function(query, skipNormalization, originalQuery) {
+  submitSearch: function(query) {  //, skipNormalization, originalQuery) {
     // originalQuery is used to handle an edge case - when a varient of a commentator name is passed - e.g. "Rasag".
     // the name gets normalized, but is ultimately not a ref, so becomes a regular search.
     // We want to search for the original query, not the normalized name
@@ -1419,6 +1416,20 @@ var Header = React.createClass({
       return;
     }
 
+    Sefaria.lookup(query, function(d) {
+      if (d["is_ref"]) {
+        var action = d["is_node"] ? "Search Box Navigation - Book": "Search Box Navigation - Citation";
+        Sefaria.site.track.event("Search", action, query);
+        this.clearSearchBox();
+        this.handleRefClick(d["normal"]);  //todo: pass an onError function through here to the panel onError function which redirects to search
+      } else {
+        Sefaria.site.track.event("Search", "Search Box Search", query);
+        this.closeSearchAutocomplete();
+        this.showSearch(query);
+      }
+    }.bind(this));
+
+    /*
     var index;
     var normal_query = query.trim().toFirstCapital();
     if (normal_query in Sefaria.booksDict) {
@@ -1440,6 +1451,7 @@ var Header = React.createClass({
       this.closeSearchAutocomplete();
       this.showSearch(originalQuery || query);
     }
+    */
   },
   closeSearchAutocomplete: function() {
     $(ReactDOM.findDOMNode(this)).find("input.search").sefaria_autocomplete("close");

@@ -46,6 +46,7 @@ class AutoCompleter(object):
         except KeyError:
             return []
 
+
 class Completions(object):
     def __init__(self, auto_completer, lang, instring, limit=0):
         assert lang in ["en", "he"]
@@ -146,7 +147,6 @@ class TitleTrie(trie.CharTrie):
             self[norm_title] = {
                 "title": title,
                 "node": snode,
-                "normal": snode.primary_title("en"),
                 "is_primary": title == snode.primary_title(lang)
             }
 

@@ -2020,7 +2020,7 @@ def name_api(request, name):
             "is_ref": True,
             "is_book": ref.is_book_level(),
             "is_node": len(ref.sections) == 0,
-            "normal": ref.normal() if lang == "en" else ref.he_normal(),
+            "normal": ref.normal(),
             # "number_follows": inode.has_numeric_continuation(),
             # "titles_follow": titles_follow,
             "completions": library.auto_completer(lang).next_steps_from_node(name),
