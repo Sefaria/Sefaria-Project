@@ -21,6 +21,9 @@ untrans_texts      = defaultdict(int)
 untrans_categories = defaultdict(int)
 untrans_refs       = defaultdict(int)
 
+refs_by_category   = defaultdict(int)
+refs_by_tag        = defaultdict(int)
+
 fragments          = defaultdict(list)
 
 languages          = defaultdict(int)
@@ -76,7 +79,8 @@ public_total = db.sheets.find({"status": "public"}).count()
 
 for sheet in sheets: 
 	global language
-	count_sources(sheet["sources"], sheet["id"])
+	print sheet.get("title", "Untitled Sheet")
+	count_sources(sheet.get("sources", []), sheet.get("id", -1))
 	if "options" in sheet and "language" in sheet["options"]:
 		languages[sheet["options"]["language"]] += 1
 	else:
