@@ -2016,6 +2016,16 @@ def name_api(request, name):
         ref = Ref(name)
         inode = ref.index_node
         assert isinstance(inode, SchemaNode)
+
+        completions = [name.capitalize()] + library.auto_completer(lang).next_steps_from_node(name)
+
+        if LIMIT == 0 or len(completions) < LIMIT:
+            current = {t:1 for t in completions}
+            additional_results = library.auto_completer(lang).complete(name, LIMIT)
+            for res in additional_results:
+                if res not in current:
+                    completions += [res]
+
         d = {
             "is_ref": True,
             "is_book": ref.is_book_level(),
@@ -2023,8 +2033,8 @@ def name_api(request, name):
             "normal": ref.normal(),
             # "number_follows": inode.has_numeric_continuation(),
             # "titles_follow": titles_follow,
-            "completions": [name.capitalize()] + library.auto_completer(lang).next_steps_from_node(name),
-            # ADD textual completions as well
+            "completions": completions[:LIMIT],
+            # todo: ADD textual completions as well
             "examples": []
         }
 
