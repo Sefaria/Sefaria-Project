@@ -8515,9 +8515,9 @@ var SearchSortBox = React.createClass({
   },
   handleClick: function() {
     if (this.props.sortType === "chronological") {
-      //this.props.updateAppliedOptionSort("relevance");
+      this.props.updateAppliedOptionSort("relevance");
     } else {
-      //this.props.updateAppliedOptionSort("chronological");
+      this.props.updateAppliedOptionSort("chronological");
     }
   },
   render: function() {
