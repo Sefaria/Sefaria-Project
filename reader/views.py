@@ -2024,8 +2024,7 @@ def name_api(request, name):
             "normal": ref.normal() if lang == "en" else ref.he_normal(),
             # "number_follows": inode.has_numeric_continuation(),
             # "titles_follow": titles_follow,
-            # todo: these completions don't make sense when the title is an alternate 
-            "completions": [c.full_title(lang) for c in inode.children if not c.is_default()],
+            "completions": library.auto_completer(lang).next_steps_from_node(name),
             # ADD textual completions as well
             "examples": []
         }

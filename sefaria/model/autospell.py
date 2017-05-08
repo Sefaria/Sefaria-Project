@@ -18,6 +18,10 @@ except ImportError:
     import re
 
 
+H2E_KEYBOARD_MAP = {u"/": u"q", u"׳": u"w", u"ק": u"e", u"ר": u"r", u"א": u"t", u"ט": u"y", u"ו": u"u", u"ן": u"i", u"ם": u"o", u"פ": u"p", u"ש": u"a", u"ד": u"s", u"ג": u"d", u"כ": u"f", u"ע": u"g", u"י": u"h", u"ח": u"j", u"ל": u"k", u"ך": u"l", u"ף": u";", u",": u"'", u"ז": u"z", u"ס": u"x", u"ב": u"c", u"ה": u"v", u"נ": u"b", u"מ": u"n", u"צ": u"m", u"ת": u",", u"ץ": u".", u".": u"/"}
+E3H_KEYBOARD_MAP = {u"'": u',', u',': u'\u05ea', u'.': u'\u05e5', u'/': u'.', u';': u'\u05e3', u'A': u'\u05e9', u'B': u'\u05e0', u'C': u'\u05d1', u'D': u'\u05d2', u'E': u'\u05e7', u'F': u'\u05db', u'G': u'\u05e2', u'H': u'\u05d9', u'I': u'\u05df', u'J': u'\u05d7', u'K': u'\u05dc', u'L': u'\u05da', u'M': u'\u05e6', u'N': u'\u05de', u'O': u'\u05dd', u'P': u'\u05e4', u'Q': u'/', u'R': u'\u05e8', u'S': u'\u05d3', u'T': u'\u05d0', u'U': u'\u05d5', u'V': u'\u05d4', u'W': u'\u05f3', u'X': u'\u05e1', u'Y': u'\u05d8', u'Z': u'\u05d6', u'a': u'\u05e9', u'b': u'\u05e0', u'c': u'\u05d1', u'd': u'\u05d2', u'e': u'\u05e7', u'f': u'\u05db', u'g': u'\u05e2', u'h': u'\u05d9', u'i': u'\u05df', u'j': u'\u05d7', u'k': u'\u05dc', u'l': u'\u05da', u'm': u'\u05e6', u'n': u'\u05de', u'o': u'\u05dd', u'p': u'\u05e4', u'q': u'/', u'r': u'\u05e8', u's': u'\u05d3', u't': u'\u05d0', u'u': u'\u05d5', u'v': u'\u05d4', u'w': u'\u05f3', u'x': u'\u05e1', u'y': u'\u05d8', u'z': u'\u05d6'}
+
+
 class AutoCompleter(object):
     def __init__(self, lang, library, titles, *args, **kwargs):
         assert lang in ["en", "he"]
@@ -29,6 +33,14 @@ class AutoCompleter(object):
 
     def complete(self, instring, limit=0):
         return Completions(self, self.lang, instring, limit).process()
+
+    def next_steps_from_node(self, instring):
+        # Assume that instring is the name of a node.  Extend with a comma, and get next nodes in the Trie
+        if self.lang == "he":
+            normal_string = hebrew.normalize_final_letters_in_str(instring)
+        else:
+            normal_string = instring.lower()
+        return [v["title"] for k, v in self.title_trie.items(normal_string + u",", shallow=True)]
 
 
 class Completions(object):
