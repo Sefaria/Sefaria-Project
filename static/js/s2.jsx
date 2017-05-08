@@ -5741,7 +5741,7 @@ var TextColumn = React.createClass({
     this.adjustInfiniteScroll();
   },
   setScrollPosition: function() {
-    console.log("ssp");
+    // console.log("ssp");
     // Called on every update, checking flags on `this` to see if scroll position needs to be set
     if (this.loadingContentAtTop) {
       // After adding content by infinite scrolling up, scroll back to what the user was just seeing
@@ -5824,7 +5824,7 @@ var TextColumn = React.createClass({
     }
   },
   adjustTextListHighlight: function() {
-    console.log("adjustTextListHighlight");
+    // console.log("adjustTextListHighlight");
 
     // When scrolling while the TextList is open, update which segment should be highlighted.
     if (this.props.multiPanel && this.props.layoutWidth == 100) {
@@ -6471,8 +6471,8 @@ var ConnectionsPanel = React.createClass({
   },
   render: function() {
     var content = null;
-
-    if (!Sefaria.related(this.props.srefs)) {
+    var data = Sefaria.related(this.props.srefs);
+    if (!data) {
       content = <LoadingMessage />;
     } else if (this.props.mode == "Resources") {
       content = (<div>
@@ -6480,22 +6480,27 @@ var ConnectionsPanel = React.createClass({
                     srefs={this.props.srefs}
                     showBooks={false}
                     multiPanel={this.props.multiPanel}
+                    filter={this.props.filter}
                     setFilter={this.props.setFilter}
                     setConnectionsMode={this.props.setConnectionsMode}
                     setConnectionsCategory={this.props.setConnectionsCategory} />
                   <ResourcesList
                     setConnectionsMode={this.props.setConnectionsMode}
-                    openComparePanel={this.props.openComparePanel} />
+                    openComparePanel={this.props.openComparePanel}
+                    sheetsCount={data.sheets.length} />
                   </div>);
+    
     } else if (this.props.mode === "ConnectionsList") {
       content = (<ConnectionsSummary
                     srefs={this.props.srefs}
                     category={this.props.connectionsCategory}
                     showBooks={true}
                     multiPanel={this.props.multiPanel}
+                    filter={this.props.filter}
                     setFilter={this.props.setFilter}
                     setConnectionsMode={this.props.setConnectionsMode}
                     setConnectionsCategory={this.props.setConnectionsCategory} />);
+    
     } else if (this.props.mode === "TextList") {
       content = (<TextList
                     srefs={this.props.srefs}
@@ -6514,12 +6519,18 @@ var ConnectionsPanel = React.createClass({
                     openDisplaySettings={this.props.openDisplaySettings}
                     closePanel={this.props.closePanel}
                     selectedWords={this.props.selectedWords}/>);
+    
     } else if (this.props.mode === "Sheets") {
-
+      content = (<SheetsList
+                    srefs={this.props.srefs}
+                    fullPanel={this.props.fullPanel}
+                    multiPanel={this.props.multiPanel} />);
+    
     } else if (this.props.mode === "Lexicon") {
       content = (<LexiconPanel 
                     selectedWords={this.props.selectedWords} 
                     oref={this.props.oref} />);
+    
     } else if (this.props.mode === "Tools") {
       content = (<ToolsPanel
                     srefs={this.props.srefs}
@@ -6542,6 +6553,7 @@ var ConnectionsPanel = React.createClass({
                     closePanel={this.props.closePanel}
                     version={this.props.version}
                     versionLanguage={this.props.versionLanguage} />);
+    
     } else if (this.props.mode === "Share") {
       content = (<SharePanel
                     url={window.location.href}
@@ -6554,7 +6566,7 @@ var ConnectionsPanel = React.createClass({
                     srefs={this.props.srefs}
                     fullPanel={this.props.fullPanel}
                     setConnectionsMode={this.props.setConnectionsMode} 
-                      version={this.props.version}
+                    version={this.props.version}
                     versionLanguage={this.props.versionLanguage}
                     addToSourceSheet={this.props.addToSourceSheet} />);
 
@@ -6650,11 +6662,12 @@ var ResourcesList = React.createClass({
   propTypes: {
     setConnectionsMode: React.PropTypes.func.isRequired,
     openComparePanel:   React.PropTypes.func.isRequired,
+    sheetsCount:        React.PropTypes.number.isRequired,
   },
   render: function() {
     return (<div className="resourcesList">
               <ToolsButton en="Other Text" he="השווה" icon="search" onClick={this.props.openComparePanel} /> 
-              <ToolsButton en="Sheets" he="הוסף לדף מקורות" image="sheet.svg" onClick={function() {this.props.setConnectionsMode("Add to Source Sheet")}.bind(this)} /> 
+              <ToolsButton en="Sheets" he="הוסף לדף מקורות" image="sheet.svg" count={this.props.sheetsCount} onClick={function() {this.props.setConnectionsMode("Sheets")}.bind(this)} /> 
               <ToolsButton en="Notes" he="הרשומות שלי" image="tools-write-note.svg" onClick={function() {this.props.setConnectionsMode("My Notes")}.bind(this)} /> 
               <ToolsButton en="Tools" he="הרשומות שלי" icon="gear" onClick={function() {this.props.setConnectionsMode("Tools")}.bind(this)} /> 
             </div>);
@@ -6672,7 +6685,7 @@ var ConnectionsSummary = React.createClass({
     showBooks:               React.PropTypes.bool,
     setConnectionsMode:      React.PropTypes.func,
     setFilter:               React.PropTypes.func,
-    setConnectionsCategory:  React.PropTypes.array.isRequired, 
+    setConnectionsCategory:  React.PropTypes.func.isRequired, 
   },
   render: function() {
     var refs    = this.props.srefs;
@@ -7171,6 +7184,48 @@ var RecentFilterSet = React.createClass({
 });
 
 
+var SheetsList = React.createClass({
+  propTypes: {
+    srefs:      React.PropTypes.array.isRequired,
+    fullPanel:  React.PropTypes.bool,
+    multiPanel: React.PropTypes.bool,
+  },
+  render: function() {
+    var sheets = Sefaria.sheets.sheetsByRef(this.props.srefs);
+    var content = sheets.length ?
+      sheets.map(function(sheet) {
+            return (<SheetListing sheet={sheet} key={sheet.sheetUrl} />)      
+      }) : <LoadingMessage message="No public sheets here." heMessage="No public sheets here." />
+    return (
+      <div>
+        {content}
+      </div>)
+  }
+});
+
+
+var SheetListing = React.createClass({
+  propTypes: {
+    sheet:      React.PropTypes.object.isRequired,
+  },
+  render: function() {
+    var sheet = this.props.sheet;
+    return (
+      <div className="sheet" key={sheet.sheetUrl}>
+        <div className="sheetViews"><i className="fa fa-eye"></i> {sheet.views}</div>
+        <a href={sheet.ownerProfileUrl}>
+          <img className="sheetAuthorImg" src={sheet.ownerImageUrl} />
+        </a>
+        <a href={sheet.ownerProfileUrl} className="sheetAuthor">{sheet.ownerName}</a>
+        <a href={sheet.sheetUrl} className="sheetTitle">{sheet.title}</a>
+        <div className="sheetTags">
+          {sheet.tags.map(function(tag) { return (<span className="sheetTag" key={tag}>{tag}</span>)})}
+        </div>
+      </div>);          
+}
+});
+
+
 var Note = React.createClass({
   propTypes: {
     title:           React.PropTypes.string.isRequired,
@@ -7435,6 +7490,7 @@ var ToolsButton = React.createClass({
     he:      React.PropTypes.string.isRequired,
     icon:    React.PropTypes.string,
     image:   React.PropTypes.string,
+    count:   React.PropTypes.number,
     onClick: React.PropTypes.func
   },
   render: function() {
@@ -7448,11 +7504,13 @@ var ToolsButton = React.createClass({
       icon = (<img src={"/static/img/" + this.props.image} className="toolsButtonIcon" />);
     }
 
+    var count = this.props.count ? (<span className="connectionsCount">({this.props.count})</span>) : null;
+
     return (
       <div className="toolsButton sans noselect" onClick={this.props.onClick}>
         {icon}
-        <span className="int-en noselect">{this.props.en}</span>
-        <span className="int-he noselect">{this.props.he}</span>
+        <span className="int-en noselect">{this.props.en} {count}</span>
+        <span className="int-he noselect">{this.props.he} {count}</span>
       </div>)
   }
 });

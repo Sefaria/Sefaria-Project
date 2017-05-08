@@ -7359,6 +7359,7 @@ var TextColumn = React.createClass({
     this.adjustInfiniteScroll();
   },
   setScrollPosition: function setScrollPosition() {
+    // console.log("ssp");
     // Called on every update, checking flags on `this` to see if scroll position needs to be set
     if (this.loadingContentAtTop) {
       var $node = $(ReactDOM.findDOMNode(this));
@@ -7447,6 +7448,7 @@ var TextColumn = React.createClass({
     }
   },
   adjustTextListHighlight: function adjustTextListHighlight() {
+    // console.log("adjustTextListHighlight");
 
     // When scrolling while the TextList is open, update which segment should be highlighted.
     if (this.props.multiPanel && this.props.layoutWidth == 100) {
@@ -8187,8 +8189,8 @@ var ConnectionsPanel = React.createClass({
   },
   render: function render() {
     var content = null;
-
-    if (!Sefaria.related(this.props.srefs)) {
+    var data = Sefaria.related(this.props.srefs);
+    if (!data) {
       content = React.createElement(LoadingMessage, null);
     } else if (this.props.mode == "Resources") {
       content = React.createElement(
@@ -8198,12 +8200,14 @@ var ConnectionsPanel = React.createClass({
           srefs: this.props.srefs,
           showBooks: false,
           multiPanel: this.props.multiPanel,
+          filter: this.props.filter,
           setFilter: this.props.setFilter,
           setConnectionsMode: this.props.setConnectionsMode,
           setConnectionsCategory: this.props.setConnectionsCategory }),
         React.createElement(ResourcesList, {
           setConnectionsMode: this.props.setConnectionsMode,
-          openComparePanel: this.props.openComparePanel })
+          openComparePanel: this.props.openComparePanel,
+          sheetsCount: data.sheets.length })
       );
     } else if (this.props.mode === "ConnectionsList") {
       content = React.createElement(ConnectionsSummary, {
@@ -8211,6 +8215,7 @@ var ConnectionsPanel = React.createClass({
         category: this.props.connectionsCategory,
         showBooks: true,
         multiPanel: this.props.multiPanel,
+        filter: this.props.filter,
         setFilter: this.props.setFilter,
         setConnectionsMode: this.props.setConnectionsMode,
         setConnectionsCategory: this.props.setConnectionsCategory });
@@ -8232,7 +8237,12 @@ var ConnectionsPanel = React.createClass({
         openDisplaySettings: this.props.openDisplaySettings,
         closePanel: this.props.closePanel,
         selectedWords: this.props.selectedWords });
-    } else if (this.props.mode === "Sheets") {} else if (this.props.mode === "Lexicon") {
+    } else if (this.props.mode === "Sheets") {
+      content = React.createElement(SheetsList, {
+        srefs: this.props.srefs,
+        fullPanel: this.props.fullPanel,
+        multiPanel: this.props.multiPanel });
+    } else if (this.props.mode === "Lexicon") {
       content = React.createElement(LexiconPanel, {
         selectedWords: this.props.selectedWords,
         oref: this.props.oref });
@@ -8432,15 +8442,16 @@ var ResourcesList = React.createClass({
 
   propTypes: {
     setConnectionsMode: React.PropTypes.func.isRequired,
-    openComparePanel: React.PropTypes.func.isRequired
+    openComparePanel: React.PropTypes.func.isRequired,
+    sheetsCount: React.PropTypes.number.isRequired
   },
   render: function render() {
     return React.createElement(
       'div',
       { className: 'resourcesList' },
       React.createElement(ToolsButton, { en: 'Other Text', he: 'השווה', icon: 'search', onClick: this.props.openComparePanel }),
-      React.createElement(ToolsButton, { en: 'Sheets', he: 'הוסף לדף מקורות', image: 'sheet.svg', onClick: function () {
-          this.props.setConnectionsMode("Add to Source Sheet");
+      React.createElement(ToolsButton, { en: 'Sheets', he: 'הוסף לדף מקורות', image: 'sheet.svg', count: this.props.sheetsCount, onClick: function () {
+          this.props.setConnectionsMode("Sheets");
         }.bind(this) }),
       React.createElement(ToolsButton, { en: 'Notes', he: 'הרשומות שלי', image: 'tools-write-note.svg', onClick: function () {
           this.props.setConnectionsMode("My Notes");
@@ -8464,7 +8475,7 @@ var ConnectionsSummary = React.createClass({
     showBooks: React.PropTypes.bool,
     setConnectionsMode: React.PropTypes.func,
     setFilter: React.PropTypes.func,
-    setConnectionsCategory: React.PropTypes.array.isRequired
+    setConnectionsCategory: React.PropTypes.func.isRequired
   },
   render: function render() {
     var refs = this.props.srefs;
@@ -9062,6 +9073,75 @@ var RecentFilterSet = React.createClass({
   }
 });
 
+var SheetsList = React.createClass({
+  displayName: 'SheetsList',
+
+  propTypes: {
+    srefs: React.PropTypes.array.isRequired,
+    fullPanel: React.PropTypes.bool,
+    multiPanel: React.PropTypes.bool
+  },
+  render: function render() {
+    var sheets = Sefaria.sheets.sheetsByRef(this.props.srefs);
+    var content = sheets.length ? sheets.map(function (sheet) {
+      return React.createElement(SheetListing, { sheet: sheet, key: sheet.sheetUrl });
+    }) : React.createElement(LoadingMessage, { message: 'No public sheets here.', heMessage: 'No public sheets here.' });
+    return React.createElement(
+      'div',
+      null,
+      content
+    );
+  }
+});
+
+var SheetListing = React.createClass({
+  displayName: 'SheetListing',
+
+  propTypes: {
+    sheet: React.PropTypes.object.isRequired
+  },
+  render: function render() {
+    var sheet = this.props.sheet;
+    return React.createElement(
+      'div',
+      { className: 'sheet', key: sheet.sheetUrl },
+      React.createElement(
+        'div',
+        { className: 'sheetViews' },
+        React.createElement('i', { className: 'fa fa-eye' }),
+        ' ',
+        sheet.views
+      ),
+      React.createElement(
+        'a',
+        { href: sheet.ownerProfileUrl },
+        React.createElement('img', { className: 'sheetAuthorImg', src: sheet.ownerImageUrl })
+      ),
+      React.createElement(
+        'a',
+        { href: sheet.ownerProfileUrl, className: 'sheetAuthor' },
+        sheet.ownerName
+      ),
+      React.createElement(
+        'a',
+        { href: sheet.sheetUrl, className: 'sheetTitle' },
+        sheet.title
+      ),
+      React.createElement(
+        'div',
+        { className: 'sheetTags' },
+        sheet.tags.map(function (tag) {
+          return React.createElement(
+            'span',
+            { className: 'sheetTag', key: tag },
+            tag
+          );
+        })
+      )
+    );
+  }
+});
+
 var Note = React.createClass({
   displayName: 'Note',
 
@@ -9418,6 +9498,7 @@ var ToolsButton = React.createClass({
     he: React.PropTypes.string.isRequired,
     icon: React.PropTypes.string,
     image: React.PropTypes.string,
+    count: React.PropTypes.number,
     onClick: React.PropTypes.func
   },
   render: function render() {
@@ -9431,6 +9512,14 @@ var ToolsButton = React.createClass({
       icon = React.createElement('img', { src: "/static/img/" + this.props.image, className: 'toolsButtonIcon' });
     }
 
+    var count = this.props.count ? React.createElement(
+      'span',
+      { className: 'connectionsCount' },
+      '(',
+      this.props.count,
+      ')'
+    ) : null;
+
     return React.createElement(
       'div',
       { className: 'toolsButton sans noselect', onClick: this.props.onClick },
@@ -9438,12 +9527,16 @@ var ToolsButton = React.createClass({
       React.createElement(
         'span',
         { className: 'int-en noselect' },
-        this.props.en
+        this.props.en,
+        ' ',
+        count
       ),
       React.createElement(
         'span',
         { className: 'int-he noselect' },
-        this.props.he
+        this.props.he,
+        ' ',
+        count
       )
     );
   }

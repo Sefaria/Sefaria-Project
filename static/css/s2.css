@@ -2612,7 +2612,7 @@ a.resourcesLink {
   cursor: pointer;
   color: #333;
 }
-.categoryFilterGroup .connectionsCount {
+.connectionsCount {
   color: #999;
   font-weight: lighter;
   letter-spacing: 1px;
@@ -2731,16 +2731,17 @@ a.resourcesLink {
   display: none;
 }
 .textList .sheet, .textList .note {
-  background-color: white;
-  margin: 6px 0px;
-  padding: 10px 20px;
+  padding: 24px 0;
+}
+.textList .sheet + .sheet {
+  border-top: 1px solid #E6E5E6;
 }
 .textList .sheet .sheetAuthorImg,
 .textList .note .noteAuthorImg {
-  height: 36px;
-  width: 36px;
-  float: left;
-  margin-right: 10px;
+  height: 26px;
+  width: 26px;
+  vertical-align: -8px;
+  margin-right: 14px;
 }
 .textList .sheet .sheetViews {
   float: right;
@@ -2749,13 +2750,24 @@ a.resourcesLink {
 .textList .sheet .sheetAuthor,
 .textList .note .noteAuthor {
   color: #999;
-  text-transform: uppercase;
-  display: block;
+  font-size: 15px;
+  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
 }
 .textList .sheet .sheetTitle {
-  font-size: 14px;
+  display: block;
+  margin-top: 14px;
+  font-size: 17px;
+  font-style: italic;
   text-align: left;
-  color: black;
+  color: #333;
+}
+.textList .sheet .sheetTags {
+  margin-top: 4px;
+  font-size: 13px;
+  color: #666;
+} 
+.textList .sheet .sheetTag + .sheetTag {
+  margin-left: 8px;
 }
 .textList .note .noteTitle {
   font-weight: bold;
