@@ -8515,20 +8515,22 @@ var SearchSortBox = React.createClass({
   },
   handleClick: function() {
     if (this.props.sortType === "chronological") {
-      this.props.updateAppliedOptionSort("relevance");
+      //this.props.updateAppliedOptionSort("relevance");
     } else {
-      this.props.updateAppliedOptionSort("chronological");
+      //this.props.updateAppliedOptionSort("chronological");
     }
   },
   render: function() {
+    var chronoClass = classNames({'filter-title': 1, 'unselected': this.props.sortType !== "chronological"});
+    var releClass = classNames({'filter-title': 1, 'unselected': this.props.sortType !== "relevance"});
     return (<div>
-      <li onClick={this.handleClick} className={{unselected: this.props.sortType === "chronological"}}>
-        <span className="int-en"><span className="filter-title">{"Chronological"}</span></span>
-        <span className="int-he" dir="rtl"><span className="filter-title">{"Chronological (HE)"}</span></span>
+      <li onClick={this.handleClick}>
+        <span className="int-en"><span className={chronoClass}>{"Chronological"}</span></span>
+        <span className="int-he" dir="rtl"><span className={chronoClass}>{"Chronological (HE)"}</span></span>
       </li>
       <li onClick={this.handleClick}>
-        <span className="int-en"><span className="filter-title">{"Relevance"}</span></span>
-        <span className="int-he" dir="rtl"><span className="filter-title">{"Relevance (HE)"}</span></span>
+        <span className="int-en"><span className={releClass}>{"Relevance"}</span></span>
+        <span className="int-he" dir="rtl"><span className={releClass}>{"Relevance (HE)"}</span></span>
       </li>
     </div>);
   }
