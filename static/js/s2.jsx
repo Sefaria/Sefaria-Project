@@ -8355,7 +8355,7 @@ var SearchFilters = React.createClass({
         </div>
         <div className="searchFilterExactBox">
           <SearchFilterExactBox
-            selected={this.state.isExactSearch}
+            selected={!this.state.isExactSearch}
             checkBoxClick={this.toggleExactSearch}
             />
         </div>
