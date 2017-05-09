@@ -1362,7 +1362,8 @@ var Header = React.createClass({
     this.props.showSearch(query);
     $(ReactDOM.findDOMNode(this)).find("input.search").sefaria_autocomplete("close");
   },
-  showAccount: function() {
+  showAccount: function(e) {
+    e.preventDefault();
     if (typeof sjs !== "undefined") {
       window.location = "/account";
       return;
@@ -1370,7 +1371,8 @@ var Header = React.createClass({
     this.props.setCentralState({menuOpen: "account"});
     this.clearSearchBox();
   },
-  showNotifications: function() {
+  showNotifications: function(e) {
+    e.preventDefault();
     if (typeof sjs !== "undefined") {
       window.location = "/notifications";
       return;
@@ -1495,8 +1497,8 @@ var Header = React.createClass({
                           (<div className="testWarning" onClick={this.showTestMessage} >{ this.props.headerMessage }</div>) :
                           null;
     var loggedInLinks  = (<div className="accountLinks">
-                            <div className="account" onClick={this.showAccount}><img src="/static/img/user-64.png" alt="My Account"/></div>
-                            <div className={notifcationsClasses} onClick={this.showNotifications}>{notificationCount}</div>
+                            <a href="/account" className="account" onClick={this.showAccount}><img src="/static/img/user-64.png" alt="My Account"/></a>
+                            <a href="/notifications" aria-label="See New Notifications" className={notifcationsClasses} onClick={this.showNotifications}>{notificationCount}</a>
                          </div>);
     var loggedOutLinks = (<div className="accountLinks">
                            <a className="login" href={"/register" + nextParam}>
@@ -1513,7 +1515,7 @@ var Header = React.createClass({
     return (<div className="header">
               <div className="headerInner">
                 <div className="left">
-                  <a href="/texts" aria-label="Toggle Text Table of Contents"><div className="library" onClick={this.handleLibraryClick}><i className="fa fa-bars"></i></div></a>
+                  <a href="/texts" aria-label="Toggle Text Table of Contents" className="library" onClick={this.handleLibraryClick}><i className="fa fa-bars"></i></a>
                 </div>
                 <div className="right">
                   { headerMessage }
