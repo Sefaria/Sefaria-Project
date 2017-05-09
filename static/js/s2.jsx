@@ -1315,12 +1315,10 @@ var Header = React.createClass({
         Sefaria.lookup(
             request.term,
             d => {
-              if (d["is_ref"]) {
-                var results = d["completions"].slice();
-                results.push(`${this._searchOverridePre}${request.term}${this._searchOverridePost}`);
-                response(results);
+              if (d["completions"].length > 0) {
+                response(d["completions"].concat([`${this._searchOverridePre}${request.term}${this._searchOverridePost}`]))
               } else {
-                response(d["completions"]);
+                response([])
               }
             },
             e => response([])

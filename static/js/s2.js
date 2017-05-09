@@ -1358,12 +1358,10 @@ var Header = React.createClass({
         var _this = this;
 
         Sefaria.lookup(request.term, function (d) {
-          if (d["is_ref"]) {
-            var results = d["completions"].slice();
-            results.push('' + _this._searchOverridePre + request.term + _this._searchOverridePost);
-            response(results);
+          if (d["completions"].length > 0) {
+            response(d["completions"].concat(['' + _this._searchOverridePre + request.term + _this._searchOverridePost]));
           } else {
-            response(d["completions"]);
+            response([]);
           }
         }, function (e) {
           return response([]);
