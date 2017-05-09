@@ -1548,7 +1548,7 @@ var Header = React.createClass({
       React.createElement(
         'div',
         { className: 'account', onClick: this.showAccount },
-        React.createElement('img', { src: '/static/img/user-64.png', alt: 'User Icon' })
+        React.createElement('img', { src: '/static/img/user-64.png', alt: 'My Account' })
       ),
       React.createElement(
         'div',
@@ -1601,7 +1601,7 @@ var Header = React.createClass({
           { className: 'left' },
           React.createElement(
             'a',
-            { href: '/texts' },
+            { href: '/texts', 'aria-label': 'Toggle Text Table of Contents' },
             React.createElement(
               'div',
               { className: 'library', onClick: this.handleLibraryClick },
@@ -2940,7 +2940,7 @@ var ReaderNavigationMenu = React.createClass({
         React.createElement(ReaderNavigationMenuCloseButton, { onClick: this.closeNav }),
         React.createElement(ReaderNavigationMenuSearchButton, { onClick: this.handleSearchButtonClick }),
         React.createElement(ReaderNavigationMenuDisplaySettingsButton, { onClick: this.props.openDisplaySettings }),
-        React.createElement('input', { className: 'readerSearch', placeholder: 'Search', onKeyUp: this.handleSearchKeyUp })
+        React.createElement('input', { className: 'readerSearch', title: 'Search for Texts or Keywords Here', placeholder: 'Search', onKeyUp: this.handleSearchKeyUp })
       );
       topContent = this.props.hideNavHeader ? null : topContent;
 
@@ -10145,7 +10145,7 @@ var SearchBar = React.createClass({
       React.createElement(
         'div',
         { className: 'searchBox' },
-        React.createElement('input', { className: 'readerSearch', value: this.state.query, onKeyPress: this.handleKeypress, onChange: this.handleChange, placeholder: 'Search' }),
+        React.createElement('input', { className: 'readerSearch', title: 'Search for Texts or Keywords Here', value: this.state.query, onKeyPress: this.handleKeypress, onChange: this.handleChange, placeholder: 'Search' }),
         React.createElement(ReaderNavigationMenuSearchButton, { onClick: this.updateQuery })
       ),
       React.createElement('div', { className: 'description' })

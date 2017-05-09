@@ -1495,7 +1495,7 @@ var Header = React.createClass({
                           (<div className="testWarning" onClick={this.showTestMessage} >{ this.props.headerMessage }</div>) :
                           null;
     var loggedInLinks  = (<div className="accountLinks">
-                            <div className="account" onClick={this.showAccount}><img src="/static/img/user-64.png" alt="User Icon"/></div>
+                            <div className="account" onClick={this.showAccount}><img src="/static/img/user-64.png" alt="My Account"/></div>
                             <div className={notifcationsClasses} onClick={this.showNotifications}>{notificationCount}</div>
                          </div>);
     var loggedOutLinks = (<div className="accountLinks">
@@ -1513,7 +1513,7 @@ var Header = React.createClass({
     return (<div className="header">
               <div className="headerInner">
                 <div className="left">
-                  <a href="/texts"><div className="library" onClick={this.handleLibraryClick}><i className="fa fa-bars"></i></div></a>
+                  <a href="/texts" aria-label="Toggle Text Table of Contents"><div className="library" onClick={this.handleLibraryClick}><i className="fa fa-bars"></i></div></a>
                 </div>
                 <div className="right">
                   { headerMessage }
@@ -2685,7 +2685,7 @@ var ReaderNavigationMenu = React.createClass({
                 <ReaderNavigationMenuCloseButton onClick={this.closeNav}/>
                 <ReaderNavigationMenuSearchButton onClick={this.handleSearchButtonClick} />
                 <ReaderNavigationMenuDisplaySettingsButton onClick={this.props.openDisplaySettings} />                
-                <input className="readerSearch" placeholder="Search" onKeyUp={this.handleSearchKeyUp} />
+                <input className="readerSearch" title="Search for Texts or Keywords Here" placeholder="Search" onKeyUp={this.handleSearchKeyUp} />
               </div>);
       topContent = this.props.hideNavHeader ? null : topContent;
 
@@ -7956,7 +7956,7 @@ var SearchBar = React.createClass({
         return (
             <div>
                 <div className="searchBox">
-                    <input className="readerSearch" value={this.state.query} onKeyPress={this.handleKeypress} onChange={this.handleChange} placeholder="Search"/>
+                    <input className="readerSearch" title="Search for Texts or Keywords Here" value={this.state.query} onKeyPress={this.handleKeypress} onChange={this.handleChange} placeholder="Search"/>
                     <ReaderNavigationMenuSearchButton onClick={this.updateQuery} />
                 </div>
                 <div className="description"></div>
