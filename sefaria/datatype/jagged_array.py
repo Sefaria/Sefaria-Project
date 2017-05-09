@@ -577,7 +577,7 @@ class JaggedTextArray(JaggedArray):
             return [self.modify_by_function(func, i) for i in _cur]
 
     def flatten_to_array(self, _cur=None):
-        # Identical to superclass, but coerces to string
+        # Flatten deep jagged array to flat array
 
         if _cur is None:
             if isinstance(self._store, basestring):

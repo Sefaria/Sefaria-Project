@@ -28,7 +28,7 @@ class PagesLoad(AtomicTest):
     every_build = True
 
     def run(self):
-        self.load_toc().click_toc_category("Midrash").click_toc_text("Midrash Tanchuma")
+        self.load_toc().click_toc_category("Midrash").click_toc_text("Midrash Tehillim")
         self.load_ref("Psalms.104")
         self.load_sheets()
 

@@ -442,8 +442,8 @@ Sefaria = extend(Sefaria, {
         callback(this._titleVariants[title]); 
     }
     else {
-        this._api("/api/index/" + title, function(data) {
-          for (var i = 0; i < data.titleVariants.length; i ++) {
+        this._api("/api/v2/index/" + title, function(data) {
+          for (var i = 0; i < data.titleVariants.length; i++) {
             Sefaria._titleVariants[data.titleVariants[i]] = data.title;
           }
           callback(data.title);
@@ -1495,7 +1495,7 @@ Sefaria = extend(Sefaria, {
   _makeBooksDict: function() {
     // Transform books array into a dictionary for quick lookup
     // Which is worse: the cycles wasted in computing this on the client
-    // or the bandwitdh wasted in letting the server computer once and trasmiting the same data twice in differnt form?
+    // or the bandwidth wasted in letting the server computer once and transmitting the same data twice in different form?
     this.booksDict = {};
     for (var i = 0; i < this.books.length; i++) {
       this.booksDict[this.books[i]] = 1;
@@ -2163,6 +2163,21 @@ Sefaria.util = {
                return container.nodeType === 3 ? container.parentNode : container;
             }   
         }
+    },
+    _scrollbarWidth: null,
+    getScrollbarWidth: function() {
+      // Returns the size of the browser scrollbars in pixels
+      // May be 0 for browser that hide scrollbars when not in use
+      if (Sefaria.util._scrollbarWidth !== null) {
+        return Sefaria.util._scrollbarWidth;
+      }
+      $("body").append(
+        '<div id="scrollbarTestA" style="display:none;overflow:scroll">' +
+          '<div id="scrollbarTestB"></div>' +
+        '</div>');
+        Sefaria.util._scrollbarWidth = $("#scrollbarTestA").width() - $("#scrollbarTestB").width();
+        $("#scrollbarTestA").remove();
+        return Sefaria.util._scrollbarWidth;
     }
 };
 
@@ -2462,7 +2477,7 @@ Sefaria.palette.categoryColors = {
   "Kabbalah":           Sefaria.palette.colors.purple,
   "Philosophy":         Sefaria.palette.colors.lavender,
   "Liturgy":            Sefaria.palette.colors.darkpink,
-  "Tosefta":            Sefaria.palette.colors.teal,
+  "Tanaitic":           Sefaria.palette.colors.teal,
   "Parshanut":          Sefaria.palette.colors.paleblue,
   "Chasidut":           Sefaria.palette.colors.lightgreen,
   "Musar":              Sefaria.palette.colors.raspberry,

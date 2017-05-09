@@ -1452,8 +1452,9 @@ var Header = React.createClass({
     }
 
     var index;
-    if (query in Sefaria.booksDict) {
-      index = Sefaria.index(query);
+    var normal_query = query.trim().toFirstCapital();
+    if (normal_query in Sefaria.booksDict) {
+      index = Sefaria.index(normal_query);
       if (!index && !skipNormalization) {
         Sefaria.normalizeTitle(query, function (title) {
           this.submitSearch(title, true, query);
@@ -1461,13 +1462,13 @@ var Header = React.createClass({
         return;
       }
     }
-    if (Sefaria.isRef(query)) {
+    if (Sefaria.isRef(normal_query)) {
       var action = index ? "Search Box Navigation - Book" : "Search Box Navigation - Citation";
       if (Sefaria.site) {
         Sefaria.site.track.event("Search", action, query);
       }
       this.clearSearchBox();
-      this.handleRefClick(query); //todo: pass an onError function through here to the panel onError function which redirects to search
+      this.handleRefClick(normal_query); //todo: pass an onError function through here to the panel onError function which redirects to search
     } else {
         if (Sefaria.site) {
           Sefaria.site.track.event("Search", "Search Box Search", query);
@@ -2156,6 +2157,7 @@ var ReaderPanel = React.createClass({
         multiPanel: this.props.multiPanel,
         mode: this.state.mode,
         settings: Sefaria.util.clone(this.state.settings),
+        interfaceLang: this.props.interfaceLang,
         setOption: this.setOption,
         showBaseText: this.showBaseText,
         updateTextColumn: this.updateTextColumn,
@@ -2727,7 +2729,7 @@ var ReaderNavigationMenu = React.createClass({
       );
     } else {
       // Root Library Menu
-      var categories = ["Tanakh", "Mishnah", "Talmud", "Midrash", "Halakhah", "Kabbalah", "Liturgy", "Philosophy", "Tosefta", "Chasidut", "Musar", "Responsa", "Apocrypha", "Modern Works", "Other"];
+      var categories = ["Tanakh", "Mishnah", "Talmud", "Midrash", "Halakhah", "Kabbalah", "Liturgy", "Philosophy", "Tanaitic", "Chasidut", "Musar", "Responsa", "Apocrypha", "Modern Works", "Other"];
       categories = categories.map(function (cat) {
         var style = { "borderColor": Sefaria.palette.categoryColor(cat) };
         var openCat = function (e) {
@@ -4259,9 +4261,9 @@ var SchemaNode = React.createClass({
     refPath: React.PropTypes.string.isRequired
   },
   getInitialState: function getInitialState() {
-    var nChildren = "nodes" in this.props.schema ? this.props.schema.length : 0;
+    var nChildren = "nodes" in this.props.schema ? this.props.schema.nodes.length : 0;
     return {
-      collapsed: new Array(nChildren).fill(false)
+      collapsed: new Array(nChildren).fill(true)
     };
   },
   toggleCollapse: function toggleCollapse(i) {
@@ -4325,16 +4327,12 @@ var SchemaNode = React.createClass({
               React.createElement(
                 'span',
                 { className: 'he' },
-                node.heTitle,
-                ' ',
-                React.createElement('i', { className: 'schema-node-control fa fa-angle-left' })
+                node.heTitle
               ),
               React.createElement(
                 'span',
                 { className: 'en' },
-                node.title,
-                ' ',
-                React.createElement('i', { className: 'schema-node-control fa fa-angle-right' })
+                node.title
               )
             )
           );
@@ -5111,7 +5109,7 @@ var CategoryAttribution = React.createClass({
       { className: 'categoryAttribution' },
       React.createElement(
         'a',
-        { href: attribution.link },
+        { href: attribution.link, className: 'outOfAppLink' },
         React.createElement(
           'span',
           { className: 'en' },
@@ -7310,6 +7308,7 @@ var TextColumn = React.createClass({
     multiPanel: React.PropTypes.bool,
     mode: React.PropTypes.string,
     settings: React.PropTypes.object,
+    interfaceLang: React.PropTypes.string,
     showBaseText: React.PropTypes.func,
     updateTextColumn: React.PropTypes.func,
     onSegmentClick: React.PropTypes.func,
@@ -7328,6 +7327,7 @@ var TextColumn = React.createClass({
     node.addEventListener("scroll", this.handleScroll);
     this.setScrollPosition();
     this.adjustInfiniteScroll();
+    this.setPaddingForScrollbar();
   },
   componentWillUnmount: function componentWillUnmount() {
     var node = ReactDOM.findDOMNode(this);
@@ -7574,6 +7574,17 @@ var TextColumn = React.createClass({
         $container.scrollTo($highlighted, 0, { offset: -offset });
       }
     }.bind(this));
+  },
+  setPaddingForScrollbar: function setPaddingForScrollbar() {
+    // Scrollbars take up spacing, causing the centering of TextColumn to be slightly off center
+    // compared to the header. This functions sets appropriate padding to compensate.
+    var width = Sefaria.util.getScrollbarWidth();
+    var $container = $(ReactDOM.findDOMNode(this));
+    if (this.props.interfaceLang == "hebrew") {
+      $container.css({ paddingRight: width, paddingLeft: 0 });
+    } else {
+      $container.css({ paddingRight: 0, paddingLeft: width });
+    }
   },
   render: function render() {
     var classes = classNames({ textColumn: 1, connectionsOpen: this.props.mode === "TextAndConnections" });
@@ -7921,7 +7932,7 @@ var TextRange = React.createClass({
       var ref = this.props.withContext ? data.sectionRef : data.ref;
       var sectionStrings = Sefaria.sectionString(ref);
       var oref = Sefaria.ref(ref);
-      var useShortString = oref && Sefaria.util.inArray(oref.primary_category, ["Tanakh", "Mishnah", "Talmud", "Tosefta", "Commentary"]) !== -1;
+      var useShortString = oref && Sefaria.util.inArray(oref.primary_category, ["Tanakh", "Mishnah", "Talmud", "Tanaitic", "Commentary"]) !== -1;
       var title = useShortString ? sectionStrings.en.numbered : sectionStrings.en.named;
       var heTitle = useShortString ? sectionStrings.he.numbered : sectionStrings.he.named;
     } else if (data && !this.props.basetext) {
