@@ -157,7 +157,7 @@ def generate_sitemaps():
 	generate_people_sitemap()
 	n = generate_texts_sitemaps()
 
-	maps = ["static-sitemap.txt", "sheets-sitemap.txt", "text-toc-sitemap.txt", "categories-sitemap.txt", "person-sitemap.txt"]
+	maps = ["static-sitemap.txt", "categories-sitemap.txt", "text-toc-sitemap.txt", "person-sitemap.txt", "sheets-sitemap.txt"]
 	maps += ["texts-sitemap%d.txt" % i for i in range(n)]
 
 	generate_sitemap_index(maps)
