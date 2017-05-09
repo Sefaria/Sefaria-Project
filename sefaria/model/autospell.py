@@ -19,7 +19,19 @@ except ImportError:
 
 
 class AutoCompleter(object):
+    """
+    An AutoCompleter object provides completion services - it is the object in this module designed to be used by the Library.
+    It instanciates objects that provide string completion according to different algorithms.
+    """
     def __init__(self, lang, library, titles, *args, **kwargs):
+        """
+
+        :param lang:
+        :param library:
+        :param titles: List of all titles in this language
+        :param args:
+        :param kwargs:
+        """
         assert lang in ["en", "he"]
         self.lang = lang
         self.library = library
@@ -28,6 +40,14 @@ class AutoCompleter(object):
         self.ngram_matcher = NGramMatcher(lang, library)
 
     def complete(self, instring, limit=0, redirected=False):
+        """
+        Wrapper for Completions object - prioritizes and aggregates completion results.
+        In the case where there are no results, tries to swap keyboards and get completion results from the other language.
+        :param instring:
+        :param limit: Number of results.  0 is unlimited.
+        :param redirected: Is this request redirected from the other language?  Prevents infinite loops.
+        :return:
+        """
         completions = Completions(self, self.lang, instring, limit).process()
         if len(completions):
             return completions
@@ -39,6 +59,11 @@ class AutoCompleter(object):
             return self.library.auto_completer(other_language).complete(swapped_string, limit, redirected=True)
 
     def next_steps_from_node(self, instring):
+        """
+        Used in the case when the instring matches a node.  Provides the continuations of that string for its children nodes.
+        :param instring:
+        :return:
+        """
         # Assume that instring is the name of a node.  Extend with a comma, and get next nodes in the Trie
         if self.lang == "he":
             normal_string = hebrew.normalize_final_letters_in_str(instring)
@@ -53,6 +78,13 @@ class AutoCompleter(object):
 
 class Completions(object):
     def __init__(self, auto_completer, lang, instring, limit=0):
+        """
+        An object that contains a single search, delegates to different methods of completions, and aggregates results.
+        :param auto_completer:
+        :param lang:
+        :param instring:
+        :param limit:
+        """
         assert lang in ["en", "he"]
 
         self.auto_completer = auto_completer
@@ -69,6 +101,10 @@ class Completions(object):
         self.duplicate_matches = []  # (key, {}) pairs, as constructed in TitleTrie
 
     def process(self):
+        """
+        Execute the completion search
+        :return:
+        """
         # Match titles that begin exactly this way
         self.add_new_continuations_from_string(self.normal_string)
         if self.limit and len(self.completions) >= self.limit:
@@ -104,8 +140,9 @@ class Completions(object):
 
     def add_new_continuations_from_string(self, str):
         """
-        :param str: String of beginning characters
+        Find titles beginning with this string.
         Adds titles to self.completions, noting covered nodes in self.nodes_covered
+        :param str: String of beginning characters
         :return:
         """
 
@@ -136,6 +173,9 @@ class Completions(object):
 
 
 class TitleTrie(trie.CharTrie):
+    """
+    Character Trie built up of the titles in the library
+    """
     def __init__(self, lang, library, *args, **kwargs):
         assert lang in ["en", "he"]
         super(TitleTrie, self).__init__(*args, **kwargs)
@@ -156,7 +196,10 @@ class TitleTrie(trie.CharTrie):
 
 
 class SpellChecker(object):
-
+    """
+    Utilities to find small edits of a given string,
+    and also to find edits of a given string that result in words in our title list.
+    """
     def __init__(self, lang, phrases=None):
         assert lang in ["en", "he"]
         self.lang = lang
@@ -235,6 +278,10 @@ class SpellChecker(object):
 
 
 class NGramMatcher(object):
+    """
+    Utility to find titles in our list that roughly match a given string. 
+    """
+
     MIN_N_GRAM_SIZE = 3
 
     def __init__(self, lang, library):
