@@ -7721,7 +7721,8 @@ var SearchResultList = React.createClass({
             displayedUntil: {"text":50, "sheet":50},
             hits: {"text": [], "sheet": []},
             activeTab: "text",
-            error: false
+            error: false,
+            showingOverlay: false
         }
     },
     updateRunningQuery: function(type, ajax, isLoadingRemainder) {
@@ -8125,6 +8126,10 @@ var SearchResultList = React.createClass({
     showTexts:  function() {
       this.setState({"activeTab": "text"});
     },
+    showResultsOverlay: function(shouldShow) {
+      //overlay gives opacity to results when either filter box or sort box is open
+      this.setState({showOverlay: shouldShow});
+    },
     render: function () {
         if (!(this.props.query)) {  // Push this up? Thought is to choose on the SearchPage level whether to show a ResultList or an EmptySearchMessage.
             return null;
@@ -8172,144 +8177,17 @@ var SearchResultList = React.createClass({
                                   isQueryRunning = {this.state.isQueryRunning[tab]}
                                   activeTab = {this.state.activeTab}
                                   clickTextButton = {this.showTexts}
-                                  clickSheetButton = {this.showSheets} />);
+                                  clickSheetButton = {this.showSheets}
+                                  showResultsOverlay = {this.showResultsOverlay}/>);
         return (
           <div>
             { searchFilters }
-            { queryFullyLoaded || haveResults ? results : loadingMessage }
+            <div className={this.state.showOverlay ? "searchResultsOverlay" : ""}>
+              { queryFullyLoaded || haveResults ? results : loadingMessage }
+            </div>
           </div>
         );
     }
-});
-
-var SearchOptions = React.createClass({
-  propTypes: {
-    field:                     React.PropTypes.string,
-    sortType:                  React.PropTypes.oneOf(["relevance", "chronological"]),
-    activeTab:                 React.PropTypes.oneOf(["sheet", "text"]),
-    updateAppliedOptionField:  React.PropTypes.func,
-    updateAppliedOptionSort:   React.PropTypes.func
-  },
-  getInitialState: function() {
-
-    return {
-      displayOptions: false
-    }
-  },
-  toggleOptionView: function() {
-    this.setState({displayOptions: !this.state.displayOptions});
-  },
-  render: function() {
-    var fieldArray = [
-      {
-        "param": "hebmorph_semi_exact",
-        "title": "Exact 1",
-        "heTitle": "מדויק 1",
-        "selected": false
-      },
-      {
-        "param": "content",
-        "title": "Exact 2",
-        "heTitle": "מדויק 2",
-        "selected": false
-      },
-      {
-        "param": "aggresive_ngram",
-        "title": "Broad 1",
-        "heTitle": "רחב 1",
-        "selected": false
-      },
-      {
-        "param": "hebmorph_standard",
-        "title": "Broad 2",
-        "heTitle": "רחב 2",
-        "selected": false
-      },
-      {
-        "param": "naive_lemmatizer",
-        "title": "Broad 3",
-        "heTitle": "רחב 3",
-        "selected": false
-      }
-    ];
-
-    var sortArray = [
-      {
-        "param": "chronological",
-        "title": "Chronological",
-        "heTitle": "כרונולוגי",
-        "selected": true
-      },
-      {
-        "param": "relevance",
-        "title": "Relevance",
-        "heTitle": "שייכות",
-        "selected": false
-      }
-    ];
-    
-    fieldArray.map((fieldObj)=>{
-      fieldObj.selected = fieldObj.param == this.props.field;
-      return fieldObj;
-    });
-    
-    sortArray.map((sortObj)=>{
-      sortObj.selected = sortObj.param == this.props.sortType;
-      return sortObj;
-    });
-    
-    
-    var filter_panel = (<div>
-      <div className="searchFilterToggle" onClick={this.toggleOptionView}>
-        <span className="int-en">Options   </span>
-        <span className="int-he">אפשריות   </span>
-        <i className={(this.state.displayOptions) ? "fa fa-caret-down fa-angle-down":"fa fa-caret-down"} />
-      </div>
-      <div className={(this.state.displayOptions) ? "searchFilterBoxes":"searchFilterBoxes hidden"}>
-        <div className="searchFilterCategoryBox">
-          {fieldArray.map(function(option) {
-              return (<SearchOption
-                  option={option}
-                  updateSelected={this.props.updateAppliedOptionField}/>);
-          }.bind(this))}
-        </div>
-        <div className="searchFilterBookBox">
-          {sortArray.map(function(option) {
-              return (<SearchOption
-                  option={option}
-                  updateSelected={this.props.updateAppliedOptionSort}/>);
-          }.bind(this))}
-        </div>
-        <div style={{clear: "both"}}/>
-      </div>
-    </div>);
-
-    return (
-      <div className="searchTopMatter">
-        { (this.props.activeTab == "text") ? filter_panel : "" }
-      </div>);
-  }
-});
-
-var SearchOption = React.createClass({
-  propTypes: {
-    option:           React.PropTypes.object,
-    updateSelected:   React.PropTypes.func
-  },
-  handleOptionClick: function(evt) {
-    this.props.updateSelected(this.props.option.param);
-  },
-  render: function() {
-    return(
-      <li onClick={this.handleFocusCategory}>
-        <input type="checkbox" id={this.props.option.type + this.props.option.param} className="filter" checked={this.props.option.selected} onChange={this.handleOptionClick}/>
-        <label onClick={this.handleOptionClick}><span></span></label>
-        <span className="int-en"><span className="filter-title">{this.props.option.title}</span></span>
-        <span className="int-he" dir="rtl"><span className="filter-title">{this.props.option.heTitle}</span></span>
-        {this.props.isInFocus?<span className="int-en"><i className="in-focus-arrow fa fa-caret-right"/></span>:""}
-        {this.props.isInFocus?<span className="int-he"><i className="in-focus-arrow fa fa-caret-left"/></span>:""}
-      </li>);
-  }
 });
 
 var SearchFilters = React.createClass({
@@ -8330,7 +8208,8 @@ var SearchFilters = React.createClass({
     isQueryRunning:       React.PropTypes.bool,
     activeTab:            React.PropTypes.string,
     clickTextButton:      React.PropTypes.func,
-    clickSheetButton:     React.PropTypes.func
+    clickSheetButton:     React.PropTypes.func,
+    showResultsOverlay:   React.PropTypes.func
   },
   getInitialState: function() {
     return {
@@ -8392,9 +8271,11 @@ var SearchFilters = React.createClass({
     })
   },
   toggleFilterView: function() {
+    this.props.showResultsOverlay(!this.state.displayFilters);
     this.setState({displayFilters: !this.state.displayFilters, displaySort: false});
   },
   toggleSortView: function() {
+    this.props.showResultsOverlay(!this.state.displaySort);
     this.setState({displaySort: !this.state.displaySort, displayFilters: false});
   },
   toggleExactSearch: function() {

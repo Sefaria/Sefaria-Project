@@ -1626,7 +1626,9 @@ a.resourcesLink {
   font-family: "Open Sans Hebrew", sans-serif;
   padding: 10px 15px 10px 0;
 }
-
+.searchContent .searchResultsOverlay {
+  opacity: 0.5;
+}
 .searchContent .searchFilterCategoryBox,
 .searchContent .searchFilterBookBox {
   width: 50%;
