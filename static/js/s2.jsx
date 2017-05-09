@@ -8380,7 +8380,7 @@ var SearchFilters = React.createClass({
           { (this.props.isQueryRunning) ? runningQueryLine : buttons }
           { (this.props.availableFilters.length > 0 && this.props.activeTab == "text") ? selected_filters : ""}
         </div>
-        { (this.props.availableFilters.length > 0 && this.props.activeTab == "text") ?
+        { ((true || this.props.availableFilters.length > 0) && this.props.activeTab == "text") ?
             (<div className="filterSortFlexbox">
               {filter_panel}
               {sort_panel}
