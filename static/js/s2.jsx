@@ -1399,6 +1399,11 @@ var Header = React.createClass({
     }
 
     Sefaria.lookup(query, function(d) {
+      if (!(d["is_ref"]) && d["completions"].length && d["completions"][0].toLowerCase() == query.toLowerCase()) {
+        // The query isn't recognized as a ref, but only for reasons of capitalization. Resubmit with recognizable caps.
+        this.submitSearch(d["completions"][0]);
+        return;
+      }
       if (d["is_ref"]) {
         var action = d["is_book"] ? "Search Box Navigation - Book": "Search Box Navigation - Citation";
         Sefaria.site.track.event("Search", action, query);
