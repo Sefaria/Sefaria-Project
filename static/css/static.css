@@ -1433,13 +1433,13 @@
 }
 #edPage #edCover {
   color: white;
-  height: 570px;
-  padding: 180px 0;
+  height: 660px;
+  padding: 225px 0;
   box-sizing: border-box;
   text-align: center;
   overflow: hidden;
   position: relative;
-  background-image: url(/static/img/edheader.png);
+  background-image: url(/static/img/edheader.jpg);
   background-size: cover;
   background-color: #ADA99B;
   background-position: center;
@@ -1547,7 +1547,6 @@
 #edPage h1, #edPage h2 {
     font-family: "adobe-garamond-pro", Georgia, serif;
 }
-
 #edPage h2 {
   margin: 0 0 12px 0;
   padding: 0;
@@ -1559,7 +1558,10 @@
   border: none;
   color:  #666;
 }
-
+#edPage h2 img {
+  top: 2px;
+  position: relative;
+}
 #edPage .description {
   margin: 26px 0 34px 0;
   color: #999;
