@@ -626,7 +626,7 @@ var ReaderApp = React.createClass({
       appliedSearchFilters: state.appliedSearchFilters || [],
       searchFieldExact:     "hebmorph_semi_exact",
       searchFieldBroad:     "hebmorph_standard",
-      searchField:          state.searchField          || "hebmorph_semi_exact",
+      searchField:          state.searchField          || "hebmorph_standard",
       searchSortType:       state.searchSortType       || "chronological",
       searchFiltersValid:   state.searchFiltersValid   || false,
       availableFilters:     state.availableFilters     || [],
@@ -8190,6 +8190,7 @@ var SearchResultList = React.createClass({
     }
 });
 
+
 var SearchFilters = React.createClass({
   propTypes: {
     query:                React.PropTypes.string,
@@ -8389,12 +8390,17 @@ var SearchFilters = React.createClass({
       </div>);
   }
 });
+
+
 var SearchSortBox = React.createClass({
   propTypes: {
     updateAppliedOptionSort: React.PropTypes.func,
     sortType:                React.PropTypes.oneOf(["chronological", "relevance"])
   },
-  handleClick: function() {
+  handleClick: function(sortType) {
+    if (sortType !== this.props.sortType) {
+      return;
+    }
     if (this.props.sortType === "chronological") {
       this.props.updateAppliedOptionSort("relevance");
     } else {
@@ -8405,17 +8411,19 @@ var SearchSortBox = React.createClass({
     var chronoClass = classNames({'filter-title': 1, 'unselected': this.props.sortType !== "chronological"});
     var releClass = classNames({'filter-title': 1, 'unselected': this.props.sortType !== "relevance"});
     return (<div>
-      <li onClick={this.handleClick}>
+      <li onClick={()=>this.handleClick("chronological")}>
         <span className="int-en"><span className={chronoClass}>{"Chronological"}</span></span>
         <span className="int-he" dir="rtl"><span className={chronoClass}>{"Chronological (HE)"}</span></span>
       </li>
-      <li onClick={this.handleClick}>
+      <li onClick={()=>this.handleClick("relevance")}>
         <span className="int-en"><span className={releClass}>{"Relevance"}</span></span>
         <span className="int-he" dir="rtl"><span className={releClass}>{"Relevance (HE)"}</span></span>
       </li>
     </div>);
   }
 });
+
+
 var SearchFilterExactBox = React.createClass({
   propTypes: {
     selected:      React.PropTypes.bool,
@@ -8428,11 +8436,13 @@ var SearchFilterExactBox = React.createClass({
     return (<li onClick={this.handleFocusCategory}>
       <input type="checkbox" id="searchFilterExactBox" className="filter" checked={this.props.selected == 1} onChange={this.handleClick}/>
       <label onClick={this.handleClick} for={"searchFilterExactBox"}><span></span></label>
-      <span className="int-en"><span className="filter-title">{"Only show exact matches"}</span></span>
+      <span className="int-en"><span className="filter-title">{"Show word variants"}</span></span>
       <span className="int-he" dir="rtl"><span className="filter-title">{"Only show exact matches (HE)"}</span></span>
     </li>);
   }
 });
+
+
 var SearchFilter = React.createClass({
   propTypes: {
     filter:         React.PropTypes.object.isRequired,
