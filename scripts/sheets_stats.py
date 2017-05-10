@@ -42,36 +42,42 @@ def count_sources(sources, sheet_id):
 	global fragments, fragments_count
 
 	for s in sources:
-		if "ref" in s and s["ref"] is not None:
-			sources_count += 1
-			try:
-				oref = Ref(s["ref"]).padded_ref()
-			except InputError:
-				continue
-			refs[s["ref"]] += 1
-			texts[oref.book] += 1
-			categories[oref.index.categories[0]] += 1
+		try:
+			if "ref" in s and s["ref"] is not None:
+				sources_count += 1
+				try:
+					oref = Ref(s["ref"]).padded_ref()
+				except InputError:
+					continue
+				refs[s["ref"]] += 1
+				texts[oref.book] += 1
+				categories[oref.index.categories[0]] += 1
 
-			if not Ref(s["ref"]).is_text_translated():
-				untrans_categories[oref.index.categories[0]] += 1
-				untrans_texts[oref.book] += 1
-				untrans_refs[s["ref"]] += 1
-				untrans_count += 1
+				try:
+					is_translated = Ref(s["ref"]).is_text_translated()
+				except:
+					is_translated = False 
+				if not is_translated:
+					untrans_categories[oref.index.categories[0]] += 1
+					untrans_texts[oref.book] += 1
+					untrans_refs[s["ref"]] += 1
+					untrans_count += 1
 
-				en = strip_tags(s.get("text", {}).get("en", ""))
-				if len(en) > 25:
-					fragments[s["ref"]].append(sheet_id)
-					fragments_count += 1
+					en = strip_tags(s.get("text", {}).get("en", ""))
+					if len(en) > 25:
+						fragments[s["ref"]].append(sheet_id)
+						fragments_count += 1
 
-			if "subsources" in s:
-				count_sources(s["subsources"], sheet_id)
-		
-		elif "comment" in s:
-			comments_count += 1
-		
-		elif "outsideText" in s or "outsideBiText" in s:
-			outside_count += 1
-
+				if "subsources" in s:
+					count_sources(s["subsources"], sheet_id)
+			
+			elif "comment" in s:
+				comments_count += 1
+			
+			elif "outsideText" in s or "outsideBiText" in s:
+				outside_count += 1
+		except:
+			continue
 
 sheets       = db.sheets.find()
 total        = sheets.count()
@@ -79,7 +85,7 @@ public_total = db.sheets.find({"status": "public"}).count()
 
 for sheet in sheets: 
 	global language
-	print sheet.get("title", "Untitled Sheet")
+	print strip_tags(sheet.get("title", "Untitled Sheet"))
 	count_sources(sheet.get("sources", []), sheet.get("id", -1))
 	if "options" in sheet and "language" in sheet["options"]:
 		languages[sheet["options"]["language"]] += 1
