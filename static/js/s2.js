@@ -3358,20 +3358,16 @@ var ReaderNavigationCategoryMenuContents = React.createClass({
             var url = "/" + Sefaria.normRef(chItem.firstSection);
             content.push(React.createElement(
               'a',
-              { href: url },
+              { href: url, className: 'refLink sparse' + chItem.sparseness, 'data-ref': chItem.firstSection, key: "text." + this.props.nestLevel + "." + i },
               React.createElement(
                 'span',
-                { className: 'refLink sparse' + chItem.sparseness, 'data-ref': chItem.firstSection, key: "text." + this.props.nestLevel + "." + i },
-                React.createElement(
-                  'span',
-                  { className: 'en' },
-                  title
-                ),
-                React.createElement(
-                  'span',
-                  { className: 'he' },
-                  heTitle
-                )
+                { className: 'en' },
+                title
+              ),
+              React.createElement(
+                'span',
+                { className: 'he' },
+                heTitle
               )
             ));
           } else {
@@ -3379,20 +3375,16 @@ var ReaderNavigationCategoryMenuContents = React.createClass({
             url = "/texts/" + newCats.join("/");
             content.push(React.createElement(
               'a',
-              { href: url },
+              { href: url, className: 'catLink', 'data-cats': newCats.join("|"), key: "cat." + this.props.nestLevel + "." + i },
               React.createElement(
                 'span',
-                { className: 'catLink', 'data-cats': newCats.join("|"), key: "cat." + this.props.nestLevel + "." + i },
-                React.createElement(
-                  'span',
-                  { className: 'en' },
-                  item.category
-                ),
-                React.createElement(
-                  'span',
-                  { className: 'he' },
-                  item.heCategory
-                )
+                { className: 'en' },
+                item.category
+              ),
+              React.createElement(
+                'span',
+                { className: 'he' },
+                item.heCategory
               )
             ));
           }
@@ -3429,20 +3421,16 @@ var ReaderNavigationCategoryMenuContents = React.createClass({
         var url = "/" + Sefaria.normRef(ref);
         content.push(React.createElement(
           'a',
-          { href: url },
+          { href: url, className: 'refLink sparse' + item.sparseness, 'data-ref': ref, key: "text." + this.props.nestLevel + "." + i },
           React.createElement(
             'span',
-            { className: 'refLink sparse' + item.sparseness, 'data-ref': ref, key: "text." + this.props.nestLevel + "." + i },
-            React.createElement(
-              'span',
-              { className: 'en' },
-              title
-            ),
-            React.createElement(
-              'span',
-              { className: 'he' },
-              heTitle
-            )
+            { className: 'en' },
+            title
+          ),
+          React.createElement(
+            'span',
+            { className: 'he' },
+            heTitle
           )
         ));
       }

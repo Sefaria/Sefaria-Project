@@ -2973,21 +2973,19 @@ var ReaderNavigationCategoryMenuContents = React.createClass({
                 var chItem = item.contents[0];
                 var [title, heTitle] = this.getRenderedTextTitleString(chItem.title, chItem.heTitle);
                 var url     = "/" + Sefaria.normRef(chItem.firstSection);
-                content.push((<a href={url}>
-                                <span className={'refLink sparse' + chItem.sparseness} data-ref={chItem.firstSection} key={"text." + this.props.nestLevel + "." + i}>
-                                  <span className='en'>{title}</span>
-                                  <span className='he'>{heTitle}</span>
-                                </span>
-                              </a>));
+                content.push((<a href={url} className={'refLink sparse' + chItem.sparseness} data-ref={chItem.firstSection} key={"text." + this.props.nestLevel + "." + i}>
+                                <span className='en'>{title}</span>
+                                <span className='he'>{heTitle}</span>
+                              </a>
+                              ));
             } else {
               // Create a link to a subcategory
               url = "/texts/" + newCats.join("/");
-              content.push((<a href={url}>
-                            <span className="catLink" data-cats={newCats.join("|")} key={"cat." + this.props.nestLevel + "." + i}>
+              content.push((<a href={url} className="catLink" data-cats={newCats.join("|")} key={"cat." + this.props.nestLevel + "." + i}>
                               <span className='en'>{item.category}</span>
                               <span className='he'>{item.heCategory}</span>
-                            </span>
-                          </a>));
+                            </a>
+                          ));
             }
           } else {
             // Add a Category
@@ -3004,12 +3002,11 @@ var ReaderNavigationCategoryMenuContents = React.createClass({
           var [title, heTitle] = this.getRenderedTextTitleString(item.title, item.heTitle);
           var ref = Sefaria.recentRefForText(item.title) || item.firstSection;
           var url = "/" + Sefaria.normRef(ref);
-          content.push((<a href={url}>
-                          <span className={'refLink sparse' + item.sparseness} data-ref={ref} key={"text." + this.props.nestLevel + "." + i}>
-                            <span className='en'>{title}</span>
-                            <span className='he'>{heTitle}</span>
-                          </span>
-                        </a>));
+          content.push((<a href={url} className={'refLink sparse' + item.sparseness} data-ref={ref} key={"text." + this.props.nestLevel + "." + i}>
+                          <span className='en'>{title}</span>
+                          <span className='he'>{heTitle}</span>
+                        </a>
+                        ));
         }
       }
       var boxedContent = [];
