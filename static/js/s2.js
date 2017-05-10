@@ -1404,7 +1404,8 @@ var Header = React.createClass({
     this.props.showSearch(query);
     $(ReactDOM.findDOMNode(this)).find("input.search").sefaria_autocomplete("close");
   },
-  showAccount: function showAccount() {
+  showAccount: function showAccount(e) {
+    e.preventDefault();
     if (typeof sjs !== "undefined") {
       window.location = "/account";
       return;
@@ -1412,7 +1413,8 @@ var Header = React.createClass({
     this.props.setCentralState({ menuOpen: "account" });
     this.clearSearchBox();
   },
-  showNotifications: function showNotifications() {
+  showNotifications: function showNotifications(e) {
+    e.preventDefault();
     if (typeof sjs !== "undefined") {
       window.location = "/notifications";
       return;
@@ -1546,13 +1548,13 @@ var Header = React.createClass({
       'div',
       { className: 'accountLinks' },
       React.createElement(
-        'div',
-        { className: 'account', onClick: this.showAccount },
+        'a',
+        { href: '/account', className: 'account', onClick: this.showAccount },
         React.createElement('img', { src: '/static/img/user-64.png', alt: 'My Account' })
       ),
       React.createElement(
-        'div',
-        { className: notifcationsClasses, onClick: this.showNotifications },
+        'a',
+        { href: '/notifications', 'aria-label': 'See New Notifications', className: notifcationsClasses, onClick: this.showNotifications },
         notificationCount
       )
     );
@@ -1601,12 +1603,8 @@ var Header = React.createClass({
           { className: 'left' },
           React.createElement(
             'a',
-            { href: '/texts', 'aria-label': 'Toggle Text Table of Contents' },
-            React.createElement(
-              'div',
-              { className: 'library', onClick: this.handleLibraryClick },
-              React.createElement('i', { className: 'fa fa-bars' })
-            )
+            { href: '/texts', 'aria-label': 'Toggle Text Table of Contents', className: 'library', onClick: this.handleLibraryClick },
+            React.createElement('i', { className: 'fa fa-bars' })
           )
         ),
         React.createElement(
@@ -2653,7 +2651,8 @@ var ReaderNavigationMenu = React.createClass({
       this.props.closeNav();
     }
   },
-  showMore: function showMore() {
+  showMore: function showMore(event) {
+    event.preventDefault();
     this.setState({ showMore: true });
   },
   handleClick: function handleClick(event) {
@@ -2739,26 +2738,22 @@ var ReaderNavigationMenu = React.createClass({
         var heCat = Sefaria.hebrewTerm(cat);
         return React.createElement(
           'a',
-          { href: '/texts/' + cat },
+          { href: '/texts/' + cat, className: 'readerNavCategory', 'data-cat': cat, style: style, onClick: openCat },
           React.createElement(
-            'div',
-            { className: 'readerNavCategory', 'data-cat': cat, style: style, onClick: openCat },
-            React.createElement(
-              'span',
-              { className: 'en' },
-              cat
-            ),
-            React.createElement(
-              'span',
-              { className: 'he' },
-              heCat
-            )
+            'span',
+            { className: 'en' },
+            cat
+          ),
+          React.createElement(
+            'span',
+            { className: 'he' },
+            heCat
           )
         );
       }.bind(this));
       var more = React.createElement(
-        'div',
-        { className: 'readerNavCategory readerNavMore', style: { "borderColor": Sefaria.palette.colors.darkblue }, onClick: this.showMore },
+        'a',
+        { href: '#', className: 'readerNavCategory readerNavMore', style: { "borderColor": Sefaria.palette.colors.darkblue }, onClick: this.showMore },
         React.createElement(
           'span',
           { className: 'en' },
@@ -2966,8 +2961,8 @@ var ReaderNavigationMenu = React.createClass({
       }).slice(0, hasMore ? nRecent - 1 : nRecent);
       if (hasMore) {
         recentlyViewed.push(React.createElement(
-          'div',
-          { className: 'readerNavCategory readerNavMore', style: { "borderColor": Sefaria.palette.colors.darkblue }, onClick: this.props.setCategories.bind(null, ["recent"]) },
+          'a',
+          { href: '/texts/recent', className: 'readerNavCategory readerNavMore', style: { "borderColor": Sefaria.palette.colors.darkblue }, onClick: this.props.setCategories.bind(null, ["recent"]) },
           React.createElement(
             'span',
             { className: 'en' },

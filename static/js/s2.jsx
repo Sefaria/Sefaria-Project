@@ -2513,7 +2513,8 @@ var ReaderNavigationMenu = React.createClass({
       this.props.closeNav();
     }
   },
-  showMore: function() {
+  showMore: function(event) {
+    event.preventDefault();
     this.setState({showMore: true});
   },
   handleClick: function(event) {
@@ -2549,7 +2550,7 @@ var ReaderNavigationMenu = React.createClass({
     if (query) {
       this.props.openSearch(query);
     }
-  },  
+  },
   render: function() {
     if (this.props.categories.length && this.props.categories[0] == "recent") {
       return (<div onClick={this.handleClick}>
@@ -2603,17 +2604,16 @@ var ReaderNavigationMenu = React.createClass({
         var style = {"borderColor": Sefaria.palette.categoryColor(cat)};
         var openCat = function(e) {e.preventDefault(); this.props.setCategories([cat])}.bind(this);
         var heCat   = Sefaria.hebrewTerm(cat);
-        return (<a href={`/texts/${cat}`}>
-                  <div className="readerNavCategory" data-cat={cat} style={style} onClick={openCat}>
+        return (<a href={`/texts/${cat}`} className="readerNavCategory" data-cat={cat} style={style} onClick={openCat}>
                     <span className="en">{cat}</span>
                     <span className="he">{heCat}</span>
-                  </div>
-                </a>);
+                  </a>
+                );
       }.bind(this));
-      var more = (<div className="readerNavCategory readerNavMore" style={{"borderColor": Sefaria.palette.colors.darkblue}} onClick={this.showMore}>
+      var more = (<a href="#" className="readerNavCategory readerNavMore" style={{"borderColor": Sefaria.palette.colors.darkblue}} onClick={this.showMore}>
                       <span className="en">More <img src="/static/img/arrow-right.png" alt="" /></span>
                       <span className="he">עוד <img src="/static/img/arrow-left.png" alt="" /></span>
-                  </div>);
+                  </a>);
       var nCats  = this.width < 450 ? 9 : 8;
       categories = this.state.showMore ? categories : categories.slice(0, nCats).concat(more);
       categories = (<div className="readerNavCategories"><TwoOrThreeBox content={categories} width={this.width} /></div>);
@@ -2712,10 +2712,10 @@ var ReaderNavigationMenu = React.createClass({
       }).slice(0, hasMore ? nRecent-1 : nRecent);
       if (hasMore) {
         recentlyViewed.push(
-          <div className="readerNavCategory readerNavMore" style={{"borderColor": Sefaria.palette.colors.darkblue}} onClick={this.props.setCategories.bind(null, ["recent"])}>
+          <a href="/texts/recent" className="readerNavCategory readerNavMore" style={{"borderColor": Sefaria.palette.colors.darkblue}} onClick={this.props.setCategories.bind(null, ["recent"])}>
             <span className="en">More <img src="/static/img/arrow-right.png" alt="" /></span>
             <span className="he">עוד <img src="/static/img/arrow-left.png" alt=""  /></span>
-          </div>);
+          </a>);
       }
       recentlyViewed = recentlyViewed.length ? <TwoOrThreeBox content={recentlyViewed} width={this.width} /> : null;
 
