@@ -749,7 +749,7 @@ def sheet_list_api(request):
 		else: 
 			existing = None
 
-		if "group" in sheet:
+		if sheet.get("group", None):
 			# Quietly enforce group permissions
 			if sheet["group"] not in [g["name"] for g in get_user_groups(request.user.id)]:
 				# Don't allow non Group members to add a sheet to a group

@@ -3118,6 +3118,18 @@ class Ref(object):
             else:
                 return "%s(%s)" % (escaped_book, "|".join(patterns))
 
+
+    def ref_regex_query(self):
+        """
+        Convenience method to wrap the lines of logic used to generate a broken out list of ref queries from one regex. 
+        The regex in the list will naturally all be anchored. 
+        :return: dict of the form {"$or" [{"refs": {"$regex": r1}},{"refs": {"$regex": r2}}...]}
+        """
+        reg_list = self.regex(as_list=True)
+        ref_clauses = [{"refs": {"$regex": r}} for r in reg_list]
+        return {"$or": ref_clauses}
+
+
     """ Comparisons """
     def overlaps(self, other):
         """

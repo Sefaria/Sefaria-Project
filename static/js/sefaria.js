@@ -442,8 +442,8 @@ Sefaria = extend(Sefaria, {
         callback(this._titleVariants[title]); 
     }
     else {
-        this._api("/api/index/" + title, function(data) {
-          for (var i = 0; i < data.titleVariants.length; i ++) {
+        this._api("/api/v2/index/" + title, function(data) {
+          for (var i = 0; i < data.titleVariants.length; i++) {
             Sefaria._titleVariants[data.titleVariants[i]] = data.title;
           }
           callback(data.title);
@@ -1498,7 +1498,7 @@ Sefaria = extend(Sefaria, {
   _makeBooksDict: function() {
     // Transform books array into a dictionary for quick lookup
     // Which is worse: the cycles wasted in computing this on the client
-    // or the bandwitdh wasted in letting the server computer once and trasmiting the same data twice in differnt form?
+    // or the bandwidth wasted in letting the server computer once and transmitting the same data twice in different form?
     this.booksDict = {};
     for (var i = 0; i < this.books.length; i++) {
       this.booksDict[this.books[i]] = 1;
