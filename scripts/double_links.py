@@ -14,7 +14,14 @@ class DoubleLinks:
         self.general_auto_specific_manual = 0
         self.specific_auto_general_manual = 0
         self.both_manual = 0
-        self.bad_ids = {}
+        self.tanakh = 0
+        self.tanakh_only = False
+        self.other = 0
+        self.duplicate_ids = {}
+
+
+    def set_tanakh(self, bool):
+        self.tanakh_only = bool
 
 
     def get_doubles_for_delete(self, ref1, ref2):
@@ -34,44 +41,28 @@ class DoubleLinks:
                     specific = each_ref
                 
                 if general:
-                    self.create_links(ref1, general, specific)
-    
-    
+                    self.create_link_dict_and_gather_data(ref1, general, specific)
+
             self.all_links[ref1].append(ref2)
         
     
     
-    def create_links(self, ref1, general, specific):
+    def create_link_dict_and_gather_data(self, ref1, general, specific):
         #FIRST, CHECK THAT SPECIFIC AND GENERAL ARE BOTH TANAKH
         assert general.primary_category == "Tanakh" and specific.primary_category == "Tanakh", "{} {} {}".format(ref1, general, specific)
 
-
-        #NEXT, SINCE ORDER MATTERS< FOR REFS IN A LINK, TRY BOTH ORDERS TO SEE WHICH IS THE RIGHT ORDER
-        #FOR BOTH GENERAL AND SPECIFIC
-        general_links = [Link().load({"refs": [general.normal(), ref1.normal()]}),
-                         Link().load({"refs": [ref1.normal(), general.normal()]})]
-        general_links = filter(lambda x: x is not None, general_links)
-    
-        specific_links = [Link().load({"refs": [specific.normal(), ref1.normal()]}),
-                          Link().load({"refs": [ref1.normal(), specific.normal()]})]
-        specific_links = filter(lambda x: x is not None, specific_links)
-
-        #NEXT, CHECK THAT THERE IS ONE AND ONLY ONE SPECIFIC LINK AND ONE AND ONLY ONE GENERAL LINK
-        assert len(general_links) == len(specific_links) == 1, "{} {}".format(general_links, specific_links)
-
-        #NOW, ADD THE LINK TO DOUBLE LINKS
-        self.double_links.append(general_links[0])
-
+        general_link = Link().load({"$and": [{"refs": general.normal()}, {"refs": ref1.normal()}]})
+        self.double_links.append(general_link)
 
         #FINALLY, GATHER DATA ON THE TIME OF CREATION OF THE LINK AND WHETHER IT IS MANUAL OR AUTOMATIC,
         #AND WHETHER IT IS FROM MIDRASH OR RASHI
 
-        general_auto = general_links[0].auto
-        general_date = general_links[0]._id.generation_time
-    
-        specific_auto = specific_links[0].auto
-        specific_date = specific_links[0]._id.generation_time
+        general_auto = general_link.auto
+        general_date = general_link._id.generation_time
 
+        specific_link = Link().load({"$and": [{"refs": specific.normal()}, {"refs": ref1.normal()}]})
+        specific_auto = specific_link.auto
+        specific_date = specific_link._id.generation_time
 
         if specific_date >= general_date:
             self.specific_first_num += 1
@@ -85,10 +76,17 @@ class DoubleLinks:
                 self.both_manual += 1
 
         if "Commentary" in ref1.index.categories:
+            assert self.tanakh_only is False, ref1.normal()
             self.commentary += 1
-
-        if "Midrash" in ref1.index.categories:
+        elif "Midrash" in ref1.index.categories:
+            assert self.tanakh_only is False, ref1.normal()
             self.midrash += 1
+        elif "Tanakh" in ref1.index.categories:
+            assert self.tanakh_only is True, ref1.normal()
+            self.tanakh += 1
+        else:
+            assert self.tanakh_only is False, ref1.normal()
+            self.other += 1
 
 
     def get_links(self, category):
@@ -117,6 +115,8 @@ class DoubleLinks:
 
         print "Commentary links: {}".format(self.commentary)
         print "Midrash links: {}".format(self.midrash)
+        print "Tanakh-to-Tanakh links: {}".format(self.tanakh)
+        print "Other links: {}".format(self.other)
 
 
 
@@ -128,37 +128,57 @@ class DoubleLinks:
             refs = tuple(sorted(l.refs))
             if refs in link_refs:
                 count += 1
-                if refs not in self.bad_ids:
-                    prev = link_refs[refs]
-                    self.bad_ids[refs] = [l._id, prev]
+                if refs not in self.duplicate_ids:
+                    first_link_id = link_refs[refs]
+                    self.duplicate_ids[refs] = [l._id, first_link_id]
                 else:
-                    self.bad_ids[refs].append(l._id)
+                    self.duplicate_ids[refs].append(l._id)
             else:
                 link_refs[refs] = l._id
 
 
     def delete_exact_doubles(self):
         total = 0
-        max_num = 0
-        which_one = []
         deleted_num = 0
-        for each in self.bad_ids:
-            ids = self.bad_ids[each]
-            if len(ids) > max_num:
-                max_num = len(ids)
-                which_one = ids[0]
-            for id in ids[1:]:
-                l = Link().load({"_id": id})
-                assert l
-                l.delete()
-                deleted_num += 1
+        source_text = 0
+        generated_by = 0
+        for refs_key in self.duplicate_ids:
+            primary_link_to_save = None
+            secondary_link_to_save = None
+            ids = self.duplicate_ids[refs_key]
             total += len(ids)
 
+            #determine which link should not be deleted, with priority to having a source_text_oid,
+            #if there isn't one, then pick the one that has a generated_by,
+            #finally, if there isn't a generated_by, then just pick the first one
+            assert len(ids) > 1
+            for id in ids:
+                l = Link().load({"_id": id})
+                if l.source_text_oid:
+                    primary_link_to_save = l._id
+                    break
+                if l.generated_by:
+                    secondary_link_to_save = l._id
 
-        print "Number of refs that have more than one link: {}".format(len(self.bad_ids))
+            if primary_link_to_save:
+                ids = [id for id in ids if id != primary_link_to_save]
+                source_text += 1
+            elif secondary_link_to_save:
+                ids = [id for id in ids if id != secondary_link_to_save]
+                generated_by += 1
+            else:
+                ids = ids[1:]
+
+            for id in ids:
+                l = Link().load({"_id": id})
+                l.delete()
+                deleted_num += 1
+
+        print "Number of refs that have more than one link: {}".format(len(self.duplicate_ids))
         print "Number of links deleted: {}".format(deleted_num)
         print "Number of links total: {}".format(total)
-        print "ID {} of Ref with {} links.".format(which_one, max_num)
+        print "Number of source_text_oid: {}".format(source_text)
+        print "Number of generated_by: {}".format(generated_by)
 
 
 
@@ -182,17 +202,25 @@ if __name__ == "__main__":
             ref1 = Ref(ref1)
         except InputError:
             invalid = True
+            l.delete()
+            continue
         try:
             ref2 = Ref(ref2)
         except InputError:
             invalid = True
+            l.delete()
+            continue
 
         if not invalid:
-            if ref1.primary_category != category: #only care about commentaries on category
+            if ref1.primary_category != category:
+                DL.set_tanakh(False)
                 DL.get_doubles_for_delete(ref1, ref2)
             elif ref2.primary_category != category:
+                DL.set_tanakh(False)
                 DL.get_doubles_for_delete(ref2, ref1)
             else:
-                assert ref1.primary_category == ref2.primary_category == category
+                DL.set_tanakh(True)
+                DL.get_doubles_for_delete(ref1, ref2)
+                DL.get_doubles_for_delete(ref2, ref1)
 
     DL.delete_links_and_output_results()
