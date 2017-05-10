@@ -265,6 +265,7 @@ static_pages = [
     "meetup2",
     "random-walk-through-torah",
     "educators",
+    "the-sefaria-story",
 ]
 
 # Static and Semi Static Content
