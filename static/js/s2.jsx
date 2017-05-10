@@ -1528,6 +1528,7 @@ var Header = React.createClass({
                          onKeyUp={this.handleSearchKeyUp}
                          onFocus={this.showVirtualKeyboardIcon.bind(this, true)}
                          onBlur={this.showVirtualKeyboardIcon.bind(this, false)}
+                         title="Search for Texts or Keywords Here"
                   />
                 </span>
                 <a className="home" href="/?home" ><img src="/static/img/sefaria.svg" alt="Sefaria Logo" /></a>
