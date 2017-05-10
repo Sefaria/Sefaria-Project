@@ -9114,27 +9114,30 @@ var SheetListing = React.createClass({
       ),
       React.createElement(
         'a',
-        { href: sheet.ownerProfileUrl },
+        { href: sheet.ownerProfileUrl, target: '_blank' },
         React.createElement('img', { className: 'sheetAuthorImg', src: sheet.ownerImageUrl })
       ),
       React.createElement(
         'a',
-        { href: sheet.ownerProfileUrl, className: 'sheetAuthor' },
+        { href: sheet.ownerProfileUrl, target: '_blank', className: 'sheetAuthor' },
         sheet.ownerName
       ),
       React.createElement(
         'a',
-        { href: sheet.sheetUrl, className: 'sheetTitle' },
+        { href: sheet.sheetUrl, target: '_blank', className: 'sheetTitle' },
+        React.createElement('img', { src: '/static/img/sheet.svg', className: 'sheetIcon' }),
         sheet.title
       ),
       React.createElement(
         'div',
         { className: 'sheetTags' },
-        sheet.tags.map(function (tag) {
+        sheet.tags.map(function (tag, i) {
+          var separator = i == sheet.tags.length - 1 ? null : ",";
           return React.createElement(
-            'span',
-            { className: 'sheetTag', key: tag },
-            tag
+            'a',
+            { href: "/sheets/tags/" + tag, target: '_blank', className: 'sheetTag', key: tag },
+            tag,
+            separator
           );
         })
       )

@@ -7213,13 +7213,19 @@ var SheetListing = React.createClass({
     return (
       <div className="sheet" key={sheet.sheetUrl}>
         <div className="sheetViews"><i className="fa fa-eye"></i> {sheet.views}</div>
-        <a href={sheet.ownerProfileUrl}>
+        <a href={sheet.ownerProfileUrl} target="_blank">
           <img className="sheetAuthorImg" src={sheet.ownerImageUrl} />
         </a>
-        <a href={sheet.ownerProfileUrl} className="sheetAuthor">{sheet.ownerName}</a>
-        <a href={sheet.sheetUrl} className="sheetTitle">{sheet.title}</a>
+        <a href={sheet.ownerProfileUrl} target="_blank" className="sheetAuthor">{sheet.ownerName}</a>
+        <a href={sheet.sheetUrl} target="_blank" className="sheetTitle">
+          <img src="/static/img/sheet.svg" className="sheetIcon"/>
+          {sheet.title}
+        </a>
         <div className="sheetTags">
-          {sheet.tags.map(function(tag) { return (<span className="sheetTag" key={tag}>{tag}</span>)})}
+          {sheet.tags.map(function(tag, i) { 
+            var separator = i == sheet.tags.length -1 ? null : ",";
+            return (<a href={"/sheets/tags/" + tag} target="_blank" className="sheetTag" key={tag}>{tag}{separator}</a>)
+          })}
         </div>
       </div>);          
 }

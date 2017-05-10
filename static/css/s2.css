@@ -2458,12 +2458,8 @@ a.resourcesLink {
 .textList .texts {
   padding: 60px 30px 80px 30px;
 }
-.textList.fullPanel .texts,
-.textList .fullFilterView {
-  padding: 30px 30px 80px 30px;
-}
-.textList.fullPanel .fullFilterView {
-  padding: 60px 48px 80px 60px;
+.textList.fullPanel .texts {
+  padding: 50px 30px 80px 30px;
 }
 .textListTop {
   position: absolute;
@@ -2560,7 +2556,7 @@ a.resourcesLink {
   vertical-align: middle;
 }
 .textList.fullPanel .recentFilterSet {
-  margin: 30px 0 12px 0;
+  margin: 0 0 12 0;
 }
 .textList.fullPanel .recentFilterSet .textFilter {
   display: inline-block;
@@ -2731,9 +2727,10 @@ a.resourcesLink {
   display: none;
 }
 .textList .sheet, .textList .note {
-  padding: 24px 0;
+  padding: 0 0 24px 0;
 }
 .textList .sheet + .sheet {
+  padding: 24px 0;
   border-top: 1px solid #E6E5E6;
 }
 .textList .sheet .sheetAuthorImg,
@@ -2761,11 +2758,26 @@ a.resourcesLink {
   text-align: left;
   color: #333;
 }
+.textList .sheet .sheetTitle .sheetIcon {
+  width: 14px;
+  height: 14px;
+  opacity: 0.4;
+  margin-right: 6px;
+  vertical-align: -1px;
+}
 .textList .sheet .sheetTags {
-  margin-top: 4px;
+  margin-top: 6px;
   font-size: 13px;
   color: #666;
+  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  text-align: left;
 } 
+.interface-hebrew .textList .sheet .sheetTags {
+  text-align: right;
+} 
+.textList .sheet .sheetTag {
+  color: inherit;  
+}
 .textList .sheet .sheetTag + .sheetTag {
   margin-left: 8px;
 }
@@ -2792,13 +2804,6 @@ a.resourcesLink {
 }
 .textRange.lowlight .numberLabel {
   color: #999;
-}
-.toolsPanel .texts .contentInner,
-.sharePanel .texts .contentInner,
-.myNotesPanel .texts .contentInner,
-.addToSourceSheetPanel .texts .contentInner,
-.addNotePanel .texts .contentInner {
-  margin: 20px auto;
 }
 .readerPanel.bilingual .toolsPanel .he {
   display: none;
