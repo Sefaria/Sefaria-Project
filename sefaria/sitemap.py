@@ -129,7 +129,7 @@ def generate_sitemap_index(sitemaps):
 	for m in sitemaps:
 		xml += """
 		   <sitemap>
-			  <loc>https://www.sefaria.org/static/%s</loc>
+			  <loc>https://www.sefaria.org/static/sitemaps/%s</loc>
 			  <lastmod>%s</lastmod>
 		   </sitemap>
 		   """ % (m, now)
