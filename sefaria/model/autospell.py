@@ -69,8 +69,9 @@ class AutoCompleter(object):
         :param instring:
         :return:
         """
+        normal = normalize_input(instring, self.lang)
         try:
-            return self.title_trie[instring]
+            return self.title_trie[normal]
         except KeyError:
             return None
 
@@ -228,7 +229,6 @@ class TitleTrie(trie.CharTrie):
         """
         for obj in recordset:
             titles = getattr(obj, all_names_method)(self.lang)
-            #do we need this key?
             key = getattr(obj, keyattr)
             for title in titles:
                 norm_title = normalize_input(title, self.lang)
@@ -236,6 +236,7 @@ class TitleTrie(trie.CharTrie):
                     "title": title,
                     "type": recordset.recordClass.__name__,
                     "obj": obj,
+                    "key": key,
                     "is_primary": title == getattr(obj, primary_name_method)(self.lang)
                 }
 

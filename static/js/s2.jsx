@@ -1350,6 +1350,7 @@ var Header = React.createClass({
     this.clearSearchBox();
   },
   showSearch: function(query) {
+    query = query.trim();
     if (typeof sjs !== "undefined") {
       query = encodeURIComponent(query);
       window.location = `/search?q=${query}`;
@@ -1401,17 +1402,22 @@ var Header = React.createClass({
     Sefaria.lookup(query, function(d) {
       // If the query isn't recognized as a ref, but only for reasons of capitalization. Resubmit with recognizable caps.
       if (!(d["is_ref"]) &&
+          d["completions"] &&
           d["completions"].length &&
-          d["completions"][0].toLowerCase() == query.slice(0,d["completions"][0].length).toLowerCase()) {
+          d["completions"][0] != query &&
+          d["completions"][0].toLowerCase() == query.slice(0, d["completions"][0].length).toLowerCase()) {
         this.submitSearch(d["completions"][0] + query.slice(d["completions"][0].length));
         return;
       }
 
       if (d["is_ref"]) {
-        var action = d["is_book"] ? "Search Box Navigation - Book": "Search Box Navigation - Citation";
+        var action = d["is_book"] ? "Search Box Navigation - Book" : "Search Box Navigation - Citation";
         Sefaria.site.track.event("Search", action, query);
         this.clearSearchBox();
         this.handleRefClick(d["normal"]);  //todo: pass an onError function through here to the panel onError function which redirects to search
+      } else if (d["type"] == "Person") {
+        this.closeSearchAutocomplete();
+        this.showPerson(d["key"]);
       } else {
         Sefaria.site.track.event("Search", "Search Box Search", query);
         this.closeSearchAutocomplete();
@@ -1424,6 +1430,10 @@ var Header = React.createClass({
   },
   clearSearchBox: function() {
     $(ReactDOM.findDOMNode(this)).find("input.search").val("").sefaria_autocomplete("close");
+  },
+  showPerson: function(key) {
+    //todo: move people into React
+    window.location = "/person/" + key;
   },
   handleLibraryClick: function(e) {
     e.preventDefault();

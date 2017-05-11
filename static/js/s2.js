@@ -1394,6 +1394,7 @@ var Header = React.createClass({
     this.clearSearchBox();
   },
   showSearch: function showSearch(query) {
+    query = query.trim();
     if (typeof sjs !== "undefined") {
       query = encodeURIComponent(query);
       window.location = '/search?q=' + query;
@@ -1446,7 +1447,7 @@ var Header = React.createClass({
 
     Sefaria.lookup(query, function (d) {
       // If the query isn't recognized as a ref, but only for reasons of capitalization. Resubmit with recognizable caps.
-      if (!d["is_ref"] && d["completions"].length && d["completions"][0].toLowerCase() == query.slice(0, d["completions"][0].length).toLowerCase()) {
+      if (!d["is_ref"] && d["completions"] && d["completions"].length && d["completions"][0] != query && d["completions"][0].toLowerCase() == query.slice(0, d["completions"][0].length).toLowerCase()) {
         this.submitSearch(d["completions"][0] + query.slice(d["completions"][0].length));
         return;
       }
@@ -1456,7 +1457,10 @@ var Header = React.createClass({
         Sefaria.site.track.event("Search", action, query);
         this.clearSearchBox();
         this.handleRefClick(d["normal"]); //todo: pass an onError function through here to the panel onError function which redirects to search
-      } else {
+      } else if (d["type"] == "Person") {
+          this.closeSearchAutocomplete();
+          this.showPerson(d["key"]);
+        } else {
           Sefaria.site.track.event("Search", "Search Box Search", query);
           this.closeSearchAutocomplete();
           this.showSearch(query);
@@ -1468,6 +1472,10 @@ var Header = React.createClass({
   },
   clearSearchBox: function clearSearchBox() {
     $(ReactDOM.findDOMNode(this)).find("input.search").val("").sefaria_autocomplete("close");
+  },
+  showPerson: function showPerson(key) {
+    //todo: move people into React
+    window.location = "/person/" + key;
   },
   handleLibraryClick: function handleLibraryClick(e) {
     e.preventDefault();

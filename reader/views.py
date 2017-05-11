@@ -2012,16 +2012,17 @@ def name_api(request, name):
     LIMIT = request.GET.get("limit") or 16
     lang = "he" if is_hebrew(name) else "en"
 
+    completer = library.auto_completer(lang)
     try:
         ref = Ref(name)
         inode = ref.index_node
         assert isinstance(inode, SchemaNode)
 
-        completions = [name.capitalize()] + library.auto_completer(lang).next_steps_from_node(name)
+        completions = [name.capitalize()] + completer.next_steps_from_node(name)
 
         if LIMIT == 0 or len(completions) < LIMIT:
             current = {t: 1 for t in completions}
-            additional_results = library.auto_completer(lang).complete(name, LIMIT)
+            additional_results = completer.complete(name, LIMIT)
             for res in additional_results:
                 if res not in current:
                     completions += [res]
@@ -2030,7 +2031,7 @@ def name_api(request, name):
             "is_ref": True,
             "is_book": ref.is_book_level(),
             "is_node": len(ref.sections) == 0,
-            "is_author": False,
+            "type": "ref",
             "normal": ref.normal(),
             # "number_follows": inode.has_numeric_continuation(),
             # "titles_follow": titles_follow,
@@ -2040,13 +2041,19 @@ def name_api(request, name):
         }
 
     except InputError:
-
+        # This is not a Ref
         d = {
             "is_ref": False,
             "is_book": False,
             "is_node": False,
-            "completions": library.auto_completer(lang).complete(name, LIMIT)
+            "completions": completer.complete(name, LIMIT)
         }
+
+        # let's see if it's a known name of another sort
+        object_data = completer.get_data(name)
+        if object_data:
+            d["type"] = object_data["type"]
+            d["key"] = object_data["key"]
 
     return jsonResponse(d)
 
