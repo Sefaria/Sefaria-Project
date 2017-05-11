@@ -221,9 +221,9 @@ urlpatterns += patterns('sheets.views',
     (r'^partners/(?P<group>[^/]+)/tags/(?P<tag>.+)$', 'group_sheets_tag'),
     (r'^api/groups(/(?P<group>[^/]+))?$', 'groups_api'),
     (r'^api/groups/(?P<group_name>[^/]+)/set-role/(?P<uid>\d+)/(?P<role>[^/]+)$', 'groups_role_api'),
-    (r'^api/groups/(?P<group_name>[^/]+)/invite/(?P<uid_or_email>[^/]+)$', 'groups_invite_api'),
+    (r'^api/groups/(?P<group_name>[^/]+)/invite/(?P<uid_or_email>[^/]+)(?P<uninvite>\/uninvite)?$', 'groups_invite_api'),
+    (r'^api/groups/(?P<group_name>[^/]+)/pin-sheet/(?P<sheet_id>\d+)', 'groups_pin_sheet_api'),
 )
-
 
 # Registration
 urlpatterns += patterns('',
@@ -264,6 +264,7 @@ static_pages = [
     "meetup1",
     "meetup2",
     "random-walk-through-torah",
+    "educators",
 ]
 
 # Static and Semi Static Content
@@ -307,7 +308,6 @@ urlpatterns += patterns('reader.views',
 urlpatterns += patterns('',
     (r'^forum/?$', lambda x: HttpResponseRedirect('https://groups.google.com/forum/?fromgroups#!forum/sefaria')),
     (r'^wiki/?$', lambda x: HttpResponseRedirect('https://github.com/Sefaria/Sefaria-Project/wiki')),
-    (r'^educators/?$', lambda x: HttpResponseRedirect('https://github.com/Sefaria/Sefaria-Project/wiki/Sefaria-for-Educators')),
     (r'^developers/?$', lambda x: HttpResponseRedirect('https://github.com/Sefaria/Sefaria-Project/wiki#developers')),
     (r'^contribute/?$', lambda x: HttpResponseRedirect('https://github.com/Sefaria/Sefaria-Project/wiki/Guide-to-Contributing')),
     (r'^faq/?$', lambda x: HttpResponseRedirect('https://github.com/Sefaria/Sefaria-Project/wiki#frequently-asked-questions')),
@@ -315,6 +315,7 @@ urlpatterns += patterns('',
     (r'^workshop/?$', lambda x: HttpResponseRedirect('/static/files/Sefaria_SummerMeeting_2016.pdf')),
     (r'^ideasforteaching/?$', lambda x: HttpResponseRedirect('/static/files/Sefaria_Teacher_Generated_Ideas_for_Your_Classroom.pdf')),
     (r'^gala/?$', lambda x: HttpResponseRedirect('https://www.501auctions.com/sefaria')),
+    (r'^jfn?$', lambda x: HttpResponseRedirect('https://www.sefaria.org/sheets/60494')),
 )
 
 # Packaged JavaScript
@@ -322,7 +323,6 @@ urlpatterns += patterns('sefaria.views',
     (r'^data\.js$', 'data_js'),
     (r'^sefaria\.js$', 'sefaria_js'),
 )
-
 
 # Linker js, text upload & download
 urlpatterns += patterns('sefaria.views',
@@ -334,11 +334,16 @@ urlpatterns += patterns('sefaria.views',
     (r'^api/text-upload$', 'text_upload_api')
 )
 
+# File Uploads
+urlpatterns += patterns('sefaria.views',
+    (r'^api/file/upload$', 'file_upload'),
+)
+
 # Email Subscribe
 urlpatterns += patterns('sefaria.views',
     (r'^api/subscribe/(?P<email>.+)$', 'subscribe'),
+    (r'^api/subscribe-educator-newsletter/(?P<email>.+)$', 'subscribe_educators'),
 )
-
 
 # Admin
 urlpatterns += patterns('',

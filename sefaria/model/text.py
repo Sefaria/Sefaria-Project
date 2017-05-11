@@ -32,6 +32,7 @@ from sefaria.datatype.jagged_array import JaggedTextArray, JaggedArray
 from sefaria.settings import DISABLE_INDEX_SAVE, USE_VARNISH
 
 
+
 """
                 ----------------------------------
                          Index, IndexSet
@@ -285,6 +286,8 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
 
         return contents
 
+
+
     def legacy_form(self, force_complex=False):
         """
         :param force_complex: Forces a complex Index record into legacy form
@@ -438,10 +441,11 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
 
         elif author and author.mostAccurateTimePeriod():
             tp = author.mostAccurateTimePeriod()
-            start = tp.start
-            end = tp.end
-            startIsApprox = tp.startIsApprox
-            endIsApprox = tp.endIsApprox
+            tpvars = vars(tp)
+            start = tp.start if "start" in tpvars else None
+            end = tp.end if "end" in tpvars else None
+            startIsApprox = tp.startIsApprox if "startIsApprox" in tpvars else None
+            endIsApprox = tp.endIsApprox if "endIsApprox" in tpvars else None
 
         if not start is None:
             from sefaria.model.time import TimePeriod
@@ -648,7 +652,6 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
 
         return True
 
-
     def get_toc_index_order(self):
         order = getattr(self, 'order', None)
         if order:
@@ -658,6 +661,16 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
             return order
         return None
 
+    def slim_toc_contents(self):
+        toc_contents_dict = {
+            "title": self.get_title(),
+            "heTitle": self.get_title("he"),
+        }
+        ord = self.get_toc_index_order()
+        if ord:
+            toc_contents_dict["order"] = ord
+
+        return toc_contents_dict
 
     def toc_contents(self):
         """Returns to a dictionary used to represent this text in the library wide Table of Contents"""
@@ -684,6 +697,32 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
             toc_contents_dict["base_text_mapping"] = self.base_text_mapping
 
         return toc_contents_dict
+
+    #todo: the next 3 functions seem to come at an unacceptable performance cost. Need to review performance or when they are called. 
+    def get_expanded_base_texts(self):
+        if len(getattr(self, 'base_text_titles', [])) > 1:
+            return [{"title": btitle, "firstSection": self.get_first_ref_in_base_text(btitle)} for btitle in self.base_text_titles]
+        else:
+            return None
+
+    def get_first_ref_in_base_text(self, base_text_title):
+        #we can add other methods of determining the correct first ref of a base text here. e.g. by schema nodes corresponding to base texts
+        linkset_first =  self.get_first_ref_in_base_text_linkset(base_text_title)
+        return linkset_first if linkset_first else None
+
+    def get_first_ref_in_base_text_linkset(self, base_text_title):
+        from . import LinkSet
+        orig_ref = Ref(self.title)
+        base_text_ref = Ref(base_text_title)
+        ls = LinkSet(
+            {'$and': [{'refs': {'$regex': orig_ref.regex()}}, {'refs': {'$regex': base_text_ref.regex()}}],
+             "generated_by": {"$ne": "add_links_from_text"}}
+        )
+        refs_from = ls.refs_from(base_text_ref)
+        sorted_refs_from = sorted(refs_from, key=lambda r: r.order_id())
+        if len(sorted_refs_from):
+            return sorted_refs_from[0].section_ref()
+        return None
 
     def text_index_map(self, tokenizer=lambda x: re.split(u'\s+',x), strict=True, lang='he', vtitle=None):
         """
@@ -1041,6 +1080,7 @@ class TextChunk(AbstractTextRecord):
             self._oref = child_ref
         self._ref_depth = len(self._oref.sections)
         self._versions = []
+        self._version_ids = None
         self._saveable = False  # Can this TextChunk be saved?
 
         self.lang = lang
@@ -1105,6 +1145,16 @@ class TextChunk(AbstractTextRecord):
         if self.vtitle:
             args += u", {}".format(self.vtitle)
         return u"{}({})".format(self.__class__.__name__, args)
+
+    def version_ids(self):
+        if self._version_ids is None:
+            if self._versions:
+                vtitle_query = [{'versionTitle': v.versionTitle} for v in self._versions]
+                query = {"title": self._oref.index.title, "$or": vtitle_query}
+                self._version_ids = VersionSet(query).distinct("_id")
+            else:
+                self._version_ids = []
+        return self._version_ids
 
     def is_empty(self):
         return self.ja().is_empty()
@@ -1477,7 +1527,13 @@ class TextFamily(object):
                 c = TextChunk(oref, language)
             self._chunks[language] = c
             if wrapLinks:
-                setattr(self, self.text_attr_map[language], c.ja().modify_by_function(lambda s: library.get_wrapped_refs_string(s, lang=language, citing_only=True)))
+                #only wrap links if we know there ARE links- get the version, since that's the only reliable way to get it's ObjectId
+                #then count how many links came from that version. If any- do the wrapping.
+                from . import LinkSet
+                if c.version_ids() and LinkSet({"generated_by":"add_links_from_text", "source_text_oid": {"$in": c.version_ids()}}).count() > 0:
+                    setattr(self, self.text_attr_map[language], c.ja().modify_by_function(lambda s: library.get_wrapped_refs_string(s, lang=language, citing_only=True)))
+                else:
+                    setattr(self, self.text_attr_map[language], c.text)
             else:
                 setattr(self, self.text_attr_map[language], c.text)
 
@@ -1598,6 +1654,10 @@ class TextFamily(object):
         d["indexTitle"]   = self._inode.index.title
         d["heIndexTitle"] = self._inode.index.get_title("he")
         d["sectionRef"]   = self._original_oref.section_ref().normal()
+        try:
+            d["firstAvailableSectionRef"] = self._original_oref.first_available_section_ref().normal()
+        except AttributeError:
+            pass
         d["heSectionRef"] = self._original_oref.section_ref().he_normal()
         d["isSpanning"]   = self._original_oref.is_spanning()
         if d["isSpanning"]:
@@ -2103,7 +2163,7 @@ class Ref(object):
         :return bool:
         """
         # TODO: -deprecate
-        return getattr(self.index, 'dependence', None).capitalize() == "Commentary"
+        return getattr(self.index, 'dependence', "").capitalize() == "Commentary"
 
     def is_dependant(self):
         return self.index.is_dependant_text()
@@ -2811,6 +2871,8 @@ class Ref(object):
         assert not self.is_range(), "Ref.all_subrefs() is not intended for use on Ranges"
 
         size = self.get_state_ja(lang).sub_array_length([i - 1 for i in self.sections])
+        if size is None:
+            size = 0
         return self.subrefs(size)
 
     def context_ref(self, level=1):
@@ -2921,13 +2983,13 @@ class Ref(object):
 
     def starting_refs_of_span(self, deep_range=False):
         """
-            >>> Ref("Zohar 1:3b:12-3:12b:1").stating_refs_of_span()
+            >>> Ref("Zohar 1:3b:12-3:12b:1").starting_refs_of_span()
             [Ref("Zohar 1:3b:12"),Ref("Zohar 2"),Ref("Zohar 3")]
-            >>> Ref("Zohar 1:3b:12-1:4b:12").stating_refs_of_span(True)
+            >>> Ref("Zohar 1:3b:12-1:4b:12").starting_refs_of_span(True)
             [Ref("Zohar 1:3b:12"),Ref("Zohar 1:4a"),Ref("Zohar 1:4b")]
-            >>> Ref("Zohar 1:3b:12-1:4b:12").stating_refs_of_span(False)
+            >>> Ref("Zohar 1:3b:12-1:4b:12").starting_refs_of_span(False)
             [Ref("Zohar 1:3b:12")]
-            >>> Ref("Genesis 12:1-14:3").stating_refs_of_span()
+            >>> Ref("Genesis 12:1-14:3").starting_refs_of_span()
             [Ref("Genesis 12:1"), Ref("Genesis 13"), Ref("Genesis 14")]
 
         :param deep_range: Default: False.  If True, returns list of refs at whatever level the range is.  If False, only returns refs for the 0th index, whether ranged or not.
@@ -3950,7 +4012,6 @@ class Library(object):
             self._full_title_lists[key] = titles
         return titles
 
-
     def ref_list(self):
         """
         :return: list of all section-level Refs in the library
@@ -4069,7 +4130,6 @@ class Library(object):
 
         return IndexSet(q) if full_records else IndexSet(q).distinct("title")
 
-
     def get_indices_by_collective_title(self, collective_title, full_records=False):
         q = {'collective_title': collective_title}
         return IndexSet(q) if full_records else IndexSet(q).distinct("title")
@@ -4163,7 +4223,7 @@ class Library(object):
         if lang is None:
             lang = "he" if is_hebrew(st) else "en"
         from sefaria.utils.hebrew import strip_nikkud
-        st = strip_nikkud(st)
+        #st = strip_nikkud(st) doing this causes the final result to lose vowels and cantiallation
         unique_titles = set(self.get_titles_in_string(st, lang, citing_only))
         for title in unique_titles:
             try:

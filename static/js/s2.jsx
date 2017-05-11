@@ -81,6 +81,9 @@ var ReaderApp = React.createClass({
           versionLanguage: initialPanel.versionLanguage || null,
           searchQuery: this.props.initialQuery,
           appliedSearchFilters: this.props.initialSearchFilters,
+          navigationCategories: this.props.initialNavigationCategories,
+          sheetsTag: this.props.initialSheetsTag,
+          group: this.props.initialGroup,
           settings: Sefaria.util.clone(defaultPanelSettings)
         };
         if (panels[0].versionLanguage) {
@@ -621,7 +624,7 @@ var ReaderApp = React.createClass({
       menuOpen:             state.menuOpen             || null, // "navigation", "text toc", "display", "search", "sheets", "home", "book toc"
       navigationCategories: state.navigationCategories || [],
       navigationSheetTag:   state.sheetsTag            || null,
-      sheetsGroup:        state.group              || null,
+      sheetsGroup:          state.group                || null,
       searchQuery:          state.searchQuery          || null,
       appliedSearchFilters: state.appliedSearchFilters || [],
       searchFiltersValid:   state.searchFiltersValid   || false,
@@ -1077,27 +1080,24 @@ var ReaderApp = React.createClass({
   },
   showSheets: function() {
     var updates = {menuOpen: "sheets"};
-    if (this.props.multiPanel) {
-      this.setHeaderState(updates);
-    } else {
-      this.setPanelState(0, updates);
-    }
+    this.setStateInHeaderOrSinglePanel(updates);
   },
   showMySheets: function() {
-    console.log("SMS")
     var updates = {menuOpen: "sheets", navigationSheetTag: "My Sheets"};
-    if (this.props.multiPanel) {
-      this.setHeaderState(updates);
-    } else {
-      this.setPanelState(0, updates);
-    }
+    this.setStateInHeaderOrSinglePanel(updates);
   },
   showMyGroups: function() {
     var updates = {menuOpen: "myGroups"};
+    this.setStateInHeaderOrSinglePanel(updates);
+  },
+  setStateInHeaderOrSinglePanel: function(state) {
+    // Updates state in the header panel if we're in mutli-panel, else in the first panel if we're in single panel
+    // If we're in single panel mode but `this.state.panels` is empty, make a default first panel
     if (this.props.multiPanel) {
-      this.setHeaderState(updates);
+      this.setHeaderState(state);
     } else {
-      this.setPanelState(0, updates);
+      state = this.makePanelState(state);
+      this.setState({panels: [state]});
     }
   },
   saveRecentlyViewed: function(panel) {
@@ -1172,6 +1172,7 @@ var ReaderApp = React.createClass({
     var panels = [];
     for (var i = 0; i < panelStates.length; i++) {
       var panel                    = this.clonePanel(panelStates[i]);
+      if (!("settings" in panel )) { debugger; }
       var offset                   = widths.reduce(function(prev, curr, index, arr) { return index < i ? prev+curr : prev}, 0);
       var width                    = widths[i];
       var style                    = (this.state.layoutOrientation=="ltr")?{width: width + unit, left: offset + unit}:{width: width + unit, right: offset + unit};
@@ -1631,7 +1632,7 @@ var ReaderPanel = React.createClass({
       menuOpen:             this.props.initialMenu || null, // "navigation", "book toc", "text toc", "display", "search", "sheets", "home", "compare"
       navigationCategories: this.props.initialNavigationCategories || [],
       navigationSheetTag:   this.props.initialSheetsTag || null,
-      sheetsGroup:        this.props.initialGroup || null,
+      sheetsGroup:          this.props.initialGroup || null,
       searchQuery:          this.props.initialQuery || null,
       appliedSearchFilters: this.props.initialAppliedSearchFilters || [],
       selectedWords:        null,
@@ -1973,12 +1974,12 @@ var ReaderPanel = React.createClass({
   },
   currentLayout: function() {
     if (this.state.settings.language == "bilingual") {
-      return this.width > 500 ? this.state.settings.biLayout : "stacked";
+      return this.state.width > 500 ? this.state.settings.biLayout : "stacked";
     }
     var category = this.currentCategory();
     if (!category) { return "layoutDefault"; }
     var option = category === "Tanakh" || category === "Talmud" ? "layout" + category : "layoutDefault";
-    return this.state.settings[option];  
+    return this.state.settings[option];
   },
   render: function() {
     if (this.state.error) {
@@ -2066,7 +2067,7 @@ var ReaderPanel = React.createClass({
       var onRecentClick = this.state.menuOpen === "compare" || !this.props.onRecentClick ? openInPanel : this.props.onRecentClick;
 
       var menu = (<ReaderNavigationMenu 
-                    key={this.state.navigationCategories.join("-")}
+                    key={this.state.navigationCategories ? this.state.navigationCategories.join("-") : "navHome"}
                     home={this.state.menuOpen === "home"}
                     compare={this.state.menuOpen === "compare"}
                     interfaceLang={this.props.interfaceLang}
@@ -2152,7 +2153,7 @@ var ReaderPanel = React.createClass({
                     setMySheetSort={this.setMySheetSort}
                     setSheetTagSort={this.setSheetTagSort}
                     setSheetTag={this.setSheetTag}
-                    key={this.state.key} />);
+                    key={"SheetsNav"} />);
 
     } else if (this.state.menuOpen === "account") {
       var menu = (<AccountPanel
@@ -2309,18 +2310,20 @@ var ReaderControls = React.createClass({
             toggleLanguage={this.props.toggleLanguage}
             interfaceLang={this.props.interfaceLang}/>
         </div>) :
-      (<a href={url}>
-          <div className={"readerTextToc" + (categoryAttribution ? ' attributed' : '')} onClick={this.openTextToc}>
-            <div className="readerTextTocBox">
-              { title ? (<i className="fa fa-caret-down invisible"></i>) : null }
-              <span className="en">{title}</span>
-              <span className="he">{heTitle}</span>
-              { title ? (<i className="fa fa-caret-down"></i>) : null }
-              { showVersion ? (<span className="readerTextVersion"><span className="en">{versionTitle}</span></span>) : null}
-              {categoryAttribution}
-            </div>
+      (<div className={"readerTextToc" + (categoryAttribution ? ' attributed' : '')} onClick={this.openTextToc}>
+        <div className="readerTextTocBox">
+          <a href={url}>
+            { title ? (<i className="fa fa-caret-down invisible"></i>) : null }
+            <span className="en">{title}</span>
+            <span className="he">{heTitle}</span>
+            { title ? (<i className="fa fa-caret-down"></i>) : null }
+            { showVersion ? (<span className="readerTextVersion"><span className="en">{versionTitle}</span></span>) : null}
+          </a>
+          <div onClick={(e) => {e.stopPropagation();}}>
+            {categoryAttribution}
           </div>
-        </a>);
+        </div>
+      </div>);
     var leftControls = hideHeader || connectionsHeader ? null :
       (<div className="leftButtons">
           {this.props.multiPanel ? (<ReaderNavigationMenuCloseButton onClick={this.props.closePanel} />) : null}
@@ -2958,12 +2961,13 @@ var ReaderNavigationCategoryMenuContents = React.createClass({
       for (var i = 0; i < this.props.contents.length; i++) {
         var item = this.props.contents[i];
         if (item.category) {
+          // Category
           var newCats = cats.concat(item.category);
-          // Special Case categories which should nest but are normally wouldnt given their depth
-          var subcats = [ "Mishneh Torah", "Shulchan Arukh", "Maharal"];
+          // Special Case categories which should nest but normally wouldn't given their depth
+          var subcats = ["Mishneh Torah", "Shulchan Arukh", "Maharal"];
           if (Sefaria.util.inArray(item.category, subcats) > -1 || this.props.nestLevel > 0) {
             if(item.contents.length == 1 && !("category" in item.contents[0])){
-                var chItem = item.contents[0]
+                var chItem = item.contents[0];
                 var [title, heTitle] = this.getRenderedTextTitleString(chItem.title, chItem.heTitle);
                 var url     = "/" + Sefaria.normRef(chItem.firstSection);
                 content.push((<a href={url}>
@@ -2972,7 +2976,8 @@ var ReaderNavigationCategoryMenuContents = React.createClass({
                                   <span className='he'>{heTitle}</span>
                                 </span>
                               </a>));
-            }else{
+            } else {
+              // Create a link to a subcategory
               url = "/texts/" + newCats.join("/");
               content.push((<a href={url}>
                             <span className="catLink" data-cats={newCats.join("|")} key={"cat." + this.props.nestLevel + "." + i}>
@@ -2981,7 +2986,7 @@ var ReaderNavigationCategoryMenuContents = React.createClass({
                             </span>
                           </a>));
             }
-          }else{
+          } else {
             // Add a Category
             content.push((<div className='category' key={"cat." + this.props.nestLevel + "." + i}>
                             <h3>
@@ -2992,7 +2997,7 @@ var ReaderNavigationCategoryMenuContents = React.createClass({
                           </div>));
           }
         } else {
-          //Add a Text
+          // Add a Text
           var [title, heTitle] = this.getRenderedTextTitleString(item.title, item.heTitle);
           var ref = Sefaria.recentRefForText(item.title) || item.firstSection;
           var url = "/" + Sefaria.normRef(ref);
@@ -3260,11 +3265,11 @@ var ReaderTextTableOfContents = React.createClass({
             <span className="int-en">Download Text</span>
             <span className="int-he">הורדת הטקסט</span>
           </h2>
-          <select className="dlVersionSelect dlVersionTitleSelect" value={(this.state.dlVersionTitle && this.state.dlVersionLanguage)?this.state.dlVersionTitle + "/" + this.state.dlVersionLanguage:""} onChange={this.onDlVersionSelect}>
+          <select className="dlVersionSelect dlVersionTitleSelect" value={(this.state.dlVersionTitle && this.state.dlVersionLanguage)?this.state.dlVersionTitle + "/" + this.state.dlVersionLanguage:"0"} onChange={this.onDlVersionSelect}>
             {dl_versions}
           </select>
-          <select className="dlVersionSelect dlVersionFormatSelect" value={this.state.dlVersionFormat || ""} onChange={this.onDlFormatSelect}>
-            <option disabled>File Format</option>
+          <select className="dlVersionSelect dlVersionFormatSelect" value={this.state.dlVersionFormat || "0"} onChange={this.onDlFormatSelect}>
+            <option key="none" value="0" disabled>File Format</option>
             <option key="txt" value="txt" >Text</option>
             <option key="csv" value="csv" >CSV</option>
             <option key="json" value="json" >JSON</option>
@@ -3356,7 +3361,7 @@ var TextDetails = React.createClass({
       //return [composed, description].filter(x => !!x).join(". ");
       // holding on displaying descriptions for now
       return composed;
-    }
+    };
     var enDesc = makeDescriptionText("Composed in ", "compPlaceString" in this.props.index ? this.props.index.compPlaceString.en : null, "compDateString" in this.props.index ? this.props.index.compDateString.en : null, this.props.index.enDesc);
     var heDesc = makeDescriptionText("נוצר/נערך ב", "compPlaceString" in this.props.index ? this.props.index.compPlaceString.he : null, "compDateString" in this.props.index ? this.props.index.compDateString.he : null, this.props.index.heDesc);
 
@@ -3371,10 +3376,10 @@ var TextDetails = React.createClass({
         { authors.length ?
           <div className="tocDetail">
               <span className="int-he">
-                מחבר: {authors.map(function (author) { return <a href={"/person/" + author.en}>{author.he}</a> })}
+                מחבר: {authors.map(author => <a key={author.en} href={"/person/" + author.en}>{author.he}</a> )}
               </span>
               <span className="int-en">
-                Author: {authors.map(function (author) { return <a href={"/person/" + author.en}>{author.en}</a> })}
+                Author: {authors.map(author => <a key={author.en} href={"/person/" + author.en}>{author.en}</a> )}
               </span>
           </div>
           : null }
@@ -3581,6 +3586,16 @@ var SchemaNode = React.createClass({
     schema:      React.PropTypes.object.isRequired,
     refPath:     React.PropTypes.string.isRequired
   },
+  getInitialState: function() {
+    var nChildren = "nodes" in this.props.schema ? this.props.schema.length : 0;
+    return {
+      collapsed: new Array(nChildren).fill(false)
+    }
+  },
+  toggleCollapse: function(i) {
+    this.state.collapsed[i] = !this.state.collapsed[i];
+    this.setState({collapsed: this.state.collapsed});
+  },
   render: function() {
     if (!("nodes" in this.props.schema)) {
       if (this.props.schema.nodeType === "JaggedArrayNode") {
@@ -3601,15 +3616,17 @@ var SchemaNode = React.createClass({
           // SchemaNode with children (nodes) or ArrayMapNode with depth (refs)
           return (
             <div className="schema-node-toc" key={i}>
-              <span className="schema-node-title">
-                <span className="he">{node.heTitle} <i className="schema-node-control fa fa-angle-down"></i></span>
-                <span className="en">{node.title} <i className="schema-node-control fa fa-angle-down"></i></span>
+              <span className="schema-node-title" onClick={this.toggleCollapse.bind(null, i)}>
+                <span className="he">{node.heTitle} <i className={"schema-node-control fa fa-angle-" + (this.state.collapsed[i] ? "left" : "down")}></i></span>
+                <span className="en">{node.title} <i className={"schema-node-control fa fa-angle-" + (this.state.collapsed[i] ? "right" : "down")}></i></span>
               </span>
+              {!this.state.collapsed[i] ? 
               <div className="schema-node-contents">
                 <SchemaNode
                   schema={node}
                   refPath={this.props.refPath + ", " + node.title} />
               </div>
+              : null }
             </div>);
         } else if (node.nodeType == "ArrayMapNode") {
           // ArrayMapNode with only wholeRef
@@ -3629,17 +3646,19 @@ var SchemaNode = React.createClass({
           return (
             <div className="schema-node-toc" key={i}>
               { !node.default ?
-              <span className="schema-node-title">
-                <span className="he">{node.heTitle} <i className="schema-node-control fa fa-angle-down"></i></span>
-                <span className="en">{node.title} <i className="schema-node-control fa fa-angle-down"></i></span>
+              <span className="schema-node-title" onClick={this.toggleCollapse.bind(null, i)}>
+                <span className="he">{node.heTitle} <i className={"schema-node-control fa fa-angle-" + (this.state.collapsed[i] ? "left" : "down")}></i></span>
+                <span className="en">{node.title} <i className={"schema-node-control fa fa-angle-" + (this.state.collapsed[i] ? "right" : "down")}></i></span>
               </span>
               : null }
+              { !this.state.collapsed[i] ? 
               <div className="schema-node-contents">
                 <JaggedArrayNode
                   schema={node}
                   contentLang={this.props.contentLang}
                   refPath={this.props.refPath + (node.default ? "" : ", " + node.title)} />
               </div>
+              : null }
             </div>);
         }
       }.bind(this));
@@ -4153,10 +4172,13 @@ var CategoryAttribution = React.createClass({
       render: function() {
       var attribution = Sefaria.categoryAttribution(this.props.categories);
       return attribution ?
-      <div className="categoryAttribution">
-        <span className="en">{attribution.english}</span>
-        <span className="he">{attribution.hebrew}</span>
-      </div> : null;
+        <div className="categoryAttribution">
+          <a href={attribution.link}>
+            <span className="en">{attribution.english}</span>
+            <span className="he">{attribution.hebrew}</span>
+          </a>
+        </div> 
+        : null;
     }
 });
 
@@ -4267,6 +4289,7 @@ var SheetsNav = React.createClass({
                  (<div className="readerNavTop searchOnly" key="navTop">
                     <CategoryColorLine category="Sheets" />
                     <ReaderNavigationMenuMenuButton onClick={this.props.openNav} />
+                    <div className="readerOptions"></div>
                     <h2>
                       <span className="int-en">{enTitle}</span>
                       <span className="int-he">{heTitle}</span>
@@ -4326,12 +4349,12 @@ var SheetsHomePage = React.createClass({
   _type_sheet_button: function(en, he, on_click, active) {
     var classes = classNames({"type-button": 1, active: active});
 
-      return <div className={classes} onClick={on_click}>
-      <div className="type-button-title">
-        <span className="int-en">{en}</span>
-        <span className="int-he">{he}</span>
-      </div>
-    </div>;
+    return <div className={classes} onClick={on_click}>
+              <div className="type-button-title">
+                <span className="int-en">{en}</span>
+                <span className="int-he">{he}</span>
+              </div>
+            </div>;
   },
   render: function() {
     var trendingTags = this.getTrendingTagsFromCache();
@@ -4423,6 +4446,7 @@ var GroupPage = React.createClass({
     return {
       showTags: false,
       sheetFilterTag: null,
+      sheetSort: "date",
       tab: "sheets"
     };
   },
@@ -4437,37 +4461,64 @@ var GroupPage = React.createClass({
       Sefaria.groups(this.props.group, this.onDataLoad);
     }
   },
+  getData: function() {
+    return Sefaria.groups(this.props.group, this.state.sheetSort);
+  },
   setTab: function(tab) {
     this.setState({tab: tab});
   },
   toggleSheetTags: function() {
     this.state.showTags ? this.setState({showTags: false}) : this.setState({showTags: true});
   },
-  filterYourSheetsByTag: function (tag) {
-    if (tag.tag == this.state.sheetFilterTag) {
+  setSheetTag: function(tag) {
+    this.setState({sheetFilterTag: tag, showTags: false});
+  },
+  handleTagButtonClick: function (tag) {
+    if (tag == this.state.sheetFilterTag) {
       this.setState({sheetFilterTag: null, showTags: false});
     } else {
-      this.setState({sheetFilterTag: tag.tag, showTags: false});
+      this.setSheetTag(tag);
     }
   },
+  changeSheetSort: function(event) {
+    this.setState({sheetSort: event.target.value})
+  },
   memberList: function() {
-    var group = Sefaria.groups(this.props.group);
+    var group = this.getData();
     if (!group) { return null; }
     var admins = group.admins.map(function(member) {member.role = "Admin"; return member; });
     var publishers = group.publishers.map(function(member) {member.role = "Publisher"; return member; });
     var members = group.members.map(function(member) {member.role = "Member"; return member; });
+    var invitations = group.invitations.map(function(member) {member.role = "Invitation"; return member; });
     
-    return admins.concat(publishers, members);
+    return admins.concat(publishers, members, invitations);
+  },
+  pinSheet: function(sheetId) {
+    if (this.pinning) { return; }
+    $.post("/api/groups/" + this.props.group + "/pin-sheet/" + sheetId, function(data) {
+      if ("error" in data) {
+        alert(data.error);
+      } else {
+        Sefaria._groups[this.props.group] = data.group;
+        this.onDataLoad();
+      }
+      this.pinning = false;
+    }.bind(this)).fail(function() {
+        alert("There was an error pinning your sheet.");
+        this.pinning = false;     
+    }.bind(this));
+    this.pinning = true;
   },
   render: function() {
-    var group        = Sefaria.groups(this.props.group);
+    var group        = this.getData();
     var sheets       = group ? group.sheets : null;
     var groupTagList = group ? group.tags : null;
     var members      = this.memberList();
+    var isMember     = members && members.filter(function(x) { return x.uid == Sefaria._uid } ).length !== 0;
     var isAdmin      = group && group.admins.filter(function(x) { return x.uid == Sefaria._uid } ).length !== 0;
 
     groupTagList = groupTagList ? groupTagList.map(function (tag) {
-        var filterThisTag = this.filterYourSheetsByTag.bind(this, tag);
+        var filterThisTag = this.handleTagButtonClick.bind(this, tag.tag);
         var classes = classNames({navButton: 1, sheetButton: 1, active: this.state.sheetFilterTag == tag.tag});
         return (<div className={classes} onClick={filterThisTag} key={tag.tag}>{tag.tag} ({tag.count})</div>);
       }.bind(this)) : null;
@@ -4476,10 +4527,16 @@ var GroupPage = React.createClass({
       return Sefaria.util.inArray(this.state.sheetFilterTag, sheet.tags) >= 0;
     }.bind(this)) : sheets;
     sheets = sheets ? sheets.map(function(sheet) {
-      return (<GroupSheetListing sheet={sheet} multiPanel={this.props.multiPanel} setSheetTag={this.props.setSheetTag} />);
+      return (<GroupSheetListing 
+                sheet={sheet} 
+                pinned={group.pinnedSheets.indexOf(sheet.id) != -1}
+                isAdmin={isAdmin}
+                multiPanel={this.props.multiPanel}
+                pinSheet={this.pinSheet.bind(null, sheet.id)} 
+                setSheetTag={this.setSheetTag}
+                key={sheet.id} />);
     }.bind(this)) : [<LoadingMessage />];
  
-
     return (<div className="content groupPage sheetList hasFooter">
               <div className="contentInner">
 
@@ -4521,34 +4578,43 @@ var GroupPage = React.createClass({
 
                 { this.state.tab == "sheets" ?
                   <div>
-                  { groupTagList && groupTagList.length ?
-                    (<h2 className="splitHeader">
+                    {sheets.length ?
+                    <h2 className="splitHeader">
+                      { groupTagList && groupTagList.length ?
                       <span className="filterByTag" onClick={this.toggleSheetTags}>
                         <span className="int-en" >Filter By Tag <i className="fa fa-angle-down"></i></span>
                         <span className="int-he">סנן לפי תווית<i className="fa fa-angle-down"></i></span>
                        </span>
-                       {/*
-                      <span className="en actionText">Sort By:
-                        <select value={this.props.mySheetSort} onChange={this.changeSortYourSheets}>
-                         <option value="date">Recent</option>
-                         <option value="views">Most Viewed</option>
-                       </select> <i className="fa fa-angle-down"></i></span>
-                      <span className="he actionText">סנן לפי:
-                        <select value={this.props.mySheetSort} onChange={this.changeSortYourSheets}>
-                         <option value="date">הכי חדש</option>
-                         <option value="views">הכי נצפה</option>
-                       </select> <i className="fa fa-angle-down"></i></span>
-                       */}
-                    </h2>) : null}
+                       : null }
+                      
+                          <span className="int-en actionText">Sort By:
+                            <select value={this.state.sheetSort} onChange={this.changeSheetSort}>
+                             <option value="date">Recent</option>
+                             <option value="alphabetical">Alphabetical</option>
+                             <option value="views">Most Viewed</option>
+                           </select> <i className="fa fa-angle-down"></i></span>
+                          <span className="int-he actionText">סנן לפי:
+                            <select value={this.state.sheetSort} onChange={this.changeSheetSort}>
+                             <option value="date">הכי חדש</option>
+                             <option value="alphabetical">Alphabetical</option>
+                             <option value="views">הכי נצפה</option>
+                           </select> <i className="fa fa-angle-down"></i></span>
+                    </h2>
+                    : null }
 
                   {this.state.showTags ? <TwoOrThreeBox content={groupTagList} width={this.props.width} /> : null}
 
                   {sheets.length ? 
                     sheets 
-                    : <div className="emptyMessage">
-                      <span className="int-en">There are no sheets in this group yet. <a href="/sheets/new">Start a sheet</a>.</span>
-                      <span className="int-he">There are no sheets in this group yet. <a href="/sheets/new">Start a sheet</a>.</span>          
-                    </div> }
+                    : (isMember ? 
+                          <div className="emptyMessage">
+                            <span className="int-en">There are no sheets in this group yet. <a href="/sheets/new">Start a sheet</a>.</span>
+                            <span className="int-he">There are no sheets in this group yet. <a href="/sheets/new">Start a sheet</a>.</span>          
+                          </div>
+                        : <div className="emptyMessage">
+                            <span className="int-en">There are no public sheets in this group yet.</span>
+                            <span className="int-he">There are no public sheets in this group yet.</span>          
+                          </div>)}
                   </div>
                   : null }
 
@@ -4561,7 +4627,8 @@ var GroupPage = React.createClass({
                                 isAdmin={isAdmin}
                                 isSelf={member.uid == Sefaria._uid}
                                 groupName={this.props.group}
-                                onDataChange={this.onDataLoad} />;
+                                onDataChange={this.onDataLoad}
+                                key={member.uid} />;
                      }.bind(this)) }
                     </div>
                   : null }
@@ -4577,49 +4644,98 @@ var GroupPage = React.createClass({
 
 var GroupSheetListing = React.createClass({
   propTypes: {
-    sheet: React.PropTypes.object.isRequired,
+    sheet:       React.PropTypes.object.isRequired,
+    setSheetTag: React.PropTypes.func.isRequired,
+    pinSheet:    React.PropTypes.func,
+    pinned:      React.PropTypes.bool,
+    isAdmin:     React.PropTypes.bool
   },
   render: function() {
     var sheet = this.props.sheet;
     var title = sheet.title ? sheet.title.stripHtml() : "Untitled Source Sheet";
     var url = "/sheets/" + sheet.id;
 
-    if (sheet.tags === undefined) sheet.tags = [];
-      var tagString = sheet.tags.map(function (tag) {
+    if (sheet.tags === undefined) { sheet.tags = []; }
+    var tagString = sheet.tags.map(function (tag) {
           return(<SheetTagLink setSheetTag={this.props.setSheetTag} tag={tag} key={tag} />);
     },this);
 
+
+    var pinButtonClasses = classNames({groupSheetListingPinButton: 1, pinned: this.props.pinned, active: this.props.isAdmin});
+    var pinMessage = this.props.pinned && this.props.isAdmin ? "Pinned Sheet - click to unpin" :
+                      this.props.pinned ? "Pinned Sheet" : "Pin Sheet";
+    var pinButton = <div className={pinButtonClasses} onClick={this.props.isAdmin ? this.props.pinSheet : null}>
+                      <img src="/static/img/pin.svg" title={pinMessage} />
+                    </div>
+
     return (<div className="sheet userSheet">
-                <a className="sheetTitle" href={url} key={url}>{title}</a>
+                {pinButton}
+                <a className="sheetTitle" href={url} key={url}>{title}</a> <SheetAccessIcon sheet={sheet} />
                 <div>{sheet.ownerName} · {sheet.views} Views · {sheet.modified} · <span className="tagString">{tagString}</span></div>
               </div>);
 
   }
 });
 
+
 var GroupInvitationBox = React.createClass({
   propTypes: {
     groupName: React.PropTypes.string.isRequired,
     onDataChange: React.PropTypes.func.isRequired,
   },
+  getInitialState: function() {
+    return {
+      inviting: false,
+      message: null
+    };
+  },
   onInviteClick: function() {
-    this.inviteByEmail($("#groupInvitationInput").val());
+    if (!this.state.inviting) {
+      this.inviteByEmail($("#groupInvitationInput").val());
+    }
+  },
+  flashMessage: function(message) {
+    this.setState({message: message});
+    setTimeout(function() {
+      this.setState({message: null});
+    }.bind(this), 3000);
   },
   inviteByEmail: function(email) {
+    if (!this.validateEmail(email)) {
+      this.flashMessage("That isn't a valid email address.")
+      return;
+    }
+    this.setState({inviting: true, message: "Inviting..."})
     $.post("/api/groups/" + this.props.groupName + "/invite/" + email, function(data) {
       if ("error" in data) {
-        alert(data.error)
+        alert(data.error);
+        this.setState({message: null, inviting: false});
       } else {
-        Sefaria._groups[data.name] = data;
-        $("#groupInvitationInput").val("")
+        Sefaria._groups[this.props.groupName] = data.group;
+        $("#groupInvitationInput").val("");
+        this.flashMessage(data.message);
+        this.setState({inviting: false})
         this.props.onDataChange();
       }
+    }.bind(this)).fail(function() {
+        alert("There was an error sending your invitation.");
+        this.setState({message: null, inviting: false});      
     }.bind(this));
+  },
+  validateEmail: function(email) {
+    var re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+    return re.test(email);
   },
   render: function() {
     return (<div className="groupInvitationBox">
                 <input id="groupInvitationInput" placeholder="Email Address" />
-                <div className="button" onClick={this.onInviteClick}>Invite</div>
+                <div className="button" onClick={this.onInviteClick}>
+                  <span className="int-en">Invite</span>
+                  <span className="int-he">Invite</span>
+                </div>
+                {this.state.message ?
+                  <div className="groupInvitationBoxMessage">{this.state.message}</div>
+                  : null}
               </div>);
   }
 });
@@ -4634,6 +4750,15 @@ var GroupMemberListing = React.createClass({
     onDataChange: React.PropTypes.func,
   },
   render: function() {
+    if (this.props.member.role == "Invitation") {
+      return this.props.isAdmin ? 
+        <GroupInvitationListing 
+          member={this.props.member}
+          groupName={this.props.groupName}
+          onDataChange={this.props.onDataChange} /> 
+        : null;
+    } 
+
     return (
       <div className="groupMemberListing">
         <a href={this.props.member.profileUrl}>
@@ -4661,17 +4786,46 @@ var GroupMemberListing = React.createClass({
 });
 
 
+var GroupInvitationListing = React.createClass({
+  propTypes: {
+    member:       React.PropTypes.object.isRequired,
+    groupName:    React.PropTypes.string,
+    onDataChange: React.PropTypes.func,
+  },
+  render: function() {
+    return (
+      <div className="groupMemberListing">
+        <span className="groupInvitationListing">
+          {this.props.member.email}
+        </span>
+
+        <div className="groupMemberListingRoleBox">
+          <span className="groupMemberListingRole">Invited</span>
+          <GroupMemberListingActions 
+            member={this.props.member}
+            groupName={this.props.groupName}
+            isInvitation={true}
+            onDataChange={this.props.onDataChange} />
+        </div>
+
+      </div>);
+  }
+});
+
+
 var GroupMemberListingActions = React.createClass({
   propTypes: {
     member:       React.PropTypes.object.isRequired,
     groupName:    React.PropTypes.string.isRequired,
     isAdmin:      React.PropTypes.bool,
     isSelf:       React.PropTypes.bool,
+    isInvitation: React.PropTypes.bool,
     onDataChange: React.PropTypes.func.isRequired
   },
   getInitialState: function() {
     return {
-      menuOpen: false
+      menuOpen: false,
+      invitationResent: false
     }
   },
   toggleMenu: function() {
@@ -4702,6 +4856,29 @@ var GroupMemberListingActions = React.createClass({
       this.setRole("remove");
     }
   },
+  resendInvitation: function() {
+    $.post("/api/groups/" + this.props.groupName + "/invite/" + this.props.member.email, function(data) {
+      if ("error" in data) {
+        alert(data.error)
+      } else {
+        Sefaria._groups[this.props.groupName] = data.group;
+        this.props.onDataChange();
+        this.setState({"invitationResent": true});
+      }
+    }.bind(this));
+  },
+  removeInvitation: function() {
+    if (confirm("Are you sure you want to remove this invitation?")) {
+      $.post("/api/groups/" + this.props.groupName + "/invite/" + this.props.member.email + "/uninvite", function(data) {
+        if ("error" in data) {
+          alert(data.error)
+        } else {
+          Sefaria._groups[this.props.groupName] = data.group;
+          this.props.onDataChange();
+        }
+      }.bind(this));      
+    }
+  },
   render: function() {
     return (
       <div className="groupMemberListingActions" onClick={this.toggleMenu}>
@@ -4728,9 +4905,27 @@ var GroupMemberListingActions = React.createClass({
                 - can view & share within group
               </div>
               : null}
-            <div className="action" onClick={this.removeMember}>
-              <span className="role">{this.props.isSelf ? "Leave Group" : "Remove"}</span>
-            </div>
+            {this.props.isAdmin || this.props.isSelf ? 
+              <div className="action" onClick={this.removeMember}>
+                <span className="role">{this.props.isSelf ? "Leave Group" : "Remove"}</span>
+              </div>
+            : null }
+            {this.props.isInvitation  && !this.state.invitationResent ? 
+              <div className="action" onClick={this.resendInvitation}>
+                <span className="role">Resend Invitation</span>
+              </div>
+              : null}
+            {this.props.isInvitation  && this.state.invitationResent ? 
+              <div className="action">
+                <span className="role">Invitation Resent</span>
+              </div>
+              : null}
+            {this.props.isInvitation ? 
+              <div className="action" onClick={this.removeInvitation}>
+                <span className="role">Remove</span>
+
+              </div>
+              : null}
           </div>
         : null }
       </div>);
@@ -4758,14 +4953,54 @@ var EditGroupPage = React.createClass({
       }
     }.bind(this));
   },
-  uploadImage: function(field) {
-    // Sets the state of `field` of the resulting image URL
-    var url = prompt("Enter an image URL", this.state[field] || "");
-    if (url === null) { return; }
+  handleImageChange: function(e) {
+    var MAX_IMAGE_MB = 2;
+    var MAX_IMAGE_SIZE = MAX_IMAGE_MB * 1024 * 1024;
+    var idToField = {
+      groupHeader: "headerUrl",
+      groupImage: "imageUrl",
+    }
+    var field = idToField[e.target.id];
+    var file = e.currentTarget.files[0];
+    if (file.size > MAX_IMAGE_SIZE) {
+      alert("Images must be smaller than " + MAX_IMAGE_MB + "MB.");
+      return;
+    }
+    var formData = new FormData();
+    formData.append("file", e.currentTarget.files[0])
+    $.ajax({
+        url: '/api/file/upload',
+        data: formData,
+        type: 'POST',
+        contentType: false,
+        processData: false,
+        success: function(data) {
+          if ("error" in data) {
+            alert(data.error);
+            this.clearUploading(field);
+          } else {
+            var state = {};
+            state[field] = data.url;
+            this.setState(state);
+            this.changed = true;
+          }
+        }.bind(this),
+        fail: function() {
+          alert("Unfortunately an error occurred uploading your file.")
+          this.clearUploading(field);
+        }
+    });
+    this.setUploading(field);
+  },
+  setUploading: function(field) {
     var state = {};
-    state[field] = url;
+    state[field] = "/static/img/loading.gif";
     this.setState(state);
-    this.changed = true;
+  },
+  clearUploading: function(field) {
+    var state = {};
+    state[field] = null;
+    this.setState(state);
   },
   handleInputChange: function(e) {
     var idToField = {
@@ -4805,6 +5040,9 @@ var EditGroupPage = React.createClass({
     if (this.props.initialData && this.props.initialData.name !== groupData.name) {
       groupData["previousName"] = this.props.initialData.name;
     }
+    if (groupData["headerUrl"] == "/static/img/loading.gif") { groupData["headerUrl"] = null; }
+    if (groupData["imageUrl"] == "/static/img/loading.gif") { groupData["imageUrl"] = null; }
+
     $.post("/api/groups", {json: JSON.stringify(groupData)}, function(data) {
         if ("error" in data) {
           alert(data.error);
@@ -4861,7 +5099,7 @@ var EditGroupPage = React.createClass({
             <span className="int-en">Description</span>
             <span className="int-he">Description</span>
           </label>
-          <textarea id="groupDescription" onChange={this.handleInputChange}>{this.state.description||null}</textarea>
+          <textarea id="groupDescription" onChange={this.handleInputChange} value={this.state.description||null}></textarea>
         </div>
 
         <div className="field">
@@ -4872,10 +5110,12 @@ var EditGroupPage = React.createClass({
           {this.state.imageUrl 
             ? <img className="groupImage" src={this.state.imageUrl} />
             : <div className="groupImage placeholder"></div>}
-          <div className="button white" onClick={this.uploadImage.bind(null, "imageUrl")}>
-            <span className="int-en">Upload Image</span>
-            <span className="int-he">Upload Image</span>
-          </div>
+          <FileInput
+             name="groupImage"
+             accept="image/*"
+             text="Upload Image"
+             className="button white"
+             onChange={this.handleImageChange} />
           <div className="helperText">
             <span className="int-en">Recommended size: 350px x 350px or larger</span>
             <span className="int-he">Recommended size: 350px x 350px or larger</span>
@@ -4893,10 +5133,12 @@ var EditGroupPage = React.createClass({
                 <div className="clearFix"></div>
               </div>
             : <div className="groupHeader placeholder"></div>}
-          <div className="button white" onClick={this.uploadImage.bind(null, "headerUrl")}>
-            <span className="int-en">Upload Image</span>
-            <span className="int-he">Upload Image</span>
-          </div>
+          <FileInput 
+             name="groupHeader"
+             accept="image/*"
+             text="Upload Image"
+             className="button white"
+             onChange={this.handleImageChange} />
           <div className="helperText">
             <span className="int-en">Recommended size: 1000px width to fill sheet, smaller images align right</span>
             <span className="int-he">Recommended size: 1000px width to fill sheet, smaller images align right</span>
@@ -4914,6 +5156,86 @@ var EditGroupPage = React.createClass({
   }
 });
 
+var FileInput = React.createClass({
+  handleChange: function(e) {
+    if (this.props.onChange) { this.props.onChange(e); }
+  },
+  render: function() {
+    return (<div>
+              <label htmlFor={this.props.name} className={this.props.className}>{this.props.text}</label>
+              <input 
+                type="file" 
+                id={this.props.name} 
+                name={this.props.name} 
+                className="hiddenFileInput"
+                accept={this.props.accept}
+                onChange={this.handleChange} />
+            </div>);
+  }
+})
+
+// https://github.com/captivationsoftware/react-file-input
+var FileInputX = React.createClass({
+  getInitialState: function() {
+    return {
+      value: '',
+      styles: {
+        parent: {
+          position: 'relative'
+        },
+        file: {
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          opacity: 0,
+          width: '100%',
+          zIndex: 1
+        },
+        text: {
+          position: 'relative',
+          zIndex: -1
+        }
+      }
+    };
+  },
+
+  handleChange: function(e) {
+    this.setState({
+      value: e.target.value.split(/(\\|\/)/g).pop()
+    });
+    if (this.props.onChange) this.props.onChange(e);
+  },
+
+  render: function() {
+    return React.DOM.div({
+        style: this.state.styles.parent
+      },
+
+      // Actual file input
+      React.DOM.input({
+        type: 'file',
+        name: this.props.name,
+        className: this.props.className,
+        onChange: this.handleChange,
+        disabled: this.props.disabled,
+        accept: this.props.accept,
+        style: this.state.styles.file
+      }),
+
+      // Emulated file input
+      React.DOM.input({
+        type: 'text',
+        tabIndex: -1,
+        name: this.props.name + '_filename',
+        value: this.state.value,
+        className: this.props.className,
+        onChange: function() {},
+        placeholder: this.props.placeholder,
+        disabled: this.props.disabled,
+        style: this.state.styles.text
+      }));
+  }
+});
 
 
 var TagSheetsPage = React.createClass({
@@ -4939,7 +5261,7 @@ var TagSheetsPage = React.createClass({
   render: function() {
     var sheets = this.getSheetsFromCache();
     sheets = sheets ? sheets.map(function (sheet) {
-      return (<PublicSheetListing sheet={sheet} />);
+      return (<PublicSheetListing sheet={sheet} key={sheet.id} />);
     }) : (<LoadingMessage />);
     return (<div className="content sheetList hasFooter">
                       <div className="contentInner">
@@ -5132,7 +5454,7 @@ var MySheetsPage = React.createClass({
       return Sefaria.util.inArray(this.state.sheetFilterTag, sheet.tags) >= 0;
     }.bind(this)) : sheets;
     sheets = sheets ? sheets.map(function(sheet) {
-      return (<PrivateSheetListing sheet={sheet} multiPanel={this.props.multiPanel} setSheetTag={this.props.setSheetTag} />);
+      return (<PrivateSheetListing sheet={sheet} setSheetTag={this.props.setSheetTag} key={sheet.id} />);
     }.bind(this)) : (<LoadingMessage />);
 
     var userTagList = this.getTagsFromCache();
@@ -5183,43 +5505,40 @@ var MySheetsPage = React.createClass({
 
 var PrivateSheetListing = React.createClass({
   propTypes: {
-    sheet:      React.PropTypes.object.isRequired,
-    multiPanel: React.PropTypes.bool,
+    sheet:       React.PropTypes.object.isRequired,
     setSheetTag: React.PropTypes.func.isRequired
   },
   render: function() {
     var sheet = this.props.sheet;
-    var editSheetTags = function() { console.log(sheet.id)}.bind(this);
     var title = sheet.title ? sheet.title.stripHtml() : "Untitled Source Sheet";
     var url = "/sheets/" + sheet.id;
-
-
 
     if (sheet.tags === undefined) sheet.tags = [];
       var tagString = sheet.tags.map(function (tag) {
           return(<SheetTagLink setSheetTag={this.props.setSheetTag} tag={tag} key={tag} />);
-    },this);
+    }, this);
 
-    if (this.props.multiPanel) {
-      return (<div className="sheet userSheet" href={url} key={url}>
-                 <a className="sheetEditButtons" href={url}>
-                  <span><i className="fa fa-pencil"></i> </span>
-                </a>
-                <div className="sheetEditButtons" onClick={editSheetTags}>
-                  <span><i className="fa fa-tag"></i> </span>
-                </div>
-
-                <a className="sheetTitle" href={url}>{title}</a>
-                <div>{sheet.views} Views · {sheet.modified} · <span className="tagString">{tagString}</span></div>
-            </div>);
-    } else {
-      return (<a className="sheet userSheet" href={url} key={url}>
-                <div className="sheetTitle">{title}</div>
-                <div>{sheet.views} Views · {sheet.modified} · <span className="tagString">{tagString}</span></div>
-              </a>);
-    }
+   return (<div className="sheet userSheet" href={url} key={url}>
+              <a className="sheetTitle" href={url}>{title}</a>  <SheetAccessIcon sheet={sheet} />
+              <div>{sheet.views} Views · {sheet.modified} · <span className="tagString">{tagString}</span></div>
+          </div>);
   }
 });
+
+
+var SheetAccessIcon = React.createClass({
+  propTypes: {
+    sheet: React.PropTypes.object.isRequired
+  },
+  render: function() {
+    var sheet = this.props.sheet;
+    var msg = "group" in sheet ? "Listed for Group members only" : "Private";
+    return (sheet.status == "unlisted") ? 
+      (<i className="fa fa-lock" title={msg}></i>)
+      : null;
+  }
+});
+
 
 var SheetTagLink = React.createClass({
   propTypes: {
@@ -5231,7 +5550,7 @@ var SheetTagLink = React.createClass({
     this.props.setSheetTag(this.props.tag);
   },
   render: function() {
-    return (<a href={`/sheets/tag/${this.props.tag}`} onClick={this.handleTagClick}>{this.props.tag}</a>);
+    return (<a href={`/sheets/tags/${this.props.tag}`} onClick={this.handleTagClick}>{this.props.tag}</a>);
   }
 });
 
@@ -5423,14 +5742,14 @@ var TextColumn = React.createClass({
     }
   },
   handleScroll: function(event) {
-    console.log("scroll")
+    //console.log("scroll");
     if (this.justScrolled) {
-      console.log("pass scroll")
+      console.log("pass scroll");
       this.justScrolled = false;
       return;
     }
     if (this.props.highlightedRefs.length) {
-      console.log("Calling debouncedAdjustTextListHighlight")
+      //console.log("Calling debouncedAdjustTextListHighlight");
       this.debouncedAdjustTextListHighlight();
     }
     this.adjustInfiniteScroll();   
@@ -5486,14 +5805,14 @@ var TextColumn = React.createClass({
         console.log(top)
       }
     } else if (!this.scrolledToHighlight && $(ReactDOM.findDOMNode(this)).find(".segment.highlight").length) {
-       console.log("scroll to highlighted")
+       console.log("scroll to highlighted");
       // scroll to highlighted segment
       this.scrollToHighlighted();
       this.scrolledToHighlight = true;
       this.initialScrollTopSet = true;
       this.justScrolled        = true;
     } else if (!this.initialScrollTopSet) {
-      console.log("initial scroll to 30")
+      console.log("initial scroll to 30");
       // initial value set below 0 so you can scroll up for previous
       var node = ReactDOM.findDOMNode(this);
       node.scrollTop = 30;
@@ -5516,10 +5835,21 @@ var TextColumn = React.createClass({
     var windowHeight = $(node).outerHeight();
     var windowTop    = node.scrollTop;
     var windowBottom = windowTop + windowHeight;
-    if (lastTop > (windowHeight + 100) && refs.length > 1) { 
+    if (lastTop > (windowHeight + 100) && refs.length > 1) {
       // Remove a section scrolled out of view on bottom
       refs = refs.slice(0,-1);
       this.props.updateTextColumn(refs);
+    } else if (windowTop < 21 && !this.loadingContentAtTop) {
+      // UP: add the previous section above then adjust scroll position so page doesn't jump
+      var topRef = refs[0];
+      var data   = Sefaria.ref(topRef);
+      if (data && data.prev) {
+        console.log("Up! Add previous section");
+        refs.splice(refs, 0, data.prev);
+        this.loadingContentAtTop = true;
+        this.props.updateTextColumn(refs);
+        if (Sefaria.site) { Sefaria.site.track.event("Reader", "Infinite Scroll", "Up"); }
+      }
     } else if ( lastBottom < windowHeight + 80 ) {
       // DOWN: add the next section to bottom
       if ($lastText.hasClass("loading")) { 
@@ -5534,18 +5864,7 @@ var TextColumn = React.createClass({
         this.props.updateTextColumn(refs);
         if (Sefaria.site) { Sefaria.site.track.event("Reader", "Infinite Scroll", "Down"); }
       }
-    } else if (windowTop < 21 && !this.loadingContentAtTop) {
-      // UP: add the previous section above then adjust scroll position so page doesn't jump
-      var topRef = refs[0];
-      var data   = Sefaria.ref(topRef);
-      if (data && data.prev) {
-        console.log("Up! Add previous section");
-        refs.splice(refs, 0, data.prev);
-        this.loadingContentAtTop = true;
-        this.props.updateTextColumn(refs);
-        if (Sefaria.site) { Sefaria.site.track.event("Reader", "Infinite Scroll", "Up"); }
-      }
-    } else {
+    }  else {
       // nothing happens
     }
   },
@@ -5611,7 +5930,7 @@ var TextColumn = React.createClass({
   scrollToHighlighted: function() {
     window.requestAnimationFrame(function() {
       if (!this.isMounted()) { return; }
-      console.log("scroll to highlighted - animation frame")
+      console.log("scroll to highlighted - animation frame");
       var $container   = $(ReactDOM.findDOMNode(this));
       var $readerPanel = $container.closest(".readerPanel");
       var $highlighted = $container.find(".segment.highlight").first();
@@ -5698,6 +6017,7 @@ var TextRange = React.createClass({
     onNavigationClick:      React.PropTypes.func,
     onCompareClick:         React.PropTypes.func,
     onOpenConnectionsClick: React.PropTypes.func,
+    showBaseText:           React.PropTypes.func,
     panelsOpen:             React.PropTypes.number,
     layoutWidth:            React.PropTypes.number,
     showActionLinks:        React.PropTypes.bool
@@ -5779,7 +6099,13 @@ var TextRange = React.createClass({
     if (this.props.basetext && this.props.sref !== data.ref) {
       // Replace ReaderPanel contents ref with the normalized form of the ref, if they differ.
       // Pass parameter to showBaseText to replaceHistory - normalization should't add a step to history
-      this.props.showBaseText(data.ref, true);
+      this.props.showBaseText(data.ref, true, this.props.version, this.props.versionLanguage);
+      return;
+    }
+
+    // If this is a ref to a super-section, rewrite it to first available section
+    if (data.textDepth - data.sections.length > 1 && data.firstAvailableSectionRef) {
+      this.props.showBaseText(data.firstAvailableSectionRef, true, this.props.version, this.props.versionLanguage);
       return;
     }
 
@@ -5796,7 +6122,7 @@ var TextRange = React.createClass({
     }
   },
   prefetchData: function() {
-    // Prefetch addtional data (next, prev, links, notes etc) for this ref
+    // Prefetch additional data (next, prev, links, notes etc) for this ref
     if (this.dataPrefetched) { return; }
 
     var data = this.getText();
@@ -5868,7 +6194,7 @@ var TextRange = React.createClass({
           en: en[i], 
           he: he[i],
           number: number,
-          highlight: highlight && number >= data.sections.slice(-1)[0] && number <= data.toSections.slice(-1)[0],
+          highlight: highlight && number >= data.sections.slice(-1)[0] && number <= data.toSections.slice(-1)[0]
         });
       }      
     } else {
@@ -5899,7 +6225,7 @@ var TextRange = React.createClass({
             highlight: highlight && 
                         ((n == 0 && number >= data.sections.slice(-1)[0]) || 
                          (n == topLength-1 && number <= data.toSections.slice(-1)[0]) ||
-                         (n > 0 && n < topLength -1)),
+                         (n > 0 && n < topLength -1))
           });
         }
       }
@@ -5923,10 +6249,10 @@ var TextRange = React.createClass({
       elemsAtPosition[top] = list;  
     };
     $text.find(".linkCount").each(setTop);
-    elemsAtPosition = {} // resetting because we only want it to track segmentNumbers
+    elemsAtPosition = {};  // resetting because we only want it to track segmentNumbers
     $text.find(".segmentNumber").each(setTop).show();
     var fixCollision = function ($elems) {
-      // Takes an array of jQuery elements that all currenlty appear at the same top position
+      // Takes an array of jQuery elements that all currently appear at the same top position
       if ($elems.length == 1) { return; }
       if ($elems.length == 2) {
         var adjust = 8;
@@ -5950,6 +6276,10 @@ var TextRange = React.createClass({
     $text.find(".segmentNumber").show();
     $text.find(".linkCount").show();
 
+  },
+  onFootnoteClick: function(event) {
+      $(event.target).closest("sup").next("i.footnote").toggle();
+      this.placeSegmentNumbers();
   },
   render: function() {
     var data = this.getText();
@@ -5991,6 +6321,7 @@ var TextRange = React.createClass({
             filter={this.props.filter}
             onSegmentClick={this.props.onSegmentClick}
             onCitationClick={this.props.onCitationClick}
+            onFootnoteClick={this.onFootnoteClick}
             key={i + segment.ref} />
       );
     }.bind(this));
@@ -6065,7 +6396,8 @@ var TextSegment = React.createClass({
     showLinkCount:   React.PropTypes.bool,
     filter:          React.PropTypes.array,
     onCitationClick: React.PropTypes.func,
-    onSegmentClick:  React.PropTypes.func
+    onSegmentClick:  React.PropTypes.func,
+    onFootnoteClick: React.PropTypes.func
   },
   handleClick: function(event) {
     if ($(event.target).hasClass("refLink")) {
@@ -6075,6 +6407,9 @@ var TextSegment = React.createClass({
       this.props.onCitationClick(ref, this.props.sref);
       event.stopPropagation();
       Sefaria.site.track.event("Reader", "Citation Link Click", ref);
+    } else if ($(event.target).is("sup") || $(event.target).parents("sup").size()) {
+      this.props.onFootnoteClick(event);
+      event.stopPropagation();
     } else if (this.props.onSegmentClick) {
       this.props.onSegmentClick(this.props.sref);
       Sefaria.site.track.event("Reader", "Text Segment Click", this.props.sref);
@@ -7650,9 +7985,9 @@ var SearchResultList = React.createClass({
             error: false
         }
     },
-    updateRunningQuery: function(type, ajax) {
+    updateRunningQuery: function(type, ajax, isLoadingRemainder) {
         this.state.runningQueries[type] = ajax;
-        this.state.isQueryRunning[type] = !!ajax;
+        this.state.isQueryRunning[type] = !!ajax && !isLoadingRemainder;
         this.setState({
           runningQueries: this.state.runningQueries,
           isQueryRunning: this.state.isQueryRunning
@@ -7665,7 +8000,7 @@ var SearchResultList = React.createClass({
         if(this.state.runningQueries[type]) {
             this.state.runningQueries[type].abort();
         }
-        this.updateRunningQuery(type, null);
+        this.updateRunningQuery(type, null, false);
     },
     componentDidMount: function() {
         this._executeQueries();
@@ -7715,6 +8050,7 @@ var SearchResultList = React.createClass({
     _loadRemainder: function(type, last, total, currentHits) {
     // Having loaded "last" results, and with "total" results to load, load the rest, this.backgroundQuerySize at a time
       if (last >= total || last >= this.maxResultSize) {
+        this.updateRunningQuery(type, null, false);
         this.state.moreToLoad[type] = false;
         this.setState({moreToLoad: this.state.moreToLoad});
         return;
@@ -7740,7 +8076,8 @@ var SearchResultList = React.createClass({
           applied_filters: this.props.appliedFilters
         });
       }
-      Sefaria.search.execute_query(query_props);
+      var runningLoadRemainderQuery = Sefaria.search.execute_query(query_props);
+      this.updateRunningQuery(type, runningLoadRemainderQuery, true);
     },
     _executeQueries: function(props) {
         //This takes a props object, so as to be able to handle being called from componentWillReceiveProps with newProps
@@ -7762,7 +8099,7 @@ var SearchResultList = React.createClass({
             type: "sheet",
             size: this.initialQuerySize,
             success: function(data) {
-                this.updateRunningQuery("sheet", null);
+                this.updateRunningQuery("sheet", null, false);
                   this.setState({
                     hits: extend(this.state.hits, {"sheet": data.hits.hits}),
                     totals: extend(this.state.totals, {"sheet": data.hits.total})
@@ -7784,13 +8121,13 @@ var SearchResultList = React.createClass({
             applied_filters: request_applied,
             size: this.initialQuerySize,
             success: function(data) {
-                this.updateRunningQuery("text", null);
+                this.updateRunningQuery("text", null, false);
                 var hitArray = this._process_text_hits(data.hits.hits);
                 this.setState({
                   hits: extend(this.state.hits, {"text": hitArray}),
                   totals: extend(this.state.totals, {"text": data.hits.total})
                 });
-                var filter_label = (request_applied && request_applied.length > 0)? (" - " + request_applied.join("|")) : ""
+                var filter_label = (request_applied && request_applied.length > 0)? (" - " + request_applied.join("|")) : "";
                 var query_label = props.query + filter_label;
                 Sefaria.site.track.event("Search", "Query: text", query_label, data.hits.total);
                 if (data.aggregations) {
@@ -7807,8 +8144,8 @@ var SearchResultList = React.createClass({
             error: this._handle_error
         });
 
-        this.updateRunningQuery("text", runningTextQuery);
-        this.updateRunningQuery("sheet", runningSheetQuery);
+        this.updateRunningQuery("text", runningTextQuery, false);
+        this.updateRunningQuery("sheet", runningSheetQuery, false);
     },
     _handle_error: function(jqXHR, textStatus, errorThrown) {
         if (textStatus == "abort") {
@@ -7820,7 +8157,7 @@ var SearchResultList = React.createClass({
             this.setState({
                 error: true
             });
-            this.updateRunningQuery(null);
+            this.updateRunningQuery(null, null, false);
         }
     },
     _process_text_hits: function(hits) {
@@ -8399,9 +8736,7 @@ var AccountPanel = React.createClass({
     var accountContent = [
       (<BlockLink interfaceLink={true} target="/my/profile" title="Profile" heTitle="פרופיל" image="/static/img/profile.svg" />),
       (<BlockLink interfaceLink={true} target="/sheets/private" inAppLink={true} title="Source Sheets" heTitle="דפי מקורות" image="/static/img/sheet.svg" />),
-      (Sefaria.is_moderator || Sefaria.has_groups
-       ? (<BlockLink interfaceLink={true} target="/my/groups" inAppLink={true} title="Groups" heTitle="קבוצות" image="/static/img/group.svg" />)
-       : (<BlockLink interfaceLink={true} target="/coming-soon?my-notes" title="Notes" heTitle="רשומות" image="/static/img/note.svg" />)),
+      (<BlockLink interfaceLink={true} target="/my/groups" inAppLink={true} title="Groups" heTitle="קבוצות" image="/static/img/group.svg" />),
       (<BlockLink interfaceLink={true} target="/texts/recent" title="Reading History" heTitle="היסטורית קריאה" image="/static/img/readinghistory.svg" />),
       (<BlockLink interfaceLink={true} target="/settings/account" title="Settings" heTitle="הגדרות" image="/static/img/settings.svg" />),
       (<BlockLink interfaceLink={true} target="/logout" title="Log Out" heTitle="ניתוק" image="/static/img/logout.svg" />)
@@ -8502,7 +8837,7 @@ var RecentPanel = React.createClass({
                     </footer> );
 
 
-    var navMenuClasses = classNames({recentPanel: 1, readerNavMenu: 1, noHeader: this.props.hideNavHeader});
+    var navMenuClasses = classNames({recentPanel: 1, readerNavMenu: 1, noHeader: this.props.hideNavHeader, compare:this.props.compare});
     var navTopClasses  = classNames({readerNavTop: 1, searchOnly: 1, colorLineOnly: this.props.hideNavHeader});
     var contentClasses = classNames({content: 1, hasFooter: footer != null});
     return (
@@ -8644,9 +8979,11 @@ var MyGroupsPanel = React.createClass({
 
             <div className="groupsList">
               { groupsList ? 
-                  groupsList.private.map(function(item) {
-                    return <GroupListing data={item} />
-                  })
+                  (groupsList.private.length ?
+                    groupsList.private.map(function(item) {
+                      return <GroupListing data={item} />
+                    })
+                    : <LoadingMessage message="You aren't a member of any groups yet." heMessage="You aren't a member of any groups yet." />)
                   : <LoadingMessage />
               }
             </div>
@@ -9297,7 +9634,7 @@ var Footer = React.createClass({
                       <span className="int-en">Educators</span>
                       <span className="int-he">מחנכים</span>
               </div>
-              <a href="/educators" target="_blank" className="outOfAppLink">
+              <a href="/educators" className="outOfAppLink">
                   <span className="int-en">Teach with Sefaria</span>
                   <span className="int-he">למד באמצעות ספאריה</span>
               </a>
