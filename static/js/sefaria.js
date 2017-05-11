@@ -720,11 +720,9 @@ Sefaria = extend(Sefaria, {
     });
     // Sort the categories
     var categoryOrder = Sefaria.toc.map(function(cat) { return cat.category; });
+    categoryOrder.splice(0, 0, "Commentary"); // Always show Commentary First
+    categoryOrder.splice(2, 0, "Targum");     // Show Targum after Tanakh
     summaryList.sort(function(a, b) {
-      // always put Commentary first 
-      if      (a.category === "Commentary") { return -1; }
-      else if (b.category === "Commentary") { return  1; }
-      
       var orderA = categoryOrder.indexOf(a.category);
       var orderB = categoryOrder.indexOf(b.category);
       orderA = orderA == -1 ? categoryOrder.length : orderA;
@@ -2488,7 +2486,7 @@ Sefaria.palette.categoryColors = {
   "Responsa":           Sefaria.palette.colors.orange,
   "Apocrypha":          Sefaria.palette.colors.lightpink,
   "Other":              Sefaria.palette.colors.darkblue,
-  "Quoted":             Sefaria.palette.colors.orange,
+  "Quoting Commentary": Sefaria.palette.colors.orange,
   "Sheets":             Sefaria.palette.colors.raspberry,
   "Community":          Sefaria.palette.colors.raspberry,
   "Targum":             Sefaria.palette.colors.lavender,
