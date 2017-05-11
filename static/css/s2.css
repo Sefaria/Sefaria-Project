@@ -401,14 +401,16 @@ input.noselect {
 }
 /* Adjusting for 17px scrollbars, to keep content centered
    Only done in multiPanel mode now as a proxy for whether scrollbars take up width (on desktop they do, not on mobile) 
-  Remove 12/16 -- seems to be causing problems now.
+  Removed 12/16 -- seems to be causing problems now.
+  Restored 4/17 -- problem recurred and fixed by storing CSS, what's changing?
+*/
 .multiPanel.interface-english .textColumn {
   padding-left: 17px;
 }
 .multiPanel.interface-hebrew .textColumn {
   padding-right: 17px;
 }
-*/
+
 .textColumn .loadingMessage.base {
   margin: 30px 0;
   color: #999;
@@ -563,7 +565,7 @@ input.noselect {
   padding-right: 40px;
 }
 .multiPanel .readerNavMenu .content {
-  padding: 80px 30px 70px 30px;
+  padding: 30px 30px 70px 30px;
 }
 .multiPanel .readerNavMenu .content.hasFooter {
   padding: 30px 0px 0px 0px;
@@ -571,7 +573,7 @@ input.noselect {
 .multiPanel .readerNavMenu.noHeader .content {
   padding-top: 70px;
 }
-.multiPanel .readerNavMenu.noHeader.compare .content {
+.multiPanel .readerNavMenu.compare .content {
   padding-top: 80px;
 }
 .readerNavMenu .content .contentInner {
@@ -870,7 +872,7 @@ a.resourcesLink {
   top: 2px;
 }
 .readerNavMenu .siteLinks {
-  margin-top: 20px;
+  margin: 20px 0 50px;
   text-align: center;
 }
 .readerNavMenu .siteLinks .siteLink {
@@ -1248,15 +1250,13 @@ a.resourcesLink {
   font-size: 16px;
   display: inline-block;
   margin-bottom: 10px;
+  cursor: pointer;
 }
 .readerTextTableOfContents .content .schema-node-title .he {
   font-family: "Open Sans Hebrew", sans-serif;
 }
 .readerTextTableOfContents .content .schema-node-toc {
   display: block;
-}
-.readerTextTableOfContents .content .schema-node-toc.linked {
-  cursor: pointer;
 }
 .readerTextTableOfContents .content .schema-node-contents.closed {
   display: none;
@@ -1276,6 +1276,9 @@ a.resourcesLink {
 }
 .readerTextTableOfContents .schema-node-toc {
   margin: 6px 20px;
+}
+.readerTextTableOfContents .content .schema-node-toc.linked:hover .schema-node-title {
+  text-decoration: underline;
 }
 .readerTextTableOfContents .altStruct .refLink {
   width: 49%;
@@ -1794,7 +1797,7 @@ a.resourcesLink {
   margin: 50px 0 30px;
   height: auto
 }
-.readerSheetsNav .tagsHeader .actionText{
+.readerSheetsNav .tagsHeader .actionText {
   display: block;
   margin-top: 20px;
   text-transform: none;
@@ -1851,6 +1854,12 @@ a.resourcesLink {
   display: inline-block;
   cursor: pointer;
   vertical-align: middle;
+}
+.readerControls .readerTextToc a {
+  color: inherit;
+}
+.readerControls .readerTextToc a:hover {
+  text-decoration: none;
 }
 .readerControls.connectionsHeader .readerTextToc {
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
@@ -1934,7 +1943,7 @@ a.resourcesLink {
   max-width: 70%;
   vertical-align: middle;
   color: #333;
-}`
+}
 .readerControls .readerTextToc .readerTextVersion {
   font-style: italic;
   color: #999;
@@ -2316,18 +2325,18 @@ a.resourcesLink {
   -webkit-filter: invert(100%);
 }
 .readerPanel.english .segment .segmentNumber {
-  left: -49px;
+  left: -48px;
 }
 .readerPanel.hebrew .segment .segmentNumber,
 .readerPanel.bilingual .segment .segmentNumber {
-  right: -44px;
+  right: -46px;
 }
 .readerPanel.english .segment .linkCount {
-  right: -45px;
+  right: -46px;
 }
 .readerPanel.hebrew .segment .linkCount,
 .readerPanel.bilingual .segment .linkCount {
-  left: -50px;
+  left: -48px;
 }
 .readerPanel.heLeft.bilingual .segment .segmentNumber,
 .readerPanel.heRight.bilingual .segment .segmentNumber {
@@ -2391,7 +2400,6 @@ a.resourcesLink {
 .textRange .actionLinks .he {
   font-family: "Open Sans Hebrew", sans-serif;
 }
-
 /* Footnotes */
 .segment sup {
   margin-left: .2em;
@@ -2403,9 +2411,12 @@ a.resourcesLink {
   font-size: .8em;
   margin-left: .5em;
   margin-right: .5em;
-  color: #999;
+  color: #888;
+  font-style: normal;
 }
-
+.segment img {
+  max-width: 100%;
+}
 .connectionsPanelHeader{
   display: flex;
   justify-content: space-between;
@@ -2490,7 +2501,10 @@ a.resourcesLink {
 .addToSourceSheetPanel.textList.fullPanel .texts {
   padding: 0 50px;
 }
-.textList .texts,
+.textList .texts {
+  padding: 60px 30px 80px 30px;
+}
+.textList.fullPanel .texts,
 .textList .fullFilterView {
   padding: 30px 30px 80px 30px;
 }
@@ -3321,6 +3335,9 @@ h2.splitHeader .he {
   text-transform: none;
   cursor: pointer;
 }
+.splitHeader .actionText select {
+  margin-left: 6px;
+}
 .sheetsNewButton {
   text-align:center;
   margin-bottom: 30px;
@@ -3344,11 +3361,6 @@ h2.splitHeader .he {
   cursor: pointer;
   text-transform: none
 }
-/*  Add back in when we're ready for tag/edit hover buttons on 'My Sheets'
-.sheet.userSheet:hover .sheetEditButtons {
-	display: inline-block;
-}
-*/
 .sheet.userSheet .sheetEditButtons {
   font-size: 24px;
   height: 32px;
@@ -3387,6 +3399,9 @@ h2.splitHeader .he {
 }
 .groupsList {
   margin-top: 30px;
+}
+.groupsList .loadingMessage {
+  text-align: center;
 }
 .groupListing {
   padding: 30px 0;
@@ -3454,6 +3469,7 @@ h2.splitHeader .he {
 }
 .groupPage .groupDescription {
   font-size: 16px;
+  text-align: center;
 }
 .groupPage .tabs {
   text-align: center;
@@ -3472,6 +3488,20 @@ h2.splitHeader .he {
   border-bottom: 1px solid #CCC;
   padding-bottom: 20px;
 }
+.groupSheetListingPinButton {
+  float: right;
+  display: none;
+  opacity: 0.3;
+  cursor: pointer;
+  margin-top: 7px;
+}
+.sheet:hover .groupSheetListingPinButton.active {
+  display: block;
+}
+.groupSheetListingPinButton.pinned {
+  display: block;
+  opacity: 0.6;
+}
 #groupInvitationInput {
   padding: 14px 30px;
   width: 492px;
@@ -3482,6 +3512,11 @@ h2.splitHeader .he {
   font-size: 18px;
   position: relative;
   top: 3px;
+}
+.groupInvitationBoxMessage {
+  font-size: 18px;
+  padding: 12px 0 0;
+  text-align: center;
 }
 .groupPage .groupMemberListing {
   padding: 24px 0;
@@ -3499,6 +3534,11 @@ h2.splitHeader .he {
 .groupMemberListingName {
   color: #666;
   margin: 0 20px;
+}
+.groupInvitationListing {
+  display: inline-block;
+  min-height: 50px;
+  line-height: 50px;
 }
 .groupMemberListingRoleBox {
   float: right;
@@ -3526,7 +3566,6 @@ h2.splitHeader .he {
   position: absolute;
   right: 0;
   top: 46px;
-  width: 300px;
   background-color: white; 
   border: 1px solid #ccc;
   border-radius: 4px;
@@ -3537,6 +3576,7 @@ h2.splitHeader .he {
 .groupMemberListingActionsMenu .action {
   padding: 4px 10px;
   cursor: pointer;
+  white-space: nowrap;
 }
 .groupMemberListingActionsMenu .action:hover {
   background-color: #eee;
@@ -3660,7 +3700,7 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
   width: 75%;
   display: inline-block;
 }
-#editGroupPage .field label {
+#editGroupPage .field > label {
   display: block;
   margin-bottom: 15px;
 }
@@ -3674,6 +3714,14 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
   box-sizing: border-box;
   color: #333;
 }
+#editGroupPage .hiddenFileInput {
+  width: 0.1px;
+  height: 0.1px;
+  opacity: 0;
+  overflow: hidden;
+  position: absolute;
+  z-index: -1;
+}
 #groupDescription:focus {
   outline: none;
 }
@@ -3681,7 +3729,7 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
   max-width: 200px;
   margin-bottom: 5px;
   display: block;
-},
+}
 #editGroupPage .groupCover {
   width: 100%;
   margin-bottom: 5px;
@@ -3810,7 +3858,7 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
 #footer .fa {
   margin: 0 3px;
 }
-.multiPanel .readerNavMenu .content.hasFooter #footer{
+.multiPanel .readerNavMenu .content.hasFooter #footer {
   margin-top: 120px;
 }
 .gemarra-regular, .gemarra-italic {
@@ -3818,6 +3866,9 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
 }
 .it-text, .gemarra-italic {
   font-style: italic;
+}
+.categoryAttribution a {
+  color: inherit;
 }
 .bubbleTab {
   padding: 10px 25px;

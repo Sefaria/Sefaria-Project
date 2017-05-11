@@ -72,6 +72,7 @@ def sheet_to_dict(sheet):
 	sheet_dict = {
 		"id": sheet["id"],
 		"title": sheet["title"] if "title" in sheet else "Untitled Sheet",
+		"status": sheet["status"],
 		"author": sheet["owner"],
 		"ownerName": profile.full_name,
 		"ownerImageUrl": profile.gravatar_url_small,

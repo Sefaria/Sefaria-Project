@@ -21,6 +21,7 @@ subscribe(history.process_index_title_change_in_history,                text.Ind
 subscribe(text.process_index_title_change_in_versions,                  text.Index, "attributeChange", "title")
 subscribe(text.process_index_title_change_in_dependant_records,         text.Index, "attributeChange", "title")
 subscribe(version_state.process_index_title_change_in_version_state,    text.Index, "attributeChange", "title")
+subscribe(cascade(notification.GlobalNotificationSet, "content.index"), text.Index, "attributeChange", "title")
 # Taken care of on save
 # subscribe(text.process_index_change_in_toc,                             text.Index, "attributeChange", "title")
 
@@ -33,6 +34,7 @@ subscribe(note.process_index_delete_in_notes,                           text.Ind
 subscribe(text.process_index_delete_in_versions,                        text.Index, "delete")
 subscribe(translation_request.process_index_delete_in_translation_requests, text.Index, "delete")
 subscribe(text.process_index_delete_in_toc,                             text.Index, "delete")
+subscribe(cascade_delete(notification.GlobalNotificationSet, "content.index", "title"),   text.Index, "delete")
 
 
 # Process in ES
@@ -50,9 +52,13 @@ def process_version_title_change_in_search(ver, **kwargs):
 # Version Title Change
 subscribe(history.process_version_title_change_in_history,              text.Version, "attributeChange", "versionTitle")
 subscribe(process_version_title_change_in_search,                       text.Version, "attributeChange", "versionTitle")
+subscribe(cascade(notification.GlobalNotificationSet, "content.version"), text.Version, "attributeChange", "versionTitle")
 
 subscribe(text.process_version_save_in_cache,                           text.Version, "save")
+
 subscribe(text.process_version_delete_in_cache,                         text.Version, "delete")
+subscribe(cascade_delete(notification.GlobalNotificationSet, "content.version", "versionTitle"),   text.Version, "delete")
+
 
 # Note Delete
 subscribe(layer.process_note_deletion_in_layer,                         note.Note, "delete")
@@ -89,7 +95,7 @@ subscribe(cascade_delete(garden.GardenStopRelationSet, "garden", "key"),   garde
 # Notifications
 subscribe(cascade_delete(notification.NotificationSet, "global_id", "_id"),  notification.GlobalNotification, "delete")
 
-# Groups 
+# Groups
 subscribe(group.process_group_name_change_in_sheets,                         group.Group, "attributeChange", "name")
 subscribe(group.process_group_delete_in_sheets,                              group.Group, "delete")
 

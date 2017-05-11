@@ -84,6 +84,10 @@ SEFARIA_EXPORT_PATH = '/path/to/your/Sefaria-Data/export' # used for exporting t
 GOOGLE_ANALYTICS_CODE = 'your google analytics code'
 MIXPANEL_CODE = 'you mixpanel code here'
 
+AWS_ACCESS_KEY = None
+AWS_SECRET_KEY = None
+S3_BUCKET = "bucket-name"
+
 # Integration with a NationBuilder list
 NATIONBUILDER = False
 NATIONBUILDER_SLUG = ""

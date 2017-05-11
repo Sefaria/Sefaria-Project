@@ -18,7 +18,6 @@
     <link rel="stylesheet" type="text/css" href="/static/css/keyboard.css">
 
 
-
     {% if S2 or request.flavour == "mobile" %}
         <link rel="stylesheet" href="/static/css/s2.css">
         <link rel="stylesheet" href="/static/css/s2-print.css" media="print" />
@@ -90,11 +89,9 @@
         </div>
     </div>
 
-    {% if not request.flavour == "mobile" %}
-        {% block footer %}
-            {% include "elements/footer.html" with class=contentLang %}
-        {% endblock %}
-    {% endif %}
+    {% block footer %}
+        {% include "elements/footer.html" with class=contentLang %}
+    {% endblock %}
 
     {% include "js/jquery.html" %}
     <script src="/static/js/jquery.tooltipster.min.js"></script>

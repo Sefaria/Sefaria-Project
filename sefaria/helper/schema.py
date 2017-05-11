@@ -676,7 +676,7 @@ def generate_segment_mapping(title, mapping, output_file=None):
                 refs = top_level_refs + section_refs + segment_refs
         else:
             refs = orig_ref.all_subrefs()
-            if not refs[0].is_segment_level():
+            if len(refs) > 0 and not refs[0].is_segment_level():
                 len_refs = len(refs)
                 segment_refs = []
                 for i in range(len_refs):
@@ -768,6 +768,12 @@ def migrate_to_complex_structure(title, schema, mappings, validate_mapping=False
         "categories": old_index.categories,
         "schema": schema
     }
+    for attr in Index.optional_attrs:
+        if attr == 'schema':
+            continue
+        elif hasattr(old_index, attr):
+            new_index_contents[attr] = getattr(old_index, attr)
+
     #TODO: these are ugly hacks to create a temp index
     temp_index = Index(new_index_contents)
     en_title = temp_index.get_title('en')
@@ -779,7 +785,12 @@ def migrate_to_complex_structure(title, schema, mappings, validate_mapping=False
 
     #create versions for the main text
     versions = VersionSet({'title': title})
-    migrate_versions_of_text(versions, mappings, title, temp_index.title, temp_index)
+    try:
+        migrate_versions_of_text(versions, mappings, title, temp_index.title, temp_index)
+    except InputError as e:
+        temp_index.delete()
+        print e.message
+        raise e
 
     #are there commentaries? Need to move the text for them to conform to the new structure
     #basically a repeat process of the above, sans creating the index record

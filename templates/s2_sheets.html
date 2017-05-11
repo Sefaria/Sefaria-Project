@@ -87,7 +87,11 @@
 					<img src="/static/img/print.png"> Print</div>
                 <div class="optionItem" id="visualize">
 					<a href="/sheets/visual/{{sheet.id}}"><i class="fa fa-picture-o"></i>Visualize</a></div>
-			</div>
+                {% if not new_sheet %}
+                <div class="optionItem" id="highlightToggle">
+					<i class="fa fa-pencil"></i>Toggle Highlight Mode</div>
+   				{% endif %}
+            </div>
         </div>
         <div class="sheetsMenuBarItem" id="formatMenu">Format
 			<div class="optionsMenu">
@@ -118,11 +122,11 @@
 					<img src="/static/img/reset%20text.png"> Reset Source Text</div>
 
    				<div class="optionLink" id="splitSourceToSegment">
-					<i class="fa fa-file-o hidden"></i> Auto-Segment Source Text</div>
+					<i class="fa fa-file-o hidden"></i> Auto-Segment Text</div>
 
 
 				<div class="optionLink" id="removeNikkudot">
-					<i class="fa fa-file-o hidden"></i> Remove Source Nikkudot</div>
+					<i class="fa fa-file-o hidden"></i> Remove Nikkudot</div>
 
                 <div class="optionItem" id="addSourceTitle">
 					 <i class="fa fa-pencil"></i> Add Source Title</div>
@@ -223,6 +227,22 @@
         </div>
             {% endif %}
 
+        <div class="sheetsMenuBarItem" id="highlightMenu">Highlight Tools
+			<div class="optionsMenu">
+                <div class="optionItem segmentedContinuousToggle">Continuous</div>
+                {% if can_edit %}
+                    <div class='optionItem resetHighlighter'>Reset</div>
+                {% endif %}
+				<div class="optionGroup">
+					<div class="optionTitle">Filter <i class='fa fa-caret-right'></i></div>
+					<div class="subMenu">
+                        <div class='optionItem highlighterFilterTags'>
+                        </div>
+					</div>
+				</div>
+            </div>
+        </div>
+
     <div class="sheetsMenuBarItem">
              <span id="lastSaved">
         {% if sheet.dateModified %}
@@ -233,11 +253,12 @@
      </span>
 
     </div>
+    <span id="highlightModeDisplay">Highlight Mode is On</span>
+
 	{% if new_sheet %}
         <span id="save" class="button"><i class="fa fa-floppy-o"></i> Save</span>
-	{% endif %}
 
-    {% if is_owner and not new_sheet %}
+    {% elif is_owner or can_publish %}
         <span id="share" class="button"><img src="/static/img/share.png"> Share</span>
 	{% endif %}
 
@@ -432,6 +453,26 @@
 		</div>
 	</div>
 
+<div class='highlighterTools'>
+    <div class='highlighterTagWindow'>
+        <span class="close-button"></span>
+        <div class='tagSelector'>
+            <div class='tagSelectorTitle'>Add Highlight</div>
+            <div class='sheetHighlighterTags'></div>
+            <div class='createNewHighlighterTag'>
+                <div class='colorSwatch active' style='background-color: #bd9eb6'></div>
+                <div class='colorSwatch' style='background-color: #afcab8'></div>
+                <div class='colorSwatch' style='background-color: #e5dabd'></div>
+                <div class='colorSwatch' style='background-color: #bd9796'></div>
+                <div class='colorSwatch' style='background-color: #a4b7de'></div>
+                <div class='colorSwatch' style='background-color: #e8dde5'></div>
+                <div class='colorSwatch' style='background-color: #d2ddc9'></div>
+                <div class='tagName' contenteditable='true'>Create New</div></div>
+            <div class='save button'>Save</div>
+        </div>
+    </div>
+</div>
+
 
 </div>
 
@@ -500,7 +541,7 @@
         <input id="shareURL" value="{{ request.META.HTTP_HOST }}/sheets/{{sheet.id}}" readonly="readonly"/>
     </div>
 
-    <div class="content">
+    <div class="content" id="sourceSheetsAccessOptions">
         <div class="inputHeader"><i class='fa fa-unlock-alt'></i> Access</div>
         <select id="sourceSheetShareSelect">
           <option value="private">Private</option>
@@ -513,13 +554,19 @@
     </div>
 
    {% if owner_groups %}
-    <div class="content">
+    <div class="content" id="sourceSheetGroupOptions">
         <div class="inputHeader"><i class='fa fa-group'></i> Group</div>
         <select id="sourceSheetGroupSelect">
             <option value="None">None</option>
 
     		{% for group in owner_groups %}
-              <option value="{{ group.name }}" data-group="{{ group.name }}" data-image="{{ group.headerUrl|default:'' }}">{{ group.name }}</option>
+                <option 
+                    value="{{ group.name }}" 
+                    data-group="{{ group.name }}" 
+                    data-image="{{ group.headerUrl|default:'' }}"
+                    data-can-publish="{% if group.canPublish %}1{% else %}0{% endif %}">
+                    {{ group.name }}
+                </option>
 			{% endfor %}
         </select>
     </div>
@@ -644,9 +691,9 @@
 		<div class="btn ok">OK</div>
 	</div>
 	<div id="notPublished" style="display:none;">
-		<div class="header">No problem, this sheet is still private.</div>
+		<div class="header">No problem, this sheet is still not listed on Sefaria.</div>
 
-		<p>If you change your mind, you can always make a sheet public in the <span class="label">Options</span> menu under  <span class="label">Sharing</span>.</p>
+        <p>You can make your sheet public in the future from the <span class="label">Share</span> menu.</p>
 
 		<div class="btn ok">OK</div>
 	</div>
@@ -680,6 +727,7 @@ Footer depends on full bootstrap grid, which isn't loaded in sheets.html
 		assigner_id: {{ assigner_id|default:"null" }},
 		can_edit: {% if can_edit %}true{% else %}false{% endif %},
         can_add: {% if can_add %}true{% else %}false{% endif %},
+        can_publish: {% if can_publish %}true{% else %}false{% endif %}, // group dependent, only set for non owners
 		is_owner: {% if is_owner %}true{% else %}false{% endif %},
 		editing: {},
 		ref: {},
