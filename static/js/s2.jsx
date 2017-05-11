@@ -354,8 +354,8 @@ var ReaderApp = React.createClass({
           (prev.searchQuery != next.searchQuery) ||
           (prev.appliedSearchFilters && next.appliedSearchFilters && (prev.appliedSearchFilters.length !== next.appliedSearchFilters.length)) ||
           (prev.appliedSearchFilters && next.appliedSearchFilters && !(prev.appliedSearchFilters.compare(next.appliedSearchFilters))) ||
-          (prev.searchField != next.searchField) ||
-          (prev.searchSortType != next.searchSortType) ||
+          (prev.searchField !== next.searchField) ||
+          (prev.searchSortType !== next.searchSortType) ||
           (prev.settings.language != next.settings.language))
           {
          return true;
@@ -434,10 +434,10 @@ var ReaderApp = React.createClass({
             var query = state.searchQuery ? encodeURIComponent(state.searchQuery) : "";
             hist.title = state.searchQuery ? state.searchQuery + " | " : "";
             hist.title += "Sefaria Search";
-            hist.url   = "search" + (state.searchQuery ? "&q=" + query +
+            hist.url   = "search" + (state.searchQuery ? ("&q=" + query +
                 ((!!state.appliedSearchFilters && !!state.appliedSearchFilters.length) ? "&filters=" + state.appliedSearchFilters.join("|") : "") +
                 "&var=" + (state.searchField !== state.searchFieldExact ? "1" : "0") +
-                "&sort=" + (state.searchSortType === "chronological" ? "c" : "r")
+                "&sort=" + (state.searchSortType === "chronological" ? "c" : "r"))
                     : "");
             hist.mode  = "search";
             break;
