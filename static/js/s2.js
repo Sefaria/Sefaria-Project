@@ -8802,10 +8802,11 @@ var AllFilterSet = React.createClass({
         setFilter: this.props.setFilter,
         on: Sefaria.util.inArray(cat.category, this.props.filter) !== -1 });
     }.bind(this));
+    var lexicon = this.props.oref ? React.createElement(LexiconPanel, { selectedWords: this.props.selectedWords, oref: this.props.oref }) : null;
     return React.createElement(
       'div',
       { className: 'fullFilterView filterSet' },
-      React.createElement(LexiconPanel, { selectedWords: this.props.selectedWords, oref: this.props.oref }),
+      lexicon,
       categories
     );
   }
@@ -9054,7 +9055,7 @@ var LexiconPanel = React.createClass({
 
   propTypes: {
     selectedWords: React.PropTypes.string,
-    oref: React.PropTypes.object.isRequired
+    oref: React.PropTypes.object
   },
   getInitialState: function getInitialState() {
     return {

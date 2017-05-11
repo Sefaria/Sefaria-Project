@@ -4046,9 +4046,8 @@ class Library(object):
         titles = self._full_title_lists.get(key)
         if not titles:
             titles = []
-            for i in IndexSet():
-                if getattr(i, "is_cited", False):
-                    titles.extend(self._index_title_maps[lang][i.title])
+            for i in IndexSet({"is_cited": True}):
+                titles.extend(self._index_title_maps[lang][i.title])
             self._full_title_lists[key] = titles
         return titles
 
