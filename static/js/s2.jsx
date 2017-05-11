@@ -8750,7 +8750,7 @@ var SearchSortBox = React.createClass({
     sortType:                React.PropTypes.oneOf(["chronological", "relevance"])
   },
   handleClick: function(sortType) {
-    if (sortType !== this.props.sortType) {
+    if (sortType === this.props.sortType) {
       return;
     }
     if (this.props.sortType === "chronological") {
