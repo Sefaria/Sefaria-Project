@@ -2621,6 +2621,9 @@ a.resourcesLink {
 .categoryFilterGroup a:hover {
   text-decoration: none;
 }
+.categoryFilterGroup.withBooks + .categoryFilterGroup {
+  margin-top: 30px;
+}
 .categoryFilter.on, .textFilter.on {
   color: black;
 }

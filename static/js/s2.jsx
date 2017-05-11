@@ -6701,11 +6701,22 @@ var ConnectionsSummary = React.createClass({
     var summary = Sefaria.linkSummary(refs);
     var oref    = Sefaria.ref(refs[0]);
 
-    if (this.props.category && summary) {
+    if (!summary) { return (<LoadingMessage />); }
+
+    if (this.props.category == "Commentary" ) {
+      // Show Quoting Commentary together with Commentary
+      summary = summary.filter(function(cat) { return cat.category == "Commentary" || cat.category == "Quoting Commentary" });
+
+    } else if (this.props.category) {
+      // Single Category Summary
       summary = summary.filter(function(cat) { return cat.category == this.props.category; }.bind(this));
+
+    } else if (!this.props.category) {
+      // Top Level summary, don't show Quoting Commentary
+      summary = summary.filter(function(cat) { return cat.category != "Quoting Commentary"; }.bind(this));
     }
 
-    var connectionsSummary = summary ? summary.map(function(cat, i) {
+    var connectionsSummary = summary.map(function(cat, i) {
       return (
         <CategoryFilter
           srefs={this.props.srefs}
@@ -6721,7 +6732,7 @@ var ConnectionsSummary = React.createClass({
           on={Sefaria.util.inArray(cat.category, this.props.filter) !== -1}
           key={cat.category} />
       );
-    }.bind(this)) : <LoadingMessage />;
+    }.bind(this));
 
     return (<div>{connectionsSummary}</div>);
    }
@@ -6770,17 +6781,19 @@ var CategoryFilter = React.createClass({
     
     var color        = Sefaria.palette.categoryColor(this.props.category);
     var style        = {"borderTop": "4px solid " + color};
-    var classes      = classNames({categoryFilter: 1, on: this.props.on});
+    var innerClasses = classNames({categoryFilter: 1, withBooks: this.props.showBooks, on: this.props.on});
     var count        = (<span className="enInHe connectionsCount"> ({this.props.count})</span>);
     var handleClick  = this.handleClick;
     var url = (this.props.srefs && this.props.srefs.length > 0)?"/" + Sefaria.normRef(this.props.srefs[0]) + "?with=" + this.props.category:"";
-    var innerFilter = (<div className={classes} onClick={handleClick}>
-            <span className="en">{this.props.category}{count}</span>
-            <span className="he">{this.props.heCategory}{count}</span>
-          </div>);
+    var innerFilter = (
+      <div className={innerClasses} onClick={handleClick}>
+        <span className="en">{this.props.category}{count}</span>
+        <span className="he">{this.props.heCategory}{count}</span>
+      </div>);
     var wrappedFilter = <a href={url}>{innerFilter}</a>;
+    var outerClasses = classNames({categoryFilterGroup: 1, withBooks: this.props.showBooks});
     return (
-      <div className="categoryFilterGroup" style={style}>
+      <div className={outerClasses} style={style}>
         {wrappedFilter}
         {textFilters}
       </div>

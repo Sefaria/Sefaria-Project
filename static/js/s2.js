@@ -8495,13 +8495,28 @@ var ConnectionsSummary = React.createClass({
     var summary = Sefaria.linkSummary(refs);
     var oref = Sefaria.ref(refs[0]);
 
-    if (this.props.category && summary) {
+    if (!summary) {
+      return React.createElement(LoadingMessage, null);
+    }
+
+    if (this.props.category == "Commentary") {
+      // Show Quoting Commentary together with Commentary
+      summary = summary.filter(function (cat) {
+        return cat.category == "Commentary" || cat.category == "Quoting Commentary";
+      });
+    } else if (this.props.category) {
+      // Single Category Summary
       summary = summary.filter(function (cat) {
         return cat.category == this.props.category;
       }.bind(this));
+    } else if (!this.props.category) {
+      // Top Level summary, don't show Quoting Commentary
+      summary = summary.filter(function (cat) {
+        return cat.category != "Quoting Commentary";
+      }.bind(this));
     }
 
-    var connectionsSummary = summary ? summary.map(function (cat, i) {
+    var connectionsSummary = summary.map(function (cat, i) {
       return React.createElement(CategoryFilter, {
         srefs: this.props.srefs,
         category: cat.category,
@@ -8515,7 +8530,7 @@ var ConnectionsSummary = React.createClass({
         setConnectionsCategory: this.props.setConnectionsCategory,
         on: Sefaria.util.inArray(cat.category, this.props.filter) !== -1,
         key: cat.category });
-    }.bind(this)) : React.createElement(LoadingMessage, null);
+    }.bind(this));
 
     return React.createElement(
       'div',
@@ -8572,7 +8587,7 @@ var CategoryFilter = React.createClass({
 
     var color = Sefaria.palette.categoryColor(this.props.category);
     var style = { "borderTop": "4px solid " + color };
-    var classes = classNames({ categoryFilter: 1, on: this.props.on });
+    var innerClasses = classNames({ categoryFilter: 1, withBooks: this.props.showBooks, on: this.props.on });
     var count = React.createElement(
       'span',
       { className: 'enInHe connectionsCount' },
@@ -8584,7 +8599,7 @@ var CategoryFilter = React.createClass({
     var url = this.props.srefs && this.props.srefs.length > 0 ? "/" + Sefaria.normRef(this.props.srefs[0]) + "?with=" + this.props.category : "";
     var innerFilter = React.createElement(
       'div',
-      { className: classes, onClick: handleClick },
+      { className: innerClasses, onClick: handleClick },
       React.createElement(
         'span',
         { className: 'en' },
@@ -8603,9 +8618,10 @@ var CategoryFilter = React.createClass({
       { href: url },
       innerFilter
     );
+    var outerClasses = classNames({ categoryFilterGroup: 1, withBooks: this.props.showBooks });
     return React.createElement(
       'div',
-      { className: 'categoryFilterGroup', style: style },
+      { className: outerClasses, style: style },
       wrappedFilter,
       textFilters
     );
