@@ -87,7 +87,11 @@
 					<img src="/static/img/print.png"> Print</div>
                 <div class="optionItem" id="visualize">
 					<a href="/sheets/visual/{{sheet.id}}"><i class="fa fa-picture-o"></i>Visualize</a></div>
-			</div>
+                {% if not new_sheet %}
+                <div class="optionItem" id="highlightToggle">
+					<i class="fa fa-pencil"></i>Toggle Highlight Mode</div>
+   				{% endif %}
+            </div>
         </div>
         <div class="sheetsMenuBarItem" id="formatMenu">Format
 			<div class="optionsMenu">
@@ -118,11 +122,11 @@
 					<img src="/static/img/reset%20text.png"> Reset Source Text</div>
 
    				<div class="optionLink" id="splitSourceToSegment">
-					<i class="fa fa-file-o hidden"></i> Auto-Segment Source Text</div>
+					<i class="fa fa-file-o hidden"></i> Auto-Segment Text</div>
 
 
 				<div class="optionLink" id="removeNikkudot">
-					<i class="fa fa-file-o hidden"></i> Remove Source Nikkudot</div>
+					<i class="fa fa-file-o hidden"></i> Remove Nikkudot</div>
 
                 <div class="optionItem" id="addSourceTitle">
 					 <i class="fa fa-pencil"></i> Add Source Title</div>
@@ -223,6 +227,22 @@
         </div>
             {% endif %}
 
+        <div class="sheetsMenuBarItem" id="highlightMenu">Highlight Tools
+			<div class="optionsMenu">
+                <div class="optionItem segmentedContinuousToggle">Continuous</div>
+                {% if can_edit %}
+                    <div class='optionItem resetHighlighter'>Reset</div>
+                {% endif %}
+				<div class="optionGroup">
+					<div class="optionTitle">Filter <i class='fa fa-caret-right'></i></div>
+					<div class="subMenu">
+                        <div class='optionItem highlighterFilterTags'>
+                        </div>
+					</div>
+				</div>
+            </div>
+        </div>
+
     <div class="sheetsMenuBarItem">
              <span id="lastSaved">
         {% if sheet.dateModified %}
@@ -233,6 +253,8 @@
      </span>
 
     </div>
+    <span id="highlightModeDisplay">Highlight Mode is On</span>
+
 	{% if new_sheet %}
         <span id="save" class="button"><i class="fa fa-floppy-o"></i> Save</span>
 
@@ -430,6 +452,26 @@
 			www.sefaria.org/sheets
 		</div>
 	</div>
+
+<div class='highlighterTools'>
+    <div class='highlighterTagWindow'>
+        <span class="close-button"></span>
+        <div class='tagSelector'>
+            <div class='tagSelectorTitle'>Add Highlight</div>
+            <div class='sheetHighlighterTags'></div>
+            <div class='createNewHighlighterTag'>
+                <div class='colorSwatch active' style='background-color: #bd9eb6'></div>
+                <div class='colorSwatch' style='background-color: #afcab8'></div>
+                <div class='colorSwatch' style='background-color: #e5dabd'></div>
+                <div class='colorSwatch' style='background-color: #bd9796'></div>
+                <div class='colorSwatch' style='background-color: #a4b7de'></div>
+                <div class='colorSwatch' style='background-color: #e8dde5'></div>
+                <div class='colorSwatch' style='background-color: #d2ddc9'></div>
+                <div class='tagName' contenteditable='true'>Create New</div></div>
+            <div class='save button'>Save</div>
+        </div>
+    </div>
+</div>
 
 
 </div>
