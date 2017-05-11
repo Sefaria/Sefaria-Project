@@ -62,15 +62,17 @@ class AutoCompleter(object):
             self.spell_checker.train_phrases(person_names)
             self.ngram_matcher.train_phrases(person_names)
 
-
-    def get_type(self, instring):
+    def get_data(self, instring):
         """
-        If there is a string matching instring in the autocompeter, return the type of the object for that string.
+        If there is a string matching instring in the title trie, return the data stored for that string.
         Otherwise, return None
         :param instring:
         :return:
         """
-
+        try:
+            return self.title_trie[instring]
+        except KeyError:
+            return None
 
     def complete(self, instring, limit=0, redirected=False):
         """
@@ -226,6 +228,7 @@ class TitleTrie(trie.CharTrie):
         """
         for obj in recordset:
             titles = getattr(obj, all_names_method)(self.lang)
+            #do we need this key?
             key = getattr(obj, keyattr)
             for title in titles:
                 norm_title = normalize_input(title, self.lang)
