@@ -1205,7 +1205,8 @@ Sefaria = extend(Sefaria, {
       return sheets;
     },
     clearUserSheets: function(uid) {
-      this._userSheets[uid] = null;
+      this._userSheets[uid+"date"] = null;
+      this._userSheets[uid+"views"] = null;
     },  
     _sheetsByRef: {},
     sheetsByRef: function(ref, cb) {
@@ -2487,7 +2488,7 @@ Sefaria.palette.categoryColors = {
   "Responsa":           Sefaria.palette.colors.orange,
   "Apocrypha":          Sefaria.palette.colors.lightpink,
   "Other":              Sefaria.palette.colors.darkblue,
-  "Quoting Commentary": Sefaria.palette.colors.orange,
+  "Quoted":             Sefaria.palette.colors.orange,
   "Sheets":             Sefaria.palette.colors.raspberry,
   "Community":          Sefaria.palette.colors.raspberry,
   "Targum":             Sefaria.palette.colors.lavender,

@@ -8238,10 +8238,21 @@ var ConnectionsPanel = React.createClass({
         closePanel: this.props.closePanel,
         selectedWords: this.props.selectedWords });
     } else if (this.props.mode === "Sheets") {
-      content = React.createElement(SheetsList, {
-        srefs: this.props.srefs,
-        fullPanel: this.props.fullPanel,
-        multiPanel: this.props.multiPanel });
+      content = React.createElement(
+        'div',
+        null,
+        React.createElement(AddToSourceSheetPanel, {
+          srefs: this.props.srefs,
+          fullPanel: this.props.fullPanel,
+          setConnectionsMode: this.props.setConnectionsMode,
+          version: this.props.version,
+          versionLanguage: this.props.versionLanguage,
+          addToSourceSheet: this.props.addToSourceSheet }),
+        React.createElement(SheetsList, {
+          srefs: this.props.srefs,
+          fullPanel: this.props.fullPanel,
+          multiPanel: this.props.multiPanel })
+      );
     } else if (this.props.mode === "Lexicon") {
       content = React.createElement(LexiconPanel, {
         selectedWords: this.props.selectedWords,
@@ -8340,13 +8351,13 @@ var ConnectionsPanel = React.createClass({
         )
       );
     } else if (this.props.mode === "Login") {
-      content = React.createElement(LoginPanel, { fullPanel: this.props.fullPanel });
+      content = React.createElement(LoginPrompt, { fullPanel: this.props.fullPanel });
     }
 
     var classes = classNames({ toolsPanel: 1, textList: 1, fullPanel: this.props.fullPanel });
     return React.createElement(
       'div',
-      { className: classes },
+      { className: classes, key: this.props.mode },
       React.createElement(
         'div',
         { className: 'texts' },
@@ -9595,13 +9606,11 @@ var AddToSourceSheetWindow = React.createClass({
     en: React.PropTypes.string,
     he: React.PropTypes.string
   },
-
   close: function close() {
     if (this.props.close) {
       this.props.close();
     }
   },
-
   render: function render() {
     var nextParam = "?next=" + encodeURIComponent(Sefaria.util.currentPath());
 
@@ -9648,25 +9657,67 @@ var AddToSourceSheetPanel = React.createClass({
   },
   getInitialState: function getInitialState() {
     return {
-      selectedSheet: null
+      sheetsLoaded: false,
+      selectedSheet: null,
+      sheetListOpen: false,
+      showConfirm: false,
+      showLogin: false
     };
   },
   componentDidMount: function componentDidMount() {
     this.loadSheets();
   },
+  componentDidUpdate: function componentDidUpdate(prevProps, prevState) {
+    if (!prevProps.srefs.compare(this.props.srefs)) {
+      this.setState({ showConfirm: false });
+    }
+  },
   loadSheets: function loadSheets() {
-    Sefaria.sheets.userSheets(Sefaria._uid, function () {
-      this.forceUpdate();
-    }.bind(this));
+    if (!Sefaria._uid) {
+      this.onSheetsLoad();
+    } else {
+      Sefaria.sheets.userSheets(Sefaria._uid, this.onSheetsLoad);
+    }
+  },
+  onSheetsLoad: function onSheetsLoad() {
+    this.setDefaultSheet();
+    this.setState({ sheetsLoaded: true });
+  },
+  setDefaultSheet: function setDefaultSheet() {
+    if (this.state.selectedSheet) {
+      return;
+    }
+    if (!Sefaria._uid) {
+      this.setState({ selectedSheet: { title: "Your Sheet" } });
+    } else {
+      var sheets = Sefaria.sheets.userSheets(Sefaria._uid);
+      if (!sheets.length) {
+        this.setState({ selectedSheet: { title: "Create a New Sheet" } });
+      } else {
+        this.setState({ selectedSheet: sheets[0] });
+      }
+    }
+  },
+  toggleSheetList: function toggleSheetList() {
+    if (!Sefaria._uid) {
+      return;
+    }
+    this.setState({ sheetListOpen: !this.state.sheetListOpen });
+  },
+  selectSheet: function selectSheet(sheet) {
+    this.setState({ selectedSheet: sheet, sheetListOpen: false });
   },
   addToSourceSheet: function addToSourceSheet() {
-    if (!this.state.selectedSheet) {
+    if (!Sefaria._uid) {
+      this.setState({ showLogin: true });
+    }
+    if (!this.state.selectedSheet || !this.state.selectedSheet.id) {
       return;
     }
     if (this.props.addToSourceSheet) {
-      this.props.addToSourceSheet(this.state.selectedSheet, this.confirmAdd);
+      this.props.addToSourceSheet(this.state.selectedSheet.id, this.confirmAdd);
     } else {
-      var url = "/api/sheets/" + this.state.selectedSheet + "/add";
+      var url = "/api/sheets/" + this.state.selectedSheet.id + "/add";
       var source = {};
       if (this.props.srefs) {
         source.refs = this.props.srefs;
@@ -9694,14 +9745,9 @@ var AddToSourceSheetPanel = React.createClass({
     };
     var postJSON = JSON.stringify(sheet);
     $.post("/api/sheets/", { "json": postJSON }, function (data) {
-      this.setState({ selectedSheet: data.id }, function () {
-        this.addToSourceSheet();
-      });
       Sefaria.sheets.clearUserSheets(Sefaria._uid);
+      this.selectSheet(data);
     }.bind(this));
-  },
-  openNewSheet: function openNewSheet() {
-    this.setState({ showNewSheetInput: true });
   },
   confirmAdd: function confirmAdd() {
     if (this.props.srefs) {
@@ -9709,80 +9755,67 @@ var AddToSourceSheetPanel = React.createClass({
     } else {
       Sefaria.site.track.event("Tools", "Add to Source Sheet Save", "Outside Source");
     }
-    this.setState({ confirm: true });
+    this.setState({ showConfirm: true });
   },
   render: function render() {
-    if (this.state.confirm) {
-      return React.createElement(ConfirmAddToSheetPanel, { sheetId: this.state.selectedSheet });
+    if (this.state.showConfirm) {
+      return React.createElement(ConfirmAddToSheetPanel, { sheetId: this.state.selectedSheet.id });
+    } else if (this.state.showLogin) {
+      return React.createElement(
+        'div',
+        { className: 'addToSourceSheetPanel sans' },
+        React.createElement(LoginPrompt, null)
+      );
     }
     var sheets = Sefaria.sheets.userSheets(Sefaria._uid);
-    var sheetsContent = sheets ? sheets.map(function (sheet) {
-      var classes = classNames({ sheet: 1, noselect: 1, selected: this.state.selectedSheet == sheet.id });
-      var selectSheet = function () {
-        this.setState({ selectedSheet: sheet.id });
-      }.bind(this);
+    var sheetsList = Sefaria._uid && sheets ? sheets.map(function (sheet) {
+      var classes = classNames({ sheet: 1, noselect: 1, selected: this.state.selectedSheet && this.state.selectedSheet.id == sheet.id });
       var title = sheet.title ? sheet.title.stripHtml() : "Untitled Source Sheet";
+      var selectSheet = this.selectSheet.bind(this, sheet);
       return React.createElement(
         'div',
         { className: classes, onClick: selectSheet, key: sheet.id },
         title
       );
-    }.bind(this)) : React.createElement(LoadingMessage, null);
-    sheetsContent = sheets && sheets.length == 0 ? React.createElement(
-      'div',
-      { className: 'sheet noselect' },
-      React.createElement(
-        'span',
-        { className: 'en' },
-        'You don’t have any Source Sheets yet.'
-      ),
-      React.createElement(
-        'span',
-        { className: 'he' },
-        'טרם יצרת דפי מקורות'
-      )
-    ) : sheetsContent;
-    var createSheet = this.state.showNewSheetInput ? React.createElement(
-      'div',
-      { className: 'noselect' },
-      React.createElement('input', { className: 'newSheetInput noselect', placeholder: 'Title your Sheet' }),
-      React.createElement(
-        'div',
-        { className: 'button white small noselect', onClick: this.createSheet },
-        React.createElement(
-          'span',
-          { className: 'int-en' },
-          'Create'
-        ),
-        React.createElement(
-          'span',
-          { className: 'int-he' },
-          'צור חדש'
-        )
-      )
-    ) : React.createElement(
-      'div',
-      { className: 'button white noselect', onClick: this.openNewSheet },
-      React.createElement(
-        'span',
-        { className: 'int-en' },
-        'Start a Source Sheet'
-      ),
-      React.createElement(
-        'span',
-        { className: 'int-he' },
-        'צור דף מקורות חדש'
-      )
-    );
+    }.bind(this)) : Sefaria._uid ? React.createElement(LoadingMessage, null) : null;
+
     return React.createElement(
       'div',
-      null,
-      createSheet,
+      { className: 'addToSourceSheetPanel sans' },
       React.createElement(
         'div',
-        { className: 'sourceSheetSelector noselect' },
-        sheetsContent
+        { className: 'selectedSheet', onClick: this.toggleSheetList },
+        this.state.sheetsLoaded ? this.state.selectedSheet.title.stripHtml() : React.createElement(LoadingMessage, null),
+        React.createElement('i', { className: 'sheetListOpenButton fa fa-caret-down' })
       ),
+      this.state.sheetListOpen ? React.createElement(
+        'div',
+        { className: 'sheetList' },
+        React.createElement(
+          'div',
+          { className: 'sourceSheetSelector noselect' },
+          sheetsList
+        ),
+        React.createElement(
+          'div',
+          { className: 'newSheet noselect' },
+          React.createElement('input', { className: 'newSheetInput noselect', placeholder: 'Name New Sheet' }),
+          React.createElement(
+            'div',
+            { className: 'button small noselect', onClick: this.createSheet },
+            React.createElement(
+              'span',
+              { className: 'int-en' },
+              'Create'
+            ),
+            React.createElement(
+              'span',
+              { className: 'int-he' },
+              'צור חדש'
+            )
+          )
+        )
+      ) : null,
       React.createElement(
         'div',
         { className: 'button noselect', onClick: this.addToSourceSheet },
@@ -9810,7 +9843,7 @@ var ConfirmAddToSheetPanel = React.createClass({
   render: function render() {
     return React.createElement(
       'div',
-      { className: 'confirmAddToSheetPanel' },
+      { className: 'confirmAddToSheetPanel addToSourceSheetPanel' },
       React.createElement(
         'div',
         { className: 'message' },
@@ -9827,7 +9860,7 @@ var ConfirmAddToSheetPanel = React.createClass({
       ),
       React.createElement(
         'a',
-        { className: 'button white', href: "/sheets/" + this.props.sheetId },
+        { className: 'button white', href: "/sheets/" + this.props.sheetId, target: '_blank' },
         React.createElement(
           'span',
           { className: 'int-en' },
@@ -10069,8 +10102,8 @@ var MyNotesPanel = React.createClass({
   }
 });
 
-var LoginPanel = React.createClass({
-  displayName: 'LoginPanel',
+var LoginPrompt = React.createClass({
+  displayName: 'LoginPrompt',
 
   propTypes: {
     fullPanel: React.PropTypes.bool
@@ -10079,10 +10112,10 @@ var LoginPanel = React.createClass({
     var nextParam = "?next=" + Sefaria.util.currentPath();
     return React.createElement(
       'div',
-      null,
+      { className: 'loginPrompt' },
       React.createElement(
         'div',
-        { className: 'loginPanelMessage' },
+        { className: 'loginPromptMessage' },
         React.createElement(
           'span',
           { className: 'int-en' },
@@ -11417,7 +11450,7 @@ var NotificationsPanel = React.createClass({
               'התראות'
             )
           ),
-          Sefaria.loggedIn ? React.createElement('div', { className: 'notificationsList', dangerouslySetInnerHTML: { __html: Sefaria.notificationsHtml } }) : React.createElement(LoginPanel, { fullPanel: true })
+          Sefaria.loggedIn ? React.createElement('div', { className: 'notificationsList', dangerouslySetInnerHTML: { __html: Sefaria.notificationsHtml } }) : React.createElement(LoginPrompt, { fullPanel: true })
         ),
         React.createElement(
           'footer',

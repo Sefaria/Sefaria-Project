@@ -6521,10 +6521,19 @@ var ConnectionsPanel = React.createClass({
                     selectedWords={this.props.selectedWords}/>);
     
     } else if (this.props.mode === "Sheets") {
-      content = (<SheetsList
+      content = (<div>
+                  <AddToSourceSheetPanel
                     srefs={this.props.srefs}
                     fullPanel={this.props.fullPanel}
-                    multiPanel={this.props.multiPanel} />);
+                    setConnectionsMode={this.props.setConnectionsMode} 
+                    version={this.props.version}
+                    versionLanguage={this.props.versionLanguage}
+                    addToSourceSheet={this.props.addToSourceSheet} />
+                  <SheetsList
+                    srefs={this.props.srefs}
+                    fullPanel={this.props.fullPanel}
+                    multiPanel={this.props.multiPanel} />
+                </div>);
     
     } else if (this.props.mode === "Lexicon") {
       content = (<LexiconPanel 
@@ -6605,12 +6614,12 @@ var ConnectionsPanel = React.createClass({
                   </div>);
 
     } else if (this.props.mode === "Login") {
-      content = (<LoginPanel fullPanel={this.props.fullPanel} />);
+      content = (<LoginPrompt fullPanel={this.props.fullPanel} />);
     }
     
     var classes = classNames({toolsPanel: 1, textList: 1, fullPanel: this.props.fullPanel});
     return (
-      <div className={classes}>
+      <div className={classes} key={this.props.mode}>
         <div className="texts">
           <div className="contentInner">{content}</div>
         </div>
@@ -7568,13 +7577,11 @@ var AddToSourceSheetWindow = React.createClass({
     en:           React.PropTypes.string,
     he:           React.PropTypes.string
   },
-
   close: function () {
     if (this.props.close) {
       this.props.close();
     }
   },
-
   render: function () {
     var nextParam = "?next=" + encodeURIComponent(Sefaria.util.currentPath());
 
@@ -7610,23 +7617,59 @@ var AddToSourceSheetPanel = React.createClass({
   },
   getInitialState: function() {
     return {
-      selectedSheet: null
+      sheetsLoaded: false,
+      selectedSheet: null,
+      sheetListOpen: false,
+      showConfirm: false,
+      showLogin: false,
     };
   },
   componentDidMount: function() {
     this.loadSheets();
   },
+  componentDidUpdate: function(prevProps, prevState) {
+    if (!prevProps.srefs.compare(this.props.srefs)) {
+      this.setState({showConfirm: false});
+    }
+  },
   loadSheets: function() {
-    Sefaria.sheets.userSheets(Sefaria._uid, function() {
-      this.forceUpdate();
-    }.bind(this));
+    if (!Sefaria._uid) {
+      this.onSheetsLoad();  
+    } else {
+      Sefaria.sheets.userSheets(Sefaria._uid, this.onSheetsLoad);
+    }
+  },
+  onSheetsLoad: function() {
+    this.setDefaultSheet();
+    this.setState({sheetsLoaded: true});
+  },
+  setDefaultSheet: function() {
+    if (this.state.selectedSheet) { return; }
+    if (!Sefaria._uid) {
+        this.setState({selectedSheet: {title: "Your Sheet"}});
+    } else {
+      var sheets = Sefaria.sheets.userSheets(Sefaria._uid);
+      if (!sheets.length) {
+        this.setState({selectedSheet: {title: "Create a New Sheet"}});
+      } else {
+        this.setState({selectedSheet: sheets[0]});      
+      }
+    }
+  },
+  toggleSheetList: function() {
+    if (!Sefaria._uid) { return; }
+    this.setState({sheetListOpen: !this.state.sheetListOpen});
+  },
+  selectSheet: function(sheet) {
+    this.setState({selectedSheet: sheet, sheetListOpen: false});
   },
   addToSourceSheet: function() {
-    if (!this.state.selectedSheet) { return; }
+    if (!Sefaria._uid) { this.setState({showLogin: true}); }
+    if (!this.state.selectedSheet || !this.state.selectedSheet.id) { return; }
     if (this.props.addToSourceSheet) {
-      this.props.addToSourceSheet(this.state.selectedSheet, this.confirmAdd);
+      this.props.addToSourceSheet(this.state.selectedSheet.id, this.confirmAdd);
     } else {
-      var url     = "/api/sheets/" + this.state.selectedSheet + "/add";
+      var url     = "/api/sheets/" + this.state.selectedSheet.id + "/add";
       var source = {};
       if (this.props.srefs) {
         source.refs = this.props.srefs;
@@ -7652,14 +7695,9 @@ var AddToSourceSheetPanel = React.createClass({
     };
     var postJSON = JSON.stringify(sheet);
     $.post("/api/sheets/", {"json": postJSON}, function(data) {
-      this.setState({selectedSheet: data.id}, function() {
-        this.addToSourceSheet();
-      });
       Sefaria.sheets.clearUserSheets(Sefaria._uid);
+      this.selectSheet(data);
     }.bind(this)); 
-  },
-  openNewSheet: function() {
-    this.setState({showNewSheetInput: true});
   },
   confirmAdd: function() {
     if (this.props.srefs) {
@@ -7667,39 +7705,44 @@ var AddToSourceSheetPanel = React.createClass({
     } else {
       Sefaria.site.track.event("Tools", "Add to Source Sheet Save", "Outside Source");
     }
-    this.setState({confirm: true});
+    this.setState({showConfirm: true});
   },
   render: function() {
-    if (this.state.confirm) {
-      return (<ConfirmAddToSheetPanel sheetId={this.state.selectedSheet} />);
+    if (this.state.showConfirm) {
+      return (<ConfirmAddToSheetPanel sheetId={this.state.selectedSheet.id} />);
+    } else if (this.state.showLogin) {
+      return (<div className="addToSourceSheetPanel sans">
+                <LoginPrompt />
+              </div>);
     }
-    var sheets        = Sefaria.sheets.userSheets(Sefaria._uid);
-    var sheetsContent = sheets ? sheets.map(function(sheet) {
-      var classes     = classNames({sheet: 1, noselect: 1, selected: this.state.selectedSheet == sheet.id});
-      var selectSheet = function() { this.setState({selectedSheet: sheet.id}); }.bind(this);
+    var sheets     = Sefaria.sheets.userSheets(Sefaria._uid);
+    var sheetsList = Sefaria._uid && sheets ? sheets.map(function(sheet) {
+      var classes     = classNames({sheet: 1, noselect: 1, selected: this.state.selectedSheet && this.state.selectedSheet.id == sheet.id});
       var title = sheet.title ? sheet.title.stripHtml() : "Untitled Source Sheet";
+      var selectSheet = this.selectSheet.bind(this, sheet);
       return (<div className={classes} onClick={selectSheet} key={sheet.id}>{title}</div>);
-    }.bind(this)) : <LoadingMessage />;
-    sheetsContent     = sheets && sheets.length == 0 ? 
-                          (<div className="sheet noselect"><span className="en">You don&rsquo;t have any Source Sheets yet.</span><span className="he">טרם יצרת דפי מקורות</span></div>) :
-                          sheetsContent;
-    var createSheet = this.state.showNewSheetInput ? 
-          (<div className="noselect">
-            <input className="newSheetInput noselect" placeholder="Title your Sheet"/>
-            <div className="button white small noselect" onClick={this.createSheet} >
+    }.bind(this)) : (Sefaria._uid ? <LoadingMessage /> : null);
+
+    return (
+      <div className="addToSourceSheetPanel sans">
+        <div className="selectedSheet" onClick={this.toggleSheetList}>
+          {this.state.sheetsLoaded ? this.state.selectedSheet.title.stripHtml() : <LoadingMessage />}
+          <i className="sheetListOpenButton fa fa-caret-down"></i>
+        </div>
+        {this.state.sheetListOpen ? 
+        <div className="sheetList">
+          <div className="sourceSheetSelector noselect">
+            {sheetsList}
+          </div>
+          <div className="newSheet noselect">
+            <input className="newSheetInput noselect" placeholder="Name New Sheet"/>
+            <div className="button small noselect" onClick={this.createSheet} >
               <span className="int-en">Create</span>
               <span className="int-he">צור חדש</span>
             </div>
-           </div>)
-          :
-          (<div className="button white noselect" onClick={this.openNewSheet}>
-              <span className="int-en">Start a Source Sheet</span>
-              <span className="int-he">צור דף מקורות חדש</span>
-          </div>);
-    return (
-      <div>
-        {createSheet}
-        <div className="sourceSheetSelector noselect">{sheetsContent}</div>
+           </div>
+        </div>
+        : null}
         <div className="button noselect" onClick={this.addToSourceSheet}>
           <span className="int-en noselect">Add to Sheet</span>
           <span className="int-he noselect">הוסף לדף המקורות</span>
@@ -7714,12 +7757,12 @@ var ConfirmAddToSheetPanel = React.createClass({
     sheetId: React.PropTypes.number.isRequired
   },
   render: function() {
-    return (<div className="confirmAddToSheetPanel">
+    return (<div className="confirmAddToSheetPanel addToSourceSheetPanel">
               <div className="message">
                 <span className="int-en">Your source has been added.</span>
                 <span className="int-he">הטקסט נוסף בהצלחה לדף המקורות</span>
               </div>
-              <a className="button white" href={"/sheets/" + this.props.sheetId}>
+              <a className="button white" href={"/sheets/" + this.props.sheetId} target="_blank">
                 <span className="int-en">Go to Source Sheet <i className="fa fa-angle-right"></i></span>
                 <span className="int-he">עבור לדף המקורות<i className="fa fa-angle-left"></i></span>
               </a>
@@ -7892,15 +7935,15 @@ var MyNotesPanel = React.createClass({
 });
 
 
-var LoginPanel = React.createClass({
+var LoginPrompt = React.createClass({
   propTypes: {
     fullPanel: React.PropTypes.bool,
   },
   render: function() {
     var nextParam = "?next=" + Sefaria.util.currentPath();
     return (
-      <div>
-        <div className="loginPanelMessage">
+      <div className="loginPrompt">
+        <div className="loginPromptMessage">
           <span className="int-en">You must be logged in to use this feature.</span>
           <span className="int-he">עליך להיות מחובר בכדי להשתמש באפשרות זו.</span>
         </div>
@@ -9005,7 +9048,7 @@ var NotificationsPanel = React.createClass({
             </h1>
             { Sefaria.loggedIn ? 
               (<div className="notificationsList" dangerouslySetInnerHTML={ {__html: Sefaria.notificationsHtml } }></div>) :
-              (<LoginPanel fullPanel={true} />) }
+              (<LoginPrompt fullPanel={true} />) }
           </div>
           <footer id="footer" className={`interface-${this.props.interfaceLang} static sans`}>
             <Footer />

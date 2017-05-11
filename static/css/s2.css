@@ -20,10 +20,15 @@ body.sepia {
 body.dark {
   background-color: #333331; 
 }
-.sans .en, #s2 .sans .en {
+.sans,
+.sans .en, 
+#s2 .sans .en,
+.sans .int-en {
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
 }
-.sans .he, #s2 .sans .he {
+.sans .he, 
+#s2 .sans .he,
+.sans .int-he {
   font-family: "Open Sans Hebrew", sans-serif;
 }
 #s2 {
@@ -1794,11 +1799,13 @@ a.resourcesLink {
 .readerControls .readerControlsInner {
   position: relative;
   width: 700px;
-  padding: 0;
   padding: 0 30px;
   display: inline-block;
   max-width:  100%;
   box-sizing: border-box;
+}
+.readerControls.connectionsHeader .readerControlsInner {
+  padding: 0 40px
 }
 .singlePanel .readerControls .readerControlsInner {
   padding: 0 10px;
@@ -2452,14 +2459,11 @@ a.resourcesLink {
 .textList.fullPanel .texts {
   padding: 0 48px 300px 60px;
 }
-.addToSourceSheetPanel.textList.fullPanel .texts {
-  padding: 0 50px;
-}
 .textList .texts {
   padding: 60px 30px 80px 30px;
 }
 .textList.fullPanel .texts {
-  padding: 50px 30px 80px 30px;
+  padding: 50px 40px 80px 40px;
 }
 .textListTop {
   position: absolute;
@@ -2851,6 +2855,12 @@ a.resourcesLink {
   padding: 20px 26px;
   outline: none;
 }
+.toolsPanel .addToSourceSheetPanel {
+  margin-bottom: 40px;
+}
+.addToSourceSheetPanel {
+  position: relative;
+}
 .addToSourceSheetPanel input {
   padding: 13px 12px;
   margin: 0;
@@ -2873,28 +2883,57 @@ a.resourcesLink {
   margin: 0;
   float: right;
 }
-.sourceSheetSelector {
+.addToSourceSheetPanel .selectedSheet {
+  background: white;
+  border: 1px solid #E9E9E9;
+  border-radius: 4px;
+  padding: 16px 22px;
+  font-size: 16px;
+  margin-bottom: 10px;
+}
+.addToSourceSheetPanel .sheetListOpenButton {
+  float: right;
+  cursor: pointer;
+  color: #999;
+  font-size: 18px;
+}
+.addToSourceSheetPanel .sheetList {
+  position: absolute;
+  z-index: 1;
+  margin-top: -12px;
+  width: 100%;
+  border: 1px solid #E9E9E9;
+  background: white;
+  border-bottom-left-radius: 4px;
+  border-bottom-right-radius: 4px;
+}
+.addToSourceSheetPanel .sourceSheetSelector {
   color: #999;
   background-color: white;
   box-sizing: border-box;
-  width: 100%;
   padding: 0;
-  margin: 10px 0 30px 0;
   max-height: 300px;
   overflow-x: hidden;
   overflow-y: scroll;
 }
-.sourceSheetSelector .sheet {
+.addToSourceSheetPanel .sourceSheetSelector .sheet {
   font-size: 16px;
+  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
   cursor: pointer;
+  padding: 0 22px;
+  margin: 26px 0;
+  border: none;
+  color: #999;
 }
-.sourceSheetSelector .sheet.selected {
-  background: #ccc;
-  color: white;
+.addToSourceSheetPanel .sourceSheetSelector .sheet.selected {
+  color: #333;
+}
+.addToSourceSheetPanel .newSheet {
+  border-top: 1px solid #E9E9E9;
+  padding: 14px 22px;
 }
 .confirmAddToSheetPanel {
   text-align: center;
-  padding: 100px 30px 0;
   background-color: #F9F9F7;
 }
 .confirmAddToSheetPanel .message {
@@ -2997,13 +3036,15 @@ a.resourcesLink {
 .myNotesPanel .toolsButton {
   margin-top: 20px;
 }
-.loginPanel {
+.loginPrompt {
   text-align: center;
-  padding-top: 40px;
 }
-.loginPanel .loginPanelMessage {
+.loginPrompt .loginPromptMessage {
   font-size: 18px;
-  margin: 80px 0 30px;
+  margin-bottom: 20px;
+}
+.loginPrompt .button {
+  width: auto;
 }
 .notificationsPanel .content {
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
