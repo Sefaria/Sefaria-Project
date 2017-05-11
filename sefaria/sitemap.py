@@ -116,7 +116,7 @@ def write_urls(urls, filename):
 	"""
 	Writes the list URLS, one per line, to filename.
 	"""
-	out = STATICFILES_DIRS[0] + filename
+	out = STATICFILES_DIRS[0] + "sitemaps/" + filename
 	f = open(out, 'w')
 	for url in urls:
 		f.write(url.encode('utf-8') + "\n")
@@ -140,7 +140,7 @@ def generate_sitemap_index(sitemaps):
 		</sitemapindex>
 		""" % xml
 
-	out = STATICFILES_DIRS[0] + "sitemapindex.xml"
+	out = STATICFILES_DIRS[0] +  "sitemaps/sitemapindex.xml"
 	f = open(out, 'w')
 	f.write(sitemapindex)
 	f.close()
