@@ -6462,7 +6462,6 @@ var ConnectionsPanel = React.createClass({
   loadData: function() {
     if (!Sefaria.related(this.props.srefs)) {
       Sefaria.related(this.props.srefs, function() {
-        console.log("loadData callback", this.props.srefs);
         if (this.isMounted) {
           this.setState({dataLoaded: true});
         }
@@ -6533,6 +6532,21 @@ var ConnectionsPanel = React.createClass({
                     srefs={this.props.srefs}
                     fullPanel={this.props.fullPanel}
                     multiPanel={this.props.multiPanel} />
+                </div>);
+
+    } else if (this.props.mode === "Notes") {
+      content = (<div>
+                  <AddNotePanel 
+                    srefs={this.props.srefs}
+                    fullPanel={this.props.fullPanel}
+                    closePanel={this.props.closePanel}
+                    setConnectionsMode={this.props.setConnectionsMode} />
+                  <MyNotesPanel 
+                    srefs={this.props.srefs}
+                    fullPanel={this.props.fullPanel}
+                    closePanel={this.props.closePanel}
+                    setConnectionsMode={this.props.setConnectionsMode}
+                    editNote={this.props.editNote} />
                 </div>);
     
     } else if (this.props.mode === "Lexicon") {
@@ -6677,7 +6691,7 @@ var ResourcesList = React.createClass({
     return (<div className="resourcesList">
               <ToolsButton en="Other Text" he="השווה" icon="search" onClick={this.props.openComparePanel} /> 
               <ToolsButton en="Sheets" he="הוסף לדף מקורות" image="sheet.svg" count={this.props.sheetsCount} onClick={function() {this.props.setConnectionsMode("Sheets")}.bind(this)} /> 
-              <ToolsButton en="Notes" he="הרשומות שלי" image="tools-write-note.svg" onClick={function() {this.props.setConnectionsMode("My Notes")}.bind(this)} /> 
+              <ToolsButton en="Notes" he="הרשומות שלי" image="tools-write-note.svg" onClick={function() {this.props.setConnectionsMode("Notes")}.bind(this)} /> 
               <ToolsButton en="Tools" he="הרשומות שלי" icon="gear" onClick={function() {this.props.setConnectionsMode("Tools")}.bind(this)} /> 
             </div>);
   }
@@ -7828,7 +7842,8 @@ var AddNotePanel = React.createClass({
           Sefaria.addPrivateNote(data);
         }
         Sefaria.site.track.event("Tools", "Note Save " + ((this.state.isPrivate)?"Private":"Public"), this.props.srefs.join("/"));
-        this.props.setConnectionsMode("My Notes");
+        $(ReactDOM.findDOMNode(this)).find(".noteText").val("");
+        this.props.setConnectionsMode("Notes");
       } else {
         alert("Sorry, there was a problem saving your note.");
       }
@@ -7844,7 +7859,7 @@ var AddNotePanel = React.createClass({
     this.setState({isPrivate: false});
   },
   cancel: function() {
-    this.props.setConnectionsMode("Tools");
+    this.props.setConnectionsMode("Notes");
   },
   deleteNote: function() {
     if (!confirm("Are you sure you want to delete this note?")) { return; }
@@ -7853,9 +7868,9 @@ var AddNotePanel = React.createClass({
       type: "delete",
       url: url,
       success: function() { 
-        alert("Source deleted.");
+        alert("Note deleted.");
         Sefaria.clearPrivateNotes();
-        this.props.setConnectionsMode("My Notes");
+        this.props.setConnectionsMode("Notes");
       }.bind(this),
       error: function () {
         alert("Something went wrong (that's all I know).");
@@ -7866,7 +7881,7 @@ var AddNotePanel = React.createClass({
     var privateClasses = classNames({notePrivateButton: 1, active: this.state.isPrivate});
     var publicClasses  = classNames({notePublicButton: 1, active: !this.state.isPrivate});
     return (
-      <div>
+      <div className="addNoteBox">
         <textarea className="noteText" placeholder="Write a note..." defaultValue={this.props.noteText}></textarea>
         <div className="noteSharingToggle">
           <div className={privateClasses} onClick={this.setPrivate}>
@@ -7879,15 +7894,15 @@ var AddNotePanel = React.createClass({
             <span className="int-he">רשומה כללית</span>
           </div>
         </div>
-        <div className="line"></div>
         <div className="button fillWidth" onClick={this.saveNote}>
           <span className="int-en">{this.props.noteId ? "Save" : "Add Note"}</span>
           <span className="int-he">{this.props.noteId ? "שמור": "הוסף רשומה"}</span>
         </div>
-        <div className="button white fillWidth" onClick={this.cancel}>
-          <span className="int-en">Cancel</span>
-          <span className="int-he">בטל</span>
-        </div>
+        {this.props.noteId ? 
+          <div className="button white fillWidth" onClick={this.cancel}>
+            <span className="int-en">Cancel</span>
+            <span className="int-he">בטל</span>
+          </div> : null }
         {this.props.noteId ? 
           (<div className="deleteNote" onClick={this.deleteNote}>
             <span className="int-en">Delete Note</span>
@@ -7936,13 +7951,8 @@ var MyNotesPanel = React.createClass({
     }.bind(this)) : null ;
 
     return (
-      <div>
+      <div className="notesList">
         {myNotes}
-        <ToolsButton 
-          en="Add Note" 
-          he="הוסף רשומה"
-          icon="pencil" 
-          onClick={function() {this.props.setConnectionsMode("Add Note")}.bind(this)} />
       </div>);
   }
 });

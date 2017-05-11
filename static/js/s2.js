@@ -8255,6 +8255,22 @@ var ConnectionsPanel = React.createClass({
           fullPanel: this.props.fullPanel,
           multiPanel: this.props.multiPanel })
       );
+    } else if (this.props.mode === "Notes") {
+      content = React.createElement(
+        'div',
+        null,
+        React.createElement(AddNotePanel, {
+          srefs: this.props.srefs,
+          fullPanel: this.props.fullPanel,
+          closePanel: this.props.closePanel,
+          setConnectionsMode: this.props.setConnectionsMode }),
+        React.createElement(MyNotesPanel, {
+          srefs: this.props.srefs,
+          fullPanel: this.props.fullPanel,
+          closePanel: this.props.closePanel,
+          setConnectionsMode: this.props.setConnectionsMode,
+          editNote: this.props.editNote })
+      );
     } else if (this.props.mode === "Lexicon") {
       content = React.createElement(LexiconPanel, {
         selectedWords: this.props.selectedWords,
@@ -8467,7 +8483,7 @@ var ResourcesList = React.createClass({
           this.props.setConnectionsMode("Sheets");
         }.bind(this) }),
       React.createElement(ToolsButton, { en: 'Notes', he: 'הרשומות שלי', image: 'tools-write-note.svg', onClick: function () {
-          this.props.setConnectionsMode("My Notes");
+          this.props.setConnectionsMode("Notes");
         }.bind(this) }),
       React.createElement(ToolsButton, { en: 'Tools', he: 'הרשומות שלי', icon: 'gear', onClick: function () {
           this.props.setConnectionsMode("Tools");
@@ -9942,7 +9958,8 @@ var AddNotePanel = React.createClass({
           Sefaria.addPrivateNote(data);
         }
         Sefaria.site.track.event("Tools", "Note Save " + (this.state.isPrivate ? "Private" : "Public"), this.props.srefs.join("/"));
-        this.props.setConnectionsMode("My Notes");
+        $(ReactDOM.findDOMNode(this)).find(".noteText").val("");
+        this.props.setConnectionsMode("Notes");
       } else {
         alert("Sorry, there was a problem saving your note.");
       }
@@ -9958,7 +9975,7 @@ var AddNotePanel = React.createClass({
     this.setState({ isPrivate: false });
   },
   cancel: function cancel() {
-    this.props.setConnectionsMode("Tools");
+    this.props.setConnectionsMode("Notes");
   },
   deleteNote: function deleteNote() {
     if (!confirm("Are you sure you want to delete this note?")) {
@@ -9969,9 +9986,9 @@ var AddNotePanel = React.createClass({
       type: "delete",
       url: url,
       success: function () {
-        alert("Source deleted.");
+        alert("Note deleted.");
         Sefaria.clearPrivateNotes();
-        this.props.setConnectionsMode("My Notes");
+        this.props.setConnectionsMode("Notes");
       }.bind(this),
       error: function error() {
         alert("Something went wrong (that's all I know).");
@@ -9983,7 +10000,7 @@ var AddNotePanel = React.createClass({
     var publicClasses = classNames({ notePublicButton: 1, active: !this.state.isPrivate });
     return React.createElement(
       'div',
-      null,
+      { className: 'addNoteBox' },
       React.createElement('textarea', { className: 'noteText', placeholder: 'Write a note...', defaultValue: this.props.noteText }),
       React.createElement(
         'div',
@@ -10019,7 +10036,6 @@ var AddNotePanel = React.createClass({
           )
         )
       ),
-      React.createElement('div', { className: 'line' }),
       React.createElement(
         'div',
         { className: 'button fillWidth', onClick: this.saveNote },
@@ -10034,7 +10050,7 @@ var AddNotePanel = React.createClass({
           this.props.noteId ? "שמור" : "הוסף רשומה"
         )
       ),
-      React.createElement(
+      this.props.noteId ? React.createElement(
         'div',
         { className: 'button white fillWidth', onClick: this.cancel },
         React.createElement(
@@ -10047,7 +10063,7 @@ var AddNotePanel = React.createClass({
           { className: 'int-he' },
           'בטל'
         )
-      ),
+      ) : null,
       this.props.noteId ? React.createElement(
         'div',
         { className: 'deleteNote', onClick: this.deleteNote },
@@ -10107,15 +10123,8 @@ var MyNotesPanel = React.createClass({
 
     return React.createElement(
       'div',
-      null,
-      myNotes,
-      React.createElement(ToolsButton, {
-        en: 'Add Note',
-        he: 'הוסף רשומה',
-        icon: 'pencil',
-        onClick: function () {
-          this.props.setConnectionsMode("Add Note");
-        }.bind(this) })
+      { className: 'notesList' },
+      myNotes
     );
   }
 });

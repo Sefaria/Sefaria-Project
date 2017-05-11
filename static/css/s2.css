@@ -2947,9 +2947,12 @@ a.resourcesLink {
 .confirmAddToSheetPanel .button {
   width: 100%;
 }
-.addNotePanel .noteText {
+.addNoteBox + .notesList {
+  margin-top: 40px;
+}
+.toolsPanel .noteText {
   width: 100%;
-  min-height: 220px;
+  min-height: 100px;
   border: none;
   border-radius: 4px;
   padding: 20px 25px;
@@ -2959,11 +2962,13 @@ a.resourcesLink {
   font-family: "adobe-garamond-pro", Georgia, serif;
   margin-bottom: 10px
 }
-.addNotePanel .noteSharingToggle {
+.toolsPanel .noteSharingToggle {
   border: 1px solid #ccc;
   border-radius: 4px;
+  margin-bottom: 12px;
 }
-.addNotePanel .notePrivateButton, .addNotePanel .notePublicButton {
+.toolsPanel .notePrivateButton,
+.toolsPanel .notePublicButton {
   width: 50%;
   display: inline-block;
   text-align: center;
@@ -2977,16 +2982,17 @@ a.resourcesLink {
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
   box-sizing: border-box;
 }
-.addNotePanel .notePrivateButton.active, .addNotePanel .notePublicButton.active {
+.toolsPanel .notePrivateButton.active,
+.toolsPanel .notePublicButton.active {
   background-color: white;
   color: #666;
 }
-.addNotePanel .notePrivateButton {
+.toolsPanel .notePrivateButton {
   border-right: 1px solid #ccc;
   border-top-right-radius: 0;
   border-bottom-right-radius: 0;
 }
-.hebrew .addNotePanel .notePrivateButton {
+.hebrew .toolsPanel .notePrivateButton {
   border-left: 1px solid #ccc;
   border-top-left-radius: 0;
   border-bottom-left-radius: 0;
@@ -2994,12 +3000,12 @@ a.resourcesLink {
   border-top-right-radius: 4px;
   border-bottom-right-radius: 4px;
 }
-.addNotePanel .line {
+.toolsPanel .line {
   width: 100%;
   border-bottom: 1px solid #ccc;
   margin: 40px 0;
 }
-.addNotePanel .deleteNote {
+.toolsPanel .deleteNote {
   text-align: center;
   padding: 18px 0;
   color: #999;
@@ -3007,37 +3013,34 @@ a.resourcesLink {
   cursor: pointer;
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
 }
-.myNotesPanel.textList .note {
+.toolsPanel.textList .note {
   background-color: transparent;
   padding: 40px 0 30px;
   position: relative;
   display: flex;
   justify-content: space-between;
 }
-.myNotesPanel.textList .note {
+.toolsPanel.textList .note {
   border-top: 1px solid #ccc;
 }
-.myNotesPanel.textList .note:first-child {
+.toolsPanel.textList .note:first-child {
   padding-top: 10px;
   border-top: none;
 }
-.myNotesPanel .noteButtons {
+.toolsPanel .noteButtons {
   visibility: hidden;
 }
-.myNotesPanel.textList .note:first-child .noteButtons {
+.toolsPanel.textList .note:first-child .noteButtons {
   top: 14px;
 }
-.myNotesPanel .note:hover .noteButtons {
+.toolsPanel .note:hover .noteButtons {
   visibility: visible;
 }
-.myNotesPanel .noteButtons .fa {
+.toolsPanel .noteButtons .fa {
   cursor: pointer;
   color: #C6C6C6;
   font-size: 20px;
   margin: 0 8px;
-}
-.myNotesPanel .toolsButton {
-  margin-top: 20px;
 }
 .loginPrompt {
   text-align: center;
