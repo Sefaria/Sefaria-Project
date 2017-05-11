@@ -26,6 +26,8 @@ var ReaderApp = React.createClass({
     initialGroup:                React.PropTypes.string,
     initialQuery:                React.PropTypes.string,
     initialSearchFilters:        React.PropTypes.array,
+    initialSearchField:          React.PropTypes.string,
+    initialSearchSortType:       React.PropTypes.string,
     initialSheetsTag:            React.PropTypes.string,
     initialNavigationCategories: React.PropTypes.array,
     initialSettings:             React.PropTypes.object,
@@ -45,6 +47,8 @@ var ReaderApp = React.createClass({
       initialGroup:                null,
       initialQuery:                null,
       initialSearchFilters:        [],
+      initialSearchField:          null,
+      initialSearchSortType:       null,
       initialSheetsTag:            null,
       initialNavigationCategories: [],
       initialPanels:               [],
@@ -84,6 +88,8 @@ var ReaderApp = React.createClass({
           navigationCategories: this.props.initialNavigationCategories,
           sheetsTag: this.props.initialSheetsTag,
           group: this.props.initialGroup,
+          searchField: this.props.initialSearchField,
+          searchSortType: this.props.initialSearchSortType,
           settings: Sefaria.util.clone(defaultPanelSettings)
         };
         if (panels[0].versionLanguage) {
@@ -101,6 +107,8 @@ var ReaderApp = React.createClass({
         menuOpen: this.props.initialMenu,
         searchQuery: this.props.initialQuery,
         appliedSearchFilters: this.props.initialSearchFilters,
+        searchField: this.props.initialSearchField,
+        searchSortType: this.props.initialSearchSortType,
         navigationCategories: this.props.initialNavigationCategories,
         sheetsTag: this.props.initialSheetsTag,
         group: this.props.initialGroup,
@@ -346,6 +354,8 @@ var ReaderApp = React.createClass({
           (prev.searchQuery != next.searchQuery) ||
           (prev.appliedSearchFilters && next.appliedSearchFilters && (prev.appliedSearchFilters.length !== next.appliedSearchFilters.length)) ||
           (prev.appliedSearchFilters && next.appliedSearchFilters && !(prev.appliedSearchFilters.compare(next.appliedSearchFilters))) ||
+          (prev.searchField != next.searchField) ||
+          (prev.searchSortType != next.searchSortType) ||
           (prev.settings.language != next.settings.language))
           {
          return true;
@@ -424,7 +434,11 @@ var ReaderApp = React.createClass({
             var query = state.searchQuery ? encodeURIComponent(state.searchQuery) : "";
             hist.title = state.searchQuery ? state.searchQuery + " | " : "";
             hist.title += "Sefaria Search";
-            hist.url   = "search" + (state.searchQuery ? "&q=" + query + ((!!state.appliedSearchFilters && !!state.appliedSearchFilters.length) ? "&filters=" + state.appliedSearchFilters.join("|") : "") : "");
+            hist.url   = "search" + (state.searchQuery ? "&q=" + query +
+                ((!!state.appliedSearchFilters && !!state.appliedSearchFilters.length) ? "&filters=" + state.appliedSearchFilters.join("|") : "") +
+                "&var=" + (state.searchField !== state.searchFieldExact ? "1" : "0") +
+                "&sort=" + (state.searchSortType === "chronological" ? "c" : "r")
+                    : "");
             hist.mode  = "search";
             break;
           case "sheets":
@@ -1601,8 +1615,8 @@ var ReaderPanel = React.createClass({
     initialMenu:                 React.PropTypes.string,
     initialQuery:                React.PropTypes.string,
     initialAppliedSearchFilters: React.PropTypes.array,
-    initialField:                React.PropTypes.string,
-    initialSortType:             React.PropTypes.oneOf(["relevance", "chronological"]),
+    initialSearchField:          React.PropTypes.string,
+    initialSearchSortType:       React.PropTypes.oneOf(["relevance", "chronological"]),
     initialSheetsTag:            React.PropTypes.string,
     initialState:                React.PropTypes.object, // if present, overrides all props above
     interfaceLang:               React.PropTypes.string,
@@ -2601,7 +2615,6 @@ var ReaderNavigationMenu = React.createClass({
                   toggleLanguage={this.props.toggleLanguage}
                   multiPanel={this.props.multiPanel}
                   closeNav={this.closeNav}
-                  toggleLanguage={this.props.toggleLanguage}
                   openDisplaySettings={this.props.openDisplaySettings}
                   navHome={this.navHome}
                   compare={this.props.compare}
