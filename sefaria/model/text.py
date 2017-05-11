@@ -22,7 +22,6 @@ except ImportError:
 
 from . import abstract as abst
 from schema import deserialize_tree, SchemaNode, JaggedArrayNode, TitledTreeNode, AddressTalmud, TermSet, TitleGroup
-from autospell import AutoCompleter
 
 import sefaria.system.cache as scache
 from sefaria.system.exceptions import InputError, BookNameError, PartialRefInputError, IndexSchemaError, NoVersionFoundError
@@ -3822,8 +3821,9 @@ class Library(object):
         return self._search_filter_toc_json
 
     def build_auto_completer(self):
+        from autospell import AutoCompleter
         self._auto_completer = {
-            lang: AutoCompleter(lang, library, self.full_title_list(lang, False)) for lang in self.langs
+            lang: AutoCompleter(lang, library, include_people=True) for lang in self.langs
         }
 
     def auto_completer(self, lang):
@@ -4413,7 +4413,6 @@ class Library(object):
         return d
 
 library = Library()
-library.build_auto_completer()
 
 # Deprecated
 def get_index(bookname):

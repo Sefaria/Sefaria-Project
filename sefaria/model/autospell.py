@@ -6,6 +6,7 @@ http://scottlobdell.me/2015/02/writing-autocomplete-engine-scratch-python/
 """
 import pygtrie as trie
 from collections import Counter, defaultdict
+from sefaria.model import *
 from sefaria.utils import hebrew
 import logging
 logger = logging.getLogger(__name__)
@@ -23,7 +24,7 @@ class AutoCompleter(object):
     An AutoCompleter object provides completion services - it is the object in this module designed to be used by the Library.
     It instanciates objects that provide string completion according to different algorithms.
     """
-    def __init__(self, lang, library, titles, *args, **kwargs):
+    def __init__(self, lang, lib, include_people=False, *args, **kwargs):
         """
 
         :param lang:
@@ -33,11 +34,28 @@ class AutoCompleter(object):
         :param kwargs:
         """
         assert lang in ["en", "he"]
+
         self.lang = lang
-        self.library = library
-        self.title_trie = TitleTrie(lang, library, *args, **kwargs)
-        self.spell_checker = SpellChecker(lang, titles)
-        self.ngram_matcher = NGramMatcher(lang, library)
+        self.library = lib
+
+        self.title_trie = TitleTrie(lang, *args, **kwargs)
+        self.spell_checker = SpellChecker(lang)
+        self.ngram_matcher = NGramMatcher(lang)
+
+        # Titles in library
+        title_node_dict = self.library.get_title_node_dict(lang)
+        titles = title_node_dict.keys()
+        self.title_trie.add_titles_from_title_node_dict(title_node_dict)
+        self.spell_checker.train_phrases(titles)
+        self.ngram_matcher.train_phrases(titles)
+
+        if include_people:
+            eras = ["GN", "RI", "AH", "CO"]
+            ps = PersonSet({"era": {"$in": eras}})
+            person_names = [n for p in ps for n in p.all_names(lang)]
+            self.title_trie.add_titles_from_set(ps, "all_names", "primary_name", "key")
+            self.spell_checker.train_phrases(person_names)
+            self.ngram_matcher.train_phrases(person_names)
 
     def complete(self, instring, limit=0, redirected=False):
         """
@@ -96,7 +114,7 @@ class Completions(object):
         else:
             self.normal_string = instring.lower()
 
-        self.nodes_covered = set()
+        self.objs_covered = set()
         self.completions = []  # titles to return
         self.duplicate_matches = []  # (key, {}) pairs, as constructed in TitleTrie
 
@@ -156,17 +174,17 @@ class Completions(object):
         # todo: don't list all subtree titles, if string doesn't cover base title
         non_primary_matches = []
         for k, v in all_continuations:
-            if v["is_primary"] and v["node"] not in self.nodes_covered:
+            if v["is_primary"] and v["obj"] not in self.objs_covered:
                 self.completions += [v["title"]]
-                self.nodes_covered.add(v["node"])
+                self.objs_covered.add(v["obj"])
             else:
                 non_primary_matches += [(k, v)]
 
         # Iterate through non primary ones, until we cover the whole node-space
         for k, v in non_primary_matches:
-            if v["node"] not in self.nodes_covered:
+            if v["obj"] not in self.objs_covered:
                 self.completions += [v["title"]]
-                self.nodes_covered.add(v["node"])
+                self.objs_covered.add(v["obj"])
             else:
                 # todo: Check if this is in there already?
                 self.duplicate_matches += [(k, v)]
@@ -176,23 +194,46 @@ class TitleTrie(trie.CharTrie):
     """
     Character Trie built up of the titles in the library
     """
-    def __init__(self, lang, library, *args, **kwargs):
+    def __init__(self, lang, *args, **kwargs):
         assert lang in ["en", "he"]
         super(TitleTrie, self).__init__(*args, **kwargs)
         self.lang = lang
-        self.library = library
 
-        title_node_dict = self.library.get_title_node_dict(self.lang)
+    def _normalize_title(self, title):
+        if self.lang == "he":
+            return hebrew.normalize_final_letters_in_str(title)
+        else:
+            return title.lower()
+
+    def add_titles_from_title_node_dict(self, title_node_dict):
         for title, snode in title_node_dict.iteritems():
-            if self.lang == "he":
-                norm_title = hebrew.normalize_final_letters_in_str(title)
-            else:
-                norm_title = title.lower()
+            norm_title = self._normalize_title(title)
             self[norm_title] = {
                 "title": title,
-                "node": snode,
-                "is_primary": title == snode.primary_title(lang)
+                "obj": snode,
+                "type": "ref",
+                "is_primary": title == snode.primary_title(self.lang)
             }
+
+    def add_titles_from_set(self, recordset, all_names_method, primary_name_method, keyattr):
+        """
+
+        :param recordset: Instance of a subclass of AbstractMongoSet
+        :param namelistmethod: Name of method that will return list of titles, when passed lang
+        :param keyattr: Name of attribute that kill give key to object
+        :return:
+        """
+        for obj in recordset:
+            titles = getattr(obj, all_names_method)(self.lang)
+            key = getattr(obj, keyattr)
+            for title in titles:
+                norm_title = self._normalize_title(title)
+                self[norm_title] = {
+                    "title": title,
+                    "type": recordset.recordClass.__name__,
+                    "obj": obj,
+                    "is_primary": title == getattr(obj, primary_name_method)(self.lang)
+                }
 
 
 class SpellChecker(object):
@@ -200,7 +241,7 @@ class SpellChecker(object):
     Utilities to find small edits of a given string,
     and also to find edits of a given string that result in words in our title list.
     """
-    def __init__(self, lang, phrases=None):
+    def __init__(self, lang):
         assert lang in ["en", "he"]
         self.lang = lang
         if lang == "en":
@@ -208,8 +249,6 @@ class SpellChecker(object):
         else:
             self.letters = hebrew.ALPHABET_22 + hebrew.GERESH + hebrew.GERSHAYIM + u'".' + u"'"
         self.WORDS = defaultdict(int)
-        if phrases:
-            self.train_phrases(phrases)
 
     def words(self, text):
         if self.lang == "en":
@@ -284,15 +323,14 @@ class NGramMatcher(object):
 
     MIN_N_GRAM_SIZE = 3
 
-    def __init__(self, lang, library):
+    def __init__(self, lang):
         assert lang in ["en", "he"]
         self.lang = lang
-        self.library = library
         self.token_to_titles = defaultdict(list)
         self.n_gram_to_tokens = defaultdict(set)
 
-        title_node_dict = self.library.get_title_node_dict(self.lang)
-        for title in title_node_dict.keys():
+    def train_phrases(self, titles):
+        for title in titles:
             if self.lang == "he":
                 norm_title = hebrew.normalize_final_letters_in_str(title)
             else:

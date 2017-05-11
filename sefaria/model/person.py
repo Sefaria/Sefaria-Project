@@ -104,7 +104,6 @@ class Person(abst.AbstractMongoRecord):
         from . import text
         return text.IndexSet({"authors": self.key})
 
-
     def get_era(self):
         if getattr(self, "era", False):
             return time.TimePeriod().load({"symbol": self.era})
@@ -205,6 +204,7 @@ class PersonRelationship(abst.AbstractMongoRecord):
         return PersonRelationshipType().load({"key": self.type})
 
     #todo: handle reversable functions (what is that called again?) like 'opposed'
+
 
 class PersonRelationshipSet(abst.AbstractMongoSet):
     recordClass = PersonRelationship

@@ -2030,6 +2030,7 @@ def name_api(request, name):
             "is_ref": True,
             "is_book": ref.is_book_level(),
             "is_node": len(ref.sections) == 0,
+            "is_author": False,
             "normal": ref.normal(),
             # "number_follows": inode.has_numeric_continuation(),
             # "titles_follow": titles_follow,
@@ -2039,6 +2040,7 @@ def name_api(request, name):
         }
 
     except InputError:
+
         d = {
             "is_ref": False,
             "is_book": False,
