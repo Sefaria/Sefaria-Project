@@ -19,6 +19,11 @@ except ImportError:
     import re
 
 
+def normalize_input(instring, lang):
+    if lang == "he":
+        return hebrew.normalize_final_letters_in_str(instring)
+    return instring.lower()
+
 class AutoCompleter(object):
     """
     An AutoCompleter object provides completion services - it is the object in this module designed to be used by the Library.
@@ -57,6 +62,16 @@ class AutoCompleter(object):
             self.spell_checker.train_phrases(person_names)
             self.ngram_matcher.train_phrases(person_names)
 
+
+    def get_type(self, instring):
+        """
+        If there is a string matching instring in the autocompeter, return the type of the object for that string.
+        Otherwise, return None
+        :param instring:
+        :return:
+        """
+
+
     def complete(self, instring, limit=0, redirected=False):
         """
         Wrapper for Completions object - prioritizes and aggregates completion results.
@@ -83,11 +98,7 @@ class AutoCompleter(object):
         :return:
         """
         # Assume that instring is the name of a node.  Extend with a comma, and get next nodes in the Trie
-        if self.lang == "he":
-            normal_string = hebrew.normalize_final_letters_in_str(instring)
-        else:
-            normal_string = instring.lower()
-
+        normal_string = normalize_input(instring, self.lang)
         try:
             return [v["title"] for k, v in self.title_trie.items(normal_string + u",", shallow=True)]
         except KeyError:
@@ -108,12 +119,8 @@ class Completions(object):
         self.auto_completer = auto_completer
         self.lang = lang
         self.instring = instring
+        self.normal_string = normalize_input(instring, lang)
         self.limit = limit
-        if lang == "he":
-            self.normal_string = hebrew.normalize_final_letters_in_str(instring)
-        else:
-            self.normal_string = instring.lower()
-
         self.objs_covered = set()
         self.completions = []  # titles to return
         self.duplicate_matches = []  # (key, {}) pairs, as constructed in TitleTrie
@@ -199,15 +206,9 @@ class TitleTrie(trie.CharTrie):
         super(TitleTrie, self).__init__(*args, **kwargs)
         self.lang = lang
 
-    def _normalize_title(self, title):
-        if self.lang == "he":
-            return hebrew.normalize_final_letters_in_str(title)
-        else:
-            return title.lower()
-
     def add_titles_from_title_node_dict(self, title_node_dict):
         for title, snode in title_node_dict.iteritems():
-            norm_title = self._normalize_title(title)
+            norm_title = normalize_input(title, self.lang)
             self[norm_title] = {
                 "title": title,
                 "obj": snode,
@@ -227,7 +228,7 @@ class TitleTrie(trie.CharTrie):
             titles = getattr(obj, all_names_method)(self.lang)
             key = getattr(obj, keyattr)
             for title in titles:
-                norm_title = self._normalize_title(title)
+                norm_title = normalize_input(title, self.lang)
                 self[norm_title] = {
                     "title": title,
                     "type": recordset.recordClass.__name__,
@@ -250,6 +251,7 @@ class SpellChecker(object):
             self.letters = hebrew.ALPHABET_22 + hebrew.GERESH + hebrew.GERSHAYIM + u'".' + u"'"
         self.WORDS = defaultdict(int)
 
+    #todo: clean up normalization
     def words(self, text):
         if self.lang == "en":
             return re.findall(r'\w+', text.lower())
