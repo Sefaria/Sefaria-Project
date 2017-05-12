@@ -783,6 +783,10 @@ a.resourcesLink {
   letter-spacing: 1px;
   height: 46px;
   line-height: 46px;
+  display: block;
+}
+a.readerNavCategory {
+  color: #333;
 }
 @media (max-width: 450px) {
   .readerNavCategory {
@@ -1882,7 +1886,7 @@ a.resourcesLink {
   max-width: 70%;
   vertical-align: middle;
   color: #333;
-}`
+}
 .readerControls .readerTextToc .readerTextVersion {
   font-style: italic;
   color: #999;
@@ -3668,7 +3672,7 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
   max-width: 200px;
   margin-bottom: 5px;
   display: block;
-},
+}
 #editGroupPage .groupCover {
   width: 100%;
   margin-bottom: 5px;
