@@ -1762,6 +1762,11 @@ var ReaderPanel = React.createClass({
     // `replaceHistory` - bool whether to replace browser history rather than push for this change
     if (!ref) { return; }
     this.replaceHistory = Boolean(replaceHistory);
+    if (this.state.mode == "Connections" && this.props.masterPanelLanguage == "bilingual") {
+      // Connections panels are forced to be mono-lingual. When opening a text from a connections panel,
+      // allow it to return to bilingual.
+      this.state.settings.language = "bilingual";
+    }
     this.conditionalSetState({
       mode: "Text",
       refs: [ref],
@@ -1769,7 +1774,8 @@ var ReaderPanel = React.createClass({
       recentFilters: [],
       menuOpen: null,
       version: version,
-      versionLanguage: versionLanguage
+      versionLanguage: versionLanguage,
+      settings: this.state.settings
     });
   },
   updateTextColumn: function(refs) {
