@@ -3087,7 +3087,7 @@ function buildSource($target, source, appendOrInsert) {
 				var highlighterTagHTML = source.highlighter.en[i].tag ? ' data-tag="'+ source.highlighter.en[i].tag +'" ': '';
 				var highlighterTagColorHTML = '';
 				if (highlighterTagHTML != '') {
-					var highlighterTagColor = sjs.current.highlighterTags.find(tag => source.highlighter.en[i].tag == tag.name).color;
+					var highlighterTagColor = sjs.current.highlighterTags.filter(function(tag) { return source.highlighter.en[i].tag == tag.name; })[0].color;
 					highlighterTagColorHTML = 'style="background-color: '+highlighterTagColor+'"';
 				}
 
@@ -3099,7 +3099,7 @@ function buildSource($target, source, appendOrInsert) {
 				var highlighterTagHTML = source.highlighter.he[i].tag ? ' data-tag="'+ source.highlighter.he[i].tag +'" ': '';
 				var highlighterTagColorHTML = '';
 				if (highlighterTagHTML != '') {
-					var highlighterTagColor = sjs.current.highlighterTags.find(tag => source.highlighter.he[i].tag == tag.name ).color;
+					var highlighterTagColor = sjs.current.highlighterTags.filter(function(tag) { return source.highlighter.he[i].tag == tag.name; })[0].color;
 					highlighterTagColorHTML = 'style="background-color: '+highlighterTagColor+'"';
 				}
 
