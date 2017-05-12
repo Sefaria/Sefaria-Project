@@ -613,31 +613,31 @@ var ReaderApp = React.createClass({
   makePanelState: function(state) {
     // Return a full representation of a single panel's state, given a partial representation in `state`
     var panel = {
-      mode:                 state.mode,                // "Text", "TextAndConnections", "Connections"
-      refs:                 state.refs                 || [], // array of ref strings
-      filter:               state.filter               || [],
-      connectionsMode:      state.connectionsMode      || "Resources",
-      version:              state.version              || null,
-      versionLanguage:      state.versionLanguage      || null,
-      highlightedRefs:      state.highlightedRefs      || [],
-      recentFilters:        state.recentFilters        || state.filter || [],
-      menuOpen:             state.menuOpen             || null, // "navigation", "text toc", "display", "search", "sheets", "home", "book toc"
-      navigationCategories: state.navigationCategories || [],
-      navigationSheetTag:   state.sheetsTag            || null,
-      sheetsGroup:          state.group                || null,
-      searchQuery:          state.searchQuery          || null,
-      appliedSearchFilters: state.appliedSearchFilters || [],
-      searchFiltersValid:   state.searchFiltersValid   || false,
-      availableFilters:     state.availableFilters     || [],
-      filterRegistry:       state.filterRegistry       || {},
-      orphanSearchFilters:  state.orphanSearchFilters  || [],
-      bookRef:              state.bookRef              || null,
-      settings:             state.settings ? Sefaria.util.clone(state.settings) : Sefaria.util.clone(this.getDefaultPanelSettings()),
-      displaySettingsOpen:  false,
-      tagSort:              state.tagSort              || "count",
-      mySheetSort:          state.mySheetSort          || "date",
+      mode:                    state.mode,                   // "Text", "TextAndConnections", "Connections"
+      refs:                    state.refs                    || [], // array of ref strings
+      filter:                  state.filter                  || [],
+      connectionsMode:         state.connectionsMode         || "Resources",
+      version:                 state.version                 || null,
+      versionLanguage:         state.versionLanguage         || null,
+      highlightedRefs:         state.highlightedRefs         || [],
+      recentFilters:           state.recentFilters           || state.filter || [],
+      menuOpen:                state.menuOpen                || null, // "navigation", "text toc", "display", "search", "sheets", "home", "book toc"
+      navigationCategories:    state.navigationCategories    || [],
+      navigationSheetTag:      state.sheetsTag               || null,
+      sheetsGroup:             state.group                   || null,
+      searchQuery:             state.searchQuery             || null,
+      appliedSearchFilters:    state.appliedSearchFilters    || [],
+      searchFiltersValid:      state.searchFiltersValid      || false,
+      availableFilters:        state.availableFilters        || [],
+      filterRegistry:          state.filterRegistry          || {},
+      orphanSearchFilters:     state.orphanSearchFilters     || [],
+      bookRef:                 state.bookRef                 || null,
+      settings:                state.settings ? Sefaria.util.clone(state.settings) : Sefaria.util.clone(this.getDefaultPanelSettings()),
+      displaySettingsOpen:     false,
+      tagSort:                 state.tagSort                 || "count",
+      mySheetSort:             state.mySheetSort             || "date",
       initialAnalyticsTracked: state.initialAnalyticsTracked || false,
-      selectedWords:        state.selectedWords        || null,
+      selectedWords:           state.selectedWords           || null,
     };
     if (this.state && panel.refs.length && !panel.version) {
       var oRef = Sefaria.ref(panel.refs[0]);
@@ -1183,7 +1183,7 @@ var ReaderApp = React.createClass({
       var onSearchResultClick      = this.props.multiPanel ? this.handleCompareSearchClick.bind(null, i) : this.handleNavigationClick;
       var onTextListClick          = null; // this.openPanelAt.bind(null, i);
       var onOpenConnectionsClick   = this.openTextListAt.bind(null, i+1);
-      var setTextListHighlight    = this.setTextListHighlight.bind(null, i);
+      var setTextListHighlight     = this.setTextListHighlight.bind(null, i);
       var setSelectedWords         = this.setSelectedWords.bind(null, i);
       var openComparePanel         = this.openComparePanel.bind(null, i);
       var closePanel               = this.closePanel.bind(null, i);
@@ -6455,8 +6455,11 @@ var ConnectionsPanel = React.createClass({
     this.loadData();
   },
   componentDidUpdate: function(prevProps, prevState) {
-  if (!prevProps.srefs.compare(this.props.srefs)) {
+    if (!prevProps.srefs.compare(this.props.srefs)) {
       this.loadData();
+    }
+    if (!prevProps.selectedWords && this.props.selectedWords) {
+      this.props.setConnectionsMode("Lexicon");
     }
   },
   loadData: function() {
@@ -6552,7 +6555,7 @@ var ConnectionsPanel = React.createClass({
     } else if (this.props.mode === "Lexicon") {
       content = (<LexiconPanel 
                     selectedWords={this.props.selectedWords} 
-                    oref={this.props.oref} />);
+                    oref={Sefaria.ref(this.props.srefs[0])} />);
     
     } else if (this.props.mode === "Tools") {
       content = (<ToolsPanel
@@ -7319,25 +7322,27 @@ var LexiconPanel = React.createClass({
       loaded: false
     };
   },
-  componentDidMount: function(){
+  componentDidMount: function() {
     if(this.props.selectedWords){
       this.getLookups(this.props.selectedWords, this.props.oref);
     }
   },
-  componentWillReceiveProps: function(nextProps){
+  componentWillReceiveProps: function(nextProps) {
     // console.log("component will receive props: ", nextProps.selectedWords);
-    if(this.props.selectedWords != nextProps.selectedWords){
+    if (!nextProps.selectedWords) {
+      this.clearLookups();
+    } else if (this.props.selectedWords != nextProps.selectedWords) {
       this.clearLookups();
       this.getLookups(nextProps.selectedWords, nextProps.oref);
     }
   },
-  clearLookups: function(){
+  clearLookups: function() {
     this.setState({
       loaded: false,
       entries: []
     });
   },
-  getLookups: function(words, oref){
+  getLookups: function(words, oref) {
     if(this.shouldActivate(words)){
       // console.log('getting data: ', words, oref.ref);
       Sefaria.lexicon(words, oref.ref, function(data) {
@@ -7354,18 +7359,25 @@ var LexiconPanel = React.createClass({
       }.bind(this));
     }
   },
-  shouldActivate: function(selectedWords){
+  shouldActivate: function(selectedWords) {
     if(!selectedWords){
-      return false;
+      return null;
     }
     var wordList = selectedWords.split(/[\s:\u05c3\u05be\u05c0.]+/);
     var inputLength = wordList.length;
     return (inputLength <= 3);
   },
-  render: function(){
+  render: function() {
+    if (!this.props.selectedWords) {
+      return (
+        <div className="lexicon-instructions">
+          <span className="int-en">Highlight words to look up definitions.</span>
+          <span className="int-he">Highlight words to look up definitions.</span>
+        </div>);
+    }
     var refCats = this.props.oref.categories.join(", "); //TODO: the way to filter by categories is very limiting.
-    var enEmpty = "No results found.";
-    var heEmpty = "לא נמצאו תוצאות";
+    var enEmpty = "No definitions found for " + this.props.selectedWords + ".";
+    var heEmpty = "לא נמצאו תוצאות '" + this.props.selectedWords + "'.";
     if(!this.shouldActivate(this.props.selectedWords)){
       //console.log("not rendering lexicon");
       return false;
@@ -7404,40 +7416,24 @@ var LexiconEntry = React.createClass({
   propTypes: {
     data: React.PropTypes.object.isRequired
   },
-  render: function(){
-    var entry = this.props.data;
-    var headwordClassNames = classNames('headword', entry['parent_lexicon_details']["to_language"].slice(0,2));
-    var definitionClassNames = classNames('definition-content', entry['parent_lexicon_details']["to_language"].slice(0,2));
-    var entryHeadHtml =  (<span className="headword">{entry['headword']}</span>);
-    var morphologyHtml = ('morphology' in entry['content']) ?  (<span className="morphology">({entry['content']['morphology']})</span>) :"";
-    var senses = this.renderLexiconEntrySenses(entry['content']);
-    var attribution = this.renderLexiconAttribution();
+  renderLexiconEntrySenses: function(content) {
+		var grammar     = ('grammar' in content) ? '('+ content['grammar']['verbal_stem'] + ')' : "";
+		var def         = ('definition' in content) ? content['definition'] : "";
+    var notes       = ('notes' in content) ? (<span className="notes">{content['notes']}</span>) : "";
+    var sensesElems = ('senses' in content) ? content['senses'].map((sense, i) => {
+      return <div key={i}>{this.renderLexiconEntrySenses(sense)}</div>;
+    }) : "";
+    var senses = sensesElems.length ? (<ol className="senses">{sensesElems}</ol>) : "";
     return (
-        <div className="entry">
-          <div className={headwordClassNames}>{entryHeadHtml}</div>
-          <div className={definitionClassNames}>{morphologyHtml}<ol className="definition">{senses}</ol></div>
-          <div className="attribution">{attribution}</div>
-        </div>
+      <li className="sense">
+        {grammar}
+        {def}
+        {notes}
+        {senses}
+      </li>
     );
   },
-  renderLexiconEntrySenses: function(content){
-		var grammar = ('grammar' in content) ? '('+ content['grammar']['verbal_stem'] + ')' : "";
-		var def = ('definition' in content) ? content['definition'] : "";
-        var notes = ('notes' in content) ? (<span className="notes">{content['notes']}</span>) : "";
-        var sensesElems =  ('senses' in content) ? content['senses'].map((sense)=> {
-          return this.renderLexiconEntrySenses(sense)
-        }) : "";
-        var senses = sensesElems.length ? (<ol className="senses">{sensesElems}</ol>) : "";
-        return (
-            <li className="sense">
-              {grammar}
-              {def}
-              {notes}
-              {senses}
-            </li>
-        );
-  },
-  renderLexiconAttribution: function(){
+  renderLexiconAttribution: function() {
     var entry = this.props.data;
 		var lexicon_dtls = entry['parent_lexicon_details'];
         return (
@@ -7460,6 +7456,22 @@ var LexiconEntry = React.createClass({
                 </span>
             </div>
         );
+  },
+  render: function() {
+    var entry = this.props.data;
+    var headwordClassNames = classNames('headword', entry['parent_lexicon_details']["to_language"].slice(0,2));
+    var definitionClassNames = classNames('definition-content', entry['parent_lexicon_details']["to_language"].slice(0,2));
+    var entryHeadHtml =  (<span className="headword">{entry['headword']}</span>);
+    var morphologyHtml = ('morphology' in entry['content']) ?  (<span className="morphology">({entry['content']['morphology']})</span>) :"";
+    var senses = this.renderLexiconEntrySenses(entry['content']);
+    var attribution = this.renderLexiconAttribution();
+    return (
+        <div className="entry">
+          <div className={headwordClassNames}>{entryHeadHtml}</div>
+          <div className={definitionClassNames}>{morphologyHtml}<ol className="definition">{senses}</ol></div>
+          <div className="attribution">{attribution}</div>
+        </div>
+    );
   }
 });
 
@@ -7753,7 +7765,7 @@ var AddToSourceSheetPanel = React.createClass({
     return (
       <div className="addToSourceSheetPanel sans">
         <div className="selectedSheet" onClick={this.toggleSheetList}>
-          {this.state.sheetsLoaded ? this.state.selectedSheet.title.stripHtml() : <LoadingMessage />}
+          {this.state.sheetsLoaded ? this.state.selectedSheet.title.stripHtml() : <LoadingMessage messsage="Loading your sheets..." heMessage=""/>}
           <i className="sheetListOpenButton fa fa-caret-down"></i>
         </div>
         {this.state.sheetListOpen ? 

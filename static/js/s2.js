@@ -8179,6 +8179,9 @@ var ConnectionsPanel = React.createClass({
     if (!prevProps.srefs.compare(this.props.srefs)) {
       this.loadData();
     }
+    if (!prevProps.selectedWords && this.props.selectedWords) {
+      this.props.setConnectionsMode("Lexicon");
+    }
   },
   loadData: function loadData() {
     if (!Sefaria.related(this.props.srefs)) {
@@ -8274,7 +8277,7 @@ var ConnectionsPanel = React.createClass({
     } else if (this.props.mode === "Lexicon") {
       content = React.createElement(LexiconPanel, {
         selectedWords: this.props.selectedWords,
-        oref: this.props.oref });
+        oref: Sefaria.ref(this.props.srefs[0]) });
     } else if (this.props.mode === "Tools") {
       content = React.createElement(ToolsPanel, {
         srefs: this.props.srefs,
@@ -9267,7 +9270,9 @@ var LexiconPanel = React.createClass({
   },
   componentWillReceiveProps: function componentWillReceiveProps(nextProps) {
     // console.log("component will receive props: ", nextProps.selectedWords);
-    if (this.props.selectedWords != nextProps.selectedWords) {
+    if (!nextProps.selectedWords) {
+      this.clearLookups();
+    } else if (this.props.selectedWords != nextProps.selectedWords) {
       this.clearLookups();
       this.getLookups(nextProps.selectedWords, nextProps.oref);
     }
@@ -9297,16 +9302,32 @@ var LexiconPanel = React.createClass({
   },
   shouldActivate: function shouldActivate(selectedWords) {
     if (!selectedWords) {
-      return false;
+      return null;
     }
     var wordList = selectedWords.split(/[\s:\u05c3\u05be\u05c0.]+/);
     var inputLength = wordList.length;
     return inputLength <= 3;
   },
   render: function render() {
+    if (!this.props.selectedWords) {
+      return React.createElement(
+        'div',
+        { className: 'lexicon-instructions' },
+        React.createElement(
+          'span',
+          { className: 'int-en' },
+          'Highlight words to look up definitions.'
+        ),
+        React.createElement(
+          'span',
+          { className: 'int-he' },
+          'Highlight words to look up definitions.'
+        )
+      );
+    }
     var refCats = this.props.oref.categories.join(", "); //TODO: the way to filter by categories is very limiting.
-    var enEmpty = "No results found.";
-    var heEmpty = "לא נמצאו תוצאות";
+    var enEmpty = "No definitions found for " + this.props.selectedWords + ".";
+    var heEmpty = "לא נמצאו תוצאות '" + this.props.selectedWords + "'.";
     if (!this.shouldActivate(this.props.selectedWords)) {
       //console.log("not rendering lexicon");
       return false;
@@ -9350,49 +9371,6 @@ var LexiconEntry = React.createClass({
   propTypes: {
     data: React.PropTypes.object.isRequired
   },
-  render: function render() {
-    var entry = this.props.data;
-    var headwordClassNames = classNames('headword', entry['parent_lexicon_details']["to_language"].slice(0, 2));
-    var definitionClassNames = classNames('definition-content', entry['parent_lexicon_details']["to_language"].slice(0, 2));
-    var entryHeadHtml = React.createElement(
-      'span',
-      { className: 'headword' },
-      entry['headword']
-    );
-    var morphologyHtml = 'morphology' in entry['content'] ? React.createElement(
-      'span',
-      { className: 'morphology' },
-      '(',
-      entry['content']['morphology'],
-      ')'
-    ) : "";
-    var senses = this.renderLexiconEntrySenses(entry['content']);
-    var attribution = this.renderLexiconAttribution();
-    return React.createElement(
-      'div',
-      { className: 'entry' },
-      React.createElement(
-        'div',
-        { className: headwordClassNames },
-        entryHeadHtml
-      ),
-      React.createElement(
-        'div',
-        { className: definitionClassNames },
-        morphologyHtml,
-        React.createElement(
-          'ol',
-          { className: 'definition' },
-          senses
-        )
-      ),
-      React.createElement(
-        'div',
-        { className: 'attribution' },
-        attribution
-      )
-    );
-  },
   renderLexiconEntrySenses: function renderLexiconEntrySenses(content) {
     var _this6 = this;
 
@@ -9403,8 +9381,12 @@ var LexiconEntry = React.createClass({
       { className: 'notes' },
       content['notes']
     ) : "";
-    var sensesElems = 'senses' in content ? content['senses'].map(function (sense) {
-      return _this6.renderLexiconEntrySenses(sense);
+    var sensesElems = 'senses' in content ? content['senses'].map(function (sense, i) {
+      return React.createElement(
+        'div',
+        { key: i },
+        _this6.renderLexiconEntrySenses(sense)
+      );
     }) : "";
     var senses = sensesElems.length ? React.createElement(
       'ol',
@@ -9465,6 +9447,49 @@ var LexiconEntry = React.createClass({
           ),
           'attribution' in lexicon_dtls ? lexicon_dtls['attribution'] : lexicon_dtls['attribution_url']
         )
+      )
+    );
+  },
+  render: function render() {
+    var entry = this.props.data;
+    var headwordClassNames = classNames('headword', entry['parent_lexicon_details']["to_language"].slice(0, 2));
+    var definitionClassNames = classNames('definition-content', entry['parent_lexicon_details']["to_language"].slice(0, 2));
+    var entryHeadHtml = React.createElement(
+      'span',
+      { className: 'headword' },
+      entry['headword']
+    );
+    var morphologyHtml = 'morphology' in entry['content'] ? React.createElement(
+      'span',
+      { className: 'morphology' },
+      '(',
+      entry['content']['morphology'],
+      ')'
+    ) : "";
+    var senses = this.renderLexiconEntrySenses(entry['content']);
+    var attribution = this.renderLexiconAttribution();
+    return React.createElement(
+      'div',
+      { className: 'entry' },
+      React.createElement(
+        'div',
+        { className: headwordClassNames },
+        entryHeadHtml
+      ),
+      React.createElement(
+        'div',
+        { className: definitionClassNames },
+        morphologyHtml,
+        React.createElement(
+          'ol',
+          { className: 'definition' },
+          senses
+        )
+      ),
+      React.createElement(
+        'div',
+        { className: 'attribution' },
+        attribution
       )
     );
   }
@@ -9819,7 +9844,7 @@ var AddToSourceSheetPanel = React.createClass({
       React.createElement(
         'div',
         { className: 'selectedSheet', onClick: this.toggleSheetList },
-        this.state.sheetsLoaded ? this.state.selectedSheet.title.stripHtml() : React.createElement(LoadingMessage, null),
+        this.state.sheetsLoaded ? this.state.selectedSheet.title.stripHtml() : React.createElement(LoadingMessage, { messsage: 'Loading your sheets...', heMessage: '' }),
         React.createElement('i', { className: 'sheetListOpenButton fa fa-caret-down' })
       ),
       this.state.sheetListOpen ? React.createElement(

@@ -3234,56 +3234,40 @@ a .button:hover {
 input {
   outline: none;
 }
-
 .lexicon-content{
-  /*max-height:45%;*/
   font-size: 15px;
   padding-bottom: 10px;
   margin-bottom: 1px;
-  border-bottom: 1px solid #e5e5e5;
 }
-
-
-
 .lexicon-link:hover {
   text-decoration: underline;
 }
-
-
 .lexicon-header {
   padding: 10px;
   border-bottom: 1px solid #e5e5e5;
   background-color: #AAAAAA;
 }
-
-.lexicon-header h4{
+.lexicon-header h4 {
   font-size: 1.2em;
   margin: 0px;
 }
-
 .entry + .entry {
   padding-top: 10px;
-  	/*border-top: 1px inset #AAAAAA;*/
 }
-
 .lexicon-results .entry > div{
   padding: 1% 0 1% 0;
   margin: auto;
 }
-
-.lexicon-results .entry .headword{
-	/*font-weight: bold;*/
+.lexicon-results .entry .headword {
   color: #333;
   font-size: 1.2em;
   display: block;
 }
-
-.lexicon-results .entry .morphology{
+.lexicon-results .entry .morphology {
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
   color: #999;
   display: block;
 }
-
 .lexicon-results .entry .definition-content{
     color: #444;
 }
@@ -3293,14 +3277,11 @@ input {
 .lexicon-results .entry .definition li.sense{
 	margin-left: 15px;
 	padding: 0px;
-	/*margin: 0;*/
 }
 .lexicon-results .entry .definition ol.senses{
-	/*list-style-type: none;*/
 	padding-left: 0px;
 }
 .lexicon-results .entry .definition > li.sense{
-	/*list-style-type: none;*/
 	margin-left: 0px;
 }
 .lexicon-results .entry ol.definition {
@@ -3309,35 +3290,32 @@ input {
 	padding-left: 0px;
     margin: 0px;
 }
-/*.sense + .sense {
-	margin-top: 3px;
-	padding-top: 3px;
-	border-top: 1px solid #eee;}*/
-
-/*.lexicon-results a {
-	font-size: 12px;
-}*/
-.lexicon-results .attribution{
+.lexicon-results .attribution {
 
 }
-.lexicon-results .attribution span{
+.lexicon-results .attribution span {
   display: block;
 }
-.lexicon-results .attribution a{
+.lexicon-results .attribution a {
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
   color: #aaa;
   font-size: 10px;
 }
 .lexicon-content .headword.en, .lexicon-content .headword.he,
 .lexicon-content .definition-content.en, .lexicon-content .definition-content.he,
-.lexicon-content .lexicon-results .attribution{
+.lexicon-content .lexicon-results .attribution {
   display: inline;
 }
-.lexicon-content .headword.he, .lexicon-content .definition-content.he{
+.lexicon-content .headword.he, .lexicon-content .definition-content.he {
   direction: rtl;
 }
-.lexicon-content .headword.en, .lexicon-content .definition-content.en{
+.lexicon-content .headword.en, .lexicon-content .definition-content.en {
   direction: ltr;
+}
+.lexicon-instructions,
+.lexicon-content .loadingMessage {
+  font-size: 15px;
+  font-style: italic;
 }
 h2.splitHeader {
   margin-bottom: 10px;
