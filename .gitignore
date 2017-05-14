@@ -72,6 +72,10 @@ venv/
 ##############
 /static/robots.txt
 
+# Sitemaps #
+############
+/static/sitemaps
+
 # Backed up Data # 
 ##################
 /data/backup
