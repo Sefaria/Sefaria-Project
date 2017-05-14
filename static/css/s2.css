@@ -80,25 +80,45 @@ input.noselect {
   left: 0;
   width: 100%;
   height: 54px;
-  line-height: 54px;
+  /*line-height: 54px;*/
   background: white;
   z-index: 1001;
   border-bottom: 1px solid #ccc;
   box-sizing: border-box;
   padding: 0px 30px;
-  text-align: center;
+  /*text-align: center;*/
   overflow: hidden;
-  white-space: nowrap;
+  /*white-space: nowrap;*/
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
-.header .left {
-  float: left;
-  text-align: left;
-  height: 54px;
-  overflow: hidden;
+.interface-hebrew .headerInner{
+  direction: rtl;
 }
-.header .right {
-  float: right;
-  text-align: right;
+
+.headerInner .headerNavSection{
+  display: flex;
+  justify-content: flex-start;
+}
+.headerInner .headerHomeSection{
+  /*display: flex;
+  justify-content: center;*/
+  position: absolute;
+  top: 16px;
+  left: 50%;
+  margin-left: -51px;
+}
+.headerInner .headerLinksSection{
+  display: flex;
+  justify-content: flex-end;
+  min-width: 40%;
+}
+.header .header-nav{
+  margin-top: 1px;
+}
+.header .header-links{
+  margin-top: 1px;
 }
 .header .library, .header .home, .header .account, .header .notifications, .header .readerNavMenuSearchButton {
   cursor: pointer;
@@ -109,12 +129,16 @@ input.noselect {
 }
 .header .searchBox {
   overflow: hidden;
-  display: block;
+  display: inline-block;
   padding: 0;
-  text-align: left;
+  text-align: inherit;
+  /*width: 42.5%;
+  margin: auto 1px;*/
+  margin: 0px 17px 0 17px;
 }
 .header .searchBox input{
   background-color: transparent; /*for firefox */
+  margin-top: 3px;
 }
 .header .search {
   outline: none;
@@ -131,10 +155,18 @@ input.noselect {
   padding-top: 5px;
 }
 .header .home {
-  position: absolute;
+  /*position: absolute;
   top: -1px;
   left: 50%;
-  margin-left: -51px;
+  margin-left: -51px;*/
+  /*width: 42%;*/
+  margin-top: 1px;
+}
+.header .login:first-child{
+  margin: auto 30px;
+}
+.header .account:first-child{
+  margin: auto 17px;
 }
 @media (max-width: 540px) {
   .header .home {
@@ -142,6 +174,19 @@ input.noselect {
   }
   .header .accountLinks .login {
     margin-left: 16px;
+  }
+
+  .header .searchBox input{
+    width: 45%;
+  }
+  .header .login:first-child {
+    margin: auto 20px;
+  }
+  .headerInner .headerNavSection{
+    width: 48%;
+  }
+  img.keyboardInputInitiator{
+    display: none;
   }
 }
 .header .home img {
@@ -152,14 +197,19 @@ input.noselect {
 .header .accountLinks {
   display: inline-block;
   font-size: 15px;
+  margin-top: 2px;
 }
 .header .account, .header .notifications {
   display: inline-block;
   vertical-align: middle;
 }
 .header .library, .header .account {
-  margin: 0px 17px 0 0;
+  /*-webkit-margin-end: 17px;
+  margin-inline-end: 17px;*/
   font-size: 24px;
+}
+.header .library{
+  margin-top: 1px;
 }
 .header .notifications {
   display: inline-block;
@@ -172,14 +222,14 @@ input.noselect {
   background-color: #aaa;
   color: white;
   font-size: 16px;
-  margin-top: -5px;
+  margin-top: -2px;
 }
 .header .notifications.unread {
   background-color: #EFB4B6;
 }
 .header .login {
   color: #999;
-  margin: 0 0 0 30px;
+  /*margin: 0 0 0 30px;*/
   display: inline-block;
   line-height: 1;
 }
@@ -297,8 +347,10 @@ input.noselect {
 .header .readerNavMenuMenuButton {
   margin: 0 8px 0 6px;
   font-size: 17px;
-  position: relative;
-  top: -1px;
+}
+
+.header .readerNavMenuSearchButton{
+  margin-top: 4px;
 }
 
 .header .headerNavContent {

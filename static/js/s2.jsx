@@ -1510,28 +1510,29 @@ var Header = React.createClass({
                              <span className="int-he">התחבר</span>
                            </a>
                          </div>);
-    var langSearchPlaceholder = this.props.interfaceLang == 'english' ? "Search" : "הקלד לחיפוש";
+    var langSearchPlaceholder = this.props.interfaceLang == 'english' ? "Search" : "חיפוש";
     var vkClassActivator = this.props.interfaceLang == 'english' ? " keyboardInput" : "";
     return (<div className="header">
               <div className="headerInner">
-                <div className="left">
-                  <a href="/texts" aria-label="Toggle Text Table of Contents" className="library" onClick={this.handleLibraryClick}><i className="fa fa-bars"></i></a>
+                <div className="headerNavSection">
+                    <a href="/texts" aria-label="Toggle Text Table of Contents" className="library" onClick={this.handleLibraryClick}><i className="fa fa-bars"></i></a>
+                    <div  className="searchBox">
+                      <ReaderNavigationMenuSearchButton onClick={this.handleSearchButtonClick} />
+                      <input className={"search"+ vkClassActivator}
+                             placeholder={langSearchPlaceholder}
+                             onKeyUp={this.handleSearchKeyUp}
+                             onFocus={this.showVirtualKeyboardIcon.bind(this, true)}
+                             onBlur={this.showVirtualKeyboardIcon.bind(this, false)}
+                      title="Search for Texts or Keywords Here"/>
+                    </div>
                 </div>
-                <div className="right">
+                <div className="headerHomeSection">
+                    <a className="home" href="/?home" ><img src="/static/img/sefaria.svg" alt="Sefaria Logo"/></a>
+                </div>
+                <div className="headerLinksSection">
                   { headerMessage }
                   { Sefaria.loggedIn ? loggedInLinks : loggedOutLinks }
                 </div>
-                <span className="searchBox">
-                  <ReaderNavigationMenuSearchButton onClick={this.handleSearchButtonClick} />
-                  <input className={"search"+ vkClassActivator}
-                         placeholder={langSearchPlaceholder}
-                         onKeyUp={this.handleSearchKeyUp}
-                         onFocus={this.showVirtualKeyboardIcon.bind(this, true)}
-                         onBlur={this.showVirtualKeyboardIcon.bind(this, false)}
-                         title="Search for Texts or Keywords Here"
-                  />
-                </span>
-                <a className="home" href="/?home" ><img src="/static/img/sefaria.svg" alt="Sefaria Logo" /></a>
               </div>
               { viewContent ? 
                 (<div className="headerNavContent">
@@ -2561,7 +2562,7 @@ var ReaderNavigationMenu = React.createClass({
   render: function() {
     if (this.props.categories.length && this.props.categories[0] == "recent") {
       return (<div onClick={this.handleClick}>
-                <RecentPanel 
+                <RecentPanel
                   multiPanel={this.props.multiPanel}
                   closeNav={this.closeNav}
                   toggleLanguage={this.props.toggleLanguage}
