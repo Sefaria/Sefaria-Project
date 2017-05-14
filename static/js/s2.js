@@ -4255,9 +4255,11 @@ var SchemaNode = React.createClass({
     refPath: React.PropTypes.string.isRequired
   },
   getInitialState: function getInitialState() {
-    var nChildren = "nodes" in this.props.schema ? this.props.schema.nodes.length : 0;
     return {
-      collapsed: new Array(nChildren).fill(true)
+      // Collapse everything except default nodes to start.
+      collapsed: "nodes" in this.props.schema ? this.props.schema.nodes.map(function (node) {
+        return !node.default;
+      }) : []
     };
   },
   toggleCollapse: function toggleCollapse(i) {
