@@ -196,6 +196,7 @@ def recur_delete_element_from_toc(bookname, toc):
                 toc_elem['to_delete'] = True
     return toc
 
+
 def update_title_in_toc(toc, index, old_ref=None, recount=True, for_search=False):
     """
     Update text summary docs to account for change or insertion of 'text'
@@ -272,6 +273,7 @@ def add_counts_to_index(indx_dict):
     vs = StateNode(indx_dict["title"], meta=True)
     indx_dict["sparseness"] = max(vs.get_sparseness("he"), vs.get_sparseness("en"))
     return indx_dict
+
 
 def node_sort_key(a):
     """
@@ -394,3 +396,88 @@ def flatten_toc(toc, include_categories=False, categories_in_titles=False, versi
 
     return results
 
+
+def toc_serial_to_objects(toc):
+    root = TocCategory()
+    root.add_title("TOC", "en", primary=True)
+    root.add_title(u"שרש", "he", primary=True)
+    for e in toc:
+        root.append(deserialize_tree(e, struct_class=TocCategory, leaf_class=TocTextIndex, children_attr="contents"))
+    return root
+
+
+""" Sketch toward object oriented TOC """
+class TocNode(TitledTreeNode):
+    langs = ["he", "en"]
+    title_attrs = {
+        "en": "",
+        "he": ""
+    }
+
+    def __init__(self, serial=None, **kwargs):
+        super(TocNode, self).__init__(serial, **kwargs)
+
+        # remove after deserialization, so as not to mess with serial dicts.
+        if serial is not None:
+            for lang in self.langs:
+                self.add_title(serial.get(self.title_attrs[lang]), lang, primary=True)
+                delattr(self, self.title_attrs[lang])
+
+    # This varies a bit from the superclass. Seems not worthwhile to abstract into the superclass.
+    def serialize(self, **kwargs):
+        d = {}
+        if self.children:
+            d["contents"] = [n.serialize(**kwargs) for n in self.children]
+
+        params = {k: getattr(self, k) for k in self.required_param_keys + self.optional_param_keys if
+                  getattr(self, k, "BLANKVALUE") is not "BLANKVALUE"}
+        if any(params):
+            d.update(params)
+
+        for lang in self.langs:
+            d[self.title_attrs[lang]] = self.title_group.primary_title(lang)
+
+        return d
+
+
+class TocCategory(TocNode):
+    """
+    "category": "",
+    "heCategory": hebrew_term(""),
+    "contents": []
+    """
+    title_attrs = {
+        "he": "heCategory",
+        "en": "category"
+    }
+
+
+class TocTextIndex(TocNode):
+    """
+    categories: Array(2)
+    dependence: false
+    firstSection: "Mishnah Eruvin 1"
+    heTitle: "משנה עירובין"
+    order: 13
+    primary_category: "Mishnah"
+    sparseness: 4
+    title: "Mishnah Eruvin"
+    """
+    optional_param_keys = [
+        "categories",
+        "dependence",
+        "firstSection",
+        "order",
+        "sparseness",
+        "primary_category",
+        "collectiveTitle",
+        "base_text_titles",
+        "base_text_mapping",
+        "heCollectiveTitle",
+        "commentator",
+        "heCommentator"
+    ]
+    title_attrs = {
+        "en": "title",
+        "he": "heTitle"
+    }
