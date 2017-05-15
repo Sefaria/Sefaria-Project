@@ -10,14 +10,12 @@ from sefaria.utils.util import list_depth
 import re
 
 """
-Experimental
-These utilities have been used a few times, but are still rough.
 
 To get the existing schema nodes to pass into these functions, easiest is likely:
 Ref("...").index_node
 
 
-Todo:
+Todo: (still?)
     Clean system from old refs:
         links to commentary
         transx reqs

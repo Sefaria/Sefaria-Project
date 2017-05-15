@@ -397,6 +397,9 @@ def flatten_toc(toc, include_categories=False, categories_in_titles=False, versi
     return results
 
 
+""" Sketch toward object oriented TOC """
+
+
 def toc_serial_to_objects(toc):
     root = TocCategory()
     root.add_title("TOC", "en", primary=True)
@@ -406,26 +409,28 @@ def toc_serial_to_objects(toc):
     return root
 
 
-""" Sketch toward object oriented TOC """
 class TocNode(TitledTreeNode):
+    """
+    Abstract superclass for all TOC nodes.
+    """
     langs = ["he", "en"]
     title_attrs = {
         "en": "",
         "he": ""
     }
 
-    @property
-    def full_path(self):
-        return [n.primary_title("en") for n in self.ancestors()[1:]] + [self.primary_title("en")]
-
     def __init__(self, serial=None, **kwargs):
         super(TocNode, self).__init__(serial, **kwargs)
 
-        # remove after deserialization, so as not to mess with serial dicts.
+        # remove title attributes after deserialization, so as not to mess with serial dicts.
         if serial is not None:
             for lang in self.langs:
                 self.add_title(serial.get(self.title_attrs[lang]), lang, primary=True)
                 delattr(self, self.title_attrs[lang])
+
+    @property
+    def full_path(self):
+        return [n.primary_title("en") for n in self.ancestors()[1:]] + [self.primary_title("en")]
 
     # This varies a bit from the superclass. Seems not worthwhile to abstract into the superclass.
     def serialize(self, **kwargs):

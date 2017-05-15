@@ -59,7 +59,7 @@ class AutoCompleter(object):
 
         if include_categories:
             oo_toc = toc_serial_to_objects(library.get_toc())
-            categories = oo_toc.children[:-1]  # Trim off "Other"
+            categories = self._get_main_categories(oo_toc)
             category_names = [c.primary_title(lang) for c in categories]
             self.title_trie.add_titles_from_set(categories, "all_node_titles", "primary_title", "full_path")
             self.spell_checker.train_phrases(category_names)
@@ -71,6 +71,16 @@ class AutoCompleter(object):
             self.title_trie.add_titles_from_set(ps, "all_names", "primary_name", "key")
             self.spell_checker.train_phrases(person_names)
             self.ngram_matcher.train_phrases(person_names)
+
+    def _get_main_categories(self, otoc):
+        cats = []
+        for child in otoc.children:
+            if child.children and child.primary_title("en") != "Commentary" and child.primary_title("en") != "Other":
+                cats += [child]
+            for grandchild in child.children:
+                if grandchild.children and grandchild.primary_title("en") != "Commentary":
+                    cats += [grandchild]
+        return cats
 
     def get_data(self, instring):
         """
