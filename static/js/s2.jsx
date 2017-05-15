@@ -1056,14 +1056,14 @@ var ReaderApp = React.createClass({
     }
     this.setState(state);
   },
-  showLibrary: function() {
+  showLibrary: function(categories) {
     if (this.props.multiPanel) {
-      this.setState({header: this.makePanelState({mode: "Header", menuOpen: "navigation"})});
+      this.setState({header: this.makePanelState({mode: "Header", menuOpen: "navigation", navigationCategories: categories})});
     } else {
       if (this.state.panels.length) {
         this.state.panels[0].menuOpen = "navigation";
       } else {
-        this.state.panels[0] = this.makePanelState({menuOpen: "navigation"});
+        this.state.panels[0] = this.makePanelState({menuOpen: "navigation", navigationCategories: categories});
       }
       this.setState({panels: this.state.panels});
     }
@@ -1181,7 +1181,7 @@ var ReaderApp = React.createClass({
       var onSearchResultClick      = this.props.multiPanel ? this.handleCompareSearchClick.bind(null, i) : this.handleNavigationClick;
       var onTextListClick          = null; // this.openPanelAt.bind(null, i);
       var onOpenConnectionsClick   = this.openTextListAt.bind(null, i+1);
-      var setTextListHighlight    = this.setTextListHighlight.bind(null, i);
+      var setTextListHighlight     = this.setTextListHighlight.bind(null, i);
       var setSelectedWords         = this.setSelectedWords.bind(null, i);
       var openComparePanel         = this.openComparePanel.bind(null, i);
       var closePanel               = this.closePanel.bind(null, i);
@@ -1345,8 +1345,8 @@ var Header = React.createClass({
     this.props.setCentralState({menuOpen: null});
     this.clearSearchBox();      
   },
-  showLibrary: function() {
-    this.props.showLibrary();
+  showLibrary: function(categories) {
+    this.props.showLibrary(categories);
     this.clearSearchBox();
   },
   showSearch: function(query) {
@@ -1418,8 +1418,13 @@ var Header = React.createClass({
         this.clearSearchBox();
         this.handleRefClick(d["normal"]);  //todo: pass an onError function through here to the panel onError function which redirects to search
       } else if (d["type"] == "Person") {
+        Sefaria.site.track.event("Search", "Search Box Navigation - Person", query);
         this.closeSearchAutocomplete();
         this.showPerson(d["key"]);
+      } else if (d["type"] == "TocCategory") {
+        Sefaria.site.track.event("Search", "Search Box Navigation - Category", query);
+        this.closeSearchAutocomplete();
+        this.showLibrary(d["key"]);  // "key" holds the category path 
       } else {
         Sefaria.site.track.event("Search", "Search Box Search", query);
         this.closeSearchAutocomplete();

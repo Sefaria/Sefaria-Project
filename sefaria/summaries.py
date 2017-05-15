@@ -414,6 +414,10 @@ class TocNode(TitledTreeNode):
         "he": ""
     }
 
+    @property
+    def full_path(self):
+        return [n.primary_title("en") for n in self.ancestors()[1:]] + [self.primary_title("en")]
+
     def __init__(self, serial=None, **kwargs):
         super(TocNode, self).__init__(serial, **kwargs)
 

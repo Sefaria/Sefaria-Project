@@ -1089,14 +1089,14 @@ var ReaderApp = React.createClass({
     }
     this.setState(state);
   },
-  showLibrary: function showLibrary() {
+  showLibrary: function showLibrary(categories) {
     if (this.props.multiPanel) {
-      this.setState({ header: this.makePanelState({ mode: "Header", menuOpen: "navigation" }) });
+      this.setState({ header: this.makePanelState({ mode: "Header", menuOpen: "navigation", navigationCategories: categories }) });
     } else {
       if (this.state.panels.length) {
         this.state.panels[0].menuOpen = "navigation";
       } else {
-        this.state.panels[0] = this.makePanelState({ menuOpen: "navigation" });
+        this.state.panels[0] = this.makePanelState({ menuOpen: "navigation", navigationCategories: categories });
       }
       this.setState({ panels: this.state.panels });
     }
@@ -1387,8 +1387,8 @@ var Header = React.createClass({
     this.props.setCentralState({ menuOpen: null });
     this.clearSearchBox();
   },
-  showLibrary: function showLibrary() {
-    this.props.showLibrary();
+  showLibrary: function showLibrary(categories) {
+    this.props.showLibrary(categories);
     this.clearSearchBox();
   },
   showSearch: function showSearch(query) {
@@ -1458,13 +1458,18 @@ var Header = React.createClass({
         this.clearSearchBox();
         this.handleRefClick(d["normal"]); //todo: pass an onError function through here to the panel onError function which redirects to search
       } else if (d["type"] == "Person") {
+          Sefaria.site.track.event("Search", "Search Box Navigation - Person", query);
           this.closeSearchAutocomplete();
           this.showPerson(d["key"]);
-        } else {
-          Sefaria.site.track.event("Search", "Search Box Search", query);
+        } else if (d["type"] == "TocCategory") {
+          Sefaria.site.track.event("Search", "Search Box Navigation - Category", query);
           this.closeSearchAutocomplete();
-          this.showSearch(query);
-        }
+          this.showLibrary(d["key"]); // "key" holds the category path
+        } else {
+            Sefaria.site.track.event("Search", "Search Box Search", query);
+            this.closeSearchAutocomplete();
+            this.showSearch(query);
+          }
     }.bind(this));
   },
   closeSearchAutocomplete: function closeSearchAutocomplete() {

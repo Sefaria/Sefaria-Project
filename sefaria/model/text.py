@@ -3823,7 +3823,7 @@ class Library(object):
     def build_auto_completer(self):
         from autospell import AutoCompleter
         self._auto_completer = {
-            lang: AutoCompleter(lang, library, include_people=True) for lang in self.langs
+            lang: AutoCompleter(lang, library, include_people=True, include_categories=True) for lang in self.langs
         }
 
     def auto_completer(self, lang):

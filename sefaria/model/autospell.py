@@ -8,6 +8,8 @@ import pygtrie as trie
 from collections import Counter, defaultdict
 from sefaria.model import *
 from sefaria.utils import hebrew
+from sefaria.summaries import toc_serial_to_objects
+
 import logging
 logger = logging.getLogger(__name__)
 
@@ -24,12 +26,13 @@ def normalize_input(instring, lang):
         return hebrew.normalize_final_letters_in_str(instring)
     return instring.lower()
 
+
 class AutoCompleter(object):
     """
     An AutoCompleter object provides completion services - it is the object in this module designed to be used by the Library.
     It instanciates objects that provide string completion according to different algorithms.
     """
-    def __init__(self, lang, lib, include_people=False, *args, **kwargs):
+    def __init__(self, lang, lib, include_people=False, include_categories=False, *args, **kwargs):
         """
 
         :param lang:
@@ -54,6 +57,13 @@ class AutoCompleter(object):
         self.spell_checker.train_phrases(titles)
         self.ngram_matcher.train_phrases(titles)
 
+        if include_categories:
+            oo_toc = toc_serial_to_objects(library.get_toc())
+            categories = oo_toc.children[:-1]  # Trim off "Other"
+            category_names = [c.primary_title(lang) for c in categories]
+            self.title_trie.add_titles_from_set(categories, "all_node_titles", "primary_title", "full_path")
+            self.spell_checker.train_phrases(category_names)
+            self.ngram_matcher.train_phrases(category_names)
         if include_people:
             eras = ["GN", "RI", "AH", "CO"]
             ps = PersonSet({"era": {"$in": eras}})
@@ -222,7 +232,7 @@ class TitleTrie(trie.CharTrie):
     def add_titles_from_set(self, recordset, all_names_method, primary_name_method, keyattr):
         """
 
-        :param recordset: Instance of a subclass of AbstractMongoSet
+        :param recordset: Instance of a subclass of AbstractMongoSet, or a List of objects
         :param namelistmethod: Name of method that will return list of titles, when passed lang
         :param keyattr: Name of attribute that kill give key to object
         :return:
@@ -234,7 +244,7 @@ class TitleTrie(trie.CharTrie):
                 norm_title = normalize_input(title, self.lang)
                 self[norm_title] = {
                     "title": title,
-                    "type": recordset.recordClass.__name__,
+                    "type": obj.__class__.__name__,
                     "obj": obj,
                     "key": key,
                     "is_primary": title == getattr(obj, primary_name_method)(self.lang)
