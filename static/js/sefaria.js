@@ -1060,13 +1060,7 @@ Sefaria = extend(Sefaria, {
     Sefaria.recentlyViewed = recent;
     var packedRecent = recent.map(Sefaria.packRecentItem);
     if (Sefaria._uid) {
-        $.post("/api/profile", {json: JSON.stringify({recentlyViewed: packedRecent})}, function(data) {
-          if ("error" in data) {
-            alert(data.error);
-          }
-        }).fail(function() {
-          alert("Sorry, an Error occurred.");
-        });    
+        $.post("/api/profile", {json: JSON.stringify({recentlyViewed: packedRecent})}, function(data) {} );  
     } else {
       var cookie = INBROWSER ? $.cookie : Sefaria.util.cookie;
       packedRecent = packedRecent.slice(0, 6);

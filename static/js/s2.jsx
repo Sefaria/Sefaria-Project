@@ -1359,7 +1359,8 @@ var Header = React.createClass({
     this.props.showSearch(query);
     $(ReactDOM.findDOMNode(this)).find("input.search").sefaria_autocomplete("close");
   },
-  showAccount: function() {
+  showAccount: function(e) {
+    e.preventDefault();
     if (typeof sjs !== "undefined") {
       window.location = "/account";
       return;
@@ -1367,7 +1368,8 @@ var Header = React.createClass({
     this.props.setCentralState({menuOpen: "account"});
     this.clearSearchBox();
   },
-  showNotifications: function() {
+  showNotifications: function(e) {
+    e.preventDefault();
     if (typeof sjs !== "undefined") {
       window.location = "/notifications";
       return;
@@ -1497,8 +1499,8 @@ var Header = React.createClass({
                           (<div className="testWarning" onClick={this.showTestMessage} >{ this.props.headerMessage }</div>) :
                           null;
     var loggedInLinks  = (<div className="accountLinks">
-                            <div className="account" onClick={this.showAccount}><img src="/static/img/user-64.png" /></div>
-                            <div className={notifcationsClasses} onClick={this.showNotifications}>{notificationCount}</div>
+                            <a href="/account" className="account" onClick={this.showAccount}><img src="/static/img/user-64.png" alt="My Account"/></a>
+                            <a href="/notifications" aria-label="See New Notifications" className={notifcationsClasses} onClick={this.showNotifications}>{notificationCount}</a>
                          </div>);
     var loggedOutLinks = (<div className="accountLinks">
                            <a className="login" href={"/register" + nextParam}>
@@ -1510,27 +1512,29 @@ var Header = React.createClass({
                              <span className="int-he">התחבר</span>
                            </a>
                          </div>);
-    var langSearchPlaceholder = this.props.interfaceLang == 'english' ? "Search" : "הקלד לחיפוש";
+    var langSearchPlaceholder = this.props.interfaceLang == 'english' ? "Search" : "חיפוש";
     var vkClassActivator = this.props.interfaceLang == 'english' ? " keyboardInput" : "";
     return (<div className="header">
               <div className="headerInner">
-                <div className="left">
-                  <a href="/texts"><div className="library" onClick={this.handleLibraryClick}><i className="fa fa-bars"></i></div></a>
+                <div className="headerNavSection">
+                    <a href="/texts" aria-label="Toggle Text Table of Contents" className="library" onClick={this.handleLibraryClick}><i className="fa fa-bars"></i></a>
+                    <div  className="searchBox">
+                      <ReaderNavigationMenuSearchButton onClick={this.handleSearchButtonClick} />
+                      <input className={"search"+ vkClassActivator}
+                             placeholder={langSearchPlaceholder}
+                             onKeyUp={this.handleSearchKeyUp}
+                             onFocus={this.showVirtualKeyboardIcon.bind(this, true)}
+                             onBlur={this.showVirtualKeyboardIcon.bind(this, false)}
+                      title="Search for Texts or Keywords Here"/>
+                    </div>
                 </div>
-                <div className="right">
+                <div className="headerHomeSection">
+                    <a className="home" href="/?home" ><img src="/static/img/sefaria.svg" alt="Sefaria Logo"/></a>
+                </div>
+                <div className="headerLinksSection">
                   { headerMessage }
                   { Sefaria.loggedIn ? loggedInLinks : loggedOutLinks }
                 </div>
-                <span className="searchBox">
-                  <ReaderNavigationMenuSearchButton onClick={this.handleSearchButtonClick} />
-                  <input className={"search"+ vkClassActivator}
-                         placeholder={langSearchPlaceholder}
-                         onKeyUp={this.handleSearchKeyUp}
-                         onFocus={this.showVirtualKeyboardIcon.bind(this, true)}
-                         onBlur={this.showVirtualKeyboardIcon.bind(this, false)}
-                  />
-                </span>
-                <a className="home" href="/?home" ><img src="/static/img/sefaria.svg" /></a>
               </div>
               { viewContent ? 
                 (<div className="headerNavContent">
@@ -1761,6 +1765,11 @@ var ReaderPanel = React.createClass({
     // `replaceHistory` - bool whether to replace browser history rather than push for this change
     if (!ref) { return; }
     this.replaceHistory = Boolean(replaceHistory);
+    if (this.state.mode == "Connections" && this.props.masterPanelLanguage == "bilingual") {
+      // Connections panels are forced to be mono-lingual. When opening a text from a connections panel,
+      // allow it to return to bilingual.
+      this.state.settings.language = "bilingual";
+    }
     this.conditionalSetState({
       mode: "Text",
       refs: [ref],
@@ -1768,7 +1777,8 @@ var ReaderPanel = React.createClass({
       recentFilters: [],
       menuOpen: null,
       version: version,
-      versionLanguage: versionLanguage
+      versionLanguage: versionLanguage,
+      settings: this.state.settings
     });
   },
   updateTextColumn: function(refs) {
@@ -2383,9 +2393,9 @@ var ReaderDisplayOptionsMenu = React.createClass({
       {name: "segmented", fa: "align-left" },
     ];
     var biLayoutOptions = [
-      {name: "stacked", content: "<img src='/static/img/stacked.png' />"},
-      {name: "heLeft", content: "<img src='/static/img/backs.png' />"},
-      {name: "heRight", content: "<img src='/static/img/faces.png' />"}
+      {name: "stacked", content: "<img src='/static/img/stacked.png' alt='Stacked Language Toggle'/>"},
+      {name: "heLeft", content: "<img src='/static/img/backs.png' alt='Hebrew Left Toggle' />"},
+      {name: "heRight", content: "<img src='/static/img/faces.png' alt='Hebrew Right Toggle' />"}
     ];
     var layoutToggle = this.props.settings.language !== "bilingual" ? 
       (<ToggleSet
@@ -2513,7 +2523,8 @@ var ReaderNavigationMenu = React.createClass({
       this.props.closeNav();
     }
   },
-  showMore: function() {
+  showMore: function(event) {
+    event.preventDefault();
     this.setState({showMore: true});
   },
   handleClick: function(event) {
@@ -2549,12 +2560,11 @@ var ReaderNavigationMenu = React.createClass({
     if (query) {
       this.props.openSearch(query);
     }
-  },  
+  },
   render: function() {
     if (this.props.categories.length && this.props.categories[0] == "recent") {
       return (<div onClick={this.handleClick}>
-                <RecentPanel 
-                  toggleLanguage={this.props.toggleLanguage}
+                <RecentPanel
                   multiPanel={this.props.multiPanel}
                   closeNav={this.closeNav}
                   toggleLanguage={this.props.toggleLanguage}
@@ -2604,17 +2614,16 @@ var ReaderNavigationMenu = React.createClass({
         var style = {"borderColor": Sefaria.palette.categoryColor(cat)};
         var openCat = function(e) {e.preventDefault(); this.props.setCategories([cat])}.bind(this);
         var heCat   = Sefaria.hebrewTerm(cat);
-        return (<a href={`/texts/${cat}`}>
-                  <div className="readerNavCategory" data-cat={cat} style={style} onClick={openCat}>
+        return (<a href={`/texts/${cat}`} className="readerNavCategory" data-cat={cat} style={style} onClick={openCat}>
                     <span className="en">{cat}</span>
                     <span className="he">{heCat}</span>
-                  </div>
-                </a>);
+                  </a>
+                );
       }.bind(this));
-      var more = (<div className="readerNavCategory readerNavMore" style={{"borderColor": Sefaria.palette.colors.darkblue}} onClick={this.showMore}>
-                      <span className="en">More <img src="/static/img/arrow-right.png" /></span>
-                      <span className="he">עוד <img src="/static/img/arrow-left.png" /></span>
-                  </div>);
+      var more = (<a href="#" className="readerNavCategory readerNavMore" style={{"borderColor": Sefaria.palette.colors.darkblue}} onClick={this.showMore}>
+                      <span className="en">More <img src="/static/img/arrow-right.png" alt="" /></span>
+                      <span className="he">עוד <img src="/static/img/arrow-left.png" alt="" /></span>
+                  </a>);
       var nCats  = this.width < 450 ? 9 : 8;
       categories = this.state.showMore ? categories : categories.slice(0, nCats).concat(more);
       categories = (<div className="readerNavCategories"><TwoOrThreeBox content={categories} width={this.width} /></div>);
@@ -2659,17 +2668,17 @@ var ReaderNavigationMenu = React.createClass({
 
       var sheetsStyle = {"borderColor": Sefaria.palette.categoryColor("Sheets")};
       var resources = [(<a className="resourcesLink" style={sheetsStyle} href="/sheets" onClick={this.props.openMenu.bind(null, "sheets")}>
-                        <img src="/static/img/sheet-icon.png" />
+                        <img src="/static/img/sheet-icon.png" alt="" />
                         <span className="int-en">Source Sheets</span>
                         <span className="int-he">דפי מקורות</span>
                       </a>),
                      (<a className="resourcesLink outOfAppLink" style={sheetsStyle} href="/visualizations">
-                        <img src="/static/img/visualizations-icon.png" />
+                        <img src="/static/img/visualizations-icon.png" alt="" />
                         <span className="int-en">Visualizations</span>
                         <span className="int-he">חזותיים</span>
                       </a>),
                     (<a className="resourcesLink outOfAppLink" style={sheetsStyle} href="/people">
-                        <img src="/static/img/authors-icon.png" />
+                        <img src="/static/img/authors-icon.png" alt="" />
                         <span className="int-en">Authors</span>
                         <span className="int-he">רשימת מחברים</span>
                       </a>)];
@@ -2681,14 +2690,14 @@ var ReaderNavigationMenu = React.createClass({
                 <CategoryColorLine category="Other" />
                 <ReaderNavigationMenuSearchButton onClick={this.navHome} />
                 <ReaderNavigationMenuDisplaySettingsButton onClick={this.props.openDisplaySettings} />                
-                <div className='sefariaLogo'><img src="/static/img/sefaria.svg" /></div>
+                <div className='sefariaLogo'><img src="/static/img/sefaria.svg" alt="Sefaria Logo" /></div>
               </div>) :
               (<div className="readerNavTop search">
                 <CategoryColorLine category="Other" />
                 <ReaderNavigationMenuCloseButton onClick={this.closeNav}/>
                 <ReaderNavigationMenuSearchButton onClick={this.handleSearchButtonClick} />
                 <ReaderNavigationMenuDisplaySettingsButton onClick={this.props.openDisplaySettings} />                
-                <input className="readerSearch" placeholder="Search" onKeyUp={this.handleSearchKeyUp} />
+                <input className="readerSearch" title="Search for Texts or Keywords Here" placeholder="Search" onKeyUp={this.handleSearchKeyUp} />
               </div>);
       topContent = this.props.hideNavHeader ? null : topContent;
 
@@ -2713,10 +2722,10 @@ var ReaderNavigationMenu = React.createClass({
       }).slice(0, hasMore ? nRecent-1 : nRecent);
       if (hasMore) {
         recentlyViewed.push(
-          <div className="readerNavCategory readerNavMore" style={{"borderColor": Sefaria.palette.colors.darkblue}} onClick={this.props.setCategories.bind(null, ["recent"])}>
-            <span className="en">More <img src="/static/img/arrow-right.png" /></span>
-            <span className="he">עוד <img src="/static/img/arrow-left.png" /></span>
-          </div>);
+          <a href="/texts/recent" className="readerNavCategory readerNavMore" style={{"borderColor": Sefaria.palette.colors.darkblue}} onClick={this.props.setCategories.bind(null, ["recent"])}>
+            <span className="en">More <img src="/static/img/arrow-right.png" alt="" /></span>
+            <span className="he">עוד <img src="/static/img/arrow-left.png" alt=""  /></span>
+          </a>);
       }
       recentlyViewed = recentlyViewed.length ? <TwoOrThreeBox content={recentlyViewed} width={this.width} /> : null;
 
@@ -2812,8 +2821,8 @@ var LanguageToggleButton = React.createClass({
   },
   render: function() {
     return (<div className="languageToggle" onClick={this.props.toggleLanguage}>
-              <span className="en"><img src="/static/img/aleph.svg" /></span>
-              <span className="he"><img src="/static/img/aye.svg" /></span>
+              <span className="en"><img src="/static/img/aleph.svg" alt="Hebrew Language Toggle Icon" /></span>
+              <span className="he"><img src="/static/img/aye.svg" alt="English Language Toggle Icon" /></span>
             </div>);
   }
 });
@@ -2837,7 +2846,7 @@ var BlockLink = React.createClass({
     var interfaceClass = this.props.interfaceLink ? 'int-' : '';
     var classes = classNames({blockLink: 1, inAppLink: this.props.inAppLink})
     return (<a className={classes} href={this.props.target}>
-              {this.props.image ? <img src={this.props.image} /> : null}
+              {this.props.image ? <img src={this.props.image} alt="" /> : null}
               <span className={`${interfaceClass}en`}>{this.props.title}</span>
               <span className={`${interfaceClass}he`}>{this.props.heTitle}</span>
            </a>);
@@ -2974,21 +2983,19 @@ var ReaderNavigationCategoryMenuContents = React.createClass({
                 var chItem = item.contents[0];
                 var [title, heTitle] = this.getRenderedTextTitleString(chItem.title, chItem.heTitle);
                 var url     = "/" + Sefaria.normRef(chItem.firstSection);
-                content.push((<a href={url}>
-                                <span className={'refLink sparse' + chItem.sparseness} data-ref={chItem.firstSection} key={"text." + this.props.nestLevel + "." + i}>
-                                  <span className='en'>{title}</span>
-                                  <span className='he'>{heTitle}</span>
-                                </span>
-                              </a>));
+                content.push((<a href={url} className={'refLink sparse' + chItem.sparseness} data-ref={chItem.firstSection} key={"text." + this.props.nestLevel + "." + i}>
+                                <span className='en'>{title}</span>
+                                <span className='he'>{heTitle}</span>
+                              </a>
+                              ));
             } else {
               // Create a link to a subcategory
               url = "/texts/" + newCats.join("/");
-              content.push((<a href={url}>
-                            <span className="catLink" data-cats={newCats.join("|")} key={"cat." + this.props.nestLevel + "." + i}>
+              content.push((<a href={url} className="catLink" data-cats={newCats.join("|")} key={"cat." + this.props.nestLevel + "." + i}>
                               <span className='en'>{item.category}</span>
                               <span className='he'>{item.heCategory}</span>
-                            </span>
-                          </a>));
+                            </a>
+                          ));
             }
           } else {
             // Add a Category
@@ -3005,12 +3012,11 @@ var ReaderNavigationCategoryMenuContents = React.createClass({
           var [title, heTitle] = this.getRenderedTextTitleString(item.title, item.heTitle);
           var ref = Sefaria.recentRefForText(item.title) || item.firstSection;
           var url = "/" + Sefaria.normRef(ref);
-          content.push((<a href={url}>
-                          <span className={'refLink sparse' + item.sparseness} data-ref={ref} key={"text." + this.props.nestLevel + "." + i}>
-                            <span className='en'>{title}</span>
-                            <span className='he'>{heTitle}</span>
-                          </span>
-                        </a>));
+          content.push((<a href={url} className={'refLink sparse' + item.sparseness} data-ref={ref} key={"text." + this.props.nestLevel + "." + i}>
+                          <span className='en'>{title}</span>
+                          <span className='he'>{heTitle}</span>
+                        </a>
+                        ));
         }
       }
       var boxedContent = [];
@@ -4170,21 +4176,22 @@ var ModeratorButtons = React.createClass({
 
 
 var CategoryAttribution = React.createClass({
-      propTypes: {
-      categories: React.PropTypes.array.isRequired
-    },
-      render: function() {
-      var attribution = Sefaria.categoryAttribution(this.props.categories);
-      return attribution ?
-        <div className="categoryAttribution">
-          <a href={attribution.link} className="outOfAppLink">
-            <span className="en">{attribution.english}</span>
-            <span className="he">{attribution.hebrew}</span>
-          </a>
-        </div> 
-        : null;
-    }
+  propTypes: {
+    categories: React.PropTypes.array.isRequired
+  },
+  render: function() {
+    var attribution = Sefaria.categoryAttribution(this.props.categories);
+    return attribution ?
+      <div className="categoryAttribution">
+        <a href={attribution.link} className="outOfAppLink">
+          <span className="en">{attribution.english}</span>
+          <span className="he">{attribution.hebrew}</span>
+        </a>
+      </div> 
+      : null;
+  }
 });
+
 
 var ReadMoreText = React.createClass({
   propTypes: {
@@ -4545,7 +4552,7 @@ var GroupPage = React.createClass({
               <div className="contentInner">
 
                 {group.imageUrl ? 
-                  <img className="groupImage" src={group.imageUrl} />
+                  <img className="groupImage" src={group.imageUrl} alt={this.props.group}/>
                   : null }
 
                 <div className="groupInfo">
@@ -4766,7 +4773,7 @@ var GroupMemberListing = React.createClass({
     return (
       <div className="groupMemberListing">
         <a href={this.props.member.profileUrl}>
-          <img className="groupMemberListingProfileImage" src={this.props.member.imageUrl} />
+          <img className="groupMemberListingProfileImage" src={this.props.member.imageUrl} alt="" />
         </a>
         
         <a href={this.props.member.profileUrl} className="groupMemberListingName">
@@ -5112,7 +5119,7 @@ var EditGroupPage = React.createClass({
             <span className="int-he">Group Image</span>
           </label>
           {this.state.imageUrl 
-            ? <img className="groupImage" src={this.state.imageUrl} />
+            ? <img className="groupImage" src={this.state.imageUrl} alt="Group Image" />
             : <div className="groupImage placeholder"></div>}
           <FileInput
              name="groupImage"
@@ -5133,7 +5140,7 @@ var EditGroupPage = React.createClass({
           </label>
           {this.state.headerUrl 
             ? <div className="groupHeaderBox">
-                <img className="groupHeader" src={this.state.headerUrl} />
+                <img className="groupHeader" src={this.state.headerUrl} alt="Group Header Image" />
                 <div className="clearFix"></div>
               </div>
             : <div className="groupHeader placeholder"></div>}
@@ -5177,69 +5184,6 @@ var FileInput = React.createClass({
             </div>);
   }
 })
-
-// https://github.com/captivationsoftware/react-file-input
-var FileInputX = React.createClass({
-  getInitialState: function() {
-    return {
-      value: '',
-      styles: {
-        parent: {
-          position: 'relative'
-        },
-        file: {
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          opacity: 0,
-          width: '100%',
-          zIndex: 1
-        },
-        text: {
-          position: 'relative',
-          zIndex: -1
-        }
-      }
-    };
-  },
-
-  handleChange: function(e) {
-    this.setState({
-      value: e.target.value.split(/(\\|\/)/g).pop()
-    });
-    if (this.props.onChange) this.props.onChange(e);
-  },
-
-  render: function() {
-    return React.DOM.div({
-        style: this.state.styles.parent
-      },
-
-      // Actual file input
-      React.DOM.input({
-        type: 'file',
-        name: this.props.name,
-        className: this.props.className,
-        onChange: this.handleChange,
-        disabled: this.props.disabled,
-        accept: this.props.accept,
-        style: this.state.styles.file
-      }),
-
-      // Emulated file input
-      React.DOM.input({
-        type: 'text',
-        tabIndex: -1,
-        name: this.props.name + '_filename',
-        value: this.state.value,
-        className: this.props.className,
-        onChange: function() {},
-        placeholder: this.props.placeholder,
-        disabled: this.props.disabled,
-        style: this.state.styles.text
-      }));
-  }
-});
 
 
 var TagSheetsPage = React.createClass({
@@ -5377,7 +5321,7 @@ var PublicSheetListing = React.createClass({
     var title = sheet.title ? sheet.title.stripHtml() : "Untitled Source Sheet";
     var url = "/sheets/" + sheet.id;
     return (<a className="sheet" href={url} key={url}>
-              {sheet.ownerImageUrl ? (<img className="sheetImg" src={sheet.ownerImageUrl}/>) : null}
+              {sheet.ownerImageUrl ? (<img className="sheetImg" src={sheet.ownerImageUrl} alt={sheet.ownerName}/>) : null}
               <span className="sheetViews"><i className="fa fa-eye"></i> {sheet.views}</span>
               <div className="sheetAuthor">{sheet.ownerName}</div>
               <div className="sheetTitle">{title}</div>
@@ -5608,7 +5552,7 @@ var ToggleOption = React.createClass({
     var classes = {toggleOption: 1, on: this.props.on };
     classes[this.props.name] = 1;
     classes = classNames(classes);
-    var content = this.props.image ? (<img src={this.props.image} />) : 
+    var content = this.props.image ? (<img src={this.props.image} alt=""/>) :
                     this.props.fa ? (<i className={"fa fa-" + this.props.fa}></i>) : 
                       (<span dangerouslySetInnerHTML={ {__html: this.props.content} }></span>);
     return (
@@ -5655,7 +5599,7 @@ var ReaderNavigationMenuCloseButton = React.createClass({
 
 var ReaderNavigationMenuDisplaySettingsButton = React.createClass({
   render: function() { 
-    return (<div className="readerOptions" onClick={this.props.onClick}><img src="/static/img/ayealeph.svg" /></div>);
+    return (<div className="readerOptions" onClick={this.props.onClick}><img src="/static/img/ayealeph.svg" alt="Toggle Reader Menu Display Settings"/></div>);
   }
 });
 
@@ -6359,12 +6303,12 @@ var TextRange = React.createClass({
 
     var actionLinks = (<div className="actionLinks">
                         <span className="openLink" onClick={open}>
-                          <img src="/static/img/open-64.png" />
+                          <img src="/static/img/open-64.png" alt="" />
                           <span className="en">Open</span>
                           <span className="he">פתח</span>
                         </span>
                         <span className="compareLink" onClick={compare}>
-                          <img src="/static/img/compare-64.png" />
+                          <img src="/static/img/compare-64.png" alt="" />
                           <span className="en">Compare</span>
                           <span className="he">השווה</span>
                         </span>
@@ -6829,7 +6773,7 @@ var TextList = React.createClass({
           return (
             <div className="sheet" key={sheet.sheetUrl}>
               <a href={sheet.ownerProfileUrl}>
-                <img className="sheetAuthorImg" src={sheet.ownerImageUrl} />
+                <img className="sheetAuthorImg" src={sheet.ownerImageUrl} alt={sheet.ownerName} />
               </a>
               <div className="sheetViews"><i className="fa fa-eye"></i> {sheet.views}</div>
               <a href={sheet.ownerProfileUrl} className="sheetAuthor">{sheet.ownerName}</a>
@@ -6975,7 +6919,7 @@ var Note = React.createClass({
     var authorInfo = isInMyNotes ? null :
         (<div className="noteAuthorInfo">
           <a href={this.props.ownerProfileUrl}>
-            <img className="noteAuthorImg" src={this.props.ownerImageUrl} />
+            <img className="noteAuthorImg" src={this.props.ownerImageUrl} alt={this.props.ownerName} />
           </a>
           <a href={this.props.ownerProfileUrl} className="noteAuthor">{this.props.ownerName}</a>
         </div>);
@@ -7436,7 +7380,7 @@ var ToolsButton = React.createClass({
       classes[iconName] = 1;
       icon = (<i className={classNames(classes)} />)
     } else if (this.props.image) {
-      icon = (<img src={"/static/img/" + this.props.image} className="toolsButtonIcon" />);
+      icon = (<img src={"/static/img/" + this.props.image} className="toolsButtonIcon" alt="" />);
     }
 
     return (
@@ -7491,6 +7435,7 @@ var SharePanel = React.createClass({
   }
 });
 
+
 var AddToSourceSheetWindow = React.createClass({
   propTypes: {
     srefs:        React.PropTypes.array,
@@ -7524,6 +7469,7 @@ var AddToSourceSheetWindow = React.createClass({
       </div>);
   }
 });
+
 
 var AddToSourceSheetPanel = React.createClass({
   // In the main app, the function `addToSourceSheet` is executed in the ReaderApp, 
@@ -7961,7 +7907,7 @@ var SearchBar = React.createClass({
         return (
             <div>
                 <div className="searchBox">
-                    <input className="readerSearch" value={this.state.query} onKeyPress={this.handleKeypress} onChange={this.handleChange} placeholder="Search"/>
+                    <input className="readerSearch" title="Search for Texts or Keywords Here" value={this.state.query} onKeyPress={this.handleKeypress} onChange={this.handleChange} placeholder="Search"/>
                     <ReaderNavigationMenuSearchButton onClick={this.updateQuery} />
                 </div>
                 <div className="description"></div>
@@ -8730,7 +8676,7 @@ var SearchSheetResult = React.createClass({
         var href = "/sheets/" + s.sheetId;
         return (
             <div className='result sheet_result'>
-              <div className="result_img_box"><a href={s.profile_url} onClick={this.handleProfileClick}><img className='owner_image' src={s.owner_image}/></a></div>
+              <div className="result_img_box"><a href={s.profile_url} onClick={this.handleProfileClick}><img className='owner_image' src={s.owner_image} alt={s.owner_name} /></a></div>
               <div className="result_text_box">
                 <a href={s.profile_url} onClick={this.handleProfileClick} className='owner_name'>{s.owner_name}</a>
                 <a className='result-title' href={href} onClick={this.handleSheetClick}>{clean_title}</a>
@@ -9027,7 +8973,7 @@ var GroupListing = React.createClass({
     return (<div className="groupListing">
               <a href={groupUrl}>
                 <div className="groupListingImageBox">
-                  <img className={imageClass} src={imageUrl} />
+                  <img className={imageClass} src={imageUrl} alt="Group Logo"/>
                 </div>
               </a>
               <a href={groupUrl} className="groupListingName">{this.props.data.name}</a>
