@@ -4,8 +4,6 @@ var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = [
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
 
-function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
-
 function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
 
 if (typeof require !== 'undefined') {
@@ -1408,7 +1406,8 @@ var Header = React.createClass({
     this.props.showSearch(query);
     $(ReactDOM.findDOMNode(this)).find("input.search").sefaria_autocomplete("close");
   },
-  showAccount: function showAccount() {
+  showAccount: function showAccount(e) {
+    e.preventDefault();
     if (typeof sjs !== "undefined") {
       window.location = "/account";
       return;
@@ -1416,7 +1415,8 @@ var Header = React.createClass({
     this.props.setCentralState({ menuOpen: "account" });
     this.clearSearchBox();
   },
-  showNotifications: function showNotifications() {
+  showNotifications: function showNotifications(e) {
+    e.preventDefault();
     if (typeof sjs !== "undefined") {
       window.location = "/notifications";
       return;
@@ -1550,13 +1550,13 @@ var Header = React.createClass({
       'div',
       { className: 'accountLinks' },
       React.createElement(
-        'div',
-        { className: 'account', onClick: this.showAccount },
-        React.createElement('img', { src: '/static/img/user-64.png' })
+        'a',
+        { href: '/account', className: 'account', onClick: this.showAccount },
+        React.createElement('img', { src: '/static/img/user-64.png', alt: 'My Account' })
       ),
       React.createElement(
-        'div',
-        { className: notifcationsClasses, onClick: this.showNotifications },
+        'a',
+        { href: '/notifications', 'aria-label': 'See New Notifications', className: notifcationsClasses, onClick: this.showNotifications },
         notificationCount
       )
     );
@@ -1605,12 +1605,8 @@ var Header = React.createClass({
           { className: 'left' },
           React.createElement(
             'a',
-            { href: '/texts' },
-            React.createElement(
-              'div',
-              { className: 'library', onClick: this.handleLibraryClick },
-              React.createElement('i', { className: 'fa fa-bars' })
-            )
+            { href: '/texts', 'aria-label': 'Toggle Text Table of Contents', className: 'library', onClick: this.handleLibraryClick },
+            React.createElement('i', { className: 'fa fa-bars' })
           )
         ),
         React.createElement(
@@ -1627,13 +1623,14 @@ var Header = React.createClass({
             placeholder: langSearchPlaceholder,
             onKeyUp: this.handleSearchKeyUp,
             onFocus: this.showVirtualKeyboardIcon.bind(this, true),
-            onBlur: this.showVirtualKeyboardIcon.bind(this, false)
+            onBlur: this.showVirtualKeyboardIcon.bind(this, false),
+            title: 'Search for Texts or Keywords Here'
           })
         ),
         React.createElement(
           'a',
           { className: 'home', href: '/?home' },
-          React.createElement('img', { src: '/static/img/sefaria.svg' })
+          React.createElement('img', { src: '/static/img/sefaria.svg', alt: 'Sefaria Logo' })
         )
       ),
       viewContent ? React.createElement(
@@ -1875,6 +1872,11 @@ var ReaderPanel = React.createClass({
       return;
     }
     this.replaceHistory = Boolean(replaceHistory);
+    if (this.state.mode == "Connections" && this.props.masterPanelLanguage == "bilingual") {
+      // Connections panels are forced to be mono-lingual. When opening a text from a connections panel,
+      // allow it to return to bilingual.
+      this.state.settings.language = "bilingual";
+    }
     this.conditionalSetState({
       mode: "Text",
       refs: [ref],
@@ -1882,7 +1884,8 @@ var ReaderPanel = React.createClass({
       recentFilters: [],
       menuOpen: null,
       version: version,
-      versionLanguage: versionLanguage
+      versionLanguage: versionLanguage,
+      settings: this.state.settings
     });
   },
   updateTextColumn: function updateTextColumn(refs) {
@@ -2541,7 +2544,7 @@ var ReaderDisplayOptionsMenu = React.createClass({
       settings: this.props.settings });
 
     var layoutOptions = [{ name: "continuous", fa: "align-justify" }, { name: "segmented", fa: "align-left" }];
-    var biLayoutOptions = [{ name: "stacked", content: "<img src='/static/img/stacked.png' />" }, { name: "heLeft", content: "<img src='/static/img/backs.png' />" }, { name: "heRight", content: "<img src='/static/img/faces.png' />" }];
+    var biLayoutOptions = [{ name: "stacked", content: "<img src='/static/img/stacked.png' alt='Stacked Language Toggle'/>" }, { name: "heLeft", content: "<img src='/static/img/backs.png' alt='Hebrew Left Toggle' />" }, { name: "heRight", content: "<img src='/static/img/faces.png' alt='Hebrew Right Toggle' />" }];
     var layoutToggle = this.props.settings.language !== "bilingual" ? React.createElement(ToggleSet, {
       name: 'layout',
       options: layoutOptions,
@@ -2668,7 +2671,8 @@ var ReaderNavigationMenu = React.createClass({
       this.props.closeNav();
     }
   },
-  showMore: function showMore() {
+  showMore: function showMore(event) {
+    event.preventDefault();
     this.setState({ showMore: true });
   },
   handleClick: function handleClick(event) {
@@ -2711,16 +2715,19 @@ var ReaderNavigationMenu = React.createClass({
   },
   render: function render() {
     if (this.props.categories.length && this.props.categories[0] == "recent") {
-      var _React$createElement;
-
       return React.createElement(
         'div',
         { onClick: this.handleClick },
-        React.createElement(RecentPanel, (_React$createElement = {
-          toggleLanguage: this.props.toggleLanguage,
+        React.createElement(RecentPanel, {
           multiPanel: this.props.multiPanel,
-          closeNav: this.closeNav
-        }, _defineProperty(_React$createElement, 'toggleLanguage', this.props.toggleLanguage), _defineProperty(_React$createElement, 'openDisplaySettings', this.props.openDisplaySettings), _defineProperty(_React$createElement, 'navHome', this.navHome), _defineProperty(_React$createElement, 'compare', this.props.compare), _defineProperty(_React$createElement, 'hideNavHeader', this.props.hideNavHeader), _defineProperty(_React$createElement, 'width', this.width), _defineProperty(_React$createElement, 'interfaceLang', this.props.interfaceLang), _React$createElement))
+          closeNav: this.closeNav,
+          toggleLanguage: this.props.toggleLanguage,
+          openDisplaySettings: this.props.openDisplaySettings,
+          navHome: this.navHome,
+          compare: this.props.compare,
+          hideNavHeader: this.props.hideNavHeader,
+          width: this.width,
+          interfaceLang: this.props.interfaceLang })
       );
     } else if (this.props.categories.length) {
       // List of Texts in a Category
@@ -2751,37 +2758,33 @@ var ReaderNavigationMenu = React.createClass({
         var heCat = Sefaria.hebrewTerm(cat);
         return React.createElement(
           'a',
-          { href: '/texts/' + cat },
+          { href: '/texts/' + cat, className: 'readerNavCategory', 'data-cat': cat, style: style, onClick: openCat },
           React.createElement(
-            'div',
-            { className: 'readerNavCategory', 'data-cat': cat, style: style, onClick: openCat },
-            React.createElement(
-              'span',
-              { className: 'en' },
-              cat
-            ),
-            React.createElement(
-              'span',
-              { className: 'he' },
-              heCat
-            )
+            'span',
+            { className: 'en' },
+            cat
+          ),
+          React.createElement(
+            'span',
+            { className: 'he' },
+            heCat
           )
         );
       }.bind(this));
       var more = React.createElement(
-        'div',
-        { className: 'readerNavCategory readerNavMore', style: { "borderColor": Sefaria.palette.colors.darkblue }, onClick: this.showMore },
+        'a',
+        { href: '#', className: 'readerNavCategory readerNavMore', style: { "borderColor": Sefaria.palette.colors.darkblue }, onClick: this.showMore },
         React.createElement(
           'span',
           { className: 'en' },
           'More ',
-          React.createElement('img', { src: '/static/img/arrow-right.png' })
+          React.createElement('img', { src: '/static/img/arrow-right.png', alt: '' })
         ),
         React.createElement(
           'span',
           { className: 'he' },
           'עוד ',
-          React.createElement('img', { src: '/static/img/arrow-left.png' })
+          React.createElement('img', { src: '/static/img/arrow-left.png', alt: '' })
         )
       );
       var nCats = this.width < 450 ? 9 : 8;
@@ -2888,7 +2891,7 @@ var ReaderNavigationMenu = React.createClass({
       var resources = [React.createElement(
         'a',
         { className: 'resourcesLink', style: sheetsStyle, href: '/sheets', onClick: this.props.openMenu.bind(null, "sheets") },
-        React.createElement('img', { src: '/static/img/sheet-icon.png' }),
+        React.createElement('img', { src: '/static/img/sheet-icon.png', alt: '' }),
         React.createElement(
           'span',
           { className: 'int-en' },
@@ -2902,7 +2905,7 @@ var ReaderNavigationMenu = React.createClass({
       ), React.createElement(
         'a',
         { className: 'resourcesLink outOfAppLink', style: sheetsStyle, href: '/visualizations' },
-        React.createElement('img', { src: '/static/img/visualizations-icon.png' }),
+        React.createElement('img', { src: '/static/img/visualizations-icon.png', alt: '' }),
         React.createElement(
           'span',
           { className: 'int-en' },
@@ -2916,7 +2919,7 @@ var ReaderNavigationMenu = React.createClass({
       ), React.createElement(
         'a',
         { className: 'resourcesLink outOfAppLink', style: sheetsStyle, href: '/people' },
-        React.createElement('img', { src: '/static/img/authors-icon.png' }),
+        React.createElement('img', { src: '/static/img/authors-icon.png', alt: '' }),
         React.createElement(
           'span',
           { className: 'int-en' },
@@ -2943,7 +2946,7 @@ var ReaderNavigationMenu = React.createClass({
         React.createElement(
           'div',
           { className: 'sefariaLogo' },
-          React.createElement('img', { src: '/static/img/sefaria.svg' })
+          React.createElement('img', { src: '/static/img/sefaria.svg', alt: 'Sefaria Logo' })
         )
       ) : React.createElement(
         'div',
@@ -2952,7 +2955,7 @@ var ReaderNavigationMenu = React.createClass({
         React.createElement(ReaderNavigationMenuCloseButton, { onClick: this.closeNav }),
         React.createElement(ReaderNavigationMenuSearchButton, { onClick: this.handleSearchButtonClick }),
         React.createElement(ReaderNavigationMenuDisplaySettingsButton, { onClick: this.props.openDisplaySettings }),
-        React.createElement('input', { className: 'readerSearch', placeholder: 'Search', onKeyUp: this.handleSearchKeyUp })
+        React.createElement('input', { className: 'readerSearch', title: 'Search for Texts or Keywords Here', placeholder: 'Search', onKeyUp: this.handleSearchKeyUp })
       );
       topContent = this.props.hideNavHeader ? null : topContent;
 
@@ -2978,19 +2981,19 @@ var ReaderNavigationMenu = React.createClass({
       }).slice(0, hasMore ? nRecent - 1 : nRecent);
       if (hasMore) {
         recentlyViewed.push(React.createElement(
-          'div',
-          { className: 'readerNavCategory readerNavMore', style: { "borderColor": Sefaria.palette.colors.darkblue }, onClick: this.props.setCategories.bind(null, ["recent"]) },
+          'a',
+          { href: '/texts/recent', className: 'readerNavCategory readerNavMore', style: { "borderColor": Sefaria.palette.colors.darkblue }, onClick: this.props.setCategories.bind(null, ["recent"]) },
           React.createElement(
             'span',
             { className: 'en' },
             'More ',
-            React.createElement('img', { src: '/static/img/arrow-right.png' })
+            React.createElement('img', { src: '/static/img/arrow-right.png', alt: '' })
           ),
           React.createElement(
             'span',
             { className: 'he' },
             'עוד ',
-            React.createElement('img', { src: '/static/img/arrow-left.png' })
+            React.createElement('img', { src: '/static/img/arrow-left.png', alt: '' })
           )
         ));
       }
@@ -3134,12 +3137,12 @@ var LanguageToggleButton = React.createClass({
       React.createElement(
         'span',
         { className: 'en' },
-        React.createElement('img', { src: '/static/img/aleph.svg' })
+        React.createElement('img', { src: '/static/img/aleph.svg', alt: 'Hebrew Language Toggle Icon' })
       ),
       React.createElement(
         'span',
         { className: 'he' },
-        React.createElement('img', { src: '/static/img/aye.svg' })
+        React.createElement('img', { src: '/static/img/aye.svg', alt: 'English Language Toggle Icon' })
       )
     );
   }
@@ -3167,7 +3170,7 @@ var BlockLink = React.createClass({
     return React.createElement(
       'a',
       { className: classes, href: this.props.target },
-      this.props.image ? React.createElement('img', { src: this.props.image }) : null,
+      this.props.image ? React.createElement('img', { src: this.props.image, alt: '' }) : null,
       React.createElement(
         'span',
         { className: interfaceClass + 'en' },
@@ -3377,20 +3380,16 @@ var ReaderNavigationCategoryMenuContents = React.createClass({
             var url = "/" + Sefaria.normRef(chItem.firstSection);
             content.push(React.createElement(
               'a',
-              { href: url },
+              { href: url, className: 'refLink sparse' + chItem.sparseness, 'data-ref': chItem.firstSection, key: "text." + this.props.nestLevel + "." + i },
               React.createElement(
                 'span',
-                { className: 'refLink sparse' + chItem.sparseness, 'data-ref': chItem.firstSection, key: "text." + this.props.nestLevel + "." + i },
-                React.createElement(
-                  'span',
-                  { className: 'en' },
-                  title
-                ),
-                React.createElement(
-                  'span',
-                  { className: 'he' },
-                  heTitle
-                )
+                { className: 'en' },
+                title
+              ),
+              React.createElement(
+                'span',
+                { className: 'he' },
+                heTitle
               )
             ));
           } else {
@@ -3398,20 +3397,16 @@ var ReaderNavigationCategoryMenuContents = React.createClass({
             url = "/texts/" + newCats.join("/");
             content.push(React.createElement(
               'a',
-              { href: url },
+              { href: url, className: 'catLink', 'data-cats': newCats.join("|"), key: "cat." + this.props.nestLevel + "." + i },
               React.createElement(
                 'span',
-                { className: 'catLink', 'data-cats': newCats.join("|"), key: "cat." + this.props.nestLevel + "." + i },
-                React.createElement(
-                  'span',
-                  { className: 'en' },
-                  item.category
-                ),
-                React.createElement(
-                  'span',
-                  { className: 'he' },
-                  item.heCategory
-                )
+                { className: 'en' },
+                item.category
+              ),
+              React.createElement(
+                'span',
+                { className: 'he' },
+                item.heCategory
               )
             ));
           }
@@ -3451,20 +3446,16 @@ var ReaderNavigationCategoryMenuContents = React.createClass({
         var url = "/" + Sefaria.normRef(ref);
         content.push(React.createElement(
           'a',
-          { href: url },
+          { href: url, className: 'refLink sparse' + item.sparseness, 'data-ref': ref, key: "text." + this.props.nestLevel + "." + i },
           React.createElement(
             'span',
-            { className: 'refLink sparse' + item.sparseness, 'data-ref': ref, key: "text." + this.props.nestLevel + "." + i },
-            React.createElement(
-              'span',
-              { className: 'en' },
-              title
-            ),
-            React.createElement(
-              'span',
-              { className: 'he' },
-              heTitle
-            )
+            { className: 'en' },
+            title
+          ),
+          React.createElement(
+            'span',
+            { className: 'he' },
+            heTitle
           )
         ));
       }
@@ -5660,7 +5651,7 @@ var GroupPage = React.createClass({
       React.createElement(
         'div',
         { className: 'contentInner' },
-        group.imageUrl ? React.createElement('img', { className: 'groupImage', src: group.imageUrl }) : null,
+        group.imageUrl ? React.createElement('img', { className: 'groupImage', src: group.imageUrl, alt: this.props.group }) : null,
         React.createElement(
           'div',
           { className: 'groupInfo' },
@@ -6037,7 +6028,7 @@ var GroupMemberListing = React.createClass({
       React.createElement(
         'a',
         { href: this.props.member.profileUrl },
-        React.createElement('img', { className: 'groupMemberListingProfileImage', src: this.props.member.imageUrl })
+        React.createElement('img', { className: 'groupMemberListingProfileImage', src: this.props.member.imageUrl, alt: '' })
       ),
       React.createElement(
         'a',
@@ -6511,7 +6502,7 @@ var EditGroupPage = React.createClass({
             'Group Image'
           )
         ),
-        this.state.imageUrl ? React.createElement('img', { className: 'groupImage', src: this.state.imageUrl }) : React.createElement('div', { className: 'groupImage placeholder' }),
+        this.state.imageUrl ? React.createElement('img', { className: 'groupImage', src: this.state.imageUrl, alt: 'Group Image' }) : React.createElement('div', { className: 'groupImage placeholder' }),
         React.createElement(FileInput, {
           name: 'groupImage',
           accept: 'image/*',
@@ -6553,7 +6544,7 @@ var EditGroupPage = React.createClass({
         this.state.headerUrl ? React.createElement(
           'div',
           { className: 'groupHeaderBox' },
-          React.createElement('img', { className: 'groupHeader', src: this.state.headerUrl }),
+          React.createElement('img', { className: 'groupHeader', src: this.state.headerUrl, alt: 'Group Header Image' }),
           React.createElement('div', { className: 'clearFix' })
         ) : React.createElement('div', { className: 'groupHeader placeholder' }),
         React.createElement(FileInput, {
@@ -6800,7 +6791,7 @@ var PublicSheetListing = React.createClass({
     return React.createElement(
       'a',
       { className: 'sheet', href: url, key: url },
-      sheet.ownerImageUrl ? React.createElement('img', { className: 'sheetImg', src: sheet.ownerImageUrl }) : null,
+      sheet.ownerImageUrl ? React.createElement('img', { className: 'sheetImg', src: sheet.ownerImageUrl, alt: sheet.ownerName }) : null,
       React.createElement(
         'span',
         { className: 'sheetViews' },
@@ -7161,7 +7152,7 @@ var ToggleOption = React.createClass({
     var classes = { toggleOption: 1, on: this.props.on };
     classes[this.props.name] = 1;
     classes = classNames(classes);
-    var content = this.props.image ? React.createElement('img', { src: this.props.image }) : this.props.fa ? React.createElement('i', { className: "fa fa-" + this.props.fa }) : React.createElement('span', { dangerouslySetInnerHTML: { __html: this.props.content } });
+    var content = this.props.image ? React.createElement('img', { src: this.props.image, alt: '' }) : this.props.fa ? React.createElement('i', { className: "fa fa-" + this.props.fa }) : React.createElement('span', { dangerouslySetInnerHTML: { __html: this.props.content } });
     return React.createElement(
       'div',
       {
@@ -7226,7 +7217,7 @@ var ReaderNavigationMenuDisplaySettingsButton = React.createClass({
     return React.createElement(
       'div',
       { className: 'readerOptions', onClick: this.props.onClick },
-      React.createElement('img', { src: '/static/img/ayealeph.svg' })
+      React.createElement('img', { src: '/static/img/ayealeph.svg', alt: 'Toggle Reader Menu Display Settings' })
     );
   }
 });
@@ -7941,7 +7932,7 @@ var TextRange = React.createClass({
       React.createElement(
         'span',
         { className: 'openLink', onClick: open },
-        React.createElement('img', { src: '/static/img/open-64.png' }),
+        React.createElement('img', { src: '/static/img/open-64.png', alt: '' }),
         React.createElement(
           'span',
           { className: 'en' },
@@ -7956,7 +7947,7 @@ var TextRange = React.createClass({
       React.createElement(
         'span',
         { className: 'compareLink', onClick: compare },
-        React.createElement('img', { src: '/static/img/compare-64.png' }),
+        React.createElement('img', { src: '/static/img/compare-64.png', alt: '' }),
         React.createElement(
           'span',
           { className: 'en' },
@@ -8894,7 +8885,7 @@ var TextList = React.createClass({
           React.createElement(
             'a',
             { href: sheet.ownerProfileUrl },
-            React.createElement('img', { className: 'sheetAuthorImg', src: sheet.ownerImageUrl })
+            React.createElement('img', { className: 'sheetAuthorImg', src: sheet.ownerImageUrl, alt: sheet.ownerName })
           ),
           React.createElement(
             'div',
@@ -9029,6 +9020,7 @@ var RecentFilterSet = React.createClass({
     this.setState({ showAllFilters: !this.state.showAllFilters });
   },
   render: function render() {
+
     var topLinks = [];
 
     // Filter top links to exclude items already in recent filter
@@ -9582,7 +9574,7 @@ var ToolsButton = React.createClass({
       classes[iconName] = 1;
       icon = React.createElement('i', { className: classNames(classes) });
     } else if (this.props.image) {
-      icon = React.createElement('img', { src: "/static/img/" + this.props.image, className: 'toolsButtonIcon' });
+      icon = React.createElement('img', { src: "/static/img/" + this.props.image, className: 'toolsButtonIcon', alt: '' });
     }
 
     var count = this.props.count ? React.createElement(
@@ -10327,7 +10319,7 @@ var SearchBar = React.createClass({
       React.createElement(
         'div',
         { className: 'searchBox' },
-        React.createElement('input', { className: 'readerSearch', value: this.state.query, onKeyPress: this.handleKeypress, onChange: this.handleChange, placeholder: 'Search' }),
+        React.createElement('input', { className: 'readerSearch', title: 'Search for Texts or Keywords Here', value: this.state.query, onKeyPress: this.handleKeypress, onChange: this.handleChange, placeholder: 'Search' }),
         React.createElement(ReaderNavigationMenuSearchButton, { onClick: this.updateQuery })
       ),
       React.createElement('div', { className: 'description' })
@@ -11232,7 +11224,7 @@ var SearchSheetResult = React.createClass({
         React.createElement(
           'a',
           { href: s.profile_url, onClick: this.handleProfileClick },
-          React.createElement('img', { className: 'owner_image', src: s.owner_image })
+          React.createElement('img', { className: 'owner_image', src: s.owner_image, alt: s.owner_name })
         )
       ),
       React.createElement(
@@ -11609,7 +11601,7 @@ var GroupListing = React.createClass({
         React.createElement(
           'div',
           { className: 'groupListingImageBox' },
-          React.createElement('img', { className: imageClass, src: imageUrl })
+          React.createElement('img', { className: imageClass, src: imageUrl, alt: 'Group Logo' })
         )
       ),
       React.createElement(

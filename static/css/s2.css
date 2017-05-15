@@ -788,6 +788,10 @@ a.resourcesLink {
   letter-spacing: 1px;
   height: 46px;
   line-height: 46px;
+  display: block;
+}
+a.readerNavCategory {
+  color: #333;
 }
 @media (max-width: 450px) {
   .readerNavCategory {
