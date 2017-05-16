@@ -100,19 +100,10 @@ class Person(abst.AbstractMongoRecord):
         from . import text
         return text.IndexSet({"authors": self.key}).count() > 0
 
-    def get_indexes(self, include_commentary=True):
+    def get_indexes(self):
         from . import text
-        indxs = text.IndexSet({"authors": self.key})
-        if include_commentary:
-            processed_indxs = []
-            for i in indxs:
-                if i.is_commentary():
-                    processed_indxs += i.get_commentary_indexes()
-                else:
-                    processed_indxs += [i]
-            return processed_indxs
-        else:
-            return indxs
+        return text.IndexSet({"authors": self.key})
+
 
     def get_era(self):
         if getattr(self, "era", False):
@@ -194,6 +185,7 @@ class Person(abst.AbstractMongoRecord):
                 loc = data.pop("point")
                 features.append(geojson.Feature(geometry=loc, id=key, properties=data))
         return geojson.dumps(geojson.FeatureCollection(features))
+
 
 class PersonSet(abst.AbstractMongoSet):
     recordClass = Person

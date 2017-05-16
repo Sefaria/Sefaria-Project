@@ -26,6 +26,24 @@ Todo:
 """
 
 
+def handle_dependant_indices(title):
+    """
+    A generic method for handling dependant commentaries for methods in this package
+    :param title: Title of book being changed
+    """
+    dependant_indices = library.get_dependant_indices(title, dependence_type='commentary', structure_match=True,
+                                                      full_records=True)
+    if dependant_indices.count() == 0:
+        return
+
+    print "{}Warning! Commentary linking will be removed for {} texts{}".\
+        format('\033[93m', dependant_indices.count(), '\033[0m')  # The text prints in yellow
+
+    for record in dependant_indices:
+        record.base_text_mapping = None
+        record.save()
+
+
 def insert_last_child(new_node, parent_node):
     return attach_branch(new_node, parent_node, len(parent_node.children))
 
@@ -49,8 +67,7 @@ def attach_branch(new_node, parent_node, place=0):
 
     # Add node to versions & commentary versions
     vs = [v for v in index.versionSet()]
-    vsc = [v for v in library.get_commentary_versions_on_book(index.title)]
-    for v in vs + vsc:
+    for v in vs:
         pc = v.content_node(parent_node)
         pc[new_node.key] = new_node.create_skeleton()
         v.save(override_dependencies=True)
@@ -62,6 +79,8 @@ def attach_branch(new_node, parent_node, place=0):
     index.save(override_dependencies=True)
     library.rebuild()
     refresh_version_state(index.title)
+
+    handle_dependant_indices(index.title)
 
 
 def remove_branch(node):
@@ -79,8 +98,7 @@ def remove_branch(node):
     # todo: commentary linkset
 
     vs = [v for v in index.versionSet()]
-    vsc = [v for v in library.get_commentary_versions_on_book(index.title)]
-    for v in vs + vsc:
+    for v in vs:
         assert isinstance(v, Version)
         pc = v.content_node(parent)
         del pc[node.key]
@@ -91,6 +109,8 @@ def remove_branch(node):
     index.save(override_dependencies=True)
     library.rebuild()
     refresh_version_state(index.title)
+
+    handle_dependant_indices(index.title)
 
 
 def reorder_children(parent_node, new_order):
@@ -131,8 +151,7 @@ def merge_default_into_parent(parent_node):
 
     # Repair all versions
     vs = [v for v in index.versionSet()]
-    vsc = [v for v in library.get_commentary_versions_on_book(index.title)]
-    for v in vs + vsc:
+    for v in vs:
         assert isinstance(v, Version)
         if is_root:
             v.chapter = v.chapter["default"]
@@ -158,6 +177,8 @@ def merge_default_into_parent(parent_node):
     library.rebuild()
     refresh_version_state(index.title)
 
+    handle_dependant_indices(index.title)
+
 
 def convert_simple_index_to_complex(index):
     """
@@ -175,8 +196,7 @@ def convert_simple_index_to_complex(index):
 
     # Repair all version
     vs = [v for v in index.versionSet()]
-    vsc = [v for v in library.get_commentary_versions_on_book(index.title)]
-    for v in vs + vsc:
+    for v in vs:
         assert isinstance(v, Version)
         v.chapter = {"default": v.chapter}
         v.save(override_dependencies=True)
@@ -197,6 +217,8 @@ def convert_simple_index_to_complex(index):
     library.rebuild()
     refresh_version_state(index.title)
 
+    handle_dependant_indices(index.title)
+
 
 def change_parent(node, new_parent, place=0):
     """
@@ -215,7 +237,6 @@ def change_parent(node, new_parent, place=0):
     linkset = [l for l in node.ref().linkset()]
 
     vs = [v for v in index.versionSet()]
-    vsc = [v for v in library.get_commentary_versions_on_book(index.title)]
     for v in vs + vsc:
         assert isinstance(v, Version)
         old_parent_content = v.content_node(old_parent)
@@ -239,8 +260,10 @@ def change_parent(node, new_parent, place=0):
 
     refresh_version_state(index.title)
 
+    handle_dependant_indices(index.title)
 
-def refresh_version_state(base_title):
+
+def refresh_version_state(title):
     """
     ** VersionState is *not* altered on Index save.  It is only created on Index creation.
     ^ It now seems that VersionState is referenced on Index save
@@ -250,12 +273,11 @@ def refresh_version_state(base_title):
     VersionState.refresh() assumes the structure of content has not changed.
     To regenerate VersionState, we save the flags, delete the old one, and regenerate a new one.
     """
-    vtitles = library.get_commentary_version_titles_on_book(base_title) + [base_title]
-    for title in vtitles:
-        vs = VersionState(title)
-        flags = vs.flags
-        vs.delete()
-        VersionState(title, {"flags": flags})
+
+    vs = VersionState(title)
+    flags = vs.flags
+    vs.delete()
+    VersionState(title, {"flags": flags})
 
 
 def change_node_title(snode, old_title, lang, new_title):
@@ -409,10 +431,8 @@ def change_node_structure(ja_node, section_names, address_types=None, upsize_in_
 
         return Ref(_obj=d).normal()
 
-    commentators = library.get_commentary_version_titles_on_book(ja_node.index.title)
-    commentators = [c.replace(u' on {}'.format(ja_node.ref().normal()), u'') for c in commentators]
-    ref_regex_str = ja_node.ref().regex(anchored=False)
-    identifier = ur"(^{})|(^({}) on {})".format(ref_regex_str, "|".join(commentators), ref_regex_str)
+
+    identifier = ja_node.ref().regex(anchored=False)
 
     def needs_fixing(ref_string, *args):
         if re.search(identifier, ref_string) is None:
@@ -440,9 +460,8 @@ def change_node_structure(ja_node, section_names, address_types=None, upsize_in_
     ja_node.index = library.get_index(ja_node.index.title)
 
     vs = [v for v in index.versionSet()]
-    vsc = [v for v in library.get_commentary_versions_on_book(index.title)]
     print 'Updating Versions'
-    for v in vs + vsc:
+    for v in vs:
         assert isinstance(v, Version)
         if v.get_index() == index:
             chunk = TextChunk(ja_node.ref(), lang=v.language, vtitle=v.versionTitle)
@@ -471,7 +490,8 @@ def change_node_structure(ja_node, section_names, address_types=None, upsize_in_
 
     library.rebuild()
     refresh_version_state(index.title)
-    # For each commentary version, refresh its VS
+
+    handle_dependant_indices(index.title)
 
 
 def cascade(ref_identifier, rewriter=lambda x: x, needs_rewrite=lambda x: True, skip_history=False):
@@ -586,10 +606,7 @@ def cascade(ref_identifier, rewriter=lambda x: x, needs_rewrite=lambda x: True, 
         ref_identifier = Ref(ref_identifier)
     assert isinstance(ref_identifier, Ref)
 
-    commentators = library.get_commentary_version_titles_on_book(ref_identifier.book)
-    commentators = [item for c in commentators for item in Ref(c).regex(as_list=True, anchored=False)]
-    ref_regex = ref_identifier.regex(anchored=False, as_list=True)
-    identifier = ref_regex + commentators
+    identifier = ref_identifier.regex(anchored=False, as_list=True)
 
     # titles = re.compile(identifier)
 
@@ -618,7 +635,91 @@ def cascade(ref_identifier, rewriter=lambda x: x, needs_rewrite=lambda x: True, 
         generic_rewrite(HistorySet(construct_query('old.refs', identifier), sort=[('old.refs', 1)]), attr_name='old', sub_attr_name='refs')
 
 
-def migrate_to_complex_structure(title, schema, mappings):
+def generate_segment_mapping(title, mapping, output_file=None):
+    '''
+    :param title: title of Index record
+    :param mapping: mapping is a dict where each key is a reference in the original simple Index and each value is a reference in the new complex Index
+    such as mapping['Zohar 1:2a'] = 'Zohar, Genesis'
+    :param output_file:
+    :return segment_map: segment_map is the dict based on mapping
+
+    The function takes each key/value pair in mapping and adds this key/value pair to the segment_map,
+    and it also adds every possible key/value pair that are descendants of the key/value pairs in mapping to the segment_map.
+    In the above example,
+    segment_map['Zohar 1:2a'] = 'Zohar, Genesis'
+    segment_map['Zohar 1:2a:1'] = 'Zohar, Genesis 1'
+    segment_map['Zohar 1:2a:2'] = 'Zohar, Genesis 2'
+    etc.
+
+    :return segment_map:
+    '''
+
+    segment_map = {}
+    for orig_ref in mapping:
+        orig_ref_str = orig_ref
+        orig_ref = Ref(orig_ref)
+        refs = []
+
+        #now create an array, refs that holds the orig_ref in addition to all of its children
+        if orig_ref.is_range():
+            depth = orig_ref.range_depth()
+            if depth == 1:
+                refs = orig_ref.range_list()
+            elif depth == 2:
+                top_level_refs = orig_ref.split_spanning_ref()
+                segment_refs = orig_ref.range_list()
+                refs = top_level_refs + segment_refs
+            elif depth == 3:
+                top_level_refs = orig_ref.split_spanning_ref()
+                section_refs = orig_ref.range_list()
+                segment_refs = orig_ref.as_ranged_segment_ref().range_list()
+                refs = top_level_refs + section_refs + segment_refs
+        else:
+            refs = orig_ref.all_subrefs()
+            if len(refs) > 0 and not refs[0].is_segment_level():
+                len_refs = len(refs)
+                segment_refs = []
+                for i in range(len_refs):
+                    segment_refs += refs[i].all_subrefs()
+                assert segment_refs[0].is_segment_level()
+                refs += segment_refs
+            refs += [orig_ref]
+
+        #segment_value is the value of the mapping that the user inputted
+        segment_value = "Complex {}".format(mapping[orig_ref_str])
+
+        #now iterate over the refs and create the key/value pairs to put into segment_map
+        for each_ref in refs:
+            assert each_ref not in segment_map, "Invalid map ranges: Two overlap at reference {}".format(each_ref)
+            if each_ref == orig_ref:
+                segment_map[each_ref.normal()] = segment_value
+            else:
+                '''
+                get in_terms_of() info to construct a string that represents the complex index's new reference.
+                construct the new reference by appending the results of in_terms_of() onto
+                segment_value -- where segment_value is the value that the parameter, mapping, returns for the key of orig_ref
+                '''
+                append_arr = each_ref.in_terms_of(orig_ref)
+                assert append_arr, "{} cannot be computed to be in_terms_of() {}".format(each_ref, orig_ref)
+                segment_ref = Ref(segment_value)
+                core_dict = segment_ref._core_dict()
+                core_dict['sections'] += append_arr
+                core_dict['toSections'] += append_arr
+
+                segment_map[each_ref.normal()] = Ref(_obj=core_dict).normal()
+
+    #output results so that this map can be used again for other purposes
+    if output_file:
+        output_file = open(output_file, 'w')
+        assert type(output_file) is file
+        for key in segment_map:
+            output_file.write("KEY: {}, VALUE: {}".format(key, segment_map[key])+"\n")
+        output_file.close()
+    return segment_map
+
+
+
+def migrate_to_complex_structure(title, schema, mappings, validate_mapping=False):
     """
     Converts book that is simple structure to complex.
     :param title: title of book
@@ -637,35 +738,24 @@ def migrate_to_complex_structure(title, schema, mappings):
         except InputError:
             return False
 
+
     def rewriter(ref):
-        """
-        Converts each reference from the simple text to what it should be in the complex text based on the mappings.
-        Assumes that both the references in the mappings and the references that are passed into the function
-        are not ranges. For example, for the line old_ref.contains(ref), suppose it is:
-        Ref("Genesis 6-7").contains(Ref("Genesis 6:3-4"))
-        This will evaluate to true but then in the return statement,
-        it will not successfully replace the old_ref_str with new_ref.
-        To deal with ranges in the future, split the ranged refs into starting_ref() and ending_ref()
-        and then use in_terms_of() to get the data necessary to properly translate the range.
-        Ranges that cross from one section to another will be cut to only spanning the first section.
-        """
-        if Ref(ref).is_range():
-            print "Currently does not handle ranged refs.  Only handles the starting_ref() of range."
-            ref = Ref(ref).starting_ref()
-        else:
-            ref = Ref(ref)
-        for old_ref in mappings:
-            if Ref(old_ref).is_range():
-                print "Currently does not handle ranged refs.  Only handles the starting_ref() of range."
-                old_ref = Ref(old_ref).starting_ref()
+        ref = Ref(ref)
+        if ref.is_range():
+            start = ref.starting_ref().normal()
+            end = ref.ending_ref().normal()
+            if start in segment_map and end in segment_map:
+                return Ref(segment_map[start]).to(Ref(segment_map[end])).normal()
+            elif start in segment_map:
+                return segment_map[start]
+            elif end in segment_map:
+                return segment_map[end]
             else:
-                old_ref = Ref(old_ref)
-            if old_ref.contains(ref):
-                old_ref_str = old_ref.normal()
-                new_ref = mappings[old_ref_str]
-                ref_str = ref.normal()
-                return "Complex {}".format(ref_str.replace(old_ref_str, new_ref))
-        return "Complex {}".format(ref)
+                return "Complex {}".format(ref.normal())
+        elif ref.normal() not in segment_map:
+            return "Complex {}".format(ref.normal())
+        else:
+            return segment_map[ref.normal()]
 
 
     print "begin conversion"
@@ -678,6 +768,12 @@ def migrate_to_complex_structure(title, schema, mappings):
         "categories": old_index.categories,
         "schema": schema
     }
+    for attr in Index.optional_attrs:
+        if attr == 'schema':
+            continue
+        elif hasattr(old_index, attr):
+            new_index_contents[attr] = getattr(old_index, attr)
+
     #TODO: these are ugly hacks to create a temp index
     temp_index = Index(new_index_contents)
     en_title = temp_index.get_title('en')
@@ -689,12 +785,15 @@ def migrate_to_complex_structure(title, schema, mappings):
 
     #create versions for the main text
     versions = VersionSet({'title': title})
-    migrate_versions_of_text(versions, mappings, title, temp_index.title, temp_index)
+    try:
+        migrate_versions_of_text(versions, mappings, title, temp_index.title, temp_index)
+    except InputError as e:
+        temp_index.delete()
+        print e.message
+        raise e
 
     #are there commentaries? Need to move the text for them to conform to the new structure
     #basically a repeat process of the above, sans creating the index record
-    commentaries = library.get_commentary_versions_on_book(title)
-    migrate_versions_of_text(commentaries, mappings, title, temp_index.title, temp_index)
     #duplicate versionstate
     #TODO: untested
     vstate_old = VersionState().load({'title':title })
@@ -702,8 +801,18 @@ def migrate_to_complex_structure(title, schema, mappings):
     vstate_new.flags = vstate_old.flags
     vstate_new.save()
 
+    segment_map = generate_segment_mapping(title, mappings, "output_"+title+"_.txt")
     cascade(title, rewriter, needs_rewrite)
 
+    handle_dependant_indices(title)
+
+    Index().load({"title": title}).delete()
+
+    #re-name the temporary index, "Complex ..." to the original title
+    i = library.get_index("Complex {}".format(en_title))
+    i.set_title(title)
+    i.set_title(he_title, lang="he")
+    i.save()
 
 def migrate_versions_of_text(versions, mappings, orig_title, new_title, base_index):
     for i, version in enumerate(versions):

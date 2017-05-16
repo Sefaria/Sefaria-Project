@@ -44,10 +44,11 @@ def modify_text(user, oref, vtitle, lang, text, vsource=None, **kwargs):
             if oref.prev_section_ref():
                 invalidate_ref(oref.prev_section_ref(), lang=lang, version=vtitle, purge=True)
         if not kwargs.get("skip_links", None):
-            from sefaria.helper.link import add_and_delete_invalid_commentary_links, add_links_from_text
-            # Commentaries generate links to their base text automatically
-            if oref.type == "Commentary":
-                add_and_delete_invalid_commentary_links(oref, user, **kwargs)
+            from sefaria.helper.link import add_links_from_text
+            # Some commentaries can generate links to their base text automatically
+            linker = oref.autolinker(user=user)
+            if linker:
+                linker.refresh_links(**kwargs)
             # scan text for links to auto add
             add_links_from_text(oref, lang, chunk.text, chunk.full_version._id, user, **kwargs)
 

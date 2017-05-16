@@ -189,11 +189,11 @@
 	<div id="bsdHeader">בס"ד</div>
 	<div id="sheetHeader" {% if sheet_group == None %}style="display:none"{% endif %}>
 		{% if sheet_group %}
-		<a href="/partners/{{ sheet_group.name|url_safe }}">
-			<img id="partnerLogo" src="{{ sheet_group.headerUrl }}" />
+		<a href="/groups/{{ sheet_group.name|url_safe }}">
+			<img id="groupLogo" src="{{ sheet_group.headerUrl }}" />
 		</a>
 		{% else %}
-			<img id="partnerLogo" style="display:none;" />
+			<img id="groupLogo" style="display:none;" />
 		{% endif %}
 	</div>
 	<div id="title">
@@ -255,7 +255,7 @@
 	<div id="empty" class="well">
 
 		<div class="fa fa-times remove"></div>
-		<iframe width="560" height="336" src="http://www.youtube.com/embed/iac0GoaH2lY?rel=0" frameborder="0" allowfullscreen></iframe>
+		<iframe width="560" height="336" src="https://www.youtube.com/embed/iac0GoaH2lY?rel=0" frameborder="0" allowfullscreen></iframe>
 
 		<h3>Watch a 3 minute intro video or <a id="readmore">read more</a>.</h3>
 		<div id="howItWorks">
@@ -557,8 +557,8 @@
 	<div id="notPublished" style="display:none;">
 		<div class="header">No problem, this sheet is still private.</div>
 		
-		<p>If you change your mind, you can always make a sheet public in the <span class="label">Options</span> menu under  <span class="label">Sharing</span>.</p>
-
+		<p>You can make your sheet public in the future from the <span class="label">Share</span> menu.</p>
+git 
 		<div class="btn ok">OK</div>
 	</div>
 </div>

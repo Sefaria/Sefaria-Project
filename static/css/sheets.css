@@ -5,6 +5,9 @@ body {
 	overflow-x: visible;
 	font-family: "proxima-nova","Helvetica Neue","Helvetica",sans-serif;
 }
+*[contenteditable] {
+    -webkit-user-select: auto !important;
+}
 
 #right {
 	width: 510px;
@@ -76,7 +79,7 @@ body {
 	padding: 7px 5px;
 	border-radius: 5px;
 	color: #888;
-	background-color: #eee;
+	background-color: #f2f2f2;
 }
 
 .sheetsMenuBarItem #lastSaved {
@@ -121,7 +124,7 @@ body {
 	margin-left: -40px;
 }
 
-#sheetHeader #partnerLogo {
+#sheetHeader #groupLogo {
 	max-width: 90%;
 }
 
@@ -224,7 +227,7 @@ body {
 	white-space: nowrap;
 }
 .optionItem:hover,
-.optionTitle:hover, .optionLink:hover, .languageToggleOption div:hover, .layoutToggleOption div:hover .sideBySideToggleOption div:hover {
+.optionTitle:hover, .optionLink:hover, .languageToggleOption div:hover, .layoutToggleOption div:hover, .sideBySideToggleOption div:hover {
 	background: #08c;
 	color:white;
 }
@@ -1181,7 +1184,7 @@ a:active {
 
 }
 
-body.embeded #controls {
+body.embeded #controls, body.embeded .header, body.embeded #footer, body.embeded #fileControls {
 	display: none;
 }
 
@@ -1510,7 +1513,7 @@ img {
   z-index: 6;
 }
 
-#fileMenu:hover .optionsMenu, #formatMenu:hover .optionsMenu, #insertMenu:hover .optionsMenu {
+#fileMenu:hover .optionsMenu, #formatMenu:hover .optionsMenu, #insertMenu:hover .optionsMenu, #highlightMenu:hover .optionsMenu  {
 	display: block;
 	top:45px;
 	left:20px;
@@ -1973,9 +1976,184 @@ a.tagit-close {
 	content: "X"
 }
 
-.moveSourceUp img, .moveSourceDown img  {
+.moveSourceUp img, .moveSourceDown img, .highlighterSource img  {
     width:16px;
 }
+
+.source .highlighter, .highlighterTools, .highlighterTagWindow, .addTagPanel {
+	display: none;
+}
+
+#sheet.highlightMode #sources .sheetItem .highlighter, #sheet.highlightMode .highlighterTools {
+	display: block;
+}
+
+#sheet.highlightMode #sources .sheetItem .text {
+	display: none;
+}
+
+#highlightMenu {
+	display: none;
+}
+
+
+.highlighterTagWindow {
+  	position: absolute;
+	z-index: 3;
+	width: 320px;
+	background-color: #f9f9f7;
+	border-radius: 3px;
+	border: 1px solid #ccc;
+	font-family: "proxima-nova","Helvetica Neue","Helvetica",sans-serif;
+
+}
+
+.highlighterTagWindow .save.button {
+    margin: 20px;
+    width: 280px;
+    text-align: center;
+
+}
+
+.highlighterSegment {
+	display: inline;
+	margin-top: 10px;
+}
+
+.editCheckToggle {
+    display: inline-block;
+    float: right;
+    height: 22px;
+}
+
+
+.tagSelectorTitle {
+	font-weight: 400;
+    text-align: center;
+    margin: 20px;
+}
+
+.splitHighlighterSegment, .createNewHighlighterTag {
+	background-color: #fff;
+	margin: 10px 20px;
+	border-radius: 3px;
+	border: 1px solid transparent;
+	color: #999;
+	padding: 5px 10px;
+	font-size: 16px;
+	cursor: pointer;
+}
+
+.splitHighlighterSegment.active, .createNewHighlighterTag.active {
+	border: 1px solid #ccc;
+	color: #333;
+}
+
+.splitHighlighterSegment, .noSelect, .colorSelect div, .addTagPanel, .newTag {
+	-webkit-touch-callout: none;
+	-webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+
+}
+
+.colorSwatch {
+	width: 10px;
+	height: 10px;
+	display: none;
+	border: 3px solid transparent;
+	margin-right: 5px;
+	border-radius: 3px;
+    margin-bottom: -2px;
+}
+
+.colorSwatch.active {
+	display: inline-block;
+}
+
+.createNewHighlighterTag {
+	font-style: italic;
+}
+
+.tagName {
+	display: inline-block;
+}
+
+.colorSelect {
+	text-align:center;
+}
+
+#highlightModeDisplay {
+	display: none;
+	position: fixed;
+	z-index: 100;
+	top: 70px;
+	right: 140px;
+	text-align: center;
+	font-size: 12px;
+	padding: 7px 5px;
+	color: #888;
+	background-color: #f2f2f2;
+
+}
+
+.highlighterSegment[data-tag]::before {
+    content: attr(data-tag) ;
+    font-size: 14px;
+	font-family: "proxima-nova","Helvetica Neue","Helvetica",sans-serif;
+    position:absolute;
+    z-index: 2;
+    white-space:nowrap;
+    background:#fff;
+    color:#666;
+	border-radius: 3px;
+	border: 1px solid #999;
+    padding:0px 7px;
+	margin-top: -30px;
+    line-height: 24px;
+    height: 24px;
+    opacity: 0;
+    transition:opacity 0.4s ease-out;
+	pointer-events: none;
+    }
+
+
+.highlighterSegment[data-tag]:hover::before {
+    opacity: 1;
+    }
+
+.highlightFilterSelection {
+	padding: 10px 12px;
+}
+
+.highlightFilterSelection label {
+	font-size: 17px;
+}
+
+.highlightFilterSelection input {
+	margin: 0;
+}
+
+.highlighterFilterTags{
+	padding: 5px 0;
+}
+.highlighterFilterTags:hover {
+	background-color: #f2f2f2;
+	color: #000;
+}
+
+.colorSelect div {
+	width: 34px;
+	height:30px;
+    border-radius: 5px;
+	margin:5px;
+	display: inline-block;
+	cursor: pointer;
+	border: 1px transparent solid;
+
+}
+
 
 #sheet.hebrew .outsideWrapper .en, #sheet.english .outsideWrapper .en .outsideWrapper .he {
 	display: block;

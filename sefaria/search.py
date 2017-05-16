@@ -27,7 +27,6 @@ from sefaria.system.database import db
 from sefaria.system.exceptions import InputError
 from sefaria.utils.util import strip_tags
 from settings import SEARCH_ADMIN, SEARCH_INDEX_NAME
-from sefaria.summaries import REORDER_RULES
 from sefaria.utils.hebrew import hebrew_term
 import sefaria.model.queue as qu
 
@@ -46,10 +45,8 @@ def index_text(index_name, oref, version=None, lang=None, bavli_amud=True, merge
     Index the text designated by ref.
     If no version and lang are given, this function will be called for each available version.
     If `merged` is true, and lang is given, it will index a merged version of this document
-
-    :param str index_name: The index name, as provided by `get_new_and_current_index_names`
-    :param str oref: Currently assumes ref is at section level.
-    :param str version: Version being indexed
+   :param str index_name: The index name, as provided by `get_new_and_current_index_names`
+    :param str oref: Currently assumes ref is at section level. :param str version: Version being indexed
     :param str lang: Language of version being indexed
     :param bool bavli_amud:  Is this Bavli? Bavli text is indexed by section, not segment.
     :param bool merged: is this a merged index?
@@ -163,9 +160,7 @@ def make_text_index_document(tref, version, lang):
 
     content = bleach.clean(content, strip=True, tags=())
 
-    if text["type"] == "Talmud":
-        title = text["book"] + " Daf " + text["sections"][0]
-    elif text["type"] == "Commentary" and text["commentaryCategories"][0] == "Talmud":
+    if oref.is_talmud():
         title = text["book"] + " Daf " + text["sections"][0]
     else:
         title = text["book"] + " " + " ".join([u"{} {}".format(p[0], p[1]) for p in zip(text["sectionNames"], text["sections"])])
@@ -174,8 +169,10 @@ def make_text_index_document(tref, version, lang):
     if lang == "he":
         title = text.get("heTitle", "") + " " + title
 
-    if text["categories"][0] in REORDER_RULES:
-        categories = REORDER_RULES[text["categories"][0]] + text["categories"][1:]
+    if getattr(oref.index, "dependence", None) == 'Commentary':  # uch, special casing
+        categories = text["categories"][:]
+        categories.remove('Commentary')
+        categories[0] += " Commentaries"  # this will create an additional bucket for each top level category's commentary
     else:
         categories = text["categories"]
 
@@ -191,7 +188,7 @@ def make_text_index_document(tref, version, lang):
         "categories": categories,
         "order": oref.order_id(),
         # and
-        "path": "/".join(text["categories"] + [oref.index.title])
+        "path": "/".join(categories + [oref.index.title])
     }
 
 
@@ -541,8 +538,8 @@ def index_all(skip=0, merged=False, debug=False):
     new_index_name = name_dict['new']
     curr_index_name = name_dict['current']
     alias_name = name_dict['alias']
-
-    create_index(new_index_name, merged=merged)
+    if skip == 0:
+        create_index(new_index_name, merged=merged)
     index_all_sections(new_index_name, skip=skip, merged=merged, debug=debug)
     if not merged:
         index_public_sheets(new_index_name)
@@ -573,6 +570,20 @@ def index_all(skip=0, merged=False, debug=False):
     end = datetime.now()
     print "Elapsed time: %s" % str(end-start)
 
+
+def index_all_commentary_refactor(skip=0, merged=False, debug=False):
+    start = datetime.now()
+
+    new_index_name = '{}-b'.format(SEARCH_INDEX_NAME if not merged else 'merged')
+
+    if skip == 0:
+        create_index(new_index_name, merged=merged)
+    index_all_sections(new_index_name, skip=skip, merged=merged, debug=debug)
+    if not merged:
+        index_public_sheets(new_index_name)
+
+    end = datetime.now()
+    print "Elapsed time: %s" % str(end-start)
 
 # adapted to python from library.js:sjs.search.get_query_object()
 def query(q, override=False):

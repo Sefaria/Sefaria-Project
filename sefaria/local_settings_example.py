@@ -84,6 +84,10 @@ SEFARIA_EXPORT_PATH = '/path/to/your/Sefaria-Data/export' # used for exporting t
 GOOGLE_ANALYTICS_CODE = 'your google analytics code'
 MIXPANEL_CODE = 'you mixpanel code here'
 
+AWS_ACCESS_KEY = None
+AWS_SECRET_KEY = None
+S3_BUCKET = "bucket-name"
+
 # Integration with a NationBuilder list
 NATIONBUILDER = False
 NATIONBUILDER_SLUG = ""
@@ -94,7 +98,8 @@ NATIONBUILDER_CLIENT_SECRET = ""
 # Issue bans to Varnish on update.
 USE_VARNISH = False
 FRONT_END_URL = "http://localhost:8000"  # This one wants the http://
-VARNISH_ADDR = "localhost:6082"  # And this one doesn't
+VARNISH_ADM_ADDR = "localhost:6082" # And this one doesn't
+VARNISH_FRNT_PORT = 8040
 VARNISH_SECRET = "/etc/varnish/secret"
 # Use ESI for user box in header.
 USE_VARNISH_ESI = False

@@ -1,10 +1,11 @@
+import io
+import os
+import zipfile
 import json
 from datetime import datetime, timedelta
 from urlparse import urlparse
 from collections import defaultdict
 from random import choice
-import io
-import zipfile
 
 from django.utils.translation import ugettext as _
 from django.conf import settings
@@ -16,16 +17,18 @@ from django.utils.http import is_safe_url
 from django.contrib.auth import authenticate
 from django.contrib.auth import REDIRECT_FIELD_NAME, login as auth_login, logout as auth_logout
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
+from django.contrib.auth.decorators import login_required
 from django.contrib.sites.models import get_current_site
 from django.contrib.admin.views.decorators import staff_member_required
 from django.views.decorators.debug import sensitive_post_parameters
 from django.views.decorators.cache import never_cache
 from django.views.decorators.csrf import csrf_protect
 
+
 import sefaria.model as model
 import sefaria.system.cache as scache
 
-from sefaria.client.util import jsonResponse, subscribe_to_announce
+from sefaria.client.util import jsonResponse, subscribe_to_list
 from sefaria.forms import NewUserForm
 from sefaria.settings import MAINTENANCE_MESSAGE, USE_VARNISH
 from sefaria.model.user_profile import UserProfile, user_links
@@ -63,7 +66,9 @@ def register(request):
             user = authenticate(email=form.cleaned_data['email'],
                                 password=form.cleaned_data['password1'])
             auth_login(request, user)
-            p = UserProfile(id=user.id).assign_slug()
+            p = UserProfile(id=user.id)
+            p.assign_slug()
+            p.join_invited_groups()
             p.settings["interface_language"] = request_context.get("interfaceLang")
             p.save()
             if "noredirect" in request.POST:
@@ -75,7 +80,10 @@ def register(request):
                 next = request.POST.get("next", "/") + "?welcome=to-sefaria"
                 return HttpResponseRedirect(next)
     else:
-        form = NewUserForm()
+        if request.REQUEST.get('educator', ''):
+            form = NewUserForm(initial={'subscribe_educator': True})
+        else:
+            form = NewUserForm()
 
     return render_to_response("registration/register.html", 
                                 {'form' : form, 'next': next}, 
@@ -174,7 +182,13 @@ def accounts(request):
 
 
 def subscribe(request, email):
-    if subscribe_to_announce(email, direct_sign_up=True):
+    if subscribe_to_list(["Announcements_General", "Newsletter_Sign_Up"], email, direct_sign_up=True):
+        return jsonResponse({"status": "ok"})
+    else:
+        return jsonResponse({"error": "Sorry, there was an error."})
+
+def subscribe_educators(request, email):
+    if subscribe_to_list(["Announcements_General", "Announcements_Edu"], email, direct_sign_up=True):
         return jsonResponse({"status": "ok"})
     else:
         return jsonResponse({"error": "Sorry, there was an error."})
@@ -201,8 +215,8 @@ def linker_js(request):
     Javascript of Linker plugin.
     """
     attrs = {
-        "book_titles": json.dumps(model.library.full_title_list("en", with_commentary=True, with_commentators=False)
-                      + model.library.full_title_list("he", with_commentary=True, with_commentators=False))
+        "book_titles": json.dumps(model.library.full_title_list("en")
+                      + model.library.full_title_list("he"))
     }
     return render_to_response("js/linker.js", attrs, RequestContext(request), mimetype= "text/javascript")
 
@@ -260,6 +274,39 @@ def bulktext_api(request, refs):
         resp = jsonResponse(res, cb)
         resp['Access-Control-Allow-Origin'] = '*'
         return resp
+
+
+@login_required
+def file_upload(request, resize_image=True):
+    from PIL import Image
+    from tempfile import NamedTemporaryFile
+    from sefaria.s3 import HostedFile
+    if request.method == "POST":
+        MAX_FILE_MB = 2
+        MAX_FILE_SIZE = MAX_FILE_MB * 1024 * 1024
+        MAX_FILE_DIMENSIONS = (1048, 1048)
+        uploaded_file = request.FILES['file']
+        if uploaded_file.size > MAX_FILE_SIZE:
+            return jsonResponse({"error": "Uploaded files must be smaller than %dMB." % MAX_FILE_MB})
+        name, extension = os.path.splitext(uploaded_file.name)
+        with NamedTemporaryFile(suffix=extension) as temp_uploaded_file:
+            temp_uploaded_file.write(uploaded_file.read())
+            
+            with NamedTemporaryFile(suffix=extension) as temp_resized_file:
+                image = Image.open(temp_uploaded_file)
+                if resize_image:
+                    image.thumbnail(MAX_FILE_DIMENSIONS, Image.ANTIALIAS)
+                image.save(temp_resized_file, optimize=True, quality=70)
+
+                name, extension = os.path.splitext(temp_resized_file.name)
+                hosted_file = HostedFile(filepath=temp_resized_file.name, content_type=uploaded_file.content_type)
+                try:
+                    url = hosted_file.upload()
+                    return jsonResponse({"status": "success", "url": url})
+                except: 
+                    return jsonResponse({"error": "There was an error uploading your file."})
+    else:
+        return jsonResponse({"error": "Unsupported HTTP method."})
 
 
 @staff_member_required
@@ -365,10 +412,10 @@ def reset_ref(request, tref):
 
 
 @staff_member_required
-def rebuild_commentary_links(request, title):
-    from sefaria.helper.link import rebuild_commentary_links as rebuild
+def rebuild_auto_links(request, title):
+    from sefaria.helper.link import rebuild_links_for_title as rebuild
     rebuild(title, request.user.id)
-    return HttpResponseRedirect("/?m=Commentary-Links-Rebuilt-on-%s" % title)
+    return HttpResponseRedirect("/?m=Automatic-Links-Rebuilt-on-%s" % title)
 
 
 @staff_member_required
@@ -402,12 +449,6 @@ def cache_dump(request):
     }
     return jsonResponse(resp)
 
-@staff_member_required
-def create_commentator_version(request, commentator, book, lang, vtitle, vsource):
-    from sefaria.helper.text import create_commentator_and_commentary_version
-    ht = request.GET.get("heTitle", None)
-    create_commentator_and_commentary_version(commentator, book, lang, vtitle, vsource, ht)
-    return HttpResponseRedirect("/add/%s" % commentator)
 
 
 @staff_member_required

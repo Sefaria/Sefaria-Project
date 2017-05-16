@@ -47,13 +47,6 @@ ORDER = [
         "Seder Nezikin",
         "Seder Kodashim",
         "Seder Tahorot",
-    "Tosefta",
-        "Seder Zeraim",
-        "Seder Moed",
-        "Seder Nashim",
-        "Seder Nezikin",
-        "Seder Kodashim",
-        "Seder Tahorot",
     "Talmud",
         "Bavli",
                 "Seder Zeraim",
@@ -74,6 +67,15 @@ ORDER = [
         "Aggadic Midrash",
             "Midrash Rabbah",
         "Halachic Midrash",
+    "Tanaitic",
+        "Tosefta",
+            "Seder Zeraim",
+            "Seder Moed",
+            "Seder Nashim",
+            "Seder Nezikin",
+            "Seder Kodashim",
+            "Seder Tahorot",
+        "Masechtot Ketanot",
     "Halakhah",
         "Mishneh Torah",
             'Introduction',
@@ -96,10 +98,14 @@ ORDER = [
         "Zohar",
     'Liturgy',
         'Siddur',
+        'Haggadah',
         'Piyutim',
     'Philosophy',
     'Parshanut',
     'Chasidut',
+        "Early Works",
+        "Breslov",
+        "R' Tzadok HaKohen",
     'Musar',
     'Responsa',
         "Rashba",
@@ -110,9 +116,27 @@ ORDER = [
     'Other',
 ]
 
-REORDER_RULES = {
-    "Commentary2": ["Commentary"],
-}
+TOP_CATEGORIES = [
+    "Tanakh",
+    "Mishnah",
+    "Talmud",
+    "Midrash",
+    "Halakhah",
+    "Kabbalah",
+    "Liturgy",
+    "Philosophy",
+    "Tanaitic",
+    "Chasidut",
+    "Musar",
+    "Responsa",
+    "Apocrypha",
+    "Modern Works",
+    "Other"
+]
+
+REVERSE_ORDER = [
+    'Commentary'  # Uch, STILL special casing commentary here... anything to be done??
+]
 
 
 def update_table_of_contents():
@@ -121,45 +145,40 @@ def update_table_of_contents():
     # Add an entry for every text we know about
     indices = IndexSet()
     for i in indices:
-        if i.is_commentary() or i.categories[0] == "Commentary2":
-            # Special case commentary below
-            continue
-
-        if i.categories[0] in REORDER_RULES:
-            cats = REORDER_RULES[i.categories[0]] + i.categories[1:]
-        else:
-            cats = i.categories[:]
-        if cats[0] not in ORDER:
-            cats.insert(0, "Other")
-
+        cats = get_toc_categories(i)
         node = get_or_make_summary_node(toc, cats)
-        text = i.toc_contents()
-        text["sparseness"] = sparseness_dict[text["title"]]
-        node.append(text)
-
-    # Special handling to list available commentary texts
-    commentary_texts = library.get_commentary_version_titles(with_commentary2=True)
-    for c in commentary_texts:
-
-        try:
-            i = library.get_index(c)
-        except BookNameError:
-            continue
-
-        if i.categories[0] in REORDER_RULES:
-            cats = REORDER_RULES[i.categories[0]] + i.categories[1:]
-        else:
-            cats = i.categories[:]
-
-        text = i.toc_contents()
-        text["sparseness"] = sparseness_dict[text["title"]]
-
-        cats[0], cats[1] = cats[1], cats[0] # Swap "Commentary" with toplevel category (e.g., "Tanach")
-        node = get_or_make_summary_node(toc, cats)
-        node.append(text)
-
+        text_dict = i.toc_contents()
+        text_dict["sparseness"] = sparseness_dict[text_dict["title"]]
+        node.append(text_dict)
     # Recursively sort categories and texts
     return sort_toc_node(toc, recur=True)
+
+
+def update_search_filter_table_of_contents():
+    search_toc = []
+    sparseness_dict = get_sparesness_lookup()
+    # Add an entry for every text we know about
+    indices = IndexSet()
+    for i in indices:
+        cats = get_toc_categories(i, for_search=True)
+        node = get_or_make_summary_node(search_toc, cats)
+        text_dict = i.slim_toc_contents()
+        text_dict["sparseness"] = sparseness_dict[text_dict["title"]]
+        node.append(text_dict)
+    # Recursively sort categories and texts
+    return sort_toc_node(search_toc, recur=True)
+
+
+def get_toc_categories(index_obj, for_search=False):
+    cats = index_obj.categories[:]
+    if cats[0] not in TOP_CATEGORIES:
+        cats.insert(0, "Other")
+    if for_search and getattr(index_obj, "dependence", None) == 'Commentary':
+        cats.remove('Commentary')
+        cats[0] += " Commentaries"  # this will create an additional bucket for each top level category's commentary
+
+    return cats
+
 
 def recur_delete_element_from_toc(bookname, toc):
     for toc_elem in toc:
@@ -177,32 +196,21 @@ def recur_delete_element_from_toc(bookname, toc):
                 toc_elem['to_delete'] = True
     return toc
 
-
-def update_title_in_toc(toc, index, old_ref=None, recount=True):
+def update_title_in_toc(toc, index, old_ref=None, recount=True, for_search=False):
     """
     Update text summary docs to account for change or insertion of 'text'
     * recount - whether or not to perform a new count of available text
     """
-    indx_dict = index.toc_contents()
-
+    resort_other = False
+    indx_dict = index.toc_contents() if not for_search else index.slim_toc_contents()
+    cats = get_toc_categories(index, for_search=for_search)
+    """if cats[0] == "Other":
+        resort_other = True"""
     if recount:
         VersionState(index.title).refresh()
-    resort_other = False
 
-    if indx_dict["categories"][0] in REORDER_RULES:
-        indx_dict["categories"] = REORDER_RULES[indx_dict["categories"][0]] + indx_dict["categories"][1:]
-
-    if indx_dict["categories"][0] != "Commentary":
-        if indx_dict["categories"][0] not in ORDER:
-            indx_dict["categories"].insert(0, "Other")
-            resort_other = True
-        node = get_or_make_summary_node(toc, indx_dict["categories"])
-        text = add_counts_to_index(indx_dict)
-    else:
-        commentator = indx_dict["commentator"]
-        cats = [indx_dict["categories"][1], "Commentary", commentator]
-        node = get_or_make_summary_node(toc, cats)
-        text = add_counts_to_index(indx_dict)
+    node = get_or_make_summary_node(toc, cats)
+    text = add_counts_to_index(indx_dict)
 
     found = False
     test_title = old_ref or text["title"]
@@ -216,8 +224,8 @@ def update_title_in_toc(toc, index, old_ref=None, recount=True):
         node[:] = sort_toc_node(node)
 
     # If a new category may have been added to other, resort the categories
-    if resort_other:
-        toc[-1]["contents"] = sort_toc_node(toc[-1]["contents"])
+    """if resort_other:
+        toc[-1]["contents"] = sort_toc_node(toc[-1]["contents"])"""
 
     return toc
 
@@ -229,7 +237,7 @@ def get_or_make_summary_node(summary, nodes, contents_only=True, make_if_not_fou
     Used recursively on sub-summaries.
     """
     if len(nodes) == 1:
-    # Basecase, only need to search through one level
+    #  Basecase, only need to search through one level
         for node in summary:
             if node.get("category") == nodes[0]:
                 return node["contents"] if contents_only else node
@@ -265,7 +273,6 @@ def add_counts_to_index(indx_dict):
     indx_dict["sparseness"] = max(vs.get_sparseness("he"), vs.get_sparseness("en"))
     return indx_dict
 
-
 def node_sort_key(a):
     """
     Sort function for texts/categories per below.
@@ -274,13 +281,16 @@ def node_sort_key(a):
         try:
             return ORDER.index(a["category"])
         except ValueError:
-           return 'zz' + a["category"]
+            temp_cat_name = a["category"].replace(" Commentaries", "")
+            if temp_cat_name in TOP_CATEGORIES:
+                return ORDER.index(temp_cat_name) + 0.5
+            return 'zz' + a["category"]
     elif "title" in a:
         try:
             return ORDER.index(a["title"])
         except ValueError:
             if "order" in a:
-                return a["order"][0]
+                return a["order"]
             else:
                 return a["title"]
 
@@ -308,6 +318,7 @@ def sort_toc_node(node, recur=False):
     """
     node = sorted(node, key=node_sort_key)
     node = sorted(node, key=node_sort_sparse)
+    node = sorted(node, key=lambda a: 'zzz' + a["category"] if "category" in a and a["category"] in REVERSE_ORDER else 'a')
 
     if recur:
         for cat in node:

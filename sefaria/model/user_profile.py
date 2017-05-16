@@ -12,6 +12,7 @@ if not hasattr(sys, '_doc_build'):
 	from django.core.exceptions import ValidationError
 
 from sefaria.model.following import FollowersSet, FolloweesSet
+from sefaria.model.text import Ref
 from sefaria.system.database import db
 
 
@@ -45,6 +46,7 @@ class UserProfile(object):
 		self._id                   = None  # Mongo ID of profile doc
 		self.id                    = id    # user ID
 		self.slug                  = ""
+		self.recentlyViewed        = []
 		self.position              = ""
 		self.organization          = ""
 		self.jewish_education      = []
@@ -79,7 +81,7 @@ class UserProfile(object):
 		self.followees = FolloweesSet(self.id)
 
 		# Gravatar
-		default_image           = "http://www.sefaria.org/static/img/profile-default.png"
+		default_image           = "https://www.sefaria.org/static/img/profile-default.png"
 		gravatar_base           = "http://www.gravatar.com/avatar/" + hashlib.md5(self.email.lower()).hexdigest() + "?"
 		self.gravatar_url       = gravatar_base + urllib.urlencode({'d':default_image, 's':str(250)})
 		self.gravatar_url_small = gravatar_base + urllib.urlencode({'d':default_image, 's':str(80)})
@@ -166,6 +168,12 @@ class UserProfile(object):
 
 		return None
 
+	def exists(self):
+		"""
+		Returns True if this is a real existing user, not simply a mock profile.
+		"""
+		return bool(self.date_joined)
+
 	def assign_slug(self):
 		"""
 		Set the slug according to the profile name,
@@ -182,6 +190,16 @@ class UserProfile(object):
 			self.slug = "%s%d" % (slug, dupe_count)
 
 		return self
+
+	def join_invited_groups(self):
+		"""
+		Add this user as a member of any group for which there is an outstanding invitation.
+		"""
+		from sefaria.model import GroupSet
+		groups = GroupSet({"invitations.email": self.email})
+		for group in groups:
+			group.add_member(self.id)
+			group.remove_invitation(self.email)
 
 	def follows(self, uid):
 		"""Returns true if this user follows uid"""
@@ -212,11 +230,22 @@ class UserProfile(object):
 		self.interrupting_messages.remove(message)
 		self.save()
 
+	def set_recent_item(tref):
+		"""
+		Save `tref` as a recently viewed text at the front of the list. Removes any previous location for that text.
+		Not used yet, need to consider if it's better to store derivable information (ref->heRef) or reprocess it often.
+		"""
+		oref = Ref(tref)
+		recent = [tref for tref in self.recent if Ref(tref).index.title != oref.index.title]
+		self.recent = [tref] + recent
+		self.save()
+
 	def to_DICT(self):
 		"""Return a json serializble dictionary this profile"""
 		dictionary = {
 			"id":                    self.id,
 			"slug":                  self.slug,
+			"recentlyViewed":        self.recentlyViewed,
 			"position":              self.position,
 			"organization":          self.organization,
 			"jewish_education":      self.jewish_education,
@@ -307,7 +336,8 @@ def public_user_data(uid):
 		"name": profile.full_name,
 		"profileUrl": "/profile/" + profile.slug,
 		"imageUrl": profile.gravatar_url_small,
-		"isStaff": is_staff
+		"isStaff": is_staff,
+		"uid": uid
 	}
 	public_user_data_cache[uid] = data
 	return data

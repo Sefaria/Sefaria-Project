@@ -6,9 +6,9 @@ logger = logging.getLogger(__name__)
 
 from sefaria.model import *
 from sefaria.datatype.jagged_array import JaggedTextArray
-from sefaria.summaries import REORDER_RULES
 from sefaria.system.exceptions import InputError, NoVersionFoundError
 from sefaria.model.user_profile import user_link, public_user_data
+from sefaria.utils.hebrew import hebrew_term
 
 
 def format_link_object_for_client(link, with_text, ref, pos=None):
@@ -28,7 +28,7 @@ def format_link_object_for_client(link, with_text, ref, pos=None):
 
     com["_id"]           = str(link._id)
     com['index_title']   = linkRef.index.title
-    com["category"]      = linkRef.type
+    com["category"]      = linkRef.primary_category #usually the index's categories[0] or "Commentary".
     com["type"]          = link.type
     com["ref"]           = linkRef.tref
     com["anchorRef"]     = anchorRef.normal()
@@ -43,26 +43,24 @@ def format_link_object_for_client(link, with_text, ref, pos=None):
     com["commentaryNum"] = lsections[-1] if len(lsections) == 1 \
             else float('{0}.{1:04d}'.format(*lsections[-2:])) if len(lsections) > 1 else 0
 
-    if com["category"] in REORDER_RULES:
-        com["category"] = REORDER_RULES[com["category"]][0]
-
     if with_text:
         text             = TextFamily(linkRef, context=0, commentary=False)
         com["text"]      = text.text if isinstance(text.text, basestring) else JaggedTextArray(text.text).flatten_to_array()
         com["he"]        = text.he if isinstance(text.he, basestring) else JaggedTextArray(text.he).flatten_to_array()
 
     # if the the link is commentary, strip redundant info (e.g. "Rashi on Genesis 4:2" -> "Rashi")
+    # this is now simpler, and there is explicit data on the index record for it.
     if com["type"] == "commentary":
-        com["commentator"]   = linkRef.book.split(" on ")[0]
-        com["heCommentator"] = linkRef.he_book().split(u" על ")[0]
+        com["collectiveTitle"] = {
+            'en': getattr(linkRef.index, 'collective_title', linkRef.index.title),
+            'he': hebrew_term(getattr(linkRef.index, 'collective_title', linkRef.index.get_title("he")))
+        }
     else:
-        if com["category"] == "Commentary":
-            com["category"] = "Quoting Commentary"
-        com["commentator"] = linkRef.index.title
-        com["heCommentator"] = linkRef.index.get_title("he") if linkRef.index.get_title("he") else com["commentator"]
+        com["collectiveTitle"] = {'en': linkRef.index.title, 'he': linkRef.index.get_title("he")}
 
-    if link.type == "targum":
-        com["category"] = "Targum"
+    if com["type"] != "commentary" and com["category"] == "Commentary":
+            com["category"] = "Quoting Commentary"
+            #add a fix here for quoting commentary appearing together with commentary in s2 panels
 
     if linkRef.index_node.primary_title("he"):
         com["heTitle"] = linkRef.index_node.primary_title("he")
@@ -153,6 +151,7 @@ def get_links(tref, with_text=True):
     for link in linkset:
         # each link contains 2 refs in a list
         # find the position (0 or 1) of "anchor", the one we're getting links for
+        # If both sides of the ref are in the same section of a text, only one direction will be used.  bug? maybe not.
         if reRef:
             pos = 0 if re.match(reRef, link.refs[0]) else 1
         else:
@@ -175,40 +174,20 @@ def get_links(tref, with_text=True):
                 com_orefs = original_com_oref.split_spanning_ref()
                 for com_oref in com_orefs:
                     top_oref = com_oref.top_section_ref()
-
                     # Lookup and save top level text, only if we haven't already
                     top_nref = top_oref.normal()
                     if top_nref not in texts:
-                        texts[top_nref] = TextFamily(top_oref, context=0, commentary=False, pad=False).contents()
-                        for t in ["text", "he"]:
-                            texts[top_nref][t] = JaggedTextArray(texts[top_nref][t])
-                    sections, toSections = com_oref.sections[1:], com_oref.toSections[1:]
-                    for t in ["text", "he"]:
-                        res = texts[top_nref][t].subarray(
-                            [i - 1 for i in sections],
-                            [i - 1 for i in toSections]
-                        ).array()
-                        if t not in com:
-                            com[t] = res
+                        texts[top_nref] = {lang: TextChunk(top_oref, lang).ja() for lang in ["he", "en"]}
+                    sections = [i - 1 for i in com_oref.sections[1:]]
+                    toSections = [i - 1 for i in com_oref.toSections[1:]]
+                    for lang, attr in [("he", "he"), ("en", "text")]:
+                        res = texts[top_nref][lang].subarray(sections, toSections).array()
+                        if attr not in com:
+                            com[attr] = res
                         else:
-                            if isinstance(com[t], basestring):
-                                com[t] = [com[t]]
-                            com[t] += res
-                        '''
-                        next_section = grab_section_from_text(sections, texts[top_nref][t], toSections)
-                        if t not in com:
-                            com[t] = next_section
-                        elif isinstance(com[t], list):
-                            if isinstance(next_section, list):
-                                com[t] += next_section
-                            else:
-                                com[t] += [next_section]
-                        else: #com[t] is string
-                            if isinstance(next_section, list):
-                                com[t] = [com[t]] + next_section
-                            else:
-                                com[t] += u" " + next_section
-                        '''
+                            if isinstance(com[attr], basestring):
+                                com[attr] = [com[attr]]
+                            com[attr] += res
             links.append(com)
         except NoVersionFoundError as e:
             logger.warning("Trying to get non existent text for ref '{}'. Link refs were: {}".format(top_nref, link.refs))

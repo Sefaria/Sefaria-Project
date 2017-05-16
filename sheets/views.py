@@ -16,12 +16,11 @@ from django.contrib.admin.views.decorators import staff_member_required
 
 # noinspection PyUnresolvedReferences
 from django.contrib.auth.models import User
-from django.contrib.auth.models import Group as DjangoGroup
 
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaIoBaseUpload
 
-from reader.views import s2_sheets, s2_sheets_by_tag, s2_group_sheets
+from reader.views import s2_sheets, s2_sheets_by_tag, s2_group_sheets, s2_my_groups
 
 # noinspection PyUnresolvedReferences
 from sefaria.client.util import jsonResponse, HttpResponse
@@ -69,7 +68,7 @@ def new_sheet(request):
 			if db.sheets.find_one({"id": sheet_id})["options"]["assignable"] == 1:
 				return assigned_sheet(request, sheet_id)
 
-	owner_groups  = get_user_groups(request.user)
+	owner_groups  = get_user_groups(request.user.id)
 	query         = {"owner": request.user.id or -1 }
 	hide_video    = db.sheets.find(query).count() > 2
 
@@ -86,7 +85,7 @@ def new_sheet(request):
 
 def can_edit(user, sheet):
 	"""
-	Returns true if user can edit sheet.
+	Returns True if user can edit sheet.
 	"""
 	if sheet["owner"] == user.id:
 		return True
@@ -96,16 +95,18 @@ def can_edit(user, sheet):
 		return True
 	if sheet["options"]["collaboration"] == "group-can-edit":
 		if "group" in sheet:
-			if sheet["group"] in [group.name for group in user.groups.all()]:
-				return True
+			try:
+				return Group().load({"name": sheet["group"]}).is_member(user.id)
+			except:
+				return False
 
 	return False
 
 
 def can_add(user, sheet):
 	"""
-	Returns true if user has adding persmission on sheet.
-	Returns false if user has the higher permission "can_edit"
+	Returns True if user has adding persmission on sheet.
+	Returns False if user has the higher permission "can_edit"
 	"""
 	if not user.is_authenticated():
 		return False
@@ -120,18 +121,41 @@ def can_add(user, sheet):
 		return True
 	if sheet["options"]["collaboration"] == "group-can-add":
 		if "group" in sheet:
-			if sheet["group"] in [group.name for group in user.groups.all()]:
-				return True
+			try:
+				return Group().load({"name": sheet["group"]}).is_member(user.id)
+			except:
+				return False
 
 	return False
 
 
-def get_user_groups(user):
+def can_publish(user, sheet):
+	"""
+	Returns True if user and sheet both belong to the same Group, and user has publish rights in that group
+	Returns False otherwise, including if the sheet is not in a Group at all
+	"""
+	if "group" in sheet:
+		try:
+			return Group().load({"name": sheet["group"]}).can_publish(user.id)
+		except:
+			return False
+	return False
+
+
+def get_user_groups(uid):
 	"""
 	Returns a list of Groups that user belongs to.
 	"""
-	groups = [g.name for g in user.groups.all()]
-	return GroupSet({"name": {"$in": groups }}, sort=[["name", 1]])
+	if not uid:
+		return None
+	groups = GroupSet().for_user(uid)
+	groups = [ {
+					"name": group.name,
+					"headerUrl": getattr(group, "headerUrl", ""), 
+					"canPublish": group.can_publish(uid),
+				} 
+				for group in groups]
+	return groups
 
 
 def make_sheet_class_string(sheet):
@@ -171,26 +195,33 @@ def view_sheet(request, sheet_id):
 	try:
 		owner = User.objects.get(id=sheet["owner"])
 		author = owner.first_name + " " + owner.last_name
-		owner_groups = get_user_groups(request.user) if sheet["owner"] == request.user.id else None
+		owner_groups = get_user_groups(request.user.id) if sheet["owner"] == request.user.id else None
 	except User.DoesNotExist:
 		author = "Someone Mysterious"
 		owner_groups = None
 
-	sheet_class     = make_sheet_class_string(sheet)
-	can_edit_flag   = can_edit(request.user, sheet)
-	can_add_flag    = can_add(request.user, sheet)
-	sheet_group     = Group().load({"name": sheet["group"]}) if "group" in sheet and sheet["group"] != "None" else None
-	embed_flag      = "embed" in request.GET
-	likes           = sheet.get("likes", [])
-	like_count      = len(likes)
-	viewer_is_liker = request.user.id in likes
-
+	sheet_class      = make_sheet_class_string(sheet)
+	sheet_group      = Group().load({"name": sheet["group"]}) if "group" in sheet and sheet["group"] != "None" else None
+	embed_flag       = "embed" in request.GET
+	likes            = sheet.get("likes", [])
+	like_count       = len(likes)
+	if request.user.is_authenticated():
+		can_edit_flag    = can_edit(request.user, sheet)
+		can_add_flag     = can_add(request.user, sheet)
+		can_publish_flag = sheet_group.can_publish(request.user.id) if sheet_group else False
+		viewer_is_liker  = request.user.id in likes
+	else:
+		can_edit_flag    = False
+		can_add_flag     = False
+		can_publish_flag = False
+		viewer_is_liker  = False
 
 	return render_to_response('sheets.html' if request.COOKIES.get('s1') else 's2_sheets.html', {"sheetJSON": json.dumps(sheet),
 												"sheet": sheet,
 												"sheet_class": sheet_class,
 												"can_edit": can_edit_flag,
 												"can_add": can_add_flag,
+												"can_publish": can_publish_flag,
 												"title": sheet["title"],
 												"author": author,
 												"is_owner": request.user.id == sheet["owner"],
@@ -227,7 +258,7 @@ def view_visual_sheet(request, sheet_id):
 	try:
 		owner = User.objects.get(id=sheet["owner"])
 		author = owner.first_name + " " + owner.last_name
-		owner_groups = get_user_groups(request.user) if sheet["owner"] == request.user.id else None
+		owner_groups = get_user_groups(request.user.id) if sheet["owner"] == request.user.id else None
 	except User.DoesNotExist:
 		author = "Someone Mysterious"
 		owner_groups = None
@@ -277,7 +308,7 @@ def assigned_sheet(request, assignment_id):
 
 	assigner        = UserProfile(id=sheet["owner"])
 	assigner_id	    = assigner.id
-	owner_groups    = get_user_groups(request.user)
+	owner_groups    = get_user_groups(request.user.id)
 
 	sheet_class     = make_sheet_class_string(sheet)
 	can_edit_flag   = True
@@ -361,7 +392,7 @@ def sheets_list(request, type=None):
 										"your_sheets": your,
 										"your_tags":   your_tags,
 										"collapse_private": collapse,
-										"groups": get_user_groups(request.user)
+										"groups": get_user_groups(request.user.id)
 									},
 									RequestContext(request))
 
@@ -389,7 +420,7 @@ def sheets_list(request, type=None):
 
 		query              = {"owner": request.user.id or -1 }
 		response["title"]  = "Your Source Sheets"
-		response["groups"] = get_user_groups(request.user)
+		response["groups"] = get_user_groups(request.user.id)
 		tags               = sheet_tag_counts(query)
 		tags               = order_tags_for_user(tags, request.user.id)
 
@@ -409,16 +440,16 @@ def sheets_list(request, type=None):
 	return render_to_response('sheets_list.html', response, RequestContext(request))
 
 
-def partner_page(request, partner):
+def group_page(request, group):
 	"""
-	Views the partner page for 'partner' which lists sheets in the partner group.
+	Main page for group `group`
 	"""
-	partner = partner.replace("-", " ").replace("_", " ")
-	group   = Group().load({"name": partner})
+	group = group.replace("-", " ").replace("_", " ")
+	group = Group().load({"name": group})
 	if not group:
 		raise Http404
 
-	if request.user.is_authenticated() and group.name in [g.name for g in request.user.groups.all()]:
+	if request.user.is_authenticated() and group.is_member(request.user.id):
 		if not request.COOKIES.get('s1'):
 			return s2_group_sheets(request, group.name, True)
 		in_group = True
@@ -441,35 +472,174 @@ def partner_page(request, partner):
 											}, RequestContext(request))
 
 
+def my_groups_page(request):
+	return s2_my_groups(request)	
+
+
+def edit_group_page(request, group=None):
+	if group:
+		group = group.replace("-", " ").replace("_", " ")
+		group = Group().load({"name": group})
+		if not group:
+			raise Http404
+		groupData = group.contents()
+	else:
+		groupData = None
+
+	return render_to_response('edit_group.html', {"groupData": groupData}, RequestContext(request))	
+
+
 def groups_page(request):
+	"""
+	Page listing all public groups
+	"""
 	groups = GroupSet(sort=[["name", 1]])
 	return render_to_response("groups.html",
 								{"groups": groups},
 								RequestContext(request))
 
 
-@staff_member_required
-def groups_api(request):
-	j = request.POST.get("json")
-	if not j:
-		return jsonResponse({"error": "No JSON given in post data."})
-	group = json.loads(j)
+def groups_api(request, group=None):
+	if request.method == "GET":
+		if not group:
+			return jsonResponse({
+				"private": [g.listing_contents() for g in GroupSet().for_user(request.user.id)],
+				"public": [g.listing_contents() for g in GroupSet({"listed": True})]
+			})	
+		group = Group().load({"name": group})
+		if not group:
+			return jsonResponse({"error": "No group named '%s'" % group})
+		is_member = request.user.is_authenticated() and group.is_member(request.user.id)
+		group_content = group.contents(with_content=True, authenticated=is_member)
+		return jsonResponse(group_content)
+	else:
+		return groups_post_api(request, group_name=group)
+
+
+@login_required
+def groups_post_api(request, group_name=None):
 	if request.method == "POST":
-		existing = GroupSet({"name": group["name"]})
-		if len(existing):
-			existing.update(group)
+		j = request.POST.get("json")
+		if not j:
+			return jsonResponse({"error": "No JSON given in post data."})
+		group = json.loads(j)
+		existing = Group().load({"name": group.get("previousName", group["name"])})
+		if existing:
+			# Don't overwrite existing group when posting to create a new group
+			if "new" in group:
+				return jsonResponse({"error": "A group with this name already exists."})
+			# check poster is a group admin
+			if request.user.id not in existing.admins:
+				return jsonResponse({"error": "You do not have permission to edit this group."})
+			existing.load_from_dict(group)
 			existing.save()
 		else:
+			del group["new"]
+			group["admins"] = [request.user.id]
+			group["publishers"] = []
+			group["members"] = []
 			Group(group).save()
-			DjangoGroup.objects.create(name=group["name"])
 		return jsonResponse({"status": "ok"})
 
 	elif request.method == "DELETE":
-		GroupSet(group).delete()
-		return jsonResponse({"status": "ok"})
+		if not group_name:
+			return jsonResponse({"error": "Please specify a group name in the URL."})
+		existing = Group().load({"name": group_name})
+		if existing:
+			if request.user.id not in existing.admins:
+				return jsonResponse({"error": "You do not have permission to delete this group."})
+			else:
+				GroupSet({"name": group_name}).delete()
+				return jsonResponse({"status": "ok"})
+		else:
+			return jsonResponse({"error": "Group named %s does not exist" % group_name})
 
 	else:
 		return jsonResponse({"error": "Unsupported HTTP method."})
+
+
+@login_required
+def groups_role_api(request, group_name, uid, role):
+	"""
+	API for setting a group members role, or removing them from a group.
+	"""
+	if request.method != "POST":
+		return jsonResponse({"error": "Unsupported HTTP method."})
+	group = Group().load({"name": group_name})
+	if not group:
+		return jsonResponse({"error": "No group named %s." % group_name})
+	uid = int(uid)
+	if request.user.id not in group.admins:
+		if not (uid == request.user.id and role == "remove"): # non admins can remove themselves
+			return jsonResponse({"error": "You must be a group admin to change member roles."})
+	user = UserProfile(uid)
+	if not user.exists():
+		return jsonResponse({"error": "No user with the specified ID exists."})
+	if role not in ("member", "publisher", "admin", "remove"):
+		return jsonResponse({"error": "Unknown group member role."})
+	if uid == request.user.id and group.admins == [request.user.id] and role != "admin":
+		return jsonResponse({"error": "This action would leave the group without any admins. Please appoint another admin first."})
+	if role == "remove":
+		group.remove_member(uid)
+	else:
+		group.add_member(uid, role)
+
+	group_content = group.contents(with_content=True, authenticated=True)
+	return jsonResponse(group_content)
+
+
+@login_required
+def groups_invite_api(request, group_name, uid_or_email, uninvite=False):
+	"""
+	API for adding or removing group members, or group invitations
+	"""
+	if request.method != "POST":
+		return jsonResponse({"error": "Unsupported HTTP method."})
+	group = Group().load({"name": group_name})
+	if not group:
+		return jsonResponse({"error": "No group named %s." % group_name})
+	if request.user.id not in group.admins:
+		return jsonResponse({"error": "You must be a group admin to invite new members."})
+	
+	user = UserProfile(email=uid_or_email)
+	if not user.exists():
+		if uninvite:
+			group.remove_invitation(uid_or_email)
+			message = "Invitation removed."
+		else:
+			group.invite_member(uid_or_email, request.user.id)
+			message = "Invitation sent."
+	else:
+		is_new_member = not group.is_member(user.id)
+
+		if is_new_member:
+			group.add_member(user.id)
+			from sefaria.model.notification import Notification
+			notification = Notification({"uid": user.id})
+			notification.make_group_add(adder_id=request.user.id, group_name=group_name)
+			notification.save()
+			message = "Group member added."
+		else:
+			message = "%s is already a member of this group." % user.full_name
+
+	group_content = group.contents(with_content=True, authenticated=True)
+	return jsonResponse({"group": group_content, "message": message})
+
+
+@login_required 
+def groups_pin_sheet_api(request, group_name, sheet_id):
+	if request.method != "POST":
+		return jsonResponse({"error": "Unsupported HTTP method."})
+	group = Group().load({"name": group_name})
+	if not group:
+		return jsonResponse({"error": "No group named %s." % group_name})
+	if request.user.id not in group.admins:
+		return jsonResponse({"error": "You must be a group admin to invite new members."})
+
+	sheet_id = int(sheet_id)
+	group.pin_sheet(sheet_id)
+	group_content = group.contents(with_content=True, authenticated=True)
+	return jsonResponse({"group": group_content, "status": "success"})
 
 
 def sheet_stats(request):
@@ -505,7 +675,7 @@ def sheets_tag(request, tag, public=True, group=None):
 	else:
 		sheets = get_sheets_by_tag(tag, uid=request.user.id)
 
-	in_group = request.user.is_authenticated() and group in [g.name for g in request.user.groups.all()]
+	in_group = request.user.is_authenticated() and group in [g.name for g in get_user_groups(request.user.id)]
 	groupCover = Group().load({"name": group}).coverUrl if Group().load({"name": group}) else None
 
 	return render_to_response('tag.html', {
@@ -528,12 +698,13 @@ def private_sheets_tag(request, tag):
 	return sheets_tag(request, tag, public=False)
 
 
-def partner_sheets_tag(request, partner, tag):
+def group_sheets_tag(request, group, tag):
 	"""
-	Wrapper for sheet_tag for partner tags
+	Wrapper for sheet_tag for group tags
 	"""
-	group = partner.replace("_", " ")
+	group = group.replace("_", " ")
 	return sheets_tag(request, tag, public=False, group=group)
+
 
 @csrf_exempt
 def sheet_list_api(request):
@@ -571,13 +742,29 @@ def sheet_list_api(request):
 			existing = get_sheet(sheet["id"])
 			if "error" not in existing  and \
 				not can_edit(user, existing) and \
-				not can_add(request.user, existing):
+				not can_add(request.user, existing) and \
+				not can_publish(request.user, existing):
 
 				return jsonResponse({"error": "You don't have permission to edit this sheet."})
+		else: 
+			existing = None
 
-		if "group" in sheet:
-			if sheet["group"] not in [group.name for group in user.groups.all()]:
+		if sheet.get("group", None):
+			# Quietly enforce group permissions
+			if sheet["group"] not in [g["name"] for g in get_user_groups(request.user.id)]:
+				# Don't allow non Group members to add a sheet to a group
 				sheet["group"] = None
+
+			if not can_publish(request.user, sheet):
+				if not existing:
+					sheet["status"] = "unlisted"
+				else: 
+					if existing.get("group", None) != sheet["group"]:
+						# Don't allow non Group publishers to add a new public sheet
+						sheet["status"] = "unlisted"
+					elif existing["status"] != sheet["status"]:
+						# Don't allow non Group publishers from changing status of an existing sheet
+						sheet["status"] = existing["status"]
 
 		responseSheet = save_sheet(sheet, user.id)
 		if "rebuild" in responseSheet and responseSheet["rebuild"]:
@@ -595,20 +782,22 @@ def user_sheet_list_api(request, user_id):
 		return jsonResponse({"error": "You are not authorized to view that."})
 	return jsonResponse(sheet_list(user_id), callback=request.GET.get("callback", None))
 
+
 def user_sheet_list_api_with_sort(request, user_id, sort_by="date"):
 	if int(user_id) != request.user.id:
 		return jsonResponse({"error": "You are not authorized to view that."})
 	return jsonResponse(user_sheets(user_id,sort_by), callback=request.GET.get("callback", None))
 
-def private_sheet_list_api(request, partner):
-	partner = partner.replace("-", " ").replace("_", " ")
-	group   = Group().load({"name": partner})
+
+def private_sheet_list_api(request, group):
+	group = group.replace("-", " ").replace("_", " ")
+	group   = Group().load({"name": group})
 	if not group:
 		raise Http404
-	if request.user.is_authenticated() and group.name in [g.name for g in request.user.groups.all()]:
-		return jsonResponse(partner_sheets(partner, True), callback=request.GET.get("callback", None))
+	if request.user.is_authenticated() and group.is_member(request.user.id):
+		return jsonResponse(group_sheets(group, True), callback=request.GET.get("callback", None))
 	else:
-		return jsonResponse(partner_sheets(partner, False), callback=request.GET.get("callback", None))
+		return jsonResponse(group_sheets(group, False), callback=request.GET.get("callback", None))
 
 
 def public_sheet_list_api(request):
@@ -804,12 +993,13 @@ def user_tag_list_api(request, user_id):
 	response["Cache-Control"] = "max-age=3600"
 	return response
 
-def group_tag_list_api(request, partner):
+
+def group_tag_list_api(request, group):
 	"""
 	API to retrieve the list of public tags ordered by count.
 	"""
-	partner = partner.replace("-", " ").replace("_", " ")
-	response = sheet_tag_counts({ "group": partner })
+	group = group.replace("-", " ").replace("_", " ")
+	response = sheet_tag_counts({ "group": group })
 	response = jsonResponse(response, callback=request.GET.get("callback", None))
 	response["Cache-Control"] = "max-age=3600"
 	return response

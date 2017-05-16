@@ -28,12 +28,35 @@ class TitleGroup(object):
     """
     A collection of titles.  Used for titles of SchemaNodes and for Terms
     """
+    langs = ["en", "he"]
+    required_attrs = [
+        "lang",
+        "text"
+    ]
+    optional_attrs = [
+        "primary",
+        "presentation"
+    ]
 
     def __init__(self, serial=None):
         self.titles = []
         self._primary_title = {}
         if serial:
             self.load(serial)
+
+    def validate(self):
+        for lang in self.langs:
+            if not self.primary_title(lang):
+                raise InputError("Title Group must have a {} primary title".format(lang))
+        for title in self.titles:
+            if not set(title.keys()) == set(self.required_attrs) and not set(title.keys()) <= set(self.required_attrs+self.optional_attrs):
+                raise InputError("Title Group titles must only contain the following keys: {}".format(self.required_attrs+self.optional_attrs))
+        if '-' in self.primary_title("en"):
+            raise InputError("Primary English title may not contain hyphens.")
+        if not all(ord(c) < 128 for c in self.primary_title("en")):
+            raise InputError("Primary English title may not contain non-ascii characters")
+
+
 
     def load(self, serial=None):
         if serial:
@@ -147,14 +170,18 @@ class Term(abst.AbstractMongoRecord):
 
     def _validate(self):
         super(Term, self)._validate()
-        if any((c in '-') for c in self.title_group.primary_title("en")):
-            raise InputError("Primary English title may not contain hyphens.")
+        if self.name != self.get_primary_title():
+            raise InputError("Term name does not match primary title")
+        self.title_group.validate()
 
     def _normalize(self):
         self.titles = self.title_group.titles
 
     def get_titles(self, lang=None):
         return self.title_group.all_titles(lang)
+
+    def get_primary_title(self, lang='en'):
+        return self.title_group.primary_title(lang)
 
 
 class TermSet(abst.AbstractMongoSet):
@@ -350,7 +377,11 @@ class TreeNode(object):
     def prev_leaf(self):
         return self._prev_in_list(self.root().get_leaf_nodes())
 
-    # todo: replace with `not self.parent` for speed
+    def ancestors(self):
+        if not self.parent:
+            return []
+        return self.parent.ancestors() + [self.parent]
+
     def is_root(self):
         return not self.parent
 
@@ -617,26 +648,23 @@ class TitledTreeNode(TreeNode):
     def validate(self):
         super(TitledTreeNode, self).validate()
 
-        if '-' in self.title_group.primary_title("en"):
-            raise InputError("Primary English title may not contain hyphens.")
-
-        if not all(ord(c) for c in self.title_group.primary_title("en")):
-            raise InputError("Primary English title may not contain non-ascii characters")
-
         if not self.default and not self.sharedTitle and not self.get_titles():
-            raise IndexSchemaError("Schema node {} must have titles, a shared title node, or be default".format(self))
+            raise IndexSchemaError(u"Schema node {} must have titles, a shared title node, or be default".format(self))
 
         if self.default and (self.get_titles() or self.sharedTitle):
-            raise IndexSchemaError("Schema node {} - default nodes can not have titles".format(self))
+            raise IndexSchemaError(u"Schema node {} - default nodes can not have titles".format(self))
 
-        if not self.default and not self.primary_title("en"):
-            raise IndexSchemaError("Schema node {} missing primary English title".format(self))
+        if not self.default:
+            try:
+                self.title_group.validate()
+            except InputError as e:
+                raise IndexSchemaError(u"Schema node {} has invalid titles: {}".format(self, e))
 
         if self.children and len([c for c in self.children if c.default]) > 1:
-            raise IndexSchemaError("Schema Structure Node {} has more than one default child.".format(self.key))
+            raise IndexSchemaError(u"Schema Structure Node {} has more than one default child.".format(self.key))
 
         if self.sharedTitle and Term().load({"name": self.sharedTitle}).titles != self.get_titles():
-            raise IndexSchemaError("Schema node {} with sharedTitle can not have explicit titles".format(self))
+            raise IndexSchemaError(u"Schema node {} with sharedTitle can not have explicit titles".format(self))
 
         #if not self.default and not self.primary_title("he"):
         #    raise IndexSchemaError("Schema node {} missing primary Hebrew title".format(self.key))
@@ -712,6 +740,10 @@ class NumberedTitledTreeNode(TitledTreeNode):
         for p in ["addressTypes", "sectionNames"]:
             if len(getattr(self, p)) != self.depth:
                 raise IndexSchemaError("Parameter {} in {} {} does not have depth {}".format(p, self.__class__.__name__, self.key, self.depth))
+
+        for sec in getattr(self, 'sectionNames', []):
+            if any((c in '.-\\/') for c in sec):
+                raise InputError("Text Structure names may not contain periods, hyphens or slashes.")
 
     def address_class(self, depth):
         return self._addressTypes[depth]
@@ -844,7 +876,7 @@ class ArrayMapNode(NumberedTitledTreeNode):
 
                 refs         = text.Ref(self.wholeRef).split_spanning_ref()
                 first, last  = refs[0], refs[-1]
-                offset       = first.sections[-2]-1 if first.is_segment_level() else first.sections[-1]-1
+                offset       = first.sections[-2] - 1 if first.is_segment_level() else first.sections[-1] - 1
 
                 d["refs"] = [r.normal() for r in refs]
                 d["addressTypes"] = first.index_node.addressTypes[-2:-1]
@@ -928,8 +960,14 @@ class SchemaNode(TitledTreeNode):
     def validate(self):
         super(SchemaNode, self).validate()
 
+        if not all(ord(c) < 128 for c in self.title_group.primary_title("en")):
+            raise InputError("Primary English title may not contain non-ascii characters")
+
         if not getattr(self, "key", None):
             raise IndexSchemaError("Schema node missing key")
+
+        if "." in self.key:  # Mongo doesn't like . in keys
+            raise IndexSchemaError("'.' is not allowed in key names.")
 
         if self.default and self.key != "default":
             raise IndexSchemaError("'default' nodes need to have key name 'default'")
@@ -1050,7 +1088,7 @@ class SchemaNode(TitledTreeNode):
         d = {
             "index": self.index,
             "book": self.full_title("en"),
-            "type": self.index.categories[0],
+            "primary_category": self.index.get_primary_category(),
             "index_node": self,
             "sections": [],
             "toSections": []
@@ -1186,7 +1224,7 @@ class AddressType(object):
         """
         The regular expression part that matches this address reference, wrapped with section names, if provided
         :param lang: "en" or "he"
-        :param group_id: The id of the regular expression group the this match will be catured in
+        :param group_id: The id of the regular expression group the this match will be captured in
         :param kwargs: 'strict' kwarg indicates that section names are required to match
         :return string: regex component
         """
@@ -1263,6 +1301,9 @@ class AddressType(object):
         elif lang == "he":
             punctuation = kwargs.get("punctuation", True)
             return encode_hebrew_numeral(i, punctuation=punctuation)
+
+    def storage_offset(self):
+        return 0
 
 
 class AddressTalmud(AddressType):
@@ -1364,6 +1405,9 @@ class AddressTalmud(AddressType):
         else: #shouldn't get here
             return {name: number}
 
+    def storage_offset(self):
+        return 2
+
 
 class AddressInteger(AddressType):
     """
@@ -1387,7 +1431,6 @@ class AddressInteger(AddressType):
             return int(s)
         elif lang == "he":
             return decode_hebrew_numeral(s)
-
 
 
 class AddressAliyah(AddressInteger):

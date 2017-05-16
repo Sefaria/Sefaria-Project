@@ -11,7 +11,7 @@
 				};
 				
         	};
-        	$.getJSON("http://www.sefaria.org/api/index/titles", wrapRefs)
+        	$.getJSON("https://www.sefaria.org/api/index/titles", wrapRefs)
         }	
     }; 
     

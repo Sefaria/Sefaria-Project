@@ -31,34 +31,6 @@ def add_spelling(category, old, new, lang="en"):
                 i.save()
 
 
-def create_commentator_and_commentary_version(commentator_name, existing_book, lang, vtitle, vsource, he_commentator_name):
-    existing_index = Index().load({'title':existing_book})
-    if existing_index is None:
-        raise ValueError('{} is not a name of an existing text!'.format(existing_book))
-
-    commentator_index = Index().load({'title':commentator_name})
-    if commentator_index is None:
-        if not he_commentator_name:
-            raise ValueError("New index record needs Hebrew Title")
-        index_json = {
-            "title":commentator_name,
-            "titleVariants":[],
-            "heTitle" : he_commentator_name,
-            "heTitleVariants":[],
-            "categories":["Commentary"]
-        }
-        commentator_index = Index(index_json)
-        commentator_index.save()
-
-    new_version = Version(
-                {
-                    "chapter": existing_index.nodes.create_skeleton(),
-                    "versionTitle": vtitle,
-                    "versionSource": vsource,
-                    "language": lang,
-                    "title": "{} on {}".format(commentator_name, existing_book)
-                }
-    ).save()
 
 def rename_category(old, new):
     """
@@ -251,7 +223,7 @@ def merge_text(a, b):
     return out
 
 
-def modify_text_by_function(title, vtitle, lang, func, uid, **kwargs):
+def modify_text_by_function(title, vtitle, lang, rewrite_function, uid, needs_rewrite_function=lambda x: True, **kwargs):
     """
     Walks ever segment contained in title, calls func on the text and saves the result.
     """
@@ -262,8 +234,8 @@ def modify_text_by_function(title, vtitle, lang, func, uid, **kwargs):
         segment_refs = section_ref.subrefs(len(section.text) if section.text else 0)
         if segment_refs:
             for i in range(len(section.text)):
-                if section.text[i] and len(section.text[i]):
-                    text = func(section.text[i])
+                if section.text[i] and len(section.text[i]) and needs_rewrite_function(section.text[i]):
+                    text = rewrite_function(section.text[i])
                     modify_text(uid, segment_refs[i], vtitle, lang, text, **kwargs)
 
 
@@ -401,6 +373,7 @@ def get_core_link_stats():
 
 
 def get_library_stats():
+    #//todo: mark for commentary refactor?
     def aggregate_stats(toc_node, path):
         simple_nodes = []
         for x in toc_node:

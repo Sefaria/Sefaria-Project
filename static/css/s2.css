@@ -45,11 +45,13 @@ body.dark {
 }
 .noselect {
   -webkit-touch-callout: none; /* iOS Safari */
-    -webkit-user-select: none; /* Chrome/Safari/Opera */
+    -webkit-user-select: none; /* Safari/Opera */
        -moz-user-select: none; /* Firefox */
         -ms-user-select: none; /* Internet Explorer/Edge */
-            user-select: none; /* Non-prefixed version, currently
-                                  not supported by any browser */
+            user-select: none; /* Non-prefixed version, Chrome */
+}
+input.noselect {
+    -webkit-user-select: auto; /* Safari/Opera -- required for Safari to allow inputs to be accessible. See http://caniuse.com/#feat=user-select-none "Known Issues" for details  TODO Check back to see if bug is fixed in future version */
 }
 .interface-hebrew #panelWrapBox{
   direction: rtl;
@@ -111,7 +113,6 @@ body.dark {
   padding: 0;
   text-align: left;
 }
-
 .header .searchBox input{
   background-color: transparent; /*for firefox */
 }
@@ -400,14 +401,16 @@ body.dark {
 }
 /* Adjusting for 17px scrollbars, to keep content centered
    Only done in multiPanel mode now as a proxy for whether scrollbars take up width (on desktop they do, not on mobile) 
-  Remove 12/16 -- seems to be causing problems now.
+  Removed 12/16 -- seems to be causing problems now.
+  Restored 4/17 -- problem recurred and fixed by storing CSS, what's changing?
+*/
 .multiPanel.interface-english .textColumn {
   padding-left: 17px;
 }
 .multiPanel.interface-hebrew .textColumn {
   padding-right: 17px;
 }
-*/
+
 .textColumn .loadingMessage.base {
   margin: 30px 0;
   color: #999;
@@ -444,12 +447,16 @@ body.dark {
 }
 .interface-hebrew .readerPanel .readerNavMenu,
 .readerPanel.hebrew .readerNavSection, 
-.readerPanel.hebrew .readerNavMenu .category {
+.readerPanel.hebrew .readerNavMenu .gridBox {
   direction: rtl;
 }
 .interface-english .readerPanel .readerNavMenu,
 .readerPanel.english .readerNavSection,
- .readerPanel.english .readerNavMenu .category{
+ .readerPanel.english .readerNavMenu .gridBox{
+  direction: ltr;
+}
+.readerPanel.bilingual .readerNavSection,
+ .readerPanel.bilingual .readerNavMenu .gridBox{
   direction: ltr;
 }
 .readerPanel.english .he {
@@ -566,7 +573,7 @@ body.dark {
 .multiPanel .readerNavMenu.noHeader .content {
   padding-top: 70px;
 }
-.multiPanel .readerNavMenu.noHeader.compare .content {
+.multiPanel .readerNavMenu.compare .content {
   padding-top: 80px;
 }
 .readerNavMenu .content .contentInner {
@@ -865,7 +872,7 @@ a.resourcesLink {
   top: 2px;
 }
 .readerNavMenu .siteLinks {
-  margin-top: 20px;
+  margin: 20px 0 50px;
   text-align: center;
 }
 .readerNavMenu .siteLinks .siteLink {
@@ -1243,15 +1250,13 @@ a.resourcesLink {
   font-size: 16px;
   display: inline-block;
   margin-bottom: 10px;
+  cursor: pointer;
 }
 .readerTextTableOfContents .content .schema-node-title .he {
   font-family: "Open Sans Hebrew", sans-serif;
 }
 .readerTextTableOfContents .content .schema-node-toc {
   display: block;
-}
-.readerTextTableOfContents .content .schema-node-toc.linked {
-  cursor: pointer;
 }
 .readerTextTableOfContents .content .schema-node-contents.closed {
   display: none;
@@ -1271,6 +1276,9 @@ a.resourcesLink {
 }
 .readerTextTableOfContents .schema-node-toc {
   margin: 6px 20px;
+}
+.readerTextTableOfContents .content .schema-node-toc.linked:hover .schema-node-title {
+  text-decoration: underline;
 }
 .readerTextTableOfContents .altStruct .refLink {
   width: 49%;
@@ -1318,6 +1326,7 @@ a.resourcesLink {
   padding: 0 30px;
   margin: 25px 0;
   box-sizing: border-box;
+  cursor: pointer;
 }
 .readerTextTableOfContents .versionBlock .versionTitle {
   display: block;
@@ -1727,7 +1736,7 @@ a.resourcesLink {
   margin: 50px 0 30px;
   height: auto
 }
-.readerSheetsNav .tagsHeader .actionText{
+.readerSheetsNav .tagsHeader .actionText {
   display: block;
   margin-top: 20px;
   text-transform: none;
@@ -1784,6 +1793,12 @@ a.resourcesLink {
   display: inline-block;
   cursor: pointer;
   vertical-align: middle;
+}
+.readerControls .readerTextToc a {
+  color: inherit;
+}
+.readerControls .readerTextToc a:hover {
+  text-decoration: none;
 }
 .readerControls.connectionsHeader .readerTextToc {
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
@@ -1867,7 +1882,7 @@ a.resourcesLink {
   max-width: 70%;
   vertical-align: middle;
   color: #333;
-}`
+}
 .readerControls .readerTextToc .readerTextVersion {
   font-style: italic;
   color: #999;
@@ -2249,18 +2264,18 @@ a.resourcesLink {
   -webkit-filter: invert(100%);
 }
 .readerPanel.english .segment .segmentNumber {
-  left: -49px;
+  left: -48px;
 }
 .readerPanel.hebrew .segment .segmentNumber,
 .readerPanel.bilingual .segment .segmentNumber {
-  right: -44px;
+  right: -46px;
 }
 .readerPanel.english .segment .linkCount {
-  right: -45px;
+  right: -46px;
 }
 .readerPanel.hebrew .segment .linkCount,
 .readerPanel.bilingual .segment .linkCount {
-  left: -50px;
+  left: -48px;
 }
 .readerPanel.heLeft.bilingual .segment .segmentNumber,
 .readerPanel.heRight.bilingual .segment .segmentNumber {
@@ -2323,6 +2338,23 @@ a.resourcesLink {
 }
 .textRange .actionLinks .he {
   font-family: "Open Sans Hebrew", sans-serif;
+}
+/* Footnotes */
+.segment sup {
+  margin-left: .2em;
+  margin-right: .2em;
+  text-decoration: underline;
+}
+.segment i.footnote {
+  display: none;
+  font-size: .8em;
+  margin-left: .5em;
+  margin-right: .5em;
+  color: #888;
+  font-style: normal;
+}
+.segment img {
+  max-width: 100%;
 }
 .connectionsPanelHeader{
   display: flex;
@@ -2408,7 +2440,10 @@ a.resourcesLink {
 .addToSourceSheetPanel.textList.fullPanel .texts {
   padding: 0 50px;
 }
-.textList .texts,
+.textList .texts {
+  padding: 60px 30px 80px 30px;
+}
+.textList.fullPanel .texts,
 .textList .fullFilterView {
   padding: 30px 30px 80px 30px;
 }
@@ -3172,34 +3207,28 @@ input {
 .lexicon-results .entry .definition-content{
     color: #444;
 }
-
 .lexicon-results ol {
 	list-style-position: inside;
 }
-
 .lexicon-results .entry .definition li.sense{
 	margin-left: 15px;
 	padding: 0px;
 	/*margin: 0;*/
 }
-
 .lexicon-results .entry .definition ol.senses{
 	/*list-style-type: none;*/
 	padding-left: 0px;
 }
-
 .lexicon-results .entry .definition > li.sense{
 	/*list-style-type: none;*/
 	margin-left: 0px;
 }
-
 .lexicon-results .entry ol.definition {
 	list-style-type: none;
 	padding-top: 2px;
 	padding-left: 0px;
     margin: 0px;
 }
-
 /*.sense + .sense {
 	margin-top: 3px;
 	padding-top: 3px;
@@ -3208,36 +3237,30 @@ input {
 /*.lexicon-results a {
 	font-size: 12px;
 }*/
-
 .lexicon-results .attribution{
 
 }
-
 .lexicon-results .attribution span{
   display: block;
 }
-
 .lexicon-results .attribution a{
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
   color: #aaa;
   font-size: 10px;
 }
-
 .lexicon-content .headword.en, .lexicon-content .headword.he,
 .lexicon-content .definition-content.en, .lexicon-content .definition-content.he,
 .lexicon-content .lexicon-results .attribution{
   display: inline;
 }
-
 .lexicon-content .headword.he, .lexicon-content .definition-content.he{
   direction: rtl;
 }
-
 .lexicon-content .headword.en, .lexicon-content .definition-content.en{
   direction: ltr;
 }
 h2.splitHeader {
-  margin-bottom:50px;
+  margin-bottom: 10px;
   text-align: left;
 }
 h2.splitHeader .en {
@@ -3251,36 +3274,32 @@ h2.splitHeader .he {
   text-transform: none;
   cursor: pointer;
 }
-
+.splitHeader .actionText select {
+  margin-left: 6px;
+}
 .sheetsNewButton {
   text-align:center;
   margin-bottom: 30px;
 }
-
 .sheetsNewButton a {
   font-color: inherit;
 }
-
 .sheet.userSheet .sheetTitle  {
    font-family: "adobe-garamond-pro", Georgia, serif;
    font-size: 20px;
    color:#333;
    margin-bottom: 6px;
 }
-
 .sheet.userSheet {
    font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
    font-size: 14px;
    color:#999;
   text-decoration: none;
 }
-
-/*  Add back in when we're ready for tag/edit hover buttons on 'My Sheets'
-.sheet.userSheet:hover .sheetEditButtons {
-	display: inline-block;
+.filterByTag {
+  cursor: pointer;
+  text-transform: none
 }
-*/
-
 .sheet.userSheet .sheetEditButtons {
   font-size: 24px;
   height: 32px;
@@ -3296,34 +3315,220 @@ h2.splitHeader .he {
   cursor: pointer;
   color: #999;
   text-decoration: none;
-
 }
-
 .sheetButton:hover {
   text-decoration: underline;
 }
-
 .sheetButton{
   border: 1px solid #fff;
 }
-
-
 .sheetButton.active {
   border: 1px solid #333;
 }
-
 .tagString a {
   text-decoration: none;
   color: #999;
 }
-
 .tagString a:after {
-content: ", ";
-color: #999;
+  content: ", ";
+  color: #999;
 }
-
 .tagString a:last-child:after {
-content: "";
+  content: "";
+}
+.groupsList {
+  margin-top: 30px;
+}
+.groupsList .loadingMessage {
+  text-align: center;
+}
+.groupListing {
+  padding: 30px 0;
+}
+.groupListing + .groupListing {
+  border-top: 1px solid #ccc;
+}
+.groupListingImageBox {
+  background-color: white;
+  width: 60px;
+  height: 60px;
+  float: left;
+  margin-right: 20px;
+}
+.groupListingImage {
+  height: 100%;
+  width: 100%;
+  object-fit: cover;
+}
+.groupListingImage.default {
+  width: 80%;
+  height: 80%;
+  margin: 10%;
+  opacity: 0.4;
+}
+.groupListingName {
+  display: block;
+  font-size: 24px;
+  color: #666;
+  margin-bottom: 5px;
+}
+.groupListingName:hover {
+  color: #333;
+}
+.groupListingDetails {
+  color: #999;
+  font-size: 15px;
+}
+.groupListingDetailSeparator {
+  margin: 8px;
+}
+.groupPage .groupImage {
+  max-height: 200px;
+  max-width: 100%;
+  display: block;
+  margin: 0 auto 50px;
+}
+.groupInfo {
+  margin-bottom: 50px;
+}
+.groupPage h1 {
+  margin-top: 20px;
+  height: auto;
+}
+.groupPage a:hover {
+  color: inherit;
+}
+.groupPage .groupWebsite {
+  display: block;
+  text-align: center;
+  font-size: 17px;
+  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  margin-bottom: 20px;
+  color: #999;
+}
+.groupPage .groupDescription {
+  font-size: 16px;
+  text-align: center;
+}
+.groupPage .tabs {
+  text-align: center;
+  margin-bottom: 60px;
+}
+.groupPage .bubbleTab {
+  font-size: 16px;
+}
+.groupPage .emptyMessage {
+  text-align: center;
+}
+.groupPage .emptyMessage a {
+  text-decoration: underline;
+}
+.groupInvitationBox {
+  border-bottom: 1px solid #CCC;
+  padding-bottom: 20px;
+}
+.groupSheetListingPinButton {
+  float: right;
+  display: none;
+  opacity: 0.3;
+  cursor: pointer;
+  margin-top: 7px;
+}
+.sheet:hover .groupSheetListingPinButton.active {
+  display: block;
+}
+.groupSheetListingPinButton.pinned {
+  display: block;
+  opacity: 0.6;
+}
+#groupInvitationInput {
+  padding: 14px 30px;
+  width: 492px;
+  border-radius: 4px;
+  outline: 0;
+  border: 1px solid #E6e6e6;
+  margin-right: 10px;
+  font-size: 18px;
+  position: relative;
+  top: 3px;
+}
+.groupInvitationBoxMessage {
+  font-size: 18px;
+  padding: 12px 0 0;
+  text-align: center;
+}
+.groupPage .groupMemberListing {
+  padding: 24px 0;
+  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  font-size: 20px;
+}
+.groupMemberListing + .groupMemberListing {
+  border-top: 1px solid #CCC;
+}
+.groupMemberListingProfileImage {
+  height: 50px;
+  width: 50px;
+  vertical-align: middle;
+}
+.groupMemberListingName {
+  color: #666;
+  margin: 0 20px;
+}
+.groupInvitationListing {
+  display: inline-block;
+  min-height: 50px;
+  line-height: 50px;
+}
+.groupMemberListingRoleBox {
+  float: right;
+  line-height: 50px;
+}
+.groupMemberListingRole {
+  color: #666;
+}
+.groupMemberListingActions {
+  position: relative;
+  display: inline-block;
+  background-color: white; 
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  margin-left: 12px;
+  line-height: 36px
+}
+.groupMemberListingActionsButton {
+  cursor: pointer;
+  padding: 0 12px;
+  font-size: 18px;
+  color: #CCC;
+}
+.groupMemberListingActionsMenu {
+  position: absolute;
+  right: 0;
+  top: 46px;
+  background-color: white; 
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  color: #999;
+  font-size: 15px;
+  z-index: 1;
+}
+.groupMemberListingActionsMenu .action {
+  padding: 4px 10px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.groupMemberListingActionsMenu .action:hover {
+  background-color: #eee;
+}
+.groupMemberListingActionsMenu .action + .action {
+  border-top: 1px solid #ccc;
+}
+.groupMemberListingActionsMenu .role {
+  font-size: 17px;
+  margin-right: 4px;
+}
+.groupMemberListingActionsMenu .role.current {
+  color: #666;
 }
 /*** Interface lang - merge with static.css? ***/
 .readerApp.interface-hebrew .int-en{
@@ -3344,7 +3549,6 @@ content: "";
 .int-en{
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
 }
-
 .searchBox .keyboardInputInitiator {
     opacity: 0;
     width: 16px;
@@ -3400,7 +3604,6 @@ body #keyboardInputMaster tbody tr td table tbody tr td{
     text-align: center;
     font-size: 14px;
     color: #333;
-
 }
 body #keyboardInputMaster tbody tr td table tbody tr td:hover,
 body #keyboardInputMaster tbody tr td table tbody tr td:active,
@@ -3408,8 +3611,91 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
     border: 1px solid #eee;
     background: #eee;
 }
-
-
+#editGroupPageContainerInner {
+  position: relative;
+}
+#editGroupPage .int-en {
+  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+}
+#editGroupPage .int-he {
+  font-family: "Open Sans Hebrew", sans-serif;
+}
+#editGroupPage .field {
+  box-sizing: border-box;
+  width: 100%;
+  display: inline-block;
+  vertical-align: top;
+  padding: 10px;
+}
+#editGroupPage .field.halfWidth {
+  width: 50%;
+  display: inline-block;
+}
+#editGroupPage .field.quarterWidth {
+  width: 25%;
+  display: inline-block;
+}
+#editGroupPage .field.threeQuarterWidth {
+  width: 75%;
+  display: inline-block;
+}
+#editGroupPage .field > label {
+  display: block;
+  margin-bottom: 15px;
+}
+#editGroupPage input,
+#editGroupPage textarea {
+  display: block;
+  width: 100%;
+  padding: 15px 12px;
+  border-radius: 5px;
+  border: none;
+  box-sizing: border-box;
+  color: #333;
+}
+#editGroupPage .hiddenFileInput {
+  width: 0.1px;
+  height: 0.1px;
+  opacity: 0;
+  overflow: hidden;
+  position: absolute;
+  z-index: -1;
+}
+#groupDescription:focus {
+  outline: none;
+}
+#editGroupPage .groupImage {
+  max-width: 200px;
+  margin-bottom: 5px;
+  display: block;
+}
+#editGroupPage .groupCover {
+  width: 100%;
+  margin-bottom: 5px;
+}
+#editGroupPage .helperText {
+  color: #999;
+  font-size: 13px;
+}
+#editGroupPage .groupHeaderBox {
+  width: 100%;
+  background-color: white;
+  margin-bottom: 5px;
+}
+#editGroupPage .groupHeader {
+  float: right;
+  max-width: 100%;
+}
+#editGroupPage .deleteGroup {
+  cursor: pointer;
+  cursor: pointer;
+  margin: 30px 10px;
+  color: #999;
+  text-align: right;
+}
+#editGroupPage .deleteGroup:hover {
+  text-decoration: underline;
+}
 #footer #siteLanguageToggle {
   color: #999;
   margin-top: 15px;
@@ -3511,7 +3797,7 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
 #footer .fa {
   margin: 0 3px;
 }
-.multiPanel .readerNavMenu .content.hasFooter #footer{
+.multiPanel .readerNavMenu .content.hasFooter #footer {
   margin-top: 120px;
 }
 .gemarra-regular, .gemarra-italic {
@@ -3519,5 +3805,27 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
 }
 .it-text, .gemarra-italic {
   font-style: italic;
+}
+.categoryAttribution a {
+  color: inherit;
+}
+.bubbleTab {
+  padding: 10px 25px;
+  margin: 3px;
+  background-color: white;
+  border-radius: 20px;
+  border: 1px solid #DADADA;
+  display: inline-block;
+  font-size: 12px;
+  color: #999;
+  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  letter-spacing: 1px;
+  cursor: pointer;
+}
+.bubbleTab:hover {
+  text-decoration: none;
+}
+.bubbleTab.active {
+  color: #333;
 }
 

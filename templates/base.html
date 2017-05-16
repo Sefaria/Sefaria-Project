@@ -4,7 +4,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-itunes-app" content="app-id=1163273965">
     <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
-    {% block ogimage %}<meta property="og:image" content="http://www.sefaria.org/static/img/fb-og-image.png"/>{% endblock %}
+    {% block ogimage %}<meta property="og:image" content="https://www.sefaria.org/static/img/fb-og-image.png"/>{% endblock %}
     <title>{% block title %}{% endblock %}</title>
     {% block head %}{% endblock %}    
     {% if not S2 %}
@@ -16,7 +16,6 @@
     <link rel="stylesheet" href="/static/css/common.css">
     <link rel="stylesheet" href="/static/font-awesome/css/font-awesome.css">
     <link rel="stylesheet" type="text/css" href="/static/css/keyboard.css">
-
 
 
     {% if S2 or request.flavour == "mobile" %}
@@ -44,22 +43,32 @@
     </script>
 
     {% if not OFFLINE %}
-    <script src="//ajax.googleapis.com/ajax/libs/webfont/1.5.10/webfont.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/webfont/1.6.26/webfont.js"></script>
     <script>
       {% if S2 %}
-        var families = ['Crimson Text:400,700', 'Open Sans Hebrew:400,700:hebrew', 'Alef:400,700:hebrew' ]
+        WebFont.load({
+          google: {
+            families: ['Crimson Text:400,700'],
+            text: 'ḥḤ'
+          },
+          typekit: {
+            id: 'aeg8div'
+          }
+        });
+        WebFont.load({
+          google: {
+            families: ['Alef:400,700:hebrew', 'Open Sans Hebrew:400,700:hebrew'] // The dotted h causes Alef not to load.
+          }});
       {% else %}
-        var families = ['Montserrat:400,700', 'Alef:400,700:latin,hebrew' ];
+        WebFont.load({
+          google: {
+            families: ['Montserrat:400,700', 'Alef:400,700:latin,hebrew' ]
+          },
+          typekit: {
+            id: 'aeg8div'
+          }
+        });
       {% endif %}
-      WebFont.load({
-        google: {
-          families: families,
-          text: 'ḥḤ'
-        },
-        typekit: {
-          id: 'aeg8div'
-        }
-      });
     </script>
     {% endif %}
 </head>
@@ -80,11 +89,9 @@
         </div>
     </div>
 
-    {% if not request.flavour == "mobile" %}
-        {% block footer %}
-            {% include "elements/footer.html" with class=contentLang %}
-        {% endblock %}
-    {% endif %}
+    {% block footer %}
+        {% include "elements/footer.html" with class=contentLang %}
+    {% endblock %}
 
     {% include "js/jquery.html" %}
     <script src="/static/js/jquery.tooltipster.min.js"></script>

@@ -9,8 +9,39 @@
 {% block head %}
     <meta property="og:title" content="Sefaria.org : a Living Library of Jewish Texts Online"/>
     <meta property="og:type" content="website"/>
-    <meta property="og:url" content="http://www.sefaria.org"/>
-    <meta property="og:image" content="http://www.sefaria.org/static/img/fb-og-image.png"/>
+    <meta property="og:url" content="https://www.sefaria.org"/>
+    <meta property="og:image" content="https://www.sefaria.org/static/img/fb-og-image.png"/>
+    {% autoescape off %}
+    <script type="application/ld+json">
+    {
+      "@context": "http://schema.org",
+      "@type": "WebSite",
+      "name": "Sefaria",
+      "url": "https://www.sefaria.org",
+      "potentialAction": {
+        "@type": "SearchAction",
+        "target": "https://www.sefaria.org/search?q={search_term_string}",
+        "query-input": "required name=search_term_string"
+      }
+    }
+    </script>
+
+    <script type="application/ld+json">
+    {
+      "@context": "http://schema.org",
+      "@type": "Organization",
+      "name": "Sefaria",
+      "url": "https://www.sefaria.org",
+      "logo": "https://www.sefaria.org/static/img/Sefaria_icon_360_square.jpg",
+      "sameAs": [
+        "https://www.facebook.com/sefaria.org/",
+        "https://twitter.com/sefariaproject",
+        "https://www.youtube.com/user/SefariaProject",
+        "https://github.com/Sefaria"
+      ]
+    }
+    </script>
+    {% endautoescape %}
 {% endblock %}
 
 {% block css %}
@@ -67,7 +98,10 @@
                         <span class="int-en">Daf Yomi</span>
                         <span class="int-he">דף יומי</span>
                     </a>
-
+                    <a class="refLink blockLink" href="/texts/Liturgy/Haggadah" style="border-color: rgb(171, 78, 102);">
+                        <span class="int-en">Haggadah</span>
+                        <span class="int-he">הגדה של פסח</span>
+                    </a>
                     <a class="refLink blockLink inAppLink" href="/Pirkei_Avot.1" style="border-color: rgb(90, 153, 183);">
                         <span class="int-en">Pirkei Avot</span>
                         <span class="int-he">פרקי אבות</span>

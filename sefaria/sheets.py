@@ -14,7 +14,7 @@ from sefaria.system.database import db
 from sefaria.model.notification import Notification, NotificationSet
 from sefaria.model.following import FollowersSet
 from sefaria.model.user_profile import UserProfile, annotate_user_list, public_user_data, user_link
-from sefaria.utils.util import strip_tags, string_overlap
+from sefaria.utils.util import strip_tags, string_overlap,titlecase
 from sefaria.system.exceptions import InputError
 from history import record_sheet_publication, delete_sheet_publication
 from settings import SEARCH_INDEX_ON_SAVE
@@ -49,11 +49,12 @@ def user_sheets(user_id, sort_by="date"):
 	}
 	return response
 
-def partner_sheets(partner, authenticated):
+
+def group_sheets(group, authenticated):
     if authenticated == True:
-        query = {"status": {"$in": ["unlisted", "public"]}, "group": partner}
+        query = {"status": {"$in": ["unlisted", "public"]}, "group": group}
     else:
-        query = {"status": "public", "group": partner}
+        query = {"status": "public", "group": group}
 
     sheets = db.sheets.find(query).sort([["title", 1]])
     response = {
@@ -71,6 +72,7 @@ def sheet_to_dict(sheet):
 	sheet_dict = {
 		"id": sheet["id"],
 		"title": sheet["title"] if "title" in sheet else "Untitled Sheet",
+		"status": sheet["status"],
 		"author": sheet["owner"],
 		"ownerName": profile.full_name,
 		"ownerImageUrl": profile.gravatar_url_small,
@@ -217,8 +219,9 @@ def save_sheet(sheet, user_id, search_override=False):
 
 	db.sheets.update({"id": sheet["id"]}, sheet, True, False)
 
-	index_name = search.get_new_and_current_index_names()['current']
+
 	if sheet["status"] == "public" and SEARCH_INDEX_ON_SAVE and not search_override:
+		index_name = search.get_new_and_current_index_names()['current']
 		search.index_sheet(index_name, sheet["id"])
 
 	global last_updated
@@ -445,7 +448,8 @@ def update_sheet_tags(sheet_id, tags):
 	Sets the tag list for sheet_id to those listed in list 'tags'.
 	"""
 	tags = list(set(tags)) 	# tags list should be unique
-	db.sheets.update({"id": sheet_id}, {"$set": {"tags": tags}})
+	normalizedTags = [titlecase(tag) for tag in tags]
+	db.sheets.update({"id": sheet_id}, {"$set": {"tags": normalizedTags}})
 
 	return {"status": "ok"}
 

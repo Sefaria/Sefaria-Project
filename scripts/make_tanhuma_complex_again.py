@@ -3,7 +3,6 @@ import csv
 import sys
 import os
 os.environ['DJANGO_SETTINGS_MODULE'] = "sefaria.settings"
-sys.path.append("../")
 from sefaria.system.database import db
 
 __author__ = 'stevenkaplan'
@@ -65,36 +64,6 @@ def create_schema(en_he_parshiot):
         parsha.addressTypes = ["Integer"]
         book.append(parsha)
         en_parshiot.append(parsha_tuple[0])
-
-    footnotes = SchemaNode()
-    footnotes.key = "footnotes"
-    footnotes.add_title("Footnotes", "en", primary=True)
-    footnotes.add_title(u"הערות", "he", primary=True)
-
-    intro = JaggedArrayNode()
-    intro.add_title("Introduction", "en", primary=True)
-    intro.add_title(u"הקדמה", "he", primary=True)
-    intro.key = "intro"
-    intro.depth = 1
-    intro.sectionNames = ["Paragraph"]
-    intro.addressTypes = ["Integer"]
-
-    footnotes.append(intro)
-
-    for index, parsha_tuple in enumerate(en_he_parshiot):
-        if parsha_tuple[0] == "Vayikra":
-            break
-        print parsha_tuple[0]
-        parsha = JaggedArrayNode()
-        parsha.key = "footnotes"+parsha_tuple[0]
-        parsha.add_title(parsha_tuple[0], "en", primary=True)
-        parsha.add_title(parsha_tuple[1], "he", primary=True)
-        parsha.sectionNames = ["Paragraph"]
-        parsha.depth = 1
-        parsha.addressTypes = ["Integer"]
-        footnotes.append(parsha)
-
-    book.append(footnotes)
 
 
     book.validate()
@@ -173,6 +142,7 @@ def swap_text(ref, vtitle):
 
 if __name__ == "__main__":
     #move english
+    en_he_parshiot = get_parshiot()
     refs = ["1:15", "1:22", "1:23", "1:24", "1:25", "1:35", "1:48", "1:49", "1:50"]
     outer_info = [12, 11, 10, 10, 11]
     map_array = []
@@ -198,7 +168,7 @@ if __name__ == "__main__":
     migrate_to_complex_structure("Midrash Tanchuma", book.serialize(), mappings)
 
     #increase depth
-    i = library.get_index("Complex Midrash Tanchuma")
+    i = library.get_index("Midrash Tanchuma")
     nodes = i.nodes.children
     for count, node in enumerate(nodes):
         print node

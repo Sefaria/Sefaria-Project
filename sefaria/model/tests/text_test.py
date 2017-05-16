@@ -4,7 +4,19 @@ from copy import deepcopy
 import pytest
 
 import sefaria.model as model
+from sefaria.system.exceptions import InputError
 
+def setup_module(module):
+    title = 'Test Commentator Name'
+    model.IndexSet({"title": title}).delete()
+    title = 'Bartenura (The Next Generation)'
+    model.IndexSet({"title": title}).delete()
+
+def teardown_module(module):
+    title = 'Test Commentator Name'
+    model.IndexSet({"title": title}).delete()
+    title = 'Bartenura (The Next Generation)'
+    model.IndexSet({"title": title}).delete()
 
 
 
@@ -45,7 +57,7 @@ def test_dup_index_save():
     idx = model.Index(d)
     idx.save()
     assert model.IndexSet({"title": title}).count() == 1
-    try:
+    with pytest.raises(InputError) as e_info:
         d2 = {
             "title": title,
             "heTitle": u"פרשן ב",
@@ -55,63 +67,156 @@ def test_dup_index_save():
             "lengths": [50, 501]
         }
         idx2 = model.Index(d2).save()
-    except:
-        pass
 
     assert model.IndexSet({"title": title}).count() == 1
 
 
-def test_dup2_index_save():
-    title = 'Test Commentator Name'
+def test_invalid_index_save_no_existing_base_text():
+    title = 'Bartenura (The Next Generation)'
     model.IndexSet({"title": title}).delete()
     d = {
-            "title": title,
-            "heTitle": u"פרשן ב",
-            "titleVariants": [title],
-            "sectionNames": ["Chapter", "Paragraph"],
-            "categories": ["Commentary"],
-            "lengths": [50, 501]
-        }
-    idx = model.Index(d)
-    idx.save()
-    assert model.IndexSet({"title": title}).count() == 1
-    try:
-        d2 = {
-             "categories" : [
-                "Liturgy"
+         "categories" : [
+            "Mishnah",
+            "Commentary",
+            "Bartenura",
+            "Seder Zeraim"
+        ],
+        "base_text_titles": ["Gargamel"],
+        "title" : title,
+        "schema" : {
+            "titles" : [
+                {
+                    "lang" : "en",
+                    "text" : title,
+                    "primary" : True
+                },
+                {
+                    "lang" : "he",
+                    "text" : "פרשן",
+                    "primary" : True
+                }
             ],
-            "title" : title,
-            "schema" : {
-                "titles" : [
-                    {
-                        "lang" : "en",
-                        "text" : title,
-                        "primary" : True
-                    },
-                    {
-                        "lang" : "he",
-                        "text" : "פרשן",
-                        "primary" : True
-                    }
-                ],
-                "nodeType" : "JaggedArrayNode",
-                "depth" : 2,
-                "sectionNames" : [
-                    "Section",
-                    "Line"
-                ],
-                "addressTypes" : [
-                    "Integer",
-                    "Integer"
-                ],
-                "key": title
-            },
-        }
-        idx2 = model.Index(d2).save()
-    except:
-        pass
+            "nodeType" : "JaggedArrayNode",
+            "depth" : 2,
+            "sectionNames" : [
+                "Section",
+                "Line"
+            ],
+            "addressTypes" : [
+                "Integer",
+                "Integer"
+            ],
+            "key": title
+        },
+    }
+    idx = model.Index(d)
+    with pytest.raises(InputError) as e_info:
+        idx.save()
+    assert e_info.value.message == "Base Text Titles must point to existing texts in the system."
+    assert model.IndexSet({"title": title}).count() == 0
 
-    assert model.IndexSet({"title": title}).count() == 1
+
+def test_invalid_index_save_no_hebrew_category():
+    title = 'Bartenura (The Next Generation)'
+    model.IndexSet({"title": title}).delete()
+    d = {
+         "categories" : [
+            "Mishnah",
+            "Commentary",
+            "Bartenura",
+            "Gargamel"
+        ],
+        "title" : title,
+        "schema" : {
+            "titles" : [
+                {
+                    "lang" : "en",
+                    "text" : title,
+                    "primary" : True
+                },
+                {
+                    "lang" : "he",
+                    "text" : "פרשן",
+                    "primary" : True
+                }
+            ],
+            "nodeType" : "JaggedArrayNode",
+            "depth" : 2,
+            "sectionNames" : [
+                "Section",
+                "Line"
+            ],
+            "addressTypes" : [
+                "Integer",
+                "Integer"
+            ],
+            "key": title
+        },
+    }
+    idx = model.Index(d)
+    with pytest.raises(InputError) as e_info:
+        idx.save()
+    assert e_info.value.message == "You must add a hebrew translation Term for any new Category title: Gargamel."
+    assert model.IndexSet({"title": title}).count() == 0
+
+
+def test_invalid_index_save_no_hebrew_collective_title():
+    title = 'Bartenura (The Next Generation)'
+    model.IndexSet({"title": title}).delete()
+    d = {
+         "categories" : [
+            "Mishnah",
+            "Commentary",
+            "Bartenura"
+        ],
+        "collective_title": 'Gargamel',
+        "title" : title,
+        "schema" : {
+            "titles" : [
+                {
+                    "lang" : "en",
+                    "text" : title,
+                    "primary" : True
+                },
+                {
+                    "lang" : "he",
+                    "text" : "פרשן",
+                    "primary" : True
+                }
+            ],
+            "nodeType" : "JaggedArrayNode",
+            "depth" : 2,
+            "sectionNames" : [
+                "Section",
+                "Line"
+            ],
+            "addressTypes" : [
+                "Integer",
+                "Integer"
+            ],
+            "key": title
+        },
+    }
+    idx = model.Index(d)
+    with pytest.raises(InputError) as e_info:
+        idx.save()
+    assert e_info.value.message == "You must add a hebrew translation Term for any new Collective Title: Gargamel."
+    assert model.IndexSet({"title": title}).count() == 0
+
+
+
+"""def test_add_old_commentator():
+    title = "Old Commentator Record"
+    commentator = {
+        "title": title,
+        "heTitle": u"פרשן ב",
+        "titleVariants": [title],
+        "sectionNames": ["", ""],
+        "categories": ["Commentary"],
+    }
+    commentator_idx = model.Index(commentator).save()
+    assert getattr(commentator_idx, "nodes", None) is not None"""
+
 
 def test_index_title_setter():
     title = 'Test Index Name'
@@ -175,18 +280,10 @@ def test_index_title_setter():
     idx.delete()
 
 
-def test_index_methods():
-    assert model.Index().load({"title": "Rashi"}).is_commentary()
-    assert not model.Index().load({"title": "Exodus"}).is_commentary()
-
-
 def test_get_index():
     r = model.library.get_index("Rashi on Exodus")
-    assert isinstance(r, model.CommentaryIndex)
+    assert isinstance(r, model.Index)
     assert u'Rashi on Exodus' == r.title
-    assert u'Rashi on Exodus' in r.titleVariants
-    assert u'Rashi' not in r.titleVariants
-    assert u'Exodus' not in r.titleVariants
 
     r = model.library.get_index("Exodus")
     assert isinstance(r, model.Index)
@@ -194,25 +291,56 @@ def test_get_index():
 
 
 def test_text_helpers():
-    res = model.library.get_commentary_version_titles()
+    res = model.library.get_dependant_indices()
     assert u'Rashbam on Genesis' in res
     assert u'Rashi on Bava Batra' in res
     assert u'Bartenura on Mishnah Oholot' in res
+    assert u'Onkelos Leviticus' in res
+    assert u'Akeidat Yitzchak' in res
+    assert u'Berakhot' not in res
 
-    res = model.library.get_commentary_version_titles("Rashi")
+    res = model.library.get_indices_by_collective_title("Rashi")
     assert u'Rashi on Bava Batra' in res
     assert u'Rashi on Genesis' in res
     assert u'Rashbam on Genesis' not in res
 
-    res = model.library.get_commentary_version_titles(["Rashi", "Bartenura"])
-    assert u'Rashi on Bava Batra' in res
-    assert u'Rashi on Genesis' in res
+    res = model.library.get_indices_by_collective_title("Bartenura")
+    assert u'Bartenura on Mishnah Shabbat' in res
     assert u'Bartenura on Mishnah Oholot' in res
     assert u'Rashbam on Genesis' not in res
 
-    res = model.library.get_commentary_version_titles_on_book("Exodus")
+    res = model.library.get_dependant_indices(book_title="Exodus")
     assert u'Ibn Ezra on Exodus' in res
     assert u'Ramban on Exodus' in res
+    assert u'Meshech Hochma' in res
+    assert u'Abarbanel on Torah' in res
+    assert u'Targum Jonathan on Exodus' in res
+    assert u'Onkelos Exodus' in res
+    assert u'Harchev Davar on Exodus' in res
+
+    assert u'Exodus' not in res
+    assert u'Rashi on Genesis' not in res
+
+    res = model.library.get_dependant_indices(book_title="Exodus", dependence_type='Commentary')
+    assert u'Ibn Ezra on Exodus' in res
+    assert u'Ramban on Exodus' in res
+    assert u'Meshech Hochma' in res
+    assert u'Abarbanel on Torah' in res
+    assert u'Harchev Davar on Exodus' in res
+
+    assert u'Targum Jonathan on Exodus' not in res
+    assert u'Onkelos Exodus' not in res
+    assert u'Exodus' not in res
+    assert u'Rashi on Genesis' not in res
+
+    res = model.library.get_dependant_indices(book_title="Exodus", dependence_type='Commentary', structure_match=True)
+    assert u'Ibn Ezra on Exodus' in res
+    assert u'Ramban on Exodus' in res
+
+    assert u'Harchev Davar on Exodus' not in res
+    assert u'Meshech Hochma' not in res
+    assert u'Abarbanel on Torah' not in res
+    assert u'Exodus' not in res
     assert u'Rashi on Genesis' not in res
 
     cats = model.library.get_text_categories()
@@ -300,24 +428,7 @@ def test_index_delete():
     assert model.Index().load({'title': ti}) is None
     assert model.VersionSet({'title':ti}).count() == 0
 
-    #Commentator
-    from sefaria.helper.text import create_commentator_and_commentary_version
 
-    commentator_name = "Commentator Del"
-    he_commentator_name = u"פרשנדנן"
-    base_book = 'Genesis'
-    base_book2 = 'Pesach Haggadah'
-
-    model.IndexSet({"title": commentator_name}).delete()
-    model.VersionSet({"title": commentator_name + " on " + base_book}).delete()
-    model.VersionSet({"title": commentator_name + " on " + base_book2}).delete()
-
-    create_commentator_and_commentary_version(commentator_name, base_book, 'he', 'test', 'test', he_commentator_name)
-    create_commentator_and_commentary_version(commentator_name, base_book2, 'he', 'test', 'test', he_commentator_name)
-
-    ci = model.Index().load({'title': commentator_name}).delete()
-    assert model.Index().load({'title': commentator_name}) is None
-    assert model.VersionSet({'title':{'$regex': commentator_name}}).count() == 0
 
 
 
@@ -326,22 +437,26 @@ def test_index_name_change():
 
     #Simple Text
     tests = [
-        (u"Exodus", u"Movement of Ja People"),  # Simple Text
-        (u"Rashi", u"The Vintner")              # Commentator
+        (u"The Book of Maccabees I", u"Movement of Ja People"),  # Simple Text
+        # (u"Rashi", u"The Vintner")              # Commentator Invalid after commentary refactor?
     ]
 
     for old, new in tests:
-        for cnt in dep_counts(new).values():
+        index = model.Index().load({"title": old})
+
+        # Make sure that the test isn't passing just because we've been comparing 0 to 0
+        assert all([cnt > 0 for cnt in dep_counts(old, index)])
+
+        for cnt in dep_counts(new, index).values():
             assert cnt == 0
 
-        old_counts = dep_counts(old)
+        old_counts = dep_counts(old, index)
 
-        index = model.Index().load({"title": old})
         old_index = deepcopy(index)
         #new_in_alt = new in index.titleVariants
         index.title = new
         index.save()
-        assert old_counts == dep_counts(new)
+        assert old_counts == dep_counts(new, index)
 
         index.title = old
         #if not new_in_alt:
@@ -349,44 +464,36 @@ def test_index_name_change():
             index.titleVariants.remove(new)
         index.save()
         #assert old_index == index   #needs redo of titling, above, i suspect
-        assert old_counts == dep_counts(old)
-        for cnt in dep_counts(new).values():
+        assert old_counts == dep_counts(old, index)
+        for cnt in dep_counts(new, index).values():
             assert cnt == 0
 
 
-def dep_counts(name):
-    commentators = model.IndexSet({"categories.0": "Commentary"}).distinct("title")
-    ref_patterns = {
-        'alone': r'^{} \d'.format(re.escape(name)),
-        'commentor': r'{} on'.format(re.escape(name)),
-        'commentee': r'^({}) on {} \d'.format("|".join(commentators), re.escape(name))
-    }
+def dep_counts(name, indx):
 
-    commentee_title_pattern = r'^({}) on {} \d'.format("|".join(commentators), re.escape(name))
+    def construct_query(attribute, queries):
+        query_list = [{attribute: {'$regex': query}} for query in queries]
+        return {'$or': query_list}
+
+    from sefaria.model.text import prepare_index_regex_for_dependency_process
+    patterns = prepare_index_regex_for_dependency_process(indx, as_list=True)
+    patterns = [pattern.replace(re.escape(indx.title), re.escape(name)) for pattern in patterns]
 
     ret = {
-        'version title exact match': model.VersionSet({"title": name}).count(),
-        'version title match commentor': model.VersionSet({"title": {"$regex": ref_patterns["commentor"]}}).count(),
-        'version title match commentee': model.VersionSet({"title": {"$regex": commentee_title_pattern}}).count(),
-        'history title exact match': model.HistorySet({"title": name}).count(),
-        'history title match commentor': model.HistorySet({"title": {"$regex": ref_patterns["commentor"]}}).count(),
-        'history title match commentee': model.HistorySet({"title": {"$regex": commentee_title_pattern}}).count(),
+        'version title exact match': model.VersionSet({"title": name}, sort=[('title', 1)]).count(),
+        'history title exact match': model.HistorySet({"title": name}, sort=[('title', 1)]).count(),
+        'note match ': model.NoteSet(construct_query("ref", patterns), sort=[('ref', 1)]).count(),
+        'link match ': model.LinkSet(construct_query("refs", patterns)).count(),
+        'history refs match ': model.HistorySet(construct_query("ref", patterns), sort=[('ref', 1)]).count(),
+        'history new refs match ': model.HistorySet(construct_query("new.refs", patterns), sort=[('new.refs', 1)]).count()
     }
-
-    for pname, pattern in ref_patterns.items():
-        ret.update({
-            'note match ' + pname: model.NoteSet({"ref": {"$regex": pattern}}).count(),
-            'link match ' + pname: model.LinkSet({"refs": {"$regex": pattern}}).count(),
-            'history refs match ' + pname: model.HistorySet({"ref": {"$regex": pattern}}).count(),
-            'history new refs match ' + pname: model.HistorySet({"new.refs": {"$regex": pattern}}).count()
-        })
 
     return ret
 
 
 def test_version_word_count():
     #simple
-    assert model.Version().load({"title": "Genesis", "language": "he", "versionTitle": "Tanach with Ta'amei Hamikra"}).word_count() == 17860
+    assert model.Version().load({"title": "Genesis", "language": "he", "versionTitle": "Tanach with Ta'amei Hamikra"}).word_count() == 20813
     assert model.Version().load({"title": "Rashi on Shabbat", "language": "he"}).word_count() > 0
     #complex
     assert model.Version().load({"title": "Pesach Haggadah", "language": "he"}).word_count() > 0
