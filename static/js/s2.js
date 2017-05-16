@@ -1590,7 +1590,7 @@ var Header = React.createClass({
         )
       )
     );
-    var langSearchPlaceholder = this.props.interfaceLang == 'english' ? "Search" : "הקלד לחיפוש";
+    var langSearchPlaceholder = this.props.interfaceLang == 'english' ? "Search" : "חיפוש";
     var vkClassActivator = this.props.interfaceLang == 'english' ? " keyboardInput" : "";
     return React.createElement(
       'div',
@@ -1600,34 +1600,38 @@ var Header = React.createClass({
         { className: 'headerInner' },
         React.createElement(
           'div',
-          { className: 'left' },
+          { className: 'headerNavSection' },
           React.createElement(
             'a',
             { href: '/texts', 'aria-label': 'Toggle Text Table of Contents', className: 'library', onClick: this.handleLibraryClick },
             React.createElement('i', { className: 'fa fa-bars' })
+          ),
+          React.createElement(
+            'div',
+            { className: 'searchBox' },
+            React.createElement(ReaderNavigationMenuSearchButton, { onClick: this.handleSearchButtonClick }),
+            React.createElement('input', { className: "search" + vkClassActivator,
+              placeholder: langSearchPlaceholder,
+              onKeyUp: this.handleSearchKeyUp,
+              onFocus: this.showVirtualKeyboardIcon.bind(this, true),
+              onBlur: this.showVirtualKeyboardIcon.bind(this, false),
+              title: 'Search for Texts or Keywords Here' })
           )
         ),
         React.createElement(
           'div',
-          { className: 'right' },
+          { className: 'headerHomeSection' },
+          React.createElement(
+            'a',
+            { className: 'home', href: '/?home' },
+            React.createElement('img', { src: '/static/img/sefaria.svg', alt: 'Sefaria Logo' })
+          )
+        ),
+        React.createElement(
+          'div',
+          { className: 'headerLinksSection' },
           headerMessage,
           Sefaria.loggedIn ? loggedInLinks : loggedOutLinks
-        ),
-        React.createElement(
-          'span',
-          { className: 'searchBox' },
-          React.createElement(ReaderNavigationMenuSearchButton, { onClick: this.handleSearchButtonClick }),
-          React.createElement('input', { className: "search" + vkClassActivator,
-            placeholder: langSearchPlaceholder,
-            onKeyUp: this.handleSearchKeyUp,
-            onFocus: this.showVirtualKeyboardIcon.bind(this, true),
-            onBlur: this.showVirtualKeyboardIcon.bind(this, false)
-          })
-        ),
-        React.createElement(
-          'a',
-          { className: 'home', href: '/?home' },
-          React.createElement('img', { src: '/static/img/sefaria.svg', alt: 'Sefaria Logo' })
         )
       ),
       viewContent ? React.createElement(
@@ -1869,6 +1873,11 @@ var ReaderPanel = React.createClass({
       return;
     }
     this.replaceHistory = Boolean(replaceHistory);
+    if (this.state.mode == "Connections" && this.props.masterPanelLanguage == "bilingual") {
+      // Connections panels are forced to be mono-lingual. When opening a text from a connections panel,
+      // allow it to return to bilingual.
+      this.state.settings.language = "bilingual";
+    }
     this.conditionalSetState({
       mode: "Text",
       refs: [ref],
@@ -1876,7 +1885,8 @@ var ReaderPanel = React.createClass({
       recentFilters: [],
       menuOpen: null,
       version: version,
-      versionLanguage: versionLanguage
+      versionLanguage: versionLanguage,
+      settings: this.state.settings
     });
   },
   updateTextColumn: function updateTextColumn(refs) {
@@ -4240,9 +4250,11 @@ var SchemaNode = React.createClass({
     refPath: React.PropTypes.string.isRequired
   },
   getInitialState: function getInitialState() {
-    var nChildren = "nodes" in this.props.schema ? this.props.schema.nodes.length : 0;
     return {
-      collapsed: new Array(nChildren).fill(true)
+      // Collapse everything except default nodes to start.
+      collapsed: "nodes" in this.props.schema ? this.props.schema.nodes.map(function (node) {
+        return !node.default;
+      }) : []
     };
   },
   toggleCollapse: function toggleCollapse(i) {
@@ -6581,71 +6593,6 @@ var FileInput = React.createClass({
         accept: this.props.accept,
         onChange: this.handleChange })
     );
-  }
-});
-
-// https://github.com/captivationsoftware/react-file-input
-var FileInputX = React.createClass({
-  displayName: 'FileInputX',
-
-  getInitialState: function getInitialState() {
-    return {
-      value: '',
-      styles: {
-        parent: {
-          position: 'relative'
-        },
-        file: {
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          opacity: 0,
-          width: '100%',
-          zIndex: 1
-        },
-        text: {
-          position: 'relative',
-          zIndex: -1
-        }
-      }
-    };
-  },
-
-  handleChange: function handleChange(e) {
-    this.setState({
-      value: e.target.value.split(/(\\|\/)/g).pop()
-    });
-    if (this.props.onChange) this.props.onChange(e);
-  },
-
-  render: function render() {
-    return React.DOM.div({
-      style: this.state.styles.parent
-    },
-
-    // Actual file input
-    React.DOM.input({
-      type: 'file',
-      name: this.props.name,
-      className: this.props.className,
-      onChange: this.handleChange,
-      disabled: this.props.disabled,
-      accept: this.props.accept,
-      style: this.state.styles.file
-    }),
-
-    // Emulated file input
-    React.DOM.input({
-      type: 'text',
-      tabIndex: -1,
-      name: this.props.name + '_filename',
-      value: this.state.value,
-      className: this.props.className,
-      onChange: function onChange() {},
-      placeholder: this.props.placeholder,
-      disabled: this.props.disabled,
-      style: this.state.styles.text
-    }));
   }
 });
 

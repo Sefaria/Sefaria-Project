@@ -1510,28 +1510,29 @@ var Header = React.createClass({
                              <span className="int-he">התחבר</span>
                            </a>
                          </div>);
-    var langSearchPlaceholder = this.props.interfaceLang == 'english' ? "Search" : "הקלד לחיפוש";
+    var langSearchPlaceholder = this.props.interfaceLang == 'english' ? "Search" : "חיפוש";
     var vkClassActivator = this.props.interfaceLang == 'english' ? " keyboardInput" : "";
     return (<div className="header">
               <div className="headerInner">
-                <div className="left">
-                  <a href="/texts" aria-label="Toggle Text Table of Contents" className="library" onClick={this.handleLibraryClick}><i className="fa fa-bars"></i></a>
+                <div className="headerNavSection">
+                    <a href="/texts" aria-label="Toggle Text Table of Contents" className="library" onClick={this.handleLibraryClick}><i className="fa fa-bars"></i></a>
+                    <div  className="searchBox">
+                      <ReaderNavigationMenuSearchButton onClick={this.handleSearchButtonClick} />
+                      <input className={"search"+ vkClassActivator}
+                             placeholder={langSearchPlaceholder}
+                             onKeyUp={this.handleSearchKeyUp}
+                             onFocus={this.showVirtualKeyboardIcon.bind(this, true)}
+                             onBlur={this.showVirtualKeyboardIcon.bind(this, false)}
+                      title="Search for Texts or Keywords Here"/>
+                    </div>
                 </div>
-                <div className="right">
+                <div className="headerHomeSection">
+                    <a className="home" href="/?home" ><img src="/static/img/sefaria.svg" alt="Sefaria Logo"/></a>
+                </div>
+                <div className="headerLinksSection">
                   { headerMessage }
                   { Sefaria.loggedIn ? loggedInLinks : loggedOutLinks }
                 </div>
-                <span className="searchBox">
-                  <ReaderNavigationMenuSearchButton onClick={this.handleSearchButtonClick} />
-                  <input className={"search"+ vkClassActivator}
-                         placeholder={langSearchPlaceholder}
-                         onKeyUp={this.handleSearchKeyUp}
-                         onFocus={this.showVirtualKeyboardIcon.bind(this, true)}
-                         onBlur={this.showVirtualKeyboardIcon.bind(this, false)}
-                         title="Search for Texts or Keywords Here"
-                  />
-                </span>
-                <a className="home" href="/?home" ><img src="/static/img/sefaria.svg" alt="Sefaria Logo" /></a>
               </div>
               { viewContent ? 
                 (<div className="headerNavContent">
@@ -1762,6 +1763,11 @@ var ReaderPanel = React.createClass({
     // `replaceHistory` - bool whether to replace browser history rather than push for this change
     if (!ref) { return; }
     this.replaceHistory = Boolean(replaceHistory);
+    if (this.state.mode == "Connections" && this.props.masterPanelLanguage == "bilingual") {
+      // Connections panels are forced to be mono-lingual. When opening a text from a connections panel,
+      // allow it to return to bilingual.
+      this.state.settings.language = "bilingual";
+    }
     this.conditionalSetState({
       mode: "Text",
       refs: [ref],
@@ -1769,7 +1775,8 @@ var ReaderPanel = React.createClass({
       recentFilters: [],
       menuOpen: null,
       version: version,
-      versionLanguage: versionLanguage
+      versionLanguage: versionLanguage,
+      settings: this.state.settings
     });
   },
   updateTextColumn: function(refs) {
@@ -2555,7 +2562,7 @@ var ReaderNavigationMenu = React.createClass({
   render: function() {
     if (this.props.categories.length && this.props.categories[0] == "recent") {
       return (<div onClick={this.handleClick}>
-                <RecentPanel 
+                <RecentPanel
                   multiPanel={this.props.multiPanel}
                   closeNav={this.closeNav}
                   toggleLanguage={this.props.toggleLanguage}
@@ -3588,9 +3595,9 @@ var SchemaNode = React.createClass({
     refPath:     React.PropTypes.string.isRequired
   },
   getInitialState: function() {
-    var nChildren = "nodes" in this.props.schema ? this.props.schema.nodes.length : 0;
     return {
-      collapsed: new Array(nChildren).fill(true)
+      // Collapse everything except default nodes to start.
+      collapsed: "nodes" in this.props.schema ? this.props.schema.nodes.map(function(node) { return !node.default }) : []
     }
   },
   toggleCollapse: function(i) {
@@ -4167,21 +4174,22 @@ var ModeratorButtons = React.createClass({
 
 
 var CategoryAttribution = React.createClass({
-      propTypes: {
-      categories: React.PropTypes.array.isRequired
-    },
-      render: function() {
-      var attribution = Sefaria.categoryAttribution(this.props.categories);
-      return attribution ?
-        <div className="categoryAttribution">
-          <a href={attribution.link} className="outOfAppLink">
-            <span className="en">{attribution.english}</span>
-            <span className="he">{attribution.hebrew}</span>
-          </a>
-        </div> 
-        : null;
-    }
+  propTypes: {
+    categories: React.PropTypes.array.isRequired
+  },
+  render: function() {
+    var attribution = Sefaria.categoryAttribution(this.props.categories);
+    return attribution ?
+      <div className="categoryAttribution">
+        <a href={attribution.link} className="outOfAppLink">
+          <span className="en">{attribution.english}</span>
+          <span className="he">{attribution.hebrew}</span>
+        </a>
+      </div> 
+      : null;
+  }
 });
+
 
 var ReadMoreText = React.createClass({
   propTypes: {
@@ -5174,69 +5182,6 @@ var FileInput = React.createClass({
             </div>);
   }
 })
-
-// https://github.com/captivationsoftware/react-file-input
-var FileInputX = React.createClass({
-  getInitialState: function() {
-    return {
-      value: '',
-      styles: {
-        parent: {
-          position: 'relative'
-        },
-        file: {
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          opacity: 0,
-          width: '100%',
-          zIndex: 1
-        },
-        text: {
-          position: 'relative',
-          zIndex: -1
-        }
-      }
-    };
-  },
-
-  handleChange: function(e) {
-    this.setState({
-      value: e.target.value.split(/(\\|\/)/g).pop()
-    });
-    if (this.props.onChange) this.props.onChange(e);
-  },
-
-  render: function() {
-    return React.DOM.div({
-        style: this.state.styles.parent
-      },
-
-      // Actual file input
-      React.DOM.input({
-        type: 'file',
-        name: this.props.name,
-        className: this.props.className,
-        onChange: this.handleChange,
-        disabled: this.props.disabled,
-        accept: this.props.accept,
-        style: this.state.styles.file
-      }),
-
-      // Emulated file input
-      React.DOM.input({
-        type: 'text',
-        tabIndex: -1,
-        name: this.props.name + '_filename',
-        value: this.state.value,
-        className: this.props.className,
-        onChange: function() {},
-        placeholder: this.props.placeholder,
-        disabled: this.props.disabled,
-        style: this.state.styles.text
-      }));
-  }
-});
 
 
 var TagSheetsPage = React.createClass({
@@ -7486,6 +7431,7 @@ var SharePanel = React.createClass({
   }
 });
 
+
 var AddToSourceSheetWindow = React.createClass({
   propTypes: {
     srefs:        React.PropTypes.array,
@@ -7519,6 +7465,7 @@ var AddToSourceSheetWindow = React.createClass({
       </div>);
   }
 });
+
 
 var AddToSourceSheetPanel = React.createClass({
   // In the main app, the function `addToSourceSheet` is executed in the ReaderApp, 
