@@ -4,7 +4,7 @@
 http://norvig.com/spell-correct.html
 http://scottlobdell.me/2015/02/writing-autocomplete-engine-scratch-python/
 """
-import pygtrie as trie
+import datrie
 from collections import Counter, defaultdict
 from sefaria.model import *
 from sefaria.utils import hebrew
@@ -123,7 +123,7 @@ class AutoCompleter(object):
         # Assume that instring is the name of a node.  Extend with a comma, and get next nodes in the Trie
         normal_string = normalize_input(instring, self.lang)
         try:
-            return [v["title"] for k, v in self.title_trie.items(normal_string + u",", shallow=True)]
+            return [v["title"] for k, v in self.title_trie.items(normal_string + u",")].sort(key=len)  # better than sort would be the shallow option of pygtrie, but datrie doesn't have
         except KeyError:
             return []
 
@@ -220,13 +220,15 @@ class Completions(object):
                 self.duplicate_matches += [(k, v)]
 
 
-class TitleTrie(trie.CharTrie):
+class TitleTrie(datrie.Trie):
     """
     Character Trie built up of the titles in the library
     """
+    letter_scope = u"\u05b0\u05b4\u05b5\u05b6\u05b7\u05b8\u05b9\u05bc\u05c1\u05d0\u05d1\u05d2\u05d3\u05d4\u05d5\u05d6\u05d7\u05d8\u05d9\u05da\u05db\u05dc\u05dd\u05de\u05df\u05e0\u05e1\u05e2\u05e3\u05e4\u05e5\u05e6\u05e7\u05e8\u05e9\u05ea\u05f3\u05f4\u200e\u200f\u2013\u201d\ufeffabcdefghijklmnopqrstuvwxyz1234567890[]`:;.-,*()'& \""
+
     def __init__(self, lang, *args, **kwargs):
         assert lang in ["en", "he"]
-        super(TitleTrie, self).__init__(*args, **kwargs)
+        super(TitleTrie, self).__init__(self.letter_scope)
         self.lang = lang
 
     def add_titles_from_title_node_dict(self, title_node_dict):

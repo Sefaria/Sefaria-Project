@@ -27,5 +27,5 @@ oauth2client==2.0.2
 google-api-python-client==1.5.0
 boto3
 pillow
-pygtrie
+datrie
 deepdiff
