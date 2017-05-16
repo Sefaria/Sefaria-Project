@@ -144,7 +144,7 @@ class Completions(object):
         self.instring = instring
         self.normal_string = normalize_input(instring, lang)
         self.limit = limit
-        self.objs_covered = set()
+        self.keys_covered = set()
         self.completions = []  # titles to return
         self.duplicate_matches = []  # (key, {}) pairs, as constructed in TitleTrie
 
@@ -204,17 +204,17 @@ class Completions(object):
         # todo: don't list all subtree titles, if string doesn't cover base title
         non_primary_matches = []
         for k, v in all_continuations:
-            if v["is_primary"] and v["obj"] not in self.objs_covered:
+            if v["is_primary"] and v["key"] not in self.keys_covered:
                 self.completions += [v["title"]]
-                self.objs_covered.add(v["obj"])
+                self.keys_covered.add(v["key"])
             else:
                 non_primary_matches += [(k, v)]
 
         # Iterate through non primary ones, until we cover the whole node-space
         for k, v in non_primary_matches:
-            if v["obj"] not in self.objs_covered:
+            if v["key"] not in self.keys_covered:
                 self.completions += [v["title"]]
-                self.objs_covered.add(v["obj"])
+                self.keys_covered.add(v["key"])
             else:
                 # todo: Check if this is in there already?
                 self.duplicate_matches += [(k, v)]
@@ -234,7 +234,7 @@ class TitleTrie(trie.CharTrie):
             norm_title = normalize_input(title, self.lang)
             self[norm_title] = {
                 "title": title,
-                "obj": snode,
+                "key": title,
                 "type": "ref",
                 "is_primary": title == snode.primary_title(self.lang)
             }
@@ -255,8 +255,7 @@ class TitleTrie(trie.CharTrie):
                 self[norm_title] = {
                     "title": title,
                     "type": obj.__class__.__name__,
-                    "obj": obj,
-                    "key": key,
+                    "key": tuple(key) if isinstance(key, list) else key,
                     "is_primary": title == getattr(obj, primary_name_method)(self.lang)
                 }
 
