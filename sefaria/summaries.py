@@ -174,7 +174,10 @@ def get_toc_categories(index_obj, for_search=False):
     if cats[0] not in TOP_CATEGORIES:
         cats.insert(0, "Other")
     if for_search and getattr(index_obj, "dependence", None) == 'Commentary':
-        cats.remove('Commentary')
+        try:
+            cats.remove('Commentary')
+        except ValueError as e:
+            pass
         cats[0] += " Commentaries"  # this will create an additional bucket for each top level category's commentary
 
     return cats
