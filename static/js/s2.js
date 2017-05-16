@@ -7653,7 +7653,7 @@ var TextRange = React.createClass({
       language: this.props.versionLanguage || null
     };
     var data = Sefaria.text(this.props.sref, settings);
-    if (!data) {
+    if (!data || "updateFromAPI" in data) {
       // If we don't have data yet, call again with a callback to trigger API call
       Sefaria.text(this.props.sref, settings, this.onTextLoad);
     }
@@ -8026,9 +8026,10 @@ var TextSegment = React.createClass({
   handleClick: function handleClick(event) {
     if ($(event.target).hasClass("refLink")) {
       //Click of citation
+      event.preventDefault(); //add prevent default
       var ref = Sefaria.humanRef($(event.target).attr("data-ref"));
       this.props.onCitationClick(ref, this.props.sref);
-      event.stopPropagation(); //add prevent default
+      event.stopPropagation();
       Sefaria.site.track.event("Reader", "Citation Link Click", ref);
     } else if ($(event.target).is("sup") || $(event.target).parents("sup").size()) {
       this.props.onFootnoteClick(event);
@@ -8738,10 +8739,11 @@ var AllFilterSet = React.createClass({
         setFilter: this.props.setFilter,
         on: Sefaria.util.inArray(cat.category, this.props.filter) !== -1 });
     }.bind(this));
+    var lexicon = this.props.oref ? React.createElement(LexiconPanel, { selectedWords: this.props.selectedWords, oref: this.props.oref }) : null;
     return React.createElement(
       'div',
       { className: 'fullFilterView filterSet' },
-      React.createElement(LexiconPanel, { selectedWords: this.props.selectedWords, oref: this.props.oref }),
+      lexicon,
       categories
     );
   }
@@ -8990,7 +8992,7 @@ var LexiconPanel = React.createClass({
 
   propTypes: {
     selectedWords: React.PropTypes.string,
-    oref: React.PropTypes.object.isRequired
+    oref: React.PropTypes.object
   },
   getInitialState: function getInitialState() {
     return {
@@ -12226,6 +12228,9 @@ var TestMessage = React.createClass({
 var Footer = React.createClass({
   displayName: 'Footer',
 
+  trackLanguageClick: function trackLanguageClick(language) {
+    Sefaria.site.track.setInterfaceLanguage('interface language footer', language);
+  },
   render: function render() {
     var currentPath = Sefaria.util.currentPath();
     var next = encodeURIComponent(currentPath);
@@ -12693,14 +12698,16 @@ var Footer = React.createClass({
           ),
           React.createElement(
             'a',
-            { href: "/interface/english?next=" + next, id: 'siteLanguageEnglish', className: 'outOfAppLink' },
+            { href: "/interface/english?next=" + next, id: 'siteLanguageEnglish', className: 'outOfAppLink',
+              onClick: this.trackLanguageClick.bind(null, "English") },
             'English'
           ),
           '|',
           React.createElement(
             'a',
-            { href: "/interface/hebrew?next=" + next, id: 'siteLanguageHebrew', className: 'outOfAppLink' },
-            '\u05E2\u05D1\u05E8\u05D9\u05EA'
+            { href: "/interface/hebrew?next=" + next, id: 'siteLanguageHebrew', className: 'outOfAppLink',
+              onClick: this.trackLanguageClick.bind(null, "Hebrew") },
+            '                 \u05E2\u05D1\u05E8\u05D9\u05EA'
           )
         )
       )

@@ -2387,6 +2387,9 @@ Sefaria.site = {
     setContentLanguage: function(language) {
         ga('set', 'contentGroup5', language);
     },
+    setInterfaceLanguage: function(origin, language){
+        Sefaria.site.track.event("settings", origin, language);
+    },
     setNumberOfPanels: function(val) {
         ga('set', 'dimension1', val);
     },
