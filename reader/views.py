@@ -2010,9 +2010,10 @@ def name_api(request, name):
 
     # Number of results to return.  0 indicates no limit
     LIMIT = request.GET.get("limit") or 16
+    ref_only = request.GET.get("ref_only", False)
     lang = "he" if is_hebrew(name) else "en"
 
-    completer = library.auto_completer(lang)
+    completer = library.ref_auto_completer(lang) if ref_only else library.full_auto_completer(lang)
     try:
         ref = Ref(name)
         inode = ref.index_node
@@ -2031,6 +2032,8 @@ def name_api(request, name):
             "is_ref": True,
             "is_book": ref.is_book_level(),
             "is_node": len(ref.sections) == 0,
+            "is_section": ref.is_section_level(),
+            "is_segment": ref.is_segment_level(),
             "type": "ref",
             "normal": ref.normal(),
             # "number_follows": inode.has_numeric_continuation(),
@@ -2044,8 +2047,6 @@ def name_api(request, name):
         # This is not a Ref
         d = {
             "is_ref": False,
-            "is_book": False,
-            "is_node": False,
             "completions": completer.complete(name, LIMIT)
         }
 

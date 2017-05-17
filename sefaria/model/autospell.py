@@ -122,7 +122,7 @@ class AutoCompleter(object):
         if not redirected:
             other_language = "he" if self.lang == "en" else "en"
             swapped_string = hebrew.swap_keyboards_for_string(instring)
-            return self.library.auto_completer(other_language).complete(swapped_string, limit, redirected=True)
+            return self.library.full_auto_completer(other_language).complete(swapped_string, limit, redirected=True)
 
     def next_steps_from_node(self, instring):
         """
@@ -178,7 +178,7 @@ class Completions(object):
 
         # double misspellings
         """
-        double_edits = (e2 for e1 in single_edits for e2 in self.auto_completer.spell_checker.single_edits(e1))
+        double_edits = (e2 for e1 in single_edits for e2 in self.full_auto_completer.spell_checker.single_edits(e1))
         for edit in double_edits:
             self.add_new_continuations_from_string(edit)
             if self.limit and len(self.completions) >= self.limit:

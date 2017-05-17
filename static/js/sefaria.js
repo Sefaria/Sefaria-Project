@@ -481,7 +481,23 @@ Sefaria = extend(Sefaria, {
     }
   },
   _lookups: {},
-  lookup: function(name, callback, onError) {
+  lookup: function(name, callback, onError, refOnly) {
+      /* 
+        * name - string to lookup
+        * callback - callback function, takes one argument, a data object
+              data object returned from API: {
+                "is_ref": Bool,
+                "is_book": <optional> Bool,
+                "is_node": <optional> Bool,
+                "is_section": <optional> Bool,
+                "is_segment": <optional> Bool,
+                "completions": [String]
+                "type": <optional> String: "ref", "Person" or "TocCategory"
+                "normal": <optional> String: if type is "ref", the normal form
+                "key": <optional> If type is "Person" this is a string.  If type is "TocCategory" this is a list
+        * onError - callback
+        * refOnly - if True, only search for titles, otherwise search for People and Categories as well.
+       */
     onError = onError || function() {};
     if (name in this._lookups) {
         callback(this._lookups[name]);
@@ -489,7 +505,7 @@ Sefaria = extend(Sefaria, {
     else {
         $.ajax({
           dataType: "json",
-          url: "/api/name/" + name, 
+          url: "/api/name/" + name + (refOnly?"?ref_only=1":""), 
           error: onError,
           success: function(data) {
               this._lookups[name] = data;
@@ -498,6 +514,7 @@ Sefaria = extend(Sefaria, {
         });
     }
   },
+
   sectionRef: function(ref) {
     // Returns the section level ref for `ref` or null if no data is available
     var oref = this.ref(ref);

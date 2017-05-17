@@ -3711,7 +3711,8 @@ class Library(object):
         self._toc_size = 16
 
         # Spell Checking and Autocompleting
-        self._auto_completer = {}
+        self._full_auto_completer = {}
+        self._ref_auto_completer = {}
 
         if not hasattr(sys, '_doc_build'):  # Can't build cache without DB
             self._build_core_maps()
@@ -3739,7 +3740,8 @@ class Library(object):
         self._full_title_list_jsons = {}
         self._title_regex_strings = {}
         self._title_regexes = {}
-        self._auto_completer = {}
+        self._full_auto_completer = {}
+        self._ref_auto_completer = {}
         # TOC is handled separately since it can be edited in place
 
     def _reset_toc_derivate_objects(self):
@@ -3765,7 +3767,8 @@ class Library(object):
         Ref.clear_cache()
         if include_toc:
             self.rebuild_toc()
-        self.build_auto_completer()
+        self.build_full_auto_completer()
+        self.build_ref_auto_completer()
 
     def rebuild_toc(self):
         self._toc = None
@@ -3830,18 +3833,31 @@ class Library(object):
                 scache.set_cache_elem('search_filter_toc_json_cache', self._search_filter_toc_json)
         return self._search_filter_toc_json
 
-    def build_auto_completer(self):
+    def build_full_auto_completer(self):
         from autospell import AutoCompleter
-        self._auto_completer = {
+        self._full_auto_completer = {
             lang: AutoCompleter(lang, library, include_people=True, include_categories=True) for lang in self.langs
         }
 
-    def auto_completer(self, lang):
+    def build_ref_auto_completer(self):
+        from autospell import AutoCompleter
+        self._ref_auto_completer = {
+            lang: AutoCompleter(lang, library, include_people=False, include_categories=False) for lang in self.langs
+        }
+
+    def full_auto_completer(self, lang):
         try:
-            return self._auto_completer[lang]
+            return self._full_auto_completer[lang]
         except KeyError:
-            self.build_auto_completer()  # I worry that these could pile up.
-            return self._auto_completer[lang]
+            self.build_full_auto_completer()  # I worry that these could pile up.
+            return self._full_auto_completer[lang]
+
+    def ref_auto_completer(self, lang):
+        try:
+            return self._ref_auto_completer[lang]
+        except KeyError:
+            self.build_ref_auto_completer()  # I worry that these could pile up.
+            return self._ref_auto_completer[lang]
 
     def recount_index_in_toc(self, indx):
         from sefaria.summaries import update_title_in_toc
