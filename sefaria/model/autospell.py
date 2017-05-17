@@ -4,8 +4,11 @@
 http://norvig.com/spell-correct.html
 http://scottlobdell.me/2015/02/writing-autocomplete-engine-scratch-python/
 """
-import datrie
+import string
 from collections import Counter, defaultdict
+
+import datrie
+
 from sefaria.model import *
 from sefaria.utils import hebrew
 from sefaria.summaries import toc_serial_to_objects
@@ -20,12 +23,21 @@ except ImportError:
     logging.warning("Failed to load 're2'.  Falling back to 're' for regular expression parsing. See https://github.com/blockspeiser/Sefaria-Project/wiki/Regular-Expression-Engines")
     import re
 
+letter_scope = u"\u05b0\u05b4\u05b5\u05b6\u05b7\u05b8\u05b9\u05bc\u05c1\u05d0\u05d1\u05d2\u05d3\u05d4\u05d5\u05d6\u05d7\u05d8\u05d9\u05da\u05db\u05dc\u05dd\u05de\u05df\u05e0\u05e1\u05e2\u05e3\u05e4\u05e5\u05e6\u05e7\u05e8\u05e9\u05ea\u05f3\u05f4\u200e\u200f\u2013\u201d\ufeffabcdefghijklmnopqrstuvwxyz1234567890[]`:;.-,*()'& \""
+
 
 def normalize_input(instring, lang):
     if lang == "he":
         return hebrew.normalize_final_letters_in_str(instring)
     return instring.lower()
 
+
+def normalizer(lang):
+    if lang == "he":
+        return hebrew.normalize_final_letters_in_str
+    return string.lower
+
+splitter = re.compile(ur"[\s,]+")
 
 class AutoCompleter(object):
     """
@@ -45,32 +57,36 @@ class AutoCompleter(object):
 
         self.lang = lang
         self.library = lib
-
+        self.normalizer = normalizer(lang)
         self.title_trie = TitleTrie(lang, *args, **kwargs)
         self.spell_checker = SpellChecker(lang)
         self.ngram_matcher = NGramMatcher(lang)
 
         # Titles in library
         title_node_dict = self.library.get_title_node_dict(lang)
-        titles = title_node_dict.keys()
-        self.title_trie.add_titles_from_title_node_dict(title_node_dict)
-        self.spell_checker.train_phrases(titles)
-        self.ngram_matcher.train_phrases(titles)
+        tnd_items = title_node_dict.items()
+        titles = [t for t, d in tnd_items]
+        normal_titles = [self.normalizer(t) for t, d in tnd_items]
+        self.title_trie.add_titles_from_title_node_dict(tnd_items, normal_titles)
+        self.spell_checker.train_phrases(normal_titles)
+        self.ngram_matcher.train_phrases(titles, normal_titles)
 
         if include_categories:
             oo_toc = toc_serial_to_objects(library.get_toc())
             categories = self._get_main_categories(oo_toc)
             category_names = [c.primary_title(lang) for c in categories]
+            normal_category_names = [self.normalizer(c) for c in category_names]
             self.title_trie.add_titles_from_set(categories, "all_node_titles", "primary_title", "full_path")
             self.spell_checker.train_phrases(category_names)
-            self.ngram_matcher.train_phrases(category_names)
+            self.ngram_matcher.train_phrases(category_names, normal_category_names)
         if include_people:
             eras = ["GN", "RI", "AH", "CO"]
             ps = PersonSet({"era": {"$in": eras}})
             person_names = [n for p in ps for n in p.all_names(lang)]
+            normal_person_names = [self.normalizer(n) for n in person_names]
             self.title_trie.add_titles_from_set(ps, "all_names", "primary_name", "key")
             self.spell_checker.train_phrases(person_names)
-            self.ngram_matcher.train_phrases(person_names)
+            self.ngram_matcher.train_phrases(person_names, normal_person_names)
 
     def _get_main_categories(self, otoc):
         cats = []
@@ -89,7 +105,7 @@ class AutoCompleter(object):
         :param instring:
         :return:
         """
-        normal = normalize_input(instring, self.lang)
+        normal = self.normalizer(instring)
         try:
             return self.title_trie[normal]
         except KeyError:
@@ -121,9 +137,10 @@ class AutoCompleter(object):
         :return:
         """
         # Assume that instring is the name of a node.  Extend with a comma, and get next nodes in the Trie
-        normal_string = normalize_input(instring, self.lang)
+        normal_string = self.normalizer(instring)
         try:
-            return [v["title"] for k, v in self.title_trie.items(normal_string + u",")].sort(key=len)  # better than sort would be the shallow option of pygtrie, but datrie doesn't have
+            ret = [v["title"] for k, v in self.title_trie.items(normal_string + u",")].sort(key=len)  # better than sort would be the shallow option of pygtrie, but datrie doesn't have
+            return ret or []
         except KeyError:
             return []
 
@@ -224,16 +241,15 @@ class TitleTrie(datrie.Trie):
     """
     Character Trie built up of the titles in the library
     """
-    letter_scope = u"\u05b0\u05b4\u05b5\u05b6\u05b7\u05b8\u05b9\u05bc\u05c1\u05d0\u05d1\u05d2\u05d3\u05d4\u05d5\u05d6\u05d7\u05d8\u05d9\u05da\u05db\u05dc\u05dd\u05de\u05df\u05e0\u05e1\u05e2\u05e3\u05e4\u05e5\u05e6\u05e7\u05e8\u05e9\u05ea\u05f3\u05f4\u200e\u200f\u2013\u201d\ufeffabcdefghijklmnopqrstuvwxyz1234567890[]`:;.-,*()'& \""
 
     def __init__(self, lang, *args, **kwargs):
         assert lang in ["en", "he"]
-        super(TitleTrie, self).__init__(self.letter_scope)
+        super(TitleTrie, self).__init__(letter_scope)
         self.lang = lang
+        self.normalizer = normalizer(lang)
 
-    def add_titles_from_title_node_dict(self, title_node_dict):
-        for title, snode in title_node_dict.iteritems():
-            norm_title = normalize_input(title, self.lang)
+    def add_titles_from_title_node_dict(self, tnd_items, normal_titles):
+        for (title, snode), norm_title in zip(tnd_items, normal_titles):
             self[norm_title] = {
                 "title": title,
                 "key": title,
@@ -253,7 +269,7 @@ class TitleTrie(datrie.Trie):
             titles = getattr(obj, all_names_method)(self.lang)
             key = getattr(obj, keyattr)
             for title in titles:
-                norm_title = normalize_input(title, self.lang)
+                norm_title = self.normalizer(title)
                 self[norm_title] = {
                     "title": title,
                     "type": obj.__class__.__name__,
@@ -270,30 +286,21 @@ class SpellChecker(object):
     def __init__(self, lang):
         assert lang in ["en", "he"]
         self.lang = lang
+        self.normalizer = normalizer(lang)
         if lang == "en":
             self.letters = u"abcdefghijklmnopqrstuvwxyz'."
         else:
             self.letters = hebrew.ALPHABET_22 + hebrew.GERESH + hebrew.GERSHAYIM + u'".' + u"'"
         self.WORDS = defaultdict(int)
 
-    #todo: clean up normalization
-    def words(self, text):
-        if self.lang == "en":
-            return re.findall(r'\w+', text.lower())
-        return re.split(ur"\s+", text)
-
     def train_phrases(self, phrases):
+        """
+        :param phrases: A list of normalized (lowercased, etc) strings
+        :return:
+        """
         for p in phrases:
-            if self.lang == "he":
-                p = hebrew.normalize_final_letters_in_str(p)
-            for w in self.words(p):
+            for w in splitter.split(p):
                 self.WORDS[w] += 1
-
-    def train_words(self, words):
-        for w in words:
-            if self.lang == "he":
-                w = hebrew.normalize_final_letters_in_str(w)
-            self.WORDS[w] += 1
 
     def single_edits(self, word):
         """All edits that are one edit away from `word`."""
@@ -312,35 +319,14 @@ class SpellChecker(object):
         """The subset of `words` that appear in the dictionary of WORDS."""
         return set(w for w in words if w in self.WORDS)
 
-    """
-    Do we need this, as well as correct_token?
-    def candidates(self, word):
-        return self._known([word]) or self._known(self.single_edits(word)) or self._known_edits2(word) or [word]
-    """
-
     def correct_token(self, token):
         candidates = self._known([token]) or self._known(self.single_edits(token)) or [token] #self._known_edits2(token) or [token]
         return max(candidates, key=self.WORDS.get)
 
     def correct_phrase(self, text):
-        if self.lang == "he":
-            text = hebrew.normalize_final_letters_in_str(text)
-        tokens = self.words(text)
+        normal_text = self.normalizer(text)
+        tokens = splitter.split(normal_text)
         return [self.correct_token(token) for token in tokens]
-
-    """
-    def P(word, N=sum(WORDS.values())):
-        "Probability of `word`."
-
-    def correction(word):
-        "Most probable spelling correction for word."
-        return max(candidates(word), key=P)
-
-    def candidates(word):
-        "Generate possible spelling corrections for word."
-        return (known([word]) or known(edits1(word)) or known(edits2(word)) or [word])
-
-    """
 
 
 class NGramMatcher(object):
@@ -353,35 +339,28 @@ class NGramMatcher(object):
     def __init__(self, lang):
         assert lang in ["en", "he"]
         self.lang = lang
+        self.normalizer = normalizer(lang)
         self.token_to_titles = defaultdict(list)
-        self.n_gram_to_tokens = defaultdict(set)
+        self.token_trie = datrie.BaseTrie(letter_scope)
 
-    def train_phrases(self, titles):
-        for title in titles:
-            if self.lang == "he":
-                norm_title = hebrew.normalize_final_letters_in_str(title)
-            else:
-                #todo: check me
-                norm_title = title.lower().replace(u"-", u" ").replace(u"(", u" ").replace(u")", u" ").replace(u"'", u" ")
-
-            tokens = norm_title.split()
+    def train_phrases(self, titles, normal_titles):
+        for title, normal_title in zip(titles, normal_titles):
+            tokens = splitter.split(normal_title)
             for token in tokens:
                 self.token_to_titles[token].append(title)
-                for string_size in xrange(self.MIN_N_GRAM_SIZE, len(token) + 1):
-                    n_gram = token[:string_size]
-                    self.n_gram_to_tokens[n_gram].add(token)
+        for k in self.token_to_titles.keys():
+            self.token_trie[k] = 1
 
     def _get_real_tokens_from_possible_n_grams(self, tokens):
-        real_tokens = []
-        for token in tokens:
-            token_set = self.n_gram_to_tokens.get(token, set())
-            real_tokens.extend(list(token_set))
-        return real_tokens
+        return list({k for token in tokens for k in self.token_trie.keys(token)})
 
     def _get_scored_titles_uncollapsed(self, real_tokens):
         possibilities__scores = []
         for token in real_tokens:
-            possibilities = self.token_to_titles.get(token, [])
+            try:
+                possibilities = self.token_to_titles[token]
+            except KeyError:
+                possibilities = []
             for title in possibilities:
                 score = float(len(token)) / len(title.replace(" ", ""))
                 possibilities__scores.append((title, score))
