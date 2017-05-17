@@ -11,7 +11,6 @@ import datrie
 
 from sefaria.model import *
 from sefaria.utils import hebrew
-from sefaria.summaries import toc_serial_to_objects
 
 import logging
 logger = logging.getLogger(__name__)
@@ -26,18 +25,13 @@ except ImportError:
 letter_scope = u"\u05b0\u05b4\u05b5\u05b6\u05b7\u05b8\u05b9\u05bc\u05c1\u05d0\u05d1\u05d2\u05d3\u05d4\u05d5\u05d6\u05d7\u05d8\u05d9\u05da\u05db\u05dc\u05dd\u05de\u05df\u05e0\u05e1\u05e2\u05e3\u05e4\u05e5\u05e6\u05e7\u05e8\u05e9\u05ea\u05f3\u05f4\u200e\u200f\u2013\u201d\ufeffabcdefghijklmnopqrstuvwxyz1234567890[]`:;.-,*()'& \""
 
 
-def normalize_input(instring, lang):
-    if lang == "he":
-        return hebrew.normalize_final_letters_in_str(instring)
-    return instring.lower()
-
-
 def normalizer(lang):
     if lang == "he":
         return hebrew.normalize_final_letters_in_str
     return string.lower
 
 splitter = re.compile(ur"[\s,]+")
+
 
 class AutoCompleter(object):
     """
@@ -72,8 +66,7 @@ class AutoCompleter(object):
         self.ngram_matcher.train_phrases(titles, normal_titles)
 
         if include_categories:
-            oo_toc = toc_serial_to_objects(library.get_toc())
-            categories = self._get_main_categories(oo_toc)
+            categories = self._get_main_categories(library.get_toc_objects())
             category_names = [c.primary_title(lang) for c in categories]
             normal_category_names = [self.normalizer(c) for c in category_names]
             self.title_trie.add_titles_from_set(categories, "all_node_titles", "primary_title", "full_path")
@@ -88,7 +81,8 @@ class AutoCompleter(object):
             self.spell_checker.train_phrases(person_names)
             self.ngram_matcher.train_phrases(person_names, normal_person_names)
 
-    def _get_main_categories(self, otoc):
+    @staticmethod
+    def _get_main_categories(otoc):
         cats = []
         for child in otoc.children:
             if child.children and child.primary_title("en") != "Commentary" and child.primary_title("en") != "Other":
@@ -159,7 +153,7 @@ class Completions(object):
         self.auto_completer = auto_completer
         self.lang = lang
         self.instring = instring
-        self.normal_string = normalize_input(instring, lang)
+        self.normal_string = normalizer(lang)(instring)
         self.limit = limit
         self.keys_covered = set()
         self.completions = []  # titles to return
