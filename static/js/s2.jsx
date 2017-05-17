@@ -9562,7 +9562,8 @@ var Footer = React.createClass({
   },
   render: function(){
     var currentPath = Sefaria.util.currentPath();
-    var next = encodeURIComponent(currentPath);
+    var currentPathEncoded = encodeURIComponent(currentPath);
+    var next = currentPathEncoded ? currentPathEncoded : '?home';
     return (
         <div id="footerInner">
           <div className="section">
