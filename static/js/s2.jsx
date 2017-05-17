@@ -1448,6 +1448,8 @@ var Header = React.createClass({
     } else {
       this.showLibrary();
     }
+    $(".wrapper").remove();
+    $("#footer").remove();
   },
   handleRefClick: function(ref, version, versionLanguage) {
     if (this.props.headerMode) {
