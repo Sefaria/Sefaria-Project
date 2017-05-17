@@ -632,7 +632,7 @@ var ReaderApp = React.createClass({
           return;
         } // Never push history with the same URL
         history.pushState(hist.state, hist.title, hist.url);
-        // console.log("Push History - " + hist.url);
+
         this.trackPageview();
         //console.log(hist);
       }
@@ -2446,6 +2446,7 @@ var ReaderControls = React.createClass({
       React.createElement(ConnectionsPanelHeader, {
         connectionsMode: this.props.connectionsMode,
         previousCategory: this.props.connectionsCategory,
+        multiPanel: this.props.multiPanel,
         setConnectionsMode: this.props.setConnectionsMode,
         setConnectionsCategory: this.props.setConnectionsCategory,
         closePanel: this.props.closePanel,
@@ -2502,7 +2503,7 @@ var ReaderControls = React.createClass({
       { className: 'rightButtons' },
       React.createElement(ReaderNavigationMenuDisplaySettingsButton, { onClick: this.props.openDisplaySettings })
     );
-    var classes = classNames({ readerControls: 1, headeroom: 1, connectionsHeader: mode == "Connections" });
+    var classes = classNames({ readerControls: 1, headeroom: 1, connectionsHeader: mode == "Connections", fullPanel: this.props.multiPanel });
     var readerControls = hideHeader ? null : React.createElement(
       'div',
       { className: classes },
@@ -2518,8 +2519,7 @@ var ReaderControls = React.createClass({
       'div',
       null,
       connectionsHeader ? null : React.createElement(CategoryColorLine, { category: this.props.currentCategory() }),
-      readerControls,
-      '}'
+      readerControls
     );
   }
 });
@@ -8366,10 +8366,23 @@ var ConnectionsPanel = React.createClass({
       content = React.createElement(LoginPrompt, { fullPanel: this.props.fullPanel });
     }
 
-    var classes = classNames({ toolsPanel: 1, textList: 1, fullPanel: this.props.fullPanel });
+    var classes = classNames({ toolsPanel: 1, textList: 1, fullPanel: this.props.fullPanel, singlePanel: !this.props.fullPanel });
     return React.createElement(
       'div',
       { className: classes, key: this.props.mode },
+      this.props.fullPanel ? null : React.createElement(ConnectionsPanelHeader, {
+        connectionsMode: this.props.mode,
+        previousCategory: this.props.connectionsCategory,
+        setConnectionsMode: this.props.setConnectionsMode,
+        setConnectionsCategory: this.props.setConnectionsCategory,
+        multiPanel: this.props.multiPanel,
+        filter: this.props.filter,
+        recentFilters: this.props.recentFilters,
+        baseRefs: this.props.srefs,
+        setFilter: this.props.setFilter,
+        closePanel: this.props.closePanel,
+        toggleLanguage: this.props.toggleLanguage,
+        interfaceLang: this.props.interfaceLang }),
       React.createElement(
         'div',
         { className: 'texts' },
@@ -8389,6 +8402,11 @@ var ConnectionsPanelHeader = React.createClass({
   propTypes: {
     connectionsMode: React.PropTypes.string.isRequired, // "Resources", "ConnectionsList", "TextList" etc
     previousCategory: React.PropTypes.string,
+    multiPanel: React.PropTypes.bool,
+    filter: React.PropTypes.array,
+    recentFilters: React.PropTypes.array,
+    baseRefs: React.PropTypes.array,
+    setFilter: React.PropTypes.func,
     setConnectionsMode: React.PropTypes.func.isRequired,
     setConnectionsCategory: React.PropTypes.func.isRequired,
     closePanel: React.PropTypes.func.isRequired,
@@ -8419,13 +8437,13 @@ var ConnectionsPanelHeader = React.createClass({
           'div',
           { className: 'int-en' },
           React.createElement('i', { className: 'fa fa-chevron-left' }),
-          this.props.previousCategory
+          this.props.multiPanel ? this.props.previousCategory : null
         ) : null,
         this.props.interfaceLang == "hebrew" ? React.createElement(
           'div',
           { className: 'int-he' },
           React.createElement('i', { className: 'fa fa-chevron-right' }),
-          Sefaria.hebrewTerm(this.props.previousCategory)
+          this.props.multiPanel ? Sefaria.hebrewTerm(this.props.previousCategory) : null
         ) : null
       );
     } else {
@@ -8446,17 +8464,48 @@ var ConnectionsPanelHeader = React.createClass({
         ) : null
       );
     }
-    return React.createElement(
-      'div',
-      { className: 'connectionsPanelHeader' },
-      title,
-      React.createElement(
+    if (this.props.multiPanel) {
+      return React.createElement(
         'div',
-        { className: 'rightButtons' },
-        React.createElement(LanguageToggleButton, { toggleLanguage: this.props.toggleLanguage }),
-        React.createElement(ReaderNavigationMenuCloseButton, { icon: 'arrow', onClick: this.props.closePanel, interfaceLang: this.props.interfaceLang })
-      )
-    );
+        { className: 'connectionsPanelHeader' },
+        title,
+        React.createElement(
+          'div',
+          { className: 'rightButtons' },
+          React.createElement(LanguageToggleButton, { toggleLanguage: this.props.toggleLanguage }),
+          React.createElement(ReaderNavigationMenuCloseButton, { icon: 'arrow', onClick: this.props.closePanel, interfaceLang: this.props.interfaceLang })
+        )
+      );
+    } else {
+      var style = !this.props.multiPanel && this.props.connectionsMode == "TextList" ? { "borderTopColor": Sefaria.palette.categoryColor(this.props.previousCategory) } : {};
+      var cStyle = !this.props.multiPanel && this.props.connectionsMode == "Resources" ? { "justifyContent": "center" } : style;
+      // Modeling the class structure when ConnectionsPanelHeader is created inside ReaderControls in the multiPanel case
+      var classes = classNames({ readerControls: 1, connectionsHeader: 1, fullPanel: this.props.multiPanel });
+      return React.createElement(
+        'div',
+        { className: classes, style: style },
+        React.createElement(
+          'div',
+          { className: 'readerControlsInner' },
+          React.createElement(
+            'div',
+            { className: 'readerTextToc' },
+            React.createElement(
+              'div',
+              { className: 'connectionsPanelHeader', style: cStyle },
+              title,
+              !this.props.multiPanel && this.props.previousCategory && this.props.connectionsMode == "TextList" ? React.createElement(RecentFilterSet, {
+                srefs: this.props.baseRefs,
+                asHeader: true,
+                filter: this.props.filter,
+                recentFilters: this.props.recentFilters,
+                textCategory: this.props.previousCategory,
+                setFilter: this.props.setFilter }) : null
+            )
+          )
+        )
+      );
+    }
   }
 });
 
@@ -8464,6 +8513,7 @@ var ResourcesList = React.createClass({
   displayName: 'ResourcesList',
 
   propTypes: {
+    multiPanel: React.PropTypes.func.isRequired,
     setConnectionsMode: React.PropTypes.func.isRequired,
     openComparePanel: React.PropTypes.func.isRequired,
     sheetsCount: React.PropTypes.number.isRequired
@@ -8472,7 +8522,7 @@ var ResourcesList = React.createClass({
     return React.createElement(
       'div',
       { className: 'resourcesList' },
-      React.createElement(ToolsButton, { en: 'Other Text', he: 'השווה', icon: 'search', onClick: this.props.openComparePanel }),
+      this.props.multiPanel ? React.createElement(ToolsButton, { en: 'Other Text', he: 'השווה', icon: 'search', onClick: this.props.openComparePanel }) : null,
       React.createElement(ToolsButton, { en: 'Sheets', he: 'הוסף לדף מקורות', image: 'sheet.svg', count: this.props.sheetsCount, onClick: function () {
           this.props.setConnectionsMode("Sheets");
         }.bind(this) }),
@@ -8959,49 +9009,20 @@ var TextList = React.createClass({
       }, this);
     }
 
-    if (!this.props.fullPanel) {
-      return React.createElement(
-        'div',
-        null,
-        React.createElement(
-          'div',
-          { className: 'textListTop' },
-          React.createElement(RecentFilterSet, {
-            srefs: this.props.srefs,
-            asHeader: true,
-            showText: this.props.showText,
-            filter: this.props.filter,
-            recentFilters: this.props.recentFilters,
-            textCategory: oref ? oref.primary_category : null,
-            setFilter: this.props.setFilter,
-            showAllFilters: this.showAllFilters })
-        ),
-        React.createElement(
-          'div',
-          { className: 'texts' },
-          React.createElement(
-            'div',
-            { className: 'contentInner' },
-            content
-          )
-        )
-      );
-    } else {
-      return React.createElement(
-        'div',
-        null,
-        React.createElement(RecentFilterSet, {
-          srefs: this.props.srefs,
-          asHeader: false,
-          showText: this.props.showText,
-          filter: this.props.filter,
-          recentFilters: this.props.recentFilters,
-          textCategory: oref ? oref.primary_category : null,
-          setFilter: this.props.setFilter,
-          showAllFilters: this.showAllFilters }),
-        content
-      );
-    }
+    return React.createElement(
+      'div',
+      null,
+      this.props.fullPanel ? React.createElement(RecentFilterSet, {
+        srefs: this.props.srefs,
+        asHeader: false,
+        showText: this.props.showText,
+        filter: this.props.filter,
+        recentFilters: this.props.recentFilters,
+        textCategory: oref ? oref.primary_category : null,
+        setFilter: this.props.setFilter,
+        showAllFilters: this.showAllFilters }) : null,
+      content
+    );
   }
 });
 
@@ -9013,20 +9034,12 @@ var RecentFilterSet = React.createClass({
     filter: React.PropTypes.array.isRequired,
     recentFilters: React.PropTypes.array.isRequired,
     textCategory: React.PropTypes.string.isRequired,
-    setFilter: React.PropTypes.func.isRequired,
-    showAllFilters: React.PropTypes.func.isRequired
-  },
-  toggleAllFilterView: function toggleAllFilterView() {
-    this.setState({ showAllFilters: !this.state.showAllFilters });
+    inHeader: React.PropTypes.bool,
+    setFilter: React.PropTypes.func.isRequired
   },
   render: function render() {
 
     var topLinks = [];
-
-    // Filter top links to exclude items already in recent filter
-    topLinks = topLinks.filter(function (link) {
-      return Sefaria.util.inArray(link.book, this.props.recentFilters) == -1;
-    }.bind(this));
 
     // Annotate filter texts with category           
     var recentFilters = this.props.recentFilters.map(function (filter) {
@@ -9036,17 +9049,17 @@ var RecentFilterSet = React.createClass({
         heBook: index ? index.heTitle : Sefaria.hebrewTerm(filter),
         category: index ? index.primary_category : filter };
     });
-    topLinks = recentFilters.concat(topLinks).slice(0, 5);
+    // recentFilters = recentFilters.concat(recentFilters).slice(0,5);
 
     // If the current filter is not already in the top set, put it first
     if (this.props.filter.length) {
       var filter = this.props.filter[0];
       for (var i = 0; i < topLinks.length; i++) {
-        if (topLinks[i].book == filter || topLinks[i].category == filter) {
+        if (recentFilters[i].book == filter || recentFilters[i].category == filter) {
           break;
         }
       }
-      if (i == topLinks.length) {
+      if (i == recentFilters.length) {
         var index = Sefaria.index(filter);
         if (index) {
           var annotatedFilter = { book: filter, heBook: index.heTitle, category: index.primary_category };
@@ -9054,12 +9067,12 @@ var RecentFilterSet = React.createClass({
           var annotatedFilter = { book: filter, heBook: filter, category: "Other" };
         }
 
-        topLinks = [annotatedFilter].concat(topLinks).slice(0, 5);
+        recentFilters = [annotatedFilter].concat(topLinks).slice(0, 5);
       } else {
         // topLinks.move(i, 0);
       }
     }
-    var topFilters = topLinks.map(function (book) {
+    var recentFilters = recentFilters.map(function (book) {
       return React.createElement(TextFilter, {
         srefs: this.props.srefs,
         key: book.book,
@@ -9074,41 +9087,15 @@ var RecentFilterSet = React.createClass({
         on: Sefaria.util.inArray(book.book, this.props.filter) !== -1 });
     }.bind(this));
 
-    var moreButton = this.props.asHeader ? React.createElement(
-      'div',
-      { className: 'showMoreFilters textFilter', style: style,
-        onClick: this.props.showAllFilters },
-      React.createElement(
-        'div',
-        null,
-        React.createElement(
-          'span',
-          { className: 'dot' },
-          '●'
-        ),
-        React.createElement(
-          'span',
-          { className: 'dot' },
-          '●'
-        ),
-        React.createElement(
-          'span',
-          { className: 'dot' },
-          '●'
-        )
-      )
-    ) : null;
-    var style = this.props.asHeader ? { "borderTopColor": Sefaria.palette.categoryColor(this.props.textCategory) } : {};
     var classes = classNames({ recentFilterSet: 1, topFilters: this.props.asHeader, filterSet: 1 });
     return React.createElement(
       'div',
-      { className: classes, style: style },
+      { className: classes },
       React.createElement(
         'div',
         { className: 'topFiltersInner' },
-        topFilters
-      ),
-      moreButton
+        recentFilters
+      )
     );
   }
 });

@@ -2160,6 +2160,13 @@ Sefaria.util = {
             }   
         }
     },
+    getUrlVars: function() {
+      var vars = {};
+      var parts = window.location.href.replace(/[?&]+([^=&]+)=([^&]*)/gi, function(m,key,value) {
+          vars[key] = decodeURIComponent(value);
+      });
+      return vars;
+    },
     _scrollbarWidth: null,
     getScrollbarWidth: function() {
       // Returns the size of the browser scrollbars in pixels

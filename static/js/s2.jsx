@@ -602,7 +602,7 @@ var ReaderApp = React.createClass({
     } else {
       if ((window.location.pathname + window.location.search) == hist.url) { return; } // Never push history with the same URL
       history.pushState(hist.state, hist.title, hist.url);
-      // console.log("Push History - " + hist.url);
+      console.log("Push History - " + hist.url);
       this.trackPageview();
       //console.log(hist);
     }
@@ -2327,6 +2327,7 @@ var ReaderControls = React.createClass({
           <ConnectionsPanelHeader
             connectionsMode={this.props.connectionsMode}
             previousCategory={this.props.connectionsCategory}
+            multiPanel={this.props.multiPanel}
             setConnectionsMode={this.props.setConnectionsMode}
             setConnectionsCategory={this.props.setConnectionsCategory}
             closePanel={this.props.closePanel}
@@ -2356,7 +2357,7 @@ var ReaderControls = React.createClass({
       (<div className="rightButtons">
           <ReaderNavigationMenuDisplaySettingsButton onClick={this.props.openDisplaySettings} />
         </div>);
-    var classes = classNames({readerControls: 1, headeroom: 1, connectionsHeader: mode == "Connections"});
+    var classes = classNames({readerControls: 1, headeroom: 1, connectionsHeader: mode == "Connections", fullPanel: this.props.multiPanel});
     var readerControls = hideHeader ? null :
         (<div className={classes}>
           <div className="readerControlsInner">
@@ -2369,7 +2370,6 @@ var ReaderControls = React.createClass({
       <div>
         {connectionsHeader ? null : <CategoryColorLine category={this.props.currentCategory()} />}
         {readerControls}
-      }
       </div>
     );
   }
@@ -6639,9 +6639,23 @@ var ConnectionsPanel = React.createClass({
       content = (<LoginPrompt fullPanel={this.props.fullPanel} />);
     }
     
-    var classes = classNames({toolsPanel: 1, textList: 1, fullPanel: this.props.fullPanel});
+    var classes = classNames({toolsPanel: 1, textList: 1, fullPanel: this.props.fullPanel, singlePanel: !this.props.fullPanel});
     return (
       <div className={classes} key={this.props.mode}>
+        { this.props.fullPanel ? null :
+          <ConnectionsPanelHeader
+            connectionsMode={this.props.mode}
+            previousCategory={this.props.connectionsCategory}
+            setConnectionsMode={this.props.setConnectionsMode}
+            setConnectionsCategory={this.props.setConnectionsCategory}
+            multiPanel={this.props.multiPanel}
+            filter={this.props.filter}
+            recentFilters={this.props.recentFilters}
+            baseRefs={this.props.srefs}
+            setFilter={this.props.setFilter}
+            closePanel={this.props.closePanel}
+            toggleLanguage={this.props.toggleLanguage}
+            interfaceLang={this.props.interfaceLang}/> }
         <div className="texts">
           <div className="contentInner">{content}</div>
         </div>
@@ -6655,6 +6669,11 @@ var ConnectionsPanelHeader = React.createClass({
   propTypes: {
     connectionsMode:        React.PropTypes.string.isRequired, // "Resources", "ConnectionsList", "TextList" etc
     previousCategory:       React.PropTypes.string,  
+    multiPanel:             React.PropTypes.bool,
+    filter:                 React.PropTypes.array,
+    recentFilters:          React.PropTypes.array,
+    baseRefs:               React.PropTypes.array,
+    setFilter:              React.PropTypes.func,
     setConnectionsMode:     React.PropTypes.func.isRequired,
     setConnectionsCategory: React.PropTypes.func.isRequired,
     closePanel:             React.PropTypes.func.isRequired,
@@ -6669,8 +6688,8 @@ var ConnectionsPanelHeader = React.createClass({
                   </div>;
     } else if (this.props.previousCategory && this.props.connectionsMode == "TextList") {
       var title = <div className="connectionsHeaderTitle active" onClick={this.props.setConnectionsCategory.bind(null, this.props.previousCategory)}>
-                    {this.props.interfaceLang == "english" ? <div className="int-en"><i className="fa fa-chevron-left"></i>{this.props.previousCategory}</div> : null }
-                    {this.props.interfaceLang == "hebrew" ? <div className="int-he"><i className="fa fa-chevron-right"></i>{Sefaria.hebrewTerm(this.props.previousCategory)}</div> : null }
+                    {this.props.interfaceLang == "english" ? <div className="int-en"><i className="fa fa-chevron-left"></i>{this.props.multiPanel ? this.props.previousCategory : null }</div> : null }
+                    {this.props.interfaceLang == "hebrew" ? <div className="int-he"><i className="fa fa-chevron-right"></i>{this.props.multiPanel ? Sefaria.hebrewTerm(this.props.previousCategory) : null }</div> : null }
                   </div>;   
     } else {
       var title = <div className="connectionsHeaderTitle active" onClick={this.props.setConnectionsMode.bind(null, "Resources")}>
@@ -6678,26 +6697,55 @@ var ConnectionsPanelHeader = React.createClass({
                     {this.props.interfaceLang == "hebrew" ? <div className="int-he"><i className="fa fa-chevron-right"></i>משאבים</div> : null }
                   </div>;        
     }
-    return (<div className="connectionsPanelHeader">
-              {title}
-              <div className="rightButtons">
-                <LanguageToggleButton toggleLanguage={this.props.toggleLanguage} />
-                <ReaderNavigationMenuCloseButton icon="arrow" onClick={this.props.closePanel} interfaceLang={this.props.interfaceLang} />
-              </div>
-            </div>);
+    if (this.props.multiPanel) {
+      return (<div className="connectionsPanelHeader">
+                {title}
+                <div className="rightButtons">
+                  <LanguageToggleButton toggleLanguage={this.props.toggleLanguage} />
+                  <ReaderNavigationMenuCloseButton icon="arrow" onClick={this.props.closePanel} interfaceLang={this.props.interfaceLang} />
+                </div>
+              </div>);      
+    } else {
+      var style = !this.props.multiPanel && this.props.connectionsMode == "TextList" ? {"borderTopColor": Sefaria.palette.categoryColor(this.props.previousCategory)} : {}
+      var cStyle = !this.props.multiPanel && this.props.connectionsMode == "Resources" ? {"justifyContent": "center"} : style;
+      // Modeling the class structure when ConnectionsPanelHeader is created inside ReaderControls in the multiPanel case
+      var classes = classNames({readerControls: 1, connectionsHeader: 1, fullPanel: this.props.multiPanel});
+      return (<div className={classes} style={style}>
+                <div className="readerControlsInner">
+                  <div className="readerTextToc">
+                    <div className="connectionsPanelHeader" style={cStyle}>
+                      {title}
+                      {!this.props.multiPanel && this.props.previousCategory && this.props.connectionsMode == "TextList" ?
+                      <RecentFilterSet
+                        srefs={this.props.baseRefs}
+                        asHeader={true}
+                        filter={this.props.filter}
+                        recentFilters={this.props.recentFilters}
+                        textCategory={this.props.previousCategory}
+                        setFilter={this.props.setFilter} />
+                        : null }
+                    </div>
+                  </div>
+                </div>
+        </div>);
+    }
+
   }
 });
 
 
 var ResourcesList = React.createClass({
   propTypes: {
+    multiPanel:         React.PropTypes.func.isRequired,
     setConnectionsMode: React.PropTypes.func.isRequired,
     openComparePanel:   React.PropTypes.func.isRequired,
     sheetsCount:        React.PropTypes.number.isRequired,
   },
   render: function() {
     return (<div className="resourcesList">
-              <ToolsButton en="Other Text" he="השווה" icon="search" onClick={this.props.openComparePanel} /> 
+              {this.props.multiPanel ? 
+                <ToolsButton en="Other Text" he="השווה" icon="search" onClick={this.props.openComparePanel} /> 
+              : null }
               <ToolsButton en="Sheets" he="הוסף לדף מקורות" image="sheet.svg" count={this.props.sheetsCount} onClick={function() {this.props.setConnectionsMode("Sheets")}.bind(this)} /> 
               <ToolsButton en="Notes" he="הרשומות שלי" image="tools-write-note.svg" onClick={function() {this.props.setConnectionsMode("Notes")}.bind(this)} /> 
               <ToolsButton en="Tools" he="הרשומות שלי" icon="gear" onClick={function() {this.props.setConnectionsMode("Tools")}.bind(this)} /> 
@@ -7105,41 +7153,22 @@ var TextList = React.createClass({
                         }, this);          
     }
 
-    if (!this.props.fullPanel) {
-      return (
-            <div>
-              <div className="textListTop">
-                <RecentFilterSet
-                  srefs={this.props.srefs}
-                  asHeader={true}
-                  showText={this.props.showText}
-                  filter={this.props.filter}
-                  recentFilters={this.props.recentFilters}
-                  textCategory={oref ? oref.primary_category : null}
-                  setFilter={this.props.setFilter}
-                  showAllFilters={this.showAllFilters} />
-              </div>
-              <div className="texts">
-                <div className="contentInner">
-                  { content }
-                </div>
-              </div>
-            </div>);
-    } else {
-      return (
-                <div>
-                  <RecentFilterSet
-                    srefs={this.props.srefs}
-                    asHeader={false}
-                    showText={this.props.showText}
-                    filter={this.props.filter}
-                    recentFilters={this.props.recentFilters}
-                    textCategory={oref ? oref.primary_category : null}
-                    setFilter={this.props.setFilter}
-                    showAllFilters={this.showAllFilters} />
-                  { content }
-                </div>);
-    }
+    return (
+        <div>
+          {this.props.fullPanel ? 
+          <RecentFilterSet
+            srefs={this.props.srefs}
+            asHeader={false}
+            showText={this.props.showText}
+            filter={this.props.filter}
+            recentFilters={this.props.recentFilters}
+            textCategory={oref ? oref.primary_category : null}
+            setFilter={this.props.setFilter}
+            showAllFilters={this.showAllFilters} />
+            : null }
+          { content }
+        </div>);
+    
   }
 });
 
@@ -7150,20 +7179,12 @@ var RecentFilterSet = React.createClass({
     filter:         React.PropTypes.array.isRequired,
     recentFilters:  React.PropTypes.array.isRequired,
     textCategory:   React.PropTypes.string.isRequired,
+    inHeader:       React.PropTypes.bool,
     setFilter:      React.PropTypes.func.isRequired,
-    showAllFilters: React.PropTypes.func.isRequired
-  },
-  toggleAllFilterView: function() {
-    this.setState({showAllFilters: !this.state.showAllFilters});
   },
   render: function() {
 
     var topLinks = [];
-
-    // Filter top links to exclude items already in recent filter
-    topLinks = topLinks.filter(function(link) {
-      return (Sefaria.util.inArray(link.book, this.props.recentFilters) == -1);
-    }.bind(this));
     
     // Annotate filter texts with category            
     var recentFilters = this.props.recentFilters.map(function(filter) {
@@ -7173,16 +7194,16 @@ var RecentFilterSet = React.createClass({
           heBook: index ? index.heTitle : Sefaria.hebrewTerm(filter),
           category: index ? index.primary_category : filter };
     });
-    topLinks = recentFilters.concat(topLinks).slice(0,5);
+    // recentFilters = recentFilters.concat(recentFilters).slice(0,5);
 
     // If the current filter is not already in the top set, put it first 
     if (this.props.filter.length) {
       var filter = this.props.filter[0];
       for (var i=0; i < topLinks.length; i++) {
-        if (topLinks[i].book == filter || 
-            topLinks[i].category == filter ) { break; }
+        if (recentFilters[i].book == filter || 
+            recentFilters[i].category == filter ) { break; }
       }
-      if (i == topLinks.length) {
+      if (i == recentFilters.length) {
         var index = Sefaria.index(filter);
         if (index) {
           var annotatedFilter = {book: filter, heBook: index.heTitle, category: index.primary_category };
@@ -7190,12 +7211,12 @@ var RecentFilterSet = React.createClass({
           var annotatedFilter = {book: filter, heBook: filter, category: "Other" };
         }
 
-        topLinks = [annotatedFilter].concat(topLinks).slice(0,5);
+        recentFilters = [annotatedFilter].concat(topLinks).slice(0,5);
       } else {
         // topLinks.move(i, 0); 
       }        
     }
-    var topFilters = topLinks.map(function(book) {
+    var recentFilters = recentFilters.map(function(book) {
      return (<TextFilter
                 srefs={this.props.srefs}
                 key={book.book} 
@@ -7210,18 +7231,10 @@ var RecentFilterSet = React.createClass({
                 on={Sefaria.util.inArray(book.book, this.props.filter) !== -1} />);
     }.bind(this));
 
-    var moreButton = this.props.asHeader ? (<div className="showMoreFilters textFilter" style={style}
-                        onClick={this.props.showAllFilters}>
-                          <div>
-                            <span className="dot">●</span><span className="dot">●</span><span className="dot">●</span>
-                          </div>                    
-                      </div>) : null;
-    var style = this.props.asHeader ? {"borderTopColor": Sefaria.palette.categoryColor(this.props.textCategory)} : {};
     var classes = classNames({recentFilterSet: 1, topFilters: this.props.asHeader, filterSet: 1});
     return (
-      <div className={classes} style={style}>
-        <div className="topFiltersInner">{topFilters}</div>
-        {moreButton}
+      <div className={classes}>
+        <div className="topFiltersInner">{recentFilters}</div>
       </div>
     );
   }

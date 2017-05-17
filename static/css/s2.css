@@ -1763,8 +1763,8 @@ a.readerNavCategory {
   left: 0;
   width: 100%;
   box-sizing: border-box;
+  border-top: 4px solid transparent;
   text-align: center;
-  padding: 8px 0 0 0;
   z-index: 100;
   height: 58px;
   line-height: 48px;
@@ -1782,8 +1782,11 @@ a.readerNavCategory {
 .dark .readerControls .readerTextToc .readerTextTocBox {
   color: white;
 }
-.readerControls.connectionsHeader {
+.readerControls.connectionsHeader.fullPanel  {
   background-color: #EDEDED;
+}
+.readerControls.connectionsHeader {
+  background-color: #F3F3F2;
 }
 .connectionsPanelHeader .connectionsHeaderTitle {
   text-transform: uppercase;
@@ -1795,10 +1798,10 @@ a.readerNavCategory {
   cursor: pointer;
 }
 .connectionsHeaderTitle .fa-chevron-left {
-  margin-right: 6px;
+  margin-right: 10px;
 }
 .connectionsHeaderTitle .fa-chevron-right {
-  margin-left: 6px;
+  margin-left: 10px;
 }
 .readerControls .readerControlsInner {
   position: relative;
@@ -1808,11 +1811,13 @@ a.readerNavCategory {
   max-width:  100%;
   box-sizing: border-box;
 }
+    background-color: #EDEDED;
+
 .readerControls.connectionsHeader .readerControlsInner {
   padding: 0 40px
 }
 .singlePanel .readerControls .readerControlsInner {
-  padding: 0 10px;
+  padding: 0 30px;
 }
 .readerControls .readerTextToc {
   text-align: center;
@@ -2386,6 +2391,9 @@ a.readerNavCategory {
   display: flex;
   justify-content: space-between;
 }
+.singlePanel .connectionsPanelHeader {
+  justify-content: flex-start;
+}
 .interface-hebrew .connectionsPanelHeader{
   direction: rtl;
 }
@@ -2464,7 +2472,7 @@ a.readerNavCategory {
   padding: 0 48px 300px 60px;
 }
 .textList .texts {
-  padding: 60px 30px 80px 30px;
+  padding: 80px 30px 80px 30px;
 }
 .textList.fullPanel .texts {
   padding: 50px 40px 80px 40px;
@@ -2528,12 +2536,8 @@ a.readerNavCategory {
   border-right: 1px solid transparent;
 }
 .topFilters {
-  margin: -1px;
-  padding: 4px 22px;
   line-height: 0px;
-  background-color: #F9F9F7;
-  border-top: 4px solid transparent;
-  border-bottom: 1px solid #D5D5D4;
+  text-transform: none;
 }
 .sepia .topFilters {
   background-color: #F3F3F1;
@@ -2551,7 +2555,7 @@ a.readerNavCategory {
 .topFilters .textFilter {
   color: #999;
   display: inline-block;
-  padding: 10px 8px;
+  padding: 13px 8px;
 }
 .topFilters .textFilter.on {
   color: black;
@@ -2585,14 +2589,12 @@ a.readerNavCategory {
 }
 .topFiltersInner {
   display: inline-block;
-  max-width: 80%;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   vertical-align: middle;
 }
 .textList.fullPanel .topFiltersInner {
-  max-width: none;
   white-space: normal;
 }
 .showMoreFilters {
@@ -2609,9 +2611,9 @@ a.readerNavCategory {
 }
 .textFilter {
   padding: 12px 34px;
-  border-top: 1px solid #ccc;
   font-size: 17px;
   line-height: 1.2;
+  border-top: 1px solid #ccc;
   display: block;
   cursor: pointer;
   color: #333;
@@ -2711,7 +2713,7 @@ a.readerNavCategory {
   background-color: white;
   position: relative;
 }
-.textList.fullPanel .texts {
+.textList .texts {
   background-color: #F9F9F7;
 }
 .sepia .textList .texts {
@@ -2922,6 +2924,9 @@ a.readerNavCategory {
   max-height: 300px;
   overflow-x: hidden;
   overflow-y: scroll;
+}
+.singlePanel .addToSourceSheetPanel .sourceSheetSelector {
+  max-height: 150px;
 }
 .addToSourceSheetPanel .sourceSheetSelector .sheet {
   font-size: 16px;
