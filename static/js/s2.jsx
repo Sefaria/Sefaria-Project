@@ -1306,7 +1306,7 @@ var Header = React.createClass({
       position: {my: "left-12 top+14", at: "left bottom"},
       minLength: 3,
       select: function( event, ui ) {
-        $(ReactDOM.findDOMNode(this)).find("input.search").val(ui.item.value);  //This will disappear when the next line executes, but the eye can sometimes catch it.
+        $(ReactDOM.findDOMNode(this)).find("input.search").val(ui.item.value);  // This will disappear when the next line executes, but the eye can sometimes catch it.
         this.submitSearch(ui.item.value);
         return false;
       }.bind(this),

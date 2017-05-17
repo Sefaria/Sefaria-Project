@@ -229,7 +229,7 @@ $(function() {
 		afterAction();
 		e.stopPropagation();
 
-	})
+	});
 
 	$("#addOutside").click(function(e) {
 		// Add a new outside text to the end of the sheet
@@ -242,7 +242,7 @@ $(function() {
 		sjs.track.sheets("Add Outside Text");
 		afterAction();
 		e.stopPropagation();
-	})
+	});
 
 	$("#addBiOutside").click(function(e) {
 		// Add a new bilingual outside text to the end of the sheet
@@ -256,7 +256,7 @@ $(function() {
 		sjs.track.sheets("Add Outside Text (Bilingual)");
 		afterAction();
 		e.stopPropagation();
-	})
+	});
 	
 	$("#closeAddSource").click(function() { 
 		$("#addSourceModal, #overlay").hide(); 
@@ -267,21 +267,59 @@ $(function() {
 		sjs.track.sheets("Close Add Source Modal");
 
 	});
-	
-	$("#add").autocomplete({ source: function( request, response ) {
-				var matches = $.map( sjs.books, function(tag) {
-						if ( tag.toUpperCase().indexOf(request.term.toUpperCase()) === 0 ) {
-							return tag;
-						}
-					});
-				response(matches);
-			},
-			focus: function(event, ui) { return false; } });
 
+    var autocomplete_source = function(request, response) {
+        Sefaria.lookup(
+            request.term,
+            function (d) { response(d["completions"]); },
+            function (e) { response([]); },
+            true
+        );
+    };
+    
+	$("#add").autocomplete({
+        source: autocomplete_source,
+        minLength: 3,
+        focus: function(event, ui) { return false; }
+    });
+
+    var validateRef = function($input, $msg, $ok, success) {
+      /** Replacement for utils.js:sjs.checkref that uses only new tools. 
+       Allows section and segment level references. 
+        * $input - input element
+        * $msg - status message element
+        * $ok - Ok button element
+        * success -- a function to call when a valid ref has been found
+      */
+      
+      var allow = function() { 
+          $ok.removeClass("inactive").text("Add Text"); 
+          // $("#addSourceTextControls .btn").addClass("inactive");
+          // $("#addSourceCancel").removeClass("inactive");
+          success();  
+      };
+      var disallow = function() { 
+          $ok.addClass("inactive");
+          $msg.html("OK. Click <b>add</b> to continue.")
+      };
+
+      $("#textPreview").remove();
+      $("#inlineTextPreview").remove();
+
+      var inString = $input.val();
+      Sefaria.lookup(inString, function(data) {
+          if (data.is_ref && (data.is_section || data.is_segment)) {
+            $input.autocomplete("close");
+            allow();
+          } 
+          disallow();
+      });
+    };
+    
 	// Wrapper function for checkRef for adding sources for sheets
 	var checkAddSource = function(e) {
-		checkRef($("#add"), $("#addDialogTitle"), $("#addOK"), 0, addSourcePreview, false);
-	}
+		validateRef($("#add"), $("#addDialogTitle"), $("#addOK"), addSourcePreview);
+	};
 
 	// Adding unknown Texts from Add modal
 	$("#add").keyup(checkAddSource)
@@ -297,20 +335,15 @@ $(function() {
 	});
 
 
-	$("#inlineAdd").autocomplete({ source: function( request, response ) {
-				var matches = $.map( sjs.books, function(tag) {
-						if ( tag.toUpperCase().indexOf(request.term.toUpperCase()) === 0 ) {
-							return tag;
-						}
-					});
-				response(matches);
-			},
-			focus: function(event, ui) { return false; } });
+	$("#inlineAdd").autocomplete({ 
+        source: autocomplete_source,
+        focus: function(event, ui) { return false; } 
+    });
 
 	// Wrapper function for checkRef for adding sources for sheets
 	var checkInlineAddSource = function(e) {
-		checkRef($("#inlineAdd"), $("#inlineAddDialogTitle"), $("#inlineAddOK"), 0, inlineAddSourcePreview, false);
-	}
+		validateRef($("#inlineAdd"), $("#inlineAddDialogTitle"), $("#inlineAddOK"), inlineAddSourcePreview);
+	};
 
 	// Adding unknown Texts from Add modal
 	$("#inlineAdd").keyup(checkInlineAddSource )
@@ -3273,6 +3306,7 @@ function attributionDataString(uid, newItem, classStr) {
 }
 
 function addSourcePreview(e) {
+    /* todo: get this off of sjs.editing
 	if (sjs.editing.index.categories[0] === "Talmud") {
 		$("#addDialogTitle").html("Daf found. You may also specify numbered segments below.<span class='btn btn-primary' id='addSourceOK'>Add This Source</span>");
 	} else if (sjs.editing.index.categories[0] === "Commentary") {
@@ -3282,6 +3316,7 @@ function addSourcePreview(e) {
 	} else {
 		$("#addDialogTitle").html("Source found. Specify a range with '-'.<span class='btn btn-primary' id='addSourceOK'>Add This Source</span>");
 	}
+	*/
 	var ref = $("#add").val();
 	if (!$("#textPreview").length) { $("body").append("<div id='textPreview'></div>"); }
 	
@@ -3298,6 +3333,8 @@ function addSourcePreview(e) {
 }
 
 function inlineAddSourcePreview(e) {
+    /* todo: get this off of sjs.editing
+
 	if (sjs.editing.index.categories[0] === "Talmud") {
 		$("#inlineAddDialogTitle").html("Daf found. You may also specify numbered segments below.");
 		$("#inlineAddSourceOK").removeClass("disabled");
@@ -3311,6 +3348,9 @@ function inlineAddSourcePreview(e) {
 		$("#inlineAddDialogTitle").html("Source found. Specify a range with '-'.");
 		$("#inlineAddSourceOK").removeClass("disabled");
 	}
+	*/
+    $("#inlineAddSourceOK").removeClass("disabled");
+
 	var ref = $("#inlineAdd").val();
 	if (!$("#inlineTextPreview").length) { $("body").append("<div id='inlineTextPreview'></div>"); }
 

@@ -1598,7 +1598,7 @@ function checkRef($input, $msg, $ok, level, success, commentatorOnly) {
 			$ok.removeClass("inactive").text("Add Text");
 			// also reaches into specific source sheet logic
 			$("#addSourceTextControls .btn").addClass("inactive");
-			$("#addSourceCancel").removeClass("inactive")
+			$("#addSourceCancel").removeClass("inactive");
 			break;
 
 		// When a commentator's name is entered, insert a text reference, 
@@ -2011,9 +2011,10 @@ function textPreview(ref, $target, callback) {
 
 
             if (data.spanning) { timesToIterateThroughSections = data.spanningRefs.length }
-            else {timesToIterateThroughSections = 1
-                            data.he = data.he.length ? [data.he] : [];
-                            data.text = data.text.length ? [data.text] : [];
+            else {
+                timesToIterateThroughSections = 1;
+                data.he = data.he.length ? [data.he] : [];
+                data.text = data.text.length ? [data.text] : [];
             }
 
             for (var q=0;q<timesToIterateThroughSections;q++) {
@@ -2048,8 +2049,7 @@ function textPreview(ref, $target, callback) {
             $target.html(controlsHtml + text);
             callback();
 
-	};
-
+	}
 }
 
 // Schema Object
