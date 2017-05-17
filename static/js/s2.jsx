@@ -9557,6 +9557,9 @@ var TestMessage = React.createClass({
 
 
 var Footer = React.createClass({
+  trackLanguageClick: function(language){
+    Sefaria.site.track.setInterfaceLanguage('interface language footer', language);
+  },
   render: function(){
     var currentPath = Sefaria.util.currentPath();
     var next = encodeURIComponent(currentPath);
@@ -9708,9 +9711,13 @@ var Footer = React.createClass({
                       <span className="int-en">Site Language:</span>
                       <span className="int-he">שפת האתר</span>
                   </div>
-                  <a href={"/interface/english?next=" + next} id="siteLanguageEnglish" className="outOfAppLink">English</a>
+                  <a href={"/interface/english?next=" + next} id="siteLanguageEnglish" className="outOfAppLink"
+                     onClick={this.trackLanguageClick.bind(null, "English")}>English
+                  </a>
                   |
-                  <a href={"/interface/hebrew?next=" + next} id="siteLanguageHebrew" className="outOfAppLink">עברית</a>
+                  <a href={"/interface/hebrew?next=" + next} id="siteLanguageHebrew" className="outOfAppLink"
+                      onClick={this.trackLanguageClick.bind(null, "Hebrew")}>                 עברית
+                  </a>
               </div>
           </div>
         </div>
