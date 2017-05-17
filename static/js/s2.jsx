@@ -3597,7 +3597,7 @@ var SchemaNode = React.createClass({
   getInitialState: function() {
     return {
       // Collapse everything except default nodes to start.
-      collapsed: "nodes" in this.props.schema ? this.props.schema.nodes.map(function(node) { return !node.default }) : []
+      collapsed: "nodes" in this.props.schema ? this.props.schema.nodes.map(function(node) { return !(node.default || node.includeSections) }) : []
     }
   },
   toggleCollapse: function(i) {

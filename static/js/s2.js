@@ -4253,7 +4253,7 @@ var SchemaNode = React.createClass({
     return {
       // Collapse everything except default nodes to start.
       collapsed: "nodes" in this.props.schema ? this.props.schema.nodes.map(function (node) {
-        return !node.default;
+        return !(node.default || node.includeSections);
       }) : []
     };
   },
