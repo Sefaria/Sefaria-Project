@@ -12240,7 +12240,8 @@ var Footer = React.createClass({
   },
   render: function render() {
     var currentPath = Sefaria.util.currentPath();
-    var next = encodeURIComponent(currentPath);
+    var currentPathEncoded = encodeURIComponent(currentPath);
+    var next = currentPathEncoded ? currentPathEncoded : '?home';
     return React.createElement(
       'div',
       { id: 'footerInner' },
