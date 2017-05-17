@@ -8074,7 +8074,9 @@ var SearchResultList = React.createClass({
             hits: {"text": [], "sheet": []},
             activeTab: "text",
             error: false,
-            showingOverlay: false
+            showOverlay: false,
+            displayFilters: !!this.props.appliedFilters.length,
+            displaySort: false
         }
     },
     updateRunningQuery: function(type, ajax, isLoadingRemainder) {
@@ -8121,11 +8123,15 @@ var SearchResultList = React.createClass({
     },
     componentWillReceiveProps: function(newProps) {
         if(this.props.query != newProps.query) {
+
            this.setState({
              totals: {"text":0, "sheet":0},
              hits: {"text": [], "sheet": []},
              moreToLoad: {"text": true, "sheet": true},
-             displayedUntil: {"text":50, "sheet":50}
+             displayedUntil: {"text":50, "sheet":50},
+             displayFilters: false,
+             displaySort: false,
+             showOverlay: false
            });
            this._executeQueries(newProps)
         }
@@ -8482,6 +8488,14 @@ var SearchResultList = React.createClass({
       //overlay gives opacity to results when either filter box or sort box is open
       this.setState({showOverlay: shouldShow});
     },
+    toggleFilterView: function() {
+      this.showResultsOverlay(!this.state.displayFilters);
+      this.setState({displayFilters: !this.state.displayFilters, displaySort: false});
+    },
+    toggleSortView: function() {
+      this.showResultsOverlay(!this.state.displaySort);
+      this.setState({displaySort: !this.state.displaySort, displayFilters: false});
+    },
     render: function () {
         if (!(this.props.query)) {  // Push this up? Thought is to choose on the SearchPage level whether to show a ResultList or an EmptySearchMessage.
             return null;
@@ -8530,7 +8544,11 @@ var SearchResultList = React.createClass({
                                   activeTab = {this.state.activeTab}
                                   clickTextButton = {this.showTexts}
                                   clickSheetButton = {this.showSheets}
-                                  showResultsOverlay = {this.showResultsOverlay}/>);
+                                  showResultsOverlay = {this.showResultsOverlay}
+                                  displayFilters={this.state.displayFilters}
+                                  displaySort={this.state.displaySort}
+                                  toggleFilterView={this.toggleFilterView}
+                                  toggleSortView={this.toggleSortView}/>);
         return (
           <div>
             { searchFilters }
@@ -8562,14 +8580,16 @@ var SearchFilters = React.createClass({
     activeTab:            React.PropTypes.string,
     clickTextButton:      React.PropTypes.func,
     clickSheetButton:     React.PropTypes.func,
-    showResultsOverlay:   React.PropTypes.func
+    showResultsOverlay:   React.PropTypes.func,
+    displayFilters:       React.PropTypes.bool,
+    displaySort:          React.PropTypes.bool,
+    toggleFilterView:     React.PropTypes.func,
+    toggleSortView:       React.PropTypes.func
   },
   getInitialState: function() {
     return {
       openedCategory: null,
       openedCategoryBooks: [],
-      displayFilters: !!this.props.appliedFilters.length,
-      displaySort: false,
       isExactSearch: this.props.optionField === this.props.exactField
     }
   },
@@ -8586,6 +8606,7 @@ var SearchFilters = React.createClass({
 
     if ((newProps.query != this.props.query)
         || (newProps.availableFilters.length == 0)) {
+
       this.setState({
         openedCategory: null,
         openedCategoryBooks: [],
@@ -8622,14 +8643,6 @@ var SearchFilters = React.createClass({
       openedCategory: filterNode,
       openedCategoryBooks: leaves
     })
-  },
-  toggleFilterView: function() {
-    this.props.showResultsOverlay(!this.state.displayFilters);
-    this.setState({displayFilters: !this.state.displayFilters, displaySort: false});
-  },
-  toggleSortView: function() {
-    this.props.showResultsOverlay(!this.state.displaySort);
-    this.setState({displaySort: !this.state.displaySort, displayFilters: false});
   },
   toggleExactSearch: function() {
     let newExactSearch = !this.state.isExactSearch;
@@ -8679,12 +8692,12 @@ var SearchFilters = React.createClass({
           </span>
       </div>);
     var filter_panel = (<div>
-      <div className="searchFilterToggle" onClick={this.toggleFilterView}>
+      <div className="searchFilterToggle" onClick={this.props.toggleFilterView}>
         <span className="int-en">Filter   </span>
         <span className="int-he">סינון   </span>
-        <i className={(this.state.displayFilters) ? "fa fa-caret-down fa-angle-down":"fa fa-caret-down"} />
+        <i className={(this.props.displayFilters) ? "fa fa-caret-down fa-angle-down":"fa fa-caret-down"} />
       </div>
-      <div className={(this.state.displayFilters) ? "searchFilterBoxes":"searchFilterBoxes hidden"}>
+      <div className={(this.props.displayFilters) ? "searchFilterBoxes":"searchFilterBoxes hidden"}>
         <div className="searchFilterBoxRow">
           <div className="searchFilterCategoryBox">
           {this.props.availableFilters.map(function(filter) {
@@ -8705,10 +8718,10 @@ var SearchFilters = React.createClass({
           }.bind(this))}
           </div>
         </div>
-        <div className="searchFilterExactBox">
+        <div className={(Sefaria.hebrew.isHebrew(this.props.query)) ? "searchFilterExactBox" : "searchFilterExactBox hidden"}>
           <SearchFilterExactBox
             selected={!this.state.isExactSearch}
-            checkBoxClick={this.toggleExactSearch}
+            checkBoxClick={this.props.toggleExactSearch}
             />
         </div>
         <div style={{clear: "both"}}/>
@@ -8719,11 +8732,12 @@ var SearchFilters = React.createClass({
       <div className="searchFilterToggle" onClick={this.toggleSortView}>
         <span className="int-en">Sort   </span>
         <span className="int-he">מיון   </span>
-        <i className={(this.state.displaySort) ? "fa fa-caret-down fa-angle-down":"fa fa-caret-down"} />
+        <i className={(this.props.displaySort) ? "fa fa-caret-down fa-angle-down":"fa fa-caret-down"} />
       </div>
-      <div className={(this.state.displaySort) ? "searchSortBox":"searchSortBox hidden"}>
+      <div className={(this.props.displaySort) ? "searchSortBox":"searchSortBox hidden"}>
         <SearchSortBox
           updateAppliedOptionSort={this.props.updateAppliedOptionSort}
+          closeBox={this.toggleSortView}
           sortType={this.props.sortType}/>
       </div>
     </div>);
@@ -8747,6 +8761,7 @@ var SearchFilters = React.createClass({
 var SearchSortBox = React.createClass({
   propTypes: {
     updateAppliedOptionSort: React.PropTypes.func,
+    closeBox:                React.PropTypes.func,
     sortType:                React.PropTypes.oneOf(["chronological", "relevance"])
   },
   handleClick: function(sortType) {
@@ -8762,7 +8777,7 @@ var SearchSortBox = React.createClass({
   render: function() {
     var chronoClass = classNames({'filter-title': 1, 'unselected': this.props.sortType !== "chronological"});
     var releClass = classNames({'filter-title': 1, 'unselected': this.props.sortType !== "relevance"});
-    return (<div>
+    return (<div tabIndex="12" onBlur={this.props.closeBox}>
       <li onClick={()=>this.handleClick("chronological")}>
         <span className="int-en"><span className={chronoClass}>{"Chronological"}</span></span>
         <span className="int-he" dir="rtl"><span className={chronoClass}>{"Chronological (HE)"}</span></span>

@@ -1594,6 +1594,11 @@ a.resourcesLink {
   border-top: 1px solid #ccc;
   padding: 5px 5px 5px 0;
 }
+
+.searchFilterExactBox.hidden {
+  display:none;
+}
+
 .searchContent .searchSortBox {
     margin-top: 10px;
     background: white;
