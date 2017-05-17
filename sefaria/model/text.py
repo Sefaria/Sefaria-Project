@@ -4322,7 +4322,8 @@ class Library(object):
 
         reg = regex.compile(re_string, regex.VERBOSE)
         if stIsAnchored:
-            matches = [reg.match(st)]
+            m = reg.match(st)
+            matches = [m] if m else []
         else:
             matches = reg.finditer(st)
         for ref_match in matches:

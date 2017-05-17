@@ -1479,3 +1479,30 @@ class AddressVolume(AddressInteger):
         )
         """
     }
+
+class AddressSiman(AddressInteger):
+    section_patterns = {
+        "en": None,
+        "he": ur"""(?:
+            (?:\u05e1\u05d9\u05de\u05df\s*)			# Siman spelled out, with a space after
+            |(?:\u05e1\u05d9(?:"|\u05f4|''?)?)				# or Samech, Yued (for 'Siman') maybe followed by a quote of some sort
+        )"""
+    }
+
+class AddressHalachah(AddressInteger):
+    section_patterns = {
+        "en": None,
+        "he": ur"""(?:
+            (?:\u05e1\u05d9\u05de\u05df\s*)			# Halachah spelled out, with a space after
+            |(?:\u05e1(?:"|\u05f4|''?)?)				# or Haeh (for 'halachah') maybe followed by a quote of some sort
+        )"""
+    }
+
+class AddressSeif(AddressInteger):
+    section_patterns = {
+        "en": None,
+        "he": ur"""(?:
+            (?:\u05e1\u05d9\u05de\u05df\s*)			# Seif spelled out, with a space after
+            |(?:\u05e1\u05e2?(?:"|\u05f4|''?)?)				# or Samech and ayyn (for 'Seif') maybe followed by a quote of some sort
+        )"""
+    }
