@@ -139,7 +139,7 @@ urlpatterns += patterns('sheets.views',
 
 # Source Sheets API
 urlpatterns += patterns('sheets.views',
-    (r'^api/sheets/?$', 'sheet_list_api'),
+    (r'^api/sheets/?$',                                            'save_sheet_api'),
     (r'^api/sheets/(?P<sheet_id>\d+)/delete$',                     'delete_sheet_api'),
     (r'^api/sheets/(?P<sheet_id>\d+)/add$',                        'add_source_to_sheet_api'),
     (r'^api/sheets/(?P<sheet_id>\d+)/add_ref$',                    'add_ref_to_sheet_api'),
