@@ -193,7 +193,7 @@ $(function() {
 
 	$(document).on("click", "#addSourceOK", function() {
         var ref = $("#add").val();
-		Sefaria.lookup(ref, addSource);
+		Sefaria.lookupRef(ref, addSource);
 		$("#closeAddSource").trigger("click");
 		sjs.track.sheets("Add Source", ref)
 	});
@@ -202,7 +202,7 @@ $(function() {
 		var $target = $("#addInterface").prev(".sheetItem");
 		$("#addSourceModal").data("target", $target);
         var ref = $("#inlineAdd").val();
-		Sefaria.lookup(ref, function(q) {
+		Sefaria.lookupRef(ref, function(q) {
             addSource(q, undefined,"insert");
             $('#inlineAdd').val('');
             $("#inlineTextPreview").remove();
@@ -267,17 +267,16 @@ $(function() {
 	});
 
     var autocomplete_source = function(request, response) {
-        Sefaria.lookup(
+        Sefaria.lookupRef(
             request.term,
-            function (d) { response(d["completions"]); },
-            function (e) { response([]); },
-            true
+            function (d) { response(d["completions"]); }
         );
     };
     
 	$("#add").autocomplete({
         source: autocomplete_source,
         minLength: 3,
+        delay: 500,
         focus: function(event, ui) { return false; }
     });
 
@@ -290,28 +289,34 @@ $(function() {
         * success -- a function to call when a valid ref has been found
       */
       
-      var allow = function() { 
-          $ok.removeClass("inactive").text("Add Text"); 
-          // $("#addSourceTextControls .btn").addClass("inactive");
-          // $("#addSourceCancel").removeClass("inactive");
-          success();  
+      var allow = function() {
+        $ok.removeClass("inactive").removeClass("disabled");
+        $msg.html("OK. Click <b>add</b> to continue.");
+        $input.autocomplete("close");
+        // $("#addSourceTextControls .btn").addClass("inactive");
+        // $("#addSourceCancel").removeClass("inactive");
+        success();
       };
       var disallow = function() { 
-          $ok.addClass("inactive");
-          $msg.html("OK. Click <b>add</b> to continue.")
+        $ok.addClass("inactive").addClass("disabled");
+        $msg.html("Select a text");
       };
 
       $("#textPreview").remove();
       $("#inlineTextPreview").remove();
 
       var inString = $input.val();
-      Sefaria.lookup(inString, function(data) {
+      if (inString.length < 3) { return; }
+      Sefaria.lookupRef(
+        inString,
+        function(data) {
           if (data.is_ref && (data.is_section || data.is_segment)) {
-            $input.autocomplete("close");
             allow();
-          } 
+            return;
+          }
           disallow();
-      });
+        }
+      );
     };
     
 	// Wrapper function for checkRef for adding sources for sheets
@@ -335,17 +340,20 @@ $(function() {
 
 	$("#inlineAdd").autocomplete({ 
         source: autocomplete_source,
+        minLength: 3,
+        delay: 500,
         focus: function(event, ui) { return false; } 
     });
 
 	// Wrapper function for checkRef for adding sources for sheets
 	var checkInlineAddSource = function(e) {
-		validateRef($("#inlineAdd"), $("#inlineAddDialogTitle"), $("#inlineAddOK"), inlineAddSourcePreview);
+		validateRef($("#inlineAdd"), $("#inlineAddDialogTitle"), $("#inlineAddSourceOK"), inlineAddSourcePreview);
 	};
 
 	// Adding unknown Texts from Add modal
 	$("#inlineAdd").keyup(checkInlineAddSource )
 		.keyup(function(e) {
+            debugger;
 		if (e.keyCode == 13) {
 			if (!$("#inlineAddSourceOK").hasClass('disabled')) {
 				$("#inlineAddSourceOK").trigger("click");
@@ -3346,7 +3354,7 @@ function inlineAddSourcePreview(e) {
 		$("#inlineAddSourceOK").removeClass("disabled");
 	}
 	*/
-    $("#inlineAddSourceOK").removeClass("disabled");
+    //$("#inlineAddSourceOK").removeClass("disabled"); // superfluous?
 
 	var ref = $("#inlineAdd").val();
 	if (!$("#inlineTextPreview").length) { $("body").append("<div id='inlineTextPreview'></div>"); }

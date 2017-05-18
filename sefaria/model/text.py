@@ -1918,6 +1918,8 @@ class Ref(object):
         parts = [s.strip() for s in self.tref.split("-")]
         if len(parts) > 2:
             raise InputError(u"Couldn't understand ref '{}' (too many -'s).".format(self.tref))
+        if any([not p for p in parts]):
+            raise InputError(u"Couldn't understand ref '{}' (beginning or ending -)".format(self.tref))
 
         base = parts[0]
         title = None

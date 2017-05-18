@@ -114,6 +114,7 @@ class AutoCompleter(object):
         :param redirected: Is this request redirected from the other language?  Prevents infinite loops.
         :return:
         """
+        instring = instring.strip()  # A terminal space causes some kind of awful "include everything" behavior
         completions = Completions(self, self.lang, instring, limit).process()
         if len(completions):
             return completions

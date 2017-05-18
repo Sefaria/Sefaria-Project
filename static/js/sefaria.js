@@ -481,6 +481,8 @@ Sefaria = extend(Sefaria, {
     }
   },
   _lookups: {},
+  _ref_lookups: {},
+  lookupRef: function(n, c, e)  { return this.lookup(n,c,e,true);},
   lookup: function(name, callback, onError, refOnly) {
       /* 
         * name - string to lookup
@@ -505,9 +507,11 @@ Sefaria = extend(Sefaria, {
         * onError - callback
         * refOnly - if True, only search for titles, otherwise search for People and Categories as well.
        */
+    name = name.trim();
+    var cache = refOnly? this._ref_lookups: this._lookups;
     onError = onError || function() {};
-    if (name in this._lookups) {
-        callback(this._lookups[name]);
+    if (name in cache) {
+        callback(cache[name]);
     }
     else {
         $.ajax({
@@ -515,7 +519,7 @@ Sefaria = extend(Sefaria, {
           url: "/api/name/" + name + (refOnly?"?ref_only=1":""), 
           error: onError,
           success: function(data) {
-              this._lookups[name] = data;
+              cache[name] = data;
               callback(data);
           }.bind(this)
         });
