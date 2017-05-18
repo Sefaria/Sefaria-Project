@@ -276,8 +276,7 @@ $(function() {
 	$("#add").autocomplete({
         source: autocomplete_source,
         minLength: 3,
-        delay: 500,
-        focus: function(event, ui) { return false; }
+        //focus: function(event, ui) { return false; }
     });
 
     var validateRef = function($input, $msg, $ok, success) {
@@ -341,8 +340,7 @@ $(function() {
 	$("#inlineAdd").autocomplete({ 
         source: autocomplete_source,
         minLength: 3,
-        delay: 500,
-        focus: function(event, ui) { return false; } 
+        //focus: function(event, ui) { return false; }
     });
 
 	// Wrapper function for checkRef for adding sources for sheets
