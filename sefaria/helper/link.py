@@ -73,12 +73,13 @@ class AbstractAutoLinker(object):
 
     def _load_links(self):
         if not self._links:
-            ref_regex = self._requested_oref.regex()
-            self._links = LinkSet({"refs": {"$regex": ref_regex},
+            ref_regex_list = self._requested_oref.regex(as_list=True)
+            queries = [{"refs": {"$regex": ref_regex},
                                    "generated_by": self._generated_by_string,
-                                   "auto" : self._auto,
-                                   "type" : self._link_type
-                                   })
+                                   "auto": self._auto,
+                                   "type": self._link_type
+                                   } for ref_regex in ref_regex_list]
+            self._links = LinkSet({"$or": queries})
         return self._links
 
     def linkset(self):
