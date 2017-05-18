@@ -193,25 +193,23 @@ $(function() {
 
 	$(document).on("click", "#addSourceOK", function() {
         var ref = $("#add").val();
-		var q = parseRef(ref);
+		Sefaria.lookup(ref, addSource);
 		$("#closeAddSource").trigger("click");
-		addSource(q);
-		sjs.track.sheets("Add Source", ref);
-	
+		sjs.track.sheets("Add Source", ref)
 	});
 
 	$(document).on("click", "#inlineAddSourceOK", function() {
 		var $target = $("#addInterface").prev(".sheetItem");
 		$("#addSourceModal").data("target", $target);
         var ref = $("#inlineAdd").val();
-		var q = parseRef(ref);
-		addSource(q, undefined,"insert");
-		$('#inlineAdd').val('');
-		$("#inlineTextPreview").remove();
-		$("#inlineAddDialogTitle").text("Select a text");
-		$("#inlineAddSourceOK").addClass("disabled");
-		$("#sheet").click();
-
+		Sefaria.lookup(ref, function(q) {
+            addSource(q, undefined,"insert");
+            $('#inlineAdd').val('');
+            $("#inlineTextPreview").remove();
+            $("#inlineAddDialogTitle").text("Select a text");
+            $("#inlineAddSourceOK").addClass("disabled");
+            $("#sheet").click();
+        });
 		sjs.track.sheets("Add Source", ref);
 	});
 
@@ -2374,11 +2372,10 @@ function addSource(q, source, appendOrInsert) {
 	// Add a new source to the DOM.
 	// Completed by loadSource on return of AJAX call.
 	// unless 'source' is present, then load with given text.
-
 	appendOrInsert = typeof appendOrInsert !== 'undefined' ? appendOrInsert : 'append';
 
 
-	var badRef = q.ref == undefined ? true : false;
+	var badRef = q.ref == undefined;
 
 	if ($("#addSourceModal").data("target") == null) {
 		$("#addSourceModal").data("target", $("#sources"));

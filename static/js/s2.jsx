@@ -1416,7 +1416,7 @@ var Header = React.createClass({
         var action = d["is_book"] ? "Search Box Navigation - Book" : "Search Box Navigation - Citation";
         Sefaria.site.track.event("Search", action, query);
         this.clearSearchBox();
-        this.handleRefClick(d["normal"]);  //todo: pass an onError function through here to the panel onError function which redirects to search
+        this.handleRefClick(d["ref"]);  //todo: pass an onError function through here to the panel onError function which redirects to search
       } else if (d["type"] == "Person") {
         Sefaria.site.track.event("Search", "Search Box Navigation - Person", query);
         this.closeSearchAutocomplete();

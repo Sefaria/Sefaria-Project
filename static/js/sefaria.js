@@ -487,13 +487,20 @@ Sefaria = extend(Sefaria, {
         * callback - callback function, takes one argument, a data object
               data object returned from API: {
                 "is_ref": Bool,
+                "completions": [String]
+               If is_ref is True: 
+                "ref": <optional> String: if type is "ref", the normal form
+                "index"
+                "book"
+                "sections": Array of sections, in normal form
+                "toSections":
+                "internalSections": Array of sections, in internal ref form
+                "internalToSections":
                 "is_book": <optional> Bool,
                 "is_node": <optional> Bool,
                 "is_section": <optional> Bool,
                 "is_segment": <optional> Bool,
-                "completions": [String]
                 "type": <optional> String: "ref", "Person" or "TocCategory"
-                "normal": <optional> String: if type is "ref", the normal form
                 "key": <optional> If type is "Person" this is a string.  If type is "TocCategory" this is a list
         * onError - callback
         * refOnly - if True, only search for titles, otherwise search for People and Categories as well.

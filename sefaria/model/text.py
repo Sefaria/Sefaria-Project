@@ -3523,6 +3523,12 @@ class Ref(object):
 
         return normal
 
+    def normal_sections(self, lang="en"):
+        return [self.index_node.address_class(i).toStr(lang, self.sections[i]) for i in range(len(self.sections))]
+
+    def normal_toSections(self, lang="en"):
+        return [self.index_node.address_class(i).toStr(lang, self.toSections[i]) for i in range(len(self.toSections))]
+
     def normal_section(self, section_index, lang="en", **kwargs):
         """
         Return the display form of the section value at depth `section_index`
