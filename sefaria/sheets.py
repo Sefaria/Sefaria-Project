@@ -636,3 +636,4 @@ class Sheet(abstract.AbstractMongoRecord):
 
 	def get_contained_refs(self):
 		return [model.Ref(r) for r in self.included_refs]
+
