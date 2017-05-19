@@ -1592,7 +1592,7 @@ var Header = React.createClass({
         )
       )
     );
-    var langSearchPlaceholder = this.props.interfaceLang == 'english' ? "Search" : "הקלד לחיפוש";
+    var langSearchPlaceholder = this.props.interfaceLang == 'english' ? "Search" : "חיפוש";
     var vkClassActivator = this.props.interfaceLang == 'english' ? " keyboardInput" : "";
     return React.createElement(
       'div',
@@ -1602,35 +1602,38 @@ var Header = React.createClass({
         { className: 'headerInner' },
         React.createElement(
           'div',
-          { className: 'left' },
+          { className: 'headerNavSection' },
           React.createElement(
             'a',
             { href: '/texts', 'aria-label': 'Toggle Text Table of Contents', className: 'library', onClick: this.handleLibraryClick },
             React.createElement('i', { className: 'fa fa-bars' })
+          ),
+          React.createElement(
+            'div',
+            { className: 'searchBox' },
+            React.createElement(ReaderNavigationMenuSearchButton, { onClick: this.handleSearchButtonClick }),
+            React.createElement('input', { className: "search" + vkClassActivator,
+              placeholder: langSearchPlaceholder,
+              onKeyUp: this.handleSearchKeyUp,
+              onFocus: this.showVirtualKeyboardIcon.bind(this, true),
+              onBlur: this.showVirtualKeyboardIcon.bind(this, false),
+              title: 'Search for Texts or Keywords Here' })
           )
         ),
         React.createElement(
           'div',
-          { className: 'right' },
+          { className: 'headerHomeSection' },
+          React.createElement(
+            'a',
+            { className: 'home', href: '/?home' },
+            React.createElement('img', { src: '/static/img/sefaria.svg', alt: 'Sefaria Logo' })
+          )
+        ),
+        React.createElement(
+          'div',
+          { className: 'headerLinksSection' },
           headerMessage,
           Sefaria.loggedIn ? loggedInLinks : loggedOutLinks
-        ),
-        React.createElement(
-          'span',
-          { className: 'searchBox' },
-          React.createElement(ReaderNavigationMenuSearchButton, { onClick: this.handleSearchButtonClick }),
-          React.createElement('input', { className: "search" + vkClassActivator,
-            placeholder: langSearchPlaceholder,
-            onKeyUp: this.handleSearchKeyUp,
-            onFocus: this.showVirtualKeyboardIcon.bind(this, true),
-            onBlur: this.showVirtualKeyboardIcon.bind(this, false),
-            title: 'Search for Texts or Keywords Here'
-          })
-        ),
-        React.createElement(
-          'a',
-          { className: 'home', href: '/?home' },
-          React.createElement('img', { src: '/static/img/sefaria.svg', alt: 'Sefaria Logo' })
         )
       ),
       viewContent ? React.createElement(
@@ -4268,7 +4271,7 @@ var SchemaNode = React.createClass({
     return {
       // Collapse everything except default nodes to start.
       collapsed: "nodes" in this.props.schema ? this.props.schema.nodes.map(function (node) {
-        return !node.default;
+        return !(node.default || node.includeSections);
       }) : []
     };
   },
@@ -7673,7 +7676,7 @@ var TextRange = React.createClass({
       language: this.props.versionLanguage || null
     };
     var data = Sefaria.text(this.props.sref, settings);
-    if (!data) {
+    if (!data || "updateFromAPI" in data) {
       // If we don't have data yet, call again with a callback to trigger API call
       Sefaria.text(this.props.sref, settings, this.onTextLoad);
     }
@@ -8046,9 +8049,10 @@ var TextSegment = React.createClass({
   handleClick: function handleClick(event) {
     if ($(event.target).hasClass("refLink")) {
       //Click of citation
+      event.preventDefault(); //add prevent default
       var ref = Sefaria.humanRef($(event.target).attr("data-ref"));
       this.props.onCitationClick(ref, this.props.sref);
-      event.stopPropagation(); //add prevent default
+      event.stopPropagation();
       Sefaria.site.track.event("Reader", "Citation Link Click", ref);
     } else if ($(event.target).is("sup") || $(event.target).parents("sup").size()) {
       this.props.onFootnoteClick(event);
@@ -9235,7 +9239,7 @@ var LexiconPanel = React.createClass({
 
   propTypes: {
     selectedWords: React.PropTypes.string,
-    oref: React.PropTypes.object.isRequired
+    oref: React.PropTypes.object
   },
   getInitialState: function getInitialState() {
     return {
@@ -12458,6 +12462,9 @@ var TestMessage = React.createClass({
 var Footer = React.createClass({
   displayName: 'Footer',
 
+  trackLanguageClick: function trackLanguageClick(language) {
+    Sefaria.site.track.setInterfaceLanguage('interface language footer', language);
+  },
   render: function render() {
     var currentPath = Sefaria.util.currentPath();
     var next = encodeURIComponent(currentPath);
@@ -12925,14 +12932,16 @@ var Footer = React.createClass({
           ),
           React.createElement(
             'a',
-            { href: "/interface/english?next=" + next, id: 'siteLanguageEnglish', className: 'outOfAppLink' },
+            { href: "/interface/english?next=" + next, id: 'siteLanguageEnglish', className: 'outOfAppLink',
+              onClick: this.trackLanguageClick.bind(null, "English") },
             'English'
           ),
           '|',
           React.createElement(
             'a',
-            { href: "/interface/hebrew?next=" + next, id: 'siteLanguageHebrew', className: 'outOfAppLink' },
-            'עברית'
+            { href: "/interface/hebrew?next=" + next, id: 'siteLanguageHebrew', className: 'outOfAppLink',
+              onClick: this.trackLanguageClick.bind(null, "Hebrew") },
+            '                 עברית'
           )
         )
       )

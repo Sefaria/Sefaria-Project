@@ -230,7 +230,7 @@ def title_regex_api(request, titles):
         for title in titles:
             lang = "he" if is_hebrew(title) else "en"
             try:
-                re_string = model.library.get_regex_string(title, lang, for_js=True)
+                re_string = model.library.get_regex_string(title, lang, anchored=False, for_js=True)
                 res[title] = re_string
             except (AttributeError, AssertionError) as e:
                 logger.warning(u"Library._build_ref_from_string() failed to create regex for: {}.  {}".format(title, e))

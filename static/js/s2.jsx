@@ -1512,28 +1512,29 @@ var Header = React.createClass({
                              <span className="int-he">התחבר</span>
                            </a>
                          </div>);
-    var langSearchPlaceholder = this.props.interfaceLang == 'english' ? "Search" : "הקלד לחיפוש";
+    var langSearchPlaceholder = this.props.interfaceLang == 'english' ? "Search" : "חיפוש";
     var vkClassActivator = this.props.interfaceLang == 'english' ? " keyboardInput" : "";
     return (<div className="header">
               <div className="headerInner">
-                <div className="left">
-                  <a href="/texts" aria-label="Toggle Text Table of Contents" className="library" onClick={this.handleLibraryClick}><i className="fa fa-bars"></i></a>
+                <div className="headerNavSection">
+                    <a href="/texts" aria-label="Toggle Text Table of Contents" className="library" onClick={this.handleLibraryClick}><i className="fa fa-bars"></i></a>
+                    <div  className="searchBox">
+                      <ReaderNavigationMenuSearchButton onClick={this.handleSearchButtonClick} />
+                      <input className={"search"+ vkClassActivator}
+                             placeholder={langSearchPlaceholder}
+                             onKeyUp={this.handleSearchKeyUp}
+                             onFocus={this.showVirtualKeyboardIcon.bind(this, true)}
+                             onBlur={this.showVirtualKeyboardIcon.bind(this, false)}
+                      title="Search for Texts or Keywords Here"/>
+                    </div>
                 </div>
-                <div className="right">
+                <div className="headerHomeSection">
+                    <a className="home" href="/?home" ><img src="/static/img/sefaria.svg" alt="Sefaria Logo"/></a>
+                </div>
+                <div className="headerLinksSection">
                   { headerMessage }
                   { Sefaria.loggedIn ? loggedInLinks : loggedOutLinks }
                 </div>
-                <span className="searchBox">
-                  <ReaderNavigationMenuSearchButton onClick={this.handleSearchButtonClick} />
-                  <input className={"search"+ vkClassActivator}
-                         placeholder={langSearchPlaceholder}
-                         onKeyUp={this.handleSearchKeyUp}
-                         onFocus={this.showVirtualKeyboardIcon.bind(this, true)}
-                         onBlur={this.showVirtualKeyboardIcon.bind(this, false)}
-                         title="Search for Texts or Keywords Here"
-                  />
-                </span>
-                <a className="home" href="/?home" ><img src="/static/img/sefaria.svg" alt="Sefaria Logo" /></a>
               </div>
               { viewContent ? 
                 (<div className="headerNavContent">
@@ -2574,7 +2575,7 @@ var ReaderNavigationMenu = React.createClass({
   render: function() {
     if (this.props.categories.length && this.props.categories[0] == "recent") {
       return (<div onClick={this.handleClick}>
-                <RecentPanel 
+                <RecentPanel
                   multiPanel={this.props.multiPanel}
                   closeNav={this.closeNav}
                   toggleLanguage={this.props.toggleLanguage}
@@ -3609,7 +3610,7 @@ var SchemaNode = React.createClass({
   getInitialState: function() {
     return {
       // Collapse everything except default nodes to start.
-      collapsed: "nodes" in this.props.schema ? this.props.schema.nodes.map(function(node) { return !node.default }) : []
+      collapsed: "nodes" in this.props.schema ? this.props.schema.nodes.map(function(node) { return !(node.default || node.includeSections) }) : []
     }
   },
   toggleCollapse: function(i) {
@@ -6059,7 +6060,7 @@ var TextRange = React.createClass({
       language: this.props.versionLanguage || null
     };
     var data = Sefaria.text(this.props.sref, settings);
-    if (!data) { // If we don't have data yet, call again with a callback to trigger API call
+    if (!data || "updateFromAPI" in data) { // If we don't have data yet, call again with a callback to trigger API call
       Sefaria.text(this.props.sref, settings, this.onTextLoad);
     }
     return data;
@@ -6373,9 +6374,10 @@ var TextSegment = React.createClass({
   handleClick: function(event) {
     if ($(event.target).hasClass("refLink")) {
       //Click of citation
+      event.preventDefault();//add prevent default
       var ref = Sefaria.humanRef($(event.target).attr("data-ref"));
       this.props.onCitationClick(ref, this.props.sref);
-      event.stopPropagation(); //add prevent default
+      event.stopPropagation();
       Sefaria.site.track.event("Reader", "Citation Link Click", ref);
     } else if ($(event.target).is("sup") || $(event.target).parents("sup").size()) {
       this.props.onFootnoteClick(event);
@@ -7333,7 +7335,7 @@ var Note = React.createClass({
 var LexiconPanel = React.createClass({
   propTypes: {
     selectedWords: React.PropTypes.string,
-    oref:          React.PropTypes.object.isRequired
+    oref:          React.PropTypes.object
   },
   getInitialState: function() {
     return {
@@ -9754,6 +9756,9 @@ var TestMessage = React.createClass({
 
 
 var Footer = React.createClass({
+  trackLanguageClick: function(language){
+    Sefaria.site.track.setInterfaceLanguage('interface language footer', language);
+  },
   render: function(){
     var currentPath = Sefaria.util.currentPath();
     var next = encodeURIComponent(currentPath);
@@ -9905,9 +9910,13 @@ var Footer = React.createClass({
                       <span className="int-en">Site Language:</span>
                       <span className="int-he">שפת האתר</span>
                   </div>
-                  <a href={"/interface/english?next=" + next} id="siteLanguageEnglish" className="outOfAppLink">English</a>
+                  <a href={"/interface/english?next=" + next} id="siteLanguageEnglish" className="outOfAppLink"
+                     onClick={this.trackLanguageClick.bind(null, "English")}>English
+                  </a>
                   |
-                  <a href={"/interface/hebrew?next=" + next} id="siteLanguageHebrew" className="outOfAppLink">עברית</a>
+                  <a href={"/interface/hebrew?next=" + next} id="siteLanguageHebrew" className="outOfAppLink"
+                      onClick={this.trackLanguageClick.bind(null, "Hebrew")}>                 עברית
+                  </a>
               </div>
           </div>
         </div>

@@ -39,7 +39,7 @@ class RecentInToc(AtomicTest):
     every_build = True
 
     def run(self):
-        self.click_toc_category("Tanakh").click_toc_text("Psalms")
+        self.load_toc().click_toc_category("Tanakh").click_toc_text("Psalms")
         self.load_toc().click_toc_recent("Psalms 1")
 
 
