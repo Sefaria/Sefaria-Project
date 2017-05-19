@@ -39,7 +39,7 @@ class RecentInToc(AtomicTest):
     every_build = True
 
     def run(self):
-        self.s2().click_toc_category("Tanakh").click_toc_text("Psalms")
+        self.click_toc_category("Tanakh").click_toc_text("Psalms")
         self.load_toc().click_toc_recent("Psalms 1")
 
 
@@ -52,38 +52,8 @@ class LoadRefAndClickSegment(AtomicTest):
         assert "Psalms.65.5" in self.driver.current_url, self.driver.current_url
         assert "with=all" in self.driver.current_url, self.driver.current_url
 
+        self.click_category_filter("Commentary")
         self.click_text_filter("Malbim")
-
-
-class LoadRefAndOpenLexicon(AtomicTest):
-    suite_key = "Reader"
-    single_panel = False
-
-    def run(self):
-        load_ref =  Ref("Numbers 25")
-        click_ref = Ref("Numbers 25.5")
-        self.load_ref(load_ref, lang="he").click_segment(click_ref)
-        assert "Numbers.25.5" in self.driver.current_url, self.driver.current_url
-        assert "with=all" in self.driver.current_url, self.driver.current_url
-        """selector = '.segment[data-ref="{}"]'.format(click_ref.normal())
-        self.driver.execute_script(
-            "var range = document.createRange();" +
-            "var start = document.querySelectorAll('[data-ref=\"Numbers 25:5\"]');" +
-            "var textNode = start.querySelectorAll('span.he')[0].firstChild;" +
-            "range.setStart(textNode, 0);" +
-            "range.setEnd(textNode, 5);" +
-            "window.getSelection().addRange(range);"
-        )"""
-        """actions = ActionChains(self.driver)
-        element = self.driver.find_element_by_css_selector(selector)
-        actions.move_to_element(element)
-        actions.double_click(on_element=element)
-        actions.move_by_offset(50, 0)
-        actions.click_and_hold(on_element=None)
-        actions.move_by_offset(70, 0)
-        actions.release(on_element=None)
-        actions.perform()"""
-        """WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, ".lexicon-content")))"""
 
 
 class LoadRefWithCommentaryAndClickOnCommentator(AtomicTest):
@@ -91,7 +61,7 @@ class LoadRefWithCommentaryAndClickOnCommentator(AtomicTest):
     every_build = True
 
     def run(self):
-        self.load_ref("Psalms 45:5", filter="all").click_text_filter("Rashi")
+        self.load_ref("Psalms 45:5", filter="all").click_category_filter("Commentary").click_text_filter("Rashi")
         assert "Psalms.45.5" in self.driver.current_url, self.driver.current_url
         assert "with=Rashi" in self.driver.current_url, self.driver.current_url
 
@@ -121,9 +91,7 @@ class LoadSpanningRefAndOpenConnections(AtomicTest):
 
     def run(self):
         self.load_ref("Shabbat 2a-2b")
-        self.click_segment("Shabbat 2a:1") 
-        elems = self.driver.find_elements_by_css_selector(".textList")
-        assert len(elems) == 1
+        self.click_segment("Shabbat 2a:1")
 
 
 class PermanenceOfRangedRefs(AtomicTest):
@@ -136,7 +104,7 @@ class PermanenceOfRangedRefs(AtomicTest):
     single_panel = False  # Segment clicks on mobile have different semantics  todo: write this for mobile?  It's primarily a data test.
 
     def run(self):
-        self.load_ref("Shabbat 2a").click_segment("Shabbat 2a:1")
+        self.load_ref("Shabbat 2a").click_segment("Shabbat 2a:1").click_category_filter("Mishnah")
         assert self.find_text_filter("Mishnah Shabbat")
         self.click_segment("Shabbat 2a:2")
         assert self.find_text_filter("Mishnah Shabbat")
@@ -256,6 +224,35 @@ class InfiniteScrollDown(AtomicTest):
 
     def run(self):
         self.load_ref("Job 32")
+
+class LoadRefAndOpenLexicon(AtomicTest):
+    suite_key = "Reader"
+    single_panel = False
+
+    def run(self):
+        self.load_ref("Numbers 25:5", lang="he").click_segment("Numbers 25:5")
+        assert "Numbers.25.5" in self.driver.current_url, self.driver.current_url
+        assert "with=all" in self.driver.current_url, self.driver.current_url
+        selector = '.segment[data-ref="{}"] > span.he'.format("Numbers 25:5")
+        self.driver.execute_script(
+            "var range = document.createRange();" +
+            "var start = document.querySelectorAll('[data-ref=\"Numbers 25:5\"]');" +
+            "var textNode = start.querySelectorAll('span.he')[0].firstChild;" +
+            "range.setStart(textNode, 0);" +
+            "range.setEnd(textNode, 5);" +
+            "window.getSelection().addRange(range);"
+        )
+        from selenium.webdriver import ActionChains
+        actions = ActionChains(self.driver)
+        element = self.driver.find_element_by_css_selector(selector)
+        actions.move_to_element(element)
+        actions.double_click(on_element=element)
+        actions.move_by_offset(50, 0)
+        actions.click_and_hold(on_element=None)
+        actions.move_by_offset(70, 0)
+        actions.release(on_element=None)
+        actions.perform()
+        WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, ".lexicon-content")))
 
 """
 

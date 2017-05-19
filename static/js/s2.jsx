@@ -1147,7 +1147,7 @@ var ReaderApp = React.createClass({
     }
 
     if (panelStates.length == 2 && panelStates[0].mode == "Text" && panelStates[1].mode == "Connections") {
-      widths = [64.0, 36.0];
+      widths = [68.0, 32.0];
       unit = "%";
     } else {
       widths = panelStates.map(function() { return evenWidth; });
@@ -6492,6 +6492,7 @@ var ConnectionsPanel = React.createClass({
                     setConnectionsMode={this.props.setConnectionsMode}
                     setConnectionsCategory={this.props.setConnectionsCategory} />
                   <ResourcesList
+                    multiPanel={this.props.multiPanel}
                     setConnectionsMode={this.props.setConnectionsMode}
                     openComparePanel={this.props.openComparePanel}
                     sheetsCount={data.sheets.length} />
@@ -6856,7 +6857,7 @@ var CategoryFilter = React.createClass({
     var handleClick  = this.handleClick;
     var url = (this.props.srefs && this.props.srefs.length > 0)?"/" + Sefaria.normRef(this.props.srefs[0]) + "?with=" + this.props.category:"";
     var innerFilter = (
-      <div className={innerClasses} onClick={handleClick}>
+      <div className={innerClasses} onClick={handleClick} data-name={this.props.category}>
         <span className="en">{this.props.category}{count}</span>
         <span className="he">{this.props.heCategory}{count}</span>
       </div>);
