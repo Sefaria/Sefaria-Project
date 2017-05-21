@@ -707,12 +707,12 @@ def group_sheets_tag(request, group, tag):
 
 
 @csrf_exempt
-def sheet_list_api(request):
+def save_sheet_api(request):
 	"""
 	API for listing available sheets
 	"""
 	if request.method == "GET":
-		return jsonResponse(sheet_list(), callback=request.GET.get("callback", None))
+		return jsonResponse({"error": "Unsupported HTTP method."})
 
 	# Save a sheet
 	if request.method == "POST":
@@ -780,13 +780,13 @@ def user_sheet_list_api(request, user_id):
 	"""
 	if int(user_id) != request.user.id:
 		return jsonResponse({"error": "You are not authorized to view that."})
-	return jsonResponse(sheet_list(user_id), callback=request.GET.get("callback", None))
+	return jsonResponse(user_sheets(user_id), callback=request.GET.get("callback", None))
 
 
 def user_sheet_list_api_with_sort(request, user_id, sort_by="date"):
 	if int(user_id) != request.user.id:
 		return jsonResponse({"error": "You are not authorized to view that."})
-	return jsonResponse(user_sheets(user_id,sort_by), callback=request.GET.get("callback", None))
+	return jsonResponse(user_sheets(user_id, sort_by), callback=request.GET.get("callback", None))
 
 
 def private_sheet_list_api(request, group):
@@ -798,10 +798,6 @@ def private_sheet_list_api(request, group):
 		return jsonResponse(group_sheets(group, True), callback=request.GET.get("callback", None))
 	else:
 		return jsonResponse(group_sheets(group, False), callback=request.GET.get("callback", None))
-
-
-def public_sheet_list_api(request):
-	return jsonResponse(sheet_list(), callback=request.GET.get("callback", None))
 
 
 def sheet_api(request, sheet_id):
@@ -1016,16 +1012,9 @@ def trending_tags_api(request):
 
 
 def all_sheets_api(request, limiter, offset=0):
-	limiter = int(limiter)
-	offset = int(offset)
-	query = {"status": "public"}
-	if limiter==0:
-		public = db.sheets.find(query).sort([["dateModified", -1]])
-	else:
-		public = db.sheets.find(query).sort([["dateModified", -1]]).skip(offset).limit(limiter)
-
-	sheets   = [sheet_to_dict(s) for s in public]
-	response = {"sheets": sheets}
+	limiter  = int(limiter)
+	offset   = int(offset)
+	response = public_sheets(limit=limiter, skip=offset)
 	response = jsonResponse(response, callback=request.GET.get("callback", None))
 	response["Cache-Control"] = "max-age=3600"
 	return response

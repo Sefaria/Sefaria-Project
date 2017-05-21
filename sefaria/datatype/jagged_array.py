@@ -99,6 +99,7 @@ class JaggedArray(object):
             distance = 0
             temp_start_index = indexes1[:]
             for i in xrange(indexes1[first_diff_index],indexes2[first_diff_index]+1):
+                is_zero_len_section = False
 
                 if indexes2[first_diff_index] == i:
                     temp_end_index = indexes2[:]
@@ -106,17 +107,25 @@ class JaggedArray(object):
                     temp_end_index = temp_start_index[:]
                     # max out all indexes greater than first_diff_index
 
-                    temp_subarray_indexes = [i]
+                    temp_subarray_indexes = indexes1[:first_diff_index+1]
+                    temp_subarray_indexes[first_diff_index] = i
                     for j in xrange(first_diff_index+1,N):
-                        temp_end_index[j] = self.sub_array_length(temp_subarray_indexes) - 1
+                        temp_subarray_len = self.sub_array_length(temp_subarray_indexes)
+                        if temp_subarray_len == 0:
+                            is_zero_len_section = True
+                            break
+
+                        temp_end_index[j] = temp_subarray_len - 1
                         temp_subarray_indexes += [temp_end_index[j]]
-                distance += self.distance(temp_start_index,temp_end_index)
+
+                if not is_zero_len_section:
+                    distance += self.distance(temp_start_index,temp_end_index) + 1  # + 1 to include the current seg
                 temp_start_index[first_diff_index] = i + 1
                 # set all indexes greater than first_diff_index to zero because you've moved on to the next section
                 for j in xrange(first_diff_index+1,N):
                     temp_start_index[j] = 0
 
-            return distance + (indexes2[first_diff_index] - indexes1[first_diff_index])
+            return distance - 1  # - 1 to not include the first seg in the sequence
 
     def sub_array_length(self, indexes=None, until_last_nonempty=False):
         """

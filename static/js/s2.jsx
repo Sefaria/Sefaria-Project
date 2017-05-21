@@ -1448,6 +1448,8 @@ var Header = React.createClass({
     } else {
       this.showLibrary();
     }
+    $(".wrapper").remove();
+    $("#footer").remove();
   },
   handleRefClick: function(ref, version, versionLanguage) {
     if (this.props.headerMode) {
@@ -2375,28 +2377,32 @@ var ReaderDisplayOptionsMenu = React.createClass({
   },
   render: function() {
     var languageOptions = [
-      {name: "english",   content: "<span class='en'>A</span>" },
-      {name: "bilingual", content: "<span class='en'>A</span><span class='he'>א</span>" },
-      {name: "hebrew",    content: "<span class='he'>א</span>" }
+      {name: "english",   content: "<span class='en'>A</span>", role: "radio", ariaLabel: "Show English Text" },
+      {name: "bilingual", content: "<span class='en'>A</span><span class='he'>א</span>", role: "radio", ariaLabel: "Show English & Hebrew Text" },
+      {name: "hebrew",    content: "<span class='he'>א</span>", role: "radio", ariaLabel: "Show Hebrew Text" }
     ];
     var languageToggle = (
         <ToggleSet
+          role="radiogroup"
+          ariaLabel="Language toggle"
           name="language"
           options={languageOptions}
           setOption={this.props.setOption}
           settings={this.props.settings} />);
     
     var layoutOptions = [
-      {name: "continuous", fa: "align-justify" },
-      {name: "segmented", fa: "align-left" },
+      {name: "continuous", fa: "align-justify", role: "radio", ariaLabel: "Show Text as a paragram" },
+      {name: "segmented", fa: "align-left", role: "radio", ariaLabel: "Show Text segmented" },
     ];
     var biLayoutOptions = [
-      {name: "stacked", content: "<img src='/static/img/stacked.png' alt='Stacked Language Toggle'/>"},
-      {name: "heLeft", content: "<img src='/static/img/backs.png' alt='Hebrew Left Toggle' />"},
-      {name: "heRight", content: "<img src='/static/img/faces.png' alt='Hebrew Right Toggle' />"}
+      {name: "stacked", content: "<img src='/static/img/stacked.png' alt='Stacked Language Toggle'/>", role: "radio", ariaLabel: "Show Hebrew & English Stacked"},
+      {name: "heLeft", content: "<img src='/static/img/backs.png' alt='Hebrew Left Toggle' />", role: "radio", ariaLabel: "Show Hebrew Text Left of English Text"},
+      {name: "heRight", content: "<img src='/static/img/faces.png' alt='Hebrew Right Toggle' />", role: "radio", ariaLabel: "Show Hebrew Text Right of English Text"}
     ];
     var layoutToggle = this.props.settings.language !== "bilingual" ? 
       (<ToggleSet
+          role="radiogroup"
+          ariaLabel="text layout toggle"
           name="layout"
           options={layoutOptions}
           setOption={this.props.setOption}
@@ -2404,6 +2410,8 @@ var ReaderDisplayOptionsMenu = React.createClass({
           settings={this.props.settings} />) : 
       (this.props.width > 500 ? 
         <ToggleSet
+          role="radiogroup"
+          ariaLabel="bidirectional text layout toggle"
           name="biLayout"
           options={biLayoutOptions}
           setOption={this.props.setOption}
@@ -2411,12 +2419,14 @@ var ReaderDisplayOptionsMenu = React.createClass({
           settings={this.props.settings} /> : null);
 
     var colorOptions = [
-      {name: "light", content: "" },
-      {name: "sepia", content: "" },
-      {name: "dark", content: "" }
+      {name: "light", content: "", role: "radio", ariaLabel: "Toggle light mode" },
+      {name: "sepia", content: "", role: "radio", ariaLabel: "Toggle sepia mode" },
+      {name: "dark", content: "", role: "radio", ariaLabel: "Toggle dark mode" }
     ];
     var colorToggle = (
         <ToggleSet
+          role="radiogroup"
+          ariaLabel="Color toggle"
           name="color"
           separated={true}
           options={colorOptions}
@@ -2425,18 +2435,20 @@ var ReaderDisplayOptionsMenu = React.createClass({
     colorToggle = this.props.multiPanel ? null : colorToggle;
 
     var sizeOptions = [
-      {name: "smaller", content: "Aa" },
-      {name: "larger", content: "Aa"  }
+      {name: "smaller", content: "Aa", role: "button", ariaLabel: "Decrease font size" },
+      {name: "larger", content: "Aa", role: "button", ariaLabel: "Increase font size"  }
     ];
     var sizeToggle = (
         <ToggleSet
+          role="group"
+          ariaLabel="Increase/Decrease Font Size Buttons"
           name="fontSize"
           options={sizeOptions}
           setOption={this.props.setOption}
           settings={this.props.settings} />);
 
     if (this.props.menuOpen === "search") {
-      return (<div className="readerOptionsPanel">
+      return (<div className="readerOptionsPanel" role="dialog" tabindex="0">
                 <div className="readerOptionsPanelInner">
                   {languageToggle}
                   <div className="line"></div>
@@ -2444,13 +2456,13 @@ var ReaderDisplayOptionsMenu = React.createClass({
                 </div>
             </div>);
     } else if (this.props.menuOpen) {
-      return (<div className="readerOptionsPanel">
+      return (<div className="readerOptionsPanel"role="dialog" tabindex="0">
                 <div className="readerOptionsPanelInner">
                   {languageToggle}
                 </div>
             </div>);
     } else {
-      return (<div className="readerOptionsPanel">
+      return (<div className="readerOptionsPanel"role="dialog" tabindex="0">
                 <div className="readerOptionsPanelInner">
                   {languageToggle}
                   {layoutToggle}
@@ -5509,7 +5521,9 @@ var ToggleSet = React.createClass({
     currentLayout: React.PropTypes.func,
     settings:      React.PropTypes.object.isRequired,
     options:       React.PropTypes.array.isRequired,
-    separated:     React.PropTypes.bool
+    separated:     React.PropTypes.bool,
+    role:          React.PropTypes.string,
+    ariaLabel:     React.PropTypes.string
   },
   render: function() {
     var classes = {toggleSet: 1, separated: this.props.separated };
@@ -5519,7 +5533,7 @@ var ToggleSet = React.createClass({
     var width = 100.0 - (this.props.separated ? (this.props.options.length - 1) * 3 : 0);
     var style = {width: (width/this.props.options.length) + "%"};
     return (
-      <div className={classes}>
+      <div className={classes} role={this.props.role} aria-label={this.props.ariaLabel}>
         {
           this.props.options.map(function(option) {
             return (
@@ -5527,6 +5541,8 @@ var ToggleSet = React.createClass({
                 name={option.name}
                 key={option.name}
                 set={this.props.name}
+                role={option.role}
+                ariaLable={option.ariaLabel}
                 on={value == option.name}
                 setOption={this.props.setOption}
                 style={style}
@@ -5548,6 +5564,8 @@ var ToggleOption = React.createClass({
   },
   render: function() {
     var classes = {toggleOption: 1, on: this.props.on };
+    var tabIndexValue = this.props.on ? 0 : -1;
+    var ariaCheckedValue = this.props.on ? "true" : "false";
     classes[this.props.name] = 1;
     classes = classNames(classes);
     var content = this.props.image ? (<img src={this.props.image} alt=""/>) :
@@ -5555,6 +5573,10 @@ var ToggleOption = React.createClass({
                       (<span dangerouslySetInnerHTML={ {__html: this.props.content} }></span>);
     return (
       <div
+        role={this.props.role}
+        aria-label= {this.props.ariaLabel}
+        tabIndex = {this.props.role == "radio"? tabIndexValue : "0"}
+        aria-value = {ariaCheckedValue}
         className={classes}
         style={this.props.style}
         onClick={this.handleClick}>
@@ -5596,8 +5618,8 @@ var ReaderNavigationMenuCloseButton = React.createClass({
 
 
 var ReaderNavigationMenuDisplaySettingsButton = React.createClass({
-  render: function() { 
-    return (<div className="readerOptions" onClick={this.props.onClick}><img src="/static/img/ayealeph.svg" alt="Toggle Reader Menu Display Settings"/></div>);
+  render: function() {
+    return (<div className="readerOptions" role="button" aria-haspopup="true" tabIndex="0" onClick={this.props.onClick} onKeyPress={function(e) {e.charCode == 13 ? this.props.onClick(e):null}.bind(this)}><img src="/static/img/ayealeph.svg" alt="Toggle Reader Menu Display Settings"/></div>);
   }
 });
 
@@ -9552,7 +9574,8 @@ var TestMessage = React.createClass({
 var Footer = React.createClass({
   render: function(){
     var currentPath = Sefaria.util.currentPath();
-    var next = encodeURIComponent(currentPath);
+    var currentPathEncoded = encodeURIComponent(currentPath);
+    var next = currentPathEncoded ? currentPathEncoded : '?home';
     return (
         <div id="footerInner">
           <div className="section">
