@@ -804,12 +804,14 @@ var ReaderApp = React.createClass({
   },
   updateSearchOptionFieldInPanel: function(field) {
     this.setPanelState(0, {
-      searchField: field
+      searchField: field,
+      searchFiltersValid:  false
     });
   },
   updateSearchOptionFieldInHeader: function(field) {
     this.setHeaderState({
-      searchField: field
+      searchField: field,
+      searchFiltersValid:  false
     });
   },
   updateSearchOptionSortInPanel: function(sort) {
@@ -8496,6 +8498,14 @@ var SearchResultList = React.createClass({
       this.showResultsOverlay(!this.state.displaySort);
       this.setState({displaySort: !this.state.displaySort, displayFilters: false});
     },
+    closeFilterView: function() {
+      this.showResultsOverlay(false);
+      this.setState({displayFilters: false});
+    },
+    closeSortView: function() {
+      this.showResultsOverlay(false);
+      this.setState({displaySort: false});
+    },
     render: function () {
         if (!(this.props.query)) {  // Push this up? Thought is to choose on the SearchPage level whether to show a ResultList or an EmptySearchMessage.
             return null;
@@ -8548,7 +8558,9 @@ var SearchResultList = React.createClass({
                                   displayFilters={this.state.displayFilters}
                                   displaySort={this.state.displaySort}
                                   toggleFilterView={this.toggleFilterView}
-                                  toggleSortView={this.toggleSortView}/>);
+                                  toggleSortView={this.toggleSortView}
+                                  closeFilterView={this.closeFilterView}
+                                  closeSortView={this.closeSortView}/>);
         return (
           <div>
             { searchFilters }
@@ -8584,7 +8596,9 @@ var SearchFilters = React.createClass({
     displayFilters:       React.PropTypes.bool,
     displaySort:          React.PropTypes.bool,
     toggleFilterView:     React.PropTypes.func,
-    toggleSortView:       React.PropTypes.func
+    toggleSortView:       React.PropTypes.func,
+    closeFilterView:      React.PropTypes.func,
+    closeSortView:        React.PropTypes.func
   },
   getInitialState: function() {
     return {
@@ -8691,56 +8705,26 @@ var SearchFilters = React.createClass({
             {(!!this.props.appliedFilters.length && !!this.props.total)?(this.getSelectedTitles("he").join(", ")):""}
           </span>
       </div>);
-    var filter_panel = (<div>
-      <div className="searchFilterToggle" onClick={this.props.toggleFilterView}>
-        <span className="int-en">Filter   </span>
-        <span className="int-he">סינון   </span>
-        <i className={(this.props.displayFilters) ? "fa fa-caret-down fa-angle-down":"fa fa-caret-down"} />
-      </div>
-      <div className={(this.props.displayFilters) ? "searchFilterBoxes":"searchFilterBoxes hidden"}>
-        <div className="searchFilterBoxRow">
-          <div className="searchFilterCategoryBox">
-          {this.props.availableFilters.map(function(filter) {
-              return (<SearchFilter
-                  filter={filter}
-                  isInFocus={this.state.openedCategory === filter}
-                  focusCategory={this.handleFocusCategory}
-                  updateSelected={this.props.updateAppliedFilter}
-                  key={filter.path}/>);
-          }.bind(this))}
-          </div>
-          <div className="searchFilterBookBox">
-          {this.state.openedCategoryBooks.map(function(filter) {
-              return (<SearchFilter
-                  filter={filter}
-                  updateSelected={this.props.updateAppliedFilter}
-                  key={filter.path}/>);
-          }.bind(this))}
-          </div>
-        </div>
-        <div className={(Sefaria.hebrew.isHebrew(this.props.query)) ? "searchFilterExactBox" : "searchFilterExactBox hidden"}>
-          <SearchFilterExactBox
-            selected={!this.state.isExactSearch}
-            checkBoxClick={this.props.toggleExactSearch}
-            />
-        </div>
-        <div style={{clear: "both"}}/>
-      </div>
-    </div>);
+    var filter_panel = (<SearchFilterPanel
+        toggleFilterView={this.props.toggleFilterView}
+        toggleExactSearch={this.toggleExactSearch}
+        displayFilters={this.props.displayFilters}
+        availableFilters={this.props.availableFilters}
+        openedCategory={this.state.openedCategory}
+        openedCategoryBooks={this.state.openedCategoryBooks}
+        updateAppliedFilter={this.props.updateAppliedFilter}
+        query={this.props.query}
+        closeBox={this.props.closeFilterView}
+        isExactSearch={this.props.isExactSearch}
 
-    var sort_panel = (<div>
-      <div className="searchFilterToggle" onClick={this.toggleSortView}>
-        <span className="int-en">Sort   </span>
-        <span className="int-he">מיון   </span>
-        <i className={(this.props.displaySort) ? "fa fa-caret-down fa-angle-down":"fa fa-caret-down"} />
-      </div>
-      <div className={(this.props.displaySort) ? "searchSortBox":"searchSortBox hidden"}>
-        <SearchSortBox
+    />);
+
+    var sort_panel = (<SearchSortBox
+          visible={this.props.displaySort}
+          toggleSortView={this.props.toggleSortView}
           updateAppliedOptionSort={this.props.updateAppliedOptionSort}
-          closeBox={this.toggleSortView}
-          sortType={this.props.sortType}/>
-      </div>
-    </div>);
+          closeBox={this.props.closeSortView}
+          sortType={this.props.sortType}/>);
     return (
       <div className={ classNames({searchTopMatter: 1, loading: this.props.isQueryRunning}) }>
         <div className="searchStatusLine">
@@ -8757,12 +8741,95 @@ var SearchFilters = React.createClass({
   }
 });
 
+var SearchFilterPanel = React.createClass({
+  propTypes: {
+    toggleFilterView:    React.PropTypes.func,
+    displayFilters:      React.PropTypes.bool,
+    availableFilters:    React.PropTypes.array,
+    openedCategory:      React.PropTypes.object,
+    updateAppliedFilter: React.PropTypes.func,
+    openedCategoryBooks: React.PropTypes.array,
+    query:               React.PropTypes.string,
+    isExactSearch:       React.PropTypes.bool,
+    toggleExactSearch:   React.PropTypes.func,
+    closeBox:            React.PropTypes.func
+  },
+  componentDidMount() {
+    document.addEventListener('click', this.handleClickOutside.bind(this), true);
+  },
+
+  componentWillUnmount() {
+    document.removeEventListener('click', this.handleClickOutside.bind(this), true);
+  },
+  handleClickOutside(event) {
+    const domNode = ReactDOM.findDOMNode(this);
+
+    if ((!domNode || !domNode.contains(event.target))) {
+      this.props.closeBox();
+    }
+  },
+  render: function() {
+    return (<div>
+      <div className="searchFilterToggle" onClick={this.props.toggleFilterView}>
+        <span className="int-en">Filter   </span>
+        <span className="int-he">סינון   </span>
+        <i className={(this.props.displayFilters) ? "fa fa-caret-down fa-angle-down":"fa fa-caret-down"} />
+      </div>
+      <div className={(this.props.displayFilters) ? "searchFilterBoxes":"searchFilterBoxes hidden"}>
+        <div className="searchFilterBoxRow">
+          <div className="searchFilterCategoryBox">
+          {this.props.availableFilters.map(function(filter) {
+              return (<SearchFilter
+                  filter={filter}
+                  isInFocus={this.props.openedCategory === filter}
+                  focusCategory={this.handleFocusCategory}
+                  updateSelected={this.props.updateAppliedFilter}
+                  key={filter.path}/>);
+          }.bind(this))}
+          </div>
+          <div className="searchFilterBookBox">
+          {this.props.openedCategoryBooks.map(function(filter) {
+              return (<SearchFilter
+                  filter={filter}
+                  updateSelected={this.props.updateAppliedFilter}
+                  key={filter.path}/>);
+          }.bind(this))}
+          </div>
+        </div>
+        <div className={(Sefaria.hebrew.isHebrew(this.props.query)) ? "searchFilterExactBox" : "searchFilterExactBox hidden"}>
+          <SearchFilterExactBox
+            selected={!this.props.isExactSearch}
+            checkBoxClick={this.props.toggleExactSearch}
+            />
+        </div>
+        <div style={{clear: "both"}}/>
+      </div>
+    </div>);
+  }
+});
 
 var SearchSortBox = React.createClass({
   propTypes: {
+    visible:                 React.PropTypes.bool,
+    toggleSortView:          React.PropTypes.func,
     updateAppliedOptionSort: React.PropTypes.func,
     closeBox:                React.PropTypes.func,
     sortType:                React.PropTypes.oneOf(["chronological", "relevance"])
+  },
+  componentDidMount() {
+    document.addEventListener('click', this.handleClickOutside.bind(this), true);
+  },
+
+  componentWillUnmount() {
+    document.removeEventListener('click', this.handleClickOutside.bind(this), true);
+  },
+
+  handleClickOutside(event) {
+    const domNode = ReactDOM.findDOMNode(this);
+
+    if ((!domNode || !domNode.contains(event.target))) {
+      this.props.closeBox();
+    }
   },
   handleClick: function(sortType) {
     if (sortType === this.props.sortType) {
@@ -8777,15 +8844,22 @@ var SearchSortBox = React.createClass({
   render: function() {
     var chronoClass = classNames({'filter-title': 1, 'unselected': this.props.sortType !== "chronological"});
     var releClass = classNames({'filter-title': 1, 'unselected': this.props.sortType !== "relevance"});
-    return (<div tabIndex="12" onBlur={this.props.closeBox}>
-      <li onClick={()=>this.handleClick("chronological")}>
-        <span className="int-en"><span className={chronoClass}>{"Chronological"}</span></span>
-        <span className="int-he" dir="rtl"><span className={chronoClass}>{"Chronological (HE)"}</span></span>
-      </li>
-      <li onClick={()=>this.handleClick("relevance")}>
-        <span className="int-en"><span className={releClass}>{"Relevance"}</span></span>
-        <span className="int-he" dir="rtl"><span className={releClass}>{"Relevance (HE)"}</span></span>
-      </li>
+    return (<div>
+      <div className="searchFilterToggle" onClick={this.props.toggleSortView}>
+        <span className="int-en">Sort   </span>
+        <span className="int-he">מיון   </span>
+        <i className={(this.props.visible) ? "fa fa-caret-down fa-angle-down":"fa fa-caret-down"} />
+      </div>
+      <div className={(this.props.visible) ? "searchSortBox":"searchSortBox hidden"}>
+        <li onClick={()=>this.handleClick("chronological")}>
+          <span className="int-en"><span className={chronoClass}>{"Chronological"}</span></span>
+          <span className="int-he" dir="rtl"><span className={chronoClass}>{"Chronological (HE)"}</span></span>
+        </li>
+        <li onClick={()=>this.handleClick("relevance")}>
+          <span className="int-en"><span className={releClass}>{"Relevance"}</span></span>
+          <span className="int-he" dir="rtl"><span className={releClass}>{"Relevance (HE)"}</span></span>
+        </li>
+      </div>
     </div>);
   }
 });
