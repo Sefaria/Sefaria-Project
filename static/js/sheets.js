@@ -291,7 +291,7 @@ $(function() {
       var allow = function() {
         $ok.removeClass("inactive").removeClass("disabled");
         $msg.html("OK. Click <b>add</b> to continue.");
-        $input.autocomplete("close");
+        $input.autocomplete("disable");
         // $("#addSourceTextControls .btn").addClass("inactive");
         // $("#addSourceCancel").removeClass("inactive");
         success();
@@ -351,7 +351,7 @@ $(function() {
 	// Adding unknown Texts from Add modal
 	$("#inlineAdd").keyup(checkInlineAddSource )
 		.keyup(function(e) {
-            debugger;
+      $("#inlineAdd").autocomplete("enable");
 		if (e.keyCode == 13) {
 			if (!$("#inlineAddSourceOK").hasClass('disabled')) {
 				$("#inlineAddSourceOK").trigger("click");
