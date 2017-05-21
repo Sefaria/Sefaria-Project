@@ -2029,11 +2029,13 @@ def name_api(request, name):
                     completions += [res]
 
         d = {
+            "lang": lang,
             "is_ref": True,
             "is_book": ref.is_book_level(),
             "is_node": len(ref.sections) == 0,
             "is_section": ref.is_section_level(),
             "is_segment": ref.is_segment_level(),
+            "is_range": ref.is_range(),
             "type": "ref",
             "ref": ref.normal(),
             "index": ref.index.title,
@@ -2048,10 +2050,16 @@ def name_api(request, name):
             # todo: ADD textual completions as well
             "examples": []
         }
+        if inode.has_numeric_continuation():
+            d["sectionNames"] = inode.sectionNames
+            d["heSectionNames"] = map(hebrew_term, inode.sectionNames)
+            d["addressExamples"] = [t.toStr("en", 3*i+3) for i,t in enumerate(inode._addressTypes)]
+            d["heAddressExamples"] = [t.toStr("he", 3*i+3) for i,t in enumerate(inode._addressTypes)]
 
     except InputError:
         # This is not a Ref
         d = {
+            "lang": lang,
             "is_ref": False,
             "completions": completer.complete(name, LIMIT)
         }

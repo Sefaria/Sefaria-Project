@@ -255,29 +255,7 @@ $(function() {
 		afterAction();
 		e.stopPropagation();
 	});
-	
-	$("#closeAddSource").click(function() { 
-		$("#addSourceModal, #overlay").hide(); 
-		$("#add").val("");
-		$("#error").empty();
-		$("#textPreview").remove();
-		$("#addDialogTitle").text("Enter a text or commentator name:");
-		sjs.track.sheets("Close Add Source Modal");
 
-	});
-
-    var autocomplete_source = function(request, response) {
-        Sefaria.lookupRef(
-            request.term,
-            function (d) { response(d["completions"]); }
-        );
-    };
-    
-	$("#add").autocomplete({
-        source: autocomplete_source,
-        minLength: 3,
-        //focus: function(event, ui) { return false; }
-    });
 
     var validateRef = function($input, $msg, $ok, success) {
       /** Replacement for utils.js:sjs.checkref that uses only new tools. 
@@ -288,18 +266,81 @@ $(function() {
         * success -- a function to call when a valid ref has been found
       */
       
-      var allow = function() {
+      function allow() {
         $ok.removeClass("inactive").removeClass("disabled");
-        $msg.html("OK. Click <b>add</b> to continue.");
         $input.autocomplete("disable");
         // $("#addSourceTextControls .btn").addClass("inactive");
         // $("#addSourceCancel").removeClass("inactive");
         success();
-      };
-      var disallow = function() { 
+      }
+
+      function disallow() {
         $ok.addClass("inactive").addClass("disabled");
-        $msg.html("Select a text");
-      };
+      }
+
+      function _sectionListString(arr, lang) {
+          //Put together an "A, B, and C" type string from [A,B,C]
+          //arr - array of strings
+          if (arr.length == 1) return arr[0];                            // One alone
+          var lastTwo = arr.slice(-2).join((lang=="en")?" and ":" ו");   // and together last two:
+          return arr.slice(0,-2).concat(lastTwo).join(", ");            // join the rest with a ,
+      }
+
+      //Too simple to merit a function, but function calls are cheap!
+      function _addressListString(arr, lang) {
+          //Put together an "A:B:C" type string from [A,B,C]
+          //arr - array of strings
+          return arr.join((lang=="en")?":":" ");
+      }
+
+      function _getCompletionMessage(inString, data, depthUp) {
+        // instring - the originally entered string
+        // data - data returned from api/names
+        // depthUp: 0 for segment.  1 for section.
+        if (!data["sectionNames"] || data["sectionNames"].length == 0) return;
+
+        var lang = data["lang"];
+        var sectionNames = (lang=="en")?data["sectionNames"]:data["heSectionNames"];
+        var addressExamples = (lang=="en")?data["addressExamples"]:data["heAddressExamples"];
+        var current = data["sections"].length;
+        var sectionListString = _sectionListString(sectionNames.slice(current, depthUp?-depthUp:undefined), lang);
+        var addressListString = _addressListString(addressExamples.slice(current, depthUp?-depthUp:undefined), lang);
+        var separator = (lang == "en" && !data["is_node"])?":":" ";
+        var exampleRef = inString + separator + addressListString;
+        return ((lang=="en")?
+        "Enter a " + sectionListString + ". E.g: '<b>" + exampleRef +"</b>'":
+        "תקליד " + sectionListString + ". לדוגמא " + exampleRef)
+      }
+
+      function getSegmentCompletionMessage(inString, data) {
+          return _getCompletionMessage(inString, data, 0);
+      }
+
+      function getSectionCompletionMessage(inString, data) {
+          return _getCompletionMessage(inString, data, 1);
+      }
+
+      function getMessage(inString, data) {
+          var prompt_message = (data["lang"]=="en")?"Select a text":""; //Hebrew
+          var success_message = (data["lang"]=="en")?"OK. Click <b>add</b> to continue":""; //Hebrew
+          var or_phrase = (data["lang"]=="en")?" or ":" או ";
+          var range_phrase = (data["lang"] == "en")?"enter a range.  E.g. ":" ";
+
+          if ((data["is_node"]) ||
+              (data["is_ref"] && (!(data["is_segment"] || data["is_section"])))
+          ) {
+              return getSectionCompletionMessage(inString, data) || prompt_message;
+          } else if (data["is_section"]) {
+              return success_message + or_phrase + getSegmentCompletionMessage(inString, data);
+          } else if (data["is_segment"] && !data["is_range"] &&  +(data["sections"].slice(-1)) > 0) {  // check that it's an int
+              var range_end = +(data["sections"].slice(-1)) + 1;
+              return success_message + or_phrase + range_phrase + inString + "-" + range_end;
+          } else if (data["is_segment"]) {
+              return success_message + ".";
+          } else {
+              return ;
+          }
+      }
 
       $("#textPreview").remove();
       $("#inlineTextPreview").remove();
@@ -309,19 +350,33 @@ $(function() {
       Sefaria.lookupRef(
         inString,
         function(data) {
+          $msg.html(getMessage(inString, data));
           if (data.is_ref && (data.is_section || data.is_segment)) {
             allow();
             return;
           }
           disallow();
-        }
+        }.bind(this)
       );
     };
-    
-	// Wrapper function for checkRef for adding sources for sheets
-	var checkAddSource = function(e) {
-		validateRef($("#add"), $("#addDialogTitle"), $("#addOK"), addSourcePreview);
-	};
+
+    /*
+    $("#add").autocomplete({
+        source: autocomplete_source,
+        minLength: 3,
+        //focus: function(event, ui) { return false; }
+    });
+
+	$("#closeAddSource").click(function() {
+		$("#addSourceModal, #overlay").hide();
+		$("#add").val("");
+		$("#error").empty();
+		$("#textPreview").remove();
+		$("#addDialogTitle").text("Enter a text or commentator name:");
+		sjs.track.sheets("Close Add Source Modal");
+	});
+
+
 
 	// Adding unknown Texts from Add modal
 	$("#add").keyup(checkAddSource)
@@ -335,12 +390,24 @@ $(function() {
 			}
 		}					
 	});
+	*/
 
+    var autocomplete_source = function(request, response) {
+        Sefaria.lookupRef(
+            request.term,
+            function (d) { response(d["completions"]); }
+        );
+    };
+
+    // Wrapper function for checkRef for adding sources for sheets
+    // This is on its way to being retired.
+	var checkAddSource = function(e) {
+		validateRef($("#add"), $("#addDialogTitle"), $("#addOK"), addSourcePreview);
+	};
 
 	$("#inlineAdd").autocomplete({ 
         source: autocomplete_source,
-        minLength: 3,
-        //focus: function(event, ui) { return false; }
+        minLength: 3
     });
 
 	// Wrapper function for checkRef for adding sources for sheets
@@ -349,7 +416,7 @@ $(function() {
 	};
 
 	// Adding unknown Texts from Add modal
-	$("#inlineAdd").keyup(checkInlineAddSource )
+	$("#inlineAdd").keyup(checkInlineAddSource)
 		.keyup(function(e) {
       $("#inlineAdd").autocomplete("enable");
 		if (e.keyCode == 13) {
