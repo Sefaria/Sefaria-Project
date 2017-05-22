@@ -2407,12 +2407,14 @@ a.readerNavCategory {
   100% {color: black;}
 }
 .segment sup.itag {
-  margin-left: .2em;
-  margin-right: .2em;
-  font-weight: bolder;
+  /* margin-left: .2em; */
+  /* margin-right: .2em; */
+  /* font-weight: bolder; */
   text-decoration: none;
   animation-name: itag;
+  font-family: sans-serif;
   animation-duration: 5s;
+  font-size: 0.7em;
 }
 .segment i.footnote {
   display: none;
