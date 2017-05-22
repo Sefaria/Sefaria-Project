@@ -8574,6 +8574,9 @@ var ConnectionsSummary = React.createClass({
       summary = summary.filter(function (cat) {
         return cat.category == this.props.category;
       }.bind(this));
+      if (summary.length == 0) {
+        summary = [{ category: this.props.category, books: [], count: 0 }];
+      }
     } else if (!this.props.category) {
       // Top Level summary, don't show Quoting Commentary
       summary = summary.filter(function (cat) {
