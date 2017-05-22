@@ -1512,7 +1512,9 @@ sjs.wrapRefLinks = function(text) {
 
 
 function checkRef($input, $msg, $ok, level, success, commentatorOnly) {
-	
+
+    // !! This is now only used in legacy S1 reader code.
+
 	/* check the user inputted text ref
 	   give feedback to make it correct to a certain level of specificity
 	   talk to the server when needed to find section names
@@ -1974,7 +1976,7 @@ function checkRef($input, $msg, $ok, level, success, commentatorOnly) {
 			break;
 	}
 		
-}	
+}
 
 
 function textPreview(ref, $target, callback) {

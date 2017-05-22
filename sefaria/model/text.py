@@ -285,8 +285,6 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
 
         return contents
 
-
-
     def legacy_form(self, force_complex=False):
         """
         :param force_complex: Forces a complex Index record into legacy form
