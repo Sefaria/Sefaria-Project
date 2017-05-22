@@ -1984,7 +1984,7 @@ class Ref(object):
 
         reg = None
         try:
-            reg = self.index_node.full_regex(title, self._lang)  # Try to treat this as a JaggedArray
+            reg = self.index_node.full_regex(title, self._lang, terminated=True)  # Try to treat this as a JaggedArray
         except AttributeError:
             if self.index.has_alt_structures():
                 # Give an opportunity for alt structure parsing, below
@@ -2002,11 +2002,12 @@ class Ref(object):
         # Numbered Structure node - try numbered structure parsing
         if reg and self.index_node.children and getattr(self.index_node, "_addressTypes", None):
             try:
-                struct_indexes = self.__get_sections(reg, base)
+                loose_reg = self.index_node.full_regex(title, self._lang)
+                struct_indexes = self.__get_sections(loose_reg, base)
                 self.index_node = reduce(lambda a, i: a.children[i], [s - 1 for s in struct_indexes], self.index_node)
                 title = self.book = self.index_node.full_title("en")
-                base = regex.sub(reg, title, base)
-                reg = self.index_node.full_regex(title, self._lang)
+                base = regex.sub(loose_reg, title, base)
+                reg = self.index_node.full_regex(title, self._lang, terminated=True)
             except InputError:
                 pass
             #todo: ranges that cross structures
@@ -2040,7 +2041,7 @@ class Ref(object):
                             return
 
                     try:  # Some structure nodes don't have .regex() methods.
-                        reg = alt_struct_node.full_regex(title, self._lang)
+                        reg = alt_struct_node.full_regex(title, self._lang)  # Not strict, since the array map portion will go beyond
                     except AttributeError:
                         pass
                     else:
@@ -2051,7 +2052,7 @@ class Ref(object):
                                 alt_struct_node = reduce(lambda a, i: a.children[i], [s - 1 for s in struct_indexes], alt_struct_node)
                                 title = alt_struct_node.full_title("en")
                                 base = regex.sub(reg, title, base)
-                                reg = alt_struct_node.full_regex(title, self._lang)
+                                reg = alt_struct_node.full_regex(title, self._lang, terminated=True)
                             except InputError:
                                 pass
 
@@ -4278,8 +4279,6 @@ class Library(object):
                 else:
                     refs += res
         return refs
-
-
 
     def get_wrapped_refs_string(self, st, lang=None, citing_only=False):
         """

@@ -759,6 +759,8 @@ class NumberedTitledTreeNode(TitledTreeNode):
         :return: Regex object. If kwargs[for_js] == True, returns the Regex string
         :param for_js: Defaults to False
         :param match_range: Defaults to False
+        :param strict: Only match string where all address components match
+        :param terminated: Only match string that contains just a valid ref
 
         A call to `full_regex("Bereishit", "en", for_js=True)` returns the follow regex, expanded here for clarity :
         ```
@@ -792,13 +794,13 @@ class NumberedTitledTreeNode(TitledTreeNode):
         Different address type / language combinations produce different internal regexes in the innermost portions of the above, where the comments say 'digits'.
 
         """
-        key = (title, lang, anchored, compiled, kwargs.get("for_js"), kwargs.get("match_range"), kwargs.get("strict"))
+        key = (title, lang, anchored, compiled, kwargs.get("for_js"), kwargs.get("match_range"), kwargs.get("strict"), kwargs.get("terminated"))
         if not self._regexes.get(key):
             reg = ur"^" if anchored else ""
             reg += regex.escape(title) + self.after_title_delimiter_re
             addr_regex = self.address_regex(lang, **kwargs)
             reg += ur'(?:(?:' + addr_regex + ur')|(?:[\[({]' + addr_regex + ur'[\])}]))'  # Match expressions with internal parenthesis around the address portion
-            reg += ur"(?=\W|$)" if not kwargs.get("for_js") else ur"(?=[.,:;?! })\]<]|$)"
+            reg += ur"(?=[.,:;?! })\]<]|$)" if kwargs.get("for_js") else ur"(?=\W|$)" if not kwargs.get("terminated") else ur"$"
             self._regexes[key] = regex.compile(reg, regex.VERBOSE) if compiled else reg
         return self._regexes[key]
 
