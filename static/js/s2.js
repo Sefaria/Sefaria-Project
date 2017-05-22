@@ -7633,7 +7633,7 @@ var TextRange = React.createClass({
   componentDidUpdate: function componentDidUpdate(prevProps, prevState) {
     // Place segment numbers again if update affected layout
     if (this.props.basetext || this.props.segmentNumber) {
-      if (this.props.version != prevProps.version || this.props.versionLanguage != prevProps.versionLanguage || prevProps.settings.language !== this.props.settings.language || prevProps.settings.layoutDefault !== this.props.settings.layoutDefault || prevProps.settings.layoutTanakh !== this.props.settings.layoutTanakh || prevProps.settings.layoutTalmud !== this.props.settings.layoutTalmud || prevProps.settings.biLayout !== this.props.settings.biLayout || prevProps.settings.fontSize !== this.props.settings.fontSize || prevProps.layoutWidth !== this.props.layoutWidth) {
+      if (this.props.version != prevProps.version || this.props.versionLanguage != prevProps.versionLanguage || prevProps.settings.language !== this.props.settings.language || prevProps.settings.layoutDefault !== this.props.settings.layoutDefault || prevProps.settings.layoutTanakh !== this.props.settings.layoutTanakh || prevProps.settings.layoutTalmud !== this.props.settings.layoutTalmud || prevProps.settings.biLayout !== this.props.settings.biLayout || prevProps.settings.fontSize !== this.props.settings.fontSize || prevProps.layoutWidth !== this.props.layoutWidth || prevProps.filter !== this.props.filter) {
         // Rerender in case version has changed
         this.forceUpdate(function () {
           if (this.isMounted()) {
@@ -8114,6 +8114,16 @@ var TextSegment = React.createClass({
       )
     ) : null;
     var he = this.props.he || "";
+
+    // render itags
+    if (this.props.filter && this.props.filter.length > 0) {
+      var new_element = $('<div/>').append("<div>" + he + "</div>");
+      $(new_element).find('i[data-commentator="' + this.props.filter[0] + '"]').each(function () {
+        $(this).replaceWith('<sup class="itag">' + Sefaria.hebrew.encodeHebrewNumeral($(this).attr('data-order')) + "</sup>");
+      });
+      he = $(new_element).html();
+    }
+
     var en = this.props.en || "";
     var classes = classNames({ segment: 1,
       highlight: this.props.highlight,
