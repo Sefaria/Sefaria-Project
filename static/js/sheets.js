@@ -73,40 +73,6 @@ $(function() {
 	  }
 	);
 
-
-	$("#addSource, #addButton").click(function() { 
-		$("#addSourceModal").data("target", $("#sources")).show()
-			.position({of: $(window)}); 
-		$("#add").focus();
-		$("#overlay").show();
-		sjs.track.sheets("Open Add Source Modal");
-	});
-	
-	$("#addMedia").click(function(e) { 
-
-		var source = {media: "", isNew: true};
-		if (sjs.can_add) { source.userLink = sjs._userLink; }
-
-		buildSource($("#sources"), source);
-		
-		afterAction();
-		e.stopPropagation();
-
-		$("#addMediaModal").data("target", $("#sources").find(".media").last()).show().position({of: $(window)}); 
-		$("#addMediaInput").focus();
-		$("#overlay").show();
-//		sjs.track.sheets("Open Add Media Modal");
-
-
-	});
-	
-		$("#addMediaInput").keyup(checkAddSource).keyup(function(e) {
-			if (e.keyCode == 13) {
-				$( "#addMediaModal .ok" ).click()
-			}
-		});
-		
-
 	function makeMediaEmbedLink(mediaURL) {
 	    var re = /https?:\/\/(www\.)?(youtu(?:\.be|be\.com)\/(?:.*v(?:\/|=)|(?:.*\/)?)([\w'-]+))/i;
    		var m;
@@ -148,37 +114,7 @@ $(function() {
 	}
 
 
-
-	$( "#addMediaModal .ok" ).click(function() {
-
-		var $target = $("#addMediaModal").data("target");
-		var embedHTML = makeMediaEmbedLink($("#addMediaInput").val())
-		if (embedHTML != false) {
-			$target.html(embedHTML);
-		}
-		else {
-			$target.parent().remove();
-			sjs.alert.flash("We couldn't understand your link.<br/>No media added.")
-		}
-
-		$("#addMediaModal, #overlay").hide();
-
-
-		mediaCheck($target);
-		autoSave();
-
-	if (sjs.openRequests == 0) {
-		var top = $target.offset().top - 200;
-		$("html, body").animate({scrollTop: top}, 300);
-	}
-
-
-	});	
-	
-
-
-
-	$("#addBrowse, #inlineAddBrowse").click(function() {
+	$("#inlineAddBrowse").click(function() {
 		$("#closeAddSource").trigger("click");
 		sjs.textBrowser.show({
 			callback: function(ref) {
@@ -191,19 +127,11 @@ $(function() {
 		})
 	});
 
-	$(document).on("click", "#addSourceOK", function() {
-        var ref = $("#add").val();
-		Sefaria.lookupRef(ref, addSource);
-		$("#closeAddSource").trigger("click");
-		sjs.track.sheets("Add Source", ref)
-	});
-
 	$(document).on("click", "#inlineAddSourceOK", function() {
 		var $target = $("#addInterface").prev(".sheetItem");
-		$("#addSourceModal").data("target", $target);
         var ref = $("#inlineAdd").val();
 		Sefaria.lookupRef(ref, function(q) {
-            addSource(q, undefined,"insert");
+            addSource(q, undefined,"insert", $target);
             $('#inlineAdd').val('');
             $("#inlineTextPreview").remove();
             $("#inlineAddDialogTitle").text("Select a text");
@@ -212,50 +140,6 @@ $(function() {
         });
 		sjs.track.sheets("Add Source", ref);
 	});
-
-
-
-	$("#addComment").click(function(e) {
-		// Add a new comment to the end of the sheet
-		var source = {comment: "", isNew: true};
-		if (sjs.can_add) { source.userLink = sjs._userLink; }
-
-		buildSource($("#sources"), source);
-		$("#sources").find(".comment").last().trigger("mouseup").focus();
-		
-		sjs.track.sheets("Add Comment");
-		afterAction();
-		e.stopPropagation();
-
-	});
-
-	$("#addOutside").click(function(e) {
-		// Add a new outside text to the end of the sheet
-		var source = {outsideText: "", isNew: true};
-		if (sjs.can_add) { source.userLink = sjs._userLink; }
-
-		buildSource($("#sources"), source);
-		$("#sources").find(".outside").last().trigger("mouseup").focus();
-		
-		sjs.track.sheets("Add Outside Text");
-		afterAction();
-		e.stopPropagation();
-	});
-
-	$("#addBiOutside").click(function(e) {
-		// Add a new bilingual outside text to the end of the sheet
-		var source = {outsideBiText: {en: "<i>English</i>", he: "<i>עברית</i>"}, isNew: true};
-		if (sjs.can_add) { source.userLink = sjs._userLink; }
-
-		buildSource($("#sources"), source);
-		var elToFocus = $("#sheet").hasClass("hebrew") ? ".outsideBi .he" : ".outsideBi .en";
-		$("#sources").find(elToFocus).last().trigger("mouseup").focus();
-		
-		sjs.track.sheets("Add Outside Text (Bilingual)");
-		afterAction();
-		e.stopPropagation();
-	});
-
 
     var validateRef = function($input, $msg, $ok, success) {
       /** Replacement for utils.js:sjs.checkref that uses only new tools. 
@@ -269,8 +153,6 @@ $(function() {
       function allow() {
         $ok.removeClass("inactive").removeClass("disabled");
         $input.autocomplete("disable");
-        // $("#addSourceTextControls .btn").addClass("inactive");
-        // $("#addSourceCancel").removeClass("inactive");
         success();
       }
 
@@ -360,50 +242,12 @@ $(function() {
       );
     };
 
-    /*
-    $("#add").autocomplete({
-        source: autocomplete_source,
-        minLength: 3,
-        //focus: function(event, ui) { return false; }
-    });
-
-	$("#closeAddSource").click(function() {
-		$("#addSourceModal, #overlay").hide();
-		$("#add").val("");
-		$("#error").empty();
-		$("#textPreview").remove();
-		$("#addDialogTitle").text("Enter a text or commentator name:");
-		sjs.track.sheets("Close Add Source Modal");
-	});
-
-
-
-	// Adding unknown Texts from Add modal
-	$("#add").keyup(checkAddSource)
-		.keyup(function(e) {
-		if (e.keyCode == 13) {
-			if ($("#addSourceOK").length) {
-				$("#addSourceOK").trigger("click");
-			} else if ($("#addDialogTitle").text() === "Unknown text. Would you like to add it?") {
-				var path = parseURL(document.URL).path;
-				window.location = "/add/textinfo/" + $("#add").val().replace(/ /g, "_") + "?after=" + path;
-			}
-		}					
-	});
-	*/
-
     var autocomplete_source = function(request, response) {
         Sefaria.lookupRef(
             request.term,
             function (d) { response(d["completions"]); }
         );
     };
-
-    // Wrapper function for checkRef for adding sources for sheets
-    // This is on its way to being retired.
-	var checkAddSource = function(e) {
-		validateRef($("#add"), $("#addDialogTitle"), $("#addOK"), addSourcePreview);
-	};
 
 	$("#inlineAdd").autocomplete({ 
         source: autocomplete_source,
@@ -1276,20 +1120,16 @@ $(function() {
 
 				var $target = $("#addInterface").prev(".sheetItem");
 
-
 				$(".sourceConnection.active").each(function (index) {
 
-
-					refs = $(this).data("refs").split(";");
-					refs = refs.reverse()
+					var refs = $(this).data("refs").split(";");
+					refs = refs.reverse();
 
 					for (var i = 0; i < refs.length; i++) {
 						var source = {
 							ref: refs[i]
-						}
-
+						};
 						buildSource($target, source, "insert");
-
 					}
 
 				});
@@ -1334,7 +1174,6 @@ $(function() {
 			$("#addInterface").on("click", "#connectionButton", function (e) {
 
 				var ref = $("#addInterface").prev(".source").attr("data-ref");
-				var $target = $("#addInterface").prev(".sheetItem");
 				$("#connectionsToAdd").text("Looking up Connections...");
 
 				$.getJSON("/api/texts/" + ref + "?context=0&pad=0", function (data) {
@@ -1348,7 +1187,7 @@ $(function() {
 
 						data.commentary = data.commentary.sort(SortBySourceRef);
 
-						var categorySum = {}
+						var categorySum = {};
 						for (var i = 0; i < data.commentary.length; i++) {
 							var c = data.commentary[i];
 							if (categorySum[c.collectiveTitle['en']]) {
@@ -1417,9 +1256,7 @@ $(function() {
 			});
 
 			$("#addmediaDiv").on("click", ".button", function (e) {
-
-
-				var $target = $("#addInterface").prev(".sheetItem");
+                var $target = $("#addInterface").prev(".sheetItem");
 				var source = {media: "", isNew: true};
 				if (sjs.can_add) {
 					source.userLink = sjs._userLink;
@@ -1438,8 +1275,6 @@ $(function() {
 				}
 
 				autoSave();
-
-
 			});
 
 
@@ -1730,7 +1565,6 @@ $(function() {
 	);
 
 	$("#addParashaToSheetModalTrigger").live("click", function(e) {
-		$("#addSourceModal").hide();
 		$("#addParashaToSheetModal").show().position({of: window});
 		$("#overlay").show();
 	});
@@ -2226,32 +2060,7 @@ $(function() {
 		sjs.track.sheets("Remove Source");
 
 	 });
-	 
 
-	// Add Sub-Source
-	$(".addSub").live("click", function() { 
-		$("#addSourceModal").data("target", $($(this).closest(".source")).eq(0))
-			.show().position({of: window});
-		$("#add").focus();
-		$("#overlay").show();
-		sjs.track.sheets("Add Sub-Source");
-
-	});
-
-	// Add comment below a Source
-	$(".addSubComment").live("click", function() {
-		var $target = $($(this).closest(".source")).eq(0);
-		
-		var source = {comment: "", isNew: true};
-		if (sjs.can_add) { source.userLink = sjs._userLink; }
-
-		buildSource($target, source, "insert");
-		$target.next(".sheetItem").addClass('indented-1');
-		$target.next(".sheetItem").find(".comment").last().trigger("mouseup").focus();
-
-		sjs.track.sheets("Add Sub Comment");
-	});
-	
 	// Copy a Source
 	$(".copySource").live("click", function() {
 		var source = readSource($(this).closest(".sheetItem"));
@@ -2441,19 +2250,14 @@ if( navigator.userAgent.match(/iPhone|iPad|iPod/i) ) {
 
 }); // ------------------ End DOM Ready  ------------------
 
-function addSource(q, source, appendOrInsert) {
+function addSource(q, source, appendOrInsert, $target) {
 	// Add a new source to the DOM.
 	// Completed by loadSource on return of AJAX call.
 	// unless 'source' is present, then load with given text.
 	appendOrInsert = typeof appendOrInsert !== 'undefined' ? appendOrInsert : 'append';
 
-
 	var badRef = q.ref == undefined;
-
-	if ($("#addSourceModal").data("target") == null) {
-		$("#addSourceModal").data("target", $("#sources"));
-	}
-	var $listTarget = $("#addSourceModal").data("target");
+	var $listTarget = $target || $("#sources");
 
 	if ($listTarget.length == 0) appendOrInsert = "append";
 
@@ -3033,8 +2837,6 @@ function buildSheet(data){
 
 	$("#sources").empty();
 
-	$("#addSourceModal").data("target", $("#sources"));
-
 	// Set options with binary value
 	$("#sheet").removeClass("numbered bsd boxed assignable");
 	$("#numbered, #bsd, #boxed, #assignable").find(".fa-check").addClass("hidden");
@@ -3158,7 +2960,6 @@ function buildSource($target, source, appendOrInsert) {
 	// Build a single source in $target. May call buildSources recursively if sub-sources present.
 		
 	if (!("node" in source)) {
-
 		source.node = sjs.current.nextNode;
 		sjs.current.nextNode++;
 	}
@@ -3170,8 +2971,7 @@ function buildSource($target, source, appendOrInsert) {
 	
 	if (("ref" in source) && (source.ref != null)  ) {
 		var q = parseRef(source.ref);
-		$("#addSourceModal").data("target", $target);
-		addSource(q, source, appendOrInsert);
+		addSource(q, source, appendOrInsert, $target);
 		
 		if ("options" in source) {
 			$(".sheetItem").last().addClass(source.options.sourceLayout+" "+source.options.sourceLanguage+" "+source.options.sourceLangLayout+" "+source.options.indented)
@@ -3480,8 +3280,7 @@ sjs.replayLastEdit = function() {
 	var source = null;
 	switch(sjs.lastEdit.type) {
 		case "add source":
-			$("#addSourceModal").data("target", $target);
-			addSource(parseRef(sjs.lastEdit.ref));
+			addSource(parseRef(sjs.lastEdit.ref), undefined, undefined, $target);
 			break;
 		case "add comment":
 			source = {comment: sjs.lastEdit.html, isNew: true};
