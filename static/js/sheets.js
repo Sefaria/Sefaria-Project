@@ -34,6 +34,13 @@ sjs.current.nextNode = sjs.current.nextNode || 1;
 // another user updates the currently loaded sheet. 
 sjs.lastEdit = null;
 
+// We want completion messages to be somewhat sticky.
+// This records the string used to build the current message.
+sjs.completion_message_base = undefined;
+// And the current message
+sjs.completion_message = "";
+
+
 $(window).on("beforeunload", function() {
 	if (!($("#save").text() == "Saving...")) {
 		if (sjs._uid && !(sjs.current.id) && $("#empty").length === 0) {
@@ -191,7 +198,7 @@ $(function() {
         var exampleRef = inString + separator + addressListString;
         return ((lang=="en")?
         "Enter a " + sectionListString + ". E.g: '<b>" + exampleRef +"</b>'":
-        "תקליד " + sectionListString + ". לדוגמא " + exampleRef)
+        "הקלידו " + sectionListString + ". לדוגמא " + exampleRef)
       }
 
       function getSegmentCompletionMessage(inString, data) {
@@ -203,28 +210,39 @@ $(function() {
       }
 
       function getMessage(inString, data) {
-          var prompt_message = (data["lang"]=="en")?"Select a text":""; //Hebrew
-          var success_message = (data["lang"]=="en")?"OK. Click <b>add</b> to continue":""; //Hebrew
+          // Stores state in sjs.completion_message_base & sjs.completion_message
+
+          // If current string contains string used for last message, and itself isn't a new state, use current message.
+          if (inString.indexOf(sjs.completion_message_base) == 0 && !data["is_ref"]) {
+              return sjs.completion_message; 
+          }
+
+          var return_message = "";
+          var prompt_message = (data["lang"]=="en")?"Select a text":"נא בחרו טקסט";
+          var success_message = (data["lang"]=="en")?"OK. Click <b>add</b> to continue":("לחצו " + "<b>add</b>" + " בכדי להמשיך");
           var or_phrase = (data["lang"]=="en")?" or ":" או ";
-          var range_phrase = (data["lang"] == "en")?"enter a range.  E.g. ":" ";
+          var range_phrase = (data["lang"] == "en")?"enter a range.  E.g. ":"הוסיפו טווח. לדוגמא ";
 
           if ((data["is_node"]) ||
               (data["is_ref"] && (!(data["is_segment"] || data["is_section"])))
           ) {
-              return getSectionCompletionMessage(inString, data) || prompt_message;
+              return_message = getSectionCompletionMessage(inString, data) || prompt_message;
           } else if (data["is_section"]) {
-              return success_message + or_phrase + getSegmentCompletionMessage(inString, data);
+              return_message = success_message + or_phrase + getSegmentCompletionMessage(inString, data);
           } else if (data["is_segment"] && !data["is_range"] &&  +(data["sections"].slice(-1)) > 0) {  // check that it's an int
               var range_end = +(data["sections"].slice(-1)) + 1;
-              return success_message + or_phrase + range_phrase + inString + "-" + range_end;
+              return_message = success_message + or_phrase + range_phrase + "<b>" + inString + "-" + range_end + "</b>";
           } else if (data["is_segment"]) {
-              return success_message + ".";
+              return_message = success_message + ".";
           } else {
-              return ;
+              return_message = prompt_message;
           }
+
+          sjs.completion_message_base = inString;
+          sjs.completion_message = return_message;
+          return return_message;
       }
 
-      $("#textPreview").remove();
       $("#inlineTextPreview").remove();
 
       var inString = $input.val();
@@ -232,7 +250,8 @@ $(function() {
       Sefaria.lookupRef(
         inString,
         function(data) {
-          $msg.html(getMessage(inString, data));
+          $msg.css("direction", (data["lang"]=="he"?"rtl":"ltr"))
+              .html(getMessage(inString, data));
           if (data.is_ref && (data.is_section || data.is_segment)) {
             allow();
             return;
@@ -242,15 +261,13 @@ $(function() {
       );
     };
 
-    var autocomplete_source = function(request, response) {
-        Sefaria.lookupRef(
-            request.term,
-            function (d) { response(d["completions"]); }
-        );
-    };
-
 	$("#inlineAdd").autocomplete({ 
-        source: autocomplete_source,
+        source: function(request, response) {
+            Sefaria.lookupRef(
+                request.term,
+                function (d) { response(d["completions"]); }
+            );
+        },
         minLength: 3
     });
 
