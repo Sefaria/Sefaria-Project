@@ -3175,33 +3175,6 @@ function attributionDataString(uid, newItem, classStr) {
 	return str;
 }
 
-function addSourcePreview(e) {
-    /* todo: get this off of sjs.editing
-	if (sjs.editing.index.categories[0] === "Talmud") {
-		$("#addDialogTitle").html("Daf found. You may also specify numbered segments below.<span class='btn btn-primary' id='addSourceOK'>Add This Source</span>");
-	} else if (sjs.editing.index.categories[0] === "Commentary") {
-        $("#addDialogTitle").html("Commentary found. You may also specify numbered comments below.<span class='btn btn-primary' id='addSourceOK'>Add This Source</span>");
-    } else if (sjs.editing.index.depth && sjs.editing.index.depth == 1) {
-		$("#addDialogTitle").html("Source found. You can add it, or specify a subsection.<span class='btn btn-primary' id='addSourceOK'>Add This Source</span>");
-	} else {
-		$("#addDialogTitle").html("Source found. Specify a range with '-'.<span class='btn btn-primary' id='addSourceOK'>Add This Source</span>");
-	}
-	*/
-	var ref = $("#add").val();
-	if (!$("#textPreview").length) { $("body").append("<div id='textPreview'></div>"); }
-	
-	textPreview(ref, $("#textPreview"), function() {
-		if ($("#textPreview .previewNoText").length === 2) {
-			$("#addDialogTitle").html("<i>No text available. Click below to add this text.</i>");
-		}
-		if ($("#textPreview .error").length > 0) {
-			$("#addDialogTitle").html("Uh-Oh");
-		}
-		$("#textPreview")
-			.position({my: "left top", at: "left bottom", of: $("#add"), collision: "none" }).width($("#add").width())
-	});
-}
-
 function inlineAddSourcePreview(e) {
     /* todo: get this off of sjs.editing
 
