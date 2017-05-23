@@ -4243,38 +4243,40 @@ class Library(object):
         title_nodes = {}
         for title in unique_titles:
             try:
-                re_string = self.get_regex_string(title, lang)
+                re_string = self.get_regex_string(title, lang, capture_title=True)
                 node = self.get_schema_node(title, lang)
-                if not isinstance(node, JaggedArrayNode):
-                # Assumes that node is a JaggedArrayNode
-                    logger.info(u"Skipping Schema Node: {}".format(title))
-                    continue
                 title_regs.append(u"(?:{})".format(re_string))
                 title_nodes[title] = node
-            except AttributeError as e:
+            except AssertionError as e1:
+                logger.info(u"Skipping Schema Node: {}".format(title))
+                continue
+            except AttributeError as e2:
                 logger.warning(u"Library._wrap_all_refs_in_string() failed to create regex for: {}.  {}".format(title, e))
                 continue
 
         all_reg = ur"|".join(title_regs)
         reg = regex.compile(all_reg, regex.VERBOSE)
-        if len(unique_titles):
+        if len(title_regs):
             st = self._wrap_all_refs_in_string(title_nodes, reg, st, lang)
         return st
 
     # do we want to move this to the schema node? We'd still have to pass the title...
-    def get_regex_string(self, title, lang, for_js=False, anchored=False):
+    def get_regex_string(self, title, lang, for_js=False, anchored=False, capture_title=False):
         node = self.get_schema_node(title, lang)
         assert isinstance(node, JaggedArrayNode)  # Assumes that node is a JaggedArrayNode
 
         if lang == "en" or for_js:  # Javascript doesn't support look behinds.
-            return node.full_regex(title, lang, for_js=for_js, match_range=for_js, compiled=False, anchored=anchored)
+            return node.full_regex(title, lang, for_js=for_js, match_range=for_js, compiled=False, anchored=anchored, capture_title=capture_title)
 
         elif lang == "he":
             return ur"""(?<=							# look behind for opening brace
                     [({]										# literal '(', brace,
                     [^})]*										# anything but a closing ) or brace
                 )
-                """ + ur"(?P<title>" + regex.escape(title) + ur")" + node.after_title_delimiter_re + node.address_regex(lang, for_js=for_js, match_range=for_js) + ur"""
+                """ + ur"(?P<title>" + regex.escape(title) + ur")" if capture_title else regex.escape(title)\
+                   + node.after_title_delimiter_re \
+                   + node.address_regex(lang, for_js=for_js, match_range=for_js) \
+                   + ur"""
                 (?=\W|$)                                        # look ahead for non-word char
                 (?=												# look ahead for closing brace
                     [^({]*										# match of anything but an opening '(' or brace
