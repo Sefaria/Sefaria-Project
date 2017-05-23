@@ -60,7 +60,6 @@ def format_link_object_for_client(link, with_text, ref, pos=None):
 
     if com["type"] != "commentary" and com["category"] == "Commentary":
             com["category"] = "Quoting Commentary"
-            #add a fix here for quoting commentary appearing together with commentary in s2 panels
 
     if linkRef.index_node.primary_title("he"):
         com["heTitle"] = linkRef.index_node.primary_title("he")

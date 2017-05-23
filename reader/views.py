@@ -271,10 +271,10 @@ def make_panel_dict(oref, version, language, filter, mode, **kwargs):
                 panel["versionLanguage"] = None
         if mode != "Connections":
             try:
-                text = TextFamily(oref, version=panel["version"], lang=panel["versionLanguage"], commentary=False, context=True, pad=True, alts=True).contents()
+                text = TextFamily(oref, version=panel["version"], lang=panel["versionLanguage"], commentary=False, context=True, pad=True, alts=True, wrapLinks=False).contents()
             except NoVersionFoundError:
                 text = {}
-
+            text["updateFromAPI"] = True
             text["next"] = oref.next_section_ref().normal() if oref.next_section_ref() else None
             text["prev"] = oref.prev_section_ref().normal() if oref.prev_section_ref() else None
             panel["text"] = text
@@ -1275,12 +1275,14 @@ def texts_api(request, tref, lang=None, version=None):
         version    = version.replace("_", " ") if version else None
         layer_name = request.GET.get("layer", None)
         alts       = bool(int(request.GET.get("alts", True)))
+        wrapLinks = bool(int(request.GET.get("wrapLinks", False)))
+
 
         try:
-            text = TextFamily(oref, version=version, lang=lang, commentary=commentary, context=context, pad=pad, alts=alts).contents()
+            text = TextFamily(oref, version=version, lang=lang, commentary=commentary, context=context, pad=pad, alts=alts, wrapLinks=wrapLinks).contents()
         except AttributeError as e:
             oref = oref.default_child_ref()
-            text = TextFamily(oref, version=version, lang=lang, commentary=commentary, context=context, pad=pad, alts=alts).contents()
+            text = TextFamily(oref, version=version, lang=lang, commentary=commentary, context=context, pad=pad, alts=alts, wrapLinks=wrapLinks).contents()
         except NoVersionFoundError as e:
             # Extended data is used by S2 in TextList.preloadAllCommentaryText()
             return jsonResponse({"error": unicode(e), "ref": oref.normal(), "versionTitle": version, "lang": lang}, callback=request.GET.get("callback", None))

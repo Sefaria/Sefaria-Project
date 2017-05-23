@@ -20,10 +20,15 @@ body.sepia {
 body.dark {
   background-color: #333331; 
 }
-.sans .en, #s2 .sans .en {
+.sans,
+.sans .en, 
+#s2 .sans .en,
+.sans .int-en {
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
 }
-.sans .he, #s2 .sans .he {
+.sans .he, 
+#s2 .sans .he,
+.sans .int-he {
   font-family: "Open Sans Hebrew", sans-serif;
 }
 #s2 {
@@ -1810,8 +1815,8 @@ a.readerNavCategory {
   left: 0;
   width: 100%;
   box-sizing: border-box;
+  border-top: 4px solid transparent;
   text-align: center;
-  padding: 8px 0 0 0;
   z-index: 100;
   height: 58px;
   line-height: 48px;
@@ -1829,20 +1834,42 @@ a.readerNavCategory {
 .dark .readerControls .readerTextToc .readerTextTocBox {
   color: white;
 }
-.readerControls.connectionsHeader {
+.readerControls.connectionsHeader.fullPanel  {
   background-color: #EDEDED;
+}
+.readerControls.connectionsHeader {
+  background-color: #F3F3F2;
+}
+.connectionsPanelHeader .connectionsHeaderTitle {
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-weight: lighter;
+}
+.connectionsPanelHeader .connectionsHeaderTitle.active {
+  text-transform: none;
+  cursor: pointer;
+}
+.connectionsHeaderTitle .fa-chevron-left {
+  margin-right: 10px;
+}
+.connectionsHeaderTitle .fa-chevron-right {
+  margin-left: 10px;
 }
 .readerControls .readerControlsInner {
   position: relative;
   width: 700px;
-  padding: 0;
   padding: 0 30px;
   display: inline-block;
   max-width:  100%;
   box-sizing: border-box;
 }
+    background-color: #EDEDED;
+
+.readerControls.connectionsHeader .readerControlsInner {
+  padding: 0 40px
+}
 .singlePanel .readerControls .readerControlsInner {
-  padding: 0 10px;
+  padding: 0 30px;
 }
 .readerControls .readerTextToc {
   text-align: center;
@@ -2362,6 +2389,7 @@ a.readerNavCategory {
   font-weight: bold;
   letter-spacing: 1px;
   cursor: pointer;
+  color: #333;
 }
 .refLink:hover {
   text-decoration: underline;
@@ -2430,6 +2458,9 @@ a.readerNavCategory {
 .connectionsPanelHeader{
   display: flex;
   justify-content: space-between;
+}
+.singlePanel .connectionsPanelHeader {
+  justify-content: flex-start;
 }
 .interface-hebrew .connectionsPanelHeader{
   direction: rtl;
@@ -2508,18 +2539,11 @@ a.readerNavCategory {
 .textList.fullPanel .texts {
   padding: 0 48px 300px 60px;
 }
-.addToSourceSheetPanel.textList.fullPanel .texts {
-  padding: 0 50px;
-}
 .textList .texts {
-  padding: 60px 30px 80px 30px;
+  padding: 80px 30px 80px 30px;
 }
-.textList.fullPanel .texts,
-.textList .fullFilterView {
-  padding: 30px 30px 80px 30px;
-}
-.textList.fullPanel .fullFilterView {
-  padding: 60px 48px 80px 60px;
+.textList.fullPanel .texts {
+  padding: 50px 40px 80px 40px;
 }
 .textListTop {
   position: absolute;
@@ -2580,12 +2604,8 @@ a.readerNavCategory {
   border-right: 1px solid transparent;
 }
 .topFilters {
-  margin: -1px;
-  padding: 4px 22px;
   line-height: 0px;
-  background-color: #F9F9F7;
-  border-top: 4px solid transparent;
-  border-bottom: 1px solid #D5D5D4;
+  text-transform: none;
 }
 .sepia .topFilters {
   background-color: #F3F3F1;
@@ -2603,7 +2623,7 @@ a.readerNavCategory {
 .topFilters .textFilter {
   color: #999;
   display: inline-block;
-  padding: 10px 8px;
+  padding: 13px 8px;
 }
 .topFilters .textFilter.on {
   color: black;
@@ -2616,7 +2636,7 @@ a.readerNavCategory {
   vertical-align: middle;
 }
 .textList.fullPanel .recentFilterSet {
-  margin: 30px 0 12px 0;
+  margin: 0 0 12 0;
 }
 .textList.fullPanel .recentFilterSet .textFilter {
   display: inline-block;
@@ -2637,14 +2657,12 @@ a.readerNavCategory {
 }
 .topFiltersInner {
   display: inline-block;
-  max-width: 80%;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   vertical-align: middle;
 }
 .textList.fullPanel .topFiltersInner {
-  max-width: none;
   white-space: normal;
 }
 .showMoreFilters {
@@ -2653,24 +2671,32 @@ a.readerNavCategory {
 }
 .categoryFilter {
   text-transform: uppercase;
-  padding: 12px;
-  text-align: center;
-  font-size: 15px;
+  padding: 17px 34px;
+  font-size: 17px;
   cursor: pointer;
   line-height: 18px;
   color: #333;
 }
 .textFilter {
-  padding: 12px 4px;
-  text-align: center;
-  font-size: 15px;
+  padding: 12px 34px;
+  font-size: 17px;
   line-height: 1.2;
+  border-top: 1px solid #ccc;
   display: block;
   cursor: pointer;
   color: #333;
 }
+.connectionsCount {
+  color: #999;
+  font-weight: lighter;
+  letter-spacing: 1px;
+  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+}
 .categoryFilterGroup a:hover {
   text-decoration: none;
+}
+.categoryFilterGroup.withBooks + .categoryFilterGroup {
+  margin-top: 30px;
 }
 .categoryFilter.on, .textFilter.on {
   color: black;
@@ -2755,7 +2781,7 @@ a.readerNavCategory {
   background-color: white;
   position: relative;
 }
-.textList.fullPanel .texts {
+.textList .texts {
   background-color: #F9F9F7;
 }
 .sepia .textList .texts {
@@ -2782,16 +2808,18 @@ a.readerNavCategory {
   display: none;
 }
 .textList .sheet, .textList .note {
-  background-color: white;
-  margin: 6px 0px;
-  padding: 10px 20px;
+  padding: 0 0 24px 0;
+}
+.textList .sheet + .sheet {
+  padding: 24px 0;
+  border-top: 1px solid #E6E5E6;
 }
 .textList .sheet .sheetAuthorImg,
 .textList .note .noteAuthorImg {
-  height: 36px;
-  width: 36px;
-  float: left;
-  margin-right: 10px;
+  height: 26px;
+  width: 26px;
+  vertical-align: -8px;
+  margin-right: 14px;
 }
 .textList .sheet .sheetViews {
   float: right;
@@ -2800,13 +2828,39 @@ a.readerNavCategory {
 .textList .sheet .sheetAuthor,
 .textList .note .noteAuthor {
   color: #999;
-  text-transform: uppercase;
-  display: block;
+  font-size: 15px;
+  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
 }
 .textList .sheet .sheetTitle {
-  font-size: 14px;
+  display: block;
+  margin-top: 14px;
+  font-size: 17px;
+  font-style: italic;
   text-align: left;
-  color: black;
+  color: #333;
+}
+.textList .sheet .sheetTitle .sheetIcon {
+  width: 14px;
+  height: 14px;
+  opacity: 0.4;
+  margin-right: 6px;
+  vertical-align: -1px;
+}
+.textList .sheet .sheetTags {
+  margin-top: 6px;
+  font-size: 13px;
+  color: #666;
+  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  text-align: left;
+} 
+.interface-hebrew .textList .sheet .sheetTags {
+  text-align: right;
+} 
+.textList .sheet .sheetTag {
+  color: inherit;  
+}
+.textList .sheet .sheetTag + .sheetTag {
+  margin-left: 8px;
 }
 .textList .note .noteTitle {
   font-weight: bold;
@@ -2832,13 +2886,6 @@ a.readerNavCategory {
 .textRange.lowlight .numberLabel {
   color: #999;
 }
-.toolsPanel .texts .contentInner,
-.sharePanel .texts .contentInner,
-.myNotesPanel .texts .contentInner,
-.addToSourceSheetPanel .texts .contentInner,
-.addNotePanel .texts .contentInner {
-  margin: 60px auto;
-}
 .readerPanel.bilingual .toolsPanel .he {
   display: none;
 }
@@ -2848,18 +2895,12 @@ a.readerNavCategory {
   font-size: 18px;
 }
 .toolsButton {
-  background-color: white;
-  color: #666;
-  border: 1px solid #F7F7F7;
-  border-radius: 7px;
+  color: #333;
+  border-top: 1px solid #CCC;
   cursor: pointer;
-  text-transform: uppercase;
-  font-size: 14px;
+  font-size: 16px;
   letter-spacing: 1px;
-  padding: 20px 26px;
-  margin: 10px 0;
-  display: flex;
-  justify-content: space-between;
+  padding: 20px 26px 20px 0;
 }
 .toolsButton .en {
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
@@ -2868,11 +2909,13 @@ a.readerNavCategory {
   /*float: right;*/
   color: #ccc;
   font-size: 22px;
+  margin-right: 15px;
 }
 .toolsButton img.toolsButtonIcon {
   width: 22px;
   height: 22px;
   opacity: 0.2;
+  vertical-align: middle;
 }
 /*.hebrew .toolsButton .toolsButtonIcon {
   float: left;
@@ -2888,6 +2931,12 @@ a.readerNavCategory {
   color: #999;
   padding: 20px 26px;
   outline: none;
+}
+.toolsPanel .addToSourceSheetPanel {
+  margin-bottom: 40px;
+}
+.addToSourceSheetPanel {
+  position: relative;
 }
 .addToSourceSheetPanel input {
   padding: 13px 12px;
@@ -2911,28 +2960,60 @@ a.readerNavCategory {
   margin: 0;
   float: right;
 }
-.sourceSheetSelector {
+.addToSourceSheetPanel .selectedSheet {
+  background: white;
+  border: 1px solid #E9E9E9;
+  border-radius: 4px;
+  padding: 16px 22px;
+  font-size: 16px;
+  margin-bottom: 10px;
+}
+.addToSourceSheetPanel .sheetListOpenButton {
+  float: right;
+  cursor: pointer;
+  color: #999;
+  font-size: 18px;
+}
+.addToSourceSheetPanel .sheetList {
+  position: absolute;
+  z-index: 1;
+  margin-top: -12px;
+  width: 100%;
+  border: 1px solid #E9E9E9;
+  background: white;
+  border-bottom-left-radius: 4px;
+  border-bottom-right-radius: 4px;
+}
+.addToSourceSheetPanel .sourceSheetSelector {
   color: #999;
   background-color: white;
   box-sizing: border-box;
-  width: 100%;
   padding: 0;
-  margin: 10px 0 30px 0;
   max-height: 300px;
   overflow-x: hidden;
   overflow-y: scroll;
 }
-.sourceSheetSelector .sheet {
-  font-size: 16px;
-  cursor: pointer;
+.singlePanel .addToSourceSheetPanel .sourceSheetSelector {
+  max-height: 150px;
 }
-.sourceSheetSelector .sheet.selected {
-  background: #ccc;
-  color: white;
+.addToSourceSheetPanel .sourceSheetSelector .sheet {
+  font-size: 16px;
+  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  cursor: pointer;
+  padding: 0 22px;
+  margin: 26px 0;
+  border: none;
+  color: #999;
+}
+.addToSourceSheetPanel .sourceSheetSelector .sheet.selected {
+  color: #333;
+}
+.addToSourceSheetPanel .newSheet {
+  border-top: 1px solid #E9E9E9;
+  padding: 14px 22px;
 }
 .confirmAddToSheetPanel {
   text-align: center;
-  padding: 100px 30px 0;
   background-color: #F9F9F7;
 }
 .confirmAddToSheetPanel .message {
@@ -2943,9 +3024,12 @@ a.readerNavCategory {
 .confirmAddToSheetPanel .button {
   width: 100%;
 }
-.addNotePanel .noteText {
+.addNoteBox + .notesList {
+  margin-top: 40px;
+}
+.toolsPanel .noteText {
   width: 100%;
-  min-height: 220px;
+  min-height: 100px;
   border: none;
   border-radius: 4px;
   padding: 20px 25px;
@@ -2955,11 +3039,13 @@ a.readerNavCategory {
   font-family: "adobe-garamond-pro", Georgia, serif;
   margin-bottom: 10px
 }
-.addNotePanel .noteSharingToggle {
+.toolsPanel .noteSharingToggle {
   border: 1px solid #ccc;
   border-radius: 4px;
+  margin-bottom: 12px;
 }
-.addNotePanel .notePrivateButton, .addNotePanel .notePublicButton {
+.toolsPanel .notePrivateButton,
+.toolsPanel .notePublicButton {
   width: 50%;
   display: inline-block;
   text-align: center;
@@ -2973,16 +3059,17 @@ a.readerNavCategory {
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
   box-sizing: border-box;
 }
-.addNotePanel .notePrivateButton.active, .addNotePanel .notePublicButton.active {
+.toolsPanel .notePrivateButton.active,
+.toolsPanel .notePublicButton.active {
   background-color: white;
   color: #666;
 }
-.addNotePanel .notePrivateButton {
+.toolsPanel .notePrivateButton {
   border-right: 1px solid #ccc;
   border-top-right-radius: 0;
   border-bottom-right-radius: 0;
 }
-.hebrew .addNotePanel .notePrivateButton {
+.hebrew .toolsPanel .notePrivateButton {
   border-left: 1px solid #ccc;
   border-top-left-radius: 0;
   border-bottom-left-radius: 0;
@@ -2990,12 +3077,12 @@ a.readerNavCategory {
   border-top-right-radius: 4px;
   border-bottom-right-radius: 4px;
 }
-.addNotePanel .line {
+.toolsPanel .line {
   width: 100%;
   border-bottom: 1px solid #ccc;
   margin: 40px 0;
 }
-.addNotePanel .deleteNote {
+.toolsPanel .deleteNote {
   text-align: center;
   padding: 18px 0;
   color: #999;
@@ -3003,45 +3090,44 @@ a.readerNavCategory {
   cursor: pointer;
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
 }
-.myNotesPanel.textList .note {
+.toolsPanel.textList .note {
   background-color: transparent;
   padding: 40px 0 30px;
   position: relative;
   display: flex;
   justify-content: space-between;
 }
-.myNotesPanel.textList .note {
+.toolsPanel.textList .note {
   border-top: 1px solid #ccc;
 }
-.myNotesPanel.textList .note:first-child {
+.toolsPanel.textList .note:first-child {
   padding-top: 10px;
   border-top: none;
 }
-.myNotesPanel .noteButtons {
+.toolsPanel .noteButtons {
   visibility: hidden;
 }
-.myNotesPanel.textList .note:first-child .noteButtons {
+.toolsPanel.textList .note:first-child .noteButtons {
   top: 14px;
 }
-.myNotesPanel .note:hover .noteButtons {
+.toolsPanel .note:hover .noteButtons {
   visibility: visible;
 }
-.myNotesPanel .noteButtons .fa {
+.toolsPanel .noteButtons .fa {
   cursor: pointer;
   color: #C6C6C6;
   font-size: 20px;
   margin: 0 8px;
 }
-.myNotesPanel .toolsButton {
-  margin-top: 20px;
-}
-.loginPanel {
+.loginPrompt {
   text-align: center;
-  padding-top: 40px;
 }
-.loginPanel .loginPanelMessage {
+.loginPrompt .loginPromptMessage {
   font-size: 18px;
-  margin: 80px 0 30px;
+  margin-bottom: 20px;
+}
+.loginPrompt .button {
+  width: auto;
 }
 .notificationsPanel .content {
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
@@ -3225,56 +3311,40 @@ a .button:hover {
 input {
   outline: none;
 }
-
 .lexicon-content{
-  /*max-height:45%;*/
   font-size: 15px;
   padding-bottom: 10px;
   margin-bottom: 1px;
-  border-bottom: 1px solid #e5e5e5;
 }
-
-
-
 .lexicon-link:hover {
   text-decoration: underline;
 }
-
-
 .lexicon-header {
   padding: 10px;
   border-bottom: 1px solid #e5e5e5;
   background-color: #AAAAAA;
 }
-
-.lexicon-header h4{
+.lexicon-header h4 {
   font-size: 1.2em;
   margin: 0px;
 }
-
 .entry + .entry {
   padding-top: 10px;
-  	/*border-top: 1px inset #AAAAAA;*/
 }
-
 .lexicon-results .entry > div{
   padding: 1% 0 1% 0;
   margin: auto;
 }
-
-.lexicon-results .entry .headword{
-	/*font-weight: bold;*/
+.lexicon-results .entry .headword {
   color: #333;
   font-size: 1.2em;
   display: block;
 }
-
-.lexicon-results .entry .morphology{
+.lexicon-results .entry .morphology {
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
   color: #999;
   display: block;
 }
-
 .lexicon-results .entry .definition-content{
     color: #444;
 }
@@ -3284,14 +3354,11 @@ input {
 .lexicon-results .entry .definition li.sense{
 	margin-left: 15px;
 	padding: 0px;
-	/*margin: 0;*/
 }
 .lexicon-results .entry .definition ol.senses{
-	/*list-style-type: none;*/
 	padding-left: 0px;
 }
 .lexicon-results .entry .definition > li.sense{
-	/*list-style-type: none;*/
 	margin-left: 0px;
 }
 .lexicon-results .entry ol.definition {
@@ -3300,35 +3367,32 @@ input {
 	padding-left: 0px;
     margin: 0px;
 }
-/*.sense + .sense {
-	margin-top: 3px;
-	padding-top: 3px;
-	border-top: 1px solid #eee;}*/
-
-/*.lexicon-results a {
-	font-size: 12px;
-}*/
-.lexicon-results .attribution{
+.lexicon-results .attribution {
 
 }
-.lexicon-results .attribution span{
+.lexicon-results .attribution span {
   display: block;
 }
-.lexicon-results .attribution a{
+.lexicon-results .attribution a {
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
   color: #aaa;
   font-size: 10px;
 }
 .lexicon-content .headword.en, .lexicon-content .headword.he,
 .lexicon-content .definition-content.en, .lexicon-content .definition-content.he,
-.lexicon-content .lexicon-results .attribution{
+.lexicon-content .lexicon-results .attribution {
   display: inline;
 }
-.lexicon-content .headword.he, .lexicon-content .definition-content.he{
+.lexicon-content .headword.he, .lexicon-content .definition-content.he {
   direction: rtl;
 }
-.lexicon-content .headword.en, .lexicon-content .definition-content.en{
+.lexicon-content .headword.en, .lexicon-content .definition-content.en {
   direction: ltr;
+}
+.lexicon-instructions,
+.lexicon-content .loadingMessage {
+  font-size: 15px;
+  font-style: italic;
 }
 h2.splitHeader {
   margin-bottom: 10px;

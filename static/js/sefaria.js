@@ -207,13 +207,14 @@ Sefaria = extend(Sefaria, {
       context:    settings.context    || 0,
       pad:        settings.pad        || 0,
       version:    settings.version    || null,
-      language:   settings.language   || null
+      language:   settings.language   || null,
+      wrapLinks:  settings.wrapLinks  || 1
     };
     var key = this._textKey(ref, settings);
     if (!cb) {
       return this._getOrBuildTextData(key, ref, settings);
     }          
-    if (key in this._texts) {
+    if (key in this._texts && !("updateFromAPI" in this._texts[key])) {
       var data = this._getOrBuildTextData(key, ref, settings);
       cb(data);
       return data;
@@ -224,6 +225,7 @@ Sefaria = extend(Sefaria, {
       cb(data);
       //console.log("API return for " + data.ref)
     }.bind(this));
+    return null;
   },
   _versions: {},
   versions: function(ref, cb) {
@@ -245,7 +247,8 @@ Sefaria = extend(Sefaria, {
     var params = param({
       commentary: settings.commentary,
       context:    settings.context,
-      pad:        settings.pad
+      pad:        settings.pad,
+      wrapLinks:  settings.wrapLinks
     });
     var url = "/api/texts/" + Sefaria.normRef(ref);
     if (settings.language && settings.version) {
@@ -283,12 +286,11 @@ Sefaria = extend(Sefaria, {
       return segmentData;
     }
   },
-  _saveText: function(data, settings, skipWrap) {
+  _saveText: function(data, settings) {
     if (!data || "error" in data) {
       return;
     }
     settings         = settings || {};
-    data             = skipWrap ? data : this._wrapRefs(data);
     var key          = this._textKey(data.ref, settings);
     this._texts[key] = data;
 
@@ -296,7 +298,7 @@ Sefaria = extend(Sefaria, {
     this._refmap[refkey] = key;
 
     var levelsUp = data.textDepth - data.sections.length;
-    if (levelsUp == 1 && !data.isSpanning) { // Section level ref
+    if (levelsUp == 1 && !data.isSpanning /*&& !data.updateFromAPI*/) { // Section level ref
       this._splitTextSection(data, settings);
     } else if (settings.context && levelsUp <= 1) {  // Do we really want this to run on spanning section refs?
       // Save a copy of the data at context level
@@ -309,7 +311,7 @@ Sefaria = extend(Sefaria, {
           version: settings.version,
           language: settings.language
       }:{};
-      this._saveText(newData, context_settings, true);
+      this._saveText(newData, context_settings);
     }
     if (data.isSpanning) {
       var spanning_context_settings = (settings.language && settings.version) ? {
@@ -359,11 +361,11 @@ Sefaria = extend(Sefaria, {
           version: settings.version,
           language: settings.language
       } : {};
-      this._saveText(segment_data, context_settings, true);
+      this._saveText(segment_data, context_settings);
 
       context_settings.context = 1;
       var contextKey = this._textKey(ref, context_settings);
-      this._texts[contextKey] = {buildable: "Add Context", ref: ref, sectionRef: sectionRef};
+      this._texts[contextKey] = {buildable: "Add Context", ref: ref, sectionRef: sectionRef, updateFromAPI:data.updateFromAPI};
 
       var refkey           = this._refKey(ref, context_settings);
       this._refmap[refkey] = contextKey;
@@ -719,14 +721,15 @@ Sefaria = extend(Sefaria, {
       return categoryData;
     });
     // Sort the categories
+    var categoryOrder = Sefaria.toc.map(function(cat) { return cat.category; });
+    categoryOrder.splice(0, 0, "Commentary"); // Always show Commentary First
+    categoryOrder.splice(2, 0, "Targum");     // Show Targum after Tanakh
     summaryList.sort(function(a, b) {
-      // always put Commentary first 
-      if      (a.category === "Commentary") { return -1; }
-      else if (b.category === "Commentary") { return  1; }
-      // always put Modern Works last
-      if      (a.category === "Modern Works") { return  1; }
-      else if (b.category === "Modern Works") { return -1; }
-      return b.count - a.count;
+      var orderA = categoryOrder.indexOf(a.category);
+      var orderB = categoryOrder.indexOf(b.category);
+      orderA = orderA == -1 ? categoryOrder.length : orderA;
+      orderB = orderB == -1 ? categoryOrder.length : orderB;
+      return orderA - orderB;
     });
     return summaryList;
   },
@@ -1196,7 +1199,8 @@ Sefaria = extend(Sefaria, {
       return sheets;
     },
     clearUserSheets: function(uid) {
-      this._userSheets[uid] = null;
+      this._userSheets[uid+"date"] = null;
+      this._userSheets[uid+"views"] = null;
     },  
     _sheetsByRef: {},
     sheetsByRef: function(ref, cb) {
@@ -2158,6 +2162,13 @@ Sefaria.util = {
             }   
         }
     },
+    getUrlVars: function() {
+      var vars = {};
+      var parts = window.location.href.replace(/[?&]+([^=&]+)=([^&]*)/gi, function(m,key,value) {
+          vars[key] = decodeURIComponent(value);
+      });
+      return vars;
+    },
     _scrollbarWidth: null,
     getScrollbarWidth: function() {
       // Returns the size of the browser scrollbars in pixels
@@ -2384,6 +2395,9 @@ Sefaria.site = {
     },
     setContentLanguage: function(language) {
         ga('set', 'contentGroup5', language);
+    },
+    setInterfaceLanguage: function(origin, language){
+        Sefaria.site.track.event("Settings", origin, language);
     },
     setNumberOfPanels: function(val) {
         ga('set', 'dimension1', val);

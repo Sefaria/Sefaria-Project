@@ -405,7 +405,7 @@ def get_sheets_for_ref(tref, pad=True, context=1):
 	regex_list = oref.regex(as_list=True)
 	ref_clauses = [{"sources.ref": {"$regex": r}} for r in regex_list]
 	sheets = db.sheets.find({"$or": ref_clauses, "status": "public"},
-		{"id": 1, "title": 1, "owner": 1, "sources.ref": 1, "views": 1}).sort([["views", -1]])
+		{"id": 1, "title": 1, "owner": 1, "sources.ref": 1, "views": 1, "tags": 1}).sort([["views", -1]])
 	for sheet in sheets:
 		matched_refs = []
 		if "sources" in sheet:
@@ -434,7 +434,8 @@ def get_sheets_for_ref(tref, pad=True, context=1):
 				"ownerName":       ownerData["name"],
 				"ownerProfileUrl": ownerData["profileUrl"],
 				"ownerImageUrl":   ownerData["imageUrl"],
-				"views":           sheet["views"]
+				"views":           sheet["views"],
+				"tags":            sheet.get("tags", []),
 			}
 
 			results.append(com)
@@ -635,3 +636,4 @@ class Sheet(abstract.AbstractMongoRecord):
 
 	def get_contained_refs(self):
 		return [model.Ref(r) for r in self.included_refs]
+

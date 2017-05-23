@@ -54,11 +54,6 @@ class AtomicTest(object):
         raise Exception("AtomicTest.run() needs to be defined for each test.")
 
     # Component methods
-    def s2(self):
-        self.driver.get(self.base_url + "/s2")
-        WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, ".readerNavCategory")))
-        self.set_modal_cookie()
-        return self
 
     # TOC
     def load_toc(self):
@@ -160,7 +155,8 @@ class AtomicTest(object):
         segment = self.driver.find_element_by_css_selector(selector)
         segment.click()
         # Todo: put a data-* attribute on .filterSet, for the multi-panel case
-        WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, ".textFilter")))
+        # Note below will fail if there are no connections
+        WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, ".categoryFilter")))
         return self
 
     # Basic navigation
@@ -230,12 +226,23 @@ class AtomicTest(object):
         )
         return self
 
-
-
     # Connections Panel
+    def find_category_filter(self, name):
+        WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, '.categoryFilter[data-name="{}"]'.format(name))))
+        return self.driver.find_element_by_css_selector('.categoryFilter[data-name="{}"]'.format(name))
+
     def find_text_filter(self, name):
         WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, '.textFilter[data-name="{}"]'.format(name))))
         return self.driver.find_element_by_css_selector('.textFilter[data-name="{}"]'.format(name))
+
+    def click_category_filter(self, name):
+        f = self.find_category_filter(name)
+        assert f, "Can not find text filter {}".format(name)
+        f.click()
+        WebDriverWait(self.driver, TEMPER).until(
+            element_to_be_clickable((By.CSS_SELECTOR, '.categoryFilterGroup.withBooks'))
+        )
+        return self
 
     def click_text_filter(self, name):
         f = self.find_text_filter(name)
@@ -244,7 +251,6 @@ class AtomicTest(object):
         WebDriverWait(self.driver, TEMPER).until(
             element_to_be_clickable((By.CSS_SELECTOR, '.recentFilterSet'))
         )
-        #WebDriverWait(self.driver, TEMPER).until(title_contains("with {}".format(name)))
         return self
 
     # Search
@@ -433,8 +439,6 @@ class Trial(object):
         else:
             raise Exception("Unrecognized platform: {}".format(self.platform))
 
-        #todo: better way to do this?
-        #driver.get(self.BASE_URL + "/s2")
         return driver
 
     def _run_one_atomic_test(self, driver, test_class, cap):
@@ -628,9 +632,6 @@ def get_every_build_tests(tests):
         tests = get_atomic_tests()
         shuffle(tests)
         driver = self._get_driver()
-
-        # Insure that we're on s2
-        driver.get(LOCAL_URL + "/s2")
 
         print ", ".join([test.__name__ for test in tests])
 
