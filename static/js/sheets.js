@@ -157,13 +157,13 @@ $(function() {
         * success -- a function to call when a valid ref has been found
       */
       
-      function allow() {
+      function _allow(ref) {
         $ok.removeClass("inactive").removeClass("disabled");
         $input.autocomplete("disable");
-        success();
+        success(ref);
       }
 
-      function disallow() {
+      function _disallow() {
         $ok.addClass("inactive").addClass("disabled");
       }
 
@@ -201,15 +201,15 @@ $(function() {
         "הקלידו " + sectionListString + ". לדוגמא " + exampleRef)
       }
 
-      function getSegmentCompletionMessage(inString, data) {
+      function _getSegmentCompletionMessage(inString, data) {
           return _getCompletionMessage(inString, data, 0);
       }
 
-      function getSectionCompletionMessage(inString, data) {
+      function _getSectionCompletionMessage(inString, data) {
           return _getCompletionMessage(inString, data, 1);
       }
 
-      function getMessage(inString, data) {
+      function _getMessage(inString, data) {
           // Stores state in sjs.completion_message_base & sjs.completion_message
 
           // If current string contains string used for last message, and itself isn't a new state, use current message.
@@ -226,9 +226,9 @@ $(function() {
           if ((data["is_node"]) ||
               (data["is_ref"] && (!(data["is_segment"] || data["is_section"])))
           ) {
-              return_message = getSectionCompletionMessage(inString, data) || prompt_message;
+              return_message = _getSectionCompletionMessage(inString, data) || prompt_message;
           } else if (data["is_section"]) {
-              return_message = success_message + or_phrase + getSegmentCompletionMessage(inString, data);
+              return_message = success_message + or_phrase + _getSegmentCompletionMessage(inString, data);
           } else if (data["is_segment"] && !data["is_range"] &&  +(data["sections"].slice(-1)) > 0) {  // check that it's an int
               var range_end = +(data["sections"].slice(-1)) + 1;
               return_message = success_message + or_phrase + range_phrase + "<b>" + inString + "-" + range_end + "</b>";
@@ -244,19 +244,18 @@ $(function() {
       }
 
       $("#inlineTextPreview").remove();
-
       var inString = $input.val();
       if (inString.length < 3) { return; }
       Sefaria.lookupRef(
         inString,
         function(data) {
           $msg.css("direction", (data["lang"]=="he"?"rtl":"ltr"))
-              .html(getMessage(inString, data));
+              .html(_getMessage(inString, data));
           if (data.is_ref && (data.is_section || data.is_segment)) {
-            allow();
+            _allow(data["ref"]);  //normalize
             return;
           }
-          disallow();
+          _disallow();
         }.bind(this)
       );
     };
@@ -276,6 +275,43 @@ $(function() {
 		validateRef($("#inlineAdd"), $("#inlineAddDialogTitle"), $("#inlineAddSourceOK"), inlineAddSourcePreview);
 	};
 
+    function inlineAddSourcePreview(ref) {
+        var $target = $("#inlineTextPreview");
+        var $title = $("#inlineAddDialogTitle");
+        
+        if (!$target.length) { $("body").append("<div id='inlineTextPreview'></div>"); $target = $("#inlineTextPreview");}
+
+        Sefaria.text(ref, {}, function (data) {
+
+            // Build segments
+            var segments = Sefaria.makeSegments(data);
+            debugger;
+            var en = segments.map(function(s) {
+                return (s.en)?
+                    ("<div class='previewLine'><span class='previewNumber'>(" +
+                    (s.number) + ")</span> " + s.en + "</div> "):
+                    "";
+            }).filter(function(s) {return !!s;}); // filter out blanks 
+            var he = segments.map(function(s) {
+                return (s.he)?
+                    ("<div class='previewLine'><span class='previewNumber'>(" +
+                    (s.number) + ")</span> " + s.he + "</div> "):
+                    "";
+            }).filter(function(s) {return !!s;});
+
+            // Handle missing text cases
+            var path = parseURL(document.URL).path;
+            if (!en) { en += "<div class='previewNoText'><a href='/add/" + normRef(ref) + "?after=" + path + "' class='btn'>Add English for " + ref + "</a></div>"; }
+            if (!he) { he += "<div class='previewNoText'><a href='/add/" + normRef(ref) + "?after=" + path + "' class='btn'>Add Hebrew for " + ref + "</a></div>"; }
+            if (!en && !he) {$title.html("<i>No text available. Click below to add this text.</i>");}
+
+            // Set it on the DOM
+            $target.html("<div class='en'>" + en.join("") + "</div>" + "<div class='he'>" + he.join("") + "</div>");
+            $target.position({my: "left top", at: "left bottom", of: $("#inlineAdd"), collision: "none" }).width('691px').css('margin-top','20px');
+
+        });
+    }
+    
 	// Adding unknown Texts from Add modal
 	$("#inlineAdd").keyup(checkInlineAddSource)
 		.keyup(function(e) {
@@ -3190,40 +3226,6 @@ function attributionDataString(uid, newItem, classStr) {
 		      (addedBy ? " data-added-by='" + addedBy + "'" : "");
  
 	return str;
-}
-
-function inlineAddSourcePreview(e) {
-    /* todo: get this off of sjs.editing
-
-	if (sjs.editing.index.categories[0] === "Talmud") {
-		$("#inlineAddDialogTitle").html("Daf found. You may also specify numbered segments below.");
-		$("#inlineAddSourceOK").removeClass("disabled");
-	} else if (sjs.editing.index.categories[0] === "Commentary") {
-        $("#inlineAddDialogTitle").html("Commentary found. You may also specify numbered comments below.");
-		$("#inlineAddSourceOK").removeClass("disabled");
-    } else if (sjs.editing.index.depth && sjs.editing.index.depth == 1) {
-		$("#inlineAddDialogTitle").html("Source found. You can add it, or specify a subsection.");
-		$("#inlineAddSourceOK").removeClass("disabled");
-	} else {
-		$("#inlineAddDialogTitle").html("Source found. Specify a range with '-'.");
-		$("#inlineAddSourceOK").removeClass("disabled");
-	}
-	*/
-    //$("#inlineAddSourceOK").removeClass("disabled"); // superfluous?
-
-	var ref = $("#inlineAdd").val();
-	if (!$("#inlineTextPreview").length) { $("body").append("<div id='inlineTextPreview'></div>"); }
-
-	textPreview(ref, $("#inlineTextPreview"), function() {
-		if ($("#inlineTextPreview .previewNoText").length === 2) {
-			$("#inlineAddDialogTitle").html("<i>No text available. Click below to add this text.</i>");
-		}
-		if ($("#inlineTextPreview .error").length > 0) {
-			$("#inlineAddDialogTitle").html("Uh-Oh");
-		}
-		$("#inlineTextPreview")
-			.position({my: "left top", at: "left bottom", of: $("#inlineAdd"), collision: "none" }).width('691px').css('margin-top','20px');
-	});
 }
 
 

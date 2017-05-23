@@ -1510,10 +1510,9 @@ sjs.wrapRefLinks = function(text) {
 	return text.replace(refRe, replacer);
 };
 
-
+// !! This is now only used in legacy S1 reader code.
 function checkRef($input, $msg, $ok, level, success, commentatorOnly) {
-
-    // !! This is now only used in legacy S1 reader code.
+// !! 
 
 	/* check the user inputted text ref
 	   give feedback to make it correct to a certain level of specificity
@@ -1978,81 +1977,6 @@ function checkRef($input, $msg, $ok, level, success, commentatorOnly) {
 		
 }
 
-
-function textPreview(ref, $target, callback) {
-	// Given ref, create a preview of its text in $target
-	// Include links to add or edit text as necessary
-	callback = callback || function(){};
-
-	var urlRef = normRef(ref);
-	var getUrl = "/api/texts/" + urlRef + "?commentary=0&context=0";
-	$target.html("Loading text...");
-	$.getJSON(getUrl, makePreview)
-		.error(function() {
-			var msg = "<span class='error'>There was an error retrieving this text.</span>";
-			$target.html(msg);
-			callback();
-	});
-
-	function makePreview(data) {
-		sjs.cache.save(data);
-		if (data.error) {
-			var msg = "<span class='error'>" + data.error + "</span>";
-			$target.html(msg);
-			callback();
-			return;
-		}
-        var text = en = he = controlsHtml = "";
-
-            if (typeof(data.text) === "string") {
-                data.text = data.text.length ? [data.text] : [];
-            }
-            if (typeof(data.he) === "string") {
-                data.he = data.he.length ? [data.he] : [];
-            }
-
-
-            if (data.spanning) { timesToIterateThroughSections = data.spanningRefs.length }
-            else {
-                timesToIterateThroughSections = 1;
-                data.he = data.he.length ? [data.he] : [];
-                data.text = data.text.length ? [data.text] : [];
-            }
-
-            for (var q=0;q<timesToIterateThroughSections;q++) {
-                curEnglishText = data.text[q] || '';
-                curHebrewText = data.he[q] || '';
-                if (data.sections.length < data.sectionNames.length) {
-                    data.sections.push(1);
-                    data.toSections.push(Math.max(curEnglishText.length, curHebrewText.length));
-                }
-                if (q==0) {curSegmentNumber = data.sections[1]}
-                else {curSegmentNumber = 1 }
-                for (var i = 0; i < (Math.max(curEnglishText.length, curHebrewText.length)); i++) {
-                    if (curEnglishText.length > i) {
-                        en += "<div class='previewLine'><span class='previewNumber'>(" + (curSegmentNumber) + ")</span> " + curEnglishText[i] + "</div> ";
-                    }
-                    if (curHebrewText.length > i) {
-                        he += "<div class='previewLine'><span class='previewNumber'>(" + ( curSegmentNumber) + ")</span> " + curHebrewText[i] + "</div> ";
-                    }
-                curSegmentNumber++;
-                }
-            }
-            var path = parseURL(document.URL).path;
-            if (!en) {
-                en += "<div class='previewNoText'><a href='/add/" + urlRef + "?after=" + path + "' class='btn'>Add English for " + ref + "</a></div>";
-            }
-            if (!he) {
-                he += "<div class='previewNoText'><a href='/add/" + urlRef + "?after=" + path + "' class='btn'>Add Hebrew for " + ref + "</a></div>";
-            }
-
-            text = "<div class='en'>" + en + "</div>" + "<div class='he'>" + he + "</div>";
-
-            $target.html(controlsHtml + text);
-            callback();
-
-	}
-}
 
 // Schema Object
 sjs.SchemaNode = function(rawObj) {
