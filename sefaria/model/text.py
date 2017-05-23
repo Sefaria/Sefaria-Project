@@ -32,6 +32,7 @@ from sefaria.datatype.jagged_array import JaggedTextArray, JaggedArray
 from sefaria.settings import DISABLE_INDEX_SAVE, USE_VARNISH
 
 
+
 """
                 ----------------------------------
                          Index, IndexSet
@@ -1082,6 +1083,7 @@ class TextChunk(AbstractTextRecord):
             self._oref = child_ref
         self._ref_depth = len(self._oref.sections)
         self._versions = []
+        self._version_ids = None
         self._saveable = False  # Can this TextChunk be saved?
 
         self.lang = lang
@@ -1146,6 +1148,16 @@ class TextChunk(AbstractTextRecord):
         if self.vtitle:
             args += u", {}".format(self.vtitle)
         return u"{}({})".format(self.__class__.__name__, args)
+
+    def version_ids(self):
+        if self._version_ids is None:
+            if self._versions:
+                vtitle_query = [{'versionTitle': v.versionTitle} for v in self._versions]
+                query = {"title": self._oref.index.title, "$or": vtitle_query}
+                self._version_ids = VersionSet(query).distinct("_id")
+            else:
+                self._version_ids = []
+        return self._version_ids
 
     def is_empty(self):
         return self.ja().is_empty()
@@ -1474,7 +1486,7 @@ class TextFamily(object):
         "he": "heSources"
     }
 
-    def __init__(self, oref, context=1, commentary=True, version=None, lang=None, pad=True, alts=False):
+    def __init__(self, oref, context=1, commentary=True, version=None, lang=None, pad=True, alts=False, wrapLinks=False):
         """
         :param oref:
         :param context:
@@ -1483,6 +1495,7 @@ class TextFamily(object):
         :param lang:
         :param pad:
         :param alts: Adds notes of where alt elements begin
+        :param wrapLinks: whether to return the text requested with all internal citations marked up as html links <a>
         :return:
         """
         if pad:
@@ -1516,7 +1529,16 @@ class TextFamily(object):
             else:
                 c = TextChunk(oref, language)
             self._chunks[language] = c
-            setattr(self, self.text_attr_map[language], c.text)
+            if wrapLinks:
+                #only wrap links if we know there ARE links- get the version, since that's the only reliable way to get it's ObjectId
+                #then count how many links came from that version. If any- do the wrapping.
+                from . import LinkSet
+                if c.version_ids() and LinkSet({"generated_by":"add_links_from_text", "source_text_oid": {"$in": c.version_ids()}}).count() > 0:
+                    setattr(self, self.text_attr_map[language], c.ja().modify_by_function(lambda s: library.get_wrapped_refs_string(s, lang=language, citing_only=True)))
+                else:
+                    setattr(self, self.text_attr_map[language], c.text)
+            else:
+                setattr(self, self.text_attr_map[language], c.text)
 
         if oref.is_spanning():
             self.spanning = True
@@ -3999,9 +4021,8 @@ class Library(object):
         titles = self._full_title_lists.get(key)
         if not titles:
             titles = []
-            for i in IndexSet():
-                if getattr(i, "is_cited", False):
-                    titles.extend(self._index_title_maps[lang][i.title])
+            for i in IndexSet({"is_cited": True}):
+                titles.extend(self._index_title_maps[lang][i.title])
             self._full_title_lists[key] = titles
         return titles
 
@@ -4159,11 +4180,7 @@ class Library(object):
         """
         if not lang:
             lang = "he" if is_hebrew(s) else "en"
-        if lang=="en":
-            #todo: combine into one regex
-            return [m.group('title') for m in self.all_titles_regex(lang, citing_only=citing_only).finditer(s)]
-        elif lang=="he":
-            return [m.group('title') for m in self.all_titles_regex(lang, citing_only=citing_only).finditer(s)]
+        return [m.group('title') for m in self.all_titles_regex(lang, citing_only=citing_only).finditer(s)]
 
     def get_refs_in_string(self, st, lang=None, citing_only=False):
         """
@@ -4171,6 +4188,7 @@ class Library(object):
 
         :param string st: the input string
         :param lang: "he" or "en"
+        :param citing_only: boolean whether to use only records explicitly marked as being referenced in text.
         :return: list of :class:`Ref` objects
         """
         # todo: only match titles of content nodes
@@ -4181,8 +4199,8 @@ class Library(object):
         if lang == "he":
             from sefaria.utils.hebrew import strip_nikkud
             st = strip_nikkud(st)
-            unique_titles = {title: 1 for title in self.get_titles_in_string(st, lang, citing_only)}
-            for title in unique_titles.iterkeys():
+            unique_titles = set(self.get_titles_in_string(st, lang, citing_only))
+            for title in unique_titles:
                 try:
                     res = self._build_all_refs_from_string(title, st)
                 except AssertionError as e:
@@ -4204,13 +4222,37 @@ class Library(object):
                     refs += res
         return refs
 
+
+
+    def get_wrapped_refs_string(self, st, lang=None, citing_only=False):
+        """
+        Returns a string with the list of Ref objects derived from string wrapped in <a> tags
+
+        :param string st: the input string
+        :param lang: "he" or "en"
+        :param citing_only: boolean whether to use only records explicitly marked as being referenced in text
+        :return: string:
+        """
+        # todo: only match titles of content nodes
+        if lang is None:
+            lang = "he" if is_hebrew(st) else "en"
+        from sefaria.utils.hebrew import strip_nikkud
+        #st = strip_nikkud(st) doing this causes the final result to lose vowels and cantiallation
+        unique_titles = set(self.get_titles_in_string(st, lang, citing_only))
+        for title in unique_titles:
+            try:
+                st = self._wrap_all_refs_in_string(title, st, lang)
+            except AssertionError as e:
+                logger.info(u"Skipping Schema Node: {}".format(title))
+        return st
+
     # do we want to move this to the schema node? We'd still have to pass the title...
-    def get_regex_string(self, title, lang, for_js=False):
+    def get_regex_string(self, title, lang, for_js=False, anchored=False):
         node = self.get_schema_node(title, lang)
         assert isinstance(node, JaggedArrayNode)  # Assumes that node is a JaggedArrayNode
 
         if lang == "en" or for_js:  # Javascript doesn't support look behinds.
-            return node.full_regex(title, lang, for_js=for_js, match_range=for_js, compiled=False, anchored=(not for_js))
+            return node.full_regex(title, lang, for_js=for_js, match_range=for_js, compiled=False, anchored=anchored)
 
         elif lang == "he":
             return ur"""(?<=							# look behind for opening brace
@@ -4224,6 +4266,25 @@ class Library(object):
                     [)}]										# zero-width: literal ')' or brace
                 )"""
 
+    def _get_ref_from_match(self, ref_match, node, lang):
+        sections = []
+        gs = ref_match.groupdict()
+        for i in range(0, node.depth):
+            gname = u"a{}".format(i)
+            if gs.get(gname) is not None:
+                sections.append(node._addressTypes[i].toNumber(lang, gs.get(gname)))
+
+        _obj = {
+            "tref": ref_match.group(),
+            "book": node.full_title("en"),
+            "index_node": node,
+            "index": node.index,
+            "primary_category": node.index.get_primary_category(),
+            "sections": sections,
+            "toSections": sections
+        }
+        return Ref(_obj=_obj)
+
     #todo: handle ranges in inline refs
     def _build_ref_from_string(self, title=None, st=None, lang="en"):
         """
@@ -4233,40 +4294,7 @@ class Library(object):
         :param st: The source text for this reference
         :return: Ref
         """
-        node = self.get_schema_node(title, lang)
-        assert isinstance(node, JaggedArrayNode)  # Assumes that node is a JaggedArrayNode
-
-        try:
-            re_string = self.get_regex_string(title, lang)
-        except AttributeError as e:
-            logger.warning(u"Library._build_ref_from_string() failed to create regex for: {}.  {}".format(title, e))
-            return []
-
-        reg = regex.compile(re_string, regex.VERBOSE)
-        ref_match = reg.match(st)
-        if ref_match:
-            sections = []
-            gs = ref_match.groupdict()
-            for i in range(0, node.depth):
-                gname = u"a{}".format(i)
-                if gs.get(gname) is not None:
-                    sections.append(node._addressTypes[i].toNumber(lang, gs.get(gname)))
-
-            _obj = {
-                "tref": ref_match.group(),
-                "book": node.full_title("en"),
-                "index_node": node,
-                "index": node.index,
-                "primary_category": node.index.get_primary_category(),
-                "sections": sections,
-                "toSections": sections
-            }
-            try:
-                return [Ref(_obj=_obj)]
-            except InputError:
-                return []
-        else:
-            return []
+        return self._internal_ref_from_string(title, st, lang, stIsAnchored=True)
 
     #todo: handle ranges in inline refs
     def _build_all_refs_from_string(self, title=None, st=None, lang="he"):
@@ -4277,39 +4305,65 @@ class Library(object):
         :param st: The source text for this reference
         :return: list of Refs
         """
+        return self._internal_ref_from_string(title, st, lang)
+
+    def _internal_ref_from_string(self, title=None, st=None, lang=None, stIsAnchored=False, return_locations = False):
+
+            node = self.get_schema_node(title, lang)
+            assert isinstance(node, JaggedArrayNode)  # Assumes that node is a JaggedArrayNode
+
+            refs = []
+            try:
+                re_string = self.get_regex_string(title, lang, anchored=stIsAnchored)
+            except AttributeError as e:
+                logger.warning(
+                    u"Library._internal_ref_from_string() failed to create regex for: {}.  {}".format(title, e))
+                return refs
+
+            reg = regex.compile(re_string, regex.VERBOSE)
+            if stIsAnchored:
+                m = reg.match(st)
+                matches = [m] if m else []
+            else:
+                matches = reg.finditer(st)
+            for ref_match in matches:
+                try:
+                    res = (self._get_ref_from_match(ref_match, node, lang), ref_match.span()) if return_locations else self._get_ref_from_match(ref_match, node, lang)
+                    refs.append(res)
+                except InputError:
+                    continue
+            return refs
+
+
+    # todo: handle ranges in inline refs
+    def _wrap_all_refs_in_string(self, title=None, st=None, lang="he"):
+        """
+        Returns string with all references wrapped in <a> tags
+        :param title: The title of the text to wrap ref links to
+        :param st: The string to wrap
+        :param lang:
+        :return:
+        """
         node = self.get_schema_node(title, lang)
         assert isinstance(node, JaggedArrayNode)  # Assumes that node is a JaggedArrayNode
 
-        refs = []
+        def _wrap_ref_match(match):
+            try:
+                ref = self._get_ref_from_match(match, node, lang)
+                return u'<a class ="refLink" href="/{}" data-ref="{}">{}</a>'.format(ref.url(), ref.normal(), match.group(0))
+            except InputError as e:
+                logger.warning(u"Wrap Ref Warning: Ref:({}) {}".format(match.group(0), e.message))
+                return match.group(0)
+
         try:
             re_string = self.get_regex_string(title, lang)
         except AttributeError as e:
-            logger.warning(u"Library._build_all_refs_from_string() failed to create regex for: {}.  {}".format(title, e))
-            return refs
+            logger.warning(u"Library._wrap_all_refs_in_string() failed to create regex for: {}.  {}".format(title, e))
+            return st
 
         reg = regex.compile(re_string, regex.VERBOSE)
-        for ref_match in reg.finditer(st):
-            sections = []
-            gs = ref_match.groupdict()
-            for i in range(0, node.depth):
-                gname = u"a{}".format(i)
-                if gs.get(gname) is not None:
-                    sections.append(node._addressTypes[i].toNumber(lang, gs.get(gname)))
 
-            _obj = {
-                "tref": ref_match.group(),
-                "book": node.full_title("en"),
-                "index_node": node,
-                "index": node.index,
-                "primary_category": node.index.get_primary_category(),
-                "sections": sections,
-                "toSections": sections
-            }
-            try:
-                refs.append(Ref(_obj=_obj))
-            except InputError:
-                continue
-        return refs
+        return reg.sub(_wrap_ref_match, st)
 
     def category_id_dict(self, toc=None, cat_head="", code_head=""):
         if toc is None:

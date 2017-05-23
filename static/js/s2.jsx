@@ -3609,7 +3609,7 @@ var SchemaNode = React.createClass({
   getInitialState: function() {
     return {
       // Collapse everything except default nodes to start.
-      collapsed: "nodes" in this.props.schema ? this.props.schema.nodes.map(function(node) { return !node.default }) : []
+      collapsed: "nodes" in this.props.schema ? this.props.schema.nodes.map(function(node) { return !(node.default || node.includeSections) }) : []
     }
   },
   toggleCollapse: function(i) {
@@ -6069,7 +6069,7 @@ var TextRange = React.createClass({
       language: this.props.versionLanguage || null
     };
     var data = Sefaria.text(this.props.sref, settings);
-    if (!data) { // If we don't have data yet, call again with a callback to trigger API call
+    if (!data || "updateFromAPI" in data) { // If we don't have data yet, call again with a callback to trigger API call
       Sefaria.text(this.props.sref, settings, this.onTextLoad);
     }
     return data;
@@ -6383,9 +6383,10 @@ var TextSegment = React.createClass({
   handleClick: function(event) {
     if ($(event.target).hasClass("refLink")) {
       //Click of citation
+      event.preventDefault();//add prevent default
       var ref = Sefaria.humanRef($(event.target).attr("data-ref"));
       this.props.onCitationClick(ref, this.props.sref);
-      event.stopPropagation(); //add prevent default
+      event.stopPropagation();
       Sefaria.site.track.event("Reader", "Citation Link Click", ref);
     } else if ($(event.target).is("sup") || $(event.target).parents("sup").size()) {
       this.props.onFootnoteClick(event);
@@ -6978,10 +6979,11 @@ var AllFilterSet = React.createClass({
           on={Sefaria.util.inArray(cat.category, this.props.filter) !== -1} />
       );
     }.bind(this));
+    var lexicon = this.props.oref ? (<LexiconPanel selectedWords={this.props.selectedWords} oref={this.props.oref}/>) : null;
     return (
       <div className="fullFilterView filterSet">
-        <LexiconPanel selectedWords={this.props.selectedWords} oref={this.props.oref}/>
-        {categories}
+          {lexicon}
+          {categories}
       </div>
     );
   }
@@ -7158,7 +7160,7 @@ var RecentFilterSet = React.createClass({
 var LexiconPanel = React.createClass({
   propTypes: {
     selectedWords: React.PropTypes.string,
-    oref:          React.PropTypes.object.isRequired
+    oref:          React.PropTypes.object
   },
   getInitialState: function() {
     return {
@@ -9570,6 +9572,9 @@ var TestMessage = React.createClass({
 
 
 var Footer = React.createClass({
+  trackLanguageClick: function(language){
+    Sefaria.site.track.setInterfaceLanguage('interface language footer', language);
+  },
   render: function(){
     var currentPath = Sefaria.util.currentPath();
     var currentPathEncoded = encodeURIComponent(currentPath);
@@ -9722,9 +9727,13 @@ var Footer = React.createClass({
                       <span className="int-en">Site Language:</span>
                       <span className="int-he">שפת האתר</span>
                   </div>
-                  <a href={"/interface/english?next=" + next} id="siteLanguageEnglish" className="outOfAppLink">English</a>
+                  <a href={"/interface/english?next=" + next} id="siteLanguageEnglish" className="outOfAppLink"
+                     onClick={this.trackLanguageClick.bind(null, "English")}>English
+                  </a>
                   |
-                  <a href={"/interface/hebrew?next=" + next} id="siteLanguageHebrew" className="outOfAppLink">עברית</a>
+                  <a href={"/interface/hebrew?next=" + next} id="siteLanguageHebrew" className="outOfAppLink"
+                      onClick={this.trackLanguageClick.bind(null, "Hebrew")}>                 עברית
+                  </a>
               </div>
           </div>
         </div>

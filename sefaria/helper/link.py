@@ -438,7 +438,7 @@ def create_link_cluster(refs, user, link_type="", attrs=None, exception_pairs=No
             if all([any([r.startswith(name) for r in ref_strings]) for pair in exception_pairs for name in pair]):
                 continue
             # If this link matches an exception range, skip it.
-            if refs[i].section_ref() is refs[j].section_ref():
+            if refs[i].section_ref() == refs[j].section_ref():
                 continue
 
             d = {
