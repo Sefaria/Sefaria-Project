@@ -27,7 +27,7 @@ class UserProfile(object):
 
 		try:
 			if email and not id:  # Load profile by email, if passed.
-				user = User.objects.get(email=email)
+				user = User.objects.get(email__iexact=email)
 				id = user.id
 			else:
 				user = User.objects.get(id=id)
