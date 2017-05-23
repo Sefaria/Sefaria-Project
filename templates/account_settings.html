@@ -71,6 +71,8 @@
 {% block js %}
 	<script>
 		$(function(){
+		    var $curLang = $("#siteLanguage .toggleOption.active").attr("data-value");
+		    console.log($curLang);
 			$(".toggleOption").click(function() {
 				$(this).closest(".toggleSet").find(".toggleOption").removeClass("active");
 				$(this).addClass("active");
@@ -91,6 +93,10 @@
 					} else {
 						alert("Settings Saved.");
 						Sefaria.site.track.event("Settings", "Settings Save", $("#emailNotifications input:checked").val());
+						var $newLang = $("#siteLanguage .toggleOption.active").attr("data-value");
+						if($newLang != $curLang){
+						    Sefaria.site.track.setInterfaceLanguage("interface language account settings", $newLang);
+                        }
 						window.location = "/account";
 					}
 				});
