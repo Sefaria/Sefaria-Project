@@ -298,6 +298,7 @@ $(function() {
             if (!en.length && !he.length) {$title.html("<i>No text available. Click below to add this text.</i>");}
 
             // Set it on the DOM
+            $("#inlineAdd").autocomplete("disable");
             $target.html("<div class='en'>" + en.join("") + "</div>" + "<div class='he'>" + he.join("") + "</div>");
             $target.position({my: "left top", at: "left bottom", of: $("#inlineAdd"), collision: "none" }).width('691px').css('margin-top','20px');
 
