@@ -275,7 +275,7 @@ $(function() {
 		validateRef($("#inlineAdd"), $("#inlineAddDialogTitle"), $("#inlineAddSourceOK"), inlineAddSourcePreview);
 	};
 
-    function segment_mapper(lang, s) {
+    function preview_segment_mapper(lang, s) {
         return (s[lang])?
             ("<div class='previewLine'><span class='previewNumber'>(" + (s.number) + ")</span> " + s[lang] + "</div> "):
             "";
@@ -288,13 +288,13 @@ $(function() {
 
         Sefaria.text(ref, {}, function (data) {
             var segments = Sefaria.makeSegments(data);
-            var en = segments.map(segment_mapper.bind(this, "en")).filter(Boolean);
-            var he = segments.map(segment_mapper.bind(this, "he")).filter(Boolean);
+            var en = segments.map(preview_segment_mapper.bind(this, "en")).filter(Boolean);
+            var he = segments.map(preview_segment_mapper.bind(this, "he")).filter(Boolean);
 
             // Handle missing text cases
             var path = parseURL(document.URL).path;
-            if (!en.length) { en.append("<div class='previewNoText'><a href='/add/" + normRef(ref) + "?after=" + path + "' class='btn'>Add English for " + ref + "</a></div>"); }
-            if (!he.length) { he.append("<div class='previewNoText'><a href='/add/" + normRef(ref) + "?after=" + path + "' class='btn'>Add Hebrew for " + ref + "</a></div>"); }
+            if (!en.length) { en.push("<div class='previewNoText'><a href='/add/" + normRef(ref) + "?after=" + path + "' class='btn'>Add English for " + ref + "</a></div>"); }
+            if (!he.length) { he.push("<div class='previewNoText'><a href='/add/" + normRef(ref) + "?after=" + path + "' class='btn'>Add Hebrew for " + ref + "</a></div>"); }
             if (!en.length && !he.length) {$title.html("<i>No text available. Click below to add this text.</i>");}
 
             // Set it on the DOM
@@ -2372,6 +2372,20 @@ function addSource(q, source, appendOrInsert, $target) {
 	afterAction();
 }
 
+function placed_segment_mapper(lang, segmented, includeNumbers, s) {
+    if (!s[lang]) {return ""};
+
+    var numStr = "";
+    if (includeNumbers) {
+        var num = (lang=="he") ? encodeHebrewNumeral(s.number) : s.number;
+        numStr = "<small>(" + num + ")</small> ";
+    }
+    var str = "<span class='segment'>" + numStr + s[lang] + "</span> ";
+    if (segmented) {
+        str = "<p>" + str + "</p>";
+    }
+    return str;
+}
 
 function loadSource(data, $target, optionStr) {
 	
@@ -2382,26 +2396,6 @@ function loadSource(data, $target, optionStr) {
 		$target.remove();
 		return;
 	}
-	// If text is not a range, put text string in arrays
-	// to simplify processing below
-
-	if (typeof(data.text) === "string") {
-		data.text = data.text.length ? [data.text] : [];
-	}
-	if (typeof(data.he) === "string") {
-		data.he = data.he.length ? [data.he] : [];
-	}
-
-	var end = Math.max(data.text.length, data.he.length);
-
-	// If the requested end is beyond what's available, reset the ref to what we have
-/*
-	var requestedLength = (data.toSections[data.sectionNames.length-1] - data.sections[data.sectionNames.length-1]) + 1
-	if (requestedLength > end) {
-		data.toSections[data.sectionNames.length-1] = data.sections[data.sectionNames.length-1] + end -1;
-		data.ref = makeRef(data);
-	}
-*/
 
 	$target.attr("data-ref", data.ref);	
 	$target.attr("data-heRef", data.heRef);	
@@ -2410,57 +2404,18 @@ function loadSource(data, $target, optionStr) {
 	$enTitle.html(humanRef(data.ref).replace(/([0-9][b|a]| ב| א):.+/,"$1") ).attr("href", "/" + normRef(data.ref));
 	$heTitle.html(data.heRef.replace(/\d+(\-\d+)?/g, "").replace(/([0-9][b|a]| ב| א):.+/,"$1")).attr("href", "/" + normRef(data.ref));
 
+    var includeNumbers = $.inArray("Talmud", data.categories) == -1;
+    includeNumbers = data.indexTitle === "Pesach Haggadah" ? false : includeNumbers;
+    var segmented = !(data.categories[0] in {"Tanakh": 1, "Talmud": 1});
 
-	var enStr = "";
-	var heStr = "";
-	if (data.sections.length < data.sectionNames.length) {
-		var start = 1;
-	} else {
-		var start = data.sections[data.sectionNames.length-1];
-	}
+    var segments = Sefaria.makeSegments(data);
+    var enStr = segments.map(placed_segment_mapper.bind(this, "en", segmented, includeNumbers))
+        .filter(Boolean)
+        .join("");
+    var heStr = segments.map(placed_segment_mapper.bind(this, "he", segmented, includeNumbers))
+        .filter(Boolean)
+        .join("");
 
-
-
-    if (data.spanning) { timesToIterateThroughSections = data.spanningRefs.length }
-    else {timesToIterateThroughSections = 1
-                    data.he = data.he.length ? [data.he] : [];
-                    data.text = data.text.length ? [data.text] : [];
-    }
-
-    for (var q=0;q<timesToIterateThroughSections;q++) {
-        curEnglishText = data.text[q] || '';
-        curHebrewText = data.he[q] || '';
-		if (data.sections.length < data.sectionNames.length) {
-			data.sections.push(1);
-			data.toSections.push(Math.max(curEnglishText.length, curHebrewText.length));
-		}
-        if (q==0) {curSegmentNumber = data.sections[1]}
-        else {curSegmentNumber = 1 }
-
-        var includeNumbers = $.inArray("Talmud", data.categories) > -1 ? false : true;
-        includeNumbers = data.indexTitle === "Pesach Haggadah" ? false : includeNumbers;
-        var segmented = !(data.categories[0] in {"Tanakh": 1, "Talmud": 1});
-        for (var i = 0; i < Math.max(curEnglishText.length, curHebrewText.length); i++) {
-            if (!curEnglishText[i] && !curHebrewText[i]) {
-                continue;
-            }
-
-            if (curEnglishText.length > i) {
-                enStr += (segmented ? "<p>" : "") + "<span class='segment'>" +
-                    (includeNumbers ? "<small>(" + (curSegmentNumber) + ")</small> " : "") +
-                    curEnglishText[i] +
-                    "</span> " + (segmented ? "</p>" : "");
-            }
-
-            if (curHebrewText.length > i) {
-                heStr += (segmented ? "<p>" : "") + "<span class='segment'>" +
-                    (includeNumbers ? "<small>(" + (encodeHebrewNumeral(curSegmentNumber)) + ")</small> " : "") +
-                    curHebrewText[i] +
-                    "</span> " + (segmented ? "</p>" : "");
-            }
-            curSegmentNumber++;
-        }
-    }
 
 	enStr = enStr || "...";
 	heStr = heStr || "...";
