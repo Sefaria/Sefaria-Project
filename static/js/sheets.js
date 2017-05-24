@@ -138,7 +138,7 @@ $(function() {
 		var $target = $("#addInterface").prev(".sheetItem");
         var ref = $("#inlineAdd").val();
 		Sefaria.lookupRef(ref, function(q) {
-            addSource(q, undefined,"insert", $target);
+            addSource(q, undefined, "insert", $target);
             $('#inlineAdd').val('');
             $("#inlineTextPreview").remove();
             $("#inlineAddDialogTitle").text("Select a text");
@@ -275,6 +275,11 @@ $(function() {
 		validateRef($("#inlineAdd"), $("#inlineAddDialogTitle"), $("#inlineAddSourceOK"), inlineAddSourcePreview);
 	};
 
+    function segment_mapper(lang, s) {
+        return (s[lang])?
+            ("<div class='previewLine'><span class='previewNumber'>(" + (s.number) + ")</span> " + s[lang] + "</div> "):
+            "";
+    }
     function inlineAddSourcePreview(ref) {
         var $target = $("#inlineTextPreview");
         var $title = $("#inlineAddDialogTitle");
@@ -282,28 +287,15 @@ $(function() {
         if (!$target.length) { $("body").append("<div id='inlineTextPreview'></div>"); $target = $("#inlineTextPreview");}
 
         Sefaria.text(ref, {}, function (data) {
-
-            // Build segments
             var segments = Sefaria.makeSegments(data);
-            debugger;
-            var en = segments.map(function(s) {
-                return (s.en)?
-                    ("<div class='previewLine'><span class='previewNumber'>(" +
-                    (s.number) + ")</span> " + s.en + "</div> "):
-                    "";
-            }).filter(function(s) {return !!s;}); // filter out blanks 
-            var he = segments.map(function(s) {
-                return (s.he)?
-                    ("<div class='previewLine'><span class='previewNumber'>(" +
-                    (s.number) + ")</span> " + s.he + "</div> "):
-                    "";
-            }).filter(function(s) {return !!s;});
+            var en = segments.map(segment_mapper.bind(this, "en")).filter(Boolean);
+            var he = segments.map(segment_mapper.bind(this, "he")).filter(Boolean);
 
             // Handle missing text cases
             var path = parseURL(document.URL).path;
-            if (!en) { en += "<div class='previewNoText'><a href='/add/" + normRef(ref) + "?after=" + path + "' class='btn'>Add English for " + ref + "</a></div>"; }
-            if (!he) { he += "<div class='previewNoText'><a href='/add/" + normRef(ref) + "?after=" + path + "' class='btn'>Add Hebrew for " + ref + "</a></div>"; }
-            if (!en && !he) {$title.html("<i>No text available. Click below to add this text.</i>");}
+            if (!en.length) { en.append("<div class='previewNoText'><a href='/add/" + normRef(ref) + "?after=" + path + "' class='btn'>Add English for " + ref + "</a></div>"); }
+            if (!he.length) { he.append("<div class='previewNoText'><a href='/add/" + normRef(ref) + "?after=" + path + "' class='btn'>Add Hebrew for " + ref + "</a></div>"); }
+            if (!en.length && !he.length) {$title.html("<i>No text available. Click below to add this text.</i>");}
 
             // Set it on the DOM
             $target.html("<div class='en'>" + en.join("") + "</div>" + "<div class='he'>" + he.join("") + "</div>");
