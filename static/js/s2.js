@@ -7211,15 +7211,12 @@ var ReaderNavigationMenuCloseButton = React.createClass({
   displayName: 'ReaderNavigationMenuCloseButton',
 
   render: function render() {
-    if (this.props.icon == "arrow") {
-      var icon_dir = this.props.interfaceLang == 'english' ? 'left' : 'right';
-      var icon_class = "fa fa-caret-" + icon_dir;
-      var icon = React.createElement('i', { className: icon_class });
+    if (this.props.icon == "circledX") {
+      var icon = React.createElement('img', { src: '/static/img/circled-x.svg' });
     } else {
       var icon = "×";
     }
-    /*var icon = this.props.icon === "arrow" ? (<i className="fa fa-caret-{icon_dir}"></i>) : "×";*/
-    var classes = classNames({ readerNavMenuCloseButton: 1, arrow: this.props.icon === "arrow" });
+    var classes = classNames({ readerNavMenuCloseButton: 1, circledX: this.props.icon === "circledX" });
     return React.createElement(
       'div',
       { className: classes, onClick: this.props.onClick },
@@ -8495,7 +8492,7 @@ var ConnectionsPanelHeader = React.createClass({
           'div',
           { className: 'rightButtons' },
           React.createElement(LanguageToggleButton, { toggleLanguage: this.props.toggleLanguage }),
-          React.createElement(ReaderNavigationMenuCloseButton, { icon: 'arrow', onClick: this.props.closePanel, interfaceLang: this.props.interfaceLang })
+          React.createElement(ReaderNavigationMenuCloseButton, { icon: 'circledX', onClick: this.props.closePanel })
         )
       );
     } else {

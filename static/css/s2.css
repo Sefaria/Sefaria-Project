@@ -2452,24 +2452,20 @@ a.readerNavCategory {
   direction: rtl;
 }
 .connectionsPanelHeader .languageToggle,
-.connectionsHeader .readerNavMenuCloseButton.arrow {
-  font-size: 24px;
+.connectionsHeader .readerNavMenuCloseButton.circledX {
   height: 32px;
-  width: 32px;
+  width: 30px;
   text-align: center;
   line-height: 32px;
-  background-color: #f9f9f7;
-  border: 1px solid #E6E6E6;
-  border-radius: 4px;
-  margin-left: 10px;
 }
-.connectionsHeader .readerNavMenuCloseButton.arrow .fa {
-  line-height: 32px;
+.connectionsHeader .readerNavMenuCloseButton.circledX img {
+  opacity: 0.2;
+  height: 20px;
+  width: 20px;
+  vertical-align: middle;
 }
-.connectionsPanelHeader .languageToggle {
-  background-color: transparent;
-  border: 1px solid #ccc;
-  font-size: 30px;
+.connectionsPanelHeader .languageToggle img {
+  vertical-align: middle;
 }
 .connectionsPanelTabs {
   text-align: left;
