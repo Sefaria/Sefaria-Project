@@ -143,7 +143,7 @@ input.noselect {
 }
 .header .searchBox input{
   background-color: transparent; /*for firefox */
-  margin-top: 3px;
+  margin-top: 1px;
 }
 .header .search {
   outline: none;
@@ -214,7 +214,7 @@ input.noselect {
   font-size: 24px;
 }
 .header .library{
-  margin-top: 1px;
+  margin-top: 2px;
 }
 .header .notifications {
   display: inline-block;
@@ -227,7 +227,7 @@ input.noselect {
   background-color: #aaa;
   color: white;
   font-size: 16px;
-  margin-top: -2px;
+  margin-top: -3px;
 }
 .header .notifications.unread {
   background-color: #EFB4B6;
@@ -346,7 +346,7 @@ input.noselect {
   height: 24px;
   width: 24px;
   opacity: 0.4;
-  vertical-align: -1px;
+  margin-top:2px	
 }
 .header .readerNavMenuSearchButton,
 .header .readerNavMenuMenuButton {
@@ -355,7 +355,8 @@ input.noselect {
 }
 
 .header .readerNavMenuSearchButton{
-  margin-top: 4px;
+  position:relative;
+  top: -1px;
 }
 
 .header .headerNavContent {
