@@ -83,6 +83,9 @@ def index_text(index_name, oref, version=None, lang=None, bavli_amud=True, merge
     if len(oref.sections) < len(oref.index_node.sectionNames) - 1:
         return
     '''
+    if oref.index.title in library.get_indexes_in_category("Tanakh") and version == u"Yehoyesh's Yiddish Tanakh Translation [yi]":
+        print "skipping yiddish. we don't like yiddish"
+        return  # we don't like Yiddish here
 
     # Index this document as a whole
     try:

@@ -17,8 +17,8 @@
         <div id="groups">
                 {% for group in groups %}
                 <a class="group" href="/groups/{{ group.name|url_safe }}">
-                    <img class="groupHeader" src="{{ group.headerUrl }}">
-                    <img class="groupCover" src="{{ group.coverUrl }}">
+                    <img class="groupHeader" src="{{ group.headerUrl }}" alt="Header Image for {{ group.name }}">
+                    <img class="groupCover" src="{{ group.coverUrl }}" alt="Cover Image for {{ group.name }}">
                     <div class="groupName">{{ group.name }}</div>
                 </a>
                 {% endfor %}
