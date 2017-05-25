@@ -962,7 +962,7 @@ Sefaria = extend(Sefaria, {
           data["completions"] &&
           data["completions"].length &&
           data["completions"][0] != query &&
-          data["completions"][0].toLowerCase() == query.slice(0, data["completions"][0].length).toLowerCase() &&
+          data["completions"][0].toLowerCase().replace('״','"') == query.slice(0, data["completions"][0].length).toLowerCase().replace('״','"') &&
           data["completions"][0] != query.slice(0, data["completions"][0].length))      
   },
   repairCaseVariant: function(query, data) {

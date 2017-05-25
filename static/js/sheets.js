@@ -165,10 +165,10 @@ $(function() {
     };
 
     RefValidator.prototype = {
-      _allow: function(ref) {
-        if (ref != this.$input.val()) {
+      _allow: function(inString, ref) {
+        if (inString != this.$input.val()) {
           // Ref was corrected (likely for capitalization)
-          this.$input.val(ref);
+          this.$input.val(inString);
         }
         this.$ok.removeClass("inactive").removeClass("disabled");
         this.$input.autocomplete("disable");
@@ -259,7 +259,7 @@ $(function() {
               this.$msg.css("direction", (data["lang"]=="he"?"rtl":"ltr"))
                   .html(this._getMessage(inString, data));
               if (data.is_ref && (data.is_section || data.is_segment)) {
-                this._allow(data["ref"]);  //normalize
+                this._allow(inString, data["ref"]);  //normalize
                 return;
               }
               this._disallow();
