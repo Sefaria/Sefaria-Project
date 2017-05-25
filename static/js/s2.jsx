@@ -1922,19 +1922,20 @@ var ReaderPanel = React.createClass({
       "Add Connection": 1,
       "Add Translation": 1
     };
-    Sefaria.site.track.event("Tools", mode + " Click");
+    Sefaria.site.track.event("Sidebar", mode + " Click");
     if (!Sefaria._uid && mode in loginRequired) {
-      Sefaria.site.track.event("Tools", "Prompt Login");
+      Sefaria.site.track.event("Sidebar", "Prompt Login");
       mode = "Login";
     }
     var state = {connectionsMode: mode};
-    if (mode === "Connections") { 
+    if (mode === "Resources") { 
       this.setFilter();
     }
     this.conditionalSetState(state);
   },
   setConnectionsCategory: function(category) {
-    this.conditionalSetState({connectionsCategory: category, connectionsMode: "ConnectionsList"})
+    this.setFilter(category, false); // Set filter so that basetext shows link dots according to this category
+    this.conditionalSetState({connectionsCategory: category, connectionsMode: "ConnectionsList"});
   },
   editNote: function(note) {
     this.conditionalSetState({
