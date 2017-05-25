@@ -8,6 +8,7 @@ class Test_Link_Save(object):
     @classmethod
     def setup_class(cls):
         LinkSet({"generated_by": "link_tester"}).delete()
+        LinkSet({"refs": ["Avi Ezer, Deuteronomy 10:16:1", "Deuteronomy 10:16"]}).delete()
         Link({"auto": True,
                      "generated_by": "link_tester",
                      "type": "commentary",
