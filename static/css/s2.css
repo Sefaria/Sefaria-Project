@@ -2883,6 +2883,9 @@ a.readerNavCategory {
 .multiPanel .textRange .numberLabel{
   display: none;
 }
+.multiPanel .textRange .numberLabel.itag{
+  display: block;
+}
 .textRange.lowlight .numberLabel {
   color: #999;
 }
