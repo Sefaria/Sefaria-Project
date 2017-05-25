@@ -363,8 +363,12 @@ def delete_orphaned_counts(request):
 
 @staff_member_required
 def rebuild_toc(request):
-    model.library.rebuild_toc()
-    return HttpResponseRedirect("/?m=TOC-Rebuilt")
+    from sefaria.settings import DEBUG
+    if DEBUG:
+        model.library.rebuild_toc()
+        return HttpResponseRedirect("/?m=TOC-Rebuilt")
+    else:
+        return HttpResponseRedirect("/?m=TOC-Rebuild-Not-Allowed")
 
 
 @staff_member_required
