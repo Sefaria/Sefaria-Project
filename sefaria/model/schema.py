@@ -1447,10 +1447,10 @@ class AddressAliyah(AddressInteger):
 
 class AddressPerek(AddressInteger):
     section_patterns = {
-        "en": ur"""(?:(?:Chapter|chapter|Perek|perek)?\s*)""",  #  the internal ? is a hack to allow a non match, even if 'strict'
+        "en": ur"""(?:(?:Chapter|chapter|Perek|perek)?\s+)""",  #  the internal ? is a hack to allow a non match, even if 'strict'
         "he": ur"""(?:
             \u05e4(?:"|\u05f4|'')?                  # Peh (for 'perek') maybe followed by a quote of some sort
-            |\u05e4\u05e8\u05e7\s*                  # or 'perek' spelled out, followed by space
+            |\u05e4\u05e8\u05e7\s+                  # or 'perek' spelled out, followed by space
         )"""
     }
 
@@ -1471,7 +1471,7 @@ class AddressVolume(AddressInteger):
     """
 
     section_patterns = {
-        "en": ur"""(?:(?:Volume|volume)?\s*)""",  #  the internal ? is a hack to allow a non match, even if 'strict'
+        "en": ur"""(?:(?:Volume|volume)?\s+)""",  #  the internal ? is a hack to allow a non match, even if 'strict'
         "he": ur"""
         (?:
           (?:\u05d7(?:\u05dc\u05e7|'|\u05f3)\s+)  # Helek - spelled out or followed by a ' or a geresh - followed by space
@@ -1480,29 +1480,32 @@ class AddressVolume(AddressInteger):
         """
     }
 
+
 class AddressSiman(AddressInteger):
     section_patterns = {
         "en": None,
         "he": ur"""(?:
-            (?:\u05e1\u05d9\u05de\u05df\s*)			# Siman spelled out, with a space after
-            |(?:\u05e1\u05d9(?:"|\u05f4|''?)?)				# or Samech, Yued (for 'Siman') maybe followed by a quote of some sort
+            (?:\u05e1\u05d9\u05de\u05df\s+)			# Siman spelled out, with a space after
+            |(?:\u05e1\u05d9(?:"|\u05f4|['\u05f3](?:['\u05f3]|\s+)))		# or Samech, Yued (for 'Siman') maybe followed by a quote of some sort
         )"""
     }
 
-class AddressHalachah(AddressInteger):
+
+class AddressHalakhah(AddressInteger):
     section_patterns = {
         "en": None,
         "he": ur"""(?:
-            (?:\u05e1\u05d9\u05de\u05df\s*)			# Halachah spelled out, with a space after
-            |(?:\u05e1(?:"|\u05f4|''?)?)				# or Haeh (for 'halachah') maybe followed by a quote of some sort
+            (?:\u05d4\u05dc\u05db\u05d4\s+)			# Halakhah spelled out, with a space after
+            |(?:\u05d4\u05dc?(?:"|\u05f4|['\u05f3](?:['\u05f3]|\s+)))		# or Haeh and possible Lamed(for 'halakhah') maybe followed by a quote of some sort
         )"""
     }
+
 
 class AddressSeif(AddressInteger):
     section_patterns = {
         "en": None,
         "he": ur"""(?:
-            (?:\u05e1\u05d9\u05de\u05df\s*)			# Seif spelled out, with a space after
-            |(?:\u05e1\u05e2?(?:"|\u05f4|''?)?)				# or Samech and ayyn (for 'Seif') maybe followed by a quote of some sort
+            (?:\u05e1\u05e2\u05d9\u05e3\s+)			# Seif spelled out, with a space after
+            |(?:\u05e1(?:\u05e2|\u05e2\u05d9)?(?:"|\u05f4|['\u05f3](?:['\u05f3]|\s+)))	# or trie of first three letters followed by a quote of some sort
         )"""
     }
