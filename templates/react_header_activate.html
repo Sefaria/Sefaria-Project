@@ -2,16 +2,11 @@
 <script src="/static/js/jquery.scrollTo.js"></script>
 <script src="/static/js/keyboard.js"></script>
 <script src="/data.js"></script>
-<script src="/static/js/sefaria.js"></script>
 {% if DEBUG %}
-<script src="/static/js/react.js"></script>
-<script src="/static/js/react-dom.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/6.10.3/babel.min.js"></script>
-<script type="text/jsx;harmony=true" src="/static/js/s2.jsx"></script>
+<script src="/static/bundles/s2.js"></script>
 {% else %}
-<script src="/static/js/react-min.js"></script>
-<script src="/static/js/react-dom-min.js"></script>
-<script src="/static/js/s2.js"></script>
+<script src="/static/bundles/s2.js"></script>
 {% endif %}
 <script {% if DEBUG %}type="text/jsx;harmony=true"{% endif %}>
   {% autoescape off %}
