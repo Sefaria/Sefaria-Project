@@ -1447,8 +1447,8 @@ var Header = React.createClass({
 
     Sefaria.lookup(query, function (d) {
       // If the query isn't recognized as a ref, but only for reasons of capitalization. Resubmit with recognizable caps.
-      if (!d["is_ref"] && d["completions"] && d["completions"].length && d["completions"][0] != query && d["completions"][0].toLowerCase() == query.slice(0, d["completions"][0].length).toLowerCase()) {
-        this.submitSearch(d["completions"][0] + query.slice(d["completions"][0].length));
+      if (Sefaria.isACaseVariant(query, d)) {
+        this.submitSearch(Sefaria.repairCaseVariant(query, d));
         return;
       }
 

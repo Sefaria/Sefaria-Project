@@ -956,7 +956,7 @@ class Version(abst.AbstractMongoRecord, AbstractTextRecord, AbstractSchemaConten
                 }).section_ref()
         return None
 
-    def ja(self,  remove_html=False):
+    def ja(self, remove_html=False):
         # the quickest way to check if this is a complex text
         if isinstance(getattr(self, self.text_attr, None), dict):
             nodes = self.get_index().nodes.get_leaf_nodes()

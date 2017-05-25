@@ -953,7 +953,22 @@ Sefaria = extend(Sefaria, {
     }
     this._relatedSummaries[ref] = summary;
     return summary;
-  }, 
+  },
+  isACaseVariant: function(query, data) {
+    // Check if query is just an improper capitalization of something that otherwise would be a ref
+    // query: string
+    // data: dictionary, as returned by /api/name
+    return (!(data["is_ref"]) &&
+          data["completions"] &&
+          data["completions"].length &&
+          data["completions"][0] != query &&
+          data["completions"][0].toLowerCase() == query.slice(0, data["completions"][0].length).toLowerCase() &&
+          data["completions"][0] != query.slice(0, data["completions"][0].length))      
+  },
+  repairCaseVariant: function(query, data) {
+    // Used when isACaseVariant() is true to prepare the alternative
+    return data["completions"][0] + query.slice(data["completions"][0].length);
+  },
   makeSegments: function(data, withContext) {
     // Returns a flat list of annotated segment objects,
     // derived from the walking the text in data
