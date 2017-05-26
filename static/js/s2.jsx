@@ -602,7 +602,7 @@ var ReaderApp = React.createClass({
     } else {
       if ((window.location.pathname + window.location.search) == hist.url) { return; } // Never push history with the same URL
       history.pushState(hist.state, hist.title, hist.url);
-      console.log("Push History - " + hist.url);
+      // console.log("Push History - " + hist.url);
       this.trackPageview();
       //console.log(hist);
     }
@@ -5725,7 +5725,7 @@ var TextColumn = React.createClass({
   handleScroll: function(event) {
     //console.log("scroll");
     if (this.justScrolled) {
-      console.log("pass scroll");
+      //console.log("pass scroll");
       this.justScrolled = false;
       return;
     }
@@ -5771,7 +5771,7 @@ var TextColumn = React.createClass({
     // Called on every update, checking flags on `this` to see if scroll position needs to be set
     if (this.loadingContentAtTop) {
       // After adding content by infinite scrolling up, scroll back to what the user was just seeing
-      console.log("loading at top");
+      //console.log("loading at top");
       var $node   = $(ReactDOM.findDOMNode(this));
       var adjust  = 118; // Height of .loadingMessage.base
       var $texts  = $node.find(".basetext");
@@ -5783,17 +5783,17 @@ var TextColumn = React.createClass({
         this.justScrolled = true;
         ReactDOM.findDOMNode(this).scrollTop = top;
         this.scrollToHighlighted();
-        console.log(top)
+       // console.log(top)
       }
     } else if (!this.scrolledToHighlight && $(ReactDOM.findDOMNode(this)).find(".segment.highlight").length) {
-       console.log("scroll to highlighted");
+       //console.log("scroll to highlighted");
       // scroll to highlighted segment
       this.scrollToHighlighted();
       this.scrolledToHighlight = true;
       this.initialScrollTopSet = true;
       this.justScrolled        = true;
     } else if (!this.initialScrollTopSet) {
-      console.log("initial scroll to 30");
+      //console.log("initial scroll to 30");
       // initial value set below 0 so you can scroll up for previous
       var node = ReactDOM.findDOMNode(this);
       node.scrollTop = 30;
@@ -5911,7 +5911,7 @@ var TextColumn = React.createClass({
   scrollToHighlighted: function() {
     window.requestAnimationFrame(function() {
       if (!this.isMounted()) { return; }
-      console.log("scroll to highlighted - animation frame");
+      //console.log("scroll to highlighted - animation frame");
       var $container   = $(ReactDOM.findDOMNode(this));
       var $readerPanel = $container.closest(".readerPanel");
       var $highlighted = $container.find(".segment.highlight").first();
@@ -6135,6 +6135,11 @@ var TextRange = React.createClass({
         Sefaria.related(sectionRefs[i], function() {
           if (this.isMounted()) { this.forceUpdate(); }
         }.bind(this));
+        if (Sefaria._uid) {
+          Sefaria.relatedPrivate(sectionRefs[i], function() {
+            if (this.isMounted()) { this.forceUpdate(); }
+          }.bind(this));          
+        }
       }
     }
 
@@ -6485,12 +6490,12 @@ var ConnectionsPanel = React.createClass({
     if (!prevProps.srefs.compare(this.props.srefs)) {
       this.loadData();
     }
-    if (!prevProps.selectedWords && this.props.selectedWords) {
+    if (!prevProps.selectedWords && this.props.selectedWords && this.props.selectedWords.split(" ").length < 3) {
       this.props.setConnectionsMode("Lexicon");
     }
   },
   loadData: function() {
-    if (!Sefaria.related(this.props.srefs)) {
+    if (!Sefaria.related(Sefaria.normRefList(this.props.srefs))) {
       Sefaria.related(this.props.srefs, function() {
         if (this.isMounted) {
           this.setState({dataLoaded: true});
@@ -6504,6 +6509,9 @@ var ConnectionsPanel = React.createClass({
     if (!data) {
       content = <LoadingMessage />;
     } else if (this.props.mode == "Resources") {
+      var privateData = Sefaria.relatedPrivate(this.props.srefs);
+      var sheetsCount = data.sheets.length + (privateData ? privateData.sheets.length : 0);
+      var notesCount = data.notes.length + (privateData ? privateData.notes.length : 0);
       content = (<div>
                   <ConnectionsSummary
                     srefs={this.props.srefs}
@@ -6517,7 +6525,8 @@ var ConnectionsPanel = React.createClass({
                     multiPanel={this.props.multiPanel}
                     setConnectionsMode={this.props.setConnectionsMode}
                     openComparePanel={this.props.openComparePanel}
-                    sheetsCount={data.sheets.length} />
+                    sheetsCount={sheetsCount}
+                    notesCount={notesCount} />
                   </div>);
     
     } else if (this.props.mode === "ConnectionsList") {
@@ -6559,25 +6568,26 @@ var ConnectionsPanel = React.createClass({
                     version={this.props.version}
                     versionLanguage={this.props.versionLanguage}
                     addToSourceSheet={this.props.addToSourceSheet} />
-                  <SheetsList
+                  <MySheetsList
                     srefs={this.props.srefs}
-                    fullPanel={this.props.fullPanel}
-                    multiPanel={this.props.multiPanel} />
+                    fullPanel={this.props.fullPanel} />
+                  <PublicSheetsList
+                    srefs={this.props.srefs}
+                    fullPanel={this.props.fullPanel} />
                 </div>);
 
     } else if (this.props.mode === "Notes") {
       content = (<div>
-                  <AddNotePanel 
+                  <AddNoteBox 
                     srefs={this.props.srefs}
                     fullPanel={this.props.fullPanel}
                     closePanel={this.props.closePanel}
                     setConnectionsMode={this.props.setConnectionsMode} />
-                  <MyNotesPanel 
+                  <MyNotes 
                     srefs={this.props.srefs}
-                    fullPanel={this.props.fullPanel}
-                    closePanel={this.props.closePanel}
-                    setConnectionsMode={this.props.setConnectionsMode}
                     editNote={this.props.editNote} />
+                  <PublicNotes
+                    srefs={this.props.srefs} />
                 </div>);
     
     } else if (this.props.mode === "Lexicon") {
@@ -6624,15 +6634,9 @@ var ConnectionsPanel = React.createClass({
                     versionLanguage={this.props.versionLanguage}
                     addToSourceSheet={this.props.addToSourceSheet} />);
 
-    } else if (this.props.mode === "Add Note") {
-      content = (<AddNotePanel 
-                    srefs={this.props.srefs}
-                    fullPanel={this.props.fullPanel}
-                    closePanel={this.props.closePanel}
-                    setConnectionsMode={this.props.setConnectionsMode} />);
 
     } else if (this.props.mode === "Edit Note") {
-      content = (<AddNotePanel 
+      content = (<AddNoteBox 
                     srefs={this.props.srefs}
                     noteId={this.props.noteBeingEdited._id}
                     noteText={this.props.noteBeingEdited.text}
@@ -6642,13 +6646,6 @@ var ConnectionsPanel = React.createClass({
                     closePanel={this.props.closePanel}
                     setConnectionsMode={this.props.setConnectionsMode} />);
 
-    } else if (this.props.mode === "My Notes") {
-      content = (<MyNotesPanel 
-                    srefs={this.props.srefs}
-                    fullPanel={this.props.fullPanel}
-                    closePanel={this.props.closePanel}
-                    setConnectionsMode={this.props.setConnectionsMode}
-                    editNote={this.props.editNote} />);
 
     } else if (this.props.mode === "Add Connection") {
       var url  = "/s1?next=" + window.location.pathname;
@@ -6759,10 +6756,11 @@ var ConnectionsPanelHeader = React.createClass({
 
 var ResourcesList = React.createClass({
   propTypes: {
-    multiPanel:         React.PropTypes.func.isRequired,
+    multiPanel:         React.PropTypes.bool.isRequired,
     setConnectionsMode: React.PropTypes.func.isRequired,
     openComparePanel:   React.PropTypes.func.isRequired,
     sheetsCount:        React.PropTypes.number.isRequired,
+    notesCount:         React.PropTypes.number.isRequired,
   },
   render: function() {
     return (<div className="resourcesList">
@@ -6770,7 +6768,7 @@ var ResourcesList = React.createClass({
                 <ToolsButton en="Other Text" he="השווה" icon="search" onClick={this.props.openComparePanel} /> 
               : null }
               <ToolsButton en="Sheets" he="הוסף לדף מקורות" image="sheet.svg" count={this.props.sheetsCount} onClick={function() {this.props.setConnectionsMode("Sheets")}.bind(this)} /> 
-              <ToolsButton en="Notes" he="הרשומות שלי" image="tools-write-note.svg" onClick={function() {this.props.setConnectionsMode("Notes")}.bind(this)} /> 
+              <ToolsButton en="Notes" he="הרשומות שלי" image="tools-write-note.svg" count={this.props.notesCount} onClick={function() {this.props.setConnectionsMode("Notes")}.bind(this)} /> 
               <ToolsButton en="Tools" he="הרשומות שלי" icon="gear" onClick={function() {this.props.setConnectionsMode("Tools")}.bind(this)} /> 
             </div>);
   }
@@ -7095,7 +7093,7 @@ var TextList = React.createClass({
   },
   render: function() {
     var refs               = this.props.srefs;
-    var summary            = Sefaria.relatedSummary(refs);
+    var summary            = Sefaria.linkSummary(refs);
     var oref               = Sefaria.ref(refs[0]);
     var filter             = this.props.filter;
     var sectionRef         = this.getSectionRef();
@@ -7266,36 +7264,53 @@ var RecentFilterSet = React.createClass({
   }
 });
 
-
-var SheetsList = React.createClass({
+var MySheetsList = React.createClass({
+  // List of my sheets for a ref in the Sidebar
   propTypes: {
     srefs:      React.PropTypes.array.isRequired,
-    fullPanel:  React.PropTypes.bool,
-    multiPanel: React.PropTypes.bool,
+  },
+  render: function() {
+    var sheets = Sefaria.sheets.userSheetsByRef(this.props.srefs);
+    var content = sheets.length ? sheets.map(function(sheet) {
+      return (<SheetListing sheet={sheet} key={sheet.sheetUrl} />)      
+    }) : null;
+    return content && content.length ? (<div className="sheetList">{content}</div>) : null;
+  }
+});
+
+
+var PublicSheetsList = React.createClass({
+  // List of public sheets for a ref in the sidebar
+  propTypes: {
+    srefs:      React.PropTypes.array.isRequired,
   },
   render: function() {
     var sheets = Sefaria.sheets.sheetsByRef(this.props.srefs);
-    var content = sheets.length ?
-      sheets.map(function(sheet) {
-            return (<SheetListing sheet={sheet} key={sheet.sheetUrl} />)      
-      }) : <LoadingMessage message="No public sheets here." heMessage="No public sheets here." />
-    return (
-      <div>
-        {content}
-      </div>)
+    var content = sheets.length ? sheets.filter(function(sheet) {
+      // My sheets are show already in MySheetList
+      return sheet.owner !== Sefaria._uid;
+    }).map(function(sheet) {
+      return (<SheetListing sheet={sheet} key={sheet.sheetUrl} />)      
+    }) : null;
+    return content && content.length ? (<div className="sheetList">{content}</div>) : null;
   }
 });
 
 
 var SheetListing = React.createClass({
+  // A source sheet listed in the Sidebar
   propTypes: {
     sheet:      React.PropTypes.object.isRequired,
   },
   render: function() {
     var sheet = this.props.sheet;
+    var viewsIcon = sheet.public ?
+      <div className="sheetViews"><i className="fa fa-eye" title={sheet.views + " views"}></i> {sheet.views}</div> 
+      : <div className="sheetViews"><i className="fa fa-lock" title="Private"></i></div>;
+
     return (
       <div className="sheet" key={sheet.sheetUrl}>
-        <div className="sheetViews"><i className="fa fa-eye"></i> {sheet.views}</div>
+        {viewsIcon}
         <a href={sheet.ownerProfileUrl} target="_blank">
           <img className="sheetAuthorImg" src={sheet.ownerImageUrl} />
         </a>
@@ -7306,52 +7321,12 @@ var SheetListing = React.createClass({
         </a>
         <div className="sheetTags">
           {sheet.tags.map(function(tag, i) { 
-            var separator = i == sheet.tags.length -1 ? null : ",";
+            var separator = i == sheet.tags.length -1 ? null : <span className="separator">,</span>;
             return (<a href={"/sheets/tags/" + tag} target="_blank" className="sheetTag" key={tag}>{tag}{separator}</a>)
           })}
         </div>
       </div>);          
 }
-});
-
-
-var Note = React.createClass({
-  propTypes: {
-    title:           React.PropTypes.string.isRequired,
-    text:            React.PropTypes.string.isRequired,
-    ownerName:       React.PropTypes.string,
-    ownerImageUrl:   React.PropTypes.string,
-    ownerProfileUrl: React.PropTypes.string,
-    isPrivate:       React.PropTypes.bool,
-    editNote:        React.PropTypes.func
-  },
-  render: function() {
-
-    var isInMyNotes = !this.props.ownerName; // public notes can appear inside myNotesPanel, use ownerName as a proxy for context
-
-    var authorInfo = isInMyNotes ? null :
-        (<div className="noteAuthorInfo">
-          <a href={this.props.ownerProfileUrl}>
-            <img className="noteAuthorImg" src={this.props.ownerImageUrl} />
-          </a>
-          <a href={this.props.ownerProfileUrl} className="noteAuthor">{this.props.ownerName}</a>
-        </div>);
-     
-     var buttons = isInMyNotes ? 
-                    (<div className="noteButtons">
-                      <i className="fa fa-pencil" onClick={this.props.editNote} ></i>
-                      {this.props.isPrivate ? null : (<i className="fa fa-unlock-alt"></i>)}
-                    </div>) : null; 
-     
-     return (<div className="note">
-                {authorInfo}
-                <div className="note-content">
-                  <div className="noteTitle">{this.props.title}</div>
-                  <span className="noteText" dangerouslySetInnerHTML={{__html:this.props.text}}></span>
-                </div>
-                {buttons}
-              </div>);
-  }
 });
 
 
@@ -7420,8 +7395,8 @@ var LexiconPanel = React.createClass({
         </div>);
     }
     var refCats = this.props.oref.categories.join(", "); //TODO: the way to filter by categories is very limiting.
-    var enEmpty = "No definitions found for " + this.props.selectedWords + ".";
-    var heEmpty = "לא נמצאו תוצאות '" + this.props.selectedWords + "'.";
+    var enEmpty = 'No definitions found for "' + this.props.selectedWords + '".';
+    var heEmpty = 'לא נמצאו תוצאות "' + this.props.selectedWords + '".';
     if(!this.shouldActivate(this.props.selectedWords)){
       //console.log("not rendering lexicon");
       return false;
@@ -7854,7 +7829,7 @@ var ConfirmAddToSheetPanel = React.createClass({
 });
 
 
-var AddNotePanel = React.createClass({
+var AddNoteBox = React.createClass({
   propTypes: {
     srefs:              React.PropTypes.array.isRequired,
     setConnectionsMode: React.PropTypes.func.isRequired,
@@ -7969,13 +7944,11 @@ var AddNotePanel = React.createClass({
 });
 
 
-var MyNotesPanel = React.createClass({
+var MyNotes = React.createClass({
+  // List of user notes on a ref or range of refs.
   propTypes: {
     srefs:              React.PropTypes.array.isRequired,
-    setConnectionsMode: React.PropTypes.func.isRequired,
-    closePanel:         React.PropTypes.func.isRequired,
     editNote:           React.PropTypes.func.isRequired,
-    fullPanel:          React.PropTypes.bool
   },
   componentDidMount: function() {
     this.loadNotes();
@@ -7999,20 +7972,87 @@ var MyNotesPanel = React.createClass({
         this.props.editNote(note);
       }.bind(this);
       return (<Note 
-                title={note.title}
                 text={note.text} 
                 isPrivate={!note.public}
+                isMyNote={true}
+                ownerName={note.ownerName}
+                ownerProfileUrl={note.ownerProfileUrl}
+                ownerImageUrl={note.ownerImageUrl}                
                 editNote={editNote}
                 key={note._id} />);
     }.bind(this)) : null ;
 
-    return (
-      <div className="notesList">
+    return myNotes ? (
+      <div className="noteList myNoteList">
         {myNotes}
-      </div>);
+      </div>) : null;
   }
 });
 
+
+var PublicNotes = React.createClass({
+  // List of Publc notes a ref or range or refs.
+  propTypes: {
+    srefs: React.PropTypes.array.isRequired,
+  },
+  render: function() {
+    var notes   = Sefaria.notes(this.props.srefs);
+    var content = notes ? notes.filter(function(note) {
+      // Exlude my notes, shown already in MyNotes.
+      return note.owner !== Sefaria._uid;
+    }).map(function(note) {
+      return (<Note 
+                text={note.text}
+                ownerName={note.ownerName}
+                ownerProfileUrl={note.ownerProfileUrl}
+                ownerImageUrl={note.ownerImageUrl}
+                isPrivate={false}
+                key={note._id} />) 
+    }) : null;
+    
+    return content && content.length ? (<div className="noteList publicNoteList">{content}</div>) : null;
+  }
+});
+
+
+
+
+var Note = React.createClass({
+  // Public or private note in the Sidebar.
+  propTypes: {
+    text:            React.PropTypes.string.isRequired,
+    ownerName:       React.PropTypes.string,
+    ownerImageUrl:   React.PropTypes.string,
+    ownerProfileUrl: React.PropTypes.string,
+    isPrivate:       React.PropTypes.bool,
+    isMyNote:        React.PropTypes.bool,
+    editNote:        React.PropTypes.func
+  },
+  render: function() {
+
+    var authorInfo = 
+        (<div className="noteAuthorInfo">
+          <a href={this.props.ownerProfileUrl}>
+            <img className="noteAuthorImg" src={this.props.ownerImageUrl} />
+          </a>
+          <a href={this.props.ownerProfileUrl} className="noteAuthor">{this.props.ownerName}</a>
+        </div>);
+     
+     var buttons = this.props.isMyNote ? 
+                    (<div className="noteButtons">
+                      <i className="editNoteButton fa fa-pencil" title="Edit Note" onClick={this.props.editNote} ></i>
+                      {this.props.isPrivate ? (<i className="fa fa-lock" title="Private"></i>) : null}
+                    </div>) : null; 
+     
+     return (<div className="note">
+                {buttons}
+                {authorInfo}
+                <div className="noteContent">
+                  <span className="noteText" dangerouslySetInnerHTML={{__html:this.props.text}}></span>
+                </div>
+              </div>);
+  }
+});8
 
 var LoginPrompt = React.createClass({
   propTypes: {

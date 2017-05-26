@@ -387,10 +387,11 @@ def get_top_sheets(limit=3):
 	return sheet_list(query=query, limit=limit)
 
 
-def get_sheets_for_ref(tref, pad=True, context=1):
+def get_sheets_for_ref(tref, uid=None, pad=True, context=1):
 	"""
 	Returns a list of sheets that include ref,
 	formating as need for the Client Sidebar.
+	If `uid` is present return user sheets, otherwise return public sheets. 
 	"""
 	oref = model.Ref(tref)
 	if pad:
@@ -404,8 +405,13 @@ def get_sheets_for_ref(tref, pad=True, context=1):
 
 	regex_list = oref.regex(as_list=True)
 	ref_clauses = [{"sources.ref": {"$regex": r}} for r in regex_list]
-	sheets = db.sheets.find({"$or": ref_clauses, "status": "public"},
-		{"id": 1, "title": 1, "owner": 1, "sources.ref": 1, "views": 1, "tags": 1}).sort([["views", -1]])
+	query = {"$or": ref_clauses }
+	if uid:
+		query["owner"] = uid
+	else:
+		query["status"] = "public"
+	sheets = db.sheets.find(query,
+		{"id": 1, "title": 1, "owner": 1, "sources.ref": 1, "views": 1, "tags": 1, "status": 1}).sort([["views", -1]])
 	for sheet in sheets:
 		matched_refs = []
 		if "sources" in sheet:
@@ -426,7 +432,7 @@ def get_sheets_for_ref(tref, pad=True, context=1):
 				"_id":             str(sheet["_id"]),
 				"anchorRef":       match.normal(),
 				"anchorVerse":     match.sections[-1] if len(match.sections) else 1,
-				"public":          True,
+				"public":          sheet["status"] == "public",
 				"commentator":     user_link(sheet["owner"]), # legacy, used in S1
 				"text":            "<a class='sheetLink' href='/sheets/%d'>%s</a>" % (sheet["id"], strip_tags(sheet["title"])), # legacy, used in S1
 				"title":           strip_tags(sheet["title"]),
@@ -434,6 +440,7 @@ def get_sheets_for_ref(tref, pad=True, context=1):
 				"ownerName":       ownerData["name"],
 				"ownerProfileUrl": ownerData["profileUrl"],
 				"ownerImageUrl":   ownerData["imageUrl"],
+				"status":          sheet["status"],
 				"views":           sheet["views"],
 				"tags":            sheet.get("tags", []),
 			}

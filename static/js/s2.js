@@ -632,7 +632,7 @@ var ReaderApp = React.createClass({
         return;
       } // Never push history with the same URL
       history.pushState(hist.state, hist.title, hist.url);
-
+      // console.log("Push History - " + hist.url);
       this.trackPageview();
       //console.log(hist);
     }
@@ -7328,6 +7328,7 @@ var TextColumn = React.createClass({
   handleScroll: function handleScroll(event) {
     //console.log("scroll");
     if (this.justScrolled) {
+      //console.log("pass scroll");
       this.justScrolled = false;
       return;
     }
@@ -7372,9 +7373,9 @@ var TextColumn = React.createClass({
     // console.log("ssp");
     // Called on every update, checking flags on `this` to see if scroll position needs to be set
     if (this.loadingContentAtTop) {
-      var $node = $(ReactDOM.findDOMNode(this));
       // After adding content by infinite scrolling up, scroll back to what the user was just seeing
-
+      //console.log("loading at top");
+      var $node = $(ReactDOM.findDOMNode(this));
       var adjust = 118; // Height of .loadingMessage.base
       var $texts = $node.find(".basetext");
       if ($texts.length < 2) {
@@ -7387,14 +7388,17 @@ var TextColumn = React.createClass({
         this.justScrolled = true;
         ReactDOM.findDOMNode(this).scrollTop = top;
         this.scrollToHighlighted();
+        // console.log(top)
       }
     } else if (!this.scrolledToHighlight && $(ReactDOM.findDOMNode(this)).find(".segment.highlight").length) {
+      //console.log("scroll to highlighted");
       // scroll to highlighted segment
       this.scrollToHighlighted();
       this.scrolledToHighlight = true;
       this.initialScrollTopSet = true;
       this.justScrolled = true;
     } else if (!this.initialScrollTopSet) {
+      //console.log("initial scroll to 30");
       // initial value set below 0 so you can scroll up for previous
       var node = ReactDOM.findDOMNode(this);
       node.scrollTop = 30;
@@ -7522,7 +7526,7 @@ var TextColumn = React.createClass({
       if (!this.isMounted()) {
         return;
       }
-
+      //console.log("scroll to highlighted - animation frame");
       var $container = $(ReactDOM.findDOMNode(this));
       var $readerPanel = $container.closest(".readerPanel");
       var $highlighted = $container.find(".segment.highlight").first();
@@ -7752,6 +7756,13 @@ var TextRange = React.createClass({
             this.forceUpdate();
           }
         }.bind(this));
+        if (Sefaria._uid) {
+          Sefaria.relatedPrivate(sectionRefs[i], function () {
+            if (this.isMounted()) {
+              this.forceUpdate();
+            }
+          }.bind(this));
+        }
       }
     }
 
@@ -8188,12 +8199,12 @@ var ConnectionsPanel = React.createClass({
     if (!prevProps.srefs.compare(this.props.srefs)) {
       this.loadData();
     }
-    if (!prevProps.selectedWords && this.props.selectedWords) {
+    if (!prevProps.selectedWords && this.props.selectedWords && this.props.selectedWords.split(" ").length < 3) {
       this.props.setConnectionsMode("Lexicon");
     }
   },
   loadData: function loadData() {
-    if (!Sefaria.related(this.props.srefs)) {
+    if (!Sefaria.related(Sefaria.normRefList(this.props.srefs))) {
       Sefaria.related(this.props.srefs, function () {
         if (this.isMounted) {
           this.setState({ dataLoaded: true });
@@ -8207,6 +8218,9 @@ var ConnectionsPanel = React.createClass({
     if (!data) {
       content = React.createElement(LoadingMessage, null);
     } else if (this.props.mode == "Resources") {
+      var privateData = Sefaria.relatedPrivate(this.props.srefs);
+      var sheetsCount = data.sheets.length + (privateData ? privateData.sheets.length : 0);
+      var notesCount = data.notes.length + (privateData ? privateData.notes.length : 0);
       content = React.createElement(
         'div',
         null,
@@ -8222,7 +8236,8 @@ var ConnectionsPanel = React.createClass({
           multiPanel: this.props.multiPanel,
           setConnectionsMode: this.props.setConnectionsMode,
           openComparePanel: this.props.openComparePanel,
-          sheetsCount: data.sheets.length })
+          sheetsCount: sheetsCount,
+          notesCount: notesCount })
       );
     } else if (this.props.mode === "ConnectionsList") {
       content = React.createElement(ConnectionsSummary, {
@@ -8263,26 +8278,27 @@ var ConnectionsPanel = React.createClass({
           version: this.props.version,
           versionLanguage: this.props.versionLanguage,
           addToSourceSheet: this.props.addToSourceSheet }),
-        React.createElement(SheetsList, {
+        React.createElement(MySheetsList, {
           srefs: this.props.srefs,
-          fullPanel: this.props.fullPanel,
-          multiPanel: this.props.multiPanel })
+          fullPanel: this.props.fullPanel }),
+        React.createElement(PublicSheetsList, {
+          srefs: this.props.srefs,
+          fullPanel: this.props.fullPanel })
       );
     } else if (this.props.mode === "Notes") {
       content = React.createElement(
         'div',
         null,
-        React.createElement(AddNotePanel, {
+        React.createElement(AddNoteBox, {
           srefs: this.props.srefs,
           fullPanel: this.props.fullPanel,
           closePanel: this.props.closePanel,
           setConnectionsMode: this.props.setConnectionsMode }),
-        React.createElement(MyNotesPanel, {
+        React.createElement(MyNotes, {
           srefs: this.props.srefs,
-          fullPanel: this.props.fullPanel,
-          closePanel: this.props.closePanel,
-          setConnectionsMode: this.props.setConnectionsMode,
-          editNote: this.props.editNote })
+          editNote: this.props.editNote }),
+        React.createElement(PublicNotes, {
+          srefs: this.props.srefs })
       );
     } else if (this.props.mode === "Lexicon") {
       content = React.createElement(LexiconPanel, {
@@ -8324,14 +8340,8 @@ var ConnectionsPanel = React.createClass({
         version: this.props.version,
         versionLanguage: this.props.versionLanguage,
         addToSourceSheet: this.props.addToSourceSheet });
-    } else if (this.props.mode === "Add Note") {
-      content = React.createElement(AddNotePanel, {
-        srefs: this.props.srefs,
-        fullPanel: this.props.fullPanel,
-        closePanel: this.props.closePanel,
-        setConnectionsMode: this.props.setConnectionsMode });
     } else if (this.props.mode === "Edit Note") {
-      content = React.createElement(AddNotePanel, {
+      content = React.createElement(AddNoteBox, {
         srefs: this.props.srefs,
         noteId: this.props.noteBeingEdited._id,
         noteText: this.props.noteBeingEdited.text,
@@ -8340,13 +8350,6 @@ var ConnectionsPanel = React.createClass({
         fullPanel: this.props.fullPanel,
         closePanel: this.props.closePanel,
         setConnectionsMode: this.props.setConnectionsMode });
-    } else if (this.props.mode === "My Notes") {
-      content = React.createElement(MyNotesPanel, {
-        srefs: this.props.srefs,
-        fullPanel: this.props.fullPanel,
-        closePanel: this.props.closePanel,
-        setConnectionsMode: this.props.setConnectionsMode,
-        editNote: this.props.editNote });
     } else if (this.props.mode === "Add Connection") {
       var url = "/s1?next=" + window.location.pathname;
       var link = React.createElement(
@@ -8532,10 +8535,11 @@ var ResourcesList = React.createClass({
   displayName: 'ResourcesList',
 
   propTypes: {
-    multiPanel: React.PropTypes.func.isRequired,
+    multiPanel: React.PropTypes.bool.isRequired,
     setConnectionsMode: React.PropTypes.func.isRequired,
     openComparePanel: React.PropTypes.func.isRequired,
-    sheetsCount: React.PropTypes.number.isRequired
+    sheetsCount: React.PropTypes.number.isRequired,
+    notesCount: React.PropTypes.number.isRequired
   },
   render: function render() {
     return React.createElement(
@@ -8545,7 +8549,7 @@ var ResourcesList = React.createClass({
       React.createElement(ToolsButton, { en: 'Sheets', he: '\u05D4\u05D5\u05E1\u05E3 \u05DC\u05D3\u05E3 \u05DE\u05E7\u05D5\u05E8\u05D5\u05EA', image: 'sheet.svg', count: this.props.sheetsCount, onClick: function () {
           this.props.setConnectionsMode("Sheets");
         }.bind(this) }),
-      React.createElement(ToolsButton, { en: 'Notes', he: '\u05D4\u05E8\u05E9\u05D5\u05DE\u05D5\u05EA \u05E9\u05DC\u05D9', image: 'tools-write-note.svg', onClick: function () {
+      React.createElement(ToolsButton, { en: 'Notes', he: '\u05D4\u05E8\u05E9\u05D5\u05DE\u05D5\u05EA \u05E9\u05DC\u05D9', image: 'tools-write-note.svg', count: this.props.notesCount, onClick: function () {
           this.props.setConnectionsMode("Notes");
         }.bind(this) }),
       React.createElement(ToolsButton, { en: 'Tools', he: '\u05D4\u05E8\u05E9\u05D5\u05DE\u05D5\u05EA \u05E9\u05DC\u05D9', icon: 'gear', onClick: function () {
@@ -8934,7 +8938,7 @@ var TextList = React.createClass({
   },
   render: function render() {
     var refs = this.props.srefs;
-    var summary = Sefaria.relatedSummary(refs);
+    var summary = Sefaria.linkSummary(refs);
     var oref = Sefaria.ref(refs[0]);
     var filter = this.props.filter;
     var sectionRef = this.getSectionRef();
@@ -9122,45 +9126,74 @@ var RecentFilterSet = React.createClass({
   }
 });
 
-var SheetsList = React.createClass({
-  displayName: 'SheetsList',
+var MySheetsList = React.createClass({
+  displayName: 'MySheetsList',
 
+  // List of my sheets for a ref in the Sidebar
   propTypes: {
-    srefs: React.PropTypes.array.isRequired,
-    fullPanel: React.PropTypes.bool,
-    multiPanel: React.PropTypes.bool
+    srefs: React.PropTypes.array.isRequired
+  },
+  render: function render() {
+    var sheets = Sefaria.sheets.userSheetsByRef(this.props.srefs);
+    var content = sheets.length ? sheets.map(function (sheet) {
+      return React.createElement(SheetListing, { sheet: sheet, key: sheet.sheetUrl });
+    }) : null;
+    return content && content.length ? React.createElement(
+      'div',
+      { className: 'sheetList' },
+      content
+    ) : null;
+  }
+});
+
+var PublicSheetsList = React.createClass({
+  displayName: 'PublicSheetsList',
+
+  // List of public sheets for a ref in the sidebar
+  propTypes: {
+    srefs: React.PropTypes.array.isRequired
   },
   render: function render() {
     var sheets = Sefaria.sheets.sheetsByRef(this.props.srefs);
-    var content = sheets.length ? sheets.map(function (sheet) {
+    var content = sheets.length ? sheets.filter(function (sheet) {
+      // My sheets are show already in MySheetList
+      return sheet.owner !== Sefaria._uid;
+    }).map(function (sheet) {
       return React.createElement(SheetListing, { sheet: sheet, key: sheet.sheetUrl });
-    }) : React.createElement(LoadingMessage, { message: 'No public sheets here.', heMessage: 'No public sheets here.' });
-    return React.createElement(
+    }) : null;
+    return content && content.length ? React.createElement(
       'div',
-      null,
+      { className: 'sheetList' },
       content
-    );
+    ) : null;
   }
 });
 
 var SheetListing = React.createClass({
   displayName: 'SheetListing',
 
+  // A source sheet listed in the Sidebar
   propTypes: {
     sheet: React.PropTypes.object.isRequired
   },
   render: function render() {
     var sheet = this.props.sheet;
+    var viewsIcon = sheet.public ? React.createElement(
+      'div',
+      { className: 'sheetViews' },
+      React.createElement('i', { className: 'fa fa-eye', title: sheet.views + " views" }),
+      ' ',
+      sheet.views
+    ) : React.createElement(
+      'div',
+      { className: 'sheetViews' },
+      React.createElement('i', { className: 'fa fa-lock', title: 'Private' })
+    );
+
     return React.createElement(
       'div',
       { className: 'sheet', key: sheet.sheetUrl },
-      React.createElement(
-        'div',
-        { className: 'sheetViews' },
-        React.createElement('i', { className: 'fa fa-eye' }),
-        ' ',
-        sheet.views
-      ),
+      viewsIcon,
       React.createElement(
         'a',
         { href: sheet.ownerProfileUrl, target: '_blank' },
@@ -9181,7 +9214,11 @@ var SheetListing = React.createClass({
         'div',
         { className: 'sheetTags' },
         sheet.tags.map(function (tag, i) {
-          var separator = i == sheet.tags.length - 1 ? null : ",";
+          var separator = i == sheet.tags.length - 1 ? null : React.createElement(
+            'span',
+            { className: 'separator' },
+            ','
+          );
           return React.createElement(
             'a',
             { href: "/sheets/tags/" + tag, target: '_blank', className: 'sheetTag', key: tag },
@@ -9190,63 +9227,6 @@ var SheetListing = React.createClass({
           );
         })
       )
-    );
-  }
-});
-
-var Note = React.createClass({
-  displayName: 'Note',
-
-  propTypes: {
-    title: React.PropTypes.string.isRequired,
-    text: React.PropTypes.string.isRequired,
-    ownerName: React.PropTypes.string,
-    ownerImageUrl: React.PropTypes.string,
-    ownerProfileUrl: React.PropTypes.string,
-    isPrivate: React.PropTypes.bool,
-    editNote: React.PropTypes.func
-  },
-  render: function render() {
-
-    var isInMyNotes = !this.props.ownerName; // public notes can appear inside myNotesPanel, use ownerName as a proxy for context
-
-    var authorInfo = isInMyNotes ? null : React.createElement(
-      'div',
-      { className: 'noteAuthorInfo' },
-      React.createElement(
-        'a',
-        { href: this.props.ownerProfileUrl },
-        React.createElement('img', { className: 'noteAuthorImg', src: this.props.ownerImageUrl })
-      ),
-      React.createElement(
-        'a',
-        { href: this.props.ownerProfileUrl, className: 'noteAuthor' },
-        this.props.ownerName
-      )
-    );
-
-    var buttons = isInMyNotes ? React.createElement(
-      'div',
-      { className: 'noteButtons' },
-      React.createElement('i', { className: 'fa fa-pencil', onClick: this.props.editNote }),
-      this.props.isPrivate ? null : React.createElement('i', { className: 'fa fa-unlock-alt' })
-    ) : null;
-
-    return React.createElement(
-      'div',
-      { className: 'note' },
-      authorInfo,
-      React.createElement(
-        'div',
-        { className: 'note-content' },
-        React.createElement(
-          'div',
-          { className: 'noteTitle' },
-          this.props.title
-        ),
-        React.createElement('span', { className: 'noteText', dangerouslySetInnerHTML: { __html: this.props.text } })
-      ),
-      buttons
     );
   }
 });
@@ -9327,8 +9307,8 @@ var LexiconPanel = React.createClass({
       );
     }
     var refCats = this.props.oref.categories.join(", "); //TODO: the way to filter by categories is very limiting.
-    var enEmpty = "No definitions found for " + this.props.selectedWords + ".";
-    var heEmpty = "לא נמצאו תוצאות '" + this.props.selectedWords + "'.";
+    var enEmpty = 'No definitions found for "' + this.props.selectedWords + '".';
+    var heEmpty = 'לא נמצאו תוצאות "' + this.props.selectedWords + '".';
     if (!this.shouldActivate(this.props.selectedWords)) {
       //console.log("not rendering lexicon");
       return false;
@@ -9938,8 +9918,8 @@ var ConfirmAddToSheetPanel = React.createClass({
   }
 });
 
-var AddNotePanel = React.createClass({
-  displayName: 'AddNotePanel',
+var AddNoteBox = React.createClass({
+  displayName: 'AddNoteBox',
 
   propTypes: {
     srefs: React.PropTypes.array.isRequired,
@@ -10108,15 +10088,13 @@ var AddNotePanel = React.createClass({
   }
 });
 
-var MyNotesPanel = React.createClass({
-  displayName: 'MyNotesPanel',
+var MyNotes = React.createClass({
+  displayName: 'MyNotes',
 
+  // List of user notes on a ref or range of refs.
   propTypes: {
     srefs: React.PropTypes.array.isRequired,
-    setConnectionsMode: React.PropTypes.func.isRequired,
-    closePanel: React.PropTypes.func.isRequired,
-    editNote: React.PropTypes.func.isRequired,
-    fullPanel: React.PropTypes.bool
+    editNote: React.PropTypes.func.isRequired
   },
   componentDidMount: function componentDidMount() {
     this.loadNotes();
@@ -10140,20 +10118,104 @@ var MyNotesPanel = React.createClass({
         this.props.editNote(note);
       }.bind(this);
       return React.createElement(Note, {
-        title: note.title,
         text: note.text,
         isPrivate: !note.public,
+        isMyNote: true,
+        ownerName: note.ownerName,
+        ownerProfileUrl: note.ownerProfileUrl,
+        ownerImageUrl: note.ownerImageUrl,
         editNote: editNote,
         key: note._id });
     }.bind(this)) : null;
 
-    return React.createElement(
+    return myNotes ? React.createElement(
       'div',
-      { className: 'notesList' },
+      { className: 'noteList myNoteList' },
       myNotes
-    );
+    ) : null;
   }
 });
+
+var PublicNotes = React.createClass({
+  displayName: 'PublicNotes',
+
+  // List of Publc notes a ref or range or refs.
+  propTypes: {
+    srefs: React.PropTypes.array.isRequired
+  },
+  render: function render() {
+    var notes = Sefaria.notes(this.props.srefs);
+    var content = notes ? notes.filter(function (note) {
+      // Exlude my notes, shown already in MyNotes.
+      return note.owner !== Sefaria._uid;
+    }).map(function (note) {
+      return React.createElement(Note, {
+        text: note.text,
+        ownerName: note.ownerName,
+        ownerProfileUrl: note.ownerProfileUrl,
+        ownerImageUrl: note.ownerImageUrl,
+        isPrivate: false,
+        key: note._id });
+    }) : null;
+
+    return content && content.length ? React.createElement(
+      'div',
+      { className: 'noteList publicNoteList' },
+      content
+    ) : null;
+  }
+});
+
+var Note = React.createClass({
+  displayName: 'Note',
+
+  // Public or private note in the Sidebar.
+  propTypes: {
+    text: React.PropTypes.string.isRequired,
+    ownerName: React.PropTypes.string,
+    ownerImageUrl: React.PropTypes.string,
+    ownerProfileUrl: React.PropTypes.string,
+    isPrivate: React.PropTypes.bool,
+    isMyNote: React.PropTypes.bool,
+    editNote: React.PropTypes.func
+  },
+  render: function render() {
+
+    var authorInfo = React.createElement(
+      'div',
+      { className: 'noteAuthorInfo' },
+      React.createElement(
+        'a',
+        { href: this.props.ownerProfileUrl },
+        React.createElement('img', { className: 'noteAuthorImg', src: this.props.ownerImageUrl })
+      ),
+      React.createElement(
+        'a',
+        { href: this.props.ownerProfileUrl, className: 'noteAuthor' },
+        this.props.ownerName
+      )
+    );
+
+    var buttons = this.props.isMyNote ? React.createElement(
+      'div',
+      { className: 'noteButtons' },
+      React.createElement('i', { className: 'editNoteButton fa fa-pencil', title: 'Edit Note', onClick: this.props.editNote }),
+      this.props.isPrivate ? React.createElement('i', { className: 'fa fa-lock', title: 'Private' }) : null
+    ) : null;
+
+    return React.createElement(
+      'div',
+      { className: 'note' },
+      buttons,
+      authorInfo,
+      React.createElement(
+        'div',
+        { className: 'noteContent' },
+        React.createElement('span', { className: 'noteText', dangerouslySetInnerHTML: { __html: this.props.text } })
+      )
+    );
+  }
+});8;
 
 var LoginPrompt = React.createClass({
   displayName: 'LoginPrompt',

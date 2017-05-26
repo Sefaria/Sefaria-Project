@@ -1758,11 +1758,19 @@ def related_api(request, tref):
     Single API to bundle available content related to `tref`.
     """
     oref = model.Ref(tref)
-    response = {
-        "links": get_links(tref, with_text=False),
-        "sheets": get_sheets_for_ref(tref),
-        "notes": get_notes(oref, public=True)
-    }
+    if request.GET.get("private", False) and request.user.is_authenticated:
+        response = {
+            "sheets": get_sheets_for_ref(tref, uid=request.user.id),
+            "notes": get_notes(oref, uid=request.user.id, public=False)
+        }
+    elif request.GET.get("private", False) and not request.user.is_authenticated:
+        response = {"error": "You must be logged in to access private content."}
+    else: 
+        response = {
+            "links": get_links(tref, with_text=False),
+            "sheets": get_sheets_for_ref(tref),
+            "notes": get_notes(oref, public=True)
+        }
     return jsonResponse(response, callback=request.GET.get("callback", None))
 
 

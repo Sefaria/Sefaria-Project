@@ -574,7 +574,6 @@ Sefaria = extend(Sefaria, {
     // Cache partial index information (title, Hebrew title, categories) found in link data.
     for (var i=0; i< links.length; i++) {
       if (("collectiveTitle" in links[i]) && this.index(links[i].collectiveTitle["en"])) {
-          //console.log("Skipping ", links[i].collectiveTitle["en"]);
           continue;
       }
       var index = {
@@ -836,15 +835,11 @@ Sefaria = extend(Sefaria, {
     this._privateNotes = {};
   },
   _savePrivateNoteData: function(ref, data) {
-    if (data.length) {
-      this._saveItemsByRef(data, this._privateNotes); 
-    } else {
-      this._privateNotes[ref] = [];
-    }
+    return this._saveItemsByRef(data, this._privateNotes);
   },
   _related: {},
   related: function(ref, callback) {
-    // Single API to bundle links, sheets, and notes by ref.
+    // Single API to bundle public links, sheets, and notes by ref.
     if (!callback) {
       return this._related[ref] || null;
     }
@@ -877,53 +872,59 @@ Sefaria = extend(Sefaria, {
             }
           }, this);
 
-
            // Save the original data after the split data - lest a split version overwrite it.
           this._related[ref] = originalData;
-          this._relatedSummaries[ref] = null; // Reset in case previously cached before API returned
+          // this._relatedSummaries[ref] = null; // Reset in case previously cached before API returned
+          // Do we need to do something similar with linkSummaries? 
 
           callback(data);
 
         }.bind(this));
     }
   },
-  _relatedSummaries: {},
-  relatedSummary: function(ref) {
-    // Returns a summary object of all categories of related content.
-    if (typeof ref == "string") {
-      if (ref in this._relatedSummaries) { return this._relatedSummaries[ref]; }
-      var sheets = this.sheets.sheetsByRef(ref) || [];
-      var notes  = this.notes(ref) || [];
+  _relatedPrivate: {},
+  relatedPrivate: function(ref, callback) {
+    // Single API to bundle private user sheets and notes by ref.
+    // Separated from public content so that public content can be cached
+    console.log(ref);
+    if (!callback) {
+      return this._relatedPrivate[ref] || null;
+    }
+    if (ref in this._relatedPrivate) {
+      callback(this._relatedPrivate[ref]);
     } else {
-      var sheets = [];
-      var notes  = [];
-      ref.map(function(r) {
-        var newSheets = Sefaria.sheets.sheetsByRef(r);
-        sheets = newSheets ? sheets.concat(newSheets) : sheets;
-        var newNotes = Sefaria.notes(r);
-        notes = newNotes ? notes.concat(newNotes) : notes;
-      });
+       var url = "/api/related/" + Sefaria.normRef(ref) + "?private=1";
+       this._api(url, function(data) {
+          if ("error" in data) { 
+            return;
+          }
+          var originalData = Sefaria.util.clone(data);
+
+          // Save link, note, and sheet data, and retain the split data from each of these saves
+          var split_data = {
+              notes: this._savePrivateNoteData(ref, data.notes),
+              sheets: this.sheets._saveUserSheetsByRefData(ref, data.sheets)
+          };
+
+           // Build split related data from individual split data arrays
+          ["notes", "sheets"].forEach(function(obj_type) {
+            for (var ref in split_data[obj_type]) {
+              if (split_data[obj_type].hasOwnProperty(ref)) {
+                if (!(ref in this._relatedPrivate)) {
+                    this._relatedPrivate[ref] = {notes: [], sheets: []};
+                }
+                this._relatedPrivate[ref][obj_type] = split_data[obj_type][ref];
+              }
+            }
+          }, this);
+
+           // Save the original data after the split data - lest a split version overwrite it.
+          this._relatedPrivate[ref] = originalData;
+
+          callback(data);
+
+        }.bind(this));
     }
-    var summary           = this.linkSummary(ref);
-    var commmunityContent = [sheets, notes].filter(function(section) { return section.length > 0; } ).map(function(section) {
-      if (!section) { debugger; }
-      return {
-        book: section[0].category,
-        heBook: Sefaria.hebrewTerm(section[0].category),
-        category: "Community",
-        count: section.length
-      };
-    });
-    var community = {
-      category: "Community",
-      count: sheets.length + notes.length,
-      books: commmunityContent
-    };
-    if (community.count > 0) {
-      summary.push(community);
-    }
-    this._relatedSummaries[ref] = summary;
-    return summary;
   },
   sectionString: function(ref) {
     // Returns a pair of nice strings (en, he) of the sections indicated in ref. e.g.,
@@ -1231,6 +1232,36 @@ Sefaria = extend(Sefaria, {
     _saveSheetsByRefData: function(ref, data) {
       this._sheetsByRef[ref] = data;
       return Sefaria._saveItemsByRef(data, this._sheetsByRef);
+    },
+    _userSheetsByRef: {},
+    userSheetsByRef: function(ref, cb) {
+      // Returns a list of public sheets that include `ref`.
+      var sheets = null;
+      if (typeof ref == "string") {
+        if (ref in this._userSheetsByRef) { 
+          sheets = this._userSheetsByRef[ref];
+        }
+      } else {
+        var sheets = [];
+        ref.map(function(r) {
+          var newSheets = Sefaria.sheets.userSheetsByRef(r);
+          if (newSheets) {
+            sheets = sheets.concat(newSheets);
+          }
+        });
+      }
+      if (sheets) {
+        if (cb) { cb(sheets); }
+      } else {
+        Sefaria.relatedPrivate(ref, function(data) {
+          if (cb) { cb(data.sheets); }
+        });
+      }
+      return sheets;
+    },
+    _saveUserSheetsByRefData: function(ref, data) {
+      this._userSheetsByRef[ref] = data;
+      return Sefaria._saveItemsByRef(data, this._userSheetsByRef);
     }
   },
   _groups: {},

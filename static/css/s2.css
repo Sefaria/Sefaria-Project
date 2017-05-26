@@ -1747,8 +1747,6 @@ a.readerNavCategory {
   line-height: 1.4em;
   max-height: 2.8em;
 }
-
-
 .readerNavMenu .content.sheetList {
   padding: 80px 15px 15px;
 }
@@ -2789,7 +2787,8 @@ a.readerNavCategory {
 .bilingual .textList .title .he {
   display: none;
 }
-.textList .sheet, .textList .note {
+.textList .sheet, 
+.textList .note {
   padding: 0 0 24px 0;
 }
 .textList .sheet + .sheet {
@@ -2839,17 +2838,29 @@ a.readerNavCategory {
   text-align: right;
 } 
 .textList .sheet .sheetTag {
-  color: inherit;  
+  color: inherit;
+  display: inline-block;
+  white-space: nowrap;
 }
-.textList .sheet .sheetTag + .sheetTag {
-  margin-left: 8px;
+.textList .sheet .sheetTag .separator {
+  display: inline-block;
+  margin-right: 8px;
+}
+.textList .sheetList { 
+  padding-top: 40px;
+}
+.textList .sheetList + .sheetList {
+  border-top: 1px solid #E6E5E6;
+}
+.textList .note .noteAuthorInfo {
+  margin-bottom: 14px;
 }
 .textList .note .noteTitle {
   font-weight: bold;
 }
 .textList .note .noteTitle,
 .textList .note .noteText {
-  font-size: 1.8em;
+  font-size: 16px;
 }
 .textRange .numberLabel {
   position: absolute;
@@ -2913,9 +2924,6 @@ a.readerNavCategory {
   color: #999;
   padding: 20px 26px;
   outline: none;
-}
-.toolsPanel .addToSourceSheetPanel {
-  margin-bottom: 40px;
 }
 .addToSourceSheetPanel {
   position: relative;
@@ -3006,10 +3014,13 @@ a.readerNavCategory {
 .confirmAddToSheetPanel .button {
   width: 100%;
 }
-.addNoteBox + .notesList {
-  margin-top: 40px;
+.addNoteBox + .noteList {
+
 }
-.toolsPanel .noteText {
+.noteList + .noteList {
+  border-top: 1px solid #ccc;
+}
+.toolsPanel textarea.noteText {
   width: 100%;
   min-height: 100px;
   border: none;
@@ -3073,26 +3084,24 @@ a.readerNavCategory {
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
 }
 .toolsPanel.textList .note {
-  background-color: transparent;
-  padding: 40px 0 30px;
-  position: relative;
-  display: flex;
-  justify-content: space-between;
+  padding: 40px 0;
 }
 .toolsPanel.textList .note {
   border-top: 1px solid #ccc;
 }
 .toolsPanel.textList .note:first-child {
-  padding-top: 10px;
   border-top: none;
 }
 .toolsPanel .noteButtons {
+  float: right;
+}
+.interface-hebrew .toolsPanel .noteButtons {
+  float: left;
+}
+.toolsPanel .editNoteButton {
   visibility: hidden;
 }
-.toolsPanel.textList .note:first-child .noteButtons {
-  top: 14px;
-}
-.toolsPanel .note:hover .noteButtons {
+.toolsPanel .note:hover .editNoteButton {
   visibility: visible;
 }
 .toolsPanel .noteButtons .fa {
