@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 
 from config import *
 from sefaria.model import *
@@ -59,6 +60,18 @@ class AtomicTest(object):
         WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, ".readerNavCategory")))
         self.set_modal_cookie()
         return self
+
+    def login(self):
+        password = os.environ["SEFARIA_TEST_PASS"]
+        user = os.environ["SEFARIA_TEST_USER"]
+
+        self.driver.get(self.base_url + "/login")
+        WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, "#id_email")))
+        elem = self.driver.find_element_by_css_selector("#id_email")
+        elem.send_keys(user)
+        elem = self.driver.find_element_by_css_selector("#id_password")
+        elem.send_keys(password)
+        self.driver.find_element_by_css_selector("button").click()
 
     # TOC
     def load_toc(self):
@@ -258,11 +271,18 @@ class AtomicTest(object):
         return self
 
     def search_for(self, query):
+        # This one is for searches that produce search results, not navigations
         elem = self.driver.find_element_by_css_selector("input.search")
         elem.send_keys(query)
         elem.send_keys(Keys.RETURN)
         # todo: does this work for a second search?
         WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, ".result")))
+        return self
+
+    def type_in_search_box(self, query):
+        elem = self.driver.find_element_by_css_selector("input.search")
+        elem.send_keys(query)
+        elem.send_keys(Keys.RETURN)
         return self
 
     #Source Sheets
