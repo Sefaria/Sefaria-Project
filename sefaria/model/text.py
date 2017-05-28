@@ -4295,27 +4295,44 @@ class Library(object):
         from sefaria.utils.hebrew import strip_nikkud
         #st = strip_nikkud(st) doing this causes the final result to lose vowels and cantiallation
         unique_titles = set(self.get_titles_in_string(st, lang, citing_only))
+        title_regs = []
+        title_nodes = {}
         for title in unique_titles:
             try:
-                st = self._wrap_all_refs_in_string(title, st, lang)
-            except AssertionError as e:
+                re_string = self.get_regex_string(title, lang, capture_title=True)
+                node = self.get_schema_node(title, lang)
+                title_regs.append(u"(?:{})".format(re_string))
+                title_nodes[title] = node
+            except AssertionError as e1:
                 logger.info(u"Skipping Schema Node: {}".format(title))
+                continue
+            except AttributeError as e2:
+                logger.warning(u"Library._wrap_all_refs_in_string() failed to create regex for: {}.  {}".format(title, e))
+                continue
+
+        all_reg = ur"|".join(title_regs)
+        reg = regex.compile(all_reg, regex.VERBOSE)
+        if len(title_regs):
+            st = self._wrap_all_refs_in_string(title_nodes, reg, st, lang)
         return st
 
     # do we want to move this to the schema node? We'd still have to pass the title...
-    def get_regex_string(self, title, lang, for_js=False, anchored=False):
+    def get_regex_string(self, title, lang, for_js=False, anchored=False, capture_title=False):
         node = self.get_schema_node(title, lang)
         assert isinstance(node, JaggedArrayNode)  # Assumes that node is a JaggedArrayNode
 
         if lang == "en" or for_js:  # Javascript doesn't support look behinds.
-            return node.full_regex(title, lang, for_js=for_js, match_range=for_js, compiled=False, anchored=anchored)
+            return node.full_regex(title, lang, for_js=for_js, match_range=for_js, compiled=False, anchored=anchored, capture_title=capture_title)
 
         elif lang == "he":
             return ur"""(?<=							# look behind for opening brace
                     [({]										# literal '(', brace,
                     [^})]*										# anything but a closing ) or brace
                 )
-                """ + regex.escape(title) + node.after_title_delimiter_re + node.address_regex(lang, for_js=for_js, match_range=for_js) + ur"""
+                """ + ur"(?P<title>" + regex.escape(title) + ur")" if capture_title else regex.escape(title)\
+                   + node.after_title_delimiter_re \
+                   + node.address_regex(lang, for_js=for_js, match_range=for_js) \
+                   + ur"""
                 (?=\W|$)                                        # look ahead for non-word char
                 (?=												# look ahead for closing brace
                     [^({]*										# match of anything but an opening '(' or brace
@@ -4392,7 +4409,7 @@ class Library(object):
 
 
     # todo: handle ranges in inline refs
-    def _wrap_all_refs_in_string(self, title=None, st=None, lang="he"):
+    def _wrap_all_refs_in_string(self, title_node_dict=None, titles_regex=None, st=None, lang="he"):
         """
         Returns string with all references wrapped in <a> tags
         :param title: The title of the text to wrap ref links to
@@ -4400,26 +4417,18 @@ class Library(object):
         :param lang:
         :return:
         """
-        node = self.get_schema_node(title, lang)
-        assert isinstance(node, JaggedArrayNode)  # Assumes that node is a JaggedArrayNode
-
         def _wrap_ref_match(match):
             try:
+                gs = match.groupdict()
+                assert gs.get("title") is not None
+                node = title_node_dict[gs.get("title")]
                 ref = self._get_ref_from_match(match, node, lang)
                 return u'<a class ="refLink" href="/{}" data-ref="{}">{}</a>'.format(ref.url(), ref.normal(), match.group(0))
             except InputError as e:
                 logger.warning(u"Wrap Ref Warning: Ref:({}) {}".format(match.group(0), e.message))
                 return match.group(0)
 
-        try:
-            re_string = self.get_regex_string(title, lang)
-        except AttributeError as e:
-            logger.warning(u"Library._wrap_all_refs_in_string() failed to create regex for: {}.  {}".format(title, e))
-            return st
-
-        reg = regex.compile(re_string, regex.VERBOSE)
-
-        return reg.sub(_wrap_ref_match, st)
+        return titles_regex.sub(_wrap_ref_match, st)
 
     def category_id_dict(self, toc=None, cat_head="", code_head=""):
         if toc is None:
