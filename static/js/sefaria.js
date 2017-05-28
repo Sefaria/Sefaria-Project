@@ -214,7 +214,7 @@ Sefaria = extend(Sefaria, {
     if (!cb) {
       return this._getOrBuildTextData(key, ref, settings);
     }          
-    if (key in this._texts) {
+    if (key in this._texts && !("updateFromAPI" in this._texts[key])) {
       var data = this._getOrBuildTextData(key, ref, settings);
       cb(data);
       return data;
@@ -225,6 +225,7 @@ Sefaria = extend(Sefaria, {
       cb(data);
       //console.log("API return for " + data.ref)
     }.bind(this));
+    return null;
   },
   _versions: {},
   versions: function(ref, cb) {
@@ -297,7 +298,7 @@ Sefaria = extend(Sefaria, {
     this._refmap[refkey] = key;
 
     var levelsUp = data.textDepth - data.sections.length;
-    if (levelsUp == 1 && !data.isSpanning) { // Section level ref
+    if (levelsUp == 1 && !data.isSpanning /*&& !data.updateFromAPI*/) { // Section level ref
       this._splitTextSection(data, settings);
     } else if (settings.context && levelsUp <= 1) {  // Do we really want this to run on spanning section refs?
       // Save a copy of the data at context level
@@ -364,7 +365,7 @@ Sefaria = extend(Sefaria, {
 
       context_settings.context = 1;
       var contextKey = this._textKey(ref, context_settings);
-      this._texts[contextKey] = {buildable: "Add Context", ref: ref, sectionRef: sectionRef};
+      this._texts[contextKey] = {buildable: "Add Context", ref: ref, sectionRef: sectionRef, updateFromAPI:data.updateFromAPI};
 
       var refkey           = this._refKey(ref, context_settings);
       this._refmap[refkey] = contextKey;
@@ -443,8 +444,8 @@ Sefaria = extend(Sefaria, {
         callback(this._titleVariants[title]); 
     }
     else {
-        this._api("/api/index/" + title, function(data) {
-          for (var i = 0; i < data.titleVariants.length; i ++) {
+        this._api("/api/v2/index/" + title, function(data) {
+          for (var i = 0; i < data.titleVariants.length; i++) {
             Sefaria._titleVariants[data.titleVariants[i]] = data.title;
           }
           callback(data.title);
@@ -479,6 +480,36 @@ Sefaria = extend(Sefaria, {
       return result;
     }
   },
+  _lookups: {},
+  _ref_lookups: {},
+  // lookupRef should work as a replacement for parseRef - it uses a callback rather than return value.  Besides that - same data.
+  lookupRef: function(n, c, e)  { return this.lookup(n,c,e,true);},
+  lookup: function(name, callback, onError, refOnly) {
+      /* 
+        * name - string to lookup
+        * callback - callback function, takes one argument, a data object
+        * onError - callback
+        * refOnly - if True, only search for titles, otherwise search for People and Categories as well.
+       */
+    name = name.trim();
+    var cache = refOnly? this._ref_lookups: this._lookups;
+    onError = onError || function() {};
+    if (name in cache) {
+        callback(cache[name]);
+    }
+    else {
+        $.ajax({
+          dataType: "json",
+          url: "/api/name/" + name + (refOnly?"?ref_only=1":""), 
+          error: onError,
+          success: function(data) {
+              cache[name] = data;
+              callback(data);
+          }.bind(this)
+        });
+    }
+  },
+
   sectionRef: function(ref) {
     // Returns the section level ref for `ref` or null if no data is available
     var oref = this.ref(ref);
@@ -923,6 +954,85 @@ Sefaria = extend(Sefaria, {
     this._relatedSummaries[ref] = summary;
     return summary;
   },
+  isACaseVariant: function(query, data) {
+    // Check if query is just an improper capitalization of something that otherwise would be a ref
+    // query: string
+    // data: dictionary, as returned by /api/name
+    return (!(data["is_ref"]) &&
+          data["completions"] &&
+          data["completions"].length &&
+          data["completions"][0] != query &&
+          data["completions"][0].toLowerCase().replace('״','"') == query.slice(0, data["completions"][0].length).toLowerCase().replace('״','"') &&
+          data["completions"][0] != query.slice(0, data["completions"][0].length))      
+  },
+  repairCaseVariant: function(query, data) {
+    // Used when isACaseVariant() is true to prepare the alternative
+    return data["completions"][0] + query.slice(data["completions"][0].length);
+  },
+  makeSegments: function(data, withContext) {
+    // Returns a flat list of annotated segment objects,
+    // derived from the walking the text in data
+    if (!data || "error" in data) { return []; }
+    var segments  = [];
+    var highlight = data.sections.length === data.textDepth; 
+    var wrap = (typeof data.text == "string");
+    var en = wrap ? [data.text] : data.text;
+    var he = wrap ? [data.he] : data.he;
+    var topLength = Math.max(en.length, he.length);
+    en = en.pad(topLength, "");
+    he = he.pad(topLength, "");
+
+    var start = (data.textDepth == data.sections.length && !withContext ?
+                  data.sections.slice(-1)[0] : 1);
+
+    if (!data.isSpanning) {
+      for (var i = 0; i < topLength; i++) {
+        var number = i+start;
+        var delim  = data.textDepth == 1 ? " " : ":";
+        var ref = data.sectionRef + delim + number;
+        segments.push({
+          ref: ref,
+          en: en[i], 
+          he: he[i],
+          number: number,
+          highlight: highlight && number >= data.sections.slice(-1)[0] && number <= data.toSections.slice(-1)[0]
+        });
+      }      
+    } else {
+      for (var n = 0; n < topLength; n++) {
+        var en2 = typeof en[n] == "string" ? [en[n]] : en[n];
+        var he2 = typeof he[n] == "string" ? [he[n]] : he[n];
+        var length = Math.max(en2.length, he2.length);
+        en2 = en2.pad(length, "");
+        he2 = he2.pad(length, "");
+        var baseRef     = data.book;
+        var baseSection = data.sections.slice(0,-2).join(":");
+        var delim       = baseSection ? ":" : " ";
+        var baseRef     = baseSection ? baseRef + " " + baseSection : baseRef;
+
+        start = (n == 0 ? start : 1);
+        for (var i = 0; i < length; i++) {
+          var startSection = data.sections.slice(-2)[0];
+          var section = typeof startSection == "string" ?
+                        Sefaria.hebrew.intToDaf(n+Sefaria.hebrew.dafToInt(startSection))
+                        : n + startSection;
+          var number  = i + start;
+          var ref = baseRef + delim + section + ":" + number;
+          segments.push({
+            ref: ref,
+            en: en2[i], 
+            he: he2[i],
+            number: number,
+            highlight: highlight && 
+                        ((n == 0 && number >= data.sections.slice(-1)[0]) || 
+                         (n == topLength-1 && number <= data.toSections.slice(-1)[0]) ||
+                         (n > 0 && n < topLength -1))
+          });
+        }
+      }
+    }
+    return segments;
+  },    
   sectionString: function(ref) {
     // Returns a pair of nice strings (en, he) of the sections indicated in ref. e.g.,
     // "Genesis 4" -> "Chapter 4", "Guide for the Perplexed, Introduction" - > "Introduction"
@@ -1041,13 +1151,7 @@ Sefaria = extend(Sefaria, {
     Sefaria.recentlyViewed = recent;
     var packedRecent = recent.map(Sefaria.packRecentItem);
     if (Sefaria._uid) {
-        $.post("/api/profile", {json: JSON.stringify({recentlyViewed: packedRecent})}, function(data) {
-          if ("error" in data) {
-            alert(data.error);
-          }
-        }).fail(function() {
-          alert("Sorry, an Error occurred.");
-        });    
+        $.post("/api/profile", {json: JSON.stringify({recentlyViewed: packedRecent})}, function(data) {} );  
     } else {
       var cookie = INBROWSER ? $.cookie : Sefaria.util.cookie;
       packedRecent = packedRecent.slice(0, 6);
@@ -1496,7 +1600,7 @@ Sefaria = extend(Sefaria, {
   _makeBooksDict: function() {
     // Transform books array into a dictionary for quick lookup
     // Which is worse: the cycles wasted in computing this on the client
-    // or the bandwitdh wasted in letting the server computer once and trasmiting the same data twice in differnt form?
+    // or the bandwidth wasted in letting the server computer once and transmitting the same data twice in different form?
     this.booksDict = {};
     for (var i = 0; i < this.books.length; i++) {
       this.booksDict[this.books[i]] = 1;
@@ -2164,6 +2268,21 @@ Sefaria.util = {
                return container.nodeType === 3 ? container.parentNode : container;
             }   
         }
+    },
+    _scrollbarWidth: null,
+    getScrollbarWidth: function() {
+      // Returns the size of the browser scrollbars in pixels
+      // May be 0 for browser that hide scrollbars when not in use
+      if (Sefaria.util._scrollbarWidth !== null) {
+        return Sefaria.util._scrollbarWidth;
+      }
+      $("body").append(
+        '<div id="scrollbarTestA" style="display:none;overflow:scroll">' +
+          '<div id="scrollbarTestB"></div>' +
+        '</div>');
+        Sefaria.util._scrollbarWidth = $("#scrollbarTestA").width() - $("#scrollbarTestB").width();
+        $("#scrollbarTestA").remove();
+        return Sefaria.util._scrollbarWidth;
     }
 };
 
@@ -2377,6 +2496,9 @@ Sefaria.site = {
     setContentLanguage: function(language) {
         ga('set', 'contentGroup5', language);
     },
+    setInterfaceLanguage: function(origin, language){
+        Sefaria.site.track.event("Settings", origin, language);
+    },
     setNumberOfPanels: function(val) {
         ga('set', 'dimension1', val);
     },
@@ -2463,7 +2585,7 @@ Sefaria.palette.categoryColors = {
   "Kabbalah":           Sefaria.palette.colors.purple,
   "Philosophy":         Sefaria.palette.colors.lavender,
   "Liturgy":            Sefaria.palette.colors.darkpink,
-  "Tosefta":            Sefaria.palette.colors.teal,
+  "Tanaitic":           Sefaria.palette.colors.teal,
   "Parshanut":          Sefaria.palette.colors.paleblue,
   "Chasidut":           Sefaria.palette.colors.lightgreen,
   "Musar":              Sefaria.palette.colors.raspberry,

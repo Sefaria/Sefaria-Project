@@ -224,6 +224,9 @@ def deserialize_tree(serial=None, **kwargs):
     Build a :class:`TreeNode` tree from serialized form.  Called recursively.
     :param serial: The serialized form of the subtree
     :param kwargs: keyword argument 'struct_class' specifies the class to use as the default structure node class.
+    Keyword argument 'leaf_class' specifies the class to use as the default leaf node class.
+    keyword argument 'children_attr' specifies the attribute where children are contained. Defaults to "nodes"
+        Note the attribute of TreeNode class with the same name and function.
     Other keyword arguments are passed through to the node constructors.
     :return: :class:`TreeNode`
     """
@@ -234,14 +237,16 @@ def deserialize_tree(serial=None, **kwargs):
         except KeyError:
             raise IndexSchemaError("No matching class for nodeType {}".format(serial.get("nodeType")))
 
-    if serial.get("nodes"):
+    if serial.get(kwargs.get("children_attr", "nodes")):
         #Structure class - use explicitly defined 'nodeType', code overide 'struct_class', or default SchemaNode
         struct_class = klass or kwargs.get("struct_class", SchemaNode)
         return struct_class(serial, **kwargs)
     elif klass:
         return klass(serial, **kwargs)
+    elif kwargs.get("leaf_class"):
+        return kwargs.get("leaf_class")(serial, **kwargs)
     else:
-        raise IndexSchemaError("Schema node has neither 'nodes' nor 'nodeType': {}".format(serial))
+        raise IndexSchemaError("Schema node has neither 'nodes' nor 'nodeType' and 'leaf_class' not provided: {}".format(serial))
 
 
 class TreeNode(object):
@@ -252,17 +257,18 @@ class TreeNode(object):
     """
     required_param_keys = []
     optional_param_keys = []
+    default_children_attr = "nodes"
 
     def __init__(self, serial=None, **kwargs):
-
+        self.children_attr = kwargs.get("children_attr", self.default_children_attr)
         self._init_defaults()
         if not serial:
             return
         self.__dict__.update(serial)
-        if getattr(self, "nodes", None) is not None:
-            for node in self.nodes:
+        if getattr(self, self.children_attr, None) is not None:
+            for node in getattr(self, self.children_attr):
                 self.append(deserialize_tree(node, **kwargs))
-            del self.nodes
+            delattr(self, self.children_attr)
 
     def _init_defaults(self):
         self.children = []  # Is this enough?  Do we need a dict for addressing?
@@ -411,7 +417,7 @@ class TreeNode(object):
     def traverse_to_json(self, callback, depth=0, **kwargs):
         js = callback(self, depth, **kwargs)
         if self.children:
-            js["nodes"] = [child.traverse_to_json(callback, depth + 1, **kwargs) for child in self.children]
+            js[getattr(self, "children_attr")] = [child.traverse_to_json(callback, depth + 1, **kwargs) for child in self.children]
         return js
 
     def traverse_to_list(self, callback, depth=0, **kwargs):
@@ -423,7 +429,7 @@ class TreeNode(object):
     def serialize(self, **kwargs):
         d = {}
         if self.children:
-            d["nodes"] = [n.serialize(**kwargs) for n in self.children]
+            d[self.children_attr] = [n.serialize(**kwargs) for n in self.children]
 
         #Only output nodeType and nodeParameters if there is at least one param. This seems like it may not remain a good measure.
         params = {k: getattr(self, k) for k in self.required_param_keys + self.optional_param_keys if getattr(self, k, None) is not None}
@@ -438,8 +444,8 @@ class TreeNode(object):
         for child in self.children:
             children_serial.append(child.copy(callback).serialize())
         serial = copy.deepcopy(self.serialize())
-        if "nodes" in serial:
-            serial["nodes"] = children_serial
+        if self.children_attr in serial:
+            serial[self.children_attr] = children_serial
         new_node = self.__class__(serial)
         if callback:
             new_node = callback(new_node)
@@ -748,11 +754,13 @@ class NumberedTitledTreeNode(TitledTreeNode):
     def address_class(self, depth):
         return self._addressTypes[depth]
 
-    def full_regex(self, title, lang, anchored=True, compiled=True, **kwargs):
+    def full_regex(self, title, lang, anchored=True, compiled=True, capture_title=False, **kwargs):
         """
         :return: Regex object. If kwargs[for_js] == True, returns the Regex string
         :param for_js: Defaults to False
         :param match_range: Defaults to False
+        :param strict: Only match string where all address components match
+        :param terminated: Only match string that contains just a valid ref
 
         A call to `full_regex("Bereishit", "en", for_js=True)` returns the follow regex, expanded here for clarity :
         ```
@@ -786,13 +794,14 @@ class NumberedTitledTreeNode(TitledTreeNode):
         Different address type / language combinations produce different internal regexes in the innermost portions of the above, where the comments say 'digits'.
 
         """
-        key = (title, lang, anchored, compiled, kwargs.get("for_js"), kwargs.get("match_range"), kwargs.get("strict"))
+        key = (title, lang, anchored, compiled, kwargs.get("for_js"), kwargs.get("match_range"), kwargs.get("strict"), kwargs.get("terminated"))
         if not self._regexes.get(key):
             reg = ur"^" if anchored else ""
-            reg += regex.escape(title) + self.after_title_delimiter_re
+            reg += ur"(?P<title>" + regex.escape(title) + ur")" if capture_title else regex.escape(title)
+            reg += self.after_title_delimiter_re
             addr_regex = self.address_regex(lang, **kwargs)
             reg += ur'(?:(?:' + addr_regex + ur')|(?:[\[({]' + addr_regex + ur'[\])}]))'  # Match expressions with internal parenthesis around the address portion
-            reg += ur"(?=\W|$)" if not kwargs.get("for_js") else ur"(?=[.,:;?! })\]<]|$)"
+            reg += ur"(?=[.,:;?! })\]<]|$)" if kwargs.get("for_js") else ur"(?=\W|$)" if not kwargs.get("terminated") else ur"$"
             self._regexes[key] = regex.compile(reg, regex.VERBOSE) if compiled else reg
         return self._regexes[key]
 

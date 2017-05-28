@@ -14,10 +14,17 @@
 
 {% block head %}
     {% if title %}
-        <meta property="og:title" content="{{ title|striptags|strip_html_entities }} | Sefaria Source Sheet Builder"/>
+        <meta property="og:title" content="{{ title|striptags|strip_html_entities }}"/>
     {% else %}
         <meta property="og:title" content="Sefaria Source Sheet Builder"/>
     {% endif %}
+
+    {% if sheet.owner %}
+        <meta property="og:description" content="A source sheet by {{ sheet.owner|user_name }} created with Sefaria's Source Sheet Builder"/>
+    {% else %}
+        <meta property="og:description" content="Design your own source sheets with Sefaria"/>
+    {% endif %}
+
     <meta property="og:type" content="website"/>
     <meta property="og:image" content="https://www.sefaria.org/static/img/fb-og-image.png"/>
     <link rel="stylesheet" type="text/css" href="/static/css/tooltipster.css" />
@@ -47,29 +54,29 @@
 				{% if not new_sheet %}
 					{% if user.email %}
 					<div class="optionItem" id="copySheet">
-						<img src="/static/img/copy.png"> Copy Sheet</div>
+						<img src="/static/img/copy.png" alt="Copy Sheet Icon"> Copy Sheet</div>
 					{% endif %}
 					{% if user.email %}
 					<div class="optionItem" id="exportToDrive">
 						<i class="fa fa-google"></i> Export to Google Drive</div>
 					{% endif %}
 					<div class="optionItem" id="embedSheet">
-						<img src="/static/img/embed.png"> Embed Sheet</div>
+						<img src="/static/img/embed.png" alt="Embed Sheet Icon"> Embed Sheet</div>
 					{% if is_owner %}
 					<div class="optionItem" id="deleteSheet">
-						<img src="/static/img/delete.png"> Delete Sheet</div>
+						<img src="/static/img/delete.png" alt="Delete Sheet Icon"> Delete Sheet</div>
 					{% endif %}
 
 					{% if user.email %}
 					<div class="line"></div>
 					<div class="optionItem" id="editTags">
-						<img src="/static/img/edittags.png"> Edit Sheet Tags</div>
+						<img src="/static/img/edittags.png" alt="Edit Sheet Tags Icon"> Edit Sheet Tags</div>
 					{% endif %}
 				{% if is_owner %}
 	    			{% if not sheet.assigner_id %}
 
                     <div class="optionGroup">
-                        <div class="optionTitle" id="assignmentsModalTrigger"><img src="/static/img/assignment.png"> Assignments</div>
+                        <div class="optionTitle" id="assignmentsModalTrigger"><img src="/static/img/assignment.png" alt="Assignment Icon"> Assignments</div>
                     </div>
 
 
@@ -84,15 +91,19 @@
 				<div class="line"></div>
 
 				<div class="optionItem" id="print">
-					<img src="/static/img/print.png"> Print</div>
+					<img src="/static/img/print.png" alt="Print Icon"> Print</div>
                 <div class="optionItem" id="visualize">
 					<a href="/sheets/visual/{{sheet.id}}"><i class="fa fa-picture-o"></i>Visualize</a></div>
-			</div>
+                {% if not new_sheet %}
+                <div class="optionItem" id="highlightToggle">
+					<i class="fa fa-pencil"></i>Toggle Highlight Mode</div>
+   				{% endif %}
+            </div>
         </div>
         <div class="sheetsMenuBarItem" id="formatMenu">Format
 			<div class="optionsMenu">
 				<div class="optionGroup">
-					<div class="optionTitle"><img src="/static/img/divine.png"> Divine Names <i class='fa fa-caret-right'></i></div>
+					<div class="optionTitle"><img src="/static/img/divine.png" alt="Divine Names Icon"> Divine Names <i class='fa fa-caret-right'></i></div>
 					<div class="subMenu">
 						<div class="optionItem divineNamesOption" id="noSub">
 							<i class="fa fa-check"></i> <i>No substitution</i></div>
@@ -115,14 +126,14 @@
             {% if can_edit or can_add %}
 
 				<div class="optionItem" id="resetText">
-					<img src="/static/img/reset%20text.png"> Reset Source Text</div>
+					<img src="/static/img/reset%20text.png" alt="Reset Source Text Icon"> Reset Source Text</div>
 
    				<div class="optionLink" id="splitSourceToSegment">
-					<i class="fa fa-file-o hidden"></i> Auto-Segment Source Text</div>
+					<i class="fa fa-file-o hidden"></i> Auto-Segment Text</div>
 
 
 				<div class="optionLink" id="removeNikkudot">
-					<i class="fa fa-file-o hidden"></i> Remove Source Nikkudot</div>
+					<i class="fa fa-file-o hidden"></i> Remove Nikkudot</div>
 
                 <div class="optionItem" id="addSourceTitle">
 					 <i class="fa fa-pencil"></i> Add Source Title</div>
@@ -212,16 +223,32 @@
             {% if can_edit or can_add %}
         <div class="sheetsMenuBarItem" id="insertMenu">Insert
 			<div class="optionsMenu">
-				<div class="optionItem" id="addSourceMenu"><img src="/static/img/source.png"> Source</div>
+				<div class="optionItem" id="addSourceMenu"><img src="/static/img/source.png" alt="Add Source Icon"> Source</div>
    				{% if is_owner %}
-                <div class="optionItem" id="addParashaToSheetModalTrigger"><img src="/static/img/parasha.png"> Parasha</div>
+                <div class="optionItem" id="addParashaToSheetModalTrigger"><img src="/static/img/parasha.png" alt="Add Parasha Icon"> Parasha</div>
 				{% endif %}
-                <div class="optionItem" id="addCustomMenu"><img src="/static/img/custom%20text.png"> Text</div>
-				<div class="optionItem" id="addCommentMenu"><img src="/static/img/comment.png"> Comment</div>
-				<div class="optionItem" id="addMediaMenu"><img src="/static/img/media.png"> Media</div>
+                <div class="optionItem" id="addCustomMenu"><img src="/static/img/custom%20text.png" alt="Add outside text icon"> Text</div>
+				<div class="optionItem" id="addCommentMenu"><img src="/static/img/comment.png" alt="Add Comment Icon"> Comment</div>
+				<div class="optionItem" id="addMediaMenu"><img src="/static/img/media.png" alt="Add Media Icon"> Media</div>
             </div>
         </div>
             {% endif %}
+
+        <div class="sheetsMenuBarItem" id="highlightMenu">Highlight Tools
+			<div class="optionsMenu">
+                <div class="optionItem segmentedContinuousToggle">Continuous</div>
+                {% if can_edit %}
+                    <div class='optionItem resetHighlighter'>Reset</div>
+                {% endif %}
+				<div class="optionGroup">
+					<div class="optionTitle">Filter <i class='fa fa-caret-right'></i></div>
+					<div class="subMenu">
+                        <div class='optionItem highlighterFilterTags'>
+                        </div>
+					</div>
+				</div>
+            </div>
+        </div>
 
     <div class="sheetsMenuBarItem">
              <span id="lastSaved">
@@ -233,11 +260,13 @@
      </span>
 
     </div>
+    <span id="highlightModeDisplay">Highlight Mode is On</span>
+
 	{% if new_sheet %}
         <span id="save" class="button"><i class="fa fa-floppy-o"></i> Save</span>
 
     {% elif is_owner or can_publish %}
-        <span id="share" class="button"><img src="/static/img/share.png"> Share</span>
+        <span id="share" class="button"><img src="/static/img/share.png" alt="Share Icon"> Share</span>
 	{% endif %}
 
         <div id="ckeTopMenu"></div>
@@ -264,7 +293,7 @@
 	<div id="sheetHeader" {% if sheet_group == None %}style="display:none"{% endif %}>
 		{% if sheet_group and sheet_group.headerUrl %}
 		<a href="/groups/{{ sheet_group.name|url_safe }}">
-			<img id="groupLogo" src="{{ sheet_group.headerUrl }}" />
+			<img id="groupLogo" src="{{ sheet_group.headerUrl }}" alt="Logo for {{ sheet_group.name }}" />
 		</a>
 		{% else %}
 			<img id="groupLogo" style="display:none;" />
@@ -328,11 +357,11 @@
     {% if can_edit or can_add %}
     <div id="addInterface">
         <div class="buttonBar">
-            <div class="addInterfaceButton" id="sourceButton"><img src="/static/img/source.png"> Source</div><!--
-         --><div class="addInterfaceButton" id="connectionButton"><img src="/static/img/connection.png"> Connection</div><!--
-         --><div class="addInterfaceButton" id="customTextButton"><img src="/static/img/custom%20text.png"> Text</div><!--
-         --><div class="addInterfaceButton" id="mediaButton"><img src="/static/img/media.png"> Media</div><!--
-         --><div class="addInterfaceButton" id="commentButton"><img src="/static/img/comment.png">  Comment</div>
+            <div class="addInterfaceButton" id="sourceButton"><img src="/static/img/source.png" alt="Add Source Icon"> Source</div><!--
+         --><div class="addInterfaceButton" id="connectionButton"><img src="/static/img/connection.png" alt="Add Connections Icon"> Connection</div><!--
+         --><div class="addInterfaceButton" id="customTextButton"><img src="/static/img/custom%20text.png" alt="Add Outside Text Icon"> Text</div><!--
+         --><div class="addInterfaceButton" id="mediaButton"><img src="/static/img/media.png" alt="Add Media Icon"> Media</div><!--
+         --><div class="addInterfaceButton" id="commentButton"><img src="/static/img/comment.png" alt="Add Comment Icon">  Comment</div>
         </div>
         <div class="contentDiv">
             <div id="addsourceDiv">
@@ -358,7 +387,7 @@
             </div>
             <div id="addcustomTextDiv">
                 <div class="inlineAddDesc">Write or paste text</div>
-                <div id="customTextLanguageToggle" class="toggle"><span id="englishCustomText" class="toggleOption"><img src="/static/img/english.png"></span><span id="bilingualCustomText" class="toggleOption active"><img src="/static/img/bilingual.png"></span><span id="hebrewCustomText" class="toggleOption"><img src="/static/img/hebrew.png"></span></div>
+                <div id="customTextLanguageToggle" class="toggle"><span id="englishCustomText" class="toggleOption"><img src="/static/img/english.png" alt="English Language Toggle"></span><span id="bilingualCustomText" class="toggleOption active"><img src="/static/img/bilingual.png" alt="Bilingual Language Toggle"></span><span id="hebrewCustomText" class="toggleOption"><img src="/static/img/hebrew.png" alt="Hebrew Language Toggle"></span></div>
 
                 <div id="customTextContainer" class="flexContainer">
                     <div class="contentToAdd en customTextEditables" tabindex="0">English</div>
@@ -431,6 +460,26 @@
 		</div>
 	</div>
 
+<div class='highlighterTools'>
+    <div class='highlighterTagWindow'>
+        <span class="close-button"></span>
+        <div class='tagSelector'>
+            <div class='tagSelectorTitle'>Add Highlight</div>
+            <div class='sheetHighlighterTags'></div>
+            <div class='createNewHighlighterTag'>
+                <div class='colorSwatch active' style='background-color: #bd9eb6'></div>
+                <div class='colorSwatch' style='background-color: #afcab8'></div>
+                <div class='colorSwatch' style='background-color: #e5dabd'></div>
+                <div class='colorSwatch' style='background-color: #bd9796'></div>
+                <div class='colorSwatch' style='background-color: #a4b7de'></div>
+                <div class='colorSwatch' style='background-color: #e8dde5'></div>
+                <div class='colorSwatch' style='background-color: #d2ddc9'></div>
+                <div class='tagName' contenteditable='true'>Create New</div></div>
+            <div class='save button'>Save</div>
+        </div>
+    </div>
+</div>
+
 
 </div>
 
@@ -446,24 +495,6 @@
 <div id="belowSheet"></div>
 
 <div id="footer"></div>
-
-<div id="addSourceModal" class="modal s2Modal">
-			<div id="closeAddSource" class="icon-remove"></div>
-			<div id="addDialogTitle" class="dialogTitle">Enter a text or commentator name:</div>
-			<input id="add" />
-			<div id="addEg">e.g., Mishnah Peah 3:4, Psalms 4:12-15, Rashi on Genesis 1:1</div>
-			<div id="addOr">- or -</div>
-			<div id="addBrowseBox">
-				<div id="addBrowse" class='btn btn-primary'>Browse Sources</div>
-			</div>
-</div>
-
-<div id="addMediaModal" class="modal s2Modal">
-			<div class="header">Enter the URL of your image, YouTube video, or mp3 file:</div>
-			<input id="addMediaInput" placeholder="http://" />
-			<div id="mediaPreview"></div>
-			<div class='btn ok'>Add</div>
-</div>
 
 
 <div id="assignmentsModal" class="modal s2Modal">
@@ -495,7 +526,7 @@
     <div class="title">Share with Others</div>
 
     <div class="content">
-        <div class="inputHeader"><img src="/static/img/shareablelink.png"> Sharable Link</div>
+        <div class="inputHeader"><img src="/static/img/shareablelink.png" alt="Sharable Link Icon"> Sharable Link</div>
         <input id="shareURL" value="{{ request.META.HTTP_HOST }}/sheets/{{sheet.id}}" readonly="readonly"/>
     </div>
 
