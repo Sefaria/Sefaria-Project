@@ -8076,7 +8076,7 @@ var SearchResultList = React.createClass({
             hits: {"text": [], "sheet": []},
             activeTab: "text",
             error: false,
-            showOverlay: false,
+            showOverlay: !!this.props.appliedFilters.length,
             displayFilters: !!this.props.appliedFilters.length,
             displaySort: false
         }
@@ -8716,7 +8716,7 @@ var SearchFilters = React.createClass({
         query={this.props.query}
         closeBox={this.props.closeFilterView}
         isExactSearch={this.props.isExactSearch}
-
+        handleFocusCategory={this.handleFocusCategory}
     />);
 
     var sort_panel = (<SearchSortBox
@@ -8752,19 +8752,19 @@ var SearchFilterPanel = React.createClass({
     query:               React.PropTypes.string,
     isExactSearch:       React.PropTypes.bool,
     toggleExactSearch:   React.PropTypes.func,
-    closeBox:            React.PropTypes.func
+    closeBox:            React.PropTypes.func,
+    handleFocusCategory: React.PropTypes.func
   },
   componentDidMount() {
-    document.addEventListener('click', this.handleClickOutside.bind(this), true);
+    document.addEventListener('mousedown', this.handleClickOutside.bind(this), false);
   },
 
   componentWillUnmount() {
-    document.removeEventListener('click', this.handleClickOutside.bind(this), true);
+    document.removeEventListener('mousedown', this.handleClickOutside.bind(this), false);
   },
   handleClickOutside(event) {
     const domNode = ReactDOM.findDOMNode(this);
-
-    if ((!domNode || !domNode.contains(event.target))) {
+    if ((!domNode || !domNode.contains(event.target)) && this.props.displayFilters) {
       this.props.closeBox();
     }
   },
@@ -8782,7 +8782,7 @@ var SearchFilterPanel = React.createClass({
               return (<SearchFilter
                   filter={filter}
                   isInFocus={this.props.openedCategory === filter}
-                  focusCategory={this.handleFocusCategory}
+                  focusCategory={this.props.handleFocusCategory}
                   updateSelected={this.props.updateAppliedFilter}
                   key={filter.path}/>);
           }.bind(this))}
@@ -8817,17 +8817,17 @@ var SearchSortBox = React.createClass({
     sortType:                React.PropTypes.oneOf(["chronological", "relevance"])
   },
   componentDidMount() {
-    document.addEventListener('click', this.handleClickOutside.bind(this), true);
+    document.addEventListener('mousedown', this.handleClickOutside.bind(this), false);
   },
 
   componentWillUnmount() {
-    document.removeEventListener('click', this.handleClickOutside.bind(this), true);
+    document.removeEventListener('mousedown', this.handleClickOutside.bind(this), false);
   },
 
   handleClickOutside(event) {
     const domNode = ReactDOM.findDOMNode(this);
 
-    if ((!domNode || !domNode.contains(event.target))) {
+    if ((!domNode || !domNode.contains(event.target)) && this.props.visible) {
       this.props.closeBox();
     }
   },
