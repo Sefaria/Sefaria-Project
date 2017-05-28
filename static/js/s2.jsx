@@ -8771,8 +8771,8 @@ var SearchFilterPanel = React.createClass({
   render: function() {
     return (<div>
       <div className="searchFilterToggle" onClick={this.props.toggleFilterView}>
-        <span className="int-en">Filter   </span>
-        <span className="int-he">סינון   </span>
+        <span className="int-en">Filter</span>
+        <span className="int-he">סינון</span>
         <i className={(this.props.displayFilters) ? "fa fa-caret-down fa-angle-down":"fa fa-caret-down"} />
       </div>
       <div className={(this.props.displayFilters) ? "searchFilterBoxes":"searchFilterBoxes hidden"}>
@@ -8846,8 +8846,8 @@ var SearchSortBox = React.createClass({
     var releClass = classNames({'filter-title': 1, 'unselected': this.props.sortType !== "relevance"});
     return (<div>
       <div className="searchFilterToggle" onClick={this.props.toggleSortView}>
-        <span className="int-en">Sort   </span>
-        <span className="int-he">מיון   </span>
+        <span className="int-en">Sort</span>
+        <span className="int-he">מיון</span>
         <i className={(this.props.visible) ? "fa fa-caret-down fa-angle-down":"fa fa-caret-down"} />
       </div>
       <div className={(this.props.visible) ? "searchSortBox":"searchSortBox hidden"}>
