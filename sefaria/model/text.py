@@ -4299,7 +4299,6 @@ class Library(object):
         assert isinstance(node, JaggedArrayNode)  # Assumes that node is a JaggedArrayNode
 
         refs = []
-        non_refs = []
         try:
             re_string = self.get_regex_string(title, lang, anchored=stIsAnchored)
         except AttributeError as e:
