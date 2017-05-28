@@ -346,6 +346,7 @@ var ReaderApp = React.createClass({
   shouldHistoryUpdate: function shouldHistoryUpdate() {
     // Compare the current state to the state last pushed to history,
     // Return true if the change warrants pushing to history.
+
     // If there's no history or the number or basic state of panels has changed
     if (!history.state || !history.state.panels && !history.state.header || !history.state.panels && this.state.panels || history.state.panels && history.state.panels.length !== this.state.panels.length || history.state.header && history.state.header.menuOpen !== this.state.header.menuOpen) {
       return true;
@@ -370,7 +371,7 @@ var ReaderApp = React.createClass({
         return true;
       }
 
-      if (prev.mode !== next.mode || prev.menuOpen !== next.menuOpen || prev.menuOpen === "book toc" && prev.bookRef !== next.bookRef || next.mode === "Text" && prev.refs.slice(-1)[0] !== next.refs.slice(-1)[0] || next.mode === "Text" && !prev.highlightedRefs.compare(next.highlightedRefs) || next.mode === "TextAndConnections" && prev.highlightedRefs.slice(-1)[0] !== next.highlightedRefs.slice(-1)[0] || (next.mode === "Connections" || next.mode === "TextAndConnections") && prev.filter && !prev.filter.compare(next.filter) || next.mode === "Connections" && !prev.refs.compare(next.refs) || prev.navigationSheetTag !== next.navigationSheetTag || prev.version !== next.version || prev.versionLanguage !== next.versionLanguage || prev.searchQuery != next.searchQuery || prev.appliedSearchFilters && next.appliedSearchFilters && prev.appliedSearchFilters.length !== next.appliedSearchFilters.length || prev.appliedSearchFilters && next.appliedSearchFilters && !prev.appliedSearchFilters.compare(next.appliedSearchFilters) || prev.settings.language != next.settings.language) {
+      if (prev.mode !== next.mode || prev.menuOpen !== next.menuOpen || prev.menuOpen === "book toc" && prev.bookRef !== next.bookRef || next.mode === "Text" && prev.refs.slice(-1)[0] !== next.refs.slice(-1)[0] || next.mode === "Text" && !prev.highlightedRefs.compare(next.highlightedRefs) || next.mode === "TextAndConnections" && prev.highlightedRefs.slice(-1)[0] !== next.highlightedRefs.slice(-1)[0] || (next.mode === "Connections" || next.mode === "TextAndConnections") && prev.filter && !prev.filter.compare(next.filter) || next.mode === "Connections" && !prev.refs.compare(next.refs) || next.connectionsMode !== prev.connectionsMoade || prev.navigationSheetTag !== next.navigationSheetTag || prev.version !== next.version || prev.versionLanguage !== next.versionLanguage || prev.searchQuery != next.searchQuery || prev.appliedSearchFilters && next.appliedSearchFilters && prev.appliedSearchFilters.length !== next.appliedSearchFilters.length || prev.appliedSearchFilters && next.appliedSearchFilters && !prev.appliedSearchFilters.compare(next.appliedSearchFilters) || prev.settings.language != next.settings.language) {
         return true;
       } else if (prev.navigationCategories !== next.navigationCategories) {
         // Handle array comparison, !== could mean one is null or both are arrays
@@ -500,20 +501,22 @@ var ReaderApp = React.createClass({
             break;
         }
       } else if (state.mode === "Text") {
-        hist.title = state.highlightedRefs.length ? Sefaria.normRefList(state.highlightedRefs) : state.refs.slice(-1)[0];
+        hist.title = state.highlightedRefs.length ? Sefaria.normRefList(state.highlightedRefs) : Sefaria.normRefList(state.refs);
         hist.url = Sefaria.normRef(hist.title);
         hist.version = state.version;
         hist.versionLanguage = state.versionLanguage;
         hist.mode = "Text";
       } else if (state.mode === "Connections") {
         var ref = Sefaria.normRefList(state.refs);
-        hist.sources = state.filter.length ? state.filter.join("+") : "all";
+        var filter = state.filter.length ? state.filter : state.connectionsMode in { "Sheets": 1, "Notes": 1 } ? [state.connectionsMode] : ["all"];
+        hist.sources = filter.join("+");
         hist.title = ref + " with " + (hist.sources === "all" ? "Connections" : hist.sources);
         hist.url = Sefaria.normRef(ref); // + "?with=" + sources;
         hist.mode = "Connections";
       } else if (state.mode === "TextAndConnections") {
         var ref = Sefaria.normRefList(state.highlightedRefs);
-        hist.sources = state.filter.length ? state.filter[0] : "all";
+        var filter = state.filter.length ? state.filter : state.connectionsMode in { "Sheets": 1, "Notes": 1 } ? [state.connectionsMode] : ["all"];
+        hist.sources = filter.join("+");
         hist.title = ref + " with " + (hist.sources === "all" ? "Connections" : hist.sources);
         hist.url = Sefaria.normRef(ref); // + "?with=" + sources;
         hist.version = state.version;
@@ -7361,6 +7364,7 @@ var TextColumn = React.createClass({
 
       this.props.setTextListHighlight(refs);
     }
+
     this.props.setSelectedWords(selection.toString());
   },
   handleTextLoad: function handleTextLoad() {
@@ -8208,8 +8212,14 @@ var ConnectionsPanel = React.createClass({
     if (!prevProps.srefs.compare(this.props.srefs)) {
       this.loadData();
     }
-    if (!prevProps.selectedWords && this.props.selectedWords && this.props.selectedWords.split(" ").length < 3) {
+    // Turn on the lexicon when receiving new words if they are less than 3
+    // and don't span refs.
+    if (!prevProps.selectedWords && this.props.selectedWords && this.props.selectedWords.split(" ").length < 3 && this.props.srefs.length == 1) {
       this.props.setConnectionsMode("Lexicon");
+    }
+    // Go back to main sidebar 
+    if (prevProps.selectedWords && prevProps.mode === "Lexicon" && !this.props.selectedWords) {
+      this.props.setConnectionsMode("Resources");
     }
   },
   loadData: function loadData() {

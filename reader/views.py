@@ -297,7 +297,6 @@ def make_search_panel_dict(query, **kwargs):
     return panel
 
 
-
 def make_panel_dicts(oref, version, language, filter, multi_panel, **kwargs):
     """
     Returns an array of panel dictionaries.
