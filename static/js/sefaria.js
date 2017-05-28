@@ -886,7 +886,6 @@ Sefaria = extend(Sefaria, {
   relatedPrivate: function(ref, callback) {
     // Single API to bundle private user sheets and notes by ref.
     // Separated from public content so that public content can be cached
-    console.log(ref);
     if (!callback) {
       return this._relatedPrivate[ref] || null;
     }

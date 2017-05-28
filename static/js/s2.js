@@ -1091,6 +1091,11 @@ var ReaderApp = React.createClass({
     }
     this.setState(state);
   },
+  convertToTextList: function convertToTextList(n) {
+    var base = this.state.panels[n - 1];
+    this.closePanel(n);
+    this.openTextListAt(n, base.highlightedRefs);
+  },
   showLibrary: function showLibrary() {
     if (this.props.multiPanel) {
       this.setState({ header: this.makePanelState({ mode: "Header", menuOpen: "navigation" }) });
@@ -1181,7 +1186,7 @@ var ReaderApp = React.createClass({
       wrapBoxScroll = true;
     }
 
-    if (panelStates.length == 2 && panelStates[0].mode == "Text" && panelStates[1].mode == "Connections") {
+    if (panelStates.length == 2 && panelStates[0].mode == "Text" && (panelStates[1].mode == "Connections" || panelStates[1].menuOpen === "compare" || panelStates[1].menuOpen === "search")) {
       widths = [68.0, 32.0];
       unit = "%";
     } else {
@@ -1226,7 +1231,7 @@ var ReaderApp = React.createClass({
       var setTextListHighlight = this.setTextListHighlight.bind(null, i);
       var setSelectedWords = this.setSelectedWords.bind(null, i);
       var openComparePanel = this.openComparePanel.bind(null, i);
-      var closePanel = this.closePanel.bind(null, i);
+      var closePanel = panel.menuOpen == "compare" ? this.convertToTextList.bind(null, i) : this.closePanel.bind(null, i);
       var setPanelState = this.setPanelState.bind(null, i);
       var setConnectionsFilter = this.setConnectionsFilter.bind(null, i);
       var selectVersion = this.selectVersion.bind(null, i);
@@ -2968,7 +2973,7 @@ var ReaderNavigationMenu = React.createClass({
         'div',
         { className: 'readerNavTop search' },
         React.createElement(CategoryColorLine, { category: 'Other' }),
-        React.createElement(ReaderNavigationMenuCloseButton, { onClick: this.closeNav }),
+        React.createElement(ReaderNavigationMenuCloseButton, { onClick: this.closeNav, icon: this.props.compare ? "chevron" : null }),
         React.createElement(ReaderNavigationMenuSearchButton, { onClick: this.handleSearchButtonClick }),
         React.createElement(ReaderNavigationMenuDisplaySettingsButton, { onClick: this.props.openDisplaySettings }),
         React.createElement('input', { className: 'readerSearch', title: 'Search for Texts or Keywords Here', placeholder: 'Search', onKeyUp: this.handleSearchKeyUp })
@@ -7213,6 +7218,8 @@ var ReaderNavigationMenuCloseButton = React.createClass({
   render: function render() {
     if (this.props.icon == "circledX") {
       var icon = React.createElement('img', { src: '/static/img/circled-x.svg' });
+    } else if (this.props.icon == "chevron") {
+      var icon = React.createElement('i', { className: 'fa fa-chevron-left' });
     } else {
       var icon = "×";
     }

@@ -696,10 +696,13 @@ input.noselect {
   vertical-align: middle;
   cursor: pointer;
 }
-.readerNavTop .readerNavMenuCloseButton{
+.readerNavTop .readerNavMenuCloseButton {
   font-size: 46px;
   padding: 0;
   line-height: 48px;
+}
+.readerNavTop .readerNavMenuCloseButton .fa {
+  font-size: 20px;
 }
 .readerNavTop .readerOptions {
   float: right;
