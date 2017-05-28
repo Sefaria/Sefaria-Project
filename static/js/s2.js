@@ -4736,10 +4736,10 @@ var VersionBlock = React.createClass({
   },
   updateableVersionAttributes: ["versionTitle", "versionSource", "versionNotes", "license", "priority", "digitizedBySefaria", "status"],
   licenseMap: {
-    "Public Domain": "http://en.wikipedia.org/wiki/Public_domain",
-    "CC0": "http://creativecommons.org/publicdomain/zero/1.0/",
-    "CC-BY": "http://creativecommons.org/licenses/by/3.0/",
-    "CC-BY-SA": "http://creativecommons.org/licenses/by-sa/3.0/",
+    "Public Domain": "https://en.wikipedia.org/wiki/Public_domain",
+    "CC0": "https://creativecommons.org/publicdomain/zero/1.0/",
+    "CC-BY": "https://creativecommons.org/licenses/by/3.0/",
+    "CC-BY-SA": "https://creativecommons.org/licenses/by-sa/3.0/",
     "CC-BY-NC": "https://creativecommons.org/licenses/by-nc/4.0/"
   },
   openVersion: function openVersion() {
