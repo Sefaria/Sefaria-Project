@@ -1865,10 +1865,8 @@ a.readerNavCategory {
   max-width:  100%;
   box-sizing: border-box;
 }
-    background-color: #EDEDED;
-
 .readerControls.connectionsHeader .readerControlsInner {
-  padding: 0 40px
+  padding: 0 30px 0 40px;
 }
 .singlePanel .readerControls .readerControlsInner {
   padding: 0 30px;

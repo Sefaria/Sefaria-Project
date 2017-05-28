@@ -2199,6 +2199,7 @@ var ReaderPanel = React.createClass({
         recentFilters: this.state.recentFilters,
         connectionsCategory: this.state.connectionsCategory,
         interfaceLang: this.props.interfaceLang,
+        contentLang: this.state.settings.language,
         version: this.state.version,
         versionLanguage: this.state.versionLanguage,
         fullPanel: this.props.multiPanel,
@@ -8197,7 +8198,8 @@ var ConnectionsPanel = React.createClass({
     closePanel: React.PropTypes.func,
     toggleLanguage: React.PropTypes.func,
     selectedWords: React.PropTypes.string,
-    interfaceLang: React.PropTypes.string
+    interfaceLang: React.PropTypes.string,
+    contentLang: React.PropTypes.string
   },
   componentDidMount: function componentDidMount() {
     this.loadData();
@@ -8236,6 +8238,7 @@ var ConnectionsPanel = React.createClass({
           showBooks: false,
           multiPanel: this.props.multiPanel,
           filter: this.props.filter,
+          contentLang: this.props.contentLang,
           setFilter: this.props.setFilter,
           setConnectionsMode: this.props.setConnectionsMode,
           setConnectionsCategory: this.props.setConnectionsCategory }),
@@ -8252,6 +8255,7 @@ var ConnectionsPanel = React.createClass({
         category: this.props.connectionsCategory,
         showBooks: true,
         multiPanel: this.props.multiPanel,
+        contentLang: this.props.contentLang,
         filter: this.props.filter,
         setFilter: this.props.setFilter,
         setConnectionsMode: this.props.setConnectionsMode,
@@ -8263,6 +8267,7 @@ var ConnectionsPanel = React.createClass({
         recentFilters: this.props.recentFilters,
         fullPanel: this.props.fullPanel,
         multiPanel: this.props.multiPanel,
+        contentLang: this.props.conteLang,
         setFilter: this.props.setFilter,
         setConnectionsMode: this.props.setConnectionsMode,
         onTextClick: this.props.onTextClick,
@@ -8569,12 +8574,16 @@ var ResourcesList = React.createClass({
 var ConnectionsSummary = React.createClass({
   displayName: 'ConnectionsSummary',
 
+  // A summary of available connections on `srefs`. 
+  // If `category` is present, shows a single category, otherwise all categories.
+  // If `showBooks`, show specific text counts beneath each category.
   propTypes: {
     srefs: React.PropTypes.array.isRequired, // an array of ref strings
     category: React.PropTypes.string, // if present show connections for category, if null show category summary
     filter: React.PropTypes.array,
     fullPanel: React.PropTypes.bool,
     multiPanel: React.PropTypes.bool,
+    contentLang: React.PropTypes.string,
     showBooks: React.PropTypes.bool,
     setConnectionsMode: React.PropTypes.func,
     setFilter: React.PropTypes.func,
@@ -8584,6 +8593,7 @@ var ConnectionsSummary = React.createClass({
     var refs = this.props.srefs;
     var summary = Sefaria.linkSummary(refs);
     var oref = Sefaria.ref(refs[0]);
+    var baseCat = oref ? oref["categories"][0] : null;
 
     if (!summary) {
       return React.createElement(LoadingMessage, null);
@@ -8610,13 +8620,15 @@ var ConnectionsSummary = React.createClass({
     }
 
     var connectionsSummary = summary.map(function (cat, i) {
+
+      var books = this.props.contentLang == "hebrew" ? cat.books.concat().sort(Sefaria.linkSummaryBookSortHebrew.bind(null, baseCat)) : cat.books;
       return React.createElement(CategoryFilter, {
         srefs: this.props.srefs,
         category: cat.category,
         heCategory: Sefaria.hebrewTerm(cat.category),
         showBooks: this.props.showBooks,
         count: cat.count,
-        books: cat.books,
+        books: books,
         filter: this.props.filter,
         updateRecent: true,
         setFilter: this.props.setFilter,
@@ -8794,6 +8806,7 @@ var TextList = React.createClass({
     recentFilters: React.PropTypes.array.isRequired,
     fullPanel: React.PropTypes.bool,
     multiPanel: React.PropTypes.bool,
+    contentLang: React.PropTypes.string,
     setFilter: React.PropTypes.func,
     setConnectionsMode: React.PropTypes.func,
     onTextClick: React.PropTypes.func,
@@ -8959,88 +8972,51 @@ var TextList = React.createClass({
     var noResultsMessage = React.createElement(LoadingMessage, { message: en, heMessage: he });
     var message = !loaded ? React.createElement(LoadingMessage, null) : summary.length === 0 ? noResultsMessage : null;
 
-    if (filter.compare(["Sheets"])) {
-      var sheets = Sefaria.sheets.sheetsByRef(refs);
-      var content = sheets ? sheets.map(function (sheet) {
-        return React.createElement(
-          'div',
-          { className: 'sheet', key: sheet.sheetUrl },
-          React.createElement(
-            'a',
-            { href: sheet.ownerProfileUrl },
-            React.createElement('img', { className: 'sheetAuthorImg', src: sheet.ownerImageUrl, alt: sheet.ownerName })
-          ),
-          React.createElement(
-            'div',
-            { className: 'sheetViews' },
-            React.createElement('i', { className: 'fa fa-eye' }),
-            ' ',
-            sheet.views
-          ),
-          React.createElement(
-            'a',
-            { href: sheet.ownerProfileUrl, className: 'sheetAuthor' },
-            sheet.ownerName
-          ),
-          React.createElement(
-            'a',
-            { href: sheet.sheetUrl, className: 'sheetTitle' },
-            sheet.title
-          )
-        );
-      }) : React.createElement(LoadingMessage, null);
-      content = content.length ? content : React.createElement(LoadingMessage, { message: 'No sheets here.' });
-    } else if (filter.compare(["Notes"])) {
-      var notes = Sefaria.notes(refs);
-      var content = notes ? notes.map(function (note) {
-        return React.createElement(Note, {
-          title: note.title,
-          text: note.text,
-          ownerName: note.ownerName,
-          ownerProfileUrl: note.ownerProfileUrl,
-          ownerImageUrl: note.ownerImageUrl,
-          key: note._id });
-      }) : React.createElement(LoadingMessage, null);
-      content = content.length ? content : React.createElement(LoadingMessage, { message: 'No notes here.' });
-    } else {
-      // Viewing Text Connections
-      // debugger;
-      var sectionLinks = Sefaria.links(sectionRef);
-      var links = sectionLinks.filter(function (link) {
-        if ((this.props.multiPanel || !isSingleCommentary) && Sefaria.splitSpanningRef(link.anchorRef).every(function (aref) {
-          return Sefaria.util.inArray(aref, refs) === -1;
-        })) {
-          // Only show section level links for an individual commentary
-          return false;
-        }
-        return filter.length == 0 || Sefaria.util.inArray(link.category, filter) !== -1 || Sefaria.util.inArray(link.collectiveTitle["en"], filter) !== -1;
-      }.bind(this)).sort(function (a, b) {
-        if (a.anchorVerse !== b.anchorVerse) {
-          return a.anchorVerse - b.anchorVerse;
-        } else if (a.commentaryNum !== b.commentaryNum) {
-          return a.commentaryNum - b.commentaryNum;
-        } else {
-          return a.sourceRef > b.sourceRef ? 1 : -1;
-        }
-      });
+    var sectionLinks = Sefaria.links(sectionRef);
+    var links = sectionLinks.filter(function (link) {
+      if ((this.props.multiPanel || !isSingleCommentary) && Sefaria.splitSpanningRef(link.anchorRef).every(function (aref) {
+        return Sefaria.util.inArray(aref, refs) === -1;
+      })) {
+        // Only show section level links for an individual commentary
+        return false;
+      }
+      return filter.length == 0 || Sefaria.util.inArray(link.category, filter) !== -1 || Sefaria.util.inArray(link.collectiveTitle["en"], filter) !== -1;
+    }.bind(this)).sort(sortConnections);
 
-      var message = !loaded ? React.createElement(LoadingMessage, null) : links.length === 0 ? noResultsMessage : null;
-      var content = links.length == 0 ? message : this.state.waitForText && !this.state.textLoaded ? React.createElement(LoadingMessage, null) : links.map(function (link, i) {
-        var hideTitle = link.category === "Commentary" && this.props.filter[0] !== "Commentary";
-        return React.createElement(TextRange, {
-          sref: link.sourceRef,
-          key: i + link.sourceRef,
-          lowlight: Sefaria.util.inArray(link.anchorRef, refs) === -1,
-          hideTitle: hideTitle,
-          numberLabel: link.category === "Commentary" ? link.anchorVerse : 0,
-          basetext: false,
-          onRangeClick: this.props.onTextClick,
-          onCitationClick: this.props.onCitationClick,
-          onNavigationClick: this.props.onNavigationClick,
-          onCompareClick: this.props.onCompareClick,
-          onOpenConnectionsClick: this.props.onOpenConnectionsClick });
-      }, this);
-    }
+    var sortConnections = function sortConnections(a, b) {
+      if (a.anchorVerse !== b.anchorVerse) {
+        return a.anchorVerse - b.anchorVerse;
+      }
+      if (a.index_title == b.index_title) {
+        if (a.commentaryNum !== b.commentaryNum) {
+          return a.commentaryNum - b.commentaryNum;
+        }
+      }
+      if (this.props.contentLang == "hebrew") {
+        var indexA = Sefaria.index(a.index_title);
+        var indexB = Sefaria.index(b.index_title);
+        return indexA.heTitle > index.heTitle ? 1 : -1;
+      } else {
+        return a.sourceRef > b.sourceRef ? 1 : -1;
+      }
+    };
+
+    var message = !loaded ? React.createElement(LoadingMessage, null) : links.length === 0 ? noResultsMessage : null;
+    var content = links.length == 0 ? message : this.state.waitForText && !this.state.textLoaded ? React.createElement(LoadingMessage, null) : links.map(function (link, i) {
+      var hideTitle = link.category === "Commentary" && this.props.filter[0] !== "Commentary";
+      return React.createElement(TextRange, {
+        sref: link.sourceRef,
+        key: i + link.sourceRef,
+        lowlight: Sefaria.util.inArray(link.anchorRef, refs) === -1,
+        hideTitle: hideTitle,
+        numberLabel: link.category === "Commentary" ? link.anchorVerse : 0,
+        basetext: false,
+        onRangeClick: this.props.onTextClick,
+        onCitationClick: this.props.onCitationClick,
+        onNavigationClick: this.props.onNavigationClick,
+        onCompareClick: this.props.onCompareClick,
+        onOpenConnectionsClick: this.props.onOpenConnectionsClick });
+    }, this);
 
     return React.createElement(
       'div',

@@ -699,24 +699,9 @@ Sefaria = extend(Sefaria, {
         return bookData;
       });
       // Sort the books in the category
-      categoryData.books.sort(function(a, b) { 
-        // First sort by predefined "top"
-        var topByCategory = {
-          "Tanakh": ["Rashi", "Ibn Ezra", "Ramban", "Sforno"],
-          "Talmud": ["Rashi", "Tosafot"]
-        };
-        var cat = oRef ? oRef["categories"][0] : null;
-        var top = topByCategory[cat] || [];
-        var aTop = top.indexOf(a.book);
-        var bTop = top.indexOf(b.book);
-        if (aTop !== -1 || bTop !== -1) {
-          aTop = aTop === -1 ? 999 : aTop;
-          bTop = bTop === -1 ? 999 : bTop;
-          return aTop < bTop ? -1 : 1;
-        }
-        // Then sort alphabetically
-        return a.book > b.book ? 1 : -1; 
-      });
+      var cat = oRef ? oRef["categories"][0] : null;
+      categoryData.books.sort(Sefaria.linkSummaryBookSort.bind(null, cat));
+
       return categoryData;
     });
     // Sort the categories
@@ -731,6 +716,31 @@ Sefaria = extend(Sefaria, {
       return orderA - orderB;
     });
     return summaryList;
+  },
+  linkSummaryBookSort: function(category, a, b, byHebrew) {
+    // Sorter for links in a link summary, included a hard coded list of top spots by category
+    var byHebrew = byHebrew || false;
+    // First sort by predefined "top"
+    var topByCategory = {
+      "Tanakh": ["Rashi", "Ibn Ezra", "Ramban", "Sforno"],
+      "Talmud": ["Rashi", "Tosafot"]
+    };
+    var top = topByCategory[category] || [];
+    var aTop = top.indexOf(a.book);
+    var bTop = top.indexOf(b.book);
+    if (aTop !== -1 || bTop !== -1) {
+      aTop = aTop === -1 ? 999 : aTop;
+      bTop = bTop === -1 ? 999 : bTop;
+      return aTop < bTop ? -1 : 1;
+    }
+    // Then sort alphabetically
+    if (byHebrew) {
+      return a.heBook > b.heBook ? 1 : -1;
+    } 
+    return a.book > b.book ? 1 : -1; 
+  },
+  linkSummaryBookSortHebrew: function(category, a, b) {
+    return Sefaria.linkSummaryBookSort(category, a, b, true);
   },
   flatLinkSummary: function(ref) {
     // Returns an array containing texts and categories with counts for ref
