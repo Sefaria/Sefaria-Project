@@ -52,7 +52,7 @@ SAUCE_CORE_CAPS = [
      'sefaria_mode': 'single_panel', 'sefaria_short_name': 'iPh6s'},
 
     {'deviceName': 'Android Emulator', 'platformName': 'Android', 'platformVersion': '6.0',
-     'browserName': 'Chrome', 'appiumVersion': '1.6.3', 'deviceOrientation': "portrait",
+     'browserName': 'Chrome', 'appiumVersion': '1.6.4', 'deviceOrientation': "portrait",
      'sefaria_mode': 'single_panel', 'sefaria_short_name': 'And/6.0'},
 ]
 

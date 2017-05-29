@@ -12,6 +12,7 @@ import json
 import traceback
 import sys
 from selenium import webdriver
+from appium import webdriver as appium_webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 
@@ -451,9 +452,14 @@ class Trial(object):
             driver = cap()
         elif self.platform == "sauce":
             assert cap is not None
-            driver = webdriver.Remote(
-                command_executor='http://{}:{}@ondemand.saucelabs.com:80/wd/hub'.format(SAUCE_USERNAME, SAUCE_ACCESS_KEY),
-                desired_capabilities=cap)
+            if cap.get("appiumVersion") is not None:
+                driver = appium_webdriver.Remote(
+                    command_executor='http://{}:{}@ondemand.saucelabs.com:80/wd/hub'.format(SAUCE_USERNAME, SAUCE_ACCESS_KEY),
+                    desired_capabilities=cap)
+            else:
+                driver = webdriver.Remote(
+                    command_executor='http://{}:{}@ondemand.saucelabs.com:80/wd/hub'.format(SAUCE_USERNAME, SAUCE_ACCESS_KEY),
+                    desired_capabilities=cap)
         elif self.platform == "bstack":
             assert cap is not None
             driver = webdriver.Remote(
@@ -462,8 +468,6 @@ class Trial(object):
         else:
             raise Exception("Unrecognized platform: {}".format(self.platform))
 
-        #todo: better way to do this?
-        #driver.get(self.BASE_URL + "/s2")
         return driver
 
     def _run_one_atomic_test(self, driver, test_class, cap):
