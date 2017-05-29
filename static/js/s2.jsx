@@ -6015,7 +6015,7 @@ var TextRange = React.createClass({
     panelsOpen:             React.PropTypes.number,
     layoutWidth:            React.PropTypes.number,
     showActionLinks:        React.PropTypes.bool,
-    renderNumbers:          React.PropTypes.bool
+    inlineReference:        React.PropTypes.object,
   },
   componentDidMount: function() {
     var data = this.getText();
@@ -6353,13 +6353,19 @@ var TextRange = React.createClass({
                           <span className="he">קשרים</span>
                         </span>
                       </div>);
+
+    // configure number display for inline references
+    var sidebarNumberDisplay = (this.props.inlineReference &&
+    this.props.inlineReference['data-commentator'] === Sefaria.parseRef(this.props.sref).index);
+
     return (
       <div className={classes} onClick={this.handleClick}>
         {showNumberLabel && this.props.numberLabel ? 
-          (<div className={classNames({"numberLabel": 1, "sans": 1, "itag": this.props.renderNumbers})}>
+          (<div className={classNames({"numberLabel": 1, "sans": 1, "itag": sidebarNumberDisplay})}>
             <span className="numberLabelInner">
-              <span className="en">{this.props.numberLabel}</span>
-              <span className="he">{Sefaria.hebrew.encodeHebrewNumeral(this.props.numberLabel)}</span>
+              <span className="en">{sidebarNumberDisplay ? this.props.inlineReference['data-order']: this.props.numberLabel}</span>
+              <span className="he">{sidebarNumberDisplay ? Sefaria.hebrew.encodeHebrewNumeral(this.props.inlineReference['data-order']):
+                  Sefaria.hebrew.encodeHebrewNumeral(this.props.numberLabel)}</span>
             </span>
           </div>)
           : null}
@@ -6492,19 +6498,6 @@ var ConnectionsPanel = React.createClass({
     selectedWords:           React.PropTypes.string,
     interfaceLang:           React.PropTypes.string
   },
-  getInitialState: function () {
-      return {inlineCommentators: {}};
-    },
-  componentWillMount: function() {
-    if (this.props.srefs && this.props.srefs.length > 0){
-        this.setInlineCommentators();
-    }
-  },
-  componentWillReceiveProps: function() {
-    if (this.props.srefs && this.props.srefs.length > 0){
-        this.setInlineCommentators();
-    }
-  },
   componentDidMount: function() {
     this.loadData();
   },
@@ -6515,15 +6508,6 @@ var ConnectionsPanel = React.createClass({
     if (!prevProps.selectedWords && this.props.selectedWords) {
       this.props.setConnectionsMode("Lexicon");
     }
-  },
-  setInlineCommentators: function() {
-    var my_text = Sefaria.text(this.props.srefs[0])['he']; //itags only in hebrew. Method only called when srefs is populated
-    var inline_commentators = {};
-    var my_jquery_obj = $('<div>'+my_text+'</div>');
-    $(my_jquery_obj).find('i[data-commentator]').each(function () {
-      inline_commentators[$(this).attr('data-commentator')]=true;
-    });
-    this.setState({inlineCommentators: inline_commentators});
   },
   loadData: function() {
     if (!Sefaria.related(this.props.srefs)) {
@@ -6584,7 +6568,6 @@ var ConnectionsPanel = React.createClass({
                     openNav={this.props.openNav}
                     openDisplaySettings={this.props.openDisplaySettings}
                     closePanel={this.props.closePanel}
-                    inlineCommentators={this.state.inlineCommentators}
                     selectedWords={this.props.selectedWords}/>);
     
     } else if (this.props.mode === "Sheets") {
@@ -6991,7 +6974,6 @@ var TextList = React.createClass({
     openDisplaySettings:     React.PropTypes.func,
     closePanel:              React.PropTypes.func,
     selectedWords:           React.PropTypes.string,
-    inlineCommentators:      React.PropTypes.object
   },
   getInitialState: function() {
     return {
@@ -7211,8 +7193,7 @@ var TextList = React.createClass({
                                       onNavigationClick={this.props.onNavigationClick}
                                       onCompareClick={this.props.onCompareClick}
                                       onOpenConnectionsClick={this.props.onOpenConnectionsClick}
-                                      renderNumbers={this.props.filter.length > 0 && this.props.inlineCommentators &&
-                                      this.props.inlineCommentators[this.props.filter[0]]} />);
+                                      inlineReference={link.inline_reference}/>);
                         }, this);          
     }
 
