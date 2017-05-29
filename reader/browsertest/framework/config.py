@@ -47,14 +47,16 @@ SAUCE_CORE_CAPS = [
     {'browserName': "chrome", 'platform': "Windows 10", 'version': "57.0",
      'sefaria_mode': 'multi_panel', 'sefaria_short_name': 'Cr/w10'},
 
-    {'browserName': "Safari", 'platformName': "iOS", 'deviceName': "iPhone 6s Simulator",
-     'appiumVersion': "1.6.4", 'platformVersion': "10.3", 'deviceOrientation': "portrait",
-     'sefaria_mode': 'single_panel', 'sefaria_short_name': 'iPh6s'},
-
     {'deviceName': 'Android Emulator', 'platformName': 'Android', 'platformVersion': '6.0',
      'browserName': 'Chrome', 'appiumVersion': '1.6.4', 'deviceOrientation': "portrait",
      'sefaria_mode': 'single_panel', 'sefaria_short_name': 'And/6.0'},
 ]
+"""
+# Slow!!
+{'browserName': "Safari", 'platformName': "iOS", 'deviceName': "iPhone 6s Simulator",
+ 'appiumVersion': "1.6.4", 'platformVersion': "10.3", 'deviceOrientation': "portrait",
+ 'sefaria_mode': 'single_panel', 'sefaria_short_name': 'iPh6s'},
+"""
 
 SAUCE_EXTENDED_CAPS = [  # Needs Review!
     {'browserName': "internet explorer", 'platform': "Windows 10", 'version': "11.103",
@@ -76,28 +78,3 @@ SAUCE_EXTENDED_CAPS = [  # Needs Review!
 ]
 
 SAUCE_CAPS = SAUCE_CORE_CAPS + SAUCE_EXTENDED_CAPS
-
-
-
-"""
-    {'browser': 'IE', 'browser_version': '10.0', 'os': 'Windows', 'os_version': '8', 'resolution': '1024x768'},
-    {'browser': 'Chrome', 'browser_version': '48.0', 'os': 'OS X', 'os_version': 'Yosemite', 'resolution': '1024x768'},
-    {'browser': 'Firefox', 'browser_version': '44.0', 'os': 'Windows', 'os_version': '10', 'resolution': '1920x1080'},
-    {'browser': 'Firefox', 'browser_version': '43.0', 'os': 'Windows', 'os_version': '10', 'resolution': '1024x768'},
-    {'browser': 'Chrome', 'browser_version': '47.0', 'os': 'OS X', 'os_version': 'Yosemite', 'resolution': '1024x768'},
-    {'browser': 'Safari', 'browser_version': '9.0', 'os': 'OS X', 'os_version': 'El Capitan', 'resolution': '1024x768'},
-"""
-
-"""
-    {'browserName': "android", 'deviceName': "Samsung Galaxy S4 Emulator", 'deviceOrientation': "portrait",
-        'sefaria_mode': 'single_panel', 'sefaria_short_name': 'GalaxyS4'}
-
-    {'browserName': 'iPhone', 'platform': 'MAC', 'device': 'iPhone 6S'},
-    {'browserName': 'android', 'platform': 'ANDROID', 'device': 'Google Nexus 7'},
-    {'browserName': 'iPhone', 'platform': 'MAC', 'device': 'iPhone 6 Plus'},
-    {'browserName': 'android', 'platform': 'ANDROID', 'device': 'Samsung Galaxy Note 3'},
-    {'browserName': 'android', 'platform': 'ANDROID', 'device': 'Google Nexus 5'},
-    {'browserName': 'android', 'platform': 'ANDROID', 'device': 'Samsung Galaxy S5'},
-    {'browserName': 'android', 'platform': 'ANDROID', 'device': 'Amazon Kindle Fire HD 8.9'},
-    {'browserName': 'iPad', 'platform': 'MAC', 'device': 'iPad Mini 2'}
-"""
