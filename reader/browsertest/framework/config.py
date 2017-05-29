@@ -47,7 +47,7 @@ SAUCE_CORE_CAPS = [
     {'browserName': "chrome", 'platform': "Windows 10", 'version': "57.0",
      'sefaria_mode': 'multi_panel', 'sefaria_short_name': 'Cr/w10'},
 
-    {'browserName': "Safari", 'platform': "iOS", 'version': "9.2", 'deviceName': "iPhone 6s Simulator",
+    {'browserName': "Safari", 'platformName': "iOS", 'deviceName': "iPhone 6s Simulator",
      'appiumVersion': "1.6.4", 'platformVersion': "10.3", 'deviceOrientation': "portrait",
      'sefaria_mode': 'single_panel', 'sefaria_short_name': 'iPh6s'},
 
