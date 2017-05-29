@@ -1496,6 +1496,8 @@ var Header = React.createClass({
     } else {
       this.showLibrary();
     }
+    $(".wrapper").remove();
+    $("#footer").remove();
   },
   handleRefClick: function handleRefClick(ref, version, versionLanguage) {
     if (this.props.headerMode) {
@@ -2526,29 +2528,37 @@ var ReaderDisplayOptionsMenu = React.createClass({
     settings: React.PropTypes.object.isRequired
   },
   render: function render() {
-    var languageOptions = [{ name: "english", content: "<span class='en'>A</span>" }, { name: "bilingual", content: "<span class='en'>A</span><span class='he'>א</span>" }, { name: "hebrew", content: "<span class='he'>א</span>" }];
+    var languageOptions = [{ name: "english", content: "<span class='en'>A</span>", role: "radio", ariaLabel: "Show English Text" }, { name: "bilingual", content: "<span class='en'>A</span><span class='he'>א</span>", role: "radio", ariaLabel: "Show English & Hebrew Text" }, { name: "hebrew", content: "<span class='he'>א</span>", role: "radio", ariaLabel: "Show Hebrew Text" }];
     var languageToggle = React.createElement(ToggleSet, {
+      role: 'radiogroup',
+      ariaLabel: 'Language toggle',
       name: 'language',
       options: languageOptions,
       setOption: this.props.setOption,
       settings: this.props.settings });
 
-    var layoutOptions = [{ name: "continuous", fa: "align-justify" }, { name: "segmented", fa: "align-left" }];
-    var biLayoutOptions = [{ name: "stacked", content: "<img src='/static/img/stacked.png' alt='Stacked Language Toggle'/>" }, { name: "heLeft", content: "<img src='/static/img/backs.png' alt='Hebrew Left Toggle' />" }, { name: "heRight", content: "<img src='/static/img/faces.png' alt='Hebrew Right Toggle' />" }];
+    var layoutOptions = [{ name: "continuous", fa: "align-justify", role: "radio", ariaLabel: "Show Text as a paragram" }, { name: "segmented", fa: "align-left", role: "radio", ariaLabel: "Show Text segmented" }];
+    var biLayoutOptions = [{ name: "stacked", content: "<img src='/static/img/stacked.png' alt='Stacked Language Toggle'/>", role: "radio", ariaLabel: "Show Hebrew & English Stacked" }, { name: "heLeft", content: "<img src='/static/img/backs.png' alt='Hebrew Left Toggle' />", role: "radio", ariaLabel: "Show Hebrew Text Left of English Text" }, { name: "heRight", content: "<img src='/static/img/faces.png' alt='Hebrew Right Toggle' />", role: "radio", ariaLabel: "Show Hebrew Text Right of English Text" }];
     var layoutToggle = this.props.settings.language !== "bilingual" ? React.createElement(ToggleSet, {
+      role: 'radiogroup',
+      ariaLabel: 'text layout toggle',
       name: 'layout',
       options: layoutOptions,
       setOption: this.props.setOption,
       currentLayout: this.props.currentLayout,
       settings: this.props.settings }) : this.props.width > 500 ? React.createElement(ToggleSet, {
+      role: 'radiogroup',
+      ariaLabel: 'bidirectional text layout toggle',
       name: 'biLayout',
       options: biLayoutOptions,
       setOption: this.props.setOption,
       currentLayout: this.props.currentLayout,
       settings: this.props.settings }) : null;
 
-    var colorOptions = [{ name: "light", content: "" }, { name: "sepia", content: "" }, { name: "dark", content: "" }];
+    var colorOptions = [{ name: "light", content: "", role: "radio", ariaLabel: "Toggle light mode" }, { name: "sepia", content: "", role: "radio", ariaLabel: "Toggle sepia mode" }, { name: "dark", content: "", role: "radio", ariaLabel: "Toggle dark mode" }];
     var colorToggle = React.createElement(ToggleSet, {
+      role: 'radiogroup',
+      ariaLabel: 'Color toggle',
       name: 'color',
       separated: true,
       options: colorOptions,
@@ -2556,8 +2566,10 @@ var ReaderDisplayOptionsMenu = React.createClass({
       settings: this.props.settings });
     colorToggle = this.props.multiPanel ? null : colorToggle;
 
-    var sizeOptions = [{ name: "smaller", content: "Aa" }, { name: "larger", content: "Aa" }];
+    var sizeOptions = [{ name: "smaller", content: "Aa", role: "button", ariaLabel: "Decrease font size" }, { name: "larger", content: "Aa", role: "button", ariaLabel: "Increase font size" }];
     var sizeToggle = React.createElement(ToggleSet, {
+      role: 'group',
+      ariaLabel: 'Increase/Decrease Font Size Buttons',
       name: 'fontSize',
       options: sizeOptions,
       setOption: this.props.setOption,
@@ -2566,7 +2578,7 @@ var ReaderDisplayOptionsMenu = React.createClass({
     if (this.props.menuOpen === "search") {
       return React.createElement(
         'div',
-        { className: 'readerOptionsPanel' },
+        { className: 'readerOptionsPanel', role: 'dialog', tabindex: '0' },
         React.createElement(
           'div',
           { className: 'readerOptionsPanelInner' },
@@ -2578,7 +2590,7 @@ var ReaderDisplayOptionsMenu = React.createClass({
     } else if (this.props.menuOpen) {
       return React.createElement(
         'div',
-        { className: 'readerOptionsPanel' },
+        { className: 'readerOptionsPanel', role: 'dialog', tabindex: '0' },
         React.createElement(
           'div',
           { className: 'readerOptionsPanelInner' },
@@ -2588,7 +2600,7 @@ var ReaderDisplayOptionsMenu = React.createClass({
     } else {
       return React.createElement(
         'div',
-        { className: 'readerOptionsPanel' },
+        { className: 'readerOptionsPanel', role: 'dialog', tabindex: '0' },
         React.createElement(
           'div',
           { className: 'readerOptionsPanelInner' },
@@ -4253,7 +4265,7 @@ var SchemaNode = React.createClass({
     return {
       // Collapse everything except default nodes to start.
       collapsed: "nodes" in this.props.schema ? this.props.schema.nodes.map(function (node) {
-        return !node.default;
+        return !(node.default || node.includeSections);
       }) : []
     };
   },
@@ -4724,10 +4736,10 @@ var VersionBlock = React.createClass({
   },
   updateableVersionAttributes: ["versionTitle", "versionSource", "versionNotes", "license", "priority", "digitizedBySefaria", "status"],
   licenseMap: {
-    "Public Domain": "http://en.wikipedia.org/wiki/Public_domain",
-    "CC0": "http://creativecommons.org/publicdomain/zero/1.0/",
-    "CC-BY": "http://creativecommons.org/licenses/by/3.0/",
-    "CC-BY-SA": "http://creativecommons.org/licenses/by-sa/3.0/",
+    "Public Domain": "https://en.wikipedia.org/wiki/Public_domain",
+    "CC0": "https://creativecommons.org/publicdomain/zero/1.0/",
+    "CC-BY": "https://creativecommons.org/licenses/by/3.0/",
+    "CC-BY-SA": "https://creativecommons.org/licenses/by-sa/3.0/",
     "CC-BY-NC": "https://creativecommons.org/licenses/by-nc/4.0/"
   },
   openVersion: function openVersion() {
@@ -7092,7 +7104,9 @@ var ToggleSet = React.createClass({
     currentLayout: React.PropTypes.func,
     settings: React.PropTypes.object.isRequired,
     options: React.PropTypes.array.isRequired,
-    separated: React.PropTypes.bool
+    separated: React.PropTypes.bool,
+    role: React.PropTypes.string,
+    ariaLabel: React.PropTypes.string
   },
   render: function render() {
     var classes = { toggleSet: 1, separated: this.props.separated };
@@ -7103,12 +7117,14 @@ var ToggleSet = React.createClass({
     var style = { width: width / this.props.options.length + "%" };
     return React.createElement(
       'div',
-      { className: classes },
+      { className: classes, role: this.props.role, 'aria-label': this.props.ariaLabel },
       this.props.options.map(function (option) {
         return React.createElement(ToggleOption, {
           name: option.name,
           key: option.name,
           set: this.props.name,
+          role: option.role,
+          ariaLable: option.ariaLabel,
           on: value == option.name,
           setOption: this.props.setOption,
           style: style,
@@ -7132,12 +7148,18 @@ var ToggleOption = React.createClass({
   },
   render: function render() {
     var classes = { toggleOption: 1, on: this.props.on };
+    var tabIndexValue = this.props.on ? 0 : -1;
+    var ariaCheckedValue = this.props.on ? "true" : "false";
     classes[this.props.name] = 1;
     classes = classNames(classes);
     var content = this.props.image ? React.createElement('img', { src: this.props.image, alt: '' }) : this.props.fa ? React.createElement('i', { className: "fa fa-" + this.props.fa }) : React.createElement('span', { dangerouslySetInnerHTML: { __html: this.props.content } });
     return React.createElement(
       'div',
       {
+        role: this.props.role,
+        'aria-label': this.props.ariaLabel,
+        tabIndex: this.props.role == "radio" ? tabIndexValue : "0",
+        'aria-value': ariaCheckedValue,
         className: classes,
         style: this.props.style,
         onClick: this.handleClick },
@@ -7198,7 +7220,9 @@ var ReaderNavigationMenuDisplaySettingsButton = React.createClass({
   render: function render() {
     return React.createElement(
       'div',
-      { className: 'readerOptions', onClick: this.props.onClick },
+      { className: 'readerOptions', role: 'button', 'aria-haspopup': 'true', tabIndex: '0', onClick: this.props.onClick, onKeyPress: function (e) {
+          e.charCode == 13 ? this.props.onClick(e) : null;
+        }.bind(this) },
       React.createElement('img', { src: '/static/img/ayealeph.svg', alt: 'Toggle Reader Menu Display Settings' })
     );
   }
@@ -7653,7 +7677,7 @@ var TextRange = React.createClass({
       language: this.props.versionLanguage || null
     };
     var data = Sefaria.text(this.props.sref, settings);
-    if (!data) {
+    if (!data || "updateFromAPI" in data) {
       // If we don't have data yet, call again with a callback to trigger API call
       Sefaria.text(this.props.sref, settings, this.onTextLoad);
     }
@@ -8026,9 +8050,10 @@ var TextSegment = React.createClass({
   handleClick: function handleClick(event) {
     if ($(event.target).hasClass("refLink")) {
       //Click of citation
+      event.preventDefault(); //add prevent default
       var ref = Sefaria.humanRef($(event.target).attr("data-ref"));
       this.props.onCitationClick(ref, this.props.sref);
-      event.stopPropagation(); //add prevent default
+      event.stopPropagation();
       Sefaria.site.track.event("Reader", "Citation Link Click", ref);
     } else if ($(event.target).is("sup") || $(event.target).parents("sup").size()) {
       this.props.onFootnoteClick(event);
@@ -8738,10 +8763,11 @@ var AllFilterSet = React.createClass({
         setFilter: this.props.setFilter,
         on: Sefaria.util.inArray(cat.category, this.props.filter) !== -1 });
     }.bind(this));
+    var lexicon = this.props.oref ? React.createElement(LexiconPanel, { selectedWords: this.props.selectedWords, oref: this.props.oref }) : null;
     return React.createElement(
       'div',
       { className: 'fullFilterView filterSet' },
-      React.createElement(LexiconPanel, { selectedWords: this.props.selectedWords, oref: this.props.oref }),
+      lexicon,
       categories
     );
   }
@@ -8990,7 +9016,7 @@ var LexiconPanel = React.createClass({
 
   propTypes: {
     selectedWords: React.PropTypes.string,
-    oref: React.PropTypes.object.isRequired
+    oref: React.PropTypes.object
   },
   getInitialState: function getInitialState() {
     return {
@@ -12226,9 +12252,13 @@ var TestMessage = React.createClass({
 var Footer = React.createClass({
   displayName: 'Footer',
 
+  trackLanguageClick: function trackLanguageClick(language) {
+    Sefaria.site.track.setInterfaceLanguage('interface language footer', language);
+  },
   render: function render() {
     var currentPath = Sefaria.util.currentPath();
-    var next = encodeURIComponent(currentPath);
+    var currentPathEncoded = encodeURIComponent(currentPath);
+    var next = currentPathEncoded ? currentPathEncoded : '?home';
     return React.createElement(
       'div',
       { id: 'footerInner' },
@@ -12693,14 +12723,16 @@ var Footer = React.createClass({
           ),
           React.createElement(
             'a',
-            { href: "/interface/english?next=" + next, id: 'siteLanguageEnglish', className: 'outOfAppLink' },
+            { href: "/interface/english?next=" + next, id: 'siteLanguageEnglish', className: 'outOfAppLink',
+              onClick: this.trackLanguageClick.bind(null, "English") },
             'English'
           ),
           '|',
           React.createElement(
             'a',
-            { href: "/interface/hebrew?next=" + next, id: 'siteLanguageHebrew', className: 'outOfAppLink' },
-            '\u05E2\u05D1\u05E8\u05D9\u05EA'
+            { href: "/interface/hebrew?next=" + next, id: 'siteLanguageHebrew', className: 'outOfAppLink',
+              onClick: this.trackLanguageClick.bind(null, "Hebrew") },
+            '                 \u05E2\u05D1\u05E8\u05D9\u05EA'
           )
         )
       )

@@ -2134,6 +2134,9 @@ function buildCommentaryContent(commentary) {
 		if (c.error) { continue; }
 		var type = c.type || "unknown type";
 
+		c.commentator = c.collectiveTitle.en;
+		c.heCommentator = c.collectiveTitle.he;
+
 		// Give each Commentator a Color
 		if (!(c.commentator in sources)) {
 			var color = sjs.palette[n];

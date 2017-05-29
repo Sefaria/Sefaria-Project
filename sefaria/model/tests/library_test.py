@@ -84,6 +84,12 @@ class Test_get_refs_in_text(object):
             assert matched_refs == [Ref("The Book of Maccabees I 1.2"), Ref("Leviticus 12.4")]
 
 
+    @pytest.mark.parametrize(('citing_only'), (True, False))
+    def test_supposed_ref_graceful_fail(self, citing_only):
+        matched_refs = library.get_refs_in_string(u"What's important is that you get the Job done.", lang='en', citing_only=citing_only)
+        assert matched_refs == []
+
+
 class Test_he_get_refs_in_text(object):
     @pytest.mark.parametrize(('citing_only'), (True, False))
     def test_positions(self, citing_only):
@@ -201,6 +207,10 @@ class Test_he_get_refs_in_text(object):
         else:
             assert matched_refs == [Ref("Leviticus 12.4"), Ref("The Book of Maccabees I 1.2")]
 
+    @pytest.mark.parametrize(('citing_only'), (True, False))
+    def test_supposed_ref_graceful_fail(self, citing_only):
+        matched_refs = library.get_refs_in_string(u"אלו דברים בני ישראל", lang='he', citing_only=citing_only)
+        assert matched_refs == []
 
     @pytest.mark.failing
     @pytest.mark.parametrize(('citing_only'), (True, False))

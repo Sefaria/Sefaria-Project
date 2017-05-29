@@ -41,7 +41,7 @@ from sefaria.client.util import jsonResponse
 from sefaria.history import text_history, get_maximal_collapsed_activity, top_contributors, make_leaderboard, make_leaderboard_condition, text_at_revision, record_version_deletion, record_index_deletion
 from sefaria.system.decorators import catch_error_as_json
 from sefaria.summaries import flatten_toc, get_or_make_summary_node
-from sefaria.sheets import get_sheets_for_ref, get_public_sheets, get_sheets_by_tag, user_sheets, user_tags, recent_public_tags, sheet_to_dict, get_top_sheets, make_tag_list, group_sheets
+from sefaria.sheets import get_sheets_for_ref, public_sheets, get_sheets_by_tag, user_sheets, user_tags, recent_public_tags, sheet_to_dict, get_top_sheets, make_tag_list, group_sheets
 from sefaria.utils.util import list_depth, text_preview
 from sefaria.utils.hebrew import hebrew_plural, hebrew_term, encode_hebrew_numeral, encode_hebrew_daf, is_hebrew, strip_cantillation, has_cantillation
 from sefaria.utils.talmud import section_to_daf, daf_to_section
@@ -271,10 +271,10 @@ def make_panel_dict(oref, version, language, filter, mode, **kwargs):
                 panel["versionLanguage"] = None
         if mode != "Connections":
             try:
-                text = TextFamily(oref, version=panel["version"], lang=panel["versionLanguage"], commentary=False, context=True, pad=True, alts=True).contents()
+                text = TextFamily(oref, version=panel["version"], lang=panel["versionLanguage"], commentary=False, context=True, pad=True, alts=True, wrapLinks=False).contents()
             except NoVersionFoundError:
                 text = {}
-
+            text["updateFromAPI"] = True
             text["next"] = oref.next_section_ref().normal() if oref.next_section_ref() else None
             text["prev"] = oref.prev_section_ref().normal() if oref.prev_section_ref() else None
             panel["text"] = text
@@ -497,7 +497,7 @@ def s2_sheets(request):
     props = s2_props(request)
     props.update({
         "initialMenu": "sheets",
-        "topSheets": [sheet_to_dict(s) for s in get_top_sheets()],
+        "topSheets": get_top_sheets(),
         "tagList": make_tag_list(sort_by="count"),
         "trendingTags": recent_public_tags(days=14, ntags=18)
     })
@@ -546,7 +546,7 @@ def s2_sheets_by_tag(request, tag):
         props["userSheets"]   = user_sheets(request.user.id)["sheets"]
         props["userTags"]     = user_tags(request.user.id)
     elif tag == "All Sheets":
-        props["publicSheets"] = [sheet_to_dict(s) for s in get_public_sheets(0)] #TODO Pagination
+        props["publicSheets"] = {"offset0num50": public_sheets(limit=50)["sheets"]}
     else:
         props["tagSheets"]    = [sheet_to_dict(s) for s in get_sheets_by_tag(tag)]
 
@@ -1275,12 +1275,14 @@ def texts_api(request, tref, lang=None, version=None):
         version    = version.replace("_", " ") if version else None
         layer_name = request.GET.get("layer", None)
         alts       = bool(int(request.GET.get("alts", True)))
+        wrapLinks = bool(int(request.GET.get("wrapLinks", False)))
+
 
         try:
-            text = TextFamily(oref, version=version, lang=lang, commentary=commentary, context=context, pad=pad, alts=alts).contents()
+            text = TextFamily(oref, version=version, lang=lang, commentary=commentary, context=context, pad=pad, alts=alts, wrapLinks=wrapLinks).contents()
         except AttributeError as e:
             oref = oref.default_child_ref()
-            text = TextFamily(oref, version=version, lang=lang, commentary=commentary, context=context, pad=pad, alts=alts).contents()
+            text = TextFamily(oref, version=version, lang=lang, commentary=commentary, context=context, pad=pad, alts=alts, wrapLinks=wrapLinks).contents()
         except NoVersionFoundError as e:
             # Extended data is used by S2 in TextList.preloadAllCommentaryText()
             return jsonResponse({"error": unicode(e), "ref": oref.normal(), "versionTitle": version, "lang": lang}, callback=request.GET.get("callback", None))
