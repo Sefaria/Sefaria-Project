@@ -519,6 +519,10 @@ input.noselect {
 .readerPanel.english .he {
   display: none;
 }
+.readerPanel.english .he.heOnly{
+  display: inline;
+  text-align: right;
+}
 .readerPanel.english .en {
   display: inline;
 }
@@ -2875,6 +2879,10 @@ a.readerNavCategory {
 }
 .english .textRange .numberLabel {
   left: -24px;
+}
+.english .textRange .numberLabel.itag {
+  right: -30px;
+  left: initial;
 }
 .hebrew .textRange .numberLabel,
 .bilingual .textRange .numberLabel  {

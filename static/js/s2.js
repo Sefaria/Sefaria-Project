@@ -7998,28 +7998,47 @@ var TextRange = React.createClass({
 
     // configure number display for inline references
     var sidebarNumberDisplay = this.props.inlineReference && this.props.inlineReference['data-commentator'] === Sefaria.parseRef(this.props.sref).index;
-
-    return React.createElement(
-      'div',
-      { className: classes, onClick: this.handleClick },
-      showNumberLabel && this.props.numberLabel ? React.createElement(
+    if (sidebarNumberDisplay) {
+      var sidebarNum = React.createElement(
         'div',
-        { className: classNames({ "numberLabel": 1, "sans": 1, "itag": sidebarNumberDisplay }) },
+        { className: 'numberLabel sans itag' },
+        React.createElement(
+          'span',
+          { className: 'numberLabelInner' },
+          React.createElement(
+            'span',
+            { className: 'he heOnly' },
+            Sefaria.hebrew.encodeHebrewNumeral(this.props.inlineReference['data-order'])
+          )
+        )
+      );
+    } else if (showNumberLabel && this.props.numberLabel) {
+      var sidebarNum = React.createElement(
+        'div',
+        { className: 'numberLabel sans' },
         React.createElement(
           'span',
           { className: 'numberLabelInner' },
           React.createElement(
             'span',
             { className: 'en' },
-            sidebarNumberDisplay ? this.props.inlineReference['data-order'] : this.props.numberLabel
+            this.props.numberLabel
           ),
           React.createElement(
             'span',
             { className: 'he' },
-            sidebarNumberDisplay ? Sefaria.hebrew.encodeHebrewNumeral(this.props.inlineReference['data-order']) : Sefaria.hebrew.encodeHebrewNumeral(this.props.numberLabel)
+            Sefaria.hebrew.encodeHebrewNumeral(this.props.numberLabel)
           )
         )
-      ) : null,
+      );
+    } else {
+      var sidebarNum = null;
+    }
+
+    return React.createElement(
+      'div',
+      { className: classes, onClick: this.handleClick },
+      sidebarNum,
       this.props.hideTitle ? "" : React.createElement(
         'div',
         { className: 'title' },

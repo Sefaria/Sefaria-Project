@@ -6357,18 +6357,24 @@ var TextRange = React.createClass({
     // configure number display for inline references
     var sidebarNumberDisplay = (this.props.inlineReference &&
     this.props.inlineReference['data-commentator'] === Sefaria.parseRef(this.props.sref).index);
+    if (sidebarNumberDisplay) {
+      var sidebarNum = <div className="numberLabel sans itag">
+        <span className="numberLabelInner">
+          <span className="he heOnly">{Sefaria.hebrew.encodeHebrewNumeral(this.props.inlineReference['data-order'])}</span>
+        </span>
+      </div>;
+    } else if (showNumberLabel && this.props.numberLabel) {
+      var sidebarNum = <div className="numberLabel sans">
+        <span className="numberLabelInner">
+          <span className="en">{this.props.numberLabel}</span>
+          <span className="he">{Sefaria.hebrew.encodeHebrewNumeral(this.props.numberLabel)}</span>
+        </span>
+      </div>;
+    } else {var sidebarNum = null;}
 
     return (
       <div className={classes} onClick={this.handleClick}>
-        {showNumberLabel && this.props.numberLabel ? 
-          (<div className={classNames({"numberLabel": 1, "sans": 1, "itag": sidebarNumberDisplay})}>
-            <span className="numberLabelInner">
-              <span className="en">{sidebarNumberDisplay ? this.props.inlineReference['data-order']: this.props.numberLabel}</span>
-              <span className="he">{sidebarNumberDisplay ? Sefaria.hebrew.encodeHebrewNumeral(this.props.inlineReference['data-order']):
-                  Sefaria.hebrew.encodeHebrewNumeral(this.props.numberLabel)}</span>
-            </span>
-          </div>)
-          : null}
+        {sidebarNum}
         {this.props.hideTitle ? "" :
         (<div className="title">
           <div className="titleBox">
