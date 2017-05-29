@@ -9,6 +9,7 @@ module.exports = {
     //your current directory. You don't have to specify the extension  now,
     //because you will specify extensions later in the `resolve` section
     entry: './main', 
+		devtool: 'source-map',
     
     output: {
         //where you want your compiled bundle to be stored
@@ -52,4 +53,5 @@ module.exports = {
         //extensions that should be used to resolve modules
         extensions: ['.js', '.jsx'] 
     }   
+
 }

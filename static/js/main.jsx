@@ -1,4 +1,4 @@
-if (typeof require !== 'undefined') {
+//if (typeof require !== 'undefined') {
   var INBROWSER    = false,
       React        = require('react'),
       ReactDOM     = require('react-dom'),
@@ -6,12 +6,12 @@ if (typeof require !== 'undefined') {
       extend       = require('extend'),
       classNames   = require('classnames'),
       Sefaria      = require('./sefaria.js'),
-      cookie       = Sefaria.util.cookie;
-} else {
+      cookie       = require('jquery.cookie'); //Sefaria.util.cookie;
+/*} else {
   var INBROWSER    = true,
       extend       = $.extend,
       cookie       = $.cookie;
-}
+}*/
 
 
 var ReaderApp = React.createClass({
