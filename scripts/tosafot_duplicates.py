@@ -1,7 +1,7 @@
 __author__ = 'stevenkaplan'
 from sefaria.model import *
 from sefaria.model.schema import AddressTalmud
-
+import os
 def print_out_refs(daf, line, segment, prev_daf, prev_line, prev_segment):
     second = "{} {}:{}:{}".format(title, AddressTalmud.toStr("en", daf+1), line+1, segment+1)
     first = "{} {}:{}:{}".format(title, AddressTalmud.toStr("en", prev_daf+1), prev_line+1, prev_segment+1)
@@ -11,15 +11,23 @@ def print_out_refs(daf, line, segment, prev_daf, prev_line, prev_segment):
 
 def delete_same_line_cases(same_line_cases):
     for each_case in same_line_cases:
-        ref = Ref(each_case)
-        ls = LinkSet(ref)
-        print "Deleting {}'s text and {} link(s)...".format(each_case, ls.count())
-        for l in ls:
-            l.delete()
-        tc = TextChunk(ref, lang='he', vtitle="Vilna Edition")
-        tc.text = ""
+        ref_to_delete = Ref(each_case)
+        print "Deleting {}'s text...".format(each_case)
+        section_ref = ref_to_delete.section_ref()
+        tc = TextChunk(section_ref, lang='he', vtitle="Vilna Edition")
+        pos_in_text_arr = ref_to_delete.sections[2] - 1
+        old_text = tc.text
+        tc.text = tc.text[0:pos_in_text_arr] + tc.text[pos_in_text_arr+1:]
+        assert len(old_text) - 1 == len(tc.text)
         tc.save(force_save=True)
 
+
+def get_already_checked_indexes(file):
+    indexes = set()
+    for line in file:
+        line = line.replace("\n", "")
+        indexes.add(line)
+    return indexes
 
 if __name__ == "__main__":
     titles = library.get_indexes_in_category("Tosafot", include_dependant=True)
