@@ -47,7 +47,7 @@ before_script:
 
   # Create the user db, and run the django server, redirecting output to log files
   - python manage.py syncdb --noinput
-  - python manage.py createsuperuser --email $SEFARIA_SUPERUSER
+  - python manage.py createsuperuser --email $SEFARIA_SUPERUSER --username "Test Superuser" --noinput
   - python manage.py runserver --insecure 2> server.error.log > server.log &
   - python scripts/setup_travis_users.py
 
