@@ -549,16 +549,16 @@ class Trial(object):
         caps = _caps or self.caps
         sys.stdout.write("\n{}: ".format(test.__name__) if not self.isVerbose else "")
         sys.stdout.flush()
+        tresults = []
         if self.parallel:
             p = Pool(self.thread_count)
             l = len(caps)
             try:
                 tresults = p.map(_test_one_worker, zip([self]*l, [test]*l, caps))
             except Exception as e:
-                print u"Exception encountered!"
-                print e.message
+                print u"Exception encountered in Trial._test_on_all()!"
+                print vars(e)
         else:
-            tresults = []
             for cap in caps:
                 tresults.append(self._test_one(test, cap))
 
