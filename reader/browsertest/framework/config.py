@@ -7,7 +7,7 @@ SAUCE_MAX_THREADS = 5
 REMOTE_URL = "http://test.sefaria.org"
 LOCAL_URL = "http://localhost:8000"
 
-TEMPER = 10 # default wait time in seconds
+TEMPER = 10  # default wait time in seconds
 # According to http://gs.statcounter.com/#browser_version-ww-monthly-201602-201604-bar
 # According to https://www.browserstack.com/test-on-the-right-mobile-devices
 
@@ -35,25 +35,28 @@ BS_CAPS = [
 ]
 
 SAUCE_CORE_CAPS = [
-    {'browserName': "firefox", 'platform': "OS X 10.10", 'version': "44.0",
-        'sefaria_mode': 'multi_panel', 'sefaria_short_name': 'FF/x10'},
+    {'browserName': "firefox", 'platform': "macOS 10.12", 'version': "53.0",
+        'sefaria_mode': 'multi_panel', 'sefaria_short_name': 'FF/x12'},
 
     {'browserName': "safari", 'platform': "OS X 10.11", 'version': "9.0",
         'sefaria_mode': 'multi_panel', 'sefaria_short_name': 'Sf/x11'},
 
-    {'browserName': "chrome", 'platform': "Windows 8", 'version': "48.0",
-        'sefaria_mode': 'multi_panel', 'sefaria_short_name': 'Cr/w8'},
+    {'browserName': "MicrosoftEdge", 'platform': "Windows 10", 'version': "14.14393",
+        'sefaria_mode': 'multi_panel', 'sefaria_short_name': 'Eg/w10'},
 
-    {'browserName': "iPhone", 'platform': "OS X 10.10", 'version': "9.2", 'deviceName': "iPhone 5s",
-     'deviceOrientation': "portrait",
-     'sefaria_mode': 'single_panel', 'sefaria_short_name': 'iPh5s'},
+    {'browserName': "chrome", 'platform': "Windows 10", 'version': "57.0",
+     'sefaria_mode': 'multi_panel', 'sefaria_short_name': 'Cr/w10'},
 
-    {'browserName': 'android', 'platform': 'Linux', 'version': '5.1', 'deviceName': "Android Emulator",
-     'deviceType': 'phone', 'deviceOrientation': "portrait",
+    {'browserName': "Safari", 'platform': "iOS", 'version': "9.2", 'deviceName': "iPhone 6s Simulator",
+     'appiumVersion': "1.6.4", 'platformVersion': "10.3", 'deviceOrientation': "portrait",
+     'sefaria_mode': 'single_panel', 'sefaria_short_name': 'iPh6s'},
+
+    {'deviceName': 'Android Emulator', 'platformName': 'Android', 'platformVersion': '6.0',
+     'browserName': 'Chrome', 'appiumVersion': '1.6.4', 'deviceOrientation': "portrait",
      'sefaria_mode': 'single_panel', 'sefaria_short_name': 'And/5.1'},
-
 ]
-SAUCE_EXTENDED_CAPS = [
+
+SAUCE_EXTENDED_CAPS = [  # Needs Review!
     {'browserName': "internet explorer", 'platform': "Windows 10", 'version': "11.103",
      'sefaria_mode': 'multi_panel', 'sefaria_short_name': 'IE/w10'},
 
