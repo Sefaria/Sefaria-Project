@@ -552,7 +552,11 @@ class Trial(object):
         if self.parallel:
             p = Pool(self.thread_count)
             l = len(caps)
-            tresults = p.map(_test_one_worker, zip([self]*l, [test]*l, caps))
+            try:
+                tresults = p.map(_test_one_worker, zip([self]*l, [test]*l, caps))
+            except Exception as e:
+                print u"Exception encountered!"
+                print e.message
         else:
             tresults = []
             for cap in caps:
