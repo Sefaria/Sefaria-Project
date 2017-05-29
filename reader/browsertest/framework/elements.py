@@ -11,7 +11,7 @@ import base64
 import json
 import traceback
 import sys
-from selenium import webdriver
+from appium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 

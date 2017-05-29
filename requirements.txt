@@ -29,3 +29,4 @@ boto3
 pillow
 datrie
 deepdiff
+Appium-Python-Client
