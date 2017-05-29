@@ -227,7 +227,7 @@ class SaveNewSourceSheet(AtomicTest):
 
     def run(self):
         self.s2()
-        self.login()
+        self.login_user()
         self.driver.implicitly_wait(10)
         self.driver.get(self.base_url + "/sheets/new")
         self.driver.find_element_by_css_selector("#inlineAdd").send_keys("Genesis 1.1")

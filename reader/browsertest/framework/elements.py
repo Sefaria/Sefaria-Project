@@ -61,10 +61,19 @@ class AtomicTest(object):
         self.set_modal_cookie()
         return self
 
-    def login(self):
+    def login_user(self):
         password = os.environ["SEFARIA_TEST_PASS"]
         user = os.environ["SEFARIA_TEST_USER"]
+        self._login(user, password)
+        return self
 
+    def login_superuser(self):
+        password = os.environ["SEFARIA_SUPERUSER"]
+        user = os.environ["SEFARIA_SUPERPASS"]
+        self._login(user, password)
+        return self
+
+    def _login(self, user, password):
         self.driver.get(self.base_url + "/login")
         WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, "#id_email")))
         elem = self.driver.find_element_by_css_selector("#id_email")
@@ -642,72 +651,3 @@ def get_multiplatform_tests(tests):
 def get_every_build_tests(tests):
     return [t for t in tests if t.every_build]
 
-
-'''
-    def test_local(self):
-        tests = get_atomic_tests()
-        shuffle(tests)
-        driver = self._get_driver()
-
-        # Insure that we're on s2
-        driver.get(LOCAL_URL + "/s2")
-
-        print ", ".join([test.__name__ for test in tests])
-
-        for test_class in tests:
-            test = test_class(LOCAL_URL)
-            test.run(driver)
-        driver.quit()
-
-
-    def _test_all(self, build):
-        p = Pool(MAX_THREADS)
-        for key in get_test_suite_keys():
-            tests = get_tests_in_suite(key)
-            shuffle(tests)
-
-            if not caps:
-                for cap in default_desktop_caps:
-                    cap.update({
-                        'name': "{} on {}".format(key, cap_to_string(cap)),
-                        'build': build,
-                        'tests': get_desktop_tests(tests),
-                        "testing_platform": platform_string
-                    })
-                for cap in default_mobile_caps:
-                    cap.update({
-                        'name': "{} on {}".format(key, cap_to_string(cap)),
-                        'build': build,
-                        'tests': get_mobile_tests(tests),
-                        "testing_platform": platform_string
-                    })
-                caps = default_desktop_caps + default_mobile_caps
-            else:
-                for cap in caps:
-                    cap.update({
-                        'name': "{} on {}".format(key, cap_to_string(cap)),
-                        'build': build,
-                        'tests': tests,  # Lazy assumption that all tests are run if caps are provided as an arg.
-                        "testing_platform": platform_string
-                    })
-            results = p.map(_test_on_one_browser, caps)
-            print "\n\nSuite: {}".format(key)
-            print "\n".join(results)
-'''
-
-
-'''
-def _test_each_on(self, cap):
-    """
-    Given a browser, test every test on that browser
-    :param cap:
-    :return:
-    """
-    results = []
-    for test in self.tests:
-        # TODO: Mobile / Desktop
-        driver = self._get_driver(cap)
-        results.append(self._run_one_atomic_test(driver, test))
-        driver.quit()
-    return results
-'''
