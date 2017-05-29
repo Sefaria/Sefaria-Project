@@ -2914,7 +2914,7 @@ a.readerNavCategory {
 /*.hebrew .toolsButton .toolsButtonIcon {
   float: left;
 }*/
-.sharePanel input {
+.shareInput {
   width: 100%;
   box-sizing: border-box;
   border-radius: 7px;
@@ -2925,6 +2925,7 @@ a.readerNavCategory {
   color: #999;
   padding: 20px 26px;
   outline: none;
+  margin-bottom: 30px;
 }
 .addToSourceSheetPanel {
   position: relative;
