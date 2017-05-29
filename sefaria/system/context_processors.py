@@ -59,7 +59,7 @@ def language_settings(request):
         profile = UserProfile(id=request.user.id)
         interface = profile.settings["interface_language"] if "interface_language" in profile.settings else None 
     if not interface: 
-	logger.warn("HTTP_CF_IPCOUNTRY: {}".format(request.META.get("HTTP_CF_IPCOUNTRY")))
+        logger.warn("HTTP_CF_IPCOUNTRY: {}".format(request.META.get("HTTP_CF_IPCOUNTRY")))
         # Pull language setting from cookie or Accept-Lanugage header or default to english
         interface = request.COOKIES.get('interfaceLang') or request.META.get("HTTP_CF_IPCOUNTRY") or request.LANGUAGE_CODE or 'english'
         interface = 'hebrew' if interface in ('IL', 'he', 'he-il') else interface
