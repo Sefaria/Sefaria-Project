@@ -847,6 +847,15 @@ Sefaria = extend(Sefaria, {
   _savePrivateNoteData: function(ref, data) {
     return this._saveItemsByRef(data, this._privateNotes);
   },
+  notesTotalCount: function(refs) {
+    // Returns the total number of private and public notes on `refs` without double counting my public notes.
+    var notes = Sefaria.notes(refs) || [];
+    if (Sefaria._uid) {
+      var myNotes = Sefaria.privateNotes(refs) || [];
+      notes = notes.filter(function(note) { return note.owner !== Sefaria._uid }).concat(myNotes);
+    }
+    return notes.length;
+  },
   _related: {},
   related: function(ref, callback) {
     // Single API to bundle public links, sheets, and notes by ref.
@@ -884,8 +893,6 @@ Sefaria = extend(Sefaria, {
 
            // Save the original data after the split data - lest a split version overwrite it.
           this._related[ref] = originalData;
-          // this._relatedSummaries[ref] = null; // Reset in case previously cached before API returned
-          // Do we need to do something similar with linkSummaries? 
 
           callback(data);
 
@@ -1271,6 +1278,15 @@ Sefaria = extend(Sefaria, {
     _saveUserSheetsByRefData: function(ref, data) {
       this._userSheetsByRef[ref] = data;
       return Sefaria._saveItemsByRef(data, this._userSheetsByRef);
+    },
+    sheetsTotalCount: function(refs) {
+      // Returns the total number of private and public sheets on `refs` without double counting my public sheets.
+      var sheets = Sefaria.sheets.sheetsByRef(refs) || [];
+      if (Sefaria._uid) {
+        var mySheets = Sefaria.sheets.userSheetsByRef(refs) || [];
+        sheets = sheets.filter(function(sheet) { return sheet.owner !== Sefaria._uid }).concat(mySheets);
+      }
+      return sheets.length;
     }
   },
   _groups: {},

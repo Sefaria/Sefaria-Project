@@ -121,6 +121,7 @@ var ReaderApp = React.createClass({
           refs: this.props.initialRefs,
           mode: "Text",
           menuOpen: this.props.initialPanels[0].menuOpen,
+          highlightedRefs: this.props.initialPanels[0].highlightedRefs || [],
           version: this.props.initialPanels.length ? this.props.initialPanels[0].version : null,
           versionLanguage: this.props.initialPanels.length ? this.props.initialPanels[0].versionLanguage : null,
           settings: "settings" in this.props.initialPanels[0] ? extend(Sefaria.util.clone(defaultPanelSettings), this.props.initialPanels[0].settings) : Sefaria.util.clone(defaultPanelSettings)
@@ -8237,9 +8238,8 @@ var ConnectionsPanel = React.createClass({
     if (!data) {
       content = React.createElement(LoadingMessage, null);
     } else if (this.props.mode == "Resources") {
-      var privateData = Sefaria.relatedPrivate(this.props.srefs);
-      var sheetsCount = data.sheets.length + (privateData ? privateData.sheets.length : 0);
-      var notesCount = data.notes.length + (privateData ? privateData.notes.length : 0);
+      var sheetsCount = Sefaria.sheets.sheetsTotalCount(this.props.srefs);
+      var notesCount = Sefaria.notesTotalCount(this.props.srefs);
       content = React.createElement(
         'div',
         null,
