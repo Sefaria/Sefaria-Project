@@ -1866,7 +1866,7 @@ a.readerNavCategory {
   box-sizing: border-box;
 }
 .readerControls.connectionsHeader .readerControlsInner {
-  padding: 0 30px 0 40px;
+  padding: 0 40px 0 40px;
 }
 .singlePanel .readerControls .readerControlsInner {
   padding: 0 30px;
@@ -2456,6 +2456,12 @@ a.readerNavCategory {
   width: 30px;
   text-align: center;
   line-height: 32px;
+}
+.connectionsPanelHeader .languageToggle {
+  margin: 0 5px;
+}
+.connectionsHeader .readerNavMenuCloseButton.circledX  {
+  width: 20px;
 }
 .connectionsHeader .readerNavMenuCloseButton.circledX img {
   opacity: 0.2;

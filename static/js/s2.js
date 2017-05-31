@@ -8457,6 +8457,21 @@ var ConnectionsPanelHeader = React.createClass({
     toggleLanguage: React.PropTypes.func.isRequired,
     interfaceLang: React.PropTypes.string.isRequired
   },
+  componentDidMount: function componentDidMount() {
+    this.setMarginForScrollbar();
+  },
+  setMarginForScrollbar: function setMarginForScrollbar() {
+    // Scrollbars take up spacing, causing the centering of ConnectsionPanel to be slightly off center
+    // compared to the header. This functions sets appropriate margin to compensate.
+    var width = Sefaria.util.getScrollbarWidth();
+
+    var $container = $(ReactDOM.findDOMNode(this));
+    if (this.props.interfaceLang == "hebrew") {
+      $container.css({ marginRight: 0, marginLeft: width });
+    } else {
+      $container.css({ marginRight: width, marginLeft: 0 });
+    }
+  },
   render: function render() {
     if (this.props.connectionsMode == "Resources") {
       var title = React.createElement(
