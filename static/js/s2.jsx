@@ -7016,8 +7016,9 @@ var TextList = React.createClass({
   },
   getInitialState: function() {
     return {
-      linksLoaded: false,
-      textLoaded: false
+      linksLoaded: false, // has the list of refs been load
+      textLoaded: false,  // has the text of those refs been loaded
+      waitForText: false, // should we delay rendering texts until preload is finished
     }
   },
   componentDidMount: function() {
@@ -7065,7 +7066,8 @@ var TextList = React.createClass({
     // Preload text of links if `filter` is a single commentary, or all commentary
     if (filter.length == 1 &&
         Sefaria.index(filter[0]) && 
-        Sefaria.index(filter[0]).categories == "Commentary") {
+        (Sefaria.index(filter[0]).categories[0] == "Commentary" ||
+         Sefaria.index(filter[0]).primary_category == "Commentary")) {
       this.preloadSingleCommentaryText(filter);
     } else if (filter.length == 1 && filter[0] == "Commentary") {
       this.preloadAllCommentaryText(filter);
@@ -7074,10 +7076,15 @@ var TextList = React.createClass({
     }
   },
   preloadSingleCommentaryText: function(filter) {
-    var basetext   = this.getSectionRef(); //get the title of the full title for the commentary from the api and use that (only needs the title to end with the base text
-    var commentary = filter[0] + " on " + basetext; //TODO: get rid of "on" special casing switch to hack that only switches out the sections
-    this.setState({textLoaded: false, waitForText: true});
-    Sefaria.text(commentary, {}, function() {
+    // Preload commentary for an entire section of text.
+    this.setState({textLoaded: false});
+    var commentator       = filter[0];
+    var basetext          = this.getSectionRef();
+    var commentarySection = Sefaria.commentarySectionRef(commentator, basetext);
+    if (!commentarySection) { return; }
+    
+    this.setState({waitForText: true});
+    Sefaria.text(commentarySection, {}, function() {
       if (this.isMounted()) {
         this.setState({textLoaded: true});        
       }
@@ -7092,20 +7099,18 @@ var TextList = React.createClass({
       var links = Sefaria.links(basetext);
       var commentators = summary[0].books.map(function(item) {
         return item.book;
-      }).filter(function(commentator) {
-        var link = Sefaria._filterLinks(links, [commentator])[0];
-        if (link.sourceRef.indexOf(link.anchorRef) == -1) {
-          // Check if this is Commentary2, exclude if so
-          return false;
-        }
-        // Exclude if we already have this in the cache
-        return !Sefaria.text(commentator + " on " + basetext);
       });
+
       if (commentators.length) {
-        this.waitingFor = Sefaria.util.clone(commentators);
+        var commentarySections = commentators.map(function(commentator) {
+          return Sefaria.commentarySectionRef(commentator, basetext);
+        }).filter(function(commentarySection) {
+          return !!commentarySection;
+        });
+        this.waitingFor = Sefaria.util.clone(commentarySections);
         this.target = 0;
-        for (var i = 0; i < commentators.length; i++) {
-          Sefaria.text(commentators[i] + " on " + basetext, {}, function(data) {
+        for (var i = 0; i < commentarySections.length; i++) {          
+          Sefaria.text(commentarySections[i], {}, function(data) {
             var index = this.waitingFor.indexOf(data.commentator);
             if (index == -1) {
                 // console.log("Failed to clear commentator:");
@@ -7145,17 +7150,13 @@ var TextList = React.createClass({
       }
     }.bind(this));
   },
-  showAllFilters: function() {
-    this.props.setFilter(null);
-    if (Sefaria.site) { Sefaria.site.track.event("Reader", "Show All Filters Click", "1"); }
-  },
   render: function() {
     var refs               = this.props.srefs;
     var summary            = Sefaria.linkSummary(refs);
     var oref               = Sefaria.ref(refs[0]);
     var filter             = this.props.filter;
     var sectionRef         = this.getSectionRef();
-    var isSingleCommentary = (filter.length == 1 && Sefaria.index(filter[0]) && Sefaria.index(filter[0]).categories == "Commentary");
+    var isSingleCommentary = (filter.length == 1 && Sefaria.index(filter[0]) && Sefaria.index(filter[0]).categories[0] == "Commentary");
 
     var en = "No connections known" + (filter.length ? " for " + filter.join(", ") : "") + ".";
     var he = "אין קשרים ידועים"       + (filter.length ? " ל"    + filter.map(f => Sefaria.hebrewTerm(f)).join(", ") : "") + ".";
