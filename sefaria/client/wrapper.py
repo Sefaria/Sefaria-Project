@@ -114,18 +114,12 @@ def format_note_object_for_client(note):
     return com
 
 
-#this previously had signature: get_notes(tref, public=True, uid=None, pad=True, context=0)
-#but all usages used: get_notes(tref, uid=request.user.id, context=1)
 def get_notes(oref, public=True, uid=None, context=1):
     """
     Returns a list of notes related to ref.
     If public, include any public note.
     If uid is set, return private notes of uid.
     """
-    if public:
-        # S2 sets pulblic=False for fetching private notes.
-        # Only maintain legacy behavior of return for context in old case
-        oref = oref.padded_ref().context_ref()
     noteset = oref.noteset(public, uid)
     notes = [format_object_for_client(n) for n in noteset]
 

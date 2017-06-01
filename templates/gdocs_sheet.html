@@ -2125,7 +2125,7 @@ a {
 
 				{% if "text" in source %}
 					<li class="source sheetItem {{ source.options.indented }}">
-						<div class="customTitle">{{ source.customTitle }}</div>
+						<div class="customTitle">{{ source.title }}</div>
 
 						{% if source.options.sourceLanguage == "hebrew" %}
 							{% include "gdocs_text_source.html" with lang="he" source=source boxed=sheet.options.boxed %}
