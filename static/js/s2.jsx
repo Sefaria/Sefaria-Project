@@ -75,7 +75,7 @@ var ReaderApp = React.createClass({
         panels[0] = {
           refs: this.props.initialRefs,
           mode: mode,
-          filter: this.props.initialFilter,
+          filter: initialPanel.filter || this.props.initialFilter,
           connectionsMode: initialPanel.connectionsMode || "Resources",
           menuOpen: this.props.initialMenu,
           version: initialPanel.version || null,
@@ -112,6 +112,7 @@ var ReaderApp = React.createClass({
         var p = {
           refs: this.props.initialRefs,
           mode: "Text",
+          filter: this.props.initialPanels[0].filter,
           menuOpen: this.props.initialPanels[0].menuOpen,
           highlightedRefs: this.props.initialPanels[0].highlightedRefs || [],
           version: this.props.initialPanels.length ? this.props.initialPanels[0].version : null,
