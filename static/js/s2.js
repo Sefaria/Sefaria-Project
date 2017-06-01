@@ -1612,6 +1612,7 @@ var Header = React.createClass({
             { className: 'searchBox' },
             React.createElement(ReaderNavigationMenuSearchButton, { onClick: this.handleSearchButtonClick }),
             React.createElement('input', { className: "search" + vkClassActivator,
+              id: 'searchInput',
               placeholder: langSearchPlaceholder,
               onKeyUp: this.handleSearchKeyUp,
               onFocus: this.showVirtualKeyboardIcon.bind(this, true),
@@ -2956,7 +2957,7 @@ var ReaderNavigationMenu = React.createClass({
         React.createElement(ReaderNavigationMenuCloseButton, { onClick: this.closeNav }),
         React.createElement(ReaderNavigationMenuSearchButton, { onClick: this.handleSearchButtonClick }),
         React.createElement(ReaderNavigationMenuDisplaySettingsButton, { onClick: this.props.openDisplaySettings }),
-        React.createElement('input', { className: 'readerSearch', title: 'Search for Texts or Keywords Here', placeholder: 'Search', onKeyUp: this.handleSearchKeyUp })
+        React.createElement('input', { id: 'searchInput', className: 'readerSearch', title: 'Search for Texts or Keywords Here', placeholder: 'Search', onKeyUp: this.handleSearchKeyUp })
       );
       topContent = this.props.hideNavHeader ? null : topContent;
 
@@ -10048,7 +10049,7 @@ var SearchBar = React.createClass({
       React.createElement(
         'div',
         { className: 'searchBox' },
-        React.createElement('input', { className: 'readerSearch', title: 'Search for Texts or Keywords Here', value: this.state.query, onKeyPress: this.handleKeypress, onChange: this.handleChange, placeholder: 'Search' }),
+        React.createElement('input', { className: 'readerSearch', id: 'searchInput', title: 'Search for Texts or Keywords Here', value: this.state.query, onKeyPress: this.handleKeypress, onChange: this.handleChange, placeholder: 'Search' }),
         React.createElement(ReaderNavigationMenuSearchButton, { onClick: this.updateQuery })
       ),
       React.createElement('div', { className: 'description' })
