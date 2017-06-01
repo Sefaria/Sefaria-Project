@@ -4273,7 +4273,7 @@ class Library(object):
                     [({]										# literal '(', brace,
                     [^})]*										# anything but a closing ) or brace
                 )
-                """ + ur"(?P<title>" + regex.escape(title) + ur")" if capture_title else regex.escape(title)\
+                """ + ur"{}".format(ur"(?P<title>{})".format(regex.escape(title)) if capture_title else regex.escape(title)) \
                    + node.after_title_delimiter_re \
                    + node.address_regex(lang, for_js=for_js, match_range=for_js) \
                    + ur"""
