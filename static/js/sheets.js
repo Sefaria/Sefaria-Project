@@ -277,7 +277,7 @@ $(function() {
 
     };
 
-	$("#inlineAdd").autocomplete({ 
+	$("#inlineAdd").autocomplete({
         source: function(request, response) {
             Sefaria.lookupRef(
                 request.term,
@@ -310,7 +310,7 @@ $(function() {
     function inlineAddSourcePreview(ref) {
         var $target = $("#inlineTextPreview");
         var $title = $("#inlineAddDialogTitle");
-        
+
         if (!$target.length) { $("body").append("<div id='inlineTextPreview'></div>"); $target = $("#inlineTextPreview");}
 
         Sefaria.text(ref, {}, function (data) {
@@ -331,7 +331,7 @@ $(function() {
 
         });
     }
-    
+
 
 
 
