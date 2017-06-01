@@ -282,6 +282,7 @@ class AtomicTest(object):
 
     def search_for(self, query):
         # This one is for searches that produce search results, not navigations
+        WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, "#searchInput")))
         elem = self.driver.find_element_by_css_selector("#searchInput")
         elem.send_keys(query)
         elem.send_keys(Keys.RETURN)
@@ -290,6 +291,7 @@ class AtomicTest(object):
         return self
 
     def type_in_search_box(self, query):
+        WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, "#searchInput")))
         elem = self.driver.find_element_by_css_selector("#searchInput")
         elem.send_keys(query)
         elem.send_keys(Keys.RETURN)
