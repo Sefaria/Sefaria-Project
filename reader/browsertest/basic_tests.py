@@ -241,6 +241,7 @@ class SaveNewSourceSheet(AtomicTest):
 class SpecialCasedSearchBarNavigations(AtomicTest):
     suite_key = "Sheets"
     every_build = True
+    single_panel = False  # This hasn't yet been implemented on mobile
 
     def run(self):
         self.s2()
