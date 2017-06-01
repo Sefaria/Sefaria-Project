@@ -7163,27 +7163,12 @@ var TextList = React.createClass({
     var noResultsMessage = <LoadingMessage message={en} heMessage={he} />;
     var message = !loaded ? (<LoadingMessage />) : (summary.length === 0 ? noResultsMessage : null);
     
-    var sectionLinks = Sefaria.links(sectionRef);
-    var links        = sectionLinks.filter(function(link) {
-      if ( (this.props.multiPanel || !isSingleCommentary) &&
-          Sefaria.splitSpanningRef(link.anchorRef).every(aref => Sefaria.util.inArray(aref, refs) === -1)) {
-        // Only show section level links for an individual commentary
-        return false;
-      }
-      return (filter.length == 0 ||
-              Sefaria.util.inArray(link.category, filter) !== -1 || 
-              Sefaria.util.inArray(link.collectiveTitle["en"], filter) !== -1 );
-
-    }.bind(this)).sort(sortConnections);
-
     var sortConnections = function(a, b) {
       if (a.anchorVerse !== b.anchorVerse) {
-          return a.anchorVerse - b.anchorVerse;
+        return a.anchorVerse - b.anchorVerse;
       }
       if (a.index_title == b.index_title) {
-         if ( a.commentaryNum !== b.commentaryNum) {
-          return a.commentaryNum - b.commentaryNum;
-        } 
+        return a.commentaryNum - b.commentaryNum;
       }
       if (this.props.contentLang == "hebrew") {
         var indexA = Sefaria.index(a.index_title);
@@ -7195,6 +7180,20 @@ var TextList = React.createClass({
       }
     };
 
+    var sectionLinks = Sefaria.links(sectionRef);
+    var links        = sectionLinks.filter(function(link) {
+      if ( (this.props.multiPanel || !isSingleCommentary) &&
+          Sefaria.splitSpanningRef(link.anchorRef).every(aref => Sefaria.util.inArray(aref, refs) === -1)) {
+        // Only show section level links for an individual commentary on mobile
+        return false;
+      }
+      return (filter.length == 0 ||
+              Sefaria.util.inArray(link.category, filter) !== -1 || 
+              Sefaria.util.inArray(link.collectiveTitle["en"], filter) !== -1 );
+
+    }.bind(this)).sort(sortConnections);
+
+    console.log(links);
     var message = !loaded ? (<LoadingMessage />) : (links.length === 0 ? noResultsMessage : null);
     var content = links.length == 0 ? message :
                   this.state.waitForText && !this.state.textLoaded ? 
