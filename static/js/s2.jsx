@@ -2502,7 +2502,7 @@ var ReaderNavigationMenu = React.createClass({
   getInitialState: function() {
     this.width = 1000;
     return {
-      showMore: false,
+      showMore: false
     };
   },
   componentDidMount: function() {
