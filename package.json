@@ -27,6 +27,7 @@
     "express": "^4.x",
     "extend": "^3.0.0",
     "jquery": "^2.2.0",
+    "jquery-ui": "^1.12.1",
     "jquery.cookie": "^1.4.1",
     "querystring": "^0.2.0",
     "react": "^15.0.1",
@@ -53,9 +54,7 @@
       "react"
     ],
     "compact": false,
-    "plugins": [
-      "transform-remove-console"
-    ]
+    "plugins": []
   },
   "repository": {
     "type": "git",

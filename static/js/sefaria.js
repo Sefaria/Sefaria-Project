@@ -1,17 +1,22 @@
-if (typeof require !== 'undefined') {
-  var INBROWSER = false,
-      $         = require('cheerio'),
-      extend    = require('extend'),
+//if (typeof require !== 'undefined') {
+  var INBROWSER = true;
+  var $         = require('jquery');
+      $.cookie  = require('jquery.cookie');
+  var extend    = require('extend'),
       param     = require('querystring').stringify,
       striptags = require('striptags'),
       ga        = function() {}; // Fail gracefully if we reach one of these methods server side
       $.ajax    = function() {}; // ditto
       $.getJSON = function() {}; // ditto
-} else {
+
+
+
+
+/*} else {
   var INBROWSER = true,
       extend    = $.extend,
       param     = $.param;
-}
+}*/
 
 var Sefaria = Sefaria || {
   _dataLoaded: false,
@@ -1044,9 +1049,9 @@ Sefaria = extend(Sefaria, {
     if (Sefaria._uid) {
         $.post("/api/profile", {json: JSON.stringify({recentlyViewed: packedRecent})}, function(data) {} );
     } else {
-      var cookie = INBROWSER ? $.cookie : Sefaria.util.cookie;
+      //var cookie = INBROWSER ? $.cookie : Sefaria.util.cookie;
       packedRecent = packedRecent.slice(0, 6);
-      cookie("recentlyViewed", JSON.stringify(packedRecent), {path: "/"});
+      $.cookie("recentlyViewed", JSON.stringify(packedRecent), {path: "/"});
     }
   },
   packRecentItem: function(item) {
@@ -2099,7 +2104,7 @@ Sefaria.util = {
         }
     },
     handleUserCookie: function() {
-        var cookie = INBROWSER ? $.cookie : Sefaria.util.cookie;
+        //var cookie = INBROWSER ? $.cookie : Sefaria.util.cookie;
 
         if (Sefaria.loggedIn) {
             // If logged in, replace cookie with current system details
@@ -2107,7 +2112,7 @@ Sefaria.util = {
             var expires = new Date(); // starts with current time
             expires.setTime(expires.getTime() + 2 * 365 * 24 * 3600 * 1000);  // milliseconds
 
-            cookie("_user", JSON.stringify({
+            $.cookie("_user", JSON.stringify({
                _uid: Sefaria._uid,
                _partner_group: Sefaria._partner_group,
                _partner_role: Sefaria._partner_role
@@ -2116,7 +2121,7 @@ Sefaria.util = {
             Sefaria._analytics_uid = Sefaria._uid;
         } else {
             // If not logged in, get details from cookie
-            var c = cookie("_user");
+            var c = $.cookie("_user");
             if (c) {
               c = JSON.parse(c);
               Sefaria._analytics_uid = c._uid;
@@ -2419,7 +2424,7 @@ Sefaria.site = {
         ga('set', 'dimension9', val);
     },
     setUserID: function(val) {
-        sval = String(val);
+        var sval = String(val);
         ga('set', 'userId', sval);
         ga('set', 'dimension10', sval);
     },
@@ -2498,6 +2503,7 @@ Sefaria.palette.categoryColor = function(cat) {
 
 
 Sefaria.setup = function() {
+
     Sefaria.util.setupPrototypes();
     Sefaria.util.setupJQuery();
     Sefaria.util.setupMisc();
@@ -2510,6 +2516,6 @@ Sefaria.setup = function() {
 };
 Sefaria.setup();
 
-if (typeof module !== 'undefined') {
+//if (typeof module !== 'undefined') {
   module.exports = Sefaria;
-}
+//}

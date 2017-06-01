@@ -1,5 +1,5 @@
 //if (typeof require !== 'undefined') {
-  var INBROWSER    = false,
+  var INBROWSER    = true,
       React        = require('react'),
       ReactDOM     = require('react-dom'),
       $            = require('jquery'),
@@ -7,6 +7,7 @@
       classNames   = require('classnames'),
       Sefaria      = require('./sefaria.js'),
       cookie       = require('jquery.cookie'); //Sefaria.util.cookie;
+
 /*} else {
   var INBROWSER    = true,
       extend       = $.extend,
@@ -9748,7 +9749,7 @@ var setData = function(data) {
 };
 
 
-if (typeof exports !== 'undefined') {
+//if (typeof exports !== 'undefined') {
   exports.ReaderApp           = ReaderApp;
   exports.ReaderPanel         = ReaderPanel;
   exports.ConnectionsPanel    = ConnectionsPanel;
@@ -9757,4 +9758,7 @@ if (typeof exports !== 'undefined') {
   exports.Footer              = Footer;
   exports.setData             = setData;
   exports.unpackDataFromProps = Sefaria.unpackDataFromProps;
-}
+  exports.React               = React;
+  exports.ReactDOM            = ReactDOM;
+  exports.$                   = $;
+//}

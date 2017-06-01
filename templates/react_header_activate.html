@@ -14,11 +14,11 @@
 
     var settings = {
       language: "{{ contentLang }}",
-      layoutDefault: $.cookie("layoutDefault") || "segmented",
-      layoutTalmud:  $.cookie("layoutTalmud")  || "continuous",
-      layoutTanakh:  $.cookie("layoutTanakh")  || "segmented",
-      color:         $.cookie("color")         || "light",
-      fontSize:      $.cookie("fontSize")      || 62.5
+      layoutDefault: "segmented", //$.cookie("layoutDefault") ||
+      layoutTalmud:  "continuous", //$.cookie("layoutTalmud")  ||
+      layoutTanakh:  "segmented", //$.cookie("layoutTanakh")  ||
+      color:         "light", //$.cookie("color")         ||
+      fontSize:      62.5 //$.cookie("fontSize")      ||
     };
     var multiPanel    = $(window).width() > 600;
 
