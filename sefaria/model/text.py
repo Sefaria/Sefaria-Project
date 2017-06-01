@@ -577,6 +577,21 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
                     self.nodes.key = t
                     self.nodes.add_title(t, "en", True, True)
                     break
+        """
+        Make sure these fields do not appear:
+        "titleVariants",      # required for old style
+        "sectionNames",       # required for old style simple texts, sometimes erroneously present for commnetary
+        "heTitle",            # optional for old style
+        "heTitleVariants",    # optional for old style
+        "maps",               # deprecated
+        "length",             # optional for old style
+        "lengths",            # optional for old style
+        "transliteratedTitle",# optional for old style
+        """
+        deprecated_attrs = ["titleVariants","sectionNames","heTitle","heTitleVariants","maps","length","lengths", "transliteratedTitle"]
+        for attr in deprecated_attrs:
+            if getattr(self, attr, None):
+                delattr(self, attr)
 
     def _validate(self):
         assert super(Index, self)._validate()
