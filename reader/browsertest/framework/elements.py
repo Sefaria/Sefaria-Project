@@ -282,7 +282,7 @@ class AtomicTest(object):
 
     def search_for(self, query):
         # This one is for searches that produce search results, not navigations
-        elem = self.driver.find_element_by_css_selector("input.search")
+        elem = self.driver.find_element_by_css_selector("#searchInput")
         elem.send_keys(query)
         elem.send_keys(Keys.RETURN)
         # todo: does this work for a second search?
@@ -290,7 +290,7 @@ class AtomicTest(object):
         return self
 
     def type_in_search_box(self, query):
-        elem = self.driver.find_element_by_css_selector("input.search")
+        elem = self.driver.find_element_by_css_selector("#searchInput")
         elem.send_keys(query)
         elem.send_keys(Keys.RETURN)
         return self

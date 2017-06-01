@@ -1524,6 +1524,7 @@ var Header = React.createClass({
                     <div  className="searchBox">
                       <ReaderNavigationMenuSearchButton onClick={this.handleSearchButtonClick} />
                       <input className={"search"+ vkClassActivator}
+                             id="searchInput"
                              placeholder={langSearchPlaceholder}
                              onKeyUp={this.handleSearchKeyUp}
                              onFocus={this.showVirtualKeyboardIcon.bind(this, true)}
