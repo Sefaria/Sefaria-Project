@@ -85,6 +85,7 @@ var ReaderApp = React.createClass({
           refs: this.props.initialRefs,
           mode: mode,
           filter: this.props.initialFilter,
+          connectionsMode: initialPanel.connectionsMode || "Resources",
           menuOpen: this.props.initialMenu,
           version: initialPanel.version || null,
           versionLanguage: initialPanel.versionLanguage || null,
@@ -2195,7 +2196,7 @@ var ReaderPanel = React.createClass({
     if (this.state.mode === "Connections" || this.state.mode === "TextAndConnections") {
       var langMode = this.props.masterPanelLanguage || this.state.settings.language;
       var data = this.currentData();
-      var canEditText = data && langMode === "hebrew" && data.heVersionStatus !== "locked" || langMode === "english" && data.versionStatus !== "locked" || Sefaria.is_moderator && langMode !== "bilingual";
+      var canEditText = data && (langMode === "hebrew" && data.heVersionStatus !== "locked" || langMode === "english" && data.versionStatus !== "locked" || Sefaria.is_moderator && langMode !== "bilingual");
       items.push(React.createElement(ConnectionsPanel, {
         srefs: this.state.mode === "Connections" ? this.state.refs.slice() : this.state.highlightedRefs.slice(),
         filter: this.state.filter || [],
@@ -8464,7 +8465,6 @@ var ConnectionsPanelHeader = React.createClass({
     // Scrollbars take up spacing, causing the centering of ConnectsionPanel to be slightly off center
     // compared to the header. This functions sets appropriate margin to compensate.
     var width = Sefaria.util.getScrollbarWidth();
-
     var $container = $(ReactDOM.findDOMNode(this));
     if (this.props.interfaceLang == "hebrew") {
       $container.css({ marginRight: 0, marginLeft: width });
@@ -8997,7 +8997,7 @@ var TextList = React.createClass({
     var noResultsMessage = React.createElement(LoadingMessage, { message: en, heMessage: he });
     var message = !loaded ? React.createElement(LoadingMessage, null) : summary.length === 0 ? noResultsMessage : null;
 
-    var sortConnections = function sortConnections(a, b) {
+    var sortConnections = function (a, b) {
       if (a.anchorVerse !== b.anchorVerse) {
         return a.anchorVerse - b.anchorVerse;
       }
@@ -9011,7 +9011,7 @@ var TextList = React.createClass({
       } else {
         return a.sourceRef > b.sourceRef ? 1 : -1;
       }
-    };
+    }.bind(this);
 
     var sectionLinks = Sefaria.links(sectionRef);
     var links = sectionLinks.filter(function (link) {

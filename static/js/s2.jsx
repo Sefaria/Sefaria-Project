@@ -76,6 +76,7 @@ var ReaderApp = React.createClass({
           refs: this.props.initialRefs,
           mode: mode,
           filter: this.props.initialFilter,
+          connectionsMode: initialPanel.connectionsMode || "Resources",
           menuOpen: this.props.initialMenu,
           version: initialPanel.version || null,
           versionLanguage: initialPanel.versionLanguage || null,
@@ -2063,9 +2064,9 @@ var ReaderPanel = React.createClass({
       var langMode = this.props.masterPanelLanguage || this.state.settings.language;
       var data     = this.currentData();
       var canEditText = data && 
-                        (langMode === "hebrew" && data.heVersionStatus !== "locked") ||
+                        ((langMode === "hebrew" && data.heVersionStatus !== "locked") ||
                         (langMode === "english" && data.versionStatus !== "locked") ||
-                        (Sefaria.is_moderator && langMode !== "bilingual");
+                        (Sefaria.is_moderator && langMode !== "bilingual"));
       items.push(<ConnectionsPanel 
           srefs={this.state.mode === "Connections" ? this.state.refs.slice() : this.state.highlightedRefs.slice()}
           filter={this.state.filter || []}
@@ -6739,7 +6740,6 @@ var ConnectionsPanelHeader = React.createClass({
     // Scrollbars take up spacing, causing the centering of ConnectsionPanel to be slightly off center
     // compared to the header. This functions sets appropriate margin to compensate.
     var width      = Sefaria.util.getScrollbarWidth();
-    console.log(width);
     var $container = $(ReactDOM.findDOMNode(this));
     if (this.props.interfaceLang == "hebrew") {
       $container.css({marginRight: 0, marginLeft: width});
@@ -7178,7 +7178,7 @@ var TextList = React.createClass({
       else {
         return a.sourceRef > b.sourceRef ? 1 : -1;
       }
-    };
+    }.bind(this);
 
     var sectionLinks = Sefaria.links(sectionRef);
     var links        = sectionLinks.filter(function(link) {
@@ -7193,7 +7193,6 @@ var TextList = React.createClass({
 
     }.bind(this)).sort(sortConnections);
 
-    console.log(links);
     var message = !loaded ? (<LoadingMessage />) : (links.length === 0 ? noResultsMessage : null);
     var content = links.length == 0 ? message :
                   this.state.waitForText && !this.state.textLoaded ? 
