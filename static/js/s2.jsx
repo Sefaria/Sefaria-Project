@@ -1045,7 +1045,7 @@ var ReaderApp = React.createClass({
     var comparePanel = this.makePanelState({
       menuOpen: "compare"
     });
-    Sefaria.site.track.event("Tools", "Compare Click");
+    Sefaria.site.track.event("Reader", "Other Text Click");
     this.state.panels[n] = comparePanel;
     this.setState({panels: this.state.panels});
   },
@@ -1935,15 +1935,11 @@ var ReaderPanel = React.createClass({
   },
   setConnectionsMode: function(mode) {
     var loginRequired = {
-      "Add to Source Sheet": 1,
-      "Add Note": 1,
-      "My Notes": 1,
       "Add Connection": 1,
-      "Add Translation": 1
     };
-    Sefaria.site.track.event("Sidebar", mode + " Click");
+    Sefaria.site.track.event("Tools", mode + " Click");
     if (!Sefaria._uid && mode in loginRequired) {
-      Sefaria.site.track.event("Sidebar", "Prompt Login");
+      Sefaria.site.track.event("Tools", "Prompt Login");
       mode = "Login";
     }
     var state = {connectionsMode: mode};
@@ -6595,7 +6591,7 @@ var ConnectionsPanel = React.createClass({
     
     } else if (this.props.mode === "Sheets") {
       content = (<div>
-                  <AddToSourceSheetPanel
+                  <AddToSourceSheetBox
                     srefs={this.props.srefs}
                     fullPanel={this.props.fullPanel}
                     setConnectionsMode={this.props.setConnectionsMode} 
@@ -6630,7 +6626,7 @@ var ConnectionsPanel = React.createClass({
                     oref={Sefaria.ref(this.props.srefs[0])} />);
     
     } else if (this.props.mode === "Tools") {
-      content = (<ToolsPanel
+      content = (<ToolsList
                     srefs={this.props.srefs}
                     mode={this.props.mode}
                     filter={this.props.filter}
@@ -6653,20 +6649,11 @@ var ConnectionsPanel = React.createClass({
                     versionLanguage={this.props.versionLanguage} />);
     
     } else if (this.props.mode === "Share") {
-      content = (<SharePanel
+      content = (<ShareBox
                     url={window.location.href}
                     fullPanel={this.props.fullPanel}
                     closePanel={this.props.closePanel}
                     setConnectionsMode={this.props.setConnectionsMode} />);
-
-    } else if (this.props.mode === "Add to Source Sheet") {
-      content = (<AddToSourceSheetPanel
-                    srefs={this.props.srefs}
-                    fullPanel={this.props.fullPanel}
-                    setConnectionsMode={this.props.setConnectionsMode} 
-                    version={this.props.version}
-                    versionLanguage={this.props.versionLanguage}
-                    addToSourceSheet={this.props.addToSourceSheet} />);
 
 
     } else if (this.props.mode === "Edit Note") {
@@ -6803,6 +6790,7 @@ var ConnectionsPanelHeader = React.createClass({
 
 
 var ResourcesList = React.createClass({
+  // A list of Resources in addtion to connections
   propTypes: {
     multiPanel:         React.PropTypes.bool.isRequired,
     setConnectionsMode: React.PropTypes.func.isRequired,
@@ -6892,6 +6880,8 @@ var ConnectionsSummary = React.createClass({
 
 
 var CategoryFilter = React.createClass({
+  // A clickable representation of category of connections, include counts.
+  // If `showBooks` list connections broken down by book as well.
   propTypes: {
     srefs:                  React.PropTypes.array.isRequired, 
     category:               React.PropTypes.string.isRequired, 
@@ -6912,7 +6902,7 @@ var CategoryFilter = React.createClass({
       if (Sefaria.site) { Sefaria.site.track.event("Reader", "Category Filter Click", this.props.category); }      
     } else {
       this.props.setConnectionsCategory(this.props.category);
-      if (Sefaria.site) { Sefaria.site.track.event("Reader", "Connections FCategory Click", this.props.category); }      
+      if (Sefaria.site) { Sefaria.site.track.event("Reader", "Connections Category Click", this.props.category); }      
     }
 
   },
@@ -6955,18 +6945,23 @@ var CategoryFilter = React.createClass({
 
 
 var TextFilter = React.createClass({
+  // A clickable representation of connections by Text or Commentator
   propTypes: {
-    srefs:        React.PropTypes.array.isRequired,
-    book:         React.PropTypes.string.isRequired,
-    heBook:       React.PropTypes.string.isRequired,
-    on:           React.PropTypes.bool.isRequired,
-    setFilter:    React.PropTypes.func.isRequired,
-    updateRecent: React.PropTypes.bool
+    srefs:           React.PropTypes.array.isRequired,
+    book:            React.PropTypes.string.isRequired,
+    heBook:          React.PropTypes.string.isRequired,
+    on:              React.PropTypes.bool.isRequired,
+    setFilter:       React.PropTypes.func.isRequired,
+    updateRecent:    React.PropTypes.bool,
+    inRecentFilters: React.PropTypes.bool,
   },
   handleClick: function(e) {
     e.preventDefault();
     this.props.setFilter(this.props.book, this.props.updateRecent);
-    if (Sefaria.site) { Sefaria.site.track.event("Reader", "Text Filter Click", this.props.book); }
+    if (Sefaria.site) { 
+      if (this.props.inRecentFilters) { Sefaria.site.track.event("Reader", "Text Filter in Recent Click", this.props.book); }
+      else { Sefaria.site.track.event("Reader", "Text Filter Click", this.props.book); }
+    }
   },
   render: function() {
     var classes = classNames({textFilter: 1, on: this.props.on, lowlight: this.props.count == 0});
@@ -6996,6 +6991,7 @@ var TextFilter = React.createClass({
 
 
 var TextList = React.createClass({
+  // A list of TextRanges connected to `srefs` and filtered by `filter`.
   propTypes: {
     srefs:                   React.PropTypes.array.isRequired,    // an array of ref strings
     filter:                  React.PropTypes.array.isRequired,
@@ -7202,17 +7198,17 @@ var TextList = React.createClass({
                     links.map(function(link, i) {
                         var hideTitle = link.category === "Commentary" && this.props.filter[0] !== "Commentary";
                         return (<TextRange 
-                                    sref={link.sourceRef}
-                                    key={i + link.sourceRef}
-                                    lowlight={Sefaria.util.inArray(link.anchorRef, refs) === -1}
-                                    hideTitle={hideTitle}
-                                    numberLabel={link.category === "Commentary" ? link.anchorVerse : 0}
-                                    basetext={false}
-                                    onRangeClick={this.props.onTextClick}
-                                    onCitationClick={this.props.onCitationClick}
-                                    onNavigationClick={this.props.onNavigationClick}
-                                    onCompareClick={this.props.onCompareClick}
-                                    onOpenConnectionsClick={this.props.onOpenConnectionsClick} />);
+                                  sref={link.sourceRef}
+                                  key={i + link.sourceRef}
+                                  lowlight={Sefaria.util.inArray(link.anchorRef, refs) === -1}
+                                  hideTitle={hideTitle}
+                                  numberLabel={link.category === "Commentary" ? link.anchorVerse : 0}
+                                  basetext={false}
+                                  onRangeClick={this.props.onTextClick}
+                                  onCitationClick={this.props.onCitationClick}
+                                  onNavigationClick={this.props.onNavigationClick}
+                                  onCompareClick={this.props.onCompareClick}
+                                  onOpenConnectionsClick={this.props.onOpenConnectionsClick} />);
                       }, this);          
 
 
@@ -7237,6 +7233,7 @@ var TextList = React.createClass({
 
 
 var RecentFilterSet = React.createClass({
+  // A toggle-able listing of currently a recently used text filters.
   propTypes: {
     srefs:          React.PropTypes.array.isRequired,
     filter:         React.PropTypes.array.isRequired,
@@ -7290,6 +7287,7 @@ var RecentFilterSet = React.createClass({
                 hideColors={true}
                 count={book.count}
                 updateRecent={false}
+                inRecentFilters={true}
                 setFilter={this.props.setFilter}
                 on={Sefaria.util.inArray(book.book, this.props.filter) !== -1} />);
     }.bind(this));
@@ -7306,7 +7304,7 @@ var RecentFilterSet = React.createClass({
 var MySheetsList = React.createClass({
   // List of my sheets for a ref in the Sidebar
   propTypes: {
-    srefs:      React.PropTypes.array.isRequired,
+    srefs: React.PropTypes.array.isRequired,
   },
   render: function() {
     var sheets = Sefaria.sheets.userSheetsByRef(this.props.srefs);
@@ -7321,7 +7319,7 @@ var MySheetsList = React.createClass({
 var PublicSheetsList = React.createClass({
   // List of public sheets for a ref in the sidebar
   propTypes: {
-    srefs:      React.PropTypes.array.isRequired,
+    srefs: React.PropTypes.array.isRequired,
   },
   render: function() {
     var sheets = Sefaria.sheets.sheetsByRef(this.props.srefs);
@@ -7339,7 +7337,21 @@ var PublicSheetsList = React.createClass({
 var SheetListing = React.createClass({
   // A source sheet listed in the Sidebar
   propTypes: {
-    sheet:      React.PropTypes.object.isRequired,
+    sheet: React.PropTypes.object.isRequired,
+  },
+  handleSheetClick: function() {
+    console.log("Sheet Click Handled");
+    if (Sefaria._uid == this.props.sheet.owner) {
+      Sefaria.site.track.event("Tools", "My Sheet Click", this.props.sheet.sheetUrl);
+    } else {
+      Sefaria.site.track.event("Tools", "Sheet Click", this.props.sheet.sheetUrl);
+    }
+  },
+  handleSheetOwnerClick: function() {
+    Sefaria.site.track.event("Tools", "Sheet Owner Click", this.props.sheet.ownerProfileUrl);
+  },
+  handleSheetTagClick: function(tag) {
+    Sefaria.site.track.event("Tools", "Sheet Tag Click", tag);
   },
   render: function() {
     var sheet = this.props.sheet;
@@ -7350,19 +7362,23 @@ var SheetListing = React.createClass({
     return (
       <div className="sheet" key={sheet.sheetUrl}>
         {viewsIcon}
-        <a href={sheet.ownerProfileUrl} target="_blank">
+        <a href={sheet.ownerProfileUrl} target="_blank" onClick={this.handleSheetOwnerClick}>
           <img className="sheetAuthorImg" src={sheet.ownerImageUrl} />
         </a>
-        <a href={sheet.ownerProfileUrl} target="_blank" className="sheetAuthor">{sheet.ownerName}</a>
-        <a href={sheet.sheetUrl} target="_blank" className="sheetTitle">
+        <a href={sheet.ownerProfileUrl} target="_blank" className="sheetAuthor" onClick={this.handleSheetOwnerClick}>{sheet.ownerName}</a>
+        <a href={sheet.sheetUrl} target="_blank" className="sheetTitle" onClick={this.handleSheetClick}>
           <img src="/static/img/sheet.svg" className="sheetIcon"/>
           {sheet.title}
         </a>
         <div className="sheetTags">
           {sheet.tags.map(function(tag, i) { 
             var separator = i == sheet.tags.length -1 ? null : <span className="separator">,</span>;
-            return (<a href={"/sheets/tags/" + tag} target="_blank" className="sheetTag" key={tag}>{tag}{separator}</a>)
-          })}
+            return (<a href={"/sheets/tags/" + tag} 
+                        target="_blank" 
+                        className="sheetTag" 
+                        key={tag}  
+                        onClick={this.handleSheetTagClick.bind(null, tag)}>{tag}{separator}</a>)
+          }.bind(this))}
         </div>
       </div>);          
 }
@@ -7534,33 +7550,10 @@ var LexiconEntry = React.createClass({
 });
 
 
-var ToolsPanel = React.createClass({
+var ToolsList = React.createClass({
   propTypes: {
     srefs:                   React.PropTypes.array.isRequired,  // an array of ref strings
-    mode:                    React.PropTypes.string.isRequired, // "Tools", "Share", "Add to Source Sheet", "Add Note", "My Notes", "Add Connection", "Edit Text", "Add Translation"
-    filter:                  React.PropTypes.array.isRequired,
-    recentFilters:           React.PropTypes.array.isRequired,
     setConnectionsMode:      React.PropTypes.func.isRequired,
-    openComparePanel:        React.PropTypes.func.isRequired,
-    version:                 React.PropTypes.string,
-    versionLanguage:         React.PropTypes.string,
-    fullPanel:               React.PropTypes.bool,
-    multiPanel:              React.PropTypes.bool,
-    canEditText:             React.PropTypes.bool,
-    setFilter:               React.PropTypes.func,
-    onTextClick:             React.PropTypes.func,
-    onCitationClick:         React.PropTypes.func,
-    onNavigationClick:       React.PropTypes.func,
-    onCompareClick:          React.PropTypes.func,
-    onOpenConnectionsClick:  React.PropTypes.func,
-    openNav:                 React.PropTypes.func,
-    openDisplaySettings:     React.PropTypes.func,
-    closePanel:              React.PropTypes.func
-  },
-  getInitialState: function() {
-    return {
-    
-    };
   },
   render: function() {
     var editText  = this.props.canEditText ? function() {
@@ -7628,7 +7621,7 @@ var ToolsButton = React.createClass({
 });
 
 
-var SharePanel = React.createClass({
+var ShareBox = React.createClass({
   propTypes: {
     url:                React.PropTypes.string.isRequired,
     setConnectionsMode: React.PropTypes.func.isRequired,
@@ -7646,8 +7639,12 @@ var SharePanel = React.createClass({
   },
   render: function() {
     var url = this.props.url;
+    
+    // Not quite working...
+    // var fbButton = <iframe src={"https://www.facebook.com/plugins/share_button.php?href=" + encodeURIComponent(this.props.url) + '&layout=button&size=large&mobile_iframe=true&appId=206308089417064&width=73&height=28'} width="73" height="28" style={{border:"none", overflow: "hidden"}} scrolling="no" frameborder="0" allowTransparency="true"></iframe>
+
     var shareFacebook = function() {
-      openInNewTab("https://www.facebook.com/sharer/sharer.php?u=" + url);
+      openInNewTab("https://www.facebook.com/sharer/sharer.php?u=" + encodeURIComponent(url));
     };
     var shareTwitter = function() {
       openInNewTab("https://twitter.com/home?status=" + url);
@@ -7690,7 +7687,7 @@ var AddToSourceSheetWindow = React.createClass({
         </span>}
       </div>
       {Sefaria.loggedIn ?
-        <AddToSourceSheetPanel
+        <AddToSourceSheetBox
           srefs = {this.props.srefs}
           en = {this.props.en}
           he = {this.props.he}
@@ -7700,7 +7697,7 @@ var AddToSourceSheetWindow = React.createClass({
 });
 
 
-var AddToSourceSheetPanel = React.createClass({
+var AddToSourceSheetBox = React.createClass({
   // In the main app, the function `addToSourceSheet` is executed in the ReaderApp, 
   // and collects the needed data from highlights and app state.
   // It is used in external apps, liked gardens.  In those cases, it's wrapped in AddToSourceSheetWindow,
@@ -7806,7 +7803,7 @@ var AddToSourceSheetPanel = React.createClass({
   },
   render: function() {
     if (this.state.showConfirm) {
-      return (<ConfirmAddToSheetPanel sheetId={this.state.selectedSheet.id} />);
+      return (<ConfirmAddToSheet sheetId={this.state.selectedSheet.id} />);
     } else if (this.state.showLogin) {
       return (<div className="addToSourceSheetPanel sans">
                 <LoginPrompt />
@@ -7849,7 +7846,7 @@ var AddToSourceSheetPanel = React.createClass({
 });
 
 
-var ConfirmAddToSheetPanel = React.createClass({
+var ConfirmAddToSheet = React.createClass({
   propType: {
     sheetId: React.PropTypes.number.isRequired
   },
@@ -7872,8 +7869,6 @@ var AddNoteBox = React.createClass({
   propTypes: {
     srefs:              React.PropTypes.array.isRequired,
     setConnectionsMode: React.PropTypes.func.isRequired,
-    closePanel:         React.PropTypes.func.isRequired,
-    fullPanel:          React.PropTypes.bool,
     noteId:             React.PropTypes.string,
     noteText:           React.PropTypes.string,
     noteTitle:          React.PropTypes.string,
@@ -7941,6 +7936,7 @@ var AddNoteBox = React.createClass({
         alert("Note deleted.");
         Sefaria.clearPrivateNotes();
         this.props.setConnectionsMode("Notes");
+        Sefaria.site.track.event("Tools", "Delete Note", this.props.noteId);
       }.bind(this),
       error: function () {
         alert("Something went wrong (that's all I know).");

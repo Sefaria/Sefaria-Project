@@ -2460,7 +2460,7 @@ Sefaria.site = {
     event: function(category, action, label, value, options) {
         // https://developers.google.com/analytics/devguides/collection/analyticsjs/command-queue-reference#send
         ga('send', 'event', category, action, label, value, options);
-        //mixpanel.track(category + " " + action, {label: label});
+        console.log('send', 'event', category, action, label, value, options);
     },
     pageview: function(url) {
         ga('set', 'page', url);
@@ -2474,9 +2474,6 @@ Sefaria.site = {
     },
     setContentLanguage: function(language) {
         ga('set', 'contentGroup5', language);
-    },
-    setInterfaceLanguage: function(origin, language){
-        Sefaria.site.track.event("Settings", origin, language);
     },
     setNumberOfPanels: function(val) {
         ga('set', 'dimension1', val);
@@ -2529,7 +2526,11 @@ Sefaria.site = {
     },
     exploreBrush: function(book) {
         Sefaria.site.track.event("Explorer", "Brush", book);
-    }
+    },
+    setInterfaceLanguage: function(origin, language){
+        // Tracks a user setting their interface langauge, which can be done either account settings or footer
+        Sefaria.site.track.event("Settings", origin, language);
+    },
   }
 };
 
