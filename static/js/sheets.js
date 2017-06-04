@@ -258,7 +258,6 @@ $(function() {
             function(data) {
               // If the query isn't recognized as a ref, but only for reasons of capitalization. Resubmit with recognizable caps.
               if (Sefaria.isACaseVariant(inString, data)) {
-                  debugger;
                 this._lookupAndRoute(Sefaria.repairCaseVariant(inString, data));
                 return;
               }
@@ -276,7 +275,10 @@ $(function() {
       check: function() {
           $("#inlineTextPreview").remove();
           var inString = this.$input.val();
-          if (inString.length < 3) { return; }
+          if (inString.length < 3) {
+              this._disallow();
+              return;
+          }
 
           this._lookupAndRoute(inString);
       }
