@@ -226,6 +226,7 @@ class SaveNewSourceSheet(AtomicTest):
     single_panel = False  # No source sheets on mobile
 
     def run(self):
+        self.prime_autocomplete_cache()
         self.s2()
         self.login_user()
         self.driver.implicitly_wait(10)
