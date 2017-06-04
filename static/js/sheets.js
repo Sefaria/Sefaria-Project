@@ -265,7 +265,7 @@ $(function() {
               this.$msg.css("direction", (data["lang"]=="he"?"rtl":"ltr"))
                   .html(this._getMessage(inString, data));
               if (data.is_ref && (data.is_section || data.is_segment)) {
-                this._allow(inString, data["ref"]);  //normalize
+                this._allow(inString, data["ref"]);  //pass normalized ref
                 return;
               }
               this._disallow();

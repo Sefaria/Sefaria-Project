@@ -232,7 +232,7 @@ class SaveNewSourceSheet(AtomicTest):
         self.driver.implicitly_wait(10)
         self.driver.get(self.base_url + "/sheets/new")
         self.driver.find_element_by_css_selector("#inlineAdd").send_keys("Genesis 1.1")
-        WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, "#inlineAddSourceOK")))
+        WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, "#inlineAddSourceOK:not(.disabled")))
         self.driver.find_element_by_css_selector("#inlineAddSourceOK").click()
         WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, "#save")))
         saveButton = self.driver.find_element_by_css_selector('#save')
