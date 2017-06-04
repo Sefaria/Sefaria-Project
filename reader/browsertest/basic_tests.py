@@ -223,7 +223,7 @@ class ClickVersionedSearchResultMobile(AtomicTest):
 class SaveNewSourceSheet(AtomicTest):
     suite_key = "Sheets"
     every_build = True
-    single_panel = False
+    single_panel = False  # No source sheets on mobile
 
     def run(self):
         self.s2()
@@ -236,6 +236,17 @@ class SaveNewSourceSheet(AtomicTest):
         saveButton = self.driver.find_element_by_css_selector('#save')
         saveButton.click()
         WebDriverWait(self.driver, TEMPER).until(title_contains("New Source Sheet | Sefaria Source Sheet Builder"))
+
+
+class LoginOnMobile(AtomicTest):
+    suite_key = "Reader"
+    every_build = True
+    multi_panel = False  # Login is tested as part of SaveNewSourceSheet on multipanel
+
+    def run(self):
+        self.s2()
+        self.login_user()
+        WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, ".accountLinks .account")))
 
 
 class SpecialCasedSearchBarNavigations(AtomicTest):

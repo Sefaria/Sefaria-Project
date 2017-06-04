@@ -145,11 +145,18 @@ $(function() {
 
     var RefValidator = function($input, $msg, $ok, success) {
         /** Replacement for utils.js:sjs.checkref that uses only new tools.
-         Allows section and segment level references.
+         * Instantiated as an object, and then invoked with `check` method
+         * Allows section and segment level references.
          * $input - input element
          * $msg - status message element
          * $ok - Ok button element
          * success -- a function to call when a valid ref has been found
+
+         * example usage:
+
+         var validator = new RefValidator($("#inlineAdd"), $("#inlineAddDialogTitle"), $("#inlineAddSourceOK"), inlineAddSourcePreview);
+         $("#inlineAdd").keyup(validator.check.bind(validator))
+
          */
 
         this.$input = $input;
@@ -267,7 +274,6 @@ $(function() {
           );
       },
       check: function() {
-          debugger;
           $("#inlineTextPreview").remove();
           var inString = this.$input.val();
           if (inString.length < 3) { return; }
