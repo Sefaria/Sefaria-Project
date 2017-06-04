@@ -78,6 +78,7 @@ $(function() {
 	function makeMediaEmbedLink(mediaURL) {
 	    var re = /https?:\/\/(www\.)?(youtu(?:\.be|be\.com)\/(?:.*v(?:\/|=)|(?:.*\/)?)([\w'-]+))/i;
    		var m;
+        var embedHTML;
 
 		if ((m = re.exec(mediaURL)) !== null) {
 			if (m.index === re.lastIndex) {
@@ -107,7 +108,7 @@ $(function() {
 	}
 
 	function mediaCheck(target){
-		$target = target;
+		var $target = target;
 		$target.find('audio, img').last()
 	    .on('error', function() {
 	    	$target.parent().remove();
@@ -352,7 +353,7 @@ $(function() {
 
 	// General Options 
 	$("#options .optionItem,#formatMenu .optionItem, #assignmentsModal .optionItem").click(function() {
-		$check = $(".fa-check", $(this));
+		var $check = $(".fa-check", $(this));
 		if ($check.hasClass("hidden")) {
 			$("#sheet").addClass($(this).attr("id"));
 			$check.removeClass("hidden");
@@ -1592,7 +1593,7 @@ $(function() {
 
 	// Reset Source Text 
 	$(".resetSource").live("click", function() { 
-		options = {
+		var options = {
 			message: "Reset text of Hebrew, English or both?<br><small>Any edits you have made to this source will be lost.</small>",
 			options: ["Hebrew", "English", "Both"]
 		};
@@ -3387,6 +3388,7 @@ function rebuildUpdatedSheet(data) {
 
 	buildSheet(data);
 	sjs.replayLastEdit();
+    var curTextLocation;
 
 	if (topMostVisibleSheetItem == null) {
 		curTextLocation = $("#sourceButton").offset().top - 200;
@@ -3816,7 +3818,7 @@ function resetSplitHighlighterSegment() {
 }
 
 function injectSelectionColor(color) {
-	sel = window.getSelection();
+	var sel = window.getSelection();
 	sel.removeAllRanges();
 	$("#tempSelectOverride").remove();
   var div = $("<div />", {
@@ -3883,7 +3885,7 @@ function resetHighlighterFilterTags() {
 
  function saveSelection() {
 		if (window.getSelection) {
-				sel = window.getSelection();
+				var sel = window.getSelection();
 				if (sel.getRangeAt && sel.rangeCount) {
 						return sel.getRangeAt(0);
 				}
@@ -3896,7 +3898,7 @@ function resetHighlighterFilterTags() {
 function restoreSelection(range) {
 		if (range) {
 				if (window.getSelection) {
-						sel = window.getSelection();
+						var sel = window.getSelection();
 						sel.removeAllRanges();
 						sel.addRange(range);
 				} else if (document.selection && range.select) {
