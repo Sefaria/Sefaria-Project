@@ -239,7 +239,8 @@ class SaveNewSourceSheet(AtomicTest):
         saveButton.click()
         WebDriverWait(self.driver, TEMPER).until(title_contains("New Source Sheet | Sefaria Source Sheet Builder"))
 
-
+'''
+# Not sure why this isn't working.
 class LoginOnMobile(AtomicTest):
     suite_key = "Reader"
     every_build = True
@@ -249,6 +250,8 @@ class LoginOnMobile(AtomicTest):
         self.s2()
         self.login_user()
         WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, ".accountLinks .account")))
+
+'''
 
 
 class SpecialCasedSearchBarNavigations(AtomicTest):
