@@ -54,6 +54,7 @@
             <video id="homeVideo" poster="/static/img/home-video.jpg" preload="auto" autoplay="true" loop="loop" muted="muted" volume="0">
                 <source src="/static/img/home-video.webm" type="video/webm">
                 <source src="/static/img/home-video.mp4" type="video/mp4">
+                Video of sofer writing letters of the Torah
             </video>
             <h1>
                 <span class="int-en">A Living Library of Jewish Texts</span>
@@ -154,7 +155,7 @@
                     </a>
                 </div>
                 <div class="imageBox">
-                    <img src="/static/img/home-mobile.png" />
+                    <img src="/static/img/home-mobile.png" alt="Image of Sefaria on mobile phones" />
                 </div>
             </div>
         </div>
@@ -186,7 +187,7 @@
                 </div>
                 <div class="imageBox bordered">
                     <a href="/sheets">
-                        <img src="/static/img/home-sheets.png" />
+                        <img src="/static/img/home-sheets.png" alt="Image of printed Sefaria source sheets" />
                     </a>
                 </div>
             </div>
@@ -213,7 +214,7 @@
                 </div>
                 <div class="imageBox bordered">
                     <a href="/explore">
-                        <img src="/static/img/home-explore.png" />
+                        <img src="/static/img/home-explore.png" alt="Image of networked text" />
                     </a>
                 </div>
             </div>
@@ -249,7 +250,7 @@
                     <span class="int-he">ספאריה במספרים</span>
                 </h3>
                 <p class="stat">
-                    <img class="statIcon" src="/static/img/progress-contributors.png">
+                    <img class="statIcon" src="/static/img/progress-contributors.png" alt="">
                     <span class="wordCount">{{ metrics.contributors|intcomma }}</span>
                     <span class="stat-name sans">
                         <span class="int-en">Contributors</span>
@@ -258,7 +259,7 @@
                 </p>
 
                 <p class="stat">
-                    <img class="statIcon" src="/static/img/progress-sheets.png">
+                    <img class="statIcon" src="/static/img/progress-sheets.png" alt="">
                     <span class="wordCount">{{ metrics.sheets|intcomma }}</span>
                     <span class="stat-name sans">
                         <span class="int-en">Source Sheets</span>
@@ -267,7 +268,7 @@
                 </p>
 
                 <p class="stat">
-                    <img class="statIcon" src="/static/img/progress-connections.png">
+                    <img class="statIcon" src="/static/img/progress-connections.png" alt="">
                     <span class="wordCount">{{ metrics.links|intcomma }}</span>
                     <span class="stat-name sans">
                         <span class="int-en">Connections</span>
@@ -276,7 +277,7 @@
                 </p>
 
                 <p class="stat">
-                    <img class="statIcon" src="/static/img/progress-translation.png">
+                    <img class="statIcon" src="/static/img/progress-translation.png" alt="">
                     <span class="wordCount">{{ metrics.transWords|intcomma }}</span>
                     <span class="stat-name sans">
                         <span class="int-en">Words of Translation</span>
@@ -285,7 +286,7 @@
                 </p>
 
                 <p class="stat">
-                    <img class="statIcon" src="/static/img/progress-words.png">
+                    <img class="statIcon" src="/static/img/progress-words.png" alt="">
                     <span class="wordCount">{{ metrics.heWords|add:metrics.transWords|intcomma }}</span>
                     <span class="stat-name sans">
                         <span class="int-en">Total Words</span>
@@ -332,7 +333,7 @@
                         <span class="int-en">Subscribe to our mailing list</span>
                         <span class="int-he">הצטרפו לרשימת הדיוור שלנו</span>
                     </div>
-                    <input id="mailingListEmail" placeholder="Email Address | כתובת אימייל">
+                    <input id="mailingListEmail" title="Subscribe to our mailing list by entering your email here" placeholder="Email Address | כתובת אימייל">
                     <span id="subscribe" class="button control-elem">
                         <span class="int-en">Subscribe</span>
                         <span class="int-he">הרשמו</span>

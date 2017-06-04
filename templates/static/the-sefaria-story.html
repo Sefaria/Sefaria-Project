@@ -1,8 +1,11 @@
 {% extends "base.html" %}
 
-{% block title %}The Sefaria Stroy{% endblock %}
+{% block title %}The Sefaria Story{% endblock %}
 
 {% block css %}
+.static h1 {
+    margin-bottom: 40px;
+}
 .videoWrapper {
     position: relative;
     padding-bottom: 56.25%; /* 16:9 */
@@ -17,7 +20,7 @@
     height: 100%;
 }
 .static .inner {
-    width: 900px;
+    width: 800px;
     max-width: 96%;
 }
 {% endblock %}
@@ -34,6 +37,24 @@
         <div class="videoWrapper">
             <iframe src="https://www.youtube.com/embed/3JNf0yHA60U" frameborder="0" allowfullscreen></iframe>
         </div>
+
+
+        <div class="single-button center">
+            <a class="button big blue control-elem" href="http://sefaria.nationbuilder.com" target="_blank">
+                <span class="int-en">Donate Now</span>
+                <span class="int-he">לתרומה</span>
+            </a>
+        </div>
+        
+        <p>
+            <span class="int-en">
+                With your help, Sefaria will be the digital home of the Jewish canon and the platform for the future of Jewish learning.
+                Sefaria is a 501(c)(3) charitable organization; donations are tax-deductible as allowed by law. Thank you for supporting Sefaria.
+            </span>
+            <span class="int-he">
+                בעזרתכם, ספאריה תהפוך לבית הדיגיטלי של הקאנון היהודי, ולפלטפורמת העתיד של לימוד יהודי. התרומה לספאריה פטורה ממס כפי שמעוגן בחוק. תודה על תמיכתכם בספאריה.
+            </span>
+        </p>
 
     </div>
 </div>

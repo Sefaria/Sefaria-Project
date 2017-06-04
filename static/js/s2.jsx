@@ -1096,14 +1096,14 @@ var ReaderApp = React.createClass({
     }
     this.setState(state);
   },
-  showLibrary: function() {
+  showLibrary: function(categories) {
     if (this.props.multiPanel) {
-      this.setState({header: this.makePanelState({mode: "Header", menuOpen: "navigation"})});
+      this.setState({header: this.makePanelState({mode: "Header", menuOpen: "navigation", navigationCategories: categories})});
     } else {
       if (this.state.panels.length) {
         this.state.panels[0].menuOpen = "navigation";
       } else {
-        this.state.panels[0] = this.makePanelState({menuOpen: "navigation"});
+        this.state.panels[0] = this.makePanelState({menuOpen: "navigation", navigationCategories: categories});
       }
       this.setState({panels: this.state.panels});
     }
@@ -1350,29 +1350,25 @@ var Header = React.createClass({
     } );
     $(ReactDOM.findDOMNode(this)).find("input.search").sefaria_autocomplete({
       position: {my: "left-12 top+14", at: "left bottom"},
+      minLength: 3,
       select: function( event, ui ) {
-        $(ReactDOM.findDOMNode(this)).find("input.search").val(ui.item.value);  //This will disappear when the next line executes, but the eye can sometimes catch it.
+        $(ReactDOM.findDOMNode(this)).find("input.search").val(ui.item.value);  // This will disappear when the next line executes, but the eye can sometimes catch it.
         this.submitSearch(ui.item.value);
         return false;
       }.bind(this),
-      source: function( request, response ) {
-        // Commented out code will only put the "Search for: " in the list if the search is an exact match.
-        //var exact = false;
-        var matches = $.map( Sefaria.books, function(tag) {
-            if ( tag.toUpperCase().indexOf(request.term.toUpperCase()) === 0 ) {
-              //if (tag.toUpperCase() == request.term.toUpperCase()) {
-              //  exact = true;
-              //}
-              return tag;
-            }
-          });
-        var resp = matches.slice(0, 16); // limits return to 16 items
-        //if (exact) {
-        if (resp.length > 0) {
-          resp.push(`${this._searchOverridePre}${request.term}${this._searchOverridePost}`);
-        }
-        //}
-        response(resp);
+
+      source: function(request, response) {
+        Sefaria.lookup(
+            request.term,
+            d => {
+              if (d["completions"].length > 0) {
+                response(d["completions"].concat([`${this._searchOverridePre}${request.term}${this._searchOverridePost}`]))
+              } else {
+                response([])
+              }
+            },
+            e => response([])
+        );
       }.bind(this)
     });
   },
@@ -1395,11 +1391,12 @@ var Header = React.createClass({
     this.props.setCentralState({menuOpen: null});
     this.clearSearchBox();      
   },
-  showLibrary: function() {
-    this.props.showLibrary();
+  showLibrary: function(categories) {
+    this.props.showLibrary(categories);
     this.clearSearchBox();
   },
   showSearch: function(query) {
+    query = query.trim();
     if (typeof sjs !== "undefined") {
       query = encodeURIComponent(query);
       window.location = `/search?q=${query}`;
@@ -1408,7 +1405,8 @@ var Header = React.createClass({
     this.props.showSearch(query);
     $(ReactDOM.findDOMNode(this)).find("input.search").sefaria_autocomplete("close");
   },
-  showAccount: function() {
+  showAccount: function(e) {
+    e.preventDefault();
     if (typeof sjs !== "undefined") {
       window.location = "/account";
       return;
@@ -1416,7 +1414,8 @@ var Header = React.createClass({
     this.props.setCentralState({menuOpen: "account"});
     this.clearSearchBox();
   },
-  showNotifications: function() {
+  showNotifications: function(e) {
+    e.preventDefault();
     if (typeof sjs !== "undefined") {
       window.location = "/notifications";
       return;
@@ -1439,10 +1438,7 @@ var Header = React.createClass({
   hideTestMessage: function() { 
     this.props.setCentralState({showTestMessage: false});
   },
-  submitSearch: function(query, skipNormalization, originalQuery) {
-    // originalQuery is used to handle an edge case - when a varient of a commentator name is passed - e.g. "Rasag".
-    // the name gets normalized, but is ultimately not a ref, so becomes a regular search.
-    // We want to search for the original query, not the normalized name
+  submitSearch: function(query) {
     var override = query.match(this._searchOverrideRegex());
     if (override) {
       if (Sefaria.site) { Sefaria.site.track.event("Search", "Search Box Navigation - Book Override", override[1]); }
@@ -1451,33 +1447,42 @@ var Header = React.createClass({
       return;
     }
 
-    var index;
-    var normal_query = query.trim().toFirstCapital();
-    if (normal_query in Sefaria.booksDict) {
-      index = Sefaria.index(normal_query);
-      if (!index && !skipNormalization) {
-        Sefaria.normalizeTitle(query, function(title) {
-          this.submitSearch(title, true, query)
-        }.bind(this));
+    Sefaria.lookup(query, function(d) {
+      // If the query isn't recognized as a ref, but only for reasons of capitalization. Resubmit with recognizable caps.
+      if (Sefaria.isACaseVariant(query, d)) {
+        this.submitSearch(Sefaria.repairCaseVariant(query, d));
         return;
       }
-    }
-    if (Sefaria.isRef(normal_query)) {
-      var action = index? "Search Box Navigation - Book": "Search Box Navigation - Citation";
-      if (Sefaria.site) { Sefaria.site.track.event("Search", action, query); }
-      this.clearSearchBox();
-      this.handleRefClick(normal_query);  //todo: pass an onError function through here to the panel onError function which redirects to search
-    } else {
-      if (Sefaria.site) { Sefaria.site.track.event("Search", "Search Box Search", query); }
-      this.closeSearchAutocomplete();
-      this.showSearch(originalQuery || query);
-    }
+
+      if (d["is_ref"]) {
+        var action = d["is_book"] ? "Search Box Navigation - Book" : "Search Box Navigation - Citation";
+        Sefaria.site.track.event("Search", action, query);
+        this.clearSearchBox();
+        this.handleRefClick(d["ref"]);  //todo: pass an onError function through here to the panel onError function which redirects to search
+      } else if (d["type"] == "Person") {
+        Sefaria.site.track.event("Search", "Search Box Navigation - Person", query);
+        this.closeSearchAutocomplete();
+        this.showPerson(d["key"]);
+      } else if (d["type"] == "TocCategory") {
+        Sefaria.site.track.event("Search", "Search Box Navigation - Category", query);
+        this.closeSearchAutocomplete();
+        this.showLibrary(d["key"]);  // "key" holds the category path 
+      } else {
+        Sefaria.site.track.event("Search", "Search Box Search", query);
+        this.closeSearchAutocomplete();
+        this.showSearch(query);
+      }
+    }.bind(this));
   },
   closeSearchAutocomplete: function() {
     $(ReactDOM.findDOMNode(this)).find("input.search").sefaria_autocomplete("close");
   },
   clearSearchBox: function() {
     $(ReactDOM.findDOMNode(this)).find("input.search").val("").sefaria_autocomplete("close");
+  },
+  showPerson: function(key) {
+    //todo: move people into React
+    window.location = "/person/" + key;
   },
   handleLibraryClick: function(e) {
     e.preventDefault();
@@ -1492,6 +1497,8 @@ var Header = React.createClass({
     } else {
       this.showLibrary();
     }
+    $(".wrapper").remove();
+    $("#footer").remove();
   },
   handleRefClick: function(ref, version, versionLanguage) {
     if (this.props.headerMode) {
@@ -1543,8 +1550,8 @@ var Header = React.createClass({
                           (<div className="testWarning" onClick={this.showTestMessage} >{ this.props.headerMessage }</div>) :
                           null;
     var loggedInLinks  = (<div className="accountLinks">
-                            <div className="account" onClick={this.showAccount}><img src="/static/img/user-64.png" /></div>
-                            <div className={notifcationsClasses} onClick={this.showNotifications}>{notificationCount}</div>
+                            <a href="/account" className="account" onClick={this.showAccount}><img src="/static/img/user-64.png" alt="My Account"/></a>
+                            <a href="/notifications" aria-label="See New Notifications" className={notifcationsClasses} onClick={this.showNotifications}>{notificationCount}</a>
                          </div>);
     var loggedOutLinks = (<div className="accountLinks">
                            <a className="login" href={"/register" + nextParam}>
@@ -1556,27 +1563,30 @@ var Header = React.createClass({
                              <span className="int-he">התחבר</span>
                            </a>
                          </div>);
-    var langSearchPlaceholder = this.props.interfaceLang == 'english' ? "Search" : "הקלד לחיפוש";
+    var langSearchPlaceholder = this.props.interfaceLang == 'english' ? "Search" : "חיפוש";
     var vkClassActivator = this.props.interfaceLang == 'english' ? " keyboardInput" : "";
     return (<div className="header">
               <div className="headerInner">
-                <div className="left">
-                  <a href="/texts"><div className="library" onClick={this.handleLibraryClick}><i className="fa fa-bars"></i></div></a>
+                <div className="headerNavSection">
+                    <a href="/texts" aria-label="Toggle Text Table of Contents" className="library" onClick={this.handleLibraryClick}><i className="fa fa-bars"></i></a>
+                    <div  className="searchBox">
+                      <ReaderNavigationMenuSearchButton onClick={this.handleSearchButtonClick} />
+                      <input className={"search"+ vkClassActivator}
+                             id="searchInput"
+                             placeholder={langSearchPlaceholder}
+                             onKeyUp={this.handleSearchKeyUp}
+                             onFocus={this.showVirtualKeyboardIcon.bind(this, true)}
+                             onBlur={this.showVirtualKeyboardIcon.bind(this, false)}
+                      title="Search for Texts or Keywords Here"/>
+                    </div>
                 </div>
-                <div className="right">
+                <div className="headerHomeSection">
+                    <a className="home" href="/?home" ><img src="/static/img/sefaria.svg" alt="Sefaria Logo"/></a>
+                </div>
+                <div className="headerLinksSection">
                   { headerMessage }
                   { Sefaria.loggedIn ? loggedInLinks : loggedOutLinks }
                 </div>
-                <span className="searchBox">
-                  <ReaderNavigationMenuSearchButton onClick={this.handleSearchButtonClick} />
-                  <input className={"search"+ vkClassActivator}
-                         placeholder={langSearchPlaceholder}
-                         onKeyUp={this.handleSearchKeyUp}
-                         onFocus={this.showVirtualKeyboardIcon.bind(this, true)}
-                         onBlur={this.showVirtualKeyboardIcon.bind(this, false)}
-                  />
-                </span>
-                <a className="home" href="/?home" ><img src="/static/img/sefaria.svg" /></a>
               </div>
               { viewContent ? 
                 (<div className="headerNavContent">
@@ -1815,6 +1825,11 @@ var ReaderPanel = React.createClass({
     // `replaceHistory` - bool whether to replace browser history rather than push for this change
     if (!ref) { return; }
     this.replaceHistory = Boolean(replaceHistory);
+    if (this.state.mode == "Connections" && this.props.masterPanelLanguage == "bilingual") {
+      // Connections panels are forced to be mono-lingual. When opening a text from a connections panel,
+      // allow it to return to bilingual.
+      this.state.settings.language = "bilingual";
+    }
     this.conditionalSetState({
       mode: "Text",
       refs: [ref],
@@ -1822,7 +1837,8 @@ var ReaderPanel = React.createClass({
       recentFilters: [],
       menuOpen: null,
       version: version,
-      versionLanguage: versionLanguage
+      versionLanguage: versionLanguage,
+      settings: this.state.settings
     });
   },
   updateTextColumn: function(refs) {
@@ -2427,28 +2443,32 @@ var ReaderDisplayOptionsMenu = React.createClass({
   },
   render: function() {
     var languageOptions = [
-      {name: "english",   content: "<span class='en'>A</span>" },
-      {name: "bilingual", content: "<span class='en'>A</span><span class='he'>א</span>" },
-      {name: "hebrew",    content: "<span class='he'>א</span>" }
+      {name: "english",   content: "<span class='en'>A</span>", role: "radio", ariaLabel: "Show English Text" },
+      {name: "bilingual", content: "<span class='en'>A</span><span class='he'>א</span>", role: "radio", ariaLabel: "Show English & Hebrew Text" },
+      {name: "hebrew",    content: "<span class='he'>א</span>", role: "radio", ariaLabel: "Show Hebrew Text" }
     ];
     var languageToggle = (
         <ToggleSet
+          role="radiogroup"
+          ariaLabel="Language toggle"
           name="language"
           options={languageOptions}
           setOption={this.props.setOption}
           settings={this.props.settings} />);
     
     var layoutOptions = [
-      {name: "continuous", fa: "align-justify" },
-      {name: "segmented", fa: "align-left" },
+      {name: "continuous", fa: "align-justify", role: "radio", ariaLabel: "Show Text as a paragram" },
+      {name: "segmented", fa: "align-left", role: "radio", ariaLabel: "Show Text segmented" },
     ];
     var biLayoutOptions = [
-      {name: "stacked", content: "<img src='/static/img/stacked.png' />"},
-      {name: "heLeft", content: "<img src='/static/img/backs.png' />"},
-      {name: "heRight", content: "<img src='/static/img/faces.png' />"}
+      {name: "stacked", content: "<img src='/static/img/stacked.png' alt='Stacked Language Toggle'/>", role: "radio", ariaLabel: "Show Hebrew & English Stacked"},
+      {name: "heLeft", content: "<img src='/static/img/backs.png' alt='Hebrew Left Toggle' />", role: "radio", ariaLabel: "Show Hebrew Text Left of English Text"},
+      {name: "heRight", content: "<img src='/static/img/faces.png' alt='Hebrew Right Toggle' />", role: "radio", ariaLabel: "Show Hebrew Text Right of English Text"}
     ];
     var layoutToggle = this.props.settings.language !== "bilingual" ? 
       (<ToggleSet
+          role="radiogroup"
+          ariaLabel="text layout toggle"
           name="layout"
           options={layoutOptions}
           setOption={this.props.setOption}
@@ -2456,6 +2476,8 @@ var ReaderDisplayOptionsMenu = React.createClass({
           settings={this.props.settings} />) : 
       (this.props.width > 500 ? 
         <ToggleSet
+          role="radiogroup"
+          ariaLabel="bidirectional text layout toggle"
           name="biLayout"
           options={biLayoutOptions}
           setOption={this.props.setOption}
@@ -2463,12 +2485,14 @@ var ReaderDisplayOptionsMenu = React.createClass({
           settings={this.props.settings} /> : null);
 
     var colorOptions = [
-      {name: "light", content: "" },
-      {name: "sepia", content: "" },
-      {name: "dark", content: "" }
+      {name: "light", content: "", role: "radio", ariaLabel: "Toggle light mode" },
+      {name: "sepia", content: "", role: "radio", ariaLabel: "Toggle sepia mode" },
+      {name: "dark", content: "", role: "radio", ariaLabel: "Toggle dark mode" }
     ];
     var colorToggle = (
         <ToggleSet
+          role="radiogroup"
+          ariaLabel="Color toggle"
           name="color"
           separated={true}
           options={colorOptions}
@@ -2477,18 +2501,20 @@ var ReaderDisplayOptionsMenu = React.createClass({
     colorToggle = this.props.multiPanel ? null : colorToggle;
 
     var sizeOptions = [
-      {name: "smaller", content: "Aa" },
-      {name: "larger", content: "Aa"  }
+      {name: "smaller", content: "Aa", role: "button", ariaLabel: "Decrease font size" },
+      {name: "larger", content: "Aa", role: "button", ariaLabel: "Increase font size"  }
     ];
     var sizeToggle = (
         <ToggleSet
+          role="group"
+          ariaLabel="Increase/Decrease Font Size Buttons"
           name="fontSize"
           options={sizeOptions}
           setOption={this.props.setOption}
           settings={this.props.settings} />);
 
     if (this.props.menuOpen === "search") {
-      return (<div className="readerOptionsPanel">
+      return (<div className="readerOptionsPanel" role="dialog" tabindex="0">
                 <div className="readerOptionsPanelInner">
                   {languageToggle}
                   <div className="line"></div>
@@ -2496,13 +2522,13 @@ var ReaderDisplayOptionsMenu = React.createClass({
                 </div>
             </div>);
     } else if (this.props.menuOpen) {
-      return (<div className="readerOptionsPanel">
+      return (<div className="readerOptionsPanel"role="dialog" tabindex="0">
                 <div className="readerOptionsPanelInner">
                   {languageToggle}
                 </div>
             </div>);
     } else {
-      return (<div className="readerOptionsPanel">
+      return (<div className="readerOptionsPanel"role="dialog" tabindex="0">
                 <div className="readerOptionsPanelInner">
                   {languageToggle}
                   {layoutToggle}
@@ -2538,7 +2564,7 @@ var ReaderNavigationMenu = React.createClass({
   getInitialState: function() {
     this.width = 1000;
     return {
-      showMore: false,
+      showMore: false
     };
   },
   componentDidMount: function() {
@@ -2573,7 +2599,8 @@ var ReaderNavigationMenu = React.createClass({
       this.props.closeNav();
     }
   },
-  showMore: function() {
+  showMore: function(event) {
+    event.preventDefault();
     this.setState({showMore: true});
   },
   handleClick: function(event) {
@@ -2609,12 +2636,11 @@ var ReaderNavigationMenu = React.createClass({
     if (query) {
       this.props.openSearch(query);
     }
-  },  
+  },
   render: function() {
     if (this.props.categories.length && this.props.categories[0] == "recent") {
       return (<div onClick={this.handleClick}>
-                <RecentPanel 
-                  toggleLanguage={this.props.toggleLanguage}
+                <RecentPanel
                   multiPanel={this.props.multiPanel}
                   closeNav={this.closeNav}
                   openDisplaySettings={this.props.openDisplaySettings}
@@ -2663,17 +2689,16 @@ var ReaderNavigationMenu = React.createClass({
         var style = {"borderColor": Sefaria.palette.categoryColor(cat)};
         var openCat = function(e) {e.preventDefault(); this.props.setCategories([cat])}.bind(this);
         var heCat   = Sefaria.hebrewTerm(cat);
-        return (<a href={`/texts/${cat}`}>
-                  <div className="readerNavCategory" data-cat={cat} style={style} onClick={openCat}>
+        return (<a href={`/texts/${cat}`} className="readerNavCategory" data-cat={cat} style={style} onClick={openCat}>
                     <span className="en">{cat}</span>
                     <span className="he">{heCat}</span>
-                  </div>
-                </a>);
+                  </a>
+                );
       }.bind(this));
-      var more = (<div className="readerNavCategory readerNavMore" style={{"borderColor": Sefaria.palette.colors.darkblue}} onClick={this.showMore}>
-                      <span className="en">More <img src="/static/img/arrow-right.png" /></span>
-                      <span className="he">עוד <img src="/static/img/arrow-left.png" /></span>
-                  </div>);
+      var more = (<a href="#" className="readerNavCategory readerNavMore" style={{"borderColor": Sefaria.palette.colors.darkblue}} onClick={this.showMore}>
+                      <span className="en">More <img src="/static/img/arrow-right.png" alt="" /></span>
+                      <span className="he">עוד <img src="/static/img/arrow-left.png" alt="" /></span>
+                  </a>);
       var nCats  = this.width < 450 ? 9 : 8;
       categories = this.state.showMore ? categories : categories.slice(0, nCats).concat(more);
       categories = (<div className="readerNavCategories"><TwoOrThreeBox content={categories} width={this.width} /></div>);
@@ -2718,17 +2743,17 @@ var ReaderNavigationMenu = React.createClass({
 
       var sheetsStyle = {"borderColor": Sefaria.palette.categoryColor("Sheets")};
       var resources = [(<a className="resourcesLink" style={sheetsStyle} href="/sheets" onClick={this.props.openMenu.bind(null, "sheets")}>
-                        <img src="/static/img/sheet-icon.png" />
+                        <img src="/static/img/sheet-icon.png" alt="" />
                         <span className="int-en">Source Sheets</span>
                         <span className="int-he">דפי מקורות</span>
                       </a>),
                      (<a className="resourcesLink outOfAppLink" style={sheetsStyle} href="/visualizations">
-                        <img src="/static/img/visualizations-icon.png" />
+                        <img src="/static/img/visualizations-icon.png" alt="" />
                         <span className="int-en">Visualizations</span>
                         <span className="int-he">חזותיים</span>
                       </a>),
                     (<a className="resourcesLink outOfAppLink" style={sheetsStyle} href="/people">
-                        <img src="/static/img/authors-icon.png" />
+                        <img src="/static/img/authors-icon.png" alt="" />
                         <span className="int-en">Authors</span>
                         <span className="int-he">רשימת מחברים</span>
                       </a>)];
@@ -2740,14 +2765,14 @@ var ReaderNavigationMenu = React.createClass({
                 <CategoryColorLine category="Other" />
                 <ReaderNavigationMenuSearchButton onClick={this.navHome} />
                 <ReaderNavigationMenuDisplaySettingsButton onClick={this.props.openDisplaySettings} />                
-                <div className='sefariaLogo'><img src="/static/img/sefaria.svg" /></div>
+                <div className='sefariaLogo'><img src="/static/img/sefaria.svg" alt="Sefaria Logo" /></div>
               </div>) :
               (<div className="readerNavTop search">
                 <CategoryColorLine category="Other" />
                 <ReaderNavigationMenuCloseButton onClick={this.closeNav}/>
                 <ReaderNavigationMenuSearchButton onClick={this.handleSearchButtonClick} />
                 <ReaderNavigationMenuDisplaySettingsButton onClick={this.props.openDisplaySettings} />                
-                <input className="readerSearch" placeholder="Search" onKeyUp={this.handleSearchKeyUp} />
+                <input id="searchInput" className="readerSearch" title="Search for Texts or Keywords Here" placeholder="Search" onKeyUp={this.handleSearchKeyUp} />
               </div>);
       topContent = this.props.hideNavHeader ? null : topContent;
 
@@ -2772,10 +2797,10 @@ var ReaderNavigationMenu = React.createClass({
       }).slice(0, hasMore ? nRecent-1 : nRecent);
       if (hasMore) {
         recentlyViewed.push(
-          <div className="readerNavCategory readerNavMore" style={{"borderColor": Sefaria.palette.colors.darkblue}} onClick={this.props.setCategories.bind(null, ["recent"])}>
-            <span className="en">More <img src="/static/img/arrow-right.png" /></span>
-            <span className="he">עוד <img src="/static/img/arrow-left.png" /></span>
-          </div>);
+          <a href="/texts/recent" className="readerNavCategory readerNavMore" style={{"borderColor": Sefaria.palette.colors.darkblue}} onClick={this.props.setCategories.bind(null, ["recent"])}>
+            <span className="en">More <img src="/static/img/arrow-right.png" alt="" /></span>
+            <span className="he">עוד <img src="/static/img/arrow-left.png" alt=""  /></span>
+          </a>);
       }
       recentlyViewed = recentlyViewed.length ? <TwoOrThreeBox content={recentlyViewed} width={this.width} /> : null;
 
@@ -2871,8 +2896,8 @@ var LanguageToggleButton = React.createClass({
   },
   render: function() {
     return (<div className="languageToggle" onClick={this.props.toggleLanguage}>
-              <span className="en"><img src="/static/img/aleph.svg" /></span>
-              <span className="he"><img src="/static/img/aye.svg" /></span>
+              <span className="en"><img src="/static/img/aleph.svg" alt="Hebrew Language Toggle Icon" /></span>
+              <span className="he"><img src="/static/img/aye.svg" alt="English Language Toggle Icon" /></span>
             </div>);
   }
 });
@@ -2896,7 +2921,7 @@ var BlockLink = React.createClass({
     var interfaceClass = this.props.interfaceLink ? 'int-' : '';
     var classes = classNames({blockLink: 1, inAppLink: this.props.inAppLink})
     return (<a className={classes} href={this.props.target}>
-              {this.props.image ? <img src={this.props.image} /> : null}
+              {this.props.image ? <img src={this.props.image} alt="" /> : null}
               <span className={`${interfaceClass}en`}>{this.props.title}</span>
               <span className={`${interfaceClass}he`}>{this.props.heTitle}</span>
            </a>);
@@ -3033,21 +3058,19 @@ var ReaderNavigationCategoryMenuContents = React.createClass({
                 var chItem = item.contents[0];
                 var [title, heTitle] = this.getRenderedTextTitleString(chItem.title, chItem.heTitle);
                 var url     = "/" + Sefaria.normRef(chItem.firstSection);
-                content.push((<a href={url}>
-                                <span className={'refLink sparse' + chItem.sparseness} data-ref={chItem.firstSection} key={"text." + this.props.nestLevel + "." + i}>
-                                  <span className='en'>{title}</span>
-                                  <span className='he'>{heTitle}</span>
-                                </span>
-                              </a>));
+                content.push((<a href={url} className={'refLink sparse' + chItem.sparseness} data-ref={chItem.firstSection} key={"text." + this.props.nestLevel + "." + i}>
+                                <span className='en'>{title}</span>
+                                <span className='he'>{heTitle}</span>
+                              </a>
+                              ));
             } else {
               // Create a link to a subcategory
               url = "/texts/" + newCats.join("/");
-              content.push((<a href={url}>
-                            <span className="catLink" data-cats={newCats.join("|")} key={"cat." + this.props.nestLevel + "." + i}>
+              content.push((<a href={url} className="catLink" data-cats={newCats.join("|")} key={"cat." + this.props.nestLevel + "." + i}>
                               <span className='en'>{item.category}</span>
                               <span className='he'>{item.heCategory}</span>
-                            </span>
-                          </a>));
+                            </a>
+                          ));
             }
           } else {
             // Add a Category
@@ -3064,12 +3087,11 @@ var ReaderNavigationCategoryMenuContents = React.createClass({
           var [title, heTitle] = this.getRenderedTextTitleString(item.title, item.heTitle);
           var ref = Sefaria.recentRefForText(item.title) || item.firstSection;
           var url = "/" + Sefaria.normRef(ref);
-          content.push((<a href={url}>
-                          <span className={'refLink sparse' + item.sparseness} data-ref={ref} key={"text." + this.props.nestLevel + "." + i}>
-                            <span className='en'>{title}</span>
-                            <span className='he'>{heTitle}</span>
-                          </span>
-                        </a>));
+          content.push((<a href={url} className={'refLink sparse' + item.sparseness} data-ref={ref} key={"text." + this.props.nestLevel + "." + i}>
+                          <span className='en'>{title}</span>
+                          <span className='he'>{heTitle}</span>
+                        </a>
+                        ));
         }
       }
       var boxedContent = [];
@@ -3650,9 +3672,9 @@ var SchemaNode = React.createClass({
     refPath:     React.PropTypes.string.isRequired
   },
   getInitialState: function() {
-    var nChildren = "nodes" in this.props.schema ? this.props.schema.nodes.length : 0;
     return {
-      collapsed: new Array(nChildren).fill(true)
+      // Collapse everything except default nodes to start.
+      collapsed: "nodes" in this.props.schema ? this.props.schema.nodes.map(function(node) { return !(node.default || node.includeSections) }) : []
     }
   },
   toggleCollapse: function(i) {
@@ -3977,10 +3999,10 @@ var VersionBlock = React.createClass({
     "status"
   ],
   licenseMap: {
-    "Public Domain": "http://en.wikipedia.org/wiki/Public_domain",
-    "CC0": "http://creativecommons.org/publicdomain/zero/1.0/",
-    "CC-BY": "http://creativecommons.org/licenses/by/3.0/",
-    "CC-BY-SA": "http://creativecommons.org/licenses/by-sa/3.0/",
+    "Public Domain": "https://en.wikipedia.org/wiki/Public_domain",
+    "CC0": "https://creativecommons.org/publicdomain/zero/1.0/",
+    "CC-BY": "https://creativecommons.org/licenses/by/3.0/",
+    "CC-BY-SA": "https://creativecommons.org/licenses/by-sa/3.0/",
     "CC-BY-NC": "https://creativecommons.org/licenses/by-nc/4.0/"
   },
   openVersion: function() {
@@ -4229,21 +4251,22 @@ var ModeratorButtons = React.createClass({
 
 
 var CategoryAttribution = React.createClass({
-      propTypes: {
-      categories: React.PropTypes.array.isRequired
-    },
-      render: function() {
-      var attribution = Sefaria.categoryAttribution(this.props.categories);
-      return attribution ?
-        <div className="categoryAttribution">
-          <a href={attribution.link} className="outOfAppLink">
-            <span className="en">{attribution.english}</span>
-            <span className="he">{attribution.hebrew}</span>
-          </a>
-        </div> 
-        : null;
-    }
+  propTypes: {
+    categories: React.PropTypes.array.isRequired
+  },
+  render: function() {
+    var attribution = Sefaria.categoryAttribution(this.props.categories);
+    return attribution ?
+      <div className="categoryAttribution">
+        <a href={attribution.link} className="outOfAppLink">
+          <span className="en">{attribution.english}</span>
+          <span className="he">{attribution.hebrew}</span>
+        </a>
+      </div> 
+      : null;
+  }
 });
+
 
 var ReadMoreText = React.createClass({
   propTypes: {
@@ -4604,7 +4627,7 @@ var GroupPage = React.createClass({
               <div className="contentInner">
 
                 {group.imageUrl ? 
-                  <img className="groupImage" src={group.imageUrl} />
+                  <img className="groupImage" src={group.imageUrl} alt={this.props.group}/>
                   : null }
 
                 <div className="groupInfo">
@@ -4825,7 +4848,7 @@ var GroupMemberListing = React.createClass({
     return (
       <div className="groupMemberListing">
         <a href={this.props.member.profileUrl}>
-          <img className="groupMemberListingProfileImage" src={this.props.member.imageUrl} />
+          <img className="groupMemberListingProfileImage" src={this.props.member.imageUrl} alt="" />
         </a>
         
         <a href={this.props.member.profileUrl} className="groupMemberListingName">
@@ -5171,7 +5194,7 @@ var EditGroupPage = React.createClass({
             <span className="int-he">Group Image</span>
           </label>
           {this.state.imageUrl 
-            ? <img className="groupImage" src={this.state.imageUrl} />
+            ? <img className="groupImage" src={this.state.imageUrl} alt="Group Image" />
             : <div className="groupImage placeholder"></div>}
           <FileInput
              name="groupImage"
@@ -5192,7 +5215,7 @@ var EditGroupPage = React.createClass({
           </label>
           {this.state.headerUrl 
             ? <div className="groupHeaderBox">
-                <img className="groupHeader" src={this.state.headerUrl} />
+                <img className="groupHeader" src={this.state.headerUrl} alt="Group Header Image" />
                 <div className="clearFix"></div>
               </div>
             : <div className="groupHeader placeholder"></div>}
@@ -5236,69 +5259,6 @@ var FileInput = React.createClass({
             </div>);
   }
 })
-
-// https://github.com/captivationsoftware/react-file-input
-var FileInputX = React.createClass({
-  getInitialState: function() {
-    return {
-      value: '',
-      styles: {
-        parent: {
-          position: 'relative'
-        },
-        file: {
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          opacity: 0,
-          width: '100%',
-          zIndex: 1
-        },
-        text: {
-          position: 'relative',
-          zIndex: -1
-        }
-      }
-    };
-  },
-
-  handleChange: function(e) {
-    this.setState({
-      value: e.target.value.split(/(\\|\/)/g).pop()
-    });
-    if (this.props.onChange) this.props.onChange(e);
-  },
-
-  render: function() {
-    return React.DOM.div({
-        style: this.state.styles.parent
-      },
-
-      // Actual file input
-      React.DOM.input({
-        type: 'file',
-        name: this.props.name,
-        className: this.props.className,
-        onChange: this.handleChange,
-        disabled: this.props.disabled,
-        accept: this.props.accept,
-        style: this.state.styles.file
-      }),
-
-      // Emulated file input
-      React.DOM.input({
-        type: 'text',
-        tabIndex: -1,
-        name: this.props.name + '_filename',
-        value: this.state.value,
-        className: this.props.className,
-        onChange: function() {},
-        placeholder: this.props.placeholder,
-        disabled: this.props.disabled,
-        style: this.state.styles.text
-      }));
-  }
-});
 
 
 var TagSheetsPage = React.createClass({
@@ -5436,7 +5396,7 @@ var PublicSheetListing = React.createClass({
     var title = sheet.title ? sheet.title.stripHtml() : "Untitled Source Sheet";
     var url = "/sheets/" + sheet.id;
     return (<a className="sheet" href={url} key={url}>
-              {sheet.ownerImageUrl ? (<img className="sheetImg" src={sheet.ownerImageUrl}/>) : null}
+              {sheet.ownerImageUrl ? (<img className="sheetImg" src={sheet.ownerImageUrl} alt={sheet.ownerName}/>) : null}
               <span className="sheetViews"><i className="fa fa-eye"></i> {sheet.views}</span>
               <div className="sheetAuthor">{sheet.ownerName}</div>
               <div className="sheetTitle">{title}</div>
@@ -5626,7 +5586,9 @@ var ToggleSet = React.createClass({
     currentLayout: React.PropTypes.func,
     settings:      React.PropTypes.object.isRequired,
     options:       React.PropTypes.array.isRequired,
-    separated:     React.PropTypes.bool
+    separated:     React.PropTypes.bool,
+    role:          React.PropTypes.string,
+    ariaLabel:     React.PropTypes.string
   },
   render: function() {
     var classes = {toggleSet: 1, separated: this.props.separated };
@@ -5636,7 +5598,7 @@ var ToggleSet = React.createClass({
     var width = 100.0 - (this.props.separated ? (this.props.options.length - 1) * 3 : 0);
     var style = {width: (width/this.props.options.length) + "%"};
     return (
-      <div className={classes}>
+      <div className={classes} role={this.props.role} aria-label={this.props.ariaLabel}>
         {
           this.props.options.map(function(option) {
             return (
@@ -5644,6 +5606,8 @@ var ToggleSet = React.createClass({
                 name={option.name}
                 key={option.name}
                 set={this.props.name}
+                role={option.role}
+                ariaLable={option.ariaLabel}
                 on={value == option.name}
                 setOption={this.props.setOption}
                 style={style}
@@ -5665,13 +5629,19 @@ var ToggleOption = React.createClass({
   },
   render: function() {
     var classes = {toggleOption: 1, on: this.props.on };
+    var tabIndexValue = this.props.on ? 0 : -1;
+    var ariaCheckedValue = this.props.on ? "true" : "false";
     classes[this.props.name] = 1;
     classes = classNames(classes);
-    var content = this.props.image ? (<img src={this.props.image} />) : 
+    var content = this.props.image ? (<img src={this.props.image} alt=""/>) :
                     this.props.fa ? (<i className={"fa fa-" + this.props.fa}></i>) : 
                       (<span dangerouslySetInnerHTML={ {__html: this.props.content} }></span>);
     return (
       <div
+        role={this.props.role}
+        aria-label= {this.props.ariaLabel}
+        tabIndex = {this.props.role == "radio"? tabIndexValue : "0"}
+        aria-value = {ariaCheckedValue}
         className={classes}
         style={this.props.style}
         onClick={this.handleClick}>
@@ -5713,8 +5683,8 @@ var ReaderNavigationMenuCloseButton = React.createClass({
 
 
 var ReaderNavigationMenuDisplaySettingsButton = React.createClass({
-  render: function() { 
-    return (<div className="readerOptions" onClick={this.props.onClick}><img src="/static/img/ayealeph.svg" /></div>);
+  render: function() {
+    return (<a href="#" className="readerOptions" role="button" aria-haspopup="true" onClick={this.props.onClick} onKeyPress={function(e) {e.charCode == 13 ? this.props.onClick(e):null}.bind(this)}><img src="/static/img/ayealeph.svg" alt="Toggle Reader Menu Display Settings"/></a>);
   }
 });
 
@@ -6164,7 +6134,7 @@ var TextRange = React.createClass({
       language: this.props.versionLanguage || null
     };
     var data = Sefaria.text(this.props.sref, settings);
-    if (!data) { // If we don't have data yet, call again with a callback to trigger API call
+    if (!data || "updateFromAPI" in data) { // If we don't have data yet, call again with a callback to trigger API call
       Sefaria.text(this.props.sref, settings, this.onTextLoad);
     }
     return data;
@@ -6244,70 +6214,6 @@ var TextRange = React.createClass({
     }
     this.dataPrefetched = true;
   },
-  makeSegments: function(data) {
-    // Returns a flat list of annotated segment objects,
-    // derived from the walking the text in data
-    if (!data || "error" in data) { return []; }
-    var segments  = [];
-    var highlight = data.sections.length === data.textDepth; 
-    var wrap = (typeof data.text == "string");
-    var en = wrap ? [data.text] : data.text;
-    var he = wrap ? [data.he] : data.he;
-    var topLength = Math.max(en.length, he.length);
-    en = en.pad(topLength, "");
-    he = he.pad(topLength, "");
-
-    var start = (data.textDepth == data.sections.length && !this.props.withContext ?
-                  data.sections.slice(-1)[0] : 1);
-
-    if (!data.isSpanning) {
-      for (var i = 0; i < topLength; i++) {
-        var number = i+start;
-        var delim  = data.textDepth == 1 ? " " : ":";
-        var ref = data.sectionRef + delim + number;
-        segments.push({
-          ref: ref,
-          en: en[i], 
-          he: he[i],
-          number: number,
-          highlight: highlight && number >= data.sections.slice(-1)[0] && number <= data.toSections.slice(-1)[0]
-        });
-      }      
-    } else {
-      for (var n = 0; n < topLength; n++) {
-        var en2 = typeof en[n] == "string" ? [en[n]] : en[n];
-        var he2 = typeof he[n] == "string" ? [he[n]] : he[n];
-        var length = Math.max(en2.length, he2.length);
-        en2 = en2.pad(length, "");
-        he2 = he2.pad(length, "");
-        var baseRef     = data.book;
-        var baseSection = data.sections.slice(0,-2).join(":");
-        var delim       = baseSection ? ":" : " ";
-        var baseRef     = baseSection ? baseRef + " " + baseSection : baseRef;
-
-        start = (n == 0 ? start : 1);
-        for (var i = 0; i < length; i++) {
-          var startSection = data.sections.slice(-2)[0];
-          var section = typeof startSection == "string" ?
-                        Sefaria.hebrew.intToDaf(n+Sefaria.hebrew.dafToInt(startSection))
-                        : n + startSection;
-          var number  = i + start;
-          var ref = baseRef + delim + section + ":" + number;
-          segments.push({
-            ref: ref,
-            en: en2[i], 
-            he: he2[i],
-            number: number,
-            highlight: highlight && 
-                        ((n == 0 && number >= data.sections.slice(-1)[0]) || 
-                         (n == topLength-1 && number <= data.toSections.slice(-1)[0]) ||
-                         (n > 0 && n < topLength -1))
-          });
-        }
-      }
-    }
-    return segments;
-  },
   placeSegmentNumbers: function() {
     //console.log("placeSegmentNumbers", this.props.sref);
     //debugger
@@ -6379,9 +6285,8 @@ var TextRange = React.createClass({
                               data.categories[0] !== "Liturgy";
 
     var showSegmentNumbers = showNumberLabel && this.props.basetext;
-                              
 
-    var segments = this.makeSegments(data);
+    var segments = Sefaria.makeSegments(data, this.props.withContext);
     var textSegments = segments.map(function (segment, i) {
       var highlight = this.props.highlightedRefs && this.props.highlightedRefs.length ?                                  // if highlighted refs are explicitly set
                         Sefaria.util.inArray(segment.ref, this.props.highlightedRefs) !== -1 : // highlight if this ref is in highlighted refs prop
@@ -6418,12 +6323,12 @@ var TextRange = React.createClass({
 
     var actionLinks = (<div className="actionLinks">
                         <span className="openLink" onClick={open}>
-                          <img src="/static/img/open-64.png" />
+                          <img src="/static/img/open-64.png" alt="" />
                           <span className="en">Open</span>
                           <span className="he">פתח</span>
                         </span>
                         <span className="compareLink" onClick={compare}>
-                          <img src="/static/img/compare-64.png" />
+                          <img src="/static/img/compare-64.png" alt="" />
                           <span className="en">Compare</span>
                           <span className="he">השווה</span>
                         </span>
@@ -6478,9 +6383,10 @@ var TextSegment = React.createClass({
   handleClick: function(event) {
     if ($(event.target).hasClass("refLink")) {
       //Click of citation
+      event.preventDefault();//add prevent default
       var ref = Sefaria.humanRef($(event.target).attr("data-ref"));
       this.props.onCitationClick(ref, this.props.sref);
-      event.stopPropagation(); //add prevent default
+      event.stopPropagation();
       Sefaria.site.track.event("Reader", "Citation Link Click", ref);
     } else if ($(event.target).is("sup") || $(event.target).parents("sup").size()) {
       this.props.onFootnoteClick(event);
@@ -6887,7 +6793,7 @@ var TextList = React.createClass({
           return (
             <div className="sheet" key={sheet.sheetUrl}>
               <a href={sheet.ownerProfileUrl}>
-                <img className="sheetAuthorImg" src={sheet.ownerImageUrl} />
+                <img className="sheetAuthorImg" src={sheet.ownerImageUrl} alt={sheet.ownerName} />
               </a>
               <div className="sheetViews"><i className="fa fa-eye"></i> {sheet.views}</div>
               <a href={sheet.ownerProfileUrl} className="sheetAuthor">{sheet.ownerName}</a>
@@ -7033,7 +6939,7 @@ var Note = React.createClass({
     var authorInfo = isInMyNotes ? null :
         (<div className="noteAuthorInfo">
           <a href={this.props.ownerProfileUrl}>
-            <img className="noteAuthorImg" src={this.props.ownerImageUrl} />
+            <img className="noteAuthorImg" src={this.props.ownerImageUrl} alt={this.props.ownerName} />
           </a>
           <a href={this.props.ownerProfileUrl} className="noteAuthor">{this.props.ownerName}</a>
         </div>);
@@ -7073,10 +6979,11 @@ var AllFilterSet = React.createClass({
           on={Sefaria.util.inArray(cat.category, this.props.filter) !== -1} />
       );
     }.bind(this));
+    var lexicon = this.props.oref ? (<LexiconPanel selectedWords={this.props.selectedWords} oref={this.props.oref}/>) : null;
     return (
       <div className="fullFilterView filterSet">
-        <LexiconPanel selectedWords={this.props.selectedWords} oref={this.props.oref}/>
-        {categories}
+          {lexicon}
+          {categories}
       </div>
     );
   }
@@ -7253,7 +7160,7 @@ var RecentFilterSet = React.createClass({
 var LexiconPanel = React.createClass({
   propTypes: {
     selectedWords: React.PropTypes.string,
-    oref:          React.PropTypes.object.isRequired
+    oref:          React.PropTypes.object
   },
   getInitialState: function() {
     return {
@@ -7493,7 +7400,7 @@ var ToolsButton = React.createClass({
       classes[iconName] = 1;
       icon = (<i className={classNames(classes)} />)
     } else if (this.props.image) {
-      icon = (<img src={"/static/img/" + this.props.image} className="toolsButtonIcon" />);
+      icon = (<img src={"/static/img/" + this.props.image} className="toolsButtonIcon" alt="" />);
     }
 
     return (
@@ -7548,6 +7455,7 @@ var SharePanel = React.createClass({
   }
 });
 
+
 var AddToSourceSheetWindow = React.createClass({
   propTypes: {
     srefs:        React.PropTypes.array,
@@ -7581,6 +7489,7 @@ var AddToSourceSheetWindow = React.createClass({
       </div>);
   }
 });
+
 
 var AddToSourceSheetPanel = React.createClass({
   // In the main app, the function `addToSourceSheet` is executed in the ReaderApp, 
@@ -8030,7 +7939,7 @@ var SearchBar = React.createClass({
         return (
             <div>
                 <div className="searchBox">
-                    <input className="readerSearch" value={this.state.query} onKeyPress={this.handleKeypress} onChange={this.handleChange} placeholder="Search"/>
+                    <input className="readerSearch" id="searchInput" title="Search for Texts or Keywords Here" value={this.state.query} onKeyPress={this.handleKeypress} onChange={this.handleChange} placeholder="Search"/>
                     <ReaderNavigationMenuSearchButton onClick={this.updateQuery} />
                 </div>
                 <div className="description"></div>
@@ -9056,7 +8965,7 @@ var SearchSheetResult = React.createClass({
         var href = "/sheets/" + s.sheetId;
         return (
             <div className='result sheet_result'>
-              <div className="result_img_box"><a href={s.profile_url} onClick={this.handleProfileClick}><img className='owner_image' src={s.owner_image}/></a></div>
+              <div className="result_img_box"><a href={s.profile_url} onClick={this.handleProfileClick}><img className='owner_image' src={s.owner_image} alt={s.owner_name} /></a></div>
               <div className="result_text_box">
                 <a href={s.profile_url} onClick={this.handleProfileClick} className='owner_name'>{s.owner_name}</a>
                 <a className='result-title' href={href} onClick={this.handleSheetClick}>{clean_title}</a>
@@ -9353,7 +9262,7 @@ var GroupListing = React.createClass({
     return (<div className="groupListing">
               <a href={groupUrl}>
                 <div className="groupListingImageBox">
-                  <img className={imageClass} src={imageUrl} />
+                  <img className={imageClass} src={imageUrl} alt="Group Logo"/>
                 </div>
               </a>
               <a href={groupUrl} className="groupListingName">{this.props.data.name}</a>
@@ -9932,9 +9841,13 @@ var TestMessage = React.createClass({
 
 
 var Footer = React.createClass({
+  trackLanguageClick: function(language){
+    Sefaria.site.track.setInterfaceLanguage('interface language footer', language);
+  },
   render: function(){
     var currentPath = Sefaria.util.currentPath();
-    var next = encodeURIComponent(currentPath);
+    var currentPathEncoded = encodeURIComponent(currentPath);
+    var next = currentPathEncoded ? currentPathEncoded : '?home';
     return (
         <div id="footerInner">
           <div className="section">
@@ -10083,9 +9996,13 @@ var Footer = React.createClass({
                       <span className="int-en">Site Language:</span>
                       <span className="int-he">שפת האתר</span>
                   </div>
-                  <a href={"/interface/english?next=" + next} id="siteLanguageEnglish" className="outOfAppLink">English</a>
+                  <a href={"/interface/english?next=" + next} id="siteLanguageEnglish" className="outOfAppLink"
+                     onClick={this.trackLanguageClick.bind(null, "English")}>English
+                  </a>
                   |
-                  <a href={"/interface/hebrew?next=" + next} id="siteLanguageHebrew" className="outOfAppLink">עברית</a>
+                  <a href={"/interface/hebrew?next=" + next} id="siteLanguageHebrew" className="outOfAppLink"
+                      onClick={this.trackLanguageClick.bind(null, "Hebrew")}>                 עברית
+                  </a>
               </div>
           </div>
         </div>

@@ -11,7 +11,7 @@
 <div id="profilePage" class="static">
 	<div class="inner">
 		<div id="profileTop">
-			<img id="profileImage" src="{{ profile.gravatar_url }}" />
+			<img id="profileImage" src="{{ profile.gravatar_url }}" alt="User Profile Picture"/>
 			
 			<h1 id="profileName" class="sans">{{ profile.first_name }} {{ profile.last_name }}</h1>
 
@@ -146,7 +146,7 @@
 	<div id="profileLeft" class="span4">
 		
 		<div id="profileLeftBox">
-		<img id="profileImage" src="{{ profile.gravatar_url }}" />
+		<img id="profileImage" src="{{ profile.gravatar_url }}" alt="User Profile Picture"/>
 		<span id="profileName">{{ profile.first_name }} {{ profile.last_name }}</span>
 
 		{% if profile.position or profile.organization %}
