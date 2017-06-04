@@ -1366,7 +1366,7 @@ def texts_api(request, tref, lang=None, version=None):
 
         return jsonResponse({"status": "ok"})
 
-    return jsonResponse({"error": "Unsuported HTTP method."}, callback=request.GET.get("callback", None))
+    return jsonResponse({"error": "Unsupported HTTP method."}, callback=request.GET.get("callback", None))
 
 
 @catch_error_as_json
@@ -1470,7 +1470,7 @@ def index_api(request, title, v2=False, raw=False):
 
         return jsonResponse({"status": "ok"})
 
-    return jsonResponse({"error": "Unsuported HTTP method."}, callback=request.GET.get("callback", None))
+    return jsonResponse({"error": "Unsupported HTTP method."}, callback=request.GET.get("callback", None))
 
 
 @catch_error_as_json
@@ -1658,7 +1658,7 @@ def links_api(request, link_id_or_ref=None):
             tracker.delete(request.user.id, model.Link, link_id_or_ref, callback=revarnish_link)
         )
 
-    return jsonResponse({"error": "Unsuported HTTP method."})
+    return jsonResponse({"error": "Unsupported HTTP method."})
 
 
 @catch_error_as_json
@@ -1749,7 +1749,7 @@ def notes_api(request, note_id_or_ref):
             tracker.delete(request.user.id, model.Note, note_id_or_ref)
         )
 
-    return jsonResponse({"error": "Unsuported HTTP method."})
+    return jsonResponse({"error": "Unsupported HTTP method."})
 
 
 @catch_error_as_json
@@ -1999,9 +1999,78 @@ def terms_api(request, name):
         return jsonResponse(_internal_do_post(request, j, uid, **kwargs))
 
     if request.method == "DELETE":
-        return jsonResponse({"error": "Unsuported HTTP method."}) #TODO: support this?
+        return jsonResponse({"error": "Unsupported HTTP method."}) #TODO: support this?
 
-    return jsonResponse({"error": "Unsuported HTTP method."})
+    return jsonResponse({"error": "Unsupported HTTP method."})
+
+@catch_error_as_json
+def name_api(request, name):
+    if request.method != "GET":
+        return jsonResponse({"error": "Unsupported HTTP method."})
+
+    # Number of results to return.  0 indicates no limit
+    LIMIT = request.GET.get("limit") or 16
+    ref_only = request.GET.get("ref_only", False)
+    lang = "he" if is_hebrew(name) else "en"
+
+    completer = library.ref_auto_completer(lang) if ref_only else library.full_auto_completer(lang)
+    try:
+        ref = Ref(name)
+        inode = ref.index_node
+        assert isinstance(inode, SchemaNode)
+
+        completions = [name.capitalize()] + completer.next_steps_from_node(name)
+
+        if LIMIT == 0 or len(completions) < LIMIT:
+            current = {t: 1 for t in completions}
+            additional_results = completer.complete(name, LIMIT)
+            for res in additional_results:
+                if res not in current:
+                    completions += [res]
+
+        d = {
+            "lang": lang,
+            "is_ref": True,
+            "is_book": ref.is_book_level(),
+            "is_node": len(ref.sections) == 0,
+            "is_section": ref.is_section_level(),
+            "is_segment": ref.is_segment_level(),
+            "is_range": ref.is_range(),
+            "type": "ref",
+            "ref": ref.normal(),
+            "index": ref.index.title,
+            "book": ref.book,
+            "internalSections": ref.sections,
+            "internalToSections": ref.toSections,
+            "sections": ref.normal_sections(),  # this switch is to match legacy behavior of parseRef
+            "toSections": ref.normal_toSections(),
+            # "number_follows": inode.has_numeric_continuation(),
+            # "titles_follow": titles_follow,
+            "completions": completions[:LIMIT],
+            # todo: ADD textual completions as well
+            "examples": []
+        }
+        if inode.has_numeric_continuation():
+            d["sectionNames"] = inode.sectionNames
+            d["heSectionNames"] = map(hebrew_term, inode.sectionNames)
+            d["addressExamples"] = [t.toStr("en", 3*i+3) for i,t in enumerate(inode._addressTypes)]
+            d["heAddressExamples"] = [t.toStr("he", 3*i+3) for i,t in enumerate(inode._addressTypes)]
+
+    except InputError:
+        # This is not a Ref
+        d = {
+            "lang": lang,
+            "is_ref": False,
+            "completions": completer.complete(name, LIMIT)
+        }
+
+        # let's see if it's a known name of another sort
+        object_data = completer.get_data(name)
+        if object_data:
+            d["type"] = object_data["type"]
+            d["key"] = object_data["key"]
+
+    return jsonResponse(d)
 
 
 @catch_error_as_json
@@ -2206,7 +2275,7 @@ def texts_history_api(request, tref, lang=None, version=None):
     API for retrieving history information about a given text.
     """
     if request.method != "GET":
-        return jsonResponse({"error": "Unsuported HTTP method."})
+        return jsonResponse({"error": "Unsupported HTTP method."})
 
     tref = model.Ref(tref).normal()
     refRe = '^%s$|^%s:' % (tref, tref)
@@ -2303,7 +2372,7 @@ def reviews_api(request, tref=None, lang=None, version=None, review_id=None):
         return jsonResponse(delete_review(review_id, request.user.id))
 
     else:
-        return jsonResponse({"error": "Unsuported HTTP method."})
+        return jsonResponse({"error": "Unsupported HTTP method."})
 
 
 @ensure_csrf_cookie
