@@ -4,40 +4,15 @@
 <script src="/data.js"></script>
 {% if DEBUG %}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/6.10.3/babel.min.js"></script>
+<script>
+  {% autoescape off %}
+  var DJANGO_VARS = {
+    contentLang: "{{ contentLang }}",
+    interfaceLang: "{{ interfaceLang }}"
+  };
+  {% endautoescape %}
+</script>
 <script src="/static/bundles/s2.js"></script>
 {% else %}
 <script src="/static/bundles/s2.js"></script>
 {% endif %}
-<script {% if DEBUG %}type="text/jsx;harmony=true"{% endif %}>
-  {% autoescape off %}
-  $(function() {
-
-    var settings = {
-      language: "{{ contentLang }}",
-      layoutDefault: "segmented", //$.cookie("layoutDefault") ||
-      layoutTalmud:  "continuous", //$.cookie("layoutTalmud")  ||
-      layoutTanakh:  "segmented", //$.cookie("layoutTanakh")  ||
-      color:         "light", //$.cookie("color")         ||
-      fontSize:      62.5 //$.cookie("fontSize")      ||
-    };
-    var multiPanel    = $(window).width() > 600;
-
-    var container = document.getElementById('s2');
-    var component = React.createElement(ReaderApp, {
-        headerMode: true,
-        multiPanel: multiPanel,
-        initialRefs: [],
-        initialFilter: [],
-        initialMenu: null,
-        initialQuery: null,
-        initialSheetsTag: null,
-        initialNavigationCategories: [],
-        initialSettings: settings,
-        initialPanels: [],
-        interfaceLang: "{{ interfaceLang }}"
-        });
-    ReactDOM.render(component, container);
-    ReactDOM.render(React.createElement(Footer), document.getElementById('footer'));
-  });
-  {% endautoescape %}
-</script>

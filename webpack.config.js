@@ -1,6 +1,7 @@
 var path = require('path')
 var webpack = require('webpack')
 var BundleTracker = require('webpack-bundle-tracker')
+var ExtractTextPlugin = require('extract-text-webpack-plugin');
 
 module.exports = {
     //the base directory (absolute path) for resolving the entry option
@@ -26,7 +27,8 @@ module.exports = {
             $: 'jquery',
             jQuery: 'jquery',
             'window.jQuery': 'jquery' 
-        })
+        }),
+				new ExtractTextPlugin("app.css")	
     ],
     
     module: {
@@ -43,15 +45,27 @@ module.exports = {
                     //specify that we will be dealing with React code
                     presets: ['react','es2015'] 
                 }
-            }
+            },
+					  {
+						    test: /\.css$/,
+								loader: ExtractTextPlugin.extract({ fallback: 'style-loader', use: 'css-loader' }) 
+						},
+						{
+								test: /\.(jpg|png)$/,
+								loader: 'file-loader'
+						},
         ]
     },
     
     resolve: {
+			  alias: {
+					'jquery-ui': 'jquery-ui/ui/widgets',
+					'jquery-ui-css': 'jquery-ui/../../themes/base'
+				},	
         //tells webpack where to look for modules
         modules: ['node_modules'],
         //extensions that should be used to resolve modules
-        extensions: ['.js', '.jsx'] 
+        extensions: ['.js', '.jsx']
     }   
 
 }

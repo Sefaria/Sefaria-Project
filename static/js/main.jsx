@@ -5,8 +5,15 @@
       $            = require('jquery'),
       extend       = require('extend'),
       classNames   = require('classnames'),
-      Sefaria      = require('./sefaria.js'),
-      cookie       = require('jquery.cookie'); //Sefaria.util.cookie;
+      Sefaria      = require('./sefaria.js');
+      //cookie       = require('jquery.cookie'); //Sefaria.util.cookie;
+                     /*require('jquery-ui-css/core.css');
+                     require('jquery-ui-css/menu.css');
+                     require('jquery-ui-css/autocomplete.css');
+                     require('jquery-ui-css/theme.css');*/
+ require('jquery.cookie');
+ $.ui = {};
+ $.ui.autocomplete = require('jquery-ui/autocomplete');
 
 /*} else {
   var INBROWSER    = true,
@@ -174,7 +181,9 @@ var ReaderApp = React.createClass({
     this.state.panels.map(this.saveRecentlyViewed);
 
     // Set S2 cookie, putting user into S2 mode site wide
-    cookie("s2", true, {path: "/"});
+    console.log(Object.keys($.cookie));
+    console.log($.cookie);
+    $.cookie("s2", true, {path: "/"});
   },
   componentWillUnmount: function() {
     window.removeEventListener("popstate", this.handlePopState);
@@ -1293,6 +1302,7 @@ var Header = React.createClass({
     return RegExp(`^${RegExp.escape(this._searchOverridePre)}(.*)${RegExp.escape(this._searchOverridePost)}`);
   },
   initAutocomplete: function() {
+
     $.widget( "custom.sefaria_autocomplete", $.ui.autocomplete, {
       _renderItem: function( ul, item) {
         var override = item.label.match(this._searchOverrideRegex());
@@ -1904,9 +1914,9 @@ var ReaderPanel = React.createClass({
     this.state.settings[option] = value;
     var state = {settings: this.state.settings};
     if (option !== "fontSize") { state.displaySettingsOpen = false; }
-    cookie(option, value, {path: "/"});
+    $.cookie(option, value, {path: "/"});
     if (option === "language") {
-      cookie("contentLang", value, {path: "/"});
+      $.cookie("contentLang", value, {path: "/"});
       this.replaceHistory = true;
       this.props.setDefaultOption && this.props.setDefaultOption(option, value);
     }
@@ -9401,7 +9411,7 @@ var InterruptingMessage = React.createClass({
   },
   markAsRead: function markAsRead() {
     Sefaria._api("/api/interrupting-messages/read/" + this.props.messageName, function (data) {});
-    cookie(this.props.messageName, true, { "path": "/" });
+    $.cookie(this.props.messageName, true, { "path": "/" });
     Sefaria.site.track.event("Interrupting Message", "read", this.props.messageName, { nonInteraction: true });
     Sefaria.interruptingMessage = null;
   },
@@ -9727,7 +9737,7 @@ var openInNewTab = function(url) {
 
 
 var backToS1 = function() {
-  cookie("s2", "", {path: "/"});
+  $.cookie("s2", "", {path: "/"});
   window.location = "/";
 };
 
@@ -9748,6 +9758,34 @@ var setData = function(data) {
   Sefaria.is_editor         = data.is_editor;
 };
 
+
+
+var settings = {
+  language: DJANGO_VARS.contentLang,
+  layoutDefault: "segmented", //$.cookie("layoutDefault") ||
+  layoutTalmud:  "continuous", //$.cookie("layoutTalmud")  ||
+  layoutTanakh:  "segmented", //$.cookie("layoutTanakh")  ||
+  color:         "light", //$.cookie("color")         ||
+  fontSize:      62.5 //$.cookie("fontSize")      ||
+};
+var multiPanel    = $(window).width() > 600;
+
+var container = document.getElementById('s2');
+var component = React.createElement(ReaderApp, {
+    headerMode: true,
+    multiPanel: multiPanel,
+    initialRefs: [],
+    initialFilter: [],
+    initialMenu: null,
+    initialQuery: null,
+    initialSheetsTag: null,
+    initialNavigationCategories: [],
+    initialSettings: settings,
+    initialPanels: [],
+    interfaceLang: DJANGO_VARS.interfaceLang
+    });
+ReactDOM.render(component, container);
+ReactDOM.render(React.createElement(Footer), document.getElementById('footer'));
 
 //if (typeof exports !== 'undefined') {
   exports.ReaderApp           = ReaderApp;
