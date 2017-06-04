@@ -219,7 +219,7 @@ class ClickVersionedSearchResultMobile(AtomicTest):
         WebDriverWait(self.driver, TEMPER).until(staleness_of(versionedResult))
         assert "Psalms.59.7/en/The_Rashi_Ketuvim_by_Rabbi_Shraga_Silverstein" in self.driver.current_url, self.driver.current_url
 
-
+"""
 class SaveNewSourceSheet(AtomicTest):
     suite_key = "Sheets"
     every_build = True
@@ -238,7 +238,7 @@ class SaveNewSourceSheet(AtomicTest):
         saveButton = self.driver.find_element_by_css_selector('#save')
         saveButton.click()
         WebDriverWait(self.driver, TEMPER).until(title_contains("New Source Sheet | Sefaria Source Sheet Builder"))
-
+"""
 '''
 # Not sure why this isn't working.
 class LoginOnMobile(AtomicTest):
