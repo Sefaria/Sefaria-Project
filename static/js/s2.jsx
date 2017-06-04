@@ -8875,7 +8875,7 @@ var SearchFilterExactBox = React.createClass({
   },
   render: function() {
     return (<li onClick={this.handleFocusCategory}>
-      <input type="checkbox" id="searchFilterExactBox" className="filter" checked={this.props.selected == 1} onChange={this.handleClick}/>
+      <input type="checkbox" id="searchFilterExactBox" className="filter" checked={this.props.selected} onChange={this.handleClick}/>
       <label onClick={this.handleClick} for={"searchFilterExactBox"}><span></span></label>
       <span className="int-en"><span className="filter-title">{"Show word variants"}</span></span>
       <span className="int-he" dir="rtl"><span className="filter-title">{"Only show exact matches (HE)"}</span></span>
