@@ -59,7 +59,7 @@ module.exports = {
     
     resolve: {
 			  alias: {
-					'jquery-ui': 'jquery-ui/ui/widgets',
+					//'jquery-ui': 'jquery-ui/ui/widgets',
 					'jquery-ui-css': 'jquery-ui/../../themes/base'
 				},	
         //tells webpack where to look for modules

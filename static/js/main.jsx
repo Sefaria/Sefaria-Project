@@ -6,14 +6,17 @@
       extend       = require('extend'),
       classNames   = require('classnames'),
       Sefaria      = require('./sefaria.js');
+                     require('jquery.cookie');
+                     require('jquery-ui');
+                     require('jquery.scrollto');
       //cookie       = require('jquery.cookie'); //Sefaria.util.cookie;
                      /*require('jquery-ui-css/core.css');
                      require('jquery-ui-css/menu.css');
                      require('jquery-ui-css/autocomplete.css');
                      require('jquery-ui-css/theme.css');*/
- require('jquery.cookie');
- $.ui = {};
- $.ui.autocomplete = require('jquery-ui/autocomplete');
+
+
+
 
 /*} else {
   var INBROWSER    = true,
@@ -1302,7 +1305,6 @@ var Header = React.createClass({
     return RegExp(`^${RegExp.escape(this._searchOverridePre)}(.*)${RegExp.escape(this._searchOverridePost)}`);
   },
   initAutocomplete: function() {
-
     $.widget( "custom.sefaria_autocomplete", $.ui.autocomplete, {
       _renderItem: function( ul, item) {
         var override = item.label.match(this._searchOverrideRegex());
@@ -9760,32 +9762,87 @@ var setData = function(data) {
 
 
 
-var settings = {
-  language: DJANGO_VARS.contentLang,
-  layoutDefault: "segmented", //$.cookie("layoutDefault") ||
-  layoutTalmud:  "continuous", //$.cookie("layoutTalmud")  ||
-  layoutTanakh:  "segmented", //$.cookie("layoutTanakh")  ||
-  color:         "light", //$.cookie("color")         ||
-  fontSize:      62.5 //$.cookie("fontSize")      ||
-};
-var multiPanel    = $(window).width() > 600;
 
-var container = document.getElementById('s2');
-var component = React.createElement(ReaderApp, {
-    headerMode: true,
-    multiPanel: multiPanel,
-    initialRefs: [],
-    initialFilter: [],
-    initialMenu: null,
-    initialQuery: null,
-    initialSheetsTag: null,
-    initialNavigationCategories: [],
-    initialSettings: settings,
-    initialPanels: [],
-    interfaceLang: DJANGO_VARS.interfaceLang
+
+$(function() {
+  var container = document.getElementById('s2');
+  var component;
+  console.log("Django vars = ", Object.keys(DJANGO_VARS));
+  console.log("In reader app = ", DJANGO_VARS.inReaderApp);
+  if (DJANGO_VARS.inReaderApp) {
+    jQuery(document).ajaxSend(function(event, xhr, settings) {
+        function getCookie(name) {
+            var cookieValue = null;
+            if (document.cookie && document.cookie != '') {
+                var cookies = document.cookie.split(';');
+                for (var i = 0; i < cookies.length; i++) {
+                    var cookie = jQuery.trim(cookies[i]);
+                    // Does this cookie string begin with the name we want?
+                    if (cookie.substring(0, name.length + 1) == (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+        function sameOrigin(url) {
+            // url could be relative or scheme relative or absolute
+            var host = document.location.host; // host + port
+            var protocol = document.location.protocol;
+            var sr_origin = '//' + host;
+            var origin = protocol + sr_origin;
+            // Allow absolute or scheme relative URLs to same origin
+            return (url == origin || url.slice(0, origin.length + 1) == origin + '/') ||
+                (url == sr_origin || url.slice(0, sr_origin.length + 1) == sr_origin + '/') ||
+                // or any other URL that isn't scheme relative or absolute i.e relative.
+                !(/^(\/\/|http:|https:).*/.test(url));
+        }
+        function safeMethod(method) {
+            return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
+        }
+
+        if (!safeMethod(settings.type) && sameOrigin(settings.url)) {
+            xhr.setRequestHeader("X-CSRFToken", getCookie('csrftoken'));
+        }
     });
-ReactDOM.render(component, container);
-ReactDOM.render(React.createElement(Footer), document.getElementById('footer'));
+
+
+    console.log("IN READER APP");
+    component = React.createElement(ReaderApp, DJANGO_VARS.propsJSON);
+    ReactDOM.render(component, container);
+  } else {
+    var settings = {
+      language: DJANGO_VARS.contentLang,
+      layoutDefault: "segmented", //$.cookie("layoutDefault") ||
+      layoutTalmud:  "continuous", //$.cookie("layoutTalmud")  ||
+      layoutTanakh:  "segmented", //$.cookie("layoutTanakh")  ||
+      color:         "light", //$.cookie("color")         ||
+      fontSize:      62.5 //$.cookie("fontSize")      ||
+    };
+    var multiPanel    = $(window).width() > 600;
+    console.log("NOT IN READER APP");
+    component = React.createElement(ReaderApp, {
+      headerMode: true,
+      multiPanel: multiPanel,
+      initialRefs: [],
+      initialFilter: [],
+      initialMenu: null,
+      initialQuery: null,
+      initialSheetsTag: null,
+      initialNavigationCategories: [],
+      initialSettings: settings,
+      initialPanels: [],
+      interfaceLang: DJANGO_VARS.interfaceLang
+    });
+    ReactDOM.render(component, container);
+    ReactDOM.render(React.createElement(Footer), document.getElementById('footer'));
+
+  }
+});
+
+
+
 
 //if (typeof exports !== 'undefined') {
   exports.ReaderApp           = ReaderApp;
