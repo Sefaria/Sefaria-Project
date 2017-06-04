@@ -8624,7 +8624,7 @@ var SearchFilters = React.createClass({
         updateAppliedFilter={this.props.updateAppliedFilter}
         query={this.props.query}
         closeBox={this.props.closeFilterView}
-        isExactSearch={this.props.isExactSearch}
+        isExactSearch={this.props.exactField === this.props.optionField}
         handleFocusCategory={this.handleFocusCategory}
     />);
 
