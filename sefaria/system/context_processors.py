@@ -24,7 +24,6 @@ def global_settings(request):
         "SEARCH_URL":             SEARCH_HOST,
         "SEARCH_INDEX_NAME":      SEARCH_INDEX_NAME,
         "GOOGLE_ANALYTICS_CODE":  GOOGLE_ANALYTICS_CODE,
-        "MIXPANEL_CODE":          MIXPANEL_CODE,
         "DEBUG":                  DEBUG,
         "OFFLINE":                OFFLINE,
         "GLOBAL_WARNING":         GLOBAL_WARNING,
@@ -59,7 +58,7 @@ def language_settings(request):
         profile = UserProfile(id=request.user.id)
         interface = profile.settings["interface_language"] if "interface_language" in profile.settings else None 
     if not interface: 
-	logger.warn("HTTP_CF_IPCOUNTRY: {}".format(request.META.get("HTTP_CF_IPCOUNTRY")))
+        logger.warn("HTTP_CF_IPCOUNTRY: {}".format(request.META.get("HTTP_CF_IPCOUNTRY")))
         # Pull language setting from cookie or Accept-Lanugage header or default to english
         interface = request.COOKIES.get('interfaceLang') or request.META.get("HTTP_CF_IPCOUNTRY") or request.LANGUAGE_CODE or 'english'
         interface = 'hebrew' if interface in ('IL', 'he', 'he-il') else interface

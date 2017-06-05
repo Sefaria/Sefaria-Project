@@ -577,6 +577,21 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
                     self.nodes.key = t
                     self.nodes.add_title(t, "en", True, True)
                     break
+        """
+        Make sure these fields do not appear:
+        "titleVariants",      # required for old style
+        "sectionNames",       # required for old style simple texts, sometimes erroneously present for commnetary
+        "heTitle",            # optional for old style
+        "heTitleVariants",    # optional for old style
+        "maps",               # deprecated
+        "length",             # optional for old style
+        "lengths",            # optional for old style
+        "transliteratedTitle",# optional for old style
+        """
+        deprecated_attrs = ["titleVariants","sectionNames","heTitle","heTitleVariants","maps","length","lengths", "transliteratedTitle"]
+        for attr in deprecated_attrs:
+            if getattr(self, attr, None):
+                delattr(self, attr)
 
     def _validate(self):
         assert super(Index, self)._validate()
@@ -4273,7 +4288,7 @@ class Library(object):
                     [({]										# literal '(', brace,
                     [^})]*										# anything but a closing ) or brace
                 )
-                """ + ur"(?P<title>" + regex.escape(title) + ur")" if capture_title else regex.escape(title)\
+                """ + ur"{}".format(ur"(?P<title>{})".format(regex.escape(title)) if capture_title else regex.escape(title)) \
                    + node.after_title_delimiter_re \
                    + node.address_regex(lang, for_js=for_js, match_range=for_js) \
                    + ur"""

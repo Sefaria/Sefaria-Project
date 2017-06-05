@@ -298,7 +298,7 @@ Sefaria = extend(Sefaria, {
     this._refmap[refkey] = key;
 
     var levelsUp = data.textDepth - data.sections.length;
-    if (levelsUp == 1 && !data.isSpanning /*&& !data.updateFromAPI*/) { // Section level ref
+    if (levelsUp >= 1 && !data.isSpanning) { // Section level ref
       this._splitTextSection(data, settings);
     } else if (settings.context && levelsUp <= 1) {  // Do we really want this to run on spanning section refs?
       // Save a copy of the data at context level
@@ -572,7 +572,7 @@ Sefaria = extend(Sefaria, {
   },
   _cacheIndexFromLinks: function(links) {
     // Cache partial index information (title, Hebrew title, categories) found in link data.
-    for (var i=0; i< links.length; i++) {
+    for (var i=0; i < links.length; i++) {
       if (("collectiveTitle" in links[i]) && this.index(links[i].collectiveTitle["en"])) {
           continue;
       }
@@ -581,7 +581,6 @@ Sefaria = extend(Sefaria, {
         heTitle:    links[i].collectiveTitle["he"],
         categories: [links[i].category],
       };
-      //console.log("Saving ", links[i].collectiveTitle["en"]);
       this.index(links[i].collectiveTitle["en"], index);
     }
   },
@@ -753,6 +752,30 @@ Sefaria = extend(Sefaria, {
     var books = [];
     books = books.concat.apply(books, booksByCat);
     return books;     
+  },
+  commentarySectionRef: function(commentator, baseRef) {
+    // Given a commentator name and a baseRef, return a ref to the commentary which spans the entire baseRef
+    // E.g. ("Rashi", "Genesis 3") -> "Rashi on Genesis 3"
+    // Works by examing links available on baseRef
+    var links = Sefaria.links(baseRef);
+    links = Sefaria._filterLinks(links, [commentator]);
+    if (!links || !links.length) { return null; }
+    var commentaryLink = Sefaria.util.clone(Sefaria.parseRef(links[0].sourceRef));
+    for (var i = 1; i < links.length; i++) {
+      var plink = Sefaria.parseRef(links[i].sourceRef);
+      if (commentaryLink.book !== plink.book) { return null;} // Can't handle multiple index titles or schemaNodes
+      if (plink.sections.length > commentaryLink.sections.length) {
+        commentaryLink.sections = commentaryLink.sections.slice(0, plink.sections.length);
+      }
+      for (var k=0; k < commentaryLink.sections.length; k++) {
+        if (commentaryLink.sections[k] !== plink.sections[k]) {
+          commentaryLink.sections = commentaryLink.sections.slice(0, k);
+          break;
+        }
+      }
+    }
+    commentaryLink.toSections = commentaryLink.sections;
+    return Sefaria.humanRef(Sefaria.makeRef(commentaryLink));
   },
   _notes: {},
   notes: function(ref, callback) {
@@ -2437,7 +2460,7 @@ Sefaria.site = {
     event: function(category, action, label, value, options) {
         // https://developers.google.com/analytics/devguides/collection/analyticsjs/command-queue-reference#send
         ga('send', 'event', category, action, label, value, options);
-        //mixpanel.track(category + " " + action, {label: label});
+        console.log('send', 'event', category, action, label, value, options);
     },
     pageview: function(url) {
         ga('set', 'page', url);
@@ -2451,9 +2474,6 @@ Sefaria.site = {
     },
     setContentLanguage: function(language) {
         ga('set', 'contentGroup5', language);
-    },
-    setInterfaceLanguage: function(origin, language){
-        Sefaria.site.track.event("Settings", origin, language);
     },
     setNumberOfPanels: function(val) {
         ga('set', 'dimension1', val);
@@ -2506,7 +2526,11 @@ Sefaria.site = {
     },
     exploreBrush: function(book) {
         Sefaria.site.track.event("Explorer", "Brush", book);
-    }
+    },
+    setInterfaceLanguage: function(origin, language){
+        // Tracks a user setting their interface langauge, which can be done either account settings or footer
+        Sefaria.site.track.event("Settings", origin, language);
+    },
   }
 };
 

@@ -1,6 +1,4 @@
-{% if OFFLINE %}
-    function ga(){}
-{% else %}
+{% if not OFFLINE and GOOGLE_ANALYTICS_CODE %}
     // GOOGLE ANALYTICS
     (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
     (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
@@ -15,4 +13,6 @@
     window.onerror = function(msg, url, lineNumber) {
         ga('send', 'event', 'Javascript Errors',  msg, url + ':' + lineNumber);
     };
+{% else  %}
+    var ga = function(){};
 {% endif %}
