@@ -2569,7 +2569,7 @@ Sefaria.site = {
     event: function(category, action, label, value, options) {
         // https://developers.google.com/analytics/devguides/collection/analyticsjs/command-queue-reference#send
         ga('send', 'event', category, action, label, value, options);
-        console.log('send', 'event', category, action, label, value, options);
+        //console.log('send', 'event', category, action, label, value, options);
     },
     pageview: function(url) {
         ga('set', 'page', url);

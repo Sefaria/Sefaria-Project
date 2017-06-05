@@ -264,7 +264,12 @@ def make_panel_dict(oref, version, language, filter, mode, **kwargs):
             "filter": filter,
         }
         if filter and len(filter):
-            panel["connectionsMode"] = "TextList"
+            if filter == ["Sheets"]:
+                panel["connectionsMode"] = "Sheets"
+            elif filter == ["Notes"]:
+                panel["connectionsMode"] = "Notes"
+            else:
+                panel["connectionsMode"] = "TextList"
         if panelDisplayLanguage:
             panel["settings"] = {"language" : short_to_long_lang_code(panelDisplayLanguage)}
             # so the connections panel doesnt act on the version NOT currently on display
