@@ -1075,14 +1075,14 @@ var ReaderApp = React.createClass({
     this.closePanel(n);
     this.openTextListAt(n, base.highlightedRefs);
   },
-  showLibrary: function() {
+  showLibrary: function(categories) {
     if (this.props.multiPanel) {
-      this.setState({header: this.makePanelState({mode: "Header", menuOpen: "navigation"})});
+      this.setState({header: this.makePanelState({mode: "Header", menuOpen: "navigation", navigationCategories: categories})});
     } else {
       if (this.state.panels.length) {
         this.state.panels[0].menuOpen = "navigation";
       } else {
-        this.state.panels[0] = this.makePanelState({menuOpen: "navigation"});
+        this.state.panels[0] = this.makePanelState({menuOpen: "navigation", navigationCategories: categories});
       }
       this.setState({panels: this.state.panels});
     }
@@ -1325,29 +1325,25 @@ var Header = React.createClass({
     } );
     $(ReactDOM.findDOMNode(this)).find("input.search").sefaria_autocomplete({
       position: {my: "left-12 top+14", at: "left bottom"},
+      minLength: 3,
       select: function( event, ui ) {
-        $(ReactDOM.findDOMNode(this)).find("input.search").val(ui.item.value);  //This will disappear when the next line executes, but the eye can sometimes catch it.
+        $(ReactDOM.findDOMNode(this)).find("input.search").val(ui.item.value);  // This will disappear when the next line executes, but the eye can sometimes catch it.
         this.submitSearch(ui.item.value);
         return false;
       }.bind(this),
-      source: function( request, response ) {
-        // Commented out code will only put the "Search for: " in the list if the search is an exact match.
-        //var exact = false;
-        var matches = $.map( Sefaria.books, function(tag) {
-            if ( tag.toUpperCase().indexOf(request.term.toUpperCase()) === 0 ) {
-              //if (tag.toUpperCase() == request.term.toUpperCase()) {
-              //  exact = true;
-              //}
-              return tag;
-            }
-          });
-        var resp = matches.slice(0, 16); // limits return to 16 items
-        //if (exact) {
-        if (resp.length > 0) {
-          resp.push(`${this._searchOverridePre}${request.term}${this._searchOverridePost}`);
-        }
-        //}
-        response(resp);
+
+      source: function(request, response) {
+        Sefaria.lookup(
+            request.term,
+            d => {
+              if (d["completions"].length > 0) {
+                response(d["completions"].concat([`${this._searchOverridePre}${request.term}${this._searchOverridePost}`]))
+              } else {
+                response([])
+              }
+            },
+            e => response([])
+        );
       }.bind(this)
     });
   },
@@ -1370,11 +1366,12 @@ var Header = React.createClass({
     this.props.setCentralState({menuOpen: null});
     this.clearSearchBox();      
   },
-  showLibrary: function() {
-    this.props.showLibrary();
+  showLibrary: function(categories) {
+    this.props.showLibrary(categories);
     this.clearSearchBox();
   },
   showSearch: function(query) {
+    query = query.trim();
     if (typeof sjs !== "undefined") {
       query = encodeURIComponent(query);
       window.location = `/search?q=${query}`;
@@ -1416,10 +1413,7 @@ var Header = React.createClass({
   hideTestMessage: function() { 
     this.props.setCentralState({showTestMessage: false});
   },
-  submitSearch: function(query, skipNormalization, originalQuery) {
-    // originalQuery is used to handle an edge case - when a varient of a commentator name is passed - e.g. "Rasag".
-    // the name gets normalized, but is ultimately not a ref, so becomes a regular search.
-    // We want to search for the original query, not the normalized name
+  submitSearch: function(query) {
     var override = query.match(this._searchOverrideRegex());
     if (override) {
       if (Sefaria.site) { Sefaria.site.track.event("Search", "Search Box Navigation - Book Override", override[1]); }
@@ -1428,33 +1422,42 @@ var Header = React.createClass({
       return;
     }
 
-    var index;
-    var normal_query = query.trim().toFirstCapital();
-    if (normal_query in Sefaria.booksDict) {
-      index = Sefaria.index(normal_query);
-      if (!index && !skipNormalization) {
-        Sefaria.normalizeTitle(query, function(title) {
-          this.submitSearch(title, true, query)
-        }.bind(this));
+    Sefaria.lookup(query, function(d) {
+      // If the query isn't recognized as a ref, but only for reasons of capitalization. Resubmit with recognizable caps.
+      if (Sefaria.isACaseVariant(query, d)) {
+        this.submitSearch(Sefaria.repairCaseVariant(query, d));
         return;
       }
-    }
-    if (Sefaria.isRef(normal_query)) {
-      var action = index? "Search Box Navigation - Book": "Search Box Navigation - Citation";
-      if (Sefaria.site) { Sefaria.site.track.event("Search", action, query); }
-      this.clearSearchBox();
-      this.handleRefClick(normal_query);  //todo: pass an onError function through here to the panel onError function which redirects to search
-    } else {
-      if (Sefaria.site) { Sefaria.site.track.event("Search", "Search Box Search", query); }
-      this.closeSearchAutocomplete();
-      this.showSearch(originalQuery || query);
-    }
+
+      if (d["is_ref"]) {
+        var action = d["is_book"] ? "Search Box Navigation - Book" : "Search Box Navigation - Citation";
+        Sefaria.site.track.event("Search", action, query);
+        this.clearSearchBox();
+        this.handleRefClick(d["ref"]);  //todo: pass an onError function through here to the panel onError function which redirects to search
+      } else if (d["type"] == "Person") {
+        Sefaria.site.track.event("Search", "Search Box Navigation - Person", query);
+        this.closeSearchAutocomplete();
+        this.showPerson(d["key"]);
+      } else if (d["type"] == "TocCategory") {
+        Sefaria.site.track.event("Search", "Search Box Navigation - Category", query);
+        this.closeSearchAutocomplete();
+        this.showLibrary(d["key"]);  // "key" holds the category path 
+      } else {
+        Sefaria.site.track.event("Search", "Search Box Search", query);
+        this.closeSearchAutocomplete();
+        this.showSearch(query);
+      }
+    }.bind(this));
   },
   closeSearchAutocomplete: function() {
     $(ReactDOM.findDOMNode(this)).find("input.search").sefaria_autocomplete("close");
   },
   clearSearchBox: function() {
     $(ReactDOM.findDOMNode(this)).find("input.search").val("").sefaria_autocomplete("close");
+  },
+  showPerson: function(key) {
+    //todo: move people into React
+    window.location = "/person/" + key;
   },
   handleLibraryClick: function(e) {
     e.preventDefault();
@@ -1542,6 +1545,7 @@ var Header = React.createClass({
                     <div  className="searchBox">
                       <ReaderNavigationMenuSearchButton onClick={this.handleSearchButtonClick} />
                       <input className={"search"+ vkClassActivator}
+                             id="searchInput"
                              placeholder={langSearchPlaceholder}
                              onKeyUp={this.handleSearchKeyUp}
                              onFocus={this.showVirtualKeyboardIcon.bind(this, true)}
@@ -2528,7 +2532,7 @@ var ReaderNavigationMenu = React.createClass({
   getInitialState: function() {
     this.width = 1000;
     return {
-      showMore: false,
+      showMore: false
     };
   },
   componentDidMount: function() {
@@ -2737,7 +2741,7 @@ var ReaderNavigationMenu = React.createClass({
                 <ReaderNavigationMenuCloseButton onClick={this.closeNav} icon={this.props.compare ? "chevron" : null} />
                 <ReaderNavigationMenuSearchButton onClick={this.handleSearchButtonClick} />
                 <ReaderNavigationMenuDisplaySettingsButton onClick={this.props.openDisplaySettings} />                
-                <input className="readerSearch" title="Search for Texts or Keywords Here" placeholder="Search" onKeyUp={this.handleSearchKeyUp} />
+                <input id="searchInput" className="readerSearch" title="Search for Texts or Keywords Here" placeholder="Search" onKeyUp={this.handleSearchKeyUp} />
               </div>);
       topContent = this.props.hideNavHeader ? null : topContent;
 
@@ -5561,7 +5565,7 @@ var ToggleSet = React.createClass({
     classes = classNames(classes);
     var value = this.props.name === "layout" ? this.props.currentLayout() : this.props.settings[this.props.name];
     var width = 100.0 - (this.props.separated ? (this.props.options.length - 1) * 3 : 0);
-    var style = {width: (width/this.props.options.length) + "%"};
+    var style = {width: (width/this.props.options.length) + "%", outline: "none"};
     return (
       <div className={classes} role={this.props.role} aria-label={this.props.ariaLabel}>
         {
@@ -5648,7 +5652,7 @@ var ReaderNavigationMenuCloseButton = React.createClass({
 
 var ReaderNavigationMenuDisplaySettingsButton = React.createClass({
   render: function() {
-    return (<div className="readerOptions" role="button" aria-haspopup="true" tabIndex="0" onClick={this.props.onClick} onKeyPress={function(e) {e.charCode == 13 ? this.props.onClick(e):null}.bind(this)}><img src="/static/img/ayealeph.svg" alt="Toggle Reader Menu Display Settings"/></div>);
+    return (<a href="#" className="readerOptions" role="button" aria-haspopup="true" onClick={this.props.onClick} onKeyPress={function(e) {e.charCode == 13 ? this.props.onClick(e):null}.bind(this)}><img src="/static/img/ayealeph.svg" alt="Toggle Reader Menu Display Settings"/></a>);
   }
 });
 
@@ -6184,70 +6188,6 @@ var TextRange = React.createClass({
     }
     this.dataPrefetched = true;
   },
-  makeSegments: function(data) {
-    // Returns a flat list of annotated segment objects,
-    // derived from the walking the text in data
-    if (!data || "error" in data) { return []; }
-    var segments  = [];
-    var highlight = data.sections.length === data.textDepth; 
-    var wrap = (typeof data.text == "string");
-    var en = wrap ? [data.text] : data.text;
-    var he = wrap ? [data.he] : data.he;
-    var topLength = Math.max(en.length, he.length);
-    en = en.pad(topLength, "");
-    he = he.pad(topLength, "");
-
-    var start = (data.textDepth == data.sections.length && !this.props.withContext ?
-                  data.sections.slice(-1)[0] : 1);
-
-    if (!data.isSpanning) {
-      for (var i = 0; i < topLength; i++) {
-        var number = i+start;
-        var delim  = data.textDepth == 1 ? " " : ":";
-        var ref = data.sectionRef + delim + number;
-        segments.push({
-          ref: ref,
-          en: en[i], 
-          he: he[i],
-          number: number,
-          highlight: highlight && number >= data.sections.slice(-1)[0] && number <= data.toSections.slice(-1)[0]
-        });
-      }      
-    } else {
-      for (var n = 0; n < topLength; n++) {
-        var en2 = typeof en[n] == "string" ? [en[n]] : en[n];
-        var he2 = typeof he[n] == "string" ? [he[n]] : he[n];
-        var length = Math.max(en2.length, he2.length);
-        en2 = en2.pad(length, "");
-        he2 = he2.pad(length, "");
-        var baseRef     = data.book;
-        var baseSection = data.sections.slice(0,-2).join(":");
-        var delim       = baseSection ? ":" : " ";
-        var baseRef     = baseSection ? baseRef + " " + baseSection : baseRef;
-
-        start = (n == 0 ? start : 1);
-        for (var i = 0; i < length; i++) {
-          var startSection = data.sections.slice(-2)[0];
-          var section = typeof startSection == "string" ?
-                        Sefaria.hebrew.intToDaf(n+Sefaria.hebrew.dafToInt(startSection))
-                        : n + startSection;
-          var number  = i + start;
-          var ref = baseRef + delim + section + ":" + number;
-          segments.push({
-            ref: ref,
-            en: en2[i], 
-            he: he2[i],
-            number: number,
-            highlight: highlight && 
-                        ((n == 0 && number >= data.sections.slice(-1)[0]) || 
-                         (n == topLength-1 && number <= data.toSections.slice(-1)[0]) ||
-                         (n > 0 && n < topLength -1))
-          });
-        }
-      }
-    }
-    return segments;
-  },
   placeSegmentNumbers: function() {
     //console.log("placeSegmentNumbers", this.props.sref);
     //debugger
@@ -6319,9 +6259,8 @@ var TextRange = React.createClass({
                               data.categories[0] !== "Liturgy";
 
     var showSegmentNumbers = showNumberLabel && this.props.basetext;
-                              
 
-    var segments = this.makeSegments(data);
+    var segments = Sefaria.makeSegments(data, this.props.withContext);
     var textSegments = segments.map(function (segment, i) {
       var highlight = this.props.highlightedRefs && this.props.highlightedRefs.length ?                                  // if highlighted refs are explicitly set
                         Sefaria.util.inArray(segment.ref, this.props.highlightedRefs) !== -1 : // highlight if this ref is in highlighted refs prop
@@ -8209,7 +8148,7 @@ var SearchBar = React.createClass({
         return (
             <div>
                 <div className="searchBox">
-                    <input className="readerSearch" title="Search for Texts or Keywords Here" value={this.state.query} onKeyPress={this.handleKeypress} onChange={this.handleChange} placeholder="Search"/>
+                    <input className="readerSearch" id="searchInput" title="Search for Texts or Keywords Here" value={this.state.query} onKeyPress={this.handleKeypress} onChange={this.handleChange} placeholder="Search"/>
                     <ReaderNavigationMenuSearchButton onClick={this.updateQuery} />
                 </div>
                 <div className="description"></div>

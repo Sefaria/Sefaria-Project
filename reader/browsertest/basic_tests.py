@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 from framework import AtomicTest
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait, Select
@@ -185,27 +187,66 @@ class ClickVersionedSearchResultMobile(AtomicTest):
         WebDriverWait(self.driver, TEMPER).until(staleness_of(versionedResult))
         assert "Psalms.59.7/en/The_Rashi_Ketuvim_by_Rabbi_Shraga_Silverstein" in self.driver.current_url, self.driver.current_url
 
-
-
-
 """
-# currently broken -- requires ability to login
-
 class SaveNewSourceSheet(AtomicTest):
-    suite_key = "S2 Sheets"
+    suite_key = "Sheets"
     every_build = True
+    single_panel = False  # No source sheets on mobile
 
     def run(self):
+        self.prime_autocomplete_cache()
         self.s2()
+        self.login_user()
         self.driver.implicitly_wait(10)
         self.driver.get(self.base_url + "/sheets/new")
-        self.driver.find_element_by_css_selector("#inlineAdd").send_keys("Gen 1.1")
+        self.driver.find_element_by_css_selector("#inlineAdd").send_keys("Genesis 1.1")
+        WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, "#inlineAddSourceOK:not(.disabled")))
         self.driver.find_element_by_css_selector("#inlineAddSourceOK").click()
         WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, "#save")))
         saveButton = self.driver.find_element_by_css_selector('#save')
         saveButton.click()
-        WebDriverWait(self.driver, TEMPER).until(title_is("New Source Sheet | Sefaria Source Sheet Builder"))
+        WebDriverWait(self.driver, TEMPER).until(title_contains("New Source Sheet | Sefaria Source Sheet Builder"))
 """
+'''
+# Not sure why this isn't working.
+class LoginOnMobile(AtomicTest):
+    suite_key = "Reader"
+    every_build = True
+    multi_panel = False  # Login is tested as part of SaveNewSourceSheet on multipanel
+
+    def run(self):
+        self.s2()
+        self.login_user()
+        WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, ".accountLinks .account")))
+
+'''
+
+
+class SpecialCasedSearchBarNavigations(AtomicTest):
+    suite_key = "Sheets"
+    every_build = True
+    single_panel = False  # This hasn't yet been implemented on mobile
+
+    def run(self):
+        self.s2()
+        self.type_in_search_box("Shabbat")
+        WebDriverWait(self.driver, TEMPER).until(visibility_of_element_located((By.CSS_SELECTOR, ".readerTextTableOfContents")))
+        self.type_in_search_box("Shabbat 12b")
+        WebDriverWait(self.driver, TEMPER).until(visibility_of_element_located((By.CSS_SELECTOR, ".segment")))
+        self.type_in_search_box("Yosef Giqatillah")
+        WebDriverWait(self.driver, TEMPER).until(title_contains("Yosef Giqatillah"))
+        self.type_in_search_box("Midrash")
+        WebDriverWait(self.driver, TEMPER).until(visibility_of_element_located((By.CSS_SELECTOR, ".readerNavCategoryMenu")))
+
+        self.type_in_search_box(u"שבת")
+        WebDriverWait(self.driver, TEMPER).until(visibility_of_element_located((By.CSS_SELECTOR, ".readerTextTableOfContents")))
+        self.type_in_search_box(u"שבת י״ד")
+        WebDriverWait(self.driver, TEMPER).until(visibility_of_element_located((By.CSS_SELECTOR, ".segment")))
+        self.type_in_search_box(u"יוסף שאול נתנזון")
+        WebDriverWait(self.driver, TEMPER).until(title_contains("Yosef"))
+        self.type_in_search_box(u"מדרש")
+        WebDriverWait(self.driver, TEMPER).until(visibility_of_element_located((By.CSS_SELECTOR, ".readerNavCategoryMenu")))
+
 
 """
 # Not complete

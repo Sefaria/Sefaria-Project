@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 
 from config import *
 from sefaria.model import *
@@ -11,6 +12,7 @@ import json
 import traceback
 import sys
 from selenium import webdriver
+from appium import webdriver as appium_webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 
@@ -54,6 +56,31 @@ class AtomicTest(object):
         raise Exception("AtomicTest.run() needs to be defined for each test.")
 
     # Component methods
+
+    def login_user(self):
+        password = os.environ["SEFARIA_TEST_PASS"]
+        user = os.environ["SEFARIA_TEST_USER"]
+        self._login(user, password)
+        return self
+
+    def login_superuser(self):
+        password = os.environ["SEFARIA_SUPERUSER"]
+        user = os.environ["SEFARIA_SUPERPASS"]
+        self._login(user, password)
+        return self
+
+    def _login(self, user, password):
+        self.driver.get(self.base_url + "/login")
+        WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, "#id_email")))
+        elem = self.driver.find_element_by_css_selector("#id_email")
+        elem.send_keys(user)
+        elem = self.driver.find_element_by_css_selector("#id_password")
+        elem.send_keys(password)
+        self.driver.find_element_by_css_selector("button").click()
+
+    def prime_autocomplete_cache(self):
+        self.driver.get(self.base_url + "/api/name/stam")
+        self.driver.get(self.base_url + "/api/name/stam?ref_only=1")
 
     # TOC
     def load_toc(self):
@@ -264,11 +291,20 @@ class AtomicTest(object):
         return self
 
     def search_for(self, query):
-        elem = self.driver.find_element_by_css_selector("input.search")
+        # This one is for searches that produce search results, not navigations
+        WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, "#searchInput")))
+        elem = self.driver.find_element_by_css_selector("#searchInput")
         elem.send_keys(query)
         elem.send_keys(Keys.RETURN)
         # todo: does this work for a second search?
         WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, ".result")))
+        return self
+
+    def type_in_search_box(self, query):
+        WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, "#searchInput")))
+        elem = self.driver.find_element_by_css_selector("#searchInput")
+        elem.send_keys(query)
+        elem.send_keys(Keys.RETURN)
         return self
 
     #Source Sheets
@@ -428,9 +464,14 @@ class Trial(object):
             driver = cap()
         elif self.platform == "sauce":
             assert cap is not None
-            driver = webdriver.Remote(
-                command_executor='http://{}:{}@ondemand.saucelabs.com:80/wd/hub'.format(SAUCE_USERNAME, SAUCE_ACCESS_KEY),
-                desired_capabilities=cap)
+            if cap.get("appiumVersion") is not None:
+                driver = appium_webdriver.Remote(
+                    command_executor='http://{}:{}@ondemand.saucelabs.com:80/wd/hub'.format(SAUCE_USERNAME, SAUCE_ACCESS_KEY),
+                    desired_capabilities=cap)
+            else:
+                driver = webdriver.Remote(
+                    command_executor='http://{}:{}@ondemand.saucelabs.com:80/wd/hub'.format(SAUCE_USERNAME, SAUCE_ACCESS_KEY),
+                    desired_capabilities=cap)
         elif self.platform == "bstack":
             assert cap is not None
             driver = webdriver.Remote(
@@ -524,12 +565,17 @@ class Trial(object):
         caps = _caps or self.caps
         sys.stdout.write("\n{}: ".format(test.__name__) if not self.isVerbose else "")
         sys.stdout.flush()
+        tresults = []
         if self.parallel:
             p = Pool(self.thread_count)
             l = len(caps)
-            tresults = p.map(_test_one_worker, zip([self]*l, [test]*l, caps))
+            try:
+                tresults = p.map(_test_one_worker, zip([self]*l, [test]*l, caps))
+            except Exception as e:
+                sys.stdout.write(u"Exception encountered in Trial._test_on_all()!")
+                sys.stdout.write(traceback.format_exc())
+                sys.stdout.flush()
         else:
-            tresults = []
             for cap in caps:
                 tresults.append(self._test_one(test, cap))
 
@@ -626,69 +672,3 @@ def get_multiplatform_tests(tests):
 def get_every_build_tests(tests):
     return [t for t in tests if t.every_build]
 
-
-'''
-    def test_local(self):
-        tests = get_atomic_tests()
-        shuffle(tests)
-        driver = self._get_driver()
-
-        print ", ".join([test.__name__ for test in tests])
-
-        for test_class in tests:
-            test = test_class(LOCAL_URL)
-            test.run(driver)
-        driver.quit()
-
-
-    def _test_all(self, build):
-        p = Pool(MAX_THREADS)
-        for key in get_test_suite_keys():
-            tests = get_tests_in_suite(key)
-            shuffle(tests)
-
-            if not caps:
-                for cap in default_desktop_caps:
-                    cap.update({
-                        'name': "{} on {}".format(key, cap_to_string(cap)),
-                        'build': build,
-                        'tests': get_desktop_tests(tests),
-                        "testing_platform": platform_string
-                    })
-                for cap in default_mobile_caps:
-                    cap.update({
-                        'name': "{} on {}".format(key, cap_to_string(cap)),
-                        'build': build,
-                        'tests': get_mobile_tests(tests),
-                        "testing_platform": platform_string
-                    })
-                caps = default_desktop_caps + default_mobile_caps
-            else:
-                for cap in caps:
-                    cap.update({
-                        'name': "{} on {}".format(key, cap_to_string(cap)),
-                        'build': build,
-                        'tests': tests,  # Lazy assumption that all tests are run if caps are provided as an arg.
-                        "testing_platform": platform_string
-                    })
-            results = p.map(_test_on_one_browser, caps)
-            print "\n\nSuite: {}".format(key)
-            print "\n".join(results)
-'''
-
-
-'''
-def _test_each_on(self, cap):
-    """
-    Given a browser, test every test on that browser
-    :param cap:
-    :return:
-    """
-    results = []
-    for test in self.tests:
-        # TODO: Mobile / Desktop
-        driver = self._get_driver(cap)
-        results.append(self._run_one_atomic_test(driver, test))
-        driver.quit()
-    return results
-'''

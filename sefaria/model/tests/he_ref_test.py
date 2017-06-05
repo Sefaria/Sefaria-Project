@@ -111,19 +111,15 @@ class Test_parse_he_ref(object):
         with pytest.raises(InputError):
             r = m.Ref(u'דברים לברק')
 
-        r = m.Ref(u'דברים א לברק')
-        assert r.sections[0] == 1
-        assert len(r.sections) == 1
+        with pytest.raises(InputError):
+            r = m.Ref(u'דברים א לברק')
 
-        r = m.Ref(u"אסתר א, סי")
-        assert r.sections[0] == 1
-        assert len(r.sections) == 1
+        with pytest.raises(InputError):
+            r = m.Ref(u"אסתר א, סי")
 
     def test_talmud_word_end(self):
-        r = m.Ref(u"מנחות כט בג")
-        assert r.book == 'Menachot'
-        assert r.sections[0] == 57  # 57 = daf a, not 58 = daf b
-        assert len(r.sections) == 1
+        with pytest.raises(InputError):
+            r = m.Ref(u"מנחות כט בג")
 
         with pytest.raises(InputError):
             r = m.Ref(u"מנחות כטר")

@@ -480,6 +480,36 @@ Sefaria = extend(Sefaria, {
       return result;
     }
   },
+  _lookups: {},
+  _ref_lookups: {},
+  // lookupRef should work as a replacement for parseRef - it uses a callback rather than return value.  Besides that - same data.
+  lookupRef: function(n, c, e)  { return this.lookup(n,c,e,true);},
+  lookup: function(name, callback, onError, refOnly) {
+      /* 
+        * name - string to lookup
+        * callback - callback function, takes one argument, a data object
+        * onError - callback
+        * refOnly - if True, only search for titles, otherwise search for People and Categories as well.
+       */
+    name = name.trim();
+    var cache = refOnly? this._ref_lookups: this._lookups;
+    onError = onError || function() {};
+    if (name in cache) {
+        callback(cache[name]);
+    }
+    else {
+        $.ajax({
+          dataType: "json",
+          url: "/api/name/" + name + (refOnly?"?ref_only=1":""), 
+          error: onError,
+          success: function(data) {
+              cache[name] = data;
+              callback(data);
+          }.bind(this)
+        });
+    }
+  },
+
   sectionRef: function(ref) {
     // Returns the section level ref for `ref` or null if no data is available
     var oref = this.ref(ref);
@@ -965,6 +995,85 @@ Sefaria = extend(Sefaria, {
         }.bind(this));
     }
   },
+  isACaseVariant: function(query, data) {
+    // Check if query is just an improper capitalization of something that otherwise would be a ref
+    // query: string
+    // data: dictionary, as returned by /api/name
+    return (!(data["is_ref"]) &&
+          data["completions"] &&
+          data["completions"].length &&
+          data["completions"][0] != query &&
+          data["completions"][0].toLowerCase().replace('״','"') == query.slice(0, data["completions"][0].length).toLowerCase().replace('״','"') &&
+          data["completions"][0] != query.slice(0, data["completions"][0].length))      
+  },
+  repairCaseVariant: function(query, data) {
+    // Used when isACaseVariant() is true to prepare the alternative
+    return data["completions"][0] + query.slice(data["completions"][0].length);
+  },
+  makeSegments: function(data, withContext) {
+    // Returns a flat list of annotated segment objects,
+    // derived from the walking the text in data
+    if (!data || "error" in data) { return []; }
+    var segments  = [];
+    var highlight = data.sections.length === data.textDepth; 
+    var wrap = (typeof data.text == "string");
+    var en = wrap ? [data.text] : data.text;
+    var he = wrap ? [data.he] : data.he;
+    var topLength = Math.max(en.length, he.length);
+    en = en.pad(topLength, "");
+    he = he.pad(topLength, "");
+
+    var start = (data.textDepth == data.sections.length && !withContext ?
+                  data.sections.slice(-1)[0] : 1);
+
+    if (!data.isSpanning) {
+      for (var i = 0; i < topLength; i++) {
+        var number = i+start;
+        var delim  = data.textDepth == 1 ? " " : ":";
+        var ref = data.sectionRef + delim + number;
+        segments.push({
+          ref: ref,
+          en: en[i], 
+          he: he[i],
+          number: number,
+          highlight: highlight && number >= data.sections.slice(-1)[0] && number <= data.toSections.slice(-1)[0]
+        });
+      }      
+    } else {
+      for (var n = 0; n < topLength; n++) {
+        var en2 = typeof en[n] == "string" ? [en[n]] : en[n];
+        var he2 = typeof he[n] == "string" ? [he[n]] : he[n];
+        var length = Math.max(en2.length, he2.length);
+        en2 = en2.pad(length, "");
+        he2 = he2.pad(length, "");
+        var baseRef     = data.book;
+        var baseSection = data.sections.slice(0,-2).join(":");
+        var delim       = baseSection ? ":" : " ";
+        var baseRef     = baseSection ? baseRef + " " + baseSection : baseRef;
+
+        start = (n == 0 ? start : 1);
+        for (var i = 0; i < length; i++) {
+          var startSection = data.sections.slice(-2)[0];
+          var section = typeof startSection == "string" ?
+                        Sefaria.hebrew.intToDaf(n+Sefaria.hebrew.dafToInt(startSection))
+                        : n + startSection;
+          var number  = i + start;
+          var ref = baseRef + delim + section + ":" + number;
+          segments.push({
+            ref: ref,
+            en: en2[i], 
+            he: he2[i],
+            number: number,
+            highlight: highlight && 
+                        ((n == 0 && number >= data.sections.slice(-1)[0]) || 
+                         (n == topLength-1 && number <= data.toSections.slice(-1)[0]) ||
+                         (n > 0 && n < topLength -1))
+          });
+        }
+      }
+    }
+    return segments;
+  },    
   sectionString: function(ref) {
     // Returns a pair of nice strings (en, he) of the sections indicated in ref. e.g.,
     // "Genesis 4" -> "Chapter 4", "Guide for the Perplexed, Introduction" - > "Introduction"
