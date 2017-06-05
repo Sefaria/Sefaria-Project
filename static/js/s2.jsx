@@ -6413,7 +6413,7 @@ var ConnectionsPanel = React.createClass({
     srefs:                   React.PropTypes.array.isRequired,    // an array of ref strings
     filter:                  React.PropTypes.array.isRequired,
     recentFilters:           React.PropTypes.array.isRequired,
-    mode:                    React.PropTypes.string.isRequired,   // "Connections", "Tools", etc. called `connectionsMode` above
+    mode:                    React.PropTypes.string.isRequired,   // "Resources", "ConnectionsList", "TextList" etc., called `connectionsMode` above
     connectionsCategory:     React.PropTypes.string,  // with mode:"ConnectionsList", which category of connections to show
     setFilter:               React.PropTypes.func.isRequired,
     setConnectionsMode:      React.PropTypes.func.isRequired,
@@ -6558,7 +6558,7 @@ var ConnectionsPanel = React.createClass({
                 </div>);
     
     } else if (this.props.mode === "Lexicon") {
-      content = (<LexiconPanel 
+      content = (<LexiconBox
                     selectedWords={this.props.selectedWords} 
                     oref={Sefaria.ref(this.props.srefs[0])} />);
     
@@ -6617,7 +6617,7 @@ var ConnectionsPanel = React.createClass({
       content = (<LoginPrompt fullPanel={this.props.fullPanel} />);
     }
     
-    var classes = classNames({toolsPanel: 1, textList: 1, fullPanel: this.props.fullPanel, singlePanel: !this.props.fullPanel});
+    var classes = classNames({connectionsPanel: 1, textList: 1, fullPanel: this.props.fullPanel, singlePanel: !this.props.fullPanel});
     return (
       <div className={classes} key={this.props.mode}>
         { this.props.fullPanel ? null :
@@ -7322,7 +7322,7 @@ var SheetListing = React.createClass({
 });
 
 
-var LexiconPanel = React.createClass({
+var LexiconBox = React.createClass({
   propTypes: {
     selectedWords: React.PropTypes.string,
     oref:          React.PropTypes.object
@@ -7919,8 +7919,8 @@ var AddNoteBox = React.createClass({
 var MyNotes = React.createClass({
   // List of user notes on a ref or range of refs.
   propTypes: {
-    srefs:              React.PropTypes.array.isRequired,
-    editNote:           React.PropTypes.func.isRequired,
+    srefs:    React.PropTypes.array.isRequired,
+    editNote: React.PropTypes.func.isRequired,
   },
   componentDidMount: function() {
     this.loadNotes();
@@ -8024,7 +8024,8 @@ var Note = React.createClass({
                 </div>
               </div>);
   }
-});8
+});
+
 
 var LoginPrompt = React.createClass({
   propTypes: {

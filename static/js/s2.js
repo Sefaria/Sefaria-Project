@@ -8117,7 +8117,7 @@ var ConnectionsPanel = React.createClass({
     srefs: React.PropTypes.array.isRequired, // an array of ref strings
     filter: React.PropTypes.array.isRequired,
     recentFilters: React.PropTypes.array.isRequired,
-    mode: React.PropTypes.string.isRequired, // "Connections", "Tools", etc. called `connectionsMode` above
+    mode: React.PropTypes.string.isRequired, // "Resources", "ConnectionsList", "TextList" etc., called `connectionsMode` above
     connectionsCategory: React.PropTypes.string, // with mode:"ConnectionsList", which category of connections to show
     setFilter: React.PropTypes.func.isRequired,
     setConnectionsMode: React.PropTypes.func.isRequired,
@@ -8261,7 +8261,7 @@ var ConnectionsPanel = React.createClass({
           srefs: this.props.srefs })
       );
     } else if (this.props.mode === "Lexicon") {
-      content = React.createElement(LexiconPanel, {
+      content = React.createElement(LexiconBox, {
         selectedWords: this.props.selectedWords,
         oref: Sefaria.ref(this.props.srefs[0]) });
     } else if (this.props.mode === "Tools") {
@@ -8340,7 +8340,7 @@ var ConnectionsPanel = React.createClass({
       content = React.createElement(LoginPrompt, { fullPanel: this.props.fullPanel });
     }
 
-    var classes = classNames({ toolsPanel: 1, textList: 1, fullPanel: this.props.fullPanel, singlePanel: !this.props.fullPanel });
+    var classes = classNames({ connectionsPanel: 1, textList: 1, fullPanel: this.props.fullPanel, singlePanel: !this.props.fullPanel });
     return React.createElement(
       'div',
       { className: classes, key: this.props.mode },
@@ -9194,8 +9194,8 @@ var SheetListing = React.createClass({
   }
 });
 
-var LexiconPanel = React.createClass({
-  displayName: 'LexiconPanel',
+var LexiconBox = React.createClass({
+  displayName: 'LexiconBox',
 
   propTypes: {
     selectedWords: React.PropTypes.string,
@@ -10160,7 +10160,7 @@ var Note = React.createClass({
       )
     );
   }
-});8;
+});
 
 var LoginPrompt = React.createClass({
   displayName: 'LoginPrompt',
