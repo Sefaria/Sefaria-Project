@@ -125,6 +125,8 @@ class AutoCompleter(object):
             swapped_string = hebrew.swap_keyboards_for_string(instring)
             return self.library.full_auto_completer(other_language).complete(swapped_string, limit, redirected=True)
 
+        return []
+
     def next_steps_from_node(self, instring):
         """
         Used in the case when the instring matches a node.  Provides the continuations of that string for its children nodes.

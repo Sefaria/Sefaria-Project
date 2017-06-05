@@ -2051,6 +2051,7 @@ def name_api(request, name):
             "examples": []
         }
         if inode.has_numeric_continuation():
+            inode = inode.get_default_child() if inode.has_default_child() else inode
             d["sectionNames"] = inode.sectionNames
             d["heSectionNames"] = map(hebrew_term, inode.sectionNames)
             d["addressExamples"] = [t.toStr("en", 3*i+3) for i,t in enumerate(inode._addressTypes)]

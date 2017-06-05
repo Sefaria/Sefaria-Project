@@ -1950,6 +1950,8 @@ class Ref(object):
                     title = base[0:l - 1]
                 break
             if new_tref:
+                if l < len(base) and base[l] not in " .":
+                    continue
                 # If a term is matched, reinit with the real tref
                 self.__reinit_tref(new_tref)
                 return
