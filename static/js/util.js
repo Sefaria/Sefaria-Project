@@ -239,7 +239,7 @@ sjs.alert = {
 	saving: function(msg) {
 		var alertHtml = '<div class="alertBox modal">' +
 				'<div class="msg">' + msg +'</div>' +
-				'<img id="loadingImg" src="/static/img/ajax-loader.gif"/>'
+				'<img id="loadingImg" src="/static/img/ajax-loader.gif"/>' +
 			'</div>';
 		sjs.alert._show(alertHtml);
 	}, 
@@ -361,7 +361,7 @@ sjs.alert = {
 
 sjs.peopleList = function(list, title) {
 	// Show a list of users in a modal window
-	var peopleHtml = ""
+	var peopleHtml = "";
 	for (var i=0; i < list.length; i++) {
 		peopleHtml += "<div class='person'>" + 
 							"<img src='" + list[i].imageUrl + "' />" +
@@ -553,8 +553,8 @@ sjs.textSync = {
 				
 				// Remove the new lines
 				if (newLines) {
-					text = text.substr(0, cursor-newLines) + text.substr(cursor)
-					$text.val(text).caret({start: cursor-newLines, end: cursor-newLines})
+					text = text.substr(0, cursor-newLines) + text.substr(cursor);
+					$text.val(text).caret({start: cursor-newLines, end: cursor-newLines});
 				}
 			}
 		}
@@ -590,7 +590,7 @@ sjs.textSync = {
 			$text.closest(".textSyncBox").find(".textSyncNumbers").empty();
 			sjs.textSync.syncTextGroups($text, $(syncTarget));
 		} else {
-			// Sync Text with Numbered Labels	`
+			// Sync Text with Numbered Labels
 			var matches = $text.val().match(/\n+/g);
 			var groups = matches ? matches.length + 1 : 1;
 			numStr = "";
@@ -1037,7 +1037,7 @@ sjs.textBrowser = {
 		for (var i = 0; i < longer.length; i++) {
 			if (isCommentary) {
 				var heLength = data.he[i] ? data.he[i].length : 0;
-				var enLength = data.text[i] ? data.text[i].length : 0
+				var enLength = data.text[i] ? data.text[i].length : 0;
 				var innerLonger = Math.max(heLength, enLength);
 				for (var k = 0; k < innerLonger; k++) {
 					var he = data.he[i] ? data.he[i][k] : "";
@@ -1238,7 +1238,7 @@ sjs.deleteTextButtonHandler = function(e) {
 		var commentaryText = $(this).attr("data-commentary-text");
 		var confirm = prompt("If you proceeed, all commentaries by " + title + " will be deleted, not only " + commentaryText + ". Type DELETE to confirm.", "");
 		if (confirm !== "DELETE") {
-			alert("Delete canceled.")
+			alert("Delete canceled.");
 			return;
 		}			
 	}
@@ -1266,7 +1266,7 @@ sjs.deleteTextButtonHandler = function(e) {
 
 sjs.tagitTags = function(selector) {
 	// Work around for tagit plugin failing to handle quotes in tags
-	var tags = []
+	var tags = [];
 	$(selector).find(".tagit-label").each(function(){
 		tags.push($(this).text());
 	});
@@ -2225,7 +2225,7 @@ sjs.hebrewNumerals = {
 	600: "\u05EA\u05E8",
 	700: "\u05EA\u05E9",
 	800: "\u05EA\u05EA"
-}
+};
 
 
 function decodeHebrewNumeral(h) {
@@ -2236,7 +2236,7 @@ function decodeHebrewNumeral(h) {
 		return values[h];
 	} 
 	
-	var n = 0
+	var n = 0;
 	for (c in h) {
 		n += values[h[c]];
 	}
@@ -2258,7 +2258,7 @@ function encodeHebrewNumeral(n) {
 		return values[n];
 	}
 	
-	var heb = ""
+	var heb = "";
 	if (n >= 100) { 
 		var hundreds = n - (n % 100);
 		heb += values[hundreds];
@@ -2281,7 +2281,7 @@ function encodeHebrewNumeral(n) {
 function encodeHebrewDaf(daf, form) {
 	// Ruturns Hebrew daf strings from "32b"
 	
-	form = form || "short"
+	form = form || "short";
 	var n = parseInt(daf.slice(0,-1));
 	var a = daf.slice(-1);
 	if (form === "short") {
@@ -2407,7 +2407,7 @@ function getSelectionBoundaryElement(isStart) {
 function isValidEmailAddress(emailAddress) {
     var pattern = new RegExp(/^((([a-z]|\d|[!#\$%&'\*\+\-\/=\?\^_`{\|}~]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])+(\.([a-z]|\d|[!#\$%&'\*\+\-\/=\?\^_`{\|}~]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])+)*)|((\x22)((((\x20|\x09)*(\x0d\x0a))?(\x20|\x09)+)?(([\x01-\x08\x0b\x0c\x0e-\x1f\x7f]|\x21|[\x23-\x5b]|[\x5d-\x7e]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(\\([\x01-\x09\x0b\x0c\x0d-\x7f]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF]))))*(((\x20|\x09)*(\x0d\x0a))?(\x20|\x09)+)?(\x22)))@((([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])*([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])))\.)+(([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])*([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])))\.?$/i);
     return pattern.test(emailAddress);
-};
+}
 
 
 function isInt(x) {
@@ -2484,7 +2484,7 @@ function intToDaf(i) {
 }
 
 function dafToInt(daf) {
-	amud = daf.slice(-1)
+	amud = daf.slice(-1);
 	i = parseInt(daf.slice(0, -1)) - 1;
 	i = amud == "a" ? i * 2 : i*2 +1;
 	return i;
@@ -2549,7 +2549,7 @@ function debounce(func, wait, immediate) {
 		timeout = setTimeout(later, wait);
 		if (callNow) func.apply(context, args);
 	};
-};
+}
 
 function numberWithCommas(x) {
     return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
@@ -2698,7 +2698,7 @@ $.fn.serializeObject = function()
 
 // Protect against browsers without consoles and forgotten console statements
 if(typeof(console) === 'undefined') {
-    var console = {}
+    var console = {};
     console.log = function() {};
 }
 
