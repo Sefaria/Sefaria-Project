@@ -7886,7 +7886,7 @@ var TextRange = React.createClass({
         onFootnoteClick: this.onFootnoteClick,
         key: i + segment.ref });
     }.bind(this));
-    textSegments = textSegments.length ? textSegments : this.props.basetext ? "" : React.createElement(LoadingMessage, null);
+    textSegments = textSegments.length ? textSegments : null;
     var classes = {
       textRange: 1,
       basetext: this.props.basetext,
@@ -7975,7 +7975,7 @@ var TextRange = React.createClass({
           )
         )
       ) : null,
-      this.props.hideTitle ? "" : React.createElement(
+      this.props.hideTitle ? null : React.createElement(
         'div',
         { className: 'title' },
         React.createElement(

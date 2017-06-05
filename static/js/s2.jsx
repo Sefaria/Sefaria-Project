@@ -6280,9 +6280,7 @@ var TextRange = React.createClass({
             key={i + segment.ref} />
       );
     }.bind(this));
-    textSegments = textSegments.length ? 
-                    textSegments : 
-                      this.props.basetext ? "" : (<LoadingMessage />);
+    textSegments = textSegments.length ? textSegments : null;
     var classes = {
                     textRange: 1,
                     basetext: this.props.basetext,
@@ -6322,7 +6320,7 @@ var TextRange = React.createClass({
             </span>
           </div>)
           : null}
-        {this.props.hideTitle ? "" :
+        {this.props.hideTitle ? null :
         (<div className="title">
           <div className="titleBox">
             <span className="en" >{title}</span>
