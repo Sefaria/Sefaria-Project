@@ -253,7 +253,9 @@ def make_panel_dict(oref, version, language, filter, mode, **kwargs):
             "versions": oref.version_list()
         }
     else:
-        oref = oref.first_available_section_ref()
+        section_ref = oref.first_available_section_ref()
+        oref = section_ref if section_ref else oref
+
         panelDisplayLanguage = kwargs.get("panelDisplayLanguage")
         panel = {
             "mode": mode,
@@ -271,13 +273,14 @@ def make_panel_dict(oref, version, language, filter, mode, **kwargs):
                 panel["versionLanguage"] = None
         if mode != "Connections":
             try:
-                text = TextFamily(oref, version=panel["version"], lang=panel["versionLanguage"], commentary=False, context=True, pad=True, alts=True, wrapLinks=False).contents()
+                text_family = TextFamily(oref, version=panel["version"], lang=panel["versionLanguage"], commentary=False,
+                                  context=True, pad=True, alts=True, wrapLinks=False).contents()
             except NoVersionFoundError:
-                text = {}
-            text["updateFromAPI"] = True
-            text["next"] = oref.next_section_ref().normal() if oref.next_section_ref() else None
-            text["prev"] = oref.prev_section_ref().normal() if oref.prev_section_ref() else None
-            panel["text"] = text
+                text_family = {}
+            text_family["updateFromAPI"] = True
+            text_family["next"] = oref.next_section_ref().normal() if oref.next_section_ref() else None
+            text_family["prev"] = oref.prev_section_ref().normal() if oref.prev_section_ref() else None
+            panel["text"] = text_family
 
             if oref.is_segment_level():
                 panel["highlightedRefs"] = [subref.normal() for subref in oref.range_list()]
