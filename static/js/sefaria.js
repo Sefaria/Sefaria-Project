@@ -2503,7 +2503,12 @@ Sefaria.palette.categoryColor = function(cat) {
 
 
 Sefaria.setup = function() {
-
+    console.log("Sefaria setup---------------------------------");
+    for (var prop in DJANGO_DATA_VARS) {
+      if (DJANGO_DATA_VARS.hasOwnProperty(prop)) {
+        Sefaria[prop] = DJANGO_DATA_VARS[prop];
+      }
+    }
     Sefaria.util.setupPrototypes();
     Sefaria.util.setupJQuery();
     Sefaria.util.setupMisc();

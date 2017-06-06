@@ -9,7 +9,7 @@ module.exports = {
     //the entry point we created earlier. Note that './' means 
     //your current directory. You don't have to specify the extension  now,
     //because you will specify extensions later in the `resolve` section
-    entry: './main', 
+    entry: './client', 
 		devtool: 'source-map',
     
     output: {
@@ -23,12 +23,12 @@ module.exports = {
         //tells webpack where to store data about your bundles.
         new BundleTracker({filename: './webpack-stats.json'}), 
         //makes jQuery available in every module
-        new webpack.ProvidePlugin({ 
+        /*new webpack.ProvidePlugin({ 
             $: 'jquery',
             jQuery: 'jquery',
             'window.jQuery': 'jquery' 
-        }),
-				new ExtractTextPlugin("app.css")	
+        }),*/
+				//new ExtractTextPlugin("app.css")	
     ],
     
     module: {
@@ -65,7 +65,7 @@ module.exports = {
         //tells webpack where to look for modules
         modules: ['node_modules'],
         //extensions that should be used to resolve modules
-        extensions: ['.js', '.jsx']
+        extensions: ['.jsx', '.js']
     }   
 
 }
