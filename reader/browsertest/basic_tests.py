@@ -3,7 +3,7 @@
 from framework import AtomicTest
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait, Select
-from selenium.webdriver.support.expected_conditions import title_contains, staleness_of, element_to_be_clickable, visibility_of_element_located, invisibility_of_element_located
+from selenium.webdriver.support.expected_conditions import title_contains, staleness_of, element_to_be_clickable, visibility_of_element_located, invisibility_of_element_located, text_to_be_present_in_element
 
 from sefaria.model import *
 from selenium.webdriver.common.keys import Keys
@@ -219,7 +219,7 @@ class ClickVersionedSearchResultMobile(AtomicTest):
         WebDriverWait(self.driver, TEMPER).until(staleness_of(versionedResult))
         assert "Psalms.59.7/en/The_Rashi_Ketuvim_by_Rabbi_Shraga_Silverstein" in self.driver.current_url, self.driver.current_url
 
-"""
+
 class SaveNewSourceSheet(AtomicTest):
     suite_key = "Sheets"
     every_build = True
@@ -231,14 +231,21 @@ class SaveNewSourceSheet(AtomicTest):
         self.login_user()
         self.driver.implicitly_wait(10)
         self.driver.get(self.base_url + "/sheets/new")
-        self.driver.find_element_by_css_selector("#inlineAdd").send_keys("Genesis 1.1")
-        WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, "#inlineAddSourceOK:not(.disabled")))
+        textBox = self.driver.find_element_by_css_selector("#inlineAdd")
+
+        textBox.send_keys("Genesis")
+        WebDriverWait(self.driver, TEMPER).until(text_to_be_present_in_element((By.ID, "inlineAddDialogTitle"), "ENTER A"))
+        textBox.send_keys(" 1")
+        WebDriverWait(self.driver, TEMPER).until(text_to_be_present_in_element((By.ID, "inlineAddDialogTitle"), "TO CONTINUE OR"))
+        textBox.send_keys(":9")
+        WebDriverWait(self.driver, TEMPER).until(text_to_be_present_in_element((By.ID, "inlineAddDialogTitle"), "TO CONTINUE OR ENTER A RANGE"))
+
         self.driver.find_element_by_css_selector("#inlineAddSourceOK").click()
         WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, "#save")))
         saveButton = self.driver.find_element_by_css_selector('#save')
         saveButton.click()
         WebDriverWait(self.driver, TEMPER).until(title_contains("New Source Sheet | Sefaria Source Sheet Builder"))
-"""
+
 '''
 # Not sure why this isn't working.
 class LoginOnMobile(AtomicTest):
