@@ -1,19 +1,16 @@
 var $            = require('jquery'),
     React        = require('react'),
     ReactDOM     = require('react-dom'),
-    SefariaReact = require('./s2'),
-    DjangoCSRF   = require('./django-csrf');
+    DjangoCSRF   = require('./django-csrf'),
+    SefariaReact = require('./s2');
 
 $(function() {
   var container = document.getElementById('s2');
   var component;
-  console.log("Django vars = ", Object.keys(DJANGO_VARS));
-  console.log("In reader app = ", DJANGO_VARS.inReaderApp);
+
   if (DJANGO_VARS.inReaderApp) {
     DjangoCSRF.init();
-
-
-    console.log("IN READER APP");
+    SefariaReact.unpackDataFromProps(DJANGO_VARS.propsJSON);
     component = React.createElement(SefariaReact.ReaderApp, DJANGO_VARS.propsJSON);
     ReactDOM.render(component, container);
   } else {
@@ -26,7 +23,6 @@ $(function() {
       fontSize:      62.5 //$.cookie("fontSize")      ||
     };
     var multiPanel    = $(window).width() > 600;
-    console.log("NOT IN READER APP");
     component = React.createElement(SefariaReact.ReaderApp, {
       headerMode: true,
       multiPanel: multiPanel,

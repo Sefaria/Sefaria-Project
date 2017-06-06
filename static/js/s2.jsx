@@ -6,7 +6,7 @@
       extend       = require('extend'),
       classNames   = require('classnames'),
       Sefaria      = require('./sefaria');
-                     require('jquery.cookie');
+                     require('jquery.cookie');  //NOTE: these require statements are adding props to the $ obj. The order actually doesn't matter b/c it seems webpack deals with it
                      require('jquery-ui');
                      require('jquery.scrollto');
       //cookie       = require('jquery.cookie'); //Sefaria.util.cookie;
@@ -184,8 +184,7 @@ var ReaderApp = React.createClass({
     this.state.panels.map(this.saveRecentlyViewed);
 
     // Set S2 cookie, putting user into S2 mode site wide
-    console.log(Object.keys($.cookie));
-    console.log($.cookie);
+
     $.cookie("s2", true, {path: "/"});
   },
   componentWillUnmount: function() {
@@ -6060,13 +6059,17 @@ var TextRange = React.createClass({
       language: this.props.versionLanguage || null
     };
     var data = Sefaria.text(this.props.sref, settings);
+    console.log("data", data);
+    console.log("Sefaria", Sefaria);
+
     if (!data || "updateFromAPI" in data) { // If we don't have data yet, call again with a callback to trigger API call
+      console.log("updateFromAPI");
       Sefaria.text(this.props.sref, settings, this.onTextLoad);
     }
     return data;
   },
   onTextLoad: function(data) {
-    //console.log("onTextLoad in TextRange", data.ref);
+    console.log("onTextLoad in TextRange", data);
     // Initiate additional API calls when text data first loads
     if (this.props.basetext && this.props.sref !== data.ref) {
       // Replace ReaderPanel contents ref with the normalized form of the ref, if they differ.
@@ -6254,6 +6257,7 @@ var TextRange = React.createClass({
       this.placeSegmentNumbers();
   },
   render: function() {
+
     var data = this.getText();
     if (data && this.props.basetext) {
       var ref              = this.props.withContext ? data.sectionRef : data.ref;
@@ -9759,8 +9763,6 @@ var setData = function(data) {
   Sefaria.is_moderator      = data.is_moderator;
   Sefaria.is_editor         = data.is_editor;
 };
-
-
 
 
 
