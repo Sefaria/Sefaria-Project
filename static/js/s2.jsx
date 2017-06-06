@@ -1056,14 +1056,14 @@ var ReaderApp = React.createClass({
     }
     this.setState(state);
   },
-  showLibrary: function() {
+  showLibrary: function(categories) {
     if (this.props.multiPanel) {
-      this.setState({header: this.makePanelState({mode: "Header", menuOpen: "navigation"})});
+      this.setState({header: this.makePanelState({mode: "Header", menuOpen: "navigation", navigationCategories: categories})});
     } else {
       if (this.state.panels.length) {
         this.state.panels[0].menuOpen = "navigation";
       } else {
-        this.state.panels[0] = this.makePanelState({menuOpen: "navigation"});
+        this.state.panels[0] = this.makePanelState({menuOpen: "navigation", navigationCategories: categories});
       }
       this.setState({panels: this.state.panels});
     }
@@ -1181,7 +1181,7 @@ var ReaderApp = React.createClass({
       var onSearchResultClick      = this.props.multiPanel ? this.handleCompareSearchClick.bind(null, i) : this.handleNavigationClick;
       var onTextListClick          = null; // this.openPanelAt.bind(null, i);
       var onOpenConnectionsClick   = this.openTextListAt.bind(null, i+1);
-      var setTextListHighlight    = this.setTextListHighlight.bind(null, i);
+      var setTextListHighlight     = this.setTextListHighlight.bind(null, i);
       var setSelectedWords         = this.setSelectedWords.bind(null, i);
       var openComparePanel         = this.openComparePanel.bind(null, i);
       var closePanel               = this.closePanel.bind(null, i);
@@ -1304,29 +1304,25 @@ var Header = React.createClass({
     } );
     $(ReactDOM.findDOMNode(this)).find("input.search").sefaria_autocomplete({
       position: {my: "left-12 top+14", at: "left bottom"},
+      minLength: 3,
       select: function( event, ui ) {
-        $(ReactDOM.findDOMNode(this)).find("input.search").val(ui.item.value);  //This will disappear when the next line executes, but the eye can sometimes catch it.
+        $(ReactDOM.findDOMNode(this)).find("input.search").val(ui.item.value);  // This will disappear when the next line executes, but the eye can sometimes catch it.
         this.submitSearch(ui.item.value);
         return false;
       }.bind(this),
-      source: function( request, response ) {
-        // Commented out code will only put the "Search for: " in the list if the search is an exact match.
-        //var exact = false;
-        var matches = $.map( Sefaria.books, function(tag) {
-            if ( tag.toUpperCase().indexOf(request.term.toUpperCase()) === 0 ) {
-              //if (tag.toUpperCase() == request.term.toUpperCase()) {
-              //  exact = true;
-              //}
-              return tag;
-            }
-          });
-        var resp = matches.slice(0, 16); // limits return to 16 items
-        //if (exact) {
-        if (resp.length > 0) {
-          resp.push(`${this._searchOverridePre}${request.term}${this._searchOverridePost}`);
-        }
-        //}
-        response(resp);
+
+      source: function(request, response) {
+        Sefaria.lookup(
+            request.term,
+            d => {
+              if (d["completions"].length > 0) {
+                response(d["completions"].concat([`${this._searchOverridePre}${request.term}${this._searchOverridePost}`]))
+              } else {
+                response([])
+              }
+            },
+            e => response([])
+        );
       }.bind(this)
     });
   },
@@ -1349,11 +1345,12 @@ var Header = React.createClass({
     this.props.setCentralState({menuOpen: null});
     this.clearSearchBox();      
   },
-  showLibrary: function() {
-    this.props.showLibrary();
+  showLibrary: function(categories) {
+    this.props.showLibrary(categories);
     this.clearSearchBox();
   },
   showSearch: function(query) {
+    query = query.trim();
     if (typeof sjs !== "undefined") {
       query = encodeURIComponent(query);
       window.location = `/search?q=${query}`;
@@ -1395,10 +1392,7 @@ var Header = React.createClass({
   hideTestMessage: function() { 
     this.props.setCentralState({showTestMessage: false});
   },
-  submitSearch: function(query, skipNormalization, originalQuery) {
-    // originalQuery is used to handle an edge case - when a varient of a commentator name is passed - e.g. "Rasag".
-    // the name gets normalized, but is ultimately not a ref, so becomes a regular search.
-    // We want to search for the original query, not the normalized name
+  submitSearch: function(query) {
     var override = query.match(this._searchOverrideRegex());
     if (override) {
       if (Sefaria.site) { Sefaria.site.track.event("Search", "Search Box Navigation - Book Override", override[1]); }
@@ -1407,33 +1401,42 @@ var Header = React.createClass({
       return;
     }
 
-    var index;
-    var normal_query = query.trim().toFirstCapital();
-    if (normal_query in Sefaria.booksDict) {
-      index = Sefaria.index(normal_query);
-      if (!index && !skipNormalization) {
-        Sefaria.normalizeTitle(query, function(title) {
-          this.submitSearch(title, true, query)
-        }.bind(this));
+    Sefaria.lookup(query, function(d) {
+      // If the query isn't recognized as a ref, but only for reasons of capitalization. Resubmit with recognizable caps.
+      if (Sefaria.isACaseVariant(query, d)) {
+        this.submitSearch(Sefaria.repairCaseVariant(query, d));
         return;
       }
-    }
-    if (Sefaria.isRef(normal_query)) {
-      var action = index? "Search Box Navigation - Book": "Search Box Navigation - Citation";
-      if (Sefaria.site) { Sefaria.site.track.event("Search", action, query); }
-      this.clearSearchBox();
-      this.handleRefClick(normal_query);  //todo: pass an onError function through here to the panel onError function which redirects to search
-    } else {
-      if (Sefaria.site) { Sefaria.site.track.event("Search", "Search Box Search", query); }
-      this.closeSearchAutocomplete();
-      this.showSearch(originalQuery || query);
-    }
+
+      if (d["is_ref"]) {
+        var action = d["is_book"] ? "Search Box Navigation - Book" : "Search Box Navigation - Citation";
+        Sefaria.site.track.event("Search", action, query);
+        this.clearSearchBox();
+        this.handleRefClick(d["ref"]);  //todo: pass an onError function through here to the panel onError function which redirects to search
+      } else if (d["type"] == "Person") {
+        Sefaria.site.track.event("Search", "Search Box Navigation - Person", query);
+        this.closeSearchAutocomplete();
+        this.showPerson(d["key"]);
+      } else if (d["type"] == "TocCategory") {
+        Sefaria.site.track.event("Search", "Search Box Navigation - Category", query);
+        this.closeSearchAutocomplete();
+        this.showLibrary(d["key"]);  // "key" holds the category path 
+      } else {
+        Sefaria.site.track.event("Search", "Search Box Search", query);
+        this.closeSearchAutocomplete();
+        this.showSearch(query);
+      }
+    }.bind(this));
   },
   closeSearchAutocomplete: function() {
     $(ReactDOM.findDOMNode(this)).find("input.search").sefaria_autocomplete("close");
   },
   clearSearchBox: function() {
     $(ReactDOM.findDOMNode(this)).find("input.search").val("").sefaria_autocomplete("close");
+  },
+  showPerson: function(key) {
+    //todo: move people into React
+    window.location = "/person/" + key;
   },
   handleLibraryClick: function(e) {
     e.preventDefault();
@@ -1448,6 +1451,8 @@ var Header = React.createClass({
     } else {
       this.showLibrary();
     }
+    $(".wrapper").remove();
+    $("#footer").remove();
   },
   handleRefClick: function(ref, version, versionLanguage) {
     if (this.props.headerMode) {
@@ -1519,6 +1524,7 @@ var Header = React.createClass({
                     <div  className="searchBox">
                       <ReaderNavigationMenuSearchButton onClick={this.handleSearchButtonClick} />
                       <input className={"search"+ vkClassActivator}
+                             id="searchInput"
                              placeholder={langSearchPlaceholder}
                              onKeyUp={this.handleSearchKeyUp}
                              onFocus={this.showVirtualKeyboardIcon.bind(this, true)}
@@ -2375,28 +2381,32 @@ var ReaderDisplayOptionsMenu = React.createClass({
   },
   render: function() {
     var languageOptions = [
-      {name: "english",   content: "<span class='en'>A</span>" },
-      {name: "bilingual", content: "<span class='en'>A</span><span class='he'>א</span>" },
-      {name: "hebrew",    content: "<span class='he'>א</span>" }
+      {name: "english",   content: "<span class='en'>A</span>", role: "radio", ariaLabel: "Show English Text" },
+      {name: "bilingual", content: "<span class='en'>A</span><span class='he'>א</span>", role: "radio", ariaLabel: "Show English & Hebrew Text" },
+      {name: "hebrew",    content: "<span class='he'>א</span>", role: "radio", ariaLabel: "Show Hebrew Text" }
     ];
     var languageToggle = (
         <ToggleSet
+          role="radiogroup"
+          ariaLabel="Language toggle"
           name="language"
           options={languageOptions}
           setOption={this.props.setOption}
           settings={this.props.settings} />);
     
     var layoutOptions = [
-      {name: "continuous", fa: "align-justify" },
-      {name: "segmented", fa: "align-left" },
+      {name: "continuous", fa: "align-justify", role: "radio", ariaLabel: "Show Text as a paragram" },
+      {name: "segmented", fa: "align-left", role: "radio", ariaLabel: "Show Text segmented" },
     ];
     var biLayoutOptions = [
-      {name: "stacked", content: "<img src='/static/img/stacked.png' alt='Stacked Language Toggle'/>"},
-      {name: "heLeft", content: "<img src='/static/img/backs.png' alt='Hebrew Left Toggle' />"},
-      {name: "heRight", content: "<img src='/static/img/faces.png' alt='Hebrew Right Toggle' />"}
+      {name: "stacked", content: "<img src='/static/img/stacked.png' alt='Stacked Language Toggle'/>", role: "radio", ariaLabel: "Show Hebrew & English Stacked"},
+      {name: "heLeft", content: "<img src='/static/img/backs.png' alt='Hebrew Left Toggle' />", role: "radio", ariaLabel: "Show Hebrew Text Left of English Text"},
+      {name: "heRight", content: "<img src='/static/img/faces.png' alt='Hebrew Right Toggle' />", role: "radio", ariaLabel: "Show Hebrew Text Right of English Text"}
     ];
     var layoutToggle = this.props.settings.language !== "bilingual" ? 
       (<ToggleSet
+          role="radiogroup"
+          ariaLabel="text layout toggle"
           name="layout"
           options={layoutOptions}
           setOption={this.props.setOption}
@@ -2404,6 +2414,8 @@ var ReaderDisplayOptionsMenu = React.createClass({
           settings={this.props.settings} />) : 
       (this.props.width > 500 ? 
         <ToggleSet
+          role="radiogroup"
+          ariaLabel="bidirectional text layout toggle"
           name="biLayout"
           options={biLayoutOptions}
           setOption={this.props.setOption}
@@ -2411,12 +2423,14 @@ var ReaderDisplayOptionsMenu = React.createClass({
           settings={this.props.settings} /> : null);
 
     var colorOptions = [
-      {name: "light", content: "" },
-      {name: "sepia", content: "" },
-      {name: "dark", content: "" }
+      {name: "light", content: "", role: "radio", ariaLabel: "Toggle light mode" },
+      {name: "sepia", content: "", role: "radio", ariaLabel: "Toggle sepia mode" },
+      {name: "dark", content: "", role: "radio", ariaLabel: "Toggle dark mode" }
     ];
     var colorToggle = (
         <ToggleSet
+          role="radiogroup"
+          ariaLabel="Color toggle"
           name="color"
           separated={true}
           options={colorOptions}
@@ -2425,18 +2439,20 @@ var ReaderDisplayOptionsMenu = React.createClass({
     colorToggle = this.props.multiPanel ? null : colorToggle;
 
     var sizeOptions = [
-      {name: "smaller", content: "Aa" },
-      {name: "larger", content: "Aa"  }
+      {name: "smaller", content: "Aa", role: "button", ariaLabel: "Decrease font size" },
+      {name: "larger", content: "Aa", role: "button", ariaLabel: "Increase font size"  }
     ];
     var sizeToggle = (
         <ToggleSet
+          role="group"
+          ariaLabel="Increase/Decrease Font Size Buttons"
           name="fontSize"
           options={sizeOptions}
           setOption={this.props.setOption}
           settings={this.props.settings} />);
 
     if (this.props.menuOpen === "search") {
-      return (<div className="readerOptionsPanel">
+      return (<div className="readerOptionsPanel" role="dialog" tabindex="0">
                 <div className="readerOptionsPanelInner">
                   {languageToggle}
                   <div className="line"></div>
@@ -2444,13 +2460,13 @@ var ReaderDisplayOptionsMenu = React.createClass({
                 </div>
             </div>);
     } else if (this.props.menuOpen) {
-      return (<div className="readerOptionsPanel">
+      return (<div className="readerOptionsPanel"role="dialog" tabindex="0">
                 <div className="readerOptionsPanelInner">
                   {languageToggle}
                 </div>
             </div>);
     } else {
-      return (<div className="readerOptionsPanel">
+      return (<div className="readerOptionsPanel"role="dialog" tabindex="0">
                 <div className="readerOptionsPanelInner">
                   {languageToggle}
                   {layoutToggle}
@@ -2486,7 +2502,7 @@ var ReaderNavigationMenu = React.createClass({
   getInitialState: function() {
     this.width = 1000;
     return {
-      showMore: false,
+      showMore: false
     };
   },
   componentDidMount: function() {
@@ -2695,7 +2711,7 @@ var ReaderNavigationMenu = React.createClass({
                 <ReaderNavigationMenuCloseButton onClick={this.closeNav}/>
                 <ReaderNavigationMenuSearchButton onClick={this.handleSearchButtonClick} />
                 <ReaderNavigationMenuDisplaySettingsButton onClick={this.props.openDisplaySettings} />                
-                <input className="readerSearch" title="Search for Texts or Keywords Here" placeholder="Search" onKeyUp={this.handleSearchKeyUp} />
+                <input id="searchInput" className="readerSearch" title="Search for Texts or Keywords Here" placeholder="Search" onKeyUp={this.handleSearchKeyUp} />
               </div>);
       topContent = this.props.hideNavHeader ? null : topContent;
 
@@ -3922,10 +3938,10 @@ var VersionBlock = React.createClass({
     "status"
   ],
   licenseMap: {
-    "Public Domain": "http://en.wikipedia.org/wiki/Public_domain",
-    "CC0": "http://creativecommons.org/publicdomain/zero/1.0/",
-    "CC-BY": "http://creativecommons.org/licenses/by/3.0/",
-    "CC-BY-SA": "http://creativecommons.org/licenses/by-sa/3.0/",
+    "Public Domain": "https://en.wikipedia.org/wiki/Public_domain",
+    "CC0": "https://creativecommons.org/publicdomain/zero/1.0/",
+    "CC-BY": "https://creativecommons.org/licenses/by/3.0/",
+    "CC-BY-SA": "https://creativecommons.org/licenses/by-sa/3.0/",
     "CC-BY-NC": "https://creativecommons.org/licenses/by-nc/4.0/"
   },
   openVersion: function() {
@@ -5509,7 +5525,9 @@ var ToggleSet = React.createClass({
     currentLayout: React.PropTypes.func,
     settings:      React.PropTypes.object.isRequired,
     options:       React.PropTypes.array.isRequired,
-    separated:     React.PropTypes.bool
+    separated:     React.PropTypes.bool,
+    role:          React.PropTypes.string,
+    ariaLabel:     React.PropTypes.string
   },
   render: function() {
     var classes = {toggleSet: 1, separated: this.props.separated };
@@ -5517,9 +5535,9 @@ var ToggleSet = React.createClass({
     classes = classNames(classes);
     var value = this.props.name === "layout" ? this.props.currentLayout() : this.props.settings[this.props.name];
     var width = 100.0 - (this.props.separated ? (this.props.options.length - 1) * 3 : 0);
-    var style = {width: (width/this.props.options.length) + "%"};
+    var style = {width: (width/this.props.options.length) + "%", outline: "none"};
     return (
-      <div className={classes}>
+      <div className={classes} role={this.props.role} aria-label={this.props.ariaLabel}>
         {
           this.props.options.map(function(option) {
             return (
@@ -5527,6 +5545,8 @@ var ToggleSet = React.createClass({
                 name={option.name}
                 key={option.name}
                 set={this.props.name}
+                role={option.role}
+                ariaLable={option.ariaLabel}
                 on={value == option.name}
                 setOption={this.props.setOption}
                 style={style}
@@ -5548,6 +5568,8 @@ var ToggleOption = React.createClass({
   },
   render: function() {
     var classes = {toggleOption: 1, on: this.props.on };
+    var tabIndexValue = this.props.on ? 0 : -1;
+    var ariaCheckedValue = this.props.on ? "true" : "false";
     classes[this.props.name] = 1;
     classes = classNames(classes);
     var content = this.props.image ? (<img src={this.props.image} alt=""/>) :
@@ -5555,6 +5577,10 @@ var ToggleOption = React.createClass({
                       (<span dangerouslySetInnerHTML={ {__html: this.props.content} }></span>);
     return (
       <div
+        role={this.props.role}
+        aria-label= {this.props.ariaLabel}
+        tabIndex = {this.props.role == "radio"? tabIndexValue : "0"}
+        aria-value = {ariaCheckedValue}
         className={classes}
         style={this.props.style}
         onClick={this.handleClick}>
@@ -5596,8 +5622,8 @@ var ReaderNavigationMenuCloseButton = React.createClass({
 
 
 var ReaderNavigationMenuDisplaySettingsButton = React.createClass({
-  render: function() { 
-    return (<div className="readerOptions" onClick={this.props.onClick}><img src="/static/img/ayealeph.svg" alt="Toggle Reader Menu Display Settings"/></div>);
+  render: function() {
+    return (<a href="#" className="readerOptions" role="button" aria-haspopup="true" onClick={this.props.onClick} onKeyPress={function(e) {e.charCode == 13 ? this.props.onClick(e):null}.bind(this)}><img src="/static/img/ayealeph.svg" alt="Toggle Reader Menu Display Settings"/></a>);
   }
 });
 
@@ -6127,70 +6153,6 @@ var TextRange = React.createClass({
     }
     this.dataPrefetched = true;
   },
-  makeSegments: function(data) {
-    // Returns a flat list of annotated segment objects,
-    // derived from the walking the text in data
-    if (!data || "error" in data) { return []; }
-    var segments  = [];
-    var highlight = data.sections.length === data.textDepth; 
-    var wrap = (typeof data.text == "string");
-    var en = wrap ? [data.text] : data.text;
-    var he = wrap ? [data.he] : data.he;
-    var topLength = Math.max(en.length, he.length);
-    en = en.pad(topLength, "");
-    he = he.pad(topLength, "");
-
-    var start = (data.textDepth == data.sections.length && !this.props.withContext ?
-                  data.sections.slice(-1)[0] : 1);
-
-    if (!data.isSpanning) {
-      for (var i = 0; i < topLength; i++) {
-        var number = i+start;
-        var delim  = data.textDepth == 1 ? " " : ":";
-        var ref = data.sectionRef + delim + number;
-        segments.push({
-          ref: ref,
-          en: en[i], 
-          he: he[i],
-          number: number,
-          highlight: highlight && number >= data.sections.slice(-1)[0] && number <= data.toSections.slice(-1)[0]
-        });
-      }      
-    } else {
-      for (var n = 0; n < topLength; n++) {
-        var en2 = typeof en[n] == "string" ? [en[n]] : en[n];
-        var he2 = typeof he[n] == "string" ? [he[n]] : he[n];
-        var length = Math.max(en2.length, he2.length);
-        en2 = en2.pad(length, "");
-        he2 = he2.pad(length, "");
-        var baseRef     = data.book;
-        var baseSection = data.sections.slice(0,-2).join(":");
-        var delim       = baseSection ? ":" : " ";
-        var baseRef     = baseSection ? baseRef + " " + baseSection : baseRef;
-
-        start = (n == 0 ? start : 1);
-        for (var i = 0; i < length; i++) {
-          var startSection = data.sections.slice(-2)[0];
-          var section = typeof startSection == "string" ?
-                        Sefaria.hebrew.intToDaf(n+Sefaria.hebrew.dafToInt(startSection))
-                        : n + startSection;
-          var number  = i + start;
-          var ref = baseRef + delim + section + ":" + number;
-          segments.push({
-            ref: ref,
-            en: en2[i], 
-            he: he2[i],
-            number: number,
-            highlight: highlight && 
-                        ((n == 0 && number >= data.sections.slice(-1)[0]) || 
-                         (n == topLength-1 && number <= data.toSections.slice(-1)[0]) ||
-                         (n > 0 && n < topLength -1))
-          });
-        }
-      }
-    }
-    return segments;
-  },
   placeSegmentNumbers: function() {
     //console.log("placeSegmentNumbers", this.props.sref);
     //debugger
@@ -6262,9 +6224,8 @@ var TextRange = React.createClass({
                               data.categories[0] !== "Liturgy";
 
     var showSegmentNumbers = showNumberLabel && this.props.basetext;
-                              
 
-    var segments = this.makeSegments(data);
+    var segments = Sefaria.makeSegments(data, this.props.withContext);
     var textSegments = segments.map(function (segment, i) {
       var highlight = this.props.highlightedRefs && this.props.highlightedRefs.length ?                                  // if highlighted refs are explicitly set
                         Sefaria.util.inArray(segment.ref, this.props.highlightedRefs) !== -1 : // highlight if this ref is in highlighted refs prop
@@ -7905,7 +7866,7 @@ var SearchBar = React.createClass({
         return (
             <div>
                 <div className="searchBox">
-                    <input className="readerSearch" title="Search for Texts or Keywords Here" value={this.state.query} onKeyPress={this.handleKeypress} onChange={this.handleChange} placeholder="Search"/>
+                    <input className="readerSearch" id="searchInput" title="Search for Texts or Keywords Here" value={this.state.query} onKeyPress={this.handleKeypress} onChange={this.handleChange} placeholder="Search"/>
                     <ReaderNavigationMenuSearchButton onClick={this.updateQuery} />
                 </div>
                 <div className="description"></div>
@@ -9555,7 +9516,8 @@ var Footer = React.createClass({
   },
   render: function(){
     var currentPath = Sefaria.util.currentPath();
-    var next = encodeURIComponent(currentPath);
+    var currentPathEncoded = encodeURIComponent(currentPath);
+    var next = currentPathEncoded ? currentPathEncoded : '?home';
     return (
         <div id="footerInner">
           <div className="section">
