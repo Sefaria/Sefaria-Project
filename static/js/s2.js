@@ -8172,8 +8172,8 @@ var ConnectionsPanel = React.createClass({
   },
   render: function render() {
     var content = null;
-    var data = Sefaria.related(this.props.srefs);
-    if (!data) {
+    var loaded = Sefaria.linksLoaded(this.props.srefs);
+    if (!loaded) {
       content = React.createElement(LoadingMessage, null);
     } else if (this.props.mode == "Resources") {
       var sheetsCount = Sefaria.sheets.sheetsTotalCount(this.props.srefs);
@@ -8785,7 +8785,7 @@ var TextList = React.createClass({
   },
   getInitialState: function getInitialState() {
     return {
-      linksLoaded: false, // has the list of refs been load
+      linksLoaded: false, // has the list of refs been loaded
       textLoaded: false, // has the text of those refs been loaded
       waitForText: false };
   },
@@ -8927,14 +8927,6 @@ var TextList = React.createClass({
     var sectionRef = this.getSectionRef();
     var isSingleCommentary = filter.length == 1 && Sefaria.index(filter[0]) && Sefaria.index(filter[0]).categories[0] == "Commentary";
 
-    var en = "No connections known" + (filter.length ? " for " + filter.join(", ") : "") + ".";
-    var he = "אין קשרים ידועים" + (filter.length ? " ל" + filter.map(function (f) {
-      return Sefaria.hebrewTerm(f);
-    }).join(", ") : "") + ".";
-    var loaded = Sefaria.linksLoaded(sectionRef);
-    var noResultsMessage = React.createElement(LoadingMessage, { message: en, heMessage: he });
-    var message = !loaded ? React.createElement(LoadingMessage, null) : summary.length === 0 ? noResultsMessage : null;
-
     var sortConnections = function (a, b) {
       if (a.anchorVerse !== b.anchorVerse) {
         return a.anchorVerse - b.anchorVerse;
@@ -8962,7 +8954,12 @@ var TextList = React.createClass({
       return filter.length == 0 || Sefaria.util.inArray(link.category, filter) !== -1 || Sefaria.util.inArray(link.collectiveTitle["en"], filter) !== -1;
     }.bind(this)).sort(sortConnections);
 
-    var message = !loaded ? React.createElement(LoadingMessage, null) : links.length === 0 ? noResultsMessage : null;
+    var en = "No connections known" + (filter.length ? " for " + filter.join(", ") : "") + ".";
+    var he = "אין קשרים ידועים" + (filter.length ? " ל" + filter.map(function (f) {
+      return Sefaria.hebrewTerm(f);
+    }).join(", ") : "") + ".";
+    var noResultsMessage = React.createElement(LoadingMessage, { message: en, heMessage: he });
+    var message = !this.state.linksLoaded ? React.createElement(LoadingMessage, null) : links.length === 0 ? noResultsMessage : null;
     var content = links.length == 0 ? message : this.state.waitForText && !this.state.textLoaded ? React.createElement(LoadingMessage, null) : links.map(function (link, i) {
       var hideTitle = link.category === "Commentary" && this.props.filter[0] !== "Commentary";
       return React.createElement(TextRange, {

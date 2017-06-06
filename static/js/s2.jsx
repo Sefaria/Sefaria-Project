@@ -6470,8 +6470,8 @@ var ConnectionsPanel = React.createClass({
   },
   render: function() {
     var content = null;
-    var data = Sefaria.related(this.props.srefs);
-    if (!data) {
+    var loaded = Sefaria.linksLoaded(this.props.srefs);
+    if (!loaded) {
       content = <LoadingMessage />;
     } else if (this.props.mode == "Resources") {
       var sheetsCount = Sefaria.sheets.sheetsTotalCount(this.props.srefs);
@@ -6950,7 +6950,7 @@ var TextList = React.createClass({
   },
   getInitialState: function() {
     return {
-      linksLoaded: false, // has the list of refs been load
+      linksLoaded: false, // has the list of refs been loaded
       textLoaded: false,  // has the text of those refs been loaded
       waitForText: false, // should we delay rendering texts until preload is finished
     }
@@ -7091,12 +7091,6 @@ var TextList = React.createClass({
     var filter             = this.props.filter;
     var sectionRef         = this.getSectionRef();
     var isSingleCommentary = (filter.length == 1 && Sefaria.index(filter[0]) && Sefaria.index(filter[0]).categories[0] == "Commentary");
-
-    var en = "No connections known" + (filter.length ? " for " + filter.join(", ") : "") + ".";
-    var he = "אין קשרים ידועים"       + (filter.length ? " ל"    + filter.map(f => Sefaria.hebrewTerm(f)).join(", ") : "") + ".";
-    var loaded  = Sefaria.linksLoaded(sectionRef);
-    var noResultsMessage = <LoadingMessage message={en} heMessage={he} />;
-    var message = !loaded ? (<LoadingMessage />) : (summary.length === 0 ? noResultsMessage : null);
     
     var sortConnections = function(a, b) {
       if (a.anchorVerse !== b.anchorVerse) {
@@ -7128,7 +7122,10 @@ var TextList = React.createClass({
 
     }.bind(this)).sort(sortConnections);
 
-    var message = !loaded ? (<LoadingMessage />) : (links.length === 0 ? noResultsMessage : null);
+    var en = "No connections known" + (filter.length ? " for " + filter.join(", ") : "") + ".";
+    var he = "אין קשרים ידועים"        + (filter.length ? " ל"    + filter.map(f => Sefaria.hebrewTerm(f)).join(", ") : "") + ".";
+    var noResultsMessage = <LoadingMessage message={en} heMessage={he} />;
+    var message = !this.state.linksLoaded ? (<LoadingMessage />) : (links.length === 0 ? noResultsMessage : null);
     var content = links.length == 0 ? message :
                   this.state.waitForText && !this.state.textLoaded ? 
                     (<LoadingMessage />) : 
