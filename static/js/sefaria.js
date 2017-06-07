@@ -108,6 +108,11 @@ Sefaria = extend(Sefaria, {
       return ref;
   },
   normRef: function(ref) {
+      // Returns a string of the URL normalized form of `ref` (using _ for spaces and . for section seprator).
+      // `ref` may be a string, or an array of strings. If ref is an array of strings, it is passed to normRefList.
+      if (ref instanceof Array) {
+        return Sefaria.normRefList(ref);
+      }
       var norm = Sefaria.makeRef(Sefaria.parseRef(ref));
       if (typeof norm == "object" && "error" in norm) {
           // If the ref doesn't parse, just replace spaces with undescores.
@@ -116,6 +121,9 @@ Sefaria = extend(Sefaria, {
       return norm;
   },
   humanRef: function(ref) {
+      // Returns a string of the normalized form of `ref`.
+      // `ref` may be a string, or an array of strings. If ref is an array of strings, it is passed to normRefList.
+      ref = Sefaria.normRef(ref);
       var pRef = Sefaria.parseRef(ref);
       if (pRef.sections.length == 0) { return pRef.book; }
       var book = pRef.book + " ";
@@ -579,13 +587,14 @@ Sefaria = extend(Sefaria, {
     // When processing links for "Genesis 2:4-4:4", a link to the entire chapter "Genesis 3" will be split and stored with that key.
     // The data for "Genesis 3" then represents only links to the entire chapter, not all links within the chapter.
     // Fixing this generally on the client side requires more understanding of ref logic. 
+    ref = Sefaria.humanRef(ref);
     if (!cb) {
       return this._links[ref] || [];
     }
     if (ref in this._links) {
       cb(this._links[ref]);
     } else {
-       var url = "/api/links/" + Sefaria.normRef(ref) + "?with_text=0";
+       var url = "/api/links/" + ref + "?with_text=0";
        this._api(url, function(data) {
           if ("error" in data) { 
             return;
@@ -647,7 +656,7 @@ Sefaria = extend(Sefaria, {
       return ref in this._links;
     } else {
       for (var i = 0; i < ref.length; i++) {
-        if (!this.linksLoaded(ref[i])) { return false}
+        if (!this.linksLoaded(ref[i])) { return false; }
       }
       return true;
     }
@@ -669,9 +678,11 @@ Sefaria = extend(Sefaria, {
   _linkSummaries: {},
   linkSummary: function(ref) {
     // Returns an ordered array summarizing the link counts by category and text
-    // Takes either a single string `ref` or an array of string refs.
+    // Takes either a single string `ref` or an array of refs strings.
+    
+    var normRef = Sefaria.humanRef(ref);
+    if (normRef in this._linkSummaries) { return this._linkSummaries[normRef]; }
     if (typeof ref == "string") {
-      if (ref in this._linkSummaries) { return this._linkSummaries[ref]; }
       var links = this.links(ref);
     } else {
       var links = [];
@@ -745,6 +756,7 @@ Sefaria = extend(Sefaria, {
       orderB = orderB == -1 ? categoryOrder.length : orderB;
       return orderA - orderB;
     });
+    Sefaria._linkSummaries[Sefaria.humanRef(ref)] = summaryList;
     return summaryList;
   },
   linkSummaryBookSort: function(category, a, b, byHebrew) {
@@ -787,7 +799,7 @@ Sefaria = extend(Sefaria, {
   commentarySectionRef: function(commentator, baseRef) {
     // Given a commentator name and a baseRef, return a ref to the commentary which spans the entire baseRef
     // E.g. ("Rashi", "Genesis 3") -> "Rashi on Genesis 3"
-    // Works by examing links available on baseRef
+    // Works by examining links available on baseRef, returns null if no links are in cache. 
     var links = Sefaria.links(baseRef);
     links = Sefaria._filterLinks(links, [commentator]);
     if (!links || !links.length) { return null; }
@@ -913,13 +925,15 @@ Sefaria = extend(Sefaria, {
   _related: {},
   related: function(ref, callback) {
     // Single API to bundle public links, sheets, and notes by ref.
+    // `ref` may be either a string or an array of consecutive ref strings.
+    ref = Sefaria.normRef(ref);
     if (!callback) {
       return this._related[ref] || null;
     }
     if (ref in this._related) {
       callback(this._related[ref]);
     } else {
-       var url = "/api/related/" + Sefaria.normRef(ref);
+       var url = "/api/related/" + ref;
        this._api(url, function(data) {
           if ("error" in data) { 
             return;
@@ -956,14 +970,16 @@ Sefaria = extend(Sefaria, {
   _relatedPrivate: {},
   relatedPrivate: function(ref, callback) {
     // Single API to bundle private user sheets and notes by ref.
+    // `ref` may be either a string or an array of consecutive ref strings.
     // Separated from public content so that public content can be cached
+    ref = Sefaria.normRef(ref);
     if (!callback) {
       return this._relatedPrivate[ref] || null;
     }
     if (ref in this._relatedPrivate) {
       callback(this._relatedPrivate[ref]);
     } else {
-       var url = "/api/related/" + Sefaria.normRef(ref) + "?private=1";
+       var url = "/api/related/" + ref + "?private=1";
        this._api(url, function(data) {
           if ("error" in data) { 
             return;
