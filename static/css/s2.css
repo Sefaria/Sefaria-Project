@@ -1567,9 +1567,11 @@ a.readerNavCategory {
 .searchContent .searchFilterToggle .he {
   font-family: "Open Sans Hebrew", sans-serif;
 }
-.searchContent .searchFilterToggle i {
-  color: #999;
+.searchContent .searchFilterToggle img {
+  opacity: 0.43;
   padding-left: 5px;
+  height: 10px;
+  width: 10px;
 }
 .interface-hebrew .searchContent .searchFilterToggle i {
   padding-left: 0;

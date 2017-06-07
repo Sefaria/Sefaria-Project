@@ -8682,7 +8682,7 @@ var SearchFilterPanel = React.createClass({
       <div className="searchFilterToggle" onClick={this.props.toggleFilterView}>
         <span className="int-en">Filter</span>
         <span className="int-he">סינון</span>
-        <i className={(this.props.displayFilters) ? "fa fa-caret-down fa-angle-down":"fa fa-caret-down"} />
+        {(this.props.displayFilters) ? <img src="/static/img/arrow-up.png" alt=""/> : <img src="/static/img/arrow-down.png" alt=""/>}
       </div>
       <div className={(this.props.displayFilters) ? "searchFilterBoxes":"searchFilterBoxes hidden"}>
         <div className="searchFilterBoxRow">
@@ -8751,6 +8751,7 @@ var SearchSortBox = React.createClass({
     }
     this.props.toggleSortView();
   },
+  //<i className={(this.props.visible) ? "fa fa-caret-down fa-angle-down":"fa fa-caret-down fa-angle-up"} />
   render: function() {
     var chronoClass = classNames({'filter-title': 1, 'unselected': this.props.sortType !== "chronological"});
     var releClass = classNames({'filter-title': 1, 'unselected': this.props.sortType !== "relevance"});
@@ -8758,7 +8759,8 @@ var SearchSortBox = React.createClass({
       <div className="searchFilterToggle" onClick={this.props.toggleSortView}>
         <span className="int-en">Sort</span>
         <span className="int-he">מיון</span>
-        <i className={(this.props.visible) ? "fa fa-caret-down fa-angle-down":"fa fa-caret-down"} />
+        {(this.props.visible) ? <img src="/static/img/arrow-up.png" alt=""/> : <img src="/static/img/arrow-down.png" alt=""/>}
+
       </div>
       <div className={(this.props.visible) ? "searchSortBox":"searchSortBox hidden"}>
         <li onClick={()=>this.handleClick("chronological")}>
