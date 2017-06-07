@@ -6375,7 +6375,7 @@ var TextSegment = React.createClass({
       var minOpacity = 20, maxOpacity = 70;
       var linkScore = linkCount ? Math.min(linkCount+minOpacity, maxOpacity) / 100.0 : 0;
       var style = {opacity: linkScore};
-      linkCountElement = this.props.showLinkCount ? (<div className="linkCount sans">
+      linkCountElement = this.props.showLinkCount ? (<div className="linkCount sans" title={linkCount + " Connections Available"}>
                                                     <span className="en"><span className="linkCountDot" style={style}></span></span>
                                                     <span className="he"><span className="linkCountDot" style={style}></span></span>
                                                   </div>) : null;      

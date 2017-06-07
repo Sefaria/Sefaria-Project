@@ -78,6 +78,7 @@ $(function() {
 	function makeMediaEmbedLink(mediaURL) {
 	    var re = /https?:\/\/(www\.)?(youtu(?:\.be|be\.com)\/(?:.*v(?:\/|=)|(?:.*\/)?)([\w'-]+))/i;
    		var m;
+        var embedHTML;
 
 		if ((m = re.exec(mediaURL)) !== null) {
 			if (m.index === re.lastIndex) {
@@ -107,7 +108,7 @@ $(function() {
 	}
 
 	function mediaCheck(target){
-		$target = target;
+		var $target = target;
 		$target.find('audio, img').last()
 	    .on('error', function() {
 	    	$target.parent().remove();
@@ -135,7 +136,7 @@ $(function() {
 		Sefaria.lookupRef(ref, function(q) {
             addSource(q, undefined, "insert", $target);
             $('#inlineAdd').val('');
-            $("#inlineTextPreview").remove();
+            $("#inlineTextPreview").html("");
             $("#inlineAddDialogTitle").text("Select a text");
             $("#inlineAddSourceOK").addClass("disabled");
             $("#sheet").click();
@@ -143,47 +144,55 @@ $(function() {
 		sjs.track.sheets("Add Source", ref);
 	});
 
-    var RefValidator = function($input, $msg, $ok, success) {
+    var RefValidator = function($input, $msg, $ok, $preview) {
         /** Replacement for utils.js:sjs.checkref that uses only new tools.
          * Instantiated as an object, and then invoked with `check` method
          * Allows section and segment level references.
          * $input - input element
          * $msg - status message element
          * $ok - Ok button element
-         * success -- a function to call when a valid ref has been found
+         * $preview - Text preview box
 
          * example usage:
 
-         var validator = new RefValidator($("#inlineAdd"), $("#inlineAddDialogTitle"), $("#inlineAddSourceOK"), inlineAddSourcePreview);
-         $("#inlineAdd").keyup(validator.check.bind(validator))
+         new RefValidator($("#inlineAdd"), $("#inlineAddDialogTitle"), $("#inlineAddSourceOK"), $("#preview"));
 
+         As currently designed, the object is instanciated, and sets up its own events.
+         It doesn't need to be interacted with from the outside.
          */
 
         this.$input = $input;
         this.$msg = $msg;
         this.$ok = $ok;
-        this.success = success;
+        this.$preview = $preview;
 
         // We want completion messages to be somewhat sticky.
         // This records the string used to build the current message.
         this.completion_message_base = undefined;
         // And the current message
         this.completion_message = "";
+
+        this.current_lookup_ajax = null;
+
+        this.$input
+            .on("input", this.check.bind(this))
+            .keyup(function(e) {
+                  if (e.keyCode == 13) {
+                      if (!this.$ok.hasClass('disabled')) { this.$ok.trigger("click"); }
+                  }
+                }.bind(this))
+            .autocomplete({
+                source: function(request, response) {
+                  Sefaria.lookupRef(
+                      request.term,
+                      function (d) { response(d["completions"]); }
+                  );
+                },
+                minLength: 3
+            });
     };
 
     RefValidator.prototype = {
-      _allow: function(inString, ref) {
-        if (inString != this.$input.val()) {
-          // Ref was corrected (likely for capitalization)
-          this.$input.val(inString);
-        }
-        this.$ok.removeClass("inactive").removeClass("disabled");
-        this.$input.autocomplete("disable");
-        this.success(ref);
-      },
-      _disallow: function() {
-        this.$ok.addClass("inactive").addClass("disabled");
-      },
       _sectionListString: function(arr, lang) {
           //Put together an "A, B, and C" type string from [A,B,C]
           //arr - array of strings
@@ -253,9 +262,13 @@ $(function() {
           return return_message;
       },
       _lookupAndRoute: function(inString) {
-          Sefaria.lookupRef(
+          if (this.current_lookup_ajax) {this.current_lookup_ajax.abort();}
+          this.current_lookup_ajax = Sefaria.lookupRef(
             inString,
             function(data) {
+              // If this query has been outpaced by typing, just return.
+              if (this.$input.val() != inString) { return; }
+
               // If the query isn't recognized as a ref, but only for reasons of capitalization. Resubmit with recognizable caps.
               if (Sefaria.isACaseVariant(inString, data)) {
                 this._lookupAndRoute(Sefaria.repairCaseVariant(inString, data));
@@ -272,75 +285,58 @@ $(function() {
             }.bind(this)
           );
       },
-      check: function() {
-          $("#inlineTextPreview").remove();
-          var inString = this.$input.val();
-          if (inString.length < 3) {
-              this._disallow();
-              return;
-          }
-
-          this._lookupAndRoute(inString);
-      }
-
-    };
-
-	$("#inlineAdd").autocomplete({ 
-        source: function(request, response) {
-            Sefaria.lookupRef(
-                request.term,
-                function (d) { response(d["completions"]); }
-            );
-        },
-        minLength: 3
-    });
-    var validator = new RefValidator($("#inlineAdd"), $("#inlineAddDialogTitle"), $("#inlineAddSourceOK"), inlineAddSourcePreview);
-
-	$("#inlineAdd").keyup(validator.check.bind(validator))
-		.keyup(function(e) {
-      $("#inlineAdd").autocomplete("enable");
-		if (e.keyCode == 13) {
-			if (!$("#inlineAddSourceOK").hasClass('disabled')) {
-				$("#inlineAddSourceOK").trigger("click");
-			} else if ($("#inlineAddDialogTitle").text() === "Unknown text. Would you like to add it?") {
-				var path = parseURL(document.URL).path;
-				window.location = "/add/textinfo/" + $("#add").val().replace(/ /g, "_") + "?after=" + path;
-			}
-		}
-	});
-
-
-    function preview_segment_mapper(lang, s) {
+      _allow: function(inString, ref) {
+        if (inString != this.$input.val()) {
+          // Ref was corrected (likely for capitalization)
+          this.$input.val(inString);
+        }
+        this.$ok.removeClass("inactive").removeClass("disabled");
+        this.$input.autocomplete("disable");
+        this._inlineAddSourcePreview(inString, ref);
+      },
+      _disallow: function() {
+        this.$ok.addClass("inactive").addClass("disabled");
+      },
+      _preview_segment_mapper: function(lang, s) {
         return (s[lang])?
             ("<div class='previewLine'><span class='previewNumber'>(" + (s.number) + ")</span> " + s[lang] + "</div> "):
             "";
-    }
-    function inlineAddSourcePreview(ref) {
-        var $target = $("#inlineTextPreview");
-        var $title = $("#inlineAddDialogTitle");
-        
-        if (!$target.length) { $("body").append("<div id='inlineTextPreview'></div>"); $target = $("#inlineTextPreview");}
-
+      },
+      _inlineAddSourcePreview: function(inString, ref) {
         Sefaria.text(ref, {}, function (data) {
+            if (this.$input.val() != inString) { return; }
+
             var segments = Sefaria.makeSegments(data);
-            var en = segments.map(preview_segment_mapper.bind(this, "en")).filter(Boolean);
-            var he = segments.map(preview_segment_mapper.bind(this, "he")).filter(Boolean);
+            var en = segments.map(this._preview_segment_mapper.bind(this, "en")).filter(Boolean);
+            var he = segments.map(this._preview_segment_mapper.bind(this, "he")).filter(Boolean);
 
             // Handle missing text cases
             var path = parseURL(document.URL).path;
             if (!en.length) { en.push("<div class='previewNoText'><a href='/add/" + normRef(ref) + "?after=" + path + "' class='btn'>Add English for " + ref + "</a></div>"); }
             if (!he.length) { he.push("<div class='previewNoText'><a href='/add/" + normRef(ref) + "?after=" + path + "' class='btn'>Add Hebrew for " + ref + "</a></div>"); }
-            if (!en.length && !he.length) {$title.html("<i>No text available. Click below to add this text.</i>");}
+            if (!en.length && !he.length) {this.$msg.html("<i>No text available. Click below to add this text.</i>");}
 
             // Set it on the DOM
-            $("#inlineAdd").autocomplete("disable");
-            $target.html("<div class='en'>" + en.join("") + "</div>" + "<div class='he'>" + he.join("") + "</div>");
-            $target.position({my: "left top", at: "left bottom", of: $("#inlineAdd"), collision: "none" }).width('691px').css('margin-top','20px');
+            this.$input.autocomplete("disable");
+            this.$preview.html("<div class='en'>" + en.join("") + "</div>" + "<div class='he'>" + he.join("") + "</div>");
+            this.$preview.position({my: "left top", at: "left bottom", of: this.$input, collision: "none" }).width('691px').css('margin-top','20px');
+        }.bind(this));
+      },
+      check: function() {
+          this.$preview.html("");
+          this.$input.autocomplete("enable");
+          var inString = this.$input.val();
+          if (inString.length < 3) {
+              this._disallow();
+              return;
+          }
+          this._lookupAndRoute(inString);
+      }
+    };
 
-        });
-    }
-    
-
+    // As currently designed, the object is instanciated, and sets up its own events.
+    // It doesn't need to be interacted with from the outside.
+    var validator = new RefValidator($("#inlineAdd"), $("#inlineAddDialogTitle"), $("#inlineAddSourceOK"), $("#inlineTextPreview"));
 
 
 	// Printing
@@ -352,7 +348,7 @@ $(function() {
 
 	// General Options 
 	$("#options .optionItem,#formatMenu .optionItem, #assignmentsModal .optionItem").click(function() {
-		$check = $(".fa-check", $(this));
+		var $check = $(".fa-check", $(this));
 		if ($check.hasClass("hidden")) {
 			$("#sheet").addClass($(this).attr("id"));
 			$check.removeClass("hidden");
@@ -1171,7 +1167,7 @@ $(function() {
 
 			$("#addInterface").on("click", ".buttonBar .addInterfaceButton", function (e) {
 				$("#addInterface .addInterfaceButton").removeClass('active');
-				$("#inlineTextPreview").remove();
+				$("#inlineTextPreview").html("");
 				$(this).addClass('active');
 				var divToShow = "#add" + ($(this).attr('id').replace('Button', '')) + "Div";
 				$(".contentDiv > div").hide();
@@ -1592,7 +1588,7 @@ $(function() {
 
 	// Reset Source Text 
 	$(".resetSource").live("click", function() { 
-		options = {
+		var options = {
 			message: "Reset text of Hebrew, English or both?<br><small>Any edits you have made to this source will be lost.</small>",
 			options: ["Hebrew", "English", "Both"]
 		};
@@ -1699,7 +1695,7 @@ $(function() {
 						$("#sharingType").data("sharing", "privateEdit");
 						break;
 
-				};
+				}
 			}
 			else {
 
@@ -1735,11 +1731,8 @@ $(function() {
 						$("#sharingDesc").html('Anyone in <span class="groupName">your group</span> can make any change to your source sheet.<br/><br/>Please be advised: There is no way to track or undo changes made by other editors, including deletions.<br/>Consider making a copy of this source sheet before allowing anyone to edit.');
 						break;
 
-				};
-
-
+				}
 			}
-
 	}
 
 	$("#sourceSheetShareSelect").change(function() {
@@ -2155,7 +2148,7 @@ $(function() {
 
 		var type = $(this).hasClass("addCommentary") ? "Commentary": null;
 
-		sjs.alert.saving("Looking up Connections...")
+		sjs.alert.saving("Looking up Connections...");
 
 		$.getJSON("/api/texts/" + ref + "?context=0&pad=0", function(data) {
 			sjs.alert.clear();
@@ -2208,7 +2201,7 @@ $(function() {
 						buildSource($target, source, "insert");
 						count++;
 					}
-					var msg = count == 1 ? "1 Source Added." : count + " Sources Added."
+					var msg = count == 1 ? "1 Source Added." : count + " Sources Added.";
 					sjs.alert.message(msg);
 					autoSave();
 				});
@@ -2297,7 +2290,7 @@ if( navigator.userAgent.match(/iPhone|iPad|iPod/i) ) {
 		.on('focus', '.cke_editable_inline', function(e) {
 			// Position sheetsEditNavTop absolute and bump it down to the scrollPosition
 			$('.sheetsEditNavTop').css({
-				marginTop: $(window).scrollTop()-54 + 'px',
+				marginTop: $(window).scrollTop()-54 + 'px'
 			});
 			$(document).scroll(updateSheetsEditNavTopPosOnScroll);
 		})
@@ -2377,7 +2370,7 @@ function addSource(q, source, appendOrInsert, $target) {
 
 	else if (appendOrInsert == "insert") {
 		$listTarget.after(newsource);
-		var $target = $listTarget.next(".sheetItem")
+		var $target = $listTarget.next(".sheetItem");
 	}
 
 	setSourceNumbers();
@@ -2396,7 +2389,7 @@ function addSource(q, source, appendOrInsert, $target) {
 }
 
 function placed_segment_mapper(lang, segmented, includeNumbers, s) {
-    if (!s[lang]) {return ""};
+    if (!s[lang]) {return ""}
 
     var numStr = "";
     if (includeNumbers) {
@@ -2610,7 +2603,7 @@ function readSources($target) {
 	$target.children().each(function() {
 		var source = readSource($(this));
 		sources.push(source);
-	})
+	});
 	return sources;
 }
 
@@ -2719,7 +2712,7 @@ function readSource($target) {
 	} else if ($target.hasClass("outsideBiWrapper")) {
 		source["outsideBiText"] = {
 			en: $target.find(".text .en").html(),
-			he: $target.find(".text .he").html(),
+			he: $target.find(".text .he").html()
 		};
 		//Set indentation level
 		if ($target.hasClass("indented-1")) {
@@ -2771,7 +2764,7 @@ function readSource($target) {
 		}
 
 		source["options"] = {
-							 indented: sourceIndentLevel
+            indented: sourceIndentLevel
 		};
 
 	}
@@ -2807,7 +2800,7 @@ function handleSave() {
 
 function autoSave() {
 	if (sjs.can_save && sjs.current.id && !sjs.loading && !sjs.openRequests) {
-		$("#lastSaved").text("Saving...")
+		$("#lastSaved").text("Saving...");
 		var sheet = readSheet();
 		saveSheet(sheet);
 	}
@@ -2829,7 +2822,7 @@ function saveSheet(sheet, reload) {
 			sjs.lastEdit = null;    // save was succesful, won't need to replay
 			startPollingIfNeeded(); // Start or stop polling if collab/group status has changed
 			promptToPublish();      // If conditions are right, prompt to publish
-			$("#lastSaved").text("All changes saved in Sefaria")
+			$("#lastSaved").text("All changes saved in Sefaria");
 		} 
 
 		if ("error" in data) {
@@ -3042,15 +3035,14 @@ function buildSource($target, source, appendOrInsert) {
 		var attributionData = attributionDataString(source.addedBy, source.isNew, "commentWrapper");
 		var commentHtml = "<div " + attributionData + " data-node='" + source.node + "'>" +
 							"<div class='comment " + (sjs.loading ? "" : "new") + "'>" + source.comment + "</div>" +
-							("userLink" in source ? "<div class='addedBy'>Added by " + source.userLink + "</div>" : "")
+							("userLink" in source ? "<div class='addedBy'>Added by " + source.userLink + "</div>" : "") +
 						  "</div>";
 
 		if ($.cookie("s2") == "true") {
 
 					var commentHtml = "<div " + attributionData + " data-node='" + source.node + "'><span class='commentIcon'><i class='fa fa-comment-o fa'></i></span>" +
 						("userLink" in source ? "<div class='addedBy s2AddedBy'>" + source.userLink + "</div>" : "")	+
-						"<div class='comment " + (isHebrew(source.comment) ? "he " : "") + (sjs.loading ? "" : "new") + " '>" + source.comment + "</div>"
-
+						"<div class='comment " + (isHebrew(source.comment) ? "he " : "") + (sjs.loading ? "" : "new") + " '>" + source.comment + "</div>" +
 						  "</div>";
 
 		}
@@ -3074,7 +3066,7 @@ function buildSource($target, source, appendOrInsert) {
 								"<div class='en'>" + source.outsideBiText.en + "</div>" + 
 								"<div class='clear'></div>" +
 							"</div>" +
-							("userLink" in source ? "<div class='addedBy'>Added by " + source.userLink + "</div>" : "")
+							("userLink" in source ? "<div class='addedBy'>Added by " + source.userLink + "</div>" : "") +
 						  "</li>";
 		outsideHtml = appendInlineAddButton(outsideHtml);
 		if (appendOrInsert == "append") {
@@ -3091,7 +3083,7 @@ function buildSource($target, source, appendOrInsert) {
 		var outsideHtml = "<li " + attributionData + " data-node='" + source.node + "'>"+ 
 							"<div class='sourceNumber he'></div><div class='sourceNumber en'></div>" + 
 							"<div class='outside " + (sjs.loading ? "" : "new ") + (isHebrew(source.outsideText.stripHtml()) ? "he" : "en") + "'>" + source.outsideText + "</div>" +
-							("userLink" in source ? "<div class='addedBy'>Added by " + source.userLink + "</div>" : "")
+							("userLink" in source ? "<div class='addedBy'>Added by " + source.userLink + "</div>" : "") +
 						  "</li>";
 		outsideHtml = appendInlineAddButton(outsideHtml);
 		if (appendOrInsert == "append") {
@@ -3127,7 +3119,7 @@ function buildSource($target, source, appendOrInsert) {
 		var outsideHtml = "<li " + attributionData + " data-node='" + source.node + "'>"+ 
 							"<div class='sourceNumber he'></div><div class='sourceNumber en'></div>" + 
 							"<div class='media " + (sjs.loading ? "" : "new") + "'>" + mediaLink + "</div>" +
-							("userLink" in source ? "<div class='addedBy'>Added by " + source.userLink + "</div>" : "")
+							("userLink" in source ? "<div class='addedBy'>Added by " + source.userLink + "</div>" : "") +
 						  "</li>";
 		outsideHtml = appendInlineAddButton(outsideHtml);
 				if (appendOrInsert == "append") {
@@ -3152,7 +3144,7 @@ function buildSource($target, source, appendOrInsert) {
 								"<div class='en'>" + source.text.en + "</div>" + 
 								"<div class='clear'></div>" +
 							"</div>" +
-							("userLink" in source ? "<div class='addedBy'>Added by " + source.userLink + "</div>" : "")
+							("userLink" in source ? "<div class='addedBy'>Added by " + source.userLink + "</div>" : "") +
 						  "</li>";
 		outsideHtml = appendInlineAddButton(outsideHtml);
 				if (appendOrInsert == "append") {
@@ -3321,7 +3313,7 @@ function startPolling() {
 	var pollChain = function() {
 		pollForUpdates();
 		sjs.pollTimer = setTimeout(pollChain, 3000)
-	}
+	};
 	sjs.pollTimer = setTimeout(pollChain, 3000);
 }
 
@@ -3363,7 +3355,7 @@ function rebuildUpdatedSheet(data) {
 	// Rebuild the current sheet and 
 	if (data.dateModified < sjs.current.dateModified) {
 		// If the update is older than the timestamp on the current sheet, ignore it
-		sjs.track.event("Sheets", "Error", "Out of sequence update request.")
+		sjs.track.event("Sheets", "Error", "Out of sequence update request.");
 		return;
 	}
 
@@ -3391,9 +3383,10 @@ function rebuildUpdatedSheet(data) {
 
 	buildSheet(data);
 	sjs.replayLastEdit();
+    var curTextLocation;
 
 	if (topMostVisibleSheetItem == null) {
-		curTextLocation = $("#sourceButton").offset().top - 200
+		curTextLocation = $("#sourceButton").offset().top - 200;
 	} else {
 		curTextLocation = $("[data-node='"+topMostVisibleSheetItem+"']").offset().top  + $("[data-node='"+topMostVisibleSheetItem+"']").height() - relativeScrollTop;
 	}
@@ -3512,7 +3505,7 @@ $("#addToSheetModal .ok").click(function(){
 			var name = data.ref ? data.ref : 
 				(data.comment ? "This comment" : "This source"); 
 			sjs.alert.message(name + ' was added to "' + title + '".<br><br>' + 
-										'<a target="_blank" href="/sheets/' + data.id + '">View sheet.</a>')
+										'<a target="_blank" href="/sheets/' + data.id + '">View sheet.</a>');
 			sjs.track.sheets("Source Copied");
 		}
 	}
@@ -3581,7 +3574,7 @@ function fillEmptyHighlighterSegments() {
 
 function toggleHighlighter() {
 	if ($("#sheet").hasClass("highlightMode")) {
-		$("#sheet").removeClass("highlightMode")
+		$("#sheet").removeClass("highlightMode");
 		$("#highlightModeDisplay").hide();
 		$("#highlightMenu").css('display','none');
 		if ($("#sources").data('ui-sortable')) {
@@ -3589,7 +3582,7 @@ function toggleHighlighter() {
 		}
 	}
 	else {
-		$("#sheet").addClass("highlightMode")
+		$("#sheet").addClass("highlightMode");
 		$("#highlightModeDisplay").show();
 		$("#highlightMenu").css('display','inline-block');
 		if ($("#sources").data('ui-sortable')) {
@@ -3613,7 +3606,7 @@ function showEmebed() {
 }
 
 function showShareModal(){
-	$("#shareWithOthers").show().position({of: window})
+	$("#shareWithOthers").show().position({of: window});
 	$("#overlay").show();
 }
 
@@ -3820,7 +3813,7 @@ function resetSplitHighlighterSegment() {
 }
 
 function injectSelectionColor(color) {
-	sel = window.getSelection();
+	var sel = window.getSelection();
 	sel.removeAllRanges();
 	$("#tempSelectOverride").remove();
   var div = $("<div />", {
@@ -3887,7 +3880,7 @@ function resetHighlighterFilterTags() {
 
  function saveSelection() {
 		if (window.getSelection) {
-				sel = window.getSelection();
+				var sel = window.getSelection();
 				if (sel.getRangeAt && sel.rangeCount) {
 						return sel.getRangeAt(0);
 				}
@@ -3900,7 +3893,7 @@ function resetHighlighterFilterTags() {
 function restoreSelection(range) {
 		if (range) {
 				if (window.getSelection) {
-						sel = window.getSelection();
+						var sel = window.getSelection();
 						sel.removeAllRanges();
 						sel.addRange(range);
 				} else if (document.selection && range.select) {

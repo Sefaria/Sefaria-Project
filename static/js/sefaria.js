@@ -496,9 +496,10 @@ Sefaria = extend(Sefaria, {
     onError = onError || function() {};
     if (name in cache) {
         callback(cache[name]);
+        return null;
     }
     else {
-        $.ajax({
+        return $.ajax({
           dataType: "json",
           url: "/api/name/" + name + (refOnly?"?ref_only=1":""), 
           error: onError,

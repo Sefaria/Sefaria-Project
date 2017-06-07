@@ -8048,7 +8048,7 @@ var TextSegment = React.createClass({
       var style = { opacity: linkScore };
       linkCountElement = this.props.showLinkCount ? React.createElement(
         'div',
-        { className: 'linkCount sans' },
+        { className: 'linkCount sans', title: linkCount + " Connections Available" },
         React.createElement(
           'span',
           { className: 'en' },
