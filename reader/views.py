@@ -1778,7 +1778,7 @@ def related_api(request, tref):
         response = {
             "links": get_links(tref, with_text=False),
             "sheets": get_sheets_for_ref(tref),
-            "notes": get_notes(oref, public=True)
+            "notes": [] # get_notes(oref, public=True) # Hiding public notes for now
         }
     return jsonResponse(response, callback=request.GET.get("callback", None))
 

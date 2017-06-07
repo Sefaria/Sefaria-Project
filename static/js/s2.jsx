@@ -6553,8 +6553,6 @@ var ConnectionsPanel = React.createClass({
                   <MyNotes 
                     srefs={this.props.srefs}
                     editNote={this.props.editNote} />
-                  <PublicNotes
-                    srefs={this.props.srefs} />
                 </div>);
     
     } else if (this.props.mode === "Lexicon") {
@@ -7890,17 +7888,6 @@ var AddNoteBox = React.createClass({
     return (
       <div className="addNoteBox">
         <textarea className="noteText" placeholder="Write a note..." defaultValue={this.props.noteText}></textarea>
-        <div className="noteSharingToggle">
-          <div className={privateClasses} onClick={this.setPrivate}>
-
-            <span className="int-en"><i className="fa fa-lock"></i> Private</span>
-            <span className="int-he"><i className="fa fa-lock"></i>רשומה פרטית</span>
-          </div>
-          <div className={publicClasses} onClick={this.setPublic}>
-            <span className="int-en">Public</span>
-            <span className="int-he">רשומה כללית</span>
-          </div>
-        </div>
         <div className="button fillWidth" onClick={this.saveNote}>
           <span className="int-en">{this.props.noteId ? "Save" : "Add Note"}</span>
           <span className="int-he">{this.props.noteId ? "שמור": "הוסף רשומה"}</span>
@@ -7916,6 +7903,21 @@ var AddNoteBox = React.createClass({
             <span className="int-he">מחק רשומה</span>
            </div>): null }
       </div>);
+
+    /* Leaving out public / private toggle until public notes are reintroduced
+    <div className="noteSharingToggle">
+      <div className={privateClasses} onClick={this.setPrivate}>
+
+        <span className="int-en"><i className="fa fa-lock"></i> Private</span>
+        <span className="int-he"><i className="fa fa-lock"></i>רשומה פרטית</span>
+      </div>
+      <div className={publicClasses} onClick={this.setPublic}>
+        <span className="int-en">Public</span>
+        <span className="int-he">רשומה כללית</span>
+      </div>
+    </div>
+    */
+
   }
 });
 
@@ -8017,7 +8019,6 @@ var Note = React.createClass({
      var buttons = this.props.isMyNote ? 
                     (<div className="noteButtons">
                       <i className="editNoteButton fa fa-pencil" title="Edit Note" onClick={this.props.editNote} ></i>
-                      {this.props.isPrivate ? (<i className="fa fa-lock" title="Private"></i>) : null}
                     </div>) : null; 
      
      return (<div className="note">

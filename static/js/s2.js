@@ -8256,9 +8256,7 @@ var ConnectionsPanel = React.createClass({
           setConnectionsMode: this.props.setConnectionsMode }),
         React.createElement(MyNotes, {
           srefs: this.props.srefs,
-          editNote: this.props.editNote }),
-        React.createElement(PublicNotes, {
-          srefs: this.props.srefs })
+          editNote: this.props.editNote })
       );
     } else if (this.props.mode === "Lexicon") {
       content = React.createElement(LexiconBox, {
@@ -9961,40 +9959,6 @@ var AddNoteBox = React.createClass({
       React.createElement('textarea', { className: 'noteText', placeholder: 'Write a note...', defaultValue: this.props.noteText }),
       React.createElement(
         'div',
-        { className: 'noteSharingToggle' },
-        React.createElement(
-          'div',
-          { className: privateClasses, onClick: this.setPrivate },
-          React.createElement(
-            'span',
-            { className: 'int-en' },
-            React.createElement('i', { className: 'fa fa-lock' }),
-            ' Private'
-          ),
-          React.createElement(
-            'span',
-            { className: 'int-he' },
-            React.createElement('i', { className: 'fa fa-lock' }),
-            '\u05E8\u05E9\u05D5\u05DE\u05D4 \u05E4\u05E8\u05D8\u05D9\u05EA'
-          )
-        ),
-        React.createElement(
-          'div',
-          { className: publicClasses, onClick: this.setPublic },
-          React.createElement(
-            'span',
-            { className: 'int-en' },
-            'Public'
-          ),
-          React.createElement(
-            'span',
-            { className: 'int-he' },
-            '\u05E8\u05E9\u05D5\u05DE\u05D4 \u05DB\u05DC\u05DC\u05D9\u05EA'
-          )
-        )
-      ),
-      React.createElement(
-        'div',
         { className: 'button fillWidth', onClick: this.saveNote },
         React.createElement(
           'span',
@@ -10036,6 +10000,19 @@ var AddNoteBox = React.createClass({
         )
       ) : null
     );
+
+    /* Leaving out public / private toggle until public notes are reintroduced
+    <div className="noteSharingToggle">
+      <div className={privateClasses} onClick={this.setPrivate}>
+         <span className="int-en"><i className="fa fa-lock"></i> Private</span>
+        <span className="int-he"><i className="fa fa-lock"></i>רשומה פרטית</span>
+      </div>
+      <div className={publicClasses} onClick={this.setPublic}>
+        <span className="int-en">Public</span>
+        <span className="int-he">רשומה כללית</span>
+      </div>
+    </div>
+    */
   }
 });
 
@@ -10150,8 +10127,7 @@ var Note = React.createClass({
     var buttons = this.props.isMyNote ? React.createElement(
       'div',
       { className: 'noteButtons' },
-      React.createElement('i', { className: 'editNoteButton fa fa-pencil', title: 'Edit Note', onClick: this.props.editNote }),
-      this.props.isPrivate ? React.createElement('i', { className: 'fa fa-lock', title: 'Private' }) : null
+      React.createElement('i', { className: 'editNoteButton fa fa-pencil', title: 'Edit Note', onClick: this.props.editNote })
     ) : null;
 
     return React.createElement(
