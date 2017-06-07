@@ -151,13 +151,14 @@ $(function() {
          * $input - input element
          * $msg - status message element
          * $ok - Ok button element
-         * success -- a function to call when a valid ref has been found
+         * $preview - Text preview box
 
          * example usage:
 
-         var validator = new RefValidator($("#inlineAdd"), $("#inlineAddDialogTitle"), $("#inlineAddSourceOK"), $("#preview"), inlineAddSourcePreview);
-         $("#inlineAdd").keyup(validator.check.bind(validator))
+         new RefValidator($("#inlineAdd"), $("#inlineAddDialogTitle"), $("#inlineAddSourceOK"), $("#preview"));
 
+         As currently designed, the object is instanciated, and sets up its own events.
+         It doesn't need to be interacted with from the outside.
          */
 
         this.$input = $input;
@@ -174,34 +175,22 @@ $(function() {
         this.$input
             .on("input", this.check.bind(this))
             .keyup(function(e) {
-              if (e.keyCode == 13) {
-                  if (!this.$ok.hasClass('disabled')) { this.$ok.trigger("click"); }
-              }
-            }.bind(this))
+                  if (e.keyCode == 13) {
+                      if (!this.$ok.hasClass('disabled')) { this.$ok.trigger("click"); }
+                  }
+                }.bind(this))
             .autocomplete({
-              source: function(request, response) {
+                source: function(request, response) {
                   Sefaria.lookupRef(
                       request.term,
                       function (d) { response(d["completions"]); }
                   );
                 },
-              minLength: 3
+                minLength: 3
             });
     };
 
     RefValidator.prototype = {
-      _allow: function(inString, ref) {
-        if (inString != this.$input.val()) {
-          // Ref was corrected (likely for capitalization)
-          this.$input.val(inString);
-        }
-        this.$ok.removeClass("inactive").removeClass("disabled");
-        this.$input.autocomplete("disable");
-        this._inlineAddSourcePreview(ref);
-      },
-      _disallow: function() {
-        this.$ok.addClass("inactive").addClass("disabled");
-      },
       _sectionListString: function(arr, lang) {
           //Put together an "A, B, and C" type string from [A,B,C]
           //arr - array of strings
@@ -290,6 +279,18 @@ $(function() {
             }.bind(this)
           );
       },
+      _allow: function(inString, ref) {
+        if (inString != this.$input.val()) {
+          // Ref was corrected (likely for capitalization)
+          this.$input.val(inString);
+        }
+        this.$ok.removeClass("inactive").removeClass("disabled");
+        this.$input.autocomplete("disable");
+        this._inlineAddSourcePreview(ref);
+      },
+      _disallow: function() {
+        this.$ok.addClass("inactive").addClass("disabled");
+      },
       _preview_segment_mapper: function(lang, s) {
         return (s[lang])?
             ("<div class='previewLine'><span class='previewNumber'>(" + (s.number) + ")</span> " + s[lang] + "</div> "):
@@ -326,9 +327,10 @@ $(function() {
       }
 
     };
-    
-    new RefValidator($("#inlineAdd"), $("#inlineAddDialogTitle"), $("#inlineAddSourceOK"), $("#inlineTextPreview"));
 
+    // As currently designed, the object is instanciated, and sets up its own events.
+    // It doesn't need to be interacted with from the outside.
+    var validator = new RefValidator($("#inlineAdd"), $("#inlineAddDialogTitle"), $("#inlineAddSourceOK"), $("#inlineTextPreview"));
 
 
 	// Printing
