@@ -7986,7 +7986,7 @@ var SearchResultList = React.createClass({
             activeTab: "text",
             error: false,
             showOverlay: !!this.props.appliedFilters.length,
-            displayFilters: !!this.props.appliedFilters.length,
+            displayFilters: false,
             displaySort: false
         }
     },
@@ -8749,6 +8749,7 @@ var SearchSortBox = React.createClass({
     } else {
       this.props.updateAppliedOptionSort("chronological");
     }
+    this.props.toggleSortView();
   },
   render: function() {
     var chronoClass = classNames({'filter-title': 1, 'unselected': this.props.sortType !== "chronological"});
