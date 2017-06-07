@@ -2437,8 +2437,8 @@ a.readerNavCategory {
 }
 @keyframes itag {
   0% {color: red;}
-  40% {color: yellow;}
-  100% {color: black;}
+  40% {color: goldenrod;}
+  100% {color: #4871bf;}
 }
 .segment sup.itag {
   /* margin-left: .2em; */
@@ -2446,9 +2446,11 @@ a.readerNavCategory {
   /* font-weight: bolder; */
   text-decoration: none;
   animation-name: itag;
-  font-family: sans-serif;
-  animation-duration: 5s;
-  font-size: 0.7em;
+  font-family: "Open Sans Hebrew", "sans-serif";
+  animation-duration: 3s;
+  font-size: 0.6em;
+  line-height: 1;
+  color: #4871bf;
 }
 .segment i.footnote {
   display: none;
