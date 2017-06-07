@@ -7881,6 +7881,10 @@ var AddNoteBox = React.createClass({
     });
   },
   render: function() {
+    
+    if (!Sefaria._uid) {
+      return (<div className="addNoteBox"><LoginPrompt /></div>);
+    }
     var privateClasses = classNames({notePrivateButton: 1, active: this.state.isPrivate});
     var publicClasses  = classNames({notePublicButton: 1, active: !this.state.isPrivate});
     return (
@@ -8036,7 +8040,7 @@ var LoginPrompt = React.createClass({
     return (
       <div className="loginPrompt">
         <div className="loginPromptMessage">
-          <span className="int-en">You must be logged in to use this feature.</span>
+          <span className="int-en">Please log in to use this feature.</span>
           <span className="int-he">עליך להיות מחובר בכדי להשתמש באפשרות זו.</span>
         </div>
         <a className="button" href={"/login" + nextParam}>

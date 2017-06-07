@@ -9945,6 +9945,14 @@ var AddNoteBox = React.createClass({
     });
   },
   render: function render() {
+
+    if (!Sefaria._uid) {
+      return React.createElement(
+        'div',
+        { className: 'addNoteBox' },
+        React.createElement(LoginPrompt, null)
+      );
+    }
     var privateClasses = classNames({ notePrivateButton: 1, active: this.state.isPrivate });
     var publicClasses = classNames({ notePublicButton: 1, active: !this.state.isPrivate });
     return React.createElement(
@@ -10177,7 +10185,7 @@ var LoginPrompt = React.createClass({
         React.createElement(
           'span',
           { className: 'int-en' },
-          'You must be logged in to use this feature.'
+          'Please log in to use this feature.'
         ),
         React.createElement(
           'span',
