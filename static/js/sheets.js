@@ -144,7 +144,7 @@ $(function() {
 		sjs.track.sheets("Add Source", ref);
 	});
 
-    var RefValidator = function($input, $msg, $ok, success) {
+    var RefValidator = function($input, $msg, $ok, $preview) {
         /** Replacement for utils.js:sjs.checkref that uses only new tools.
          * Instantiated as an object, and then invoked with `check` method
          * Allows section and segment level references.
@@ -155,7 +155,7 @@ $(function() {
 
          * example usage:
 
-         var validator = new RefValidator($("#inlineAdd"), $("#inlineAddDialogTitle"), $("#inlineAddSourceOK"), inlineAddSourcePreview);
+         var validator = new RefValidator($("#inlineAdd"), $("#inlineAddDialogTitle"), $("#inlineAddSourceOK"), $("#preview"), inlineAddSourcePreview);
          $("#inlineAdd").keyup(validator.check.bind(validator))
 
          */
@@ -163,13 +163,30 @@ $(function() {
         this.$input = $input;
         this.$msg = $msg;
         this.$ok = $ok;
-        this.success = success;
+        this.$preview = $preview;
 
         // We want completion messages to be somewhat sticky.
         // This records the string used to build the current message.
         this.completion_message_base = undefined;
         // And the current message
         this.completion_message = "";
+
+        this.$input
+            .on("input", this.check.bind(this))
+            .keyup(function(e) {
+              if (e.keyCode == 13) {
+                  if (!this.$ok.hasClass('disabled')) { this.$ok.trigger("click"); }
+              }
+            }.bind(this))
+            .autocomplete({
+              source: function(request, response) {
+                  Sefaria.lookupRef(
+                      request.term,
+                      function (d) { response(d["completions"]); }
+                  );
+                },
+              minLength: 3
+            });
     };
 
     RefValidator.prototype = {
@@ -180,7 +197,7 @@ $(function() {
         }
         this.$ok.removeClass("inactive").removeClass("disabled");
         this.$input.autocomplete("disable");
-        this.success(ref);
+        this._inlineAddSourcePreview(ref);
       },
       _disallow: function() {
         this.$ok.addClass("inactive").addClass("disabled");
@@ -273,8 +290,31 @@ $(function() {
             }.bind(this)
           );
       },
+      _preview_segment_mapper: function(lang, s) {
+        return (s[lang])?
+            ("<div class='previewLine'><span class='previewNumber'>(" + (s.number) + ")</span> " + s[lang] + "</div> "):
+            "";
+      },
+      _inlineAddSourcePreview: function(ref) {
+        Sefaria.text(ref, {}, function (data) {
+            var segments = Sefaria.makeSegments(data);
+            var en = segments.map(this._preview_segment_mapper.bind(this, "en")).filter(Boolean);
+            var he = segments.map(this._preview_segment_mapper.bind(this, "he")).filter(Boolean);
+
+            // Handle missing text cases
+            var path = parseURL(document.URL).path;
+            if (!en.length) { en.push("<div class='previewNoText'><a href='/add/" + normRef(ref) + "?after=" + path + "' class='btn'>Add English for " + ref + "</a></div>"); }
+            if (!he.length) { he.push("<div class='previewNoText'><a href='/add/" + normRef(ref) + "?after=" + path + "' class='btn'>Add Hebrew for " + ref + "</a></div>"); }
+            if (!en.length && !he.length) {this.$msg.html("<i>No text available. Click below to add this text.</i>");}
+
+            // Set it on the DOM
+            this.$input.autocomplete("disable");
+            this.$preview.html("<div class='en'>" + en.join("") + "</div>" + "<div class='he'>" + he.join("") + "</div>");
+            this.$preview.position({my: "left top", at: "left bottom", of: this.$input, collision: "none" }).width('691px').css('margin-top','20px');
+        }.bind(this));
+      },
       check: function() {
-          $("#inlineTextPreview").html("");
+          this.$preview.html("");
           this.$input.autocomplete("enable");
           var inString = this.$input.val();
           if (inString.length < 3) {
@@ -287,61 +327,7 @@ $(function() {
 
     };
     
-    var $inlineAdd = $("#inlineAdd");
-    var $inlineAddSourceOk = $("#inlineAddSourceOK");
-    var $inlineAddDialogTitle = $("#inlineAddDialogTitle");
-    var $inlineTextPreview = $("#inlineTextPreview");
-
-
-	$inlineAdd.autocomplete({ 
-        source: function(request, response) {
-            Sefaria.lookupRef(
-                request.term,
-                function (d) { response(d["completions"]); }
-            );
-        },
-        minLength: 3
-    });
-    var validator = new RefValidator($inlineAdd, $inlineAddDialogTitle, $inlineAddSourceOk, inlineAddSourcePreview);
-
-	$inlineAdd.on("input", validator.check.bind(validator))
-              .keyup(function(e) {
-                  if (e.keyCode == 13) {
-                      if (!$inlineAddSourceOk.hasClass('disabled')) {
-                          $inlineAddSourceOk.trigger("click");
-                      } else if ($inlineAddDialogTitle.text() === "Unknown text. Would you like to add it?") {
-                          var path = parseURL(document.URL).path;
-                          window.location = "/add/textinfo/" + $("#add").val().replace(/ /g, "_") + "?after=" + path;
-                      }
-                  }
-              });
-
-    //Todo: change the below two functions to be methods on RefValidator
-    function preview_segment_mapper(lang, s) {
-        return (s[lang])?
-            ("<div class='previewLine'><span class='previewNumber'>(" + (s.number) + ")</span> " + s[lang] + "</div> "):
-            "";
-    }
-    function inlineAddSourcePreview(ref) {
-        Sefaria.text(ref, {}, function (data) {
-            var segments = Sefaria.makeSegments(data);
-            var en = segments.map(preview_segment_mapper.bind(this, "en")).filter(Boolean);
-            var he = segments.map(preview_segment_mapper.bind(this, "he")).filter(Boolean);
-
-            // Handle missing text cases
-            var path = parseURL(document.URL).path;
-            if (!en.length) { en.push("<div class='previewNoText'><a href='/add/" + normRef(ref) + "?after=" + path + "' class='btn'>Add English for " + ref + "</a></div>"); }
-            if (!he.length) { he.push("<div class='previewNoText'><a href='/add/" + normRef(ref) + "?after=" + path + "' class='btn'>Add Hebrew for " + ref + "</a></div>"); }
-            if (!en.length && !he.length) {$inlineAddDialogTitle.html("<i>No text available. Click below to add this text.</i>");}
-
-            // Set it on the DOM
-            $inlineAdd.autocomplete("disable");
-            $inlineTextPreview.html("<div class='en'>" + en.join("") + "</div>" + "<div class='he'>" + he.join("") + "</div>");
-            $inlineTextPreview.position({my: "left top", at: "left bottom", of: $inlineAdd, collision: "none" }).width('691px').css('margin-top','20px');
-
-        });
-    }
-    
+    new RefValidator($("#inlineAdd"), $("#inlineAddDialogTitle"), $("#inlineAddSourceOK"), $("#inlineTextPreview"));
 
 
 
