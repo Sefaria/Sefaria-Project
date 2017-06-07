@@ -172,6 +172,8 @@ $(function() {
         // And the current message
         this.completion_message = "";
 
+        this.current_lookup_ajax = null;
+
         this.$input
             .on("input", this.check.bind(this))
             .keyup(function(e) {
@@ -260,9 +262,13 @@ $(function() {
           return return_message;
       },
       _lookupAndRoute: function(inString) {
-          Sefaria.lookupRef(
+          if (this.current_lookup_ajax) {this.current_lookup_ajax.abort();}
+          this.current_lookup_ajax = Sefaria.lookupRef(
             inString,
             function(data) {
+              // If this query has been outpaced by typing, just return.
+              if (this.$input.val() != inString) { return; }
+
               // If the query isn't recognized as a ref, but only for reasons of capitalization. Resubmit with recognizable caps.
               if (Sefaria.isACaseVariant(inString, data)) {
                 this._lookupAndRoute(Sefaria.repairCaseVariant(inString, data));
@@ -286,7 +292,7 @@ $(function() {
         }
         this.$ok.removeClass("inactive").removeClass("disabled");
         this.$input.autocomplete("disable");
-        this._inlineAddSourcePreview(ref);
+        this._inlineAddSourcePreview(inString, ref);
       },
       _disallow: function() {
         this.$ok.addClass("inactive").addClass("disabled");
@@ -296,8 +302,10 @@ $(function() {
             ("<div class='previewLine'><span class='previewNumber'>(" + (s.number) + ")</span> " + s[lang] + "</div> "):
             "";
       },
-      _inlineAddSourcePreview: function(ref) {
+      _inlineAddSourcePreview: function(inString, ref) {
         Sefaria.text(ref, {}, function (data) {
+            if (this.$input.val() != inString) { return; }
+
             var segments = Sefaria.makeSegments(data);
             var en = segments.map(this._preview_segment_mapper.bind(this, "en")).filter(Boolean);
             var he = segments.map(this._preview_segment_mapper.bind(this, "he")).filter(Boolean);
@@ -322,10 +330,8 @@ $(function() {
               this._disallow();
               return;
           }
-
           this._lookupAndRoute(inString);
       }
-
     };
 
     // As currently designed, the object is instanciated, and sets up its own events.
