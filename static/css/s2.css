@@ -1699,6 +1699,7 @@ a.readerNavCategory {
 }
 .searchContent .searchFilterCategoryBox,
 .searchContent .searchFilterBookBox {
+  padding-top: 10px;
   width: 50%;
   height: 150px;
   overflow-y: auto;

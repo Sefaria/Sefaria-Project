@@ -8765,11 +8765,11 @@ var SearchSortBox = React.createClass({
       <div className={(this.props.visible) ? "searchSortBox":"searchSortBox hidden"}>
         <li onClick={()=>this.handleClick("chronological")}>
           <span className="int-en"><span className={chronoClass}>{"Chronological"}</span></span>
-          <span className="int-he" dir="rtl"><span className={chronoClass}>{"Chronological (HE)"}</span></span>
+          <span className="int-he" dir="rtl"><span className={chronoClass}>{"כרונולוגי"}</span></span>
         </li>
         <li onClick={()=>this.handleClick("relevance")}>
           <span className="int-en"><span className={releClass}>{"Relevance"}</span></span>
-          <span className="int-he" dir="rtl"><span className={releClass}>{"Relevance (HE)"}</span></span>
+          <span className="int-he" dir="rtl"><span className={releClass}>{"רלוונטיות"}</span></span>
         </li>
       </div>
     </div>);
@@ -8790,7 +8790,7 @@ var SearchFilterExactBox = React.createClass({
       <input type="checkbox" id="searchFilterExactBox" className="filter" checked={this.props.selected} onChange={this.handleClick}/>
       <label onClick={this.handleClick} for={"searchFilterExactBox"}><span></span></label>
       <span className="int-en"><span className="filter-title">{"Show word variants"}</span></span>
-      <span className="int-he" dir="rtl"><span className="filter-title">{"Only show exact matches (HE)"}</span></span>
+      <span className="int-he" dir="rtl"><span className="filter-title">{"Show word variants (HE)"}</span></span>
     </li>);
   }
 });
