@@ -10154,7 +10154,7 @@ var SearchResultList = React.createClass({
       hits: { "text": [], "sheet": [] },
       activeTab: "text",
       error: false,
-      showOverlay: !!this.props.appliedFilters.length,
+      showOverlay: false,
       displayFilters: false,
       displaySort: false
     };
