@@ -1524,7 +1524,7 @@ function checkRef($input, $msg, $ok, level, success, commentatorOnly) {
 	
 	// Specfic to sheets for now, remove preview text
 	$("#textPreview").remove();
-	$("#inlineTextPreview").remove();
+	$("#inlineTextPreview").html("");
 
 	// sort books by length so longest matches first in regex
 	if (!sjs.sortedBooks) {
