@@ -16,11 +16,11 @@ $(function() {
   } else {
     var settings = {
       language: DJANGO_VARS.contentLang,
-      layoutDefault: "segmented", //$.cookie("layoutDefault") ||
-      layoutTalmud:  "continuous", //$.cookie("layoutTalmud")  ||
-      layoutTanakh:  "segmented", //$.cookie("layoutTanakh")  ||
-      color:         "light", //$.cookie("color")         ||
-      fontSize:      62.5 //$.cookie("fontSize")      ||
+      layoutDefault: $.cookie("layoutDefault") || "segmented",
+      layoutTalmud:  $.cookie("layoutTalmud")  || "continuous",
+      layoutTanakh:  $.cookie("layoutTanakh")  || "segmented",
+      color:         $.cookie("color")         || "light",
+      fontSize:      $.cookie("fontSize")      || 62.5
     };
     var multiPanel    = $(window).width() > 600;
     component = React.createElement(SefariaReact.ReaderApp, {

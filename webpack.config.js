@@ -3,7 +3,7 @@ var webpack = require('webpack')
 var BundleTracker = require('webpack-bundle-tracker')
 var ExtractTextPlugin = require('extract-text-webpack-plugin');
 
-module.exports = {
+var base_config = {
     //the base directory (absolute path) for resolving the entry option
     context: path.resolve(__dirname, 'static/js'),
     //the entry point we created earlier. Note that './' means 
@@ -16,7 +16,7 @@ module.exports = {
         //where you want your compiled bundle to be stored
         path: path.resolve('./static/bundles/'), 
         //naming convention webpack should use for your files
-        filename: 's2.js', 
+        filename: 'client-bundle.js', 
     },
     
     plugins: [
