@@ -595,7 +595,7 @@ var ReaderApp = React.createClass({
         hist.url += "&lang" + (i + 1) + "=" + histories[i].lang;
       }
     }
-    // Replace the first only & with a ? 
+    // Replace the first only & with a ?
     hist.url = hist.url.replace(/&/, "?");
 
     return hist;
@@ -894,7 +894,7 @@ var ReaderApp = React.createClass({
     $.post(url, { source: JSON.stringify(source) }, confirmFunction);
   },
   selectVersion: function selectVersion(n, versionName, versionLanguage) {
-    // Set the version for panel `n`. 
+    // Set the version for panel `n`.
     var panel = this.state.panels[n];
     var oRef = Sefaria.ref(panel.refs[0]);
     if (versionName && versionLanguage) {
@@ -1081,6 +1081,10 @@ var ReaderApp = React.createClass({
     if (this.state.panels.length == 1 && n == 0) {
       this.state.panels = [];
     } else {
+      // If this is a Connection panel, we need to unset the filter in the base panel
+      if (n > 0 && this.state.panels[n] && this.state.panels[n].mode === "Connections") {
+        this.state.panels[n - 1].filter = [];
+      }
       this.state.panels.splice(n, 1);
       if (this.state.panels[n] && this.state.panels[n].mode === "Connections") {
         // Close connections panel when text panel is closed

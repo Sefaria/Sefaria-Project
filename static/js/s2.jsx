@@ -142,8 +142,8 @@ var ReaderApp = React.createClass({
         panels.push(panel);
       }
     }
-    panels = panels.map(function(panel) { 
-      return this.makePanelState(panel); 
+    panels = panels.map(function(panel) {
+      return this.makePanelState(panel);
     }.bind(this) );
 
     var layoutOrientation = (this.props.interfaceLang == "english") ? "ltr" : "rtl";
@@ -308,7 +308,7 @@ var ReaderApp = React.createClass({
   shouldHistoryUpdate: function() {
     // Compare the current state to the state last pushed to history,
     // Return true if the change warrants pushing to history.
-    
+
     // If there's no history or the number or basic state of panels has changed
     if (!history.state
         || (!history.state.panels && !history.state.header)
@@ -316,7 +316,7 @@ var ReaderApp = React.createClass({
         || (history.state.panels && (history.state.panels.length !== this.state.panels.length))
         || (history.state.header && (history.state.header.menuOpen !== this.state.header.menuOpen))
       ) {
-      return true; 
+      return true;
     }
 
     var prevPanels, nextPanels;
@@ -339,9 +339,9 @@ var ReaderApp = React.createClass({
       if ((prev.mode !== next.mode) ||
           (prev.menuOpen !== next.menuOpen) ||
           (prev.menuOpen === "book toc" && prev.bookRef !== next.bookRef) ||
-          (next.mode === "Text" && prev.refs.slice(-1)[0] !== next.refs.slice(-1)[0]) || 
-          (next.mode === "Text" && !prev.highlightedRefs.compare(next.highlightedRefs)) || 
-          (next.mode === "TextAndConnections" && prev.highlightedRefs.slice(-1)[0] !== next.highlightedRefs.slice(-1)[0]) || 
+          (next.mode === "Text" && prev.refs.slice(-1)[0] !== next.refs.slice(-1)[0]) ||
+          (next.mode === "Text" && !prev.highlightedRefs.compare(next.highlightedRefs)) ||
+          (next.mode === "TextAndConnections" && prev.highlightedRefs.slice(-1)[0] !== next.highlightedRefs.slice(-1)[0]) ||
           ((next.mode === "Connections" || next.mode === "TextAndConnections") && prev.filter && !prev.filter.compare(next.filter)) ||
           (next.mode === "Connections" && !prev.refs.compare(next.refs)) ||
           (next.connectionsMode !== prev.connectionsMoade) ||
@@ -363,7 +363,7 @@ var ReaderApp = React.createClass({
         }
       }
     }
-    return false;  
+    return false;
   },
   clonePanel: function(panel, trimFilters) {
     //Set aside self-referential objects before cloning
@@ -397,7 +397,7 @@ var ReaderApp = React.createClass({
       if (!states[i]) { debugger; }
       var state = states[i];
       var hist  = {url: ""};
-    
+
       if (state.menuOpen) {
         switch (state.menuOpen) {
           case "home":
@@ -486,7 +486,7 @@ var ReaderApp = React.createClass({
         hist.version  = state.version;
         hist.versionLanguage = state.versionLanguage;
         hist.mode     = "Text"
-      
+
       } else if (state.mode === "Connections") {
         var ref       = Sefaria.normRefList(state.refs);
         var filter    = state.filter.length ? state.filter :
@@ -495,7 +495,7 @@ var ReaderApp = React.createClass({
         hist.title    = ref  + " with " + (hist.sources === "all" ? "Connections" : hist.sources);
         hist.url      = Sefaria.normRef(ref); // + "?with=" + sources;
         hist.mode     = "Connections"
-      
+
       } else if (state.mode === "TextAndConnections") {
         var ref       = Sefaria.normRefList(state.highlightedRefs);
         var filter    = state.filter.length ? state.filter :
@@ -506,7 +506,7 @@ var ReaderApp = React.createClass({
         hist.version  = state.version;
         hist.versionLanguage = state.versionLanguage;
         hist.mode     = "TextAndConnections"
-     
+
       } else if (state.mode === "Header") {
         hist.title    = document.title;
         hist.url      = window.location.pathname.slice(1);
@@ -518,7 +518,7 @@ var ReaderApp = React.createClass({
       if (state.mode !== "Header") {
         hist.lang =  state.settings.language.substring(0,2);
       }
-      histories.push(hist);     
+      histories.push(hist);
     }
     if (!histories.length) {debugger;}
 
@@ -570,7 +570,7 @@ var ReaderApp = React.createClass({
         next        = next.replace("?", "&").replace(/=/g, (i+1) + "=");
         hist.url   += next;
         if(histories[i].versionLanguage && histories[i].version) {
-          hist.url += "&l" + (i+1) + "=" + histories[i].versionLanguage + 
+          hist.url += "&l" + (i+1) + "=" + histories[i].versionLanguage +
                       "&v" + (i+1) + "=" + histories[i].version.replace(/\s/g,"_");
         }
         hist.title += " & " + histories[i].title;
@@ -579,7 +579,7 @@ var ReaderApp = React.createClass({
         hist.url += "&lang" + (i+1) + "=" + histories[i].lang;
       }
     }
-    // Replace the first only & with a ? 
+    // Replace the first only & with a ?
     hist.url = hist.url.replace(/&/, "?");
 
     return hist;
@@ -603,7 +603,7 @@ var ReaderApp = React.createClass({
   },
   updateHistoryState: function(replace) {
     if (!this.shouldHistoryUpdate()) {
-      return; 
+      return;
     }
     var hist = this.makeHistoryState();
     if (replace) {
@@ -830,7 +830,7 @@ var ReaderApp = React.createClass({
   },
   didPanelRefChange: function(prevPanel, nextPanel) {
     // Returns true if nextPanel represents a change in current ref (including version change) from prevPanel.
-    if (nextPanel.menu || nextPanel.mode == "Connections" || 
+    if (nextPanel.menu || nextPanel.mode == "Connections" ||
         !nextPanel.refs || nextPanel.refs.length == 0 ||
         !prevPanel.refs || prevPanel.refs.length == 0 ) { return false; }
     if (nextPanel.refs.compare(prevPanel.refs)) {
@@ -869,7 +869,7 @@ var ReaderApp = React.createClass({
 
   },
   selectVersion: function(n, versionName, versionLanguage) {
-    // Set the version for panel `n`. 
+    // Set the version for panel `n`.
     var panel = this.state.panels[n];
     var oRef = Sefaria.ref(panel.refs[0]);
     if (versionName && versionLanguage) {
@@ -884,7 +884,7 @@ var ReaderApp = React.createClass({
       panel.versionLanguage = null;
       Sefaria.site.track.event("Reader", "Choose Version", `${oRef.indexTitle} / default version / ${panel.settings.language}`)
     }
-    
+
     if((this.state.panels.length > n+1) && this.state.panels[n+1].mode == "Connections"){
       var connectionsPanel =  this.state.panels[n+1];
       connectionsPanel.version = panel.version;
@@ -1054,6 +1054,10 @@ var ReaderApp = React.createClass({
     if (this.state.panels.length == 1 && n == 0) {
       this.state.panels = [];
     } else {
+      // If this is a Connection panel, we need to unset the filter in the base panel
+      if (n > 0 && this.state.panels[n] && this.state.panels[n].mode === "Connections"){
+        this.state.panels[n-1].filter = [];
+      }
       this.state.panels.splice(n, 1);
       if (this.state.panels[n] && this.state.panels[n].mode === "Connections") {
         // Close connections panel when text panel is closed
