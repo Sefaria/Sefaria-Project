@@ -1,5 +1,5 @@
 Priority,Section,English Title,Hebrew Title,Transliterated Title,Title Variants,Categories,Text Structure,Ready for Upload?,Length
-,1.1,Genesis,בראשית,,"Genesis, Genesis, Gen, Gen., Bereishit, Bereshit, Ber, Ber.","Tanach, Torah","Chapter, Verse",,50
+,1.1,Genesis,בראשית,,"Genesis, Genesis, Gen, Gen., Bereishit, Bereshit, Ber, Ber., Bereishis","Tanach, Torah","Chapter, Verse",,50
 ,2.2,Exodus,שמות,,"Exodus, Exodus, Shemot, Exo, Exo., Ex, Ex., Shmot","Tanach, Torah","Chapter, Verse",,40
 ,3.3,Leviticus,ויקרא,,"Leviticus, Vayikra, Lev, Lev.","Tanach, Torah","Chapter, Verse",,27
 ,4.4,Numbers,במדבר,,"Numbers, Bamidbar, Num, Num.","Tanach, Torah","Chapter, Verse",,36
@@ -8,10 +8,10 @@ Priority,Section,English Title,Hebrew Title,Transliterated Title,Title Variants,
 ,7.2,Judges,שופטים,,"Judges, Shoftim, Judg, Judg., Jdg, Jdg.","Tanach, Prophets","Chapter, Verse",,21
 ,8.3,I Samuel,שמואל א,,"I Samuel, I Shmuel, Shmuel Aleph, Samuel I, Shmuel I, I Sam, 1Sam, I Sam., 1Sam., First Samuel","Tanach, Prophets","Chapter, Verse",,31
 ,9.4,II Samuel,שמואל ב,,"II Samuel, II Shmuel, Shmuel Bet, Samuel II, Shmuel II, II Sam, 2Sam, II Sam., 2Sam., Second Samuel","Tanach, Prophets","Chapter, Verse",,24
-,10.5,I Kings,מלכים א,,"I Kings, I Melachim, Melachim Aleph, Kings I, Melachim I, First Kings","Tanach, Prophets","Chapter, Verse",,22
+,10.5,I Kings,מלכים א,,"I Kings, I Melachim, Melachim Aleph, Kings I, Melachim I, First Kings, Melachim","Tanach, Prophets","Chapter, Verse",,22
 ,11.6,II Kings,מלכים ב,,"II Kings, II Melachim, Melachim Bet, Kings II, Melachim II, Second Kings","Tanach, Prophets","Chapter, Verse",,25
-,12.7,Isaiah,ישעיהו,,"Isaiah, Yishayahu, Isa, Isa.","Tanach, Prophets","Chapter, Verse",,66
-,13.8,Jeremiah,ירמיהו,,"Jeremiah, Yirmiyahu, Jer, Jer.","Tanach, Prophets","Chapter, Verse",,52
+,12.7,Isaiah,ישעיהו,,"Isaiah, Yishayahu, Isa, Isa., Yeshaya","Tanach, Prophets","Chapter, Verse",,66
+,13.8,Jeremiah,ירמיהו,,"Jeremiah, Yirmiyahu, Jer, Jer., Yirmiya","Tanach, Prophets","Chapter, Verse",,52
 ,14.9,Ezekiel,יחזקאל,,"Ezekiel, Yehezkel, Ezek, Ezek.","Tanach, Prophets","Chapter, Verse",,48
 ,15.10.1,Hosea,הושע,,"Hosea, Hoshea, Hos, Hos.","Tanach, Prophets, Trei Asar","Chapter, Verse",,14
 ,16.11.2,Joel,יואל,,"Joel, Yoel","Tanach, Prophets, Trei Asar","Chapter, Verse",,4
@@ -31,7 +31,7 @@ Priority,Section,English Title,Hebrew Title,Transliterated Title,Title Variants,
 ,30.4,Song of Songs,שיר השירים,,"Song of Songs, Shir HaShirim, Song, Song.","Tanach, Writings","Chapter, Verse",,8
 ,31.5,Ruth,רות,,"Ruth, Rut","Tanach, Writings","Chapter, Verse",,4
 ,32.6,Lamentations,איכה,,"Lamentations, Eichah, Lam, Lam.","Tanach, Writings","Chapter, Verse",,5
-,33.7,Ecclesiastes,קהלת,,"Ecclesiastes, Kohelet, Ecc, Ecc.","Tanach, Writings","Chapter, Verse",,12
+,33.7,Ecclesiastes,קהלת,,"Ecclesiastes, Kohelet, Ecc, Ecc., Koheles","Tanach, Writings","Chapter, Verse",,12
 ,34.8,Esther,אסתר,,"Esther, Est, Est.","Tanach, Writings","Chapter, Verse",,10
 ,35.9,Daniel,דניאל,,"Daniel, Dan, Dan.","Tanach, Writings","Chapter, Verse",,12
 ,36.10,Ezra,עזרא,,"Ezra, Ezr, Ezr.","Tanach, Writings","Chapter, Verse",,10
@@ -76,7 +76,7 @@ Priority,Section,English Title,Hebrew Title,Transliterated Title,Title Variants,
 ,36.6,Mishna Shevuot,שבועות,,"Mishna Shevuot, M Shevuot, M. Shevuot","Mishna, Seder Nezikin","Chapter, Mishna",,8
 ,37.7,Mishna Eduyot,,,"Mishna Eduyot, M Eduyot, M. Eduyot","Mishna, Seder Nezikin","Chapter, Mishna",,8
 ,38.8,Mishna Avodah Zarah,עבודה זרה,,"Mishna Avodah Zarah, M Avodah Zarah, M. Avodah Zarah","Mishna, Seder Nezikin","Chapter, Mishna",,5
-,39.9,Pirkei Avot,משנה אבות,,"Pirkei Avot, Mishna Avot, M Avot, M. Avot, Perkei Avot, Pirkei Avot, Avot","Mishna, Seder Nezikin","Chapter, Mishna",,6
+,39.9,Pirkei Avot,משנה אבות,,"Pirkei Avot, Mishna Avot, M Avot, M. Avot, Perkei Avot, Pirkei Avot, Avot, Avos","Mishna, Seder Nezikin","Chapter, Mishna",,6
 ,40.10,Mishna Horayot,הוריות,,"Mishna Horayot, M Horayot, M. Horayot","Mishna, Seder Nezikin","Chapter, Mishna",,3
 ,41.1,Mishna Zevachim,זבחים,,"Mishna Zevachim, M Zevachim, M. Zevachim","Mishna, Seder Kodashim","Chapter, Mishna",,14
 ,42.2,Mishna Menachot,מנחות,,"Mishna Menachot, M Menachot, M. Menachot","Mishna, Seder Kodashim","Chapter, Mishna",,13
@@ -109,7 +109,7 @@ Priority,Section,English Title,Hebrew Title,Transliterated Title,Title Variants,
 ,6.5,Yoma,יומא,,"Yoma, Tractate Yoma, Masekhet Yoma, Talmud Yoma","Talmud, Seder Moed","Daf, Line",,88
 ,7.6,Sukkah,סוכה,,"Sukkah, Tractate Sukkah, Masekhet Sukkah, Talmud Sukkah","Talmud, Seder Moed","Daf, Line",,56
 ,8.7,Beitzah,ביצה,,"Beitzah, Tractate Beitzah, Masekhet Beitzah, Talmud Beitzah","Talmud, Seder Moed","Daf, Line",,40
-,9.8,Taanit,תענית,,"Taanit, Tractate Taanit, Masekhet Taanit, Talmud Taanit","Talmud, Seder Moed","Daf, Line",,31
+,9.8,Taanit,תענית,,"Taanit, Tractate Taanit, Masekhet Taanit, Talmud Taanit, Taanis","Talmud, Seder Moed","Daf, Line",,31
 ,10.9,Megillah,מגילה,,"Megillah, Tractate Megillah, Masekhet Megillah, Talmud Megillah","Talmud, Seder Moed","Daf, Line",,32
 ,11.10,Moed Katan,מועד קטן,,"Moed Katan, Tractate Moed Katan, Masekhet Moed Katan, Talmud Moed Katan","Talmud, Seder Moed","Daf, Line",,29
 ,12.11,Chagigah,חגיגה,,"Chagigah, Tractate Chagigah, Masekhet Chagigah, Talmud Chagigah","Talmud, Seder Moed","Daf, Line",,27
