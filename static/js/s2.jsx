@@ -7685,8 +7685,11 @@ var AddToSourceSheetBox = React.createClass({
     }
   },
   toggleSheetList: function() {
-    if (!Sefaria._uid) { return; }
-    this.setState({sheetListOpen: !this.state.sheetListOpen});
+    if (!Sefaria._uid) { 
+      this.setState({showLogin: true});
+    } else { 
+      this.setState({sheetListOpen: !this.state.sheetListOpen}); 
+    }
   },
   selectSheet: function(sheet) {
     this.setState({selectedSheet: sheet, sheetListOpen: false});
@@ -7739,11 +7742,11 @@ var AddToSourceSheetBox = React.createClass({
     if (this.state.showConfirm) {
       return (<ConfirmAddToSheet sheetId={this.state.selectedSheet.id} />);
     } else if (this.state.showLogin) {
-      return (<div className="addToSourceSheetPanel sans">
+      return (<div className="addToSourceSheetBox sans">
                 <LoginPrompt />
               </div>);
     }
-    var sheets     = Sefaria.sheets.userSheets(Sefaria._uid);
+    var sheets     = Sefaria._uid ? Sefaria.sheets.userSheets(Sefaria._uid) : null;
     var sheetsList = Sefaria._uid && sheets ? sheets.map(function(sheet) {
       var classes     = classNames({sheet: 1, noselect: 1, selected: this.state.selectedSheet && this.state.selectedSheet.id == sheet.id});
       var title = sheet.title ? sheet.title.stripHtml() : "Untitled Source Sheet";
@@ -7752,13 +7755,13 @@ var AddToSourceSheetBox = React.createClass({
     }.bind(this)) : (Sefaria._uid ? <LoadingMessage /> : null);
 
     return (
-      <div className="addToSourceSheetPanel sans">
+      <div className="addToSourceSheetBox sans">
         <div className="selectedSheet" onClick={this.toggleSheetList}>
           {this.state.sheetsLoaded ? this.state.selectedSheet.title.stripHtml() : <LoadingMessage messsage="Loading your sheets..." heMessage=""/>}
           <i className="sheetListOpenButton fa fa-caret-down"></i>
         </div>
         {this.state.sheetListOpen ? 
-        <div className="sheetList">
+        <div className="sheetListDropdown">
           <div className="sourceSheetSelector noselect">
             {sheetsList}
           </div>
@@ -7785,7 +7788,7 @@ var ConfirmAddToSheet = React.createClass({
     sheetId: React.PropTypes.number.isRequired
   },
   render: function() {
-    return (<div className="confirmAddToSheetPanel addToSourceSheetPanel">
+    return (<div className="confirmAddToSheet addToSourceSheetBox">
               <div className="message">
                 <span className="int-en">Your source has been added.</span>
                 <span className="int-he">הטקסט נוסף בהצלחה לדף המקורות</span>

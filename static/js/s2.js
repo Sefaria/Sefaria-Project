@@ -9683,9 +9683,10 @@ var AddToSourceSheetBox = React.createClass({
   },
   toggleSheetList: function toggleSheetList() {
     if (!Sefaria._uid) {
-      return;
+      this.setState({ showLogin: true });
+    } else {
+      this.setState({ sheetListOpen: !this.state.sheetListOpen });
     }
-    this.setState({ sheetListOpen: !this.state.sheetListOpen });
   },
   selectSheet: function selectSheet(sheet) {
     this.setState({ selectedSheet: sheet, sheetListOpen: false });
@@ -9746,11 +9747,11 @@ var AddToSourceSheetBox = React.createClass({
     } else if (this.state.showLogin) {
       return React.createElement(
         'div',
-        { className: 'addToSourceSheetPanel sans' },
+        { className: 'addToSourceSheetBox sans' },
         React.createElement(LoginPrompt, null)
       );
     }
-    var sheets = Sefaria.sheets.userSheets(Sefaria._uid);
+    var sheets = Sefaria._uid ? Sefaria.sheets.userSheets(Sefaria._uid) : null;
     var sheetsList = Sefaria._uid && sheets ? sheets.map(function (sheet) {
       var classes = classNames({ sheet: 1, noselect: 1, selected: this.state.selectedSheet && this.state.selectedSheet.id == sheet.id });
       var title = sheet.title ? sheet.title.stripHtml() : "Untitled Source Sheet";
@@ -9764,7 +9765,7 @@ var AddToSourceSheetBox = React.createClass({
 
     return React.createElement(
       'div',
-      { className: 'addToSourceSheetPanel sans' },
+      { className: 'addToSourceSheetBox sans' },
       React.createElement(
         'div',
         { className: 'selectedSheet', onClick: this.toggleSheetList },
@@ -9773,7 +9774,7 @@ var AddToSourceSheetBox = React.createClass({
       ),
       this.state.sheetListOpen ? React.createElement(
         'div',
-        { className: 'sheetList' },
+        { className: 'sheetListDropdown' },
         React.createElement(
           'div',
           { className: 'sourceSheetSelector noselect' },
@@ -9826,7 +9827,7 @@ var ConfirmAddToSheet = React.createClass({
   render: function render() {
     return React.createElement(
       'div',
-      { className: 'confirmAddToSheetPanel addToSourceSheetPanel' },
+      { className: 'confirmAddToSheet addToSourceSheetBox' },
       React.createElement(
         'div',
         { className: 'message' },

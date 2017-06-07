@@ -2910,10 +2910,10 @@ a.readerNavCategory {
   outline: none;
   margin-bottom: 30px;
 }
-.addToSourceSheetPanel {
+.addToSourceSheetBox {
   position: relative;
 }
-.addToSourceSheetPanel input {
+.addToSourceSheetBox input {
   padding: 13px 12px;
   margin: 0;
   cursor: pointer;
@@ -2924,18 +2924,19 @@ a.readerNavCategory {
   width: 60%;
   box-sizing: border-box;
 }
-.addToSourceSheetPanel .button {
+.addToSourceSheetBox .button {
   width: 100%;
   text-align: center;
+  margin: 0;
 }
-.addToSourceSheetPanel .button.small {
+.addToSourceSheetBox .button.small {
   width: 37%;
   box-sizing: border-box;
   padding: 12px;
   margin: 0;
   float: right;
 }
-.addToSourceSheetPanel .selectedSheet {
+.addToSourceSheetBox .selectedSheet {
   background: white;
   border: 1px solid #E9E9E9;
   border-radius: 4px;
@@ -2943,23 +2944,24 @@ a.readerNavCategory {
   font-size: 16px;
   margin-bottom: 10px;
 }
-.addToSourceSheetPanel .sheetListOpenButton {
+.addToSourceSheetBox .sheetListOpenButton {
   float: right;
   cursor: pointer;
   color: #999;
   font-size: 18px;
 }
-.addToSourceSheetPanel .sheetList {
+.addToSourceSheetBox .sheetListDropdown {
   position: absolute;
   z-index: 1;
   margin-top: -12px;
   width: 100%;
+  box-sizing: border-box;
   border: 1px solid #E9E9E9;
   background: white;
   border-bottom-left-radius: 4px;
   border-bottom-right-radius: 4px;
 }
-.addToSourceSheetPanel .sourceSheetSelector {
+.addToSourceSheetBox .sourceSheetSelector {
   color: #999;
   background-color: white;
   box-sizing: border-box;
@@ -2968,10 +2970,10 @@ a.readerNavCategory {
   overflow-x: hidden;
   overflow-y: scroll;
 }
-.singlePanel .addToSourceSheetPanel .sourceSheetSelector {
+.singlePanel .addToSourceSheetBox .sourceSheetSelector {
   max-height: 150px;
 }
-.addToSourceSheetPanel .sourceSheetSelector .sheet {
+.addToSourceSheetBox .sourceSheetSelector .sheet {
   font-size: 16px;
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
   cursor: pointer;
@@ -2980,27 +2982,24 @@ a.readerNavCategory {
   border: none;
   color: #999;
 }
-.addToSourceSheetPanel .sourceSheetSelector .sheet.selected {
+.addToSourceSheetBox .sourceSheetSelector .sheet.selected {
   color: #333;
 }
-.addToSourceSheetPanel .newSheet {
+.addToSourceSheetBox .newSheet {
   border-top: 1px solid #E9E9E9;
   padding: 14px 22px;
 }
-.confirmAddToSheetPanel {
+.confirmAddToSheet {
   text-align: center;
   background-color: #F9F9F7;
 }
-.confirmAddToSheetPanel .message {
+.confirmAddToSheet .message {
   font-size: 18px;
   margin-bottom: 30px;
   font-style: italic;
 }
-.confirmAddToSheetPanel .button {
+.confirmAddToSheet .button {
   width: 100%;
-}
-.addNoteBox + .noteList {
-
 }
 .noteList + .noteList {
   border-top: 1px solid #ccc;
@@ -3107,6 +3106,7 @@ a.readerNavCategory {
 }
 .loginPrompt .button {
   width: auto;
+  margin: 0 6px;
 }
 .notificationsPanel .content {
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
