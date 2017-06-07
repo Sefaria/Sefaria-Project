@@ -106,8 +106,6 @@ input.noselect {
   justify-content: flex-start;
 }
 .headerInner .headerHomeSection{
-  /*display: flex;
-  justify-content: center;*/
   position: absolute;
   top: 16px;
   left: 50%;
@@ -136,8 +134,6 @@ input.noselect {
   display: inline-block;
   padding: 0;
   text-align: inherit;
-  /*width: 42.5%;
-  margin: auto 1px;*/
   margin: 0px 17px 0 17px;
 }
 .header .searchBox input{
@@ -159,11 +155,6 @@ input.noselect {
   padding-top: 5px;
 }
 .header .home {
-  /*position: absolute;
-  top: -1px;
-  left: 50%;
-  margin-left: -51px;*/
-  /*width: 42%;*/
   margin-top: 1px;
 }
 .header .login:first-child{
@@ -208,12 +199,10 @@ input.noselect {
   vertical-align: middle;
 }
 .header .library, .header .account {
-  /*-webkit-margin-end: 17px;
-  margin-inline-end: 17px;*/
   font-size: 24px;
+  line-height: 24px;
 }
 .header .library{
-  margin-top: 2px;
 }
 .header .notifications {
   display: inline-block;
@@ -233,7 +222,6 @@ input.noselect {
 }
 .header .login {
   color: #999;
-  /*margin: 0 0 0 30px;*/
   display: inline-block;
   line-height: 1;
 }
@@ -345,7 +333,7 @@ input.noselect {
   height: 24px;
   width: 24px;
   opacity: 0.4;
-  margin-top:2px	
+  margin-top: 2px
 }
 .header .readerNavMenuSearchButton,
 .header .readerNavMenuMenuButton {

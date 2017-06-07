@@ -41,12 +41,10 @@
 {% endblock %}
 
 {% block content %}
-
-
-	<link rel="stylesheet" href="/static/css/sheets.css">
-	<link rel="stylesheet" href="/static/css/sheets-print.css" media="print" />
-
-
+<!-- CSS placed here so it has precedence over other sheets in base.html -->
+<link rel="stylesheet" href="/static/css/sheets.css">
+<link rel="stylesheet" href="/static/css/sheets-print.css" media="print" />
+<div id="sheetsContent">
 
     <div class="sheetsEditNavTop">
         <div class="sheetsMenuBarItem" id="fileMenu">File
@@ -690,10 +688,8 @@
 
 {% include "elements/login_prompt.html" with msg="To save, copy, or like, please log in." %}
 
-<!--
-Footer depends on full bootstrap grid, which isn't loaded in sheets.html
-{% include "elements/footer.html" %}
--->
+
+</div> <!-- end sheetContent -->
 {% endblock %}
 
 {% block js  %}
