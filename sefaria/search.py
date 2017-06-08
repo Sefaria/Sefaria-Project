@@ -238,18 +238,12 @@ def make_text_index_document(tref, version, lang):
         "version": version, 
         "lang": lang,
         "titleVariants": text["titleVariants"],
-        "content": content,
-        "he_content": content if (lang == "he") else "",
         "categories": categories,
         "order": oref.order_id(),
         "path": "/".join(categories + [oref.index.title]),
-        "pagerank": pagerank,
-        "sheetrank": sheetrank,
         "pagesheetrank": pagerank * sheetrank,
         "comp_date": comp_start_date,
-        "hebmorph_standard": content_wo_cant,
         "hebmorph_semi_exact": content_wo_cant,
-        "aggresive_ngram": content_wo_cant,
         "naive_lemmatizer": content_wo_cant,
         "prev_content": prev_content,
         "next_content": next_content
@@ -455,22 +449,14 @@ def put_text_mapping(index_name):
                     'type': 'string',
                     'index': 'not_analyzed'
                 },
-                "pagerank": {
+                "pagesheetrank": {
                     'type': 'double',
                     'index': 'not_analyzed'
                 },
                 "comp_date": {
                     'type': 'integer',
                     'index': 'not_analyzed'
-                },
-                "aggresive_ngram": {
-                    'type': 'string',
-                    'analyzer': 'sefaria-aggresive-ngram'
-                },
-                "hebmorph_standard": {
-                    'type': 'string',
-                    'analyzer': 'hebrew'
-                },
+                }
                 "hebmorph_semi_exact": {
                     'type': 'string',
                     'analyzer': 'hebrew',
@@ -479,10 +465,6 @@ def put_text_mapping(index_name):
                 "naive_lemmatizer": {
                     'type': 'string',
                     'analyzer': 'sefaria-naive-lemmatizer'
-                },
-                "he_content": {
-                    'type': 'string',
-                    'analyzer': 'hebrew'
                 }
             }
         }
