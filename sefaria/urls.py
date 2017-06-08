@@ -251,6 +251,7 @@ static_pages = [
     "privacy-policy",
     "coming-soon",
     "shraga-silverstein",
+    "adin-even-israel-steinsaltz",
     "william-davidson-talmud",
     "linker",
     "ios",
@@ -267,6 +268,7 @@ static_pages = [
     "random-walk-through-torah",
     "educators",
     "the-sefaria-story",
+
 ]
 
 # Static and Semi Static Content
