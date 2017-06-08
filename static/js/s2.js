@@ -8723,7 +8723,7 @@ var TextFilter = React.createClass({
     var count = this.props.hideCounts || !this.props.count ? "" : React.createElement(
       'span',
       { className: 'enInHe connectionsCount' },
-      ' (',
+      '\xA0(',
       this.props.count,
       ')'
     );

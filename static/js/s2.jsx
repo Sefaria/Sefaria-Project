@@ -6906,7 +6906,7 @@ var TextFilter = React.createClass({
       var style = {"borderTop": "4px solid " + color};
     }
     var name = this.props.book == this.props.category ? this.props.book.toUpperCase() : this.props.book;
-    var count = this.props.hideCounts || !this.props.count ? "" : ( <span className="enInHe connectionsCount"> ({this.props.count})</span>);
+    var count = this.props.hideCounts || !this.props.count ? "" : ( <span className="enInHe connectionsCount">&nbsp;({this.props.count})</span>);
     var url = (this.props.srefs && this.props.srefs.length > 0)?"/" + Sefaria.normRef(this.props.srefs[0]) + "?with=" + name:"";
     return (
       <a href={url}>

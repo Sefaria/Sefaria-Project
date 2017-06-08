@@ -605,6 +605,7 @@ Sefaria = extend(Sefaria, {
     }
   },
   _saveLinkData: function(ref, data) {
+    ref = Sefaria.humanRef(ref);
     var l = this._saveLinksByRef(data);
     this._links[ref] = data;
     this._cacheIndexFromLinks(data);
