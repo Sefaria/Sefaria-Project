@@ -5,10 +5,12 @@
   var extend    = require('extend'),
       param     = require('querystring').stringify,
       striptags = require('striptags');
-      /*ga        = function() {}; // Fail gracefully if we reach one of these methods server side
-      $.ajax    = function() {}; // ditto
-      $.getJSON = function() {}; // ditto */
 
+if (typeof document === 'undefined') {
+     ga        = function() {}; // Fail gracefully if we reach one of these methods server side
+     $.ajax    = function() {}; // ditto
+     $.getJSON = function() {}; // ditto
+}
 
 
 
@@ -1838,13 +1840,13 @@ Sefaria.util = {
         };
 
         String.prototype.stripHtml = function() {
-           if (INBROWSER) {
+           /*if (INBROWSER) {
              var tmp = document.createElement("div");
              tmp.innerHTML = this;
              return tmp.textContent|| "";
-           } else {
+           } else {*/
             return striptags(this);
-           }
+           //}
         };
 
         String.prototype.escapeHtml = function() {
@@ -2543,7 +2545,7 @@ function csrf_init() {
 
 
 Sefaria.setup = function() {
-    csrf_init();
+    //csrf_init();
     for (var prop in DJANGO_DATA_VARS) {
       if (DJANGO_DATA_VARS.hasOwnProperty(prop)) {
         Sefaria[prop] = DJANGO_DATA_VARS[prop];

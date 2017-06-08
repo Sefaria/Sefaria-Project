@@ -7,7 +7,6 @@ var $            = require('jquery'),
 $(function() {
   var container = document.getElementById('s2');
   var component;
-
   if (DJANGO_VARS.inReaderApp) {
     DjangoCSRF.init();
     SefariaReact.unpackDataFromProps(DJANGO_VARS.propsJSON);

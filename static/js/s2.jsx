@@ -9,6 +9,7 @@
                      require('jquery.cookie');  //NOTE: these require statements are adding props to the $ obj. The order actually doesn't matter b/c it seems webpack deals with it
                      require('jquery-ui');
                      require('jquery.scrollto');
+t
       //cookie       = require('jquery.cookie'); //Sefaria.util.cookie;
                      /*require('jquery-ui-css/core.css');
                      require('jquery-ui-css/menu.css');
@@ -6059,17 +6060,13 @@ var TextRange = React.createClass({
       language: this.props.versionLanguage || null
     };
     var data = Sefaria.text(this.props.sref, settings);
-    console.log("data", data);
-    console.log("Sefaria", Sefaria);
 
     if (!data || "updateFromAPI" in data) { // If we don't have data yet, call again with a callback to trigger API call
-      console.log("updateFromAPI");
       Sefaria.text(this.props.sref, settings, this.onTextLoad);
     }
     return data;
   },
   onTextLoad: function(data) {
-    console.log("onTextLoad in TextRange", data);
     // Initiate additional API calls when text data first loads
     if (this.props.basetext && this.props.sref !== data.ref) {
       // Replace ReaderPanel contents ref with the normalized form of the ref, if they differ.
