@@ -1514,7 +1514,7 @@ class AddressSeif(AddressInteger):
     section_patterns = {
         "en": None,
         "he": ur"""(?:
-            (?:\u05e1\u05e2\u05d9\u05e3\s+)			# Seif spelled out, with a space after
-            |(?:\u05e1(?:\u05e2|\u05e2\u05d9)?(?:"|\u05f4|['\u05f3](?:['\u05f3]|\s+)))	# or trie of first three letters followed by a quote of some sort
+            (?:\u05e1\u05e2\u05d9\u05e3\s+(?:\u05e7\u05d8\u05df)?)			# Seif spelled out, with a space after or Seif katan spelled out
+            |(?:\u05e1(?:\u05e2|\u05e2\u05d9|\u05e7)?(?:"|\u05f4|['\u05f3](?:['\u05f3]|\s+)))|	# or trie of first three letters followed by a quote of some sort
         )"""
     }
