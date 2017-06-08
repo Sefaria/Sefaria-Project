@@ -18,13 +18,6 @@ var base_config = {
     plugins: [
         //tells webpack where to store data about your bundles.
         new BundleTracker({filename: './webpack-stats.json'}), 
-				new webpack.DefinePlugin({
-				    PRODUCTION: JSON.stringify(true),
-				    VERSION: JSON.stringify("5fa3b9"),
-				    BROWSER_SUPPORTS_HTML5: true,
-				    TWO: "1+1",
-				    "typeof window": JSON.stringify("object")
-				})
         //makes jQuery available in every module
         /*new webpack.ProvidePlugin({ 
             $: 'jquery',
@@ -89,16 +82,16 @@ var client_config = config({
 var server_config = config({
 	context: path.resolve(__dirname, 'node'),
   entry: './server',
-  //target: 'node',
+  target: 'node',
   output: {
 	    path: path.join(__dirname, './static/bundles/'),
 	    filename: 'server-bundle.js'
 	},
 	//not clear if we need this. see: https://webpack.js.org/configuration/node/#node
-  /*node: {
+  node: {
 	    __dirname: true,
 	    __filename: true
-	}*/
+	}
 });
 
 function onBuild(done) {

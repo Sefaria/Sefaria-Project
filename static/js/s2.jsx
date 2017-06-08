@@ -6,10 +6,13 @@
       extend       = require('extend'),
       classNames   = require('classnames'),
       Sefaria      = require('./sefaria');
-                     require('jquery.cookie');  //NOTE: these require statements are adding props to the $ obj. The order actually doesn't matter b/c it seems webpack deals with it
-                     require('jquery-ui');
-                     require('jquery.scrollto');
-t
+  if (typeof document !== 'undefined' ) {
+    INBROWSER = false;
+    require('jquery.cookie');  //NOTE: these require statements are adding props to the $ obj. The order actually doesn't matter b/c it seems webpack deals with it
+    require('jquery-ui');
+    require('jquery.scrollto');
+  }
+
       //cookie       = require('jquery.cookie'); //Sefaria.util.cookie;
                      /*require('jquery-ui-css/core.css');
                      require('jquery-ui-css/menu.css');

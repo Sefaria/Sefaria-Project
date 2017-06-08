@@ -1,24 +1,18 @@
 //if (typeof require !== 'undefined') {
-  var INBROWSER = true;
-  var $         = require('jquery');
-      $.cookie  = require('jquery.cookie');
-  var extend    = require('extend'),
-      param     = require('querystring').stringify,
-      striptags = require('striptags');
 
+var INBROWSER = true,
+    $         = require('jquery'),
+    extend    = require('extend'),
+    param     = require('querystring').stringify,
+    striptags = require('striptags');
 if (typeof document === 'undefined') {
-     ga        = function() {}; // Fail gracefully if we reach one of these methods server side
+     INBROWSER = false;
+     var ga        = function() {}; // Fail gracefully if we reach one of these methods server side
      $.ajax    = function() {}; // ditto
      $.getJSON = function() {}; // ditto
+} else {
+     require('jquery.cookie');
 }
-
-
-
-/*} else {
-  var INBROWSER = true,
-      extend    = $.extend,
-      param     = $.param;
-}*/
 
 var Sefaria = Sefaria || {
   _dataLoaded: false,
@@ -1051,9 +1045,9 @@ Sefaria = extend(Sefaria, {
     if (Sefaria._uid) {
         $.post("/api/profile", {json: JSON.stringify({recentlyViewed: packedRecent})}, function(data) {} );
     } else {
-      //var cookie = INBROWSER ? $.cookie : Sefaria.util.cookie;
+      var cookie = INBROWSER ? $.cookie : Sefaria.util.cookie;
       packedRecent = packedRecent.slice(0, 6);
-      $.cookie("recentlyViewed", JSON.stringify(packedRecent), {path: "/"});
+      cookie("recentlyViewed", JSON.stringify(packedRecent), {path: "/"});
     }
   },
   packRecentItem: function(item) {
@@ -1999,7 +1993,7 @@ Sefaria.util = {
 
                 // write
                 if (value !== undefined) {
-                    options = $.extend({}, config.defaults, options);
+                    options = extend({}, config.defaults, options);
 
                     if (value === null) {
                         options.expires = -1;
@@ -2106,7 +2100,7 @@ Sefaria.util = {
         }
     },
     handleUserCookie: function() {
-        //var cookie = INBROWSER ? $.cookie : Sefaria.util.cookie;
+        var cookie = INBROWSER ? $.cookie : Sefaria.util.cookie;
 
         if (Sefaria.loggedIn) {
             // If logged in, replace cookie with current system details
@@ -2114,7 +2108,7 @@ Sefaria.util = {
             var expires = new Date(); // starts with current time
             expires.setTime(expires.getTime() + 2 * 365 * 24 * 3600 * 1000);  // milliseconds
 
-            $.cookie("_user", JSON.stringify({
+            cookie("_user", JSON.stringify({
                _uid: Sefaria._uid,
                _partner_group: Sefaria._partner_group,
                _partner_role: Sefaria._partner_role
@@ -2123,7 +2117,7 @@ Sefaria.util = {
             Sefaria._analytics_uid = Sefaria._uid;
         } else {
             // If not logged in, get details from cookie
-            var c = $.cookie("_user");
+            var c = cookie("_user");
             if (c) {
               c = JSON.parse(c);
               Sefaria._analytics_uid = c._uid;
@@ -2546,10 +2540,12 @@ function csrf_init() {
 
 Sefaria.setup = function() {
     //csrf_init();
-    for (var prop in DJANGO_DATA_VARS) {
-      if (DJANGO_DATA_VARS.hasOwnProperty(prop)) {
-        Sefaria[prop] = DJANGO_DATA_VARS[prop];
-      }
+    if (typeof DJANGO_DATA_VARS !== 'undefined') {
+        for (var prop in DJANGO_DATA_VARS) {
+            if (DJANGO_DATA_VARS.hasOwnProperty(prop)) {
+                Sefaria[prop] = DJANGO_DATA_VARS[prop];
+            }
+        }
     }
     Sefaria.util.setupPrototypes();
     Sefaria.util.setupJQuery();
@@ -2560,6 +2556,7 @@ Sefaria.setup = function() {
     Sefaria.recentlyViewed = Sefaria.recentlyViewed.map(Sefaria.unpackRecentItem);
     Sefaria._cacheHebrewTerms(Sefaria.terms);
     Sefaria.site.track.setUserData();
+
 };
 Sefaria.setup();
 
