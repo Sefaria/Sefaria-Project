@@ -52,7 +52,8 @@ server.post('/ReaderApp/:cachekey', function(req, res) {
       log("Time to get data.js: %dms", timer.elapsed());
       eval(body);
       log("Time to eval data.js: %dms", timer.elapsed());
-      var html = renderReaderApp(props, data, timer);
+      log(body);
+      var html = renderReaderApp(props, DJANGO_DATA_VARS, timer);
       res.end(html);
       log("Time to complete: %dms", timer.elapsed());  
     } else {

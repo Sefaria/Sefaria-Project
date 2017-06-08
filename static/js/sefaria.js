@@ -10,6 +10,7 @@ if (typeof document === 'undefined') {
      var ga        = function() {}; // Fail gracefully if we reach one of these methods server side
      $.ajax    = function() {}; // ditto
      $.getJSON = function() {}; // ditto
+    require('source-map-support').install();
 } else {
      require('jquery.cookie');
 }
