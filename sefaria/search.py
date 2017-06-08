@@ -456,7 +456,7 @@ def put_text_mapping(index_name):
                 "comp_date": {
                     'type': 'integer',
                     'index': 'not_analyzed'
-                }
+                },
                 "hebmorph_semi_exact": {
                     'type': 'string',
                     'analyzer': 'hebrew',
