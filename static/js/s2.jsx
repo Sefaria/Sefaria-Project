@@ -7611,10 +7611,10 @@ var AddToSourceSheetWindow = React.createClass({
   render: function () {
     var nextParam = "?next=" + encodeURIComponent(Sefaria.util.currentPath());
 
-    return (<div className="sourceSheetPanelBox">
+    return (<div className="addToSourceSheetModal">
       <div className="sourceSheetBoxTitle">
-        <i className="fa fa-times-circle" aria-hidden="true" onClick={this.close}/>
-        {Sefaria.loggedIn?"":<span>
+        <img src="/static/img/circled-x.svg" className="closeButton" aria-hidden="true" alt="Close" onClick={this.close}/>
+        {Sefaria.loggedIn ? null : <span>
             In order to add this source to a sheet, please <a href={"/login" + nextParam}>log in.</a>
         </span>}
       </div>
@@ -7623,7 +7623,7 @@ var AddToSourceSheetWindow = React.createClass({
           srefs = {this.props.srefs}
           en = {this.props.en}
           he = {this.props.he}
-        /> : ""}
+        /> : null }
       </div>);
   }
 });

@@ -9597,12 +9597,12 @@ var AddToSourceSheetWindow = React.createClass({
 
     return React.createElement(
       'div',
-      { className: 'sourceSheetPanelBox' },
+      { className: 'addToSourceSheetModal' },
       React.createElement(
         'div',
         { className: 'sourceSheetBoxTitle' },
-        React.createElement('i', { className: 'fa fa-times-circle', 'aria-hidden': 'true', onClick: this.close }),
-        Sefaria.loggedIn ? "" : React.createElement(
+        React.createElement('img', { src: '/static/img/circled-x.svg', className: 'closeButton', 'aria-hidden': 'true', alt: 'Close', onClick: this.close }),
+        Sefaria.loggedIn ? null : React.createElement(
           'span',
           null,
           'In order to add this source to a sheet, please ',
@@ -9617,7 +9617,7 @@ var AddToSourceSheetWindow = React.createClass({
         srefs: this.props.srefs,
         en: this.props.en,
         he: this.props.he
-      }) : ""
+      }) : null
     );
   }
 });

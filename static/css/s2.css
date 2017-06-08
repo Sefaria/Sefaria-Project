@@ -2745,10 +2745,7 @@ a.readerNavCategory {
   top: 70px;
 }
 .textList .texts {
-  background-color: white;
   position: relative;
-}
-.textList .texts {
   background-color: #F9F9F7;
 }
 .sepia .textList .texts {
