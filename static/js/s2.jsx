@@ -3540,7 +3540,10 @@ var TextTableOfContentsNavigation = React.createClass({
         break;
       case "commentary":
         var content = <CommentatorList
-                        commentatorList={this.props.commentatorList} />;
+                        commentatorList={this.props.commentatorList}
+                        title={this.props.title} />;
+
+
         break;
       case "versions":
         var content = <VersionsList
@@ -3845,11 +3848,13 @@ var ArrayMapNode = React.createClass({
 
 var CommentatorList = React.createClass({
   propTypes: {
-    commentatorList: React.PropTypes.array.isRequired
+    commentatorList: React.PropTypes.array.isRequired,
+      title:         React.PropTypes.string.isRequired
   },
   render: function() {
+    console.log(this.props.commentatorList);
     var content = this.props.commentatorList.map(function(commentator, i) {
-      var ref = commentator.firstSection;
+      var ref = commentator.refs_to_base_texts[this.props.title];
       return (<a className="refLink linked" href={Sefaria.normRef(ref)} data-ref={ref} key={i}>
                 <span className="he">{commentator.heCollectiveTitle}</span>
                 <span className="en">{commentator.collectiveTitle}</span>

@@ -1095,9 +1095,7 @@ Sefaria = extend(Sefaria, {
         var curTocElem = toc[i];
         if (curTocElem.title) { //this is a book
             if(curTocElem.dependence == 'Commentary'){
-                //if((title && curTocElem.base_text_titles && curTocElem.base_text_titles.filter(function(btitle){ return btitle["title"] == title}).length == 1)
-                if((title && curTocElem.base_text_titles && Sefaria.util.inArray(title, curTocElem.base_text_titles) != -1) ||
-                    (title == null)){
+                if((title && curTocElem.base_text_titles && (title in curTocElem.refs_to_base_texts)) || (title == null)){
                     results.push(curTocElem);
                 }
             }
