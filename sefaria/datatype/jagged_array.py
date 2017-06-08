@@ -59,7 +59,6 @@ class JaggedArray(object):
 
     def distance(self, indexes1, indexes2):
         """
-
         :param indexes1: list of 0 based indexes for digging len(indexes) levels into the array
         :param indexes2: ditto
         :return: the distance, measured in array elements, between indexes1 and indexes2
