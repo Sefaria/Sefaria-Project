@@ -646,7 +646,12 @@ Sefaria = extend(Sefaria, {
     }
     for (var ref in splitItems) {
       if (splitItems.hasOwnProperty(ref)) {
-        store[ref] = splitItems[ref];
+        if (!(ref in store) || store[ref].length < splitItems[ref]) {
+          // Don't overwrite the cache if it already contains more items than the new list.
+          // Due to range logic, if cache was populated with "Genesis 1", a call for "Genesis 1:2-4" could yeild
+          // a smaller list of results for "Genesis 1:4" than was already present. 
+          store[ref] = splitItems[ref];
+        }
       }
     }
     return splitItems;
@@ -927,14 +932,15 @@ Sefaria = extend(Sefaria, {
   related: function(ref, callback) {
     // Single API to bundle public links, sheets, and notes by ref.
     // `ref` may be either a string or an array of consecutive ref strings.
-    ref = Sefaria.normRef(ref);
+    ref = Sefaria.humanRef(ref);
     if (!callback) {
       return this._related[ref] || null;
     }
     if (ref in this._related) {
       callback(this._related[ref]);
     } else {
-       var url = "/api/related/" + ref;
+       console.log("Getting related data for ", ref);
+       var url = "/api/related/" + Sefaria.normRef(ref);
        this._api(url, function(data) {
           if ("error" in data) { 
             return;
@@ -973,14 +979,14 @@ Sefaria = extend(Sefaria, {
     // Single API to bundle private user sheets and notes by ref.
     // `ref` may be either a string or an array of consecutive ref strings.
     // Separated from public content so that public content can be cached
-    ref = Sefaria.normRef(ref);
+    ref = Sefaria.humanRef(ref);
     if (!callback) {
       return this._relatedPrivate[ref] || null;
     }
     if (ref in this._relatedPrivate) {
       callback(this._relatedPrivate[ref]);
     } else {
-       var url = "/api/related/" + ref + "?private=1";
+       var url = "/api/related/" + Sefaria.normRef(ref) + "?private=1";
        this._api(url, function(data) {
           if ("error" in data) { 
             return;
