@@ -3168,8 +3168,8 @@ class Ref(object):
 
     def ref_regex_query(self):
         """
-        Convenience method to wrap the lines of logic used to generate a broken out list of ref queries from one regex. 
-        The regex in the list will naturally all be anchored. 
+        Convenience method to wrap the lines of logic used to generate a broken out list of ref queries from one regex.
+        The regex in the list will naturally all be anchored.
         :return: dict of the form {"$or" [{"refs": {"$regex": r1}},{"refs": {"$regex": r2}}...]}
         """
         reg_list = self.regex(as_list=True)
@@ -4399,30 +4399,30 @@ class Library(object):
 
     def _internal_ref_from_string(self, title=None, st=None, lang=None, stIsAnchored=False, return_locations = False):
 
-            node = self.get_schema_node(title, lang)
-            assert isinstance(node, JaggedArrayNode)  # Assumes that node is a JaggedArrayNode
+        node = self.get_schema_node(title, lang)
+        assert isinstance(node, JaggedArrayNode)  # Assumes that node is a JaggedArrayNode
 
-            refs = []
-            try:
-                re_string = self.get_regex_string(title, lang, anchored=stIsAnchored)
-            except AttributeError as e:
-                logger.warning(
-                    u"Library._internal_ref_from_string() failed to create regex for: {}.  {}".format(title, e))
-                return refs
-
-            reg = regex.compile(re_string, regex.VERBOSE)
-            if stIsAnchored:
-                m = reg.match(st)
-                matches = [m] if m else []
-            else:
-                matches = reg.finditer(st)
-            for ref_match in matches:
-                try:
-                    res = (self._get_ref_from_match(ref_match, node, lang), ref_match.span()) if return_locations else self._get_ref_from_match(ref_match, node, lang)
-                    refs.append(res)
-                except InputError:
-                    continue
+        refs = []
+        try:
+            re_string = self.get_regex_string(title, lang, anchored=stIsAnchored)
+        except AttributeError as e:
+            logger.warning(
+                u"Library._internal_ref_from_string() failed to create regex for: {}.  {}".format(title, e))
             return refs
+
+        reg = regex.compile(re_string, regex.VERBOSE)
+        if stIsAnchored:
+            m = reg.match(st)
+            matches = [m] if m else []
+        else:
+            matches = reg.finditer(st)
+        for ref_match in matches:
+            try:
+                res = (self._get_ref_from_match(ref_match, node, lang), ref_match.span()) if return_locations else self._get_ref_from_match(ref_match, node, lang)
+                refs.append(res)
+            except InputError:
+                continue
+        return refs
 
 
     # todo: handle ranges in inline refs
