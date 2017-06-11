@@ -8014,16 +8014,19 @@ var Note = React.createClass({
           <a href={this.props.ownerProfileUrl} className="noteAuthor">{this.props.ownerName}</a>
         </div>);
      
-     var buttons = this.props.isMyNote ? 
+      var buttons = this.props.isMyNote ? 
                     (<div className="noteButtons">
                       <i className="editNoteButton fa fa-pencil" title="Edit Note" onClick={this.props.editNote} ></i>
                     </div>) : null; 
-     
-     return (<div className="note">
+      
+      var text = this.props.text.replace(/\n/g, "<br>");
+      text = Sefaria.util.linkify(text);
+
+      return (<div className="note">
                 {buttons}
                 {authorInfo}
                 <div className="noteContent">
-                  <span className="noteText" dangerouslySetInnerHTML={{__html:this.props.text}}></span>
+                  <span className="noteText" dangerouslySetInnerHTML={{__html:text}}></span>
                 </div>
               </div>);
   }

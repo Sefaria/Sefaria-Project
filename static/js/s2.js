@@ -10130,6 +10130,9 @@ var Note = React.createClass({
       React.createElement('i', { className: 'editNoteButton fa fa-pencil', title: 'Edit Note', onClick: this.props.editNote })
     ) : null;
 
+    var text = this.props.text.replace(/\n/g, "<br>");
+    text = Sefaria.util.linkify(text);
+
     return React.createElement(
       'div',
       { className: 'note' },
@@ -10138,7 +10141,7 @@ var Note = React.createClass({
       React.createElement(
         'div',
         { className: 'noteContent' },
-        React.createElement('span', { className: 'noteText', dangerouslySetInnerHTML: { __html: this.props.text } })
+        React.createElement('span', { className: 'noteText', dangerouslySetInnerHTML: { __html: text } })
       )
     );
   }

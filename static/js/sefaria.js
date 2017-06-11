@@ -939,7 +939,6 @@ Sefaria = extend(Sefaria, {
     if (ref in this._related) {
       callback(this._related[ref]);
     } else {
-       console.log("Getting related data for ", ref);
        var url = "/api/related/" + Sefaria.normRef(ref);
        this._api(url, function(data) {
           if ("error" in data) { 
@@ -2380,6 +2379,9 @@ Sefaria.util = {
           vars[key] = decodeURIComponent(value);
       });
       return vars;
+    },
+    linkify: function(str) {
+      return str.replace(/(?:(https?\:\/\/[^\s]+))/m, '<a target="_blank" href="$1">$1</a>');
     },
     _scrollbarWidth: null,
     getScrollbarWidth: function() {
