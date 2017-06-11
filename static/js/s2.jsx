@@ -7751,13 +7751,13 @@ var AddToSourceSheetBox = React.createClass({
     }.bind(this)) : (Sefaria._uid ? <LoadingMessage /> : null);
 
     return (
-      <div className="addToSourceSheetBox sans">
-        <div className="selectedSheet" onClick={this.toggleSheetList}>
+      <div className="addToSourceSheetBox noselect sans">
+        <div className="selectedSheet noselect" onClick={this.toggleSheetList}>
           {this.state.sheetsLoaded ? this.state.selectedSheet.title.stripHtml() : <LoadingMessage messsage="Loading your sheets..." heMessage=""/>}
-          <i className="sheetListOpenButton fa fa-caret-down"></i>
+          <i className="sheetListOpenButton noselect fa fa-caret-down"></i>
         </div>
         {this.state.sheetListOpen ? 
-        <div className="sheetListDropdown">
+        <div className="sheetListDropdown noselect">
           <div className="sourceSheetSelector noselect">
             {sheetsList}
           </div>

@@ -9763,16 +9763,16 @@ var AddToSourceSheetBox = React.createClass({
 
     return React.createElement(
       'div',
-      { className: 'addToSourceSheetBox sans' },
+      { className: 'addToSourceSheetBox noselect sans' },
       React.createElement(
         'div',
-        { className: 'selectedSheet', onClick: this.toggleSheetList },
+        { className: 'selectedSheet noselect', onClick: this.toggleSheetList },
         this.state.sheetsLoaded ? this.state.selectedSheet.title.stripHtml() : React.createElement(LoadingMessage, { messsage: 'Loading your sheets...', heMessage: '' }),
-        React.createElement('i', { className: 'sheetListOpenButton fa fa-caret-down' })
+        React.createElement('i', { className: 'sheetListOpenButton noselect fa fa-caret-down' })
       ),
       this.state.sheetListOpen ? React.createElement(
         'div',
-        { className: 'sheetListDropdown' },
+        { className: 'sheetListDropdown noselect' },
         React.createElement(
           'div',
           { className: 'sourceSheetSelector noselect' },
