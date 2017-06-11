@@ -226,13 +226,13 @@ def render_react_component(component, props):
         if isinstance(e, socket.timeout) or (hasattr(e, "reason") and isinstance(e.reason, socket.timeout)):
             logger.exception("Node timeout: Fell back to client-side rendering.")
             with open(NODE_TIMEOUT_MONITOR, "a") as myfile:
-                myfile.write("Timeout at {}: {} / {} / {} / {}").format(
+                myfile.write("Timeout at {}: {} / {} / {} / {}".format(
                     datetime.now().isoformat(),
                     props.get("initialPath"),
                     "MultiPanel" if props.get("multiPanel", True) else "Mobile",
                     "Logged In" if props.get("loggedIn", False) else "Logged Out",
                     props.get("interfaceLang")
-                )
+                ))
             return render_to_string("elements/loading.html")
         else:
             # If anything else goes wrong with Node, just fall back to client-side rendering
@@ -253,7 +253,9 @@ def make_panel_dict(oref, version, language, filter, mode, **kwargs):
             "versions": oref.version_list()
         }
     else:
-        oref = oref.first_available_section_ref()
+        section_ref = oref.first_available_section_ref()
+        oref = section_ref if section_ref else oref
+
         panelDisplayLanguage = kwargs.get("panelDisplayLanguage")
         panel = {
             "mode": mode,
@@ -264,7 +266,12 @@ def make_panel_dict(oref, version, language, filter, mode, **kwargs):
             "filter": filter,
         }
         if filter and len(filter):
-            panel["connectionsMode"] = "TextList"
+            if filter == ["Sheets"]:
+                panel["connectionsMode"] = "Sheets"
+            elif filter == ["Notes"]:
+                panel["connectionsMode"] = "Notes"
+            else:
+                panel["connectionsMode"] = "TextList"
         if panelDisplayLanguage:
             panel["settings"] = {"language" : short_to_long_lang_code(panelDisplayLanguage)}
             # so the connections panel doesnt act on the version NOT currently on display
@@ -273,13 +280,14 @@ def make_panel_dict(oref, version, language, filter, mode, **kwargs):
                 panel["versionLanguage"] = None
         if mode != "Connections":
             try:
-                text = TextFamily(oref, version=panel["version"], lang=panel["versionLanguage"], commentary=False, context=True, pad=True, alts=True, wrapLinks=False).contents()
+                text_family = TextFamily(oref, version=panel["version"], lang=panel["versionLanguage"], commentary=False,
+                                  context=True, pad=True, alts=True, wrapLinks=False).contents()
             except NoVersionFoundError:
-                text = {}
-            text["updateFromAPI"] = True
-            text["next"] = oref.next_section_ref().normal() if oref.next_section_ref() else None
-            text["prev"] = oref.prev_section_ref().normal() if oref.prev_section_ref() else None
-            panel["text"] = text
+                text_family = {}
+            text_family["updateFromAPI"] = True
+            text_family["next"] = oref.next_section_ref().normal() if oref.next_section_ref() else None
+            text_family["prev"] = oref.prev_section_ref().normal() if oref.prev_section_ref() else None
+            panel["text"] = text_family
 
             if oref.is_segment_level():
                 panel["highlightedRefs"] = [subref.normal() for subref in oref.range_list()]
@@ -1367,7 +1375,7 @@ def texts_api(request, tref, lang=None, version=None):
 
         return jsonResponse({"status": "ok"})
 
-    return jsonResponse({"error": "Unsuported HTTP method."}, callback=request.GET.get("callback", None))
+    return jsonResponse({"error": "Unsupported HTTP method."}, callback=request.GET.get("callback", None))
 
 
 @catch_error_as_json
@@ -1471,7 +1479,7 @@ def index_api(request, title, v2=False, raw=False):
 
         return jsonResponse({"status": "ok"})
 
-    return jsonResponse({"error": "Unsuported HTTP method."}, callback=request.GET.get("callback", None))
+    return jsonResponse({"error": "Unsupported HTTP method."}, callback=request.GET.get("callback", None))
 
 
 @catch_error_as_json
@@ -1659,7 +1667,7 @@ def links_api(request, link_id_or_ref=None):
             tracker.delete(request.user.id, model.Link, link_id_or_ref, callback=revarnish_link)
         )
 
-    return jsonResponse({"error": "Unsuported HTTP method."})
+    return jsonResponse({"error": "Unsupported HTTP method."})
 
 
 @catch_error_as_json
@@ -1750,7 +1758,7 @@ def notes_api(request, note_id_or_ref):
             tracker.delete(request.user.id, model.Note, note_id_or_ref)
         )
 
-    return jsonResponse({"error": "Unsuported HTTP method."})
+    return jsonResponse({"error": "Unsupported HTTP method."})
 
 
 @catch_error_as_json
@@ -1770,7 +1778,7 @@ def related_api(request, tref):
         response = {
             "links": get_links(tref, with_text=False),
             "sheets": get_sheets_for_ref(tref),
-            "notes": get_notes(oref, public=True)
+            "notes": [] # get_notes(oref, public=True) # Hiding public notes for now
         }
     return jsonResponse(response, callback=request.GET.get("callback", None))
 
@@ -2008,9 +2016,79 @@ def terms_api(request, name):
         return jsonResponse(_internal_do_post(request, j, uid, **kwargs))
 
     if request.method == "DELETE":
-        return jsonResponse({"error": "Unsuported HTTP method."}) #TODO: support this?
+        return jsonResponse({"error": "Unsupported HTTP method."}) #TODO: support this?
 
-    return jsonResponse({"error": "Unsuported HTTP method."})
+    return jsonResponse({"error": "Unsupported HTTP method."})
+
+@catch_error_as_json
+def name_api(request, name):
+    if request.method != "GET":
+        return jsonResponse({"error": "Unsupported HTTP method."})
+
+    # Number of results to return.  0 indicates no limit
+    LIMIT = request.GET.get("limit") or 16
+    ref_only = request.GET.get("ref_only", False)
+    lang = "he" if is_hebrew(name) else "en"
+
+    completer = library.ref_auto_completer(lang) if ref_only else library.full_auto_completer(lang)
+    try:
+        ref = Ref(name)
+        inode = ref.index_node
+        assert isinstance(inode, SchemaNode)
+
+        completions = [name.capitalize()] + completer.next_steps_from_node(name)
+
+        if LIMIT == 0 or len(completions) < LIMIT:
+            current = {t: 1 for t in completions}
+            additional_results = completer.complete(name, LIMIT)
+            for res in additional_results:
+                if res not in current:
+                    completions += [res]
+
+        d = {
+            "lang": lang,
+            "is_ref": True,
+            "is_book": ref.is_book_level(),
+            "is_node": len(ref.sections) == 0,
+            "is_section": ref.is_section_level(),
+            "is_segment": ref.is_segment_level(),
+            "is_range": ref.is_range(),
+            "type": "ref",
+            "ref": ref.normal(),
+            "index": ref.index.title,
+            "book": ref.book,
+            "internalSections": ref.sections,
+            "internalToSections": ref.toSections,
+            "sections": ref.normal_sections(),  # this switch is to match legacy behavior of parseRef
+            "toSections": ref.normal_toSections(),
+            # "number_follows": inode.has_numeric_continuation(),
+            # "titles_follow": titles_follow,
+            "completions": completions[:LIMIT],
+            # todo: ADD textual completions as well
+            "examples": []
+        }
+        if inode.has_numeric_continuation():
+            inode = inode.get_default_child() if inode.has_default_child() else inode
+            d["sectionNames"] = inode.sectionNames
+            d["heSectionNames"] = map(hebrew_term, inode.sectionNames)
+            d["addressExamples"] = [t.toStr("en", 3*i+3) for i,t in enumerate(inode._addressTypes)]
+            d["heAddressExamples"] = [t.toStr("he", 3*i+3) for i,t in enumerate(inode._addressTypes)]
+
+    except InputError:
+        # This is not a Ref
+        d = {
+            "lang": lang,
+            "is_ref": False,
+            "completions": completer.complete(name, LIMIT)
+        }
+
+        # let's see if it's a known name of another sort
+        object_data = completer.get_data(name)
+        if object_data:
+            d["type"] = object_data["type"]
+            d["key"] = object_data["key"]
+
+    return jsonResponse(d)
 
 
 @catch_error_as_json
@@ -2215,7 +2293,7 @@ def texts_history_api(request, tref, lang=None, version=None):
     API for retrieving history information about a given text.
     """
     if request.method != "GET":
-        return jsonResponse({"error": "Unsuported HTTP method."})
+        return jsonResponse({"error": "Unsupported HTTP method."})
 
     tref = model.Ref(tref).normal()
     refRe = '^%s$|^%s:' % (tref, tref)
@@ -2312,7 +2390,7 @@ def reviews_api(request, tref=None, lang=None, version=None, review_id=None):
         return jsonResponse(delete_review(review_id, request.user.id))
 
     else:
-        return jsonResponse({"error": "Unsuported HTTP method."})
+        return jsonResponse({"error": "Unsupported HTTP method."})
 
 
 @ensure_csrf_cookie

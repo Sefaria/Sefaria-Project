@@ -32,7 +32,6 @@ from sefaria.datatype.jagged_array import JaggedTextArray, JaggedArray
 from sefaria.settings import DISABLE_INDEX_SAVE, USE_VARNISH
 
 
-
 """
                 ----------------------------------
                          Index, IndexSet
@@ -285,8 +284,6 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
             }
 
         return contents
-
-
 
     def legacy_form(self, force_complex=False):
         """
@@ -974,7 +971,7 @@ class Version(abst.AbstractMongoRecord, AbstractTextRecord, AbstractSchemaConten
                 }).section_ref()
         return None
 
-    def ja(self,  remove_html=False):
+    def ja(self, remove_html=False):
         # the quickest way to check if this is a complex text
         if isinstance(getattr(self, self.text_attr, None), dict):
             nodes = self.get_index().nodes.get_leaf_nodes()
@@ -1843,7 +1840,7 @@ class Ref(object):
         """
         self.index = None
         self.book = None
-        self.primary_category = None #used to be named 'type' but that was very confusing
+        self.primary_category = None  # used to be named 'type' but that was very confusing
         self.sections = []
         self.toSections = []
         self.index_node = None
@@ -1934,6 +1931,8 @@ class Ref(object):
         parts = [s.strip() for s in self.tref.split("-")]
         if len(parts) > 2:
             raise InputError(u"Couldn't understand ref '{}' (too many -'s).".format(self.tref))
+        if any([not p for p in parts]):
+            raise InputError(u"Couldn't understand ref '{}' (beginning or ending -)".format(self.tref))
 
         base = parts[0]
         title = None
@@ -1951,6 +1950,8 @@ class Ref(object):
                     title = base[0:l - 1]
                 break
             if new_tref:
+                if l < len(base) and base[l] not in " .":
+                    continue
                 # If a term is matched, reinit with the real tref
                 self.__reinit_tref(new_tref)
                 return
@@ -1998,26 +1999,32 @@ class Ref(object):
                 self.book = self.index_node.full_title("en")
             return
 
+        reg = None
         try:
-            reg = self.index_node.full_regex(title, self._lang)  # Try to treat this as a JaggedArray
+            reg = self.index_node.full_regex(title, self._lang, terminated=True)  # Try to treat this as a JaggedArray
         except AttributeError:
-            # We matched a schema node followed by an illegal number. (Are there other cases here?)
-            matched = self.index_node.full_title(self._lang)
-            msg = u"Partial reference match for '{}' - failed to find continuation for '{}'.\nValid continuations are:\n".format(self.tref, matched)
-            continuations = []
-            for child in self.index_node.children:
-                continuations += child.all_node_titles(self._lang)
-            msg += u",\n".join(continuations)
-            raise PartialRefInputError(msg, matched, continuations)
+            if self.index.has_alt_structures():
+                # Give an opportunity for alt structure parsing, below
+                pass
+            else:
+                # We matched a schema node followed by an illegal number. (Are there other cases here?)
+                matched = self.index_node.full_title(self._lang)
+                msg = u"Partial reference match for '{}' - failed to find continuation for '{}'.\nValid continuations are:\n".format(self.tref, matched)
+                continuations = []
+                for child in self.index_node.children:
+                    continuations += child.all_node_titles(self._lang)
+                msg += u",\n".join(continuations)
+                raise PartialRefInputError(msg, matched, continuations)
 
         # Numbered Structure node - try numbered structure parsing
-        if self.index_node.children and getattr(self.index_node, "_addressTypes", None):
+        if reg and self.index_node.children and getattr(self.index_node, "_addressTypes", None):
             try:
-                struct_indexes = self.__get_sections(reg, base)
+                loose_reg = self.index_node.full_regex(title, self._lang)
+                struct_indexes = self.__get_sections(loose_reg, base)
                 self.index_node = reduce(lambda a, i: a.children[i], [s - 1 for s in struct_indexes], self.index_node)
                 title = self.book = self.index_node.full_title("en")
-                base = regex.sub(reg, title, base)
-                reg = self.index_node.full_regex(title, self._lang)
+                base = regex.sub(loose_reg, title, base)
+                reg = self.index_node.full_regex(title, self._lang, terminated=True)
             except InputError:
                 pass
             #todo: ranges that cross structures
@@ -2027,7 +2034,7 @@ class Ref(object):
             return
 
         # Content node -  Match primary structure address (may be stage two of numbered structure parsing)
-        if not self.index_node.children and getattr(self.index_node, "_addressTypes", None):
+        if reg and not self.index_node.children and getattr(self.index_node, "_addressTypes", None):
             try:
                 self.sections = self.__get_sections(reg, base)
             except InputError:
@@ -2051,7 +2058,7 @@ class Ref(object):
                             return
 
                     try:  # Some structure nodes don't have .regex() methods.
-                        reg = alt_struct_node.full_regex(title, self._lang)
+                        reg = alt_struct_node.full_regex(title, self._lang)  # Not strict, since the array map portion will go beyond
                     except AttributeError:
                         pass
                     else:
@@ -2062,16 +2069,19 @@ class Ref(object):
                                 alt_struct_node = reduce(lambda a, i: a.children[i], [s - 1 for s in struct_indexes], alt_struct_node)
                                 title = alt_struct_node.full_title("en")
                                 base = regex.sub(reg, title, base)
-                                reg = alt_struct_node.full_regex(title, self._lang)
+                                reg = alt_struct_node.full_regex(title, self._lang, terminated=True)
                             except InputError:
                                 pass
 
                         # Alt struct map node -  (may be stage two of numbered structure parsing)
-                        if title == base:  #not a repetition of similar test above - title may have changed in numbered structure parsing
+                        if title == base:  # not a repetition of similar test above - title may have changed in numbered structure parsing
                             alt_struct_indexes = []
                         else:
-                            alt_struct_indexes = self.__get_sections(reg, base)
-                        new_tref = alt_struct_node.get_ref_from_sections(alt_struct_indexes)
+                            alt_struct_indexes = self.__get_sections(reg, base, use_node=alt_struct_node)
+                        try:
+                            new_tref = alt_struct_node.get_ref_from_sections(alt_struct_indexes)
+                        except IndexError:
+                            raise InputError(u"Sections {} not found in {}".format(alt_struct_indexes, alt_struct_node.full_title()))
                         if new_tref:
                             self.__reinit_tref(new_tref)
                             return
@@ -3531,6 +3541,12 @@ class Ref(object):
 
         return normal
 
+    def normal_sections(self, lang="en"):
+        return [self.index_node.address_class(i).toStr(lang, self.sections[i]) for i in range(len(self.sections))]
+
+    def normal_toSections(self, lang="en"):
+        return [self.index_node.address_class(i).toStr(lang, self.toSections[i]) for i in range(len(self.toSections))]
+
     def normal_section(self, section_index, lang="en", **kwargs):
         """
         Return the display form of the section value at depth `section_index`
@@ -3692,7 +3708,7 @@ class Library(object):
         # Maps, keyed by language, from titles to schema nodes
         self._title_node_maps = {lang:{} for lang in self.langs}
 
-        # Lists of full titles, keys are string generated from a combination of language code, "commentators", "commentary", and "terms".  See method `full_title_list()`
+        # Lists of full titles, keys are string generated from a combination of language code and "terms".  See method `full_title_list()`
         # Contains a list of only those titles from which citations are recognized in the auto-linker. Keyed by "citing-<lang>"
         self._full_title_lists = {}
 
@@ -3712,10 +3728,15 @@ class Library(object):
         # Table of Contents
         self._toc = None
         self._toc_json = None
+        self._toc_objects = None
         self._search_filter_toc = None
         self._search_filter_toc_json = None
         self._category_id_dict = None
         self._toc_size = 16
+
+        # Spell Checking and Autocompleting
+        self._full_auto_completer = {}
+        self._ref_auto_completer = {}
 
         if not hasattr(sys, '_doc_build'):  # Can't build cache without DB
             self._build_core_maps()
@@ -3743,9 +3764,12 @@ class Library(object):
         self._full_title_list_jsons = {}
         self._title_regex_strings = {}
         self._title_regexes = {}
+        self._full_auto_completer = {}
+        self._ref_auto_completer = {}
         # TOC is handled separately since it can be edited in place
 
     def _reset_toc_derivate_objects(self):
+        from sefaria.summaries import toc_serial_to_objects
         scache.delete_cache_elem('toc_cache')
         scache.delete_cache_elem('toc_json_cache')
         scache.set_cache_elem('toc_cache', self.get_toc(), 600000)
@@ -3758,6 +3782,7 @@ class Library(object):
 
         scache.delete_template_cache("texts_list")
         scache.delete_template_cache("texts_dashboard")
+        self._toc_objects = toc_serial_to_objects(self._toc)
         self._full_title_list_jsons = {}
 
     def rebuild(self, include_toc = False):
@@ -3766,10 +3791,13 @@ class Library(object):
         Ref.clear_cache()
         if include_toc:
             self.rebuild_toc()
+        self.build_full_auto_completer()
+        self.build_ref_auto_completer()
 
     def rebuild_toc(self):
         self._toc = None
         self._toc_json = None
+        self._toc_objects = None
         self._search_filter_toc = None
         self._search_filter_toc_json = None
         self._category_id_dict = None
@@ -3799,6 +3827,12 @@ class Library(object):
                 scache.set_cache_elem('toc_json_cache', self._toc_json)
         return self._toc_json
 
+    def get_toc_objects(self):
+        if not self._toc_objects:
+            from sefaria.summaries import toc_serial_to_objects
+            self._toc_objects = toc_serial_to_objects(self.get_toc())
+        return self._toc_objects
+
     def get_search_filter_toc(self):
         """
         Returns table of contents object from cache,
@@ -3822,6 +3856,32 @@ class Library(object):
                 self._search_filter_toc_json = json.dumps(self.get_search_filter_toc())
                 scache.set_cache_elem('search_filter_toc_json_cache', self._search_filter_toc_json)
         return self._search_filter_toc_json
+
+    def build_full_auto_completer(self):
+        from autospell import AutoCompleter
+        self._full_auto_completer = {
+            lang: AutoCompleter(lang, library, include_people=True, include_categories=True) for lang in self.langs
+        }
+
+    def build_ref_auto_completer(self):
+        from autospell import AutoCompleter
+        self._ref_auto_completer = {
+            lang: AutoCompleter(lang, library, include_people=False, include_categories=False) for lang in self.langs
+        }
+
+    def full_auto_completer(self, lang):
+        try:
+            return self._full_auto_completer[lang]
+        except KeyError:
+            self.build_full_auto_completer()  # I worry that these could pile up.
+            return self._full_auto_completer[lang]
+
+    def ref_auto_completer(self, lang):
+        try:
+            return self._ref_auto_completer[lang]
+        except KeyError:
+            self.build_ref_auto_completer()  # I worry that these could pile up.
+            return self._ref_auto_completer[lang]
 
     def recount_index_in_toc(self, indx):
         from sefaria.summaries import update_title_in_toc
@@ -3945,7 +4005,7 @@ class Library(object):
 
         self.remove_index_record_from_cache(index_object, old_title=old_title, rebuild=False)
         new_index = None
-        new_index = Index().load({"title":index_object.title})
+        new_index = Index().load({"title": index_object.title})
         assert new_index, u"No Index record found for {}: {}".format(index_object.__class__.__name__, index_object.title)
         self.add_index_record_to_cache(new_index, rebuild=True)
 
@@ -4237,8 +4297,6 @@ class Library(object):
                     refs += res
         return refs
 
-
-
     def get_wrapped_refs_string(self, st, lang=None, citing_only=False):
         """
         Returns a string with the list of Ref objects derived from string wrapped in <a> tags
@@ -4413,7 +4471,6 @@ class Library(object):
         return d
 
 library = Library()
-
 
 # Deprecated
 def get_index(bookname):

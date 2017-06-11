@@ -41,12 +41,10 @@
 {% endblock %}
 
 {% block content %}
-
-
-	<link rel="stylesheet" href="/static/css/sheets.css">
-	<link rel="stylesheet" href="/static/css/sheets-print.css" media="print" />
-
-
+<!-- CSS placed here so it has precedence over other sheets in base.html -->
+<link rel="stylesheet" href="/static/css/sheets.css">
+<link rel="stylesheet" href="/static/css/sheets-print.css" media="print" />
+<div id="sheetsContent">
 
     <div class="sheetsEditNavTop">
         <div class="sheetsMenuBarItem" id="fileMenu">File
@@ -496,24 +494,6 @@
 
 <div id="footer"></div>
 
-<div id="addSourceModal" class="modal s2Modal">
-			<div id="closeAddSource" class="icon-remove"></div>
-			<div id="addDialogTitle" class="dialogTitle">Enter a text or commentator name:</div>
-			<input id="add" />
-			<div id="addEg">e.g., Mishnah Peah 3:4, Psalms 4:12-15, Rashi on Genesis 1:1</div>
-			<div id="addOr">- or -</div>
-			<div id="addBrowseBox">
-				<div id="addBrowse" class='btn btn-primary'>Browse Sources</div>
-			</div>
-</div>
-
-<div id="addMediaModal" class="modal s2Modal">
-			<div class="header">Enter the URL of your image, YouTube video, or mp3 file:</div>
-			<input id="addMediaInput" placeholder="http://" />
-			<div id="mediaPreview"></div>
-			<div class='btn ok'>Add</div>
-</div>
-
 
 <div id="assignmentsModal" class="modal s2Modal">
         <span class="close-button"></span>
@@ -706,12 +686,12 @@
 	</div>
 </div>
 
+<div id='inlineTextPreview'></div>
+
 {% include "elements/login_prompt.html" with msg="To save, copy, or like, please log in." %}
 
-<!--
-Footer depends on full bootstrap grid, which isn't loaded in sheets.html
-{% include "elements/footer.html" %}
--->
+
+</div> <!-- end sheetContent -->
 {% endblock %}
 
 {% block js  %}

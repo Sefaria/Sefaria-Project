@@ -1079,14 +1079,14 @@ var ReaderApp = React.createClass({
     this.closePanel(n);
     this.openTextListAt(n, base.highlightedRefs);
   },
-  showLibrary: function() {
+  showLibrary: function(categories) {
     if (this.props.multiPanel) {
-      this.setState({header: this.makePanelState({mode: "Header", menuOpen: "navigation"})});
+      this.setState({header: this.makePanelState({mode: "Header", menuOpen: "navigation", navigationCategories: categories})});
     } else {
       if (this.state.panels.length) {
         this.state.panels[0].menuOpen = "navigation";
       } else {
-        this.state.panels[0] = this.makePanelState({menuOpen: "navigation"});
+        this.state.panels[0] = this.makePanelState({menuOpen: "navigation", navigationCategories: categories});
       }
       this.setState({panels: this.state.panels});
     }
@@ -1329,29 +1329,25 @@ var Header = React.createClass({
     } );
     $(ReactDOM.findDOMNode(this)).find("input.search").sefaria_autocomplete({
       position: {my: "left-12 top+14", at: "left bottom"},
+      minLength: 3,
       select: function( event, ui ) {
-        $(ReactDOM.findDOMNode(this)).find("input.search").val(ui.item.value);  //This will disappear when the next line executes, but the eye can sometimes catch it.
+        $(ReactDOM.findDOMNode(this)).find("input.search").val(ui.item.value);  // This will disappear when the next line executes, but the eye can sometimes catch it.
         this.submitSearch(ui.item.value);
         return false;
       }.bind(this),
-      source: function( request, response ) {
-        // Commented out code will only put the "Search for: " in the list if the search is an exact match.
-        //var exact = false;
-        var matches = $.map( Sefaria.books, function(tag) {
-            if ( tag.toUpperCase().indexOf(request.term.toUpperCase()) === 0 ) {
-              //if (tag.toUpperCase() == request.term.toUpperCase()) {
-              //  exact = true;
-              //}
-              return tag;
-            }
-          });
-        var resp = matches.slice(0, 16); // limits return to 16 items
-        //if (exact) {
-        if (resp.length > 0) {
-          resp.push(`${this._searchOverridePre}${request.term}${this._searchOverridePost}`);
-        }
-        //}
-        response(resp);
+
+      source: function(request, response) {
+        Sefaria.lookup(
+            request.term,
+            d => {
+              if (d["completions"].length > 0) {
+                response(d["completions"].concat([`${this._searchOverridePre}${request.term}${this._searchOverridePost}`]))
+              } else {
+                response([])
+              }
+            },
+            e => response([])
+        );
       }.bind(this)
     });
   },
@@ -1374,11 +1370,12 @@ var Header = React.createClass({
     this.props.setCentralState({menuOpen: null});
     this.clearSearchBox();      
   },
-  showLibrary: function() {
-    this.props.showLibrary();
+  showLibrary: function(categories) {
+    this.props.showLibrary(categories);
     this.clearSearchBox();
   },
   showSearch: function(query) {
+    query = query.trim();
     if (typeof sjs !== "undefined") {
       query = encodeURIComponent(query);
       window.location = `/search?q=${query}`;
@@ -1420,10 +1417,7 @@ var Header = React.createClass({
   hideTestMessage: function() { 
     this.props.setCentralState({showTestMessage: false});
   },
-  submitSearch: function(query, skipNormalization, originalQuery) {
-    // originalQuery is used to handle an edge case - when a varient of a commentator name is passed - e.g. "Rasag".
-    // the name gets normalized, but is ultimately not a ref, so becomes a regular search.
-    // We want to search for the original query, not the normalized name
+  submitSearch: function(query) {
     var override = query.match(this._searchOverrideRegex());
     if (override) {
       if (Sefaria.site) { Sefaria.site.track.event("Search", "Search Box Navigation - Book Override", override[1]); }
@@ -1432,33 +1426,42 @@ var Header = React.createClass({
       return;
     }
 
-    var index;
-    var normal_query = query.trim().toFirstCapital();
-    if (normal_query in Sefaria.booksDict) {
-      index = Sefaria.index(normal_query);
-      if (!index && !skipNormalization) {
-        Sefaria.normalizeTitle(query, function(title) {
-          this.submitSearch(title, true, query)
-        }.bind(this));
+    Sefaria.lookup(query, function(d) {
+      // If the query isn't recognized as a ref, but only for reasons of capitalization. Resubmit with recognizable caps.
+      if (Sefaria.isACaseVariant(query, d)) {
+        this.submitSearch(Sefaria.repairCaseVariant(query, d));
         return;
       }
-    }
-    if (Sefaria.isRef(normal_query)) {
-      var action = index? "Search Box Navigation - Book": "Search Box Navigation - Citation";
-      if (Sefaria.site) { Sefaria.site.track.event("Search", action, query); }
-      this.clearSearchBox();
-      this.handleRefClick(normal_query);  //todo: pass an onError function through here to the panel onError function which redirects to search
-    } else {
-      if (Sefaria.site) { Sefaria.site.track.event("Search", "Search Box Search", query); }
-      this.closeSearchAutocomplete();
-      this.showSearch(originalQuery || query);
-    }
+
+      if (d["is_ref"]) {
+        var action = d["is_book"] ? "Search Box Navigation - Book" : "Search Box Navigation - Citation";
+        Sefaria.site.track.event("Search", action, query);
+        this.clearSearchBox();
+        this.handleRefClick(d["ref"]);  //todo: pass an onError function through here to the panel onError function which redirects to search
+      } else if (d["type"] == "Person") {
+        Sefaria.site.track.event("Search", "Search Box Navigation - Person", query);
+        this.closeSearchAutocomplete();
+        this.showPerson(d["key"]);
+      } else if (d["type"] == "TocCategory") {
+        Sefaria.site.track.event("Search", "Search Box Navigation - Category", query);
+        this.closeSearchAutocomplete();
+        this.showLibrary(d["key"]);  // "key" holds the category path
+      } else {
+        Sefaria.site.track.event("Search", "Search Box Search", query);
+        this.closeSearchAutocomplete();
+        this.showSearch(query);
+      }
+    }.bind(this));
   },
   closeSearchAutocomplete: function() {
     $(ReactDOM.findDOMNode(this)).find("input.search").sefaria_autocomplete("close");
   },
   clearSearchBox: function() {
     $(ReactDOM.findDOMNode(this)).find("input.search").val("").sefaria_autocomplete("close");
+  },
+  showPerson: function(key) {
+    //todo: move people into React
+    window.location = "/person/" + key;
   },
   handleLibraryClick: function(e) {
     e.preventDefault();
@@ -1546,6 +1549,7 @@ var Header = React.createClass({
                     <div  className="searchBox">
                       <ReaderNavigationMenuSearchButton onClick={this.handleSearchButtonClick} />
                       <input className={"search"+ vkClassActivator}
+                             id="searchInput"
                              placeholder={langSearchPlaceholder}
                              onKeyUp={this.handleSearchKeyUp}
                              onFocus={this.showVirtualKeyboardIcon.bind(this, true)}
@@ -2532,7 +2536,7 @@ var ReaderNavigationMenu = React.createClass({
   getInitialState: function() {
     this.width = 1000;
     return {
-      showMore: false,
+      showMore: false
     };
   },
   componentDidMount: function() {
@@ -2741,7 +2745,7 @@ var ReaderNavigationMenu = React.createClass({
                 <ReaderNavigationMenuCloseButton onClick={this.closeNav} icon={this.props.compare ? "chevron" : null} />
                 <ReaderNavigationMenuSearchButton onClick={this.handleSearchButtonClick} />
                 <ReaderNavigationMenuDisplaySettingsButton onClick={this.props.openDisplaySettings} />                
-                <input className="readerSearch" title="Search for Texts or Keywords Here" placeholder="Search" onKeyUp={this.handleSearchKeyUp} />
+                <input id="searchInput" className="readerSearch" title="Search for Texts or Keywords Here" placeholder="Search" onKeyUp={this.handleSearchKeyUp} />
               </div>);
       topContent = this.props.hideNavHeader ? null : topContent;
 
@@ -5565,7 +5569,7 @@ var ToggleSet = React.createClass({
     classes = classNames(classes);
     var value = this.props.name === "layout" ? this.props.currentLayout() : this.props.settings[this.props.name];
     var width = 100.0 - (this.props.separated ? (this.props.options.length - 1) * 3 : 0);
-    var style = {width: (width/this.props.options.length) + "%"};
+    var style = {width: (width/this.props.options.length) + "%", outline: "none"};
     return (
       <div className={classes} role={this.props.role} aria-label={this.props.ariaLabel}>
         {
@@ -5652,7 +5656,7 @@ var ReaderNavigationMenuCloseButton = React.createClass({
 
 var ReaderNavigationMenuDisplaySettingsButton = React.createClass({
   render: function() {
-    return (<div className="readerOptions" role="button" aria-haspopup="true" tabIndex="0" onClick={this.props.onClick} onKeyPress={function(e) {e.charCode == 13 ? this.props.onClick(e):null}.bind(this)}><img src="/static/img/ayealeph.svg" alt="Toggle Reader Menu Display Settings"/></div>);
+    return (<a href="#" className="readerOptions" role="button" aria-haspopup="true" onClick={this.props.onClick} onKeyPress={function(e) {e.charCode == 13 ? this.props.onClick(e):null}.bind(this)}><img src="/static/img/ayealeph.svg" alt="Toggle Reader Menu Display Settings"/></a>);
   }
 });
 
@@ -6190,70 +6194,6 @@ var TextRange = React.createClass({
     }
     this.dataPrefetched = true;
   },
-  makeSegments: function(data) {
-    // Returns a flat list of annotated segment objects,
-    // derived from the walking the text in data
-    if (!data || "error" in data) { return []; }
-    var segments  = [];
-    var highlight = data.sections.length === data.textDepth; 
-    var wrap = (typeof data.text == "string");
-    var en = wrap ? [data.text] : data.text;
-    var he = wrap ? [data.he] : data.he;
-    var topLength = Math.max(en.length, he.length);
-    en = en.pad(topLength, "");
-    he = he.pad(topLength, "");
-
-    var start = (data.textDepth == data.sections.length && !this.props.withContext ?
-                  data.sections.slice(-1)[0] : 1);
-
-    if (!data.isSpanning) {
-      for (var i = 0; i < topLength; i++) {
-        var number = i+start;
-        var delim  = data.textDepth == 1 ? " " : ":";
-        var ref = data.sectionRef + delim + number;
-        segments.push({
-          ref: ref,
-          en: en[i], 
-          he: he[i],
-          number: number,
-          highlight: highlight && number >= data.sections.slice(-1)[0] && number <= data.toSections.slice(-1)[0]
-        });
-      }      
-    } else {
-      for (var n = 0; n < topLength; n++) {
-        var en2 = typeof en[n] == "string" ? [en[n]] : en[n];
-        var he2 = typeof he[n] == "string" ? [he[n]] : he[n];
-        var length = Math.max(en2.length, he2.length);
-        en2 = en2.pad(length, "");
-        he2 = he2.pad(length, "");
-        var baseRef     = data.book;
-        var baseSection = data.sections.slice(0,-2).join(":");
-        var delim       = baseSection ? ":" : " ";
-        var baseRef     = baseSection ? baseRef + " " + baseSection : baseRef;
-
-        start = (n == 0 ? start : 1);
-        for (var i = 0; i < length; i++) {
-          var startSection = data.sections.slice(-2)[0];
-          var section = typeof startSection == "string" ?
-                        Sefaria.hebrew.intToDaf(n+Sefaria.hebrew.dafToInt(startSection))
-                        : n + startSection;
-          var number  = i + start;
-          var ref = baseRef + delim + section + ":" + number;
-          segments.push({
-            ref: ref,
-            en: en2[i], 
-            he: he2[i],
-            number: number,
-            highlight: highlight && 
-                        ((n == 0 && number >= data.sections.slice(-1)[0]) || 
-                         (n == topLength-1 && number <= data.toSections.slice(-1)[0]) ||
-                         (n > 0 && n < topLength -1))
-          });
-        }
-      }
-    }
-    return segments;
-  },
   placeSegmentNumbers: function() {
     //console.log("placeSegmentNumbers", this.props.sref);
     //debugger
@@ -6325,9 +6265,8 @@ var TextRange = React.createClass({
                               data.categories[0] !== "Liturgy";
 
     var showSegmentNumbers = showNumberLabel && this.props.basetext;
-                              
 
-    var segments = this.makeSegments(data);
+    var segments = Sefaria.makeSegments(data, this.props.withContext);
     var textSegments = segments.map(function (segment, i) {
       var highlight = this.props.highlightedRefs && this.props.highlightedRefs.length ?                                  // if highlighted refs are explicitly set
                         Sefaria.util.inArray(segment.ref, this.props.highlightedRefs) !== -1 : // highlight if this ref is in highlighted refs prop
@@ -6347,9 +6286,7 @@ var TextRange = React.createClass({
             key={i + segment.ref} />
       );
     }.bind(this));
-    textSegments = textSegments.length ? 
-                    textSegments : 
-                      this.props.basetext ? "" : (<LoadingMessage />);
+    textSegments = textSegments.length ? textSegments : null;
     var classes = {
                     textRange: 1,
                     basetext: this.props.basetext,
@@ -6401,7 +6338,7 @@ var TextRange = React.createClass({
     return (
       <div className={classes} onClick={this.handleClick}>
         {sidebarNum}
-        {this.props.hideTitle ? "" :
+        {this.props.hideTitle ? null :
         (<div className="title">
           <div className="titleBox">
             <span className="en" >{title}</span>
@@ -6456,7 +6393,7 @@ var TextSegment = React.createClass({
       var minOpacity = 20, maxOpacity = 70;
       var linkScore = linkCount ? Math.min(linkCount+minOpacity, maxOpacity) / 100.0 : 0;
       var style = {opacity: linkScore};
-      linkCountElement = this.props.showLinkCount ? (<div className="linkCount sans">
+      linkCountElement = this.props.showLinkCount ? (<div className="linkCount sans" title={linkCount + " Connections Available"}>
                                                     <span className="en"><span className="linkCountDot" style={style}></span></span>
                                                     <span className="he"><span className="linkCountDot" style={style}></span></span>
                                                   </div>) : null;      
@@ -6504,7 +6441,7 @@ var ConnectionsPanel = React.createClass({
     srefs:                   React.PropTypes.array.isRequired,    // an array of ref strings
     filter:                  React.PropTypes.array.isRequired,
     recentFilters:           React.PropTypes.array.isRequired,
-    mode:                    React.PropTypes.string.isRequired,   // "Connections", "Tools", etc. called `connectionsMode` above
+    mode:                    React.PropTypes.string.isRequired,   // "Resources", "ConnectionsList", "TextList" etc., called `connectionsMode` above
     connectionsCategory:     React.PropTypes.string,  // with mode:"ConnectionsList", which category of connections to show
     setFilter:               React.PropTypes.func.isRequired,
     setConnectionsMode:      React.PropTypes.func.isRequired,
@@ -6561,8 +6498,8 @@ var ConnectionsPanel = React.createClass({
   },
   render: function() {
     var content = null;
-    var data = Sefaria.related(this.props.srefs);
-    if (!data) {
+    var loaded = Sefaria.linksLoaded(this.props.srefs);
+    if (!loaded) {
       content = <LoadingMessage />;
     } else if (this.props.mode == "Resources") {
       var sheetsCount = Sefaria.sheets.sheetsTotalCount(this.props.srefs);
@@ -6644,12 +6581,10 @@ var ConnectionsPanel = React.createClass({
                   <MyNotes 
                     srefs={this.props.srefs}
                     editNote={this.props.editNote} />
-                  <PublicNotes
-                    srefs={this.props.srefs} />
                 </div>);
     
     } else if (this.props.mode === "Lexicon") {
-      content = (<LexiconPanel 
+      content = (<LexiconBox
                     selectedWords={this.props.selectedWords} 
                     oref={Sefaria.ref(this.props.srefs[0])} />);
     
@@ -6708,7 +6643,7 @@ var ConnectionsPanel = React.createClass({
       content = (<LoginPrompt fullPanel={this.props.fullPanel} />);
     }
     
-    var classes = classNames({toolsPanel: 1, textList: 1, fullPanel: this.props.fullPanel, singlePanel: !this.props.fullPanel});
+    var classes = classNames({connectionsPanel: 1, textList: 1, fullPanel: this.props.fullPanel, singlePanel: !this.props.fullPanel});
     return (
       <div className={classes} key={this.props.mode}>
         { this.props.fullPanel ? null :
@@ -6999,7 +6934,7 @@ var TextFilter = React.createClass({
       var style = {"borderTop": "4px solid " + color};
     }
     var name = this.props.book == this.props.category ? this.props.book.toUpperCase() : this.props.book;
-    var count = this.props.hideCounts || !this.props.count ? "" : ( <span className="enInHe connectionsCount"> ({this.props.count})</span>);
+    var count = this.props.hideCounts || !this.props.count ? "" : ( <span className="enInHe connectionsCount">&nbsp;({this.props.count})</span>);
     var url = (this.props.srefs && this.props.srefs.length > 0)?"/" + Sefaria.normRef(this.props.srefs[0]) + "?with=" + name:"";
     return (
       <a href={url}>
@@ -7041,7 +6976,7 @@ var TextList = React.createClass({
   },
   getInitialState: function() {
     return {
-      linksLoaded: false, // has the list of refs been load
+      linksLoaded: false, // has the list of refs been loaded
       textLoaded: false,  // has the text of those refs been loaded
       waitForText: false, // should we delay rendering texts until preload is finished
     }
@@ -7183,12 +7118,6 @@ var TextList = React.createClass({
     var sectionRef         = this.getSectionRef();
     var isSingleCommentary = (filter.length == 1 && Sefaria.index(filter[0]) && Sefaria.index(filter[0]).categories[0] == "Commentary");
 
-    var en = "No connections known" + (filter.length ? " for " + filter.join(", ") : "") + ".";
-    var he = "אין קשרים ידועים"       + (filter.length ? " ל"    + filter.map(f => Sefaria.hebrewTerm(f)).join(", ") : "") + ".";
-    var loaded  = Sefaria.linksLoaded(sectionRef);
-    var noResultsMessage = <LoadingMessage message={en} heMessage={he} />;
-    var message = !loaded ? (<LoadingMessage />) : (summary.length === 0 ? noResultsMessage : null);
-
     var sortConnections = function(a, b) {
       if (a.anchorVerse !== b.anchorVerse) {
         return a.anchorVerse - b.anchorVerse;
@@ -7219,7 +7148,10 @@ var TextList = React.createClass({
 
     }.bind(this)).sort(sortConnections);
 
-    var message = !loaded ? (<LoadingMessage />) : (links.length === 0 ? noResultsMessage : null);
+    var en = "No connections known" + (filter.length ? " for " + filter.join(", ") : "") + ".";
+    var he = "אין קשרים ידועים"        + (filter.length ? " ל"    + filter.map(f => Sefaria.hebrewTerm(f)).join(", ") : "") + ".";
+    var noResultsMessage = <LoadingMessage message={en} heMessage={he} />;
+    var message = !this.state.linksLoaded ? (<LoadingMessage />) : (links.length === 0 ? noResultsMessage : null);
     var content = links.length == 0 ? message :
                   this.state.waitForText && !this.state.textLoaded ? 
                     (<LoadingMessage />) : 
@@ -7413,7 +7345,7 @@ var SheetListing = React.createClass({
 });
 
 
-var LexiconPanel = React.createClass({
+var LexiconBox = React.createClass({
   propTypes: {
     selectedWords: React.PropTypes.string,
     oref:          React.PropTypes.object
@@ -7707,10 +7639,10 @@ var AddToSourceSheetWindow = React.createClass({
   render: function () {
     var nextParam = "?next=" + encodeURIComponent(Sefaria.util.currentPath());
 
-    return (<div className="sourceSheetPanelBox">
+    return (<div className="addToSourceSheetModal">
       <div className="sourceSheetBoxTitle">
-        <i className="fa fa-times-circle" aria-hidden="true" onClick={this.close}/>
-        {Sefaria.loggedIn?"":<span>
+        <img src="/static/img/circled-x.svg" className="closeButton" aria-hidden="true" alt="Close" onClick={this.close}/>
+        {Sefaria.loggedIn ? null : <span>
             In order to add this source to a sheet, please <a href={"/login" + nextParam}>log in.</a>
         </span>}
       </div>
@@ -7719,7 +7651,7 @@ var AddToSourceSheetWindow = React.createClass({
           srefs = {this.props.srefs}
           en = {this.props.en}
           he = {this.props.he}
-        /> : ""}
+        /> : null }
       </div>);
   }
 });
@@ -7779,8 +7711,11 @@ var AddToSourceSheetBox = React.createClass({
     }
   },
   toggleSheetList: function() {
-    if (!Sefaria._uid) { return; }
-    this.setState({sheetListOpen: !this.state.sheetListOpen});
+    if (!Sefaria._uid) {
+      this.setState({showLogin: true});
+    } else {
+      this.setState({sheetListOpen: !this.state.sheetListOpen});
+    }
   },
   selectSheet: function(sheet) {
     this.setState({selectedSheet: sheet, sheetListOpen: false});
@@ -7833,11 +7768,11 @@ var AddToSourceSheetBox = React.createClass({
     if (this.state.showConfirm) {
       return (<ConfirmAddToSheet sheetId={this.state.selectedSheet.id} />);
     } else if (this.state.showLogin) {
-      return (<div className="addToSourceSheetPanel sans">
+      return (<div className="addToSourceSheetBox sans">
                 <LoginPrompt />
               </div>);
     }
-    var sheets     = Sefaria.sheets.userSheets(Sefaria._uid);
+    var sheets     = Sefaria._uid ? Sefaria.sheets.userSheets(Sefaria._uid) : null;
     var sheetsList = Sefaria._uid && sheets ? sheets.map(function(sheet) {
       var classes     = classNames({sheet: 1, noselect: 1, selected: this.state.selectedSheet && this.state.selectedSheet.id == sheet.id});
       var title = sheet.title ? sheet.title.stripHtml() : "Untitled Source Sheet";
@@ -7846,13 +7781,13 @@ var AddToSourceSheetBox = React.createClass({
     }.bind(this)) : (Sefaria._uid ? <LoadingMessage /> : null);
 
     return (
-      <div className="addToSourceSheetPanel sans">
+      <div className="addToSourceSheetBox sans">
         <div className="selectedSheet" onClick={this.toggleSheetList}>
           {this.state.sheetsLoaded ? this.state.selectedSheet.title.stripHtml() : <LoadingMessage messsage="Loading your sheets..." heMessage=""/>}
           <i className="sheetListOpenButton fa fa-caret-down"></i>
         </div>
         {this.state.sheetListOpen ? 
-        <div className="sheetList">
+        <div className="sheetListDropdown">
           <div className="sourceSheetSelector noselect">
             {sheetsList}
           </div>
@@ -7879,7 +7814,7 @@ var ConfirmAddToSheet = React.createClass({
     sheetId: React.PropTypes.number.isRequired
   },
   render: function() {
-    return (<div className="confirmAddToSheetPanel addToSourceSheetPanel">
+    return (<div className="confirmAddToSheet addToSourceSheetBox">
               <div className="message">
                 <span className="int-en">Your source has been added.</span>
                 <span className="int-he">הטקסט נוסף בהצלחה לדף המקורות</span>
@@ -7972,22 +7907,15 @@ var AddNoteBox = React.createClass({
     });
   },
   render: function() {
+
+    if (!Sefaria._uid) {
+      return (<div className="addNoteBox"><LoginPrompt /></div>);
+    }
     var privateClasses = classNames({notePrivateButton: 1, active: this.state.isPrivate});
     var publicClasses  = classNames({notePublicButton: 1, active: !this.state.isPrivate});
     return (
       <div className="addNoteBox">
         <textarea className="noteText" placeholder="Write a note..." defaultValue={this.props.noteText}></textarea>
-        <div className="noteSharingToggle">
-          <div className={privateClasses} onClick={this.setPrivate}>
-
-            <span className="int-en"><i className="fa fa-lock"></i> Private</span>
-            <span className="int-he"><i className="fa fa-lock"></i>רשומה פרטית</span>
-          </div>
-          <div className={publicClasses} onClick={this.setPublic}>
-            <span className="int-en">Public</span>
-            <span className="int-he">רשומה כללית</span>
-          </div>
-        </div>
         <div className="button fillWidth" onClick={this.saveNote}>
           <span className="int-en">{this.props.noteId ? "Save" : "Add Note"}</span>
           <span className="int-he">{this.props.noteId ? "שמור": "הוסף רשומה"}</span>
@@ -8003,6 +7931,21 @@ var AddNoteBox = React.createClass({
             <span className="int-he">מחק רשומה</span>
            </div>): null }
       </div>);
+
+    /* Leaving out public / private toggle until public notes are reintroduced
+    <div className="noteSharingToggle">
+      <div className={privateClasses} onClick={this.setPrivate}>
+
+        <span className="int-en"><i className="fa fa-lock"></i> Private</span>
+        <span className="int-he"><i className="fa fa-lock"></i>רשומה פרטית</span>
+      </div>
+      <div className={publicClasses} onClick={this.setPublic}>
+        <span className="int-en">Public</span>
+        <span className="int-he">רשומה כללית</span>
+      </div>
+    </div>
+    */
+
   }
 });
 
@@ -8010,8 +7953,8 @@ var AddNoteBox = React.createClass({
 var MyNotes = React.createClass({
   // List of user notes on a ref or range of refs.
   propTypes: {
-    srefs:              React.PropTypes.array.isRequired,
-    editNote:           React.PropTypes.func.isRequired,
+    srefs:    React.PropTypes.array.isRequired,
+    editNote: React.PropTypes.func.isRequired,
   },
   componentDidMount: function() {
     this.loadNotes();
@@ -8104,7 +8047,6 @@ var Note = React.createClass({
      var buttons = this.props.isMyNote ? 
                     (<div className="noteButtons">
                       <i className="editNoteButton fa fa-pencil" title="Edit Note" onClick={this.props.editNote} ></i>
-                      {this.props.isPrivate ? (<i className="fa fa-lock" title="Private"></i>) : null}
                     </div>) : null; 
      
      return (<div className="note">
@@ -8115,7 +8057,8 @@ var Note = React.createClass({
                 </div>
               </div>);
   }
-});8
+});
+
 
 var LoginPrompt = React.createClass({
   propTypes: {
@@ -8126,7 +8069,7 @@ var LoginPrompt = React.createClass({
     return (
       <div className="loginPrompt">
         <div className="loginPromptMessage">
-          <span className="int-en">You must be logged in to use this feature.</span>
+          <span className="int-en">Please log in to use this feature.</span>
           <span className="int-he">עליך להיות מחובר בכדי להשתמש באפשרות זו.</span>
         </div>
         <a className="button" href={"/login" + nextParam}>
@@ -8237,7 +8180,7 @@ var SearchBar = React.createClass({
         return (
             <div>
                 <div className="searchBox">
-                    <input className="readerSearch" title="Search for Texts or Keywords Here" value={this.state.query} onKeyPress={this.handleKeypress} onChange={this.handleChange} placeholder="Search"/>
+                    <input className="readerSearch" id="searchInput" title="Search for Texts or Keywords Here" value={this.state.query} onKeyPress={this.handleKeypress} onChange={this.handleChange} placeholder="Search"/>
                     <ReaderNavigationMenuSearchButton onClick={this.updateQuery} />
                 </div>
                 <div className="description"></div>
