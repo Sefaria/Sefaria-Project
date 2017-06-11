@@ -7963,6 +7963,14 @@ var TextRange = React.createClass({
     // configure number display for inline references
     var sidebarNumberDisplay = this.props.inlineReference && this.props.inlineReference['data-commentator'] === Sefaria.parseRef(this.props.sref).index;
     if (sidebarNumberDisplay) {
+      if (this.props.inlineReference['data-display']) {
+        var displayValue = this.props.inlineReference['data-display'];
+      } else {
+        var displayValue = Sefaria.hebrew.encodeHebrewNumeral(this.props.inlineReference['data-order']);
+      }
+      if (displayValue === undefined) {
+        displayValue = this.props.inlineReference['data-order'];
+      }
       var sidebarNum = React.createElement(
         'div',
         { className: 'numberLabel sans itag' },
@@ -7972,7 +7980,7 @@ var TextRange = React.createClass({
           React.createElement(
             'span',
             { className: 'he heOnly' },
-            Sefaria.hebrew.encodeHebrewNumeral(this.props.inlineReference['data-order'])
+            displayValue
           )
         )
       );
@@ -8122,8 +8130,19 @@ var TextSegment = React.createClass({
     // render itags
     if (this.props.filter && this.props.filter.length > 0) {
       var new_element = $('<div/>').append("<div>" + he + "</div>");
+      var textValue = function textValue(i) {
+        if ($(i).attr('data-display')) {
+          return $(i).attr('data-display');
+        } else {
+          var value = Sefaria.hebrew.encodeHebrewNumeral($(i).attr('data-order'));
+        }
+        if (value === undefined) {
+          value = $(i).attr('data-order');
+        }
+        return value;
+      };
       $(new_element).find('i[data-commentator="' + this.props.filter[0] + '"]').each(function () {
-        $(this).replaceWith('<sup class="itag">' + Sefaria.hebrew.encodeHebrewNumeral($(this).attr('data-order')) + "</sup>");
+        $(this).replaceWith('<sup class="itag">' + textValue(this) + "</sup>");
       });
       he = $(new_element).html();
     }
