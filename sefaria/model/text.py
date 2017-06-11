@@ -4410,18 +4410,18 @@ class Library(object):
                 u"Library._internal_ref_from_string() failed to create regex for: {}.  {}".format(title, e))
             return refs
 
-            reg = regex.compile(re_string, regex.VERBOSE)
-            if stIsAnchored:
-                m = reg.match(st)
-                matches = [m] if m else []
-            else:
-                matches = reg.finditer(st)
-            for ref_match in matches:
-                try:
-                    res = (self._get_ref_from_match(ref_match, node, lang), ref_match.span()) if return_locations else self._get_ref_from_match(ref_match, node, lang)
-                    refs.append(res)
-                except InputError:
-                    continue
+        reg = regex.compile(re_string, regex.VERBOSE)
+        if stIsAnchored:
+            m = reg.match(st)
+            matches = [m] if m else []
+        else:
+            matches = reg.finditer(st)
+        for ref_match in matches:
+            try:
+                res = (self._get_ref_from_match(ref_match, node, lang), ref_match.span()) if return_locations else self._get_ref_from_match(ref_match, node, lang)
+                refs.append(res)
+            except InputError:
+                continue
         return refs
 
 

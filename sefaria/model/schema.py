@@ -1501,8 +1501,11 @@ class AddressSiman(AddressInteger):
 
 
 class AddressHalakhah(AddressInteger):
+    """
+    :class:`AddressType` for Halakhah/הלכה addresses
+    """
     section_patterns = {
-        "en": None,
+        "en": ur"""(?:(?:Halakhah|halakhah)?\s*)""",  #  the internal ? is a hack to allow a non match, even if 'strict'
         "he": ur"""(?:
             (?:\u05d4\u05dc\u05db\u05d4\s+)			# Halakhah spelled out, with a space after
             |(?:\u05d4\u05dc?(?:"|\u05f4|['\u05f3](?:['\u05f3]|\s+)))		# or Haeh and possible Lamed(for 'halakhah') maybe followed by a quote of some sort
