@@ -2423,19 +2423,9 @@ a.readerNavCategory {
   margin-right: .2em;
   text-decoration: underline;
 }
-@keyframes itag {
-  0% {color: red;}
-  40% {color: goldenrod;}
-  100% {color: #4871bf;}
-}
 .segment sup.itag {
-  /* margin-left: .2em; */
-  /* margin-right: .2em; */
-  /* font-weight: bolder; */
   text-decoration: none;
-  animation-name: itag;
   font-family: "Open Sans Hebrew", "sans-serif";
-  animation-duration: 3s;
   font-size: 0.6em;
   line-height: 1;
   color: #4871bf;
@@ -2887,6 +2877,7 @@ a.readerNavCategory {
 }
 .multiPanel .textRange .numberLabel.itag{
   display: block;
+  color: #4871bf;
 }
 .textRange.lowlight .numberLabel {
   color: #999;
