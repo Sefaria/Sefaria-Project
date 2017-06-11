@@ -34,6 +34,8 @@ sjs.current.nextNode = sjs.current.nextNode || 1;
 // another user updates the currently loaded sheet. 
 sjs.lastEdit = null;
 
+
+
 $(window).on("beforeunload", function() {
 	if (!($("#save").text() == "Saving...")) {
 		if (sjs._uid && !(sjs.current.id) && $("#empty").length === 0) {
@@ -73,43 +75,10 @@ $(function() {
 	  }
 	);
 
-
-	$("#addSource, #addButton").click(function() { 
-		$("#addSourceModal").data("target", $("#sources")).show()
-			.position({of: $(window)}); 
-		$("#add").focus();
-		$("#overlay").show();
-		sjs.track.sheets("Open Add Source Modal");
-	});
-	
-	$("#addMedia").click(function(e) { 
-
-		var source = {media: "", isNew: true};
-		if (sjs.can_add) { source.userLink = sjs._userLink; }
-
-		buildSource($("#sources"), source);
-		
-		afterAction();
-		e.stopPropagation();
-
-		$("#addMediaModal").data("target", $("#sources").find(".media").last()).show().position({of: $(window)}); 
-		$("#addMediaInput").focus();
-		$("#overlay").show();
-//		sjs.track.sheets("Open Add Media Modal");
-
-
-	});
-	
-		$("#addMediaInput").keyup(checkAddSource).keyup(function(e) {
-			if (e.keyCode == 13) {
-				$( "#addMediaModal .ok" ).click()
-			}
-		});
-		
-
 	function makeMediaEmbedLink(mediaURL) {
 	    var re = /https?:\/\/(www\.)?(youtu(?:\.be|be\.com)\/(?:.*v(?:\/|=)|(?:.*\/)?)([\w'-]+))/i;
    		var m;
+        var embedHTML;
 
 		if ((m = re.exec(mediaURL)) !== null) {
 			if (m.index === re.lastIndex) {
@@ -139,7 +108,7 @@ $(function() {
 	}
 
 	function mediaCheck(target){
-		$target = target;
+		var $target = target;
 		$target.find('audio, img').last()
 	    .on('error', function() {
 	    	$target.parent().remove();
@@ -148,37 +117,7 @@ $(function() {
 	}
 
 
-
-	$( "#addMediaModal .ok" ).click(function() {
-
-		var $target = $("#addMediaModal").data("target");
-		var embedHTML = makeMediaEmbedLink($("#addMediaInput").val())
-		if (embedHTML != false) {
-			$target.html(embedHTML);
-		}
-		else {
-			$target.parent().remove();
-			sjs.alert.flash("We couldn't understand your link.<br/>No media added.")
-		}
-
-		$("#addMediaModal, #overlay").hide();
-
-
-		mediaCheck($target);
-		autoSave();
-
-	if (sjs.openRequests == 0) {
-		var top = $target.offset().top - 200;
-		$("html, body").animate({scrollTop: top}, 300);
-	}
-
-
-	});	
-	
-
-
-
-	$("#addBrowse, #inlineAddBrowse").click(function() {
+	$("#inlineAddBrowse").click(function() {
 		$("#closeAddSource").trigger("click");
 		sjs.textBrowser.show({
 			callback: function(ref) {
@@ -191,140 +130,213 @@ $(function() {
 		})
 	});
 
-	$(document).on("click", "#addSourceOK", function() {
-        var ref = $("#add").val();
-		var q = parseRef(ref);
-		$("#closeAddSource").trigger("click");
-		addSource(q);
-		sjs.track.sheets("Add Source", ref);
-	
-	});
-
 	$(document).on("click", "#inlineAddSourceOK", function() {
 		var $target = $("#addInterface").prev(".sheetItem");
-		$("#addSourceModal").data("target", $target);
         var ref = $("#inlineAdd").val();
-		var q = parseRef(ref);
-		addSource(q, undefined,"insert");
-		$('#inlineAdd').val('');
-		$("#inlineTextPreview").remove();
-		$("#inlineAddDialogTitle").text("Select a text");
-		$("#inlineAddSourceOK").addClass("disabled");
-		$("#sheet").click();
-
+		Sefaria.lookupRef(ref, function(q) {
+            addSource(q, undefined, "insert", $target);
+            $('#inlineAdd').val('');
+            $("#inlineTextPreview").html("");
+            $("#inlineAddDialogTitle").text("Select a text");
+            $("#inlineAddSourceOK").addClass("disabled");
+            $("#sheet").click();
+        });
 		sjs.track.sheets("Add Source", ref);
 	});
 
+    var RefValidator = function($input, $msg, $ok, $preview) {
+        /** Replacement for utils.js:sjs.checkref that uses only new tools.
+         * Instantiated as an object, and then invoked with `check` method
+         * Allows section and segment level references.
+         * $input - input element
+         * $msg - status message element
+         * $ok - Ok button element
+         * $preview - Text preview box
 
+         * example usage:
 
-	$("#addComment").click(function(e) {
-		// Add a new comment to the end of the sheet
-		var source = {comment: "", isNew: true};
-		if (sjs.can_add) { source.userLink = sjs._userLink; }
+         new RefValidator($("#inlineAdd"), $("#inlineAddDialogTitle"), $("#inlineAddSourceOK"), $("#preview"));
 
-		buildSource($("#sources"), source);
-		$("#sources").find(".comment").last().trigger("mouseup").focus();
-		
-		sjs.track.sheets("Add Comment");
-		afterAction();
-		e.stopPropagation();
+         As currently designed, the object is instanciated, and sets up its own events.
+         It doesn't need to be interacted with from the outside.
+         */
 
-	})
+        this.$input = $input;
+        this.$msg = $msg;
+        this.$ok = $ok;
+        this.$preview = $preview;
 
-	$("#addOutside").click(function(e) {
-		// Add a new outside text to the end of the sheet
-		var source = {outsideText: "", isNew: true};
-		if (sjs.can_add) { source.userLink = sjs._userLink; }
+        // We want completion messages to be somewhat sticky.
+        // This records the string used to build the current message.
+        this.completion_message_base = undefined;
+        // And the current message
+        this.completion_message = "";
 
-		buildSource($("#sources"), source);
-		$("#sources").find(".outside").last().trigger("mouseup").focus();
-		
-		sjs.track.sheets("Add Outside Text");
-		afterAction();
-		e.stopPropagation();
-	})
+        this.current_lookup_ajax = null;
 
-	$("#addBiOutside").click(function(e) {
-		// Add a new bilingual outside text to the end of the sheet
-		var source = {outsideBiText: {en: "<i>English</i>", he: "<i>עברית</i>"}, isNew: true};
-		if (sjs.can_add) { source.userLink = sjs._userLink; }
+        this.$input
+            .on("input", this.check.bind(this))
+            .keyup(function(e) {
+                  if (e.keyCode == 13) {
+                      if (!this.$ok.hasClass('disabled')) { this.$ok.trigger("click"); }
+                  }
+                }.bind(this))
+            .autocomplete({
+                source: function(request, response) {
+                  Sefaria.lookupRef(
+                      request.term,
+                      function (d) { response(d["completions"]); }
+                  );
+                },
+                minLength: 3
+            });
+    };
 
-		buildSource($("#sources"), source);
-		var elToFocus = $("#sheet").hasClass("hebrew") ? ".outsideBi .he" : ".outsideBi .en";
-		$("#sources").find(elToFocus).last().trigger("mouseup").focus();
-		
-		sjs.track.sheets("Add Outside Text (Bilingual)");
-		afterAction();
-		e.stopPropagation();
-	})
-	
-	$("#closeAddSource").click(function() { 
-		$("#addSourceModal, #overlay").hide(); 
-		$("#add").val("");
-		$("#error").empty();
-		$("#textPreview").remove();
-		$("#addDialogTitle").text("Enter a text or commentator name:");
-		sjs.track.sheets("Close Add Source Modal");
+    RefValidator.prototype = {
+      _sectionListString: function(arr, lang) {
+          //Put together an "A, B, and C" type string from [A,B,C]
+          //arr - array of strings
+          if (arr.length == 1) return arr[0];                            // One alone
+          var lastTwo = arr.slice(-2).join((lang=="en")?" and ":" ו");   // and together last two:
+          return arr.slice(0,-2).concat(lastTwo).join(", ");            // join the rest with a ,
+      },
+      //Too simple to merit a function, but function calls are cheap!
+      _addressListString: function(arr, lang) {
+          //Put together an "A:B:C" type string from [A,B,C]
+          //arr - array of strings
+          return arr.join((lang=="en")?":":" ");
+      },
+      _getCompletionMessage: function(inString, data, depthUp) {
+        // instring - the originally entered string
+        // data - data returned from api/names
+        // depthUp: 0 for segment.  1 for section.
+        if (!data["sectionNames"] || data["sectionNames"].length == 0) return;
 
-	});
-	
-	$("#add").autocomplete({ source: function( request, response ) {
-				var matches = $.map( sjs.books, function(tag) {
-						if ( tag.toUpperCase().indexOf(request.term.toUpperCase()) === 0 ) {
-							return tag;
-						}
-					});
-				response(matches);
-			},
-			focus: function(event, ui) { return false; } });
+        var lang = data["lang"];
+        var sectionNames = (lang=="en")?data["sectionNames"]:data["heSectionNames"];
+        var addressExamples = (lang=="en")?data["addressExamples"]:data["heAddressExamples"];
+        var current = data["sections"].length;
+        var sectionListString = this._sectionListString(sectionNames.slice(current, depthUp?-depthUp:undefined), lang);
+        var addressListString = this._addressListString(addressExamples.slice(current, depthUp?-depthUp:undefined), lang);
+        var separator = (lang == "en" && !data["is_node"])?":":" ";
+        var exampleRef = inString + separator + addressListString;
+        return ((lang=="en")?
+        "Enter a " + sectionListString + ". E.g: '<b>" + exampleRef +"</b>'":
+        "הקלידו " + sectionListString + ". לדוגמא " + exampleRef)
+      },
+      _getSegmentCompletionMessage: function(inString, data) {
+          return this._getCompletionMessage(inString, data, 0);
+      },
+      _getSectionCompletionMessage: function(inString, data) {
+          return this._getCompletionMessage(inString, data, 1);
+      },
+      _getMessage: function(inString, data) {
+          // If current string contains string used for last message, and itself isn't a new state, use current message.
+          if (inString.indexOf(this.completion_message_base) == 0 && !data["is_ref"]) {
+              return this.completion_message;
+          }
 
-	// Wrapper function for checkRef for adding sources for sheets
-	var checkAddSource = function(e) {
-		checkRef($("#add"), $("#addDialogTitle"), $("#addOK"), 0, addSourcePreview, false);
-	}
+          var return_message = "";
+          var prompt_message = (data["lang"]=="en")?"Select a text":"נא בחרו טקסט";
+          var success_message = (data["lang"]=="en")?"OK. Click <b>add</b> to continue":("לחצו " + "<b>add</b>" + " בכדי להמשיך");
+          var or_phrase = (data["lang"]=="en")?" or ":" או ";
+          var range_phrase = (data["lang"] == "en")?"enter a range.  E.g. ":"הוסיפו טווח. לדוגמא ";
 
-	// Adding unknown Texts from Add modal
-	$("#add").keyup(checkAddSource)
-		.keyup(function(e) {
-		if (e.keyCode == 13) {
-			if ($("#addSourceOK").length) {
-				$("#addSourceOK").trigger("click");
-			} else if ($("#addDialogTitle").text() === "Unknown text. Would you like to add it?") {
-				var path = parseURL(document.URL).path;
-				window.location = "/add/textinfo/" + $("#add").val().replace(/ /g, "_") + "?after=" + path;
-			}
-		}					
-	});
+          if ((data["is_node"]) ||
+              (data["is_ref"] && (!(data["is_segment"] || data["is_section"])))
+          ) {
+              return_message = this._getSectionCompletionMessage(inString, data) || prompt_message;
+          } else if (data["is_section"]) {
+              return_message = success_message + or_phrase + this._getSegmentCompletionMessage(inString, data);
+          } else if (data["is_segment"] && !data["is_range"] &&  +(data["sections"].slice(-1)) > 0) {  // check that it's an int
+              var range_end = +(data["sections"].slice(-1)) + 1;
+              return_message = success_message + or_phrase + range_phrase + "<b>" + inString + "-" + range_end + "</b>";
+          } else if (data["is_segment"]) {
+              return_message = success_message + ".";
+          } else {
+              return_message = prompt_message;
+          }
 
+          this.completion_message_base = inString;
+          this.completion_message = return_message;
+          return return_message;
+      },
+      _lookupAndRoute: function(inString) {
+          if (this.current_lookup_ajax) {this.current_lookup_ajax.abort();}
+          this.current_lookup_ajax = Sefaria.lookupRef(
+            inString,
+            function(data) {
+              // If this query has been outpaced by typing, just return.
+              if (this.$input.val() != inString) { return; }
 
-	$("#inlineAdd").autocomplete({ source: function( request, response ) {
-				var matches = $.map( sjs.books, function(tag) {
-						if ( tag.toUpperCase().indexOf(request.term.toUpperCase()) === 0 ) {
-							return tag;
-						}
-					});
-				response(matches);
-			},
-			focus: function(event, ui) { return false; } });
+              // If the query isn't recognized as a ref, but only for reasons of capitalization. Resubmit with recognizable caps.
+              if (Sefaria.isACaseVariant(inString, data)) {
+                this._lookupAndRoute(Sefaria.repairCaseVariant(inString, data));
+                return;
+              }
 
-	// Wrapper function for checkRef for adding sources for sheets
-	var checkInlineAddSource = function(e) {
-		checkRef($("#inlineAdd"), $("#inlineAddDialogTitle"), $("#inlineAddOK"), 0, inlineAddSourcePreview, false);
-	}
+              this.$msg.css("direction", (data["lang"]=="he"?"rtl":"ltr"))
+                  .html(this._getMessage(inString, data));
+              if (data.is_ref && (data.is_section || data.is_segment)) {
+                this._allow(inString, data["ref"]);  //pass normalized ref
+                return;
+              }
+              this._disallow();
+            }.bind(this)
+          );
+      },
+      _allow: function(inString, ref) {
+        if (inString != this.$input.val()) {
+          // Ref was corrected (likely for capitalization)
+          this.$input.val(inString);
+        }
+        this.$ok.removeClass("inactive").removeClass("disabled");
+        this.$input.autocomplete("disable");
+        this._inlineAddSourcePreview(inString, ref);
+      },
+      _disallow: function() {
+        this.$ok.addClass("inactive").addClass("disabled");
+      },
+      _preview_segment_mapper: function(lang, s) {
+        return (s[lang])?
+            ("<div class='previewLine'><span class='previewNumber'>(" + (s.number) + ")</span> " + s[lang] + "</div> "):
+            "";
+      },
+      _inlineAddSourcePreview: function(inString, ref) {
+        Sefaria.text(ref, {}, function (data) {
+            if (this.$input.val() != inString) { return; }
 
-	// Adding unknown Texts from Add modal
-	$("#inlineAdd").keyup(checkInlineAddSource )
-		.keyup(function(e) {
-		if (e.keyCode == 13) {
-			if (!$("#inlineAddSourceOK").hasClass('disabled')) {
-				$("#inlineAddSourceOK").trigger("click");
-			} else if ($("#inlineAddDialogTitle").text() === "Unknown text. Would you like to add it?") {
-				var path = parseURL(document.URL).path;
-				window.location = "/add/textinfo/" + $("#add").val().replace(/ /g, "_") + "?after=" + path;
-			}
-		}
-	});
+            var segments = Sefaria.makeSegments(data);
+            var en = segments.map(this._preview_segment_mapper.bind(this, "en")).filter(Boolean);
+            var he = segments.map(this._preview_segment_mapper.bind(this, "he")).filter(Boolean);
 
+            // Handle missing text cases
+            var path = parseURL(document.URL).path;
+            if (!en.length) { en.push("<div class='previewNoText'><a href='/add/" + normRef(ref) + "?after=" + path + "' class='btn'>Add English for " + ref + "</a></div>"); }
+            if (!he.length) { he.push("<div class='previewNoText'><a href='/add/" + normRef(ref) + "?after=" + path + "' class='btn'>Add Hebrew for " + ref + "</a></div>"); }
+            if (!en.length && !he.length) {this.$msg.html("<i>No text available. Click below to add this text.</i>");}
+
+            // Set it on the DOM
+            this.$input.autocomplete("disable");
+            this.$preview.html("<div class='en'>" + en.join("") + "</div>" + "<div class='he'>" + he.join("") + "</div>");
+            this.$preview.position({my: "left top", at: "left bottom", of: this.$input, collision: "none" }).width('691px').css('margin-top','20px');
+        }.bind(this));
+      },
+      check: function() {
+          this.$preview.html("");
+          this.$input.autocomplete("enable");
+          var inString = this.$input.val();
+          if (inString.length < 3) {
+              this._disallow();
+              return;
+          }
+          this._lookupAndRoute(inString);
+      }
+    };
+
+    // As currently designed, the object is instanciated, and sets up its own events.
+    // It doesn't need to be interacted with from the outside.
+    var validator = new RefValidator($("#inlineAdd"), $("#inlineAddDialogTitle"), $("#inlineAddSourceOK"), $("#inlineTextPreview"));
 
 
 	// Printing
@@ -336,7 +348,7 @@ $(function() {
 
 	// General Options 
 	$("#options .optionItem,#formatMenu .optionItem, #assignmentsModal .optionItem").click(function() {
-		$check = $(".fa-check", $(this));
+		var $check = $(".fa-check", $(this));
 		if ($check.hasClass("hidden")) {
 			$("#sheet").addClass($(this).attr("id"));
 			$check.removeClass("hidden");
@@ -938,6 +950,8 @@ $(function() {
 	$("#exportToDrive").click(exportToDrive);
 
 
+	$("#highlightToggle").click(toggleHighlighter);
+
 	// ------- Sheet Tags --------------
 	sjs.sheetTagger.init(sjs.current.id, sjs.current.tags);
 	$("#editTags").click(sjs.sheetTagger.show);
@@ -1025,7 +1039,7 @@ $(function() {
 			autoSave();
 		};
 
-		sjs.sortOptions = { 
+		sjs.sortOptions = {
 							start: sjs.sortStart,
 							stop: sjs.sortStop,
 							cancel: ':input, button, .cke_editable, #addInterface',
@@ -1062,6 +1076,9 @@ $(function() {
 
 
 		$("#sources").sortable(sjs.sortOptions);
+		if ($("#sheet").hasClass("highlightMode")) {
+			$("#sources").sortable("disable"); //disable dragging while in highlighter edit mode....
+		}
 	}
 
 
@@ -1150,7 +1167,7 @@ $(function() {
 
 			$("#addInterface").on("click", ".buttonBar .addInterfaceButton", function (e) {
 				$("#addInterface .addInterfaceButton").removeClass('active');
-				$("#inlineTextPreview").remove();
+				$("#inlineTextPreview").html("");
 				$(this).addClass('active');
 				var divToShow = "#add" + ($(this).attr('id').replace('Button', '')) + "Div";
 				$(".contentDiv > div").hide();
@@ -1167,20 +1184,16 @@ $(function() {
 
 				var $target = $("#addInterface").prev(".sheetItem");
 
-
 				$(".sourceConnection.active").each(function (index) {
 
-
-					refs = $(this).data("refs").split(";");
-					refs = refs.reverse()
+					var refs = $(this).data("refs").split(";");
+					refs = refs.reverse();
 
 					for (var i = 0; i < refs.length; i++) {
 						var source = {
 							ref: refs[i]
-						}
-
+						};
 						buildSource($target, source, "insert");
-
 					}
 
 				});
@@ -1225,7 +1238,6 @@ $(function() {
 			$("#addInterface").on("click", "#connectionButton", function (e) {
 
 				var ref = $("#addInterface").prev(".source").attr("data-ref");
-				var $target = $("#addInterface").prev(".sheetItem");
 				$("#connectionsToAdd").text("Looking up Connections...");
 
 				$.getJSON("/api/texts/" + ref + "?context=0&pad=0", function (data) {
@@ -1239,7 +1251,7 @@ $(function() {
 
 						data.commentary = data.commentary.sort(SortBySourceRef);
 
-						var categorySum = {}
+						var categorySum = {};
 						for (var i = 0; i < data.commentary.length; i++) {
 							var c = data.commentary[i];
 							if (categorySum[c.collectiveTitle['en']]) {
@@ -1308,9 +1320,7 @@ $(function() {
 			});
 
 			$("#addmediaDiv").on("click", ".button", function (e) {
-
-
-				var $target = $("#addInterface").prev(".sheetItem");
+                var $target = $("#addInterface").prev(".sheetItem");
 				var source = {media: "", isNew: true};
 				if (sjs.can_add) {
 					source.userLink = sjs._userLink;
@@ -1329,8 +1339,6 @@ $(function() {
 				}
 
 				autoSave();
-
-
 			});
 
 
@@ -1409,6 +1417,7 @@ $(function() {
 				$("#sourceLayoutLanguageMenuItems").hide();
 				$("#resetText").hide();
 				$("#removeNikkudot").hide();
+				$(".resetHighlighter").hide();
 				$("#splitSourceToSegment").hide();
 				$("#addSourceTitle").hide();
 				if (!$(target).hasClass('inlineAddButtonIcon')) {
@@ -1493,6 +1502,7 @@ $(function() {
 				$("#resetText").show();
 				$("#addSourceTitle").show();
 				$("#removeNikkudot").show();
+				$(".resetHighlighter").show();
 				$("#splitSourceToSegment").show();
 				//$(this).hasClass("source") ? $("#connectionButton").css('display', 'inline-block') : $("#connectionButton").hide();
 
@@ -1578,7 +1588,7 @@ $(function() {
 
 	// Reset Source Text 
 	$(".resetSource").live("click", function() { 
-		options = {
+		var options = {
 			message: "Reset text of Hebrew, English or both?<br><small>Any edits you have made to this source will be lost.</small>",
 			options: ["Hebrew", "English", "Both"]
 		};
@@ -1619,7 +1629,6 @@ $(function() {
 	);
 
 	$("#addParashaToSheetModalTrigger").live("click", function(e) {
-		$("#addSourceModal").hide();
 		$("#addParashaToSheetModal").show().position({of: window});
 		$("#overlay").show();
 	});
@@ -1686,7 +1695,7 @@ $(function() {
 						$("#sharingType").data("sharing", "privateEdit");
 						break;
 
-				};
+				}
 			}
 			else {
 
@@ -1722,11 +1731,8 @@ $(function() {
 						$("#sharingDesc").html('Anyone in <span class="groupName">your group</span> can make any change to your source sheet.<br/><br/>Please be advised: There is no way to track or undo changes made by other editors, including deletions.<br/>Consider making a copy of this source sheet before allowing anyone to edit.');
 						break;
 
-				};
-
-
+				}
 			}
-
 	}
 
 	$("#sourceSheetShareSelect").change(function() {
@@ -1787,6 +1793,166 @@ $(function() {
 		autoSave();
 
 	});
+
+	$("#highlightMenu .optionsMenu").on('click', '.resetHighlighter', function() {
+		var curHighlighter = $(".activeSource").find(".highlighter");
+		var curText = $(".activeSource").find(".text");
+		curHighlighter.find(".en").html("<div class='highlighterSegment'>"+curText.find(".en").html().stripHtml()+"</div>");
+		curHighlighter.find(".he").html("<div class='highlighterSegment'>"+curText.find(".he").html().stripHtml()+"</div>");
+		autoSave();
+
+
+	});
+
+	$("#highlightMenu .optionsMenu").on('click', '.segmentedContinuousToggle', function() {
+
+		if ($(this).text() == "Continuous") {
+			$(this).text('Segmented');
+			$('.highlighterSegment').css({'display': 'block'});
+	}
+
+		else /*view mode */ {
+			$(this).text('Continuous');
+			$('.highlighterSegment').css({'display': 'inline'});
+		}
+
+	});
+
+	$(".highlighterTagWindow").on('click','.close-button', function() {closeHighlighterTagWindow()});
+
+
+
+	function saveNewlyCreatedTag(newTagName,newTagColor) {
+		if (newTagName !== "Create New" && newTagName !== "") {
+			$(".sheetHighlighterTags").append('<div class="splitHighlighterSegment" data-tagname="' + newTagName + '"><div class="colorSwatch active" style="background-color: ' + newTagColor + '"></div><div class="tagName">' + newTagName + '</div><div class="editCheckToggle">✎</div></div>');
+			$(".highlighterFilterTags").append('<div class="highlightFilterSelection"><input type="checkbox" name="highlighterFilterTags" id ="'+newTagName+'_highlighterTag" value="' + newTagName + '" checked="checked"> <label for="'+newTagName+'_highlighterTag" style="background-color: ' + newTagColor + '">' + newTagName + '</label></div>');
+			resetSplitHighlighterSegment();
+			resetHighlighterFilterTags();
+			autoSave();
+		}
+
+		$(".createNewHighlighterTag .tagName").text("Create New")
+	}
+
+
+	$(".createNewHighlighterTag .tagName").keydown(function(e){
+		if (e.which == 13) {
+      e.preventDefault();
+			$(".createNewHighlighterTag .tagName").blur();
+			$(this).text('');
+		}
+	});
+
+	$(".createNewHighlighterTag .tagName").focus(function(e){
+		if ($(this).text()=="Create New") {
+			$(this).text('');
+		}
+	});
+
+	$(".createNewHighlighterTag .tagName").focusout(function(e){
+      e.preventDefault();
+			saveNewlyCreatedTag($(e.target).text(),$(e.target).siblings('.colorSwatch.active').css('background-color'));
+			$('.createNewHighlighterTag .colorSwatch').removeClass('active');
+			$('.createNewHighlighterTag .colorSwatch').css('display', '');
+			$('.createNewHighlighterTag .colorSwatch').eq($('.splitHighlighterSegment').length % 7).addClass('active'); //select the next color in the list
+
+	});
+
+	$(".createNewHighlighterTag").on('click', '.colorSwatch', function() {
+		if ($('.createNewHighlighterTag .colorSwatch:visible').length > 1) {
+			$(".createNewHighlighterTag .colorSwatch").removeClass('active');
+			$(this).addClass('active');
+			$(".createNewHighlighterTag .colorSwatch").hide();
+			$(".createNewHighlighterTag .colorSwatch.active").css("display","inline-block");
+			$(this).siblings('.tagName').eq(0).show();
+		}
+		else {
+			$(".createNewHighlighterTag .colorSwatch").css("display","inline-block");
+			$(this).siblings('.tagName').eq(0).hide();
+		}
+	});
+
+	$(".highlighterTagWindow").on('click', '.save', function() {
+		restoreSelection(sjs.selection);
+		if ($(".splitHighlighterSegment.active").length == 0) {
+				restoreSelectedText(window.getSelection());
+			}
+		else {
+			splitSelectedText(window.getSelection(), $(".splitHighlighterSegment.active").find('.tagName').text(), $(".splitHighlighterSegment.active").find('.colorSwatch').css('background-color'));
+		}
+	closeHighlighterTagWindow();
+	});
+
+
+	function restoreSelectedText(selection) {
+		if (selection.anchorOffset < 0) return;
+		var curHighlighterSegment = $(selection.focusNode);
+		if ($(curHighlighterSegment[0]).hasClass('highlighterSegment')) { //firefox returns this if selection object already contains a tag
+			$(curHighlighterSegment[0]).css('background-color', '').removeAttr('data-tag','');
+		}
+		else {
+			$(curHighlighterSegment.parent()).css('background-color', '').removeAttr('data-tag','');
+		}
+		mergeSameClassAdjacentHighlighterSegments();
+	}
+
+	function mergeSameClassAdjacentHighlighterSegments() {
+		$( ".highlighterSegment" ).each(function( index ) {
+			if (($(this).attr('data-tag')) == $(this).next().attr('data-tag') && $(this).next().text() != '')  {
+				var textToPrepend = $(this).text();
+				var nextText = $(this).next().text();
+				textToPrepend = textToPrepend + nextText;
+				$(this).next().text(textToPrepend);
+				$(this).remove();
+			}
+		});
+		$(".highlighterSegment:empty").remove();
+		autoSave();
+	}
+
+	function splitSelectedText(selection, highlighterTag, tagBgColor) {
+			var selectedRange = selection;
+			var firstSelectedCharacter;
+			var lastSelectedCharacter;
+			if (selectedRange.anchorOffset < selectedRange.focusOffset) {
+				firstSelectedCharacter = selectedRange.anchorOffset;
+				lastSelectedCharacter = selectedRange.focusOffset;
+			}
+			else {
+				firstSelectedCharacter = selectedRange.focusOffset;
+				lastSelectedCharacter = selectedRange.anchorOffset;
+			}
+
+
+			var curHighlighterSegment = $(selectedRange.focusNode);
+
+			if ($(curHighlighterSegment[0]).hasClass('highlighterSegment')) { //firefox returns this if selection object already contains a tag
+				$(curHighlighterSegment[0]).css('background-color', tagBgColor).attr('data-tag', highlighterTag);
+			}
+
+			else {
+
+				if (curHighlighterSegment.parent().hasClass('tagName')) return;
+				var textBefore = curHighlighterSegment.text().slice(0, firstSelectedCharacter);
+				var selectedText = curHighlighterSegment.text().slice(firstSelectedCharacter, lastSelectedCharacter);
+				var textAfter = curHighlighterSegment.text().slice(lastSelectedCharacter);
+
+				$(curHighlighterSegment.parent()).after("<div class='highlighterSegment'>" + textAfter + "</div>");
+				$(curHighlighterSegment.parent()).after("<div class='highlighterSegment' style='background-color: " + tagBgColor + "' data-tag='" + highlighterTag + "'>" + selectedText + "</div>");
+				$(curHighlighterSegment.parent()).text(textBefore);
+			}
+			resetHighlighterInteractivity();
+			closeHighlighterTagWindow();
+			$(".highlighterSegment:empty").remove();
+			mergeSameClassAdjacentHighlighterSegments();
+	}
+
+	resetSplitHighlighterSegment();
+
+
+	resetHighlighterInteractivity();
+
+	resetHighlighterFilterTags();
 
 
 	$(".moveSourceRight").live("click", function() {
@@ -1955,32 +2121,7 @@ $(function() {
 		sjs.track.sheets("Remove Source");
 
 	 });
-	 
 
-	// Add Sub-Source
-	$(".addSub").live("click", function() { 
-		$("#addSourceModal").data("target", $($(this).closest(".source")).eq(0))
-			.show().position({of: window});
-		$("#add").focus();
-		$("#overlay").show();
-		sjs.track.sheets("Add Sub-Source");
-
-	});
-
-	// Add comment below a Source
-	$(".addSubComment").live("click", function() {
-		var $target = $($(this).closest(".source")).eq(0);
-		
-		var source = {comment: "", isNew: true};
-		if (sjs.can_add) { source.userLink = sjs._userLink; }
-
-		buildSource($target, source, "insert");
-		$target.next(".sheetItem").addClass('indented-1');
-		$target.next(".sheetItem").find(".comment").last().trigger("mouseup").focus();
-
-		sjs.track.sheets("Add Sub Comment");
-	});
-	
 	// Copy a Source
 	$(".copySource").live("click", function() {
 		var source = readSource($(this).closest(".sheetItem"));
@@ -2007,7 +2148,7 @@ $(function() {
 
 		var type = $(this).hasClass("addCommentary") ? "Commentary": null;
 
-		sjs.alert.saving("Looking up Connections...")
+		sjs.alert.saving("Looking up Connections...");
 
 		$.getJSON("/api/texts/" + ref + "?context=0&pad=0", function(data) {
 			sjs.alert.clear();
@@ -2060,7 +2201,7 @@ $(function() {
 						buildSource($target, source, "insert");
 						count++;
 					}
-					var msg = count == 1 ? "1 Source Added." : count + " Sources Added."
+					var msg = count == 1 ? "1 Source Added." : count + " Sources Added.";
 					sjs.alert.message(msg);
 					autoSave();
 				});
@@ -2149,7 +2290,7 @@ if( navigator.userAgent.match(/iPhone|iPad|iPod/i) ) {
 		.on('focus', '.cke_editable_inline', function(e) {
 			// Position sheetsEditNavTop absolute and bump it down to the scrollPosition
 			$('.sheetsEditNavTop').css({
-				marginTop: $(window).scrollTop()-54 + 'px',
+				marginTop: $(window).scrollTop()-54 + 'px'
 			});
 			$(document).scroll(updateSheetsEditNavTopPosOnScroll);
 		})
@@ -2170,21 +2311,14 @@ if( navigator.userAgent.match(/iPhone|iPad|iPod/i) ) {
 
 }); // ------------------ End DOM Ready  ------------------
 
-
-function addSource(q, source, appendOrInsert) {
+function addSource(q, source, appendOrInsert, $target) {
 	// Add a new source to the DOM.
 	// Completed by loadSource on return of AJAX call.
 	// unless 'source' is present, then load with given text.
-
 	appendOrInsert = typeof appendOrInsert !== 'undefined' ? appendOrInsert : 'append';
 
-
-	var badRef = q.ref == undefined ? true : false;
-
-	if ($("#addSourceModal").data("target") == null) {
-		$("#addSourceModal").data("target", $("#sources"));
-	}
-	var $listTarget = $("#addSourceModal").data("target");
+	var badRef = q.ref == undefined;
+	var $listTarget = $target || $("#sources");
 
 	if ($listTarget.length == 0) appendOrInsert = "append";
 
@@ -2203,10 +2337,10 @@ function addSource(q, source, appendOrInsert) {
 		};
 	}
 
-	var addedByMe = (source && source.addedBy && source.addedBy == sjs._uid) || 
+	var addedByMe = (source && source.addedBy && source.addedBy == sjs._uid) ||
 					(!source && sjs.can_add);
 
-	var attributionLink = (source && "userLink" in source ? "<div class='addedBy'>Added by " + source.userLink + "</div>" : 
+	var attributionLink = (source && "userLink" in source ? "<div class='addedBy'>Added by " + source.userLink + "</div>" :
 							addedByMe && !source ? "<div class='addedBy'>Added by " + sjs._userLink + "</div>" : "");
 
 	if (source && "node" in source) {
@@ -2217,14 +2351,17 @@ function addSource(q, source, appendOrInsert) {
 	}
 
 	var attributionData = attributionDataString((source ? source.addedBy : null), !source, "source");
-	
+
 	var enRef = badRef == true ? source.ref : humanRef(q.ref);
 	var heRef = source && source.text ? source.heRef : "";
-	
+
 	var refLink = badRef == true ? "#" : "/"+makeRef(q).replace(/'/g, "&apos;");
 
 
-	var newsource = "<li " + attributionData + "data-ref='" + enRef.replace(/'/g, "&apos;") + "'" + " data-heRef='" + heRef.replace(/'/g, "&apos;") + "'" + " data-node='" + node + "'>" +"<div class='sourceNumber he'></div><div class='sourceNumber en'></div>" +"<div class='customTitle'></div>" +"<div class='he'>" + "<span class='title'>" +"<a class='he' href='" + refLink + "' target='_blank'><span class='ref'></span>" + heRef.replace(/\d+(\-\d+)?/g, "").replace(/([0-9][b|a]| ב| א):.+/,"$1") + " </a>" + "</span>" +"<div class='text'>" +"<div class='he'>" + (source && source.text ? source.text.he : "") + "</div>" +"</div>" +"</div>" +"<div class='en'>" +"<span class='title'>" +"<a class='en' href='" + refLink + "' target='_blank'><span class='ref'>" + enRef.replace(/([0-9][b|a]| ב| א):.+/,"$1") + "</span> </a>" +"</span>" +"<div class='text'>" +"<div class='en'>" + (source && source.text ? source.text.en : "") + "</div>" + "</div>" +"</div>" + "<div class='clear'></div>" + attributionLink + appendInlineAddButton() + "</li>";
+	var newsource = "<li " + attributionData + "data-ref='" + enRef.replace(/'/g, "&apos;") + "'" + " data-heRef='" + heRef.replace(/'/g, "&apos;") + "'" + " data-node='" + node + "'>"
+		+"<div class='sourceNumber he'></div><div class='sourceNumber en'></div>"
+		+"<div class='customTitle'></div>"
+		+"<div class='he'>" + "<span class='title'>" +"<a class='he' href='" + refLink + "' target='_blank'><span class='ref'></span>" + heRef.replace(/\d+(\-\d+)?/g, "").replace(/([0-9][b|a]| ב| א):.+/,"$1") + " </a>" + "</span>" +"<div class='text'>" +"<div class='he'>" + (source && source.text ? source.text.he : "") + "</div>" +"</div>" + "<div class='highlighter'><div class='he'></div></div>" + "</div>" + "<div class='en'>" +"<span class='title'>" +"<a class='en' href='" + refLink + "' target='_blank'><span class='ref'>" + enRef.replace(/([0-9][b|a]| ב| א):.+/,"$1") + "</span> </a>" +"</span>" +"<div class='text'>" +"<div class='en'>" + (source && source.text ? source.text.en : "") + "</div>" + "</div>" + "<div class='highlighter'><div class='en'></div></div>" +"</div>" + "<div class='clear'></div>" + attributionLink + appendInlineAddButton() + "</li>";
 
 	if (appendOrInsert == "append") {
 		$("#sources").append(newsource);
@@ -2233,7 +2370,7 @@ function addSource(q, source, appendOrInsert) {
 
 	else if (appendOrInsert == "insert") {
 		$listTarget.after(newsource);
-		var $target = $listTarget.next(".sheetItem")
+		var $target = $listTarget.next(".sheetItem");
 	}
 
 	setSourceNumbers();
@@ -2251,6 +2388,20 @@ function addSource(q, source, appendOrInsert) {
 	afterAction();
 }
 
+function placed_segment_mapper(lang, segmented, includeNumbers, s) {
+    if (!s[lang]) {return ""}
+
+    var numStr = "";
+    if (includeNumbers) {
+        var num = (lang=="he") ? encodeHebrewNumeral(s.number) : s.number;
+        numStr = "<small>(" + num + ")</small> ";
+    }
+    var str = "<span class='segment'>" + numStr + s[lang] + "</span> ";
+    if (segmented) {
+        str = "<p>" + str + "</p>";
+    }
+    return str;
+}
 
 function loadSource(data, $target, optionStr) {
 	
@@ -2261,26 +2412,6 @@ function loadSource(data, $target, optionStr) {
 		$target.remove();
 		return;
 	}
-	// If text is not a range, put text string in arrays
-	// to simplify processing below
-
-	if (typeof(data.text) === "string") {
-		data.text = data.text.length ? [data.text] : [];
-	}
-	if (typeof(data.he) === "string") {
-		data.he = data.he.length ? [data.he] : [];
-	}
-
-	var end = Math.max(data.text.length, data.he.length);
-
-	// If the requested end is beyond what's available, reset the ref to what we have
-/*
-	var requestedLength = (data.toSections[data.sectionNames.length-1] - data.sections[data.sectionNames.length-1]) + 1
-	if (requestedLength > end) {
-		data.toSections[data.sectionNames.length-1] = data.sections[data.sectionNames.length-1] + end -1;
-		data.ref = makeRef(data);
-	}
-*/
 
 	$target.attr("data-ref", data.ref);	
 	$target.attr("data-heRef", data.heRef);	
@@ -2289,57 +2420,18 @@ function loadSource(data, $target, optionStr) {
 	$enTitle.html(humanRef(data.ref).replace(/([0-9][b|a]| ב| א):.+/,"$1") ).attr("href", "/" + normRef(data.ref));
 	$heTitle.html(data.heRef.replace(/\d+(\-\d+)?/g, "").replace(/([0-9][b|a]| ב| א):.+/,"$1")).attr("href", "/" + normRef(data.ref));
 
+    var includeNumbers = $.inArray("Talmud", data.categories) == -1;
+    includeNumbers = data.indexTitle === "Pesach Haggadah" ? false : includeNumbers;
+    var segmented = !(data.categories[0] in {"Tanakh": 1, "Talmud": 1});
 
-	var enStr = "";
-	var heStr = "";
-	if (data.sections.length < data.sectionNames.length) {
-		var start = 1;
-	} else {
-		var start = data.sections[data.sectionNames.length-1];
-	}
+    var segments = Sefaria.makeSegments(data);
+    var enStr = segments.map(placed_segment_mapper.bind(this, "en", segmented, includeNumbers))
+        .filter(Boolean)
+        .join("");
+    var heStr = segments.map(placed_segment_mapper.bind(this, "he", segmented, includeNumbers))
+        .filter(Boolean)
+        .join("");
 
-
-
-    if (data.spanning) { timesToIterateThroughSections = data.spanningRefs.length }
-    else {timesToIterateThroughSections = 1
-                    data.he = data.he.length ? [data.he] : [];
-                    data.text = data.text.length ? [data.text] : [];
-    }
-
-    for (var q=0;q<timesToIterateThroughSections;q++) {
-        curEnglishText = data.text[q] || '';
-        curHebrewText = data.he[q] || '';
-		if (data.sections.length < data.sectionNames.length) {
-			data.sections.push(1);
-			data.toSections.push(Math.max(curEnglishText.length, curHebrewText.length));
-		}
-        if (q==0) {curSegmentNumber = data.sections[1]}
-        else {curSegmentNumber = 1 }
-
-        var includeNumbers = $.inArray("Talmud", data.categories) > -1 ? false : true;
-        includeNumbers = data.indexTitle === "Pesach Haggadah" ? false : includeNumbers;
-        var segmented = !(data.categories[0] in {"Tanakh": 1, "Talmud": 1});
-        for (var i = 0; i < Math.max(curEnglishText.length, curHebrewText.length); i++) {
-            if (!curEnglishText[i] && !curHebrewText[i]) {
-                continue;
-            }
-
-            if (curEnglishText.length > i) {
-                enStr += (segmented ? "<p>" : "") + "<span class='segment'>" +
-                    (includeNumbers ? "<small>(" + (curSegmentNumber) + ")</small> " : "") +
-                    curEnglishText[i] +
-                    "</span> " + (segmented ? "</p>" : "");
-            }
-
-            if (curHebrewText.length > i) {
-                heStr += (segmented ? "<p>" : "") + "<span class='segment'>" +
-                    (includeNumbers ? "<small>(" + (encodeHebrewNumeral(curSegmentNumber)) + ")</small> " : "") +
-                    curHebrewText[i] +
-                    "</span> " + (segmented ? "</p>" : "");
-            }
-            curSegmentNumber++;
-        }
-    }
 
 	enStr = enStr || "...";
 	heStr = heStr || "...";
@@ -2358,6 +2450,8 @@ function loadSource(data, $target, optionStr) {
 		var top = $target.offset().top - 200;
 		$("html, body").animate({scrollTop: top}, 300);
 	}
+
+	if ($("#sheet").hasClass("highlightMode")) { fillEmptyHighlighterSegments() }
 
 	autoSave();
 }
@@ -2408,6 +2502,7 @@ function readSheet() {
 		sheet.options.layout        = $("#sheet").hasClass("stacked") ? "stacked" : "sideBySide";
 		sheet.options.langLayout    = $("#sheet").hasClass("heLeft") ? "heLeft" : "heRight";
 		sheet.options.divineNames   = $(".divineNamesOption .fa-check").not(".hidden").parent().attr("id");
+		sheet.options.highlightMode = $("#sheet").hasClass("highlightMode") ? 1 : 0;
 	}
 
 	if (sjs.is_owner || sjs.can_publish) {
@@ -2463,6 +2558,18 @@ function readSheet() {
 				break;
 
 		}
+
+		if ($(".sheetHighlighterTags").first().children()) {
+			sheet.highlighterTags = [];
+			$(".sheetHighlighterTags").first().children().each(function( i ) {
+				sheet.highlighterTags[i] = {};
+				var currentName = $(this).find('.tagName').text();
+				var currentColor = $(this).find('.colorSwatch').css('background-color');
+				sheet.highlighterTags[i].name = currentName;
+				sheet.highlighterTags[i].color = currentColor;
+
+			});
+		}
 	}
 
 	else {
@@ -2496,7 +2603,7 @@ function readSources($target) {
 	$target.children().each(function() {
 		var source = readSource($(this));
 		sources.push(source);
-	})
+	});
 	return sources;
 }
 
@@ -2510,6 +2617,27 @@ function readSource($target) {
 		source["text"] = {en: $target.find(".text").find(".en").html(), 
 						  he: $target.find(".text").find(".he").html()};
 
+		if ($target.find(".highlighter").find(".en").html() != "" || $target.find(".highlighter").find(".he").html() != "") {
+			source["highlighter"] = {en: [], he: []};
+			$target.find(".highlighter").find(".en").find(".highlighterSegment").each(function(i){
+
+				source.highlighter.en[i] = {};
+				var currenttext = $(this).text();
+				var currenttag = $(this).attr('data-tag');
+
+
+				source.highlighter.en[i].text = currenttext;
+				source.highlighter.en[i].tag = currenttag;
+			});
+
+			$target.find(".highlighter").find(".he").find(".highlighterSegment").each(function(i){
+				source.highlighter.he[i] = {};
+				var currenttext = $(this).text();
+				var currenttag = $(this).attr('data-tag');
+				source.highlighter.he[i].text = currenttext;
+				source.highlighter.he[i].tag = currenttag;
+			});
+		}
 		//Set source layout
 		if ($target.hasClass("stacked")) {
 			var sourceLayout = "stacked"
@@ -2584,7 +2712,7 @@ function readSource($target) {
 	} else if ($target.hasClass("outsideBiWrapper")) {
 		source["outsideBiText"] = {
 			en: $target.find(".text .en").html(),
-			he: $target.find(".text .he").html(),
+			he: $target.find(".text .he").html()
 		};
 		//Set indentation level
 		if ($target.hasClass("indented-1")) {
@@ -2636,7 +2764,7 @@ function readSource($target) {
 		}
 
 		source["options"] = {
-							 indented: sourceIndentLevel
+            indented: sourceIndentLevel
 		};
 
 	}
@@ -2672,7 +2800,7 @@ function handleSave() {
 
 function autoSave() {
 	if (sjs.can_save && sjs.current.id && !sjs.loading && !sjs.openRequests) {
-		$("#lastSaved").text("Saving...")
+		$("#lastSaved").text("Saving...");
 		var sheet = readSheet();
 		saveSheet(sheet);
 	}
@@ -2694,7 +2822,7 @@ function saveSheet(sheet, reload) {
 			sjs.lastEdit = null;    // save was succesful, won't need to replay
 			startPollingIfNeeded(); // Start or stop polling if collab/group status has changed
 			promptToPublish();      // If conditions are right, prompt to publish
-			$("#lastSaved").text("All changes saved in Sefaria")
+			$("#lastSaved").text("All changes saved in Sefaria");
 		} 
 
 		if ("error" in data) {
@@ -2725,14 +2853,13 @@ function buildSheet(data){
 
 	$("#sources").empty();
 
-	$("#addSourceModal").data("target", $("#sources"));
-
 	// Set options with binary value
 	$("#sheet").removeClass("numbered bsd boxed assignable");
 	$("#numbered, #bsd, #boxed, #assignable").find(".fa-check").addClass("hidden");
 	if (data.options.numbered) { $("#numbered").trigger("click"); } 
 	if (data.options.bsd)      { $("#bsd").trigger("click"); } 
 	if (data.options.boxed)    { $("#boxed").trigger("click"); } 
+	if (data.options.highlightMode)    { $("#highlightToggle").trigger("click"); }
 	if (data.options.assignable)    { $("#makeSheetAssignableButton").trigger("click"); }
 	else {$("#StopCollectingAssignmentsButton").trigger("click");}
 
@@ -2817,6 +2944,21 @@ function buildSheet(data){
 
 	$("#sources").css("min-height","");
 
+	if ("highlighterTags" in data) {
+		$(".sheetHighlighterTags").empty();
+		for (var i = 0; i < data.highlighterTags.length; i++) {
+			$(".sheetHighlighterTags").append('<div class="splitHighlighterSegment" data-tagname="'+data.highlighterTags[i].name+'"><div class="colorSwatch active" style="background-color: '+data.highlighterTags[i].color+'"></div>'
+						+"<div class='colorSwatch' style='background-color: #bd9eb6'></div>"
+						+"<div class='colorSwatch' style='background-color: #afcab8'></div>"
+						+"<div class='colorSwatch' style='background-color: #e5dabd'></div>"
+						+"<div class='colorSwatch' style='background-color: #bd9796'></div>"
+						+"<div class='colorSwatch' style='background-color: #a4b7de'></div>"
+						+"<div class='colorSwatch' style='background-color: #e8dde5'></div>"
+						+"<div class='colorSwatch' style='background-color: #d2ddc9'></div>"
+				+'<div class="tagName">'+data.highlighterTags[i].name+'</div><div class="editCheckToggle">✎</div></div>');
+			$(".highlighterFilterTags").append('<div class="highlightFilterSelection"><input type="checkbox" name="highlighterFilterTags" id="'+data.highlighterTags[i].name+'_highlighterTag" value="'+data.highlighterTags[i].name+'" checked="checked"> <label for="'+ data.highlighterTags[i].name +'_highlighterTag" style="background-color: '+data.highlighterTags[i].color+'">'+data.highlighterTags[i].name+'</label></div>');
+		}
+	}
 }
 	
 
@@ -2834,7 +2976,6 @@ function buildSource($target, source, appendOrInsert) {
 	// Build a single source in $target. May call buildSources recursively if sub-sources present.
 		
 	if (!("node" in source)) {
-
 		source.node = sjs.current.nextNode;
 		sjs.current.nextNode++;
 	}
@@ -2846,8 +2987,7 @@ function buildSource($target, source, appendOrInsert) {
 	
 	if (("ref" in source) && (source.ref != null)  ) {
 		var q = parseRef(source.ref);
-		$("#addSourceModal").data("target", $target);
-		addSource(q, source, appendOrInsert);
+		addSource(q, source, appendOrInsert, $target);
 		
 		if ("options" in source) {
 			$(".sheetItem").last().addClass(source.options.sourceLayout+" "+source.options.sourceLanguage+" "+source.options.sourceLangLayout+" "+source.options.indented)
@@ -2859,19 +2999,50 @@ function buildSource($target, source, appendOrInsert) {
 			$(".sheetItem").last().addClass("hasCustom");
 		}
 
+		if (source.highlighter) {
+			var enHighlighterHTML = '';
+			var heHighlighterHTML = '';
+			for (var i = 0; i < source.highlighter.en.length; i++) {
+				var highlighterTagHTML = source.highlighter.en[i].tag ? ' data-tag="'+ source.highlighter.en[i].tag +'" ': '';
+				var highlighterTagColorHTML = '';
+				if (highlighterTagHTML != '') {
+					var highlighterTagColor = sjs.current.highlighterTags.filter(function(tag) { return source.highlighter.en[i].tag == tag.name; })[0].color;
+					highlighterTagColorHTML = 'style="background-color: '+highlighterTagColor+'"';
+				}
+
+
+				enHighlighterHTML = enHighlighterHTML + '<div class="highlighterSegment" '+ highlighterTagColorHTML + highlighterTagHTML  +'>'+source.highlighter.en[i].text+'</div>'
+			}
+
+			for (var i = 0; i < source.highlighter.he.length; i++) {
+				var highlighterTagHTML = source.highlighter.he[i].tag ? ' data-tag="'+ source.highlighter.he[i].tag +'" ': '';
+				var highlighterTagColorHTML = '';
+				if (highlighterTagHTML != '') {
+					var highlighterTagColor = sjs.current.highlighterTags.filter(function(tag) { return source.highlighter.he[i].tag == tag.name; })[0].color;
+					highlighterTagColorHTML = 'style="background-color: '+highlighterTagColor+'"';
+				}
+
+
+				heHighlighterHTML = heHighlighterHTML + '<div class="highlighterSegment" '+ highlighterTagColorHTML + highlighterTagHTML  +'>'+source.highlighter.he[i].text+'</div>'
+			}
+
+			$(".highlighter .en").last().html(enHighlighterHTML);
+			$(".highlighter .he").last().html(heHighlighterHTML);
+		}
+
+
 	} else if ("comment" in source) {
 		var attributionData = attributionDataString(source.addedBy, source.isNew, "commentWrapper");
 		var commentHtml = "<div " + attributionData + " data-node='" + source.node + "'>" +
 							"<div class='comment " + (sjs.loading ? "" : "new") + "'>" + source.comment + "</div>" +
-							("userLink" in source ? "<div class='addedBy'>Added by " + source.userLink + "</div>" : "")
+							("userLink" in source ? "<div class='addedBy'>Added by " + source.userLink + "</div>" : "") +
 						  "</div>";
 
 		if ($.cookie("s2") == "true") {
 
 					var commentHtml = "<div " + attributionData + " data-node='" + source.node + "'><span class='commentIcon'><i class='fa fa-comment-o fa'></i></span>" +
 						("userLink" in source ? "<div class='addedBy s2AddedBy'>" + source.userLink + "</div>" : "")	+
-						"<div class='comment " + (isHebrew(source.comment) ? "he " : "") + (sjs.loading ? "" : "new") + " '>" + source.comment + "</div>"
-
+						"<div class='comment " + (isHebrew(source.comment) ? "he " : "") + (sjs.loading ? "" : "new") + " '>" + source.comment + "</div>" +
 						  "</div>";
 
 		}
@@ -2895,7 +3066,7 @@ function buildSource($target, source, appendOrInsert) {
 								"<div class='en'>" + source.outsideBiText.en + "</div>" + 
 								"<div class='clear'></div>" +
 							"</div>" +
-							("userLink" in source ? "<div class='addedBy'>Added by " + source.userLink + "</div>" : "")
+							("userLink" in source ? "<div class='addedBy'>Added by " + source.userLink + "</div>" : "") +
 						  "</li>";
 		outsideHtml = appendInlineAddButton(outsideHtml);
 		if (appendOrInsert == "append") {
@@ -2912,7 +3083,7 @@ function buildSource($target, source, appendOrInsert) {
 		var outsideHtml = "<li " + attributionData + " data-node='" + source.node + "'>"+ 
 							"<div class='sourceNumber he'></div><div class='sourceNumber en'></div>" + 
 							"<div class='outside " + (sjs.loading ? "" : "new ") + (isHebrew(source.outsideText.stripHtml()) ? "he" : "en") + "'>" + source.outsideText + "</div>" +
-							("userLink" in source ? "<div class='addedBy'>Added by " + source.userLink + "</div>" : "")
+							("userLink" in source ? "<div class='addedBy'>Added by " + source.userLink + "</div>" : "") +
 						  "</li>";
 		outsideHtml = appendInlineAddButton(outsideHtml);
 		if (appendOrInsert == "append") {
@@ -2948,7 +3119,7 @@ function buildSource($target, source, appendOrInsert) {
 		var outsideHtml = "<li " + attributionData + " data-node='" + source.node + "'>"+ 
 							"<div class='sourceNumber he'></div><div class='sourceNumber en'></div>" + 
 							"<div class='media " + (sjs.loading ? "" : "new") + "'>" + mediaLink + "</div>" +
-							("userLink" in source ? "<div class='addedBy'>Added by " + source.userLink + "</div>" : "")
+							("userLink" in source ? "<div class='addedBy'>Added by " + source.userLink + "</div>" : "") +
 						  "</li>";
 		outsideHtml = appendInlineAddButton(outsideHtml);
 				if (appendOrInsert == "append") {
@@ -2973,7 +3144,7 @@ function buildSource($target, source, appendOrInsert) {
 								"<div class='en'>" + source.text.en + "</div>" + 
 								"<div class='clear'></div>" +
 							"</div>" +
-							("userLink" in source ? "<div class='addedBy'>Added by " + source.userLink + "</div>" : "")
+							("userLink" in source ? "<div class='addedBy'>Added by " + source.userLink + "</div>" : "") +
 						  "</li>";
 		outsideHtml = appendInlineAddButton(outsideHtml);
 				if (appendOrInsert == "append") {
@@ -3017,60 +3188,6 @@ function attributionDataString(uid, newItem, classStr) {
 		      (addedBy ? " data-added-by='" + addedBy + "'" : "");
  
 	return str;
-}
-
-function addSourcePreview(e) {
-	if (sjs.editing.index.categories[0] === "Talmud") {
-		$("#addDialogTitle").html("Daf found. You may also specify numbered segments below.<span class='btn btn-primary' id='addSourceOK'>Add This Source</span>");
-	} else if (sjs.editing.index.categories[0] === "Commentary") {
-        $("#addDialogTitle").html("Commentary found. You may also specify numbered comments below.<span class='btn btn-primary' id='addSourceOK'>Add This Source</span>");
-    } else if (sjs.editing.index.depth && sjs.editing.index.depth == 1) {
-		$("#addDialogTitle").html("Source found. You can add it, or specify a subsection.<span class='btn btn-primary' id='addSourceOK'>Add This Source</span>");
-	} else {
-		$("#addDialogTitle").html("Source found. Specify a range with '-'.<span class='btn btn-primary' id='addSourceOK'>Add This Source</span>");
-	}
-	var ref = $("#add").val();
-	if (!$("#textPreview").length) { $("body").append("<div id='textPreview'></div>"); }
-	
-	textPreview(ref, $("#textPreview"), function() {
-		if ($("#textPreview .previewNoText").length === 2) {
-			$("#addDialogTitle").html("<i>No text available. Click below to add this text.</i>");
-		}
-		if ($("#textPreview .error").length > 0) {
-			$("#addDialogTitle").html("Uh-Oh");
-		}
-		$("#textPreview")
-			.position({my: "left top", at: "left bottom", of: $("#add"), collision: "none" }).width($("#add").width())
-	});
-}
-
-function inlineAddSourcePreview(e) {
-	if (sjs.editing.index.categories[0] === "Talmud") {
-		$("#inlineAddDialogTitle").html("Daf found. You may also specify numbered segments below.");
-		$("#inlineAddSourceOK").removeClass("disabled");
-	} else if (sjs.editing.index.categories[0] === "Commentary") {
-        $("#inlineAddDialogTitle").html("Commentary found. You may also specify numbered comments below.");
-		$("#inlineAddSourceOK").removeClass("disabled");
-    } else if (sjs.editing.index.depth && sjs.editing.index.depth == 1) {
-		$("#inlineAddDialogTitle").html("Source found. You can add it, or specify a subsection.");
-		$("#inlineAddSourceOK").removeClass("disabled");
-	} else {
-		$("#inlineAddDialogTitle").html("Source found. Specify a range with '-'.");
-		$("#inlineAddSourceOK").removeClass("disabled");
-	}
-	var ref = $("#inlineAdd").val();
-	if (!$("#inlineTextPreview").length) { $("body").append("<div id='inlineTextPreview'></div>"); }
-
-	textPreview(ref, $("#inlineTextPreview"), function() {
-		if ($("#inlineTextPreview .previewNoText").length === 2) {
-			$("#inlineAddDialogTitle").html("<i>No text available. Click below to add this text.</i>");
-		}
-		if ($("#inlineTextPreview .error").length > 0) {
-			$("#inlineAddDialogTitle").html("Uh-Oh");
-		}
-		$("#inlineTextPreview")
-			.position({my: "left top", at: "left bottom", of: $("#inlineAdd"), collision: "none" }).width('691px').css('margin-top','20px');
-	});
 }
 
 
@@ -3117,8 +3234,7 @@ sjs.replayLastEdit = function() {
 	var source = null;
 	switch(sjs.lastEdit.type) {
 		case "add source":
-			$("#addSourceModal").data("target", $target);
-			addSource(parseRef(sjs.lastEdit.ref));
+			addSource(parseRef(sjs.lastEdit.ref), undefined, undefined, $target);
 			break;
 		case "add comment":
 			source = {comment: sjs.lastEdit.html, isNew: true};
@@ -3197,7 +3313,7 @@ function startPolling() {
 	var pollChain = function() {
 		pollForUpdates();
 		sjs.pollTimer = setTimeout(pollChain, 3000)
-	}
+	};
 	sjs.pollTimer = setTimeout(pollChain, 3000);
 }
 
@@ -3239,7 +3355,7 @@ function rebuildUpdatedSheet(data) {
 	// Rebuild the current sheet and 
 	if (data.dateModified < sjs.current.dateModified) {
 		// If the update is older than the timestamp on the current sheet, ignore it
-		sjs.track.event("Sheets", "Error", "Out of sequence update request.")
+		sjs.track.event("Sheets", "Error", "Out of sequence update request.");
 		return;
 	}
 
@@ -3267,9 +3383,10 @@ function rebuildUpdatedSheet(data) {
 
 	buildSheet(data);
 	sjs.replayLastEdit();
+    var curTextLocation;
 
 	if (topMostVisibleSheetItem == null) {
-		curTextLocation = $("#sourceButton").offset().top - 200
+		curTextLocation = $("#sourceButton").offset().top - 200;
 	} else {
 		curTextLocation = $("[data-node='"+topMostVisibleSheetItem+"']").offset().top  + $("[data-node='"+topMostVisibleSheetItem+"']").height() - relativeScrollTop;
 	}
@@ -3289,7 +3406,14 @@ function rebuildUpdatedSheet(data) {
 		lastSelectedInterfaceButton.click();
 	}
 
+	if (data.options.highlightMode)    { $("#highlightToggle").trigger("click"); }
+	closeHighlighterTagWindow();
+	resetSplitHighlighterSegment();
+	resetHighlighterFilterTags();
+	resetHighlighterInteractivity();
+
 	sjs.changesPending = false;
+
 }
 
 
@@ -3381,7 +3505,7 @@ $("#addToSheetModal .ok").click(function(){
 			var name = data.ref ? data.ref : 
 				(data.comment ? "This comment" : "This source"); 
 			sjs.alert.message(name + ' was added to "' + title + '".<br><br>' + 
-										'<a target="_blank" href="/sheets/' + data.id + '">View sheet.</a>')
+										'<a target="_blank" href="/sheets/' + data.id + '">View sheet.</a>');
 			sjs.track.sheets("Source Copied");
 		}
 	}
@@ -3436,6 +3560,41 @@ function exportToDrive() {
 	});
 }
 
+function fillEmptyHighlighterSegments() {
+		$( ".highlighter" ).each(function( index ) {
+			if ($(this).find(".en").html() == "") {
+				$(this).find(".en").html("<div class='highlighterSegment'>"+$(this).siblings('.text').find('.en').html().stripHtml()+"</div>")
+			}
+			if ($(this).find(".he").html() == "") {
+				$(this).find(".he").html("<div class='highlighterSegment'>"+$(this).siblings('.text').find('.he').html().stripHtml()+"</div>")
+			}
+
+		});
+}
+
+function toggleHighlighter() {
+	if ($("#sheet").hasClass("highlightMode")) {
+		$("#sheet").removeClass("highlightMode");
+		$("#highlightModeDisplay").hide();
+		$("#highlightMenu").css('display','none');
+		if ($("#sources").data('ui-sortable')) {
+			$("#sources").sortable("enable"); //disable dragging while in highlighter edit mode....
+		}
+	}
+	else {
+		$("#sheet").addClass("highlightMode");
+		$("#highlightModeDisplay").show();
+		$("#highlightMenu").css('display','inline-block');
+		if ($("#sources").data('ui-sortable')) {
+			$("#sources").sortable("disable"); //disable dragging while in highlighter edit mode....
+		}
+	}
+	if ($(".sheetItem").length >0) {
+		fillEmptyHighlighterSegments();
+		autoSave();
+		}
+}
+
 function showEmebed() {
 	$("#embedSheetModal").show().position({of: window})
 			.find("textarea").focus()
@@ -3447,7 +3606,7 @@ function showEmebed() {
 }
 
 function showShareModal(){
-	$("#shareWithOthers").show().position({of: window})
+	$("#shareWithOthers").show().position({of: window});
 	$("#overlay").show();
 }
 
@@ -3568,6 +3727,7 @@ var afterAction = function() {
 		$("#save").show();
 		$("#fileControlMsg").hide();
 	}
+	resetHighlighterInteractivity();
 };
 
 // ------------------ Upload locally stored images to Imgur ------------------
@@ -3622,3 +3782,122 @@ var addmediaUploadImageToImgur = function(imageData) {
 };
 
 $("#addmediaFileSelector").change(addmediaChooseFile);
+
+
+function resetSplitHighlighterSegment() {
+	$(".sheetHighlighterTags").off();
+	$(".sheetHighlighterTags").on('click', '.splitHighlighterSegment', function() {
+		if ($(this).hasClass("active")) {
+			$(".splitHighlighterSegment").removeClass('active');
+			injectSelectionColor("#D2DCFF");
+		}
+		else {
+			$(".splitHighlighterSegment").removeClass('active');
+			$(this).addClass('active');
+			injectSelectionColor($(this).find('.colorSwatch.active').css('background-color'));
+		}
+	});
+	$(".splitHighlighterSegment").off();
+	$(".splitHighlighterSegment").on('click', '.editCheckToggle', function(e) {
+		e.stopPropagation();
+		var curTag = $(this).siblings('.tagName');
+		curTagName = curTag.text();
+		curTag.attr("contenteditable", "true");
+		curTag.focus();
+	});
+	$(".splitHighlighterSegment").on('focusout', '.tagName', function(e) {
+		$(this).attr("contenteditable", "false");
+		$(".highlighterSegment[data-tag='" + curTagName + "']").attr('data-tag', $(this).text() );
+		autoSave();
+	});
+}
+
+function injectSelectionColor(color) {
+	var sel = window.getSelection();
+	sel.removeAllRanges();
+	$("#tempSelectOverride").remove();
+  var div = $("<div />", {
+    html: '&shy;<style id="tempSelectOverride">*::selection { background: '+color+'; }</style>'
+  }).appendTo("body");
+	setTimeout(function(){ sel.addRange(sjs.selection); }, 20);
+}
+
+function resetHighlighterInteractivity() {
+	if (sjs.is_owner) {
+
+		$(".highlighter .he, .highlighter .en").off();
+
+		$(".highlighter .he, .highlighter .en").on("mousedown", '.highlighterSegment', function() {
+			$(".highlighterSegment").removeClass("noSelect");
+			$(".highlighterSegment").not(this).addClass("noSelect");
+			closeHighlighterTagWindow();
+		});
+
+		$(".highlighter .he, .highlighter .en").on("mouseup", '.highlighterSegment', function(e) {
+			if ($(e.target).attr('data-tag') && !$(e.target).hasClass("noSelect") ) { //if clicking on a highlight that already is tagged, select whole highlight and open window.
+				var range = document.createRange();
+				range.selectNodeContents(e.currentTarget);
+				var sel = window.getSelection();
+				sel.removeAllRanges();
+				sel.addRange(range);
+				var curTagName = $(e.target).attr('data-tag');
+				$(".splitHighlighterSegment[data-tagname='" + curTagName  + "']").addClass('active');
+
+			}
+
+			if (window.getSelection().anchorOffset !== window.getSelection().focusOffset) { //check if there's any selection
+				sjs.selection = saveSelection();
+				$('.createNewHighlighterTag .colorSwatch').removeClass('active');
+				$('.createNewHighlighterTag .colorSwatch').eq($('.splitHighlighterSegment').length % 7).addClass('active'); //select the next color in the list
+				$("tagSelector").show();
+				$(".highlighterTagWindow").show().css({
+					"top": e.pageY,
+					"left": $(".highlighterTagWindow").width() + e.pageX < window.innerWidth ? e.pageX : window.innerWidth - $(".highlighterTagWindow").width() - 40
+				});
+				$(".createNewHighlighterTag .tagName").attr("contenteditable", "true");
+			}
+		});
+	}
+}
+
+function closeHighlighterTagWindow() {
+	$("#tempSelectOverride").remove();
+	$(".highlighterTagWindow").hide();
+	$(".splitHighlighterSegment").removeClass('active');
+}
+
+function resetHighlighterFilterTags() {
+	$(".highlighterFilterTags").off();
+	$(".highlighterFilterTags").on("click", "input[type='checkbox'][name='highlighterFilterTags']", function(e) {
+		if (!($(this)[0].checked)) {
+			$(".highlighterSegment[data-tag='" + $(this)[0].value + "']").hide();
+		}
+		else {
+			$(".highlighterSegment[data-tag='" + $(this)[0].value + "']").show();
+		}
+	});
+}
+
+ function saveSelection() {
+		if (window.getSelection) {
+				var sel = window.getSelection();
+				if (sel.getRangeAt && sel.rangeCount) {
+						return sel.getRangeAt(0);
+				}
+		} else if (document.selection && document.selection.createRange) {
+				return document.selection.createRange();
+		}
+		return null;
+ }
+
+function restoreSelection(range) {
+		if (range) {
+				if (window.getSelection) {
+						var sel = window.getSelection();
+						sel.removeAllRanges();
+						sel.addRange(range);
+				} else if (document.selection && range.select) {
+						range.select();
+				}
+		}
+}

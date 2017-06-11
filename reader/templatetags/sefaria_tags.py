@@ -158,7 +158,7 @@ def version_source_link(v):
 	Return an <a> tag linking to the versionSource, or to a Google Search for the source.
 	"""
 	if " " in v.versionSource or "." not in v.versionSource:
-		href       = "http://www.google.com/search?q=" + urllib.quote(v.versionSource.encode('utf8'))
+		href       = "https://www.google.com/search?q=" + urllib.quote(v.versionSource.encode('utf8'))
 		val        = v.versionSource
 	else:
 		parsed_uri = urlparse( v.versionSource )

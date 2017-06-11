@@ -190,7 +190,7 @@
 	<div id="sheetHeader" {% if sheet_group == None %}style="display:none"{% endif %}>
 		{% if sheet_group %}
 		<a href="/groups/{{ sheet_group.name|url_safe }}">
-			<img id="groupLogo" src="{{ sheet_group.headerUrl }}" />
+			<img id="groupLogo" src="{{ sheet_group.headerUrl }}" alt="Logo for {{ sheet_group.name }}"/>
 		</a>
 		{% else %}
 			<img id="groupLogo" style="display:none;" />
@@ -276,7 +276,7 @@
 	{% endif %}
 
 	<div id="printFooter">
-		<img src="/static/img/fb-og-image.png">
+		<img src="/static/img/fb-og-image.png" alt="Facebook Icon">
 		<div>
 			Made with the Sefaria Source Sheet Builder<br>
 			www.sefaria.org/sheets
@@ -614,5 +614,7 @@ Footer depends on full bootstrap grid, which isn't loaded in sheets.html
 {% if S2 %}
     {% include "react_header_activate.html" %}
 {% endif %}
+<div id='inlineTextPreview'></div>
+
 </body>
 </html>

@@ -35,7 +35,8 @@ urlpatterns = patterns('reader.views',
     (r'^api/counts/words/(?P<title>.+)/(?P<version>.+)/(?P<language>.+)$', 'word_count_api'),
     (r'^api/counts/(?P<title>.+)$', 'counts_api'),
     (r'^api/preview/(?P<title>.+)$', 'text_preview_api'),
-    (r'^api/terms/(?P<name>.+)$', 'terms_api')
+    (r'^api/terms/(?P<name>.+)$', 'terms_api'),
+    (r'^api/name/(?P<name>.+)$', 'name_api')
 )
 
 # Reviews API
@@ -138,7 +139,7 @@ urlpatterns += patterns('sheets.views',
 
 # Source Sheets API
 urlpatterns += patterns('sheets.views',
-    (r'^api/sheets/?$', 'sheet_list_api'),
+    (r'^api/sheets/?$',                                            'save_sheet_api'),
     (r'^api/sheets/(?P<sheet_id>\d+)/delete$',                     'delete_sheet_api'),
     (r'^api/sheets/(?P<sheet_id>\d+)/add$',                        'add_source_to_sheet_api'),
     (r'^api/sheets/(?P<sheet_id>\d+)/add_ref$',                    'add_ref_to_sheet_api'),
@@ -250,6 +251,7 @@ static_pages = [
     "privacy-policy",
     "coming-soon",
     "shraga-silverstein",
+    "adin-even-israel-steinsaltz",
     "william-davidson-talmud",
     "linker",
     "ios",
@@ -265,6 +267,8 @@ static_pages = [
     "meetup2",
     "random-walk-through-torah",
     "educators",
+    "the-sefaria-story",
+
 ]
 
 # Static and Semi Static Content

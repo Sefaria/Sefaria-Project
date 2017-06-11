@@ -116,7 +116,7 @@ def write_urls(urls, filename):
 	"""
 	Writes the list URLS, one per line, to filename.
 	"""
-	out = STATICFILES_DIRS[0] + filename
+	out = STATICFILES_DIRS[0] + "sitemaps/" + filename
 	f = open(out, 'w')
 	for url in urls:
 		f.write(url.encode('utf-8') + "\n")
@@ -129,7 +129,7 @@ def generate_sitemap_index(sitemaps):
 	for m in sitemaps:
 		xml += """
 		   <sitemap>
-			  <loc>https://www.sefaria.org/static/%s</loc>
+			  <loc>https://www.sefaria.org/static/sitemaps/%s</loc>
 			  <lastmod>%s</lastmod>
 		   </sitemap>
 		   """ % (m, now)
@@ -140,7 +140,7 @@ def generate_sitemap_index(sitemaps):
 		</sitemapindex>
 		""" % xml
 
-	out = STATICFILES_DIRS[0] + "sitemapindex.xml"
+	out = STATICFILES_DIRS[0] +  "sitemaps/sitemapindex.xml"
 	f = open(out, 'w')
 	f.write(sitemapindex)
 	f.close()
@@ -157,7 +157,7 @@ def generate_sitemaps():
 	generate_people_sitemap()
 	n = generate_texts_sitemaps()
 
-	maps = ["static-sitemap.txt", "sheets-sitemap.txt", "text-toc-sitemap.txt", "categories-sitemap.txt", "person-sitemap.txt"]
+	maps = ["static-sitemap.txt", "categories-sitemap.txt", "text-toc-sitemap.txt", "person-sitemap.txt", "sheets-sitemap.txt"]
 	maps += ["texts-sitemap%d.txt" % i for i in range(n)]
 
 	generate_sitemap_index(maps)
