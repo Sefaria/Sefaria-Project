@@ -10050,6 +10050,7 @@ var SearchPage = React.createClass({
               'div',
               { className: 'searchContent', style: style },
               React.createElement(SearchResultList, {
+                key: this.props.query,
                 query: this.props.query,
                 appliedFilters: this.props.appliedFilters,
                 onResultClick: this.props.onResultClick,

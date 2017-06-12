@@ -7887,6 +7887,7 @@ var SearchPage = React.createClass({
                           </div>
                           <div className="searchContent" style={style}>
                               <SearchResultList
+                                  key={this.props.query}
                                   query = { this.props.query }
                                   appliedFilters = {this.props.appliedFilters}
                                   onResultClick={this.props.onResultClick}
