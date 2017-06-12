@@ -1806,13 +1806,13 @@ $(function() {
 
 	$("#highlightMenu .optionsMenu").on('click', '.segmentedContinuousToggle', function() {
 
-		if ($(this).text() == "Continuous") {
-			$(this).text('Segmented');
+		if ($(this).text() == "Paragraph View") {
+			$(this).text('Line-by-line View');
 			$('.highlighterSegment').css({'display': 'block'});
 	}
 
 		else /*view mode */ {
-			$(this).text('Continuous');
+			$(this).text('Paragraph View');
 			$('.highlighterSegment').css({'display': 'inline'});
 		}
 
