@@ -232,10 +232,10 @@ def make_text_index_document(tref, version, lang):
     pagerank = math.log(pagerank_dict[oref.section_ref().normal()]) + 20 if oref.section_ref().normal() in pagerank_dict else 1.0
     sheetrank = (1.0 + sheetrank_dict[seg_ref.normal()]["count"] / 5)**2 if seg_ref.normal() in sheetrank_dict else (1.0 / 5) ** 2
     return {
-        "title": title, 
+        "title": title,
         "ref": oref.normal(),
         "heRef": oref.he_normal(),
-        "version": version, 
+        "version": version,
         "lang": lang,
         "titleVariants": text["titleVariants"],
         "categories": categories,
@@ -254,9 +254,9 @@ def make_text_doc_id(ref, version, lang):
     """
     Returns a doc id string for indexing based on ref, versiona and lang.
 
-    [HACK] Since Elasticsearch chokes on non-ascii ids, hebrew titles are converted 
+    [HACK] Since Elasticsearch chokes on non-ascii ids, hebrew titles are converted
     into a number using unicode_number. This mapping should be unique, but actually isn't.
-    (any tips welcome) 
+    (any tips welcome)
     """
     if not version:
         version = "merged"
@@ -384,10 +384,10 @@ def create_index(index_name, merged=False):
                     "default" : {
                         "tokenizer": "standard",
                         "filter": [
-                                "standard", 
-                                "lowercase", 
-                                "icu_normalizer", 
-                                "icu_folding", 
+                                "standard",
+                                "lowercase",
+                                "icu_normalizer",
+                                "icu_folding",
                                 "icu_collation",
                                 "my_snow"
                                 ]
@@ -495,7 +495,7 @@ def put_sheet_mapping():
 
 def index_all_sections(index_name, skip=0, merged=False, debug=False):
     """
-    Step through refs of all sections of available text and index each. 
+    Step through refs of all sections of available text and index each.
     """
     global doc_count
     doc_count = 0
@@ -578,7 +578,7 @@ def index_from_queue():
 
 def add_recent_to_queue(ndays):
     """
-    Look through the last ndays of the activitiy log, 
+    Look through the last ndays of the activitiy log,
     add to the index queue any refs that had their text altered.
     """
     cutoff = datetime.now() - timedelta(days=ndays)
@@ -611,8 +611,9 @@ def get_new_and_current_index_names(merged=False, debug=False):
     else:
         new_index_name = index_name_b
         old_index_name = index_name_a
-
-    return {"new": new_index_name, "current": old_index_name, "alias": alias_name}
+    #NOTE while transitioning to new search algo, always use sefaria-d
+    return {"new": "sefaria-d", "current": "sefaria-d", "alias": alias_name}
+    #return {"new": new_index_name, "current": old_index_name, "alias": alias_name}
 
 
 def index_all(skip=0, merged=False, debug=False):
@@ -653,7 +654,8 @@ def index_all(skip=0, merged=False, debug=False):
     }]
     es.update_aliases(alias_actions)
 
-    clear_index(curr_index_name)
+    if new_index_name != curr_index_name:
+        clear_index(curr_index_name)
     end = datetime.now()
     print "Elapsed time: %s" % str(end-start)
 
