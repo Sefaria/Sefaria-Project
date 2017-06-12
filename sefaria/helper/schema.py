@@ -235,7 +235,7 @@ def change_parent(node, new_parent, place=0):
     linkset = [l for l in node.ref().linkset()]
 
     vs = [v for v in index.versionSet()]
-    for v in vs + vsc:
+    for v in vs:
         assert isinstance(v, Version)
         old_parent_content = v.content_node(old_parent)
         content = old_parent_content.pop(node.key)
@@ -716,7 +716,6 @@ def generate_segment_mapping(title, mapping, output_file=None):
     return segment_map
 
 
-
 def migrate_to_complex_structure(title, schema, mappings, validate_mapping=False):
     """
     Converts book that is simple structure to complex.
@@ -811,6 +810,7 @@ def migrate_to_complex_structure(title, schema, mappings, validate_mapping=False
     i.set_title(title)
     i.set_title(he_title, lang="he")
     i.save()
+
 
 def migrate_versions_of_text(versions, mappings, orig_title, new_title, base_index):
     for i, version in enumerate(versions):

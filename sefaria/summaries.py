@@ -4,15 +4,9 @@ summaries.py - create and manage Table of Contents document for all texts
 
 Writes to MongoDB Collection: summaries
 """
-import json
-from datetime import datetime
-from pprint import pprint
-
-import sefaria.system.cache as scache
 from sefaria.system.database import db
 from sefaria.utils.hebrew import hebrew_term
 from model import *
-from sefaria.system.exceptions import BookNameError
 import logging
 logger = logging.getLogger(__name__)
 
@@ -398,6 +392,7 @@ def flatten_toc(toc, include_categories=False, categories_in_titles=False, versi
                     results += ["%s > %s > %s.json" % (name, lang, v["versionTitle"])]
 
     return results
+
 
 
 """ Sketch toward object oriented TOC """

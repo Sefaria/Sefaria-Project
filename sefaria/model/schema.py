@@ -141,7 +141,42 @@ class TitleGroup(object):
         return self
 
 
-class Term(abst.AbstractMongoRecord):
+class AbstractTitledRecord(abst.AbstractMongoRecord):
+    required_attrs = [
+        "titles"
+    ]
+
+    def _set_derived_attributes(self):
+        self.set_titles(getattr(self, "titles", None))
+
+    def set_titles(self, titles):
+        self.title_group = TitleGroup(titles)
+
+    def add_primary_titles(self, en_title, he_title):
+        self.add_title(en_title, 'en', primary=True)
+        self.add_title(he_title, 'he', primary=True)
+
+    def add_title(self, text, lang, primary=False, replace_primary=False):
+        """
+        :param text: Text of the title
+        :param language:  Language code of the title (e.g. "en" or "he")
+        :param primary: Is this a primary title?
+        :param replace_primary: must be true to replace an existing primary title
+        :return: the object
+        """
+        return self.title_group.add_title(text, lang, primary, replace_primary)
+
+    def _normalize(self):
+        self.titles = self.title_group.titles
+
+    def get_titles(self, lang=None):
+        return self.title_group.all_titles(lang)
+
+    def get_primary_title(self, lang='en'):
+        return self.title_group.primary_title(lang)
+
+
+class Term(AbstractTitledRecord):
     """
     A Term is a shared title node.  It can be referenced and used by many different Index nodes.
     Examples:  Noah, Perek HaChovel, Even HaEzer
@@ -162,26 +197,11 @@ class Term(abst.AbstractMongoRecord):
         "ref"
     ]
 
-    def _set_derived_attributes(self):
-        self.set_titles(getattr(self, "titles", None))
-
-    def set_titles(self, titles):
-        self.title_group = TitleGroup(titles)
-
     def _validate(self):
         super(Term, self)._validate()
         if self.name != self.get_primary_title():
             raise InputError("Term name does not match primary title")
         self.title_group.validate()
-
-    def _normalize(self):
-        self.titles = self.title_group.titles
-
-    def get_titles(self, lang=None):
-        return self.title_group.all_titles(lang)
-
-    def get_primary_title(self, lang='en'):
-        return self.title_group.primary_title(lang)
 
 
 class TermSet(abst.AbstractMongoSet):
