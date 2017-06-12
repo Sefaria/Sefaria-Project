@@ -1774,7 +1774,7 @@ def all_notes_api(request):
         if not request.user.is_authenticated: 
             res = {"error": "You must be logged in to access you notes."}
         else:
-            res = [note.contents() for note in NoteSet({"owner": request.user.id}, sort=[("_id", -1)]) ]
+            res = [note.contents(with_string_id=True) for note in NoteSet({"owner": request.user.id}, sort=[("_id", -1)]) ]
     else:
         resr = {"error": "Not implemented."}
     return jsonResponse(res, callback=request.GET.get("callback", None))

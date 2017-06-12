@@ -8332,7 +8332,8 @@ var ConnectionsPanel = React.createClass({
           srefs: this.props.srefs,
           fullPanel: this.props.fullPanel,
           closePanel: this.props.closePanel,
-          setConnectionsMode: this.props.setConnectionsMode }),
+          onSave: this.props.setConnectionsMode.bind(null, "Notes"),
+          onCancel: this.props.setConnectionsMode.bind(null, "Notes") }),
         React.createElement(
           'a',
           { href: '/my/notes', className: 'allNotesLink button transparent bordered' },
@@ -8392,7 +8393,9 @@ var ConnectionsPanel = React.createClass({
         noteIsPublic: this.props.noteBeingEdited.isPublic,
         fullPanel: this.props.fullPanel,
         closePanel: this.props.closePanel,
-        setConnectionsMode: this.props.setConnectionsMode });
+        onSave: this.props.setConnectionsMode.bind(null, "Notes"),
+        onCancel: this.props.setConnectionsMode.bind(null, "Notes"),
+        onDelete: this.props.setConnectionsMode.bind(null, "Notes") });
     } else if (this.props.mode === "Add Connection") {
       var url = "/s1?next=" + window.location.pathname;
       var link = React.createElement(
@@ -9721,7 +9724,7 @@ var AddToSourceSheetBox = React.createClass({
 
   // In the main app, the function `addToSourceSheet` is executed in the ReaderApp, 
   // and collects the needed data from highlights and app state.
-  // It is used in external apps, liked gardens.  In those cases, it's wrapped in AddToSourceSheetWindow,
+  // It is used in external apps, like gardens.  In those cases, it's wrapped in AddToSourceSheetWindow,
   // refs and text are passed directly, and the add to source sheets API is invoked from within this object. 
   propTypes: {
     srefs: React.PropTypes.array,
@@ -9959,7 +9962,9 @@ var AddNoteBox = React.createClass({
 
   propTypes: {
     srefs: React.PropTypes.array.isRequired,
-    setConnectionsMode: React.PropTypes.func.isRequired,
+    onSave: React.PropTypes.func.isRequired,
+    onCancel: React.PropTypes.func.isRequired,
+    onDelete: React.PropTypes.func,
     noteId: React.PropTypes.string,
     noteText: React.PropTypes.string,
     noteTitle: React.PropTypes.string,
@@ -9986,9 +9991,7 @@ var AddNoteBox = React.createClass({
     var note = {
       text: text,
       refs: this.props.srefs,
-      anchorText: "",
       type: "note",
-      title: "",
       public: !this.state.isPrivate
     };
     var postData = { json: JSON.stringify(note) };
@@ -10004,7 +10007,7 @@ var AddNoteBox = React.createClass({
         }
         Sefaria.site.track.event("Tools", "Note Save " + (this.state.isPrivate ? "Private" : "Public"), this.props.srefs.join("/"));
         $(ReactDOM.findDOMNode(this)).find(".noteText").val("");
-        this.props.setConnectionsMode("Notes");
+        this.props.onSave();
       } else {
         alert("Sorry, there was a problem saving your note.");
       }
@@ -10019,9 +10022,6 @@ var AddNoteBox = React.createClass({
   setPublic: function setPublic() {
     this.setState({ isPrivate: false });
   },
-  cancel: function cancel() {
-    this.props.setConnectionsMode("Notes");
-  },
   deleteNote: function deleteNote() {
     if (!confirm("Are you sure you want to delete this note?")) {
       return;
@@ -10032,8 +10032,8 @@ var AddNoteBox = React.createClass({
       url: url,
       success: function () {
         Sefaria.clearPrivateNotes();
-        this.props.setConnectionsMode("Notes");
         Sefaria.site.track.event("Tools", "Delete Note", this.props.noteId);
+        this.props.onDelete();
       }.bind(this),
       error: function error() {
         alert("Something went wrong (that's all I know).");
@@ -10071,7 +10071,7 @@ var AddNoteBox = React.createClass({
       ),
       this.props.noteId ? React.createElement(
         'div',
-        { className: 'button white fillWidth', onClick: this.cancel },
+        { className: 'button white fillWidth', onClick: this.props.onCancel },
         React.createElement(
           'span',
           { className: 'int-en' },
@@ -11617,7 +11617,7 @@ var MyNotesPanel = React.createClass({
     this.loadData();
   },
   getInitialState: function getInitialState() {
-    return { numberToRender: 5 };
+    return { numberToRender: 2 };
   },
   loadData: function loadData() {
     var notes = Sefaria.allPrivateNotes();
@@ -11673,6 +11673,8 @@ var MyNotesPanel = React.createClass({
             'div',
             { className: 'noteList' },
             notes ? notes.length ? notes.map(function (item, i) {
+              // All notes are rendered initial (so ctrl+f works on page) but text is only loaded
+              // from API as notes scroll into view.
               return React.createElement(NoteListing, { data: item, key: i, showText: i <= this.state.numberToRender });
             }.bind(this)) : React.createElement(LoadingMessage, { message: 'You haven\'t written any notes yet.', heMessage: 'You haven\'t written any notes yet.' }) : React.createElement(LoadingMessage, null)
           )
@@ -11697,6 +11699,26 @@ var NoteListing = React.createClass({
   defaultProps: {
     showText: true
   },
+  getInitialState: function getInitialState() {
+    return {
+      showSheetModal: false
+    };
+  },
+  componentDidUpdate: function componentDidUpdate(prevProps, prevState) {
+    if (!prevState.showSheetModal && this.state.showSheetModal) {
+      this.positionSheetModal();
+    }
+  },
+  showSheetModal: function showSheetModal() {
+    this.setState({ showSheetModal: true });
+  },
+  hideSheetModal: function hideSheetModal() {
+    this.setState({ showSheetModal: false });
+  },
+  positionSheetModal: function positionSheetModal() {
+    var $node = $(ReactDOM.findDOMNode(this));
+    $(".addToSourceSheetModal").position({ my: "center top", at: "right top-50", of: $node });
+  },
   render: function render() {
 
     var data = this.props.data;
@@ -11705,6 +11727,20 @@ var NoteListing = React.createClass({
     return React.createElement(
       'div',
       { className: 'noteListing' },
+      React.createElement(
+        'div',
+        { className: 'addToSheetButton sans', onClick: this.showSheetModal },
+        React.createElement(
+          'span',
+          { className: 'int-en' },
+          'Add to Sheet'
+        ),
+        React.createElement(
+          'span',
+          { className: 'int-he' },
+          'HEBREW NEEDED'
+        )
+      ),
       React.createElement(
         'a',
         { href: url },
@@ -11718,7 +11754,10 @@ var NoteListing = React.createClass({
           )
         )
       ),
-      React.createElement(Note, { text: data.text })
+      React.createElement(Note, { text: data.text }),
+      this.state.showSheetModal ? React.createElement(AddToSourceSheetWindow, {
+        srefs: [data.ref],
+        close: this.hideSheetModal }) : null
     );
   }
 });

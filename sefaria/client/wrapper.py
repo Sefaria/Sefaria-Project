@@ -106,7 +106,7 @@ def format_note_object_for_client(note):
         "public":          getattr(note, "public", False),
         "commentator":     user_link(note.owner),
         "text":            note.text,
-        "title":           note.title,
+        "title":           getattr(note, "title", ""),
         "ownerName":       ownerData["name"],
         "ownerProfileUrl": ownerData["profileUrl"],
         "ownerImageUrl":   ownerData["imageUrl"],

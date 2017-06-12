@@ -5224,6 +5224,7 @@ var EditGroupPage = React.createClass({
   }
 });
 
+
 var FileInput = React.createClass({
   handleChange: function(e) {
     if (this.props.onChange) { this.props.onChange(e); }
@@ -6608,7 +6609,8 @@ var ConnectionsPanel = React.createClass({
                     srefs={this.props.srefs}
                     fullPanel={this.props.fullPanel}
                     closePanel={this.props.closePanel}
-                    setConnectionsMode={this.props.setConnectionsMode} />
+                    onSave={this.props.setConnectionsMode.bind(null, "Notes")}
+                    onCancel={this.props.setConnectionsMode.bind(null, "Notes")} />
                   <a href="/my/notes" className="allNotesLink button transparent bordered">
                     <span className="int-en">Go to My Notes</span>
                     <span className="int-he">Go to My Notes</span>
@@ -6653,7 +6655,6 @@ var ConnectionsPanel = React.createClass({
                     closePanel={this.props.closePanel}
                     setConnectionsMode={this.props.setConnectionsMode} />);
 
-
     } else if (this.props.mode === "Edit Note") {
       content = (<AddNoteBox 
                     srefs={this.props.srefs}
@@ -6663,8 +6664,9 @@ var ConnectionsPanel = React.createClass({
                     noteIsPublic={this.props.noteBeingEdited.isPublic}
                     fullPanel={this.props.fullPanel}
                     closePanel={this.props.closePanel}
-                    setConnectionsMode={this.props.setConnectionsMode} />);
-
+                    onSave={this.props.setConnectionsMode.bind(null, "Notes")}
+                    onCancel={this.props.setConnectionsMode.bind(null, "Notes")}
+                    onDelete={this.props.setConnectionsMode.bind(null, "Notes")} />);
 
     } else if (this.props.mode === "Add Connection") {
       var url  = "/s1?next=" + window.location.pathname;
@@ -7695,7 +7697,7 @@ var AddToSourceSheetWindow = React.createClass({
 var AddToSourceSheetBox = React.createClass({
   // In the main app, the function `addToSourceSheet` is executed in the ReaderApp, 
   // and collects the needed data from highlights and app state.
-  // It is used in external apps, liked gardens.  In those cases, it's wrapped in AddToSourceSheetWindow,
+  // It is used in external apps, like gardens.  In those cases, it's wrapped in AddToSourceSheetWindow,
   // refs and text are passed directly, and the add to source sheets API is invoked from within this object. 
   propTypes: {
     srefs:              React.PropTypes.array,
@@ -7866,7 +7868,9 @@ var ConfirmAddToSheet = React.createClass({
 var AddNoteBox = React.createClass({
   propTypes: {
     srefs:              React.PropTypes.array.isRequired,
-    setConnectionsMode: React.PropTypes.func.isRequired,
+    onSave:             React.PropTypes.func.isRequired,
+    onCancel:           React.PropTypes.func.isRequired,
+    onDelete:           React.PropTypes.func,
     noteId:             React.PropTypes.string,
     noteText:           React.PropTypes.string,
     noteTitle:          React.PropTypes.string,
@@ -7891,9 +7895,7 @@ var AddNoteBox = React.createClass({
     var note = {
       text: text,
       refs: this.props.srefs,
-      anchorText: "",
       type:  "note",
-      title: "",
       public: !this.state.isPrivate
     };
     var postData = { json: JSON.stringify(note) };
@@ -7909,7 +7911,7 @@ var AddNoteBox = React.createClass({
         }
         Sefaria.site.track.event("Tools", "Note Save " + ((this.state.isPrivate)?"Private":"Public"), this.props.srefs.join("/"));
         $(ReactDOM.findDOMNode(this)).find(".noteText").val("");
-        this.props.setConnectionsMode("Notes");
+        this.props.onSave();
       } else {
         alert("Sorry, there was a problem saving your note.");
       }
@@ -7924,9 +7926,6 @@ var AddNoteBox = React.createClass({
   setPublic: function() {
     this.setState({isPrivate: false});
   },
-  cancel: function() {
-    this.props.setConnectionsMode("Notes");
-  },
   deleteNote: function() {
     if (!confirm("Are you sure you want to delete this note?")) { return; }
     var url = "/api/notes/" + this.props.noteId;
@@ -7935,8 +7934,8 @@ var AddNoteBox = React.createClass({
       url: url,
       success: function() { 
         Sefaria.clearPrivateNotes();
-        this.props.setConnectionsMode("Notes");
         Sefaria.site.track.event("Tools", "Delete Note", this.props.noteId);
+        this.props.onDelete();
       }.bind(this),
       error: function () {
         alert("Something went wrong (that's all I know).");
@@ -7958,7 +7957,7 @@ var AddNoteBox = React.createClass({
           <span className="int-he">{this.props.noteId ? "שמור": "הוסף רשומה"}</span>
         </div>
         {this.props.noteId ? 
-          <div className="button white fillWidth" onClick={this.cancel}>
+          <div className="button white fillWidth" onClick={this.props.onCancel}>
             <span className="int-en">Cancel</span>
             <span className="int-he">בטל</span>
           </div> : null }
@@ -9234,7 +9233,7 @@ var MyNotesPanel = React.createClass({
     this.loadData();
   },
   getInitialState: function() {
-    return { numberToRender: 5 }
+    return { numberToRender: 2 }
   },
   loadData: function() {
     var notes = Sefaria.allPrivateNotes();
@@ -9254,7 +9253,6 @@ var MyNotesPanel = React.createClass({
     }
   },
   incrementNumberToRender: function() {
-    console.log("increment");
     this.setState({numberToRender: this.state.numberToRender+3});
   },
   render: function() {
@@ -9275,6 +9273,8 @@ var MyNotesPanel = React.createClass({
               { notes ? 
                   (notes.length ?
                     notes.map(function(item, i) {
+                      // All notes are rendered initial (so ctrl+f works on page) but text is only loaded
+                      // from API as notes scroll into view.
                       return <NoteListing data={item} key={i} showText={i <= this.state.numberToRender} />
                     }.bind(this))
                     : <LoadingMessage message="You haven't written any notes yet." heMessage="You haven't written any notes yet." />)
@@ -9300,13 +9300,36 @@ var NoteListing = React.createClass({
   defaultProps: {
     showText: true
   },
+  getInitialState: function() {
+    return {
+      showSheetModal: false
+    }
+  },
+  componentDidUpdate: function(prevProps, prevState) {
+    if (!prevState.showSheetModal && this.state.showSheetModal) {
+      this.positionSheetModal();
+    }
+  },
+  showSheetModal: function() {
+    this.setState({showSheetModal: true});
+  },
+  hideSheetModal: function() {
+    this.setState({showSheetModal: false});
+  },
+  positionSheetModal: function() {
+    var $node = $(ReactDOM.findDOMNode(this));
+    $(".addToSourceSheetModal").position({my: "center top", at: "right top-50", of: $node});
+  },
   render: function() {
     
     var data = this.props.data;
     var url  = "/" + Sefaria.normRef(data.ref) + "?with=Notes";
 
     return (<div className="noteListing">
-              
+              <div className="addToSheetButton sans" onClick={this.showSheetModal}>
+                <span className="int-en">Add to Sheet</span>
+                <span className="int-he">HEBREW NEEDED</span>
+              </div>
               <a href={url}>
                 {this.props.showText ? 
                   <TextRange sref={data.ref} /> :
@@ -9317,6 +9340,12 @@ var NoteListing = React.createClass({
                   </span> }
               </a>
               <Note text={data.text} />
+              {this.state.showSheetModal ? 
+                <AddToSourceSheetWindow 
+                  srefs={[data.ref]}
+                  close={this.hideSheetModal} />
+                : null }
+
             </div>);
   }
 });
