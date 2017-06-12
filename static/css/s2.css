@@ -3021,14 +3021,10 @@ a.readerNavCategory {
 .confirmAddToSheet .button {
   width: 100%;
 }
-.allNotesLink {
+.connectionsPanel .allSheetsLink,
+.connectionsPanel .allNotesLink {
   display: block;
-  color: #999;
-  margin-top: 30px;
-  font-size: 17px;
-  letter-spacing: 1px;
-  font-weight: lighter;
-  text-align: right;
+  margin-top: 10px;
 }
 .interface-hebrew .allNotesLinks {
   text-align: left;
@@ -3262,6 +3258,7 @@ a.readerNavCategory {
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
   box-sizing: border-box;
   line-height: 1;
+  text-align: center;
 }
 a.button {
   color: white;
@@ -3285,6 +3282,9 @@ a.button.white {
   color: #666;
   background-color: transparent;
   border: 1px solid transparent;
+}
+.button.transparent.bordered {
+  border: 1px solid #CCC;
 }
 .button.fillWidth {
   width: 100%;

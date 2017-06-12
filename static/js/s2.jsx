@@ -6588,6 +6588,10 @@ var ConnectionsPanel = React.createClass({
                     version={this.props.version}
                     versionLanguage={this.props.versionLanguage}
                     addToSourceSheet={this.props.addToSourceSheet} />
+                  <a href="/sheets/private" className="allSheetsLink button transparent bordered">
+                    <span className="int-en">Go to My Sheets</span>
+                    <span className="int-he">Go to My Sheets</span>
+                  </a>
                   <MySheetsList
                     srefs={this.props.srefs}
                     fullPanel={this.props.fullPanel} />
@@ -6603,9 +6607,9 @@ var ConnectionsPanel = React.createClass({
                     fullPanel={this.props.fullPanel}
                     closePanel={this.props.closePanel}
                     setConnectionsMode={this.props.setConnectionsMode} />
-                  <a href="/my/notes" className="allNotesLink sans">
-                    <span className="int-en">All My Notes <i className="fa fa-chevron-right"></i></span>
-                    <span className="int-he">All My Notes <i className="fa fa-chevron-left"></i></span>
+                  <a href="/my/notes" className="allNotesLink button transparent bordered">
+                    <span className="int-en">Go to My Notes</span>
+                    <span className="int-he">Go to My Notes</span>
                   </a>
                   <MyNotes 
                     srefs={this.props.srefs}

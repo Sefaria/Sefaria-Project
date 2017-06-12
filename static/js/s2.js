@@ -8301,6 +8301,20 @@ var ConnectionsPanel = React.createClass({
           version: this.props.version,
           versionLanguage: this.props.versionLanguage,
           addToSourceSheet: this.props.addToSourceSheet }),
+        React.createElement(
+          'a',
+          { href: '/sheets/private', className: 'allSheetsLink button transparent bordered' },
+          React.createElement(
+            'span',
+            { className: 'int-en' },
+            'Go to My Sheets'
+          ),
+          React.createElement(
+            'span',
+            { className: 'int-he' },
+            'Go to My Sheets'
+          )
+        ),
         React.createElement(MySheetsList, {
           srefs: this.props.srefs,
           fullPanel: this.props.fullPanel }),
@@ -8319,18 +8333,16 @@ var ConnectionsPanel = React.createClass({
           setConnectionsMode: this.props.setConnectionsMode }),
         React.createElement(
           'a',
-          { href: '/my/notes', className: 'allNotesLink sans' },
+          { href: '/my/notes', className: 'allNotesLink button transparent bordered' },
           React.createElement(
             'span',
             { className: 'int-en' },
-            'All My Notes ',
-            React.createElement('i', { className: 'fa fa-chevron-right' })
+            'Go to My Notes'
           ),
           React.createElement(
             'span',
             { className: 'int-he' },
-            'All My Notes ',
-            React.createElement('i', { className: 'fa fa-chevron-left' })
+            'Go to My Notes'
           )
         ),
         React.createElement(MyNotes, {
