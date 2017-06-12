@@ -142,8 +142,8 @@ var ReaderApp = React.createClass({
         panels.push(panel);
       }
     }
-    panels = panels.map(function(panel) { 
-      return this.makePanelState(panel); 
+    panels = panels.map(function(panel) {
+      return this.makePanelState(panel);
     }.bind(this) );
 
     var layoutOrientation = (this.props.interfaceLang == "english") ? "ltr" : "rtl";
@@ -308,7 +308,7 @@ var ReaderApp = React.createClass({
   shouldHistoryUpdate: function() {
     // Compare the current state to the state last pushed to history,
     // Return true if the change warrants pushing to history.
-    
+
     // If there's no history or the number or basic state of panels has changed
     if (!history.state
         || (!history.state.panels && !history.state.header)
@@ -316,7 +316,7 @@ var ReaderApp = React.createClass({
         || (history.state.panels && (history.state.panels.length !== this.state.panels.length))
         || (history.state.header && (history.state.header.menuOpen !== this.state.header.menuOpen))
       ) {
-      return true; 
+      return true;
     }
 
     var prevPanels, nextPanels;
@@ -339,9 +339,9 @@ var ReaderApp = React.createClass({
       if ((prev.mode !== next.mode) ||
           (prev.menuOpen !== next.menuOpen) ||
           (prev.menuOpen === "book toc" && prev.bookRef !== next.bookRef) ||
-          (next.mode === "Text" && prev.refs.slice(-1)[0] !== next.refs.slice(-1)[0]) || 
-          (next.mode === "Text" && !prev.highlightedRefs.compare(next.highlightedRefs)) || 
-          (next.mode === "TextAndConnections" && prev.highlightedRefs.slice(-1)[0] !== next.highlightedRefs.slice(-1)[0]) || 
+          (next.mode === "Text" && prev.refs.slice(-1)[0] !== next.refs.slice(-1)[0]) ||
+          (next.mode === "Text" && !prev.highlightedRefs.compare(next.highlightedRefs)) ||
+          (next.mode === "TextAndConnections" && prev.highlightedRefs.slice(-1)[0] !== next.highlightedRefs.slice(-1)[0]) ||
           ((next.mode === "Connections" || next.mode === "TextAndConnections") && prev.filter && !prev.filter.compare(next.filter)) ||
           (next.mode === "Connections" && !prev.refs.compare(next.refs)) ||
           (next.connectionsMode !== prev.connectionsMoade) ||
@@ -363,7 +363,7 @@ var ReaderApp = React.createClass({
         }
       }
     }
-    return false;  
+    return false;
   },
   clonePanel: function(panel, trimFilters) {
     //Set aside self-referential objects before cloning
@@ -397,7 +397,7 @@ var ReaderApp = React.createClass({
       if (!states[i]) { debugger; }
       var state = states[i];
       var hist  = {url: ""};
-    
+
       if (state.menuOpen) {
         switch (state.menuOpen) {
           case "home":
@@ -491,7 +491,7 @@ var ReaderApp = React.createClass({
         hist.version  = state.version;
         hist.versionLanguage = state.versionLanguage;
         hist.mode     = "Text"
-      
+
       } else if (state.mode === "Connections") {
         var ref       = Sefaria.normRefList(state.refs);
         var filter    = state.filter.length ? state.filter :
@@ -500,7 +500,7 @@ var ReaderApp = React.createClass({
         hist.title    = ref  + " with " + (hist.sources === "all" ? "Connections" : hist.sources);
         hist.url      = Sefaria.normRef(ref); // + "?with=" + sources;
         hist.mode     = "Connections"
-      
+
       } else if (state.mode === "TextAndConnections") {
         var ref       = Sefaria.normRefList(state.highlightedRefs);
         var filter    = state.filter.length ? state.filter :
@@ -511,7 +511,7 @@ var ReaderApp = React.createClass({
         hist.version  = state.version;
         hist.versionLanguage = state.versionLanguage;
         hist.mode     = "TextAndConnections"
-     
+
       } else if (state.mode === "Header") {
         hist.title    = document.title;
         hist.url      = window.location.pathname.slice(1);
@@ -523,7 +523,7 @@ var ReaderApp = React.createClass({
       if (state.mode !== "Header") {
         hist.lang =  state.settings.language.substring(0,2);
       }
-      histories.push(hist);     
+      histories.push(hist);
     }
     if (!histories.length) {debugger;}
 
@@ -575,7 +575,7 @@ var ReaderApp = React.createClass({
         next        = next.replace("?", "&").replace(/=/g, (i+1) + "=");
         hist.url   += next;
         if(histories[i].versionLanguage && histories[i].version) {
-          hist.url += "&l" + (i+1) + "=" + histories[i].versionLanguage + 
+          hist.url += "&l" + (i+1) + "=" + histories[i].versionLanguage +
                       "&v" + (i+1) + "=" + histories[i].version.replace(/\s/g,"_");
         }
         hist.title += " & " + histories[i].title;
@@ -584,7 +584,7 @@ var ReaderApp = React.createClass({
         hist.url += "&lang" + (i+1) + "=" + histories[i].lang;
       }
     }
-    // Replace the first only & with a ? 
+    // Replace the first only & with a ?
     hist.url = hist.url.replace(/&/, "?");
 
     return hist;
@@ -608,7 +608,7 @@ var ReaderApp = React.createClass({
   },
   updateHistoryState: function(replace) {
     if (!this.shouldHistoryUpdate()) {
-      return; 
+      return;
     }
     var hist = this.makeHistoryState();
     if (replace) {
@@ -835,7 +835,7 @@ var ReaderApp = React.createClass({
   },
   didPanelRefChange: function(prevPanel, nextPanel) {
     // Returns true if nextPanel represents a change in current ref (including version change) from prevPanel.
-    if (nextPanel.menu || nextPanel.mode == "Connections" || 
+    if (nextPanel.menu || nextPanel.mode == "Connections" ||
         !nextPanel.refs || nextPanel.refs.length == 0 ||
         !prevPanel.refs || prevPanel.refs.length == 0 ) { return false; }
     if (nextPanel.refs.compare(prevPanel.refs)) {
@@ -874,7 +874,7 @@ var ReaderApp = React.createClass({
 
   },
   selectVersion: function(n, versionName, versionLanguage) {
-    // Set the version for panel `n`. 
+    // Set the version for panel `n`.
     var panel = this.state.panels[n];
     var oRef = Sefaria.ref(panel.refs[0]);
     if (versionName && versionLanguage) {
@@ -889,7 +889,7 @@ var ReaderApp = React.createClass({
       panel.versionLanguage = null;
       Sefaria.site.track.event("Reader", "Choose Version", `${oRef.indexTitle} / default version / ${panel.settings.language}`)
     }
-    
+
     if((this.state.panels.length > n+1) && this.state.panels[n+1].mode == "Connections"){
       var connectionsPanel =  this.state.panels[n+1];
       connectionsPanel.version = panel.version;
@@ -1059,6 +1059,10 @@ var ReaderApp = React.createClass({
     if (this.state.panels.length == 1 && n == 0) {
       this.state.panels = [];
     } else {
+      // If this is a Connection panel, we need to unset the filter in the base panel
+      if (n > 0 && this.state.panels[n] && this.state.panels[n].mode === "Connections"){
+        this.state.panels[n-1].filter = [];
+      }
       this.state.panels.splice(n, 1);
       if (this.state.panels[n] && this.state.panels[n].mode === "Connections") {
         // Close connections panel when text panel is closed
@@ -1446,7 +1450,7 @@ var Header = React.createClass({
       } else if (d["type"] == "TocCategory") {
         Sefaria.site.track.event("Search", "Search Box Navigation - Category", query);
         this.closeSearchAutocomplete();
-        this.showLibrary(d["key"]);  // "key" holds the category path 
+        this.showLibrary(d["key"]);  // "key" holds the category path
       } else {
         Sefaria.site.track.event("Search", "Search Box Search", query);
         this.closeSearchAutocomplete();
@@ -6040,7 +6044,8 @@ var TextRange = React.createClass({
     showBaseText:           React.PropTypes.func,
     panelsOpen:             React.PropTypes.number,
     layoutWidth:            React.PropTypes.number,
-    showActionLinks:        React.PropTypes.bool
+    showActionLinks:        React.PropTypes.bool,
+    inlineReference:        React.PropTypes.object,
   },
   componentDidMount: function() {
     var data = this.getText();
@@ -6066,7 +6071,8 @@ var TextRange = React.createClass({
           prevProps.settings.layoutTalmud !== this.props.settings.layoutTalmud ||
           prevProps.settings.biLayout !== this.props.settings.biLayout ||
           prevProps.settings.fontSize !== this.props.settings.fontSize ||
-          prevProps.layoutWidth !== this.props.layoutWidth) {
+          prevProps.layoutWidth !== this.props.layoutWidth ||
+          prevProps.filter !== this.props.filter) {
             // Rerender in case version has changed
             this.forceUpdate(function() {
               if (this.isMounted()) {
@@ -6315,16 +6321,37 @@ var TextRange = React.createClass({
                           <span className="he">קשרים</span>
                         </span>
                       </div>);
+
+    // configure number display for inline references
+    var sidebarNumberDisplay = (this.props.inlineReference &&
+    this.props.inlineReference['data-commentator'] === Sefaria.parseRef(this.props.sref).index);
+    if (sidebarNumberDisplay) {
+      if (this.props.inlineReference['data-display']) {
+        var displayValue = this.props.inlineReference['data-display'];
+      }
+      else {
+        var displayValue = Sefaria.hebrew.encodeHebrewNumeral(this.props.inlineReference['data-order']);
+      }
+      if (displayValue === undefined) {
+        displayValue = this.props.inlineReference['data-order'];
+      }
+      var sidebarNum = <div className="numberLabel sans itag">
+        <span className="numberLabelInner">
+          <span className="he heOnly">{displayValue}</span>
+        </span>
+      </div>;
+    } else if (showNumberLabel && this.props.numberLabel) {
+      var sidebarNum = <div className="numberLabel sans">
+        <span className="numberLabelInner">
+          <span className="en">{this.props.numberLabel}</span>
+          <span className="he">{Sefaria.hebrew.encodeHebrewNumeral(this.props.numberLabel)}</span>
+        </span>
+      </div>;
+    } else {var sidebarNum = null;}
+
     return (
       <div className={classes} onClick={this.handleClick}>
-        {showNumberLabel && this.props.numberLabel ? 
-          (<div className="numberLabel sans">
-            <span className="numberLabelInner">
-              <span className="en">{this.props.numberLabel}</span>
-              <span className="he">{Sefaria.hebrew.encodeHebrewNumeral(this.props.numberLabel)}</span>
-            </span>
-          </div>)
-          : null}
+        {sidebarNum}
         {this.props.hideTitle ? null :
         (<div className="title">
           <div className="titleBox">
@@ -6392,6 +6419,28 @@ var TextSegment = React.createClass({
                                                       <span className="he"> <span className="segmentNumberInner">{Sefaria.hebrew.encodeHebrewNumeral(this.props.segmentNumber)}</span> </span>
                                                     </div>) : null;
     var he = this.props.he || "";
+
+    // render itags
+    if (this.props.filter && this.props.filter.length > 0) {
+      var new_element = $('<div/>').append("<div>" + he + "</div>");
+      var textValue = function(i) {
+        if ($(i).attr('data-display')) {
+          return $(i).attr('data-display')
+        }
+        else {
+          var value = Sefaria.hebrew.encodeHebrewNumeral($(i).attr('data-order'));
+        }
+        if (value === undefined) {
+          value = $(i).attr('data-order')
+        }
+        return value
+      };
+      $(new_element).find('i[data-commentator="' + this.props.filter[0] + '"]').each(function () {
+        $(this).replaceWith('<sup class="itag">' + textValue(this) + "</sup>");
+      });
+      he = $(new_element).html();
+    }
+
     var en = this.props.en || "";
     var classes=classNames({ segment: 1,
                      highlight: this.props.highlight,
@@ -6846,7 +6895,7 @@ var CategoryFilter = React.createClass({
       if (Sefaria.site) { Sefaria.site.track.event("Reader", "Category Filter Click", this.props.category); }      
     } else {
       this.props.setConnectionsCategory(this.props.category);
-      if (Sefaria.site) { Sefaria.site.track.event("Reader", "Connections Category Click", this.props.category); }      
+      if (Sefaria.site) { Sefaria.site.track.event("Reader", "Connections Category Click", this.props.category); }
     }
 
   },
@@ -6902,7 +6951,7 @@ var TextFilter = React.createClass({
   handleClick: function(e) {
     e.preventDefault();
     this.props.setFilter(this.props.book, this.props.updateRecent);
-    if (Sefaria.site) { 
+    if (Sefaria.site) {
       if (this.props.inRecentFilters) { Sefaria.site.track.event("Reader", "Text Filter in Recent Click", this.props.book); }
       else { Sefaria.site.track.event("Reader", "Text Filter Click", this.props.book); }
     }
@@ -6953,7 +7002,7 @@ var TextList = React.createClass({
     openNav:                 React.PropTypes.func,
     openDisplaySettings:     React.PropTypes.func,
     closePanel:              React.PropTypes.func,
-    selectedWords:           React.PropTypes.string
+    selectedWords:           React.PropTypes.string,
   },
   getInitialState: function() {
     return {
@@ -7023,7 +7072,7 @@ var TextList = React.createClass({
     var basetext          = this.getSectionRef();
     var commentarySection = Sefaria.commentarySectionRef(commentator, basetext);
     if (!commentarySection) { return; }
-    
+
     this.setState({waitForText: true});
     Sefaria.text(commentarySection, {}, function() {
       if (this.isMounted()) {
@@ -7050,7 +7099,7 @@ var TextList = React.createClass({
         });
         this.waitingFor = Sefaria.util.clone(commentarySections);
         this.target = 0;
-        for (var i = 0; i < commentarySections.length; i++) {          
+        for (var i = 0; i < commentarySections.length; i++) {
           Sefaria.text(commentarySections[i], {}, function(data) {
             var index = this.waitingFor.indexOf(data.commentator);
             if (index == -1) {
@@ -7098,7 +7147,7 @@ var TextList = React.createClass({
     var filter             = this.props.filter;
     var sectionRef         = this.getSectionRef();
     var isSingleCommentary = (filter.length == 1 && Sefaria.index(filter[0]) && Sefaria.index(filter[0]).categories[0] == "Commentary");
-    
+
     var sortConnections = function(a, b) {
       if (a.anchorVerse !== b.anchorVerse) {
         return a.anchorVerse - b.anchorVerse;
@@ -7124,7 +7173,7 @@ var TextList = React.createClass({
         return false;
       }
       return (filter.length == 0 ||
-              Sefaria.util.inArray(link.category, filter) !== -1 || 
+              Sefaria.util.inArray(link.category, filter) !== -1 ||
               Sefaria.util.inArray(link.collectiveTitle["en"], filter) !== -1 );
 
     }.bind(this)).sort(sortConnections);
@@ -7139,19 +7188,19 @@ var TextList = React.createClass({
                     links.map(function(link, i) {
                         var hideTitle = link.category === "Commentary" && this.props.filter[0] !== "Commentary";
                         return (<TextRange 
-                                  sref={link.sourceRef}
-                                  key={i + link.sourceRef}
-                                  lowlight={Sefaria.util.inArray(link.anchorRef, refs) === -1}
-                                  hideTitle={hideTitle}
-                                  numberLabel={link.category === "Commentary" ? link.anchorVerse : 0}
-                                  basetext={false}
-                                  onRangeClick={this.props.onTextClick}
-                                  onCitationClick={this.props.onCitationClick}
-                                  onNavigationClick={this.props.onNavigationClick}
-                                  onCompareClick={this.props.onCompareClick}
-                                  onOpenConnectionsClick={this.props.onOpenConnectionsClick} />);
-                      }, this);          
-
+                                    sref={link.sourceRef}
+                                    key={i + link.sourceRef}
+                                    lowlight={Sefaria.util.inArray(link.anchorRef, refs) === -1}
+                                    hideTitle={hideTitle}
+                                    numberLabel={link.category === "Commentary" ? link.anchorVerse : 0}
+                                    basetext={false}
+                                    onRangeClick={this.props.onTextClick}
+                                    onCitationClick={this.props.onCitationClick}
+                                    onNavigationClick={this.props.onNavigationClick}
+                                    onCompareClick={this.props.onCompareClick}
+                                    onOpenConnectionsClick={this.props.onOpenConnectionsClick}
+                                    inlineReference={link.inline_reference}/>);
+                      }, this);
 
     return (
         <div>
@@ -7314,10 +7363,10 @@ var SheetListing = React.createClass({
         <div className="sheetTags">
           {sheet.tags.map(function(tag, i) { 
             var separator = i == sheet.tags.length -1 ? null : <span className="separator">,</span>;
-            return (<a href={"/sheets/tags/" + tag} 
-                        target="_blank" 
-                        className="sheetTag" 
-                        key={tag}  
+            return (<a href={"/sheets/tags/" + tag}
+                        target="_blank"
+                        className="sheetTag"
+                        key={tag}
                         onClick={this.handleSheetTagClick.bind(null, tag)}>{tag}{separator}</a>)
           }.bind(this))}
         </div>
@@ -7580,7 +7629,7 @@ var ShareBox = React.createClass({
   },
   render: function() {
     var url = this.props.url;
-    
+
     // Not quite working...
     // var fbButton = <iframe src={"https://www.facebook.com/plugins/share_button.php?href=" + encodeURIComponent(this.props.url) + '&layout=button&size=large&mobile_iframe=true&appId=206308089417064&width=73&height=28'} width="73" height="28" style={{border:"none", overflow: "hidden"}} scrolling="no" frameborder="0" allowTransparency="true"></iframe>
 
@@ -7692,10 +7741,10 @@ var AddToSourceSheetBox = React.createClass({
     }
   },
   toggleSheetList: function() {
-    if (!Sefaria._uid) { 
+    if (!Sefaria._uid) {
       this.setState({showLogin: true});
-    } else { 
-      this.setState({sheetListOpen: !this.state.sheetListOpen}); 
+    } else {
+      this.setState({sheetListOpen: !this.state.sheetListOpen});
     }
   },
   selectSheet: function(sheet) {
@@ -7890,7 +7939,7 @@ var AddNoteBox = React.createClass({
     });
   },
   render: function() {
-    
+
     if (!Sefaria._uid) {
       return (<div className="addNoteBox"><LoginPrompt /></div>);
     }

@@ -507,6 +507,10 @@ input.noselect {
 .readerPanel.english .he {
   display: none;
 }
+.readerPanel.english .he.heOnly{
+  display: inline;
+  text-align: right;
+}
 .readerPanel.english .en {
   display: inline;
 }
@@ -2419,6 +2423,13 @@ a.readerNavCategory {
   margin-right: .2em;
   text-decoration: underline;
 }
+.segment sup.itag {
+  text-decoration: none;
+  font-family: "Open Sans Hebrew", "sans-serif";
+  font-size: 0.6em;
+  line-height: 1;
+  color: #4871bf;
+}
 .segment i.footnote {
   display: none;
   font-size: .8em;
@@ -2853,12 +2864,20 @@ a.readerNavCategory {
 .english .textRange .numberLabel {
   left: -24px;
 }
+.english .textRange .numberLabel.itag {
+  right: -30px;
+  left: initial;
+}
 .hebrew .textRange .numberLabel,
 .bilingual .textRange .numberLabel  {
   right: -30px;
 }
 .multiPanel .textRange .numberLabel{
   display: none;
+}
+.multiPanel .textRange .numberLabel.itag{
+  display: block;
+  color: #4871bf;
 }
 .textRange.lowlight .numberLabel {
   color: #999;

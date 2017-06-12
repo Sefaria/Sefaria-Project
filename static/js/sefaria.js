@@ -2518,6 +2518,9 @@ Sefaria.hebrew = {
         n -= tens;
       }
       if (n > 0) {
+        if (!values[n]) {
+            return undefined
+        }
         heb += values[n];
       }
     }

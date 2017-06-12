@@ -600,7 +600,7 @@ var ReaderApp = React.createClass({
         hist.url += "&lang" + (i + 1) + "=" + histories[i].lang;
       }
     }
-    // Replace the first only & with a ? 
+    // Replace the first only & with a ?
     hist.url = hist.url.replace(/&/, "?");
 
     return hist;
@@ -899,7 +899,7 @@ var ReaderApp = React.createClass({
     $.post(url, { source: JSON.stringify(source) }, confirmFunction);
   },
   selectVersion: function selectVersion(n, versionName, versionLanguage) {
-    // Set the version for panel `n`. 
+    // Set the version for panel `n`.
     var panel = this.state.panels[n];
     var oRef = Sefaria.ref(panel.refs[0]);
     if (versionName && versionLanguage) {
@@ -1086,6 +1086,10 @@ var ReaderApp = React.createClass({
     if (this.state.panels.length == 1 && n == 0) {
       this.state.panels = [];
     } else {
+      // If this is a Connection panel, we need to unset the filter in the base panel
+      if (n > 0 && this.state.panels[n] && this.state.panels[n].mode === "Connections") {
+        this.state.panels[n - 1].filter = [];
+      }
       this.state.panels.splice(n, 1);
       if (this.state.panels[n] && this.state.panels[n].mode === "Connections") {
         // Close connections panel when text panel is closed
@@ -1482,7 +1486,7 @@ var Header = React.createClass({
       } else if (d["type"] == "TocCategory") {
         Sefaria.site.track.event("Search", "Search Box Navigation - Category", query);
         this.closeSearchAutocomplete();
-        this.showLibrary(d["key"]); // "key" holds the category path 
+        this.showLibrary(d["key"]); // "key" holds the category path
       } else {
         Sefaria.site.track.event("Search", "Search Box Search", query);
         this.closeSearchAutocomplete();
@@ -7649,7 +7653,8 @@ var TextRange = React.createClass({
     showBaseText: React.PropTypes.func,
     panelsOpen: React.PropTypes.number,
     layoutWidth: React.PropTypes.number,
-    showActionLinks: React.PropTypes.bool
+    showActionLinks: React.PropTypes.bool,
+    inlineReference: React.PropTypes.object
   },
   componentDidMount: function componentDidMount() {
     var data = this.getText();
@@ -7667,7 +7672,7 @@ var TextRange = React.createClass({
   componentDidUpdate: function componentDidUpdate(prevProps, prevState) {
     // Place segment numbers again if update affected layout
     if (this.props.basetext || this.props.segmentNumber) {
-      if (this.props.version != prevProps.version || this.props.versionLanguage != prevProps.versionLanguage || prevProps.settings.language !== this.props.settings.language || prevProps.settings.layoutDefault !== this.props.settings.layoutDefault || prevProps.settings.layoutTanakh !== this.props.settings.layoutTanakh || prevProps.settings.layoutTalmud !== this.props.settings.layoutTalmud || prevProps.settings.biLayout !== this.props.settings.biLayout || prevProps.settings.fontSize !== this.props.settings.fontSize || prevProps.layoutWidth !== this.props.layoutWidth) {
+      if (this.props.version != prevProps.version || this.props.versionLanguage != prevProps.versionLanguage || prevProps.settings.language !== this.props.settings.language || prevProps.settings.layoutDefault !== this.props.settings.layoutDefault || prevProps.settings.layoutTanakh !== this.props.settings.layoutTanakh || prevProps.settings.layoutTalmud !== this.props.settings.layoutTalmud || prevProps.settings.biLayout !== this.props.settings.biLayout || prevProps.settings.fontSize !== this.props.settings.fontSize || prevProps.layoutWidth !== this.props.layoutWidth || prevProps.filter !== this.props.filter) {
         // Rerender in case version has changed
         this.forceUpdate(function () {
           if (this.isMounted()) {
@@ -7960,10 +7965,33 @@ var TextRange = React.createClass({
         )
       )
     );
-    return React.createElement(
-      'div',
-      { className: classes, onClick: this.handleClick },
-      showNumberLabel && this.props.numberLabel ? React.createElement(
+
+    // configure number display for inline references
+    var sidebarNumberDisplay = this.props.inlineReference && this.props.inlineReference['data-commentator'] === Sefaria.parseRef(this.props.sref).index;
+    if (sidebarNumberDisplay) {
+      if (this.props.inlineReference['data-display']) {
+        var displayValue = this.props.inlineReference['data-display'];
+      } else {
+        var displayValue = Sefaria.hebrew.encodeHebrewNumeral(this.props.inlineReference['data-order']);
+      }
+      if (displayValue === undefined) {
+        displayValue = this.props.inlineReference['data-order'];
+      }
+      var sidebarNum = React.createElement(
+        'div',
+        { className: 'numberLabel sans itag' },
+        React.createElement(
+          'span',
+          { className: 'numberLabelInner' },
+          React.createElement(
+            'span',
+            { className: 'he heOnly' },
+            displayValue
+          )
+        )
+      );
+    } else if (showNumberLabel && this.props.numberLabel) {
+      var sidebarNum = React.createElement(
         'div',
         { className: 'numberLabel sans' },
         React.createElement(
@@ -7980,7 +8008,15 @@ var TextRange = React.createClass({
             Sefaria.hebrew.encodeHebrewNumeral(this.props.numberLabel)
           )
         )
-      ) : null,
+      );
+    } else {
+      var sidebarNum = null;
+    }
+
+    return React.createElement(
+      'div',
+      { className: classes, onClick: this.handleClick },
+      sidebarNum,
       this.props.hideTitle ? null : React.createElement(
         'div',
         { className: 'title' },
@@ -8096,6 +8132,27 @@ var TextSegment = React.createClass({
       )
     ) : null;
     var he = this.props.he || "";
+
+    // render itags
+    if (this.props.filter && this.props.filter.length > 0) {
+      var new_element = $('<div/>').append("<div>" + he + "</div>");
+      var textValue = function textValue(i) {
+        if ($(i).attr('data-display')) {
+          return $(i).attr('data-display');
+        } else {
+          var value = Sefaria.hebrew.encodeHebrewNumeral($(i).attr('data-order'));
+        }
+        if (value === undefined) {
+          value = $(i).attr('data-order');
+        }
+        return value;
+      };
+      $(new_element).find('i[data-commentator="' + this.props.filter[0] + '"]').each(function () {
+        $(this).replaceWith('<sup class="itag">' + textValue(this) + "</sup>");
+      });
+      he = $(new_element).html();
+    }
+
     var en = this.props.en || "";
     var classes = classNames({ segment: 1,
       highlight: this.props.highlight,
@@ -8993,7 +9050,8 @@ var TextList = React.createClass({
         onCitationClick: this.props.onCitationClick,
         onNavigationClick: this.props.onNavigationClick,
         onCompareClick: this.props.onCompareClick,
-        onOpenConnectionsClick: this.props.onOpenConnectionsClick });
+        onOpenConnectionsClick: this.props.onOpenConnectionsClick,
+        inlineReference: link.inline_reference });
     }, this);
 
     return React.createElement(
