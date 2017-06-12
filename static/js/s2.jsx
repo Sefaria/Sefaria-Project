@@ -469,6 +469,11 @@ var ReaderApp = React.createClass({
             hist.url = "my/groups";
             hist.mode = "myGroups";
             break;
+          case "myNotes":
+            hist.title = "My Notes on Sefaria";
+            hist.url = "my/notes";
+            hist.mode = "myNotes";
+            break;
           case "updates":
             hist.title = "New on Sefaria";
             hist.url = "updates";
@@ -2206,6 +2211,10 @@ var ReaderPanel = React.createClass({
                     setUnreadNotificationsCount={this.props.setUnreadNotificationsCount}
                     interfaceLang={this.props.interfaceLang} />);
 
+    } else if (this.state.menuOpen === "myNotes") {
+      var menu = (<MyNotesPanel
+                    interfaceLang={this.props.interfaceLang} />);
+
     } else if (this.state.menuOpen === "myGroups") {
       var menu = (<MyGroupsPanel
                     interfaceLang={this.props.interfaceLang} />);
@@ -3027,7 +3036,7 @@ var ReaderNavigationCategoryMenuContents = React.createClass({
                 var chItem = item.contents[0];
                 var [title, heTitle] = this.getRenderedTextTitleString(chItem.title, chItem.heTitle);
                 var url     = "/" + Sefaria.normRef(chItem.firstSection);
-                content.push((<a href={url} className={'refLink sparse' + chItem.sparseness} data-ref={chItem.firstSection} key={"text." + this.props.nestLevel + "." + i}>
+                content.push((<a href={url} className={'refLink blockLink sparse' + chItem.sparseness} data-ref={chItem.firstSection} key={"text." + this.props.nestLevel + "." + i}>
                                 <span className='en'>{title}</span>
                                 <span className='he'>{heTitle}</span>
                               </a>
@@ -3056,7 +3065,7 @@ var ReaderNavigationCategoryMenuContents = React.createClass({
           var [title, heTitle] = this.getRenderedTextTitleString(item.title, item.heTitle);
           var ref = Sefaria.recentRefForText(item.title) || item.firstSection;
           var url = "/" + Sefaria.normRef(ref);
-          content.push((<a href={url} className={'refLink sparse' + item.sparseness} data-ref={ref} key={"text." + this.props.nestLevel + "." + i}>
+          content.push((<a href={url} className={'refLink blockLink sparse' + item.sparseness} data-ref={ref} key={"text." + this.props.nestLevel + "." + i}>
                           <span className='en'>{title}</span>
                           <span className='he'>{heTitle}</span>
                         </a>
@@ -5674,7 +5683,6 @@ var TextColumn = React.createClass({
     withContext:           React.PropTypes.bool,
     loadLinks:             React.PropTypes.bool,
     prefetchNextPrev:      React.PropTypes.bool,
-    openOnClick:           React.PropTypes.bool,
     lowlight:              React.PropTypes.bool,
     multiPanel:            React.PropTypes.bool,
     mode:                  React.PropTypes.string,
@@ -6018,7 +6026,6 @@ var TextRange = React.createClass({
     hideTitle:              React.PropTypes.bool,
     loadLinks:              React.PropTypes.bool,
     prefetchNextPrev:       React.PropTypes.bool,
-    openOnClick:            React.PropTypes.bool,
     lowlight:               React.PropTypes.bool,
     numberLabel:            React.PropTypes.number,
     settings:               React.PropTypes.object,
@@ -6548,6 +6555,10 @@ var ConnectionsPanel = React.createClass({
                     fullPanel={this.props.fullPanel}
                     closePanel={this.props.closePanel}
                     setConnectionsMode={this.props.setConnectionsMode} />
+                  <a href="/my/notes" className="allNotesLink sans">
+                    <span className="int-en">All My Notes <i className="fa fa-chevron-right"></i></span>
+                    <span className="int-he">All My Notes <i className="fa fa-chevron-left"></i></span>
+                  </a>
                   <MyNotes 
                     srefs={this.props.srefs}
                     editNote={this.props.editNote} />
@@ -7820,8 +7831,11 @@ var AddNoteBox = React.createClass({
     $(ReactDOM.findDOMNode(this)).find(".noteText").focus();
   },
   saveNote: function() {
+    var text = $(ReactDOM.findDOMNode(this)).find(".noteText").val();
+    if (!text) { return; }
+
     var note = {
-      text: $(ReactDOM.findDOMNode(this)).find(".noteText").val(),
+      text: text,
       refs: this.props.srefs,
       anchorText: "",
       type:  "note",
@@ -7866,7 +7880,6 @@ var AddNoteBox = React.createClass({
       type: "delete",
       url: url,
       success: function() { 
-        alert("Note deleted.");
         Sefaria.clearPrivateNotes();
         this.props.setConnectionsMode("Notes");
         Sefaria.site.track.event("Tools", "Delete Note", this.props.noteId);
@@ -8006,21 +8019,21 @@ var Note = React.createClass({
   },
   render: function() {
 
-    var authorInfo = 
+    var authorInfo = this.props.ownerName ? 
         (<div className="noteAuthorInfo">
           <a href={this.props.ownerProfileUrl}>
             <img className="noteAuthorImg" src={this.props.ownerImageUrl} />
           </a>
           <a href={this.props.ownerProfileUrl} className="noteAuthor">{this.props.ownerName}</a>
-        </div>);
+        </div>) : null;
      
       var buttons = this.props.isMyNote ? 
                     (<div className="noteButtons">
                       <i className="editNoteButton fa fa-pencil" title="Edit Note" onClick={this.props.editNote} ></i>
                     </div>) : null; 
       
-      var text = this.props.text.replace(/\n/g, "<br>");
-      text = Sefaria.util.linkify(text);
+      var text = Sefaria.util.linkify(this.props.text);
+      text = text.replace(/\n/g, "<br>");
 
       return (<div className="note">
                 {buttons}
@@ -9157,6 +9170,101 @@ var NotificationsPanel = React.createClass({
 });
 
 
+var MyNotesPanel = React.createClass({
+  propTypes: {
+    interfaceLang: React.PropTypes.string,
+  },
+  componentDidMount: function() {
+    this.loadData();
+  },
+  getInitialState: function() {
+    return { numberToRender: 5 }
+  },
+  loadData: function() {
+    var notes = Sefaria.allPrivateNotes();
+
+    if (!notes) {
+      Sefaria.allPrivateNotes(this.incrementNumberToRender);
+    }
+  },
+  onScroll: function() {
+    // Poor man's scrollview
+    var $scrollable = $(ReactDOM.findDOMNode(this)).find(".content");
+    var margin = 500;
+    var $unloaded = $(".textRange.placeholder").eq(0);
+    if (!$unloaded.length) { return; }
+    if($scrollable.scrollTop() + $scrollable.innerHeight() + margin >= $unloaded.position().top) {
+      this.incrementNumberToRender();
+    }
+  },
+  incrementNumberToRender: function() {
+    console.log("increment");
+    this.setState({numberToRender: this.state.numberToRender+3});
+  },
+  render: function() {
+    var notes = Sefaria.allPrivateNotes();
+    var classes = {myNotesPanel: 1, systemPanel: 1, readerNavMenu: 1, noHeader: 1 };
+    var classStr = classNames(classes);
+    return (
+      <div className={classStr}>
+        <div className="content hasFooter" onScroll={this.onScroll}>
+          <div className="contentInner">
+            <h1>
+              <span className="int-en">My Notes</span>
+              <span className="int-he">שלי</span>
+            </h1>
+
+            <div className="noteList">
+              { notes ? 
+                  (notes.length ?
+                    notes.map(function(item, i) {
+                      return <NoteListing data={item} key={i} showText={i <= this.state.numberToRender} />
+                    }.bind(this))
+                    : <LoadingMessage message="You haven't written any notes yet." heMessage="You haven't written any notes yet." />)
+                  : <LoadingMessage />
+              }
+            </div>
+
+          </div>
+          <footer id="footer" className={`interface-${this.props.interfaceLang} static sans`}>
+            <Footer />
+          </footer>
+        </div>
+      </div>);
+  }
+});
+
+
+var NoteListing = React.createClass({
+  propTypes: {
+    data:     React.PropTypes.object.isRequired,
+    showText: React.PropTypes.bool,
+  },
+  defaultProps: {
+    showText: true
+  },
+  render: function() {
+    
+    var data = this.props.data;
+    var url  = "/" + Sefaria.normRef(data.ref) + "?with=Notes";
+
+    return (<div className="noteListing">
+              
+              <a href={url}>
+                {this.props.showText ? 
+                  <TextRange sref={data.ref} /> :
+                  <span className="textRange placeholder">
+                    <span className="title">
+                      {data.ref}
+                    </span>
+                  </span> }
+              </a>
+              <Note text={data.text} />
+            </div>);
+  }
+});
+
+
 var MyGroupsPanel = React.createClass({
   propTypes: {
     interfaceLang: React.PropTypes.string,
@@ -9368,7 +9476,7 @@ var ModeratorToolsPanel = React.createClass({
 
 var UpdatesPanel = React.createClass({
   propTypes: {
-    interfaceLang:               React.PropTypes.string
+    interfaceLang: React.PropTypes.string
   },
   getInitialState: function() {
     return {

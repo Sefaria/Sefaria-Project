@@ -492,6 +492,11 @@ var ReaderApp = React.createClass({
             hist.url = "my/groups";
             hist.mode = "myGroups";
             break;
+          case "myNotes":
+            hist.title = "My Notes on Sefaria";
+            hist.url = "my/notes";
+            hist.mode = "myNotes";
+            break;
           case "updates":
             hist.title = "New on Sefaria";
             hist.url = "updates";
@@ -2325,6 +2330,9 @@ var ReaderPanel = React.createClass({
       var menu = React.createElement(NotificationsPanel, {
         setUnreadNotificationsCount: this.props.setUnreadNotificationsCount,
         interfaceLang: this.props.interfaceLang });
+    } else if (this.state.menuOpen === "myNotes") {
+      var menu = React.createElement(MyNotesPanel, {
+        interfaceLang: this.props.interfaceLang });
     } else if (this.state.menuOpen === "myGroups") {
       var menu = React.createElement(MyGroupsPanel, {
         interfaceLang: this.props.interfaceLang });
@@ -3402,7 +3410,7 @@ var ReaderNavigationCategoryMenuContents = React.createClass({
             var url = "/" + Sefaria.normRef(chItem.firstSection);
             content.push(React.createElement(
               'a',
-              { href: url, className: 'refLink sparse' + chItem.sparseness, 'data-ref': chItem.firstSection, key: "text." + this.props.nestLevel + "." + i },
+              { href: url, className: 'refLink blockLink sparse' + chItem.sparseness, 'data-ref': chItem.firstSection, key: "text." + this.props.nestLevel + "." + i },
               React.createElement(
                 'span',
                 { className: 'en' },
@@ -3465,7 +3473,7 @@ var ReaderNavigationCategoryMenuContents = React.createClass({
         var url = "/" + Sefaria.normRef(ref);
         content.push(React.createElement(
           'a',
-          { href: url, className: 'refLink sparse' + item.sparseness, 'data-ref': ref, key: "text." + this.props.nestLevel + "." + i },
+          { href: url, className: 'refLink blockLink sparse' + item.sparseness, 'data-ref': ref, key: "text." + this.props.nestLevel + "." + i },
           React.createElement(
             'span',
             { className: 'en' },
@@ -7271,7 +7279,6 @@ var TextColumn = React.createClass({
     withContext: React.PropTypes.bool,
     loadLinks: React.PropTypes.bool,
     prefetchNextPrev: React.PropTypes.bool,
-    openOnClick: React.PropTypes.bool,
     lowlight: React.PropTypes.bool,
     multiPanel: React.PropTypes.bool,
     mode: React.PropTypes.string,
@@ -7628,7 +7635,6 @@ var TextRange = React.createClass({
     hideTitle: React.PropTypes.bool,
     loadLinks: React.PropTypes.bool,
     prefetchNextPrev: React.PropTypes.bool,
-    openOnClick: React.PropTypes.bool,
     lowlight: React.PropTypes.bool,
     numberLabel: React.PropTypes.number,
     settings: React.PropTypes.object,
@@ -8254,6 +8260,22 @@ var ConnectionsPanel = React.createClass({
           fullPanel: this.props.fullPanel,
           closePanel: this.props.closePanel,
           setConnectionsMode: this.props.setConnectionsMode }),
+        React.createElement(
+          'a',
+          { href: '/my/notes', className: 'allNotesLink sans' },
+          React.createElement(
+            'span',
+            { className: 'int-en' },
+            'All My Notes ',
+            React.createElement('i', { className: 'fa fa-chevron-right' })
+          ),
+          React.createElement(
+            'span',
+            { className: 'int-he' },
+            'All My Notes ',
+            React.createElement('i', { className: 'fa fa-chevron-left' })
+          )
+        ),
         React.createElement(MyNotes, {
           srefs: this.props.srefs,
           editNote: this.props.editNote })
@@ -9884,8 +9906,13 @@ var AddNoteBox = React.createClass({
     $(ReactDOM.findDOMNode(this)).find(".noteText").focus();
   },
   saveNote: function saveNote() {
+    var text = $(ReactDOM.findDOMNode(this)).find(".noteText").val();
+    if (!text) {
+      return;
+    }
+
     var note = {
-      text: $(ReactDOM.findDOMNode(this)).find(".noteText").val(),
+      text: text,
       refs: this.props.srefs,
       anchorText: "",
       type: "note",
@@ -9932,7 +9959,6 @@ var AddNoteBox = React.createClass({
       type: "delete",
       url: url,
       success: function () {
-        alert("Note deleted.");
         Sefaria.clearPrivateNotes();
         this.props.setConnectionsMode("Notes");
         Sefaria.site.track.event("Tools", "Delete Note", this.props.noteId);
@@ -10109,7 +10135,7 @@ var Note = React.createClass({
   },
   render: function render() {
 
-    var authorInfo = React.createElement(
+    var authorInfo = this.props.ownerName ? React.createElement(
       'div',
       { className: 'noteAuthorInfo' },
       React.createElement(
@@ -10122,7 +10148,7 @@ var Note = React.createClass({
         { href: this.props.ownerProfileUrl, className: 'noteAuthor' },
         this.props.ownerName
       )
-    );
+    ) : null;
 
     var buttons = this.props.isMyNote ? React.createElement(
       'div',
@@ -10130,8 +10156,8 @@ var Note = React.createClass({
       React.createElement('i', { className: 'editNoteButton fa fa-pencil', title: 'Edit Note', onClick: this.props.editNote })
     ) : null;
 
-    var text = this.props.text.replace(/\n/g, "<br>");
-    text = Sefaria.util.linkify(text);
+    var text = Sefaria.util.linkify(this.props.text);
+    text = text.replace(/\n/g, "<br>");
 
     return React.createElement(
       'div',
@@ -11503,6 +11529,121 @@ var NotificationsPanel = React.createClass({
           React.createElement(Footer, null)
         )
       )
+    );
+  }
+});
+
+var MyNotesPanel = React.createClass({
+  displayName: 'MyNotesPanel',
+
+  propTypes: {
+    interfaceLang: React.PropTypes.string
+  },
+  componentDidMount: function componentDidMount() {
+    this.loadData();
+  },
+  getInitialState: function getInitialState() {
+    return { numberToRender: 5 };
+  },
+  loadData: function loadData() {
+    var notes = Sefaria.allPrivateNotes();
+
+    if (!notes) {
+      Sefaria.allPrivateNotes(this.incrementNumberToRender);
+    }
+  },
+  onScroll: function onScroll() {
+    // Poor man's scrollview
+    var $scrollable = $(ReactDOM.findDOMNode(this)).find(".content");
+    var margin = 500;
+    var $unloaded = $(".textRange.placeholder").eq(0);
+    if (!$unloaded.length) {
+      return;
+    }
+    if ($scrollable.scrollTop() + $scrollable.innerHeight() + margin >= $unloaded.position().top) {
+      this.incrementNumberToRender();
+    }
+  },
+  incrementNumberToRender: function incrementNumberToRender() {
+    this.setState({ numberToRender: this.state.numberToRender + 3 });
+  },
+  render: function render() {
+    var notes = Sefaria.allPrivateNotes();
+    var classes = { myNotesPanel: 1, systemPanel: 1, readerNavMenu: 1, noHeader: 1 };
+    var classStr = classNames(classes);
+    return React.createElement(
+      'div',
+      { className: classStr },
+      React.createElement(
+        'div',
+        { className: 'content hasFooter', onScroll: this.onScroll },
+        React.createElement(
+          'div',
+          { className: 'contentInner' },
+          React.createElement(
+            'h1',
+            null,
+            React.createElement(
+              'span',
+              { className: 'int-en' },
+              'My Notes'
+            ),
+            React.createElement(
+              'span',
+              { className: 'int-he' },
+              '\u05E9\u05DC\u05D9'
+            )
+          ),
+          React.createElement(
+            'div',
+            { className: 'noteList' },
+            notes ? notes.length ? notes.map(function (item, i) {
+              return React.createElement(NoteListing, { data: item, key: i, showText: i <= this.state.numberToRender });
+            }.bind(this)) : React.createElement(LoadingMessage, { message: 'You haven\'t written any notes yet.', heMessage: 'You haven\'t written any notes yet.' }) : React.createElement(LoadingMessage, null)
+          )
+        ),
+        React.createElement(
+          'footer',
+          { id: 'footer', className: 'interface-' + this.props.interfaceLang + ' static sans' },
+          React.createElement(Footer, null)
+        )
+      )
+    );
+  }
+});
+
+var NoteListing = React.createClass({
+  displayName: 'NoteListing',
+
+  propTypes: {
+    data: React.PropTypes.object.isRequired,
+    showText: React.PropTypes.bool
+  },
+  defaultProps: {
+    showText: true
+  },
+  render: function render() {
+
+    var data = this.props.data;
+    var url = "/" + Sefaria.normRef(data.ref) + "?with=Notes";
+
+    return React.createElement(
+      'div',
+      { className: 'noteListing' },
+      React.createElement(
+        'a',
+        { href: url },
+        this.props.showText ? React.createElement(TextRange, { sref: data.ref }) : React.createElement(
+          'span',
+          { className: 'textRange placeholder' },
+          React.createElement(
+            'span',
+            { className: 'title' },
+            data.ref
+          )
+        )
+      ),
+      React.createElement(Note, { text: data.text })
     );
   }
 });

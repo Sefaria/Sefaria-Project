@@ -968,7 +968,7 @@ a.readerNavCategory {
 .readerNavCategoryMenu .categoryAttribution .he {
   font-style: normal;
 }
-.readerNavMenu .refLink,
+.readerNavMenu .blockLink,
 .readerNavMenu .catLink,
 .readerNavMenu .navButton,
 .readerTextTableOfContents .refLink {
@@ -3002,6 +3002,18 @@ a.readerNavCategory {
 .confirmAddToSheet .button {
   width: 100%;
 }
+.allNotesLink {
+  display: block;
+  color: #999;
+  margin-top: 30px;
+  font-size: 17px;
+  letter-spacing: 1px;
+  font-weight: lighter;
+  text-align: right;
+}
+.interface-hebrew .allNotesLinks {
+  text-align: left;
+}
 .noteList + .noteList {
   border-top: 1px solid #ccc;
 }
@@ -3644,6 +3656,32 @@ h2.splitHeader .he {
 }
 .groupMemberListingActionsMenu .role.current {
   color: #666;
+}
+.note a {
+  color: #333;
+  text-decoration: underline;
+}
+.myNotesPanel .noteList {
+  margin-bottom: 220px;
+}
+.noteListing {
+  margin-bottom: 30px;
+  padding-bottom: 30px;
+  border-bottom: 1px solid #ccc;
+}
+.noteListing .textRange .title {
+  font-size: 18px;
+  color: #999;
+  margin-bottom: 15px;
+}
+.noteListing .textRange .text {
+  font-size: 18px;
+  font-style: italic;
+  color: #999;
+  margin-bottom: 15px;
+}
+.noteListing .note {
+  font-size: 18px;
 }
 /*** Interface lang - merge with static.css? ***/
 .readerApp.interface-hebrew .int-en{

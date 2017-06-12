@@ -541,6 +541,11 @@ def s2_my_groups(request):
     return s2_page(request, "myGroups")
 
 
+@login_required
+def s2_my_notes(request):
+    return s2_page(request, "myNotes")
+
+
 def s2_sheets_by_tag(request, tag):
     """
     Page of sheets by tag.
@@ -1759,6 +1764,20 @@ def notes_api(request, note_id_or_ref):
         )
 
     return jsonResponse({"error": "Unsupported HTTP method."})
+
+
+@catch_error_as_json
+def all_notes_api(request):
+
+    private = request.GET.get("private", False)
+    if private:
+        if not request.user.is_authenticated: 
+            res = {"error": "You must be logged in to access you notes."}
+        else:
+            res = [note.contents() for note in NoteSet({"owner": request.user.id}, sort=[("_id", -1)]) ]
+    else:
+        resr = {"error": "Not implemented."}
+    return jsonResponse(res, callback=request.GET.get("callback", None))
 
 
 @catch_error_as_json

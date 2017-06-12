@@ -910,11 +910,26 @@ Sefaria = extend(Sefaria, {
   addPrivateNote: function(note) {
     // Add a single private note to the cache of private notes.
     var notes = this.privateNotes(note["anchorRef"]) || [];
-    notes.push(note);
+    notes = [note].concat(notes);
     this._saveItemsByRef(notes, this._privateNotes);
   },
   clearPrivateNotes: function() {
     this._privateNotes = {};
+    this._allPrivateNotes = null;
+  },
+  _allPrivateNotes: null,
+  allPrivateNotes: function(callback) {
+    if (this._allPrivateNote || !callback) { return this._allPrivateNotes; }
+    
+    var url = "/api/notes/all?private=1";
+    this._api(url, function(data) {
+      if ("error" in data) { 
+        return;
+      }
+      this._savePrivateNoteData(null, data);
+      this._allPrivateNotes = data;
+      callback(data);
+    }.bind(this));
   },
   _savePrivateNoteData: function(ref, data) {
     return this._saveItemsByRef(data, this._privateNotes);
