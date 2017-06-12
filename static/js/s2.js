@@ -10,7 +10,7 @@ if (typeof require !== 'undefined') {
   var INBROWSER = false,
       React = require('react'),
       ReactDOM = require('react-dom'),
-      $ = require('jquery'),
+      $ = require('cheerio'),
       extend = require('extend'),
       classNames = require('classnames'),
       Sefaria = require('./sefaria.js'),
@@ -8135,7 +8135,7 @@ var TextSegment = React.createClass({
 
     // render itags
     if (this.props.filter && this.props.filter.length > 0) {
-      var new_element = $('<div/>').append("<div>" + he + "</div>");
+      var $newElement = $('<div/>').append("<div>" + he + "</div>");
       var textValue = function textValue(i) {
         if ($(i).attr('data-display')) {
           return $(i).attr('data-display');
@@ -8147,10 +8147,10 @@ var TextSegment = React.createClass({
         }
         return value;
       };
-      $(new_element).find('i[data-commentator="' + this.props.filter[0] + '"]').each(function () {
+      $newElement.find('i[data-commentator="' + this.props.filter[0] + '"]').each(function () {
         $(this).replaceWith('<sup class="itag">' + textValue(this) + "</sup>");
       });
-      he = $(new_element).html();
+      he = $newElement.html();
     }
 
     var en = this.props.en || "";
