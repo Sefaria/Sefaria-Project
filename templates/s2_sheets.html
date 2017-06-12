@@ -68,7 +68,7 @@
 					{% if user.email %}
 					<div class="line"></div>
 					<div class="optionItem" id="editTags">
-						<img src="/static/img/edittags.png" alt="Edit Sheet Tags Icon"> Edit Sheet Tags</div>
+						<img src="/static/img/edittags.png" alt="Edit Sheet Tags Icon"> Tags</div>
 					{% endif %}
 				{% if is_owner %}
 	    			{% if not sheet.assigner_id %}
@@ -94,7 +94,7 @@
 					<a href="/sheets/visual/{{sheet.id}}"><i class="fa fa-picture-o"></i>Visualize</a></div>
                 {% if not new_sheet %}
                 <div class="optionItem" id="highlightToggle">
-					<i class="fa fa-pencil"></i>Toggle Highlight Mode</div>
+					<i class="fa fa-pencil"></i>Highlight Mode</div>
    				{% endif %}
             </div>
         </div>

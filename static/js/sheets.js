@@ -3576,6 +3576,7 @@ function toggleHighlighter() {
 	if ($("#sheet").hasClass("highlightMode")) {
 		$("#sheet").removeClass("highlightMode");
 		$("#highlightModeDisplay").hide();
+		$("#highlightToggle").html('<i class="fa fa-pencil"></i>Highlight Mode');
 		$("#highlightMenu").css('display','none');
 		if ($("#sources").data('ui-sortable')) {
 			$("#sources").sortable("enable"); //disable dragging while in highlighter edit mode....
@@ -3584,6 +3585,7 @@ function toggleHighlighter() {
 	else {
 		$("#sheet").addClass("highlightMode");
 		$("#highlightModeDisplay").show();
+		$("#highlightToggle").html('<i class="fa fa-pencil"></i>Exit Highlight Mode');
 		$("#highlightMenu").css('display','inline-block');
 		if ($("#sources").data('ui-sortable')) {
 			$("#sources").sortable("disable"); //disable dragging while in highlighter edit mode....
