@@ -8034,7 +8034,6 @@ var SearchResultList = React.createClass({
     },
     componentWillReceiveProps: function(newProps) {
         if(this.props.query != newProps.query) {
-           window.scrollTo(0, 0); //reset scroll position
            this.setState({
              totals: {"text":0, "sheet":0},
              hits: {"text": [], "sheet": []},
