@@ -597,7 +597,7 @@ var ReaderApp = React.createClass({
         hist.url += "&lang" + (i + 1) + "=" + histories[i].lang;
       }
     }
-    // Replace the first only & with a ? 
+    // Replace the first only & with a ?
     hist.url = hist.url.replace(/&/, "?");
 
     return hist;
@@ -667,8 +667,8 @@ var ReaderApp = React.createClass({
       appliedSearchFilters: state.appliedSearchFilters || [],
       searchFieldExact: "hebmorph_semi_exact",
       searchFieldBroad: "naive_lemmatizer",
-      searchField: state.searchField || "naive_lemmatizer",
-      searchSortType: state.searchSortType || "chronological",
+      searchField: state.searchField || "hebmorph_semi_exact",
+      searchSortType: state.searchSortType || "relevance",
       searchFiltersValid: state.searchFiltersValid || false,
       availableFilters: state.availableFilters || [],
       filterRegistry: state.filterRegistry || {},
@@ -922,7 +922,7 @@ var ReaderApp = React.createClass({
     $.post(url, { source: JSON.stringify(source) }, confirmFunction);
   },
   selectVersion: function selectVersion(n, versionName, versionLanguage) {
-    // Set the version for panel `n`. 
+    // Set the version for panel `n`.
     var panel = this.state.panels[n];
     var oRef = Sefaria.ref(panel.refs[0]);
     if (versionName && versionLanguage) {
@@ -1409,7 +1409,7 @@ var Header = React.createClass({
   },
   showVirtualKeyboardIcon: function showVirtualKeyboardIcon(show) {
     if (document.getElementById('keyboardInputMaster')) {
-      //if keyboard is open, ignore. 
+      //if keyboard is open, ignore.
       return; //this prevents the icon from flashing on every key stroke.
     }
     if (this.props.interfaceLang == 'english') {
@@ -1504,7 +1504,7 @@ var Header = React.createClass({
       } else if (d["type"] == "TocCategory") {
         Sefaria.site.track.event("Search", "Search Box Navigation - Category", query);
         this.closeSearchAutocomplete();
-        this.showLibrary(d["key"]); // "key" holds the category path 
+        this.showLibrary(d["key"]); // "key" holds the category path
       } else {
         Sefaria.site.track.event("Search", "Search Box Search", query);
         this.closeSearchAutocomplete();
@@ -2432,7 +2432,7 @@ var ReaderPanel = React.createClass({
 var ReaderControls = React.createClass({
   displayName: 'ReaderControls',
 
-  // The Header of a Reader panel when looking at a text 
+  // The Header of a Reader panel when looking at a text
   // contains controls for display, navigation etc.
   propTypes: {
     settings: React.PropTypes.object.isRequired,
@@ -3718,7 +3718,7 @@ var ReaderTextTableOfContents = React.createClass({
     var versionBlocks = null;
     var downloadSection = null;
 
-    // Text Details 
+    // Text Details
     var details = Sefaria.indexDetails(this.props.title);
     var detailsSection = details ? React.createElement(TextDetails, { index: details, narrowPanel: this.props.narrowPanel }) : null;
 
@@ -4146,7 +4146,7 @@ var TextTableOfContentsNavigation = React.createClass({
   },
   shrinkWrap: function shrinkWrap() {
     // Shrink the width of the container of a grid of inline-line block elements,
-    // so that is is tight around its contents thus able to appear centered. 
+    // so that is is tight around its contents thus able to appear centered.
     // As far as I can tell, there's no way to do this in pure CSS.
     // TODO - flexbox should be able to solve this
     var shrink = function shrink(i, container) {
@@ -4170,7 +4170,7 @@ var TextTableOfContentsNavigation = React.createClass({
     if ($root.find(".tocSection").length) {// nested simple text
       //$root.find(".tocSection").each(shrink); // Don't bother with these for now
     } else if ($root.find(".schema-node-toc").length) {// complex text or alt struct
-      // $root.find(".schema-node-toc, .schema-node-contents").each(shrink); 
+      // $root.find(".schema-node-toc, .schema-node-contents").each(shrink);
     } else {
       $root.find(".tocLevel").each(shrink); // Simple text, no nesting
     }
@@ -7506,7 +7506,7 @@ var TextColumn = React.createClass({
     if (this.props.multiPanel && this.props.layoutWidth == 100) {
       return; // Hacky - don't move around highlighted segment when scrolling a single panel,
     }
-    // but we do want to keep the highlightedRefs value in the panel 
+    // but we do want to keep the highlightedRefs value in the panel
     // so it will return to the right location after closing other panels.
     var adjustTextListHighlightInner = function () {
       //var start = new Date();
@@ -7548,7 +7548,7 @@ var TextColumn = React.createClass({
             bottom: top + $segment.outerHeight(),
             ref: $segment.attr("data-ref")})
       }.bind(this));
-      this.setState(this.state);    
+      this.setState(this.state);
     }
      for (var i = 0; i < this.state.segmentHeights.length; i++) {
       var segment = this.state.segmentHeights[i];
@@ -7698,7 +7698,7 @@ var TextRange = React.createClass({
 
         // TODO: are these animationFrames still needed?
         /*
-        window.requestAnimationFrame(function() { 
+        window.requestAnimationFrame(function() {
           if (this.isMounted()) {
             this.placeSegmentNumbers();
           }
@@ -8921,7 +8921,7 @@ var RecentFilterSet = React.createClass({
       return Sefaria.util.inArray(link.book, this.props.recentFilters) == -1;
     }.bind(this));
 
-    // Annotate filter texts with category            
+    // Annotate filter texts with category
     var recentFilters = this.props.recentFilters.map(function (filter) {
       var index = Sefaria.index(filter);
       return {
@@ -8931,7 +8931,7 @@ var RecentFilterSet = React.createClass({
     });
     topLinks = recentFilters.concat(topLinks).slice(0, 5);
 
-    // If the current filter is not already in the top set, put it first 
+    // If the current filter is not already in the top set, put it first
     if (this.props.filter.length) {
       var filter = this.props.filter[0];
       for (var i = 0; i < topLinks.length; i++) {
@@ -8949,7 +8949,7 @@ var RecentFilterSet = React.createClass({
 
         topLinks = [annotatedFilter].concat(topLinks).slice(0, 5);
       } else {
-        // topLinks.move(i, 0); 
+        // topLinks.move(i, 0);
       }
     }
     var topFilters = topLinks.map(function (book) {
@@ -9453,10 +9453,10 @@ var AddToSourceSheetWindow = React.createClass({
 var AddToSourceSheetPanel = React.createClass({
   displayName: 'AddToSourceSheetPanel',
 
-  // In the main app, the function `addToSourceSheet` is executed in the ReaderApp, 
+  // In the main app, the function `addToSourceSheet` is executed in the ReaderApp,
   // and collects the needed data from highlights and app state.
   // It is used in external apps, liked gardens.  In those cases, it's wrapped in AddToSourceSheetWindow,
-  // refs and text are passed directly, and the add to source sheets API is invoked from within this object. 
+  // refs and text are passed directly, and the add to source sheets API is invoked from within this object.
   propTypes: {
     srefs: React.PropTypes.array,
     addToSourceSheet: React.PropTypes.func,
