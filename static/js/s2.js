@@ -2336,7 +2336,9 @@ var ReaderPanel = React.createClass({
         interfaceLang: this.props.interfaceLang });
     } else if (this.state.menuOpen === "myNotes") {
       var menu = React.createElement(MyNotesPanel, {
-        interfaceLang: this.props.interfaceLang });
+        interfaceLang: this.props.interfaceLang,
+        multiPanel: this.props.multiPanel,
+        toggleLanguage: this.toggleLanguage });
     } else if (this.state.menuOpen === "myGroups") {
       var menu = React.createElement(MyGroupsPanel, {
         interfaceLang: this.props.interfaceLang });
@@ -11607,7 +11609,9 @@ var MyNotesPanel = React.createClass({
   displayName: 'MyNotesPanel',
 
   propTypes: {
-    interfaceLang: React.PropTypes.string
+    interfaceLang: React.PropTypes.string,
+    mutliPanel: React.PropTypes.bool,
+    toggleLanguage: React.PropTypes.func
   },
   componentDidMount: function componentDidMount() {
     this.loadData();
@@ -11653,6 +11657,7 @@ var MyNotesPanel = React.createClass({
           React.createElement(
             'h1',
             null,
+            this.props.multiPanel ? React.createElement(LanguageToggleButton, { toggleLanguage: this.props.toggleLanguage }) : null,
             React.createElement(
               'span',
               { className: 'int-en' },

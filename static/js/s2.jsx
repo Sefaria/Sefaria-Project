@@ -2217,7 +2217,9 @@ var ReaderPanel = React.createClass({
 
     } else if (this.state.menuOpen === "myNotes") {
       var menu = (<MyNotesPanel
-                    interfaceLang={this.props.interfaceLang} />);
+                    interfaceLang={this.props.interfaceLang} 
+                    multiPanel={this.props.multiPanel}
+                    toggleLanguage={this.toggleLanguage} />);
 
     } else if (this.state.menuOpen === "myGroups") {
       var menu = (<MyGroupsPanel
@@ -9224,7 +9226,9 @@ var NotificationsPanel = React.createClass({
 
 var MyNotesPanel = React.createClass({
   propTypes: {
-    interfaceLang: React.PropTypes.string,
+    interfaceLang:  React.PropTypes.string,
+    mutliPanel:     React.PropTypes.bool,
+    toggleLanguage: React.PropTypes.func,
   },
   componentDidMount: function() {
     this.loadData();
@@ -9262,6 +9266,7 @@ var MyNotesPanel = React.createClass({
         <div className="content hasFooter" onScroll={this.onScroll}>
           <div className="contentInner">
             <h1>
+              { this.props.multiPanel ? <LanguageToggleButton toggleLanguage={this.props.toggleLanguage} /> : null }
               <span className="int-en">My Notes</span>
               <span className="int-he">שלי</span>
             </h1>
