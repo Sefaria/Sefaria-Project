@@ -169,7 +169,7 @@ def order_tags_for_user(tag_counts, uid):
 	return tag_counts
 
 
-def recent_public_tags(days=14, ntags=0):
+def recent_public_tags(days=14, ntags=14):
 	"""
 	Returns list of tag/counts on public sheets modified in the last 'days'.
 	"""
