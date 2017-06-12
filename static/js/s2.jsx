@@ -7887,7 +7887,6 @@ var SearchPage = React.createClass({
                           </div>
                           <div className="searchContent" style={style}>
                               <SearchResultList
-                                  key={this.props.query}
                                   query = { this.props.query }
                                   appliedFilters = {this.props.appliedFilters}
                                   onResultClick={this.props.onResultClick}
@@ -8035,7 +8034,7 @@ var SearchResultList = React.createClass({
     },
     componentWillReceiveProps: function(newProps) {
         if(this.props.query != newProps.query) {
-
+           window.scrollTo(0, 0); //reset scroll position
            this.setState({
              totals: {"text":0, "sheet":0},
              hits: {"text": [], "sheet": []},
