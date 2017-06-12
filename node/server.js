@@ -33,17 +33,17 @@ var renderReaderApp = function(props, data, timer) {
 
   var html  = ReactDOMServer.renderToString(ReaderApp(props));
   log("Time to render: %dms", timer.elapsed());
-  
+
   return html;
 };
 
 server.post('/ReaderApp/:cachekey', function(req, res) {
   var timer = {
-    start: new Date(), 
+    start: new Date(),
     elapsed: function() { return (new Date() - this.start); }
   };
   var props = JSON.parse(req.body.propsJSON);
-  // var cacheKey = req.params.cachekey 
+  // var cacheKey = req.params.cachekey
   log(props.initialRefs || props.initialMenu);
   log("Time to props: %dms", timer.elapsed());
 
@@ -52,9 +52,9 @@ server.post('/ReaderApp/:cachekey', function(req, res) {
       log("Time to get data.js: %dms", timer.elapsed());
       eval(body);
       log("Time to eval data.js: %dms", timer.elapsed());
-      var html = renderReaderApp(props, data, timer);
+      var html = renderReaderApp(props, DJANGO_DATA_VARS, timer);
       res.end(html);
-      log("Time to complete: %dms", timer.elapsed());  
+      log("Time to complete: %dms", timer.elapsed());
     } else {
       log(error);
       res.end("There was an error accessing /data.js.");
