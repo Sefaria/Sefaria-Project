@@ -8305,7 +8305,7 @@ var ConnectionsPanel = React.createClass({
           addToSourceSheet: this.props.addToSourceSheet }),
         React.createElement(
           'a',
-          { href: '/sheets/private', className: 'allSheetsLink button transparent bordered' },
+          { href: '/sheets/private', className: 'allSheetsLink button transparent bordered fillWidth' },
           React.createElement(
             'span',
             { className: 'int-en' },
@@ -8314,7 +8314,7 @@ var ConnectionsPanel = React.createClass({
           React.createElement(
             'span',
             { className: 'int-he' },
-            'Go to My Sheets'
+            'HEBREW NEEDED'
           )
         ),
         React.createElement(MySheetsList, {
@@ -8334,9 +8334,9 @@ var ConnectionsPanel = React.createClass({
           closePanel: this.props.closePanel,
           onSave: this.props.setConnectionsMode.bind(null, "Notes"),
           onCancel: this.props.setConnectionsMode.bind(null, "Notes") }),
-        React.createElement(
+        Sefaria._uid ? React.createElement(
           'a',
-          { href: '/my/notes', className: 'allNotesLink button transparent bordered' },
+          { href: '/my/notes', className: 'allNotesLink button transparent bordered fillWidth' },
           React.createElement(
             'span',
             { className: 'int-en' },
@@ -8345,9 +8345,9 @@ var ConnectionsPanel = React.createClass({
           React.createElement(
             'span',
             { className: 'int-he' },
-            'Go to My Notes'
+            'HEBREW NEEDED'
           )
-        ),
+        ) : null,
         React.createElement(MyNotes, {
           srefs: this.props.srefs,
           editNote: this.props.editNote })
@@ -9708,7 +9708,8 @@ var AddToSourceSheetWindow = React.createClass({
             { href: "/login" + nextParam },
             'log in.'
           )
-        )
+        ),
+        React.createElement('div', { className: 'clearFix' })
       ),
       Sefaria.loggedIn ? React.createElement(AddToSourceSheetBox, {
         srefs: this.props.srefs,
@@ -10207,7 +10208,7 @@ var Note = React.createClass({
   },
   render: function render() {
 
-    var authorInfo = this.props.ownerName ? React.createElement(
+    var authorInfo = this.props.ownerName && !this.props.isMyNote ? React.createElement(
       'div',
       { className: 'noteAuthorInfo' },
       React.createElement(
@@ -11716,8 +11717,7 @@ var NoteListing = React.createClass({
     this.setState({ showSheetModal: false });
   },
   positionSheetModal: function positionSheetModal() {
-    var $node = $(ReactDOM.findDOMNode(this));
-    $(".addToSourceSheetModal").position({ my: "center top", at: "right top-50", of: $node });
+    $(".addToSourceSheetModal").position({ my: "center center-40", at: "center center", of: window });
   },
   render: function render() {
 
@@ -11755,9 +11755,14 @@ var NoteListing = React.createClass({
         )
       ),
       React.createElement(Note, { text: data.text }),
-      this.state.showSheetModal ? React.createElement(AddToSourceSheetWindow, {
-        srefs: [data.ref],
-        close: this.hideSheetModal }) : null
+      this.state.showSheetModal ? React.createElement(
+        'div',
+        null,
+        React.createElement(AddToSourceSheetWindow, {
+          srefs: [data.ref],
+          close: this.hideSheetModal }),
+        React.createElement('div', { className: 'mask', onClick: this.hideSheetModal })
+      ) : null
     );
   }
 });

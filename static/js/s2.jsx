@@ -6591,9 +6591,9 @@ var ConnectionsPanel = React.createClass({
                     version={this.props.version}
                     versionLanguage={this.props.versionLanguage}
                     addToSourceSheet={this.props.addToSourceSheet} />
-                  <a href="/sheets/private" className="allSheetsLink button transparent bordered">
+                  <a href="/sheets/private" className="allSheetsLink button transparent bordered fillWidth">
                     <span className="int-en">Go to My Sheets</span>
-                    <span className="int-he">Go to My Sheets</span>
+                    <span className="int-he">HEBREW NEEDED</span>
                   </a>
                   <MySheetsList
                     srefs={this.props.srefs}
@@ -6611,10 +6611,12 @@ var ConnectionsPanel = React.createClass({
                     closePanel={this.props.closePanel}
                     onSave={this.props.setConnectionsMode.bind(null, "Notes")}
                     onCancel={this.props.setConnectionsMode.bind(null, "Notes")} />
-                  <a href="/my/notes" className="allNotesLink button transparent bordered">
+                  { Sefaria._uid ? 
+                  <a href="/my/notes" className="allNotesLink button transparent bordered fillWidth">
                     <span className="int-en">Go to My Notes</span>
-                    <span className="int-he">Go to My Notes</span>
+                    <span className="int-he">HEBREW NEEDED</span>
                   </a>
+                  : null }
                   <MyNotes 
                     srefs={this.props.srefs}
                     editNote={this.props.editNote} />
@@ -7682,6 +7684,7 @@ var AddToSourceSheetWindow = React.createClass({
         {Sefaria.loggedIn ? null : <span>
             In order to add this source to a sheet, please <a href={"/login" + nextParam}>log in.</a>
         </span>}
+        <div className="clearFix"></div>
       </div>
       {Sefaria.loggedIn ?
         <AddToSourceSheetBox
@@ -8072,7 +8075,7 @@ var Note = React.createClass({
   },
   render: function() {
 
-    var authorInfo = this.props.ownerName ? 
+    var authorInfo = this.props.ownerName && !this.props.isMyNote ? 
         (<div className="noteAuthorInfo">
           <a href={this.props.ownerProfileUrl}>
             <img className="noteAuthorImg" src={this.props.ownerImageUrl} />
@@ -9317,8 +9320,7 @@ var NoteListing = React.createClass({
     this.setState({showSheetModal: false});
   },
   positionSheetModal: function() {
-    var $node = $(ReactDOM.findDOMNode(this));
-    $(".addToSourceSheetModal").position({my: "center top", at: "right top-50", of: $node});
+    $(".addToSourceSheetModal").position({my: "center center-40", at: "center center", of: window});
   },
   render: function() {
     
@@ -9341,9 +9343,12 @@ var NoteListing = React.createClass({
               </a>
               <Note text={data.text} />
               {this.state.showSheetModal ? 
-                <AddToSourceSheetWindow 
-                  srefs={[data.ref]}
-                  close={this.hideSheetModal} />
+                <div>
+                  <AddToSourceSheetWindow 
+                    srefs={[data.ref]}
+                    close={this.hideSheetModal} />
+                  <div className="mask" onClick={this.hideSheetModal}></div>
+                </div>
                 : null }
 
             </div>);
