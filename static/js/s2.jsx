@@ -3443,9 +3443,7 @@ var TextDetails = React.createClass({
  render: function() {
     var makeDescriptionText = function(compWord, compPlace, compDate, description) {
       var composed = compPlace || compDate ? compWord + [compPlace, compDate].filter(x => !!x).join(" ") : null;
-      //return [composed, description].filter(x => !!x).join(". ");
-      // holding on displaying descriptions for now
-      return composed;
+      return [composed, description].filter(x => !!x).join(". ");
     };
     var enDesc = makeDescriptionText("Composed in ", "compPlaceString" in this.props.index ? this.props.index.compPlaceString.en : null, "compDateString" in this.props.index ? this.props.index.compDateString.en : null, this.props.index.enDesc);
     var heDesc = makeDescriptionText("נוצר/נערך ב", "compPlaceString" in this.props.index ? this.props.index.compPlaceString.he : null, "compDateString" in this.props.index ? this.props.index.compDateString.he : null, this.props.index.heDesc);
@@ -5596,7 +5594,7 @@ var ToggleSet = React.createClass({
     classes = classNames(classes);
     var value = this.props.name === "layout" ? this.props.currentLayout() : this.props.settings[this.props.name];
     var width = 100.0 - (this.props.separated ? (this.props.options.length - 1) * 3 : 0);
-    var style = {width: (width/this.props.options.length) + "%"};
+    var style = {width: (width/this.props.options.length) + "%", outline: "none"};
     return (
       <div className={classes} role={this.props.role} aria-label={this.props.ariaLabel}>
         {
@@ -6403,7 +6401,7 @@ var TextSegment = React.createClass({
       var minOpacity = 20, maxOpacity = 70;
       var linkScore = linkCount ? Math.min(linkCount+minOpacity, maxOpacity) / 100.0 : 0;
       var style = {opacity: linkScore};
-      linkCountElement = this.props.showLinkCount ? (<div className="linkCount sans">
+      linkCountElement = this.props.showLinkCount ? (<div className="linkCount sans" title={linkCount + " Connections Available"}>
                                                     <span className="en"><span className="linkCountDot" style={style}></span></span>
                                                     <span className="he"><span className="linkCountDot" style={style}></span></span>
                                                   </div>) : null;

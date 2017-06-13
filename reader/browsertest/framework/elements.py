@@ -345,7 +345,7 @@ class ResultSet(object):
         self._indexed_tests = {}
 
     def __str__(self):
-        return "\n" + "\n".join([str(r) for r in self._test_results]) + "\n\n"
+        return "\n\n" + "\n".join([str(r) for r in self._test_results]) + "\n\n"
 
     def _aggregate(self):
         if not self._aggregated:
@@ -434,6 +434,11 @@ class Trial(object):
             self.BASE_URL = LOCAL_URL
             self.caps = caps if caps else [self.default_local_driver]
             self.tests = get_atomic_tests() if tests is None else tests
+        elif platform == "sauce":
+            self.is_local = False
+            self.BASE_URL = LOCAL_URL
+            self.caps = caps if caps else SAUCE_CORE_CAPS
+            self.tests = get_atomic_tests() if tests is None else tests
         else:
             self.is_local = False
             self.BASE_URL = REMOTE_URL
@@ -503,7 +508,7 @@ class Trial(object):
             #    driver.execute_script("sauce: break")
             return TestResult(test, cap, False, msg)
         else:
-            sys.stdout.write("{} - Passed".format(name) if self.isVerbose else ".")
+            sys.stdout.write("{} - Passed\n".format(name) if self.isVerbose else ".")
             sys.stdout.flush()
             return TestResult(test, cap, True)
 
@@ -566,9 +571,14 @@ class Trial(object):
             try:
                 tresults = p.map(_test_one_worker, zip([self]*l, [test]*l, caps))
             except Exception as e:
-                sys.stdout.write(u"Exception encountered in Trial._test_on_all()!")
-                sys.stdout.write(traceback.format_exc())
+                msg = traceback.format_exc()
+                if self.isVerbose:
+                    sys.stdout.write("{} - Exception\n".format(test.__name__))
+                    sys.stdout.write(msg)
+                else:
+                    sys.stdout.write("E")
                 sys.stdout.flush()
+                tresults = [TestResult(test, caps[0], False, msg)]
         else:
             for cap in caps:
                 tresults.append(self._test_one(test, cap))

@@ -226,7 +226,7 @@ def render_react_component(component, props):
         if isinstance(e, socket.timeout) or (hasattr(e, "reason") and isinstance(e.reason, socket.timeout)):
             logger.exception("Node timeout: Fell back to client-side rendering.")
             with open(NODE_TIMEOUT_MONITOR, "a") as myfile:
-                myfile.write("Timeout at {}: {} / {} / {} / {}".format(
+                myfile.write("Timeout at {}: {} / {} / {} / {}\n".format(
                     datetime.now().isoformat(),
                     props.get("initialPath"),
                     "MultiPanel" if props.get("multiPanel", True) else "Mobile",
@@ -253,7 +253,9 @@ def make_panel_dict(oref, version, language, filter, mode, **kwargs):
             "versions": oref.version_list()
         }
     else:
-        oref = oref.first_available_section_ref()
+        section_ref = oref.first_available_section_ref()
+        oref = section_ref if section_ref else oref
+
         panelDisplayLanguage = kwargs.get("panelDisplayLanguage")
         panel = {
             "mode": mode,
@@ -271,13 +273,14 @@ def make_panel_dict(oref, version, language, filter, mode, **kwargs):
                 panel["versionLanguage"] = None
         if mode != "Connections":
             try:
-                text = TextFamily(oref, version=panel["version"], lang=panel["versionLanguage"], commentary=False, context=True, pad=True, alts=True, wrapLinks=False).contents()
+                text_family = TextFamily(oref, version=panel["version"], lang=panel["versionLanguage"], commentary=False,
+                                  context=True, pad=True, alts=True, wrapLinks=False).contents()
             except NoVersionFoundError:
-                text = {}
-            text["updateFromAPI"] = True
-            text["next"] = oref.next_section_ref().normal() if oref.next_section_ref() else None
-            text["prev"] = oref.prev_section_ref().normal() if oref.prev_section_ref() else None
-            panel["text"] = text
+                text_family = {}
+            text_family["updateFromAPI"] = True
+            text_family["next"] = oref.next_section_ref().normal() if oref.next_section_ref() else None
+            text_family["prev"] = oref.prev_section_ref().normal() if oref.prev_section_ref() else None
+            panel["text"] = text_family
 
             if oref.is_segment_level():
                 panel["highlightedRefs"] = [subref.normal() for subref in oref.range_list()]
@@ -2057,6 +2060,7 @@ def name_api(request, name):
             "examples": []
         }
         if inode.has_numeric_continuation():
+            inode = inode.get_default_child() if inode.has_default_child() else inode
             d["sectionNames"] = inode.sectionNames
             d["heSectionNames"] = map(hebrew_term, inode.sectionNames)
             d["addressExamples"] = [t.toStr("en", 3*i+3) for i,t in enumerate(inode._addressTypes)]

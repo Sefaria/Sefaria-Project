@@ -295,7 +295,7 @@ def change_node_title(snode, old_title, lang, new_title):
     def needs_rewrite(string, *args):
         return string.find(old_title) >= 0 and snode.index.title == Ref(string).index.title
 
-    if old_title == snode.primary_title():
+    if old_title == snode.primary_title(lang=lang):
         snode.add_title(new_title, lang, replace_primary=True, primary=True)
         snode.index.save()
         library.refresh_index_record_in_cache(snode.index)

@@ -41,12 +41,10 @@
 {% endblock %}
 
 {% block content %}
-
-
-	<link rel="stylesheet" href="/static/css/sheets.css">
-	<link rel="stylesheet" href="/static/css/sheets-print.css" media="print" />
-
-
+<!-- CSS placed here so it has precedence over other sheets in base.html -->
+<link rel="stylesheet" href="/static/css/sheets.css">
+<link rel="stylesheet" href="/static/css/sheets-print.css" media="print" />
+<div id="sheetsContent">
 
     <div class="sheetsEditNavTop">
         <div class="sheetsMenuBarItem" id="fileMenu">File
@@ -70,7 +68,7 @@
 					{% if user.email %}
 					<div class="line"></div>
 					<div class="optionItem" id="editTags">
-						<img src="/static/img/edittags.png" alt="Edit Sheet Tags Icon"> Edit Sheet Tags</div>
+						<img src="/static/img/edittags.png" alt="Edit Sheet Tags Icon"> Tags</div>
 					{% endif %}
 				{% if is_owner %}
 	    			{% if not sheet.assigner_id %}
@@ -96,7 +94,7 @@
 					<a href="/sheets/visual/{{sheet.id}}"><i class="fa fa-picture-o"></i>Visualize</a></div>
                 {% if not new_sheet %}
                 <div class="optionItem" id="highlightToggle">
-					<i class="fa fa-pencil"></i>Toggle Highlight Mode</div>
+					<i class="fa fa-pencil"></i>Highlight Mode</div>
    				{% endif %}
             </div>
         </div>
@@ -236,7 +234,7 @@
 
         <div class="sheetsMenuBarItem" id="highlightMenu">Highlight Tools
 			<div class="optionsMenu">
-                <div class="optionItem segmentedContinuousToggle">Continuous</div>
+                <div class="optionItem segmentedContinuousToggle">Paragraph View</div>
                 {% if can_edit %}
                     <div class='optionItem resetHighlighter'>Reset</div>
                 {% endif %}
@@ -688,12 +686,12 @@
 	</div>
 </div>
 
+<div id='inlineTextPreview'></div>
+
 {% include "elements/login_prompt.html" with msg="To save, copy, or like, please log in." %}
 
-<!--
-Footer depends on full bootstrap grid, which isn't loaded in sheets.html
-{% include "elements/footer.html" %}
--->
+
+</div> <!-- end sheetContent -->
 {% endblock %}
 
 {% block js  %}

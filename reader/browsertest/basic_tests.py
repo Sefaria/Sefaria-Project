@@ -3,7 +3,7 @@
 from framework import AtomicTest
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait, Select
-from selenium.webdriver.support.expected_conditions import title_contains, staleness_of, element_to_be_clickable, visibility_of_element_located, invisibility_of_element_located
+from selenium.webdriver.support.expected_conditions import title_contains, staleness_of, element_to_be_clickable, visibility_of_element_located, invisibility_of_element_located, text_to_be_present_in_element
 
 from sefaria.model import *
 from selenium.webdriver.common.keys import Keys
@@ -231,8 +231,15 @@ class SaveNewSourceSheet(AtomicTest):
         self.login_user()
         self.driver.implicitly_wait(10)
         self.driver.get(self.base_url + "/sheets/new")
-        self.driver.find_element_by_css_selector("#inlineAdd").send_keys("Genesis 1.1")
-        WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, "#inlineAddSourceOK:not(.disabled")))
+        textBox = self.driver.find_element_by_css_selector("#inlineAdd")
+
+        textBox.send_keys("Genesis")
+        WebDriverWait(self.driver, TEMPER).until(text_to_be_present_in_element((By.ID, "inlineAddDialogTitle"), "ENTER A"))
+        textBox.send_keys(" 1")
+        WebDriverWait(self.driver, TEMPER).until(text_to_be_present_in_element((By.ID, "inlineAddDialogTitle"), "TO CONTINUE OR"))
+        textBox.send_keys(":9")
+        WebDriverWait(self.driver, TEMPER).until(text_to_be_present_in_element((By.ID, "inlineAddDialogTitle"), "TO CONTINUE OR ENTER A RANGE"))
+
         self.driver.find_element_by_css_selector("#inlineAddSourceOK").click()
         WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, "#save")))
         saveButton = self.driver.find_element_by_css_selector('#save')

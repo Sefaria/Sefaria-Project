@@ -4044,9 +4044,9 @@ var TextDetails = React.createClass({
       var composed = compPlace || compDate ? compWord + [compPlace, compDate].filter(function (x) {
         return !!x;
       }).join(" ") : null;
-      //return [composed, description].filter(x => !!x).join(". ");
-      // holding on displaying descriptions for now
-      return composed;
+      return [composed, description].filter(function (x) {
+        return !!x;
+      }).join(". ");
     };
     var enDesc = makeDescriptionText("Composed in ", "compPlaceString" in this.props.index ? this.props.index.compPlaceString.en : null, "compDateString" in this.props.index ? this.props.index.compDateString.en : null, this.props.index.enDesc);
     var heDesc = makeDescriptionText("נוצר/נערך ב", "compPlaceString" in this.props.index ? this.props.index.compPlaceString.he : null, "compDateString" in this.props.index ? this.props.index.compDateString.he : null, this.props.index.heDesc);
@@ -7169,7 +7169,7 @@ var ToggleSet = React.createClass({
     classes = classNames(classes);
     var value = this.props.name === "layout" ? this.props.currentLayout() : this.props.settings[this.props.name];
     var width = 100.0 - (this.props.separated ? (this.props.options.length - 1) * 3 : 0);
-    var style = { width: width / this.props.options.length + "%" };
+    var style = { width: width / this.props.options.length + "%", outline: "none" };
     return React.createElement(
       'div',
       { className: classes, role: this.props.role, 'aria-label': this.props.ariaLabel },
@@ -8068,7 +8068,7 @@ var TextSegment = React.createClass({
       var style = { opacity: linkScore };
       linkCountElement = this.props.showLinkCount ? React.createElement(
         'div',
-        { className: 'linkCount sans' },
+        { className: 'linkCount sans', title: linkCount + " Connections Available" },
         React.createElement(
           'span',
           { className: 'en' },
@@ -10018,7 +10018,7 @@ var SearchPage = React.createClass({
     var isQueryHebrew = Sefaria.hebrew.isHebrew(this.props.query);
     return React.createElement(
       'div',
-      { className: classes },
+      { className: classes, key: this.props.query },
       this.props.hideNavHeader ? null : React.createElement(
         'div',
         { className: 'readerNavTop search' },
@@ -10050,7 +10050,6 @@ var SearchPage = React.createClass({
               'div',
               { className: 'searchContent', style: style },
               React.createElement(SearchResultList, {
-                key: this.props.query,
                 query: this.props.query,
                 appliedFilters: this.props.appliedFilters,
                 onResultClick: this.props.onResultClick,
@@ -10210,7 +10209,6 @@ var SearchResultList = React.createClass({
   },
   componentWillReceiveProps: function componentWillReceiveProps(newProps) {
     if (this.props.query != newProps.query) {
-
       this.setState({
         totals: { "text": 0, "sheet": 0 },
         hits: { "text": [], "sheet": [] },
@@ -10877,10 +10875,10 @@ var SearchFilterPanel = React.createClass({
     handleFocusCategory: React.PropTypes.func
   },
   componentDidMount: function componentDidMount() {
-    document.addEventListener('mousedown', this.handleClickOutside.bind(this), false);
+    document.addEventListener('mousedown', this.handleClickOutside, false);
   },
   componentWillUnmount: function componentWillUnmount() {
-    document.removeEventListener('mousedown', this.handleClickOutside.bind(this), false);
+    document.removeEventListener('mousedown', this.handleClickOutside, false);
   },
   handleClickOutside: function handleClickOutside(event) {
     var domNode = ReactDOM.findDOMNode(this);
@@ -10962,10 +10960,10 @@ var SearchSortBox = React.createClass({
     sortType: React.PropTypes.oneOf(["chronological", "relevance"])
   },
   componentDidMount: function componentDidMount() {
-    document.addEventListener('mousedown', this.handleClickOutside.bind(this), false);
+    document.addEventListener('mousedown', this.handleClickOutside, false);
   },
   componentWillUnmount: function componentWillUnmount() {
-    document.removeEventListener('mousedown', this.handleClickOutside.bind(this), false);
+    document.removeEventListener('mousedown', this.handleClickOutside, false);
   },
   handleClickOutside: function handleClickOutside(event) {
     var domNode = ReactDOM.findDOMNode(this);

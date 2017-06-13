@@ -247,6 +247,7 @@ function updateSheet() {
         $(".sheetItem").each(function() {
 
             var x = (parseFloat($(this).css('left')));
+            if (x == -1000) {x=0}; //fix for sticky notes for whatever reason don't animate out and get 'stuck' at the original unanimated position. TODO: figure out why they get stuck in first place.
             var y = (parseFloat($(this).css('top')));
             var width = $(this).width();
             var length = $(this).height();
