@@ -35,6 +35,8 @@ var ReaderApp = React.createClass({
     initialGroup: React.PropTypes.string,
     initialQuery: React.PropTypes.string,
     initialSearchFilters: React.PropTypes.array,
+    initialSearchField: React.PropTypes.string,
+    initialSearchSortType: React.PropTypes.string,
     initialSheetsTag: React.PropTypes.string,
     initialNavigationCategories: React.PropTypes.array,
     initialSettings: React.PropTypes.object,
@@ -54,6 +56,8 @@ var ReaderApp = React.createClass({
       initialGroup: null,
       initialQuery: null,
       initialSearchFilters: [],
+      initialSearchField: null,
+      initialSearchSortType: null,
       initialSheetsTag: null,
       initialNavigationCategories: [],
       initialPanels: [],
@@ -93,6 +97,8 @@ var ReaderApp = React.createClass({
           navigationCategories: this.props.initialNavigationCategories,
           sheetsTag: this.props.initialSheetsTag,
           group: this.props.initialGroup,
+          searchField: this.props.initialSearchField,
+          searchSortType: this.props.initialSearchSortType,
           settings: Sefaria.util.clone(defaultPanelSettings)
         };
         if (panels[0].versionLanguage) {
@@ -110,6 +116,8 @@ var ReaderApp = React.createClass({
         menuOpen: this.props.initialMenu,
         searchQuery: this.props.initialQuery,
         appliedSearchFilters: this.props.initialSearchFilters,
+        searchField: this.props.initialSearchField,
+        searchSortType: this.props.initialSearchSortType,
         navigationCategories: this.props.initialNavigationCategories,
         sheetsTag: this.props.initialSheetsTag,
         group: this.props.initialGroup,
@@ -370,7 +378,7 @@ var ReaderApp = React.createClass({
         return true;
       }
 
-      if (prev.mode !== next.mode || prev.menuOpen !== next.menuOpen || prev.menuOpen === "book toc" && prev.bookRef !== next.bookRef || next.mode === "Text" && prev.refs.slice(-1)[0] !== next.refs.slice(-1)[0] || next.mode === "Text" && !prev.highlightedRefs.compare(next.highlightedRefs) || next.mode === "TextAndConnections" && prev.highlightedRefs.slice(-1)[0] !== next.highlightedRefs.slice(-1)[0] || (next.mode === "Connections" || next.mode === "TextAndConnections") && prev.filter && !prev.filter.compare(next.filter) || next.mode === "Connections" && !prev.refs.compare(next.refs) || prev.navigationSheetTag !== next.navigationSheetTag || prev.version !== next.version || prev.versionLanguage !== next.versionLanguage || prev.searchQuery != next.searchQuery || prev.appliedSearchFilters && next.appliedSearchFilters && prev.appliedSearchFilters.length !== next.appliedSearchFilters.length || prev.appliedSearchFilters && next.appliedSearchFilters && !prev.appliedSearchFilters.compare(next.appliedSearchFilters) || prev.settings.language != next.settings.language) {
+      if (prev.mode !== next.mode || prev.menuOpen !== next.menuOpen || prev.menuOpen === "book toc" && prev.bookRef !== next.bookRef || next.mode === "Text" && prev.refs.slice(-1)[0] !== next.refs.slice(-1)[0] || next.mode === "Text" && !prev.highlightedRefs.compare(next.highlightedRefs) || next.mode === "TextAndConnections" && prev.highlightedRefs.slice(-1)[0] !== next.highlightedRefs.slice(-1)[0] || (next.mode === "Connections" || next.mode === "TextAndConnections") && prev.filter && !prev.filter.compare(next.filter) || next.mode === "Connections" && !prev.refs.compare(next.refs) || prev.navigationSheetTag !== next.navigationSheetTag || prev.version !== next.version || prev.versionLanguage !== next.versionLanguage || prev.searchQuery != next.searchQuery || prev.appliedSearchFilters && next.appliedSearchFilters && prev.appliedSearchFilters.length !== next.appliedSearchFilters.length || prev.appliedSearchFilters && next.appliedSearchFilters && !prev.appliedSearchFilters.compare(next.appliedSearchFilters) || prev.searchField !== next.searchField || prev.searchSortType !== next.searchSortType || prev.settings.language != next.settings.language) {
         return true;
       } else if (prev.navigationCategories !== next.navigationCategories) {
         // Handle array comparison, !== could mean one is null or both are arrays
@@ -449,7 +457,7 @@ var ReaderApp = React.createClass({
             var query = state.searchQuery ? encodeURIComponent(state.searchQuery) : "";
             hist.title = state.searchQuery ? state.searchQuery + " | " : "";
             hist.title += "Sefaria Search";
-            hist.url = "search" + (state.searchQuery ? "&q=" + query + (!!state.appliedSearchFilters && !!state.appliedSearchFilters.length ? "&filters=" + state.appliedSearchFilters.join("|") : "") : "");
+            hist.url = "search" + (state.searchQuery ? "&q=" + query + (!!state.appliedSearchFilters && !!state.appliedSearchFilters.length ? "&filters=" + state.appliedSearchFilters.join("|") : "") + "&var=" + (state.searchField !== state.searchFieldExact ? "1" : "0") + "&sort=" + (state.searchSortType === "chronological" ? "c" : "r") : "");
             hist.mode = "search";
             break;
           case "sheets":
@@ -589,7 +597,7 @@ var ReaderApp = React.createClass({
         hist.url += "&lang" + (i + 1) + "=" + histories[i].lang;
       }
     }
-    // Replace the first only & with a ? 
+    // Replace the first only & with a ?
     hist.url = hist.url.replace(/&/, "?");
 
     return hist;
@@ -657,6 +665,10 @@ var ReaderApp = React.createClass({
       sheetsGroup: state.group || null,
       searchQuery: state.searchQuery || null,
       appliedSearchFilters: state.appliedSearchFilters || [],
+      searchFieldExact: "hebmorph_semi_exact",
+      searchFieldBroad: "naive_lemmatizer",
+      searchField: state.searchField || "hebmorph_semi_exact",
+      searchSortType: state.searchSortType || "relevance",
       searchFiltersValid: state.searchFiltersValid || false,
       availableFilters: state.availableFilters || [],
       filterRegistry: state.filterRegistry || {},
@@ -814,6 +826,28 @@ var ReaderApp = React.createClass({
       appliedSearchFilters: this.getAppliedSearchFilters(this.state.panels[0].availableFilters)
     });
   },
+  updateSearchOptionFieldInPanel: function updateSearchOptionFieldInPanel(field) {
+    this.setPanelState(0, {
+      searchField: field,
+      searchFiltersValid: false
+    });
+  },
+  updateSearchOptionFieldInHeader: function updateSearchOptionFieldInHeader(field) {
+    this.setHeaderState({
+      searchField: field,
+      searchFiltersValid: false
+    });
+  },
+  updateSearchOptionSortInPanel: function updateSearchOptionSortInPanel(sort) {
+    this.setPanelState(0, {
+      searchSortType: sort
+    });
+  },
+  updateSearchOptionSortInHeader: function updateSearchOptionSortInHeader(sort) {
+    this.setHeaderState({
+      searchSortType: sort
+    });
+  },
   getAppliedSearchFilters: function getAppliedSearchFilters(availableFilters) {
     var results = [];
     //results = results.concat(this.orphanFilters);
@@ -888,7 +922,7 @@ var ReaderApp = React.createClass({
     $.post(url, { source: JSON.stringify(source) }, confirmFunction);
   },
   selectVersion: function selectVersion(n, versionName, versionLanguage) {
-    // Set the version for panel `n`. 
+    // Set the version for panel `n`.
     var panel = this.state.panels[n];
     var oRef = Sefaria.ref(panel.refs[0]);
     if (versionName && versionLanguage) {
@@ -1198,6 +1232,8 @@ var ReaderApp = React.createClass({
       showSearch: this.showSearch,
       onQueryChange: this.updateQueryInHeader,
       updateSearchFilter: this.updateSearchFilterInHeader,
+      updateSearchOptionField: this.updateSearchOptionFieldInHeader,
+      updateSearchOptionSort: this.updateSearchOptionSortInHeader,
       registerAvailableFilters: this.updateAvailableFiltersInHeader,
       setUnreadNotificationsCount: this.setUnreadNotificationsCount,
       handleInAppLinkClick: this.handleInAppLinkClick,
@@ -1261,6 +1297,8 @@ var ReaderApp = React.createClass({
           setDefaultOption: this.setDefaultOption,
           onQueryChange: this.updateQueryInPanel,
           updateSearchFilter: this.updateSearchFilterInPanel,
+          updateSearchOptionField: this.updateSearchOptionFieldInPanel,
+          updateSearchOptionSort: this.updateSearchOptionSortInPanel,
           registerAvailableFilters: this.updateAvailableFiltersInPanel,
           setUnreadNotificationsCount: this.setUnreadNotificationsCount,
           closePanel: closePanel,
@@ -1313,6 +1351,8 @@ var Header = React.createClass({
     setDefaultOption: React.PropTypes.func,
     onQueryChange: React.PropTypes.func,
     updateSearchFilter: React.PropTypes.func,
+    updateSearchOptionField: React.PropTypes.func,
+    updateSearchOptionSort: React.PropTypes.func,
     registerAvailableFilters: React.PropTypes.func,
     setUnreadNotificationsCount: React.PropTypes.func,
     handleInAppLinkClick: React.PropTypes.func,
@@ -1369,7 +1409,7 @@ var Header = React.createClass({
   },
   showVirtualKeyboardIcon: function showVirtualKeyboardIcon(show) {
     if (document.getElementById('keyboardInputMaster')) {
-      //if keyboard is open, ignore. 
+      //if keyboard is open, ignore.
       return; //this prevents the icon from flashing on every key stroke.
     }
     if (this.props.interfaceLang == 'english') {
@@ -1464,7 +1504,7 @@ var Header = React.createClass({
       } else if (d["type"] == "TocCategory") {
         Sefaria.site.track.event("Search", "Search Box Navigation - Category", query);
         this.closeSearchAutocomplete();
-        this.showLibrary(d["key"]); // "key" holds the category path 
+        this.showLibrary(d["key"]); // "key" holds the category path
       } else {
         Sefaria.site.track.event("Search", "Search Box Search", query);
         this.closeSearchAutocomplete();
@@ -1531,6 +1571,8 @@ var Header = React.createClass({
       setDefaultOption: this.props.setDefaultOption,
       onQueryChange: this.props.onQueryChange,
       updateSearchFilter: this.props.updateSearchFilter,
+      updateSearchOptionField: this.props.updateSearchOptionField,
+      updateSearchOptionSort: this.props.updateSearchOptionSort,
       registerAvailableFilters: this.props.registerAvailableFilters,
       setUnreadNotificationsCount: this.props.setUnreadNotificationsCount,
       handleInAppLinkClick: this.props.handleInAppLinkClick,
@@ -1678,6 +1720,8 @@ var ReaderPanel = React.createClass({
     initialMenu: React.PropTypes.string,
     initialQuery: React.PropTypes.string,
     initialAppliedSearchFilters: React.PropTypes.array,
+    initialSearchField: React.PropTypes.string,
+    initialSearchSortType: React.PropTypes.oneOf(["relevance", "chronological"]),
     initialSheetsTag: React.PropTypes.string,
     initialState: React.PropTypes.object, // if present, overrides all props above
     interfaceLang: React.PropTypes.string,
@@ -1697,6 +1741,8 @@ var ReaderPanel = React.createClass({
     selectVersion: React.PropTypes.func,
     onQueryChange: React.PropTypes.func,
     updateSearchFilter: React.PropTypes.func,
+    updateSearchOptionField: React.PropTypes.func,
+    updateSearchOptionSort: React.PropTypes.func,
     registerAvailableFilters: React.PropTypes.func,
     openComparePanel: React.PropTypes.func,
     setUnreadNotificationsCount: React.PropTypes.func,
@@ -1745,6 +1791,10 @@ var ReaderPanel = React.createClass({
       sheetsGroup: this.props.initialGroup || null,
       searchQuery: this.props.initialQuery || null,
       appliedSearchFilters: this.props.initialAppliedSearchFilters || [],
+      searchFieldExact: "hebmorph_semi_exact",
+      searchFieldBroad: "naive_lemmatizer",
+      searchField: this.props.initialSearchField || "naive_lemmatizer",
+      searchSortType: this.props.initialSearchSortType || "chronological",
       selectedWords: null,
       searchFiltersValid: false,
       availableFilters: [],
@@ -2283,9 +2333,15 @@ var ReaderPanel = React.createClass({
         hideNavHeader: this.props.hideNavHeader,
         onQueryChange: this.props.onQueryChange,
         updateAppliedFilter: this.props.updateSearchFilter,
+        updateAppliedOptionField: this.props.updateSearchOptionField,
+        updateAppliedOptionSort: this.props.updateSearchOptionSort,
         availableFilters: this.state.availableFilters,
         filtersValid: this.state.searchFiltersValid,
-        registerAvailableFilters: this.props.registerAvailableFilters });
+        registerAvailableFilters: this.props.registerAvailableFilters,
+        exactField: this.state.searchFieldExact,
+        broadField: this.state.searchFieldBroad,
+        field: this.state.searchField,
+        sortType: this.state.searchSortType });
     } else if (this.state.menuOpen === "sheets") {
       var menu = React.createElement(SheetsNav, {
         interfaceLang: this.props.interfaceLang,
@@ -2376,7 +2432,7 @@ var ReaderPanel = React.createClass({
 var ReaderControls = React.createClass({
   displayName: 'ReaderControls',
 
-  // The Header of a Reader panel when looking at a text 
+  // The Header of a Reader panel when looking at a text
   // contains controls for display, navigation etc.
   propTypes: {
     settings: React.PropTypes.object.isRequired,
@@ -2723,7 +2779,6 @@ var ReaderNavigationMenu = React.createClass({
         React.createElement(RecentPanel, {
           multiPanel: this.props.multiPanel,
           closeNav: this.closeNav,
-          toggleLanguage: this.props.toggleLanguage,
           openDisplaySettings: this.props.openDisplaySettings,
           navHome: this.navHome,
           compare: this.props.compare,
@@ -3663,7 +3718,7 @@ var ReaderTextTableOfContents = React.createClass({
     var versionBlocks = null;
     var downloadSection = null;
 
-    // Text Details 
+    // Text Details
     var details = Sefaria.indexDetails(this.props.title);
     var detailsSection = details ? React.createElement(TextDetails, { index: details, narrowPanel: this.props.narrowPanel }) : null;
 
@@ -4091,7 +4146,7 @@ var TextTableOfContentsNavigation = React.createClass({
   },
   shrinkWrap: function shrinkWrap() {
     // Shrink the width of the container of a grid of inline-line block elements,
-    // so that is is tight around its contents thus able to appear centered. 
+    // so that is is tight around its contents thus able to appear centered.
     // As far as I can tell, there's no way to do this in pure CSS.
     // TODO - flexbox should be able to solve this
     var shrink = function shrink(i, container) {
@@ -4115,7 +4170,7 @@ var TextTableOfContentsNavigation = React.createClass({
     if ($root.find(".tocSection").length) {// nested simple text
       //$root.find(".tocSection").each(shrink); // Don't bother with these for now
     } else if ($root.find(".schema-node-toc").length) {// complex text or alt struct
-      // $root.find(".schema-node-toc, .schema-node-contents").each(shrink); 
+      // $root.find(".schema-node-toc, .schema-node-contents").each(shrink);
     } else {
       $root.find(".tocLevel").each(shrink); // Simple text, no nesting
     }
@@ -7451,7 +7506,7 @@ var TextColumn = React.createClass({
     if (this.props.multiPanel && this.props.layoutWidth == 100) {
       return; // Hacky - don't move around highlighted segment when scrolling a single panel,
     }
-    // but we do want to keep the highlightedRefs value in the panel 
+    // but we do want to keep the highlightedRefs value in the panel
     // so it will return to the right location after closing other panels.
     var adjustTextListHighlightInner = function () {
       //var start = new Date();
@@ -7493,7 +7548,7 @@ var TextColumn = React.createClass({
             bottom: top + $segment.outerHeight(),
             ref: $segment.attr("data-ref")})
       }.bind(this));
-      this.setState(this.state);    
+      this.setState(this.state);
     }
      for (var i = 0; i < this.state.segmentHeights.length; i++) {
       var segment = this.state.segmentHeights[i];
@@ -7643,7 +7698,7 @@ var TextRange = React.createClass({
 
         // TODO: are these animationFrames still needed?
         /*
-        window.requestAnimationFrame(function() { 
+        window.requestAnimationFrame(function() {
           if (this.isMounted()) {
             this.placeSegmentNumbers();
           }
@@ -8866,7 +8921,7 @@ var RecentFilterSet = React.createClass({
       return Sefaria.util.inArray(link.book, this.props.recentFilters) == -1;
     }.bind(this));
 
-    // Annotate filter texts with category            
+    // Annotate filter texts with category
     var recentFilters = this.props.recentFilters.map(function (filter) {
       var index = Sefaria.index(filter);
       return {
@@ -8876,7 +8931,7 @@ var RecentFilterSet = React.createClass({
     });
     topLinks = recentFilters.concat(topLinks).slice(0, 5);
 
-    // If the current filter is not already in the top set, put it first 
+    // If the current filter is not already in the top set, put it first
     if (this.props.filter.length) {
       var filter = this.props.filter[0];
       for (var i = 0; i < topLinks.length; i++) {
@@ -8894,7 +8949,7 @@ var RecentFilterSet = React.createClass({
 
         topLinks = [annotatedFilter].concat(topLinks).slice(0, 5);
       } else {
-        // topLinks.move(i, 0); 
+        // topLinks.move(i, 0);
       }
     }
     var topFilters = topLinks.map(function (book) {
@@ -9398,10 +9453,10 @@ var AddToSourceSheetWindow = React.createClass({
 var AddToSourceSheetPanel = React.createClass({
   displayName: 'AddToSourceSheetPanel',
 
-  // In the main app, the function `addToSourceSheet` is executed in the ReaderApp, 
+  // In the main app, the function `addToSourceSheet` is executed in the ReaderApp,
   // and collects the needed data from highlights and app state.
   // It is used in external apps, liked gardens.  In those cases, it's wrapped in AddToSourceSheetWindow,
-  // refs and text are passed directly, and the add to source sheets API is invoked from within this object. 
+  // refs and text are passed directly, and the add to source sheets API is invoked from within this object.
   propTypes: {
     srefs: React.PropTypes.array,
     addToSourceSheet: React.PropTypes.func,
@@ -9936,10 +9991,16 @@ var SearchPage = React.createClass({
     onResultClick: React.PropTypes.func,
     onQueryChange: React.PropTypes.func,
     updateAppliedFilter: React.PropTypes.func,
+    updateAppliedOptionField: React.PropTypes.func,
+    updateAppliedOptionSort: React.PropTypes.func,
     registerAvailableFilters: React.PropTypes.func,
     availableFilters: React.PropTypes.array,
     filtersValid: React.PropTypes.bool,
-    hideNavHeader: React.PropTypes.bool
+    hideNavHeader: React.PropTypes.bool,
+    exactField: React.PropTypes.string,
+    broadField: React.PropTypes.string,
+    field: React.PropTypes.string,
+    sortType: React.PropTypes.oneOf(["relevance", "chronological"])
   },
   getInitialState: function getInitialState() {
     return {};
@@ -9957,7 +10018,7 @@ var SearchPage = React.createClass({
     var isQueryHebrew = Sefaria.hebrew.isHebrew(this.props.query);
     return React.createElement(
       'div',
-      { className: classes },
+      { className: classes, key: this.props.query },
       this.props.hideNavHeader ? null : React.createElement(
         'div',
         { className: 'readerNavTop search' },
@@ -9993,9 +10054,15 @@ var SearchPage = React.createClass({
                 appliedFilters: this.props.appliedFilters,
                 onResultClick: this.props.onResultClick,
                 updateAppliedFilter: this.props.updateAppliedFilter,
+                updateAppliedOptionField: this.props.updateAppliedOptionField,
+                updateAppliedOptionSort: this.props.updateAppliedOptionSort,
                 registerAvailableFilters: this.props.registerAvailableFilters,
                 availableFilters: this.props.availableFilters,
-                filtersValid: this.props.filtersValid })
+                filtersValid: this.props.filtersValid,
+                exactField: this.props.exactField,
+                broadField: this.props.broadField,
+                field: this.props.field,
+                sortType: this.props.sortType })
             )
           )
         ),
@@ -10059,6 +10126,12 @@ var SearchResultList = React.createClass({
     filtersValid: React.PropTypes.bool,
     availableFilters: React.PropTypes.array,
     updateAppliedFilter: React.PropTypes.func,
+    updateAppliedOptionField: React.PropTypes.func,
+    updateAppliedOptionSort: React.PropTypes.func,
+    exactField: React.PropTypes.string,
+    broadField: React.PropTypes.string,
+    field: React.PropTypes.string,
+    sortType: React.PropTypes.oneOf(["relevance", "chronological"]),
     registerAvailableFilters: React.PropTypes.func
   },
   initialQuerySize: 100,
@@ -10080,7 +10153,10 @@ var SearchResultList = React.createClass({
       displayedUntil: { "text": 50, "sheet": 50 },
       hits: { "text": [], "sheet": [] },
       activeTab: "text",
-      error: false
+      error: false,
+      showOverlay: false,
+      displayFilters: false,
+      displaySort: false
     };
   },
   updateRunningQuery: function updateRunningQuery(type, ajax, isLoadingRemainder) {
@@ -10137,7 +10213,10 @@ var SearchResultList = React.createClass({
         totals: { "text": 0, "sheet": 0 },
         hits: { "text": [], "sheet": [] },
         moreToLoad: { "text": true, "sheet": true },
-        displayedUntil: { "text": 50, "sheet": 50 }
+        displayedUntil: { "text": 50, "sheet": 50 },
+        displayFilters: false,
+        displaySort: false,
+        showOverlay: false
       });
       this._executeQueries(newProps);
     } else if (this.props.appliedFilters.length !== newProps.appliedFilters.length || !this.props.appliedFilters.every(function (v, i) {
@@ -10147,6 +10226,8 @@ var SearchResultList = React.createClass({
     }
     // Execute a second query to apply filters after an initial query which got available filters
     else if (this.props.filtersValid != newProps.filtersValid && this.props.appliedFilters.length > 0) {
+        this._executeQueries(newProps);
+      } else if (this.props.field != newProps.field || this.props.sortType != newProps.sortType) {
         this._executeQueries(newProps);
       }
   },
@@ -10158,15 +10239,27 @@ var SearchResultList = React.createClass({
       this.setState({ moreToLoad: this.state.moreToLoad });
       return;
     }
+
+    var querySize = this.backgroundQuerySize;
+    if (last + querySize > this.maxResultSize) {
+      querySize = this.maxResultSize - last;
+    }
+
+    var field = "content";
+    if (type == "text") {
+      field = this.props.field;
+    }
     var query_props = {
       query: this.props.query,
       type: type,
-      size: this.backgroundQuerySize,
+      size: querySize,
       from: last,
+      field: field,
+      sort_type: this.props.sortType,
       error: function error() {},
       success: function (data) {
         var hitArray = type == "text" ? this._process_text_hits(data.hits.hits) : data.hits.hits;
-        var nextHits = currentHits.concat(hitArray);
+        var nextHits = this._remove_duplicate_text_hits(currentHits.concat(hitArray));
         this.state.hits[type] = nextHits;
 
         this.setState({ hits: this.state.hits });
@@ -10179,6 +10272,7 @@ var SearchResultList = React.createClass({
         applied_filters: this.props.appliedFilters
       });
     }
+
     var runningLoadRemainderQuery = Sefaria.search.execute_query(query_props);
     this.updateRunningQuery(type, runningLoadRemainderQuery, true);
   },
@@ -10201,6 +10295,8 @@ var SearchResultList = React.createClass({
       query: props.query,
       type: "sheet",
       size: this.initialQuerySize,
+      field: "content",
+      sort_type: "chronological",
       success: function (data) {
         this.updateRunningQuery("sheet", null, false);
         this.setState({
@@ -10222,9 +10318,11 @@ var SearchResultList = React.createClass({
       get_filters: !props.filtersValid,
       applied_filters: request_applied,
       size: this.initialQuerySize,
+      field: props.field,
+      sort_type: props.sortType,
       success: function (data) {
         this.updateRunningQuery("text", null, false);
-        var hitArray = this._process_text_hits(data.hits.hits);
+        var hitArray = this._remove_duplicate_text_hits(this._process_text_hits(data.hits.hits));
         this.setState({
           hits: extend(this.state.hits, { "text": hitArray }),
           totals: extend(this.state.totals, { "text": data.hits.total })
@@ -10260,6 +10358,31 @@ var SearchResultList = React.createClass({
         error: true
       });
       this.updateRunningQuery(null, null, false);
+    }
+  },
+  _remove_duplicate_text_hits: function _remove_duplicate_text_hits(hits) {
+
+    if (this.props.sortType != "relevance") {
+      return hits;
+    } else {
+      var refHash = {};
+      var newHits = hits.filter(function (result, iresult) {
+        var ref = result._source.ref;
+        var refExists = refHash[ref];
+        //only apply filter if you're sorting by relevance. sorting by chrono keeps refs in the correct order
+        if (!refExists) {
+          refHash[ref] = true;
+          //console.log("adding", ref, iresult);
+          return true;
+        } else {
+          //console.log("filtering", ref, iresult);
+          return false;
+        }
+      }).map(function (result) {
+        result.duplicates = null;
+        return result;
+      });
+      return newHits;
     }
   },
   _process_text_hits: function _process_text_hits(hits) {
@@ -10451,6 +10574,26 @@ var SearchResultList = React.createClass({
   showTexts: function showTexts() {
     this.setState({ "activeTab": "text" });
   },
+  showResultsOverlay: function showResultsOverlay(shouldShow) {
+    //overlay gives opacity to results when either filter box or sort box is open
+    this.setState({ showOverlay: shouldShow });
+  },
+  toggleFilterView: function toggleFilterView() {
+    this.showResultsOverlay(!this.state.displayFilters);
+    this.setState({ displayFilters: !this.state.displayFilters, displaySort: false });
+  },
+  toggleSortView: function toggleSortView() {
+    this.showResultsOverlay(!this.state.displaySort);
+    this.setState({ displaySort: !this.state.displaySort, displayFilters: false });
+  },
+  closeFilterView: function closeFilterView() {
+    this.showResultsOverlay(false);
+    this.setState({ displayFilters: false });
+  },
+  closeSortView: function closeSortView() {
+    this.showResultsOverlay(false);
+    this.setState({ displaySort: false });
+  },
   render: function render() {
     var _this11 = this;
 
@@ -10493,15 +10636,32 @@ var SearchResultList = React.createClass({
       availableFilters: this.props.availableFilters,
       appliedFilters: this.props.appliedFilters,
       updateAppliedFilter: this.props.updateAppliedFilter,
+      updateAppliedOptionField: this.props.updateAppliedOptionField,
+      updateAppliedOptionSort: this.props.updateAppliedOptionSort,
+      exactField: this.props.exactField,
+      broadField: this.props.broadField,
+      optionField: this.props.field,
+      sortType: this.props.sortType,
       isQueryRunning: this.state.isQueryRunning[tab],
       activeTab: this.state.activeTab,
       clickTextButton: this.showTexts,
-      clickSheetButton: this.showSheets });
+      clickSheetButton: this.showSheets,
+      showResultsOverlay: this.showResultsOverlay,
+      displayFilters: this.state.displayFilters,
+      displaySort: this.state.displaySort,
+      toggleFilterView: this.toggleFilterView,
+      toggleSortView: this.toggleSortView,
+      closeFilterView: this.closeFilterView,
+      closeSortView: this.closeSortView });
     return React.createElement(
       'div',
       null,
       searchFilters,
-      queryFullyLoaded || haveResults ? results : loadingMessage
+      React.createElement(
+        'div',
+        { className: this.state.showOverlay ? "searchResultsOverlay" : "" },
+        queryFullyLoaded || haveResults ? results : loadingMessage
+      )
     );
   }
 });
@@ -10517,16 +10677,29 @@ var SearchFilters = React.createClass({
     appliedFilters: React.PropTypes.array,
     availableFilters: React.PropTypes.array,
     updateAppliedFilter: React.PropTypes.func,
+    updateAppliedOptionField: React.PropTypes.func,
+    updateAppliedOptionSort: React.PropTypes.func,
+    exactField: React.PropTypes.string,
+    broadField: React.PropTypes.string,
+    optionField: React.PropTypes.string,
+    sortType: React.PropTypes.string,
     isQueryRunning: React.PropTypes.bool,
     activeTab: React.PropTypes.string,
     clickTextButton: React.PropTypes.func,
-    clickSheetButton: React.PropTypes.func
+    clickSheetButton: React.PropTypes.func,
+    showResultsOverlay: React.PropTypes.func,
+    displayFilters: React.PropTypes.bool,
+    displaySort: React.PropTypes.bool,
+    toggleFilterView: React.PropTypes.func,
+    toggleSortView: React.PropTypes.func,
+    closeFilterView: React.PropTypes.func,
+    closeSortView: React.PropTypes.func
   },
   getInitialState: function getInitialState() {
     return {
       openedCategory: null,
       openedCategoryBooks: [],
-      displayFilters: !!this.props.appliedFilters.length
+      isExactSearch: this.props.optionField === this.props.exactField
     };
   },
   getDefaultProps: function getDefaultProps() {
@@ -10541,9 +10714,11 @@ var SearchFilters = React.createClass({
     // todo: check for cases when we want to rebuild / not
 
     if (newProps.query != this.props.query || newProps.availableFilters.length == 0) {
+
       this.setState({
         openedCategory: null,
-        openedCategoryBooks: []
+        openedCategoryBooks: [],
+        isExactSearch: this.props.optionField === this.props.exactField
       });
     }
     // todo: logically, we should be unapplying filters as well.
@@ -10578,8 +10753,14 @@ var SearchFilters = React.createClass({
       openedCategoryBooks: leaves
     });
   },
-  toggleFilterView: function toggleFilterView() {
-    this.setState({ displayFilters: !this.state.displayFilters });
+  toggleExactSearch: function toggleExactSearch() {
+    var newExactSearch = !this.state.isExactSearch;
+    if (newExactSearch) {
+      this.props.updateAppliedOptionField(this.props.exactField);
+    } else {
+      this.props.updateAppliedOptionField(this.props.broadField);
+    }
+    this.setState({ isExactSearch: newExactSearch });
   },
   _type_button: function _type_button(en_singular, en_plural, he_singular, he_plural, total, on_click, active) {
     // if (!total) { return "" }
@@ -10638,53 +10819,26 @@ var SearchFilters = React.createClass({
         !!this.props.appliedFilters.length && !!this.props.total ? this.getSelectedTitles("he").join(", ") : ""
       )
     );
-    var filter_panel = React.createElement(
-      'div',
-      null,
-      React.createElement(
-        'div',
-        { className: 'searchFilterToggle', onClick: this.toggleFilterView },
-        React.createElement(
-          'span',
-          { className: 'int-en' },
-          'Filter by Text   '
-        ),
-        React.createElement(
-          'span',
-          { className: 'int-he' },
-          '\u05E1\u05E0\u05DF \u05DC\u05E4\u05D9 \u05DB\u05D5\u05EA\u05E8   '
-        ),
-        React.createElement('i', { className: this.state.displayFilters ? "fa fa-caret-down fa-angle-down" : "fa fa-caret-down" })
-      ),
-      React.createElement(
-        'div',
-        { className: this.state.displayFilters ? "searchFilterBoxes" : "searchFilterBoxes hidden" },
-        React.createElement(
-          'div',
-          { className: 'searchFilterCategoryBox' },
-          this.props.availableFilters.map(function (filter) {
-            return React.createElement(SearchFilter, {
-              filter: filter,
-              isInFocus: this.state.openedCategory === filter,
-              focusCategory: this.handleFocusCategory,
-              updateSelected: this.props.updateAppliedFilter,
-              key: filter.path });
-          }.bind(this))
-        ),
-        React.createElement(
-          'div',
-          { className: 'searchFilterBookBox' },
-          this.state.openedCategoryBooks.map(function (filter) {
-            return React.createElement(SearchFilter, {
-              filter: filter,
-              updateSelected: this.props.updateAppliedFilter,
-              key: filter.path });
-          }.bind(this))
-        ),
-        React.createElement('div', { style: { clear: "both" } })
-      )
-    );
+    var filter_panel = React.createElement(SearchFilterPanel, {
+      toggleFilterView: this.props.toggleFilterView,
+      toggleExactSearch: this.toggleExactSearch,
+      displayFilters: this.props.displayFilters,
+      availableFilters: this.props.availableFilters,
+      openedCategory: this.state.openedCategory,
+      openedCategoryBooks: this.state.openedCategoryBooks,
+      updateAppliedFilter: this.props.updateAppliedFilter,
+      query: this.props.query,
+      closeBox: this.props.closeFilterView,
+      isExactSearch: this.props.exactField === this.props.optionField,
+      handleFocusCategory: this.handleFocusCategory
+    });
 
+    var sort_panel = React.createElement(SearchSortBox, {
+      visible: this.props.displaySort,
+      toggleSortView: this.props.toggleSortView,
+      updateAppliedOptionSort: this.props.updateAppliedOptionSort,
+      closeBox: this.props.closeSortView,
+      sortType: this.props.sortType });
     return React.createElement(
       'div',
       { className: classNames({ searchTopMatter: 1, loading: this.props.isQueryRunning }) },
@@ -10694,7 +10848,260 @@ var SearchFilters = React.createClass({
         this.props.isQueryRunning ? runningQueryLine : buttons,
         this.props.availableFilters.length > 0 && this.props.activeTab == "text" ? selected_filters : ""
       ),
-      this.props.availableFilters.length > 0 && this.props.activeTab == "text" ? filter_panel : ""
+      (true || this.props.availableFilters.length > 0) && this.props.activeTab == "text" ? React.createElement(
+        'div',
+        { className: 'filterSortFlexbox' },
+        filter_panel,
+        sort_panel
+      ) : ""
+    );
+  }
+});
+
+var SearchFilterPanel = React.createClass({
+  displayName: 'SearchFilterPanel',
+
+  propTypes: {
+    toggleFilterView: React.PropTypes.func,
+    displayFilters: React.PropTypes.bool,
+    availableFilters: React.PropTypes.array,
+    openedCategory: React.PropTypes.object,
+    updateAppliedFilter: React.PropTypes.func,
+    openedCategoryBooks: React.PropTypes.array,
+    query: React.PropTypes.string,
+    isExactSearch: React.PropTypes.bool,
+    toggleExactSearch: React.PropTypes.func,
+    closeBox: React.PropTypes.func,
+    handleFocusCategory: React.PropTypes.func
+  },
+  componentDidMount: function componentDidMount() {
+    document.addEventListener('mousedown', this.handleClickOutside, false);
+  },
+  componentWillUnmount: function componentWillUnmount() {
+    document.removeEventListener('mousedown', this.handleClickOutside, false);
+  },
+  handleClickOutside: function handleClickOutside(event) {
+    var domNode = ReactDOM.findDOMNode(this);
+    if ((!domNode || !domNode.contains(event.target)) && this.props.displayFilters) {
+      this.props.closeBox();
+    }
+  },
+
+  render: function render() {
+    return React.createElement(
+      'div',
+      null,
+      React.createElement(
+        'div',
+        { className: 'searchFilterToggle', onClick: this.props.toggleFilterView },
+        React.createElement(
+          'span',
+          { className: 'int-en' },
+          'Filter'
+        ),
+        React.createElement(
+          'span',
+          { className: 'int-he' },
+          '\u05E1\u05D9\u05E0\u05D5\u05DF'
+        ),
+        this.props.displayFilters ? React.createElement('img', { src: '/static/img/arrow-up.png', alt: '' }) : React.createElement('img', { src: '/static/img/arrow-down.png', alt: '' })
+      ),
+      React.createElement(
+        'div',
+        { className: this.props.displayFilters ? "searchFilterBoxes" : "searchFilterBoxes hidden" },
+        React.createElement(
+          'div',
+          { className: 'searchFilterBoxRow' },
+          React.createElement(
+            'div',
+            { className: 'searchFilterCategoryBox' },
+            this.props.availableFilters.map(function (filter) {
+              return React.createElement(SearchFilter, {
+                filter: filter,
+                isInFocus: this.props.openedCategory === filter,
+                focusCategory: this.props.handleFocusCategory,
+                updateSelected: this.props.updateAppliedFilter,
+                key: filter.path });
+            }.bind(this))
+          ),
+          React.createElement(
+            'div',
+            { className: 'searchFilterBookBox' },
+            this.props.openedCategoryBooks.map(function (filter) {
+              return React.createElement(SearchFilter, {
+                filter: filter,
+                updateSelected: this.props.updateAppliedFilter,
+                key: filter.path });
+            }.bind(this))
+          )
+        ),
+        React.createElement(
+          'div',
+          { className: Sefaria.hebrew.isHebrew(this.props.query) ? "searchFilterExactBox" : "searchFilterExactBox hidden" },
+          React.createElement(SearchFilterExactBox, {
+            selected: !this.props.isExactSearch,
+            checkBoxClick: this.props.toggleExactSearch
+          })
+        ),
+        React.createElement('div', { style: { clear: "both" } })
+      )
+    );
+  }
+});
+
+var SearchSortBox = React.createClass({
+  displayName: 'SearchSortBox',
+
+  propTypes: {
+    visible: React.PropTypes.bool,
+    toggleSortView: React.PropTypes.func,
+    updateAppliedOptionSort: React.PropTypes.func,
+    closeBox: React.PropTypes.func,
+    sortType: React.PropTypes.oneOf(["chronological", "relevance"])
+  },
+  componentDidMount: function componentDidMount() {
+    document.addEventListener('mousedown', this.handleClickOutside, false);
+  },
+  componentWillUnmount: function componentWillUnmount() {
+    document.removeEventListener('mousedown', this.handleClickOutside, false);
+  },
+  handleClickOutside: function handleClickOutside(event) {
+    var domNode = ReactDOM.findDOMNode(this);
+
+    if ((!domNode || !domNode.contains(event.target)) && this.props.visible) {
+      this.props.closeBox();
+    }
+  },
+
+  handleClick: function handleClick(sortType) {
+    if (sortType === this.props.sortType) {
+      return;
+    }
+    if (this.props.sortType === "chronological") {
+      this.props.updateAppliedOptionSort("relevance");
+    } else {
+      this.props.updateAppliedOptionSort("chronological");
+    }
+    this.props.toggleSortView();
+  },
+  //<i className={(this.props.visible) ? "fa fa-caret-down fa-angle-down":"fa fa-caret-down fa-angle-up"} />
+  render: function render() {
+    var _this12 = this;
+
+    var chronoClass = classNames({ 'filter-title': 1, 'unselected': this.props.sortType !== "chronological" });
+    var releClass = classNames({ 'filter-title': 1, 'unselected': this.props.sortType !== "relevance" });
+    return React.createElement(
+      'div',
+      null,
+      React.createElement(
+        'div',
+        { className: 'searchFilterToggle', onClick: this.props.toggleSortView },
+        React.createElement(
+          'span',
+          { className: 'int-en' },
+          'Sort'
+        ),
+        React.createElement(
+          'span',
+          { className: 'int-he' },
+          '\u05DE\u05D9\u05D5\u05DF'
+        ),
+        this.props.visible ? React.createElement('img', { src: '/static/img/arrow-up.png', alt: '' }) : React.createElement('img', { src: '/static/img/arrow-down.png', alt: '' })
+      ),
+      React.createElement(
+        'div',
+        { className: this.props.visible ? "searchSortBox" : "searchSortBox hidden" },
+        React.createElement(
+          'li',
+          { onClick: function onClick() {
+              return _this12.handleClick("chronological");
+            } },
+          React.createElement(
+            'span',
+            { className: 'int-en' },
+            React.createElement(
+              'span',
+              { className: chronoClass },
+              "Chronological"
+            )
+          ),
+          React.createElement(
+            'span',
+            { className: 'int-he', dir: 'rtl' },
+            React.createElement(
+              'span',
+              { className: chronoClass },
+              "כרונולוגי"
+            )
+          )
+        ),
+        React.createElement(
+          'li',
+          { onClick: function onClick() {
+              return _this12.handleClick("relevance");
+            } },
+          React.createElement(
+            'span',
+            { className: 'int-en' },
+            React.createElement(
+              'span',
+              { className: releClass },
+              "Relevance"
+            )
+          ),
+          React.createElement(
+            'span',
+            { className: 'int-he', dir: 'rtl' },
+            React.createElement(
+              'span',
+              { className: releClass },
+              "רלוונטיות"
+            )
+          )
+        )
+      )
+    );
+  }
+});
+
+var SearchFilterExactBox = React.createClass({
+  displayName: 'SearchFilterExactBox',
+
+  propTypes: {
+    selected: React.PropTypes.bool,
+    checkBoxClick: React.PropTypes.func
+  },
+  handleClick: function handleClick() {
+    this.props.checkBoxClick();
+  },
+  render: function render() {
+    return React.createElement(
+      'li',
+      { onClick: this.handleFocusCategory },
+      React.createElement('input', { type: 'checkbox', id: 'searchFilterExactBox', className: 'filter', checked: this.props.selected, onChange: this.handleClick }),
+      React.createElement(
+        'label',
+        { onClick: this.handleClick, 'for': "searchFilterExactBox" },
+        React.createElement('span', null)
+      ),
+      React.createElement(
+        'span',
+        { className: 'int-en' },
+        React.createElement(
+          'span',
+          { className: 'filter-title' },
+          "Show word variants"
+        )
+      ),
+      React.createElement(
+        'span',
+        { className: 'int-he', dir: 'rtl' },
+        React.createElement(
+          'span',
+          { className: 'filter-title' },
+          "חיפוש מרוחב"
+        )
+      )
     );
   }
 });
@@ -10824,13 +11231,15 @@ var SearchTextResult = React.createClass({
 
     function get_snippet_markup() {
       var snippet;
-      // if (data.highlight && data.highlight["content"]) {
-      snippet = data.highlight["content"].join("...");
+      var field = Object.keys(data.highlight)[0]; //there should only be one key
+      // if (data.highlight && data.highlight[field]) {
+      snippet = data.highlight[field].join("...");
       // } else {
-      //     snippet = s["content"];  // We're filtering out content, because it's *huge*, especially on Sheets
+      //     snippet = s[field];  // We're filtering out content, because it's *huge*, especially on Sheets
       // }
+      var dir = Sefaria.hebrew.isHebrew(snippet) ? "rtl" : "ltr";
       snippet = $("<div>" + snippet.replace(/^[ .,;:!-)\]]+/, "") + "</div>").html();
-      return { __html: snippet };
+      return { markup: { __html: snippet }, dir: dir };
     }
 
     var more_results_caret = this.state.duplicatesShown ? React.createElement('i', { className: 'fa fa-caret-down fa-angle-down' }) : React.createElement('i', { className: 'fa fa-caret-down' });
@@ -10869,6 +11278,8 @@ var SearchTextResult = React.createClass({
       }.bind(this))
     ) : null;
 
+    var snippetMarkup = get_snippet_markup();
+
     return React.createElement(
       'div',
       { className: 'result text_result' },
@@ -10889,7 +11300,7 @@ var SearchTextResult = React.createClass({
             s.heRef
           )
         ),
-        React.createElement('div', { className: 'snippet', dangerouslySetInnerHTML: get_snippet_markup() }),
+        React.createElement('div', { className: 'snippet', dir: snippetMarkup.dir, dangerouslySetInnerHTML: snippetMarkup.markup }),
         React.createElement(
           'div',
           { className: 'version' },
@@ -11442,10 +11853,10 @@ var ModeratorToolsPanel = React.createClass({
     this.setState({ bulk_format: event.target.value });
   },
   bulkVersionDlLink: function bulkVersionDlLink() {
-    var _this12 = this;
+    var _this13 = this;
 
     var args = ["format", "title_pattern", "version_title_pattern", "language"].map(function (arg) {
-      return _this12.state["bulk_" + arg] ? arg + '=' + encodeURIComponent(_this12.state["bulk_" + arg]) : "";
+      return _this13.state["bulk_" + arg] ? arg + '=' + encodeURIComponent(_this13.state["bulk_" + arg]) : "";
     }).filter(function (a) {
       return a;
     }).join("&");
@@ -11701,7 +12112,7 @@ var UpdatesPanel = React.createClass({
   },
 
   render: function render() {
-    var _this13 = this;
+    var _this14 = this;
 
     var classes = { notificationsPanel: 1, systemPanel: 1, readerNavMenu: 1, noHeader: 1 };
     var classStr = classNames(classes);
@@ -11740,8 +12151,8 @@ var UpdatesPanel = React.createClass({
                 date: u.date,
                 key: u._id,
                 id: u._id,
-                onDelete: _this13.onDelete,
-                submitting: _this13.state.submitting
+                onDelete: _this14.onDelete,
+                submitting: _this14.state.submitting
               });
             })
           )
