@@ -7867,7 +7867,7 @@ var SearchPage = React.createClass({
         var style    = {"fontSize": fontSize + "%"};
         var classes  = classNames({readerNavMenu: 1, noHeader: this.props.hideNavHeader});
         var isQueryHebrew = Sefaria.hebrew.isHebrew(this.props.query);
-        return (<div className={classes}>
+        return (<div className={classes} key={this.props.query}>
                   {this.props.hideNavHeader ? null :
                     (<div className="readerNavTop search">
                       <CategoryColorLine category="Other" />
@@ -8664,11 +8664,11 @@ var SearchFilterPanel = React.createClass({
     handleFocusCategory: React.PropTypes.func
   },
   componentDidMount() {
-    document.addEventListener('mousedown', this.handleClickOutside.bind(this), false);
+    document.addEventListener('mousedown', this.handleClickOutside, false);
   },
 
   componentWillUnmount() {
-    document.removeEventListener('mousedown', this.handleClickOutside.bind(this), false);
+    document.removeEventListener('mousedown', this.handleClickOutside, false);
   },
   handleClickOutside(event) {
     const domNode = ReactDOM.findDOMNode(this);
@@ -8725,11 +8725,11 @@ var SearchSortBox = React.createClass({
     sortType:                React.PropTypes.oneOf(["chronological", "relevance"])
   },
   componentDidMount() {
-    document.addEventListener('mousedown', this.handleClickOutside.bind(this), false);
+    document.addEventListener('mousedown', this.handleClickOutside, false);
   },
 
   componentWillUnmount() {
-    document.removeEventListener('mousedown', this.handleClickOutside.bind(this), false);
+    document.removeEventListener('mousedown', this.handleClickOutside, false);
   },
 
   handleClickOutside(event) {
