@@ -482,6 +482,10 @@ def s2_search(request):
 
     initialQuery = urllib.unquote(request.GET.get("q")) if request.GET.get("q") else ""
 
+    field = ("naive_lemmatizer" if request.GET.get("var") == "1" else "hebmorph_semi_exact") if request.GET.get("var") else ""
+
+    sort = ("chronological" if request.GET.get("sort") == "c" else "relevance") if request.GET.get("sort") else ""
+
     title = initialQuery if initialQuery else ""
 
     props = s2_props(request)
@@ -489,6 +493,8 @@ def s2_search(request):
         "initialMenu": "search",
         "initialQuery": initialQuery,
         "initialSearchFilters": search_filters,
+        "initialSearchField": field,
+        "initialSearchSortType": sort,
     })
     html = render_react_component("ReaderApp", props)
     return render_to_response('s2.html', {

@@ -78,10 +78,6 @@ class AtomicTest(object):
         elem.send_keys(password)
         self.driver.find_element_by_css_selector("button").click()
 
-    def prime_autocomplete_cache(self):
-        self.driver.get(self.base_url + "/api/name/stam")
-        self.driver.get(self.base_url + "/api/name/stam?ref_only=1")
-
     # TOC
     def load_toc(self):
         self.driver.get(self.base_url + "/texts")

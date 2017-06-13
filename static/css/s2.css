@@ -1498,11 +1498,16 @@ a.readerNavCategory {
 }
 .searchContent .searchTopMatter {
   padding-bottom: 10px;
-  border-bottom: 1px solid #ccc;
   margin-bottom: 30px;
+  position: relative;
 }
+
 .searchContent .searchTopMatter.loading {
   border-bottom: none;
+}
+.searchTopMatter .filterSortFlexbox {
+  display: flex;
+  justify-content: space-between;
 }
 .searchContent .searchStatusLine {
   padding: 0 0 36px 0;
@@ -1545,6 +1550,7 @@ a.readerNavCategory {
   color: #999;
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
   letter-spacing: 1px;
+  padding-top: 5px;
 }
 .searchContent .searchFilterToggle {
   color: #999;
@@ -1563,19 +1569,34 @@ a.readerNavCategory {
 .searchContent .searchFilterToggle .he {
   font-family: "Open Sans Hebrew", sans-serif;
 }
-.searchContent .searchFilterToggle i {
-  color: #999;
+.searchContent .searchFilterToggle img {
+  opacity: 0.43;
   padding-left: 5px;
+  height: 10px;
+  width: 10px;
 }
 .interface-hebrew .searchContent .searchFilterToggle i {
   padding-left: 0;
   padding-right: 5px;
 }
 .searchContent .searchFilterBoxes {
-    margin: 10px 0;
-    background: #eee;
+    margin-top: 10px;
+    background: white;
     width: 100%;
     display: flex;
+    flex-direction: column;
+    position: absolute;
+    z-index: 1;
+    -webkit-border-radius: 7px;
+    -moz-border-radius: 7px;
+    border-radius: 7px;
+    border: 1px solid #ccc;
+}
+
+.searchContent .searchFilterBoxes .searchFilterBoxRow {
+  display: flex;
+  flex-direction: row;
+  width: 100%;
 }
 .searchFilterBoxes.hidden{
     display:none;
@@ -1583,12 +1604,12 @@ a.readerNavCategory {
 .searchContent .searchFilterBoxes li {
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
   display: block;
-  padding: 12px 0 12px 15px;
+  padding: 15px 0 15px 15px;
   font-size: 14px;
   letter-spacing: 1px;
   cursor: pointer;
 }
-.searchContent .searchFilterBoxes li:hover {
+.searchContent .searchFilterBoxRow li:hover {
   background-color: #e0e0e0;
 }
 .interface-hebrew .searchContent .searchFilterBoxes li {
@@ -1630,8 +1651,57 @@ a.readerNavCategory {
   padding-left: 20px;
   padding-right: 0;
 }
+
+.searchFilterBoxes .searchFilterExactBox {
+  border-top: 1px solid #ccc;
+  padding: 5px 5px 5px 0;
+}
+
+.searchFilterExactBox.hidden {
+  display:none;
+}
+
+.searchContent .searchSortBox {
+    margin-top: 10px;
+    background: white;
+    width: auto;
+    position: absolute;
+    right: 0;
+    z-index: 1;
+    -webkit-border-radius: 7px;
+    -moz-border-radius: 7px;
+    border-radius: 7px;
+    border: 1px solid #ccc;
+}
+.searchSortBox.hidden{
+    display:none;
+}
+.searchContent .searchSortBox li {
+  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  display: block;
+  padding: 15px;
+  font-size: 14px;
+  letter-spacing: 1px;
+  cursor: pointer;
+}
+.searchContent .searchSortBox li:hover {
+  background-color: #e0e0e0;
+}
+
+.searchContent .searchSortBox li .unselected {
+  color: #ccc;
+}
+
+.interface-hebrew .searchContent .searchSortBox li {
+  font-family: "Open Sans Hebrew", sans-serif;
+  padding: 10px 15px 10px 0;
+}
+.searchContent .searchResultsOverlay {
+  opacity: 0.5;
+}
 .searchContent .searchFilterCategoryBox,
 .searchContent .searchFilterBookBox {
+  padding-top: 10px;
   width: 50%;
   height: 150px;
   overflow-y: auto;
@@ -3291,7 +3361,7 @@ a.button.white {
   width: 100%;
   text-align: center;
   display: block;
-  margin: 0 0 6px 0;
+  margin: 0 0 10px 0;
 }
 a .button:hover {
   text-decoration: none;
