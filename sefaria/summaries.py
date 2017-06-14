@@ -417,8 +417,9 @@ def build_cat_obj_tree():
     Build Category object tree from stored Category objects
     :return:
     """
+    SEPERATOR = "/"
     cs = CategorySet()
-    cat_trie = trie.CharTrie({"/".join(c.path): c for c in cs})
+    cat_trie = trie.CharTrie({SEPERATOR.join(c.path): c for c in cs})
 
     def _recurse_cat_trie(parent, parentkey=None):
         """
@@ -428,7 +429,7 @@ def build_cat_obj_tree():
         :return:
         """
         try:
-            next_cats = cat_trie.items(parentkey + "/", shallow=True) if parentkey is not None else cat_trie.items(shallow=True)
+            next_cats = cat_trie.items(parentkey + SEPERATOR, shallow=True) if parentkey is not None else cat_trie.items(shallow=True)
         except KeyError:
             return
         for key, cat in sorted(next_cats, key=lambda c: c[1].order):
