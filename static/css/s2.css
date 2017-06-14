@@ -1480,7 +1480,6 @@ a.readerNavCategory {
     border-color: #212E50;
     background-color: #212E50;
 }
-
 .searchContentFrame h1 {
   direction: ltr;
   height: 40px;
@@ -1492,7 +1491,6 @@ a.readerNavCategory {
   font-family: "Taamey Frank", "Times New Roman", serif;
   font-size: 30px;
 }
-
 .searchContent {
   padding: 0 10px 100px;
 }
@@ -1501,7 +1499,6 @@ a.readerNavCategory {
   margin-bottom: 30px;
   position: relative;
 }
-
 .searchContent .searchTopMatter.loading {
   border-bottom: none;
 }
@@ -3228,6 +3225,14 @@ a.readerNavCategory {
 .systemPanel.readerNavMenu h1 .he {
   font-family: "Open Sans Hebrew", sans-serif;
 }
+.systemPanel.readerNavMenu h1 .button {
+  position: absolute;
+  right: 0;
+  top: 0;
+  padding: 0;
+  margin: 0;
+  line-height: 26px;
+}
 .notificationsPanel a {
   color: #333;
 }
@@ -3775,6 +3780,9 @@ h2.splitHeader .he {
   font-style: italic;
   color: #999;
   margin-bottom: 18px;
+}
+.noteListing .segment {
+  display: block;
 }
 .noteListing .note {
   font-size: 18px;

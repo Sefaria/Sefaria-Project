@@ -769,6 +769,8 @@ var ReaderApp = React.createClass({
       this.showMySheets();
     } else if (path == "my/groups") {
       this.showMyGroups();
+    } else if (path == "my/notes") {
+      this.showMyNotes();
     } else if (Sefaria.isRef(path)) {
       this.openPanel(Sefaria.humanRef(path));
     }
@@ -1156,6 +1158,10 @@ var ReaderApp = React.createClass({
   },
   showMyGroups: function() {
     var updates = {menuOpen: "myGroups"};
+    this.setStateInHeaderOrSinglePanel(updates);
+  },
+  showMyNotes: function() {
+    var updates = {menuOpen: "myNotes"};
     this.setStateInHeaderOrSinglePanel(updates);
   },
   setStateInHeaderOrSinglePanel: function(state) {
@@ -9345,14 +9351,14 @@ var AccountPanel = React.createClass({
     var width = typeof window !== "undefined" ? $(window).width() : 1000;
     var accountContent = [
       (<BlockLink interfaceLink={true} target="/my/profile" title="Profile" heTitle="פרופיל" image="/static/img/profile.svg" />),
-      (<BlockLink interfaceLink={true} target="/sheets/private" inAppLink={true} title="Source Sheets" heTitle="דפי מקורות" image="/static/img/sheet.svg" />),
+      (<BlockLink interfaceLink={true} target="/sheets/private" inAppLink={true} title="Sheets" heTitle="דפי מקורות" image="/static/img/sheet.svg" />),
+      (<BlockLink interfaceLink={true} target="/my/notes" inAppLink={true} title="Notes" heTitle="הערות" image="/static/img/tools-write-note.svg" />),
       (<BlockLink interfaceLink={true} target="/my/groups" inAppLink={true} title="Groups" heTitle="קבוצות" image="/static/img/group.svg" />),
       (<BlockLink interfaceLink={true} target="/texts/recent" title="Reading History" heTitle="היסטורית קריאה" image="/static/img/readinghistory.svg" />),
       (<BlockLink interfaceLink={true} target="/settings/account" title="Settings" heTitle="הגדרות" image="/static/img/settings.svg" />),
-      (<BlockLink interfaceLink={true} target="/logout" title="Log Out" heTitle="ניתוק" image="/static/img/logout.svg" />)
     ];
     accountContent = (<TwoOrThreeBox content={accountContent} width={width} />);
-
+ 
     var learnContent = [
       (<BlockLink interfaceLink={true} target="/about" title="About" heTitle="אודות" />),
       (<BlockLink interfaceLink={true} target="/help" title="Help" heTitle="עזרה" />),
@@ -9394,6 +9400,10 @@ var AccountPanel = React.createClass({
         <div className="content hasFooter">
           <div className="contentInner">
             <h1>
+              <a href="/logout" className="button transparent">
+                <span className="int-en">Log Out</span>
+                <span className="int-he">ניתוק</span>
+              </a>
               <span className="int-en">Account</span>
               <span className="int-he">חשבון משתמש</span>
             </h1>

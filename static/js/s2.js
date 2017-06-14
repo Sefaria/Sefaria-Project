@@ -787,6 +787,8 @@ var ReaderApp = React.createClass({
       this.showMySheets();
     } else if (path == "my/groups") {
       this.showMyGroups();
+    } else if (path == "my/notes") {
+      this.showMyNotes();
     } else if (Sefaria.isRef(path)) {
       this.openPanel(Sefaria.humanRef(path));
     }
@@ -1177,6 +1179,10 @@ var ReaderApp = React.createClass({
   },
   showMyGroups: function showMyGroups() {
     var updates = { menuOpen: "myGroups" };
+    this.setStateInHeaderOrSinglePanel(updates);
+  },
+  showMyNotes: function showMyNotes() {
+    var updates = { menuOpen: "myNotes" };
     this.setStateInHeaderOrSinglePanel(updates);
   },
   setStateInHeaderOrSinglePanel: function setStateInHeaderOrSinglePanel(state) {
@@ -9955,7 +9961,7 @@ var AddToSourceSheetBox = React.createClass({
       ) : null,
       React.createElement(
         'div',
-        { className: 'button noselect', onClick: this.addToSourceSheet },
+        { className: 'button noselect fillWidth', onClick: this.addToSourceSheet },
         React.createElement(
           'span',
           { className: 'int-en noselect' },
@@ -11774,7 +11780,7 @@ var AccountPanel = React.createClass({
   },
   render: function render() {
     var width = typeof window !== "undefined" ? $(window).width() : 1000;
-    var accountContent = [React.createElement(BlockLink, { interfaceLink: true, target: '/my/profile', title: 'Profile', heTitle: '\u05E4\u05E8\u05D5\u05E4\u05D9\u05DC', image: '/static/img/profile.svg' }), React.createElement(BlockLink, { interfaceLink: true, target: '/sheets/private', inAppLink: true, title: 'Source Sheets', heTitle: '\u05D3\u05E4\u05D9 \u05DE\u05E7\u05D5\u05E8\u05D5\u05EA', image: '/static/img/sheet.svg' }), React.createElement(BlockLink, { interfaceLink: true, target: '/my/groups', inAppLink: true, title: 'Groups', heTitle: '\u05E7\u05D1\u05D5\u05E6\u05D5\u05EA', image: '/static/img/group.svg' }), React.createElement(BlockLink, { interfaceLink: true, target: '/texts/recent', title: 'Reading History', heTitle: '\u05D4\u05D9\u05E1\u05D8\u05D5\u05E8\u05D9\u05EA \u05E7\u05E8\u05D9\u05D0\u05D4', image: '/static/img/readinghistory.svg' }), React.createElement(BlockLink, { interfaceLink: true, target: '/settings/account', title: 'Settings', heTitle: '\u05D4\u05D2\u05D3\u05E8\u05D5\u05EA', image: '/static/img/settings.svg' }), React.createElement(BlockLink, { interfaceLink: true, target: '/logout', title: 'Log Out', heTitle: '\u05E0\u05D9\u05EA\u05D5\u05E7', image: '/static/img/logout.svg' })];
+    var accountContent = [React.createElement(BlockLink, { interfaceLink: true, target: '/my/profile', title: 'Profile', heTitle: '\u05E4\u05E8\u05D5\u05E4\u05D9\u05DC', image: '/static/img/profile.svg' }), React.createElement(BlockLink, { interfaceLink: true, target: '/sheets/private', inAppLink: true, title: 'Sheets', heTitle: '\u05D3\u05E4\u05D9 \u05DE\u05E7\u05D5\u05E8\u05D5\u05EA', image: '/static/img/sheet.svg' }), React.createElement(BlockLink, { interfaceLink: true, target: '/my/notes', inAppLink: true, title: 'Notes', heTitle: '\u05D4\u05E2\u05E8\u05D5\u05EA', image: '/static/img/tools-write-note.svg' }), React.createElement(BlockLink, { interfaceLink: true, target: '/my/groups', inAppLink: true, title: 'Groups', heTitle: '\u05E7\u05D1\u05D5\u05E6\u05D5\u05EA', image: '/static/img/group.svg' }), React.createElement(BlockLink, { interfaceLink: true, target: '/texts/recent', title: 'Reading History', heTitle: '\u05D4\u05D9\u05E1\u05D8\u05D5\u05E8\u05D9\u05EA \u05E7\u05E8\u05D9\u05D0\u05D4', image: '/static/img/readinghistory.svg' }), React.createElement(BlockLink, { interfaceLink: true, target: '/settings/account', title: 'Settings', heTitle: '\u05D4\u05D2\u05D3\u05E8\u05D5\u05EA', image: '/static/img/settings.svg' })];
     accountContent = React.createElement(TwoOrThreeBox, { content: accountContent, width: width });
 
     var learnContent = [React.createElement(BlockLink, { interfaceLink: true, target: '/about', title: 'About', heTitle: '\u05D0\u05D5\u05D3\u05D5\u05EA' }), React.createElement(BlockLink, { interfaceLink: true, target: '/help', title: 'Help', heTitle: '\u05E2\u05D6\u05E8\u05D4' }), React.createElement(BlockLink, { interfaceLink: true, target: 'http://blog.sefaria.org', title: 'Blog', heTitle: '\u05D1\u05DC\u05D5\u05D2' }), React.createElement(BlockLink, { interfaceLink: true, target: '/faq', title: 'FAQ', heTitle: '\u05E9\u05D0\u05DC\u05D5\u05EA \u05E0\u05E4\u05D5\u05E6\u05D5\u05EA' }), React.createElement(BlockLink, { interfaceLink: true, target: '/educators', title: 'Educators', heTitle: '\u05DE\u05D7\u05E0\u05DB\u05D9\u05DD' }), React.createElement(BlockLink, { interfaceLink: true, target: '/team', title: 'Team', heTitle: '\u05E6\u05D5\u05D5\u05EA' })];
@@ -11806,6 +11812,20 @@ var AccountPanel = React.createClass({
           React.createElement(
             'h1',
             null,
+            React.createElement(
+              'a',
+              { href: '/logout', className: 'button transparent' },
+              React.createElement(
+                'span',
+                { className: 'int-en' },
+                'Log Out'
+              ),
+              React.createElement(
+                'span',
+                { className: 'int-he' },
+                '\u05E0\u05D9\u05EA\u05D5\u05E7'
+              )
+            ),
             React.createElement(
               'span',
               { className: 'int-en' },
