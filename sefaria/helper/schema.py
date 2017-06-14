@@ -178,6 +178,47 @@ def merge_default_into_parent(parent_node):
     handle_dependant_indices(index.title)
 
 
+# todo: Can we share code with this method and the next?
+def convert_jagged_array_to_schema_with_default(ja_node):
+    from sefaria.model.schema import TitleGroup
+
+    assert isinstance(ja_node, JaggedArrayNode)
+    assert len(ja_node.children) == 0
+    parent = ja_node.parent
+    assert parent, "Use convert_simple_index_to_complex instead."
+    assert isinstance(parent, SchemaNode)
+    index = ja_node.index
+
+    vs = [v for v in index.versionSet()]
+    for v in vs:
+        assert isinstance(v, Version)
+        old_parent_content = v.content_node(parent)
+        content = old_parent_content.pop(ja_node.key) # Pop old JA content off
+        old_parent_content[ja_node.key] = {"default": content} # Re-add it as a default node
+        v.save(override_dependencies=True)
+
+    # Find place of ja_node in parent's children
+    index_of_ja_node = parent.children.index(ja_node)
+
+    # Build new schema
+    new_parent = SchemaNode()
+    new_parent.title_group = ja_node.title_group
+    new_parent.key = ja_node.key
+    ja_node.title_group = TitleGroup()
+    ja_node.key = "default"
+    ja_node.default = True
+
+    # Rework the family tree
+    new_parent.append(ja_node)
+    parent.children[index_of_ja_node] = new_parent
+    new_parent.parent = parent
+
+    index.save(override_dependencies=True)
+    library.rebuild()
+    refresh_version_state(index.title)
+    handle_dependant_indices(index.title)
+
+
 def convert_simple_index_to_complex(index):
     """
     The target complex text will have a 'default' node.
@@ -235,7 +276,7 @@ def change_parent(node, new_parent, place=0):
     linkset = [l for l in node.ref().linkset()]
 
     vs = [v for v in index.versionSet()]
-    for v in vs + vsc:
+    for v in vs:
         assert isinstance(v, Version)
         old_parent_content = v.content_node(old_parent)
         content = old_parent_content.pop(node.key)
