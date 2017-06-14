@@ -7267,10 +7267,13 @@ var TextList = React.createClass({
                     (<LoadingMessage />) : 
                     links.map(function(link, i) {
                         var hideTitle = link.category === "Commentary" && this.props.filter[0] !== "Commentary";
+                        var anchorRefs = Sefaria.splitSpanningRef(link.anchorRef);
+                        var lowlight = anchorRefs.every(aref => Sefaria.util.inArray(aref, refs) === -1);
+                        Sefaria.util.inArray(link.anchorRef, refs) === -1;
                         return (<TextRange 
                                     sref={link.sourceRef}
                                     key={i + link.sourceRef}
-                                    lowlight={Sefaria.util.inArray(link.anchorRef, refs) === -1}
+                                    lowlight={lowlight}
                                     hideTitle={hideTitle}
                                     numberLabel={link.category === "Commentary" ? link.anchorVerse : 0}
                                     basetext={false}
