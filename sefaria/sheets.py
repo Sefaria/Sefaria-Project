@@ -251,15 +251,17 @@ def is_valid_source(source):
 	return True
 
 
-def add_source_to_sheet(id, source):
+def add_source_to_sheet(id, source, note=None):
 	"""
 	Add source to sheet 'id'.
 	Source is a dictionary that includes one of the following:
 		'ref' (indicating a source)
 		'outsideText' (indicating a single language outside text)
 		'outsideBiText' (indicating a bilingual outside text)
-		'comment' (indicating a comment)
+	    'comment' (indicating a comment)
 		'media' (indicating a media object)
+	if string `note` is present, add it as a coment immediately after the source. 
+		pass
 	"""
 	if not is_valid_source(source):
 		return {"error": "Malformed source could not be added to sheet"}
@@ -268,6 +270,8 @@ def add_source_to_sheet(id, source):
 		return {"error": "No sheet with id %s." % (id)}
 	sheet["dateModified"] = datetime.now().isoformat()
 	sheet["sources"].append(source)
+	if note:
+		sheet["sources"].append({"outsideText": note, "options": {"indented": "indented-1"}})
 	db.sheets.save(sheet)
 	return {"status": "ok", "id": id, "source": source}
 

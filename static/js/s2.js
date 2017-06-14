@@ -9751,7 +9751,8 @@ var AddToSourceSheetWindow = React.createClass({
     srefs: React.PropTypes.array,
     close: React.PropTypes.func,
     en: React.PropTypes.string,
-    he: React.PropTypes.string
+    he: React.PropTypes.string,
+    note: React.PropTypes.string
   },
   close: function close() {
     if (this.props.close) {
@@ -9783,7 +9784,8 @@ var AddToSourceSheetWindow = React.createClass({
       Sefaria.loggedIn ? React.createElement(AddToSourceSheetBox, {
         srefs: this.props.srefs,
         en: this.props.en,
-        he: this.props.he
+        he: this.props.he,
+        note: this.props.note
       }) : null
     );
   }
@@ -9801,7 +9803,8 @@ var AddToSourceSheetBox = React.createClass({
     addToSourceSheet: React.PropTypes.func,
     fullPanel: React.PropTypes.bool,
     en: React.PropTypes.string,
-    he: React.PropTypes.string
+    he: React.PropTypes.string,
+    note: React.PropTypes.string
   },
   getInitialState: function getInitialState() {
     return {
@@ -9879,7 +9882,11 @@ var AddToSourceSheetBox = React.createClass({
           source.outsideText = this.props.en || this.props.he;
         }
       }
-      $.post(url, { source: JSON.stringify(source) }, this.confirmAdd);
+      var postData = { source: JSON.stringify(source) };
+      if (this.props.note) {
+        postData.note = this.props.note;
+      }
+      $.post(url, postData, this.confirmAdd);
     }
   },
   createSheet: function createSheet(refs) {
@@ -12207,6 +12214,7 @@ var NoteListing = React.createClass({
         null,
         React.createElement(AddToSourceSheetWindow, {
           srefs: [data.ref],
+          note: data.text,
           close: this.hideSheetModal }),
         React.createElement('div', { className: 'mask', onClick: this.hideSheetModal })
       ) : null

@@ -7741,7 +7741,8 @@ var AddToSourceSheetWindow = React.createClass({
     srefs:        React.PropTypes.array,
     close:        React.PropTypes.func,
     en:           React.PropTypes.string,
-    he:           React.PropTypes.string
+    he:           React.PropTypes.string,
+    note:         React.PropTypes.string,
   },
   close: function () {
     if (this.props.close) {
@@ -7764,6 +7765,7 @@ var AddToSourceSheetWindow = React.createClass({
           srefs = {this.props.srefs}
           en = {this.props.en}
           he = {this.props.he}
+          note = {this.props.note}
         /> : null }
       </div>);
   }
@@ -7780,7 +7782,8 @@ var AddToSourceSheetBox = React.createClass({
     addToSourceSheet:   React.PropTypes.func,
     fullPanel:          React.PropTypes.bool,
     en:                 React.PropTypes.string,
-    he:                 React.PropTypes.string
+    he:                 React.PropTypes.string,
+    note:               React.PropTypes.string
   },
   getInitialState: function() {
     return {
@@ -7852,7 +7855,11 @@ var AddToSourceSheetBox = React.createClass({
           source.outsideText = this.props.en || this.props.he;
         }
       }
-      $.post(url, {source: JSON.stringify(source)}, this.confirmAdd);
+      var postData = {source: JSON.stringify(source)};
+      if (this.props.note) {
+        postData.note = this.props.note;
+      }
+      $.post(url, postData, this.confirmAdd);
     }
   },
   createSheet: function(refs) {
@@ -9699,6 +9706,7 @@ var NoteListing = React.createClass({
                 <div>
                   <AddToSourceSheetWindow 
                     srefs={[data.ref]}
+                    note={data.text}
                     close={this.hideSheetModal} />
                   <div className="mask" onClick={this.hideSheetModal}></div>
                 </div>
