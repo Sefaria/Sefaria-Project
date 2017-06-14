@@ -17,7 +17,7 @@ def visit_structure(treenode, callback, order=None, **kwargs):
     if treenode.children:
         for i, node in enumerate(treenode.children):
             visit_structure(node, callback, i, **kwargs)
-        if order:  # skip root
+        if order is not None:  # skip root
             callback(treenode, order, **kwargs)
 
 
@@ -27,7 +27,6 @@ def create_category(treenode, order):
     c.order = order + 1
     c.path = treenode.full_path
     c.save()
-
 
 
 toctree = library.get_toc_objects()

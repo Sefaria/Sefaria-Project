@@ -9,6 +9,7 @@ from sefaria.utils.hebrew import hebrew_term
 from model import *
 import logging
 logger = logging.getLogger(__name__)
+import pygtrie as trie
 
 # Giant list ordering or categories
 # indentation and inclusion of duplicate categories (like "Seder Moed")
@@ -395,15 +396,52 @@ def flatten_toc(toc, include_categories=False, categories_in_titles=False, versi
 
 
 
-""" Sketch toward object oriented TOC """
+""" Object Oriented TOC """
 
 
 def toc_serial_to_objects(toc):
+    """
+    Build TOC object tree from serial representation
+    :param toc: Serialized TOC
+    :return:
+    """
     root = TocCategory()
-    root.add_title("TOC", "en", primary=True)
-    root.add_title(u"שרש", "he", primary=True)
+    root.add_primary_titles("TOC", u"שרש")
     for e in toc:
         root.append(deserialize_tree(e, struct_class=TocCategory, leaf_class=TocTextIndex, children_attr="contents"))
+    return root
+
+
+def build_cat_obj_tree():
+    """
+    Build Category object tree from stored Category objects
+    :return:
+    """
+    cs = CategorySet()
+    cat_trie = trie.CharTrie({"/".join(c.path): c for c in cs})
+
+    def _recurse_cat_trie(parent, parentkey=None):
+        """
+        Build a TocCategory tree out of a category Trie
+        :param parent: TocCategory
+        :param parentkey: String
+        :return:
+        """
+        try:
+            next_cats = cat_trie.items(parentkey + "/", shallow=True) if parentkey is not None else cat_trie.items(shallow=True)
+        except KeyError:
+            return
+        for key, cat in sorted(next_cats, key=lambda c: c[1].order):
+            tc = TocCategory()
+            tc.add_primary_titles(cat.get_primary_title("en"), cat.get_primary_title("he"))
+            parent.append(tc)
+            _recurse_cat_trie(tc, key)
+
+    root = TocCategory()
+    root.add_primary_titles("TOC", u"שרש")
+
+    _recurse_cat_trie(root)
+
     return root
 
 
