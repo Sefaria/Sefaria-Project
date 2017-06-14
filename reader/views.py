@@ -1247,6 +1247,7 @@ def search(request):
 def interface_language_redirect(request, language):
     """Set the interfaceLang cooki"""
     next = request.GET.get("next", "/?home")
+    next = "/?home" if next == "undefined" else next
     response = redirect(next)
     response.set_cookie("interfaceLang", language)
     if request.user.is_authenticated():

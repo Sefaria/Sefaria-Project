@@ -1640,7 +1640,8 @@ Sefaria = extend(Sefaria, {
               o["query"] = {
                   "function_score": {
                       "field_value_factor": {
-                          "field": "pagesheetrank"
+                          "field": "pagesheetrank",
+                          "missing": 0.04     // this default value comes from the equation used to calculate pagesheetrank. see search.py where this field is created
                       }
                   }
               }

@@ -2353,6 +2353,7 @@ var ReaderPanel = React.createClass({
         showBaseText: this.showBaseText });
     } else if (this.state.menuOpen === "search" && this.state.searchQuery) {
       var menu = React.createElement(SearchPage, {
+        interfaceLang: this.props.interfaceLang,
         query: this.state.searchQuery,
         appliedFilters: this.state.appliedSearchFilters,
         settings: Sefaria.util.clone(this.state.settings),
@@ -10370,6 +10371,7 @@ var SearchPage = React.createClass({
   displayName: 'SearchPage',
 
   propTypes: {
+    interfaceLang: React.PropTypes.string,
     query: React.PropTypes.string,
     appliedFilters: React.PropTypes.array,
     settings: React.PropTypes.object,
@@ -10436,6 +10438,7 @@ var SearchPage = React.createClass({
               'div',
               { className: 'searchContent', style: style },
               React.createElement(SearchResultList, {
+                interfaceLang: this.props.interfaceLang,
                 query: this.props.query,
                 appliedFilters: this.props.appliedFilters,
                 onResultClick: this.props.onResultClick,
@@ -10506,6 +10509,7 @@ var SearchResultList = React.createClass({
   displayName: 'SearchResultList',
 
   propTypes: {
+    interfaceLang: React.PropTypes.string,
     query: React.PropTypes.string,
     appliedFilters: React.PropTypes.array,
     onResultClick: React.PropTypes.func,
@@ -11015,6 +11019,7 @@ var SearchResultList = React.createClass({
     var haveResults = !!results.length;
     results = haveResults ? results : noResultsMessage;
     var searchFilters = React.createElement(SearchFilters, {
+      interfaceLang: this.props.interfaceLang,
       query: this.props.query,
       total: this.state.totals["text"] + this.state.totals["sheet"],
       textTotal: this.state.totals["text"],
@@ -11056,6 +11061,7 @@ var SearchFilters = React.createClass({
   displayName: 'SearchFilters',
 
   propTypes: {
+    interfaceLang: React.PropTypes.string,
     query: React.PropTypes.string,
     total: React.PropTypes.number,
     textTotal: React.PropTypes.number,
@@ -11220,6 +11226,7 @@ var SearchFilters = React.createClass({
     });
 
     var sort_panel = React.createElement(SearchSortBox, {
+      interfaceLang: this.props.interfaceLang,
       visible: this.props.displaySort,
       toggleSortView: this.props.toggleSortView,
       updateAppliedOptionSort: this.props.updateAppliedOptionSort,
@@ -11339,6 +11346,7 @@ var SearchSortBox = React.createClass({
   displayName: 'SearchSortBox',
 
   propTypes: {
+    interfaceLang: React.PropTypes.string,
     visible: React.PropTypes.bool,
     toggleSortView: React.PropTypes.func,
     updateAppliedOptionSort: React.PropTypes.func,
@@ -11376,6 +11384,7 @@ var SearchSortBox = React.createClass({
 
     var chronoClass = classNames({ 'filter-title': 1, 'unselected': this.props.sortType !== "chronological" });
     var releClass = classNames({ 'filter-title': 1, 'unselected': this.props.sortType !== "relevance" });
+    var searchSortBoxClass = this.props.interfaceLang === "english" ? "searchSortBox en" : "searchSortBox he";
     return React.createElement(
       'div',
       null,
@@ -11396,7 +11405,7 @@ var SearchSortBox = React.createClass({
       ),
       React.createElement(
         'div',
-        { className: this.props.visible ? "searchSortBox" : "searchSortBox hidden" },
+        { className: this.props.visible ? searchSortBoxClass : "searchSortBox hidden" },
         React.createElement(
           'li',
           { onClick: function onClick() {
