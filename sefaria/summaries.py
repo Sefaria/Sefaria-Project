@@ -9,7 +9,6 @@ from sefaria.utils.hebrew import hebrew_term
 from model import *
 import logging
 logger = logging.getLogger(__name__)
-import pygtrie as trie
 
 # Giant list ordering or categories
 # indentation and inclusion of duplicate categories (like "Seder Moed")
@@ -412,50 +411,68 @@ def toc_serial_to_objects(toc):
     return root
 
 
-class TocTree():
+class TocTree(object):
     SEPARATOR = "/"
 
     def __init__(self):
-        self._root = None
-        self._path_hash = {}
-
-        # Build Category object tree from stored Category objects
-        cs = CategorySet()
-        self._cat_trie = trie.CharTrie({self.SEPARATOR.join(c.path): c for c in cs})
         self._root = TocCategory()
         self._root.add_primary_titles("TOC", u"שרש")
-        self._recurse_cat_trie(self._root)
+        self._path_hash = {}
+        self._sparseness_lookup = get_sparesness_lookup()  # todo: move into object
 
-    def _recurse_cat_trie(self, parent, parentkey=None):
-        """
-        Build a TocCategory tree out of a category Trie
-        :param parent: TocCategory
-        :param parentkey: String
-        :return:
-        """
-        if parentkey is None:
-            next_cats = self._cat_trie.items(shallow=True)
-        else:
+        # Build Category object tree from stored Category objects
+        cs = sorted(CategorySet(), key=lambda c: len(c.path))
+        for c in cs:
+            self._add_category(c)
+
+        # Place Indexes
+        for i in IndexSet():
+            node = self._make_index_node(i)
             try:
-                next_cats = self._cat_trie.items(parentkey + self.SEPARATOR, shallow=True)
+                cat = self.lookup_category(i.categories)
             except KeyError:
-                return
-        for key, cat in sorted(next_cats, key=lambda c: c[1].order):
-            tc = TocCategory()
-            tc.add_primary_titles(cat.get_primary_title("en"), cat.get_primary_title("he"))
-            parent.append(tc)
-            self._path_hash[tuple(cat.path)] = tc
-            self._recurse_cat_trie(tc, key)
+                print u"Failed to find category for {}".format(i.categories)
+                continue
+            cat.append(node)
+
+        self._sort()
+
+    def _sort(self):
+        def key_method(node):
+            if isinstance(node, TocCategory):
+                return getattr(node, "order", 1)  # First, already sorted
+            else:
+                return 100 + getattr(node, "order",  # Explicitly ordered Indexes
+                                     1000 - getattr(node, "sparseness", 1))  # Least sparse to most sparse
+
+        for cat in self._path_hash.values():  # iterate all categories
+            cat.children.sort(key=key_method)
+
+    def _make_index_node(self, index):
+        d = index.toc_contents()
+        d["sparseness"] = self._sparseness_lookup[d["title"]]
+        return TocTextIndex(d)
+
+    def _add_category(self, cat):
+        tc = TocCategory()
+        tc.add_primary_titles(cat.get_primary_title("en"), cat.get_primary_title("he"))
+        parent = self._path_hash[tuple(cat.path[:-1])] if len(cat.path[:-1]) else self._root
+        parent.append(tc)
+        self._path_hash[tuple(cat.path)] = tc
 
     def get_toc_tree(self):
         return self._root
 
+    #todo: Get rid of the special case for "other", by placing it in the Index's category lists
     def lookup_category(self, cat_path):
         """
         :param cat_path: A list of tuple of the path to this category
         :return:
         """
-        return self._path_hash[tuple(cat_path)]
+        try:
+            return self._path_hash[tuple(cat_path)]
+        except KeyError:
+            return self._path_hash[tuple(["Other"] + cat_path)]
 
 
 

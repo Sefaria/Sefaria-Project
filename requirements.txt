@@ -28,6 +28,5 @@ google-api-python-client==1.5.0
 boto3
 pillow
 datrie
-pygtrie
 deepdiff
 Appium-Python-Client

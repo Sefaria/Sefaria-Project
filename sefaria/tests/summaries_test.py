@@ -200,3 +200,18 @@ class Test_OO_Toc(object):
         # that the round-trip didn't change anything by reference that would poison the deep test
         new_json = json.dumps(rt_toc, sort_keys=True)
         assert len(base_json) == len(new_json)
+
+    @pytest.mark.failing
+    def test_compare_db_toc_and_derived_toc(self):
+        base_toc = model.library.get_toc()
+        base_json = json.dumps(base_toc, sort_keys=True)
+        oo_toc = s.TocTree()
+        serialized_toc = oo_toc.get_toc_tree().serialize()["contents"]
+
+        # Deep test of toc lists
+        assert not DeepDiff(base_toc, serialized_toc)
+
+        # Check that the json is identical -
+        # that the round-trip didn't change anything by reference that would poison the deep test
+        new_json = json.dumps(serialized_toc, sort_keys=True)
+        assert len(base_json) == len(new_json)
