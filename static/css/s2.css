@@ -1554,7 +1554,7 @@ a.readerNavCategory {
 }
 .searchContent .searchFilterToggle img {
   opacity: 0.43;
-  padding-left: 5px;
+  padding: 0 5px;
   height: 10px;
   width: 10px;
 }
@@ -1649,13 +1649,21 @@ a.readerNavCategory {
     background: white;
     width: auto;
     position: absolute;
-    right: 0;
     z-index: 1;
     -webkit-border-radius: 7px;
     -moz-border-radius: 7px;
     border-radius: 7px;
     border: 1px solid #ccc;
 }
+
+.interface-english .searchSortBox {
+  right: 0;
+}
+
+.interface-hebrew .searchSortBox {
+  left: 0;
+}
+
 .searchSortBox.hidden{
     display:none;
 }
@@ -1677,7 +1685,11 @@ a.readerNavCategory {
 
 .interface-hebrew .searchContent .searchSortBox li {
   font-family: "Open Sans Hebrew", sans-serif;
-  padding: 10px 15px 10px 0;
+  display: block;
+  padding: 15px;
+  font-size: 14px;
+  letter-spacing: 1px;
+  cursor: pointer;
 }
 .searchContent .searchResultsOverlay {
   opacity: 0.5;

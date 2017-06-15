@@ -10258,8 +10258,16 @@ var SearchResultList = React.createClass({
       sort_type: this.props.sortType,
       error: function error() {},
       success: function (data) {
-        var hitArray = type == "text" ? this._process_text_hits(data.hits.hits) : data.hits.hits;
-        var nextHits = this._remove_duplicate_text_hits(currentHits.concat(hitArray));
+        var nextHits;
+        if (type === "text") {
+          var hitArray = this._process_text_hits(data.hits.hits);
+          nextHits = this._remove_duplicate_text_hits(currentHits.concat(hitArray));
+        } else {
+          nextHits = currentHits.concat(data.hits.hits);
+        }
+
+        //var hitArray = (type == "text")?this._process_text_hits(data.hits.hits):data.hits.hits;
+        //var nextHits = this._remove_duplicate_text_hits(currentHits.concat(hitArray));
         this.state.hits[type] = nextHits;
 
         this.setState({ hits: this.state.hits });
