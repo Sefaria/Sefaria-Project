@@ -412,38 +412,51 @@ def toc_serial_to_objects(toc):
     return root
 
 
-def build_cat_obj_tree():
-    """
-    Build Category object tree from stored Category objects
-    :return:
-    """
-    SEPERATOR = "/"
-    cs = CategorySet()
-    cat_trie = trie.CharTrie({SEPERATOR.join(c.path): c for c in cs})
+class TocTree():
+    SEPARATOR = "/"
 
-    def _recurse_cat_trie(parent, parentkey=None):
+    def __init__(self):
+        self._root = None
+        self._path_hash = {}
+
+        # Build Category object tree from stored Category objects
+        cs = CategorySet()
+        self._cat_trie = trie.CharTrie({self.SEPARATOR.join(c.path): c for c in cs})
+        self._root = TocCategory()
+        self._root.add_primary_titles("TOC", u"שרש")
+        self._recurse_cat_trie(self._root)
+
+    def _recurse_cat_trie(self, parent, parentkey=None):
         """
         Build a TocCategory tree out of a category Trie
         :param parent: TocCategory
         :param parentkey: String
         :return:
         """
-        try:
-            next_cats = cat_trie.items(parentkey + SEPERATOR, shallow=True) if parentkey is not None else cat_trie.items(shallow=True)
-        except KeyError:
-            return
+        if parentkey is None:
+            next_cats = self._cat_trie.items(shallow=True)
+        else:
+            try:
+                next_cats = self._cat_trie.items(parentkey + self.SEPARATOR, shallow=True)
+            except KeyError:
+                return
         for key, cat in sorted(next_cats, key=lambda c: c[1].order):
             tc = TocCategory()
             tc.add_primary_titles(cat.get_primary_title("en"), cat.get_primary_title("he"))
             parent.append(tc)
-            _recurse_cat_trie(tc, key)
+            self._path_hash[tuple(cat.path)] = tc
+            self._recurse_cat_trie(tc, key)
 
-    root = TocCategory()
-    root.add_primary_titles("TOC", u"שרש")
+    def get_toc_tree(self):
+        return self._root
 
-    _recurse_cat_trie(root)
+    def lookup_category(self, cat_path):
+        """
+        :param cat_path: A list of tuple of the path to this category
+        :return:
+        """
+        return self._path_hash[tuple(cat_path)]
 
-    return root
 
 
 class TocNode(TitledTreeNode):
