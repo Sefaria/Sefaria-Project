@@ -10998,7 +10998,6 @@ var SearchSortBox = React.createClass({
 
     var chronoClass = classNames({ 'filter-title': 1, 'unselected': this.props.sortType !== "chronological" });
     var releClass = classNames({ 'filter-title': 1, 'unselected': this.props.sortType !== "relevance" });
-    var searchSortBoxClass = this.props.interfaceLang === "english" ? "searchSortBox en" : "searchSortBox he";
     return React.createElement(
       'div',
       null,
@@ -11019,7 +11018,7 @@ var SearchSortBox = React.createClass({
       ),
       React.createElement(
         'div',
-        { className: this.props.visible ? searchSortBoxClass : "searchSortBox hidden" },
+        { className: this.props.visible ? "searchSortBox" : "searchSortBox hidden" },
         React.createElement(
           'li',
           { onClick: function onClick() {

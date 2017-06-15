@@ -8760,7 +8760,6 @@ var SearchSortBox = React.createClass({
   render: function() {
     var chronoClass = classNames({'filter-title': 1, 'unselected': this.props.sortType !== "chronological"});
     var releClass = classNames({'filter-title': 1, 'unselected': this.props.sortType !== "relevance"});
-    var searchSortBoxClass = (this.props.interfaceLang === "english") ? "searchSortBox en" : "searchSortBox he";
     return (<div>
       <div className="searchFilterToggle" onClick={this.props.toggleSortView}>
         <span className="int-en">Sort</span>
@@ -8768,7 +8767,7 @@ var SearchSortBox = React.createClass({
         {(this.props.visible) ? <img src="/static/img/arrow-up.png" alt=""/> : <img src="/static/img/arrow-down.png" alt=""/>}
 
       </div>
-      <div className={(this.props.visible) ? searchSortBoxClass :"searchSortBox hidden"}>
+      <div className={(this.props.visible) ? "searchSortBox" :"searchSortBox hidden"}>
         <li onClick={()=>this.handleClick("chronological")}>
           <span className="int-en"><span className={chronoClass}>{"Chronological"}</span></span>
           <span className="int-he" dir="rtl"><span className={chronoClass}>{"כרונולוגי"}</span></span>

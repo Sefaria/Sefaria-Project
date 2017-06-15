@@ -1656,11 +1656,11 @@ a.readerNavCategory {
     border: 1px solid #ccc;
 }
 
-.searchSortBox.en {
+.interface-english .searchSortBox {
   right: 0;
 }
 
-.searchSortBox.he {
+.interface-hebrew .searchSortBox {
   left: 0;
 }
 
