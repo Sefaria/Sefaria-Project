@@ -511,7 +511,7 @@ body {
 
 .sheetItem {
 	position: relative;
-	padding: 32px 76px;
+	padding: 10px 76px;
 	border: solid 1px transparent;
 	border-left: solid 6px transparent;
 }
@@ -1557,7 +1557,7 @@ line-height: normal;
     text-align: center;
     width: 100%;
     padding: 0;
-    bottom: -53px;
+    bottom: -32px;
 	position: relative;
     font-size: 30px;
 	z-index: 3;
