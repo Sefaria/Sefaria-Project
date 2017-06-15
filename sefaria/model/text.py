@@ -1739,6 +1739,10 @@ class RefCacheType(type):
     def cache_size(cls):
         return len(cls.__tref_oref_map)
 
+    def cache_size_bytes(cls):
+        from sefaria.utils.util import get_size
+        return get_size(cls.__tref_oref_map)
+
     def cache_dump(cls):
         return [(a, repr(b)) for (a, b) in cls.__tref_oref_map.iteritems()]
 
