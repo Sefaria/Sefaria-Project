@@ -1244,8 +1244,14 @@ var ReaderApp = React.createClass({
     if (panelStates.length == 2 && panelStates[0].mode == "Text" && (panelStates[1].mode == "Connections" || panelStates[1].menuOpen === "compare" || panelStates[1].menuOpen === "search")) {
       widths = [68.0, 32.0];
       unit = "%";
+    } else if (panelStates.length == 3 && panelStates[0].mode == "Text" && panelStates[1].mode == "Connections" && panelStates[2].mode == "Text") {
+      widths = [37.0, 26.0, 37.0];
+      unit = "%";
+    } else if (panelStates.length == 3 && panelStates[0].mode == "Text" && panelStates[1].mode == "Text" && panelStates[2].mode == "Connections") {
+      widths = [37.0, 37.0, 26.0];
+      unit = "%";
     } else {
-      widths = panelStates.map(function () {
+      widths = panelStates.map(function (panel) {
         return evenWidth;
       });
     }
