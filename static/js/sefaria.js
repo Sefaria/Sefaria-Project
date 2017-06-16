@@ -1033,6 +1033,11 @@ Sefaria = extend(Sefaria, {
         }.bind(this));
     }
   },
+  clearLinks: function() {
+    this._related = {};
+    this._links = {};
+    this._linkSummaries = {};
+  },
   isACaseVariant: function(query, data) {
     // Check if query is just an improper capitalization of something that otherwise would be a ref
     // query: string

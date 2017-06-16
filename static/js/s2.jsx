@@ -1248,6 +1248,8 @@ var ReaderApp = React.createClass({
                     analyticsInitialized={this.state.initialAnalyticsTracked} />) : null;
 
     var panels = [];
+    var allOpenRefs = panelStates.filter( panel => panel.mode == "Text")
+                                  .map( panel => Sefaria.normRef(panel.highlightedRefs));
     for (var i = 0; i < panelStates.length; i++) {
       var panel                    = this.clonePanel(panelStates[i]);
       if (!("settings" in panel )) { debugger; }
@@ -1303,6 +1305,7 @@ var ReaderApp = React.createClass({
                       setUnreadNotificationsCount={this.setUnreadNotificationsCount}
                       closePanel={closePanel}
                       panelsOpen={panelStates.length}
+                      allOpenRefs={allOpenRefs}
                       masterPanelLanguage={panel.mode === "Connections" ? panelStates[i-1].settings.language : panel.settings.language}
                       layoutWidth={width}
                       analyticsInitialized={this.state.initialAnalyticsTracked}
@@ -2151,6 +2154,7 @@ var ReaderPanel = React.createClass({
           versionLanguage={this.state.versionLanguage}
           fullPanel={this.props.multiPanel}
           multiPanel={this.props.multiPanel}
+          allOpenRefs={this.props.allOpenRefs}
           addToSourceSheet={this.props.addToSourceSheet}
           canEditText={canEditText}
           setFilter={this.setFilter}
@@ -6742,12 +6746,12 @@ var ConnectionsPanel = React.createClass({
                     onDelete={this.props.setConnectionsMode.bind(null, "Notes")} />);
 
     } else if (this.props.mode === "Add Connection") {
-      var url  = "/s1?next=" + window.location.pathname;
-      var link = (<a href={url}><span className="int-en">old Sefaria</span><span className="int-he">ממשק הישן</span></a>);
-      content = (<div className="toolsMessage sans">
-                    <span className="int-en">We&apos;re still working on updating this feature for the new Sefaria. In the meantime, to add a connection please use the {link}.</span>
-                    <span className="int-he">האפשרות הזו עדיין בבניה בממשק החדש. בינתיים ניתן להשתמש ב{link}.</span>
-                  </div>);
+
+      content = <AddConnectionBox
+                    srefs={this.props.allOpenRefs}
+                    openComparePanel={this.props.openComparePanel}
+                    onSave={this.props.setConnectionsMode.bind(null, "Resources")}
+                    onCancel={this.props.setConnectionsMode.bind(null, "Resources")} />
 
     } else if (this.props.mode === "Login") {
       content = (<LoginPrompt fullPanel={this.props.fullPanel} />);
@@ -8166,7 +8170,7 @@ var Note = React.createClass({
                     </div>) : null; 
       
       var text = Sefaria.util.linkify(this.props.text);
-      text = text.replace(/\n/g, "<br>");
+      text = text.replace(/\n/g, "<br />");
 
       return (<div className="note">
                 {buttons}
@@ -8177,6 +8181,82 @@ var Note = React.createClass({
               </div>);
   }
 });
+
+
+var AddConnectionBox = React.createClass({
+  propTypes: {
+    srefs:    React.PropTypes.array.isRequired,
+    onSave:   React.PropTypes.func.isRequired,
+    onCancel: React.PropTypes.func.isRequired
+  },
+  getInitialState: function() {
+    return {
+      type: ""
+    };
+  },
+  addConnection: function() {
+    var connection = {
+      refs: this.props.srefs,
+      type: this.state.type,
+    };
+    var postData = { json: JSON.stringify(connection) };
+    var url = "/api/links/";
+    $.post(url, postData, function(data) {
+      if (data.error) {
+        alert(data.error);
+      } else {
+        Sefaria.site.track.event("Tools", "Add Connection", this.props.srefs.join("/"));
+        Sefaria.clearLinks();
+        this.props.onSave();
+      }
+    }.bind(this)).fail( function(xhr, textStatus, errorThrown) {
+      alert("Unfortunately, there was an error saving this connection. Please try again or try reloading this page.");
+    });
+    this.setState({saving: true});    
+  },
+  render: function() {
+    var heRefs = this.props.srefs.map( ref => Sefaria.ref(ref).heRef );
+    return (<div className="addConnectionBox">
+                  
+            { this.props.srefs.length == 1 ? 
+              <div>
+                <span className="int-en">Choose a text to connect.</span>
+                <span className="int-he">HEBREW NEEDED</span>
+
+                <div className="button fillWidth" onClick={this.props.openComparePanel}>
+                  <span className="int-en">Browse</span>
+                  <span className="int-he">HEBREW NEEDED</span>
+                </div>
+              </div>
+              : null }
+
+            { this.props.srefs.length > 2 ? 
+              <div>
+                <span className="int-en">We currently only understand connections between two texts.</span>
+                <span className="int-he">HEBREW NEEDED</span>
+              </div>
+              : null }
+
+            { this.props.srefs.length == 2 ? 
+              <div>
+
+                <div>
+                  <span className="en">{ this.props.srefs[0] }<br/>&<br/>{ this.props.srefs[1]}</span>
+                  <span className="he">{ heRefs[0] }<br/>&<br/>{ heRefs[1] }</span>
+                </div>
+                <div className="button fillWidth" onClick={this.addConnection}>
+                  <span className="int-en">Add Connection</span>
+                  <span className="int-he">HEBREW NEEDED</span>
+                </div>
+
+              </div>
+              : null }
+
+          </div>);  
+  }
+});
+
+
 
 
 var LoginPrompt = React.createClass({

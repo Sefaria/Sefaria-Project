@@ -1270,6 +1270,11 @@ var ReaderApp = React.createClass({
       analyticsInitialized: this.state.initialAnalyticsTracked }) : null;
 
     var panels = [];
+    var allOpenRefs = panelStates.filter(function (panel) {
+      return panel.mode == "Text";
+    }).map(function (panel) {
+      return Sefaria.normRef(panel.highlightedRefs);
+    });
     for (var i = 0; i < panelStates.length; i++) {
       var panel = this.clonePanel(panelStates[i]);
       if (!("settings" in panel)) {
@@ -1331,6 +1336,7 @@ var ReaderApp = React.createClass({
           setUnreadNotificationsCount: this.setUnreadNotificationsCount,
           closePanel: closePanel,
           panelsOpen: panelStates.length,
+          allOpenRefs: allOpenRefs,
           masterPanelLanguage: panel.mode === "Connections" ? panelStates[i - 1].settings.language : panel.settings.language,
           layoutWidth: width,
           analyticsInitialized: this.state.initialAnalyticsTracked
@@ -2271,6 +2277,7 @@ var ReaderPanel = React.createClass({
         versionLanguage: this.state.versionLanguage,
         fullPanel: this.props.multiPanel,
         multiPanel: this.props.multiPanel,
+        allOpenRefs: this.props.allOpenRefs,
         addToSourceSheet: this.props.addToSourceSheet,
         canEditText: canEditText,
         setFilter: this.setFilter,
@@ -8461,39 +8468,12 @@ var ConnectionsPanel = React.createClass({
         onCancel: this.props.setConnectionsMode.bind(null, "Notes"),
         onDelete: this.props.setConnectionsMode.bind(null, "Notes") });
     } else if (this.props.mode === "Add Connection") {
-      var url = "/s1?next=" + window.location.pathname;
-      var link = React.createElement(
-        'a',
-        { href: url },
-        React.createElement(
-          'span',
-          { className: 'int-en' },
-          'old Sefaria'
-        ),
-        React.createElement(
-          'span',
-          { className: 'int-he' },
-          '\u05DE\u05DE\u05E9\u05E7 \u05D4\u05D9\u05E9\u05DF'
-        )
-      );
-      content = React.createElement(
-        'div',
-        { className: 'toolsMessage sans' },
-        React.createElement(
-          'span',
-          { className: 'int-en' },
-          'We\'re still working on updating this feature for the new Sefaria. In the meantime, to add a connection please use the ',
-          link,
-          '.'
-        ),
-        React.createElement(
-          'span',
-          { className: 'int-he' },
-          '\u05D4\u05D0\u05E4\u05E9\u05E8\u05D5\u05EA \u05D4\u05D6\u05D5 \u05E2\u05D3\u05D9\u05D9\u05DF \u05D1\u05D1\u05E0\u05D9\u05D4 \u05D1\u05DE\u05DE\u05E9\u05E7 \u05D4\u05D7\u05D3\u05E9. \u05D1\u05D9\u05E0\u05EA\u05D9\u05D9\u05DD \u05E0\u05D9\u05EA\u05DF \u05DC\u05D4\u05E9\u05EA\u05DE\u05E9 \u05D1',
-          link,
-          '.'
-        )
-      );
+
+      content = React.createElement(AddConnectionBox, {
+        srefs: this.props.allOpenRefs,
+        openComparePanel: this.props.openComparePanel,
+        onSave: this.props.setConnectionsMode.bind(null, "Resources"),
+        onCancel: this.props.setConnectionsMode.bind(null, "Resources") });
     } else if (this.props.mode === "Login") {
       content = React.createElement(LoginPrompt, { fullPanel: this.props.fullPanel });
     }
@@ -10306,7 +10286,7 @@ var Note = React.createClass({
     ) : null;
 
     var text = Sefaria.util.linkify(this.props.text);
-    text = text.replace(/\n/g, "<br>");
+    text = text.replace(/\n/g, "<br />");
 
     return React.createElement(
       'div',
@@ -10318,6 +10298,132 @@ var Note = React.createClass({
         { className: 'noteContent' },
         React.createElement('span', { className: 'noteText', dangerouslySetInnerHTML: { __html: text } })
       )
+    );
+  }
+});
+
+var AddConnectionBox = React.createClass({
+  displayName: 'AddConnectionBox',
+
+  propTypes: {
+    srefs: React.PropTypes.array.isRequired,
+    onSave: React.PropTypes.func.isRequired,
+    onCancel: React.PropTypes.func.isRequired
+  },
+  getInitialState: function getInitialState() {
+    return {
+      type: ""
+    };
+  },
+  addConnection: function addConnection() {
+    var connection = {
+      refs: this.props.srefs,
+      type: this.state.type
+    };
+    var postData = { json: JSON.stringify(connection) };
+    var url = "/api/links/";
+    $.post(url, postData, function (data) {
+      if (data.error) {
+        alert(data.error);
+      } else {
+        Sefaria.site.track.event("Tools", "Add Connection", this.props.srefs.join("/"));
+        Sefaria.clearLinks();
+        this.props.onSave();
+      }
+    }.bind(this)).fail(function (xhr, textStatus, errorThrown) {
+      alert("Unfortunately, there was an error saving this connection. Please try again or try reloading this page.");
+    });
+    this.setState({ saving: true });
+  },
+  render: function render() {
+    var heRefs = this.props.srefs.map(function (ref) {
+      return Sefaria.ref(ref).heRef;
+    });
+    return React.createElement(
+      'div',
+      { className: 'addConnectionBox' },
+      this.props.srefs.length == 1 ? React.createElement(
+        'div',
+        null,
+        React.createElement(
+          'span',
+          { className: 'int-en' },
+          'Choose a text to connect.'
+        ),
+        React.createElement(
+          'span',
+          { className: 'int-he' },
+          'HEBREW NEEDED'
+        ),
+        React.createElement(
+          'div',
+          { className: 'button fillWidth', onClick: this.props.openComparePanel },
+          React.createElement(
+            'span',
+            { className: 'int-en' },
+            'Browse'
+          ),
+          React.createElement(
+            'span',
+            { className: 'int-he' },
+            'HEBREW NEEDED'
+          )
+        )
+      ) : null,
+      this.props.srefs.length > 2 ? React.createElement(
+        'div',
+        null,
+        React.createElement(
+          'span',
+          { className: 'int-en' },
+          'We currently only understand connections between two texts.'
+        ),
+        React.createElement(
+          'span',
+          { className: 'int-he' },
+          'HEBREW NEEDED'
+        )
+      ) : null,
+      this.props.srefs.length == 2 ? React.createElement(
+        'div',
+        null,
+        React.createElement(
+          'div',
+          null,
+          React.createElement(
+            'span',
+            { className: 'en' },
+            this.props.srefs[0],
+            React.createElement('br', null),
+            '&',
+            React.createElement('br', null),
+            this.props.srefs[1]
+          ),
+          React.createElement(
+            'span',
+            { className: 'he' },
+            heRefs[0],
+            React.createElement('br', null),
+            '&',
+            React.createElement('br', null),
+            heRefs[1]
+          )
+        ),
+        React.createElement(
+          'div',
+          { className: 'button fillWidth', onClick: this.addConnection },
+          React.createElement(
+            'span',
+            { className: 'int-en' },
+            'Add Connection'
+          ),
+          React.createElement(
+            'span',
+            { className: 'int-he' },
+            'HEBREW NEEDED'
+          )
+        )
+      ) : null
     );
   }
 });

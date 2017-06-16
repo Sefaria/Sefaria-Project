@@ -2966,7 +2966,7 @@ a.readerNavCategory {
   display: none;
 }
 .toolsMessage {
-  margin: 130px 60px;
+  margin: 130px 0;
   text-align: center;
   font-size: 18px;
 }
@@ -3204,6 +3204,13 @@ a.readerNavCategory {
   color: #C6C6C6;
   font-size: 20px;
   margin: 0 8px;
+}
+.addConnectionBox {
+  font-size: 18px;
+  text-align: center;
+}
+.addConnectionBox .button.fillWidth {
+  margin: 10px 0;
 }
 .loginPrompt {
   text-align: center;
