@@ -3877,6 +3877,7 @@ class Library(object):
         try:
             return self._full_auto_completer[lang]
         except KeyError:
+            logger.warning("Failed to load full {} auto completer, rebuilding.".format(lang))
             self.build_full_auto_completer()  # I worry that these could pile up.
             return self._full_auto_completer[lang]
 
@@ -3884,6 +3885,7 @@ class Library(object):
         try:
             return self._ref_auto_completer[lang]
         except KeyError:
+            logger.warning("Failed to load {} ref auto completer, rebuilding.".format(lang))
             self.build_ref_auto_completer()  # I worry that these could pile up.
             return self._ref_auto_completer[lang]
 
