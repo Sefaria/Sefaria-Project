@@ -6597,16 +6597,18 @@ var ConnectionsPanel = React.createClass({
         this.props.srefs.length == 1) {
       this.props.setConnectionsMode("Lexicon");
     }
-    // Go back to main sidebar 
+    // Go back to main sidebar when words are unselected
     if (prevProps.selectedWords && prevProps.mode === "Lexicon" && !this.props.selectedWords) {
       this.props.setConnectionsMode("Resources");
     }
   },
   loadData: function() {
-    if (!Sefaria.related(Sefaria.normRefList(this.props.srefs))) {
-      Sefaria.related(this.props.srefs, function() {
+    console.log("ConnectionsPanel loadData")
+    var ref = Sefaria.sectionRef(Sefaria.humanRef(this.props.srefs)) || this.props.srefs;
+    if (!Sefaria.related(ref)) {
+      Sefaria.related(ref, function() {
         if (this.isMounted) {
-          this.setState({dataLoaded: true});
+          this.forceUpdate();
         }
       }.bind(this));
     }
@@ -7095,6 +7097,7 @@ var TextList = React.createClass({
     onNavigationClick:       React.PropTypes.func,
     onCompareClick:          React.PropTypes.func,
     onOpenConnectionsClick:  React.PropTypes.func,
+    onDataChange:            React.PropTypes.func,
     openNav:                 React.PropTypes.func,
     openDisplaySettings:     React.PropTypes.func,
     closePanel:              React.PropTypes.func,
@@ -7147,6 +7150,10 @@ var TextList = React.createClass({
         });
       }
     }.bind(this));
+  },
+  onDataChange: function() {
+    this.setState({linksLoaded: false});
+    this.loadConnections();
   },
   preloadText: function(filter) {
     // Preload text of links if `filter` is a single commentary, or all commentary
@@ -7238,7 +7245,6 @@ var TextList = React.createClass({
   },
   render: function() {
     var refs               = this.props.srefs;
-    var summary            = Sefaria.linkSummary(refs);
     var oref               = Sefaria.ref(refs[0]);
     var filter             = this.props.filter;
     var sectionRef         = this.getSectionRef();
@@ -7286,7 +7292,8 @@ var TextList = React.createClass({
                         var anchorRefs = Sefaria.splitSpanningRef(link.anchorRef);
                         var lowlight = anchorRefs.every(aref => Sefaria.util.inArray(aref, refs) === -1);
                         Sefaria.util.inArray(link.anchorRef, refs) === -1;
-                        return (<TextRange 
+                        return (<div className="textListTextRangeBox">
+                                  <TextRange 
                                     sref={link.sourceRef}
                                     key={i + link.sourceRef}
                                     lowlight={lowlight}
@@ -7298,7 +7305,13 @@ var TextList = React.createClass({
                                     onNavigationClick={this.props.onNavigationClick}
                                     onCompareClick={this.props.onCompareClick}
                                     onOpenConnectionsClick={this.props.onOpenConnectionsClick}
-                                    inlineReference={link.inline_reference}/>);
+                                    inlineReference={link.inline_reference}/>
+                                    {Sefaria.is_moderator ? 
+                                    <ModeratorLinkOptions
+                                      _id={link._id}
+                                      onDataChange={ this.onDataChange } />
+                                    : null}
+                                </div>);
                       }, this);
 
     return (
@@ -7316,6 +7329,49 @@ var TextList = React.createClass({
             : null }
           { content }
         </div>);
+  }
+});
+
+
+var ModeratorLinkOptions = React.createClass({
+  propTypes: {
+    _id:          React.PropTypes.string.isRequired,
+    onDataChange: React.PropTypes.func
+  },
+  getInitialState: function() {
+    return {collapsed: false}
+  },
+  expand: function() {
+    this.setState({collapsed: false});
+  },
+  deleteLink: function() {
+    if (confirm("Are you sure you want to delete this connection?")) {
+      var url = "/api/links/" + this.props._id;
+      $.ajax({
+        type: "delete",
+        url: url,
+        success: function() {
+          Sefaria.clearLinks();
+          this.props.onDataChange();
+          alert("Connection deleted.");
+        }.bind(this),
+        error: function () {
+          alert("There was an error deleting this connection. Please reload the page or try again later.");
+        }
+      });
+    }
+  },
+  render: function() {
+    if (this.state.collapsed) {
+      return <div className="moderatorLinkOptions" onClick={this.expand}><i className="fa fa-cog"></i></div>
+    }
+
+    return <div className="moderatorLinkOptions sans">
+      <div className="moderatorLinkOptionsDelete" onClick={this.deleteLink}>
+        <span className="int-en">Remove</span>
+        <span className="int-he">HEBREW NEEDED</span>
+      </div>
+    </div>
   }
 });
 

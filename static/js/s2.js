@@ -2769,7 +2769,7 @@ var ReaderNavigationMenu = React.createClass({
     // console.log("Window width: " + winWidth + ", Window height: " + winHeight);
     var oldWidth = this.width;
     this.width = width;
-    if (oldWidth <= 450 && width > 450 || oldWidth > 450 && width <= 450) {
+    if (oldWidth <= 500 && width > 500 || oldWidth > 500 && width <= 500) {
       this.forceUpdate();
     }
   },
@@ -2901,7 +2901,7 @@ var ReaderNavigationMenu = React.createClass({
           React.createElement('img', { src: '/static/img/arrow-left.png', alt: '' })
         )
       );
-      var nCats = this.width < 450 ? 9 : 8;
+      var nCats = this.width < 500 ? 9 : 8;
       categories = this.state.showMore ? categories : categories.slice(0, nCats).concat(more);
       categories = React.createElement(
         'div',
@@ -3073,7 +3073,7 @@ var ReaderNavigationMenu = React.createClass({
       );
       topContent = this.props.hideNavHeader ? null : topContent;
 
-      var nRecent = this.width < 450 ? 4 : 6;
+      var nRecent = this.width < 500 ? 4 : 6;
       var recentlyViewed = Sefaria.recentlyViewed;
       var hasMore = recentlyViewed.length > nRecent;
       recentlyViewed = recentlyViewed.filter(function (item) {
@@ -8298,16 +8298,17 @@ var ConnectionsPanel = React.createClass({
     if (!prevProps.selectedWords && this.props.selectedWords && this.props.selectedWords.split(" ").length < 3 && this.props.srefs.length == 1) {
       this.props.setConnectionsMode("Lexicon");
     }
-    // Go back to main sidebar 
+    // Go back to main sidebar when words are unselected
     if (prevProps.selectedWords && prevProps.mode === "Lexicon" && !this.props.selectedWords) {
       this.props.setConnectionsMode("Resources");
     }
   },
   loadData: function loadData() {
-    if (!Sefaria.related(Sefaria.normRefList(this.props.srefs))) {
-      Sefaria.related(this.props.srefs, function () {
+    var ref = Sefaria.sectionRef(Sefaria.humanRef(this.props.srefs)) || this.props.srefs;
+    if (!Sefaria.related(ref)) {
+      Sefaria.related(ref, function () {
         if (this.isMounted) {
-          this.setState({ dataLoaded: true });
+          this.forceUpdate();
         }
       }.bind(this));
     }
@@ -8922,6 +8923,7 @@ var TextList = React.createClass({
     onNavigationClick: React.PropTypes.func,
     onCompareClick: React.PropTypes.func,
     onOpenConnectionsClick: React.PropTypes.func,
+    onDataChange: React.PropTypes.func,
     openNav: React.PropTypes.func,
     openDisplaySettings: React.PropTypes.func,
     closePanel: React.PropTypes.func,
@@ -8973,6 +8975,10 @@ var TextList = React.createClass({
         });
       }
     }.bind(this));
+  },
+  onDataChange: function onDataChange() {
+    this.setState({ linksLoaded: false });
+    this.loadConnections();
   },
   preloadText: function preloadText(filter) {
     // Preload text of links if `filter` is a single commentary, or all commentary
@@ -9065,7 +9071,6 @@ var TextList = React.createClass({
   },
   render: function render() {
     var refs = this.props.srefs;
-    var summary = Sefaria.linkSummary(refs);
     var oref = Sefaria.ref(refs[0]);
     var filter = this.props.filter;
     var sectionRef = this.getSectionRef();
@@ -9111,19 +9116,26 @@ var TextList = React.createClass({
         return Sefaria.util.inArray(aref, refs) === -1;
       });
       Sefaria.util.inArray(link.anchorRef, refs) === -1;
-      return React.createElement(TextRange, {
-        sref: link.sourceRef,
-        key: i + link.sourceRef,
-        lowlight: lowlight,
-        hideTitle: hideTitle,
-        numberLabel: link.category === "Commentary" ? link.anchorVerse : 0,
-        basetext: false,
-        onRangeClick: this.props.onTextClick,
-        onCitationClick: this.props.onCitationClick,
-        onNavigationClick: this.props.onNavigationClick,
-        onCompareClick: this.props.onCompareClick,
-        onOpenConnectionsClick: this.props.onOpenConnectionsClick,
-        inlineReference: link.inline_reference });
+      return React.createElement(
+        'div',
+        { className: 'textListTextRangeBox' },
+        React.createElement(TextRange, {
+          sref: link.sourceRef,
+          key: i + link.sourceRef,
+          lowlight: lowlight,
+          hideTitle: hideTitle,
+          numberLabel: link.category === "Commentary" ? link.anchorVerse : 0,
+          basetext: false,
+          onRangeClick: this.props.onTextClick,
+          onCitationClick: this.props.onCitationClick,
+          onNavigationClick: this.props.onNavigationClick,
+          onCompareClick: this.props.onCompareClick,
+          onOpenConnectionsClick: this.props.onOpenConnectionsClick,
+          inlineReference: link.inline_reference }),
+        Sefaria.is_moderator ? React.createElement(ModeratorLinkOptions, {
+          _id: link._id,
+          onDataChange: this.onDataChange }) : null
+      );
     }, this);
 
     return React.createElement(
@@ -9139,6 +9151,66 @@ var TextList = React.createClass({
         setFilter: this.props.setFilter,
         showAllFilters: this.showAllFilters }) : null,
       content
+    );
+  }
+});
+
+var ModeratorLinkOptions = React.createClass({
+  displayName: 'ModeratorLinkOptions',
+
+  propTypes: {
+    _id: React.PropTypes.string.isRequired,
+    onDataChange: React.PropTypes.func
+  },
+  getInitialState: function getInitialState() {
+    return { collapsed: false };
+  },
+  expand: function expand() {
+    this.setState({ collapsed: false });
+  },
+  deleteLink: function deleteLink() {
+    if (confirm("Are you sure you want to delete this connection?")) {
+      var url = "/api/links/" + this.props._id;
+      $.ajax({
+        type: "delete",
+        url: url,
+        success: function () {
+          Sefaria.clearLinks();
+          this.props.onDataChange();
+          alert("Connection deleted.");
+        }.bind(this),
+        error: function error() {
+          alert("There was an error deleting this connection. Please reload the page or try again later.");
+        }
+      });
+    }
+  },
+  render: function render() {
+    if (this.state.collapsed) {
+      return React.createElement(
+        'div',
+        { className: 'moderatorLinkOptions', onClick: this.expand },
+        React.createElement('i', { className: 'fa fa-cog' })
+      );
+    }
+
+    return React.createElement(
+      'div',
+      { className: 'moderatorLinkOptions sans' },
+      React.createElement(
+        'div',
+        { className: 'moderatorLinkOptionsDelete', onClick: this.deleteLink },
+        React.createElement(
+          'span',
+          { className: 'int-en' },
+          'Remove'
+        ),
+        React.createElement(
+          'span',
+          { className: 'int-he' },
+          'HEBREW NEEDED'
+        )
+      )
     );
   }
 });
@@ -9927,8 +9999,8 @@ var AddToSourceSheetBox = React.createClass({
       React.createElement(
         'div',
         { className: 'selectedSheet noselect', onClick: this.toggleSheetList },
-        this.state.sheetsLoaded ? this.state.selectedSheet.title.stripHtml() : React.createElement(LoadingMessage, { messsage: 'Loading your sheets...', heMessage: '' }),
-        React.createElement('i', { className: 'sheetListOpenButton noselect fa fa-caret-down' })
+        React.createElement('i', { className: 'sheetListOpenButton noselect fa fa-caret-down' }),
+        this.state.sheetsLoaded ? this.state.selectedSheet.title.stripHtml() : React.createElement(LoadingMessage, { messsage: 'Loading your sheets...', heMessage: '' })
       ),
       this.state.sheetListOpen ? React.createElement(
         'div',
@@ -13220,7 +13292,7 @@ var TwoOrThreeBox = React.createClass({
     threshhold: React.PropTypes.number
   },
   render: function render() {
-    var threshhold = this.props.threshhold || 450;
+    var threshhold = this.props.threshhold || 500;
     if (this.props.width > threshhold) {
       return React.createElement(ThreeBox, { content: this.props.content });
     } else {

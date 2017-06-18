@@ -2849,9 +2849,11 @@ a.readerNavCategory {
   font-size: 1.8em;
   padding: 16px 0;
   margin: 12px 0px;
-  border-bottom: 1px solid #eee;
   cursor: pointer;
   position: relative;
+}
+.textListTextRangeBox {
+  border-bottom: 1px solid #eee;
 }
 .textList .texts .textRange .title {
   color: #999;
@@ -2964,6 +2966,27 @@ a.readerNavCategory {
 }
 .readerPanel.bilingual .connectionsPanel .he {
   display: none;
+}
+.textListTextRangeBox {
+  position: relative;
+}
+.textListTextRangeBox:hover .moderatorLinkOptions {
+  display: block;
+}
+.moderatorLinkOptions {
+  display: none;
+  cursor: pointer;
+  font-size: 14px;
+  color: #999;
+  letter-spacing: 1px;
+  margin: -20px 0 10px;
+}
+.interface-hebrew .moderatorLinkOptions {
+  left: auto;
+  right: 0;
+}
+.moderatorLinkOptions > div:hover {
+  text-decoration: underline;
 }
 .toolsMessage {
   margin: 130px 0;

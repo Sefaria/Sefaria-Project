@@ -1038,6 +1038,9 @@ Sefaria = extend(Sefaria, {
     this._links = {};
     this._linkSummaries = {};
   },
+  removeLink: function(_id) {
+    
+  },
   isACaseVariant: function(query, data) {
     // Check if query is just an improper capitalization of something that otherwise would be a ref
     // query: string
