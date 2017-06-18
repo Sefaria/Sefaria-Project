@@ -1739,6 +1739,10 @@ class RefCacheType(type):
     def cache_size(cls):
         return len(cls.__tref_oref_map)
 
+    def cache_size_bytes(cls):
+        from sefaria.utils.util import get_size
+        return get_size(cls.__tref_oref_map)
+
     def cache_dump(cls):
         return [(a, repr(b)) for (a, b) in cls.__tref_oref_map.iteritems()]
 
@@ -3873,6 +3877,7 @@ class Library(object):
         try:
             return self._full_auto_completer[lang]
         except KeyError:
+            logger.warning("Failed to load full {} auto completer, rebuilding.".format(lang))
             self.build_full_auto_completer()  # I worry that these could pile up.
             return self._full_auto_completer[lang]
 
@@ -3880,6 +3885,7 @@ class Library(object):
         try:
             return self._ref_auto_completer[lang]
         except KeyError:
+            logger.warning("Failed to load {} ref auto completer, rebuilding.".format(lang))
             self.build_ref_auto_completer()  # I worry that these could pile up.
             return self._ref_auto_completer[lang]
 
