@@ -6054,7 +6054,7 @@ var GroupInvitationBox = React.createClass({
     this.setState({ message: message });
     setTimeout(function () {
       this.setState({ message: null });
-    }.bind(this), 3000);
+    }.bind(this), 30000);
   },
   inviteByEmail: function inviteByEmail(email) {
     if (!this.validateEmail(email)) {
@@ -8286,6 +8286,9 @@ var ConnectionsPanel = React.createClass({
     interfaceLang: React.PropTypes.string,
     contentLang: React.PropTypes.string
   },
+  getInitialState: function getInitialState() {
+    return { flashMessage: null };
+  },
   componentDidMount: function componentDidMount() {
     this.loadData();
   },
@@ -8313,6 +8316,16 @@ var ConnectionsPanel = React.createClass({
       }.bind(this));
     }
   },
+  reloadData: function reloadData() {
+    Sefaria.clearLinks();
+    this.loadData();
+  },
+  flashMessage: function flashMessage(msg) {
+    this.setState({ flashMessage: msg });
+    setTimeout(function () {
+      this.setState({ flashMessage: null });
+    }.bind(this), 3000);
+  },
   render: function render() {
     var content = null;
     var loaded = Sefaria.linksLoaded(this.props.srefs);
@@ -8324,6 +8337,11 @@ var ConnectionsPanel = React.createClass({
       content = React.createElement(
         'div',
         null,
+        this.state.flashMessage ? React.createElement(
+          'div',
+          { className: 'flashMessage sans' },
+          this.state.flashMessage
+        ) : null,
         React.createElement(ConnectionsSummary, {
           srefs: this.props.srefs,
           showBooks: false,
@@ -8475,11 +8493,15 @@ var ConnectionsPanel = React.createClass({
         onCancel: this.props.setConnectionsMode.bind(null, "Notes"),
         onDelete: this.props.setConnectionsMode.bind(null, "Notes") });
     } else if (this.props.mode === "Add Connection") {
-
+      var onSave = function () {
+        this.reloadData();
+        this.props.setConnectionsMode("Resources");
+        this.flashMessage("Success! You've created a new connection.");
+      }.bind(this);
       content = React.createElement(AddConnectionBox, {
         srefs: this.props.allOpenRefs,
         openComparePanel: this.props.openComparePanel,
-        onSave: this.props.setConnectionsMode.bind(null, "Resources"),
+        onSave: onSave,
         onCancel: this.props.setConnectionsMode.bind(null, "Resources") });
     } else if (this.props.mode === "Login") {
       content = React.createElement(LoginPrompt, { fullPanel: this.props.fullPanel });
@@ -9118,10 +9140,9 @@ var TextList = React.createClass({
       Sefaria.util.inArray(link.anchorRef, refs) === -1;
       return React.createElement(
         'div',
-        { className: 'textListTextRangeBox' },
+        { className: 'textListTextRangeBox', key: i + link.sourceRef },
         React.createElement(TextRange, {
           sref: link.sourceRef,
-          key: i + link.sourceRef,
           lowlight: lowlight,
           hideTitle: hideTitle,
           numberLabel: link.category === "Commentary" ? link.anchorVerse : 0,
@@ -9983,7 +10004,7 @@ var AddToSourceSheetBox = React.createClass({
     }
     var sheets = Sefaria._uid ? Sefaria.sheets.userSheets(Sefaria._uid) : null;
     var sheetsList = Sefaria._uid && sheets ? sheets.map(function (sheet) {
-      var classes = classNames({ sheet: 1, noselect: 1, selected: this.state.selectedSheet && this.state.selectedSheet.id == sheet.id });
+      var classes = classNames({ dropdownOption: 1, noselect: 1, selected: this.state.selectedSheet && this.state.selectedSheet.id == sheet.id });
       var title = sheet.title ? sheet.title.stripHtml() : "Untitled Source Sheet";
       var selectSheet = this.selectSheet.bind(this, sheet);
       return React.createElement(
@@ -9993,43 +10014,48 @@ var AddToSourceSheetBox = React.createClass({
       );
     }.bind(this)) : Sefaria._uid ? React.createElement(LoadingMessage, null) : null;
 
+    // Uses 
     return React.createElement(
       'div',
       { className: 'addToSourceSheetBox noselect sans' },
       React.createElement(
         'div',
-        { className: 'selectedSheet noselect', onClick: this.toggleSheetList },
-        React.createElement('i', { className: 'sheetListOpenButton noselect fa fa-caret-down' }),
-        this.state.sheetsLoaded ? this.state.selectedSheet.title.stripHtml() : React.createElement(LoadingMessage, { messsage: 'Loading your sheets...', heMessage: '' })
-      ),
-      this.state.sheetListOpen ? React.createElement(
-        'div',
-        { className: 'sheetListDropdown noselect' },
+        { className: 'dropdown' },
         React.createElement(
           'div',
-          { className: 'sourceSheetSelector noselect' },
-          sheetsList
+          { className: 'dropdownMain noselect', onClick: this.toggleSheetList },
+          React.createElement('i', { className: 'dropdownOpenButton noselect fa fa-caret-down' }),
+          this.state.sheetsLoaded ? this.state.selectedSheet.title.stripHtml() : React.createElement(LoadingMessage, { messsage: 'Loading your sheets...', heMessage: '' })
         ),
-        React.createElement(
+        this.state.sheetListOpen ? React.createElement(
           'div',
-          { className: 'newSheet noselect' },
-          React.createElement('input', { className: 'newSheetInput noselect', placeholder: 'Name New Sheet' }),
+          { className: 'dropdownListBox noselect' },
           React.createElement(
             'div',
-            { className: 'button small noselect', onClick: this.createSheet },
+            { className: 'dropdownList noselect' },
+            sheetsList
+          ),
+          React.createElement(
+            'div',
+            { className: 'newSheet noselect' },
+            React.createElement('input', { className: 'newSheetInput noselect', placeholder: 'Name New Sheet' }),
             React.createElement(
-              'span',
-              { className: 'int-en' },
-              'Create'
-            ),
-            React.createElement(
-              'span',
-              { className: 'int-he' },
-              '\u05E6\u05D5\u05E8 \u05D7\u05D3\u05E9'
+              'div',
+              { className: 'button small noselect', onClick: this.createSheet },
+              React.createElement(
+                'span',
+                { className: 'int-en' },
+                'Create'
+              ),
+              React.createElement(
+                'span',
+                { className: 'int-he' },
+                '\u05E6\u05D5\u05E8 \u05D7\u05D3\u05E9'
+              )
             )
           )
-        )
-      ) : null,
+        ) : null
+      ),
       React.createElement(
         'div',
         { className: 'button noselect fillWidth', onClick: this.addToSourceSheet },
@@ -10393,6 +10419,9 @@ var AddConnectionBox = React.createClass({
       type: ""
     };
   },
+  setType: function setType(type) {
+    this.setState({ type: type });
+  },
   addConnection: function addConnection() {
     var connection = {
       refs: this.props.srefs,
@@ -10467,7 +10496,7 @@ var AddConnectionBox = React.createClass({
         null,
         React.createElement(
           'div',
-          null,
+          { className: 'addConnectionSummary' },
           React.createElement(
             'span',
             { className: 'en' },
@@ -10487,6 +10516,10 @@ var AddConnectionBox = React.createClass({
             heRefs[1]
           )
         ),
+        React.createElement(Dropdown, {
+          options: [{ value: "", label: "None" }, { value: "commentary", label: "Commentary" }, { value: "quotation", label: "Quotation" }, { value: "midrash", label: "Midrash" }, { value: "ein mishpat", label: "Ein Mishpat / Ner Mitsvah" }, { value: "mesorat hashas", label: "Mesorat HaShas" }, { value: "reference", label: "Reference" }, { value: "related", label: "Related Passage" }],
+          placeholder: "Select Type",
+          onSelect: this.setType }),
         React.createElement(
           'div',
           { className: 'button fillWidth', onClick: this.addConnection },
@@ -13298,6 +13331,59 @@ var TwoOrThreeBox = React.createClass({
     } else {
       return React.createElement(TwoBox, { content: this.props.content });
     }
+  }
+});
+
+var Dropdown = React.createClass({
+  displayName: 'Dropdown',
+
+  propTypes: {
+    options: React.PropTypes.array.isRequired, // Array of {label, value}
+    onSelect: React.PropTypes.func,
+    placeholder: React.PropTypes.string,
+    selected: React.PropTypes.string
+  },
+  getInitialState: function getInitialState() {
+    return {
+      optionsOpen: false,
+      selected: null
+    };
+  },
+  select: function select(option) {
+    this.setState({ selected: option, optionsOpen: false });
+    this.props.onSelect && this.props.onSelect(option.value);
+  },
+  toggle: function toggle() {
+    this.setState({ optionsOpen: !this.state.optionsOpen });
+  },
+  render: function render() {
+    return React.createElement(
+      'div',
+      { className: 'dropdown sans' },
+      React.createElement(
+        'div',
+        { className: 'dropdownMain noselect', onClick: this.toggle },
+        React.createElement('i', { className: 'dropdownOpenButton noselect fa fa-caret-down' }),
+        this.state.selected ? this.state.selected.label : this.props.placeholder
+      ),
+      this.state.optionsOpen ? React.createElement(
+        'div',
+        { className: 'dropdownListBox noselect' },
+        React.createElement(
+          'div',
+          { className: 'dropdownList noselect' },
+          this.props.options.map(function (option) {
+            var onClick = this.select.bind(null, option);
+            var classes = classNames({ dropdownOption: 1, selected: this.state.selected && this.state.selected.value == option.value });
+            return React.createElement(
+              'div',
+              { className: classes, onClick: onClick, key: option.value },
+              option.label
+            );
+          }.bind(this))
+        )
+      ) : null
+    );
   }
 });
 

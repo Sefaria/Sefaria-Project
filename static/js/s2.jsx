@@ -4851,7 +4851,7 @@ var GroupInvitationBox = React.createClass({
     this.setState({message: message});
     setTimeout(function() {
       this.setState({message: null});
-    }.bind(this), 3000);
+    }.bind(this), 30000);
   },
   inviteByEmail: function(email) {
     if (!this.validateEmail(email)) {
@@ -6583,6 +6583,9 @@ var ConnectionsPanel = React.createClass({
     interfaceLang:           React.PropTypes.string,
     contentLang:             React.PropTypes.string,
   },
+  getInitialState: function() {
+    return {flashMessage: null};
+  },
   componentDidMount: function() {
     this.loadData();
   },
@@ -6603,7 +6606,6 @@ var ConnectionsPanel = React.createClass({
     }
   },
   loadData: function() {
-    console.log("ConnectionsPanel loadData")
     var ref = Sefaria.sectionRef(Sefaria.humanRef(this.props.srefs)) || this.props.srefs;
     if (!Sefaria.related(ref)) {
       Sefaria.related(ref, function() {
@@ -6612,6 +6614,16 @@ var ConnectionsPanel = React.createClass({
         }
       }.bind(this));
     }
+  },
+  reloadData: function() {
+    Sefaria.clearLinks();
+    this.loadData();
+  },
+  flashMessage: function(msg) {
+    this.setState({flashMessage: msg});
+    setTimeout(function() {
+      this.setState({flashMessage: null});
+    }.bind(this), 3000);
   },
   render: function() {
     var content = null;
@@ -6622,6 +6634,9 @@ var ConnectionsPanel = React.createClass({
       var sheetsCount = Sefaria.sheets.sheetsTotalCount(this.props.srefs);
       var notesCount  = Sefaria.notesTotalCount(this.props.srefs);
       content = (<div>
+                  { this.state.flashMessage ? 
+                    <div className="flashMessage sans">{this.state.flashMessage}</div>
+                    : null }
                   <ConnectionsSummary
                     srefs={this.props.srefs}
                     showBooks={false}
@@ -6760,11 +6775,15 @@ var ConnectionsPanel = React.createClass({
                     onDelete={this.props.setConnectionsMode.bind(null, "Notes")} />);
 
     } else if (this.props.mode === "Add Connection") {
-
+      var onSave = function() {
+        this.reloadData();
+        this.props.setConnectionsMode("Resources");
+        this.flashMessage("Success! You've created a new connection.");
+      }.bind(this);
       content = <AddConnectionBox
                     srefs={this.props.allOpenRefs}
                     openComparePanel={this.props.openComparePanel}
-                    onSave={this.props.setConnectionsMode.bind(null, "Resources")}
+                    onSave={onSave}
                     onCancel={this.props.setConnectionsMode.bind(null, "Resources")} />
 
     } else if (this.props.mode === "Login") {
@@ -7292,10 +7311,9 @@ var TextList = React.createClass({
                         var anchorRefs = Sefaria.splitSpanningRef(link.anchorRef);
                         var lowlight = anchorRefs.every(aref => Sefaria.util.inArray(aref, refs) === -1);
                         Sefaria.util.inArray(link.anchorRef, refs) === -1;
-                        return (<div className="textListTextRangeBox">
+                        return (<div className="textListTextRangeBox" key={i + link.sourceRef}>
                                   <TextRange 
                                     sref={link.sourceRef}
-                                    key={i + link.sourceRef}
                                     lowlight={lowlight}
                                     hideTitle={hideTitle}
                                     numberLabel={link.category === "Commentary" ? link.anchorVerse : 0}
@@ -7966,32 +7984,35 @@ var AddToSourceSheetBox = React.createClass({
     }
     var sheets     = Sefaria._uid ? Sefaria.sheets.userSheets(Sefaria._uid) : null;
     var sheetsList = Sefaria._uid && sheets ? sheets.map(function(sheet) {
-      var classes     = classNames({sheet: 1, noselect: 1, selected: this.state.selectedSheet && this.state.selectedSheet.id == sheet.id});
+      var classes     = classNames({dropdownOption: 1, noselect: 1, selected: this.state.selectedSheet && this.state.selectedSheet.id == sheet.id});
       var title = sheet.title ? sheet.title.stripHtml() : "Untitled Source Sheet";
       var selectSheet = this.selectSheet.bind(this, sheet);
       return (<div className={classes} onClick={selectSheet} key={sheet.id}>{title}</div>);
     }.bind(this)) : (Sefaria._uid ? <LoadingMessage /> : null);
 
+    // Uses 
     return (
       <div className="addToSourceSheetBox noselect sans">
-        <div className="selectedSheet noselect" onClick={this.toggleSheetList}>
-          <i className="sheetListOpenButton noselect fa fa-caret-down"></i>
-          {this.state.sheetsLoaded ? this.state.selectedSheet.title.stripHtml() : <LoadingMessage messsage="Loading your sheets..." heMessage=""/>}
-        </div>
-        {this.state.sheetListOpen ? 
-        <div className="sheetListDropdown noselect">
-          <div className="sourceSheetSelector noselect">
-            {sheetsList}
+        <div className="dropdown">
+          <div className="dropdownMain noselect" onClick={this.toggleSheetList}>
+            <i className="dropdownOpenButton noselect fa fa-caret-down"></i>
+            {this.state.sheetsLoaded ? this.state.selectedSheet.title.stripHtml() : <LoadingMessage messsage="Loading your sheets..." heMessage=""/>}
           </div>
-          <div className="newSheet noselect">
-            <input className="newSheetInput noselect" placeholder="Name New Sheet"/>
-            <div className="button small noselect" onClick={this.createSheet} >
-              <span className="int-en">Create</span>
-              <span className="int-he">צור חדש</span>
+          {this.state.sheetListOpen ? 
+          <div className="dropdownListBox noselect">
+            <div className="dropdownList noselect">
+              {sheetsList}
             </div>
-           </div>
+            <div className="newSheet noselect">
+              <input className="newSheetInput noselect" placeholder="Name New Sheet"/>
+              <div className="button small noselect" onClick={this.createSheet} >
+                <span className="int-en">Create</span>
+                <span className="int-he">צור חדש</span>
+              </div>
+             </div>
+          </div>
+          : null}
         </div>
-        : null}
         <div className="button noselect fillWidth" onClick={this.addToSourceSheet}>
           <span className="int-en noselect">Add to Sheet</span>
           <span className="int-he noselect">הוסף לדף המקורות</span>
@@ -8262,6 +8283,9 @@ var AddConnectionBox = React.createClass({
       type: ""
     };
   },
+  setType: function(type) {
+    this.setState({type: type});
+  },
   addConnection: function() {
     var connection = {
       refs: this.props.srefs,
@@ -8308,10 +8332,25 @@ var AddConnectionBox = React.createClass({
             { this.props.srefs.length == 2 ? 
               <div>
 
-                <div>
+                <div className="addConnectionSummary">
                   <span className="en">{ this.props.srefs[0] }<br/>&<br/>{ this.props.srefs[1]}</span>
                   <span className="he">{ heRefs[0] }<br/>&<br/>{ heRefs[1] }</span>
                 </div>
+
+                <Dropdown
+                  options={[
+                            {value: "",               label: "None"},
+                            {value: "commentary",     label: "Commentary"},
+                            {value: "quotation",      label: "Quotation"},
+                            {value: "midrash",        label: "Midrash"},
+                            {value: "ein mishpat",    label: "Ein Mishpat / Ner Mitsvah"},
+                            {value: "mesorat hashas", label: "Mesorat HaShas"},
+                            {value: "reference",      label: "Reference"},
+                            {value: "related",        label: "Related Passage"}
+                          ]}
+                  placeholder={"Select Type"}
+                  onSelect={this.setType} />
+
                 <div className="button fillWidth" onClick={this.addConnection}>
                   <span className="int-en">Add Connection</span>
                   <span className="int-he">HEBREW NEEDED</span>
@@ -10464,6 +10503,49 @@ var TwoOrThreeBox = React.createClass({
       } else {
         return (<TwoBox content={this.props.content} />);
       }
+  }
+});
+
+
+var Dropdown = React.createClass({
+  propTypes: {
+    options:     React.PropTypes.array.isRequired, // Array of {label, value}
+    onSelect:    React.PropTypes.func,
+    placeholder: React.PropTypes.string,
+    selected:    React.PropTypes.string,
+  },
+  getInitialState: function() {
+    return {
+      optionsOpen: false,
+      selected: null
+    }
+  },
+  select: function(option) {
+    this.setState({selected: option, optionsOpen: false});
+    this.props.onSelect && this.props.onSelect(option.value);
+  },
+  toggle: function() {
+    this.setState({optionsOpen: !this.state.optionsOpen});
+  },
+  render: function() {
+    return (
+        <div className="dropdown sans">
+          <div className="dropdownMain noselect" onClick={this.toggle}>
+            <i className="dropdownOpenButton noselect fa fa-caret-down"></i>
+            {this.state.selected ? this.state.selected.label : this.props.placeholder }
+          </div>
+          {this.state.optionsOpen ? 
+            <div className="dropdownListBox noselect">
+              <div className="dropdownList noselect">
+                {this.props.options.map(function(option) {
+                  var onClick = this.select.bind(null, option);
+                  var classes = classNames({dropdownOption: 1, selected: this.state.selected && this.state.selected.value == option.value});
+                  return <div className={classes} onClick={onClick} key={option.value}>{option.label}</div>
+                }.bind(this))}
+              </div>
+            </div>
+          : null}
+        </div>);
   }
 });
 
