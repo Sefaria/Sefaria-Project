@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-
 from config import *
 from sefaria.model import *
 from random import shuffle

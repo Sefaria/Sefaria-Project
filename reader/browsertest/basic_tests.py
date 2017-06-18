@@ -194,7 +194,6 @@ class SaveNewSourceSheet(AtomicTest):
     single_panel = False  # No source sheets on mobile
 
     def run(self):
-        self.s2()
         self.login_user()
         self.driver.implicitly_wait(10)
         self.driver.get(self.base_url + "/sheets/new")
@@ -234,7 +233,7 @@ class SpecialCasedSearchBarNavigations(AtomicTest):
     single_panel = False  # This hasn't yet been implemented on mobile
 
     def run(self):
-        self.s2()
+        self.load_toc()
         self.type_in_search_box("Shabbat")
         WebDriverWait(self.driver, TEMPER).until(visibility_of_element_located((By.CSS_SELECTOR, ".readerTextTableOfContents")))
         self.type_in_search_box("Shabbat 12b")
