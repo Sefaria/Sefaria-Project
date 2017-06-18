@@ -3209,9 +3209,6 @@ a.readerNavCategory {
   font-size: 18px;
   text-align: center;
 }
-.addConnectionBox .button.fillWidth {
-  margin: 10px 0;
-}
 .loginPrompt {
   text-align: center;
 }
@@ -3385,7 +3382,7 @@ a.button.white {
   width: 100%;
   text-align: center;
   display: block;
-  margin: 0 0 10px 0;
+  margin: 10px 0;
 }
 a .button:hover {
   text-decoration: none;

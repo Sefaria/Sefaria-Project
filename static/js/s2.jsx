@@ -2650,8 +2650,8 @@ var ReaderNavigationMenu = React.createClass({
     // console.log("Window width: " + winWidth + ", Window height: " + winHeight);
     var oldWidth = this.width;
     this.width = width;
-    if ((oldWidth <= 450 && width > 450) ||
-        (oldWidth > 450 && width <= 450)) {
+    if ((oldWidth <= 500 && width > 500) ||
+        (oldWidth > 500 && width <= 500)) {
       this.forceUpdate();
     }
   },
@@ -2768,7 +2768,7 @@ var ReaderNavigationMenu = React.createClass({
                       <span className="en">More <img src="/static/img/arrow-right.png" alt="" /></span>
                       <span className="he">עוד <img src="/static/img/arrow-left.png" alt="" /></span>
                   </a>);
-      var nCats  = this.width < 450 ? 9 : 8;
+      var nCats  = this.width < 500 ? 9 : 8;
       categories = this.state.showMore ? categories : categories.slice(0, nCats).concat(more);
       categories = (<div className="readerNavCategories"><TwoOrThreeBox content={categories} width={this.width} /></div>);
 
@@ -2846,7 +2846,7 @@ var ReaderNavigationMenu = React.createClass({
       topContent = this.props.hideNavHeader ? null : topContent;
 
 
-      var nRecent = this.width < 450 ? 4 : 6;
+      var nRecent = this.width < 500 ? 4 : 6;
       var recentlyViewed = Sefaria.recentlyViewed;
       var hasMore = recentlyViewed.length > nRecent;
       recentlyViewed = recentlyViewed.filter(function(item){
@@ -7919,8 +7919,8 @@ var AddToSourceSheetBox = React.createClass({
     return (
       <div className="addToSourceSheetBox noselect sans">
         <div className="selectedSheet noselect" onClick={this.toggleSheetList}>
-          {this.state.sheetsLoaded ? this.state.selectedSheet.title.stripHtml() : <LoadingMessage messsage="Loading your sheets..." heMessage=""/>}
           <i className="sheetListOpenButton noselect fa fa-caret-down"></i>
+          {this.state.sheetsLoaded ? this.state.selectedSheet.title.stripHtml() : <LoadingMessage messsage="Loading your sheets..." heMessage=""/>}
         </div>
         {this.state.sheetListOpen ? 
         <div className="sheetListDropdown noselect">
@@ -10402,7 +10402,7 @@ var TwoOrThreeBox = React.createClass({
     threshhold: React.PropTypes.number
   },
   render: function() {
-      var threshhold = this.props.threshhold || 450;
+      var threshhold = this.props.threshhold || 500;
       if (this.props.width > threshhold) {
         return (<ThreeBox content={this.props.content} />);
       } else {
