@@ -7,6 +7,7 @@
       classNames   = require('classnames'),
       Sefaria      = require('./sefaria');
   if (typeof document !== 'undefined' ) {
+    console.log("s2 IN DOCUMENT");
     INBROWSER = false;
     require('jquery.cookie');  //NOTE: these require statements are adding props to the $ obj. The order actually doesn't matter b/c it seems webpack deals with it
     require('jquery-ui');

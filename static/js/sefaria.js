@@ -1,17 +1,22 @@
 //if (typeof require !== 'undefined') {
 
 var INBROWSER = true,
-    $         = require('jquery'),
+    $ = require('jquery'),
     extend    = require('extend'),
     param     = require('querystring').stringify,
     striptags = require('striptags');
+
+
+    //ga        = require('googleanalytics');
 if (typeof document === 'undefined') {
      INBROWSER = false;
-     var ga        = function() {}; // Fail gracefully if we reach one of these methods server side
+     //$         = require('cheerio');
+     //var ga        = function() {}; // Fail gracefully if we reach one of these methods server side
      $.ajax    = function() {}; // ditto
      $.getJSON = function() {}; // ditto
     require('source-map-support').install();
 } else {
+     console.log("Sefaria in DOCUME");
      require('jquery.cookie');
 }
 

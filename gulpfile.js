@@ -2,7 +2,6 @@ var gulp = require('gulp');
 var path = require('path');
 var webpack = require('webpack');
 var BundleTracker = require('webpack-bundle-tracker');
-var ExtractTextPlugin = require('extract-text-webpack-plugin');
 var DeepMerge = require('deep-merge');
 var nodemon = require('nodemon');
 
@@ -17,52 +16,40 @@ var base_config = {
 		devtool: '#eval-source-map', //should have better performance on incremental build over `source-map`
     plugins: [
         //tells webpack where to store data about your bundles.
-        new BundleTracker({filename: './webpack-stats.json'}), 
+        new BundleTracker({filename: './webpack-stats.json'}),
         //makes jQuery available in every module
-        /*new webpack.ProvidePlugin({ 
+        /*new webpack.ProvidePlugin({
             $: 'jquery',
             jQuery: 'jquery',
-            'window.jQuery': 'jquery' 
+            'window.jQuery': 'jquery'
         }),*/
-				//new ExtractTextPlugin("app.css")	
+				//new ExtractTextPlugin("app.css")
     ],
-    
+
     module: {
         loaders: [
-            //a regexp that tells webpack use the following loaders on all 
+            //a regexp that tells webpack use the following loaders on all
             //.js and .jsx files
-            {test: /\.jsx?$/, 
-                //we definitely don't want babel to transpile all the files in 
+            {test: /\.jsx?$/,
+                //we definitely don't want babel to transpile all the files in
                 //node_modules. That would take a long time.
-                exclude: /node_modules/, 
-                //use the babel loader 
-                loader: 'babel-loader', 
+                exclude: /node_modules/,
+                //use the babel loader
+                loader: 'babel-loader',
                 query: {
                     //specify that we will be dealing with React code
-                    presets: ['react','es2015'] 
+                    presets: ['react','es2015']
                 }
-            },
-					  {
-						    test: /\.css$/,
-								loader: ExtractTextPlugin.extract({ fallback: 'style-loader', use: 'css-loader' }) 
-						},
-						{
-								test: /\.(jpg|png)$/,
-								loader: 'file-loader'
-						},
+            }
         ]
     },
-    
+
     resolve: {
-			  alias: {
-					//'jquery-ui': 'jquery-ui/ui/widgets',
-					'jquery-ui-css': 'jquery-ui/../../themes/base'
-				},	
         //tells webpack where to look for modules
         modules: ['node_modules'],
         //extensions that should be used to resolve modules
         extensions: ['.jsx', '.js']
-    }   
+    }
 
 }
 
@@ -75,7 +62,7 @@ var client_config = config({
   entry: './client',
   output: {
 	    path: path.join(__dirname, './static/bundles/'),
-	    filename: 'client-bundle-[hash].js'
+	    filename: 'client-bundle.js'
 	  }
 });
 
@@ -102,7 +89,7 @@ function onBuild(done) {
 	    else {
 			      console.log(stats.toString());
 			    }
-	
+
 	    if(done) {
 			      done();
 			    }
