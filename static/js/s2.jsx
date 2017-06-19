@@ -5898,7 +5898,7 @@ var TextColumn = React.createClass({
     if (this.loadingContentAtTop) {
       // After adding content by infinite scrolling up, scroll back to what the user was just seeing
       //console.log("loading at top");
-      var $node   = $(ReactDOM.findDOMNode(this));
+      var $node   = this.$container;
       var adjust  = 118; // Height of .loadingMessage.base
       var $texts  = $node.find(".basetext");
       if ($texts.length < 2) { return; }
@@ -5927,19 +5927,20 @@ var TextColumn = React.createClass({
     }
     // This fixes loading of next content when current content is short in viewport,
     // but breaks loading highlighted ref, jumping back up to top of section
-    // this.adjustInfiniteScroll();
+    //this.adjustInfiniteScroll();
   },
   adjustInfiniteScroll: function() {
     // Add or remove TextRanges from the top or bottom, depending on scroll position
     //console.log("adjust Infinite Scroll");
     if (!this.isMounted()) { return; }
     var node         = ReactDOM.findDOMNode(this);
+    var $node        = this.$container;
     var refs         = this.props.srefs;
-    var $lastText    = $(node).find(".textRange.basetext").last();
+    var $lastText    = $node.find(".textRange.basetext").last();
     if (!$lastText.length) { console.log("no last basetext"); return; }
     var lastTop      = $lastText.position().top;
     var lastBottom   = lastTop + $lastText.outerHeight();
-    var windowHeight = $(node).outerHeight();
+    var windowHeight = $node.outerHeight();
     var windowTop    = node.scrollTop;
     var windowBottom = windowTop + windowHeight;
     if (lastTop > (windowHeight + 100) && refs.length > 1) {
