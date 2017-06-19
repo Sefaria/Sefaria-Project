@@ -2,11 +2,6 @@
 {% autoescape off %}
 //all vars in this file will be available in global js scope
 
-var blah;
-if (typeof ga !== 'undefined') {
-    blah = ga;
-}
-
 var DJANGO_DATA_VARS = {
   _dataLoaded:         true,
   toc:                 {{ toc_json }},
@@ -34,7 +29,6 @@ var DJANGO_DATA_VARS = {
   _email:              "{{ request.user.email|default:'' }}",
   _uid:                {{ request.user.id|default:"null" }},
   _partner_group:      "{{ partner_group }}",
-  _partner_role:       "{{ partner_role }}",
-    ga: blah
+  _partner_role:       "{{ partner_role }}"
 };
 {% endautoescape %}

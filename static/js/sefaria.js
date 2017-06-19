@@ -9,14 +9,12 @@ var INBROWSER = true,
     //ga        = require('googleanalytics');
 var ga;
 if (typeof document === 'undefined') {
-    console.log("DOC UNDEF");
-
      INBROWSER = false;
      ga        = function() {}; // Fail gracefully if we reach one of these methods server side
      $.ajax    = function() {}; // ditto
      $.getJSON = function() {}; // ditto
 } else {
-     //ga = DJANGO_VARS.ga;
+     ga = DJANGO_VARS.ga;
      require('jquery.cookie');
 }
 
@@ -2552,9 +2550,7 @@ Sefaria.setup = function() {
             }
         }
     }
-    if (typeof document !== 'undefined') {
-        ga = Sefaria.ga;
-    }
+
     Sefaria.util.setupPrototypes();
     Sefaria.util.setupJQuery();
     Sefaria.util.setupMisc();

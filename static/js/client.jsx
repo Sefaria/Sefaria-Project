@@ -37,6 +37,5 @@ $(function() {
     });
     ReactDOM.render(component, container);
     ReactDOM.render(React.createElement(SefariaReact.Footer), document.getElementById('footer'));
-
   }
 });
