@@ -2366,7 +2366,6 @@ var ReaderPanel = React.createClass({
         showBaseText: this.showBaseText });
     } else if (this.state.menuOpen === "search" && this.state.searchQuery) {
       var menu = React.createElement(SearchPage, {
-        interfaceLang: this.props.interfaceLang,
         query: this.state.searchQuery,
         appliedFilters: this.state.appliedSearchFilters,
         settings: Sefaria.util.clone(this.state.settings),
@@ -10572,7 +10571,6 @@ var SearchPage = React.createClass({
   displayName: 'SearchPage',
 
   propTypes: {
-    interfaceLang: React.PropTypes.string,
     query: React.PropTypes.string,
     appliedFilters: React.PropTypes.array,
     settings: React.PropTypes.object,
@@ -10639,7 +10637,6 @@ var SearchPage = React.createClass({
               'div',
               { className: 'searchContent', style: style },
               React.createElement(SearchResultList, {
-                interfaceLang: this.props.interfaceLang,
                 query: this.props.query,
                 appliedFilters: this.props.appliedFilters,
                 onResultClick: this.props.onResultClick,
@@ -10710,7 +10707,6 @@ var SearchResultList = React.createClass({
   displayName: 'SearchResultList',
 
   propTypes: {
-    interfaceLang: React.PropTypes.string,
     query: React.PropTypes.string,
     appliedFilters: React.PropTypes.array,
     onResultClick: React.PropTypes.func,
@@ -10849,8 +10845,16 @@ var SearchResultList = React.createClass({
       sort_type: this.props.sortType,
       error: function error() {},
       success: function (data) {
-        var hitArray = type == "text" ? this._process_text_hits(data.hits.hits) : data.hits.hits;
-        var nextHits = this._remove_duplicate_text_hits(currentHits.concat(hitArray));
+        var nextHits;
+        if (type === "text") {
+          var hitArray = this._process_text_hits(data.hits.hits);
+          nextHits = this._remove_duplicate_text_hits(currentHits.concat(hitArray));
+        } else {
+          nextHits = currentHits.concat(data.hits.hits);
+        }
+
+        //var hitArray = (type == "text")?this._process_text_hits(data.hits.hits):data.hits.hits;
+        //var nextHits = this._remove_duplicate_text_hits(currentHits.concat(hitArray));
         this.state.hits[type] = nextHits;
 
         this.setState({ hits: this.state.hits });
@@ -11197,7 +11201,9 @@ var SearchResultList = React.createClass({
     var results = [];
 
     if (tab == "text") {
-      results = this.state.hits.text.slice(0, this.state.displayedUntil["text"]).map(function (result) {
+      results = this.state.hits.text.slice(0, this.state.displayedUntil["text"]).filter(function (result) {
+        return !!result._source.version;
+      }).map(function (result) {
         return React.createElement(SearchTextResult, {
           data: result,
           query: _this11.props.query,
@@ -11220,7 +11226,6 @@ var SearchResultList = React.createClass({
     var haveResults = !!results.length;
     results = haveResults ? results : noResultsMessage;
     var searchFilters = React.createElement(SearchFilters, {
-      interfaceLang: this.props.interfaceLang,
       query: this.props.query,
       total: this.state.totals["text"] + this.state.totals["sheet"],
       textTotal: this.state.totals["text"],
@@ -11262,7 +11267,6 @@ var SearchFilters = React.createClass({
   displayName: 'SearchFilters',
 
   propTypes: {
-    interfaceLang: React.PropTypes.string,
     query: React.PropTypes.string,
     total: React.PropTypes.number,
     textTotal: React.PropTypes.number,
@@ -11427,7 +11431,6 @@ var SearchFilters = React.createClass({
     });
 
     var sort_panel = React.createElement(SearchSortBox, {
-      interfaceLang: this.props.interfaceLang,
       visible: this.props.displaySort,
       toggleSortView: this.props.toggleSortView,
       updateAppliedOptionSort: this.props.updateAppliedOptionSort,
@@ -11547,7 +11550,6 @@ var SearchSortBox = React.createClass({
   displayName: 'SearchSortBox',
 
   propTypes: {
-    interfaceLang: React.PropTypes.string,
     visible: React.PropTypes.bool,
     toggleSortView: React.PropTypes.func,
     updateAppliedOptionSort: React.PropTypes.func,
@@ -11585,7 +11587,6 @@ var SearchSortBox = React.createClass({
 
     var chronoClass = classNames({ 'filter-title': 1, 'unselected': this.props.sortType !== "chronological" });
     var releClass = classNames({ 'filter-title': 1, 'unselected': this.props.sortType !== "relevance" });
-    var searchSortBoxClass = this.props.interfaceLang === "english" ? "searchSortBox en" : "searchSortBox he";
     return React.createElement(
       'div',
       null,
@@ -11606,7 +11607,7 @@ var SearchSortBox = React.createClass({
       ),
       React.createElement(
         'div',
-        { className: this.props.visible ? searchSortBoxClass : "searchSortBox hidden" },
+        { className: this.props.visible ? "searchSortBox" : "searchSortBox hidden" },
         React.createElement(
           'li',
           { onClick: function onClick() {
@@ -11863,7 +11864,9 @@ var SearchTextResult = React.createClass({
     var shown_duplicates = data.duplicates && this.state.duplicatesShown ? React.createElement(
       'div',
       { className: 'similar-results' },
-      data.duplicates.map(function (result) {
+      data.duplicates.filter(function (result) {
+        return !!result._source.version;
+      }).map(function (result) {
         var key = result._source.ref + "-" + result._source.version;
         return React.createElement(SearchTextResult, {
           data: result,
