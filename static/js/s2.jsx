@@ -5791,14 +5791,16 @@ var TextColumn = React.createClass({
     layoutWidth:           React.PropTypes.number
   },
   componentDidMount: function() {
+    this.$container = $(ReactDOM.findDOMNode(this));
     this.initialScrollTopSet = false;
     this.justTransitioned    = true;
-    this.debouncedAdjustTextListHighlight = Sefaria.util.debounce(this.adjustTextListHighlight, 100);
-    var node = ReactDOM.findDOMNode(this);
-    node.addEventListener("scroll", this.handleScroll);
     this.setScrollPosition();
     this.adjustInfiniteScroll();
     this.setPaddingForScrollbar();
+
+    this.debouncedAdjustTextListHighlight = Sefaria.util.debounce(this.adjustTextListHighlight, 100);
+    var node = ReactDOM.findDOMNode(this);
+    node.addEventListener("scroll", this.handleScroll);
   },
   componentWillUnmount: function() {
     var node = ReactDOM.findDOMNode(this);
@@ -5835,15 +5837,18 @@ var TextColumn = React.createClass({
   },
   componentDidUpdate: function(prevProps, prevState) {
     if (!this.props.highlightedRefs.compare(prevProps.highlightedRefs)) {
+      //console.log("Scroll for highlight change")
       this.setScrollPosition();  // highlight change
     }
     if (this.props.layoutWidth !== prevProps.layoutWidth ||
         this.props.settings.language !== prevProps.settings.language) {
+      //console.log("scroll to highlighted on layout change")
       this.scrollToHighlighted();
     }
   },
   handleScroll: function(event) {
-    //console.log("scroll");
+    //console.log("textcolumn scroll");
+    //debugger;
     if (this.justScrolled) {
       //console.log("pass scroll");
       this.justScrolled = false;
@@ -5868,6 +5873,7 @@ var TextColumn = React.createClass({
         refs.push($(this).attr("data-ref"));
       });
 
+      //console.log("Setting highlights by Text Selection");
       this.props.setTextListHighlight(refs);
     }
 
@@ -5875,10 +5881,10 @@ var TextColumn = React.createClass({
   },
   handleTextLoad: function() {
     if (this.loadingContentAtTop || !this.initialScrollTopSet) {
-      // console.log("text load, setting scroll");
+      //console.log("text load, setting scroll");
       this.setScrollPosition();
     } else if (!this.scrolledToHighlight && $(ReactDOM.findDOMNode(this)).find(".segment.highlight").length) {
-      // console.log("scroll to highlighted")
+      //console.log("scroll to highlighted")
       this.scrollToHighlighted();
       this.scrolledToHighlight = true;
       this.initialScrollTopSet = true;
@@ -5888,7 +5894,7 @@ var TextColumn = React.createClass({
     this.adjustInfiniteScroll();
   },
   setScrollPosition: function() {
-    // console.log("ssp");
+     //console.log("ssp");
     // Called on every update, checking flags on `this` to see if scroll position needs to be set
     if (this.loadingContentAtTop) {
       // After adding content by infinite scrolling up, scroll back to what the user was just seeing
@@ -5907,7 +5913,7 @@ var TextColumn = React.createClass({
        // console.log(top)
       }
     } else if (!this.scrolledToHighlight && $(ReactDOM.findDOMNode(this)).find(".segment.highlight").length) {
-       //console.log("scroll to highlighted");
+      //console.log("scroll to highlighted");
       // scroll to highlighted segment
       this.scrollToHighlighted();
       this.scrolledToHighlight = true;
@@ -5926,7 +5932,7 @@ var TextColumn = React.createClass({
   },
   adjustInfiniteScroll: function() {
     // Add or remove TextRanges from the top or bottom, depending on scroll position
-    // console.log("adjust Infinite Scroll");
+    //console.log("adjust Infinite Scroll");
     if (!this.isMounted()) { return; }
     var node         = ReactDOM.findDOMNode(this);
     var refs         = this.props.srefs;
@@ -5946,7 +5952,7 @@ var TextColumn = React.createClass({
       var topRef = refs[0];
       var data   = Sefaria.ref(topRef);
       if (data && data.prev) {
-        console.log("Up! Add previous section");
+        //console.log("Up! Add previous section");
         refs.splice(refs, 0, data.prev);
         this.loadingContentAtTop = true;
         this.props.updateTextColumn(refs);
@@ -5958,7 +5964,7 @@ var TextColumn = React.createClass({
         // console.log("last text is loading - don't add next section");
         return;
       }
-      console.log("Down! Add next section");
+      //console.log("Down! Add next section");
       var currentRef = refs.slice(-1)[0];
       var data       = Sefaria.ref(currentRef);
       if (data && data.next) {
@@ -5970,8 +5976,12 @@ var TextColumn = React.createClass({
       // nothing happens
     }
   },
+  getHighlightThreshhold: function() {
+    // Returns the distance from the top of screen that we want highlighted segments to appear below.
+    return this.props.multiPanel ? 200 : 50;
+  },
   adjustTextListHighlight: function() {
-    // console.log("adjustTextListHighlight");
+    //console.log("adjustTextListHighlight");
 
     // When scrolling while the TextList is open, update which segment should be highlighted.
     if (this.props.multiPanel && this.props.layoutWidth == 100) {
@@ -5979,68 +5989,27 @@ var TextColumn = React.createClass({
     }
     // but we do want to keep the highlightedRefs value in the panel
     // so it will return to the right location after closing other panels.
-    var adjustTextListHighlightInner = function() {
-      //var start = new Date();
-      if (!this.isMounted()) { return; }
-      var $container   = $(ReactDOM.findDOMNode(this));
-      var $readerPanel = $container.closest(".readerPanel");
-      var viewport     = $container.outerHeight() - $readerPanel.find(".textList").outerHeight();
-      var center       = (viewport/2);
-      var midTop       = 300;
-      var threshhold   = this.props.multiPanel ? midTop : center;
-      $container.find(".basetext .segment").each(function(i, segment) {
-        var $segment = $(segment);
-        if ($segment.offset().top + $segment.outerHeight() > threshhold) {
-          var ref = $segment.attr("data-ref");
-          this.props.setTextListHighlight(ref);
-          //var end = new Date();
-          //elapsed = end - start;
-          //console.log("Adjusted Text Highlight in: " + elapsed);
-          return false;
-        }
-      }.bind(this));
-    }.bind(this);
-
-    adjustTextListHighlightInner();
-
-      /*
-      // Caching segment heights
-      // Incomplete, needs to update on infinite scroll, window resize
-      // Not clear there's a great perfomance benefit
-      if (!this.state.segmentHeights) {
-        this.state.segmentHeights = [];
-        $readerPanel.find(".basetext .segment").each(function(i, segment) {
-          var $segment = $(segment);
-          var top = $segment.offset().top;
-          this.state.segmentHeights.push({
-              top: top,
-              bottom: top + $segment.outerHeight(),
-              ref: $segment.attr("data-ref")})
-        }.bind(this));
-        this.setState(this.state);
+    if (!this.isMounted()) { return; }
+    var $container   = this.$container;
+    var threshhold   = this.getHighlightThreshhold();
+    $container.find(".basetext .segment").each(function(i, segment) {
+      var $segment = $(segment);
+      if ($segment.offset().top > threshhold) {
+        var ref = $segment.attr("data-ref");
+        this.props.setTextListHighlight(ref);
+        return false;
       }
-
-      for (var i = 0; i < this.state.segmentHeights.length; i++) {
-        var segment = this.state.segmentHeights[i];
-        if (segment.bottom > center) {
-          this.showTextList(segment.ref);
-          return;
-        }
-      }
-      */
+    }.bind(this));
   },
   scrollToHighlighted: function() {
     window.requestAnimationFrame(function() {
       if (!this.isMounted()) { return; }
       //console.log("scroll to highlighted - animation frame");
-      var $container   = $(ReactDOM.findDOMNode(this));
-      var $readerPanel = $container.closest(".readerPanel");
+      var $container   = this.$container;
       var $highlighted = $container.find(".segment.highlight").first();
       if ($highlighted.length) {
-        var height     = $highlighted.outerHeight();
-        var viewport   = $container.outerHeight() - $readerPanel.find(".textList").outerHeight();
-        var offset     = height > viewport + 80 ? 80 : (viewport - height) / 2;
         this.justScrolled = true;
+        var offset = this.getHighlightThreshhold();
         $container.scrollTo($highlighted, 0, {offset: -offset});
       }
     }.bind(this));
@@ -7502,7 +7471,7 @@ var SheetListing = React.createClass({
     sheet: React.PropTypes.object.isRequired,
   },
   handleSheetClick: function() {
-    console.log("Sheet Click Handled");
+    //console.log("Sheet Click Handled");
     if (Sefaria._uid == this.props.sheet.owner) {
       Sefaria.site.track.event("Tools", "My Sheet Click", this.props.sheet.sheetUrl);
     } else {
