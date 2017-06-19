@@ -41,7 +41,7 @@ from sefaria.client.util import jsonResponse
 from sefaria.history import text_history, get_maximal_collapsed_activity, top_contributors, make_leaderboard, make_leaderboard_condition, text_at_revision, record_version_deletion, record_index_deletion
 from sefaria.system.decorators import catch_error_as_json
 from sefaria.summaries import flatten_toc, get_or_make_summary_node
-from sefaria.sheets import get_sheets_for_ref, get_public_sheets, get_sheets_by_tag, user_sheets, user_tags, recent_public_tags, sheet_to_dict, get_top_sheets, make_tag_list, group_sheets
+from sefaria.sheets import get_sheets_for_ref, public_sheets, get_sheets_by_tag, user_sheets, user_tags, recent_public_tags, sheet_to_dict, get_top_sheets, make_tag_list, group_sheets
 from sefaria.utils.util import list_depth, text_preview
 from sefaria.utils.hebrew import hebrew_plural, hebrew_term, encode_hebrew_numeral, encode_hebrew_daf, is_hebrew, strip_cantillation, has_cantillation
 from sefaria.utils.talmud import section_to_daf, daf_to_section
@@ -226,13 +226,13 @@ def render_react_component(component, props):
         if isinstance(e, socket.timeout) or (hasattr(e, "reason") and isinstance(e.reason, socket.timeout)):
             logger.exception("Node timeout: Fell back to client-side rendering.")
             with open(NODE_TIMEOUT_MONITOR, "a") as myfile:
-                myfile.write("Timeout at {}: {} / {} / {} / {}").format(
+                myfile.write("Timeout at {}: {} / {} / {} / {}\n".format(
                     datetime.now().isoformat(),
                     props.get("initialPath"),
                     "MultiPanel" if props.get("multiPanel", True) else "Mobile",
                     "Logged In" if props.get("loggedIn", False) else "Logged Out",
                     props.get("interfaceLang")
-                )
+                ))
             return render_to_string("elements/loading.html")
         else:
             # If anything else goes wrong with Node, just fall back to client-side rendering
@@ -253,7 +253,9 @@ def make_panel_dict(oref, version, language, filter, mode, **kwargs):
             "versions": oref.version_list()
         }
     else:
-        oref = oref.first_available_section_ref()
+        section_ref = oref.first_available_section_ref()
+        oref = section_ref if section_ref else oref
+
         panelDisplayLanguage = kwargs.get("panelDisplayLanguage")
         panel = {
             "mode": mode,
@@ -271,13 +273,14 @@ def make_panel_dict(oref, version, language, filter, mode, **kwargs):
                 panel["versionLanguage"] = None
         if mode != "Connections":
             try:
-                text = TextFamily(oref, version=panel["version"], lang=panel["versionLanguage"], commentary=False, context=True, pad=True, alts=True, wrapLinks=False).contents()
+                text_family = TextFamily(oref, version=panel["version"], lang=panel["versionLanguage"], commentary=False,
+                                  context=True, pad=True, alts=True, wrapLinks=False).contents()
             except NoVersionFoundError:
-                text = {}
-            text["updateFromAPI"] = True
-            text["next"] = oref.next_section_ref().normal() if oref.next_section_ref() else None
-            text["prev"] = oref.prev_section_ref().normal() if oref.prev_section_ref() else None
-            panel["text"] = text
+                text_family = {}
+            text_family["updateFromAPI"] = True
+            text_family["next"] = oref.next_section_ref().normal() if oref.next_section_ref() else None
+            text_family["prev"] = oref.prev_section_ref().normal() if oref.prev_section_ref() else None
+            panel["text"] = text_family
 
             if oref.is_segment_level():
                 panel["highlightedRefs"] = [subref.normal() for subref in oref.range_list()]
@@ -473,6 +476,10 @@ def s2_search(request):
 
     initialQuery = urllib.unquote(request.GET.get("q")) if request.GET.get("q") else ""
 
+    field = ("naive_lemmatizer" if request.GET.get("var") == "1" else "hebmorph_semi_exact") if request.GET.get("var") else ""
+
+    sort = ("chronological" if request.GET.get("sort") == "c" else "relevance") if request.GET.get("sort") else ""
+
     title = initialQuery if initialQuery else ""
 
     props = s2_props(request)
@@ -480,6 +487,8 @@ def s2_search(request):
         "initialMenu": "search",
         "initialQuery": initialQuery,
         "initialSearchFilters": search_filters,
+        "initialSearchField": field,
+        "initialSearchSortType": sort,
     })
     html = render_react_component("ReaderApp", props)
     return render_to_response('s2.html', {
@@ -497,7 +506,7 @@ def s2_sheets(request):
     props = s2_props(request)
     props.update({
         "initialMenu": "sheets",
-        "topSheets": [sheet_to_dict(s) for s in get_top_sheets()],
+        "topSheets": get_top_sheets(),
         "tagList": make_tag_list(sort_by="count"),
         "trendingTags": recent_public_tags(days=14, ntags=18)
     })
@@ -546,7 +555,7 @@ def s2_sheets_by_tag(request, tag):
         props["userSheets"]   = user_sheets(request.user.id)["sheets"]
         props["userTags"]     = user_tags(request.user.id)
     elif tag == "All Sheets":
-        props["publicSheets"] = [sheet_to_dict(s) for s in get_public_sheets(0)] #TODO Pagination
+        props["publicSheets"] = {"offset0num50": public_sheets(limit=50)["sheets"]}
     else:
         props["tagSheets"]    = [sheet_to_dict(s) for s in get_sheets_by_tag(tag)]
 
@@ -1227,6 +1236,7 @@ def search(request):
 def interface_language_redirect(request, language):
     """Set the interfaceLang cooki"""
     next = request.GET.get("next", "/?home")
+    next = "/?home" if next == "undefined" else next
     response = redirect(next)
     response.set_cookie("interfaceLang", language)
     if request.user.is_authenticated():
@@ -1366,7 +1376,7 @@ def texts_api(request, tref, lang=None, version=None):
 
         return jsonResponse({"status": "ok"})
 
-    return jsonResponse({"error": "Unsuported HTTP method."}, callback=request.GET.get("callback", None))
+    return jsonResponse({"error": "Unsupported HTTP method."}, callback=request.GET.get("callback", None))
 
 
 @catch_error_as_json
@@ -1470,7 +1480,7 @@ def index_api(request, title, v2=False, raw=False):
 
         return jsonResponse({"status": "ok"})
 
-    return jsonResponse({"error": "Unsuported HTTP method."}, callback=request.GET.get("callback", None))
+    return jsonResponse({"error": "Unsupported HTTP method."}, callback=request.GET.get("callback", None))
 
 
 @catch_error_as_json
@@ -1658,7 +1668,7 @@ def links_api(request, link_id_or_ref=None):
             tracker.delete(request.user.id, model.Link, link_id_or_ref, callback=revarnish_link)
         )
 
-    return jsonResponse({"error": "Unsuported HTTP method."})
+    return jsonResponse({"error": "Unsupported HTTP method."})
 
 
 @catch_error_as_json
@@ -1749,7 +1759,7 @@ def notes_api(request, note_id_or_ref):
             tracker.delete(request.user.id, model.Note, note_id_or_ref)
         )
 
-    return jsonResponse({"error": "Unsuported HTTP method."})
+    return jsonResponse({"error": "Unsupported HTTP method."})
 
 
 @catch_error_as_json
@@ -1999,9 +2009,79 @@ def terms_api(request, name):
         return jsonResponse(_internal_do_post(request, j, uid, **kwargs))
 
     if request.method == "DELETE":
-        return jsonResponse({"error": "Unsuported HTTP method."}) #TODO: support this?
+        return jsonResponse({"error": "Unsupported HTTP method."}) #TODO: support this?
 
-    return jsonResponse({"error": "Unsuported HTTP method."})
+    return jsonResponse({"error": "Unsupported HTTP method."})
+
+@catch_error_as_json
+def name_api(request, name):
+    if request.method != "GET":
+        return jsonResponse({"error": "Unsupported HTTP method."})
+
+    # Number of results to return.  0 indicates no limit
+    LIMIT = request.GET.get("limit") or 16
+    ref_only = request.GET.get("ref_only", False)
+    lang = "he" if is_hebrew(name) else "en"
+
+    completer = library.ref_auto_completer(lang) if ref_only else library.full_auto_completer(lang)
+    try:
+        ref = Ref(name)
+        inode = ref.index_node
+        assert isinstance(inode, SchemaNode)
+
+        completions = [name.capitalize()] + completer.next_steps_from_node(name)
+
+        if LIMIT == 0 or len(completions) < LIMIT:
+            current = {t: 1 for t in completions}
+            additional_results = completer.complete(name, LIMIT)
+            for res in additional_results:
+                if res not in current:
+                    completions += [res]
+
+        d = {
+            "lang": lang,
+            "is_ref": True,
+            "is_book": ref.is_book_level(),
+            "is_node": len(ref.sections) == 0,
+            "is_section": ref.is_section_level(),
+            "is_segment": ref.is_segment_level(),
+            "is_range": ref.is_range(),
+            "type": "ref",
+            "ref": ref.normal(),
+            "index": ref.index.title,
+            "book": ref.book,
+            "internalSections": ref.sections,
+            "internalToSections": ref.toSections,
+            "sections": ref.normal_sections(),  # this switch is to match legacy behavior of parseRef
+            "toSections": ref.normal_toSections(),
+            # "number_follows": inode.has_numeric_continuation(),
+            # "titles_follow": titles_follow,
+            "completions": completions[:LIMIT],
+            # todo: ADD textual completions as well
+            "examples": []
+        }
+        if inode.has_numeric_continuation():
+            inode = inode.get_default_child() if inode.has_default_child() else inode
+            d["sectionNames"] = inode.sectionNames
+            d["heSectionNames"] = map(hebrew_term, inode.sectionNames)
+            d["addressExamples"] = [t.toStr("en", 3*i+3) for i,t in enumerate(inode._addressTypes)]
+            d["heAddressExamples"] = [t.toStr("he", 3*i+3) for i,t in enumerate(inode._addressTypes)]
+
+    except InputError:
+        # This is not a Ref
+        d = {
+            "lang": lang,
+            "is_ref": False,
+            "completions": completer.complete(name, LIMIT)
+        }
+
+        # let's see if it's a known name of another sort
+        object_data = completer.get_data(name)
+        if object_data:
+            d["type"] = object_data["type"]
+            d["key"] = object_data["key"]
+
+    return jsonResponse(d)
 
 
 @catch_error_as_json
@@ -2206,7 +2286,7 @@ def texts_history_api(request, tref, lang=None, version=None):
     API for retrieving history information about a given text.
     """
     if request.method != "GET":
-        return jsonResponse({"error": "Unsuported HTTP method."})
+        return jsonResponse({"error": "Unsupported HTTP method."})
 
     tref = model.Ref(tref).normal()
     refRe = '^%s$|^%s:' % (tref, tref)
@@ -2303,7 +2383,7 @@ def reviews_api(request, tref=None, lang=None, version=None, review_id=None):
         return jsonResponse(delete_review(review_id, request.user.id))
 
     else:
-        return jsonResponse({"error": "Unsuported HTTP method."})
+        return jsonResponse({"error": "Unsupported HTTP method."})
 
 
 @ensure_csrf_cookie

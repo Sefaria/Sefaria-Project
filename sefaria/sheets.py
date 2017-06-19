@@ -38,14 +38,23 @@ def get_sheet(id=None):
 	return s
 
 
-def user_sheets(user_id, sort_by="date"):
+def user_sheets(user_id, sort_by="date", limit=0, skip=0):
+	query = {"owner": int(user_id)}
 	if sort_by == "date":
-		sheet_list = db.sheets.find({"owner": int(user_id), "status": {"$ne": 5}}).sort([["dateModified", -1]])
+		sort = [["dateModified", -1]]
 	elif sort_by == "views":
-		sheet_list = db.sheets.find({"owner": int(user_id), "status": {"$ne": 5}}).sort([["views", -1]])
+		sort = [["views", -1]]
 
 	response = {
-		"sheets": [sheet_to_dict(s) for s in sheet_list],
+		"sheets": sheet_list(query=query, sort=sort, limit=limit, skip=skip)
+	}
+	return response
+
+
+def public_sheets(sort=[["dateModified", -1]], limit=50, skip=0):
+	query = {"status": "public"}
+	response = {
+		"sheets": sheet_list(query=query, sort=sort, limit=limit, skip=skip)
 	}
 	return response
 
@@ -56,11 +65,34 @@ def group_sheets(group, authenticated):
     else:
         query = {"status": "public", "group": group}
 
-    sheets = db.sheets.find(query).sort([["title", 1]])
     response = {
-        "sheets": [sheet_to_dict(s) for s in sheets],
+        "sheets": sheet_list(query=query, sort=[["title", 1]]),
     }
     return response
+
+
+def sheet_list(query=None, sort=None, skip=0, limit=None):
+	"""
+	Returns a list of sheets with only fields needed for displaying a list.
+	"""
+	projection = {
+		"id": 1,
+		"title": 1,
+		"status": 1,
+		"owner": 1,
+		"views": 1,
+		"dateModified": 1,
+		"tags": 1,
+		"group": 1,
+	}
+	if not query:
+		return []
+	sort = sort if sort else [["dateModified", -1]]
+	sheets = db.sheets.find(query, projection).sort(sort).skip(skip)
+	if limit:
+		sheets = sheets.limit(limit)
+
+	return [sheet_to_dict(s) for s in sheets]
 
 
 def sheet_to_dict(sheet):
@@ -68,15 +100,14 @@ def sheet_to_dict(sheet):
 	Returns a JSON serializable dictionary of Mongo document `sheet`.
 	Annotates sheet with user profile info that is useful to client.
 	"""
-	profile = UserProfile(id=sheet["owner"])
+	profile = public_user_data(sheet["owner"])
 	sheet_dict = {
 		"id": sheet["id"],
 		"title": sheet["title"] if "title" in sheet else "Untitled Sheet",
 		"status": sheet["status"],
 		"author": sheet["owner"],
-		"ownerName": profile.full_name,
-		"ownerImageUrl": profile.gravatar_url_small,
-		"size": len(sheet["sources"]),
+		"ownerName": profile["name"],
+		"ownerImageUrl": profile["imageUrl"],
 		"views": sheet["views"],
 		"modified": dateutil.parser.parse(sheet["dateModified"]).strftime("%m/%d/%Y"),
 		"tags": sheet["tags"] if "tags" in sheet else [],
@@ -138,7 +169,7 @@ def order_tags_for_user(tag_counts, uid):
 	return tag_counts
 
 
-def recent_public_tags(days=14, ntags=0):
+def recent_public_tags(days=14, ntags=14):
 	"""
 	Returns list of tag/counts on public sheets modified in the last 'days'.
 	"""
@@ -147,22 +178,6 @@ def recent_public_tags(days=14, ntags=0):
 	tags        = sheet_tag_counts(query)[:ntags]
 
 	return tags
-
-
-def sheet_list(user_id=None):
-	"""
-	Returns a list of sheets belonging to user_id.
-	If user_id is None, returns a list of public sheets.
-	"""
-	if not user_id:
-		sheet_list = db.sheets.find({"status": "public"}).sort([["dateModified", -1]])
-	elif user_id:
-		sheet_list = db.sheets.find({"owner": int(user_id), "status": {"$ne": 5}}).sort([["dateModified", -1]])
-
-	response = {
-		"sheets": [sheet_to_dict(s) for s in sheet_list],
-	}
-	return response
 
 
 def save_sheet(sheet, user_id, search_override=False):
@@ -363,29 +378,13 @@ def update_included_refs(hours=1):
 		db.sheets.update({"_id": sheet["_id"]}, {"$set": {"included_refs": refs}})
 
 
-def get_public_sheets(page=None):
-	"""
-	Returns a list of public source sheets.
-	"""
-	page_size = 50
-	query     = {"status": "public"}
-
-	if page is None:
-		public_sheets = db.sheets.find(query).sort([["dateModified", -1]])
-	else:
-		public_sheets = db.sheets.find(query).sort([["dateModified", -1]]).skip(page*page_size).limit(page_size)
-
-	return public_sheets
-
-
 def get_top_sheets(limit=3):
 	"""
 	Returns 'top' sheets according to some magic heuristic.
 	Currently: return the most recently active sheets with more than 100 views. 
 	"""
 	query = {"status": "public", "views": {"$gte": 100}}
-	sheets = db.sheets.find(query).sort([["dateModified", -1]]).limit(limit)
-	return sheets
+	return sheet_list(query=query, limit=limit)
 
 
 def get_sheets_for_ref(tref, pad=True, context=1):

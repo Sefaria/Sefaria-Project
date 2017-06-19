@@ -19,6 +19,10 @@ env:
   PYTHONPATH=$TRAVIS_BUILD_DIR
   DJANGO_SETTINGS_MODULE=sefaria.settings
 
+before_install:
+  - sudo apt-get -qq update
+  - sudo apt-get install libwww-perl
+
 # command to install dependencies
 install: "pip install -r requirements.txt"
 
@@ -47,7 +51,9 @@ before_script:
 
   # Create the user db, and run the django server, redirecting output to log files
   - python manage.py syncdb --noinput
+  - python manage.py createsuperuser --email $SEFARIA_SUPERUSER  --noinput
   - python manage.py runserver --insecure 2> server.error.log > server.log &
+  - python scripts/setup_travis_users.py
 
   # Wait for server to come up
   - while ! nc -z localhost 8000; do sleep 0.1; done;
@@ -55,6 +61,8 @@ before_script:
   # Prime the cache
   - GET http://localhost:8000/api/texts/Genesis.1 > /dev/null &
   - GET http://localhost:8000/api/preview/Zohar > /dev/null &
+  - GET http://localhost:8000/api/name/stam?ref_only=1 > /dev/null &
+  - GET http://localhost:8000/api/name/stam > /dev/null &
 
 script:
  - 'py.test -m "not deep and not failing"'

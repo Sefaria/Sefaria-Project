@@ -458,6 +458,10 @@ class Test_Ref(object):
         r2 = Ref("Genesis 3:4")
         assert r1.distance(r2) == 57
 
+        r1 = Ref("Shir HaShirim Rabbah 2:12:1")
+        r2 = Ref("Shir HaShirim Rabbah 2:9:5")
+        assert r1.distance(r2) == 2
+
     def test_is_segment_level(self):
         assert Ref("Leviticus 15:3").is_segment_level()
         assert not Ref("Leviticus 15").is_segment_level()

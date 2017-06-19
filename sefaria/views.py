@@ -363,8 +363,12 @@ def delete_orphaned_counts(request):
 
 @staff_member_required
 def rebuild_toc(request):
-    model.library.rebuild_toc()
-    return HttpResponseRedirect("/?m=TOC-Rebuilt")
+    from sefaria.settings import DEBUG
+    if DEBUG:
+        model.library.rebuild_toc()
+        return HttpResponseRedirect("/?m=TOC-Rebuilt")
+    else:
+        return HttpResponseRedirect("/?m=TOC-Rebuild-Not-Allowed")
 
 
 @staff_member_required
@@ -435,8 +439,16 @@ def delete_citation_links(request, title):
 @staff_member_required
 def cache_stats(request):
     import resource
+    from sefaria.utils.util import get_size
+    from sefaria.model.user_profile import public_user_data_cache
+    from sefaria.sheets import last_updated 
     resp = {
         'ref_cache_size': model.Ref.cache_size(),
+        # 'ref_cache_bytes': model.Ref.cache_size_bytes(), # This pretty expensive, not sure if it should run on prod.
+        'public_user_data_size': len(public_user_data_cache),
+        'public_user_data_bytes': get_size(public_user_data_cache),
+        'sheets_last_updated_size': len(last_updated),
+        'sheets_last_updated_bytes': get_size(last_updated),
         'memory usage': resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
     }
     return jsonResponse(resp)
@@ -448,7 +460,6 @@ def cache_dump(request):
         'ref_cache_dump': model.Ref.cache_dump()
     }
     return jsonResponse(resp)
-
 
 
 @staff_member_required
