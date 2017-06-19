@@ -385,7 +385,6 @@ def flatten_toc(toc, include_categories=False, categories_in_titles=False, versi
             if not version_granularity:
                 results += [name]
             else:
-                #versions = texts.get_version_list(name)
                 versions = Ref(name).version_list()
                 for v in versions:
                     lang = {"he": "Hebrew", "en": "English"}[v["language"]]
@@ -438,15 +437,22 @@ class TocTree(object):
         self._sort()
 
     def _sort(self):
-        def key_method(node):
+        def _explicit_order_and_title(node):
             if isinstance(node, TocCategory):
                 return getattr(node, "order", 1)  # First, already sorted
+            elif hasattr(node, "order"):
+                return 100 + getattr(node, "order")  # Explicitly ordered Indexes
             else:
-                return 100 + getattr(node, "order",  # Explicitly ordered Indexes
-                                     1000 - getattr(node, "sparseness", 1))  # Least sparse to most sparse
+                return node.primary_title("en")  # Least sparse to most sparse
+
+        def _sparseness_order(node):
+            if isinstance(node, TocCategory) or hasattr(node, "order"):
+                return -4
+            return - getattr(node, "sparseness", 1)  # Least sparse to most sparse
 
         for cat in self._path_hash.values():  # iterate all categories
-            cat.children.sort(key=key_method)
+            cat.children.sort(key=_explicit_order_and_title)
+            cat.children.sort(key=_sparseness_order)
 
     def _make_index_node(self, index):
         d = index.toc_contents()
@@ -463,6 +469,9 @@ class TocTree(object):
     def get_toc_tree(self):
         return self._root
 
+    def get_serialized_toc(self):
+        return self._root.serialize()["contents"]
+
     #todo: Get rid of the special case for "other", by placing it in the Index's category lists
     def lookup_category(self, cat_path):
         """
@@ -473,7 +482,6 @@ class TocTree(object):
             return self._path_hash[tuple(cat_path)]
         except KeyError:
             return self._path_hash[tuple(["Other"] + cat_path)]
-
 
 
 class TocNode(TitledTreeNode):

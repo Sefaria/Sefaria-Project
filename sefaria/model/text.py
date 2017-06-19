@@ -3815,8 +3815,8 @@ class Library(object):
         if not self._toc:
             self._toc = scache.get_cache_elem('toc_cache')
             if not self._toc:
-                from sefaria.summaries import update_table_of_contents
-                self._toc = update_table_of_contents()
+                from sefaria.summaries import update_table_of_contents, TocTree
+                self._toc = TocTree().get_serialized_toc() # update_table_of_contents()
                 scache.set_cache_elem('toc_cache', self._toc)
         return self._toc
 
