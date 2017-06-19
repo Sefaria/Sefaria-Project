@@ -1455,8 +1455,8 @@ Sefaria = extend(Sefaria, {
               args.success(cache_result);
               return null;
           }
-          var url = Sefaria.search.baseUrl;
-
+          var url = Sefaria.searchBaseUrl + "/" + Sefaria.searchIndex + "-d" + "/_search";
+          console.log("SERACH URL", url);
           return $.ajax({
               url: url,
               type: 'POST',
