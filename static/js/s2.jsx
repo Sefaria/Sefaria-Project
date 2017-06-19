@@ -7,28 +7,11 @@
       classNames   = require('classnames'),
       Sefaria      = require('./sefaria');
   if (typeof document !== 'undefined' ) {
-    console.log("s2 IN DOCUMENT");
     INBROWSER = false;
     require('jquery.cookie');  //NOTE: these require statements are adding props to the $ obj. The order actually doesn't matter b/c it seems webpack deals with it
     require('jquery-ui');
     require('jquery.scrollto');
-    require('source-map-support').install();
   }
-
-      //cookie       = require('jquery.cookie'); //Sefaria.util.cookie;
-                     /*require('jquery-ui-css/core.css');
-                     require('jquery-ui-css/menu.css');
-                     require('jquery-ui-css/autocomplete.css');
-                     require('jquery-ui-css/theme.css');*/
-
-
-
-
-/*} else {
-  var INBROWSER    = true,
-      extend       = $.extend,
-      cookie       = $.cookie;
-}*/
 
 
 var ReaderApp = React.createClass({
@@ -7804,7 +7787,7 @@ var LoginPanel = React.createClass({
     fullPanel: React.PropTypes.bool,
   },
   render: function() {
-    var nextParam = "?next=" + Sefaria.util.currentPath();
+    var nextParam = "?next=" + encodeURIComponent(Sefaria.util.currentPath());
     var classes     = classNames({loginPanel: 1, textList: 1, fullPanel: this.props.fullPanel});
     return (<div className={classes}>
               <div className="texts">

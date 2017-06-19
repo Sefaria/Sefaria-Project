@@ -1,6 +1,6 @@
 // Initially copypasta'd from https://github.com/mhart/react-server-example
 // https://github.com/mhart/react-server-example/blob/master/server.js
-var ga = function() {};
+                     require('source-map-support').install();
 var http           = require('http'),
     express        = require('express'),
     bodyParser     = require('body-parser'),
@@ -11,7 +11,6 @@ var http           = require('http'),
     ReactDOMServer = require('react-dom/server'),
     SefariaReact   = require('../static/js/s2.jsx'),
     ReaderApp      = React.createFactory(SefariaReact.ReaderApp);
-                     require('source-map-support').install();
 
 var server = express();
 
@@ -46,7 +45,6 @@ server.post('/ReaderApp/:cachekey', function(req, res) {
   // var cacheKey = req.params.cachekey
   log(props.initialRefs || props.initialMenu);
   log("Time to props: %dms", timer.elapsed());
-
   request(settings.DJANGO_HOST + "/data.js", function(error, response, body) {
     if (!error && response.statusCode == 200) {
       log("Time to get data.js: %dms", timer.elapsed());

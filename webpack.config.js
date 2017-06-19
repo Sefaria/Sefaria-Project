@@ -1,5 +1,5 @@
-var gulp = require('gulp');
 var path = require('path');
+var nodeExternals = require('webpack-node-externals');
 var webpack = require('webpack');
 var BundleTracker = require('webpack-bundle-tracker');
 var DeepMerge = require('deep-merge');
@@ -13,17 +13,20 @@ var deepmerge = DeepMerge(function(target, source, key) {
 
 
 var base_config = {
-		devtool: '#eval-source-map', //should have better performance on incremental build over `source-map`
+	  watch: true,
+		watchOptions: {
+			aggregateTimeout: 300,
+		  poll: 500	
+		},
+		devtool: 'source-map', //should have better performance on incremental build over `source-map`
     plugins: [
         //tells webpack where to store data about your bundles.
         new BundleTracker({filename: './webpack-stats.json'}),
-        //makes jQuery available in every module
         /*new webpack.ProvidePlugin({
-            $: 'jquery',
-            jQuery: 'jquery',
-            'window.jQuery': 'jquery'
+            nodeSourceMapper: 'source-map-support'
         }),*/
-				//new ExtractTextPlugin("app.css")
+				//new ExtractTextPlugin("app.css"ear
+				//jc
     ],
 
     module: {
@@ -45,6 +48,7 @@ var base_config = {
     },
 
     resolve: {
+			  unsafeCache: true,
         //tells webpack where to look for modules
         modules: ['node_modules'],
         //extensions that should be used to resolve modules
@@ -60,6 +64,7 @@ function config(overrides) {
 var client_config = config({
 	context: path.resolve(__dirname, 'static/js'),
   entry: './client',
+  externals: [/^express$/, /^request$/, /^source-map-support$/],
   output: {
 	    path: path.join(__dirname, './static/bundles/'),
 	    filename: 'client-bundle.js'
@@ -70,6 +75,7 @@ var server_config = config({
 	context: path.resolve(__dirname, 'node'),
   entry: './server',
   target: 'node',
+  externals: [nodeExternals()],
   output: {
 	    path: path.join(__dirname, './static/bundles/'),
 	    filename: 'server-bundle.js'
@@ -80,40 +86,4 @@ var server_config = config({
 	    __filename: true
 	}
 });
-
-function onBuild(done) {
-  return function(err, stats) {
-	    if(err) {
-			      console.log('Error', err);
-			    }
-	    else {
-			      console.log(stats.toString());
-			    }
-
-	    if(done) {
-			      done();
-			    }
-	  }
-}
-
-gulp.task('client-build', function(done) {
-  webpack(client_config).run(onBuild(done));
-});
-
-gulp.task('client-watch', function() {
-  webpack(client_config).watch(100, onBuild());
-});
-
-gulp.task('server-build', function(done) {
-  webpack(server_config).run(onBuild(done));
-});
-
-gulp.task('server-watch', function() {
-  webpack(server_config).watch(100, function(err, stats) {
-	    onBuild()(err, stats);
-	    nodemon.restart();
-	  });
-});
-
-gulp.task('build', ['client-build', 'server-build']);
-gulp.task('watch', ['client-watch', 'server-watch']);
+module.exports = [client_config, server_config];

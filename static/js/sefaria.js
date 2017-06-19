@@ -1,5 +1,4 @@
 //if (typeof require !== 'undefined') {
-
 var INBROWSER = true,
     $ = require('jquery'),
     extend    = require('extend'),
@@ -8,15 +7,16 @@ var INBROWSER = true,
 
 
     //ga        = require('googleanalytics');
+var ga;
 if (typeof document === 'undefined') {
+    console.log("DOC UNDEF");
+
      INBROWSER = false;
-     //$         = require('cheerio');
-     //var ga        = function() {}; // Fail gracefully if we reach one of these methods server side
+     ga        = function() {}; // Fail gracefully if we reach one of these methods server side
      $.ajax    = function() {}; // ditto
      $.getJSON = function() {}; // ditto
-    require('source-map-support').install();
 } else {
-     console.log("Sefaria in DOCUME");
+     //ga = DJANGO_VARS.ga;
      require('jquery.cookie');
 }
 
@@ -1751,11 +1751,11 @@ Sefaria.util = {
       }
       return index;
     },
-    _defaultPath: "/",
+    defaultPath: "/",
     currentPath: function() {
       // Returns the current path plus search string if a browser context
       // or "/" in a browser-less context.
-      return (typeof window === "undefined" ) ? Sefaria.util._defaultPath :
+      return (typeof window === "undefined" ) ? Sefaria.util.defaultPath :
                 window.location.pathname + window.location.search;
     },
     parseURL: function(url) {
@@ -2543,7 +2543,6 @@ function csrf_init() {
 
 }
 
-
 Sefaria.setup = function() {
     //csrf_init();
     if (typeof DJANGO_DATA_VARS !== 'undefined') {
@@ -2552,6 +2551,9 @@ Sefaria.setup = function() {
                 Sefaria[prop] = DJANGO_DATA_VARS[prop];
             }
         }
+    }
+    if (typeof document !== 'undefined') {
+        ga = Sefaria.ga;
     }
     Sefaria.util.setupPrototypes();
     Sefaria.util.setupJQuery();
@@ -2566,6 +2568,11 @@ Sefaria.setup = function() {
 };
 Sefaria.setup();
 
+if (typeof document !== 'undefined') {
+    document.Sefaria = Sefaria; // allow access to `Sefaria` from console
+}
 //if (typeof module !== 'undefined') {
   module.exports = Sefaria;
+
 //}
+
