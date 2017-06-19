@@ -30,6 +30,7 @@
     "jquery-ui": "1.10.4",
     "jquery.cookie": "^1.4.1",
     "jquery.scrollto": "^2.1.2",
+    "prop-types": "^15.5.10",
     "querystring": "^0.2.0",
     "react": "^15.0.0",
     "react-dom": "^15.6.0",
