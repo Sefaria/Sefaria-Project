@@ -10614,7 +10614,9 @@ var SearchResultList = React.createClass({
     var results = [];
 
     if (tab == "text") {
-      results = this.state.hits.text.slice(0, this.state.displayedUntil["text"]).map(function (result) {
+      results = this.state.hits.text.slice(0, this.state.displayedUntil["text"]).filter(function (result) {
+        return !!result._source.version;
+      }).map(function (result) {
         return React.createElement(SearchTextResult, {
           data: result,
           query: _this11.props.query,
@@ -11275,7 +11277,9 @@ var SearchTextResult = React.createClass({
     var shown_duplicates = data.duplicates && this.state.duplicatesShown ? React.createElement(
       'div',
       { className: 'similar-results' },
-      data.duplicates.map(function (result) {
+      data.duplicates.filter(function (result) {
+        return !!result._source.version;
+      }).map(function (result) {
         var key = result._source.ref + "-" + result._source.version;
         return React.createElement(SearchTextResult, {
           data: result,
