@@ -7471,7 +7471,6 @@ var TextColumn = React.createClass({
       this.initialScrollTopSet = true;
     }
 
-    // console.log("text load, ais");
     this.adjustInfiniteScroll();
   },
   setScrollPosition: function setScrollPosition() {
@@ -7516,11 +7515,11 @@ var TextColumn = React.createClass({
   adjustInfiniteScroll: function adjustInfiniteScroll() {
     // Add or remove TextRanges from the top or bottom, depending on scroll position
     //console.log("adjust Infinite Scroll");
-    if (!this.isMounted()) {
+    var node = ReactDOM.findDOMNode(this);
+    if (!node) {
       return;
     }
-    var node = ReactDOM.findDOMNode(this);
-    var $node = this.$container;
+    var $node = $(node);
     var refs = this.props.srefs;
     var $lastText = $node.find(".textRange.basetext").last();
     if (!$lastText.length) {
@@ -7614,11 +7613,10 @@ var TextColumn = React.createClass({
     // Scrollbars take up spacing, causing the centering of TextColumn to be slightly off center
     // compared to the header. This functions sets appropriate padding to compensate.
     var width = Sefaria.util.getScrollbarWidth();
-    var $container = $(ReactDOM.findDOMNode(this));
     if (this.props.interfaceLang == "hebrew") {
-      $container.css({ paddingRight: width, paddingLeft: 0 });
+      this.$container.css({ paddingRight: width, paddingLeft: 0 });
     } else {
-      $container.css({ paddingRight: 0, paddingLeft: width });
+      this.$container.css({ paddingRight: 0, paddingLeft: width });
     }
   },
   render: function render() {
