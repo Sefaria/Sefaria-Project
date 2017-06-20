@@ -8370,7 +8370,7 @@ var ConnectionsPanel = React.createClass({
           addToSourceSheet: this.props.addToSourceSheet }),
         React.createElement(
           'a',
-          { href: '/sheets/private', className: 'allSheetsLink button transparent bordered fillWidth' },
+          { href: '/sheets/private', className: 'allSheetsLink button transparent bordered fillWidth squareBorder' },
           React.createElement(
             'span',
             { className: 'int-en' },
@@ -8401,7 +8401,7 @@ var ConnectionsPanel = React.createClass({
           onCancel: this.props.setConnectionsMode.bind(null, "Notes") }),
         Sefaria._uid ? React.createElement(
           'a',
-          { href: '/my/notes', className: 'allNotesLink button transparent bordered fillWidth' },
+          { href: '/my/notes', className: 'allNotesLink button transparent bordered fillWidth squareBorder' },
           React.createElement(
             'span',
             { className: 'int-en' },
@@ -9349,13 +9349,13 @@ var SheetListing = React.createClass({
     var sheet = this.props.sheet;
     var viewsIcon = sheet.public ? React.createElement(
       'div',
-      { className: 'sheetViews' },
+      { className: 'sheetViews sans' },
       React.createElement('i', { className: 'fa fa-eye', title: sheet.views + " views" }),
       ' ',
       sheet.views
     ) : React.createElement(
       'div',
-      { className: 'sheetViews' },
+      { className: 'sheetViews sans' },
       React.createElement('i', { className: 'fa fa-lock', title: 'Private' })
     );
 
@@ -10070,18 +10070,16 @@ var ConfirmAddToSheet = React.createClass({
       ),
       React.createElement(
         'a',
-        { className: 'button white', href: "/sheets/" + this.props.sheetId, target: '_blank' },
+        { className: 'button white squareBorder', href: "/sheets/" + this.props.sheetId, target: '_blank' },
         React.createElement(
           'span',
           { className: 'int-en' },
-          'Go to Source Sheet ',
-          React.createElement('i', { className: 'fa fa-angle-right' })
+          'Go to Source Sheet'
         ),
         React.createElement(
           'span',
           { className: 'int-he' },
-          '\u05E2\u05D1\u05D5\u05E8 \u05DC\u05D3\u05E3 \u05D4\u05DE\u05E7\u05D5\u05E8\u05D5\u05EA',
-          React.createElement('i', { className: 'fa fa-angle-left' })
+          '\u05E2\u05D1\u05D5\u05E8 \u05DC\u05D3\u05E3 \u05D4\u05DE\u05E7\u05D5\u05E8\u05D5\u05EA'
         )
       )
     );

@@ -6663,7 +6663,7 @@ var ConnectionsPanel = React.createClass({
                     version={this.props.version}
                     versionLanguage={this.props.versionLanguage}
                     addToSourceSheet={this.props.addToSourceSheet} />
-                  <a href="/sheets/private" className="allSheetsLink button transparent bordered fillWidth">
+                  <a href="/sheets/private" className="allSheetsLink button transparent bordered fillWidth squareBorder">
                     <span className="int-en">Go to My Sheets</span>
                     <span className="int-he">HEBREW NEEDED</span>
                   </a>
@@ -6684,7 +6684,7 @@ var ConnectionsPanel = React.createClass({
                     onSave={this.props.setConnectionsMode.bind(null, "Notes")}
                     onCancel={this.props.setConnectionsMode.bind(null, "Notes")} />
                   { Sefaria._uid ? 
-                  <a href="/my/notes" className="allNotesLink button transparent bordered fillWidth">
+                  <a href="/my/notes" className="allNotesLink button transparent bordered fillWidth squareBorder">
                     <span className="int-en">Go to My Notes</span>
                     <span className="int-he">HEBREW NEEDED</span>
                   </a>
@@ -7486,8 +7486,8 @@ var SheetListing = React.createClass({
   render: function() {
     var sheet = this.props.sheet;
     var viewsIcon = sheet.public ?
-      <div className="sheetViews"><i className="fa fa-eye" title={sheet.views + " views"}></i> {sheet.views}</div> 
-      : <div className="sheetViews"><i className="fa fa-lock" title="Private"></i></div>;
+      <div className="sheetViews sans"><i className="fa fa-eye" title={sheet.views + " views"}></i> {sheet.views}</div> 
+      : <div className="sheetViews sans"><i className="fa fa-lock" title="Private"></i></div>;
 
     return (
       <div className="sheet" key={sheet.sheetUrl}>
@@ -8000,9 +8000,9 @@ var ConfirmAddToSheet = React.createClass({
                 <span className="int-en">Your source has been added.</span>
                 <span className="int-he">הטקסט נוסף בהצלחה לדף המקורות</span>
               </div>
-              <a className="button white" href={"/sheets/" + this.props.sheetId} target="_blank">
-                <span className="int-en">Go to Source Sheet <i className="fa fa-angle-right"></i></span>
-                <span className="int-he">עבור לדף המקורות<i className="fa fa-angle-left"></i></span>
+              <a className="button white squareBorder" href={"/sheets/" + this.props.sheetId} target="_blank">
+                <span className="int-en">Go to Source Sheet</span>
+                <span className="int-he">עבור לדף המקורות</span>
               </a>
             </div>);
   }

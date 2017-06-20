@@ -2891,6 +2891,7 @@ a.readerNavCategory {
 .textList .sheet .sheetViews {
   float: right;
   color: #999;
+  font-size: 12px;
 }
 .textList .sheet .sheetAuthor,
 .textList .note .noteAuthor {
@@ -3365,6 +3366,9 @@ a.button.white {
   text-align: center;
   display: block;
   margin: 10px 0;
+}
+.button.squareBorder {
+  border-radius: 0;
 }
 a .button:hover {
   text-decoration: none;
