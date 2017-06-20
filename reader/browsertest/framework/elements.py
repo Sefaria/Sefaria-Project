@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-
 from config import *
 from sefaria.model import *
 from random import shuffle
@@ -56,11 +55,6 @@ class AtomicTest(object):
         raise Exception("AtomicTest.run() needs to be defined for each test.")
 
     # Component methods
-    def s2(self):
-        self.driver.get(self.base_url + "/s2")
-        WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, ".readerNavCategory")))
-        self.set_modal_cookie()
-        return self
 
     def login_user(self):
         password = os.environ["SEFARIA_TEST_PASS"]
@@ -183,7 +177,8 @@ class AtomicTest(object):
         segment = self.driver.find_element_by_css_selector(selector)
         segment.click()
         # Todo: put a data-* attribute on .filterSet, for the multi-panel case
-        WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, ".textFilter")))
+        # Note below will fail if there are no connections
+        WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, ".categoryFilter")))
         return self
 
     # Basic navigation
@@ -253,12 +248,23 @@ class AtomicTest(object):
         )
         return self
 
-
-
     # Connections Panel
+    def find_category_filter(self, name):
+        WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, '.categoryFilter[data-name="{}"]'.format(name))))
+        return self.driver.find_element_by_css_selector('.categoryFilter[data-name="{}"]'.format(name))
+
     def find_text_filter(self, name):
         WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, '.textFilter[data-name="{}"]'.format(name))))
         return self.driver.find_element_by_css_selector('.textFilter[data-name="{}"]'.format(name))
+
+    def click_category_filter(self, name):
+        f = self.find_category_filter(name)
+        assert f, "Can not find text filter {}".format(name)
+        f.click()
+        WebDriverWait(self.driver, TEMPER).until(
+            element_to_be_clickable((By.CSS_SELECTOR, '.categoryFilterGroup.withBooks'))
+        )
+        return self
 
     def click_text_filter(self, name):
         f = self.find_text_filter(name)
@@ -267,7 +273,6 @@ class AtomicTest(object):
         WebDriverWait(self.driver, TEMPER).until(
             element_to_be_clickable((By.CSS_SELECTOR, '.recentFilterSet'))
         )
-        #WebDriverWait(self.driver, TEMPER).until(title_contains("with {}".format(name)))
         return self
 
     # Search

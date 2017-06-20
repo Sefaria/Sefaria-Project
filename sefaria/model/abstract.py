@@ -163,6 +163,8 @@ class AbstractMongoRecord(object):
         """
         d = self._saveable_attrs()
         del d[self.id_field]
+        if kwargs.get("with_string_id", False):
+            d["_id"] = str(self._id)
         return d
 
     def _set_pkeys(self):

@@ -3647,7 +3647,7 @@ class Ref(object):
         else:
             raise InputError("Can not get anonymous private notes")
 
-        return NoteSet(query)
+        return NoteSet(query, sort=[("_id", -1)])
 
     def linkset(self):
         """

@@ -1877,17 +1877,6 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
   stroke-width: 1;
   stroke: white;
 }
-
-#visualGardenPage .sourceSheetPanelBox {
-    position: fixed;
-    display: block;
-    left: 40%;
-    top: 90px;
-    width: 330px;
-    padding: 20px;
-    background: white;
-    border: #ccc 2px solid;
-}
 #visualGardenPage .sourceSheetPanelBox .contentInner {
   margin: 0 auto;
 }
