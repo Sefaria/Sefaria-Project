@@ -2386,7 +2386,7 @@ class ReaderControls extends React.Component {
           this.props.onError(data.error);
           return;
         }
-        if (this._isMounted) { this.setState({}); }
+        if (this._isMounted) { this.forceUpdate(); }
       }.bind(this));
     }
 
@@ -6195,19 +6195,8 @@ class TextRange extends React.Component {
           prevProps.layoutWidth !== this.props.layoutWidth) {
             // Rerender in case version has changed
             this.forceUpdate(function() {
-              if (this._isMounted) {
                 this.placeSegmentNumbers();
-              }
             }.bind(this));
-
-            // TODO: are these animationFrames still needed?
-            /*
-            window.requestAnimationFrame(function() {
-              if (this.isMounted()) {
-                this.placeSegmentNumbers();
-              }
-            }.bind(this));
-            */
       }
     }
   }

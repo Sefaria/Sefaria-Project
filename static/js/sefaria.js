@@ -225,12 +225,15 @@ Sefaria = extend(Sefaria, {
       return data;
     }
     //console.log("API Call for " + key);
-    this._api(this._textUrl(ref, settings), function(data) {
+    this.text_api(ref,settings,cb);
+    return null;
+  },
+  text_api: function(ref, settings, cb) {
+    return this._api(this._textUrl(ref, settings), function(data) {
       this._saveText(data, settings);
       cb(data);
       //console.log("API return for " + data.ref)
     }.bind(this));
-    return null;
   },
   _versions: {},
   versions: function(ref, cb) {
@@ -886,41 +889,42 @@ Sefaria = extend(Sefaria, {
     if (ref in this._related) {
       callback(this._related[ref]);
     } else {
-       var url = "/api/related/" + Sefaria.normRef(ref);
-       this._api(url, function(data) {
-          if ("error" in data) {
-            return;
-          }
-          var originalData = Sefaria.util.clone(data);
-
-          // Save link, note, and sheet data, and retain the split data from each of these saves
-          var split_data = {
-              links: this._saveLinkData(ref, data.links),
-              notes: this._saveNoteData(ref, data.notes),
-              sheets: this.sheets._saveSheetsByRefData(ref, data.sheets)
-          };
-
-           // Build split related data from individual split data arrays
-          ["links", "notes", "sheets"].forEach(function(obj_type) {
-            for (var ref in split_data[obj_type]) {
-              if (split_data[obj_type].hasOwnProperty(ref)) {
-                if (!(ref in this._related)) {
-                    this._related[ref] = {links: [], notes: [], sheets: []};
-                }
-                this._related[ref][obj_type] = split_data[obj_type][ref];
-              }
-            }
-          }, this);
-
-
-           // Save the original data after the split data - lest a split version overwrite it.
-          this._related[ref] = originalData;
-          this._relatedSummaries[ref] = null; // Reset in case previously cached before API returned
-
-          callback(data);
-
-        }.bind(this));
+       this.related_api(ref, callback);
     }
+  },
+  related_api: function(ref, callback) {
+    var url = "/api/related/" + Sefaria.normRef(ref);
+    return this._api(url, function(data) {
+      if ("error" in data) {
+        return;
+      }
+      var originalData = Sefaria.util.clone(data);
+
+      // Save link, note, and sheet data, and retain the split data from each of these saves
+      var split_data = {
+          links: this._saveLinkData(ref, data.links),
+          notes: this._saveNoteData(ref, data.notes),
+          sheets: this.sheets._saveSheetsByRefData(ref, data.sheets)
+      };
+
+       // Build split related data from individual split data arrays
+      ["links", "notes", "sheets"].forEach(function(obj_type) {
+        for (var ref in split_data[obj_type]) {
+          if (split_data[obj_type].hasOwnProperty(ref)) {
+            if (!(ref in this._related)) {
+                this._related[ref] = {links: [], notes: [], sheets: []};
+            }
+            this._related[ref][obj_type] = split_data[obj_type][ref];
+          }
+        }
+      }, this);
+
+      // Save the original data after the split data - lest a split version overwrite it.
+      this._related[ref] = originalData;
+      this._relatedSummaries[ref] = null; // Reset in case previously cached before API returned
+
+      callback(data);
+    }.bind(this));
   },
   _relatedSummaries: {},
   relatedSummary: function(ref) {
@@ -1650,19 +1654,24 @@ Sefaria = extend(Sefaria, {
     }
   },
   _apiCallbacks: {},
+  _ajaxObjects: {},
   _api: function(url, callback) {
     // Manage API calls and callbacks to prevent duplicate calls
     if (url in this._apiCallbacks) {
       this._apiCallbacks[url].push(callback);
+      return this._ajaxObjects[url];
     } else {
       this._apiCallbacks[url] = [callback];
-      $.getJSON(url, function(data) {
+      var ajaxobj = $.getJSON(url, function(data) {
         var callbacks = this._apiCallbacks[url];
         for (var i = 0; i < callbacks.length; i++) {
           callbacks[i](data);
         }
         delete this._apiCallbacks[url];
+        delete this._ajaxObjects[url];
       }.bind(this));
+      this._ajaxObjects[url] = ajaxobj;
+      return ajaxobj;
     }
   }
 });
