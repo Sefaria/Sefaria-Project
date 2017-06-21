@@ -1792,6 +1792,7 @@ var ReaderPanel = React.createClass({
     multiPanel: React.PropTypes.bool,
     masterPanelLanguage: React.PropTypes.string,
     panelsOpen: React.PropTypes.number,
+    allOpenRefs: React.PropTypes.array,
     layoutWidth: React.PropTypes.number,
     setTextListHighlight: React.PropTypes.func,
     setSelectedWords: React.PropTypes.func,
@@ -2121,7 +2122,11 @@ var ReaderPanel = React.createClass({
     var loginRequired = {
       "Add Connection": 1
     };
-    Sefaria.site.track.event("Tools", mode + " Click");
+    if (mode == "Add Connection" && this.props.allOpenRefs.length == 1) {
+      this.props.openComparePanel();
+      return;
+    }
+    Sefaria.site.track.event("Tools", mode + " Click"); // TODO Shouldn't be tracking clicks here, this function is called programmatically
     if (!Sefaria._uid && mode in loginRequired) {
       Sefaria.site.track.event("Tools", "Prompt Login");
       mode = "Login";
@@ -9684,13 +9689,9 @@ var ToolsList = React.createClass({
     return React.createElement(
       'div',
       null,
-      React.createElement(ToolsButton, { en: 'Share', he: '\u05E9\u05EA\u05E3', image: 'tools-share.svg', onClick: function () {
-          this.props.setConnectionsMode("Share");
-        }.bind(this) }),
+      React.createElement(ToolsButton, { en: 'Share', he: '\u05E9\u05EA\u05E3', image: 'tools-share.svg', onClick: this.props.setConnectionsMode.bind(null, "Share") }),
       React.createElement(ToolsButton, { en: 'Add Translation', he: '\u05D4\u05D5\u05E1\u05E3 \u05EA\u05E8\u05D2\u05D5\u05DD', image: 'tools-translate.svg', onClick: addTranslation }),
-      React.createElement(ToolsButton, { en: 'Add Connection', he: '\u05D4\u05D5\u05E1\u05E3 \u05E7\u05D9\u05E9\u05D5\u05E8 \u05DC\u05D8\u05E7\u05E1\u05D8 \u05D0\u05D7\u05E8', image: 'tools-add-connection.svg', onClick: function () {
-          this.props.setConnectionsMode("Add Connection");
-        }.bind(this) }),
+      Sefaria.is_moderator || Sefaria.is_editor ? React.createElement(ToolsButton, { en: 'Add Connection', he: '\u05D4\u05D5\u05E1\u05E3 \u05E7\u05D9\u05E9\u05D5\u05E8 \u05DC\u05D8\u05E7\u05E1\u05D8 \u05D0\u05D7\u05E8', image: 'tools-add-connection.svg', onClick: this.props.setConnectionsMode.bind(null, "Add Connection") }) : null,
       editText ? React.createElement(ToolsButton, { en: 'Edit Text', he: '\u05E2\u05E8\u05D5\u05DA \u05D8\u05E7\u05E1\u05D8', image: 'tools-edit-text.svg', onClick: editText }) : null
     );
   }

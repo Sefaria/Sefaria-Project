@@ -1710,6 +1710,7 @@ var ReaderPanel = React.createClass({
     multiPanel:                  React.PropTypes.bool,
     masterPanelLanguage:         React.PropTypes.string,
     panelsOpen:                  React.PropTypes.number,
+    allOpenRefs:                 React.PropTypes.array,
     layoutWidth:                 React.PropTypes.number,
     setTextListHighlight:        React.PropTypes.func,
     setSelectedWords:            React.PropTypes.func,
@@ -2027,7 +2028,11 @@ var ReaderPanel = React.createClass({
     var loginRequired = {
       "Add Connection": 1,
     };
-    Sefaria.site.track.event("Tools", mode + " Click");
+    if (mode == "Add Connection" && this.props.allOpenRefs.length == 1) {
+      this.props.openComparePanel();
+      return;
+    }
+    Sefaria.site.track.event("Tools", mode + " Click"); // TODO Shouldn't be tracking clicks here, this function is called programmatically
     if (!Sefaria._uid && mode in loginRequired) {
       Sefaria.site.track.event("Tools", "Prompt Login");
       mode = "Login";
@@ -7710,9 +7715,9 @@ var ToolsList = React.createClass({
     
     return (
       <div>
-        <ToolsButton en="Share" he="שתף" image="tools-share.svg" onClick={function() {this.props.setConnectionsMode("Share")}.bind(this)} /> 
+        <ToolsButton en="Share" he="שתף" image="tools-share.svg" onClick={this.props.setConnectionsMode.bind(null, "Share")} /> 
         <ToolsButton en="Add Translation" he="הוסף תרגום" image="tools-translate.svg" onClick={addTranslation} /> 
-        <ToolsButton en="Add Connection" he="הוסף קישור לטקסט אחר" image="tools-add-connection.svg"onClick={function() {this.props.setConnectionsMode("Add Connection")}.bind(this)} /> 
+        { Sefaria.is_moderator || Sefaria.is_editor ? <ToolsButton en="Add Connection" he="הוסף קישור לטקסט אחר" image="tools-add-connection.svg"onClick={this.props.setConnectionsMode.bind(null, "Add Connection")} /> : null }
         { editText ? (<ToolsButton en="Edit Text" he="ערוך טקסט" image="tools-edit-text.svg" onClick={editText} />) : null }
       </div>);
   }
