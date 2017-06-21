@@ -3366,7 +3366,8 @@ var ReaderTextTableOfContents = React.createClass({
           </select>
           <select className="dlVersionSelect dlVersionFormatSelect" value={this.state.dlVersionFormat || "0"} onChange={this.onDlFormatSelect}>
             <option key="none" value="0" disabled>File Format</option>
-            <option key="txt" value="txt" >Text</option>
+            <option key="txt" value="txt" >Text (with tags)</option>
+            <option key="plain.txt" value="plain.txt" >Text (without tags)</option>
             <option key="csv" value="csv" >CSV</option>
             <option key="json" value="json" >JSON</option>
           </select>
@@ -9403,7 +9404,8 @@ var ModeratorToolsPanel = React.createClass({
         </select>
         <select className="dlVersionSelect dlVersionFormatSelect" value={this.state.bulk_format || ""} onChange={this.onDlFormatSelect}>
           <option disabled>File Format</option>
-          <option key="txt" value="txt" >Text</option>
+          <option key="txt" value="txt" >Text (with tags)</option>
+          <option key="plain.txt" value="plain.txt" >Text (without tags)</option>
           <option key="csv" value="csv" >CSV</option>
           <option key="json" value="json" >JSON</option>
         </select>
