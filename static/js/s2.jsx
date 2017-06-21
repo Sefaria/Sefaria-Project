@@ -8172,12 +8172,10 @@ class SearchResultList extends React.Component {
         this.updateRunningQuery(type, null, false);
     }
     componentDidMount() {
-        this._isMounted = true;
         this._executeQueries();
         $(ReactDOM.findDOMNode(this)).closest(".content").bind("scroll", this.handleScroll);
     }
     componentWillUnmount() {
-        this._isMounted = false;
         this._abortRunningQueries();
         $(ReactDOM.findDOMNode(this)).closest(".content").unbind("scroll", this.handleScroll);
     }
@@ -8355,12 +8353,8 @@ class SearchResultList extends React.Component {
             //this.updateCurrentQuery(null);
             return;
         }
-        if (this._isMounted) {
-            this.setState({
-                error: true
-            });
-            this.updateRunningQuery(null, null, false);
-        }
+        this.setState({error: true});
+        this.updateRunningQuery(null, null, false);
     }
     _remove_duplicate_text_hits(hits) {
 
