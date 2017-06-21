@@ -1,3 +1,45 @@
-from sefaria.system.cloudflare import purge_cloudflare
+# -*- coding: utf-8 -*-
 
-purge_cloudflare()
+import argparse
+from sefaria.system.cloudflare import SefariaCloudflareManager
+from sefaria.utils.util import get_directory_content
+from datetime import datetime
+try:
+    from sefaria.settings import USE_CLOUDFLARE
+except ImportError as e:
+    USE_CLOUDFLARE=False
+
+import logging
+logger = logging.getLogger('cloudflare')
+
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-f", "--files",
+                            nargs='*',
+                            type=str,
+                            default=[],
+                            help="list of files to purge")
+    parser.add_argument("-t", "--timestamp", help="unix timestamp to purge files that are newer than", type=int, default=None)
+
+
+    args = parser.parse_args()
+    print args
+    if args.files:
+        if USE_CLOUDFLARE:
+            SefariaCloudflareManager().purge_batch_cloudflare_urls(args.files)
+        else:
+            logger.info(args.files)
+    elif args.timestamp:
+        time_str = datetime.fromtimestamp(int(args.timestamp)).strftime('%Y-%m-%d %H:%M:%S')
+        print "purging all static files {}".format(time_str)
+        if USE_CLOUDFLARE:
+            SefariaCloudflareManager().purge_static_files_from_cloudflare(timestamp=args.timestamp)
+        else:
+            logger.info(get_directory_content("static", modified_after=args.timestamp))
+    else:
+        print "purging all static files"
+        if USE_CLOUDFLARE:
+            SefariaCloudflareManager().purge_static_files_from_cloudflare()
+        else:
+            logger.info(get_directory_content("static"))
