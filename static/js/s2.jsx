@@ -2358,10 +2358,11 @@ class ReaderControls extends React.Component {
     this.props.openMenu("text toc");
   }
   componentDidMount() {
-    this._isMounted = true;
   }
   componentWillUnmount() {
-    this._isMounted = false;
+    if (this.state.runningQuery) {
+      this.state.runningQuery.abort();
+    }
   }
   render() {
     var title     = this.props.currentRef;
@@ -2381,13 +2382,14 @@ class ReaderControls extends React.Component {
 
     if (title && !oref) {
       // If we don't have this data yet, rerender when we do so we can set the Hebrew title
-      Sefaria.text(title, {context: 1}, function(data) {
+      var ajaxObj = Sefaria.textApi(title, {context: 1}, function(data) {
         if ("error" in data) {
           this.props.onError(data.error);
           return;
         }
-        if (this._isMounted) { this.forceUpdate(); }
+        this.setState({runningQuery: null});   // This should have the effect of forcing a re-render
       }.bind(this));
+      this.setState({runningQuery: ajaxObj});
     }
 
     var showVersion = this.props.versionLanguage == "en" && (this.props.settings.language == "english" || this.props.settings.language == "bilingual");
