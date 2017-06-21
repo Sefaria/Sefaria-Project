@@ -13,15 +13,17 @@ var deepmerge = DeepMerge(function(target, source, key) {
 
 
 var base_config = {
-	  watch: true,
-		watchOptions: {
-			aggregateTimeout: 300,
-		  poll: 500	
-		},
-		devtool: 'source-map', //should have better performance on incremental build over `source-map`
+
+    devtool: 'source-map', //should have better performance on incremental build over `source-map`
     plugins: [
         //tells webpack where to store data about your bundles.
         new BundleTracker({filename: './webpack-stats.json'}),
+        function() {
+            this.plugin('watch-run', function(watching, callback) {
+                console.log('Begin compile at ' + new Date());
+                callback();
+            })
+        }
         /*new webpack.ProvidePlugin({
             nodeSourceMapper: 'source-map-support'
         }),*/
@@ -48,11 +50,16 @@ var base_config = {
     },
 
     resolve: {
-			  unsafeCache: true,
+        unsafeCache: true,
         //tells webpack where to look for modules
         modules: ['node_modules'],
         //extensions that should be used to resolve modules
         extensions: ['.jsx', '.js']
+    },
+
+    stats: {
+        errorDetails: true,
+        colors: true
     }
 
 }
