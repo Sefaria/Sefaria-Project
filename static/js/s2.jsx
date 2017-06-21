@@ -3355,7 +3355,8 @@ var ReaderTextTableOfContents = React.createClass({
           </select>
           <select className="dlVersionSelect dlVersionFormatSelect" value={this.state.dlVersionFormat || "0"} onChange={this.onDlFormatSelect}>
             <option key="none" value="0" disabled>File Format</option>
-            <option key="txt" value="txt" >Text</option>
+            <option key="txt" value="txt" >Text (with tags)</option>
+            <option key="plain.txt" value="plain.txt" >Text (without tags)</option>
             <option key="csv" value="csv" >CSV</option>
             <option key="json" value="json" >JSON</option>
           </select>
@@ -8083,8 +8084,16 @@ var SearchResultList = React.createClass({
         sort_type: this.props.sortType,
         error: function() {  console.log("Failure in SearchResultList._loadRemainder"); },
         success: function(data) {
-          var hitArray = (type == "text")?this._process_text_hits(data.hits.hits):data.hits.hits;
-          var nextHits = this._remove_duplicate_text_hits(currentHits.concat(hitArray));
+          var nextHits;
+          if (type === "text") {
+            var hitArray = this._process_text_hits(data.hits.hits);
+            nextHits = this._remove_duplicate_text_hits(currentHits.concat(hitArray));
+          } else {
+            nextHits = currentHits.concat(data.hits.hits);
+          }
+
+          //var hitArray = (type == "text")?this._process_text_hits(data.hits.hits):data.hits.hits;
+          //var nextHits = this._remove_duplicate_text_hits(currentHits.concat(hitArray));
           this.state.hits[type] = nextHits;
 
           this.setState({hits: this.state.hits});
@@ -8421,7 +8430,7 @@ var SearchResultList = React.createClass({
         var results = [];
 
         if (tab == "text") {
-          results = this.state.hits.text.slice(0,this.state.displayedUntil["text"]).map(result =>
+          results = this.state.hits.text.slice(0,this.state.displayedUntil["text"]).filter(result => !!result._source.version).map(result =>
             <SearchTextResult
                 data={result}
                 query={this.props.query}
@@ -8759,7 +8768,7 @@ var SearchSortBox = React.createClass({
         {(this.props.visible) ? <img src="/static/img/arrow-up.png" alt=""/> : <img src="/static/img/arrow-down.png" alt=""/>}
 
       </div>
-      <div className={(this.props.visible) ? "searchSortBox":"searchSortBox hidden"}>
+      <div className={(this.props.visible) ? "searchSortBox" :"searchSortBox hidden"}>
         <li onClick={()=>this.handleClick("chronological")}>
           <span className="int-en"><span className={chronoClass}>{"Chronological"}</span></span>
           <span className="int-he" dir="rtl"><span className={chronoClass}>{"כרונולוגי"}</span></span>
@@ -8898,7 +8907,7 @@ var SearchTextResult = React.createClass({
 
         var shown_duplicates = (data.duplicates && this.state.duplicatesShown) ?
             (<div className='similar-results'>
-                    {data.duplicates.map(function(result) {
+                    {data.duplicates.filter(result => !!result._source.version).map(function(result) {
                         var key = result._source.ref + "-" + result._source.version;
                         return <SearchTextResult
                             data={result}
@@ -9377,7 +9386,8 @@ var ModeratorToolsPanel = React.createClass({
         </select>
         <select className="dlVersionSelect dlVersionFormatSelect" value={this.state.bulk_format || ""} onChange={this.onDlFormatSelect}>
           <option disabled>File Format</option>
-          <option key="txt" value="txt" >Text</option>
+          <option key="txt" value="txt" >Text (with tags)</option>
+          <option key="plain.txt" value="plain.txt" >Text (without tags)</option>
           <option key="csv" value="csv" >CSV</option>
           <option key="json" value="json" >JSON</option>
         </select>

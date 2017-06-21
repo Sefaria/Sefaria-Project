@@ -274,6 +274,7 @@ def count_by_regex(some_file, regex):
                 result[item] += 1
     return result
 
+
 def titlecase(text):
     """
     This function is based on some Perl code by: John Gruber http://daringfireball.net/ 10 May 2008
@@ -369,6 +370,7 @@ def titlecase(text):
 
     return "\n".join(processed)
 
+
 def short_to_long_lang_code(code):
     if code in ("bi", "he-en", "en-he"):
         code = "bilingual"
@@ -390,6 +392,7 @@ def get_all_subclasses(cls):
                 work.append(child)
     return subclasses
 
+
 def get_all_subclass_attribute(cls, attr):
     subclasses = get_all_subclasses(cls)
     attr_vals = []
@@ -398,3 +401,31 @@ def get_all_subclass_attribute(cls, attr):
         if attr_val:
             attr_vals.append(attr_val)
     return attr_vals
+
+
+def get_size(obj, seen=None):
+    """Recursively finds size of objects in bytes"""
+    import sys
+    import inspect
+    size = sys.getsizeof(obj)
+    if seen is None:
+        seen = set()
+    obj_id = id(obj)
+    if obj_id in seen:
+        return 0
+    # Important mark as seen *before* entering recursion to gracefully handle
+    # self-referential objects
+    seen.add(obj_id)
+    if hasattr(obj, '__dict__'):
+        for cls in obj.__class__.__mro__:
+            if '__dict__' in cls.__dict__:
+                d = cls.__dict__['__dict__']
+                if inspect.isgetsetdescriptor(d) or inspect.ismemberdescriptor(d):
+                    size += get_size(obj.__dict__, seen)
+                break
+    if isinstance(obj, dict):
+        size += sum((get_size(v, seen) for v in obj.values()))
+        size += sum((get_size(k, seen) for k in obj.keys()))
+    elif hasattr(obj, '__iter__') and not isinstance(obj, (str, bytes, bytearray)):
+        size += sum((get_size(i, seen) for i in obj))
+    return size

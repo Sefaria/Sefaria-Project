@@ -75,7 +75,7 @@
             html += '</style>'
         }
 
-        html += '<div id="sefaria-title"><div class="he" dir="rtl"></div><div class="en"></div></div>' +
+        html += '<h1 id="sefaria-title"><div class="he" dir="rtl"></div><div class="en"></div></h1>' +
             '<div class="sefaria-text he" dir="rtl"></div>' +
             '<div class="sefaria-text en"></div>' +
             '<div class = "sefaria-notice" style="font-size: 10px; margin-top: 10px;">';
@@ -108,6 +108,11 @@
         popUpElem.style.display = "none";
         popUpElem.style.zIndex = 1000;
 
+        // Accessibility Whatnot
+        popUpElem.setAttribute('role', 'dialog');
+        popUpElem.tabIndex = "0";
+        popUpElem.style.outline = "none";
+
         popUpElem = document.body.appendChild(popUpElem);
 
         heBox = popUpElem.querySelector(".sefaria-text.he");
@@ -120,6 +125,12 @@
 
         if (mode == "popup-click") {
             popUpElem.querySelector('#sefaria-close').addEventListener('click', hidePopup, false);
+            popUpElem.addEventListener('keyup', function (e) {
+                var key = e.which || e.keyCode;
+                if (key === 27) { // 27 is escape
+                  hidePopup();
+                }
+            });
         }
     };
 
@@ -240,6 +251,7 @@
                                 node.className = "sefaria-ref";
                                 node.href = base_url + matched_ref;
                                 node.setAttribute('data-ref', matched_ref);
+                                node.setAttribute('aria-controls', 'sefaria-popup');
                                 node.textContent = portion.text;
 
                                 return node;
@@ -282,6 +294,7 @@
                                     showPopup(this, mode);
                                     event.preventDefault();
                                     event.stopPropagation();
+                                    document.getElementById("sefaria-popup").focus();
                                 }, false);
                             }
                         });
