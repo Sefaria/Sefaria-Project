@@ -409,6 +409,7 @@ input.noselect {
   height: 100%;
   overflow: hidden;
   background-color: inherit;
+  outline: none;
   font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
 }
 .readerContent {
@@ -2302,6 +2303,7 @@ a.readerNavCategory {
   color: #999;
 }
 .segment {
+  outline: none;
 }
 .segment.heOnly{
   text-align: right;

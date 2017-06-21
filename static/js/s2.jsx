@@ -719,6 +719,7 @@ var ReaderApp = React.createClass({
     // Update or add panel after this one to be a TextList
     this.setTextListHighlight(n, [ref]);
     this.openTextListAt(n+1, [ref]);
+    $(".readerPanel")[n+1].focus();
   },
   handleCitationClick: function(n, citationRef, textRef) {
     // Handle clicking on the citation `citationRef` which was found inside of `textRef` in panel `n`.
@@ -755,6 +756,8 @@ var ReaderApp = React.createClass({
     } else if (Sefaria.isRef(path)) {
       this.openPanel(Sefaria.humanRef(path));
     }
+    $( ".wrapper" ).remove();
+    $( "#footer" ).remove();
   },
   updateQueryInHeader: function(query) {
     var updates = {searchQuery: query, searchFiltersValid:  false};
@@ -1565,7 +1568,7 @@ var Header = React.createClass({
                          </div>);
     var langSearchPlaceholder = this.props.interfaceLang == 'english' ? "Search" : "חיפוש";
     var vkClassActivator = this.props.interfaceLang == 'english' ? " keyboardInput" : "";
-    return (<div className="header">
+    return (<div className="header" role="banner">
               <div className="headerInner">
                 <div className="headerNavSection">
                     <a href="/texts" aria-label="Toggle Text Table of Contents" className="library" onClick={this.handleLibraryClick}><i className="fa fa-bars"></i></a>
@@ -2276,7 +2279,7 @@ var ReaderPanel = React.createClass({
     );
 
     return (
-      <div className={classes}>
+      <div className={classes} tabIndex="0" role="region">
         {hideReaderControls ? null :
         (<ReaderControls
           showBaseText={this.showBaseText}
@@ -6394,6 +6397,11 @@ var TextSegment = React.createClass({
       Sefaria.site.track.event("Reader", "Text Segment Click", this.props.sref);
     }
   },
+  handleKeyPress: function(event) {
+    if (event.charCode == 13) {
+      this.handleClick(event);
+    }
+  },
   render: function() {
     var linkCountElement;
     if (this.props.showLinkCount) {
@@ -6422,7 +6430,7 @@ var TextSegment = React.createClass({
         return false;
     }
     return (
-      <span className={classes} onClick={this.handleClick} data-ref={this.props.sref}>
+      <span tabIndex="0" className={classes} onClick={this.handleClick} onKeyPress={this.handleKeyPress} data-ref={this.props.sref}>
         {segmentNumber}
         {linkCountElement}
         <span className="he" dangerouslySetInnerHTML={ {__html: he + " "} }></span>
@@ -7016,11 +7024,11 @@ var CategoryFilter = React.createClass({
     var count        = notClickable ? null : (<span className="enInHe"> | {this.props.count}</span>);
     var handleClick  = notClickable ? null : this.handleClick;
     var url = (this.props.srefs && this.props.srefs.length > 0)?"/" + Sefaria.normRef(this.props.srefs[0]) + "?with=" + this.props.category:"";
-    var innerFilter = (<div className={classes} onClick={handleClick}>
+    var innerFilter = (<div className={classes}>
             <span className="en">{this.props.category}{count}</span>
             <span className="he">{this.props.heCategory}{count}</span>
           </div>);
-    var wrappedFilter = notClickable ? innerFilter : <a href={url}>{innerFilter}</a>;
+    var wrappedFilter = notClickable ? innerFilter : <a href={url} onClick={handleClick}>{innerFilter}</a>;
     return (
       <div className="categoryFilterGroup" style={style}>
         {wrappedFilter}
@@ -7056,11 +7064,11 @@ var TextFilter = React.createClass({
     var count = this.props.hideCounts || !this.props.count ? "" : ( <span className="enInHe"> ({this.props.count})</span>);
     var url = (this.props.srefs && this.props.srefs.length > 0)?"/" + Sefaria.normRef(this.props.srefs[0]) + "?with=" + name:"";
     return (
-      <a href={url}>
+      <a href={url} onClick={this.handleClick}>
         <div data-name={name}
           className={classes}
           style={style}
-          onClick={this.handleClick}>
+        >
             <div>
               <span className="en">{name}{count}</span>
               <span className="he">{this.props.heBook}{count}</span>
