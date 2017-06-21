@@ -92,4 +92,4 @@ var server_config = config({
 	    __filename: true
 	}
 });
-module.exports = client_config; //[client_config, server_config];
+module.exports = [client_config, server_config];
