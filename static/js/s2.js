@@ -3886,7 +3886,12 @@ var ReaderTextTableOfContents = React.createClass({
           React.createElement(
             'option',
             { key: 'txt', value: 'txt' },
-            'Text'
+            'Text (with tags)'
+          ),
+          React.createElement(
+            'option',
+            { key: 'plain.txt', value: 'plain.txt' },
+            'Text (without tags)'
           ),
           React.createElement(
             'option',
@@ -11950,7 +11955,12 @@ var ModeratorToolsPanel = React.createClass({
         React.createElement(
           'option',
           { key: 'txt', value: 'txt' },
-          'Text'
+          'Text (with tags)'
+        ),
+        React.createElement(
+          'option',
+          { key: 'plain.txt', value: 'plain.txt' },
+          'Text (without tags)'
         ),
         React.createElement(
           'option',

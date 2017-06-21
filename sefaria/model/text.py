@@ -885,6 +885,26 @@ class AbstractTextRecord(object):
             return False
         return t
 
+    @staticmethod
+    def remove_html_and_make_presentable(t):
+        if isinstance(t, list):
+            for i, v in enumerate(t):
+                if isinstance(v, basestring):
+                    t[i] = re.sub('<[^>]+>', u" ", v)
+                    t[i] = re.sub('[ ]{2,}', u" ", t[i])
+                    t[i] = re.sub('(\S) ([.?!,])', ur"\1\2", t[i])  # Remove spaces preceding punctuation
+                    t[i] = t[i].strip()
+                else:
+                    t[i] = AbstractTextRecord.remove_html_and_make_presentable(v)
+        elif isinstance(t, basestring):
+            t = re.sub('<[^>]+>', u" ", t)
+            t = re.sub('[ ]{2,}', u" ", t)
+            t = re.sub('(\S) ([.?!,])', ur"\1\2", t)  # Remove spaces preceding punctuation
+            t = t.strip()
+        else:
+            return False
+        return t
+
     # Currently assumes that text is JA
     def _sanitize(self):
         setattr(self, self.text_attr,
