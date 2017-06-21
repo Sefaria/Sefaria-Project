@@ -30,7 +30,7 @@ class SefariaCloudflareManager(object):
             "Content-Type": "application/json",
         }
         r = requests.delete(url, data=json.dumps({"purge_everything":True}), headers=headers)
-        logger.info(r)
+        logger.info(r.json())
 
     def _file_in_cached_dirs(self, file):
         return any(in_directory(file, dirname) for dirname in self.valid_cached_dirs)
@@ -71,6 +71,7 @@ class SefariaCloudflareManager(object):
             "Content-Type": "application/json",
         }
         r = requests.delete(url, data=json.dumps(payload), headers=headers)
+        r = r.json()
         if not r["success"]:
             logger.warn(r)
         else:
