@@ -10,11 +10,10 @@
     "start": "nodemon static/bundles/server-bundle.js",
     "daemon": "forever start -a -p ./ -l log/forever/forever.log -o log/forever/out.log -e log/forever/err.log -w --watchDirectory log/forever/timeout static/bundles/server-bundle.js ",
     "test": "./run reader/browsertest/run_local.py",
-    "watch": "npm run build:webpack",
-    "build:jsx": "babel static/js/s2.jsx > static/js/s2.js",
-    "build:webpack": "webpack --config webpack.config.js --display-error-details --progress",
-    "watch-server": "webpack --config webpack.server.js --display-error-details --progress",
-    "watch-client": "webpack --config webpack.client.js --display-error-details --progress",
+    "watch": "webpack --config webpack.config.js --display-error-details --progress --watch --stdin",
+    "build": "webpack --config webpack.config.js --display-error-details --progress",
+    "watch-server": "webpack --config webpack.server.js --display-error-details --progress --watch --stdin",
+    "watch-client": "webpack --config webpack.client.js --watch --stdin",
     "setup": "npm install -g nodemon; npm install -g babel-cli; npm install -g forever",
     "b": "npm run build",
     "t": "npm run test"
@@ -41,14 +40,14 @@
   "devDependencies": {
     "babel-cli": "^6.0.0",
     "babel-core": "^6.0.0",
-    "babel-loader": "^7.0.0",
+    "babel-loader": "^7.1.0",
     "babel-plugin-transform-remove-console": "^6.8.0",
     "babel-preset-es2015": "^6.0.0",
     "babel-preset-react": "^6.0.0",
     "babel-watch": "^2.0.0",
     "nodemon": "^1.9.2",
     "source-map-support": "^0.4.15",
-    "webpack": "^2.6.0",
+    "webpack": "^3.0.0",
     "webpack-bundle-tracker": "^0.2.0"
   },
   "babel": {
