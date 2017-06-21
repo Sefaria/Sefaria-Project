@@ -2004,6 +2004,7 @@ a.tagit-close {
     margin: 20px;
     width: 280px;
     text-align: center;
+	display: none;
 
 }
 

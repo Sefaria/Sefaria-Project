@@ -1416,7 +1416,7 @@ Sefaria = extend(Sefaria, {
     }
   },
   search: {
-      baseUrl: Sefaria.searchBaseUrl + "/" + Sefaria.searchIndex + "/_search",
+      baseUrl: Sefaria.searchBaseUrl + "/" + Sefaria.searchIndex + "-d" + "/_search",
       _cache: {},
       cache: function(key, result) {
           if (result !== undefined) {
@@ -1434,13 +1434,15 @@ Sefaria = extend(Sefaria, {
            type: null, "sheet" or "text"
            get_filters: if to fetch initial filters
            applied_filters: filter query by these filters
+           field: field to query in elastic_search
+           sort_type: chonological or relevance
            success: callback on success
            error: callback on error
            */
           if (!args.query) {
               return;
           }
-          var req = JSON.stringify(Sefaria.search.get_query_object(args.query, args.get_filters, args.applied_filters, args.size, args.from, args.type));
+          var req = JSON.stringify(Sefaria.search.get_query_object(args.query, args.get_filters, args.applied_filters, args.size, args.from, args.type, args.field, args.sort_type));
           var cache_result = this.cache(req);
           if (cache_result) {
               args.success(cache_result);
@@ -1462,7 +1464,7 @@ Sefaria = extend(Sefaria, {
               error: args.error
           });
       },
-      get_query_object: function (query, get_filters, applied_filters, size, from, type) {
+      get_query_object: function (query, get_filters, applied_filters, size, from, type, field, sort_type) {
           /*
            Only the first argument - "query" - is required.
 
@@ -1472,46 +1474,72 @@ Sefaria = extend(Sefaria, {
            size: int - number of results to request
            from: int - start from result # (skip from - 1 results)
            type: string - currently either "texts" or "sheets"
+           field: string - which field to query. this essentially changes the exactness of the search. right now, 'content', 'aggresive_ngrams', 'naive_lemmatizer', 'hebmorph_standard', 'hebmorph_semi_exact'
+           sort_type: "relevance", "chronological"
            */
 
 
           var core_query = {
-              "query_string": {
-                  "query": query.replace(/(\S)"(\S)/g, '$1\u05f4$2'), //Replace internal quotes with gershaim.
-                  "default_operator": "AND",
-                  "fields": ["content"]
+              "match_phrase": {
+
               }
           };
+
+          core_query['match_phrase'][field] = {
+              "query": query.replace(/(\S)"(\S)/g, '$1\u05f4$2'), //Replace internal quotes with gershaim.
+          };
+
+          if (field != "hebmorph_semi_exact" && field != "content") {
+              //TODO: this is hacky. just for beta right now. add slop to query
+              core_query['match_phrase'][field]['slop'] = 10;
+          }
 
           var o = {
               "from": from,
               "size": size,
-              "sort": [{
-                  "order": {}                 // the sort field name is "order"
-              }],
               "_source": {
-                "exclude": [ "content" ]
+                "exclude": [ field ]
               },
               "highlight": {
                   "pre_tags": ["<b>"],
                   "post_tags": ["</b>"],
-                  "fields": {
-                      "content": {"fragment_size": 200}
-                  }
+                  "fields": {}
               }
           };
 
+          o["highlight"]["fields"][field] = {"fragment_size": 200};
+
+
+          if (sort_type == "chronological") {
+              o["sort"] = [
+                  {"comp_date": {}},
+                  {"order": {}}                 // the sort field name is "order"
+              ];
+          } else if (sort_type == "relevance") {
+
+              o["query"] = {
+                  "function_score": {
+                      "field_value_factor": {
+                          "field": "pagesheetrank",
+                          "missing": 0.04     // this default value comes from the equation used to calculate pagesheetrank. see search.py where this field is created
+                      }
+                  }
+              }
+          }
+
+          var inner_query = {};
           if (get_filters) {
               //Initial, unfiltered query.  Get potential filters.
               if (type) {
-                o['query'] = {
+                inner_query = {
                     filtered: {
                         query: core_query,
                         filter: {type: {value: type}}
                     }
                 };
               } else {
-                o['query'] = core_query;
+                inner_query = core_query
+
               }
 
               o['aggs'] = {
@@ -1531,14 +1559,14 @@ Sefaria = extend(Sefaria, {
           } else if (!applied_filters || applied_filters.length == 0) {
               // This is identical to above - can be cleaned up into a variable
               if (type) {
-                o['query'] = {
+                inner_query = {
                     filtered: {
                         query: core_query,
                         filter: {type: {value: type}}
                     }
                 };
               } else {
-                o['query'] = core_query;
+                inner_query = core_query;
               }
           } else {
               //Filtered query.  Add clauses.  Don't re-request potential filters.
@@ -1554,7 +1582,7 @@ Sefaria = extend(Sefaria, {
                   /* Test for Commentary2 as well as Commentary */
               }
               if (type) {
-                  o['query'] = {
+                  inner_query = {
                       "filtered": {
                           "query": core_query,
                           "filter": {
@@ -1568,7 +1596,7 @@ Sefaria = extend(Sefaria, {
                       }
                   };
               } else {
-                  o['query'] = {
+                  inner_query = {
                       "filtered": {
                           "query": core_query,
                           "filter": {
@@ -1586,6 +1614,15 @@ Sefaria = extend(Sefaria, {
                   }
               };
           }
+
+          //after that confusing logic, hopefully inner_query is defined properly
+          if (sort_type == "chronological") {
+              o['query'] = inner_query;
+          } else if (sort_type == "relevance") {
+              o['query']['function_score']['query'] = inner_query;
+          }
+          
+          console.log(JSON.stringify(o));
           return o;
       },
 

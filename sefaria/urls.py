@@ -251,6 +251,7 @@ static_pages = [
     "privacy-policy",
     "coming-soon",
     "shraga-silverstein",
+    "adin-even-israel-steinsaltz",
     "william-davidson-talmud",
     "linker",
     "ios",
@@ -267,6 +268,7 @@ static_pages = [
     "random-walk-through-torah",
     "educators",
     "the-sefaria-story",
+
 ]
 
 # Static and Semi Static Content
@@ -331,7 +333,8 @@ urlpatterns += patterns('sefaria.views',
     (r'^linker\.js$', 'linker_js'),
     (r'^api/regexs/(?P<titles>.+)$', 'title_regex_api'),
     (r'^api/bulktext/(?P<refs>.+)$', 'bulktext_api'),
-    (r'^download/version/(?P<title>.+) - (?P<lang>[he][en]) - (?P<versionTitle>.+)\.(?P<format>json|csv|txt)', 'text_download_api'),
+    (r'^download/version/(?P<title>.+) - (?P<lang>[he][en]) - (?P<versionTitle>.+)\.(?P<format>plain\.txt)', 'text_download_api'),
+    (r'^download/version/(?P<title>.+) - (?P<lang>[he][en]) - (?P<versionTitle>.+)\.(?P<format>json|csv|txt)','text_download_api'),
     (r'^download/bulk/versions/', 'bulk_download_versions_api'),
     (r'^api/text-upload$', 'text_upload_api')
 )

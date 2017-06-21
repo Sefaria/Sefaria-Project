@@ -439,8 +439,16 @@ def delete_citation_links(request, title):
 @staff_member_required
 def cache_stats(request):
     import resource
+    from sefaria.utils.util import get_size
+    from sefaria.model.user_profile import public_user_data_cache
+    from sefaria.sheets import last_updated 
     resp = {
         'ref_cache_size': model.Ref.cache_size(),
+        # 'ref_cache_bytes': model.Ref.cache_size_bytes(), # This pretty expensive, not sure if it should run on prod.
+        'public_user_data_size': len(public_user_data_cache),
+        'public_user_data_bytes': get_size(public_user_data_cache),
+        'sheets_last_updated_size': len(last_updated),
+        'sheets_last_updated_bytes': get_size(last_updated),
         'memory usage': resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
     }
     return jsonResponse(resp)
@@ -452,7 +460,6 @@ def cache_dump(request):
         'ref_cache_dump': model.Ref.cache_dump()
     }
     return jsonResponse(resp)
-
 
 
 @staff_member_required
@@ -588,7 +595,8 @@ def text_download_api(request, format, title, lang, versionTitle):
     content_types = {
         "json": "application/json; charset=utf-8",
         "csv": "text/csv; charset=utf-8",
-        "txt": "text/plain; charset=utf-8"
+        "txt": "text/plain; charset=utf-8",
+        "plain.txt": "text/plain; charset=utf-8"
     }
     response = HttpResponse(content, content_type=content_types[format])
     response["Content-Disposition"] = "attachment"
@@ -645,38 +653,44 @@ def _get_text_version_file(format, title, lang, versionTitle):
     from sefaria.export import text_is_copyright, make_json, make_text, prepare_merged_text_for_export, prepare_text_for_export, export_merged_csv, export_version_csv
 
     assert lang in ["en", "he"]
-    assert format in ["json", "csv", "txt"]
+    assert format in ["json", "csv", "txt", "plain.txt"]
     merged = versionTitle == "merged"
-
     index = library.get_index(title)
-    version_query = {"title": title, "language": lang, "versionTitle": versionTitle}
 
-    if format == "csv" and not merged:
-        version = Version().load(version_query)
-        assert version, "Can not find version of {} in {}: {}".format(title, lang, versionTitle)
-        assert not version.is_copyrighted(), "Cowardly refusing to export copyrighted text."
-        content = export_version_csv(index, [version])
+    if merged:
+        if format == "csv" and merged:
+            content = export_merged_csv(index, lang)
 
-    elif format == "csv" and merged:
-        content = export_merged_csv(index, lang)
+        elif format == "json" and merged:
+            content = make_json(prepare_merged_text_for_export(title, lang=lang))
 
-    elif format == "json" and not merged:
-        version_object = db.texts.find_one(version_query)
-        assert version_object, "Can not find version of {} in {}: {}".format(title, lang, versionTitle)
-        assert not text_is_copyright(version_object), "Cowardly refusing to export copyrighted text."
-        content = make_json(prepare_text_for_export(version_object))
+        elif format == "txt" and merged:
+            content = make_text(prepare_merged_text_for_export(title, lang=lang))
 
-    elif format == "json" and merged:
-        content = make_json(prepare_merged_text_for_export(title, lang=lang))
+        elif format == "plain.txt" and merged:
+            content = make_text(prepare_merged_text_for_export(title, lang=lang), strip_html=True)
 
-    elif format == "txt" and not merged:
-        version_object = db.texts.find_one(version_query)
-        assert version_object, "Can not find version of {} in {}: {}".format(title, lang, versionTitle)
-        assert not text_is_copyright(version_object), "Cowardly refusing to export copyrighted text."
-        content = make_text(prepare_text_for_export(version_object))
+    else:
+        version_query = {"title": title, "language": lang, "versionTitle": versionTitle}
 
-    elif format == "txt" and merged:
-        content = make_text(prepare_merged_text_for_export(title, lang=lang))
+        if format == "csv":
+            version = Version().load(version_query)
+            assert version, "Can not find version of {} in {}: {}".format(title, lang, versionTitle)
+            assert not version.is_copyrighted(), "Cowardly refusing to export copyrighted text."
+            content = export_version_csv(index, [version])
+        else:
+            version_object = db.texts.find_one(version_query)
+            assert version_object, "Can not find version of {} in {}: {}".format(title, lang, versionTitle)
+            assert not text_is_copyright(version_object), "Cowardly refusing to export copyrighted text."
+
+            if format == "json":
+                content = make_json(prepare_text_for_export(version_object))
+
+            elif format == "txt":
+                content = make_text(prepare_text_for_export(version_object))
+
+            elif format == "plain.txt":
+                content = make_text(prepare_text_for_export(version_object), strip_html=True)
 
     return content
 

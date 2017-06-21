@@ -83,10 +83,6 @@ class AtomicTest(object):
         elem.send_keys(password)
         self.driver.find_element_by_css_selector("button").click()
 
-    def prime_autocomplete_cache(self):
-        self.driver.get(self.base_url + "/api/name/stam")
-        self.driver.get(self.base_url + "/api/name/stam?ref_only=1")
-
     # TOC
     def load_toc(self):
         self.driver.get(self.base_url + "/texts")
@@ -571,9 +567,14 @@ class Trial(object):
             try:
                 tresults = p.map(_test_one_worker, zip([self]*l, [test]*l, caps))
             except Exception as e:
-                sys.stdout.write(u"Exception encountered in Trial._test_on_all()!")
-                sys.stdout.write(traceback.format_exc())
+                msg = traceback.format_exc()
+                if self.isVerbose:
+                    sys.stdout.write("{} - Exception\n".format(test.__name__))
+                    sys.stdout.write(msg)
+                else:
+                    sys.stdout.write("E")
                 sys.stdout.flush()
+                tresults = [TestResult(test, caps[0], False, msg)]
         else:
             for cap in caps:
                 tresults.append(self._test_one(test, cap))

@@ -881,6 +881,26 @@ class AbstractTextRecord(object):
             return False
         return t
 
+    @staticmethod
+    def remove_html_and_make_presentable(t):
+        if isinstance(t, list):
+            for i, v in enumerate(t):
+                if isinstance(v, basestring):
+                    t[i] = re.sub('<[^>]+>', u" ", v)
+                    t[i] = re.sub('[ ]{2,}', u" ", t[i])
+                    t[i] = re.sub('(\S) ([.?!,])', ur"\1\2", t[i])  # Remove spaces preceding punctuation
+                    t[i] = t[i].strip()
+                else:
+                    t[i] = AbstractTextRecord.remove_html_and_make_presentable(v)
+        elif isinstance(t, basestring):
+            t = re.sub('<[^>]+>', u" ", t)
+            t = re.sub('[ ]{2,}', u" ", t)
+            t = re.sub('(\S) ([.?!,])', ur"\1\2", t)  # Remove spaces preceding punctuation
+            t = t.strip()
+        else:
+            return False
+        return t
+
     # Currently assumes that text is JA
     def _sanitize(self):
         setattr(self, self.text_attr,
@@ -1734,6 +1754,10 @@ class RefCacheType(type):
 
     def cache_size(cls):
         return len(cls.__tref_oref_map)
+
+    def cache_size_bytes(cls):
+        from sefaria.utils.util import get_size
+        return get_size(cls.__tref_oref_map)
 
     def cache_dump(cls):
         return [(a, repr(b)) for (a, b) in cls.__tref_oref_map.iteritems()]
@@ -3164,8 +3188,8 @@ class Ref(object):
 
     def ref_regex_query(self):
         """
-        Convenience method to wrap the lines of logic used to generate a broken out list of ref queries from one regex. 
-        The regex in the list will naturally all be anchored. 
+        Convenience method to wrap the lines of logic used to generate a broken out list of ref queries from one regex.
+        The regex in the list will naturally all be anchored.
         :return: dict of the form {"$or" [{"refs": {"$regex": r1}},{"refs": {"$regex": r2}}...]}
         """
         reg_list = self.regex(as_list=True)
@@ -3869,6 +3893,7 @@ class Library(object):
         try:
             return self._full_auto_completer[lang]
         except KeyError:
+            logger.warning("Failed to load full {} auto completer, rebuilding.".format(lang))
             self.build_full_auto_completer()  # I worry that these could pile up.
             return self._full_auto_completer[lang]
 
@@ -3876,6 +3901,7 @@ class Library(object):
         try:
             return self._ref_auto_completer[lang]
         except KeyError:
+            logger.warning("Failed to load {} ref auto completer, rebuilding.".format(lang))
             self.build_ref_auto_completer()  # I worry that these could pile up.
             return self._ref_auto_completer[lang]
 
@@ -4395,30 +4421,30 @@ class Library(object):
 
     def _internal_ref_from_string(self, title=None, st=None, lang=None, stIsAnchored=False, return_locations = False):
 
-            node = self.get_schema_node(title, lang)
-            assert isinstance(node, JaggedArrayNode)  # Assumes that node is a JaggedArrayNode
+        node = self.get_schema_node(title, lang)
+        assert isinstance(node, JaggedArrayNode)  # Assumes that node is a JaggedArrayNode
 
-            refs = []
-            try:
-                re_string = self.get_regex_string(title, lang, anchored=stIsAnchored)
-            except AttributeError as e:
-                logger.warning(
-                    u"Library._internal_ref_from_string() failed to create regex for: {}.  {}".format(title, e))
-                return refs
-
-            reg = regex.compile(re_string, regex.VERBOSE)
-            if stIsAnchored:
-                m = reg.match(st)
-                matches = [m] if m else []
-            else:
-                matches = reg.finditer(st)
-            for ref_match in matches:
-                try:
-                    res = (self._get_ref_from_match(ref_match, node, lang), ref_match.span()) if return_locations else self._get_ref_from_match(ref_match, node, lang)
-                    refs.append(res)
-                except InputError:
-                    continue
+        refs = []
+        try:
+            re_string = self.get_regex_string(title, lang, anchored=stIsAnchored)
+        except AttributeError as e:
+            logger.warning(
+                u"Library._internal_ref_from_string() failed to create regex for: {}.  {}".format(title, e))
             return refs
+
+        reg = regex.compile(re_string, regex.VERBOSE)
+        if stIsAnchored:
+            m = reg.match(st)
+            matches = [m] if m else []
+        else:
+            matches = reg.finditer(st)
+        for ref_match in matches:
+            try:
+                res = (self._get_ref_from_match(ref_match, node, lang), ref_match.span()) if return_locations else self._get_ref_from_match(ref_match, node, lang)
+                refs.append(res)
+            except InputError:
+                continue
+        return refs
 
 
     # todo: handle ranges in inline refs

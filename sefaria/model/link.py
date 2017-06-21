@@ -33,6 +33,7 @@ class Link(abst.AbstractMongoRecord):
         "generated_by",   # string in ("add_commentary_links", "add_links_from_text", "mishnah_map")
         "source_text_oid", # oid of text from which link was generated
         "is_first_comment"   # set this flag to denote its the first comment link between the two texts in the link
+        "inline_reference"  # dict with keys "data-commentator" and "data-order" to match an inline reference (itag)
     ]
 
     def _normalize(self):

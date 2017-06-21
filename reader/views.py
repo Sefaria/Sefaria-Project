@@ -226,7 +226,7 @@ def render_react_component(component, props):
         if isinstance(e, socket.timeout) or (hasattr(e, "reason") and isinstance(e.reason, socket.timeout)):
             logger.exception("Node timeout: Fell back to client-side rendering.")
             with open(NODE_TIMEOUT_MONITOR, "a") as myfile:
-                myfile.write("Timeout at {}: {} / {} / {} / {}".format(
+                myfile.write("Timeout at {}: {} / {} / {} / {}\n".format(
                     datetime.now().isoformat(),
                     props.get("initialPath"),
                     "MultiPanel" if props.get("multiPanel", True) else "Mobile",
@@ -476,6 +476,10 @@ def s2_search(request):
 
     initialQuery = urllib.unquote(request.GET.get("q")) if request.GET.get("q") else ""
 
+    field = ("naive_lemmatizer" if request.GET.get("var") == "1" else "hebmorph_semi_exact") if request.GET.get("var") else ""
+
+    sort = ("chronological" if request.GET.get("sort") == "c" else "relevance") if request.GET.get("sort") else ""
+
     title = initialQuery if initialQuery else ""
 
     props = s2_props(request)
@@ -483,6 +487,8 @@ def s2_search(request):
         "initialMenu": "search",
         "initialQuery": initialQuery,
         "initialSearchFilters": search_filters,
+        "initialSearchField": field,
+        "initialSearchSortType": sort,
     })
     html = render_react_component("ReaderApp", props)
     return render_to_response('s2.html', {
@@ -1230,6 +1236,7 @@ def search(request):
 def interface_language_redirect(request, language):
     """Set the interfaceLang cooki"""
     next = request.GET.get("next", "/?home")
+    next = "/?home" if next == "undefined" else next
     response = redirect(next)
     response.set_cookie("interfaceLang", language)
     if request.user.is_authenticated():
