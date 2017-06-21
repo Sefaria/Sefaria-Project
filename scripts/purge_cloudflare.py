@@ -29,17 +29,17 @@ if __name__ == '__main__':
         if USE_CLOUDFLARE:
             SefariaCloudflareManager().purge_batch_cloudflare_urls(args.files)
         else:
-            logger.info(args.files)
+            logger.info("Files to purge: {}".format(args.files))
     elif args.timestamp:
         time_str = datetime.fromtimestamp(int(args.timestamp)).strftime('%Y-%m-%d %H:%M:%S')
         print "purging all static files {}".format(time_str)
         if USE_CLOUDFLARE:
             SefariaCloudflareManager().purge_static_files_from_cloudflare(timestamp=args.timestamp)
         else:
-            logger.info(get_directory_content("static", modified_after=args.timestamp))
+            logger.info("Files to purge: {}".format(get_directory_content("static", modified_after=args.timestamp)))
     else:
         print "purging all static files"
         if USE_CLOUDFLARE:
             SefariaCloudflareManager().purge_static_files_from_cloudflare()
         else:
-            logger.info(get_directory_content("static"))
+            logger.info("Files to purge: {}".format(get_directory_content("static")))
