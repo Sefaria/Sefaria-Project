@@ -719,6 +719,7 @@ var ReaderApp = React.createClass({
     // Update or add panel after this one to be a TextList
     this.setTextListHighlight(n, [ref]);
     this.openTextListAt(n+1, [ref]);
+    $(".readerPanel")[n+1].focus();
   },
   handleCitationClick: function(n, citationRef, textRef) {
     // Handle clicking on the citation `citationRef` which was found inside of `textRef` in panel `n`.
@@ -2058,6 +2059,11 @@ var ReaderPanel = React.createClass({
     var option = category === "Tanakh" || category === "Talmud" ? "layout" + category : "layoutDefault";
     return this.state.settings[option];
   },
+  handleKeyPress: function(e) {
+    if (e.keyCode === 27) {
+      this.props.closePanel(e);
+    }
+  },
   render: function() {
     if (this.state.error) {
       return (
@@ -2281,7 +2287,7 @@ var ReaderPanel = React.createClass({
     );
 
     return (
-      <div className={classes} tabIndex="0" role="region" id={"panel-"+this.props.panelPosition}>
+      <div className={classes} tabIndex="0" onKeyDown={this.handleKeyPress} role="region" id={"panel-"+this.props.panelPosition}>
         {hideReaderControls ? null :
         (<ReaderControls
           showBaseText={this.showBaseText}

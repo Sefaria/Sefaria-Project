@@ -743,6 +743,7 @@ var ReaderApp = React.createClass({
     // Update or add panel after this one to be a TextList
     this.setTextListHighlight(n, [ref]);
     this.openTextListAt(n + 1, [ref]);
+    $(".readerPanel")[n + 1].focus();
   },
   handleCitationClick: function handleCitationClick(n, citationRef, textRef) {
     // Handle clicking on the citation `citationRef` which was found inside of `textRef` in panel `n`.
@@ -779,6 +780,8 @@ var ReaderApp = React.createClass({
     } else if (Sefaria.isRef(path)) {
       this.openPanel(Sefaria.humanRef(path));
     }
+    $(".wrapper").remove();
+    $("#footer").remove();
   },
   updateQueryInHeader: function updateQueryInHeader(query) {
     var updates = { searchQuery: query, searchFiltersValid: false };
@@ -1277,6 +1280,7 @@ var ReaderApp = React.createClass({
         'div',
         { className: classes, style: style, key: key },
         React.createElement(ReaderPanel, {
+          panelPosition: i,
           initialState: panel,
           interfaceLang: this.props.interfaceLang,
           setCentralState: setPanelState,
@@ -1637,7 +1641,7 @@ var Header = React.createClass({
     var vkClassActivator = this.props.interfaceLang == 'english' ? " keyboardInput" : "";
     return React.createElement(
       'div',
-      { className: 'header' },
+      { className: 'header', role: 'banner' },
       React.createElement(
         'div',
         { className: 'headerInner' },
@@ -1751,6 +1755,7 @@ var ReaderPanel = React.createClass({
     hideNavHeader: React.PropTypes.bool,
     multiPanel: React.PropTypes.bool,
     masterPanelLanguage: React.PropTypes.string,
+    panelPosition: React.PropTypes.number,
     panelsOpen: React.PropTypes.number,
     layoutWidth: React.PropTypes.number,
     setTextListHighlight: React.PropTypes.func,
@@ -2165,6 +2170,11 @@ var ReaderPanel = React.createClass({
     var option = category === "Tanakh" || category === "Talmud" ? "layout" + category : "layoutDefault";
     return this.state.settings[option];
   },
+  handleKeyPress: function handleKeyPress(e) {
+    if (e.keyCode === 27) {
+      this.props.closePanel(e);
+    }
+  },
   render: function render() {
     if (this.state.error) {
       return React.createElement(
@@ -2204,6 +2214,7 @@ var ReaderPanel = React.createClass({
     var items = [];
     if (this.state.mode === "Text" || this.state.mode === "TextAndConnections") {
       items.push(React.createElement(TextColumn, {
+        panelPosition: this.props.panelPosition,
         srefs: this.state.refs.slice(),
         version: this.state.version,
         versionLanguage: this.state.versionLanguage,
@@ -2389,7 +2400,7 @@ var ReaderPanel = React.createClass({
 
     return React.createElement(
       'div',
-      { className: classes },
+      { className: classes, tabIndex: '0', onKeyDown: this.handleKeyPress, role: 'region', id: "panel-" + this.props.panelPosition },
       hideReaderControls ? null : React.createElement(ReaderControls, {
         showBaseText: this.showBaseText,
         currentRef: this.lastCurrentRef(),
@@ -7592,6 +7603,7 @@ var TextColumn = React.createClass({
     var classes = classNames({ textColumn: 1, connectionsOpen: this.props.mode === "TextAndConnections" });
     var content = this.props.srefs.map(function (ref, k) {
       return React.createElement(TextRange, {
+        panelPosition: this.props.panelPosition,
         sref: ref,
         version: this.props.version,
         versionLanguage: this.props.versionLanguage,
@@ -7894,6 +7906,7 @@ var TextRange = React.createClass({
       Sefaria.util.inArray(segment.ref, this.props.highlightedRefs) !== -1 : // highlight if this ref is in highlighted refs prop
       this.props.basetext && segment.highlight; // otherwise highlight if this a basetext and the ref is specific
       return React.createElement(TextSegment, {
+        panelPosition: this.props.panelPosition,
         sref: segment.ref,
         en: segment.en,
         he: segment.he,
@@ -8058,6 +8071,11 @@ var TextSegment = React.createClass({
       Sefaria.site.track.event("Reader", "Text Segment Click", this.props.sref);
     }
   },
+  handleKeyPress: function handleKeyPress(event) {
+    if (event.charCode == 13) {
+      this.handleClick(event);
+    }
+  },
   render: function render() {
     var linkCountElement;
     if (this.props.showLinkCount) {
@@ -8120,7 +8138,7 @@ var TextSegment = React.createClass({
     }
     return React.createElement(
       'span',
-      { className: classes, onClick: this.handleClick, 'data-ref': this.props.sref },
+      { tabIndex: '0', className: classes, onClick: this.handleClick, onKeyPress: this.handleKeyPress, 'data-ref': this.props.sref, 'aria-controls': "panel-" + (this.props.panelPosition + 1) },
       segmentNumber,
       linkCountElement,
       React.createElement('span', { className: 'he', dangerouslySetInnerHTML: { __html: he + " " } }),
@@ -8807,7 +8825,7 @@ var CategoryFilter = React.createClass({
     var url = this.props.srefs && this.props.srefs.length > 0 ? "/" + Sefaria.normRef(this.props.srefs[0]) + "?with=" + this.props.category : "";
     var innerFilter = React.createElement(
       'div',
-      { className: classes, onClick: handleClick },
+      { className: classes },
       React.createElement(
         'span',
         { className: 'en' },
@@ -8823,7 +8841,7 @@ var CategoryFilter = React.createClass({
     );
     var wrappedFilter = notClickable ? innerFilter : React.createElement(
       'a',
-      { href: url },
+      { href: url, onClick: handleClick },
       innerFilter
     );
     return React.createElement(
@@ -8871,13 +8889,13 @@ var TextFilter = React.createClass({
     var url = this.props.srefs && this.props.srefs.length > 0 ? "/" + Sefaria.normRef(this.props.srefs[0]) + "?with=" + name : "";
     return React.createElement(
       'a',
-      { href: url },
+      { href: url, onClick: this.handleClick },
       React.createElement(
         'div',
         { 'data-name': name,
           className: classes,
-          style: style,
-          onClick: this.handleClick },
+          style: style
+        },
         React.createElement(
           'div',
           null,
