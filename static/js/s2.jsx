@@ -719,7 +719,6 @@ var ReaderApp = React.createClass({
     // Update or add panel after this one to be a TextList
     this.setTextListHighlight(n, [ref]);
     this.openTextListAt(n+1, [ref]);
-    $(".readerPanel")[n+1].focus();
   },
   handleCitationClick: function(n, citationRef, textRef) {
     // Handle clicking on the citation `citationRef` which was found inside of `textRef` in panel `n`.
@@ -1244,6 +1243,7 @@ var ReaderApp = React.createClass({
       var classes = classNames({readerPanelBox: 1, sidebar: panel.mode == "Connections"});
       panels.push(<div className={classes} style={style} key={key}>
                     <ReaderPanel
+                      panelPosition={i}
                       initialState={panel}
                       interfaceLang={this.props.interfaceLang}
                       setCentralState={setPanelState}
@@ -1661,6 +1661,7 @@ var ReaderPanel = React.createClass({
     hideNavHeader:               React.PropTypes.bool,
     multiPanel:                  React.PropTypes.bool,
     masterPanelLanguage:         React.PropTypes.string,
+    panelPosition:               React.PropTypes.number,
     panelsOpen:                  React.PropTypes.number,
     layoutWidth:                 React.PropTypes.number,
     setTextListHighlight:        React.PropTypes.func,
@@ -2076,6 +2077,7 @@ var ReaderPanel = React.createClass({
     var items = [];
     if (this.state.mode === "Text" || this.state.mode === "TextAndConnections") {
       items.push(<TextColumn
+          panelPosition ={this.props.panelPosition}
           srefs={this.state.refs.slice()}
           version={this.state.version}
           versionLanguage={this.state.versionLanguage}
@@ -2279,7 +2281,7 @@ var ReaderPanel = React.createClass({
     );
 
     return (
-      <div className={classes} tabIndex="0" role="region">
+      <div className={classes} tabIndex="0" role="region" id={"panel-"+this.props.panelPosition}>
         {hideReaderControls ? null :
         (<ReaderControls
           showBaseText={this.showBaseText}
@@ -5994,6 +5996,7 @@ var TextColumn = React.createClass({
     var classes = classNames({textColumn: 1, connectionsOpen: this.props.mode === "TextAndConnections"});
     var content =  this.props.srefs.map(function(ref, k) {
       return (<TextRange
+        panelPosition ={this.props.panelPosition}
         sref={ref}
         version={this.props.version}
         versionLanguage={this.props.versionLanguage}
@@ -6294,6 +6297,7 @@ var TextRange = React.createClass({
                         this.props.basetext && segment.highlight;                   // otherwise highlight if this a basetext and the ref is specific
       return (
         <TextSegment
+            panelPosition ={this.props.panelPosition}
             sref={segment.ref}
             en={segment.en}
             he={segment.he}
@@ -6430,7 +6434,7 @@ var TextSegment = React.createClass({
         return false;
     }
     return (
-      <span tabIndex="0" className={classes} onClick={this.handleClick} onKeyPress={this.handleKeyPress} data-ref={this.props.sref}>
+      <span tabIndex="0" className={classes} onClick={this.handleClick} onKeyPress={this.handleKeyPress} data-ref={this.props.sref} aria-controls={"panel-"+(this.props.panelPosition+1)}>
         {segmentNumber}
         {linkCountElement}
         <span className="he" dangerouslySetInnerHTML={ {__html: he + " "} }></span>
