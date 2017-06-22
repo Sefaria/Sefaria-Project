@@ -280,7 +280,6 @@ def change_parent(node, new_parent, place=0, index=None):
     assert isinstance(new_parent, SchemaNode)
     assert place <= len(new_parent.children)
     old_parent = node.parent
-    old_normal_form = old_parent.ref().normal()
     if new_parent.index:
         index = new_parent.index
 
