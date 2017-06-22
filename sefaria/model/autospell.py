@@ -297,6 +297,8 @@ class SpellChecker(object):
         """
         for p in phrases:
             for w in splitter.split(p):
+                if not w:
+                    continue
                 self.WORDS[w] += 1
 
     def single_edits(self, word):
@@ -323,7 +325,7 @@ class SpellChecker(object):
     def correct_phrase(self, text):
         normal_text = self.normalizer(text)
         tokens = splitter.split(normal_text)
-        return [self.correct_token(token) for token in tokens]
+        return [self.correct_token(token) for token in tokens if token]
 
 
 class NGramMatcher(object):
@@ -344,6 +346,8 @@ class NGramMatcher(object):
         for title, normal_title in zip(titles, normal_titles):
             tokens = splitter.split(normal_title)
             for token in tokens:
+                if not token:
+                    continue
                 self.token_to_titles[token].append(title)
         for k in self.token_to_titles.keys():
             self.token_trie[k] = 1
