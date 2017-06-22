@@ -8311,7 +8311,10 @@ var AddConnectionBox = React.createClass({
     this.setState({saving: true});    
   },
   render: function() {
-    var heRefs = this.props.srefs.map( ref => Sefaria.ref(ref).heRef );
+    var heRefs = this.props.srefs.map( ref =>  {
+      var oRef = Sefaria.ref(ref);
+      var heRef = oRef ? oRef.heRef : ref; // If a range was selected, the ref cache may not have a Hebrew ref for us
+    });
     return (<div className="addConnectionBox">
                   
             { this.props.srefs.length == 1 ? 
