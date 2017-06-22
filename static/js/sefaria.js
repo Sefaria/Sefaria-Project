@@ -2676,6 +2676,10 @@ Sefaria.site = {
         // https://developers.google.com/analytics/devguides/collection/analyticsjs/command-queue-reference#send
         ga('send', 'event', category, action, label, value, options);
         //console.log('send', 'event', category, action, label, value, options);
+        if (ga._mock && options && options.hitCallback) {
+          // When Google Analytics isn't being used, trigger hitCallback immediately.
+          options.hitCallback();
+        }
     },
     pageview: function(url) {
         ga('set', 'page', url);

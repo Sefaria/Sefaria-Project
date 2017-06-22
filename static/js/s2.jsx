@@ -7722,14 +7722,14 @@ var ToolsList = React.createClass({
         var path = "/edit/" + refString;
         var nextParam = "?next=" + encodeURIComponent(currentPath);
         path += nextParam;
-        Sefaria.site.track.event("Tools", "Edit Text Click", refString,
+        Sefaria.site.track.event("Tools", "Edit Text Click", refString, null,
           {hitCallback: () =>  window.location = path}
         );
     }.bind(this) : null;
 
     var addTranslation = function() {
       var nextParam = "?next=" + Sefaria.util.currentPath();
-      Sefaria.site.track.event("Tools", "Add Translation Click", this.props.srefs[0],
+      Sefaria.site.track.event("Tools", "Add Translation Click", this.props.srefs[0], null,
           {hitCallback: () => window.location = "/translate/" + this.props.srefs[0] + nextParam}
       );
     }.bind(this);
@@ -9505,7 +9505,7 @@ var SearchSheetResult = React.createClass({
       var href = e.target.getAttribute("href");
       e.preventDefault();
       var s = this.props.data._source;
-      Sefaria.site.track.event("Search", "Search Result Sheet Click", `${this.props.query} - ${s.sheetId}`,
+      Sefaria.site.track.event("Search", "Search Result Sheet Click", `${this.props.query} - ${s.sheetId}`, null,
           {hitCallback: () => window.location = href}
       );
 
@@ -9514,7 +9514,7 @@ var SearchSheetResult = React.createClass({
       var href = e.target.getAttribute("href");
       e.preventDefault();
       var s = this.props.data._source;
-      Sefaria.site.track.event("Search", "Search Result Sheet Owner Click", `${this.props.query} - ${s.sheetId} - ${s.owner_name}`,
+      Sefaria.site.track.event("Search", "Search Result Sheet Owner Click", `${this.props.query} - ${s.sheetId} - ${s.owner_name}`, null,
           {hitCallback: () => window.location = href}
       );
     },
