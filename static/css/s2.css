@@ -3017,7 +3017,11 @@ a.readerNavCategory {
   font-size: 16px;
   letter-spacing: 1px;
   padding: 20px 26px 20px 0;
-}           
+}
+.toolsButton:hover {
+  text-decoration: none;
+  color: inherit;
+}
 .toolsButton .en {
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
 }

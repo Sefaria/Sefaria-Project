@@ -1828,6 +1828,7 @@ Sefaria.unpackDataFromProps = function(props) {
   if (props.groupData) {
     Sefaria._groups[props.initialGroup] = props.groupData;
   }
+  Sefaria._initialPath = props.initialPath;
 };
 
 Sefaria.search.FilterNode.prototype = {
@@ -2435,13 +2436,14 @@ Sefaria.util = {
     },
     getUrlVars: function() {
       var vars = {};
-      var parts = window.location.href.replace(/[?&]+([^=&]+)=([^&]*)/gi, function(m,key,value) {
+      var url = INBROWSER ? window.location.href : Sefaria._initialPath;
+      var parts = url.replace(/[?&]+([^=&]+)=([^&]*)/gi, function(m,key,value) {
           vars[key] = decodeURIComponent(value);
       });
       return vars;
     },
     replaceUrlParam: function(paramName, paramValue){
-      var url = window.location.href;
+      var url = INBROWSER ? window.location.href : Sefaria._initialPath;
       if(paramValue == null)
           paramValue = '';
       var pattern = new RegExp('\\b('+paramName+'=).*?(&|$)')
@@ -2451,7 +2453,7 @@ Sefaria.util = {
       return url + (url.indexOf('?')>0 ? '&' : '?') + paramName + '=' + paramValue 
     },
     removeUrlParam: function(paramName){
-      var url = window.location.href;
+      var url = INBROWSER ? window.location.href : Sefaria._initialPath;
       var pattern = new RegExp('\\b(&|\\?)('+paramName+'=).*?(&|$)');
       return url.replace(pattern, '$1');
     },

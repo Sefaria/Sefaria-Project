@@ -2025,7 +2025,6 @@ var ReaderPanel = React.createClass({
     this.conditionalSetState(state);
   },
   setConnectionsMode: function(mode) {
-    console.log(mode);
     var loginRequired = {
       "Add Connection": 1,
     };
@@ -2045,7 +2044,6 @@ var ReaderPanel = React.createClass({
     this.conditionalSetState(state);
   },
   setConnectionsCategory: function(category) {
-    console.log(category);
     this.setFilter(category, false); // Set filter so that basetext shows link dots according to this category
     this.conditionalSetState({connectionsCategory: category, connectionsMode: "ConnectionsList"});
   },
@@ -6847,7 +6845,7 @@ var ConnectionsPanelHeader = React.createClass({
                   </a>;   
     
     } else {
-      // Anywhere, back to Top Level
+      // Anywhere else, back to Top Level
       var url = Sefaria.util.replaceUrlParam("with", "all");
       var onClick = function(e) {
         e.preventDefault();     
@@ -10773,8 +10771,6 @@ var setData = function(data) {
   // Note Sefaria.booksDict in generated on the client from Sefaria.books, but not on the server to save cycles
   Sefaria.calendar  = data.calendar;
 
-
-  console.log(data.recentlyViewed);
   Sefaria._cacheIndexFromToc(Sefaria.toc);
   Sefaria.recentlyViewed    = data.recentlyViewed ? data.recentlyViewed.map(Sefaria.unpackRecentItem) : [];
   Sefaria.util._defaultPath = data.path;

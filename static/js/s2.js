@@ -8592,7 +8592,7 @@ var ConnectionsPanelHeader = React.createClass({
         ) : null
       );
     } else {
-      // Anywhere, back to Top Level
+      // Anywhere else, back to Top Level
       var url = Sefaria.util.replaceUrlParam("with", "all");
       var onClick = function (e) {
         e.preventDefault();
