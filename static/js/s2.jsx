@@ -2308,6 +2308,9 @@ var ReaderPanel = React.createClass({
       var menu = (<MyNotesPanel
                     interfaceLang={this.props.interfaceLang} 
                     multiPanel={this.props.multiPanel}
+                    hideNavHeader={this.props.hideNavHeader}
+                    navHome={this.openMenu.bind(null, "navigation")}
+                    openDisplaySettings={this.openDisplaySettings}
                     toggleLanguage={this.toggleLanguage} />);
 
     } else if (this.state.menuOpen === "myGroups") {
@@ -9768,9 +9771,12 @@ var NotificationsPanel = React.createClass({
 
 var MyNotesPanel = React.createClass({
   propTypes: {
-    interfaceLang:  React.PropTypes.string,
-    mutliPanel:     React.PropTypes.bool,
-    toggleLanguage: React.PropTypes.func,
+    interfaceLang:       React.PropTypes.string,
+    mutliPanel:          React.PropTypes.bool,
+    hideNavHeader:       React.PropTypes.bool,
+    navHome:             React.PropTypes.func,
+    toggleLanguage:      React.PropTypes.func,
+    openDisplaySettings: React.PropTypes.func,
   },
   componentDidMount: function() {
     this.loadData();
@@ -9800,18 +9806,31 @@ var MyNotesPanel = React.createClass({
   },
   render: function() {
     var notes = Sefaria.allPrivateNotes();
-    var classes = {myNotesPanel: 1, systemPanel: 1, readerNavMenu: 1, noHeader: 1 };
-    var classStr = classNames(classes);
+    var classStr = classNames({myNotesPanel: 1, systemPanel: 1, readerNavMenu: 1, noHeader: this.props.hideNavHeader });
+    var navTopClasses  = classNames({readerNavTop: 1, searchOnly: 1, colorLineOnly: this.props.hideNavHeader});
+    var contentClasses = classNames({content: 1, hasFooter: 1});
+
     return (
       <div className={classStr}>
-        <div className="content hasFooter" onScroll={this.onScroll}>
-          <div className="contentInner">
-            <h1>
-              { this.props.multiPanel ? <LanguageToggleButton toggleLanguage={this.props.toggleLanguage} /> : null }
+        {this.props.hideNavHeader ? null :
+          <div className={navTopClasses}>
+            <CategoryColorLine category={"Other"} />
+            <ReaderNavigationMenuMenuButton onClick={this.props.navHome} />
+            <ReaderNavigationMenuDisplaySettingsButton onClick={this.props.openDisplaySettings} />
+            <h2>
               <span className="int-en">My Notes</span>
-              <span className="int-he">שלי</span>
-            </h1>
-
+              <span className="int-he">HEBREW NEEDED</span>
+            </h2>
+        </div>}
+        <div className={contentClasses} onScroll={this.onScroll}>
+          <div className="contentInner">
+            {this.props.hideNavHeader ? 
+              <h1>
+                { this.props.multiPanel ? <LanguageToggleButton toggleLanguage={this.props.toggleLanguage} /> : null }
+                <span className="int-en">My Notes</span>
+                <span className="int-he">HEBREW NEEDED</span>
+              </h1>
+              : null }
             <div className="noteList">
               { notes ? 
                   (notes.length ?

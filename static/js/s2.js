@@ -2418,6 +2418,9 @@ var ReaderPanel = React.createClass({
       var menu = React.createElement(MyNotesPanel, {
         interfaceLang: this.props.interfaceLang,
         multiPanel: this.props.multiPanel,
+        hideNavHeader: this.props.hideNavHeader,
+        navHome: this.openMenu.bind(null, "navigation"),
+        openDisplaySettings: this.openDisplaySettings,
         toggleLanguage: this.toggleLanguage });
     } else if (this.state.menuOpen === "myGroups") {
       var menu = React.createElement(MyGroupsPanel, {
@@ -9694,7 +9697,7 @@ var ToolsList = React.createClass({
       var path = "/edit/" + refString;
       var nextParam = "?next=" + encodeURIComponent(currentPath);
       path += nextParam;
-      Sefaria.site.track.event("Tools", "Edit Text Click", refString, { hitCallback: function hitCallback() {
+      Sefaria.site.track.event("Tools", "Edit Text Click", refString, null, { hitCallback: function hitCallback() {
           return window.location = path;
         } });
     }.bind(this) : null;
@@ -9703,7 +9706,7 @@ var ToolsList = React.createClass({
       var _this8 = this;
 
       var nextParam = "?next=" + Sefaria.util.currentPath();
-      Sefaria.site.track.event("Tools", "Add Translation Click", this.props.srefs[0], { hitCallback: function hitCallback() {
+      Sefaria.site.track.event("Tools", "Add Translation Click", this.props.srefs[0], null, { hitCallback: function hitCallback() {
           return window.location = "/translate/" + _this8.props.srefs[0] + nextParam;
         } });
     }.bind(this);
@@ -11947,7 +11950,7 @@ var SearchSheetResult = React.createClass({
     var href = e.target.getAttribute("href");
     e.preventDefault();
     var s = this.props.data._source;
-    Sefaria.site.track.event("Search", "Search Result Sheet Click", this.props.query + ' - ' + s.sheetId, { hitCallback: function hitCallback() {
+    Sefaria.site.track.event("Search", "Search Result Sheet Click", this.props.query + ' - ' + s.sheetId, null, { hitCallback: function hitCallback() {
         return window.location = href;
       } });
   },
@@ -11955,7 +11958,7 @@ var SearchSheetResult = React.createClass({
     var href = e.target.getAttribute("href");
     e.preventDefault();
     var s = this.props.data._source;
-    Sefaria.site.track.event("Search", "Search Result Sheet Owner Click", this.props.query + ' - ' + s.sheetId + ' - ' + s.owner_name, { hitCallback: function hitCallback() {
+    Sefaria.site.track.event("Search", "Search Result Sheet Owner Click", this.props.query + ' - ' + s.sheetId + ' - ' + s.owner_name, null, { hitCallback: function hitCallback() {
         return window.location = href;
       } });
   },
@@ -12275,7 +12278,10 @@ var MyNotesPanel = React.createClass({
   propTypes: {
     interfaceLang: React.PropTypes.string,
     mutliPanel: React.PropTypes.bool,
-    toggleLanguage: React.PropTypes.func
+    hideNavHeader: React.PropTypes.bool,
+    navHome: React.PropTypes.func,
+    toggleLanguage: React.PropTypes.func,
+    openDisplaySettings: React.PropTypes.func
   },
   componentDidMount: function componentDidMount() {
     this.loadData();
@@ -12307,18 +12313,41 @@ var MyNotesPanel = React.createClass({
   },
   render: function render() {
     var notes = Sefaria.allPrivateNotes();
-    var classes = { myNotesPanel: 1, systemPanel: 1, readerNavMenu: 1, noHeader: 1 };
-    var classStr = classNames(classes);
+    var classStr = classNames({ myNotesPanel: 1, systemPanel: 1, readerNavMenu: 1, noHeader: this.props.hideNavHeader });
+    var navTopClasses = classNames({ readerNavTop: 1, searchOnly: 1, colorLineOnly: this.props.hideNavHeader });
+    var contentClasses = classNames({ content: 1, hasFooter: 1 });
+
     return React.createElement(
       'div',
       { className: classStr },
+      this.props.hideNavHeader ? null : React.createElement(
+        'div',
+        { className: navTopClasses },
+        React.createElement(CategoryColorLine, { category: "Other" }),
+        React.createElement(ReaderNavigationMenuMenuButton, { onClick: this.props.navHome }),
+        React.createElement(ReaderNavigationMenuDisplaySettingsButton, { onClick: this.props.openDisplaySettings }),
+        React.createElement(
+          'h2',
+          null,
+          React.createElement(
+            'span',
+            { className: 'int-en' },
+            'My Notes'
+          ),
+          React.createElement(
+            'span',
+            { className: 'int-he' },
+            'HEBREW NEEDED'
+          )
+        )
+      ),
       React.createElement(
         'div',
-        { className: 'content hasFooter', onScroll: this.onScroll },
+        { className: contentClasses, onScroll: this.onScroll },
         React.createElement(
           'div',
           { className: 'contentInner' },
-          React.createElement(
+          this.props.hideNavHeader ? React.createElement(
             'h1',
             null,
             this.props.multiPanel ? React.createElement(LanguageToggleButton, { toggleLanguage: this.props.toggleLanguage }) : null,
@@ -12330,9 +12359,9 @@ var MyNotesPanel = React.createClass({
             React.createElement(
               'span',
               { className: 'int-he' },
-              '\u05E9\u05DC\u05D9'
+              'HEBREW NEEDED'
             )
-          ),
+          ) : null,
           React.createElement(
             'div',
             { className: 'noteList' },
