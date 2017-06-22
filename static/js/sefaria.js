@@ -1164,7 +1164,7 @@ Sefaria = extend(Sefaria, {
     var packed = [item.ref, item.heRef];
     if (item.version && item.versionLangauge) {
       packed = packed.concat([item.version, item.versionLanguage]);
-    }
+    }    
     return packed;
   },
   unpackRecentItem: function(item) {
@@ -2651,7 +2651,7 @@ Sefaria.setup = function() {
     Sefaria.util.handleUserCookie();
     Sefaria._makeBooksDict();
     Sefaria._cacheIndexFromToc(Sefaria.toc);
-    Sefaria.recentlyViewed = Sefaria.recentlyViewed.map(Sefaria.unpackRecentItem);
+    Sefaria.recentlyViewed = Sefaria.recentlyViewed.map(Sefaria.unpackRecentItem).filter((item) => !("error" in item));
     Sefaria._cacheHebrewTerms(Sefaria.terms);
     Sefaria.site.track.setUserData();
 };
