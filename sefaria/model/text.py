@@ -496,7 +496,7 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
 
             # Data is being loaded from dict in old format, rewrite to new format
             # Assumption is that d has a complete title collection
-            if "schema" not in d and self.is_new():
+            if "schema" not in d:
                 node = getattr(self, "nodes", None)
                 if node:
                     node._init_titles()

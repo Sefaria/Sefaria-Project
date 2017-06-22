@@ -2644,6 +2644,7 @@ var ReaderNavigationMenu = React.createClass({
                   multiPanel={this.props.multiPanel}
                   closeNav={this.closeNav}
                   openDisplaySettings={this.props.openDisplaySettings}
+                  toggleLanguage={this.props.toggleLanguage}
                   navHome={this.navHome}
                   compare={this.props.compare}
                   hideNavHeader={this.props.hideNavHeader}
