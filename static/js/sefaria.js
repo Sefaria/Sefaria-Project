@@ -2440,13 +2440,28 @@ Sefaria.util = {
       });
       return vars;
     },
+    replaceUrlParam: function(paramName, paramValue){
+      var url = window.location.href;
+      if(paramValue == null)
+          paramValue = '';
+      var pattern = new RegExp('\\b('+paramName+'=).*?(&|$)')
+      if(url.search(pattern)>=0){
+          return url.replace(pattern,'$1' + paramValue + '$2');
+      }
+      return url + (url.indexOf('?')>0 ? '&' : '?') + paramName + '=' + paramValue 
+    },
+    removeUrlParam: function(paramName){
+      var url = window.location.href;
+      var pattern = new RegExp('\\b(&|\\?)('+paramName+'=).*?(&|$)');
+      return url.replace(pattern, '$1');
+    },
     linkify: function(str) {
       return str.replace(/(?:(https?\:\/\/[^\s]+))/m, '<a target="_blank" href="$1">$1</a>');
     },
     _scrollbarWidth: null,
     getScrollbarWidth: function() {
       // Returns the size of the browser scrollbars in pixels
-      // May be 0 for browser that hide scrollbars when not in use
+      // May be 0 for browsers that hide scrollbars when not in use
       if (Sefaria.util._scrollbarWidth !== null) {
         return Sefaria.util._scrollbarWidth;
       }

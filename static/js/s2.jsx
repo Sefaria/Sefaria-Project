@@ -2025,6 +2025,7 @@ var ReaderPanel = React.createClass({
     this.conditionalSetState(state);
   },
   setConnectionsMode: function(mode) {
+    console.log(mode);
     var loginRequired = {
       "Add Connection": 1,
     };
@@ -2044,6 +2045,7 @@ var ReaderPanel = React.createClass({
     this.conditionalSetState(state);
   },
   setConnectionsCategory: function(category) {
+    console.log(category);
     this.setFilter(category, false); // Set filter so that basetext shows link dots according to this category
     this.conditionalSetState({connectionsCategory: category, connectionsMode: "ConnectionsList"});
   },
@@ -2967,11 +2969,16 @@ var LanguageToggleButton = React.createClass({
   propTypes: {
     toggleLanguage: React.PropTypes.func.isRequired
   },
+  toggle: function(e) {
+    e.preventDefault();
+    this.props.toggleLanguage();
+  },
   render: function() {
-    return (<div className="languageToggle" onClick={this.props.toggleLanguage}>
+    var url = this.props.url || "";
+    return (<a href={url} className="languageToggle" onClick={this.toggle}>
               <span className="en"><img src="/static/img/aleph.svg" alt="Hebrew Language Toggle Icon" /></span>
               <span className="he"><img src="/static/img/aye.svg" alt="English Language Toggle Icon" /></span>
-            </div>);
+            </a>);
   }
 });
 
@@ -5739,6 +5746,10 @@ var ReaderNavigationMenuMenuButton = React.createClass({
 
 
 var ReaderNavigationMenuCloseButton = React.createClass({
+  onClick: function(e) {
+    e.preventDefault();
+    this.props.onClick();
+  },
   render: function() {
     if (this.props.icon == "circledX"){
       var icon = <img src="/static/img/circled-x.svg" />;
@@ -5748,7 +5759,8 @@ var ReaderNavigationMenuCloseButton = React.createClass({
       var icon = "×";
     }
     var classes = classNames({readerNavMenuCloseButton: 1, circledX: this.props.icon === "circledX"});
-    return (<div className={classes} onClick={this.props.onClick}>{icon}</div>);
+    var url = this.props.url || "";
+    return (<a href={url} className={classes} onClick={this.onClick}>{icon}</a>);
   }
 });
 
@@ -5805,7 +5817,6 @@ var TextColumn = React.createClass({
     this.debouncedAdjustTextListHighlight = Sefaria.util.debounce(this.adjustTextListHighlight, 100);
     var node = ReactDOM.findDOMNode(this);
     node.addEventListener("scroll", this.handleScroll);
-    console.log("TC mount");
   },
   componentWillUnmount: function() {
     var node = ReactDOM.findDOMNode(this);
@@ -6820,27 +6831,45 @@ var ConnectionsPanelHeader = React.createClass({
   },
   render: function() {
     if (this.props.connectionsMode == "Resources") {
+      // Top Level Menu
       var title = <div className="connectionsHeaderTitle">
                     {this.props.interfaceLang == "english" ? <div className="int-en">Resources</div> : null }
                     {this.props.interfaceLang == "hebrew" ? <div className="int-he">משאבים</div> : null }
                   </div>;
     } else if (this.props.previousCategory && this.props.connectionsMode == "TextList") {
-      var title = <div className="connectionsHeaderTitle active" onClick={this.props.setConnectionsCategory.bind(null, this.props.previousCategory)}>
+      // In a text list, back to Previous Categoy
+
+      var url = Sefaria.util.replaceUrlParam("with", this.props.previousCategory);
+      var onClick = function(e) {
+        this.props.setConnectionsCategory(this.props.previousCategory);
+        e.preventDefault();
+      }.bind(this);
+      var title = <a href={url} className="connectionsHeaderTitle active" onClick={onClick}>
                     {this.props.interfaceLang == "english" ? <div className="int-en"><i className="fa fa-chevron-left"></i>{this.props.multiPanel ? this.props.previousCategory : null }</div> : null }
                     {this.props.interfaceLang == "hebrew" ? <div className="int-he"><i className="fa fa-chevron-right"></i>{this.props.multiPanel ? Sefaria.hebrewTerm(this.props.previousCategory) : null }</div> : null }
-                  </div>;   
+                  </a>;   
+    
     } else {
-      var title = <div className="connectionsHeaderTitle active" onClick={this.props.setConnectionsMode.bind(null, "Resources")}>
+      // Anywhere, back to Top Level
+      var url = Sefaria.util.replaceUrlParam("with", "all");
+      var onClick = function(e) {
+        e.preventDefault();     
+        this.props.setConnectionsMode("Resources");
+      }.bind(this);
+      var title = <a href={url} className="connectionsHeaderTitle active" onClick={onClick}>
                     {this.props.interfaceLang == "english" ? <div className="int-en"><i className="fa fa-chevron-left"></i>Resources</div> : null }
                     {this.props.interfaceLang == "hebrew" ? <div className="int-he"><i className="fa fa-chevron-right"></i>משאבים</div> : null }
-                  </div>;        
+                  </a>;        
     }
     if (this.props.multiPanel) {
+      var toggleLang = Sefaria.util.getUrlVars()["lang2"] == "en" ? "he" : "en";
+      var langUrl = Sefaria.util.replaceUrlParam("lang2", toggleLang);
+      var closeUrl = Sefaria.util.removeUrlParam("with");  
       return (<div className="connectionsPanelHeader">
                 {title}
                 <div className="rightButtons">
-                  <LanguageToggleButton toggleLanguage={this.props.toggleLanguage} />
-                  <ReaderNavigationMenuCloseButton icon="circledX" onClick={this.props.closePanel} />
+                  <LanguageToggleButton toggleLanguage={this.props.toggleLanguage} url={langUrl} />
+                  <ReaderNavigationMenuCloseButton icon="circledX" onClick={this.props.closePanel} url={closeUrl} />
                 </div>
               </div>);      
     } else {
@@ -7011,11 +7040,11 @@ var CategoryFilter = React.createClass({
     var handleClick  = this.handleClick;
     var url = (this.props.srefs && this.props.srefs.length > 0)?"/" + Sefaria.normRef(this.props.srefs[0]) + "?with=" + this.props.category:"";
     var innerFilter = (
-      <div className={innerClasses} onClick={handleClick} data-name={this.props.category}>
+      <div className={innerClasses} data-name={this.props.category}>
         <span className="en">{this.props.category}{count}</span>
         <span className="he">{this.props.heCategory}{count}</span>
       </div>);
-    var wrappedFilter = <a href={url}>{innerFilter}</a>;
+    var wrappedFilter = <a href={url} onClick={handleClick}>{innerFilter}</a>;
     var outerClasses = classNames({categoryFilterGroup: 1, withBooks: this.props.showBooks});
     return (
       <div className={outerClasses} style={style}>
@@ -7057,11 +7086,8 @@ var TextFilter = React.createClass({
     var count = this.props.hideCounts || !this.props.count ? "" : ( <span className="enInHe connectionsCount">&nbsp;({this.props.count})</span>);
     var url = (this.props.srefs && this.props.srefs.length > 0)?"/" + Sefaria.normRef(this.props.srefs[0]) + "?with=" + name:"";
     return (
-      <a href={url}>
-        <div data-name={name}
-          className={classes}
-          style={style}
-          onClick={this.handleClick}>
+      <a href={url} onClick={this.handleClick}>
+        <div data-name={name} className={classes} style={style} >
             <div>
               <span className="en">{name}{count}</span>
               <span className="he">{this.props.heBook}{count}</span>
@@ -7733,6 +7759,10 @@ var ToolsButton = React.createClass({
     count:   React.PropTypes.number,
     onClick: React.PropTypes.func
   },
+  onClick: function(e) {
+    e.preventDefault();
+    this.props.onClick();
+  },
   render: function() {
     var icon = null;
     if (this.props.icon) {
@@ -7745,13 +7775,13 @@ var ToolsButton = React.createClass({
     }
 
     var count = this.props.count ? (<span className="connectionsCount">({this.props.count})</span>) : null;
-
+    var url = Sefaria.util.replaceUrlParam("with", this.props.en);
     return (
-      <div className="toolsButton sans noselect" onClick={this.props.onClick}>
+      <a href={url} className="toolsButton sans noselect" onClick={this.onClick}>
         {icon}
         <span className="int-en noselect">{this.props.en} {count}</span>
         <span className="int-he noselect">{this.props.he} {count}</span>
-      </div>)
+      </a>)
   }
 });
 

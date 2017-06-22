@@ -3248,10 +3248,15 @@ var LanguageToggleButton = React.createClass({
   propTypes: {
     toggleLanguage: React.PropTypes.func.isRequired
   },
+  toggle: function toggle(e) {
+    e.preventDefault();
+    this.props.toggleLanguage();
+  },
   render: function render() {
+    var url = this.props.url || "";
     return React.createElement(
-      'div',
-      { className: 'languageToggle', onClick: this.props.toggleLanguage },
+      'a',
+      { href: url, className: 'languageToggle', onClick: this.toggle },
       React.createElement(
         'span',
         { className: 'en' },
@@ -7312,6 +7317,10 @@ var ReaderNavigationMenuMenuButton = React.createClass({
 var ReaderNavigationMenuCloseButton = React.createClass({
   displayName: 'ReaderNavigationMenuCloseButton',
 
+  onClick: function onClick(e) {
+    e.preventDefault();
+    this.props.onClick();
+  },
   render: function render() {
     if (this.props.icon == "circledX") {
       var icon = React.createElement('img', { src: '/static/img/circled-x.svg' });
@@ -7321,9 +7330,10 @@ var ReaderNavigationMenuCloseButton = React.createClass({
       var icon = "×";
     }
     var classes = classNames({ readerNavMenuCloseButton: 1, circledX: this.props.icon === "circledX" });
+    var url = this.props.url || "";
     return React.createElement(
-      'div',
-      { className: classes, onClick: this.props.onClick },
+      'a',
+      { href: url, className: classes, onClick: this.onClick },
       icon
     );
   }
@@ -8544,6 +8554,7 @@ var ConnectionsPanelHeader = React.createClass({
   },
   render: function render() {
     if (this.props.connectionsMode == "Resources") {
+      // Top Level Menu
       var title = React.createElement(
         'div',
         { className: 'connectionsHeaderTitle' },
@@ -8559,9 +8570,16 @@ var ConnectionsPanelHeader = React.createClass({
         ) : null
       );
     } else if (this.props.previousCategory && this.props.connectionsMode == "TextList") {
+      // In a text list, back to Previous Categoy
+
+      var url = Sefaria.util.replaceUrlParam("with", this.props.previousCategory);
+      var onClick = function (e) {
+        this.props.setConnectionsCategory(this.props.previousCategory);
+        e.preventDefault();
+      }.bind(this);
       var title = React.createElement(
-        'div',
-        { className: 'connectionsHeaderTitle active', onClick: this.props.setConnectionsCategory.bind(null, this.props.previousCategory) },
+        'a',
+        { href: url, className: 'connectionsHeaderTitle active', onClick: onClick },
         this.props.interfaceLang == "english" ? React.createElement(
           'div',
           { className: 'int-en' },
@@ -8576,9 +8594,15 @@ var ConnectionsPanelHeader = React.createClass({
         ) : null
       );
     } else {
+      // Anywhere, back to Top Level
+      var url = Sefaria.util.replaceUrlParam("with", "all");
+      var onClick = function (e) {
+        e.preventDefault();
+        this.props.setConnectionsMode("Resources");
+      }.bind(this);
       var title = React.createElement(
-        'div',
-        { className: 'connectionsHeaderTitle active', onClick: this.props.setConnectionsMode.bind(null, "Resources") },
+        'a',
+        { href: url, className: 'connectionsHeaderTitle active', onClick: onClick },
         this.props.interfaceLang == "english" ? React.createElement(
           'div',
           { className: 'int-en' },
@@ -8594,6 +8618,9 @@ var ConnectionsPanelHeader = React.createClass({
       );
     }
     if (this.props.multiPanel) {
+      var toggleLang = Sefaria.util.getUrlVars()["lang2"] == "en" ? "he" : "en";
+      var langUrl = Sefaria.util.replaceUrlParam("lang2", toggleLang);
+      var closeUrl = Sefaria.util.removeUrlParam("with");
       return React.createElement(
         'div',
         { className: 'connectionsPanelHeader' },
@@ -8601,8 +8628,8 @@ var ConnectionsPanelHeader = React.createClass({
         React.createElement(
           'div',
           { className: 'rightButtons' },
-          React.createElement(LanguageToggleButton, { toggleLanguage: this.props.toggleLanguage }),
-          React.createElement(ReaderNavigationMenuCloseButton, { icon: 'circledX', onClick: this.props.closePanel })
+          React.createElement(LanguageToggleButton, { toggleLanguage: this.props.toggleLanguage, url: langUrl }),
+          React.createElement(ReaderNavigationMenuCloseButton, { icon: 'circledX', onClick: this.props.closePanel, url: closeUrl })
         )
       );
     } else {
@@ -8802,7 +8829,7 @@ var CategoryFilter = React.createClass({
     var url = this.props.srefs && this.props.srefs.length > 0 ? "/" + Sefaria.normRef(this.props.srefs[0]) + "?with=" + this.props.category : "";
     var innerFilter = React.createElement(
       'div',
-      { className: innerClasses, onClick: handleClick, 'data-name': this.props.category },
+      { className: innerClasses, 'data-name': this.props.category },
       React.createElement(
         'span',
         { className: 'en' },
@@ -8818,7 +8845,7 @@ var CategoryFilter = React.createClass({
     );
     var wrappedFilter = React.createElement(
       'a',
-      { href: url },
+      { href: url, onClick: handleClick },
       innerFilter
     );
     var outerClasses = classNames({ categoryFilterGroup: 1, withBooks: this.props.showBooks });
@@ -8873,13 +8900,10 @@ var TextFilter = React.createClass({
     var url = this.props.srefs && this.props.srefs.length > 0 ? "/" + Sefaria.normRef(this.props.srefs[0]) + "?with=" + name : "";
     return React.createElement(
       'a',
-      { href: url },
+      { href: url, onClick: this.handleClick },
       React.createElement(
         'div',
-        { 'data-name': name,
-          className: classes,
-          style: style,
-          onClick: this.handleClick },
+        { 'data-name': name, className: classes, style: style },
         React.createElement(
           'div',
           null,
@@ -9708,6 +9732,10 @@ var ToolsButton = React.createClass({
     count: React.PropTypes.number,
     onClick: React.PropTypes.func
   },
+  onClick: function onClick(e) {
+    e.preventDefault();
+    this.props.onClick();
+  },
   render: function render() {
     var icon = null;
     if (this.props.icon) {
@@ -9726,10 +9754,10 @@ var ToolsButton = React.createClass({
       this.props.count,
       ')'
     ) : null;
-
+    var url = Sefaria.util.replaceUrlParam("with", this.props.en);
     return React.createElement(
-      'div',
-      { className: 'toolsButton sans noselect', onClick: this.props.onClick },
+      'a',
+      { href: url, className: 'toolsButton sans noselect', onClick: this.onClick },
       icon,
       React.createElement(
         'span',

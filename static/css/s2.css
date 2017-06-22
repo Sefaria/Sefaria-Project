@@ -690,10 +690,17 @@ input.noselect {
   vertical-align: middle;
   cursor: pointer;
 }
+.readerNavMenuCloseButton:hover {
+  text-decoration: none;
+}
 .readerNavTop .readerNavMenuCloseButton {
+  display: block;
   font-size: 46px;
   padding: 0;
   line-height: 48px;
+}
+.readerNavMenuCloseButton:hover {
+  text-decoration: none;
 }
 .readerNavTop .readerNavMenuCloseButton .fa {
   font-size: 20px;
@@ -2011,7 +2018,6 @@ a.readerNavCategory {
 }
 .leftButtons .readerNavMenuCloseButton {
   font-size: 44px;
-  line-height: 40px;
 }
 .leftButtons .readerNavMenuSearchButton span,
 .rightButtons .readerOptions img,
@@ -2542,7 +2548,7 @@ a.readerNavCategory {
   line-height: 32px;
 }
 .connectionsPanelHeader .languageToggle {
-  margin: 0 5px;
+  margin: 0 15px;
 }
 .connectionsHeader .readerNavMenuCloseButton.circledX  {
   width: 20px;
@@ -3004,13 +3010,14 @@ a.readerNavCategory {
   font-size: 18px;
 }
 .toolsButton {
+  display: block;
   color: #333;
   border-top: 1px solid #CCC;
   cursor: pointer;
   font-size: 16px;
   letter-spacing: 1px;
   padding: 20px 26px 20px 0;
-}
+}           
 .toolsButton .en {
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
 }
