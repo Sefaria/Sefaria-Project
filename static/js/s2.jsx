@@ -2588,7 +2588,7 @@ var ReaderDisplayOptionsMenu = React.createClass({
           settings={this.props.settings} />);
 
     if (this.props.menuOpen === "search") {
-      return (<div className="readerOptionsPanel" role="dialog" tabindex="0">
+      return (<div className="readerOptionsPanel" role="dialog" tabIndex="0">
                 <div className="readerOptionsPanelInner">
                   {languageToggle}
                   <div className="line"></div>
@@ -2596,13 +2596,13 @@ var ReaderDisplayOptionsMenu = React.createClass({
                 </div>
             </div>);
     } else if (this.props.menuOpen) {
-      return (<div className="readerOptionsPanel"role="dialog" tabindex="0">
+      return (<div className="readerOptionsPanel"role="dialog" tabIndex="0">
                 <div className="readerOptionsPanelInner">
                   {languageToggle}
                 </div>
             </div>);
     } else {
-      return (<div className="readerOptionsPanel"role="dialog" tabindex="0">
+      return (<div className="readerOptionsPanel"role="dialog" tabIndex="0">
                 <div className="readerOptionsPanelInner">
                   {languageToggle}
                   {layoutToggle}
@@ -3435,7 +3435,8 @@ var ReaderTextTableOfContents = React.createClass({
           </select>
           <select className="dlVersionSelect dlVersionFormatSelect" value={this.state.dlVersionFormat || "0"} onChange={this.onDlFormatSelect}>
             <option key="none" value="0" disabled>File Format</option>
-            <option key="txt" value="txt" >Text</option>
+            <option key="txt" value="txt" >Text (with tags)</option>
+            <option key="plain.txt" value="plain.txt" >Text (without tags)</option>
             <option key="csv" value="csv" >CSV</option>
             <option key="json" value="json" >JSON</option>
           </select>
@@ -10084,7 +10085,8 @@ var ModeratorToolsPanel = React.createClass({
         </select>
         <select className="dlVersionSelect dlVersionFormatSelect" value={this.state.bulk_format || ""} onChange={this.onDlFormatSelect}>
           <option disabled>File Format</option>
-          <option key="txt" value="txt" >Text</option>
+          <option key="txt" value="txt" >Text (with tags)</option>
+          <option key="plain.txt" value="plain.txt" >Text (without tags)</option>
           <option key="csv" value="csv" >CSV</option>
           <option key="json" value="json" >JSON</option>
         </select>

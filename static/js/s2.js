@@ -2694,7 +2694,7 @@ var ReaderDisplayOptionsMenu = React.createClass({
     if (this.props.menuOpen === "search") {
       return React.createElement(
         'div',
-        { className: 'readerOptionsPanel', role: 'dialog', tabindex: '0' },
+        { className: 'readerOptionsPanel', role: 'dialog', tabIndex: '0' },
         React.createElement(
           'div',
           { className: 'readerOptionsPanelInner' },
@@ -2706,7 +2706,7 @@ var ReaderDisplayOptionsMenu = React.createClass({
     } else if (this.props.menuOpen) {
       return React.createElement(
         'div',
-        { className: 'readerOptionsPanel', role: 'dialog', tabindex: '0' },
+        { className: 'readerOptionsPanel', role: 'dialog', tabIndex: '0' },
         React.createElement(
           'div',
           { className: 'readerOptionsPanelInner' },
@@ -2716,7 +2716,7 @@ var ReaderDisplayOptionsMenu = React.createClass({
     } else {
       return React.createElement(
         'div',
-        { className: 'readerOptionsPanel', role: 'dialog', tabindex: '0' },
+        { className: 'readerOptionsPanel', role: 'dialog', tabIndex: '0' },
         React.createElement(
           'div',
           { className: 'readerOptionsPanelInner' },
@@ -3952,7 +3952,12 @@ var ReaderTextTableOfContents = React.createClass({
           React.createElement(
             'option',
             { key: 'txt', value: 'txt' },
-            'Text'
+            'Text (with tags)'
+          ),
+          React.createElement(
+            'option',
+            { key: 'plain.txt', value: 'plain.txt' },
+            'Text (without tags)'
           ),
           React.createElement(
             'option',
@@ -12739,7 +12744,12 @@ var ModeratorToolsPanel = React.createClass({
         React.createElement(
           'option',
           { key: 'txt', value: 'txt' },
-          'Text'
+          'Text (with tags)'
+        ),
+        React.createElement(
+          'option',
+          { key: 'plain.txt', value: 'plain.txt' },
+          'Text (without tags)'
         ),
         React.createElement(
           'option',
