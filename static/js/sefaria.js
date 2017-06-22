@@ -229,6 +229,15 @@ Sefaria = extend(Sefaria, {
     return null;
   },
   textApi: function(ref, settings, cb) {
+    settings = settings || {};
+    settings = {
+      commentary: settings.commentary || 0,
+      context:    settings.context    || 0,
+      pad:        settings.pad        || 0,
+      version:    settings.version    || null,
+      language:   settings.language   || null,
+      wrapLinks:  settings.wrapLinks  || 1
+    };
     return this._api(this._textUrl(ref, settings), function(data) {
       this._saveText(data, settings);
       cb(data);
