@@ -632,7 +632,7 @@ Sefaria = extend(Sefaria, {
     // For a set of items from the API, save each set split by the specific ref the items points to.
     // E.g, API is called on "Genesis 1", this function also stores the data in buckets like "Genesis 1:1", "Genesis 1:2" etc.
     var splitItems = {}; // Aggregate links by anchorRef
-    for (var i=0; i < data.length; i++) {
+    for (var i = 0; i < data.length; i++) {
       var ref = data[i].anchorRef;
       var refs = Sefaria.splitSpanningRef(ref);
       for (var j = 0; j < refs.length; j++) {
@@ -646,7 +646,7 @@ Sefaria = extend(Sefaria, {
     }
     for (var ref in splitItems) {
       if (splitItems.hasOwnProperty(ref)) {
-        if (!(ref in store) || store[ref].length < splitItems[ref]) {
+        if (!(ref in store) || store[ref].length <= splitItems[ref].length) {
           // Don't overwrite the cache if it already contains more items than the new list.
           // Due to range logic, if cache was populated with "Genesis 1", a call for "Genesis 1:2-4" could yeild
           // a smaller list of results for "Genesis 1:4" than was already present. 
