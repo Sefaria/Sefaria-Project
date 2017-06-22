@@ -2679,8 +2679,8 @@ Sefaria.setup = function() {
 };
 Sefaria.setup();
 
-if (typeof document !== 'undefined') {
-    document.Sefaria = Sefaria; // allow access to `Sefaria` from console
+if (typeof window !== 'undefined') {
+    window.Sefaria = Sefaria; // allow access to `Sefaria` from console
 }
 //if (typeof module !== 'undefined') {
   module.exports = Sefaria;
