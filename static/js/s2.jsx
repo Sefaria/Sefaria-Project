@@ -7,6 +7,9 @@
       extend       = require('extend'),
       classNames   = require('classnames'),
       Sefaria      = require('./sefaria');
+      import Component from 'react-class';  //auto-bind this to all event-listeners. see https://www.npmjs.com/package/react-class
+
+
   if (typeof document !== 'undefined' ) {
     INBROWSER = false;
     require('jquery.cookie');  //NOTE: these require statements are adding props to the $ obj. The order actually doesn't matter b/c it seems webpack deals with it
@@ -15,35 +18,11 @@
   }
 
 
-class ReaderApp extends React.Component {
+class ReaderApp extends Component {
   constructor(props) {
     super(props);
     // TODO clean up generation of initial panels objects.
     // Currently these get generated in reader/views.py, then regenerated in s2.html then regenerated again in ReaderApp.
-    this.setPanelCap = this.setPanelCap.bind(this);
-    this.updateAvailableFiltersInHeader = this.updateAvailableFiltersInHeader.bind(this);
-    this.updateAvailableFiltersInPanel = this.updateAvailableFiltersInPanel.bind(this);
-    this.updateSearchOptionSortInHeader = this.updateSearchOptionSortInHeader.bind(this);
-    this.updateSearchOptionSortInPanel = this.updateSearchOptionSortInPanel.bind(this);
-    this.updateSearchOptionFieldInHeader = this.updateSearchOptionFieldInHeader.bind(this);
-    this.updateSearchOptionFieldInPanel = this.updateSearchOptionFieldInPanel.bind(this);
-    this.handleNavigationClick = this.handleNavigationClick.bind(this);
-    this.showLibrary = this.showLibrary.bind(this);
-    this.showSheets = this.showSheets.bind(this);
-    this.showSearch = this.showSearch.bind(this);
-    this.showMySheets = this.showMySheets.bind(this);
-    this.showMyGroups = this.showMyGroups.bind(this);
-    this.setHeaderState = this.setHeaderState.bind(this);
-    this.setSelectedWords = this.setSelectedWords.bind(this);
-    this.setDefaultOption = this.setDefaultOption.bind(this);
-    this.handleSegmentClick = this.handleSegmentClick.bind(this);
-    this.closePanel = this.closePanel.bind(this);
-    this.handleRecentClick = this.handleRecentClick.bind(this);
-    this.setPanelState = this.setPanelState.bind(this);
-    this.handleInAppLinkClick = this.handleInAppLinkClick.bind(this);
-    this.handleCitationClick = this.handleCitationClick.bind(this);
-    this.handleCompareSearchClick = this.handleCompareSearchClick.bind(this);
-    this.handlePopState = this.handlePopState.bind(this);
     this.MIN_PANEL_WIDTH = 360.0;
 
     var panels               = [];
@@ -1327,17 +1306,10 @@ ReaderApp.defaultProps = {
 };
 
 
-class Header extends React.Component {
+class Header extends Component {
   constructor(props) {
     super(props);
-    this.showTestMessage = this.showTestMessage.bind(this);
-    this.showAccount = this.showAccount.bind(this);
-    this.showNotifications = this.showNotifications.bind(this);
-    this.handleLibraryClick = this.handleLibraryClick.bind(this);
-    this.handleSearchButtonClick = this.handleSearchButtonClick.bind(this);
-    this.handleRefClick = this.handleRefClick.bind(this);
-    this.handleSearchKeyUp = this.handleSearchKeyUp.bind(this);
-    this.hideTestMessage = this.hideTestMessage.bind(this);
+
     this.state = props.initialState;
     this._searchOverridePre = 'Search for: "';
     this._searchOverridePost = '"';
@@ -1638,11 +1610,7 @@ Header.propTypes = {
 };
 
 
-class GlobalWarningMessage extends React.Component {
-  constructor(props) {
-    super(props);
-    this.close = this.close.bind(this);
-  }
+class GlobalWarningMessage extends Component {
   close() {
     Sefaria.globalWarningMessage = null;
     this.forceUpdate();
@@ -1658,27 +1626,10 @@ class GlobalWarningMessage extends React.Component {
 }
 
 
-class ReaderPanel extends React.Component {
+class ReaderPanel extends Component {
   constructor(props) {
     super(props);
-    this.setWidth = this.setWidth.bind(this);
-    this.setFilter = this.setFilter.bind(this);
-    this.setOption = this.setOption.bind(this);
-    this.setTextListHighlight = this.setTextListHighlight.bind(this);
-    this.currentLayout = this.currentLayout.bind(this);
-    this.closeDisplaySettings = this.closeDisplaySettings.bind(this);
-    this.setNavigationCategories = this.setNavigationCategories.bind(this);
-    this.setSelectedWords = this.setSelectedWords.bind(this);
-    this.handleBaseSegmentClick = this.handleBaseSegmentClick.bind(this);
-    this.openMenu = this.openMenu.bind(this);
-    this.closeMenus = this.closeMenus.bind(this);
-    this.openDisplaySettings = this.openDisplaySettings.bind(this);
-    this.setNavigationCategories = this.setNavigationCategories.bind(this);
-    this.toggleLanguage = this.toggleLanguage.bind(this);
-    this.handleCitationClick = this.handleCitationClick.bind(this);
-    this.handleTextListClick = this.handleTextListClick.bind(this);
-    this.closePanelSearch = this.closePanelSearch.bind(this);
-    this.updateTextColumn = this.updateTextColumn.bind(this);
+
     // When this component is managed by a parent, all it takes is initialState
     if (props.initialState) {
       var state = this.clonePanel(props.initialState);
@@ -2386,12 +2337,11 @@ ReaderPanel.propTypes = {
 };
 
 
-class ReaderControls extends React.Component {
+class ReaderControls extends Component {
   // The Header of a Reader panel when looking at a text
   // contains controls for display, navigation etc.
   constructor(props) {
     super(props);
-    this.openTextToc = this.openTextToc.bind(this);
   }
   openTextToc(e) {
     e.preventDefault();
@@ -2509,7 +2459,7 @@ ReaderControls.propTypes = {
 };
 
 
-class ReaderDisplayOptionsMenu extends React.Component {
+class ReaderDisplayOptionsMenu extends Component {
   render() {
     var languageOptions = [
       {name: "english",   content: "<span class='en'>A</span>", role: "radio", ariaLabel: "Show English Text" },
@@ -2620,16 +2570,11 @@ ReaderDisplayOptionsMenu.propTypes = {
 };
 
 
-class ReaderNavigationMenu extends React.Component {
+class ReaderNavigationMenu extends Component {
   // The Navigation menu for browsing and searching texts, plus some site links.
   constructor(props) {
     super(props);
-    this.handleClick = this.handleClick.bind(this);
-    this.showMore = this.showMore.bind(this);
-    this.navHome = this.navHome.bind(this);
-    this.closeNav = this.closeNav.bind(this);
-    this.handleSearchButtonClick = this.handleSearchButtonClick.bind(this);
-    this.navHome = this.navHome.bind(this);
+
     this.width = 1000;
     this.state = {
       showMore: false
@@ -2921,7 +2866,7 @@ ReaderNavigationMenu.propTypes = {
 };
 
 
-class ReaderNavigationMenuSection extends React.Component {
+class ReaderNavigationMenuSection extends Component {
   render() {
     if (!this.props.content) { return null; }
     return (
@@ -2943,7 +2888,7 @@ ReaderNavigationMenuSection.propTypes = {
   content: PropTypes.object
 };
 
-class TextBlockLink extends React.Component {
+class TextBlockLink extends Component {
   // Monopoly card style link with category color at top
   render() {
     var index    = Sefaria.index(this.props.book);
@@ -2976,7 +2921,7 @@ TextBlockLink.propTypes = {
   position:        PropTypes.number
 };
 
-class LanguageToggleButton extends React.Component {
+class LanguageToggleButton extends Component {
   render() {
     return (<div className="languageToggle" onClick={this.props.toggleLanguage}>
               <span className="en"><img src="/static/img/aleph.svg" alt="Hebrew Language Toggle Icon" /></span>
@@ -2990,7 +2935,7 @@ LanguageToggleButton.propTypes = {
 };
 
 
-class BlockLink extends React.Component {
+class BlockLink extends Component {
   render() {
     var interfaceClass = this.props.interfaceLink ? 'int-' : '';
     var classes = classNames({blockLink: 1, inAppLink: this.props.inAppLink})
@@ -3015,7 +2960,7 @@ BlockLink.defaultProps = {
   interfaceLink: false
 };
 
-class ReaderNavigationCategoryMenu extends React.Component {
+class ReaderNavigationCategoryMenu extends Component {
   // Navigation Menu for a single category of texts (e.g., "Tanakh", "Bavli")
   render() {
     var footer = this.props.compare ? null :
@@ -3100,7 +3045,7 @@ ReaderNavigationCategoryMenu.propTypes = {
 };
 
 
-class ReaderNavigationCategoryMenuContents extends React.Component {
+class ReaderNavigationCategoryMenuContents extends Component {
   // Inner content of Category menu (just category title and boxes of)
   getRenderedTextTitleString(title, heTitle){
     var whiteList = ['Midrash Mishlei', 'Midrash Tehillim', 'Midrash Tanchuma'];
@@ -3204,12 +3149,11 @@ ReaderNavigationCategoryMenuContents.propTypes = {
 };
 
 
-class ReaderTextTableOfContents extends React.Component {
+class ReaderTextTableOfContents extends Component {
   // Menu for the Table of Contents for a single text
   constructor(props) {
     super(props);
-    this.recordDownload = this.recordDownload.bind(this);
-    this.handleClick = this.handleClick.bind(this);
+
     this.state = {
       versions: [],
       versionsLoaded: false,
@@ -3527,7 +3471,7 @@ ReaderTextTableOfContents.propTypes = {
 };
 
 
-class TextDetails extends React.Component {
+class TextDetails extends Component {
  render() {
     var makeDescriptionText = function(compWord, compPlace, compDate, description) {
       var composed = compPlace || compDate ? compWord + [compPlace, compDate].filter(x => !!x).join(" ") : null;
@@ -3574,7 +3518,7 @@ TextDetails.propTypes = {
 };
 
 
-class TextTableOfContentsNavigation extends React.Component {
+class TextTableOfContentsNavigation extends Component {
   // The content section of the text table of contents that includes links to text sections,
   // and tabs for alternate structures, commentary and versions.
   constructor(props) {
@@ -3721,7 +3665,7 @@ TextTableOfContentsNavigation.propTypes = {
 };
 
 
-class TabbedToggleSet extends React.Component {
+class TabbedToggleSet extends Component {
   render() {
     var options = this.props.options.map(function(option, i) {
       var classes = classNames({altStructToggle: 1, active: this.props.active === option.name});
@@ -3759,7 +3703,7 @@ TabbedToggleSet.propTypes = {
   narrowPanel: PropTypes.bool
 };
 
-class SchemaNode extends React.Component {
+class SchemaNode extends Component {
   constructor(props) {
     super(props);
     this.state = {
@@ -3849,7 +3793,7 @@ SchemaNode.propTypes = {
   refPath:     PropTypes.string.isRequired
 };
 
-class JaggedArrayNode extends React.Component {
+class JaggedArrayNode extends Component {
   render() {
     if ("toc_zoom" in this.props.schema) {
       var zoom = this.props.schema.toc_zoom - 1;
@@ -3875,7 +3819,7 @@ JaggedArrayNode.propTypes = {
 };
 
 
-class JaggedArrayNodeSection extends React.Component {
+class JaggedArrayNodeSection extends Component {
   contentCountIsEmpty(count) {
     // Returns true if count is zero or is an an array (of arrays) of zeros.
     if (typeof count == "number") { return count == 0; }
@@ -3961,7 +3905,10 @@ JaggedArrayNodeSection.propTypes = {
   refPath:         PropTypes.string.isRequired,
 };
 
-class ArrayMapNode extends React.Component {
+class ArrayMapNode extends Component {
+  constructor(props) {
+    super(props);
+  }
   render() {
     if ("refs" in this.props.schema && this.props.schema.refs.length) {
       var sectionLinks = this.props.schema.refs.map(function(ref, i) {
@@ -4000,7 +3947,7 @@ ArrayMapNode.propTypes = {
 };
 
 
-class CommentatorList extends React.Component {
+class CommentatorList extends Component {
   render() {
     var content = this.props.commentatorList.map(function(commentator, i) {
       var ref = commentator.firstSection;
@@ -4019,7 +3966,7 @@ CommentatorList.propTypes = {
 };
 
 
-class VersionsList extends React.Component {
+class VersionsList extends Component {
   render() {
     var versions = this.props.versionsList;
     var [heVersionBlocks, enVersionBlocks] = ["he","en"].map(lang =>
@@ -4061,7 +4008,7 @@ VersionsList.propType = {
   currentRef:   PropTypes.string,
 };
 
-class VersionBlock extends React.Component {
+class VersionBlock extends Component {
   constructor(props) {
     super(props);
       this.updateableVersionAttributes = [
@@ -4080,11 +4027,11 @@ class VersionBlock extends React.Component {
       "CC-BY-SA": "https://creativecommons.org/licenses/by-sa/3.0/",
       "CC-BY-NC": "https://creativecommons.org/licenses/by-nc/4.0/"
     };
-    this.closeEditor = this.closeEditor.bind(this);
-    this.saveVersionUpdate = this.saveVersionUpdate.bind(this);
-    this.deleteVersion = this.deleteVersion.bind(this);
-    this.openEditor = this.openEditor.bind(this);
-    this.openVersion = this.openVersion.bind(this);
+
+
+
+
+
     var s = {
       editing: false,
       error: null,
@@ -4280,13 +4227,10 @@ VersionBlock.defaultProps = {
 };
 
 
-class ModeratorButtons extends React.Component {
+class ModeratorButtons extends Component {
   constructor(props) {
     super(props);
-    this.expand = this.expand.bind(this);
-    this.editIndex = this.editIndex.bind(this);
-    this.addSection = this.addSection.bind(this);
-    this.deleteIndex = this.deleteIndex.bind(this);
+
     this.state = {
       expanded: false,
       message: null,
@@ -4359,7 +4303,7 @@ ModeratorButtons.propTypes = {
   title: PropTypes.string.isRequired,
 };
 
-class CategoryAttribution extends React.Component {
+class CategoryAttribution extends Component {
   render() {
     var attribution = Sefaria.categoryAttribution(this.props.categories);
     return attribution ?
@@ -4379,7 +4323,7 @@ CategoryAttribution.propTypes = {
 
 
 
-class ReadMoreText extends React.Component {
+class ReadMoreText extends Component {
   constructor(props) {
     super(props);
     this.state = {expanded: props.text.split(" ").length < props.initialWords};
@@ -4408,7 +4352,7 @@ ReadMoreText.defaultProps = {
 };
 
 
-class SheetsNav extends React.Component {
+class SheetsNav extends Component {
   // Navigation for Sheets
   constructor(props) {
     super(props);
@@ -4500,13 +4444,8 @@ SheetsNav.propTypes = {
   hideNavHeader:   PropTypes.bool
 };
 
-class SheetsHomePage extends React.Component {
+class SheetsHomePage extends Component {
   // A set of options grouped together.
-  constructor(props) {
-    super(props);
-    this.showYourSheets = this.showYourSheets.bind(this);
-    this.showAllSheets = this.showAllSheets.bind(this);
-  }
   componentDidMount() {
     this.ensureData();
   }
@@ -4641,10 +4580,10 @@ SheetsHomePage.propTypes = {
   hideNavHeader:   PropTypes.bool
 };
 
-class GroupPage extends React.Component {
+class GroupPage extends Component {
   constructor(props) {
     super(props);
-    this.toggleSheetTags = this.toggleSheetTags.bind(this);
+
     this.state = {
       showTags: false,
       sheetFilterTag: null,
@@ -4848,7 +4787,7 @@ GroupPage.propTypes = {
   width: PropTypes.number
 };
 
-class GroupSheetListing extends React.Component {
+class GroupSheetListing extends Component {
   render() {
     var sheet = this.props.sheet;
     var title = sheet.title ? sheet.title.stripHtml() : "Untitled Source Sheet";
@@ -4884,10 +4823,10 @@ GroupSheetListing.propTypes = {
   isAdmin:     PropTypes.bool
 };
 
-class GroupInvitationBox extends React.Component {
+class GroupInvitationBox extends Component {
   constructor(props) {
     super(props);
-    this.onInviteClick = this.onInviteClick.bind(this);
+
     this.state = {
       inviting: false,
       message: null
@@ -4949,7 +4888,7 @@ GroupInvitationBox.propTypes = {
   onDataChange: PropTypes.func.isRequired,
 };
 
-class GroupMemberListing extends React.Component {
+class GroupMemberListing extends Component {
   render() {
     if (this.props.member.role == "Invitation") {
       return this.props.isAdmin ?
@@ -4994,7 +4933,7 @@ GroupMemberListing.propTypes ={
   onDataChange: PropTypes.func,
 };
 
-class GroupInvitationListing extends React.Component {
+class GroupInvitationListing extends Component {
   render() {
     return (
       <div className="groupMemberListing">
@@ -5021,13 +4960,10 @@ GroupInvitationListing.propTypes = {
   onDataChange: PropTypes.func,
 };
 
-class GroupMemberListingActions extends React.Component {
+class GroupMemberListingActions extends Component {
   constructor(props) {
     super(props);
-    this.toggleMenu = this.toggleMenu.bind(this);
-    this.resendInvitation = this.resendInvitation.bind(this);
-    this.removeInvitation = this.removeInvitation.bind(this);
-    this.removeMember = this.removeMember.bind(this);
+
     this.state = {
       menuOpen: false,
       invitationResent: false
@@ -5146,11 +5082,10 @@ GroupMemberListingActions.propTypes = {
   onDataChange: PropTypes.func.isRequired
 };
 
-class EditGroupPage extends React.Component {
+class EditGroupPage extends Component {
   constructor(props) {
     super(props);
-    this.save = this.save.bind(this);
-    this.delete = this.delete.bind(this);
+
     this.state = props.initialData || {
         name: null,
         description: null,
@@ -5373,7 +5308,7 @@ EditGroupPage.propTypes = {
   initialData:  PropTypes.object // If present this view is for editing a group, otherwise for creating a new group
 };
 
-class FileInput extends React.Component {
+class FileInput extends Component {
   handleChange(e) {
     if (this.props.onChange) { this.props.onChange(e); }
   }
@@ -5392,7 +5327,7 @@ class FileInput extends React.Component {
 }
 
 
-class TagSheetsPage extends React.Component {
+class TagSheetsPage extends Component {
   // Page list all public sheets.
   componentDidMount() {
     this.ensureData();
@@ -5434,12 +5369,12 @@ TagSheetsPage.propTypes = {
 };
 
 
-class AllSheetsPage extends React.Component {
+class AllSheetsPage extends Component {
   // Page list all public sheets.
   // TODO this is currently loading all public sheets at once, needs pagination
   constructor(props) {
     super(props);
-    this.handleScroll = this.handleScroll.bind(this);
+
     this.state = {
       page: 1,
       loadedToEnd: false,
@@ -5522,7 +5457,7 @@ AllSheetsPage.propTypes = {
 };
 
 
-class PublicSheetListing extends React.Component {
+class PublicSheetListing extends Component {
   render() {
     var sheet = this.props.sheet;
     var title = sheet.title ? sheet.title.stripHtml() : "Untitled Source Sheet";
@@ -5541,11 +5476,7 @@ PublicSheetListing.propTypes = {
 };
 
 
-class SheetTagButton extends React.Component {
-  constructor(props) {
-    super(props);
-    this.handleTagClick = this.handleTagClick.bind(this);
-  }
+class SheetTagButton extends Component {
   handleTagClick(e) {
     e.preventDefault();
     this.props.setSheetTag(this.props.tag);
@@ -5562,10 +5493,10 @@ SheetTagButton.propTypes = {
 };
 
 
-class MySheetsPage extends React.Component {
+class MySheetsPage extends Component {
   constructor(props) {
     super(props);
-    this.toggleSheetTags = this.toggleSheetTags.bind(this);
+
     this.state = {
       showYourSheetTags: false,
       sheetFilterTag: null
@@ -5670,7 +5601,7 @@ MySheetsPage.propTypes = {
 };
 
 
-class PrivateSheetListing extends React.Component {
+class PrivateSheetListing extends Component {
   render() {
     var sheet = this.props.sheet;
     var title = sheet.title ? sheet.title.stripHtml() : "Untitled Source Sheet";
@@ -5694,7 +5625,7 @@ PrivateSheetListing.propTypes = {
 };
 
 
-class SheetAccessIcon extends React.Component {
+class SheetAccessIcon extends Component {
   render() {
     var sheet = this.props.sheet;
     var msg = "group" in sheet ? "Listed for Group members only" : "Private";
@@ -5709,11 +5640,7 @@ SheetAccessIcon.propTypes = {
 };
 
 
-class SheetTagLink extends React.Component {
-  constructor(props) {
-    super(props);
-    this.handleTagClick = this.handleTagClick.bind(this);
-  }
+class SheetTagLink extends Component {
   handleTagClick(e) {
     e.preventDefault();
     this.props.setSheetTag(this.props.tag);
@@ -5729,7 +5656,7 @@ SheetTagLink.propTypes = {
 };
 
 
-class ToggleSet extends React.Component {
+class ToggleSet extends Component {
   // A set of options grouped together.
   render() {
     var classes = {toggleSet: 1, separated: this.props.separated };
@@ -5773,12 +5700,9 @@ ToggleSet.propTypes = {
 };
 
 
-class ToggleOption extends React.Component {
+class ToggleOption extends Component {
   // A single option in a ToggleSet
-  constructor(props) {
-    super(props);
-    this.handleClick = this.handleClick.bind(this);
-  }
+
   handleClick() {
     this.props.setOption(this.props.set, this.props.name);
     if (Sefaria.site) { Sefaria.site.track.event("Reader", "Display Option Click", this.props.set + " - " + this.props.name); }
@@ -5807,14 +5731,14 @@ class ToggleOption extends React.Component {
 }
 
 
-class ReaderNavigationMenuSearchButton extends React.Component {
+class ReaderNavigationMenuSearchButton extends Component {
   render() {
     return (<span className="readerNavMenuSearchButton" onClick={this.props.onClick}><i className="fa fa-search"></i></span>);
   }
 }
 
 
-class ReaderNavigationMenuMenuButton extends React.Component {
+class ReaderNavigationMenuMenuButton extends Component {
   render() {
     var icon = this.props.compare ? (<i className="fa fa-chevron-left"></i>) : (<i className="fa fa-bars"></i>);
     return (<span className="readerNavMenuMenuButton" onClick={this.props.onClick}>{icon}</span>);
@@ -5822,7 +5746,7 @@ class ReaderNavigationMenuMenuButton extends React.Component {
 }
 
 
-class ReaderNavigationMenuCloseButton extends React.Component {
+class ReaderNavigationMenuCloseButton extends Component {
   render() {
     if(this.props.icon == "arrow"){
       var icon_dir = (this.props.interfaceLang == 'english') ? 'left' : 'right';
@@ -5838,14 +5762,14 @@ class ReaderNavigationMenuCloseButton extends React.Component {
 }
 
 
-class ReaderNavigationMenuDisplaySettingsButton extends React.Component {
+class ReaderNavigationMenuDisplaySettingsButton extends Component {
   render() {
     return (<a href="#" className="readerOptions" role="button" aria-haspopup="true" onClick={this.props.onClick} onKeyPress={function(e) {e.charCode == 13 ? this.props.onClick(e):null}.bind(this)}><img src="/static/img/ayealeph.svg" alt="Toggle Reader Menu Display Settings"/></a>);
   }
 }
 
 
-class CategoryColorLine extends React.Component {
+class CategoryColorLine extends Component {
   render() {
     var style = {backgroundColor: Sefaria.palette.categoryColor(this.props.category)};
     return (<div className="categoryColorLine" style={style}></div>);
@@ -5853,13 +5777,8 @@ class CategoryColorLine extends React.Component {
 }
 
 
-class TextColumn extends React.Component {
+class TextColumn extends Component {
   // An infinitely scrollable column of text, composed of TextRanges for each section.
-  constructor(props) {
-    super(props);
-    this.handleScroll = this.handleScroll.bind(this);
-    this.handleTextSelection = this.handleTextSelection.bind(this);
-  }
   componentDidMount() {
     this._isMounted = true;
     this.initialScrollTopSet = false;
@@ -6202,15 +6121,10 @@ TextColumn.propTypes = {
 };
 
 
-class TextRange extends React.Component {
+class TextRange extends Component {
   // A Range or text defined a by a single Ref. Specially treated when set as 'basetext'.
   // This component is responsible for retrieving data from `Sefaria` for the ref that defines it.
-  constructor(props) {
-    super(props);
-    this.onTextLoad = this.onTextLoad.bind(this);
-    this.handleResize = this.handleResize.bind(this);
-    this.handleClick = this.handleClick.bind(this);
-  }
+
   componentDidMount() {
     this._isMounted = true;
     var data = this.getText();
@@ -6529,11 +6443,8 @@ TextRange.propTypes = {
   showActionLinks:        PropTypes.bool
 };
 
-class TextSegment extends React.Component {
-  constructor(props) {
-    super(props);
-    this.handleClick = this.handleClick.bind(this);
-  }
+class TextSegment extends Component {
+
   handleClick(event) {
     if ($(event.target).hasClass("refLink")) {
       //Click of citation
@@ -6603,7 +6514,7 @@ TextSegment.propTypes = {
 };
 
 
-class ConnectionsPanel extends React.Component {
+class ConnectionsPanel extends Component {
   render() {
     var content = null;
     if (this.props.mode == "Connections") {
@@ -6737,7 +6648,7 @@ ConnectionsPanel.propTypes = {
 };
 
 
-class ConnectionsPanelHeader extends React.Component {
+class ConnectionsPanelHeader extends Component {
   render() {
     return (<div className="connectionsPanelHeader">
               <ConnectionsPanelTabs
@@ -6761,7 +6672,7 @@ ConnectionsPanelHeader.propTypes = {
 };
 
 
-class ConnectionsPanelTabs extends React.Component {
+class ConnectionsPanelTabs extends Component {
   render() {
     var tabNames = [{"en": "Connections", "he": "קישורים"}, {"en": "Tools", "he":"כלים"}];
     var tabs = tabNames.map(function(item) {
@@ -6787,10 +6698,10 @@ ConnectionsPanelHeader.propTypes = {
 };
 
 
-class TextList extends React.Component {
+class TextList extends Component {
   constructor(props) {
     super(props);
-    this.showAllFilters = this.showAllFilters.bind(this);
+
     this.state = {
       linksLoaded: false,
       textLoaded: false
@@ -7098,7 +7009,7 @@ TextList.propTypes = {
   selectedWords:           PropTypes.string
 };
 
-class Note extends React.Component {
+class Note extends Component {
   render() {
 
     var isInMyNotes = !this.props.ownerName; // public notes can appear inside myNotesPanel, use ownerName as a proxy for context
@@ -7139,7 +7050,7 @@ Note.propTypes = {
 };
 
 
-class AllFilterSet extends React.Component {
+class AllFilterSet extends Component {
   render() {
     var categories = this.props.summary.map(function(cat, i) {
       return (
@@ -7167,11 +7078,8 @@ class AllFilterSet extends React.Component {
 }
 
 
-class CategoryFilter extends React.Component {
-  constructor(props) {
-    super(props);
-    this.handleClick = this.handleClick.bind(this);
-  }
+class CategoryFilter extends Component {
+
   handleClick(e) {
     e.preventDefault();
     this.props.setFilter(this.props.category, this.props.updateRecent);
@@ -7214,11 +7122,8 @@ class CategoryFilter extends React.Component {
 }
 
 
-class TextFilter extends React.Component {
-  constructor(props) {
-    super(props);
-    this.handleClick = this.handleClick.bind(this);
-  }
+class TextFilter extends Component {
+
   handleClick(e) {
     e.preventDefault();
     this.props.setFilter(this.props.book, this.props.updateRecent);
@@ -7260,7 +7165,7 @@ TextFilter.propTypes = {
 };
 
 
-class RecentFilterSet extends React.Component {
+class RecentFilterSet extends Component {
   toggleAllFilterView() {
     this.setState({showAllFilters: !this.state.showAllFilters});
   }
@@ -7344,7 +7249,7 @@ RecentFilterSet.propTypes = {
 };
 
 
-class LexiconPanel extends React.Component {
+class LexiconPanel extends Component {
   constructor(props) {
     super(props);
     this.state = {
@@ -7438,7 +7343,7 @@ LexiconPanel.propTypes = {
 };
 
 
-class LexiconEntry extends React.Component {
+class LexiconEntry extends Component {
   render(){
     var entry = this.props.data;
     var headwordClassNames = classNames('headword', entry['parent_lexicon_details']["to_language"].slice(0,2));
@@ -7502,7 +7407,7 @@ LexiconEntry.propTypes = {
   data: PropTypes.object.isRequired
 };
 
-class ToolsPanel extends React.Component {
+class ToolsPanel extends Component {
   constructor(props) {
     super(props);
     this.state = {
@@ -7575,7 +7480,7 @@ ToolsPanel.propTypes = {
 };
 
 
-class ToolsButton extends React.Component {
+class ToolsButton extends Component {
   render() {
     var icon = null;
     if (this.props.icon) {
@@ -7605,7 +7510,7 @@ ToolsButton.propTypes = {
 };
 
 
-class SharePanel extends React.Component {
+class SharePanel extends Component {
   componentDidMount() {
     this.focusInput();
   }
@@ -7649,11 +7554,8 @@ SharePanel.propTypes = {
 };
 
 
-class AddToSourceSheetWindow extends React.Component {
-  constructor(props) {
-    super(props);
-    this.close = this.close.bind(this);
-  }
+class AddToSourceSheetWindow extends Component {
+
   close () {
     if (this.props.close) {
       this.props.close();
@@ -7688,16 +7590,14 @@ AddToSourceSheetWindow.propTypes = {
 };
 
 
-class AddToSourceSheetPanel extends React.Component {
+class AddToSourceSheetPanel extends Component {
   // In the main app, the function `addToSourceSheet` is executed in the ReaderApp,
   // and collects the needed data from highlights and app state.
   // It is used in external apps, liked gardens.  In those cases, it's wrapped in AddToSourceSheetWindow,
   // refs and text are passed directly, and the add to source sheets API is invoked from within this object.
   constructor(props) {
     super(props);
-    this.createSheet = this.createSheet.bind(this);
-    this.openNewSheet = this.openNewSheet.bind(this);
-    this.addToSourceSheet = this.addToSourceSheet.bind(this);
+
     this.state = {
       selectedSheet: null
     };
@@ -7811,7 +7711,7 @@ AddToSourceSheetPanel.propTypes = {
 };
 
 
-class ConfirmAddToSheetPanel extends React.Component {
+class ConfirmAddToSheetPanel extends Component {
   render() {
     return (<div className="confirmAddToSheetPanel">
               <div className="message">
@@ -7831,14 +7731,12 @@ ConfirmAddToSheetPanel.propTypes = {
 };
 
 
-class AddNotePanel extends React.Component {
+class AddNotePanel extends Component {
   constructor(props) {
     super(props);
-    this.setPrivate = this.setPrivate.bind(this);
-    this.setPublic = this.setPublic.bind(this);
-    this.saveNote = this.saveNote.bind(this);
+
     this.deleteNote =this.deleteNote.bind(this);
-    this.cancel = this.cancel.bind(this);
+
     this.state = {
       isPrivate: !props.noteIsPublic,
       saving: false
@@ -7958,7 +7856,7 @@ AddNotePanel.propTypes = {
 };
 
 
-class MyNotesPanel extends React.Component {
+class MyNotesPanel extends Component {
   componentDidMount() {
     this.loadNotes();
   }
@@ -8012,7 +7910,7 @@ MyNotesPanel.propTypes = {
   fullPanel:          PropTypes.bool
 };
 
-class LoginPanel extends React.Component {
+class LoginPanel extends Component {
   render() {
     var nextParam = "?next=" + encodeURIComponent(Sefaria.util.currentPath());
     var classes     = classNames({loginPanel: 1, textList: 1, fullPanel: this.props.fullPanel});
@@ -8044,7 +7942,7 @@ LoginPanel.propTypes = {
 };
 
 
-class SearchPage extends React.Component {
+class SearchPage extends Component {
     constructor(props) {
       super(props);
       this.state = {};
@@ -8124,10 +8022,10 @@ SearchPage.defaultProps = {
 };
 
 
-class SearchBar extends React.Component {
+class SearchBar extends Component {
     constructor(props) {
       super(props);
-      this.updateQuery = this.updateQuery.bind(this);
+
       this.state = {query: props.initialQuery};
     }
     handleKeypress(event) {
@@ -8164,14 +8062,10 @@ SearchBar.propTypes = {
 };
 
 
-class SearchResultList extends React.Component {
+class SearchResultList extends Component {
     constructor(props) {
         super(props);
-        this.toggleFilterView = this.toggleFilterView.bind(this);
-        this.toggleSortView = this.toggleSortView.bind(this);
-        this.handleScroll = this.handleScroll.bind(this);
-        this.showTexts = this.showTexts.bind(this);
-        this.showSheets = this.showSheets.bind(this);
+
         this.initialQuerySize = 100,
         this.backgroundQuerySize = 1000,
         this.maxResultSize = 10000,
@@ -8705,10 +8599,10 @@ SearchResultList.defaultProps = {
   appliedFilters: []
 };
 
-class SearchFilters extends React.Component {
+class SearchFilters extends Component {
   constructor(props) {
     super(props);
-    this.toggleExactSearch = this.toggleExactSearch.bind(this);
+
     this.state = {
       openedCategory: null,
       openedCategoryBooks: [],
@@ -8877,11 +8771,8 @@ SearchFilters.defaultProps = {
 };
 
 
-class SearchFilterPanel extends React.Component {
-  constructor(props) {
-    super(props);
-    this.handleClickOutside = this.handleClickOutside.bind(this);
-  }
+class SearchFilterPanel extends Component {
+
   componentDidMount() {
     document.addEventListener('mousedown', this.handleClickOutside, false);
   }
@@ -8950,11 +8841,8 @@ SearchFilterPanel.propTypes = {
 };
 
 
-class SearchSortBox extends React.Component {
-  constructor(props) {
-    super(props);
-    this.handleClickOutside = this.handleClickOutside.bind(this);
-  }
+class SearchSortBox extends Component {
+
   componentDidMount() {
     document.addEventListener('mousedown', this.handleClickOutside, false);
   }
@@ -9015,11 +8903,8 @@ SearchSortBox.propTypes = {
 };
 
 
-class SearchFilterExactBox extends React.Component {
-  constructor(props) {
-    super(props);
-    this.handleClick = this.handleClick.bind(this);
-  }
+class SearchFilterExactBox extends Component {
+
   handleClick() {
     this.props.checkBoxClick();
   }
@@ -9039,11 +8924,10 @@ SearchFilterExactBox.propTypes = {
 };
 
 
-class SearchFilter extends React.Component {
+class SearchFilter extends Component {
   constructor(props) {
     super(props);
-    this.handleFilterClick = this.handleFilterClick.bind(this);
-    this.handleFocusCategory = this.handleFocusCategory.bind(this);
+
     this.state = {selected: props.filter.selected};
   }
   componentWillReceiveProps(newProps) {
@@ -9087,11 +8971,10 @@ SearchFilter.propTypes = {
   focusCategory:  PropTypes.func
 };
 
-class SearchTextResult extends React.Component {
+class SearchTextResult extends Component {
     constructor(props) {
         super(props);
-        this.toggleDuplicates = this.toggleDuplicates.bind(this);
-        this.handleResultClick = this.handleResultClick.bind(this);
+
         this.state = {
             duplicatesShown: false
         };
@@ -9182,12 +9065,8 @@ SearchTextResult.propTypes = {
 };
 
 
-class SearchSheetResult extends React.Component {
-    constructor(props) {
-      super(props);
-      this.handleProfileClick = this.handleProfileClick.bind(this);
-      this.handleSheetClick = this.handleSheetClick.bind(this);
-    }
+class SearchSheetResult extends Component {
+
     handleSheetClick(e) {
       var href = e.target.getAttribute("href");
       e.preventDefault();
@@ -9236,7 +9115,7 @@ SearchSheetResult.propTypes = {
 };
 
 
-class AccountPanel extends React.Component {
+class AccountPanel extends Component {
   componentDidMount() {
     $(".inAppLink").on("click", this.props.handleInAppLinkClick);
   }
@@ -9312,7 +9191,7 @@ AccountPanel.propTypes = {
   interfaceLang: PropTypes.string,
 };
 
-class RecentPanel extends React.Component {
+class RecentPanel extends Component {
   render() {
     var width = typeof window !== "undefined" ? $(window).width() : 1000;
 
@@ -9384,10 +9263,10 @@ RecentPanel.propTypes = {
 };
 
 
-class NotificationsPanel extends React.Component {
+class NotificationsPanel extends Component {
   constructor(props) {
     super(props);
-    this.handleScroll = this.handleScroll.bind(this);
+
     this.state = {
       page: 1,
       loadedToEnd: false,
@@ -9462,7 +9341,7 @@ NotificationsPanel.propTypes = {
   interfaceLang:               PropTypes.string,
 };
 
-class MyGroupsPanel extends React.Component {
+class MyGroupsPanel extends Component {
   componentDidMount() {
     if (!Sefaria.groupsList()) {
       Sefaria.groupsList(function() {
@@ -9514,7 +9393,7 @@ MyGroupsPanel.propTypes = {
 };
 
 
-class GroupListing extends React.Component {
+class GroupListing extends Component {
   render() {
     var imageUrl = this.props.data.imageUrl || "/static/img/group.svg"
     var imageClass = classNames({groupListingImage: 1, default: !this.props.data.imageUrl});
@@ -9547,10 +9426,10 @@ GroupListing.propTypes = {
 };
 
 
-class ModeratorToolsPanel extends React.Component {
+class ModeratorToolsPanel extends Component {
   constructor(props) {
     super(props);
-    this.uploadFiles = this.uploadFiles.bind(this);
+
     this.state = {
       // Bulk Download
       bulk_format: null,
@@ -9675,10 +9554,10 @@ ModeratorToolsPanel.propTypes = {
   interfaceLang: PropTypes.string
 };
 
-class UpdatesPanel extends React.Component {
+class UpdatesPanel extends Component {
   constructor(props) {
     super(props);
-    this.handleScroll = this.handleScroll.bind(this);
+
     this.state = {
       page: 0,
       loadedToEnd: false,
@@ -9792,7 +9671,7 @@ UpdatesPanel.propTypes = {
 };
 
 
-class NewUpdateForm extends React.Component {
+class NewUpdateForm extends Component {
   constructor(props) {
     super(props);
     this.state = {type: 'index', index: '', language: 'en', version: '', en: '', he: '', error: ''};
@@ -9891,11 +9770,8 @@ NewUpdateForm.propTypes = {
   handleSubmit:        PropTypes.func
 };
 
-class SingleUpdate extends React.Component {
-  constructor(props) {
-    super(props);
-    this.onDelete = this.onDelete.bind(this);
-  }
+class SingleUpdate extends Component {
+
   onDelete() {
     this.props.onDelete(this.props.id);
   }
@@ -9950,7 +9826,7 @@ SingleUpdate.propTypes = {
 };
 
 
-class InterruptingMessage extends React.Component {
+class InterruptingMessage extends Component {
   constructor(props) {
     super(props);
     this.displayName = 'InterruptingMessage';
@@ -9994,7 +9870,7 @@ InterruptingMessage.propTypes = {
 };
 
 
-class ThreeBox extends React.Component {
+class ThreeBox extends Component {
   // Wrap a list of elements into a three column table
   render() {
       var content = this.props.content;
@@ -10028,7 +9904,7 @@ class ThreeBox extends React.Component {
 }
 
 
-class TwoBox extends React.Component {
+class TwoBox extends Component {
   // Wrap a list of elements into a three column table
   render() {
       var content = this.props.content;
@@ -10065,7 +9941,7 @@ TwoBox.propTypes = {
 };
 
 
-class TwoOrThreeBox extends React.Component {
+class TwoOrThreeBox extends Component {
   // Wrap a list of elements into a two or three column table, depending on window width
   render() {
       var threshhold = this.props.threshhold || 450;
@@ -10084,7 +9960,7 @@ TwoOrThreeBox.propTypes = {
 };
 
 
-class LoadingMessage extends React.Component {
+class LoadingMessage extends Component {
   render() {
     var message = this.props.message || "Loading...";
     var heMessage = this.props.heMessage || "טוען מידע...";
@@ -10103,7 +9979,7 @@ LoadingMessage.propTypes = {
 };
 
 
-class TestMessage extends React.Component {
+class TestMessage extends Component {
   // Modal explaining development status with links to send feedback or go back to the old site
   render() {
     return (
@@ -10123,7 +9999,7 @@ TestMessage.propTypes = {
 };
 
 
-class Footer extends React.Component {
+class Footer extends Component {
   trackLanguageClick(language){
     Sefaria.site.track.setInterfaceLanguage('interface language footer', language);
   }

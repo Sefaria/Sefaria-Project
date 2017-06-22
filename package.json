@@ -32,6 +32,7 @@
     "prop-types": "^15.5.10",
     "querystring": "^0.2.0",
     "react": "^15.6.0",
+    "react-class": "^3.2.2",
     "react-dom": "^15.6.0",
     "redis": "^2.6.0-2",
     "request": "^2.72.0",
