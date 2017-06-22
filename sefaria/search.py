@@ -243,7 +243,8 @@ def make_text_index_document(tref, version, lang):
         "path": "/".join(categories + [oref.index.title]),
         "pagesheetrank": pagerank * sheetrank,
         "comp_date": comp_start_date,
-        "hebmorph_semi_exact": content_wo_cant,
+        #"hebmorph_semi_exact": content_wo_cant,
+        "exact": content_wo_cant,
         "naive_lemmatizer": content_wo_cant,
         "prev_content": prev_content,
         "next_content": next_content
@@ -457,10 +458,14 @@ def put_text_mapping(index_name):
                     'type': 'integer',
                     'index': 'not_analyzed'
                 },
-                "hebmorph_semi_exact": {
+                #"hebmorph_semi_exact": {
+                #    'type': 'string',
+                #    'analyzer': 'hebrew',
+                #    'search_analyzer': 'sefaria-semi-exact'
+                #},
+                "exact": {
                     'type': 'string',
-                    'analyzer': 'hebrew',
-                    'search_analyzer': 'sefaria-semi-exact'
+                    'analyzer': 'standard'
                 },
                 "naive_lemmatizer": {
                     'type': 'string',
