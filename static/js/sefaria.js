@@ -225,10 +225,10 @@ Sefaria = extend(Sefaria, {
       return data;
     }
     //console.log("API Call for " + key);
-    this.text_api(ref,settings,cb);
+    this.textApi(ref,settings,cb);
     return null;
   },
-  text_api: function(ref, settings, cb) {
+  textApi: function(ref, settings, cb) {
     return this._api(this._textUrl(ref, settings), function(data) {
       this._saveText(data, settings);
       cb(data);
@@ -889,10 +889,10 @@ Sefaria = extend(Sefaria, {
     if (ref in this._related) {
       callback(this._related[ref]);
     } else {
-       this.related_api(ref, callback);
+       this.relatedApi(ref, callback);
     }
   },
-  related_api: function(ref, callback) {
+  relatedApi: function(ref, callback) {
     var url = "/api/related/" + Sefaria.normRef(ref);
     return this._api(url, function(data) {
       if ("error" in data) {
