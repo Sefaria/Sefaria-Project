@@ -666,6 +666,7 @@ var ReaderApp = React.createClass({
       availableFilters:        state.availableFilters        || [],
       filterRegistry:          state.filterRegistry          || {},
       orphanSearchFilters:     state.orphanSearchFilters     || [],
+      openSidebarAsConnect:    state.openSidebarAsConnect    || false,
       bookRef:                 state.bookRef                 || null,
       settings:                state.settings ? Sefaria.util.clone(state.settings) : Sefaria.util.clone(this.getDefaultPanelSettings()),
       displaySettingsOpen:     false,
@@ -1015,13 +1016,14 @@ var ReaderApp = React.createClass({
       panel = newPanels[n];
       panel.filter = [];
     }
-    panel.refs           = refs;
-    panel.menuOpen       = null;
-    panel.mode           = panel.mode || "Connections";
+    panel.refs              = refs;
+    panel.menuOpen          = null;
+    panel.mode              = panel.mode || "Connections";
     panel.settings          = panel.settings ? panel.settings : Sefaria.util.clone(this.getDefaultPanelSettings());
     panel.settings.language = panel.settings.language == "hebrew" ? "hebrew" : "english"; // Don't let connections panels be bilingual
     if(parentPanel) {
       panel.filter = parentPanel.filter;
+      panel.connectionsMode   = parentPanel.openSidebarAsConnect ? "Add Connection" : "Resources";
       panel.recentFilters = parentPanel.recentFilters;
       if (panel.settings.language.substring(0, 2) == parentPanel.versionLanguage) {
         panel.version = parentPanel.version;
@@ -1088,9 +1090,10 @@ var ReaderApp = React.createClass({
     this.setState({panels: this.state.panels});
     this.saveRecentlyViewed(this.state.panels[n]);
   },
-  openComparePanel: function(n) {
+  openComparePanel: function(n, connectAfter) {
     var comparePanel = this.makePanelState({
-      menuOpen: "compare"
+      menuOpen: "compare",
+      openSidebarAsConnect: typeof connectAfter !== "undefined" ? connectAfter : false,
     });
     Sefaria.site.track.event("Reader", "Other Text Click");
     this.state.panels[n] = comparePanel;
@@ -2029,7 +2032,7 @@ var ReaderPanel = React.createClass({
       "Add Connection": 1,
     };
     if (mode == "Add Connection" && this.props.allOpenRefs.length == 1) {
-      this.props.openComparePanel();
+      this.props.openComparePanel(true);
       return;
     }
     Sefaria.site.track.event("Tools", mode + " Click"); // TODO Shouldn't be tracking clicks here, this function is called programmatically

@@ -938,7 +938,7 @@ Sefaria = extend(Sefaria, {
     // Returns the total number of private and public notes on `refs` without double counting my public notes.
     var notes = Sefaria.notes(refs) || [];
     if (Sefaria._uid) {
-      var notes  = Sefaria.privateNotes(refs) || [];
+      var myNotes  = Sefaria.privateNotes(refs) || [];
       notes = notes.filter(function(note) { return note.owner !== Sefaria._uid }).concat(myNotes);
     }
     return notes.length;
