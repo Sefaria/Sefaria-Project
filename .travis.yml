@@ -50,6 +50,7 @@ before_script:
   # Copy in settings files tuned for the travis build
   - cp ./sefaria/.travis.settings.py ./sefaria/local_settings.py
   - cp ./reader/browsertest/framework/creds-example.py ./reader/browsertest/framework/creds.py
+  - cp ./sefaria/node/local_settings_example.json ./sefaria/node/local_settings.json
 
   # Get rid of the conftest that forces a copy of the datastore to a test db
   - rm ./sefaria/conftest.py
