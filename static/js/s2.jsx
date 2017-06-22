@@ -3579,6 +3579,7 @@ class TextTableOfContentsNavigation extends React.Component {
   // and tabs for alternate structures, commentary and versions.
   constructor(props) {
     super(props);
+    this.shrinkWrap = this.shrinkWrap.bind(this);
     this.state = {
       tab: props.defaultStruct
     };
