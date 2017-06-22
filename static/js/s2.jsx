@@ -28,6 +28,7 @@ class ReaderApp extends React.Component {
     this.updateSearchOptionFieldInHeader = this.updateSearchOptionFieldInHeader.bind(this);
     this.updateSearchOptionFieldInPanel = this.updateSearchOptionFieldInPanel.bind(this);
     this.handleNavigationClick = this.handleNavigationClick.bind(this);
+    this.setTextListHighlight = this.setTextListHighlight.bind(this);
     this.showLibrary = this.showLibrary.bind(this);
     this.showSheets = this.showSheets.bind(this);
     this.showSearch = this.showSearch.bind(this);
