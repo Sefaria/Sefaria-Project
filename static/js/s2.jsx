@@ -23,6 +23,27 @@ class ReaderApp extends React.Component {
     this.setPanelCap = this.setPanelCap.bind(this);
     this.updateAvailableFiltersInHeader = this.updateAvailableFiltersInHeader.bind(this);
     this.updateAvailableFiltersInPanel = this.updateAvailableFiltersInPanel.bind(this);
+    this.updateSearchOptionSortInHeader = this.updateSearchOptionSortInHeader.bind(this);
+    this.updateSearchOptionSortInPanel = this.updateSearchOptionSortInPanel.bind(this);
+    this.updateSearchOptionFieldInHeader = this.updateSearchOptionFieldInHeader.bind(this);
+    this.updateSearchOptionFieldInPanel = this.updateSearchOptionFieldInPanel.bind(this);
+    this.handleNavigationClick = this.handleNavigationClick.bind(this);
+    this.showLibrary = this.showLibrary.bind(this);
+    this.showSheets = this.showSheets.bind(this);
+    this.showSearch = this.showSearch.bind(this);
+    this.showMySheets = this.showMySheets.bind(this);
+    this.showMyGroups = this.showMyGroups.bind(this);
+    this.setHeaderState = this.setHeaderState.bind(this);
+    this.setSelectedWords = this.setSelectedWords.bind(this);
+    this.setDefaultOption = this.setDefaultOption.bind(this);
+    this.handleSegmentClick = this.handleSegmentClick.bind(this);
+    this.closePanel = this.closePanel.bind(this);
+    this.handleRecentClick = this.handleRecentClick.bind(this);
+    this.setPanelState = this.setPanelState.bind(this);
+    this.handleInAppLinkClick = this.handleInAppLinkClick.bind(this);
+    this.handleCitationClick = this.handleCitationClick.bind(this);
+    this.handleCompareSearchClick = this.handleCompareSearchClick.bind(this);
+    this.handlePopState = this.handlePopState.bind(this);
     this.MIN_PANEL_WIDTH = 360.0;
 
     var panels               = [];
@@ -1193,7 +1214,7 @@ class ReaderApp extends React.Component {
       var openComparePanel         = this.openComparePanel.bind(null, i);
       var closePanel               = this.closePanel.bind(null, i);
       var setPanelState            = this.setPanelState.bind(null, i);
-      var setConnectionsFilter     = this.setConnectionsFilter.bind(null, i);
+      var setConnectionsFilter     = this.setConnectionsFilter.bind(this, i);
       var selectVersion            = this.selectVersion.bind(null, i);
       var addToSourceSheet         = this.addToSourceSheet.bind(null, i);
 
@@ -1314,6 +1335,9 @@ class Header extends React.Component {
     this.showNotifications = this.showNotifications.bind(this);
     this.handleLibraryClick = this.handleLibraryClick.bind(this);
     this.handleSearchButtonClick = this.handleSearchButtonClick.bind(this);
+    this.handleRefClick = this.handleRefClick.bind(this);
+    this.handleSearchKeyUp = this.handleSearchKeyUp.bind(this);
+    this.hideTestMessage = this.hideTestMessage.bind(this);
     this.state = props.initialState;
     this._searchOverridePre = 'Search for: "';
     this._searchOverridePost = '"';
@@ -1638,7 +1662,23 @@ class ReaderPanel extends React.Component {
   constructor(props) {
     super(props);
     this.setWidth = this.setWidth.bind(this);
+    this.setFilter = this.setFilter.bind(this);
+    this.setOption = this.setOption.bind(this);
+    this.setTextListHighlight = this.setTextListHighlight.bind(this);
+    this.currentLayout = this.currentLayout.bind(this);
     this.closeDisplaySettings = this.closeDisplaySettings.bind(this);
+    this.setNavigationCategories = this.setNavigationCategories.bind(this);
+    this.setSelectedWords = this.setSelectedWords.bind(this);
+    this.handleBaseSegmentClick = this.handleBaseSegmentClick.bind(this);
+    this.openMenu = this.openMenu.bind(this);
+    this.closeMenus = this.closeMenus.bind(this);
+    this.openDisplaySettings = this.openDisplaySettings.bind(this);
+    this.setNavigationCategories = this.setNavigationCategories.bind(this);
+    this.toggleLanguage = this.toggleLanguage.bind(this);
+    this.handleCitationClick = this.handleCitationClick.bind(this);
+    this.handleTextListClick = this.handleTextListClick.bind(this);
+    this.closePanelSearch = this.closePanelSearch.bind(this);
+    this.updateTextColumn = this.updateTextColumn.bind(this);
     // When this component is managed by a parent, all it takes is initialState
     if (props.initialState) {
       var state = this.clonePanel(props.initialState);
@@ -2351,7 +2391,7 @@ class ReaderControls extends React.Component {
   // contains controls for display, navigation etc.
   constructor(props) {
     super(props);
-    this.closeDisplaySettings = this.closeDisplaySettings.bind(this);
+    this.openTextToc = this.openTextToc.bind(this);
   }
   openTextToc(e) {
     e.preventDefault();
@@ -2541,7 +2581,7 @@ class ReaderDisplayOptionsMenu extends React.Component {
           settings={this.props.settings} />);
 
     if (this.props.menuOpen === "search") {
-      return (<div className="readerOptionsPanel" role="dialog" tabindex="0">
+      return (<div className="readerOptionsPanel" role="dialog" tabIndex="0">
                 <div className="readerOptionsPanelInner">
                   {languageToggle}
                   <div className="line"></div>
@@ -2549,13 +2589,13 @@ class ReaderDisplayOptionsMenu extends React.Component {
                 </div>
             </div>);
     } else if (this.props.menuOpen) {
-      return (<div className="readerOptionsPanel"role="dialog" tabindex="0">
+      return (<div className="readerOptionsPanel"role="dialog" tabIndex="0">
                 <div className="readerOptionsPanelInner">
                   {languageToggle}
                 </div>
             </div>);
     } else {
-      return (<div className="readerOptionsPanel"role="dialog" tabindex="0">
+      return (<div className="readerOptionsPanel"role="dialog" tabIndex="0">
                 <div className="readerOptionsPanelInner">
                   {languageToggle}
                   {layoutToggle}
@@ -2587,6 +2627,7 @@ class ReaderNavigationMenu extends React.Component {
     this.navHome = this.navHome.bind(this);
     this.closeNav = this.closeNav.bind(this);
     this.handleSearchButtonClick = this.handleSearchButtonClick.bind(this);
+    this.navHome = this.navHome.bind(this);
     this.width = 1000;
     this.state = {
       showMore: false
@@ -4021,19 +4062,7 @@ VersionsList.propType = {
 class VersionBlock extends React.Component {
   constructor(props) {
     super(props);
-    this.closeEditor = this.closeEditor.bind(this);
-    this.saveVersionUpdate = this.saveVersionUpdate.bind(this);
-    this.deleteVersion = this.deleteVersion.bind(this);
-    this.openEditor = this.openEditor.bind(this);
-    this.openVersion = this.openVersion.bind(this);
-    var s = {
-      editing: false,
-      error: null,
-      originalVersionTitle: props.version["versionTitle"]
-    };
-    this.updateableVersionAttributes.forEach(attr => s[attr] = props.version[attr]);
-    this.state = s;
-    this.updateableVersionAttributes = [
+      this.updateableVersionAttributes = [
       "versionTitle",
       "versionSource",
       "versionNotes",
@@ -4049,6 +4078,19 @@ class VersionBlock extends React.Component {
       "CC-BY-SA": "https://creativecommons.org/licenses/by-sa/3.0/",
       "CC-BY-NC": "https://creativecommons.org/licenses/by-nc/4.0/"
     };
+    this.closeEditor = this.closeEditor.bind(this);
+    this.saveVersionUpdate = this.saveVersionUpdate.bind(this);
+    this.deleteVersion = this.deleteVersion.bind(this);
+    this.openEditor = this.openEditor.bind(this);
+    this.openVersion = this.openVersion.bind(this);
+    var s = {
+      editing: false,
+      error: null,
+      originalVersionTitle: props.version["versionTitle"]
+    };
+    this.updateableVersionAttributes.forEach(attr => s[attr] = props.version[attr]);
+    this.state = s;
+
   }
   openVersion() {
     if (this.props.firstSectionRef) {
@@ -5814,6 +5856,7 @@ class TextColumn extends React.Component {
   constructor(props) {
     super(props);
     this.handleScroll = this.handleScroll.bind(this);
+    this.handleTextSelection = this.handleTextSelection.bind(this);
   }
   componentDidMount() {
     this._isMounted = true;
@@ -6745,6 +6788,7 @@ ConnectionsPanelHeader.propTypes = {
 class TextList extends React.Component {
   constructor(props) {
     super(props);
+    this.showAllFilters = this.showAllFilters.bind(this);
     this.state = {
       linksLoaded: false,
       textLoaded: false
@@ -8124,6 +8168,8 @@ class SearchResultList extends React.Component {
         this.toggleFilterView = this.toggleFilterView.bind(this);
         this.toggleSortView = this.toggleSortView.bind(this);
         this.handleScroll = this.handleScroll.bind(this);
+        this.showTexts = this.showTexts.bind(this);
+        this.showSheets = this.showSheets.bind(this);
         this.initialQuerySize = 100,
         this.backgroundQuerySize = 1000,
         this.maxResultSize = 10000,
@@ -8660,6 +8706,7 @@ SearchResultList.defaultProps = {
 class SearchFilters extends React.Component {
   constructor(props) {
     super(props);
+    this.toggleExactSearch = this.toggleExactSearch.bind(this);
     this.state = {
       openedCategory: null,
       openedCategoryBooks: [],
@@ -8967,11 +9014,15 @@ SearchSortBox.propTypes = {
 
 
 class SearchFilterExactBox extends React.Component {
+  constructor(props) {
+    super(props);
+    this.handleClick = this.handleClick.bind(this);
+  }
   handleClick() {
     this.props.checkBoxClick();
   }
   render() {
-    return (<li onClick={this.handleFocusCategory}>
+    return (<li>
       <input type="checkbox" id="searchFilterExactBox" className="filter" checked={this.props.selected} onChange={this.handleClick}/>
       <label onClick={this.handleClick} htmlFor={"searchFilterExactBox"}><span></span></label>
       <span className="int-en"><span className="filter-title">{"Show word variants"}</span></span>
