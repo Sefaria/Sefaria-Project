@@ -228,8 +228,8 @@ class SaveNewSourceSheet(AtomicTest):
     def run(self):
         self.s2()
         self.login_user()
-        self.driver.implicitly_wait(10)
         self.driver.get(self.base_url + "/sheets/new")
+        WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.ID, "inlineAdd")))
         textBox = self.driver.find_element_by_css_selector("#inlineAdd")
 
         textBox.send_keys("Genesis")
