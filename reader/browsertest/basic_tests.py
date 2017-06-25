@@ -161,9 +161,9 @@ class PresenceOfDownloadButtonOnTOC(AtomicTest):
 
         # Check that DL Button is visible and not clickable
         visible = self.driver.execute_script(
-            'var butt = $(".downloadButtonInner"); ' +\
-            'var butt_bot = butt.offset().top + butt.height(); ' +\
-            'var win_height = $(window).height(); ' +\
+            'var butt = document.getElementsByClassName("downloadButtonInner")[0]; ' +\
+            'var butt_bot = butt.getBoundingClientRect().top + butt.getBoundingClientRect().height; ' +\
+            'var win_height = window.innerHeight; ' +\
             'return win_height > butt_bot;'
         )
         assert visible, "Download button below page"
