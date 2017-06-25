@@ -2348,6 +2348,21 @@ class ReaderControls extends Component {
     this.props.openMenu("text toc");
   }
   componentDidMount() {
+    var title     = this.props.currentRef;
+    if (title) {
+      var oref = Sefaria.ref(title);
+      if (!oref) {
+        // If we don't have this data yet, rerender when we do so we can set the Hebrew title
+        var ajaxObj = Sefaria.textApi(title, {context: 1}, function(data) {
+          if ("error" in data) {
+            this.props.onError(data.error);
+            return;
+          }
+          this.setState({runningQuery: null});   // This should have the effect of forcing a re-render
+        }.bind(this));
+        this.setState({runningQuery: ajaxObj});
+      }
+    }
   }
   componentWillUnmount() {
     if (this.state.runningQuery) {
@@ -2356,32 +2371,21 @@ class ReaderControls extends Component {
   }
   render() {
     var title     = this.props.currentRef;
+    var heTitle, categoryAttribution;
+
     if (title) {
       var oref    = Sefaria.ref(title);
-      var heTitle = oref ? oref.heTitle : "";
-      var categoryAttribution = oref && Sefaria.categoryAttribution(oref.categories) ?
+      heTitle = oref ? oref.heTitle : "";
+      categoryAttribution = oref && Sefaria.categoryAttribution(oref.categories) ?
                                   <CategoryAttribution categories={oref.categories} /> : null;
     } else {
-      var heTitle = "";
-      var categoryAttribution = null;
+      heTitle = "";
+      categoryAttribution = null;
     }
 
     var mode              = this.props.currentMode();
     var hideHeader        = !this.props.multiPanel && mode === "Connections";
     var connectionsHeader = this.props.multiPanel && mode === "Connections";
-
-    if (title && !oref) {
-      // If we don't have this data yet, rerender when we do so we can set the Hebrew title
-      var ajaxObj = Sefaria.textApi(title, {context: 1}, function(data) {
-        if ("error" in data) {
-          this.props.onError(data.error);
-          return;
-        }
-        this.setState({runningQuery: null});   // This should have the effect of forcing a re-render
-      }.bind(this));
-      this.setState({runningQuery: ajaxObj});
-    }
-
     var showVersion = this.props.versionLanguage == "en" && (this.props.settings.language == "english" || this.props.settings.language == "bilingual");
     var versionTitle = this.props.version ? this.props.version.replace(/_/g," ") : "";
     var url = Sefaria.ref(title) ? "/" + Sefaria.normRef(Sefaria.ref(title).book) : Sefaria.normRef(title);
