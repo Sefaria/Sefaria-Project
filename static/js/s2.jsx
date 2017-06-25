@@ -1811,7 +1811,7 @@ class ReaderPanel extends Component {
   updateTextColumn(refs) {
     // Change the refs in the current TextColumn, for infinite scroll up/down.
     this.replaceHistory = true;
-    this.conditionalSetState({ refs: refs }, this.replaceState);
+    this.conditionalSetState({ refs: refs });
   }
   setTextListHighlight(refs) {
     refs = typeof refs === "string" ? [refs] : refs;
