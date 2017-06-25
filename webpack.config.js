@@ -1,18 +1,17 @@
-var path = require('path');
+var path          = require('path');
 var nodeExternals = require('webpack-node-externals');
-var webpack = require('webpack');
+var webpack       = require('webpack');
 var BundleTracker = require('webpack-bundle-tracker');
-var DeepMerge = require('deep-merge');
-var nodemon = require('nodemon');
+var DeepMerge     = require('deep-merge');
+var nodemon       = require('nodemon');
 
 var deepmerge = DeepMerge(function(target, source, key) {
-  if(target instanceof Array) { return [].concat(target, source);
-	  }
+  if(target instanceof Array) { return [].concat(target, source); }
   return source;
 });
 
 
-var base_config = {
+var baseConfig = {
 
     devtool: 'source-map', //should have better performance on incremental build over `source-map`
     plugins: [
@@ -66,10 +65,10 @@ var base_config = {
 }
 
 function config(overrides) {
-  return deepmerge(base_config, overrides || {});
+  return deepmerge(baseConfig, overrides || {});
 }
 
-var client_config = config({
+var clientConfig = config({
 	context: path.resolve(__dirname, 'static/js'),
   entry: './client',
   externals: [/^express$/, /^request$/, /^source-map-support$/],
@@ -79,7 +78,7 @@ var client_config = config({
 	  }
 });
 
-var server_config = config({
+var serverConfig = config({
 	context: path.resolve(__dirname, 'node'),
   entry: './server',
   target: 'node',
@@ -94,4 +93,4 @@ var server_config = config({
 	    __filename: true
 	}
 });
-module.exports = [client_config, server_config];
+module.exports = [clientConfig, serverConfig];
