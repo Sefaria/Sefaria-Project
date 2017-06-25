@@ -2343,6 +2343,7 @@ class ReaderControls extends Component {
   // contains controls for display, navigation etc.
   constructor(props) {
     super(props);
+    this.state = {};
   }
   openTextToc(e) {
     e.preventDefault();
