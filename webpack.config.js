@@ -23,7 +23,8 @@ var base_config = {
                 console.log('Begin compile at ' + new Date());
                 callback();
             })
-        }
+        },
+        new webpack.optimize.ModuleConcatenationPlugin() // puts all module code in one scope which is supposed to speed up run-time
         /*new webpack.ProvidePlugin({
             nodeSourceMapper: 'source-map-support'
         }),*/
