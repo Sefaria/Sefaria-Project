@@ -92,7 +92,7 @@ def index_text(index_name, oref, version=None, lang=None, bavli_amud=True, merge
                     # we'll combine it with the first ref of the next daf. This is dealing with the issue of sentences
                     # that get cut-off due to daf breaks
                     continue
-                elif iref == 0 and ref.prev_segment_ref() is None:
+                elif iref == 0 and ref.prev_segment_ref() is not None:
                     ref = ref.prev_segment_ref().to(ref)
             index_text(index_name, ref, version=version, lang=lang, bavli_amud=bavli_amud, merged=merged)
         return  # Returning at this level prevents indexing of full chapters
