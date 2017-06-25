@@ -4520,7 +4520,7 @@ class SheetsHomePage extends Component {
     var tagList         = tagList ? tagList.map(makeTagButton) : [<LoadingMessage />];
     var publicSheetList = topSheets ? topSheets.map(function(sheet) {
       return (<PublicSheetListing sheet={sheet} key={sheet.id} />);
-    }) : [<LoadingMessage />];
+    }) : <LoadingMessage />;
 
     var yourSheetsButton  = Sefaria._uid ?
       (<div className="yourSheetsLink navButton" onClick={this.showYourSheets}>
