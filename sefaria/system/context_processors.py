@@ -78,7 +78,13 @@ def language_settings(request):
 
 
 def user_and_notifications(request):
-    if request.path != "/data.js":
+    """
+    Load data the comes from a user profile.
+    Most of this data is currently only needed view /data.js
+    /texts requires `recentlyViewed` which is used for server side rendering of recent section
+    (currently Node does not get access to logged in version of /data.js)
+    """
+    if request.path != "/data.js" and request.path != "/texts":
         return {}
 
     if not request.user.is_authenticated():
@@ -90,6 +96,10 @@ def user_and_notifications(request):
         }
     
     profile = UserProfile(id=request.user.id)
+    if request.path == "/texts":
+        return {
+            "recentlyViewed": profile.recentlyViewed,
+        }
     notifications = profile.recent_notifications()
     notifications_json = "[" + ",".join([n.to_JSON() for n in notifications]) + "]"
     interrupting_message = profile.interrupting_message()
