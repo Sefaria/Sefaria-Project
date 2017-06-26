@@ -18,7 +18,6 @@
     require('./headroom');
   }
 
-
 class ReaderApp extends Component {
   constructor(props) {
     super(props);
@@ -1713,12 +1712,12 @@ class ReaderPanel extends Component {
         color:         "light",
         fontSize:      62.5
       },
-      menuOpen:             this.props.initialMenu || null, // "navigation", "book toc", "text toc", "display", "search", "sheets", "home", "compare"
-      navigationCategories: this.props.initialNavigationCategories || [],
-      navigationSheetTag:   this.props.initialSheetsTag || null,
-      sheetsGroup:          this.props.initialGroup || null,
-      searchQuery:          this.props.initialQuery || null,
-      appliedSearchFilters: this.props.initialAppliedSearchFilters || [],
+      menuOpen:             props.initialMenu || null, // "navigation", "book toc", "text toc", "display", "search", "sheets", "home", "compare"
+      navigationCategories: props.initialNavigationCategories || [],
+      navigationSheetTag:   props.initialSheetsTag || null,
+      sheetsGroup:          props.initialGroup || null,
+      searchQuery:          props.initialQuery || null,
+      appliedSearchFilters: props.initialAppliedSearchFilters || [],
       searchFieldExact:     "exact",
       searchFieldBroad:     "naive_lemmatizer",
       searchField:          props.initialSearchField || "naive_lemmatizer",
@@ -2647,7 +2646,7 @@ class ReaderDisplayOptionsMenu extends Component {
 ReaderDisplayOptionsMenu.propTypes = {
   setOption:     PropTypes.func.isRequired,
   currentLayout: PropTypes.func.isRequired,
-  menuOpen:      PropTypes.string.isRequired,
+  menuOpen:      PropTypes.string,
   multiPanel:    PropTypes.bool.isRequired,
   width:         PropTypes.number.isRequired,
   settings:      PropTypes.object.isRequired,
@@ -9510,7 +9509,7 @@ class SearchFilterExactBox extends Component {
   render() {
     return (<li>
       <input type="checkbox" id="searchFilterExactBox" className="filter" checked={this.props.selected} onChange={this.handleClick}/>
-      <label onClick={this.handleClick} for={"searchFilterExactBox"}><span></span></label>
+      <label onClick={this.handleClick} htmlFor={"searchFilterExactBox"}><span></span></label>
       <span className="int-en"><span className="filter-title">{"Exact search"}</span></span>
       <span className="int-he" dir="rtl"><span className="filter-title">{"חיפוש מדויק"}</span></span>
     </li>);
@@ -11003,5 +11002,5 @@ exports.ConnectionsPanel    = ConnectionsPanel;
 exports.TextRange           = TextRange;
 exports.TextColumn          = TextColumn;
 exports.Footer              = Footer;
-exports.setData             = setData;
+exports.sefariaSetup        = Sefaria.setup;
 exports.unpackDataFromProps = Sefaria.unpackDataFromProps;

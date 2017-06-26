@@ -1,5 +1,5 @@
 {% load sefaria_tags %}
-
+{% load render_bundle from webpack_loader %}
 <!DOCTYPE html>
 <html>
 <head>
@@ -63,6 +63,7 @@
     };
     {% endautoescape %}
   </script>
-  <script src="/static/bundles/client-bundle.js"></script>
+  {% render_bundle 'main' %}
+  {# <script src="/static/bundles/client-bundle.js"></script>  #}
 </body>
 </html>

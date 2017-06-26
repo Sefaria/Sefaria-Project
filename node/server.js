@@ -26,9 +26,15 @@ var renderReaderApp = function(props, data, timer) {
   data._uid           = props._uid;
   data.recentlyViewed = props.recentlyViewed;
 
-  SefariaReact.setData(data);
+  SefariaReact.sefariaSetup(data);
   SefariaReact.unpackDataFromProps(props);
   log("Time to set data: %dms", timer.elapsed());
+  // Why yes, I'd love a console.
+  // var repl = require("repl");
+  // var r = repl.start("node> ");
+  // r.context.data = data;
+  // r.context.props = props;
+  // r.context.Sefaria = require("../static/js/sefaria");
 
   var html  = ReactDOMServer.renderToString(ReaderApp(props));
   log("Time to render: %dms", timer.elapsed());
@@ -49,6 +55,7 @@ server.post('/ReaderApp/:cachekey', function(req, res) {
     if (!error && response.statusCode == 200) {
       log("Time to get data.js: %dms", timer.elapsed());
       (0, eval)(body); // to understand why this is necessary, see: https://stackoverflow.com/questions/19357978/indirect-eval-call-in-strict-mode
+      console.log("DJANGO DATA VARS", typeof DJANGO_DATA_VARS === "undefined");
       log("Time to eval data.js: %dms", timer.elapsed());
       var html = renderReaderApp(props, DJANGO_DATA_VARS, timer);
       res.end(html);

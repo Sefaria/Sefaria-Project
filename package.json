@@ -7,10 +7,11 @@
   },
   "main": "node/server.js",
   "scripts": {
-    "start": "nodemon static/bundles/server-bundle.js",
+    "start": "nodemon static/bundles/server/server-bundle.js",
     "daemon": "forever start -a -p ./ -l log/forever/forever.log -o log/forever/out.log -e log/forever/err.log -w --watchDirectory log/forever/timeout static/bundles/server-bundle.js ",
     "test": "./run reader/browsertest/run_local.py",
     "build":        "webpack --config webpack.config.js ",
+    "build-prod":   "webpack --config webpack.config.js -p",
     "build-client": "webpack --config webpack.client.js ",
     "build-server": "webpack --config webpack.server.js ",
     "watch":        "webpack --config webpack.config.js --progress -w --stdin",
@@ -53,6 +54,7 @@
     "babel-preset-react": "^6.0.0",
     "babel-watch": "^2.0.0",
     "nodemon": "^1.9.2",
+    "on-build-webpack": "^0.1.0",
     "source-map-support": "^0.4.15",
     "webpack": "^3.0.0",
     "webpack-bundle-tracker": "^0.2.0"
