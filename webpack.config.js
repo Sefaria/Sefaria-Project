@@ -7,9 +7,6 @@ var nodemon = require('nodemon');
 var WebpackOnBuildPlugin = require('on-build-webpack');
 var fs = require('fs');
 
-var PROD = JSON.parse(process.env.PROD_ENV || '0');
-console.log("PROD", PROD);
-
 var deepmerge = DeepMerge(function (target, source, key) {
     if (target instanceof Array) {
         return [].concat(target, source);
