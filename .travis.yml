@@ -18,13 +18,19 @@ addons:
 env:
   PYTHONPATH=$TRAVIS_BUILD_DIR
   DJANGO_SETTINGS_MODULE=sefaria.settings
+  TRAVIS_NODE_VERSION="7.9.0"
 
 before_install:
   - sudo apt-get -qq update
   - sudo apt-get install libwww-perl
 
 # command to install dependencies
-install: "pip install -r requirements.txt"
+install:
+  - "pip install -r requirements.txt"
+  - rm -rf ~/.nvm && git clone https://github.com/creationix/nvm.git ~/.nvm && (cd ~/.nvm && git checkout `git describe --abbrev=0 --tags`) && source ~/.nvm/nvm.sh && nvm install $TRAVIS_NODE_VERSION
+  - npm install
+  - cp ./node/local_settings_example.json ./node/local_settings.json
+  - npm run build
 
 before_script:
   # Create a writable log dir
@@ -49,9 +55,11 @@ before_script:
   # Get rid of the conftest that forces a copy of the datastore to a test db
   - rm ./sefaria/conftest.py
 
-  # Create the user db, and run the django server, redirecting output to log files
+  # Create the user db
   - python manage.py syncdb --noinput
   - python manage.py createsuperuser --email $SEFARIA_SUPERUSER  --noinput
+
+  # run the django server, redirecting output to log files
   - python manage.py runserver --insecure 2> server.error.log > server.log &
   - python scripts/setup_travis_users.py
 

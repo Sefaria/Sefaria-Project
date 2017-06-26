@@ -49,39 +49,20 @@
 
   <div id="overlay"></div>
 
-  {% include "js/jquery.html" %}
-  <script src="/static/js/headroom.js"></script>
-  <script src="/static/js/jquery.scrollTo.js"></script>
+  {# <script src="/static/js/headroom.js"></script>  #}
   <script src="/static/js/keyboard.js"></script>
 
   <script src="/data.js"></script>
-  <script src="/static/js/sefaria.js"></script>
 
-  {% if DEBUG %}
-  <script src="/static/js/react.js"></script>
-  <script src="/static/js/react-dom.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/6.10.3/babel.min.js"></script>
-  <script type="text/jsx;harmony=true" src="/static/js/s2.jsx"></script>
-  {% else %}
-  <script src="/static/js/react-min.js"></script>
-  <script src="/static/js/react-dom-min.js"></script>
-  <script src="/static/js/s2.js"></script>
-  {% endif %}
-
-  <script {% if DEBUG %}type="text/jsx;harmony=true"{% endif %}>
+  <script>
     {% autoescape off %}
-    {% include "js/django-csrf.js" %}
-    $(function() {
-
-      var props = {{ propsJSON }};
-
-      Sefaria.unpackDataFromProps(props);
-
-      var container = document.getElementById('s2');
-      var component = React.createElement(ReaderApp, props);
-      ReactDOM.render(component, container);
-    });
+    var DJANGO_VARS = {
+        propsJSON: {{ propsJSON }},
+        inReaderApp: true,
+        ga: ga
+    };
     {% endautoescape %}
   </script>
+  <script src="/static/bundles/client-bundle.js"></script>
 </body>
 </html>
