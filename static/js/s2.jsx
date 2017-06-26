@@ -608,9 +608,9 @@ class ReaderApp extends Component {
       sheetsGroup:          state.group                || null,
       searchQuery:          state.searchQuery          || null,
       appliedSearchFilters: state.appliedSearchFilters || [],
-      searchFieldExact:     "hebmorph_semi_exact",
+      searchFieldExact:     "exact",
       searchFieldBroad:     "naive_lemmatizer",
-      searchField:          state.searchField          || "hebmorph_semi_exact",
+      searchField:          state.searchField          || "exact",
       searchSortType:       state.searchSortType       || "relevance",
       searchFiltersValid:   state.searchFiltersValid   || false,
       availableFilters:     state.availableFilters     || [],
@@ -1665,7 +1665,7 @@ class ReaderPanel extends Component {
       sheetsGroup:          props.initialGroup || null,
       searchQuery:          props.initialQuery || null,
       appliedSearchFilters: props.initialAppliedSearchFilters || [],
-      searchFieldExact:     "hebmorph_semi_exact",
+      searchFieldExact:     "exact",
       searchFieldBroad:     "naive_lemmatizer",
       searchField:          props.initialSearchField || "naive_lemmatizer",
       searchSortType:       props.initialSearchSortType || "chronological",
@@ -8840,7 +8840,7 @@ class SearchFilterPanel extends Component {
         </div>
         <div className={(Sefaria.hebrew.isHebrew(this.props.query)) ? "searchFilterExactBox" : "searchFilterExactBox hidden"}>
           <SearchFilterExactBox
-            selected={!this.props.isExactSearch}
+            selected={this.props.isExactSearch}
             checkBoxClick={this.props.toggleExactSearch}
             />
         </div>
@@ -8932,8 +8932,8 @@ class SearchFilterExactBox extends Component {
     return (<li>
       <input type="checkbox" id="searchFilterExactBox" className="filter" checked={this.props.selected} onChange={this.handleClick}/>
       <label onClick={this.handleClick} htmlFor={"searchFilterExactBox"}><span></span></label>
-      <span className="int-en"><span className="filter-title">{"Show word variants"}</span></span>
-      <span className="int-he" dir="rtl"><span className="filter-title">{"חיפוש מרוחב"}</span></span>
+      <span className="int-en"><span className="filter-title">{"Exact search"}</span></span>
+      <span className="int-he" dir="rtl"><span className="filter-title">{"חיפוש מדויק"}</span></span>
     </li>);
   }
 }
