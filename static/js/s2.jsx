@@ -2569,7 +2569,7 @@ class ReaderDisplayOptionsMenu extends Component {
 ReaderDisplayOptionsMenu.propTypes = {
   setOption:     PropTypes.func.isRequired,
   currentLayout: PropTypes.func.isRequired,
-  menuOpen:      PropTypes.string.isRequired,
+  menuOpen:      PropTypes.string,
   multiPanel:    PropTypes.bool.isRequired,
   width:         PropTypes.number.isRequired,
   settings:      PropTypes.object.isRequired,
