@@ -130,6 +130,7 @@ INSTALLED_APPS = (
     'captcha',
     'django_mobile',
     'django.contrib.admin',
+    'webpack_loader'
     # Uncomment the next line to enable admin documentation:
     # 'django.contrib.admindocs',
 )
@@ -258,6 +259,17 @@ CACHES = {
     'default': {
         'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
         'LOCATION': '/var/tmp/django_cache',
+    }
+}
+
+WEBPACK_LOADER = {
+    'DEFAULT': {
+        'BUNDLE_DIR_NAME': 'bundles/', # must end with slash
+        'STATS_FILE': relative_to_abs_path('../webpack-stats.json'),
+        'POLL_INTERVAL': 0.1,
+        'TIMEOUT': None,
+        #  'CACHE': not DEBUG,
+        #  'IGNORE': ['.+\.hot-update.js', '.+\.map']
     }
 }
 

@@ -74,7 +74,7 @@ var clientConfig = config({
   externals: [/^express$/, /^request$/, /^source-map-support$/],
   output: {
 	    path: path.join(__dirname, './static/bundles/'),
-	    filename: 'client-bundle.js'
+	    filename: 'client-[hash].js'
 	  }
 });
 

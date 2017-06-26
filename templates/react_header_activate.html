@@ -1,4 +1,5 @@
-{#  <script src="/static/js/headroom.js"></script> #}
+{% load render_bundle from webpack_loader %}
+
 <script src="/static/js/jquery.scrollTo.js"></script>
 <script src="/static/js/keyboard.js"></script>
 <script src="/data.js"></script>
@@ -14,9 +15,5 @@
   };
   {% endautoescape %}
 </script>
-<script src="/static/bundles/client-bundle.js"></script>
-{%  comment %}
-{% else %}
-<script src="/static/bundles/client-bundle.js"></script>
-{% endif %}
-{%  endcomment %}
+{% render_bundle 'client' %}
+
