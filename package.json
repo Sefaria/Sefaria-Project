@@ -18,6 +18,7 @@
     "watch-client": "webpack --config webpack.client.js --progress -w --stdin",
     "setup": "npm install -g nodemon; npm install -g babel-cli; npm install -g forever",
     "b": "npm run build",
+    "w": "npm run watch",
     "t": "npm run test"
   },
   "dependencies": {

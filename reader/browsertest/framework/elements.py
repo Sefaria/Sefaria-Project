@@ -82,6 +82,7 @@ class AtomicTest(object):
         elem = self.driver.find_element_by_css_selector("#id_password")
         elem.send_keys(password)
         self.driver.find_element_by_css_selector("button").click()
+        WebDriverWait(self.driver, TEMPER).until_not(title_contains("Login"))
 
     # TOC
     def load_toc(self):

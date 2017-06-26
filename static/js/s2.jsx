@@ -2924,6 +2924,7 @@ TextBlockLink.propTypes = {
   position:        PropTypes.number
 };
 
+
 class LanguageToggleButton extends Component {
   render() {
     return (<div className="languageToggle" onClick={this.props.toggleLanguage}>
@@ -2962,6 +2963,7 @@ BlockLink.propTypes = {
 BlockLink.defaultProps = {
   interfaceLink: false
 };
+
 
 class ReaderNavigationCategoryMenu extends Component {
   // Navigation Menu for a single category of texts (e.g., "Tanakh", "Bavli")
@@ -3708,6 +3710,7 @@ TabbedToggleSet.propTypes = {
   narrowPanel: PropTypes.bool
 };
 
+
 class SchemaNode extends Component {
   constructor(props) {
     super(props);
@@ -3910,6 +3913,7 @@ JaggedArrayNodeSection.propTypes = {
   refPath:         PropTypes.string.isRequired,
 };
 
+
 class ArrayMapNode extends Component {
   constructor(props) {
     super(props);
@@ -4012,6 +4016,7 @@ VersionsList.propType = {
   title:        PropTypes.string.isRequired,
   currentRef:   PropTypes.string,
 };
+
 
 class VersionBlock extends Component {
   constructor(props) {
@@ -4308,6 +4313,7 @@ ModeratorButtons.propTypes = {
   title: PropTypes.string.isRequired,
 };
 
+
 class CategoryAttribution extends Component {
   render() {
     var attribution = Sefaria.categoryAttribution(this.props.categories);
@@ -4325,7 +4331,6 @@ class CategoryAttribution extends Component {
 CategoryAttribution.propTypes = {
   categories: PropTypes.array.isRequired
 };
-
 
 
 class ReadMoreText extends Component {
@@ -4449,6 +4454,7 @@ SheetsNav.propTypes = {
   hideNavHeader:   PropTypes.bool
 };
 
+
 class SheetsHomePage extends Component {
   // A set of options grouped together.
   componentDidMount() {
@@ -4511,7 +4517,7 @@ class SheetsHomePage extends Component {
     var tagList         = tagList ? tagList.map(makeTagButton) : [<LoadingMessage />];
     var publicSheetList = topSheets ? topSheets.map(function(sheet) {
       return (<PublicSheetListing sheet={sheet} key={sheet.id} />);
-    }) : [<LoadingMessage />];
+    }) : <LoadingMessage />;
 
     var yourSheetsButton  = Sefaria._uid ?
       (<div className="yourSheetsLink navButton" onClick={this.showYourSheets}>
@@ -4584,6 +4590,7 @@ SheetsHomePage.propTypes = {
   setSheetTagSort: PropTypes.func.isRequired,
   hideNavHeader:   PropTypes.bool
 };
+
 
 class GroupPage extends Component {
   constructor(props) {
@@ -4681,7 +4688,7 @@ class GroupPage extends Component {
                 pinSheet={this.pinSheet.bind(null, sheet.id)}
                 setSheetTag={this.setSheetTag}
                 key={sheet.id} />);
-    }.bind(this)) : [<LoadingMessage />];
+    }.bind(this)) : <LoadingMessage />;
 
     return (<div className="content groupPage sheetList hasFooter">
               <div className="contentInner">
@@ -4792,6 +4799,7 @@ GroupPage.propTypes = {
   width: PropTypes.number
 };
 
+
 class GroupSheetListing extends Component {
   render() {
     var sheet = this.props.sheet;
@@ -4827,6 +4835,7 @@ GroupSheetListing.propTypes = {
   pinned:      PropTypes.bool,
   isAdmin:     PropTypes.bool
 };
+
 
 class GroupInvitationBox extends Component {
   constructor(props) {
@@ -4893,6 +4902,7 @@ GroupInvitationBox.propTypes = {
   onDataChange: PropTypes.func.isRequired,
 };
 
+
 class GroupMemberListing extends Component {
   render() {
     if (this.props.member.role == "Invitation") {
@@ -4938,6 +4948,7 @@ GroupMemberListing.propTypes ={
   onDataChange: PropTypes.func,
 };
 
+
 class GroupInvitationListing extends Component {
   render() {
     return (
@@ -4964,6 +4975,7 @@ GroupInvitationListing.propTypes = {
   groupName:    PropTypes.string,
   onDataChange: PropTypes.func,
 };
+
 
 class GroupMemberListingActions extends Component {
   constructor(props) {
@@ -5086,6 +5098,7 @@ GroupMemberListingActions.propTypes = {
   isInvitation: PropTypes.bool,
   onDataChange: PropTypes.func.isRequired
 };
+
 
 class EditGroupPage extends Component {
   constructor(props) {
@@ -5312,6 +5325,7 @@ class EditGroupPage extends Component {
 EditGroupPage.propTypes = {
   initialData:  PropTypes.object // If present this view is for editing a group, otherwise for creating a new group
 };
+
 
 class FileInput extends Component {
   handleChange(e) {
@@ -6448,6 +6462,7 @@ TextRange.propTypes = {
   showActionLinks:        PropTypes.bool
 };
 
+
 class TextSegment extends Component {
 
   handleClick(event) {
@@ -7014,6 +7029,7 @@ TextList.propTypes = {
   selectedWords:           PropTypes.string
 };
 
+
 class Note extends Component {
   render() {
 
@@ -7411,6 +7427,7 @@ class LexiconEntry extends Component {
 LexiconEntry.propTypes = {
   data: PropTypes.object.isRequired
 };
+
 
 class ToolsPanel extends Component {
   constructor(props) {
@@ -7914,6 +7931,7 @@ MyNotesPanel.propTypes = {
   editNote:           PropTypes.func.isRequired,
   fullPanel:          PropTypes.bool
 };
+
 
 class LoginPanel extends Component {
   render() {
@@ -8604,6 +8622,7 @@ SearchResultList.defaultProps = {
   appliedFilters: []
 };
 
+
 class SearchFilters extends Component {
   constructor(props) {
     super(props);
@@ -8847,15 +8866,12 @@ SearchFilterPanel.propTypes = {
 
 
 class SearchSortBox extends Component {
-
   componentDidMount() {
     document.addEventListener('mousedown', this.handleClickOutside, false);
   }
-
   componentWillUnmount() {
     document.removeEventListener('mousedown', this.handleClickOutside, false);
   }
-
   handleClickOutside(event) {
     const domNode = ReactDOM.findDOMNode(this);
 
@@ -8909,7 +8925,6 @@ SearchSortBox.propTypes = {
 
 
 class SearchFilterExactBox extends Component {
-
   handleClick() {
     this.props.checkBoxClick();
   }
@@ -8975,6 +8990,7 @@ SearchFilter.propTypes = {
   updateSelected: PropTypes.func.isRequired,
   focusCategory:  PropTypes.func
 };
+
 
 class SearchTextResult extends Component {
     constructor(props) {
@@ -9196,6 +9212,7 @@ AccountPanel.propTypes = {
   interfaceLang: PropTypes.string,
 };
 
+
 class RecentPanel extends Component {
   render() {
     var width = typeof window !== "undefined" ? $(window).width() : 1000;
@@ -9340,6 +9357,7 @@ NotificationsPanel.propTypes = {
   setUnreadNotificationsCount: PropTypes.func.isRequired,
   interfaceLang:               PropTypes.string,
 };
+
 
 class MyGroupsPanel extends Component {
   componentDidMount() {
@@ -9554,6 +9572,7 @@ class ModeratorToolsPanel extends Component {
 ModeratorToolsPanel.propTypes = {
   interfaceLang: PropTypes.string
 };
+
 
 class UpdatesPanel extends Component {
   constructor(props) {
@@ -9770,6 +9789,7 @@ NewUpdateForm.propTypes = {
   error:               PropTypes.string,
   handleSubmit:        PropTypes.func
 };
+
 
 class SingleUpdate extends Component {
 
