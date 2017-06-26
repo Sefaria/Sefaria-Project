@@ -29,6 +29,12 @@ var renderReaderApp = function(props, data, timer) {
   SefariaReact.setData(data);
   SefariaReact.unpackDataFromProps(props);
   log("Time to set data: %dms", timer.elapsed());
+  // Why yes, I'd love a console.
+  // var repl = require("repl");
+  // var r = repl.start("node> ");
+  // r.context.data = data;
+  // r.context.props = props;
+  // r.context.Sefaria = require("../static/js/sefaria");
 
   var html  = ReactDOMServer.renderToString(ReaderApp(props));
   log("Time to render: %dms", timer.elapsed());

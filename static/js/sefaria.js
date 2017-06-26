@@ -23,7 +23,7 @@ var Sefaria = Sefaria || {
   toc: [],
   books: [],
   booksDict: {},
-  recentlyViewed: [],
+  recentlyViewed: []
 };
 
 Sefaria = extend(Sefaria, {
@@ -95,7 +95,7 @@ Sefaria = extend(Sefaria, {
       return response;
   },
   makeRef: function(q) {
-      // Returns a string ref correpsonding to the parsed ref `q` (like Ref.url() in Python)
+      // Returns a string ref corresponding to the parsed ref `q` (like Ref.url() in Python)
       if (!(q.book && q.sections && q.toSections)) {
           return {"error": "Bad input."};
       }
