@@ -643,7 +643,7 @@ var ReaderApp = React.createClass({
       appliedSearchFilters: state.appliedSearchFilters || [],
       searchFieldExact:     "exact",
       searchFieldBroad:     "naive_lemmatizer",
-      searchField:          state.searchField          || "exact",
+      searchField:          state.searchField          || "naive_lemmatizer",
       searchSortType:       state.searchSortType       || "relevance",
       searchFiltersValid:   state.searchFiltersValid   || false,
       availableFilters:     state.availableFilters     || [],
