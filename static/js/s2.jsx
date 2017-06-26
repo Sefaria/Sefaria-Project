@@ -627,11 +627,11 @@ class ReaderApp extends Component {
       sheetsGroup:             state.group                   || null,
       searchQuery:             state.searchQuery             || null,
       appliedSearchFilters:    state.appliedSearchFilters    || [],
-      searchFiltersValid:      state.searchFiltersValid      || false,
-      searchFieldExact:        "hebmorph_semi_exact",
+      searchFieldExact:        "exact",
       searchFieldBroad:        "naive_lemmatizer",
-      searchField:             state.searchField             || "hebmorph_semi_exact",
+      searchField:             state.searchField             || "naive_lemmatizer",
       searchSortType:          state.searchSortType          || "relevance",
+      searchFiltersValid:      state.searchFiltersValid      || false,
       availableFilters:        state.availableFilters        || [],
       filterRegistry:          state.filterRegistry          || {},
       orphanSearchFilters:     state.orphanSearchFilters     || [],
@@ -1713,13 +1713,13 @@ class ReaderPanel extends Component {
         color:         "light",
         fontSize:      62.5
       },
-      menuOpen:             props.initialMenu || null, // "navigation", "book toc", "text toc", "display", "search", "sheets", "home", "compare"
-      navigationCategories: props.initialNavigationCategories || [],
-      navigationSheetTag:   props.initialSheetsTag || null,
-      sheetsGroup:          props.initialGroup || null,
-      searchQuery:          props.initialQuery || null,
-      appliedSearchFilters: props.initialAppliedSearchFilters || [],
-      searchFieldExact:     "hebmorph_semi_exact",
+      menuOpen:             this.props.initialMenu || null, // "navigation", "book toc", "text toc", "display", "search", "sheets", "home", "compare"
+      navigationCategories: this.props.initialNavigationCategories || [],
+      navigationSheetTag:   this.props.initialSheetsTag || null,
+      sheetsGroup:          this.props.initialGroup || null,
+      searchQuery:          this.props.initialQuery || null,
+      appliedSearchFilters: this.props.initialAppliedSearchFilters || [],
+      searchFieldExact:     "exact",
       searchFieldBroad:     "naive_lemmatizer",
       searchField:          props.initialSearchField || "naive_lemmatizer",
       searchSortType:       props.initialSearchSortType || "chronological",
@@ -8779,6 +8779,7 @@ class SearchResultList extends Component {
         from: last,
         field: field,
         sort_type: this.props.sortType,
+        exact: this.props.exactField === this.props.field,
         error: function() {  console.log("Failure in SearchResultList._loadRemainder"); },
         success: function(data) {
           var nextHits;
@@ -8828,6 +8829,7 @@ class SearchResultList extends Component {
             size: this.initialQuerySize,
             field: "content",
             sort_type: "chronological",
+            exact: true,
             success: function(data) {
                 this.updateRunningQuery("sheet", null, false);
                   this.setState({
@@ -8852,6 +8854,7 @@ class SearchResultList extends Component {
             size: this.initialQuerySize,
             field: props.field,
             sort_type: props.sortType,
+            exact: this.props.exactField === this.props.field,
             success: function(data) {
                 this.updateRunningQuery("text", null, false);
                 var hitArray = this._remove_duplicate_text_hits(this._process_text_hits(data.hits.hits));
@@ -9414,9 +9417,9 @@ class SearchFilterPanel extends Component {
           }.bind(this))}
           </div>
         </div>
-        <div className={(Sefaria.hebrew.isHebrew(this.props.query)) ? "searchFilterExactBox" : "searchFilterExactBox hidden"}>
+        <div className={"searchFilterExactBox"}>
           <SearchFilterExactBox
-            selected={!this.props.isExactSearch}
+            selected={this.props.isExactSearch}
             checkBoxClick={this.props.toggleExactSearch}
             />
         </div>
@@ -9507,9 +9510,9 @@ class SearchFilterExactBox extends Component {
   render() {
     return (<li>
       <input type="checkbox" id="searchFilterExactBox" className="filter" checked={this.props.selected} onChange={this.handleClick}/>
-      <label onClick={this.handleClick} htmlFor={"searchFilterExactBox"}><span></span></label>
-      <span className="int-en"><span className="filter-title">{"Show word variants"}</span></span>
-      <span className="int-he" dir="rtl"><span className="filter-title">{"חיפוש מרוחב"}</span></span>
+      <label onClick={this.handleClick} for={"searchFilterExactBox"}><span></span></label>
+      <span className="int-en"><span className="filter-title">{"Exact search"}</span></span>
+      <span className="int-he" dir="rtl"><span className="filter-title">{"חיפוש מדויק"}</span></span>
     </li>);
   }
 }
