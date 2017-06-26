@@ -2666,21 +2666,30 @@ Sefaria.palette.categoryColor = function(cat) {
   return Sefaria.palette.categoryColors["Other"];
 };
 
-Sefaria.setup = function() {
-    if (typeof DJANGO_DATA_VARS !== 'undefined') {
-        for (var prop in DJANGO_DATA_VARS) {
-            if (DJANGO_DATA_VARS.hasOwnProperty(prop)) {
-                Sefaria[prop] = DJANGO_DATA_VARS[prop];
+Sefaria.setup = function(data) {
+    // data parameter is optional. in the event it isn't passed, we assume that DJANGO_DATA_VARS exists as a global var
+    // data should but defined server-side and undefined client-side
+
+    if (typeof data === "undefined") {
+        data = typeof DJANGO_DATA_VARS === "undefined" ? undefined : DJANGO_DATA_VARS;
+    }
+    if (typeof data !== 'undefined') {
+        console.log("NOT UNDEFINED");
+        for (var prop in data) {
+            if (data.hasOwnProperty(prop)) {
+                Sefaria[prop] = data[prop];
             }
         }
     }
-
     Sefaria.util.setupPrototypes();
     Sefaria.util.setupJQuery();
     Sefaria.util.setupMisc();
     Sefaria.util.handleUserCookie();
     Sefaria._makeBooksDict();
     Sefaria._cacheIndexFromToc(Sefaria.toc);
+    if (!Sefaria.recentlyViewed) {
+        Sefaria.recentlyViewed = [];
+    }
     Sefaria.recentlyViewed = Sefaria.recentlyViewed.map(Sefaria.unpackRecentItem).filter(function(item) { return !("error" in item); });
     Sefaria._cacheHebrewTerms(Sefaria.terms);
     Sefaria.site.track.setUserData();

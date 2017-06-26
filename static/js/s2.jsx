@@ -18,7 +18,6 @@
     require('./headroom');
   }
 
-
 class ReaderApp extends Component {
   constructor(props) {
     super(props);
@@ -10227,5 +10226,5 @@ exports.ConnectionsPanel    = ConnectionsPanel;
 exports.TextRange           = TextRange;
 exports.TextColumn          = TextColumn;
 exports.Footer              = Footer;
-exports.setData             = setData;
+exports.sefariaSetup        = Sefaria.setup;
 exports.unpackDataFromProps = Sefaria.unpackDataFromProps;
