@@ -641,9 +641,9 @@ var ReaderApp = React.createClass({
       sheetsGroup:          state.group                || null,
       searchQuery:          state.searchQuery          || null,
       appliedSearchFilters: state.appliedSearchFilters || [],
-      searchFieldExact:     "hebmorph_semi_exact",
+      searchFieldExact:     "exact",
       searchFieldBroad:     "naive_lemmatizer",
-      searchField:          state.searchField          || "hebmorph_semi_exact",
+      searchField:          state.searchField          || "exact",
       searchSortType:       state.searchSortType       || "relevance",
       searchFiltersValid:   state.searchFiltersValid   || false,
       availableFilters:     state.availableFilters     || [],
@@ -1698,7 +1698,7 @@ var ReaderPanel = React.createClass({
       sheetsGroup:          this.props.initialGroup || null,
       searchQuery:          this.props.initialQuery || null,
       appliedSearchFilters: this.props.initialAppliedSearchFilters || [],
-      searchFieldExact:     "hebmorph_semi_exact",
+      searchFieldExact:     "exact",
       searchFieldBroad:     "naive_lemmatizer",
       searchField:          this.props.initialSearchField || "naive_lemmatizer",
       searchSortType:       this.props.initialSearchSortType || "chronological",
@@ -2514,7 +2514,7 @@ var ReaderDisplayOptionsMenu = React.createClass({
           settings={this.props.settings} />);
 
     if (this.props.menuOpen === "search") {
-      return (<div className="readerOptionsPanel" role="dialog" tabindex="0">
+      return (<div className="readerOptionsPanel" role="dialog" tabIndex="0">
                 <div className="readerOptionsPanelInner">
                   {languageToggle}
                   <div className="line"></div>
@@ -2522,13 +2522,13 @@ var ReaderDisplayOptionsMenu = React.createClass({
                 </div>
             </div>);
     } else if (this.props.menuOpen) {
-      return (<div className="readerOptionsPanel"role="dialog" tabindex="0">
+      return (<div className="readerOptionsPanel"role="dialog" tabIndex="0">
                 <div className="readerOptionsPanelInner">
                   {languageToggle}
                 </div>
             </div>);
     } else {
-      return (<div className="readerOptionsPanel"role="dialog" tabindex="0">
+      return (<div className="readerOptionsPanel"role="dialog" tabIndex="0">
                 <div className="readerOptionsPanelInner">
                   {languageToggle}
                   {layoutToggle}
@@ -2644,6 +2644,7 @@ var ReaderNavigationMenu = React.createClass({
                   multiPanel={this.props.multiPanel}
                   closeNav={this.closeNav}
                   openDisplaySettings={this.props.openDisplaySettings}
+                  toggleLanguage={this.props.toggleLanguage}
                   navHome={this.navHome}
                   compare={this.props.compare}
                   hideNavHeader={this.props.hideNavHeader}
@@ -2780,21 +2781,17 @@ var ReaderNavigationMenu = React.createClass({
       var nRecent = this.width < 450 ? 4 : 6;
       var recentlyViewed = Sefaria.recentlyViewed;
       var hasMore = recentlyViewed.length > nRecent;
-      recentlyViewed = recentlyViewed.filter(function(item){
-        // after a text has been deleted a recent ref may be invalid,
-        // but don't try to check when booksDict is not available during server side render
-        if (Object.keys(Sefaria.booksDict).length === 0) { return true; }
-        return Sefaria.isRef(item.ref);
-      }).map(function(item) {
-        return (<TextBlockLink
-                  sref={item.ref}
-                  heRef={item.heRef}
-                  book={item.book}
-                  version={item.version}
-                  versionLanguage={item.versionLanguage}
-                  showSections={true}
-                  recentItem={true} />)
-      }).slice(0, hasMore ? nRecent-1 : nRecent);
+      recentlyViewed = recentlyViewed.slice(0, hasMore ? nRecent-1 : nRecent)
+        .map(function(item) {
+          return (<TextBlockLink
+                    sref={item.ref}
+                    heRef={item.heRef}
+                    book={item.book}
+                    version={item.version}
+                    versionLanguage={item.versionLanguage}
+                    showSections={true}
+                    recentItem={true} />)
+          });
       if (hasMore) {
         recentlyViewed.push(
           <a href="/texts/recent" className="readerNavCategory readerNavMore" style={{"borderColor": Sefaria.palette.colors.darkblue}} onClick={this.props.setCategories.bind(null, ["recent"])}>
@@ -8718,7 +8715,7 @@ var SearchFilterPanel = React.createClass({
         </div>
         <div className={(Sefaria.hebrew.isHebrew(this.props.query)) ? "searchFilterExactBox" : "searchFilterExactBox hidden"}>
           <SearchFilterExactBox
-            selected={!this.props.isExactSearch}
+            selected={this.props.isExactSearch}
             checkBoxClick={this.props.toggleExactSearch}
             />
         </div>
@@ -8800,8 +8797,8 @@ var SearchFilterExactBox = React.createClass({
     return (<li onClick={this.handleFocusCategory}>
       <input type="checkbox" id="searchFilterExactBox" className="filter" checked={this.props.selected} onChange={this.handleClick}/>
       <label onClick={this.handleClick} for={"searchFilterExactBox"}><span></span></label>
-      <span className="int-en"><span className="filter-title">{"Show word variants"}</span></span>
-      <span className="int-he" dir="rtl"><span className="filter-title">{"חיפוש מרוחב"}</span></span>
+      <span className="int-en"><span className="filter-title">{"Exact search"}</span></span>
+      <span className="int-he" dir="rtl"><span className="filter-title">{"חיפוש מדויק"}</span></span>
     </li>);
   }
 });
@@ -9081,12 +9078,7 @@ var RecentPanel = React.createClass({
   render: function() {
     var width = typeof window !== "undefined" ? $(window).width() : 1000;
 
-    var recentItems = Sefaria.recentlyViewed.filter(function(item){
-      // after a text has been deleted a recent ref may be invalid,
-      // but don't try to check when booksDict is not available during server side render
-      if (Object.keys(Sefaria.booksDict).length === 0) { return true; }
-      return Sefaria.isRef(item.ref);
-    }).map(function(item) {
+    var recentItems = Sefaria.recentlyViewed.map(function(item) {
       return (<TextBlockLink
                 sref={item.ref}
                 heRef={item.heRef}
@@ -10045,6 +10037,8 @@ var setData = function(data) {
   // Note Sefaria.booksDict in generated on the client from Sefaria.books, but not on the server to save cycles
   Sefaria.calendar  = data.calendar;
 
+
+  console.log(data.recentlyViewed);
   Sefaria._cacheIndexFromToc(Sefaria.toc);
   Sefaria.recentlyViewed    = data.recentlyViewed ? data.recentlyViewed.map(Sefaria.unpackRecentItem) : [];
   Sefaria.util._defaultPath = data.path;

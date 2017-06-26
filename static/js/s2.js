@@ -665,9 +665,9 @@ var ReaderApp = React.createClass({
       sheetsGroup: state.group || null,
       searchQuery: state.searchQuery || null,
       appliedSearchFilters: state.appliedSearchFilters || [],
-      searchFieldExact: "hebmorph_semi_exact",
+      searchFieldExact: "exact",
       searchFieldBroad: "naive_lemmatizer",
-      searchField: state.searchField || "hebmorph_semi_exact",
+      searchField: state.searchField || "exact",
       searchSortType: state.searchSortType || "relevance",
       searchFiltersValid: state.searchFiltersValid || false,
       availableFilters: state.availableFilters || [],
@@ -1791,7 +1791,7 @@ var ReaderPanel = React.createClass({
       sheetsGroup: this.props.initialGroup || null,
       searchQuery: this.props.initialQuery || null,
       appliedSearchFilters: this.props.initialAppliedSearchFilters || [],
-      searchFieldExact: "hebmorph_semi_exact",
+      searchFieldExact: "exact",
       searchFieldBroad: "naive_lemmatizer",
       searchField: this.props.initialSearchField || "naive_lemmatizer",
       searchSortType: this.props.initialSearchSortType || "chronological",
@@ -2634,7 +2634,7 @@ var ReaderDisplayOptionsMenu = React.createClass({
     if (this.props.menuOpen === "search") {
       return React.createElement(
         'div',
-        { className: 'readerOptionsPanel', role: 'dialog', tabindex: '0' },
+        { className: 'readerOptionsPanel', role: 'dialog', tabIndex: '0' },
         React.createElement(
           'div',
           { className: 'readerOptionsPanelInner' },
@@ -2646,7 +2646,7 @@ var ReaderDisplayOptionsMenu = React.createClass({
     } else if (this.props.menuOpen) {
       return React.createElement(
         'div',
-        { className: 'readerOptionsPanel', role: 'dialog', tabindex: '0' },
+        { className: 'readerOptionsPanel', role: 'dialog', tabIndex: '0' },
         React.createElement(
           'div',
           { className: 'readerOptionsPanelInner' },
@@ -2656,7 +2656,7 @@ var ReaderDisplayOptionsMenu = React.createClass({
     } else {
       return React.createElement(
         'div',
-        { className: 'readerOptionsPanel', role: 'dialog', tabindex: '0' },
+        { className: 'readerOptionsPanel', role: 'dialog', tabIndex: '0' },
         React.createElement(
           'div',
           { className: 'readerOptionsPanelInner' },
@@ -2780,6 +2780,7 @@ var ReaderNavigationMenu = React.createClass({
           multiPanel: this.props.multiPanel,
           closeNav: this.closeNav,
           openDisplaySettings: this.props.openDisplaySettings,
+          toggleLanguage: this.props.toggleLanguage,
           navHome: this.navHome,
           compare: this.props.compare,
           hideNavHeader: this.props.hideNavHeader,
@@ -3019,14 +3020,7 @@ var ReaderNavigationMenu = React.createClass({
       var nRecent = this.width < 450 ? 4 : 6;
       var recentlyViewed = Sefaria.recentlyViewed;
       var hasMore = recentlyViewed.length > nRecent;
-      recentlyViewed = recentlyViewed.filter(function (item) {
-        // after a text has been deleted a recent ref may be invalid,
-        // but don't try to check when booksDict is not available during server side render
-        if (Object.keys(Sefaria.booksDict).length === 0) {
-          return true;
-        }
-        return Sefaria.isRef(item.ref);
-      }).map(function (item) {
+      recentlyViewed = recentlyViewed.slice(0, hasMore ? nRecent - 1 : nRecent).map(function (item) {
         return React.createElement(TextBlockLink, {
           sref: item.ref,
           heRef: item.heRef,
@@ -3035,7 +3029,7 @@ var ReaderNavigationMenu = React.createClass({
           versionLanguage: item.versionLanguage,
           showSections: true,
           recentItem: true });
-      }).slice(0, hasMore ? nRecent - 1 : nRecent);
+      });
       if (hasMore) {
         recentlyViewed.push(React.createElement(
           'a',
@@ -10954,7 +10948,7 @@ var SearchFilterPanel = React.createClass({
           'div',
           { className: Sefaria.hebrew.isHebrew(this.props.query) ? "searchFilterExactBox" : "searchFilterExactBox hidden" },
           React.createElement(SearchFilterExactBox, {
-            selected: !this.props.isExactSearch,
+            selected: this.props.isExactSearch,
             checkBoxClick: this.props.toggleExactSearch
           })
         ),
@@ -11105,7 +11099,7 @@ var SearchFilterExactBox = React.createClass({
         React.createElement(
           'span',
           { className: 'filter-title' },
-          "Show word variants"
+          "Exact search"
         )
       ),
       React.createElement(
@@ -11114,7 +11108,7 @@ var SearchFilterExactBox = React.createClass({
         React.createElement(
           'span',
           { className: 'filter-title' },
-          "חיפוש מרוחב"
+          "חיפוש מדויק"
         )
       )
     );
@@ -11481,14 +11475,7 @@ var RecentPanel = React.createClass({
   render: function render() {
     var width = typeof window !== "undefined" ? $(window).width() : 1000;
 
-    var recentItems = Sefaria.recentlyViewed.filter(function (item) {
-      // after a text has been deleted a recent ref may be invalid,
-      // but don't try to check when booksDict is not available during server side render
-      if (Object.keys(Sefaria.booksDict).length === 0) {
-        return true;
-      }
-      return Sefaria.isRef(item.ref);
-    }).map(function (item) {
+    var recentItems = Sefaria.recentlyViewed.map(function (item) {
       return React.createElement(TextBlockLink, {
         sref: item.ref,
         heRef: item.heRef,
