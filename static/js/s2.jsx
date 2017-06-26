@@ -8714,7 +8714,7 @@ var SearchFilterPanel = React.createClass({
           }.bind(this))}
           </div>
         </div>
-        <div className={(Sefaria.hebrew.isHebrew(this.props.query)) ? "searchFilterExactBox" : "searchFilterExactBox hidden"}>
+        <div className={"searchFilterExactBox"}>
           <SearchFilterExactBox
             selected={this.props.isExactSearch}
             checkBoxClick={this.props.toggleExactSearch}
