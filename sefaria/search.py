@@ -85,7 +85,15 @@ def index_text(index_name, oref, version=None, lang=None, bavli_amud=True, merge
     elif len(padded_oref.sections) < len(padded_oref.index_node.sectionNames):
         t = TextChunk(oref, lang=lang, vtitle=version) if not merged else TextChunk(oref, lang=lang)
 
-        for ref in oref.subrefs(len(t.text)):
+        for iref, ref in enumerate(oref.subrefs(len(t.text))):
+            if padded_oref.index.title in davidson_indexes:
+                if iref == len(t.text) - 1 and ref != ref.last_segment_ref():
+                    # if it's a talmud ref and it's the last ref on daf, but not the last ref in the mesechta, skip it.
+                    # we'll combine it with the first ref of the next daf. This is dealing with the issue of sentences
+                    # that get cut-off due to daf breaks
+                    continue
+                elif iref == 0 and ref.prev_segment_ref() is not None:
+                    ref = ref.prev_segment_ref().to(ref)
             index_text(index_name, ref, version=version, lang=lang, bavli_amud=bavli_amud, merged=merged)
         return  # Returning at this level prevents indexing of full chapters
 
@@ -243,7 +251,8 @@ def make_text_index_document(tref, version, lang):
         "path": "/".join(categories + [oref.index.title]),
         "pagesheetrank": pagerank * sheetrank,
         "comp_date": comp_start_date,
-        "hebmorph_semi_exact": content_wo_cant,
+        #"hebmorph_semi_exact": content_wo_cant,
+        "exact": content_wo_cant,
         "naive_lemmatizer": content_wo_cant,
         "prev_content": prev_content,
         "next_content": next_content
@@ -457,10 +466,14 @@ def put_text_mapping(index_name):
                     'type': 'integer',
                     'index': 'not_analyzed'
                 },
-                "hebmorph_semi_exact": {
+                #"hebmorph_semi_exact": {
+                #    'type': 'string',
+                #    'analyzer': 'hebrew',
+                #    'search_analyzer': 'sefaria-semi-exact'
+                #},
+                "exact": {
                     'type': 'string',
-                    'analyzer': 'hebrew',
-                    'search_analyzer': 'sefaria-semi-exact'
+                    'analyzer': 'standard'
                 },
                 "naive_lemmatizer": {
                     'type': 'string',
@@ -611,9 +624,7 @@ def get_new_and_current_index_names(merged=False, debug=False):
     else:
         new_index_name = index_name_b
         old_index_name = index_name_a
-    #NOTE while transitioning to new search algo, always use sefaria-d
-    return {"new": "sefaria-d", "current": "sefaria-d", "alias": alias_name}
-    #return {"new": new_index_name, "current": old_index_name, "alias": alias_name}
+    return {"new": new_index_name, "current": old_index_name, "alias": alias_name}
 
 
 def index_all(skip=0, merged=False, debug=False):
@@ -626,6 +637,14 @@ def index_all(skip=0, merged=False, debug=False):
     new_index_name = name_dict['new']
     curr_index_name = name_dict['current']
     alias_name = name_dict['alias']
+
+    import time as pytime
+    print 'CREATING / DELETING {}'.format(new_index_name)
+    print 'CURRENT {}'.format(curr_index_name)
+    for i in range(10):
+        print 'STARTING IN T-MINUS {}'.format(10 - i)
+        pytime.sleep(1)
+
     if skip == 0:
         create_index(new_index_name, merged=merged)
     index_all_sections(new_index_name, skip=skip, merged=merged, debug=debug)

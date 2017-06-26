@@ -665,9 +665,9 @@ var ReaderApp = React.createClass({
       sheetsGroup: state.group || null,
       searchQuery: state.searchQuery || null,
       appliedSearchFilters: state.appliedSearchFilters || [],
-      searchFieldExact: "hebmorph_semi_exact",
+      searchFieldExact: "exact",
       searchFieldBroad: "naive_lemmatizer",
-      searchField: state.searchField || "hebmorph_semi_exact",
+      searchField: state.searchField || "exact",
       searchSortType: state.searchSortType || "relevance",
       searchFiltersValid: state.searchFiltersValid || false,
       availableFilters: state.availableFilters || [],
@@ -1791,7 +1791,7 @@ var ReaderPanel = React.createClass({
       sheetsGroup: this.props.initialGroup || null,
       searchQuery: this.props.initialQuery || null,
       appliedSearchFilters: this.props.initialAppliedSearchFilters || [],
-      searchFieldExact: "hebmorph_semi_exact",
+      searchFieldExact: "exact",
       searchFieldBroad: "naive_lemmatizer",
       searchField: this.props.initialSearchField || "naive_lemmatizer",
       searchSortType: this.props.initialSearchSortType || "chronological",
@@ -10948,7 +10948,7 @@ var SearchFilterPanel = React.createClass({
           'div',
           { className: Sefaria.hebrew.isHebrew(this.props.query) ? "searchFilterExactBox" : "searchFilterExactBox hidden" },
           React.createElement(SearchFilterExactBox, {
-            selected: !this.props.isExactSearch,
+            selected: this.props.isExactSearch,
             checkBoxClick: this.props.toggleExactSearch
           })
         ),
@@ -11099,7 +11099,7 @@ var SearchFilterExactBox = React.createClass({
         React.createElement(
           'span',
           { className: 'filter-title' },
-          "Show word variants"
+          "Exact search"
         )
       ),
       React.createElement(
@@ -11108,7 +11108,7 @@ var SearchFilterExactBox = React.createClass({
         React.createElement(
           'span',
           { className: 'filter-title' },
-          "חיפוש מרוחב"
+          "חיפוש מדויק"
         )
       )
     );
