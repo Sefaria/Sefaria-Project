@@ -2674,7 +2674,6 @@ Sefaria.setup = function(data) {
         data = typeof DJANGO_DATA_VARS === "undefined" ? undefined : DJANGO_DATA_VARS;
     }
     if (typeof data !== 'undefined') {
-        console.log("NOT UNDEFINED");
         for (var prop in data) {
             if (data.hasOwnProperty(prop)) {
                 Sefaria[prop] = data[prop];
