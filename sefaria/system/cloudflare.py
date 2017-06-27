@@ -11,7 +11,7 @@ logger = logging.getLogger('cloudflare')
 
 class SefariaCloudflareManager(object):
 
-    valid_cached_dirs = STATICFILES_DIRS
+    valid_cached_dirs = ["static"]
     max_cloudflare_payload_size = 30
 
     def purge_cloudflare_url(self, path, preprocessed=False):
