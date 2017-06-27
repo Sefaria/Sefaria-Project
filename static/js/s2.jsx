@@ -8157,7 +8157,7 @@ var SearchResultList = React.createClass({
             size: this.initialQuerySize,
             field: props.field,
             sort_type: props.sortType,
-            exact: this.props.exactField === this.props.field,
+            exact: props.exactField === props.field,
             success: function(data) {
                 this.updateRunningQuery("text", null, false);
                 var hitArray = this._remove_duplicate_text_hits(this._process_text_hits(data.hits.hits));

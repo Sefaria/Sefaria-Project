@@ -16,6 +16,7 @@ os.environ['DJANGO_SETTINGS_MODULE'] = "settings"
 import logging
 import json
 import math
+import collections
 from django.utils.log import NullHandler
 logger = logging.getLogger(__name__)
 
@@ -165,6 +166,16 @@ def delete_sheet(index_name, id):
         logger.error(u"ERROR deleting sheet {}".format(id))
 
 
+def flatten_list(l):
+    # see: https://stackoverflow.com/questions/2158395/flatten-an-irregular-list-of-lists/2158532#2158532
+    for el in l:
+        if isinstance(el, collections.Iterable) and not isinstance(el, basestring):
+            for sub in flatten_list(el):
+                yield sub
+        else:
+            yield el
+
+
 def make_text_index_document(tref, version, lang):
     from sefaria.utils.hebrew import strip_cantillation
     """
@@ -179,6 +190,7 @@ def make_text_index_document(tref, version, lang):
         return False
 
     if isinstance(content, list):
+        content = flatten_list(content)  # deal with mutli-dimensional lists as well
         content = " ".join(content)
 
     content = bleach.clean(content, strip=True, tags=())
