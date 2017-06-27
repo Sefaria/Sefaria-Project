@@ -134,7 +134,7 @@ You also need to set
 
     USE_NODE = True
     
-in sefaria/local_settings.py. To run webpack with server-side rendering, use:
+in Django's `local_settings.py`. To run webpack with server-side rendering, use:
 
     npm run build
     
