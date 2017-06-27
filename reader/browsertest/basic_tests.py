@@ -129,9 +129,9 @@ class PresenceOfDownloadButtonOnTOC(AtomicTest):
 
         # Check that DL Button is visible and not clickable
         visible = self.driver.execute_script(
-            'var butt = $(".downloadButtonInner"); ' +\
-            'var butt_bot = butt.offset().top + butt.height(); ' +\
-            'var win_height = $(window).height(); ' +\
+            'var butt = document.getElementsByClassName("downloadButtonInner")[0]; ' +\
+            'var butt_bot = butt.getBoundingClientRect().top + butt.getBoundingClientRect().height; ' +\
+            'var win_height = window.innerHeight; ' +\
             'return win_height > butt_bot;'
         )
         assert visible, "Download button below page"
@@ -163,8 +163,8 @@ class ClickVersionedSearchResultDesktop(AtomicTest):
     single_panel = False
 
     def run(self):
-        self.load_toc().search_for("Dogs")
-        versionedResult = self.driver.find_element_by_css_selector('a[href="/Psalms.59.7/en/The_Rashi_Ketuvim_by_Rabbi_Shraga_Silverstein?qh=Dogs"]')
+        self.load_toc().search_for("they howl like dogs")
+        versionedResult = self.driver.find_element_by_css_selector('a[href="/Psalms.59.7/en/The_Rashi_Ketuvim_by_Rabbi_Shraga_Silverstein?qh=they howl like dogs"]')
         versionedResult.click()
         WebDriverWait(self.driver, TEMPER).until(staleness_of(versionedResult))
         assert "Psalms.59.7/en/The_Rashi_Ketuvim_by_Rabbi_Shraga_Silverstein" in self.driver.current_url, self.driver.current_url
@@ -195,8 +195,8 @@ class SaveNewSourceSheet(AtomicTest):
 
     def run(self):
         self.login_user()
-        self.driver.implicitly_wait(10)
         self.driver.get(self.base_url + "/sheets/new")
+        WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.ID, "inlineAdd")))
         textBox = self.driver.find_element_by_css_selector("#inlineAdd")
 
         textBox.send_keys("Genesis")

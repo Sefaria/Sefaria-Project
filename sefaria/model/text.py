@@ -496,7 +496,7 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
 
             # Data is being loaded from dict in old format, rewrite to new format
             # Assumption is that d has a complete title collection
-            if "schema" not in d and self.is_new():
+            if "schema" not in d:
                 node = getattr(self, "nodes", None)
                 if node:
                     node._init_titles()
@@ -881,6 +881,26 @@ class AbstractTextRecord(object):
                     t[i] = AbstractTextRecord.remove_html(v)
         elif isinstance(t, basestring):
             t = re.sub('<[^>]+>', u" ", t)
+        else:
+            return False
+        return t
+
+    @staticmethod
+    def remove_html_and_make_presentable(t):
+        if isinstance(t, list):
+            for i, v in enumerate(t):
+                if isinstance(v, basestring):
+                    t[i] = re.sub('<[^>]+>', u" ", v)
+                    t[i] = re.sub('[ ]{2,}', u" ", t[i])
+                    t[i] = re.sub('(\S) ([.?!,])', ur"\1\2", t[i])  # Remove spaces preceding punctuation
+                    t[i] = t[i].strip()
+                else:
+                    t[i] = AbstractTextRecord.remove_html_and_make_presentable(v)
+        elif isinstance(t, basestring):
+            t = re.sub('<[^>]+>', u" ", t)
+            t = re.sub('[ ]{2,}', u" ", t)
+            t = re.sub('(\S) ([.?!,])', ur"\1\2", t)  # Remove spaces preceding punctuation
+            t = t.strip()
         else:
             return False
         return t

@@ -98,4 +98,5 @@ client_secrets.json
 
 
 /random_files
-
+/static/bundles
+webpack-stats.*\.json
