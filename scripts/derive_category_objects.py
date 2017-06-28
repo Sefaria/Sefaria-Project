@@ -18,13 +18,12 @@ def visit_structure(treenode, callback, order=None, **kwargs):
         for i, node in enumerate(treenode.children):
             visit_structure(node, callback, i, **kwargs)
         if order is not None:  # skip root
-            callback(treenode, order, **kwargs)
+            callback(treenode, **kwargs)
 
 
-def create_category(treenode, order):
+def create_category(treenode):
     c = Category()
     c.add_primary_titles(treenode.primary_title("en"), treenode.primary_title("he"))
-    c.order = order + 1
     c.path = treenode.full_path
     c.save()
 

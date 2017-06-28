@@ -411,8 +411,6 @@ def toc_serial_to_objects(toc):
 
 
 class TocTree(object):
-    SEPARATOR = "/"
-
     def __init__(self):
         self._root = TocCategory()
         self._root.add_primary_titles("TOC", u"שרש")
@@ -438,12 +436,17 @@ class TocTree(object):
 
     def _sort(self):
         def _explicit_order_and_title(node):
-            if isinstance(node, TocCategory):
-                return getattr(node, "order", 1)  # First, already sorted
-            elif hasattr(node, "order"):
-                return 100 + getattr(node, "order")  # Explicitly ordered Indexes
-            else:
-                return node.primary_title("en")  # Least sparse to most sparse
+            title = node.primary_title("en")
+            try:
+                return ORDER.index(title)
+            except ValueError:
+                if isinstance(node, TocCategory):
+                    temp_cat_name = title.replace(" Commentaries", "")
+                    if temp_cat_name in TOP_CATEGORIES:
+                        return ORDER.index(temp_cat_name) + 0.5
+                    return 'zz' + title
+                else:
+                    return getattr(node, "order", title)
 
         def _sparseness_order(node):
             if isinstance(node, TocCategory) or hasattr(node, "order"):
@@ -453,6 +456,7 @@ class TocTree(object):
         for cat in self._path_hash.values():  # iterate all categories
             cat.children.sort(key=_explicit_order_and_title)
             cat.children.sort(key=_sparseness_order)
+            cat.children.sort(key=lambda node: 'zzz' + node.primary_title("en") if isinstance(node, TocCategory) and node.primary_title("en") in REVERSE_ORDER else 'a')
 
     def _make_index_node(self, index):
         d = index.toc_contents()

@@ -8,15 +8,8 @@ class Category(schema.AbstractTitledRecord):
     collection = 'category'
 
     required_attrs = ["titles", "path"]
-    optional_attrs = ["order", "enDesc", "heDesc"]
+    optional_attrs = ["enDesc", "heDesc"]
 
 
 class CategorySet(abstract.AbstractMongoSet):
     recordClass = Category
-
-
-'''
-"category",
-"heCategory"
-'''
-
