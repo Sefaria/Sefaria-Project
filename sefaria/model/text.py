@@ -726,7 +726,8 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
             {'$and': [orig_ref.ref_regex_query(), base_text_ref.ref_regex_query()], 'is_first_comment': True}
         )
         if not first_link:
-            return orig_ref.first_available_section_ref().section_ref().normal()
+            firstSection = orig_ref.first_available_section_ref()
+            return firstSection.section_ref().normal() if firstSection else None
         else:
             if orig_ref.contains(Ref(first_link.refs[0])):
                 return Ref(first_link.refs[0]).section_ref().normal()
