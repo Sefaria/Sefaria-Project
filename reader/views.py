@@ -60,6 +60,12 @@ logger = logging.getLogger(__name__)
 
 @ensure_csrf_cookie
 def reader(request, tref, lang=None, version=None):
+
+    # if lang parameter has not been set
+    # then pull it off of the request query parameters
+    if lang is None:
+        lang =  request.GET.get('lang', None)
+
     # Redirect to standard URLs
     def reader_redirect(uref, lang, version):
         url = "/" + uref
