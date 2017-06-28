@@ -485,6 +485,7 @@ class TocTextIndex(TocNode):
         "collectiveTitle",
         "base_text_titles",
         "base_text_mapping",
+        "refs_to_base_texts",
         "heCollectiveTitle",
         "commentator",
         "heCommentator"

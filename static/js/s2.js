@@ -665,9 +665,9 @@ var ReaderApp = React.createClass({
       sheetsGroup: state.group || null,
       searchQuery: state.searchQuery || null,
       appliedSearchFilters: state.appliedSearchFilters || [],
-      searchFieldExact: "hebmorph_semi_exact",
+      searchFieldExact: "exact",
       searchFieldBroad: "naive_lemmatizer",
-      searchField: state.searchField || "hebmorph_semi_exact",
+      searchField: state.searchField || "naive_lemmatizer",
       searchSortType: state.searchSortType || "relevance",
       searchFiltersValid: state.searchFiltersValid || false,
       availableFilters: state.availableFilters || [],
@@ -1791,7 +1791,7 @@ var ReaderPanel = React.createClass({
       sheetsGroup: this.props.initialGroup || null,
       searchQuery: this.props.initialQuery || null,
       appliedSearchFilters: this.props.initialAppliedSearchFilters || [],
-      searchFieldExact: "hebmorph_semi_exact",
+      searchFieldExact: "exact",
       searchFieldBroad: "naive_lemmatizer",
       searchField: this.props.initialSearchField || "naive_lemmatizer",
       searchSortType: this.props.initialSearchSortType || "chronological",
@@ -10255,6 +10255,7 @@ var SearchResultList = React.createClass({
       from: last,
       field: field,
       sort_type: this.props.sortType,
+      exact: this.props.exactField === this.props.field,
       error: function error() {},
       success: function (data) {
         var nextHits;
@@ -10304,6 +10305,7 @@ var SearchResultList = React.createClass({
       size: this.initialQuerySize,
       field: "content",
       sort_type: "chronological",
+      exact: true,
       success: function (data) {
         this.updateRunningQuery("sheet", null, false);
         this.setState({
@@ -10327,6 +10329,7 @@ var SearchResultList = React.createClass({
       size: this.initialQuerySize,
       field: props.field,
       sort_type: props.sortType,
+      exact: props.exactField === props.field,
       success: function (data) {
         this.updateRunningQuery("text", null, false);
         var hitArray = this._remove_duplicate_text_hits(this._process_text_hits(data.hits.hits));
@@ -10946,9 +10949,9 @@ var SearchFilterPanel = React.createClass({
         ),
         React.createElement(
           'div',
-          { className: Sefaria.hebrew.isHebrew(this.props.query) ? "searchFilterExactBox" : "searchFilterExactBox hidden" },
+          { className: "searchFilterExactBox" },
           React.createElement(SearchFilterExactBox, {
-            selected: !this.props.isExactSearch,
+            selected: this.props.isExactSearch,
             checkBoxClick: this.props.toggleExactSearch
           })
         ),
@@ -11099,7 +11102,7 @@ var SearchFilterExactBox = React.createClass({
         React.createElement(
           'span',
           { className: 'filter-title' },
-          "Show word variants"
+          "Exact search"
         )
       ),
       React.createElement(
@@ -11108,7 +11111,7 @@ var SearchFilterExactBox = React.createClass({
         React.createElement(
           'span',
           { className: 'filter-title' },
-          "חיפוש מרוחב"
+          "חיפוש מדויק"
         )
       )
     );

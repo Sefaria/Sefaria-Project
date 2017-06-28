@@ -1095,9 +1095,7 @@ Sefaria = extend(Sefaria, {
         var curTocElem = toc[i];
         if (curTocElem.title) { //this is a book
             if(curTocElem.dependence == 'Commentary'){
-                //if((title && curTocElem.base_text_titles && curTocElem.base_text_titles.filter(function(btitle){ return btitle["title"] == title}).length == 1)
-                if((title && curTocElem.base_text_titles && Sefaria.util.inArray(title, curTocElem.base_text_titles) != -1) ||
-                    (title == null)){
+                if((title && curTocElem.base_text_titles && (title in curTocElem.refs_to_base_texts)) || (title == null)){
                     results.push(curTocElem);
                 }
             }
@@ -1418,7 +1416,7 @@ Sefaria = extend(Sefaria, {
     }
   },
   search: {
-      baseUrl: Sefaria.searchBaseUrl + "/" + Sefaria.searchIndex + "-d" + "/_search",
+      baseUrl: Sefaria.searchBaseUrl + "/" + Sefaria.searchIndex + "/_search",
       _cache: {},
       cache: function(key, result) {
           if (result !== undefined) {
@@ -1438,13 +1436,14 @@ Sefaria = extend(Sefaria, {
            applied_filters: filter query by these filters
            field: field to query in elastic_search
            sort_type: chonological or relevance
+           exact: if query is exact
            success: callback on success
            error: callback on error
            */
           if (!args.query) {
               return;
           }
-          var req = JSON.stringify(Sefaria.search.get_query_object(args.query, args.get_filters, args.applied_filters, args.size, args.from, args.type, args.field, args.sort_type));
+          var req = JSON.stringify(Sefaria.search.get_query_object(args.query, args.get_filters, args.applied_filters, args.size, args.from, args.type, args.field, args.sort_type, args.exact));
           var cache_result = this.cache(req);
           if (cache_result) {
               args.success(cache_result);
@@ -1466,7 +1465,7 @@ Sefaria = extend(Sefaria, {
               error: args.error
           });
       },
-      get_query_object: function (query, get_filters, applied_filters, size, from, type, field, sort_type) {
+      get_query_object: function (query, get_filters, applied_filters, size, from, type, field, sort_type, exact) {
           /*
            Only the first argument - "query" - is required.
 
@@ -1476,8 +1475,9 @@ Sefaria = extend(Sefaria, {
            size: int - number of results to request
            from: int - start from result # (skip from - 1 results)
            type: string - currently either "texts" or "sheets"
-           field: string - which field to query. this essentially changes the exactness of the search. right now, 'content', 'aggresive_ngrams', 'naive_lemmatizer', 'hebmorph_standard', 'hebmorph_semi_exact'
+           field: string - which field to query. this essentially changes the exactness of the search. right now, 'exact' or 'naive_lemmatizer'
            sort_type: "relevance", "chronological"
+           exact: boolean. true if query should be exact
            */
 
 
@@ -1491,8 +1491,7 @@ Sefaria = extend(Sefaria, {
               "query": query.replace(/(\S)"(\S)/g, '$1\u05f4$2'), //Replace internal quotes with gershaim.
           };
 
-          if (field != "hebmorph_semi_exact" && field != "content") {
-              //TODO: this is hacky. just for beta right now. add slop to query
+          if (!exact) {
               core_query['match_phrase'][field]['slop'] = 10;
           }
 
