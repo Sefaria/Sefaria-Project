@@ -3055,11 +3055,10 @@ function buildSource($target, source, appendOrInsert) {
 					var commentHtml = "<div " + attributionData + " data-node='" + source.node + "'><span class='commentIcon'><i class='fa fa-comment-o fa'></i></span>" +
 						("userLink" in source ? "<div class='addedBy s2AddedBy'>" + source.userLink + "</div>" : "")	+
 						"<div class='comment " + (isHebrew(source.comment) ? "he " : "") + (sjs.loading ? "" : "new") + " '>" + source.comment + "</div>" +
-						  "</div>";
+						appendInlineAddButton() + "</div>";
 
 		}
 
-		commentHtml = appendInlineAddButton(commentHtml);
 		if (appendOrInsert == "append") {
 			$target.append(commentHtml);
 		}
@@ -3079,8 +3078,8 @@ function buildSource($target, source, appendOrInsert) {
 								"<div class='clear'></div>" +
 							"</div>" +
 							("userLink" in source ? "<div class='addedBy'>Added by " + source.userLink + "</div>" : "") +
+							appendInlineAddButton() +
 						  "</li>";
-		outsideHtml = appendInlineAddButton(outsideHtml);
 		if (appendOrInsert == "append") {
 			$target.append(outsideHtml);
 		}
@@ -3096,8 +3095,8 @@ function buildSource($target, source, appendOrInsert) {
 							"<div class='sourceNumber he'></div><div class='sourceNumber en'></div>" + 
 							"<div class='outside " + (sjs.loading ? "" : "new ") + (isHebrew(source.outsideText.stripHtml()) ? "he" : "en") + "'>" + source.outsideText + "</div>" +
 							("userLink" in source ? "<div class='addedBy'>Added by " + source.userLink + "</div>" : "") +
+							appendInlineAddButton() +
 						  "</li>";
-		outsideHtml = appendInlineAddButton(outsideHtml);
 		if (appendOrInsert == "append") {
 			$target.append(outsideHtml);
 		}
@@ -3132,8 +3131,8 @@ function buildSource($target, source, appendOrInsert) {
 							"<div class='sourceNumber he'></div><div class='sourceNumber en'></div>" + 
 							"<div class='media " + (sjs.loading ? "" : "new") + "'>" + mediaLink + "</div>" +
 							("userLink" in source ? "<div class='addedBy'>Added by " + source.userLink + "</div>" : "") +
+							appendInlineAddButton() +
 						  "</li>";
-		outsideHtml = appendInlineAddButton(outsideHtml);
 				if (appendOrInsert == "append") {
 					$target.append(outsideHtml);
 				}
@@ -3157,8 +3156,8 @@ function buildSource($target, source, appendOrInsert) {
 								"<div class='clear'></div>" +
 							"</div>" +
 							("userLink" in source ? "<div class='addedBy'>Added by " + source.userLink + "</div>" : "") +
+							appendInlineAddButton() +
 						  "</li>";
-		outsideHtml = appendInlineAddButton(outsideHtml);
 				if (appendOrInsert == "append") {
 					$target.append(outsideHtml);
 				}
@@ -3168,15 +3167,13 @@ function buildSource($target, source, appendOrInsert) {
 }
 
 function appendInlineAddButton(source) {
-	if (!source) {
-		source = ''
-		}
-	if ($.cookie("s2") == "true") {
 		if (sjs.is_owner||sjs.can_edit||sjs.can_add) {
-			source = source + "<div class='inlineAddButton'><i class='inlineAddButtonIcon'></i></div>";
+			button = "<div class='inlineAddButton'><i class='inlineAddButtonIcon'></i></div>";
 		}
-	}
-	return source
+		else {
+			button = "";
+		}
+	return button
 }
 
 
