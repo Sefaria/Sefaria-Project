@@ -643,7 +643,7 @@ var ReaderApp = React.createClass({
       appliedSearchFilters: state.appliedSearchFilters || [],
       searchFieldExact:     "exact",
       searchFieldBroad:     "naive_lemmatizer",
-      searchField:          state.searchField          || "exact",
+      searchField:          state.searchField          || "naive_lemmatizer",
       searchSortType:       state.searchSortType       || "relevance",
       searchFiltersValid:   state.searchFiltersValid   || false,
       availableFilters:     state.availableFilters     || [],
@@ -8084,6 +8084,7 @@ var SearchResultList = React.createClass({
         from: last,
         field: field,
         sort_type: this.props.sortType,
+        exact: this.props.exactField === this.props.field,
         error: function() {  console.log("Failure in SearchResultList._loadRemainder"); },
         success: function(data) {
           var nextHits;
@@ -8133,6 +8134,7 @@ var SearchResultList = React.createClass({
             size: this.initialQuerySize,
             field: "content",
             sort_type: "chronological",
+            exact: true,
             success: function(data) {
                 this.updateRunningQuery("sheet", null, false);
                   this.setState({
@@ -8157,6 +8159,7 @@ var SearchResultList = React.createClass({
             size: this.initialQuerySize,
             field: props.field,
             sort_type: props.sortType,
+            exact: props.exactField === props.field,
             success: function(data) {
                 this.updateRunningQuery("text", null, false);
                 var hitArray = this._remove_duplicate_text_hits(this._process_text_hits(data.hits.hits));
@@ -8713,7 +8716,7 @@ var SearchFilterPanel = React.createClass({
           }.bind(this))}
           </div>
         </div>
-        <div className={(Sefaria.hebrew.isHebrew(this.props.query)) ? "searchFilterExactBox" : "searchFilterExactBox hidden"}>
+        <div className={"searchFilterExactBox"}>
           <SearchFilterExactBox
             selected={this.props.isExactSearch}
             checkBoxClick={this.props.toggleExactSearch}
