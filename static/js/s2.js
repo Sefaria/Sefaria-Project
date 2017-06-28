@@ -11026,50 +11026,56 @@ var SearchSortBox = React.createClass({
         'div',
         { className: this.props.visible ? "searchSortBox" : "searchSortBox hidden" },
         React.createElement(
-          'li',
-          { onClick: function onClick() {
-              return _this12.handleClick("chronological");
-            } },
+          'table',
+          null,
           React.createElement(
-            'span',
-            { className: 'int-en' },
+            'tr',
+            { className: releClass, onClick: function onClick() {
+                return _this12.handleClick("relevance");
+              } },
             React.createElement(
-              'span',
-              { className: chronoClass },
-              "Chronological"
+              'td',
+              null,
+              React.createElement('img', { className: 'searchSortCheck', src: '/static/img/check-mark.svg', alt: 'relevance sort selected' })
+            ),
+            React.createElement(
+              'td',
+              null,
+              React.createElement(
+                'span',
+                { className: 'int-en' },
+                "Relevance"
+              ),
+              React.createElement(
+                'span',
+                { className: 'int-he', dir: 'rtl' },
+                "רלוונטיות"
+              )
             )
           ),
           React.createElement(
-            'span',
-            { className: 'int-he', dir: 'rtl' },
+            'tr',
+            { className: chronoClass, onClick: function onClick() {
+                return _this12.handleClick("chronological");
+              } },
             React.createElement(
-              'span',
-              { className: chronoClass },
-              "כרונולוגי"
-            )
-          )
-        ),
-        React.createElement(
-          'li',
-          { onClick: function onClick() {
-              return _this12.handleClick("relevance");
-            } },
-          React.createElement(
-            'span',
-            { className: 'int-en' },
+              'td',
+              null,
+              React.createElement('img', { className: 'searchSortCheck', src: '/static/img/check-mark.svg', alt: 'chronological sort selected' })
+            ),
             React.createElement(
-              'span',
-              { className: releClass },
-              "Relevance"
-            )
-          ),
-          React.createElement(
-            'span',
-            { className: 'int-he', dir: 'rtl' },
-            React.createElement(
-              'span',
-              { className: releClass },
-              "רלוונטיות"
+              'td',
+              null,
+              React.createElement(
+                'span',
+                { className: 'int-en' },
+                "Chronological"
+              ),
+              React.createElement(
+                'span',
+                { className: 'int-he', dir: 'rtl' },
+                "כרונולוגי"
+              )
             )
           )
         )
