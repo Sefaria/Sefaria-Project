@@ -42,20 +42,20 @@ def handle_dependant_indices(title):
         record.save()
 
 
-def insert_last_child(new_node, parent_node, invalid=False):
-    return attach_branch(new_node, parent_node, len(parent_node.children), invalid)
+def insert_last_child(new_node, parent_node, skip_dependencies=False):
+    return attach_branch(new_node, parent_node, len(parent_node.children), skip_dependencies)
 
 
-def insert_first_child(new_node, parent_node, invalid=False):
-    return attach_branch(new_node, parent_node, 0, invalid)
+def insert_first_child(new_node, parent_node, skip_dependencies=False):
+    return attach_branch(new_node, parent_node, 0, skip_dependencies)
 
 
-def attach_branch(new_node, parent_node, place=0, invalid=False):
+def attach_branch(new_node, parent_node, place=0, skip_dependencies=False):
     """
     :param new_node: A schema node tree to attach
     :param parent_node: The parent to attach it to
     :param place: The index of the child before which to insert, so place=0 inserts at the front of the list, and place=len(parent_node.children) inserts at the end
-    :param invalid: Specify this to be True when you believe that after attaching new_node to parent_node, calling
+    :param skip_dependencies: Specify this to be True when you believe that after attaching new_node to parent_node, calling
     either library.rebuild() or refresh_version_state() will result in an error. In normal cases, 'invalid' should be set to False.
     :return:
     """
@@ -81,7 +81,7 @@ def attach_branch(new_node, parent_node, place=0, invalid=False):
     new_node.parent = parent_node
 
     index.save(override_dependencies=True)
-    if not invalid:
+    if not skip_dependencies:
         library.rebuild()
         refresh_version_state(index.title)
         handle_dependant_indices(index.title)
@@ -225,6 +225,7 @@ def convert_jagged_array_to_schema_with_default(ja_node):
     handle_dependant_indices(index.title)
 
 
+
 def convert_simple_index_to_complex(index):
     """
     The target complex text will have a 'default' node.
@@ -276,10 +277,17 @@ def change_parent(node, new_parent, place=0, index=None):
     but the library hasn't been rebuilt. In this case, its index attribute will be None (see attach_branch())
     :return:
     """
+    def rewriter(string):
+        return string.replace(old_parent_title, new_parent_title)
+
+    def needs_rewrite(string, *args):
+        return string.find(old_normal_form) == 0
+
     assert isinstance(node, SchemaNode)
     assert isinstance(new_parent, SchemaNode)
     assert place <= len(new_parent.children)
     old_parent = node.parent
+    old_normal_form = node.ref().normal()
     if new_parent.index:
         index = new_parent.index
 
@@ -296,11 +304,15 @@ def change_parent(node, new_parent, place=0, index=None):
     new_parent.children.insert(place, node)
     node.parent = new_parent
 
-
     index.save(override_dependencies=True)
     library.rebuild()
     refresh_version_state(index.title)
     handle_dependant_indices(index.title)
+
+    old_parent_title = [title['text'] for title in old_parent.get_titles() if title['lang'] == 'en' and "primary" in title and title["primary"]][0]
+    new_parent_title = [title['text'] for title in new_parent.get_titles() if title['lang'] == 'en' and "primary" in title and title["primary"]][0]
+
+    cascade(index.title, rewriter=rewriter, needs_rewrite=needs_rewrite)
 
 
 
