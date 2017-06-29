@@ -8904,14 +8904,26 @@ class SearchSortBox extends Component {
 
       </div>
       <div className={(this.props.visible) ? "searchSortBox" :"searchSortBox hidden"}>
-        <li onClick={()=>this.handleClick("chronological")}>
-          <span className="int-en"><span className={chronoClass}>{"Chronological"}</span></span>
-          <span className="int-he" dir="rtl"><span className={chronoClass}>{"כרונולוגי"}</span></span>
-        </li>
-        <li onClick={()=>this.handleClick("relevance")}>
-          <span className="int-en"><span className={releClass}>{"Relevance"}</span></span>
-          <span className="int-he" dir="rtl"><span className={releClass}>{"רלוונטיות"}</span></span>
-        </li>
+        <table>
+          <tr  className={releClass} onClick={()=>this.handleClick("relevance")}>
+            <td>
+              <img className="searchSortCheck" src="/static/img/check-mark.svg" alt="relevance sort selected"/>
+            </td>
+            <td>
+              <span className="int-en">{"Relevance"}</span>
+              <span className="int-he" dir="rtl">{"רלוונטיות"}</span>
+            </td>
+          </tr>
+          <tr className={chronoClass} onClick={()=>this.handleClick("chronological")}>
+            <td>
+              <img className="searchSortCheck" src="/static/img/check-mark.svg" alt="chronological sort selected"/>
+            </td>
+            <td>
+              <span className="int-en">{"Chronological"}</span>
+              <span className="int-he" dir="rtl">{"כרונולוגי"}</span>
+            </td>
+          </tr>
+        </table>
       </div>
     </div>);
   }
