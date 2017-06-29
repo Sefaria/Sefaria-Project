@@ -1752,6 +1752,10 @@ a.readerNavCategory {
 .searchContent .result .result-title:hover {
   text-decoration: underline;
 }
+.readerPanel.english .searchContent .result .result-title .en,
+.readerPanel.hebrew .searchContent .result .result-title .he {
+  display: block;
+}
 .searchContent .text_result .snippet {
   color: #333;
   font-size: 1.8em;
