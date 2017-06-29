@@ -643,7 +643,7 @@ var ReaderApp = React.createClass({
       appliedSearchFilters: state.appliedSearchFilters || [],
       searchFieldExact:     "exact",
       searchFieldBroad:     "naive_lemmatizer",
-      searchField:          state.searchField          || "exact",
+      searchField:          state.searchField          || "naive_lemmatizer",
       searchSortType:       state.searchSortType       || "relevance",
       searchFiltersValid:   state.searchFiltersValid   || false,
       availableFilters:     state.availableFilters     || [],
@@ -3597,7 +3597,10 @@ var TextTableOfContentsNavigation = React.createClass({
         break;
       case "commentary":
         var content = <CommentatorList
-                        commentatorList={this.props.commentatorList} />;
+                        commentatorList={this.props.commentatorList}
+                        title={this.props.title} />;
+
+
         break;
       case "versions":
         var content = <VersionsList
@@ -3902,11 +3905,13 @@ var ArrayMapNode = React.createClass({
 
 var CommentatorList = React.createClass({
   propTypes: {
-    commentatorList: React.PropTypes.array.isRequired
+    commentatorList: React.PropTypes.array.isRequired,
+      title:         React.PropTypes.string.isRequired
   },
   render: function() {
+    console.log(this.props.commentatorList);
     var content = this.props.commentatorList.map(function(commentator, i) {
-      var ref = commentator.firstSection;
+      var ref = commentator.refs_to_base_texts[this.props.title];
       return (<a className="refLink linked" href={Sefaria.normRef(ref)} data-ref={ref} key={i}>
                 <span className="he">{commentator.heCollectiveTitle}</span>
                 <span className="en">{commentator.collectiveTitle}</span>
@@ -8079,6 +8084,7 @@ var SearchResultList = React.createClass({
         from: last,
         field: field,
         sort_type: this.props.sortType,
+        exact: this.props.exactField === this.props.field,
         error: function() {  console.log("Failure in SearchResultList._loadRemainder"); },
         success: function(data) {
           var nextHits;
@@ -8128,6 +8134,7 @@ var SearchResultList = React.createClass({
             size: this.initialQuerySize,
             field: "content",
             sort_type: "chronological",
+            exact: true,
             success: function(data) {
                 this.updateRunningQuery("sheet", null, false);
                   this.setState({
@@ -8152,6 +8159,7 @@ var SearchResultList = React.createClass({
             size: this.initialQuerySize,
             field: props.field,
             sort_type: props.sortType,
+            exact: props.exactField === props.field,
             success: function(data) {
                 this.updateRunningQuery("text", null, false);
                 var hitArray = this._remove_duplicate_text_hits(this._process_text_hits(data.hits.hits));
@@ -8708,7 +8716,7 @@ var SearchFilterPanel = React.createClass({
           }.bind(this))}
           </div>
         </div>
-        <div className={(Sefaria.hebrew.isHebrew(this.props.query)) ? "searchFilterExactBox" : "searchFilterExactBox hidden"}>
+        <div className={"searchFilterExactBox"}>
           <SearchFilterExactBox
             selected={this.props.isExactSearch}
             checkBoxClick={this.props.toggleExactSearch}
@@ -8766,14 +8774,26 @@ var SearchSortBox = React.createClass({
 
       </div>
       <div className={(this.props.visible) ? "searchSortBox" :"searchSortBox hidden"}>
-        <li onClick={()=>this.handleClick("chronological")}>
-          <span className="int-en"><span className={chronoClass}>{"Chronological"}</span></span>
-          <span className="int-he" dir="rtl"><span className={chronoClass}>{"כרונולוגי"}</span></span>
-        </li>
-        <li onClick={()=>this.handleClick("relevance")}>
-          <span className="int-en"><span className={releClass}>{"Relevance"}</span></span>
-          <span className="int-he" dir="rtl"><span className={releClass}>{"רלוונטיות"}</span></span>
-        </li>
+        <table>
+          <tr  className={releClass} onClick={()=>this.handleClick("relevance")}>
+            <td>
+              <img className="searchSortCheck" src="/static/img/check-mark.svg" alt="relevance sort selected"/>
+            </td>
+            <td>
+              <span className="int-en">{"Relevance"}</span>
+              <span className="int-he" dir="rtl">{"רלוונטיות"}</span>
+            </td>
+          </tr>
+          <tr className={chronoClass} onClick={()=>this.handleClick("chronological")}>
+            <td>
+              <img className="searchSortCheck" src="/static/img/check-mark.svg" alt="chronological sort selected"/>
+            </td>
+            <td>
+              <span className="int-en">{"Chronological"}</span>
+              <span className="int-he" dir="rtl">{"כרונולוגי"}</span>
+            </td>
+          </tr>
+        </table>
       </div>
     </div>);
   }
