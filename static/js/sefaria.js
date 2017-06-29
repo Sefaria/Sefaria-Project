@@ -2601,6 +2601,7 @@ Sefaria.hebrew = {
   },
   encodeHebrewNumeral: function(n) {
     // Takes an integer and returns a string encoding it as a Hebrew numeral.
+    n = parseInt(n);
     if (n >= 1300) {
       return n;
     }
