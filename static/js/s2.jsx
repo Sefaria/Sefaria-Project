@@ -1948,17 +1948,6 @@ class ReaderPanel extends Component {
         if (Sefaria.site) { Sefaria.site.track.event("Reader", "Change Language", "hebrew");}
     }
   }
-  openCommentary(commentator) {
-    // Tranforms a connections panel into an text panel with a particular commentary
-    var baseRef = this.state.refs[0];
-    var links   = Sefaria._filterLinks(Sefaria.links(baseRef), [commentator]);
-    if (links.length) {
-      var ref = links[0].sourceRef;
-      // TODO, Hack - stripping at last : to get section level ref for commentary. Breaks for Commentary2?
-      ref = ref.substring(0, ref.lastIndexOf(':'));
-      this.showBaseText(ref);
-    }
-  }
   openSearch(query) {
     this.conditionalSetState({
       menuOpen: "search",
@@ -7119,6 +7108,7 @@ class CategoryFilter extends Component {
     }
   }
   render() {
+    var filterSuffix = this.props.category  == "Quoting Commentary" ? "|Quoting" : null;
     var textFilters = this.props.showBooks ? this.props.books.map(function(book, i) {
      return (<TextFilter 
                 srefs={this.props.srefs}
@@ -7129,6 +7119,7 @@ class CategoryFilter extends Component {
                 category={this.props.category}
                 hideColors={true}
                 updateRecent={true}
+                filterSuffix={filterSuffix}
                 setFilter={this.props.setFilter}
                 on={Sefaria.util.inArray(book.book, this.props.filter) !== -1} />);
     }.bind(this)) : null;
@@ -7165,7 +7156,7 @@ CategoryFilter.propTypes = {
   filter:                 PropTypes.array.isRequired, 
   updateRecent:           PropTypes.bool.isRequired, 
   setFilter:              PropTypes.func.isRequired, 
-  setConnectionsCategory: PropTypes.func.isRequired, 
+  setConnectionsCategory: PropTypes.func.isRequired,
   on:                     PropTypes.bool, 
 };
 
@@ -7174,10 +7165,11 @@ class TextFilter extends Component {
   // A clickable representation of connections by Text or Commentator
   handleClick(e) {
     e.preventDefault();
-    this.props.setFilter(this.props.book, this.props.updateRecent);
+    var filter = this.props.filterSuffix ? this.props.book + this.props.filterSuffix : this.props.book;
+    this.props.setFilter(filter, this.props.updateRecent);
     if (Sefaria.site) {
-      if (this.props.inRecentFilters) { Sefaria.site.track.event("Reader", "Text Filter in Recent Click", this.props.book); }
-      else { Sefaria.site.track.event("Reader", "Text Filter Click", this.props.book); }
+      if (this.props.inRecentFilters) { Sefaria.site.track.event("Reader", "Text Filter in Recent Click", filter); }
+      else { Sefaria.site.track.event("Reader", "Text Filter Click", filter); }
     }
   }
   render() {
@@ -7211,6 +7203,7 @@ TextFilter.propTypes = {
   setFilter:       PropTypes.func.isRequired,
   updateRecent:    PropTypes.bool,
   inRecentFilters: PropTypes.bool,
+  filterSuffix:    PropTypes.string,  // Optionally add a string to the filter parameter set (but not displayed)
 };
 
 
@@ -7220,13 +7213,12 @@ class TextList extends Component {
     this.state = {
       linksLoaded: false, // has the list of refs been loaded
       textLoaded:  false, // has the text of those refs been loaded
-      waitForText: false, // should we delay rendering texts until preload is finished
+      waitForText: true,  // should we delay rendering texts until preload is finished
     }
   }
   componentDidMount() {
     this._isMounted = true;
     this.loadConnections();
-    this.scrollToHighlighted();
   }
   componentWillUnmount() {
     this._isMounted = false;
@@ -7235,19 +7227,10 @@ class TextList extends Component {
     this.preloadText(nextProps.filter);
   }
   componentWillUpdate(nextProps) {
-
   }
   componentDidUpdate(prevProps, prevState) {
-    if (prevProps.filter.length && !this.props.filter.length) {
-      this.scrollToHighlighted();
-    }
-    if (!prevProps.filter.compare(this.props.filter)) {
-      this.scrollToHighlighted();
-    } else if (!prevState.textLoaded && this.state.textLoaded) {
-      this.scrollToHighlighted();
-    } else if (!prevProps.srefs.compare(this.props.srefs)) {
+    if (!prevProps.srefs.compare(this.props.srefs)) {
       this.loadConnections();
-      this.scrollToHighlighted();
     }
   }
   getSectionRef() {
@@ -7275,12 +7258,16 @@ class TextList extends Component {
   preloadText(filter) {
     // Preload text of links if `filter` is a single commentary, or all commentary
     if (filter.length == 1 &&
-        Sefaria.index(filter[0]) && 
-        (Sefaria.index(filter[0]).categories[0] == "Commentary" ||
+        Sefaria.index(filter[0]) && // filterSuffix for quoting commmentary prevents this path for QC
+        (Sefaria.index(filter[0]).categories[0] == "Commentary"||
          Sefaria.index(filter[0]).primary_category == "Commentary")) {
+      // Individual commentator names ("Rashi") are put into Sefaria.index with "Commentary" as first category
+      // Intentionally fails when looking up "Rashi on Genesis", which indicates we're looking at a quoting commentary.
       this.preloadSingleCommentaryText(filter);
+    
     } else if (filter.length == 1 && filter[0] == "Commentary") {
       this.preloadAllCommentaryText(filter);
+    
     } else {
       this.setState({waitForText: false, textLoaded: false});
     }
@@ -7346,26 +7333,10 @@ class TextList extends Component {
       this.setState({textLoaded: true});
     }
   }
-  scrollToHighlighted() {
-    if (this.props.fullPanel) {
-      return; // We don't currently have any situations where there is lowlighted content in fullpanel sidebar
-    }
-    window.requestAnimationFrame(function() {
-      if (!this._isMounted) { return; }
-      var $highlighted = $(ReactDOM.findDOMNode(this)).find(".texts .textRange").not(".lowlight").first();
-      if ($highlighted.length) {
-        var $texts = $(ReactDOM.findDOMNode(this)).find(".texts");
-        var adjust = parseInt($texts.css("padding-top")) + 18;
-        $texts.scrollTo($highlighted, 0, {offset: -adjust});
-      }
-    }.bind(this));
-  }
-  render() {
+  getLinks() {
     var refs               = this.props.srefs;
-    var oref               = Sefaria.ref(refs[0]);
     var filter             = this.props.filter;
     var sectionRef         = this.getSectionRef();
-    var isSingleCommentary = (filter.length == 1 && Sefaria.index(filter[0]) && Sefaria.index(filter[0]).categories[0] == "Commentary");
 
     var sortConnections = function(a, b) {
       if (a.anchorVerse !== b.anchorVerse) {
@@ -7385,20 +7356,26 @@ class TextList extends Component {
     }.bind(this);
 
     var sectionLinks = Sefaria.links(sectionRef);
-    var links        = sectionLinks.filter(function(link) {
-      if ( (this.props.multiPanel || !isSingleCommentary) &&
-          Sefaria.splitSpanningRef(link.anchorRef).every(aref => Sefaria.util.inArray(aref, refs) === -1)) {
-        // Only show section level links for an individual commentary on mobile
+    var links        = Sefaria._filterLinks(sectionLinks, filter);
+    links            = links.filter(function(link) {
+      if (Sefaria.splitSpanningRef(link.anchorRef).every(aref => Sefaria.util.inArray(aref, refs) === -1)) {
+        // Filter out every link in this section which does not overlap with current refs.
         return false;
       }
-      return (filter.length == 0 ||
-              Sefaria.util.inArray(link.category, filter) !== -1 ||
-              Sefaria.util.inArray(link.collectiveTitle["en"], filter) !== -1 );
-
+      return true;
     }.bind(this)).sort(sortConnections);
 
-    var en = "No connections known" + (filter.length ? " for " + filter.join(", ") : "") + ".";
-    var he = "אין קשרים ידועים"        + (filter.length ? " ל"    + filter.map(f => Sefaria.hebrewTerm(f)).join(", ") : "") + ".";
+    return links;
+  }
+  render() {
+    var refs               = this.props.srefs;
+    var oref               = Sefaria.ref(refs[0]);
+    var filter             = this.props.filter; // Remove filterSuffix for display 
+    var displayFilter      = filter.map(filter => filter.split("|")[0]);  // Remove filterSuffix for display 
+    var links              = this.getLinks();
+
+    var en = "No connections known" + (filter.length ? " for " + displayFilter.join(", ") + " here" : "") + ".";
+    var he = "אין קשרים ידועים"        + (filter.length ? " ל"    + displayFilter.map(f => Sefaria.hebrewTerm(f)).join(", ") : "") + ".";
     var noResultsMessage = <LoadingMessage message={en} heMessage={he} />;
     var message = !this.state.linksLoaded ? (<LoadingMessage />) : (links.length === 0 ? noResultsMessage : null);
     var content = links.length == 0 ? message :
@@ -7406,13 +7383,10 @@ class TextList extends Component {
                     (<LoadingMessage />) : 
                     links.map(function(link, i) {
                         var hideTitle = link.category === "Commentary" && this.props.filter[0] !== "Commentary";
-                        var anchorRefs = Sefaria.splitSpanningRef(link.anchorRef);
-                        var lowlight = anchorRefs.every(aref => Sefaria.util.inArray(aref, refs) === -1);
                         Sefaria.util.inArray(link.anchorRef, refs) === -1;
                         return (<div className="textListTextRangeBox" key={i + link.sourceRef}>
                                   <TextRange 
                                     sref={link.sourceRef}
-                                    lowlight={lowlight}
                                     hideTitle={hideTitle}
                                     numberLabel={link.category === "Commentary" ? link.anchorVerse : 0}
                                     basetext={false}
@@ -7527,13 +7501,16 @@ class RecentFilterSet extends Component {
     
     // Annotate filter texts with category            
     var recentFilters = this.props.recentFilters.map(function(filter) {
-      var index = Sefaria.index(filter);
+      var filterAndSuffix = filter.split("|");
+      filter              = filterAndSuffix[0];
+      var filterSuffix    = filterAndSuffix.length == 2 ? filterAndSuffix[1] : null;
+      var index           = Sefaria.index(filter);
       return {
           book: filter,
+          filterSuffix: filterSuffix,
           heBook: index ? index.heTitle : Sefaria.hebrewTerm(filter),
           category: index ? index.primary_category : filter };
     });
-    // recentFilters = recentFilters.concat(recentFilters).slice(0,5);
 
     // If the current filter is not already in the top set, put it first
     if (this.props.filter.length) {
@@ -7567,6 +7544,7 @@ class RecentFilterSet extends Component {
                 count={book.count}
                 updateRecent={false}
                 inRecentFilters={true}
+                filterSuffix={book.filterSuffix}
                 setFilter={this.props.setFilter}
                 on={Sefaria.util.inArray(book.book, this.props.filter) !== -1} />);
     }.bind(this));

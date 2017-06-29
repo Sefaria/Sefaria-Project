@@ -692,11 +692,25 @@ Sefaria = extend(Sefaria, {
     return links.length;
   },
   _filterLinks: function(links, filter) {
-     return links.filter(function(link){
-        return (filter.length == 0 ||
-                Sefaria.util.inArray(link.category, filter) !== -1 ||
-                Sefaria.util.inArray(link["collectiveTitle"]["en"], filter) !== -1 );
-      });
+    // Filters array `links` for only those thart match array `filter`.
+    // If `filter` ends with "|Quoting" return Quoting Commentary only, 
+    // otherwise commentary `filters` will return only links with type `commentary`
+    if (filter.length == 0) { return links; }
+
+    var filterAndSuffix = filter[0].split("|");
+    filter              = [filterAndSuffix[0]];
+    var isQuoting       = filterAndSuffix.length == 2 && filterAndSuffix[1] == "Quoting";
+    var index           = Sefaria.index(filter);
+    var isCommentary    = index && !isQuoting && 
+                            (index.categories[0] == "Commentary" || index.primary_category == "Commentary");
+
+    return links.filter(function(link){
+      if (isCommentary && link.category !== "Commentary") { return false; }
+      if (isQuoting && link.category !== "Quoting Commentary") { return false; }
+
+      return (Sefaria.util.inArray(link.category, filter) !== -1 ||
+              Sefaria.util.inArray(link["collectiveTitle"]["en"], filter) !== -1 );
+    });
   },
   _linkSummaries: {},
   linkSummary: function(ref) {
@@ -823,6 +837,9 @@ Sefaria = extend(Sefaria, {
     // Given a commentator name and a baseRef, return a ref to the commentary which spans the entire baseRef
     // E.g. ("Rashi", "Genesis 3") -> "Rashi on Genesis 3"
     // Works by examining links available on baseRef, returns null if no links are in cache. 
+    if (commentator == "Abarbanel") {
+      return null; // This text is too giant, optimizing up to section level is too slow.
+    }
     var links = Sefaria.links(baseRef);
     links = Sefaria._filterLinks(links, [commentator]);
     if (!links || !links.length) { return null; }
@@ -841,7 +858,8 @@ Sefaria = extend(Sefaria, {
       }
     }
     commentaryLink.toSections = commentaryLink.sections;
-    return Sefaria.humanRef(Sefaria.makeRef(commentaryLink));
+    var ref = Sefaria.humanRef(Sefaria.makeRef(commentaryLink));
+    return ref;
   },
   _notes: {},
   notes: function(ref, callback) {
