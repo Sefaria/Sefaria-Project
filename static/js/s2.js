@@ -10260,16 +10260,11 @@ var SearchResultList = React.createClass({
       exact: this.props.exactField === this.props.field,
       error: function error() {},
       success: function (data) {
-        var nextHits;
+        var nextHits = currentHits.concat(data.hits.hits);
         if (type === "text") {
-          var hitArray = this._process_text_hits(data.hits.hits);
-          nextHits = this._remove_duplicate_text_hits(currentHits.concat(hitArray));
-        } else {
-          nextHits = currentHits.concat(data.hits.hits);
+          nextHits = this._process_text_hits(nextHits);
         }
 
-        //var hitArray = (type == "text")?this._process_text_hits(data.hits.hits):data.hits.hits;
-        //var nextHits = this._remove_duplicate_text_hits(currentHits.concat(hitArray));
         this.state.hits[type] = nextHits;
 
         this.setState({ hits: this.state.hits });
@@ -10334,7 +10329,7 @@ var SearchResultList = React.createClass({
       exact: props.exactField === props.field,
       success: function (data) {
         this.updateRunningQuery("text", null, false);
-        var hitArray = this._remove_duplicate_text_hits(this._process_text_hits(data.hits.hits));
+        var hitArray = this._process_text_hits(data.hits.hits);
         this.setState({
           hits: extend(this.state.hits, { "text": hitArray }),
           totals: extend(this.state.totals, { "text": data.hits.total })
@@ -10372,47 +10367,38 @@ var SearchResultList = React.createClass({
       this.updateRunningQuery(null, null, false);
     }
   },
-  _remove_duplicate_text_hits: function _remove_duplicate_text_hits(hits) {
-
-    if (this.props.sortType != "relevance") {
-      return hits;
-    } else {
-      var refHash = {};
-      var newHits = hits.filter(function (result, iresult) {
-        var ref = result._source.ref;
-        var refExists = refHash[ref];
-        //only apply filter if you're sorting by relevance. sorting by chrono keeps refs in the correct order
-        if (!refExists) {
-          refHash[ref] = true;
-          //console.log("adding", ref, iresult);
-          return true;
-        } else {
-          //console.log("filtering", ref, iresult);
-          return false;
-        }
-      }).map(function (result) {
-        result.duplicates = null;
-        return result;
-      });
-      return newHits;
-    }
-  },
   _process_text_hits: function _process_text_hits(hits) {
-    var comparingRef = null;
     var newHits = [];
-
-    for (var i = 0, j = 0; i < hits.length; i++) {
-      var currentRef = hits[i]._source.ref;
-      if (currentRef == comparingRef) {
-        newHits[j - 1].duplicates = newHits[j - 1].duplicates || [];
-        newHits[j - 1].duplicates.push(hits[i]);
+    var newHitsObj = {}; // map ref -> index in newHits
+    for (var i = 0; i < hits.length; i++) {
+      var currRef = hits[i]._source.ref;
+      var newHitsIndex = newHitsObj[currRef];
+      if (typeof newHitsIndex != "undefined") {
+        newHits[newHitsIndex].duplicates = newHits[newHitsIndex].duplicates || [];
+        newHits[newHitsIndex].duplicates.push(hits[i]);
       } else {
-        newHits[j] = hits[i];
-        j++;
-        comparingRef = currentRef;
+        newHits.push(hits[i]);
+        newHitsObj[currRef] = newHits.length - 1;
       }
     }
     return newHits;
+
+    /*
+      var comparingRef = null;
+      var newHits = [];
+       for(var i = 0, j = 0; i < hits.length; i++) {
+          var currentRef = hits[i]._source.ref;
+          if(currentRef == comparingRef) {
+                newHits[j - 1].duplicates = newHits[j-1].duplicates || [];
+              newHits[j - 1].duplicates.push(hits[i]);
+          } else {
+              newHits[j] = hits[i];
+              j++;
+              comparingRef = currentRef;
+          }
+      }
+      return newHits;
+      */
   },
   _buildFilterTree: function _buildFilterTree(aggregation_buckets) {
     var _this10 = this;
@@ -11029,52 +11015,56 @@ var SearchSortBox = React.createClass({
           'table',
           null,
           React.createElement(
-            'tr',
-            { className: releClass, onClick: function onClick() {
-                return _this12.handleClick("relevance");
-              } },
+            'tbody',
+            null,
             React.createElement(
-              'td',
-              null,
-              React.createElement('img', { className: 'searchSortCheck', src: '/static/img/check-mark.svg', alt: 'relevance sort selected' })
-            ),
-            React.createElement(
-              'td',
-              null,
+              'tr',
+              { className: releClass, onClick: function onClick() {
+                  return _this12.handleClick("relevance");
+                } },
               React.createElement(
-                'span',
-                { className: 'int-en' },
-                "Relevance"
+                'td',
+                null,
+                React.createElement('img', { className: 'searchSortCheck', src: '/static/img/check-mark.svg', alt: 'relevance sort selected' })
               ),
               React.createElement(
-                'span',
-                { className: 'int-he', dir: 'rtl' },
-                "רלוונטיות"
+                'td',
+                null,
+                React.createElement(
+                  'span',
+                  { className: 'int-en' },
+                  "Relevance"
+                ),
+                React.createElement(
+                  'span',
+                  { className: 'int-he', dir: 'rtl' },
+                  "רלוונטיות"
+                )
               )
-            )
-          ),
-          React.createElement(
-            'tr',
-            { className: chronoClass, onClick: function onClick() {
-                return _this12.handleClick("chronological");
-              } },
-            React.createElement(
-              'td',
-              null,
-              React.createElement('img', { className: 'searchSortCheck', src: '/static/img/check-mark.svg', alt: 'chronological sort selected' })
             ),
             React.createElement(
-              'td',
-              null,
+              'tr',
+              { className: chronoClass, onClick: function onClick() {
+                  return _this12.handleClick("chronological");
+                } },
               React.createElement(
-                'span',
-                { className: 'int-en' },
-                "Chronological"
+                'td',
+                null,
+                React.createElement('img', { className: 'searchSortCheck', src: '/static/img/check-mark.svg', alt: 'chronological sort selected' })
               ),
               React.createElement(
-                'span',
-                { className: 'int-he', dir: 'rtl' },
-                "כרונולוגי"
+                'td',
+                null,
+                React.createElement(
+                  'span',
+                  { className: 'int-en' },
+                  "Chronological"
+                ),
+                React.createElement(
+                  'span',
+                  { className: 'int-he', dir: 'rtl' },
+                  "כרונולוגי"
+                )
               )
             )
           )
