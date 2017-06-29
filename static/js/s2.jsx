@@ -8203,16 +8203,11 @@ class SearchResultList extends Component {
         exact: this.props.exactField === this.props.field,
         error: function() {  console.log("Failure in SearchResultList._loadRemainder"); },
         success: function(data) {
-          var nextHits;
+          var nextHits = currentHits.concat(data.hits.hits);
           if (type === "text") {
-            var hitArray = this._process_text_hits(data.hits.hits);
-            nextHits = this._remove_duplicate_text_hits(currentHits.concat(hitArray));
-          } else {
-            nextHits = currentHits.concat(data.hits.hits);
+            nextHits = this._process_text_hits(nextHits);
           }
 
-          //var hitArray = (type == "text")?this._process_text_hits(data.hits.hits):data.hits.hits;
-          //var nextHits = this._remove_duplicate_text_hits(currentHits.concat(hitArray));
           this.state.hits[type] = nextHits;
 
           this.setState({hits: this.state.hits});
@@ -8278,7 +8273,7 @@ class SearchResultList extends Component {
             exact: props.exactField === props.field,
             success: function(data) {
                 this.updateRunningQuery("text", null, false);
-                var hitArray = this._remove_duplicate_text_hits(this._process_text_hits(data.hits.hits));
+                var hitArray = this._process_text_hits(data.hits.hits);
                 this.setState({
                   hits: extend(this.state.hits, {"text": hitArray}),
                   totals: extend(this.state.totals, {"text": data.hits.total})
@@ -8312,47 +8307,21 @@ class SearchResultList extends Component {
         this.setState({error: true});
         this.updateRunningQuery(null, null, false);
     }
-    _remove_duplicate_text_hits(hits) {
-
-      if (this.props.sortType != "relevance") {
-        return hits;
-      } else {
-        var refHash = {};
-        var newHits = hits.filter((result, iresult) => {
-          let ref = result._source.ref;
-          let refExists = refHash[ref];
-          //only apply filter if you're sorting by relevance. sorting by chrono keeps refs in the correct order
-          if (!refExists) {
-            refHash[ref] = true;
-            //console.log("adding", ref, iresult);
-            return true;
-          } else {
-            //console.log("filtering", ref, iresult);
-            return false;
-          }
-        }).map((result) => {
-          result.duplicates = null;
-          return result;
-        });
-        return newHits;
-      }
-    }
     _process_text_hits(hits) {
-        var comparingRef = null;
-        var newHits = [];
-
-        for(var i = 0, j = 0; i < hits.length; i++) {
-            var currentRef = hits[i]._source.ref;
-            if(currentRef == comparingRef) {
-                newHits[j - 1].duplicates = newHits[j-1].duplicates || [];
-                newHits[j - 1].duplicates.push(hits[i]);
-            } else {
-                newHits[j] = hits[i];
-                j++;
-                comparingRef = currentRef;
-            }
+      var newHits = [];
+      var newHitsObj = {};  // map ref -> index in newHits
+      for (var i = 0; i < hits.length; i++) {
+        let currRef = hits[i]._source.ref;
+        let newHitsIndex = newHitsObj[currRef];
+        if (typeof newHitsIndex != "undefined") {
+          newHits[newHitsIndex].duplicates = newHits[newHitsIndex].duplicates || [];
+          newHits[newHitsIndex].duplicates.push(hits[i]);
+        } else {
+          newHits.push(hits[i])
+          newHitsObj[currRef] = newHits.length - 1;
         }
-        return newHits;
+      }
+      return newHits;
     }
     _buildFilterTree(aggregation_buckets) {
       //returns object w/ keys 'availableFilters', 'registry'
@@ -8905,24 +8874,26 @@ class SearchSortBox extends Component {
       </div>
       <div className={(this.props.visible) ? "searchSortBox" :"searchSortBox hidden"}>
         <table>
-          <tr  className={releClass} onClick={()=>this.handleClick("relevance")}>
-            <td>
-              <img className="searchSortCheck" src="/static/img/check-mark.svg" alt="relevance sort selected"/>
-            </td>
-            <td>
-              <span className="int-en">{"Relevance"}</span>
-              <span className="int-he" dir="rtl">{"רלוונטיות"}</span>
-            </td>
-          </tr>
-          <tr className={chronoClass} onClick={()=>this.handleClick("chronological")}>
-            <td>
-              <img className="searchSortCheck" src="/static/img/check-mark.svg" alt="chronological sort selected"/>
-            </td>
-            <td>
-              <span className="int-en">{"Chronological"}</span>
-              <span className="int-he" dir="rtl">{"כרונולוגי"}</span>
-            </td>
-          </tr>
+          <tbody>
+            <tr  className={releClass} onClick={()=>this.handleClick("relevance")}>
+              <td>
+                <img className="searchSortCheck" src="/static/img/check-mark.svg" alt="relevance sort selected"/>
+              </td>
+              <td>
+                <span className="int-en">{"Relevance"}</span>
+                <span className="int-he" dir="rtl">{"רלוונטיות"}</span>
+              </td>
+            </tr>
+            <tr className={chronoClass} onClick={()=>this.handleClick("chronological")}>
+              <td>
+                <img className="searchSortCheck" src="/static/img/check-mark.svg" alt="chronological sort selected"/>
+              </td>
+              <td>
+                <span className="int-en">{"Chronological"}</span>
+                <span className="int-he" dir="rtl">{"כרונולוגי"}</span>
+              </td>
+            </tr>
+          </tbody>
         </table>
       </div>
     </div>);
