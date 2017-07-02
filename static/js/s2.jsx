@@ -1253,7 +1253,7 @@ class ReaderApp extends Component {
           onClose={this.rerender} />) : null;
     var classDict = {readerApp: 1, multiPanel: this.props.multiPanel, singlePanel: !this.props.multiPanel};
     var interfaceLangClass = `interface-${this.props.interfaceLang}`;
-    classDict[interfaceLangClass] = true
+    classDict[interfaceLangClass] = true;
     var classes = classNames(classDict);
     return (<div className={classes}>
               {header}
