@@ -224,25 +224,6 @@ def process_index_title_change_in_links(indx, **kwargs):
     links = LinkSet({"$or": queries})
     for l in links:
         l.refs = [r.replace(kwargs["old"], kwargs["new"], 1) if re.search(u'|'.join(patterns), r) else r for r in l.refs]
-
-        # handle inline references - will need to update <i> tags in text as well
-        if (hasattr(l, 'inline_reference')
-           and isinstance(l.inline_reference, dict)
-           and l.inline_reference.get('data-commentator') == kwargs["old"]):
-            l.inline_reference['data-commentator'] = kwargs["new"]
-
-            # If a commentator index title changed, we need to update references in the BASE text
-            if re.search(text.Ref(indx.title).regex(), l.refs[1]):
-                base_ref = text.Ref(l.refs[0])
-            else:
-                base_ref = text.Ref(l.refs[1])
-
-            chunks = [base_ref.text(v.language, v.versionTitle) for v in base_ref.versionset()]
-            for chunk in chunks:
-                if isinstance(chunk.text, basestring):  # This can only be done on a segment
-                    chunk.text = re.sub(ur'data-commentator="{}"'.format(kwargs["old"]),
-                                        lambda x: x.group().replace(kwargs["old"], kwargs["new"]), chunk.text)
-                    chunk.save()
         try:
             l.save()
         except InputError: #todo: this belongs in a better place - perhaps in abstract
