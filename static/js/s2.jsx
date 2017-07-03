@@ -6458,7 +6458,7 @@ componentDidMount() {
 
     // configure number display for inline references
     var sidebarNumberDisplay = (this.props.inlineReference &&
-    this.props.inlineReference['data-commentator'] === Sefaria.parseRef(this.props.sref).index);
+    this.props.inlineReference['data-commentator'] === Sefaria.index(Sefaria.parseRef(this.props.sref).index).collectiveTitle);
     if (sidebarNumberDisplay) {
       if (this.props.inlineReference['data-display']) {
         var displayValue = this.props.inlineReference['data-display'];
