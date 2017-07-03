@@ -55,7 +55,6 @@ server.post('/ReaderApp/:cachekey', function(req, res) {
     if (!error && response.statusCode == 200) {
       log("Time to get data.js: %dms", timer.elapsed());
       (0, eval)(body); // to understand why this is necessary, see: https://stackoverflow.com/questions/19357978/indirect-eval-call-in-strict-mode
-      console.log("DJANGO DATA VARS", typeof DJANGO_DATA_VARS === "undefined");
       log("Time to eval data.js: %dms", timer.elapsed());
       var html = renderReaderApp(props, DJANGO_DATA_VARS, timer);
       res.end(html);
