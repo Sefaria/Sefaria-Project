@@ -73,7 +73,7 @@
     {% endif %}
 </head>
 
-<body>
+<body{% if EMBED %} class="embeded"{% endif %}>
     {% if S2 or request.flavor == "mobile "%}
         {% include "header.html" %}
     {% endif %}

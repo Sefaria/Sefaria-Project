@@ -1184,7 +1184,7 @@ a:active {
 
 }
 
-body.embeded #controls, body.embeded .header, body.embeded #footer, body.embeded #fileControls {
+body.embeded #controls, body.embeded .header, body.embeded #footer, body.embeded #fileControls, body.embeded .sheetsEditNavTop {
 	display: none;
 }
 
