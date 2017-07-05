@@ -6460,8 +6460,8 @@ componentDidMount() {
     var sidebarNumberDisplay = (this.props.inlineReference &&
     this.props.inlineReference['data-commentator'] === Sefaria.index(Sefaria.parseRef(this.props.sref).index).collectiveTitle);
     if (sidebarNumberDisplay) {
-      if (this.props.inlineReference['data-display']) {
-        var displayValue = this.props.inlineReference['data-display'];
+      if (this.props.inlineReference['data-label']) {
+        var displayValue = this.props.inlineReference['data-label'];
       }
       else {
         var displayValue = Sefaria.hebrew.encodeHebrewNumeral(this.props.inlineReference['data-order']);
@@ -6577,8 +6577,8 @@ class TextSegment extends Component {
     if (this.props.filter && this.props.filter.length > 0) {
       var $newElement = $('<div/>').append("<div>" + he + "</div>");
       var textValue = function(i) {
-        if ($(i).attr('data-display')) {
-          return $(i).attr('data-display');
+        if ($(i).attr('data-label')) {
+          return $(i).attr('data-label');
         } else {
           var value = Sefaria.hebrew.encodeHebrewNumeral($(i).attr('data-order'));
         }
