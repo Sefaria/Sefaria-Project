@@ -66,7 +66,7 @@ class AutoCompleter(object):
         self.ngram_matcher.train_phrases(titles, normal_titles)
 
         if include_categories:
-            categories = self._get_main_categories(library.get_toc_objects())
+            categories = self._get_main_categories(library.get_toc_tree().get_root())
             category_names = [c.primary_title(lang) for c in categories]
             normal_category_names = [self.normalizer(c) for c in category_names]
             self.title_trie.add_titles_from_set(categories, "all_node_titles", "primary_title", "full_path")

@@ -470,7 +470,7 @@ class TocTree(object):
         parent.append(tc)
         self._path_hash[tuple(cat.path)] = tc
 
-    def get_toc_tree(self):
+    def get_root(self):
         return self._root
 
     def get_serialized_toc(self):

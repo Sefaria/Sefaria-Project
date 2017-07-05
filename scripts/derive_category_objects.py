@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from sefaria.model import *
+from sefaria.summaries import update_table_of_contents, toc_serial_to_objects
 
 
 def visit_structure(treenode, callback, order=None, **kwargs):
@@ -25,8 +26,9 @@ def create_category(treenode):
     c = Category()
     c.add_primary_titles(treenode.primary_title("en"), treenode.primary_title("he"))
     c.path = treenode.full_path
+    c.lastPath = treenode.full_path[-1]
     c.save()
 
-
-toctree = library.get_toc_objects()
+serial_toc = update_table_of_contents()
+toctree = toc_serial_to_objects(serial_toc)
 visit_structure(toctree, create_category)

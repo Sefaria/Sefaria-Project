@@ -206,7 +206,7 @@ class Test_OO_Toc(object):
         base_toc = model.library.get_toc()
         base_json = json.dumps(base_toc, sort_keys=True)
         oo_toc = s.TocTree()
-        serialized_toc = oo_toc.get_toc_tree().serialize()["contents"]
+        serialized_toc = oo_toc.get_root().serialize()["contents"]
 
         # Deep test of toc lists
         assert not DeepDiff(base_toc, serialized_toc)

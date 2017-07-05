@@ -3752,7 +3752,7 @@ class Library(object):
         # Table of Contents
         self._toc = None
         self._toc_json = None
-        self._toc_objects = None
+        self._toc_tree = None
         self._search_filter_toc = None
         self._search_filter_toc_json = None
         self._category_id_dict = None
@@ -3806,7 +3806,6 @@ class Library(object):
 
         scache.delete_template_cache("texts_list")
         scache.delete_template_cache("texts_dashboard")
-        self._toc_objects = toc_serial_to_objects(self._toc)
         self._full_title_list_jsons = {}
 
     def rebuild(self, include_toc = False):
@@ -3821,7 +3820,7 @@ class Library(object):
     def rebuild_toc(self):
         self._toc = None
         self._toc_json = None
-        self._toc_objects = None
+        self._toc_tree = None
         self._search_filter_toc = None
         self._search_filter_toc_json = None
         self._category_id_dict = None
@@ -3835,8 +3834,7 @@ class Library(object):
         if not self._toc:
             self._toc = scache.get_cache_elem('toc_cache')
             if not self._toc:
-                from sefaria.summaries import update_table_of_contents, TocTree
-                self._toc = TocTree().get_serialized_toc() # update_table_of_contents()
+                self._toc = self.get_toc_tree().get_serialized_toc()  # update_table_of_contents()
                 scache.set_cache_elem('toc_cache', self._toc)
         return self._toc
 
@@ -3851,11 +3849,11 @@ class Library(object):
                 scache.set_cache_elem('toc_json_cache', self._toc_json)
         return self._toc_json
 
-    def get_toc_objects(self):
-        if not self._toc_objects:
-            from sefaria.summaries import toc_serial_to_objects
-            self._toc_objects = toc_serial_to_objects(self.get_toc())
-        return self._toc_objects
+    def get_toc_tree(self):
+        if not self._toc_tree:
+            from sefaria.summaries import TocTree
+            self._toc_tree = TocTree()
+        return self._toc_tree
 
     def get_search_filter_toc(self):
         """
