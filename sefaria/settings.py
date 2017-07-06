@@ -262,16 +262,6 @@ CACHES = {
     }
 }
 
-WEBPACK_LOADER = {
-    'DEFAULT': {
-        'BUNDLE_DIR_NAME': 'bundles/client/',  # must end with slash
-        'STATS_FILE': relative_to_abs_path('../webpack-stats.client.json'),
-        'POLL_INTERVAL': 0.1,
-        'TIMEOUT': None,
-        'CACHE': False,
-        #  'IGNORE': ['.+\.hot-update.js', '.+\.map']
-    }
-}
 
 # Grab enviornment specific settings from a file which
 # is left out of the repo.
@@ -279,3 +269,14 @@ try:
     from sefaria.local_settings import *
 except ImportError:
     from sefaria.local_settings_example import *
+
+# Listed after local settings are imported so CACHE can depend on DEBUG
+WEBPACK_LOADER = {
+    'DEFAULT': {
+        'BUNDLE_DIR_NAME': 'bundles/client/',  # must end with slash
+        'STATS_FILE': relative_to_abs_path('../webpack-stats.client.json'),
+        'POLL_INTERVAL': 0.1,
+        'TIMEOUT': None,
+        'CACHE': not DEBUG,
+    }
+}
