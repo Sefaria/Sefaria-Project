@@ -410,13 +410,12 @@ def sheets_list(request, type=None):
 		response["public"] = True
 		tags               = recent_public_tags()
 
-	elif type == "private":
+	elif type == "private" and request.user.is_authenticated():
 		if request.flavour == "mobile":
 			return s2_sheets_by_tag(request,"My Sheets")
 
 		elif not request.COOKIES.get('s1'):
 			return s2_sheets_by_tag(request,"My Sheets")
-
 
 		query              = {"owner": request.user.id or -1 }
 		response["title"]  = "Your Source Sheets"
@@ -424,11 +423,8 @@ def sheets_list(request, type=None):
 		tags               = sheet_tag_counts(query)
 		tags               = order_tags_for_user(tags, request.user.id)
 
-	elif type == "allz":
-		query              = {}
-		response["title"]  = "All Source Sheets"
-		response["public"] = True
-		tags               = []
+	elif type == "private" and not request.user.is_authenticated():
+		return redirect("/login?next=/sheets/private")
 
 	sheets = db.sheets.find(query).sort([["dateModified", -1]])
 	if "fragment" in request.GET:

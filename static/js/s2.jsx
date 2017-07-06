@@ -4046,8 +4046,8 @@ class CommentatorList extends Component {
 }
 
 CommentatorList.propTypes = {
-  commentatorList: PropTypes.array.isRequired
-  title:           React.PropTypes.string.isRequired
+  commentatorList: PropTypes.array.isRequired,
+  title:           React.PropTypes.string.isRequired,
 };
 
 
@@ -6749,10 +6749,12 @@ class ConnectionsPanel extends Component {
                     version={this.props.version}
                     versionLanguage={this.props.versionLanguage}
                     addToSourceSheet={this.props.addToSourceSheet} />
+                  { Sefaria._uid ? 
                   <a href="/sheets/private" className="allSheetsLink button transparent bordered fillWidth squareBorder">
                     <span className="int-en">Go to My Sheets</span>
                     <span className="int-he">HEBREW NEEDED</span>
                   </a>
+                  : null }
                   <MySheetsList
                     srefs={this.props.srefs}
                     fullPanel={this.props.fullPanel} />
