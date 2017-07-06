@@ -3793,7 +3793,6 @@ class Library(object):
         # TOC is handled separately since it can be edited in place
 
     def _reset_toc_derivate_objects(self):
-        from sefaria.summaries import toc_serial_to_objects
         scache.delete_cache_elem('toc_cache')
         scache.delete_cache_elem('toc_json_cache')
         scache.set_cache_elem('toc_cache', self.get_toc(), 600000)
@@ -3851,7 +3850,7 @@ class Library(object):
 
     def get_toc_tree(self):
         if not self._toc_tree:
-            from sefaria.summaries import TocTree
+            from sefaria.model.category import TocTree
             self._toc_tree = TocTree()
         return self._toc_tree
 
