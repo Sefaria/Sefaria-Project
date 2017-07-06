@@ -1688,29 +1688,52 @@ a.readerNavCategory {
 .searchSortBox.hidden{
     display:none;
 }
-.searchContent .searchSortBox li {
+.searchContent .searchSortBox table {
+  border-collapse: collapse;
+}
+.searchContent .searchSortBox tr {
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
-  display: block;
   padding: 15px;
   font-size: 14px;
   letter-spacing: 1px;
   cursor: pointer;
 }
-.searchContent .searchSortBox li:hover {
+.interface-hebrew .searchContent .searchSortBox tr {
+  font-family: "Open Sans Hebrew", sans-serif;
+}
+.searchContent .searchSortBox tr:hover {
   background-color: #e0e0e0;
 }
-
-.searchContent .searchSortBox li .unselected {
-  color: #ccc;
+.searchContent .searchSortBox tr:first-child {
+  border-bottom: 1px solid #eee;
 }
-
-.interface-hebrew .searchContent .searchSortBox li {
-  font-family: "Open Sans Hebrew", sans-serif;
-  display: block;
-  padding: 15px;
-  font-size: 14px;
-  letter-spacing: 1px;
-  cursor: pointer;
+.searchContent .searchSortBox td:not(:first-child) {
+  padding: 15px 15px 15px 0;
+}
+.searchContent .searchSortBox td:first-child {
+  padding: 0 0 0 15px;
+}
+.interface-hebrew .searchContent .searchSortBox td:not(:first-child) {
+  padding: 15px 0 15px 15px;
+}
+.interface-hebrew .searchContent .searchSortBox td:first-child {
+  padding: 0 15px 0 0;
+}
+.searchContent .searchSortBox tr.unselected {
+  color: #aaa;
+}
+.searchSortBox tr .searchSortCheck {
+  width: 10px;
+  height: 10px;
+  padding-left: 0;
+  padding-right: 10px;
+}
+.interface-hebrew .searchSortBox tr .searchSortCheck {
+  padding-left: 10px;
+  padding-right: 0;
+}
+.searchSortBox tr.unselected .searchSortCheck {
+  display: none;
 }
 .searchContent .searchResultsOverlay {
   opacity: 0.5;
@@ -1749,6 +1772,10 @@ a.readerNavCategory {
 }
 .searchContent .result .result-title:hover {
   text-decoration: underline;
+}
+.readerPanel.english .searchContent .result .result-title .en,
+.readerPanel.hebrew .searchContent .result .result-title .he {
+  display: block;
 }
 .searchContent .text_result .snippet {
   color: #333;
