@@ -2059,11 +2059,10 @@ Sefaria.util = {
       }
       return index;
     },
-    defaultPath: "/",
     currentPath: function() {
       // Returns the current path plus search string if a browser context
       // or "/" in a browser-less context.
-      return (typeof window === "undefined" ) ? Sefaria.util.defaultPath :
+      return (typeof window === "undefined" ) ? Sefaria.initialPath :
                 window.location.pathname + window.location.search;
     },
     parseURL: function(url) {
@@ -2846,6 +2845,7 @@ Sefaria.palette.categoryColor = function(cat) {
   return Sefaria.palette.categoryColors["Other"];
 };
 
+
 Sefaria.setup = function(data) {
     // data parameter is optional. in the event it isn't passed, we assume that DJANGO_DATA_VARS exists as a global var
     // data should but defined server-side and undefined client-side
@@ -2879,8 +2879,7 @@ Sefaria.setup();
 if (typeof window !== 'undefined') {
     window.Sefaria = Sefaria; // allow access to `Sefaria` from console
 }
-//if (typeof module !== 'undefined') {
-  module.exports = Sefaria;
 
-//}
+module.exports = Sefaria;
+
 

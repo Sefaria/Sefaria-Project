@@ -6664,9 +6664,7 @@ class ConnectionsPanel extends Component {
   }
   loadData() {
     var ref = this.sectionRef();
-    console.log("sidebar loading " + ref);
     if (!Sefaria.related(ref)) {
-      console.log("not yet loaded");
       Sefaria.related(ref, function() {
         if (this._isMounted) {
           this.forceUpdate();
@@ -10930,7 +10928,7 @@ class Footer extends Component {
                   </a>
                   |
                   <a href={"/interface/hebrew?next=" + next} id="siteLanguageHebrew" className="outOfAppLink"
-                      onClick={this.trackLanguageClick.bind(null, "Hebrew")}>                 עברית
+                      onClick={this.trackLanguageClick.bind(null, "Hebrew")}>עברית
                   </a>
               </div>
           </div>
@@ -10951,22 +10949,6 @@ var backToS1 = function() {
   window.location = "/";
 };
 
-
-var setData = function(data) {
-  // Set core data in the module that was loaded in a different scope
-  Sefaria.toc       = data.toc;
-  Sefaria.books     = data.books;
-  // Note Sefaria.booksDict in generated on the client from Sefaria.books, but not on the server to save cycles
-  Sefaria.calendar  = data.calendar;
-
-  Sefaria._cacheIndexFromToc(Sefaria.toc);
-  Sefaria.recentlyViewed    = data.recentlyViewed ? data.recentlyViewed.map(Sefaria.unpackRecentItem) : [];
-  Sefaria.util._defaultPath = data.path;
-  Sefaria.loggedIn          = data.loggedIn;
-  Sefaria._uid              = data._uid;
-  Sefaria.is_moderator      = data.is_moderator;
-  Sefaria.is_editor         = data.is_editor;
-};
 
 exports.ReaderApp           = ReaderApp;
 exports.ReaderPanel         = ReaderPanel;
