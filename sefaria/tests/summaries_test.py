@@ -2,7 +2,6 @@
 
 import json
 import pytest
-from deepdiff import DeepDiff
 import sefaria.summaries as s
 import sefaria.model as model
 import sefaria.system.cache as scache
@@ -185,32 +184,3 @@ class Test_Toc(object):
         #new one in it's place
         verify_existence_across_tocs(old_title, expected_toc_location=old_toc_path)
 
-
-class Test_OO_Toc(object):
-    def test_round_trip(self):
-        base_toc = model.library.get_toc()
-        base_json = json.dumps(base_toc, sort_keys=True)
-        oo_toc = model.category.toc_serial_to_objects(base_toc)
-        rt_toc = oo_toc.serialize()["contents"]
-
-        # Deep test of toc lists
-        assert not DeepDiff(base_toc, rt_toc)
-
-        # Check that the json is identical -
-        # that the round-trip didn't change anything by reference that would poison the deep test
-        new_json = json.dumps(rt_toc, sort_keys=True)
-        assert len(base_json) == len(new_json)
-
-    def test_compare_db_toc_and_derived_toc(self):
-        derived_toc = s.update_table_of_contents()
-        base_json = json.dumps(derived_toc, sort_keys=True)
-        oo_toc = model.text.library.get_toc_tree()
-        serialized_oo_toc = oo_toc.get_root().serialize()["contents"]
-
-        # Deep test of toc lists
-        assert not DeepDiff(derived_toc, serialized_oo_toc)
-
-        # Check that the json is identical -
-        # that the round-trip didn't change anything by reference that would poison the deep test
-        new_json = json.dumps(serialized_oo_toc, sort_keys=True)
-        assert len(base_json) == len(new_json)

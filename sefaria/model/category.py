@@ -10,7 +10,6 @@ class Category(schema.AbstractTitledRecord):
     collection = 'category'
 
     track_pkeys = True
-
     pkeys = ["lastPath"]  # Needed for dependency tracking
     required_attrs = ["titles", "lastPath", "path"]
     optional_attrs = ["enDesc", "heDesc"]
@@ -38,7 +37,7 @@ def process_category_name_change_in_categories_and_indexes(changed_cat, **kwargs
 
     old_toc_node = library.get_toc_tree().lookup_category(changed_cat.path[:-1] + [kwargs["old"]])
     assert isinstance(old_toc_node, TocCategory)
-    pos = len(old_toc_node.path) - 1
+    pos = len(old_toc_node.ancestors()) - 1
     for child in old_toc_node.all_children():
         if isinstance(child, TocCategory):
             c = child.get_category_object()
