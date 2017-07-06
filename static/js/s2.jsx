@@ -641,9 +641,9 @@ var ReaderApp = React.createClass({
       sheetsGroup:          state.group                || null,
       searchQuery:          state.searchQuery          || null,
       appliedSearchFilters: state.appliedSearchFilters || [],
-      searchFieldExact:     "hebmorph_semi_exact",
+      searchFieldExact:     "exact",
       searchFieldBroad:     "naive_lemmatizer",
-      searchField:          state.searchField          || "hebmorph_semi_exact",
+      searchField:          state.searchField          || "naive_lemmatizer",
       searchSortType:       state.searchSortType       || "relevance",
       searchFiltersValid:   state.searchFiltersValid   || false,
       availableFilters:     state.availableFilters     || [],
@@ -1703,7 +1703,7 @@ var ReaderPanel = React.createClass({
       sheetsGroup:          this.props.initialGroup || null,
       searchQuery:          this.props.initialQuery || null,
       appliedSearchFilters: this.props.initialAppliedSearchFilters || [],
-      searchFieldExact:     "hebmorph_semi_exact",
+      searchFieldExact:     "exact",
       searchFieldBroad:     "naive_lemmatizer",
       searchField:          this.props.initialSearchField || "naive_lemmatizer",
       searchSortType:       this.props.initialSearchSortType || "chronological",
@@ -2655,6 +2655,7 @@ var ReaderNavigationMenu = React.createClass({
                   multiPanel={this.props.multiPanel}
                   closeNav={this.closeNav}
                   openDisplaySettings={this.props.openDisplaySettings}
+                  toggleLanguage={this.props.toggleLanguage}
                   navHome={this.navHome}
                   compare={this.props.compare}
                   hideNavHeader={this.props.hideNavHeader}
@@ -2791,21 +2792,17 @@ var ReaderNavigationMenu = React.createClass({
       var nRecent = this.width < 450 ? 4 : 6;
       var recentlyViewed = Sefaria.recentlyViewed;
       var hasMore = recentlyViewed.length > nRecent;
-      recentlyViewed = recentlyViewed.filter(function(item){
-        // after a text has been deleted a recent ref may be invalid,
-        // but don't try to check when booksDict is not available during server side render
-        if (Object.keys(Sefaria.booksDict).length === 0) { return true; }
-        return Sefaria.isRef(item.ref);
-      }).map(function(item) {
-        return (<TextBlockLink
-                  sref={item.ref}
-                  heRef={item.heRef}
-                  book={item.book}
-                  version={item.version}
-                  versionLanguage={item.versionLanguage}
-                  showSections={true}
-                  recentItem={true} />)
-      }).slice(0, hasMore ? nRecent-1 : nRecent);
+      recentlyViewed = recentlyViewed.slice(0, hasMore ? nRecent-1 : nRecent)
+        .map(function(item) {
+          return (<TextBlockLink
+                    sref={item.ref}
+                    heRef={item.heRef}
+                    book={item.book}
+                    version={item.version}
+                    versionLanguage={item.versionLanguage}
+                    showSections={true}
+                    recentItem={true} />)
+          });
       if (hasMore) {
         recentlyViewed.push(
           <a href="/texts/recent" className="readerNavCategory readerNavMore" style={{"borderColor": Sefaria.palette.colors.darkblue}} onClick={this.props.setCategories.bind(null, ["recent"])}>
@@ -3611,7 +3608,10 @@ var TextTableOfContentsNavigation = React.createClass({
         break;
       case "commentary":
         var content = <CommentatorList
-                        commentatorList={this.props.commentatorList} />;
+                        commentatorList={this.props.commentatorList}
+                        title={this.props.title} />;
+
+
         break;
       case "versions":
         var content = <VersionsList
@@ -3916,11 +3916,13 @@ var ArrayMapNode = React.createClass({
 
 var CommentatorList = React.createClass({
   propTypes: {
-    commentatorList: React.PropTypes.array.isRequired
+    commentatorList: React.PropTypes.array.isRequired,
+      title:         React.PropTypes.string.isRequired
   },
   render: function() {
+    console.log(this.props.commentatorList);
     var content = this.props.commentatorList.map(function(commentator, i) {
-      var ref = commentator.firstSection;
+      var ref = commentator.refs_to_base_texts[this.props.title];
       return (<a className="refLink linked" href={Sefaria.normRef(ref)} data-ref={ref} key={i}>
                 <span className="he">{commentator.heCollectiveTitle}</span>
                 <span className="en">{commentator.collectiveTitle}</span>
@@ -8100,6 +8102,7 @@ var SearchResultList = React.createClass({
         from: last,
         field: field,
         sort_type: this.props.sortType,
+        exact: this.props.exactField === this.props.field,
         error: function() {  console.log("Failure in SearchResultList._loadRemainder"); },
         success: function(data) {
           var nextHits;
@@ -8149,6 +8152,7 @@ var SearchResultList = React.createClass({
             size: this.initialQuerySize,
             field: "content",
             sort_type: "chronological",
+            exact: true,
             success: function(data) {
                 this.updateRunningQuery("sheet", null, false);
                   this.setState({
@@ -8173,6 +8177,7 @@ var SearchResultList = React.createClass({
             size: this.initialQuerySize,
             field: props.field,
             sort_type: props.sortType,
+            exact: props.exactField === props.field,
             success: function(data) {
                 this.updateRunningQuery("text", null, false);
                 var hitArray = this._remove_duplicate_text_hits(this._process_text_hits(data.hits.hits));
@@ -8729,9 +8734,9 @@ var SearchFilterPanel = React.createClass({
           }.bind(this))}
           </div>
         </div>
-        <div className={(Sefaria.hebrew.isHebrew(this.props.query)) ? "searchFilterExactBox" : "searchFilterExactBox hidden"}>
+        <div className={"searchFilterExactBox"}>
           <SearchFilterExactBox
-            selected={!this.props.isExactSearch}
+            selected={this.props.isExactSearch}
             checkBoxClick={this.props.toggleExactSearch}
             />
         </div>
@@ -8787,14 +8792,26 @@ var SearchSortBox = React.createClass({
 
       </div>
       <div className={(this.props.visible) ? "searchSortBox" :"searchSortBox hidden"}>
-        <li onClick={()=>this.handleClick("chronological")}>
-          <span className="int-en"><span className={chronoClass}>{"Chronological"}</span></span>
-          <span className="int-he" dir="rtl"><span className={chronoClass}>{"כרונולוגי"}</span></span>
-        </li>
-        <li onClick={()=>this.handleClick("relevance")}>
-          <span className="int-en"><span className={releClass}>{"Relevance"}</span></span>
-          <span className="int-he" dir="rtl"><span className={releClass}>{"רלוונטיות"}</span></span>
-        </li>
+        <table>
+          <tr  className={releClass} onClick={()=>this.handleClick("relevance")}>
+            <td>
+              <img className="searchSortCheck" src="/static/img/check-mark.svg" alt="relevance sort selected"/>
+            </td>
+            <td>
+              <span className="int-en">{"Relevance"}</span>
+              <span className="int-he" dir="rtl">{"רלוונטיות"}</span>
+            </td>
+          </tr>
+          <tr className={chronoClass} onClick={()=>this.handleClick("chronological")}>
+            <td>
+              <img className="searchSortCheck" src="/static/img/check-mark.svg" alt="chronological sort selected"/>
+            </td>
+            <td>
+              <span className="int-en">{"Chronological"}</span>
+              <span className="int-he" dir="rtl">{"כרונולוגי"}</span>
+            </td>
+          </tr>
+        </table>
       </div>
     </div>);
   }
@@ -8813,8 +8830,8 @@ var SearchFilterExactBox = React.createClass({
     return (<li onClick={this.handleFocusCategory}>
       <input type="checkbox" id="searchFilterExactBox" className="filter" checked={this.props.selected} onChange={this.handleClick}/>
       <label onClick={this.handleClick} for={"searchFilterExactBox"}><span></span></label>
-      <span className="int-en"><span className="filter-title">{"Show word variants"}</span></span>
-      <span className="int-he" dir="rtl"><span className="filter-title">{"חיפוש מרוחב"}</span></span>
+      <span className="int-en"><span className="filter-title">{"Exact search"}</span></span>
+      <span className="int-he" dir="rtl"><span className="filter-title">{"חיפוש מדויק"}</span></span>
     </li>);
   }
 });
@@ -9094,12 +9111,7 @@ var RecentPanel = React.createClass({
   render: function() {
     var width = typeof window !== "undefined" ? $(window).width() : 1000;
 
-    var recentItems = Sefaria.recentlyViewed.filter(function(item){
-      // after a text has been deleted a recent ref may be invalid,
-      // but don't try to check when booksDict is not available during server side render
-      if (Object.keys(Sefaria.booksDict).length === 0) { return true; }
-      return Sefaria.isRef(item.ref);
-    }).map(function(item) {
+    var recentItems = Sefaria.recentlyViewed.map(function(item) {
       return (<TextBlockLink
                 sref={item.ref}
                 heRef={item.heRef}
@@ -10058,6 +10070,8 @@ var setData = function(data) {
   // Note Sefaria.booksDict in generated on the client from Sefaria.books, but not on the server to save cycles
   Sefaria.calendar  = data.calendar;
 
+
+  console.log(data.recentlyViewed);
   Sefaria._cacheIndexFromToc(Sefaria.toc);
   Sefaria.recentlyViewed    = data.recentlyViewed ? data.recentlyViewed.map(Sefaria.unpackRecentItem) : [];
   Sefaria.util._defaultPath = data.path;

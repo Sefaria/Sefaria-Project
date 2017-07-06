@@ -665,9 +665,9 @@ var ReaderApp = React.createClass({
       sheetsGroup: state.group || null,
       searchQuery: state.searchQuery || null,
       appliedSearchFilters: state.appliedSearchFilters || [],
-      searchFieldExact: "hebmorph_semi_exact",
+      searchFieldExact: "exact",
       searchFieldBroad: "naive_lemmatizer",
-      searchField: state.searchField || "hebmorph_semi_exact",
+      searchField: state.searchField || "naive_lemmatizer",
       searchSortType: state.searchSortType || "relevance",
       searchFiltersValid: state.searchFiltersValid || false,
       availableFilters: state.availableFilters || [],
@@ -1796,7 +1796,7 @@ var ReaderPanel = React.createClass({
       sheetsGroup: this.props.initialGroup || null,
       searchQuery: this.props.initialQuery || null,
       appliedSearchFilters: this.props.initialAppliedSearchFilters || [],
-      searchFieldExact: "hebmorph_semi_exact",
+      searchFieldExact: "exact",
       searchFieldBroad: "naive_lemmatizer",
       searchField: this.props.initialSearchField || "naive_lemmatizer",
       searchSortType: this.props.initialSearchSortType || "chronological",
@@ -2791,6 +2791,7 @@ var ReaderNavigationMenu = React.createClass({
           multiPanel: this.props.multiPanel,
           closeNav: this.closeNav,
           openDisplaySettings: this.props.openDisplaySettings,
+          toggleLanguage: this.props.toggleLanguage,
           navHome: this.navHome,
           compare: this.props.compare,
           hideNavHeader: this.props.hideNavHeader,
@@ -3030,14 +3031,7 @@ var ReaderNavigationMenu = React.createClass({
       var nRecent = this.width < 450 ? 4 : 6;
       var recentlyViewed = Sefaria.recentlyViewed;
       var hasMore = recentlyViewed.length > nRecent;
-      recentlyViewed = recentlyViewed.filter(function (item) {
-        // after a text has been deleted a recent ref may be invalid,
-        // but don't try to check when booksDict is not available during server side render
-        if (Object.keys(Sefaria.booksDict).length === 0) {
-          return true;
-        }
-        return Sefaria.isRef(item.ref);
-      }).map(function (item) {
+      recentlyViewed = recentlyViewed.slice(0, hasMore ? nRecent - 1 : nRecent).map(function (item) {
         return React.createElement(TextBlockLink, {
           sref: item.ref,
           heRef: item.heRef,
@@ -3046,7 +3040,7 @@ var ReaderNavigationMenu = React.createClass({
           versionLanguage: item.versionLanguage,
           showSections: true,
           recentItem: true });
-      }).slice(0, hasMore ? nRecent - 1 : nRecent);
+      });
       if (hasMore) {
         recentlyViewed.push(React.createElement(
           'a',
@@ -10279,6 +10273,7 @@ var SearchResultList = React.createClass({
       from: last,
       field: field,
       sort_type: this.props.sortType,
+      exact: this.props.exactField === this.props.field,
       error: function error() {},
       success: function (data) {
         var nextHits;
@@ -10328,6 +10323,7 @@ var SearchResultList = React.createClass({
       size: this.initialQuerySize,
       field: "content",
       sort_type: "chronological",
+      exact: true,
       success: function (data) {
         this.updateRunningQuery("sheet", null, false);
         this.setState({
@@ -10351,6 +10347,7 @@ var SearchResultList = React.createClass({
       size: this.initialQuerySize,
       field: props.field,
       sort_type: props.sortType,
+      exact: props.exactField === props.field,
       success: function (data) {
         this.updateRunningQuery("text", null, false);
         var hitArray = this._remove_duplicate_text_hits(this._process_text_hits(data.hits.hits));
@@ -10970,9 +10967,9 @@ var SearchFilterPanel = React.createClass({
         ),
         React.createElement(
           'div',
-          { className: Sefaria.hebrew.isHebrew(this.props.query) ? "searchFilterExactBox" : "searchFilterExactBox hidden" },
+          { className: "searchFilterExactBox" },
           React.createElement(SearchFilterExactBox, {
-            selected: !this.props.isExactSearch,
+            selected: this.props.isExactSearch,
             checkBoxClick: this.props.toggleExactSearch
           })
         ),
@@ -11045,50 +11042,56 @@ var SearchSortBox = React.createClass({
         'div',
         { className: this.props.visible ? "searchSortBox" : "searchSortBox hidden" },
         React.createElement(
-          'li',
-          { onClick: function onClick() {
-              return _this12.handleClick("chronological");
-            } },
+          'table',
+          null,
           React.createElement(
-            'span',
-            { className: 'int-en' },
+            'tr',
+            { className: releClass, onClick: function onClick() {
+                return _this12.handleClick("relevance");
+              } },
             React.createElement(
-              'span',
-              { className: chronoClass },
-              "Chronological"
+              'td',
+              null,
+              React.createElement('img', { className: 'searchSortCheck', src: '/static/img/check-mark.svg', alt: 'relevance sort selected' })
+            ),
+            React.createElement(
+              'td',
+              null,
+              React.createElement(
+                'span',
+                { className: 'int-en' },
+                "Relevance"
+              ),
+              React.createElement(
+                'span',
+                { className: 'int-he', dir: 'rtl' },
+                "רלוונטיות"
+              )
             )
           ),
           React.createElement(
-            'span',
-            { className: 'int-he', dir: 'rtl' },
+            'tr',
+            { className: chronoClass, onClick: function onClick() {
+                return _this12.handleClick("chronological");
+              } },
             React.createElement(
-              'span',
-              { className: chronoClass },
-              "כרונולוגי"
-            )
-          )
-        ),
-        React.createElement(
-          'li',
-          { onClick: function onClick() {
-              return _this12.handleClick("relevance");
-            } },
-          React.createElement(
-            'span',
-            { className: 'int-en' },
+              'td',
+              null,
+              React.createElement('img', { className: 'searchSortCheck', src: '/static/img/check-mark.svg', alt: 'chronological sort selected' })
+            ),
             React.createElement(
-              'span',
-              { className: releClass },
-              "Relevance"
-            )
-          ),
-          React.createElement(
-            'span',
-            { className: 'int-he', dir: 'rtl' },
-            React.createElement(
-              'span',
-              { className: releClass },
-              "רלוונטיות"
+              'td',
+              null,
+              React.createElement(
+                'span',
+                { className: 'int-en' },
+                "Chronological"
+              ),
+              React.createElement(
+                'span',
+                { className: 'int-he', dir: 'rtl' },
+                "כרונולוגי"
+              )
             )
           )
         )
@@ -11123,7 +11126,7 @@ var SearchFilterExactBox = React.createClass({
         React.createElement(
           'span',
           { className: 'filter-title' },
-          "Show word variants"
+          "Exact search"
         )
       ),
       React.createElement(
@@ -11132,7 +11135,7 @@ var SearchFilterExactBox = React.createClass({
         React.createElement(
           'span',
           { className: 'filter-title' },
-          "חיפוש מרוחב"
+          "חיפוש מדויק"
         )
       )
     );
@@ -11499,14 +11502,7 @@ var RecentPanel = React.createClass({
   render: function render() {
     var width = typeof window !== "undefined" ? $(window).width() : 1000;
 
-    var recentItems = Sefaria.recentlyViewed.filter(function (item) {
-      // after a text has been deleted a recent ref may be invalid,
-      // but don't try to check when booksDict is not available during server side render
-      if (Object.keys(Sefaria.booksDict).length === 0) {
-        return true;
-      }
-      return Sefaria.isRef(item.ref);
-    }).map(function (item) {
+    var recentItems = Sefaria.recentlyViewed.map(function (item) {
       return React.createElement(TextBlockLink, {
         sref: item.ref,
         heRef: item.heRef,

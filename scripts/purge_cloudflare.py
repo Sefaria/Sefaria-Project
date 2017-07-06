@@ -31,7 +31,7 @@ if __name__ == '__main__':
         else:
             logger.info("Files to purge: {}".format(args.files))
     elif args.timestamp:
-        time_str = datetime.fromtimestamp(int(args.timestamp)).strftime('%Y-%m-%d %H:%M:%S')
+        time_str = datetime.fromtimestamp(int(args.timestamp)).strftime('%Y-%m-%d %H:%M:%S') #this also serves to assert the timestamp is valid
         print "purging all static files {}".format(time_str)
         if USE_CLOUDFLARE:
             SefariaCloudflareManager().purge_static_files_from_cloudflare(timestamp=args.timestamp)

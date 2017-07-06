@@ -46,9 +46,9 @@ def in_directory(file, directory):
     directory = os.path.join(os.path.realpath(directory), '')
     file = os.path.realpath(file)
     if not os.path.exists(directory) or not os.path.isdir(directory):
-        raise ValueError("Directory does not exist".format(directory))
+        return False
     if not os.path.exists(file):
-        raise ValueError("File does not exist {}".format(file))
+        return False
     # return true, if the common prefix of both is equal to directory
     # e.g. /a/b/c/d.rst and directory is /a/b, the common prefix is /a/b
     return os.path.commonprefix([file, directory]) == directory
