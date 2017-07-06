@@ -464,7 +464,7 @@ class TocTree(object):
         return TocTextIndex(d)
 
     def _add_category(self, cat):
-        tc = TocCategory()
+        tc = TocCategory(category_object=cat)
         tc.add_primary_titles(cat.get_primary_title("en"), cat.get_primary_title("he"))
         parent = self._path_hash[tuple(cat.path[:-1])] if len(cat.path[:-1]) else self._root
         parent.append(tc)
@@ -534,10 +534,17 @@ class TocCategory(TocNode):
     "heCategory": hebrew_term(""),
     "contents": []
     """
+    def __init__(self, serial=None, **kwargs):
+        self._category_object = kwargs.pop("category_object", None)
+        super(TocCategory, self).__init__(serial, **kwargs)
+
     title_attrs = {
         "he": "heCategory",
         "en": "category"
     }
+
+    def get_category_object(self):
+        return self._category_object
 
 
 class TocTextIndex(TocNode):
@@ -551,6 +558,13 @@ class TocTextIndex(TocNode):
     sparseness: 4
     title: "Mishnah Eruvin"
     """
+    def __init__(self, serial=None, **kwargs):
+        self._index_object = kwargs.pop("index_object", None)
+        super(TocTextIndex, self).__init__(serial, **kwargs)
+
+    def get_index_object(self):
+        return self._index_object
+
     optional_param_keys = [
         "categories",
         "dependence",

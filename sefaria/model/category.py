@@ -31,16 +31,19 @@ class CategorySet(abstract.AbstractMongoSet):
     recordClass = Category
 
 
-
 def process_category_name_change_in_categories(changed_cat, **kwargs):
-    pass
+    from sefaria.model.text import library
+    from sefaria.summaries import TocCategory
+
+    old_toc_node = library.get_toc_tree().lookup_category()
+    assert isinstance(old_toc_node, TocCategory)
 
 def process_category_name_change_in_indexes(changed_cat, **kwargs):
     pass
 
 
-
-
+def rebuild_toc_after_category_name_change(changed_cat, **kwargs):
+    pass
 
 
 

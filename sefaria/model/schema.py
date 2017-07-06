@@ -471,6 +471,9 @@ class TreeNode(object):
             new_node = callback(new_node)
         return new_node
 
+    def all_children(self):
+        return self.traverse_to_list(lambda n, i: [n])[1:]
+
     def get_leaf_nodes(self):
         if not self._leaf_nodes:
             if not self.children:
