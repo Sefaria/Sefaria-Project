@@ -6095,7 +6095,7 @@ class TextColumn extends Component {
   scrollToHighlighted() {
     window.requestAnimationFrame(function() {
       if (!this._isMounted) { return; }
-      console.log("scroll to highlighted - animation frame");
+      //console.log("scroll to highlighted - animation frame");
       var $container   = this.$container;
       var $readerPanel = $container.closest(".readerPanel");
       var $highlighted = $container.find(".segment.highlight").first();
@@ -6659,9 +6659,14 @@ class ConnectionsPanel extends Component {
       this.props.setConnectionsMode("Resources");
     }
   }
+  sectionRef() {
+    return Sefaria.sectionRef(Sefaria.humanRef(this.props.srefs)) || this.props.srefs;
+  }
   loadData() {
-    var ref = Sefaria.sectionRef(Sefaria.humanRef(this.props.srefs)) || this.props.srefs;
+    var ref = this.sectionRef();
+    console.log("sidebar loading " + ref);
     if (!Sefaria.related(ref)) {
+      console.log("not yet loaded");
       Sefaria.related(ref, function() {
         if (this._isMounted) {
           this.forceUpdate();
@@ -6681,7 +6686,7 @@ class ConnectionsPanel extends Component {
   }
   render() {
     var content = null;
-    var loaded = Sefaria.linksLoaded(this.props.srefs);
+    var loaded = Sefaria.linksLoaded(this.sectionRef());
     if (!loaded) {
       content = <LoadingMessage />;
     } else if (this.props.mode == "Resources") {
