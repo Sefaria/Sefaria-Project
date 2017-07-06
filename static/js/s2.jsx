@@ -8916,7 +8916,7 @@ class SearchFilterExactBox extends Component {
   render() {
     return (<li>
       <input type="checkbox" id="searchFilterExactBox" className="filter" checked={this.props.selected} onChange={this.handleClick}/>
-      <label onClick={this.handleClick} htmlFor={"searchFilterExactBox"}><span></span></label>
+      <label onClick={this.handleClick}><span></span></label>
       <span className="int-en"><span className="filter-title">{"Exact search"}</span></span>
       <span className="int-he" dir="rtl"><span className="filter-title">{"חיפוש מדויק"}</span></span>
     </li>);
@@ -8960,7 +8960,7 @@ class SearchFilter extends Component {
     return(
       <li onClick={this.handleFocusCategory}>
         <input type="checkbox" id={this.props.filter.path} className="filter" checked={this.state.selected == 1} onChange={this.handleFilterClick}/>
-        <label onClick={this.handleFilterClick} htmlFor={this.props.filter.path}><span></span></label>
+        <label onClick={this.handleFilterClick}><span></span></label>
         <span className="int-en"><span className="filter-title">{this.props.filter.title}</span> <span className="filter-count">({this.props.filter.docCount})</span></span>
         <span className="int-he" dir="rtl"><span className="filter-title">{this.props.filter.heTitle}</span> <span className="filter-count">({this.props.filter.docCount})</span></span>
         {this.props.isInFocus?<span className="int-en"><i className="in-focus-arrow fa fa-caret-right"/></span>:""}
