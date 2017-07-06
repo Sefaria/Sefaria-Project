@@ -719,7 +719,9 @@ var ReaderApp = React.createClass({
     // Update or add panel after this one to be a TextList
     this.setTextListHighlight(n, [ref]);
     this.openTextListAt(n+1, [ref]);
-    $(".readerPanel")[n+1].focus();
+    if ($(".readerPanel")[n+1]) {
+      $(".readerPanel")[n+1].focus();
+    }
   },
   handleCitationClick: function(n, citationRef, textRef) {
     // Handle clicking on the citation `citationRef` which was found inside of `textRef` in panel `n`.
@@ -1722,6 +1724,9 @@ var ReaderPanel = React.createClass({
     window.addEventListener("resize", this.setWidth);
     this.setWidth();
     this.setHeadroom();
+    if (this.props.panelPosition) {
+      $(".readerPanel")[this.props.panelPosition].focus();
+    }
   },
   componentWillUnmount: function() {
     window.removeEventListener("resize", this.setWidth);
@@ -6306,7 +6311,7 @@ var TextRange = React.createClass({
                         this.props.basetext && segment.highlight;                   // otherwise highlight if this a basetext and the ref is specific
       return (
         <TextSegment
-            panelPosition ={this.props.panelPosition}
+            panelPosition={this.props.panelPosition}
             sref={segment.ref}
             en={segment.en}
             he={segment.he}
@@ -6443,7 +6448,7 @@ var TextSegment = React.createClass({
         return false;
     }
     return (
-      <span tabIndex="0" className={classes} onClick={this.handleClick} onKeyPress={this.handleKeyPress} data-ref={this.props.sref} aria-controls={"panel-"+(this.props.panelPosition+1)}>
+      <span tabIndex="0" className={classes} onClick={this.handleClick} onKeyPress={this.handleKeyPress} data-ref={this.props.sref} aria-controls={"panel-"+(this.props.panelPosition+1)} aria-label={"Click to see links to "+this.props.sref}>
         {segmentNumber}
         {linkCountElement}
         <span className="he" dangerouslySetInnerHTML={ {__html: he + " "} }></span>
