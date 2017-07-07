@@ -4047,7 +4047,7 @@ class CommentatorList extends Component {
 
 CommentatorList.propTypes = {
   commentatorList: PropTypes.array.isRequired,
-  title:           React.PropTypes.string.isRequired,
+  title:           PropTypes.string.isRequired,
 };
 
 
