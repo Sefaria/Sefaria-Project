@@ -4785,16 +4785,16 @@ class GroupPage extends Component {
                 <div className="tabs">
                   <a className={classNames({bubbleTab: 1, active: this.state.tab == "sheets"})} onClick={this.setTab.bind(null, "sheets")}>
                     <span className="int-en">Sheets</span>
-                    <span className="int-he">Sheets</span>
+                    <span className="int-he">דפי מקורות</span>
                   </a>
                   <a className={classNames({bubbleTab: 1, active: this.state.tab == "members"})} onClick={this.setTab.bind(null, "members")}>
                     <span className="int-en">Members</span>
-                    <span className="int-he">Members</span>
+                    <span className="int-he">חברים</span>
                   </a>
                   { isAdmin ?
                     <a className="bubbleTab" href={"/groups/" + this.props.group.replace(/\s/g, "-") + "/settings"}>
                       <span className="int-en">Settings</span>
-                      <span className="int-he">Settings</span>
+                      <span className="int-he">הגדרות</span>
                     </a>
                     : null }
                 </div>
@@ -4832,11 +4832,11 @@ class GroupPage extends Component {
                     : (isMember ?
                           <div className="emptyMessage">
                             <span className="int-en">There are no sheets in this group yet. <a href="/sheets/new">Start a sheet</a>.</span>
-                            <span className="int-he">There are no sheets in this group yet. <a href="/sheets/new">Start a sheet</a>.</span>
+                            <span className="int-he"> לא קיימים דפי מקורות בקבוצה <a href="/sheets/new">צור דף מקורות</a>.</span>
                           </div>
                         : <div className="emptyMessage">
                             <span className="int-en">There are no public sheets in this group yet.</span>
-                            <span className="int-he">There are no public sheets in this group yet.</span>
+                            <span className="int-he">לא קיימים דפי מקורות פומביים בקבוצה</span>
                           </div>)}
                   </div>
                   : null }
@@ -4958,7 +4958,7 @@ class GroupInvitationBox extends Component {
                 <input id="groupInvitationInput" placeholder="Email Address" />
                 <div className="button" onClick={this.onInviteClick}>
                   <span className="int-en">Invite</span>
-                  <span className="int-he">Invite</span>
+                  <span className="int-he">הזמן</span>
                 </div>
                 {this.state.message ?
                   <div className="groupInvitationBoxMessage">{this.state.message}</div>
@@ -5296,11 +5296,11 @@ class EditGroupPage extends Component {
         {this.props.initialData
           ? <h1>
               <span className="int-en">Edit Group</span>
-              <span className="int-he">Edit Group</span>
+              <span className="int-he">ערוך קבוצה</span>
             </h1>
           : <h1>
               <span className="int-en">Create a Group</span>
-              <span className="int-he">Create a Group</span>
+              <span className="int-he">צור קבוצה</span>
             </h1>}
 
         <div id="saveCancelButtons">
@@ -5317,7 +5317,7 @@ class EditGroupPage extends Component {
         <div className="field halfWidth">
           <label>
             <span className="int-en">Group Name</span>
-            <span className="int-he">Group Name</span>
+            <span className="int-he">שם הקבוצה</span>
           </label>
           <input id="groupName" value={this.state.name||""} onChange={this.handleInputChange}/>
         </div>
@@ -5325,7 +5325,7 @@ class EditGroupPage extends Component {
         <div className="field halfWidth">
           <label>
             <span className="int-en">Website</span>
-            <span className="int-he">Website</span>
+            <span className="int-he">כתובת אתר</span>
           </label>
           <input id="groupWebsite" value={this.state.websiteUrl||""} onChange={this.handleInputChange}/>
         </div>
@@ -5333,7 +5333,7 @@ class EditGroupPage extends Component {
         <div className="field">
           <label>
             <span className="int-en">Description</span>
-            <span className="int-he">Description</span>
+            <span className="int-he">תיאור</span>
           </label>
           <textarea id="groupDescription" onChange={this.handleInputChange} value={this.state.description||null}></textarea>
         </div>
@@ -5341,7 +5341,7 @@ class EditGroupPage extends Component {
         <div className="field">
           <label>
             <span className="int-en">Group Image</span>
-            <span className="int-he">Group Image</span>
+            <span className="int-he">תמונה לקבוצה</span>
           </label>
           {this.state.imageUrl
             ? <img className="groupImage" src={this.state.imageUrl} alt="Group Image" />
@@ -5354,14 +5354,14 @@ class EditGroupPage extends Component {
              onChange={this.handleImageChange} />
           <div className="helperText">
             <span className="int-en">Recommended size: 350px x 350px or larger</span>
-            <span className="int-he">Recommended size: 350px x 350px or larger</span>
+            <span className="int-he">גודל מומלץ: לפחות 350 פיקסל ע"ג 350 פיקסל</span>
           </div>
         </div>
 
         <div className="field">
           <label>
             <span className="int-en">Default Sheet Header</span>
-            <span className="int-he">Default Sheet Header</span>
+            <span className="int-he">כותרת עמוד ראשונית</span>
           </label>
           {this.state.headerUrl
             ? <div className="groupHeaderBox">
@@ -5377,14 +5377,14 @@ class EditGroupPage extends Component {
              onChange={this.handleImageChange} />
           <div className="helperText">
             <span className="int-en">Recommended size: 1000px width to fill sheet, smaller images align right</span>
-            <span className="int-he">Recommended size: 1000px width to fill sheet, smaller images align right</span>
+            <span className="int-he">גודל מומלץ: 1000 פיקסל כדי למלא את חלל הדף. גודל קטן יותר יתיישר לימין</span>
           </div>
         </div>
 
         {this.props.initialData ?
           <div className="deleteGroup" onClick={this.delete}>
             <span className="int-en">Delete Group</span>
-            <span className="int-he">Delete Group</span>
+            <span className="int-he">מחק קבוצה</span>
           </div>
           : null}
 
@@ -6928,7 +6928,7 @@ class ConnectionsPanelHeader extends Component {
       // Top Level Menu
       var title = <div className="connectionsHeaderTitle">
                     {this.props.interfaceLang == "english" ? <div className="int-en">Resources</div> : null }
-                    {this.props.interfaceLang == "hebrew" ? <div className="int-he">משאבים</div> : null }
+                    {this.props.interfaceLang == "hebrew" ? <div className="int-he">קישורים וכלים</div> : null }
                   </div>;
     } else if (this.props.previousCategory && this.props.connectionsMode == "TextList") {
       // In a text list, back to Previous Categoy
@@ -7723,7 +7723,7 @@ class LexiconBox extends Component {
       return (
         <div className="lexicon-instructions">
           <span className="int-en">Highlight words to look up definitions.</span>
-          <span className="int-he">Highlight words to look up definitions.</span>
+          <span className="int-he">סמן מילים כדי לחפש הגדרות</span>
         </div>);
     }
 
