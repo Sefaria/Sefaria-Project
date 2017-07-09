@@ -408,6 +408,9 @@ class TreeNode(object):
             return []
         return self.parent.ancestors() + [self.parent]
 
+    def is_ancestor_of(self, other_node):
+        return any(self == anc for anc in other_node.ancestors())
+
     def is_root(self):
         return not self.parent
 

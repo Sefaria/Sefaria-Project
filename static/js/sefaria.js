@@ -692,11 +692,25 @@ Sefaria = extend(Sefaria, {
     return links.length;
   },
   _filterLinks: function(links, filter) {
-     return links.filter(function(link){
-        return (filter.length == 0 ||
-                Sefaria.util.inArray(link.category, filter) !== -1 ||
-                Sefaria.util.inArray(link["collectiveTitle"]["en"], filter) !== -1 );
-      });
+    // Filters array `links` for only those thart match array `filter`.
+    // If `filter` ends with "|Quoting" return Quoting Commentary only, 
+    // otherwise commentary `filters` will return only links with type `commentary`
+    if (filter.length == 0) { return links; }
+
+    var filterAndSuffix = filter[0].split("|");
+    filter              = [filterAndSuffix[0]];
+    var isQuoting       = filterAndSuffix.length == 2 && filterAndSuffix[1] == "Quoting";
+    var index           = Sefaria.index(filter);
+    var isCommentary    = index && !isQuoting && 
+                            (index.categories[0] == "Commentary" || index.primary_category == "Commentary");
+
+    return links.filter(function(link){
+      if (isCommentary && link.category !== "Commentary") { return false; }
+      if (isQuoting && link.category !== "Quoting Commentary") { return false; }
+
+      return (Sefaria.util.inArray(link.category, filter) !== -1 ||
+              Sefaria.util.inArray(link["collectiveTitle"]["en"], filter) !== -1 );
+    });
   },
   _linkSummaries: {},
   linkSummary: function(ref) {
@@ -823,6 +837,9 @@ Sefaria = extend(Sefaria, {
     // Given a commentator name and a baseRef, return a ref to the commentary which spans the entire baseRef
     // E.g. ("Rashi", "Genesis 3") -> "Rashi on Genesis 3"
     // Works by examining links available on baseRef, returns null if no links are in cache. 
+    if (commentator == "Abarbanel") {
+      return null; // This text is too giant, optimizing up to section level is too slow.
+    }
     var links = Sefaria.links(baseRef);
     links = Sefaria._filterLinks(links, [commentator]);
     if (!links || !links.length) { return null; }
@@ -841,7 +858,8 @@ Sefaria = extend(Sefaria, {
       }
     }
     commentaryLink.toSections = commentaryLink.sections;
-    return Sefaria.humanRef(Sefaria.makeRef(commentaryLink));
+    var ref = Sefaria.humanRef(Sefaria.makeRef(commentaryLink));
+    return ref;
   },
   _notes: {},
   notes: function(ref, callback) {
@@ -1200,9 +1218,7 @@ Sefaria = extend(Sefaria, {
         var curTocElem = toc[i];
         if (curTocElem.title) { //this is a book
             if(curTocElem.dependence == 'Commentary'){
-                //if((title && curTocElem.base_text_titles && curTocElem.base_text_titles.filter(function(btitle){ return btitle["title"] == title}).length == 1)
-                if((title && curTocElem.base_text_titles && Sefaria.util.inArray(title, curTocElem.base_text_titles) != -1) ||
-                    (title == null)){
+                if((title && curTocElem.base_text_titles && (title in curTocElem.refs_to_base_texts)) || (title == null)){
                     results.push(curTocElem);
                 }
             }
@@ -2043,11 +2059,10 @@ Sefaria.util = {
       }
       return index;
     },
-    defaultPath: "/",
     currentPath: function() {
       // Returns the current path plus search string if a browser context
       // or "/" in a browser-less context.
-      return (typeof window === "undefined" ) ? Sefaria.util.defaultPath :
+      return (typeof window === "undefined" ) ? Sefaria.initialPath :
                 window.location.pathname + window.location.search;
     },
     parseURL: function(url) {
@@ -2583,6 +2598,7 @@ Sefaria.hebrew = {
   },
   encodeHebrewNumeral: function(n) {
     // Takes an integer and returns a string encoding it as a Hebrew numeral.
+    n = parseInt(n);
     if (n >= 1300) {
       return n;
     }
@@ -2829,6 +2845,7 @@ Sefaria.palette.categoryColor = function(cat) {
   return Sefaria.palette.categoryColors["Other"];
 };
 
+
 Sefaria.setup = function(data) {
     // data parameter is optional. in the event it isn't passed, we assume that DJANGO_DATA_VARS exists as a global var
     // data should but defined server-side and undefined client-side
@@ -2862,8 +2879,7 @@ Sefaria.setup();
 if (typeof window !== 'undefined') {
     window.Sefaria = Sefaria; // allow access to `Sefaria` from console
 }
-//if (typeof module !== 'undefined') {
-  module.exports = Sefaria;
 
-//}
+module.exports = Sefaria;
+
 

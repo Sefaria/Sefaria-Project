@@ -562,9 +562,11 @@ def s2_sheets_by_tag(request, tag):
         "initialMenu":     "sheets",
         "initialSheetsTag": tag,
     })
-    if tag == "My Sheets":
+    if tag == "My Sheets" and request.user.is_authenticated():
         props["userSheets"]   = user_sheets(request.user.id)["sheets"]
         props["userTags"]     = user_tags(request.user.id)
+    elif tag == "My Sheets" and not request.user.is_authenticated():
+        return redirect("/login?next=/sheets/private")
     elif tag == "All Sheets":
         props["publicSheets"] = {"offset0num50": public_sheets(limit=50)["sheets"]}
     else:

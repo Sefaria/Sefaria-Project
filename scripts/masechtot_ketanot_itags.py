@@ -18,23 +18,23 @@ def grab_itag_commetators(segment_ref):
     soup = BeautifulSoup(u'<root>{}</root>'.format(seg_text), 'xml')
     itags = soup.find_all(lambda x: x.name == 'i' and x.has_attr('data-commentator'))
 
-    return set([u"{} on {}".format(i['data-commentator'], segment_ref.book) for i in itags])
+    return set([u"{}".format(i['data-commentator']) for i in itags])
 
 
 def fix_links(seg_ref, commentators, test_mode=False):
     linkset = LinkSet(seg_ref)
     for commentator in commentators:
-        subset = linkset.filter(commentator)
+        subset = linkset.filter(u'{} on {}'.format(commentator, seg_ref.book))
 
         for link_obj in subset:
             comment_ref = Ref(link_obj.refs[1])
-            if comment_ref.book != commentator:
+            if getattr(comment_ref.index, 'collective_title', u'') != commentator:
                 comment_ref = Ref(link_obj.refs[0])
-            assert comment_ref.book == commentator
+            assert comment_ref.index.collective_title == commentator
 
             link_obj.inline_reference = {'data-commentator': commentator, 'data-order': comment_ref.sections[-1]}
             if test_mode:
-                pass
+                print vars(link_obj)
             else:
                 link_obj.save()
 
