@@ -6772,8 +6772,8 @@ class ConnectionsPanel extends Component {
                     srefs={this.props.srefs}
                     fullPanel={this.props.fullPanel}
                     closePanel={this.props.closePanel}
-                    onSave={this.props.setConnectionsMode.bind(null, "Notes")}
-                    onCancel={this.props.setConnectionsMode.bind(null, "Notes")} />
+                    onSave={() => this.props.setConnectionsMode("Notes")}
+                    onCancel={() => this.props.setConnectionsMode("Notes")} />
                   { Sefaria._uid ? 
                   <a href="/my/notes" className="allNotesLink button transparent bordered fillWidth squareBorder">
                     <span className="int-en">Go to My Notes</span>
@@ -6814,7 +6814,7 @@ class ConnectionsPanel extends Component {
                     versionLanguage={this.props.versionLanguage} />);
     
     } else if (this.props.mode === "Share") {
-      content = (<ShareBox
+      content = (<SharePanel
                     url={window.location.href}
                     fullPanel={this.props.fullPanel}
                     closePanel={this.props.closePanel}
@@ -6829,9 +6829,9 @@ class ConnectionsPanel extends Component {
                     noteIsPublic={this.props.noteBeingEdited.isPublic}
                     fullPanel={this.props.fullPanel}
                     closePanel={this.props.closePanel}
-                    onSave={this.props.setConnectionsMode.bind(null, "Notes")}
-                    onCancel={this.props.setConnectionsMode.bind(null, "Notes")}
-                    onDelete={this.props.setConnectionsMode.bind(null, "Notes")} />);
+                    onSave={() => this.props.setConnectionsMode("Notes")}
+                    onCancel={() => this.props.setConnectionsMode("Notes")}
+                    onDelete={() => this.props.setConnectionsMode("Notes")} />);
 
     } else if (this.props.mode === "Add Connection") {
       var onSave = function() {
@@ -6843,7 +6843,7 @@ class ConnectionsPanel extends Component {
                     srefs={this.props.allOpenRefs}
                     openComparePanel={this.props.openComparePanel}
                     onSave={onSave}
-                    onCancel={this.props.setConnectionsMode.bind(null, "Resources")} />
+                    onCancel={() => this.props.setConnectionsMode("Resources")} />
 
     } else if (this.props.mode === "Login") {
       content = (<LoginPrompt fullPanel={this.props.fullPanel} />);
@@ -7018,9 +7018,9 @@ class ResourcesList extends Component {
               {this.props.multiPanel ? 
                 <ToolsButton en="Other Text" he="השווה" icon="search" onClick={this.props.openComparePanel} /> 
               : null }
-              <ToolsButton en="Sheets" he="הוסף לדף מקורות" image="sheet.svg" count={this.props.sheetsCount} onClick={function() {this.props.setConnectionsMode("Sheets")}.bind(this)} /> 
-              <ToolsButton en="Notes" he="הרשומות שלי" image="tools-write-note.svg" count={this.props.notesCount} onClick={function() {this.props.setConnectionsMode("Notes")}.bind(this)} /> 
-              <ToolsButton en="Tools" he="הרשומות שלי" icon="gear" onClick={function() {this.props.setConnectionsMode("Tools")}.bind(this)} /> 
+              <ToolsButton en="Sheets" he="הוסף לדף מקורות" image="sheet.svg" count={this.props.sheetsCount} onClick={() => this.props.setConnectionsMode("Sheets")} />
+              <ToolsButton en="Notes" he="הרשומות שלי" image="tools-write-note.svg" count={this.props.notesCount} onClick={() => this.props.setConnectionsMode("Notes")} />
+              <ToolsButton en="Tools" he="הרשומות שלי" icon="gear" onClick={() => this.props.setConnectionsMode("Tools")} />
             </div>);
   }
 }
@@ -7854,15 +7854,15 @@ class ToolsList extends Component {
     var addTranslation = function() {
       var nextParam = "?next=" + Sefaria.util.currentPath();
       Sefaria.site.track.event("Tools", "Add Translation Click", this.props.srefs[0], null,
-          {hitCallback: () => window.location = "/translate/" + this.props.srefs[0] + nextParam}
+          {hitCallback: () => {window.location = "/translate/" + this.props.srefs[0] + nextParam}}
       );
     }.bind(this);
     
     return (
       <div>
-        <ToolsButton en="Share" he="שתף" image="tools-share.svg" onClick={this.props.setConnectionsMode.bind(null, "Share")} /> 
+        <ToolsButton en="Share" he="שתף" image="tools-share.svg" onClick={() => this.props.setConnectionsMode("Share")} />
         <ToolsButton en="Add Translation" he="הוסף תרגום" image="tools-translate.svg" onClick={addTranslation} /> 
-        { Sefaria.is_moderator || Sefaria.is_editor ? <ToolsButton en="Add Connection" he="הוסף קישור לטקסט אחר" image="tools-add-connection.svg"onClick={this.props.setConnectionsMode.bind(null, "Add Connection")} /> : null }
+        { Sefaria.is_moderator || Sefaria.is_editor ? <ToolsButton en="Add Connection" he="הוסף קישור לטקסט אחר" image="tools-add-connection.svg"onClick={() => this.props.setConnectionsMode("Add Connection")} /> : null }
         { editText ? (<ToolsButton en="Edit Text" he="ערוך טקסט" image="tools-edit-text.svg" onClick={editText} />) : null }
       </div>);
   }
