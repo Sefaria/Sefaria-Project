@@ -6755,7 +6755,7 @@ class ConnectionsPanel extends Component {
                   { Sefaria._uid ? 
                   <a href="/sheets/private" className="allSheetsLink button transparent bordered fillWidth squareBorder">
                     <span className="int-en">Go to My Sheets</span>
-                    <span className="int-he">HEBREW NEEDED</span>
+                    <span className="int-he">דפי המקורות שלי</span>
                   </a>
                   : null }
                   <MySheetsList
@@ -6777,7 +6777,7 @@ class ConnectionsPanel extends Component {
                   { Sefaria._uid ? 
                   <a href="/my/notes" className="allNotesLink button transparent bordered fillWidth squareBorder">
                     <span className="int-en">Go to My Notes</span>
-                    <span className="int-he">HEBREW NEEDED</span>
+                    <span className="int-he">הרשומות שלי</span>
                   </a>
                   : null }
                   <MyNotes 
@@ -7487,7 +7487,7 @@ class ModeratorLinkOptions extends Component {
     return <div className="moderatorLinkOptions sans">
       <div className="moderatorLinkOptionsDelete" onClick={this.deleteLink}>
         <span className="int-en">Remove</span>
-        <span className="int-he">HEBREW NEEDED</span>
+        <span className="int-he">מחק</span>
       </div>
     </div>
   }
@@ -8122,7 +8122,7 @@ class AddToSourceSheetBox extends Component {
         <div className="dropdown">
           <div className="dropdownMain noselect" onClick={this.toggleSheetList}>
             <i className="dropdownOpenButton noselect fa fa-caret-down"></i>
-            {this.state.sheetsLoaded ? this.state.selectedSheet.title.stripHtml() : <LoadingMessage messsage="Loading your sheets..." heMessage=""/>}
+            {this.state.sheetsLoaded ? this.state.selectedSheet.title.stripHtml() : <LoadingMessage messsage="Loading your sheets..." heMessage="טוען את דפי המקורות שלך"/>}
           </div>
           {this.state.sheetListOpen ? 
           <div className="dropdownListBox noselect">
@@ -8447,11 +8447,11 @@ class AddConnectionBox extends Component {
             { this.props.srefs.length == 1 ? 
               <div>
                 <span className="int-en">Choose a text to connect.</span>
-                <span className="int-he">HEBREW NEEDED</span>
+                <span className="int-he">בחר טקסט לקישור</span>
 
                 <div className="button fillWidth" onClick={this.props.openComparePanel}>
                   <span className="int-en">Browse</span>
-                  <span className="int-he">HEBREW NEEDED</span>
+                  <span className="int-he">סייר</span>
                 </div>
               </div>
               : null }
@@ -8459,7 +8459,7 @@ class AddConnectionBox extends Component {
             { this.props.srefs.length > 2 ? 
               <div>
                 <span className="int-en">We currently only understand connections between two texts.</span>
-                <span className="int-he">HEBREW NEEDED</span>
+                <span className="int-he">ניתן לקשר רק בין 2 טקסטים</span>
               </div>
               : null }
 
@@ -8487,7 +8487,7 @@ class AddConnectionBox extends Component {
 
                 <div className="button fillWidth" onClick={this.addConnection}>
                   <span className="int-en">Add Connection</span>
-                  <span className="int-he">HEBREW NEEDED</span>
+                  <span className="int-he">הוסף קישור</span>
                 </div>
 
               </div>
@@ -9951,7 +9951,7 @@ class MyNotesPanel extends Component {
             <ReaderNavigationMenuDisplaySettingsButton onClick={this.props.openDisplaySettings} />
             <h2>
               <span className="int-en">My Notes</span>
-              <span className="int-he">HEBREW NEEDED</span>
+              <span className="int-he">הרשומות שלי</span>
             </h2>
         </div>}
         <div className={contentClasses} onScroll={this.onScroll}>
@@ -9960,7 +9960,7 @@ class MyNotesPanel extends Component {
               <h1>
                 { this.props.multiPanel ? <LanguageToggleButton toggleLanguage={this.props.toggleLanguage} /> : null }
                 <span className="int-en">My Notes</span>
-                <span className="int-he">HEBREW NEEDED</span>
+                <span className="int-he">הרשומות שלי</span>
               </h1>
               : null }
             <div className="noteList">
@@ -9971,7 +9971,7 @@ class MyNotesPanel extends Component {
                       // from API as notes scroll into view.
                       return <NoteListing data={item} key={i} showText={i <= this.state.numberToRender} />
                     }.bind(this))
-                    : <LoadingMessage message="You haven't written any notes yet." heMessage="You haven't written any notes yet." />)
+                    : <LoadingMessage message="You haven't written any notes yet." heMessage="טרם הוספת רשומות משלך" />)
                   : <LoadingMessage />
               }
             </div>
@@ -10023,7 +10023,7 @@ class NoteListing extends Component {
     return (<div className="noteListing">
               <div className="addToSheetButton sans" onClick={this.showSheetModal}>
                 <span className="int-en">Add to Sheet</span>
-                <span className="int-he">HEBREW NEEDED</span>
+                <span className="int-he">הוסף לדף מקורות</span>
               </div>
               <a href={url}>
                 {this.props.showText ? 
@@ -10082,7 +10082,7 @@ class MyGroupsPanel extends Component {
             <center>
               <a className="button white" href="/groups/new">
                 <span className="int-en">Create a Group</span>
-                <span className="int-he">ליצור קבוצה</span>
+                <span className="int-he">צור קבוצה</span>
               </a>
             </center>
 
@@ -10092,7 +10092,7 @@ class MyGroupsPanel extends Component {
                     groupsList.private.map(function(item) {
                       return <GroupListing data={item} />
                     })
-                    : <LoadingMessage message="You aren't a member of any groups yet." heMessage="You aren't a member of any groups yet." />)
+                    : <LoadingMessage message="You aren't a member of any groups yet." heMessage="אינך חבר כרגע באף קבוצה" />)
                   : <LoadingMessage />
               }
             </div>
