@@ -6814,7 +6814,7 @@ class ConnectionsPanel extends Component {
                     versionLanguage={this.props.versionLanguage} />);
     
     } else if (this.props.mode === "Share") {
-      content = (<SharePanel
+      content = (<ShareBox
                     url={window.location.href}
                     fullPanel={this.props.fullPanel}
                     closePanel={this.props.closePanel}
@@ -7665,7 +7665,7 @@ SheetListing.propTypes = {
 
 
 
-class LexiconPanel extends Component {
+class LexiconBox extends Component {
   constructor(props) {
     super(props);
     this.state = {
@@ -7763,7 +7763,7 @@ class LexiconPanel extends Component {
   }
 }
 
-LexiconPanel.propTypes = {
+LexiconBox.propTypes = {
   selectedWords: PropTypes.string,
   oref:          PropTypes.object
 };
@@ -7912,7 +7912,7 @@ ToolsButton.propTypes = {
 
 
 
-class SharePanel extends Component {
+class ShareBox extends Component {
   componentDidMount() {
     this.focusInput();
   }
@@ -7937,7 +7937,7 @@ class SharePanel extends Component {
     var shareEmail = function() {
       openInNewTab("mailto:?&subject=Text on Sefaria&body=" + url);
     };
-    var classes = classNames({sharePanel: 1, textList: 1, fullPanel: this.props.fullPanel});
+    var classes = classNames({textList: 1, fullPanel: this.props.fullPanel});
     return (
       <div>
         <input className="shareInput" value={this.props.url} />
@@ -7948,7 +7948,7 @@ class SharePanel extends Component {
   }
 }
 
-SharePanel.propTypes = {
+ShareBox.propTypes = {
   url:                PropTypes.string.isRequired,
   setConnectionsMode: PropTypes.func.isRequired,
   closePanel:         PropTypes.func.isRequired,
