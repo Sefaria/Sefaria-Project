@@ -7835,35 +7835,35 @@ LexiconEntry.propTypes = {
 
 
 class ToolsList extends Component {
-  render() {
-    var editText  = this.props.canEditText ? function() {
-        var refString = this.props.srefs[0];
-        var currentPath = Sefaria.util.currentPath();
-        var currentLangParam;
-        if (this.props.version) {
-          refString += "/" + encodeURIComponent(this.props.versionLanguage) + "/" + encodeURIComponent(this.props.version);
-        }
-        var path = "/edit/" + refString;
-        var nextParam = "?next=" + encodeURIComponent(currentPath);
-        path += nextParam;
-        Sefaria.site.track.event("Tools", "Edit Text Click", refString, null,
-          {hitCallback: () =>  window.location = path}
-        );
-    }.bind(this) : null;
+  editText() {
+    var refString = this.props.srefs[0];
+    var currentPath = Sefaria.util.currentPath();
+    var currentLangParam;
+    if (this.props.version) {
+      refString += "/" + encodeURIComponent(this.props.versionLanguage) + "/" + encodeURIComponent(this.props.version);
+    }
+    var path = "/edit/" + refString;
+    var nextParam = "?next=" + encodeURIComponent(currentPath);
+    path += nextParam;
+    Sefaria.site.track.event("Tools", "Edit Text Click", refString, null,
+      {hitCallback: function() {window.location = path;}}
+    );
+  }
 
-    var addTranslation = function() {
-      var nextParam = "?next=" + Sefaria.util.currentPath();
-      Sefaria.site.track.event("Tools", "Add Translation Click", this.props.srefs[0], null,
-          {hitCallback: () => {window.location = "/translate/" + this.props.srefs[0] + nextParam}}
-      );
-    }.bind(this);
-    
+  addTranslation() {
+    var nextParam = "?next=" + Sefaria.util.currentPath();
+    Sefaria.site.track.event("Tools", "Add Translation Click", this.props.srefs[0], null,
+      {hitCallback: function() {window.location = "/translate/" + this.props.srefs[0] + nextParam;}.bind(this)}
+    );
+  }
+
+  render() {
     return (
       <div>
         <ToolsButton en="Share" he="שתף" image="tools-share.svg" onClick={() => this.props.setConnectionsMode("Share")} />
-        <ToolsButton en="Add Translation" he="הוסף תרגום" image="tools-translate.svg" onClick={addTranslation} /> 
-        { Sefaria.is_moderator || Sefaria.is_editor ? <ToolsButton en="Add Connection" he="הוסף קישור לטקסט אחר" image="tools-add-connection.svg"onClick={() => this.props.setConnectionsMode("Add Connection")} /> : null }
-        { editText ? (<ToolsButton en="Edit Text" he="ערוך טקסט" image="tools-edit-text.svg" onClick={editText} />) : null }
+        <ToolsButton en="Add Translation" he="הוסף תרגום" image="tools-translate.svg" onClick={this.addTranslation} />
+        { (Sefaria.is_moderator || Sefaria.is_editor) ? <ToolsButton en="Add Connection" he="הוסף קישור לטקסט אחר" image="tools-add-connection.svg"onClick={() => this.props.setConnectionsMode("Add Connection")} /> : null }
+        { (this.props.canEditText) ? (<ToolsButton en="Edit Text" he="ערוך טקסט" image="tools-edit-text.svg" onClick={this.editText} />) : null }
       </div>);
   }
 }
