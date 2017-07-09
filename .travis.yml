@@ -46,7 +46,7 @@ before_script:
   # Download and restore the Sefaria database
   - wget -nv $MONGO_DUMP_URL
   - tar -xzvf $MONGO_DUMP_FILENAME
-  - mongorestore --drop
+  - mongorestore --quiet --drop
 
   # Copy in settings files tuned for the travis build
   - cp ./sefaria/.travis.settings.py ./sefaria/local_settings.py
