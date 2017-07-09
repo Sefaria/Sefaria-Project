@@ -7018,9 +7018,9 @@ class ResourcesList extends Component {
               {this.props.multiPanel ? 
                 <ToolsButton en="Other Text" he="השווה" icon="search" onClick={this.props.openComparePanel} /> 
               : null }
-              <ToolsButton en="Sheets" he="הוסף לדף מקורות" image="sheet.svg" count={this.props.sheetsCount} onClick={() => this.props.setConnectionsMode("Sheets")} />
+              <ToolsButton en="Sheets" he="דפי מקורות" image="sheet.svg" count={this.props.sheetsCount} onClick={() => this.props.setConnectionsMode("Sheets")} />
               <ToolsButton en="Notes" he="הרשומות שלי" image="tools-write-note.svg" count={this.props.notesCount} onClick={() => this.props.setConnectionsMode("Notes")} />
-              <ToolsButton en="Tools" he="הרשומות שלי" icon="gear" onClick={() => this.props.setConnectionsMode("Tools")} />
+              <ToolsButton en="Tools" he="כלים" icon="gear" onClick={() => this.props.setConnectionsMode("Tools")} />
             </div>);
   }
 }
