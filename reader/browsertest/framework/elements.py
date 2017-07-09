@@ -82,6 +82,7 @@ class AtomicTest(object):
         elem = self.driver.find_element_by_css_selector("#id_password")
         elem.send_keys(password)
         self.driver.find_element_by_css_selector("button").click()
+        WebDriverWait(self.driver, TEMPER).until_not(title_contains("Login"))
 
     # TOC
     def load_toc(self):
@@ -214,7 +215,7 @@ class AtomicTest(object):
         #todo: untested
         #todo: handle multiple panels
         self.driver.execute_script(
-            "var a = $('.textColumn'); a.scrollTop(a.scrollTop() + {});".format(pixels)
+            "var a = document.getElementsByClassName('textColumn')[0]; a.scrollTop = a.scrollTop() + {};".format(pixels)
         )
         return self
 
@@ -222,7 +223,7 @@ class AtomicTest(object):
         #todo: untested
         #todo: handle multiple panels
         self.driver.execute_script(
-            "var a = $('.textColumn'); a.scrollTop(a.scrollTop() - {});".format(pixels)
+            "var a = document.getElementsByClassName('textColumn')[0]; a.scrollTop = a.scrollTop - {};".format(pixels)
         )
         return self
 
@@ -230,7 +231,7 @@ class AtomicTest(object):
         #todo: untested
         #todo: handle multiple panels
         self.driver.execute_script(
-            "var a = $('.textColumn'); a.scrollTop(a.prop('scrollHeight'));"
+            "var a = document.getElementsByClassName('textColumn')[0]; a.scrollTop = a.scrollHeight;"
         )
         return self
 
@@ -249,7 +250,7 @@ class AtomicTest(object):
     def scroll_nav_panel_to_bottom(self):
         # todo: handle multiple panels
         self.driver.execute_script(
-            "var a = $('.content'); a.scrollTop(a.prop('scrollHeight'));"
+            "var a = document.getElementsByClassName('content')[0]; a.scrollTop = a.scrollHeight;"
         )
         return self
 

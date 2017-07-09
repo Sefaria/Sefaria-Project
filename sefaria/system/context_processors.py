@@ -120,8 +120,10 @@ def user_and_notifications(request):
     }
 
 
-LOGGED_OUT_HEADER = None
-LOGGED_IN_HEADER  = None
+HEADER = {
+    'logged_in': {'english': None, 'hebrew': None},
+    'logged_out': {'english': None, 'hebrew': None}
+}
 def header_html(request):
     """
     Uses React to prerender a logged in and and logged out header for use in pages that extend `base.html`.
@@ -129,12 +131,15 @@ def header_html(request):
     """
     if request.path == "/data.js":
         return {}
-    global LOGGED_OUT_HEADER, LOGGED_IN_HEADER
+    global HEADER
     if USE_NODE:
-        LOGGED_OUT_HEADER = LOGGED_OUT_HEADER or render_react_component("ReaderApp", {"headerMode": True, "loggedIn": False})
-        LOGGED_IN_HEADER = LOGGED_IN_HEADER or render_react_component("ReaderApp", {"headerMode": True, "loggedIn": True})
+        lang = language_settings(request)["interfaceLang"]
+        LOGGED_OUT_HEADER = HEADER['logged_out'][lang] or render_react_component("ReaderApp", {"headerMode": True, "loggedIn": False, "interfaceLang": lang})
+        LOGGED_IN_HEADER = HEADER['logged_in'][lang] or render_react_component("ReaderApp", {"headerMode": True, "loggedIn": True, "interfaceLang": lang})
         LOGGED_OUT_HEADER = "" if "s2Loading" in LOGGED_OUT_HEADER else LOGGED_OUT_HEADER
         LOGGED_IN_HEADER = "" if "s2Loading" in LOGGED_IN_HEADER else LOGGED_IN_HEADER
+        HEADER['logged_out'][lang] = LOGGED_OUT_HEADER
+        HEADER['logged_in'][lang] = LOGGED_IN_HEADER
     else:
         LOGGED_OUT_HEADER = ""
         LOGGED_IN_HEADER = ""
