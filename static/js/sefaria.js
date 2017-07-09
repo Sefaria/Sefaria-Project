@@ -113,6 +113,11 @@ Sefaria = extend(Sefaria, {
       return ref;
   },
   normRef: function(ref) {
+      // Returns a string of the URL normalized form of `ref` (using _ for spaces and . for section seprator).
+      // `ref` may be a string, or an array of strings. If ref is an array of strings, it is passed to normRefList.
+      if (ref instanceof Array) {
+        return Sefaria.normRefList(ref);
+      }
       var norm = Sefaria.makeRef(Sefaria.parseRef(ref));
       if (typeof norm == "object" && "error" in norm) {
           // If the ref doesn't parse, just replace spaces with undescores.
@@ -121,6 +126,9 @@ Sefaria = extend(Sefaria, {
       return norm;
   },
   humanRef: function(ref) {
+      // Returns a string of the normalized form of `ref`.
+      // `ref` may be a string, or an array of strings. If ref is an array of strings, it is passed to normRefList.
+      ref = Sefaria.normRef(ref);
       var pRef = Sefaria.parseRef(ref);
       if (pRef.sections.length == 0) { return pRef.book; }
       var book = pRef.book + " ";
@@ -315,7 +323,7 @@ Sefaria = extend(Sefaria, {
     this._refmap[refkey] = key;
 
     var levelsUp = data.textDepth - data.sections.length;
-    if (levelsUp == 1 && !data.isSpanning /*&& !data.updateFromAPI*/) { // Section level ref
+    if (levelsUp >= 1 && !data.isSpanning) { // Section level ref
       this._splitTextSection(data, settings);
     } else if (settings.context && levelsUp <= 1) {  // Do we really want this to run on spanning section refs?
       // Save a copy of the data at context level
@@ -595,14 +603,15 @@ Sefaria = extend(Sefaria, {
     // WARNING: calling this function with spanning refs can cause bad state in cache.
     // When processing links for "Genesis 2:4-4:4", a link to the entire chapter "Genesis 3" will be split and stored with that key.
     // The data for "Genesis 3" then represents only links to the entire chapter, not all links within the chapter.
-    // Fixing this generally on the client side requires more understanding of ref logic.
+    // Fixing this generally on the client side requires more understanding of ref logic. 
+    ref = Sefaria.humanRef(ref);
     if (!cb) {
       return this._links[ref] || [];
     }
     if (ref in this._links) {
       cb(this._links[ref]);
     } else {
-       var url = "/api/links/" + Sefaria.normRef(ref) + "?with_text=0";
+       var url = "/api/links/" + ref + "?with_text=0";
        this._api(url, function(data) {
           if ("error" in data) {
             return;
@@ -613,6 +622,7 @@ Sefaria = extend(Sefaria, {
     }
   },
   _saveLinkData: function(ref, data) {
+    ref = Sefaria.humanRef(ref);
     var l = this._saveLinksByRef(data);
     this._links[ref] = data;
     this._cacheIndexFromLinks(data);
@@ -620,9 +630,8 @@ Sefaria = extend(Sefaria, {
   },
   _cacheIndexFromLinks: function(links) {
     // Cache partial index information (title, Hebrew title, categories) found in link data.
-    for (var i=0; i< links.length; i++) {
+    for (var i=0; i < links.length; i++) {
       if (("collectiveTitle" in links[i]) && this.index(links[i].collectiveTitle["en"])) {
-          //console.log("Skipping ", links[i].collectiveTitle["en"]);
           continue;
       }
       var index = {
@@ -630,7 +639,6 @@ Sefaria = extend(Sefaria, {
         heTitle:    links[i].collectiveTitle["he"],
         categories: [links[i].category],
       };
-      //console.log("Saving ", links[i].collectiveTitle["en"]);
       this.index(links[i].collectiveTitle["en"], index);
     }
   },
@@ -641,7 +649,7 @@ Sefaria = extend(Sefaria, {
     // For a set of items from the API, save each set split by the specific ref the items points to.
     // E.g, API is called on "Genesis 1", this function also stores the data in buckets like "Genesis 1:1", "Genesis 1:2" etc.
     var splitItems = {}; // Aggregate links by anchorRef
-    for (var i=0; i < data.length; i++) {
+    for (var i = 0; i < data.length; i++) {
       var ref = data[i].anchorRef;
       var refs = Sefaria.splitSpanningRef(ref);
       for (var j = 0; j < refs.length; j++) {
@@ -655,7 +663,12 @@ Sefaria = extend(Sefaria, {
     }
     for (var ref in splitItems) {
       if (splitItems.hasOwnProperty(ref)) {
-        store[ref] = splitItems[ref];
+        if (!(ref in store) || store[ref].length <= splitItems[ref].length) {
+          // Don't overwrite the cache if it already contains more items than the new list.
+          // Due to range logic, if cache was populated with "Genesis 1", a call for "Genesis 1:2-4" could yeild
+          // a smaller list of results for "Genesis 1:4" than was already present. 
+          store[ref] = splitItems[ref];
+        }
       }
     }
     return splitItems;
@@ -666,7 +679,7 @@ Sefaria = extend(Sefaria, {
       return ref in this._links;
     } else {
       for (var i = 0; i < ref.length; i++) {
-        if (!this.linksLoaded(ref[i])) { return false}
+        if (!this.linksLoaded(ref[i])) { return false; }
       }
       return true;
     }
@@ -679,18 +692,34 @@ Sefaria = extend(Sefaria, {
     return links.length;
   },
   _filterLinks: function(links, filter) {
-     return links.filter(function(link){
-        return (filter.length == 0 ||
-                Sefaria.util.inArray(link.category, filter) !== -1 ||
-                Sefaria.util.inArray(link["collectiveTitle"]["en"], filter) !== -1 );
-      });
+    // Filters array `links` for only those thart match array `filter`.
+    // If `filter` ends with "|Quoting" return Quoting Commentary only, 
+    // otherwise commentary `filters` will return only links with type `commentary`
+    if (filter.length == 0) { return links; }
+
+    var filterAndSuffix = filter[0].split("|");
+    filter              = [filterAndSuffix[0]];
+    var isQuoting       = filterAndSuffix.length == 2 && filterAndSuffix[1] == "Quoting";
+    var index           = Sefaria.index(filter);
+    var isCommentary    = index && !isQuoting && 
+                            (index.categories[0] == "Commentary" || index.primary_category == "Commentary");
+
+    return links.filter(function(link){
+      if (isCommentary && link.category !== "Commentary") { return false; }
+      if (isQuoting && link.category !== "Quoting Commentary") { return false; }
+
+      return (Sefaria.util.inArray(link.category, filter) !== -1 ||
+              Sefaria.util.inArray(link["collectiveTitle"]["en"], filter) !== -1 );
+    });
   },
   _linkSummaries: {},
   linkSummary: function(ref) {
     // Returns an ordered array summarizing the link counts by category and text
-    // Takes either a single string `ref` or an array of string refs.
+    // Takes either a single string `ref` or an array of refs strings.
+    
+    var normRef = Sefaria.humanRef(ref);
+    if (normRef in this._linkSummaries) { return this._linkSummaries[normRef]; }
     if (typeof ref == "string") {
-      if (ref in this._linkSummaries) { return this._linkSummaries[ref]; }
       var links = this.links(ref);
     } else {
       var links = [];
@@ -748,37 +777,49 @@ Sefaria = extend(Sefaria, {
         return bookData;
       });
       // Sort the books in the category
-      categoryData.books.sort(function(a, b) {
-        // First sort by predefined "top"
-        var topByCategory = {
-          "Tanakh": ["Rashi", "Ibn Ezra", "Ramban", "Sforno"],
-          "Talmud": ["Rashi", "Tosafot"]
-        };
-        var cat = oRef ? oRef["categories"][0] : null;
-        var top = topByCategory[cat] || [];
-        var aTop = top.indexOf(a.book);
-        var bTop = top.indexOf(b.book);
-        if (aTop !== -1 || bTop !== -1) {
-          aTop = aTop === -1 ? 999 : aTop;
-          bTop = bTop === -1 ? 999 : bTop;
-          return aTop < bTop ? -1 : 1;
-        }
-        // Then sort alphabetically
-        return a.book > b.book ? 1 : -1;
-      });
+      var cat = oRef ? oRef["categories"][0] : null;
+      categoryData.books.sort(Sefaria.linkSummaryBookSort.bind(null, cat));
+
       return categoryData;
     });
     // Sort the categories
+    var categoryOrder = Sefaria.toc.map(function(cat) { return cat.category; });
+    categoryOrder.splice(0, 0, "Commentary"); // Always show Commentary First
+    categoryOrder.splice(2, 0, "Targum");     // Show Targum after Tanakh
     summaryList.sort(function(a, b) {
-      // always put Commentary first
-      if      (a.category === "Commentary") { return -1; }
-      else if (b.category === "Commentary") { return  1; }
-      // always put Modern Works last
-      if      (a.category === "Modern Works") { return  1; }
-      else if (b.category === "Modern Works") { return -1; }
-      return b.count - a.count;
+      var orderA = categoryOrder.indexOf(a.category);
+      var orderB = categoryOrder.indexOf(b.category);
+      orderA = orderA == -1 ? categoryOrder.length : orderA;
+      orderB = orderB == -1 ? categoryOrder.length : orderB;
+      return orderA - orderB;
     });
+    Sefaria._linkSummaries[Sefaria.humanRef(ref)] = summaryList;
     return summaryList;
+  },
+  linkSummaryBookSort: function(category, a, b, byHebrew) {
+    // Sorter for links in a link summary, included a hard coded list of top spots by category
+    var byHebrew = byHebrew || false;
+    // First sort by predefined "top"
+    var topByCategory = {
+      "Tanakh": ["Rashi", "Ibn Ezra", "Ramban", "Sforno"],
+      "Talmud": ["Rashi", "Tosafot"]
+    };
+    var top = topByCategory[category] || [];
+    var aTop = top.indexOf(a.book);
+    var bTop = top.indexOf(b.book);
+    if (aTop !== -1 || bTop !== -1) {
+      aTop = aTop === -1 ? 999 : aTop;
+      bTop = bTop === -1 ? 999 : bTop;
+      return aTop < bTop ? -1 : 1;
+    }
+    // Then sort alphabetically
+    if (byHebrew) {
+      return a.heBook > b.heBook ? 1 : -1;
+    } 
+    return a.book > b.book ? 1 : -1; 
+  },
+  linkSummaryBookSortHebrew: function(category, a, b) {
+    return Sefaria.linkSummaryBookSort(category, a, b, true);
   },
   flatLinkSummary: function(ref) {
     // Returns an array containing texts and categories with counts for ref
@@ -791,6 +832,34 @@ Sefaria = extend(Sefaria, {
     var books = [];
     books = books.concat.apply(books, booksByCat);
     return books;
+  },
+  commentarySectionRef: function(commentator, baseRef) {
+    // Given a commentator name and a baseRef, return a ref to the commentary which spans the entire baseRef
+    // E.g. ("Rashi", "Genesis 3") -> "Rashi on Genesis 3"
+    // Works by examining links available on baseRef, returns null if no links are in cache. 
+    if (commentator == "Abarbanel") {
+      return null; // This text is too giant, optimizing up to section level is too slow.
+    }
+    var links = Sefaria.links(baseRef);
+    links = Sefaria._filterLinks(links, [commentator]);
+    if (!links || !links.length) { return null; }
+    var commentaryLink = Sefaria.util.clone(Sefaria.parseRef(links[0].sourceRef));
+    for (var i = 1; i < links.length; i++) {
+      var plink = Sefaria.parseRef(links[i].sourceRef);
+      if (commentaryLink.book !== plink.book) { return null;} // Can't handle multiple index titles or schemaNodes
+      if (plink.sections.length > commentaryLink.sections.length) {
+        commentaryLink.sections = commentaryLink.sections.slice(0, plink.sections.length);
+      }
+      for (var k=0; k < commentaryLink.sections.length; k++) {
+        if (commentaryLink.sections[k] !== plink.sections[k]) {
+          commentaryLink.sections = commentaryLink.sections.slice(0, k);
+          break;
+        }
+      }
+    }
+    commentaryLink.toSections = commentaryLink.sections;
+    var ref = Sefaria.humanRef(Sefaria.makeRef(commentaryLink));
+    return ref;
   },
   _notes: {},
   notes: function(ref, callback) {
@@ -876,22 +945,44 @@ Sefaria = extend(Sefaria, {
   addPrivateNote: function(note) {
     // Add a single private note to the cache of private notes.
     var notes = this.privateNotes(note["anchorRef"]) || [];
-    notes.push(note);
+    notes = [note].concat(notes);
     this._saveItemsByRef(notes, this._privateNotes);
   },
   clearPrivateNotes: function() {
     this._privateNotes = {};
+    this._allPrivateNotes = null;
+  },
+  _allPrivateNotes: null,
+  allPrivateNotes: function(callback) {
+    if (this._allPrivateNote || !callback) { return this._allPrivateNotes; }
+    
+    var url = "/api/notes/all?private=1";
+    this._api(url, function(data) {
+      if ("error" in data) { 
+        return;
+      }
+      this._savePrivateNoteData(null, data);
+      this._allPrivateNotes = data;
+      callback(data);
+    }.bind(this));
   },
   _savePrivateNoteData: function(ref, data) {
-    if (data.length) {
-      this._saveItemsByRef(data, this._privateNotes);
-    } else {
-      this._privateNotes[ref] = [];
+    return this._saveItemsByRef(data, this._privateNotes);
+  },
+  notesTotalCount: function(refs) {
+    // Returns the total number of private and public notes on `refs` without double counting my public notes.
+    var notes = Sefaria.notes(refs) || [];
+    if (Sefaria._uid) {
+      var myNotes  = Sefaria.privateNotes(refs) || [];
+      notes = notes.filter(function(note) { return note.owner !== Sefaria._uid }).concat(myNotes);
     }
+    return notes.length;
   },
   _related: {},
   related: function(ref, callback) {
-    // Single API to bundle links, sheets, and notes by ref.
+    // Single API to bundle public links, sheets, and notes by ref.
+    // `ref` may be either a string or an array of consecutive ref strings.
+    ref = Sefaria.humanRef(ref);
     if (!callback) {
       return this._related[ref] || null;
     }
@@ -930,48 +1021,62 @@ Sefaria = extend(Sefaria, {
 
       // Save the original data after the split data - lest a split version overwrite it.
       this._related[ref] = originalData;
-      this._relatedSummaries[ref] = null; // Reset in case previously cached before API returned
 
       callback(data);
     }.bind(this));
   },
-  _relatedSummaries: {},
-  relatedSummary: function(ref) {
-    // Returns a summary object of all categories of related content.
-    if (typeof ref == "string") {
-      if (ref in this._relatedSummaries) { return this._relatedSummaries[ref]; }
-      var sheets = this.sheets.sheetsByRef(ref) || [];
-      var notes  = this.notes(ref) || [];
+  _relatedPrivate: {},
+  relatedPrivate: function(ref, callback) {
+    // Single API to bundle private user sheets and notes by ref.
+    // `ref` may be either a string or an array of consecutive ref strings.
+    // Separated from public content so that public content can be cached
+    ref = Sefaria.humanRef(ref);
+    if (!callback) {
+      return this._relatedPrivate[ref] || null;
+    }
+    if (ref in this._relatedPrivate) {
+      callback(this._relatedPrivate[ref]);
     } else {
-      var sheets = [];
-      var notes  = [];
-      ref.map(function(r) {
-        var newSheets = Sefaria.sheets.sheetsByRef(r);
-        sheets = newSheets ? sheets.concat(newSheets) : sheets;
-        var newNotes = Sefaria.notes(r);
-        notes = newNotes ? notes.concat(newNotes) : notes;
-      });
+       var url = "/api/related/" + Sefaria.normRef(ref) + "?private=1";
+       this._api(url, function(data) {
+          if ("error" in data) { 
+            return;
+          }
+          var originalData = Sefaria.util.clone(data);
+
+          // Save link, note, and sheet data, and retain the split data from each of these saves
+          var split_data = {
+              notes: this._savePrivateNoteData(ref, data.notes),
+              sheets: this.sheets._saveUserSheetsByRefData(ref, data.sheets)
+          };
+
+           // Build split related data from individual split data arrays
+          ["notes", "sheets"].forEach(function(obj_type) {
+            for (var ref in split_data[obj_type]) {
+              if (split_data[obj_type].hasOwnProperty(ref)) {
+                if (!(ref in this._relatedPrivate)) {
+                    this._relatedPrivate[ref] = {notes: [], sheets: []};
+                }
+                this._relatedPrivate[ref][obj_type] = split_data[obj_type][ref];
+              }
+            }
+          }, this);
+
+           // Save the original data after the split data - lest a split version overwrite it.
+          this._relatedPrivate[ref] = originalData;
+
+          callback(data);
+
+        }.bind(this));
     }
-    var summary           = this.linkSummary(ref);
-    var commmunityContent = [sheets, notes].filter(function(section) { return section.length > 0; } ).map(function(section) {
-      if (!section) { debugger; }
-      return {
-        book: section[0].category,
-        heBook: Sefaria.hebrewTerm(section[0].category),
-        category: "Community",
-        count: section.length
-      };
-    });
-    var community = {
-      category: "Community",
-      count: sheets.length + notes.length,
-      books: commmunityContent
-    };
-    if (community.count > 0) {
-      summary.push(community);
-    }
-    this._relatedSummaries[ref] = summary;
-    return summary;
+  },
+  clearLinks: function() {
+    this._related = {};
+    this._links = {};
+    this._linkSummaries = {};
+  },
+  removeLink: function(_id) {
+    
   },
   isACaseVariant: function(query, data) {
     // Check if query is just an improper capitalization of something that otherwise would be a ref
@@ -1324,7 +1429,8 @@ Sefaria = extend(Sefaria, {
       return sheets;
     },
     clearUserSheets: function(uid) {
-      this._userSheets[uid] = null;
+      this._userSheets[uid+"date"] = null;
+      this._userSheets[uid+"views"] = null;
     },
     _sheetsByRef: {},
     sheetsByRef: function(ref, cb) {
@@ -1355,6 +1461,45 @@ Sefaria = extend(Sefaria, {
     _saveSheetsByRefData: function(ref, data) {
       this._sheetsByRef[ref] = data;
       return Sefaria._saveItemsByRef(data, this._sheetsByRef);
+    },
+    _userSheetsByRef: {},
+    userSheetsByRef: function(ref, cb) {
+      // Returns a list of public sheets that include `ref`.
+      var sheets = null;
+      if (typeof ref == "string") {
+        if (ref in this._userSheetsByRef) { 
+          sheets = this._userSheetsByRef[ref];
+        }
+      } else {
+        var sheets = [];
+        ref.map(function(r) {
+          var newSheets = Sefaria.sheets.userSheetsByRef(r);
+          if (newSheets) {
+            sheets = sheets.concat(newSheets);
+          }
+        });
+      }
+      if (sheets) {
+        if (cb) { cb(sheets); }
+      } else {
+        Sefaria.relatedPrivate(ref, function(data) {
+          if (cb) { cb(data.sheets); }
+        });
+      }
+      return sheets;
+    },
+    _saveUserSheetsByRefData: function(ref, data) {
+      this._userSheetsByRef[ref] = data;
+      return Sefaria._saveItemsByRef(data, this._userSheetsByRef);
+    },
+    sheetsTotalCount: function(refs) {
+      // Returns the total number of private and public sheets on `refs` without double counting my public sheets.
+      var sheets = Sefaria.sheets.sheetsByRef(refs) || [];
+      if (Sefaria._uid) {
+        var mySheets = Sefaria.sheets.userSheetsByRef(refs) || [];
+        sheets = sheets.filter(function(sheet) { return sheet.owner !== Sefaria._uid }).concat(mySheets);
+      }
+      return sheets.length;
     }
   },
   _groups: {},
@@ -1440,7 +1585,7 @@ Sefaria = extend(Sefaria, {
           if (result !== undefined) {
              this._cache[key] = result;
           }
-          return this._cache[key]
+          return this._cache[key];
       },
       execute_query: function (args) {
           // To replace sjs.search.post in search.js
@@ -1724,6 +1869,7 @@ Sefaria.unpackDataFromProps = function(props) {
   if (props.groupData) {
     Sefaria._groups[props.initialGroup] = props.groupData;
   }
+  Sefaria._initialPath = props.initialPath;
 };
 
 Sefaria.search.FilterNode.prototype = {
@@ -1913,11 +2059,10 @@ Sefaria.util = {
       }
       return index;
     },
-    defaultPath: "/",
     currentPath: function() {
       // Returns the current path plus search string if a browser context
       // or "/" in a browser-less context.
-      return (typeof window === "undefined" ) ? Sefaria.util.defaultPath :
+      return (typeof window === "undefined" ) ? Sefaria.initialPath :
                 window.location.pathname + window.location.search;
     },
     parseURL: function(url) {
@@ -2329,10 +2474,36 @@ Sefaria.util = {
             }
         }
     },
+    getUrlVars: function() {
+      var vars = {};
+      var url = INBROWSER ? window.location.href : Sefaria._initialPath;
+      var parts = url.replace(/[?&]+([^=&]+)=([^&]*)/gi, function(m,key,value) {
+          vars[key] = decodeURIComponent(value);
+      });
+      return vars;
+    },
+    replaceUrlParam: function(paramName, paramValue){
+      var url = INBROWSER ? window.location.href : Sefaria._initialPath;
+      if(paramValue == null)
+          paramValue = '';
+      var pattern = new RegExp('\\b('+paramName+'=).*?(&|$)')
+      if(url.search(pattern)>=0){
+          return url.replace(pattern,'$1' + paramValue + '$2');
+      }
+      return url + (url.indexOf('?')>0 ? '&' : '?') + paramName + '=' + paramValue 
+    },
+    removeUrlParam: function(paramName){
+      var url = INBROWSER ? window.location.href : Sefaria._initialPath;
+      var pattern = new RegExp('\\b(&|\\?)('+paramName+'=).*?(&|$)');
+      return url.replace(pattern, '$1');
+    },
+    linkify: function(str) {
+      return str.replace(/(?:(https?\:\/\/[^\s]+))/m, '<a target="_blank" href="$1">$1</a>');
+    },
     _scrollbarWidth: null,
     getScrollbarWidth: function() {
       // Returns the size of the browser scrollbars in pixels
-      // May be 0 for browser that hide scrollbars when not in use
+      // May be 0 for browsers that hide scrollbars when not in use
       if (Sefaria.util._scrollbarWidth !== null) {
         return Sefaria.util._scrollbarWidth;
       }
@@ -2427,6 +2598,7 @@ Sefaria.hebrew = {
   },
   encodeHebrewNumeral: function(n) {
     // Takes an integer and returns a string encoding it as a Hebrew numeral.
+    n = parseInt(n);
     if (n >= 1300) {
       return n;
     }
@@ -2449,6 +2621,9 @@ Sefaria.hebrew = {
         n -= tens;
       }
       if (n > 0) {
+        if (!values[n]) {
+            return undefined
+        }
         heb += values[n];
       }
     }
@@ -2541,7 +2716,11 @@ Sefaria.site = {
     event: function(category, action, label, value, options) {
         // https://developers.google.com/analytics/devguides/collection/analyticsjs/command-queue-reference#send
         ga('send', 'event', category, action, label, value, options);
-        //mixpanel.track(category + " " + action, {label: label});
+        //console.log('send', 'event', category, action, label, value, options);
+        if (ga._mock && options && options.hitCallback) {
+          // When Google Analytics isn't being used, trigger hitCallback immediately.
+          options.hitCallback();
+        }
     },
     pageview: function(url) {
         ga('set', 'page', url);
@@ -2555,9 +2734,6 @@ Sefaria.site = {
     },
     setContentLanguage: function(language) {
         ga('set', 'contentGroup5', language);
-    },
-    setInterfaceLanguage: function(origin, language){
-        Sefaria.site.track.event("Settings", origin, language);
     },
     setNumberOfPanels: function(val) {
         ga('set', 'dimension1', val);
@@ -2610,7 +2786,11 @@ Sefaria.site = {
     },
     exploreBrush: function(book) {
         Sefaria.site.track.event("Explorer", "Brush", book);
-    }
+    },
+    setInterfaceLanguage: function(origin, language){
+        // Tracks a user setting their interface langauge, which can be done either account settings or footer
+        Sefaria.site.track.event("Settings", origin, language);
+    },
   }
 };
 
@@ -2665,6 +2845,7 @@ Sefaria.palette.categoryColor = function(cat) {
   return Sefaria.palette.categoryColors["Other"];
 };
 
+
 Sefaria.setup = function(data) {
     // data parameter is optional. in the event it isn't passed, we assume that DJANGO_DATA_VARS exists as a global var
     // data should but defined server-side and undefined client-side
@@ -2698,8 +2879,7 @@ Sefaria.setup();
 if (typeof window !== 'undefined') {
     window.Sefaria = Sefaria; // allow access to `Sefaria` from console
 }
-//if (typeof module !== 'undefined') {
-  module.exports = Sefaria;
 
-//}
+module.exports = Sefaria;
+
 

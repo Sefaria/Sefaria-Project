@@ -828,7 +828,7 @@ class AbstractTextRecord(object):
     """
     text_attr = "chapter"
     ALLOWED_TAGS    = ("i", "b", "br", "u", "strong", "em", "big", "small", "img", "sup", "span")
-    ALLOWED_ATTRS   = {'span':['class'], 'i': ['data-commentator', 'data-order', 'class'], 'img': lambda name, value: name == 'src' and value.startswith("data:image/")}
+    ALLOWED_ATTRS   = {'span':['class'], 'i': ['data-commentator', 'data-order', 'class', 'data-label'], 'img': lambda name, value: name == 'src' and value.startswith("data:image/")}
 
     def word_count(self):
         """ Returns the number of words in this text """
@@ -3664,7 +3664,7 @@ class Ref(object):
         else:
             raise InputError("Can not get anonymous private notes")
 
-        return NoteSet(query)
+        return NoteSet(query, sort=[("_id", -1)])
 
     def linkset(self):
         """
