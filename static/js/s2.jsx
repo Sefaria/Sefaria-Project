@@ -4047,7 +4047,7 @@ class CommentatorList extends Component {
 
 CommentatorList.propTypes = {
   commentatorList: PropTypes.array.isRequired,
-  title:           React.PropTypes.string.isRequired,
+  title:           PropTypes.string.isRequired,
 };
 
 
@@ -4785,16 +4785,16 @@ class GroupPage extends Component {
                 <div className="tabs">
                   <a className={classNames({bubbleTab: 1, active: this.state.tab == "sheets"})} onClick={this.setTab.bind(null, "sheets")}>
                     <span className="int-en">Sheets</span>
-                    <span className="int-he">Sheets</span>
+                    <span className="int-he">דפי מקורות</span>
                   </a>
                   <a className={classNames({bubbleTab: 1, active: this.state.tab == "members"})} onClick={this.setTab.bind(null, "members")}>
                     <span className="int-en">Members</span>
-                    <span className="int-he">Members</span>
+                    <span className="int-he">חברים</span>
                   </a>
                   { isAdmin ?
                     <a className="bubbleTab" href={"/groups/" + this.props.group.replace(/\s/g, "-") + "/settings"}>
                       <span className="int-en">Settings</span>
-                      <span className="int-he">Settings</span>
+                      <span className="int-he">הגדרות</span>
                     </a>
                     : null }
                 </div>
@@ -4832,11 +4832,11 @@ class GroupPage extends Component {
                     : (isMember ?
                           <div className="emptyMessage">
                             <span className="int-en">There are no sheets in this group yet. <a href="/sheets/new">Start a sheet</a>.</span>
-                            <span className="int-he">There are no sheets in this group yet. <a href="/sheets/new">Start a sheet</a>.</span>
+                            <span className="int-he"> לא קיימים דפי מקורות בקבוצה <a href="/sheets/new">צור דף מקורות</a>.</span>
                           </div>
                         : <div className="emptyMessage">
                             <span className="int-en">There are no public sheets in this group yet.</span>
-                            <span className="int-he">There are no public sheets in this group yet.</span>
+                            <span className="int-he">לא קיימים דפי מקורות פומביים בקבוצה</span>
                           </div>)}
                   </div>
                   : null }
@@ -4958,7 +4958,7 @@ class GroupInvitationBox extends Component {
                 <input id="groupInvitationInput" placeholder="Email Address" />
                 <div className="button" onClick={this.onInviteClick}>
                   <span className="int-en">Invite</span>
-                  <span className="int-he">Invite</span>
+                  <span className="int-he">הזמן</span>
                 </div>
                 {this.state.message ?
                   <div className="groupInvitationBoxMessage">{this.state.message}</div>
@@ -5296,11 +5296,11 @@ class EditGroupPage extends Component {
         {this.props.initialData
           ? <h1>
               <span className="int-en">Edit Group</span>
-              <span className="int-he">Edit Group</span>
+              <span className="int-he">ערוך קבוצה</span>
             </h1>
           : <h1>
               <span className="int-en">Create a Group</span>
-              <span className="int-he">Create a Group</span>
+              <span className="int-he">צור קבוצה</span>
             </h1>}
 
         <div id="saveCancelButtons">
@@ -5317,7 +5317,7 @@ class EditGroupPage extends Component {
         <div className="field halfWidth">
           <label>
             <span className="int-en">Group Name</span>
-            <span className="int-he">Group Name</span>
+            <span className="int-he">שם הקבוצה</span>
           </label>
           <input id="groupName" value={this.state.name||""} onChange={this.handleInputChange}/>
         </div>
@@ -5325,7 +5325,7 @@ class EditGroupPage extends Component {
         <div className="field halfWidth">
           <label>
             <span className="int-en">Website</span>
-            <span className="int-he">Website</span>
+            <span className="int-he">כתובת אתר</span>
           </label>
           <input id="groupWebsite" value={this.state.websiteUrl||""} onChange={this.handleInputChange}/>
         </div>
@@ -5333,7 +5333,7 @@ class EditGroupPage extends Component {
         <div className="field">
           <label>
             <span className="int-en">Description</span>
-            <span className="int-he">Description</span>
+            <span className="int-he">תיאור</span>
           </label>
           <textarea id="groupDescription" onChange={this.handleInputChange} value={this.state.description||null}></textarea>
         </div>
@@ -5341,7 +5341,7 @@ class EditGroupPage extends Component {
         <div className="field">
           <label>
             <span className="int-en">Group Image</span>
-            <span className="int-he">Group Image</span>
+            <span className="int-he">תמונה לקבוצה</span>
           </label>
           {this.state.imageUrl
             ? <img className="groupImage" src={this.state.imageUrl} alt="Group Image" />
@@ -5354,14 +5354,14 @@ class EditGroupPage extends Component {
              onChange={this.handleImageChange} />
           <div className="helperText">
             <span className="int-en">Recommended size: 350px x 350px or larger</span>
-            <span className="int-he">Recommended size: 350px x 350px or larger</span>
+            <span className="int-he">גודל מומלץ: לפחות 350 פיקסל ע"ג 350 פיקסל</span>
           </div>
         </div>
 
         <div className="field">
           <label>
             <span className="int-en">Default Sheet Header</span>
-            <span className="int-he">Default Sheet Header</span>
+            <span className="int-he">כותרת עמוד ראשונית</span>
           </label>
           {this.state.headerUrl
             ? <div className="groupHeaderBox">
@@ -5377,14 +5377,14 @@ class EditGroupPage extends Component {
              onChange={this.handleImageChange} />
           <div className="helperText">
             <span className="int-en">Recommended size: 1000px width to fill sheet, smaller images align right</span>
-            <span className="int-he">Recommended size: 1000px width to fill sheet, smaller images align right</span>
+            <span className="int-he">גודל מומלץ: 1000 פיקסל כדי למלא את חלל הדף. גודל קטן יותר יתיישר לימין</span>
           </div>
         </div>
 
         {this.props.initialData ?
           <div className="deleteGroup" onClick={this.delete}>
             <span className="int-en">Delete Group</span>
-            <span className="int-he">Delete Group</span>
+            <span className="int-he">מחק קבוצה</span>
           </div>
           : null}
 
@@ -6755,7 +6755,7 @@ class ConnectionsPanel extends Component {
                   { Sefaria._uid ? 
                   <a href="/sheets/private" className="allSheetsLink button transparent bordered fillWidth squareBorder">
                     <span className="int-en">Go to My Sheets</span>
-                    <span className="int-he">HEBREW NEEDED</span>
+                    <span className="int-he">דפי המקורות שלי</span>
                   </a>
                   : null }
                   <MySheetsList
@@ -6772,12 +6772,12 @@ class ConnectionsPanel extends Component {
                     srefs={this.props.srefs}
                     fullPanel={this.props.fullPanel}
                     closePanel={this.props.closePanel}
-                    onSave={this.props.setConnectionsMode.bind(null, "Notes")}
-                    onCancel={this.props.setConnectionsMode.bind(null, "Notes")} />
+                    onSave={() => this.props.setConnectionsMode("Notes")}
+                    onCancel={() => this.props.setConnectionsMode("Notes")} />
                   { Sefaria._uid ? 
                   <a href="/my/notes" className="allNotesLink button transparent bordered fillWidth squareBorder">
                     <span className="int-en">Go to My Notes</span>
-                    <span className="int-he">HEBREW NEEDED</span>
+                    <span className="int-he">הרשומות שלי</span>
                   </a>
                   : null }
                   <MyNotes 
@@ -6829,9 +6829,9 @@ class ConnectionsPanel extends Component {
                     noteIsPublic={this.props.noteBeingEdited.isPublic}
                     fullPanel={this.props.fullPanel}
                     closePanel={this.props.closePanel}
-                    onSave={this.props.setConnectionsMode.bind(null, "Notes")}
-                    onCancel={this.props.setConnectionsMode.bind(null, "Notes")}
-                    onDelete={this.props.setConnectionsMode.bind(null, "Notes")} />);
+                    onSave={() => this.props.setConnectionsMode("Notes")}
+                    onCancel={() => this.props.setConnectionsMode("Notes")}
+                    onDelete={() => this.props.setConnectionsMode("Notes")} />);
 
     } else if (this.props.mode === "Add Connection") {
       var onSave = function() {
@@ -6843,7 +6843,7 @@ class ConnectionsPanel extends Component {
                     srefs={this.props.allOpenRefs}
                     openComparePanel={this.props.openComparePanel}
                     onSave={onSave}
-                    onCancel={this.props.setConnectionsMode.bind(null, "Resources")} />
+                    onCancel={() => this.props.setConnectionsMode("Resources")} />
 
     } else if (this.props.mode === "Login") {
       content = (<LoginPrompt fullPanel={this.props.fullPanel} />);
@@ -6928,7 +6928,7 @@ class ConnectionsPanelHeader extends Component {
       // Top Level Menu
       var title = <div className="connectionsHeaderTitle">
                     {this.props.interfaceLang == "english" ? <div className="int-en">Resources</div> : null }
-                    {this.props.interfaceLang == "hebrew" ? <div className="int-he">משאבים</div> : null }
+                    {this.props.interfaceLang == "hebrew" ? <div className="int-he">קישורים וכלים</div> : null }
                   </div>;
     } else if (this.props.previousCategory && this.props.connectionsMode == "TextList") {
       // In a text list, back to Previous Categoy
@@ -7018,9 +7018,9 @@ class ResourcesList extends Component {
               {this.props.multiPanel ? 
                 <ToolsButton en="Other Text" he="השווה" icon="search" onClick={this.props.openComparePanel} /> 
               : null }
-              <ToolsButton en="Sheets" he="הוסף לדף מקורות" image="sheet.svg" count={this.props.sheetsCount} onClick={function() {this.props.setConnectionsMode("Sheets")}.bind(this)} /> 
-              <ToolsButton en="Notes" he="הרשומות שלי" image="tools-write-note.svg" count={this.props.notesCount} onClick={function() {this.props.setConnectionsMode("Notes")}.bind(this)} /> 
-              <ToolsButton en="Tools" he="הרשומות שלי" icon="gear" onClick={function() {this.props.setConnectionsMode("Tools")}.bind(this)} /> 
+              <ToolsButton en="Sheets" he="דפי מקורות" image="sheet.svg" count={this.props.sheetsCount} onClick={() => this.props.setConnectionsMode("Sheets")} />
+              <ToolsButton en="Notes" he="הרשומות שלי" image="tools-write-note.svg" count={this.props.notesCount} onClick={() => this.props.setConnectionsMode("Notes")} />
+              <ToolsButton en="Tools" he="כלים" icon="gear" onClick={() => this.props.setConnectionsMode("Tools")} />
             </div>);
   }
 }
@@ -7487,7 +7487,7 @@ class ModeratorLinkOptions extends Component {
     return <div className="moderatorLinkOptions sans">
       <div className="moderatorLinkOptionsDelete" onClick={this.deleteLink}>
         <span className="int-en">Remove</span>
-        <span className="int-he">HEBREW NEEDED</span>
+        <span className="int-he">מחק</span>
       </div>
     </div>
   }
@@ -7665,7 +7665,7 @@ SheetListing.propTypes = {
 
 
 
-class LexiconPanel extends Component {
+class LexiconBox extends Component {
   constructor(props) {
     super(props);
     this.state = {
@@ -7723,7 +7723,7 @@ class LexiconPanel extends Component {
       return (
         <div className="lexicon-instructions">
           <span className="int-en">Highlight words to look up definitions.</span>
-          <span className="int-he">Highlight words to look up definitions.</span>
+          <span className="int-he">סמן מילים כדי לחפש הגדרות</span>
         </div>);
     }
 
@@ -7763,7 +7763,7 @@ class LexiconPanel extends Component {
   }
 }
 
-LexiconPanel.propTypes = {
+LexiconBox.propTypes = {
   selectedWords: PropTypes.string,
   oref:          PropTypes.object
 };
@@ -7846,23 +7846,23 @@ class ToolsList extends Component {
         var path = "/edit/" + refString;
         var nextParam = "?next=" + encodeURIComponent(currentPath);
         path += nextParam;
-        Sefaria.site.track.event("Tools", "Edit Text Click", refString, null,
+        Sefaria.site.track.event("Tools", "Edit Text Click", refString,
           {hitCallback: () =>  window.location = path}
         );
     }.bind(this) : null;
 
     var addTranslation = function() {
       var nextParam = "?next=" + Sefaria.util.currentPath();
-      Sefaria.site.track.event("Tools", "Add Translation Click", this.props.srefs[0], null,
-          {hitCallback: () => window.location = "/translate/" + this.props.srefs[0] + nextParam}
+      Sefaria.site.track.event("Tools", "Add Translation Click", this.props.srefs[0],
+          {hitCallback: () => {window.location = "/translate/" + this.props.srefs[0] + nextParam}}
       );
     }.bind(this);
     
     return (
       <div>
-        <ToolsButton en="Share" he="שתף" image="tools-share.svg" onClick={this.props.setConnectionsMode.bind(null, "Share")} /> 
+        <ToolsButton en="Share" he="שתף" image="tools-share.svg" onClick={() => this.props.setConnectionsMode("Share")} />
         <ToolsButton en="Add Translation" he="הוסף תרגום" image="tools-translate.svg" onClick={addTranslation} /> 
-        { Sefaria.is_moderator || Sefaria.is_editor ? <ToolsButton en="Add Connection" he="הוסף קישור לטקסט אחר" image="tools-add-connection.svg"onClick={this.props.setConnectionsMode.bind(null, "Add Connection")} /> : null }
+        { Sefaria.is_moderator || Sefaria.is_editor ? <ToolsButton en="Add Connection" he="הוסף קישור לטקסט אחר" image="tools-add-connection.svg"onClick={() => this.props.setConnectionsMode("Add Connection")} /> : null }
         { editText ? (<ToolsButton en="Edit Text" he="ערוך טקסט" image="tools-edit-text.svg" onClick={editText} />) : null }
       </div>);
   }
@@ -7912,7 +7912,7 @@ ToolsButton.propTypes = {
 
 
 
-class SharePanel extends Component {
+class ShareBox extends Component {
   componentDidMount() {
     this.focusInput();
   }
@@ -7937,7 +7937,7 @@ class SharePanel extends Component {
     var shareEmail = function() {
       openInNewTab("mailto:?&subject=Text on Sefaria&body=" + url);
     };
-    var classes = classNames({sharePanel: 1, textList: 1, fullPanel: this.props.fullPanel});
+    var classes = classNames({textList: 1, fullPanel: this.props.fullPanel});
     return (
       <div>
         <input className="shareInput" value={this.props.url} />
@@ -7948,7 +7948,7 @@ class SharePanel extends Component {
   }
 }
 
-SharePanel.propTypes = {
+ShareBox.propTypes = {
   url:                PropTypes.string.isRequired,
   setConnectionsMode: PropTypes.func.isRequired,
   closePanel:         PropTypes.func.isRequired,
@@ -8122,7 +8122,7 @@ class AddToSourceSheetBox extends Component {
         <div className="dropdown">
           <div className="dropdownMain noselect" onClick={this.toggleSheetList}>
             <i className="dropdownOpenButton noselect fa fa-caret-down"></i>
-            {this.state.sheetsLoaded ? this.state.selectedSheet.title.stripHtml() : <LoadingMessage messsage="Loading your sheets..." heMessage=""/>}
+            {this.state.sheetsLoaded ? this.state.selectedSheet.title.stripHtml() : <LoadingMessage messsage="Loading your sheets..." heMessage="טוען את דפי המקורות שלך"/>}
           </div>
           {this.state.sheetListOpen ? 
           <div className="dropdownListBox noselect">
@@ -8447,11 +8447,11 @@ class AddConnectionBox extends Component {
             { this.props.srefs.length == 1 ? 
               <div>
                 <span className="int-en">Choose a text to connect.</span>
-                <span className="int-he">HEBREW NEEDED</span>
+                <span className="int-he">בחר טקסט לקישור</span>
 
                 <div className="button fillWidth" onClick={this.props.openComparePanel}>
                   <span className="int-en">Browse</span>
-                  <span className="int-he">HEBREW NEEDED</span>
+                  <span className="int-he">סייר</span>
                 </div>
               </div>
               : null }
@@ -8459,7 +8459,7 @@ class AddConnectionBox extends Component {
             { this.props.srefs.length > 2 ? 
               <div>
                 <span className="int-en">We currently only understand connections between two texts.</span>
-                <span className="int-he">HEBREW NEEDED</span>
+                <span className="int-he">ניתן לקשר רק בין 2 טקסטים</span>
               </div>
               : null }
 
@@ -8487,7 +8487,7 @@ class AddConnectionBox extends Component {
 
                 <div className="button fillWidth" onClick={this.addConnection}>
                   <span className="int-en">Add Connection</span>
-                  <span className="int-he">HEBREW NEEDED</span>
+                  <span className="int-he">הוסף קישור</span>
                 </div>
 
               </div>
@@ -9951,7 +9951,7 @@ class MyNotesPanel extends Component {
             <ReaderNavigationMenuDisplaySettingsButton onClick={this.props.openDisplaySettings} />
             <h2>
               <span className="int-en">My Notes</span>
-              <span className="int-he">HEBREW NEEDED</span>
+              <span className="int-he">הרשומות שלי</span>
             </h2>
         </div>}
         <div className={contentClasses} onScroll={this.onScroll}>
@@ -9960,7 +9960,7 @@ class MyNotesPanel extends Component {
               <h1>
                 { this.props.multiPanel ? <LanguageToggleButton toggleLanguage={this.props.toggleLanguage} /> : null }
                 <span className="int-en">My Notes</span>
-                <span className="int-he">HEBREW NEEDED</span>
+                <span className="int-he">הרשומות שלי</span>
               </h1>
               : null }
             <div className="noteList">
@@ -9971,7 +9971,7 @@ class MyNotesPanel extends Component {
                       // from API as notes scroll into view.
                       return <NoteListing data={item} key={i} showText={i <= this.state.numberToRender} />
                     }.bind(this))
-                    : <LoadingMessage message="You haven't written any notes yet." heMessage="You haven't written any notes yet." />)
+                    : <LoadingMessage message="You haven't written any notes yet." heMessage="טרם הוספת רשומות משלך" />)
                   : <LoadingMessage />
               }
             </div>
@@ -10023,7 +10023,7 @@ class NoteListing extends Component {
     return (<div className="noteListing">
               <div className="addToSheetButton sans" onClick={this.showSheetModal}>
                 <span className="int-en">Add to Sheet</span>
-                <span className="int-he">HEBREW NEEDED</span>
+                <span className="int-he">הוסף לדף מקורות</span>
               </div>
               <a href={url}>
                 {this.props.showText ? 
@@ -10082,7 +10082,7 @@ class MyGroupsPanel extends Component {
             <center>
               <a className="button white" href="/groups/new">
                 <span className="int-en">Create a Group</span>
-                <span className="int-he">ליצור קבוצה</span>
+                <span className="int-he">צור קבוצה</span>
               </a>
             </center>
 
@@ -10092,7 +10092,7 @@ class MyGroupsPanel extends Component {
                     groupsList.private.map(function(item) {
                       return <GroupListing data={item} />
                     })
-                    : <LoadingMessage message="You aren't a member of any groups yet." heMessage="You aren't a member of any groups yet." />)
+                    : <LoadingMessage message="You aren't a member of any groups yet." heMessage="אינך חבר כרגע באף קבוצה" />)
                   : <LoadingMessage />
               }
             </div>
