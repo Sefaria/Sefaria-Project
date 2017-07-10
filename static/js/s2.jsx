@@ -6580,7 +6580,7 @@ class TextSegment extends Component {
 
     // render itags
     if (this.props.filter && this.props.filter.length > 0) {
-      var $newElement = $('<div/>').append("<div>" + he + "</div>");
+      var $newElement = $("<div>" + he + "</div>");
       var textValue = function(i) {
         if ($(i).attr('data-label')) {
           return $(i).attr('data-label');
