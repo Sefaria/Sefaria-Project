@@ -1,28 +1,29 @@
-//if (typeof require !== 'undefined') {
-  var INBROWSER    = true,
-      React        = require('react'),
-      PropTypes    = require('prop-types'),
-      ReactDOM     = require('react-dom'),
-      $            = require('jquery'),
-      extend       = require('extend'),
-      classNames   = require('classnames'),
-      Sefaria      = require('./sefaria');
-      import Component from 'react-class';  //auto-bind this to all event-listeners. see https://www.npmjs.com/package/react-class
+var React        = require('react'),
+    PropTypes    = require('prop-types'),
+    ReactDOM     = require('react-dom'),
+    extend       = require('extend'),
+    classNames   = require('classnames'),
+    Sefaria      = require('./sefaria');
+    import Component from 'react-class';  //auto-bind this to all event-listeners. see https://www.npmjs.com/package/react-class
 
 
-  if (typeof document !== 'undefined' ) {
-    INBROWSER = false;
-    require('jquery.cookie');  //NOTE: these require statements are adding props to the $ obj. The order actually doesn't matter b/c it seems webpack deals with it
-    require('jquery-ui');
-    require('jquery.scrollto');
-    require('./headroom');
-  }
+if (typeof document !== 'undefined' ) {
+  var INBROWSER = true,
+      $           = require("jquery");
+      require('jquery.cookie');  //NOTE: these require statements are adding props to the $ obj. The order actually doesn't matter b/c it seems webpack deals with it
+      require('jquery-ui');
+      require('jquery.scrollto');
+      require('./headroom'); 
+} else {
+  var INBROWSER = false,
+      $         = require("cheerio"); 
+}
 
 class ReaderApp extends Component {
   constructor(props) {
     super(props);
     // TODO clean up generation of initial panels objects.
-    // Currently these get generated in reader/views.py, then regenerated in s2.html then regenerated again in ReaderApp.
+    // Currently these get generated in reader/views.py then regenerated again in ReaderApp.
     this.MIN_PANEL_WIDTH = 360.0;
 
     var panels               = [];
