@@ -25,7 +25,7 @@
   padding: 124px 0 100px;
 }
 #register.static .inner {
-  width: 100%;
+  width: 302px;
 }
 .static .int-en {
   font-family: "adobe-garamond-pro", Georgia, serif;
@@ -1876,17 +1876,6 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
 #visualGardenPage #map-chart .selected path {
   stroke-width: 1;
   stroke: white;
-}
-
-#visualGardenPage .sourceSheetPanelBox {
-    position: fixed;
-    display: block;
-    left: 40%;
-    top: 90px;
-    width: 330px;
-    padding: 20px;
-    background: white;
-    border: #ccc 2px solid;
 }
 #visualGardenPage .sourceSheetPanelBox .contentInner {
   margin: 0 auto;

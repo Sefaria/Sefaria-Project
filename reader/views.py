@@ -265,6 +265,13 @@ def make_panel_dict(oref, version, language, filter, mode, **kwargs):
             "versionLanguage": language,
             "filter": filter,
         }
+        if filter and len(filter):
+            if filter == ["Sheets"]:
+                panel["connectionsMode"] = "Sheets"
+            elif filter == ["Notes"]:
+                panel["connectionsMode"] = "Notes"
+            else:
+                panel["connectionsMode"] = "TextList"
         if panelDisplayLanguage:
             panel["settings"] = {"language" : short_to_long_lang_code(panelDisplayLanguage)}
             # so the connections panel doesnt act on the version NOT currently on display
@@ -298,7 +305,6 @@ def make_search_panel_dict(query, **kwargs):
         panel["settings"] = {"language": short_to_long_lang_code(panelDisplayLanguage)}
 
     return panel
-
 
 
 def make_panel_dicts(oref, version, language, filter, multi_panel, **kwargs):
@@ -541,6 +547,11 @@ def s2_my_groups(request):
     return s2_page(request, "myGroups")
 
 
+@login_required
+def s2_my_notes(request):
+    return s2_page(request, "myNotes")
+
+
 def s2_sheets_by_tag(request, tag):
     """
     Page of sheets by tag.
@@ -551,9 +562,11 @@ def s2_sheets_by_tag(request, tag):
         "initialMenu":     "sheets",
         "initialSheetsTag": tag,
     })
-    if tag == "My Sheets":
+    if tag == "My Sheets" and request.user.is_authenticated():
         props["userSheets"]   = user_sheets(request.user.id)["sheets"]
         props["userTags"]     = user_tags(request.user.id)
+    elif tag == "My Sheets" and not request.user.is_authenticated():
+        return redirect("/login?next=/sheets/private")
     elif tag == "All Sheets":
         props["publicSheets"] = {"offset0num50": public_sheets(limit=50)["sheets"]}
     else:
@@ -1763,16 +1776,38 @@ def notes_api(request, note_id_or_ref):
 
 
 @catch_error_as_json
+def all_notes_api(request):
+
+    private = request.GET.get("private", False)
+    if private:
+        if not request.user.is_authenticated: 
+            res = {"error": "You must be logged in to access you notes."}
+        else:
+            res = [note.contents(with_string_id=True) for note in NoteSet({"owner": request.user.id}, sort=[("_id", -1)]) ]
+    else:
+        resr = {"error": "Not implemented."}
+    return jsonResponse(res, callback=request.GET.get("callback", None))
+
+
+@catch_error_as_json
 def related_api(request, tref):
     """
     Single API to bundle available content related to `tref`.
     """
     oref = model.Ref(tref)
-    response = {
-        "links": get_links(tref, with_text=False),
-        "sheets": get_sheets_for_ref(tref),
-        "notes": get_notes(oref, public=True)
-    }
+    if request.GET.get("private", False) and request.user.is_authenticated:
+        response = {
+            "sheets": get_sheets_for_ref(tref, uid=request.user.id),
+            "notes": get_notes(oref, uid=request.user.id, public=False)
+        }
+    elif request.GET.get("private", False) and not request.user.is_authenticated:
+        response = {"error": "You must be logged in to access private content."}
+    else: 
+        response = {
+            "links": get_links(tref, with_text=False),
+            "sheets": get_sheets_for_ref(tref),
+            "notes": [] # get_notes(oref, public=True) # Hiding public notes for now
+        }
     return jsonResponse(response, callback=request.GET.get("callback", None))
 
 

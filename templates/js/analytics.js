@@ -15,4 +15,5 @@
     };
 {% else  %}
     var ga = function(){};
+    ga._mock = true;
 {% endif %}
