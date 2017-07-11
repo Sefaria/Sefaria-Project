@@ -1,22 +1,21 @@
-//if (typeof require !== 'undefined') {
-var INBROWSER = true,
-    $ = require('jquery'),
-    extend    = require('extend'),
+var extend    = require('extend'),
     param     = require('querystring').stringify,
     striptags = require('striptags');
 
 
-    //ga        = require('googleanalytics');
-var ga;
-if (typeof document === 'undefined') {
-     INBROWSER = false;
-     ga        = function() {}; // Fail gracefully if we reach one of these methods server side
-     $.ajax    = function() {}; // ditto
-     $.getJSON = function() {}; // ditto
+if (typeof document !== 'undefined') {
+  var INBROWSER = true,
+      $         = require('jquery'),
+      ga        = DJANGO_VARS.ga;
+  require('jquery.cookie');
 } else {
-     ga = DJANGO_VARS.ga;
-     require('jquery.cookie');
+  var INBROWSER = false,
+      $     = require("cheerio"),
+      ga    = function() {}; // Fail gracefully if we reach one of these methods server side
+  $.ajax    = function() {}; // ditto
+  $.getJSON = function() {}; // ditto
 }
+
 
 var Sefaria = Sefaria || {
   _dataLoaded: false,
