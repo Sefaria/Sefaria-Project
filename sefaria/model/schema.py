@@ -757,7 +757,7 @@ class NumberedTitledTreeNode(TitledTreeNode):
     def address_class(self, depth):
         return self._addressTypes[depth]
 
-    def full_regex(self, title, lang, anchored=True, compiled=True, capture_title=False, **kwargs):
+    def full_regex(self, title, lang, anchored=True, compiled=True, capture_title=False, escape_titles=True, **kwargs):
         """
         :return: Regex object. If kwargs[for_js] == True, returns the Regex string
         :param for_js: Defaults to False
@@ -797,10 +797,11 @@ class NumberedTitledTreeNode(TitledTreeNode):
         Different address type / language combinations produce different internal regexes in the innermost portions of the above, where the comments say 'digits'.
 
         """
-        key = (title, lang, anchored, compiled, kwargs.get("for_js"), kwargs.get("match_range"), kwargs.get("strict"), kwargs.get("terminated"))
+        key = (title, lang, anchored, compiled, kwargs.get("for_js"), kwargs.get("match_range"), kwargs.get("strict"), kwargs.get("terminated"), kwargs.get("escape_titles"))
         if not self._regexes.get(key):
             reg = ur"^" if anchored else ""
-            reg += ur"(?P<title>" + regex.escape(title) + ur")" if capture_title else regex.escape(title)
+            title_block = regex.escape(title) if escape_titles else title
+            reg += ur"(?P<title>" + title_block + ur")" if capture_title else title_block
             reg += self.after_title_delimiter_re
             addr_regex = self.address_regex(lang, **kwargs)
             reg += ur'(?:(?:' + addr_regex + ur')|(?:[\[({]' + addr_regex + ur'[\])}]))'  # Match expressions with internal parenthesis around the address portion
