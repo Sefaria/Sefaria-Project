@@ -4333,12 +4333,20 @@ class Library(object):
         # todo: only match titles of content nodes
         if lang is None:
             lang = "he" if is_hebrew(st) else "en"
-        from sefaria.utils.hebrew import strip_nikkud
-        #st = strip_nikkud(st) doing this causes the final result to lose vowels and cantiallation
-        unique_titles = set(self.get_titles_in_string(st, lang, citing_only))
-        title_nodes = {title: self.get_schema_node(title,lang) for title in unique_titles}
 
-        all_reg = self.get_multi_title_regex_string(unique_titles, lang)
+        unique_titles = set(self.get_titles_in_string(st, lang, citing_only))
+        title_nodes = {}
+
+        for title in unique_titles:
+            node = self.get_schema_node(title,lang)
+            try:
+                if regex.search(title + node.after_title_delimiter_re + node.address_regex(lang, for_js=False, match_range=False), st):
+                    # eliminate obvious false positive in a cheap way
+                    title_nodes[title] = node
+            except AttributeError as e:
+                logger.warning(u"Library._wrap_all_refs_in_string() failed to create regex for: {}.  {}".format(title, e))
+                continue
+        all_reg = self.get_multi_title_regex_string(title_nodes.keys(), lang)
         reg = regex.compile(all_reg, regex.VERBOSE)
         if all_reg:
             st = self._wrap_all_refs_in_string(title_nodes, reg, st, lang)
