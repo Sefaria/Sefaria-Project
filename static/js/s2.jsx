@@ -10959,3 +10959,4 @@ exports.TextColumn          = TextColumn;
 exports.Footer              = Footer;
 exports.sefariaSetup        = Sefaria.setup;
 exports.unpackDataFromProps = Sefaria.unpackDataFromProps;
+exports.EditGroupPage       = EditGroupPage;
