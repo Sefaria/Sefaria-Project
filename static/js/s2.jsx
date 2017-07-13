@@ -705,8 +705,9 @@ class ReaderApp extends Component {
     // Update or add panel after this one to be a TextList
     this.setTextListHighlight(n, [ref]);
     this.openTextListAt(n+1, [ref]);
-    if ($(".readerPanel")[n+1]) {
-      $(".readerPanel")[n+1].focus();
+    if ($(".readerPanel")[n+1]) { //Focus on the first focusable element of the newly loaded panel. Mostly for a11y
+      var curPanel = $(".readerPanel")[n+1];
+      $(curPanel).find(':focusable').first().focus();
     }
 
   }
@@ -1745,8 +1746,9 @@ class ReaderPanel extends Component {
     window.addEventListener("resize", this.setWidth);
     this.setWidth();
     this.setHeadroom();
-    if (this.props.panelPosition) {
-      $(".readerPanel")[this.props.panelPosition].focus();
+    if (this.props.panelPosition) {  //Focus on the first focusable element of the newly loaded panel. Mostly for a11y
+      var curPanel = $(".readerPanel")[this.props.panelPosition];
+      $(curPanel).find(':focusable').first().focus();
     }
   }
   componentWillUnmount() {
@@ -2318,7 +2320,7 @@ class ReaderPanel extends Component {
     );
 
     return (
-      <div className={classes} tabIndex="0" onKeyDown={this.handleKeyPress} role="region" id={"panel-"+this.props.panelPosition}>
+      <div className={classes} onKeyDown={this.handleKeyPress} role="region" id={"panel-"+this.props.panelPosition}>
         {hideReaderControls ? null :
         (<ReaderControls
           showBaseText={this.showBaseText}
@@ -2483,7 +2485,7 @@ class ReaderControls extends Component {
         </div>) :
       (<div className={"readerTextToc" + (categoryAttribution ? ' attributed' : '')} onClick={this.openTextToc}>
         <div className="readerTextTocBox">
-          <a href={url}>
+          <a href={url} aria-label={"Show table of contents for " + title} >
             { title ? (<i className="fa fa-caret-down invisible"></i>) : null }
             <span className="en">{title}</span>
             <span className="he">{heTitle}</span>
@@ -3511,13 +3513,13 @@ class ReaderTextTableOfContents extends Component {
                       <span className="en">{category}</span>
                       <span className="he">{Sefaria.hebrewTerm(category)}</span>
                     </div>
-                    <div className="tocTitle">
+                    <div className="tocTitle" role="heading" aria-level="1">
                       <span className="en">{title}</span>
                       <span className="he">{heTitle}</span>
                       {moderatorSection}
                     </div>
                     {this.isTextToc()?
-                      <div className="currentSection">
+                      <div className="currentSection" role="heading" aria-level="2">
                         <span className="en">{section}</span>
                         <span className="he">{heSection}</span>
                       </div>
@@ -3835,7 +3837,7 @@ class SchemaNode extends Component {
           // SchemaNode with children (nodes) or ArrayMapNode with depth (refs)
           return (
             <div className="schema-node-toc" key={i}>
-              <span className="schema-node-title" onClick={this.toggleCollapse.bind(null, i)}>
+              <span className="schema-node-title" onClick={this.toggleCollapse.bind(null, i)} role="heading" aria-level="3">
                 <span className="he">{node.heTitle} <i className={"schema-node-control fa fa-angle-" + (this.state.collapsed[i] ? "left" : "down")}></i></span>
                 <span className="en">{node.title} <i className={"schema-node-control fa fa-angle-" + (this.state.collapsed[i] ? "right" : "down")}></i></span>
               </span>
@@ -3855,7 +3857,7 @@ class SchemaNode extends Component {
           var path = this.props.refPath + ", " + node.title;
           return (
             <a className="schema-node-toc linked" href={Sefaria.normRef(path)} data-ref={path} key={i}>
-              <span className="schema-node-title">
+              <span className="schema-node-title" role="heading" aria-level="3">
                 <span className="he">{node.heTitle}</span>
                 <span className="en">{node.title}</span>
               </span>
@@ -3865,7 +3867,7 @@ class SchemaNode extends Component {
           return (
             <div className="schema-node-toc" key={i}>
               { !node.default ?
-              <span className="schema-node-title" onClick={this.toggleCollapse.bind(null, i)}>
+              <span className="schema-node-title" onClick={this.toggleCollapse.bind(null, i)} role="heading" aria-level="3">
                 <span className="he">{node.heTitle} <i className={"schema-node-control fa fa-angle-" + (this.state.collapsed[i] ? "left" : "down")}></i></span>
                 <span className="en">{node.title} <i className={"schema-node-control fa fa-angle-" + (this.state.collapsed[i] ? "right" : "down")}></i></span>
               </span>
@@ -4034,7 +4036,7 @@ class ArrayMapNode extends Component {
     } else {
       return (
         <a className="schema-node-toc linked" href={Sefaria.normRef(this.props.schema.wholeRef)} data-ref={this.props.schema.wholeRef}>
-          <span className="schema-node-title">
+          <span className="schema-node-title" role="heading" aria-level="3">
             <span className="he">{this.props.schema.heTitle} <i className="schema-node-control fa fa-angle-left"></i></span>
             <span className="en">{this.props.schema.title} <i className="schema-node-control fa fa-angle-right"></i></span>
           </span>
@@ -4138,7 +4140,8 @@ class VersionBlock extends Component {
     this.updateableVersionAttributes.forEach(attr => s[attr] = props.version[attr]);
     this.state = s;
   }
-  openVersion() {
+  openVersion(e) {
+    e.preventDefault();
     if (this.props.firstSectionRef) {
       window.location = "/" + this.props.firstSectionRef + "/" + this.props.version.language + "/" + this.props.version.versionTitle
     } else if (this.props.openVersion) {
@@ -4286,11 +4289,12 @@ class VersionBlock extends Component {
       var edit_icon = (Sefaria.is_moderator)?<i className="fa fa-pencil" aria-hidden="true" onClick={this.openEditor}/>:"";
 
       return (
+
         <div className = "versionBlock">
-          <div className="versionTitle">
-            <span onClick={this.openVersion}>{v.versionTitle}</span>
+          <a className="versionTitle" onClick={this.openVersion} href={"/" + (this.props.firstSectionRef ? this.props.firstSectionRef : this.props.version.versionTitle) + "/" + this.props.version.language + "/" + this.props.version.versionTitle}>
+            <span>{v.versionTitle}</span>
             {edit_icon}
-          </div>
+          </a>
           <div className="versionDetails">
             <a className="versionSource" target="_blank" href={v.versionSource}>
             { Sefaria.util.parseURL(v.versionSource).host }
