@@ -18,7 +18,13 @@ class Test_Categories(object):
         cat.save()
 
         toc_tree = library.get_toc_tree()
-        assert not toc_tree.lookup_category(["Tanakh", "Torah"])
+        try:
+            toc_tree.lookup_category(["Tanakh", "Torah"])
+        except KeyError:
+            pass
+        else:
+            raise
+
         toc_cat = toc_tree.lookup_category(["Tanakh", "Shabbat"])
         assert toc_cat
         for child in toc_cat.all_children():
