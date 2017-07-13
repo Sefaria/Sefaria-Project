@@ -28,6 +28,7 @@
     var enTitle;
     var heElems;
     var enElems;
+    var triggerLink;
 
     var setupPopup = function(styles, mode) {
         popUpElem = document.createElement("div");
@@ -125,17 +126,21 @@
 
         if (mode == "popup-click") {
             popUpElem.querySelector('#sefaria-close').addEventListener('click', hidePopup, false);
-            popUpElem.addEventListener('keyup', function (e) {
+            popUpElem.addEventListener('keydown', function (e) {
                 var key = e.which || e.keyCode;
+                console.log (key);
                 if (key === 27) { // 27 is escape
                   hidePopup();
+                }
+                else if (key === 9) { // 9 is tab
+                  e.preventDefault(); // this traps user in the dialog via tab
                 }
             });
         }
     };
 
     var showPopup = function(e, mode) {
-
+        triggerLink = e;
         var source = ns.sources[e.getAttribute('data-ref')];
         if (source.lang == "en") {
             // [].forEach.call(heElems, function(e) {e.style.display = "None"});
@@ -190,6 +195,9 @@
         }
     };
     var hidePopup = function() {
+        if (popUpElem.style.display == "block") {
+                triggerLink.focus();
+        }
         popUpElem.style.display = "none";
     };
 
