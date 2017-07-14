@@ -1264,6 +1264,10 @@ a.readerNavCategory {
   display: table-cell;
   height: 37px;
 }
+.altStructToggleBox a, .altStructToggleBox a:hover, .altStructToggleBox a:visited, .altStructToggleBox a:link, .altStructToggleBox a:active {
+  text-decoration: none;
+}
+
 .readerTextTableOfContents .structToggles .altStructToggle {
   display: block;
   padding: 8px;

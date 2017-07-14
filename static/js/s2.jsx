@@ -3628,6 +3628,10 @@ class TextTableOfContentsNavigation extends Component {
   componentDidMount() {
     this.shrinkWrap();
     window.addEventListener('resize', this.shrinkWrap);
+    var tab = Sefaria.util.getUrlVars()["tab"];
+    if (tab) {
+      this.setTab(tab);
+    }
   }
   componentWillUnmount() {
     window.removeEventListener('resize', this.shrinkWrap);
@@ -3769,13 +3773,20 @@ TextTableOfContentsNavigation.propTypes = {
 class TabbedToggleSet extends Component {
   render() {
     var options = this.props.options.map(function(option, i) {
+
+      var handleClick = function(e) {
+        e.preventDefault();
+        option.onPress();
+      }.bind(this);
+
       var classes = classNames({altStructToggle: 1, active: this.props.active === option.name});
+      var url = Sefaria.util.replaceUrlParam("tab", option.name);
       return (
         <div className="altStructToggleBox" key={i}>
-          <span className={classes} onClick={option.onPress}>
+          <a className={classes} onClick={handleClick} href={url}>
               <span className="int-he">{option.heText}</span>
               <span className="int-en">{option.text}</span>
-          </span>
+          </a>
         </div>
       );
     }.bind(this));
@@ -5832,7 +5843,6 @@ class ToggleOption extends Component {
         role={this.props.role}
         aria-label= {this.props.ariaLabel}
         tabIndex = {this.props.role == "radio"? tabIndexValue : "0"}
-        aria-value = {ariaCheckedValue}
         className={classes}
         style={this.props.style}
         onClick={this.handleClick}>
