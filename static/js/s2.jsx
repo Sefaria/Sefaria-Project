@@ -9640,7 +9640,7 @@ class SearchSheetResult extends Component {
       var href = e.target.getAttribute("href");
       e.preventDefault();
       var s = this.props.data._source;
-      Sefaria.site.track.event("Search", "Search Result Sheet Click", `${this.props.query} - ${s.sheetId}`, null,
+      Sefaria.site.track.event("Search", "Search Result Sheet Click", `${this.props.query} - ${s.sheetId}`,
           {hitCallback: () => window.location = href}
       );
     }
@@ -9648,7 +9648,7 @@ class SearchSheetResult extends Component {
       var href = e.target.getAttribute("href");
       e.preventDefault();
       var s = this.props.data._source;
-      Sefaria.site.track.event("Search", "Search Result Sheet Owner Click", `${this.props.query} - ${s.sheetId} - ${s.owner_name}`, null,
+      Sefaria.site.track.event("Search", "Search Result Sheet Owner Click", `${this.props.query} - ${s.sheetId} - ${s.owner_name}`,
           {hitCallback: () => window.location = href}
       );
     }
