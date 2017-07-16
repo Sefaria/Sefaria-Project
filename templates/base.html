@@ -1,3 +1,5 @@
+{% load render_bundle from webpack_loader %}
+
 <!DOCTYPE html>
 <html>
 <head>
@@ -11,8 +13,6 @@
     <link rel="stylesheet" href="/static/css/common.css">
     <link rel="stylesheet" href="/static/font-awesome/css/font-awesome.css">
     <link rel="stylesheet" type="text/css" href="/static/css/keyboard.css">
-
-
     <link rel="stylesheet" href="/static/css/s2.css">
     <link rel="stylesheet" href="/static/css/s2-print.css" media="print" />
 
@@ -71,7 +71,22 @@
     {% include "js/jquery.html" %}
     <script src="/static/js/jquery.tooltipster.min.js"></script>
     <script>{% include "js/django-csrf.js" %}</script>
-    {% include "react_header_activate.html" %}
+    <script src="/static/js/jquery.scrollTo.js"></script>
+    <script src="/static/js/keyboard.js"></script>
+    <script src="/data.js"></script>
+
+    <script>
+      {% autoescape off %}
+      var DJANGO_VARS = {
+        contentLang: "{{ contentLang }}",
+        interfaceLang: "{{ interfaceLang }}",
+        inReaderApp: false,
+        ga: ga
+      };
+      {% endautoescape %}
+    </script>
+    
+    {% render_bundle 'main' %}
 
     {% block js %}{% endblock %}
 </body>
