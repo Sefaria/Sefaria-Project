@@ -17,19 +17,16 @@
 
 {% block js %}
 
-<script {% if DEBUG %}type="text/jsx;harmony=true"{% endif %}>
+<script>
     {% autoescape off %}
-    {% include "js/django-csrf.js" %}
-    $(function() {
-
-      var props = {
-      	initialData: {{ groupData|jsonify }}
-      };
-
-      var container = document.getElementById('editGroupPageContainerInner');
-      var component = React.createElement(EditGroupPage, props);
-      ReactDOM.render(component, container);
-    });
+    var DJANGO_VARS = {
+        propsJSON: {
+      	    initialData: {{ groupData|jsonify }}
+        },
+        containerId: 'editGroupPageContainerInner',
+        reactComponentName: 'EditGroupPage',
+        ga: ga
+    };
     {% endautoescape %}
 
 </script>
