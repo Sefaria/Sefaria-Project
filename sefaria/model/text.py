@@ -4383,17 +4383,11 @@ class Library(object):
 
             all_interal = u"|".join(regex_components)
             if all_interal:
-                full_regex = ur"""(?<=						# look behind for opening brace
-                        [({]										# literal '(', brace,
-                        [^})]*										# anything but a closing ) or brace
-                    )(?:
+                full_regex = ur"""(?:
                     """ + all_interal + ur"""
                     )
                     (?=\W|$)                                        # look ahead for non-word char
-                    (?=												# look ahead for closing brace
-                        [^({]*										# match of anything but an opening '(' or brace
-                        [)}]										# zero-width: literal ')' or brace
-                    )"""
+                    """
             return full_regex
 
     # do we want to move this to the schema node? We'd still have to pass the title...
@@ -4507,8 +4501,13 @@ class Library(object):
             except InputError as e:
                 logger.warning(u"Wrap Ref Warning: Ref:({}) {}".format(match.group(0), e.message))
                 return match.group(0)
+        if lang == "en":
+            return titles_regex.sub(_wrap_ref_match, st)
+        else:
+            outer_regex_str = ur"[({].+?[)}]"
+            outer_regex = regex.compile(outer_regex_str, regex.VERBOSE)
+            return outer_regex.sub(lambda match: titles_regex.sub(_wrap_ref_match, match.group(0)), st)
 
-        return titles_regex.sub(_wrap_ref_match, st)
 
     def category_id_dict(self, toc=None, cat_head="", code_head=""):
         if toc is None:
