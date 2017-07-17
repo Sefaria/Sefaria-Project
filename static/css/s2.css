@@ -476,14 +476,17 @@ input.noselect {
 }
 .textColumn .loadingMessage.base.next.final {
 }
-.he, .int-he {
+.he {
   font-size: 120%;
+}
+.int-he {
+  font-size: 110%;
 }
 .int-he .int-he {
   font-size: inherit;
 }
 .readerPanel .he {
-  font-family: "Frank Ruehl Libre", "Times New Roman", serif;
+  font-family: "Frank Ruehl Libre", "Taamey Frank", "Times New Roman", serif;
   direction: rtl;
   text-align: right;
 }
@@ -738,7 +741,7 @@ h1 .languageToggle {
   cursor: pointer;
 }
 h1 div.languageToggle .en {
-  font-family: "Frank Ruehl Libre", "Times New Roman", serif;
+  font-family: "Frank Ruehl Libre", "Taamey Frank", "Times New Roman", serif;
   font-weight: normal;
 }
 h1 .languageToggle .he {
@@ -749,7 +752,7 @@ h1 .languageToggle .he {
   font-family: "adobe-garamond-pro", Georgia, serif;
 }
 .readerNavMenu h1 .int-he {
-  font-family: "Frank Ruehl Libre", "Times New Roman", serif;
+  font-family: "Frank Ruehl Libre", "Taamey Frank", "Times New Roman", serif;
 }
 @media (max-width: 450px) {
   .readerNavMenu.home .tagline {
@@ -1102,7 +1105,7 @@ a.readerNavCategory {
   font-family: "adobe-garamond-pro", Georgia, serif;
 }
 .readerTextTableOfContents .tocDetail .int-he {
-  font-family: "Frank Ruehl Libre", "Times New Roman", serif;
+  font-family: "Frank Ruehl Libre", "Taamey Frank", "Times New Roman", serif;
 }
 .readerTextTableOfContents .tocDetails .description {
   margin: 6px 0 16px;
@@ -1496,7 +1499,7 @@ a.readerNavCategory {
   font-size: 26px;
 }
 .searchContentFrame h1.hebrewQuery {
-  font-family: "Frank Ruehl Libre", "Times New Roman", serif;
+  font-family: "Frank Ruehl Libre", "Taamey Frank", "Times New Roman", serif;
   font-size: 30px;
 }
 .searchContent {
@@ -3436,6 +3439,18 @@ a .button:hover {
    font-style: italic;
    font-family: "adobe-garamond-pro", Georgia, serif;
 }
+.interface-hebrew ::-webkit-input-placeholder {
+  font-style: normal;
+  font-family: "Frank Ruehl Libre", "Taamey Frank", "Times New Roman", serif;
+}
+.interface-hebrew ::-moz-placeholder { 
+  font-style: normal;
+  font-family: "Frank Ruehl Libre", "Taamey Frank", "Times New Roman", serif;
+}
+.interface-hebrew :-ms-input-placeholder {  
+  font-style: normal;
+  font-family: "Frank Ruehl Libre", "Taamey Frank", "Times New Roman", serif;
+}
 input {
   outline: none;
 }
@@ -4118,10 +4133,6 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
   padding: 18px 40px;
   text-align: left;
 }
-#footer .section {
-  margin-top: 20px;
-  margin-bottom: 20px;
-}
 #footer .header {
   font-weight: bold;
   font-size: 15px;
@@ -4155,7 +4166,8 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
 #footer .section {
   display: inline-block;
   vertical-align: top;
-  width: 160px;
+  width: 140px;
+  margin: 20px 10px;
 }
 #footer.interface-english .section, .interface-english #footer .section {
   text-align: left;

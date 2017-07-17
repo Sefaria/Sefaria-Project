@@ -162,7 +162,6 @@
   margin: auto;
 }
 .static .inner .button {
-  /*all: initial; /*this is an insane hack, seems to work on chrome, firefox and opera. untested on Safari and Edge*/
   border-radius: 4px;
   padding: 16px 24px;
   cursor: pointer;
@@ -193,24 +192,11 @@
   margin: 0;
   text-align: justify
 }
-
 #homePage {
   overflow: hidden;
   color: #333;
   background-color: transparent;
 }
-/*#homePage .int-en {
-  font-family: "adobe-garamond-pro", Georgia, serif;  
-}
-#homePage .int-he {
-  font-family: "Heebo", "Helvetica Neue", Helvetica, Ariel, san-serif;
-}*/
-/*#homePage .button .int-en {
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
-}*/
-/*#homePage .button .int-he {
-  font-family: "Heebo", sans-serif;
-}*/
 #homePage .section {
   margin-bottom: 0;
 }
