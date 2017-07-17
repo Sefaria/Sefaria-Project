@@ -416,6 +416,7 @@ input.noselect {
   height: 100%;
   overflow: hidden;
   background-color: inherit;
+  outline: none;
   font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
 }
 .readerContent {
@@ -1264,6 +1265,10 @@ a.readerNavCategory {
   display: table-cell;
   height: 37px;
 }
+.altStructToggleBox a, .altStructToggleBox a:hover, .altStructToggleBox a:visited, .altStructToggleBox a:link, .altStructToggleBox a:active {
+  text-decoration: none;
+}
+
 .readerTextTableOfContents .structToggles .altStructToggle {
   display: block;
   padding: 8px;
@@ -2369,6 +2374,7 @@ a.readerNavCategory {
   color: #999;
 }
 .segment {
+  outline: none;
 }
 .segment.heOnly{
   text-align: right;
