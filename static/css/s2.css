@@ -1024,6 +1024,7 @@ a.readerNavCategory {
 .readerNavMenu .readerNavCategoryMenu .refLink,
 .readerNavMenu .readerNavCategoryMenu .catLink {
   width: 100%;
+  height: 100%;
 }
 .categoryColorLine {
   position: absolute;
