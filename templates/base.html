@@ -1,3 +1,5 @@
+{% load render_bundle from webpack_loader %}
+
 <!DOCTYPE html>
 <html>
 <head>
@@ -7,36 +9,20 @@
     {% block ogimage %}<meta property="og:image" content="https://www.sefaria.org/static/img/fb-og-image.png"/>{% endblock %}
     <title>{% block title %}{% endblock %}</title>
     {% block head %}{% endblock %}    
-    {% if not S2 %}
-    <link rel="stylesheet" href="/static/js/jquery-ui/css/smoothness/jquery-ui-1.8.22.custom.css">
-    <link rel="stylesheet" href="/static/bootstrap/css/bootstrap.css">
-    <link rel="stylesheet" href="/static/css/base.css">
-    {% endif %}
 
     <link rel="stylesheet" href="/static/css/common.css">
     <link rel="stylesheet" href="/static/font-awesome/css/font-awesome.css">
     <link rel="stylesheet" type="text/css" href="/static/css/keyboard.css">
+    <link rel="stylesheet" href="/static/css/s2.css">
+    <link rel="stylesheet" href="/static/css/s2-print.css" media="print" />
 
+    {% block exclude_block_on_source_sheets %}
+        <link rel="stylesheet" href="/static/css/static.css">
+    {% endblock %}
 
-    {% if S2 or request.flavour == "mobile" %}
-        <link rel="stylesheet" href="/static/css/s2.css">
-        <link rel="stylesheet" href="/static/css/s2-print.css" media="print" />
-
-        {% block exclude_block_on_source_sheets %}
-            <link rel="stylesheet" href="/static/css/static.css">
-        {% endblock %}
-
-    {%  endif %}
     <style>
         {% block css %}{% endblock %}
     </style>
-    {% if S2 or request.flavour == "mobile" %}
-    <style>
-      body {
-        overflow: visible;
-      }
-    </style>
-    {%  endif %}
 
 	<script>
         {% include "js/analytics.js" %}
@@ -45,7 +31,6 @@
     {% if not OFFLINE %}
     <script src="https://ajax.googleapis.com/ajax/libs/webfont/1.6.26/webfont.js"></script>
     <script>
-      {% if S2 %}
         WebFont.load({
           google: {
             families: ['Crimson Text:400,700'],
@@ -59,33 +44,23 @@
           google: {
             families: ['Alef:400,700:hebrew', 'Open Sans Hebrew:400,700:hebrew'] // The dotted h causes Alef not to load.
           }});
-      {% else %}
-        WebFont.load({
-          google: {
-            families: ['Montserrat:400,700', 'Alef:400,700:latin,hebrew' ]
-          },
-          typekit: {
-            id: 'aeg8div'
-          }
-        });
-      {% endif %}
     </script>
     {% endif %}
 </head>
 
 <body{% if EMBED %} class="embeded"{% endif %}>
-    {% if S2 or request.flavor == "mobile "%}
-        {% include "header.html" %}
+
+    {% autoescape off %}
+    {% if request.user.is_authenticated %}
+    <div id="s2" class="headerOnly">{{ logged_in_header }}</div>
+    {% else %}
+    <div id="s2" class="headerOnly">{{ logged_out_header }}</div>
     {% endif %}
+    {% endautoescape %}
+
     <div class="wrapper">
-        <div id="content" {% if S2 or request.flavor == "mobile "%}class="interface-{{ interfaceLang }}" {% else %} class="{{ interfaceLang }}" {% endif %}>
-            {% if not S2 and not request.flavour == "mobile" %}
-                {% include "header.html" %}
-                {% include "elements/login_prompt.html" with msg="Please log in to edit." %}
-            {% endif %}
-
+        <div id="content" class="interface-{{ interfaceLang }}">
             {% block content %}{% endblock %}
-
         </div>
     </div>
 
@@ -96,13 +71,23 @@
     {% include "js/jquery.html" %}
     <script src="/static/js/jquery.tooltipster.min.js"></script>
     <script>{% include "js/django-csrf.js" %}</script>
-    {% if not S2 and not request.flavour == "mobile" %}
-         <script src="/static/js/util.js"></script>
-        {% include "js/headers.js" %}
-    {%  endif %}
-    {% if S2 or request.flavour == "mobile" %}
-        {% include "react_header_activate.html" %}
-    {%  endif %}
+    <script src="/static/js/jquery.scrollTo.js"></script>
+    <script src="/static/js/keyboard.js"></script>
+    <script src="/data.js"></script>
+
+    <script>
+      {% autoescape off %}
+      var DJANGO_VARS = {
+        contentLang: "{{ contentLang }}",
+        interfaceLang: "{{ interfaceLang }}",
+        inReaderApp: false,
+        ga: ga
+      };
+      {% endautoescape %}
+    </script>
+    
+    {% render_bundle 'main' %}
+
     {% block js %}{% endblock %}
 </body>
 </html>

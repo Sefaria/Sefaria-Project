@@ -1,28 +1,29 @@
-//if (typeof require !== 'undefined') {
-  var INBROWSER    = true,
-      React        = require('react'),
-      PropTypes    = require('prop-types'),
-      ReactDOM     = require('react-dom'),
-      $            = require('jquery'),
-      extend       = require('extend'),
-      classNames   = require('classnames'),
-      Sefaria      = require('./sefaria');
-      import Component from 'react-class';  //auto-bind this to all event-listeners. see https://www.npmjs.com/package/react-class
+var React        = require('react'),
+    PropTypes    = require('prop-types'),
+    ReactDOM     = require('react-dom'),
+    extend       = require('extend'),
+    classNames   = require('classnames'),
+    Sefaria      = require('./sefaria');
+    import Component from 'react-class';  //auto-bind this to all event-listeners. see https://www.npmjs.com/package/react-class
 
 
-  if (typeof document !== 'undefined' ) {
-    INBROWSER = false;
-    require('jquery.cookie');  //NOTE: these require statements are adding props to the $ obj. The order actually doesn't matter b/c it seems webpack deals with it
-    require('jquery-ui');
-    require('jquery.scrollto');
-    require('./headroom');
-  }
+if (typeof document !== 'undefined' ) {
+  var INBROWSER = true,
+      $           = require("jquery");
+      require('jquery.cookie');  //NOTE: these require statements are adding props to the $ obj. The order actually doesn't matter b/c it seems webpack deals with it
+      require('jquery-ui');
+      require('jquery.scrollto');
+      require('./headroom'); 
+} else {
+  var INBROWSER = false,
+      $         = require("cheerio"); 
+}
 
 class ReaderApp extends Component {
   constructor(props) {
     super(props);
     // TODO clean up generation of initial panels objects.
-    // Currently these get generated in reader/views.py, then regenerated in s2.html then regenerated again in ReaderApp.
+    // Currently these get generated in reader/views.py then regenerated again in ReaderApp.
     this.MIN_PANEL_WIDTH = 360.0;
 
     var panels               = [];
@@ -6579,7 +6580,7 @@ class TextSegment extends Component {
 
     // render itags
     if (this.props.filter && this.props.filter.length > 0) {
-      var $newElement = $('<div/>').append("<div>" + he + "</div>");
+      var $newElement = $("<div>" + he + "</div>");
       var textValue = function(i) {
         if ($(i).attr('data-label')) {
           return $(i).attr('data-label');
@@ -9639,7 +9640,7 @@ class SearchSheetResult extends Component {
       var href = e.target.getAttribute("href");
       e.preventDefault();
       var s = this.props.data._source;
-      Sefaria.site.track.event("Search", "Search Result Sheet Click", `${this.props.query} - ${s.sheetId}`, null,
+      Sefaria.site.track.event("Search", "Search Result Sheet Click", `${this.props.query} - ${s.sheetId}`,
           {hitCallback: () => window.location = href}
       );
     }
@@ -9647,7 +9648,7 @@ class SearchSheetResult extends Component {
       var href = e.target.getAttribute("href");
       e.preventDefault();
       var s = this.props.data._source;
-      Sefaria.site.track.event("Search", "Search Result Sheet Owner Click", `${this.props.query} - ${s.sheetId} - ${s.owner_name}`, null,
+      Sefaria.site.track.event("Search", "Search Result Sheet Owner Click", `${this.props.query} - ${s.sheetId} - ${s.owner_name}`,
           {hitCallback: () => window.location = href}
       );
     }
@@ -10958,3 +10959,4 @@ exports.TextColumn          = TextColumn;
 exports.Footer              = Footer;
 exports.sefariaSetup        = Sefaria.setup;
 exports.unpackDataFromProps = Sefaria.unpackDataFromProps;
+exports.EditGroupPage       = EditGroupPage;

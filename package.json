@@ -33,6 +33,7 @@
     "jquery-ui": "1.10.4",
     "jquery.cookie": "^1.4.1",
     "jquery.scrollto": "^2.1.2",
+    "cheerio": "^0.22.0",
     "prop-types": "^15.5.10",
     "querystring": "^0.2.0",
     "react": "^15.6.0",
