@@ -12,6 +12,7 @@ import copy
 import bleach
 import json
 import itertools
+from collections import defaultdict
 
 try:
     import re2 as re
@@ -4335,26 +4336,59 @@ class Library(object):
         from sefaria.utils.hebrew import strip_nikkud
         #st = strip_nikkud(st) doing this causes the final result to lose vowels and cantiallation
         unique_titles = set(self.get_titles_in_string(st, lang, citing_only))
-        title_regs = []
-        title_nodes = {}
-        for title in unique_titles:
+        title_nodes = {title: self.get_schema_node(title,lang) for title in unique_titles}
+
+        all_reg = self.get_multi_title_regex_string(unique_titles, lang)
+        reg = regex.compile(all_reg, regex.VERBOSE)
+        if all_reg:
+            st = self._wrap_all_refs_in_string(title_nodes, reg, st, lang)
+        return st
+
+    def get_multi_title_regex_string(self, titles, lang, for_js=False, anchored=False):
+        """
+        Capture title has to be true.
+        :param titles:
+        :param lang:
+        :param for_js:
+        :param anchored:
+        :return:
+        """
+        nodes_by_address_type = defaultdict(list)
+        regex_components = []
+
+        for title in titles:
             try:
-                re_string = self.get_regex_string(title, lang, capture_title=True)
                 node = self.get_schema_node(title, lang)
-                title_regs.append(u"(?:{})".format(re_string))
-                title_nodes[title] = node
-            except AssertionError as e1:
-                logger.info(u"Skipping Schema Node: {}".format(title))
-                continue
-            except AttributeError as e2:
+                nodes_by_address_type[tuple(node.addressTypes)] += [(title, node)]
+            except AttributeError as e:
                 logger.warning(u"Library._wrap_all_refs_in_string() failed to create regex for: {}.  {}".format(title, e))
                 continue
 
-        all_reg = ur"|".join(title_regs)
-        reg = regex.compile(all_reg, regex.VERBOSE)
-        if len(title_regs):
-            st = self._wrap_all_refs_in_string(title_nodes, reg, st, lang)
-        return st
+        if lang == "en" or for_js:  # Javascript doesn't support look behinds.
+            for address_tuple, title_node_tuples in nodes_by_address_type.items():
+                node = title_node_tuples[0][1]
+                titles = u"|".join([regex.escape(tup[0]) for tup in title_node_tuples])
+                regex_components += [node.full_regex(titles, lang, for_js=for_js, match_range=for_js, compiled=False, anchored=anchored, capture_title=True, escape_titles=False)]
+            return u"|".join(regex_components)
+
+        if lang == "he":
+            full_regex = ""
+            for address_tuple, title_node_tuples in nodes_by_address_type.items():
+                node = title_node_tuples[0][1]
+                titles = u"|".join([regex.escape(tup[0]) for tup in title_node_tuples])
+
+                regex_components += [ur"(?:{}".format(ur"(?P<title>{})".format(titles))  \
+                           + node.after_title_delimiter_re \
+                           + node.address_regex(lang, for_js=for_js, match_range=for_js) + u")"]
+
+            all_interal = u"|".join(regex_components)
+            if all_interal:
+                full_regex = ur"""(?:
+                    """ + all_interal + ur"""
+                    )
+                    (?=\W|$)                                        # look ahead for non-word char
+                    """
+            return full_regex
 
     # do we want to move this to the schema node? We'd still have to pass the title...
     def get_regex_string(self, title, lang, for_js=False, anchored=False, capture_title=False):
@@ -4467,8 +4501,13 @@ class Library(object):
             except InputError as e:
                 logger.warning(u"Wrap Ref Warning: Ref:({}) {}".format(match.group(0), e.message))
                 return match.group(0)
+        if lang == "en":
+            return titles_regex.sub(_wrap_ref_match, st)
+        else:
+            outer_regex_str = ur"[({].+?[)}]"
+            outer_regex = regex.compile(outer_regex_str, regex.VERBOSE)
+            return outer_regex.sub(lambda match: titles_regex.sub(_wrap_ref_match, match.group(0)), st)
 
-        return titles_regex.sub(_wrap_ref_match, st)
 
     def category_id_dict(self, toc=None, cat_head="", code_head=""):
         if toc is None:
