@@ -19,7 +19,7 @@ from django.contrib.auth.models import User
 
 import sefaria.utils.testing_utils as tutils
 
-from sefaria.model import library, Index, IndexSet, VersionSet, LinkSet, NoteSet, HistorySet, Ref, VersionState, VersionStateSet, TextChunk
+from sefaria.model import library, Index, IndexSet, VersionSet, LinkSet, NoteSet, HistorySet, Ref, VersionState, VersionStateSet, TextChunk, Category
 from sefaria.system.database import db
 import sefaria.system.cache as scache
 
@@ -862,13 +862,13 @@ class PostTextTest(SefariaTestCase):
         self.assertEqual(0, LinkSet({"refs": {"$regex": textRegex}}).count())
 
     """def test_post_commentary_text(self):
-        """
+        '''
         Tests:
             Posting a new commentator index
             Get a virtual index for comentator on a text
             Posting commentary text
             Commentary links auto generated
-        """
+        '''
         index = {
             "title": "Ploni",
             "heTitle": "Hebrew Ploni",
@@ -915,6 +915,152 @@ class PostTextTest(SefariaTestCase):
         self.assertTrue("error" not in data)
         subref = Ref("Chofetz_Chaim,_Part_One,_The_Prohibition_Against_Lashon_Hara,_Principle_1.2.3")
         assert TextChunk(subref, "en", "test_default_node").text == "Ber Flam"
+
+
+class PostCategory(SefariaTestCase):
+    """
+    Tests posting text content to Texts API.
+    """
+
+    def setUp(self):
+        self.make_test_user()
+
+    def tearDown(self):
+        cat = Category().load({"path": ["Tanakh", "New Works"]})
+        if cat:
+            cat.delete()
+            library.rebuild(include_toc=True)
+
+    def test_duplicate_rejected(self):
+        cat = {
+            "path" : [
+                "Tanakh",
+                "Torah"
+            ],
+            "titles": [
+                {
+                    "lang" : "en",
+                    "text" : "Torah",
+                    "primary" : True
+                },
+                {
+                    "lang" : "he",
+                    "text" : u"תורה",
+                    "primary" : True
+                }
+            ]
+        }
+        response = c.post("/api/category", {'json': json.dumps(cat)})
+        self.assertEqual(200, response.status_code)
+        data = json.loads(response.content)
+        self.assertTrue("error" in data)
+
+    def test_orphan_rejected(self):
+        cat = {
+            "path" : [
+                "Tanakh",
+                "Other Stuff",
+                "New Works"
+            ],
+            "titles" : [
+                {
+                    "lang" : "en",
+                    "text" : "New Works",
+                    "primary" : True
+                },
+                {
+                    "lang" : "he",
+                    "text" : u"חידושים",
+                    "primary" : True
+                }
+            ]
+        }
+        response = c.post("/api/category", {'json': json.dumps(cat)})
+        self.assertEqual(200, response.status_code)
+        data = json.loads(response.content)
+        self.assertTrue("error" in data)
+
+    def test_incomplete_record_rejected(self):
+        cat = {
+            "titles" : [
+                {
+                    "lang" : "en",
+                    "text" : "New Works",
+                    "primary" : True
+                },
+                {
+                    "lang" : "he",
+                    "text" : u"חידושים",
+                    "primary" : True
+                }
+            ]
+        }
+        response = c.post("/api/category", {'json': json.dumps(cat)})
+        self.assertEqual(200, response.status_code)
+        data = json.loads(response.content)
+        self.assertTrue("error" in data)
+
+        cat = {
+            "path": [
+                "Tanakh",
+                "New Works"
+            ],
+            "titles": [
+                {
+                    "lang": "en",
+                    "text": "New Works",
+                    "primary": True
+                }
+            ]
+        }
+        response = c.post("/api/category", {'json': json.dumps(cat)})
+        self.assertEqual(200, response.status_code)
+        data = json.loads(response.content)
+        self.assertTrue("error" in data)
+
+        cat = {
+            "path": [
+                "Tanakh",
+                "New Works"
+            ],
+            "titles": [
+                {
+                    "lang" : "he",
+                    "text" : u"חידושים",
+                    "primary" : True
+                }
+            ]
+        }
+        response = c.post("/api/category", {'json': json.dumps(cat)})
+        self.assertEqual(200, response.status_code)
+        data = json.loads(response.content)
+        self.assertTrue("error" in data)
+
+    def test_legit_post(self):
+        cat = {
+            "path" : [
+                "Tanakh",
+                "New Works"
+            ],
+            "titles": [
+                {
+                    "lang": "en",
+                    "text": "New Works",
+                    "primary": True
+                },
+                {
+                    "lang": "he",
+                    "text": u"חידושים",
+                    "primary": True
+                }
+            ]
+        }
+        response = c.post("/api/category", {'json': json.dumps(cat)})
+        self.assertEqual(200, response.status_code)
+        data = json.loads(response.content)
+        self.assertTrue("error" not in data)
+        self.assertTrue(Category().load({"path": ["Tanakh", "New Works"]}))
+
 
 class PostLinks(SefariaTestCase):
     """

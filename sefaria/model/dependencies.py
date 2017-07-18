@@ -101,7 +101,8 @@ subscribe(group.process_group_delete_in_sheets,                              gro
 
 # Categories
 subscribe(category.process_category_name_change_in_categories_and_indexes,  category.Category, "attributeChange", "lastPath")
-subscribe(category.rebuild_library_after_category_name_change,              category.Category, "attributeChange", "lastPath")
+subscribe(category.rebuild_library_after_category_change,                   category.Category, "attributeChange", "lastPath")
+
 
 # todo: notes? reviews?
 # todo: Scheme name change in Index

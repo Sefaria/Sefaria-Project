@@ -1,5 +1,9 @@
 # -*- coding: utf-8 -*-
 
+
+import logging
+logger = logging.getLogger(__name__)
+
 from sefaria.system.database import db
 from . import abstract as abstract
 from . import schema as schema
@@ -8,11 +12,21 @@ from . import text as text
 
 class Category(schema.AbstractTitledRecord):
     collection = 'category'
+    history_noun = "category"
 
     track_pkeys = True
     pkeys = ["lastPath"]  # Needed for dependency tracking
     required_attrs = ["titles", "lastPath", "path"]
     optional_attrs = ["enDesc", "heDesc"]
+
+    def __unicode__(self):
+        return u"Category: {}".format(u", ".join(self.path))
+
+    def __str__(self):
+        return unicode(self).encode('utf-8')
+
+    def __repr__(self):  # Wanted to use orig_tref, but repr can not include Unicode
+        return u"{}().load({{'path': [{}]}})".format(self.__class__.__name__, u", ".join(map(lambda x: u'"{}"'.format(x), self.path)))
 
     def change_key_name(self, name):
         self.lastPath = name
@@ -20,12 +34,28 @@ class Category(schema.AbstractTitledRecord):
         self.add_title(name, "en", True, True)
 
     def _validate(self):
+        super(Category, self)._validate()
         assert self.lastPath == self.path[-1] == self.get_primary_title("en"), "Category name not matching"
+
+    def _normalize(self):
+        super(Category, self)._normalize()
+        if not getattr(self, "lastPath", None):
+            self.lastPath = self.path[-1]
 
     def get_toc_object(self):
         from sefaria.model import library
         toc_tree = library.get_toc_tree()
-        toc_tree.lookup_category(self.path)
+        return toc_tree.lookup_category(self.path)
+
+    def can_delete(self):
+        obj = self.get_toc_object()
+        if not obj:
+            logger.error(u"Could not get TOC object for Category {}.".format(u"/".join(self.path)))
+            return False
+        if len(obj.children):
+            logger.error(u"Can not delete category {} that has contents.".format(u"/".join(self.path)))
+            return False
+        return True
 
 
 class CategorySet(abstract.AbstractMongoSet):
@@ -49,7 +79,7 @@ def process_category_name_change_in_categories_and_indexes(changed_cat, **kwargs
             i.save(override_dependencies=True)
 
 
-def rebuild_library_after_category_name_change(changed_cat, **kwargs):
+def rebuild_library_after_category_change(*args, **kwargs):
     text.library.rebuild(include_toc=True)
 
 
@@ -147,7 +177,10 @@ class TocTree(object):
         try:
             return self._path_hash[tuple(cat_path)]
         except KeyError:
-            return self._path_hash[tuple(["Other"] + cat_path)]
+            try:
+                return self._path_hash[tuple(["Other"] + cat_path)]
+            except KeyError:
+                return None
 
 
 class TocNode(schema.TitledTreeNode):

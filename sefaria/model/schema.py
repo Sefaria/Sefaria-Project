@@ -166,6 +166,10 @@ class AbstractTitledRecord(abst.AbstractMongoRecord):
         """
         return self.title_group.add_title(text, lang, primary, replace_primary)
 
+    def _validate(self):
+        super(AbstractTitledRecord, self)._validate()
+        self.title_group.validate()
+
     def _normalize(self):
         self.titles = self.title_group.titles
 
@@ -186,6 +190,7 @@ class Term(AbstractTitledRecord):
     track_pkeys = True
     pkeys = ["name"]
     title_group = None
+    history_noun = "term"
 
     required_attrs = [
         "name",
@@ -201,7 +206,6 @@ class Term(AbstractTitledRecord):
         super(Term, self)._validate()
         if self.name != self.get_primary_title():
             raise InputError("Term name does not match primary title")
-        self.title_group.validate()
 
 
 class TermSet(abst.AbstractMongoSet):

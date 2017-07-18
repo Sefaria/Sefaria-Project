@@ -1996,6 +1996,60 @@ def flag_text_api(request, title, lang, version):
     else:
         return jsonResponse({"error": "Unauthorized"})
 
+
+@catch_error_as_json
+@csrf_exempt
+def category_api(request):
+    """
+    API for adding a Category to the Category collection.
+    """
+    """
+    NOTE: This function is not written like the other functions with a post method.
+    It's attempting a cleaner way to distinguish between csrf proteced use and API use bu juggling some variables around
+    Rather than duplicating functionality.
+    """
+
+    if request.method == "POST":
+        def _internal_do_post(request, cat, uid, **kwargs):
+            return tracker.add(uid, model.Category, cat, **kwargs).contents()
+
+        if not request.user.is_authenticated():
+            key = request.POST.get("apikey")
+            if not key:
+                return {"error": "You must be logged in or use an API key to add or delete categories."}
+            apikey = db.apikeys.find_one({"key": key})
+            if not apikey:
+                return {"error": "Unrecognized API key."}
+            user = User.objects.get(id=apikey["uid"])
+            if not user.is_staff:
+                return jsonResponse({"error": "Only Sefaria Moderators can add or delete categories."})
+            uid = apikey["uid"]
+            kwargs = {"method": "API"}
+        elif request.user.is_staff:
+            uid = request.user.id
+            kwargs = {}
+            _internal_do_post = csrf_protect(_internal_do_post)
+        else:
+            return jsonResponse({"error": "Only Sefaria Moderators can add or delete categories."})
+
+        j = request.POST.get("json")
+        if not j:
+            return jsonResponse({"error": "Missing 'json' parameter in post data."})
+        j = json.loads(j)
+        if "path" not in j:
+            return jsonResponse({"error": "'path' is a required attribute"})
+        if Category().load({"path": j["path"]}):
+            return jsonResponse({"error": "Category {} already exists.".format(u", ".join(j["path"]))})
+        if not Category().load({"path": j["path"][:-1]}):
+            return jsonResponse({"error": "No parent category found: {}".format(u", ".join(j["path"][:-1]))})
+        return jsonResponse(_internal_do_post(request, j, uid, **kwargs))
+
+    if request.method == "DELETE":
+        return jsonResponse({"error": "Unsupported HTTP method."})  # TODO: support this?
+
+    return jsonResponse({"error": "Unsupported HTTP method."})
+
+
 @catch_error_as_json
 @csrf_exempt
 def terms_api(request, name):
@@ -2017,7 +2071,6 @@ def terms_api(request, name):
             func = tracker.update if request.GET.get("update", False) else tracker.add
             return func(uid, model.Term, term, **kwargs).contents()
 
-        # delegate according to single/multiple objects posted
         if not request.user.is_authenticated():
             key = request.POST.get("apikey")
             if not key:
@@ -2044,7 +2097,7 @@ def terms_api(request, name):
         return jsonResponse(_internal_do_post(request, j, uid, **kwargs))
 
     if request.method == "DELETE":
-        return jsonResponse({"error": "Unsupported HTTP method."}) #TODO: support this?
+        return jsonResponse({"error": "Unsupported HTTP method."})  # TODO: support this?
 
     return jsonResponse({"error": "Unsupported HTTP method."})
 
