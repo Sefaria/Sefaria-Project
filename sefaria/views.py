@@ -713,3 +713,11 @@ def text_upload_api(request):
 
     message = "Successfully imported {} versions".format(len(files))
     return jsonResponse({"status": "ok", "message": message})
+
+
+def compare(request, ref1, ref2, lang, v1=None, v2=None):
+    return render_to_response('static/compare.html', {
+        'ref1': ref1,
+        'ref2': ref2,
+        'lang': lang,
+    })
