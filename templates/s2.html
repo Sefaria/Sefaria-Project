@@ -31,13 +31,17 @@
   <script>
     WebFont.load({
       google: {
-        families: ['Crimson Text:400,700', 'Open Sans Hebrew:400,700:hebrew'],
+        families: ['Crimson Text:400,700'],
         text: 'ḥḤ'
       },
       typekit: {
         id: 'aeg8div'
       }
     });
+    WebFont.load({
+      google: {
+        families: ['Heebo:400,700:hebrew', 'Frank Ruehl Libre:400,700:hebrew'] // The dotted h causes Heebo not to load.
+      }});
   </script>
   {% endif %}
 

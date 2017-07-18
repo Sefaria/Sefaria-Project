@@ -1,4 +1,4 @@
-/** font-family: "Open Sans Hebrew", sans-serif; => font-family: "Alef", "Helvetica Neue", Helvetica, Ariel, san-serif;***/
+/** font-family: "Heebo", sans-serif; => font-family: "Heebo", "Helvetica Neue", Helvetica, Ariel, san-serif;***/
 .wrapper{
   background-color: #F9F9F7;
 }
@@ -31,19 +31,19 @@
   font-family: "adobe-garamond-pro", Georgia, serif;
 }
 .static .int-he {
-  font-family: "Alef", "Helvetica Neue", Helvetica, Ariel, san-serif;
+  font-family: "Heebo", "Helvetica Neue", Helvetica, Ariel, sans-serif;
 }
 .static .control-elem, .static .control-elem .int-en{
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
 }
 .static .control-elem .int-he {
-  font-family: "Open Sans Hebrew", sans-serif;
+  font-family: "Heebo", sans-serif;
 }
 .static .sans .int-en, .static.sans .int-en, .static .sans {
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
 }
 .static .sans .int-he, .static.sans .int-he  {
-  font-family: "Open Sans Hebrew", sans-serif;
+  font-family: "Heebo", sans-serif;
 }
 .interface-english .static .int-he {
   display: none;
@@ -55,7 +55,7 @@
     font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
 }
 .static h1 .int-he, .static h2 .int-he, .static h3 .int-he, .static h4 .int-he{
-    font-family: "Open Sans Hebrew", sans-serif;
+    font-family: "Heebo", sans-serif;
 }
 .static h1 {
   color: #333;
@@ -162,7 +162,6 @@
   margin: auto;
 }
 .static .inner .button {
-  /*all: initial; /*this is an insane hack, seems to work on chrome, firefox and opera. untested on Safari and Edge*/
   border-radius: 4px;
   padding: 16px 24px;
   cursor: pointer;
@@ -193,24 +192,11 @@
   margin: 0;
   text-align: justify
 }
-
 #homePage {
   overflow: hidden;
   color: #333;
   background-color: transparent;
 }
-/*#homePage .int-en {
-  font-family: "adobe-garamond-pro", Georgia, serif;  
-}
-#homePage .int-he {
-  font-family: "Alef", "Helvetica Neue", Helvetica, Ariel, san-serif;
-}*/
-/*#homePage .button .int-en {
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
-}*/
-/*#homePage .button .int-he {
-  font-family: "Open Sans Hebrew", sans-serif;
-}*/
 #homePage .section {
   margin-bottom: 0;
 }
@@ -342,7 +328,7 @@
     font-family: "adobe-garamond-pro", Georgia, serif;
 }
 #homePage h1 .int-he, #homePage h2 .int-he{
-    font-family: "Alef", "Helvetica Neue", Helvetica, Ariel, san-serif;
+    font-family: "Heebo", "Helvetica Neue", Helvetica, Ariel, san-serif;
 }
 #homePage h2 {
   margin: 0 0 12px 0;
@@ -629,7 +615,7 @@
   font-family: "adobe-garamond-pro", Georgia, serif;
 }
 #activityList .text.int-he{
-  font-family: "Taamey Frank", "Times New Roman", serif;
+  font-family: "Frank Ruehl Libre", "Times New Roman", serif;
 }
 #activityList .time {
   color: #ccc;
@@ -657,7 +643,7 @@
   font-family: "adobe-garamond-pro", Georgia, serif;
 }
 .registrationContent h1 .int-he{
-  font-family: "Alef", "Helvetica Neue", Helvetica, Ariel, san-serif;
+  font-family: "Heebo", "Helvetica Neue", Helvetica, Ariel, san-serif;
 }
 .registrationContent label {
   display: none;
@@ -789,11 +775,11 @@
 }
 .interface-hebrew #donatePage .faq p.question:before{
   content: "ש)";
-  font-family: "Alef", "Helvetica Neue", Helvetica, Ariel, san-serif;
+  font-family: "Heebo", "Helvetica Neue", Helvetica, Ariel, san-serif;
 }
 .interface-hebrew #donatePage .faq p.answer:before{
   content: "ת)";
-  font-family: "Alef", "Helvetica Neue", Helvetica, Ariel, san-serif;
+  font-family: "Heebo", "Helvetica Neue", Helvetica, Ariel, san-serif;
 }
 
 
@@ -1239,7 +1225,7 @@
   font-family: "adobe-garamond-pro", Georgia, serif;
 }
 #activityPage #activityFeed .text.ver-he {
-  font-family: "Taamey Frank", "Times New Roman", serif;
+  font-family: "Frank Ruehl Libre", "Times New Roman", serif;
 }
 #activityPage #activityList .time {
   color: #ccc;
@@ -1419,13 +1405,13 @@
   font-family: "adobe-garamond-pro", Georgia, serif;
 }
 #edPage .int-he {
-  font-family: "Alef", "Helvetica Neue", Helvetica, Ariel, san-serif;
+  font-family: "Heebo", "Helvetica Neue", Helvetica, Ariel, san-serif;
 }*/
 /*#edPage .button .int-en {
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
 }*/
 /*#edPage .button .int-he {
-  font-family: "Open Sans Hebrew", sans-serif;
+  font-family: "Heebo", sans-serif;
 }*/
 #edPage .section {
   margin-bottom: 0;
@@ -1818,7 +1804,7 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
    direction: rtl;
 }
 #visualGardenPage #results .result-text span.he {
- font-family: "Taamey Frank","Times New Roman",serif;
+ font-family: "Frank Ruehl Libre","Times New Roman",serif;
 }
 #visualGardenPage #results:after { /* Clearfix, for footer */
 	visibility: hidden;
