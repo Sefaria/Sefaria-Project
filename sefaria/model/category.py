@@ -117,9 +117,8 @@ class TocTree(object):
         # Place Indexes
         for i in text.IndexSet():
             node = self._make_index_node(i)
-            try:
-                cat = self.lookup_category(i.categories)
-            except KeyError:
+            cat = self.lookup_category(i.categories)
+            if not cat:
                 print u"Failed to find category for {}".format(i.categories)
                 continue
             cat.append(node)

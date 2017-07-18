@@ -18,12 +18,8 @@ class Test_Categories(object):
         cat.save()
 
         toc_tree = library.get_toc_tree()
-        try:
-            toc_tree.lookup_category(["Tanakh", "Torah"])
-        except KeyError:
-            pass
-        else:
-            raise
+        cat = toc_tree.lookup_category(["Tanakh", "Torah"])
+        assert cat is None
 
         toc_cat = toc_tree.lookup_category(["Tanakh", "Shabbat"])
         assert toc_cat
@@ -35,7 +31,7 @@ class Test_Categories(object):
                 i = child.get_index_object()
                 assert i.categories[1] == "Shabbat"
             else:
-                raise
+                raise Exception()
 
         # Now unwind it
         cat = toc_cat.get_category_object()
