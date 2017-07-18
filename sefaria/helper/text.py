@@ -480,7 +480,32 @@ def get_library_stats():
     return output.getvalue()
 
 
-
+def side_by_side_diff(diffs, change_from=True):
+    """
+    Used to render an html display of a diff from the diff_match_patch library
+    :param diffs: list of tuples as produced by diff_match_patch.diff_main()
+    :param change_from: diff_match_patch.diff_main() gives a diff that shows how to change from stringA to stringB. This
+      flag should be true if you wish to see only the additions that need to be made to textA (first string fed to
+      diff_main). If the inserts to the second are to be diplayed, set to False.
+    :return: html string
+    """
+    diff_delete, diff_insert, diff_equal = -1, 1, 0
+    html = []
+    for (op, data) in diffs:
+        text = (data.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace("\n", "&para;<br>"))
+        if op == diff_insert:
+            if change_from:
+                html.append(u"<span style=\"background:#e6ffe6;\">%s</span>" % text)
+            else:
+                html.append(u"<span style=\"background:#e6ffe6;\">&thinsp;</span>")
+        elif op == diff_delete:
+            if change_from:
+                html.append(u"<span style=\"background:#ffe6e6;\">&thinsp;</span>")
+            else:
+                html.append(u"<span style=\"background:#ffe6e6;\">%s</span>" % text)
+        elif op == diff_equal:
+            html.append(u"<span>%s</span>" % text)
+    return "".join(html)
 
 
 
