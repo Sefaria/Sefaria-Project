@@ -512,14 +512,14 @@ def dual_text_diff(seg1, seg2, edit_cb=None, css_classes=False):
             my_text = (data.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace("\n", "&para;<br>"))
             if op == diff_insert:
                 if change_from:
-                    html.append(u"<span {}>{}</span>".format(ins, my_text))
+                    continue
                 else:
-                    html.append(u"<span {}>&thinsp;</span>".format(ins))
+                    html.append(u"<span {}>{}</span>".format(ins, my_text))
             elif op == diff_delete:
                 if change_from:
-                    html.append(u"<span {}>&thinsp;</span>".format(dell))
-                else:
                     html.append(u"<span {}>{}</span>".format(dell, my_text))
+                else:
+                    continue
             elif op == diff_equal:
                 html.append(u"<span>%s</span>" % my_text)
         return u"".join(html)
