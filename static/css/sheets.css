@@ -9,6 +9,27 @@ body {
     -webkit-user-select: auto !important;
 }
 
+.interface-hebrew #sheetsContent .int-en{
+  display: none;
+}
+.interface-english #sheetsContent .int-he{
+  display: none;
+}
+/*.interface-hebrew #sheetsContent{
+  direction: rtl;
+}
+.interface-english #sheetsContent{
+  direction: ltr;
+}*/
+
+.interface-hebrew #sheetsContent #sheetsEditNavTop{
+	/*direction: rtl;*/
+}
+
+.he, .int-he {
+    font-size: 100%;
+}
+
 #right {
 	width: 510px;
 }
@@ -196,6 +217,10 @@ body {
 	right: auto;
 	left: 50px;
 	line-height: 1.2;
+}
+
+.interface-hebrew .optionsMenu{
+	/*text-align: right;*/
 }
 
 .optionsMenu img, .addInterfaceButton img {
@@ -1466,12 +1491,14 @@ line-height: normal;
     background-color: #f2f2f2;
     border-bottom: 1px solid #E2E2E1;
     box-sizing: border-box;
-    direction: ltr;
+    /*direction: ltr;*/
     z-index: 21;
     padding: 7px 30px 6px 10px;
     font-size: 16px;
     color: #333;
     top: 54px;
+	display: flex;
+	justify-content: space-between;
 }
 
 .sheetsEditNavTop .optionsMenu {
@@ -2091,6 +2118,10 @@ a.tagit-close {
 
 }
 
+#highlightToggleDeactivate, .segmentedContinuousToggle .segmentedActive{
+	display: none;
+}
+
 .highlighterSegment[data-tag]::before {
     content: attr(data-tag) ;
     font-size: 14px;
@@ -2134,6 +2165,10 @@ a.tagit-close {
 .highlighterFilterTags:hover {
 	background-color: #f2f2f2;
 	color: #000;
+}
+
+.divineNamesOption span[class^="int-"]{
+	unicode-bidi: plaintext;
 }
 
 .colorSelect div {

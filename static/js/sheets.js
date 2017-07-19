@@ -1809,17 +1809,19 @@ $(function() {
 	});
 
 	$("#highlightMenu .optionsMenu").on('click', '.segmentedContinuousToggle', function() {
-
-		if ($(this).text() == "Paragraph View") {
-			$(this).text('Line-by-line View');
+		var $elem = $(this);
+		if ($elem.data("mode") == "continuous") {
+			$elem.find(".continuousActive").hide();
+			$elem.find(".segmentedActive").show();
 			$('.highlighterSegment').css({'display': 'block'});
-	}
-
-		else /*view mode */ {
-			$(this).text('Paragraph View');
-			$('.highlighterSegment').css({'display': 'inline'});
+			$elem.data("mode", "segmented");
 		}
-
+		else /*view mode */ {
+			$elem.find(".segmentedActive").hide();
+			$elem.find(".continuousActive").show();
+			$('.highlighterSegment').css({'display': 'inline'});
+			$elem.data("mode", "continuous");
+		}
 	});
 
 	$(".highlighterTagWindow").on('click','.close-button', function() {closeHighlighterTagWindow()});
@@ -3593,7 +3595,8 @@ function toggleHighlighter() {
 	if ($("#sheet").hasClass("highlightMode")) {
 		$("#sheet").removeClass("highlightMode");
 		$("#highlightModeDisplay").hide();
-		$("#highlightToggle").html('<i class="fa fa-pencil"></i>Highlight Mode');
+		$("#highlightToggleDeactivate").hide();
+		$("#highlightToggleActivate").show();
 		$("#highlightMenu").css('display','none');
 		if ($("#sources").data('ui-sortable')) {
 			$("#sources").sortable("enable"); //disable dragging while in highlighter edit mode....
@@ -3602,7 +3605,8 @@ function toggleHighlighter() {
 	else {
 		$("#sheet").addClass("highlightMode");
 		$("#highlightModeDisplay").show();
-		$("#highlightToggle").html('<i class="fa fa-pencil"></i>Exit Highlight Mode');
+		$("#highlightToggleActivate").hide();
+		$("#highlightToggleDeactivate").show();
 		$("#highlightMenu").css('display','inline-block');
 		if ($("#sources").data('ui-sortable')) {
 			$("#sources").sortable("disable"); //disable dragging while in highlighter edit mode....

@@ -47,227 +47,421 @@
 <div id="sheetsContent">
 
     <div class="sheetsEditNavTop">
-        <div class="sheetsMenuBarItem" id="fileMenu">File
-			<div class="optionsMenu">
-				{% if not new_sheet %}
-					{% if user.email %}
-					<div class="optionItem" id="copySheet">
-						<img src="/static/img/copy.png" alt="Copy Sheet Icon"> Copy Sheet</div>
-					{% endif %}
-					{% if user.email %}
-					<div class="optionItem" id="exportToDrive">
-						<i class="fa fa-google"></i> Export to Google Drive</div>
-					{% endif %}
-					<div class="optionItem" id="embedSheet">
-						<img src="/static/img/embed.png" alt="Embed Sheet Icon"> Embed Sheet</div>
-					{% if is_owner %}
-					<div class="optionItem" id="deleteSheet">
-						<img src="/static/img/delete.png" alt="Delete Sheet Icon"> Delete Sheet</div>
-					{% endif %}
-
-					{% if user.email %}
-					<div class="line"></div>
-					<div class="optionItem" id="editTags">
-						<img src="/static/img/edittags.png" alt="Edit Sheet Tags Icon"> Tags</div>
-					{% endif %}
-				{% if is_owner %}
-	    			{% if not sheet.assigner_id %}
-
-                    <div class="optionGroup">
-                        <div class="optionTitle" id="assignmentsModalTrigger"><img src="/static/img/assignment.png" alt="Assignment Icon"> Assignments</div>
-                    </div>
-
-
-    				{% endif %}
-
-				{% endif %}
-
-
-
-				{% endif %}
-
-				<div class="line"></div>
-
-				<div class="optionItem" id="print">
-					<img src="/static/img/print.png" alt="Print Icon"> Print</div>
-                <div class="optionItem" id="visualize">
-					<a href="/sheets/visual/{{sheet.id}}"><i class="fa fa-picture-o"></i>Visualize</a></div>
-                {% if not new_sheet %}
-                <div class="optionItem" id="highlightToggle">
-					<i class="fa fa-pencil"></i>Highlight Mode</div>
-   				{% endif %}
-            </div>
-        </div>
-        <div class="sheetsMenuBarItem" id="formatMenu">Format
-			<div class="optionsMenu">
-				<div class="optionGroup">
-					<div class="optionTitle"><img src="/static/img/divine.png" alt="Divine Names Icon"> Divine Names <i class='fa fa-caret-right'></i></div>
-					<div class="subMenu">
-						<div class="optionItem divineNamesOption" id="noSub">
-							<i class="fa fa-check"></i> <i>No substitution</i></div>
-						<div class="optionItem divineNamesOption" id="yy">
-							<i class="fa fa-check hidden"></i> יי</div>
-						<div class="optionItem divineNamesOption" id="h">
-							<i class="fa fa-check hidden"></i> <span style="direction: rtl;">ה'</span></div>
-						<div class="optionItem divineNamesOption" id="ykvk">
-							<i class="fa fa-check hidden"></i> יקוק</div>
-					</div>
-				</div>
-                <div class="optionItem" id="numbered">
-					<i class="fa fa-check hidden"></i> Number Sources</div>
-				<div class="optionItem" id="boxed">
-					<i class="fa fa-check hidden"></i> Box Sources</div>
-				<div class="optionItem" id="bsd">
-					<i class="fa fa-check hidden"></i> בס"ד</div>
-
-                <div class="line"></div>
-            {% if can_edit or can_add %}
-
-				<div class="optionItem" id="resetText">
-					<img src="/static/img/reset%20text.png" alt="Reset Source Text Icon"> Reset Source Text</div>
-
-   				<div class="optionLink" id="splitSourceToSegment">
-					<i class="fa fa-file-o hidden"></i> Auto-Segment Text</div>
-
-
-				<div class="optionLink" id="removeNikkudot">
-					<i class="fa fa-file-o hidden"></i> Remove Nikkudot</div>
-
-                <div class="optionItem" id="addSourceTitle">
-					 <i class="fa fa-pencil"></i> Add Source Title</div>
-            {% endif %}
-                <div class="line"></div>
-                <div id="sheetLayoutLanguageMenuItems">
-                    <div class="optionGroup" id="languageToggleGroup">
-                        <div class="optionTitle"><i class="fa fa-file-o hidden"></i> Sheet Language <i class='fa fa-caret-right'></i></div>
-                        <div class="subMenu languageToggleOption">
-                            <div class="english">
-                                <i class="fa fa-check hidden"></i> English</div>
-                            <div class="hebrew">
-                                <i class="fa fa-check hidden"></i> Hebrew</div>
-                            <div class="bilingual">
-                                <i class="fa fa-check hidden"></i> Bilingual</div>
+        <div class="sheetsMenuBarCommands">
+            <div class="sheetsMenuBarItem" id="fileMenu">
+                <span class="int-en">File</span>
+                <span class="int-he">קובץ</span>
+                <div class="optionsMenu">
+                    {% if not new_sheet %}
+                        {% if user.email %}
+                        <div class="optionItem" id="copySheet">
+                            <img src="/static/img/copy.png" alt="Copy Sheet Icon">
+                            <span class="int-en">Copy Sheet</span>
+                            <span class="int-he">שכפל דף מקורות</span>
                         </div>
-                    </div>
-
-
-                    <div class="optionGroup disabled" id="layoutToggleGroup">
-                        <div class="optionTitle"><i class="fa fa-file-o hidden"></i> Sheet Layout <i class='fa fa-caret-right'></i></div>
-                        <div class="subMenu layoutToggleOption">
-                            <div class="stacked">
-                                <i class="fa fa-check hidden"></i> Stacked</div>
-                            <div class="sideBySide">
-                                <i class="fa fa-check hidden"></i> Side-by-Side</div>
+                        {% endif %}
+                        {% if user.email %}
+                        <div class="optionItem" id="exportToDrive">
+                            <i class="fa fa-google"></i>
+                            <span class="int-en">Export to Google Drive</span>
+                            <span class="int-he">ייצא ל-גוגל דרייב</span>
                         </div>
-                    </div>
+                        {% endif %}
+                        <div class="optionItem" id="embedSheet">
+                            <img src="/static/img/embed.png" alt="Embed Sheet Icon">
+                            <span class="int-en">Embed Sheet</span>
+                            <span class="int-he">הטמע דף מקורות</span>
 
-
-                    <div class="optionGroup disabled" id="sideBySideToggleGroup">
-                        <div class="optionTitle"><i class="fa fa-file-o hidden"></i> Side-by-Side Layout <i class='fa fa-caret-right'></i></div>
-                        <div class="subMenu sideBySideToggleOption">
-                            <div class="heLeft">
-                                <i class="fa fa-check hidden"></i> Hebrew Left</div>
-                            <div class="heRight">
-                                <i class="fa fa-check hidden"></i> Hebrew Right</div>
                         </div>
-                    </div>
-                </div>
+                        {% if is_owner %}
+                        <div class="optionItem" id="deleteSheet">
+                            <img src="/static/img/delete.png" alt="Delete Sheet Icon">
+                            <span class="int-en">Delete Sheet</span>
+                            <span class="int-he">מחק דף מקורות</span>
 
-                <div id="sourceLayoutLanguageMenuItems">
-                    <div class="optionGroup">
-                        <div class="optionTitle"><i class="fa fa-file-o hidden"></i> Source Language <i class='fa fa-caret-right'></i></div>
-                        <div class="subMenu languageToggleOption">
-                            <div class="english">
-                                <i class="fa fa-check hidden"></i> English</div>
-                            <div class="hebrew">
-                                <i class="fa fa-check hidden"></i> Hebrew</div>
-                            <div class="bilingual">
-                                <i class="fa fa-check hidden"></i> Bilingual</div>
                         </div>
-                    </div>
+                        {% endif %}
 
+                        {% if user.email %}
+                        <div class="line"></div>
+                        <div class="optionItem" id="editTags">
+                            <img src="/static/img/edittags.png" alt="Edit Sheet Tags Icon">
+                            <span class="int-en">Tags</span>
+                            <span class="int-he">תוויות</span>
 
-                    <div class="optionGroup disabled" id="layoutToggleGroup">
-                        <div class="optionTitle"><i class="fa fa-file-o hidden"></i> Source Layout <i class='fa fa-caret-right'></i></div>
-                        <div class="subMenu layoutToggleOption">
-                            <div class="stacked">
-                                <i class="fa fa-check hidden"></i> Stacked</div>
-                            <div class="sideBySide">
-                                <i class="fa fa-check hidden"></i> Side-by-Side</div>
                         </div>
-                    </div>
+                        {% endif %}
+                    {% if is_owner %}
+                        {% if not sheet.assigner_id %}
 
-
-                    <div class="optionGroup disabled" id="sideBySideToggleGroup">
-                        <div class="optionTitle"><i class="fa fa-file-o hidden"></i> Side-by-Side Layout <i class='fa fa-caret-right'></i></div>
-                        <div class="subMenu sideBySideToggleOption">
-                            <div class="heLeft">
-                                <i class="fa fa-check hidden"></i> Hebrew Left</div>
-                            <div class="heRight">
-                                <i class="fa fa-check hidden"></i> Hebrew Right</div>
+                        <div class="optionGroup">
+                            <div class="optionTitle" id="assignmentsModalTrigger">
+                                <img src="/static/img/assignment.png" alt="Assignment Icon">
+                                <span class="int-en">Assignments</span>
+                                <span class="int-he">מטלות</span>
+                            </div>
                         </div>
-                    </div>
-
-                    <div class="optionGroup" id="resetSourceTogglesToSheetGroup">
-                        <div class="optionTitle"><i class="fa fa-file-o hidden"></i> Reset to Sheet Default</div>
-                    </div>
-
-                </div>
 
 
-            </div>
+                        {% endif %}
 
-        </div>
-            {% if can_edit or can_add %}
-        <div class="sheetsMenuBarItem" id="insertMenu">Insert
-			<div class="optionsMenu">
-				<div class="optionItem" id="addSourceMenu"><img src="/static/img/source.png" alt="Add Source Icon"> Source</div>
-   				{% if is_owner %}
-                <div class="optionItem" id="addParashaToSheetModalTrigger"><img src="/static/img/parasha.png" alt="Add Parasha Icon"> Parasha</div>
-				{% endif %}
-                <div class="optionItem" id="addCustomMenu"><img src="/static/img/custom%20text.png" alt="Add outside text icon"> Text</div>
-				<div class="optionItem" id="addCommentMenu"><img src="/static/img/comment.png" alt="Add Comment Icon"> Comment</div>
-				<div class="optionItem" id="addMediaMenu"><img src="/static/img/media.png" alt="Add Media Icon"> Media</div>
-            </div>
-        </div>
-            {% endif %}
-
-        <div class="sheetsMenuBarItem" id="highlightMenu">Highlight Tools
-			<div class="optionsMenu">
-                <div class="optionItem segmentedContinuousToggle">Paragraph View</div>
-                {% if can_edit %}
-                    <div class='optionItem resetHighlighter'>Reset</div>
-                {% endif %}
-				<div class="optionGroup">
-					<div class="optionTitle">Filter <i class='fa fa-caret-right'></i></div>
-					<div class="subMenu">
-                        <div class='optionItem highlighterFilterTags'>
-                        </div>
-					</div>
-				</div>
-            </div>
-        </div>
-
-    <div class="sheetsMenuBarItem">
-             <span id="lastSaved">
-        {% if sheet.dateModified %}
-                    {% if can_edit or can_add %}
-                        Last Saved: {{sheet.dateModified|date_string_to_date|naturaltime}}
                     {% endif %}
-        {% endif %}
-     </span>
 
+
+
+                    {% endif %}
+
+                    <div class="line"></div>
+
+                    <div class="optionItem" id="print">
+                        <img src="/static/img/print.png" alt="Print Icon">
+                        <span class="int-en">Print</span>
+                        <span class="int-he">הדפס</span>
+                    </div>
+                    <div class="optionItem" id="visualize">
+                        <a href="/sheets/visual/{{sheet.id}}">
+                            <i class="fa fa-picture-o"></i>
+                            <span class="int-en">Visualize</span>
+                            <span class="int-he">מצב עימוד גרפי</span>
+                        </a>
+                    </div>
+                    {% if not new_sheet %}
+                    <div class="optionItem" id="highlightToggle">
+                        <i class="fa fa-pencil"></i>
+                        <span id="highlightToggleActivate">
+                            <span class="int-en">Highlight Mode</span>
+                            <span class="int-he">מצב צביעה והדגשה</span>
+                        </span>
+                        <span id="highlightToggleDeactivate">
+                            <span class="int-en">Exit Highlight Mode</span>
+                            <span class="int-he">צא ממצב צביעה והדגשה</span>
+                        </span>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="sheetsMenuBarItem" id="formatMenu">
+                <span class="int-en">Format</span>
+                <span class="int-he">עיצוב</span>
+                <div class="optionsMenu">
+                    <div class="optionGroup">
+                        <div class="optionTitle">
+                            <img src="/static/img/divine.png" alt="Divine Names Icon">
+                            <span class="int-en">Divine Names</span>
+                            <span class="int-he">שמות קודש</span>
+                            <i class='fa fa-caret-right'></i>
+                        </div>
+                        <div class="subMenu">
+                            <div class="optionItem divineNamesOption" id="noSub">
+                                <i class="fa fa-check"></i>
+                                <i>
+                                    <span class="int-en">No Substitution</span>
+                                    <span class="int-he">ללא המרה</span>
+                                </i>
+                            </div>
+                            <div class="optionItem divineNamesOption" id="yy">
+                                <i class="fa fa-check hidden"></i><span class="int-bi">יי</span></div>
+                            <div class="optionItem divineNamesOption" id="h">
+                                <i class="fa fa-check hidden"></i> <span class="int-bi">ה'</span></div>
+                            <div class="optionItem divineNamesOption" id="ykvk">
+                                <i class="fa fa-check hidden"></i> <span class="int-bi">יקוק</span></div>
+                        </div>
+                    </div>
+                    <div class="optionItem" id="numbered">
+                        <i class="fa fa-check hidden"></i>
+                        <span class="int-en">Number Sources</span>
+                        <span class="int-he">מספר מקורות</span>
+                    </div>
+                    <div class="optionItem" id="boxed">
+                        <i class="fa fa-check hidden"></i>
+                        <span class="int-en">Box Sources</span>
+                        <span class="int-he">הקף מקורות במסגרת</span>
+                    </div>
+                    <div class="optionItem" id="bsd">
+                        <i class="fa fa-check hidden"></i>
+                        <span class="int-bi">בס"ד</span>
+                    </div>
+                    <div class="line"></div>
+                {% if can_edit or can_add %}
+
+                    <div class="optionItem" id="resetText">
+                        <img src="/static/img/reset%20text.png" alt="Reset Source Text Icon">
+                        <span class="int-en">Reset Source Text</span>
+                        <span class="int-he">אפס שינויים למקורות</span>
+                    </div>
+
+                    <div class="optionLink" id="splitSourceToSegment">
+                        <i class="fa fa-file-o hidden"></i>
+                        <span class="int-en">Auto-Segment Text</span>
+                        <span class="int-he">פסק מקור</span>
+                        </div>
+
+
+                    <div class="optionLink" id="removeNikkudot">
+                        <i class="fa fa-file-o hidden"></i>
+                        <span class="int-en">Remove Vowel Points</span>
+                        <span class="int-he">מחק ניקוד</span>
+                    </div>
+
+                    <div class="optionItem" id="addSourceTitle">
+                        <i class="fa fa-pencil"></i>
+                        <span class="int-en">Add Source Title</span>
+                        <span class="int-he">הוסף כותרת למקור</span>
+                    </div>
+                {% endif %}
+                    <div class="line"></div>
+                    <div id="sheetLayoutLanguageMenuItems">
+                        <div class="optionGroup" id="languageToggleGroup">
+                            <div class="optionTitle">
+                                <i class="fa fa-file-o hidden"></i>
+                                <span class="int-en">Sheet Language</span>
+                                <span class="int-he">שפת דף המקורות</span>
+                                <i class='fa fa-caret-right'></i>
+                            </div>
+                            <div class="subMenu languageToggleOption">
+                                <div class="english">
+                                    <i class="fa fa-check hidden"></i>
+                                    <span class="int-en">English</span>
+                                    <span class="int-he">אנגלית</span>
+                                </div>
+                                <div class="hebrew">
+                                    <i class="fa fa-check hidden"></i>
+                                    <span class="int-en">Hebrew</span>
+                                    <span class="int-he">עברית</span>
+                                </div>
+                                <div class="bilingual">
+                                    <i class="fa fa-check hidden"></i>
+                                    <span class="int-en">Bilingual</span>
+                                    <span class="int-he">דו לשונית</span>
+                                </div>
+                            </div>
+                        </div>
+
+
+                        <div class="optionGroup disabled" id="layoutToggleGroup">
+                            <div class="optionTitle"><i class="fa fa-file-o hidden"></i>
+                                <span class="int-en">Sheet Layout</span>
+                                <span class="int-he">אופן סידור המקורות</span>
+                                <i class='fa fa-caret-right'></i>
+                            </div>
+                            <div class="subMenu layoutToggleOption">
+                                <div class="stacked">
+                                    <i class="fa fa-check hidden"></i>
+                                    <span class="int-en">Stacked</span>
+                                    <span class="int-he">זה על גבי זה</span>
+                                </div>
+                                <div class="sideBySide">
+                                    <i class="fa fa-check hidden"></i>
+                                    <span class="int-en">Side-by-Side</span>
+                                    <span class="int-he">זה לצד זה</span>
+                                </div>
+                            </div>
+                        </div>
+
+
+                        <div class="optionGroup disabled" id="sideBySideToggleGroup">
+                            <div class="optionTitle"><i class="fa fa-file-o hidden"></i>
+                                <span class="int-en">Side-by-Side Layout</span>
+                                <span class="int-he">אופן סידור מקורות זה לצד זה</span>
+                                <i class='fa fa-caret-right'></i>
+                            </div>
+                            <div class="subMenu sideBySideToggleOption">
+                                <div class="heLeft">
+                                    <i class="fa fa-check hidden"></i>
+                                    <span class="int-en">Hebrew Left</span>
+                                    <span class="int-he">עברית בצד שמאל</span>
+                                </div>
+                                <div class="heRight">
+                                    <i class="fa fa-check hidden"></i>
+                                    <span class="int-en">Hebrew Right</span>
+                                    <span class="int-he">עברית בצד ימין</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="sourceLayoutLanguageMenuItems">
+                        <div class="optionGroup">
+                            <div class="optionTitle"><i class="fa fa-file-o hidden"></i>
+                                <span class="int-en">Source Language</span>
+                                <span class="int-he">שפת המקור הנוכחי</span>
+                                <i class='fa fa-caret-right'></i>
+                            </div>
+                            <div class="subMenu languageToggleOption">
+                                <div class="english">
+                                    <i class="fa fa-check hidden"></i>
+                                    <span class="int-en">English</span>
+                                    <span class="int-he">אנגלית</span>
+                                </div>
+                                <div class="hebrew">
+                                    <i class="fa fa-check hidden"></i>
+                                    <span class="int-en">Hebrew</span>
+                                    <span class="int-he">עברית</span>
+                                </div>
+                                <div class="bilingual">
+                                    <i class="fa fa-check hidden"></i>
+                                    <span class="int-en">Bilingual</span>
+                                    <span class="int-he">דו לשונית</span>
+                                </div>
+                            </div>
+                        </div>
+
+
+                        <div class="optionGroup disabled" id="layoutToggleGroup">
+                            <div class="optionTitle"><i class="fa fa-file-o hidden"></i>
+                                <span class="int-en">Source Layout</span>
+                                <span class="int-he">אופן סידור המקור</span>
+                                <i class='fa fa-caret-right'></i>
+                            </div>
+                            <div class="subMenu layoutToggleOption">
+                                <div class="stacked">
+                                    <i class="fa fa-check hidden"></i>
+                                    <span class="int-en">Stacked</span>
+                                    <span class="int-he">זה על גבי זה</span>
+                                </div>
+                                <div class="sideBySide">
+                                    <i class="fa fa-check hidden"></i>
+                                    <span class="int-en">Side-by-Side</span>
+                                    <span class="int-he">זה לצד זה</span>
+                                </div>
+                            </div>
+                        </div>
+
+
+                        <div class="optionGroup disabled" id="sideBySideToggleGroup">
+                            <div class="optionTitle"><i class="fa fa-file-o hidden"></i>
+                                <span class="int-en">Side-by-Side Layout</span>
+                                <span class="int-he">אופן סידור מקור זה לצד זה</span>
+                                <i class='fa fa-caret-right'></i>
+                            </div>
+                            <div class="subMenu sideBySideToggleOption">
+                                <div class="heLeft">
+                                    <i class="fa fa-check hidden"></i>
+                                    <span class="int-en">Hebrew Left</span>
+                                    <span class="int-he">עברית בצד שמאל</span>
+                                </div>
+                                <div class="heRight">
+                                    <i class="fa fa-check hidden"></i>
+                                    <span class="int-en">Hebrew Right</span>
+                                    <span class="int-he">עברית בצד ימין</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="optionGroup" id="resetSourceTogglesToSheetGroup">
+                            <div class="optionTitle">
+                                <i class="fa fa-file-o hidden"></i>
+                                <span class="int-en">Reset to Sheet Default</span>
+                                <span class="int-he">אפס לברירת מחדל</span>
+                            </div>
+                        </div>
+
+                    </div>
+
+
+                </div>
+
+            </div>
+                {% if can_edit or can_add %}
+            <div class="sheetsMenuBarItem" id="insertMenu">
+                <span class="int-en">Insert</span>
+                <span class="int-he">הכנסה</span>
+                <div class="optionsMenu">
+                    <div class="optionItem" id="addSourceMenu">
+                        <img src="/static/img/source.png" alt="Add Source Icon">
+                        <span class="int-en">Source</span>
+                        <span class="int-he">מקור</span>
+                    </div>
+                    {% if is_owner %}
+                    <div class="optionItem" id="addParashaToSheetModalTrigger">
+                        <img src="/static/img/parasha.png" alt="Add Parasha Icon">
+                        <span class="int-en">Parasha</span>
+                        <span class="int-he">פרשה</span>
+                    </div>
+                    {% endif %}
+                    <div class="optionItem" id="addCustomMenu">
+                        <img src="/static/img/custom%20text.png" alt="Add outside text icon">
+                        <span class="int-en">Text</span>
+                        <span class="int-he">טקסט</span>
+                    </div>
+                    <div class="optionItem" id="addCommentMenu">
+                        <img src="/static/img/comment.png" alt="Add Comment Icon">
+                        <span class="int-en">Comment</span>
+                        <span class="int-he">הערה</span>
+                    </div>
+                    <div class="optionItem" id="addMediaMenu">
+                        <img src="/static/img/media.png" alt="Add Media Icon">
+                        <span class="int-en">Media</span>
+                        <span class="int-he">מדיה</span>
+                    </div>
+                </div>
+            </div>
+                {% endif %}
+
+            <div class="sheetsMenuBarItem" id="highlightMenu">
+                <span class="int-en">Highlight Tools</span>
+                <span class="int-he">כלי סימון והדגשה</span>
+                <div class="optionsMenu">
+                    <div class="optionItem segmentedContinuousToggle" data-mode="continuous">
+                        <span class="continuousActive">
+                            <span class="int-en">Paragraph View</span>
+                            <span class="int-he">תצוגה רציפה</span>
+                        </span>
+                        <span class="segmentedActive">
+                            <span class="int-en">Line-by-line View</span>
+                            <span class="int-he">תצוגה מפוסקת לפי סימונים</span>
+                        </span>
+                    </div>
+                    {% if can_edit %}
+                    <div class='optionItem resetHighlighter'>
+                        <span class="int-en">Reset</span>
+                        <span class="int-he">אפס</span>
+                    </div>
+                    {% endif %}
+                    <div class="optionGroup">
+                        <div class="optionTitle">
+                            <span class="int-en">Filter</span>
+                            <span class="int-he">סינון</span>
+                            <i class='fa fa-caret-right'></i>
+                        </div>
+                        <div class="subMenu">
+                            <div class='optionItem highlighterFilterTags'>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        <div class="sheetsMenuBarItem">
+                 <span id="lastSaved">
+            {% if sheet.dateModified %}
+                        {% if can_edit or can_add %}
+                            Last Saved: {{sheet.dateModified|date_string_to_date|naturaltime}}
+                        {% endif %}
+            {% endif %}
+         </span>
+
+        </div>
+        <span id="highlightModeDisplay">Highlight Mode is On</span>
     </div>
-    <span id="highlightModeDisplay">Highlight Mode is On</span>
+        <div class="sheetsMenuBarButtons">
+            {% if new_sheet %}
+                <span id="save" class="button">
+                    <i class="fa fa-floppy-o"></i>
+                    <span class="int-en">Save</span>
+                    <span class="int-he">שמור</span>
+                </span>
 
-	{% if new_sheet %}
-        <span id="save" class="button"><i class="fa fa-floppy-o"></i> Save</span>
+            {% elif is_owner or can_publish %}
+                <span id="share" class="button">
+                    <img src="/static/img/share.png" alt="Share Icon">
+                    <span class="int-en">Share</span>
+                    <span class="int-he">שתף</span>
+                </span>
+            {% endif %}
+            <div id="ckeTopMenu"></div>
+        </div>
 
-    {% elif is_owner or can_publish %}
-        <span id="share" class="button"><img src="/static/img/share.png" alt="Share Icon"> Share</span>
-	{% endif %}
-
-        <div id="ckeTopMenu"></div>
 
     </div>
 <div id="link"></div>
