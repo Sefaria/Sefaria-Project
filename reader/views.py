@@ -1999,15 +1999,34 @@ def flag_text_api(request, title, lang, version):
 
 @catch_error_as_json
 @csrf_exempt
-def category_api(request):
+def category_api(request, path=None):
     """
-    API for adding a Category to the Category collection.
+    API for looking up categories and adding Categories to the Category collection.
+    GET takes a category path on the URL.  Returns the category specified.
+       e.g. "api/category/Tanakh/Torah"
+       If the category is not found, it will return "error" in a json object.
+       It will also attempt to find the closest parent.  If found, it will include "closest_parent" alongside "error".
+    POST takes no arguments on the URL.  Takes complete category as payload.  Category must not already exist.  Parent of category must exist.
     """
     """
     NOTE: This function is not written like the other functions with a post method.
     It's attempting a cleaner way to distinguish between csrf proteced use and API use bu juggling some variables around
     Rather than duplicating functionality.
     """
+
+    if request.method == "GET":
+        if not path:
+            return jsonResponse({"error": "Please provide category path."})
+        cats = path.split("/")
+        cat = Category().load({"path": cats})
+        if cat:
+            return jsonResponse(cat.contents())
+        else:
+            for i in range(len(cats) - 1, 0, -1):
+                cat = Category().load({"path": cats[:i]})
+                if cat:
+                    return jsonResponse({"error": "Category not found", "closest_parent": cat.contents()})
+        return jsonResponse({"error": "Category not found"})
 
     if request.method == "POST":
         def _internal_do_post(request, cat, uid, **kwargs):

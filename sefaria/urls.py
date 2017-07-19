@@ -38,7 +38,7 @@ urlpatterns = patterns('reader.views',
     (r'^api/preview/(?P<title>.+)$', 'text_preview_api'),
     (r'^api/terms/(?P<name>.+)$', 'terms_api'),
     (r'^api/name/(?P<name>.+)$', 'name_api'),
-    (r'^api/category/?$', 'category_api')
+    (r'^api/category/?(?P<path>.+)?$', 'category_api')
 )
 
 # Reviews API
