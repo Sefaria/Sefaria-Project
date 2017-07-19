@@ -1,22 +1,61 @@
-{% extends "base.html" %}
+<!DOCTYPE html>
+<html lang="en">
+<meta charset="UTF-8">
+<title>Compare</title>
+<head>
+<style>
+    th, td {
+        padding: 8px;
+        border: 1px solid #ddd;
+    }
 
-{% block title %}Compare{% endblock %}
+    td:hover {
+    background-color: #ccffff;
+    }
 
-{% block content %}
+    td.he{
+        direction: rtl;
+        text-align: right;
+    }
+
+    span.ins{
+        background: #5CEE5C;
+    }
+
+    span.del{
+        background: rgba(193, 66, 66, 0.5);
+    }
+</style></head>
+
     <div>
       <table>
           <tr>
-              <td>
-                  {{ ref1 }}
-              </td>
-              <td>
-                  {{ ref2 }}
-              </td>
-              <td>
-                  {{ lang }}
-              </td>
+              <th></th>
+              <th>
+                  {{ title1 }}
+              </th>
+              <th>
+                  {{ title2 }}
+              </th>
           </tr>
+          {% for diff in diffs %}
+          <tr>
+            <td>
+                {{ diff.ref1 }}
+            </td>
+            <td class="{{ lang }}">
+                {% autoescape off %}{{ diff.diff1 }}{% endautoescape %}
+            </td>
+            {% if dual_ref_display %}
+              <td>
+                {{ diff.ref2 }}
+              </td>
+            {% endif %}
+            <td class="{{ lang }}">
+                {% autoescape off %}{{ diff.diff2 }}{% endautoescape %}
+            </td>
+          </tr>
+          {% endfor %}
       </table>
     </div>
-
-{% endblock %}
+</html>
