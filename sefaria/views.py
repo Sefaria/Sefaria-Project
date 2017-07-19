@@ -745,7 +745,7 @@ def compare(request, ref1, ref2, lang, v1=None, v2=None):
     else:
         title1, title2 = ref1, ref2
 
-    return render_to_response('static/compare.html', {
+    return render_to_response('compare.html', {
         'diffs': diffs,
         'title1': title1, 'title2': title2,
         'dual_ref_display': ref1 != ref2,
