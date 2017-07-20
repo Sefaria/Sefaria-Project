@@ -2,10 +2,12 @@ import io
 import os
 import zipfile
 import json
+import re
 from datetime import datetime, timedelta
 from urlparse import urlparse
 from collections import defaultdict
 from random import choice
+import bleach
 
 from django.utils.translation import ugettext as _
 from django.conf import settings
@@ -40,8 +42,8 @@ from sefaria.datatype.jagged_array import JaggedTextArray
 from sefaria.system.exceptions import InputError
 from sefaria.system.database import db
 from sefaria.system.decorators import catch_error_as_http
-from sefaria.utils.hebrew import is_hebrew
-from sefaria.helper.text import make_versions_csv, get_library_stats, get_core_link_stats
+from sefaria.utils.hebrew import is_hebrew, strip_nikkud
+from sefaria.helper.text import make_versions_csv, get_library_stats, get_core_link_stats, dual_text_diff
 from sefaria.clean import remove_old_counts
 from sefaria.model import *
 
@@ -713,3 +715,39 @@ def text_upload_api(request):
 
     message = "Successfully imported {} versions".format(len(files))
     return jsonResponse({"status": "ok", "message": message})
+
+
+def compare(request, ref1, ref2, lang, v1=None, v2=None):
+    strip_chars = request.GET.get('strip', True)
+
+    def clean_text(t):
+        t = bleach.clean(t, strip=True, tags=[])
+        if strip_chars:
+            t = re.sub(u'\n', u'', t)
+            t = re.sub(u' {2,}', u' ', t)
+            t = strip_nikkud(t)
+        return t
+    seg_refs1, seg_refs2 = Ref(ref1).all_segment_refs(), Ref(ref2).all_segment_refs()
+    assert len(seg_refs1) == len(seg_refs2)
+
+    diffs = []
+
+    for r1, r2 in zip(seg_refs1, seg_refs2):
+        d1, d2 = dual_text_diff(r1.text(lang, v1).text, r2.text(lang, v2).text, clean_text, css_classes=True)
+        diffs.append({
+            'ref1': r1,
+            'ref2': r2,
+            'diff1': d1,
+            'diff2': d2,
+        })
+    if v1 is not None and v2 is not None:
+        title1, title2 = v1, v2
+    else:
+        title1, title2 = ref1, ref2
+
+    return render_to_response('compare.html', {
+        'diffs': diffs,
+        'title1': title1, 'title2': title2,
+        'dual_ref_display': ref1 != ref2,
+        'lang': lang
+    })
