@@ -9913,9 +9913,7 @@ NotificationsPanel.propTypes = {
 class MyNotesPanel extends Component {
   componentDidMount() {
     this.loadData();
-  }
-  getInitialState() {
-    return { numberToRender: 2 }
+    this.state = { numberToRender: 2 };
   }
   loadData() {
     var notes = Sefaria.allPrivateNotes();
