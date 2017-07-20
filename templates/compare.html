@@ -31,7 +31,7 @@
     }
 
     span.filtered{
-        background: white;
+        background: none;
     }
 </style></head>
 <body>
@@ -47,15 +47,16 @@
             }).toggleClass('filtered', checked);
         })};
     </script>
-    <div>
-        <input id="yud" type="checkbox" value="י">
-        <label for="yud">י</label>
-    </div><div>
-
-        <input id="vav" type="checkbox" value="ו">
-        <label for="vav">ו</label>
-    </div><div>
-
+    <div id="filters" style="direction: rtl">
+        <label><input id="yud" type="checkbox" value="י">י</label>
+        <label><input id="vav" type="checkbox" value="ו">ו</label>
+        <label><input type="checkbox" value='"'>"</label>
+        <label><input type="checkbox" value=':'>:</label>
+        <label><input type="checkbox" value="'">'</label>
+        <label><input type="checkbox" value='('>(</label>
+        <label><input type="checkbox" value=')'>)</label>
+    </div>
+    <div style="direction: rtl">
         <input id="filter" type="button" onclick="add_filter()" value="Update">
     </div>
     <div>
