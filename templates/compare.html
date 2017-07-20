@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<meta charset="UTF-8">
+<title>Compare</title>
+<head>
+    <script
+  src="https://code.jquery.com/jquery-3.2.1.min.js"
+  integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
+  crossorigin="anonymous"></script>
+<style>
+    th, td {
+        padding: 8px;
+        border: 1px solid #ddd;
+    }
+
+    td:hover {
+    background-color: #ccffff;
+    }
+
+    td.he{
+        direction: rtl;
+        text-align: right;
+    }
+
+    span.ins{
+        background: #5CEE5C;
+    }
+
+    span.del{
+        background: rgba(193, 66, 66, 0.5);
+    }
+
+    span.filtered{
+        background: none;
+    }
+</style></head>
+<body>
+    <script>
+        // Instead of querying on checked only, should query on everything, then set a flag to toggle 'filter' on or off
+        var add_filter = function() {$(':checkbox').each(function() {
+            var val = $(this).val();
+            var checked = $(this).prop('checked');
+
+            // define this function outside. It should take two variables: value to search on and bool (to decide if should add or remove filter)
+            $('span.ins, span.del').filter(function (index, elem) {
+                return $(elem).text() == val;
+            }).toggleClass('filtered', checked);
+        })};
+    </script>
+    <div id="filters" style="direction: rtl">
+        <label><input id="yud" type="checkbox" value="י">י</label>
+        <label><input id="vav" type="checkbox" value="ו">ו</label>
+        <label><input type="checkbox" value='"'>"</label>
+        <label><input type="checkbox" value=':'>:</label>
+        <label><input type="checkbox" value="'">'</label>
+        <label><input type="checkbox" value='('>(</label>
+        <label><input type="checkbox" value=')'>)</label>
+    </div>
+    <div style="direction: rtl">
+        <input id="filter" type="button" onclick="add_filter()" value="Update">
+    </div>
+    <div>
+      <table>
+          <tr>
+              <th></th>
+              <th>
+                  {{ title1 }}
+              </th>
+              <th>
+                  {{ title2 }}
+              </th>
+          </tr>
+          {% for diff in diffs %}
+          <tr>
+            <td>
+                {{ diff.ref1 }}
+            </td>
+            <td class="{{ lang }}">
+                {% autoescape off %}{{ diff.diff1 }}{% endautoescape %}
+            </td>
+            {% if dual_ref_display %}
+              <td>
+                {{ diff.ref2 }}
+              </td>
+            {% endif %}
+            <td class="{{ lang }}">
+                {% autoescape off %}{{ diff.diff2 }}{% endautoescape %}
+            </td>
+          </tr>
+          {% endfor %}
+      </table>
+    </div>
+</body>
+</html>
