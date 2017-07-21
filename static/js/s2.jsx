@@ -6289,6 +6289,11 @@ componentDidMount() {
       if (Sefaria.site) { Sefaria.site.track.event("Reader", "Click Text from TextList", this.props.sref); }
     }
   }
+  handleKeyPress(event) {
+    if (event.charCode == 13) {
+      this.handleClick(event);
+    }
+  }
   getText() {
     var settings = {
       context: this.props.withContext ? 1 : 0,
@@ -6533,7 +6538,7 @@ componentDidMount() {
     } else {var sidebarNum = null;}
 
     return (
-      <div className={classes} onClick={this.handleClick}>
+      <div className={classes} onClick={this.handleClick} onKeyPress={this.handleKeyPress}>
         {sidebarNum}
         {this.props.hideTitle ? null :
 
