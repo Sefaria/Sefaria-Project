@@ -2136,6 +2136,7 @@ class ReaderPanel extends Component {
                         (langMode === "english" && data.versionStatus !== "locked") ||
                         (Sefaria.is_moderator && langMode !== "bilingual"));
       items.push(<ConnectionsPanel 
+          panelPosition ={this.props.panelPosition}
           srefs={this.state.mode === "Connections" ? this.state.refs.slice() : this.state.highlightedRefs.slice()}
           filter={this.state.filter || []}
           mode={this.state.connectionsMode || "Resources"}
@@ -6774,6 +6775,7 @@ class ConnectionsPanel extends Component {
     
     } else if (this.props.mode === "TextList") {
       content = (<TextList
+                    panelPosition ={this.props.panelPosition}
                     srefs={this.props.srefs}
                     filter={this.props.filter}
                     recentFilters={this.props.recentFilters}
@@ -7444,6 +7446,7 @@ class TextList extends Component {
                         Sefaria.util.inArray(link.anchorRef, refs) === -1;
                         return (<div className="textListTextRangeBox" key={i + link.sourceRef}>
                                   <TextRange 
+                                    panelPosition ={this.props.panelPosition}
                                     sref={link.sourceRef}
                                     hideTitle={hideTitle}
                                     numberLabel={link.category === "Commentary" ? link.anchorVerse : 0}
