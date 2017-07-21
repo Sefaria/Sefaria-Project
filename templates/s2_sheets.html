@@ -8,7 +8,7 @@
     {% if title %}
     	{{ title|striptags|strip_html_entities }} | Sefaria Source Sheet Builder
     {% else %}
-    	Sefaria Source Sheet Builder
+    	Start a New Sheet - Sefaria Source Sheet Builder
     {% endif %}
 {% endblock %}
 
@@ -24,7 +24,7 @@
     {% if sheet.owner %}
         A source sheet by {{ sheet.owner|user_name }} created with Sefaria's Source Sheet Builder.
     {% else %}
-        Create your own source sheets with Sefaria.
+        Create your own source sheet with Sefaria's Source Sheet Builder.
     {% endif %}
 {% endblock descriptionEnglish %}
 
@@ -32,7 +32,7 @@
     {% if sheet.owner %}
         A source sheet by {{ sheet.owner|user_name }} created with Sefaria's Source Sheet Builder.
     {% else %}
-        Create your own source sheets with Sefaria.
+        Create your own source sheet with Sefaria's Source Sheet Builder.
     {% endif %}
 {% endblock %}
 
