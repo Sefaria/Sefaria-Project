@@ -1452,6 +1452,7 @@
 #edPage #edCover .button {
   margin-top: 80px;
   padding: 16px 34px;
+  outline: none;
 }
 
 #edPage .section {
