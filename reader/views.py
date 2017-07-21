@@ -209,7 +209,7 @@ def render_react_component(component, props):
 
     from sefaria.settings import NODE_TIMEOUT, NODE_TIMEOUT_MONITOR
 
-    propsJSON = json.dumps(props)
+    propsJSON = json.dumps(props) if isinstance(props, dict) else props
     cache_key = "todo" # zlib.compress(propsJSON)
     url = NODE_HOST + "/" + component + "/" + cache_key
 
@@ -447,7 +447,7 @@ def s2(request, ref, version=None, lang=None):
         desc = "Explore 3,000 years of Jewish texts in Hebrew and English translation."
 
     propsJSON = json.dumps(props)
-    html = render_react_component("ReaderApp", props)
+    html = render_react_component("ReaderApp", propsJSON)
     return render_to_response('s2.html', {
         "propsJSON":      propsJSON,
         "html":           html,
@@ -476,9 +476,10 @@ def s2_texts_category(request, cats):
         "initialMenu": "navigation",
         "initialNavigationCategories": cats,
     })
-    html = render_react_component("ReaderApp", props)
+    propsJSON = json.dumps(props)
+    html = render_react_component("ReaderApp", propsJSON)
     return render_to_response('s2.html', {
-        "propsJSON":        json.dumps(props),
+        "propsJSON":        propsJSON,
         "html":             html,
         "title":            title,
         # "desc": desc,  # todo, when cat descriptions have a home in our db.
@@ -508,9 +509,10 @@ def s2_search(request):
         "initialSearchField": field,
         "initialSearchSortType": sort,
     })
-    html = render_react_component("ReaderApp", props)
+    propsJSON = json.dumps(props)
+    html = render_react_component("ReaderApp", propsJSON)
     return render_to_response('s2.html', {
-        "propsJSON": json.dumps(props),
+        "propsJSON": propsJSON,
         "html":      html,
         "title":     title,
         "desc":      "Search 3,000 years of Jewish texts in Hebrew and English translation."
@@ -528,9 +530,10 @@ def s2_sheets(request):
         "tagList": make_tag_list(sort_by="count"),
         "trendingTags": recent_public_tags(days=14, ntags=18)
     })
-    html = render_react_component("ReaderApp", props)
+    propsJSON = json.dumps(props)
+    html = render_react_component("ReaderApp", propsJSON)
     return render_to_response('s2.html', {
-        "propsJSON":      json.dumps(props),
+        "propsJSON":      propsJSON,
         "html":           html,
     }, RequestContext(request))
 
@@ -547,9 +550,10 @@ def s2_group_sheets(request, group, authenticated):
         raise Http404
     props["groupData"] = group[0].contents(with_content=True, authenticated=authenticated)
 
-    html = render_react_component("ReaderApp", props)
+    propsJSON = json.dumps(props)
+    html = render_react_component("ReaderApp", propsJSON)
     return render_to_response('s2.html', {
-        "propsJSON": json.dumps(props),
+        "propsJSON": propsJSON,
         "html": html,
     }, RequestContext(request))
 
@@ -584,9 +588,10 @@ def s2_sheets_by_tag(request, tag):
     else:
         props["tagSheets"]    = [sheet_to_dict(s) for s in get_sheets_by_tag(tag)]
 
-    html = render_react_component("ReaderApp", props)
+    propsJSON = json.dumps(props)
+    html = render_react_component("ReaderApp", propsJSON)
     return render_to_response('s2.html', {
-        "propsJSON":      json.dumps(props),
+        "propsJSON":      propsJSON,
         "html":           html,
     }, RequestContext(request))
 
@@ -599,9 +604,10 @@ def s2_page(request, page):
     props.update({
         "initialMenu": page,
     })
-    html = render_react_component("ReaderApp", props)
+    propsJSON = json.dumps(props)
+    html = render_react_component("ReaderApp", propsJSON)
     return render_to_response('s2.html', {
-        "propsJSON":      json.dumps(props),
+        "propsJSON":      propsJSON,
         "html":           html,
     }, RequestContext(request))
 
@@ -638,8 +644,6 @@ def s2_modtools(request):
 """
 JSON - LD snippets for use in "rich snippets" - semantic markup.
 """
-
-
 def _crumb(pos, id, name):
     return {
         "@type": "ListItem",
