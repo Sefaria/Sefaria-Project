@@ -22,8 +22,8 @@ body {
   direction: ltr;
 }*/
 
-.interface-hebrew #sheetsContent #sheetsEditNavTop{
-	/*direction: rtl;*/
+.interface-hebrew #sheetsContent .sheetsEditNavTop{
+	direction: rtl;
 }
 
 .he, .int-he {
@@ -101,6 +101,10 @@ body {
 	border-radius: 5px;
 	color: #888;
 	background-color: #f2f2f2;
+}
+
+.interface-hebrew #lastSaved{
+	/*unicode-bidi: bidi-override;*/
 }
 
 .sheetsMenuBarItem #lastSaved {
@@ -203,7 +207,7 @@ body {
 .optionsMenu {
 	color: black;
 	position: absolute;
-	text-align: left;
+	/*text-align: left;*/
 	display: none;
 	font-style: normal;
 	text-shadow: none;
@@ -214,8 +218,8 @@ body {
 	z-index: 5;
 	min-width: 220px;
 	top: -20px;
-	right: auto;
-	left: 50px;
+	/*right: auto;
+	left: 50px;*/
 	line-height: 1.2;
 }
 
@@ -1491,12 +1495,27 @@ line-height: normal;
     background-color: #f2f2f2;
     border-bottom: 1px solid #E2E2E1;
     box-sizing: border-box;
-    /*direction: ltr;*/
     z-index: 21;
-    padding: 7px 30px 6px 10px;
+    padding: 7px 30px 6px 30px;
     font-size: 16px;
     color: #333;
     top: 54px;
+}
+
+.sheetsEditNavTopInner{
+	display: flex;
+	justify-content: space-between;
+	direction: inherit;
+	align-items: center;
+}
+
+.sheetsEditNavTopInner > div{
+	/*margin-left: 30px;
+	margin-right: 30px;*/
+}
+
+
+.sheetsMenuBarCommands{
 	display: flex;
 	justify-content: space-between;
 }
@@ -1504,6 +1523,7 @@ line-height: normal;
 .sheetsEditNavTop .optionsMenu {
 	color: #333;
 }
+
 
 #sheet p {
 	font-size: inherit;
@@ -1517,7 +1537,10 @@ line-height: normal;
 	padding: 10px 20px;
 	font-size: 16px;
 	border: 1px solid transparent;
+}
 
+.sheetsMenuBarItem:first-child{
+	/*padding-left: 0;*/
 }
 
 .sheetsMenuBarItem:hover {
@@ -1537,7 +1560,7 @@ line-height: normal;
 #fileMenu:hover .optionsMenu, #formatMenu:hover .optionsMenu, #insertMenu:hover .optionsMenu, #highlightMenu:hover .optionsMenu  {
 	display: block;
 	top:45px;
-	left:20px;
+	/*left:20px;*/
 	background-color: #F9F9F7;
 }
 
@@ -1832,12 +1855,10 @@ a.userLink{
 	margin-right: 7px;
 }
 .sheetsEditNavTop #save, .sheetsEditNavTop #share  {
-	float: right;
-    margin: 5px 0 0 0;
 	border-radius: 3px;
 	font-weight: 300;
 	font-size: 12px;
-	height: 30px;
+	margin: auto;
 }
 .sheetsEditNavTop #save img, .sheetsEditNavTop #share img  {
     margin-bottom: 2px;
@@ -2106,10 +2127,7 @@ a.tagit-close {
 
 #highlightModeDisplay {
 	display: none;
-	position: fixed;
 	z-index: 100;
-	top: 70px;
-	right: 140px;
 	text-align: center;
 	font-size: 12px;
 	padding: 7px 5px;
