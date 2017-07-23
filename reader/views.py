@@ -209,7 +209,7 @@ def render_react_component(component, props):
 
     from sefaria.settings import NODE_TIMEOUT, NODE_TIMEOUT_MONITOR
 
-    propsJSON = json.dumps(props)
+    propsJSON = json.dumps(props) if isinstance(props, dict) else props
     cache_key = "todo" # zlib.compress(propsJSON)
     url = NODE_HOST + "/" + component + "/" + cache_key
 
@@ -417,25 +417,37 @@ def s2(request, ref, version=None, lang=None):
         "initialSheetsTag":            None,
         "initialNavigationCategories": None,
     })
-    propsJSON = json.dumps(props)
-    title = primary_ref.normal()
+    title = primary_ref.he_normal() if props["interfaceLang"] == "hebrew" else primary_ref.normal()
 
     try:
         if primary_ref.is_book_level():
-            desc = getattr(primary_ref.index, 'enDesc', "")  # Todo: better fallback
+            if props["interfaceLang"] == "hebrew":
+                desc = getattr(primary_ref.index, 'heDesc', "")
+                read = "Read the text of {} online with commentaries and connections.".format(primary_ref) # HEBREW NEEDED
+                desc = desc + " " + read if desc else read
+            else:
+                desc = getattr(primary_ref.index, 'enDesc', "")
+                read = "Read the text of {} online with commentaries and connections.".format(primary_ref)
+                desc = desc + " " + read if desc else read
         else:
             segmentIndex = primary_ref.sections[-1] - 1 if primary_ref.is_segment_level() else 0
             enText = props["initialPanels"][0]["text"].get("text",[])
-            desc = enText[segmentIndex] if segmentIndex < len(enText) else ""  # get english text for section if it exists
-            if desc == "":
-                desc = props["initialPanels"][0]["text"].get("he", "")[segmentIndex]  # if no english, fall back on hebrew
-        desc = bleach.clean(desc, strip=True, tags=())
-        desc = desc[:145].rsplit(' ', 1)[0] + "..."  # truncate as close to 145 characters as possible while maintaining whole word. Append ellipses.
+            heText = props["initialPanels"][0]["text"].get("he",[])
+            enDesc = enText[segmentIndex] if segmentIndex < len(enText) else "" # get english text for section if it exists
+            heDesc = heText[segmentIndex] if segmentIndex < len(enText) else "" # get hebrew text for section if it exists
+            if props["interfaceLang"] == "hebrew":
+                desc = heDesc or enDesc # if no hebrew, fall back on hebrew
+            else:
+                desc = enDesc or heDesc  # if no english, fall back on hebrew
+
+            desc = bleach.clean(desc, strip=True, tags=())
+            desc = desc[:160].rsplit(' ', 1)[0] + "..."  # truncate as close to 160 characters as possible while maintaining whole word. Append ellipses.
 
     except (IndexError, KeyError):
         desc = "Explore 3,000 years of Jewish texts in Hebrew and English translation."
 
-    html = render_react_component("ReaderApp", props)
+    propsJSON = json.dumps(props)
+    html = render_react_component("ReaderApp", propsJSON)
     return render_to_response('s2.html', {
         "propsJSON":      propsJSON,
         "html":           html,
@@ -449,27 +461,38 @@ def s2_texts_category(request, cats):
     """
     List of texts in a category.
     """
-    cats       = cats.split("/")
+    props = s2_props(request)
+    cats  = cats.split("/")
     if cats != ["recent"]:
         toc        = library.get_toc()
         cat_toc    = get_or_make_summary_node(toc, cats, make_if_not_found=False)
-        if cat_toc is None:
+        if cat_toc is None or len(cats) == 0:
             return s2_texts(request)
-        title = u", ".join(cats) if len(cats) else u"Table of Contents"
+        if props["interfaceLang"] == "hebrew":
+            cat_string = u", ".join([hebrew_term(cat) for cat in cats])
+            title =  cat_string + u" | ספאריה"
+            desc  = u"Read {} texts online with commentaries and connections.".format(cat_string) # HEBREW NEEDED
+        else:
+            cat_string = u", ".join(cats)
+            title = cat_string + u" | Sefaria"
+            desc  = u"Read {} texts online with commentaries and connections.".format(cat_string) 
     else:
-        title = u"Recently Viewed"
+        if props["interfaceLang"] == "hebrew":
+            title = u"נצפו לאחרונה"
+        else:
+            title = u"Recently Viewed"
 
-    props = s2_props(request)
     props.update({
         "initialMenu": "navigation",
         "initialNavigationCategories": cats,
     })
-    html = render_react_component("ReaderApp", props)
+    propsJSON = json.dumps(props)
+    html = render_react_component("ReaderApp", propsJSON)
     return render_to_response('s2.html', {
-        "propsJSON":        json.dumps(props),
+        "propsJSON":        propsJSON,
         "html":             html,
         "title":            title,
-        # "desc": desc,  # todo, when cat descriptions have a home in our db.
+        "desc":             desc,
         "ldBreadcrumbs":    ld_cat_crumbs(cats)
     }, RequestContext(request))
 
@@ -496,9 +519,10 @@ def s2_search(request):
         "initialSearchField": field,
         "initialSearchSortType": sort,
     })
-    html = render_react_component("ReaderApp", props)
+    propsJSON = json.dumps(props)
+    html = render_react_component("ReaderApp", propsJSON)
     return render_to_response('s2.html', {
-        "propsJSON": json.dumps(props),
+        "propsJSON": propsJSON,
         "html":      html,
         "title":     title,
         "desc":      "Search 3,000 years of Jewish texts in Hebrew and English translation."
@@ -516,9 +540,19 @@ def s2_sheets(request):
         "tagList": make_tag_list(sort_by="count"),
         "trendingTags": recent_public_tags(days=14, ntags=18)
     })
-    html = render_react_component("ReaderApp", props)
+
+    if props["interfaceLang"] == "hebrew":
+        title = u"Sefaria Source Sheets" # HEBREW NEEDED
+        desc  = u"Explore thousands of public Source Sheets and use our Source Sheet Builder to create your own online."
+    else:
+        title = u"Sefaria Source Sheets"
+        desc  = u"Explore thousands of public Source Sheets and use our Source Sheet Builder to create your own online."
+    propsJSON = json.dumps(props)
+    html = render_react_component("ReaderApp", propsJSON)
     return render_to_response('s2.html', {
-        "propsJSON":      json.dumps(props),
+        "propsJSON":      propsJSON,
+        "title":          title,
+        "desc":           desc,
         "html":           html,
     }, RequestContext(request))
 
@@ -535,21 +569,26 @@ def s2_group_sheets(request, group, authenticated):
         raise Http404
     props["groupData"] = group[0].contents(with_content=True, authenticated=authenticated)
 
-    html = render_react_component("ReaderApp", props)
+    propsJSON = json.dumps(props)
+    html = render_react_component("ReaderApp", propsJSON)
     return render_to_response('s2.html', {
-        "propsJSON": json.dumps(props),
+        "propsJSON": propsJSON,
         "html": html,
     }, RequestContext(request))
 
 
 @login_required
 def s2_my_groups(request):
-    return s2_page(request, "myGroups")
+    props = s2_props(request)
+
+    return s2_page(request, props, "myGroups")
 
 
 @login_required
 def s2_my_notes(request):
-    return s2_page(request, "myNotes")
+    props = s2_props(request)
+
+    return s2_page(request, props, "myNotes")
 
 
 def s2_sheets_by_tag(request, tag):
@@ -572,62 +611,79 @@ def s2_sheets_by_tag(request, tag):
     else:
         props["tagSheets"]    = [sheet_to_dict(s) for s in get_sheets_by_tag(tag)]
 
-    html = render_react_component("ReaderApp", props)
+    propsJSON = json.dumps(props)
+    html = render_react_component("ReaderApp", propsJSON)
     return render_to_response('s2.html', {
-        "propsJSON":      json.dumps(props),
+        "propsJSON":      propsJSON,
         "html":           html,
     }, RequestContext(request))
 
 
-def s2_page(request, page):
+def s2_page(request, props, page, title="", desc=""):
     """
     View for any S2 page that can descripted with the `menuOpen` param in React
     """
-    props = s2_props(request)
     props.update({
         "initialMenu": page,
     })
-    html = render_react_component("ReaderApp", props)
+    propsJSON = json.dumps(props)
+    html = render_react_component("ReaderApp", propsJSON)
     return render_to_response('s2.html', {
-        "propsJSON":      json.dumps(props),
+        "propsJSON":      propsJSON,
+        "title":          title,
+        "desc":           desc,
         "html":           html,
     }, RequestContext(request))
 
 
 def s2_home(request):
-    return s2_page(request, "home")
+    props = s2_props(request)
+    return s2_page(request, props, "home")
 
 
 def s2_texts(request):
-    return s2_page(request, "navigation")
+    props = s2_props(request)
+    if props["interfaceLang"] == "hebrew":
+        title = u"האוסף של ספאריה"
+        desc  = u"Browse 1,000s of Jewish texts in the Sefaria Library by category and title." # HEBREW NEEDED
+    else:
+        title = u"The Sefaria Libray"
+        desc  = u"Browse 1,000s of Jewish texts in the Sefaria Library by category and title."
+    return s2_page(request, props, "navigation", title, desc)
 
 
 @login_required
 def s2_account(request):
-    return s2_page(request, "account")
+    props = s2_props(request)
+
+    return s2_page(request, props, "account")
 
 
 @login_required
 def s2_notifications(request):
     # Notifications content is not rendered server side
-    return s2_page(request, "notifications")
+    props = s2_props(request)
+
+    return s2_page(request, props, "notifications")
 
 
 def s2_updates(request):
-    return s2_page(request, "updates")
+    props = s2_props(request)
+
+    return s2_page(request, props, "updates")
 
 
 @login_required
 def s2_modtools(request):
-    return s2_page(request, "modtools")
+    props = s2_props(request)
+
+    return s2_page(request, props, "modtools")
 
 
 
 """
 JSON - LD snippets for use in "rich snippets" - semantic markup.
 """
-
-
 def _crumb(pos, id, name):
     return {
         "@type": "ListItem",
@@ -2707,7 +2763,7 @@ def home(request):
         return redirect("/texts")
 
     if request.flavour == "mobile":
-        return s2_page(request, "home")
+        return s2_home(request)
 
     today              = date.today()
     daf_today          = sefaria.utils.calendars.daf_yomi(today)

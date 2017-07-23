@@ -13,10 +13,10 @@ if (typeof document !== 'undefined' ) {
       require('jquery.cookie');  //NOTE: these require statements are adding props to the $ obj. The order actually doesn't matter b/c it seems webpack deals with it
       require('jquery-ui');
       require('jquery.scrollto');
-      require('./headroom'); 
+      require('./headroom');
 } else {
   var INBROWSER = false,
-      $         = require("cheerio"); 
+      $         = require("cheerio");
 }
 
 class ReaderApp extends Component {
@@ -705,6 +705,11 @@ class ReaderApp extends Component {
     // Update or add panel after this one to be a TextList
     this.setTextListHighlight(n, [ref]);
     this.openTextListAt(n+1, [ref]);
+    if ($(".readerPanel")[n+1]) { //Focus on the first focusable element of the newly loaded panel. Mostly for a11y
+      var curPanel = $(".readerPanel")[n+1];
+      $(curPanel).find(':focusable').first().focus();
+    }
+
   }
   handleCitationClick(n, citationRef, textRef) {
     // Handle clicking on the citation `citationRef` which was found inside of `textRef` in panel `n`.
@@ -743,6 +748,8 @@ class ReaderApp extends Component {
     } else if (Sefaria.isRef(path)) {
       this.openPanel(Sefaria.humanRef(path));
     }
+    $( ".wrapper" ).remove();
+    $( "#footer" ).remove();
   }
   updateQueryInHeader(query) {
     var updates = {searchQuery: query, searchFiltersValid:  false};
@@ -1262,6 +1269,7 @@ class ReaderApp extends Component {
       var classes = classNames({readerPanelBox: 1, sidebar: panel.mode == "Connections"});
       panels.push(<div className={classes} style={style} key={key}>
                     <ReaderPanel
+                      panelPosition={i}
                       initialState={panel}
                       interfaceLang={this.props.interfaceLang}
                       setCentralState={setPanelState}
@@ -1610,7 +1618,7 @@ class Header extends Component {
                          </div>);
     var langSearchPlaceholder = this.props.interfaceLang == 'english' ? "Search" : "חיפוש";
     var vkClassActivator = this.props.interfaceLang == 'english' ? " keyboardInput" : "";
-    return (<div className="header">
+    return (<div className="header" role="banner">
               <div className="headerInner">
                 <div className="headerNavSection">
                     <a href="/texts" aria-label="Toggle Text Table of Contents" className="library" onClick={this.handleLibraryClick}><i className="fa fa-bars"></i></a>
@@ -1738,6 +1746,10 @@ class ReaderPanel extends Component {
     window.addEventListener("resize", this.setWidth);
     this.setWidth();
     this.setHeadroom();
+    if (this.props.panelPosition) {  //Focus on the first focusable element of the newly loaded panel. Mostly for a11y
+      var curPanel = $(".readerPanel")[this.props.panelPosition];
+      $(curPanel).find(':focusable').first().focus();
+    }
   }
   componentWillUnmount() {
     window.removeEventListener("resize", this.setWidth);
@@ -2067,6 +2079,11 @@ class ReaderPanel extends Component {
     var option = category === "Tanakh" || category === "Talmud" ? "layout" + category : "layoutDefault";
     return this.state.settings[option];
   }
+  handleKeyPress(e) {
+    if (e.keyCode === 27) {
+      this.props.closePanel(e);
+    }
+  }
   render() {
     if (this.state.error) {
       return (
@@ -2086,6 +2103,7 @@ class ReaderPanel extends Component {
     var items = [];
     if (this.state.mode === "Text" || this.state.mode === "TextAndConnections") {
       items.push(<TextColumn
+          panelPosition ={this.props.panelPosition}
           srefs={this.state.refs.slice()}
           version={this.state.version}
           versionLanguage={this.state.versionLanguage}
@@ -2118,6 +2136,7 @@ class ReaderPanel extends Component {
                         (langMode === "english" && data.versionStatus !== "locked") ||
                         (Sefaria.is_moderator && langMode !== "bilingual"));
       items.push(<ConnectionsPanel 
+          panelPosition ={this.props.panelPosition}
           srefs={this.state.mode === "Connections" ? this.state.refs.slice() : this.state.highlightedRefs.slice()}
           filter={this.state.filter || []}
           mode={this.state.connectionsMode || "Resources"}
@@ -2302,7 +2321,7 @@ class ReaderPanel extends Component {
     );
 
     return (
-      <div className={classes}>
+      <div className={classes} onKeyDown={this.handleKeyPress} role="region" id={"panel-"+this.props.panelPosition}>
         {hideReaderControls ? null :
         (<ReaderControls
           showBaseText={this.showBaseText}
@@ -2467,7 +2486,7 @@ class ReaderControls extends Component {
         </div>) :
       (<div className={"readerTextToc" + (categoryAttribution ? ' attributed' : '')} onClick={this.openTextToc}>
         <div className="readerTextTocBox">
-          <a href={url}>
+          <a href={url} aria-label={"Show table of contents for " + title} >
             { title ? (<i className="fa fa-caret-down invisible"></i>) : null }
             <span className="en">{title}</span>
             <span className="he">{heTitle}</span>
@@ -3495,13 +3514,13 @@ class ReaderTextTableOfContents extends Component {
                       <span className="en">{category}</span>
                       <span className="he">{Sefaria.hebrewTerm(category)}</span>
                     </div>
-                    <div className="tocTitle">
+                    <div className="tocTitle" role="heading" aria-level="1">
                       <span className="en">{title}</span>
                       <span className="he">{heTitle}</span>
                       {moderatorSection}
                     </div>
                     {this.isTextToc()?
-                      <div className="currentSection">
+                      <div className="currentSection" role="heading" aria-level="2">
                         <span className="en">{section}</span>
                         <span className="he">{heSection}</span>
                       </div>
@@ -3610,6 +3629,10 @@ class TextTableOfContentsNavigation extends Component {
   componentDidMount() {
     this.shrinkWrap();
     window.addEventListener('resize', this.shrinkWrap);
+    var tab = Sefaria.util.getUrlVars()["tab"];
+    if (tab) {
+      this.setTab(tab);
+    }
   }
   componentWillUnmount() {
     window.removeEventListener('resize', this.shrinkWrap);
@@ -3751,13 +3774,20 @@ TextTableOfContentsNavigation.propTypes = {
 class TabbedToggleSet extends Component {
   render() {
     var options = this.props.options.map(function(option, i) {
+
+      var handleClick = function(e) {
+        e.preventDefault();
+        option.onPress();
+      }.bind(this);
+
       var classes = classNames({altStructToggle: 1, active: this.props.active === option.name});
+      var url = Sefaria.util.replaceUrlParam("tab", option.name);
       return (
         <div className="altStructToggleBox" key={i}>
-          <span className={classes} onClick={option.onPress}>
+          <a className={classes} onClick={handleClick} href={url}>
               <span className="int-he">{option.heText}</span>
               <span className="int-en">{option.text}</span>
-          </span>
+          </a>
         </div>
       );
     }.bind(this));
@@ -3819,7 +3849,7 @@ class SchemaNode extends Component {
           // SchemaNode with children (nodes) or ArrayMapNode with depth (refs)
           return (
             <div className="schema-node-toc" key={i}>
-              <span className="schema-node-title" onClick={this.toggleCollapse.bind(null, i)}>
+              <span className="schema-node-title" onClick={this.toggleCollapse.bind(null, i)} role="heading" aria-level="3">
                 <span className="he">{node.heTitle} <i className={"schema-node-control fa fa-angle-" + (this.state.collapsed[i] ? "left" : "down")}></i></span>
                 <span className="en">{node.title} <i className={"schema-node-control fa fa-angle-" + (this.state.collapsed[i] ? "right" : "down")}></i></span>
               </span>
@@ -3839,7 +3869,7 @@ class SchemaNode extends Component {
           var path = this.props.refPath + ", " + node.title;
           return (
             <a className="schema-node-toc linked" href={Sefaria.normRef(path)} data-ref={path} key={i}>
-              <span className="schema-node-title">
+              <span className="schema-node-title" role="heading" aria-level="3">
                 <span className="he">{node.heTitle}</span>
                 <span className="en">{node.title}</span>
               </span>
@@ -3849,7 +3879,7 @@ class SchemaNode extends Component {
           return (
             <div className="schema-node-toc" key={i}>
               { !node.default ?
-              <span className="schema-node-title" onClick={this.toggleCollapse.bind(null, i)}>
+              <span className="schema-node-title" onClick={this.toggleCollapse.bind(null, i)} role="heading" aria-level="3">
                 <span className="he">{node.heTitle} <i className={"schema-node-control fa fa-angle-" + (this.state.collapsed[i] ? "left" : "down")}></i></span>
                 <span className="en">{node.title} <i className={"schema-node-control fa fa-angle-" + (this.state.collapsed[i] ? "right" : "down")}></i></span>
               </span>
@@ -4018,7 +4048,7 @@ class ArrayMapNode extends Component {
     } else {
       return (
         <a className="schema-node-toc linked" href={Sefaria.normRef(this.props.schema.wholeRef)} data-ref={this.props.schema.wholeRef}>
-          <span className="schema-node-title">
+          <span className="schema-node-title" role="heading" aria-level="3">
             <span className="he">{this.props.schema.heTitle} <i className="schema-node-control fa fa-angle-left"></i></span>
             <span className="en">{this.props.schema.title} <i className="schema-node-control fa fa-angle-right"></i></span>
           </span>
@@ -4122,7 +4152,8 @@ class VersionBlock extends Component {
     this.updateableVersionAttributes.forEach(attr => s[attr] = props.version[attr]);
     this.state = s;
   }
-  openVersion() {
+  openVersion(e) {
+    e.preventDefault();
     if (this.props.firstSectionRef) {
       window.location = "/" + this.props.firstSectionRef + "/" + this.props.version.language + "/" + this.props.version.versionTitle
     } else if (this.props.openVersion) {
@@ -4270,11 +4301,12 @@ class VersionBlock extends Component {
       var edit_icon = (Sefaria.is_moderator)?<i className="fa fa-pencil" aria-hidden="true" onClick={this.openEditor}/>:"";
 
       return (
+
         <div className = "versionBlock">
-          <div className="versionTitle">
-            <span onClick={this.openVersion}>{v.versionTitle}</span>
+          <a className="versionTitle" onClick={this.openVersion} href={"/" + (this.props.firstSectionRef ? this.props.firstSectionRef : this.props.version.versionTitle) + "/" + this.props.version.language + "/" + this.props.version.versionTitle}>
+            <span>{v.versionTitle}</span>
             {edit_icon}
-          </div>
+          </a>
           <div className="versionDetails">
             <a className="versionSource" target="_blank" href={v.versionSource}>
             { Sefaria.util.parseURL(v.versionSource).host }
@@ -5812,7 +5844,6 @@ class ToggleOption extends Component {
         role={this.props.role}
         aria-label= {this.props.ariaLabel}
         tabIndex = {this.props.role == "radio"? tabIndexValue : "0"}
-        aria-value = {ariaCheckedValue}
         className={classes}
         style={this.props.style}
         onClick={this.handleClick}>
@@ -6076,6 +6107,14 @@ class TextColumn extends Component {
   adjustTextListHighlight() {
     // console.log("adjustTextListHighlight");
     // When scrolling while the TextList is open, update which segment should be highlighted.
+
+    // When using tab to navigate (i.e. a11y) set ref to currently focused ref
+    if ($(".segment:focus").length > 0) {
+      var ref = ($(".segment:focus").eq(0).attr("data-ref"));
+      this.props.setTextListHighlight(ref);
+      return false;
+    }
+
     if (this.props.multiPanel && this.props.layoutWidth == 100) {
       return; // Hacky - don't move around highlighted segment when scrolling a single panel,
     }
@@ -6104,6 +6143,9 @@ class TextColumn extends Component {
         this.justScrolled = true;
         var offset = this.getHighlightThreshhold();
         $container.scrollTo($highlighted, 0, {offset: -offset});
+        if ($readerPanel.attr("id") == $(".readerPanel:last").attr("id")) {
+          $highlighted.focus();
+        }
       }
     }.bind(this));
   }
@@ -6121,6 +6163,7 @@ class TextColumn extends Component {
     var classes = classNames({textColumn: 1, connectionsOpen: this.props.mode === "TextAndConnections"});
     var content =  this.props.srefs.map(function(ref, k) {
       return (<TextRange
+        panelPosition ={this.props.panelPosition}
         sref={ref}
         version={this.props.version}
         versionLanguage={this.props.versionLanguage}
@@ -6244,6 +6287,11 @@ componentDidMount() {
       //Click on the body of the TextRange itself from TextList
       this.props.onRangeClick(this.props.sref);
       if (Sefaria.site) { Sefaria.site.track.event("Reader", "Click Text from TextList", this.props.sref); }
+    }
+  }
+  handleKeyPress(event) {
+    if (event.charCode == 13) {
+      this.handleClick(event);
     }
   }
   getText() {
@@ -6416,6 +6464,7 @@ componentDidMount() {
                         this.props.basetext && segment.highlight;                   // otherwise highlight if this a basetext and the ref is specific
       return (
         <TextSegment
+            panelPosition={this.props.panelPosition}
             sref={segment.ref}
             en={segment.en}
             he={segment.he}
@@ -6489,7 +6538,7 @@ componentDidMount() {
     } else {var sidebarNum = null;}
 
     return (
-      <div className={classes} onClick={this.handleClick}>
+      <div className={classes} onClick={this.handleClick} onKeyPress={this.handleKeyPress}>
         {sidebarNum}
         {this.props.hideTitle ? null :
 
@@ -6558,6 +6607,11 @@ class TextSegment extends Component {
       Sefaria.site.track.event("Reader", "Text Segment Click", this.props.sref);
     }
   }
+  handleKeyPress(event) {
+    if (event.charCode == 13) {
+      this.handleClick(event);
+    }
+  }
   render() {
     var linkCountElement;
     if (this.props.showLinkCount) {
@@ -6607,7 +6661,7 @@ class TextSegment extends Component {
         return false;
     }
     return (
-      <span className={classes} onClick={this.handleClick} data-ref={this.props.sref}>
+      <span tabIndex="0" className={classes} onClick={this.handleClick} onKeyPress={this.handleKeyPress} data-ref={this.props.sref} aria-controls={"panel-"+(this.props.panelPosition+1)} aria-label={"Click to see links to "+this.props.sref}>
         {segmentNumber}
         {linkCountElement}
         <span className="he" dangerouslySetInnerHTML={ {__html: he + " "} }></span>
@@ -6726,6 +6780,7 @@ class ConnectionsPanel extends Component {
     
     } else if (this.props.mode === "TextList") {
       content = (<TextList
+                    panelPosition ={this.props.panelPosition}
                     srefs={this.props.srefs}
                     filter={this.props.filter}
                     recentFilters={this.props.recentFilters}
@@ -7396,6 +7451,7 @@ class TextList extends Component {
                         Sefaria.util.inArray(link.anchorRef, refs) === -1;
                         return (<div className="textListTextRangeBox" key={i + link.sourceRef}>
                                   <TextRange 
+                                    panelPosition ={this.props.panelPosition}
                                     sref={link.sourceRef}
                                     hideTitle={hideTitle}
                                     numberLabel={link.category === "Commentary" ? link.anchorVerse : 0}
@@ -7862,7 +7918,7 @@ class ToolsList extends Component {
     return (
       <div>
         <ToolsButton en="Share" he="שתף" image="tools-share.svg" onClick={() => this.props.setConnectionsMode("Share")} />
-        <ToolsButton en="Add Translation" he="הוסף תרגום" image="tools-translate.svg" onClick={addTranslation} /> 
+        <ToolsButton en="Add Translation" he="הוסף תרגום" image="tools-translate.svg" onClick={addTranslation} />
         { Sefaria.is_moderator || Sefaria.is_editor ? <ToolsButton en="Add Connection" he="הוסף קישור לטקסט אחר" image="tools-add-connection.svg"onClick={() => this.props.setConnectionsMode("Add Connection")} /> : null }
         { editText ? (<ToolsButton en="Edit Text" he="ערוך טקסט" image="tools-edit-text.svg" onClick={editText} />) : null }
       </div>);
@@ -9913,9 +9969,7 @@ NotificationsPanel.propTypes = {
 class MyNotesPanel extends Component {
   componentDidMount() {
     this.loadData();
-  }
-  getInitialState() {
-    return { numberToRender: 2 }
+    this.state = { numberToRender: 2 };
   }
   loadData() {
     var notes = Sefaria.allPrivateNotes();

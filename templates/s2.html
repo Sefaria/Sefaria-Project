@@ -3,19 +3,21 @@
 <!DOCTYPE html>
 <html>
 <head>
+  <title>{{ title }}</title>
+  <meta property="og:title" content="{{ title }}"/>
+  <meta name="description" property="og:description" content="{{ desc }}">
+
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-itunes-app" content="app-id=1163273965">
   <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
   <meta property="og:image" content="https://www.sefaria.org/static/img/fb-og-image.png"/>
-  <meta property="og:title" content="{{ title }} | Sefaria"/>
-  <meta property="og:description" content="{{ desc }}">
+
   {% if ldBreadcrumbs %}{% autoescape off %}
   <script type="application/ld+json">
   {{ ldBreadcrumbs }}
   </script>
   {% endautoescape %}{% endif %}
 
-  <title>{{ title }}</title>
   <link rel="stylesheet" href="/static/font-awesome/css/font-awesome.css">
   <link rel="stylesheet" type="text/css" href="/static/css/keyboard.css">
   <link rel="stylesheet" href="/static/css/common.css">
@@ -31,13 +33,17 @@
   <script>
     WebFont.load({
       google: {
-        families: ['Crimson Text:400,700', 'Open Sans Hebrew:400,700:hebrew'],
+        families: ['Crimson Text:400,700'],
         text: 'ḥḤ'
       },
       typekit: {
         id: 'aeg8div'
       }
     });
+    WebFont.load({
+      google: {
+        families: ['Heebo:400,700:hebrew', 'Frank Ruehl Libre:400,700:hebrew'] // The dotted h causes Heebo not to load.
+      }});
   </script>
   {% endif %}
 
