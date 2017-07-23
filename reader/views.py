@@ -604,24 +604,46 @@ def s2_sheets_by_tag(request, tag):
     if tag == "My Sheets" and request.user.is_authenticated():
         props["userSheets"]   = user_sheets(request.user.id)["sheets"]
         props["userTags"]     = user_tags(request.user.id)
+        if props["interfaceLang"] == "hebrew":
+            title = "My Source Sheets | Sefaria" # HEBREW NEEDED
+            desc  = "My Sources Sheets on Sefaria, both private a public."
+        else:
+            title = "My Source Sheets | Sefaria"
+            desc  = "My Sources Sheets on Sefaria, both private a public."
     elif tag == "My Sheets" and not request.user.is_authenticated():
         return redirect("/login?next=/sheets/private")
+    
     elif tag == "All Sheets":
         props["publicSheets"] = {"offset0num50": public_sheets(limit=50)["sheets"]}
+        if props["interfaceLang"] == "hebrew":
+            title = "Public Source Sheets | Sefaria" # HEBREW NEEDED
+            desc  = "Explore thousands of public Source Sheets drawing on Sefaria's library of Jewish texts."
+        else:
+            title = "Public Source Sheets | Sefaria"
+            desc  = "Explore thousands of public Source Sheets drawing on Sefaria's library of Jewish texts."
+
     else:
         props["tagSheets"]    = [sheet_to_dict(s) for s in get_sheets_by_tag(tag)]
+        if props["interfaceLang"] == "hebrew":
+            title = "{} | Sefaria".format(tag) # HEBREW NEEDED
+            desc  = 'Public Source Sheets on tagged with "{}", drawing from Sefaria\'s library of Jewish texts.'.format(tag)
+        else:
+            title = "{} | Sefaria".format(tag)
+            desc  = 'Public Source Sheets on tagged with "{}", drawing from Sefaria\'s library of Jewish texts.'.format(tag)
 
     propsJSON = json.dumps(props)
     html = render_react_component("ReaderApp", propsJSON)
     return render_to_response('s2.html', {
         "propsJSON":      propsJSON,
+        "title":          title,
+        "desc":           desc,
         "html":           html,
     }, RequestContext(request))
 
 
 def s2_page(request, props, page, title="", desc=""):
     """
-    View for any S2 page that can descripted with the `menuOpen` param in React
+    View for any S2 page that can described with the `menuOpen` param in React
     """
     props.update({
         "initialMenu": page,
@@ -652,6 +674,17 @@ def s2_texts(request):
     return s2_page(request, props, "navigation", title, desc)
 
 
+def s2_updates(request):
+    props = s2_props(request)
+    if props["interfaceLang"] == "hebrew":
+        title = u"New Additions to the Sefaria Library" # HEBREW NEEDED
+        desc  = u"See texts, translations and connections that have been recentlty added to Sefaria."
+    else:
+        title = u"New Additions to the Sefaria Library"
+        desc  = u"See texts, translations and connections that have been recentlty added to Sefaria."
+    return s2_page(request, props, "updates", title, desc)
+
+
 @login_required
 def s2_account(request):
     props = s2_props(request)
@@ -665,12 +698,6 @@ def s2_notifications(request):
     props = s2_props(request)
 
     return s2_page(request, props, "notifications")
-
-
-def s2_updates(request):
-    props = s2_props(request)
-
-    return s2_page(request, props, "updates")
 
 
 @login_required
