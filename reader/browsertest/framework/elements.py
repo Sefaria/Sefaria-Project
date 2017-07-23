@@ -581,6 +581,8 @@ class Trial(object):
                     sys.stdout.write("E")
                 sys.stdout.flush()
                 tresults = [TestResult(test, caps[0], False, msg)]
+            p.close()
+            p.join()
         else:
             for cap in caps:
                 tresults.append(self._test_one(test, cap))
