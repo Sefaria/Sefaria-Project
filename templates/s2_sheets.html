@@ -55,6 +55,7 @@
 <div id="sheetsContent">
 
     <div class="sheetsEditNavTop">
+    <div class="sheetsEditNavTopInner">
         <div class="sheetsMenuBarCommands">
             <div class="sheetsMenuBarItem" id="fileMenu">
                 <span class="int-en">File</span>
@@ -138,11 +139,11 @@
                         <i class="fa fa-pencil"></i>
                         <span id="highlightToggleActivate">
                             <span class="int-en">Highlight Mode</span>
-                            <span class="int-he">מצב צביעה והדגשה</span>
+                            <span class="int-he">מצב סימון וצביעה</span>
                         </span>
                         <span id="highlightToggleDeactivate">
                             <span class="int-en">Exit Highlight Mode</span>
-                            <span class="int-he">צא ממצב צביעה והדגשה</span>
+                            <span class="int-he">צא ממצב סימון וצביעה</span>
                         </span>
                     </div>
                     {% endif %}
@@ -168,11 +169,17 @@
                                 </i>
                             </div>
                             <div class="optionItem divineNamesOption" id="yy">
-                                <i class="fa fa-check hidden"></i><span class="int-bi">יי</span></div>
+                                <i class="fa fa-check hidden"></i>
+                                <span class="int-bi">יי</span>
+                            </div>
                             <div class="optionItem divineNamesOption" id="h">
-                                <i class="fa fa-check hidden"></i> <span class="int-bi">ה'</span></div>
+                                <i class="fa fa-check hidden"></i>
+                                <span class="int-bi">ה'</span>
+                            </div>
                             <div class="optionItem divineNamesOption" id="ykvk">
-                                <i class="fa fa-check hidden"></i> <span class="int-bi">יקוק</span></div>
+                                <i class="fa fa-check hidden"></i>
+                                <span class="int-bi">יקוק</span>
+                            </div>
                         </div>
                     </div>
                     <div class="optionItem" id="numbered">
@@ -370,7 +377,7 @@
                 </div>
 
             </div>
-                {% if can_edit or can_add %}
+            {% if can_edit or can_add %}
             <div class="sheetsMenuBarItem" id="insertMenu">
                 <span class="int-en">Insert</span>
                 <span class="int-he">הכנסה</span>
@@ -404,8 +411,7 @@
                     </div>
                 </div>
             </div>
-                {% endif %}
-
+            {% endif %}
             <div class="sheetsMenuBarItem" id="highlightMenu">
                 <span class="int-en">Highlight Tools</span>
                 <span class="int-he">כלי סימון והדגשה</span>
@@ -440,38 +446,43 @@
                 </div>
             </div>
 
-        <div class="sheetsMenuBarItem">
-                 <span id="lastSaved">
-            {% if sheet.dateModified %}
-                        {% if can_edit or can_add %}
-                            Last Saved: {{sheet.dateModified|date_string_to_date|naturaltime}}
-                        {% endif %}
-            {% endif %}
-         </span>
+            <div class="sheetsMenuBarItem">
+                <span id="lastSaved">
+                {% if sheet.dateModified %}
+                    {% if can_edit or can_add %}
+                        <span class="int-en">Last Saved: {{sheet.dateModified|date_string_to_date|naturaltime}}</span>
+                        <span class="int-he">נשמר לאחרונה:  {{sheet.dateModified|date_string_to_date}}</span>
 
+                    {% endif %}
+                {% endif %}
+                </span>
+            </div>
+            <div class="sheetsMenuBarItem">
+                <span id="highlightModeDisplay">
+                    <span class="int-en">Highlight Mode is On</span>
+                    <span class="int-he">מצב סימון וצביעה פעיל</span>
+                </span>
+            </div>
         </div>
-        <span id="highlightModeDisplay">Highlight Mode is On</span>
-    </div>
         <div class="sheetsMenuBarButtons">
             {% if new_sheet %}
-                <span id="save" class="button">
-                    <i class="fa fa-floppy-o"></i>
-                    <span class="int-en">Save</span>
-                    <span class="int-he">שמור</span>
-                </span>
-
+            <a id="save" class="button">
+                <i class="fa fa-floppy-o"></i>
+                <span class="int-en">Save</span>
+                <span class="int-he">שמור</span>
+            </a>
             {% elif is_owner or can_publish %}
-                <span id="share" class="button">
-                    <img src="/static/img/share.png" alt="Share Icon">
-                    <span class="int-en">Share</span>
-                    <span class="int-he">שתף</span>
-                </span>
+            <a id="share" class="button">
+                <img src="/static/img/share.png" alt="Share Icon">
+                <span class="int-en">Share</span>
+                <span class="int-he">שתף</span>
+            </a>
             {% endif %}
-            <div id="ckeTopMenu"></div>
         </div>
-
-
     </div>
+        <div id="ckeTopMenu"></div>
+    </div>
+
 <div id="link"></div>
 <div id="error"></div>
 <div id="controls">
