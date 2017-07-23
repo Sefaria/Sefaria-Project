@@ -2136,6 +2136,7 @@ class ReaderPanel extends Component {
                         (langMode === "english" && data.versionStatus !== "locked") ||
                         (Sefaria.is_moderator && langMode !== "bilingual"));
       items.push(<ConnectionsPanel 
+          panelPosition ={this.props.panelPosition}
           srefs={this.state.mode === "Connections" ? this.state.refs.slice() : this.state.highlightedRefs.slice()}
           filter={this.state.filter || []}
           mode={this.state.connectionsMode || "Resources"}
@@ -6106,6 +6107,14 @@ class TextColumn extends Component {
   adjustTextListHighlight() {
     // console.log("adjustTextListHighlight");
     // When scrolling while the TextList is open, update which segment should be highlighted.
+
+    // When using tab to navigate (i.e. a11y) set ref to currently focused ref
+    if ($(".segment:focus").length > 0) {
+      var ref = ($(".segment:focus").eq(0).attr("data-ref"));
+      this.props.setTextListHighlight(ref);
+      return false;
+    }
+
     if (this.props.multiPanel && this.props.layoutWidth == 100) {
       return; // Hacky - don't move around highlighted segment when scrolling a single panel,
     }
@@ -6134,6 +6143,9 @@ class TextColumn extends Component {
         this.justScrolled = true;
         var offset = this.getHighlightThreshhold();
         $container.scrollTo($highlighted, 0, {offset: -offset});
+        if ($readerPanel.attr("id") == $(".readerPanel:last").attr("id")) {
+          $highlighted.focus();
+        }
       }
     }.bind(this));
   }
@@ -6275,6 +6287,11 @@ componentDidMount() {
       //Click on the body of the TextRange itself from TextList
       this.props.onRangeClick(this.props.sref);
       if (Sefaria.site) { Sefaria.site.track.event("Reader", "Click Text from TextList", this.props.sref); }
+    }
+  }
+  handleKeyPress(event) {
+    if (event.charCode == 13) {
+      this.handleClick(event);
     }
   }
   getText() {
@@ -6521,7 +6538,7 @@ componentDidMount() {
     } else {var sidebarNum = null;}
 
     return (
-      <div className={classes} onClick={this.handleClick}>
+      <div className={classes} onClick={this.handleClick} onKeyPress={this.handleKeyPress}>
         {sidebarNum}
         {this.props.hideTitle ? null :
 
@@ -6763,6 +6780,7 @@ class ConnectionsPanel extends Component {
     
     } else if (this.props.mode === "TextList") {
       content = (<TextList
+                    panelPosition ={this.props.panelPosition}
                     srefs={this.props.srefs}
                     filter={this.props.filter}
                     recentFilters={this.props.recentFilters}
@@ -7433,6 +7451,7 @@ class TextList extends Component {
                         Sefaria.util.inArray(link.anchorRef, refs) === -1;
                         return (<div className="textListTextRangeBox" key={i + link.sourceRef}>
                                   <TextRange 
+                                    panelPosition ={this.props.panelPosition}
                                     sref={link.sourceRef}
                                     hideTitle={hideTitle}
                                     numberLabel={link.category === "Commentary" ? link.anchorVerse : 0}
@@ -9950,9 +9969,7 @@ NotificationsPanel.propTypes = {
 class MyNotesPanel extends Component {
   componentDidMount() {
     this.loadData();
-  }
-  getInitialState() {
-    return { numberToRender: 2 }
+    this.state = { numberToRender: 2 };
   }
   loadData() {
     var notes = Sefaria.allPrivateNotes();
