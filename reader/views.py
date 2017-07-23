@@ -643,7 +643,7 @@ def s2_sheets_by_tag(request, tag):
 
 def s2_page(request, props, page, title="", desc=""):
     """
-    View for any S2 page that can descripted with the `menuOpen` param in React
+    View for any S2 page that can described with the `menuOpen` param in React
     """
     props.update({
         "initialMenu": page,
