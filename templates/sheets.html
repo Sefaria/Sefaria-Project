@@ -9,6 +9,9 @@
 	{% if not is_public %}
 		<meta name="robots" content="noindex">
 	{% endif %}
+	{% if EMBED %}
+		<link rel="canonical" href="{{ current_url }}" >
+	{% endif %}
 	<title>
 		{% if title %}
 			{{ title|striptags|strip_html_entities }} | Sefaria Source Sheet Builder
