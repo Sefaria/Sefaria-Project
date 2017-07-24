@@ -216,6 +216,8 @@ def view_sheet(request, sheet_id):
 		can_publish_flag = False
 		viewer_is_liker  = False
 
+	canonical_url = request.get_full_path().replace("?embed=1", "").replace("&embed=1", "")
+
 	return render_to_response('sheets.html' if request.COOKIES.get('s1') else 's2_sheets.html', {"sheetJSON": json.dumps(sheet),
 												"sheet": sheet,
 												"sheet_class": sheet_class,
@@ -231,6 +233,7 @@ def view_sheet(request, sheet_id):
 												"like_count": like_count,
 												"viewer_is_liker": viewer_is_liker,
 												"current_url": request.get_full_path,
+												"canonical_url": canonical_url,
 											  	"assignments_from_sheet":assignments_from_sheet(sheet_id),
 											}, RequestContext(request))
 
