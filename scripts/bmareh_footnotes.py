@@ -25,13 +25,6 @@ Method:
 4) Set up proper footnotes. Footnotes can be long; combine paragraphs with <br> tags.
 5) Remove <br>_____<br> and everything below.
 
-
-The following sections are missing dividers (but still have footnotes):
-Part Six.70
-Part Six.71
-Part Five.16
-Part Five.17
-
 Seven.9 has multiple dividers.
 It will be easiest to just hardcode the segment numbers that contain the footnotes for those sections
 """
@@ -57,15 +50,6 @@ def all_sections_have_single_divider(book_index):
     :param Index book_index:
     :return:
     """
-    def has_single_divider(section_ref):
-        """
-        Make sure a single section has only 1 and only 1 segment with the pattern <br>_____<br>
-        :param section_ref: List of strings
-        :return: bool
-        """
-        dividers = re.findall(ur'<br>_+<br>', u''.join(section_ref))
-        return len(dividers) == 1
-
     success = True
     sections = book_index.all_section_refs()
     for section in sections:
@@ -78,7 +62,36 @@ def all_sections_have_single_divider(book_index):
             success = False
     return success
 
-r = run_on_books(all_sections_have_single_divider)
-for key, value in r.iteritems():
-    print u'{}: {}'.format(key, value)
 
+def border_segment(segment_list):
+    """
+    Get the ref that is the barrier between main text and footnotes
+    :param segment_list:
+    :return: segment ref
+    """
+    for segment in segment_list:
+        if re.search(ur'<br> ?_+ ?(<br>)?', segment.text('he').text):
+            return segment
+    return
+
+
+def footnote_segments(section_ref):
+    """
+    Get the segments that represent the footnotes
+    :param Ref section_ref:
+    :return: ranged segment ref
+    """
+    if section_ref == Ref(u"B'Mareh HaBazak Part Seven 9"):
+        return Ref(u"B'Mareh HaBazak Part Seven 9:11-44")
+
+    segments = section_ref.all_segment_refs()
+    border = border_segment(segments)
+    if border:
+        return border.next_segment_ref().to(segments[-1])
+
+
+def main_segments(section_ref):
+    segments = section_ref.all_segment_refs()
+    border = border_segment(segments)
+    if border:
+        return segments[0].to(border)
