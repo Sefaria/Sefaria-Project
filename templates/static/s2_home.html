@@ -14,7 +14,8 @@
 
 {% block head %}
     <meta property="og:type" content="website"/>
-    <meta property="og:url" content="https://www.sefaria.org"/>
+    <meta property="og:url" content="https://{{ request.META.HTTP_HOST }}"/>
+    <link rel="canonical" href="https://{{ request.META.HTTP_HOST }}" />
     {% autoescape off %}
     <script type="application/ld+json">
     {
