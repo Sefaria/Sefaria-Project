@@ -38,6 +38,9 @@
 
 {% block head %}
     <link rel="stylesheet" type="text/css" href="/static/css/tooltipster.css" />
+    {% if EMBED %}
+        <link rel="canonical" href="{{ canonical_url }}">
+    {% endif %}
 {% endblock %}
 
 {% block css %}
