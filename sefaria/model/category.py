@@ -45,7 +45,7 @@ class Category(schema.AbstractTitledRecord):
     def get_toc_object(self):
         from sefaria.model import library
         toc_tree = library.get_toc_tree()
-        return toc_tree.lookup_category(self.path)
+        return toc_tree.lookup(self.path)
 
     def can_delete(self):
         obj = self.get_toc_object()
@@ -65,7 +65,7 @@ class CategorySet(abstract.AbstractMongoSet):
 def process_category_name_change_in_categories_and_indexes(changed_cat, **kwargs):
     from sefaria.model.text import library
 
-    old_toc_node = library.get_toc_tree().lookup_category(changed_cat.path[:-1] + [kwargs["old"]])
+    old_toc_node = library.get_toc_tree().lookup(changed_cat.path[:-1] + [kwargs["old"]])
     assert isinstance(old_toc_node, TocCategory)
     pos = len(old_toc_node.ancestors()) - 1
     for child in old_toc_node.all_children():
@@ -117,11 +117,12 @@ class TocTree(object):
         # Place Indexes
         for i in text.IndexSet():
             node = self._make_index_node(i)
-            cat = self.lookup_category(i.categories)
+            cat = self.lookup(i.categories)
             if not cat:
                 print u"Failed to find category for {}".format(i.categories)
                 continue
             cat.append(node)
+            self._path_hash[tuple(i.categories + [i.title])] = node
 
         self._sort()
 
@@ -168,18 +169,40 @@ class TocTree(object):
         return self._root.serialize()["contents"]
 
     #todo: Get rid of the special case for "other", by placing it in the Index's category lists
-    def lookup_category(self, cat_path):
+    def lookup(self, cat_path, title=None):
         """
-        :param cat_path: A list of tuple of the path to this category
+        :param cat_path: A list or tuple of the path to this category
+        :param title: optional - name of text.  If present tries to return a text
         :return:
         """
+        path = tuple(cat_path)
+        if title is not None:
+            path += tuple([title])
         try:
-            return self._path_hash[tuple(cat_path)]
+            return self._path_hash[path]
         except KeyError:
             try:
-                return self._path_hash[tuple(["Other"] + cat_path)]
+                return self._path_hash[tuple(["Other"]) + path]
             except KeyError:
                 return None
+
+    def update_title(self, index, old_ref=None, recount=True):
+        title = old_ref or index.title
+        node = self.lookup(index.categories, title)
+        if not node:
+            logger.warn("Failed to find TOC node to update: {}".format(u"/".join(index.categories + [title])))
+            return
+
+        if recount:
+            from version_state import VersionState
+            vs = VersionState(title)
+            vs.refresh()
+            sn = vs.state_node(index.nodes)
+            self._sparseness_lookup[title] = max(sn.get_sparseness("en"), sn.get_sparseness("he"))
+
+        new_node = self._make_index_node(index)
+        node.replace(new_node)
+        self._path_hash[tuple(index.categories + [index.title])] = new_node
 
 
 class TocNode(schema.TitledTreeNode):

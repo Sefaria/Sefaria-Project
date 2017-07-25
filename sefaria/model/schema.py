@@ -316,6 +316,21 @@ class TreeNode(object):
         node.parent = self
         return self
 
+    def replace(self, node):
+        """
+        Replace self with `node`
+        :param node:
+        :return:
+        """
+        parent = self.parent
+        assert parent
+        parent.children = [c if c != self else node for c in parent.children]
+
+    def detach(self):
+        parent = self.parent
+        assert parent
+        parent.children = [c for c in parent.children if c != self]
+
     def append_to(self, node):
         """
         Append this node to another node

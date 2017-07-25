@@ -3905,18 +3905,22 @@ class Library(object):
             return self._ref_auto_completer[lang]
 
     def recount_index_in_toc(self, indx):
+        self._toc_tree.update_title(indx, recount=True)
+
         from sefaria.summaries import update_title_in_toc
-        self._toc = update_title_in_toc(self.get_toc(), indx, recount=True)
         self._search_filter_toc = update_title_in_toc(self.get_search_filter_toc(), indx, recount=False, for_search=True)
+
         self._toc_json = None
         self._search_filter_toc_json = None
         self._category_id_dict = None
         self._reset_toc_derivate_objects()
 
-    def delete_index_from_toc(self, bookname):
+    def delete_index_from_toc(self, indx):
+        self._toc_tree.lookup(indx.categories, indx).detach()
+
         from sefaria.summaries import recur_delete_element_from_toc
-        self._toc = recur_delete_element_from_toc(bookname, self.get_toc())
-        self._search_filter_toc = recur_delete_element_from_toc(bookname, self.get_search_filter_toc())
+        self._search_filter_toc = recur_delete_element_from_toc(indx.title, self.get_search_filter_toc())
+
         self._toc_json = None
         self._search_filter_toc_json = None
         self._category_id_dict = None
@@ -3928,9 +3932,11 @@ class Library(object):
         :param old_ref:
         :return:
         """
+        self._toc_tree.update_title(self.get_toc(), indx, old_ref=old_ref, recount=False)
+
         from sefaria.summaries import update_title_in_toc
-        self._toc = update_title_in_toc(self.get_toc(), indx, old_ref=old_ref, recount=False)
         self._search_filter_toc = update_title_in_toc(self.get_search_filter_toc(), indx, old_ref=old_ref, recount=False, for_search=True)
+
         self._toc_json = None
         self._search_filter_toc_json = None
         self._category_id_dict = None
@@ -4599,7 +4605,7 @@ def process_index_change_in_toc(indx, **kwargs):
 
 
 def process_index_delete_in_toc(indx, **kwargs):
-    library.delete_index_from_toc(indx.title)
+    library.delete_index_from_toc(indx)
 
 
 def process_index_delete_in_core_cache(indx, **kwargs):

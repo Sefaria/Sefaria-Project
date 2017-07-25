@@ -13,15 +13,15 @@ class Test_Categories(object):
         base_json = json.dumps(base_toc, sort_keys=True)
 
         toc_tree = library.get_toc_tree()
-        cat = toc_tree.lookup_category(["Tanakh", "Torah"]).get_category_object()
+        cat = toc_tree.lookup(["Tanakh", "Torah"]).get_category_object()
         cat.change_key_name("Shabbat")
         cat.save()
 
         toc_tree = library.get_toc_tree()
-        cat = toc_tree.lookup_category(["Tanakh", "Torah"])
+        cat = toc_tree.lookup(["Tanakh", "Torah"])
         assert cat is None
 
-        toc_cat = toc_tree.lookup_category(["Tanakh", "Shabbat"])
+        toc_cat = toc_tree.lookup(["Tanakh", "Shabbat"])
         assert toc_cat
         for child in toc_cat.all_children():
             if isinstance(child, c.TocCategory):

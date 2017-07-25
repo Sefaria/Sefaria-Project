@@ -78,11 +78,9 @@ def update_title_in_toc(toc, index, old_ref=None, recount=True, for_search=False
     Update text summary docs to account for change or insertion of 'text'
     * recount - whether or not to perform a new count of available text
     """
-    resort_other = False
     indx_dict = index.toc_contents() if not for_search else index.slim_toc_contents()
     cats = get_toc_categories(index, for_search=for_search)
-    """if cats[0] == "Other":
-        resort_other = True"""
+
     if recount:
         VersionState(index.title).refresh()
 
@@ -99,10 +97,6 @@ def update_title_in_toc(toc, index, old_ref=None, recount=True, for_search=False
     if not found:
         node.append(text)
         node[:] = sort_toc_node(node)
-
-    # If a new category may have been added to other, resort the categories
-    """if resort_other:
-        toc[-1]["contents"] = sort_toc_node(toc[-1]["contents"])"""
 
     return toc
 
