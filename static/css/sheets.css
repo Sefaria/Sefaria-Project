@@ -296,6 +296,12 @@ body {
 	box-shadow: 1px 1px 1px #555;
 
 }
+
+.interface-hebrew .subMenu{
+	/*left: initial;*/
+	right: 248px;
+	box-shadow: -1px 1px 1px #555;
+}
 .optionGroup {
 	position: relative;
 }
