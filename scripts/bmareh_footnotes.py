@@ -95,3 +95,58 @@ def main_segments(section_ref):
     border = border_segment(segments)
     if border:
         return segments[0].to(border)
+
+
+def compare_footnote_markers_to_comments(section_ref):
+    """
+    Make sure a given section has a 1-to-1 matching of footnotes to comments
+    :param Ref section_ref:
+    :return:
+    """
+    body, footnotes = main_segments(section_ref), footnote_segments(section_ref)
+    if body is None and footnotes is None:
+        return True
+
+    body_markers = [m.group(1) for segment in body.all_segment_refs()
+                    for m in re.finditer(ur'<sup>(\d{,2})</sup>', segment.text('he').text)]
+    footers = [m.group(1) for segment in footnotes.all_segment_refs()
+                    for m in re.finditer(ur'^ *<sup>(\d{,2})</sup>', segment.text('he').text)]
+    return body_markers == footers
+
+
+def all_sections_match_markers(index):
+    """
+    :param Index index:
+    :return:
+    """
+    success = True
+    for section in index.all_section_refs():
+        if not compare_footnote_markers_to_comments(section):
+            print u"Mismatch found in {}".format(section.normal())
+            success = False
+    return success
+
+
+def border_is_last_segment(index):
+    """
+    :param Index index:
+    :return:
+    """
+    sections = index.all_section_refs()
+    success = True
+    for section in sections:
+        segments = section.all_segment_refs()
+        border = border_segment(segments)
+        if border == segments[-1]:
+            success = False
+            print u"Bad border at {}".format(section.normal())
+    return success
+
+
+def locate_double_sup(index):
+    sections = index.all_section_refs()
+    for section in sections:
+        segments = section.all_segment_refs()
+        for segment in segments:
+            if re.search(u'<sup>\d{,2},\d{,2}</sup>', segment.text('he').text):
+                print u"Problem in {}".format(segment.normal())
