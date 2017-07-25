@@ -242,7 +242,7 @@ $(function() {
 
           var return_message = "";
           var prompt_message = (data["lang"]=="en")?"Select a text":"נא בחרו טקסט";
-          var success_message = (data["lang"]=="en")?"OK. Click <b>add</b> to continue":("לחצו " + "<b>add</b>" + " בכדי להמשיך");
+          var success_message = (data["lang"]=="en")?"OK. Click <b>add</b> to continue":("לחצו " + "<b>הוסף</b>" + " בכדי להמשיך");
           var or_phrase = (data["lang"]=="en")?" or ":" או ";
           var range_phrase = (data["lang"] == "en")?"enter a range.  E.g. ":"הוסיפו טווח. לדוגמא ";
 
@@ -870,7 +870,7 @@ $(function() {
 
 				saveCkEditorContinuous(ed);
 				$(this).on('keydown', function (e) {
-					$("#lastSaved").text("Saving...");
+					$("#lastSaved").find(".saving").show().siblings().hide();
 				});
 			}
 		};
@@ -2818,7 +2818,7 @@ function handleSave() {
 
 function autoSave() {
 	if (sjs.can_save && sjs.current.id && !sjs.loading && !sjs.openRequests) {
-		$("#lastSaved").text("Saving...");
+		$("#lastSaved").find(".saving").show().siblings().hide();
 		var sheet = readSheet();
 		saveSheet(sheet);
 	}
@@ -2840,7 +2840,8 @@ function saveSheet(sheet, reload) {
 			sjs.lastEdit = null;    // save was succesful, won't need to replay
 			startPollingIfNeeded(); // Start or stop polling if collab/group status has changed
 			promptToPublish();      // If conditions are right, prompt to publish
-			$("#lastSaved").text("All changes saved in Sefaria");
+			var $lastSaved = $("#lastSaved");
+			$lastSaved.find(".lastSavedConfirmed").show().siblings().hide();
 		} 
 
 		if ("error" in data) {
@@ -3314,7 +3315,7 @@ function pollForUpdates() {
 		} else if (data.modified) {
 				if ($(".sheetItem").find(".cke_editable").length) {
 					sjs.changesPending = true;
-				  $("#lastSaved").text('Changes Pending...');
+				  	$("#lastSaved").find(".pending").show().siblings().hide();;
 				}
 				else {
 					rebuildUpdatedSheet(data);

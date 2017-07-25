@@ -55,7 +55,7 @@
 <!-- CSS placed here so it has precedence over other sheets in base.html -->
 <link rel="stylesheet" href="/static/css/sheets.css">
 <link rel="stylesheet" href="/static/css/sheets-print.css" media="print" />
-<div id="sheetsContent">
+<div id="sheetsContent" data-interface-lang="{{ interfaceLang }}">
 
     <div class="sheetsEditNavTop">
     <div class="sheetsEditNavTopInner">
@@ -453,8 +453,22 @@
                 <span id="lastSaved">
                 {% if sheet.dateModified %}
                     {% if can_edit or can_add %}
-                        <span class="int-en">Last Saved: {{sheet.dateModified|date_string_to_date|naturaltime}}</span>
-                        <span class="int-he">נשמר לאחרונה:  {{sheet.dateModified|date_string_to_date}}</span>
+                        <span class="lastSavedStamp">
+                            <span class="int-en">Last Saved: {{sheet.dateModified|date_string_to_date|naturaltime}}</span>
+                            <span class="int-he">נשמר לאחרונה:  {{sheet.dateModified|date_string_to_date}}</span>
+                        </span>
+                        <span class="lastSavedConfirmed">
+                            <span class="int-en">All changes saved in Sefaria</span>
+                            <span class="int-he">כל השינויים שמורים בספאריה</span>
+                        </span>
+                        <span class="saving">
+                            <span class="int-en">Saving...</span>
+                            <span class="int-he">מבצע שמירה...</span>
+                        </span>
+                        <span class="pending">
+                            <span class="int-en">Changes Pending...</span>
+                            <span class="int-he">קיימים שינויים...</span>
+                        </span>
 
                     {% endif %}
                 {% endif %}
@@ -571,76 +585,155 @@
     {% if can_edit or can_add %}
     <div id="addInterface">
         <div class="buttonBar">
-            <div class="addInterfaceButton" id="sourceButton"><img src="/static/img/source.png" alt="Add Source Icon"> Source</div><!--
-         --><div class="addInterfaceButton" id="connectionButton"><img src="/static/img/connection.png" alt="Add Connections Icon"> Connection</div><!--
-         --><div class="addInterfaceButton" id="customTextButton"><img src="/static/img/custom%20text.png" alt="Add Outside Text Icon"> Text</div><!--
-         --><div class="addInterfaceButton" id="mediaButton"><img src="/static/img/media.png" alt="Add Media Icon"> Media</div><!--
-         --><div class="addInterfaceButton" id="commentButton"><img src="/static/img/comment.png" alt="Add Comment Icon">  Comment</div>
+            <div class="addInterfaceButton" id="sourceButton"><img src="/static/img/source.png" alt="Add Source Icon">
+                <span class="int-en">Source</span>
+                <span class="int-he">מקור</span>
+            </div><!--
+         --><div class="addInterfaceButton" id="connectionButton">
+                <img src="/static/img/connection.png" alt="Add Connections Icon">
+                <span class="int-en">Connection</span>
+                <span class="int-he">קישור</span>
+            </div><!--
+         --><div class="addInterfaceButton" id="customTextButton">
+                <img src="/static/img/custom%20text.png" alt="Add Outside Text Icon">
+                <span class="int-en">Text</span>
+                <span class="int-he">טקסט</span>
+            </div><!--
+         --><div class="addInterfaceButton" id="mediaButton">
+                <img src="/static/img/media.png" alt="Add Media Icon">
+                <span class="int-en">Media</span>
+                <span class="int-he">מדיה</span>
+            </div><!--
+         --><div class="addInterfaceButton" id="commentButton">
+                <img src="/static/img/comment.png" alt="Add Comment Icon">
+                <span class="int-en">Comment</span>
+                <span class="int-he">הערה</span>
+            </div>
         </div>
         <div class="contentDiv">
             <div id="addsourceDiv">
-                <div id="inlineAddDialogTitle" class="inlineAddDesc">Select a text</div>
+                <div id="inlineAddDialogTitle" class="inlineAddDesc">
+                    <span class="int-en">Select a text</span>
+                    <span class="int-he">בחר טקסט</span>
+                </div>
                 <div class="blockContainer">
-                    <input id="inlineAdd" class="inlineAddTextInput" placeholder="Search for a Text or Commentator"/>
+                    <input id="inlineAdd" class="inlineAddTextInput"
+                           placeholder=
+                                   {% if interfaceLang == 'english' %}
+                                       "Search for a Text or Commentator"
+                                   {% else %}
+                                       "חפש טקסט או פרשן"
+                                   {% endif %}/>
                     <div class="buttonContainer">
                         <div id="inlineAddBrowseBox" class="inlineAddSourceByttons">
-                            <div id="inlineAddSourceOK" class='button disabled'>Add Source</div>
+                            <div id="inlineAddSourceOK" class='button disabled'>
+                                <span class="int-en">Add Source</span>
+                                <span class="int-he">הוסף מקור</span>
+                            </div>
                         </div>
-                        <div class="inlineAddOr"> or </div>
+                        <div class="inlineAddOr">
+                            <span class="int-en">or</span>
+                            <span class="int-he">או</span>
+                        </div>
                         <div id="inlineAddBrowseBox" class="inlineAddSourceByttons">
-                            <div id="inlineAddBrowse" class='button'>Browse Sources</div>
+                            <div id="inlineAddBrowse" class='button'>
+                                <span class="int-en">Browse Sources</span>
+                                <span class="int-he">בחר מתוכן העניינים</span>
+                            </div>
                         </div>
                     </div>
                 </div>
 
             </div>
             <div id="addconnectionDiv">
-                <div class="inlineAddDesc">Select connected texts</div>
+                <div class="inlineAddDesc">
+                    <span class="int-en">Select connected texts</span>
+                    <span class="int-he">בחר טקסטים מקושרים</span>
+                </div>
                 <div id="connectionsToAdd"></div>
-                <div class="button">Add to Sheet</div>
+                <div class="button">
+                    <span class="int-en">Add to Sheet</span>
+                    <span class="int-he">הוסף לדף המקורות</span>
+                </div>
             </div>
             <div id="addcustomTextDiv">
-                <div class="inlineAddDesc">Write or paste text</div>
-                <div id="customTextLanguageToggle" class="toggle"><span id="englishCustomText" class="toggleOption"><img src="/static/img/english.png" alt="English Language Toggle"></span><span id="bilingualCustomText" class="toggleOption active"><img src="/static/img/bilingual.png" alt="Bilingual Language Toggle"></span><span id="hebrewCustomText" class="toggleOption"><img src="/static/img/hebrew.png" alt="Hebrew Language Toggle"></span></div>
-
+                <div class="inlineAddDesc">
+                    <span class="int-en">Write or paste text</span>
+                    <span class="int-he">כתוב או הדבק טקסט</span>
+                </div>
+                <div id="customTextLanguageToggle" class="toggle">
+                    <span id="englishCustomText" class="toggleOption">
+                        <img src="/static/img/english.png" alt="English Language Toggle">
+                    </span>
+                    <span id="bilingualCustomText" class="toggleOption active">
+                        <img src="/static/img/bilingual.png" alt="Bilingual Language Toggle">
+                    </span>
+                    <span id="hebrewCustomText" class="toggleOption">
+                        <img src="/static/img/hebrew.png" alt="Hebrew Language Toggle">
+                    </span>
+                </div>
                 <div id="customTextContainer" class="flexContainer">
                     <div class="contentToAdd en customTextEditables" tabindex="0">English</div>
                     <div class="contentToAdd he customTextEditables" tabindex="0">עברית</div>
                 </div>
-                <div class="button">Add to Sheet</div>
+                <div class="button">
+                    <span class="int-en">Add to Sheet</span>
+                    <span class="int-he">הוסף לדף המקורות</span>
+                </div>
             </div>
             <div id="addmediaDiv">
-                <div class="inlineAddDesc">Add Image, Youtube Video, SoundCloud link, or MP3</div>
+                <div class="inlineAddDesc">
+                    <span class="int-en">Add Image, Youtube Video, SoundCloud link, or MP3</span>
+                    <span class="int-he">הוסף תמונה, סרטון יוטוב, קישור מ-SoundCloud או קובץ MP3</span>
+                </div>
                 <div class="blockContainer">
-                    <input id="inlineAddMediaInput" class="inlineAddTextInput" placeholder="Paste URL">
+                    <input id="inlineAddMediaInput" class="inlineAddTextInput"
+                           placeholder={% if interfaceLang == 'english' %}
+                                       "Paste URL"
+                                   {% else %}
+                                       "הדבק קישור"
+                                   {% endif %}/>
                     <div class="buttonContainer">
                         <div class="inlineAddSourceByttons">
-                            <div class="button">Add to Sheet</div>
+                            <div class="button">
+                                <span class="int-en">Add to Sheet</span>
+                                <span class="int-he">הוסף לדף המקורות</span>
+                            </div>
                         </div>
-                        <div class="inlineAddOr"> or </div>
+                        <div class="inlineAddOr">
+                            <span class="int-en">or</span>
+                            <span class="int-he">או</span>
+                        </div>
                         <div class="inlineAddSourceByttons">
                             <label for="addmediaFileSelector" class="button">
                                 <i class="fa fa-upload" aria-hidden="true"></i>
-                                Upload an Image
+                                <span class="int-en">Upload an Image</span>
+                                <span class="int-he">העלה תמונה</span>
                             </label>
                             <input id="addmediaFileSelector" type="file" style="display:none">
                         </div>
                     </div>
                 </div>
             </div>
-
-
-
             <div id="addcommentDiv">
-                <div class="inlineAddDesc">Comment on this section</div>
+                <div class="inlineAddDesc">
+                    <span class="int-en">Comment on this section</span>
+                    <span class="int-he">הוסף הערה למקור זה</span>
+                </div>
                 <div class="contentToAdd" tabindex="0"><br></div>
-                <div class="button">Add to Sheet</div>
+                <div class="button">
+                    <span class="int-en">Add to Sheet</span>
+                    <span class="int-he">הוסף לדף המקורות</span>
+                </div>
             </div>
         </div>
     </div>
 	{% endif %}
 
-    <div id="sheetLoading" style="display:none">Loading...</div>
+    <div id="sheetLoading" style="display:none">
+        <span class="int-en">Loading...</span>
+        <span class="int-he">טוען את דף המקורות...</span>
+    </div>
 
 	{% if new_sheet and not hide_video %}
 	<div id="empty" class="well">
