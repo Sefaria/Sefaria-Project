@@ -1,8 +1,10 @@
-var $            = require('jquery'),
-    React        = require('react'),
-    ReactDOM     = require('react-dom'),
-    DjangoCSRF   = require('./django-csrf'),
-    SefariaReact = require('./s2');
+const $            = require('./sefaria/sefariaJquery'),
+      React        = require('react'),
+      ReactDOM     = require('react-dom'),
+      DjangoCSRF   = require('./lib/django-csrf'),
+      SefariaReact = require('./ReaderApp');
+
+
 
 
 $(function() {
@@ -10,7 +12,7 @@ $(function() {
   var component;
   DjangoCSRF.init();
   if (DJANGO_VARS.inReaderApp) {
-    SefariaReact.unpackDataFromProps(DJANGO_VARS.propsJSON);
+    Sefaria.unpackDataFromProps(DJANGO_VARS.propsJSON);
     component = React.createElement(SefariaReact.ReaderApp, DJANGO_VARS.propsJSON);
     ReactDOM.render(component, container);
   } else if (DJANGO_VARS.containerId && DJANGO_VARS.reactComponentName) {
