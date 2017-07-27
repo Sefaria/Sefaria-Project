@@ -225,6 +225,7 @@ body {
 
 .interface-hebrew .optionsMenu{
 	/*text-align: right;*/
+	min-width: 250px;
 }
 
 .optionsMenu img, .addInterfaceButton img {
@@ -250,6 +251,12 @@ body {
 .optionHeader {
 	font-weight: bold;
 	margin-left: 12px;
+}
+
+.optionTitle, .optionItem{
+	display: flex;
+	justify-content: flex-start;
+	align-items: center;
 }
 
 .optionItem, .optionLink, .languageToggleOption div, .layoutToggleOption div, .sideBySideToggleOption div, .optionTitle {
@@ -291,12 +298,12 @@ body {
 	position: absolute;
 	background: white;
 	top: 0px;
-	offset-inline-start: 230px;
 	border: 1px solid #ccc;
-	box-shadow: 1px 1px 1px #555;
-
 }
-
+.interface-english .subMenu{
+	box-shadow: 1px 1px 1px #555;
+	left: 220px;
+}
 .interface-hebrew .subMenu{
 	/*left: initial;*/
 	right: 248px;
@@ -306,10 +313,20 @@ body {
 	position: relative;
 }
 
-.optionGroup .optionTitle .fa-caret-right {
-	position: absolute;
-	right: 6px;
-	top: 15px;
+.interface-english .optionGroup .optionItemCaret.fa{
+	margin-left: auto;
+}
+
+.interface-hebrew .optionGroup .optionItemCaret.fa{
+	margin-right: auto;
+}
+
+.interface-hebrew .optionItemCaret.fa-caret:before{
+	content: "\f0d9";
+}
+
+.interface-english .optionItemCaret.fa-caret:before{
+	content: "\f0da";
 }
 
 .optionGroup:hover .subMenu {
@@ -329,7 +346,9 @@ body {
 }
 
 .optionsMenu .fa {
-	margin-right: 8px;
+	/*margin-right: 8px;*/
+	-webkit-margin-end: 5px;
+	margin-inline-end: 5px;
 	font-size: 13px;
 }
 
