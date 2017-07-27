@@ -9,7 +9,7 @@
 	<meta name="description" content="{{ description_text }}... [{{ page_title }} {{ title_variants }}]">
 	<meta name="apple-mobile-web-app-capable" content="yes">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-	<link rel="stylesheet" href="/static/js/jquery-ui/css/smoothness/jquery-ui-1.8.22.custom.css">
+	<link rel="stylesheet" href="/static/js/lib/jquery-ui/css/smoothness/jquery-ui-1.8.22.custom.css">
 	<link rel="stylesheet" href="/static/css/reader.css">
     <link rel="stylesheet" href="/static/font-awesome/css/font-awesome.css">
 	<link rel="stylesheet" href="/static/css/common.css">
@@ -288,16 +288,16 @@
 
 
 {% include "js/jquery.html" %}
-<script src="/static/js/jquery.scrollTo-1.4.2-min.js"></script>
-<script src="/static/js/jquery.history.js"></script>
-<script src="/static/js/jquery.easing.1.3.js"></script>
-<script src="/static/js/jquery.caret.1.02.js"></script>
-<script src="/static/js/jquery.textchange.js"></script>
-<script src="/static/js/jquery.autosize.js"></script>
-<script src="/static/js/jquery.slimscroll.min.js"></script>
-<script src="/static/js/jquery.tag-it.min.js"></script>
-<script src="/static/js/jquery.raty.js"></script>
-<script src="/static/js/jquery.tooltipster.min.js"></script>
+<script src="/static/js/lib/jquery.scrollTo-1.4.2-min.js"></script>
+<script src="/static/js/lib/jquery.history.js"></script>
+<script src="/static/js/lib/jquery.easing.1.3.js"></script>
+<script src="/static/js/lib/jquery.caret.1.02.js"></script>
+<script src="/static/js/lib/jquery.textchange.js"></script>
+<script src="/static/js/lib/jquery.autosize.js"></script>
+<script src="/static/js/lib/jquery.slimscroll.min.js"></script>
+<script src="/static/js/lib/jquery.tag-it.min.js"></script>
+<script src="/static/js/lib/jquery.raty.js"></script>
+<script src="/static/js/lib/jquery.tooltipster.min.js"></script>
 
 {% include "js/headers.js" %}
 <script>
@@ -317,8 +317,8 @@
 
 {% endautoescape %}
 </script>
-<script type="text/javascript" src="/static/js/util.js"></script>
-<script type="text/javascript" src="/static/js/reader.js"></script>
+<script type="text/javascript" src="/static/js/s1/util.js"></script>
+<script type="text/javascript" src="/static/js/s1/reader.js"></script>
 {% if not OFFLINE %}
 <script type="text/javascript" src="//s7.addthis.com/js/300/addthis_widget.js#pubid=ra-4f0b68586603bc9f"></script>
 {% endif %}

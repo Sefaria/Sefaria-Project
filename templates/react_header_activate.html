@@ -1,7 +1,7 @@
 {% load render_bundle from webpack_loader %}
 
-<script src="/static/js/jquery.scrollTo.js"></script>
-<script src="/static/js/keyboard.js"></script>
+<script src="/static/js/lib/jquery.scrollTo.js"></script>
+<script src="/static/js/lib/keyboard.js"></script>
 <script src="/data.js"></script>
 {# if DEBUG  #}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/6.10.3/babel.min.js"></script>
@@ -16,4 +16,3 @@
   {% endautoescape %}
 </script>
 {% render_bundle 'main' %}
-

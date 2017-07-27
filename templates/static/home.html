@@ -74,13 +74,13 @@
                     <span class='en'>How-to: Texts</span>
                     <span class='he'>סרטון הדרכה - למידה</span>
                 </div>
-            </div>             
+            </div>
         </div><!--
         --><div class="homeColumn purple">
             <h2>
                 <span class='en'>Teach</span>
                 <span class='he'>הוראה</span>
-                <div class="triangle"></div>                
+                <div class="triangle"></div>
             </h2>
             <div class="columnLinks">
                 <a class="columnLink" href="/sheets">
@@ -98,7 +98,7 @@
                     <span class='en'>How-to: Source Sheets</span>
                     <span class='he'>סרטון הדרכה - דפי מקורות</span>
                 </div>
-            </div>               
+            </div>
         </div><!--
         --><div class="homeColumn grey">
             <h2>
@@ -171,7 +171,7 @@
                         <span class="he">{{ p929|he_ref_link }}</span>
                     </div>
                 </div>
-            </div>             
+            </div>
         </div>
     </div>
 
@@ -201,11 +201,11 @@
     </div>
 
     <div id="homeMetrics">
-        <h1> 
+        <h1>
 		<span class="en">Sefaria is building the future of Jewish learning in an open and participatory way.</span>
 		<span class="he">ספאריה שואפת לבנות את עתיד לימוד המקורות היהודיים בצורה פתוחה ומשותפת</span>
 		</h1>
-        
+
         <p class="statsCircle grey1">
             <span class="wordCount">{{ metrics.contributors|intcomma }}</span>
             <span class='en'>Contributors</span>
@@ -322,7 +322,7 @@
         <h3>
             <span class="en"></span>
             <span class="he"></span>
-        </h3> 
+        </h3>
         <p>
             <span class="en"></span>
             <span class="he"></span>
@@ -334,7 +334,7 @@
 {% endblock %}
 
 {% block js %}
-    <script src="/static/js/hopscotch.js"></script>
+    <script src="/static/js/lib/hopscotch.js"></script>
     <link rel="stylesheet" href="/static/css/hopscotch.css">
     <script>
         $(function() {
@@ -377,10 +377,10 @@
             });
             $("#mailingListEmail").keyup(function(e){
                 if (e.keyCode === 13) {
-                    $("#subscribe").trigger("click");   
+                    $("#subscribe").trigger("click");
                 }
             });
-            
+
             // Announcement
             if ($("#announcement p .en").text() && $(window).width() > 830) {
                 if (!$("#announcement h3 .he").text()) {

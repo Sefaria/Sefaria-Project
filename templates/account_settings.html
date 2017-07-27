@@ -92,10 +92,10 @@
 						alert(data.error);
 					} else {
 						alert("Settings Saved.");
-						Sefaria.site.track.event("Settings", "Settings Save", $("#emailNotifications input:checked").val());
+						Sefaria.track.event("Settings", "Settings Save", $("#emailNotifications input:checked").val());
 						var $newLang = $("#siteLanguage .toggleOption.active").attr("data-value");
 						if($newLang != $curLang){
-						    Sefaria.site.track.setInterfaceLanguage("interface language account settings", $newLang);
+						    Sefaria.track.setInterfaceLanguage("interface language account settings", $newLang);
                         }
 						window.location = "/account";
 					}

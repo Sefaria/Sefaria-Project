@@ -207,7 +207,7 @@
 				<div contenteditable="true" id="bio">
 					{% autoescape off %}
 					{{ profile.bio }}
-					{% endautoescape %}				
+					{% endautoescape %}
 				</div>
 			</div>
 			<div id="jewishEducation" class="field control-elem">
@@ -344,7 +344,7 @@
 			{name: 'removestyle', items: ['RemoveFormat']},
 			{name: 'basicstyles', items: [ 'Bold', 'Italic', 'Underline', 'Strike', 'Subscript', 'Superscript' ] },
 			{name: "justify", items: [ 'JustifyLeft', 'JustifyCenter', 'JustifyRight', 'JustifyBlock' ] },
-			{ name: 'paragraph', items: [ 'NumberedList', 'BulletedList' ] }, 
+			{ name: 'paragraph', items: [ 'NumberedList', 'BulletedList' ] },
 			'/',
 			{ name: 'styles', items: [ 'Font', 'FontSize' ] },
 			{ name: 'colors', items: [ 'TextColor', 'BGColor' ] },
@@ -361,7 +361,7 @@
 			}).on("blur", "input", function(e) {
 				if ($(this).val().length == 0 && $("#jewishEducation li").length > 1) {
 					$(this).closest("li").remove();
-				} 
+				}
 			});
 			$("#jewishEducation").on("click", ".remove", function(e) {
 				$(this).closest("li").remove();
@@ -376,14 +376,14 @@
 				$("#jewishEducation").find("input").each(function() {
 					var val = $(this).val();
 					if (val) {
-						jewishEducation.push(val);						
+						jewishEducation.push(val);
 					}
 				});
 				var pinnedSheets = [];
 				$("#pinnedSheets").find("a").each(function() {
 					var id = parseInt($(this).attr("data-id"));
 					if (id) {
-						pinnedSheets.push(id);						
+						pinnedSheets.push(id);
 					}
 				});
 				// Strip full URLs from youtube and twitter user names
@@ -402,9 +402,9 @@
                 });
 
 				var profile = {
-					first_name:       $("#firstName").val(),   
-					last_name:        $("#lastName").val(),   
-					bio:              $("#bio").text() ? $("#bio").html() : "",   
+					first_name:       $("#firstName").val(),
+					last_name:        $("#lastName").val(),
+					bio:              $("#bio").text() ? $("#bio").html() : "",
 					position:         $("#position").val(),
 					organization:     $("#organization").val(),
 					website:          $("#website").val(),
@@ -424,7 +424,7 @@
 						alert(data.error);
 					} else {
 						if (Sefaria) {
-							Sefaria.site.track.event("Settings", "Profile Edit", "");
+							Sefaria.track.event("Settings", "Profile Edit", "");
 						}
 						window.location = "/my/profile";
 					}

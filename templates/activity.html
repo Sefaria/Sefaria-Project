@@ -53,7 +53,7 @@
 </div>
 {% endblock %}
 
-{% block js %} 
+{% block js %}
 	{% if single %}
 		<script>{% include "js/django-csrf.js" %}</script>
 		<script>
@@ -75,12 +75,12 @@
 		</script>
 	{% else %}
 		<script>
-			$("#contributors h4").click(function() { 
+			$("#contributors h4").click(function() {
 				$("#contributors .board").show();
 			});
 		</script>
 	{% endif %}
-	<script src="/static/js/jquery.raty.js"></script>
+	<script src="/static/js/lib/jquery.raty.js"></script>
 	<script>
 	    var ratySettings = { // for text review ratings
 	        path: "/static/img/raty/",
