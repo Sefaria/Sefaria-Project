@@ -48,7 +48,7 @@ On Debian systems:
 
 On Fedora systems:
 
-    sudo yum install python-devel
+    sudo dnf install python2-devel
 
 After installing the Python development libraries, run `pip install -r requirements.txt` again.
 
