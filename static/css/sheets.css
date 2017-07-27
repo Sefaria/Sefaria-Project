@@ -306,7 +306,7 @@ body {
 }
 .interface-hebrew .subMenu{
 	/*left: initial;*/
-	right: 248px;
+	right: 250px;
 	box-shadow: -1px 1px 1px #555;
 }
 .optionGroup {
@@ -2216,14 +2216,16 @@ a.tagit-close {
 
 .highlightFilterSelection {
 	padding: 10px 12px;
+	display: flex;
+	justify-content: flex-start;
 }
 
-.highlightFilterSelection label {
+#sheetsContent .highlightFilterSelection label {
 	font-size: 17px;
 }
 
-.highlightFilterSelection input {
-	margin: 0;
+#sheetsContent .highlightFilterSelection input {
+	margin: auto;
 }
 
 .highlighterFilterTags{
