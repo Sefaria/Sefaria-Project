@@ -23,6 +23,7 @@ except ImportError:
 
 from . import abstract as abst
 from schema import deserialize_tree, SchemaNode, JaggedArrayNode, TitledTreeNode, AddressTalmud, TermSet, TitleGroup
+from sefaria.system.database import db
 
 import sefaria.system.cache as scache
 from sefaria.system.exceptions import InputError, BookNameError, PartialRefInputError, IndexSchemaError, NoVersionFoundError
@@ -180,7 +181,7 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
     optional_attrs = [
         "titleVariants",      # required for old style
         "schema",             # required for new style
-        "sectionNames",       # required for old style simple texts, sometimes erroneously present for commnetary
+        "sectionNames",       # required for old style simple texts, sometimes erroneously present for commentary
         "heTitle",            # optional for old style
         "heTitleVariants",    # optional for old style
         "maps",               # deprecated
@@ -2790,7 +2791,10 @@ class Ref(object):
 
         :return: Bool True is there is not text at this ref in any language
         """
-        return not len(self.versionset())
+
+        # The commented code is easier to understand, but the code we're using puts a lot less on the wire.
+        # return not len(self.versionset())
+        return db.texts.find(self.condition_query(), {"_id": 1}).count() == 0
 
     def _iter_text_section(self, forward=True, depth_up=1):
         """
@@ -3186,7 +3190,6 @@ class Ref(object):
                 return ["{}{}".format(escaped_book, p) for p in patterns]
             else:
                 return "%s(%s)" % (escaped_book, "|".join(patterns))
-
 
     def ref_regex_query(self):
         """
@@ -3849,7 +3852,7 @@ class Library(object):
     def get_toc_tree(self):
         if not self._toc_tree:
             from sefaria.model.category import TocTree
-            self._toc_tree = TocTree()
+            self._toc_tree = TocTree(self)
         return self._toc_tree
 
     def get_search_filter_toc(self):
@@ -4179,13 +4182,10 @@ class Library(object):
         :return: list of root Index nodes.
         """
         root_nodes = [i.nodes for i in self._index_map.values()]
-        #root_nodes = [i.nodes for i in self.all_index_records()]
-        #root_nodes = [i.nodes for i in IndexSet() if i.nodes]
         return root_nodes
 
     def all_index_records(self):
-        r = [i for i in IndexSet() if i.nodes]
-        return r
+        return self._index_map.values()
 
     def get_title_node_dict(self, lang="en"):
         """

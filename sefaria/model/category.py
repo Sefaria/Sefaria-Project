@@ -100,10 +100,14 @@ def toc_serial_to_objects(toc):
 
 
 class TocTree(object):
-    def __init__(self):
+    def __init__(self, lib=None):
+        """
+        :param lib: Library object, in the process of being created
+        """
         self._root = TocCategory()
         self._root.add_primary_titles("TOC", u"שרש")
         self._path_hash = {}
+        self._library = lib
 
         # Store sparseness data (same functionality as sefaria.summaries.get_sparseness_lookup()
         vss = db.vstate.find({}, {"title": 1, "content._en.sparseness": 1, "content._he.sparseness": 1})
@@ -115,7 +119,8 @@ class TocTree(object):
             self._add_category(c)
 
         # Place Indexes
-        for i in text.IndexSet():
+        indx_set = self._library.all_index_records() if self._library else text.IndexSet()
+        for i in indx_set:
             node = self._make_index_node(i)
             cat = self.lookup(i.categories)
             if not cat:

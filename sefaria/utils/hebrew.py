@@ -491,6 +491,18 @@ def hebrew_term(s):
 			return term.get_primary_title('he')
 	return ''
 
+	# The below gives us a speed boost, a touch, since the Term case is more common, but does adjust semantics in case of collision.
+	'''
+	term = Term().load({'name': s})
+	if term:
+		return term.get_primary_title('he')
+	else:
+		try:
+			i = library.get_index(s)
+			return i.get_title("he")
+		except BookNameError:
+			return ''
+	'''
 
 def get_simple_term_mapping():
 	from sefaria.model import TermSet, Term
