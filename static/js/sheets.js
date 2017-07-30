@@ -693,18 +693,16 @@ $(function() {
 	// --------- CKEditor ------------
 
 	if (sjs.can_edit || sjs.can_add ) {
-		/*CKEDITOR.config.language = sjs.interfaceLangShort;*/
+		CKEDITOR.config.language = sjs.interfaceLangShort;
 		CKEDITOR.disableAutoInline = true;
 		CKEDITOR.config.startupFocus = true;
 		CKEDITOR.config.extraAllowedContent = 'small; span(segment, gemarra-regular, gemarra-italic, it-text); div(oldComment)';
-		CKEDITOR.config.removePlugins = 'magicline';
+		CKEDITOR.config.removePlugins = 'magicline,resize';
 
 		if ($.cookie("s2") == "true") {
-
-		CKEDITOR.config.extraPlugins = 'sharedspace';
-		CKEDITOR.config.sharedSpaces = {top: 'ckeTopMenu' };
-
-			}
+            /*CKEDITOR.config.extraPlugins = 'sharedspace';*/
+            CKEDITOR.config.sharedSpaces = {top: 'ckeTopMenu' };
+        }
 		CKEDITOR.on('instanceReady', function(ev) {
 		  // replace &nbsp; from pasted text
 		  ev.editor.on('paste', function(evt) {
@@ -724,7 +722,6 @@ $(function() {
 			'Verdana/Verdana, Geneva, sans-serif;';
 
 		if ($.cookie("s2") == "true") {
-
 			CKEDITOR.config.toolbar = [
 				{name: 'removestyle', items: ['RemoveFormat']},
 				{name: 'basicstyles', items: ['Bold', 'Italic', 'Underline', 'Strike', 'Subscript', 'Superscript']},
@@ -821,6 +818,7 @@ $(function() {
 
 			editor.destroy();
 			$("[contenteditable]").attr("contenteditable", "false");
+			$(".sheetsEditorControls").hide();
 		};
 
 		sjs.removeCKEditorByElement = function(el) {
@@ -829,6 +827,7 @@ $(function() {
 		};
 
 		sjs.initCKEditor = function(e) {
+			$(".sheetsEditorControls").show();
 			// Don't init again, or while sorting
 			if ($(this).hasClass("cke_editable")) { return; }
 			if (sjs.flags.sorting) { return; }

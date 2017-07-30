@@ -1523,24 +1523,30 @@ line-height: normal;
     border-bottom: 1px solid #E2E2E1;
     box-sizing: border-box;
     z-index: 21;
-    padding: 7px 30px 6px 30px;
     font-size: 16px;
     color: #333;
     top: 54px;
 }
 
-.sheetsEditNavTopInner{
+.sheetsMenuBar, .sheetsEditorControls{
+	padding: 7px 30px 6px 30px;
+}
+
+.sheetsMenuBar{
+
+}
+
+.sheetsEditorControls{
+	border-top: 1px solid #E2E2E1;
+	display: none;
+}
+
+.sheetsMenuBarInner{
 	display: flex;
 	justify-content: space-between;
 	direction: inherit;
 	align-items: center;
 }
-
-.sheetsEditNavTopInner > div{
-	/*margin-left: 30px;
-	margin-right: 30px;*/
-}
-
 
 .sheetsMenuBarCommands{
 	display: flex;
@@ -1550,7 +1556,6 @@ line-height: normal;
 .sheetsEditNavTop .optionsMenu {
 	color: #333;
 }
-
 
 #sheet p {
 	font-size: inherit;
@@ -1598,22 +1603,18 @@ line-height: normal;
 }
 
 #ckeTopMenu .cke_top, #ckeTopMenu .cke_shared{
-	border: #f2f2f2 solid 1px;
+	border: none;
 	background: #f2f2f2;
 	-moz-box-shadow: none;
     -webkit-box-shadow: none;
     box-shadow: none;
 	width:100%;
+	padding: 0;
 }
 
 #ckeTopMenu .cke_inner {
-    padding: 0 7px;
+    padding: 0 0px;
 	background: #f2f2f2;
-	position: relative;
-	margin-bottom: -8px;
-	border-bottom: 1px solid #E2E2E1;
-
-
 }
 
 #ckeTopMenu .cke_inner:after {
@@ -1623,6 +1624,10 @@ line-height: normal;
 	left:-20px;
 	right:-20px;
 	border-top: 1px solid #E2E2E1;
+}
+
+.cke_toolgroup, a.cke_combo_button{
+	margin-bottom: 0;
 }
 
 .activeSource {
