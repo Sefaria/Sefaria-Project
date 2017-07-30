@@ -1962,6 +1962,7 @@ a.readerNavCategory {
   text-transform: uppercase;
   letter-spacing: 1px;
   font-weight: lighter;
+  outline: none;
 }
 .connectionsPanelHeader .connectionsHeaderTitle.active {
   text-transform: none;
@@ -2583,6 +2584,7 @@ a.readerNavCategory {
   width: 30px;
   text-align: center;
   line-height: 32px;
+  outline: none;
 }
 .connectionsPanelHeader .languageToggle {
   margin: 0 15px;

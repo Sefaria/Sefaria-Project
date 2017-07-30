@@ -5,22 +5,45 @@
 {% load humanize %}
 {% load sefaria_tags %}
 
-{% block title %}
-		{% if title %}
-			{{ title|striptags|strip_html_entities }} | Sefaria Source Sheet Builder
-		{% else %}
-			Sefaria Source Sheet Builder
-		{% endif %}
+{% block titleEnglish %}
+    {% if title %}
+    	{{ title|striptags|strip_html_entities }} | Visualized | Sefaria Source Sheet Builder
+    {% else %}
+    	Start a New Sheet - Sefaria Source Sheet Builder
+    {% endif %}
+{% endblock %}
+
+{% block titleHebrew %}
+    {% if title %}
+        {{ title|striptags|strip_html_entities }} | Visualized | Sefaria Source Sheet Builder
+    {% else %}
+        Start a New Sheet - Sefaria Source Sheet Builder
+    {% endif %}
+{% endblock %}
+
+{% block descriptionEnglish %}
+    {% if sheet.owner %}
+        Visual layout of a source sheet by {{ sheet.owner|user_name }} created with Sefaria's Source Sheet Builder.
+    {% else %}
+        Create your own source sheet with Sefaria's Source Sheet Builder.
+    {% endif %}
+{% endblock %}
+
+{% block descriptionHebrew %}
+    {% if sheet.owner %}
+        Visual layout of a {{ sheet.owner|user_name }} created with Sefaria's Source Sheet Builder.
+    {% else %}
+        Create your own source sheet with Sefaria's Source Sheet Builder.
+    {% endif %}
 {% endblock %}
 
 {% block head %}
-    <meta property="og:title" content="Sefaria.org : a Living Library of Jewish Texts Online"/>
-    <meta property="og:type" content="website"/>
-    <meta property="og:url" content="https://www.sefaria.org"/>
-    <meta property="og:image" content="https://www.sefaria.org/static/img/fb-og-image.png"/>
     <link rel="stylesheet" type="text/css" href="/static/css/tooltipster.css" />
-
+    {% if EMBED %}
+        <link rel="canonical" href="{{ canonical_url }}">
+    {% endif %}
 {% endblock %}
+
 
 {% block content %}
 

@@ -1,6 +1,11 @@
 {% extends "base.html" %}
 
-{% block title %}About Sefaria{% endblock %}
+{% block titleEnglish %}About Sefaria{% endblock %}
+{% block titleHebrew %}אודות ספאריה{% endblock %}
+
+{% block descriptionEnglish %}Sefaria is a non-profit organization dedicated to building the future of Jewish learning in an open and participatory way.{% endblock %}
+
+{% block descriptionHebrew %}ספאריה הוא מלכ"ר השואף לעיצוב עתיד הלימוד היהודי כך שיהא פתוח ושיתופי.{% endblock %}
 
 {% block css %}
     #top #languageToggle {
@@ -15,8 +20,6 @@
 {% endblock %}
 
 {% block content %}
-
-{% if S2 %}
 <div id="aboutPage" class="biReady container static">
     <div class="inner">
         <h1>
@@ -210,87 +213,4 @@
         </div>
     </div>
 </div>
-{% else %}
-<div id="aboutPage" class="biReady container">
-    <div class="page-title"><h1>
-        <span class="int-en">About Sefaria</span>
-        <span class="int-he">אודות ספאריה</span>
-    </h1></div>
-    <div class="row" id="about">
-        <div class="about main-text">
-            <br>
-            <p class="tagline">
-                <span class="int-en">Sefaria is building the future of Jewish learning in an open and participatory way.</span>
-                <span class="int-he">מטרת הפרויקט : פיתוח מודל לימוד תורה פתוח מבוסס תוכן גולשים.</span>
-            </p>
-
-            <p>
-                <span class="int-en">We are building a free living library of Jewish texts and their interconnections, in Hebrew and in translation. Our scope is Torah in the broadest sense, from Tanakh to Talmud to Zohar to modern texts and all the volumes of commentary in between. Sefaria is created, edited, and annotated by an open community.</span>
-                <span class="int-he">אנו מפתחים ספריה דינמית ופתוחה של טקסטים יהודיים יחד עם ההפניות השונות ביניהם, בשפה העברית וגם בתרגומים. הספריה שואפת לכלול את התורה במובנה הרחב- מהתלמוד ועד הזוהר, מהתנ"ך ועד טקסטים בני ימינו. ספאריה נוצרת, נערכת, ומוערת ע"י קהילת הגולשים.</span>
-            </p>
-
-            <p>
-                <span class="int-en">Having digital texts enables us to create new, interactive interfaces for the Web, tablet and mobile which allow students and scholars around the world to freely learn and explore the interconnections among Torah texts.</span>
-                <span class="int-he">תהליך הדיגיטציה של הטקסט התורני בטכנולוגית הקוד הפתוח מאפשרת  לחוקרים, סטודנטים ומפתחים ברחבי העולם לפתח ולהתאים ממשקים חדשים (למחשב ולמכשירים ניידים) ללימוד ומחקר של הטקסט התורני תוך התייחסות חדשה לקשרים  המילוליים, הענייניים והאסוציאטיבים בין הטקסטים השונים.</span>
-            </p>
-
-            <p>
-                <span class="int-en">Judaism's core texts grew out of millennia-long conversations and arguments across generations. We envision creating an open space for ancient conversations to continue in new ways, with new participants, new questions, and new layers of dialogue.</span>
-                <span class="int-he">ספרי היסוד של היהדות צמחו מתוך דו-שיח, דיונים ומחלוקות שנמשכו על פני דורות רבים. אנו שואפים ליצירת מרחב פתוח בו הדיאלוג העתיק הזה יוכל להמשיך בדרכים חדשות, עם משתתפים חדשים שישאלו שאלות חדשות ויתרמו רבדים חדשים לשיח הנצחי.</span>
-            </p>
-        </div>
-
-        <div id="bites" class="">
-            <h3>
-                <span class="int-en">In the Public Domain</span>
-                <span class="int-he">ברשות הרבים </span>
-            </h3>
-            <p>
-                <span class="int-en">For the Jewish people, our texts are our collective treasure. They belong to everyone and we want them to be available to everyone, in the public domain or with free public licenses.</span>
-                <span class="int-he">אסופת ההגות היהודית לאורך הדורות הינה נכס לאומי וציבורי. אנו שואפים שלציבור תהיה גישה אליה על ידי שימוש בקוד פתוח או ברשיונות ציבוריים.</span>
-            </p>
-            <h3>
-                <span class="int-en">Interconnected</span>
-                <span class="int-he">רב-קישורי</span>
-            </h3>
-            <p>
-                <span class="int-en">Our tradition is inherently interconnected. Dialogue, source citing, and reinterpretation have always been our way. We need an interactive experience of our texts that reflects this network of connections.</span>
-                <span class="int-he">המסורת שלנו בנויה מטבעה כך שמקורות מתייחסים תמיד על המקורות שקדמו להם. דו-שיח,  ציטוטים, מראי מקומות ומדרש היו דרכנו מאז ומעולם. אנו זקוקים לחוויה אינטראקטיבית המשקפת רשת קשרים זו.</span>
-            </p>
-            <h3>
-                <span class="int-en">Open to Reuse</span>
-                <span class="int-he">פתוח לשימוש חוזר</span>
-            </h3>
-            <p>
-                <span class="int-en">We want to be a resource without the red tape, whether it's copying a page of text for republication or <a href="https://github.com/Sefaria/Sefaria-Export">downloading our entire database</a> for research and new projects.</span>
-                <span class="int-he">אנו חפצים בהנגשת הטקסט כולו לציבור ללא בירוקרטיה מבלבלת. יובהר: מותרת העתקה, שיכפול, צילום ואפילו הורדת כל מאגר הנתונים שלנו על פי כללי השימוש ההוגן.</span>
-            </p>
-            <h3>
-                <span class="int-en">Community Driven</span>
-                <span class="int-he">ממונע ע"י הציבור</span>
-            </h3>
-            <p>
-                <span class="int-en">Our goal is to foster an open community of stewards who choose to take an active role in making our texts accessible and relevant to the future.</span>
-                <span class="int-he">מטרתנו היא לטפח קהילת גולשים מעורבת ופעילה שתבחר לפעול למען הנגשת הטקסטים שלנו ולמען הרלוונטיות שלהם לדור ההמשך.</span>
-            </p>
-            <h3>
-                <span class="int-en">Infrastructure for Jewish Tech</span>
-                <span class="int-he">תשתית יהודית בעולם מרושת</span>
-            </h3>
-            <p>
-                <span class="int-en">All our code is released under an open source license, and we're offering services (like our <a href="/developers">Torah Texts API</a>) to any projects that can make use of them. The basic infrastructure for Jewish tech is something we should share.</span>
-                <span class="int-he">כל הקוד שלנו הותר לפרסום ברישיון בקוד פתוח. אנחנו מציעים שירותים (כגון ממשק המפתחים לטקסטים שלנו <a href="/developers">Torah Texts API</a>) לכל פרויקט שיכול להיעזר בהם. התשתית הבסיסית עבור יהדות בעולם מרושת הוא נחלה המשותפת לכולם.</span>
-            </p>
-            <h3>
-                <span class="int-en">Space for New Conversations</span>
-                <span class="int-he">מרחב לרב-שיח חדש</span>
-            </h3>
-            <p>
-                <span class="int-en">Bringing together all of the written Torah of the past is just a start. Where will we find the most important dialogues of the future?</span>
-                <span class="int-he">איסוף כל התורה כולה הכתובה מן קדמת דנא הוא רק התחלה. היכן נמצאים רבי השיח החשובים של העתיד?</span>
-            </p>
-        </div>
-    </div>
-</div>
-{% endif %}
 {% endblock %}

@@ -4,32 +4,43 @@
 {% load humanize %}
 {% load sefaria_tags %}
 
-{% block title %}
-		{% if title %}
-			{{ title|striptags|strip_html_entities }} | Sefaria Source Sheet Builder
-		{% else %}
-			Sefaria Source Sheet Builder
-		{% endif %}
+{% block titleEnglish %}
+    {% if title %}
+    	{{ title|striptags|strip_html_entities }} | Sefaria Source Sheet Builder
+    {% else %}
+    	Start a New Sheet - Sefaria Source Sheet Builder
+    {% endif %}
+{% endblock %}
+
+{% block titleHebrew %}
+    {% if title %}
+        {{ title|striptags|strip_html_entities }} | Sefaria Source Sheet Builder
+    {% else %}
+        Start a New Sheet - Sefaria Source Sheet Builder
+    {% endif %}
+{% endblock %}
+
+{% block descriptionEnglish %}
+    {% if sheet.owner %}
+        A source sheet by {{ sheet.owner|user_name }} created with Sefaria's Source Sheet Builder.
+    {% else %}
+        Create your own source sheet with Sefaria's Source Sheet Builder.
+    {% endif %}
+{% endblock %}
+
+{% block descriptionHebrew %}
+    {% if sheet.owner %}
+        A source sheet by {{ sheet.owner|user_name }} created with Sefaria's Source Sheet Builder.
+    {% else %}
+        Create your own source sheet with Sefaria's Source Sheet Builder.
+    {% endif %}
 {% endblock %}
 
 {% block head %}
-    {% if title %}
-        <meta property="og:title" content="{{ title|striptags|strip_html_entities }}"/>
-    {% else %}
-        <meta property="og:title" content="Sefaria Source Sheet Builder"/>
-    {% endif %}
-
-    {% if sheet.owner %}
-        <meta property="og:description" content="A source sheet by {{ sheet.owner|user_name }} created with Sefaria's Source Sheet Builder"/>
-    {% else %}
-        <meta property="og:description" content="Design your own source sheets with Sefaria"/>
-    {% endif %}
-
-    <meta property="og:type" content="website"/>
-    <meta property="og:image" content="https://www.sefaria.org/static/img/fb-og-image.png"/>
     <link rel="stylesheet" type="text/css" href="/static/css/tooltipster.css" />
-
-
+    {% if EMBED %}
+        <link rel="canonical" href="{{ canonical_url }}">
+    {% endif %}
 {% endblock %}
 
 {% block css %}

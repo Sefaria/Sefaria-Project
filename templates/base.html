@@ -3,11 +3,21 @@
 <!DOCTYPE html>
 <html>
 <head>
+    {% if interfaceLang == "english" %}
+        <title>{% block titleEnglish %}{% endblock %}</title>
+        <meta name="description" property="og:description" content="{% block descriptionEnglish %}{% endblock %}">
+    {% elif interfaceLang == "hebrew" %}
+        <title>{% block titleHebrew %}{% endblock %}</title>
+        <meta name="description" property="og:description" content="{% block descriptionHebrew %}{% endblock %}">
+    {% endif %}
+
+    {% block ogtype %}<meta property="og:type" content="website"/>{% endblock %}
+    {% block ogimage %}<meta property="og:image" content="https://www.sefaria.org/static/img/fb-og-image.png"/>{% endblock %}
+    
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-itunes-app" content="app-id=1163273965">
     <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
-    {% block ogimage %}<meta property="og:image" content="https://www.sefaria.org/static/img/fb-og-image.png"/>{% endblock %}
-    <title>{% block title %}{% endblock %}</title>
+
     {% block head %}{% endblock %}    
 
     <link rel="stylesheet" href="/static/css/common.css">
