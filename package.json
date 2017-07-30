@@ -14,9 +14,11 @@
     "build-prod": "webpack --config webpack.config.js -p",
     "build-client": "webpack --config webpack.client.js ",
     "build-server": "webpack --config webpack.server.js ",
+    "build-diffPage": "webpack --config webpack.diffPage.js ",
     "watch": "webpack --config webpack.config.js --progress -w --stdin",
     "watch-server": "webpack --config webpack.server.js --progress -w --stdin",
     "watch-client": "webpack --config webpack.client.js --progress -w --stdin",
+    "watch-diffPage": "webpack --config webpack.diffPage.js --progress -w --stdin",
     "setup": "npm install -g nodemon; npm install -g babel-cli; npm install -g forever",
     "b": "npm run build",
     "w": "npm run watch",
@@ -45,7 +47,8 @@
     "striptags": "^2.1.1",
     "sync-exec": "^0.6.2",
     "webpack-node-externals": "^1.6.0",
-    "webpack-sources": "^1.0.1"
+    "webpack-sources": "^1.0.1",
+    "diff-match-patch": "^1.0.0"
   },
   "devDependencies": {
     "babel-cli": "^6.0.0",

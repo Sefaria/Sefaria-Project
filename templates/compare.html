@@ -59,7 +59,7 @@
     <div style="direction: rtl">
         <input id="filter" type="button" onclick="add_filter()" value="Update">
     </div>
-    <div>
+    <div id="DiffTable">
       <table>
           <tr>
               <th></th>
@@ -90,5 +90,12 @@
           {% endfor %}
       </table>
     </div>
+    <script>
+        var DJANGO_VARS = {
+            ga: function () {}
+        };
+    </script>
+    <script src="/data.js"></script>
+    <script src="/static/bundles/diffPage/diffPage.js"></script>
 </body>
 </html>
