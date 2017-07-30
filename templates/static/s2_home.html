@@ -270,13 +270,13 @@
                 <a href="http://blog.sefaria.org">
                     <span class="int-en">Read More &rsaquo;</span>
                     <span class="int-he"></span>
-                </a> 
+                </a>
             </div>
         </div>
         -->
-        
+
         <div id="homeProgress" class="section center">
-            <div class="sectionInner"> 
+            <div class="sectionInner">
                 <h3 class="sans">
                     <span class="int-en">Our Progress</span>
                     <span class="int-he">ספאריה במספרים</span>
@@ -350,7 +350,7 @@
                         <span class="int-en">Make a Donation</span>
                         <span class="int-he">לתמיכה ע"י תרומה</span>
                     </div>
-                </a> 
+                </a>
             </div>
         </div>
 
@@ -385,7 +385,7 @@
         $("#subscribe").click(function() {
             var email = $("#mailingListEmail").val();
             if (Sefaria.util.isValidEmailAddress(email)) {
-                Sefaria.site.track.event("Home", "Subscribe from Homepage", "");
+                Sefaria.track.event("Home", "Subscribe from Homepage", "");
                 $("#subscribeMsg").html("<i>Subscribing...</i>").show();
                 $.post("/api/subscribe/" + email, function(data) {
                     if ("error" in data) {
@@ -402,7 +402,7 @@
         });
         $("#mailingListEmail").keyup(function(e){
             if (e.keyCode === 13) {
-                $("#subscribe").trigger("click");   
+                $("#subscribe").trigger("click");
             }
         });
     });

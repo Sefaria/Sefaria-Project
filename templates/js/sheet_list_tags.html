@@ -1,4 +1,4 @@
-<script src="/static/js/jquery.tag-it.min.js"></script>
+<script src="/static/js/lib/jquery.tag-it.min.js"></script>
 <script>
     $(function() {
             {% if request.user.is_authenticated %}
@@ -67,8 +67,8 @@
                                     '<i class="fa fa-tag"></i>' +
                                     '<span class="tagName">' + tag + '</span>' +
                                     '<i class="remove fa fa-times"></i>' +
-                                    '<span class="tagCount">(0)</span>' + 
-                                '</div>'; 
+                                    '<span class="tagCount">(0)</span>' +
+                                '</div>';
                     $("#yourSheetsList").find(".addTag").before(html);
                     sjs.dropToTag($("#yourSheetsList").find(".sheetTag").not(".addTag").last());
                     sjs.saveUserTagOrder();
@@ -80,9 +80,9 @@
                 sjs.saveUserTagOrder();
                 sjs.alert.flash("Tag deleted.");
                 e.preventDefault();
-                e.stopPropagation();                  
+                e.stopPropagation();
             });
-    
+
         {% else %}
            $(".editTags").click(sjs.loginPrompt);
         {% endif %}
