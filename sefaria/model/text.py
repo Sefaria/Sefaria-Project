@@ -3919,7 +3919,10 @@ class Library(object):
         self._reset_toc_derivate_objects()
 
     def delete_index_from_toc(self, indx):
-        self._toc_tree.lookup(indx.categories, indx).detach()
+
+        toc_node = self._toc_tree.lookup(indx.categories, indx)
+        if toc_node:
+            toc_node.detach()
 
         from sefaria.summaries import recur_delete_element_from_toc
         self._search_filter_toc = recur_delete_element_from_toc(indx.title, self.get_search_filter_toc())
@@ -3935,7 +3938,7 @@ class Library(object):
         :param old_ref:
         :return:
         """
-        self._toc_tree.update_title(self.get_toc(), indx, old_ref=old_ref, recount=False)
+        self._toc_tree.update_title(indx, old_ref=old_ref, recount=False)
 
         from sefaria.summaries import update_title_in_toc
         self._search_filter_toc = update_title_in_toc(self.get_search_filter_toc(), indx, old_ref=old_ref, recount=False, for_search=True)
