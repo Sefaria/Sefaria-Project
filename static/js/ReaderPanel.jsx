@@ -422,6 +422,7 @@ class ReaderPanel extends Component {
   handleKeyPress(e) {
     if (e.keyCode === 27) {
       this.props.closePanel(e);
+    }
   }
   render() {
     if (this.state.error) {
