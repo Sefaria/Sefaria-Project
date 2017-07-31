@@ -3908,25 +3908,26 @@ class Library(object):
             return self._ref_auto_completer[lang]
 
     def recount_index_in_toc(self, indx):
-        self._toc_tree.update_title(indx, recount=True)
+        self.get_toc_tree().update_title(indx, recount=True)
 
         from sefaria.summaries import update_title_in_toc
         self._search_filter_toc = update_title_in_toc(self.get_search_filter_toc(), indx, recount=False, for_search=True)
 
+        self._toc = None
         self._toc_json = None
         self._search_filter_toc_json = None
         self._category_id_dict = None
         self._reset_toc_derivate_objects()
 
     def delete_index_from_toc(self, indx):
-
-        toc_node = self._toc_tree.lookup(indx.categories, indx)
+        toc_node = self.get_toc_tree().lookup(indx.categories, indx.title)
         if toc_node:
             toc_node.detach()
 
         from sefaria.summaries import recur_delete_element_from_toc
         self._search_filter_toc = recur_delete_element_from_toc(indx.title, self.get_search_filter_toc())
 
+        self._toc = None
         self._toc_json = None
         self._search_filter_toc_json = None
         self._category_id_dict = None
@@ -3938,11 +3939,12 @@ class Library(object):
         :param old_ref:
         :return:
         """
-        self._toc_tree.update_title(indx, old_ref=old_ref, recount=False)
+        self.get_toc_tree().update_title(indx, old_ref=old_ref, recount=False)
 
         from sefaria.summaries import update_title_in_toc
         self._search_filter_toc = update_title_in_toc(self.get_search_filter_toc(), indx, old_ref=old_ref, recount=False, for_search=True)
 
+        self._toc = None
         self._toc_json = None
         self._search_filter_toc_json = None
         self._category_id_dict = None
@@ -4037,7 +4039,6 @@ class Library(object):
         """
 
         self.remove_index_record_from_cache(index_object, old_title=old_title, rebuild=False)
-        new_index = None
         new_index = Index().load({"title": index_object.title})
         assert new_index, u"No Index record found for {}: {}".format(index_object.__class__.__name__, index_object.title)
         self.add_index_record_to_cache(new_index, rebuild=True)

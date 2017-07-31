@@ -22,19 +22,20 @@ model.library.rebuild_toc()
 
 """ THE TESTS """
 
-
 class Test_Toc(object):
 
     @classmethod
     def setup_class(cls):
-        model.IndexSet({"title": {"$in": ["New Toc Title Test", "New Toc Test", "Another New Toc Test", "Harchev Davar on Joshua"]}}).delete()
         model.library.rebuild_toc()
         cls.toc = model.library.get_toc()
         cls.search_toc = model.library.get_search_filter_toc()
 
     @classmethod
     def teardown_class(cls):
-        model.IndexSet({"title": {"$in": ["New Toc Title Test", "New Toc Test", "Another New Toc Test", "Harchev Davar on Joshua"]}}).delete()
+        titles = ["New Toc Title Test", "New Toc Test", "Another New Toc Test", "Harchev Davar on Joshua", "Bob is your Uncle"]
+        for title in titles:
+            model.IndexSet({"title": title}).delete()
+            model.VersionSet({"title": title}).delete()
 
     def test_toc_integrity(self):
         self.recur_toc_integrity(self.toc)
@@ -104,7 +105,8 @@ class Test_Toc(object):
         new_index.delete()
         verify_existence_across_tocs(new_index.title, None)
 
-
+        """
+        # Adding Indexes to non-existent categories doesn't work anymore.
         new_other_index = model.Index({
             "title": "Another New Toc Test",
             "heTitle": u"פםפם",
@@ -117,6 +119,7 @@ class Test_Toc(object):
         verify_existence_across_tocs(new_other_index.title, expected_toc_location=['Other'] + new_other_index.categories)
         new_other_index.delete()
         verify_existence_across_tocs(new_other_index.title, None)
+        """
 
         new_commentary_index = model.Index({
             "title": "Harchev Davar on Joshua",
@@ -125,12 +128,12 @@ class Test_Toc(object):
             "base_text_titles": ["Joshua"],
             "collective_title": "Harchev Davar",
             "sectionNames": ["Chapter", "Paragraph", "Comment"],
-            "categories": ["Tanakh", "Commentary", "Harchev Davar", "Prophets"]
+            "categories": ["Tanakh", "Commentary", "Harchev Davar"]
         })
         verify_existence_across_tocs(new_commentary_index.title, None)
         new_commentary_index.save()
         verify_title_existence_in_toc(new_commentary_index.title, expected_toc_location=new_commentary_index.categories, toc=self.toc)
-        verify_title_existence_in_toc(new_commentary_index.title, expected_toc_location=["Tanakh Commentaries", "Harchev Davar", "Prophets"], toc=self.search_toc)
+        verify_title_existence_in_toc(new_commentary_index.title, expected_toc_location=["Tanakh Commentaries", "Harchev Davar"], toc=self.search_toc)
         new_commentary_index.delete()
         verify_existence_across_tocs(new_commentary_index.title, None)
 
@@ -166,7 +169,7 @@ class Test_Toc(object):
 
         old_title = 'Likutei Moharan'
         new_title = 'The Likutei Moharan'
-        toc_location = ['Chasidut']
+        toc_location = ['Chasidut', 'Breslov']
         old_toc_path = get_all_toc_locations(old_title, model.library.get_toc())[0]
         assert toc_path_to_string(old_toc_path) == toc_path_to_string(toc_location)
         i = model.Index().load({"title": old_title})

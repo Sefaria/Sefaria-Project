@@ -5,6 +5,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 from sefaria.system.database import db
+from sefaria.system.exceptions import BookNameError
 from . import abstract as abstract
 from . import schema as schema
 from . import text as text
@@ -155,9 +156,10 @@ class TocTree(object):
             cat.children.sort(key=_sparseness_order)
             cat.children.sort(key=lambda node: 'zzz' + node.primary_title("en") if isinstance(node, TocCategory) and node.primary_title("en") in REVERSE_ORDER else 'a')
 
-    def _make_index_node(self, index):
+    def _make_index_node(self, index, old_title=None):
         d = index.toc_contents()
-        d["sparseness"] = self._sparseness_lookup[d["title"]]
+        title = old_title or d["title"]
+        d["sparseness"] = self._sparseness_lookup.get(title,1)
         return TocTextIndex(d, index_object=index)
 
     def _add_category(self, cat):
@@ -194,19 +196,28 @@ class TocTree(object):
     def update_title(self, index, old_ref=None, recount=True):
         title = old_ref or index.title
         node = self.lookup(index.categories, title)
-        if not node:
-            logger.warn("Failed to find TOC node to update: {}".format(u"/".join(index.categories + [title])))
-            return
 
-        if recount:
+        if recount or not node:
             from version_state import VersionState
-            vs = VersionState(title)
+            try:
+                vs = VersionState(title)
+            except BookNameError:
+                logger.warning(u"Failed to find VersionState for {} in TocTree.update_title()".format(title))
+                return
             vs.refresh()
             sn = vs.state_node(index.nodes)
             self._sparseness_lookup[title] = max(sn.get_sparseness("en"), sn.get_sparseness("he"))
 
-        new_node = self._make_index_node(index)
-        node.replace(new_node)
+        new_node = self._make_index_node(index, title)
+        if node:
+            node.replace(new_node)
+        else:
+            logger.info(u"Did not find TOC node to update: {} - adding.".format(u"/".join(index.categories + [title])))
+            cat = self.lookup(index.categories)
+            if not cat:
+                print u"Failed to find category for {}".format(index.categories)
+            cat.append(new_node)
+
         self._path_hash[tuple(index.categories + [index.title])] = new_node
 
 

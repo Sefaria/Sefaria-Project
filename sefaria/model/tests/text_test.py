@@ -6,18 +6,19 @@ import pytest
 import sefaria.model as model
 from sefaria.system.exceptions import InputError
 
-def setup_module(module):
-    title = 'Test Commentator Name'
-    model.IndexSet({"title": title}).delete()
-    title = 'Bartenura (The Next Generation)'
-    model.IndexSet({"title": title}).delete()
 
 def teardown_module(module):
-    title = 'Test Commentator Name'
-    model.IndexSet({"title": title}).delete()
-    title = 'Bartenura (The Next Generation)'
-    model.IndexSet({"title": title}).delete()
+    titles = ['Test Commentator Name',
+              'Bartenura (The Next Generation)',
+              'Test Index Name',
+              "Changed Test Index",
+              "Third Attempt",
+              "Test Iu",
+              "Test Del"]
 
+    for title in titles:
+        model.IndexSet({"title": title}).delete()
+        model.VersionSet({"title": title}).delete()
 
 
 def test_dup_index_save():
@@ -358,7 +359,6 @@ def test_index_update():
         update of Index, like what happens on the frontend, doesn't whack hidden attrs
     '''
     ti = "Test Iu"
-    model.IndexSet({"title": ti}).delete()
 
     i = model.Index({
         "title": ti,
@@ -390,8 +390,6 @@ def test_index_update():
 def test_index_delete():
     #Simple Text
     ti = "Test Del"
-    model.IndexSet({"title": ti}).delete()
-    model.VersionSet({"title": ti}).delete()
 
     i = model.Index({
         "title": ti,
