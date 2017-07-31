@@ -3449,7 +3449,8 @@ function copyToSheet(source) {
 			sheets += '<li class="sheet new"><i>Start a New Source Sheet</i></li>';
 			for (i = 0; i < data.sheets.length; i++) {
 				sheets += '<li class="sheet" data-id="'+data.sheets[i].id+'">'+
-					data.sheets[i].title.stripHtml() + "</li>";
+					(data.sheets[i].title === null ? "Untitled Source Sheet": data.sheets[i].title.stripHtml()) +
+					"</li>";
 			}
 			$("#sheetList").html(sheets);
 			$("#addToSheetModal").position({of:$(window)});

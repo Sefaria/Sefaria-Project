@@ -4303,10 +4303,10 @@ class VersionBlock extends Component {
       return (
 
         <div className = "versionBlock">
-          <a className="versionTitle" onClick={this.openVersion} href={"/" + (this.props.firstSectionRef ? this.props.firstSectionRef : this.props.version.versionTitle) + "/" + this.props.version.language + "/" + this.props.version.versionTitle}>
-            <span>{v.versionTitle}</span>
+          <div className="versionTitle">
+            <a onClick={this.openVersion} href={"/" + (this.props.firstSectionRef ? this.props.firstSectionRef : this.props.version.versionTitle) + "/" + this.props.version.language + "/" + this.props.version.versionTitle}>{v.versionTitle}</a>
             {edit_icon}
-          </a>
+          </div>
           <div className="versionDetails">
             <a className="versionSource" target="_blank" href={v.versionSource}>
             { Sefaria.util.parseURL(v.versionSource).host }
@@ -8179,7 +8179,7 @@ class AddToSourceSheetBox extends Component {
         <div className="dropdown">
           <div className="dropdownMain noselect" onClick={this.toggleSheetList}>
             <i className="dropdownOpenButton noselect fa fa-caret-down"></i>
-            {this.state.sheetsLoaded ? this.state.selectedSheet.title.stripHtml() : <LoadingMessage messsage="Loading your sheets..." heMessage="טוען את דפי המקורות שלך"/>}
+            {this.state.sheetsLoaded ? (this.state.selectedSheet.title === null ? "Untitled Source Sheet" : this.state.selectedSheet.title.stripHtml()) : <LoadingMessage messsage="Loading your sheets..." heMessage="טוען את דפי המקורות שלך"/>}
           </div>
           {this.state.sheetListOpen ? 
           <div className="dropdownListBox noselect">
