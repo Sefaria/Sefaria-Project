@@ -697,6 +697,11 @@ class ReaderApp extends Component {
     // Update or add panel after this one to be a TextList
     this.setTextListHighlight(n, [ref]);
     this.openTextListAt(n+1, [ref]);
+    if ($(".readerPanel")[n+1]) { //Focus on the first focusable element of the newly loaded panel. Mostly for a11y
+      var curPanel = $(".readerPanel")[n+1];
+      $(curPanel).find(':focusable').first().focus();
+    }
+
   }
   handleCitationClick(n, citationRef, textRef) {
     // Handle clicking on the citation `citationRef` which was found inside of `textRef` in panel `n`.
@@ -735,6 +740,8 @@ class ReaderApp extends Component {
     } else if (Sefaria.isRef(path)) {
       this.openPanel(Sefaria.humanRef(path));
     }
+    $( ".wrapper" ).remove();
+    $( "#footer" ).remove();
   }
   updateQueryInHeader(query) {
     var updates = {searchQuery: query, searchFiltersValid:  false};
@@ -1254,6 +1261,7 @@ class ReaderApp extends Component {
       var classes = classNames({readerPanelBox: 1, sidebar: panel.mode == "Connections"});
       panels.push(<div className={classes} style={style} key={key}>
                     <ReaderPanel
+                      panelPosition={i}
                       initialState={panel}
                       interfaceLang={this.props.interfaceLang}
                       setCentralState={setPanelState}

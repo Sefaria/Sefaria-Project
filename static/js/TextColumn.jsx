@@ -206,6 +206,14 @@ class TextColumn extends Component {
   adjustTextListHighlight() {
     // console.log("adjustTextListHighlight");
     // When scrolling while the TextList is open, update which segment should be highlighted.
+
+    // When using tab to navigate (i.e. a11y) set ref to currently focused ref
+    if ($(".segment:focus").length > 0) {
+      var ref = ($(".segment:focus").eq(0).attr("data-ref"));
+      this.props.setTextListHighlight(ref);
+      return false;
+    }
+
     if (this.props.multiPanel && this.props.layoutWidth == 100) {
       return; // Hacky - don't move around highlighted segment when scrolling a single panel,
     }
@@ -234,6 +242,9 @@ class TextColumn extends Component {
         this.justScrolled = true;
         var offset = this.getHighlightThreshhold();
         $container.scrollTo($highlighted, 0, {offset: -offset});
+        if ($readerPanel.attr("id") == $(".readerPanel:last").attr("id")) {
+          $highlighted.focus();
+        }
       }
     }.bind(this));
   }
@@ -251,6 +262,7 @@ class TextColumn extends Component {
     var classes = classNames({textColumn: 1, connectionsOpen: this.props.mode === "TextAndConnections"});
     var content =  this.props.srefs.map(function(ref, k) {
       return (<TextRange
+        panelPosition ={this.props.panelPosition}
         sref={ref}
         version={this.props.version}
         versionLanguage={this.props.versionLanguage}
