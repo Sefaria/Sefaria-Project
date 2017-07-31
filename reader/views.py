@@ -480,8 +480,10 @@ def s2_texts_category(request, cats):
     else:
         if props["interfaceLang"] == "hebrew":
             title = u"נצפו לאחרונה"
+            desc  = u""
         else:
             title = u"Recently Viewed"
+            desc  = u""
 
     props.update({
         "initialMenu": "navigation",
