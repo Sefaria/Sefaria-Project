@@ -3,7 +3,7 @@
 {% block titleEnglish %}Technology for Jewish Educators | Sefaria{% endblock %}
 {% block titleHebrew %}Technology for Jewish Educators | Sefaria{% endblock %}
 
-{% block descriptionEnglish %}Resources for educators using Sefaria in the classrom to teach Jewish texts.{% endblock descriptionEnglish %}
+{% block descriptionEnglish %}Resources for educators using Sefaria in the classrom to teach Jewish texts.{% endblock %}
 
 {% block descriptionHebrew %}Resources for educators using Sefaria in the classrom to teach Jewish texts.{% endblock %}
 
@@ -29,7 +29,7 @@
             </div>
 
             {% if user.email %}
-            <div id="educatorSubscribeButton" class="button control-elem" data-email="{{ user.email  }}">
+            <div tabindex="0" role="button" id="educatorSubscribeButton" class="button control-elem" data-email="{{ user.email  }}">
                 Get the Newsletter
             </div>
             <div id="subscribeEdMsg">&nbsp;</div>
@@ -310,6 +310,13 @@
                 })
             }
         });
+
+        $("#educatorSubscribeButton").keyup(function(e){
+            if (e.keyCode === 13) {
+                $("#educatorSubscribeButton").trigger("click");
+            }
+        });
+
 
 
         $("#mailingListEmail").keyup(function(e){
