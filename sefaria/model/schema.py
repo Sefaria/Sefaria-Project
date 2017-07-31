@@ -324,12 +324,17 @@ class TreeNode(object):
         """
         parent = self.parent
         assert parent
+
         parent.children = [c if c != self else node for c in parent.children]
+
+        node.parent = parent
+        self.parent = None
 
     def detach(self):
         parent = self.parent
         assert parent
         parent.children = [c for c in parent.children if c != self]
+        self.parent = None
 
     def append_to(self, node):
         """

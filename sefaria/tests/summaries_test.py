@@ -27,8 +27,6 @@ class Test_Toc(object):
     @classmethod
     def setup_class(cls):
         model.library.rebuild_toc()
-        cls.toc = model.library.get_toc()
-        cls.search_toc = model.library.get_search_filter_toc()
 
     @classmethod
     def teardown_class(cls):
@@ -38,8 +36,8 @@ class Test_Toc(object):
             model.VersionSet({"title": title}).delete()
 
     def test_toc_integrity(self):
-        self.recur_toc_integrity(self.toc)
-        self.recur_toc_integrity(self.search_toc)
+        self.recur_toc_integrity(model.library.get_toc())
+        self.recur_toc_integrity(model.library.get_search_filter_toc())
 
     def recur_toc_integrity(self, toc, depth=0):
         for toc_elem in toc:
@@ -132,19 +130,19 @@ class Test_Toc(object):
         })
         verify_existence_across_tocs(new_commentary_index.title, None)
         new_commentary_index.save()
-        verify_title_existence_in_toc(new_commentary_index.title, expected_toc_location=new_commentary_index.categories, toc=self.toc)
-        verify_title_existence_in_toc(new_commentary_index.title, expected_toc_location=["Tanakh Commentaries", "Harchev Davar"], toc=self.search_toc)
+        verify_title_existence_in_toc(new_commentary_index.title, expected_toc_location=new_commentary_index.categories, toc=model.library.get_toc())
+        verify_title_existence_in_toc(new_commentary_index.title, expected_toc_location=["Tanakh Commentaries", "Harchev Davar"], toc=model.library.get_search_filter_toc())
         new_commentary_index.delete()
         verify_existence_across_tocs(new_commentary_index.title, None)
 
     def test_index_attr_change(self):
         indx = model.Index().load({"title": "Or HaChaim on Genesis"})
-        verify_title_existence_in_toc(indx.title, expected_toc_location=['Tanakh', 'Commentary', 'Or HaChaim', 'Torah'], toc=self.toc)
-        verify_title_existence_in_toc(indx.title, expected_toc_location=['Tanakh Commentaries', 'Or HaChaim', 'Torah'], toc=self.search_toc)
+        verify_title_existence_in_toc(indx.title, expected_toc_location=['Tanakh', 'Commentary', 'Or HaChaim', 'Torah'], toc=model.library.get_toc())
+        verify_title_existence_in_toc(indx.title, expected_toc_location=['Tanakh Commentaries', 'Or HaChaim', 'Torah'], toc=model.library.get_search_filter_toc())
         indx.nodes.add_title("Or HaChaim HaKadosh", "en")
         indx.save()
         verify_title_existence_in_toc(indx.title, expected_toc_location=['Tanakh', 'Commentary', 'Or HaChaim', 'Torah'])
-        verify_title_existence_in_toc(indx.title, expected_toc_location=['Tanakh Commentaries', 'Or HaChaim', 'Torah'], toc=self.search_toc)
+        verify_title_existence_in_toc(indx.title, expected_toc_location=['Tanakh Commentaries', 'Or HaChaim', 'Torah'], toc=model.library.get_search_filter_toc())
 
 
         indx2 = model.Index().load({"title": "Sefer Kuzari"}) #Was Tanya, but Tanya has a hebrew title clash problem, momentarily.
