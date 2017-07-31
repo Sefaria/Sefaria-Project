@@ -1106,6 +1106,7 @@
 .static .toggleOption {
   background-color: white;
   color: #666;
+  outline: none;
 }
 .static .toggleOption.active {
   color: #666;
