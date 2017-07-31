@@ -226,6 +226,7 @@ def render_react_component(component, props):
         if isinstance(e, socket.timeout) or (hasattr(e, "reason") and isinstance(e.reason, socket.timeout)):
             logger.exception("Node timeout: Fell back to client-side rendering.")
             with open(NODE_TIMEOUT_MONITOR, "a") as myfile:
+                props = json.loads(props) if isinstance(props, str) else props
                 myfile.write("Timeout at {}: {} / {} / {} / {}\n".format(
                     datetime.now().isoformat(),
                     props.get("initialPath"),
