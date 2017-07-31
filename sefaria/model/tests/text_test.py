@@ -278,6 +278,7 @@ def test_index_title_setter():
     assert idx.nodes.key == third_title
     assert idx.nodes.primary_title("en") == third_title
     assert getattr(idx, 'title') == third_title
+    idx.save()
     idx.delete()
 
 

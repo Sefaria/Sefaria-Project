@@ -193,6 +193,11 @@ class TocTree(object):
             except KeyError:
                 return None
 
+    def remove_index(self, toc_node):
+        assert isinstance(toc_node, TocTextIndex)
+        del self._path_hash[tuple(toc_node.categories + [toc_node.primary_title()])]
+        toc_node.detach()
+
     def update_title(self, index, old_ref=None, recount=True):
         title = old_ref or index.title
         node = self.lookup(index.categories, title)

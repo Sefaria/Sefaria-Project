@@ -3922,7 +3922,7 @@ class Library(object):
     def delete_index_from_toc(self, indx):
         toc_node = self.get_toc_tree().lookup(indx.categories, indx.title)
         if toc_node:
-            toc_node.detach()
+            self.get_toc_tree().remove_index(toc_node)
 
         from sefaria.summaries import recur_delete_element_from_toc
         self._search_filter_toc = recur_delete_element_from_toc(indx.title, self.get_search_filter_toc())
@@ -4018,14 +4018,14 @@ class Library(object):
                     try:
                         del self._title_node_maps[lang][key]
                     except KeyError:
-                        logger.warning("Tried to delete non-existent title '{}' of index record '{}' from title-node map".format(key, index_title))
+                        logger.warning(u"Tried to delete non-existent title '{}' of index record '{}' from title-node map".format(key, index_title))
                     try:
                         del self._index_map[key]
                     except KeyError:
                         pass
                 del self._index_title_maps[lang][index_title]
             else:
-                logger.warning("Failed to remove '{}' from {} index-title and title-node cache: nothing to remove".format(index_title, lang))
+                logger.warning(u"Failed to remove '{}' from {} index-title and title-node cache: nothing to remove".format(index_title, lang))
                 return
 
         if rebuild:
