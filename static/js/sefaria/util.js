@@ -120,9 +120,9 @@ class Util {
     static cookie(key, value) {
      // Mock cookie function to mirror $.cookie for use Server Side
      if (typeof value === "undefined") {
-      return this._cookies[key];
+      return Util._cookies[key];
      }
-     this._cookies[key] = value;
+     Util._cookies[key] = value;
     }
     static setupPrototypes() {
 
@@ -518,16 +518,16 @@ class Util {
     static getScrollbarWidth() {
       // Returns the size of the browser scrollbars in pixels
       // May be 0 for browsers that hide scrollbars when not in use
-      if (this._scrollbarWidth !== null) {
-        return this._scrollbarWidth;
+      if (Util._scrollbarWidth !== null) {
+        return Util._scrollbarWidth;
       }
       $("body").append(
         '<div id="scrollbarTestA" style="display:none;overflow:scroll">' +
           '<div id="scrollbarTestB"></div>' +
         '</div>');
-        this._scrollbarWidth = $("#scrollbarTestA").width() - $("#scrollbarTestB").width();
+        Util._scrollbarWidth = $("#scrollbarTestA").width() - $("#scrollbarTestB").width();
         $("#scrollbarTestA").remove();
-        return this._scrollbarWidth;
+        return Util._scrollbarWidth;
     }
 }
 
