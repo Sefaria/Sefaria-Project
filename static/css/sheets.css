@@ -363,6 +363,7 @@ body {
 	border-radius: 3px;
 	z-index: 101;
 	width: 600px;
+	display: none;
 }
 #inlineTextPreview .en {
 	font-family: "adobe-garamond-pro", Georgia, serif
