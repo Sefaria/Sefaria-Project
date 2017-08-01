@@ -582,12 +582,13 @@ body {
 	background-color: #F9F9F7 !important;
 
 }
-.sideControls {
-	width: 16px !important;
-	left: 23px !important;
-	margin-left: 0 !important;
-	top: 32px !important;
-	background-color: transparent !important;
+#sourceControls.sideControls {
+	width: auto;
+	left: 23px;
+	margin-left: 0;
+	top: 32px;
+	bottom: auto;
+	background-color: inherit;
 
 }
 
