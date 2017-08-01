@@ -86,7 +86,6 @@ urlpatterns += patterns('reader.views',
     (r'^translation-requests/completed?', 'completed_translation_requests'),
     (r'^translation-requests/featured-completed?', 'completed_featured_translation_requests'),
     (r'^translation-requests/?', 'translation_requests'),
-    (r'^contests/(?P<page>new-profiles-contest)$', 'serve_static'),
     (r'^contests/(?P<slug>.+)$', 'contest_splash'),
     (r'^mishnah-contest-2013/?$', lambda x: HttpResponseRedirect('/contests/mishnah-contest-2013')),
 )
