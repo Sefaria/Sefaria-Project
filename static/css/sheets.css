@@ -511,7 +511,8 @@ body {
 
 .sheetItem {
 	position: relative;
-	padding: 10px 76px;
+	padding: 24px 76px;
+	box-sizing: border-box;
 	border: solid 1px transparent;
 	border-left: solid 6px transparent;
 }
@@ -1533,8 +1534,6 @@ line-height: normal;
 	position: relative;
 	margin-bottom: -8px;
 	border-bottom: 1px solid #E2E2E1;
-
-
 }
 
 #ckeTopMenu .cke_inner:after {
@@ -1557,17 +1556,16 @@ line-height: normal;
     text-align: center;
     width: 100%;
     padding: 0;
-    bottom: -32px;
-	position: relative;
+    left: 0;
+    bottom: -21px;
+	position: absolute;
     font-size: 30px;
 	z-index: 3;
 }
 
-
 .inlineAddButtonIcon::before {
 	content: url("../img/add icon.png");
 }
-
 
 .inlineAddButtonIcon.active {
 	content: url("../img/add icon active.png");
@@ -1593,7 +1591,6 @@ line-height: normal;
 	margin: 20px 74px;
 	display:flex;
 }
-
 
 .contentDiv > div {
 	display: none;
