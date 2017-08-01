@@ -19,7 +19,6 @@ class SearchFilters extends Component {
       isExactSearch: props.optionField === props.exactField
     }
   }
-
   componentWillReceiveProps(newProps) {
     // Save current filters
     // this.props

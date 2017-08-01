@@ -13,6 +13,7 @@ const EditGroupPage = require('./EditGroupPage');
 const Footer        = require('./Footer');
 import Component from 'react-class';
 
+
 class ReaderApp extends Component {
   constructor(props) {
     super(props);
@@ -1319,7 +1320,6 @@ class ReaderApp extends Component {
             </div>);
   }
 }
-
 ReaderApp.propTypes = {
   multiPanel:                  PropTypes.bool,
   headerMode:                  PropTypes.bool,  // is S2 serving only as a header on top of another page?
@@ -1341,7 +1341,6 @@ ReaderApp.propTypes = {
   initialPath:                 PropTypes.string,
   initialPanelCap:             PropTypes.number
 };
-
 ReaderApp.defaultProps = {
   multiPanel:                  true,
   headerMode:                  false,  // is S2 serving only as a header on top of another page?
@@ -1362,11 +1361,8 @@ ReaderApp.defaultProps = {
   initialPath:                 "/"
 };
 
+
 module.exports.ReaderApp           = ReaderApp;
-//module.exports.ReaderPanel         = ReaderPanel;
-//module.exports.ConnectionsPanel    = ConnectionsPanel;
-//module.exports.TextRange           = TextRange;
-//module.exports.TextColumn          = TextColumn;
 module.exports.Footer              = Footer;
 module.exports.sefariaSetup        = Sefaria.setup;
 module.exports.unpackDataFromProps = Sefaria.unpackDataFromProps;

@@ -54,7 +54,6 @@ class MyGroupsPanel extends Component {
       </div>);
   }
 }
-
 MyGroupsPanel.propTypes = {
   interfaceLang: PropTypes.string,
 };
@@ -87,9 +86,9 @@ class GroupListing extends Component {
             </div>);
   }
 }
-
 GroupListing.propTypes = {
   data: PropTypes.object.isRequired,
 };
+
 
 module.exports = MyGroupsPanel;

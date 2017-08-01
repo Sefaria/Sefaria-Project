@@ -10,6 +10,7 @@ const classNames = require('classnames');
 const PropTypes  = require('prop-types');
 import Component from 'react-class';
 
+
 class AddToSourceSheetBox extends Component {
   // In the main app, the function `addToSourceSheet` is executed in the ReaderApp,
   // and collects the needed data from highlights and app state.
@@ -161,7 +162,6 @@ class AddToSourceSheetBox extends Component {
       </div>);
   }
 }
-
 AddToSourceSheetBox.propTypes = {
   srefs:              PropTypes.array,
   addToSourceSheet:   PropTypes.func,
@@ -170,6 +170,7 @@ AddToSourceSheetBox.propTypes = {
   he:                 PropTypes.string,
   note:               PropTypes.string
 };
+
 
 class ConfirmAddToSheet extends Component {
   render() {
@@ -185,7 +186,6 @@ class ConfirmAddToSheet extends Component {
             </div>);
   }
 }
-
 ConfirmAddToSheet.propTypes = {
   sheetId: PropTypes.number.isRequired
 };

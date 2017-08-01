@@ -9,7 +9,7 @@ import Component from 'react-class'
 class TextRange extends Component {
   // A Range or text defined a by a single Ref. Specially treated when set as 'basetext'.
   // This component is responsible for retrieving data from `Sefaria` for the ref that defines it.
-componentDidMount() {
+  componentDidMount() {
     this._isMounted = true;
     var data = this.getText();
     if (data && !this.dataPrefetched) {
@@ -329,7 +329,6 @@ componentDidMount() {
     );
   }
 }
-
 TextRange.propTypes = {
   sref:                   PropTypes.string.isRequired,
   version:                PropTypes.string,
@@ -357,7 +356,6 @@ TextRange.propTypes = {
   layoutWidth:            PropTypes.number,
   showActionLinks:        PropTypes.bool,
   inlineReference:        PropTypes.object,
-
 };
 
 
@@ -442,7 +440,6 @@ class TextSegment extends Component {
     );
   }
 }
-
 TextSegment.propTypes = {
   sref:            PropTypes.string,
   en:              PropTypes.string,
@@ -455,5 +452,6 @@ TextSegment.propTypes = {
   onSegmentClick:  PropTypes.func,
   onFootnoteClick: PropTypes.func
 };
+
 
 module.exports = TextRange;

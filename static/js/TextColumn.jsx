@@ -10,6 +10,7 @@ const $          = require('./sefaria/sefariaJquery');
 const Sefaria    = require('./sefaria/sefaria');
 import Component from 'react-class';
 
+
 class TextColumn extends Component {
   // An infinitely scrollable column of text, composed of TextRanges for each section.
   componentDidMount() {

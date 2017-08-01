@@ -115,6 +115,7 @@ TextFilter.propTypes = {
   filterSuffix:    PropTypes.string,  // Optionally add a string to the filter parameter set (but not displayed)
 };
 
+
 class RecentFilterSet extends Component {
   // A toggle-able listing of currently and recently used text filters.
   toggleAllFilterView() {
@@ -192,5 +193,5 @@ RecentFilterSet.propTypes = {
 };
 
 
-module.exports.CategoryFilter = CategoryFilter;
+module.exports.CategoryFilter  = CategoryFilter;
 module.exports.RecentFilterSet = RecentFilterSet;
