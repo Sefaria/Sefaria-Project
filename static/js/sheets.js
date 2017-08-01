@@ -76,9 +76,9 @@ $(function() {
 	);
 
 	function makeMediaEmbedLink(mediaURL) {
-	    var re = /https?:\/\/(www\.)?(youtu(?:\.be|be\.com)\/(?:.*v(?:\/|=)|(?:.*\/)?)([\w'-]+))/i;
-   		var m;
-        var embedHTML;
+	  var re = /https?:\/\/(www\.)?(youtu(?:\.be|be\.com)\/(?:.*v(?:\/|=)|(?:.*\/)?)([\w'-]+))/i;
+  	var m;
+    var embedHTML;
 
 		if ((m = re.exec(mediaURL)) !== null) {
 			if (m.index === re.lastIndex) {
@@ -100,6 +100,10 @@ $(function() {
 
 		else if ( (mediaURL).match(/https?:\/\/.*clyp\.it\/.+/i) != null ) {
 					embedHTML = '<audio src="'+mediaURL+'.mp3" type="audio/mpeg" controls>Your browser does not support the audio element.</audio>';
+		}
+
+		else if ( (mediaURL).match(/^https?:\/\/(www\.|m\.)?soundcloud\.com\/[\w\-\.]+\/[\w\-\.]+\/?$/i) != null ) {
+					embedHTML = '<iframe width="100%" height="166" scrolling="no" frameborder="no" src="https://w.soundcloud.com/player/?url='+ mediaURL + '&amp;color=ff5500&amp;auto_play=false&amp;hide_related=true&amp;show_comments=false&amp;show_user=true&amp;show_reposts=false"></iframe>';
 		}
 
 		else embedHTML = false;
@@ -3055,11 +3059,10 @@ function buildSource($target, source, appendOrInsert) {
 					var commentHtml = "<div " + attributionData + " data-node='" + source.node + "'><span class='commentIcon'><i class='fa fa-comment-o fa'></i></span>" +
 						("userLink" in source ? "<div class='addedBy s2AddedBy'>" + source.userLink + "</div>" : "")	+
 						"<div class='comment " + (isHebrew(source.comment) ? "he " : "") + (sjs.loading ? "" : "new") + " '>" + source.comment + "</div>" +
-						  "</div>";
+						appendInlineAddButton() + "</div>";
 
 		}
 
-		commentHtml = appendInlineAddButton(commentHtml);
 		if (appendOrInsert == "append") {
 			$target.append(commentHtml);
 		}
@@ -3079,8 +3082,8 @@ function buildSource($target, source, appendOrInsert) {
 								"<div class='clear'></div>" +
 							"</div>" +
 							("userLink" in source ? "<div class='addedBy'>Added by " + source.userLink + "</div>" : "") +
+							appendInlineAddButton() +
 						  "</li>";
-		outsideHtml = appendInlineAddButton(outsideHtml);
 		if (appendOrInsert == "append") {
 			$target.append(outsideHtml);
 		}
@@ -3096,8 +3099,8 @@ function buildSource($target, source, appendOrInsert) {
 							"<div class='sourceNumber he'></div><div class='sourceNumber en'></div>" + 
 							"<div class='outside " + (sjs.loading ? "" : "new ") + (isHebrew(source.outsideText.stripHtml()) ? "he" : "en") + "'>" + source.outsideText + "</div>" +
 							("userLink" in source ? "<div class='addedBy'>Added by " + source.userLink + "</div>" : "") +
+							appendInlineAddButton() +
 						  "</li>";
-		outsideHtml = appendInlineAddButton(outsideHtml);
 		if (appendOrInsert == "append") {
 			$target.append(outsideHtml);
 		}
@@ -3119,6 +3122,10 @@ function buildSource($target, source, appendOrInsert) {
 			mediaLink = '<iframe width="560" height="315" src='+source.media+' frameborder="0" allowfullscreen></iframe>'
 		}
 
+		else if (source.media.toLowerCase().indexOf('soundcloud') > 0) {
+			mediaLink = '<iframe width="100%" height="166" scrolling="no" frameborder="no" src="'+source.media+'"></iframe>'
+		}
+
 		else if (source.media.match(/\.(mp3)$/i) != null) {
 			mediaLink = '<audio src="'+source.media+'" type="audio/mpeg" controls>Your browser does not support the audio element.</audio>';
 		}
@@ -3132,8 +3139,8 @@ function buildSource($target, source, appendOrInsert) {
 							"<div class='sourceNumber he'></div><div class='sourceNumber en'></div>" + 
 							"<div class='media " + (sjs.loading ? "" : "new") + "'>" + mediaLink + "</div>" +
 							("userLink" in source ? "<div class='addedBy'>Added by " + source.userLink + "</div>" : "") +
+							appendInlineAddButton() +
 						  "</li>";
-		outsideHtml = appendInlineAddButton(outsideHtml);
 				if (appendOrInsert == "append") {
 					$target.append(outsideHtml);
 				}
@@ -3157,8 +3164,8 @@ function buildSource($target, source, appendOrInsert) {
 								"<div class='clear'></div>" +
 							"</div>" +
 							("userLink" in source ? "<div class='addedBy'>Added by " + source.userLink + "</div>" : "") +
+							appendInlineAddButton() +
 						  "</li>";
-		outsideHtml = appendInlineAddButton(outsideHtml);
 				if (appendOrInsert == "append") {
 					$target.append(outsideHtml);
 				}
@@ -3168,15 +3175,13 @@ function buildSource($target, source, appendOrInsert) {
 }
 
 function appendInlineAddButton(source) {
-	if (!source) {
-		source = ''
-		}
-	if ($.cookie("s2") == "true") {
 		if (sjs.is_owner||sjs.can_edit||sjs.can_add) {
-			source = source + "<div class='inlineAddButton'><i class='inlineAddButtonIcon'></i></div>";
+			button = "<div class='inlineAddButton'><i class='inlineAddButtonIcon'></i></div>";
 		}
-	}
-	return source
+		else {
+			button = "";
+		}
+	return button
 }
 
 
@@ -3444,7 +3449,8 @@ function copyToSheet(source) {
 			sheets += '<li class="sheet new"><i>Start a New Source Sheet</i></li>';
 			for (i = 0; i < data.sheets.length; i++) {
 				sheets += '<li class="sheet" data-id="'+data.sheets[i].id+'">'+
-					data.sheets[i].title.stripHtml() + "</li>";
+					(data.sheets[i].title === null ? "Untitled Source Sheet": data.sheets[i].title.stripHtml()) +
+					"</li>";
 			}
 			$("#sheetList").html(sheets);
 			$("#addToSheetModal").position({of:$(window)});

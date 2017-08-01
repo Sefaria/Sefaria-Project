@@ -3,7 +3,12 @@
 {% load sefaria_tags %}
 {% load humanize %}
 
-{% block title %}{{ profile.first_name }} {{ profile.last_name }} on Sefaria.org{% endblock %}
+{% block titleEnglish %}{{ profile.full_name }} on Sefaria{% endblock %}
+{% block titleHebrew %}{{ profile.full_name }} on Sefaria{% endblock %}
+
+{% block descriptionEnglish %}{{ profile.full_name }} is on Sefaria. Follow to view their public source sheets, notes and translations.{% endblock %}
+
+{% block descriptionHebrew %}{{ profile.full_name }} is on Sefaria. Follow to view their public source sheets, notes and translations.{% endblock %}
 
 {% block content %}
 

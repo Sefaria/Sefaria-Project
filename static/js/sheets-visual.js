@@ -15,6 +15,10 @@ launchOffset = 50;
 if (sjs.current.zoom) zoomScale = parseFloat(sjs.current.zoom);
 else zoomScale = 1;
 
+visibleSources = sjs.current.sources;
+for( i=visibleSources.length-1; i>=0; i--) {
+    if( visibleSources[i].node == null) visibleSources.splice(i,1);
+}
 
 resizeZoomContainer();
 
@@ -172,7 +176,7 @@ $(".sheetItem").resizable({
     }
 
     if ($(this).hasClass("mediaWrapper")) {
-        var mediaSource = sjs.current.sources[($(this).prevAll(".sheetItem").length)+($(this).prevAll(".outsideBiWrapper").length)].media;
+        var mediaSource = visibleSources[($(this).prevAll(".sheetItem").length)+($(this).prevAll(".outsideBiWrapper").length)].media;
         var mediaLink;
 
         if (mediaSource.match(/\.(jpeg|jpg|gif|png)$/i) != null) {

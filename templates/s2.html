@@ -1,21 +1,23 @@
 {% load sefaria_tags %}
-
+{% load render_bundle from webpack_loader %}
 <!DOCTYPE html>
 <html>
 <head>
+  <title>{{ title }}</title>
+  <meta property="og:title" content="{{ title }}"/>
+  <meta name="description" property="og:description" content="{{ desc }}">
+
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-itunes-app" content="app-id=1163273965">
   <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
   <meta property="og:image" content="https://www.sefaria.org/static/img/fb-og-image.png"/>
-  <meta property="og:title" content="{{ title }} | Sefaria"/>
-  <meta property="og:description" content="{{ desc }}">
+
   {% if ldBreadcrumbs %}{% autoescape off %}
   <script type="application/ld+json">
   {{ ldBreadcrumbs }}
   </script>
   {% endautoescape %}{% endif %}
 
-  <title>{{ title }}</title>
   <link rel="stylesheet" href="/static/font-awesome/css/font-awesome.css">
   <link rel="stylesheet" type="text/css" href="/static/css/keyboard.css">
   <link rel="stylesheet" href="/static/css/common.css">
@@ -31,13 +33,17 @@
   <script>
     WebFont.load({
       google: {
-        families: ['Crimson Text:400,700', 'Open Sans Hebrew:400,700:hebrew'],
+        families: ['Crimson Text:400,700'],
         text: 'ḥḤ'
       },
       typekit: {
         id: 'aeg8div'
       }
     });
+    WebFont.load({
+      google: {
+        families: ['Heebo:400,700:hebrew', 'Frank Ruehl Libre:400,700:hebrew'] // The dotted h causes Heebo not to load.
+      }});
   </script>
   {% endif %}
 
@@ -46,42 +52,22 @@
 <body>
 
   <div id="s2">{% autoescape off %}{{ html }}{% endautoescape %}</div>
-
   <div id="overlay"></div>
 
-  {% include "js/jquery.html" %}
-  <script src="/static/js/headroom.js"></script>
-  <script src="/static/js/jquery.scrollTo.js"></script>
   <script src="/static/js/keyboard.js"></script>
-
   <script src="/data.js"></script>
-  <script src="/static/js/sefaria.js"></script>
 
-  {% if DEBUG %}
-  <script src="/static/js/react.js"></script>
-  <script src="/static/js/react-dom.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/6.10.3/babel.min.js"></script>
-  <script type="text/jsx;harmony=true" src="/static/js/s2.jsx"></script>
-  {% else %}
-  <script src="/static/js/react-min.js"></script>
-  <script src="/static/js/react-dom-min.js"></script>
-  <script src="/static/js/s2.js"></script>
-  {% endif %}
-
-  <script {% if DEBUG %}type="text/jsx;harmony=true"{% endif %}>
+  <script>
     {% autoescape off %}
-    {% include "js/django-csrf.js" %}
-    $(function() {
-
-      var props = {{ propsJSON }};
-
-      Sefaria.unpackDataFromProps(props);
-
-      var container = document.getElementById('s2');
-      var component = React.createElement(ReaderApp, props);
-      ReactDOM.render(component, container);
-    });
+    var DJANGO_VARS = {
+        propsJSON: {{ propsJSON }},
+        inReaderApp: true,
+        ga: ga
+    };
     {% endautoescape %}
   </script>
+
+  {% render_bundle 'main' %}
+  
 </body>
 </html>

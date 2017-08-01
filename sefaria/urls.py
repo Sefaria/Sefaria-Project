@@ -29,6 +29,7 @@ urlpatterns = patterns('reader.views',
     (r'^api/links/bare/(?P<book>.+)/(?P<cat>.+)$', 'bare_link_api'),
     (r'^api/links/(?P<link_id_or_ref>.*)$', 'links_api'),
     (r'^api/link-summary/(?P<ref>.+)$', 'link_summary_api'),
+    (r'^api/notes/all$', 'all_notes_api'),
     (r'^api/notes/(?P<note_id_or_ref>.*)$', 'notes_api'),
     (r'^api/related/(?P<tref>.*)$', 'related_api'),
     (r'^api/counts/links/(?P<cat1>.+)/(?P<cat2>.+)$', 'link_count_api'),
@@ -85,7 +86,6 @@ urlpatterns += patterns('reader.views',
     (r'^translation-requests/completed?', 'completed_translation_requests'),
     (r'^translation-requests/featured-completed?', 'completed_featured_translation_requests'),
     (r'^translation-requests/?', 'translation_requests'),
-    (r'^contests/(?P<page>new-profiles-contest)$', 'serve_static'),
     (r'^contests/(?P<slug>.+)$', 'contest_splash'),
     (r'^mishnah-contest-2013/?$', lambda x: HttpResponseRedirect('/contests/mishnah-contest-2013')),
 )
@@ -131,7 +131,7 @@ urlpatterns += patterns('sheets.views',
     (r'^sheets/tags/?$', 'sheets_tags_list'),
     (r'^sheets/tags/(?P<tag>.+)$', 'sheets_tag'),
     (r'^sheets/private/tags/(?P<tag>.+)$', 'private_sheets_tag'),
-    (r'^sheets/(?P<type>(public|private|allz))/?$', 'sheets_list'),
+    (r'^sheets/(?P<type>(public|private))/?$', 'sheets_list'),
     (r'^sheets/(?P<sheet_id>\d+)$', 'view_sheet'),
     (r'^sheets/visual/(?P<sheet_id>\d+)$', 'view_visual_sheet'),
 
@@ -237,6 +237,11 @@ urlpatterns += patterns('',
     url(r'^password/reset/done/$', 'django.contrib.auth.views.password_reset_done', name='password_reset_done'),
 )
 
+# Compare Page
+urlpatterns += patterns('sefaria.views',
+    url(r'^compare/(?P<ref1>[^/]+)/(?P<ref2>[^/]+)/(?P<lang>en|he)/?(?P<v1>[^/]+)?/?(?P<v2>[^/]+)?$', 'compare')
+)
+
 static_pages = [
     "about",
     "donate",
@@ -291,6 +296,7 @@ urlpatterns += patterns('reader.views',
     (r'^s2/?$', 'switch_to_s2'),
     (r'^account/?$', 's2_account'),
     (r'^notifications/?$', 's2_notifications'),
+    (r'^my/notes/?$', 's2_my_notes'),
     (r'^updates/?$', 's2_updates'),
     (r'^modtools/?$', 's2_modtools'),
     (r'^person/(?P<name>.+)$', 'person_page'),
@@ -333,7 +339,8 @@ urlpatterns += patterns('sefaria.views',
     (r'^linker\.js$', 'linker_js'),
     (r'^api/regexs/(?P<titles>.+)$', 'title_regex_api'),
     (r'^api/bulktext/(?P<refs>.+)$', 'bulktext_api'),
-    (r'^download/version/(?P<title>.+) - (?P<lang>[he][en]) - (?P<versionTitle>.+)\.(?P<format>json|csv|txt)', 'text_download_api'),
+    (r'^download/version/(?P<title>.+) - (?P<lang>[he][en]) - (?P<versionTitle>.+)\.(?P<format>plain\.txt)', 'text_download_api'),
+    (r'^download/version/(?P<title>.+) - (?P<lang>[he][en]) - (?P<versionTitle>.+)\.(?P<format>json|csv|txt)','text_download_api'),
     (r'^download/bulk/versions/', 'bulk_download_versions_api'),
     (r'^api/text-upload$', 'text_upload_api')
 )

@@ -4,13 +4,18 @@
 {% load humanize %}
 {% load sefaria_tags %}
 
-{% block title %}Sefaria: a Living Library of Jewish Texts Online{% endblock %}
+{% block titleEnglish %}Sefaria: a Living Library of Jewish Texts Online{% endblock %}
+
+{% block titleHebrew %}Sefaria: a Living Library of Jewish Texts Online{% endblock %}
+
+{% block descriptionEnglish %}The largest free library of Jewish texts available to read online in Hebrew and English including Torah, Tanakh, Talmud, Mishnah, Midrash, commentaries and more.{% endblock %}
+
+{% block descriptionHebrew %}The largest free library of Jewish texts available to read online in Hebrew and English including Torah, Tanakh, Talmud, Mishnah, Midrash, commentaries and more.{% endblock %}
 
 {% block head %}
-    <meta property="og:title" content="Sefaria.org : a Living Library of Jewish Texts Online"/>
     <meta property="og:type" content="website"/>
-    <meta property="og:url" content="https://www.sefaria.org"/>
-    <meta property="og:image" content="https://www.sefaria.org/static/img/fb-og-image.png"/>
+    <meta property="og:url" content="https://{{ request.META.HTTP_HOST }}"/>
+    <link rel="canonical" href="https://{{ request.META.HTTP_HOST }}" />
     {% autoescape off %}
     <script type="application/ld+json">
     {

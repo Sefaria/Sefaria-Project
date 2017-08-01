@@ -81,6 +81,7 @@ class AutoCompleter(object):
             self.spell_checker.train_phrases(person_names)
             self.ngram_matcher.train_phrases(person_names, normal_person_names)
 
+
     @staticmethod
     def _get_main_categories(otoc):
         cats = []
@@ -219,7 +220,10 @@ class Completions(object):
         non_primary_matches = []
         for k, v in all_continuations:
             if v["is_primary"] and v["key"] not in self.keys_covered:
-                self.completions += [v["title"]]
+                if v["type"] == "ref":
+                    self.completions += [v["title"]]
+                else:
+                    self.completions.insert(0, v["title"])
                 self.keys_covered.add(v["key"])
             else:
                 non_primary_matches += [(k, v)]
@@ -297,6 +301,8 @@ class SpellChecker(object):
         """
         for p in phrases:
             for w in splitter.split(p):
+                if not w:
+                    continue
                 self.WORDS[w] += 1
 
     def single_edits(self, word):
@@ -323,7 +329,7 @@ class SpellChecker(object):
     def correct_phrase(self, text):
         normal_text = self.normalizer(text)
         tokens = splitter.split(normal_text)
-        return [self.correct_token(token) for token in tokens]
+        return [self.correct_token(token) for token in tokens if token]
 
 
 class NGramMatcher(object):
@@ -344,6 +350,8 @@ class NGramMatcher(object):
         for title, normal_title in zip(titles, normal_titles):
             tokens = splitter.split(normal_title)
             for token in tokens:
+                if not token:
+                    continue
                 self.token_to_titles[token].append(title)
         for k in self.token_to_titles.keys():
             self.token_trie[k] = 1
