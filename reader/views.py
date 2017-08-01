@@ -628,11 +628,11 @@ def s2_sheets_by_tag(request, tag):
     else:
         props["tagSheets"]    = [sheet_to_dict(s) for s in get_sheets_by_tag(tag)]
         if props["interfaceLang"] == "hebrew":
-            title = "{} | Sefaria".format(tag) # HEBREW NEEDED
-            desc  = 'Public Source Sheets on tagged with "{}", drawing from Sefaria\'s library of Jewish texts.'.format(tag)
+            title = u"{} | Sefaria".format(tag) # HEBREW NEEDED
+            desc  = u'Public Source Sheets on tagged with "{}", drawing from Sefaria\'s library of Jewish texts.'.format(tag)
         else:
-            title = "{} | Sefaria".format(tag)
-            desc  = 'Public Source Sheets on tagged with "{}", drawing from Sefaria\'s library of Jewish texts.'.format(tag)
+            title = u"{} | Sefaria".format(tag)
+            desc  = u'Public Source Sheets on tagged with "{}", drawing from Sefaria\'s library of Jewish texts.'.format(tag)
 
     propsJSON = json.dumps(props)
     html = render_react_component("ReaderApp", propsJSON)
