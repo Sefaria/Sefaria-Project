@@ -69,12 +69,15 @@ def process_category_name_change_in_categories_and_indexes(changed_cat, **kwargs
     old_toc_node = library.get_toc_tree().lookup(changed_cat.path[:-1] + [kwargs["old"]])
     assert isinstance(old_toc_node, TocCategory)
     pos = len(old_toc_node.ancestors()) - 1
-    for child in old_toc_node.all_children():
+    children = old_toc_node.all_children()
+    for child in children:
         if isinstance(child, TocCategory):
             c = child.get_category_object()
             c.path[pos] = kwargs["new"]
-            c.save()
-        elif isinstance(child, TocTextIndex):
+            c.save(override_dependencies=True)
+
+    for child in children:
+        if isinstance(child, TocTextIndex):
             i = child.get_index_object()
             i.categories[pos] = kwargs["new"]
             i.save(override_dependencies=True)
