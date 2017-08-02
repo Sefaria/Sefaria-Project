@@ -504,12 +504,18 @@ def hebrew_term(s):
 			return ''
 	'''
 
+
 def get_simple_term_mapping():
-	from sefaria.model import TermSet, Term
+	from sefaria.model import TermSet, CategorySet
 	hebrew_mapping = {}
-	terms = TermSet()
-	for term in terms:
+
+	for term in TermSet():
 		hebrew_mapping[term.name] = {"en": term.get_primary_title("en"), "he": term.get_primary_title("he")}
+
+	# Note that this will clobber any overlapping terms, and use the last of identical categories.
+	for cat in CategorySet():
+		hebrew_mapping[cat.lastPath] = {"en": cat.get_primary_title("en"), "he": cat.get_primary_title("he")}
+
 	return hebrew_mapping
 
 
