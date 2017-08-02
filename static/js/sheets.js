@@ -693,7 +693,7 @@ $(function() {
 	// --------- CKEditor ------------
 
 	if (sjs.can_edit || sjs.can_add ) {
-		CKEDITOR.config.language = sjs.interfaceLangShort;
+		CKEDITOR.config.language = sjs.interfaceLang;
 		CKEDITOR.disableAutoInline = true;
 		CKEDITOR.config.startupFocus = true;
 		CKEDITOR.config.extraAllowedContent = 'small; span(segment, gemarra-regular, gemarra-italic, it-text); div(oldComment)';
@@ -1017,7 +1017,7 @@ $(function() {
 		buildSheet(sjs.current);
 		afterAction();
 	} else {
-		$("#title").html("New Source Sheet");
+		(sjs.interfaceLang == "en") ? $("#title").html("New Source Sheet") : $("#title").html("דף מקורות חדש") ;
 		$("#bilingual, #enLeft, #sideBySide").trigger("click");
 		$("#viewButtons").show();
 		$("#empty").show();
@@ -1614,7 +1614,7 @@ $(function() {
 
 	$(".parshahToAdd").click(function(){
 		$("#addParashaToSheetModal, #overlay").hide();
-        var parasha = $(this).text();
+        var parasha = $(this).data("parsha");
 		$.getJSON("/api/sheets/"+ parasha +"/get_aliyot", function(data) {
 			if ("error" in data) {
 				sjs.alert.flash(data.error);

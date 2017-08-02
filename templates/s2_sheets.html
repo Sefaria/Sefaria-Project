@@ -976,60 +976,222 @@
 <div id="addParashaToSheetModal" class="modal s2Modal">
 	<div class="header">Add a Parasha to a Source Sheet</div>
         <ol>
-            <li class="parshahToAdd">Bereshit</li>
-            <li class="parshahToAdd">Noach</li>
-            <li class="parshahToAdd">Lech-Lecha</li>
-            <li class="parshahToAdd">Vayera</li>
-            <li class="parshahToAdd">Chayei Sara</li>
-            <li class="parshahToAdd">Toldot</li>
-            <li class="parshahToAdd">Vayetzei</li>
-            <li class="parshahToAdd">Vayishlach</li>
-            <li class="parshahToAdd">Vayeshev</li>
-            <li class="parshahToAdd">Miketz</li>
-            <li class="parshahToAdd">Vayigash</li>
-            <li class="parshahToAdd">Vayechi</li>
-            <li class="parshahToAdd">Shemot</li>
-            <li class="parshahToAdd">Vaera</li>
-            <li class="parshahToAdd">Bo</li>
-            <li class="parshahToAdd">Beshalach</li>
-            <li class="parshahToAdd">Yitro</li>
-            <li class="parshahToAdd">Mishpatim</li>
-            <li class="parshahToAdd">Terumah</li>
-            <li class="parshahToAdd">Tetzaveh</li>
-            <li class="parshahToAdd">Ki Tisa</li>
-            <li class="parshahToAdd">Vayakhel</li>
-            <li class="parshahToAdd">Pekudei</li>
-            <li class="parshahToAdd">Vayikra</li>
-            <li class="parshahToAdd">Tzav</li>
-            <li class="parshahToAdd">Shmini</li>
-            <li class="parshahToAdd">Tazria</li>
-            <li class="parshahToAdd">Metzora</li>
-            <li class="parshahToAdd">Achrei Mot</li>
-            <li class="parshahToAdd">Kedoshim</li>
-            <li class="parshahToAdd">Emor</li>
-            <li class="parshahToAdd">Behar</li>
-            <li class="parshahToAdd">Bechukotai</li>
-            <li class="parshahToAdd">Bamidbar</li>
-            <li class="parshahToAdd">Nasso</li>
-            <li class="parshahToAdd">Beha'alotcha</li>
-            <li class="parshahToAdd">Sh'lach</li>
-            <li class="parshahToAdd">Korach</li>
-            <li class="parshahToAdd">Chukat</li>
-            <li class="parshahToAdd">Balak</li>
-            <li class="parshahToAdd">Pinchas</li>
-            <li class="parshahToAdd">Matot</li>
-            <li class="parshahToAdd">Masei</li>
-            <li class="parshahToAdd">Devarim</li>
-            <li class="parshahToAdd">Vaetchanan</li>
-            <li class="parshahToAdd">Eikev</li>
-            <li class="parshahToAdd">Re'eh</li>
-            <li class="parshahToAdd">Shoftim</li>
-            <li class="parshahToAdd">Ki Teitzei</li>
-            <li class="parshahToAdd">Ki Tavo</li>
-            <li class="parshahToAdd">Nitzavim</li>
-            <li class="parshahToAdd">Vayeilech</li>
-            <li class="parshahToAdd">Ha'Azinu</li>
-            <li class="parshahToAdd">V'Zot HaBerachah</li>
+            <li class="parshahToAdd" data-parsha="Bereshit">
+                <span class="int-en">Bereshit</span>
+                <span class="int-he">בראשית</span>
+            </li>
+            <li class="parshahToAdd" data-parsha="Noach">
+                <span class="int-en">Noach</span>
+                <span class="int-he">נח</span>
+            </li>
+            <li class="parshahToAdd" data-parsha="Lech-Lecha">
+                <span class="int-en">Lech-Lecha</span>
+                <span class="int-he">לך לך</span>
+            </li>
+            <li class="parshahToAdd" data-parsha="Vayera">
+                <span class="int-en">Vayera</span>
+                <span class="int-he">וירא</span>
+            </li>
+            <li class="parshahToAdd" data-parsha="Chayei Sara">
+                <span class="int-en">Chayei Sara</span>
+                <span class="int-he">חיי שרה</span>
+            </li>
+            <li class="parshahToAdd" data-parsha="Toldot">
+                <span class="int-en">Toldot</span>
+                <span class="int-he">תלדות</span>
+            </li>
+            <li class="parshahToAdd" data-parsha="Vayetzei">
+                <span class="int-en">Vayetzei</span>
+                <span class="int-he">ויצא</span>
+            </li>
+            <li class="parshahToAdd" data-parsha="Vayishlach">
+                <span class="int-en">Vayishlach</span>
+                <span class="int-he">וישלח</span>
+            </li>
+            <li class="parshahToAdd" data-parsha="Vayeshev">
+                <span class="int-en">Vayeshev</span>
+                <span class="int-he">וישב</span>
+            </li>
+            <li class="parshahToAdd" data-parsha="Miketz">
+                <span class="int-en">Miketz</span>
+                <span class="int-he">מקץ</span>
+            </li>
+            <li class="parshahToAdd" data-parsha="Vayigash">
+                <span class="int-en">Vayigash</span>
+                <span class="int-he">ויגש</span>
+            </li>
+            <li class="parshahToAdd" data-parsha="Vayechi">
+                <span class="int-en">Vayechi</span>
+                <span class="int-he">ויחי</span>
+            </li>
+            <li class="parshahToAdd" data-parsha="Shemot">
+                <span class="int-en">Shemot</span>
+                <span class="int-he">שמות</span>
+            </li>
+            <li class="parshahToAdd" data-parsha="Vaera">
+                <span class="int-en">Vaera</span>
+                <span class="int-he">וארא</span>
+            </li>
+            <li class="parshahToAdd" data-parsha="Bo">
+                <span class="int-en">Bo</span>
+                <span class="int-he">בא</span>
+            </li>
+            <li class="parshahToAdd" data-parsha="Beshalach">
+                <span class="int-en">Beshalach</span>
+                <span class="int-he">בשלח</span>
+            </li>
+            <li class="parshahToAdd" data-parsha="Yitro">
+                <span class="int-en">Yitro</span>
+                <span class="int-he">יתרו</span>
+            </li>
+            <li class="parshahToAdd" data-parsha="Mishpatim">
+                <span class="int-en">Mishpatim</span>
+                <span class="int-he">משפטים</span>
+            </li>
+            <li class="parshahToAdd" data-parsha="Terumah">
+                <span class="int-en">Terumah</span>
+                <span class="int-he">תרומה</span>
+            </li>
+            <li class="parshahToAdd" data-parsha="Tetzaveh">
+                <span class="int-en">Tetzaveh</span>
+                <span class="int-he">תצוה</span>
+            </li>
+            <li class="parshahToAdd" data-parsha="Ki Tisa">
+                <span class="int-en">Ki Tisa</span>
+                <span class="int-he">כי תשא</span>
+            </li>
+            <li class="parshahToAdd" data-parsha="Vayakhel">
+                <span class="int-en">Vayakhel</span>
+                <span class="int-he">ויקהל</span>
+            </li>
+            <li class="parshahToAdd" data-parsha="Pekudei">
+                <span class="int-en">Pekudei</span>
+                <span class="int-he">פקודי</span>
+            </li>
+            <li class="parshahToAdd" data-parsha="Vayikra">
+                <span class="int-en">Vayikra</span>
+                <span class="int-he">ויקרא</span>
+            </li>
+            <li class="parshahToAdd" data-parsha="Tzav">
+                <span class="int-en">Tzav</span>
+                <span class="int-he">צו</span>
+            </li>
+            <li class="parshahToAdd" data-parsha="Shmini">
+                <span class="int-en">Shmini</span>
+                <span class="int-he">שמיני</span>
+            </li>
+            <li class="parshahToAdd" data-parsha="Tazria">
+                <span class="int-en">Tazria</span>
+                <span class="int-he">תזריע</span>
+            </li>
+            <li class="parshahToAdd" data-parsha="Metzora">
+                <span class="int-en">Metzora</span>
+                <span class="int-he">מצרע</span>
+            </li>
+            <li class="parshahToAdd" data-parsha="Achrei Mot">
+                <span class="int-en">Achrei Mot</span>
+                <span class="int-he">אחרי מת</span>
+            </li>
+            <li class="parshahToAdd" data-parsha="Kedoshim">
+                <span class="int-en">Kedoshim</span>
+                <span class="int-he">קדשים</span>
+            </li>
+            <li class="parshahToAdd" data-parsha="Emor">
+                <span class="int-en">Emor</span>
+                <span class="int-he">אמר</span>
+            </li>
+            <li class="parshahToAdd" data-parsha="Behar">
+                <span class="int-en">Behar</span>
+                <span class="int-he">בהר</span>
+            </li>
+            <li class="parshahToAdd" data-parsha="Bechukotai">
+                <span class="int-en">Bechukotai</span>
+                <span class="int-he">בחקתי</span>
+            </li>
+            <li class="parshahToAdd" data-parsha="Bamidbar">
+                <span class="int-en">Bamidbar</span>
+                <span class="int-he">במדבר</span>
+            </li>
+            <li class="parshahToAdd" data-parsha="Nasso">
+                <span class="int-en">Nasso</span>
+                <span class="int-he">נשא</span>
+            </li>
+            <li class="parshahToAdd" data-parsha="Beha'alotcha">
+                <span class="int-en">Beha'alotcha</span>
+                <span class="int-he">בהעלתך</span>
+            </li>
+            <li class="parshahToAdd" data-parsha="Sh'lach">
+                <span class="int-en">Sh'lach</span>
+                <span class="int-he">שלח</span>
+            </li>
+            <li class="parshahToAdd" data-parsha="Korach">
+                <span class="int-en">Korach</span>
+                <span class="int-he">קרח</span>
+            </li>
+            <li class="parshahToAdd" data-parsha="Chukat">
+                <span class="int-en">Chukat</span>
+                <span class="int-he">חקת</span>
+            </li>
+            <li class="parshahToAdd" data-parsha="Balak">
+                <span class="int-en">Balak</span>
+                <span class="int-he">בלק</span>
+            </li>
+            <li class="parshahToAdd" data-parsha="Pinchas">
+                <span class="int-en">Pinchas</span>
+                <span class="int-he">פנחס</span>
+            </li>
+            <li class="parshahToAdd" data-parsha="Matot">
+                <span class="int-en">Matot</span>
+                <span class="int-he">מטות</span>
+            </li>
+            <li class="parshahToAdd" data-parsha="Masei">
+                <span class="int-en">Masei</span>
+                <span class="int-he">מסעי</span>
+            </li>
+            <li class="parshahToAdd" data-parsha="Devarim">
+                <span class="int-en">Devarim</span>
+                <span class="int-he">דברים</span>
+            </li>
+            <li class="parshahToAdd" data-parsha="Vaetchanan">
+                <span class="int-en">Vaetchanan</span>
+                <span class="int-he">ואתחנן</span>
+            </li>
+            <li class="parshahToAdd" data-parsha="Eikev">
+                <span class="int-en">Eikev</span>
+                <span class="int-he">עקב</span>
+            </li>
+            <li class="parshahToAdd" data-parsha="Re'eh">
+                <span class="int-en">Re'eh</span>
+                <span class="int-he">ראה</span>
+            </li>
+            <li class="parshahToAdd" data-parsha="Shoftim">
+                <span class="int-en">Shoftim</span>
+                <span class="int-he">שפטים</span>
+            </li>
+            <li class="parshahToAdd" data-parsha="Ki Teitzei">
+                <span class="int-en">Ki Teitzei</span>
+                <span class="int-he">כי תצא</span>
+            </li>
+            <li class="parshahToAdd" data-parsha="Ki Tavo">
+                <span class="int-en">Ki Tavo</span>
+                <span class="int-he">כי תבא</span>
+            </li>
+            <li class="parshahToAdd" data-parsha="Nitzavim">
+                <span class="int-en">Nitzavim</span>
+                <span class="int-he">נצבים</span>
+            </li>
+            <li class="parshahToAdd" data-parsha="Vayeilech">
+                <span class="int-en">Vayeilech</span>
+                <span class="int-he">וילך</span>
+            </li>
+            <li class="parshahToAdd" data-parsha="Ha'Azinu">
+                <span class="int-en">Ha'Azinu</span>
+                <span class="int-he">האזינו</span>
+            </li>
+            <li class="parshahToAdd" data-parsha="V'Zot HaBerachah">
+                <span class="int-en">V'Zot HaBerachah</span>
+                <span class="int-he">וזאת הברכה</span>
+            </li>
         </ol>
 	<div class="actions">
 		<div class="btn cancel">Cancel</div>
@@ -1118,8 +1280,7 @@
 		{% if user.id %}
 		_fullname: "{{ user.first_name }} {{ user.last_name }}",
 		_userLink: "{{ user.id|user_link }}",
-        interfaceLang: "{{ interfaceLang }}",
-        interfaceLangShort: "{{ interfaceLang }}".substring(0,2)
+        interfaceLang: "{{ interfaceLang }}".substring(0,2)
 		{% endif %}
 	});
 {% endautoescape %}
