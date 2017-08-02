@@ -11,7 +11,10 @@ class DiffTable extends Component {
       return (
         <table>
           <tbody>
-            <DiffRow segRef={this.props.segRef} />
+            <DiffRow  segRef={this.props.segRef}
+                      v1   ={this.props.v1}
+                      v2   ={this.props.v2}
+                      lang ={this.props.lang}/>
           </tbody>
         </table>
       );
@@ -19,26 +22,35 @@ class DiffTable extends Component {
 }
 
 class DiffRow extends Component {
-  loadText (text) {
-    this.setState({textList: [FilterText(text['he'])['filteredText'], text['he']]});
+  constructor(props) {
+    super(props);
+    this.state = {
+      v1: {filteredText: "Loading...", mapping: []},
+      v2: {filteredText: "Loading...", mapping: []}
+    }
   }
 
   componentWillMount () {
-    Sefaria.text(this.props.segRef, 'he', this.loadText);
+    var settings = {'version': this.props.v1, 'language': this.props.lang};
+    Sefaria.text(this.props.segRef, settings, (text) =>this.setState({v1: FilterText(text['he'])}));
+    settings.version = this.props.v2;
+    Sefaria.text(this.props.segRef, settings, (text) =>this.setState({v2: FilterText(text['he'])}));
   }
 
   componentWillReceiveProps(nextProps) {
     if (this.props.segRef != nextProps.segRef) {
-      Sefaria.text(nextProps.segRef, 'he', this.loadText);
+      var settings = {'version': this.props.v1, 'language': this.props.lang};
+      Sefaria.text(this.props.segRef, settings, this.loadText1);
+      settings.version = this.props.v2;
+      Sefaria.text(this.props.segRef, settings, this.loadText2);
     }
   }
   render () {
-    if (this.state === null) {
-      return <tr><DiffCell diffText={"Loading..."}/></tr>
-    }
-    var cells = this.state.textList.map(t => <DiffCell diffText={t}/>);
+    var cell1 = <DiffCell diffText={this.state.v1['filteredText']}/>,
+        cell2 = <DiffCell diffText={this.state.v2['filteredText']}/>;
+
     return (
-        <tr>{cells}</tr>
+        <tr>{cell1}{cell2}</tr>
     );
   }
 }
@@ -51,7 +63,11 @@ class DiffCell extends Component {
   }
 }
 
-ReactDOM.render(<DiffTable segRef={"Shulchan Arukh, Choshen Mishpat 1:1"}/>, document.getElementById('DiffTable'));
+ReactDOM.render(<DiffTable segRef={"Shulchan Arukh, Choshen Mishpat 1:1"}
+                v1={"Shulhan Arukh, Hoshen ha-Mishpat; Lemberg, 1898"}
+                v2={"Torat Emet Freeware Shulchan Aruch"}
+                lang={"he"}/>,
+                  document.getElementById('DiffTable'));
 
 function FilterText (verse) {
   var segList = verse.split(/(<[^>]+>)/),
