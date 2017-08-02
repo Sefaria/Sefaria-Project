@@ -471,7 +471,7 @@ def s2_texts_category(request, cats):
             return s2_texts(request)
         if props["interfaceLang"] == "hebrew":
             cat_string = u", ".join([hebrew_term(cat) for cat in cats])
-            title =  cat_string + u" | ספאריה"
+            title =  cat_string + u" | ספריא"
             desc  = u"Read {} texts online with commentaries and connections.".format(cat_string) # HEBREW NEEDED
         else:
             cat_string = u", ".join(cats)
@@ -669,7 +669,7 @@ def s2_home(request):
 def s2_texts(request):
     props = s2_props(request)
     if props["interfaceLang"] == "hebrew":
-        title = u"האוסף של ספאריה"
+        title = u"האוסף של ספריא"
         desc  = u"Browse 1,000s of Jewish texts in the Sefaria Library by category and title." # HEBREW NEEDED
     else:
         title = u"The Sefaria Libray"

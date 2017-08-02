@@ -138,7 +138,7 @@ $.extend(Sefaria.search, {
             var cats = this.get_category_string();
 
             if (!(this.query)) {
-                return (lang == "en") ? "Search Jewish Texts | Sefaria.org" : "חיפוש מקורות בספאריה";
+                return (lang == "en") ? "Search Jewish Texts | Sefaria.org" : "חיפוש מקורות בספריא";
             }
 
             var line = '"' + this.query + '" ';
