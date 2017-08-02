@@ -2,7 +2,8 @@
 
 import pytest
 from sefaria.model.text import library, Ref, Index
-
+from sefaria.model.schema import Term
+from sefaria.model.category import Category
 
 
 def setup_module(module):
@@ -350,7 +351,6 @@ class Test_Library(object):
         assert u'רש"י על בראשית' in library._index_title_maps["he"]["Rashi on Genesis"]
         assert u'רש"י על בראשית' in library._title_node_maps["he"]
 
-
     def test_get_title_node(self):
         node = library.get_schema_node("Exodus")
         assert node.is_flat()
@@ -358,6 +358,59 @@ class Test_Library(object):
         assert node.primary_title("he") == u"שמות"
         n2 = library.get_schema_node(u"שמות", "he")
         assert node == n2
+
+
+class Test_Term_Map(object):
+    @classmethod
+    def teardown_class(cls):
+        c = Category().load({'path': ["Tanakh", "Torah", "New Category"]})
+        if c:
+            c.delete()
+
+        t = Term().load({"name": 'New Term'})
+        if t:
+            t.delete()
+
+    def test_terms_in_map(self):
+        assert "Siman" in library.get_simple_term_mapping()
+        assert "Chapter" in library.get_simple_term_mapping()
+
+    def test_cats_in_map(self):
+        assert "Tanakh" in library.get_simple_term_mapping()
+        assert "Commentary" in library.get_simple_term_mapping()
+
+    def test_cache_and_reset_of_term_map(self):
+        # Check that cache works
+        old = library.get_simple_term_mapping()
+        assert old == library.get_simple_term_mapping()
+
+        # Add category causes cache refresh
+        c = Category()
+        c.add_primary_titles("New Category", u"חדשנית")
+        c.path = ["Tanakh", "Torah", "New Category"]
+        c.save()
+
+        assert old != library.get_simple_term_mapping()
+        old = library.get_simple_term_mapping()
+
+        # Delete category causes cache refresh
+        Category().load({'path': ["Tanakh", "Torah", "New Category"]}).delete()
+        assert old != library.get_simple_term_mapping()
+        old = library.get_simple_term_mapping()
+
+        # Add term causes cache refresh
+        t = Term()
+        t.name = "New Term"
+        t.scheme = "Parasha"
+        t.add_primary_titles("New Term", u"חדשנית")
+        t.save()
+
+        assert old != library.get_simple_term_mapping()
+        old = library.get_simple_term_mapping()
+
+        # Delete term causes cache refresh
+        Term().load({"name": 'New Term'}).delete()
+        assert old != library.get_simple_term_mapping()
 
 
 def test_get_en_text_titles():

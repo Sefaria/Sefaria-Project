@@ -63,8 +63,10 @@ subscribe(cascade_delete(notification.GlobalNotificationSet, "content.version", 
 # Note Delete
 subscribe(layer.process_note_deletion_in_layer,                         note.Note, "delete")
 
-# Term name change
-subscribe(cascade(schema.TermSet, "scheme"),                            schema.TermScheme, "attributeChange", "name")
+# Terms
+subscribe(cascade(schema.TermSet, "scheme"),                                schema.TermScheme, "attributeChange", "name")
+subscribe(text.reset_simple_term_mapping,                                   schema.Term, "delete")
+subscribe(text.reset_simple_term_mapping,                                   schema.Term, "save")
 
 # Version State Save
 subscribe(translation_request.process_version_state_change_in_translation_requests, version_state.VersionState, "save")
@@ -102,6 +104,8 @@ subscribe(group.process_group_delete_in_sheets,                              gro
 # Categories
 subscribe(category.process_category_name_change_in_categories_and_indexes,  category.Category, "attributeChange", "lastPath")
 subscribe(category.rebuild_library_after_category_change,                   category.Category, "attributeChange", "lastPath")
+subscribe(text.reset_simple_term_mapping,                                   category.Category, "delete")
+subscribe(text.reset_simple_term_mapping,                                   category.Category, "save")
 
 
 # todo: notes? reviews?

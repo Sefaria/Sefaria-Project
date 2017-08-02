@@ -3768,6 +3768,9 @@ class Library(object):
         self._full_auto_completer = {}
         self._ref_auto_completer = {}
 
+        # Term Mapping
+        self._simple_term_mapping = {}
+
         if not hasattr(sys, '_doc_build'):  # Can't build cache without DB
             self._build_core_maps()
 
@@ -3812,6 +3815,7 @@ class Library(object):
         scache.delete_template_cache("texts_list")
         scache.delete_template_cache("texts_dashboard")
         self._full_title_list_jsons = {}
+        self._simple_term_mapping = {}
 
     def rebuild(self, include_toc = False):
         self._build_core_maps()
@@ -4173,6 +4177,22 @@ class Library(object):
             # self.local_cache[key] = term_dict
             self._term_ref_maps[lang] = term_dict
         return term_dict
+
+    def get_simple_term_mapping(self):
+        if not self._simple_term_mapping:
+            from sefaria.model import CategorySet
+
+            for term in TermSet():
+                self._simple_term_mapping[term.name] = {"en": term.get_primary_title("en"), "he": term.get_primary_title("he")}
+
+            # Note that this will clobber any overlapping terms, and use the last of identical categories.
+            for cat in CategorySet():
+                self._simple_term_mapping[cat.lastPath] = {"en": cat.get_primary_title("en"), "he": cat.get_primary_title("he")}
+
+        return self._simple_term_mapping
+
+    def reset_simple_term_mapping(self):
+        self._simple_term_mapping = {}
 
     #todo: no usages?
     def get_content_nodes(self):
@@ -4625,10 +4645,14 @@ def process_index_delete_in_core_cache(indx, **kwargs):
         invalidate_index(indx.title)
         invalidate_counts(indx.title)
 
+
 def process_version_save_in_cache(ver, **kwargs):
     scache.delete_cache_elem(scache.generate_text_toc_cache_key(ver.title))
+
 
 def process_version_delete_in_cache(ver, **kwargs):
     scache.delete_cache_elem(scache.generate_text_toc_cache_key(ver.title))
 
 
+def reset_simple_term_mapping(o, **kwargs):
+    library.reset_simple_term_mapping()

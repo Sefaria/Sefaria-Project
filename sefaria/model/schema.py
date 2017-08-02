@@ -205,7 +205,7 @@ class Term(AbstractTitledRecord):
     def _validate(self):
         super(Term, self)._validate()
         if self.name != self.get_primary_title():
-            raise InputError("Term name does not match primary title")
+            raise InputError("Term name {} does not match primary title {}".format(self.name, self.get_primary_title()))
 
 
 class TermSet(abst.AbstractMongoSet):
