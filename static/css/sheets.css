@@ -924,8 +924,24 @@ body {
 #addParashaToSheetModal li {
 	width:150px;
 	display:inline;
-	float:left;
 	padding: 2px 0 2px 0;
+	cursor: pointer;
+	cursor: hand;
+}
+
+#addParashaToSheetModal li:hover span{
+	text-decoration: underline;
+ }
+
+#addParashaToSheetModal ol {
+	display: flex;
+	flex-flow: row wrap;
+	margin: auto;
+	padding: 0;
+}
+
+.interface-hebrew #addParashaToSheetModal{
+	direction: rtl;
 }
 
 #addToSheetModal .header {
