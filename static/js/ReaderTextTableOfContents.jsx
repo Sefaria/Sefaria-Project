@@ -149,8 +149,12 @@ class ReaderTextTableOfContents extends Component {
   }
   render() {
     var title     = this.props.title;
-    var heTitle   = Sefaria.index(title) ? Sefaria.index(title).heTitle : title;
+    var index     = Sefaria.index(title);
+    var heTitle   = index ? index.heTitle : title;
     var category  = this.props.category;
+    var catUrl    = "/texts/" + (category == "Commentary" ? 
+                                  index.categories.slice(0, index.categories.indexOf("Commentary") + 1).join("/")
+                                  : category);
 
     var currentVersionElement = null;
     var defaultVersionString = "Default Version";
@@ -279,10 +283,10 @@ class ReaderTextTableOfContents extends Component {
                 <div className="contentInner">
                   <div className="tocTop">
                     <CategoryAttribution categories={categories} />
-                    <div className="tocCategory">
+                    <a className="tocCategory" href={catUrl}>
                       <span className="en">{category}</span>
                       <span className="he">{Sefaria.hebrewTerm(category)}</span>
-                    </div>
+                    </a>
                     <div className="tocTitle" role="heading" aria-level="1">
                       <span className="en">{title}</span>
                       <span className="he">{heTitle}</span>
