@@ -5,8 +5,6 @@ const $            = require('./sefaria/sefariaJquery'),
       SefariaReact = require('./ReaderApp');
 
 
-
-
 $(function() {
   var container = document.getElementById('s2');
   var component;

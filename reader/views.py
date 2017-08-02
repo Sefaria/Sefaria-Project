@@ -41,7 +41,7 @@ from sefaria.client.util import jsonResponse
 from sefaria.history import text_history, get_maximal_collapsed_activity, top_contributors, make_leaderboard, make_leaderboard_condition, text_at_revision, record_version_deletion, record_index_deletion
 from sefaria.system.decorators import catch_error_as_json
 from sefaria.summaries import flatten_toc, get_or_make_summary_node
-from sefaria.sheets import get_sheets_for_ref, public_sheets, get_sheets_by_tag, user_sheets, user_tags, recent_public_tags, sheet_to_dict, get_top_sheets, make_tag_list, group_sheets
+from sefaria.sheets import get_sheets_for_ref, public_sheets, get_sheets_by_tag, user_sheets, user_tags, recent_public_tags, sheet_to_dict, get_top_sheets, make_tag_list, group_sheets, get_topic_data
 from sefaria.utils.util import list_depth, text_preview
 from sefaria.utils.hebrew import hebrew_plural, hebrew_term, encode_hebrew_numeral, encode_hebrew_daf, is_hebrew, strip_cantillation, has_cantillation
 from sefaria.utils.talmud import section_to_daf, daf_to_section
@@ -633,6 +633,64 @@ def s2_sheets_by_tag(request, tag):
         else:
             title = u"{} | Sefaria".format(tag)
             desc  = u'Public Source Sheets on tagged with "{}", drawing from Sefaria\'s library of Jewish texts.'.format(tag)
+
+    propsJSON = json.dumps(props)
+    html = render_react_component("ReaderApp", propsJSON)
+    return render_to_response('s2.html', {
+        "propsJSON":      propsJSON,
+        "title":          title,
+        "desc":           desc,
+        "html":           html,
+    }, RequestContext(request))
+
+
+def s2_topics_page(request):
+    """
+    Page of sheets by tag.
+    Currently used to for "My Sheets" and  "All Sheets" as well.
+    """
+    props = s2_props(request)
+    props.update({
+        "initialMenu":  "topics",
+        "initialTopic": None,
+        "topicList": make_tag_list(sort_by="count"),
+    })
+
+    if props["interfaceLang"] == "hebrew":
+        title = u"Topics | Sefaria." # HEBREW NEEDED
+        desc  = u'Explore Jewish Texts by Topic on Sefaria.'
+    else:
+        title = u"Topics | Sefaria."
+        desc  = u'Explore Jewish Texts by Topic on Sefaria.'
+
+    propsJSON = json.dumps(props)
+    html = render_react_component("ReaderApp", propsJSON)
+    return render_to_response('s2.html', {
+        "propsJSON":      propsJSON,
+        "title":          title,
+        "desc":           desc,
+        "html":           html,
+    }, RequestContext(request))
+
+
+def s2_topic_page(request, topic):
+    """
+    Page of sheets by tag.
+    Currently used to for "My Sheets" and  "All Sheets" as well.
+    """
+    props = s2_props(request)
+    props.update({
+        "initialMenu":  "topics",
+        "initialTopic": topic,
+        "topicData": get_topic_data(topic),
+    })
+
+    if props["interfaceLang"] == "hebrew":
+        title = u"{} | Sefaria".format(topic) # HEBREW NEEDED
+        desc  = u'Explore "{}" on Sefaria, drawing from our library of Jewish texts.'.format(topic)
+    else:
+        title = u"{} | Sefaria".format(topic)
+        desc  = u'Explore "{}" on Sefaria, drawing from our library of Jewish texts.'.format(topic)
 
     propsJSON = json.dumps(props)
     html = render_react_component("ReaderApp", propsJSON)

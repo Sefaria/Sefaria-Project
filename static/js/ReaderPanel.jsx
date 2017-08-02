@@ -22,6 +22,8 @@ const {
 const ReaderTextTableOfContents = require('./ReaderTextTableOfContents');
 const SearchPage                = require('./SearchPage');
 const SheetsNav                 = require('./SheetsNav');
+const TopicsPanel               = require('./TopicsPanel');
+const TopicPage                 = require('./TopicPage');
 const AccountPanel              = require('./AccountPanel');
 const NotificationsPanel        = require('./NotificationsPanel');
 const MyNotesPanel              = require('./MyNotesPanel');
@@ -65,6 +67,7 @@ class ReaderPanel extends Component {
       menuOpen:             props.initialMenu || null, // "navigation", "book toc", "text toc", "display", "search", "sheets", "home", "compare"
       navigationCategories: props.initialNavigationCategories || [],
       navigationSheetTag:   props.initialSheetsTag || null,
+      navigationTopic:      props.initialTopic || null,
       sheetsGroup:          props.initialGroup || null,
       searchQuery:          props.initialQuery || null,
       appliedSearchFilters: props.initialAppliedSearchFilters || [],
@@ -611,6 +614,28 @@ class ReaderPanel extends Component {
                     setSheetTagSort={this.setSheetTagSort}
                     setSheetTag={this.setSheetTag}
                     key={"SheetsNav"} />);
+
+    } else if (this.state.menuOpen === "topics") {
+      if (this.state.topic) {
+        var menu = (<TopicPage
+                      topic={this.state.navigationTopic}
+                      interfaceLang={this.props.interfaceLang}
+                      openNav={this.openMenu.bind(null, "navigation")}
+                      close={this.closeMenus}
+                      multiPanel={this.props.multiPanel}
+                      hideNavHeader={this.props.hideNavHeader}
+                      toggleLanguage={this.toggleLanguage}
+                      key={"TopicPage"} />);   
+      } else {
+        var menu = (<TopicsPanel
+                      interfaceLang={this.props.interfaceLang}
+                      openNav={this.openMenu.bind(null, "navigation")}
+                      close={this.closeMenus}
+                      multiPanel={this.props.multiPanel}
+                      hideNavHeader={this.props.hideNavHeader}
+                      toggleLanguage={this.toggleLanguage}
+                      key={"TopicsPanel"} />);        
+      }
 
     } else if (this.state.menuOpen === "account") {
       var menu = (<AccountPanel

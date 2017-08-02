@@ -50,6 +50,7 @@ class ReaderApp extends Component {
           searchQuery: props.initialQuery,
           appliedSearchFilters: props.initialSearchFilters,
           navigationCategories: props.initialNavigationCategories,
+          navigationTopic: props.initialTopic,
           sheetsTag: props.initialSheetsTag,
           group: props.initialGroup,
           searchField: props.initialSearchField,
@@ -74,6 +75,7 @@ class ReaderApp extends Component {
         searchField: props.initialSearchField,
         searchSortType: props.initialSearchSortType,
         navigationCategories: props.initialNavigationCategories,
+        navigationTopic: props.initialTopic,
         sheetsTag: props.initialSheetsTag,
         group: props.initialGroup,
         settings: Sefaria.util.clone(defaultPanelSettings)
@@ -430,6 +432,17 @@ class ReaderApp extends Component {
               hist.mode  = "sheets";
             }
             break;
+          case "topics":
+            if (states[i].topic) {
+              hist.url   = "topics/" + state.navigationTopic;
+              hist.title = state.navigationSheetTag + " | Sefaria";
+              hist.mode  = "topic";                 
+            } else {
+              hist.url   = "topics";
+              hist.title = "Topics | Sefaria";
+              hist.mode  = "topics";   
+            }
+            break;
           case "account":
             hist.title = "Sefaria Account";
             hist.url   = "account";
@@ -617,6 +630,7 @@ class ReaderApp extends Component {
       menuOpen:                state.menuOpen                || null, // "navigation", "text toc", "display", "search", "sheets", "home", "book toc"
       navigationCategories:    state.navigationCategories    || [],
       navigationSheetTag:      state.sheetsTag               || null,
+      navigationTopic:         state.navigationTopic         || null,
       sheetsGroup:             state.group                   || null,
       searchQuery:             state.searchQuery             || null,
       appliedSearchFilters:    state.appliedSearchFilters    || [],
@@ -1334,6 +1348,7 @@ ReaderApp.propTypes = {
   initialSearchField:          PropTypes.string,
   initialSearchSortType:       PropTypes.string,
   initialSheetsTag:            PropTypes.string,
+  initialTopic:                PropTypes.string,
   initialNavigationCategories: PropTypes.array,
   initialSettings:             PropTypes.object,
   initialPanels:               PropTypes.array,
@@ -1354,6 +1369,7 @@ ReaderApp.defaultProps = {
   initialSearchField:          null,
   initialSearchSortType:       null,
   initialSheetsTag:            null,
+  initialTopic:                null,
   initialNavigationCategories: [],
   initialPanels:               [],
   initialDefaultVersions:      {},

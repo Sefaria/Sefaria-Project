@@ -2,7 +2,6 @@ import json
 import httplib2
 from datetime import datetime, timedelta
 from StringIO import StringIO
-from collections import defaultdict
 
 from django.template import RequestContext
 from django.template.loader import render_to_string
@@ -1069,16 +1068,7 @@ def topics_api(request, topic):
 	"""
 	API to get data for a particular topic.
 	"""
-	sheets            = get_sheets_by_tag(topic)
-	sheets_serialized = []
-	sources_dict      = defaultdict(int)
-	for sheet in sheets:
-		sheets_serialized.append(sheet_to_dict(sheet))
-		for source in sheet.get("sources", []):
-			if "ref" in source:
-				sources_dict[source["ref"]] += 1
-	sources = sorted(sources_dict.iteritems(), key=lambda (k,v): v, reverse=True)
-	response = {"topic": topic, "sources": sources, "sheets": sheets_serialized}
+	response = get_topic_data(topic)
 	response = jsonResponse(response, callback=request.GET.get("callback", None))
 	response["Cache-Control"] = "max-age=3600"
 	return response

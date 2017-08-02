@@ -1306,6 +1306,34 @@ Sefaria = extend(Sefaria, {
     }
     return null;
   },
+  _topicList: null,
+  topicList: function(callback) {
+    // Returns data for `topic`.
+    if (this._topicList) {
+      if (callback) { callback(this._topicList); }
+    } else if (callback) {
+      var url = "/api/sheets/tag-list/count"; // TODO separate topic list API
+       Sefaria._api(url, function(data) {
+          this._topicList = data;
+           if (callback) { callback(data); }
+        }.bind(this));
+      }
+    return this._topicList;
+  },
+  _topics: {},
+  topic: function(topic, callback) {
+    var topic = this._topics[topic];
+    if (topic) {
+      if (callback) { callback(topic); }
+    } else {
+      var url = "/api/topic/" + topic;
+       Sefaria._api(url, function(data) {
+          this._topics[topic] = data;
+          if (callback) { callback(data); }
+        }.bind(this));
+      }
+    return topic;
+  },
   sheets: {
     _trendingTags: null,
     trendingTags: function(callback) {
@@ -1646,6 +1674,12 @@ Sefaria.unpackDataFromProps = function(props) {
   }
   if (props.groupData) {
     Sefaria._groups[props.initialGroup] = props.groupData;
+  }
+  if (props.topicData) {
+    Sefaria._topics[props.initialTopic] = props.topicData;
+  }
+  if (props.topicList) {
+    Sefaria._topicList = props.topicList;
   }
   Sefaria.util._initialPath = props.initialPath;
 };

@@ -225,8 +225,13 @@ urlpatterns += patterns('sheets.views',
     (r'^api/groups/(?P<group_name>[^/]+)/pin-sheet/(?P<sheet_id>\d+)', 'groups_pin_sheet_api'),
 )
 
-
 # Topics
+urlpatterns += patterns('reader.views',
+    (r'^topics$', 's2_topics_page'),
+    (r'^topics/(?P<topic>.+)$', 's2_topic_page'),
+)
+
+# Topics API
 urlpatterns += patterns('sheets.views',
     (r'^api/topics/(?P<topic>.+)$', 'topics_api'),
 )
@@ -278,7 +283,6 @@ static_pages = [
     "random-walk-through-torah",
     "educators",
     "the-sefaria-story",
-
 ]
 
 # Static and Semi Static Content

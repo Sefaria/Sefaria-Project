@@ -7,6 +7,7 @@ import regex
 import dateutil.parser
 from datetime import datetime, timedelta
 from bson.son import SON
+from collections import defaultdict
 
 import sefaria.model as model
 import sefaria.model.abstract as abstract
@@ -446,6 +447,24 @@ def get_sheets_for_ref(tref, uid=None):
 			results.append(sheet_data)
 
 	return results
+
+def get_topic_data(topic):
+	"""
+	Returns data for a topic
+		- sources
+		- sheets
+	"""
+	sheets            = get_sheets_by_tag(topic)
+	sheets_serialized = []
+	sources_dict      = defaultdict(int)
+	for sheet in sheets:
+		sheets_serialized.append(sheet_to_dict(sheet))
+		for source in sheet.get("sources", []):
+			if "ref" in source:
+				sources_dict[source["ref"]] += 1
+	sources = sorted(sources_dict.iteritems(), key=lambda (k,v): v, reverse=True)
+	
+	return {"topic": topic, "sources": sources, "sheets": sheets_serialized}
 
 
 def update_sheet_tags(sheet_id, tags):
