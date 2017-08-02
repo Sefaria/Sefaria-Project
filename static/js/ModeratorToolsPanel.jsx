@@ -4,6 +4,7 @@ const Sefaria    = require('./sefaria/sefaria');
 const $          = require('./sefaria/sefariaJquery');
 import Component from 'react-class';
 
+
 class ModeratorToolsPanel extends Component {
   constructor(props) {
     super(props);
@@ -52,7 +53,6 @@ class ModeratorToolsPanel extends Component {
       processData: false
     });
   }
-
   onDlTitleChange(event) {
     this.setState({bulk_title_pattern: event.target.value});
   }
@@ -71,7 +71,6 @@ class ModeratorToolsPanel extends Component {
     ).filter(a => a).join("&");
     return "download/bulk/versions/?" + args;
   }
-
   render () {
     // Bulk Download
     var dlReady = (this.state.bulk_format && (this.state.bulk_title_pattern || this.state.bulk_version_title_pattern));
@@ -128,9 +127,9 @@ class ModeratorToolsPanel extends Component {
     return (Sefaria.is_moderator)?<div className="modTools">{downloadSection}{uploadForm}</div>:<div>Tools are only available to logged in moderators.</div>;
   }
 }
-
 ModeratorToolsPanel.propTypes = {
   interfaceLang: PropTypes.string
 };
+
 
 module.exports = ModeratorToolsPanel;

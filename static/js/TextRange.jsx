@@ -9,7 +9,7 @@ import Component from 'react-class'
 class TextRange extends Component {
   // A Range or text defined a by a single Ref. Specially treated when set as 'basetext'.
   // This component is responsible for retrieving data from `Sefaria` for the ref that defines it.
-componentDidMount() {
+  componentDidMount() {
     this._isMounted = true;
     var data = this.getText();
     if (data && !this.dataPrefetched) {
@@ -58,6 +58,11 @@ componentDidMount() {
       //Click on the body of the TextRange itself from TextList
       this.props.onRangeClick(this.props.sref);
       Sefaria.track.event("Reader", "Click Text from TextList", this.props.sref);
+    }
+  }
+  handleKeyPress(event) {
+    if (event.charCode == 13) {
+      this.handleClick(event);
     }
   }
   getText() {
@@ -230,6 +235,7 @@ componentDidMount() {
                         this.props.basetext && segment.highlight;                   // otherwise highlight if this a basetext and the ref is specific
       return (
         <TextSegment
+            panelPosition={this.props.panelPosition}
             sref={segment.ref}
             en={segment.en}
             he={segment.he}
@@ -303,7 +309,7 @@ componentDidMount() {
     } else {var sidebarNum = null;}
 
     return (
-      <div className={classes} onClick={this.handleClick}>
+      <div className={classes} onClick={this.handleClick} onKeyPress={this.handleKeyPress}>
         {sidebarNum}
         {this.props.hideTitle ? null :
 
@@ -323,7 +329,6 @@ componentDidMount() {
     );
   }
 }
-
 TextRange.propTypes = {
   sref:                   PropTypes.string.isRequired,
   version:                PropTypes.string,
@@ -351,7 +356,6 @@ TextRange.propTypes = {
   layoutWidth:            PropTypes.number,
   showActionLinks:        PropTypes.bool,
   inlineReference:        PropTypes.object,
-
 };
 
 
@@ -370,6 +374,11 @@ class TextSegment extends Component {
     } else if (this.props.onSegmentClick) {
       this.props.onSegmentClick(this.props.sref);
       Sefaria.track.event("Reader", "Text Segment Click", this.props.sref);
+    }
+  }
+  handleKeyPress(event) {
+    if (event.charCode == 13) {
+      this.handleClick(event);
     }
   }
   render() {
@@ -421,7 +430,7 @@ class TextSegment extends Component {
         return false;
     }
     return (
-      <span className={classes} onClick={this.handleClick} data-ref={this.props.sref}>
+      <span tabIndex="0" className={classes} onClick={this.handleClick} onKeyPress={this.handleKeyPress} data-ref={this.props.sref} aria-controls={"panel-"+(this.props.panelPosition+1)} aria-label={"Click to see links to "+this.props.sref}>
         {segmentNumber}
         {linkCountElement}
         <span className="he" dangerouslySetInnerHTML={ {__html: he + " "} }></span>
@@ -431,7 +440,6 @@ class TextSegment extends Component {
     );
   }
 }
-
 TextSegment.propTypes = {
   sref:            PropTypes.string,
   en:              PropTypes.string,
@@ -444,5 +452,6 @@ TextSegment.propTypes = {
   onSegmentClick:  PropTypes.func,
   onFootnoteClick: PropTypes.func
 };
+
 
 module.exports = TextRange;

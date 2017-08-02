@@ -185,7 +185,6 @@ class ToggleOption extends Component {
         role={this.props.role}
         aria-label= {this.props.ariaLabel}
         tabIndex = {this.props.role == "radio"? tabIndexValue : "0"}
-        aria-value = {ariaCheckedValue}
         className={classes}
         style={this.props.style}
         onClick={this.handleClick}>

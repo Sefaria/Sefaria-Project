@@ -10,6 +10,7 @@ const  Sefaria   = require('./sefaria/sefaria');
 const  $         = require('./sefaria/sefariaJquery');
 import Component from 'react-class';
 
+
 class NotificationsPanel extends Component {
   constructor(props) {
     super(props);
@@ -82,10 +83,10 @@ class NotificationsPanel extends Component {
       </div>);
   }
 }
-
 NotificationsPanel.propTypes = {
   setUnreadNotificationsCount: PropTypes.func.isRequired,
   interfaceLang:               PropTypes.string,
 };
+
 
 module.exports = NotificationsPanel;

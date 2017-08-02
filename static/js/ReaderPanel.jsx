@@ -30,6 +30,7 @@ const UpdatesPanel              = require('./UpdatesPanel');
 const ModeratorToolsPanel       = require('./ModeratorToolsPanel');
 import Component from 'react-class';
 
+
 class ReaderPanel extends Component {
   constructor(props) {
     super(props);
@@ -86,6 +87,10 @@ class ReaderPanel extends Component {
     window.addEventListener("resize", this.setWidth);
     this.setWidth();
     this.setHeadroom();
+    if (this.props.panelPosition) {  //Focus on the first focusable element of the newly loaded panel. Mostly for a11y
+      var curPanel = $(".readerPanel")[this.props.panelPosition];
+      $(curPanel).find(':focusable').first().focus();
+    }
   }
   componentWillUnmount() {
     window.removeEventListener("resize", this.setWidth);
@@ -415,6 +420,11 @@ class ReaderPanel extends Component {
     var option = category === "Tanakh" || category === "Talmud" ? "layout" + category : "layoutDefault";
     return this.state.settings[option];
   }
+  handleKeyPress(e) {
+    if (e.keyCode === 27) {
+      this.props.closePanel(e);
+    }
+  }
   render() {
     if (this.state.error) {
       return (
@@ -434,6 +444,7 @@ class ReaderPanel extends Component {
     var items = [];
     if (this.state.mode === "Text" || this.state.mode === "TextAndConnections") {
       items.push(<TextColumn
+          panelPosition ={this.props.panelPosition}
           srefs={this.state.refs.slice()}
           version={this.state.version}
           versionLanguage={this.state.versionLanguage}
@@ -466,6 +477,7 @@ class ReaderPanel extends Component {
                         (langMode === "english" && data.versionStatus !== "locked") ||
                         (Sefaria.is_moderator && langMode !== "bilingual"));
       items.push(<ConnectionsPanel
+          panelPosition ={this.props.panelPosition}
           srefs={this.state.mode === "Connections" ? this.state.refs.slice() : this.state.highlightedRefs.slice()}
           filter={this.state.filter || []}
           mode={this.state.connectionsMode || "Resources"}
@@ -650,7 +662,7 @@ class ReaderPanel extends Component {
     );
 
     return (
-      <div className={classes}>
+      <div className={classes} onKeyDown={this.handleKeyPress} role="region" id={"panel-"+this.props.panelPosition}>
         {hideReaderControls ? null :
         (<ReaderControls
           showBaseText={this.showBaseText}
@@ -696,7 +708,6 @@ class ReaderPanel extends Component {
     );
   }
 }
-
 ReaderPanel.propTypes = {
   initialRefs:                 PropTypes.array,
   initialMode:                 PropTypes.string,
@@ -815,7 +826,7 @@ class ReaderControls extends Component {
         </div>) :
       (<div className={"readerTextToc" + (categoryAttribution ? ' attributed' : '')} onClick={this.openTextToc}>
         <div className="readerTextTocBox">
-          <a href={url}>
+          <a href={url} aria-label={"Show table of contents for " + title} >
             { title ? (<i className="fa fa-caret-down invisible"></i>) : null }
             <span className="en">{title}</span>
             <span className="he">{heTitle}</span>
@@ -853,7 +864,6 @@ class ReaderControls extends Component {
     );
   }
 }
-
 ReaderControls.propTypes = {
   settings:                PropTypes.object.isRequired,
   showBaseText:            PropTypes.func.isRequired,
@@ -980,7 +990,6 @@ class ReaderDisplayOptionsMenu extends Component {
     }
   }
 }
-
 ReaderDisplayOptionsMenu.propTypes = {
   setOption:     PropTypes.func.isRequired,
   currentLayout: PropTypes.func.isRequired,
@@ -989,5 +998,6 @@ ReaderDisplayOptionsMenu.propTypes = {
   width:         PropTypes.number.isRequired,
   settings:      PropTypes.object.isRequired,
 };
+
 
 module.exports = ReaderPanel;

@@ -1,7 +1,6 @@
 const {
   LanguageToggleButton,
   ReaderNavigationMenuCloseButton,
-
 }                = require('./Misc');
 const {
   RecentFilterSet

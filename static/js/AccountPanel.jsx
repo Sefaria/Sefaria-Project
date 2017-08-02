@@ -11,6 +11,7 @@ const Footer     = require('./Footer');
 const $          = require('./sefaria/sefariaJquery');
 import Component from 'react-class';
 
+
 class AccountPanel extends Component {
   componentDidMount() {
     $(".inAppLink").on("click", this.props.handleInAppLinkClick);

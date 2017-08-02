@@ -17,6 +17,7 @@ const AddToSourceSheetBox = require('./AddToSourceSheetBox');
 const Footer              = require('./Footer');
 import Component          from 'react-class';
 
+
 class MyNotesPanel extends Component {
   componentDidMount() {
     this.loadData();
@@ -90,7 +91,6 @@ class MyNotesPanel extends Component {
       </div>);
   }
 }
-
 MyNotesPanel.propTypes = {
   interfaceLang:       PropTypes.string,
   mutliPanel:          PropTypes.bool,
@@ -154,15 +154,14 @@ class NoteListing extends Component {
             </div>);
   }
 }
-
 NoteListing.propTypes = {
   data:     PropTypes.object.isRequired,
   showText: PropTypes.bool,
 };
-
 NoteListing.defaultProps = {
   showText: true
 };
+
 
 class AddToSourceSheetWindow extends Component {
   close () {
@@ -191,7 +190,6 @@ class AddToSourceSheetWindow extends Component {
       </div>);
   }
 }
-
 AddToSourceSheetWindow.propTypes = {
   srefs:        PropTypes.array,
   close:        PropTypes.func,

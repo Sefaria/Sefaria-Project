@@ -12,6 +12,7 @@ const Sefaria    = require('./sefaria/sefaria');
 const ReaderPanel= require('./ReaderPanel');
 import Component from 'react-class';
 
+
 class Header extends Component {
   constructor(props) {
     super(props);
@@ -259,7 +260,7 @@ class Header extends Component {
                          </div>);
     var langSearchPlaceholder = this.props.interfaceLang == 'english' ? "Search" : "חיפוש";
     var vkClassActivator = this.props.interfaceLang == 'english' ? " keyboardInput" : "";
-    return (<div className="header">
+    return (<div className="header" role="banner">
               <div className="headerInner">
                 <div className="headerNavSection">
                     <a href="/texts" aria-label="Toggle Text Table of Contents" className="library" onClick={this.handleLibraryClick}><i className="fa fa-bars"></i></a>
@@ -291,7 +292,6 @@ class Header extends Component {
             </div>);
   }
 }
-
 Header.propTypes = {
   initialState:                PropTypes.object.isRequired,
   headerMode:                  PropTypes.bool,
@@ -313,5 +313,6 @@ Header.propTypes = {
   panelsOpen:                  PropTypes.number,
   analyticsInitialized:        PropTypes.bool,
 };
+
 
 module.exports = Header;

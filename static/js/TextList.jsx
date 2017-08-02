@@ -190,6 +190,7 @@ class TextList extends Component {
                         Sefaria.util.inArray(link.anchorRef, refs) === -1;
                         return (<div className="textListTextRangeBox" key={i + link.sourceRef}>
                                   <TextRange
+                                    panelPosition ={this.props.panelPosition}
                                     sref={link.sourceRef}
                                     hideTitle={hideTitle}
                                     numberLabel={link.category === "Commentary" ? link.anchorVerse : 0}

@@ -14,6 +14,7 @@ const GroupPage  = require('./GroupPage');
 const Footer     = require('./Footer');
 import Component from 'react-class';
 
+
 class SheetsNav extends Component {
   // Navigation for Sheets
   constructor(props) {
@@ -94,7 +95,6 @@ class SheetsNav extends Component {
             </div>);
   }
 }
-
 SheetsNav.propTypes = {
   multiPanel:      PropTypes.bool,
   tag:             PropTypes.string,
@@ -236,12 +236,12 @@ class SheetsHomePage extends Component {
              </div>);
   }
 }
-
 SheetsHomePage.propTypes = {
   setSheetTag:     PropTypes.func.isRequired,
   setSheetTagSort: PropTypes.func.isRequired,
   hideNavHeader:   PropTypes.bool
 };
+
 
 class TagSheetsPage extends Component {
   // Page list all public sheets.
@@ -279,10 +279,10 @@ class TagSheetsPage extends Component {
                     </div>);
   }
 }
-
 TagSheetsPage.propTypes = {
   hideNavHeader:   PropTypes.bool
 };
+
 
 class AllSheetsPage extends Component {
   // Page list all public sheets.
@@ -366,10 +366,10 @@ class AllSheetsPage extends Component {
                     </div>);
   }
 }
-
 AllSheetsPage.propTypes = {
   hideNavHeader:   PropTypes.bool
 };
+
 
 class PublicSheetListing extends Component {
   render() {
@@ -384,7 +384,6 @@ class PublicSheetListing extends Component {
             </a>);
   }
 }
-
 PublicSheetListing.propTypes = {
   sheet: PropTypes.object.isRequired
 };
@@ -399,7 +398,6 @@ class SheetTagButton extends Component {
     return (<a href={`/sheets/tags/${this.props.tag}`} className="navButton" onClick={this.handleTagClick}>{this.props.tag} (<span className="enInHe">{this.props.count}</span>)</a>);
   }
 }
-
 SheetTagButton.propTypes = {
   tag:   PropTypes.string.isRequired,
   count: PropTypes.number.isRequired,
@@ -505,7 +503,6 @@ class MySheetsPage extends Component {
             </div>);
   }
 }
-
 MySheetsPage.propTypes = {
   setSheetTag:     PropTypes.func.isRequired,
   setSheetTagSort: PropTypes.func.isRequired,
@@ -532,10 +529,10 @@ class PrivateSheetListing extends Component {
           </div>);
   }
 }
-
 PrivateSheetListing.propTypes = {
   sheet:       PropTypes.object.isRequired,
   setSheetTag: PropTypes.func.isRequired
 };
+
 
 module.exports = SheetsNav;
