@@ -623,9 +623,14 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
             except BookNameError:
                 raise InputError("Base Text Titles must point to existing texts in the system.")
 
+        if not library.get_toc_tree().lookup(self.categories):
+            raise InputError(u"You must create category {} before adding texts to it.".format(u"/".join(self.categories)))
+
+        '''
         for cat in self.categories:
             if not hebrew_term(cat):
                 raise InputError("You must add a hebrew translation Term for any new Category title: {}.".format(cat))
+        '''
 
         if getattr(self, "collective_title", None) and not hebrew_term(getattr(self, "collective_title", None)):
             raise InputError("You must add a hebrew translation Term for any new Collective Title: {}.".format(self.collective_title))

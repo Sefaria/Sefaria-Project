@@ -1,13 +1,53 @@
 
 # -*- coding: utf-8 -*-
+import pytest
 import json
 from deepdiff import DeepDiff
+
+from sefaria.system.exceptions import InputError
 from sefaria.model import *
 import sefaria.model.category as c
 import sefaria.summaries as s
 
 
 class Test_Categories(object):
+    def test_index_save_with_bad_categories(self):
+        title = 'Test Bad Cat'
+        d = {
+            "categories": [
+                "Liturgy", "Bobby McGee"
+            ],
+            "title": title,
+            "schema": {
+                "titles": [
+                    {
+                        "lang": "en",
+                        "text": title,
+                        "primary": True
+                    },
+                    {
+                        "lang": "he",
+                        "text": "דוגמא ב",
+                        "primary": True
+                    }
+                ],
+                "nodeType": "JaggedArrayNode",
+                "depth": 2,
+                "sectionNames": [
+                    "Section",
+                    "Line"
+                ],
+                "addressTypes": [
+                    "Integer",
+                    "Integer"
+                ],
+                "key": title
+            },
+        }
+        i = Index(d)
+        with pytest.raises(InputError):
+            i.save()
+
     def test_cat_name_change(self):
         base_toc = library.get_toc()
         base_json = json.dumps(base_toc, sort_keys=True)
