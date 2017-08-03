@@ -3664,7 +3664,6 @@ function deleteSheet() {
 			if ("error" in data) {
 				sjs.alert.message(data.error);
 			} else {
-				debugger;
 				sjs.alert.messageOnly(
 					"<span class='int-en'>Source Sheet deleted.</span>" +
 					"<span class='int-he'>דף המקורות נמחק בהצלחה.</span>" +
@@ -3992,7 +3991,7 @@ $.extend(sjs, {
 
 function translateInterfaceString(key, defaultValue){
 	defaultValue = typeof defaultValue === 'undefined' ? null : defaultValue;
-	if(key in sjs.i18nInterfaceStrings){
+	if(sjs.interfaceLang != "en" && key in sjs.i18nInterfaceStrings){
 		return sjs.i18nInterfaceStrings[key];
 	}else{
 		return (defaultValue ? defaultValue : key);

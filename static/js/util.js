@@ -1296,9 +1296,12 @@ sjs.sheetTagger = {
 					'	<div class="sub"></div>' +
 					'	<div class="button ok"><span class="int-en">Save</span><span class="int-he">שמור</span></div>' +
 					'</div>';
-		if(sjs.hasOwnProperty("interfaceLangLong")){
-			$(html).addClass("interface-"+sjs.interfaceLangLong);
-		$(html).appendTo("body");
+		if(sjs.hasOwnProperty("interfaceLangLong")) {
+            $(html).addClass("interface-" + sjs.interfaceLangLong).appendTo("body");
+        }else{
+		    $(html).appendTo("body");
+        }
+
 
 		// Init with tagit and with its tags
 		$("#tags").tagit({ allowSpaces: true });
