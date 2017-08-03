@@ -31,7 +31,7 @@ def create_category(treenode):
     c.path = treenode.full_path
     c.lastPath = treenode.full_path[-1]
     print "Creating - {}".format(" / ".join(c.path))
-    c.save()
+    c.save(override_dependencies=True)
 
 db.category.remove({})
 serial_toc = update_table_of_contents()
