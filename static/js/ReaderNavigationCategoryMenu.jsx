@@ -46,14 +46,21 @@ class ReaderNavigationCategoryMenu extends Component {
                               <span className="he">ירושלמי</span>
                             </span>
                          </div>);
-      var catTitle = (categories.length > 1) ? categories[0] +  " " + categories[1] : categories[0];
+      var catTitle   = (categories.length > 1) ? categories[0] +  " " + categories[1] : categories[0];
       var heCatTitle = (categories.length > 1) ? Sefaria.hebrewTerm(categories[0]) + " " + Sefaria.hebrewTerm(categories[1]): categories[0];
     } else {
       var toggle = null;
-      var catTitle = this.props.category;
-      var heCatTitle = Sefaria.hebrewTerm(this.props.category);
+      if (this.props.category === "Commentary") {
+        var catTitle   = this.props.categories[0] + " Commentary";
+        var heCatTitle = Sefaria.hebrewTerm(this.props.category) + " " + Sefaria.hebrewTerm("Commentary"); // HEBREW NEEDED    
+      } else {
+        var catTitle   = this.props.category;
+        var heCatTitle = Sefaria.hebrewTerm(this.props.category);        
+      }
+
     }
     var catContents    = Sefaria.tocItemsByCategories(categories);
+    var nestLevel      = this.props.category == "Commentary" ? 1 : 0;
     var navMenuClasses = classNames({readerNavCategoryMenu: 1, readerNavMenu: 1, noHeader: this.props.hideNavHeader});
     var navTopClasses  = classNames({readerNavTop: 1, searchOnly: 1, colorLineOnly: this.props.hideNavHeader});
     var contentClasses = classNames({content: 1, hasFooter: footer != null});
@@ -76,7 +83,7 @@ class ReaderNavigationCategoryMenu extends Component {
                     </h1>) : null}
                   {toggle}
                   <CategoryAttribution categories={categories} />
-                  <ReaderNavigationCategoryMenuContents contents={catContents} categories={categories} width={this.props.width} category={this.props.category} nestLevel={0} />
+                  <ReaderNavigationCategoryMenuContents contents={catContents} categories={categories} width={this.props.width} category={this.props.category} nestLevel={nestLevel} />
                 </div>
                 {footer}
               </div>

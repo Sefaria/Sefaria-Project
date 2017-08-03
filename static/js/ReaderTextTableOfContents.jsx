@@ -149,8 +149,12 @@ class ReaderTextTableOfContents extends Component {
   }
   render() {
     var title     = this.props.title;
-    var heTitle   = Sefaria.index(title) ? Sefaria.index(title).heTitle : title;
+    var index     = Sefaria.index(title);
+    var heTitle   = index ? index.heTitle : title;
     var category  = this.props.category;
+    var catUrl    = "/texts/" + (category == "Commentary" ? 
+                                  index.categories.slice(0, index.categories.indexOf("Commentary") + 1).join("/")
+                                  : category);
 
     var currentVersionElement = null;
     var defaultVersionString = "Default Version";
@@ -279,10 +283,10 @@ class ReaderTextTableOfContents extends Component {
                 <div className="contentInner">
                   <div className="tocTop">
                     <CategoryAttribution categories={categories} />
-                    <div className="tocCategory">
+                    <a className="tocCategory" href={catUrl}>
                       <span className="en">{category}</span>
                       <span className="he">{Sefaria.hebrewTerm(category)}</span>
-                    </div>
+                    </a>
                     <div className="tocTitle" role="heading" aria-level="1">
                       <span className="en">{title}</span>
                       <span className="he">{heTitle}</span>
@@ -339,12 +343,19 @@ ReaderTextTableOfContents.propTypes = {
 
 class TextDetails extends Component {
  render() {
+    var index = this.props.index;
     var makeDescriptionText = function(compWord, compPlace, compDate, description) {
       var composed = compPlace || compDate ? compWord + [compPlace, compDate].filter(x => !!x).join(" ") : null;
       return [composed, description].filter(x => !!x).join(". ");
     };
-    var enDesc = makeDescriptionText("Composed in ", "compPlaceString" in this.props.index ? this.props.index.compPlaceString.en : null, "compDateString" in this.props.index ? this.props.index.compDateString.en : null, this.props.index.enDesc);
-    var heDesc = makeDescriptionText("נוצר/נערך ב", "compPlaceString" in this.props.index ? this.props.index.compPlaceString.he : null, "compDateString" in this.props.index ? this.props.index.compDateString.he : null, this.props.index.heDesc);
+    var enDesc = makeDescriptionText("Composed in ", "compPlaceString" in index ? index.compPlaceString.en : null, "compDateString" in index ? index.compDateString.en : null, index.enDesc);
+    var heDesc = makeDescriptionText("נוצר/נערך ב", "compPlaceString" in index ? index.compPlaceString.he : null, "compDateString" in index ? index.compDateString.he : null, index.heDesc);
+
+    if (index.categories.length == 2 && index.categories[0] == "Tanakh") {
+      // Don't show date/time for Tanakh.
+      enDesc = index.enDesc || "";
+      heDesc = index.heDesc || "";
+    }
 
     var authors = "authors" in this.props.index ? this.props.index.authors : [];
 

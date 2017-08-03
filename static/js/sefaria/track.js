@@ -6,9 +6,11 @@ class Track {
         // https://developers.google.com/analytics/devguides/collection/analyticsjs/command-queue-reference#send
         ga('send', 'event', category, action, label, value, options);
         //console.log('send', 'event', category, action, label, value, options);
-        if (ga._mock && options && options.hitCallback) {
+        if (ga._mock && value && value.hitCallback) {
           // When Google Analytics isn't being used, trigger hitCallback immediately.
-          options.hitCallback();
+          value.hitCallback();
+          // Unsure why we have param mismatch... what we call value here is treated as options.
+          // A previous attempt to insert `null` for value to put `options` in the right place broke tracking.
         }
     }
     static pageview(url) {

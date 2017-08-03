@@ -5,8 +5,6 @@ const $            = require('./sefaria/sefariaJquery'),
       SefariaReact = require('./ReaderApp');
 
 
-
-
 $(function() {
   var container = document.getElementById('s2');
   var component;
@@ -29,7 +27,7 @@ $(function() {
       color:         $.cookie("color")         || "light",
       fontSize:      $.cookie("fontSize")      || 62.5
     };
-    var multiPanel    = $(window).width() > 600;
+    var multiPanel = $(window).width() > 600;
     component = React.createElement(SefariaReact.ReaderApp, {
       headerMode: true,
       multiPanel: multiPanel,
