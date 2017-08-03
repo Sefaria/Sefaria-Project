@@ -1,9 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import pytest
-from sefaria.model.text import library, Ref, Index
-from sefaria.model.schema import Term
-from sefaria.model.category import Category
+from sefaria.model import *
 
 
 def setup_module(module):
@@ -363,13 +361,9 @@ class Test_Library(object):
 class Test_Term_Map(object):
     @classmethod
     def teardown_class(cls):
-        c = Category().load({'path': ["Tanakh", "Torah", "New Category"]})
-        if c:
-            c.delete()
+        CategorySet({'path': ["Tanakh", "Torah", "New Category"]}).delete()
+        TermSet({"name": 'New Term'}).delete()
 
-        t = Term().load({"name": 'New Term'})
-        if t:
-            t.delete()
 
     def test_terms_in_map(self):
         assert "Siman" in library.get_simple_term_mapping()
@@ -394,7 +388,7 @@ class Test_Term_Map(object):
         old = library.get_simple_term_mapping()
 
         # Delete category causes cache refresh
-        Category().load({'path': ["Tanakh", "Torah", "New Category"]}).delete()
+        CategorySet({'path': ["Tanakh", "Torah", "New Category"]}).delete()
         assert old != library.get_simple_term_mapping()
         old = library.get_simple_term_mapping()
 

@@ -117,7 +117,7 @@ def test_invalid_index_save_no_existing_base_text():
     assert model.IndexSet({"title": title}).count() == 0
 
 
-def test_invalid_index_save_no_hebrew_category():
+def test_invalid_index_save_no_category():
     title = 'Bartenura (The Next Generation)'
     model.IndexSet({"title": title}).delete()
     d = {
@@ -157,7 +157,7 @@ def test_invalid_index_save_no_hebrew_category():
     idx = model.Index(d)
     with pytest.raises(InputError) as e_info:
         idx.save()
-    assert e_info.value.message == "You must add a hebrew translation Term for any new Category title: Gargamel."
+    assert e_info.value.message == "You must create category Mishnah/Commentary/Bartenura/Gargamel before adding texts to it."
     assert model.IndexSet({"title": title}).count() == 0
 
 
