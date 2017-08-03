@@ -88,7 +88,7 @@ class TextRange extends Component {
     }
 
     // If this is a ref to a super-section, rewrite it to first available section
-    if (data.textDepth - data.sections.length > 1 && data.firstAvailableSectionRef) {
+    if (this.props.basetext && data.textDepth - data.sections.length > 1 && data.firstAvailableSectionRef) {
       this.props.showBaseText(data.firstAvailableSectionRef, true, this.props.version, this.props.versionLanguage);
       return;
     }
@@ -339,7 +339,6 @@ TextRange.propTypes = {
   hideTitle:              PropTypes.bool,
   loadLinks:              PropTypes.bool,
   prefetchNextPrev:       PropTypes.bool,
-  openOnClick:            PropTypes.bool,
   lowlight:               PropTypes.bool,
   numberLabel:            PropTypes.number,
   settings:               PropTypes.object,

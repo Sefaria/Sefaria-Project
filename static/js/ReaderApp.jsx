@@ -433,9 +433,9 @@ class ReaderApp extends Component {
             }
             break;
           case "topics":
-            if (states[i].topic) {
+            if (states[i].navigationTopic) {
               hist.url   = "topics/" + state.navigationTopic;
-              hist.title = state.navigationSheetTag + " | Sefaria";
+              hist.title = state.navigationTopic + " | Sefaria";
               hist.mode  = "topic";                 
             } else {
               hist.url   = "topics";

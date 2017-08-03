@@ -3816,6 +3816,24 @@ h2.splitHeader .he {
 .groupMemberListingActionsMenu .role.current {
   color: #666;
 }
+.topicPanel .relatedTopicsList {
+  margin-bottom: 50px;
+  text-align: center;
+}
+.topicPanel .relatedTopic {
+  margin: 0 7px;
+  color: #333;
+  font-size: 16px;
+  line-height: 1.4;
+  display: inline-block;
+}
+.topicPanel .topicSource {
+  margin-bottom: 40px;
+  cursor: pointer;
+}
+.topicPanel .topicSource .title {
+  font-weight: bold;
+}
 .note a {
   color: #333;
   text-decoration: underline;

@@ -616,10 +616,11 @@ class ReaderPanel extends Component {
                     key={"SheetsNav"} />);
 
     } else if (this.state.menuOpen === "topics") {
-      if (this.state.topic) {
+      if (this.state.navigationTopic) {
         var menu = (<TopicPage
                       topic={this.state.navigationTopic}
                       interfaceLang={this.props.interfaceLang}
+                      showBaseText={this.props.onNavTextClick || this.showBaseText}
                       openNav={this.openMenu.bind(null, "navigation")}
                       close={this.closeMenus}
                       multiPanel={this.props.multiPanel}
@@ -629,6 +630,7 @@ class ReaderPanel extends Component {
       } else {
         var menu = (<TopicsPanel
                       interfaceLang={this.props.interfaceLang}
+                      width={this.state.width}
                       openNav={this.openMenu.bind(null, "navigation")}
                       close={this.closeMenus}
                       multiPanel={this.props.multiPanel}

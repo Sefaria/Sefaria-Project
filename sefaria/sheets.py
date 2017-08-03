@@ -448,23 +448,36 @@ def get_sheets_for_ref(tref, uid=None):
 
 	return results
 
+
 def get_topic_data(topic):
 	"""
 	Returns data for a topic
 		- sources
 		- sheets
+		- related topics
 	"""
-	sheets            = get_sheets_by_tag(topic)
-	sheets_serialized = []
-	sources_dict      = defaultdict(int)
+	sheets              = get_sheets_by_tag(topic)
+	sheets_serialized   = []
+	sources_dict        = defaultdict(int)
+	related_topics_dict = defaultdict(int)
 	for sheet in sheets:
 		sheets_serialized.append(sheet_to_dict(sheet))
 		for source in sheet.get("sources", []):
 			if "ref" in source:
 				sources_dict[source["ref"]] += 1
-	sources = sorted(sources_dict.iteritems(), key=lambda (k,v): v, reverse=True)
+		for tag in sheet.get("tags", []):
+			if tag != topic:
+				related_topics_dict[tag] += 1
 	
-	return {"topic": topic, "sources": sources, "sheets": sheets_serialized}
+	sources = sorted(sources_dict.iteritems(), key=lambda (k,v): v, reverse=True)
+	related_topics = sorted(related_topics_dict.iteritems(), key=lambda (k,v): v, reverse=True)
+
+	return {
+				"topic": topic, 
+				"sources": sources,
+				"relatedTopics": related_topics, 
+				"sheets": sheets_serialized,
+			}
 
 
 def update_sheet_tags(sheet_id, tags):

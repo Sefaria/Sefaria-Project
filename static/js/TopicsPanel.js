@@ -18,11 +18,11 @@ import Component          from 'react-class';
 
 
 class TopicsPanel extends Component {
+  constructor(props) {
+    super(props);
+  }
   componentDidMount() {
     this.loadData();
-    this.state = { 
-      numberToRender: 2,
-    };
   }
   loadData() {
     var data = Sefaria.topicList();
@@ -63,7 +63,7 @@ class TopicsPanel extends Component {
                 <span className="int-he">Topics</span>
               </h1>
               : null }
-            <div className="noteList">
+            <div className="topicList">
               { topics ?
                   (topics.length ?
                      <TwoOrThreeBox content={topicList} width={this.props.width} /> 
