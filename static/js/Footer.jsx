@@ -21,7 +21,7 @@ class Footer extends Component {
               </div>
               <a href="/about" className="outOfAppLink">
                   <span className="int-en">What is Sefaria?</span>
-                  <span className="int-he">מהי ספאריה</span>
+                  <span className="int-he">מהי ספריא</span>
               </a>
               <a href="/help" className="outOfAppLink">
                   <span className="int-en">Help</span>
@@ -56,7 +56,7 @@ class Footer extends Component {
               </div>
               <a href="/educators" className="outOfAppLink">
                   <span className="int-en">Teach with Sefaria</span>
-                  <span className="int-he">למד באמצעות ספאריה</span>
+                  <span className="int-he">למד באמצעות ספריא</span>
               </a>
               <a href="/sheets" className="outOfAppLink">
                   <span className="int-en">Source Sheets</span>

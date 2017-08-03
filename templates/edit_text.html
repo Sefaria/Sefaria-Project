@@ -32,77 +32,16 @@
 		{% if "book" in text %}
 		<a id="exittextTocLink" href="/{{ text.indexTitle }}">&laquo; {{ text.indexTitle }}</a>
 		{% endif %}
-		{% include "elements/share_link.html" %}
 	</div>
 
 	<div class="screen-container" style="left:-5000%">
 		<div class="screen" style="left:5000%">
-			<div class="basetext {{ layout }} {{ lines }} {{ contentLang }} {% if not hasSidebar %}noCommentary{% endif %}">
-				<div class="sectionTitle">
-					<span class="int-en">{{ text.ref }}</span>
-					<span class="int-he">{{ text.heTitle|default:"" }}</span>
-				</div>
-				<span class="spacer"></span>
-				{% autoescape off %}
-				{% for line in zipped_text %}
-					<span class="verse">
-						<span class="int-en">{{ line.0 }}</span>
-						<span class="int-he">{{ line.1 }}</span>
-						<span class="clear"></span>
-					</span>
-				{% endfor %}
-				{% endautoescape %}
-			</div>
-			<div class="aboutBar">
-				<div class="aboutBarBox">
-					 <div class="btn aboutText">About Text</div>
-				</div>
-			</div>
-			<div class="commentaryBox">
-				<div class="hideCommentary"><div class="hideTab gradient">▸</div></div>
-				<div class="commentaryViewPort"></div>
-				<div class="sourcesBox">
-					<div class="sourcesHeader">
-						<span class="showSources btn active sourcesCount sidebarMode" data-sidebar="commentary"> Sources</span><!--
-						--><span class="btn showNotes sidebarMode" data-sidebar="notes">
-							<span class='notesCount'></span> Notes
-						</span><!--
-						--><span class="btn sidebarButton">
-							<i class="fa fa-bars"></i>
-						</span>
-						<div class="clear"></div>
-					</div>
-				</div>
-			</div>
-			<div class="sourcesList sidePanel">
-				<div class="sourcesWrapper"></div>
-			</div>
 		</div>
 	</div>
 
-	<div id="about" class="modal" style="display:none;">
-		<div id='hideAbout'><i class="fa fa-times"></i></div>
-		<div id='aboutMenu'>
-			<div id="aboutVersions"></div>
-			<div id="aboutButtonBox">
-				<div class="clear"></div>
-			</div>
-			<div id="aboutText">
-				<span id="aboutTextTitle"></span>
-				<span id="aboutTextSections"></span><br>
-				<div id='addTranslation' class='action btn btn-success'><i class="fa fa-plus"></i>  Add Translation</div>
-				<span id='addVersion' class="action btn btn-success"><i class="fa fa-plus"></i>  Add Version</span>
-				<span id='editTextInfo' class='action btn btn-info'><i class="fa fa-info-circle"></i>  Edit Text Info</span>
-				{% if request.user.is_staff and text and "book" in text %}
-				<span id='deleteText' class='action btn btn-warning' data-title='{{ text.commentator|default:text.book }}' {% if text.commentator %}data-is-commentator='1' data-commentary-text='{{ text.book }}'{% endif %}><i class="fa fa-trash-o"></i> Delete Text</span>
-				{% endif %}
-			</div>
-
-			<div class="clear"></div>
-		</div>
-	</div>
-
-    {% include "header.html" %}
+    {% if not S2 %}
+    	{% include "header.html" %}
+    {% endif %}
 
 	<div id="newTextModal" class="modal">
 		<div class="header">Add a New Text</div>
@@ -115,31 +54,6 @@
 		</span>
 	</div>
 
-	<div id="verseSelectModal" class="modal">
-		<div id="selectInstructions">
-			<div>Click a <span class="smallSectionName"></span> to add a <span class="sourceOrNote">Source</span>.</div>
-			<span class="btn cancel">Cancel</span>
-		</div>
-		<div id="selectConfirm">
-			<div>Add a <span class="sourceOrNote">Source</span> to:</div>
-			<div id="selectedVerse"></div>
-			<div id="selectedControls">
-				<span id="selectOk" class="btn">OK</span>
-				<span id="selectReset" class="btn">Choose again</span>
-				<span class="cancel btn">Cancel</span>
-			</div>
-		</div>
-	</div>
-
-	<div id="addToSheetModal" class="modal">
-		<div class="header">Add <span class="sourceName"></span> to a Source Sheet</div>
-		<ul id="sheets">
-		</ul>
-		<div class="controls">
-			<div class="btn ok">Add</div>
-			<div class="btn cancel">Cancel</div>
-		</div>
-	</div>
 
 	<div id="reviewsModal" class="modal">
 		<div id="reviewsWrapper">
@@ -174,7 +88,7 @@
 			</div>
 			{% endif %}
 	</div>
-		<div id="reviewHelp">
+	<div id="reviewHelp">
 			<h3>Writing Helpful Reviews</h3>
 			<p><b>For primary texts and historical translations:</b> Indicate what outside source (book, web page) was used to compare the text, or make clear that your review is only looking at the text present.</p>
 			<div class="reviewExamples">
@@ -271,21 +185,10 @@
 
 	</div>
 
-	{% include "elements/contribute_prompt.html" %}
-
-	{% include "elements/edit_video.html" %}
-
 	{% include "elements/login_prompt.html" with msg="Please log in to add or edit." %}
 
 
-	<div id="unsupported">
-		Sefaria does not currently run on Internet Explorer.
-		<br><br>
-		Please try using Chrome, Firefox or Safari.
-		<br><br>
-		Sorry, there's just too much to do!
-	</div>
-
+<footer id="footer" class="interface-{{ interfaceLang }}" style="display:none"></footer>
 
 {% include "js/jquery.html" %}
 <script src="/static/js/lib/jquery.scrollTo-1.4.2-min.js"></script>
@@ -294,7 +197,6 @@
 <script src="/static/js/lib/jquery.caret.1.02.js"></script>
 <script src="/static/js/lib/jquery.textchange.js"></script>
 <script src="/static/js/lib/jquery.autosize.js"></script>
-<script src="/static/js/lib/jquery.slimscroll.min.js"></script>
 <script src="/static/js/lib/jquery.tag-it.min.js"></script>
 <script src="/static/js/lib/jquery.raty.js"></script>
 <script src="/static/js/lib/jquery.tooltipster.min.js"></script>
@@ -310,8 +212,6 @@
 		langMode: "{{ contentLang }}".substring(0,2)
 	});
     if("edit_lang" in sjs.current){
-        /*console.log("langMode: ", sjs.langMode);
-        console.log("edit_lang: ", sjs.current["edit_lang"].substring(0,2));*/
         sjs.langMode = sjs.current["edit_lang"].substring(0,2);
     }
 
@@ -319,11 +219,16 @@
 </script>
 <script type="text/javascript" src="/static/js/s1/util.js"></script>
 <script type="text/javascript" src="/static/js/s1/reader.js"></script>
-{% if not OFFLINE %}
-<script type="text/javascript" src="//s7.addthis.com/js/300/addthis_widget.js#pubid=ra-4f0b68586603bc9f"></script>
-{% endif %}
+
 {% if S2 or request.flavour == "mobile" %}
-    {% include "react_header_activate.html" %}
-{%  endif %}
+	{% autoescape off %}
+		{% if request.user.is_authenticated %}
+		<div id="s2" class="headerOnly">{{ logged_in_header }}</div>
+		{% else %}
+		<div id="s2" class="headerOnly">{{ logged_out_header }}</div>
+		{% endif %}
+	{% endautoescape %}
+	{% include "react_header_activate.html" %}
+{% endif %}
 </body>
 </html>

@@ -303,7 +303,6 @@ class AtomicTest(object):
         elem.send_keys(Keys.RETURN)
         return self
 
-    #Source Sheets
     def load_sheets(self):
         self.driver.get(self.base_url + "/sheets")
         WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, ".readerSheetsNav")))
@@ -329,6 +328,11 @@ class AtomicTest(object):
         WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, "#place-map")))
         return self
 
+    def load_account(self):
+        self.driver.get(self.base_url + "/account")
+        WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, ".accountPanel .blockLink")))
+        return self
+
     def load_notifications(self):
         self.driver.get(self.base_url + "/notifications")
         WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, ".notificationsList > .notification")))
@@ -337,6 +341,11 @@ class AtomicTest(object):
     def load_private_sheets(self):
         self.driver.get(self.base_url + "/sheets/private")
         WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, ".sheetsNewButton")))
+        return self
+
+    def load_private_groups(self):
+        self.driver.get(self.base_url + "/my/groups")
+        WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, ".myGroupsPanel .button")))
         return self
 """
 

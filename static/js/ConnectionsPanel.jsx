@@ -485,6 +485,7 @@ class ToolsList extends Component {
         var path = "/edit/" + refString;
         var nextParam = "?next=" + encodeURIComponent(currentPath);
         path += nextParam;
+        console.log(path);
         Sefaria.track.event("Tools", "Edit Text Click", refString,
           {hitCallback: () =>  window.location = path}
         );
