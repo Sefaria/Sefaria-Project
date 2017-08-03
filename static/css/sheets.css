@@ -9,10 +9,10 @@ body {
     -webkit-user-select: auto !important;
 }
 
-.interface-hebrew #sheetsContent .int-en{
+.interface-hebrew .int-en, .interface-hebrew #sheetsContent .int-en, .interface-hebrew.alertBox .int-en, .interface-hebrew.s2Modal .int-en{
   display: none;
 }
-.interface-english #sheetsContent .int-he{
+.interface-english .int-he, .interface-english #sheetsContent .int-he, .interface-english.alertBox .int-he, .interface-english.s2Modal .int-he{
   display: none;
 }
 /*.interface-hebrew #sheetsContent{
@@ -22,7 +22,7 @@ body {
   direction: ltr;
 }*/
 
-.interface-hebrew #sheetsContent .sheetsEditNavTop{
+.interface-hebrew #sheetsContent, .interface-hebrew #sheetsContent .sheetsEditNavTop, .interface-hebrew #fileControls{
 	direction: rtl;
 }
 
@@ -1054,6 +1054,10 @@ body {
 	margin-top: 20px;
 }
 
+.interface-hebrew #empty #howItWorks{
+	text-align: right;
+}
+
 #empty h1 {
 	font-size: 32px;
 	margin-bottom: 16px;
@@ -1513,6 +1517,10 @@ line-height: normal;
 
 .alertBox {
 	z-index:101;
+}
+
+.alertBox.interface-hebrew{
+	direction: rtl;
 }
 
 .addedMedia {
@@ -1986,6 +1994,10 @@ a.userLink{
 	border-radius: 6px;
 	width: 400px;
 }
+
+.interface-hebrew .s2Modal, .interface-hebrew.s2Modal{
+	direction: rtl;
+}
 .s2Modal .title {
 	font-size: 20px;
 	margin: 0;
@@ -2204,9 +2216,9 @@ a.tagit-close {
 #highlightToggleDeactivate,
 .segmentedContinuousToggle .segmentedActive,
 #lastSaved .lastSavedConfirmed,
-#lastSaved .lastSavedConfirmed,
 #lastSaved .saving,
-#lastSaved .pending{
+#lastSaved .pending,
+#save #inSave{
 	display: none;
 }
 

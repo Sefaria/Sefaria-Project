@@ -37,12 +37,12 @@ sjs.lastEdit = null;
 
 
 $(window).on("beforeunload", function() {
-	if (!($("#save").text() == "Saving...")) {
+	if (!($("#save").data("mode") == "saving")) {
 		if (sjs._uid && !(sjs.current.id) && $("#empty").length === 0) {
-			return "Your Source Sheet has unsaved changes. Before leaving the page, click Save to keep your work.";
+			return translateInterfaceString("Your Source Sheet has unsaved changes. Before leaving the page, click Save to keep your work.");
 		}
 		else if ($("#lastSaved").text() == "Saving...") {
-			return "Your Source Sheet has unsaved changes. Please wait for the autosave to finish.";
+			return translateInterfaceString("Your Source Sheet has unsaved changes. Please wait for the autosave to finish.");
 		}
 	}
 });
@@ -50,7 +50,8 @@ $(window).on("beforeunload", function() {
 var oldOnError = window.onerror || function(){};
 function errorWarning(errorMsg, url, lineNumber) {
 	if (sjs.can_edit || sjs.can_add) {
-		sjs.alert.message("Unfortunately an error has occurred.<br>If you've recently edited text on this page, you may want to copy your recent work out of this page and click reload to ensure your work is properly saved.")
+		sjs.alert.message(translateInterfaceString("Unfortunately an error has occurred. If you've recently edited text on this page, you may want to copy your recent work out of this page and click reload to ensure" +
+		" your work is properly saved."))
 	}
 }
 window.onerror = function (errorMsg, url, lineNumber) {
@@ -370,7 +371,7 @@ $(function() {
 		$(this).hide();
 		$("#StopCollectingAssignmentsButton").show();
 		$("#sheet").addClass('assignable');
-		$("#assignmentDirections").html('Students can complete their assignment at this link:');
+		$("#assignmentDirections").html(translateInterfaceString('Students can complete their assignment at this link:'));
 		$("#assignmentURLLink").show();
 		$("#assignedSheets").show();
 		autoSave();
@@ -381,7 +382,7 @@ $(function() {
 		$(this).hide();
 		$("#makeSheetAssignableButton").show();
 		$("#sheet").removeClass('assignable');
-		$("#assignmentDirections").html('Assignments allow you to create a template that your students can fill out on their own.')
+		$("#assignmentDirections").html(translateInterfaceString('Assignments allow you to create a template that your students can fill out on their own.'));
 		$("#assignmentURLLink").hide();
 		if ( $("#assignedSheets a").length > 0) {
 			$("#assignedSheets").show();
@@ -685,7 +686,7 @@ $(function() {
 
 	$("#empty .remove").click(function() { $("#empty").remove(); });
 
-	$("#readmore").toggle(function(e) { $("#howItWorks").show(); e.preventDefault(); }, function(e) {
+	$(".empty_readmore").toggle(function(e) { $("#howItWorks").show(); e.preventDefault(); }, function(e) {
 		$("#howItWorks").hide(); e.preventDefault();
 	});
 
@@ -767,7 +768,7 @@ $(function() {
 				if (!text.length) {
 					// Title
 					if ($el.prop("id") === "title") {
-						$el.text("Untitled Source Sheet");
+						$el.text(translateInterfaceString("Untitled Source Sheet"));
 					
 					// Comment
 					} else if ($el.hasClass("comment")) {
@@ -976,13 +977,13 @@ $(function() {
 		
 		var likeCount = parseInt($("#likeCount").text());
 		if ($(this).hasClass("liked")) {
-			$(this).removeClass("liked").text("Like");
+			$(this).removeClass("liked").text(translateInterfaceString("Like"));
 			likeCount -= 1;
 			$("#likeCount").text(likeCount);
 			$.post("/api/sheets/" + sjs.current.id + "/unlike");
     		sjs.track.sheets("Unlike", sjs.current.id);
 		} else {
-			$(this).addClass("liked").text("Unlike");
+			$(this).addClass("liked").text(translateInterfaceString("Unlike"));
 			$.post("/api/sheets/" + sjs.current.id + "/like");
 			likeCount += 1;
 			$("#likeCount").text(likeCount);
@@ -990,15 +991,16 @@ $(function() {
 		}
 		$("#likeInfoBox").toggle(likeCount != 0);
 		$("#likePlural").toggle(likeCount != 1);
+		$("#likeSingular").toggle(likeCount == 1);
 	});
 	$("#likeInfo").click(function(e) {
 		$.getJSON("/api/sheets/" + sjs.current.id + "/likers", function(data) {
 			if (data.likers.length == 0) { 
-				var title = "No one has liked this sheet yet. Will you be the first?";
+				var title = translateInterfaceString("No one has liked this sheet yet. Will you be the first?");
 			} else if (data.likers.length == 1) {
-				var title = "1 Person Likes This Sheet";
+				var title = translateInterfaceString("1 Person Likes This Sheet");
 			} else {
-				var title = data.likers.length + " People Like This Sheet";
+				var title = data.likers.length + translateInterfaceString(" People Like This Sheet");
 			}
 			sjs.peopleList(data.likers, title);
 		});
@@ -2358,8 +2360,20 @@ function addSource(q, source, appendOrInsert, $target) {
 	var addedByMe = (source && source.addedBy && source.addedBy == sjs._uid) ||
 					(!source && sjs.can_add);
 
-	var attributionLink = (source && "userLink" in source ? "<div class='addedBy'>Added by " + source.userLink + "</div>" :
-							addedByMe && !source ? "<div class='addedBy'>Added by " + sjs._userLink + "</div>" : "");
+	var attributionLink = (source && "userLink" in source ?
+		"<div class='addedBy'>" +
+			"<span class='int-en'>Added by</span><span class='int-he'>נוסף בידי</span>"
+			+ source.userLink +
+		"</div>"
+		:
+		addedByMe && !source ?
+			"<div class='addedBy'>" +
+			"<span class='int-en'>Added by</span><span class='int-he'>נוסף בידי</span>"
+			+ sjs._userLink +
+			"</div>"
+			:
+			""
+	);
 
 	if (source && "node" in source) {
 		var node = source.node;
@@ -2379,7 +2393,9 @@ function addSource(q, source, appendOrInsert, $target) {
 	var newsource = "<li " + attributionData + "data-ref='" + enRef.replace(/'/g, "&apos;") + "'" + " data-heRef='" + heRef.replace(/'/g, "&apos;") + "'" + " data-node='" + node + "'>"
 		+"<div class='sourceNumber he'></div><div class='sourceNumber en'></div>"
 		+"<div class='customTitle'></div>"
-		+"<div class='he'>" + "<span class='title'>" +"<a class='he' href='" + refLink + "' target='_blank'><span class='ref'></span>" + heRef.replace(/\d+(\-\d+)?/g, "").replace(/([0-9][b|a]| ב| א):.+/,"$1") + " </a>" + "</span>" +"<div class='text'>" +"<div class='he'>" + (source && source.text ? source.text.he : "") + "</div>" +"</div>" + "<div class='highlighter'><div class='he'></div></div>" + "</div>" + "<div class='en'>" +"<span class='title'>" +"<a class='en' href='" + refLink + "' target='_blank'><span class='ref'>" + enRef.replace(/([0-9][b|a]| ב| א):.+/,"$1") + "</span> </a>" +"</span>" +"<div class='text'>" +"<div class='en'>" + (source && source.text ? source.text.en : "") + "</div>" + "</div>" + "<div class='highlighter'><div class='en'></div></div>" +"</div>" + "<div class='clear'></div>" + attributionLink + appendInlineAddButton() + "</li>";
+		+"<div class='he'>" +
+		"<span class='title'>"
+		+"<a class='he' href='" + refLink + "' target='_blank'><span class='ref'></span>" + heRef.replace(/\d+(\-\d+)?/g, "").replace(/([0-9][b|a]| ב| א):.+/,"$1") + " </a>" + "</span>" +"<div class='text'>" +"<div class='he'>" + (source && source.text ? source.text.he : "") + "</div>" +"</div>" + "<div class='highlighter'><div class='he'></div></div>" + "</div>" + "<div class='en'>" +"<span class='title'>" +"<a class='en' href='" + refLink + "' target='_blank'><span class='ref'>" + enRef.replace(/([0-9][b|a]| ב| א):.+/,"$1") + "</span> </a>" +"</span>" +"<div class='text'>" +"<div class='en'>" + (source && source.text ? source.text.en : "") + "</div>" + "</div>" + "<div class='highlighter'><div class='en'></div></div>" +"</div>" + "<div class='clear'></div>" + attributionLink + appendInlineAddButton() + "</li>";
 
 	if (appendOrInsert == "append") {
 		$("#sources").append(newsource);
@@ -2809,7 +2825,8 @@ function handleSave() {
 		return alert("Sorry I can't save what you've got here: you need to be signed in to save."); 
 	}
 	sjs.loading = false;
-	$("#save").text("Saving...");
+	$("#save").data("mode", "saving").find("#inSave").show().siblings().hide();
+
 	var sheet = readSheet();
 	saveSheet(sheet, true);
 	sjs.track.sheets("Save New Sheet");
@@ -2846,7 +2863,7 @@ function saveSheet(sheet, reload) {
 
 		if ("error" in data) {
 			sjs.alert.flash(data.error);
-			$("#save").text("Save");
+			$("#save").data("mode", "editing").find("#doSave").show().siblings().hide();
 		}
 	})
 }
@@ -2866,7 +2883,7 @@ function buildSheet(data){
 			$("#title").addClass("heTitle");
 		}
 	} else {
-		$("#title").text("Untitled Source Sheet");
+		$("#title").html(translateInterfaceString("Untitled Source Sheet"));
 	}
 	$("#sources").css("min-height",($("#sources").css("height"))); //To prevent 'jumping' as the sheet is rebuilt when polling is triggered we temporarily set the min-height, and remove it at the end of the function.
 
@@ -3548,7 +3565,8 @@ function copySheet() {
  	var postJSON = JSON.stringify(sheet);
 	$.post("/api/sheets/", {"json": postJSON}, function(data) {
 		if (data.id) {
-			sjs.alert.message('Source Sheet copied.<br><br><a href="/sheets/'+data.id+'">View copy &raquo;</a>');
+			sjs.alert.message('<span class="int-en">Source Sheet copied.</span><span class="int-he">דף המקורות הועתק.</span><br><br><a href="/sheets/'+data.id+'"><span class="int-en">View copy &raquo;</span><span' +
+				' class="int-he">צפה בהעתק &raquo;</span> </a>');
 
 		} else if ("error" in data) {
 			sjs.alert.message(data.error);
@@ -3559,7 +3577,7 @@ function copySheet() {
 
 function exportToDrive() {
 	$("#overlay").show();
-	sjs.alert.message("Syncing with Google Docs...");
+	sjs.alert.message('<span class="int-en">Syncing with Google Docs...</span><span class="int-he">מייצא לגוגל דרייב...</span>');
 	sjs.track.sheets("Export to Google Drive");
 
 	$.ajax({
@@ -3636,12 +3654,23 @@ function showShareModal(){
 
 
 function deleteSheet() {
-	if (confirm("Are you sure you want to delete this sheet? There is no way to undo this action.")) {
+	if (confirm(translateInterfaceString("Are you sure you want to delete this sheet? There is no way to undo this action."))) {
 		$.post("/api/sheets/" + sjs.current.id + "/delete", function (data){
 			if ("error" in data) {
 				sjs.alert.message(data.error);
 			} else {
-				sjs.alert.messageOnly("Source Sheet deleted.<br><br><a href='/sheets'><div class='ok btn'>OK</div></a>");
+				debugger;
+				sjs.alert.messageOnly(
+					"<span class='int-en'>Source Sheet deleted.</span>" +
+					"<span class='int-he'>דף המקורות נמחק בהצלחה.</span>" +
+					"<br><br>" +
+					"<a href='/sheets/private'>" +
+						"<div class='ok btn'>" +
+							"<span class='int-en'>OK</span>" +
+							"<span class='int-he'>המשך</span>" +
+						"</div>" +
+					"</a>"
+				);
 			}
 		})
 	}
@@ -3925,4 +3954,42 @@ function restoreSelection(range) {
 						range.select();
 				}
 		}
+}
+
+$.extend(sjs, {
+	i18nInterfaceStrings: {
+		"Loading..." : "טוען...",
+		"Saving..." : "שומר...",
+		"Your Source Sheet has unsaved changes. Before leaving the page, click Save to keep your work.":
+			"קיימים שינויים בלתי שמורים בדף המקורות. השתמשו בכפתור השמירה לפני עזיבת הדף.",
+		"Your Source Sheet has unsaved changes. Please wait for the autosave to finish.":
+			"קיימים שינויים בלתי שמורים בדף המקורות. אנא חכו שפעולת השמירה האוטומטית תסתיים.",
+		"Are you sure you want to delete this sheet? There is no way to undo this action.":
+			"מחיקת דף מקורות היא פעולה בלתי הפיכה. האם אתם בטוחים?",
+		"Unfortunately an error has occurred. If you've recently edited text on this page, you may want to copy your recent work out of this page and click reload to ensure your work is properly saved.":
+			"לצערנו ארעה שגיאה. אם ערכתם לאחרונה את הדף הנוכחי, ייתכן ותרצו להעתיק את השינויים למקור חיצוני ואז לטעון מחדש את הדף כדי לוודא שהשינויים נשמרו.",
+		"Untitled Source Sheet": "דף מקורות ללא שם",
+		"Like": "אהבתי",
+		"Unlike": "בטל סימון אהבתי",
+		"No one has liked this sheet yet. Will you be the first?":
+			"אף אחד עדיין לא אהב את דף המקורות הזה. תרצה להיות הראשון?",
+		"1 Person Likes This Sheet": "אדם אחד אהב את דף המקורות",
+		" People Like This Sheet": " אנשים אהבו את דף המקורות",
+		"Tags Saved": "תוית נשמרה",
+		"Assignments allow you to create a template that your students can fill out on their own.":
+			"מטלות מאפשרות ליצור דף בסיס שתלמידים יכולים להשתמש בו כדי למלא וליצור את העבודה שלהם.",
+		"Students can complete their assignment at this link:":
+			"תלמידים יכולים לבצע את המטלה שלהם בקישור הבא:"
+
+
+	}
+});
+
+function translateInterfaceString(key, defaultValue){
+	defaultValue = typeof defaultValue === 'undefined' ? null : defaultValue;
+	if(key in sjs.i18nInterfaceStrings){
+		return sjs.i18nInterfaceStrings[key];
+	}else{
+		return (defaultValue ? defaultValue : key);
+	}
 }

@@ -565,10 +565,16 @@
             </div>
                 <div class="sheetsMenuBarButtons">
                 {% if new_sheet %}
-                <a id="save" class="button">
+                <a id="save" class="button" data-mode="editing">
                     <i class="fa fa-floppy-o"></i>
-                    <span class="int-en">Save</span>
-                    <span class="int-he">שמור</span>
+                    <span id="doSave">
+                        <span class="int-en">Save</span>
+                        <span class="int-he">שמור</span>
+                    </span>
+                    <span id="inSave">
+                        <span class="int-en">Saving...</span>
+                        <span class="int-he">שמירה...</span>
+                    </span>
                 </a>
                 {% elif is_owner or can_publish %}
                 <a id="share" class="button">
@@ -595,9 +601,13 @@
 <div id="sheet" class="{{ sheet_class|default:'bilingual' }}">
     {% if not user.email %}
 	<div id="fileControls">
-
         <div id="fileControlMsg">
+            <span class="int-en">
                 Like this? <a href="/login?next=/sheets/new">Login</a> or <a href="/register?next=/sheets/new">register</a> to create your own source sheet.
+            </span>
+            <span class="int-he">
+                אהבת? <a href="/login?next=/sheets/new">התחבר</a> או <a href="/register?next=/sheets/new">הרשם</a> כדי ליצור דף מקורות משלך.
+            </span>
         </div>
 	</div>
 	{% endif %}
@@ -614,7 +624,7 @@
 	</div>
 	<div id="title">
 		{% autoescape off %}
-		{{ title|default:"<i>Loading...</i>" }}
+		{{ title|default:"<i><span class='int-en'>Loading...</span><span class='int-he'>טוען...</span></i>" }}
 		{% endautoescape %}
 	</div>
 	{% if sheet.attribution %}
@@ -625,24 +635,40 @@
 	</div>
 	{% elif assigner_id %}
 	<div id="author">
-		<div id="assignmentAttribution">Assignment by {{ assigner_id|user_link }}</div>
+		<div id="assignmentAttribution">
+            <span class="int-en">Assignment by</span>
+            <span class="int-he">מטלה מאת</span>
+            {{ assigner_id|user_link }}
+        </div>
 		{% if author %}
-		Completed by {{ sheet.owner|user_link }}
+		    <span class="int-en">Completed by</span>
+            <span class="int-he">בוצעה על ידי</span>
+            {{ sheet.owner|user_link }}
 		{% endif %}
     </div>
 	{% elif sheet.assigner_id %}
 	<div id="author">
-		<div id="assignmentAttribution">Assignment by {{ sheet.assigner_id|user_link }}</div>
+		<div id="assignmentAttribution">
+            <span class="int-en">Assignment by</span>
+            <span class="int-he">מטלה מאת</span>
+            {{ sheet.assigner_id|user_link }}
+        </div>
 		{% if author %}
-		Completed by {{ sheet.owner|user_link }}
+		    <span class="int-en">Completed by</span>
+            <span class="int-he">בוצעה על ידי</span>
+            {{ sheet.owner|user_link }}
+        {% endif %}
     </div>
-		{% endif %}
-
 	{% elif author %}
 	<div id="author">
-		Source Sheet by {{ sheet.owner|user_link }}
+		<span class="int-en">Source Sheet by</span>
+        <span class="int-he">דף מקורות מאת</span>
+        {{ sheet.owner|user_link }}
 		{% if sheet.via %}
-		<div id="via">Based on <a href="/sheets/{{ sheet.via }}">a sheet</a> by {{ sheet.viaOwner|user_link }}</div>
+		<div id="via">
+            <span class="int-en">Based on <a href="/sheets/{{ sheet.via }}">a sheet</a> by {{ sheet.viaOwner|user_link }}</span>
+            <span class="int-en">מבוסס על <a href="/sheets/{{ sheet.via }}">דף מקורות</a> מאת {{ sheet.viaOwner|user_link }}</span>
+        </div>
 		{% endif %}
 	</div>
 	{% endif %}
@@ -651,14 +677,25 @@
 		<span id="s2LikeContainer">
             <span id="likeInfoBox" {% if like_count == 0%}style="display:none"{% endif %}>
                 <span id="likeInfo">
-                    <span id="likeCount">{{ like_count }}</span>
-                    like<span id="likePlural" {% if like_count == 1%}style="display:none"{% endif %}>s</span></span>
+                    <span class="int-en">
+                        <span id="likeCount">{{ like_count }}</span>
+                        like
+                        <span id="likePlural" {% if like_count == 1%}style="display:none"{% endif %}>s</span>
+
+                    </span>
+                    <span class="int-he">
+                        <span id="likeCount">{{ like_count }}</span>
+                        <span id="likePlural" {% if like_count == 1%}style="display:none"{% endif %}>סימוני</span>
+                        <span id="likeSingular" {% if like_count != 1%}style="display:none"{% endif %}>סימון</span>
+                        אהבתי
+                    </span>
+                </span>
                  ·
             </span>
             {% if viewer_is_liker %}
-                <a href="#" id="likeLink" class="liked">Unlike</a>
+                <a href="#" id="likeLink" class="liked"><span class="int-en">Unlike</span><span class="int-he">בטל סימון "אהבתי"</span></a>
             {% else %}
-                <a href="#" id="likeLink">Like</a>
+                <a href="#" id="likeLink"><span class="int-en">Like</span><span class="int-he">אהבתי</span></a>
             {% endif %}
         </span>
 	</div>
@@ -826,20 +863,46 @@
 		<div class="fa fa-times remove"></div>
         <iframe width="560" height="315" src="https://www.youtube.com/embed/mWOsy_Gvjos?rel=0" frameborder="0" allowfullscreen></iframe>
 
-		<h3>Watch a 3 minute intro video or <a id="readmore">read more</a>.</h3>
+		<h3>
+            <span class="int-en">Watch a 3 minute intro video or <a class="empty_readmore">read more</a>.</span>
+            <span class="int-he">צפה בסרטון קצר בן 3 דקות (באנגלית) או <a class="empty_readmore">קרא עוד</a>.</span>
+        </h3>
 		<div id="howItWorks">
-		<h1>Source Sheet Builder: How it Works</h1>
+		<h1>
+            <span class="int-en">Source Sheet Builder: How it Works</span>
+            <span class="int-he">בונה דפי המקורות: כיצד לעבוד</span>
+
+        </h1>
 		<ul>
-			<li><b>Add Sources</b> by typing a citation like:
-			 <div id="cite"><i>Genesis 4:5-8</i>, <i>Mishnah Peah 2:6</i>, <i>Berakhot 2a:4-7</i>, <i>Bereishit Rabbah 1:4</i>.</div>
+			<li>
+                <span class="int-en">
+                    <b>Add Sources</b> by typing a citation like:
+			        <div id="cite"><i>Genesis 4:5-8</i>, <i>Mishnah Peah 2:6</i>, <i>Berakhot 2a:4-7</i>, <i>Bereishit Rabbah 1:4</i>.</div>
+                </span>
+                <span class="int-he">
+                    <b>הוסיפו מקורות</b> על ידי הקלדת מראה מקום. לדוגמא:
+			        <div id="cite"><i>בראשית ד:ה-ח</i>, <i>משנה פאה ב:ו</i>, <i>ברכות ב ע"א:4-7</i>, <i>בראשית רבה א:ד</i>.</div>
+                </span>
 			</li>
-			<li><b>Reorder Sources</b> by dragging and dropping.</li>
-			<li><b>Print</b> your sheets to paper or PDF, or just <b>Share</b> the link.</li>
-			<li><b>More Options</b> are available in the icons that appear when you hover over a source.</li>
+			<li>
+                <span class="int-en"><b>Reorder Sources</b> by dragging and dropping.</span>
+                <span class="int-he"><b>סדרו מקורות מחדש</b> באמצעות גרירה ושחרור.</span>
+            </li>
+			<li>
+                <span class="int-en"><b>Print</b> your sheets to paper or PDF, or just <b>Share</b> the link.</span>
+                <span class="int-he"><b>הדפס</b> את דפי המקורות שלכם לנייר, PDF או פשוט <b>לשתף</b> את הקישור.</span>
+            </li>
+			<li>
+                <span class="int-en"><b>More Options</b> are available in the icons that appear when you hover over a source.</span>
+                <span class="int-he"><b>אפשרויות נוספות</b> זמינות בסמלים המופיעים בזמן ריחוף מעל מקור מסויים.</span>
+            </li>
 		</ul>
 		</div>
 		{% if not user.email %}
-			<center id="loginWarning">Take a spin! But you'll need to <a href="/login?next=/sheets/new">login</a> or <a href="/register?next=/sheets/new">register</a> to save your work.</center>
+			<center id="loginWarning">
+                <span class="int-en">Take a spin! But you'll need to <a href="/login?next=/sheets/new">login</a> or <a href="/register?next=/sheets/new">register</a> to save your work.</span>
+                <span class="int-he">צאו לסיבוב! אבל תצטרכו <a href="/login?next=/sheets/new">להתחבר</a> או <a href="/register?next=/sheets/new">להרשם</a>כדי לשמור את עבודתכם</span>
+            </center>
 		{% endif %}
 	</div>
 	{% endif %}
@@ -847,8 +910,12 @@
 	<div id="printFooter">
 		<img src="/static/img/samekh.png">
 		<div>
+            {% if interfaceLang == "english" %}
 			Made with the Sefaria Source Sheet Builder<br>
-			www.sefaria.org/sheets
+            {% else %}
+                נוצר בעזרת בונה דפי המקורות של ספאריה
+            {% endif %}
+            www.sefaria.org/sheets
 		</div>
 	</div>
 
@@ -877,9 +944,14 @@
 
 {% if author %}
 <div id="bottomAuthor">
-	Source Sheet created on Sefaria by {{ sheet.owner|user_link }}
+	<span class="int-en">Source Sheet created on Sefaria by </span>
+    <span class="int-he">דף מקורות נוצר בספאריה על ידי </span>
+    {{ sheet.owner|user_link }}
 	{% if sheet.via %}
-	<div id="bottomVia">Based on <a href="/sheets/{{ sheet.via }}">a sheet</a> by {{ sheet.viaOwner|user_link }}</div>
+	<div id="bottomVia">
+        <span class="int-en">Based on <a href="/sheets/{{ sheet.via }}">a sheet</a> by {{ sheet.viaOwner|user_link }}</span>
+        <span class="int-he">מבוסס על <a href="/sheets/{{ sheet.via }}">דף מקורות</a> מאת {{ sheet.viaOwner|user_link }}</span>
+    </div>
 	{% endif %}
 </div>
 {% endif %}
@@ -891,23 +963,39 @@
 
 <div id="assignmentsModal" class="modal s2Modal">
         <span class="close-button"></span>
-        <div class="title">Assignments</div>
+        <div class="title">
+            <span class="int-en">Assignments</span>
+            <span class="int-he">מטלות</span>
+        </div>
         <div class="content" id="assignmentDirections">
-        Assignments allow you to create a template that your students can fill out on their own.
+            <span class="int-en">Assignments allow you to create a template that your students can fill out on their own.</span>
+            <span class="int-he">מטלות מאפשרות ליצור דף בסיס שתלמידים יכולים להשתמש בו כדי למלא וליצור את העבודה שלהם.</span>
         </div>
         <input id="assignmentURLLink" value="{{ request.META.HTTP_HOST }}/sheets/new?assignment={{sheet.id}}" />
-        <div class='button' id="makeSheetAssignableButton">Assign this Sheet</div>
-        <div class='button' id="StopCollectingAssignmentsButton">Stop Collecting Assignments</div>
+        <div class='button' id="makeSheetAssignableButton">
+            <span class="int-en">Assign this Sheet</span>
+            <span class="int-he">צור מטלה מדף המקורות</span>
+        </div>
+        <div class='button' id="StopCollectingAssignmentsButton">
+            <span class="int-en">Stop Collecting Assignments</span>
+            <span class="int-he">הפסק איסוף עבודות</span>
+        </div>
         <br/>
                     <div id="assignedSheets">
                                 <div class="line"></div>
 
-                                <div class="title">Saved Assignments:</div>
+                                <div class="title">
+                                    <span class="int-en">Saved Assignments:</span>
+                                    <span class="int-he">מטלות שמורות</span>
+                                </div>
         						{% for assignment_sheet in assignments_from_sheet %}
                                 <a href="./{{ assignment_sheet.id }}" target="_blank"><div class="button white" >{{ assignment_sheet.owner|user_name }}</div></a>
 
                                 {% empty %}
-                                    <em>Your student's saved assignments will be viewable here.</em>
+                                    <em>
+                                        <span class="int-en">Your student's saved assignments will be viewable here.</span>
+                                        <span class="int-he">המטלות השמורות של תלמידיכם יוצגו כאן.</span>
+                                    </em>
                                 {% endfor %}
                     </div>
 
@@ -915,30 +1003,56 @@
 
 <div id="shareWithOthers" class="modal s2Modal">
     <span class="close-button"></span>
-    <div class="title">Share with Others</div>
+    <div class="title">
+        <span class="int-en">Share with Others</span>
+        <span class="int-he">שתף עם אחרים</span>
+    </div>
 
     <div class="content">
-        <div class="inputHeader"><img src="/static/img/shareablelink.png" alt="Sharable Link Icon"> Sharable Link</div>
+        <div class="inputHeader"><img src="/static/img/shareablelink.png" alt="Sharable Link Icon">
+            <span class="int-en">Sharable Link</span>
+            <span class="int-he">קישור לשיתוף</span>
+        </div>
         <input id="shareURL" value="{{ request.META.HTTP_HOST }}/sheets/{{sheet.id}}" readonly="readonly"/>
     </div>
 
     <div class="content" id="sourceSheetsAccessOptions">
-        <div class="inputHeader"><i class='fa fa-unlock-alt'></i> Access</div>
+        <div class="inputHeader"><i class='fa fa-unlock-alt'></i>
+            <span class="int-en">Acess</span>
+            <span class="int-he">קישור לשיתוף</span>
+        </div>
         <select id="sourceSheetShareSelect">
-          <option value="private">Private</option>
-          <option value="public">Listed for Sefaria Users</option>
-          <option value="publicAdd">Anyone can Add</option>
-          <option value="privateAdd">Anyone can Add - Unlisted</option>
-          <option value="publicEdit">Anyone can Edit</option>
-          <option value="privateEdit">Anyone can Edit - Unlisted</option>
+          <option value="private">
+              {% if interfaceLang == "english" %} Private {% else %} פרטי {% endif %}
+          </option>
+          <option value="public">
+              {% if interfaceLang == "english" %} Listed for Sefaria Users {% else %} מופיע למשתמשים רשומים {% endif %}
+          </option>
+          <option value="publicAdd">
+              {% if interfaceLang == "english" %} Anyone can Add {% else %} כל אחד יכול להוסיף {% endif %}
+          </option>
+          <option value="privateAdd">
+              {% if interfaceLang == "english" %} Anyone can Add - Unlisted {% else %} כל אחד יכול להוסיף - מוסתר {% endif %}
+          </option>
+          <option value="publicEdit">
+              {% if interfaceLang == "english" %} Anyone can Edit {% else %} כל אחד יכול לערוך {% endif %}
+          </option>
+          <option value="privateEdit">
+              {% if interfaceLang == "english" %} Anyone can Edit - Unlisted {% else %} כל אחד יכול לערוך - מוסתר {% endif %}
+          </option>
         </select>
     </div>
 
    {% if owner_groups %}
     <div class="content" id="sourceSheetGroupOptions">
-        <div class="inputHeader"><i class='fa fa-group'></i> Group</div>
+        <div class="inputHeader"><i class='fa fa-group'></i>
+            <span class="int-en">Group</span>
+            <span class="int-he">קבוצה</span>
+        </div>
         <select id="sourceSheetGroupSelect">
-            <option value="None">None</option>
+            <option value="None">
+                {% if interfaceLang == "english" %} None {% else %} ללא {% endif %}
+            </option>
 
     		{% for group in owner_groups %}
                 <option 
@@ -953,7 +1067,10 @@
     </div>
 	{% endif %}
     <div id="sharingDesc"></div><span id="sharingType" data-sharing=""></span>
-    <div class="ok button">Save</div>
+    <div class="ok button">
+        <span class="int-en">Save</span>
+        <span class="int-he">שמור</span>
+    </div>
 </div>
 
 <div id="addToSheetModal" class="modal s2Modal">
@@ -968,8 +1085,14 @@
 
 <div id="embedSheetModal" class="gradient modal s2Modal">
     <span class="close-button"></span>
-	<div class="title">Embed Sheet</div>
-    <div class="content center">Copy and paste the embed code below. Adjust the values of width and height to best fit your design.</div>
+	<div class="title">
+        <span class="int-en">Embed Sheet</span>
+        <span class="int-he">הטמעת דף מקורות</span>
+    </div>
+    <div class="content center">
+        <span class="int-en">Copy and paste the embed code below. Adjust the values of width and height to best fit your design.</span>
+        <span class="int-he">העתק והדבק את קוד ההטמעה להלן. ניתן להתאים את ערכי הגובה והרוחב כדי להתאים לעיצוב האתר המיועד.</span>
+    </div>
 	<textarea><iframe src="{{ request.build_absolute_uri }}?embed=1" width="600px" height="600px"></iframe></textarea>
 </div>
 
@@ -1225,26 +1348,66 @@
 
 <div id="publishPromptModal" class="modal s2Modal">
 	<div id="prompt">
-		<div class="header">Would you like to make your Source Sheet public?</div>
+        <div class="header">
+            <span class="int-en">Would you like to make your Source Sheet public?</span>
+            <span class="int-he">האם תרצו להפוך את דף המקורות לדף פומבי?</span>
+        </div>
 
-		<p>Your Source Sheet is looking great! You can share it with other members of the Sefaria Community by making it public.</p>
+		<p>
+            <span class="int-en">
+                Your Source Sheet is looking great! You can share it with other members of the Sefaria Community by making it public.
+            </span>
+            <span class="int-he">
+                הדף שלכם נראה נהדר! תוכלו לשתף אותו עם אחרים על ידי הפיכתו לדף פומבי
+            </span>
+        </p>
 
-		<div class="btn btn-primary publish">Make Public</div>
-		<div class="btn later">Maybe Later</div>
+		<div class="btn btn-primary publish">
+            <span class="int-en">Make Public</span>
+            <span class="int-he">שינוי לדף מקורות פומבי</span>
+        </div>
+		<div class="btn later">
+            <span class="int-en">Maybe Later</span>
+            <span class="int-he">אולי מאוחר יותר</span>
+        </div>
 	</div>
 	<div id="published" style="display:none;">
-		<div class="header">Your Sheet is now Public!</div>
+		<div class="header">
+            <span class="int-en">Your Sheet is now Public!</span>
+            <span class="int-he">הדף שלכם כעת פומבי!</span>
+        </div>
 
-		<p>Thank you for contributing to a free, growing resource for Jewish learning.</p>
+		<p>
+            <span class="int-en">Thank you for contributing to a free, growing resource for Jewish learning.</span>
+            <span class="int-he">תודה שתרמתם למאגר הידע של לימודי יהדות</span>
+        </p>
 
-		<div class="btn ok">OK</div>
+		<div class="btn ok">
+            <span class="int-en">OK</span>
+            <span class="int-he">אשר</span>
+        </div>
 	</div>
 	<div id="notPublished" style="display:none;">
-		<div class="header">No problem, this sheet is still not listed on Sefaria.</div>
+		<div class="header">
+            <span class="int-en">No problem, this sheet is still not listed on Sefaria.</span>
+            <span class="int-he">אין בעיה, דף המקורות הזה עדיין לא יופיע למשתמשי ספאריה האחרים</span>
+        </div>
 
-        <p>You can make your sheet public in the future from the <span class="label">Share</span> menu.</p>
+        <p>
+            <span class="int-en">
+                You can make your sheet public in the future from the
+                <span class="label">Share</span> menu.
+            </span>
+            <span class="int-he">
+                תוכלו להפוך את הדף לפומבי בעתיד מכפתור
+                <span class="label">השיתוף</span>.
+            </span>
+        </p>
 
-		<div class="btn ok">OK</div>
+		<div class="btn ok">
+            <span class="int-en">OK</span>
+            <span class="int-he">אשר</span>
+        </div>
 	</div>
 </div>
 
@@ -1286,7 +1449,8 @@
 		{% if user.id %}
 		_fullname: "{{ user.first_name }} {{ user.last_name }}",
 		_userLink: "{{ user.id|user_link }}",
-        interfaceLang: "{{ interfaceLang }}".substring(0,2)
+        interfaceLang: "{{ interfaceLang }}".substring(0,2),
+        interfaceLangLong: "{{ interfaceLang }}"
 		{% endif %}
 	});
 {% endautoescape %}
