@@ -67,7 +67,7 @@ class TopicsPanel extends Component {
               { topics ?
                   (topics.length ?
                      <TwoOrThreeBox content={topicList} width={this.props.width} /> 
-                    : <LoadingMessage message="There are no tags here." heMessage="" />)
+                    : <LoadingMessage message="There are no topics here." heMessage="" />)
                   : <LoadingMessage />
               }
             </div>

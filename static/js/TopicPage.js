@@ -19,7 +19,7 @@ import Component          from 'react-class';
 class TopicPage extends Component {
   constructor(props) {
     super(props);
-    this.state = { numberToRender: 4 };
+    this.state = { numberToRender: 2 };
   }
   componentDidMount() {
     this.loadData();
@@ -63,7 +63,7 @@ class TopicPage extends Component {
               <span className="int-he">{this.props.topic}</span>
             </h2>
         </div>}
-        <div className={contentClasses} onScroll={this.onScroll}>
+        <div className={contentClasses} onScroll={this.onScroll} key={this.props.topic}>
           <div className="contentInner">
             {this.props.hideNavHeader ?
               <h1>
@@ -94,7 +94,7 @@ class TopicPage extends Component {
                         return null;
                       }
                     }.bind(this))
-                    : <LoadingMessage message="There are not source for this topic yet." heMessage="" />)
+                    : <LoadingMessage message="There are no sources for this topic yet." heMessage="" />)
                   : <LoadingMessage />
               }
             </div>

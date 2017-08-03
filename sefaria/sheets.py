@@ -456,6 +456,9 @@ def get_topic_data(topic):
 		- sheets
 		- related topics
 	"""
+	MAX_SOURCES = 50
+	MAX_RELATED = 26
+
 	sheets              = get_sheets_by_tag(topic)
 	sheets_serialized   = []
 	sources_dict        = defaultdict(int)
@@ -469,8 +472,14 @@ def get_topic_data(topic):
 			if tag != topic:
 				related_topics_dict[tag] += 1
 	
-	sources = sorted(sources_dict.iteritems(), key=lambda (k,v): v, reverse=True)
-	related_topics = sorted(related_topics_dict.iteritems(), key=lambda (k,v): v, reverse=True)
+	unnormalized_sources = sorted(sources_dict.iteritems(), key=lambda (k,v): v, reverse=True)[0:MAX_SOURCES]
+	sources = []
+	for source in unnormalized_sources:
+		try:
+			sources.append((model.Ref(source[0]).normal(), source[1]))
+		except:
+			pass
+	related_topics = sorted(related_topics_dict.iteritems(), key=lambda (k,v): v, reverse=True)[0:MAX_RELATED]
 
 	return {
 				"topic": topic, 
