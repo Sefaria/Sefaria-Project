@@ -226,6 +226,7 @@ def render_react_component(component, props):
         if isinstance(e, socket.timeout) or (hasattr(e, "reason") and isinstance(e.reason, socket.timeout)):
             logger.exception("Node timeout: Fell back to client-side rendering.")
             with open(NODE_TIMEOUT_MONITOR, "a") as myfile:
+                props = json.loads(props) if isinstance(props, str) else props
                 myfile.write("Timeout at {}: {} / {} / {} / {}\n".format(
                     datetime.now().isoformat(),
                     props.get("initialPath"),
@@ -479,8 +480,10 @@ def s2_texts_category(request, cats):
     else:
         if props["interfaceLang"] == "hebrew":
             title = u"נצפו לאחרונה"
+            desc  = u""
         else:
             title = u"Recently Viewed"
+            desc  = u""
 
     props.update({
         "initialMenu": "navigation",
@@ -625,11 +628,11 @@ def s2_sheets_by_tag(request, tag):
     else:
         props["tagSheets"]    = [sheet_to_dict(s) for s in get_sheets_by_tag(tag)]
         if props["interfaceLang"] == "hebrew":
-            title = "{} | Sefaria".format(tag) # HEBREW NEEDED
-            desc  = 'Public Source Sheets on tagged with "{}", drawing from Sefaria\'s library of Jewish texts.'.format(tag)
+            title = u"{} | Sefaria".format(tag) # HEBREW NEEDED
+            desc  = u'Public Source Sheets on tagged with "{}", drawing from Sefaria\'s library of Jewish texts.'.format(tag)
         else:
-            title = "{} | Sefaria".format(tag)
-            desc  = 'Public Source Sheets on tagged with "{}", drawing from Sefaria\'s library of Jewish texts.'.format(tag)
+            title = u"{} | Sefaria".format(tag)
+            desc  = u'Public Source Sheets on tagged with "{}", drawing from Sefaria\'s library of Jewish texts.'.format(tag)
 
     propsJSON = json.dumps(props)
     html = render_react_component("ReaderApp", propsJSON)
