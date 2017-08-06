@@ -82,11 +82,15 @@ class TopicsPanel extends Component {
 }
 TopicsPanel.propTypes = {
   interfaceLang:       PropTypes.string,
+  width:               PropTypes.number,
   mutliPanel:          PropTypes.bool,
   hideNavHeader:       PropTypes.bool,
   navHome:             PropTypes.func,
   toggleLanguage:      PropTypes.func,
   openDisplaySettings: PropTypes.func,
+};
+TopicsPanel.defaultProps = {
+  width:               1000,
 };
 
 
