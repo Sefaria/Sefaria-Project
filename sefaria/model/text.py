@@ -4247,10 +4247,9 @@ class Library(object):
         """
         title_json = self._full_title_list_jsons.get(lang)
         if not title_json:
-            from sefaria.summaries import flatten_toc
             title_list = self.full_title_list(lang=lang)
             if lang == "en":
-                toc_titles = flatten_toc(self.get_toc())
+                toc_titles = self.get_toc_tree().flatten()
                 secondary_list = list(set(title_list) - set(toc_titles))
                 title_list = toc_titles + secondary_list
             title_json = json.dumps(title_list)
@@ -4610,7 +4609,6 @@ def process_index_title_change_in_dependant_records(indx, **kwargs):
 
 def process_index_delete_in_versions(indx, **kwargs):
     VersionSet({"title": indx.title}).delete()
-
 
 def process_index_title_change_in_core_cache(indx, **kwargs):
     old_title = kwargs["old"]

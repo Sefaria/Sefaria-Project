@@ -178,6 +178,14 @@ class TocTree(object):
     def get_serialized_toc(self):
         return self._root.serialize()["contents"]
 
+    def flatten(self):
+        """
+        Returns an array of strings which corresponds to each category and text in the
+        Table of Contents in order.
+        """
+        return [n.primary_title for n in self._root.get_leaf_nodes()]
+
+
     #todo: Get rid of the special case for "other", by placing it in the Index's category lists
     def lookup(self, cat_path, title=None):
         """

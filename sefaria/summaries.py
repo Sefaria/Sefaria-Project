@@ -235,6 +235,7 @@ def extract_text_records_from_toc(toc):
 
 
 def flatten_toc(toc, include_categories=False, categories_in_titles=False, version_granularity=False):
+    # Being deprecated.  Moving to TocTree.flatten()
     """
     Returns an array of strings which corresponds to each category and text in the
     Table of Contents in order.

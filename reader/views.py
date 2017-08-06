@@ -40,7 +40,7 @@ from sefaria.system.exceptions import InputError, PartialRefInputError, BookName
 from sefaria.client.util import jsonResponse
 from sefaria.history import text_history, get_maximal_collapsed_activity, top_contributors, make_leaderboard, make_leaderboard_condition, text_at_revision, record_version_deletion, record_index_deletion
 from sefaria.system.decorators import catch_error_as_json
-from sefaria.summaries import flatten_toc, get_or_make_summary_node
+from sefaria.summaries import get_or_make_summary_node
 from sefaria.sheets import get_sheets_for_ref, public_sheets, get_sheets_by_tag, user_sheets, user_tags, recent_public_tags, sheet_to_dict, get_top_sheets, make_tag_list, group_sheets
 from sefaria.utils.util import list_depth, text_preview
 from sefaria.utils.hebrew import hebrew_plural, hebrew_term, encode_hebrew_numeral, encode_hebrew_daf, is_hebrew, strip_cantillation, has_cantillation
@@ -2936,8 +2936,7 @@ def dashboard(request):
         {},
         proj={"title": 1, "flags": 1, "linksCount": 1, "content._en.percentAvailable": 1, "content._he.percentAvailable": 1}
     ).array()
-    toc = library.get_toc()
-    flat_toc = flatten_toc(toc)
+    flat_toc = library.get_toc_tree().flatten()
 
     def toc_sort(a):
         try:
