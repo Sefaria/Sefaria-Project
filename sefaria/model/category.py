@@ -183,7 +183,7 @@ class TocTree(object):
         Returns an array of strings which corresponds to each category and text in the
         Table of Contents in order.
         """
-        return [n.primary_title for n in self._root.get_leaf_nodes()]
+        return [n.primary_title() for n in self._root.get_leaf_nodes()]
 
 
     #todo: Get rid of the special case for "other", by placing it in the Index's category lists
