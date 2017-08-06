@@ -1225,7 +1225,7 @@ Sefaria = extend(Sefaria, {
                     results.push(curTocElem);
                 }
             }
-        } else { //this is still a category and might have books under it
+        } else if (curTocElem.contents) { //this is still a category and might have books under it
           results = results.concat(Sefaria.commentaryList(title, curTocElem.contents));
         }
     }
