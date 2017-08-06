@@ -23,6 +23,10 @@ var Sefaria = Sefaria || {
   recentlyViewed: []
 };
 
+if (typeof window !== 'undefined') {
+    window.Sefaria = Sefaria; // allow access to `Sefaria` from console
+}
+
 Sefaria = extend(Sefaria, {
   _parseRef: {}, // cache for results of local ref parsing
   parseRef: function(q) {
@@ -1693,9 +1697,5 @@ Sefaria.setup = function(data) {
     Sefaria.search = new Search(Sefaria.searchBaseUrl, Sefaria.searchIndex)
 };
 Sefaria.setup();
-
-if (typeof window !== 'undefined') {
-    window.Sefaria = Sefaria; // allow access to `Sefaria` from console
-}
 
 module.exports = Sefaria;
