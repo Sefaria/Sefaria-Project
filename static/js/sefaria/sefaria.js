@@ -440,7 +440,9 @@ Sefaria = extend(Sefaria, {
     for (var i = 0; i < toc.length; i++) {
       if ("category" in toc[i]) {
         Sefaria._translateTerms[toc[i].category] = {"en": toc[i].category, "he": toc[i].heCategory};
-        Sefaria._cacheIndexFromToc(toc[i].contents)
+        if (toc[i].contents) {
+            Sefaria._cacheIndexFromToc(toc[i].contents)
+        }
       } else {
         Sefaria.index(toc[i].title, toc[i]);
       }

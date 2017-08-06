@@ -180,10 +180,10 @@ class TocTree(object):
 
     def flatten(self):
         """
-        Returns an array of strings which corresponds to each category and text in the
+        Returns an array of strings which corresponds to each text in the
         Table of Contents in order.
         """
-        return [n.primary_title() for n in self._root.get_leaf_nodes()]
+        return [n.primary_title() for n in self._root.get_leaf_nodes() if isinstance(n, TocTextIndex)]
 
 
     #todo: Get rid of the special case for "other", by placing it in the Index's category lists

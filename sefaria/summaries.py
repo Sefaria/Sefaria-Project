@@ -250,7 +250,7 @@ def flatten_toc(toc, include_categories=False, categories_in_titles=False, versi
         if "category" in x:
             if include_categories:
                 results += [name]
-            subcats = flatten_toc(x["contents"], categories_in_titles=categories_in_titles)
+            subcats = flatten_toc(x["contents"], categories_in_titles=categories_in_titles) if "contents" in x else []
             if categories_in_titles:
                 subcats = ["%s > %s" %(name, y) for y in subcats]
             results += subcats
