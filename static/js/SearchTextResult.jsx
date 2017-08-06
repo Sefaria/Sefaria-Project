@@ -2,6 +2,7 @@ const React      = require('react');
 const $          = require('./sefaria/sefariaJquery');
 const Sefaria    = require('./sefaria/sefaria');
 const PropTypes  = require('prop-types');
+const classNames = require('classnames');
 import Component      from 'react-class';
 
 
@@ -39,9 +40,9 @@ class SearchTextResult extends Component {
             // } else {
             //     snippet = s[field];  // We're filtering out content, because it's *huge*, especially on Sheets
             // }
-            let dir = Sefaria.hebrew.isHebrew(snippet) ? "rtl" : "ltr";
+            let lang = Sefaria.hebrew.isHebrew(snippet) ? "he" : "en";
             snippet = $("<div>" + snippet.replace(/^[ .,;:!-)\]]+/, "") + "</div>").html();
-            return {markup:{__html:snippet}, dir: dir};
+            return {markup:{__html:snippet}, lang: lang};
         }
 
         var more_results_caret =
@@ -74,7 +75,7 @@ class SearchTextResult extends Component {
             </div>) : null;
 
         var snippetMarkup = get_snippet_markup();
-
+        var snippetClasses = classNames({snippet: 1, en: snippetMarkup.lang == "en", he: snippetMarkup.lang == "he"});
         return (
             <div className="result text_result">
                 <a href={href} onClick={this.handleResultClick}>
@@ -82,7 +83,7 @@ class SearchTextResult extends Component {
                         <span className="en">{s.ref}</span>
                         <span className="he">{s.heRef}</span>
                     </div>
-                    <div className="snippet" dir={snippetMarkup.dir} dangerouslySetInnerHTML={snippetMarkup.markup} ></div>
+                    <div className={snippetClasses} dangerouslySetInnerHTML={snippetMarkup.markup} ></div>
                     <div className="version" >{s.version}</div>
                 </a>
                 {more_results_indicator}

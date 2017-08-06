@@ -347,7 +347,11 @@ sjs.alert = {
 	_show: function(html) {
 		$(".alertBox").remove();		
 		$("#overlay").show();
-		$(html).appendTo("body").show().position({of: $(window)}).find("textarea").focus();
+		if(sjs.hasOwnProperty("interfaceLangLong")){
+			$(html).addClass("interface-"+sjs.interfaceLangLong).appendTo("body").show().position({of: $(window)}).find("textarea").focus();
+		}else{
+			$(html).appendTo("body").show().position({of: $(window)}).find("textarea").focus();
+		}
 		sjs.alert._bindOk();	
 	},
 	_bindOk: function() {
@@ -1287,12 +1291,17 @@ sjs.sheetTagger = {
 		// Build the modal
 		var html =	'<div id="tagsModal" class="gradient modal s2Modal">' +
 					'    <span class="close-button"></span>' +
-					'	<div class="title">Tag this Sheet</div>' +
+					'	<div class="title"><span class="int-en">Tag this Sheet</span><span class="int-he">תייג את דף המקורות</span></div>' +
 					'	<ul id="tags"></ul>' +
 					'	<div class="sub"></div>' +
-					'	<div class="button ok">Save</div>' +
+					'	<div class="button ok"><span class="int-en">Save</span><span class="int-he">שמור</span></div>' +
 					'</div>';
-		$(html).appendTo("body");
+		if(sjs.hasOwnProperty("interfaceLangLong")) {
+            $(html).addClass("interface-" + sjs.interfaceLangLong).appendTo("body");
+        }else{
+		    $(html).appendTo("body");
+        }
+
 
 		// Init with tagit and with its tags
 		$("#tags").tagit({ allowSpaces: true });
