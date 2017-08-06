@@ -2274,19 +2274,22 @@ a.readerNavCategory {
 .singlePanel .basetext .text {
   padding: 30px 34px;
 }
-.basetext .segment {
+.segment {
   cursor: pointer;
   display: block;
   background-color: inherit;
-  margin-bottom: 26px;
+  margin-bottom: 14px;
 }
-.continuous .basetext .segment {
+.continuous .segment {
   display: inline;
   margin: 0;
   padding: .3333em 0;
 }
 .continuous .clearFix {
   display: none;
+}
+.basetext .segment {
+  margin-bottom: 26px;
 }
 .bilingual .segment > .he,
 .bilingual .segment > .en { 
@@ -3833,6 +3836,9 @@ h2.splitHeader .he {
 }
 .topicPanel .topicSource .title {
   font-weight: bold;
+}
+.topicPanel .topicSource .score {
+  margin-top: -12px;
 }
 .note a {
   color: #333;

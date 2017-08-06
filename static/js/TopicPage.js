@@ -19,7 +19,7 @@ import Component          from 'react-class';
 class TopicPage extends Component {
   constructor(props) {
     super(props);
-    this.state = { numberToRender: 2 };
+    this.state = { numberToRender: 3 };
   }
   componentDidMount() {
     this.loadData();
@@ -78,6 +78,7 @@ class TopicPage extends Component {
                   if (item[1] < 4) { return null; }
                   return (<a className="relatedTopic" href={"/topics/" + item[0]} key={item[0]} title={item[1] + " co-occurrences"}>{item[0]}</a>);
                 }) : null }
+                <a className="relatedTopic" href="/topics">All Topics</a>
             </div>
             <div className="sourceList">
               { topicData ?
@@ -85,10 +86,10 @@ class TopicPage extends Component {
                     topicData.sources.map(function(item, i) {
                       // All notes are rendered initially (so ctrl+f works on page) but text is only loaded
                       // from API as notes scroll into view.
-                      if (i <= this.state.numberToRender) {
+                      if (i < this.state.numberToRender) {
                         return (<div className="topicSource" key={i}>
-                                  <TextRange sref={item[0]} onRangeClick={this.props.showBaseText.bind(null, item[0])}/>
-                                  <div className="scrore">+{item[1]}</div>
+                                  <TextRange sref={item[0]} onRangeClick={this.props.showBaseText.bind(null, item[0])} />
+                                  <div className="score">+{item[1]}</div>
                                 </div>);
                       } else {
                         return null;
