@@ -77,7 +77,7 @@
 					{% else %}
 					<div>
 						Welcome back, {{ request.user.first_name }}.
-					</div>					
+					</div>
 					{% endif %}
 				</div>
 			</div>
@@ -94,7 +94,7 @@
 					{% include "elements/sheet_tag_list.html" with tags=your_tags public=0 title="" %}
 					{% if groups%}
 					<div id="groups">
-						Your Groups: 
+						Your Groups:
 						{% for group in groups %}
 						<a class="groupLink" href="/groups/{{ group.name|url_safe }}">{{ group.name }}</a>
 						{% endfor %}
@@ -121,16 +121,16 @@
 				<a class="moreSheetsLink" href="/sheets/public">All public sheets &raquo;</a>
 
 			</div>
-		</div>	
+		</div>
 	</div>
 	<div class="clear"></div>
 {% endblock %}
 
 {% block js %}
-	<script>{% include "js/django-csrf.js" %}</script> 
-	<script src="/static/js/jquery.tablesorter.js"></script>
+	<script>{% include "js/django-csrf.js" %}</script>
+	<script src="/static/js/lib/jquery.tablesorter.js"></script>
 	<script>
-		$("img").error(function () { 
+		$("img").error(function () {
 		    $(this).hide().after("<h1>"+$(this).attr("alt")+"</h1>");
 		});
 		$(function() {

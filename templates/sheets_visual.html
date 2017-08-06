@@ -47,7 +47,7 @@
 
 {% block content %}
 
-	<link rel="stylesheet" href="/static/js/jquery-ui/css/smoothness/jquery-ui-1.8.22.custom.css">
+	<link rel="stylesheet" href="/static/js/lib/jquery-ui/css/smoothness/jquery-ui-1.8.22.custom.css">
 	<link rel="stylesheet" href="/static/css/sheets.css">
 	<link rel="stylesheet" href="/static/css/sheets-print.css" media="print" />
     <link rel="stylesheet" href="/static/css/sheets-visual.css">
@@ -77,12 +77,12 @@
 
 
 {% block js  %}
-<script src="/static/js/jquery.ui.touch-punch.min.js"></script>
-<script type="text/javascript" src="/static/js/jquery.scrollTo-1.4.2-min.js"></script>
-<script type="text/javascript" src="/static/js/jquery.easing.1.3.js"></script>
-<script type="text/javascript" src="/static/js/jquery-tooltip/jquery.tooltip.js"></script>
-<script src="/static/js/jquery.tag-it.min.js"></script>
-<script src="/static/js/util.js"></script>
+<script src="/static/js/lib/jquery.ui.touch-punch.min.js"></script>
+<script type="text/javascript" src="/static/js/lib/jquery.scrollTo-1.4.2-min.js"></script>
+<script type="text/javascript" src="/static/js/lib/jquery.easing.1.3.js"></script>
+<script type="text/javascript" src="/static/js/lib/jquery-tooltip/jquery.tooltip.js"></script>
+<script src="/static/js/lib/jquery.tag-it.min.js"></script>
+<script src="/static/js/s1/util.js"></script>
 
 {% include "js/headers.js" %}
 
@@ -113,7 +113,7 @@
 <script src="/static/ckeditor/ckeditor.js"></script>
 <script src="/static/ckeditor/adapters/jquery.js"></script>
 {% endif %}
-<script src="/static/js/sheets-visual.js"></script>
+<script src="/static/js/s1/sheets-visual.js"></script>
 
     <script>
     var backToS1 = function() {

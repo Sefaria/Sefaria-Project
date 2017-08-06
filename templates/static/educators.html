@@ -279,7 +279,7 @@
         $("#subscribe").click(function() {
             var email = $("#mailingListEmail").val();
             if (Sefaria.util.isValidEmailAddress(email)) {
-                Sefaria.site.track.event("Educators", "Subscribe from Education Homepage", "");
+                Sefaria.track.event("Educators", "Subscribe from Education Homepage", "");
                 $("#subscribeMsg").html("<i>Subscribing...</i>").show();
                 $.post("/api/subscribe/" + email, function(data) {
                     if ("error" in data) {
