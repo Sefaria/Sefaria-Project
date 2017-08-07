@@ -198,7 +198,7 @@ class SearchFilterPanel extends Component {
         <span className="int-he">סינון</span>
         {(this.props.displayFilters) ? <img src="/static/img/arrow-up.png" alt=""/> : <img src="/static/img/arrow-down.png" alt=""/>}
       </div>
-      <div className={(this.props.displayFilters) ? "searchFilterBoxes":"searchFilterBoxes hidden"}>
+      <div className={(this.props.displayFilters) ? "searchFilterBoxes":"searchFilterBoxes hidden"} role="modal">
         <div className="searchFilterBoxRow">
           <div className="searchFilterCategoryBox">
           {this.props.availableFilters.map(function(filter) {
@@ -365,7 +365,7 @@ class SearchFilter extends Component {
   }
   render() {
     return(
-      <li onClick={this.handleFocusCategory}>
+      <li onClick={this.handleFocusCategory} tabIndex="0" onKeyPress={function(e) {e.charCode == 13 ? this.handleFocusCategory(e):null}.bind(this)}>
         <input type="checkbox" id={this.props.filter.path} className="filter" checked={this.state.selected == 1} onChange={this.handleFilterClick}/>
         <label onClick={this.handleFilterClick}><span></span></label>
         <span className="int-en"><span className="filter-title">{this.props.filter.title}</span> <span className="filter-count">({this.props.filter.docCount})</span></span>
