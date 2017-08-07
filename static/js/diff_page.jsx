@@ -81,10 +81,6 @@ class DiffTable extends Component {
       v1Length: null, v2Length: null
     };
   }
-  setthestate(data) {
-    debugger;
-    this.setState({v1Length: data['he'].length});
-  }
 
   LoadSection(props) {
     Sefaria.text(props.secRef,
@@ -168,11 +164,15 @@ class DiffRow extends Component {
         diff2.push(element);
       }
     }
+    if (offset < 0) {diff2.push([1, '']);}
+    else if (offset > 0) {diff1.push([1, '']);}
+
     diff1 = seg1.ValidateDiff(diff1);
     diff2 = seg2.ValidateDiff(diff2);
 
     if (diff1.length != diff2.length) {
-      alert('diffs do not match in length');
+      debugger;
+      console.log('diffs do not match in length');
     }
     for (var i=0; i<diff1.length; i++) {
       if (diff1[i][0] === 0 & diff2[i][0] === 0) {continue}
@@ -196,7 +196,6 @@ class DiffRow extends Component {
   }
 
   LoadText (text, version) {
-    //debugger;
     if (version === 'v1') {
       this.setState({'v1': new DiffStore(text['he'])});
     } else {
@@ -210,7 +209,9 @@ class DiffRow extends Component {
   }
 
   componentDidUpdate() {
-    if (this.state.v1 != null & this.state.v2 != null) {
+    // This may be necessary once we start pushing to server, but should remain
+    // inactive for now.
+    if (false) {
       this.generateDiff(this.state.v1, this.state.v2);
     }
   }
@@ -320,7 +321,7 @@ class DiffElement extends Component {
   }
 }
 
-ReactDOM.render(<DiffTable secRef={"Shulchan Arukh, Choshen Mishpat 1"}
+ReactDOM.render(<DiffTable secRef={"Shulchan Arukh, Choshen Mishpat 25"}
                 v1={"Shulhan Arukh, Hoshen ha-Mishpat; Lemberg, 1898"}
                 v2={"Torat Emet Freeware Shulchan Aruch"}
                 lang={"he"}/>,
