@@ -141,6 +141,7 @@ $(function() {
             addSource(q, undefined, "insert", $target);
             $('#inlineAdd').val('');
             $("#inlineTextPreview").html("");
+            $("#inlineTextPreview").hide();
             $("#inlineAddDialogTitle").text("Select a text");
             $("#inlineAddSourceOK").addClass("disabled");
             $("#sheet").click();
@@ -322,12 +323,14 @@ $(function() {
 
             // Set it on the DOM
             this.$input.autocomplete("disable");
+            this.$preview.show();
             this.$preview.html("<div class='en'>" + en.join("") + "</div>" + "<div class='he'>" + he.join("") + "</div>");
             this.$preview.position({my: "left top", at: "left bottom", of: this.$input, collision: "none" }).width('691px').css('margin-top','20px');
         }.bind(this));
       },
       check: function() {
           this.$preview.html("");
+          this.$preview.hide();
           this.$input.autocomplete("enable");
           var inString = this.$input.val();
           if (inString.length < 3) {
@@ -338,7 +341,7 @@ $(function() {
       }
     };
 
-    // As currently designed, the object is instanciated, and sets up its own events.
+    // As currently designed, the object is instantiated and sets up its own events.
     // It doesn't need to be interacted with from the outside.
     var validator = new RefValidator($("#inlineAdd"), $("#inlineAddDialogTitle"), $("#inlineAddSourceOK"), $("#inlineTextPreview"));
 
@@ -1172,6 +1175,7 @@ $(function() {
 			$("#addInterface").on("click", ".buttonBar .addInterfaceButton", function (e) {
 				$("#addInterface .addInterfaceButton").removeClass('active');
 				$("#inlineTextPreview").html("");
+				$("#inlineTextPreview").hide();
 				$(this).addClass('active');
 				var divToShow = "#add" + ($(this).attr('id').replace('Button', '')) + "Div";
 				$(".contentDiv > div").hide();
@@ -3449,7 +3453,8 @@ function copyToSheet(source) {
 			sheets += '<li class="sheet new"><i>Start a New Source Sheet</i></li>';
 			for (i = 0; i < data.sheets.length; i++) {
 				sheets += '<li class="sheet" data-id="'+data.sheets[i].id+'">'+
-					data.sheets[i].title.stripHtml() + "</li>";
+					(data.sheets[i].title === null ? "Untitled Source Sheet": data.sheets[i].title.stripHtml()) +
+					"</li>";
 			}
 			$("#sheetList").html(sheets);
 			$("#addToSheetModal").position({of:$(window)});

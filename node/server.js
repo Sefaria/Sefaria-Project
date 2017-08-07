@@ -9,7 +9,7 @@ var http           = require('http'),
     settings       = require('./local_settings.json'),
     React          = require('react'),
     ReactDOMServer = require('react-dom/server'),
-    SefariaReact   = require('../static/js/s2.jsx'),
+    SefariaReact   = require('../static/js/ReaderApp.jsx'),
     ReaderApp      = React.createFactory(SefariaReact.ReaderApp);
 
 var server = express();

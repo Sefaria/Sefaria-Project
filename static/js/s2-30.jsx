@@ -2819,7 +2819,7 @@ class ReaderNavigationMenu extends Component {
                      (<span className='divider' key="d1">•</span>),
                      (<a className="siteLink outOfAppLink" key='about' href="/about">
                         <span className="en">About Sefaria</span>
-                        <span className="he">אודות ספאריה</span>
+                        <span className="he">אודות ספריא</span>
                       </a>),
                      (<span className='divider' key="d2">•</span>),
                      (<a className="siteLink outOfAppLink" key='logout' href="/logout">
@@ -2829,7 +2829,7 @@ class ReaderNavigationMenu extends Component {
 
                     [(<a className="siteLink outOfAppLink" key='about' href="/about">
                         <span className="en">About Sefaria</span>
-                        <span className="he">אודות ספאריה</span>
+                        <span className="he">אודות ספריא</span>
                       </a>),
                      (<span className='divider' key="d1">•</span>),
                      (<a className="siteLink outOfAppLink" key='login' href="/login">
@@ -2909,7 +2909,7 @@ class ReaderNavigationMenu extends Component {
       var title = (<h1>
                     { this.props.multiPanel ? <LanguageToggleButton toggleLanguage={this.props.toggleLanguage} /> : null }
                     <span className="int-en">The Sefaria Library</span>
-                    <span className="int-he">האוסף של ספאריה</span>
+                    <span className="int-he">האוסף של ספריא</span>
                   </h1>);
 
       var footer = this.props.compare ? null :
@@ -4303,10 +4303,10 @@ class VersionBlock extends Component {
       return (
 
         <div className = "versionBlock">
-          <a className="versionTitle" onClick={this.openVersion} href={"/" + (this.props.firstSectionRef ? this.props.firstSectionRef : this.props.version.versionTitle) + "/" + this.props.version.language + "/" + this.props.version.versionTitle}>
-            <span>{v.versionTitle}</span>
+          <div className="versionTitle">
+            <a onClick={this.openVersion} href={"/" + (this.props.firstSectionRef ? this.props.firstSectionRef : this.props.version.versionTitle) + "/" + this.props.version.language + "/" + this.props.version.versionTitle}>{v.versionTitle}</a>
             {edit_icon}
-          </a>
+          </div>
           <div className="versionDetails">
             <a className="versionSource" target="_blank" href={v.versionSource}>
             { Sefaria.util.parseURL(v.versionSource).host }
@@ -8179,7 +8179,7 @@ class AddToSourceSheetBox extends Component {
         <div className="dropdown">
           <div className="dropdownMain noselect" onClick={this.toggleSheetList}>
             <i className="dropdownOpenButton noselect fa fa-caret-down"></i>
-            {this.state.sheetsLoaded ? this.state.selectedSheet.title.stripHtml() : <LoadingMessage messsage="Loading your sheets..." heMessage="טוען את דפי המקורות שלך"/>}
+            {this.state.sheetsLoaded ? (this.state.selectedSheet.title === null ? "Untitled Source Sheet" : this.state.selectedSheet.title.stripHtml()) : <LoadingMessage messsage="Loading your sheets..." heMessage="טוען את דפי המקורות שלך"/>}
           </div>
           {this.state.sheetListOpen ? 
           <div className="dropdownListBox noselect">
@@ -10840,7 +10840,7 @@ class Footer extends Component {
               </div>
               <a href="/about" className="outOfAppLink">
                   <span className="int-en">What is Sefaria?</span>
-                  <span className="int-he">מהי ספאריה</span>
+                  <span className="int-he">מהי ספריא</span>
               </a>
               <a href="/help" className="outOfAppLink">
                   <span className="int-en">Help</span>
@@ -10875,7 +10875,7 @@ class Footer extends Component {
               </div>
               <a href="/educators" className="outOfAppLink">
                   <span className="int-en">Teach with Sefaria</span>
-                  <span className="int-he">למד באמצעות ספאריה</span>
+                  <span className="int-he">למד באמצעות ספריא</span>
               </a>
               <a href="/sheets" className="outOfAppLink">
                   <span className="int-en">Source Sheets</span>

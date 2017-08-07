@@ -363,6 +363,7 @@ body {
 	border-radius: 3px;
 	z-index: 101;
 	width: 600px;
+	display: none;
 }
 #inlineTextPreview .en {
 	font-family: "adobe-garamond-pro", Georgia, serif
@@ -511,7 +512,8 @@ body {
 
 .sheetItem {
 	position: relative;
-	padding: 32px 76px;
+	padding: 24px 76px;
+	box-sizing: border-box;
 	border: solid 1px transparent;
 	border-left: solid 6px transparent;
 }
@@ -581,12 +583,13 @@ body {
 	background-color: #F9F9F7 !important;
 
 }
-.sideControls {
-	width: 16px !important;
-	left: 23px !important;
-	margin-left: 0 !important;
-	top: 32px !important;
-	background-color: transparent !important;
+#sourceControls.sideControls {
+	width: auto;
+	left: 23px;
+	margin-left: 0;
+	top: 32px;
+	bottom: auto;
+	background-color: inherit;
 
 }
 
@@ -1533,8 +1536,6 @@ line-height: normal;
 	position: relative;
 	margin-bottom: -8px;
 	border-bottom: 1px solid #E2E2E1;
-
-
 }
 
 #ckeTopMenu .cke_inner:after {
@@ -1557,17 +1558,16 @@ line-height: normal;
     text-align: center;
     width: 100%;
     padding: 0;
-    bottom: -53px;
-	position: relative;
+    left: 0;
+    bottom: -21px;
+	position: absolute;
     font-size: 30px;
 	z-index: 3;
 }
 
-
 .inlineAddButtonIcon::before {
 	content: url("../img/add icon.png");
 }
-
 
 .inlineAddButtonIcon.active {
 	content: url("../img/add icon active.png");
@@ -1593,7 +1593,6 @@ line-height: normal;
 	margin: 20px 74px;
 	display:flex;
 }
-
 
 .contentDiv > div {
 	display: none;

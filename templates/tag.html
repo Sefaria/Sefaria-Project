@@ -36,7 +36,7 @@
                   <a id="back" href="/groups/{{ group|url_safe}}">{{ group }}'s sheets &raquo;</a>
 
                 {% elif public %}
-        		  <span id="back"> 
+        		  <span id="back">
                     <a href="/sheets/tags">All tags &raquo;</a>&nbsp;&nbsp;
                   </span>
                 {% endif %}
@@ -57,7 +57,7 @@
 
 {% block js %}
     {% include "js/sheet_list_tags.html" %}
-    <script src="/static/js/jquery.tablesorter.js"></script>
+    <script src="/static/js/lib/jquery.tablesorter.js"></script>
     <script>
         $(function() {
             $(".sheetTable").tablesorter({

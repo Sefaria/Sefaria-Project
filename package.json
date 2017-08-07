@@ -10,6 +10,7 @@
     "start": "nodemon static/bundles/server/server-bundle.js",
     "daemon": "forever start -a -p ./ -l log/forever/forever.log -o log/forever/out.log -e log/forever/err.log -w --watchDirectory log/forever/timeout static/bundles/server/server-bundle.js ",
     "test": "./run reader/browsertest/run_local.py",
+    "test-one": "./run reader/browsertest/run_one_local.py",
     "build": "webpack --config webpack.config.js ",
     "build-prod": "webpack --config webpack.config.js -p",
     "build-client": "webpack --config webpack.client.js ",
@@ -22,7 +23,8 @@
     "setup": "npm install -g nodemon; npm install -g babel-cli; npm install -g forever",
     "b": "npm run build",
     "w": "npm run watch",
-    "t": "npm run test"
+    "t": "npm run test",
+    "to": "npm run test-one"
   },
   "dependencies": {
     "body-parser": "^1.15.1",

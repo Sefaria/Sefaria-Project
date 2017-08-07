@@ -88,7 +88,7 @@
         $("#subscribe").click(function() {
             var email = $("#mailingListEmail").val();
             if (Sefaria.util.isValidEmailAddress(email)) {
-                Sefaria.site.track.event("Home", "Subscribe from Homepage", "");
+                Sefaria.track.event("Home", "Subscribe from Homepage", "");
                 $("#subscribeMsg").html("<i>Subscribing...</i>");
                 $.post("/api/subscribe/" + email, function(data) {
                     if ("error" in data) {
@@ -105,7 +105,7 @@
         });
         $("#mailingListEmail").keyup(function(e){
             if (e.keyCode === 13) {
-                $("#subscribe").trigger("click");   
+                $("#subscribe").trigger("click");
             }
         });
     });

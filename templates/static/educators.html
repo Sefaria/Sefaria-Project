@@ -29,7 +29,7 @@
             </div>
 
             {% if user.email %}
-            <div id="educatorSubscribeButton" class="button control-elem" data-email="{{ user.email  }}">
+            <div tabindex="0" role="button" id="educatorSubscribeButton" class="button control-elem" data-email="{{ user.email  }}">
                 Get the Newsletter
             </div>
             <div id="subscribeEdMsg">&nbsp;</div>
@@ -279,7 +279,7 @@
         $("#subscribe").click(function() {
             var email = $("#mailingListEmail").val();
             if (Sefaria.util.isValidEmailAddress(email)) {
-                Sefaria.site.track.event("Educators", "Subscribe from Education Homepage", "");
+                Sefaria.track.event("Educators", "Subscribe from Education Homepage", "");
                 $("#subscribeMsg").html("<i>Subscribing...</i>").show();
                 $.post("/api/subscribe/" + email, function(data) {
                     if ("error" in data) {
@@ -310,6 +310,13 @@
                 })
             }
         });
+
+        $("#educatorSubscribeButton").keyup(function(e){
+            if (e.keyCode === 13) {
+                $("#educatorSubscribeButton").trigger("click");
+            }
+        });
+
 
 
         $("#mailingListEmail").keyup(function(e){

@@ -86,7 +86,6 @@ urlpatterns += patterns('reader.views',
     (r'^translation-requests/completed?', 'completed_translation_requests'),
     (r'^translation-requests/featured-completed?', 'completed_featured_translation_requests'),
     (r'^translation-requests/?', 'translation_requests'),
-    (r'^contests/(?P<page>new-profiles-contest)$', 'serve_static'),
     (r'^contests/(?P<slug>.+)$', 'contest_splash'),
     (r'^mishnah-contest-2013/?$', lambda x: HttpResponseRedirect('/contests/mishnah-contest-2013')),
 )
@@ -135,7 +134,6 @@ urlpatterns += patterns('sheets.views',
     (r'^sheets/(?P<type>(public|private))/?$', 'sheets_list'),
     (r'^sheets/(?P<sheet_id>\d+)$', 'view_sheet'),
     (r'^sheets/visual/(?P<sheet_id>\d+)$', 'view_visual_sheet'),
-
 )
 
 # Source Sheets API
@@ -227,6 +225,12 @@ urlpatterns += patterns('sheets.views',
     (r'^api/groups/(?P<group_name>[^/]+)/pin-sheet/(?P<sheet_id>\d+)', 'groups_pin_sheet_api'),
 )
 
+
+# Topics
+urlpatterns += patterns('sheets.views',
+    (r'^api/topics/(?P<topic>.+)$', 'topics_api'),
+)
+
 # Registration
 urlpatterns += patterns('',
     url(r'^login/?$', 'sefaria.views.login', {'authentication_form': SefariaLoginForm}, name='login'),
@@ -268,9 +272,6 @@ static_pages = [
     "translation-guidelines",
     "transliteration-guidelines",
     "even-haezer-guidelines",
-    "related-projects",
-    "meetup1",
-    "meetup2",
     "random-walk-through-torah",
     "educators",
     "the-sefaria-story",

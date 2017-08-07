@@ -303,13 +303,50 @@ class AtomicTest(object):
         elem.send_keys(Keys.RETURN)
         return self
 
-    #Source Sheets
     def load_sheets(self):
         self.driver.get(self.base_url + "/sheets")
         WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, ".readerSheetsNav")))
         self.set_modal_cookie()
         return self
-    
+
+    def load_gardens(self):
+        self.driver.get(self.base_url + "/garden/jerusalem")
+        WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, "#filter-1 g.row")))  # individual filter row
+        WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, ".dc-grid-item .result-text .en"))) # individual result text
+        return self
+
+    def load_home(self):
+        self.driver.get(self.base_url + "/?home")
+        WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, ".header")))
+        return self
+
+    def load_people(self):
+        self.driver.get(self.base_url + "/people")
+        WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, ".author")))
+
+        self.driver.get(self.base_url + "/person/Meir%20Abulafia")
+        WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, "#place-map")))
+        return self
+
+    def load_account(self):
+        self.driver.get(self.base_url + "/account")
+        WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, ".accountPanel .blockLink")))
+        return self
+
+    def load_notifications(self):
+        self.driver.get(self.base_url + "/notifications")
+        WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, ".notificationsList > .notification")))
+        return self
+
+    def load_private_sheets(self):
+        self.driver.get(self.base_url + "/sheets/private")
+        WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, ".sheetsNewButton")))
+        return self
+
+    def load_private_groups(self):
+        self.driver.get(self.base_url + "/my/groups")
+        WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, ".myGroupsPanel .button")))
+        return self
 """
 
                     Test Running Infrastructure
@@ -581,8 +618,6 @@ class Trial(object):
                     sys.stdout.write("E")
                 sys.stdout.flush()
                 tresults = [TestResult(test, caps[0], False, msg)]
-            p.close()
-            p.join()
         else:
             for cap in caps:
                 tresults.append(self._test_one(test, cap))
@@ -679,4 +714,3 @@ def get_multiplatform_tests(tests):
 
 def get_every_build_tests(tests):
     return [t for t in tests if t.every_build]
-

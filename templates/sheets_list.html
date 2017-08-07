@@ -12,7 +12,7 @@
 {% endblock %}
 
 {% block content %}
-	
+
 	<a href="/sheets" id="textTocLink" class="white">&laquo; Source Sheets</a>
 
 	<div id="sheetListPage" class="container">
@@ -38,7 +38,7 @@
 					{% include "elements/sheet_tag_list.html" with title="" %}
 					{% if groups %}
 					<div id="groups">
-						Your Groups: 
+						Your Groups:
 						{% for group in groups %}
 						<a class="groupLink" href="/groups/{{ group.name|url_safe }}">{{ group.name }}</a>
 						{% endfor %}
@@ -71,11 +71,11 @@
 {% endblock %}
 
 {% block js %}
-	<script>{% include "js/django-csrf.js" %}</script> 
-	<script src="/static/js/jquery.tablesorter.js"></script>
-	<script src="/static/js/jquery.tag-it.min.js"></script>
+	<script>{% include "js/django-csrf.js" %}</script>
+	<script src="/static/js/lib/jquery.tablesorter.js"></script>
+	<script src="/static/js/lib/jquery.tag-it.min.js"></script>
 	{% include "js/sheet_list_tags.html" %}
-	<script src="/static/js/jquery.tablesorter.js"></script>
+	<script src="/static/js/lib/jquery.tablesorter.js"></script>
 	<script>
 		$(function() {
 			$(".sheetTable").tablesorter();
