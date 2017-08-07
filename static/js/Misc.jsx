@@ -171,6 +171,41 @@ class ToggleOption extends Component {
     this.props.setOption(this.props.set, this.props.name);
     if (Sefaria.site) { Sefaria.track.event("Reader", "Display Option Click", this.props.set + " - " + this.props.name); }
   }
+  checkKeyPress(e){
+    if (e.keyCode === 39) { //39 is right arrow
+        $(e.target).siblings(".toggleOption").removeClass('on').attr("tabIndex","-1");
+        $(e.target).removeClass('on').attr("tabIndex","-1");
+        $(e.target).next(".toggleOption").focus().addClass('on').attr("tabIndex","0");
+    }
+    else if (e.keyCode === 37) { //37 is left arrow
+        $(e.target).siblings(".toggleOption").removeClass('on').attr("tabIndex","-1");
+        $(e.target).removeClass('on').attr("tabIndex","-1");
+        $(e.target).prev(".toggleOption").focus().addClass('on').attr("tabIndex","0");
+    }
+    else if (e.keyCode === 13) { //13 is enter
+        $(e.target).trigger("click");
+    }
+    else if (e.keyCode === 9) { //9 is tab
+        var lastTab = $("div[role='dialog']").find(':tabbable').last();
+        var firstTab = $("div[role='dialog']").find(':tabbable').first();
+        if (e.shiftKey) {
+          if ($(e.target).is(firstTab)) {
+            $(lastTab).focus();
+            e.preventDefault();
+          }
+        }
+        else {
+          if ($(e.target).is(lastTab)) {
+            $(firstTab).focus();
+            e.preventDefault();
+          }
+        }
+    }
+    else if (e.keyCode === 27) { //27 is escape
+        e.stopPropagation();
+        $(".mask").trigger("click");
+    }
+  }
   render() {
     var classes = {toggleOption: 1, on: this.props.on };
     var tabIndexValue = this.props.on ? 0 : -1;
@@ -185,8 +220,10 @@ class ToggleOption extends Component {
         role={this.props.role}
         aria-label= {this.props.ariaLabel}
         tabIndex = {this.props.role == "radio"? tabIndexValue : "0"}
+        aria-checked={ariaCheckedValue}
         className={classes}
         style={this.props.style}
+        onKeyDown={this.checkKeyPress}
         onClick={this.handleClick}>
         {content}
       </div>);
@@ -231,15 +268,15 @@ class ReaderNavigationMenuCloseButton extends Component {
 
 class ReaderNavigationMenuDisplaySettingsButton extends Component {
   render() {
-    return (<a
-              href="#"
+    return (<div
               className="readerOptions"
+              tabIndex="0"
               role="button"
               aria-haspopup="true"
               onClick={this.props.onClick}
               onKeyPress={function(e) {e.charCode == 13 ? this.props.onClick(e):null}.bind(this)}>
                 <img src="/static/img/ayealeph.svg" alt="Toggle Reader Menu Display Settings"/>
-            </a>);
+            </div>);
   }
 }
 

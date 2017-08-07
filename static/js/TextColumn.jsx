@@ -87,6 +87,7 @@ class TextColumn extends Component {
     var selection = window.getSelection();
 
     if (selection.type === "Range") {
+      console.log("handling range");
       var $start    = $(Sefaria.util.getSelectionBoundaryElement(true)).closest(".segment");
       var $end      = $(Sefaria.util.getSelectionBoundaryElement(false)).closest(".segment");
       var $segments = $(ReactDOM.findDOMNode(this)).find(".segment");
@@ -103,8 +104,11 @@ class TextColumn extends Component {
       //console.log(refs);
       this.props.setTextListHighlight(refs);
     }
-
-    this.props.setSelectedWords(selection.toString());
+    var selectedWords = selection.toString();
+    if (selectedWords !== this.props.selectedWords) {
+      console.log("setting selecting words")
+      this.props.setSelectedWords(selectedWords);
+    }
   }
   handleTextLoad() {
     if (this.loadingContentAtTop || !this.initialScrollTopSet) {

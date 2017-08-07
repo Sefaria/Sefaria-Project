@@ -193,12 +193,12 @@ class SearchFilterPanel extends Component {
   }
   render() {
     return (<div>
-      <div className="searchFilterToggle" onClick={this.props.toggleFilterView}>
+      <div className="searchFilterToggle" tabIndex="0" onClick={this.props.toggleFilterView} onKeyPress={function(e) {e.charCode == 13 ? this.props.toggleFilterView(e):null}.bind(this)}>
         <span className="int-en">Filter</span>
         <span className="int-he">סינון</span>
         {(this.props.displayFilters) ? <img src="/static/img/arrow-up.png" alt=""/> : <img src="/static/img/arrow-down.png" alt=""/>}
       </div>
-      <div className={(this.props.displayFilters) ? "searchFilterBoxes":"searchFilterBoxes hidden"}>
+      <div className={(this.props.displayFilters) ? "searchFilterBoxes":"searchFilterBoxes hidden"} role="modal">
         <div className="searchFilterBoxRow">
           <div className="searchFilterCategoryBox">
           {this.props.availableFilters.map(function(filter) {
@@ -275,7 +275,7 @@ class SearchSortBox extends Component {
     var chronoClass = classNames({'filter-title': 1, 'unselected': this.props.sortType !== "chronological"});
     var releClass = classNames({'filter-title': 1, 'unselected': this.props.sortType !== "relevance"});
     return (<div>
-      <div className="searchFilterToggle" onClick={this.props.toggleSortView}>
+      <div className="searchFilterToggle" tabIndex="0" onClick={this.props.toggleSortView} onKeyPress={function(e) {e.charCode == 13 ? this.props.toggleSortView(e):null}.bind(this)}>
         <span className="int-en">Sort</span>
         <span className="int-he">מיון</span>
         {(this.props.visible) ? <img src="/static/img/arrow-up.png" alt=""/> : <img src="/static/img/arrow-down.png" alt=""/>}
@@ -365,7 +365,7 @@ class SearchFilter extends Component {
   }
   render() {
     return(
-      <li onClick={this.handleFocusCategory}>
+      <li onClick={this.handleFocusCategory} tabIndex="0" onKeyPress={function(e) {e.charCode == 13 ? this.handleFocusCategory(e):null}.bind(this)}>
         <input type="checkbox" id={this.props.filter.path} className="filter" checked={this.state.selected == 1} onChange={this.handleFilterClick}/>
         <label onClick={this.handleFilterClick}><span></span></label>
         <span className="int-en"><span className="filter-title">{this.props.filter.title}</span> <span className="filter-count">({this.props.filter.docCount})</span></span>

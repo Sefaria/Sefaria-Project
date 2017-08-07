@@ -17,3 +17,4 @@
     var ga = function(){};
     ga._mock = true;
 {% endif %}
+window.ga = ga;

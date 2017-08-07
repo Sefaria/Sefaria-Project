@@ -635,7 +635,7 @@ class ReaderApp extends Component {
       tagSort:                 state.tagSort                 || "count",
       mySheetSort:             state.mySheetSort             || "date",
       initialAnalyticsTracked: state.initialAnalyticsTracked || false,
-      selectedWords:           state.selectedWords           || null,
+      selectedWords:           state.selectedWords           || "",
     };
     if (this.state && panel.refs.length && !panel.version) {
       var oRef = Sefaria.ref(panel.refs[0]);
