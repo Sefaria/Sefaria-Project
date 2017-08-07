@@ -89,7 +89,10 @@ class TextColumn extends Component {
     if (selection.type === "Range") {
       var $start    = $(Sefaria.util.getSelectionBoundaryElement(true)).closest(".segment");
       var $end      = $(Sefaria.util.getSelectionBoundaryElement(false)).closest(".segment");
-      var $segments = $start.is($end) ? $start : $start.nextUntil($end, ".segment").add($start).add($end);
+      var $segments = $(ReactDOM.findDOMNode(this)).find(".segment");
+      var start     = $segments.index($start);
+      var end       = $segments.index($end);
+      var $segments = $segments.slice(start, end+1);
       var refs      = [];
 
       $segments.each(function() {
@@ -97,6 +100,7 @@ class TextColumn extends Component {
       });
 
       //console.log("Setting highlights by Text Selection");
+      //console.log(refs);
       this.props.setTextListHighlight(refs);
     }
 
