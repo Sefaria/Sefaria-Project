@@ -219,6 +219,12 @@ class SaveNewSourceSheet(AtomicTest):
         saveButton.click()
         WebDriverWait(self.driver, TEMPER).until(title_contains("New Source Sheet | Sefaria Source Sheet Builder"))
 
+        # After saving a sheet, visit pages that are login specific
+        self.load_account()
+        self.load_notifications()
+        self.load_private_sheets()
+        self.load_private_groups()
+
 '''
 # Not sure why this isn't working.
 class LoginOnMobile(AtomicTest):

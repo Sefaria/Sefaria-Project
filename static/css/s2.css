@@ -18,15 +18,15 @@ body.sepia {
   background-color: #F9F9F7;
 }
 body.dark {
-  background-color: #333331; 
+  background-color: #333331;
 }
 .sans,
-.sans .en, 
+.sans .en,
 #s2 .sans .en,
 .sans .int-en {
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
 }
-.sans .he, 
+.sans .he,
 #s2 .sans .he,
 .sans .int-he {
   font-family: "Heebo", sans-serif;
@@ -446,7 +446,7 @@ input.noselect {
   background-color: inherit;
 }
 /* Adjusting for 17px scrollbars, to keep content centered
-   Only done in multiPanel mode now as a proxy for whether scrollbars take up width (on desktop they do, not on mobile) 
+   Only done in multiPanel mode now as a proxy for whether scrollbars take up width (on desktop they do, not on mobile)
   Removed 12/16 -- seems to be causing problems now.
   Restored 4/17 -- problem recurred and fixed by storing CSS, what's changing?
 */
@@ -495,7 +495,7 @@ input.noselect {
   direction: ltr;
 }
 .interface-hebrew .readerPanel .readerNavMenu,
-.readerPanel.hebrew .readerNavSection, 
+.readerPanel.hebrew .readerNavSection,
 .readerPanel.hebrew .readerNavMenu .gridBox {
   direction: rtl;
 }
@@ -1112,7 +1112,7 @@ a.readerNavCategory {
   margin: 6px 0 16px;
   font-style: normal;
   font-size: 16px;
-  line-height: 1.4;  
+  line-height: 1.4;
 }
 .readerTextTableOfContents .tocDetails .description .readMoreText {
   display: block;
@@ -1303,7 +1303,7 @@ a.readerNavCategory {
 .readerTextTableOfContents .content .tocContent {
   padding: 30px 0 40px;
   text-align: left;
-} 
+}
 .readerTextTableOfContents.narrowPanel .tocContent {
   padding: 0 0 40px;
 }
@@ -1452,7 +1452,7 @@ a.readerNavCategory {
     padding: 10px 0;
     margin-bottom: 14px;
 }
-.modTools .dlVersionSelect { 
+.modTools .dlVersionSelect {
   display: block;
 }
 
@@ -1786,9 +1786,14 @@ a.readerNavCategory {
 .readerPanel.hebrew .searchContent .result .result-title .he {
   display: block;
 }
+.readerPanel.english .searchContent .text_result .snippet.he,
+.readerPanel.hebrew .searchContent .text_result .snippet.en,
+.bilingual .searchContent .text_result .snippet.he {
+  display: block;
+}
 .searchContent .text_result .snippet {
   color: #333;
-  font-size: 1.8em;
+  font-size: 2.3em;
 }
 .searchContent .sheet_result .snippet {
   color: #999;
@@ -2241,10 +2246,10 @@ a.readerNavCategory {
   display: inline-block;
   border-bottom: 4px solid #E6E5E6;
   padding: 0 6px 3px;
-}  
+}
 .dark .textRange.basetext .title .titleBox {
   border-bottom: 4px solid #666;
-}  
+}
 .bilingual .textRange.basetext .title .he {
   display: none;
 }
@@ -2289,20 +2294,20 @@ a.readerNavCategory {
   display: none;
 }
 .bilingual .segment > .he,
-.bilingual .segment > .en { 
+.bilingual .segment > .en {
   display: block;
 }
-.bilingual .segment > .en { 
+.bilingual .segment > .en {
   text-align: left;
 }
-.bilingual .segment > .he { 
+.bilingual .segment > .he {
   text-align: right;
 }
 .stacked.bilingual .basetext .segment {
   margin-bottom: 14px;
   display: block;
 }
-.stacked.bilingual .segment > .en { 
+.stacked.bilingual .segment > .en {
   margin-top: 6px;
   text-align: left;
 }
@@ -2369,7 +2374,7 @@ a.readerNavCategory {
 }
 .textRange {
   line-height: 1.4;
-  font-size: 1.6em; 
+  font-size: 1.6em;
 }
 .textRange .textInner {
   position: relative;
@@ -2646,7 +2651,7 @@ a.readerNavCategory {
 }
 .textList .texts .contentInner {
   max-width: 660px;
-  margin: 0 auto; 
+  margin: 0 auto;
 }
 .textList.fullPanel .texts {
   padding: 0 48px 300px 60px;
@@ -2918,7 +2923,7 @@ a.readerNavCategory {
 .bilingual .textList .title .he {
   display: none;
 }
-.textList .sheet, 
+.textList .sheet,
 .textList .note {
   padding: 0 0 24px 0;
 }
@@ -2965,10 +2970,10 @@ a.readerNavCategory {
   color: #666;
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
   text-align: left;
-} 
+}
 .interface-hebrew .textList .sheet .sheetTags {
   text-align: right;
-} 
+}
 .textList .sheet .sheetTag {
   color: inherit;
   display: inline-block;
@@ -2978,7 +2983,7 @@ a.readerNavCategory {
   display: inline-block;
   margin-right: 8px;
 }
-.textList .sheetList { 
+.textList .sheetList {
   padding-top: 40px;
 }
 .textList .sheetList + .sheetList {
@@ -3439,11 +3444,11 @@ a .button:hover {
    font-style: italic;
    font-family: "adobe-garamond-pro", Georgia, serif;
 }
-::-moz-placeholder { 
+::-moz-placeholder {
    font-style: italic;
    font-family: "adobe-garamond-pro", Georgia, serif;
 }
-:-ms-input-placeholder {  
+:-ms-input-placeholder {
    font-style: italic;
    font-family: "adobe-garamond-pro", Georgia, serif;
 }
@@ -3451,11 +3456,11 @@ a .button:hover {
   font-style: normal;
   font-family: "Frank Ruehl Libre", "Taamey Frank", "Times New Roman", serif;
 }
-.interface-hebrew ::-moz-placeholder { 
+.interface-hebrew ::-moz-placeholder {
   font-style: normal;
   font-family: "Frank Ruehl Libre", "Taamey Frank", "Times New Roman", serif;
 }
-.interface-hebrew :-ms-input-placeholder {  
+.interface-hebrew :-ms-input-placeholder {
   font-style: normal;
   font-family: "Frank Ruehl Libre", "Taamey Frank", "Times New Roman", serif;
 }
@@ -3775,7 +3780,7 @@ h2.splitHeader .he {
 .groupMemberListingActions {
   position: relative;
   display: inline-block;
-  background-color: white; 
+  background-color: white;
   border: 1px solid #ccc;
   border-radius: 4px;
   margin-left: 12px;
@@ -3791,7 +3796,7 @@ h2.splitHeader .he {
   position: absolute;
   right: 0;
   top: 46px;
-  background-color: white; 
+  background-color: white;
   border: 1px solid #ccc;
   border-radius: 4px;
   color: #999;
@@ -4240,4 +4245,3 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
 .bubbleTab.active {
   color: #333;
 }
-

@@ -367,6 +367,7 @@ def delete_sheet_api(request, sheet_id):
 	except NewConnectionError as e:
 		logger.warn("Failed to connect to elastic search server on sheet delete.")
 
+
 	return jsonResponse({"status": "ok"})
 
 
