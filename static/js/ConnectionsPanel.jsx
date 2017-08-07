@@ -56,15 +56,9 @@ class ConnectionsPanel extends Component {
   }
   loadData() {
     var ref = this.sectionRef();
-    console.log("Loading connections data for")
-    console.log(ref)
     if (!Sefaria.related(ref)) {
-      console.log("Don't have it yet")
       Sefaria.related(ref, function(data) {
-        console.log("API returned with")
-        console.log(data);
         if (this._isMounted) {
-          console.log("isMounted")
           this.forceUpdate();
         }
       }.bind(this));

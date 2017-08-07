@@ -72,7 +72,7 @@ class ReaderPanel extends Component {
       searchFieldBroad:     "naive_lemmatizer",
       searchField:          props.initialSearchField || "naive_lemmatizer",
       searchSortType:       props.initialSearchSortType || "chronological",
-      selectedWords:        null,
+      selectedWords:        "",
       searchFiltersValid:   false,
       availableFilters:     [],
       filterRegistry:       {},
@@ -464,6 +464,7 @@ class ReaderPanel extends Component {
           onCitationClick={this.handleCitationClick}
           setTextListHighlight={this.setTextListHighlight}
           setSelectedWords={this.setSelectedWords}
+          selectedWords={this.state.selectedWords}
           panelsOpen={this.props.panelsOpen}
           layoutWidth={this.props.layoutWidth}
           filter={this.state.filter}
