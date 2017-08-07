@@ -261,6 +261,33 @@ class DiffRow extends Component {
 }
 
 class DiffCell extends Component {
+
+  acceptDiff(diffIndex) {
+  /*
+  *  Accept a change and make it to the rawText.
+  *  diffIndex: An integer which indicates which element in the difflist to
+  *  accept for the change.
+  */
+    console.log(this.props.diff.rawText);
+    var diffList = this.props.diff.diffList; // Easier to access
+    // begin by calculating the character position of the desired change in the filtered text
+    var filteredPosition = 0;
+    for (var i=0; i<diffIndex; i++) {
+      filteredPosition += diffList[i][1].length;
+    }
+    // Our map tells you for each character in the filtered text how many characters
+    // need to be added to get the equivalent position in the rawText. A legal
+    // change demands no change of added characters along a single proposed diff.
+    var rawPosition = filteredPosition + this.props.diff.mapping[filteredPosition],
+        diffLength  = diffList[diffIndex][1].length;
+
+    return (
+      this.props.diff.rawText.slice(0, rawPosition) +
+      diffList[diffIndex][2] +
+      this.props.diff.rawText.slice(rawPosition + diffLength)
+    );
+  }
+
   render() {
     if (this.props.diff.diffList === null) {
       return (<td>{"Loading..."}</td>);
@@ -275,9 +302,11 @@ class DiffCell extends Component {
 
       else if (diffList[i][0] === 1) {
       spans.push(<DiffElement
-        text={diffList[i][1]}
-        toText={diffList[i][2]}
-        key = {i.toString()}
+        text       = {diffList[i][1]}
+        toText     = {diffList[i][2]}
+        key        = {i.toString()}
+        diffIndex  = {i}
+        acceptDiff = {this.acceptDiff}
         />);
       }
 
@@ -296,16 +325,15 @@ class DiffElement extends Component {
     this.state = {mouseover: false};
   }
   onMouseOver() {
-    console.log("MouseOver!");
+  //  console.log("MouseOver!");
     this.setState({mouseover: true});
   }
   onMouseOut() {
-    console.log("MouseOut!");
+  //  console.log("MouseOut!");
     this.setState({mouseover: false});
   }
   onClick() {
-    console.log("Clicked!");
-    this.setState({mouseover: !this.state.mouseover});
+    console.log(this.props.acceptDiff(this.props.diffIndex));
   }
   render() {
     return (
