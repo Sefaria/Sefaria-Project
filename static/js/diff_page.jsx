@@ -1,7 +1,7 @@
 var $              = require('jquery'),
     React          = require('react'),
     ReactDOM       = require('react-dom'),
-    Sefaria        = require('./sefaria'),
+    Sefaria        = require('./sefaria/sefaria'),
     extend         = require('extend'),
     PropTypes      = require('prop-types'),
     DiffMatchPatch = require('diff-match-patch');
@@ -75,14 +75,56 @@ class DiffStore {
   }
 
 class DiffTable extends Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      v1Length: null, v2Length: null
+    };
+  }
+  setthestate(data) {
+    debugger;
+    this.setState({v1Length: data['he'].length});
+  }
+
+  LoadSection(props) {
+    Sefaria.text(props.secRef,
+      {language: props.lang, version: props.v1},
+      data => this.setState({v1Length: data[props.lang].length}));
+
+    Sefaria.text(props.secRef,
+      {language: props.lang, version: props.v2},
+      data => this.setState({v2Length: data[props.lang].length}));
+  }
+
+  componentWillMount() {
+    this.LoadSection(this.props);
+  }
+
+  componentWillReceiveProps(nextProps) {
+    this.LoadSection(nextProps);
+  }
+
   render () {
+    if (this.state.v1Length === null || this.state.v2Length === null) {
+      return (<div>Loading Text...</div>);
+    } else {
+      var numSegments = Math.max(this.state.v1Length, this.state.v2Length),
+          rows = [];
+
+      for (var i=1; i<=numSegments; i++) {
+        rows.push(<DiffRow
+          segRef={this.props.secRef + ":" + i.toString()}
+          v1    ={this.props.v1}
+          v2    ={this.props.v2}
+          lang  ={this.props.lang}
+          key   ={i.toString()}/>);
+      }
+    }
+
       return (
         <table>
           <tbody>
-            <DiffRow  segRef={this.props.segRef}
-                      v1   ={this.props.v1}
-                      v2   ={this.props.v2}
-                      lang ={this.props.lang}/>
+            {rows}
           </tbody>
         </table>
       );
@@ -154,12 +196,20 @@ class DiffRow extends Component {
   }
 
   LoadText (text, version) {
+    //debugger;
     if (version === 'v1') {
       this.setState({'v1': new DiffStore(text['he'])});
     } else {
       this.setState({'v2': new DiffStore(text['he'])});
     }
+  }
+  componentDidMount() {
+    if (this.state.v1 != null & this.state.v2 != null) {
+      this.generateDiff(this.state.v1, this.state.v2);
+    }
+  }
 
+  componentDidUpdate() {
     if (this.state.v1 != null & this.state.v2 != null) {
       this.generateDiff(this.state.v1, this.state.v2);
     }
@@ -270,7 +320,7 @@ class DiffElement extends Component {
   }
 }
 
-ReactDOM.render(<DiffTable segRef={"Shulchan Arukh, Choshen Mishpat 1:1"}
+ReactDOM.render(<DiffTable secRef={"Shulchan Arukh, Choshen Mishpat 1"}
                 v1={"Shulhan Arukh, Hoshen ha-Mishpat; Lemberg, 1898"}
                 v2={"Torat Emet Freeware Shulchan Aruch"}
                 lang={"he"}/>,
