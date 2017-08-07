@@ -84,7 +84,6 @@ class TextColumn extends Component {
     this.adjustInfiniteScroll();
   }
   handleTextSelection() {
-    console.log("hts");
     var selection = window.getSelection();
 
     if (selection.type === "Range") {
