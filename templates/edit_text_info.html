@@ -8,7 +8,7 @@
 {% block content %}
 
 <div id="editTextInfo">
- 
+
     {% if "toc" in request.GET %}
     <!-- NEW VERSION, IN PROGRESS, access with ?toc parameter-->
     <div id="tocBuilder">
@@ -38,7 +38,7 @@
                         <div class='addNode btn btn-mini'><i class='fa fa-plus'></i> Add Subsection</div>
                     </div>
                     <div class='contentFields' style="display:none;">
-                        <div class='field'>                       
+                        <div class='field'>
                             <label>Sections</label>
                             <select class='sectionNames'>
                               <option value="Chapter,Verse">Chapter, Verse</option>
@@ -64,14 +64,14 @@
         </li>
     {% else %}
     <!-- OLD VERSION, still shows by default-->
-    <link rel="stylesheet" href="/static/js/jquery-ui/css/smoothness/jquery-ui-1.8.22.custom.css">
+    <link rel="stylesheet" href="/static/js/lib/jquery-ui/css/smoothness/jquery-ui-1.8.22.custom.css">
     <link rel="stylesheet" href="/static/bootstrap/css/bootstrap.css">
     <link rel="stylesheet" href="/static/css/base.css">
-    <script src="/static/js/util.js"></script>
+    <script src="/static/js/s1/util.js"></script>
     <div id="newIndex">
-    
+
         <div id="newIndexMsg">Sefaria doesn't yet know about the text "<span id="textName"></span>".<div class="sub">Please provide some basic information about this text.</div></div>
-        
+
         <div class="fieldSet">
             <span class="fieldLabel">
             <div class="help">?
@@ -83,7 +83,7 @@
             </div>
             Text Title</span> <input id="textTitle"/>
         </div>
-        
+
         <div class="fieldSet">
             <span class="fieldLabel">
             <div class="help">?
@@ -118,19 +118,19 @@
             <span class="fieldLabel">
             <div class="help">?
                 <div class="helpText">
-                A category for the text. Categories are used in searching and grouping texts. 
+                A category for the text. Categories are used in searching and grouping texts.
                 </div>
             </div>
             Category</span> <select id="textCategory">
                   <option value="">Select a Category…</option>
-                
+
                   {% for cat in toc %}
                   <option value="{{ cat.category}}">{{ cat.category }}</option>
                   {% endfor %}
 
                 </select> <input id="otherCategory" />
         </div>
-        
+
         <div class="fieldSet" id="textStructureFieldSet">
             <span class="fieldLabel">
             <div class="help">?
@@ -145,7 +145,7 @@
                 <span id="addSection">add level of structure</span>
             </div>
         </div>
-    
+
         <div class="actions">
             <span id="newIndexSave" class="btn btn-primary btn-large">Save</span>
             <span id="newIndexCancel" class="btn btn-large">Cancel</span>
@@ -162,7 +162,7 @@
 {% endblock %}
 
 {% block js %}
-    <script src="/static/js/jquery.tag-it.min.js"></script>
+    <script src="/static/js/lib/jquery.tag-it.min.js"></script>
     <script>
 
     {% if "toc" in request.GET %}
@@ -190,7 +190,7 @@
         $("#tocBuilder").on("click", ".contentRadio", function(e){
             var $node = $(this).closest(".tocNode");
             $node.find(".structureFields").hide();
-            $node.find(".contentFields").show();              
+            $node.find(".contentFields").show();
             $node.find(".nodeChildren").empty();
             sjs.makeContentNode($node);
         });
@@ -199,7 +199,7 @@
             $node.find(".structureFields").show();
             $node.find(".contentFields").hide();
             $node.find(".nodeContent").empty();
-        }); 
+        });
         // Show Content Blocks on length change
         $("#tocBuilder").on("keyup", ".nodeLength", function(e) {
             var $node = $(this).closest(".tocNode");
@@ -226,7 +226,7 @@
         } else {
             $(".nodeTemplate").clone().removeClass("nodeTemplate").addClass("rootNode active").appendTo("#tocBuilder");
             $(".rootNode").find(".removeNode").remove();
-            sjs.tocBuilderSortable();            
+            sjs.tocBuilderSortable();
         }
 
         //sjs.loadIndex(mtIndex);
@@ -240,7 +240,7 @@
         $(".nodeChildren").sortable({
             toleranceElement: '> div',
             placeholder: "placeholder"
-        });  
+        });
     }
 
 
@@ -255,7 +255,7 @@
 
 
     sjs.loadIndexNode = function(node, $target) {
-        sjs.addNode($target);        
+        sjs.addNode($target);
         var $node = $target.find(".tocNode").last();
         // Titles
         if (node.default) {
@@ -276,7 +276,7 @@
                         $node.find(".nodeHeTitle").val(t.text);
                     } else {
                         // Todo Title Variants
-                        // $node.find(".nodeHeTitleVaiants").val(t.text)    
+                        // $node.find(".nodeHeTitleVaiants").val(t.text)
                     }
                 }
             }
@@ -296,7 +296,7 @@
                 sjs.loadIndexNode(node.nodes[i], $node.find(".nodeChildren").first());
             }
         }
-        // TODO Store Address Types? 
+        // TODO Store Address Types?
 
     }
 
@@ -632,13 +632,13 @@
         {% autoescape off %}
         sjs.index = {{ indexJSON }};
         {% endautoescape %}
-                   
+
         $("#newIndexSave").click(function() {
             var index = sjs.readIndex();
-            if (sjs.validateIndex(index)) 
+            if (sjs.validateIndex(index))
                 sjs.saveIndex(index);
         });
-        
+
         $("#newIndexCancel").click(function() {
             var params = getUrlVars();
             if ("after" in params) {
@@ -665,7 +665,7 @@
         $(document).on("click", ".remove", function() {
             $(this).parent().remove();
         });
-                
+
         sjs.loadIndex();
         $("#newIndex").show();
 
@@ -726,20 +726,20 @@
             for (var i = 2; i < sjs.index.sectionNames.length; i++) {
                 $("#addSection").trigger("click");
             }
-            
-            // Populate sections names 
+
+            // Populate sections names
             $(".sectionType").each(function(){
                 $(this).find("input").val(sjs.index.sectionNames[$(this).index()]);
-            });            
+            });
         }
 
     };
 
     sjs.readIndex = function() {
         // Return an object represent a text index (aka text info)
-        // based on the states of the new index form in the DOM. 
+        // based on the states of the new index form in the DOM.
         var index = {};
-        
+
         index.title = $("#textTitle").val();
         if (index.title !== sjs.index.title ) {
             // This is a Primary title change
@@ -771,7 +771,7 @@
 
         return index;
     };
-        
+
 
     sjs.validateIndex = function(index) {
 
@@ -868,7 +868,7 @@
         }).fail( function(xhr, textStatus, errorThrown) {
             sjs.alert.message("Unfortunately, there was an error saving this text information. Please try again or try reloading this page.")
         });
-        
+
     };
     {% endif %}
     </script>

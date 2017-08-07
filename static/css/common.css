@@ -31,12 +31,13 @@
   font-weight: bold;
 }
 
+
 /* Avoid Flash of Unstyled Text with Google Web Font Loader */
 .wf-loading {
-    visibility: hidden;
+  visibility: hidden;
 }
 .wf-active {
-    visibility: visible;
+  visibility: visible;
 }
 
 .modal {

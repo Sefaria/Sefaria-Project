@@ -1,7 +1,8 @@
 import json
-from datetime import datetime, timedelta
 import httplib2
+from datetime import datetime, timedelta
 from StringIO import StringIO
+from collections import defaultdict
 
 from django.template import RequestContext
 from django.template.loader import render_to_string
@@ -216,6 +217,8 @@ def view_sheet(request, sheet_id):
 		can_publish_flag = False
 		viewer_is_liker  = False
 
+	canonical_url = request.get_full_path().replace("?embed=1", "").replace("&embed=1", "")
+
 	return render_to_response('sheets.html' if request.COOKIES.get('s1') else 's2_sheets.html', {"sheetJSON": json.dumps(sheet),
 												"sheet": sheet,
 												"sheet_class": sheet_class,
@@ -231,6 +234,7 @@ def view_sheet(request, sheet_id):
 												"like_count": like_count,
 												"viewer_is_liker": viewer_is_liker,
 												"current_url": request.get_full_path,
+												"canonical_url": canonical_url,
 											  	"assignments_from_sheet":assignments_from_sheet(sheet_id),
 											}, RequestContext(request))
 
@@ -410,13 +414,12 @@ def sheets_list(request, type=None):
 		response["public"] = True
 		tags               = recent_public_tags()
 
-	elif type == "private":
+	elif type == "private" and request.user.is_authenticated():
 		if request.flavour == "mobile":
 			return s2_sheets_by_tag(request,"My Sheets")
 
 		elif not request.COOKIES.get('s1'):
 			return s2_sheets_by_tag(request,"My Sheets")
-
 
 		query              = {"owner": request.user.id or -1 }
 		response["title"]  = "Your Source Sheets"
@@ -424,11 +427,8 @@ def sheets_list(request, type=None):
 		tags               = sheet_tag_counts(query)
 		tags               = order_tags_for_user(tags, request.user.id)
 
-	elif type == "allz":
-		query              = {}
-		response["title"]  = "All Source Sheets"
-		response["public"] = True
-		tags               = []
+	elif type == "private" and not request.user.is_authenticated():
+		return redirect("/login?next=/sheets/private")
 
 	sheets = db.sheets.find(query).sort([["dateModified", -1]])
 	if "fragment" in request.GET:
@@ -890,7 +890,11 @@ def add_source_to_sheet_api(request, sheet_id):
 			source.pop("versionLanguage", None)
 			source["text"] = text
 
-	return jsonResponse(add_source_to_sheet(int(sheet_id), source))
+
+	note = request.POST.get("note", None) 
+	response = add_source_to_sheet(int(sheet_id), source, note=note)
+
+	return jsonResponse(response)
 
 
 def copy_source_to_sheet_api(request, sheet_id):
@@ -913,6 +917,7 @@ def add_ref_to_sheet_api(request, sheet_id):
 		return jsonResponse({"error": "No ref given in post data."})
 	return jsonResponse(add_ref_to_sheet(int(sheet_id), ref))
 
+
 @login_required
 def update_sheet_tags_api(request, sheet_id):
 	"""
@@ -920,6 +925,7 @@ def update_sheet_tags_api(request, sheet_id):
 	"""
 	tags = json.loads(request.POST.get("tags"))
 	return jsonResponse(update_sheet_tags(int(sheet_id), tags))
+
 
 def visual_sheet_api(request, sheet_id):
 	"""
@@ -1007,7 +1013,7 @@ def trending_tags_api(request):
 	"""
 	API to retrieve the list of peopke who like sheet_id.
 	"""
-	response = recent_public_tags(days=14)
+	response = recent_public_tags(days=14, ntags=18)
 	response = jsonResponse(response, callback=request.GET.get("callback", None))
 	response["Cache-Control"] = "max-age=3600"
 	return response
@@ -1049,7 +1055,6 @@ def get_aliyot_by_parasha_api(request, parasha):
 		return jsonResponse(response, callback=request.GET.get("callback", None))
 
 
-
 @login_required
 def make_sheet_from_text_api(request, ref, sources=None):
 	"""
@@ -1058,6 +1063,25 @@ def make_sheet_from_text_api(request, ref, sources=None):
 	sources = sources.replace("_", " ").split("+") if sources else None
 	sheet = make_sheet_from_text(ref, sources=sources, uid=request.user.id, generatedBy=None, title=None)
 	return redirect("/sheets/%d" % sheet["id"])
+
+
+def topics_api(request, topic):
+	"""
+	API to get data for a particular topic.
+	"""
+	sheets            = get_sheets_by_tag(topic)
+	sheets_serialized = []
+	sources_dict      = defaultdict(int)
+	for sheet in sheets:
+		sheets_serialized.append(sheet_to_dict(sheet))
+		for source in sheet.get("sources", []):
+			if "ref" in source:
+				sources_dict[source["ref"]] += 1
+	sources = sorted(sources_dict.iteritems(), key=lambda (k,v): v, reverse=True)
+	response = {"topic": topic, "sources": sources, "sheets": sheets_serialized}
+	response = jsonResponse(response, callback=request.GET.get("callback", None))
+	response["Cache-Control"] = "max-age=3600"
+	return response
 
 
 def sheet_to_html_string(sheet):

@@ -169,7 +169,7 @@ def order_tags_for_user(tag_counts, uid):
 	return tag_counts
 
 
-def recent_public_tags(days=14, ntags=0):
+def recent_public_tags(days=14, ntags=14):
 	"""
 	Returns list of tag/counts on public sheets modified in the last 'days'.
 	"""
@@ -251,15 +251,17 @@ def is_valid_source(source):
 	return True
 
 
-def add_source_to_sheet(id, source):
+def add_source_to_sheet(id, source, note=None):
 	"""
 	Add source to sheet 'id'.
 	Source is a dictionary that includes one of the following:
 		'ref' (indicating a source)
 		'outsideText' (indicating a single language outside text)
 		'outsideBiText' (indicating a bilingual outside text)
-		'comment' (indicating a comment)
+	    'comment' (indicating a comment)
 		'media' (indicating a media object)
+	if string `note` is present, add it as a coment immediately after the source. 
+		pass
 	"""
 	if not is_valid_source(source):
 		return {"error": "Malformed source could not be added to sheet"}
@@ -268,6 +270,8 @@ def add_source_to_sheet(id, source):
 		return {"error": "No sheet with id %s." % (id)}
 	sheet["dateModified"] = datetime.now().isoformat()
 	sheet["sources"].append(source)
+	if note:
+		sheet["sources"].append({"outsideText": note, "options": {"indented": "indented-1"}})
 	db.sheets.save(sheet)
 	return {"status": "ok", "id": id, "source": source}
 
@@ -387,57 +391,59 @@ def get_top_sheets(limit=3):
 	return sheet_list(query=query, limit=limit)
 
 
-def get_sheets_for_ref(tref, pad=True, context=1):
+def get_sheets_for_ref(tref, uid=None):
 	"""
 	Returns a list of sheets that include ref,
 	formating as need for the Client Sidebar.
+	If `uid` is present return user sheets, otherwise return public sheets. 
 	"""
 	oref = model.Ref(tref)
-	if pad:
-		oref = oref.padded_ref()
-	if context:
-		oref = oref.context_ref(context)
-
-	ref_re = oref.regex()
-
-	results = []
-
-	regex_list = oref.regex(as_list=True)
+	# perform initial search with context to catch ranges that include a segment ref
+	regex_list = oref.context_ref().regex(as_list=True)
 	ref_clauses = [{"sources.ref": {"$regex": r}} for r in regex_list]
-	sheets = db.sheets.find({"$or": ref_clauses, "status": "public"},
-		{"id": 1, "title": 1, "owner": 1, "sources.ref": 1, "views": 1}).sort([["views", -1]])
+	query = {"$or": ref_clauses }
+	if uid:
+		query["owner"] = uid
+	else:
+		query["status"] = "public"
+	sheets = db.sheets.find(query,
+		{"id": 1, "title": 1, "owner": 1, "sources.ref": 1, "views": 1, "tags": 1, "status": 1}).sort([["views", -1]])
+	
+	results = []
 	for sheet in sheets:
 		matched_refs = []
-		if "sources" in sheet:
-			for source in sheet["sources"]:
-				if "ref" in source:
-					matched_refs.append(source["ref"])
-		matched_refs = [r for r in matched_refs if regex.match(ref_re, r)]
+		for source in sheet.get("sources", []):
+			if "ref" in source:
+				matched_refs.append(source["ref"])
 		for match in matched_refs:
 			try:
 				match = model.Ref(match)
+				if not oref.overlaps(match):
+					continue
 			except InputError:
 				continue
 			ownerData = public_user_data(sheet["owner"])
-			com = {
-				"category":        "Sheets",
-				"type":            "sheet",
+			sheet_data = {
 				"owner":           sheet["owner"],
 				"_id":             str(sheet["_id"]),
 				"anchorRef":       match.normal(),
 				"anchorVerse":     match.sections[-1] if len(match.sections) else 1,
-				"public":          True,
-				"commentator":     user_link(sheet["owner"]), # legacy, used in S1
+				"public":          sheet["status"] == "public",
 				"text":            "<a class='sheetLink' href='/sheets/%d'>%s</a>" % (sheet["id"], strip_tags(sheet["title"])), # legacy, used in S1
 				"title":           strip_tags(sheet["title"]),
 				"sheetUrl":        "/sheets/" + str(sheet["id"]),
 				"ownerName":       ownerData["name"],
 				"ownerProfileUrl": ownerData["profileUrl"],
 				"ownerImageUrl":   ownerData["imageUrl"],
-				"views":           sheet["views"]
+				"status":          sheet["status"],
+				"views":           sheet["views"],
+				"tags":            sheet.get("tags", []),
+				"commentator":     user_link(sheet["owner"]), # legacy, used in S1
+				"category":        "Sheets", # ditto
+				"type":            "sheet", # ditto
 			}
 
-			results.append(com)
+			results.append(sheet_data)
 
 	return results
 

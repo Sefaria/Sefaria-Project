@@ -3,7 +3,12 @@
 {% load sefaria_tags %}
 {% load humanize %}
 
-{% block title %}{{ profile.first_name }} {{ profile.last_name }} on Sefaria.org{% endblock %}
+{% block titleEnglish %}{{ profile.full_name }} on Sefaria{% endblock %}
+{% block titleHebrew %}{{ profile.full_name }} on Sefaria{% endblock %}
+
+{% block descriptionEnglish %}{{ profile.full_name }} is on Sefaria. Follow to view their public source sheets, notes and translations.{% endblock %}
+
+{% block descriptionHebrew %}{{ profile.full_name }} is on Sefaria. Follow to view their public source sheets, notes and translations.{% endblock %}
 
 {% block content %}
 
@@ -12,7 +17,7 @@
 	<div class="inner">
 		<div id="profileTop">
 			<img id="profileImage" src="{{ profile.gravatar_url }}" alt="User Profile Picture"/>
-			
+
 			<h1 id="profileName" class="sans">{{ profile.first_name }} {{ profile.last_name }}</h1>
 
 			{% if profile.position or profile.organization %}
@@ -21,7 +26,7 @@
 				<span id="at">{% if profile.organization and profile.position %}at{% endif %}</span>
 				<span id="organization">{{ profile.organization}}</span>
 			</div>
-			{% endif %}	
+			{% endif %}
 
 			<div id="profileSnippets" class="sans">
 
@@ -105,7 +110,7 @@
 		{% if sheets.count %}
 		<div id="profileSheets" class="section">
 			<h2>Source Sheets | {{ sheets.count }}</h2>
-			
+
 			<ul id="pinnedSheets" class="sheetsBox">
 				{% for id in profile.pinned_sheets %}
 				<li class="sheet">{{ id|sheet_link }}</li>
@@ -144,7 +149,7 @@
 <div id="profile" class="container">
 	<div class="row">
 	<div id="profileLeft" class="span4">
-		
+
 		<div id="profileLeftBox">
 		<img id="profileImage" src="{{ profile.gravatar_url }}" alt="User Profile Picture"/>
 		<span id="profileName">{{ profile.first_name }} {{ profile.last_name }}</span>
@@ -192,7 +197,7 @@
 		{% endif %}
 
 
-			<div id="scoresBox" class="profileLeftSection">	
+			<div id="scoresBox" class="profileLeftSection">
 				<span {% if not score %}style="display:none"{% endif %} id="pointsCount" class="score">
 					<span class="number">{{ score|abbreviate_number }}</span>
 					<span class="unit">Points</span>
@@ -250,7 +255,7 @@
 					<span class="unit">Following</span>
 				</span>
 			</div>
-			
+
 
 			<div id="profileContact" class="profileLeftSection">
 				<div id="profileJoined">
@@ -318,7 +323,7 @@
 
 		<div id="profileSheets">
 			<h3>Public Source Sheets - {{ sheets.count }}</h3>
-			
+
 
 			<ul id="pinnedSheets" class="sheetsBox">
 				{% for id in profile.pinned_sheets %}
@@ -360,7 +365,7 @@
 
 		<div id="activity">
 			<h3>Public Activity - {{ score|intcomma }}</h3>
-			{% include "elements/activity_filter.html" %}		
+			{% include "elements/activity_filter.html" %}
 			{% include "elements/activity_feed.html" %}
 		</div>
 	</div>
@@ -391,16 +396,16 @@
 			});*/
 
 			$("#followMe").click(function(){
-				{% if request.user.is_authenticated %}		
+				{% if request.user.is_authenticated %}
 					if ($(this).hasClass("following")) {
 						var action = "unfollow";
 						$(this).removeClass("following").addClass('follow');
 					} else {
 						var action = "follow";
 						$(this).removeClass('follow').addClass("following");
-					}  
+					}
 					$.post("/api/" + action + "/{{ profile.id }}", {}, function(data) {
-						Sefaria.site.track.event("Following", "New Follow", "");
+						Sefaria.track.event("Following", "New Follow", "");
 					});
 				{% else %}
 					window.location = "/register?next=" + window.location.pathname;
@@ -433,14 +438,14 @@
 			};
 			sjs.postMessage = function(recipient, message) {
 				if (!message) { return; }
-				var postJSON = JSON.stringify({ 
+				var postJSON = JSON.stringify({
 					recipient: recipient,
 					message: message.escapeHtml()
 				});
 				$.post("/api/messages", {json: postJSON}, function(data) {
 					$("#messageComposer").remove();
 					alert("Message Sent");
-					Sefaria.site.track.event("Messages", "Message Sent", "");
+					Sefaria.track.event("Messages", "Message Sent", "");
 				});
 			};
 			sjs.viewMessage = function(sender, name, message) {
@@ -449,7 +454,7 @@
 										"<div id='messageText'>" + message + "</div>" +
 										"<div class='messageReply button' data-recipient='" + sender +"'>Reply</div>" +
 										"<div class='cancel button white'>Close</div>" +
-									"</div>";				
+									"</div>";
 				$(messageHtml).appendTo("body").show()
 					.position({of: window})
 					.draggable({cancel: "#messageText"});
@@ -476,7 +481,7 @@
 				var recipient = parseInt($(this).attr("data-recipient"));
 				var name      = $(this).parent().find("a.userLink")[0].outerHTML;
 				var message   = $(this).parent().find(".messageText").html();
-				sjs.viewMessage(recipient, name, message);			
+				sjs.viewMessage(recipient, name, message);
 			});
 
 		});
@@ -486,12 +491,12 @@
 		<link rel="stylesheet" href="/static/owl-carousel/owl.theme.css">
 		<script src="/static/owl-carousel/owl.carousel.js"></script>
 		<link rel="stylesheet" href="/static/font-awesome/css/font-awesome.css">
-		<script src="/static/js/jquery.autosize.js"></script>
+		<script src="/static/js/lib/jquery.autosize.js"></script>
 		<script>
 			$(function(){
 
 				$("#followMe").click(function(){
-					{% if request.user.is_authenticated %}		
+					{% if request.user.is_authenticated %}
 						var $fc = $("#followersCount .number");
 						var count = parseInt($fc.text());
 						if ($(this).hasClass("following")) {
@@ -502,7 +507,7 @@
 							var action = "follow";
 							$(this).addClass("following");
 							$fc.text(count+1).parent().show();
-						}  
+						}
 						$.post("/api/" + action + "/{{ profile.id }}", {}, function(data) {
 							sjs.track.event("Following", "New Follow", "");
 						});
@@ -530,7 +535,7 @@
 			        data: "{}",
 			        contentType: "application/json; charset=utf-8",
 			        dataType: "jsonp",
-			        success: function(result) {        
+			        success: function(result) {
 			            if (result.error) {
 			            	$("#youtube").html("Couldn't load YouTube Channel: {{ profile.youtube }}").show();
 			            	return;

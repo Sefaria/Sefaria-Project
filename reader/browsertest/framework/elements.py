@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-
 from config import *
 from sefaria.model import *
 from random import shuffle
@@ -56,11 +55,6 @@ class AtomicTest(object):
         raise Exception("AtomicTest.run() needs to be defined for each test.")
 
     # Component methods
-    def s2(self):
-        self.driver.get(self.base_url + "/s2")
-        WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, ".readerNavCategory")))
-        self.set_modal_cookie()
-        return self
 
     def login_user(self):
         password = os.environ["SEFARIA_TEST_PASS"]
@@ -82,10 +76,7 @@ class AtomicTest(object):
         elem = self.driver.find_element_by_css_selector("#id_password")
         elem.send_keys(password)
         self.driver.find_element_by_css_selector("button").click()
-
-    def prime_autocomplete_cache(self):
-        self.driver.get(self.base_url + "/api/name/stam")
-        self.driver.get(self.base_url + "/api/name/stam?ref_only=1")
+        WebDriverWait(self.driver, TEMPER).until_not(title_contains("Login"))
 
     # TOC
     def load_toc(self):
@@ -187,7 +178,8 @@ class AtomicTest(object):
         segment = self.driver.find_element_by_css_selector(selector)
         segment.click()
         # Todo: put a data-* attribute on .filterSet, for the multi-panel case
-        WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, ".textFilter")))
+        # Note below will fail if there are no connections
+        WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, ".categoryFilter")))
         return self
 
     # Basic navigation
@@ -218,7 +210,7 @@ class AtomicTest(object):
         #todo: untested
         #todo: handle multiple panels
         self.driver.execute_script(
-            "var a = $('.textColumn'); a.scrollTop(a.scrollTop() + {});".format(pixels)
+            "var a = document.getElementsByClassName('textColumn')[0]; a.scrollTop = a.scrollTop() + {};".format(pixels)
         )
         return self
 
@@ -226,7 +218,7 @@ class AtomicTest(object):
         #todo: untested
         #todo: handle multiple panels
         self.driver.execute_script(
-            "var a = $('.textColumn'); a.scrollTop(a.scrollTop() - {});".format(pixels)
+            "var a = document.getElementsByClassName('textColumn')[0]; a.scrollTop = a.scrollTop - {};".format(pixels)
         )
         return self
 
@@ -234,7 +226,7 @@ class AtomicTest(object):
         #todo: untested
         #todo: handle multiple panels
         self.driver.execute_script(
-            "var a = $('.textColumn'); a.scrollTop(a.prop('scrollHeight'));"
+            "var a = document.getElementsByClassName('textColumn')[0]; a.scrollTop = a.scrollHeight;"
         )
         return self
 
@@ -253,16 +245,27 @@ class AtomicTest(object):
     def scroll_nav_panel_to_bottom(self):
         # todo: handle multiple panels
         self.driver.execute_script(
-            "var a = $('.content'); a.scrollTop(a.prop('scrollHeight'));"
+            "var a = document.getElementsByClassName('content')[0]; a.scrollTop = a.scrollHeight;"
         )
         return self
 
-
-
     # Connections Panel
+    def find_category_filter(self, name):
+        WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, '.categoryFilter[data-name="{}"]'.format(name))))
+        return self.driver.find_element_by_css_selector('.categoryFilter[data-name="{}"]'.format(name))
+
     def find_text_filter(self, name):
         WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, '.textFilter[data-name="{}"]'.format(name))))
         return self.driver.find_element_by_css_selector('.textFilter[data-name="{}"]'.format(name))
+
+    def click_category_filter(self, name):
+        f = self.find_category_filter(name)
+        assert f, "Can not find text filter {}".format(name)
+        f.click()
+        WebDriverWait(self.driver, TEMPER).until(
+            element_to_be_clickable((By.CSS_SELECTOR, '.categoryFilterGroup.withBooks'))
+        )
+        return self
 
     def click_text_filter(self, name):
         f = self.find_text_filter(name)
@@ -271,7 +274,6 @@ class AtomicTest(object):
         WebDriverWait(self.driver, TEMPER).until(
             element_to_be_clickable((By.CSS_SELECTOR, '.recentFilterSet'))
         )
-        #WebDriverWait(self.driver, TEMPER).until(title_contains("with {}".format(name)))
         return self
 
     # Search
@@ -301,13 +303,50 @@ class AtomicTest(object):
         elem.send_keys(Keys.RETURN)
         return self
 
-    #Source Sheets
     def load_sheets(self):
         self.driver.get(self.base_url + "/sheets")
         WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, ".readerSheetsNav")))
         self.set_modal_cookie()
         return self
-    
+
+    def load_gardens(self):
+        self.driver.get(self.base_url + "/garden/jerusalem")
+        WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, "#filter-1 g.row")))  # individual filter row
+        WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, ".dc-grid-item .result-text .en"))) # individual result text
+        return self
+
+    def load_home(self):
+        self.driver.get(self.base_url + "/?home")
+        WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, ".header")))
+        return self
+
+    def load_people(self):
+        self.driver.get(self.base_url + "/people")
+        WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, ".author")))
+
+        self.driver.get(self.base_url + "/person/Meir%20Abulafia")
+        WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, "#place-map")))
+        return self
+
+    def load_account(self):
+        self.driver.get(self.base_url + "/account")
+        WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, ".accountPanel .blockLink")))
+        return self
+
+    def load_notifications(self):
+        self.driver.get(self.base_url + "/notifications")
+        WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, ".notificationsList > .notification")))
+        return self
+
+    def load_private_sheets(self):
+        self.driver.get(self.base_url + "/sheets/private")
+        WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, ".sheetsNewButton")))
+        return self
+
+    def load_private_groups(self):
+        self.driver.get(self.base_url + "/my/groups")
+        WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, ".myGroupsPanel .button")))
+        return self
 """
 
                     Test Running Infrastructure
@@ -345,7 +384,7 @@ class ResultSet(object):
         self._indexed_tests = {}
 
     def __str__(self):
-        return "\n" + "\n".join([str(r) for r in self._test_results]) + "\n\n"
+        return "\n\n" + "\n".join([str(r) for r in self._test_results]) + "\n\n"
 
     def _aggregate(self):
         if not self._aggregated:
@@ -434,6 +473,11 @@ class Trial(object):
             self.BASE_URL = LOCAL_URL
             self.caps = caps if caps else [self.default_local_driver]
             self.tests = get_atomic_tests() if tests is None else tests
+        elif platform == "sauce":
+            self.is_local = False
+            self.BASE_URL = LOCAL_URL
+            self.caps = caps if caps else SAUCE_CORE_CAPS
+            self.tests = get_atomic_tests() if tests is None else tests
         else:
             self.is_local = False
             self.BASE_URL = REMOTE_URL
@@ -503,7 +547,7 @@ class Trial(object):
             #    driver.execute_script("sauce: break")
             return TestResult(test, cap, False, msg)
         else:
-            sys.stdout.write("{} - Passed".format(name) if self.isVerbose else ".")
+            sys.stdout.write("{} - Passed\n".format(name) if self.isVerbose else ".")
             sys.stdout.flush()
             return TestResult(test, cap, True)
 
@@ -566,9 +610,14 @@ class Trial(object):
             try:
                 tresults = p.map(_test_one_worker, zip([self]*l, [test]*l, caps))
             except Exception as e:
-                sys.stdout.write(u"Exception encountered in Trial._test_on_all()!")
-                sys.stdout.write(traceback.format_exc())
+                msg = traceback.format_exc()
+                if self.isVerbose:
+                    sys.stdout.write("{} - Exception\n".format(test.__name__))
+                    sys.stdout.write(msg)
+                else:
+                    sys.stdout.write("E")
                 sys.stdout.flush()
+                tresults = [TestResult(test, caps[0], False, msg)]
         else:
             for cap in caps:
                 tresults.append(self._test_one(test, cap))
@@ -665,4 +714,3 @@ def get_multiplatform_tests(tests):
 
 def get_every_build_tests(tests):
     return [t for t in tests if t.every_build]
-

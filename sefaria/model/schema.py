@@ -388,6 +388,9 @@ class TreeNode(object):
             return []
         return self.parent.ancestors() + [self.parent]
 
+    def is_ancestor_of(self, other_node):
+        return any(self == anc for anc in other_node.ancestors())
+
     def is_root(self):
         return not self.parent
 
@@ -754,7 +757,7 @@ class NumberedTitledTreeNode(TitledTreeNode):
     def address_class(self, depth):
         return self._addressTypes[depth]
 
-    def full_regex(self, title, lang, anchored=True, compiled=True, capture_title=False, **kwargs):
+    def full_regex(self, title, lang, anchored=True, compiled=True, capture_title=False, escape_titles=True, **kwargs):
         """
         :return: Regex object. If kwargs[for_js] == True, returns the Regex string
         :param for_js: Defaults to False
@@ -794,10 +797,11 @@ class NumberedTitledTreeNode(TitledTreeNode):
         Different address type / language combinations produce different internal regexes in the innermost portions of the above, where the comments say 'digits'.
 
         """
-        key = (title, lang, anchored, compiled, kwargs.get("for_js"), kwargs.get("match_range"), kwargs.get("strict"), kwargs.get("terminated"))
+        key = (title, lang, anchored, compiled, kwargs.get("for_js"), kwargs.get("match_range"), kwargs.get("strict"), kwargs.get("terminated"), kwargs.get("escape_titles"))
         if not self._regexes.get(key):
             reg = ur"^" if anchored else ""
-            reg += ur"(?P<title>" + regex.escape(title) + ur")" if capture_title else regex.escape(title)
+            title_block = regex.escape(title) if escape_titles else title
+            reg += ur"(?P<title>" + title_block + ur")" if capture_title else title_block
             reg += self.after_title_delimiter_re
             addr_regex = self.address_regex(lang, **kwargs)
             reg += ur'(?:(?:' + addr_regex + ur')|(?:[\[({]' + addr_regex + ur'[\])}]))'  # Match expressions with internal parenthesis around the address portion
@@ -1480,11 +1484,44 @@ class AddressVolume(AddressInteger):
     """
 
     section_patterns = {
-        "en": ur"""(?:(?:Volume|volume)?\s*)""",  #  the internal ? is a hack to allow a non match, even if 'strict'
+        "en": ur"""(?:(?:Volume|volume)?\s+)""",  #  the internal ? is a hack to allow a non match, even if 'strict'
         "he": ur"""
         (?:
           (?:\u05d7(?:\u05dc\u05e7|'|\u05f3)\s+)  # Helek - spelled out or followed by a ' or a geresh - followed by space
          |(?:\u05d7["\u05f4])                     # chet followed by gershayim or double quote
         )
         """
+    }
+
+
+class AddressSiman(AddressInteger):
+    section_patterns = {
+        "en": None,
+        "he": ur"""(?:
+            (?:\u05e1\u05d9\u05de\u05df\s+)			# Siman spelled out, with a space after
+            |(?:\u05e1\u05d9(?:"|\u05f4|['\u05f3](?:['\u05f3]|\s+)))		# or Samech, Yued (for 'Siman') maybe followed by a quote of some sort
+        )"""
+    }
+
+
+class AddressHalakhah(AddressInteger):
+    """
+    :class:`AddressType` for Halakhah/הלכה addresses
+    """
+    section_patterns = {
+        "en": ur"""(?:(?:Halakhah|halakhah)?\s*)""",  #  the internal ? is a hack to allow a non match, even if 'strict'
+        "he": ur"""(?:
+            (?:\u05d4\u05dc\u05db\u05d4\s+)			# Halakhah spelled out, with a space after
+            |(?:\u05d4\u05dc?(?:"|\u05f4|['\u05f3](?:['\u05f3]|\s+)))		# or Haeh and possible Lamed(for 'halakhah') maybe followed by a quote of some sort
+        )"""
+    }
+
+
+class AddressSeif(AddressInteger):
+    section_patterns = {
+        "en": None,
+        "he": ur"""(?:
+            (?:\u05e1\u05e2\u05d9\u05e3\s+(?:\u05e7\u05d8\u05df)?)			# Seif spelled out, with a space after or Seif katan spelled out
+            |(?:\u05e1(?:\u05e2|\u05e2\u05d9|\u05e7)?(?:"|\u05f4|['\u05f3](?:['\u05f3]|\s+)))|	# or trie of first three letters followed by a quote of some sort
+        )"""
     }

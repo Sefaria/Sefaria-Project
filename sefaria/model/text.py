@@ -12,6 +12,7 @@ import copy
 import bleach
 import json
 import itertools
+from collections import defaultdict
 
 try:
     import re2 as re
@@ -496,7 +497,7 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
 
             # Data is being loaded from dict in old format, rewrite to new format
             # Assumption is that d has a complete title collection
-            if "schema" not in d and self.is_new():
+            if "schema" not in d:
                 node = getattr(self, "nodes", None)
                 if node:
                     node._init_titles()
@@ -705,6 +706,7 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
             toc_contents_dict["heCollectiveTitle"] = hebrew_term(self.collective_title)
         if hasattr(self, 'base_text_titles'):
             toc_contents_dict["base_text_titles"] = self.base_text_titles
+            toc_contents_dict["refs_to_base_texts"] = self.get_base_texts_and_first_refs()
             if "collectiveTitle" not in toc_contents_dict:
                 toc_contents_dict["collectiveTitle"] = self.title
                 toc_contents_dict["heCollectiveTitle"] = self.get_title("he")
@@ -714,30 +716,26 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
         return toc_contents_dict
 
     #todo: the next 3 functions seem to come at an unacceptable performance cost. Need to review performance or when they are called. 
-    def get_expanded_base_texts(self):
-        if len(getattr(self, 'base_text_titles', [])) > 1:
-            return [{"title": btitle, "firstSection": self.get_first_ref_in_base_text(btitle)} for btitle in self.base_text_titles]
-        else:
-            return None
+    def get_base_texts_and_first_refs(self):
+        return {btitle: self.get_first_ref_in_base_text(btitle) for btitle in self.base_text_titles}
 
     def get_first_ref_in_base_text(self, base_text_title):
-        #we can add other methods of determining the correct first ref of a base text here. e.g. by schema nodes corresponding to base texts
-        linkset_first =  self.get_first_ref_in_base_text_linkset(base_text_title)
-        return linkset_first if linkset_first else None
-
-    def get_first_ref_in_base_text_linkset(self, base_text_title):
-        from . import LinkSet
+        from sefaria.model.link import Link
         orig_ref = Ref(self.title)
         base_text_ref = Ref(base_text_title)
-        ls = LinkSet(
-            {'$and': [{'refs': {'$regex': orig_ref.regex()}}, {'refs': {'$regex': base_text_ref.regex()}}],
-             "generated_by": {"$ne": "add_links_from_text"}}
+        first_link = Link().load(
+            {'$and': [orig_ref.ref_regex_query(), base_text_ref.ref_regex_query()], 'is_first_comment': True}
         )
-        refs_from = ls.refs_from(base_text_ref)
-        sorted_refs_from = sorted(refs_from, key=lambda r: r.order_id())
-        if len(sorted_refs_from):
-            return sorted_refs_from[0].section_ref()
-        return None
+        if not first_link:
+            firstSection = orig_ref.first_available_section_ref()
+            return firstSection.section_ref().normal() if firstSection else None
+        else:
+            if orig_ref.contains(Ref(first_link.refs[0])):
+                return Ref(first_link.refs[0]).section_ref().normal()
+            else:
+                return Ref(first_link.refs[1]).section_ref().normal()
+
+
 
     def text_index_map(self, tokenizer=lambda x: re.split(u'\s+',x), strict=True, lang='he', vtitle=None):
         """
@@ -831,7 +829,7 @@ class AbstractTextRecord(object):
     """
     text_attr = "chapter"
     ALLOWED_TAGS    = ("i", "b", "br", "u", "strong", "em", "big", "small", "img", "sup", "span")
-    ALLOWED_ATTRS   = {'span':['class'], 'i': ['data-commentator', 'data-order', 'class'], 'img': lambda name, value: name == 'src' and value.startswith("data:image/")}
+    ALLOWED_ATTRS   = {'span':['class'], 'i': ['data-commentator', 'data-order', 'class', 'data-label'], 'img': lambda name, value: name == 'src' and value.startswith("data:image/")}
 
     def word_count(self):
         """ Returns the number of words in this text """
@@ -881,6 +879,26 @@ class AbstractTextRecord(object):
                     t[i] = AbstractTextRecord.remove_html(v)
         elif isinstance(t, basestring):
             t = re.sub('<[^>]+>', u" ", t)
+        else:
+            return False
+        return t
+
+    @staticmethod
+    def remove_html_and_make_presentable(t):
+        if isinstance(t, list):
+            for i, v in enumerate(t):
+                if isinstance(v, basestring):
+                    t[i] = re.sub('<[^>]+>', u" ", v)
+                    t[i] = re.sub('[ ]{2,}', u" ", t[i])
+                    t[i] = re.sub('(\S) ([.?!,])', ur"\1\2", t[i])  # Remove spaces preceding punctuation
+                    t[i] = t[i].strip()
+                else:
+                    t[i] = AbstractTextRecord.remove_html_and_make_presentable(v)
+        elif isinstance(t, basestring):
+            t = re.sub('<[^>]+>', u" ", t)
+            t = re.sub('[ ]{2,}', u" ", t)
+            t = re.sub('(\S) ([.?!,])', ur"\1\2", t)  # Remove spaces preceding punctuation
+            t = t.strip()
         else:
             return False
         return t
@@ -1739,6 +1757,10 @@ class RefCacheType(type):
     def cache_size(cls):
         return len(cls.__tref_oref_map)
 
+    def cache_size_bytes(cls):
+        from sefaria.utils.util import get_size
+        return get_size(cls.__tref_oref_map)
+
     def cache_dump(cls):
         return [(a, repr(b)) for (a, b) in cls.__tref_oref_map.iteritems()]
 
@@ -1950,6 +1972,8 @@ class Ref(object):
                     title = base[0:l - 1]
                 break
             if new_tref:
+                if l < len(base) and base[l] not in " .":
+                    continue
                 # If a term is matched, reinit with the real tref
                 self.__reinit_tref(new_tref)
                 return
@@ -3166,8 +3190,8 @@ class Ref(object):
 
     def ref_regex_query(self):
         """
-        Convenience method to wrap the lines of logic used to generate a broken out list of ref queries from one regex. 
-        The regex in the list will naturally all be anchored. 
+        Convenience method to wrap the lines of logic used to generate a broken out list of ref queries from one regex.
+        The regex in the list will naturally all be anchored.
         :return: dict of the form {"$or" [{"refs": {"$regex": r1}},{"refs": {"$regex": r2}}...]}
         """
         reg_list = self.regex(as_list=True)
@@ -3198,7 +3222,7 @@ class Ref(object):
         """
         assert isinstance(other, Ref)
         if not self.index_node == other.index_node:
-            return False
+            return self.index_node.is_ancestor_of(other.index_node)
 
         me = self.as_ranged_segment_ref()
         you = other.as_ranged_segment_ref()
@@ -3641,7 +3665,7 @@ class Ref(object):
         else:
             raise InputError("Can not get anonymous private notes")
 
-        return NoteSet(query)
+        return NoteSet(query, sort=[("_id", -1)])
 
     def linkset(self):
         """
@@ -3871,6 +3895,7 @@ class Library(object):
         try:
             return self._full_auto_completer[lang]
         except KeyError:
+            logger.warning("Failed to load full {} auto completer, rebuilding.".format(lang))
             self.build_full_auto_completer()  # I worry that these could pile up.
             return self._full_auto_completer[lang]
 
@@ -3878,6 +3903,7 @@ class Library(object):
         try:
             return self._ref_auto_completer[lang]
         except KeyError:
+            logger.warning("Failed to load {} ref auto completer, rebuilding.".format(lang))
             self.build_ref_auto_completer()  # I worry that these could pile up.
             return self._ref_auto_completer[lang]
 
@@ -4310,26 +4336,59 @@ class Library(object):
         from sefaria.utils.hebrew import strip_nikkud
         #st = strip_nikkud(st) doing this causes the final result to lose vowels and cantiallation
         unique_titles = set(self.get_titles_in_string(st, lang, citing_only))
-        title_regs = []
-        title_nodes = {}
-        for title in unique_titles:
+        title_nodes = {title: self.get_schema_node(title,lang) for title in unique_titles}
+
+        all_reg = self.get_multi_title_regex_string(unique_titles, lang)
+        reg = regex.compile(all_reg, regex.VERBOSE)
+        if all_reg:
+            st = self._wrap_all_refs_in_string(title_nodes, reg, st, lang)
+        return st
+
+    def get_multi_title_regex_string(self, titles, lang, for_js=False, anchored=False):
+        """
+        Capture title has to be true.
+        :param titles:
+        :param lang:
+        :param for_js:
+        :param anchored:
+        :return:
+        """
+        nodes_by_address_type = defaultdict(list)
+        regex_components = []
+
+        for title in titles:
             try:
-                re_string = self.get_regex_string(title, lang, capture_title=True)
                 node = self.get_schema_node(title, lang)
-                title_regs.append(u"(?:{})".format(re_string))
-                title_nodes[title] = node
-            except AssertionError as e1:
-                logger.info(u"Skipping Schema Node: {}".format(title))
-                continue
-            except AttributeError as e2:
+                nodes_by_address_type[tuple(node.addressTypes)] += [(title, node)]
+            except AttributeError as e:
                 logger.warning(u"Library._wrap_all_refs_in_string() failed to create regex for: {}.  {}".format(title, e))
                 continue
 
-        all_reg = ur"|".join(title_regs)
-        reg = regex.compile(all_reg, regex.VERBOSE)
-        if len(title_regs):
-            st = self._wrap_all_refs_in_string(title_nodes, reg, st, lang)
-        return st
+        if lang == "en" or for_js:  # Javascript doesn't support look behinds.
+            for address_tuple, title_node_tuples in nodes_by_address_type.items():
+                node = title_node_tuples[0][1]
+                titles = u"|".join([regex.escape(tup[0]) for tup in title_node_tuples])
+                regex_components += [node.full_regex(titles, lang, for_js=for_js, match_range=for_js, compiled=False, anchored=anchored, capture_title=True, escape_titles=False)]
+            return u"|".join(regex_components)
+
+        if lang == "he":
+            full_regex = ""
+            for address_tuple, title_node_tuples in nodes_by_address_type.items():
+                node = title_node_tuples[0][1]
+                titles = u"|".join([regex.escape(tup[0]) for tup in title_node_tuples])
+
+                regex_components += [ur"(?:{}".format(ur"(?P<title>{})".format(titles))  \
+                           + node.after_title_delimiter_re \
+                           + node.address_regex(lang, for_js=for_js, match_range=for_js) + u")"]
+
+            all_interal = u"|".join(regex_components)
+            if all_interal:
+                full_regex = ur"""(?:
+                    """ + all_interal + ur"""
+                    )
+                    (?=\W|$)                                        # look ahead for non-word char
+                    """
+            return full_regex
 
     # do we want to move this to the schema node? We'd still have to pass the title...
     def get_regex_string(self, title, lang, for_js=False, anchored=False, capture_title=False):
@@ -4397,30 +4456,30 @@ class Library(object):
 
     def _internal_ref_from_string(self, title=None, st=None, lang=None, stIsAnchored=False, return_locations = False):
 
-            node = self.get_schema_node(title, lang)
-            assert isinstance(node, JaggedArrayNode)  # Assumes that node is a JaggedArrayNode
+        node = self.get_schema_node(title, lang)
+        assert isinstance(node, JaggedArrayNode)  # Assumes that node is a JaggedArrayNode
 
-            refs = []
-            try:
-                re_string = self.get_regex_string(title, lang, anchored=stIsAnchored)
-            except AttributeError as e:
-                logger.warning(
-                    u"Library._internal_ref_from_string() failed to create regex for: {}.  {}".format(title, e))
-                return refs
-
-            reg = regex.compile(re_string, regex.VERBOSE)
-            if stIsAnchored:
-                m = reg.match(st)
-                matches = [m] if m else []
-            else:
-                matches = reg.finditer(st)
-            for ref_match in matches:
-                try:
-                    res = (self._get_ref_from_match(ref_match, node, lang), ref_match.span()) if return_locations else self._get_ref_from_match(ref_match, node, lang)
-                    refs.append(res)
-                except InputError:
-                    continue
+        refs = []
+        try:
+            re_string = self.get_regex_string(title, lang, anchored=stIsAnchored)
+        except AttributeError as e:
+            logger.warning(
+                u"Library._internal_ref_from_string() failed to create regex for: {}.  {}".format(title, e))
             return refs
+
+        reg = regex.compile(re_string, regex.VERBOSE)
+        if stIsAnchored:
+            m = reg.match(st)
+            matches = [m] if m else []
+        else:
+            matches = reg.finditer(st)
+        for ref_match in matches:
+            try:
+                res = (self._get_ref_from_match(ref_match, node, lang), ref_match.span()) if return_locations else self._get_ref_from_match(ref_match, node, lang)
+                refs.append(res)
+            except InputError:
+                continue
+        return refs
 
 
     # todo: handle ranges in inline refs
@@ -4442,8 +4501,13 @@ class Library(object):
             except InputError as e:
                 logger.warning(u"Wrap Ref Warning: Ref:({}) {}".format(match.group(0), e.message))
                 return match.group(0)
+        if lang == "en":
+            return titles_regex.sub(_wrap_ref_match, st)
+        else:
+            outer_regex_str = ur"[({].+?[)}]"
+            outer_regex = regex.compile(outer_regex_str, regex.VERBOSE)
+            return outer_regex.sub(lambda match: titles_regex.sub(_wrap_ref_match, match.group(0)), st)
 
-        return titles_regex.sub(_wrap_ref_match, st)
 
     def category_id_dict(self, toc=None, cat_head="", code_head=""):
         if toc is None:

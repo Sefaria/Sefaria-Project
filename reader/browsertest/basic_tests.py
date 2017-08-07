@@ -3,7 +3,7 @@
 from framework import AtomicTest
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait, Select
-from selenium.webdriver.support.expected_conditions import title_contains, staleness_of, element_to_be_clickable, visibility_of_element_located, invisibility_of_element_located
+from selenium.webdriver.support.expected_conditions import title_contains, staleness_of, element_to_be_clickable, visibility_of_element_located, invisibility_of_element_located, text_to_be_present_in_element
 
 from sefaria.model import *
 from selenium.webdriver.common.keys import Keys
@@ -33,6 +33,13 @@ class PagesLoad(AtomicTest):
         self.load_toc().click_toc_category("Midrash").click_toc_text("Midrash Tehillim")
         self.load_ref("Psalms.104")
         self.load_sheets()
+        self.load_gardens()
+        self.load_home()
+        self.load_people()
+        #logged in stuff
+        self.login_user()
+        self.load_notifications()
+
 
 
 class RecentInToc(AtomicTest):
@@ -41,7 +48,7 @@ class RecentInToc(AtomicTest):
     every_build = True
 
     def run(self):
-        self.s2().click_toc_category("Tanakh").click_toc_text("Psalms")
+        self.load_toc().click_toc_category("Tanakh").click_toc_text("Psalms")
         self.load_toc().click_toc_recent("Psalms 1")
 
 
@@ -54,38 +61,8 @@ class LoadRefAndClickSegment(AtomicTest):
         assert "Psalms.65.5" in self.driver.current_url, self.driver.current_url
         assert "with=all" in self.driver.current_url, self.driver.current_url
 
+        self.click_category_filter("Commentary")
         self.click_text_filter("Malbim")
-
-
-class LoadRefAndOpenLexicon(AtomicTest):
-    suite_key = "Reader"
-    single_panel = False
-
-    def run(self):
-        load_ref =  Ref("Numbers 25")
-        click_ref = Ref("Numbers 25.5")
-        self.load_ref(load_ref, lang="he").click_segment(click_ref)
-        assert "Numbers.25.5" in self.driver.current_url, self.driver.current_url
-        assert "with=all" in self.driver.current_url, self.driver.current_url
-        """selector = '.segment[data-ref="{}"]'.format(click_ref.normal())
-        self.driver.execute_script(
-            "var range = document.createRange();" +
-            "var start = document.querySelectorAll('[data-ref=\"Numbers 25:5\"]');" +
-            "var textNode = start.querySelectorAll('span.he')[0].firstChild;" +
-            "range.setStart(textNode, 0);" +
-            "range.setEnd(textNode, 5);" +
-            "window.getSelection().addRange(range);"
-        )"""
-        """actions = ActionChains(self.driver)
-        element = self.driver.find_element_by_css_selector(selector)
-        actions.move_to_element(element)
-        actions.double_click(on_element=element)
-        actions.move_by_offset(50, 0)
-        actions.click_and_hold(on_element=None)
-        actions.move_by_offset(70, 0)
-        actions.release(on_element=None)
-        actions.perform()"""
-        """WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, ".lexicon-content")))"""
 
 
 class LoadRefWithCommentaryAndClickOnCommentator(AtomicTest):
@@ -93,7 +70,7 @@ class LoadRefWithCommentaryAndClickOnCommentator(AtomicTest):
     every_build = True
 
     def run(self):
-        self.load_ref("Psalms 45:5", filter="all").click_text_filter("Rashi")
+        self.load_ref("Psalms 45:5", filter="all").click_category_filter("Commentary").click_text_filter("Rashi")
         assert "Psalms.45.5" in self.driver.current_url, self.driver.current_url
         assert "with=Rashi" in self.driver.current_url, self.driver.current_url
 
@@ -123,9 +100,7 @@ class LoadSpanningRefAndOpenConnections(AtomicTest):
 
     def run(self):
         self.load_ref("Shabbat 2a-2b")
-        self.click_segment("Shabbat 2a:1") 
-        elems = self.driver.find_elements_by_css_selector(".textList")
-        assert len(elems) == 1
+        self.click_segment("Shabbat 2a:1")
 
 
 class PermanenceOfRangedRefs(AtomicTest):
@@ -138,7 +113,7 @@ class PermanenceOfRangedRefs(AtomicTest):
     single_panel = False  # Segment clicks on mobile have different semantics  todo: write this for mobile?  It's primarily a data test.
 
     def run(self):
-        self.load_ref("Shabbat 2a").click_segment("Shabbat 2a:1")
+        self.load_ref("Shabbat 2a").click_segment("Shabbat 2a:1").click_category_filter("Mishnah")
         assert self.find_text_filter("Mishnah Shabbat")
         self.click_segment("Shabbat 2a:2")
         assert self.find_text_filter("Mishnah Shabbat")
@@ -161,9 +136,9 @@ class PresenceOfDownloadButtonOnTOC(AtomicTest):
 
         # Check that DL Button is visible and not clickable
         visible = self.driver.execute_script(
-            'var butt = $(".downloadButtonInner"); ' +\
-            'var butt_bot = butt.offset().top + butt.height(); ' +\
-            'var win_height = $(window).height(); ' +\
+            'var butt = document.getElementsByClassName("downloadButtonInner")[0]; ' +\
+            'var butt_bot = butt.getBoundingClientRect().top + butt.getBoundingClientRect().height; ' +\
+            'var win_height = window.innerHeight; ' +\
             'return win_height > butt_bot;'
         )
         assert visible, "Download button below page"
@@ -195,8 +170,8 @@ class ClickVersionedSearchResultDesktop(AtomicTest):
     single_panel = False
 
     def run(self):
-        self.load_toc().search_for("Dogs")
-        versionedResult = self.driver.find_element_by_css_selector('a[href="/Psalms.59.7/en/The_Rashi_Ketuvim_by_Rabbi_Shraga_Silverstein?qh=Dogs"]')
+        self.load_toc().search_for("they howl like dogs")
+        versionedResult = self.driver.find_element_by_css_selector('a[href="/Psalms.59.7/en/The_Rashi_Ketuvim_by_Rabbi_Shraga_Silverstein?qh=they howl like dogs"]')
         versionedResult.click()
         WebDriverWait(self.driver, TEMPER).until(staleness_of(versionedResult))
         assert "Psalms.59.7/en/The_Rashi_Ketuvim_by_Rabbi_Shraga_Silverstein" in self.driver.current_url, self.driver.current_url
@@ -219,26 +194,37 @@ class ClickVersionedSearchResultMobile(AtomicTest):
         WebDriverWait(self.driver, TEMPER).until(staleness_of(versionedResult))
         assert "Psalms.59.7/en/The_Rashi_Ketuvim_by_Rabbi_Shraga_Silverstein" in self.driver.current_url, self.driver.current_url
 
-"""
+
 class SaveNewSourceSheet(AtomicTest):
     suite_key = "Sheets"
     every_build = True
     single_panel = False  # No source sheets on mobile
 
     def run(self):
-        self.prime_autocomplete_cache()
-        self.s2()
         self.login_user()
-        self.driver.implicitly_wait(10)
         self.driver.get(self.base_url + "/sheets/new")
-        self.driver.find_element_by_css_selector("#inlineAdd").send_keys("Genesis 1.1")
-        WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, "#inlineAddSourceOK:not(.disabled")))
+        WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.ID, "inlineAdd")))
+        textBox = self.driver.find_element_by_css_selector("#inlineAdd")
+
+        textBox.send_keys("Genesis")
+        WebDriverWait(self.driver, TEMPER).until(text_to_be_present_in_element((By.ID, "inlineAddDialogTitle"), "ENTER A"))
+        textBox.send_keys(" 1")
+        WebDriverWait(self.driver, TEMPER).until(text_to_be_present_in_element((By.ID, "inlineAddDialogTitle"), "TO CONTINUE OR"))
+        textBox.send_keys(":9")
+        WebDriverWait(self.driver, TEMPER).until(text_to_be_present_in_element((By.ID, "inlineAddDialogTitle"), "TO CONTINUE OR ENTER A RANGE"))
+
         self.driver.find_element_by_css_selector("#inlineAddSourceOK").click()
         WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, "#save")))
         saveButton = self.driver.find_element_by_css_selector('#save')
         saveButton.click()
         WebDriverWait(self.driver, TEMPER).until(title_contains("New Source Sheet | Sefaria Source Sheet Builder"))
-"""
+
+        # After saving a sheet, visit pages that are login specific
+        self.load_account()
+        self.load_notifications()
+        self.load_private_sheets()
+        self.load_private_groups()
+
 '''
 # Not sure why this isn't working.
 class LoginOnMobile(AtomicTest):
@@ -260,7 +246,7 @@ class SpecialCasedSearchBarNavigations(AtomicTest):
     single_panel = False  # This hasn't yet been implemented on mobile
 
     def run(self):
-        self.s2()
+        self.load_toc()
         self.type_in_search_box("Shabbat")
         WebDriverWait(self.driver, TEMPER).until(visibility_of_element_located((By.CSS_SELECTOR, ".readerTextTableOfContents")))
         self.type_in_search_box("Shabbat 12b")
@@ -298,6 +284,33 @@ class InfiniteScrollDown(AtomicTest):
     def run(self):
         self.load_ref("Job 32")
 
+class LoadRefAndOpenLexicon(AtomicTest):
+    suite_key = "Reader"
+    single_panel = False
+
+    def run(self):
+        self.load_ref("Numbers 25:5", lang="he").click_segment("Numbers 25:5")
+        assert "Numbers.25.5" in self.driver.current_url, self.driver.current_url
+        assert "with=all" in self.driver.current_url, self.driver.current_url
+        selector = '.segment[data-ref="{}"] > span.he'.format("Numbers 25:5")
+        self.driver.execute_script(
+            "var range = document.createRange();" +
+            "var start = document.querySelectorAll('[data-ref=\"Numbers 25:5\"]');" +
+            "var textNode = start.querySelectorAll('span.he')[0].firstChild;" +
+            "range.setStart(textNode, 0);" +
+            "range.setEnd(textNode, 5);" +
+            "window.getSelection().addRange(range);"
+        )
+        from selenium.webdriver import ActionChains
+        actions = ActionChains(self.driver)
+        element = self.driver.find_element_by_css_selector(selector)
+        actions.move_to_element(element)
+        actions.double_click(on_element=element)
+        actions.move_by_offset(50, 0)
+        actions.click_and_hold(on_element=None)
+        actions.move_by_offset(70, 0)
+        actions.release(on_element=None)
+        actions.perform()
+        WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, ".lexicon-content")))
+
 """
-
-
