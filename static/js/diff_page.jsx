@@ -196,7 +196,7 @@ class DiffRow extends Component {
     }
   }
 
-  render () {
+  render() {
     if (!this.fullyLoaded()) {
       return <tr><td>{"Loading..."}</td></tr>
     }
@@ -210,20 +210,24 @@ class DiffRow extends Component {
 }
 
 class DiffCell extends Component {
-  render () {
-    debugger;
+  render() {
     if (this.props.diff.diffList === null) {
       return (<td>{"Loading..."}</td>);
     }
     var spans = [];
     var diffList = this.props.diff.diffList;
+
     for (var i = 0; i < diffList.length; i++) {
       if (diffList[i][0] === 0) {
         spans.push(<span key={i.toString()}>{diffList[i][1]}</span>);
       }
 
       else if (diffList[i][0] === 1) {
-      spans.push(<span className="ins" key={i.toString()}>{diffList[i][1]}</span>);
+      spans.push(<DiffElement
+        text={diffList[i][1]}
+        toText={diffList[i][2]}
+        key = {i.toString()}
+        />);
       }
 
       else {spans.push(<span className="del" key={i.toString()}>{diffList[i][1]}</span>);}
@@ -232,8 +236,40 @@ class DiffCell extends Component {
     return (
           <td className="he">{spans}</td>
       );
+    }
 }
+
+class DiffElement extends Component {
+  constructor(props) {
+    super(props)
+    this.state = {mouseover: false};
+  }
+  onMouseOver() {
+    console.log("MouseOver!");
+    this.setState({mouseover: true});
+  }
+  onMouseOut() {
+    console.log("MouseOut!");
+    this.setState({mouseover: false});
+  }
+  onClick() {
+    console.log("Clicked!");
+    this.setState({mouseover: !this.state.mouseover});
+  }
+  render() {
+    return (
+      <span onMouseOver={this.onMouseOver}
+      onMouseOut={this.onMouseOut}
+      onClick={this.onClick}
+      className="ins">
+      {this.props.text}
+      {this.state.mouseover ? <span style={{position: "absolute", zIndex: 1,
+      backgroundColor: "#555", color: "#fff"}}>Change<br/> {this.props.text}<br/> to<br/>
+      {this.props.toText}</span> : null}
+      </span>);
+  }
 }
+
 ReactDOM.render(<DiffTable segRef={"Shulchan Arukh, Choshen Mishpat 1:1"}
                 v1={"Shulhan Arukh, Hoshen ha-Mishpat; Lemberg, 1898"}
                 v2={"Torat Emet Freeware Shulchan Aruch"}
