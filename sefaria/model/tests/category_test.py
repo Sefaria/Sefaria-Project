@@ -54,22 +54,22 @@ class Test_Categories(object):
 
         toc_tree = library.get_toc_tree()
         cat = toc_tree.lookup(["Tanakh", "Torah"]).get_category_object()
-        cat.change_key_name("Shabbat")
+        cat.change_key_name("Seder Moed")
         cat.save()
 
         toc_tree = library.get_toc_tree()
         cat = toc_tree.lookup(["Tanakh", "Torah"])
         assert cat is None
 
-        toc_cat = toc_tree.lookup(["Tanakh", "Shabbat"])
+        toc_cat = toc_tree.lookup(["Tanakh", "Seder Moed"])
         assert toc_cat
         for child in toc_cat.all_children():
             if isinstance(child, c.TocCategory):
                 cobj = child.get_category_object()
-                assert cobj.path[1] == "Shabbat"
+                assert cobj.path[1] == "Seder Moed"
             elif isinstance(child, c.TocTextIndex):
                 i = child.get_index_object()
-                assert i.categories[1] == "Shabbat"
+                assert i.categories[1] == "Seder Moed"
             else:
                 raise Exception()
 

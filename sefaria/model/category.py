@@ -37,9 +37,16 @@ class Category(abstract.AbstractMongoRecord, schema.AbstractTitledOrTermedObject
         self._load_title_group()
 
     def change_key_name(self, name):
+        # Doesn't yet support going from shared term to local or vise-versa.
+        if self.sharedTitle and schema.Term().load({"name": name}):
+            self.sharedTitle = name
+            self._process_terms()
+        elif not self.sharedTitle:
+            self.add_title(name, "en", True, True)
+        else:
+            raise IndexError(u"Can not find Term for {}".format(name))
         self.lastPath = name
         self.path[-1] = name
-        self.add_title(name, "en", True, True)
 
     def _validate(self):
         super(Category, self)._validate()
