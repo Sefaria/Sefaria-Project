@@ -365,7 +365,7 @@ def change_char_node_titles(index_title, bad_char, good_char, lang):
 
 
     def callback(node, **kwargs):
-        titles = node.get_titles()
+        titles = node.get_titles_object()
         for each_title in titles:
             if each_title['lang'] == lang and 'primary' in each_title and each_title['primary']:
                 title = each_title['text']

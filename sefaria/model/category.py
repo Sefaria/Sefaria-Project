@@ -5,20 +5,20 @@ import logging
 logger = logging.getLogger(__name__)
 
 from sefaria.system.database import db
-from sefaria.system.exceptions import BookNameError
+from sefaria.system.exceptions import BookNameError, InputError
 from . import abstract as abstract
 from . import schema as schema
 from . import text as text
 
 
-class Category(schema.AbstractTitledRecord):
+class Category(abstract.AbstractMongoRecord, schema.AbstractTitledOrTermedObject):
     collection = 'category'
     history_noun = "category"
 
     track_pkeys = True
     pkeys = ["lastPath"]  # Needed for dependency tracking
-    required_attrs = ["titles", "lastPath", "path"]
-    optional_attrs = ["enDesc", "heDesc"]
+    required_attrs = ["lastPath", "path"]
+    optional_attrs = ["enDesc", "heDesc", "titles", "sharedTitle"]
 
     def __unicode__(self):
         return u"Category: {}".format(u", ".join(self.path))
@@ -29,6 +29,13 @@ class Category(schema.AbstractTitledRecord):
     def __repr__(self):  # Wanted to use orig_tref, but repr can not include Unicode
         return u"{}().load({{'path': [{}]}})".format(self.__class__.__name__, u", ".join(map(lambda x: u'"{}"'.format(x), self.path)))
 
+    def _init_defaults(self):
+        self._init_title_defaults()
+        self.sharedTitle = None
+
+    def _set_derived_attributes(self):
+        self._load_title_group()
+
     def change_key_name(self, name):
         self.lastPath = name
         self.path[-1] = name
@@ -38,10 +45,27 @@ class Category(schema.AbstractTitledRecord):
         super(Category, self)._validate()
         assert self.lastPath == self.path[-1] == self.get_primary_title("en"), "Category name not matching"
 
+        if not self.sharedTitle and not self.get_titles_object():
+            raise InputError(u"Category {} must have titles or a shared title".format(self))
+
+        try:
+            self.title_group.validate()
+        except InputError as e:
+            raise InputError(u"Category {} has invalid titles: {}".format(self, e))
+
+        if self.sharedTitle and schema.Term().load({"name": self.sharedTitle}).titles != self.get_titles_object():
+            raise InputError(u"Category {} with sharedTitle can not have explicit titles".format(self))
+
     def _normalize(self):
         super(Category, self)._normalize()
         if not getattr(self, "lastPath", None):
             self.lastPath = self.path[-1]
+
+        if self.sharedTitle:
+            if getattr(self, "titles", None):
+                del self.__dict__["titles"]
+        else:
+            self.titles = self.get_titles_object()
 
     def get_toc_object(self):
         from sefaria.model import library

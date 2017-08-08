@@ -141,16 +141,7 @@ class TitleGroup(object):
         return self
 
 
-class AbstractTitledRecord(abst.AbstractMongoRecord):
-    required_attrs = [
-        "titles"
-    ]
-
-    def _set_derived_attributes(self):
-        self.set_titles(getattr(self, "titles", None))
-
-    def set_titles(self, titles):
-        self.title_group = TitleGroup(titles)
+class AbstractTitledObject(object):
 
     def add_primary_titles(self, en_title, he_title):
         self.add_title(en_title, 'en', primary=True)
@@ -166,12 +157,11 @@ class AbstractTitledRecord(abst.AbstractMongoRecord):
         """
         return self.title_group.add_title(text, lang, primary, replace_primary)
 
-    def _validate(self):
-        super(AbstractTitledRecord, self)._validate()
-        self.title_group.validate()
+    def remove_title(self, text, lang):
+        return self.title_group.remove_title(text, lang)
 
-    def _normalize(self):
-        self.titles = self.title_group.titles
+    def get_titles_object(self):
+        return getattr(self.title_group, "titles", None)
 
     def get_titles(self, lang=None):
         return self.title_group.all_titles(lang)
@@ -180,7 +170,33 @@ class AbstractTitledRecord(abst.AbstractMongoRecord):
         return self.title_group.primary_title(lang)
 
 
-class Term(AbstractTitledRecord):
+class AbstractTitledOrTermedObject(AbstractTitledObject):
+    def _init_title_defaults(self):
+        # To be called at initialization time
+        self.title_group = TitleGroup()
+
+    def _load_title_group(self):
+        if getattr(self, "titles", None):
+            self.title_group.load(serial=self.titles)
+            del self.__dict__["titles"]
+
+        self._process_terms()
+
+    def _process_terms(self):
+        # To be called after raw data load
+        if self.sharedTitle:
+            try:
+                term = Term().load({"name": self.sharedTitle})
+                self.title_group = term.title_group
+            except Exception, e:
+                raise IndexError("Failed to load term named {}. {}".format(self.sharedTitle, e))
+
+    def add_shared_term(self, term):
+        self.sharedTitle = term
+        self._process_terms()
+
+
+class Term(abst.AbstractMongoRecord, AbstractTitledObject):
     """
     A Term is a shared title node.  It can be referenced and used by many different Index nodes.
     Examples:  Noah, Perek HaChovel, Even HaEzer
@@ -202,8 +218,18 @@ class Term(AbstractTitledRecord):
         "ref"
     ]
 
+    def _set_derived_attributes(self):
+        self.set_titles(getattr(self, "titles", None))
+
+    def set_titles(self, titles):
+        self.title_group = TitleGroup(titles)
+
+    def _normalize(self):
+        self.titles = self.title_group.titles
+
     def _validate(self):
         super(Term, self)._validate()
+        self.title_group.validate()
         if self.name != self.get_primary_title():
             raise InputError("Term name {} does not match primary title {}".format(self.name, self.get_primary_title()))
 
@@ -514,7 +540,7 @@ class TreeNode(object):
         return self._leaf_nodes
 
 
-class TitledTreeNode(TreeNode):
+class TitledTreeNode(TreeNode, AbstractTitledOrTermedObject):
     """
     A tree node that has a collection of titles - as contained in a TitleGroup instance.
     In this class, node titles, terms, 'default', and combined titles are handled.
@@ -524,12 +550,7 @@ class TitledTreeNode(TreeNode):
 
     def __init__(self, serial=None, **kwargs):
         super(TitledTreeNode, self).__init__(serial, **kwargs)
-
-        if getattr(self, "titles", None):
-            self.title_group.load(serial=self.titles)
-            del self.__dict__["titles"]
-
-        self._process_terms()
+        self._load_title_group()
 
     def _init_defaults(self):
         super(TitledTreeNode, self)._init_defaults()
@@ -538,19 +559,8 @@ class TitledTreeNode(TreeNode):
         self._full_title = {}
         self._full_titles = {}
 
-        self._init_titles()
+        self._init_title_defaults()
         self.sharedTitle = None
-
-    def _init_titles(self):
-        self.title_group = TitleGroup()
-
-    def _process_terms(self):
-        if self.sharedTitle:
-            try:
-                term = Term().load({"name": self.sharedTitle})
-                self.title_group = term.title_group
-            except Exception, e:
-                raise IndexSchemaError("Failed to load term named {}. {}".format(self.sharedTitle, e))
 
     def all_tree_titles(self, lang="en"):
         """
@@ -573,7 +583,7 @@ class TitledTreeNode(TreeNode):
         title_dict = {}
         thisnode = self
 
-        this_node_titles = [title["text"] for title in self.get_titles() if title["lang"] == lang and title.get("presentation") != "alone"]
+        this_node_titles = [title["text"] for title in self.get_titles_object() if title["lang"] == lang and title.get("presentation") != "alone"]
         if (not len(this_node_titles)) and (not self.is_default()):
             error = u'No "{}" title found for schema node: "{}"'.format(lang, self.key)
             error += u', child of "{}"'.format(self.parent.full_title("en")) if self.parent else ""
@@ -583,7 +593,7 @@ class TitledTreeNode(TreeNode):
         else:
             node_title_list = this_node_titles
 
-        alone_node_titles = [title["text"] for title in self.get_titles() if title["lang"] == lang and title.get("presentation") == "alone" or title.get("presentation") == "both"]
+        alone_node_titles = [title["text"] for title in self.get_titles_object() if title["lang"] == lang and title.get("presentation") == "alone" or title.get("presentation") == "both"]
         node_title_list += alone_node_titles
 
         for child in self.children:
@@ -658,26 +668,22 @@ class TitledTreeNode(TreeNode):
                     return True
         return False
 
-    def get_titles(self):
-        return getattr(self.title_group, "titles", None)
-
     def primary_title(self, lang="en"):
+        # Retained for backwards compatability.  Could be factored out.
         """
         Return the primary title for this node in the language specified
         :param lang: "en" or "he"
         :return: The primary title string or None
         """
-        return self.title_group.primary_title(lang)
+        return self.get_primary_title(lang)
 
     def all_node_titles(self, lang="en"):
+        # Retained for backwards compatability.  Could be factored out.
         """
         :param lang: "en" or "he"
         :return: list of strings - the titles of this node
         """
-        return self.title_group.all_titles(lang)
-
-    def remove_title(self, text, lang):
-        return self.title_group.remove_title(text, lang)
+        return self.get_titles(lang)
 
     def add_title(self, text, lang, primary=False, replace_primary=False, presentation="combined"):
         """
@@ -693,21 +699,13 @@ class TitledTreeNode(TreeNode):
         """
         return self.title_group.add_title(text, lang, primary, replace_primary, presentation)
 
-    def add_shared_term(self, term):
-        self.sharedTitle = term
-        self._process_terms()
-
-    def add_primary_titles(self, en_title, he_title):
-        self.add_title(en_title, 'en', primary=True)
-        self.add_title(he_title, 'he', primary=True)
-
     def validate(self):
         super(TitledTreeNode, self).validate()
 
-        if not self.default and not self.sharedTitle and not self.get_titles():
+        if not self.default and not self.sharedTitle and not self.get_titles_object():
             raise IndexSchemaError(u"Schema node {} must have titles, a shared title node, or be default".format(self))
 
-        if self.default and (self.get_titles() or self.sharedTitle):
+        if self.default and (self.get_titles_object() or self.sharedTitle):
             raise IndexSchemaError(u"Schema node {} - default nodes can not have titles".format(self))
 
         if not self.default:
@@ -719,7 +717,7 @@ class TitledTreeNode(TreeNode):
         if self.children and len([c for c in self.children if c.default]) > 1:
             raise IndexSchemaError(u"Schema Structure Node {} has more than one default child.".format(self.key))
 
-        if self.sharedTitle and Term().load({"name": self.sharedTitle}).titles != self.get_titles():
+        if self.sharedTitle and Term().load({"name": self.sharedTitle}).titles != self.get_titles_object():
             raise IndexSchemaError(u"Schema node {} with sharedTitle can not have explicit titles".format(self))
 
         #if not self.default and not self.primary_title("he"):
@@ -733,7 +731,7 @@ class TitledTreeNode(TreeNode):
             if self.sharedTitle:
                 d["sharedTitle"] = self.sharedTitle
             if not self.sharedTitle or kwargs.get("expand_shared"):
-                d["titles"] = self.get_titles()
+                d["titles"] = self.get_titles_object()
         if kwargs.get("expand_titles"):
             d["title"] = self.title_group.primary_title("en")
             d["heTitle"] = self.title_group.primary_title("he")

@@ -27,7 +27,10 @@ def visit_structure(treenode, callback, order=None, **kwargs):
 
 def create_category(treenode):
     c = Category()
-    c.add_primary_titles(treenode.primary_title("en"), treenode.primary_title("he"))
+    if Term().load({"name": treenode.primary_title("en")}):
+        c.add_shared_term(treenode.primary_title("en"))
+    else:
+        c.add_primary_titles(treenode.primary_title("en"), treenode.primary_title("he"))
     c.path = treenode.full_path
     c.lastPath = treenode.full_path[-1]
     print "Creating - {}".format(" / ".join(c.path))

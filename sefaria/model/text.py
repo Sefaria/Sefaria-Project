@@ -501,7 +501,7 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
             if "schema" not in d:
                 node = getattr(self, "nodes", None)
                 if node:
-                    node._init_titles()
+                    node._init_title_defaults()
                 else:
                     node = JaggedArrayNode()
 
