@@ -3,9 +3,6 @@ var ga = require('./sefariaGa');
 class Track {
     // Helper functions for event tracking (with Google Analytics and Mixpanel)
     static event(category, action, label, value, options) {
-        console.log('tracking called');
-        console.log(value);
-        console.log(options);
         // https://developers.google.com/analytics/devguides/collection/analyticsjs/command-queue-reference#send
 
         ga('send', 'event', category, action, label, value, options);
