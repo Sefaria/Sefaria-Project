@@ -13,7 +13,12 @@ class SearchSheetResult extends Component {
       console.log(s);
       console.log(href);
       Sefaria.track.event("Search", "Search Result Sheet Click", `${this.props.query} - ${s.sheetId}`,
-          {hitCallback: () => console.log(href)}
+          {
+            hitCallback: function() {
+              console.log('hitcallback!');
+              window.location = href;
+            }
+          }
       );
     }
     handleProfileClick(e) {

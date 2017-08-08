@@ -7,6 +7,11 @@ class Track {
         console.log(value);
         console.log(options);
         // https://developers.google.com/analytics/devguides/collection/analyticsjs/command-queue-reference#send
+
+        if (value.hitCallback) {
+            console.log('hitcallback exists y\'all');
+        }
+
         ga('send', 'event', category, action, label, value, options);
         //console.log('send', 'event', category, action, label, value, options);
         if (ga._mock && value && value.hitCallback) {
