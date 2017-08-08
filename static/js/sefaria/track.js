@@ -8,7 +8,7 @@ class Track {
         console.log(options);
         // https://developers.google.com/analytics/devguides/collection/analyticsjs/command-queue-reference#send
 
-        if (value.hitCallback) {
+        if (value && value.hitCallback) {
             console.log('hitcallback exists y\'all');
         }
 
