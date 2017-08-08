@@ -59,43 +59,18 @@
     <div style="direction: rtl">
         <input id="filter" type="button" onclick="add_filter()" value="Update">
     </div>
-    <div id="DiffTable">
-      <table>
-          <tr>
-              <th></th>
-              <th>
-                  {{ title1 }}
-              </th>
-              <th>
-                  {{ title2 }}
-              </th>
-          </tr>
-          {% for diff in diffs %}
-          <tr>
-            <td>
-                {{ diff.ref1 }}
-            </td>
-            <td class="{{ lang }}">
-                {% autoescape off %}{{ diff.diff1 }}{% endautoescape %}
-            </td>
-            {% if dual_ref_display %}
-              <td>
-                {{ diff.ref2 }}
-              </td>
-            {% endif %}
-            <td class="{{ lang }}">
-                {% autoescape off %}{{ diff.diff2 }}{% endautoescape %}
-            </td>
-          </tr>
-          {% endfor %}
-      </table>
-    </div>
+    <div id="DiffTable"/>
     <script>
         var DJANGO_VARS = {
             ga: function () {}
         };
     </script>
     <script src="/data.js"></script>
+    <script type="text/javascript">
+    {% autoescape off %}
+      var JSON_PROPS = {{ JSON_PROPS }}
+    {% endautoescape %}
+    </script>
     <script src="/static/bundles/diffPage/diffPage.js"></script>
 </body>
 </html>

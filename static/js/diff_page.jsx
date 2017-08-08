@@ -132,7 +132,8 @@ class DiffRow extends Component {
     super(props);
     this.state = {
       v1: null,
-      v2: null
+      v2: null,
+      requiresUpdate: true
     }
   }
 
@@ -192,7 +193,7 @@ class DiffRow extends Component {
     }
     seg1.diffList = diff1;
     seg2.diffList = diff2;
-    this.setState({v1: seg1, v2: seg2})
+    this.setState({v1: seg1, v2: seg2, requiresUpdate: false})
   }
 
   LoadText (text, version) {
@@ -203,6 +204,7 @@ class DiffRow extends Component {
     }
   }
   componentDidMount() {
+    console.log('run componentDidMount');
     if (this.state.v1 != null & this.state.v2 != null) {
       this.generateDiff(this.state.v1, this.state.v2);
     }
@@ -211,7 +213,8 @@ class DiffRow extends Component {
   componentDidUpdate() {
     // This may be necessary once we start pushing to server, but should remain
     // inactive for now.
-    if (false) {
+    console.log('run componentDidUpdate');
+    if (this.state.requiresUpdate & (this.state.v1 != null & this.state.v2 != null)) {
       this.generateDiff(this.state.v1, this.state.v2);
     }
   }
@@ -348,9 +351,8 @@ class DiffElement extends Component {
       </span>);
   }
 }
-
-ReactDOM.render(<DiffTable secRef={"Shulchan Arukh, Choshen Mishpat 25"}
-                v1={"Shulhan Arukh, Hoshen ha-Mishpat; Lemberg, 1898"}
-                v2={"Torat Emet Freeware Shulchan Aruch"}
-                lang={"he"}/>,
+ReactDOM.render(<DiffTable secRef={JSON_PROPS.secRef}
+                v1={JSON_PROPS.v1}
+                v2={JSON_PROPS.v2}
+                lang={JSON_PROPS.lang}/>,
                   document.getElementById('DiffTable'));

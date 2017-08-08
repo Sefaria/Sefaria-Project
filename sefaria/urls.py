@@ -244,7 +244,7 @@ urlpatterns += patterns('',
 
 # Compare Page
 urlpatterns += patterns('sefaria.views',
-    url(r'^compare/(?P<ref1>[^/]+)/(?P<ref2>[^/]+)/(?P<lang>en|he)/?(?P<v1>[^/]+)?/?(?P<v2>[^/]+)?$', 'compare')
+    url(r'^compare/(?P<secRef>[^/]+)/(?P<lang>en|he)/?(?P<v1>[^/]+)?/?(?P<v2>[^/]+)?$', 'compare')
 )
 
 static_pages = [
