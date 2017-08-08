@@ -8,10 +8,6 @@ class Track {
         console.log(options);
         // https://developers.google.com/analytics/devguides/collection/analyticsjs/command-queue-reference#send
 
-        if (value && value.hitCallback) {
-            console.log('hitcallback exists y\'all');
-        }
-
         ga('send', 'event', category, action, label, value, options);
         //console.log('send', 'event', category, action, label, value, options);
         if (ga._mock && value && value.hitCallback) {
@@ -19,6 +15,10 @@ class Track {
           value.hitCallback();
           // Unsure why we have param mismatch... what we call value here is treated as options.
           // A previous attempt to insert `null` for value to put `options` in the right place broke tracking.
+        }
+        else if (value && value.hitCallback) {
+            // Creates a timeout to call `hitCallback` after one second (in case of no return from ga).
+            setTimeout(value.hitCallback, 1000)
         }
     }
     static pageview(url) {
