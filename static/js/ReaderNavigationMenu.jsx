@@ -131,30 +131,12 @@ class ReaderNavigationMenu extends Component {
               </div>);
     } else {
       // Root Library Menu
-      var categories = [
-        "Tanakh",
-        "Mishnah",
-        "Talmud",
-        "Midrash",
-        "Halakhah",
-        "Kabbalah",
-        "Liturgy",
-        "Philosophy",
-        "Tanaitic",
-        "Chasidut",
-        "Musar",
-        "Responsa",
-        "Apocrypha",
-        "Modern Works",
-        "Other"
-      ];
-      categories = categories.map(function(cat) {
-        var style = {"borderColor": Sefaria.palette.categoryColor(cat)};
-        var openCat = function(e) {e.preventDefault(); this.props.setCategories([cat])}.bind(this);
-        var heCat   = Sefaria.hebrewTerm(cat);
-        return (<a href={`/texts/${cat}`} className="readerNavCategory" data-cat={cat} style={style} onClick={openCat}>
-                    <span className="en">{cat}</span>
-                    <span className="he">{heCat}</span>
+      var categories = Sefaria.toc.map(function(cat) {
+        var style = {"borderColor": Sefaria.palette.categoryColor(cat.category)};
+        var openCat = function(e) {e.preventDefault(); this.props.setCategories([cat.category])}.bind(this);
+        return (<a href={`/texts/${cat.category}`} className="readerNavCategory" data-cat={cat.category} style={style} onClick={openCat}>
+                    <span className="en">{cat.category}</span>
+                    <span className="he">{cat.heCategory}</span>
                   </a>
                 );
       }.bind(this));
