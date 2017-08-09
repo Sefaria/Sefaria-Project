@@ -75,7 +75,7 @@ class ReaderPanel extends Component {
       searchFieldBroad:     "naive_lemmatizer",
       searchField:          props.initialSearchField || "naive_lemmatizer",
       searchSortType:       props.initialSearchSortType || "chronological",
-      selectedWords:        null,
+      selectedWords:        "",
       searchFiltersValid:   false,
       availableFilters:     [],
       filterRegistry:       {},
@@ -123,6 +123,9 @@ class ReaderPanel extends Component {
       this.setWidth();
     }
     this.replaceHistory = false;
+    if (this.state.displaySettingsOpen) {
+      $(".readerOptionsPanel").find('.on:focusable').first().focus();
+    }
   }
   conditionalSetState(state) {
     // Set state either in the central app or in the local component,
@@ -467,6 +470,7 @@ class ReaderPanel extends Component {
           onCitationClick={this.handleCitationClick}
           setTextListHighlight={this.setTextListHighlight}
           setSelectedWords={this.setSelectedWords}
+          selectedWords={this.state.selectedWords}
           panelsOpen={this.props.panelsOpen}
           layoutWidth={this.props.layoutWidth}
           filter={this.state.filter}
@@ -991,7 +995,7 @@ class ReaderDisplayOptionsMenu extends Component {
           settings={this.props.settings} />);
 
     if (this.props.menuOpen === "search") {
-      return (<div className="readerOptionsPanel" role="dialog" tabIndex="0">
+      return (<div className="readerOptionsPanel" role="dialog">
                 <div className="readerOptionsPanelInner">
                   {languageToggle}
                   <div className="line"></div>
@@ -999,13 +1003,13 @@ class ReaderDisplayOptionsMenu extends Component {
                 </div>
             </div>);
     } else if (this.props.menuOpen) {
-      return (<div className="readerOptionsPanel"role="dialog" tabIndex="0">
+      return (<div className="readerOptionsPanel"role="dialog">
                 <div className="readerOptionsPanelInner">
                   {languageToggle}
                 </div>
             </div>);
     } else {
-      return (<div className="readerOptionsPanel"role="dialog" tabIndex="0">
+      return (<div className="readerOptionsPanel"role="dialog">
                 <div className="readerOptionsPanelInner">
                   {languageToggle}
                   {layoutToggle}

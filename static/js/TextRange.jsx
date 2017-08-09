@@ -228,11 +228,11 @@ class TextRange extends Component {
 
     var showSegmentNumbers = showNumberLabel && this.props.basetext;
 
-    var segments = Sefaria.makeSegments(data, this.props.withContext);
-    var textSegments = segments.map(function (segment, i) {
-      var highlight = this.props.highlightedRefs && this.props.highlightedRefs.length ?                                  // if highlighted refs are explicitly set
-                        Sefaria.util.inArray(segment.ref, this.props.highlightedRefs) !== -1 : // highlight if this ref is in highlighted refs prop
-                        this.props.basetext && segment.highlight;                   // otherwise highlight if this a basetext and the ref is specific
+    var segments      = Sefaria.makeSegments(data, this.props.withContext);
+    var textSegments  = segments.map(function (segment, i) {
+      var highlight     = this.props.highlightedRefs && this.props.highlightedRefs.length ?        // if highlighted refs are explicitly set
+                            Sefaria.util.inArray(segment.ref, this.props.highlightedRefs) !== -1 : // highlight if this ref is in highlighted refs prop
+                            this.props.basetext && segment.highlight;                              // otherwise highlight if this a basetext and the ref is specific
       return (
         <TextSegment
             panelPosition={this.props.panelPosition}
@@ -242,6 +242,7 @@ class TextRange extends Component {
             highlight={highlight}
             segmentNumber={showSegmentNumbers ? segment.number : 0}
             showLinkCount={this.props.basetext}
+            linkCount={Sefaria.linkCount(segment.ref, this.props.filter)}
             filter={this.props.filter}
             onSegmentClick={this.props.onSegmentClick}
             onCitationClick={this.props.onCitationClick}
@@ -359,6 +360,16 @@ TextRange.propTypes = {
 
 
 class TextSegment extends Component {
+  shouldComponentUpdate(nextProps) {
+    if (this.props.highlight !== nextProps.highlight)         { return true; }
+    if (this.props.showLinkCount !== nextProps.showLinkCount) { return true; }
+    if (this.props.linkCount !== nextProps.linkCount)         { return true; }
+    if (!!this.props.filter !== !!nextProps.filter)           { return true; }
+    if (this.props.filter && nextProps.filter &&
+        !this.props.filter.compare(nextProps.filter))         { return true; }
+
+    return false;
+  }
   handleClick(event) {
     if ($(event.target).hasClass("refLink")) {
       //Click of citation
@@ -383,9 +394,9 @@ class TextSegment extends Component {
   render() {
     var linkCountElement;
     if (this.props.showLinkCount) {
-      var linkCount = Sefaria.linkCount(this.props.sref, this.props.filter);
+      var linkCount = this.props.linkCount;
       var minOpacity = 20, maxOpacity = 70;
-      var linkScore = linkCount ? Math.min(linkCount+minOpacity, maxOpacity) / 100.0 : 0;
+      var linkScore = linkCount ? Math.min(linkCount + minOpacity, maxOpacity) / 100.0 : 0;
       var style = {opacity: linkScore};
       linkCountElement = this.props.showLinkCount ? (<div className="linkCount sans" title={linkCount + " Connections Available"}>
                                                     <span className="en"><span className="linkCountDot" style={style}></span></span>
@@ -446,6 +457,7 @@ TextSegment.propTypes = {
   highlight:       PropTypes.bool,
   segmentNumber:   PropTypes.number,
   showLinkCount:   PropTypes.bool,
+  linkCount:       PropTypes.number,
   filter:          PropTypes.array,
   onCitationClick: PropTypes.func,
   onSegmentClick:  PropTypes.func,

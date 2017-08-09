@@ -649,7 +649,7 @@ class ReaderApp extends Component {
       tagSort:                 state.tagSort                 || "count",
       mySheetSort:             state.mySheetSort             || "date",
       initialAnalyticsTracked: state.initialAnalyticsTracked || false,
-      selectedWords:           state.selectedWords           || null,
+      selectedWords:           state.selectedWords           || "",
     };
     if (this.state && panel.refs.length && !panel.version) {
       var oRef = Sefaria.ref(panel.refs[0]);
@@ -1246,7 +1246,8 @@ class ReaderApp extends Component {
 
     var panels = [];
     var allOpenRefs = panelStates.filter( panel => panel.mode == "Text")
-                                  .map( panel => Sefaria.normRef(panel.highlightedRefs));
+                                  .map( panel => Sefaria.normRef(panel.highlightedRefs.length ? panel.highlightedRefs : panel.refs));
+    console.log(allOpenRefs);
     for (var i = 0; i < panelStates.length; i++) {
       var panel                    = this.clonePanel(panelStates[i]);
       if (!("settings" in panel )) { debugger; }

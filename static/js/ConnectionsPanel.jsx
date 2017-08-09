@@ -57,7 +57,7 @@ class ConnectionsPanel extends Component {
   loadData() {
     var ref = this.sectionRef();
     if (!Sefaria.related(ref)) {
-      Sefaria.related(ref, function() {
+      Sefaria.related(ref, function(data) {
         if (this._isMounted) {
           this.forceUpdate();
         }
@@ -76,7 +76,7 @@ class ConnectionsPanel extends Component {
   }
   render() {
     var content = null;
-    var loaded = Sefaria.linksLoaded(this.sectionRef());
+    var loaded = !!Sefaria.related(this.sectionRef());
     if (!loaded) {
       content = <LoadingMessage />;
     } else if (this.props.mode == "Resources") {
