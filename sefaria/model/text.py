@@ -3894,13 +3894,13 @@ class Library(object):
     def build_full_auto_completer(self):
         from autospell import AutoCompleter
         self._full_auto_completer = {
-            lang: AutoCompleter(lang, library, include_people=True, include_categories=True) for lang in self.langs
+            lang: AutoCompleter(lang, library, include_people=True, include_categories=True, include_parasha=True) for lang in self.langs
         }
 
     def build_ref_auto_completer(self):
         from autospell import AutoCompleter
         self._ref_auto_completer = {
-            lang: AutoCompleter(lang, library, include_people=False, include_categories=False) for lang in self.langs
+            lang: AutoCompleter(lang, library, include_people=False, include_categories=False, include_parasha=False) for lang in self.langs
         }
 
     def full_auto_completer(self, lang):
