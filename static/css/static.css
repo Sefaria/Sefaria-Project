@@ -874,38 +874,38 @@
   display: flex;
   display: -webkit-flex
 }
-#teamPage .teamBoardMember{
+#teamPage .teamBoardMember {
   border-bottom: none;
   margin-bottom: 10px;
 }
-#teamPage .teamMember .teamMemberImage{
+#teamPage .teamMember .teamMemberImage {
   display: inline-block;
   /*float: left;*/
 }
-#teamPage .teamMember .teamMemberDetails, #teamPage .teamBoardMember .teamMemberDetails{
+#teamPage .teamMember .teamMemberDetails, #teamPage .teamBoardMember .teamMemberDetails {
   display: inline-block;
   white-space:nowrap;
   max-width: 65%;
   margin: 0 20px;
 }
-#teamPage .teamBoardMember .teamMemberDetails{
+#teamPage .teamBoardMember .teamMemberDetails {
   margin: 0;
 }
-#teamPage .teamMember .teamMemberImage img{
+#teamPage .teamMember .teamMemberImage img {
   border: 1px solid #E6E5E6;
   width: 170px;
   height: 170px;
   vertical-align:middle;
 }
-#teamPage .teamMember .teamName, #teamPage .teamBoardMember .teamName{
+#teamPage .teamMember .teamName, #teamPage .teamBoardMember .teamName {
   margin-bottom: 20px;
   font-size: 25px;
   color: #555;
 }
-#teamPage .teamMember .teamTitle, #teamPage .teamBoardMember .teamTitle{
+#teamPage .teamMember .teamTitle, #teamPage .teamBoardMember .teamTitle {
 
 }
-#teamPage .teamMember .teamEmail{
+#teamPage .teamMember .teamEmail {
   color: #999;
 }
 #teamPage .teamMember .teamBio {
