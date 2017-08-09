@@ -129,7 +129,21 @@ render() {
             type="text"
             defaultValue={this.props.secRef}
             ref={(input) => this.input=input}
+            style={{width: '300px'}}
             />
+        </label>
+        <label>
+          Language:
+          <select
+            name="lang"
+            ref={(input) => this.input=input}>
+            <option selected={this.props.lang === 'he' || this.props.language === null
+            ? 'selected' : null}
+            value="he">
+            Hebrew</option>
+            <option selected={this.props.lang === 'en' ? 'selected' : null}
+            value="en">English</option>
+          </select>
         </label>
         <input type="submit" value="Submit" />
       </form>
@@ -163,11 +177,15 @@ class DiffTable extends Component {
   LoadSection(props) {
     Sefaria.text(props.secRef,
       {language: props.lang, version: props.v1},
-      data => this.setState({v1Length: data[props.lang].length}));
+      data => this.setState({
+        v1Length: props.lang === 'he' ? data['he'].length : data.text.length
+      }));
 
     Sefaria.text(props.secRef,
       {language: props.lang, version: props.v2},
-      data => this.setState({v2Length: data[props.lang].length}));
+      data => this.setState({
+        v2Length: props.lang === 'he' ? data['he'].length : data.text.length
+      }));
   }
 
   componentWillMount() {
