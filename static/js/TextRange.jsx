@@ -363,10 +363,11 @@ TextRange.propTypes = {
 class TextSegment extends Component {
   shouldComponentUpdate(nextProps) {
     if (this.props.highlight !== nextProps.highlight)         { return true; }
-    if (!this.props.filter.compare(nextProps.filter))         { return true; }
     if (this.props.showLinkCount !== nextProps.showLinkCount) { return true; }
     if (this.props.linkCount !== nextProps.linkCount)         { return true; }
-
+    if (!!this.props.filter !== !!nextProps.filter)           { return true; }
+    if (this.props.filter && nextProps.filter &&
+        !this.props.filter.compare(nextProps.filter))         { return true; }
 
     return false;
   }
