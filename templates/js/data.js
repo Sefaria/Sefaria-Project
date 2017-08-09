@@ -1,8 +1,8 @@
 {% load sefaria_tags %}
 {% autoescape off %}
-var Sefaria = Sefaria || {};
+//all vars in this file will be available in global js scope
 
-var data = {
+var DJANGO_DATA_VARS = {
   _dataLoaded:         true,
   toc:                 {{ toc_json }},
   search_toc:          {{ search_toc_json }},
@@ -31,14 +31,4 @@ var data = {
   _partner_group:      "{{ partner_group }}",
   _partner_role:       "{{ partner_role }}"
 };
-
-for (var prop in data) {
-  if (data.hasOwnProperty(prop)) {
-    Sefaria[prop] = data[prop];
-  }
-}
-
-if (typeof module !== 'undefined') {
-  module.exports = Sefaria;
-}
 {% endautoescape %}

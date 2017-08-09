@@ -1,10 +1,19 @@
 {% extends "base.html" %}
 
-{% block title %}Explore Sefaria{% endblock %}
+{% block titleEnglish %}Link Explorer - Visualized Connections Between Talmud and Tanakh | Sefaria{% endblock %}
+{% block titleHebrew %}Link Explorer - Visualized Connections Between Talmud and Tanakh | Sefaria{% endblock %}
+
+{% block descriptionEnglish %}Explore over 30,000 examples of the Talmud quoting a verse from Tanakh. Zoom in to particular books either above or below to explore deeper.{% endblock %}
+
+{% block descriptionHebrew %}Explore over 30,000 examples of the Talmud quoting a verse from Tanakh. Zoom in to particular books either above or below to explore deeper.{% endblock %}
+
+
+{% block ogimage %}<meta property="og:image" content="https://www.sefaria.org/static/img/explorer.png" />{% endblock %}
+
 {% block head %}
-<meta property="og:image" content="https://www.sefaria.org/static/img/explorer.png" />
 <script src="https://d3js.org/d3.v3.min.js"></script>
 {%  endblock %}
+
 {% block css %}
 	#languageToggle {
 		display: inline;
@@ -710,7 +719,7 @@ function removeBrush(d) {
 function brushstart() {
   d3.event.target["b_active"] = true
   svg.classed("selecting", true);
-  Sefaria.site.track.exploreBrush(d3.event.target.book)
+  Sefaria.track.exploreBrush(d3.event.target.book)
 }
 
 function brushmove() {
@@ -1020,7 +1029,7 @@ function closeBook(dCloser) {
     //    tooltip.selectAll("text")
     //        .attr("x", 160);
     //}
-    
+
     //Reset events
     svg.selectAll("#" + collectionId + " .book")
             .on("mouseover", mouseover_book)
@@ -1181,7 +1190,7 @@ function replaceHistory() {
 
     changePageTitle(args.object.title);
     history.replaceState(args.object, args.argtitle, args.url);
-    args.books.forEach(function (e,a,i) { Sefaria.site.track.exploreBook(e) });
+    args.books.forEach(function (e,a,i) { Sefaria.track.exploreBook(e) });
 
 }
 
@@ -1189,7 +1198,7 @@ function pushLanguageChange() {
     var args = _getHistory();
 
     //console.log("pushLanguageChange",args.object, args.title, args.url);
-    Sefaria.site.track.exploreUrl(args.url);
+    Sefaria.track.exploreUrl(args.url);
     changePageTitle(args.object.title);
     history.pushState(args.object, args.argtitle, args.url);
 }
@@ -1198,10 +1207,10 @@ function pushHistory() {
     var args = _getHistory();
 
     //console.log("pushHistory",args.object, args.title, args.url);
-    Sefaria.site.track.exploreUrl(args.url);
+    Sefaria.track.exploreUrl(args.url);
     changePageTitle(args.object.title);
     history.pushState(args.object, args.argtitle, args.url);
-    args.books.forEach(function (e,a,i) { Sefaria.site.track.exploreBook(e) });
+    args.books.forEach(function (e,a,i) { Sefaria.track.exploreBook(e) });
 }
 
 function _getHistory() {
@@ -1239,7 +1248,7 @@ function _getHistory() {
     if(isHebrew()) {
         url += "/he";
         if(title == 'מצא חיבורים בין') {
-            title = "מצא חיבורים בספאריה";
+            title = "מצא חיבורים בספריא";
         }
     } else {
         if(title == "Explore") {

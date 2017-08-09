@@ -84,13 +84,13 @@ TEMPLATE_CONTEXT_PROCESSORS = (
     "django.contrib.messages.context_processors.messages",
     "django.core.context_processors.request",
     "django_mobile.context_processors.flavour",
-	"sefaria.system.context_processors.global_settings",
-	"sefaria.system.context_processors.titles_json",
-	"sefaria.system.context_processors.toc",
+    "sefaria.system.context_processors.global_settings",
+    "sefaria.system.context_processors.titles_json",
+    "sefaria.system.context_processors.toc",
     "sefaria.system.context_processors.terms",
-	"sefaria.system.context_processors.embed_page",
+    "sefaria.system.context_processors.embed_page",
     "sefaria.system.context_processors.language_settings",
-	"sefaria.system.context_processors.user_and_notifications",
+    "sefaria.system.context_processors.user_and_notifications",
     "sefaria.system.context_processors.calendar_links",
     "sefaria.system.context_processors.header_html",
     "sefaria.system.context_processors.footer_html",
@@ -130,6 +130,7 @@ INSTALLED_APPS = (
     'captcha',
     'django_mobile',
     'django.contrib.admin',
+    'webpack_loader'
     # Uncomment the next line to enable admin documentation:
     # 'django.contrib.admindocs',
 )
@@ -261,9 +262,21 @@ CACHES = {
     }
 }
 
+
 # Grab enviornment specific settings from a file which
 # is left out of the repo.
 try:
     from sefaria.local_settings import *
 except ImportError:
     from sefaria.local_settings_example import *
+
+# Listed after local settings are imported so CACHE can depend on DEBUG
+WEBPACK_LOADER = {
+    'DEFAULT': {
+        'BUNDLE_DIR_NAME': 'bundles/client/',  # must end with slash
+        'STATS_FILE': relative_to_abs_path('../webpack-stats.client.json'),
+        'POLL_INTERVAL': 0.1,
+        'TIMEOUT': None,
+        'CACHE': not DEBUG,
+    }
+}

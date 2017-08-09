@@ -2,7 +2,14 @@
 
 {% load sefaria_tags %}
 
-{% block title %}Visualizing the Torah Connections through Rashi's Commentary{% if lang %} ({{ lang }}){% endif %}{% endblock %}
+{% block titleEnglish %}Visualizing Torah Connections through Rashi's Commentary{% if lang %} ({{ lang }}){% endif %}{% endblock %}
+{% block titleHebrew %}Visualizing Torah Connections through Rashi's Commentary{% if lang %} ({{ lang }}){% endif %}{% endblock %}
+
+{% block descriptionEnglish %}Explore how Rashi connects verses of Torah to one another when he quotes one verse in his commentary on another.{% endblock %}
+
+{% block descriptionHebrew %}Explore how Rashi connects verses of Torah to one another when he quotes one verse in his commentary on another.{% endblock %}
+
+
 {% block ogimage %}<meta property="og:image" content="/static/img/links-through-rashi.png"/>{% endblock %}
 {% block head %}
     {% if not OFFLINE %}

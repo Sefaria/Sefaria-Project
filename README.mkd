@@ -48,7 +48,7 @@ On Debian systems:
 
 On Fedora systems:
 
-    sudo yum install python-devel
+    sudo dnf install python2-devel
 
 After installing the Python development libraries, run `pip install -r requirements.txt` again.
 
@@ -94,9 +94,9 @@ You can also make it publicly available by specifying 0.0.0.0 for the host:
 
     python manage.py runserver 0.0.0.0:8000
 
-#### (Optional) Get Node running for server side rendering
+#### Get Node:
 
-Sefaria uses React.js. To render HTML server-side, we use a Node.js server. For development, the site is fully functional without server side rendering. For deploying in a production environemnet however server side HTML is very important for bots and SEO. To install node and npm, see [here](https://nodejs.org/en/download/). On Debian systems you can do:
+Node is now required to run the site because we are using [Webpack](https://webpack.js.org/) to bundle our javascript. To install node and npm, see [here](https://nodejs.org/en/download/). On Debian systems you can do:
 
     sudo apt-get install nodejs
     sudo apt-get install npm
@@ -110,10 +110,37 @@ Create a local settings file for node and tell it what port to run on and where 
 
     cp node/local_settings_example.json node/local_settings.json
     vim node/local_settings.json
+    
+#### Run Webpack
+
+To get the site running, you need to bundle the javascript with Webpack. Run:
+
+    npm run build-client
+    
+to bundle once. To watch the javascript for changes and automatically rebuild, run:
+
+    npm run watch-client
+
+    
+#### Server-side rendering with Node:
+
+Sefaria uses React.js. To render HTML server-side, we use a Node.js server. For development, the site is fully functional without server-side rendering. For deploying in a production environemnet however server side HTML is very important for bots and SEO. 
 
 For development, you can run the Node server using nodemon with:
 
     npm start
+    
+You also need to set 
+
+    USE_NODE = True
+    
+in Django's `local_settings.py`. To run webpack with server-side rendering, use:
+
+    npm run build
+    
+or
+
+    npm run watch
 
 ## Command Line Interface
 

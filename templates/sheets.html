@@ -9,6 +9,9 @@
 	{% if not is_public %}
 		<meta name="robots" content="noindex">
 	{% endif %}
+	{% if EMBED %}
+		<link rel="canonical" href="{{ current_url }}" >
+	{% endif %}
 	<title>
 		{% if title %}
 			{{ title|striptags|strip_html_entities }} | Sefaria Source Sheet Builder
@@ -17,7 +20,7 @@
 		{% endif %}
 	</title>
 
-	<link rel="stylesheet" href="/static/js/jquery-ui/css/smoothness/jquery-ui-1.8.22.custom.css">
+	<link rel="stylesheet" href="/static/js/lib/jquery-ui/css/smoothness/jquery-ui-1.8.22.custom.css">
 	<link rel="stylesheet" href="/static/bootstrap/css/bootstrap.css">
 	<link rel="stylesheet" href="/static/css/base.css">
 	<link rel="stylesheet" href="/static/css/common.css">
@@ -41,7 +44,7 @@
 	<div id="buttonBox">
 		{% if can_edit or can_add %}
 		<span id="addButton" class="circleButton"><span class="fa fa-plus"></span>
-			
+
 			<div class="optionsMenu">
 				<div class="optionGroup">
 					<div class="optionHeader"><i class='fa fa-plus'></i> Add</div>
@@ -82,7 +85,7 @@
 
 				{% if owner_groups %}
 				<div class="optionGroup">
-					<div class="optionTitle"><i class="fa fa-group"></i> Group <i class='fa fa-caret-right'></i></div>				
+					<div class="optionTitle"><i class="fa fa-group"></i> Group <i class='fa fa-caret-right'></i></div>
 					<div class="subMenu">
 						<div class="optionItem groupOption" data-group="None">
 							<i class="fa fa-check"></i> <i>None</i></div>
@@ -140,7 +143,7 @@
 					{% if user.email %}
 					<div class="line"></div>
 					<div class="optionItem" id="editTags">
-						<i class="fa fa-pencil"></i> Edit Sheet Tags</div>				
+						<i class="fa fa-pencil"></i> Edit Sheet Tags</div>
 					{% endif %}
 				{% endif %}
 
@@ -351,22 +354,22 @@
 
 <div id="sharingModal" class="modal">
 	<div class="header">Sharing & Collaboration</div>
-	
+
 	<div class="radio">
 	  <label>
 		<input type="radio" name="sharingOptions" id="sharePrivate" value="private">
 		<span class="iconHolder"><i class="fa fa-user fa-2x fa-pull-left"></i></span>
-		<span class="sharingLabel">Private</span> 
+		<span class="sharingLabel">Private</span>
 		<span class="sharingDesc">Only people with the direct link can view the source sheet.</span>
 	  </label>
 	</div>
 
-	
+
 	<div class="radio groupSharing">
 	  <label>
 		<input type="radio" name="sharingOptions" id="shareGroup" value="group">
 		<span class="iconHolder"><i class="fa fa-group fa-2x fa-pull-left"></i></span>
-		<span class="sharingLabel">Listed for Group Members</span> 
+		<span class="sharingLabel">Listed for Group Members</span>
 		<span class="sharingDesc">Anyone in <span class="groupName">your group</span> can find and view your source sheet.</span>
 	  </label>
 	</div>
@@ -376,25 +379,25 @@
 	  <label>
 		<input type="radio" name="sharingOptions" id="sharePublic" value="public">
 		<span class="iconHolder"><i class="fa fa-globe fa-2x fa-pull-left"></i></span>
-		<span class="sharingLabel">Listed for Sefaria Users</span> 
+		<span class="sharingLabel">Listed for Sefaria Users</span>
 		<span class="sharingDesc">Anyone browsing Sefaria can find and view your source sheet.</span>
 	  </label>
 	</div>
-	
+
 	<div class="radio groupSharing">
 	  <label>
 		<input type="radio" name="sharingOptions" id="shareGroupAdd" value="groupAdd">
 		<span class="iconHolder"><i class="fa fa-group fa-2x fa-pull-left"></i> <i class="fa fa-plus-circle fa-pull-left fa-onTop"></i></span>
-		<span class="sharingLabel">Group Members can Add</span> 
+		<span class="sharingLabel">Group Members can Add</span>
 		<span class="sharingDesc">Anyone in <span class="groupName">your group</span> can find and view and add sources & comments to your sheet.</span>
 	  </label>
 	</div>
-	
+
 	<div class="radio">
 	  <label>
 		<input type="radio" name="sharingOptions" id="sharePublicAdd" value="publicAdd">
 		<span class="iconHolder"><i class="fa fa-globe fa-2x fa-pull-left"></i> <i class="fa fa-plus-circle fa-pull-left fa-onTop"></i></span>
-		<span class="sharingLabel">Anyone can Add</span> 
+		<span class="sharingLabel">Anyone can Add</span>
 		<span class="sharingDesc">Anyone browsing Sefaria can find and view and add sources & comments to your sheet.</span>
 	  </label>
 	</div>
@@ -403,7 +406,7 @@
 	  <label>
 		<input type="radio" name="sharingOptions" id="sharePrivateAdd" value="privateAdd">
 		<span class="iconHolder"><i class="fa fa-link fa-2x fa-pull-left"></i> <i class="fa fa-plus-circle fa-pull-left fa-onTop"></i></span>
-		<span class="sharingLabel">Anyone can Add - Unlisted</span> 
+		<span class="sharingLabel">Anyone can Add - Unlisted</span>
 		<span class="sharingDesc">Anyone with the link to your sheet can view and add sources & comments.</span>
 	  </label>
 	</div>
@@ -412,7 +415,7 @@
 	  <label>
 		<input type="radio" name="sharingOptions" id="shareGroupEdit" value="groupEdit">
 		<span class="iconHolder"><i class="fa fa-group fa-2x fa-pull-left"></i> <i class="fa fa-pencil fa-pull-left fa-onTop"></i></span>
-		<span class="sharingLabel">Group Members can Edit</span> 
+		<span class="sharingLabel">Group Members can Edit</span>
 		<span class="sharingDesc">Anyone in <span class="groupName">your group</span> can make any change to your source sheet.</span>
 	  </label>
 	</div>
@@ -421,7 +424,7 @@
 	  <label>
 		<input type="radio" name="sharingOptions" id="sharePublicEdit" value="publicEdit">
 		<span class="iconHolder"><i class="fa fa-globe fa-2x fa-pull-left"></i> <i class="fa fa-pencil fa-pull-left fa-onTop"></i></span>
-		<span class="sharingLabel">Anyone can Edit</span> 
+		<span class="sharingLabel">Anyone can Edit</span>
 		<span class="sharingDesc">Anyone browsing Sefaria can make any change to your source sheet.</span>
 	  </label>
 	</div>
@@ -430,12 +433,12 @@
 	  <label>
 		<input type="radio" name="sharingOptions" id="sharePrivateEdit" value="privateEdit">
 		<span class="iconHolder"><i class="fa fa-link fa-2x fa-pull-left"></i> <i class="fa fa-pencil fa-pull-left fa-onTop"></i></span>
-		<span class="sharingLabel">Anyone can Edit - Unlisted</span> 
+		<span class="sharingLabel">Anyone can Edit - Unlisted</span>
 		<span class="sharingDesc">Anyone with the link to your sheet can make any change. The sheet will not be publicly listed.</span>
 	  </label>
 	</div>
-	
-	
+
+
 	<div class="btn ok">Save</div>
 </div>
 
@@ -525,7 +528,7 @@
 	<div class="header">Change this source's layout:</div>
 
 		<span id="biLayoutToggleSource" class="toggle"><span id="hebLeftSource" class="toggleOption"><img src="/static/img/backs.png"></span><span id="hebRightSource" class="toggleOption"><img src="/static/img/faces.png"></span></span>
-		
+
 		<span id="sheetLayoutToggleSource" class="toggle"><span id="sideBySideSource" class="toggleOption"><img src="/static/img/sideBySide.png"></span><span id="stackedSource" class="toggleOption"><img src="/static/img/stacked.png"></span></span>
 
 		<span id="languageToggleSource" class="toggle"><span id="englishSource" class="toggleOption"><img src="/static/img/english.png"></span><span id="bilingualSource" class="toggleOption"><img src="/static/img/bilingual.png"></span><span id="hebrewSource" class="toggleOption"><img src="/static/img/hebrew.png"></span></span>
@@ -541,7 +544,7 @@
 <div id="publishPromptModal" class="modal">
 	<div id="prompt">
 		<div class="header">Would you like to make your Source Sheet public?</div>
-		
+
 		<p>Your Source Sheet is looking great! You can share it with other members of the Sefaria Community by making it public.</p>
 
 		<div class="btn btn-primary publish">Make Public</div>
@@ -549,16 +552,16 @@
 	</div>
 	<div id="published" style="display:none;">
 		<div class="header">Your Sheet is now Public!</div>
-		
+
 		<p>Thank you for contributing to a free, growing resource for Jewish learning.</p>
 
 		<div class="btn ok">OK</div>
 	</div>
 	<div id="notPublished" style="display:none;">
 		<div class="header">No problem, this sheet is still private.</div>
-		
+
 		<p>You can make your sheet public in the future from the <span class="label">Share</span> menu.</p>
-git 
+git
 		<div class="btn ok">OK</div>
 	</div>
 </div>
@@ -572,11 +575,11 @@ Footer depends on full bootstrap grid, which isn't loaded in sheets.html
 
 {% include "js/jquery.html" %}
 <script>{% include "js/django-csrf.js" %}</script>
-<script type="text/javascript" src="/static/js/jquery.scrollTo-1.4.2-min.js"></script>
-<script type="text/javascript" src="/static/js/jquery.easing.1.3.js"></script>
-<script type="text/javascript" src="/static/js/jquery-tooltip/jquery.tooltip.js"></script>
-<script src="/static/js/jquery.tag-it.min.js"></script>
-<script src="/static/js/jquery.tooltipster.min.js"></script>
+<script type="text/javascript" src="/static/js/lib/jquery.scrollTo-1.4.2-min.js"></script>
+<script type="text/javascript" src="/static/js/lib/jquery.easing.1.3.js"></script>
+<script type="text/javascript" src="/static/js/lib/jquery-tooltip/jquery.tooltip.js"></script>
+<script src="/static/js/lib/jquery.tag-it.min.js"></script>
+<script src="/static/js/lib/jquery.tooltipster.min.js"></script>
 
 
 {% include "js/headers.js" %}
@@ -584,7 +587,7 @@ Footer depends on full bootstrap grid, which isn't loaded in sheets.html
 <script type="text/javascript">
 {% autoescape off %}
 	var sjs = sjs || {};
-	
+
 	$.extend(sjs, {
 		cache: {},
 		current: {{ sheetJSON|default:"null" }},
@@ -609,7 +612,7 @@ Footer depends on full bootstrap grid, which isn't loaded in sheets.html
 <script src="/static/ckeditor/ckeditor.js"></script>
 <script src="/static/ckeditor/adapters/jquery.js"></script>
 {% endif %}
-<script src="/static/js/util.js"></script>
+<script src="/static/js/s1/util.js"></script>
 <script src="/static/js/sheets.js"></script>
 {% if S2 %}
     {% include "react_header_activate.html" %}

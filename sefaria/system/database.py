@@ -57,6 +57,7 @@ def ensure_indices():
     db.links.ensure_index("refs.0")
     db.links.ensure_index("refs.1")
     db.links.ensure_index("source_text_oid")
+    db.links.ensure_index("is_first_comment")
     db.metrics.ensure_index("timestamp", unique=True)
     db.notes.ensure_index([("owner", pymongo.ASCENDING), ("ref", pymongo.ASCENDING), ("public", pymongo.ASCENDING)])
     db.notifications.ensure_index([("uid", pymongo.ASCENDING), ("read", pymongo.ASCENDING)])

@@ -2,7 +2,13 @@
 
 {% load sefaria_tags %}
 
-{% block title %}{{ primary_name.en }}{% endblock %}
+{% block titleEnglish %}{{ primary_name.en }} | Sefaria{% endblock %}
+
+{% block titleHebrew %}{{ primary_name.he }} | Sefaria{% endblock %}
+
+{% block descriptionEnglish %}{{ enBio }}{% endblock %}
+
+{% block descriptionHebrew %}{{ heBio }}{% endblock %}
 
 {% block head %}
 <script src="https://d3js.org/d3.v3.min.js"></script>

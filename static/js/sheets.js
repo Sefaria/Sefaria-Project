@@ -37,12 +37,12 @@ sjs.lastEdit = null;
 
 
 $(window).on("beforeunload", function() {
-	if (!($("#save").text() == "Saving...")) {
+	if (!($("#save").data("mode") == "saving")) {
 		if (sjs._uid && !(sjs.current.id) && $("#empty").length === 0) {
-			return "Your Source Sheet has unsaved changes. Before leaving the page, click Save to keep your work.";
+			return translateInterfaceString("Your Source Sheet has unsaved changes. Before leaving the page, click Save to keep your work.");
 		}
 		else if ($("#lastSaved").text() == "Saving...") {
-			return "Your Source Sheet has unsaved changes. Please wait for the autosave to finish.";
+			return translateInterfaceString("Your Source Sheet has unsaved changes. Please wait for the autosave to finish.");
 		}
 	}
 });
@@ -50,7 +50,8 @@ $(window).on("beforeunload", function() {
 var oldOnError = window.onerror || function(){};
 function errorWarning(errorMsg, url, lineNumber) {
 	if (sjs.can_edit || sjs.can_add) {
-		sjs.alert.message("Unfortunately an error has occurred.<br>If you've recently edited text on this page, you may want to copy your recent work out of this page and click reload to ensure your work is properly saved.")
+		sjs.alert.message(translateInterfaceString("Unfortunately an error has occurred. If you've recently edited text on this page, you may want to copy your recent work out of this page and click reload to ensure" +
+		" your work is properly saved."))
 	}
 }
 window.onerror = function (errorMsg, url, lineNumber) {
@@ -76,9 +77,9 @@ $(function() {
 	);
 
 	function makeMediaEmbedLink(mediaURL) {
-	    var re = /https?:\/\/(www\.)?(youtu(?:\.be|be\.com)\/(?:.*v(?:\/|=)|(?:.*\/)?)([\w'-]+))/i;
-   		var m;
-        var embedHTML;
+	  var re = /https?:\/\/(www\.)?(youtu(?:\.be|be\.com)\/(?:.*v(?:\/|=)|(?:.*\/)?)([\w'-]+))/i;
+  	var m;
+    var embedHTML;
 
 		if ((m = re.exec(mediaURL)) !== null) {
 			if (m.index === re.lastIndex) {
@@ -100,6 +101,10 @@ $(function() {
 
 		else if ( (mediaURL).match(/https?:\/\/.*clyp\.it\/.+/i) != null ) {
 					embedHTML = '<audio src="'+mediaURL+'.mp3" type="audio/mpeg" controls>Your browser does not support the audio element.</audio>';
+		}
+
+		else if ( (mediaURL).match(/^https?:\/\/(www\.|m\.)?soundcloud\.com\/[\w\-\.]+\/[\w\-\.]+\/?$/i) != null ) {
+					embedHTML = '<iframe width="100%" height="166" scrolling="no" frameborder="no" src="https://w.soundcloud.com/player/?url='+ mediaURL + '&amp;color=ff5500&amp;auto_play=false&amp;hide_related=true&amp;show_comments=false&amp;show_user=true&amp;show_reposts=false"></iframe>';
 		}
 
 		else embedHTML = false;
@@ -137,6 +142,7 @@ $(function() {
             addSource(q, undefined, "insert", $target);
             $('#inlineAdd').val('');
             $("#inlineTextPreview").html("");
+            $("#inlineTextPreview").hide();
             $("#inlineAddDialogTitle").text("Select a text");
             $("#inlineAddSourceOK").addClass("disabled");
             $("#sheet").click();
@@ -238,7 +244,7 @@ $(function() {
 
           var return_message = "";
           var prompt_message = (data["lang"]=="en")?"Select a text":"נא בחרו טקסט";
-          var success_message = (data["lang"]=="en")?"OK. Click <b>add</b> to continue":("לחצו " + "<b>add</b>" + " בכדי להמשיך");
+          var success_message = (data["lang"]=="en")?"OK. Click <b>add</b> to continue":("לחצו " + "<b>הוסף</b>" + " בכדי להמשיך");
           var or_phrase = (data["lang"]=="en")?" or ":" או ";
           var range_phrase = (data["lang"] == "en")?"enter a range.  E.g. ":"הוסיפו טווח. לדוגמא ";
 
@@ -318,12 +324,14 @@ $(function() {
 
             // Set it on the DOM
             this.$input.autocomplete("disable");
+            this.$preview.show();
             this.$preview.html("<div class='en'>" + en.join("") + "</div>" + "<div class='he'>" + he.join("") + "</div>");
             this.$preview.position({my: "left top", at: "left bottom", of: this.$input, collision: "none" }).width('691px').css('margin-top','20px');
         }.bind(this));
       },
       check: function() {
           this.$preview.html("");
+          this.$preview.hide();
           this.$input.autocomplete("enable");
           var inString = this.$input.val();
           if (inString.length < 3) {
@@ -334,7 +342,7 @@ $(function() {
       }
     };
 
-    // As currently designed, the object is instanciated, and sets up its own events.
+    // As currently designed, the object is instantiated and sets up its own events.
     // It doesn't need to be interacted with from the outside.
     var validator = new RefValidator($("#inlineAdd"), $("#inlineAddDialogTitle"), $("#inlineAddSourceOK"), $("#inlineTextPreview"));
 
@@ -366,7 +374,7 @@ $(function() {
 		$(this).hide();
 		$("#StopCollectingAssignmentsButton").show();
 		$("#sheet").addClass('assignable');
-		$("#assignmentDirections").html('Students can complete their assignment at this link:');
+		$("#assignmentDirections").html(translateInterfaceString('Students can complete their assignment at this link:'));
 		$("#assignmentURLLink").show();
 		$("#assignedSheets").show();
 		autoSave();
@@ -377,7 +385,7 @@ $(function() {
 		$(this).hide();
 		$("#makeSheetAssignableButton").show();
 		$("#sheet").removeClass('assignable');
-		$("#assignmentDirections").html('Assignments allow you to create a template that your students can fill out on their own.')
+		$("#assignmentDirections").html(translateInterfaceString('Assignments allow you to create a template that your students can fill out on their own.'));
 		$("#assignmentURLLink").hide();
 		if ( $("#assignedSheets a").length > 0) {
 			$("#assignedSheets").show();
@@ -681,7 +689,7 @@ $(function() {
 
 	$("#empty .remove").click(function() { $("#empty").remove(); });
 
-	$("#readmore").toggle(function(e) { $("#howItWorks").show(); e.preventDefault(); }, function(e) {
+	$(".empty_readmore").toggle(function(e) { $("#howItWorks").show(); e.preventDefault(); }, function(e) {
 		$("#howItWorks").hide(); e.preventDefault();
 	});
 
@@ -689,17 +697,16 @@ $(function() {
 	// --------- CKEditor ------------
 
 	if (sjs.can_edit || sjs.can_add ) {
+		CKEDITOR.config.language = sjs.interfaceLang;
 		CKEDITOR.disableAutoInline = true;
 		CKEDITOR.config.startupFocus = true;
 		CKEDITOR.config.extraAllowedContent = 'small; span(segment, gemarra-regular, gemarra-italic, it-text); div(oldComment)';
-		CKEDITOR.config.removePlugins = 'magicline';
+		CKEDITOR.config.removePlugins = 'magicline,resize';
 
 		if ($.cookie("s2") == "true") {
-
-		CKEDITOR.config.extraPlugins = 'sharedspace';
-		CKEDITOR.config.sharedSpaces = {top: 'ckeTopMenu' };
-
-			}
+            /*CKEDITOR.config.extraPlugins = 'sharedspace';*/
+            CKEDITOR.config.sharedSpaces = {top: 'ckeTopMenu' };
+        }
 		CKEDITOR.on('instanceReady', function(ev) {
 		  // replace &nbsp; from pasted text
 		  ev.editor.on('paste', function(evt) {
@@ -719,7 +726,6 @@ $(function() {
 			'Verdana/Verdana, Geneva, sans-serif;';
 
 		if ($.cookie("s2") == "true") {
-
 			CKEDITOR.config.toolbar = [
 				{name: 'removestyle', items: ['RemoveFormat']},
 				{name: 'basicstyles', items: ['Bold', 'Italic', 'Underline', 'Strike', 'Subscript', 'Superscript']},
@@ -765,7 +771,7 @@ $(function() {
 				if (!text.length) {
 					// Title
 					if ($el.prop("id") === "title") {
-						$el.text("Untitled Source Sheet");
+						$el.text(translateInterfaceString("Untitled Source Sheet"));
 					
 					// Comment
 					} else if ($el.hasClass("comment")) {
@@ -816,6 +822,7 @@ $(function() {
 
 			editor.destroy();
 			$("[contenteditable]").attr("contenteditable", "false");
+			$(".sheetsEditorControls").hide();
 		};
 
 		sjs.removeCKEditorByElement = function(el) {
@@ -824,6 +831,7 @@ $(function() {
 		};
 
 		sjs.initCKEditor = function(e) {
+			$(".sheetsEditorControls").show();
 			// Don't init again, or while sorting
 			if ($(this).hasClass("cke_editable")) { return; }
 			if (sjs.flags.sorting) { return; }
@@ -866,7 +874,7 @@ $(function() {
 
 				saveCkEditorContinuous(ed);
 				$(this).on('keydown', function (e) {
-					$("#lastSaved").text("Saving...");
+					$("#lastSaved").find(".saving").show().siblings().hide();
 				});
 			}
 		};
@@ -972,13 +980,13 @@ $(function() {
 		
 		var likeCount = parseInt($("#likeCount").text());
 		if ($(this).hasClass("liked")) {
-			$(this).removeClass("liked").text("Like");
+			$(this).removeClass("liked").text(translateInterfaceString("Like"));
 			likeCount -= 1;
 			$("#likeCount").text(likeCount);
 			$.post("/api/sheets/" + sjs.current.id + "/unlike");
     		sjs.track.sheets("Unlike", sjs.current.id);
 		} else {
-			$(this).addClass("liked").text("Unlike");
+			$(this).addClass("liked").text(translateInterfaceString("Unlike"));
 			$.post("/api/sheets/" + sjs.current.id + "/like");
 			likeCount += 1;
 			$("#likeCount").text(likeCount);
@@ -986,15 +994,16 @@ $(function() {
 		}
 		$("#likeInfoBox").toggle(likeCount != 0);
 		$("#likePlural").toggle(likeCount != 1);
+		$("#likeSingular").toggle(likeCount == 1);
 	});
 	$("#likeInfo").click(function(e) {
 		$.getJSON("/api/sheets/" + sjs.current.id + "/likers", function(data) {
 			if (data.likers.length == 0) { 
-				var title = "No one has liked this sheet yet. Will you be the first?";
+				var title = translateInterfaceString("No one has liked this sheet yet. Will you be the first?");
 			} else if (data.likers.length == 1) {
-				var title = "1 Person Likes This Sheet";
+				var title = translateInterfaceString("1 Person Likes This Sheet");
 			} else {
-				var title = data.likers.length + " People Like This Sheet";
+				var title = data.likers.length + translateInterfaceString(" People Like This Sheet");
 			}
 			sjs.peopleList(data.likers, title);
 		});
@@ -1013,7 +1022,7 @@ $(function() {
 		buildSheet(sjs.current);
 		afterAction();
 	} else {
-		$("#title").html("New Source Sheet");
+		(sjs.interfaceLang == "en") ? $("#title").html("New Source Sheet") : $("#title").html("דף מקורות חדש") ;
 		$("#bilingual, #enLeft, #sideBySide").trigger("click");
 		$("#viewButtons").show();
 		$("#empty").show();
@@ -1168,6 +1177,7 @@ $(function() {
 			$("#addInterface").on("click", ".buttonBar .addInterfaceButton", function (e) {
 				$("#addInterface .addInterfaceButton").removeClass('active');
 				$("#inlineTextPreview").html("");
+				$("#inlineTextPreview").hide();
 				$(this).addClass('active');
 				var divToShow = "#add" + ($(this).attr('id').replace('Button', '')) + "Div";
 				$(".contentDiv > div").hide();
@@ -1610,7 +1620,7 @@ $(function() {
 
 	$(".parshahToAdd").click(function(){
 		$("#addParashaToSheetModal, #overlay").hide();
-        var parasha = $(this).text();
+        var parasha = $(this).data("parsha");
 		$.getJSON("/api/sheets/"+ parasha +"/get_aliyot", function(data) {
 			if ("error" in data) {
 				sjs.alert.flash(data.error);
@@ -1805,17 +1815,19 @@ $(function() {
 	});
 
 	$("#highlightMenu .optionsMenu").on('click', '.segmentedContinuousToggle', function() {
-
-		if ($(this).text() == "Paragraph View") {
-			$(this).text('Line-by-line View');
+		var $elem = $(this);
+		if ($elem.data("mode") == "continuous") {
+			$elem.find(".continuousActive").hide();
+			$elem.find(".segmentedActive").show();
 			$('.highlighterSegment').css({'display': 'block'});
-	}
-
-		else /*view mode */ {
-			$(this).text('Paragraph View');
-			$('.highlighterSegment').css({'display': 'inline'});
+			$elem.data("mode", "segmented");
 		}
-
+		else /*view mode */ {
+			$elem.find(".segmentedActive").hide();
+			$elem.find(".continuousActive").show();
+			$('.highlighterSegment').css({'display': 'inline'});
+			$elem.data("mode", "continuous");
+		}
 	});
 
 	$(".highlighterTagWindow").on('click','.close-button', function() {closeHighlighterTagWindow()});
@@ -1825,7 +1837,7 @@ $(function() {
 	function saveNewlyCreatedTag(newTagName,newTagColor) {
 		if (newTagName !== "Create New" && newTagName !== "") {
 			$(".sheetHighlighterTags").append('<div class="splitHighlighterSegment" data-tagname="' + newTagName + '"><div class="colorSwatch active" style="background-color: ' + newTagColor + '"></div><div class="tagName">' + newTagName + '</div><div class="editCheckToggle">✎</div></div>');
-			$(".highlighterFilterTags").append('<div class="highlightFilterSelection"><input type="checkbox" name="highlighterFilterTags" id ="'+newTagName+'_highlighterTag" value="' + newTagName + '" checked="checked"> <label for="'+newTagName+'_highlighterTag" style="background-color: ' + newTagColor + '">' + newTagName + '</label></div>');
+			$(".highlighterFilterTags").append('<div class="optionItem highlightFilterSelection"><input type="checkbox" name="highlighterFilterTags" id ="'+newTagName+'_highlighterTag" value="' + newTagName + '" checked="checked"> <label for="'+newTagName+'_highlighterTag" style="background-color: ' + newTagColor + '">' + newTagName + '</label></div>');
 			resetSplitHighlighterSegment();
 			resetHighlighterFilterTags();
 			autoSave();
@@ -1837,7 +1849,7 @@ $(function() {
 	function applyNewlyCreatedTag(newTagName,newTagColor) {
 		if (newTagName !== "Create New" && newTagName !== "") {
 			$(".sheetHighlighterTags").append('<div class="splitHighlighterSegment active" data-tagname="' + newTagName + '"><div class="colorSwatch active" style="background-color: ' + newTagColor + '"></div><div class="tagName">' + newTagName + '</div><div class="editCheckToggle">✎</div></div>');
-			$(".highlighterFilterTags").append('<div class="highlightFilterSelection"><input type="checkbox" name="highlighterFilterTags" id ="'+newTagName+'_highlighterTag" value="' + newTagName + '" checked="checked"> <label for="'+newTagName+'_highlighterTag" style="background-color: ' + newTagColor + '">' + newTagName + '</label></div>');
+			$(".highlighterFilterTags").append('<div class="optionItem highlightFilterSelection"><input type="checkbox" name="highlighterFilterTags" id ="'+newTagName+'_highlighterTag" value="' + newTagName + '" checked="checked"> <label for="'+newTagName+'_highlighterTag" style="background-color: ' + newTagColor + '">' + newTagName + '</label></div>');
 			resetSplitHighlighterSegment();
 			resetHighlighterFilterTags();
 			$(".highlighterTagWindow .save").click();
@@ -2352,8 +2364,20 @@ function addSource(q, source, appendOrInsert, $target) {
 	var addedByMe = (source && source.addedBy && source.addedBy == sjs._uid) ||
 					(!source && sjs.can_add);
 
-	var attributionLink = (source && "userLink" in source ? "<div class='addedBy'>Added by " + source.userLink + "</div>" :
-							addedByMe && !source ? "<div class='addedBy'>Added by " + sjs._userLink + "</div>" : "");
+	var attributionLink = (source && "userLink" in source ?
+		"<div class='addedBy'>" +
+			"<span class='int-en'>Added by</span><span class='int-he'>נוסף בידי</span>"
+			+ source.userLink +
+		"</div>"
+		:
+		addedByMe && !source ?
+			"<div class='addedBy'>" +
+			"<span class='int-en'>Added by</span><span class='int-he'>נוסף בידי</span>"
+			+ sjs._userLink +
+			"</div>"
+			:
+			""
+	);
 
 	if (source && "node" in source) {
 		var node = source.node;
@@ -2373,7 +2397,9 @@ function addSource(q, source, appendOrInsert, $target) {
 	var newsource = "<li " + attributionData + "data-ref='" + enRef.replace(/'/g, "&apos;") + "'" + " data-heRef='" + heRef.replace(/'/g, "&apos;") + "'" + " data-node='" + node + "'>"
 		+"<div class='sourceNumber he'></div><div class='sourceNumber en'></div>"
 		+"<div class='customTitle'></div>"
-		+"<div class='he'>" + "<span class='title'>" +"<a class='he' href='" + refLink + "' target='_blank'><span class='ref'></span>" + heRef.replace(/\d+(\-\d+)?/g, "").replace(/([0-9][b|a]| ב| א):.+/,"$1") + " </a>" + "</span>" +"<div class='text'>" +"<div class='he'>" + (source && source.text ? source.text.he : "") + "</div>" +"</div>" + "<div class='highlighter'><div class='he'></div></div>" + "</div>" + "<div class='en'>" +"<span class='title'>" +"<a class='en' href='" + refLink + "' target='_blank'><span class='ref'>" + enRef.replace(/([0-9][b|a]| ב| א):.+/,"$1") + "</span> </a>" +"</span>" +"<div class='text'>" +"<div class='en'>" + (source && source.text ? source.text.en : "") + "</div>" + "</div>" + "<div class='highlighter'><div class='en'></div></div>" +"</div>" + "<div class='clear'></div>" + attributionLink + appendInlineAddButton() + "</li>";
+		+"<div class='he'>" +
+		"<span class='title'>"
+		+"<a class='he' href='" + refLink + "' target='_blank'><span class='ref'></span>" + heRef.replace(/\d+(\-\d+)?/g, "").replace(/([0-9][b|a]| ב| א):.+/,"$1") + " </a>" + "</span>" +"<div class='text'>" +"<div class='he'>" + (source && source.text ? source.text.he : "") + "</div>" +"</div>" + "<div class='highlighter'><div class='he'></div></div>" + "</div>" + "<div class='en'>" +"<span class='title'>" +"<a class='en' href='" + refLink + "' target='_blank'><span class='ref'>" + enRef.replace(/([0-9][b|a]| ב| א):.+/,"$1") + "</span> </a>" +"</span>" +"<div class='text'>" +"<div class='en'>" + (source && source.text ? source.text.en : "") + "</div>" + "</div>" + "<div class='highlighter'><div class='en'></div></div>" +"</div>" + "<div class='clear'></div>" + attributionLink + appendInlineAddButton() + "</li>";
 
 	if (appendOrInsert == "append") {
 		$("#sources").append(newsource);
@@ -2803,7 +2829,8 @@ function handleSave() {
 		return alert("Sorry I can't save what you've got here: you need to be signed in to save."); 
 	}
 	sjs.loading = false;
-	$("#save").text("Saving...");
+	$("#save").data("mode", "saving").find("#inSave").show().siblings().hide();
+
 	var sheet = readSheet();
 	saveSheet(sheet, true);
 	sjs.track.sheets("Save New Sheet");
@@ -2812,7 +2839,7 @@ function handleSave() {
 
 function autoSave() {
 	if (sjs.can_save && sjs.current.id && !sjs.loading && !sjs.openRequests) {
-		$("#lastSaved").text("Saving...");
+		$("#lastSaved").find(".saving").show().siblings().hide();
 		var sheet = readSheet();
 		saveSheet(sheet);
 	}
@@ -2834,12 +2861,13 @@ function saveSheet(sheet, reload) {
 			sjs.lastEdit = null;    // save was succesful, won't need to replay
 			startPollingIfNeeded(); // Start or stop polling if collab/group status has changed
 			promptToPublish();      // If conditions are right, prompt to publish
-			$("#lastSaved").text("All changes saved in Sefaria");
+			var $lastSaved = $("#lastSaved");
+			$lastSaved.find(".lastSavedConfirmed").show().siblings().hide();
 		} 
 
 		if ("error" in data) {
 			sjs.alert.flash(data.error);
-			$("#save").text("Save");
+			$("#save").data("mode", "editing").find("#doSave").show().siblings().hide();
 		}
 	})
 }
@@ -2859,7 +2887,7 @@ function buildSheet(data){
 			$("#title").addClass("heTitle");
 		}
 	} else {
-		$("#title").text("Untitled Source Sheet");
+		$("#title").html(translateInterfaceString("Untitled Source Sheet"));
 	}
 	$("#sources").css("min-height",($("#sources").css("height"))); //To prevent 'jumping' as the sheet is rebuilt when polling is triggered we temporarily set the min-height, and remove it at the end of the function.
 
@@ -2968,7 +2996,7 @@ function buildSheet(data){
 						+"<div class='colorSwatch' style='background-color: #e8dde5'></div>"
 						+"<div class='colorSwatch' style='background-color: #d2ddc9'></div>"
 				+'<div class="tagName">'+data.highlighterTags[i].name+'</div><div class="editCheckToggle">✎</div></div>');
-			$(".highlighterFilterTags").append('<div class="highlightFilterSelection"><input type="checkbox" name="highlighterFilterTags" id="'+data.highlighterTags[i].name+'_highlighterTag" value="'+data.highlighterTags[i].name+'" checked="checked"> <label for="'+ data.highlighterTags[i].name +'_highlighterTag" style="background-color: '+data.highlighterTags[i].color+'">'+data.highlighterTags[i].name+'</label></div>');
+			$(".highlighterFilterTags").append('<div class="optionItem highlightFilterSelection"><input type="checkbox" name="highlighterFilterTags" id="'+data.highlighterTags[i].name+'_highlighterTag" value="'+data.highlighterTags[i].name+'" checked="checked"> <label for="'+ data.highlighterTags[i].name +'_highlighterTag" style="background-color: '+data.highlighterTags[i].color+'">'+data.highlighterTags[i].name+'</label></div>');
 		}
 	}
 }
@@ -3116,6 +3144,10 @@ function buildSource($target, source, appendOrInsert) {
 		
 		else if (source.media.toLowerCase().indexOf('youtube') > 0) {
 			mediaLink = '<iframe width="560" height="315" src='+source.media+' frameborder="0" allowfullscreen></iframe>'
+		}
+
+		else if (source.media.toLowerCase().indexOf('soundcloud') > 0) {
+			mediaLink = '<iframe width="100%" height="166" scrolling="no" frameborder="no" src="'+source.media+'"></iframe>'
 		}
 
 		else if (source.media.match(/\.(mp3)$/i) != null) {
@@ -3304,7 +3336,7 @@ function pollForUpdates() {
 		} else if (data.modified) {
 				if ($(".sheetItem").find(".cke_editable").length) {
 					sjs.changesPending = true;
-				  $("#lastSaved").text('Changes Pending...');
+				  	$("#lastSaved").find(".pending").show().siblings().hide();;
 				}
 				else {
 					rebuildUpdatedSheet(data);
@@ -3441,7 +3473,8 @@ function copyToSheet(source) {
 			sheets += '<li class="sheet new"><i>Start a New Source Sheet</i></li>';
 			for (i = 0; i < data.sheets.length; i++) {
 				sheets += '<li class="sheet" data-id="'+data.sheets[i].id+'">'+
-					data.sheets[i].title.stripHtml() + "</li>";
+					(data.sheets[i].title === null ? "Untitled Source Sheet": data.sheets[i].title.stripHtml()) +
+					"</li>";
 			}
 			$("#sheetList").html(sheets);
 			$("#addToSheetModal").position({of:$(window)});
@@ -3537,7 +3570,8 @@ function copySheet() {
  	var postJSON = JSON.stringify(sheet);
 	$.post("/api/sheets/", {"json": postJSON}, function(data) {
 		if (data.id) {
-			sjs.alert.message('Source Sheet copied.<br><br><a href="/sheets/'+data.id+'">View copy &raquo;</a>');
+			sjs.alert.message('<span class="int-en">Source Sheet copied.</span><span class="int-he">דף המקורות הועתק.</span><br><br><a href="/sheets/'+data.id+'"><span class="int-en">View copy &raquo;</span><span' +
+				' class="int-he">צפה בהעתק &raquo;</span> </a>');
 
 		} else if ("error" in data) {
 			sjs.alert.message(data.error);
@@ -3548,7 +3582,7 @@ function copySheet() {
 
 function exportToDrive() {
 	$("#overlay").show();
-	sjs.alert.message("Syncing with Google Docs...");
+	sjs.alert.message('<span class="int-en">Syncing with Google Docs...</span><span class="int-he">מייצא לגוגל דרייב...</span>');
 	sjs.track.sheets("Export to Google Drive");
 
 	$.ajax({
@@ -3585,7 +3619,8 @@ function toggleHighlighter() {
 	if ($("#sheet").hasClass("highlightMode")) {
 		$("#sheet").removeClass("highlightMode");
 		$("#highlightModeDisplay").hide();
-		$("#highlightToggle").html('<i class="fa fa-pencil"></i>Highlight Mode');
+		$("#highlightToggleDeactivate").hide();
+		$("#highlightToggleActivate").show();
 		$("#highlightMenu").css('display','none');
 		if ($("#sources").data('ui-sortable')) {
 			$("#sources").sortable("enable"); //disable dragging while in highlighter edit mode....
@@ -3594,7 +3629,8 @@ function toggleHighlighter() {
 	else {
 		$("#sheet").addClass("highlightMode");
 		$("#highlightModeDisplay").show();
-		$("#highlightToggle").html('<i class="fa fa-pencil"></i>Exit Highlight Mode');
+		$("#highlightToggleActivate").hide();
+		$("#highlightToggleDeactivate").show();
 		$("#highlightMenu").css('display','inline-block');
 		if ($("#sources").data('ui-sortable')) {
 			$("#sources").sortable("disable"); //disable dragging while in highlighter edit mode....
@@ -3623,12 +3659,22 @@ function showShareModal(){
 
 
 function deleteSheet() {
-	if (confirm("Are you sure you want to delete this sheet? There is no way to undo this action.")) {
+	if (confirm(translateInterfaceString("Are you sure you want to delete this sheet? There is no way to undo this action."))) {
 		$.post("/api/sheets/" + sjs.current.id + "/delete", function (data){
 			if ("error" in data) {
 				sjs.alert.message(data.error);
 			} else {
-				sjs.alert.messageOnly("Source Sheet deleted.<br><br><a href='/sheets'><div class='ok btn'>OK</div></a>");
+				sjs.alert.messageOnly(
+					"<span class='int-en'>Source Sheet deleted.</span>" +
+					"<span class='int-he'>דף המקורות נמחק בהצלחה.</span>" +
+					"<br><br>" +
+					"<a href='/sheets/private'>" +
+						"<div class='ok btn'>" +
+							"<span class='int-en'>OK</span>" +
+							"<span class='int-he'>המשך</span>" +
+						"</div>" +
+					"</a>"
+				);
 			}
 		})
 	}
@@ -3912,4 +3958,42 @@ function restoreSelection(range) {
 						range.select();
 				}
 		}
+}
+
+$.extend(sjs, {
+	i18nInterfaceStrings: {
+		"Loading..." : "טוען...",
+		"Saving..." : "שומר...",
+		"Your Source Sheet has unsaved changes. Before leaving the page, click Save to keep your work.":
+			"קיימים שינויים בלתי שמורים בדף המקורות. השתמשו בכפתור השמירה לפני עזיבת הדף.",
+		"Your Source Sheet has unsaved changes. Please wait for the autosave to finish.":
+			"קיימים שינויים בלתי שמורים בדף המקורות. אנא חכו שפעולת השמירה האוטומטית תסתיים.",
+		"Are you sure you want to delete this sheet? There is no way to undo this action.":
+			"מחיקת דף מקורות היא פעולה בלתי הפיכה. האם אתם בטוחים?",
+		"Unfortunately an error has occurred. If you've recently edited text on this page, you may want to copy your recent work out of this page and click reload to ensure your work is properly saved.":
+			"לצערנו ארעה שגיאה. אם ערכתם לאחרונה את הדף הנוכחי, ייתכן ותרצו להעתיק את השינויים למקור חיצוני ואז לטעון מחדש את הדף כדי לוודא שהשינויים נשמרו.",
+		"Untitled Source Sheet": "דף מקורות ללא שם",
+		"Like": "אהבתי",
+		"Unlike": "בטל סימון אהבתי",
+		"No one has liked this sheet yet. Will you be the first?":
+			"אף אחד עדיין לא אהב את דף המקורות הזה. תרצה להיות הראשון?",
+		"1 Person Likes This Sheet": "אדם אחד אהב את דף המקורות",
+		" People Like This Sheet": " אנשים אהבו את דף המקורות",
+		"Tags Saved": "תוית נשמרה",
+		"Assignments allow you to create a template that your students can fill out on their own.":
+			"מטלות מאפשרות ליצור דף בסיס שתלמידים יכולים להשתמש בו כדי למלא וליצור את העבודה שלהם.",
+		"Students can complete their assignment at this link:":
+			"תלמידים יכולים לבצע את המטלה שלהם בקישור הבא:"
+
+
+	}
+});
+
+function translateInterfaceString(key, defaultValue){
+	defaultValue = typeof defaultValue === 'undefined' ? null : defaultValue;
+	if(sjs.interfaceLang != "en" && key in sjs.i18nInterfaceStrings){
+		return sjs.i18nInterfaceStrings[key];
+	}else{
+		return (defaultValue ? defaultValue : key);
+	}
 }

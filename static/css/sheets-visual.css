@@ -14,6 +14,7 @@ body {
 	box-shadow: 0 10px 10px 2px rgba(0,0,0,0.3);
 	padding-top: 40px;
 	left: -1000px;
+	box-sizing: content-box;
 }
 
 

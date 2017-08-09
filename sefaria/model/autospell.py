@@ -81,6 +81,7 @@ class AutoCompleter(object):
             self.spell_checker.train_phrases(person_names)
             self.ngram_matcher.train_phrases(person_names, normal_person_names)
 
+
     @staticmethod
     def _get_main_categories(otoc):
         cats = []
@@ -219,7 +220,10 @@ class Completions(object):
         non_primary_matches = []
         for k, v in all_continuations:
             if v["is_primary"] and v["key"] not in self.keys_covered:
-                self.completions += [v["title"]]
+                if v["type"] == "ref":
+                    self.completions += [v["title"]]
+                else:
+                    self.completions.insert(0, v["title"])
                 self.keys_covered.add(v["key"])
             else:
                 non_primary_matches += [(k, v)]

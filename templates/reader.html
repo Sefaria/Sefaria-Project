@@ -4,12 +4,12 @@
 <html>
 
 <head>
-	
+
 	<title>{{ page_title }} | Sefaria.org</title>
 	<meta name="description" content="{{ description_text }}... [{{ page_title }} {{ title_variants }}]">
 	<meta name="apple-mobile-web-app-capable" content="yes">
-	<meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no" />	
-	<link rel="stylesheet" href="/static/js/jquery-ui/css/smoothness/jquery-ui-1.8.22.custom.css">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+	<link rel="stylesheet" href="/static/js/lib/jquery-ui/css/smoothness/jquery-ui-1.8.22.custom.css">
 	<link rel="stylesheet" href="/static/font-awesome/css/font-awesome.css">
 	<link rel="stylesheet" href="/static/css/common.css">
 	<link rel="stylesheet" href="/static/css/reader.css">
@@ -28,7 +28,7 @@
 		{% include "elements/share_link.html" %}
 	</div>
 
-	<div class="screen-container" style="left:-5000%">	
+	<div class="screen-container" style="left:-5000%">
 		<div class="screen" style="left:5000%">
 			<div class="basetext {{ layout }} {{ lines }} {{ contentLang }} {% if not hasSidebar %}noCommentary{% endif %}">
 				<div class="sectionTitle">
@@ -64,7 +64,7 @@
 							<i class="fa fa-bars"></i>
 						</span>
 						<div class="clear"></div>
-					</div>	
+					</div>
 				</div>
 			</div>
 			<div class="sourcesList sidePanel">
@@ -107,8 +107,8 @@
 
 		</span>
 	</div>
-		
-	<div id="verseSelectModal" class="modal">	
+
+	<div id="verseSelectModal" class="modal">
 		<div id="selectInstructions">
 			<div>Click a <span class="smallSectionName"></span> to add a <span class="sourceOrNote">Source</span>.</div>
 			<span class="btn cancel">Cancel</span>
@@ -175,7 +175,7 @@
 				<div class="exampleReview">I checked this text against the edition on X website, all looks good.</div>
 				<div class="exampleReview">I read this text carefully and don't see anything wrong.</div>
 			</div>
-			
+
 			<p><b>For original translations:</b> Review the text carefully next to the original, and comment on its accuracy and style according to our <a href="/translation-guidelines" target="_blank">translation guidelines</a>.</p>
 			<div class="reviewExamples">
 				<div class="exampleReview">This translation seems accurate to me.</div>
@@ -206,7 +206,7 @@
 	</div>
 
 
-	<div id="newVersionBox">		
+	<div id="newVersionBox">
 		<div id="addVersionHeader">
 			<div id="editTitle"></div>
 			<div id="addVersionHeaderLeft">
@@ -214,7 +214,7 @@
 				<a class="compareSource" href="#" target="_blank">Source <i class="fa fa-external-link"></i></a>
 			</div>
 			<div id="addVersionHeaderRight">
-				
+
 				<div id="textTypeForm">
 					<span class="option">
 						<input type="radio" id="originalRadio" name="newTextType" value="original" checked="checked">
@@ -229,10 +229,10 @@
 				<div id="cc0Message" class="alert">
 					This text will be published with a <a href="http://creativecommons.org/publicdomain/zero/1.0/" target="_blank">CC-0</a> licence, effectively donating it to the Public Domain. Only submit texts as "Original Translation" that you have authored.
 				</div>
-				<div id="copiedTextForm">	
+				<div id="copiedTextForm">
 					<div id="copyWarning" class="alert">
 						Copied texts must either be in the <b>Public Domain</b> or carry a <b>Creative Commons</b> license such as <a href="http://creativecommons.org/publicdomain/zero/1.0/" target="_blank">CC0</a>, <a href="http://creativecommons.org/licenses/by/3.0" target="_blank">CC-BY</a>, or <a href="http://creativecommons.org/licenses/by-sa/3.0/" target="_blank">CC-BY-SA</a>. You can learn more about when a text passes into the Public Domain on this <a href="http://copyright.cornell.edu/resources/publicdomain.cfm" target="_blank">summary of Copyright Terms</a>.
-					</div>		
+					</div>
 					<div><span>Version Title:</span> <input id="versionTitle"></div>
 					<div><span>Copied from:</span> <input placeholder="a URL or book" id="versionSource"></div>
 				</div>
@@ -259,14 +259,14 @@
 		<div id="newTextCompare"></div>
 
 	</div>
-	
+
 	{% include "elements/contribute_prompt.html" %}
 
 	{% include "elements/edit_video.html" %}
 
 	{% include "elements/login_prompt.html" with msg="Please log in to add or edit." %}
 
-	
+
 	<div id="unsupported">
 		Sefaria does not currently run on Internet Explorer.
 		<br><br>
@@ -277,23 +277,23 @@
 
 
 {% include "js/jquery.html" %}
-<script src="/static/js/jquery.scrollTo-1.4.2-min.js"></script>
-<script src="/static/js/jquery.history.js"></script>
-<script src="/static/js/jquery.easing.1.3.js"></script>
-<script src="/static/js/jquery.caret.1.02.js"></script>
-<script src="/static/js/jquery.textchange.js"></script>
-<script src="/static/js/jquery.autosize.js"></script>
-<script src="/static/js/jquery.slimscroll.min.js"></script>
-<script src="/static/js/jquery.tag-it.min.js"></script>
-<script src="/static/js/jquery.raty.js"></script>
-<script src="/static/js/jquery.tooltipster.min.js"></script>
+<script src="/static/js/lib/jquery.scrollTo-1.4.2-min.js"></script>
+<script src="/static/js/lib/jquery.history.js"></script>
+<script src="/static/js/lib/jquery.easing.1.3.js"></script>
+<script src="/static/js/lib/jquery.caret.1.02.js"></script>
+<script src="/static/js/lib/jquery.textchange.js"></script>
+<script src="/static/js/lib/jquery.autosize.js"></script>
+<script src="/static/js/lib/jquery.slimscroll.min.js"></script>
+<script src="/static/js/lib/jquery.tag-it.min.js"></script>
+<script src="/static/js/lib/jquery.raty.js"></script>
+<script src="/static/js/lib/jquery.tooltipster.min.js"></script>
 
 {% include "js/headers.js" %}
 <script>
 {% autoescape off %}
 	{% include "js/django-csrf.js" %}
 	var sjs = sjs || {};
-	
+
 	$.extend(sjs, {
 		current: {{ initJSON }},
 		langMode: "{{ contentLang }}".substring(0,2)
@@ -301,8 +301,8 @@
 
 {% endautoescape %}
 </script>
-<script type="text/javascript" src="/static/js/util.js"></script>
-<script type="text/javascript" src="/static/js/reader.js"></script>
+<script type="text/javascript" src="/static/js/s1/util.js"></script>
+<script type="text/javascript" src="/static/js/s1/reader.js"></script>
 {% if not OFFLINE %}
 <script type="text/javascript" src="//s7.addthis.com/js/300/addthis_widget.js#pubid=ra-4f0b68586603bc9f"></script>
 {% endif %}

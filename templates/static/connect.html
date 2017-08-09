@@ -1,6 +1,11 @@
 {% extends "base.html" %}
 
-{% block title %}Sefaria: Newsletter, Social Media and More{% endblock %}
+{% block titleEnglish %}Sefaria Newsletter, Social Media and More{% endblock %}
+{% block titleHebrew %}Sefaria Newsletter, Social Media and More{% endblock %}
+
+{% block descriptionEnglish %}Get updates on new texts and features on Sefaria by signing up for our newsletter or following us on social media.{% endblock %}
+
+{% block descriptionHebrew %}Get updates on new texts and features on Sefaria by signing up for our newsletter or following us on social media.{% endblock %}
 
 {% block content %}
 <div id="connectPage" class="static">
@@ -83,7 +88,7 @@
         $("#subscribe").click(function() {
             var email = $("#mailingListEmail").val();
             if (Sefaria.util.isValidEmailAddress(email)) {
-                Sefaria.site.track.event("Home", "Subscribe from Homepage", "");
+                Sefaria.track.event("Home", "Subscribe from Homepage", "");
                 $("#subscribeMsg").html("<i>Subscribing...</i>");
                 $.post("/api/subscribe/" + email, function(data) {
                     if ("error" in data) {
@@ -100,7 +105,7 @@
         });
         $("#mailingListEmail").keyup(function(e){
             if (e.keyCode === 13) {
-                $("#subscribe").trigger("click");   
+                $("#subscribe").trigger("click");
             }
         });
     });

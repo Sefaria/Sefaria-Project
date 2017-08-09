@@ -9,6 +9,27 @@ body {
     -webkit-user-select: auto !important;
 }
 
+.interface-hebrew .int-en, .interface-hebrew #sheetsContent .int-en, .interface-hebrew.alertBox .int-en, .interface-hebrew.s2Modal .int-en{
+  display: none;
+}
+.interface-english .int-he, .interface-english #sheetsContent .int-he, .interface-english.alertBox .int-he, .interface-english.s2Modal .int-he{
+  display: none;
+}
+/*.interface-hebrew #sheetsContent{
+  direction: rtl;
+}
+.interface-english #sheetsContent{
+  direction: ltr;
+}*/
+
+.interface-hebrew #sheetsContent, .interface-hebrew #sheetsContent .sheetsEditNavTop, .interface-hebrew #fileControls{
+	direction: rtl;
+}
+
+.he, .int-he {
+    font-size: 100%;
+}
+
 #right {
 	width: 510px;
 }
@@ -80,6 +101,10 @@ body {
 	border-radius: 5px;
 	color: #888;
 	background-color: #f2f2f2;
+}
+
+.interface-hebrew #lastSaved{
+	/*unicode-bidi: bidi-override;*/
 }
 
 .sheetsMenuBarItem #lastSaved {
@@ -182,7 +207,7 @@ body {
 .optionsMenu {
 	color: black;
 	position: absolute;
-	text-align: left;
+	/*text-align: left;*/
 	display: none;
 	font-style: normal;
 	text-shadow: none;
@@ -193,13 +218,20 @@ body {
 	z-index: 5;
 	min-width: 220px;
 	top: -20px;
-	right: auto;
-	left: 50px;
+	/*right: auto;
+	left: 50px;*/
 	line-height: 1.2;
 }
 
+.interface-hebrew .optionsMenu{
+	/*text-align: right;*/
+	min-width: 250px;
+}
+
 .optionsMenu img, .addInterfaceButton img {
-	margin-right: 5px;
+	/*margin-right: 5px;*/
+	-webkit-margin-end: 5px;
+	margin-inline-end: 5px;
 	margin-bottom: 3px;
 
 }
@@ -219,6 +251,12 @@ body {
 .optionHeader {
 	font-weight: bold;
 	margin-left: 12px;
+}
+
+.optionTitle, .optionItem{
+	display: flex;
+	justify-content: flex-start;
+	align-items: center;
 }
 
 .optionItem, .optionLink, .languageToggleOption div, .layoutToggleOption div, .sideBySideToggleOption div, .optionTitle {
@@ -260,19 +298,35 @@ body {
 	position: absolute;
 	background: white;
 	top: 0px;
-	left: 220px;
 	border: 1px solid #ccc;
+}
+.interface-english .subMenu{
 	box-shadow: 1px 1px 1px #555;
-
+	left: 220px;
+}
+.interface-hebrew .subMenu{
+	/*left: initial;*/
+	right: 250px;
+	box-shadow: -1px 1px 1px #555;
 }
 .optionGroup {
 	position: relative;
 }
 
-.optionGroup .optionTitle .fa-caret-right {
-	position: absolute;
-	right: 6px;
-	top: 15px;
+.interface-english .optionGroup .optionItemCaret.fa{
+	margin-left: auto;
+}
+
+.interface-hebrew .optionGroup .optionItemCaret.fa{
+	margin-right: auto;
+}
+
+.interface-hebrew .optionItemCaret.fa-caret:before{
+	content: "\f0d9";
+}
+
+.interface-english .optionItemCaret.fa-caret:before{
+	content: "\f0da";
 }
 
 .optionGroup:hover .subMenu {
@@ -292,7 +346,9 @@ body {
 }
 
 .optionsMenu .fa {
-	margin-right: 8px;
+	/*margin-right: 8px;*/
+	-webkit-margin-end: 5px;
+	margin-inline-end: 5px;
 	font-size: 13px;
 }
 
@@ -363,6 +419,7 @@ body {
 	border-radius: 3px;
 	z-index: 101;
 	width: 600px;
+	display: none;
 }
 #inlineTextPreview .en {
 	font-family: "adobe-garamond-pro", Georgia, serif
@@ -511,7 +568,8 @@ body {
 
 .sheetItem {
 	position: relative;
-	padding: 32px 76px;
+	padding: 24px 76px;
+	box-sizing: border-box;
 	border: solid 1px transparent;
 	border-left: solid 6px transparent;
 }
@@ -581,12 +639,13 @@ body {
 	background-color: #F9F9F7 !important;
 
 }
-.sideControls {
-	width: 16px !important;
-	left: 23px !important;
-	margin-left: 0 !important;
-	top: 32px !important;
-	background-color: transparent !important;
+#sourceControls.sideControls {
+	width: auto;
+	left: 23px;
+	margin-left: 0;
+	top: 32px;
+	bottom: auto;
+	background-color: inherit;
 
 }
 
@@ -868,8 +927,24 @@ body {
 #addParashaToSheetModal li {
 	width:150px;
 	display:inline;
-	float:left;
 	padding: 2px 0 2px 0;
+	cursor: pointer;
+	cursor: hand;
+}
+
+#addParashaToSheetModal li:hover span{
+	text-decoration: underline;
+ }
+
+#addParashaToSheetModal ol {
+	display: flex;
+	flex-flow: row wrap;
+	margin: auto;
+	padding: 0;
+}
+
+.interface-hebrew #addParashaToSheetModal{
+	direction: rtl;
 }
 
 #addToSheetModal .header {
@@ -980,6 +1055,10 @@ body {
 	padding-top: 20px;
 	border-top: 1px solid #aaa;
 	margin-top: 20px;
+}
+
+.interface-hebrew #empty #howItWorks{
+	text-align: right;
 }
 
 #empty h1 {
@@ -1184,7 +1263,7 @@ a:active {
 
 }
 
-body.embeded #controls, body.embeded .header, body.embeded #footer, body.embeded #fileControls {
+body.embeded #controls, body.embeded .header, body.embeded #footer, body.embeded #fileControls, body.embeded .sheetsEditNavTop, body.embeded #interruptingMessage {
 	display: none;
 }
 
@@ -1443,6 +1522,10 @@ line-height: normal;
 	z-index:101;
 }
 
+.alertBox.interface-hebrew{
+	direction: rtl;
+}
+
 .addedMedia {
 	max-width: 100%;
 }
@@ -1466,12 +1549,35 @@ line-height: normal;
     background-color: #f2f2f2;
     border-bottom: 1px solid #E2E2E1;
     box-sizing: border-box;
-    direction: ltr;
     z-index: 21;
-    padding: 7px 30px 6px 10px;
     font-size: 16px;
     color: #333;
     top: 54px;
+}
+
+.sheetsMenuBar, .sheetsEditorControls{
+	padding: 7px 30px 6px 30px;
+}
+
+.sheetsMenuBar{
+
+}
+
+.sheetsEditorControls{
+	border-top: 1px solid #E2E2E1;
+	display: none;
+}
+
+.sheetsMenuBarInner{
+	display: flex;
+	justify-content: space-between;
+	direction: inherit;
+	align-items: center;
+}
+
+.sheetsMenuBarCommands{
+	display: flex;
+	justify-content: space-between;
 }
 
 .sheetsEditNavTop .optionsMenu {
@@ -1487,10 +1593,15 @@ line-height: normal;
 
 .sheetsMenuBarItem {
 	display: inline-block;
-	padding: 10px 20px;
+	padding: 10px 22px;
 	font-size: 16px;
 	border: 1px solid transparent;
+}
 
+.sheetsMenuBarItem:first-child{
+	-webkit-padding-start: 0;
+	padding-inline-start: 0;
+	/*padding-left: 0;*/
 }
 
 .sheetsMenuBarItem:hover {
@@ -1510,7 +1621,7 @@ line-height: normal;
 #fileMenu:hover .optionsMenu, #formatMenu:hover .optionsMenu, #insertMenu:hover .optionsMenu, #highlightMenu:hover .optionsMenu  {
 	display: block;
 	top:45px;
-	left:20px;
+	/*left:20px;*/
 	background-color: #F9F9F7;
 }
 
@@ -1519,22 +1630,18 @@ line-height: normal;
 }
 
 #ckeTopMenu .cke_top, #ckeTopMenu .cke_shared{
-	border: #f2f2f2 solid 1px;
+	border: none;
 	background: #f2f2f2;
 	-moz-box-shadow: none;
     -webkit-box-shadow: none;
     box-shadow: none;
 	width:100%;
+	padding: 0;
 }
 
 #ckeTopMenu .cke_inner {
-    padding: 0 7px;
+    padding: 0 0px;
 	background: #f2f2f2;
-	position: relative;
-	margin-bottom: -8px;
-	border-bottom: 1px solid #E2E2E1;
-
-
 }
 
 #ckeTopMenu .cke_inner:after {
@@ -1544,6 +1651,10 @@ line-height: normal;
 	left:-20px;
 	right:-20px;
 	border-top: 1px solid #E2E2E1;
+}
+
+.cke_toolgroup, a.cke_combo_button{
+	margin-bottom: 0;
 }
 
 .activeSource {
@@ -1557,17 +1668,16 @@ line-height: normal;
     text-align: center;
     width: 100%;
     padding: 0;
-    bottom: -53px;
-	position: relative;
+    left: 0;
+    bottom: -21px;
+	position: absolute;
     font-size: 30px;
 	z-index: 3;
 }
 
-
 .inlineAddButtonIcon::before {
 	content: url("../img/add icon.png");
 }
-
 
 .inlineAddButtonIcon.active {
 	content: url("../img/add icon active.png");
@@ -1592,6 +1702,10 @@ line-height: normal;
 	width: 702px;
 	margin: 20px 74px;
 	display:flex;
+}
+
+.interface-hebrew #addInterface .buttonBar{
+	direction: rtl;
 }
 
 
@@ -1633,11 +1747,15 @@ line-height: normal;
 }
 
 .addInterfaceButton:first-of-type {
-	border-left: 1px solid #cecece;
+	/*border-left: 1px solid #cecece;*/
+	border-inline-start: 1px solid #cecece;
+	-webkit-border-start: 1px solid #cecece;
 
 }
 .addInterfaceButton:last-of-type {
-	border-right: 1px solid #cecece;
+	/*border-right: 1px solid #cecece;*/
+	border-inline-end: 1px solid #cecece;
+	-webkit-border-end: 1px solid #cecece;
 }
 
 .addInterfaceButton{
@@ -1669,6 +1787,7 @@ line-height: normal;
 	color: #999;
 	font-size:12px;
 	margin: 40px 0;
+	unicode-bidi: plaintext;
 
 }
 
@@ -1734,8 +1853,14 @@ line-height: normal;
     margin: 0 74px 0 74px;
 }
 .blockContainer {
-	display: inline-block;
+	display: flex;
+	justify-content: space-between;
 	width:100%;
+
+}
+
+.interface-hebrew .blockContainer{
+	direction: rtl;
 }
 
 #customTextContainer{
@@ -1805,12 +1930,10 @@ a.userLink{
 	margin-right: 7px;
 }
 .sheetsEditNavTop #save, .sheetsEditNavTop #share  {
-	float: right;
-    margin: 5px 0 0 0;
 	border-radius: 3px;
 	font-weight: 300;
 	font-size: 12px;
-	height: 30px;
+	margin: auto;
 }
 .sheetsEditNavTop #save img, .sheetsEditNavTop #share img  {
     margin-bottom: 2px;
@@ -1872,6 +1995,10 @@ a.userLink{
 	border: 1px solid #999;
 	border-radius: 6px;
 	width: 400px;
+}
+
+.interface-hebrew .s2Modal, .interface-hebrew.s2Modal{
+	direction: rtl;
 }
 .s2Modal .title {
 	font-size: 20px;
@@ -2079,16 +2206,22 @@ a.tagit-close {
 
 #highlightModeDisplay {
 	display: none;
-	position: fixed;
 	z-index: 100;
-	top: 70px;
-	right: 140px;
 	text-align: center;
 	font-size: 12px;
 	padding: 7px 5px;
 	color: #888;
 	background-color: #f2f2f2;
 
+}
+
+#highlightToggleDeactivate,
+.segmentedContinuousToggle .segmentedActive,
+#lastSaved .lastSavedConfirmed,
+#lastSaved .saving,
+#lastSaved .pending,
+#save #inSave{
+	display: none;
 }
 
 .highlighterSegment[data-tag]::before {
@@ -2118,14 +2251,16 @@ a.tagit-close {
 
 .highlightFilterSelection {
 	padding: 10px 12px;
+	display: flex;
+	justify-content: flex-start;
 }
 
-.highlightFilterSelection label {
+#sheetsContent .highlightFilterSelection label {
 	font-size: 17px;
 }
 
-.highlightFilterSelection input {
-	margin: 0;
+#sheetsContent .highlightFilterSelection input {
+	margin: auto;
 }
 
 .highlighterFilterTags{
@@ -2134,6 +2269,10 @@ a.tagit-close {
 .highlighterFilterTags:hover {
 	background-color: #f2f2f2;
 	color: #000;
+}
+
+.divineNamesOption span[class^="int-"]{
+	unicode-bidi: plaintext;
 }
 
 .colorSelect div {

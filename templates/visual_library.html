@@ -2,7 +2,13 @@
 
 {% load sefaria_tags %}
 
-{% block title %}Visualizing the Sefaria Library{% if lang %} ({{ lang }}){% endif %}{% endblock %}
+{% block titleEnglish %}Visualizing the Sefaria Library{% if lang %} ({{ lang }}){% endif %}{% endblock %}
+{% block titleHebrew %}Visualizing the Sefaria Library{% if lang %} ({{ lang }}){% endif %}{% endblock %}
+
+{% block descriptionEnglish %}How big is Torah compared to Talmud? This sunburst diagram lets you see the number of words in the texts and categories of Sefaria's library (which is growing every day!).{% endblock %}
+
+{% block descriptionHebrew %}How big is Torah compared to Talmud? This sunburst diagram lets you see the number of words in the texts and categories of Sefaria's library (which is growing every day!).{% endblock %}
+
 {% block ogimage %}<meta property="og:image" content="/static/img/sunburst.png"/>{% endblock %}
 {% block head %}
     {% if not OFFLINE %}
