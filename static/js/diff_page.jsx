@@ -7,6 +7,12 @@ var $              = require('jquery'),
     DiffMatchPatch = require('diff-match-patch');
     import Component from 'react-class';  //auto-bind this to all event-listeners. see https://www.npmjs.com/package/react-class
 
+function changePath(newPath) {
+  debugger;
+  const newUrl = window.location.origin + newPath;
+  window.location.assign(newUrl);
+}
+
 class DiffStore {
   constructor (rawText) {
     this.rawText = rawText;
@@ -74,6 +80,78 @@ class DiffStore {
     }
   }
 
+class PageLoader extends Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      secRef: this.props.secRef,
+          v1: this.props.v1,
+          v2: this.props.v2,
+        lang: this.props.lang,
+    };
+  //this.handleSubmit = this.handleSubmit.bind(this);
+  }
+
+handleSubmit(event) {
+  debugger;
+  const value = this.input.value;
+  const name = this.input.name;
+  this.setState({[name]: value});
+  event.preventDefault();
+  return(false);
+  }
+
+componentDidUpdate() {
+  debugger;
+  if (this.props.secRef != this.state.secRef ||
+      this.props.lang != this.state.lang ||
+      this.props.v1 != this.state.v1 ||
+      this.props.v2 != this.state.v2) {
+
+    var newPathname =
+    ['/compare', this.state.secRef, this.state.lang,
+    this.state.v1, this.state.v2].join('/');
+    newPathname = newPathname.split('//').join('/'); //In case some variable is None
+    newPathname = newPathname.split(' ').join('_');
+    //window.location.pathname = newPathname;
+    changePath(newPathname);
+  }
+}
+
+render() {
+    return (
+      <div>
+      <form onSubmit={this.handleSubmit}>
+        <label>
+          Ref:
+          <input
+            name="secRef"
+            type="text"
+            defaultValue={this.props.secRef}
+            ref={(input) => this.input=input}
+            />
+        </label>
+        <input type="submit" value="Submit" />
+      </form>
+      {(this.props.secRef != null & this.props.v1 != null & this.props.v2 != null & this.props.lang != null)
+      ? <DiffTable
+          secRef={this.props.secRef}
+          v1={this.props.v1}
+          v2={this.props.v2}
+          lang={this.props.lang}/> : null}
+      </div>
+    );
+  }
+}
+
+/*class RefSelector extends Component {
+  constructor(props) {
+    super(props);
+    this.state = {value: this.props.value};
+    this.handleChange = this.handleChange.bind(this);
+  }
+}*/
+
 class DiffTable extends Component {
   constructor(props) {
     super(props);
@@ -119,6 +197,13 @@ class DiffTable extends Component {
 
       return (
         <table>
+          <thead>
+            <tr>
+              <td>{this.props.secRef}</td>
+              <td>{this.props.v1}</td>
+              <td>{this.props.v2}</td>
+            </tr>
+          </thead>
           <tbody>
             {rows}
           </tbody>
@@ -258,7 +343,7 @@ class DiffRow extends Component {
         cell2 = <DiffCell diff={this.state.v2} vtitle={this.props.v2}/>;
 
     return (
-        <tr>{cell1}{cell2}</tr>
+        <tr><td>{this.props.segRef}</td>{cell1}{cell2}</tr>
     );
   }
 }
@@ -351,7 +436,7 @@ class DiffElement extends Component {
       </span>);
   }
 }
-ReactDOM.render(<DiffTable secRef={JSON_PROPS.secRef}
+ReactDOM.render(<PageLoader secRef={JSON_PROPS.secRef}
                 v1={JSON_PROPS.v1}
                 v2={JSON_PROPS.v2}
                 lang={JSON_PROPS.lang}/>,

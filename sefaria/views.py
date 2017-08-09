@@ -720,6 +720,6 @@ def text_upload_api(request):
 def compare(request, secRef=None, lang=None, v1=None, v2=None):
 
     return render_to_response('compare.html', {"JSON_PROPS": json.dumps({
-        'secRef': secRef.replace(u'_', u' '),
+        'secRef': Ref(secRef).normal(),
         'v1': v1, 'v2': v2,
         'lang': lang,})})
