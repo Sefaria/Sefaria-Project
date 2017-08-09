@@ -48,6 +48,7 @@ class Test_Categories(object):
         with pytest.raises(InputError):
             i.save()
 
+    @pytest.mark.deep
     def test_cat_name_change(self):
         base_toc = library.get_toc()
         base_json = json.dumps(base_toc, sort_keys=True)
