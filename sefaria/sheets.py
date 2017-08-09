@@ -449,6 +449,42 @@ def get_sheets_for_ref(tref, uid=None):
 	return results
 
 
+def make_topic_list(sort_by="alpha"):
+	"""
+	Returns a list of all public tags, sorted either alphabetically ("alpha") or by popularity ("count")
+	"""
+	tags = {}
+	results = []
+	projection = {"tags": 1, "sources.ref": 1}
+
+	sheet_list = db.sheets.find({"status": "public"}, projection)
+	for sheet in sheet_list:
+		sheet_tags = sheet.get("tags", [])
+		for tag in sheet_tags:
+			if tag not in tags:
+				tags[tag] = {"tag": tag, "sources_dict": defaultdict(int)}
+			for source in sheet.get("sources", []):
+				if "ref" in source: 
+					print "Adding %s to %s" % (source["ref"], tag)
+					tags[tag]["sources_dict"][source["ref"]] += 1
+
+	for tag in tags:
+		sources = tags[tag]["sources_dict"]
+		filtered_sources = [source for source in sources.keys() if sources[source] > 1]
+		tags[tag]["count"] = len(filtered_sources)
+		del tags[tag]["sources_dict"]
+		if tags[tag]["count"] > 0:
+			results.append(tags[tag])
+
+	sort_keys =  {
+		"alpha": lambda x: x["tag"],
+		"count": lambda x: -x["count"],
+	}
+	results  = sorted(results, key=sort_keys[sort_by])
+
+	return results
+
+
 def get_topic_data(topic):
 	"""
 	Returns data for a topic
@@ -471,7 +507,7 @@ def get_topic_data(topic):
 		for tag in sheet.get("tags", []):
 			if tag != topic:
 				related_topics_dict[tag] += 1
-	
+	 
 	unnormalized_sources = sorted(sources_dict.iteritems(), key=lambda (k,v): v, reverse=True)[0:MAX_SOURCES]
 	sources = []
 	for source in unnormalized_sources:
