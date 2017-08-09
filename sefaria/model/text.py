@@ -4213,11 +4213,11 @@ class Library(object):
         """
         :return: list of root Index nodes.
         """
-        root_nodes = [i.nodes for i in self._index_map.values()]
+        root_nodes = [i.nodes for i in self.all_index_records()]
         return root_nodes
 
     def all_index_records(self):
-        return self._index_map.values()
+        return [self._index_map[k] for k in self._index_title_maps["en"].keys()]
 
     def get_title_node_dict(self, lang="en"):
         """

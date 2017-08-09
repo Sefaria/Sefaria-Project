@@ -481,7 +481,8 @@ def hebrew_term(s):
 	if is_hebrew(s):
 		return s
 
-	# If s is a text title, look for a stored Hebrew title
+	'''
+	# Old way - took longer, ended up clobbering some categories with index transx.
 	try:
 		i = library.get_index(s)
 		return i.get_title("he")
@@ -490,19 +491,18 @@ def hebrew_term(s):
 		if term:
 			return term.get_primary_title('he')
 	return ''
-
-	# The below gives us a speed boost, a touch, since the Term case is more common, but does adjust semantics in case of collision.
 	'''
+
 	term = Term().load({'name': s})
 	if term:
 		return term.get_primary_title('he')
 	else:
 		try:
+			# If s is a text title, look for a stored Hebrew title
 			i = library.get_index(s)
 			return i.get_title("he")
 		except BookNameError:
 			return ''
-	'''
 
 
 def get_simple_term_mapping():
