@@ -571,6 +571,7 @@ TestMessage.propTypes = {
 class CategoryAttribution extends Component {
   render() {
     var attribution = Sefaria.categoryAttribution(this.props.categories);
+    if (!attribution) { return null; }
     var linkedContent = <a href={attribution.link} className="outOfAppLink">
                           <span className="en">{attribution.english}</span>
                           <span className="he">{attribution.hebrew}</span>
@@ -579,11 +580,9 @@ class CategoryAttribution extends Component {
                             <span className="en">{attribution.english}</span>
                             <span className="he">{attribution.hebrew}</span>
                           </span>
-    return attribution ?
-      <div className="categoryAttribution">
-        {this.props.linked ? linkedContent : unlinkedContent}
-      </div>
-      : null;
+    return <div className="categoryAttribution">
+            {this.props.linked ? linkedContent : unlinkedContent}
+           </div>;
   }
 }
 CategoryAttribution.propTypes = {
