@@ -718,8 +718,8 @@ def text_upload_api(request):
 
 
 def compare(request, secRef=None, lang=None, v1=None, v2=None):
-    if secRef:
-        secRef = Ref(secRef).normal()
+    if secRef and Ref.is_ref(secRef):
+        secRef = Ref(secRef).first_available_section_ref().normal()
     if v1:
         v1 = v1.replace(u"_", u" ")
     if v2:

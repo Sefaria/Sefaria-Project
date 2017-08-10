@@ -427,10 +427,11 @@ class DiffRow extends Component {
   }
 
   LoadText (text, version) {
+    let myText = this.props.lang === 'he' ? text['he'] : text.text;
     if (version === 'v1') {
-      this.setState({'v1': new DiffStore(text['he'])});
+      this.setState({'v1': new DiffStore(myText)});
     } else {
-      this.setState({'v2': new DiffStore(text['he'])});
+      this.setState({'v2': new DiffStore(myText)});
     }
   }
   componentDidMount() {
