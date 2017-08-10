@@ -804,7 +804,7 @@ class ReaderControls extends Component {
       var oref    = Sefaria.ref(title);
       heTitle = oref ? oref.heTitle : "";
       categoryAttribution = oref && Sefaria.categoryAttribution(oref.categories) ?
-                                  <CategoryAttribution categories={oref.categories} /> : null;
+                                  <CategoryAttribution categories={oref.categories} linked={false} /> : null;
     } else {
       heTitle = "";
       categoryAttribution = null;

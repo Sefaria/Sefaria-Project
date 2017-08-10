@@ -571,19 +571,28 @@ TestMessage.propTypes = {
 class CategoryAttribution extends Component {
   render() {
     var attribution = Sefaria.categoryAttribution(this.props.categories);
+    var linkedContent = <a href={attribution.link} className="outOfAppLink">
+                          <span className="en">{attribution.english}</span>
+                          <span className="he">{attribution.hebrew}</span>
+                        </a>;
+    var unlinkedContent = <span>
+                            <span className="en">{attribution.english}</span>
+                            <span className="he">{attribution.hebrew}</span>
+                          </span>
     return attribution ?
       <div className="categoryAttribution">
-        <a href={attribution.link} className="outOfAppLink">
-          <span className="en">{attribution.english}</span>
-          <span className="he">{attribution.hebrew}</span>
-        </a>
+        {this.props.linked ? linkedContent : unlinkedContent}
       </div>
       : null;
   }
 }
 CategoryAttribution.propTypes = {
-  categories: PropTypes.array.isRequired
+  categories: PropTypes.array.isRequired,
+  linked:     PropTypes.bool,
 };
+CategoryAttribution.defaultProps = {
+  linked:     true,
+}
 
 
 class SheetTagLink extends Component {
