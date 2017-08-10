@@ -12,6 +12,10 @@ class Track {
           // Unsure why we have param mismatch... what we call value here is treated as options.
           // A previous attempt to insert `null` for value to put `options` in the right place broke tracking.
         }
+        else if (value && value.hitCallback) {
+            // Creates a timeout to call `hitCallback` after one second (in case of no return from ga).
+            setTimeout(value.hitCallback, 1000)
+        }
     }
     static pageview(url) {
         ga('set', 'page', url);
