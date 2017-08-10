@@ -8,7 +8,6 @@ var $              = require('jquery'),
     import Component from 'react-class';  //auto-bind this to all event-listeners. see https://www.npmjs.com/package/react-class
 
 function changePath(newPath) {
-  debugger;
   const newUrl = window.location.origin + newPath;
   window.location.assign(newUrl);
 }
@@ -92,17 +91,11 @@ class PageLoader extends Component {
   //this.handleSubmit = this.handleSubmit.bind(this);
   }
 
-handleSubmit(event) {
-  debugger;
-  const value = this.input.value;
-  const name = this.input.name;
-  this.setState({[name]: value});
-  event.preventDefault();
-  return(false);
+formSubmit(nextState) {
+  this.setState(nextState);
   }
 
 componentDidUpdate() {
-  debugger;
   if (this.props.secRef != this.state.secRef ||
       this.props.lang != this.state.lang ||
       this.props.v1 != this.state.v1 ||
@@ -121,32 +114,12 @@ componentDidUpdate() {
 render() {
     return (
       <div>
-      <form onSubmit={this.handleSubmit}>
-        <label>
-          Ref:
-          <input
-            name="secRef"
-            type="text"
-            defaultValue={this.props.secRef}
-            ref={(input) => this.input=input}
-            style={{width: '300px'}}
-            />
-        </label>
-        <label>
-          Language:
-          <select
-            name="lang"
-            ref={(input) => this.input=input}>
-            <option selected={this.props.lang === 'he' || this.props.language === null
-            ? 'selected' : null}
-            value="he">
-            Hebrew</option>
-            <option selected={this.props.lang === 'en' ? 'selected' : null}
-            value="en">English</option>
-          </select>
-        </label>
-        <input type="submit" value="Submit" />
-      </form>
+      <DataForm
+      secRef={this.props.secRef ? this.props.secRef : ""}
+      lang={this.props.lang ? this.props.lang : "he"}
+      v1={this.props.v1 ? this.props.v1 : ""}
+      v2={this.props.v2 ? this.props.v2 : ""}
+      formSubmit={this.formSubmit}/>
       {(this.props.secRef != null & this.props.v1 != null & this.props.v2 != null & this.props.lang != null)
       ? <DiffTable
           secRef={this.props.secRef}
@@ -158,13 +131,167 @@ render() {
   }
 }
 
-/*class RefSelector extends Component {
+class DataForm extends Component {
   constructor(props) {
     super(props);
-    this.state = {value: this.props.value};
-    this.handleChange = this.handleChange.bind(this);
+    this.state = {
+      secRef: this.props.secRef,
+      lang: this.props.lang,
+      v1: this.props.v1,
+      v2: this.props.v2,
+      possibleVersions: null
+    };
   }
-}*/
+
+  handleInputChange(event) {
+    const target = event.target;
+    const value = target.value;
+    const name = target.name;
+
+    this.setState({
+      [name]: value
+    });
+  }
+
+  handleSubmit(event) {
+    this.props.formSubmit({
+      secRef: this.state.secRef,
+      lang: this.state.lang,
+      v1: this.state.v1,
+      v2: this.state.v2
+    })
+
+    event.preventDefault();
+    return (false);
+  }
+
+  loadPossibleVersions(versions) {
+    console.log(typeof(versions));
+    let lang = this.state.lang;
+    let possibleVersions = versions.reduce(function(vList, version) {
+      if (version.language === lang) {
+        vList.push(version.versionTitle);
+      }
+      return vList;
+    }, []);
+    this.setState({possibleVersions: possibleVersions});
+  }
+
+  componentWillMount() {
+    if (Sefaria.isRef(this.state.secRef)) {
+      Sefaria.versions(this.state.secRef, this.loadPossibleVersions);
+    }
+  }
+
+  shouldComponentUpdate(nextProps, nextState) {
+    let versionChanged = function(nextVersions, prevVersions) {
+      if ((nextVersions === null & prevVersions != null) ||
+          (nextVersions != null & prevVersions === null)) {
+        return true;
+      } else if (nextVersions === null && prevVersions === null) {
+        return false;
+      } else if (nextVersions.length != prevVersions.length) {
+        return true;
+      } else {
+        for (let i=0; i<nextVersions.length; i++) {
+          if (nextVersions[i] != prevVersions[i]) {
+            return true;
+          }
+        }
+        return false;
+      }
+      /*if (thisState.possibleVersions!=null && nextState.possibleVersions===null) {
+        return true;
+      } else if (thisState.possibleVersions === null && nextState.possibleVersions === null) {
+        return false;
+      } else if (thisState.possibleVersions.length != nextState.possibleVersions.length) {
+        return true;
+      } else if (thisState.possibleVersions[0] != nextState.possibleVersions[0]) {
+        return true;
+      } else {
+        return false;
+      }*/
+    }
+    return(
+      versionChanged(nextState.possibleVersions, this.state.possibleVersions) ||
+      (this.state.secRef != nextState.secRef) ||
+      (this.state.lang != nextState.lang) ||
+      (this.state.v1 != nextState.v1) ||
+      (this.state.v2 != nextState.v2)
+    );
+  }
+
+  componentDidUpdate(prevProps, prevState) {
+    if (Sefaria.isRef(prevState.secRef) && prevState.lang) {
+      Sefaria.versions(prevState.secRef, this.loadPossibleVersions)
+    } else {
+      this.setState({possibleVersions: null});
+    }
+    /*if (this.state.possibleVersions != null) {
+      if (this.state.v1 === null) {
+        this.setState({v1: this.State.possibleVersions[0]});
+      }
+      if (this.state.v2 === null) {
+        this.setState({v2: this.State.possibleVersions[0]});
+      }
+    }*/
+  }
+
+  render() {
+    let versionOptions =
+    this.state.possibleVersions ? this.state.possibleVersions.map(function(ver) {
+      return <option value={ver} key={ver}>{ver}</option>;
+    }) : null;
+
+    return (
+      <form onSubmit={this.handleSubmit}>
+        <label>
+          Ref:
+          <input
+            name="secRef"
+            type="text"
+            value={this.state.secRef}
+            onChange={this.handleInputChange}
+            style={{width: "300px"}}/>
+        </label>
+        <label>
+          Language:
+          <select
+            name="lang"
+            value={this.state.lang}
+            onChange={this.handleInputChange}>
+            <option value="he">Hebrew</option>
+            <option value="en">English</option>
+          </select>
+        </label>
+        {versionOptions ?
+        [<label key="version1">
+          Version 1:
+          <select
+            name="v1"
+            value={this.state.v1}
+            onChange={this.handleInputChange}>
+            <option value="">Select a Version</option>
+            {versionOptions}
+          </select>
+        </label>,
+        <label key="version2">
+          Version 2:
+          <select
+            name="v2"
+            value={this.state.v2}
+            onChange={this.handleInputChange}>
+            <option value="">Select a Version</option>
+            {versionOptions}
+          </select>
+        </label>] : null}
+        <br />
+        <input type="submit" value="Load Diff" />
+      </form>
+    );
+
+  }
+}
 
 class DiffTable extends Component {
   constructor(props) {
