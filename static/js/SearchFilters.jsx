@@ -208,7 +208,7 @@ class SearchFilterPanel extends Component {
                   isInFocus={this.props.openedCategory === filter}
                   focusCategory={this.props.handleFocusCategory}
                   updateSelected={this.props.updateAppliedFilter}
-                  handleClickOutside={this.handleClickOutside}
+                  closeBox={this.props.closeBox}
                   key={filter.path}/>);
           }.bind(this))}
           </div>
@@ -373,9 +373,11 @@ class SearchFilter extends Component {
   }
   handleKeyPress(e) {
     if (e.charCode == 13) { // enter
+      e.stopPropagation();
       this.handleFilterClick(e);
     }
     else if (e.charCode == 32) { //space
+      e.stopPropagation();
       e.preventDefault();
       this.handleFocusCategory(e);
       this.setState({activeFilterBox: "searchFilterBookBox"});
@@ -383,8 +385,8 @@ class SearchFilter extends Component {
     else if (e.keyCode === 27) { //27 is escape
       e.stopPropagation();
 
-      if (this.props.handleClickOutside) {
-        this.props.handleClickOutside()
+      if (this.props.closeBox) {
+        this.props.closeBox()
       }
       else {
         console.log('book box')
