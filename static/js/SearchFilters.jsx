@@ -360,21 +360,21 @@ class SearchFilter extends Component {
   componentDidMount() {
     ReactDOM.findDOMNode(this).querySelector("input").indeterminate = this.props.filter.isPartial();
     if (this.props.filter.isPartial()) {
-      ReactDOM.findDOMNode(this).querySelector("label").ariaChecked = "mixed";
+      ReactDOM.findDOMNode(this).querySelector("label").setAttribute("aria-checked", "mixed");
     }
     else {
-      ReactDOM.findDOMNode(this).querySelector("label").ariaChecked = this.state.selected;
+      ReactDOM.findDOMNode(this).querySelector("label").setAttribute("aria-checked", this.state.selected);
     }
   }
   componentDidUpdate() {
     ReactDOM.findDOMNode(this).querySelector("input").indeterminate = this.props.filter.isPartial();
     if (this.props.filter.isPartial()) {
-      ReactDOM.findDOMNode(this).querySelector("label").ariaChecked = "mixed";
+      ReactDOM.findDOMNode(this).querySelector("label").setAttribute("aria-checked", "mixed");
     }
     else {
-      ReactDOM.findDOMNode(this).querySelector("label").ariaChecked = this.state.selected;
+      ReactDOM.findDOMNode(this).querySelector("label").setAttribute("aria-checked", this.state.selected);
     }
-
+    
     if ($(".searchFilterBookBox").children().length > 0 && !$('.searchFilterBookBox li label').is(':focus')) { // unoptimized code to focus on top of searchFilterBookBox when not previously selected. For a11y.
       $(".searchFilterBookBox").find(':focusable').first().focus();
     }
