@@ -367,7 +367,7 @@ class SearchFilter extends Component {
     return(
       <li onClick={this.handleFocusCategory}>
         <input type="checkbox" id={this.props.filter.path} className="filter" checked={this.state.selected == 1} onChange={this.handleFilterClick}/>
-        <label onClick={this.handleFilterClick} tabIndex="0" onKeyPress={function(e) {e.charCode == 13 ? this.handleFocusCategory(e):null}.bind(this)}><span></span></label>
+        <label onClick={this.handleFilterClick} tabIndex="0" onKeyPress={function(e) {e.charCode == 13 ? this.handleFilterClick(e):null}.bind(this)}><span></span></label>
         <span className="int-en"><span className="filter-title">{this.props.filter.title}</span> <span className="filter-count">({this.props.filter.docCount})</span></span>
         <span className="int-he" dir="rtl"><span className="filter-title">{this.props.filter.heTitle}</span> <span className="filter-count">({this.props.filter.docCount})</span></span>
         {this.props.isInFocus?<span className="int-en"><i className="in-focus-arrow fa fa-caret-right"/></span>:""}
