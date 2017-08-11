@@ -216,6 +216,7 @@ class SearchFilterPanel extends Component {
           {this.props.openedCategoryBooks.map(function(filter) {
               return (<SearchFilter
                   filter={filter}
+                  openedCategory={this.props.openedCategory}
                   updateSelected={this.props.updateAppliedFilter}
                   key={filter.path}/>);
           }.bind(this))}
@@ -377,13 +378,11 @@ class SearchFilter extends Component {
   handleKeyDown(e,filterPath) {
     if (e.keyCode === 27) { //27 is escape
       e.stopPropagation();
-      console.log(filterPath);
       if (this.props.closeBox) {
         this.props.closeBox()
       }
       else {
-        console.log()
-        this.props.focusCategory(null);
+        console.log(this.props.openedCategory)
       }
     }
     else if (e.keyCode === 9) { //9 is tab
