@@ -355,7 +355,7 @@ class SearchFilter extends Component {
   }
   componentDidUpdate() {
     ReactDOM.findDOMNode(this).querySelector("input").indeterminate = this.props.filter.isPartial();
-    console.log($(".searchFilterBookBox").children.length());
+    console.log($(".searchFilterBookBox").children().length);
     $(".searchFilterBookBox").find(':focusable').first().focus();
   }
   handleFilterClick(evt) {
