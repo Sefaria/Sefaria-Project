@@ -65,6 +65,11 @@ class SearchFilters extends Component {
       openedCategoryBooks: leaves
     })
   }
+  resetOpenedCategoryBooks() {
+    this.setState({
+      openedCategoryBooks: []
+    })
+  }
   toggleExactSearch() {
     let newExactSearch = !this.state.isExactSearch;
     if (newExactSearch) {
@@ -124,6 +129,7 @@ class SearchFilters extends Component {
         closeBox={this.props.closeFilterView}
         isExactSearch={this.props.exactField === this.props.optionField}
         handleFocusCategory={this.handleFocusCategory}
+        resetOpenedCategoryBooks={this.resetOpenedCategoryBooks}
     />);
 
     var sort_panel = (<SearchSortBox
@@ -217,6 +223,7 @@ class SearchFilterPanel extends Component {
               return (<SearchFilter
                   filter={filter}
                   openedCategory={this.props.openedCategory}
+                  resetOpenedCategoryBooks={this.props.resetOpenedCategoryBooks}
                   updateSelected={this.props.updateAppliedFilter}
                   key={filter.path}/>);
           }.bind(this))}
@@ -355,7 +362,9 @@ class SearchFilter extends Component {
   }
   componentDidUpdate() {
     ReactDOM.findDOMNode(this).querySelector("input").indeterminate = this.props.filter.isPartial();
-    $(".searchFilterBookBox").find(':focusable').first().focus();
+    if ($(".searchFilterBookBox").children().length > 0) {
+      $(".searchFilterBookBox").find(':focusable').first().focus();
+    }
   }
   handleFilterClick(evt) {
     //evt.preventDefault();
@@ -383,6 +392,7 @@ class SearchFilter extends Component {
       }
       else {
         $("#label-for-"+this.props.openedCategory.title).focus();
+        this.props.resetOpenedCategoryBooks();
       }
     }
     else if (e.keyCode === 9) { //9 is tab
