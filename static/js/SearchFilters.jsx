@@ -363,7 +363,7 @@ class SearchFilter extends Component {
       ReactDOM.findDOMNode(this).querySelector("label").setAttribute("aria-checked", "mixed");
     }
     else {
-      ReactDOM.findDOMNode(this).querySelector("label").setAttribute("aria-checked", this.state.selected);
+      ReactDOM.findDOMNode(this).querySelector("label").setAttribute("aria-checked", this.state.selected==1);
     }
   }
   componentDidUpdate() {
@@ -372,9 +372,9 @@ class SearchFilter extends Component {
       ReactDOM.findDOMNode(this).querySelector("label").setAttribute("aria-checked", "mixed");
     }
     else {
-      ReactDOM.findDOMNode(this).querySelector("label").setAttribute("aria-checked", this.state.selected);
+      ReactDOM.findDOMNode(this).querySelector("label").setAttribute("aria-checked", this.state.selected==1);
     }
-    
+
     if ($(".searchFilterBookBox").children().length > 0 && !$('.searchFilterBookBox li label').is(':focus')) { // unoptimized code to focus on top of searchFilterBookBox when not previously selected. For a11y.
       $(".searchFilterBookBox").find(':focusable').first().focus();
     }
