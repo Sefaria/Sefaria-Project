@@ -344,7 +344,7 @@ class SearchFilter extends Component {
 
     this.state = {
       selected: props.filter.selected,
-      activeFilterBox: "searchFilterCategoryBox"
+      activeFilterBox: null
     };
   }
   componentWillReceiveProps(newProps) {
@@ -381,24 +381,6 @@ class SearchFilter extends Component {
       this.handleFocusCategory(e);
       this.setState({activeFilterBox: "searchFilterBookBox"});
     }
-    else if (e.keyCode === 9) { //9 is tab
-        var lastTab = $("div[role='dialog']").find(':tabbable').last();
-        var firstTab = $("div[role='dialog']").find(':tabbable').first();
-        console.log(lastTab);
-        console.log(firstTab);
-        if (e.shiftKey) {
-          if ($(e.target).is(firstTab)) {
-            $(lastTab).focus();
-            e.preventDefault();
-          }
-        }
-        else {
-          if ($(e.target).is(lastTab)) {
-            $(firstTab).focus();
-            e.preventDefault();
-          }
-        }
-    }
   }
   handleKeyDown(e) {
     if (e.keyCode === 27) { //27 is escape
@@ -409,6 +391,25 @@ class SearchFilter extends Component {
       else {
         this.setState({activeFilterBox: "searchFilterCategoryBox"});
         $(".searchFilterCategoryBox").find(':focusable').first().focus();
+      }
+    }
+    else if (e.keyCode === 9) { //9 is tab
+      e.stopPropagation();
+      var lastTab = $("div[role='dialog']").find(':tabbable').last();
+      var firstTab = $("div[role='dialog']").find(':tabbable').first();
+      console.log(lastTab);
+      console.log(firstTab);
+      if (e.shiftKey) {
+        if ($(e.target).is(firstTab)) {
+          $(lastTab).focus();
+          e.preventDefault();
+        }
+      }
+      else {
+        if ($(e.target).is(lastTab)) {
+          $(firstTab).focus();
+          e.preventDefault();
+        }
       }
     }
   }
