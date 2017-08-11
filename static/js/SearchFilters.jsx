@@ -79,7 +79,7 @@ class SearchFilters extends Component {
       var total_with_commas = this._add_commas(total);
       var classes = classNames({"type-button": 1, active: active});
 
-      return <div className={classes} onClick={on_click}>
+      return <div className={classes} onClick={on_click} onKeyPress={function(e) {e.charCode == 13 ? on_click(e):null}.bind(this)} role="button" tabIndex="0">
       <div className="type-button-total">
         {total_with_commas}
       </div>
@@ -365,9 +365,9 @@ class SearchFilter extends Component {
   }
   render() {
     return(
-      <li onClick={this.handleFocusCategory} tabIndex="0" onKeyPress={function(e) {e.charCode == 13 ? this.handleFocusCategory(e):null}.bind(this)}>
+      <li onClick={this.handleFocusCategory}>
         <input type="checkbox" id={this.props.filter.path} className="filter" checked={this.state.selected == 1} onChange={this.handleFilterClick}/>
-        <label onClick={this.handleFilterClick}><span></span></label>
+        <label onClick={this.handleFilterClick} tabIndex="0" onKeyPress={function(e) {e.charCode == 13 ? this.handleFocusCategory(e):null}.bind(this)}><span></span></label>
         <span className="int-en"><span className="filter-title">{this.props.filter.title}</span> <span className="filter-count">({this.props.filter.docCount})</span></span>
         <span className="int-he" dir="rtl"><span className="filter-title">{this.props.filter.heTitle}</span> <span className="filter-count">({this.props.filter.docCount})</span></span>
         {this.props.isInFocus?<span className="int-en"><i className="in-focus-arrow fa fa-caret-right"/></span>:""}
