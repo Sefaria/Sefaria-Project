@@ -355,6 +355,8 @@ class SearchFilter extends Component {
   }
   componentDidUpdate() {
     ReactDOM.findDOMNode(this).querySelector("input").indeterminate = this.props.filter.isPartial();
+    console.log($(".searchFilterBookBox").children.length());
+    $(".searchFilterBookBox").find(':focusable').first().focus();
   }
   handleFilterClick(evt) {
     //evt.preventDefault();
@@ -372,9 +374,9 @@ class SearchFilter extends Component {
     else if (e.charCode == 32) { //space
       e.preventDefault();
       this.handleFocusCategory(e);
-      $(".searchFilterBookBox").find(':focusable').first().focus();
     }
     else if (e.keyCode === 27) { //27 is escape
+      e.stopPropagation();
 
       if (this.props.handleClickOutside) {
         this.props.handleClickOutside()
