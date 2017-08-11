@@ -354,10 +354,7 @@ class SearchFilter extends Component {
   }
   componentDidUpdate() {
     ReactDOM.findDOMNode(this).querySelector("input").indeterminate = this.props.filter.isPartial();
-    console.log(this.state.activeFilterBox);
-    if (this.state.activeFilterBox == "searchFilterBookBox") {
-      $(".searchFilterBookBox").find(':focusable').first().focus();
-    }
+    $(".searchFilterBookBox").find(':focusable').first().focus();
   }
   handleFilterClick(evt) {
     //evt.preventDefault();
@@ -375,18 +372,18 @@ class SearchFilter extends Component {
     else if (e.charCode == 32) { //space
       e.preventDefault();
       this.handleFocusCategory(e);
-      this.setState({activeFilterBox: "searchFilterBookBox"});
     }
   }
-  handleKeyDown(e) {
+  handleKeyDown(e, filterPath) {
     if (e.keyCode === 27) { //27 is escape
+      console.log(filterPath);
       e.stopPropagation();
       if (this.props.closeBox) {
         this.props.closeBox()
       }
       else {
-        this.setState({activeFilterBox: "searchFilterCategoryBox"});
-        $(".searchFilterCategoryBox").find(':focusable').first().focus();
+        $(".searchFilterBookBox").empty();
+        $("#"+filterPath+" + label").first().focus();
       }
     }
     else if (e.keyCode === 9) { //9 is tab
@@ -413,7 +410,7 @@ class SearchFilter extends Component {
     return(
       <li onClick={this.handleFocusCategory}>
         <input type="checkbox" id={this.props.filter.path} className="filter" checked={this.state.selected == 1} onChange={this.handleFilterClick}/>
-        <label onClick={this.handleFilterClick} tabIndex="0" onKeyDown={this.handleKeyDown} onKeyPress={this.handleKeyPress} aria-label={"Click enter to toggle search filter for "+this.props.filter.title+" and space bar to toggle specific books in this category"}><span></span></label>
+        <label onClick={this.handleFilterClick} tabIndex="0" onKeyDown={this.handleKeyDown(e,this.props.filter.path)} onKeyPress={this.handleKeyPress} aria-label={"Click enter to toggle search filter for "+this.props.filter.title+" and space bar to toggle specific books in this category"}><span></span></label>
         <span className="int-en"><span className="filter-title">{this.props.filter.title}</span> <span className="filter-count">({this.props.filter.docCount})</span></span>
         <span className="int-he" dir="rtl"><span className="filter-title">{this.props.filter.heTitle}</span> <span className="filter-count">({this.props.filter.docCount})</span></span>
         {this.props.isInFocus?<span className="int-en"><i className="in-focus-arrow fa fa-caret-right"/></span>:""}
