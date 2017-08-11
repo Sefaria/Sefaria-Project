@@ -207,6 +207,7 @@ class SearchFilterPanel extends Component {
                   isInFocus={this.props.openedCategory === filter}
                   focusCategory={this.props.handleFocusCategory}
                   updateSelected={this.props.updateAppliedFilter}
+                  handleClickOutside={this.handleClickOutside}
                   key={filter.path}/>);
           }.bind(this))}
           </div>
@@ -363,11 +364,31 @@ class SearchFilter extends Component {
       this.props.focusCategory(this.props.filter)
     }
   }
+  handleKeyPress(e) {
+    if (e.charCode == 13) { // enter
+      this.handleFilterClick(e);
+    }
+    else if (e.charCode == 32) { //space
+      this.handleFocusCategory(e);
+      $(".searchFilterBookBox").find(':focusable').first().focus();
+    }
+    else if (e.keyCode === 27) { //27 is escape
+
+      if (this.props.handleClickOutside) {
+        this.props.handleClickOutside()
+      }
+      else {
+        console.log('book box')
+      }
+
+
+    }
+  }
   render() {
     return(
       <li onClick={this.handleFocusCategory}>
         <input type="checkbox" id={this.props.filter.path} className="filter" checked={this.state.selected == 1} onChange={this.handleFilterClick}/>
-        <label onClick={this.handleFilterClick} tabIndex="0" onKeyPress={function(e) {e.charCode == 13 ? this.handleFilterClick(e):null}.bind(this)}><span></span></label>
+        <label onClick={this.handleFilterClick} tabIndex="0" onKeyPress={this.handleKeyPress} aria-label={"Click enter to toggle search filter for "+this.props.filter.title+" and space bar to toggle specific books in this category"}><span></span></label>
         <span className="int-en"><span className="filter-title">{this.props.filter.title}</span> <span className="filter-count">({this.props.filter.docCount})</span></span>
         <span className="int-he" dir="rtl"><span className="filter-title">{this.props.filter.heTitle}</span> <span className="filter-count">({this.props.filter.docCount})</span></span>
         {this.props.isInFocus?<span className="int-en"><i className="in-focus-arrow fa fa-caret-right"/></span>:""}
