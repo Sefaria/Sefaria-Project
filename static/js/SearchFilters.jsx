@@ -358,6 +358,7 @@ class SearchFilter extends Component {
   }
   componentDidUpdate() {
     ReactDOM.findDOMNode(this).querySelector("input").indeterminate = this.props.filter.isPartial();
+    console.log(this.state.activeFilterBox);
     if (this.state.activeFilterBox == "searchFilterBookBox") {
       $(".searchFilterBookBox").find(':focusable').first().focus();
     }
@@ -383,6 +384,8 @@ class SearchFilter extends Component {
     else if (e.keyCode === 9) { //9 is tab
         var lastTab = $("div[role='dialog']").find(':tabbable').last();
         var firstTab = $("div[role='dialog']").find(':tabbable').first();
+        console.log(lastTab);
+        console.log(firstTab);
         if (e.shiftKey) {
           if ($(e.target).is(firstTab)) {
             $(lastTab).focus();
