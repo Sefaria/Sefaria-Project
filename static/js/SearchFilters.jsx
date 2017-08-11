@@ -341,11 +341,7 @@ SearchFilterExactBox.propTypes = {
 class SearchFilter extends Component {
   constructor(props) {
     super(props);
-
-    this.state = {
-      selected: props.filter.selected,
-      activeFilterBox: null
-    };
+    this.state = {selected: props.filter.selected};
   }
   componentWillReceiveProps(newProps) {
     if (newProps.filter.selected != this.state.selected) {
