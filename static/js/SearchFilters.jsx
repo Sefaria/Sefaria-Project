@@ -4,6 +4,7 @@ const {
 const React      = require('react');
 const ReactDOM   = require('react-dom');
 const Sefaria    = require('./sefaria/sefaria');
+const $          = require('./sefaria/sefariaJquery');
 const classNames = require('classnames');
 const PropTypes  = require('prop-types');
 import Component      from 'react-class';
@@ -369,6 +370,7 @@ class SearchFilter extends Component {
       this.handleFilterClick(e);
     }
     else if (e.charCode == 32) { //space
+      e.preventDefault();
       this.handleFocusCategory(e);
       $(".searchFilterBookBox").find(':focusable').first().focus();
     }
