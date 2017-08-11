@@ -199,7 +199,7 @@ class SearchFilterPanel extends Component {
         <span className="int-he">סינון</span>
         {(this.props.displayFilters) ? <img src="/static/img/arrow-up.png" alt=""/> : <img src="/static/img/arrow-down.png" alt=""/>}
       </div>
-      <div className={(this.props.displayFilters) ? "searchFilterBoxes":"searchFilterBoxes hidden"} role="modal">
+      <div className={(this.props.displayFilters) ? "searchFilterBoxes":"searchFilterBoxes hidden"} role="dialog">
         <div className="searchFilterBoxRow">
           <div className="searchFilterCategoryBox">
           {this.props.availableFilters.map(function(filter) {
