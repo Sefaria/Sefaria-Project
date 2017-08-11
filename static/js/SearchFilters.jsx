@@ -382,10 +382,7 @@ class SearchFilter extends Component {
         this.props.closeBox()
       }
       else {
-        console.log(this.props.openedCategory.id)
-        console.log(this.props.openedCategory)
-        console.log($("#label-for-"+this.props.openedCategory.id))
-        $("#label-for-"+this.props.openedCategory.id).focus();
+        $("#label-for-"+this.props.openedCategory.title).focus();
       }
     }
     else if (e.keyCode === 9) { //9 is tab
