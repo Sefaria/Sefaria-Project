@@ -362,7 +362,7 @@ class SearchFilter extends Component {
   }
   componentDidUpdate() {
     ReactDOM.findDOMNode(this).querySelector("input").indeterminate = this.props.filter.isPartial();
-    if ($(".searchFilterBookBox").children().length > 0) {
+    if ($(".searchFilterBookBox").children().length > 0 && !$('.searchFilterBookBox li label').is(':focus')) { // unoptimized code to focus on top of searchFilterBookBox when not previously selected. For a11y.
       $(".searchFilterBookBox").find(':focusable').first().focus();
     }
   }
