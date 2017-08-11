@@ -382,6 +382,9 @@ class SearchFilter extends Component {
         this.props.closeBox()
       }
       else {
+        console.log(this.props.openedCategory.id)
+        console.log(this.props.openedCategory)
+        console.log($("#label-for-"+this.props.openedCategory.id))
         $("#label-for-"+this.props.openedCategory.id).focus();
       }
     }
