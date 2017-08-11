@@ -358,19 +358,27 @@ class SearchFilter extends Component {
   }
   // Can't set indeterminate in the render phase.  https://github.com/facebook/react/issues/1798
   componentDidMount() {
+    ReactDOM.findDOMNode(this).querySelector("input").indeterminate = this.props.filter.isPartial();
     if (this.props.filter.isPartial()) {
       ReactDOM.findDOMNode(this).querySelector("label").ariaChecked = "mixed";
-      ReactDOM.findDOMNode(this).querySelector("input").indeterminate = true;
+    }
+    else {
+      ReactDOM.findDOMNode(this).querySelector("label").ariaChecked = this.state.selected;
     }
   }
   componentDidUpdate() {
+    ReactDOM.findDOMNode(this).querySelector("input").indeterminate = this.props.filter.isPartial();
     if (this.props.filter.isPartial()) {
       ReactDOM.findDOMNode(this).querySelector("label").ariaChecked = "mixed";
-      ReactDOM.findDOMNode(this).querySelector("input").indeterminate = true;
     }
+    else {
+      ReactDOM.findDOMNode(this).querySelector("label").ariaChecked = this.state.selected;
+    }
+
     if ($(".searchFilterBookBox").children().length > 0 && !$('.searchFilterBookBox li label').is(':focus')) { // unoptimized code to focus on top of searchFilterBookBox when not previously selected. For a11y.
       $(".searchFilterBookBox").find(':focusable').first().focus();
     }
+
   }
   handleFilterClick(evt) {
     //evt.preventDefault();
@@ -423,7 +431,7 @@ class SearchFilter extends Component {
     return(
       <li onClick={this.handleFocusCategory}>
         <input type="checkbox" id={this.props.filter.path} className="filter" checked={this.state.selected == 1} onChange={this.handleFilterClick}/>
-        <label onClick={this.handleFilterClick} id={"label-for-"+this.props.filter.path} tabIndex="0" onKeyDown={this.handleKeyDown} onKeyPress={this.handleKeyPress} aria-label={"Click enter to toggle search filter for "+this.props.filter.title+" and space bar to toggle specific books in this category"} aria-checked={this.state.selected == 1}><span></span></label>
+        <label onClick={this.handleFilterClick} id={"label-for-"+this.props.filter.path} tabIndex="0" onKeyDown={this.handleKeyDown} onKeyPress={this.handleKeyPress} aria-label={"Click enter to toggle search filter for "+this.props.filter.title+" and space bar to toggle specific books in this category"}><span></span></label>
         <span className="int-en"><span className="filter-title">{this.props.filter.title}</span> <span className="filter-count">({this.props.filter.docCount})</span></span>
         <span className="int-he" dir="rtl"><span className="filter-title">{this.props.filter.heTitle}</span> <span className="filter-count">({this.props.filter.docCount})</span></span>
         {this.props.isInFocus?<span className="int-en"><i className="in-focus-arrow fa fa-caret-right"/></span>:""}
