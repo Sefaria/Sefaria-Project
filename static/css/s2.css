@@ -20,6 +20,9 @@ body.sepia {
 body.dark {
   background-color: #333331;
 }
+body:not(.user-is-tabbing) *:focus {
+  outline: none;
+}
 .sans,
 .sans .en,
 #s2 .sans .en,
@@ -416,7 +419,6 @@ input.noselect {
   height: 100%;
   overflow: hidden;
   background-color: inherit;
-  outline: none;
   font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
 }
 .readerContent {
@@ -1967,7 +1969,6 @@ a.readerNavCategory {
   text-transform: uppercase;
   letter-spacing: 1px;
   font-weight: lighter;
-  outline: none;
 }
 .connectionsPanelHeader .connectionsHeaderTitle.active {
   text-transform: none;
@@ -2383,7 +2384,6 @@ a.readerNavCategory {
   color: #999;
 }
 .segment {
-  outline: none;
 }
 .segment.heOnly{
   text-align: right;
@@ -2589,7 +2589,6 @@ a.readerNavCategory {
   width: 30px;
   text-align: center;
   line-height: 32px;
-  outline: none;
 }
 .connectionsPanelHeader .languageToggle {
   margin: 0 15px;
@@ -3091,7 +3090,6 @@ a.readerNavCategory {
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
   color: #999;
   padding: 20px 26px;
-  outline: none;
   margin-bottom: 30px;
 }
 .addToSourceSheetBox {
@@ -3156,7 +3154,6 @@ a.readerNavCategory {
   border: none;
   border-radius: 4px;
   padding: 20px 25px;
-  outline: none;
   box-sizing: border-box;
   font-size: 18px;
   font-family: "adobe-garamond-pro", Georgia, serif;
@@ -3465,7 +3462,6 @@ a .button:hover {
   font-family: "Frank Ruehl Libre", "Taamey Frank", "Times New Roman", serif;
 }
 input {
-  outline: none;
 }
 .lexicon-content{
   font-size: 15px;
@@ -4026,7 +4022,6 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
   z-index: -1;
 }
 #groupDescription:focus {
-  outline: none;
 }
 #editGroupPage .groupImage {
   max-width: 200px;

@@ -129,7 +129,7 @@ class ToggleSet extends Component {
     classes = classNames(classes);
     var value = this.props.name === "layout" ? this.props.currentLayout() : this.props.settings[this.props.name];
     var width = 100.0 - (this.props.separated ? (this.props.options.length - 1) * 3 : 0);
-    var style = {width: (width/this.props.options.length) + "%", outline: "none"};
+    var style = {width: (width/this.props.options.length) + "%"};
     return (
       <div className={classes} role={this.props.role} aria-label={this.props.ariaLabel}>
         {
