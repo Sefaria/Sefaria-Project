@@ -374,24 +374,22 @@ class SearchFilter extends Component {
       this.handleFocusCategory(e);
     }
   }
-  handleKeyDown(e, filterPath) {
+  handleKeyDown(e,filterPath) {
     if (e.keyCode === 27) { //27 is escape
-      console.log(filterPath);
       e.stopPropagation();
+      console.log(filterPath);
       if (this.props.closeBox) {
         this.props.closeBox()
       }
       else {
-        $(".searchFilterBookBox").empty();
-        $("#"+filterPath+" + label").first().focus();
+        console.log()
+        this.props.focusCategory(null);
       }
     }
     else if (e.keyCode === 9) { //9 is tab
       e.stopPropagation();
       var lastTab = $("div[role='dialog']").find(':tabbable').last();
       var firstTab = $("div[role='dialog']").find(':tabbable').first();
-      console.log(lastTab);
-      console.log(firstTab);
       if (e.shiftKey) {
         if ($(e.target).is(firstTab)) {
           $(lastTab).focus();
@@ -410,7 +408,7 @@ class SearchFilter extends Component {
     return(
       <li onClick={this.handleFocusCategory}>
         <input type="checkbox" id={this.props.filter.path} className="filter" checked={this.state.selected == 1} onChange={this.handleFilterClick}/>
-        <label onClick={this.handleFilterClick} tabIndex="0" onKeyDown={this.handleKeyDown(e,this.props.filter.path)} onKeyPress={this.handleKeyPress} aria-label={"Click enter to toggle search filter for "+this.props.filter.title+" and space bar to toggle specific books in this category"}><span></span></label>
+        <label onClick={this.handleFilterClick} tabIndex="0" onKeyDown={(e)=>this.handleKeyDown(e,this.props.filter.path)} onKeyPress={this.handleKeyPress} aria-label={"Click enter to toggle search filter for "+this.props.filter.title+" and space bar to toggle specific books in this category"}><span></span></label>
         <span className="int-en"><span className="filter-title">{this.props.filter.title}</span> <span className="filter-count">({this.props.filter.docCount})</span></span>
         <span className="int-he" dir="rtl"><span className="filter-title">{this.props.filter.heTitle}</span> <span className="filter-count">({this.props.filter.docCount})</span></span>
         {this.props.isInFocus?<span className="int-en"><i className="in-focus-arrow fa fa-caret-right"/></span>:""}
