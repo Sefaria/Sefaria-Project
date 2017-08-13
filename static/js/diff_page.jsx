@@ -485,8 +485,8 @@ class DiffRow extends Component {
     if (!this.fullyLoaded()) {
       return <tr><td>{"Loading..."}</td></tr>
     }
-    var cell1 = <DiffCell diff={this.state.v1} vtitle={this.props.v1}/>,
-        cell2 = <DiffCell diff={this.state.v2} vtitle={this.props.v2}/>;
+    var cell1 = <DiffCell diff={this.state.v1} vtitle={this.props.v1} lang={this.props.lang}/>,
+        cell2 = <DiffCell diff={this.state.v2} vtitle={this.props.v2} lang={this.props.lang}/>;
 
     return (
         <tr><td>{this.props.segRef}</td>{cell1}{cell2}</tr>
@@ -548,7 +548,7 @@ class DiffCell extends Component {
 
     }
     return (
-          <td className="he">{spans}</td>
+          <td className={this.props.lang}>{spans}</td>
       );
     }
 }
@@ -576,8 +576,7 @@ class DiffElement extends Component {
       onClick={this.onClick}
       className="ins">
       {this.props.text}
-      {this.state.mouseover ? <span style={{position: "absolute", zIndex: 1,
-      backgroundColor: "#555", color: "#fff"}}>Change<br/> {this.props.text}<br/> to<br/>
+      {this.state.mouseover ? <span className="change">Change<br/> {this.props.text}<br/> to<br/>
       {this.props.toText}</span> : null}
       </span>);
   }
