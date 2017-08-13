@@ -221,8 +221,8 @@ class DataForm extends Component {
   }
 
   componentDidUpdate(prevProps, prevState) {
-    if (Sefaria.isRef(prevState.secRef) && prevState.lang) {
-      Sefaria.versions(prevState.secRef, this.loadPossibleVersions)
+    if (Sefaria.isRef(this.state.secRef) && this.state.lang) {
+      Sefaria.versions(this.state.secRef, this.loadPossibleVersions)
     } else {
       this.setState({possibleVersions: null});
     }
@@ -251,7 +251,9 @@ class DataForm extends Component {
             type="text"
             value={this.state.secRef}
             onChange={this.handleInputChange}
-            style={{width: "300px"}}/>
+            onPaste={this.handleInputChange}
+            style={{width: "300px"}}
+            autoComplete="off"/>
         </label>
         <label>
           Language:
