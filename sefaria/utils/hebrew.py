@@ -481,18 +481,6 @@ def hebrew_term(s):
 	if is_hebrew(s):
 		return s
 
-	'''
-	# Old way - took longer, ended up clobbering some categories with index transx.
-	try:
-		i = library.get_index(s)
-		return i.get_title("he")
-	except BookNameError:
-		term = Term().load({'name': s})
-		if term:
-			return term.get_primary_title('he')
-	return ''
-	'''
-
 	term = Term().load({'name': s})
 	if term:
 		return term.get_primary_title('he')
@@ -503,21 +491,6 @@ def hebrew_term(s):
 			return i.get_title("he")
 		except BookNameError:
 			return ''
-
-
-def get_simple_term_mapping():
-	from sefaria.model import TermSet, CategorySet
-	hebrew_mapping = {}
-
-	for term in TermSet():
-		hebrew_mapping[term.name] = {"en": term.get_primary_title("en"), "he": term.get_primary_title("he")}
-
-	# Note that this will clobber any overlapping terms, and use the last of identical categories.
-	for cat in CategorySet():
-		hebrew_mapping[cat.lastPath] = {"en": cat.get_primary_title("en"), "he": cat.get_primary_title("he")}
-
-	return hebrew_mapping
-
 
 
 def hebrew_parasha_name(value):
