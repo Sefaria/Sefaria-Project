@@ -1,13 +1,41 @@
 const React      = require('react');
 const Sefaria    = require('./sefaria/sefaria');
+const $          = require('./sefaria/sefariaJquery');
 import Component from 'react-class';
 
 
 class Footer extends Component {
+  constructor(props) {
+    super(props);
+    this.state = {subscribeMessage: null};
+  }
   trackLanguageClick(language){
     Sefaria.track.setInterfaceLanguage('interface language footer', language);
   }
-  render(){
+  handleSubscribeKeyUp(e) {
+    if (e.keyCode === 13) {
+      this.handleSubscribe();
+    }
+  }
+  handleSubscribe() {
+    var email = $("#newsletterInput").val();
+    if (Sefaria.util.isValidEmailAddress(email)) {
+      Sefaria.track.event("Footer", "Subscribe from Footer", "");
+      this.setState({subscribeMessage: "Subscribing..."});
+      $.post("/api/subscribe/" + email, function(data) {
+        if ("error" in data) {
+          this.setState({subscribeMessage: data.error});
+        } else {
+          this.setState({subscribeMessage: "Subscribed! Welcome to our list."});
+        }
+      }.bind(this)).error(function(data) {
+        this.setState({subscribeMessage: "Sorry, there was an error."});
+      }.bind(this));
+    } else {
+      this.setState({subscribeMessage: "Please enter a valid email address."});
+    }
+  }
+  render() {
     var currentPath = Sefaria.util.currentPath();
     var currentPathEncoded = encodeURIComponent(currentPath);
     var next = currentPathEncoded ? currentPathEncoded : '?home';
@@ -122,41 +150,43 @@ class Footer extends Component {
               </a>
           </div>
 
-          <div className="section last">
-              <div className="header">
+          <div className="section last connect">
+              <div className="header connect">
                   <span className="int-en">Connect</span>
                   <span className="int-he">התחבר</span>
               </div>
-              <a href="http://www.facebook.com/sefaria.org" target="_blank" className="outOfAppLink">
-                  <i className="fa fa-facebook-official"></i>
-                  <span className="int-en">Facebook</span>
-                  <span className="int-he">פייסבוק</span>
-
-              </a>
-              <a href="http://twitter.com/SefariaProject" target="_blank" className="outOfAppLink">
-                  <i className="fa fa-twitter"></i>
-                  <span className="int-en">Twitter</span>
-                  <span className="int-he">טוויטר</span>
-
-              </a>
+              <div id="newsletterFooterBox">
+                <span className="int-en">
+                  <input id="newsletterInput" placeholder="Sign up for Newsletter" onKeyUp={this.handleSubscribeKeyUp} />
+                </span>
+                <span className="int-he">
+                  <input id="newsletterInput" placeholder="הצטרפו לרשימת התפוצה" onKeyUp={this.handleSubscribeKeyUp} />
+                </span>
+                <img src="/static/img/circled-arrow-right.svg" onClick={this.handleSubscribe} />
+                { this.state.subscribeMessage ? 
+                  <div id="subscribeMessage">{this.state.subscribeMessage}</div>
+                  : null }
+              </div>
+              <SocialButtons />
               <a href="http://www.youtube.com/user/SefariaProject" target="_blank" className="outOfAppLink">
-                  <i className="fa fa-youtube"></i>
                   <span className="int-en">YouTube</span>
                   <span className="int-he">יוטיוב</span>
 
               </a>
+              &bull;
               <a href="https://groups.google.com/forum/?fromgroups#!forum/sefaria" target="_blank" className="outOfAppLink">
                   <span className="int-en">Forum</span>
                   <span className="int-he">פורום</span>
 
               </a>
+              &bull;
               <a href="mailto:hello@sefaria.org" target="_blank" className="outOfAppLink">
                   <span className="int-en">Email</span>
                   <span className="int-he">דוא&quot;ל</span>
               </a>
               <div id="siteLanguageToggle">
                   <div id="siteLanguageToggleLabel">
-                      <span className="int-en">Site Language:</span>
+                      <span className="int-en">Site Language</span>
                       <span className="int-he">שפת האתר</span>
                   </div>
                   <a href={"/interface/english?next=" + next} id="siteLanguageEnglish" className="outOfAppLink"
@@ -170,6 +200,71 @@ class Footer extends Component {
           </div>
         </div>
     );
+  }
+}
+
+
+class SocialButtons extends Component {
+  componentDidMount() {
+    this.loadFacebook();
+    this.loadTwitter();
+  }
+  loadFacebook() {
+    if (typeof FB !== "undefined") {
+       //debugger;
+       FB.XFBML.parse();
+    } else {
+      //debugger;
+      (function(d, s, id) {
+        var js, fjs = d.getElementsByTagName(s)[0];
+        if (d.getElementById(id)) return;
+        js = d.createElement(s); js.id = id;
+        js.src = "//connect.facebook.net/en_US/sdk.js#xfbml=1&version=v2.10&appId=206308089417064";
+        fjs.parentNode.insertBefore(js, fjs);
+      }(document, 'script', 'facebook-jssdk'));        
+    }
+  }
+  loadTwitter() {
+    if (typeof twttr !== "undefined") {
+      twttr.widgets.load();
+    } else {
+      window.twttr = (function(d, s, id) {
+        var js, fjs = d.getElementsByTagName(s)[0],
+          t = window.twttr || {};
+        if (d.getElementById(id)) return t;
+        js = d.createElement(s);
+        js.id = id;
+        js.src = "https://platform.twitter.com/widgets.js";
+        fjs.parentNode.insertBefore(js, fjs);
+
+        t._e = [];
+        t.ready = function(f) {
+          t._e.push(f);
+        };
+
+        return t;
+      }(document, "script", "twitter-wjs"));      
+    }
+  }
+  render() {
+    return (<div id="socialButtons">
+              <div id="facebookButton">
+                <div id="fb-root"></div>
+                <div className="fb-like" 
+                  data-href="https://www.facebook.com/sefaria.org" 
+                  data-layout="button" 
+                  data-action="like" 
+                  data-size="small" 
+                  data-show-faces="false" 
+                  data-share="true"></div>
+              </div>
+              <div id="twitterButton">
+                <a className="twitter-follow-button"
+                  href="https://twitter.com/SefariaProject"
+                  data-show-screen-name="false"
+                  data-show-count="false"></a>
+              </div>
+            </div>);
   }
 }
 
