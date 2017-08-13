@@ -364,7 +364,8 @@ class DiffRow extends Component {
     this.state = {
       v1: null,
       v2: null,
-      requiresUpdate: true
+      requiresUpdate: true,
+      allowPost: true  // Is set to false when a change is being applied.
     }
   }
 
@@ -424,7 +425,7 @@ class DiffRow extends Component {
     }
     seg1.diffList = diff1;
     seg2.diffList = diff2;
-    this.setState({v1: seg1, v2: seg2, requiresUpdate: false})
+    this.setState({v1: seg1, v2: seg2, requiresUpdate: false, allowPost :true})
   }
 
   LoadText (text, version) {
@@ -447,6 +448,12 @@ class DiffRow extends Component {
     if (this.state.requiresUpdate & (this.state.v1 != null & this.state.v2 != null)) {
       this.generateDiff(this.state.v1, this.state.v2);
     }
+    if (this.state.v1 === null) {
+      Sefaria.text(this.props.segRef, {'version': this.props.v1, 'language': this.props.lang}, this.LoadV1);
+    }
+    if (this.state.v2 === null) {
+      Sefaria.text(this.props.segRef, {'version': this.props.v2, 'language': this.props.lang}, this.LoadV2);
+    }
   }
 
   LoadV1 (text) {this.LoadText(text, 'v1');}
@@ -454,17 +461,14 @@ class DiffRow extends Component {
 
   componentWillMount () {
     var settings = {'version': this.props.v1, 'language': this.props.lang};
-    Sefaria.text(this.props.segRef, settings, this.LoadV1);
-    settings.version = this.props.v2;
-    Sefaria.text(this.props.segRef, settings, this.LoadV2);
+    Sefaria.text(this.props.segRef, {'version': this.props.v1, 'language': this.props.lang}, this.LoadV1);
+    Sefaria.text(this.props.segRef, {'version': this.props.v2, 'language': this.props.lang}, this.LoadV2);
   }
 
   componentWillReceiveProps(nextProps) {
     if (this.props.segRef != nextProps.segRef) {
-      var settings = {'version': this.props.v1, 'language': this.props.lang};
-      Sefaria.text(this.props.segRef, settings, this.loadV1);
-      settings.version = this.props.v2;
-      Sefaria.text(this.props.segRef, settings, this.loadV2);
+      Sefaria.text(this.props.segRef, {'version': this.props.v1, 'language': this.props.lang}, this.loadV1);
+      Sefaria.text(this.props.segRef, {'version': this.props.v2, 'language': this.props.lang}, this.loadV2);
     }
   }
 
@@ -480,11 +484,40 @@ class DiffRow extends Component {
     }
   }
 
+  acceptChange(segRef, vtitle, lang, text) {
+    debugger;
+    // block all posting untill this has successfully returned. Gets set back to `true` in `generateDiff`
+    if (this.state.allowPost) {
+      this.setState({allowPost: false});
+      Sefaria.postSegment(segRef, vtitle, lang, text, this.onChangeMade, this.onChangeFailed);
+    } else {
+      alert("Another Change in Progress, Please Wait");
+    }
+  }
+
+  onChangeMade(d) {
+    // Check for "error" or "status":"ok"
+    if (d.status === 'ok') {
+      this.setState({requiresUpdate: true, v1: null, v2: null});
+    }
+    // changeInProgress: false
+  }
+
+  onChangeFailed(d) {
+    // Choke
+  }
+
   render() {
     if (!this.fullyLoaded()) {
       return <tr><td>{"Loading..."}</td></tr>
     }
-    var cells = ["v1","v2"].map(v => <DiffCell key={v} segRef={this.props.segRef} diff={this.state[v]} vtitle={this.props[v]} lang={this.props.lang}/>);
+    var cells = ["v1","v2"].map(v => <DiffCell
+      key={v}
+      segRef={this.props.segRef}
+      diff={this.state[v]}
+      vtitle={this.props[v]}
+      lang={this.props.lang}
+      acceptChange={this.acceptChange}/>);
 
     return (
         <tr><td>{this.props.segRef}</td>{cells}</tr>
@@ -518,16 +551,10 @@ class DiffCell extends Component {
         this.props.diff.rawText.slice(rawPosition + diffLength);
 
     // changeInProgress: true
-    // Sefaria.postSegment(this.props.segRef, this.props.vtitle, this.props.lang, fullNewText, onChangeMade, onChangeFailed);
+    this.props.acceptChange(this.props.segRef, this.props.vtitle, this.props.lang, fullNewText);
     return fullNewText;
   }
-  onChangeMade(d) {
-    // Check for "error" or "status":"ok"
-    // changeInProgress: false
-  }
-  onChangeFailed(d) {
-    // Choke
-  }
+
   render() {
     if (this.props.diff.diffList === null) {
       return (<td>{"Loading..."}</td>);
@@ -537,12 +564,12 @@ class DiffCell extends Component {
 
     for (var i = 0; i < diffList.length; i++) {
       // Equivalent string
-      if (diffList[i][0] === 0) { 
+      if (diffList[i][0] === 0) {
         spans.push(<span key={i.toString()}>{diffList[i][1]}</span>);
       }
 
       // Diff that can be applied automatically
-      else if (diffList[i][0] === 1) { 
+      else if (diffList[i][0] === 1) {
         spans.push(<DiffElement
           text       = {diffList[i][1]}
           toText     = {diffList[i][2]}
@@ -552,7 +579,7 @@ class DiffCell extends Component {
         }
 
       // Diff that can not be applied automatically
-      else { 
+      else {
         spans.push(<span className="del" key={i.toString()}>{diffList[i][1]}</span>);
       }
 
@@ -627,7 +654,7 @@ class DiffElement extends Component {
         className="ins">
           {this.props.text}
           {this.state.mouseover ?
-              <span className="change">Change<br/> {this.props.text}<br/> to<br/>{this.state.replacementText}</span> :
+              <span className="change">Change {this.props.text} to {this.state.replacementText}</span> :
               null
           }
         {this.state.confirmOpen ? confirmForm : null}
