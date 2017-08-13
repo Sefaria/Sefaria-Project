@@ -56,7 +56,7 @@ class ReaderTextTableOfContents extends Component {
     }
     if (this.isBookToc()) {
       var ref  = this.getDataRef();
-      var versions = Sefaria.versions(ref)
+      var versions = Sefaria.versions(ref);
       if (!versions) {
         Sefaria.versions(ref, () => this.forceUpdate() );
       }

@@ -77,7 +77,7 @@ class DiffStore {
       }
     return validatedDiff;
     }
-  }
+}
 
 class PageLoader extends Component {
   constructor(props) {
@@ -91,11 +91,11 @@ class PageLoader extends Component {
   //this.handleSubmit = this.handleSubmit.bind(this);
   }
 
-formSubmit(nextState) {
+  formSubmit(nextState) {
   this.setState(nextState);
   }
 
-componentDidUpdate() {
+  componentDidUpdate() {
   if (this.props.secRef != this.state.secRef ||
       this.props.lang != this.state.lang ||
       this.props.v1 != this.state.v1 ||
@@ -111,7 +111,7 @@ componentDidUpdate() {
   }
 }
 
-render() {
+  render() {
     return (
       <div>
       <DataForm
@@ -484,20 +484,19 @@ class DiffRow extends Component {
     if (!this.fullyLoaded()) {
       return <tr><td>{"Loading..."}</td></tr>
     }
-    var cell1 = <DiffCell diff={this.state.v1} vtitle={this.props.v1} lang={this.props.lang}/>,
-        cell2 = <DiffCell diff={this.state.v2} vtitle={this.props.v2} lang={this.props.lang}/>;
+    var cells = ["v1","v2"].map(v => <DiffCell key={v} segRef={this.props.segRef} diff={this.state[v]} vtitle={this.props[v]} lang={this.props.lang}/>);
 
     return (
-        <tr><td>{this.props.segRef}</td>{cell1}{cell2}</tr>
+        <tr><td>{this.props.segRef}</td>{cells}</tr>
     );
   }
 }
 
 class DiffCell extends Component {
 
-  acceptDiff(diffIndex) {
+  acceptChange(diffIndex, replacement) {
   /*
-  *  Accept a change and make it to the rawText.
+  *  Accept a change and apply it to the rawText.
   *  diffIndex: An integer which indicates which element in the difflist to
   *  accept for the change.
   */
@@ -516,7 +515,7 @@ class DiffCell extends Component {
 
     return (
       this.props.diff.rawText.slice(0, rawPosition) +
-      diffList[diffIndex][2] +
+      replacement +
       this.props.diff.rawText.slice(rawPosition + diffLength)
     );
   }
@@ -529,21 +528,25 @@ class DiffCell extends Component {
     var diffList = this.props.diff.diffList;
 
     for (var i = 0; i < diffList.length; i++) {
-      if (diffList[i][0] === 0) {
+      // Equivalent string
+      if (diffList[i][0] === 0) { 
         spans.push(<span key={i.toString()}>{diffList[i][1]}</span>);
       }
 
-      else if (diffList[i][0] === 1) {
-      spans.push(<DiffElement
-        text       = {diffList[i][1]}
-        toText     = {diffList[i][2]}
-        key        = {i.toString()}
-        diffIndex  = {i}
-        acceptDiff = {this.acceptDiff}
-        />);
-      }
+      // Diff that can be applied automatically
+      else if (diffList[i][0] === 1) { 
+        spans.push(<DiffElement
+          text       = {diffList[i][1]}
+          toText     = {diffList[i][2]}
+          key        = {i.toString()}
+          acceptChange = {this.acceptChange.bind(this, i)}
+          />);
+        }
 
-      else {spans.push(<span className="del" key={i.toString()}>{diffList[i][1]}</span>);}
+      // Diff that can not be applied automatically
+      else { 
+        spans.push(<span className="del" key={i.toString()}>{diffList[i][1]}</span>);
+      }
 
     }
     return (
@@ -554,28 +557,74 @@ class DiffCell extends Component {
 
 class DiffElement extends Component {
   constructor(props) {
-    super(props)
-    this.state = {mouseover: false};
+    super(props);
+    this.state = {
+      mouseover: false,
+      replacementText: this.props.toText,
+      confirmOpen: false
+    };
   }
   onMouseOver() {
-    this.setState({mouseover: true});
+    if(!this.state.confirmOpen) {
+      this.setState({mouseover: true});
+    }
   }
   onMouseOut() {
     this.setState({mouseover: false});
   }
-  onClick() {
-    console.log(this.props.acceptDiff(this.props.diffIndex));
+  openConfirm() {
+    this.setState({confirmOpen: true, mouseover: false});
+  }
+  closeConfirm(event) {
+    event.stopPropagation();
+    this.setState({confirmOpen: false, mouseover: false});
+  }
+  acceptChange(event) {
+    event.preventDefault();
+    event.stopPropagation();
+    console.log(this.props.acceptChange(this.state.replacementText));
+    return false;
+  }
+  resetReplacementText(event) {
+    event.stopPropagation();
+    this.setState({ replacementText: this.props.toText});
+  }
+  handleReplacementTextChange(event) {
+    this.setState({ replacementText: event.target.value });
   }
   render() {
+    var confirmForm = (
+        <div className="changeDialog">
+          Changing {this.props.text} to {this.state.replacementText}<br/>
+          <form onSubmit={this.acceptChange}>
+            <label>
+              Replacement Text:
+              <input
+                type="text"
+                value={this.state.replacementText}
+                onChange={this.handleReplacementTextChange}
+                onPaste={this.handleReplacementTextChange}
+                autoComplete="off"/>
+            </label>
+            <br />
+            <input type="submit" value="Apply Change" />
+            <input type="reset" value="Reset" onClick={this.resetReplacementText} />
+            <input type="button" value="Cancel" onClick={this.closeConfirm} />
+          </form>
+        </div>);
     return (
       <span onMouseOver={this.onMouseOver}
-      onMouseOut={this.onMouseOut}
-      onClick={this.onClick}
-      className="ins">
-      {this.props.text}
-      {this.state.mouseover ? <span className="change">Change<br/> {this.props.text}<br/> to<br/>
-      {this.props.toText}</span> : null}
-      </span>);
+        onMouseOut={this.onMouseOut}
+        onClick={this.openConfirm}
+        className="ins">
+          {this.props.text}
+          {this.state.mouseover ?
+              <span className="change">Change<br/> {this.props.text}<br/> to<br/>{this.state.replacementText}</span> :
+              null
+          }
+        {this.state.confirmOpen ? confirmForm : null}
+      </span>
+    );
   }
 }
 ReactDOM.render(<PageLoader secRef={JSON_PROPS.secRef}

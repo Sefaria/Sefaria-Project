@@ -474,6 +474,25 @@ Sefaria = extend(Sefaria, {
         });
     }
   },
+  postSegment: function(ref, versionTitle, language, text, success, error) {
+    if (!versionTitle || !language) { return; }
+    this.lookupRef(ref, function(data) {
+        if (!data.is_segment) { return; }
+        var d = {json: JSON.stringify({
+            versionTitle: versionTitle,
+            language: language,
+            text: text
+          })};
+        $.ajax({
+          dataType: "json",
+          url: "/api/texts/" + data.url,
+          data: d,
+          type: "POST",
+          success: success,
+          error: error
+        }, error);
+    });
+  },
   ref: function(ref, callback) {
     // Returns parsed ref info for string `ref` from cache, or async from API if `callback` is present
     // Uses this._refmap to find the refkey that has information for this ref.
