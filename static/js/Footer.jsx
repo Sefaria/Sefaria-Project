@@ -167,7 +167,7 @@ class Footer extends Component {
                   <div id="subscribeMessage">{this.state.subscribeMessage}</div>
                   : null }
               </div>
-              <SocialButtons />
+              <LikeFollowButtons />
               <a href="http://www.youtube.com/user/SefariaProject" target="_blank" className="outOfAppLink">
                   <span className="int-en">YouTube</span>
                   <span className="int-he">יוטיוב</span>
@@ -204,17 +204,15 @@ class Footer extends Component {
 }
 
 
-class SocialButtons extends Component {
+class LikeFollowButtons extends Component {
   componentDidMount() {
     this.loadFacebook();
     this.loadTwitter();
   }
   loadFacebook() {
     if (typeof FB !== "undefined") {
-       //debugger;
        FB.XFBML.parse();
     } else {
-      //debugger;
       (function(d, s, id) {
         var js, fjs = d.getElementsByTagName(s)[0];
         if (d.getElementById(id)) return;
@@ -249,7 +247,6 @@ class SocialButtons extends Component {
   render() {
     return (<div id="socialButtons">
               <div id="facebookButton">
-                <div id="fb-root"></div>
                 <div className="fb-like" 
                   data-href="https://www.facebook.com/sefaria.org" 
                   data-layout="button" 
