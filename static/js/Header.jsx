@@ -23,6 +23,7 @@ class Header extends Component {
   }
   componentDidMount() {
     this.initAutocomplete();
+    window.addEventListener('keydown', this.handleFirstTab);
   }
   componentWillReceiveProps(nextProps) {
     if (nextProps.initialState) {
@@ -214,6 +215,12 @@ class Header extends Component {
     var query = $(ReactDOM.findDOMNode(this)).find(".search").val();
     if (query) {
       this.submitSearch(query);
+    }
+  }
+  handleFirstTab(e) {
+    if (e.keyCode === 9) { // tab (i.e. I'm using a keyboard)
+      document.body.classList.add('user-is-tabbing');
+      window.removeEventListener('keydown', this.handleFirstTab);
     }
   }
   render() {
