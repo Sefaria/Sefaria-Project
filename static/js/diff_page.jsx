@@ -166,7 +166,6 @@ class DataForm extends Component {
   }
 
   loadPossibleVersions(versions) {
-    console.log(typeof(versions));
     let lang = this.state.lang;
     let possibleVersions = versions.reduce(function(vList, version) {
       if (version.language === lang) {
@@ -435,7 +434,6 @@ class DiffRow extends Component {
     }
   }
   componentDidMount() {
-    console.log('run componentDidMount');
     if (this.state.v1 != null & this.state.v2 != null) {
       this.generateDiff(this.state.v1, this.state.v2);
     }
@@ -444,7 +442,6 @@ class DiffRow extends Component {
   componentDidUpdate() {
     // This may be necessary once we start pushing to server, but should remain
     // inactive for now.
-    console.log('run componentDidUpdate');
     if (this.state.requiresUpdate & (this.state.v1 != null & this.state.v2 != null)) {
       this.generateDiff(this.state.v1, this.state.v2);
     }
@@ -559,11 +556,9 @@ class DiffElement extends Component {
     this.state = {mouseover: false};
   }
   onMouseOver() {
-  //  console.log("MouseOver!");
     this.setState({mouseover: true});
   }
   onMouseOut() {
-  //  console.log("MouseOut!");
     this.setState({mouseover: false});
   }
   onClick() {
