@@ -513,13 +513,21 @@ class DiffCell extends Component {
     var rawPosition = filteredPosition + this.props.diff.mapping[filteredPosition],
         diffLength  = diffList[diffIndex][1].length;
 
-    return (
-      this.props.diff.rawText.slice(0, rawPosition) +
-      replacement +
-      this.props.diff.rawText.slice(rawPosition + diffLength)
-    );
-  }
+    var fullNewText = this.props.diff.rawText.slice(0, rawPosition) +
+        replacement +
+        this.props.diff.rawText.slice(rawPosition + diffLength);
 
+    // changeInProgress: true
+    // Sefaria.postSegment(this.props.segRef, this.props.vtitle, this.props.lang, fullNewText, onChangeMade, onChangeFailed);
+    return fullNewText;
+  }
+  onChangeMade(d) {
+    // Check for "error" or "status":"ok"
+    // changeInProgress: false
+  }
+  onChangeFailed(d) {
+    // Choke
+  }
   render() {
     if (this.props.diff.diffList === null) {
       return (<td>{"Loading..."}</td>);
