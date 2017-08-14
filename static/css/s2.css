@@ -2050,11 +2050,6 @@ a.readerNavCategory {
   display: inline-block;
   cursor: pointer;
 }
-.leftButtons div,
-.rightButtons div {
-  vertical-align: middle;
-  display: inline-block;
-}
 .leftButtons .readerNavMenuMenuButton {
   font-size: 22px;
   margin-top: 2px;
