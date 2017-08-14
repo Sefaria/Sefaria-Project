@@ -6,8 +6,8 @@
 <script>
   {% autoescape off %}
   var DJANGO_VARS = {
-    contentLang: "{{ contentLang }}",
-    interfaceLang: "{{ interfaceLang }}",
+    contentLang: "{{ request.contentLang }}",
+    interfaceLang: "{{ request.interfaceLang }}",
     inReaderApp: false,
     ga: ga
   };

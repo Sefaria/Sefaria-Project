@@ -89,7 +89,6 @@ TEMPLATE_CONTEXT_PROCESSORS = (
     "sefaria.system.context_processors.toc",
     "sefaria.system.context_processors.terms",
     "sefaria.system.context_processors.embed_page",
-    "sefaria.system.context_processors.language_settings",
     "sefaria.system.context_processors.user_and_notifications",
     "sefaria.system.context_processors.calendar_links",
     "sefaria.system.context_processors.header_html",
@@ -104,8 +103,9 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django_mobile.middleware.MobileDetectionMiddleware',
-    'sefaria.system.middleware.ProfileMiddleware',
     'django_mobile.middleware.SetFlavourMiddleware',
+    'sefaria.system.middleware.ProfileMiddleware',
+    'sefaria.system.middleware.LanguageSettingsMiddleware',
     #'django.middleware.cache.UpdateCacheMiddleware',
     #'django.middleware.cache.FetchFromCacheMiddleware',
 )

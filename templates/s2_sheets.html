@@ -55,7 +55,7 @@
 <!-- CSS placed here so it has precedence over other sheets in base.html -->
 <link rel="stylesheet" href="/static/css/sheets.css">
 <link rel="stylesheet" href="/static/css/sheets-print.css" media="print" />
-<div id="sheetsContent" data-interface-lang="{{ interfaceLang }}">
+<div id="sheetsContent" data-interface-lang="{{ request.interfaceLang }}">
 
     <div class="sheetsEditNavTop">
         <div class="sheetsMenuBar">
@@ -741,7 +741,7 @@
                 <div class="blockContainer">
                     <input id="inlineAdd" class="inlineAddTextInput"
                            placeholder=
-                                   {% if interfaceLang == 'english' %}
+                                   {% if request.interfaceLang == 'english' %}
                                        "Search for a Text or Commentator"
                                    {% else %}
                                        "חפש טקסט או פרשן"
@@ -810,7 +810,7 @@
                 </div>
                 <div class="blockContainer">
                     <input id="inlineAddMediaInput" class="inlineAddTextInput"
-                           placeholder={% if interfaceLang == 'english' %}
+                           placeholder={% if request.interfaceLang == 'english' %}
                                        "Paste URL"
                                    {% else %}
                                        "הדבק קישור"
@@ -910,7 +910,7 @@
 	<div id="printFooter">
 		<img src="/static/img/samekh.png">
 		<div>
-            {% if interfaceLang == "english" %}
+            {% if request.interfaceLang == "english" %}
 			Made with the Sefaria Source Sheet Builder<br>
             {% else %}
                 נוצר בעזרת בונה דפי המקורות של ספאריה
@@ -1023,22 +1023,22 @@
         </div>
         <select id="sourceSheetShareSelect">
           <option value="private">
-              {% if interfaceLang == "english" %} Private {% else %} פרטי {% endif %}
+              {% if request.interfaceLang == "english" %} Private {% else %} פרטי {% endif %}
           </option>
           <option value="public">
-              {% if interfaceLang == "english" %} Listed for Sefaria Users {% else %} מופיע למשתמשים רשומים {% endif %}
+              {% if request.interfaceLang == "english" %} Listed for Sefaria Users {% else %} מופיע למשתמשים רשומים {% endif %}
           </option>
           <option value="publicAdd">
-              {% if interfaceLang == "english" %} Anyone can Add {% else %} כל אחד יכול להוסיף {% endif %}
+              {% if request.interfaceLang == "english" %} Anyone can Add {% else %} כל אחד יכול להוסיף {% endif %}
           </option>
           <option value="privateAdd">
-              {% if interfaceLang == "english" %} Anyone can Add - Unlisted {% else %} כל אחד יכול להוסיף - מוסתר {% endif %}
+              {% if request.interfaceLang == "english" %} Anyone can Add - Unlisted {% else %} כל אחד יכול להוסיף - מוסתר {% endif %}
           </option>
           <option value="publicEdit">
-              {% if interfaceLang == "english" %} Anyone can Edit {% else %} כל אחד יכול לערוך {% endif %}
+              {% if request.interfaceLang == "english" %} Anyone can Edit {% else %} כל אחד יכול לערוך {% endif %}
           </option>
           <option value="privateEdit">
-              {% if interfaceLang == "english" %} Anyone can Edit - Unlisted {% else %} כל אחד יכול לערוך - מוסתר {% endif %}
+              {% if request.interfaceLang == "english" %} Anyone can Edit - Unlisted {% else %} כל אחד יכול לערוך - מוסתר {% endif %}
           </option>
         </select>
     </div>
@@ -1051,7 +1051,7 @@
         </div>
         <select id="sourceSheetGroupSelect">
             <option value="None">
-                {% if interfaceLang == "english" %} None {% else %} ללא {% endif %}
+                {% if request.interfaceLang == "english" %} None {% else %} ללא {% endif %}
             </option>
 
     		{% for group in owner_groups %}
@@ -1449,8 +1449,8 @@
 		{% if user.id %}
 		_fullname: "{{ user.first_name }} {{ user.last_name }}",
 		_userLink: "{{ user.id|user_link }}",
-        interfaceLang: "{{ interfaceLang }}".substring(0,2),
-        interfaceLangLong: "{{ interfaceLang }}"
+        interfaceLang: "{{ request.interfaceLang }}".substring(0,2),
+        interfaceLangLong: "{{ request.interfaceLang }}"
 		{% endif %}
 	});
 {% endautoescape %}

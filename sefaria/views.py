@@ -57,7 +57,6 @@ logger = logging.getLogger(__name__)
 
 
 def register(request):
-    request_context = RequestContext(request)
     if request.user.is_authenticated():
         return HttpResponseRedirect("/login")
 
@@ -73,7 +72,7 @@ def register(request):
             p = UserProfile(id=user.id)
             p.assign_slug()
             p.join_invited_groups()
-            p.settings["interface_language"] = request_context.get("interfaceLang")
+            p.settings["interface_language"] = request.interfaceLang
             p.save()
             if "noredirect" in request.POST:
                 return HttpResponse("ok")

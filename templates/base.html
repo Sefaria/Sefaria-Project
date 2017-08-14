@@ -3,10 +3,10 @@
 <!DOCTYPE html>
 <html>
 <head>
-    {% if interfaceLang == "english" %}
+    {% if request.interfaceLang == "english" %}
         <title>{% block titleEnglish %}{% endblock %}</title>
         <meta name="description" property="og:description" content="{% block descriptionEnglish %}{% endblock %}">
-    {% elif interfaceLang == "hebrew" %}
+    {% elif request.interfaceLang == "hebrew" %}
         <title>{% block titleHebrew %}{% endblock %}</title>
         <meta name="description" property="og:description" content="{% block descriptionHebrew %}{% endblock %}">
     {% endif %}
@@ -69,7 +69,7 @@
     {% endautoescape %}
 
     <div class="wrapper">
-        <div id="content" class="interface-{{ interfaceLang }}">
+        <div id="content" class="interface-{{ request.interfaceLang }}">
             {% block content %}{% endblock %}
         </div>
     </div>
@@ -85,8 +85,8 @@
     <script>
       {% autoescape off %}
       var DJANGO_VARS = {
-        contentLang: "{{ contentLang }}",
-        interfaceLang: "{{ interfaceLang }}",
+        contentLang: "{{ request.contentLang }}",
+        interfaceLang: "{{ request.interfaceLang }}",
         inReaderApp: false,
         ga: ga
       };

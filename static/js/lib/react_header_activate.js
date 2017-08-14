@@ -4,7 +4,7 @@ var $         = require('jquery');
 $(function() {
 
 var settings = {
-  language: "{{ contentLang }}",
+  language: "{{ request.contentLang }}",
   layoutDefault: "segmented", //$.cookie("layoutDefault") ||
   layoutTalmud:  "continuous", //$.cookie("layoutTalmud")  ||
   layoutTanakh:  "segmented", //$.cookie("layoutTanakh")  ||
@@ -25,7 +25,7 @@ var component = React.createElement(ReaderApp, {
     initialNavigationCategories: [],
     initialSettings: settings,
     initialPanels: [],
-    interfaceLang: "{{ interfaceLang }}"
+    interfaceLang: "{{ request.interfaceLang }}"
     });
 ReactDOM.render(component, container);
 ReactDOM.render(React.createElement(Footer), document.getElementById('footer'));
