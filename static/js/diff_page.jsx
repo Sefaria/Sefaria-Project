@@ -658,14 +658,23 @@ class DiffElement extends Component {
             <input type="button" value="Cancel" onClick={this.closeConfirm} />
           </form>
         </div>);
+
+      var replaceMessage;
+      if (!this.props.text) {
+        replaceMessage = "Add " + this.props.toText;
+      } else if (!this.props.toText) {
+        replaceMessage = "Remove " + this.props.text;
+      } else {
+        replaceMessage = "Change " + this.props.text + " to " + this.props.toText;
+      }
     return (
       <span onMouseOver={this.onMouseOver}
         onMouseOut={this.onMouseOut}
         onClick={this.openConfirm}
         className="ins">
-          {this.props.text}
+          {this.props.text ? this.props.text : " "}
           {this.state.mouseover ?
-              <span className="change">Change {this.props.text} to {this.state.replacementText}</span> :
+              <span className="change">{replaceMessage}</span> :
               null
           }
         {this.state.confirmOpen ? confirmForm : null}
