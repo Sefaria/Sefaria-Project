@@ -70,23 +70,23 @@ class SearchPage extends Component {
     }
 }
 SearchPage.propTypes = {
-    query:                PropTypes.string,
-    appliedFilters:       PropTypes.array,
-    settings:             PropTypes.object,
-    close:                PropTypes.func,
-    onResultClick:        PropTypes.func,
-    onQueryChange:        PropTypes.func,
-    updateAppliedFilter:  PropTypes.func,
+    query:                    PropTypes.string,
+    appliedFilters:           PropTypes.array,
+    settings:                 PropTypes.object,
+    close:                    PropTypes.func,
+    onResultClick:            PropTypes.func,
+    onQueryChange:            PropTypes.func,
+    updateAppliedFilter:      PropTypes.func,
     updateAppliedOptionField: PropTypes.func,
     updateAppliedOptionSort:  PropTypes.func,
     registerAvailableFilters: PropTypes.func,
-    availableFilters:     PropTypes.array,
-    filtersValid:         PropTypes.bool,
-    hideNavHeader:        PropTypes.bool,
-    exactField:           PropTypes.string,
-    broadField:           PropTypes.string,
-    field:                PropTypes.string,
-    sortType:             PropTypes.oneOf(["relevance","chronological"])
+    availableFilters:         PropTypes.array,
+    filtersValid:             PropTypes.bool,
+    hideNavHeader:            PropTypes.bool,
+    exactField:               PropTypes.string,
+    broadField:               PropTypes.string,
+    field:                    PropTypes.string,
+    sortType:                 PropTypes.oneOf(["relevance","chronological"])
 };
 SearchPage.defaultProps = {
   appliedFilters: []
@@ -101,12 +101,15 @@ class SearchBar extends Component {
     }
     handleKeypress(event) {
         if (event.charCode == 13) {
+            
             this.updateQuery();
             // Blur search input to close keyboard
             $(ReactDOM.findDOMNode(this)).find(".readerSearch").blur();
         }
     }
     updateQuery() {
+        console.log("UQ");
+        console.log(this.props.updateQuery);
         if (this.props.updateQuery) {
             this.props.updateQuery(this.state.query)
         }
@@ -118,7 +121,14 @@ class SearchBar extends Component {
         return (
             <div>
                 <div className="searchBox">
-                    <input className="readerSearch" id="searchInput" title="Search for Texts or Keywords Here" value={this.state.query} onKeyPress={this.handleKeypress} onChange={this.handleChange} placeholder="Search"/>
+                    <input 
+                      className="readerSearch"
+                        id="searchInput"
+                        title="Search for Texts or Keywords Here"
+                        value={this.state.query}
+                        onKeyPress={this.handleKeypress} 
+                        onChange={this.handleChange} 
+                        placeholder="Search"/>
                     <ReaderNavigationMenuSearchButton onClick={this.updateQuery} />
                 </div>
                 <div className="description"></div>

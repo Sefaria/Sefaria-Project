@@ -7,15 +7,15 @@ const {
   TextBlockLink,
   TwoOrThreeBox,
   LanguageToggleButton,
-}                = require('./Misc');
-const React      = require('react');
-const ReactDOM   = require('react-dom');
-const PropTypes  = require('prop-types');
-const classNames = require('classnames');
-const Sefaria    = require('./sefaria/sefaria');
-const $          = require('./sefaria/sefariaJquery');
+}                                  = require('./Misc');
+const React                        = require('react');
+const ReactDOM                     = require('react-dom');
+const PropTypes                    = require('prop-types');
+const classNames                   = require('classnames');
+const Sefaria                      = require('./sefaria/sefaria');
+const $                            = require('./sefaria/sefariaJquery');
 const ReaderNavigationCategoryMenu = require('./ReaderNavigationCategoryMenu');
-const Footer     = require('./Footer');
+const Footer                       = require('./Footer');
 import Component from 'react-class';
 
 
