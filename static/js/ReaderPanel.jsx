@@ -732,7 +732,6 @@ ReaderPanel.propTypes = {
   setCentralState:             PropTypes.func,
   onSegmentClick:              PropTypes.func,
   onCitationClick:             PropTypes.func,
-  onTextListClick:             PropTypes.func,
   onNavTextClick:              PropTypes.func,
   onRecentClick:               PropTypes.func,
   onSearchResultClick:         PropTypes.func,

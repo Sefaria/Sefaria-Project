@@ -481,25 +481,16 @@ def hebrew_term(s):
 	if is_hebrew(s):
 		return s
 
-	# If s is a text title, look for a stored Hebrew title
-	try:
-		i = library.get_index(s)
-		return i.get_title("he")
-	except BookNameError:
-		term = Term().load({'name': s})
-		if term:
-			return term.get_primary_title('he')
-	return ''
-
-
-def get_simple_term_mapping():
-	from sefaria.model import TermSet, Term
-	hebrew_mapping = {}
-	terms = TermSet()
-	for term in terms:
-		hebrew_mapping[term.name] = {"en": term.get_primary_title("en"), "he": term.get_primary_title("he")}
-	return hebrew_mapping
-
+	term = Term().load({'name': s})
+	if term:
+		return term.get_primary_title('he')
+	else:
+		try:
+			# If s is a text title, look for a stored Hebrew title
+			i = library.get_index(s)
+			return i.get_title("he")
+		except BookNameError:
+			return ''
 
 
 def hebrew_parasha_name(value):

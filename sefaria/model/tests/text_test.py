@@ -6,18 +6,19 @@ import pytest
 import sefaria.model as model
 from sefaria.system.exceptions import InputError
 
-def setup_module(module):
-    title = 'Test Commentator Name'
-    model.IndexSet({"title": title}).delete()
-    title = 'Bartenura (The Next Generation)'
-    model.IndexSet({"title": title}).delete()
 
 def teardown_module(module):
-    title = 'Test Commentator Name'
-    model.IndexSet({"title": title}).delete()
-    title = 'Bartenura (The Next Generation)'
-    model.IndexSet({"title": title}).delete()
+    titles = ['Test Commentator Name',
+              'Bartenura (The Next Generation)',
+              'Test Index Name',
+              "Changed Test Index",
+              "Third Attempt",
+              "Test Iu",
+              "Test Del"]
 
+    for title in titles:
+        model.IndexSet({"title": title}).delete()
+        model.VersionSet({"title": title}).delete()
 
 
 def test_dup_index_save():
@@ -116,7 +117,7 @@ def test_invalid_index_save_no_existing_base_text():
     assert model.IndexSet({"title": title}).count() == 0
 
 
-def test_invalid_index_save_no_hebrew_category():
+def test_invalid_index_save_no_category():
     title = 'Bartenura (The Next Generation)'
     model.IndexSet({"title": title}).delete()
     d = {
@@ -156,7 +157,7 @@ def test_invalid_index_save_no_hebrew_category():
     idx = model.Index(d)
     with pytest.raises(InputError) as e_info:
         idx.save()
-    assert e_info.value.message == "You must add a hebrew translation Term for any new Category title: Gargamel."
+    assert e_info.value.message == "You must create category Mishnah/Commentary/Bartenura/Gargamel before adding texts to it."
     assert model.IndexSet({"title": title}).count() == 0
 
 
@@ -277,6 +278,7 @@ def test_index_title_setter():
     assert idx.nodes.key == third_title
     assert idx.nodes.primary_title("en") == third_title
     assert getattr(idx, 'title') == third_title
+    idx.save()
     idx.delete()
 
 
@@ -358,7 +360,6 @@ def test_index_update():
         update of Index, like what happens on the frontend, doesn't whack hidden attrs
     '''
     ti = "Test Iu"
-    model.IndexSet({"title": ti}).delete()
 
     i = model.Index({
         "title": ti,
@@ -390,8 +391,6 @@ def test_index_update():
 def test_index_delete():
     #Simple Text
     ti = "Test Del"
-    model.IndexSet({"title": ti}).delete()
-    model.VersionSet({"title": ti}).delete()
 
     i = model.Index({
         "title": ti,

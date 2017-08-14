@@ -14,6 +14,7 @@ try:
 except ImportError:
     SEFARIA_BOT_API_KEY = None
 
+
 class ServerTextCopier(object):
 
     def __init__(self, dest_server, apikey, title, post_index=True, versions=None, post_links=False):
@@ -44,7 +45,7 @@ class ServerTextCopier(object):
             if self._post_links == 1: # only manual
                 query = {"$and" : [{ "refs": {"$regex": Ref(self._index_obj.title).regex()}}, { "$or" : [ { "auto" : False }, { "auto" : 0 }, {"auto" :{ "$exists": False}} ] } ]}
             else:
-                query = { "refs": {"$regex": Ref(self._index_obj.title).regex()}}
+                query = {"refs": {"$regex": Ref(self._index_obj.title).regex()}}
 
             self._linkset = LinkSet(query).array()
 
