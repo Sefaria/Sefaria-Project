@@ -574,6 +574,9 @@ class Util {
         $("#scrollbarTestA").remove();
         return Util._scrollbarWidth;
     }
+    static subscribeToAnnouncementsList(email) {
+      
+    }
 }
 
 Util._cookies = {};
