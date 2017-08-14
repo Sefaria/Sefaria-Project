@@ -89,12 +89,25 @@ class PageLoader extends Component {
           v1: this.props.v1,
           v2: this.props.v2,
         lang: this.props.lang,
+ nextChapter: null
     };
   //this.handleSubmit = this.handleSubmit.bind(this);
   }
 
+  componentWillMount() {
+    if (Sefaria.isRef(this.props.secRef)) {
+      Sefaria.ref(this.props.secRef, data=>{this.setState({nextChapter: data.next})});
+    }
+  }
+
   formSubmit(nextState) {
   this.setState(nextState);
+  }
+
+  loadNextChapter() {
+    if (this.state.nextChapter){
+      this.setState({secRef: this.state.nextChapter});
+    }
   }
 
   componentDidUpdate() {
@@ -128,6 +141,8 @@ class PageLoader extends Component {
           v1={this.props.v1}
           v2={this.props.v2}
           lang={this.props.lang}/> : null}
+      {this.state.nextChapter
+      ? <input type="button" value="Load Next Chapter" onClick={this.loadNextChapter} /> : null }
       </div>
     );
   }
@@ -201,17 +216,6 @@ class DataForm extends Component {
         }
         return false;
       }
-      /*if (thisState.possibleVersions!=null && nextState.possibleVersions===null) {
-        return true;
-      } else if (thisState.possibleVersions === null && nextState.possibleVersions === null) {
-        return false;
-      } else if (thisState.possibleVersions.length != nextState.possibleVersions.length) {
-        return true;
-      } else if (thisState.possibleVersions[0] != nextState.possibleVersions[0]) {
-        return true;
-      } else {
-        return false;
-      }*/
     }
     return(
       versionChanged(nextState.possibleVersions, this.state.possibleVersions) ||
@@ -228,14 +232,6 @@ class DataForm extends Component {
     } else {
       this.setState({possibleVersions: null});
     }
-    /*if (this.state.possibleVersions != null) {
-      if (this.state.v1 === null) {
-        this.setState({v1: this.State.possibleVersions[0]});
-      }
-      if (this.state.v2 === null) {
-        this.setState({v2: this.State.possibleVersions[0]});
-      }
-    }*/
   }
 
   render() {
