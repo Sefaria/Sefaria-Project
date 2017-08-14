@@ -672,7 +672,7 @@ class DiffElement extends Component {
         onMouseOut={this.onMouseOut}
         onClick={this.openConfirm}
         className="ins">
-          {this.props.text ? this.props.text : " "}
+          {this.props.text ? this.props.text : '\u00A0'}
           {this.state.mouseover ?
               <span className="change">{replaceMessage}</span> :
               null
