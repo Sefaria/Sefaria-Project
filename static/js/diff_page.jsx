@@ -447,8 +447,10 @@ class DiffRow extends Component {
   componentDidUpdate() {
     // This may be necessary once we start pushing to server, but should remain
     // inactive for now.
-    if (this.state.requiresUpdate & (this.state.v1 != null & this.state.v2 != null)) {
+    if (this.state.v1 != null & this.state.v2 != null) {
+      if (this.state.v1.diffList === null || this.state.v2.diffList === null) {
       this.generateDiff(this.state.v1, this.state.v2);
+      }
     }
     if (this.state.v1 === null) {
       Sefaria.text(this.props.segRef, {'version': this.props.v1, 'language': this.props.lang}, this.LoadV1);

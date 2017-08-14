@@ -498,10 +498,10 @@ Sefaria = extend(Sefaria, {
           data: d,
           type: "POST",
           // Clear cache with a sledgehammer.  May need more subtlety down the road.
-          success: function() {
+          success: function(d) {
               this._texts = {};
               this._refmap = {};
-              success();
+              success(d);
             }.bind(this),
           error: error
         }, error);
