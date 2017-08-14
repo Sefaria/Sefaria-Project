@@ -40,7 +40,7 @@ from sefaria.system.exceptions import InputError, PartialRefInputError, BookName
 from sefaria.client.util import jsonResponse
 from sefaria.history import text_history, get_maximal_collapsed_activity, top_contributors, make_leaderboard, make_leaderboard_condition, text_at_revision, record_version_deletion, record_index_deletion
 from sefaria.system.decorators import catch_error_as_json
-from sefaria.summaries import flatten_toc, get_or_make_summary_node
+from sefaria.summaries import get_or_make_summary_node
 from sefaria.sheets import get_sheets_for_ref, public_sheets, get_sheets_by_tag, user_sheets, user_tags, recent_public_tags, sheet_to_dict, get_top_sheets, make_tag_list, group_sheets
 from sefaria.utils.util import list_depth, text_preview
 from sefaria.utils.hebrew import hebrew_plural, hebrew_term, encode_hebrew_numeral, encode_hebrew_daf, is_hebrew, strip_cantillation, has_cantillation
@@ -2082,6 +2082,79 @@ def flag_text_api(request, title, lang, version):
     else:
         return jsonResponse({"error": "Unauthorized"})
 
+
+@catch_error_as_json
+@csrf_exempt
+def category_api(request, path=None):
+    """
+    API for looking up categories and adding Categories to the Category collection.
+    GET takes a category path on the URL.  Returns the category specified.
+       e.g. "api/category/Tanakh/Torah"
+       If the category is not found, it will return "error" in a json object.
+       It will also attempt to find the closest parent.  If found, it will include "closest_parent" alongside "error".
+    POST takes no arguments on the URL.  Takes complete category as payload.  Category must not already exist.  Parent of category must exist.
+    """
+    """
+    NOTE: This function is not written like the other functions with a post method.
+    It's attempting a cleaner way to distinguish between csrf proteced use and API use bu juggling some variables around
+    Rather than duplicating functionality.
+    """
+
+    if request.method == "GET":
+        if not path:
+            return jsonResponse({"error": "Please provide category path."})
+        cats = path.split("/")
+        cat = Category().load({"path": cats})
+        if cat:
+            return jsonResponse(cat.contents())
+        else:
+            for i in range(len(cats) - 1, 0, -1):
+                cat = Category().load({"path": cats[:i]})
+                if cat:
+                    return jsonResponse({"error": "Category not found", "closest_parent": cat.contents()})
+        return jsonResponse({"error": "Category not found"})
+
+    if request.method == "POST":
+        def _internal_do_post(request, cat, uid, **kwargs):
+            return tracker.add(uid, model.Category, cat, **kwargs).contents()
+
+        if not request.user.is_authenticated():
+            key = request.POST.get("apikey")
+            if not key:
+                return {"error": "You must be logged in or use an API key to add or delete categories."}
+            apikey = db.apikeys.find_one({"key": key})
+            if not apikey:
+                return {"error": "Unrecognized API key."}
+            user = User.objects.get(id=apikey["uid"])
+            if not user.is_staff:
+                return jsonResponse({"error": "Only Sefaria Moderators can add or delete categories."})
+            uid = apikey["uid"]
+            kwargs = {"method": "API"}
+        elif request.user.is_staff:
+            uid = request.user.id
+            kwargs = {}
+            _internal_do_post = csrf_protect(_internal_do_post)
+        else:
+            return jsonResponse({"error": "Only Sefaria Moderators can add or delete categories."})
+
+        j = request.POST.get("json")
+        if not j:
+            return jsonResponse({"error": "Missing 'json' parameter in post data."})
+        j = json.loads(j)
+        if "path" not in j:
+            return jsonResponse({"error": "'path' is a required attribute"})
+        if Category().load({"path": j["path"]}):
+            return jsonResponse({"error": "Category {} already exists.".format(u", ".join(j["path"]))})
+        if not Category().load({"path": j["path"][:-1]}):
+            return jsonResponse({"error": "No parent category found: {}".format(u", ".join(j["path"][:-1]))})
+        return jsonResponse(_internal_do_post(request, j, uid, **kwargs))
+
+    if request.method == "DELETE":
+        return jsonResponse({"error": "Unsupported HTTP method."})  # TODO: support this?
+
+    return jsonResponse({"error": "Unsupported HTTP method."})
+
+
 @catch_error_as_json
 @csrf_exempt
 def terms_api(request, name):
@@ -2103,7 +2176,6 @@ def terms_api(request, name):
             func = tracker.update if request.GET.get("update", False) else tracker.add
             return func(uid, model.Term, term, **kwargs).contents()
 
-        # delegate according to single/multiple objects posted
         if not request.user.is_authenticated():
             key = request.POST.get("apikey")
             if not key:
@@ -2130,7 +2202,7 @@ def terms_api(request, name):
         return jsonResponse(_internal_do_post(request, j, uid, **kwargs))
 
     if request.method == "DELETE":
-        return jsonResponse({"error": "Unsupported HTTP method."}) #TODO: support this?
+        return jsonResponse({"error": "Unsupported HTTP method."})  # TODO: support this?
 
     return jsonResponse({"error": "Unsupported HTTP method."})
 
@@ -2864,8 +2936,7 @@ def dashboard(request):
         {},
         proj={"title": 1, "flags": 1, "linksCount": 1, "content._en.percentAvailable": 1, "content._he.percentAvailable": 1}
     ).array()
-    toc = library.get_toc()
-    flat_toc = flatten_toc(toc)
+    flat_toc = library.get_toc_tree().flatten()
 
     def toc_sort(a):
         try:

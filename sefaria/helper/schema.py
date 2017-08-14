@@ -380,7 +380,7 @@ def change_char_node_titles(index_title, bad_char, good_char, lang):
 
 
     def callback(node, **kwargs):
-        titles = node.get_titles()
+        titles = node.get_titles_object()
         for each_title in titles:
             if each_title['lang'] == lang and 'primary' in each_title and each_title['primary']:
                 title = each_title['text']
@@ -772,7 +772,6 @@ def generate_segment_mapping(title, mapping, output_file=None):
     return segment_map
 
 
-
 def migrate_to_complex_structure(title, schema, mappings, validate_mapping=False):
     """
     Converts book that is simple structure to complex.
@@ -867,6 +866,7 @@ def migrate_to_complex_structure(title, schema, mappings, validate_mapping=False
     i.set_title(title)
     i.set_title(he_title, lang="he")
     i.save()
+
 
 def migrate_versions_of_text(versions, mappings, orig_title, new_title, base_index):
     for i, version in enumerate(versions):

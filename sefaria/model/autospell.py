@@ -38,7 +38,7 @@ class AutoCompleter(object):
     An AutoCompleter object provides completion services - it is the object in this module designed to be used by the Library.
     It instanciates objects that provide string completion according to different algorithms.
     """
-    def __init__(self, lang, lib, include_people=False, include_categories=False, *args, **kwargs):
+    def __init__(self, lang, lib, include_people=False, include_categories=False, include_parasha=False, *args, **kwargs):
         """
 
         :param lang:
@@ -66,12 +66,19 @@ class AutoCompleter(object):
         self.ngram_matcher.train_phrases(titles, normal_titles)
 
         if include_categories:
-            categories = self._get_main_categories(library.get_toc_objects())
+            categories = self._get_main_categories(library.get_toc_tree().get_root())
             category_names = [c.primary_title(lang) for c in categories]
             normal_category_names = [self.normalizer(c) for c in category_names]
             self.title_trie.add_titles_from_set(categories, "all_node_titles", "primary_title", "full_path")
             self.spell_checker.train_phrases(category_names)
             self.ngram_matcher.train_phrases(category_names, normal_category_names)
+        if include_parasha:
+            parashot = TermSet({"scheme": "Parasha"})
+            parasha_names = [n for p in parashot for n in p.get_titles(lang)]
+            normal_parasha_names = [self.normalizer(p) for p in parasha_names]
+            self.title_trie.add_titles_from_set(parashot, "get_titles", "get_primary_title", "name")
+            self.spell_checker.train_phrases(parasha_names)
+            self.ngram_matcher.train_phrases(parasha_names, normal_parasha_names)
         if include_people:
             eras = ["GN", "RI", "AH", "CO"]
             ps = PersonSet({"era": {"$in": eras}})
@@ -262,8 +269,9 @@ class TitleTrie(datrie.Trie):
         """
 
         :param recordset: Instance of a subclass of AbstractMongoSet, or a List of objects
-        :param namelistmethod: Name of method that will return list of titles, when passed lang
-        :param keyattr: Name of attribute that kill give key to object
+        :param all_names_method: Name of method that will return list of titles, when passed lang
+        :param primary_name_method: Name of method that will return primary title, when passed lang
+        :param keyattr: Name of attribute that will give key to object
         :return:
         """
         for obj in recordset:

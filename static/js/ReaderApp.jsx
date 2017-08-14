@@ -118,10 +118,6 @@ class ReaderApp extends Component {
     }.bind(this) );
 
     var layoutOrientation = (props.interfaceLang == "english") ? "ltr" : "rtl";
-    /*if ((panels.length > 0 && panels[0].settings && panels[0].settings.language == "hebrew")
-       || (header.settings && header.settings.language == "hebrew")) {
-      layoutOrientation = "rtl";
-    }*/
 
     this.state = {
       panels: panels,
@@ -153,8 +149,6 @@ class ReaderApp extends Component {
   componentWillUnmount() {
     window.removeEventListener("popstate", this.handlePopState);
     window.removeEventListener("resize", this.setPanelCap);
-  }
-  componentWillUpdate(nextProps, nextState) {
   }
   componentDidUpdate(prevProps, prevState) {
     if (this.justPopped) {
@@ -683,7 +677,6 @@ class ReaderApp extends Component {
     // In multi panel mode, set the maximum number of visible panels depending on the window width.
     this.setWindowWidth();
     var panelCap = Math.floor($(window).outerWidth() / this.MIN_PANEL_WIDTH);
-    // console.log("Setting panelCap: " + panelCap);
     this.setState({panelCap: panelCap});
   }
   setWindowWidth() {
@@ -748,9 +741,9 @@ class ReaderApp extends Component {
     var updates = {searchQuery: query, searchFiltersValid:  false};
     this.setHeaderState(updates);
   }
-  updateQueryInPanel(query) {
+  updateQueryInPanel(n, query) {
     var updates = {searchQuery: query, searchFiltersValid:  false};
-    this.setPanelState(0, updates);
+    this.setPanelState(n, updates);
   }
   updateAvailableFiltersInHeader(availableFilters, registry, orphans) {
     this.setHeaderState({
@@ -760,8 +753,8 @@ class ReaderApp extends Component {
       searchFiltersValid:  true
     });
   }
-  updateAvailableFiltersInPanel(availableFilters, registry, orphans) {
-    this.setPanelState(0, {
+  updateAvailableFiltersInPanel(n, availableFilters, registry, orphans) {
+    this.setPanelState(n, {
       availableFilters:    availableFilters,
       filterRegistry:      registry,
       orphanSearchFilters: orphans,
@@ -779,19 +772,19 @@ class ReaderApp extends Component {
       appliedSearchFilters: this.getAppliedSearchFilters(this.state.header.availableFilters)
     });
   }
-  updateSearchFilterInPanel(filterNode) {
+  updateSearchFilterInPanel(n, filterNode) {
     if (filterNode.isUnselected()) {
       filterNode.setSelected(true);
     } else {
       filterNode.setUnselected(true);
     }
-    this.setPanelState(0, {
-      availableFilters: this.state.panels[0].availableFilters,
-      appliedSearchFilters: this.getAppliedSearchFilters(this.state.panels[0].availableFilters)
+    this.setPanelState(n, {
+      availableFilters: this.state.panels[n].availableFilters,
+      appliedSearchFilters: this.getAppliedSearchFilters(this.state.panels[n].availableFilters)
     });
   }
-  updateSearchOptionFieldInPanel(field) {
-    this.setPanelState(0, {
+  updateSearchOptionFieldInPanel(n, field) {
+    this.setPanelState(n, {
       searchField: field,
       searchFiltersValid:  false
     });
@@ -802,8 +795,8 @@ class ReaderApp extends Component {
       searchFiltersValid:  false
     });
   }
-  updateSearchOptionSortInPanel(sort) {
-    this.setPanelState(0, {
+  updateSearchOptionSortInPanel(n, sort) {
+    this.setPanelState(n, {
       searchSortType: sort
     });
   }
@@ -1233,26 +1226,30 @@ class ReaderApp extends Component {
     var panels = [];
     var allOpenRefs = panelStates.filter( panel => panel.mode == "Text")
                                   .map( panel => Sefaria.normRef(panel.highlightedRefs.length ? panel.highlightedRefs : panel.refs));
-    console.log(allOpenRefs);
+
     for (var i = 0; i < panelStates.length; i++) {
       var panel                    = this.clonePanel(panelStates[i]);
       if (!("settings" in panel )) { debugger; }
-      var offset                   = widths.reduce(function(prev, curr, index, arr) { return index < i ? prev+curr : prev}, 0);
-      var width                    = widths[i];
-      var style                    = (this.state.layoutOrientation=="ltr")?{width: width + unit, left: offset + unit}:{width: width + unit, right: offset + unit};
-      var onSegmentClick           = this.props.multiPanel ? this.handleSegmentClick.bind(null, i) : null;
-      var onCitationClick          = this.handleCitationClick.bind(null, i);
-      var onSearchResultClick      = this.props.multiPanel ? this.handleCompareSearchClick.bind(null, i) : this.handleNavigationClick;
-      var onTextListClick          = null; // this.openPanelAt.bind(null, i);
-      var onOpenConnectionsClick   = this.openTextListAt.bind(null, i+1);
-      var setTextListHighlight     = this.setTextListHighlight.bind(null, i);
-      var setSelectedWords         = this.setSelectedWords.bind(null, i);
-      var openComparePanel         = this.openComparePanel.bind(null, i);
-      var closePanel               = panel.menuOpen == "compare" ? this.convertToTextList.bind(null, i) : this.closePanel.bind(null, i);
-      var setPanelState            = this.setPanelState.bind(null, i);
-      var setConnectionsFilter     = this.setConnectionsFilter.bind(this, i);
-      var selectVersion            = this.selectVersion.bind(null, i);
-      var addToSourceSheet         = this.addToSourceSheet.bind(null, i);
+      var offset                         = widths.reduce(function(prev, curr, index, arr) { return index < i ? prev+curr : prev}, 0);
+      var width                          = widths[i];
+      var style                          = (this.state.layoutOrientation=="ltr")?{width: width + unit, left: offset + unit}:{width: width + unit, right: offset + unit};
+      var onSegmentClick                 = this.props.multiPanel ? this.handleSegmentClick.bind(null, i) : null;
+      var onCitationClick                = this.handleCitationClick.bind(null, i);
+      var onSearchResultClick            = this.props.multiPanel ? this.handleCompareSearchClick.bind(null, i) : this.handleNavigationClick;
+      var updateQueryInPanel             = this.updateQueryInPanel.bind(null, i);
+      var updateAvailableFiltersInPanel  = this.updateAvailableFiltersInPanel.bind(null, i);
+      var updateSearchFilterInPanel      = this.updateSearchFilterInPanel.bind(null, i);
+      var updateSearchOptionFieldInPanel = this.updateSearchOptionFieldInPanel.bind(null, i);
+      var updateSearchOptionSortInPanel  = this.updateSearchOptionSortInPanel.bind(null, i);     
+      var onOpenConnectionsClick         = this.openTextListAt.bind(null, i+1);
+      var setTextListHighlight           = this.setTextListHighlight.bind(null, i);
+      var setSelectedWords               = this.setSelectedWords.bind(null, i);
+      var openComparePanel               = this.openComparePanel.bind(null, i);
+      var closePanel                     = panel.menuOpen == "compare" ? this.convertToTextList.bind(null, i) : this.closePanel.bind(null, i);
+      var setPanelState                  = this.setPanelState.bind(null, i);
+      var setConnectionsFilter           = this.setConnectionsFilter.bind(this, i);
+      var selectVersion                  = this.selectVersion.bind(null, i);
+      var addToSourceSheet               = this.addToSourceSheet.bind(null, i);
 
       var ref   = panel.refs && panel.refs.length ? panel.refs[0] : null;
       var oref  = ref ? Sefaria.parseRef(ref) : null;
@@ -1270,7 +1267,6 @@ class ReaderApp extends Component {
                       multiPanel={this.props.multiPanel}
                       onSegmentClick={onSegmentClick}
                       onCitationClick={onCitationClick}
-                      onTextListClick={onTextListClick}
                       onSearchResultClick={onSearchResultClick}
                       onNavigationClick={this.handleNavigationClick}
                       onRecentClick={this.handleRecentClick}
@@ -1282,11 +1278,11 @@ class ReaderApp extends Component {
                       setSelectedWords={setSelectedWords}
                       selectVersion={selectVersion}
                       setDefaultOption={this.setDefaultOption}
-                      onQueryChange={this.updateQueryInPanel}
-                      updateSearchFilter={this.updateSearchFilterInPanel}
-                      updateSearchOptionField={this.updateSearchOptionFieldInPanel}
-                      updateSearchOptionSort={this.updateSearchOptionSortInPanel}
-                      registerAvailableFilters={this.updateAvailableFiltersInPanel}
+                      onQueryChange={updateQueryInPanel}
+                      updateSearchFilter={updateSearchFilterInPanel}
+                      updateSearchOptionField={updateSearchOptionFieldInPanel}
+                      updateSearchOptionSort={updateSearchOptionSortInPanel}
+                      registerAvailableFilters={updateAvailableFiltersInPanel}
                       setUnreadNotificationsCount={this.setUnreadNotificationsCount}
                       closePanel={closePanel}
                       panelsOpen={panelStates.length}

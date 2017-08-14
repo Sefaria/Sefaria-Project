@@ -582,6 +582,7 @@ class ReaderPanel extends Component {
                     query={this.state.searchQuery}
                     appliedFilters={this.state.appliedSearchFilters}
                     settings={Sefaria.util.clone(this.state.settings)}
+                    panelsOpen={this.props.panelsOpen}
                     onResultClick={this.props.onSearchResultClick}
                     openDisplaySettings={this.openDisplaySettings}
                     toggleLanguage={this.toggleLanguage}
@@ -731,7 +732,6 @@ ReaderPanel.propTypes = {
   setCentralState:             PropTypes.func,
   onSegmentClick:              PropTypes.func,
   onCitationClick:             PropTypes.func,
-  onTextListClick:             PropTypes.func,
   onNavTextClick:              PropTypes.func,
   onRecentClick:               PropTypes.func,
   onSearchResultClick:         PropTypes.func,
@@ -804,7 +804,7 @@ class ReaderControls extends Component {
       var oref    = Sefaria.ref(title);
       heTitle = oref ? oref.heTitle : "";
       categoryAttribution = oref && Sefaria.categoryAttribution(oref.categories) ?
-                                  <CategoryAttribution categories={oref.categories} /> : null;
+                                  <CategoryAttribution categories={oref.categories} linked={false} /> : null;
     } else {
       heTitle = "";
       categoryAttribution = null;

@@ -4,6 +4,7 @@ const {
 const React      = require('react');
 const ReactDOM   = require('react-dom');
 const Sefaria    = require('./sefaria/sefaria');
+const $          = require('./sefaria/sefariaJquery');
 const classNames = require('classnames');
 const PropTypes  = require('prop-types');
 import Component      from 'react-class';
@@ -64,6 +65,11 @@ class SearchFilters extends Component {
       openedCategoryBooks: leaves
     })
   }
+  resetOpenedCategoryBooks() {
+    this.setState({
+      openedCategoryBooks: []
+    })
+  }
   toggleExactSearch() {
     let newExactSearch = !this.state.isExactSearch;
     if (newExactSearch) {
@@ -79,7 +85,7 @@ class SearchFilters extends Component {
       var total_with_commas = this._add_commas(total);
       var classes = classNames({"type-button": 1, active: active});
 
-      return <div className={classes} onClick={on_click}>
+      return <div className={classes} onClick={on_click} onKeyPress={function(e) {e.charCode == 13 ? on_click(e):null}.bind(this)} role="button" tabIndex="0">
       <div className="type-button-total">
         {total_with_commas}
       </div>
@@ -123,6 +129,7 @@ class SearchFilters extends Component {
         closeBox={this.props.closeFilterView}
         isExactSearch={this.props.exactField === this.props.optionField}
         handleFocusCategory={this.handleFocusCategory}
+        resetOpenedCategoryBooks={this.resetOpenedCategoryBooks}
     />);
 
     var sort_panel = (<SearchSortBox
@@ -198,7 +205,7 @@ class SearchFilterPanel extends Component {
         <span className="int-he">סינון</span>
         {(this.props.displayFilters) ? <img src="/static/img/arrow-up.png" alt=""/> : <img src="/static/img/arrow-down.png" alt=""/>}
       </div>
-      <div className={(this.props.displayFilters) ? "searchFilterBoxes":"searchFilterBoxes hidden"} role="modal">
+      <div className={(this.props.displayFilters) ? "searchFilterBoxes":"searchFilterBoxes hidden"} role="dialog">
         <div className="searchFilterBoxRow">
           <div className="searchFilterCategoryBox">
           {this.props.availableFilters.map(function(filter) {
@@ -207,6 +214,7 @@ class SearchFilterPanel extends Component {
                   isInFocus={this.props.openedCategory === filter}
                   focusCategory={this.props.handleFocusCategory}
                   updateSelected={this.props.updateAppliedFilter}
+                  closeBox={this.props.closeBox}
                   key={filter.path}/>);
           }.bind(this))}
           </div>
@@ -214,6 +222,8 @@ class SearchFilterPanel extends Component {
           {this.props.openedCategoryBooks.map(function(filter) {
               return (<SearchFilter
                   filter={filter}
+                  openedCategory={this.props.openedCategory}
+                  resetOpenedCategoryBooks={this.props.resetOpenedCategoryBooks}
                   updateSelected={this.props.updateAppliedFilter}
                   key={filter.path}/>);
           }.bind(this))}
@@ -339,7 +349,6 @@ SearchFilterExactBox.propTypes = {
 class SearchFilter extends Component {
   constructor(props) {
     super(props);
-
     this.state = {selected: props.filter.selected};
   }
   componentWillReceiveProps(newProps) {
@@ -350,9 +359,26 @@ class SearchFilter extends Component {
   // Can't set indeterminate in the render phase.  https://github.com/facebook/react/issues/1798
   componentDidMount() {
     ReactDOM.findDOMNode(this).querySelector("input").indeterminate = this.props.filter.isPartial();
+    if (this.props.filter.isPartial()) {
+      ReactDOM.findDOMNode(this).querySelector("label").setAttribute("aria-checked", "mixed");
+    }
+    else {
+      ReactDOM.findDOMNode(this).querySelector("label").setAttribute("aria-checked", this.state.selected==1);
+    }
   }
   componentDidUpdate() {
     ReactDOM.findDOMNode(this).querySelector("input").indeterminate = this.props.filter.isPartial();
+    if (this.props.filter.isPartial()) {
+      ReactDOM.findDOMNode(this).querySelector("label").setAttribute("aria-checked", "mixed");
+    }
+    else {
+      ReactDOM.findDOMNode(this).querySelector("label").setAttribute("aria-checked", this.state.selected==1);
+    }
+
+    if ($(".searchFilterBookBox").children().length > 0 && !$('.searchFilterBookBox li label').is(':focus')) { // unoptimized code to focus on top of searchFilterBookBox when not previously selected. For a11y.
+      $(".searchFilterBookBox").find(':focusable').first().focus();
+    }
+
   }
   handleFilterClick(evt) {
     //evt.preventDefault();
@@ -363,11 +389,49 @@ class SearchFilter extends Component {
       this.props.focusCategory(this.props.filter)
     }
   }
+  handleKeyPress(e) {
+    if (e.charCode == 13) { // enter
+      this.handleFilterClick(e);
+    }
+    else if (e.charCode == 32) { //space
+      e.preventDefault();
+      this.handleFocusCategory(e);
+    }
+  }
+  handleKeyDown(e) {
+    if (e.keyCode === 27) { //27 is escape
+      e.stopPropagation();
+      if (this.props.closeBox) {
+        this.props.closeBox()
+      }
+      else {
+        $("#label-for-"+this.props.openedCategory.title).focus();
+        this.props.resetOpenedCategoryBooks();
+      }
+    }
+    else if (e.keyCode === 9) { //9 is tab
+      e.stopPropagation();
+      var lastTab = $("div[role='dialog']").find(':tabbable').last();
+      var firstTab = $("div[role='dialog']").find(':tabbable').first();
+      if (e.shiftKey) {
+        if ($(e.target).is(firstTab)) {
+          $(lastTab).focus();
+          e.preventDefault();
+        }
+      }
+      else {
+        if ($(e.target).is(lastTab)) {
+          $(firstTab).focus();
+          e.preventDefault();
+        }
+      }
+    }
+  }
   render() {
     return(
-      <li onClick={this.handleFocusCategory} tabIndex="0" onKeyPress={function(e) {e.charCode == 13 ? this.handleFocusCategory(e):null}.bind(this)}>
+      <li onClick={this.handleFocusCategory}>
         <input type="checkbox" id={this.props.filter.path} className="filter" checked={this.state.selected == 1} onChange={this.handleFilterClick}/>
-        <label onClick={this.handleFilterClick}><span></span></label>
+        <label onClick={this.handleFilterClick} id={"label-for-"+this.props.filter.path} tabIndex="0" onKeyDown={this.handleKeyDown} onKeyPress={this.handleKeyPress} aria-label={"Click enter to toggle search filter for "+this.props.filter.title+" and space bar to toggle specific books in this category"}><span></span></label>
         <span className="int-en"><span className="filter-title">{this.props.filter.title}</span> <span className="filter-count">({this.props.filter.docCount})</span></span>
         <span className="int-he" dir="rtl"><span className="filter-title">{this.props.filter.heTitle}</span> <span className="filter-count">({this.props.filter.docCount})</span></span>
         {this.props.isInFocus?<span className="int-en"><i className="in-focus-arrow fa fa-caret-right"/></span>:""}

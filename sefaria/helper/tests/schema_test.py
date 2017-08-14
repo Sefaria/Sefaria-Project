@@ -283,7 +283,7 @@ def test_change_node_title():
     schema.change_node_title(node, "Part1", "en", "1st Part")
     node = library.get_index("Delete Me").nodes.children[0]
     assert node.primary_title() == "1st Part"
-    assert len(node.get_titles()) == 3
+    assert len(node.get_titles_object()) == 3
     assert isinstance(Link().load({'refs': ['Delete Me, 1st Part 1:1', 'Shabbat 2a:5']}), Link)
     assert isinstance(Link().load({'refs': ['Delete Me, 1st Part 2:1', 'Delete Me, Part2 2:1']}), Link)
     assert isinstance(Note().load({'ref': 'Delete Me, 1st Part 1:1'}), Note)
@@ -296,12 +296,12 @@ def test_change_node_title():
 
     schema.change_node_title(node, "Partone", "en", "Part One")
     node = library.get_index("Delete Me").nodes.children[0]
-    assert len(node.get_titles()) == 3
-    assert any([title['text'] == 'Part One' for title in node.get_titles()])
+    assert len(node.get_titles_object()) == 3
+    assert any([title['text'] == 'Part One' for title in node.get_titles_object()])
 
     schema.change_node_title(node, "Part One", "en", "Partone")
-    assert len(node.get_titles()) == 3
-    assert any([title['text'] == 'Partone' for title in node.get_titles()])
+    assert len(node.get_titles_object()) == 3
+    assert any([title['text'] == 'Partone' for title in node.get_titles_object()])
 
 
 @pytest.mark.deep
