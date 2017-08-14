@@ -24,6 +24,10 @@ class Header extends Component {
   componentDidMount() {
     this.initAutocomplete();
     window.addEventListener('keydown', this.handleFirstTab);
+    if (this.state.menuOpen == "search" && this.state.searchQuery === null) {
+      // If this is an empty search page, comically, lazily make it full
+      this.props.showSearch("Search");
+    }
   }
   componentWillReceiveProps(nextProps) {
     if (nextProps.initialState) {
