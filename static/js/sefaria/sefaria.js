@@ -249,6 +249,15 @@ Sefaria = extend(Sefaria, {
       //console.log("API return for " + data.ref)
     }.bind(this));
   },
+  /*
+  refreshSegmentCache: function(ref, versionTitle, language) {
+     // versionTitle and language are optional
+     all_5bit_binary_strings = [...Array(32).keys()].map(n => ((pad + (n).toString(2)).slice(-5)))
+      this.textApi(ref, settings, function() {})
+        .always(function() {this.textApi(ref, settings, function() {})}.bind(this))
+        .always()
+  },
+  */
   _versions: {},
   versions: function(ref, cb) {
     // Returns a list of available text versions for `ref`.
@@ -488,10 +497,15 @@ Sefaria = extend(Sefaria, {
           url: "/api/texts/" + data.url,
           data: d,
           type: "POST",
-          success: success,
+          // Clear cache with a sledgehammer.  May need more subtlety down the road.
+          success: function() {
+              this._texts = {};
+              this._refmap = {};
+              success();
+            }.bind(this),
           error: error
         }, error);
-    });
+    }.bind(this));
   },
   ref: function(ref, callback) {
     // Returns parsed ref info for string `ref` from cache, or async from API if `callback` is present
