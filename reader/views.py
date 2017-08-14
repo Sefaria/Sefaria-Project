@@ -329,7 +329,7 @@ def make_panel_dicts(oref, version, language, filter, multi_panel, **kwargs):
 def s2_props(request):
     """
     Returns a dictionary of props that all S2 pages get based on the request.
-    """ 
+    """
     request_context = RequestContext(request)
     return {
         "multiPanel": request.flavour != "mobile" and not "mobile" in request.GET,
@@ -358,7 +358,7 @@ def s2(request, ref, version=None, lang=None):
         primary_ref = oref = Ref(ref)
     except InputError:
         raise Http404
-   
+
     props = s2_props(request)
 
     panels = []
@@ -391,7 +391,7 @@ def s2(request, ref, version=None, lang=None):
                 i += 1
                 continue  # Stop processing all panels?
                 # raise Http404
-        
+
             version  = request.GET.get("v{}".format(i)).replace(u"_", u" ") if request.GET.get("v{}".format(i)) else None
             language = request.GET.get("l{}".format(i))
             filter   = request.GET.get("w{}".format(i)).replace("_", " ").split("+") if request.GET.get("w{}".format(i)) else None
@@ -476,7 +476,7 @@ def s2_texts_category(request, cats):
         else:
             cat_string = u", ".join(cats)
             title = cat_string + u" | Sefaria"
-            desc  = u"Read {} texts online with commentaries and connections.".format(cat_string) 
+            desc  = u"Read {} texts online with commentaries and connections.".format(cat_string)
     else:
         if props["interfaceLang"] == "hebrew":
             title = u"נצפו לאחרונה"
@@ -615,7 +615,7 @@ def s2_sheets_by_tag(request, tag):
             desc  = "My Sources Sheets on Sefaria, both private a public."
     elif tag == "My Sheets" and not request.user.is_authenticated():
         return redirect("/login?next=/sheets/private")
-    
+
     elif tag == "All Sheets":
         props["publicSheets"] = {"offset0num50": public_sheets(limit=50)["sheets"]}
         if props["interfaceLang"] == "hebrew":
@@ -864,7 +864,7 @@ def make_toc_html(oref, zoom=1):
     :param oref - Ref of the text to create. Ref is used instead of Index to allow
     for a different table of contents focusing on a single node of a complex text.
     :param zoom - integar specifying the level of granularity to show. 0 = Segment level,
-    1 = Section level etc. 
+    1 = Section level etc.
     """
     index = oref.index
     if index.is_complex():
@@ -1162,8 +1162,8 @@ def make_simple_toc_html(he_toc, en_toc, labels, addresses, context_oref, zoom=1
 
 def toc_availability_class(toc):
     """
-    Returns the string of a class name in ("All", "Some", "None") 
-    according to how much content is available in toc, 
+    Returns the string of a class name in ("All", "Some", "None")
+    according to how much content is available in toc,
     which may be either a list of ints or an int representing available counts.
     """
     if isinstance(toc, int):
@@ -1297,7 +1297,7 @@ def texts_category_list(request, cats):
 
     if not request.COOKIES.get('s1'):
         return s2_texts_category(request, cats)
-    
+
     cats       = cats.split("/")
     toc        = library.get_toc()
     cat_toc    = get_or_make_summary_node(toc, cats, make_if_not_found=False)
@@ -1446,7 +1446,7 @@ def texts_api(request, tref, lang=None, version=None):
             @csrf_protect
             def protected_post(request):
                 t = json.loads(j)
-                chunk = tracker.modify_text(request.user.id, oref, t["versionTitle"], t["language"], t["text"], t["versionSource"], skip_links=skip_links)
+                chunk = tracker.modify_text(request.user.id, oref, t["versionTitle"], t["language"], t["text"], t.get("versionSource", None), skip_links=skip_links)
                 count_after = int(request.GET.get("count_after", 1))
                 count_and_index(oref, chunk.lang, chunk.vtitle, count_after)
                 return jsonResponse({"status": "ok"})
@@ -1786,7 +1786,7 @@ def link_summary_api(request, ref):
 def notes_api(request, note_id_or_ref):
     """
     API for user notes.
-    A call to this API with GET returns the list of public notes and private notes belong to the current user on this Ref. 
+    A call to this API with GET returns the list of public notes and private notes belong to the current user on this Ref.
     """
     if request.method == "GET":
         if not note_id_or_ref:
@@ -1866,7 +1866,7 @@ def all_notes_api(request):
 
     private = request.GET.get("private", False)
     if private:
-        if not request.user.is_authenticated: 
+        if not request.user.is_authenticated:
             res = {"error": "You must be logged in to access you notes."}
         else:
             res = [note.contents(with_string_id=True) for note in NoteSet({"owner": request.user.id}, sort=[("_id", -1)]) ]
@@ -1888,7 +1888,7 @@ def related_api(request, tref):
         }
     elif request.GET.get("private", False) and not request.user.is_authenticated:
         response = {"error": "You must be logged in to access private content."}
-    else: 
+    else:
         response = {
             "links": get_links(tref, with_text=False),
             "sheets": get_sheets_for_ref(tref),
@@ -2169,6 +2169,7 @@ def name_api(request, name):
             "is_range": ref.is_range(),
             "type": "ref",
             "ref": ref.normal(),
+            "url": ref.url(),
             "index": ref.index.title,
             "book": ref.book,
             "internalSections": ref.sections,
@@ -2341,7 +2342,7 @@ def notifications_read_api(request):
             notification.mark_read().save()
 
         return jsonResponse({
-                                "status": "ok", 
+                                "status": "ok",
                                 "unreadCount": unread_notifications_count_for_user(request.user.id)
                             })
 
@@ -2666,7 +2667,7 @@ def user_profile(request, username, page=1):
     if page > 40:
         generic_response = { "title": "Activity Unavailable", "content": "You have requested a page deep in Sefaria's history.<br><br>For performance reasons, this page is unavailable. If you need access to this information, please <a href='mailto:dev@sefaria.org'>email us</a>." }
         return render_to_response('static/generic.html', generic_response, RequestContext(request))
-    
+
     query          = {"user": profile.id}
     filter_type    = request.GET["type"] if "type" in request.GET else None
     activity, apage= get_maximal_collapsed_activity(query=query, page_size=page_size, page=page, filter_type=filter_type)
@@ -2816,7 +2817,7 @@ def home(request):
 @ensure_csrf_cookie
 def discussions(request):
     """
-    Discussions page. 
+    Discussions page.
     """
     discussions = LayerSet({"owner": request.user.id})
     return render_to_response('discussions.html',
@@ -2946,11 +2947,11 @@ def translation_request_api(request, tref):
 
     oref = Ref(tref)
     ref = oref.normal()
-    
+
     if "unrequest" in request.POST:
         TranslationRequest.remove_request(ref, request.user.id)
         response = {"status": "ok"}
-    
+
     elif "feature" in request.POST:
         if not request.user.is_staff:
             response = {"error": "Only admins can feature requests."}
@@ -2969,8 +2970,8 @@ def translation_request_api(request, tref):
             tr.featured       = False
             tr.featured_until = None
             tr.save()
-            response = {"status": "ok"}       
-        
+            response = {"status": "ok"}
+
     else:
         if oref.is_text_translated():
             response = {"error": "Sefaria already has a translation for %s." % ref}

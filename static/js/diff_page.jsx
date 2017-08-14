@@ -4,6 +4,7 @@ var $              = require('jquery'),
     Sefaria        = require('./sefaria/sefaria'),
     extend         = require('extend'),
     PropTypes      = require('prop-types'),
+    DjangoCSRF   = require('./lib/django-csrf'),
     DiffMatchPatch = require('diff-match-patch');
     import Component from 'react-class';  //auto-bind this to all event-listeners. see https://www.npmjs.com/package/react-class
 
@@ -11,6 +12,7 @@ function changePath(newPath) {
   const newUrl = window.location.origin + newPath;
   window.location.assign(newUrl);
 }
+DjangoCSRF.init();
 
 class DiffStore {
   constructor (rawText) {
@@ -485,7 +487,10 @@ class DiffRow extends Component {
   }
 
   acceptChange(segRef, vtitle, lang, text) {
-    debugger;
+    if (!Sefaria.loggedIn) {
+      alert("Please sign in before making a change");
+      return;
+    }
     // block all posting untill this has successfully returned. Gets set back to `true` in `generateDiff`
     if (this.state.allowPost) {
       this.setState({allowPost: false});
@@ -499,8 +504,12 @@ class DiffRow extends Component {
     // Check for "error" or "status":"ok"
     if (d.status === 'ok') {
       this.setState({requiresUpdate: true, v1: null, v2: null});
+    } else if (d.error) {
+      alert(d.error);
+      this.onChangeFailed(d);
+    } else {
+      this.onChangeFailed(d);
     }
-    // changeInProgress: false
   }
 
   onChangeFailed(d) {
