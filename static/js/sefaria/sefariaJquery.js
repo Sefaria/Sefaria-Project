@@ -5,6 +5,8 @@ if (typeof document !== 'undefined' ) {
           require('jquery-ui');
           require('jquery.scrollto');
           require('../lib/headroom');
+      window.$ = $;
+      window.jquery = $;
 } else {
       $         = require("cheerio");
       $.ajax    = function() {}; // ditto

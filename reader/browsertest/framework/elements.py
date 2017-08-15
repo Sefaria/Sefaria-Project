@@ -63,8 +63,8 @@ class AtomicTest(object):
         return self
 
     def login_superuser(self):
-        password = os.environ["SEFARIA_SUPERUSER"]
-        user = os.environ["SEFARIA_SUPERPASS"]
+        user = os.environ["SEFARIA_SUPERUSER"]
+        password = os.environ["SEFARIA_SUPERPASS"]
         self._login(user, password)
         return self
 
@@ -76,7 +76,7 @@ class AtomicTest(object):
         elem = self.driver.find_element_by_css_selector("#id_password")
         elem.send_keys(password)
         self.driver.find_element_by_css_selector("button").click()
-        WebDriverWait(self.driver, TEMPER).until_not(title_contains("Login"))
+        WebDriverWait(self.driver, TEMPER).until_not(title_contains("Log in"))
 
     # TOC
     def load_toc(self):
@@ -347,6 +347,35 @@ class AtomicTest(object):
         self.driver.get(self.base_url + "/my/groups")
         WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, ".myGroupsPanel .button")))
         return self
+
+    # Editing
+    def load_translate(self, ref):
+        if isinstance(ref, basestring):
+            ref = Ref(ref)
+        assert isinstance(ref, Ref)
+        url = self.base_url + "/translate/" + ref.url()
+        self.driver.get(url)
+        WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, "#newVersion")))
+        return self
+
+    def load_edit(self, ref, lang, version):
+        if isinstance(ref, basestring):
+            ref = Ref(ref)
+        assert isinstance(ref, Ref)
+        url = self.base_url + "/edit/" + ref.url() + "/" + lang + "/" + version.replace(" ", "_")
+        self.driver.get(url)
+        WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, "#newVersion")))
+        return self
+
+    def load_add(self, ref):
+        if isinstance(ref, basestring):
+            ref = Ref(ref)
+        assert isinstance(ref, Ref)
+        url = self.base_url + "/add/" + ref.url()
+        self.driver.get(url)
+        WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, "#newVersion")))
+        return self
+
 """
 
                     Test Running Infrastructure
