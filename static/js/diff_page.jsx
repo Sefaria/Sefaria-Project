@@ -615,7 +615,13 @@ class DiffElement extends Component {
     this.setState({mouseover: false});
   }
   openConfirm() {
-    this.setState({confirmOpen: true, mouseover: false});
+    if (Sefaria.loggedIn & (Sefaria.is_moderator || Sefaria.is_editor)) {
+      this.setState({confirmOpen: true, mouseover: false});
+    } else if (Sefaria.loggedIn) {
+      alert("Only Sefaria Moderators Can Edit Texts");
+    } else {
+      alert("Not signed in. You must be signed in as a Sefaria Moderator to use this feature.");
+    }
   }
   closeConfirm(event) {
     event.stopPropagation();
@@ -657,11 +663,11 @@ class DiffElement extends Component {
 
       var replaceMessage;
       if (!this.props.text) {
-        replaceMessage = "Add " + this.props.toText;
+        replaceMessage = "Click to add `" + this.props.toText + "`";
       } else if (!this.props.toText) {
-        replaceMessage = "Remove " + this.props.text;
+        replaceMessage = "Click to remove `" + this.props.text + "`";
       } else {
-        replaceMessage = "Change " + this.props.text + " to " + this.props.toText;
+        replaceMessage = "Click to change `" + this.props.text + "` to `" + this.props.toText + "`";
       }
     return (
       <span onMouseOver={this.onMouseOver}
