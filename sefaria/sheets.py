@@ -448,7 +448,7 @@ def get_sheets_for_ref(tref, uid=None):
 
 	return results
 
-
+topic_lists = {}
 def make_topic_list(sort_by="alpha"):
 	"""
 	Returns a list of all public tags, sorted either alphabetically ("alpha") or by popularity ("count")
@@ -482,7 +482,16 @@ def make_topic_list(sort_by="alpha"):
 	}
 	results  = sorted(results, key=sort_keys[sort_by])
 
+	topic_lists[sort_by] = results
+
 	return results
+
+
+def get_topic_list(sort_by="alpha"):
+	if sort_by in topic_lists:
+		return topic_lists[sort_by]
+	else:
+		return make_topic_list(sort_by=sort_by)
 
 
 def get_topic_data(topic):
