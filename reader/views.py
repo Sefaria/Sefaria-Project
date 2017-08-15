@@ -2173,6 +2173,9 @@ def terms_api(request, name):
 
     if request.method == "POST":
         def _internal_do_post(request, term, uid, **kwargs):
+            t = Term().load({'name': term["name"], "scheme": term["scheme"]})
+            if t and not request.GET.get("update"):
+                return {"error": "Term already exists."}
             func = tracker.update if request.GET.get("update", False) else tracker.add
             return func(uid, model.Term, term, **kwargs).contents()
 
