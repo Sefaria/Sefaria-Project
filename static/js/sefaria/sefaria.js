@@ -1245,7 +1245,7 @@ Sefaria = extend(Sefaria, {
       }
       if (!found) { return []; }
     }
-    return list;
+    return list || [];
   },
   categoryAttribution: function(categories) {
     var attributions = [
