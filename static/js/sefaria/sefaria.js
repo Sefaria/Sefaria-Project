@@ -218,7 +218,7 @@ Sefaria = extend(Sefaria, {
       pad:        settings.pad        || 0,
       version:    settings.version    || null,
       language:   settings.language   || null,
-      wrapLinks:  settings.wrapLinks  || 1
+      wrapLinks:  ("wrapLinks" in settings) ? settings.wrapLinks : 1
     };
     var key = this._textKey(ref, settings);
     if (!cb) {
@@ -241,7 +241,8 @@ Sefaria = extend(Sefaria, {
       pad:        settings.pad        || 0,
       version:    settings.version    || null,
       language:   settings.language   || null,
-      wrapLinks:  settings.wrapLinks  || 1
+      //wrapLinks:  settings.wrapLinks  || 1
+      wrapLinks: ("wrapLinks" in settings) ? settings.wrapLinks : 1
     };
     return this._api(this._textUrl(ref, settings), function(data) {
       this._saveText(data, settings);
