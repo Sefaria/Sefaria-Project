@@ -294,7 +294,7 @@ class SearchSortBox extends Component {
       <div className={(this.props.visible) ? "searchSortBox" :"searchSortBox hidden"}>
         <table>
           <tbody>
-            <tr  className={releClass} onClick={()=>this.handleClick("relevance")}>
+            <tr  className={releClass} onClick={()=>this.handleClick("relevance")} tabIndex="0" onKeyPress={function(e) {e.charCode == 13 ? this.handleClick("relevance") :null}.bind(this)} aria-label="Sort by Relevance">
               <td>
                 <img className="searchSortCheck" src="/static/img/check-mark.svg" alt="relevance sort selected"/>
               </td>
@@ -303,7 +303,7 @@ class SearchSortBox extends Component {
                 <span className="int-he" dir="rtl">{"רלוונטיות"}</span>
               </td>
             </tr>
-            <tr className={chronoClass} onClick={()=>this.handleClick("chronological")}>
+            <tr className={chronoClass} onClick={()=>this.handleClick("chronological")} tabIndex="0" onKeyPress={function(e) {e.charCode == 13 ? this.handleClick("chronological") :null}.bind(this)} aria-label="Sort Chronologically">
               <td>
                 <img className="searchSortCheck" src="/static/img/check-mark.svg" alt="chronological sort selected"/>
               </td>
@@ -331,10 +331,34 @@ class SearchFilterExactBox extends Component {
   handleClick() {
     this.props.checkBoxClick();
   }
+  handleKeyPress(e) {
+    if (e.charCode == 13) { // enter
+      this.handleClick(e);
+    }
+  }
+  handleKeyDown(e) {
+    if (e.keyCode === 9) { //9 is tab
+      e.stopPropagation();
+      var lastTab = $("div[role='dialog']").find(':tabbable').last();
+      var firstTab = $("div[role='dialog']").find(':tabbable').first();
+      if (e.shiftKey) {
+        if ($(e.target).is(firstTab)) {
+          $(lastTab).focus();
+          e.preventDefault();
+        }
+      }
+      else {
+        if ($(e.target).is(lastTab)) {
+          $(firstTab).focus();
+          e.preventDefault();
+        }
+      }
+    }
+  }
   render() {
     return (<li>
       <input type="checkbox" id="searchFilterExactBox" className="filter" checked={this.props.selected} onChange={this.handleClick}/>
-      <label onClick={this.handleClick}><span></span></label>
+      <label tabIndex="0" onClick={this.handleClick} onKeyDown={this.handleKeyDown} onKeyPress={this.handleKeyPress}><span></span></label>
       <span className="int-en"><span className="filter-title">{"Exact search"}</span></span>
       <span className="int-he" dir="rtl"><span className="filter-title">{"חיפוש מדויק"}</span></span>
     </li>);

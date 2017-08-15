@@ -164,6 +164,13 @@
                 .attr("width", width)
                 .attr("height", height);
 
+            var placesLived = "";
+            for (index = 0; index < places.features.length; ++index) {
+                placesLived = placesLived + (places.features[index].id)+", ";
+            }
+            placesLived = placesLived.slice(0, -2);
+            svg.append("svg:desc").text("Map of "+placesLived);
+
         //Unit projection, for getting bounding box of our data
         var projection = d3.geo.mercator()
             .scale(1)
