@@ -5,6 +5,7 @@ import hotshot.stats
 from cStringIO import StringIO
 
 from django.conf import settings
+from django.utils import translation
 
 from sefaria.settings import *
 from sefaria.model.user_profile import UserProfile
@@ -47,10 +48,13 @@ class LanguageSettingsMiddleware(object):
         content = default_content_lang if content not in ('english', 'hebrew', 'bilingual') else content
         # Note: URL parameters may override values set her, handled in reader view.
 
+        request.LANGUAGE_CODE = interface[0:2]
         request.interfaceLang = interface
-        request.contentLang = content
+        request.contentLang   = content
 
+        translation.activate(request.LANGUAGE_CODE)
 
+ 
 class ProfileMiddleware(object):
     """
     Displays hotshot profiling for any view.
