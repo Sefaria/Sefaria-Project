@@ -481,9 +481,9 @@ def hebrew_term(s):
 	if is_hebrew(s):
 		return s
 
-	term = Term().load({'name': s})
+	term = library.get_simple_term_mapping().get(s)
 	if term:
-		return term.get_primary_title('he')
+		return term["he"]
 	else:
 		try:
 			# If s is a text title, look for a stored Hebrew title
