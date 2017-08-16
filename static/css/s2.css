@@ -3829,12 +3829,36 @@ h2.splitHeader .he {
 .topicPanel .topicSource {
   margin-bottom: 40px;
   cursor: pointer;
+  position: relative;
 }
 .topicPanel .topicSource .title {
   font-weight: bold;
 }
 .topicPanel .topicSource .score {
-  margin-top: -12px;
+  position: absolute;
+  font-size: 17px;
+  top: 0;
+  right: 5px;
+  color: #333;
+  border-radius: 4px;
+  padding: 3px;
+}
+.topicPanel .topicSource .score:hover {
+  background-color: #EEE;
+}
+.topicPanel .topicSource .score:active {
+  background-color: #DDD;
+}
+.hebrew .topicPanel .topicSource .score {
+  right: auto;
+  left: 5px;
+}
+.topicPanel .topicSource .score img {
+  width: 15px;
+  height: 15px;
+  vertical-align: middle;
+  margin: -4px 0 0 2px;
+  opacity: 0.6;
 }
 .note a {
   color: #333;

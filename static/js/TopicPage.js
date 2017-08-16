@@ -86,10 +86,12 @@ class TopicPage extends Component {
                       // All notes are rendered initially (so ctrl+f works on page) but text is only loaded
                       // from API as notes scroll into view.
                       if (i < this.state.numberToRender) {
-                        return (<div className="topicSource" key={i}>
-                                  <TextRange sref={item[0]} onRangeClick={this.props.showBaseText.bind(null, item[0])} />
-                                  <div className="score">+{item[1]}</div>
-                                </div>);
+                        return <TopicSource 
+                                  sref={item[0]} 
+                                  count={item[1]} 
+                                  topic={this.props.topic} 
+                                  showBaseText={this.props.showBaseText} 
+                                  key={i} />
                       } else {
                         return null;
                       }
@@ -117,6 +119,28 @@ TopicPage.propTypes = {
   toggleLanguage:      PropTypes.func,
   openDisplaySettings: PropTypes.func,
 };
+
+
+class TopicSource extends Component {
+  render() {
+    var openSource = this.props.showBaseText.bind(null, this.props.sref);
+    var openSourceWithSheets = null; //this.props.showBaseText.bind(null, this.props.sref, true, null, null, ["Sheets"])
+    var title = this.props.count + " Sheets tagged " + this.props.topic + " include this source."
+    return (<div className="topicSource">
+              <a
+                href={"/" + Sefaria.normRef(this.props.sref) + "?with=Sheets"} 
+                className="score"
+                onClick={openSourceWithSheets}
+                title={title}>+{this.props.count}<img src="/static/img/sheet.svg" /></a>
+              <TextRange sref={this.props.sref} onRangeClick={openSource} />
+            </div>);  }
+}
+TopicSource.propTypes = {
+  sref:         PropTypes.string.isRequired,
+  topic:        PropTypes.string.isRequired,
+  count:        PropTypes.number.isRequired,
+  showBaseText: PropTypes.func.isRequired,
+}
 
 
 module.exports = TopicPage;
