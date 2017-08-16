@@ -79,7 +79,7 @@ class Category(abstract.AbstractMongoRecord, schema.AbstractTitledOrTermedObject
         if "lastPath" not in d:
             d["lastPath"] = self.path[-1]
 
-        if "sharedTitle" in d:
+        if d.get("sharedTitle", None) is not None:
             if "titles" in d:
                 del d["titles"]
         else:
