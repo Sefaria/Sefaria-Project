@@ -122,6 +122,7 @@
         .attr("height", height)
       .append("g")
         .attr("transform", "translate(" + width / 2 + "," + (height / 2) + ")");
+    svg.append("svg:desc").text("This SVG diagrams the number of words in the texts and categories of Sefaria's library");
 
     var x = d3.scale.linear()
         .range([0, 2 * Math.PI]);

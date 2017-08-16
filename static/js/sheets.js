@@ -1599,7 +1599,7 @@ $(function() {
 	// Reset Source Text 
 	$(".resetSource").live("click", function() { 
 		var options = {
-			message: "Reset text of Hebrew, English or both?<br><small>Any edits you have made to this source will be lost.</small>",
+			message: translateInterfaceString("Reset text of Hebrew, English or both?")+"<br><small>"+translateInterfaceString("Any edits you have made to this source will be lost")+".</small>",
 			options: ["Hebrew", "English", "Both"]
 		};
 		var $target = $(this).closest(".source");
@@ -3974,16 +3974,18 @@ $.extend(sjs, {
 			"לצערנו ארעה שגיאה. אם ערכתם לאחרונה את הדף הנוכחי, ייתכן ותרצו להעתיק את השינויים למקור חיצוני ואז לטעון מחדש את הדף כדי לוודא שהשינויים נשמרו.",
 		"Untitled Source Sheet": "דף מקורות ללא שם",
 		"Like": "אהבתי",
-		"Unlike": "בטל סימון אהבתי",
+		"Unlike": "ביטול סימון אהבתי",
 		"No one has liked this sheet yet. Will you be the first?":
-			"אף אחד עדיין לא אהב את דף המקורות הזה. תרצה להיות הראשון?",
+			"אף אחד עדיין לא אהב את דף המקורות הזה. תרצו להיות ראשונים?",
 		"1 Person Likes This Sheet": "אדם אחד אהב את דף המקורות",
 		" People Like This Sheet": " אנשים אהבו את דף המקורות",
 		"Tags Saved": "תוית נשמרה",
 		"Assignments allow you to create a template that your students can fill out on their own.":
 			"מטלות מאפשרות ליצור דף בסיס שתלמידים יכולים להשתמש בו כדי למלא וליצור את העבודה שלהם.",
 		"Students can complete their assignment at this link:":
-			"תלמידים יכולים לבצע את המטלה שלהם בקישור הבא:"
+			"תלמידים יכולים לבצע את המטלה שלהם בקישור הבא:",
+		"Reset text of Hebrew, English or both?": "האם לאפס את התוכן של המקור בעברית, אנגלית או הכל?",
+		"Any edits you have made to this source will be lost": "כל השינויים שנעשו במקור זה יאבדו"
 
 
 	}
