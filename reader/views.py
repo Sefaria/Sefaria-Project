@@ -34,6 +34,7 @@ from sefaria.workflows import *
 from sefaria.reviews import *
 from sefaria.model.user_profile import user_link, user_started_text, unread_notifications_count_for_user
 from sefaria.model.group import GroupSet
+from sefaria.model.topic import topics
 from sefaria.client.wrapper import format_object_for_client, format_note_object_for_client, get_notes, get_links
 from sefaria.system.exceptions import InputError, PartialRefInputError, BookNameError, NoVersionFoundError, DuplicateRecordError
 # noinspection PyUnresolvedReferences
@@ -41,7 +42,7 @@ from sefaria.client.util import jsonResponse
 from sefaria.history import text_history, get_maximal_collapsed_activity, top_contributors, make_leaderboard, make_leaderboard_condition, text_at_revision, record_version_deletion, record_index_deletion
 from sefaria.system.decorators import catch_error_as_json
 from sefaria.summaries import flatten_toc, get_or_make_summary_node
-from sefaria.sheets import get_sheets_for_ref, public_sheets, get_sheets_by_tag, user_sheets, user_tags, recent_public_tags, sheet_to_dict, get_top_sheets, make_tag_list, group_sheets, get_topic_data, get_topic_list
+from sefaria.sheets import get_sheets_for_ref, public_sheets, get_sheets_by_tag, user_sheets, user_tags, recent_public_tags, sheet_to_dict, get_top_sheets, make_tag_list, group_sheets
 from sefaria.utils.util import list_depth, text_preview
 from sefaria.utils.hebrew import hebrew_plural, hebrew_term, encode_hebrew_numeral, encode_hebrew_daf, is_hebrew, strip_cantillation, has_cantillation
 from sefaria.utils.talmud import section_to_daf, daf_to_section
@@ -653,7 +654,7 @@ def s2_topics_page(request):
     props.update({
         "initialMenu":  "topics",
         "initialTopic": None,
-        "topicList": get_topic_list(sort_by="count"),
+        "topicList": topics.list(sort_by="count"),
     })
 
     if props["interfaceLang"] == "hebrew":
@@ -682,7 +683,7 @@ def s2_topic_page(request, topic):
     props.update({
         "initialMenu":  "topics",
         "initialTopic": topic,
-        "topicData": get_topic_data(topic),
+        "topicData": topics.get(topic).contents(),
     })
 
     if props["interfaceLang"] == "hebrew":

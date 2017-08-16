@@ -28,6 +28,7 @@ from sefaria.model import *
 from sefaria.sheets import *
 from sefaria.model.user_profile import *
 from sefaria.model.group import Group, GroupSet
+from sefaria.model.topic import topics
 from sefaria.system.exceptions import InputError
 from sefaria.utils.util import strip_tags
 
@@ -1071,7 +1072,7 @@ def topics_api(request, topic):
 	"""
 	API to get data for a particular topic.
 	"""
-	response = get_topic_data(topic)
+	response = topics.get(topic).contents()
 	response = jsonResponse(response, callback=request.GET.get("callback", None))
 	response["Cache-Control"] = "max-age=3600"
 	return response

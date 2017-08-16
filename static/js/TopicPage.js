@@ -74,7 +74,7 @@ class TopicPage extends Component {
               : null }
             <div className="relatedTopicsList">
               { topicData ? 
-                topicData.relatedTopics.slice(0, 26).map(function(item, i) {
+                topicData.related_topics.slice(0, 26).map(function(item, i) {
                   return (<a className="relatedTopic" href={"/topics/" + item[0]} key={item[0]} title={item[1] + " co-occurrences"}>{item[0]}</a>);
                 }) : null }
                 <a className="relatedTopic" href="/topics">All Topics</a>
