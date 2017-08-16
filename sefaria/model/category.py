@@ -74,6 +74,19 @@ class Category(abstract.AbstractMongoRecord, schema.AbstractTitledOrTermedObject
         else:
             self.titles = self.get_titles_object()
 
+    def contents(self, **kwargs):
+        d = super(Category, self).contents()
+        if "lastPath" not in d:
+            d["lastPath"] = self.path[-1]
+
+        if "sharedTitle" in d:
+            if "titles" in d:
+                del d["titles"]
+        else:
+            d["titles"] = self.get_titles_object()
+
+        return d
+
     def get_toc_object(self):
         from sefaria.model import library
         toc_tree = library.get_toc_tree()
