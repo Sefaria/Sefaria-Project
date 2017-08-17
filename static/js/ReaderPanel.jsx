@@ -275,6 +275,7 @@ class ReaderPanel extends Component {
       // searchQuery: null,
       // appliedSearchFilters: [],
       navigationSheetTag: null,
+      navigationTopic: null,
     });
   }
   setNavigationCategories(categories) {
@@ -299,6 +300,9 @@ class ReaderPanel extends Component {
       this.conditionalSetState({recentFilters: this.state.recentFilters, filter: filter, connectionsMode: "TextList"});
     }
 
+  }
+  setTopic(topic) {
+    this.conditionalSetState({navigationTopic: topic});
   }
   toggleLanguage() {
     if (this.state.settings.language == "hebrew") {
@@ -626,6 +630,8 @@ class ReaderPanel extends Component {
         var menu = (<TopicPage
                       topic={this.state.navigationTopic}
                       interfaceLang={this.props.interfaceLang}
+                      setTopic={this.setTopic}
+                      openTopics={this.openMenu.bind(null, "topics")}
                       showBaseText={this.props.onNavTextClick || this.showBaseText}
                       openNav={this.openMenu.bind(null, "navigation")}
                       close={this.closeMenus}
@@ -637,6 +643,7 @@ class ReaderPanel extends Component {
         var menu = (<TopicsPanel
                       interfaceLang={this.props.interfaceLang}
                       width={this.state.width}
+                      setTopic={this.setTopic}
                       openNav={this.openMenu.bind(null, "navigation")}
                       close={this.closeMenus}
                       multiPanel={this.props.multiPanel}

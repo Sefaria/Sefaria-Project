@@ -232,7 +232,8 @@ urlpatterns += patterns('reader.views',
 )
 
 # Topics API
-urlpatterns += patterns('sheets.views',
+urlpatterns += patterns('reader.views',
+    (r'^api/topics$', 'topics_list_api'),
     (r'^api/topics/(?P<topic>.+)$', 'topics_api'),
 )
 

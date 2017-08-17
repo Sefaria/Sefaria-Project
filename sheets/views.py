@@ -28,7 +28,6 @@ from sefaria.model import *
 from sefaria.sheets import *
 from sefaria.model.user_profile import *
 from sefaria.model.group import Group, GroupSet
-from sefaria.model.topic import topics
 from sefaria.system.exceptions import InputError
 from sefaria.utils.util import strip_tags
 
@@ -1066,17 +1065,7 @@ def make_sheet_from_text_api(request, ref, sources=None):
 	sources = sources.replace("_", " ").split("+") if sources else None
 	sheet = make_sheet_from_text(ref, sources=sources, uid=request.user.id, generatedBy=None, title=None)
 	return redirect("/sheets/%d" % sheet["id"])
-
-
-def topics_api(request, topic):
-	"""
-	API to get data for a particular topic.
-	"""
-	response = topics.get(topic).contents()
-	response = jsonResponse(response, callback=request.GET.get("callback", None))
-	response["Cache-Control"] = "max-age=3600"
-	return response
-
+	
 
 def sheet_to_html_string(sheet):
 	"""

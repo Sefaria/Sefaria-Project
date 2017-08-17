@@ -3815,8 +3815,33 @@ h2.splitHeader .he {
 .groupMemberListingActionsMenu .role.current {
   color: #666;
 }
-.topicPanel .relatedTopicsList {
+.topicsPanel .loadingMessage {
+  text-align: center;
+}
+.topicsPanel .topicList {
+  min-height: 500px;
+}
+.topicPanel .topicLabel {
+  text-transform: uppercase;
+  font-weight: lighter;
+  margin-bottom: 10px;
+  font-size: 14px;
+}
+.topicPanel .topicLabel a {
+  color: #8E8E8E;  
+}
+#s2 .topicPanel h1 {
   margin-bottom: 50px;
+  font-size: 30px;
+}
+#s2 .topicPanel h1 .int-en {
+  font-family: "adobe-garamond-pro", Georgia, serif;
+}
+#s2 .topicPanel h1 .int-he {
+  font-family: "Frank Ruehl Libre", "Taamey Frank", "Times New Roman", serif;
+}
+.topicPanel .relatedTopicsList {
+  margin-bottom: 70px;
   text-align: center;
 }
 .topicPanel .relatedTopic {
@@ -3825,6 +3850,12 @@ h2.splitHeader .he {
   font-size: 16px;
   line-height: 1.4;
   display: inline-block;
+}
+.topicPanel .sourceList {
+  min-height: 500px;
+}
+.topicPanel .sourceList .loadingMessage {
+  text-align: center;
 }
 .topicPanel .topicSource {
   margin-bottom: 40px;

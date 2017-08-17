@@ -4,6 +4,7 @@ const {
   ReaderNavigationMenuDisplaySettingsButton,
   LanguageToggleButton,
   LoadingMessage,
+  Link,
 }                         = require('./Misc');
 const React               = require('react');
 const PropTypes           = require('prop-types');
@@ -24,13 +25,21 @@ class TopicPage extends Component {
   componentDidMount() {
     this.loadData();
   }
+  componentDidUpdate(nextProps) {
+    if (nextProps.topic != this.props.topic) {
+      this.loadData();
+    }
+  }
   getData() {
     return Sefaria.topic(this.props.topic);
   }
   loadData() {
     if (!this.getData()) {
-      Sefaria.topic(this.props.topic, this.incrementNumberToRender);
+      Sefaria.topic(this.props.topic, this.rerender);
     }
+  }
+  rerender() {
+    this.forceUpdate();
   }
   onScroll() {
     // Poor man's scrollview
@@ -66,18 +75,31 @@ class TopicPage extends Component {
         <div className={contentClasses} onScroll={this.onScroll} key={this.props.topic}>
           <div className="contentInner">
             {this.props.hideNavHeader ?
-              <h1>
-                { this.props.multiPanel ? <LanguageToggleButton toggleLanguage={this.props.toggleLanguage} /> : null }
-                <span className="int-en">{this.props.topic}</span>
-                <span className="int-he">{this.props.topic}</span>
-              </h1>
+              <div>
+                <h2 className="topicLabel">
+                  <Link href="/topics" onClick={this.props.openTopics} title="Show all Topics">
+                    <span className="int-en">Topic</span>
+                    <span className="int-he">Topic</span>
+                  </Link>
+                </h2>
+                <h1>
+                  { this.props.multiPanel ? <LanguageToggleButton toggleLanguage={this.props.toggleLanguage} /> : null }
+                  <span className="int-en">{this.props.topic}</span>
+                  <span className="int-he">{this.props.topic}</span>
+                </h1>
+              </div>
               : null }
             <div className="relatedTopicsList">
               { topicData ? 
                 topicData.related_topics.slice(0, 26).map(function(item, i) {
-                  return (<a className="relatedTopic" href={"/topics/" + item[0]} key={item[0]} title={item[1] + " co-occurrences"}>{item[0]}</a>);
-                }) : null }
-                <a className="relatedTopic" href="/topics">All Topics</a>
+                  return (<Link 
+                            className="relatedTopic" 
+                            href={"/topics/" + item[0]}
+                            onClick={this.props.setTopic.bind(null, item[0])} 
+                            key={item[0]} 
+                            title={item[1] + " co-occurrences"}>{item[0]}</Link>);
+                }.bind(this)) : null }
+                {topicData ? <Link className="relatedTopic" href="/topics" onClick={this.props.openTopics} title="Show all Topics">All Topics</Link> : null }
             </div>
             <div className="sourceList">
               { topicData ?
@@ -111,6 +133,8 @@ class TopicPage extends Component {
 }
 TopicPage.propTypes = {
   topic:               PropTypes.string.isRequired,
+  setTopic:            PropTypes.func.isRequired,
+  openTopics:          PropTypes.func.isRequired,
   interfaceLang:       PropTypes.string,
   mutliPanel:          PropTypes.bool,
   hideNavHeader:       PropTypes.bool,

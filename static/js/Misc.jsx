@@ -7,6 +7,21 @@ const PropTypes  = require('prop-types');
 import Component      from 'react-class';
 
 
+class Link extends Component {
+  handleClick(e) {
+    e.preventDefault();
+    this.props.onClick();
+  }
+  render() {
+    return <a className={this.props.className} href={this.props.href} onClick={this.handleClick} title={this.props.title}>{this.props.children}</a>
+  }
+}
+Link.propTypes = {
+  href:    PropTypes.string.isRequired,
+  onClick: PropTypes.func,
+  title:   PropTypes.string.isRequired,
+}
+
 class GlobalWarningMessage extends Component {
   close() {
     Sefaria.globalWarningMessage = null;
@@ -641,6 +656,7 @@ module.exports.Dropdown                                  = Dropdown;
 module.exports.GlobalWarningMessage                      = GlobalWarningMessage;
 module.exports.InterruptingMessage                       = InterruptingMessage;
 module.exports.LanguageToggleButton                      = LanguageToggleButton;
+module.exports.Link                                      = Link;
 module.exports.LoadingMessage                            = LoadingMessage;
 module.exports.LoginPrompt                               = LoginPrompt;
 module.exports.Note                                      = Note;

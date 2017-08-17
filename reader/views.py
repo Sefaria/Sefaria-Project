@@ -2359,6 +2359,7 @@ def updates_api(request, gid=None):
         else:
             return jsonResponse({"error": "Unauthorized"})
 
+
 @catch_error_as_json
 def notifications_api(request):
     """
@@ -2378,6 +2379,7 @@ def notifications_api(request):
                             "page_size": page_size,
                             "count": notifications.count()
                         })
+
 
 @catch_error_as_json
 def notifications_read_api(request):
@@ -2407,6 +2409,7 @@ def notifications_read_api(request):
     else:
         return jsonResponse({"error": "Unsupported HTTP method."})
 
+
 @catch_error_as_json
 def messages_api(request):
     """
@@ -2426,6 +2429,7 @@ def messages_api(request):
 
     elif request.method == "GET":
         return jsonResponse({"error": "Unsupported HTTP method."})
+
 
 @catch_error_as_json
 def follow_api(request, action, uid):
@@ -2564,6 +2568,28 @@ def reviews_api(request, tref=None, lang=None, version=None, review_id=None):
 
     else:
         return jsonResponse({"error": "Unsupported HTTP method."})
+
+
+@catch_error_as_json
+def topics_list_api(request):
+    """
+    API to get data for a particular topic.
+    """
+    response = topics.list(sort_by="count")
+    response = jsonResponse(response, callback=request.GET.get("callback", None))
+    response["Cache-Control"] = "max-age=3600"
+    return response
+
+
+@catch_error_as_json
+def topics_api(request, topic):
+    """
+    API to get data for a particular topic.
+    """
+    response = topics.get(topic).contents()
+    response = jsonResponse(response, callback=request.GET.get("callback", None))
+    response["Cache-Control"] = "max-age=3600"
+    return response
 
 
 @ensure_csrf_cookie

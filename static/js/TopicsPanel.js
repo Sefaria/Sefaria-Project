@@ -5,6 +5,7 @@ const {
   LanguageToggleButton,
   LoadingMessage,
   TwoOrThreeBox,
+  Link,
 }                         = require('./Misc');
 const React               = require('react');
 const PropTypes           = require('prop-types');
@@ -28,17 +29,25 @@ class TopicsPanel extends Component {
     var data = Sefaria.topicList();
 
     if (!data) {
-      Sefaria.topicList(this.incrementNumberToRender);
+      Sefaria.topicList(this.rerender);
     }
+  }
+  rerender() {
+    this.forceUpdate();
   }
   render() {
     var topics = Sefaria.topicList();
     var topicList = topics ? topics.map(function(item, i) {
       var classes = classNames({navButton: 1, sheetButton: 1 });
-      return (<a className={classes} href={"/topics/" + item.tag} key={item.tag}>{item.tag} ({item.count})</a>);
+      return (<Link 
+                className={classes}
+                href={"/topics/" + item.tag}
+                onClick={this.props.setTopic.bind(null, item.tag)}
+                title={"Explore sources related to '" + item.tag + "'"}
+                key={item.tag}>{item.tag} ({item.count})</Link>);
     }.bind(this)) : null;
 
-    var classStr = classNames({myNotesPanel: 1, systemPanel: 1, readerNavMenu: 1, noHeader: this.props.hideNavHeader });
+    var classStr = classNames({topicsPanel: 1, systemPanel: 1, readerNavMenu: 1, noHeader: this.props.hideNavHeader });
     var navTopClasses  = classNames({readerNavTop: 1, searchOnly: 1, colorLineOnly: this.props.hideNavHeader});
     var contentClasses = classNames({content: 1, hasFooter: 1});
 
