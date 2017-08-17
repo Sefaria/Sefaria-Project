@@ -694,17 +694,19 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
 
         return toc_contents_dict
 
-    def toc_contents(self):
+    def toc_contents(self, include_first_section = True):
         """Returns to a dictionary used to represent this text in the library wide Table of Contents"""
-        firstSection = Ref(self.title).first_available_section_ref()
+
         toc_contents_dict = {
             "title": self.get_title(),
             "heTitle": self.get_title("he"),
             "categories": self.categories[:],
             "primary_category" : self.get_primary_category(),
             "dependence" : getattr(self, "dependence", False),
-            "firstSection": firstSection.normal() if firstSection else None
         }
+        if include_first_section:
+            firstSection = Ref(self.title).first_available_section_ref()
+            toc_contents_dict["firstSection"] = firstSection.normal() if firstSection else None
         ord = self.get_toc_index_order()
         if ord:
             toc_contents_dict["order"] = ord
@@ -715,7 +717,7 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
             toc_contents_dict["heCollectiveTitle"] = hebrew_term(self.collective_title)
         if hasattr(self, 'base_text_titles'):
             toc_contents_dict["base_text_titles"] = self.base_text_titles
-            toc_contents_dict["refs_to_base_texts"] = self.get_base_texts_and_first_refs()
+            toc_contents_dict["refs_to_base_texts"] = self.get_base_texts_and_first_refs(include_first_section)
             if "collectiveTitle" not in toc_contents_dict:
                 toc_contents_dict["collectiveTitle"] = self.title
                 toc_contents_dict["heCollectiveTitle"] = self.get_title("he")
@@ -725,24 +727,27 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
         return toc_contents_dict
 
     #todo: the next 3 functions seem to come at an unacceptable performance cost. Need to review performance or when they are called. 
-    def get_base_texts_and_first_refs(self):
-        return {btitle: self.get_first_ref_in_base_text(btitle) for btitle in self.base_text_titles}
+    def get_base_texts_and_first_refs(self, include_first_section = True):
+        return {btitle: self.get_first_ref_in_base_text(btitle, include_first_section) for btitle in self.base_text_titles}
 
-    def get_first_ref_in_base_text(self, base_text_title):
+    def get_first_ref_in_base_text(self, base_text_title, include_first_section = True):
         from sefaria.model.link import Link
         orig_ref = Ref(self.title)
         base_text_ref = Ref(base_text_title)
         first_link = Link().load(
             {'$and': [orig_ref.ref_regex_query(), base_text_ref.ref_regex_query()], 'is_first_comment': True}
         )
-        if not first_link:
-            firstSection = orig_ref.first_available_section_ref()
-            return firstSection.section_ref().normal() if firstSection else None
-        else:
+        if first_link:
             if orig_ref.contains(Ref(first_link.refs[0])):
                 return Ref(first_link.refs[0]).section_ref().normal()
             else:
                 return Ref(first_link.refs[1]).section_ref().normal()
+        elif include_first_section:
+            firstSection = orig_ref.first_available_section_ref()
+            return firstSection.section_ref().normal() if firstSection else None
+        else:
+            return None
+
 
 
 
@@ -2744,13 +2749,14 @@ class Ref(object):
 
         :return: :class:`Ref`
         """
+        # todo: This is now stored on the VersionState. Look for performance gains.
         if isinstance(self.index_node, JaggedArrayNode):
             r = self.padded_ref()
         elif isinstance(self.index_node, SchemaNode):
-            nodes = self.index_node.get_leaf_nodes()
-            if not len(nodes):
+            first_leaf = self.index_node.first_leaf()
+            if not first_leaf:
                 return None
-            r = nodes[0].ref().padded_ref()
+            r = first_leaf.ref().padded_ref()
         else:
             return None
 
