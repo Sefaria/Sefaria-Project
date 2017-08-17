@@ -116,10 +116,18 @@ class ServerTextCopier(object):
             # upload necessary category items
             for i in range(cat_index+1, len(categories)):
                 c = Category().load({'path': categories[:i]})
+                if getattr(c, 'sharedTitle', None) is not None:
+                    self._upload_term(c.sharedTitle)
                 if c is None:
                     raise IndexError("Necessary category for this index is missing. "
                                      "Path {} was not found".format(categories[:i]))
                 self._make_post_request_to_server("api/category", c.contents())
+
+    def _upload_term(self, name):
+        t = Term().load({'name': name})
+        if t is None:
+            raise AttributeError("Necessary Term not Present on this Environment")
+        self._make_post_request_to_server('api/terms/{}'.format(name), t.contents())
 
     def _prepare_index_api_call(self, index_title):
         return 'api/v2/raw/index/{}'.format(index_title.replace(" ", "_"))
