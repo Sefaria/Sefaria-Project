@@ -5,7 +5,7 @@ from collections import defaultdict
 
 from . import abstract as abst
 from sefaria.system.database import db
-from sefaria.sheets import sheet_to_dict, get_sheets_by_tag
+from sefaria.sheets import sheet_to_dict
 from sefaria.model.text import Ref
 
 
@@ -55,12 +55,11 @@ class Topic(abst.AbstractMongoRecord):
             related_topics_dict = self.related_topics_dict
         else:
             # Otherwise, grab all relavant sheets and make a count
-            sheets              = get_sheets_by_tag(self.topic)
-            sheets_serialized   = []
+            projection          = {"tags": 1, "sources.ref": 1}
+            sheets              = db.sheets.find({"tags": self.topic, "status": "public"}, projection)
             sources_dict        = defaultdict(int)
             related_topics_dict = defaultdict(int)
             for sheet in sheets:
-                sheets_serialized.append(sheet_to_dict(sheet))
                 for source in sheet.get("sources", []):
                     if "ref" in source:
                         sources_dict[source["ref"]] += 1
@@ -109,7 +108,12 @@ class TopicsManager(object):
     def __init__(self):
         self.topics = {}
         self.sorted_topics = {}
-        self.make_data_from_sheets()
+        self._loaded = False
+
+    def _lazy_load(self):
+        if not self._loaded:
+            self.make_data_from_sheets()
+            self._loaded = True
 
     def make_data_from_sheets(self):
         """
@@ -143,16 +147,19 @@ class TopicsManager(object):
                 self.topics[tag] = topic
 
     def get(self, topic):
+        self._lazy_load()
         if topic in self.topics:
             return self.topics[topic].filter(self.topics)
         else:
             return Topic(topic)
 
     def is_included(self, topic):
+        self._lazy_load()
         return topic in self.topics
 
     def list(self, sort_by="alpha"):
         """ Returns a list of all available topics """
+        self._lazy_load()
         if sort_by in self.sorted_topics:
             return self.sorted_topics[sort_by]
         else:
