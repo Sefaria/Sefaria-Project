@@ -6,25 +6,6 @@ const classNames = require('classnames');
 const PropTypes  = require('prop-types');
 import Component      from 'react-class';
 
-class Link extends Component {
-  handleClick(e) {
-    e.preventDefault();
-    this.props.onClick();
-  }
-  render() {
-    return <a 
-              className={this.props.className} 
-              href={this.props.href}
-              onClick={this.handleClick}
-              title={this.props.title}>{this.props.children}</a>
-  }
-}
-Link.propTypes = {
-  href:    PropTypes.string.isRequired,
-  onClick: PropTypes.func,
-  title:   PropTypes.string.isRequired,
-}
-
 
 class Link extends Component {
   handleClick(e) {
