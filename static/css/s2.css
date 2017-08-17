@@ -3048,13 +3048,14 @@ a.readerNavCategory {
   font-size: 18px;
 }
 .toolsButton {
-  display: block;
+  display: flex;
+  justify-content: flex-start;
   color: #333;
   border-top: 1px solid #CCC;
   cursor: pointer;
   font-size: 16px;
   letter-spacing: 1px;
-  padding: 20px 26px 20px 0;
+  padding: 20px 0 20px 0;
 }
 .toolsButton:hover {
   text-decoration: none;
@@ -3064,16 +3065,17 @@ a.readerNavCategory {
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
 }
 .toolsButton .toolsButtonIcon {
-  /*float: right;*/
   color: #ccc;
   font-size: 22px;
-  margin-right: 15px;
 }
 .toolsButton img.toolsButtonIcon {
   width: 22px;
   height: 22px;
   opacity: 0.2;
   vertical-align: middle;
+}
+.toolsButton .toolsButtonText{
+  margin: 0 15px;
 }
 .shareInput {
   width: 100%;

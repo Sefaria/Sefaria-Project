@@ -534,8 +534,10 @@ class ToolsButton extends Component {
     return (
       <a href={url} className="toolsButton sans noselect" onClick={this.onClick}>
         {icon}
-        <span className="int-en noselect">{this.props.en} {count}</span>
-        <span className="int-he noselect">{this.props.he} {count}</span>
+        <span className="toolsButtonText">
+          <span className="int-en noselect">{this.props.en} {count}</span>
+          <span className="int-he noselect">{this.props.he} {count}</span>
+        </span>
       </a>)
   }
 }
