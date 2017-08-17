@@ -13,7 +13,11 @@ class Link extends Component {
     this.props.onClick();
   }
   render() {
-    return <a className={this.props.className} href={this.props.href} onClick={this.handleClick} title={this.props.title}>{this.props.children}</a>
+    return <a 
+              className={this.props.className} 
+              href={this.props.href}
+              onClick={this.handleClick}
+              title={this.props.title}>{this.props.children}</a>
   }
 }
 Link.propTypes = {
@@ -21,6 +25,7 @@ Link.propTypes = {
   onClick: PropTypes.func,
   title:   PropTypes.string.isRequired,
 }
+
 
 class GlobalWarningMessage extends Component {
   close() {
