@@ -145,20 +145,26 @@ class VersionState(abst.AbstractMongoRecord, AbstractSchemaContent):
     def _first_section_ref(self):
         if not getattr(self, "index", False):
             return None
-        first_leaf = self.index.nodes.first_leaf()
-        if not first_leaf:
-            return None
-        r = first_leaf.ref()
-        c = self.state_node(first_leaf).ja("all")
-        new_section = c.next_index([])
-        depth_up = 0 if first_leaf.depth == 1 else 1
 
-        if new_section:
-            d = r._core_dict()
-            d["toSections"] = d["sections"] = [(s + 1) for s in new_section[:-depth_up]]
-            return Ref(_obj=d)
-        else:
+        current_leaf = self.index.nodes.first_leaf()
+        new_section = None
+
+        while current_leaf:
+            r = current_leaf.ref()
+            c = self.state_node(current_leaf).ja("all")
+            new_section = c.next_index([])
+            if new_section:
+                break
+            current_leaf = current_leaf.next_leaf()
+
+        if not new_section:
             return None
+
+        depth_up = 0 if current_leaf.depth == 1 else 1
+
+        d = r._core_dict()
+        d["toSections"] = d["sections"] = [(s + 1) for s in new_section[:-depth_up]]
+        return Ref(_obj=d)
 
     def refresh(self):
         if self.is_new_state:  # refresh done on init

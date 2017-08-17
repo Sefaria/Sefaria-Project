@@ -539,6 +539,14 @@ class TreeNode(object):
                         self._leaf_nodes += node.get_leaf_nodes()
         return self._leaf_nodes
 
+    def get_child_order(self, child):
+        """
+        Intention is to call this on the root node of a schema, in order to get the order of a child node.
+        :param child: TreeNode
+        :return: Integer
+        """
+        return self.all_children().index(child) + 1
+
 
 class TitledTreeNode(TreeNode, AbstractTitledOrTermedObject):
     """

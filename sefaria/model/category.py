@@ -9,6 +9,7 @@ from sefaria.system.exceptions import BookNameError, InputError
 from . import abstract as abstract
 from . import schema as schema
 from . import text as text
+from . import link as link
 
 
 class Category(abstract.AbstractMongoRecord, schema.AbstractTitledOrTermedObject):
@@ -160,12 +161,17 @@ class TocTree(object):
         # Store sparseness data (same functionality as sefaria.summaries.get_sparseness_lookup()) and first section ref.
         vss = db.vstate.find({}, {"title": 1, "content._en.sparseness": 1, "content._he.sparseness": 1, "first_section_ref": 1})
         self._sparseness_lookup = {vs["title"]: max(vs["content"]["_en"]["sparseness"], vs["content"]["_he"]["sparseness"]) for vs in vss}
-        self._first_section_ref_lookup = {vs["title"]: vs["first_section_ref"] for vs in vss}
+        vss.rewind()
+        self._first_section_ref_lookup = {vs["title"]: vs.get("first_section_ref") for vs in vss}
 
         # Build Category object tree from stored Category objects
         cs = sorted(CategorySet(), key=lambda c: len(c.path))
         for c in cs:
             self._add_category(c)
+
+        # Get all of the first comment links
+        ls = link.LinkSet({"is_first_comment": True})
+        self._first_comment_lookup = {frozenset([text.Ref(r).index.title for r in l.refs]): l for l in ls}
 
         # Place Indexes
         indx_set = self._library.all_index_records() if self._library else text.IndexSet()
@@ -209,15 +215,31 @@ class TocTree(object):
 
     def _make_index_node(self, index, old_title=None):
         d = index.toc_contents(include_first_section=False)
+
         title = old_title or d["title"]
+
         d["sparseness"] = self._sparseness_lookup.get(title,1)
-        firstSection = text.Ref(self._first_section_ref_lookup["title"]) if self._first_section_ref_lookup.get("title") else None
+
+        firstSection = text.Ref(self._first_section_ref_lookup[title]) if self._first_section_ref_lookup.get(title) else None
         d["firstSection"] = firstSection.normal() if firstSection else None
-        if "refs_to_base_texts" in d:
-            for title, value in d["refs_to_base_texts"].items():
-                if value is None:
-                    firstSection = text.Ref(self._first_section_ref_lookup["title"]) if self._first_section_ref_lookup.get("title") else None
-                    d["refs_to_base_texts"][title] = firstSection.normal() if firstSection else None
+
+        if "base_text_titles" in d and len(d["base_text_titles"]) > 0:
+            orig_ref = text.Ref(title)
+
+            d["refs_to_base_texts"] = {}
+            for btitle in d["base_text_titles"]:
+                key = frozenset([btitle, title])
+                first_link = self._first_comment_lookup.get(key)
+                if first_link:
+                    if orig_ref.contains(text.Ref(first_link.refs[0])):
+                        first_comment_ref = text.Ref(first_link.refs[0]).section_ref().normal()
+                    else:
+                        first_comment_ref = text.Ref(first_link.refs[1]).section_ref().normal()
+                else:
+                    first_comment_ref = text.Ref(self._first_section_ref_lookup[title]).normal() if self._first_section_ref_lookup.get(title) else None
+
+                d["refs_to_base_texts"][btitle] = first_comment_ref
+
         return TocTextIndex(d, index_object=index)
 
     def _add_category(self, cat):

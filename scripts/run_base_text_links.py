@@ -1,5 +1,8 @@
 # -*- coding: utf-8 -*-
 from sefaria.model import *
+from sefaria.system.database import db
+
+db.links.update({}, {'$unset': {'is_first_comment': 1}}, multi=True)
 
 idxset = IndexSet()
 for idx in idxset:
