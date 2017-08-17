@@ -105,7 +105,10 @@ class ServerTextCopier(object):
         if getattr(self, '_index_obj') is None:
             return
         categories = self._index_obj.categories
-        dest_category = requests.get(u'{}/api/category/{}'.format(self._dest_server, u'/'.join(categories))).json()
+        try:
+            dest_category = requests.get(u'{}/api/category/{}'.format(self._dest_server, u'/'.join(categories))).json()
+        except ValueError:
+            return
 
         if dest_category.get('error') == u'Category not found':
             if dest_category.get('closest_parent'):
