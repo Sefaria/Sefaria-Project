@@ -4197,8 +4197,9 @@ class Library(object):
                 self._simple_term_mapping[term.name] = {"en": term.get_primary_title("en"), "he": term.get_primary_title("he")}
 
             # Note that this will clobber any overlapping terms, and use the last of identical categories.
-            for cat in CategorySet():
-                self._simple_term_mapping[cat.lastPath] = {"en": cat.get_primary_title("en"), "he": cat.get_primary_title("he")}
+            # Currently, all category names are terms, this is labour lost.
+            # for cat in CategorySet():
+            #    self._simple_term_mapping[cat.lastPath] = {"en": cat.get_primary_title("en"), "he": cat.get_primary_title("he")}
 
         return self._simple_term_mapping
 
