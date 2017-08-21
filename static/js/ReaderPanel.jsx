@@ -120,11 +120,8 @@ class ReaderPanel extends Component {
       this.setWidth();
     }
     if ($('*:focus').length == 0) {
-      console.log('focus lost');
         var curPanel = $(".readerPanel")[($(".readerPanel").length)-1];
         $(curPanel).find(':focusable').first().focus();
-      console.log(curPanel);
-      console.log('--------------------');
     }
     this.replaceHistory = false;
     if (this.state.displaySettingsOpen) {
