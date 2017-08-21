@@ -169,8 +169,7 @@ class TocTree(object):
         } for vs in vss}
 
         # Build Category object tree from stored Category objects
-        cs = sorted(CategorySet(), key=lambda c: len(c.path))
-        for c in cs:
+        for c in CategorySet(sort=[("depth", 1)]):
             self._add_category(c)
 
         # Get all of the first comment links
@@ -291,8 +290,10 @@ class TocTree(object):
                 return
             vs.refresh()
             sn = vs.state_node(index.nodes)
-            self._vs_lookup[title]["sparseness"] = max(sn.get_sparseness("en"), sn.get_sparseness("he"))
-
+            self._vs_lookup[title] = {
+                "sparseness" : max(sn.get_sparseness("en"), sn.get_sparseness("he")),
+                "first_section_ref": vs.first_section_ref
+            }
         new_node = self._make_index_node(index, title)
         if node:
             node.replace(new_node)
