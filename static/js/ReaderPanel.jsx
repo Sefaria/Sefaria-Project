@@ -119,6 +119,9 @@ class ReaderPanel extends Component {
     if (prevProps.layoutWidth !== this.props.layoutWidth) {
       this.setWidth();
     }
+    if ($('*:focus').length == 0) {
+      $("body").find(':focusable').first().focus();
+    }
     this.replaceHistory = false;
     if (this.state.displaySettingsOpen) {
       $(".readerOptionsPanel").find('.on:focusable').first().focus();
@@ -830,7 +833,7 @@ class ReaderControls extends Component {
             interfaceLang={this.props.interfaceLang}/>
         </div>) :
       (<div className={"readerTextToc" + (categoryAttribution ? ' attributed' : '')} onClick={this.openTextToc}>
-        <div className="readerTextTocBox">
+        <div className="readerTextTocBox" role="heading" aria-level="1" aria-live="polite">
           <a href={url} aria-label={"Show table of contents for " + title} >
             { title ? (<i className="fa fa-caret-down invisible"></i>) : null }
             <span className="en">{title}</span>

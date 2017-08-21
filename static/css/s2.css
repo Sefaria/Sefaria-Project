@@ -2289,6 +2289,11 @@ a.readerNavCategory {
 .continuous .clearFix {
   display: none;
 }
+.segment > .he,
+.segment > .en {
+  margin-top: 0;
+  margin-bottom: 0;
+}
 .bilingual .segment > .he,
 .bilingual .segment > .en {
   display: block;
