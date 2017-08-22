@@ -289,6 +289,14 @@ class Test_get_titles_in_text(object):
 
 
 class Test_Library(object):
+    def test_schema_validity(self):
+        for i in library.all_index_records():
+            assert isinstance(i, Index)
+            i.nodes.validate()
+            for name, obj in i.get_alt_structures().items():
+                obj.validate()
+
+
     def test_cache_populated_on_instanciation(self):
         assert library._index_map
         assert "en" in library.langs
