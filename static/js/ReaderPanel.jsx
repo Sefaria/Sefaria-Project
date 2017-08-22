@@ -119,12 +119,10 @@ class ReaderPanel extends Component {
     if (prevProps.layoutWidth !== this.props.layoutWidth) {
       this.setWidth();
     }
-/*
     if ($('*:focus').length == 0) {
         var curPanel = $(".readerPanel")[($(".readerPanel").length)-1];
         $(curPanel).find(':focusable').first().focus();
     }
-*/
     this.replaceHistory = false;
     if (this.state.displaySettingsOpen) {
       $(".readerOptionsPanel").find('.on:focusable').first().focus();
