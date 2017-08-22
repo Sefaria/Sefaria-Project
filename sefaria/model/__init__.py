@@ -8,6 +8,10 @@ symbols are then accessed directly as, e.g.:
       or
     library
 """
+import traceback
+for line in traceback.format_stack():
+    print(line.strip())
+exit()
 
 import abstract
 
