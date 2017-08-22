@@ -799,7 +799,7 @@ class NumberedTitledTreeNode(TitledTreeNode):
         """
         key = (title, lang, anchored, compiled, kwargs.get("for_js"), kwargs.get("match_range"), kwargs.get("strict"), kwargs.get("terminated"), kwargs.get("escape_titles"))
         if not self._regexes.get(key):
-            reg = ur"^" if anchored else ""
+            reg = ur"^" if anchored else u""
             title_block = regex.escape(title) if escape_titles else title
             reg += ur"(?P<title>" + title_block + ur")" if capture_title else title_block
             reg += self.after_title_delimiter_re
@@ -821,6 +821,10 @@ class NumberedTitledTreeNode(TitledTreeNode):
                     reg += u"?"
 
         if kwargs.get("match_range"):
+            #TODO there is a potential error with this regex. it fills in toSections starting from highest depth and going to lowest.
+            #TODO Really, the depths should be filled in the opposite order, but it's difficult to write a regex to match.
+            #TODO However, most false positives will be filtered out in library._get_ref_from_match()
+
             reg += ur"(?:\s*-\s*"  # maybe there's a dash and a range
             reg += ur"(?=\S)"  # must be followed by something (Lookahead)
             group = "ar0" if not kwargs.get("for_js") else None

@@ -4396,7 +4396,7 @@ class Library(object):
         assert isinstance(node, JaggedArrayNode)  # Assumes that node is a JaggedArrayNode
 
         if lang == "en" or for_js:  # Javascript doesn't support look behinds.
-            return node.full_regex(title, lang, for_js=for_js, match_range=for_js, compiled=False, anchored=anchored, capture_title=capture_title)
+            return node.full_regex(title, lang, for_js=for_js, match_range=True, compiled=False, anchored=anchored, capture_title=capture_title)
 
         elif lang == "he":
             return ur"""(?<=							# look behind for opening brace
@@ -4405,7 +4405,7 @@ class Library(object):
                 )
                 """ + ur"{}".format(ur"(?P<title>{})".format(regex.escape(title)) if capture_title else regex.escape(title)) \
                    + node.after_title_delimiter_re \
-                   + node.address_regex(lang, for_js=for_js, match_range=for_js) \
+                   + node.address_regex(lang, for_js=for_js, match_range=True) \
                    + ur"""
                 (?=\W|$)                                        # look ahead for non-word char
                 (?=												# look ahead for closing brace
@@ -4415,11 +4415,29 @@ class Library(object):
 
     def _get_ref_from_match(self, ref_match, node, lang):
         sections = []
+        toSections = []
         gs = ref_match.groupdict()
         for i in range(0, node.depth):
             gname = u"a{}".format(i)
             if gs.get(gname) is not None:
                 sections.append(node._addressTypes[i].toNumber(lang, gs.get(gname)))
+
+        curr_address_index = len(sections) - 1  # start from the lowest depth matched in `sections` and go backwards
+        for i in range(node.depth-1, -1, -1):
+            toGname = u"ar{}".format(i)
+            if gs.get(toGname) is not None:
+                toSections.append(node._addressTypes[curr_address_index].toNumber(lang, gs.get(toGname)))
+                curr_address_index -= 1
+
+        if len(toSections) == 0:
+            toSections = sections
+        elif len(toSections) > len(sections):
+            raise InputError("Match {} invalid. Length of toSections is greater than length of sections: {} > {}".format(ref_match.group(0), len(toSections), len(sections)))
+        else:
+            # pad toSections until it reaches the length of sections.
+            while len(toSections) < len(sections):
+                toSections.append(sections[len(sections) - len(toSections) - 1])
+            toSections.reverse()
 
         _obj = {
             "tref": ref_match.group(),
@@ -4428,7 +4446,7 @@ class Library(object):
             "index": node.index,
             "primary_category": node.index.get_primary_category(),
             "sections": sections,
-            "toSections": sections
+            "toSections": toSections
         }
         return Ref(_obj=_obj)
 
@@ -4477,7 +4495,7 @@ class Library(object):
             try:
                 res = (self._get_ref_from_match(ref_match, node, lang), ref_match.span()) if return_locations else self._get_ref_from_match(ref_match, node, lang)
                 refs.append(res)
-            except InputError:
+            except (InputError, ValueError) as e:
                 continue
         return refs
 

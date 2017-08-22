@@ -71,9 +71,11 @@ class Test_get_refs_in_text(object):
         s = "Here's one with Rashi on Genesis 2:5:3"
         s2 = "Here's one with both Rashi on Genesis 3:4 and Exodus 5:2. yeah"
         s3 = "Here's one with Genesis 2:3"
+        s4 = "Here's a tricky one. Rashi on Shabbat 25a:5. Bet you'll never get it"
         assert library.get_refs_in_string(s, "en", citing_only=citing_only) == [Ref("Rashi on Genesis 2:5:3")]
         assert library.get_refs_in_string(s2, "en", citing_only=citing_only) == [Ref("Rashi on Genesis 3:4"), Ref("Exodus 5:2")]
         assert library.get_refs_in_string(s3, "en", citing_only=citing_only) == [Ref("Genesis 2:3")]
+        assert library.get_refs_in_string(s4, "en", citing_only=False) == [Ref("Rashi on Shabbat 25a:5")] # Rashi on Shabbat has `is_citing=False`
 
     @pytest.mark.parametrize(('citing_only'), (True, False))
     def test_citing_only(self, citing_only):
@@ -89,6 +91,39 @@ class Test_get_refs_in_text(object):
         matched_refs = library.get_refs_in_string(u"What's important is that you get the Job done.", lang='en', citing_only=citing_only)
         assert matched_refs == []
 
+
+    @pytest.mark.parametrize(('citing_only'), (True, False))
+    def test_ranged_ref(self, citing_only):
+        trefs = ["Deuteronomy 23:8-9", "Job.2:3-3:1", "Leviticus 15:3 - 17:12", "Shabbat 15a-16b",
+                 "Shabbat 15a:15-15b:13", "Shabbat 15a:10-13", "Rashi on Exodus 3:1-3:10", "Rashi on Exodus 3:1:1-3:1:3",
+                 "Rashi on Exodus 3:1:1-1:3", "Rashi on Exodus 3:1:1-3"]
+        test_strings = [
+            "I am going to quote a range. hopefully you can parse it. ({}) plus some other stuff.".format(temp_tref) for
+            temp_tref in trefs
+        ]
+        for i, test_string in enumerate(test_strings):
+            matched_refs = library.get_refs_in_string(test_string, lang='en', citing_only=citing_only)
+            assert matched_refs == [Ref(trefs[i])]
+
+    def test_ranged_ref_not_cited(self):
+        trefs = ["Rashi on Shabbat 15a:10-13"]
+        test_strings = [
+            "I am going to quote a range. hopefully you can parse it. ({}) plus some other stuff.".format(temp_tref) for
+            temp_tref in trefs
+        ]
+        for i, test_string in enumerate(test_strings):
+            matched_refs = library.get_refs_in_string(test_string, lang='en', citing_only=False)
+            assert matched_refs == [Ref(trefs[i])]
+
+    def test_bad_ranged_refs(self):
+        trefs = ["Rashi on Shabbat 15a:4-16a"]
+        test_strings = [
+            "I am going to quote a range. hopefully you can parse it. ({}) plus some other stuff.".format(temp_tref) for
+            temp_tref in trefs
+        ]
+        for i, test_string in enumerate(test_strings):
+            matched_refs = library.get_refs_in_string(test_string, lang='en', citing_only=False)
+            assert matched_refs == []
 
 class Test_he_get_refs_in_text(object):
     @pytest.mark.parametrize(('citing_only'), (True, False))
@@ -230,6 +265,16 @@ class Test_he_get_refs_in_text(object):
         assert ref[0] == Ref(u'Mishnah Nidah 6:4')
         '''
 
+    @pytest.mark.parametrize(('citing_only'), (True, False))
+    def test_ranged_ref_plain(self, citing_only):
+        trefs = [u"דברים כג:ח-ט", u'שמות, כ"ד, יג-יד', u'במדבר, כ"ז, טו - כג', u'במדבר, כ"ז, טו -כ״ט כג']
+        test_strings = [
+            u"בלה בלה שנאמר ({}) וכולי".format(temp_tref)
+            for temp_tref in trefs
+        ]
+        for i, test_string in enumerate(test_strings):
+            matched_refs = library.get_refs_in_string(test_string, lang='he', citing_only=citing_only)
+            assert matched_refs == [Ref(trefs[i])]
 
 class Test_get_titles_in_text(object):
 
