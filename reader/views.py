@@ -57,6 +57,12 @@ if USE_VARNISH:
 import logging
 logger = logging.getLogger(__name__)
 
+#    #    #
+# Initialized cache library objects that depend on sefaria.model being completely loaded.
+library.get_toc_tree()
+library.build_full_auto_completer()
+library.build_ref_auto_completer()
+#    #    #
 
 @ensure_csrf_cookie
 def reader(request, tref, lang=None, version=None):

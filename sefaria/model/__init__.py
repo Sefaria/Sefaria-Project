@@ -37,6 +37,3 @@ from category import Category, CategorySet
 
 import dependencies
 
-library.get_toc_tree()
-library.build_full_auto_completer()
-library.build_ref_auto_completer()
