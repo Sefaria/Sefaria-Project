@@ -44,7 +44,7 @@ class Header extends Component {
 		return $( "<li></li>" )
 			.data( "item.autocomplete", item )
             .toggleClass("search-override", !!override)
-			.append( $( "<a></a>" ).text( item.label ) )
+			.append( $( "<a role='option'></a>" ).text( item.label ) )
 			.appendTo( ul );
 	  }.bind(this)
     });
@@ -274,7 +274,7 @@ class Header extends Component {
     return (<div className="header" role="banner">
               <div className="headerInner">
                 <div className="headerNavSection">
-                    <a href="/texts" aria-label="Toggle Text Table of Contents" className="library" onClick={this.handleLibraryClick}><i className="fa fa-bars"></i></a>
+                    <a href="/texts" aria-label={this.state.menuOpen === "navigation" && this.state.navigationCategories.length == 0 ? "Return to text" : "Open the Sefaria Library Table of Contents" } className="library" onClick={this.handleLibraryClick}><i className="fa fa-bars"></i></a>
                     <div  className="searchBox">
                       <ReaderNavigationMenuSearchButton onClick={this.handleSearchButtonClick} />
                       <input className={"search"+ vkClassActivator}

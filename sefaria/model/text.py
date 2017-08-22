@@ -4404,7 +4404,8 @@ class Library(object):
                 node = self.get_schema_node(title, lang)
                 nodes_by_address_type[tuple(node.addressTypes)] += [(title, node)]
             except AttributeError as e:
-                logger.warning(u"Library._wrap_all_refs_in_string() failed to create regex for: {}.  {}".format(title, e))
+                # This chatter fills up the logs:
+                # logger.warning(u"Library._wrap_all_refs_in_string() failed to create regex for: {}.  {}".format(title, e))
                 continue
 
         if lang == "en" or for_js:  # Javascript doesn't support look behinds.

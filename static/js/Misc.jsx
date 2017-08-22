@@ -191,15 +191,15 @@ class ToggleOption extends Component {
     if (Sefaria.site) { Sefaria.track.event("Reader", "Display Option Click", this.props.set + " - " + this.props.name); }
   }
   checkKeyPress(e){
-    if (e.keyCode === 39) { //39 is right arrow
-        $(e.target).siblings(".toggleOption").removeClass('on').attr("tabIndex","-1");
-        $(e.target).removeClass('on').attr("tabIndex","-1");
-        $(e.target).next(".toggleOption").focus().addClass('on').attr("tabIndex","0");
+    if (e.keyCode === 39  || e.keyCode === 40) { //39 is right arrow -- 40 is down
+        $(e.target).siblings(".toggleOption").attr("tabIndex","-1");
+        $(e.target).attr("tabIndex","-1");
+        $(e.target).next(".toggleOption").focus().attr("tabIndex","0");
     }
-    else if (e.keyCode === 37) { //37 is left arrow
-        $(e.target).siblings(".toggleOption").removeClass('on').attr("tabIndex","-1");
-        $(e.target).removeClass('on').attr("tabIndex","-1");
-        $(e.target).prev(".toggleOption").focus().addClass('on').attr("tabIndex","0");
+    else if (e.keyCode === 37 || e.keyCode === 38) { //37 is left arrow -- 38 is up
+        $(e.target).siblings(".toggleOption").attr("tabIndex","-1");
+        $(e.target).attr("tabIndex","-1");
+        $(e.target).prev(".toggleOption").focus().attr("tabIndex","0");
     }
     else if (e.keyCode === 13) { //13 is enter
         $(e.target).trigger("click");
