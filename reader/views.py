@@ -168,12 +168,12 @@ def reader(request, tref, lang=None, version=None):
     if "error" not in text:
     # Override Content Language Settings if text not available in given langauge
         if is_text_empty(text["text"]):
-            template_vars["contentLang"] = "hebrew"
+            request.contentLang = "hebrew"
         if is_text_empty(text["he"]):
-            template_vars["contentLang"] = "english"
+            request.contentLang = "english"
     # Override if a specfic version was requested
         if lang:
-            template_vars["contentLang"] = {"he": "hebrew", "en": "english"}[lang]
+            request.contentLang = {"he": "hebrew", "en": "english"}[lang]
 
     return render_to_response('reader.html', template_vars, RequestContext(request))
 
@@ -212,7 +212,6 @@ def render_react_component(component, props):
     propsJSON = json.dumps(props) if isinstance(props, dict) else props
     cache_key = "todo" # zlib.compress(propsJSON)
     url = NODE_HOST + "/" + component + "/" + cache_key
-
 
     encoded_args = urllib.urlencode({
         "propsJSON": propsJSON,
@@ -337,9 +336,9 @@ def s2_props(request):
         "recentlyViewed": request_context.get("recentlyViewed"),
         "loggedIn": request.user.is_authenticated(),
         "_uid": request.user.id,
-        "interfaceLang": request_context.get("interfaceLang"),
+        "interfaceLang": request.interfaceLang,
         "initialSettings": {
-            "language":      request_context.get("contentLang"),
+            "language":      request.contentLang,
             "layoutDefault": request.COOKIES.get("layoutDefault", "segmented"),
             "layoutTalmud":  request.COOKIES.get("layoutTalmud", "continuous"),
             "layoutTanakh":  request.COOKIES.get("layoutTanakh", "segmented"),
@@ -418,11 +417,11 @@ def s2(request, ref, version=None, lang=None):
         "initialSheetsTag":            None,
         "initialNavigationCategories": None,
     })
-    title = primary_ref.he_normal() if props["interfaceLang"] == "hebrew" else primary_ref.normal()
+    title = primary_ref.he_normal() if request.interfaceLang == "hebrew" else primary_ref.normal()
 
     try:
         if primary_ref.is_book_level():
-            if props["interfaceLang"] == "hebrew":
+            if request.interfaceLang == "hebrew":
                 desc = getattr(primary_ref.index, 'heDesc', "")
                 read = "Read the text of {} online with commentaries and connections.".format(primary_ref) # HEBREW NEEDED
                 desc = desc + " " + read if desc else read
@@ -436,7 +435,7 @@ def s2(request, ref, version=None, lang=None):
             heText = props["initialPanels"][0]["text"].get("he",[])
             enDesc = enText[segmentIndex] if segmentIndex < len(enText) else "" # get english text for section if it exists
             heDesc = heText[segmentIndex] if segmentIndex < len(enText) else "" # get hebrew text for section if it exists
-            if props["interfaceLang"] == "hebrew":
+            if request.interfaceLang == "hebrew":
                 desc = heDesc or enDesc # if no hebrew, fall back on hebrew
             else:
                 desc = enDesc or heDesc  # if no english, fall back on hebrew
@@ -469,7 +468,7 @@ def s2_texts_category(request, cats):
         cat_toc    = get_or_make_summary_node(toc, cats, make_if_not_found=False)
         if cat_toc is None or len(cats) == 0:
             return s2_texts(request)
-        if props["interfaceLang"] == "hebrew":
+        if request.interfaceLang == "hebrew":
             cat_string = u", ".join([hebrew_term(cat) for cat in cats])
             title =  cat_string + u" | ספריא"
             desc  = u"Read {} texts online with commentaries and connections.".format(cat_string) # HEBREW NEEDED
@@ -478,7 +477,7 @@ def s2_texts_category(request, cats):
             title = cat_string + u" | Sefaria"
             desc  = u"Read {} texts online with commentaries and connections.".format(cat_string) 
     else:
-        if props["interfaceLang"] == "hebrew":
+        if request.interfaceLang == "hebrew":
             title = u"נצפו לאחרונה"
             desc  = u""
         else:
@@ -544,7 +543,7 @@ def s2_sheets(request):
         "trendingTags": recent_public_tags(days=14, ntags=18)
     })
 
-    if props["interfaceLang"] == "hebrew":
+    if request.interfaceLang == "hebrew":
         title = u"Sefaria Source Sheets" # HEBREW NEEDED
         desc  = u"Explore thousands of public Source Sheets and use our Source Sheet Builder to create your own online."
     else:
@@ -607,7 +606,7 @@ def s2_sheets_by_tag(request, tag):
     if tag == "My Sheets" and request.user.is_authenticated():
         props["userSheets"]   = user_sheets(request.user.id)["sheets"]
         props["userTags"]     = user_tags(request.user.id)
-        if props["interfaceLang"] == "hebrew":
+        if request.interfaceLang == "hebrew":
             title = "My Source Sheets | Sefaria" # HEBREW NEEDED
             desc  = "My Sources Sheets on Sefaria, both private a public."
         else:
@@ -618,7 +617,7 @@ def s2_sheets_by_tag(request, tag):
     
     elif tag == "All Sheets":
         props["publicSheets"] = {"offset0num50": public_sheets(limit=50)["sheets"]}
-        if props["interfaceLang"] == "hebrew":
+        if request.interfaceLang == "hebrew":
             title = "Public Source Sheets | Sefaria" # HEBREW NEEDED
             desc  = "Explore thousands of public Source Sheets drawing on Sefaria's library of Jewish texts."
         else:
@@ -627,7 +626,7 @@ def s2_sheets_by_tag(request, tag):
 
     else:
         props["tagSheets"]    = [sheet_to_dict(s) for s in get_sheets_by_tag(tag)]
-        if props["interfaceLang"] == "hebrew":
+        if request.interfaceLang == "hebrew":
             title = u"{} | Sefaria".format(tag) # HEBREW NEEDED
             desc  = u'Public Source Sheets on tagged with "{}", drawing from Sefaria\'s library of Jewish texts.'.format(tag)
         else:
@@ -668,7 +667,7 @@ def s2_home(request):
 
 def s2_texts(request):
     props = s2_props(request)
-    if props["interfaceLang"] == "hebrew":
+    if request.interfaceLang == "hebrew":
         title = u"האוסף של ספריא"
         desc  = u"Browse 1,000s of Jewish texts in the Sefaria Library by category and title." # HEBREW NEEDED
     else:
@@ -679,7 +678,7 @@ def s2_texts(request):
 
 def s2_updates(request):
     props = s2_props(request)
-    if props["interfaceLang"] == "hebrew":
+    if request.interfaceLang == "hebrew":
         title = u"New Additions to the Sefaria Library" # HEBREW NEEDED
         desc  = u"See texts, translations and connections that have been recentlty added to Sefaria."
     else:
@@ -800,7 +799,7 @@ def edit_text(request, ref=None, lang=None, version=None):
                 text = TextFamily(Ref(ref), lang=lang, version=version).contents()
                 text["mode"] = request.path.split("/")[1]
                 mode = text["mode"].capitalize()
-                text["edit_lang"] = lang if lang is not None else request.COOKIES.get('contentLang')
+                text["edit_lang"] = lang if lang is not None else request.contentLang
                 text["edit_version"] = version
                 initJSON = json.dumps(text)
         except:
@@ -1333,7 +1332,10 @@ def search(request):
 
 
 def interface_language_redirect(request, language):
-    """Set the interfaceLang cooki"""
+    """
+    Set the interfaceLang cookie, saves to UserProfile (if logged in)
+    and redirects to `next` url param.
+    """
     next = request.GET.get("next", "/?home")
     next = "/?home" if next == "undefined" else next
     response = redirect(next)
@@ -3281,7 +3283,7 @@ def explore(request, book1, book2, lang=None):
 
     template_vars =  {"books": json.dumps(books)}
     if lang == "he": # Override language settings if 'he' is in URL
-        template_vars["contentLang"] = "hebrew"
+        request.contentLang = "hebrew"
 
     return render_to_response('explore.html', template_vars, RequestContext(request))
 

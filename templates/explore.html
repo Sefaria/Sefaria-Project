@@ -290,7 +290,7 @@ function switchToHebrewAndRecordState() {
 
 var books = {{ books|safe }}; //Books specified on URL - 0, 1, or 2
 
-if ("{{ interfaceLang }}" == "hebrew") {
+if ("{{ request.interfaceLang }}" == "hebrew") {
     switchToHebrew();
 } else {
     switchToEnglish();
