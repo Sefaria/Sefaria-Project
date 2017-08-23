@@ -237,7 +237,8 @@ def title_regex_api(request, titles):
                 re_string = model.library.get_regex_string(title, lang, anchored=False, for_js=True)
                 res[title] = re_string
             except (AttributeError, AssertionError) as e:
-                logger.warning(u"Library._build_ref_from_string() failed to create regex for: {}.  {}".format(title, e))
+                # There are normal errors here, when a title matches a schema node, the chatter fills up the logs.
+                # logger.warning(u"Library._build_ref_from_string() failed to create regex for: {}.  {}".format(title, e))
                 errors.append(u"{} : {}".format(title, e))
         if len(errors):
             res["error"] = errors
@@ -272,8 +273,9 @@ def bulktext_api(request, refs):
                     'url': oref.url()
                 }
             except (InputError, ValueError, AttributeError) as e:
-                referer = request.META.get("HTTP_REFERER", "unknown page")
-                logger.warning(u"Linker failed to parse {} from {} : {}".format(tref, referer, e))
+                # referer = request.META.get("HTTP_REFERER", "unknown page")
+                # This chatter fills up the logs.  todo: put in it's own file
+                # logger.warning(u"Linker failed to parse {} from {} : {}".format(tref, referer, e))
                 res[tref] = {"error": 1}
         resp = jsonResponse(res, cb)
         resp['Access-Control-Allow-Origin'] = '*'

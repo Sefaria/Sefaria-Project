@@ -315,7 +315,7 @@ class TextRange extends Component {
         {this.props.hideTitle ? null :
 
         (<div className="title">
-          <div className="titleBox">
+          <div className="titleBox" role="heading" aria-level="2">
             <span className="en" >{title}</span>
             <span className="he">{heTitle}</span>
           </div>
@@ -441,13 +441,13 @@ class TextSegment extends Component {
         return false;
     }
     return (
-      <span tabIndex="0" className={classes} onClick={this.handleClick} onKeyPress={this.handleKeyPress} data-ref={this.props.sref} aria-controls={"panel-"+(this.props.panelPosition+1)} aria-label={"Click to see links to "+this.props.sref}>
+      <div tabIndex="0" className={classes} onClick={this.handleClick} onKeyPress={this.handleKeyPress} data-ref={this.props.sref} aria-controls={"panel-"+(this.props.panelPosition+1)} aria-label={"Click to see links to "+this.props.sref}>
         {segmentNumber}
         {linkCountElement}
-        <span className="he" dangerouslySetInnerHTML={ {__html: he + " "} }></span>
-        <span className="en" dangerouslySetInnerHTML={ {__html: en + " "} }></span>
+        <p className="he" dangerouslySetInnerHTML={ {__html: he + " "} }></p>
+        <p className="en" dangerouslySetInnerHTML={ {__html: en + " "} }></p>
         <div className="clearFix"></div>
-      </span>
+      </div>
     );
   }
 }
