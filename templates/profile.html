@@ -141,6 +141,7 @@
 			<a id="moreActivity" class="page-link" href="/activity/{{ profile.slug }}/">More Activity &rsaquo;</a>
 		</div>
 		{% endif %}
+		<div id="overlay"></div>
 	</div>
 </div>
 
@@ -412,7 +413,7 @@
 				{% endif %}
 			});
 
-			// Messages carried o
+			// Messages carried over from S1
 			var sjs = {};
 	    	sjs.composeMessage = function(recipient, name) {
 	    		$("#viewMessage").remove();
@@ -431,7 +432,7 @@
 				$(".sendMessage").click(function(e){
 					sjs.postMessage(recipient, $("#messageTextarea").val());
 				});
-				$("#messageComposer .cancel").click(function(e){
+				$("#messageComposer .cancel, #overlay").click(function(e){
 					$("#messageComposer").remove();
 					$("#overlay").hide();
 				});
@@ -445,6 +446,7 @@
 				$.post("/api/messages", {json: postJSON}, function(data) {
 					$("#messageComposer").remove();
 					alert("Message Sent");
+					$("#overlay").hide();
 					Sefaria.track.event("Messages", "Message Sent", "");
 				});
 			};
@@ -463,7 +465,6 @@
 					$("#viewMessage").remove();
 					$("#overlay").hide();
 				});
-
 			};
 			$("#messageMe").click(function() {
 				{% if request.user.is_authenticated %}
@@ -472,18 +473,10 @@
 				window.location = "/register?next=" + window.location.pathname;
 				{% endif %}
 			});
-			$("body, #notifications").on("click", ".messageReply", function() {
-				var recipient = parseInt($(this).attr("data-recipient"));
-				var name      = $(this).parent().find("a.userLink")[0].outerHTML;;
-				sjs.composeMessage(recipient, name);
-			});
-			$("#notifications").on("click", ".messageView", function() {
-				var recipient = parseInt($(this).attr("data-recipient"));
-				var name      = $(this).parent().find("a.userLink")[0].outerHTML;
-				var message   = $(this).parent().find(".messageText").html();
-				sjs.viewMessage(recipient, name, message);
-			});
-
+			var params = Sefaria.util.getUrlVars();
+			if ("message" in params) {
+				$("#messageMe").trigger("click");
+			}
 		});
 		</script>
 	{% else %}
