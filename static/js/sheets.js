@@ -1308,7 +1308,7 @@ $(function() {
 
 			$("#addcommentDiv").on("click", ".button", function (e) {
 				var $target = $("#addInterface").prev(".sheetItem");
-				var source = {comment: $(e.target).prev(".contentToAdd").html(), isNew: true};
+				var source = {comment: $(this).prev(".contentToAdd").html(), isNew: true};
 				if (sjs.can_add) {
 					source.userLink = sjs._userLink;
 				}
@@ -1372,17 +1372,17 @@ $(function() {
 
 			$("#addcustomTextDiv").on("click", ".button", function (e) {
 				var $target = $("#addInterface").prev(".sheetItem");
-				if ($(e.target).prev(".flexContainer").find(".contentToAdd:visible").length == 1) {
+				if ($(this).prev(".flexContainer").find(".contentToAdd:visible").length == 1) {
 					source = {
-						outsideText: $(e.target).prev(".flexContainer").find(".contentToAdd:visible").html(),
+						outsideText: $(this).prev(".flexContainer").find(".contentToAdd:visible").html(),
 						isNew: true
 					};
 				}
 				else {
 					source = {
 						outsideBiText: {
-							en: $(e.target).prev(".flexContainer").find(".en").html(),
-							he: $(e.target).prev(".flexContainer").find(".he").html()
+							en: $(this).prev(".flexContainer").find(".en").html(),
+							he: $(this).prev(".flexContainer").find(".he").html()
 						}, isNew: true
 					};
 				}
@@ -3010,7 +3010,6 @@ function buildSources($target, sources) {
 }
 
 function buildSource($target, source, appendOrInsert) {
-
 	appendOrInsert = typeof appendOrInsert !== 'undefined' ? appendOrInsert : 'append';
 
 	// Build a single source in $target. May call buildSources recursively if sub-sources present.
