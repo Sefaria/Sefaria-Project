@@ -4368,7 +4368,7 @@ class Library(object):
             for address_tuple, title_node_tuples in nodes_by_address_type.items():
                 node = title_node_tuples[0][1]
                 titles = u"|".join([regex.escape(tup[0]) for tup in title_node_tuples])
-                regex_components += [node.full_regex(titles, lang, for_js=for_js, match_range=for_js, compiled=False, anchored=anchored, capture_title=True, escape_titles=False)]
+                regex_components += [node.full_regex(titles, lang, for_js=for_js, match_range=True, compiled=False, anchored=anchored, capture_title=True, escape_titles=False)]
             return u"|".join(regex_components)
 
         if lang == "he":
@@ -4379,7 +4379,7 @@ class Library(object):
 
                 regex_components += [ur"(?:{}".format(ur"(?P<title>{})".format(titles))  \
                            + node.after_title_delimiter_re \
-                           + node.address_regex(lang, for_js=for_js, match_range=for_js) + u")"]
+                           + node.address_regex(lang, for_js=for_js, match_range=True) + u")"]
 
             all_interal = u"|".join(regex_components)
             if all_interal:

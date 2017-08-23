@@ -106,9 +106,9 @@ class Test_get_refs_in_text(object):
             assert matched_refs == [Ref(trefs[i])]
 
     def test_ranged_ref_not_cited(self):
-        trefs = ["Rashi on Shabbat 15a:10-13"]
+        trefs = [u"Rashi on Shabbat 15a:10-13", u"Shulchan Arukh, Orach Chayim 444:4–6"] # NOTE the m-dash in the Shulchan Arukh ref
         test_strings = [
-            "I am going to quote a range. hopefully you can parse it. ({}) plus some other stuff.".format(temp_tref) for
+            u"I am going to quote a range. hopefully you can parse it. ({}) plus some other stuff.".format(temp_tref) for
             temp_tref in trefs
         ]
         for i, test_string in enumerate(test_strings):
@@ -116,14 +116,26 @@ class Test_get_refs_in_text(object):
             assert matched_refs == [Ref(trefs[i])]
 
     def test_bad_ranged_refs(self):
-        trefs = ["Rashi on Shabbat 15a:4-16a"]
+        trefs = ["Rashi on Shabbat 15a:4-16a", "Rashi on Shabbat 2a:2-2b", "Rashi on Shabbat 2b:1:1-2a:2:1",
+                 "Rashi on Shabbat 2b-2a", "Genesis 3:1-2:5", "Genesis 3-4:2"]
         test_strings = [
-            "I am going to quote a range. hopefully you can parse it. ({}) plus some other stuff.".format(temp_tref) for
-            temp_tref in trefs
+            "I am going to quote a range. hopefully you can NOT parse it. ({}) plus some other stuff.".format(temp_tref)
+            for temp_tref in trefs
         ]
         for i, test_string in enumerate(test_strings):
             matched_refs = library.get_refs_in_string(test_string, lang='en', citing_only=False)
             assert matched_refs == []
+
+    @pytest.mark.parametrize(('citing_only'), (True, False))
+    def test_wrap_refs(self, citing_only):
+        trefs = ["Deuteronomy 23:8-9", "Job.2:3-3:1", "Leviticus 15:3 - 17:12", "Shabbat 15a-16b",
+                 "Shabbat 15a:15-15b:13", "Shabbat 15a:10-13", "Rashi on Exodus 3:1-3:10", "Rashi on Exodus 3:1:1-3:1:3",
+                 "Rashi on Exodus 3:1:1-1:3", "Rashi on Exodus 3:1:1-3"]
+        orefs = [Ref(tref) for tref in trefs]
+        st = reduce(lambda a, b: a + b + " blah blah ", trefs, "")
+        res = reduce(lambda a, b: a + '<a class ="refLink" href="/{}" data-ref="{}">{}</a> blah blah '.format(b[0].url(), b[0].normal(), b[1]), zip(orefs, trefs), "")
+        wrapped = library.get_wrapped_refs_string(st, lang="en", citing_only=citing_only)
+        assert wrapped == res
 
 class Test_he_get_refs_in_text(object):
     @pytest.mark.parametrize(('citing_only'), (True, False))
@@ -275,6 +287,16 @@ class Test_he_get_refs_in_text(object):
         for i, test_string in enumerate(test_strings):
             matched_refs = library.get_refs_in_string(test_string, lang='he', citing_only=citing_only)
             assert matched_refs == [Ref(trefs[i])]
+
+    @pytest.mark.parametrize(('citing_only'), (True, False))
+    def test_wrap_refs(self, citing_only):
+        trefs = [u"דברים כג:ח-ט", u'שמות, כ"ד, יג-יד', u'במדבר, כ"ז, טו - כג', u'במדבר, כ"ז, טו -כ״ט כג', u"דברים כ״ג ח-ט"]
+        orefs = [Ref(tref) for tref in trefs]
+        st = reduce(lambda a, b: a + u"({}) בלה בלה ".format(b), trefs, u"")
+        res = reduce(lambda a, b: a + u'(<a class ="refLink" href="/{}" data-ref="{}">{}</a>) בלה בלה '.format(b[0].url(), b[0].normal(), b[1]), zip(orefs, trefs), u"")
+        wrapped = library.get_wrapped_refs_string(st, lang="he", citing_only=citing_only)
+        assert wrapped == res
+
 
 class Test_get_titles_in_text(object):
 
