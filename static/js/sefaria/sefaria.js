@@ -1,19 +1,21 @@
-const extend    = require('extend'),
-      param     = require('querystring').stringify,
-      striptags = require('striptags'),
-      { Search } = require('./search'),
-      palette   = require('./palette'),
-      Track     = require('./track'),
-      Hebrew    = require('./hebrew'),
-      Util      = require('./util'),
-      ga        = require('./sefariaGa'),
-      $         = require('./sefariaJquery');
+var extend    = require('extend'),
+    param     = require('querystring').stringify,
+    striptags = require('striptags');
+
 
 if (typeof document !== 'undefined') {
-  var INBROWSER = true;
+  var INBROWSER = true,
+      $         = require('jquery'),
+      ga        = DJANGO_VARS.ga;
+  require('jquery.cookie');
 } else {
-  var INBROWSER = false;
+  var INBROWSER = false,
+      $     = require("cheerio"),
+      ga    = function() {}; // Fail gracefully if we reach one of these methods server side
+  $.ajax    = function() {}; // ditto
+  $.getJSON = function() {}; // ditto
 }
+
 
 var Sefaria = Sefaria || {
   _dataLoaded: false,
