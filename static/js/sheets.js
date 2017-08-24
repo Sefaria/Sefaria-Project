@@ -1330,7 +1330,7 @@ $(function() {
 			});
 
 			$("#addmediaDiv").on("click", ".button", function (e) {
-                var $target = $("#addInterface").prev(".sheetItem");
+				var $target = $("#addInterface").prev(".sheetItem");
 				var source = {media: "", isNew: true};
 				if (sjs.can_add) {
 					source.userLink = sjs._userLink;
@@ -1340,8 +1340,9 @@ $(function() {
 				var embedHTML = makeMediaEmbedLink($("#inlineAddMediaInput").val());
 
 				if (embedHTML != false) {
-					$target.next(".sheetItem").find(".media").html(embedHTML);
-					mediaCheck($target.next(".sheetItem").find(".media"));
+					var $mediaDiv = $("#sources").find(".media.new:empty").first()
+					$mediaDiv.html(embedHTML);
+					mediaCheck($mediaDiv);
 				}
 				else {
 					$target.next(".sheetItem").remove();

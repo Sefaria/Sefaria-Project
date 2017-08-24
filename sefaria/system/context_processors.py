@@ -51,32 +51,6 @@ def embed_page(request):
     return {"EMBED": "embed" in request.GET}
 
 
-def language_settings(request):
-    # INTERFACE
-    interface = None
-    if request.user.is_authenticated():
-        profile = UserProfile(id=request.user.id)
-        interface = profile.settings["interface_language"] if "interface_language" in profile.settings else None 
-    if not interface: 
-        #logger.warn("HTTP_CF_IPCOUNTRY: {}".format(request.META.get("HTTP_CF_IPCOUNTRY")))
-        # Pull language setting from cookie or Accept-Lanugage header or default to english
-        interface = request.COOKIES.get('interfaceLang') or request.META.get("HTTP_CF_IPCOUNTRY") or request.LANGUAGE_CODE or 'english'
-        interface = 'hebrew' if interface in ('IL', 'he', 'he-il') else interface
-        # Don't allow languages other than what we currently handle
-        interface = 'english' if interface not in ('english', 'hebrew') else interface
-
-    # CONTENT
-    default_content_lang = 'hebrew' if interface == 'hebrew' else 'bilingual'
-    # Pull language setting from cookie or Accept-Lanugage header or default to english
-    content = request.COOKIES.get('contentLang') or default_content_lang
-    content = short_to_long_lang_code(content)
-    # Don't allow languages other than what we currently handle
-    content = default_content_lang if content not in ('english', 'hebrew', 'bilingual') else content
-    # Note: URL parameters may override values set her, handled in reader view.
-
-    return {"contentLang": content, "interfaceLang": interface}
-
-
 def user_and_notifications(request):
     """
     Load data the comes from a user profile.
@@ -133,7 +107,7 @@ def header_html(request):
         return {}
     global HEADER
     if USE_NODE:
-        lang = language_settings(request)["interfaceLang"]
+        lang = request.interfaceLang
         LOGGED_OUT_HEADER = HEADER['logged_out'][lang] or render_react_component("ReaderApp", {"headerMode": True, "loggedIn": False, "interfaceLang": lang})
         LOGGED_IN_HEADER = HEADER['logged_in'][lang] or render_react_component("ReaderApp", {"headerMode": True, "loggedIn": True, "interfaceLang": lang})
         LOGGED_OUT_HEADER = "" if "s2Loading" in LOGGED_OUT_HEADER else LOGGED_OUT_HEADER

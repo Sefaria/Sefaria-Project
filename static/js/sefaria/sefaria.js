@@ -1,13 +1,14 @@
-const extend    = require('extend'),
-      param     = require('querystring').stringify,
-      striptags = require('striptags'),
-      { Search } = require('./search'),
-      palette   = require('./palette'),
-      Track     = require('./track'),
-      Hebrew    = require('./hebrew'),
-      Util      = require('./util'),
-      ga        = require('./sefariaGa'),
-      $         = require('./sefariaJquery');
+var extend    = require('extend'),
+    param     = require('querystring').stringify,
+    striptags = require('striptags'),
+    { Search } = require('./search'),
+    palette   = require('./palette'),
+    Track     = require('./track'),
+    Hebrew    = require('./hebrew'),
+    Util      = require('./util'),
+    ga        = require('./sefariaGa'),
+    $         = require('./sefariaJquery');
+
 
 if (typeof document !== 'undefined') {
   var INBROWSER = true;

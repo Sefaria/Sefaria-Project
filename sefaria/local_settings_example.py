@@ -81,6 +81,12 @@ NODE_TIMEOUT_MONITOR = relative_to_abs_path("../log/forever/timeouts")
 SEFARIA_DATA_PATH = '/path/to/your/Sefaria-Data' # used for Data
 SEFARIA_EXPORT_PATH = '/path/to/your/Sefaria-Data/export' # used for exporting texts
 
+# Map domain to an interface language that the domain should be pinned to
+DOMAIN_LANGUAGES = {
+    "hebrew.example.org": "hebrew",
+    "english.example.org": "english",
+}
+
 GOOGLE_ANALYTICS_CODE = 'your google analytics code'
 MIXPANEL_CODE = 'you mixpanel code here'
 

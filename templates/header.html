@@ -59,13 +59,13 @@
 <div id="navPanel">
 	<div id="navPanelTexts" data-intro="Browse all available texts by category here." data-step="1">
 
-		<div id="navToc" class="{{ interfaceLang }}">
+		<div id="navToc" class="{{ request.interfaceLang }}">
 			<div id='navTocLangToggleBox'>
 				<i id='navTocPreviewToggle' class='fa fa-eye' title='Text preview on/off'></i><!--
 				--><div id='navTocLangToggle' class='toggle'>
-					<div class='langToggle toggleOption {% if interfaceLang == "english" %}active{% endif %}' data-lang='english'>
+					<div class='langToggle toggleOption {% if request.interfaceLang == "english" %}active{% endif %}' data-lang='english'>
 						<img src='/static/img/english.png' alt='English Toggle Icon' /></div><!--
-					--><div class='langToggle toggleOption {% if interfaceLang == "hebrew" %}active{% endif %}' data-lang='hebrew'>
+					--><div class='langToggle toggleOption {% if request.interfaceLang == "hebrew" %}active{% endif %}' data-lang='hebrew'>
 						<img src='/static/img/hebrew.png' alt='Hebrew Toggle Icon' /></div>
 				</div>
 			</div>
