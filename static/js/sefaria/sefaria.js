@@ -24,6 +24,10 @@ var Sefaria = Sefaria || {
   recentlyViewed: []
 };
 
+if (typeof window !== 'undefined') {
+    window.Sefaria = Sefaria; // allow access to `Sefaria` from console
+}
+
 Sefaria = extend(Sefaria, {
   _parseRef: {}, // cache for results of local ref parsing
   parseRef: function(q) {
@@ -437,7 +441,9 @@ Sefaria = extend(Sefaria, {
     for (var i = 0; i < toc.length; i++) {
       if ("category" in toc[i]) {
         Sefaria._translateTerms[toc[i].category] = {"en": toc[i].category, "he": toc[i].heCategory};
-        Sefaria._cacheIndexFromToc(toc[i].contents)
+        if (toc[i].contents) {
+            Sefaria._cacheIndexFromToc(toc[i].contents)
+        }
       } else {
         Sefaria.index(toc[i].title, toc[i]);
       }
@@ -1220,7 +1226,7 @@ Sefaria = extend(Sefaria, {
                     results.push(curTocElem);
                 }
             }
-        } else { //this is still a category and might have books under it
+        } else if (curTocElem.contents) { //this is still a category and might have books under it
           results = results.concat(Sefaria.commentaryList(title, curTocElem.contents));
         }
     }
@@ -1240,7 +1246,7 @@ Sefaria = extend(Sefaria, {
       }
       if (!found) { return []; }
     }
-    return list;
+    return list || [];
   },
   categoryAttribution: function(categories) {
     var attributions = [
@@ -1694,9 +1700,5 @@ Sefaria.setup = function(data) {
     Sefaria.search = new Search(Sefaria.searchBaseUrl, Sefaria.searchIndex)
 };
 Sefaria.setup();
-
-if (typeof window !== 'undefined') {
-    window.Sefaria = Sefaria; // allow access to `Sefaria` from console
-}
 
 module.exports = Sefaria;

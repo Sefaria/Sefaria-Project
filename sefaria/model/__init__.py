@@ -33,5 +33,7 @@ from lexicon import Lexicon, LexiconEntry, LexiconEntrySet, Dictionary, Dictiona
 from place import Place, PlaceSet
 from person import Person, PersonSet, PersonRelationship, PersonRelationshipSet, PersonRelationshipType, PersonRelationshipTypeSet
 from garden import Garden, GardenStop, GardenStopRelation, GardenSet, GardenStopSet, GardenStopRelationSet
+from category import Category, CategorySet
 
 import dependencies
+

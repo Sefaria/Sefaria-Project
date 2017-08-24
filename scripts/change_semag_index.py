@@ -21,8 +21,8 @@ def add_rabbinic(title):
     rabbinic_vol = SchemaNode()
     rabbinic_vol.add_primary_titles("Rabbinic Commandments",  u"עשין דרבנן")
     for r_count in range(len(rabbinic_nodes)):
-        en_name = [x["text"] for x in rabbinic_nodes[r_count].get_titles() if x["primary"] == True and x["lang"] == "en"][0]
-        he_name = [x["text"] for x in rabbinic_nodes[r_count].get_titles() if x["primary"] == True and x["lang"] == "he"][0]
+        en_name = [x["text"] for x in rabbinic_nodes[r_count].get_titles_object() if x["primary"] == True and x["lang"] == "en"][0]
+        he_name = [x["text"] for x in rabbinic_nodes[r_count].get_titles_object() if x["primary"] == True and x["lang"] == "he"][0]
         new_node = JaggedArrayNode()
         new_node.add_primary_titles(en_name, he_name)
         new_node.add_structure(["Paragraph"])

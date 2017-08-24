@@ -2,7 +2,7 @@
 dependencies.py -- list cross model dependencies and subscribe listeners to changes.
 """
 
-from . import abstract, link, note, history, schema, text, layer, version_state, translation_request, time, person, garden, notification, group, library
+from . import abstract, link, note, history, schema, text, layer, version_state, translation_request, time, person, garden, notification, group, library, category
 
 from abstract import subscribe, cascade, cascade_to_list, cascade_delete, cascade_delete_to_list
 import sefaria.system.cache as scache
@@ -63,8 +63,10 @@ subscribe(cascade_delete(notification.GlobalNotificationSet, "content.version", 
 # Note Delete
 subscribe(layer.process_note_deletion_in_layer,                         note.Note, "delete")
 
-# Term name change
-subscribe(cascade(schema.TermSet, "scheme"),                            schema.TermScheme, "attributeChange", "name")
+# Terms
+subscribe(cascade(schema.TermSet, "scheme"),                                schema.TermScheme, "attributeChange", "name")
+subscribe(text.reset_simple_term_mapping,                                   schema.Term, "delete")
+subscribe(text.reset_simple_term_mapping,                                   schema.Term, "save")
 
 # Version State Save
 subscribe(translation_request.process_version_state_change_in_translation_requests, version_state.VersionState, "save")
@@ -99,6 +101,13 @@ subscribe(cascade_delete(notification.NotificationSet, "global_id", "_id"),  not
 subscribe(group.process_group_name_change_in_sheets,                         group.Group, "attributeChange", "name")
 subscribe(group.process_group_delete_in_sheets,                              group.Group, "delete")
 
+# Categories
+subscribe(category.process_category_name_change_in_categories_and_indexes,  category.Category, "attributeChange", "lastPath")
+subscribe(category.rebuild_library_after_category_change,                   category.Category, "attributeChange", "lastPath")
+subscribe(category.rebuild_library_after_category_change,                   category.Category, "delete")
+subscribe(category.rebuild_library_after_category_change,                   category.Category, "save")
+subscribe(text.reset_simple_term_mapping,                                   category.Category, "delete")
+subscribe(text.reset_simple_term_mapping,                                   category.Category, "save")
 
 # todo: notes? reviews?
 # todo: Scheme name change in Index

@@ -3011,7 +3011,6 @@ function buildSources($target, sources) {
 }
 
 function buildSource($target, source, appendOrInsert) {
-
 	appendOrInsert = typeof appendOrInsert !== 'undefined' ? appendOrInsert : 'append';
 
 	// Build a single source in $target. May call buildSources recursively if sub-sources present.
