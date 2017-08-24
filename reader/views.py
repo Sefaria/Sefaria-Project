@@ -2176,7 +2176,10 @@ def terms_api(request, name):
     """
     if request.method == "GET":
         term = Term().load({'name': name})
-        return jsonResponse(term.contents(), callback=request.GET.get("callback", None))
+        if term is None:
+            return jsonResponse({"error": "Term does not exist."})
+        else:
+            return jsonResponse(term.contents(), callback=request.GET.get("callback", None))
 
     if request.method == "POST":
         def _internal_do_post(request, term, uid, **kwargs):
