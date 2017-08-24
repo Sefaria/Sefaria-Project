@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2017-08-15 17:21-0700\n"
+"POT-Creation-Date: 2017-08-24 14:28-0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,6 +17,93 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1)\n"
+
+#: reader/views.py:434 reader/views.py:438
+#, python-format
+msgid "Read the text of %(book)s online with commentaries and connections."
+msgstr ""
+
+#: reader/views.py:455
+msgid "Explore 3,000 years of Jewish texts in Hebrew and English translation."
+msgstr ""
+
+#: reader/views.py:482 reader/views.py:572 reader/views.py:615
+msgid " | Sefaria"
+msgstr " | ספריא"
+
+#: reader/views.py:486
+msgid "Recently Viewed"
+msgstr "נצפו לאחרונה"
+
+#: reader/views.py:487
+msgid "Texts that you've recently viewed on Sefaria."
+msgstr ""
+
+#: reader/views.py:526
+msgid "Sefaria Search"
+msgstr ""
+
+#: reader/views.py:527
+msgid "Search 3,000 years of Jewish texts in Hebrew and English translation."
+msgstr ""
+
+#: reader/views.py:543
+msgid "Sefaria Source Sheets"
+msgstr ""
+
+#: reader/views.py:544
+msgid ""
+"Explore thousands of public Source Sheets and use our Source Sheet Builder "
+"to create your own online."
+msgstr ""
+
+#: reader/views.py:602
+msgid "My Source Sheets | Sefaria"
+msgstr ""
+
+#: reader/views.py:603
+msgid "My Sources Sheets on Sefaria, both private a public."
+msgstr ""
+
+#: reader/views.py:610
+msgid "Public Source Sheets | Sefaria"
+msgstr ""
+
+#: reader/views.py:611
+msgid ""
+"Explore thousands of public Source Sheets drawing on Sefaria's library of "
+"Jewish texts."
+msgstr ""
+
+#: reader/views.py:616
+#, python-format
+msgid ""
+"Public Source Sheets on tagged with \"%(tag)s\", drawing from Sefaria's "
+"library of Jewish texts."
+msgstr ""
+
+#: reader/views.py:652
+msgid "The Sefaria Libray"
+msgstr "האוסף של ספריא"
+
+#: reader/views.py:653
+msgid ""
+"Browse 1,000s of Jewish texts in the Sefaria Library by category and title."
+msgstr ""
+
+#: reader/views.py:659
+msgid "New Additions to the Sefaria Library"
+msgstr ""
+
+#: reader/views.py:660
+msgid ""
+"See texts, translations and connections that have been recentlty added to "
+"Sefaria."
+msgstr ""
+
+#: reader/views.py:2763
+msgid "You must be logged in to update your profile."
+msgstr ""
 
 #: sefaria/forms.py:58 sefaria/forms.py:63 sefaria/forms.py:129
 msgid "Email Address"

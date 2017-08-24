@@ -25,6 +25,7 @@ from django.http import Http404, HttpResponse
 from django.contrib.auth.decorators import login_required
 from django.utils.http import urlquote
 from django.utils.encoding import iri_to_uri
+from django.utils.translation import ugettext as _
 from django.views.decorators.csrf import ensure_csrf_cookie, csrf_exempt, csrf_protect, requires_csrf_token
 from django.contrib.auth.models import User
 from django import http
@@ -415,7 +416,7 @@ def s2(request, ref, version=None, lang=None):
     props.update({
         "headerMode":                  False,
         "initialRefs":                 panels[0].get("refs", []),
-        "initialFilter":               panels[0].get("filter", None),   # used only for mobile, TextAndConnections case.
+        "initialFilter":               panels[0].get("filter", None), # used only for mobile, TextAndConnections case.
         "initialBookRef":              panels[0].get("bookRef", None),
         "initialPanels":               panels,
         "initialPanelCap":             len(panels),
@@ -430,12 +431,13 @@ def s2(request, ref, version=None, lang=None):
         if primary_ref.is_book_level():
             if request.interfaceLang == "hebrew":
                 desc = getattr(primary_ref.index, 'heDesc', "")
-                read = "Read the text of {} online with commentaries and connections.".format(primary_ref) # HEBREW NEEDED
-                desc = desc + " " + read if desc else read
+                book = primary_ref.he_normal()
             else:
                 desc = getattr(primary_ref.index, 'enDesc', "")
-                read = "Read the text of {} online with commentaries and connections.".format(primary_ref)
-                desc = desc + " " + read if desc else read
+                book = primary_ref.normal()
+            read = _("Read the text of %(book)s online with commentaries and connections.") % {'book': book}
+            desc = desc + " " + read if desc else read
+
         else:
             segmentIndex = primary_ref.sections[-1] - 1 if primary_ref.is_segment_level() else 0
             enText = props["initialPanels"][0]["text"].get("text",[])
@@ -451,7 +453,7 @@ def s2(request, ref, version=None, lang=None):
             desc = desc[:160].rsplit(' ', 1)[0] + "..."  # truncate as close to 160 characters as possible while maintaining whole word. Append ellipses.
 
     except (IndexError, KeyError):
-        desc = "Explore 3,000 years of Jewish texts in Hebrew and English translation."
+        desc = _("Explore 3,000 years of Jewish texts in Hebrew and English translation.")
 
     propsJSON = json.dumps(props)
     html = render_react_component("ReaderApp", propsJSON)
@@ -476,20 +478,14 @@ def s2_texts_category(request, cats):
         if cat_toc is None or len(cats) == 0:
             return s2_texts(request)
         if request.interfaceLang == "hebrew":
-            cat_string = u", ".join([hebrew_term(cat) for cat in cats])
-            title =  cat_string + u" | ספריא"
-            desc  = u"Read {} texts online with commentaries and connections.".format(cat_string) # HEBREW NEEDED
-        else:
-            cat_string = u", ".join(cats)
-            title = cat_string + u" | Sefaria"
-            desc  = u"Read {} texts online with commentaries and connections.".format(cat_string)
+            cats = [hebrew_term(cat) for cat in cats]
+        cat_string = u", ".join(cats)
+        title = cat_string + _(" | Sefaria")
+        desc  = u"Read %(categories)s texts online with commentaries and connections." % {'categories': cat_string}
+
     else:
-        if request.interfaceLang == "hebrew":
-            title = u"נצפו לאחרונה"
-            desc  = u""
-        else:
-            title = u"Recently Viewed"
-            desc  = u""
+        title = _("Recently Viewed")
+        desc  = _("Texts that you've recently viewed on Sefaria.")
 
     props.update({
         "initialMenu": "navigation",
@@ -511,14 +507,9 @@ def s2_search(request):
     Search or Search Results page.
     """
     search_filters = request.GET.get("filters").split("|") if request.GET.get("filters") else []
-
-    initialQuery = urllib.unquote(request.GET.get("q")) if request.GET.get("q") else ""
-
-    field = ("naive_lemmatizer" if request.GET.get("var") == "1" else "exact") if request.GET.get("var") else ""
-
-    sort = ("chronological" if request.GET.get("sort") == "c" else "relevance") if request.GET.get("sort") else ""
-
-    title = initialQuery if initialQuery else ""
+    initialQuery   = urllib.unquote(request.GET.get("q")) if request.GET.get("q") else ""
+    field          = ("naive_lemmatizer" if request.GET.get("var") == "1" else "exact") if request.GET.get("var") else ""
+    sort           = ("chronological" if request.GET.get("sort") == "c" else "relevance") if request.GET.get("sort") else ""
 
     props = s2_props(request)
     props.update({
@@ -533,8 +524,8 @@ def s2_search(request):
     return render_to_response('s2.html', {
         "propsJSON": propsJSON,
         "html":      html,
-        "title":     title,
-        "desc":      "Search 3,000 years of Jewish texts in Hebrew and English translation."
+        "title":     (initialQuery + " | " if initialQuery else "") + _("Sefaria Search"),
+        "desc":      _("Search 3,000 years of Jewish texts in Hebrew and English translation.")
     }, RequestContext(request))
 
 
@@ -550,12 +541,8 @@ def s2_sheets(request):
         "trendingTags": recent_public_tags(days=14, ntags=18)
     })
 
-    if request.interfaceLang == "hebrew":
-        title = u"Sefaria Source Sheets" # HEBREW NEEDED
-        desc  = u"Explore thousands of public Source Sheets and use our Source Sheet Builder to create your own online."
-    else:
-        title = u"Sefaria Source Sheets"
-        desc  = u"Explore thousands of public Source Sheets and use our Source Sheet Builder to create your own online."
+    title = _("Sefaria Source Sheets")
+    desc  = _("Explore thousands of public Source Sheets and use our Source Sheet Builder to create your own online.")
     propsJSON = json.dumps(props)
     html = render_react_component("ReaderApp", propsJSON)
     return render_to_response('s2.html', {
@@ -583,20 +570,20 @@ def s2_group_sheets(request, group, authenticated):
     return render_to_response('s2.html', {
         "propsJSON": propsJSON,
         "html": html,
+        "title": group[0].name + _(" | Sefaria"),
+        "desc": group[0].description,
     }, RequestContext(request))
 
 
 @login_required
 def s2_my_groups(request):
     props = s2_props(request)
-
     return s2_page(request, props, "myGroups")
 
 
 @login_required
 def s2_my_notes(request):
     props = s2_props(request)
-
     return s2_page(request, props, "myNotes")
 
 
@@ -611,34 +598,23 @@ def s2_sheets_by_tag(request, tag):
         "initialSheetsTag": tag,
     })
     if tag == "My Sheets" and request.user.is_authenticated():
-        props["userSheets"]   = user_sheets(request.user.id)["sheets"]
-        props["userTags"]     = user_tags(request.user.id)
-        if request.interfaceLang == "hebrew":
-            title = "My Source Sheets | Sefaria" # HEBREW NEEDED
-            desc  = "My Sources Sheets on Sefaria, both private a public."
-        else:
-            title = "My Source Sheets | Sefaria"
-            desc  = "My Sources Sheets on Sefaria, both private a public."
+        props["userSheets"] = user_sheets(request.user.id)["sheets"]
+        props["userTags"]   = user_tags(request.user.id)
+        title = _("My Source Sheets | Sefaria")
+        desc  = _("My Sources Sheets on Sefaria, both private a public.")
+
     elif tag == "My Sheets" and not request.user.is_authenticated():
         return redirect("/login?next=/sheets/private")
 
     elif tag == "All Sheets":
         props["publicSheets"] = {"offset0num50": public_sheets(limit=50)["sheets"]}
-        if request.interfaceLang == "hebrew":
-            title = "Public Source Sheets | Sefaria" # HEBREW NEEDED
-            desc  = "Explore thousands of public Source Sheets drawing on Sefaria's library of Jewish texts."
-        else:
-            title = "Public Source Sheets | Sefaria"
-            desc  = "Explore thousands of public Source Sheets drawing on Sefaria's library of Jewish texts."
+        title = _("Public Source Sheets | Sefaria")
+        desc  = _("Explore thousands of public Source Sheets drawing on Sefaria's library of Jewish texts.")
 
     else:
         props["tagSheets"]    = [sheet_to_dict(s) for s in get_sheets_by_tag(tag)]
-        if request.interfaceLang == "hebrew":
-            title = u"{} | Sefaria".format(tag) # HEBREW NEEDED
-            desc  = u'Public Source Sheets on tagged with "{}", drawing from Sefaria\'s library of Jewish texts.'.format(tag)
-        else:
-            title = u"{} | Sefaria".format(tag)
-            desc  = u'Public Source Sheets on tagged with "{}", drawing from Sefaria\'s library of Jewish texts.'.format(tag)
+        title = tag + _(" | Sefaria")
+        desc  = _('Public Source Sheets on tagged with "%(tag)s", drawing from Sefaria\'s library of Jewish texts.') % {'tag': tag}
 
     propsJSON = json.dumps(props)
     html = render_react_component("ReaderApp", propsJSON)
@@ -674,30 +650,21 @@ def s2_home(request):
 
 def s2_texts(request):
     props = s2_props(request)
-    if request.interfaceLang == "hebrew":
-        title = u"האוסף של ספריא"
-        desc  = u"Browse 1,000s of Jewish texts in the Sefaria Library by category and title." # HEBREW NEEDED
-    else:
-        title = u"The Sefaria Libray"
-        desc  = u"Browse 1,000s of Jewish texts in the Sefaria Library by category and title."
+    title = _("The Sefaria Libray")
+    desc  = _("Browse 1,000s of Jewish texts in the Sefaria Library by category and title.")
     return s2_page(request, props, "navigation", title, desc)
 
 
 def s2_updates(request):
     props = s2_props(request)
-    if request.interfaceLang == "hebrew":
-        title = u"New Additions to the Sefaria Library" # HEBREW NEEDED
-        desc  = u"See texts, translations and connections that have been recentlty added to Sefaria."
-    else:
-        title = u"New Additions to the Sefaria Library"
-        desc  = u"See texts, translations and connections that have been recentlty added to Sefaria."
+    title = _("New Additions to the Sefaria Library")
+    desc  = _("See texts, translations and connections that have been recentlty added to Sefaria.")
     return s2_page(request, props, "updates", title, desc)
 
 
 @login_required
 def s2_account(request):
     props = s2_props(request)
-
     return s2_page(request, props, "account")
 
 
@@ -705,16 +672,13 @@ def s2_account(request):
 def s2_notifications(request):
     # Notifications content is not rendered server side
     props = s2_props(request)
-
     return s2_page(request, props, "notifications")
 
 
 @login_required
 def s2_modtools(request):
     props = s2_props(request)
-
     return s2_page(request, props, "modtools")
-
 
 
 """
@@ -2221,6 +2185,7 @@ def terms_api(request, name):
 
     return jsonResponse({"error": "Unsupported HTTP method."})
 
+
 @catch_error_as_json
 def name_api(request, name):
     if request.method != "GET":
@@ -2321,8 +2286,6 @@ def dictionary_api(request, word):
         return jsonResponse({"error": "No information found for given word."})
 
 
-
-
 @catch_error_as_json
 def updates_api(request, gid=None):
     """
@@ -2388,6 +2351,7 @@ def updates_api(request, gid=None):
         else:
             return jsonResponse({"error": "Unauthorized"})
 
+
 @catch_error_as_json
 def notifications_api(request):
     """
@@ -2407,6 +2371,7 @@ def notifications_api(request):
                             "page_size": page_size,
                             "count": notifications.count()
                         })
+
 
 @catch_error_as_json
 def notifications_read_api(request):
@@ -2436,6 +2401,7 @@ def notifications_read_api(request):
     else:
         return jsonResponse({"error": "Unsupported HTTP method."})
 
+
 @catch_error_as_json
 def messages_api(request):
     """
@@ -2455,6 +2421,7 @@ def messages_api(request):
 
     elif request.method == "GET":
         return jsonResponse({"error": "Unsupported HTTP method."})
+
 
 @catch_error_as_json
 def follow_api(request, action, uid):
@@ -2787,13 +2754,14 @@ def user_profile(request, username, page=1):
                               },
                              RequestContext(request))
 
+
 @catch_error_as_json
 def profile_api(request):
     """
     API for user profiles.
     """
     if not request.user.is_authenticated():
-        return jsonResponse({"error": "You must be logged in to update your profile."})
+        return jsonResponse({"error": _("You must be logged in to update your profile.")})
 
     if request.method == "POST":
         profileJSON = request.POST.get("json")
@@ -2831,10 +2799,11 @@ def my_profile(request):
 
 def interrupting_messages_read_api(request, message):
     if not request.user.is_authenticated():
-        return jsonResponse({"error": "You must be logged in to use this API"})
+        return jsonResponse({"error": "You must be logged in to use this API."})
     profile = UserProfile(id=request.user.id)
     profile.mark_interrupting_message_read(message)
     return jsonResponse({"status": "ok"})
+
 
 @login_required
 @ensure_csrf_cookie
@@ -2876,8 +2845,6 @@ def home(request):
     """
     recent = request.COOKIES.get("recentlyViewed", None)
     if recent and not "home" in request.GET and not request.COOKIES.get('s1'):
-        # recent = json.loads(urlparse.unquote(recent))
-        #return redirect("/%s" % recent[0]["ref"])
         return redirect("/texts")
 
     if request.flavour == "mobile":
@@ -2913,6 +2880,7 @@ def discussions(request):
                                 },
                                 RequestContext(request))
 
+
 @catch_error_as_json
 def new_discussion_api(request):
     """
@@ -2940,7 +2908,6 @@ def new_discussion_api(request):
         return jsonResponse({"error": "An extremely unlikley event has occurred."})
 
     return jsonResponse({"error": "Unsupported HTTP method."})
-
 
 
 @ensure_csrf_cookie
@@ -3221,6 +3188,7 @@ def translation_flow(request, tref):
                                     },
                                     RequestContext(request))
 
+
 @ensure_csrf_cookie
 def contest_splash(request, slug):
     """
@@ -3271,6 +3239,7 @@ def contest_splash(request, slug):
                                 settings,
                                 RequestContext(request))
 
+
 @ensure_csrf_cookie
 def metrics(request):
     """
@@ -3284,6 +3253,7 @@ def metrics(request):
                                 },
                                 RequestContext(request))
 
+
 @ensure_csrf_cookie
 def connectPage(request):
     """
@@ -3291,7 +3261,6 @@ def connectPage(request):
     """
     # TODO update this for S2
     return redirect(iri_to_uri("/#homeConnect"), permanent=False)
-
 
 
 @ensure_csrf_cookie
@@ -3514,6 +3483,7 @@ def visual_garden_page(request, g):
     }
 
     return render_to_response('visual_garden.html', template_vars, RequestContext(request))
+
 
 @requires_csrf_token
 def custom_server_error(request, template_name='500.html'):
