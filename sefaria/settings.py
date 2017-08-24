@@ -1,6 +1,9 @@
 # Django settings for sefaria project.
 
 import os.path
+
+from django.utils.translation import ugettext_lazy as _
+
 relative_to_abs_path = lambda *x: os.path.join(os.path.dirname(
                                os.path.realpath(__file__)), *x)
 # Local time zone for this installation. Choices can be found here:
@@ -15,6 +18,11 @@ TIME_ZONE = 'America/Vancouver'
 # Language code for this installation. All choices can be found here:
 # http://www.i18nguy.com/unicode/language-identifiers.html
 LANGUAGE_CODE = 'en'
+
+LANGUAGES = [
+  ('en', _('English')),
+  ('he', _('Hebrew')),
+]
 
 SITE_ID = 1
 
