@@ -149,7 +149,7 @@ AUTHENTICATION_BACKENDS = (
 )
 
 LOCALE_PATHS = (
-    '../locale',
+    relative_to_abs_path('../locale'),
 )
 
 # A sample logging configuration. The only tangible logging

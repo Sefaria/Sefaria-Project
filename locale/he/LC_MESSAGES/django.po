@@ -24,7 +24,7 @@ msgstr "כתובת אימייל"
 
 #: sefaria/forms.py:59 sefaria/forms.py:66
 msgid "Password"
-msgstr "סיסמא!!"
+msgstr "סיסמא"
 
 #: sefaria/forms.py:64
 msgid "First Name"
@@ -36,16 +36,16 @@ msgstr "שם משפחה"
 
 #: sefaria/forms.py:67
 msgid "Receive important announcements"
-msgstr "Receive important announcements"
+msgstr "אני מסכימ/ה לקבל עדכונים חשובים"
 
 #: sefaria/forms.py:68
 msgid "Receive our educator newsletter"
-msgstr ""
+msgstr "אני מסכימ/ה לקבל את עלון המחנכים שלנו"
 
 #: sefaria/forms.py:90
 msgid "A user with that email already exists."
-msgstr ""
+msgstr "משתמש עם כתובת האימייל לעיל כבר קיים"
 
 #: sefaria/views.py:161
 msgid "Logged out"
-msgstr ""
+msgstr "מנותק מהחשבון"
