@@ -78,10 +78,7 @@
         {% include "elements/footer.html" with class=contentLang %}
     {% endblock %}
 
-    {% include "js/jquery.html" %}
-    <script src="/static/js/lib/jquery.tooltipster.min.js"></script>
-    <script>{% include "js/django-csrf.js" %}</script>
-    <script src="/static/js/lib/jquery.scrollTo.js"></script>
+
     <script src="/static/js/lib/keyboard.js"></script>
     <script src="/data.js"></script>
 
@@ -97,6 +94,10 @@
     </script>
 
     {% render_bundle 'main' %}
+    {% include "js/jquery.html" %}
+    <script src="/static/js/lib/jquery.tooltipster.min.js"></script>
+    <script>{% include "js/django-csrf.js" %}</script>
+    <script src="/static/js/lib/jquery.scrollTo.js"></script>
 
     {% block js %}{% endblock %}
 </body>

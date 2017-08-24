@@ -18,15 +18,18 @@ body.sepia {
   background-color: #F9F9F7;
 }
 body.dark {
-  background-color: #333331; 
+  background-color: #333331;
+}
+body:not(.user-is-tabbing) *:focus {
+  outline: none;
 }
 .sans,
-.sans .en, 
+.sans .en,
 #s2 .sans .en,
 .sans .int-en {
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
 }
-.sans .he, 
+.sans .he,
 #s2 .sans .he,
 .sans .int-he {
   font-family: "Heebo", sans-serif;
@@ -416,7 +419,6 @@ input.noselect {
   height: 100%;
   overflow: hidden;
   background-color: inherit;
-  outline: none;
   font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
 }
 .readerContent {
@@ -446,7 +448,7 @@ input.noselect {
   background-color: inherit;
 }
 /* Adjusting for 17px scrollbars, to keep content centered
-   Only done in multiPanel mode now as a proxy for whether scrollbars take up width (on desktop they do, not on mobile) 
+   Only done in multiPanel mode now as a proxy for whether scrollbars take up width (on desktop they do, not on mobile)
   Removed 12/16 -- seems to be causing problems now.
   Restored 4/17 -- problem recurred and fixed by storing CSS, what's changing?
 */
@@ -495,7 +497,7 @@ input.noselect {
   direction: ltr;
 }
 .interface-hebrew .readerPanel .readerNavMenu,
-.readerPanel.hebrew .readerNavSection, 
+.readerPanel.hebrew .readerNavSection,
 .readerPanel.hebrew .readerNavMenu .gridBox {
   direction: rtl;
 }
@@ -1112,7 +1114,7 @@ a.readerNavCategory {
   margin: 6px 0 16px;
   font-style: normal;
   font-size: 16px;
-  line-height: 1.4;  
+  line-height: 1.4;
 }
 .readerTextTableOfContents .tocDetails .description .readMoreText {
   display: block;
@@ -1303,7 +1305,7 @@ a.readerNavCategory {
 .readerTextTableOfContents .content .tocContent {
   padding: 30px 0 40px;
   text-align: left;
-} 
+}
 .readerTextTableOfContents.narrowPanel .tocContent {
   padding: 0 0 40px;
 }
@@ -1452,7 +1454,7 @@ a.readerNavCategory {
     padding: 10px 0;
     margin-bottom: 14px;
 }
-.modTools .dlVersionSelect { 
+.modTools .dlVersionSelect {
   display: block;
 }
 
@@ -1786,9 +1788,14 @@ a.readerNavCategory {
 .readerPanel.hebrew .searchContent .result .result-title .he {
   display: block;
 }
+.readerPanel.english .searchContent .text_result .snippet.he,
+.readerPanel.hebrew .searchContent .text_result .snippet.en,
+.bilingual .searchContent .text_result .snippet.he {
+  display: block;
+}
 .searchContent .text_result .snippet {
   color: #333;
-  font-size: 1.8em;
+  font-size: 2.3em;
 }
 .searchContent .sheet_result .snippet {
   color: #999;
@@ -1962,7 +1969,6 @@ a.readerNavCategory {
   text-transform: uppercase;
   letter-spacing: 1px;
   font-weight: lighter;
-  outline: none;
 }
 .connectionsPanelHeader .connectionsHeaderTitle.active {
   text-transform: none;
@@ -2043,11 +2049,6 @@ a.readerNavCategory {
   font-size: 20px;
   display: inline-block;
   cursor: pointer;
-}
-.leftButtons div,
-.rightButtons div {
-  vertical-align: middle;
-  display: inline-block;
 }
 .leftButtons .readerNavMenuMenuButton {
   font-size: 22px;
@@ -2241,10 +2242,10 @@ a.readerNavCategory {
   display: inline-block;
   border-bottom: 4px solid #E6E5E6;
   padding: 0 6px 3px;
-}  
+}
 .dark .textRange.basetext .title .titleBox {
   border-bottom: 4px solid #666;
-}  
+}
 .bilingual .textRange.basetext .title .he {
   display: none;
 }
@@ -2288,21 +2289,26 @@ a.readerNavCategory {
 .continuous .clearFix {
   display: none;
 }
+.segment > .he,
+.segment > .en {
+  margin-top: 0;
+  margin-bottom: 0;
+}
 .bilingual .segment > .he,
-.bilingual .segment > .en { 
+.bilingual .segment > .en {
   display: block;
 }
-.bilingual .segment > .en { 
+.bilingual .segment > .en {
   text-align: left;
 }
-.bilingual .segment > .he { 
+.bilingual .segment > .he {
   text-align: right;
 }
 .stacked.bilingual .basetext .segment {
   margin-bottom: 14px;
   display: block;
 }
-.stacked.bilingual .segment > .en { 
+.stacked.bilingual .segment > .en {
   margin-top: 6px;
   text-align: left;
 }
@@ -2369,7 +2375,7 @@ a.readerNavCategory {
 }
 .textRange {
   line-height: 1.4;
-  font-size: 1.6em; 
+  font-size: 1.6em;
 }
 .textRange .textInner {
   position: relative;
@@ -2378,7 +2384,6 @@ a.readerNavCategory {
   color: #999;
 }
 .segment {
-  outline: none;
 }
 .segment.heOnly{
   text-align: right;
@@ -2584,7 +2589,6 @@ a.readerNavCategory {
   width: 30px;
   text-align: center;
   line-height: 32px;
-  outline: none;
 }
 .connectionsPanelHeader .languageToggle {
   margin: 0 15px;
@@ -2646,7 +2650,7 @@ a.readerNavCategory {
 }
 .textList .texts .contentInner {
   max-width: 660px;
-  margin: 0 auto; 
+  margin: 0 auto;
 }
 .textList.fullPanel .texts {
   padding: 0 48px 300px 60px;
@@ -2918,7 +2922,7 @@ a.readerNavCategory {
 .bilingual .textList .title .he {
   display: none;
 }
-.textList .sheet, 
+.textList .sheet,
 .textList .note {
   padding: 0 0 24px 0;
 }
@@ -2965,10 +2969,10 @@ a.readerNavCategory {
   color: #666;
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
   text-align: left;
-} 
+}
 .interface-hebrew .textList .sheet .sheetTags {
   text-align: right;
-} 
+}
 .textList .sheet .sheetTag {
   color: inherit;
   display: inline-block;
@@ -2978,7 +2982,7 @@ a.readerNavCategory {
   display: inline-block;
   margin-right: 8px;
 }
-.textList .sheetList { 
+.textList .sheetList {
   padding-top: 40px;
 }
 .textList .sheetList + .sheetList {
@@ -3086,7 +3090,6 @@ a.readerNavCategory {
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
   color: #999;
   padding: 20px 26px;
-  outline: none;
   margin-bottom: 30px;
 }
 .addToSourceSheetBox {
@@ -3151,7 +3154,6 @@ a.readerNavCategory {
   border: none;
   border-radius: 4px;
   padding: 20px 25px;
-  outline: none;
   box-sizing: border-box;
   font-size: 18px;
   font-family: "adobe-garamond-pro", Georgia, serif;
@@ -3439,28 +3441,27 @@ a .button:hover {
    font-style: italic;
    font-family: "adobe-garamond-pro", Georgia, serif;
 }
-::-moz-placeholder { 
+::-moz-placeholder {
    font-style: italic;
    font-family: "adobe-garamond-pro", Georgia, serif;
 }
-:-ms-input-placeholder {  
+:-ms-input-placeholder {
    font-style: italic;
    font-family: "adobe-garamond-pro", Georgia, serif;
 }
 .interface-hebrew ::-webkit-input-placeholder {
   font-style: normal;
-  font-family: "Frank Ruehl Libre", "Taamey Frank", "Times New Roman", serif;
+  font-family: "Heebo", sans-serif;
 }
-.interface-hebrew ::-moz-placeholder { 
+.interface-hebrew ::-moz-placeholder {
   font-style: normal;
-  font-family: "Frank Ruehl Libre", "Taamey Frank", "Times New Roman", serif;
+  font-family: "Heebo", sans-serif;
 }
-.interface-hebrew :-ms-input-placeholder {  
+.interface-hebrew :-ms-input-placeholder {
   font-style: normal;
-  font-family: "Frank Ruehl Libre", "Taamey Frank", "Times New Roman", serif;
+  font-family: "Heebo", sans-serif;
 }
 input {
-  outline: none;
 }
 .lexicon-content{
   font-size: 15px;
@@ -3775,7 +3776,7 @@ h2.splitHeader .he {
 .groupMemberListingActions {
   position: relative;
   display: inline-block;
-  background-color: white; 
+  background-color: white;
   border: 1px solid #ccc;
   border-radius: 4px;
   margin-left: 12px;
@@ -3791,7 +3792,7 @@ h2.splitHeader .he {
   position: absolute;
   right: 0;
   top: 46px;
-  background-color: white; 
+  background-color: white;
   border: 1px solid #ccc;
   border-radius: 4px;
   color: #999;
@@ -4021,7 +4022,6 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
   z-index: -1;
 }
 #groupDescription:focus {
-  outline: none;
 }
 #editGroupPage .groupImage {
   max-width: 200px;
@@ -4111,43 +4111,17 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
 .dropdown .dropdownList .dropdownOption.selected {
   color: #333;
 }
-#footer #siteLanguageToggle {
-  color: #999;
-  margin-top: 15px;
-  font-size: 13px;
-}
-#footer #siteLanguageToggle #siteLanguageToggleLabel {
-  display: block;
-}
-#footer a#siteLanguageEnglish,
-#footer a#siteLanguageHebrew {
-  cursor: pointer;
-  color: #666;
-  display: inline;
-  margin: 0 3px;
-  font-size: 13px;
-}
-#footer #siteLanguageEnglish:hover,
-#footer #siteLanguageHebrew:hover {
-  text-decoration: underline;
-}
-#footer a#siteLanguageHebrew {
-  font-size: 14px;
-}
 #footer {
   background-color: white;
   border-top: 1px solid #F4F4F4;
   overflow: hidden;
   padding: 18px 40px;
   text-align: left;
-}
-#footer .header {
-  font-weight: bold;
-  font-size: 15px;
-  margin-bottom: 3px;
+  color: #999;
 }
 #footer a {
   display: block;
+  color: #999;
 }
 #footer.interface-hebrew, .interface-hebrew #footer{
   direction: rtl;
@@ -4161,21 +4135,20 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
 }
 #footer.interface-hebrew .int-he, .interface-hebrew #footer .int-he {
   display: inline;
-  font-size: 120%;
   text-align: right;
 }
 #footer.interface-hebrew .int-en, .interface-hebrew #footer .int-en {
   display: none;
 }
 #footerInner {
-  max-width: 900px;
+  max-width: 1000px;
   margin: 0 auto;
 }
 #footer .section {
   display: inline-block;
   vertical-align: top;
-  width: 140px;
-  margin: 20px 10px;
+  width: 200px;
+  margin: 20px 0;
 }
 #footer.interface-english .section, .interface-english #footer .section {
   text-align: left;
@@ -4185,29 +4158,110 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
 }
 #footer .section .header {
   color: #666;
-  margin-bottom: 12px;
+  margin-bottom: 18px;
   font-weight: normal;
-  font-size: 13px;
+  font-size: 15px;
 }
 #footer .section.last {
   float: right;
   text-align: right;
-  width: 210px;
-  border-left: 1px solid #EAEAEA;
 }
 #footer.interface-hebrew .section.last, .interface-hebrew #footer .section.last {
   float: left;
   text-align: left;
-  border-left: none;
-  border-right: 1px solid #EAEAEA;
 }
 #footer .section a {
-  color: #aaa;
-  font-size: 14px;
+  font-size: 15px;
   margin: 2px 0;
 }
 #footer .fa {
   margin: 0 3px;
+}
+#footer .header.connect {
+  text-transform: uppercase;
+}
+#newsletterFooterBox {
+  position: relative;
+  margin-bottom: 4px;
+}
+#newsletterInput {
+  border-radius: 6px;
+  padding: 8px 32px 11px 16px;
+  width: 150px;
+  font-size: 15px;
+  border: 1px solid #EEE;
+  margin-bottom: 6px;
+  color: #333;
+}
+#newsletterInput ::-webkit-input-placeholder,
+#newsletterInput ::-moz-placeholder,
+#newsletterInput :-ms-input-placeholder {
+  color: #AAA;
+}
+#newsletterFooterBox img {
+  height: 18px;
+  width: 18px;
+  opacity: 0.2;
+  position: absolute;
+  top: 10px;
+  right: 12px;
+}
+#footer.interface-hebrew #newsletterInput {
+  padding: 8px 16px 11px 32px;
+}
+#footer.interface-hebrew #newsletterFooterBox img {
+  right: auto;
+  left: 12px;
+  transform: scale(-1, 1);
+}
+#subscribeMessage {
+  margin-bottom: 14px;
+  color: #333;
+  font-style: italic;
+  text-align: center;
+}
+#footer .section.connect a {
+  display: inline;
+  margin: 0 4px;
+}
+#footer #socialButtons {
+  margin-bottom: 6px;
+}
+#footer #facebookButton {
+  display: inline-block;
+  vertical-align: middle;
+}
+#footer #twitterButton {
+  display: inline-block;
+  vertical-align: middle;
+  margin-left: 4px;
+  margin-top: 4px;
+}
+#footer.interface-hebrew #twitterButton {
+  margin-left: 0;
+  margin-right: 4px;
+}
+#footer #siteLanguageToggle {
+  color: #999;
+  margin-top: 30px;
+  font-size: 15px;
+}
+#footer #siteLanguageToggle #siteLanguageToggleLabel {
+  display: block;
+  text-transform: uppercase;
+}
+#footer a#siteLanguageEnglish,
+#footer a#siteLanguageHebrew {
+  cursor: pointer;
+  color: #666;
+  display: inline;
+  margin: 0 3px;
+}
+#footer #siteLanguageEnglish:hover,
+#footer #siteLanguageHebrew:hover {
+  text-decoration: underline;
+}
+#footer a#siteLanguageHebrew {
 }
 .multiPanel .readerNavMenu .content.hasFooter #footer {
   margin-top: 120px;
@@ -4240,4 +4294,3 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
 .bubbleTab.active {
   color: #333;
 }
-

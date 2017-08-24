@@ -41,7 +41,6 @@ class PagesLoad(AtomicTest):
         self.load_notifications()
 
 
-
 class RecentInToc(AtomicTest):
     suite_key = "Reader"
     single_panel = False
@@ -264,6 +263,20 @@ class SpecialCasedSearchBarNavigations(AtomicTest):
         WebDriverWait(self.driver, TEMPER).until(title_contains("Yosef"))
         self.type_in_search_box(u"מדרש")
         WebDriverWait(self.driver, TEMPER).until(visibility_of_element_located((By.CSS_SELECTOR, ".readerNavCategoryMenu")))
+
+
+
+class EditorPagesLoad(AtomicTest):
+    suite_key = "Editor"
+    every_build = True
+    single_panel = False
+
+    def run(self):
+        #logged in stuff
+        self.login_user()
+        self.load_translate("Shabbat 43b")
+        # self.load_edit("Genesis 1", "en", "Sefaria Community Translation") -- need debugging, threw a 500 on travis, works local
+        self.load_add("Mishnah Peah 4")
 
 
 """

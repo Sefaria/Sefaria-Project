@@ -22,10 +22,11 @@ class SearchPage extends Component {
       this.state = {};
     }
     render () {
-        var fontSize = 62.5; // this.props.settings.fontSize, to make this respond to user setting. disabled for now.
-        var style    = {"fontSize": fontSize + "%"};
-        var classes  = classNames({readerNavMenu: 1, noHeader: this.props.hideNavHeader});
-        var isQueryHebrew = Sefaria.hebrew.isHebrew(this.props.query);
+        var fontSize       = 62.5; // this.props.settings.fontSize, to make this respond to user setting. disabled for now.
+        var style          = {"fontSize": fontSize + "%"};
+        var classes        = classNames({readerNavMenu: 1, noHeader: this.props.hideNavHeader});
+        var contentClasses = classNames({content: 1, hasFooter: this.props.panelsOpen === 1});
+        var isQueryHebrew  = Sefaria.hebrew.isHebrew(this.props.query);
         return (<div className={classes} key={this.props.query}>
                   {this.props.hideNavHeader ? null :
                     (<div className="readerNavTop search">
@@ -36,7 +37,7 @@ class SearchPage extends Component {
                         initialQuery = { this.props.query }
                         updateQuery = { this.props.onQueryChange } />
                     </div>)}
-                  <div className="content hasFooter">
+                  <div className={contentClasses}>
                     <div className="contentInner">
                       <div className="searchContentFrame">
                           <h1 className={classNames({"hebrewQuery": isQueryHebrew, "englishQuery": !isQueryHebrew})}>
@@ -62,31 +63,34 @@ class SearchPage extends Component {
                           </div>
                       </div>
                     </div>
-                    <footer id="footer" className={`interface-${this.props.interfaceLang} static sans`}>
-                      <Footer />
-                    </footer>
+                    { this.props.panelsOpen === 1 ? 
+                      <footer id="footer" className={`interface-${this.props.interfaceLang} static sans`}>
+                        <Footer />
+                      </footer> 
+                      : null }
                   </div>
                 </div>);
     }
 }
 SearchPage.propTypes = {
-    query:                PropTypes.string,
-    appliedFilters:       PropTypes.array,
-    settings:             PropTypes.object,
-    close:                PropTypes.func,
-    onResultClick:        PropTypes.func,
-    onQueryChange:        PropTypes.func,
-    updateAppliedFilter:  PropTypes.func,
+    query:                    PropTypes.string,
+    appliedFilters:           PropTypes.array,
+    settings:                 PropTypes.object,
+    panelsOpen:               PropTypes.number,
+    close:                    PropTypes.func,
+    onResultClick:            PropTypes.func,
+    onQueryChange:            PropTypes.func,
+    updateAppliedFilter:      PropTypes.func,
     updateAppliedOptionField: PropTypes.func,
     updateAppliedOptionSort:  PropTypes.func,
     registerAvailableFilters: PropTypes.func,
-    availableFilters:     PropTypes.array,
-    filtersValid:         PropTypes.bool,
-    hideNavHeader:        PropTypes.bool,
-    exactField:           PropTypes.string,
-    broadField:           PropTypes.string,
-    field:                PropTypes.string,
-    sortType:             PropTypes.oneOf(["relevance","chronological"])
+    availableFilters:         PropTypes.array,
+    filtersValid:             PropTypes.bool,
+    hideNavHeader:            PropTypes.bool,
+    exactField:               PropTypes.string,
+    broadField:               PropTypes.string,
+    field:                    PropTypes.string,
+    sortType:                 PropTypes.oneOf(["relevance","chronological"])
 };
 SearchPage.defaultProps = {
   appliedFilters: []
@@ -101,6 +105,7 @@ class SearchBar extends Component {
     }
     handleKeypress(event) {
         if (event.charCode == 13) {
+            
             this.updateQuery();
             // Blur search input to close keyboard
             $(ReactDOM.findDOMNode(this)).find(".readerSearch").blur();
@@ -118,7 +123,14 @@ class SearchBar extends Component {
         return (
             <div>
                 <div className="searchBox">
-                    <input className="readerSearch" id="searchInput" title="Search for Texts or Keywords Here" value={this.state.query} onKeyPress={this.handleKeypress} onChange={this.handleChange} placeholder="Search"/>
+                    <input 
+                      className="readerSearch"
+                        id="searchInput"
+                        title="Search for Texts or Keywords Here"
+                        value={this.state.query}
+                        onKeyPress={this.handleKeypress} 
+                        onChange={this.handleChange} 
+                        placeholder="Search"/>
                     <ReaderNavigationMenuSearchButton onClick={this.updateQuery} />
                 </div>
                 <div className="description"></div>

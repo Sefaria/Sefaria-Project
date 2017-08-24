@@ -41,7 +41,7 @@ def delete_user_account(uid, confirm=True):
 
 
 def merge_user_accounts(from_uid, into_uid):
-    """ Moves all content of `from_uid` into `into_uid` then deleted `from_uid`"""
+    """ Moves all content of `from_uid` into `into_uid` then deletes `from_uid`"""
     from_user = model.UserProfile(id=from_uid)
     if not from_user._id:
         print "Source user %d does not have a profile." % from_uid

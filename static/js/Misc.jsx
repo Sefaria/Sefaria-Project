@@ -6,6 +6,25 @@ const classNames = require('classnames');
 const PropTypes  = require('prop-types');
 import Component      from 'react-class';
 
+class Link extends Component {
+  handleClick(e) {
+    e.preventDefault();
+    this.props.onClick();
+  }
+  render() {
+    return <a 
+              className={this.props.className} 
+              href={this.props.href}
+              onClick={this.handleClick}
+              title={this.props.title}>{this.props.children}</a>
+  }
+}
+Link.propTypes = {
+  href:    PropTypes.string.isRequired,
+  onClick: PropTypes.func,
+  title:   PropTypes.string.isRequired,
+}
+
 
 class GlobalWarningMessage extends Component {
   close() {
@@ -129,7 +148,7 @@ class ToggleSet extends Component {
     classes = classNames(classes);
     var value = this.props.name === "layout" ? this.props.currentLayout() : this.props.settings[this.props.name];
     var width = 100.0 - (this.props.separated ? (this.props.options.length - 1) * 3 : 0);
-    var style = {width: (width/this.props.options.length) + "%", outline: "none"};
+    var style = {width: (width/this.props.options.length) + "%"};
     return (
       <div className={classes} role={this.props.role} aria-label={this.props.ariaLabel}>
         {
@@ -171,6 +190,41 @@ class ToggleOption extends Component {
     this.props.setOption(this.props.set, this.props.name);
     if (Sefaria.site) { Sefaria.track.event("Reader", "Display Option Click", this.props.set + " - " + this.props.name); }
   }
+  checkKeyPress(e){
+    if (e.keyCode === 39  || e.keyCode === 40) { //39 is right arrow -- 40 is down
+        $(e.target).siblings(".toggleOption").attr("tabIndex","-1");
+        $(e.target).attr("tabIndex","-1");
+        $(e.target).next(".toggleOption").focus().attr("tabIndex","0");
+    }
+    else if (e.keyCode === 37 || e.keyCode === 38) { //37 is left arrow -- 38 is up
+        $(e.target).siblings(".toggleOption").attr("tabIndex","-1");
+        $(e.target).attr("tabIndex","-1");
+        $(e.target).prev(".toggleOption").focus().attr("tabIndex","0");
+    }
+    else if (e.keyCode === 13) { //13 is enter
+        $(e.target).trigger("click");
+    }
+    else if (e.keyCode === 9) { //9 is tab
+        var lastTab = $("div[role='dialog']").find(':tabbable').last();
+        var firstTab = $("div[role='dialog']").find(':tabbable').first();
+        if (e.shiftKey) {
+          if ($(e.target).is(firstTab)) {
+            $(lastTab).focus();
+            e.preventDefault();
+          }
+        }
+        else {
+          if ($(e.target).is(lastTab)) {
+            $(firstTab).focus();
+            e.preventDefault();
+          }
+        }
+    }
+    else if (e.keyCode === 27) { //27 is escape
+        e.stopPropagation();
+        $(".mask").trigger("click");
+    }
+  }
   render() {
     var classes = {toggleOption: 1, on: this.props.on };
     var tabIndexValue = this.props.on ? 0 : -1;
@@ -185,8 +239,10 @@ class ToggleOption extends Component {
         role={this.props.role}
         aria-label= {this.props.ariaLabel}
         tabIndex = {this.props.role == "radio"? tabIndexValue : "0"}
+        aria-checked={ariaCheckedValue}
         className={classes}
         style={this.props.style}
+        onKeyDown={this.checkKeyPress}
         onClick={this.handleClick}>
         {content}
       </div>);
@@ -231,15 +287,15 @@ class ReaderNavigationMenuCloseButton extends Component {
 
 class ReaderNavigationMenuDisplaySettingsButton extends Component {
   render() {
-    return (<a
-              href="#"
+    return (<div
               className="readerOptions"
+              tabIndex="0"
               role="button"
               aria-haspopup="true"
               onClick={this.props.onClick}
               onKeyPress={function(e) {e.charCode == 13 ? this.props.onClick(e):null}.bind(this)}>
                 <img src="/static/img/ayealeph.svg" alt="Toggle Reader Menu Display Settings"/>
-            </a>);
+            </div>);
   }
 }
 
@@ -534,19 +590,27 @@ TestMessage.propTypes = {
 class CategoryAttribution extends Component {
   render() {
     var attribution = Sefaria.categoryAttribution(this.props.categories);
-    return attribution ?
-      <div className="categoryAttribution">
-        <a href={attribution.link} className="outOfAppLink">
-          <span className="en">{attribution.english}</span>
-          <span className="he">{attribution.hebrew}</span>
-        </a>
-      </div>
-      : null;
+    if (!attribution) { return null; }
+    var linkedContent = <a href={attribution.link} className="outOfAppLink">
+                          <span className="en">{attribution.english}</span>
+                          <span className="he">{attribution.hebrew}</span>
+                        </a>;
+    var unlinkedContent = <span>
+                            <span className="en">{attribution.english}</span>
+                            <span className="he">{attribution.hebrew}</span>
+                          </span>
+    return <div className="categoryAttribution">
+            {this.props.linked ? linkedContent : unlinkedContent}
+           </div>;
   }
 }
 CategoryAttribution.propTypes = {
-  categories: PropTypes.array.isRequired
+  categories: PropTypes.array.isRequired,
+  linked:     PropTypes.bool,
 };
+CategoryAttribution.defaultProps = {
+  linked:     true,
+}
 
 
 class SheetTagLink extends Component {
@@ -588,6 +652,7 @@ var backToS1 = function() {
   window.location = "/";
 };
 
+
 module.exports.backToS1                                  = backToS1;
 module.exports.BlockLink                                 = BlockLink;
 module.exports.CategoryColorLine                         = CategoryColorLine;
@@ -596,6 +661,7 @@ module.exports.Dropdown                                  = Dropdown;
 module.exports.GlobalWarningMessage                      = GlobalWarningMessage;
 module.exports.InterruptingMessage                       = InterruptingMessage;
 module.exports.LanguageToggleButton                      = LanguageToggleButton;
+module.exports.Link                                      = Link;
 module.exports.LoadingMessage                            = LoadingMessage;
 module.exports.LoginPrompt                               = LoginPrompt;
 module.exports.Note                                      = Note;

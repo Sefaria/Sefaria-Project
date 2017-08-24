@@ -61,6 +61,8 @@ before_script:
   - python manage.py createsuperuser --email $SEFARIA_SUPERUSER  --noinput
 
   # run the django server, redirecting output to log files
+  - python scripts/derive_category_objects.py # # # # #  Delete me when categories are in db  # # # # #
+  - python scripts/run_base_text_links.py     # # # # #  Delete me when links are on production # # # # 
   - python manage.py runserver --insecure 2> server.error.log > server.log &
   - python scripts/setup_travis_users.py
 

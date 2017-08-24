@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import io
 import os
 import zipfile
@@ -43,6 +44,7 @@ from sefaria.system.exceptions import InputError
 from sefaria.system.database import db
 from sefaria.system.decorators import catch_error_as_http
 from sefaria.utils.hebrew import is_hebrew, strip_nikkud
+from sefaria.utils.util import strip_tags
 from sefaria.helper.text import make_versions_csv, get_library_stats, get_core_link_stats, dual_text_diff
 from sefaria.clean import remove_old_counts
 from sefaria.model import *
@@ -235,7 +237,8 @@ def title_regex_api(request, titles):
                 re_string = model.library.get_regex_string(title, lang, anchored=False, for_js=True)
                 res[title] = re_string
             except (AttributeError, AssertionError) as e:
-                logger.warning(u"Library._build_ref_from_string() failed to create regex for: {}.  {}".format(title, e))
+                # There are normal errors here, when a title matches a schema node, the chatter fills up the logs.
+                # logger.warning(u"Library._build_ref_from_string() failed to create regex for: {}.  {}".format(title, e))
                 errors.append(u"{} : {}".format(title, e))
         if len(errors):
             res["error"] = errors
@@ -270,8 +273,9 @@ def bulktext_api(request, refs):
                     'url': oref.url()
                 }
             except (InputError, ValueError, AttributeError) as e:
-                referer = request.META.get("HTTP_REFERER", "unknown page")
-                logger.warning(u"Linker failed to parse {} from {} : {}".format(tref, referer, e))
+                # referer = request.META.get("HTTP_REFERER", "unknown page")
+                # This chatter fills up the logs.  todo: put in it's own file
+                # logger.warning(u"Linker failed to parse {} from {} : {}".format(tref, referer, e))
                 res[tref] = {"error": 1}
         resp = jsonResponse(res, cb)
         resp['Access-Control-Allow-Origin'] = '*'
@@ -566,6 +570,20 @@ def sheet_stats(request):
 
 
 @staff_member_required
+def untagged_sheets(request):
+    html = ""
+    page = int(request.GET.get("page", 0))
+    page_size = 100
+    sheets = db.sheets.find({"status": "public", "tags": []}, {"id": 1, "title": 1}).limit(page_size).skip(page_size*page)
+
+    for sheet in sheets:
+        html += "<li><a href='/sheets/%d' target='_blank'>%s</a></li>" % (sheet["id"], strip_tags(sheet["title"]))
+    html += u"<br><a href='/admin/untagged-sheets?page=%d'>More ›</a>" % (page + 1)
+
+    return HttpResponse("<html><h1>Untagged Public Sheets</h1><ul>" + html + "</ul></html>")
+
+
+@staff_member_required
 def versions_csv(request):
     return HttpResponse(make_versions_csv(), content_type="text/csv")
 
@@ -585,8 +603,6 @@ def run_tests(request):
     if not DEBUG:
         return
     call(["/var/bin/run_tests.sh"])
-
-
 
 
 @catch_error_as_http

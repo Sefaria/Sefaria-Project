@@ -56,7 +56,10 @@
 
 <div id="link"></div>
 <div id="error"></div>
-<a href="/sheets/{{sheet.id}}" id="textTocLink">&laquo; Back to Sheet</a>
+<a href="/sheets/{{sheet.id}}" id="textTocLink">
+    <span class="int-en">&laquo; Back to Sheet</span>
+    <span class="int-he">&laquo; בחזרה לדף המקורות </span>
+</a>
 <div id="controls">
 	<div id="buttonBox">
 		<span id="zoomOut" class="zoomButton"><span class="fa fa-search-minus"></span></span>
@@ -110,15 +113,8 @@
 <script src="/static/ckeditor/ckeditor.js"></script>
 <script src="/static/ckeditor/adapters/jquery.js"></script>
 {% endif %}
-<script src="/static/js/s1/sheets-visual.js"></script>
+<script src="/static/js/sheets-visual.js"></script>
 
-    <script>
-    var backToS1 = function() {
-      $.cookie("s2", "", {path: "/"});
-      window.location = "/";
-    }
-    $("#backToOldSefaria").click(backToS1);
-    </script>
 {% endblock %}
 
 </body>

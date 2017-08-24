@@ -1318,7 +1318,7 @@ class ReaderApp extends Component {
           onClose={this.rerender} />) : null;
     var classDict = {readerApp: 1, multiPanel: this.props.multiPanel, singlePanel: !this.props.multiPanel};
     var interfaceLangClass = `interface-${this.props.interfaceLang}`;
-    classDict[interfaceLangClass] = true
+    classDict[interfaceLangClass] = true;
     var classes = classNames(classDict);
     return (<div className={classes}>
               {header}
@@ -6984,7 +6984,7 @@ class ConnectionsPanelHeader extends Component {
       // Top Level Menu
       var title = <div className="connectionsHeaderTitle">
                     {this.props.interfaceLang == "english" ? <div className="int-en">Resources</div> : null }
-                    {this.props.interfaceLang == "hebrew" ? <div className="int-he">קישורים וכלים</div> : null }
+                    {this.props.interfaceLang == "hebrew" ? <div className="int-he">עזרים</div> : null }
                   </div>;
     } else if (this.props.previousCategory && this.props.connectionsMode == "TextList") {
       // In a text list, back to Previous Categoy
@@ -7008,7 +7008,7 @@ class ConnectionsPanelHeader extends Component {
       }.bind(this);
       var title = <a href={url} className="connectionsHeaderTitle active" onClick={onClick}>
                     {this.props.interfaceLang == "english" ? <div className="int-en"><i className="fa fa-chevron-left"></i>Resources</div> : null }
-                    {this.props.interfaceLang == "hebrew" ? <div className="int-he"><i className="fa fa-chevron-right"></i>משאבים</div> : null }
+                    {this.props.interfaceLang == "hebrew" ? <div className="int-he"><i className="fa fa-chevron-right"></i>עזרים</div> : null }
                   </a>;        
     }
     if (this.props.multiPanel) {

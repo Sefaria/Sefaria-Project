@@ -131,7 +131,7 @@ class Test_Titles(object):
         assert td == target
 
     def test_bad_term(self):
-        with pytest.raises(IndexSchemaError):
+        with pytest.raises(IndexError):
             j = JaggedArrayNode()
             j.add_shared_term("BadTermName")
 

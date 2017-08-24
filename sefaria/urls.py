@@ -37,7 +37,8 @@ urlpatterns = patterns('reader.views',
     (r'^api/counts/(?P<title>.+)$', 'counts_api'),
     (r'^api/preview/(?P<title>.+)$', 'text_preview_api'),
     (r'^api/terms/(?P<name>.+)$', 'terms_api'),
-    (r'^api/name/(?P<name>.+)$', 'name_api')
+    (r'^api/name/(?P<name>.+)$', 'name_api'),
+    (r'^api/category/?(?P<path>.+)?$', 'category_api')
 )
 
 # Reviews API
@@ -379,6 +380,7 @@ urlpatterns += patterns('',
     (r'^admin/contest-results', 'sefaria.views.list_contest_results'),
     (r'^admin/translation-requests-stats', 'sefaria.views.translation_requests_stats'),
     (r'^admin/sheet-stats', 'sefaria.views.sheet_stats'),
+    (r'^admin/untagged-sheets', 'sefaria.views.untagged_sheets'),
     (r'^admin/versions-csv', 'sefaria.views.versions_csv'),
     (r'^admin/?', include(admin.site.urls)),
     #(r'^admin/view/template_cache/(?P<title>.+)$', 'sefaria.views.view_cached_elem'),
