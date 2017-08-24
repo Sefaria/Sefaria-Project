@@ -899,3 +899,47 @@ def migrate_versions_of_text(versions, mappings, orig_title, new_title, base_ind
             new_tc.text = ref_text
             new_tc.save()
             VersionState(dRef.index.title).refresh()
+
+
+def toc_opml():
+    """Prints a simple representation of the TOC in OPML"""
+    toc  = library.get_toc()
+
+    def opml_node(node):
+        if "category" in node:
+            opml = '<outline text="%s">\n' % node["category"]
+            for node in node["contents"]:
+                opml += "    " + opml_node(node) + "\n"
+            opml += '</outline>'
+        else:
+            opml = '<outline text="%s"></outline>\n' % node["title"]
+        return opml
+
+    opml = """
+            <?xml version="1.0"?>
+            <opml version="2.0">
+              <body>
+              %s
+              </body>
+            </opml>
+            """ % "\n".join([opml_node(node) for node in toc])
+
+    print opml
+
+
+def toc_plaintext():
+    """Prints a simple representation of the TOC in indented plaintext"""
+    toc  = library.get_toc()
+
+    def text_node(node, depth):
+        if "category" in node:
+            text = ("    " * depth) + node["category"] + "\n"
+            for node in node["contents"]:
+                text += text_node(node, depth+1)
+        else:
+            text = ("    " * depth) + node["title"] + "\n"
+        return text
+
+    text = "".join([text_node(node, 0) for node in toc])
+
+    print text
