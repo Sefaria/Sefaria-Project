@@ -23,7 +23,6 @@ env:
 before_install:
   - sudo apt-get -qq update
   - sudo apt-get install libwww-perl
-  - sudo apt-get install gettext
 
 # command to install dependencies
 install:
