@@ -2934,20 +2934,24 @@ a.readerNavCategory {
 .textList .sheet,
 .textList .note {
   padding: 0 0 24px 0;
+  display: flex;
+  flex-flow: column;
 }
 .textList .sheet + .sheet {
   padding: 24px 0;
   border-top: 1px solid #E6E5E6;
+}
+.textList .sheet .sheetInfo{
+  display: flex;
+  justify-content: space-between;
 }
 .textList .sheet .sheetAuthorImg,
 .textList .note .noteAuthorImg {
   height: 26px;
   width: 26px;
   vertical-align: -8px;
-  margin-right: 14px;
 }
 .textList .sheet .sheetViews {
-  float: right;
   color: #999;
   font-size: 12px;
 }
@@ -2956,9 +2960,11 @@ a.readerNavCategory {
   color: #999;
   font-size: 15px;
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  margin: auto 14px;
 }
 .textList .sheet .sheetTitle {
-  display: block;
+  display: flex;
+  justify-content: flex-start;
   margin-top: 14px;
   font-size: 17px;
   font-style: italic;
@@ -2969,19 +2975,23 @@ a.readerNavCategory {
   width: 14px;
   height: 14px;
   opacity: 0.4;
-  margin-right: 6px;
   vertical-align: -1px;
 }
+.textList .sheet .sheetTitle .sheetTitleText{
+  margin: auto 6px;
+}
 .textList .sheet .sheetTags {
+  display: flex;
+  flex-flow: row wrap;
   margin-top: 6px;
   font-size: 13px;
   color: #666;
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
   text-align: left;
 }
-.interface-hebrew .textList .sheet .sheetTags {
+/*.interface-hebrew .textList .sheet .sheetTags {
   text-align: right;
-}
+}*/
 .textList .sheet .sheetTag {
   color: inherit;
   display: inline-block;
