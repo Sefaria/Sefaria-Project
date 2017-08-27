@@ -4496,7 +4496,6 @@ class Library(object):
         }
         return Ref(_obj=_obj)
 
-    #todo: handle ranges in inline refs
     def _build_ref_from_string(self, title=None, st=None, lang="en"):
         """
         Build a Ref object given a title and a string.  The title is assumed to be at position 0 in the string.
@@ -4507,7 +4506,6 @@ class Library(object):
         """
         return self._internal_ref_from_string(title, st, lang, stIsAnchored=True)
 
-    #todo: handle ranges in inline refs
     def _build_all_refs_from_string(self, title=None, st=None, lang="he"):
         """
         Build all Ref objects for title found in string.  By default, only match what is found between braces (as in Hebrew).
