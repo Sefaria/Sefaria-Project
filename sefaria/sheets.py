@@ -7,6 +7,7 @@ import regex
 import dateutil.parser
 from datetime import datetime, timedelta
 from bson.son import SON
+from collections import defaultdict
 
 import sefaria.model as model
 import sefaria.model.abstract as abstract
