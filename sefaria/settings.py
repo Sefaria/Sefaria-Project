@@ -15,14 +15,14 @@ relative_to_abs_path = lambda *x: os.path.join(os.path.dirname(
 # system time zone.
 TIME_ZONE = 'America/Vancouver'
 
+LANGUAGES = [
+  ('en', 'English'),
+  ('he', 'Hebrew'),
+]
+
 # Language code for this installation. All choices can be found here:
 # http://www.i18nguy.com/unicode/language-identifiers.html
 LANGUAGE_CODE = 'en'
-
-LANGUAGES = [
-  ('en', _('English')),
-  ('he', _('Hebrew')),
-]
 
 SITE_ID = 1
 
