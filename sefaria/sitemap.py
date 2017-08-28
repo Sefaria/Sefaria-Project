@@ -3,7 +3,7 @@ sitemap.py - generate sitemaps of all available texts for search engines.
 
 Outputs sitemaps and sitemapindex to the first entry of STATICFILES_DIRS.
 """
-import os
+import os, errno
 from datetime import datetime
 
 from sefaria.model import *
@@ -54,6 +54,11 @@ class SefariaSiteMapGenerator(object):
         if hostSuffix in SefariaSiteMapGenerator.hostnames:
             self._interfaceLang = SefariaSiteMapGenerator.hostnames.get(hostSuffix).get("interfaceLang")
             self._hostname = SefariaSiteMapGenerator.hostnames.get(hostSuffix).get("hostname")
+            try:
+                os.makedirs(STATICFILES_DIRS[0] + "sitemaps/" + self._interfaceLang)
+            except OSError:
+                if not os.path.isdir(path):
+                    raise
         else:
             raise KeyError("Illegal hostname for SiteMapGenerator")
 
