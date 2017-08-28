@@ -1,5 +1,5 @@
 from sefaria.sitemap import SefariaSiteMapGenerator
 
 
-SefariaSiteMapGenerator('en').generate_sitemaps()
-SefariaSiteMapGenerator('he').generate_sitemaps()
+SefariaSiteMapGenerator('org').generate_sitemaps()
+SefariaSiteMapGenerator('org.il').generate_sitemaps()

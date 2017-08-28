@@ -23,8 +23,8 @@ def chunks(l, n):
 class SefariaSiteMapGenerator(object):
 
     hostnames = {
-        'en': 'https://www.sefaria.org',
-        'he': 'https://www.sefaria.org.il'
+        'org': {'interfaceLang': 'en', 'hostname':'https://www.sefaria.org'},
+        'org.il': {'interfaceLang': 'he', 'hostname':'https://www.sefaria.org.il'},
     }
 
     static_urls = [
@@ -51,12 +51,12 @@ class SefariaSiteMapGenerator(object):
     ]
 
 
-    def __init__(self, interfaceLang='en'):
-        self._interfaceLang = interfaceLang
-        self._hostname = self.get_hostname_by_lang(self._interfaceLang)
-
-    def get_hostname_by_lang(self, interfaceLang):
-        return self.hostnames[interfaceLang]
+    def __init__(self, hostSuffix='org'):
+        if hostSuffix in SefariaSiteMapGenerator.hostnames:
+            self._interfaceLang = SefariaSiteMapGenerator.hostnames.get(hostSuffix).get("interfaceLang")
+            self._hostname = SefariaSiteMapGenerator.hostnames.get(hostSuffix).get("hostname")
+        else:
+            raise KeyError("Illegal hostname for SiteMapGenerator")
 
     def generate_texts_sitemaps(self):
         """
@@ -138,10 +138,10 @@ class SefariaSiteMapGenerator(object):
         for m in sitemaps:
             xml += """
                <sitemap>
-                  <loc>%s/static/sitemaps/%s</loc>
+                  <loc>%s/static/sitemaps/%s/%s</loc>
                   <lastmod>%s</lastmod>
                </sitemap>
-               """ % (self._hostname, m, now)
+               """ % (self._hostname, self._interfaceLang, m, now)
 
         sitemapindex = """<?xml version="1.0" encoding="UTF-8"?>
             <sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
@@ -149,7 +149,7 @@ class SefariaSiteMapGenerator(object):
             </sitemapindex>
             """ % xml
 
-        out = STATICFILES_DIRS[0] +  "sitemaps/" + self._interfaceLang + "/sitemapindex.xml"
+        out = STATICFILES_DIRS[0] + "sitemaps/" + self._interfaceLang + "/sitemapindex.xml"
         f = open(out, 'w')
         f.write(sitemapindex)
         f.close()
