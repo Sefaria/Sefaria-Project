@@ -795,10 +795,13 @@ def user_sheet_list_api(request, user_id):
 	return jsonResponse(user_sheets(user_id), callback=request.GET.get("callback", None))
 
 
-def user_sheet_list_api_with_sort(request, user_id, sort_by="date"):
+def user_sheet_list_api_with_sort(request, user_id, sort_by="date", limiter=0, offset=0):
+	limiter  = int(limiter)
+	offset   = int(offset)
+
 	if int(user_id) != request.user.id:
 		return jsonResponse({"error": "You are not authorized to view that."})
-	return jsonResponse(user_sheets(user_id, sort_by), callback=request.GET.get("callback", None))
+	return jsonResponse(user_sheets(user_id, sort_by, limit=limiter, skip=offset), callback=request.GET.get("callback", None))
 
 
 def private_sheet_list_api(request, group):
