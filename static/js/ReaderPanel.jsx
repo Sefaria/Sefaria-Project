@@ -119,7 +119,7 @@ class ReaderPanel extends Component {
     if (prevProps.layoutWidth !== this.props.layoutWidth) {
       this.setWidth();
     }
-    if ($('*:focus').length == 0) {
+    if ($('*:focus').length == 0 && this.props.multiPanel) {
         var curPanel = $(".readerPanel")[($(".readerPanel").length)-1];
         $(curPanel).find(':focusable').first().focus();
     }
@@ -736,7 +736,6 @@ ReaderPanel.propTypes = {
   setCentralState:             PropTypes.func,
   onSegmentClick:              PropTypes.func,
   onCitationClick:             PropTypes.func,
-  onTextListClick:             PropTypes.func,
   onNavTextClick:              PropTypes.func,
   onRecentClick:               PropTypes.func,
   onSearchResultClick:         PropTypes.func,

@@ -24,6 +24,10 @@ var Sefaria = Sefaria || {
   recentlyViewed: []
 };
 
+if (typeof window !== 'undefined') {
+    window.Sefaria = Sefaria; // allow access to `Sefaria` from console
+}
+
 Sefaria = extend(Sefaria, {
   _parseRef: {}, // cache for results of local ref parsing
   parseRef: function(q) {
@@ -219,7 +223,7 @@ Sefaria = extend(Sefaria, {
       pad:        settings.pad        || 0,
       version:    settings.version    || null,
       language:   settings.language   || null,
-      wrapLinks:  settings.wrapLinks  || 1
+      wrapLinks:  ("wrapLinks" in settings) ? settings.wrapLinks : 1
     };
     var key = this._textKey(ref, settings);
     if (!cb) {
@@ -242,7 +246,8 @@ Sefaria = extend(Sefaria, {
       pad:        settings.pad        || 0,
       version:    settings.version    || null,
       language:   settings.language   || null,
-      wrapLinks:  settings.wrapLinks  || 1
+      //wrapLinks:  settings.wrapLinks  || 1
+      wrapLinks: ("wrapLinks" in settings) ? settings.wrapLinks : 1
     };
     return this._api(this._textUrl(ref, settings), function(data) {
       this._saveText(data, settings);
@@ -250,6 +255,15 @@ Sefaria = extend(Sefaria, {
       //console.log("API return for " + data.ref)
     }.bind(this));
   },
+  /*
+  refreshSegmentCache: function(ref, versionTitle, language) {
+     // versionTitle and language are optional
+     all_5bit_binary_strings = [...Array(32).keys()].map(n => ((pad + (n).toString(2)).slice(-5)))
+      this.textApi(ref, settings, function() {})
+        .always(function() {this.textApi(ref, settings, function() {})}.bind(this))
+        .always()
+  },
+  */
   _versions: {},
   versions: function(ref, cb) {
     // Returns a list of available text versions for `ref`.
@@ -437,7 +451,9 @@ Sefaria = extend(Sefaria, {
     for (var i = 0; i < toc.length; i++) {
       if ("category" in toc[i]) {
         Sefaria._translateTerms[toc[i].category] = {"en": toc[i].category, "he": toc[i].heCategory};
-        Sefaria._cacheIndexFromToc(toc[i].contents)
+        if (toc[i].contents) {
+            Sefaria._cacheIndexFromToc(toc[i].contents)
+        }
       } else {
         Sefaria.index(toc[i].title, toc[i]);
       }
@@ -474,6 +490,30 @@ Sefaria = extend(Sefaria, {
           callback(data.title);
         });
     }
+  },
+  postSegment: function(ref, versionTitle, language, text, success, error) {
+    if (!versionTitle || !language) { return; }
+    this.lookupRef(ref, function(data) {
+        if (!data.is_segment) { return; }
+        var d = {json: JSON.stringify({
+            versionTitle: versionTitle,
+            language: language,
+            text: text
+          })};
+        $.ajax({
+          dataType: "json",
+          url: "/api/texts/" + data.url,
+          data: d,
+          type: "POST",
+          // Clear cache with a sledgehammer.  May need more subtlety down the road.
+          success: function(d) {
+              this._texts = {};
+              this._refmap = {};
+              success(d);
+            }.bind(this),
+          error: error
+        }, error);
+    }.bind(this));
   },
   ref: function(ref, callback) {
     // Returns parsed ref info for string `ref` from cache, or async from API if `callback` is present
@@ -1220,7 +1260,7 @@ Sefaria = extend(Sefaria, {
                     results.push(curTocElem);
                 }
             }
-        } else { //this is still a category and might have books under it
+        } else if (curTocElem.contents) { //this is still a category and might have books under it
           results = results.concat(Sefaria.commentaryList(title, curTocElem.contents));
         }
     }
@@ -1240,7 +1280,7 @@ Sefaria = extend(Sefaria, {
       }
       if (!found) { return []; }
     }
-    return list;
+    return list || [];
   },
   categoryAttribution: function(categories) {
     var attributions = [
@@ -1377,17 +1417,19 @@ Sefaria = extend(Sefaria, {
       return sheets;
     },
     _userSheets: {},
-    userSheets: function(uid, callback, sortBy) {
+    userSheets: function(uid, callback, sortBy, offset, numberToRetrieve) {
       // Returns a list of source sheets belonging to `uid`
       // Only a user logged in as `uid` will get data back from this API call.
+      if (!offset) offset = 0;
+      if (!numberToRetrieve) numberToRetrieve = 0;
       sortBy = typeof sortBy == "undefined" ? "date" : sortBy;
-      var sheets = this._userSheets[uid+sortBy];
+      var sheets = this._userSheets[uid+sortBy+offset+numberToRetrieve];
       if (sheets) {
         if (callback) { callback(sheets); }
       } else {
-        var url = "/api/sheets/user/" + uid + "/" + sortBy;
+        var url = "/api/sheets/user/" + uid + "/" + sortBy + "/" + numberToRetrieve + "/" + offset;
          Sefaria._api(url, function(data) {
-            this._userSheets[uid+sortBy] = data.sheets;
+            this._userSheets[uid+sortBy+offset+numberToRetrieve] = data.sheets;
             if (callback) { callback(data.sheets); }
           }.bind(this));
         }
@@ -1694,9 +1736,5 @@ Sefaria.setup = function(data) {
     Sefaria.search = new Search(Sefaria.searchBaseUrl, Sefaria.searchIndex)
 };
 Sefaria.setup();
-
-if (typeof window !== 'undefined') {
-    window.Sefaria = Sefaria; // allow access to `Sefaria` from console
-}
 
 module.exports = Sefaria;

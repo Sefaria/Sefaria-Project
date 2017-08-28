@@ -389,7 +389,8 @@ class StateNode(object):
          'content._he.textComplete': 1,
          'flags': 1,
          'linksCount': 1,
-         'title': 1}
+         'title': 1,
+         'first_section_ref': 1}
     #todo: self.snode could be a SchemaNode, but get_available_counts_dict() assumes JaggedArrayNode
     def __init__(self, title=None, snode=None, _obj=None, meta=False, hint=None):
         """

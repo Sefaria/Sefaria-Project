@@ -105,6 +105,7 @@ class SearchBar extends Component {
     }
     handleKeypress(event) {
         if (event.charCode == 13) {
+            
             this.updateQuery();
             // Blur search input to close keyboard
             $(ReactDOM.findDOMNode(this)).find(".readerSearch").blur();
@@ -122,7 +123,14 @@ class SearchBar extends Component {
         return (
             <div>
                 <div className="searchBox">
-                    <input className="readerSearch" id="searchInput" title="Search for Texts or Keywords Here" value={this.state.query} onKeyPress={this.handleKeypress} onChange={this.handleChange} placeholder="Search"/>
+                    <input 
+                      className="readerSearch"
+                        id="searchInput"
+                        title="Search for Texts or Keywords Here"
+                        value={this.state.query}
+                        onKeyPress={this.handleKeypress} 
+                        onChange={this.handleChange} 
+                        placeholder="Search"/>
                     <ReaderNavigationMenuSearchButton onClick={this.updateQuery} />
                 </div>
                 <div className="description"></div>

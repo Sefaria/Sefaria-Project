@@ -116,4 +116,13 @@ var serverConfig = config({
         new BundleTracker({filename: './webpack-stats.server.json'})
     ]
 });
-module.exports = [clientConfig, serverConfig];
+
+var diffConfig = config({
+    context: path.resolve(__dirname, 'static/js'),
+    entry: './diff_page',
+    output: {
+        path: path.join(__dirname, buildDir + 'diffPage'),
+        filename: 'diffPage.js'
+    }
+});
+module.exports = [clientConfig, serverConfig, diffConfig];

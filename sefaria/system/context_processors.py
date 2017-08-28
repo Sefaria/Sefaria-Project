@@ -13,7 +13,7 @@ from sefaria.model import library
 from sefaria.model.user_profile import UserProfile
 from sefaria.utils import calendars
 from sefaria.utils.util import short_to_long_lang_code
-from sefaria.utils.hebrew import hebrew_parasha_name, get_simple_term_mapping
+from sefaria.utils.hebrew import hebrew_parasha_name
 from reader.views import render_react_component
 
 import logging
@@ -44,7 +44,7 @@ def toc(request):
 
 
 def terms(request):
-    return {"terms_json": json.dumps(get_simple_term_mapping())}
+    return {"terms_json": json.dumps(library.get_simple_term_mapping())}
 
 
 def embed_page(request):

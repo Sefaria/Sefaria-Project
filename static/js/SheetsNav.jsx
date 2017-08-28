@@ -412,18 +412,50 @@ class MySheetsPage extends Component {
     super(props);
 
     this.state = {
+      page: 1,
       showYourSheetTags: false,
-      sheetFilterTag: null
+      sheetFilterTag: null,
+      curSheets: [],
     };
   }
   componentDidMount() {
+    $(ReactDOM.findDOMNode(this)).bind("scroll", this.handleScroll);
     this.ensureData();
   }
-  getSheetsFromCache() {
-    return  Sefaria.sheets.userSheets(Sefaria._uid, null, this.props.mySheetSort);
+  handleScroll() {
+    if (this.state.loadedToEnd || this.state.loading) { return; }
+    var $scrollable = $(ReactDOM.findDOMNode(this));
+    var margin = 100;
+    if($scrollable.scrollTop() + $scrollable.innerHeight() + margin >= $scrollable[0].scrollHeight) {
+      this.getMoreSheets();
+    }
   }
-  getSheetsFromAPI() {
-     Sefaria.sheets.userSheets(Sefaria._uid, this.onDataLoad, this.props.mySheetSort);
+  getMoreSheets() {
+    if (this.state.page == 1) {
+      Sefaria.sheets.userSheets(Sefaria._uid, this.loadMoreSheets, this.props.mySheetSort,0,100);
+    }
+    else {
+      Sefaria.sheets.userSheets(Sefaria._uid, this.loadMoreSheets, this.props.mySheetSort, ((this.state.page)*50),50);
+    }
+    this.setState({loading: true});
+  }
+  loadMoreSheets(data) {
+    this.setState({page: this.state.page + 1});
+    this.createSheetList(data)
+  }
+  createSheetList(newSheets) {
+      if (newSheets) {
+        this.setState({curSheets: this.state.curSheets.concat(newSheets), loading: false});
+      }
+  }
+  getSheetsFromCache(offset) {
+    if (!offset) offset=0;
+    return  Sefaria.sheets.userSheets(Sefaria._uid, null, this.props.mySheetSort, offset, 50);
+  }
+  getSheetsFromAPI(offset) {
+    if (!offset) offset=0;
+    Sefaria.sheets.userSheets(Sefaria._uid, this.onDataLoad, this.props.mySheetSort, offset, 50);
+
   }
   getTagsFromCache() {
     return Sefaria.sheets.userTagList(Sefaria._uid)
@@ -450,10 +482,19 @@ class MySheetsPage extends Component {
   }
   changeSortYourSheets(event) {
     this.props.setMySheetSort(event.target.value);
-    Sefaria.sheets.userSheets(Sefaria._uid, this.onDataLoad, event.target.value);
+    this.state = {
+      page: 1,
+      curSheets: []
+    }
+    Sefaria.sheets.userSheets(Sefaria._uid, this.loadMoreSheets, event.target.value,0,100);
   }
   render() {
-    var sheets = this.getSheetsFromCache();
+    if (this.state.page == 1) {
+      var sheets = this.getSheetsFromCache();
+    }
+    else {
+      var sheets = this.state.curSheets;
+    }
     sheets = sheets && this.state.sheetFilterTag ? sheets.filter(function(sheet) {
       return Sefaria.util.inArray(this.state.sheetFilterTag, sheet.tags) >= 0;
     }.bind(this)) : sheets;

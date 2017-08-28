@@ -37,7 +37,8 @@ urlpatterns = patterns('reader.views',
     (r'^api/counts/(?P<title>.+)$', 'counts_api'),
     (r'^api/preview/(?P<title>.+)$', 'text_preview_api'),
     (r'^api/terms/(?P<name>.+)$', 'terms_api'),
-    (r'^api/name/(?P<name>.+)$', 'name_api')
+    (r'^api/name/(?P<name>.+)$', 'name_api'),
+    (r'^api/category/?(?P<path>.+)?$', 'category_api')
 )
 
 # Reviews API
@@ -151,7 +152,7 @@ urlpatterns += patterns('sheets.views',
     (r'^api/sheets/(?P<sheet_id>\d+)/unlike$',                     'unlike_sheet_api'),
     (r'^api/sheets/(?P<sheet_id>\d+)/likers$',                     'sheet_likers_api'),
     (r'^api/sheets/user/(?P<user_id>\d+)$',                        'user_sheet_list_api'),
-    (r'^api/sheets/user/(?P<user_id>\d+)/(?P<sort_by>\w+)$',       'user_sheet_list_api_with_sort'),
+    (r'^api/sheets/user/(?P<user_id>\d+)/(?P<sort_by>\w+)/(?P<limiter>\d+)/(?P<offset>\d+)$',       'user_sheet_list_api_with_sort'),
     (r'^api/sheets/modified/(?P<sheet_id>\d+)/(?P<timestamp>.+)$', 'check_sheet_modified_api'),
     (r'^api/sheets/create/(?P<ref>[^/]+)(/(?P<sources>.+))?$',     'make_sheet_from_text_api'),
     (r'^api/sheets/tag/(?P<tag>[^/]+)?$',                          'sheets_by_tag_api'),
@@ -244,7 +245,7 @@ urlpatterns += patterns('',
 
 # Compare Page
 urlpatterns += patterns('sefaria.views',
-    url(r'^compare/(?P<ref1>[^/]+)/(?P<ref2>[^/]+)/(?P<lang>en|he)/?(?P<v1>[^/]+)?/?(?P<v2>[^/]+)?$', 'compare')
+    url(r'^compare/?((?P<secRef>[^/]+)/)?((?P<lang>en|he)/)?((?P<v1>[^/]+)/)?(?P<v2>[^/]+)?$', 'compare')
 )
 
 static_pages = [

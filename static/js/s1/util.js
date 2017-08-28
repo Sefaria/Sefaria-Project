@@ -1319,7 +1319,7 @@ sjs.sheetTagger = {
 	},
 	show: function() {
 		$("#tagsModal").show().position({of: window});
-		$("#tags").focus();
+		$("#tags input").focus();
 		$("#overlay").show();		
 	},
 	hide: function() {

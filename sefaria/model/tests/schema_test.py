@@ -6,6 +6,7 @@ import re
 from sefaria.system.exceptions import InputError
 
 
+
 def setup_module(module):
     global root
     root = SchemaNode()

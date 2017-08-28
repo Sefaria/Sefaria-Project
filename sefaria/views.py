@@ -88,8 +88,8 @@ def register(request):
         else:
             form = NewUserForm()
 
-    return render_to_response("registration/register.html", 
-                                {'form' : form, 'next': next}, 
+    return render_to_response("registration/register.html",
+                                {'form' : form, 'next': next},
                                 RequestContext(request))
 
 
@@ -178,9 +178,9 @@ def maintenance_message(request):
 
 
 def accounts(request):
-    return render_to_response("registration/accounts.html", 
+    return render_to_response("registration/accounts.html",
                                 {"createForm": UserCreationForm(),
-                                "loginForm": AuthenticationForm() }, 
+                                "loginForm": AuthenticationForm() },
                                 RequestContext(request))
 
 
@@ -201,7 +201,7 @@ def data_js(request):
     """
     Javascript populating dynamic data like book lists, toc.
     """
-    return render_to_response("js/data.js", {}, RequestContext(request), mimetype= "text/javascript")    
+    return render_to_response("js/data.js", {}, RequestContext(request), mimetype= "text/javascript")
 
 
 def sefaria_js(request):
@@ -210,7 +210,7 @@ def sefaria_js(request):
     """
     # TODO
     attrs = {}
-    return render_to_response("js/sefaria.js", attrs, RequestContext(request), mimetype= "text/javascript")    
+    return render_to_response("js/sefaria.js", attrs, RequestContext(request), mimetype= "text/javascript")
 
 
 def linker_js(request):
@@ -296,7 +296,7 @@ def file_upload(request, resize_image=True):
         name, extension = os.path.splitext(uploaded_file.name)
         with NamedTemporaryFile(suffix=extension) as temp_uploaded_file:
             temp_uploaded_file.write(uploaded_file.read())
-            
+
             with NamedTemporaryFile(suffix=extension) as temp_resized_file:
                 image = Image.open(temp_uploaded_file)
                 if resize_image:
@@ -308,7 +308,7 @@ def file_upload(request, resize_image=True):
                 try:
                     url = hosted_file.upload()
                     return jsonResponse({"status": "success", "url": url})
-                except: 
+                except:
                     return jsonResponse({"error": "There was an error uploading your file."})
     else:
         return jsonResponse({"error": "Unsupported HTTP method."})
@@ -446,7 +446,7 @@ def cache_stats(request):
     import resource
     from sefaria.utils.util import get_size
     from sefaria.model.user_profile import public_user_data_cache
-    from sefaria.sheets import last_updated 
+    from sefaria.sheets import last_updated
     resp = {
         'ref_cache_size': model.Ref.cache_size(),
         # 'ref_cache_bytes': model.Ref.cache_size_bytes(), # This pretty expensive, not sure if it should run on prod.
@@ -499,7 +499,7 @@ def list_contest_results(request):
     today            = datetime.today()
     end_month        = today.month if today.day >= 28 else today.month - 1
     end_month        = 12 if end_month == 0 else end_month
-    contest_end      = today.replace(month=end_month, day=28, hour=0, minute=0) 
+    contest_end      = today.replace(month=end_month, day=28, hour=0, minute=0)
     start_month      = end_month - 1 if end_month > 1 else 12
     contest_start    = contest_end.replace(month=start_month)
     requests_query   = {"completed": True, "featured": True, "completed_date": { "$gt": contest_start, "$lt": contest_end } }
@@ -732,37 +732,18 @@ def text_upload_api(request):
     return jsonResponse({"status": "ok", "message": message})
 
 
-def compare(request, ref1, ref2, lang, v1=None, v2=None):
-    strip_chars = request.GET.get('strip', True)
+def compare(request, secRef=None, lang=None, v1=None, v2=None):
+    if secRef and Ref.is_ref(secRef):
+        secRef = Ref(secRef).first_available_section_ref()
+        if not secRef.is_section_level():
+            secRef = secRef.section_ref()
+        secRef = secRef.normal()
+    if v1:
+        v1 = v1.replace(u"_", u" ")
+    if v2:
+        v2 = v2.replace(u"_", u" ")
 
-    def clean_text(t):
-        t = bleach.clean(t, strip=True, tags=[])
-        if strip_chars:
-            t = re.sub(u'\n', u'', t)
-            t = re.sub(u' {2,}', u' ', t)
-            t = strip_nikkud(t)
-        return t
-    seg_refs1, seg_refs2 = Ref(ref1).all_segment_refs(), Ref(ref2).all_segment_refs()
-    assert len(seg_refs1) == len(seg_refs2)
-
-    diffs = []
-
-    for r1, r2 in zip(seg_refs1, seg_refs2):
-        d1, d2 = dual_text_diff(r1.text(lang, v1).text, r2.text(lang, v2).text, clean_text, css_classes=True)
-        diffs.append({
-            'ref1': r1,
-            'ref2': r2,
-            'diff1': d1,
-            'diff2': d2,
-        })
-    if v1 is not None and v2 is not None:
-        title1, title2 = v1, v2
-    else:
-        title1, title2 = ref1, ref2
-
-    return render_to_response('compare.html', {
-        'diffs': diffs,
-        'title1': title1, 'title2': title2,
-        'dual_ref_display': ref1 != ref2,
-        'lang': lang
-    })
+    return render_to_response('compare.html', {"JSON_PROPS": json.dumps({
+        'secRef': secRef,
+        'v1': v1, 'v2': v2,
+        'lang': lang,})})
