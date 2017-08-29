@@ -47,6 +47,15 @@ $(window).on("beforeunload", function() {
 	}
 });
 
+//hide 
+$(window).scroll(function() {
+  var fixedBottom = $("#fileControls");
+  if ($('body').height() <= ($(window).height() + $(window).scrollTop())) {
+    fixedBottom.css("display", "none");
+  } else {
+    fixedBottom.css("display", "block");
+  }
+})
 var oldOnError = window.onerror || function(){};
 function errorWarning(errorMsg, url, lineNumber) {
 	if (sjs.can_edit || sjs.can_add) {
