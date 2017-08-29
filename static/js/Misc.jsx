@@ -6,6 +6,7 @@ const classNames = require('classnames');
 const PropTypes  = require('prop-types');
 import Component      from 'react-class';
 
+
 class Link extends Component {
   handleClick(e) {
     e.preventDefault();

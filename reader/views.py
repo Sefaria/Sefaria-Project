@@ -35,6 +35,7 @@ from sefaria.workflows import *
 from sefaria.reviews import *
 from sefaria.model.user_profile import user_link, user_started_text, unread_notifications_count_for_user
 from sefaria.model.group import GroupSet
+from sefaria.model.topic import topics
 from sefaria.client.wrapper import format_object_for_client, format_note_object_for_client, get_notes, get_links
 from sefaria.system.exceptions import InputError, PartialRefInputError, BookNameError, NoVersionFoundError, DuplicateRecordError
 # noinspection PyUnresolvedReferences
@@ -615,6 +616,64 @@ def s2_sheets_by_tag(request, tag):
         props["tagSheets"]    = [sheet_to_dict(s) for s in get_sheets_by_tag(tag)]
         title = tag + _(" | Sefaria")
         desc  = _('Public Source Sheets on tagged with "%(tag)s", drawing from Sefaria\'s library of Jewish texts.') % {'tag': tag}
+
+    propsJSON = json.dumps(props)
+    html = render_react_component("ReaderApp", propsJSON)
+    return render_to_response('s2.html', {
+        "propsJSON":      propsJSON,
+        "title":          title,
+        "desc":           desc,
+        "html":           html,
+    }, RequestContext(request))
+
+
+def s2_topics_page(request):
+    """
+    Page of sheets by tag.
+    Currently used to for "My Sheets" and  "All Sheets" as well.
+    """
+    props = s2_props(request)
+    props.update({
+        "initialMenu":  "topics",
+        "initialTopic": None,
+        "topicList": topics.list(sort_by="count"),
+    })
+
+    if props["interfaceLang"] == "hebrew":
+        title = u"Topics | Sefaria." # HEBREW NEEDED
+        desc  = u'Explore Jewish Texts by Topic on Sefaria.'
+    else:
+        title = u"Topics | Sefaria."
+        desc  = u'Explore Jewish Texts by Topic on Sefaria.'
+
+    propsJSON = json.dumps(props)
+    html = render_react_component("ReaderApp", propsJSON)
+    return render_to_response('s2.html', {
+        "propsJSON":      propsJSON,
+        "title":          title,
+        "desc":           desc,
+        "html":           html,
+    }, RequestContext(request))
+
+
+def s2_topic_page(request, topic):
+    """
+    Page of sheets by tag.
+    Currently used to for "My Sheets" and  "All Sheets" as well.
+    """
+    props = s2_props(request)
+    props.update({
+        "initialMenu":  "topics",
+        "initialTopic": topic,
+        "topicData": topics.get(topic).contents(),
+    })
+
+    if props["interfaceLang"] == "hebrew":
+        title = u"{} | Sefaria".format(topic) # HEBREW NEEDED
+        desc  = u'Explore "{}" on Sefaria, drawing from our library of Jewish texts.'.format(topic)
+    else:
+        title = u"{} | Sefaria".format(topic)
+        desc  = u'Explore "{}" on Sefaria, drawing from our library of Jewish texts.'.format(topic)
 
     propsJSON = json.dumps(props)
     html = render_react_component("ReaderApp", propsJSON)
@@ -2560,6 +2619,28 @@ def reviews_api(request, tref=None, lang=None, version=None, review_id=None):
 
     else:
         return jsonResponse({"error": "Unsupported HTTP method."})
+
+
+@catch_error_as_json
+def topics_list_api(request):
+    """
+    API to get data for a particular topic.
+    """
+    response = topics.list(sort_by="count")
+    response = jsonResponse(response, callback=request.GET.get("callback", None))
+    response["Cache-Control"] = "max-age=3600"
+    return response
+
+
+@catch_error_as_json
+def topics_api(request, topic):
+    """
+    API to get data for a particular topic.
+    """
+    response = topics.get(topic).contents()
+    response = jsonResponse(response, callback=request.GET.get("callback", None))
+    response["Cache-Control"] = "max-age=3600"
+    return response
 
 
 @ensure_csrf_cookie

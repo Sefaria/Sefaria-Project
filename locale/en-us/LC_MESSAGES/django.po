@@ -1,0 +1,137 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2017-08-28 16:29-0700\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: reader/views.py:439
+#, python-format
+msgid "Read the text of %(book)s online with commentaries and connections."
+msgstr ""
+
+#: reader/views.py:457
+msgid "Explore 3,000 years of Jewish texts in Hebrew and English translation."
+msgstr ""
+
+#: reader/views.py:484 reader/views.py:574 reader/views.py:617
+msgid " | Sefaria"
+msgstr ""
+
+#: reader/views.py:488
+msgid "Recently Viewed"
+msgstr ""
+
+#: reader/views.py:489
+msgid "Texts that you've recently viewed on Sefaria."
+msgstr ""
+
+#: reader/views.py:528
+msgid "Sefaria Search"
+msgstr ""
+
+#: reader/views.py:529
+msgid "Search 3,000 years of Jewish texts in Hebrew and English translation."
+msgstr ""
+
+#: reader/views.py:545
+msgid "Sefaria Source Sheets"
+msgstr ""
+
+#: reader/views.py:546
+msgid ""
+"Explore thousands of public Source Sheets and use our Source Sheet Builder "
+"to create your own online."
+msgstr ""
+
+#: reader/views.py:604
+msgid "My Source Sheets | Sefaria"
+msgstr ""
+
+#: reader/views.py:605
+msgid "My Sources Sheets on Sefaria, both private a public."
+msgstr ""
+
+#: reader/views.py:612
+msgid "Public Source Sheets | Sefaria"
+msgstr ""
+
+#: reader/views.py:613
+msgid ""
+"Explore thousands of public Source Sheets drawing on Sefaria's library of "
+"Jewish texts."
+msgstr ""
+
+#: reader/views.py:618
+#, python-format
+msgid ""
+"Public Source Sheets on tagged with \"%(tag)s\", drawing from Sefaria's "
+"library of Jewish texts."
+msgstr ""
+
+#: reader/views.py:712
+msgid "The Sefaria Libray"
+msgstr ""
+
+#: reader/views.py:713
+msgid ""
+"Browse 1,000s of Jewish texts in the Sefaria Library by category and title."
+msgstr ""
+
+#: reader/views.py:719
+msgid "New Additions to the Sefaria Library"
+msgstr ""
+
+#: reader/views.py:720
+msgid ""
+"See texts, translations and connections that have been recentlty added to "
+"Sefaria."
+msgstr ""
+
+#: reader/views.py:2845
+msgid "You must be logged in to update your profile."
+msgstr ""
+
+#: sefaria/forms.py:58 sefaria/forms.py:63 sefaria/forms.py:129
+msgid "Email Address"
+msgstr ""
+
+#: sefaria/forms.py:59 sefaria/forms.py:66
+msgid "Password"
+msgstr ""
+
+#: sefaria/forms.py:64
+msgid "First Name"
+msgstr ""
+
+#: sefaria/forms.py:65
+msgid "Last Name"
+msgstr ""
+
+#: sefaria/forms.py:67
+msgid "Receive important announcements"
+msgstr ""
+
+#: sefaria/forms.py:68
+msgid "Receive our educator newsletter"
+msgstr ""
+
+#: sefaria/forms.py:90
+msgid "A user with that email already exists."
+msgstr ""
+
+#: sefaria/views.py:161
+msgid "Logged out"
+msgstr ""

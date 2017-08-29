@@ -22,6 +22,8 @@ const {
 const ReaderTextTableOfContents = require('./ReaderTextTableOfContents');
 const SearchPage                = require('./SearchPage');
 const SheetsNav                 = require('./SheetsNav');
+const TopicsPanel               = require('./TopicsPanel');
+const TopicPage                 = require('./TopicPage');
 const AccountPanel              = require('./AccountPanel');
 const NotificationsPanel        = require('./NotificationsPanel');
 const MyNotesPanel              = require('./MyNotesPanel');
@@ -65,6 +67,7 @@ class ReaderPanel extends Component {
       menuOpen:             props.initialMenu || null, // "navigation", "book toc", "text toc", "display", "search", "sheets", "home", "compare"
       navigationCategories: props.initialNavigationCategories || [],
       navigationSheetTag:   props.initialSheetsTag || null,
+      navigationTopic:      props.initialTopic || null,
       sheetsGroup:          props.initialGroup || null,
       searchQuery:          props.initialQuery || null,
       appliedSearchFilters: props.initialAppliedSearchFilters || [],
@@ -201,10 +204,11 @@ class ReaderPanel extends Component {
     // Return to the original text in the ReaderPanel contents
     this.conditionalSetState({highlightedRefs: [], mode: "Text"});
   }
-  showBaseText(ref, replaceHistory, version=null, versionLanguage=null) {
+  showBaseText(ref, replaceHistory, version=null, versionLanguage=null, filter=[]) {
     // Set the current primary text
     // `replaceHistory` - bool whether to replace browser history rather than push for this change
     if (!ref) { return; }
+    debugger;
     this.replaceHistory = Boolean(replaceHistory);
     if (this.state.mode == "Connections" && this.props.masterPanelLanguage == "bilingual") {
       // Connections panels are forced to be mono-lingual. When opening a text from a connections panel,
@@ -214,7 +218,7 @@ class ReaderPanel extends Component {
     this.conditionalSetState({
       mode: "Text",
       refs: [ref],
-      filter: [],
+      filter: filter,
       recentFilters: [],
       menuOpen: null,
       version: version,
@@ -275,6 +279,7 @@ class ReaderPanel extends Component {
       // searchQuery: null,
       // appliedSearchFilters: [],
       navigationSheetTag: null,
+      navigationTopic: null,
     });
   }
   setNavigationCategories(categories) {
@@ -299,6 +304,9 @@ class ReaderPanel extends Component {
       this.conditionalSetState({recentFilters: this.state.recentFilters, filter: filter, connectionsMode: "TextList"});
     }
 
+  }
+  setTopic(topic) {
+    this.conditionalSetState({navigationTopic: topic});
   }
   toggleLanguage() {
     if (this.state.settings.language == "hebrew") {
@@ -620,6 +628,33 @@ class ReaderPanel extends Component {
                     setSheetTagSort={this.setSheetTagSort}
                     setSheetTag={this.setSheetTag}
                     key={"SheetsNav"} />);
+
+    } else if (this.state.menuOpen === "topics") {
+      if (this.state.navigationTopic) {
+        var menu = (<TopicPage
+                      topic={this.state.navigationTopic}
+                      interfaceLang={this.props.interfaceLang}
+                      setTopic={this.setTopic}
+                      openTopics={this.openMenu.bind(null, "topics")}
+                      showBaseText={this.props.onNavTextClick || this.showBaseText}
+                      openNav={this.openMenu.bind(null, "navigation")}
+                      close={this.closeMenus}
+                      multiPanel={this.props.multiPanel}
+                      hideNavHeader={this.props.hideNavHeader}
+                      toggleLanguage={this.toggleLanguage}
+                      key={"TopicPage"} />);   
+      } else {
+        var menu = (<TopicsPanel
+                      interfaceLang={this.props.interfaceLang}
+                      width={this.state.width}
+                      setTopic={this.setTopic}
+                      openNav={this.openMenu.bind(null, "navigation")}
+                      close={this.closeMenus}
+                      multiPanel={this.props.multiPanel}
+                      hideNavHeader={this.props.hideNavHeader}
+                      toggleLanguage={this.toggleLanguage}
+                      key={"TopicsPanel"} />);        
+      }
 
     } else if (this.state.menuOpen === "account") {
       var menu = (<AccountPanel
