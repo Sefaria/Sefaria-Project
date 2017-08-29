@@ -1,5 +1,6 @@
 var ga = require('./sefariaGa');
 
+
 class Track {
     // Helper functions for event tracking (with Google Analytics and Mixpanel)
     static event(category, action, label, value, options) {
