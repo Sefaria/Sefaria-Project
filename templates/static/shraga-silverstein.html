@@ -1,11 +1,9 @@
 {% extends "base.html" %}
+{% load i18n %}
 
-{% block titleEnglish %}In Memory of Rabbi Shraga Silverstein{% endblock %}
-{% block titleHebrew %}In Memory of Rabbi Shraga Silverstein{% endblock %}
+{% block title %}{% trans "In Memory of Rabbi Shraga Silverstein" %}{% endblock %}
 
-{% block descriptionEnglish %}{% endblock %}
-
-{% block descriptionHebrew %}{% endblock %}
+{% block description %}{% endblock %}
 
 {% block css %}
     #shraga h3 {

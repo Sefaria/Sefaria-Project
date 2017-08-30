@@ -1,11 +1,9 @@
 {% extends "base.html" %}
+{% load i18n %}
 
-{% block titleEnglish %}Help, FAQ and Tutorials | Sefaria{% endblock %}
-{% block titleHebrew %}Help, FAQ and Tutorials | Sefaria{% endblock %}
+{% block title %}{% trans "Help, FAQ and Tutorials" %} | {% trans "Sefaria" %}{% endblock %}
 
-{% block descriptionEnglish %}Watch video tutorials or read FAQs and written tutorials about how to use Sefaria.{% endblock %}
-
-{% block descriptionHebrew %}Watch video tutorials or read FAQs and written tutorials about how to use Sefaria.{% endblock %}
+{% block description %}{% trans "Watch video tutorials or read FAQs and written tutorials about how to use Sefaria." %}{% endblock %}
 
 {% block content %}
 <div id="helpPage" class="static biReady">
