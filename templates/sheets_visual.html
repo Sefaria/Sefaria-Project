@@ -5,35 +5,21 @@
 {% load humanize %}
 {% load sefaria_tags %}
 
-{% block titleEnglish %}
+{% block title %}
     {% if title %}
-    	{{ title|striptags|strip_html_entities }} | Visualized | Sefaria Source Sheet Builder
+        {{ title|striptags|strip_html_entities }} | {% trans "Visualized" %} | {% trans "Sefaria Source Sheet Builder" %}
     {% else %}
-    	Start a New Sheet - Sefaria Source Sheet Builder
+        {% trans "Start a New Sheet - Sefaria Source Sheet Builder" %}
     {% endif %}
 {% endblock %}
 
-{% block titleHebrew %}
-    {% if title %}
-        {{ title|striptags|strip_html_entities }} | Visualized | Sefaria Source Sheet Builder
-    {% else %}
-        Start a New Sheet - Sefaria Source Sheet Builder
-    {% endif %}
-{% endblock %}
-
-{% block descriptionEnglish %}
+{% block description %}
     {% if sheet.owner %}
+        {% blocktrans %}
         Visual layout of a source sheet by {{ sheet.owner|user_name }} created with Sefaria's Source Sheet Builder.
+        {% endblocktrans %}
     {% else %}
-        Create your own source sheet with Sefaria's Source Sheet Builder.
-    {% endif %}
-{% endblock %}
-
-{% block descriptionHebrew %}
-    {% if sheet.owner %}
-        Visual layout of a {{ sheet.owner|user_name }} created with Sefaria's Source Sheet Builder.
-    {% else %}
-        Create your own source sheet with Sefaria's Source Sheet Builder.
+        {% trans "Create your own source sheet with Sefaria's Source Sheet Builder." %}
     {% endif %}
 {% endblock %}
 

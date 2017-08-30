@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2017-08-24 16:17-0700\n"
+"POT-Creation-Date: 2017-08-29 17:32-0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,90 +17,90 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: reader/views.py:438
+#: reader/views.py:439
 #, python-format
 msgid "Read the text of %(book)s online with commentaries and connections."
 msgstr ""
 
-#: reader/views.py:456
+#: reader/views.py:457
 msgid "Explore 3,000 years of Jewish texts in Hebrew and English translation."
 msgstr ""
 
-#: reader/views.py:483 reader/views.py:573 reader/views.py:616
+#: reader/views.py:484 reader/views.py:574 reader/views.py:617
 msgid " | Sefaria"
 msgstr ""
 
-#: reader/views.py:487
+#: reader/views.py:488
 msgid "Recently Viewed"
 msgstr ""
 
-#: reader/views.py:488
+#: reader/views.py:489
 msgid "Texts that you've recently viewed on Sefaria."
 msgstr ""
 
-#: reader/views.py:527
+#: reader/views.py:528
 msgid "Sefaria Search"
 msgstr ""
 
-#: reader/views.py:528
+#: reader/views.py:529
 msgid "Search 3,000 years of Jewish texts in Hebrew and English translation."
 msgstr ""
 
-#: reader/views.py:544
+#: reader/views.py:545
 msgid "Sefaria Source Sheets"
 msgstr ""
 
-#: reader/views.py:545
+#: reader/views.py:546
 msgid ""
 "Explore thousands of public Source Sheets and use our Source Sheet Builder "
 "to create your own online."
 msgstr ""
 
-#: reader/views.py:603
+#: reader/views.py:604
 msgid "My Source Sheets | Sefaria"
 msgstr ""
 
-#: reader/views.py:604
+#: reader/views.py:605
 msgid "My Sources Sheets on Sefaria, both private a public."
 msgstr ""
 
-#: reader/views.py:611
+#: reader/views.py:612
 msgid "Public Source Sheets | Sefaria"
 msgstr ""
 
-#: reader/views.py:612
+#: reader/views.py:613
 msgid ""
 "Explore thousands of public Source Sheets drawing on Sefaria's library of "
 "Jewish texts."
 msgstr ""
 
-#: reader/views.py:617
+#: reader/views.py:618
 #, python-format
 msgid ""
 "Public Source Sheets on tagged with \"%(tag)s\", drawing from Sefaria's "
 "library of Jewish texts."
 msgstr ""
 
-#: reader/views.py:653
+#: reader/views.py:712
 msgid "The Sefaria Libray"
 msgstr ""
 
-#: reader/views.py:654
+#: reader/views.py:713
 msgid ""
 "Browse 1,000s of Jewish texts in the Sefaria Library by category and title."
 msgstr ""
 
-#: reader/views.py:660
+#: reader/views.py:719
 msgid "New Additions to the Sefaria Library"
 msgstr ""
 
-#: reader/views.py:661
+#: reader/views.py:720
 msgid ""
-"See texts, translations and connections that have been recentlty added to "
+"See texts, translations and connections that have been recently added to "
 "Sefaria."
 msgstr ""
 
-#: reader/views.py:2764
+#: reader/views.py:2845
 msgid "You must be logged in to update your profile."
 msgstr ""
 
@@ -142,4 +142,193 @@ msgstr ""
 
 #: sefaria/views.py:161
 msgid "Logged out"
+msgstr ""
+
+#: templates/404.html:3
+msgid "Page Not Found | Sefaria"
+msgstr ""
+
+#: templates/500.html:3
+msgid "Internal Server Error"
+msgstr ""
+
+#: templates/edit_group.html:6
+msgid "Edit Group on Sefaria"
+msgstr ""
+
+#: templates/edit_profile.html:4
+msgid "Edit Your Profile on Sefaria"
+msgstr ""
+
+#: templates/explore.html:3
+msgid ""
+"Link Explorer - Visualized Connections Between Talmud and Tanakh | Sefaria"
+msgstr ""
+
+#: templates/explore.html:5
+msgid ""
+"Explore over 30,000 examples of the Talmud quoting a verse from Tanakh. Zoom "
+"in to particular books either above or below to explore deeper."
+msgstr ""
+
+#: templates/groups.html:6
+msgid "Sefaria Groups"
+msgstr ""
+
+#: templates/people.html:5
+msgid "Authors on Sefaria"
+msgstr ""
+
+#: templates/people.html:7
+msgid ""
+"Biographies and information about the authors of Jewish texts on Sefaria, "
+"together with links to their available texts."
+msgstr ""
+
+#: templates/person.html:6 templates/person.html.py:8 templates/search.html:6
+#: templates/registration/password_reset_complete.html:3
+#: templates/registration/password_reset_confirm.html:3
+#: templates/registration/password_reset_done.html:3
+msgid "Sefaria"
+msgstr ""
+
+#: templates/s2_sheets.html:9 templates/sheets_visual.html:10
+msgid "Sefaria Source Sheet Builder"
+msgstr ""
+
+#: templates/s2_sheets.html:11 templates/sheets_visual.html:12
+msgid "Start a New Sheet - Sefaria Source Sheet Builder"
+msgstr ""
+
+#: templates/s2_sheets.html:17
+#, python-format
+msgid ""
+"\n"
+"        A source sheet by %(sheet.owner|user_name)s created with Sefaria's "
+"Source Sheet Builder.\n"
+"        "
+msgstr ""
+
+#: templates/s2_sheets.html:21 templates/sheets_visual.html:22
+msgid "Create your own source sheet with Sefaria's Source Sheet Builder."
+msgstr ""
+
+#: templates/search.html:6
+msgid "Search Jewish Texts"
+msgstr ""
+
+#: templates/search.html:8
+#, python-format
+msgid ""
+"Search the full text of thousands of Jewish texts in Hebrew and in English, "
+"filter results by category or book, and read the texts online on Sefaria.%%"
+msgstr ""
+
+#: templates/sheet_tags.html:6
+msgid "Source Sheets for Jewish Learning by Tag"
+msgstr ""
+
+#: templates/sheets_visual.html:10
+msgid "Visualized"
+msgstr ""
+
+#: templates/sheets_visual.html:18
+#, python-format
+msgid ""
+"\n"
+"        Visual layout of a source sheet by %(sheet.owner|user_name)s created "
+"with Sefaria's Source Sheet Builder.\n"
+"        "
+msgstr ""
+
+#: templates/talmud_people.html:5
+msgid "People in the Talmud"
+msgstr ""
+
+#: templates/talmud_people.html:7
+msgid ""
+"An index of the sages of the Talmud (Chazal) ordered by generation, "
+"including relationships to one another, time periods and links to learn more."
+msgstr ""
+
+#: templates/visual_library.html:5
+msgid "Visualizing the Sefaria Library"
+msgstr ""
+
+#: templates/visual_library.html:7
+msgid ""
+"How big is Torah compared to Talmud? This sunburst diagram lets you see the "
+"number of words in the texts and categories of Sefaria's library (which is "
+"growing every day!)."
+msgstr ""
+
+#: templates/visual_parasha_colors.html:5
+msgid "Visualizing the Parshiot"
+msgstr ""
+
+#: templates/visualize_links_through_rashi.html:5
+msgid "Visualizing Torah Connections through Rashi's Commentary"
+msgstr ""
+
+#: templates/visualize_links_through_rashi.html:7
+msgid ""
+"Explore how Rashi connects verses of Torah to one another when he quotes one "
+"verse in his commentary on another."
+msgstr ""
+
+#: templates/registration/logged_out.html:3
+msgid "Logged Out"
+msgstr ""
+
+#: templates/registration/login.html:3
+msgid "Log in to Sefaria"
+msgstr ""
+
+#: templates/registration/login.html:5
+msgid ""
+"Log in to your Sefaria account to make source sheets, right notes, and "
+"follow other Sefaria users."
+msgstr ""
+
+#: templates/registration/password_reset_complete.html:3
+msgid "Password Reset"
+msgstr ""
+
+#: templates/registration/password_reset_confirm.html:3
+msgid "Choose a new Password"
+msgstr ""
+
+#: templates/registration/password_reset_done.html:3
+msgid "Password Reset Link Sent"
+msgstr ""
+
+#: templates/registration/password_reset_form.html:3
+msgid "Forgot your Password"
+msgstr ""
+
+#: templates/registration/password_reset_form.html:5
+msgid "Request a link to change your Sefaria password if you've forgotten it."
+msgstr ""
+
+#: templates/registration/password_reset_subject.txt:1
+msgid "Sefaria.org Password Reset"
+msgstr ""
+
+#: templates/static/about.html:3
+msgid "About Sefaria"
+msgstr ""
+
+#: templates/static/about.html:5
+msgid ""
+"Sefaria is a non-profit organization dedicated to building the future of "
+"Jewish learning in an open and participatory way."
+msgstr ""
+
+#: templates/static/educators.html:3
+msgid "Technology for Jewish Educators | Sefaria"
+msgstr ""
+
+#: templates/static/educators.html:5
+msgid ""
+"Resources for educators using Sefaria in the classroom to teach Jewish texts."
 msgstr ""

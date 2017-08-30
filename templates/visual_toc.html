@@ -29,7 +29,6 @@
   }
   #visualTocPage {
     margin: 20px auto;
-    max-width: 1000px;
     text-align: center;
   }
   body.hebrew #visualTocPage {
@@ -55,10 +54,10 @@
     stroke-width: 1.5px;
   }
   .node {
-    font-size: 16px;
+    font-size: 15px;
   }
   .hebrew .node {
-    font-size: 18px;
+    font-size: 17px;
   }
   .link {
     fill: none;
@@ -83,7 +82,7 @@
     var makeD3Toc = function() {
         var d3Toc = {
             name: "Sefaria",
-            children: sjs.toc.map(makeD3TreeNode)
+            children: Sefaria.toc.map(makeD3TreeNode)
         }
         return d3Toc;
     };
@@ -107,8 +106,8 @@
     };
 
     var makeDendogram = function(root) {
-      var width = 800,
-          height = 6000;
+      var width = 1000,
+          height = 10000;
 
       var cluster = d3.layout.cluster()
           .size([height, width - 160]);
@@ -154,7 +153,7 @@
 
 
     var makeRadialReingoldTilfordTree = function(root) {
-      var diameter = 800;
+      var diameter = 1000;
 
       var svg = d3.select("#visualTocPage").append("svg")
           .attr("width", diameter)

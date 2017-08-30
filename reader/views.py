@@ -717,7 +717,7 @@ def s2_texts(request):
 def s2_updates(request):
     props = s2_props(request)
     title = _("New Additions to the Sefaria Library")
-    desc  = _("See texts, translations and connections that have been recentlty added to Sefaria.")
+    desc  = _("See texts, translations and connections that have been recently added to Sefaria.")
     return s2_page(request, props, "updates", title, desc)
 
 
@@ -3431,6 +3431,12 @@ def person_page(request, name):
     assert isinstance(person, Person)
 
     template_vars = person.contents()
+    if request.interfaceLang == "he":
+        template_vars["name"] = person.primary_name("he")
+        template_vars["bio"]= person.heBio
+    else:
+        template_vars["name"] = person.primary_name("en")
+        template_vars["bio"]= person.enBio
     template_vars["primary_name"] = {
         "en": person.primary_name("en"),
         "he": person.primary_name("he")
