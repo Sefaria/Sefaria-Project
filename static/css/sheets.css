@@ -502,6 +502,48 @@ body:not(.user-is-tabbing) #sheet *:focus {
 	font-size: 13px;
 }
 
+#sheetMetadata {
+	color: #999;
+	background-color: #fafafa;
+	padding: 0 76px;
+	outline: none;
+}
+
+#sheetMetadata summary {
+	text-align: center;
+	margin: 0 -76px;
+}
+
+#sheetMetadata *:focus {
+	outline: none !important;
+}
+
+#sheetMetadata summary {
+	background-color: #fff;
+}
+
+#sheetMetadata summary::-webkit-details-marker {
+  	display: none;
+}
+
+#sheetMetadata summary:after {
+  	content: " ►";
+}
+#sheetMetadata[open] summary:after {
+  	content: " ▼";
+}
+
+#sheetMetadata .metadataOpenDetails {
+	font-size: 14px;
+	font-family: "proxima-nova","Helvetica Neue","Helvetica",sans-serif;
+	padding: 35px 0;
+}
+
+#sheetMetadata #via, #sheetMetadata #assignmentAttribution {
+	font-size: 14px;
+	padding: 14px 0;
+}
+
 #likeLink {
 	color: black;
 	text-decoration: none;

@@ -564,10 +564,18 @@
                     </span>
                 </a>
                 {% elif is_owner or can_publish %}
-                <a id="share" class="button">
+                <a id="share" class="button" role="button">
                     <img src="/static/img/share.png" alt="Share Icon">
                     <span class="int-en">Share</span>
                     <span class="int-he">שיתוף</span>
+                </a>
+                {% else %}
+                <a id="likeButton" class="button" role="button">
+                    {% if viewer_is_liker %}
+                        <span class="int-en">Unlike</span><span class="int-he">ביטול סימון "אהבתי"</span>
+                    {% else %}
+                        <span class="int-en">Like</span><span class="int-he">אהבתי</span>
+                    {% endif %}
                 </a>
                 {% endif %}
             </div>
@@ -622,27 +630,17 @@
 	</div>
 	{% elif assigner_id %}
 	<div id="author">
-		<div id="assignmentAttribution">
-            <span class="int-en">Assignment by</span>
-            <span class="int-he">מטלה מאת</span>
-            {{ assigner_id|user_link }}
-        </div>
 		{% if author %}
-		    <span class="int-en">Completed by</span>
-            <span class="int-he">בוצעה על ידי</span>
+		    <span class="int-en">Assignment Completed by</span>
+            <span class="int-he">מטלה בוצעה על ידי</span>
             {{ sheet.owner|user_link }}
 		{% endif %}
     </div>
 	{% elif sheet.assigner_id %}
 	<div id="author">
-		<div id="assignmentAttribution">
-            <span class="int-en">Assignment by</span>
-            <span class="int-he">מטלה מאת</span>
-            {{ sheet.assigner_id|user_link }}
-        </div>
 		{% if author %}
-		    <span class="int-en">Completed by</span>
-            <span class="int-he">בוצעה על ידי</span>
+		    <span class="int-en">Assignment Completed by</span>
+            <span class="int-he">מטלה בוצעה על ידי</span>
             {{ sheet.owner|user_link }}
         {% endif %}
     </div>
@@ -651,34 +649,47 @@
 		<span class="int-en">Source Sheet by</span>
         <span class="int-he">דף מקורות מאת</span>
         {{ sheet.owner|user_link }}
-		{% if sheet.via %}
-		<div id="via">
-            <span class="int-en">Based on <a href="/sheets/{{ sheet.via }}">a sheet</a> by {{ sheet.viaOwner|user_link }}</span>
-            <span class="int-en">מבוסס על <a href="/sheets/{{ sheet.via }}">דף מקורות</a> מאת {{ sheet.viaOwner|user_link }}</span>
-        </div>
-		{% endif %}
 	</div>
 	{% endif %}
 	{% if not new_sheet %}
+
+    <details id="sheetMetadata">
+    <summary>
+        <span class="int-en">More info</span>
+        <span class="int-he">עוד מידע</span>
+    </summary>
+        <div class="metadataOpenDetails">
+            <div>
+                <span class="int-en">Created <span class="date">{{ sheet.dateCreated|date_string_to_date|date:"F j, Y" }}</span> · <span class="views">{{ sheet.views }} {% if sheet.views == 1%}View{% else %}Views{% endif %}</span> · <span class="likes">{{like_count}} {% if like_count == 1%}Like{% else %}Likes{% endif %}</span></span>
+                <span class="int-he">נוצר <span class="date">{{ sheet.dateCreated|date_string_to_date|date:"j F, Y" }}</span> · <span class="views">{{ sheet.views }} צפיות </span> · <span class="likes">{{like_count}} {% if like_count == 1%}סימוני{% else %}סימון{% endif %} אהבתי</span></span>
+            </div>
+            {% if sheet.via %}
+            <div id="via">
+                <span class="int-en">Based on <a href="/sheets/{{ sheet.via }}">a sheet</a> by {{ sheet.viaOwner|user_link }}</span>
+                <span class="int-he">מבוסס על <a href="/sheets/{{ sheet.via }}">דף מקורות</a> מאת {{ sheet.viaOwner|user_link }}</span>
+            </div>
+
+        	{% elif assigner_id %}
+            <div id="assignmentAttribution">
+                <span class="int-en">Assigned by</span>
+                <span class="int-he">מטלה מאת</span>
+                {{ assigner_id|user_link }}
+            </div>
+
+        	{% elif sheet.assigner_id %}
+            <div id="assignmentAttribution">
+                <span class="int-en">Assigned by</span>
+                <span class="int-he">מטלה מאת</span>
+                {{ sheet.assigner_id|user_link }}
+            </div>
+
+            {% endif %}
+        </div>
+
+
+    </details>
 	<div id="likes">
 		<span id="s2LikeContainer">
-            <span id="likeInfoBox" {% if like_count == 0%}style="display:none"{% endif %}>
-                <span id="likeInfo">
-                    <span class="int-en">
-                        <span id="likeCount">{{ like_count }}</span>
-                        like
-                        <span id="likePlural" {% if like_count == 1%}style="display:none"{% endif %}>s</span>
-
-                    </span>
-                    <span class="int-he">
-                        <span id="likeCount">{{ like_count }}</span>
-                        <span id="likePlural" {% if like_count == 1%}style="display:none"{% endif %}>סימוני</span>
-                        <span id="likeSingular" {% if like_count != 1%}style="display:none"{% endif %}>סימון</span>
-                        אהבתי
-                    </span>
-                </span>
-                 ·
-            </span>
             {% if viewer_is_liker %}
                 <a href="#" id="likeLink" class="liked"><span class="int-en">Unlike</span><span class="int-he">ביטול סימון "אהבתי"</span></a>
             {% else %}
