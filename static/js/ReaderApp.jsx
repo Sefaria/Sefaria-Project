@@ -458,7 +458,7 @@ class ReaderApp extends Component {
             hist.mode = "myNotes";
             break;
           case "updates":
-            hist.title = "New on Sefaria";
+            hist.title = "New Additions to the Sefaria Library";
             hist.url = "updates";
             hist.mode = "updates";
             break;
