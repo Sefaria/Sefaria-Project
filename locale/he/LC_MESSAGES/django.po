@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2017-08-30 15:34-0700\n"
+"POT-Creation-Date: 2017-08-30 15:51-0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -166,31 +166,31 @@ msgstr "הדף שביקשתם איננו נמצא | ספריא"
 msgid "Internal Server Error"
 msgstr "שגיאת מערכת"
 
-#: templates/edit_group.html:7
 #: templates/activity.html:6
 msgid "Revision History of"
-msgstr ""
+msgstr "היסטורית עריכה של"
 
 #: templates/activity.html:8 templates/activity.html.py:10
 #, fuzzy
 msgid "Sefaria Activity"
-msgstr " | ספריא"
+msgstr "פעילות בספריא"
 
 #: templates/activity.html:16
 msgid "View the complete revision hisotry of this text on Sefaria."
-msgstr ""
+msgstr "צפו בהיסטורית העריכה של הטקסט הזה בספריא"
 
 #: templates/activity.html:18
 msgid ""
 "View a user's acitvitiy history on Sefaria, including published source "
 "sheets, and text translations, edits or additions."
-msgstr ""
+msgstr "צפו בפעילות של משתמש בספריא, כולל דפי מקורות, תרגומים ועריכות"
 
 #: templates/activity.html:20
 msgid ""
 "View the complete log of public activity on Sefaria, including published "
 "source sheets, and text translations, edits or additions. "
 msgstr ""
+"צפו ברישום הכולל של פעילות פומבית בספריא כולל דפי מקורות, תרגומים ועריכות"
 
 #: templates/edit_group.html:7
 msgid "Edit Group on Sefaria"
@@ -217,12 +217,12 @@ msgstr ""
 msgid "Sefaria Groups"
 msgstr "קבוצות בספריא"
 
-#: templates/metrics.html:8
+#: templates/metrics.html:5
 #, fuzzy
 msgid "Sefaria Metrics"
 msgstr "סטטיסטיקות בספריא"
 
-#: templates/metrics.html:10
+#: templates/metrics.html:7
 msgid ""
 "See graphs charting Sefaria's progress since 2013 across metrics including "
 "word counts, number of links and number of source sheets."
@@ -247,6 +247,7 @@ msgstr ""
 #: templates/registration/password_reset_complete.html:3
 #: templates/registration/password_reset_confirm.html:4
 #: templates/registration/password_reset_done.html:3
+#: templates/registration/password_reset_form.html:4
 #: templates/registration/register.html:4 templates/static/help.html:4
 #: templates/static/linker.html:4 templates/static/privacy-policy.html:4
 #: templates/static/terms.html:4 templates/static/visualizations.html:4
@@ -369,7 +370,7 @@ msgstr "מנותק"
 msgid "Log in to Sefaria"
 msgstr "כניסה לחשבון בספריא"
 
-#: templates/registration/login.html:5
+#: templates/registration/login.html:6
 msgid ""
 "Log in to your Sefaria account to make source sheets, write notes, and "
 "follow other Sefaria users."
@@ -414,16 +415,6 @@ msgstr ""
 "צרו חשבון בספריא בכדי להיעזר בבונה דפי המקורות, לרשום הערות פרטיות על מקורות "
 "וכדי להיות בקשר עם משתמשים אחרים"
 
-#: templates/registration/register.html:4
-msgid "Create an Account"
-msgstr ""
-
-#: templates/registration/register.html:6
-msgid ""
-"Create an account on Sefaria to make source sheets, take notes and follow "
-"other people."
-msgstr ""
-
 #: templates/static/about.html:4
 #, fuzzy
 msgid "About Sefaria"
@@ -436,35 +427,6 @@ msgid ""
 msgstr ""
 "ספריא היא עמותה ללא מטרות רווה השואפת לעיצוב עתיד הלימוד היהודי כך שיהא פתוח "
 "ושיתופי."
-
-#: templates/static/connect.html:4
-msgid "Sefaria Newsletter, Social Media and More"
-msgstr ""
-
-#: templates/static/connect.html:6
-msgid ""
-"Get updates on new texts and features on Sefaria by signing up for our "
-"newsletter or following us on social media."
-msgstr ""
-
-#: templates/static/contributed-to-sefaria.html:4
-msgid "Texts Contributed to Sefaria"
-msgstr ""
-
-#: templates/static/digitized-by-sefaria.html:4
-msgid "Texts Digitized by Sefaria"
-msgstr ""
-
-#: templates/static/donate.html:4
-#, fuzzy
-msgid "Donate to Sefaria"
-msgstr " | ספריא"
-
-#: templates/static/donate.html:6
-msgid ""
-"Support Sefaria by making a tax-deductible donation online or by check or "
-"wire transfer."
-msgstr ""
 
 #: templates/static/connect.html:4
 msgid "Sefaria Newsletter, Social Media and More"
@@ -528,7 +490,7 @@ msgstr ""
 #: templates/static/ios.html:4
 #, fuzzy
 msgid "Sefaria iOS"
-msgstr " | ספריא"
+msgstr "ספריא לאייפון"
 
 #: templates/static/jobs.html:4
 #, fuzzy
@@ -601,7 +563,9 @@ msgstr "אודות גרסאות ספריא"
 msgid ""
 "The Sefaria Edition is a Sefaria commissioned translation created by "
 "professional translators."
-msgstr "גרסאות ספריא הן גרסאות תרגום מיוחדות שהוזמנו במיוחד עבור ספריא ונוצרו על ידי מתרגמים מקצועיים"
+msgstr ""
+"גרסאות ספריא הן גרסאות תרגום מיוחדות שהוזמנו במיוחד עבור ספריא ונוצרו על ידי "
+"מתרגמים מקצועיים"
 
 #: templates/static/shraga-silverstein.html:4
 msgid "In Memory of Rabbi Shraga Silverstein"
@@ -671,134 +635,3 @@ msgstr ""
 "התלמוד במהדורת וויליאם דוידסון הוא גרסה דיגיטלית חפשית של התלמוד הבבלי עם "
 "תרגום מקביל המקושר לפרשנים מרכזיים, אזכורים מקראיים, מדרש, הלכה ועולם הולך "
 "וגדל של טקסטים יהודיים"
-
-#: templates/static/help.html:4
-msgid "Help, FAQ and Tutorials"
-msgstr ""
-
-#: templates/static/help.html:6
-msgid ""
-"Watch video tutorials or read FAQs and written tutorials about how to use "
-"Sefaria."
-msgstr ""
-
-#: templates/static/ios.html:4
-#, fuzzy
-msgid "Sefaria iOS"
-msgstr " | ספריא"
-
-#: templates/static/jobs.html:4
-#, fuzzy
-msgid "Jobs at Sefaria"
-msgstr " | ספריא"
-
-#: templates/static/jobs.html:6
-msgid ""
-"Job openings at Sefaria, a non-profit technology organization dedicated to "
-"building the Jewish future."
-msgstr ""
-
-#: templates/static/linker.html:4
-msgid "Linker Plugin"
-msgstr ""
-
-#: templates/static/linker.html:6
-msgid ""
-"Automatically turn citations on your website into links or dynamic popups "
-"with the full text from Sefaria."
-msgstr ""
-
-#: templates/static/mobile.html:4
-msgid "Sefaria Mobile Apps"
-msgstr ""
-
-#: templates/static/mobile.html:6
-msgid "Downland the free Sefaria Apps for iOS and Android."
-msgstr ""
-
-#: templates/static/privacy-policy.html:4
-msgid "Privacy Policy"
-msgstr ""
-
-#: templates/static/s2_home.html:4
-msgid "Sefaria: a Living Library of Jewish Texts Online"
-msgstr ""
-
-#: templates/static/s2_home.html:6
-msgid ""
-"The largest free library of Jewish texts available to read online in Hebrew "
-"and English including Torah, Tanakh, Talmud, Mishnah, Midrash, commentaries "
-"and more."
-msgstr ""
-
-#: templates/static/sefaria-community-translation.html:4
-msgid "About Sefaria Community Translations"
-msgstr ""
-
-#: templates/static/sefaria-edition.html:4
-#, fuzzy
-msgid "About Sefaria Editions"
-msgstr " | ספריא"
-
-#: templates/static/shraga-silverstein.html:4
-msgid "In Memory of Rabbi Shraga Silverstein"
-msgstr ""
-
-#: templates/static/strategy.html:4
-#, fuzzy
-msgid "Sefaria Strategy"
-msgstr "האוסף של ספריא"
-
-#: templates/static/supporters.html:4
-msgid "Sefaria's Supporters"
-msgstr ""
-
-#: templates/static/supporters.html:6
-msgid ""
-"Sefaria gratefully acknowledges the following donors whose generosity and "
-"leadership are making Sefaria possible."
-msgstr ""
-
-#: templates/static/team.html:4
-#, fuzzy
-msgid "The Sefaria Team"
-msgstr "האוסף של ספריא"
-
-#: templates/static/team.html:6
-msgid "Sefaria's team is working to create the Jewish future."
-msgstr ""
-
-#: templates/static/terms.html:4
-msgid "Terms of Use"
-msgstr ""
-
-#: templates/static/the-sefaria-story.html:4
-#, fuzzy
-msgid "The Sefaria Story"
-msgstr "האוסף של ספריא"
-
-#: templates/static/the-sefaria-story.html:6
-msgid "Watch a video about the story of Sefaria."
-msgstr ""
-
-#: templates/static/visualizations.html:4
-msgid "Visualizations"
-msgstr ""
-
-#: templates/static/visualizations.html:6
-msgid ""
-"Projects which have been created to make interactive visualizations of the "
-"texts and connections in the Sefaria Library of Torah texts."
-msgstr ""
-
-#: templates/static/william-davidson-talmud.html:4
-msgid "The William Davidson Talmud"
-msgstr ""
-
-#: templates/static/william-davidson-talmud.html:6
-msgid ""
-"The William Davidson Talmud is a free digital edition of the Babylonian "
-"Talmud with parallel translations, interlinked to major commentaries, "
-"biblical citations, Midrash, Halakhah, and an ever-growing library of Jewish "
-"texts."
-msgstr ""
