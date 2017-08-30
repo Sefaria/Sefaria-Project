@@ -1,2 +1,5 @@
-from sefaria.sitemap import generate_sitemaps
-generate_sitemaps()
+from sefaria.sitemap import SefariaSiteMapGenerator
+
+
+SefariaSiteMapGenerator('org').generate_sitemaps()
+SefariaSiteMapGenerator('org.il').generate_sitemaps()

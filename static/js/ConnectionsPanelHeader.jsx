@@ -58,7 +58,7 @@ class ConnectionsPanelHeader extends Component {
       }.bind(this);
       var title = <a href={url} className="connectionsHeaderTitle active" onClick={onClick}>
                     {this.props.interfaceLang == "english" ? <div className="int-en"><i className="fa fa-chevron-left"></i>Resources</div> : null }
-                    {this.props.interfaceLang == "hebrew" ? <div className="int-he"><i className="fa fa-chevron-right"></i>משאבים</div> : null }
+                    {this.props.interfaceLang == "hebrew" ? <div className="int-he"><i className="fa fa-chevron-right"></i>קישורים וכלים</div> : null }
                   </a>;
     }
     if (this.props.multiPanel) {
