@@ -482,7 +482,7 @@ def s2_texts_category(request, cats):
             cats = [hebrew_term(cat) for cat in cats]
         cat_string = u", ".join(cats)
         title = cat_string + _(" | Sefaria")
-        desc  = u"Read %(categories)s texts online with commentaries and connections." % {'categories': cat_string}
+        desc  = _("Read %(categories)s texts online with commentaries and connections.") % {'categories': cat_string}
 
     else:
         title = _("Recently Viewed")
