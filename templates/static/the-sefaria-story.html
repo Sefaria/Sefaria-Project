@@ -1,11 +1,9 @@
 {% extends "base.html" %}
+{% load i18n %}
 
-{% block titleEnglish %}The Sefaria Story{% endblock %}
-{% block titleHebrew %}The Sefaria Story{% endblock %}
+{% block title %}{% trans "The Sefaria Story" %}{% endblock %}
 
-{% block descriptionEnglish %}Watch a video about the story of Sefaria.{% endblock %}
-
-{% block descriptionHebrew %}Watch a video about the story of Sefaria.{% endblock %}
+{% block description %}{% trans "Watch a video about the story of Sefaria." %}{% endblock %}
 
 {% block css %}
 .static h1 {
