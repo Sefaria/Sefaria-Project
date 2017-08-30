@@ -3,10 +3,11 @@
 {% load sefaria_tags %}
 {% load humanize %}
 {% load cache %}
+{% load i18n %}
 
-{% block title %}{ % trans "Sefaria Metrics" %}{% endblock %}
+{% block title %}{% trans "Sefaria Metrics" %}{% endblock %}
 
-{% block description %}{ % trans "See graphs charting Sefaria's progress since 2013 across metrics including word counts, number of links and number of source sheets." %}{% endblock %}
+{% block description %}{% trans "See graphs charting Sefaria's progress since 2013 across metrics including word counts, number of links and number of source sheets." %}{% endblock %}
 
 {% block content %}
 
