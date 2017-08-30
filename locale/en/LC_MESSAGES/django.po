@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2017-08-30 11:33-0700\n"
+"POT-Creation-Date: 2017-08-30 15:35-0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -180,6 +180,16 @@ msgstr ""
 msgid "Sefaria Groups"
 msgstr ""
 
+#: templates/metrics.html:8
+msgid "Sefaria Metrics"
+msgstr ""
+
+#: templates/metrics.html:10
+msgid ""
+"See graphs charting Sefaria's progress since 2013 across metrics including "
+"word counts, number of links and number of source sheets."
+msgstr ""
+
 #: templates/people.html:5
 msgid "Authors on Sefaria"
 msgstr ""
@@ -236,10 +246,9 @@ msgid "Search Jewish Texts"
 msgstr ""
 
 #: templates/search.html:8
-#, python-format
 msgid ""
 "Search the full text of thousands of Jewish texts in Hebrew and in English, "
-"filter results by category or book, and read the texts online on Sefaria.%%"
+"filter results by category or book, and read the texts online on Sefaria."
 msgstr ""
 
 #: templates/sheet_tags.html:7
@@ -304,7 +313,7 @@ msgstr ""
 
 #: templates/registration/login.html:6
 msgid ""
-"Log in to your Sefaria account to make source sheets, right notes, and "
+"Log in to your Sefaria account to make source sheets, write notes, and "
 "follow other Sefaria users."
 msgstr ""
 
@@ -364,6 +373,13 @@ msgstr ""
 
 #: templates/static/contributed-to-sefaria.html:4
 msgid "Texts Contributed to Sefaria"
+msgstr ""
+
+#: templates/static/contributed-to-sefaria.html:6
+msgid ""
+"Texts on Sefaria that list this page as their source were contributed "
+"directly to Sefaria and have not yet been published elsewhere in print or on "
+"the web."
 msgstr ""
 
 #: templates/static/digitized-by-sefaria.html:4
@@ -450,8 +466,20 @@ msgstr ""
 msgid "About Sefaria Community Translations"
 msgstr ""
 
+#: templates/static/sefaria-community-translation.html:6
+msgid ""
+"Sefaria Community Translations are open, crowd-sourced translations of texts "
+"available in the Sefaria Library."
+msgstr ""
+
 #: templates/static/sefaria-edition.html:4
 msgid "About Sefaria Editions"
+msgstr ""
+
+#: templates/static/sefaria-edition.html:6
+msgid ""
+"The Sefaria Edition is a Sefaria commissioned translation created by "
+"professional translators."
 msgstr ""
 
 #: templates/static/shraga-silverstein.html:4
