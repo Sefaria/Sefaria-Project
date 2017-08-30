@@ -3,7 +3,7 @@
 
 {% block title %}
 	{% if single %}
-{% trans "Revision History of" %} {{ ref }} ({{ version }})</h3>
+{% trans "Revision History of" %} {{ ref }} ({{ version }})
 	{% elif for_user %}
 {{ profile.full_name }} | {% trans "Sefaria Activity" %}
 	{% else %}
@@ -13,7 +13,7 @@
 
 {% block description %}
 	{% if single %}
-{% trans "View the complete revision hisotry of this text on Sefaria." %}</h3>
+{% trans "View the complete revision hisotry of this text on Sefaria." %}
 	{% elif for_user %}
 {% trans "View a user's acitvitiy history on Sefaria, including published source sheets, and text translations, edits or additions." %}
 	{% else %}
@@ -30,7 +30,7 @@
 		    <h1>Revision History of <a href="/{{ref}}">{{ ref }}</a></h1>
 		    <h2>{{ version }}</h2>
         {% elif for_user %}
-            <h1>{{ profile.id|user_link }}  | Public Activity</h1>
+            <h1>{{ profile.id|user_link }} | Public Activity</h1>
         {% else %}
             <h1> Recent Activity on Sefaria</h1>
         {% endif %}
