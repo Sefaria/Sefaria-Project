@@ -17,7 +17,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: reader/views.py:439
+#: reader/views.py:438
 #, python-format
 msgid "Read the text of %(book)s online with commentaries and connections."
 msgstr ""
@@ -157,6 +157,30 @@ msgstr ""
 msgid "Internal Server Error"
 msgstr ""
 
+#: templates/activity.html:6
+msgid "Revision History of"
+msgstr ""
+
+#: templates/activity.html:8 templates/activity.html.py:10
+msgid "Sefaria Activity"
+msgstr ""
+
+#: templates/activity.html:16
+msgid "View the complete revision hisotry of this text on Sefaria."
+msgstr ""
+
+#: templates/activity.html:18
+msgid ""
+"View a user's acitvitiy history on Sefaria, including published source "
+"sheets, and text translations, edits or additions."
+msgstr ""
+
+#: templates/activity.html:20
+msgid ""
+"View the complete log of public activity on Sefaria, including published "
+"source sheets, and text translations, edits or additions. "
+msgstr ""
+
 #: templates/edit_group.html:7
 msgid "Edit Group on Sefaria"
 msgstr ""
@@ -204,6 +228,7 @@ msgstr ""
 #: templates/registration/password_reset_complete.html:3
 #: templates/registration/password_reset_confirm.html:4
 #: templates/registration/password_reset_done.html:3
+#: templates/registration/password_reset_form.html:4
 #: templates/registration/register.html:4 templates/static/help.html:4
 #: templates/static/linker.html:4 templates/static/privacy-policy.html:4
 #: templates/static/terms.html:4 templates/static/visualizations.html:4
@@ -232,8 +257,8 @@ msgstr ""
 #, python-format
 msgid ""
 "\n"
-"        A source sheet by %(sheet.owner|user_name)s created with Sefaria's "
-"Source Sheet Builder.\n"
+"A source sheet by %(sheet.owner|user_name)s created with Sefaria's Source "
+"Sheet Builder.\n"
 "        "
 msgstr ""
 
@@ -263,8 +288,8 @@ msgstr ""
 #, python-format
 msgid ""
 "\n"
-"        Visual layout of a source sheet by %(sheet.owner|user_name)s created "
-"with Sefaria's Source Sheet Builder.\n"
+"Visual layout of a source sheet by %(sheet.owner|user_name)s created with "
+"Sefaria's Source Sheet Builder.\n"
 "        "
 msgstr ""
 
@@ -351,11 +376,11 @@ msgid ""
 "other people."
 msgstr ""
 
-#: templates/static/about.html:3
+#: templates/static/about.html:4
 msgid "About Sefaria"
 msgstr ""
 
-#: templates/static/about.html:5
+#: templates/static/about.html:6
 msgid ""
 "Sefaria is a non-profit organization dedicated to building the future of "
 "Jewish learning in an open and participatory way."

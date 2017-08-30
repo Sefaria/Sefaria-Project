@@ -1,11 +1,15 @@
 {% load sefaria_tags %}
 {% load render_bundle from webpack_loader %}
+
 <!DOCTYPE html>
 <html>
 <head>
   <title>{{ title }}</title>
   <meta property="og:title" content="{{ title }}"/>
   <meta name="description" property="og:description" content="{{ desc }}">
+
+  <link rel="alternate" href="www.sefaria.org{{ request.path }}" hreflang="en" />
+  <link rel="alternate" href="www.sefaria.org.il{{ request.path }}" hreflang="he" />
 
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-itunes-app" content="app-id=1163273965">

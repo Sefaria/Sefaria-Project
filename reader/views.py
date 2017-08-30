@@ -428,23 +428,23 @@ def s2(request, ref, version=None, lang=None):
     })
     title = primary_ref.he_normal() if request.interfaceLang == "hebrew" else primary_ref.normal()
 
-    try:
-        if primary_ref.is_book_level():
-            if request.interfaceLang == "hebrew":
-                desc = getattr(primary_ref.index, 'heDesc', "")
-                book = primary_ref.he_normal()
-            else:
-                desc = getattr(primary_ref.index, 'enDesc', "")
-                book = primary_ref.normal()
-            read = _("Read the text of %(book)s online with commentaries and connections.") % {'book': book}
-            desc = desc + " " + read if desc else read
-
+    if primary_ref.is_book_level():
+        if request.interfaceLang == "hebrew":
+            desc = getattr(primary_ref.index, 'heDesc', "")
+            book = primary_ref.he_normal()
         else:
-            segmentIndex = primary_ref.sections[-1] - 1 if primary_ref.is_segment_level() else 0
+            desc = getattr(primary_ref.index, 'enDesc', "")
+            book = primary_ref.normal()
+        read = _("Read the text of %(book)s online with commentaries and connections.") % {'book': book}
+        desc = desc + " " + read if desc else read
+
+    else:
+        segmentIndex = primary_ref.sections[-1] - 1 if primary_ref.is_segment_level() else 0
+        try:
             enText = props["initialPanels"][0]["text"].get("text",[])
             heText = props["initialPanels"][0]["text"].get("he",[])
             enDesc = enText[segmentIndex] if segmentIndex < len(enText) else "" # get english text for section if it exists
-            heDesc = heText[segmentIndex] if segmentIndex < len(enText) else "" # get hebrew text for section if it exists
+            heDesc = heText[segmentIndex] if segmentIndex < len(heText) else "" # get hebrew text for section if it exists
             if request.interfaceLang == "hebrew":
                 desc = heDesc or enDesc # if no hebrew, fall back on hebrew
             else:
@@ -453,8 +453,8 @@ def s2(request, ref, version=None, lang=None):
             desc = bleach.clean(desc, strip=True, tags=())
             desc = desc[:160].rsplit(' ', 1)[0] + "..."  # truncate as close to 160 characters as possible while maintaining whole word. Append ellipses.
 
-    except (IndexError, KeyError):
-        desc = _("Explore 3,000 years of Jewish texts in Hebrew and English translation.")
+        except (IndexError, KeyError):
+            desc = _("Explore 3,000 years of Jewish texts in Hebrew and English translation.")
 
     propsJSON = json.dumps(props)
     html = render_react_component("ReaderApp", propsJSON)

@@ -1,18 +1,26 @@
 {% extends "base.html" %}
-
-{% load sefaria_tags %}
-{% load humanize %}
-{% load cache %}
+{% load i18n cache humanize sefaria_tags %}
 
 {% block title %}
 	{% if single %}
-		Revision History of {{ ref }} ({{ version }})</h3>
+{% trans "Revision History of" %} {{ ref }} ({{ version }})
 	{% elif for_user %}
-		{{ profile.full_name }}'s Activity on Sefaria
+{{ profile.full_name }} | {% trans "Sefaria Activity" %}
 	{% else %}
-		Sefaria Activity
+{% trans "Sefaria Activity" %}
 	{% endif %}
 {% endblock %}
+
+{% block description %}
+	{% if single %}
+{% trans "View the complete revision hisotry of this text on Sefaria." %}
+	{% elif for_user %}
+{% trans "View a user's acitvitiy history on Sefaria, including published source sheets, and text translations, edits or additions." %}
+	{% else %}
+{% trans "View the complete log of public activity on Sefaria, including published source sheets, and text translations, edits or additions. " %}
+	{% endif %}
+{% endblock %}
+
 
 {% block content %}
 
@@ -22,7 +30,7 @@
 		    <h1>Revision History of <a href="/{{ref}}">{{ ref }}</a></h1>
 		    <h2>{{ version }}</h2>
         {% elif for_user %}
-            <h1>{{ profile.id|user_link }}'s Activity on Sefaria</h1>
+            <h1>{{ profile.id|user_link }} | Public Activity</h1>
         {% else %}
             <h1> Recent Activity on Sefaria</h1>
         {% endif %}
