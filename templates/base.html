@@ -6,6 +6,9 @@
     <title>{% block title %}{% endblock %}</title>
     <meta name="description" property="og:description" content="{% block description %}{% endblock %}">
 
+    <link rel="alternate" href="www.sefaria.org{{ request.path }}" hreflang="en" />
+    <link rel="alternate" href="www.sefaria.org.il{{ request.path }}" hreflang="he" />
+
     {% block ogtype %}<meta property="og:type" content="website"/>{% endblock %}
     {% block ogimage %}<meta property="og:image" content="https://www.sefaria.org/static/img/fb-og-image.png"/>{% endblock %}
 

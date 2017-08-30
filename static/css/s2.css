@@ -2588,19 +2588,28 @@ a.readerNavCategory {
   margin-top: -4px;
 }
 .connectionsPanelHeader .languageToggle,
-.connectionsHeader .readerNavMenuCloseButton.circledX {
+.connectionsHeader .readerNavMenuCloseButton.circledX{
   height: 32px;
   width: 30px;
   text-align: center;
   line-height: 32px;
 }
+.readerNavMenu.noHeader.compare .readerNavTop .readerNavMenuCloseButton.circledX{
+  height: 32px;
+  width: 30px;
+  text-align: center;
+  margin: auto 15px;
+  line-height: 58px;
+}
 .connectionsPanelHeader .languageToggle {
   margin: 0 15px;
 }
-.connectionsHeader .readerNavMenuCloseButton.circledX  {
+.connectionsHeader .readerNavMenuCloseButton.circledX,
+.readerNavMenu.noHeader.compare .readerNavTop .readerNavMenuCloseButton.circledX{
   width: 20px;
 }
-.connectionsHeader .readerNavMenuCloseButton.circledX img {
+.connectionsHeader .readerNavMenuCloseButton.circledX img,
+.readerNavMenu.noHeader.compare .readerNavTop .readerNavMenuCloseButton.circledX img{
   opacity: 0.2;
   height: 20px;
   width: 20px;
@@ -2929,20 +2938,24 @@ a.readerNavCategory {
 .textList .sheet,
 .textList .note {
   padding: 0 0 24px 0;
+  display: flex;
+  flex-flow: column;
 }
 .textList .sheet + .sheet {
   padding: 24px 0;
   border-top: 1px solid #E6E5E6;
+}
+.textList .sheet .sheetInfo{
+  display: flex;
+  justify-content: space-between;
 }
 .textList .sheet .sheetAuthorImg,
 .textList .note .noteAuthorImg {
   height: 26px;
   width: 26px;
   vertical-align: -8px;
-  margin-right: 14px;
 }
 .textList .sheet .sheetViews {
-  float: right;
   color: #999;
   font-size: 12px;
 }
@@ -2951,9 +2964,11 @@ a.readerNavCategory {
   color: #999;
   font-size: 15px;
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  margin: auto 14px;
 }
 .textList .sheet .sheetTitle {
-  display: block;
+  display: flex;
+  justify-content: flex-start;
   margin-top: 14px;
   font-size: 17px;
   font-style: italic;
@@ -2964,19 +2979,23 @@ a.readerNavCategory {
   width: 14px;
   height: 14px;
   opacity: 0.4;
-  margin-right: 6px;
   vertical-align: -1px;
 }
+.textList .sheet .sheetTitle .sheetTitleText{
+  margin: auto 6px;
+}
 .textList .sheet .sheetTags {
+  display: flex;
+  flex-flow: row wrap;
   margin-top: 6px;
   font-size: 13px;
   color: #666;
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
   text-align: left;
 }
-.interface-hebrew .textList .sheet .sheetTags {
+/*.interface-hebrew .textList .sheet .sheetTags {
   text-align: right;
-}
+}*/
 .textList .sheet .sheetTag {
   color: inherit;
   display: inline-block;
@@ -3057,13 +3076,14 @@ a.readerNavCategory {
   font-size: 18px;
 }
 .toolsButton {
-  display: block;
+  display: flex;
+  justify-content: flex-start;
   color: #333;
   border-top: 1px solid #CCC;
   cursor: pointer;
   font-size: 16px;
   letter-spacing: 1px;
-  padding: 20px 26px 20px 0;
+  padding: 20px 0 20px 0;
 }
 .toolsButton:hover {
   text-decoration: none;
@@ -3073,16 +3093,17 @@ a.readerNavCategory {
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
 }
 .toolsButton .toolsButtonIcon {
-  /*float: right;*/
   color: #ccc;
   font-size: 22px;
-  margin-right: 15px;
 }
 .toolsButton img.toolsButtonIcon {
   width: 22px;
   height: 22px;
   opacity: 0.2;
   vertical-align: middle;
+}
+.toolsButton .toolsButtonText{
+  margin: 0 15px;
 }
 .shareInput {
   width: 100%;
