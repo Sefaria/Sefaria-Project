@@ -572,7 +572,7 @@ def s2_group_sheets(request, group, authenticated):
         "propsJSON": propsJSON,
         "html": html,
         "title": group[0].name + _(" | Sefaria"),
-        "desc": group[0].description,
+        "desc": props["groupData"].get("description", ""),
     }, RequestContext(request))
 
 
