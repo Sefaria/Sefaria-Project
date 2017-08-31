@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2017-08-30 15:51-0700\n"
+"POT-Creation-Date: 2017-08-30 20:12-0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -171,7 +171,6 @@ msgid "Revision History of"
 msgstr "היסטורית עריכה של"
 
 #: templates/activity.html:8 templates/activity.html.py:10
-#, fuzzy
 msgid "Sefaria Activity"
 msgstr "פעילות בספריא"
 
@@ -218,7 +217,6 @@ msgid "Sefaria Groups"
 msgstr "קבוצות בספריא"
 
 #: templates/metrics.html:5
-#, fuzzy
 msgid "Sefaria Metrics"
 msgstr "סטטיסטיקות בספריא"
 
@@ -231,7 +229,6 @@ msgstr ""
 "כגון מספר מילים, מספר קישורים ומספר דפי מקורות"
 
 #: templates/people.html:5
-#, fuzzy
 msgid "Authors on Sefaria"
 msgstr "חכמים, מחברים והוגים בספריא"
 
@@ -251,12 +248,10 @@ msgstr ""
 #: templates/registration/register.html:4 templates/static/help.html:4
 #: templates/static/linker.html:4 templates/static/privacy-policy.html:4
 #: templates/static/terms.html:4 templates/static/visualizations.html:4
-#, fuzzy
 msgid "Sefaria"
-msgstr " | ספריא"
+msgstr "ספריא"
 
 #: templates/profile.html:4
-#, fuzzy
 msgid "on Sefaria"
 msgstr "בספריא"
 
@@ -266,25 +261,23 @@ msgid ""
 "translations."
 msgstr "נמצא בספריא. עקבו אחרי פעילות שלהם בדפי מקורות, הערות ותרגומים"
 
-#: templates/s2_sheets.html:7 templates/sheets_visual.html:6
+#: templates/s2_sheets.html:5 templates/sheets_visual.html:4
 msgid "Sefaria Source Sheet Builder"
 msgstr "בונה דפי המקורות בספריא"
 
-#: templates/s2_sheets.html:9 templates/sheets_visual.html:8
+#: templates/s2_sheets.html:5 templates/sheets_visual.html:4
 msgid "Start a New Sheet - Sefaria Source Sheet Builder"
 msgstr "יצירת דף מקורות חדש - בונה דפי המקורות של ספריא"
 
-#: templates/s2_sheets.html:15
+#: templates/s2_sheets.html:7
 #, python-format
 msgid ""
-"\n"
 "A source sheet by %(sheet.owner|user_name)s created with Sefaria's Source "
-"Sheet Builder.\n"
-"        "
+"Sheet Builder."
 msgstr ""
 "דף מקורות מאת %(sheet.owner|user_name)s. נוצר בעזרת בונה דפי המקורות של ספריא"
 
-#: templates/s2_sheets.html:19 templates/sheets_visual.html:18
+#: templates/s2_sheets.html:7 templates/sheets_visual.html:6
 msgid "Create your own source sheet with Sefaria's Source Sheet Builder."
 msgstr "צרו דף מקורות משלכם בעזרת בונה דפי המקורות של ספריא"
 
@@ -304,17 +297,15 @@ msgstr ""
 msgid "Source Sheets for Jewish Learning by Tag"
 msgstr "דפי מקורות ללימוד יהדות על פי נושאים"
 
-#: templates/sheets_visual.html:6
+#: templates/sheets_visual.html:4
 msgid "Visualized"
 msgstr "תצוגה גרפית"
 
-#: templates/sheets_visual.html:14
+#: templates/sheets_visual.html:6
 #, python-format
 msgid ""
-"\n"
 "Visual layout of a source sheet by %(sheet.owner|user_name)s created with "
-"Sefaria's Source Sheet Builder.\n"
-"        "
+"Sefaria's Source Sheet Builder."
 msgstr ""
 "מצב עימוד גרפי של דף המקורות מאת %(sheet.owner|user_name)s. נוצר בעזרת בונה "
 "דפי המקורות של ספריא"
@@ -332,7 +323,6 @@ msgstr ""
 "לעיון נוסף."
 
 #: templates/visual_library.html:4
-#, fuzzy
 msgid "Visualizing the Sefaria Library"
 msgstr "ארון הספרים של ספריא במיצג גרפי"
 
@@ -366,7 +356,6 @@ msgid "Logged Out"
 msgstr "מנותק"
 
 #: templates/registration/login.html:4
-#, fuzzy
 msgid "Log in to Sefaria"
 msgstr "כניסה לחשבון בספריא"
 
@@ -379,7 +368,6 @@ msgstr ""
 "מקורות וכדי להיות בקשר עם משתמשים אחרים"
 
 #: templates/registration/password_reset_complete.html:3
-#, fuzzy
 msgid "Password Reset"
 msgstr "איפוס סיסמא"
 
@@ -416,7 +404,6 @@ msgstr ""
 "וכדי להיות בקשר עם משתמשים אחרים"
 
 #: templates/static/about.html:4
-#, fuzzy
 msgid "About Sefaria"
 msgstr "אודות ספריא"
 
@@ -456,7 +443,6 @@ msgid "Texts Digitized by Sefaria"
 msgstr "טקסטים שעברו דיגיטציה על ידי ספריא"
 
 #: templates/static/donate.html:4
-#, fuzzy
 msgid "Donate to Sefaria"
 msgstr "תרומות לספריא"
 
@@ -488,12 +474,10 @@ msgstr ""
 "בספריא"
 
 #: templates/static/ios.html:4
-#, fuzzy
 msgid "Sefaria iOS"
 msgstr "ספריא לאייפון"
 
 #: templates/static/jobs.html:4
-#, fuzzy
 msgid "Jobs at Sefaria"
 msgstr "משרות בספריא"
 
@@ -555,7 +539,6 @@ msgstr ""
 "ומצויים במאגר לשימוש כללי"
 
 #: templates/static/sefaria-edition.html:4
-#, fuzzy
 msgid "About Sefaria Editions"
 msgstr "אודות גרסאות ספריא"
 
@@ -572,7 +555,6 @@ msgid "In Memory of Rabbi Shraga Silverstein"
 msgstr "לזכרו של הרב שרגא סילברשטיין"
 
 #: templates/static/strategy.html:4
-#, fuzzy
 msgid "Sefaria Strategy"
 msgstr "תכנון בספריא"
 
@@ -588,7 +570,6 @@ msgstr ""
 "אנו מכירים תודה לתורמים הבאים, שבזכות נדיבותם והנהגתם ספריא ממשיכה לפעול"
 
 #: templates/static/team.html:4
-#, fuzzy
 msgid "The Sefaria Team"
 msgstr "הצוות של ספריא"
 
@@ -601,7 +582,6 @@ msgid "Terms of Use"
 msgstr "תנאי שימוש"
 
 #: templates/static/the-sefaria-story.html:4
-#, fuzzy
 msgid "The Sefaria Story"
 msgstr "תולדות ספריא"
 

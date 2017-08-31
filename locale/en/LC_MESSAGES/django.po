@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2017-08-30 15:35-0700\n"
+"POT-Creation-Date: 2017-08-30 20:12-0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -204,11 +204,11 @@ msgstr ""
 msgid "Sefaria Groups"
 msgstr ""
 
-#: templates/metrics.html:8
+#: templates/metrics.html:5
 msgid "Sefaria Metrics"
 msgstr ""
 
-#: templates/metrics.html:10
+#: templates/metrics.html:7
 msgid ""
 "See graphs charting Sefaria's progress since 2013 across metrics including "
 "word counts, number of links and number of source sheets."
@@ -245,24 +245,22 @@ msgid ""
 "translations."
 msgstr ""
 
-#: templates/s2_sheets.html:7 templates/sheets_visual.html:6
+#: templates/s2_sheets.html:5 templates/sheets_visual.html:4
 msgid "Sefaria Source Sheet Builder"
 msgstr ""
 
-#: templates/s2_sheets.html:9 templates/sheets_visual.html:8
+#: templates/s2_sheets.html:5 templates/sheets_visual.html:4
 msgid "Start a New Sheet - Sefaria Source Sheet Builder"
 msgstr ""
 
-#: templates/s2_sheets.html:15
+#: templates/s2_sheets.html:7
 #, python-format
 msgid ""
-"\n"
 "A source sheet by %(sheet.owner|user_name)s created with Sefaria's Source "
-"Sheet Builder.\n"
-"        "
+"Sheet Builder."
 msgstr ""
 
-#: templates/s2_sheets.html:19 templates/sheets_visual.html:18
+#: templates/s2_sheets.html:7 templates/sheets_visual.html:6
 msgid "Create your own source sheet with Sefaria's Source Sheet Builder."
 msgstr ""
 
@@ -280,17 +278,15 @@ msgstr ""
 msgid "Source Sheets for Jewish Learning by Tag"
 msgstr ""
 
-#: templates/sheets_visual.html:6
+#: templates/sheets_visual.html:4
 msgid "Visualized"
 msgstr ""
 
-#: templates/sheets_visual.html:14
+#: templates/sheets_visual.html:6
 #, python-format
 msgid ""
-"\n"
 "Visual layout of a source sheet by %(sheet.owner|user_name)s created with "
-"Sefaria's Source Sheet Builder.\n"
-"        "
+"Sefaria's Source Sheet Builder."
 msgstr ""
 
 #: templates/talmud_people.html:6
