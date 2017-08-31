@@ -35,7 +35,7 @@ from sefaria.workflows import *
 from sefaria.reviews import *
 from sefaria.model.user_profile import user_link, user_started_text, unread_notifications_count_for_user
 from sefaria.model.group import GroupSet
-from sefaria.model.topic import topics
+from sefaria.model.topic import get_topics
 from sefaria.client.wrapper import format_object_for_client, format_note_object_for_client, get_notes, get_links
 from sefaria.system.exceptions import InputError, PartialRefInputError, BookNameError, NoVersionFoundError, DuplicateRecordError
 # noinspection PyUnresolvedReferences
@@ -632,6 +632,7 @@ def s2_topics_page(request):
     Page of sheets by tag.
     Currently used to for "My Sheets" and  "All Sheets" as well.
     """
+    topics = get_topics()
     props = s2_props(request)
     props.update({
         "initialMenu":  "topics",
@@ -661,6 +662,7 @@ def s2_topic_page(request, topic):
     Page of sheets by tag.
     Currently used to for "My Sheets" and  "All Sheets" as well.
     """
+    topics = get_topics()
     props = s2_props(request)
     props.update({
         "initialMenu":  "topics",
@@ -2626,6 +2628,7 @@ def topics_list_api(request):
     """
     API to get data for a particular topic.
     """
+    topics = get_topics()
     response = topics.list(sort_by="count")
     response = jsonResponse(response, callback=request.GET.get("callback", None))
     response["Cache-Control"] = "max-age=3600"
@@ -2637,6 +2640,7 @@ def topics_api(request, topic):
     """
     API to get data for a particular topic.
     """
+    topics = get_topics()
     response = topics.get(topic).contents()
     response = jsonResponse(response, callback=request.GET.get("callback", None))
     response["Cache-Control"] = "max-age=3600"
