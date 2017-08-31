@@ -203,7 +203,7 @@ class ReaderNavigationMenu extends Component {
                         <span className="int-en">Authors</span>
                         <span className="int-he">רשימת מחברים</span>
                       </a>),
-                    (<a className="resourcesLink outOfAppLink" style={sheetsStyle} href="/topics">
+                    (<a className="resourcesLink" style={sheetsStyle} href="/topics" onClick={this.props.openMenu.bind(null, "topics")}>
                         <img src="/static/img/hashtag-icon.svg" alt="" />
                         <span className="int-en">Topics</span>
                         <span className="int-he">Topics</span>

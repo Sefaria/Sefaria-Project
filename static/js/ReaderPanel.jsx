@@ -642,6 +642,8 @@ class ReaderPanel extends Component {
                       multiPanel={this.props.multiPanel}
                       hideNavHeader={this.props.hideNavHeader}
                       toggleLanguage={this.toggleLanguage}
+                      navHome={this.openMenu.bind(null, "navigation")}
+                      openDisplaySettings={this.openDisplaySettings}
                       key={"TopicPage"} />);   
       } else {
         var menu = (<TopicsPanel
@@ -653,6 +655,8 @@ class ReaderPanel extends Component {
                       multiPanel={this.props.multiPanel}
                       hideNavHeader={this.props.hideNavHeader}
                       toggleLanguage={this.toggleLanguage}
+                      navHome={this.openMenu.bind(null, "navigation")}
+                      openDisplaySettings={this.openDisplaySettings}
                       key={"TopicsPanel"} />);        
       }
 
