@@ -212,20 +212,19 @@ def get_topics():
     global topics
     global topics_timestamp
 
+    # If Redis timestamp matches what we have in memory, return it
     current_timestamp = scache.get_cache_elem('topics_timestamp')
-    print "Current Timestamp: %d" % current_timestamp
     if current_timestamp and topics_timestamp == current_timestamp:
-        print "Cache is current"
         return topics
     
+    # If Redis timestamp differs, load data from Redis
     elif current_timestamp:
-        print "Update from Redis"
         pickled = scache.get_cache_elem('topics')
         topics = pickle.loads(pickled)
         topics_timestamp = current_timestamp
         return topics
 
-    print "Initial Load"
+    # If there's nothing in Redis, return a new manager
     topics = TopicsManager()
     topics_timestamp = topics.timestamp()
     return topics

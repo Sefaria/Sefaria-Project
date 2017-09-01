@@ -21,6 +21,7 @@ import Component          from 'react-class';
 class TopicsPanel extends Component {
   constructor(props) {
     super(props);
+    this.state = {"filter": ""};
   }
   componentDidMount() {
     this.loadData();
@@ -32,12 +33,23 @@ class TopicsPanel extends Component {
       Sefaria.topicList(this.rerender);
     }
   }
+  handleFilterChange(e) {
+    this.setState({filter: e.currentTarget.value.toLowerCase()});
+  }
+  resetFilter() {
+    this.setState({"filter": ""});
+    $(".topicFilterInput").val("");
+  }
   rerender() {
     this.forceUpdate();
   }
   render() {
     var topics = Sefaria.topicList();
-    var topicList = topics ? topics.map(function(item, i) {
+    var topicList = topics ? topics.filter(function(item, i) {
+      if (!this.state.filter.length) { return true }
+      var tag = item.tag.toLowerCase();
+      return tag.indexOf(this.state.filter) !== -1;
+      }.bind(this)).map(function(item, i) {
       var classes = classNames({navButton: 1, sheetButton: 1 });
       return (<Link 
                 className={classes}
@@ -72,6 +84,18 @@ class TopicsPanel extends Component {
                 <span className="int-he">Topics</span>
               </h1>
               : null }
+
+            <div className="topicFilterBox">
+              <i className="topicFilterIcon fa fa-search"></i>
+              <input className="topicFilterInput" placeholder="Search Topics" onChange={this.handleFilterChange} />
+              { this.state.filter.length ? 
+              <div className="topicsFilterReset" onClick={this.resetFilter}>
+                <span className="int-en">Reset</span>
+                <span className="int-he">Reset</span>
+                <img className="topicsFilterResetIcon" src="/static/img/circled-x.svg" />       
+              </div>
+              : null }
+            </div>
             <div className="topicList">
               { topics ?
                   (topics.length ?
