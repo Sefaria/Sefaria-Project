@@ -2231,6 +2231,7 @@ a.readerNavCategory {
   padding: 24px 28px 24px;
   color: #999;
   text-align: center;
+  justify-content: center;
   font-weight: lighter;
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
   text-transform: uppercase;
@@ -2931,6 +2932,12 @@ a.readerNavCategory {
 }
 .dark .textList .texts .textRange .title {
   color: #ddd;
+}
+.textRange .title {
+  display: flex;
+  justify-content: space-between;
+}
+.textRange .title .buttons {
 }
 .bilingual .textList .title .he {
   display: none;
@@ -3842,8 +3849,43 @@ h2.splitHeader .he {
 .groupMemberListingActionsMenu .role.current {
   color: #666;
 }
+.topicsPanel.systemPanel.readerNavMenu h1 {
+  margin-bottom: 30px;
+}
 .topicsPanel .loadingMessage {
   text-align: center;
+}
+.topicsPanel .topicFilterBox {
+  position: relative;
+}
+.topicsPanel .topicFilterIcon {
+  font-size: 22px;
+  position: absolute;
+  top: 24px;
+  left: 0;
+  opacity: 0.4;
+}
+.topicsPanel .topicFilterInput {
+  padding: 20px 10px 20px 34px;
+  width: 100%;
+  box-sizing: border-box;
+  border: none;
+  background: transparent;
+  font-size: 24px;
+}
+.topicsPanel .topicsFilterReset {
+  position: absolute;
+  top: 26px;
+  right: 0;
+  color: #999;
+  cursor: pointer;
+}
+.topicsPanel .topicsFilterResetIcon {
+  height: 16px;
+  width: 16px;
+  opacity: 0.4;
+  margin-left: 8px;
+  vertical-align: middle;
 }
 .topicsPanel .topicList {
   min-height: 500px;
@@ -3893,11 +3935,10 @@ h2.splitHeader .he {
   font-weight: bold;
 }
 .topicPanel .topicSource .score {
-  position: absolute;
   font-size: 17px;
-  top: 0;
-  right: 5px;
   color: #333;
+  font-weight: normal;
+  white-space: nowrap;
   border-radius: 4px;
   padding: 3px;
 }

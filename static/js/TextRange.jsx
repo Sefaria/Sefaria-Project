@@ -313,12 +313,12 @@ class TextRange extends Component {
       <div className={classes} onClick={this.handleClick} onKeyPress={this.handleKeyPress}>
         {sidebarNum}
         {this.props.hideTitle ? null :
-
         (<div className="title">
           <div className="titleBox" role="heading" aria-level="2">
             <span className="en" >{title}</span>
             <span className="he">{heTitle}</span>
           </div>
+          {this.props.titleButtons ? <div className="buttons" onClick={e => e.stopPropagation()}>{this.props.titleButtons}</div> : null }
         </div>)}
         <div className="text">
           <div className="textInner">
@@ -344,6 +344,7 @@ TextRange.propTypes = {
   numberLabel:            PropTypes.number,
   settings:               PropTypes.object,
   filter:                 PropTypes.array,
+  titleButtons:           PropTypes.object,
   onTextLoad:             PropTypes.func,
   onRangeClick:           PropTypes.func,
   onSegmentClick:         PropTypes.func,

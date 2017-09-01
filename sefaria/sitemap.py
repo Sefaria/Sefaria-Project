@@ -29,15 +29,18 @@ class SefariaSiteMapGenerator(object):
     static_urls = [
         "",
         "/explore",
-        "/translation-requests",
-        "/contribute",
         "/texts",
+        "/visualizations",
         "/activity",
         "/educators",
+        "/donate",
+        "/supporters",
+        "/linker",
+        "/jobs",
+        "/help",
+        "/metrics",
         "/sheets",
         "/sheets/public",
-        "/sheets/tags",
-        "/developers",
         "/login",
         "/register",
         "/related-projects",
@@ -46,9 +49,9 @@ class SefariaSiteMapGenerator(object):
         "/privacy-policy",
         "/updates",
         "/people",
-        "/people/Talmud"
+        "/people/Talmud",
+        "/william-davidson-talmud",
     ]
-
 
     def __init__(self, hostSuffix='org'):
         if hostSuffix in SefariaSiteMapGenerator.hostnames:

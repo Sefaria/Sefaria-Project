@@ -73,7 +73,7 @@ class NewUserForm(EmailUserCreationForm):
         model = User
         fields = ("email",)
  
-    def __init__(self, language="english", *args, **kwargs):
+    def __init__(self, *args, **kwargs):
         super(EmailUserCreationForm, self).__init__(*args, **kwargs)
         del self.fields['password2']
         self.fields.keyOrder = ["email", "first_name", "last_name", "password1"]

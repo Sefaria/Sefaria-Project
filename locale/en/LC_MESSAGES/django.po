@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2017-08-30 13:14-0700\n"
+"POT-Creation-Date: 2017-08-31 17:21-0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -28,6 +28,11 @@ msgstr ""
 
 #: reader/views.py:484 reader/views.py:574 reader/views.py:617
 msgid " | Sefaria"
+msgstr ""
+
+#: reader/views.py:485
+#, python-format
+msgid "Read %(categories)s texts online with commentaries and connections."
 msgstr ""
 
 #: reader/views.py:488
@@ -81,26 +86,46 @@ msgid ""
 "library of Jewish texts."
 msgstr ""
 
-#: reader/views.py:712
+#: reader/views.py:647
+msgid "Topics"
+msgstr ""
+
+#: reader/views.py:647 templates/person.html:6 templates/person.html.py:8
+#: templates/search.html:6
+#: templates/registration/password_reset_complete.html:3
+#: templates/registration/password_reset_confirm.html:4
+#: templates/registration/password_reset_done.html:3
+#: templates/registration/password_reset_form.html:4
+#: templates/registration/register.html:4 templates/static/help.html:4
+#: templates/static/linker.html:4 templates/static/privacy-policy.html:4
+#: templates/static/terms.html:4 templates/static/visualizations.html:4
+msgid "Sefaria"
+msgstr ""
+
+#: reader/views.py:648
+msgid "Explore Jewish Texts by Topic on Sefaria"
+msgstr ""
+
+#: reader/views.py:703
 msgid "The Sefaria Libray"
 msgstr ""
 
-#: reader/views.py:713
+#: reader/views.py:704
 msgid ""
 "Browse 1,000s of Jewish texts in the Sefaria Library by category and title."
 msgstr ""
 
-#: reader/views.py:719
+#: reader/views.py:710
 msgid "New Additions to the Sefaria Library"
 msgstr ""
 
-#: reader/views.py:720
+#: reader/views.py:711
 msgid ""
 "See texts, translations and connections that have been recently added to "
 "Sefaria."
 msgstr ""
 
-#: reader/views.py:2845
+#: reader/views.py:2838
 msgid "You must be logged in to update your profile."
 msgstr ""
 
@@ -199,6 +224,16 @@ msgstr ""
 msgid "Sefaria Groups"
 msgstr ""
 
+#: templates/metrics.html:5
+msgid "Sefaria Metrics"
+msgstr ""
+
+#: templates/metrics.html:7
+msgid ""
+"See graphs charting Sefaria's progress since 2013 across metrics including "
+"word counts, number of links and number of source sheets."
+msgstr ""
+
 #: templates/people.html:5
 msgid "Authors on Sefaria"
 msgstr ""
@@ -207,17 +242,6 @@ msgstr ""
 msgid ""
 "Biographies and information about the authors of Jewish texts on Sefaria, "
 "together with links to their available texts."
-msgstr ""
-
-#: templates/person.html:6 templates/person.html.py:8 templates/search.html:6
-#: templates/registration/password_reset_complete.html:3
-#: templates/registration/password_reset_confirm.html:4
-#: templates/registration/password_reset_done.html:3
-#: templates/registration/password_reset_form.html:4
-#: templates/registration/register.html:4 templates/static/help.html:4
-#: templates/static/linker.html:4 templates/static/privacy-policy.html:4
-#: templates/static/terms.html:4 templates/static/visualizations.html:4
-msgid "Sefaria"
 msgstr ""
 
 #: templates/profile.html:4
@@ -230,24 +254,22 @@ msgid ""
 "translations."
 msgstr ""
 
-#: templates/s2_sheets.html:7 templates/sheets_visual.html:6
+#: templates/s2_sheets.html:5 templates/sheets_visual.html:4
 msgid "Sefaria Source Sheet Builder"
 msgstr ""
 
-#: templates/s2_sheets.html:9 templates/sheets_visual.html:8
+#: templates/s2_sheets.html:5 templates/sheets_visual.html:4
 msgid "Start a New Sheet - Sefaria Source Sheet Builder"
 msgstr ""
 
-#: templates/s2_sheets.html:15
+#: templates/s2_sheets.html:7
 #, python-format
 msgid ""
-"\n"
 "A source sheet by %(sheet.owner|user_name)s created with Sefaria's Source "
-"Sheet Builder.\n"
-"        "
+"Sheet Builder."
 msgstr ""
 
-#: templates/s2_sheets.html:19 templates/sheets_visual.html:18
+#: templates/s2_sheets.html:7 templates/sheets_visual.html:6
 msgid "Create your own source sheet with Sefaria's Source Sheet Builder."
 msgstr ""
 
@@ -256,27 +278,24 @@ msgid "Search Jewish Texts"
 msgstr ""
 
 #: templates/search.html:8
-#, python-format
 msgid ""
 "Search the full text of thousands of Jewish texts in Hebrew and in English, "
-"filter results by category or book, and read the texts online on Sefaria.%%"
+"filter results by category or book, and read the texts online on Sefaria."
 msgstr ""
 
 #: templates/sheet_tags.html:7
 msgid "Source Sheets for Jewish Learning by Tag"
 msgstr ""
 
-#: templates/sheets_visual.html:6
+#: templates/sheets_visual.html:4
 msgid "Visualized"
 msgstr ""
 
-#: templates/sheets_visual.html:14
+#: templates/sheets_visual.html:6
 #, python-format
 msgid ""
-"\n"
 "Visual layout of a source sheet by %(sheet.owner|user_name)s created with "
-"Sefaria's Source Sheet Builder.\n"
-"        "
+"Sefaria's Source Sheet Builder."
 msgstr ""
 
 #: templates/talmud_people.html:6
@@ -324,7 +343,7 @@ msgstr ""
 
 #: templates/registration/login.html:6
 msgid ""
-"Log in to your Sefaria account to make source sheets, right notes, and "
+"Log in to your Sefaria account to make source sheets, write notes, and "
 "follow other Sefaria users."
 msgstr ""
 
@@ -384,6 +403,13 @@ msgstr ""
 
 #: templates/static/contributed-to-sefaria.html:4
 msgid "Texts Contributed to Sefaria"
+msgstr ""
+
+#: templates/static/contributed-to-sefaria.html:6
+msgid ""
+"Texts on Sefaria that list this page as their source were contributed "
+"directly to Sefaria and have not yet been published elsewhere in print or on "
+"the web."
 msgstr ""
 
 #: templates/static/digitized-by-sefaria.html:4
@@ -470,8 +496,20 @@ msgstr ""
 msgid "About Sefaria Community Translations"
 msgstr ""
 
+#: templates/static/sefaria-community-translation.html:6
+msgid ""
+"Sefaria Community Translations are open, crowd-sourced translations of texts "
+"available in the Sefaria Library."
+msgstr ""
+
 #: templates/static/sefaria-edition.html:4
 msgid "About Sefaria Editions"
+msgstr ""
+
+#: templates/static/sefaria-edition.html:6
+msgid ""
+"The Sefaria Edition is a Sefaria commissioned translation created by "
+"professional translators."
 msgstr ""
 
 #: templates/static/shraga-silverstein.html:4

@@ -203,14 +203,13 @@ class ReaderNavigationMenu extends Component {
                         <span className="int-en">Authors</span>
                         <span className="int-he">רשימת מחברים</span>
                       </a>),
-                    /*
-                    (<a className="resourcesLink outOfAppLink" style={sheetsStyle} href="/topics">
+                    (<a className="resourcesLink" style={sheetsStyle} href="/topics" onClick={this.props.openMenu.bind(null, "topics")}>
                         <img src="/static/img/hashtag-icon.svg" alt="" />
                         <span className="int-en">Topics</span>
-                        <span className="int-he">Topics</span>
-                      </a>)*/
+                        <span className="int-he">נושאים</span>
+                      </a>)
                       ];
-      resources = (<div className="readerNavCalendar"><TwoOrThreeBox content={resources} width={this.width} /></div>);
+      resources = (<div className="readerNavCalendar"><TwoBox content={resources} width={this.width} /></div>);
 
 
       var topContent = this.props.home ?
