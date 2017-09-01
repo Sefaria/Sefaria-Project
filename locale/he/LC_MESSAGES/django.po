@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2017-08-30 20:12-0700\n"
+"POT-Creation-Date: 2017-08-31 17:22-0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -93,28 +93,48 @@ msgstr ""
 "דפי מקורות פומביים המתוייגים ב\"%(tag)s\" השאובים מהמקורות שבאוצר הספרות "
 "בספריא."
 
-#: reader/views.py:712
+#: reader/views.py:647
+msgid "Topics"
+msgstr ""
+
+#: reader/views.py:647 templates/person.html:6 templates/person.html.py:8
+#: templates/search.html:6
+#: templates/registration/password_reset_complete.html:3
+#: templates/registration/password_reset_confirm.html:4
+#: templates/registration/password_reset_done.html:3
+#: templates/registration/password_reset_form.html:4
+#: templates/registration/register.html:4 templates/static/help.html:4
+#: templates/static/linker.html:4 templates/static/privacy-policy.html:4
+#: templates/static/terms.html:4 templates/static/visualizations.html:4
+msgid "Sefaria"
+msgstr "ספריא"
+
+#: reader/views.py:648
+msgid "Explore Jewish Texts by Topic on Sefaria"
+msgstr ""
+
+#: reader/views.py:703
 msgid "The Sefaria Libray"
 msgstr "המאגר של ספריא"
 
-#: reader/views.py:713
+#: reader/views.py:704
 msgid ""
 "Browse 1,000s of Jewish texts in the Sefaria Library by category and title."
 msgstr ""
 "גלשו בתוככי אלפי ספרי אוצר הספרות היהודית לדורותיה. מצאו ספרים לפי שם או "
 "סוגה."
 
-#: reader/views.py:719
+#: reader/views.py:710
 msgid "New Additions to the Sefaria Library"
 msgstr "חידושים בארון הספרים של ספריא"
 
-#: reader/views.py:720
+#: reader/views.py:711
 msgid ""
 "See texts, translations and connections that have been recently added to "
 "Sefaria."
 msgstr "הודעות לגבי טקסטים, תרגומים וקישורים חדשים שנוספו לאחרונה לספריא"
 
-#: reader/views.py:2845
+#: reader/views.py:2838
 msgid "You must be logged in to update your profile."
 msgstr "הנכם צריכים להיות מחוברים כדי לערוך את הפרופיל שלכם."
 
@@ -239,17 +259,6 @@ msgid ""
 msgstr ""
 "ביוגרפיות ומידע אודות החכמים ואישים בתולדות ספרות ישראל המצויים באוצר של "
 "ספריא, עם קישורים לטקסטים שלהם במאגר."
-
-#: templates/person.html:6 templates/person.html.py:8 templates/search.html:6
-#: templates/registration/password_reset_complete.html:3
-#: templates/registration/password_reset_confirm.html:4
-#: templates/registration/password_reset_done.html:3
-#: templates/registration/password_reset_form.html:4
-#: templates/registration/register.html:4 templates/static/help.html:4
-#: templates/static/linker.html:4 templates/static/privacy-policy.html:4
-#: templates/static/terms.html:4 templates/static/visualizations.html:4
-msgid "Sefaria"
-msgstr "ספריא"
 
 #: templates/profile.html:4
 msgid "on Sefaria"

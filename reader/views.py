@@ -640,19 +640,12 @@ def s2_topics_page(request):
         "topicList": topics.list(sort_by="count"),
     })
 
-    if props["interfaceLang"] == "hebrew":
-        title = u"Topics | Sefaria." # HEBREW NEEDED
-        desc  = u'Explore Jewish Texts by Topic on Sefaria.'
-    else:
-        title = u"Topics | Sefaria."
-        desc  = u'Explore Jewish Texts by Topic on Sefaria.'
-
     propsJSON = json.dumps(props)
     html = render_react_component("ReaderApp", propsJSON)
     return render_to_response('s2.html', {
         "propsJSON":      propsJSON,
-        "title":          title,
-        "desc":           desc,
+        "title":          _("Topics") + " | " + _("Sefaria"),
+        "desc":           _("Explore Jewish Texts by Topic on Sefaria"),
         "html":           html,
     }, RequestContext(request))
 
@@ -670,12 +663,8 @@ def s2_topic_page(request, topic):
         "topicData": topics.get(topic).contents(),
     })
 
-    if props["interfaceLang"] == "hebrew":
-        title = u"{} | Sefaria".format(topic) # HEBREW NEEDED
-        desc  = u'Explore "{}" on Sefaria, drawing from our library of Jewish texts.'.format(topic)
-    else:
-        title = u"{} | Sefaria".format(topic)
-        desc  = u'Explore "{}" on Sefaria, drawing from our library of Jewish texts.'.format(topic)
+    title = u"%(topic)s | Sefaria" % {"topic": topic}
+    desc  = u'Explore "%(topic)s" on Sefaria, drawing from our library of Jewish texts.' % {"topic": topic}
 
     propsJSON = json.dumps(props)
     html = render_react_component("ReaderApp", propsJSON)

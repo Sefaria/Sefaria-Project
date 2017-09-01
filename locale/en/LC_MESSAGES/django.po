@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2017-08-30 20:12-0700\n"
+"POT-Creation-Date: 2017-08-31 17:21-0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -86,26 +86,46 @@ msgid ""
 "library of Jewish texts."
 msgstr ""
 
-#: reader/views.py:712
+#: reader/views.py:647
+msgid "Topics"
+msgstr ""
+
+#: reader/views.py:647 templates/person.html:6 templates/person.html.py:8
+#: templates/search.html:6
+#: templates/registration/password_reset_complete.html:3
+#: templates/registration/password_reset_confirm.html:4
+#: templates/registration/password_reset_done.html:3
+#: templates/registration/password_reset_form.html:4
+#: templates/registration/register.html:4 templates/static/help.html:4
+#: templates/static/linker.html:4 templates/static/privacy-policy.html:4
+#: templates/static/terms.html:4 templates/static/visualizations.html:4
+msgid "Sefaria"
+msgstr ""
+
+#: reader/views.py:648
+msgid "Explore Jewish Texts by Topic on Sefaria"
+msgstr ""
+
+#: reader/views.py:703
 msgid "The Sefaria Libray"
 msgstr ""
 
-#: reader/views.py:713
+#: reader/views.py:704
 msgid ""
 "Browse 1,000s of Jewish texts in the Sefaria Library by category and title."
 msgstr ""
 
-#: reader/views.py:719
+#: reader/views.py:710
 msgid "New Additions to the Sefaria Library"
 msgstr ""
 
-#: reader/views.py:720
+#: reader/views.py:711
 msgid ""
 "See texts, translations and connections that have been recently added to "
 "Sefaria."
 msgstr ""
 
-#: reader/views.py:2845
+#: reader/views.py:2838
 msgid "You must be logged in to update your profile."
 msgstr ""
 
@@ -222,17 +242,6 @@ msgstr ""
 msgid ""
 "Biographies and information about the authors of Jewish texts on Sefaria, "
 "together with links to their available texts."
-msgstr ""
-
-#: templates/person.html:6 templates/person.html.py:8 templates/search.html:6
-#: templates/registration/password_reset_complete.html:3
-#: templates/registration/password_reset_confirm.html:4
-#: templates/registration/password_reset_done.html:3
-#: templates/registration/password_reset_form.html:4
-#: templates/registration/register.html:4 templates/static/help.html:4
-#: templates/static/linker.html:4 templates/static/privacy-policy.html:4
-#: templates/static/terms.html:4 templates/static/visualizations.html:4
-msgid "Sefaria"
 msgstr ""
 
 #: templates/profile.html:4
