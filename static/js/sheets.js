@@ -143,6 +143,12 @@ $(function() {
 			}
 		})
 	});
+	$("#inlineAddBrowse").keydown(function(e) {
+		if (e.which == 13) {
+			$("#inlineAddBrowse").click();
+		}
+  });
+
 
 	$(document).on("click", "#inlineAddSourceOK", function() {
 		var $target = $("#addInterface").prev(".sheetItem");
@@ -158,6 +164,11 @@ $(function() {
         });
 		sjs.track.sheets("Add Source", ref);
 	});
+	$(document).on("keydown", "#inlineAddSourceOK", function(e) {
+		if (e.which == 13) {
+			$("#inlineAddSourceOK").click();
+		}
+  });
 
     var RefValidator = function($input, $msg, $ok, $preview) {
         /** Replacement for utils.js:sjs.checkref that uses only new tools.
@@ -946,10 +957,22 @@ $(function() {
 
 	// ---------- Save Sheet --------------
 	$("#save").click(handleSave);
+	$("#save").keydown(function(e){
+		if (e.which == 13) {
+			handleSave();
+		}
+	});
+
+
 
 
 	// ---------- Share Sheet --------------
 	$("#share").click(showShareModal);
+	$("#share").keydown(function(e){
+		if (e.which == 13) {
+			showShareModal();
+		}
+	});
 
 
 	// ---------- Copy Sheet ----------------
@@ -1182,22 +1205,41 @@ $(function() {
 
 		if (sjs.is_owner||sjs.can_edit||sjs.can_add) {
 
-
-			$("#addInterface").on("click", ".buttonBar .addInterfaceButton", function (e) {
+			function toggleAddInterface(e, target, trigger) {
 				$("#addInterface .addInterfaceButton").removeClass('active');
 				$("#inlineTextPreview").html("");
 				$("#inlineTextPreview").hide();
-				$(this).addClass('active');
-				var divToShow = "#add" + ($(this).attr('id').replace('Button', '')) + "Div";
+				target.addClass('active');
+				var divToShow = "#add" + (target.attr('id').replace('Button', '')) + "Div";
 				$(".contentDiv > div").hide();
 				$(divToShow).show();
+				if (trigger == "keyboard") {
+					var input = $(divToShow).find(':focusable').first();
+					input.focus();
+				}
+			}
 
+
+			$("#addInterface").on("click", ".buttonBar .addInterfaceButton", function (e) {
+				toggleAddInterface(e,$(this),"click");
+			});
+
+			$("#addInterface").on("keydown", ".buttonBar .addInterfaceButton", function (e) {
+				if (e.which == 13) {
+					toggleAddInterface(e,$(this),"keyboard");
+				}
 			});
 
 
 			$("#connectionsToAdd").on("click", ".sourceConnection", function (e) {
-				$(this).hasClass("active") ? $(this).removeClass("active") : $(this).addClass("active");
+				$(this).hasClass("active") ? $(this).removeClass("active").attr("aria-checked","false"): $(this).addClass("active").attr("aria-checked","true");
 			});
+
+			$("#addconnectionDiv").on("keydown", ".sourceConnection", function (e) {
+				if (e.which == 13) {
+				$(this).hasClass("active") ? $(this).removeClass("active").attr("aria-checked","false"): $(this).addClass("active").attr("aria-checked","true");
+				}
+      });
 
 			$("#addconnectionDiv").on("click", ".button", function (e) {
 
@@ -1217,8 +1259,15 @@ $(function() {
 
 				});
 
+			$("#addconnectionDiv").on("keydown", ".button", function (e) {
+				if (e.which == 13) {
+					$("#addconnectionDiv .button").click();
+				}
+      });
+
+
 				autoSave();
-				$(".sourceConnection").removeClass('active');
+				$(".sourceConnection").removeClass('active').attr("aria-checked","false");
 				$("#sheet").click();
 				$("#sourceButton").click();
 
@@ -1303,7 +1352,7 @@ $(function() {
 								}
 							}
 							dataRefs = dataRefs.slice(0, -1); //remove trailing ";"
-							connectionsToSource += '<div class="sourceConnection" data-refs="' + dataRefs + '">' + labels[j] + '</div>';
+							connectionsToSource += '<div role="checkbox" aria-checked="false" tabindex="0" class="sourceConnection" data-refs="' + dataRefs + '">' + labels[j] + '</div>';
 						}
 						connectionsToSource += "</div>";
 
@@ -1313,6 +1362,12 @@ $(function() {
 
 
 				});
+			});
+
+			$("#addInterface").on("keydown", "#connectionButton", function (e) {
+				if (e.which == 13) {
+					$("#connectionButton").click()
+				}
 			});
 
 			$("#addcommentDiv").on("click", ".button", function (e) {
@@ -1328,6 +1383,13 @@ $(function() {
 				//$target.next(".sheetItem").find(".comment").last().trigger("mouseup").focus();
 
 			});
+
+			$("#addcommentDiv").on("keydown", ".button", function (e) {
+				if (e.which == 13) {
+					$("#addcommentDiv .button").click();
+				}
+      });
+
 
 			$("#addcommentDiv .contentToAdd").keypress(function (e) {
 				if(isHebrew($(this).text()) && $(this).text().length > 0) {
@@ -1359,6 +1421,19 @@ $(function() {
 				}
 
 				autoSave();
+			});
+
+			$("#addmediaDiv").on("keydown", ".button", function (e) {
+				if (e.which == 13) {
+					$("#addmediaDiv .button").click();
+				}
+      });
+
+
+			$("#addmediaDiv").on("keydown", "#addmediaFileSelector", function(e) {
+				if (e.which == 13) {
+					$("#addmediaDiv #addmediaFileSelector").click();
+				}
 			});
 
 
@@ -1408,6 +1483,12 @@ $(function() {
 				//	$target.next(".sheetItem").find(".comment").last().trigger("mouseup").focus();
 
 			});
+
+			$("#addcustomTextDiv").on("keydown", ".button", function (e) {
+				if (e.which == 13) {
+					$("#addcustomTextDiv .button").click();
+				}
+      });
 
 			$("html").on("click", "#content", function (e) {
 				//clicked off of a sheetitem
