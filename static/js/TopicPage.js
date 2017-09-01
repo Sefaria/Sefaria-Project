@@ -150,13 +150,17 @@ class TopicSource extends Component {
     var openSource = this.props.showBaseText.bind(null, this.props.sref);
     var openSourceWithSheets = null; //this.props.showBaseText.bind(null, this.props.sref, true, null, null, ["Sheets"])
     var title = this.props.count + " Sheets tagged " + this.props.topic + " include this source."
+    var buttons = <a
+                    href={"/" + Sefaria.normRef(this.props.sref) + "?with=Sheets"} 
+                    className="score"
+                    onClick={openSourceWithSheets}
+                    title={title}>+{this.props.count}<img src="/static/img/sheet.svg" /></a>
+    
     return (<div className="topicSource">
-              <a
-                href={"/" + Sefaria.normRef(this.props.sref) + "?with=Sheets"} 
-                className="score"
-                onClick={openSourceWithSheets}
-                title={title}>+{this.props.count}<img src="/static/img/sheet.svg" /></a>
-              <TextRange sref={this.props.sref} onRangeClick={openSource} />
+              <TextRange 
+                sref={this.props.sref} 
+                titleButtons={buttons}
+                onRangeClick={openSource} />
             </div>);  }
 }
 TopicSource.propTypes = {

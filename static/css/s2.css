@@ -2231,6 +2231,7 @@ a.readerNavCategory {
   padding: 24px 28px 24px;
   color: #999;
   text-align: center;
+  justify-content: center;
   font-weight: lighter;
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
   text-transform: uppercase;
@@ -2931,6 +2932,12 @@ a.readerNavCategory {
 }
 .dark .textList .texts .textRange .title {
   color: #ddd;
+}
+.textRange .title {
+  display: flex;
+  justify-content: space-between;
+}
+.textRange .title .buttons {
 }
 .bilingual .textList .title .he {
   display: none;
@@ -3928,11 +3935,10 @@ h2.splitHeader .he {
   font-weight: bold;
 }
 .topicPanel .topicSource .score {
-  position: absolute;
   font-size: 17px;
-  top: 0;
-  right: 5px;
   color: #333;
+  font-weight: normal;
+  white-space: nowrap;
   border-radius: 4px;
   padding: 3px;
 }
