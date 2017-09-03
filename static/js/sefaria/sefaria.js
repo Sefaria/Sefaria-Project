@@ -445,6 +445,17 @@ Sefaria = extend(Sefaria, {
     } else {
       this._index[text] = index;
     }
+  }, 
+  _shape: {}, // Cache for shape records
+  shape:  function(title, cb) {
+    if (title in this._shape) {
+        return this._shape[title];
+    }          
+    var url = "/api/shape/" + title;
+    this._api(url, function(data) {
+      if (cb) { cb(data); }
+      Sefaria._shape[title] = data;
+    });
   },
   _cacheIndexFromToc: function(toc) {
     // Unpacks contents of Sefaria.toc into index cache.
