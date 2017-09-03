@@ -5,7 +5,7 @@ body {
 	overflow-x: visible;
 	font-family: "proxima-nova","Helvetica Neue","Helvetica",sans-serif;
 }
-body:not(.user-is-tabbing) #sheet *:focus {
+body:not(.user-is-tabbing) #sheet .cke_editable:focus {
   	outline: auto;
 	outline-color: rgb(59,153,252);
 }

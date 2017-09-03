@@ -1,40 +1,10 @@
 {% extends "base.html" %}
 {% block exclude_block_on_source_sheets %}{% endblock %}
-{% load cache %}
-{% load humanize %}
-{% load sefaria_tags %}
+{% load i18n cache humanize sefaria_tags%}
 
-{% block titleEnglish %}
-    {% if title %}
-    	{{ title|striptags|strip_html_entities }} | Sefaria Source Sheet Builder
-    {% else %}
-    	Start a New Sheet - Sefaria Source Sheet Builder
-    {% endif %}
-{% endblock %}
+{% block title %}{% if title %}{{ title|striptags|strip_html_entities }} | {% trans "Sefaria Source Sheet Builder" %}{% else %}{% trans "Start a New Sheet - Sefaria Source Sheet Builder" %}{% endif %}{% endblock %}
 
-{% block titleHebrew %}
-    {% if title %}
-        {{ title|striptags|strip_html_entities }} | Sefaria Source Sheet Builder
-    {% else %}
-        Start a New Sheet - Sefaria Source Sheet Builder
-    {% endif %}
-{% endblock %}
-
-{% block descriptionEnglish %}
-    {% if sheet.owner %}
-        A source sheet by {{ sheet.owner|user_name }} created with Sefaria's Source Sheet Builder.
-    {% else %}
-        Create your own source sheet with Sefaria's Source Sheet Builder.
-    {% endif %}
-{% endblock %}
-
-{% block descriptionHebrew %}
-    {% if sheet.owner %}
-        A source sheet by {{ sheet.owner|user_name }} created with Sefaria's Source Sheet Builder.
-    {% else %}
-        Create your own source sheet with Sefaria's Source Sheet Builder.
-    {% endif %}
-{% endblock %}
+{% block description %}{% if sheet.owner %}{% blocktrans %}A source sheet by {{ sheet.owner|user_name }} created with Sefaria's Source Sheet Builder.{% endblocktrans %}{% else %}{% trans "Create your own source sheet with Sefaria's Source Sheet Builder." %}{% endif %}{% endblock %}
 
 {% block head %}
     <link rel="stylesheet" type="text/css" href="/static/css/tooltipster.css" />
@@ -565,7 +535,7 @@
             </div>
                 <div class="sheetsMenuBarButtons">
                 {% if new_sheet %}
-                <a id="save" class="button" data-mode="editing">
+                <a id="save" class="button" data-mode="editing" role="button" tabIndex="0">
                     <i class="fa fa-floppy-o"></i>
                     <span id="doSave">
                         <span class="int-en">Save</span>
@@ -577,7 +547,7 @@
                     </span>
                 </a>
                 {% elif is_owner or can_publish %}
-                <a id="share" class="button">
+                <a id="share" class="button" role="button" tabIndex="0">
                     <img src="/static/img/share.png" alt="Share Icon">
                     <span class="int-en">Share</span>
                     <span class="int-he">שיתוף</span>
@@ -598,7 +568,7 @@
     </div>
 </div>
 
-<div id="sheet" class="{{ sheet_class|default:'bilingual' }}">
+<div id="sheet" class="{{ sheet_class|default:'bilingual' }}" role="main">
     {% if not user.email %}
 	<div id="fileControls">
         <div id="fileControlMsg">
@@ -707,26 +677,26 @@
     {% if can_edit or can_add %}
     <div id="addInterface">
         <div class="buttonBar">
-            <div class="addInterfaceButton" id="sourceButton"><img src="/static/img/source.png" alt="Add Source Icon">
+            <div class="addInterfaceButton" id="sourceButton" tabindex="0" role="button"><img src="/static/img/source.png" alt="Add Source Icon">
                 <span class="int-en">Source</span>
                 <span class="int-he">מקור</span>
             </div><!--
-         --><div class="addInterfaceButton" id="connectionButton">
+         --><div class="addInterfaceButton" id="connectionButton" tabindex="0" role="button">
                 <img src="/static/img/connection.png" alt="Add Connections Icon">
                 <span class="int-en">Connection</span>
                 <span class="int-he">קישור</span>
             </div><!--
-         --><div class="addInterfaceButton" id="customTextButton">
+         --><div class="addInterfaceButton" id="customTextButton" tabindex="0" role="button">
                 <img src="/static/img/custom%20text.png" alt="Add Outside Text Icon">
                 <span class="int-en">Text</span>
                 <span class="int-he">טקסט</span>
             </div><!--
-         --><div class="addInterfaceButton" id="mediaButton">
+         --><div class="addInterfaceButton" id="mediaButton" tabindex="0" role="button">
                 <img src="/static/img/media.png" alt="Add Media Icon">
                 <span class="int-en">Media</span>
                 <span class="int-he">מדיה</span>
             </div><!--
-         --><div class="addInterfaceButton" id="commentButton">
+         --><div class="addInterfaceButton" id="commentButton" tabindex="0" role="button">
                 <img src="/static/img/comment.png" alt="Add Comment Icon">
                 <span class="int-en">Comment</span>
                 <span class="int-he">הערה</span>
@@ -748,7 +718,7 @@
                                    {% endif %}/>
                     <div class="buttonContainer">
                         <div id="inlineAddBrowseBox" class="inlineAddSourceByttons">
-                            <div id="inlineAddSourceOK" class='button disabled'>
+                            <div id="inlineAddSourceOK" class='button disabled' role="button" tabIndex="0">
                                 <span class="int-en">Add Source</span>
                                 <span class="int-he">הוספת מקור</span>
                             </div>
@@ -758,7 +728,7 @@
                             <span class="int-he">או</span>
                         </div>
                         <div id="inlineAddBrowseBox" class="inlineAddSourceByttons">
-                            <div id="inlineAddBrowse" class='button'>
+                            <div id="inlineAddBrowse" class='button' role="button" tabIndex="0">
                                 <span class="int-en">Browse Sources</span>
                                 <span class="int-he">בחירת מקור</span>
                             </div>
@@ -773,7 +743,7 @@
                     <span class="int-he">בחירת מקורות מקושרים</span>
                 </div>
                 <div id="connectionsToAdd"></div>
-                <div class="button">
+                <div class="button" role="button" tabIndex="0">
                     <span class="int-en">Add to Sheet</span>
                     <span class="int-he">הוספה לדף המקורות</span>
                 </div>
@@ -798,7 +768,7 @@
                     <div class="contentToAdd en customTextEditables" tabindex="0">English</div>
                     <div class="contentToAdd he customTextEditables" tabindex="0">עברית</div>
                 </div>
-                <div class="button">
+                <div class="button" role="button" tabIndex="0">
                     <span class="int-en">Add to Sheet</span>
                     <span class="int-he">הוספה לדף המקורות</span>
                 </div>
@@ -817,7 +787,7 @@
                                    {% endif %}/>
                     <div class="buttonContainer">
                         <div class="inlineAddSourceByttons">
-                            <div class="button">
+                            <div class="button" role="button" tabIndex="0">
                                 <span class="int-en">Add to Sheet</span>
                                 <span class="int-he">הוספה לדף המקורות</span>
                             </div>
@@ -827,7 +797,7 @@
                             <span class="int-he">או</span>
                         </div>
                         <div class="inlineAddSourceByttons">
-                            <label for="addmediaFileSelector" class="button">
+                            <label for="addmediaFileSelector" class="button" role="button" tabIndex="0">
                                 <i class="fa fa-upload" aria-hidden="true"></i>
                                 <span class="int-en">Upload an Image</span>
                                 <span class="int-he">העלאת תמונה</span>
@@ -843,7 +813,7 @@
                     <span class="int-he">הוספת הערה למקור זה</span>
                 </div>
                 <div class="contentToAdd" tabindex="0"><br></div>
-                <div class="button">
+                <div class="button" role="button" tabIndex="0">
                     <span class="int-en">Add to Sheet</span>
                     <span class="int-he">הוספה לדף המקורות</span>
                 </div>

@@ -1,11 +1,9 @@
 {% extends "base.html" %}
+{% load i18n %}
 
-{% block titleEnglish %}About Sefaria Editions{% endblock %}
-{% block titleHebrew %}About Sefaria Editions{% endblock %}
+{% block title %}{% trans "About Sefaria Editions" %}{% endblock %}
 
-{% block descriptionEnglish %}{% endblock %}
-
-{% block descriptionHebrew %}{% endblock %}
+{% block description %}{% trans "The Sefaria Edition is a Sefaria commissioned translation created by professional translators." %}{% endblock %}
 
 {% block content %}
 

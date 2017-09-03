@@ -1,11 +1,9 @@
 {% extends "base.html" %}
+{% load i18n %}
 
-{% block titleEnglish %}Sefaria Newsletter, Social Media and More{% endblock %}
-{% block titleHebrew %}Sefaria Newsletter, Social Media and More{% endblock %}
+{% block title %}{% trans "Sefaria Newsletter, Social Media and More" %}{% endblock %}
 
-{% block descriptionEnglish %}Get updates on new texts and features on Sefaria by signing up for our newsletter or following us on social media.{% endblock %}
-
-{% block descriptionHebrew %}Get updates on new texts and features on Sefaria by signing up for our newsletter or following us on social media.{% endblock %}
+{% block description %}{% trans "Get updates on new texts and features on Sefaria by signing up for our newsletter or following us on social media." %}{% endblock %}
 
 {% block content %}
 <div id="connectPage" class="static">

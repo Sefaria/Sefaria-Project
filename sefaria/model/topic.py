@@ -1,12 +1,17 @@
 """
 topic.py
 """
+from __future__ import absolute_import
+
+import pickle
+import time
 from collections import defaultdict
 
 from . import abstract as abst
 from sefaria.system.database import db
 from sefaria.sheets import sheet_to_dict
 from sefaria.model.text import Ref
+import sefaria.system.cache as scache
 
 
 class Topic(abst.AbstractMongoRecord):
@@ -114,6 +119,7 @@ class TopicsManager(object):
         if not self._loaded:
             self.make_data_from_sheets()
             self._loaded = True
+            self.save_to_cache()
 
     def make_data_from_sheets(self):
         """
@@ -145,6 +151,14 @@ class TopicsManager(object):
             topic.filter_sources()
             if len(topic.sources) > 0:
                 self.topics[tag] = topic
+
+    def save_to_cache(self):
+        pickled = pickle.dumps(self)
+        scache.set_cache_elem('topics', pickled)
+        scache.set_cache_elem('topics_timestamp', self.timestamp())
+
+    def timestamp(self):
+        return int(time.time())
 
     def get(self, topic):
         self._lazy_load()
@@ -184,4 +198,40 @@ class TopicSet(abst.AbstractMongoSet):
     recordClass = Topic
 
 
-topics = TopicsManager()
+
+### Topics Caching ###
+
+topics = None
+topics_timestamp = None
+
+def get_topics():
+    """
+    Returns the TopicsManager which may already be in memory,
+    be restored from Redis or may be built from scratch.
+    """
+    global topics
+    global topics_timestamp
+
+    # If Redis timestamp matches what we have in memory, return it
+    current_timestamp = scache.get_cache_elem('topics_timestamp')
+    if current_timestamp and topics_timestamp == current_timestamp:
+        return topics
+    
+    # If Redis timestamp differs, load data from Redis
+    elif current_timestamp:
+        pickled = scache.get_cache_elem('topics')
+        topics = pickle.loads(pickled)
+        topics_timestamp = current_timestamp
+        return topics
+
+    # If there's nothing in Redis, return a new manager
+    topics = TopicsManager()
+    topics_timestamp = topics.timestamp()
+    return topics
+
+
+def update_topics():
+    topics = get_topics()
+    topics.make_data_from_sheets()
+    topics.save_to_cache()
+

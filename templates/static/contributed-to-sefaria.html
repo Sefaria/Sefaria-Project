@@ -1,11 +1,9 @@
 {% extends "base.html" %}
+{% load i18n %}
 
-{% block titleEnglish %}Texts Contributed to Sefaria{% endblock %}
-{% block titleHebrew %}Texts Contributed to Sefaria{% endblock %}
+{% block title %}{% trans "Texts Contributed to Sefaria" %}{% endblock %}
 
-{% block descriptionEnglish %}{% endblock %}
-
-{% block descriptionHebrew %}{% endblock %}
+{% block description %}{% trans "Texts on Sefaria that list this page as their source were contributed directly to Sefaria and have not yet been published elsewhere in print or on the web." %}{% endblock %}
 
 {% block content %}
 

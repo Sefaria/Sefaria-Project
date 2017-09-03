@@ -1,14 +1,11 @@
 {% extends "base.html" %}
+{% load i18n %}
 
-{% block titleEnglish %}Privacy Policy | Sefaria{% endblock %}
-{% block titleHebrew %}Privacy Policy | Sefaria{% endblock %}
+{% block title %}{% trans "Privacy Policy" %} | {% trans "Sefaria" %}{% endblock %}
 
-{% block descriptionEnglish %}{% endblock %}
-
-{% block descriptionHebrew %}{% endblock %}
+{% block description %}{% endblock %}
 
 {% block content %}
-
 <div id="" class="container doc legal static">
 	<div class="inner">
         <div id="legalTabs">

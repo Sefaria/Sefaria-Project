@@ -35,7 +35,7 @@ from sefaria.workflows import *
 from sefaria.reviews import *
 from sefaria.model.user_profile import user_link, user_started_text, unread_notifications_count_for_user
 from sefaria.model.group import GroupSet
-from sefaria.model.topic import topics
+from sefaria.model.topic import get_topics
 from sefaria.client.wrapper import format_object_for_client, format_note_object_for_client, get_notes, get_links
 from sefaria.system.exceptions import InputError, PartialRefInputError, BookNameError, NoVersionFoundError, DuplicateRecordError
 # noinspection PyUnresolvedReferences
@@ -428,23 +428,23 @@ def s2(request, ref, version=None, lang=None):
     })
     title = primary_ref.he_normal() if request.interfaceLang == "hebrew" else primary_ref.normal()
 
-    try:
-        if primary_ref.is_book_level():
-            if request.interfaceLang == "hebrew":
-                desc = getattr(primary_ref.index, 'heDesc', "")
-                book = primary_ref.he_normal()
-            else:
-                desc = getattr(primary_ref.index, 'enDesc', "")
-                book = primary_ref.normal()
-            read = _("Read the text of %(book)s online with commentaries and connections.") % {'book': book}
-            desc = desc + " " + read if desc else read
-
+    if primary_ref.is_book_level():
+        if request.interfaceLang == "hebrew":
+            desc = getattr(primary_ref.index, 'heDesc', "")
+            book = primary_ref.he_normal()
         else:
-            segmentIndex = primary_ref.sections[-1] - 1 if primary_ref.is_segment_level() else 0
+            desc = getattr(primary_ref.index, 'enDesc', "")
+            book = primary_ref.normal()
+        read = _("Read the text of %(book)s online with commentaries and connections.") % {'book': book}
+        desc = desc + " " + read if desc else read
+
+    else:
+        segmentIndex = primary_ref.sections[-1] - 1 if primary_ref.is_segment_level() else 0
+        try:
             enText = props["initialPanels"][0]["text"].get("text",[])
             heText = props["initialPanels"][0]["text"].get("he",[])
             enDesc = enText[segmentIndex] if segmentIndex < len(enText) else "" # get english text for section if it exists
-            heDesc = heText[segmentIndex] if segmentIndex < len(enText) else "" # get hebrew text for section if it exists
+            heDesc = heText[segmentIndex] if segmentIndex < len(heText) else "" # get hebrew text for section if it exists
             if request.interfaceLang == "hebrew":
                 desc = heDesc or enDesc # if no hebrew, fall back on hebrew
             else:
@@ -453,8 +453,8 @@ def s2(request, ref, version=None, lang=None):
             desc = bleach.clean(desc, strip=True, tags=())
             desc = desc[:160].rsplit(' ', 1)[0] + "..."  # truncate as close to 160 characters as possible while maintaining whole word. Append ellipses.
 
-    except (IndexError, KeyError):
-        desc = _("Explore 3,000 years of Jewish texts in Hebrew and English translation.")
+        except (IndexError, KeyError):
+            desc = _("Explore 3,000 years of Jewish texts in Hebrew and English translation.")
 
     propsJSON = json.dumps(props)
     html = render_react_component("ReaderApp", propsJSON)
@@ -482,7 +482,7 @@ def s2_texts_category(request, cats):
             cats = [hebrew_term(cat) for cat in cats]
         cat_string = u", ".join(cats)
         title = cat_string + _(" | Sefaria")
-        desc  = u"Read %(categories)s texts online with commentaries and connections." % {'categories': cat_string}
+        desc  = _("Read %(categories)s texts online with commentaries and connections.") % {'categories': cat_string}
 
     else:
         title = _("Recently Viewed")
@@ -572,7 +572,7 @@ def s2_group_sheets(request, group, authenticated):
         "propsJSON": propsJSON,
         "html": html,
         "title": group[0].name + _(" | Sefaria"),
-        "desc": group[0].description,
+        "desc": props["groupData"].get("description", ""),
     }, RequestContext(request))
 
 
@@ -632,6 +632,7 @@ def s2_topics_page(request):
     Page of sheets by tag.
     Currently used to for "My Sheets" and  "All Sheets" as well.
     """
+    topics = get_topics()
     props = s2_props(request)
     props.update({
         "initialMenu":  "topics",
@@ -639,19 +640,12 @@ def s2_topics_page(request):
         "topicList": topics.list(sort_by="count"),
     })
 
-    if props["interfaceLang"] == "hebrew":
-        title = u"Topics | Sefaria." # HEBREW NEEDED
-        desc  = u'Explore Jewish Texts by Topic on Sefaria.'
-    else:
-        title = u"Topics | Sefaria."
-        desc  = u'Explore Jewish Texts by Topic on Sefaria.'
-
     propsJSON = json.dumps(props)
     html = render_react_component("ReaderApp", propsJSON)
     return render_to_response('s2.html', {
         "propsJSON":      propsJSON,
-        "title":          title,
-        "desc":           desc,
+        "title":          _("Topics") + " | " + _("Sefaria"),
+        "desc":           _("Explore Jewish Texts by Topic on Sefaria"),
         "html":           html,
     }, RequestContext(request))
 
@@ -661,6 +655,7 @@ def s2_topic_page(request, topic):
     Page of sheets by tag.
     Currently used to for "My Sheets" and  "All Sheets" as well.
     """
+    topics = get_topics()
     props = s2_props(request)
     props.update({
         "initialMenu":  "topics",
@@ -668,12 +663,8 @@ def s2_topic_page(request, topic):
         "topicData": topics.get(topic).contents(),
     })
 
-    if props["interfaceLang"] == "hebrew":
-        title = u"{} | Sefaria".format(topic) # HEBREW NEEDED
-        desc  = u'Explore "{}" on Sefaria, drawing from our library of Jewish texts.'.format(topic)
-    else:
-        title = u"{} | Sefaria".format(topic)
-        desc  = u'Explore "{}" on Sefaria, drawing from our library of Jewish texts.'.format(topic)
+    title = u"%(topic)s | Sefaria" % {"topic": topic}
+    desc  = u'Explore "%(topic)s" on Sefaria, drawing from our library of Jewish texts.' % {"topic": topic}
 
     propsJSON = json.dumps(props)
     html = render_react_component("ReaderApp", propsJSON)
@@ -717,7 +708,7 @@ def s2_texts(request):
 def s2_updates(request):
     props = s2_props(request)
     title = _("New Additions to the Sefaria Library")
-    desc  = _("See texts, translations and connections that have been recentlty added to Sefaria.")
+    desc  = _("See texts, translations and connections that have been recently added to Sefaria.")
     return s2_page(request, props, "updates", title, desc)
 
 
@@ -2669,6 +2660,7 @@ def topics_list_api(request):
     """
     API to get data for a particular topic.
     """
+    topics = get_topics()
     response = topics.list(sort_by="count")
     response = jsonResponse(response, callback=request.GET.get("callback", None))
     response["Cache-Control"] = "max-age=3600"
@@ -2680,6 +2672,7 @@ def topics_api(request, topic):
     """
     API to get data for a particular topic.
     """
+    topics = get_topics()
     response = topics.get(topic).contents()
     response = jsonResponse(response, callback=request.GET.get("callback", None))
     response["Cache-Control"] = "max-age=3600"
@@ -3474,6 +3467,12 @@ def person_page(request, name):
     assert isinstance(person, Person)
 
     template_vars = person.contents()
+    if request.interfaceLang == "he":
+        template_vars["name"] = person.primary_name("he")
+        template_vars["bio"]= person.heBio
+    else:
+        template_vars["name"] = person.primary_name("en")
+        template_vars["bio"]= person.enBio
     template_vars["primary_name"] = {
         "en": person.primary_name("en"),
         "he": person.primary_name("he")

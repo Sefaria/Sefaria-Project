@@ -1,16 +1,9 @@
 {% extends "base.html" %}
+{% load i18n cache humanize sefaria_tags %}
 
-{% load cache %}
-{% load humanize %}
-{% load sefaria_tags %}
+{% block title %}{% trans "Sefaria: a Living Library of Jewish Texts Online" %}{% endblock %}
 
-{% block titleEnglish %}Sefaria: a Living Library of Jewish Texts Online{% endblock %}
-
-{% block titleHebrew %}Sefaria: a Living Library of Jewish Texts Online{% endblock %}
-
-{% block descriptionEnglish %}The largest free library of Jewish texts available to read online in Hebrew and English including Torah, Tanakh, Talmud, Mishnah, Midrash, commentaries and more.{% endblock %}
-
-{% block descriptionHebrew %}The largest free library of Jewish texts available to read online in Hebrew and English including Torah, Tanakh, Talmud, Mishnah, Midrash, commentaries and more.{% endblock %}
+{% block description %}{% trans "The largest free library of Jewish texts available to read online in Hebrew and English including Torah, Tanakh, Talmud, Mishnah, Midrash, commentaries and more." %}{% endblock %}
 
 {% block head %}
     <meta property="og:type" content="website"/>
