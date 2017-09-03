@@ -259,7 +259,7 @@ class TocTree(object):
         """
         :param cat_path: A list or tuple of the path to this category
         :param title: optional - name of text.  If present tries to return a text
-        :return:
+        :return: TocNode
         """
         path = tuple(cat_path)
         if title is not None:

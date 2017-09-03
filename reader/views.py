@@ -1707,12 +1707,23 @@ def shape_api(request, title):
     if request.method == "GET":
         res = None
         sn = library.get_schema_node(title, "en")
+
+        # Leaf Node
         if sn and not sn.children:
             res = _simple_shape(sn)
+
+        # Branch Node
         elif sn and sn.children:
             res = [_simple_shape(n) for n in sn.get_leaf_nodes()]
 
-        # else cat
+        # Category
+        else:
+            cat = library.get_toc_tree().lookup(title.split("/"))
+            if not cat:
+                res = {"error": "No index or category found to match {}".format(title)}
+            else:
+                res = [_simple_shape(jan) for toc_index in cat.get_leaf_nodes() for jan in toc_index.get_index_object().nodes.get_leaf_nodes()]
+
         return jsonResponse(res, callback=request.GET.get("callback", None))
 
 
