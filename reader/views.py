@@ -1682,6 +1682,49 @@ def counts_api(request, title):
 
         return jsonResponse({"error": "Not implemented."})
 
+@catch_error_as_json
+def shape_api(request, title):
+    """
+    API for retrieving a shape document for a given text or category.
+    For simple texts, returns a dict with keys:
+	{
+		"section": Category immediately above book?,
+		[Perhaps, instead, "categories"]
+		"heTitle": Hebrew title of node
+		"length": Number of chapters,
+		"chapters": List of Chapter Lengths (think about depth 1 & 3)
+		"title": English title of node
+		"book": English title of Book
+	}
+    For complex texts or categories, returns a list of dicts.
+    :param title: A valid node title
+    """
+
+    def _simple_shape(snode):
+        shape = StateNode(snode=snode).var("all", "shape")
+        return {
+            "section": snode.index.categories[-1],
+            "heTitle": snode.primary_title("he"),
+            "title": snode.primary_title("en"),
+            "length": len(shape) if isinstance(shape, list) else 1,  # hmmmm
+            "chapters": shape,
+            "book": snode.index.title
+        }
+
+    title = title.replace("_", " ")
+
+    if request.method == "GET":
+        res = None
+        sn = library.get_schema_node(title, "en")
+        if sn and not sn.children:
+            res = _simple_shape(sn)
+        elif sn and sn.children:
+            res = [_simple_shape(n) for n in sn.get_leaf_nodes()]
+
+        # else cat
+        return jsonResponse(res, callback=request.GET.get("callback", None))
+
+
 
 @catch_error_as_json
 def text_preview_api(request, title):

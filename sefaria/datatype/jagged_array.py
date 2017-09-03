@@ -147,8 +147,6 @@ class JaggedArray(object):
         else:
             return len(_cur)
 
-
-
     def sub_array_length(self, indexes=None, until_last_nonempty=False):
         """
         :param indexes:  a list of 0 based indexes, for digging len(indexes) levels into the array
