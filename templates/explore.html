@@ -314,7 +314,7 @@ function buildScreen(openBooks, colorScheme) {
 
 //Build objects that are present for any starting state - 0, 1, or 2 books
 function buildFrame() {
-    w = window.innerWidth ?  window.innerWidth - margin[1] - margin[3] : 1000 - margin[1] - margin[3]
+    w = window.innerWidth ?  window.innerWidth - margin[1] - margin[3] : 1000 - margin[1] - margin[3];
     svg = d3.select("#content").append("svg")
         .attr("width", w + margin[1] + margin[3] - 16)
         .attr("height", h + margin[0] + margin[2])
@@ -384,8 +384,8 @@ function buildFrame() {
             .attr("transform", "translate(" + w + "," + (bavliOffsetY + 85) + ")");
     }
 
-    tanakhSwitchLabel = isEnglish() ? "Tanakh" : 'תנ"ך';
-    talmudSwitchLabel = isEnglish() ? "Talmud" : 'תלמוד';
+    var tanakhSwitchLabel = isEnglish() ? "Tanakh" : 'תנ"ך';
+    var talmudSwitchLabel = isEnglish() ? "Talmud" : 'תלמוד';
     toggle.append("tspan").text(isEnglish() ? "Color by: " : ' צבע לפי ');
     toggle.append("tspan")
             .classed("switch", true)
@@ -514,7 +514,6 @@ function rebuildScreen() {
 
 
 /*****          Book Collections            *****/
-
 
 function buildBookCollection(books, klass, position, offset, cnxOffset) {
 	//Lays out and labels book collection
@@ -676,6 +675,9 @@ function updateAxis(d) {
     d.axis_group.call(d.axis);
 }
 
+
+/*****       Axis Brushing Selection         *****/
+
 function activateBrush(d) {
     svg.select("#" + d.collection)
       .append("g")
@@ -736,6 +738,10 @@ function brushend() {
       )
   );
 }
+
+
+
+/*****          Book Event Handlers              ******/
 
 function showBookCollections() {
     svg.selectAll(".collection")
@@ -819,6 +825,8 @@ function buildBookLinks() {
     }
 }
 
+
+/*****    Link Events      *****/
 
 function mouseover_link(d) {
     d3.select(this)
@@ -945,18 +953,9 @@ function openBook(dFocused) {
     svg.select(".axis." + dBook.id)
            .transition().delay(500).style("display","inline");
 
-    activateBrush(dBook)
+    activateBrush(dBook);
 
     hideBookLinks();
-
-    //resize tooltip
-    //tooltip.select("rect")
-    //  .attr("width", 130);
-    //if(isHebrew()) {
-    //    tooltip.selectAll("text")
-    //        .attr("x", 120);
-    //}
-
 
     //hide other books titles
     svg.selectAll("#" + dBook.collection + " .title")
@@ -1010,14 +1009,6 @@ function closeBook(dCloser) {
         processPreciseLinks(dRemains);
         brushmove()
     }
-
-    //resize tooltip
-    //tooltip.select("rect")
-    //  .attr("width", 170);
-    //if(isHebrew()) {
-    //    tooltip.selectAll("text")
-    //        .attr("x", 160);
-    //}
 
     //Reset events
     svg.selectAll("#" + collectionId + " .book")
@@ -1168,6 +1159,80 @@ function toLink(title) {
     return title.split("-").join("_").split(" ").join("_");
 }
 
+
+/*****                         *****/
+
+function totalBookLengths(books) {
+    return books.reduce(function(prev, cur) { return prev + cur["length"]; }, 0);
+}
+
+function bavliPageToIndex(page) {
+	var amud = page.slice(-1);
+	var daf = page.slice(0,-1);
+
+    var amudAdder = amud == "b" ? 1 : 0;
+    return (daf - 1) * 2 + amudAdder;
+}
+
+function bavliBookDomain(last_page) {
+	var last_amud = last_page.slice(-1);
+	var last_daf = last_page.slice(0,-1);
+
+	var domain = [];
+	for(var i = 2; i < last_daf; i++)
+	{
+		domain.push(i + "a");
+		domain.push(i + "b");
+	}
+	domain.push(last_daf + "a");
+	if(last_amud == "b") {
+		domain.push(last_daf + "b")
+	}
+	return domain
+}
+
+function bavliTicks(last_page) {
+    var last_amud = last_page.slice(-1);
+	var last_daf = last_page.slice(0,-1);
+
+    var ticks = [];
+    ticks.push("2a");
+	for(var i = 5; i < last_daf-2; i=i+5)
+	{
+		ticks.push(i + "a");
+	}
+	if(last_amud == "a") {
+        ticks.push(last_daf + "a");
+    } else {
+		ticks.push(last_daf + "b")
+	}
+    return ticks;
+}
+
+function tanakhBookDomain(chap_lengths) {
+	var domain = [];
+	for (var i = 0; i < chap_lengths.length; ++i) {
+		for (var j = 1; j <= chap_lengths[i]; ++j) {
+			domain.push(i+1 + ":" + j)
+		}
+	}
+	return domain;
+}
+
+function tanakhTicks(chap_lengths) {
+    var ticks = [];
+    var skip =  (chap_lengths.length < 40) ? 1 :
+                (chap_lengths.length < 90) ? 2 :
+                6;
+	for (var i = 1; i <= chap_lengths.length; i = i + skip) {
+        ticks.push(i + ":1");
+    }
+    return ticks;
+}
+
+
+/*****        History                *****/
+
 function changePageTitle(title) {
      d3.select("title").text(title);
 }
@@ -1253,76 +1318,6 @@ function _getHistory() {
         "url" : url,
         "books" : openIds
     };
-}
-
-function totalBookLengths(books) {
-    return books.reduce(function(previousValue, currentValue, index, array){
-  		return previousValue + currentValue["length"];
-	}, 0);
-}
-
-function bavliPageToIndex(page) {
-	var amud = page.slice(-1);
-	var daf = page.slice(0,-1);
-
-    amudAdder = amud == "b" ? 1 : 0;
-    return (daf - 1) * 2 + amudAdder;
-}
-
-function bavliBookDomain(last_page) {
-	var last_amud = last_page.slice(-1);
-	var last_daf = last_page.slice(0,-1);
-
-	var domain = [];
-	for(var i = 2; i < last_daf; i++)
-	{
-		domain.push(i + "a");
-		domain.push(i + "b");
-	}
-	domain.push(last_daf + "a");
-	if(last_amud == "b") {
-		domain.push(last_daf + "b")
-	}
-	return domain
-}
-
-function bavliTicks(last_page) {
-    var last_amud = last_page.slice(-1);
-	var last_daf = last_page.slice(0,-1);
-
-    var ticks = [];
-    ticks.push("2a");
-	for(var i = 5; i < last_daf-2; i=i+5)
-	{
-		ticks.push(i + "a");
-	}
-	if(last_amud == "a") {
-        ticks.push(last_daf + "a");
-    } else {
-		ticks.push(last_daf + "b")
-	}
-    return ticks;
-}
-
-function tanakhBookDomain(chap_lengths) {
-	var domain = [];
-	for (var i = 0; i < chap_lengths.length; ++i) {
-		for (var j = 1; j <= chap_lengths[i]; ++j) {
-			domain.push(i+1 + ":" + j)
-		}
-	}
-	return domain;
-}
-
-function tanakhTicks(chap_lengths) {
-    var ticks = [];
-    var skip =  (chap_lengths.length < 40) ? 1 :
-                (chap_lengths.length < 90) ? 2 :
-                6;
-	for (var i = 1; i <= chap_lengths.length; i = i + skip) {
-        ticks.push(i + ":1");
-    }
-    return ticks;
 }
 
 </script>
