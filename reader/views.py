@@ -2636,6 +2636,27 @@ def topics_api(request, topic):
     return response
 
 
+@catch_error_as_json
+def recommend_topics_api(request, ref_list=""):
+    """
+    API to receive recommended topics for list of strings `refs`. 
+    """
+    if request.method == "GET":
+        refs = [Ref(ref).normal() for ref in ref_list.split("+")]
+
+    elif request.method == "POST":
+        topics = get_topics()
+        postJSON = request.POST.get("json")
+        if not postJSON:
+            return jsonResponse({"error": "No post JSON."})
+        refs = json.loads(postJSON)
+
+    topics = get_topics()
+    response = {"topics": topics.recommend_topics(refs)}
+    response = jsonResponse(response, callback=request.GET.get("callback", None))
+    return response
+
+
 @ensure_csrf_cookie
 def global_activity(request, page=1):
     """
