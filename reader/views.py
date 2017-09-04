@@ -1686,6 +1686,7 @@ def shape_api(request, title):
 		"chapters": List of Chapter Lengths (think about depth 1 & 3)
 		"title": English title of node
 		"book": English title of Book
+        "last_page":
 	}
     For complex texts or categories, returns a list of dicts.
     :param title: A valid node title or a path to a category, separated by /.
@@ -1696,14 +1697,17 @@ def shape_api(request, title):
     """
 
     def _simple_shape(snode):
-        shape = StateNode(snode=snode).var("all", "shape")
+        sn = StateNode(snode=snode)
+        shape = sn.var("all", "shape")
+
         return {
             "section": snode.index.categories[-1],
             "heTitle": snode.primary_title("he"),
             "title": snode.primary_title("en"),
             "length": len(shape) if isinstance(shape, list) else 1,  # hmmmm
             "chapters": shape,
-            "book": snode.index.title
+            "book": snode.index.title,
+            "last_page": snode.address_class(-2).toStr("en", len(shape) + 1)
         }
 
     title = title.replace("_", " ")

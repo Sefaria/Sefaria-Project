@@ -452,7 +452,7 @@ Sefaria = extend(Sefaria, {
         return this._shape[title];
     }          
     var url = "/api/shape/" + title;
-    this._api(url, function(data) {
+    return this._api(url, function(data) {
       if (cb) { cb(data); }
       Sefaria._shape[title] = data;
     });
