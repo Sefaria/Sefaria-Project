@@ -2191,7 +2191,7 @@ def terms_api(request, name):
     Rather than duplicating functionality.
     """
     if request.method == "GET":
-        term = Term().load({'name': name})
+        term = Term().load({'name': name}) or Term().load_by_title(name)
         if term is None:
             return jsonResponse({"error": "Term does not exist."})
         else:
@@ -2199,7 +2199,7 @@ def terms_api(request, name):
 
     if request.method == "POST":
         def _internal_do_post(request, term, uid, **kwargs):
-            t = Term().load({'name': term["name"], "scheme": term["scheme"]})
+            t = Term().load({'name': name}) or Term().load_by_title(name)
             if t and not request.GET.get("update"):
                 return {"error": "Term already exists."}
             func = tracker.update if request.GET.get("update", False) else tracker.add
