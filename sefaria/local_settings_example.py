@@ -59,6 +59,13 @@ EMAIL_HOST = 'localhost'
 EMAIL_PORT = 1025
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 
+# Example using anymail, replaces block above
+# EMAIL_BACKEND = 'anymail.backends.mandrill.EmailBackend'
+# DEFAULT_FROM_EMAIL = "Sefaria <hello@sefaria.org>"
+# ANYMAIL = {
+#    "MANDRILL_API_KEY": "h4eIy4pC9HsreLaOtUt36Q",
+# }
+
 MONGO_HOST = "localhost"
 # Name of the MongoDB database to use.
 SEFARIA_DB = 'sefaria'
