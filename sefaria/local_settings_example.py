@@ -63,7 +63,7 @@ EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 # EMAIL_BACKEND = 'anymail.backends.mandrill.EmailBackend'
 # DEFAULT_FROM_EMAIL = "Sefaria <hello@sefaria.org>"
 # ANYMAIL = {
-#    "MANDRILL_API_KEY": "h4eIy4pC9HsreLaOtUt36Q",
+#    "MANDRILL_API_KEY": "your api key",
 # }
 
 MONGO_HOST = "localhost"
