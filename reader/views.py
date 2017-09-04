@@ -1688,7 +1688,11 @@ def shape_api(request, title):
 		"book": English title of Book
 	}
     For complex texts or categories, returns a list of dicts.
-    :param title: A valid node title
+    :param title: A valid node title or a path to a category, separated by /.
+    The "depth" parameter in the query string indicates how many levels in the category tree to descend.  Default is 2.
+    If depth == 0, descends to end of tree
+    The "dependents" parameter, if true, includes dependent texts.  By default, they are filtered out.
+
     """
 
     def _simple_shape(snode):
@@ -1705,7 +1709,6 @@ def shape_api(request, title):
     title = title.replace("_", " ")
 
     if request.method == "GET":
-        res = None
         sn = library.get_schema_node(title, "en")
 
         # Leaf Node
@@ -1719,10 +1722,18 @@ def shape_api(request, title):
         # Category
         else:
             cat = library.get_toc_tree().lookup(title.split("/"))
+
             if not cat:
                 res = {"error": "No index or category found to match {}".format(title)}
             else:
-                res = [_simple_shape(jan) for toc_index in cat.get_leaf_nodes() for jan in toc_index.get_index_object().nodes.get_leaf_nodes()]
+                depth = request.GET.get("depth", 2)
+                include_dependents = request.GET.get("dependents", False)
+
+                leaves = cat.get_leaf_nodes() if depth == 0 else [n for n in cat.get_leaf_nodes_to_depth(depth)]
+                if not include_dependents:
+                    leaves = [n for n in leaves if not n.dependence]
+
+                res = [_simple_shape(jan) for toc_index in leaves for jan in toc_index.get_index_object().nodes.get_leaf_nodes()]
 
         return jsonResponse(res, callback=request.GET.get("callback", None))
 
