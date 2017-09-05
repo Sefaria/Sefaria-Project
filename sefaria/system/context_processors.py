@@ -30,7 +30,6 @@ def data_only(view):
     def wrapper(request):
         if request.path != "/data.js" or request.path.startswith("/sheets/"):
             return {}
-            print "skiping non data"
         else:
             return view(request)
     return wrapper
@@ -44,9 +43,7 @@ def user_only(view):
     def wrapper(request):
         exclude = ('/data.js', '/linker.js')
         if request.path in exclude or request.path.startswith("/api/"):
-            print "skipping non user"
             return {}
-    
         else:
             return view(request)
     return wrapper
