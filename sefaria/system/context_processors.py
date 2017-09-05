@@ -28,10 +28,10 @@ def data_only(view):
     """
     @wraps(view)
     def wrapper(request):
-        if request.path != "/data.js" or request.path.startswith("/sheets/"):
-            return {}
-        else:
+        if request.path == "/data.js" or request.path == "/texts" or request.path.startswith("/sheets/"):
             return view(request)
+        else:
+            return {}
     return wrapper
 
 
