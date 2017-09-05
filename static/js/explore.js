@@ -1,5 +1,5 @@
 var d3 = require('d3');
-var Sefaria = require('../sefaria/sefaria');
+var Sefaria = require('./sefaria/sefaria');
 var SefariaD3 = require("./sefaria-d3/sefaria-d3");
 var $ = require("./sefaria/sefariaJquery");
 
@@ -72,9 +72,14 @@ function switchToHebrew() {
 
 /*****          Initial screen construction            *****/
 
-var books = {{ books|safe }}; //Books specified on URL - 0, 1, or 2
+/*
+    var GLOBALS = {
+        books: {{ books|safe }},
+        interfaceLang: {{ request.interfaceLang }}
+    }
+ */
 
-if ("{{ request.interfaceLang }}" == "hebrew") {
+if (GLOBALS.interfaceLang == "hebrew") {
     switchToHebrew();
 } else {
     switchToEnglish();
@@ -89,7 +94,7 @@ var b = Sefaria.shape("Talmud/Bavli", function(d) {bavli = d});
 var t = Sefaria.shape("Tanakh", function(d) {tanakh = d});
 
 $.when(b, t).then(function() {
-    buildScreen(books, "Tanakh");
+    buildScreen(GLOBALS.books, "Tanakh");
     replaceHistory();
 });
 
@@ -414,8 +419,8 @@ function buildBookLabels(bks, klass, position) {
                 .on("click", recordOpenBook);
 
     if (klass == "tanakh") {
-        twelveText = isEnglish() ? "The Twelve Prophets" : "תרי עשר";
-        twelveNode = svg.select("#" + klass).append("text").attr("class", "title twelve Prophets").text(twelveText)
+        var twelveText = isEnglish() ? "The Twelve Prophets" : "תרי עשר";
+        var twelveNode = svg.select("#" + klass).append("text").attr("class", "title twelve Prophets").text(twelveText)
         if(isEnglish()) {
             twelveNode.attr("x", Number(svg.select("#Hosea").attr("cx"))).attr("y", Number(svg.select("#Hosea").attr("y")) - 12)
         } else {

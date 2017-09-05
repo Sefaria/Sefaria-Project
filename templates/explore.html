@@ -196,9 +196,12 @@
 
 
 <script>
-    var BOOKS = {{ books|safe }};
+    var GLOBALS = {
+        books: {{ books|safe }},
+        interfaceLang: "{{ request.interfaceLang }}"
+    }
 </script>
-<script src = "/static/bundles/explore.js"></script>
+<script src = "/static/bundles/explore/explore.js"></script>
 
 
 {% endblock %}
