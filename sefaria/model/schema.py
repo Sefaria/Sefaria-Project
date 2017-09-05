@@ -219,7 +219,7 @@ class Term(abst.AbstractMongoRecord, AbstractTitledObject):
     ]
 
     def load_by_title(self, title):
-        query = {'titles': {'$elemMatch': {'text': title}}}
+        query = {'titles.text':  title}
         return self.load(query=query)
 
     def _set_derived_attributes(self):
