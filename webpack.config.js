@@ -125,4 +125,17 @@ var diffConfig = config({
         filename: 'diffPage.js'
     }
 });
-module.exports = [clientConfig, serverConfig, diffConfig];
+
+var exploreConfig = config({
+    context: path.resolve(__dirname, 'static/js'),
+    entry: './explore',
+    externals: {
+        d3: 'd3'
+    },
+    output: {
+        path: path.join(__dirname, buildDir + 'explore'),
+        filename: 'explore.js'
+    }
+});
+
+module.exports = [clientConfig, serverConfig, diffConfig, exploreConfig];
