@@ -696,7 +696,7 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
 
         return toc_contents_dict
 
-    def toc_contents(self, include_first_section = True):
+    def toc_contents(self, include_first_section=True):
         """Returns to a dictionary used to represent this text in the library wide Table of Contents"""
 
         toc_contents_dict = {
@@ -989,20 +989,24 @@ class Version(abst.AbstractMongoRecord, AbstractTextRecord, AbstractSchemaConten
         """
         Returns a :class:`Ref` to the first non-empty location in this version.
         """
-        i = self.get_index()
-        leafnodes = i.nodes.get_leaf_nodes()
+        index = self.get_index()
+        leafnodes = index.nodes.get_leaf_nodes()
         for leaf in leafnodes:
             ja = JaggedTextArray(self.content_node(leaf))
             indx_array = ja.next_index()
             if indx_array:
-                return Ref(_obj={
-                    "index": i,
+                oref = Ref(_obj={
+                    "index": index,
                     "book": leaf.full_title("en"),
-                    "primary_category": i.get_primary_category(),
+                    "primary_category": index.get_primary_category(),
                     "index_node": leaf,
                     "sections": [i + 1 for i in indx_array],
                     "toSections": [i + 1 for i in indx_array]
-                }).section_ref()
+                })
+                if index.is_complex() or index.nodes.depth != 1:
+                    # For depth 1 texts, consider the first segment as the first section
+                    oref = oref.section_ref()
+                return oref
         return None
 
     def ja(self, remove_html=False):

@@ -138,6 +138,7 @@ INSTALLED_APPS = (
     'captcha',
     'django_mobile',
     'django.contrib.admin',
+    'anymail',
     'webpack_loader'
     # Uncomment the next line to enable admin documentation:
     # 'django.contrib.admindocs',
@@ -150,6 +151,7 @@ LOGIN_REDIRECT_URL = '/'
 AUTHENTICATION_BACKENDS = (
     'emailusernames.backends.EmailAuthBackend',
 )
+
 
 LOCALE_PATHS = (
     relative_to_abs_path('../locale'),
