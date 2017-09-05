@@ -224,7 +224,9 @@ class LikeFollowButtons extends Component {
   }
   loadTwitter() {
     if (typeof twttr !== "undefined") {
-      twttr.widgets.load();
+      if ("widgets" in twttr) {
+        twttr.widgets.load();        
+      }
     } else {
       window.twttr = (function(d, s, id) {
         var js, fjs = d.getElementsByTagName(s)[0],
