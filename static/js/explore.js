@@ -62,18 +62,14 @@ var lang;
 function isHebrew() { return lang == "he"; }
 function isEnglish() { return lang == "en"; }
 
-function switchToEnglish() {
-    lang = "en";
-}
-function switchToHebrew() {
-    lang = "he";
-}
+function switchToEnglish() { lang = "en"; }
+function switchToHebrew() { lang = "he"; }
 
 
 /*****          Initial screen construction            *****/
-
 /*
-    var GLOBALS = {
+
+    var GLOBALS = {   // Defined in template
         books: {{ books|safe }},
         interfaceLang: {{ request.interfaceLang }}
     }
@@ -429,7 +425,6 @@ function buildBookLabels(bks, klass, position) {
     }
 }
 
-
 function addAxis(d) {
     var type = d.collection;
     var domain, orient, ticks, y;
@@ -461,7 +456,7 @@ function addAxis(d) {
         d.step = Math.abs(d.scale(d.scale.domain()[1]) - d.scale(d.scale.domain()[0]));
         d.s = function(i) {
             var parts = i.split(":");
-            var fractionOfPage = parts[1]/ d.chapters[bavliPageToIndex(parts[0])];
+            var fractionOfPage = parts[1]/ d.chapters[Sefaria.hebrew.dafToInt(parts[0])];
             fractionOfPage = fractionOfPage > 1 ? 1 : fractionOfPage; //Guard against mistaken counts
             return isEnglish() ? d.scale(parts[0]) + d.step * (fractionOfPage) : d.scale(parts[0]) - d.step * (fractionOfPage)
         }
@@ -517,7 +512,6 @@ function removeBrush(d) {
     svg.select("#" + d.collection + " .brush").remove();
     brushes[d.collection] = null;
 }
-
 
 function brushstart() {
   d3.event.target["b_active"] = true
@@ -817,7 +811,7 @@ function closeBook(dCloser) {
         svg.selectAll(".preciseLinkA").attr("display", "none");
         svg.selectAll("#toggle").attr("display", "inline");
     } else if (booksFocused == 1) {
-        dRemains = svg.select(".open").datum();
+        var dRemains = svg.select(".open").datum();
         processPreciseLinks(dRemains);
         brushmove()
     }
@@ -976,14 +970,6 @@ function toLink(title) {
 
 function totalBookLengths(books) {
     return books.reduce(function(prev, cur) { return prev + cur["length"]; }, 0);
-}
-
-function bavliPageToIndex(page) {
-	var amud = page.slice(-1);
-	var daf = page.slice(0,-1);
-
-    var amudAdder = amud == "b" ? 1 : 0;
-    return (daf - 1) * 2 + amudAdder;
 }
 
 function bavliBookDomain(last_page) {

@@ -121,7 +121,7 @@ class Hebrew {
     return daf + (i%2 ? "a" : "b");
   }
   static dafToInt(daf) {
-    var amud = daf.slice(-1)
+    var amud = daf.slice(-1);
     var i = parseInt(daf.slice(0, -1)) - 1;
     i = amud == "a" ? i * 2 : i*2 +1;
     return i;
