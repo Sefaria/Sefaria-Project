@@ -431,18 +431,17 @@ function addAxis(d) {
 
     if(type == "tanakh") {
         orient = "top";
-        ticks = SefariaD3.integerRefTicks(d.chapters);
         y = tanakhOffsetY + 5;
+        ticks = SefariaD3.integerRefTicks(d.chapters);
         d.scale = SefariaD3.integerScale(isEnglish()?"ltr":"rtl", d.base_x, d.base_x + d.base_width, d.chapters);
-        d.s = SefariaD3.scaleNormalizationFunction(d.scale);
     } else {
         orient = "bottom";
-        ticks = SefariaD3.talmudRefTicks(d.chapters);
         y = bavliOffsetY + 5;
+        ticks = SefariaD3.talmudRefTicks(d.chapters);
         d.scale = SefariaD3.talmudScale(isEnglish()?"ltr":"rtl", d.base_x, d.base_x + d.base_width, d.chapters);
-        d.step = Math.abs(d.scale(d.scale.domain()[1]) - d.scale(d.scale.domain()[0]));
-        d.s = SefariaD3.scaleNormalizationFunction(d.scale);
     }
+
+    d.s = SefariaD3.scaleNormalizationFunction(d.scale);
 
     d.axis = d3.svg.axis()
         .orient(orient)
@@ -461,7 +460,6 @@ function updateAxis(d) {
     var width = ("new_width" in d) ? d.new_width : d.base_width;
 
     d.scale.rangePoints(isEnglish() ? [x, x + width] : [x + width, x]);
-    d.step = Math.abs(d.scale(d.scale.domain()[1]) - d.scale(d.scale.domain()[0]));
     d.axis_group.call(d.axis);
 }
 
@@ -967,15 +965,6 @@ function replaceHistory() {
     history.replaceState(args.object, args.argtitle, args.url);
     args.books.forEach(function (e,a,i) { Sefaria.track.exploreBook(e) });
 
-}
-
-function pushLanguageChange() {
-    var args = _getHistory();
-
-    //console.log("pushLanguageChange",args.object, args.title, args.url);
-    Sefaria.track.exploreUrl(args.url);
-    changePageTitle(args.object.title);
-    history.pushState(args.object, args.argtitle, args.url);
 }
 
 function pushHistory() {
