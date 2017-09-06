@@ -221,7 +221,7 @@ def linker_js(request):
         "book_titles": json.dumps(model.library.full_title_list("en")
                       + model.library.full_title_list("he"))
     }
-    return render_to_response("js/linker.js", attrs, mimetype="text/javascript")
+    return render_to_response("js/linker.js", attrs, mimetype= "text/javascript")
 
 
 def title_regex_api(request, titles):

@@ -3447,10 +3447,11 @@ def person_page(request, name):
     template_vars = person.contents()
     if request.interfaceLang == "he":
         template_vars["name"] = person.primary_name("he")
-        template_vars["bio"]= person.heBio
+        template_vars["bio"]= getattr(person, "heBio", _("Learn about %(name)s - works written, biographies, dates and more.") % {"name": person.primary_name("he")})
     else:
         template_vars["name"] = person.primary_name("en")
-        template_vars["bio"]= person.enBio
+        template_vars["bio"]= getattr(person, "enBio", _("Learn about %(name)s - works written, biographies, dates and more.")  % {"name": person.primary_name("en")})
+
     template_vars["primary_name"] = {
         "en": person.primary_name("en"),
         "he": person.primary_name("he")
