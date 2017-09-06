@@ -430,22 +430,17 @@ function addAxis(d) {
     var domain, orient, ticks, y;
 
     if(type == "tanakh") {
-        domain = tanakhBookDomain(d.chapters);
         orient = "top";
-        ticks = tanakhTicks(d.chapters);
+        ticks = SefariaD3.integerRefTicks(d.chapters);
         y = tanakhOffsetY + 5;
     } else {
-        domain = bavliBookDomain(d.last_page);
         orient = "bottom";
-        ticks = bavliTicks(d.last_page);
+        ticks = SefariaD3.talmudRefTicks(d.last_page);
         y = bavliOffsetY + 5;
     }
 
-    d.scale = d3.scale.ordinal()
-        .domain(domain)
-        .rangePoints(isEnglish() ? [d.base_x, d.base_x + d.base_width] : [d.base_x + d.base_width, d.base_x]);
-
     if(type == "tanakh") {
+        d.scale = SefariaD3.integerScale(isEnglish()?"ltr":"rtl", d.base_x, d.base_x + d.base_width, d.chapters);
         d.s = function(i) {
             if(i.indexOf(":") < 0) {
                 i = i + ":1"; //Make chapter refs point to first verse
@@ -453,6 +448,7 @@ function addAxis(d) {
             return d.scale(i);
         }
     } else {
+        d.scale = SefariaD3.talmudScale(isEnglish()?"ltr":"rtl", d.base_x, d.base_x + d.base_width, d.last_page);
         d.step = Math.abs(d.scale(d.scale.domain()[1]) - d.scale(d.scale.domain()[0]));
         d.s = function(i) {
             var parts = i.split(":");
@@ -890,8 +886,6 @@ function processPreciseLinks(dBook) {
                         tooltip.select("#text2").text(svg.select("#" + d["r2"]["title"]).datum().heTitle + " " + d["r2"]["loc"]);
                     }
                     tooltip.attr("transform", "translate(" + xPosition + "," + yPosition + ")");
-
-//                        tooltip.each(moveToFront);
                 });
 
         //update
@@ -965,71 +959,8 @@ function toLink(title) {
     return title.split("-").join("_").split(" ").join("_");
 }
 
-
-/*****                         *****/
-
 function totalBookLengths(books) {
     return books.reduce(function(prev, cur) { return prev + cur["length"]; }, 0);
-}
-
-function bavliBookDomain(last_page) {
-    // last_page: a string of the form "45b"
-    // Returns: list of amudim from 2a through last_page.
-    // todo: Add sections? Perhaps with an optional shape parameter?
-
-	var last_amud = last_page.slice(-1);
-	var last_daf = last_page.slice(0,-1);
-
-	var domain = [];
-	for(var i = 2; i < last_daf; i++)
-	{
-		domain.push(i + "a");
-		domain.push(i + "b");
-	}
-	domain.push(last_daf + "a");
-	if(last_amud == "b") {
-		domain.push(last_daf + "b")
-	}
-	return domain
-}
-
-function bavliTicks(last_page) {
-    var last_amud = last_page.slice(-1);
-	var last_daf = last_page.slice(0,-1);
-
-    var ticks = [];
-    ticks.push("2a");
-	for(var i = 5; i < last_daf-2; i=i+5)
-	{
-		ticks.push(i + "a");
-	}
-	if(last_amud == "a") {
-        ticks.push(last_daf + "a");
-    } else {
-		ticks.push(last_daf + "b")
-	}
-    return ticks;
-}
-
-function tanakhBookDomain(chap_lengths) {
-	var domain = [];
-	for (var i = 0; i < chap_lengths.length; ++i) {
-		for (var j = 1; j <= chap_lengths[i]; ++j) {
-			domain.push(i+1 + ":" + j)
-		}
-	}
-	return domain;
-}
-
-function tanakhTicks(chap_lengths) {
-    var ticks = [];
-    var skip =  (chap_lengths.length < 40) ? 1 :
-                (chap_lengths.length < 90) ? 2 :
-                6;
-	for (var i = 1; i <= chap_lengths.length; i = i + skip) {
-        ticks.push(i + ":1");
-    }
-    return ticks;
 }
 
 
