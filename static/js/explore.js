@@ -427,36 +427,23 @@ function buildBookLabels(bks, klass, position) {
 
 function addAxis(d) {
     var type = d.collection;
-    var domain, orient, ticks, y;
+    var orient, ticks, y;
 
     if(type == "tanakh") {
         orient = "top";
         ticks = SefariaD3.integerRefTicks(d.chapters);
         y = tanakhOffsetY + 5;
+        d.scale = SefariaD3.integerScale(isEnglish()?"ltr":"rtl", d.base_x, d.base_x + d.base_width, d.chapters);
+        d.s = SefariaD3.scaleNormalizationFunction(d.scale);
     } else {
         orient = "bottom";
-        ticks = SefariaD3.talmudRefTicks(d.last_page);
+        ticks = SefariaD3.talmudRefTicks(d.chapters);
         y = bavliOffsetY + 5;
+        d.scale = SefariaD3.talmudScale(isEnglish()?"ltr":"rtl", d.base_x, d.base_x + d.base_width, d.chapters);
+        d.step = Math.abs(d.scale(d.scale.domain()[1]) - d.scale(d.scale.domain()[0]));
+        d.s = SefariaD3.scaleNormalizationFunction(d.scale);
     }
 
-    if(type == "tanakh") {
-        d.scale = SefariaD3.integerScale(isEnglish()?"ltr":"rtl", d.base_x, d.base_x + d.base_width, d.chapters);
-        d.s = function(i) {
-            if(i.indexOf(":") < 0) {
-                i = i + ":1"; //Make chapter refs point to first verse
-            }
-            return d.scale(i);
-        }
-    } else {
-        d.scale = SefariaD3.talmudScale(isEnglish()?"ltr":"rtl", d.base_x, d.base_x + d.base_width, d.last_page);
-        d.step = Math.abs(d.scale(d.scale.domain()[1]) - d.scale(d.scale.domain()[0]));
-        d.s = function(i) {
-            var parts = i.split(":");
-            var fractionOfPage = parts[1]/ d.chapters[Sefaria.hebrew.dafToInt(parts[0])];
-            fractionOfPage = fractionOfPage > 1 ? 1 : fractionOfPage; //Guard against mistaken counts
-            return isEnglish() ? d.scale(parts[0]) + d.step * (fractionOfPage) : d.scale(parts[0]) - d.step * (fractionOfPage)
-        }
-    }
     d.axis = d3.svg.axis()
         .orient(orient)
         .scale(d.scale)
@@ -590,6 +577,7 @@ function buildBookLinks() {
        var link = links.selectAll(".link")
           .data(json, function(d) { return d["book1"] + "-" + d["book2"];})
         .enter().append("path")
+           //.each(function(d) { if (!(d.book1 && d.book2 && svg.select("#" + d["book1"]).datum().base_cx && svg.select("#" + d["book2"]).datum().base_cx && svg.select("#" + d["book1"]).attr("cy") && svg.select("#" + d["book2"]).attr("cy") )) {console.log(d);}})
           .attr("class", "link")
           .attr("stroke-width", function(d) { return d["count"]/10 + "px"})
           .attr("stroke", function(d) { return colors(svg.select("#" + d["book1"]).attr("section")) })
@@ -872,8 +860,8 @@ function processPreciseLinks(dBook) {
                 .on("mouseover.tooltip", function() { tooltip.style("display", null); })
                 .on("mouseout.tooltip", function() { tooltip.style("display", "none"); })
                 .on("mousemove.tooltip", function(d) {
-                    var xPosition
-                    var yPosition
+                    var xPosition;
+                    var yPosition;
                     if(isEnglish()) {
                         xPosition = d3.mouse(this)[0];
                         yPosition = d3.mouse(this)[1] - 65;

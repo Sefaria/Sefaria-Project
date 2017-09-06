@@ -116,6 +116,8 @@ class Hebrew {
     return (s in known ? known[s] : s + "s");
   }
   static intToDaf(i) {
+    // Base 0 int -> daf
+    // e.g. 2 -> "2a"
     i += 1;
     var daf = Math.ceil(i/2);
     return daf + (i%2 ? "a" : "b");

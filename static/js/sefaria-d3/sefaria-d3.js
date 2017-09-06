@@ -4,27 +4,43 @@ var Sefaria = require('../sefaria/sefaria');
 
 class SD3 {
 
-    static talmudScale(direction, left_point, right_point, last_page) {
+    static talmudScale(direction, left_point, right_point, chap_lengths) {
+        // direction: "ltr" or "rtl"
+        return this._jaggedArrayScale(direction, left_point, right_point, this._jaggedArrayDomain(chap_lengths, "talmud"));
+    }
+    
+    static integerScale(direction, left_point, right_point, chap_lengths) {
+        // direction: "ltr" or "rtl"
+        return this._jaggedArrayScale(direction, left_point, right_point, this._jaggedArrayDomain(chap_lengths, "integer"));
+    }        
+
+    static _jaggedArrayScale(direction, left_point, right_point, domain) {
         // direction: "ltr" or "rtl"
         var rangePoints = direction == "ltr" ? [left_point, right_point] : [right_point, left_point];
-        var domain = this.talmudBookDomain(last_page);
 
         return d3.scale.ordinal()
              .domain(domain)
             .rangePoints(rangePoints);
     }
-    
-    static integerScale(direction, left_point, right_point, chapters) {
-        // direction: "ltr" or "rtl"
-        var rangePoints = direction == "ltr" ? [left_point, right_point] : [right_point, left_point];
-        var domain = this.integerBookDomain(chapters);
-        
-        return d3.scale.ordinal()
-             .domain(domain)
-            .rangePoints(rangePoints);
-    }        
-    
 
+    static scaleNormalizationFunction(scale) {
+        return function(i) {
+            if(i.indexOf(":") < 0) {
+                i = i + ":1"; //Make chapter refs point to first verse
+            }
+            var res = scale(i);
+            if (res == undefined) { console.log(i + " -> " + res); }
+            return res;
+        };
+        /* function(i) {
+            var parts = i.split(":");
+            var fractionOfPage = parts[1]/ d.chapters[Sefaria.hebrew.dafToInt(parts[0])];
+            fractionOfPage = fractionOfPage > 1 ? 1 : fractionOfPage; // Guard against mistaken counts
+            return isEnglish() ? d.scale(parts[0]) + d.step * (fractionOfPage) : d.scale(parts[0]) - d.step * (fractionOfPage)
+        } */
+    }
+    
+    /*
     static talmudBookDomain(last_page) {
         // last_page: a string of the form "45b"
         // Returns: list of amudim from 2a through last_page.
@@ -44,45 +60,54 @@ class SD3 {
         }
         return domain
     }
-    
-    static integerBookDomain(chap_lengths) {
-        // Assumes depth 2, int:int.
+    */
 
+
+    static _jaggedArrayDomain(chap_lengths, section_address_type) {
+        // section_address_type: "talmud" or "integer"
         var domain = [];
+        var section;
         for (var i = 0; i < chap_lengths.length; ++i) {
+            if (section_address_type == "talmud") {
+                section = Sefaria.hebrew.intToDaf(i);
+                if (chap_lengths[i] > 0) {
+                    domain.push(section); // To support refs to e.g. "7b"
+                }
+            } else {
+                section = i+1;
+            }
             for (var j = 1; j <= chap_lengths[i]; ++j) {
-                domain.push(i + 1 + ":" + j)
+                domain.push(section + ":" + j)
             }
         }
         return domain;
     }
-    
-    static talmudRefTicks(last_page, skip) {
-        var last_amud = last_page.slice(-1);
-        var last_daf = last_page.slice(0, -1);
-        skip = skip || 5;
+
+    static talmudRefTicks(chap_lengths, skip) {
+        var last_index = chap_lengths.length - 1;
+        skip = skip || (last_index < 80) ? 4 :
+            (last_index < 120) ? 6 :
+                10;
 
         var ticks = [];
         ticks.push("2a");
-        for (var i = skip; i < last_daf - 2; i = i + skip) {
-            ticks.push(i + "a");
+        for (var i = skip + 2; i < last_index - 2; i = i + skip) {
+            ticks.push(Sefaria.hebrew.intToDaf(i));
         }
-        if (last_amud == "a") {
-            ticks.push(last_daf + "a");
-        } else {
-            ticks.push(last_daf + "b")
-        }
+        ticks.push(Sefaria.hebrew.intToDaf(last_index));
+
         return ticks;
     }
 
     static integerRefTicks(chap_lengths, skip) {
         // Assumes depth 2.
-        skip = skip || (chap_lengths.length < 40) ? 1 :
-            (chap_lengths.length < 90) ? 2 :
+        var last_index = chap_lengths.length;
+        skip = skip || (last_index < 40) ? 1 :
+            (last_index < 90) ? 2 :
                 6;
 
         var ticks = [];
-        for (var i = 1; i <= chap_lengths.length; i = i + skip) {
+        for (var i = 1; i <= last_index; i = i + skip) {
             ticks.push(i + ":1");
         }
         return ticks;
