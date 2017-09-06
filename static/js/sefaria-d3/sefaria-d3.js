@@ -23,46 +23,6 @@ class SD3 {
             .rangePoints(rangePoints);
     }
 
-    static scaleNormalizationFunction(scale) {
-        return function(i) {
-            if(i.indexOf(":") < 0) {
-                i = i + ":1"; //Make chapter refs point to first verse
-            }
-            var res = scale(i);
-            if (res == undefined) { console.log(i + " -> " + res); }
-            return res;
-        };
-        /* function(i) {
-            var parts = i.split(":");
-            var fractionOfPage = parts[1]/ d.chapters[Sefaria.hebrew.dafToInt(parts[0])];
-            fractionOfPage = fractionOfPage > 1 ? 1 : fractionOfPage; // Guard against mistaken counts
-            return isEnglish() ? d.scale(parts[0]) + d.step * (fractionOfPage) : d.scale(parts[0]) - d.step * (fractionOfPage)
-        } */
-    }
-    
-    /*
-    static talmudBookDomain(last_page) {
-        // last_page: a string of the form "45b"
-        // Returns: list of amudim from 2a through last_page.
-        // todo: Add sections? Perhaps with an optional shape parameter?
-
-        var last_amud = last_page.slice(-1);
-        var last_daf = last_page.slice(0, -1);
-
-        var domain = [];
-        for (var i = 2; i < last_daf; i++) {
-            domain.push(i + "a");
-            domain.push(i + "b");
-        }
-        domain.push(last_daf + "a");
-        if (last_amud == "b") {
-            domain.push(last_daf + "b")
-        }
-        return domain
-    }
-    */
-
-
     static _jaggedArrayDomain(chap_lengths, section_address_type) {
         // section_address_type: "talmud" or "integer"
         var domain = [];
@@ -81,6 +41,17 @@ class SD3 {
             }
         }
         return domain;
+    }
+
+    static scaleNormalizationFunction(scale) {
+        return function(i) {
+            if(i.indexOf(":") < 0) {
+                i = i + ":1"; //Make chapter refs point to first verse
+            }
+            var res = scale(i);
+            if (res == undefined) { console.log(i + " -> " + res); }
+            return res;
+        };
     }
 
     static talmudRefTicks(chap_lengths, skip) {
@@ -112,10 +83,6 @@ class SD3 {
         }
         return ticks;
     }
-
-
-
-
         
 }
 
@@ -131,7 +98,6 @@ Shape record:
             "length": len(shape) if isinstance(shape, list) else 1,  # hmmmm
             "chapters": shape,
             "book": snode.index.title,
-            "last_page": snode.address_class(-2).toStr("en", len(shape) + 1)
         }
 
  */
