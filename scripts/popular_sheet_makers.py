@@ -21,8 +21,8 @@ sorted_public_authors = sorted(public_authors.iteritems(), key=lambda x: -x[1])
 print "Most Popular Public Sheet Authors"
 for author in sorted_public_authors[:10]:
     profile = UserProfile(id=author[0])
-    print "%s: %d views - www.sefaria.org/profiles/%s" % (profile.full_name, author[1], profile.slug)
+    print "%s: %d views - www.sefaria.org/profile/%s" % (profile.full_name, author[1], profile.slug)
 print "Most Popular Total Sheet Authors"
 for author in sorted_authors[:10]:
     profile = UserProfile(id=author[0])
-    print "%s: %d views - www.sefaria.org/profiles/%s" % (profile.full_name, author[1], profile.slug)
+    print "%s: %d views - www.sefaria.org/profile/%s" % (profile.full_name, author[1], profile.slug)
