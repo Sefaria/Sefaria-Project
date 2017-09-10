@@ -542,6 +542,12 @@ def translation_requests_stats(request):
 def sheet_stats(request):
     from dateutil.relativedelta import relativedelta
     html  = ""
+
+    html += "Total Sheets: %d\n" % db.sheets.find().count()
+    html += "Public Sheets: %d\n" % db.sheets.find({"status": "public"}).count()
+
+
+    html += "\nUnique Source Sheet creators per month:\n\n"
     start = datetime.today().replace(day=1, hour=0, minute=0, second=0, microsecond=0)
     months = 30
     for i in range(months):
@@ -549,10 +555,7 @@ def sheet_stats(request):
         start = end - relativedelta(months=1)
         query = {"dateCreated": {"$gt": start.isoformat(), "$lt": end.isoformat()}}
         n = db.sheets.find(query).distinct("owner")
-        html = "%s: %d\n%s" % (start.strftime("%b %y"), len(n), html)
-
-    html = "Unique Source Sheet creators per month:\n\n" + html
-
+        html += "%s: %d\n" % (start.strftime("%b %y"), len(n))
 
     html += "\n\nAll time contributors:\n\n"
     all_sheet_makers = db.sheets.distinct("owner")
