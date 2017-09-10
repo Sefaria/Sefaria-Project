@@ -55,8 +55,8 @@ def attach_branch(new_node, parent_node, place=0, skip_dependencies=False):
     :param new_node: A schema node tree to attach
     :param parent_node: The parent to attach it to
     :param place: The index of the child before which to insert, so place=0 inserts at the front of the list, and place=len(parent_node.children) inserts at the end
-    :param skip_dependencies: Specify this to be True when you believe that after attaching new_node to parent_node, calling
-    either library.rebuild() or refresh_version_state() will result in an error. In normal cases, 'invalid' should be set to False.
+    :param skip_dependencies: Usually False. Specify this to be True when you believe that after attaching new_node to parent_node, calling
+    either library.rebuild() or refresh_version_state() will result in an error.
     :return:
     """
     assert isinstance(new_node, SchemaNode)
@@ -272,9 +272,8 @@ def change_parent(node, new_parent, place=0, index=None):
     :param node:
     :param new_parent:
     :param place: The index of the child before which to insert, so place=0 inserts at the front of the list, and place=len(parent_node.children) inserts at the end
-    :param index: The Index record of new_parent. 'index' only needs to be passed in in cases where the Index
-    cannot be determined from checking new_parent.index. This happens in the case where new_parent was just created
-    but the library hasn't been rebuilt. In this case, its index attribute will be None (see attach_branch())
+    :param index: The Index record of new_parent. 'index' only needs to be passed in cases where new_parent was
+    just created but the library hasn't been rebuilt.  When this happens, new_parent.index is None.
     :return:
     """
     def rewriter(string):
