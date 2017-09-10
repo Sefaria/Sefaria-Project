@@ -1,12 +1,9 @@
 {% extends "base.html" %}
+{% load i18n %}
 
-{% block titleEnglish %}Sefaria Mobile Apps{% endblock %}
-{% block titleHebrew %}Sefaria Mobile Apps{% endblock %}
+{% block title %}{% trans "Sefaria Mobile Apps" %}{% endblock %}
 
-{% block descriptionEnglish %}Downland the free Sefaria Apps for iOS and Android.{% endblock %}
-
-{% block descriptionHebrew %}Downland the free Sefaria Apps for iOS and Android.{% endblock %}
-
+{% block description %}{% trans "Downland the free Sefaria Apps for iOS and Android." %}{% endblock %}
 
 {% block css %}
     html, body {

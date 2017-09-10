@@ -218,6 +218,10 @@ class Term(abst.AbstractMongoRecord, AbstractTitledObject):
         "ref"
     ]
 
+    def load_by_title(self, title):
+        query = {'titles.text':  title}
+        return self.load(query=query)
+
     def _set_derived_attributes(self):
         self.set_titles(getattr(self, "titles", None))
 
@@ -229,6 +233,10 @@ class Term(abst.AbstractMongoRecord, AbstractTitledObject):
 
     def _validate(self):
         super(Term, self)._validate()
+        #do not allow duplicates:
+        other_term = Term().load({'name': self.name}) or Term().load_by_title(self.name)
+        if other_term:
+            raise InputError("A Term with the title {} already exists".format(self.name))
         self.title_group.validate()
         if self.name != self.get_primary_title():
             raise InputError("Term name {} does not match primary title {}".format(self.name, self.get_primary_title()))
@@ -539,6 +547,14 @@ class TreeNode(object):
                         self._leaf_nodes += node.get_leaf_nodes()
         return self._leaf_nodes
 
+    def get_child_order(self, child):
+        """
+        Intention is to call this on the root node of a schema, in order to get the order of a child node.
+        :param child: TreeNode
+        :return: Integer
+        """
+        return self.all_children().index(child) + 1
+
 
 class TitledTreeNode(TreeNode, AbstractTitledOrTermedObject):
     """
@@ -844,7 +860,7 @@ class NumberedTitledTreeNode(TitledTreeNode):
         """
         key = (title, lang, anchored, compiled, kwargs.get("for_js"), kwargs.get("match_range"), kwargs.get("strict"), kwargs.get("terminated"), kwargs.get("escape_titles"))
         if not self._regexes.get(key):
-            reg = ur"^" if anchored else ""
+            reg = ur"^" if anchored else u""
             title_block = regex.escape(title) if escape_titles else title
             reg += ur"(?P<title>" + title_block + ur")" if capture_title else title_block
             reg += self.after_title_delimiter_re
@@ -866,7 +882,11 @@ class NumberedTitledTreeNode(TitledTreeNode):
                     reg += u"?"
 
         if kwargs.get("match_range"):
-            reg += ur"(?:\s*-\s*"  # maybe there's a dash and a range
+            #TODO there is a potential error with this regex. it fills in toSections starting from highest depth and going to lowest.
+            #TODO Really, the depths should be filled in the opposite order, but it's difficult to write a regex to match.
+            #TODO However, most false positives will be filtered out in library._get_ref_from_match()
+
+            reg += ur"(?:\s*[-\u2013]\s*"  # maybe there's a dash (either n or m dash) and a range
             reg += ur"(?=\S)"  # must be followed by something (Lookahead)
             group = "ar0" if not kwargs.get("for_js") else None
             reg += self._addressTypes[0].regex(lang, group, **kwargs)

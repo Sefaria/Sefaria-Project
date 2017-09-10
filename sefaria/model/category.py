@@ -9,6 +9,7 @@ from sefaria.system.exceptions import BookNameError, InputError
 from . import abstract as abstract
 from . import schema as schema
 from . import text as text
+from . import link as link
 
 
 class Category(abstract.AbstractMongoRecord, schema.AbstractTitledOrTermedObject):
@@ -17,7 +18,7 @@ class Category(abstract.AbstractMongoRecord, schema.AbstractTitledOrTermedObject
 
     track_pkeys = True
     pkeys = ["lastPath"]  # Needed for dependency tracking
-    required_attrs = ["lastPath", "path"]
+    required_attrs = ["lastPath", "path", "depth"]
     optional_attrs = ["enDesc", "heDesc", "titles", "sharedTitle"]
 
     def __unicode__(self):
@@ -65,6 +66,9 @@ class Category(abstract.AbstractMongoRecord, schema.AbstractTitledOrTermedObject
 
     def _normalize(self):
         super(Category, self)._normalize()
+
+        self.depth = len(self.path)
+
         if not getattr(self, "lastPath", None):
             self.lastPath = self.path[-1]
 
@@ -73,6 +77,19 @@ class Category(abstract.AbstractMongoRecord, schema.AbstractTitledOrTermedObject
                 del self.__dict__["titles"]
         else:
             self.titles = self.get_titles_object()
+
+    def contents(self, **kwargs):
+        d = super(Category, self).contents()
+        if "lastPath" not in d:
+            d["lastPath"] = self.path[-1]
+
+        if d.get("sharedTitle", None) is not None:
+            if "titles" in d:
+                del d["titles"]
+        else:
+            d["titles"] = self.get_titles_object()
+
+        return d
 
     def get_toc_object(self):
         from sefaria.model import library
@@ -144,14 +161,20 @@ class TocTree(object):
         self._path_hash = {}
         self._library = lib
 
-        # Store sparseness data (same functionality as sefaria.summaries.get_sparseness_lookup()
-        vss = db.vstate.find({}, {"title": 1, "content._en.sparseness": 1, "content._he.sparseness": 1})
-        self._sparseness_lookup = {vs["title"]: max(vs["content"]["_en"]["sparseness"], vs["content"]["_he"]["sparseness"]) for vs in vss}
+        # Store sparseness data (same functionality as sefaria.summaries.get_sparseness_lookup()) and first section ref.
+        vss = db.vstate.find({}, {"title": 1, "content._en.sparseness": 1, "content._he.sparseness": 1, "first_section_ref": 1})
+        self._vs_lookup = {vs["title"]: {
+            "sparseness": max(vs["content"]["_en"]["sparseness"], vs["content"]["_he"]["sparseness"]),
+            "first_section_ref": vs.get("first_section_ref")
+        } for vs in vss}
 
         # Build Category object tree from stored Category objects
-        cs = sorted(CategorySet(), key=lambda c: len(c.path))
-        for c in cs:
+        for c in CategorySet(sort=[("depth", 1)]):
             self._add_category(c)
+
+        # Get all of the first comment links
+        ls = db.links.find({"is_first_comment": True}, {"first_comment_indexes":1, "first_comment_section_ref":1})
+        self._first_comment_lookup = {frozenset(l["first_comment_indexes"]): l["first_comment_section_ref"] for l in ls}
 
         # Place Indexes
         indx_set = self._library.all_index_records() if self._library else text.IndexSet()
@@ -166,8 +189,8 @@ class TocTree(object):
 
         self._sort()
 
-    def all_category_nodes(self):
-        return [v for v in self._path_hash.values() if isinstance(v, TocCategory)]
+    def all_category_nodes(self, include_root = True):
+        return ([self._root] if include_root else []) + [v for v in self._path_hash.values() if isinstance(v, TocCategory)]
 
     def _sort(self):
         def _explicit_order_and_title(node):
@@ -194,9 +217,20 @@ class TocTree(object):
             cat.children.sort(key=lambda node: 'zzz' + node.primary_title("en") if isinstance(node, TocCategory) and node.primary_title("en") in REVERSE_ORDER else 'a')
 
     def _make_index_node(self, index, old_title=None):
-        d = index.toc_contents()
+        d = index.toc_contents(include_first_section=False)
+
         title = old_title or d["title"]
-        d["sparseness"] = self._sparseness_lookup.get(title,1)
+
+        vs = self._vs_lookup.get(title, {})
+        d["sparseness"] = vs.get("sparseness", 1)
+        d["firstSection"] = vs.get("first_section_ref", None)
+
+        if "base_text_titles" in d and len(d["base_text_titles"]) > 0:
+            d["refs_to_base_texts"] = {btitle:
+                self._first_comment_lookup.get(frozenset([btitle, title]), d["firstSection"])
+                for btitle in d["base_text_titles"]
+                }
+
         return TocTextIndex(d, index_object=index)
 
     def _add_category(self, cat):
@@ -256,8 +290,10 @@ class TocTree(object):
                 return
             vs.refresh()
             sn = vs.state_node(index.nodes)
-            self._sparseness_lookup[title] = max(sn.get_sparseness("en"), sn.get_sparseness("he"))
-
+            self._vs_lookup[title] = {
+                "sparseness" : max(sn.get_sparseness("en"), sn.get_sparseness("he")),
+                "first_section_ref": vs.first_section_ref
+            }
         new_node = self._make_index_node(index, title)
         if node:
             node.replace(new_node)

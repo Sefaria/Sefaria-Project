@@ -59,6 +59,13 @@ EMAIL_HOST = 'localhost'
 EMAIL_PORT = 1025
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 
+# Example using anymail, replaces block above
+# EMAIL_BACKEND = 'anymail.backends.mandrill.EmailBackend'
+# DEFAULT_FROM_EMAIL = "Sefaria <hello@sefaria.org>"
+# ANYMAIL = {
+#    "MANDRILL_API_KEY": "your api key",
+# }
+
 MONGO_HOST = "localhost"
 # Name of the MongoDB database to use.
 SEFARIA_DB = 'sefaria'
@@ -80,6 +87,12 @@ NODE_TIMEOUT_MONITOR = relative_to_abs_path("../log/forever/timeouts")
 
 SEFARIA_DATA_PATH = '/path/to/your/Sefaria-Data' # used for Data
 SEFARIA_EXPORT_PATH = '/path/to/your/Sefaria-Data/export' # used for exporting texts
+
+# Map domain to an interface language that the domain should be pinned to
+DOMAIN_LANGUAGES = {
+    "hebrew.example.org": "hebrew",
+    "english.example.org": "english",
+}
 
 GOOGLE_ANALYTICS_CODE = 'your google analytics code'
 MIXPANEL_CODE = 'you mixpanel code here'

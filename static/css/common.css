@@ -680,8 +680,11 @@ text-shadow: 0 1px 0 rgba(255, 255, 255, 0.5);
 
 #messageComposer {
   max-width: 100%;
+  border-radius: 6px;
 }
-
+#messageTextarea {
+  margin-bottom: 20px;
+}
 #messageHeader {
   font-weight: bold;
   font-size: 14px;

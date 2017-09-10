@@ -4,7 +4,6 @@ from urllib3.exceptions import NewConnectionError
 
 from datetime import datetime, timedelta
 from StringIO import StringIO
-from collections import defaultdict
 
 import logging
 logger = logging.getLogger(__name__)
@@ -795,10 +794,13 @@ def user_sheet_list_api(request, user_id):
 	return jsonResponse(user_sheets(user_id), callback=request.GET.get("callback", None))
 
 
-def user_sheet_list_api_with_sort(request, user_id, sort_by="date"):
+def user_sheet_list_api_with_sort(request, user_id, sort_by="date", limiter=0, offset=0):
+	limiter  = int(limiter)
+	offset   = int(offset)
+
 	if int(user_id) != request.user.id:
 		return jsonResponse({"error": "You are not authorized to view that."})
-	return jsonResponse(user_sheets(user_id, sort_by), callback=request.GET.get("callback", None))
+	return jsonResponse(user_sheets(user_id, sort_by, limit=limiter, skip=offset), callback=request.GET.get("callback", None))
 
 
 def private_sheet_list_api(request, group):
@@ -1073,26 +1075,7 @@ def make_sheet_from_text_api(request, ref, sources=None):
 	sources = sources.replace("_", " ").split("+") if sources else None
 	sheet = make_sheet_from_text(ref, sources=sources, uid=request.user.id, generatedBy=None, title=None)
 	return redirect("/sheets/%d" % sheet["id"])
-
-
-def topics_api(request, topic):
-	"""
-	API to get data for a particular topic.
-	"""
-	sheets            = get_sheets_by_tag(topic)
-	sheets_serialized = []
-	sources_dict      = defaultdict(int)
-	for sheet in sheets:
-		sheets_serialized.append(sheet_to_dict(sheet))
-		for source in sheet.get("sources", []):
-			if "ref" in source:
-				sources_dict[source["ref"]] += 1
-	sources = sorted(sources_dict.iteritems(), key=lambda (k,v): v, reverse=True)
-	response = {"topic": topic, "sources": sources, "sheets": sheets_serialized}
-	response = jsonResponse(response, callback=request.GET.get("callback", None))
-	response["Cache-Control"] = "max-age=3600"
-	return response
-
+	
 
 def sheet_to_html_string(sheet):
 	"""

@@ -224,7 +224,8 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
     def _set_derived_attributes(self):
         if getattr(self, "schema", None):
             self.nodes = deserialize_tree(self.schema, index=self)
-            self.nodes.validate()
+            # Our pattern has been to validate on save, not on load
+            # self.nodes.validate()
         else:
             self.nodes = None
 
@@ -233,7 +234,8 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
             for name, struct in self.alt_structs.items():
                 self.struct_objs[name] = deserialize_tree(struct, index=self, struct_class=TitledTreeNode)
                 self.struct_objs[name].title_group = self.nodes.title_group
-                self.struct_objs[name].validate()
+                # Our pattern has been to validate on save, not on load
+                # self.struct_objs[name].validate()
 
     def is_complex(self):
         return getattr(self, "nodes", None) and self.nodes.has_children()
@@ -694,17 +696,19 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
 
         return toc_contents_dict
 
-    def toc_contents(self):
+    def toc_contents(self, include_first_section=True):
         """Returns to a dictionary used to represent this text in the library wide Table of Contents"""
-        firstSection = Ref(self.title).first_available_section_ref()
+
         toc_contents_dict = {
             "title": self.get_title(),
             "heTitle": self.get_title("he"),
             "categories": self.categories[:],
             "primary_category" : self.get_primary_category(),
             "dependence" : getattr(self, "dependence", False),
-            "firstSection": firstSection.normal() if firstSection else None
         }
+        if include_first_section:
+            firstSection = Ref(self.title).first_available_section_ref()
+            toc_contents_dict["firstSection"] = firstSection.normal() if firstSection else None
         ord = self.get_toc_index_order()
         if ord:
             toc_contents_dict["order"] = ord
@@ -715,7 +719,8 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
             toc_contents_dict["heCollectiveTitle"] = hebrew_term(self.collective_title)
         if hasattr(self, 'base_text_titles'):
             toc_contents_dict["base_text_titles"] = self.base_text_titles
-            toc_contents_dict["refs_to_base_texts"] = self.get_base_texts_and_first_refs()
+            if include_first_section:
+                toc_contents_dict["refs_to_base_texts"] = self.get_base_texts_and_first_refs()
             if "collectiveTitle" not in toc_contents_dict:
                 toc_contents_dict["collectiveTitle"] = self.title
                 toc_contents_dict["heCollectiveTitle"] = self.get_title("he")
@@ -735,14 +740,16 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
         first_link = Link().load(
             {'$and': [orig_ref.ref_regex_query(), base_text_ref.ref_regex_query()], 'is_first_comment': True}
         )
-        if not first_link:
-            firstSection = orig_ref.first_available_section_ref()
-            return firstSection.section_ref().normal() if firstSection else None
-        else:
+        if first_link:
             if orig_ref.contains(Ref(first_link.refs[0])):
                 return Ref(first_link.refs[0]).section_ref().normal()
             else:
                 return Ref(first_link.refs[1]).section_ref().normal()
+        else:
+            firstSection = orig_ref.first_available_section_ref()
+            return firstSection.section_ref().normal() if firstSection else None
+
+
 
 
 
@@ -982,20 +989,24 @@ class Version(abst.AbstractMongoRecord, AbstractTextRecord, AbstractSchemaConten
         """
         Returns a :class:`Ref` to the first non-empty location in this version.
         """
-        i = self.get_index()
-        leafnodes = i.nodes.get_leaf_nodes()
+        index = self.get_index()
+        leafnodes = index.nodes.get_leaf_nodes()
         for leaf in leafnodes:
             ja = JaggedTextArray(self.content_node(leaf))
             indx_array = ja.next_index()
             if indx_array:
-                return Ref(_obj={
-                    "index": i,
+                oref = Ref(_obj={
+                    "index": index,
                     "book": leaf.full_title("en"),
-                    "primary_category": i.get_primary_category(),
+                    "primary_category": index.get_primary_category(),
                     "index_node": leaf,
                     "sections": [i + 1 for i in indx_array],
                     "toSections": [i + 1 for i in indx_array]
-                }).section_ref()
+                })
+                if index.is_complex() or index.nodes.depth != 1:
+                    # For depth 1 texts, consider the first segment as the first section
+                    oref = oref.section_ref()
+                return oref
         return None
 
     def ja(self, remove_html=False):
@@ -2744,13 +2755,14 @@ class Ref(object):
 
         :return: :class:`Ref`
         """
+        # todo: This is now stored on the VersionState. Look for performance gains.
         if isinstance(self.index_node, JaggedArrayNode):
             r = self.padded_ref()
         elif isinstance(self.index_node, SchemaNode):
-            nodes = self.index_node.get_leaf_nodes()
-            if not len(nodes):
+            first_leaf = self.index_node.first_leaf()
+            if not first_leaf:
                 return None
-            r = nodes[0].ref().padded_ref()
+            r = first_leaf.ref().padded_ref()
         else:
             return None
 
@@ -2932,10 +2944,16 @@ class Ref(object):
         # TODO this function should take Version as optional parameter to limit the refs it returns to ones existing in that Version
         assert not self.is_range(), "Ref.all_subrefs() is not intended for use on Ranges"
 
-        size = self.get_state_ja(lang).sub_array_length([i - 1 for i in self.sections])
+        ja = self.get_state_ja(lang)
+        size = ja.sub_array_length([i - 1 for i in self.sections])
         if size is None:
             size = 0
-        return self.subrefs(size)
+        subrefs = self.subrefs(size)
+
+        #at this point, subrefs can include non-existent refs, so now filter those out using ja._store
+        subrefs = [poss_subref for poss_subref, actual_subref in zip(subrefs, ja._store) if actual_subref != []]
+
+        return subrefs
 
     def context_ref(self, level=1):
         """
@@ -2998,7 +3016,7 @@ class Ref(object):
             d = self._core_dict()
             if self.is_talmud():
                 if len(self.sections) == 0: #No daf specified
-                    section = 3 if "Bavli" in self.index.categories else 1
+                    section = 3 if "Bavli" in self.index.categories and "Rif" not in self.index.categories else 1
                     d["sections"].append(section)
                     d["toSections"].append(section)
             for i in range(self.index_node.depth - len(d["sections"]) - 1):
@@ -3373,6 +3391,8 @@ class Ref(object):
         key = "/".join(cats + [self.index.title])
         try:
             base = library.category_id_dict()[key]
+            if self.index.is_complex():
+                base += format(self.index.nodes.get_child_order(self.index_node), '03')
             res = reduce(lambda x, y: x + format(y, '04'), self.sections, base)
             if self.is_range():
                 res = reduce(lambda x, y: x + format(y, '04'), self.toSections, res + "-")
@@ -4189,8 +4209,9 @@ class Library(object):
                 self._simple_term_mapping[term.name] = {"en": term.get_primary_title("en"), "he": term.get_primary_title("he")}
 
             # Note that this will clobber any overlapping terms, and use the last of identical categories.
-            for cat in CategorySet():
-                self._simple_term_mapping[cat.lastPath] = {"en": cat.get_primary_title("en"), "he": cat.get_primary_title("he")}
+            # Currently, all category names are terms, this is labour lost.
+            # for cat in CategorySet():
+            #    self._simple_term_mapping[cat.lastPath] = {"en": cat.get_primary_title("en"), "he": cat.get_primary_title("he")}
 
         return self._simple_term_mapping
 
@@ -4395,14 +4416,15 @@ class Library(object):
                 node = self.get_schema_node(title, lang)
                 nodes_by_address_type[tuple(node.addressTypes)] += [(title, node)]
             except AttributeError as e:
-                logger.warning(u"Library._wrap_all_refs_in_string() failed to create regex for: {}.  {}".format(title, e))
+                # This chatter fills up the logs:
+                # logger.warning(u"Library._wrap_all_refs_in_string() failed to create regex for: {}.  {}".format(title, e))
                 continue
 
         if lang == "en" or for_js:  # Javascript doesn't support look behinds.
             for address_tuple, title_node_tuples in nodes_by_address_type.items():
                 node = title_node_tuples[0][1]
                 titles = u"|".join([regex.escape(tup[0]) for tup in title_node_tuples])
-                regex_components += [node.full_regex(titles, lang, for_js=for_js, match_range=for_js, compiled=False, anchored=anchored, capture_title=True, escape_titles=False)]
+                regex_components += [node.full_regex(titles, lang, for_js=for_js, match_range=True, compiled=False, anchored=anchored, capture_title=True, escape_titles=False)]
             return u"|".join(regex_components)
 
         if lang == "he":
@@ -4413,7 +4435,7 @@ class Library(object):
 
                 regex_components += [ur"(?:{}".format(ur"(?P<title>{})".format(titles))  \
                            + node.after_title_delimiter_re \
-                           + node.address_regex(lang, for_js=for_js, match_range=for_js) + u")"]
+                           + node.address_regex(lang, for_js=for_js, match_range=True) + u")"]
 
             all_interal = u"|".join(regex_components)
             if all_interal:
@@ -4430,7 +4452,7 @@ class Library(object):
         assert isinstance(node, JaggedArrayNode)  # Assumes that node is a JaggedArrayNode
 
         if lang == "en" or for_js:  # Javascript doesn't support look behinds.
-            return node.full_regex(title, lang, for_js=for_js, match_range=for_js, compiled=False, anchored=anchored, capture_title=capture_title)
+            return node.full_regex(title, lang, for_js=for_js, match_range=True, compiled=False, anchored=anchored, capture_title=capture_title)
 
         elif lang == "he":
             return ur"""(?<=							# look behind for opening brace
@@ -4439,7 +4461,7 @@ class Library(object):
                 )
                 """ + ur"{}".format(ur"(?P<title>{})".format(regex.escape(title)) if capture_title else regex.escape(title)) \
                    + node.after_title_delimiter_re \
-                   + node.address_regex(lang, for_js=for_js, match_range=for_js) \
+                   + node.address_regex(lang, for_js=for_js, match_range=True) \
                    + ur"""
                 (?=\W|$)                                        # look ahead for non-word char
                 (?=												# look ahead for closing brace
@@ -4449,11 +4471,29 @@ class Library(object):
 
     def _get_ref_from_match(self, ref_match, node, lang):
         sections = []
+        toSections = []
         gs = ref_match.groupdict()
         for i in range(0, node.depth):
             gname = u"a{}".format(i)
             if gs.get(gname) is not None:
                 sections.append(node._addressTypes[i].toNumber(lang, gs.get(gname)))
+
+        curr_address_index = len(sections) - 1  # start from the lowest depth matched in `sections` and go backwards
+        for i in range(node.depth-1, -1, -1):
+            toGname = u"ar{}".format(i)
+            if gs.get(toGname) is not None:
+                toSections.append(node._addressTypes[curr_address_index].toNumber(lang, gs.get(toGname)))
+                curr_address_index -= 1
+
+        if len(toSections) == 0:
+            toSections = sections
+        elif len(toSections) > len(sections):
+            raise InputError("Match {} invalid. Length of toSections is greater than length of sections: {} > {}".format(ref_match.group(0), len(toSections), len(sections)))
+        else:
+            # pad toSections until it reaches the length of sections.
+            while len(toSections) < len(sections):
+                toSections.append(sections[len(sections) - len(toSections) - 1])
+            toSections.reverse()
 
         _obj = {
             "tref": ref_match.group(),
@@ -4462,11 +4502,10 @@ class Library(object):
             "index": node.index,
             "primary_category": node.index.get_primary_category(),
             "sections": sections,
-            "toSections": sections
+            "toSections": toSections
         }
         return Ref(_obj=_obj)
 
-    #todo: handle ranges in inline refs
     def _build_ref_from_string(self, title=None, st=None, lang="en"):
         """
         Build a Ref object given a title and a string.  The title is assumed to be at position 0 in the string.
@@ -4477,7 +4516,6 @@ class Library(object):
         """
         return self._internal_ref_from_string(title, st, lang, stIsAnchored=True)
 
-    #todo: handle ranges in inline refs
     def _build_all_refs_from_string(self, title=None, st=None, lang="he"):
         """
         Build all Ref objects for title found in string.  By default, only match what is found between braces (as in Hebrew).
@@ -4511,7 +4549,7 @@ class Library(object):
             try:
                 res = (self._get_ref_from_match(ref_match, node, lang), ref_match.span()) if return_locations else self._get_ref_from_match(ref_match, node, lang)
                 refs.append(res)
-            except InputError:
+            except (InputError, ValueError) as e:
                 continue
         return refs
 

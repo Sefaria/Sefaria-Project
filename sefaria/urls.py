@@ -152,7 +152,7 @@ urlpatterns += patterns('sheets.views',
     (r'^api/sheets/(?P<sheet_id>\d+)/unlike$',                     'unlike_sheet_api'),
     (r'^api/sheets/(?P<sheet_id>\d+)/likers$',                     'sheet_likers_api'),
     (r'^api/sheets/user/(?P<user_id>\d+)$',                        'user_sheet_list_api'),
-    (r'^api/sheets/user/(?P<user_id>\d+)/(?P<sort_by>\w+)$',       'user_sheet_list_api_with_sort'),
+    (r'^api/sheets/user/(?P<user_id>\d+)/(?P<sort_by>\w+)/(?P<limiter>\d+)/(?P<offset>\d+)$',       'user_sheet_list_api_with_sort'),
     (r'^api/sheets/modified/(?P<sheet_id>\d+)/(?P<timestamp>.+)$', 'check_sheet_modified_api'),
     (r'^api/sheets/create/(?P<ref>[^/]+)(/(?P<sources>.+))?$',     'make_sheet_from_text_api'),
     (r'^api/sheets/tag/(?P<tag>[^/]+)?$',                          'sheets_by_tag_api'),
@@ -226,10 +226,17 @@ urlpatterns += patterns('sheets.views',
     (r'^api/groups/(?P<group_name>[^/]+)/pin-sheet/(?P<sheet_id>\d+)', 'groups_pin_sheet_api'),
 )
 
-
 # Topics
-urlpatterns += patterns('sheets.views',
+urlpatterns += patterns('reader.views',
+    (r'^topics$', 's2_topics_page'),
+    (r'^topics/(?P<topic>.+)$', 's2_topic_page'),
+)
+
+# Topics API
+urlpatterns += patterns('reader.views',
+    (r'^api/topics$', 'topics_list_api'),
     (r'^api/topics/(?P<topic>.+)$', 'topics_api'),
+    (r'^api/recommend/topics(/(?P<ref_list>.+))?', 'recommend_topics_api'),
 )
 
 # Registration
@@ -245,7 +252,7 @@ urlpatterns += patterns('',
 
 # Compare Page
 urlpatterns += patterns('sefaria.views',
-    url(r'^compare/(?P<ref1>[^/]+)/(?P<ref2>[^/]+)/(?P<lang>en|he)/?(?P<v1>[^/]+)?/?(?P<v2>[^/]+)?$', 'compare')
+    url(r'^compare/?((?P<secRef>[^/]+)/)?((?P<lang>en|he)/)?((?P<v1>[^/]+)/)?(?P<v2>[^/]+)?$', 'compare')
 )
 
 static_pages = [
@@ -276,7 +283,6 @@ static_pages = [
     "random-walk-through-torah",
     "educators",
     "the-sefaria-story",
-
 ]
 
 # Static and Semi Static Content

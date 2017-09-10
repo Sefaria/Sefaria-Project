@@ -1,14 +1,10 @@
 {% extends "base.html" %}
-
+{% load i18n %}
 {% load sefaria_tags %}
 
-{% block titleEnglish %}Authors on Sefaria{% endblock %}
-{% block titleHebrew %}Authors on Sefaria{% endblock %}
+{% block title %}{% trans "Authors on Sefaria" %}{% endblock %}
 
-{% block descriptionEnglish %}Biographies and informtion about the authors of Jewish texts on Sefaria, together with links to their available texts.{% endblock %}
-
-{% block descriptionHebrew %}Biographies and informtion about the authors of Jewish texts on Sefaria, together with links to their available texts.{% endblock %}
-
+{% block description %}{% trans "Biographies and information about the authors of Jewish texts on Sefaria, together with links to their available texts." %}{% endblock %}
 
 {% block css %}
     #languageToggle {

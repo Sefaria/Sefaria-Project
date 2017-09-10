@@ -446,14 +446,18 @@ class SheetListing extends Component {
 
     return (
       <div className="sheet" key={sheet.sheetUrl}>
-        {viewsIcon}
-        <a href={sheet.ownerProfileUrl} target="_blank" onClick={this.handleSheetOwnerClick}>
-          <img className="sheetAuthorImg" src={sheet.ownerImageUrl} />
-        </a>
-        <a href={sheet.ownerProfileUrl} target="_blank" className="sheetAuthor" onClick={this.handleSheetOwnerClick}>{sheet.ownerName}</a>
+        <div className="sheetInfo">
+          <div className="sheetUser">
+            <a href={sheet.ownerProfileUrl} target="_blank" onClick={this.handleSheetOwnerClick}>
+              <img className="sheetAuthorImg" src={sheet.ownerImageUrl} />
+            </a>
+            <a href={sheet.ownerProfileUrl} target="_blank" className="sheetAuthor" onClick={this.handleSheetOwnerClick}>{sheet.ownerName}</a>
+          </div>
+          {viewsIcon}
+        </div>
         <a href={sheet.sheetUrl} target="_blank" className="sheetTitle" onClick={this.handleSheetClick}>
           <img src="/static/img/sheet.svg" className="sheetIcon"/>
-          {sheet.title}
+          <span className="sheetTitleText">{sheet.title}</span>
         </a>
         <div className="sheetTags">
           {sheet.tags.map(function(tag, i) {
@@ -502,7 +506,7 @@ class ToolsList extends Component {
       <div>
         <ToolsButton en="Share" he="שתף" image="tools-share.svg" onClick={() => this.props.setConnectionsMode("Share")} />
         <ToolsButton en="Add Translation" he="הוסף תרגום" image="tools-translate.svg" onClick={addTranslation} />
-        { Sefaria.is_moderator || Sefaria.is_editor ? <ToolsButton en="Add Connection" he="הוסף קישור לטקסט אחר" image="tools-add-connection.svg"onClick={() => this.props.setConnectionsMode("Add Connection")} /> : null }
+        <ToolsButton en="Add Connection" he="הוסף קישור לטקסט אחר" image="tools-add-connection.svg"onClick={() => this.props.setConnectionsMode("Add Connection")} />
         { editText ? (<ToolsButton en="Edit Text" he="ערוך טקסט" image="tools-edit-text.svg" onClick={editText} />) : null }
       </div>);
   }
@@ -534,8 +538,10 @@ class ToolsButton extends Component {
     return (
       <a href={url} className="toolsButton sans noselect" onClick={this.onClick}>
         {icon}
-        <span className="int-en noselect">{this.props.en} {count}</span>
-        <span className="int-he noselect">{this.props.he} {count}</span>
+        <span className="toolsButtonText">
+          <span className="int-en noselect">{this.props.en} {count}</span>
+          <span className="int-he noselect">{this.props.he} {count}</span>
+        </span>
       </a>)
   }
 }

@@ -88,7 +88,7 @@ class TextRange extends Component {
     }
 
     // If this is a ref to a super-section, rewrite it to first available section
-    if (data.textDepth - data.sections.length > 1 && data.firstAvailableSectionRef) {
+    if (this.props.basetext && data.textDepth - data.sections.length > 1 && data.firstAvailableSectionRef) {
       this.props.showBaseText(data.firstAvailableSectionRef, true, this.props.version, this.props.versionLanguage);
       return;
     }
@@ -313,12 +313,12 @@ class TextRange extends Component {
       <div className={classes} onClick={this.handleClick} onKeyPress={this.handleKeyPress}>
         {sidebarNum}
         {this.props.hideTitle ? null :
-
         (<div className="title">
-          <div className="titleBox">
+          <div className="titleBox" role="heading" aria-level="2">
             <span className="en" >{title}</span>
             <span className="he">{heTitle}</span>
           </div>
+          {this.props.titleButtons ? <div className="buttons" onClick={e => e.stopPropagation()}>{this.props.titleButtons}</div> : null }
         </div>)}
         <div className="text">
           <div className="textInner">
@@ -340,11 +340,11 @@ TextRange.propTypes = {
   hideTitle:              PropTypes.bool,
   loadLinks:              PropTypes.bool,
   prefetchNextPrev:       PropTypes.bool,
-  openOnClick:            PropTypes.bool,
   lowlight:               PropTypes.bool,
   numberLabel:            PropTypes.number,
   settings:               PropTypes.object,
   filter:                 PropTypes.array,
+  titleButtons:           PropTypes.object,
   onTextLoad:             PropTypes.func,
   onRangeClick:           PropTypes.func,
   onSegmentClick:         PropTypes.func,
@@ -441,13 +441,13 @@ class TextSegment extends Component {
         return false;
     }
     return (
-      <span tabIndex="0" className={classes} onClick={this.handleClick} onKeyPress={this.handleKeyPress} data-ref={this.props.sref} aria-controls={"panel-"+(this.props.panelPosition+1)} aria-label={"Click to see links to "+this.props.sref}>
+      <div tabIndex="0" className={classes} onClick={this.handleClick} onKeyPress={this.handleKeyPress} data-ref={this.props.sref} aria-controls={"panel-"+(this.props.panelPosition+1)} aria-label={"Click to see links to "+this.props.sref}>
         {segmentNumber}
         {linkCountElement}
-        <span className="he" dangerouslySetInnerHTML={ {__html: he + " "} }></span>
-        <span className="en" dangerouslySetInnerHTML={ {__html: en + " "} }></span>
+        <p className="he" dangerouslySetInnerHTML={ {__html: he + " "} }></p>
+        <p className="en" dangerouslySetInnerHTML={ {__html: en + " "} }></p>
         <div className="clearFix"></div>
-      </span>
+      </div>
     );
   }
 }

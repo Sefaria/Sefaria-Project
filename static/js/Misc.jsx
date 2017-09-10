@@ -7,6 +7,26 @@ const PropTypes  = require('prop-types');
 import Component      from 'react-class';
 
 
+class Link extends Component {
+  handleClick(e) {
+    e.preventDefault();
+    this.props.onClick();
+  }
+  render() {
+    return <a 
+              className={this.props.className} 
+              href={this.props.href}
+              onClick={this.handleClick}
+              title={this.props.title}>{this.props.children}</a>
+  }
+}
+Link.propTypes = {
+  href:    PropTypes.string.isRequired,
+  onClick: PropTypes.func,
+  title:   PropTypes.string.isRequired,
+}
+
+
 class GlobalWarningMessage extends Component {
   close() {
     Sefaria.globalWarningMessage = null;
@@ -172,15 +192,15 @@ class ToggleOption extends Component {
     if (Sefaria.site) { Sefaria.track.event("Reader", "Display Option Click", this.props.set + " - " + this.props.name); }
   }
   checkKeyPress(e){
-    if (e.keyCode === 39) { //39 is right arrow
-        $(e.target).siblings(".toggleOption").removeClass('on').attr("tabIndex","-1");
-        $(e.target).removeClass('on').attr("tabIndex","-1");
-        $(e.target).next(".toggleOption").focus().addClass('on').attr("tabIndex","0");
+    if (e.keyCode === 39  || e.keyCode === 40) { //39 is right arrow -- 40 is down
+        $(e.target).siblings(".toggleOption").attr("tabIndex","-1");
+        $(e.target).attr("tabIndex","-1");
+        $(e.target).next(".toggleOption").focus().attr("tabIndex","0");
     }
-    else if (e.keyCode === 37) { //37 is left arrow
-        $(e.target).siblings(".toggleOption").removeClass('on').attr("tabIndex","-1");
-        $(e.target).removeClass('on').attr("tabIndex","-1");
-        $(e.target).prev(".toggleOption").focus().addClass('on').attr("tabIndex","0");
+    else if (e.keyCode === 37 || e.keyCode === 38) { //37 is left arrow -- 38 is up
+        $(e.target).siblings(".toggleOption").attr("tabIndex","-1");
+        $(e.target).attr("tabIndex","-1");
+        $(e.target).prev(".toggleOption").focus().attr("tabIndex","0");
     }
     else if (e.keyCode === 13) { //13 is enter
         $(e.target).trigger("click");
@@ -633,6 +653,7 @@ var backToS1 = function() {
   window.location = "/";
 };
 
+
 module.exports.backToS1                                  = backToS1;
 module.exports.BlockLink                                 = BlockLink;
 module.exports.CategoryColorLine                         = CategoryColorLine;
@@ -641,6 +662,7 @@ module.exports.Dropdown                                  = Dropdown;
 module.exports.GlobalWarningMessage                      = GlobalWarningMessage;
 module.exports.InterruptingMessage                       = InterruptingMessage;
 module.exports.LanguageToggleButton                      = LanguageToggleButton;
+module.exports.Link                                      = Link;
 module.exports.LoadingMessage                            = LoadingMessage;
 module.exports.LoginPrompt                               = LoginPrompt;
 module.exports.Note                                      = Note;

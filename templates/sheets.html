@@ -32,9 +32,7 @@
 
 <body {% if EMBED %}class="embeded"{% endif %} style="background-color:#eee;">
 
-{% if not S2 %}
-	{% include "header.html" %}
-{% endif %}
+{% include "header.html" %}
 
 <div id="link"></div>
 <div id="error"></div>
@@ -614,9 +612,7 @@ Footer depends on full bootstrap grid, which isn't loaded in sheets.html
 {% endif %}
 <script src="/static/js/s1/util.js"></script>
 <script src="/static/js/sheets.js"></script>
-{% if S2 %}
-    {% include "react_header_activate.html" %}
-{% endif %}
+
 <div id='inlineTextPreview'></div>
 
 </body>

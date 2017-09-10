@@ -389,6 +389,7 @@ class Test_Ref(object):
     def test_all_subrefs(self):
         assert Ref("Genesis").all_subrefs()[49] == Ref("Genesis 50")
         assert Ref("Genesis 40").all_subrefs()[22] == Ref("Genesis 40:23")
+        assert Ref("Tamid").all_subrefs()[0] == Ref("Tamid 25b")
 
     def test_ref_regex(self):
         assert Ref("Exodus 15").regex() == u'^Exodus( 15$| 15:| 15 \\d)'
@@ -848,13 +849,20 @@ class Test_set_construction_from_ref(object):
 
 
 class Test_Order_Id(object):
-    def test_order_id(self):
+    def test_order_id_processes(self):
         assert Ref("Shabbat 17b").order_id()
         assert Ref("Job 15:13").order_id()
         assert Ref("Shabbat 12a:14").order_id()
         assert Ref("Rashi on Shabbat 17b:12").order_id()
         assert Ref("Tosafot on Yoma 25a:24").order_id()
 
+    def test_ordering_of_order_id(self):
+        assert Ref("Job 15:13").order_id() < Ref("Shabbat 17b").order_id()
+        assert Ref("Shabbat 12b").order_id() < Ref("Shabbat 17b").order_id()
+        assert Ref("Shabbat 12b").order_id() < Ref("Bava Kamma 17b").order_id()
+
+    def test_ordering_of_complex_texts(self):
+        assert Ref("Meshech Hochma, Vaera 2").order_id() > Ref("Meshech Hochma, Shemot 6").order_id()
 
 '''
 class Test_ref_manipulations():

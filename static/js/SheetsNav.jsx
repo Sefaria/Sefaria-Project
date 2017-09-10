@@ -143,7 +143,8 @@ class SheetsHomePage extends Component {
   showYourSheets() {
     this.props.setSheetTag("My Sheets");
   }
-  showAllSheets() {
+  showAllSheets(e) {
+    e.preventDefault();
     this.props.setSheetTag("All Sheets");
   }
   changeSort(sort) {
@@ -152,7 +153,7 @@ class SheetsHomePage extends Component {
   _type_sheet_button(en, he, on_click, active) {
     var classes = classNames({"type-button": 1, active: active});
 
-    return <div className={classes} onClick={on_click}>
+    return <div className={classes} onClick={on_click} onKeyPress={function(e) {e.charCode == 13 ? on_click(e):null}.bind(this)} role="button" tabIndex="0">
               <div className="type-button-title">
                 <span className="int-en">{en}</span>
                 <span className="int-he">{he}</span>
@@ -190,9 +191,9 @@ class SheetsHomePage extends Component {
                 { this.props.multiPanel ?
                   (<h2 className="splitHeader">
                     <span className="int-en">Public Sheets</span>
-                    <span className="int-en actionText" onClick={this.showAllSheets}>See All <i className="fa fa-angle-right"></i></span>
+                    <a className="int-en actionText" onClick={this.showAllSheets} href="/sheets/tags/All%20Sheets">See All <i className="fa fa-angle-right"></i></a>
                     <span className="int-he">דפי מקורות פומביים</span>
-                    <span className="int-he actionText" onClick={this.showAllSheets}>צפה בהכל <i className="fa fa-angle-left"></i></span>
+                    <a className="int-he actionText" onClick={this.showAllSheets} href="/sheets/tags/All%20Sheets">צפה בהכל <i className="fa fa-angle-left"></i></a>
                   </h2>) :
                   (<h2>
                       <span className="int-en">Public Sheets</span>
@@ -380,7 +381,7 @@ class PublicSheetListing extends Component {
     var url = "/sheets/" + sheet.id;
     return (<a className="sheet" href={url} key={url}>
               {sheet.ownerImageUrl ? (<img className="sheetImg" src={sheet.ownerImageUrl} alt={sheet.ownerName}/>) : null}
-              <span className="sheetViews"><i className="fa fa-eye"></i> {sheet.views}</span>
+              <span className="sheetViews"><i className="fa fa-eye" aria-label="Number of Sheet Views"></i> {sheet.views}</span>
               <div className="sheetAuthor">{sheet.ownerName}</div>
               <div className="sheetTitle">{title}</div>
             </a>);
@@ -412,18 +413,50 @@ class MySheetsPage extends Component {
     super(props);
 
     this.state = {
+      page: 1,
       showYourSheetTags: false,
-      sheetFilterTag: null
+      sheetFilterTag: null,
+      curSheets: [],
     };
   }
   componentDidMount() {
+    $(ReactDOM.findDOMNode(this)).bind("scroll", this.handleScroll);
     this.ensureData();
   }
-  getSheetsFromCache() {
-    return  Sefaria.sheets.userSheets(Sefaria._uid, null, this.props.mySheetSort);
+  handleScroll() {
+    if (this.state.loadedToEnd || this.state.loading) { return; }
+    var $scrollable = $(ReactDOM.findDOMNode(this));
+    var margin = 100;
+    if($scrollable.scrollTop() + $scrollable.innerHeight() + margin >= $scrollable[0].scrollHeight) {
+      this.getMoreSheets();
+    }
   }
-  getSheetsFromAPI() {
-     Sefaria.sheets.userSheets(Sefaria._uid, this.onDataLoad, this.props.mySheetSort);
+  getMoreSheets() {
+    if (this.state.page == 1) {
+      Sefaria.sheets.userSheets(Sefaria._uid, this.loadMoreSheets, this.props.mySheetSort,0,100);
+    }
+    else {
+      Sefaria.sheets.userSheets(Sefaria._uid, this.loadMoreSheets, this.props.mySheetSort, ((this.state.page)*50),50);
+    }
+    this.setState({loading: true});
+  }
+  loadMoreSheets(data) {
+    this.setState({page: this.state.page + 1});
+    this.createSheetList(data)
+  }
+  createSheetList(newSheets) {
+      if (newSheets) {
+        this.setState({curSheets: this.state.curSheets.concat(newSheets), loading: false});
+      }
+  }
+  getSheetsFromCache(offset) {
+    if (!offset) offset=0;
+    return  Sefaria.sheets.userSheets(Sefaria._uid, null, this.props.mySheetSort, offset, 50);
+  }
+  getSheetsFromAPI(offset) {
+    if (!offset) offset=0;
+    Sefaria.sheets.userSheets(Sefaria._uid, this.onDataLoad, this.props.mySheetSort, offset, 50);
+
   }
   getTagsFromCache() {
     return Sefaria.sheets.userTagList(Sefaria._uid)
@@ -450,10 +483,19 @@ class MySheetsPage extends Component {
   }
   changeSortYourSheets(event) {
     this.props.setMySheetSort(event.target.value);
-    Sefaria.sheets.userSheets(Sefaria._uid, this.onDataLoad, event.target.value);
+    this.state = {
+      page: 1,
+      curSheets: []
+    }
+    Sefaria.sheets.userSheets(Sefaria._uid, this.loadMoreSheets, event.target.value,0,100);
   }
   render() {
-    var sheets = this.getSheetsFromCache();
+    if (this.state.page == 1) {
+      var sheets = this.getSheetsFromCache();
+    }
+    else {
+      var sheets = this.state.curSheets;
+    }
     sheets = sheets && this.state.sheetFilterTag ? sheets.filter(function(sheet) {
       return Sefaria.util.inArray(this.state.sheetFilterTag, sheet.tags) >= 0;
     }.bind(this)) : sheets;

@@ -85,8 +85,8 @@ class VersionState(abst.AbstractMongoRecord, AbstractSchemaContent):
     ]
     optional_attrs = [
         "flags",
-        "linksCount"
-        #"categories",
+        "linksCount",
+        "first_section_ref"
     ]
 
     langs = ["en", "he"]
@@ -142,12 +142,38 @@ class VersionState(abst.AbstractMongoRecord, AbstractSchemaContent):
             self._load_versions()
         return self._versions.get(lang)
 
+    def _first_section_ref(self):
+        if not getattr(self, "index", False):
+            return None
+
+        current_leaf = self.index.nodes.first_leaf()
+        new_section = None
+
+        while current_leaf:
+            r = current_leaf.ref()
+            c = self.state_node(current_leaf).ja("all")
+            new_section = c.next_index([])
+            if new_section:
+                break
+            current_leaf = current_leaf.next_leaf()
+
+        if not new_section:
+            return None
+
+        depth_up = 0 if current_leaf.depth == 1 else 1
+
+        d = r._core_dict()
+        d["toSections"] = d["sections"] = [(s + 1) for s in new_section[:-depth_up]]
+        return Ref(_obj=d)
+
     def refresh(self):
         if self.is_new_state:  # refresh done on init
             return
         self.content = self.index.nodes.visit_content(self._content_node_visitor, self.content)
         self.index.nodes.visit_structure(self._aggregate_structure_state, self)
         self.linksCount = link.LinkSet(Ref(self.index.title)).count()
+        fsr = self._first_section_ref()
+        self.first_section_ref = fsr.normal() if fsr else None
         self.save()
 
         if USE_VARNISH:
@@ -363,7 +389,8 @@ class StateNode(object):
          'content._he.textComplete': 1,
          'flags': 1,
          'linksCount': 1,
-         'title': 1}
+         'title': 1,
+         'first_section_ref': 1}
     #todo: self.snode could be a SchemaNode, but get_available_counts_dict() assumes JaggedArrayNode
     def __init__(self, title=None, snode=None, _obj=None, meta=False, hint=None):
         """

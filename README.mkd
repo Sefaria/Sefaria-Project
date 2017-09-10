@@ -54,6 +54,18 @@ After installing the Python development libraries, run `pip install -r requireme
 
 On Windows systems, use instructions [here](http://www.tylerbutler.com/2012/05/how-to-install-python-pip-and-virtualenv-on-windows-with-powershell/) and then make sure that the scripts sub folder of the python installation directory is also in PATH.
 
+#### Install gettext
+
+gettext is a GNU utility that Django uses to manage localizations. 
+
+On Mac:
+
+    brew install gettext
+
+On Debian systems
+
+    sudo apt-get install gettext
+
 #### Create a local settings file:
 
     cd sefaria

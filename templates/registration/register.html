@@ -1,11 +1,9 @@
 {% extends "base.html" %}
+{% load i18n %}
 
-{% block titleEnglish %}Create an Account | Sefaria{% endblock %}
-{% block titleHebrew %}Create an Account | Sefaria{% endblock %}
+{% block title %}{% trans "Create an Account" %} | {% trans "Sefaria" %}{% endblock %}
 
-{% block descriptionEnglish %}Create an account on Sefaria to make source sheets, take notes and follow other people.{% endblock %}
-
-{% block descriptionHebrew %}Create an account on Sefaria to make source sheets, take notes and follow other people.{% endblock %}
+{% block description %}{% trans "Create an account on Sefaria to make source sheets, take notes and follow other people." %}{% endblock %}
 
 {% block content %}
 
