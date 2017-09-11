@@ -271,6 +271,8 @@ input.noselect {
   background-color: black;
   opacity: 0.3;
   position: fixed;
+  top: 0;
+  left: 0;
   z-index: 1001;
 }
 #interruptingMessage {
@@ -4405,6 +4407,27 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
   text-decoration: underline;
 }
 #footer a#siteLanguageHebrew {
+}
+#textBrowserModal {
+  position: fixed;
+  width: 620px;
+  height: 500px;
+  max-width: 90%;
+  max-height: 90%;
+  z-index: 1002;
+}
+#textBrowserModal .textBrowser {
+  width: 100%;
+  height: calc(100% - 116px);
+}
+.textBrowser .message{
+  margin: 10px 0;
+}
+.textBrowserStatus {
+  background-color: #F9F9F7;
+  text-align: center;
+  border-top: 1px solid #CCC;
+  padding: 10px;
 }
 .multiPanel .readerNavMenu .content.hasFooter #footer {
   margin-top: 120px;

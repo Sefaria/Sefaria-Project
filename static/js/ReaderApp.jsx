@@ -1247,7 +1247,7 @@ class ReaderApp extends Component {
       var offset                         = widths.reduce(function(prev, curr, index, arr) { return index < i ? prev+curr : prev}, 0);
       var width                          = widths[i];
       var style                          = (this.state.layoutOrientation=="ltr")?{width: width + unit, left: offset + unit}:{width: width + unit, right: offset + unit};
-      var onSegmentClick                 = this.props.multiPanel ? this.handleSegmentClick.bind(null, i) : null;
+      var onSegmentClick                 = (this.props.multiPanel || panel.menuOpen == "compare") ? this.handleSegmentClick.bind(null, i) : null;
       var onCitationClick                = this.handleCitationClick.bind(null, i);
       var onSearchResultClick            = this.props.multiPanel ? this.handleCompareSearchClick.bind(null, i) : this.handleNavigationClick;
       var updateQueryInPanel             = this.updateQueryInPanel.bind(null, i);
@@ -1256,7 +1256,7 @@ class ReaderApp extends Component {
       var updateSearchOptionFieldInPanel = this.updateSearchOptionFieldInPanel.bind(null, i);
       var updateSearchOptionSortInPanel  = this.updateSearchOptionSortInPanel.bind(null, i);     
       var onOpenConnectionsClick         = this.openTextListAt.bind(null, i+1);
-      var setTextListHighlight           = this.setTextListHighlight.bind(null, i);
+      var setTextListHighlight           = this.props.multiPanel ? this.setTextListHighlight.bind(null, i) : null;
       var setSelectedWords               = this.setSelectedWords.bind(null, i);
       var openComparePanel               = this.openComparePanel.bind(null, i);
       var closePanel                     = panel.menuOpen == "compare" ? this.convertToTextList.bind(null, i) : this.closePanel.bind(null, i);
@@ -1379,4 +1379,3 @@ module.exports.ReaderApp           = ReaderApp;
 module.exports.Footer              = Footer;
 module.exports.sefariaSetup        = Sefaria.setup;
 module.exports.unpackDataFromProps = Sefaria.unpackDataFromProps;
-module.exports.EditGroupPage       = EditGroupPage;

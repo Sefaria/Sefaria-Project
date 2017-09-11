@@ -1,11 +1,11 @@
-var path = require('path');
-var nodeExternals = require('webpack-node-externals');
-var webpack = require('webpack');
-var BundleTracker = require('webpack-bundle-tracker');
-var DeepMerge = require('deep-merge');
-var nodemon = require('nodemon');
+var path                 = require('path');
+var nodeExternals        = require('webpack-node-externals');
+var webpack              = require('webpack');
+var BundleTracker        = require('webpack-bundle-tracker');
+var DeepMerge            = require('deep-merge');
+var nodemon              = require('nodemon');
 var WebpackOnBuildPlugin = require('on-build-webpack');
-var fs = require('fs');
+var fs                   = require('fs');
 
 var deepmerge = DeepMerge(function (target, source, key) {
     if (target instanceof Array) {

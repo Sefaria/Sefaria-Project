@@ -133,15 +133,14 @@ $(function() {
 
 	$("#inlineAddBrowse").click(function() {
 		$("#closeAddSource").trigger("click");
-		sjs.textBrowser.show({
-			callback: function(ref) {
-				if (!ref) { return; }
+		Sefaria.widgets.textBrowser(function(ref) {
+				console.log(ref);
+        if (!ref) { return; }
 				var q = parseRef(ref);
 				$("#closeAddSource").trigger("click");
 				addSource(q);
 				sjs.track.sheets("Add Source", ref);
-			}
-		})
+			})
 	});
 	$("#inlineAddBrowse").keydown(function(e) {
 		if (e.which == 13) {

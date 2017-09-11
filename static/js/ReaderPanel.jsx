@@ -48,14 +48,14 @@ class ReaderPanel extends Component {
     this.state = {
       refs: props.initialRefs || [], // array of ref strings
       bookRef: null,
-      mode: props.initialMode, // "Text", "TextAndConnections", "Connections"
+      mode: props.initialMode || "Text", // "Text", "TextAndConnections", "Connections"
       connectionsMode: props.initialConnectionsMode,
       filter: props.initialFilter || [],
       version: props.initialVersion,
       versionLanguage: props.initialVersionLanguage,
       highlightedRefs: props.initialHighlightedRefs || [],
       recentFilters: [],
-      settings: props.initialState.settings || {
+      settings: props.initialState ? props.initialState.settings : {
         language:      "bilingual",
         layoutDefault: "segmented",
         layoutTalmud:  "continuous",
@@ -81,8 +81,8 @@ class ReaderPanel extends Component {
       filterRegistry:       {},
       orphanSearchFilters:  [],
       displaySettingsOpen:  false,
-      tagSort: "count",
-      mySheetSort: "date",
+      tagSort:              "count",
+      mySheetSort:          "date",
       initialAnalyticsTracked: false
     }
   }
@@ -104,9 +104,6 @@ class ReaderPanel extends Component {
     }
     if (nextProps.searchQuery && this.state.menuOpen !== "search") {
       this.openSearch(nextProps.searchQuery);
-    }
-    if (this.state.menuOpen !== nextProps.initialMenu) {
-      this.setState({menuOpen: nextProps.initialMenu});
     }
     if (nextProps.initialState) {
       this.setState(nextProps.initialState);
@@ -169,7 +166,8 @@ class ReaderPanel extends Component {
     if (this.state.mode === "TextAndConnections") {
       this.closeConnectionsInPanel();
     } else if (this.state.mode === "Text") {
-      if (this.props.multiPanel) {
+      if (this.props.onSegmentClick) {
+        this.conditionalSetState({highlightedRefs: [ref]});
         this.props.onSegmentClick(ref);
       } else {
         this.openConnectionsInPanel(ref);
@@ -234,7 +232,7 @@ class ReaderPanel extends Component {
     refs = typeof refs === "string" ? [refs] : refs;
     this.replaceHistory = true;
     this.conditionalSetState({highlightedRefs: refs});
-    if (this.props.multiPanel) {
+    if (this.props.setTextListHighlight) {
       this.props.setTextListHighlight(refs);
     }
   }
@@ -321,6 +319,13 @@ class ReaderPanel extends Component {
       menuOpen: "search",
       searchQuery: query
     });
+  }
+  onSearchResultClick(ref, version, lang, options) {
+    if (this.props.onSearchResultClick) {
+      this.props.onSearchResultClick(ref, version, lang, options);
+    } else {
+      this.showBaseText(ref, false, version, lang);
+    }
   }
   openDisplaySettings() {
     this.conditionalSetState({displaySettingsOpen: true});
@@ -594,7 +599,7 @@ class ReaderPanel extends Component {
                     appliedFilters={this.state.appliedSearchFilters}
                     settings={Sefaria.util.clone(this.state.settings)}
                     panelsOpen={this.props.panelsOpen}
-                    onResultClick={this.props.onSearchResultClick}
+                    onResultClick={this.onSearchResultClick}
                     openDisplaySettings={this.openDisplaySettings}
                     toggleLanguage={this.toggleLanguage}
                     close={this.closePanelSearch}
@@ -777,10 +782,8 @@ ReaderPanel.propTypes = {
   onNavTextClick:              PropTypes.func,
   onRecentClick:               PropTypes.func,
   onSearchResultClick:         PropTypes.func,
-  onUpdate:                    PropTypes.func,
   onError:                     PropTypes.func,
   closePanel:                  PropTypes.func,
-  closeMenus:                  PropTypes.func,
   setConnectionsFilter:        PropTypes.func,
   setDefaultOption:            PropTypes.func,
   selectVersion:               PropTypes.func,

@@ -24,6 +24,11 @@ var Sefaria = Sefaria || {
   recentlyViewed: []
 };
 
+Sefaria.util    = Util;
+Sefaria.hebrew  = Hebrew;
+Sefaria.palette = palette;
+Sefaria.track   = Track;
+
 if (typeof window !== 'undefined') {
     window.Sefaria = Sefaria; // allow access to `Sefaria` from console
 }
@@ -1728,13 +1733,6 @@ Sefaria.unpackDataFromProps = function(props) {
   Sefaria.util._initialPath = props.initialPath;
 };
 
-
-
-
-Sefaria.util    = Util;
-Sefaria.hebrew  = Hebrew;
-Sefaria.palette = palette;
-Sefaria.track   = Track;
 
 Sefaria.setup = function(data) {
     // data parameter is optional. in the event it isn't passed, we assume that DJANGO_DATA_VARS exists as a global var

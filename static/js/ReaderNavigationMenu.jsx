@@ -273,7 +273,7 @@ class ReaderNavigationMenu extends Component {
                   <ReaderNavigationMenuSection title="Browse" heTitle="טקסטים" content={categories} />
                   <ReaderNavigationMenuSection title="Calendar" heTitle="לוח יומי" content={calendar} />
                   { this.props.compare ? null : (<ReaderNavigationMenuSection title="Resources" heTitle="קהילה" content={resources} />) }
-                  { this.props.multiPanel ? null : siteLinks }
+                  { this.props.multiPanel || this.props.compare ? null : siteLinks }
                 </div>
                 {footer}
               </div>

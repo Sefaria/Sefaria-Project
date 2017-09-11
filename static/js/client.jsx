@@ -10,15 +10,20 @@ $(function() {
   var component;
   DjangoCSRF.init();
   if (DJANGO_VARS.inReaderApp) {
+    // ReaderApp
     Sefaria.unpackDataFromProps(DJANGO_VARS.propsJSON);
     component = React.createElement(SefariaReact.ReaderApp, DJANGO_VARS.propsJSON);
     ReactDOM.render(component, container);
+  
   } else if (DJANGO_VARS.containerId && DJANGO_VARS.reactComponentName) {
+    // Render another React Component
     container = document.getElementById(DJANGO_VARS.containerId);
     component = React.createElement(SefariaReact[DJANGO_VARS.reactComponentName], DJANGO_VARS.propsJSON);
     ReactDOM.render(component, container);
     ReactDOM.render(React.createElement(SefariaReact.Footer), document.getElementById('footer'));
+  
   } else {
+    // Render as Header on top of static page
     var settings = {
       language: DJANGO_VARS.contentLang,
       layoutDefault: $.cookie("layoutDefault") || "segmented",
@@ -27,6 +32,11 @@ $(function() {
       color:         $.cookie("color")         || "light",
       fontSize:      $.cookie("fontSize")      || 62.5
     };
+    
+    Sefaria.widgets = Sefaria.widgets || {};
+    const { openTextBrowserWidget } = require("./TextBrowser");
+    Sefaria.widgets.textBrowser = openTextBrowserWidget;
+
     var multiPanel = $(window).width() > 600;
     component = React.createElement(SefariaReact.ReaderApp, {
       headerMode: true,
