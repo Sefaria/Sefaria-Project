@@ -2191,7 +2191,7 @@ def terms_api(request, name):
     Rather than duplicating functionality.
     """
     if request.method == "GET":
-        term = Term().load({'name': name})
+        term = Term().load({'name': name}) or Term().load_by_title(name)
         if term is None:
             return jsonResponse({"error": "Term does not exist."})
         else:
@@ -2199,7 +2199,7 @@ def terms_api(request, name):
 
     if request.method == "POST":
         def _internal_do_post(request, term, uid, **kwargs):
-            t = Term().load({'name': term["name"], "scheme": term["scheme"]})
+            t = Term().load({'name': name}) or Term().load_by_title(name)
             if t and not request.GET.get("update"):
                 return {"error": "Term already exists."}
             func = tracker.update if request.GET.get("update", False) else tracker.add
@@ -2633,6 +2633,27 @@ def topics_api(request, topic):
     response = topics.get(topic).contents()
     response = jsonResponse(response, callback=request.GET.get("callback", None))
     response["Cache-Control"] = "max-age=3600"
+    return response
+
+
+@catch_error_as_json
+def recommend_topics_api(request, ref_list=""):
+    """
+    API to receive recommended topics for list of strings `refs`. 
+    """
+    if request.method == "GET":
+        refs = [Ref(ref).normal() for ref in ref_list.split("+")]
+
+    elif request.method == "POST":
+        topics = get_topics()
+        postJSON = request.POST.get("json")
+        if not postJSON:
+            return jsonResponse({"error": "No post JSON."})
+        refs = json.loads(postJSON)
+
+    topics = get_topics()
+    response = {"topics": topics.recommend_topics(refs)}
+    response = jsonResponse(response, callback=request.GET.get("callback", None))
     return response
 
 
@@ -3426,10 +3447,11 @@ def person_page(request, name):
     template_vars = person.contents()
     if request.interfaceLang == "he":
         template_vars["name"] = person.primary_name("he")
-        template_vars["bio"]= person.heBio
+        template_vars["bio"]= getattr(person, "heBio", _("Learn about %(name)s - works written, biographies, dates and more.") % {"name": person.primary_name("he")})
     else:
         template_vars["name"] = person.primary_name("en")
-        template_vars["bio"]= person.enBio
+        template_vars["bio"]= getattr(person, "enBio", _("Learn about %(name)s - works written, biographies, dates and more.")  % {"name": person.primary_name("en")})
+
     template_vars["primary_name"] = {
         "en": person.primary_name("en"),
         "he": person.primary_name("he")

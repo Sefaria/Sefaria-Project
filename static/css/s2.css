@@ -3592,6 +3592,7 @@ h2.splitHeader .he {
   float:right;
   text-transform: none;
   cursor: pointer;
+  color: inherit;
 }
 .splitHeader .actionText select {
   margin-left: 6px;

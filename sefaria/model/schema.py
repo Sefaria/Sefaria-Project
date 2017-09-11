@@ -218,6 +218,10 @@ class Term(abst.AbstractMongoRecord, AbstractTitledObject):
         "ref"
     ]
 
+    def load_by_title(self, title):
+        query = {'titles.text':  title}
+        return self.load(query=query)
+
     def _set_derived_attributes(self):
         self.set_titles(getattr(self, "titles", None))
 
@@ -229,6 +233,10 @@ class Term(abst.AbstractMongoRecord, AbstractTitledObject):
 
     def _validate(self):
         super(Term, self)._validate()
+        #do not allow duplicates:
+        other_term = Term().load({'name': self.name}) or Term().load_by_title(self.name)
+        if other_term:
+            raise InputError("A Term with the title {} already exists".format(self.name))
         self.title_group.validate()
         if self.name != self.get_primary_title():
             raise InputError("Term name {} does not match primary title {}".format(self.name, self.get_primary_title()))

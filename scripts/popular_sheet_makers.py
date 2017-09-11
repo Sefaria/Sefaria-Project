@@ -11,18 +11,18 @@ sheets = db.sheets.find()
 
 for sheet in sheets:
     owner = sheet.get("owner", 0)
-    authors[owner] += 1
+    authors[owner] += sheet.get("views",0)
     if "status" in sheet and sheet["status"] == "public":
-        public_authors[owner] += 1
+        public_authors[owner] += sheet.get("views",0)
 
 sorted_authors        = sorted(authors.iteritems(), key=lambda x: -x[1])
 sorted_public_authors = sorted(public_authors.iteritems(), key=lambda x: -x[1])
 
-print "Top Public Sheet Authors"
+print "Most Popular Public Sheet Authors"
 for author in sorted_public_authors[:10]:
     profile = UserProfile(id=author[0])
-    print "%s: %d public sheets - www.sefaria.org/profile/%s" % (profile.full_name, author[1], profile.slug)
-print "Top Total Sheet Authors"
+    print "%s: %d views - www.sefaria.org/profile/%s" % (profile.full_name, author[1], profile.slug)
+print "Most Popular Total Sheet Authors"
 for author in sorted_authors[:10]:
     profile = UserProfile(id=author[0])
-    print "%s: %d sheets - www.sefaria.org/profile/%s" % (profile.full_name, author[1], profile.slug)
+    print "%s: %d views - www.sefaria.org/profile/%s" % (profile.full_name, author[1], profile.slug)

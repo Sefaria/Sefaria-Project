@@ -19,6 +19,10 @@ class Test_Terms_Validation(object):
         Term().load({"name": 'Torah'}).title_group.validate()
         Term().load({"name": 'Verse'}).title_group.validate()
 
+    def test_load_by_non_primary_title(self):
+        assert Term().load_by_title('Nachmanides') is not None
+        assert Term().load_by_title(u'פרשת לך לך') is not None
+
     def test_add_new_term(self):
         term = Term({
             "name"   : "Test One",
@@ -56,6 +60,49 @@ class Test_Terms_Validation(object):
                 }
             ]
         }).save()
+
+    def test_duplicate_terms(self):
+        with pytest.raises(InputError):
+            Term({
+                "scheme": "commentary_works",
+                "titles": [
+                    {
+                        "lang": "en",
+                        "text": "Ramban",
+                        "primary": True
+                    },
+                    {
+                        "lang": "he",
+                        "text": "רמב\"ן",
+                        "primary": True
+                    },
+                ],
+                "name": "Ramban"
+            }).save()
+
+        with pytest.raises(InputError):
+            Term({"name" : "Parashat Nitzavim",
+                "titles" : [
+                    {
+                        "lang" : "en",
+                        "text" : "Parashat Nitzavim",
+                        "primary" : True
+                    },
+                    {
+                        "lang" : "he",
+                        "text" : "נצבים",
+                        "primary" : True
+                    },
+                    {
+                        "lang" : "en",
+                        "text" : "Nitzavim"
+                    },
+                    {
+                        "lang" : "he",
+                        "text" : "פרשת נצבים"
+                    }
+                ],
+                "scheme" : "Parasha"}).save()
 
     def test_add_invalid_terms(self):
         with pytest.raises(InputError): # no heb title at all

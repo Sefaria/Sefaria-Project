@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2017-08-31 17:22-0700\n"
+"POT-Creation-Date: 2017-09-06 09:01-0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -137,6 +137,11 @@ msgstr "הודעות לגבי טקסטים, תרגומים וקישורים חד
 #: reader/views.py:2838
 msgid "You must be logged in to update your profile."
 msgstr "הנכם צריכים להיות מחוברים כדי לערוך את הפרופיל שלכם."
+
+#: reader/views.py:3429 reader/views.py:3432
+#, python-format
+msgid "Learn about %(name)s - works written, biographies, dates and more."
+msgstr ""
 
 #: sefaria/forms.py:58 sefaria/forms.py:63 sefaria/forms.py:129
 msgid "Email Address"
@@ -396,7 +401,7 @@ msgstr "שכחתי את הסיסמא שלי"
 msgid "Request a link to change your Sefaria password if you've forgotten it."
 msgstr "שכחתם סיסמא? ספריא יכולה לשלוח קישור לאיפוס סיסמת החשבון שלכם."
 
-#: templates/registration/password_reset_subject.txt:1
+#: templates/registration/password_reset_subject.txt:2
 msgid "Sefaria.org Password Reset"
 msgstr "איפוס סיסמא"
 
