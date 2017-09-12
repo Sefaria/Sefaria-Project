@@ -47,12 +47,12 @@ class ReaderNavigationCategoryMenu extends Component {
                             </span>
                          </div>);
       var catTitle   = (categories.length > 1) ? categories[0] +  " " + categories[1] : categories[0];
-      var heCatTitle = (categories.length > 1) ? Sefaria.hebrewTerm(categories[0]) + " " + Sefaria.hebrewTerm(categories[1]): categories[0];
+      var heCatTitle = (categories.length > 1) ? Sefaria.hebrewTerm(categories[0]) + " " + Sefaria.hebrewTerm(categories[1]): Sefaria.hebrewTerm(categories[0]);
     } else {
       var toggle = null;
       if (this.props.category === "Commentary") {
         var catTitle   = this.props.categories[0] + " Commentary";
-        var heCatTitle = Sefaria.hebrewTerm(this.props.category) + " " + Sefaria.hebrewTerm("Commentary"); // HEBREW NEEDED    
+        var heCatTitle = Sefaria.hebrewTerm(this.props.categories[0]) + " " + Sefaria.hebrewTerm("Commentary"); // HEBREW NEEDED
       } else {
         var catTitle   = this.props.category;
         var heCatTitle = Sefaria.hebrewTerm(this.props.category);        
