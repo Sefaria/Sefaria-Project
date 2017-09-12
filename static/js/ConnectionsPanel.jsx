@@ -572,13 +572,13 @@ class ShareBox extends Component {
     // var fbButton = <iframe src={"https://www.facebook.com/plugins/share_button.php?href=" + encodeURIComponent(this.props.url) + '&layout=button&size=large&mobile_iframe=true&appId=206308089417064&width=73&height=28'} width="73" height="28" style={{border:"none", overflow: "hidden"}} scrolling="no" frameborder="0" allowTransparency="true"></iframe>
 
     var shareFacebook = function() {
-      openInNewTab("https://www.facebook.com/sharer/sharer.php?u=" + encodeURIComponent(url));
+      Sefaria.util.openInNewTab("https://www.facebook.com/sharer/sharer.php?u=" + encodeURIComponent(url));
     };
     var shareTwitter = function() {
-      openInNewTab("https://twitter.com/home?status=" + url);
+      Sefaria.util.openInNewTab("https://twitter.com/home?status=" + url);
     };
     var shareEmail = function() {
-      openInNewTab("mailto:?&subject=Text on Sefaria&body=" + url);
+      Sefaria.util.openInNewTab("mailto:?&subject=Text on Sefaria&body=" + url);
     };
     var classes = classNames({textList: 1, fullPanel: this.props.fullPanel});
     return (
