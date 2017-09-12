@@ -380,39 +380,38 @@ class InterruptingMessage extends Component {
   }
   componentDidMount() {
     $("#interruptingMessage .button").click(this.close);
+    $("#interruptingMessage .trackedAction").click(this.trackAction);
+
   }
   close() {
     this.markAsRead();
     this.props.onClose();
   }
+  trackAction() {
+    Sefaria.track.event("Interrupting Message", "action", this.props.messageName, { nonInteraction: true });
+  }
   markAsRead() {
     Sefaria._api("/api/interrupting-messages/read/" + this.props.messageName, function (data) {});
-    $.cookie(this.props.messageName, true, { "path": "/" });
+    var cookieName = this.props.messageName + "_" + this.props.repetition;
+    $.cookie(cookieName, true, { "path": "/" });
     Sefaria.track.event("Interrupting Message", "read", this.props.messageName, { nonInteraction: true });
     Sefaria.interruptingMessage = null;
   }
   render() {
-    return React.createElement(
-      'div',
-      { className: 'interruptingMessageBox' },
-      React.createElement('div', { className: 'overlay', onClick: this.close }),
-      React.createElement(
-        'div',
-        { id: 'interruptingMessage' },
-        React.createElement(
-          'div',
-          { id: 'interruptingMessageClose', onClick: this.close },
-          '×'
-        ),
-        React.createElement('div', { id: 'interruptingMessageContent', dangerouslySetInnerHTML: { __html: this.props.messageHTML } })
-      )
-    );
+    return <div id="interruptingMessageBox">
+      <div className="overlay" onClick={this.close}></div>
+      <div id="interruptingMessage">
+        <div id="interruptingMessageClose">×</div>
+        <div id="interruptingMessageContent" dangerouslySetInnerHTML={ {__html: this.props.messageHTML} }></div>
+      </div>
+    </div>;
   }
 }
 InterruptingMessage.propTypes = {
   messageName: PropTypes.string.isRequired,
   messageHTML: PropTypes.string.isRequired,
-  onClose: PropTypes.func.isRequired
+  repetition:  PropTypes.number.isRequired,
+  onClose:     PropTypes.func.isRequired
 };
 
 
