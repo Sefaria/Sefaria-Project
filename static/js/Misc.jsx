@@ -378,17 +378,26 @@ class InterruptingMessage extends Component {
     super(props);
     this.displayName = 'InterruptingMessage';
     this.state = {
-      timesUp: false
+      timesUp: false,
+      animationStarted: false
     };
   }
   componentDidMount() {
+    this.delayedShow();
+  }
+  delayedShow() {
     setTimeout(function() {
       this.setState({timesUp: true});
-      this.trackOpen();
       $("#interruptingMessage .button").click(this.close);
       $("#interruptingMessage .trackedAction").click(this.trackAction);
-      console.log("timesup")
-    }.bind(this), 1000);
+      this.delayedFadeIn();
+    }.bind(this), 1000);    
+  }
+  delayedFadeIn() {
+    setTimeout(function() {
+      this.setState({animationStarted: true});
+      this.trackOpen();
+    }.bind(this), 50);    
   }
   close() {
     this.markAsRead();
@@ -403,14 +412,14 @@ class InterruptingMessage extends Component {
   markAsRead() {
     Sefaria._api("/api/interrupting-messages/read/" + this.props.messageName, function (data) {});
     var cookieName = this.props.messageName + "_" + this.props.repetition;
-    $.cookie(cookieName, true, { "path": "/" });
+    $.cookie(cookieName, true, { path: "/", expires: 14 });
     Sefaria.track.event("Interrupting Message", "read", this.props.messageName, { nonInteraction: true });
     Sefaria.interruptingMessage = null;
   }
   render() {
     return this.state.timesUp ? 
-      <div id="interruptingMessageBox">
-        <div className="overlay" onClick={this.close}></div>
+      <div id="interruptingMessageBox" className={this.state.animationStarted ? "" : "hidden"}>
+        <div id="interruptingMessageOverlay" onClick={this.close}></div>
         <div id="interruptingMessage">
           <div id="interruptingMessageContentBox">
             <div id="interruptingMessageClose" onClick={this.close}>×</div>
