@@ -17,7 +17,7 @@ GLOBAL_INTERRUPTING_MESSAGE = None
 GLOBAL_INTERRUPTING_MESSAGE = {
     "name":       "messageName",
     "repetition": 1,
-    "condition":  "returning"
+    "condition":  {"returning_only": True} 
 }
 """
 
