@@ -2051,6 +2051,7 @@ $(function() {
 				var selectedText = curHighlighterSegment.text().slice(firstSelectedCharacter, lastSelectedCharacter);
 				var textAfter = curHighlighterSegment.text().slice(lastSelectedCharacter);
 
+				highlighterTag = highlighterTag.replace(/\'/g, '&#39;'); //prevents js errors from improperly escaped strings.
 				$(curHighlighterSegment.parent()).after("<div class='highlighterSegment'>" + textAfter + "</div>");
 				$(curHighlighterSegment.parent()).after("<div class='highlighterSegment' style='background-color: " + tagBgColor + "' data-tag='" + highlighterTag + "'>" + selectedText + "</div>");
 				$(curHighlighterSegment.parent()).text(textBefore);

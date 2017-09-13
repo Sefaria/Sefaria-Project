@@ -1319,7 +1319,9 @@ class ReaderApp extends Component {
       (<InterruptingMessage
           messageName={Sefaria.interruptingMessage.name}
           messageHTML={Sefaria.interruptingMessage.html}
+          repetition={Sefaria.interruptingMessage.repetition}
           onClose={this.rerender} />) : null;
+
     var classDict = {readerApp: 1, multiPanel: this.props.multiPanel, singlePanel: !this.props.multiPanel};
     var interfaceLangClass = `interface-${this.props.interfaceLang}`;
     classDict[interfaceLangClass] = true

@@ -124,6 +124,10 @@ class Util {
      }
      Util._cookies[key] = value;
     }
+    static openInNewTab(url) {
+      var win = window.open(url, '_blank');
+      win.focus();
+    }
     static setupPrototypes() {
 
         String.prototype.toProperCase = function() {
