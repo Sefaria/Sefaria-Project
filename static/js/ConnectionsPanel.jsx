@@ -41,7 +41,9 @@ class ConnectionsPanel extends Component {
     }
     // Turn on the lexicon when receiving new words if they are less than 3
     // and don't span refs.
-    if (!prevProps.selectedWords && this.props.selectedWords &&
+    if (!prevProps.selectedWords && 
+        this.props.selectedWords &&
+        this.props.selectedWords.match(/[\s:\u0590-\u05ff.]+/) &&
         this.props.selectedWords.split(" ").length < 3 &&
         this.props.srefs.length == 1) {
       this.props.setConnectionsMode("Lexicon");
