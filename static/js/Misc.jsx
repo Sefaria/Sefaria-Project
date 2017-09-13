@@ -377,15 +377,25 @@ class InterruptingMessage extends Component {
   constructor(props) {
     super(props);
     this.displayName = 'InterruptingMessage';
+    this.state = {
+      timesUp: false
+    };
   }
   componentDidMount() {
-    $("#interruptingMessage .button").click(this.close);
-    $("#interruptingMessage .trackedAction").click(this.trackAction);
-
+    setTimeout(function() {
+      this.setState({timesUp: true});
+      this.trackOpen();
+      $("#interruptingMessage .button").click(this.close);
+      $("#interruptingMessage .trackedAction").click(this.trackAction);
+      console.log("timesup")
+    }.bind(this), 1000);
   }
   close() {
     this.markAsRead();
     this.props.onClose();
+  }
+  trackOpen() {
+    Sefaria.track.event("Interrupting Message", "open", this.props.messageName, { nonInteraction: true });
   }
   trackAction() {
     Sefaria.track.event("Interrupting Message", "action", this.props.messageName, { nonInteraction: true });
@@ -398,13 +408,17 @@ class InterruptingMessage extends Component {
     Sefaria.interruptingMessage = null;
   }
   render() {
-    return <div id="interruptingMessageBox">
-      <div className="overlay" onClick={this.close}></div>
-      <div id="interruptingMessage">
-        <div id="interruptingMessageClose">×</div>
-        <div id="interruptingMessageContent" dangerouslySetInnerHTML={ {__html: this.props.messageHTML} }></div>
+    return this.state.timesUp ? 
+      <div id="interruptingMessageBox">
+        <div className="overlay" onClick={this.close}></div>
+        <div id="interruptingMessage">
+          <div id="interruptingMessageContentBox">
+            <div id="interruptingMessageClose" onClick={this.close}>×</div>
+            <div id="interruptingMessageContent" dangerouslySetInnerHTML={ {__html: this.props.messageHTML} }></div>
+          </div>
+        </div>
       </div>
-    </div>;
+      : null;
   }
 }
 InterruptingMessage.propTypes = {

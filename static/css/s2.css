@@ -268,23 +268,23 @@ input.noselect {
 .overlay {
   width: 100%;
   height: 100%;
-  background-color: black;
-  opacity: 0.3;
+  background-color: white;
+  opacity: 0.7;
   position: fixed;
   z-index: 1001;
 }
 #interruptingMessage {
   width: 600px;
   max-width: 90%;
-  padding: 40px;
   box-sizing: border-box;
   position: fixed;
+  padding: 22px 15px;
   top: 15%;
   left: 50%;
   margin-left: -300px;
   z-index: 1001;
-  border: 1px solid #ccc;
-  background: white;
+  border: 1px solid #E6E6E6;
+  background-color: #F9F9F7;
   text-align: center;
   color: #666;
 }
@@ -294,13 +294,21 @@ input.noselect {
     left: 5%;
   }
 }
+#interruptingMessageContentBox {
+  position: relative;
+  border: 1px solid #CCC;
+  background-color: white;
+}
 #interruptingMessageClose {
   position: absolute;
-  top: 12px;
-  right: 20px;
-  color: #666;
-  font-size: 24px;
+  top: 0;
+  right: 10px;
+  color: #AAA;
+  font-size: 32px;
   cursor: pointer;
+}
+#interruptingMessageContent {
+  padding: 20px;
 }
 #interruptingMessage h1 {
   font-style: italic;
