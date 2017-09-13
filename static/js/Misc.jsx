@@ -377,42 +377,55 @@ class InterruptingMessage extends Component {
   constructor(props) {
     super(props);
     this.displayName = 'InterruptingMessage';
+    this.state = {
+      timesUp: false
+    };
   }
   componentDidMount() {
-    $("#interruptingMessage .button").click(this.close);
+    setTimeout(function() {
+      this.setState({timesUp: true});
+      this.trackOpen();
+      $("#interruptingMessage .button").click(this.close);
+      $("#interruptingMessage .trackedAction").click(this.trackAction);
+      console.log("timesup")
+    }.bind(this), 1000);
   }
   close() {
     this.markAsRead();
     this.props.onClose();
   }
+  trackOpen() {
+    Sefaria.track.event("Interrupting Message", "open", this.props.messageName, { nonInteraction: true });
+  }
+  trackAction() {
+    Sefaria.track.event("Interrupting Message", "action", this.props.messageName, { nonInteraction: true });
+  }
   markAsRead() {
     Sefaria._api("/api/interrupting-messages/read/" + this.props.messageName, function (data) {});
-    $.cookie(this.props.messageName, true, { "path": "/" });
+    var cookieName = this.props.messageName + "_" + this.props.repetition;
+    $.cookie(cookieName, true, { "path": "/" });
     Sefaria.track.event("Interrupting Message", "read", this.props.messageName, { nonInteraction: true });
     Sefaria.interruptingMessage = null;
   }
   render() {
-    return React.createElement(
-      'div',
-      { className: 'interruptingMessageBox' },
-      React.createElement('div', { className: 'overlay', onClick: this.close }),
-      React.createElement(
-        'div',
-        { id: 'interruptingMessage' },
-        React.createElement(
-          'div',
-          { id: 'interruptingMessageClose', onClick: this.close },
-          '×'
-        ),
-        React.createElement('div', { id: 'interruptingMessageContent', dangerouslySetInnerHTML: { __html: this.props.messageHTML } })
-      )
-    );
+    return this.state.timesUp ? 
+      <div id="interruptingMessageBox">
+        <div className="overlay" onClick={this.close}></div>
+        <div id="interruptingMessage">
+          <div id="interruptingMessageContentBox">
+            <div id="interruptingMessageClose" onClick={this.close}>×</div>
+            <div id="interruptingMessageContent" dangerouslySetInnerHTML={ {__html: this.props.messageHTML} }></div>
+          </div>
+        </div>
+      </div>
+      : null;
   }
 }
 InterruptingMessage.propTypes = {
   messageName: PropTypes.string.isRequired,
   messageHTML: PropTypes.string.isRequired,
-  onClose: PropTypes.func.isRequired
+  repetition:  PropTypes.number.isRequired,
+  onClose:     PropTypes.func.isRequired
 };
 
 
@@ -578,7 +591,7 @@ class TestMessage extends Component {
         <div className="testMessage">
           <div className="title">The new Sefaria is still in development.<br />Thank you for helping us test and improve it.</div>
           <a href="mailto:hello@sefaria.org" target="_blank" className="button">Send Feedback</a>
-          <div className="button" onClick={backToS1} >Return to Old Sefaria</div>
+          <div className="button" onClick={null} >Return to Old Sefaria</div>
         </div>
       </div>);
   }
@@ -643,18 +656,6 @@ SheetAccessIcon.propTypes = {
 };
 
 
-var openInNewTab = function(url) {
-  var win = window.open(url, '_blank');
-  win.focus();
-};
-
-var backToS1 = function() {
-  $.cookie("s2", "", {path: "/"});
-  window.location = "/";
-};
-
-
-module.exports.backToS1                                  = backToS1;
 module.exports.BlockLink                                 = BlockLink;
 module.exports.CategoryColorLine                         = CategoryColorLine;
 module.exports.CategoryAttribution                       = CategoryAttribution;
@@ -666,7 +667,6 @@ module.exports.Link                                      = Link;
 module.exports.LoadingMessage                            = LoadingMessage;
 module.exports.LoginPrompt                               = LoginPrompt;
 module.exports.Note                                      = Note;
-module.exports.openInNewTab                              = openInNewTab;
 module.exports.ReaderNavigationMenuCloseButton           = ReaderNavigationMenuCloseButton;
 module.exports.ReaderNavigationMenuDisplaySettingsButton = ReaderNavigationMenuDisplaySettingsButton;
 module.exports.ReaderNavigationMenuMenuButton            = ReaderNavigationMenuMenuButton;

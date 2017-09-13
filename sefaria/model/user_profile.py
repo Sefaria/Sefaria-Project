@@ -227,8 +227,9 @@ class UserProfile(object):
 		"""
 		Removes `message` from the users list of queued interrupting_messages.
 		"""
-		self.interrupting_messages.remove(message)
-		self.save()
+		if message in self.interrupting_messages:
+			self.interrupting_messages.remove(message)
+			self.save()
 
 	def set_recent_item(tref):
 		"""

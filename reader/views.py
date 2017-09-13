@@ -478,9 +478,7 @@ def s2_texts_category(request, cats):
         cat_toc    = get_or_make_summary_node(toc, cats, make_if_not_found=False)
         if cat_toc is None or len(cats) == 0:
             return s2_texts(request)
-        if request.interfaceLang == "hebrew":
-            cats = [hebrew_term(cat) for cat in cats]
-        cat_string = u", ".join(cats)
+        cat_string = u", ".join(cats) if request.interfaceLang == "english" else u", ".join([hebrew_term(cat) for cat in cats])
         title = cat_string + _(" | Sefaria")
         desc  = _("Read %(categories)s texts online with commentaries and connections.") % {'categories': cat_string}
 
@@ -3514,10 +3512,11 @@ def person_page(request, name):
     template_vars = person.contents()
     if request.interfaceLang == "he":
         template_vars["name"] = person.primary_name("he")
-        template_vars["bio"]= person.heBio
+        template_vars["bio"]= getattr(person, "heBio", _("Learn about %(name)s - works written, biographies, dates and more.") % {"name": person.primary_name("he")})
     else:
         template_vars["name"] = person.primary_name("en")
-        template_vars["bio"]= person.enBio
+        template_vars["bio"]= getattr(person, "enBio", _("Learn about %(name)s - works written, biographies, dates and more.")  % {"name": person.primary_name("en")})
+
     template_vars["primary_name"] = {
         "en": person.primary_name("en"),
         "he": person.primary_name("he")

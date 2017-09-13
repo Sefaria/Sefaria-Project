@@ -12,6 +12,14 @@ MAINTENANCE_MESSAGE = ""
 GLOBAL_WARNING = False
 GLOBAL_WARNING_MESSAGE = ""
 
+GLOBAL_INTERRUPTING_MESSAGE = None
+"""
+GLOBAL_INTERRUPTING_MESSAGE = {
+    "name":       "messageName",
+    "repetition": 1,
+    "condition":  "returning"
+}
+"""
 
 ADMINS = (
      ('Your Name', 'you@example.com'),
