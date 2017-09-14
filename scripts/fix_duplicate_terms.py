@@ -140,5 +140,25 @@ for i, dup in enumerate(duplicates['result'],1):
     print "{})====================================================".format(i)
 
 
+cats = db.category.find({})
+
+for cat in cats:
+    if "sharedTitle" in cat and cat['sharedTitle'] is not None:
+        cat_term = Term().load({'name': cat['sharedTitle']})
+        if not cat_term:
+            cat_term = Term().load_by_title(cat['sharedTitle'])
+            new_shared_title = cat_term.get_primary_title()
+            print "normalizing category with shared title {} to {}".format(cat['sharedTitle'], new_shared_title)
+            cat['sharedTitle'] = new_shared_title
+            cat['lastPath'] = new_shared_title
+            cat['path'][-1] = new_shared_title
+            db.category.save(cat, w=1)
+
+idxs = IndexSet()
+for idx in idxs:
+    pass
+
+
+
 
 
