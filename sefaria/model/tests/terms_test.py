@@ -7,7 +7,7 @@ from sefaria.system.exceptions import InputError
 class Test_Terms_Validation(object):
     @classmethod
     def setup_class(cls):
-        pass
+        TermSet({"scheme": "testing_terms"}).delete()
 
     @classmethod
     def teardown_class(cls):
@@ -82,7 +82,7 @@ class Test_Terms_Validation(object):
                 },
                 {
                     "lang": "he",
-                    "text": u"גלדכחשדף",
+                    "text": u"גלדכחשדף ב",
                     "primary": True,
                     "presentation": "alone"
                 }
@@ -106,6 +106,28 @@ class Test_Terms_Validation(object):
                     },
                 ],
                 "name": "Ramban"
+            }).save()
+
+        with pytest.raises(InputError):
+            Term({
+                "scheme": "commentary_works",
+                "titles": [
+                    {
+                        "lang": "en",
+                        "text": "New Ramban",
+                        "primary": True
+                    },
+                    {
+                        "lang": "en",
+                        "text": "Ramban",
+                    },
+                    {
+                        "lang": "he",
+                        "text": "רמב\"ן חדש",
+                        "primary": True
+                    },
+                ],
+                "name": "New Ramban"
             }).save()
 
         with pytest.raises(InputError):
