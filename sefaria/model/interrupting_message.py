@@ -3,6 +3,8 @@ from django.template.loader import render_to_string
 
 class InterruptingMessage(object):
   def __init__(self, attrs={}, request=None):
+    if attrs is None:
+      attrs = {}
     self.name        = attrs.get("name", None)
     self.repetition  = attrs.get("repetition", 0)
     self.condition   = attrs.get("condition", {})
