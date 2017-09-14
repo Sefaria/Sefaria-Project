@@ -1050,7 +1050,7 @@ sjs.textBrowser = {
 									(isTalmud ? "" : "<span class='number'>(" + sectionLabel + ")</span> ") +
 									he + 
 								   "</span>" : "") +
-							(en && sjs.interfaceLang != "he" ? "<span class='en'>" +
+							(en && (sjs.interfaceLang != "he"  || !he) ? "<span class='en'>" +
 									(isTalmud ? "" : "<span class='number'>(" + sectionLabel + ")</span> ") +
 									en + 
 								   "</span>" : "") +
