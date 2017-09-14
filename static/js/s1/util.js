@@ -791,11 +791,11 @@ sjs.textBrowser = {
 							"<div id='browserMessage'></div><br>" +
 							"<div id='browserOK' class='button disabled'>" + 
 								"<span class='int-en'>OK</span>" + 
-								"<span class='int-he'>בסדר</span>" + 
+								"<span class='int-he'>אישור</span>" +
 							"</div>" +
 							(abs ? "<div id='browserCancel' class='button'>" +
 									"<span class='int-en'>Cancel</span>" + 
-									"<span class='int-he'>בטל</span>" + 
+									"<span class='int-he'>ביטול</span>" +
 								"</div>" : "") +
 						"</div>" +
 				   "</div>";
@@ -1062,7 +1062,7 @@ sjs.textBrowser = {
 		if (longer.length == 0) {
 			html = "<div class='empty'>" + 
 						"<span class='int-en'>No text available.</span>" + 
-						"<span class='int-he'>No text available.</span>"
+						"<span class='int-he'>אין טקסט זמין.</span>"
 					"</div>";
 		}
 		var isCommentary = ($.inArray("Commentary", sjs.textBrowser._currentText.categories) > -1);
@@ -1130,7 +1130,7 @@ sjs.textBrowser = {
 	_setInitialMessage: function() {
     	sjs.textBrowser._setPreview("<div class='empty'>" +
     									"<span class='int-en'>Browse texts with the menu on the left.</span>" +
-    									"<span class='int-he'>Browse texts with the menu on the left. (Hebrew)</span>" +
+    									"<span class='int-he'>העזרו בתפריט המקורות מימין כדי לבחור את המקור שברצונכם להוסיף</span>" +
     								"</div>");
 	},
 	_hebrewSectionString(section) {
