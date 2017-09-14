@@ -480,6 +480,7 @@ ORDER = [
     'Liturgy',
         'Siddur',
         'Haggadah',
+        'High Holidays',
         'Piyutim',
     'Philosophy',
     "Tanaitic",
