@@ -23,6 +23,34 @@ class Test_Terms_Validation(object):
         assert Term().load_by_title('Nachmanides') is not None
         assert Term().load_by_title(u'פרשת לך לך') is not None
 
+    def test_add_duplicate_primary(self):
+        with pytest.raises(InputError):
+            term = Term({
+                "name": "Test Dup Primary",
+                "scheme": "testing_terms",
+                "titles": [
+                    {
+                        "lang": "en",
+                        "text": "Test Dup Primary",
+                        "primary": True
+                    },
+                    {
+                        "lang": "he",
+                        "text": u"ראשי כפול",
+                        "primary": True
+                    },
+                    {
+                        "lang": "en",
+                        "text": "Test Dup Primary",
+                    },
+                    {
+                        "lang": "he",
+                        "text": u"ראשי כפול",
+                    }
+                ]
+            })
+            term.save()
+
     def test_add_new_term(self):
         term = Term({
             "name"   : "Test One",

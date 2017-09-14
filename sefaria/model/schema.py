@@ -48,6 +48,8 @@ class TitleGroup(object):
         for lang in self.langs:
             if not self.primary_title(lang):
                 raise InputError("Title Group must have a {} primary title".format(lang))
+        if len(self.all_titles()) > len(list(set(self.all_titles()))):
+            raise InputError("There are duplicate titles in this object's title group")
         for title in self.titles:
             if not set(title.keys()) == set(self.required_attrs) and not set(title.keys()) <= set(self.required_attrs+self.optional_attrs):
                 raise InputError("Title Group titles must only contain the following keys: {}".format(self.required_attrs+self.optional_attrs))
