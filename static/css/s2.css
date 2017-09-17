@@ -51,6 +51,9 @@ body:not(.user-is-tabbing) *:focus {
   height: 100%;
   top: 0;
 }
+.readerApp.interface-hebrew{
+  direction: rtl;
+}
 .noselect {
   -webkit-touch-callout: none; /* iOS Safari */
     -webkit-user-select: none; /* Safari/Opera */
@@ -331,6 +334,9 @@ input.noselect {
   text-align: center;
   margin: 0 0 30px;
   color: #333;
+}
+.interface-hebrew #interruptingMessage h1{
+  font-style: normal;
 }
 .testMessage {
   position: fixed;
