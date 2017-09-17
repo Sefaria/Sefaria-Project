@@ -17,7 +17,8 @@ class LanguageSettingsMiddleware(object):
     Determines Interface and Content Language settings for each request.
     """
     def process_request(self, request):
-        excluded = ('/data.js', '/linker.js')
+        #excluded = ('/data.js', '/linker.js') # Temporarily allow pass on data.js so interrupting message (set through data.js) can filter by language
+        excluded = ('/linker.js',)
         if request.path.startswith("/api/") or request.path in excluded:
             return # Save potentially looking up a UserProfile when not needed
 
