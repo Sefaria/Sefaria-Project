@@ -1697,7 +1697,7 @@ a.readerNavCategory {
 
 .searchFilterBoxes .searchFilterExactBox {
   border-top: 1px solid #ccc;
-  padding: 5px 5px 5px 0;
+  padding: 5px 0px 5px 0;
 }
 
 .searchFilterExactBox.hidden {
