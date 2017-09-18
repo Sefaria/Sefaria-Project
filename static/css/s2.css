@@ -2054,7 +2054,7 @@ a.readerNavCategory {
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
   text-transform: uppercase;
   color: #999;
-  direction: ltr !important;
+  width: 100%;
 }
 .readerControls .readerTextToc.attributed .readerTextTocBox {
   line-height: 1.2;
@@ -2621,6 +2621,7 @@ a.readerNavCategory {
 .connectionsPanelHeader{
   display: flex;
   justify-content: space-between;
+  align-items: center;
 }
 .singlePanel .connectionsPanelHeader {
   justify-content: flex-start;
