@@ -52,7 +52,7 @@ import sefaria.utils.calendars
 from sefaria.utils.util import short_to_long_lang_code
 import sefaria.tracker as tracker
 from sefaria.system.cache import django_cache_decorator
-from sefaria.settings import USE_VARNISH, USE_NODE, NODE_HOST
+from sefaria.settings import USE_VARNISH, USE_NODE, NODE_HOST, DOMAIN_LANGUAGES, REDIRECTABLE_DOMAIN_LANGUAGES
 if USE_VARNISH:
     from sefaria.system.sf_varnish import invalidate_ref, invalidate_linked
 
@@ -1355,10 +1355,22 @@ def interface_language_redirect(request, language):
     Set the interfaceLang cookie, saves to UserProfile (if logged in)
     and redirects to `next` url param.
     """
+    from pprint import pprint
     next = request.GET.get("next", "/?home")
     next = "/?home" if next == "undefined" else next
+    
+    pinned_domain = None
+    domains = REDIRECTABLE_DOMAIN_LANGUAGES or DOMAIN_LANGUAGES
+    for domain in domains:
+        if domains[domain] == language and not request.get_host() in domain:
+            pinned_domain = domain
+            next = domain + next
+            break
+
     response = redirect(next)
-    response.set_cookie("interfaceLang", language)
+    
+    if not pinned_domain:
+        response.set_cookie("interfaceLang", language)
     if request.user.is_authenticated():
         p = UserProfile(id=request.user.id)
         p.settings["interface_language"] = language

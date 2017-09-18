@@ -102,6 +102,10 @@ DOMAIN_LANGUAGES = {
     "english.example.org": "english",
 }
 
+# Map domains which should be allowed for language directs, same shape as DOMAIN_LANGUAGES.
+# Set if you need to redirects to behave differently.
+REDIRECTABLE_DOMAIN_LANGUAGES = DOMAIN_LANGUAGES
+
 GOOGLE_ANALYTICS_CODE = 'your google analytics code'
 MIXPANEL_CODE = 'you mixpanel code here'
 

@@ -26,8 +26,10 @@ class LanguageSettingsMiddleware(object):
         interface = None
         domain = request.get_host()
         try:
-            if domain in DOMAIN_LANGUAGES:
-                interface = DOMAIN_LANGUAGES[domain]
+            if "https://" + domain in DOMAIN_LANGUAGES:
+                interface = DOMAIN_LANGUAGES["https://" + domain]
+            elif "http://" + domain in DOMAIN_LANGUAGES:
+                interface = DOMAIN_LANGUAGES["http://" + domain]
         except:
             pass
         if request.user.is_authenticated() and not interface:
