@@ -643,7 +643,7 @@ class ReaderPanel extends Component {
                       toggleLanguage={this.toggleLanguage}
                       navHome={this.openMenu.bind(null, "navigation")}
                       openDisplaySettings={this.openDisplaySettings}
-                      key={"TopicPage"} />);   
+                      key={"TopicPage"} />);
       } else {
         var menu = (<TopicsPanel
                       interfaceLang={this.props.interfaceLang}
@@ -656,7 +656,7 @@ class ReaderPanel extends Component {
                       toggleLanguage={this.toggleLanguage}
                       navHome={this.openMenu.bind(null, "navigation")}
                       openDisplaySettings={this.openDisplaySettings}
-                      key={"TopicsPanel"} />);        
+                      key={"TopicsPanel"} />);
       }
 
     } else if (this.state.menuOpen === "account") {
@@ -887,7 +887,7 @@ class ReaderControls extends Component {
     var leftControls = hideHeader || connectionsHeader ? null :
       (<div className="leftButtons">
           {this.props.multiPanel ? (<ReaderNavigationMenuCloseButton onClick={this.props.closePanel} />) : null}
-          {this.props.multiPanel ? null : (<ReaderNavigationMenuMenuButton onClick={this.props.openMenu.bind(null, "navigation")} />)}
+          {this.props.multiPanel ? null : (<ReaderNavigationMenuMenuButton onClick={this.props.openMenu.bind(null, "navigation")}/>)}
         </div>);
     var rightControls = hideHeader || connectionsHeader ? null :
       (<div className="rightButtons">

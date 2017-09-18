@@ -696,10 +696,9 @@ input.noselect {
   padding: 0;
 }
 .readerPanel .readerNavTop h2 {
-  margin-bottom: 0px;
+  margin: 0px;
   font-weight: 400;
   color: black;
-  line-height: 38px;
 }
 .readerNavTop.search {
 }
@@ -718,7 +717,7 @@ input.noselect {
   outline: 0;
 }
 .readerNavTop .readerNavMenuSearchButton {
-  margin: 0 5px;
+  margin: 0 10px;
 }
 .readerNavTop .readerNavMenuSearchButton,
 .readerNavTop .readerNavMenuCloseButton,

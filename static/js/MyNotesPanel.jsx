@@ -54,7 +54,7 @@ class MyNotesPanel extends Component {
         {this.props.hideNavHeader ? null :
           <div className={navTopClasses}>
             <CategoryColorLine category={"Other"} />
-            <ReaderNavigationMenuMenuButton onClick={this.props.navHome} />
+            <ReaderNavigationMenuMenuButton onClick={this.props.navHome}/>
             <ReaderNavigationMenuDisplaySettingsButton onClick={this.props.openDisplaySettings} />
             <h2>
               <span className="int-en">My Notes</span>
