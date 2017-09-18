@@ -112,10 +112,10 @@ def merge_terms_into_one(primary_term, other_terms):
         for t in titles:
             new_term.add_title(t["text"], t["lang"]) #this step should eliminate duplicates.
 
-        print "Deleting Term {}".format(term.get_primary_title())
+        # print "Deleting Term {}".format(term.get_primary_title())
         term.delete()
 
-    print "Saving Term {}".format(new_term.get_primary_title())
+    # print "Saving Term {}".format(new_term.get_primary_title())
     new_term.save()
 
 
@@ -132,12 +132,12 @@ for i, dup in enumerate(duplicates['result'],1):
 
     terms_to_merge = [Term().load_by_id(toid) for toid in dup['unique_obj_ids']] #this will also include the primary
     terms_to_merge = [t for t in terms_to_merge if t is not None]
-    print u"Merging terms for {}".format(dup['duplicated_title'])
+    # print u"Merging terms for {}".format(dup['duplicated_title'])
     if primary_term is not None and len(terms_to_merge) > 0: #might have been merged in already.
         merge_terms_into_one(primary_term, terms_to_merge)
-    if len(dup['schemes']) > 1:
-        print "This term had multiple schemes: {}".format(dup["schemes"])
-    print "{})====================================================".format(i)
+    #if len(dup['schemes']) > 1:
+        # print "This term had multiple schemes: {}".format(dup["schemes"])
+    # print "{})====================================================".format(i)
 
 
 def get_new_primary_term(title):
@@ -153,7 +153,7 @@ for cat in cats:
     if "sharedTitle" in cat and cat['sharedTitle'] is not None:
         new_shared_title = get_new_primary_term(cat['sharedTitle'])
         if new_shared_title != cat['sharedTitle']:
-            print "normalizing category with shared title {} to {}".format(cat['sharedTitle'], new_shared_title)
+            # print "normalizing category with shared title {} to {}".format(cat['sharedTitle'], new_shared_title)
             cat['sharedTitle'] = new_shared_title
             cat['lastPath'] = new_shared_title
             cat['path'][-1] = new_shared_title
@@ -167,7 +167,6 @@ for cat in cats:
 
 idxs = IndexSet()
 for idx in idxs:
-    ja_sections_changed = False
     for i, cpath in enumerate(idx.categories):
         idx.categories[i] = get_new_primary_term(cpath)
     if getattr(idx, "collective_title", None):
@@ -180,14 +179,11 @@ for idx in idxs:
                 new_section = get_new_primary_term(section)
                 if new_section != section:
                     leaf.sectionNames[j]=new_section
-                    ja_sections_changed = True
-                    print u"Changed Index {}:{}:{} to {}".format(idx.title, leaf.primary_title(), section, new_section)
-    if ja_sections_changed:
-        idx.schema = idx.nodes.serialize()
+                    #print u"Changed Index {}:{}:{} to {}".format(idx.title, leaf.primary_title(), section, new_section)
     idx.save(override_dependencies=True)
 
 
-library.rebuild_toc()
+library.rebuild(include_toc=True)
 
 
 
