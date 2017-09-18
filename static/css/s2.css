@@ -734,6 +734,8 @@ input.noselect {
   float: left;
   font-size: 20px;
   cursor: pointer;
+  display: flex;
+  align-items: center;
 }
 .readerNavMenuCloseButton:hover {
   text-decoration: none;
@@ -753,6 +755,8 @@ input.noselect {
 .readerNavTop .readerOptions {
   float: right;
   text-align: right;
+  display: flex;
+  align-items: center;
 }
 .sefariaLogo img {
   width: 110px;
