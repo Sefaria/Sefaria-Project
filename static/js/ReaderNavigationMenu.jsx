@@ -1,5 +1,6 @@
 const {
   CategoryColorLine,
+  ReaderNavigationMenuMenuButton,
   ReaderNavigationMenuCloseButton,
   ReaderNavigationMenuSearchButton,
   ReaderNavigationMenuDisplaySettingsButton,
@@ -221,10 +222,13 @@ class ReaderNavigationMenu extends Component {
               </div>) :
               (<div className="readerNavTop search">
                 <CategoryColorLine category="Other" />
-                <ReaderNavigationMenuCloseButton onClick={this.closeNav} icon={this.props.compare ? "circledX" : null} />
-                <ReaderNavigationMenuSearchButton onClick={this.handleSearchButtonClick} />
+                <div className="readerNavTopStart">
+                  <ReaderNavigationMenuMenuButton onClick={this.closeNav} compare={this.props.compare} interfaceLang={this.props.interfaceLang}/>
+                  <ReaderNavigationMenuSearchButton onClick={this.handleSearchButtonClick} />
+                  <input id="searchInput" className="readerSearch" title="Search for Texts or Keywords Here" placeholder="Search" onKeyUp={this.handleSearchKeyUp} />
+                </div>
                 <ReaderNavigationMenuDisplaySettingsButton onClick={this.props.openDisplaySettings} />
-                <input id="searchInput" className="readerSearch" title="Search for Texts or Keywords Here" placeholder="Search" onKeyUp={this.handleSearchKeyUp} />
+
               </div>);
       topContent = this.props.hideNavHeader ? null : topContent;
 
@@ -296,7 +300,8 @@ ReaderNavigationMenu.propTypes = {
   hideNavHeader: PropTypes.bool,
   multiPanel:    PropTypes.bool,
   home:          PropTypes.bool,
-  compare:       PropTypes.bool
+  compare:       PropTypes.bool,
+  interfaceLang: PropTypes.string,
 };
 
 
@@ -330,7 +335,7 @@ class RecentPanel extends Component {
         {this.props.hideNavHeader ? null :
           <div className={navTopClasses}>
             <CategoryColorLine category={"Other"} />
-            <ReaderNavigationMenuMenuButton onClick={this.props.navHome} compare={this.props.compare} />
+            <ReaderNavigationMenuMenuButton onClick={this.props.navHome} compare={this.props.compare} interfaceLang={this.props.interfaceLang}/>
             <ReaderNavigationMenuDisplaySettingsButton onClick={this.props.openDisplaySettings} />
             <h2>
               <span className="int-en">Recent</span>

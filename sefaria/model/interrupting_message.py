@@ -33,6 +33,11 @@ class InterruptingMessage(object):
       if self.request.flavour == "mobile":
         return False
 
+    # Filter non English interface traffic
+    if self.condition.get("english_only", True):
+      if self.request.LANGUAGE_CODE != "en":
+        return False
+
     return True
 
   def json(self):

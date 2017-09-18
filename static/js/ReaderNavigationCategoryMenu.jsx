@@ -55,7 +55,7 @@ class ReaderNavigationCategoryMenu extends Component {
         var heCatTitle = Sefaria.hebrewTerm(this.props.categories[0]) + " " + Sefaria.hebrewTerm("Commentary"); // HEBREW NEEDED
       } else {
         var catTitle   = this.props.category;
-        var heCatTitle = Sefaria.hebrewTerm(this.props.category);        
+        var heCatTitle = Sefaria.hebrewTerm(this.props.category);
       }
 
     }
@@ -67,12 +67,12 @@ class ReaderNavigationCategoryMenu extends Component {
     return (<div className={navMenuClasses}>
               <div className={navTopClasses}>
                 <CategoryColorLine category={categories[0]} />
-                {this.props.hideNavHeader ? null : (<ReaderNavigationMenuMenuButton onClick={this.props.navHome} compare={this.props.compare} />)}
-                {this.props.hideNavHeader ? null : (<ReaderNavigationMenuDisplaySettingsButton onClick={this.props.openDisplaySettings} />)}
+                {this.props.hideNavHeader ? null : (<ReaderNavigationMenuMenuButton onClick={this.props.navHome} compare={this.props.compare} interfaceLang={this.props.interfaceLang}/>)}
                 {this.props.hideNavHeader ? null : (<h2>
                   <span className="en">{catTitle}</span>
                   <span className="he">{heCatTitle}</span>
                 </h2>)}
+                {this.props.hideNavHeader ? null : (<ReaderNavigationMenuDisplaySettingsButton onClick={this.props.openDisplaySettings} />)}
               </div>
               <div className={contentClasses}>
                 <div className="contentInner">

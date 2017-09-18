@@ -51,6 +51,9 @@ body:not(.user-is-tabbing) *:focus {
   height: 100%;
   top: 0;
 }
+.readerApp.interface-hebrew{
+  direction: rtl;
+}
 .noselect {
   -webkit-touch-callout: none; /* iOS Safari */
     -webkit-user-select: none; /* Safari/Opera */
@@ -331,6 +334,9 @@ input.noselect {
   text-align: center;
   margin: 0 0 30px;
   color: #333;
+}
+.interface-hebrew #interruptingMessage h1{
+  font-style: normal;
 }
 .testMessage {
   position: fixed;
@@ -661,17 +667,25 @@ input.noselect {
   margin: 0 auto;
 }
 .readerNavTop {
-  position: absolute;
+  /*position: absolute;*/
   width: 100%;
   background-color: #F9F9F7;
   border-bottom: 1px solid #E2E2E1;
   box-sizing: border-box;
   height: 58px;
-  direction: ltr;
+  /*direction: ltr;*/
   z-index: 1;
-  padding: 0px 30px;
+  padding: 5px 30px 0 30px;
   vertical-align: middle;
   line-height: 58px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.readerNavTop .readerNavTopStart {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
 }
 .singlePanel .readerNavTop {
   padding: 0 10px;
@@ -682,10 +696,9 @@ input.noselect {
   padding: 0;
 }
 .readerPanel .readerNavTop h2 {
-  margin-bottom: 0px;
+  margin: 0px;
   font-weight: 400;
   color: black;
-  line-height: 38px;
 }
 .readerNavTop.search {
 }
@@ -698,25 +711,30 @@ input.noselect {
   font-size: 18px;
   font-family: "adobe-garamond-pro", Georgia;
   height: 48px;
-  margin-top: 9px;
+  /*margin-top: 9px;*/
 }
 .readerNavMenu .readerSearch:focus {
   outline: 0;
+}
+.readerNavTop .readerNavMenuSearchButton {
+  margin: 0 10px;
 }
 .readerNavTop .readerNavMenuSearchButton,
 .readerNavTop .readerNavMenuCloseButton,
 .readerNavTop .readerNavMenuMenuButton,
 .readerNavTop .readerOptions {
   text-align: left;
-  width: 40px;
+  /*width: 40px;
   height: 48px;
   margin-top: 5px;
+  vertical-align: middle;*/
   box-sizing: border-box;
   color: #BFBFBF;
   float: left;
   font-size: 20px;
-  vertical-align: middle;
   cursor: pointer;
+  display: flex;
+  align-items: center;
 }
 .readerNavMenuCloseButton:hover {
   text-decoration: none;
@@ -736,6 +754,8 @@ input.noselect {
 .readerNavTop .readerOptions {
   float: right;
   text-align: right;
+  display: flex;
+  align-items: center;
 }
 .sefariaLogo img {
   width: 110px;
@@ -1691,7 +1711,7 @@ a.readerNavCategory {
 
 .searchFilterBoxes .searchFilterExactBox {
   border-top: 1px solid #ccc;
-  padding: 5px 5px 5px 0;
+  padding: 5px 0px 5px 0;
 }
 
 .searchFilterExactBox.hidden {
@@ -1957,7 +1977,7 @@ a.readerNavCategory {
 }
 .readerControls {
   position: absolute;
-  direction: ltr;
+  /*direction: ltr;*/
   top: 0;
   left: 0;
   width: 100%;
@@ -2005,8 +2025,10 @@ a.readerNavCategory {
 .readerControls .readerControlsInner {
   position: relative;
   width: 700px;
+  margin: 0 auto;
   padding: 0 30px;
-  display: inline-block;
+  display: flex;
+  justify-content: space-between;
   max-width:  100%;
   box-sizing: border-box;
 }
@@ -2032,7 +2054,7 @@ a.readerNavCategory {
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
   text-transform: uppercase;
   color: #999;
-  direction: ltr !important;
+  width: 100%;
 }
 .readerControls .readerTextToc.attributed .readerTextTocBox {
   line-height: 1.2;
@@ -2051,14 +2073,14 @@ a.readerNavCategory {
   /*position: absolute;
   top: 0;*/
 }
-.leftButtons {
+/*.leftButtons {
   text-align: left;
   float: left;
 }
 .rightButtons {
   text-align: right;
   float: right;
-}
+}*/
 .leftButtons .readerNavMenuSearchButton,
 .leftButtons .readerNavMenuMenuButton,
 .leftButtons .readerNavMenuCloseButton,
@@ -2101,7 +2123,7 @@ a.readerNavCategory {
   white-space: nowrap;
   text-overflow: ellipsis;
   overflow: hidden;
-  max-width: 70%;
+  /*max-width: 70%;*/
   vertical-align: middle;
   color: #333;
 }
@@ -2599,6 +2621,7 @@ a.readerNavCategory {
 .connectionsPanelHeader{
   display: flex;
   justify-content: space-between;
+  align-items: center;
 }
 .singlePanel .connectionsPanelHeader {
   justify-content: flex-start;
@@ -2619,9 +2642,11 @@ a.readerNavCategory {
 .readerNavMenu.noHeader.compare .readerNavTop .readerNavMenuCloseButton.circledX{
   height: 32px;
   width: 30px;
-  text-align: center;
-  margin: auto 15px;
-  line-height: 58px;
+  display: flex;
+  align-items: center;
+  margin: 0 15px;
+  /*text-align: center;
+  line-height: 58px;*/
 }
 .connectionsPanelHeader .languageToggle {
   margin: 0 15px;

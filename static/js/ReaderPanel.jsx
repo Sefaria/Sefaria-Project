@@ -122,7 +122,7 @@ class ReaderPanel extends Component {
     if (prevProps.layoutWidth !== this.props.layoutWidth) {
       this.setWidth();
     }
-    if ($('*:focus').length == 0 && this.props.multiPanel) {
+    if ($('*:focus').length == 0 && this.props.multiPanel && $("body").hasClass("user-is-tabbing")) {
         var curPanel = $(".readerPanel")[($(".readerPanel").length)-1];
         $(curPanel).find(':focusable').first().focus();
     }
@@ -643,7 +643,7 @@ class ReaderPanel extends Component {
                       toggleLanguage={this.toggleLanguage}
                       navHome={this.openMenu.bind(null, "navigation")}
                       openDisplaySettings={this.openDisplaySettings}
-                      key={"TopicPage"} />);   
+                      key={"TopicPage"} />);
       } else {
         var menu = (<TopicsPanel
                       interfaceLang={this.props.interfaceLang}
@@ -656,7 +656,7 @@ class ReaderPanel extends Component {
                       toggleLanguage={this.toggleLanguage}
                       navHome={this.openMenu.bind(null, "navigation")}
                       openDisplaySettings={this.openDisplaySettings}
-                      key={"TopicsPanel"} />);        
+                      key={"TopicsPanel"} />);
       }
 
     } else if (this.state.menuOpen === "account") {
@@ -887,7 +887,7 @@ class ReaderControls extends Component {
     var leftControls = hideHeader || connectionsHeader ? null :
       (<div className="leftButtons">
           {this.props.multiPanel ? (<ReaderNavigationMenuCloseButton onClick={this.props.closePanel} />) : null}
-          {this.props.multiPanel ? null : (<ReaderNavigationMenuMenuButton onClick={this.props.openMenu.bind(null, "navigation")} />)}
+          {this.props.multiPanel ? null : (<ReaderNavigationMenuMenuButton onClick={this.props.openMenu.bind(null, "navigation")}/>)}
         </div>);
     var rightControls = hideHeader || connectionsHeader ? null :
       (<div className="rightButtons">
@@ -898,8 +898,8 @@ class ReaderControls extends Component {
         (<div className={classes}>
           <div className="readerControlsInner">
             {leftControls}
-            {rightControls}
             {centerContent}
+            {rightControls}
           </div>
         </div>);
     return (
