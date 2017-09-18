@@ -1977,7 +1977,7 @@ a.readerNavCategory {
 }
 .readerControls {
   position: absolute;
-  direction: ltr;
+  /*direction: ltr;*/
   top: 0;
   left: 0;
   width: 100%;
@@ -2025,8 +2025,10 @@ a.readerNavCategory {
 .readerControls .readerControlsInner {
   position: relative;
   width: 700px;
+  margin: 0 auto;
   padding: 0 30px;
-  display: inline-block;
+  display: flex;
+  justify-content: space-between;
   max-width:  100%;
   box-sizing: border-box;
 }
@@ -2071,14 +2073,14 @@ a.readerNavCategory {
   /*position: absolute;
   top: 0;*/
 }
-.leftButtons {
+/*.leftButtons {
   text-align: left;
   float: left;
 }
 .rightButtons {
   text-align: right;
   float: right;
-}
+}*/
 .leftButtons .readerNavMenuSearchButton,
 .leftButtons .readerNavMenuMenuButton,
 .leftButtons .readerNavMenuCloseButton,
@@ -2121,7 +2123,7 @@ a.readerNavCategory {
   white-space: nowrap;
   text-overflow: ellipsis;
   overflow: hidden;
-  max-width: 70%;
+  /*max-width: 70%;*/
   vertical-align: middle;
   color: #333;
 }

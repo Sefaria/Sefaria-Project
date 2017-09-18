@@ -898,8 +898,8 @@ class ReaderControls extends Component {
         (<div className={classes}>
           <div className="readerControlsInner">
             {leftControls}
-            {rightControls}
             {centerContent}
+            {rightControls}
           </div>
         </div>);
     return (
