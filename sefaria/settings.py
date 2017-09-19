@@ -139,7 +139,8 @@ INSTALLED_APPS = (
     'django_mobile',
     'django.contrib.admin',
     'anymail',
-    'webpack_loader'
+    'webpack_loader',
+    'shared_session',
     # Uncomment the next line to enable admin documentation:
     # 'django.contrib.admindocs',
 )

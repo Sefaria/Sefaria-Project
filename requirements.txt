@@ -31,3 +31,4 @@ deepdiff
 Appium-Python-Client
 django-webpack-loader==0.5.0
 django-anymail
+django-shared-session

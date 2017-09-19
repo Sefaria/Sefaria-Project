@@ -1,5 +1,6 @@
 {% load sefaria_tags %}
 {% load render_bundle from webpack_loader %}
+{% load shared_session %}
 
 <!DOCTYPE html>
 <html>
@@ -50,7 +51,7 @@
       }});
   </script>
   {% endif %}
-
+  {% shared_session_loader %}
 </head>
 
 <body>

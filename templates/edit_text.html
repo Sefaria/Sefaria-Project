@@ -1,5 +1,7 @@
 {% load render_bundle from webpack_loader %}
 {% load sefaria_tags %}
+{% load shared_session %}
+
 
 <!DOCTYPE html>
 <html>
@@ -25,6 +27,7 @@
 
 	<script>{% include "js/analytics.js" %}</script>
 
+    {% shared_session_loader %}
 </head>
 
 <body class="{{ contentLang }} {{ layout }} {{ lines }} {% if not hasSidebar %}noCommentary{% endif %} {% if EMBED %}embeded{% endif %} {% if onlyLanguage %}onlyLanguage{% endif %} {{ sidebarLang }}">

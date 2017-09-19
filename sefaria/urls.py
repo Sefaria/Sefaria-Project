@@ -3,6 +3,7 @@ from django.conf.urls.defaults import *
 from django.contrib import admin
 from django.http import HttpResponseRedirect
 
+import shared_sessions
 from emailusernames.forms import EmailAuthenticationForm
 
 from sefaria.forms import HTMLPasswordResetForm, SefariaLoginForm
@@ -100,7 +101,6 @@ urlpatterns += patterns('reader.views',
     (r'^translate/(?P<ref>.+)$', 'edit_text'),
     (r'^edit/(?P<ref>.+)/(?P<lang>\w\w)/(?P<version>.+)$', 'edit_text'),
     (r'^edit/(?P<ref>.+)$', 'edit_text'),
-
 )
 
 # Texts Page
@@ -248,6 +248,7 @@ urlpatterns += patterns('',
     url(r'^password/reset/confirm/(?P<uidb36>[0-9A-Za-z]+)-(?P<token>.+)/$', 'django.contrib.auth.views.password_reset_confirm', name='password_reset_confirm'),
     url(r'^password/reset/complete/$', 'django.contrib.auth.views.password_reset_complete', name='password_reset_complete'),
     url(r'^password/reset/done/$', 'django.contrib.auth.views.password_reset_done', name='password_reset_done'),
+    url(r'^shared-session/', shared_session.urls),
 )
 
 # Compare Page
