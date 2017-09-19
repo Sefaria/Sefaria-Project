@@ -64,7 +64,7 @@ before_script:
   - python manage.py syncdb --noinput
   - python manage.py createsuperuser --email $SEFARIA_SUPERUSER  --noinput
 
-  - python scripts/fix_duplicate_terms.py # delete when fixed on production
+  # - python scripts/fix_duplicate_terms.py # delete when fixed on production
   # run the django server, redirecting output to log files
   - python manage.py runserver --insecure 2> server.error.log > server.log &
   - python scripts/setup_travis_users.py
