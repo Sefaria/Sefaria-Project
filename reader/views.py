@@ -691,7 +691,7 @@ def s2_page(request, props, page, title="", desc=""):
     }, RequestContext(request))
 
 
-def s2_home(request):
+def mobile_home(request):
     props = s2_props(request)
     return s2_page(request, props, "home")
 
@@ -2949,27 +2949,22 @@ def home(request):
     Homepage
     """
     recent = request.COOKIES.get("recentlyViewed", None)
-    if recent and not "home" in request.GET and not request.COOKIES.get('s1'):
+    if recent and not "home" in request.GET:
         return redirect("/texts")
 
     if request.flavour == "mobile":
-        return s2_home(request)
+        return mobile_home(request)
 
-    today              = date.today()
-    daf_today          = sefaria.utils.calendars.daf_yomi(today)
-    daf_tomorrow       = sefaria.utils.calendars.daf_yomi(today + timedelta(1))
-    parasha            = sefaria.utils.calendars.this_weeks_parasha(datetime.now())
-    p929_chapter       = p929.Perek(date = today)
-    p929_ref           = "%s %s" % (p929_chapter.book_name, p929_chapter.book_chapter)
-    metrics            = db.metrics.find().sort("timestamp", -1).limit(1)[0]
+    today     = date.today()
+    daf_today = sefaria.utils.calendars.daf_yomi(today)
+    parasha   = sefaria.utils.calendars.this_weeks_parasha(datetime.now())
+    metrics   = db.metrics.find().sort("timestamp", -1).limit(1)[0]
 
-    return render_to_response('static/s2_home.html' if not request.COOKIES.get('s1') else 'static/home.html',
+    return render_to_response('static/home.html',
                              {
                               "metrics": metrics,
                               "daf_today": daf_today,
-                              "daf_tomorrow": daf_tomorrow,
                               "parasha": parasha,
-                              "p929": p929_ref,
                               },
                               RequestContext(request))
 
