@@ -2629,6 +2629,9 @@ a.readerNavCategory {
 .interface-hebrew .connectionsPanelHeader{
   direction: rtl;
 }
+.interface-english .connectionsPanelHeader{
+  direction: ltr;
+}
 .connectionsPanelHeader .rightButtons {
   margin-top: -4px;
 }
