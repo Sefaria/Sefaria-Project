@@ -8,18 +8,10 @@ from sefaria.system.database import db
 duplicates = db.term.aggregate(
     [
         {
-            "$unwind": {
-                "path": "$titles",
-                "includeArrayIndex" : "arrayIndex",
-                "preserveNullAndEmptyArrays" : False
-            }
+            "$unwind": "$titles"
         },
         {
-            "$unwind": {
-                "path" : "$titles.text",
-                "includeArrayIndex": "arrayIndex",
-                "preserveNullAndEmptyArrays": False
-            }
+            "$unwind":"$titles.text"
         },
         {
             "$project": {"_id": '$_id', "name":'$name', "text": '$titles.text', "lang": '$titles.lang', "scheme": '$scheme'}
@@ -112,10 +104,10 @@ def merge_terms_into_one(primary_term, other_terms):
         for t in titles:
             new_term.add_title(t["text"], t["lang"]) #this step should eliminate duplicates.
 
-        # print "Deleting Term {}".format(term.get_primary_title())
+        print "Deleting Term {}".format(term.get_primary_title())
         term.delete()
 
-    # print "Saving Term {}".format(new_term.get_primary_title())
+    print "Saving Term {}".format(new_term.get_primary_title())
     new_term.save()
 
 
@@ -132,12 +124,12 @@ for i, dup in enumerate(duplicates['result'],1):
 
     terms_to_merge = [Term().load_by_id(toid) for toid in dup['unique_obj_ids']] #this will also include the primary
     terms_to_merge = [t for t in terms_to_merge if t is not None]
-    # print u"Merging terms for {}".format(dup['duplicated_title'])
+    print u"Merging terms for {}".format(dup['duplicated_title'])
     if primary_term is not None and len(terms_to_merge) > 0: #might have been merged in already.
         merge_terms_into_one(primary_term, terms_to_merge)
-    #if len(dup['schemes']) > 1:
-        # print "This term had multiple schemes: {}".format(dup["schemes"])
-    # print "{})====================================================".format(i)
+    if len(dup['schemes']) > 1:
+        print "This term had multiple schemes: {}".format(dup["schemes"])
+    print "{})====================================================".format(i)
 
 
 def get_new_primary_term(title):
@@ -153,7 +145,7 @@ for cat in cats:
     if "sharedTitle" in cat and cat['sharedTitle'] is not None:
         new_shared_title = get_new_primary_term(cat['sharedTitle'])
         if new_shared_title != cat['sharedTitle']:
-            # print "normalizing category with shared title {} to {}".format(cat['sharedTitle'], new_shared_title)
+            print "normalizing category with shared title {} to {}".format(cat['sharedTitle'], new_shared_title)
             cat['sharedTitle'] = new_shared_title
             cat['lastPath'] = new_shared_title
             cat['path'][-1] = new_shared_title
@@ -179,7 +171,7 @@ for idx in idxs:
                 new_section = get_new_primary_term(section)
                 if new_section != section:
                     leaf.sectionNames[j]=new_section
-                    #print u"Changed Index {}:{}:{} to {}".format(idx.title, leaf.primary_title(), section, new_section)
+                    print u"Changed Index {}:{}:{} to {}".format(idx.title, leaf.primary_title(), section, new_section)
     idx.save(override_dependencies=True)
 
 
