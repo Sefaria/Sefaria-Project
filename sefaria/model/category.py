@@ -224,6 +224,10 @@ class TocTree(object):
         vs = self._vs_lookup.get(title, {})
         d["sparseness"] = vs.get("sparseness", 1)
         d["firstSection"] = vs.get("first_section_ref", None)
+        if title in ORDER:
+            # If this text is listed in ORDER, consder its order as its order field.
+            print "Setting order on %s" % title 
+            d["order"] = ORDER.index(title)
 
         if "base_text_titles" in d and len(d["base_text_titles"]) > 0:
             d["refs_to_base_texts"] = {btitle:

@@ -142,8 +142,10 @@ class ReaderNavigationCategoryMenuContents extends Component {
       return item;
     });
     heCats = heCats.sort(function(a, b) {
-      if (a.order && b.order) {
-        return a.order > b.order ? 1 : -1;
+      if ("order" in a || "order:" in b) {
+        var aOrder = "order" in a ? a.order : 9999;
+        var bOrder = "order" in b ? b.order : 9999;
+        return aOrder > bOrder ? 1 : -1;
       
       } else if (a.heTitle && b.heTitle) {
         return a.heTitle > b.heTitle ? 1 : -1;
