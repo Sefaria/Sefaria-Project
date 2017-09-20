@@ -268,14 +268,14 @@ class ReaderTextTableOfContents extends Component {
                   <div className="leftButtons">
                     <ReaderNavigationMenuCloseButton onClick={closeClick}/>
                   </div>
-                  <div className="rightButtons">
-                    <ReaderNavigationMenuDisplaySettingsButton onClick={this.props.openDisplaySettings} />
-                  </div>
                   <div className="readerTextToc readerTextTocHeader">
                     <div className="readerTextTocBox">
                       <span className="int-en">Table of Contents</span>
                       <span className="int-he">תוכן העניינים</span>
                     </div>
+                  </div>
+                  <div className="rightButtons">
+                    <ReaderNavigationMenuDisplaySettingsButton onClick={this.props.openDisplaySettings} />
                   </div>
                 </div>
               </div>
