@@ -170,6 +170,109 @@ $(function() {
 		}
   });
 
+	function toggleSheetsMenu(menu) {
+		if ($(menu).parent().hasClass("open")) {
+			$(menu).parent().removeClass("open");
+		}
+		else {
+			$(".optionGroup.open").removeClass("open");
+			if (!$(menu).hasClass("optionTitle")) {
+				$(".sheetsMenuBarItem.open").removeClass("open");
+			}
+			$(menu).parent().toggleClass("open");
+		}
+	}
+	$(".menuHeader").keydown(function(e) {
+		if (e.which == 13) {
+			toggleSheetsMenu($(this));
+		}
+		else if (e.which == 39) {
+			if ($(this).hasClass("optionTitle")) { // in case of submenu open it if it's closed otherwise focus on the first element
+				if (!$(this).parent().hasClass("open")) {
+					toggleSheetsMenu($(this));
+				}
+				$(this).next(".subMenu").find(':focusable').first().focus();
+      }
+			else {
+				$target = $(this).closest(".sheetsMenuBarItem").next(".sheetsMenuBarItem").find(':focusable').first();
+				$target.focus();
+				toggleSheetsMenu($target);
+			}
+		}
+		else if (e.which == 37) {
+				$target = $(this).closest(".sheetsMenuBarItem").prev(".sheetsMenuBarItem").find(':focusable').first();
+				$target.focus();
+				toggleSheetsMenu($target);
+		}
+		else if (e.which == 38) {
+			//console.($(this).closest(".optionsMenu").find)
+				e.preventDefault();
+				if (!$(this).parent().hasClass("open")) {
+					toggleSheetsMenu($(this));
+				}
+				$(this).parent().prev(":focusable").first().focus();
+		}
+		else if (e.which == 40) {
+				e.preventDefault();
+				if ($(this).parent().hasClass("sheetsMenuBarItem")) {
+					if (!$(this).parent().hasClass("open")) {
+						toggleSheetsMenu($(this));
+					}
+					$(this).parent().find(".optionsMenu").find(".optionItem, .optionGroup").find(":focusable").addBack(":focusable").first().focus();
+				}
+				else {
+          $(this).closest(".optionItem,.optionGroup").nextAll(".optionItem,.optionGroup,#sheetLayoutLanguageMenuItems,#sourceLayoutLanguageMenuItems").find(":focusable").addBack(":focusable").first().focus();
+        }
+		}
+
+
+		//37 <
+		//38 ^
+		//39 >
+		//40 v
+
+  });
+
+	$(".optionItem").keydown(function(e) {
+		if (e.which == 40) {
+				e.preventDefault();
+				$(this).closest(".optionItem,.optionGroup").nextAll(".optionItem,.optionGroup,#sheetLayoutLanguageMenuItems,#sourceLayoutLanguageMenuItems").find(":focusable").addBack(":focusable").first().focus();
+		}
+		else if (e.which == 38) {
+				e.preventDefault();
+				$(this).closest(".optionItem,.optionGroup").prevAll(".optionItem,.optionGroup,#sheetLayoutLanguageMenuItems,#sourceLayoutLanguageMenuItems").find(":focusable").addBack(":focusable").last().focus();
+		}
+		else if (e.which == 39) {
+				$target = $(this).closest(".sheetsMenuBarItem").next(".sheetsMenuBarItem").find(':focusable').first();
+				$target.focus();
+				toggleSheetsMenu($target);
+		}
+		else if (e.which == 37) {
+      if ($(this).parent().hasClass("subMenu")) { // in case of submenu open it if it's closed otherwise focus on the first element
+        $(this).parent().prev(".menuHeader").focus();
+        $(this).closest(".optionGroup.open").removeClass("open");
+      }
+      else {
+        $target = $(this).closest(".sheetsMenuBarItem").prev(".sheetsMenuBarItem").find(':focusable').first();
+        $target.focus();
+        toggleSheetsMenu($target);
+      }
+    }
+		else if (e.which == 13) {
+    		$(this).click();
+				$(".optionGroup.open").removeClass("open");
+				$(".sheetsMenuBarItem.open").removeClass("open");
+    }
+	});
+
+	$(".sheetsMenuBarCommands").keydown(function(e) {
+		if (e.keyCode === 27) { //27 is escape
+        e.stopPropagation();
+				$(".optionGroup.open").removeClass("open");
+				$(".sheetsMenuBarItem.open").removeClass("open");
+    }
+	});
+
     var RefValidator = function($input, $msg, $ok, $preview) {
         /** Replacement for utils.js:sjs.checkref that uses only new tools.
          * Instantiated as an object, and then invoked with `check` method
