@@ -1133,9 +1133,6 @@ sjs.textBrowser = {
     									"<span class='int-he'>העזרו בתפריט המקורות מימין כדי לבחור את המקור שברצונכם להוסיף</span>" +
     								"</div>");
 	},
-	_hebrewSectionString(section) {
-
-	},
 	_handleNavClick: function() {
 		// Move forward on nav click
 		var to = $(this).attr("data-name");
