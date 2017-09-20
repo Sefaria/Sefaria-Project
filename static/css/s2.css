@@ -1014,7 +1014,8 @@ a.readerNavCategory {
 .readerNavCategoryMenu .content {
   padding: 100px 10px 10px;
 }
-.readerNavCategoryMenu .content .category {
+.readerNavCategoryMenu .content .category,
+.readerNavCategoryMenu .content .gridBox {
   margin-bottom: 30px;
 }
 .readerNavCategoryMenu .categoryAttribution {

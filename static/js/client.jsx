@@ -10,12 +10,12 @@ $(function() {
   var component;
   DjangoCSRF.init();
   if (DJANGO_VARS.inReaderApp) {
-    Sefaria.unpackDataFromProps(DJANGO_VARS.propsJSON);
-    component = React.createElement(SefariaReact.ReaderApp, DJANGO_VARS.propsJSON);
+    Sefaria.unpackDataFromProps(DJANGO_VARS.props);
+    component = React.createElement(SefariaReact.ReaderApp, DJANGO_VARS.props);
     ReactDOM.render(component, container);
   } else if (DJANGO_VARS.containerId && DJANGO_VARS.reactComponentName) {
     container = document.getElementById(DJANGO_VARS.containerId);
-    component = React.createElement(SefariaReact[DJANGO_VARS.reactComponentName], DJANGO_VARS.propsJSON);
+    component = React.createElement(SefariaReact[DJANGO_VARS.reactComponentName], DJANGO_VARS.props);
     ReactDOM.render(component, container);
     ReactDOM.render(React.createElement(SefariaReact.Footer), document.getElementById('footer'));
   } else {
