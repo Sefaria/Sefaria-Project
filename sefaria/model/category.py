@@ -213,7 +213,7 @@ class TocTree(object):
 
         for cat in self.all_category_nodes():  # iterate all categories
             cat.children.sort(key=_explicit_order_and_title)
-            cat.children.sort(key=_sparseness_order)
+            # cat.children.sort(key=_sparseness_order)
             cat.children.sort(key=lambda node: 'zzz' + node.primary_title("en") if isinstance(node, TocCategory) and node.primary_title("en") in REVERSE_ORDER else 'a')
 
     def _make_index_node(self, index, old_title=None):
