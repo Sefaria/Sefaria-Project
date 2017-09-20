@@ -333,7 +333,7 @@ body:not(.user-is-tabbing) #sheet .cke_editable:focus {
 	content: "\f0da";
 }
 
-.optionGroup:hover .subMenu {
+.optionGroup:hover .subMenu, .optionGroup.open .subMenu {
 	display: block;
 }
 
@@ -1608,11 +1608,11 @@ line-height: normal;
 	/*padding-left: 0;*/
 }
 
-.sheetsMenuBarItem:hover {
+.sheetsMenuBarItem:hover, .sheetsMenuBarItem.open {
 	position: relative;
 }
 
-.sheetsMenuBarItem:hover:after {
+.sheetsMenuBarItem:hover:after, .sheetsMenuBarItem.open:after {
   content: ' ';
   position: absolute;
   top: 0;
@@ -1622,14 +1622,15 @@ line-height: normal;
   z-index: 6;
 }
 
-#fileMenu:hover .optionsMenu, #formatMenu:hover .optionsMenu, #insertMenu:hover .optionsMenu, #highlightMenu:hover .optionsMenu  {
+#fileMenu:hover .optionsMenu, #formatMenu:hover .optionsMenu, #insertMenu:hover .optionsMenu, #highlightMenu:hover .optionsMenu,
+.sheetsMenuBarItem.open .optionsMenu {
 	display: block;
 	top:45px;
 	/*left:20px;*/
 	background-color: #F9F9F7;
 }
 
-#insertMenu:hover .optionsMenu {
+#insertMenu:hover .optionsMenu, .menuHeaderOpen .optionsMenu {
 	width:240px;
 }
 

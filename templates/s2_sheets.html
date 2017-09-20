@@ -32,8 +32,8 @@
             <div class="sheetsMenuBarInner">
                 <div class="sheetsMenuBarCommands">
                 <div class="sheetsMenuBarItem" id="fileMenu">
-                    <span class="int-en" aria-haspopup="true" role="menuitem" tabindex="0">File</span>
-                    <span class="int-he" aria-haspopup="true" role="menuitem" tabindex="0">קובץ</span>
+                    <span class="int-en menuHeader" aria-haspopup="true" role="menuitem" tabindex="0">File</span>
+                    <span class="int-he menuHeader" aria-haspopup="true" role="menuitem" tabindex="0">קובץ</span>
                     <div class="optionsMenu" aria-hidden="true" aria-label="submenu">
                         {% if not new_sheet %}
                             {% if user.email %}
@@ -137,11 +137,11 @@
                     </div>
                 </div>
                 <div class="sheetsMenuBarItem" id="formatMenu">
-                    <span class="int-en" aria-haspopup="true" role="menuitem" tabindex="0">Format</span>
-                    <span class="int-he" aria-haspopup="true" role="menuitem" tabindex="0">עיצוב</span>
+                    <span class="int-en menuHeader" aria-haspopup="true" role="menuitem" tabindex="0">Format</span>
+                    <span class="int-he menuHeader" aria-haspopup="true" role="menuitem" tabindex="0">עיצוב</span>
                     <div class="optionsMenu" aria-hidden="true" aria-label="submenu">
                         <div class="optionGroup">
-                            <div class="optionTitle" aria-haspopup="true" role="menuitem" tabindex="0">
+                            <div class="optionTitle menuHeader" aria-haspopup="true" role="menuitem" tabindex="0">
                                 <img src="/static/img/divine.png" alt="Divine Names Icon">
                                 <span class="optionItemText">
                                     <span class="int-en">Divine Names</span>
@@ -228,7 +228,7 @@
                         <div class="line"></div>
                         <div id="sheetLayoutLanguageMenuItems">
                             <div class="optionGroup" id="languageToggleGroup">
-                                <div class="optionTitle" aria-haspopup="true" role="menuitem" tabindex="0">
+                                <div class="optionTitle menuHeader" aria-haspopup="true" role="menuitem" tabindex="0">
                                     <i class="fa fa-file-o hidden"></i>
                                     <span class="optionItemText">
                                         <span class="int-en">Sheet Language</span>
@@ -237,21 +237,21 @@
                                     <i class="optionItemCaret fa fa-caret"></i>
                                 </div>
                                 <div class="subMenu languageToggleOption">
-                                    <div class="english" role="menuitem" tabindex="0">
+                                    <div class="english optionItem" role="menuitem" tabindex="0">
                                         <i class="fa fa-check hidden"></i>
                                         <span class="optionItemText">
                                             <span class="int-en">English</span>
                                             <span class="int-he">אנגלית</span>
                                         </span>
                                     </div>
-                                    <div class="hebrew" role="menuitem" tabindex="0">
+                                    <div class="hebrew optionItem" role="menuitem" tabindex="0">
                                         <i class="fa fa-check hidden"></i>
                                         <span class="optionItemText">
                                             <span class="int-en">Hebrew</span>
                                             <span class="int-he">עברית</span>
                                         </span>
                                     </div>
-                                    <div class="bilingual" role="menuitem" tabindex="0">
+                                    <div class="bilingual optionItem" role="menuitem" tabindex="0">
                                         <i class="fa fa-check hidden"></i>
                                         <span class="optionItemText">
                                             <span class="int-en">Bilingual</span>
@@ -263,7 +263,7 @@
 
 
                             <div class="optionGroup disabled" id="layoutToggleGroup">
-                                <div class="optionTitle" aria-haspopup="true" role="menuitem" tabindex="0"><i class="fa fa-file-o hidden"></i>
+                                <div class="optionTitle menuHeader" aria-haspopup="true" role="menuitem" tabindex="0"><i class="fa fa-file-o hidden"></i>
                                     <span class="optionItemText">
                                         <span class="int-en">Sheet Layout</span>
                                         <span class="int-he">אופן סידור המקורות</span>
@@ -271,14 +271,14 @@
                                     <i class="optionItemCaret fa fa-caret"></i>
                                 </div>
                                 <div class="subMenu layoutToggleOption">
-                                    <div class="stacked" role="menuitem" tabindex="0">
+                                    <div class="stacked optionItem" role="menuitem" tabindex="0">
                                         <i class="fa fa-check hidden"></i>
                                         <span class="optionItemText">
                                             <span class="int-en">Stacked</span>
                                             <span class="int-he">זה על גבי זה</span>
                                         </span>
                                     </div>
-                                    <div class="sideBySide" role="menuitem" tabindex="0">
+                                    <div class="sideBySide optionItem" role="menuitem" tabindex="0">
                                         <i class="fa fa-check hidden"></i>
                                         <span class="optionItemText">
                                             <span class="int-en">Side-by-Side</span>
@@ -290,7 +290,7 @@
 
 
                             <div class="optionGroup disabled" id="sideBySideToggleGroup">
-                                <div class="optionTitle" aria-haspopup="true" role="menuitem" tabindex="0"><i class="fa fa-file-o hidden"></i>
+                                <div class="optionTitle menuHeader" aria-haspopup="true" role="menuitem" tabindex="0"><i class="fa fa-file-o hidden"></i>
                                     <span class="optionItemText">
                                         <span class="int-en">Side-by-Side Layout</span>
                                         <span class="int-he">אופן סידור מקורות זה לצד זה</span>
@@ -298,14 +298,14 @@
                                     <i class="optionItemCaret fa fa-caret"></i>
                                 </div>
                                 <div class="subMenu sideBySideToggleOption">
-                                    <div class="heLeft" role="menuitem" tabindex="0">
+                                    <div class="heLeft optionItem" role="menuitem" tabindex="0">
                                         <i class="fa fa-check hidden"></i>
                                         <span class="optionItemText">
                                             <span class="int-en">Hebrew Left</span>
                                             <span class="int-he">עברית בצד שמאל</span>
                                         </span>
                                     </div>
-                                    <div class="heRight" role="menuitem" tabindex="0">
+                                    <div class="heRight optionItem" role="menuitem" tabindex="0">
                                         <i class="fa fa-check hidden"></i>
                                         <span class="optionItemText">
                                             <span class="int-en">Hebrew Right</span>
@@ -318,7 +318,7 @@
 
                         <div id="sourceLayoutLanguageMenuItems">
                             <div class="optionGroup">
-                                <div class="optionTitle" aria-haspopup="true" role="menuitem" tabindex="0"><i class="fa fa-file-o hidden"></i>
+                                <div class="optionTitle menuHeader" aria-haspopup="true" role="menuitem" tabindex="0"><i class="fa fa-file-o hidden"></i>
                                     <span class="optionItemText">
                                         <span class="int-en">Source Language</span>
                                         <span class="int-he">שפת המקור הנוכחי</span>
@@ -352,7 +352,7 @@
 
 
                             <div class="optionGroup disabled" id="layoutToggleGroup">
-                                <div class="optionTitle" aria-haspopup="true" role="menuitem" tabindex="0"><i class="fa fa-file-o hidden"></i>
+                                <div class="optionTitle menuHeader" aria-haspopup="true" role="menuitem" tabindex="0"><i class="fa fa-file-o hidden"></i>
                                     <span class="optionItemText">
                                         <span class="int-en">Source Layout</span>
                                         <span class="int-he">אופן סידור המקור</span>
@@ -379,7 +379,7 @@
 
 
                             <div class="optionGroup disabled" id="sideBySideToggleGroup">
-                                <div class="optionTitle" aria-haspopup="true" role="menuitem" tabindex="0"><i class="fa fa-file-o hidden"></i>
+                                <div class="optionTitle menuHeader" aria-haspopup="true" role="menuitem" tabindex="0"><i class="fa fa-file-o hidden"></i>
                                     <span class="optionItemText">
                                         <span class="int-en">Side-by-Side Layout</span>
                                         <span class="int-he">אופן סידור מקור זה לצד זה</span>
@@ -422,8 +422,8 @@
                 </div>
                 {% if can_edit or can_add %}
                 <div class="sheetsMenuBarItem" id="insertMenu">
-                    <span class="int-en" aria-haspopup="true" role="menuitem" tabindex="0">Insert</span>
-                    <span class="int-he" aria-haspopup="true" role="menuitem" tabindex="0">הכנסה</span>
+                    <span class="int-en menuHeader" aria-haspopup="true" role="menuitem" tabindex="0">Insert</span>
+                    <span class="int-he menuHeader" aria-haspopup="true" role="menuitem" tabindex="0">הכנסה</span>
                     <div class="optionsMenu" aria-hidden="true" aria-label="submenu">
                         <div class="optionItem" id="addSourceMenu" role="menuitem" tabindex="0">
                             <img src="/static/img/source.png" alt="Add Source Icon">
@@ -466,8 +466,8 @@
                 </div>
                 {% endif %}
                 <div class="sheetsMenuBarItem" id="highlightMenu">
-                    <span class="int-en" aria-haspopup="true" role="menuitem" tabindex="0">Highlight Tools</span>
-                    <span class="int-he" aria-haspopup="true" role="menuitem" tabindex="0">כלי סימון והדגשה</span>
+                    <span class="int-en menuHeader" aria-haspopup="true" role="menuitem" tabindex="0">Highlight Tools</span>
+                    <span class="int-he menuHeader" aria-haspopup="true" role="menuitem" tabindex="0">כלי סימון והדגשה</span>
                     <div class="optionsMenu" aria-hidden="true" aria-label="submenu">
                         <div class="optionItem segmentedContinuousToggle" data-mode="continuous">
                             <span class="optionItemText">
@@ -488,7 +488,7 @@
                         </div>
                         {% endif %}
                         <div class="optionGroup">
-                            <div class="optionTitle" aria-haspopup="true" role="menuitem" tabindex="0">
+                            <div class="optionTitle menuHeader" aria-haspopup="true" role="menuitem" tabindex="0">
                                 <span class="optionItemText"><span class="int-en">Filter</span>
                                 <span class="int-he">סינון</span></span>
                                 <i class="optionItemCaret fa fa-caret"></i>
