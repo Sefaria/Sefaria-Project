@@ -728,8 +728,6 @@ body:not(.user-is-tabbing) #sheet .cke_editable:focus {
 	position: relative;
 }
 
-
-
 .text .en,
 .text .he {
 	min-height: 20px;
@@ -737,6 +735,7 @@ body:not(.user-is-tabbing) #sheet .cke_editable:focus {
 
 #sheet .en {
 	direction: ltr;
+	text-align: left;
 }
 #sheet .he {
 	direction: rtl;
@@ -858,7 +857,6 @@ body:not(.user-is-tabbing) #sheet .cke_editable:focus {
 	padding-right: 160px !important;
 }
 
-
 .comment, .oldComment {
 	font-size: 17px;
 	min-height: 30px;
@@ -938,7 +936,7 @@ body:not(.user-is-tabbing) #sheet .cke_editable:focus {
 
 #addParashaToSheetModal li:hover span{
 	text-decoration: underline;
- }
+}
 
 #addParashaToSheetModal ol {
 	display: flex;
