@@ -39,10 +39,10 @@ sjs.lastEdit = null;
 $(window).on("beforeunload", function() {
 	if (!($("#save").data("mode") == "saving")) {
 		if (sjs._uid && !(sjs.current.id) && $("#empty").length === 0) {
-			return translateInterfaceString("Your Source Sheet has unsaved changes. Before leaving the page, click Save to keep your work.");
+			return _("Your Source Sheet has unsaved changes. Before leaving the page, click Save to keep your work.");
 		}
 		else if ($("#lastSaved").text() == "Saving...") {
-			return translateInterfaceString("Your Source Sheet has unsaved changes. Please wait for the autosave to finish.");
+			return _("Your Source Sheet has unsaved changes. Please wait for the autosave to finish.");
 		}
 	}
 });
@@ -59,7 +59,7 @@ $(window).scroll(function() {
 var oldOnError = window.onerror || function(){};
 function errorWarning(errorMsg, url, lineNumber) {
 	if (sjs.can_edit || sjs.can_add) {
-		sjs.alert.message(translateInterfaceString("Unfortunately an error has occurred. If you've recently edited text on this page, you may want to copy your recent work out of this page and click reload to ensure" +
+		sjs.alert.message(_("Unfortunately an error has occurred. If you've recently edited text on this page, you may want to copy your recent work out of this page and click reload to ensure" +
 		" your work is properly saved."))
 	}
 }
@@ -497,7 +497,7 @@ $(function() {
 		$(this).hide();
 		$("#StopCollectingAssignmentsButton").show();
 		$("#sheet").addClass('assignable');
-		$("#assignmentDirections").html(translateInterfaceString('Students can complete their assignment at this link:'));
+		$("#assignmentDirections").html(_('Students can complete their assignment at this link:'));
 		$("#assignmentURLLink").show();
 		$("#assignedSheets").show();
 		autoSave();
@@ -508,7 +508,7 @@ $(function() {
 		$(this).hide();
 		$("#makeSheetAssignableButton").show();
 		$("#sheet").removeClass('assignable');
-		$("#assignmentDirections").html(translateInterfaceString('Assignments allow you to create a template that your students can fill out on their own.'));
+		$("#assignmentDirections").html(_('Assignments allow you to create a template that your students can fill out on their own.'));
 		$("#assignmentURLLink").hide();
 		if ( $("#assignedSheets a").length > 0) {
 			$("#assignedSheets").show();
@@ -894,7 +894,7 @@ $(function() {
 				if (!text.length) {
 					// Title
 					if ($el.prop("id") === "title") {
-						$el.text(translateInterfaceString("Untitled Source Sheet"));
+						$el.text(_("Untitled Source Sheet"));
 					
 					// Comment
 					} else if ($el.hasClass("comment")) {
@@ -1115,13 +1115,13 @@ $(function() {
 		
 		var likeCount = parseInt($("#likeCount").text());
 		if ($(this).hasClass("liked")) {
-			$(this).removeClass("liked").text(translateInterfaceString("Like"));
+			$(this).removeClass("liked").text(_("Like"));
 			likeCount -= 1;
 			$("#likeCount").text(likeCount);
 			$.post("/api/sheets/" + sjs.current.id + "/unlike");
     		sjs.track.sheets("Unlike", sjs.current.id);
 		} else {
-			$(this).addClass("liked").text(translateInterfaceString("Unlike"));
+			$(this).addClass("liked").text(_("Unlike"));
 			$.post("/api/sheets/" + sjs.current.id + "/like");
 			likeCount += 1;
 			$("#likeCount").text(likeCount);
@@ -1134,11 +1134,11 @@ $(function() {
 	$("#likeInfo").click(function(e) {
 		$.getJSON("/api/sheets/" + sjs.current.id + "/likers", function(data) {
 			if (data.likers.length == 0) { 
-				var title = translateInterfaceString("No one has liked this sheet yet. Will you be the first?");
+				var title = _("No one has liked this sheet yet. Will you be the first?");
 			} else if (data.likers.length == 1) {
-				var title = translateInterfaceString("1 Person Likes This Sheet");
+				var title = _("1 Person Likes This Sheet");
 			} else {
-				var title = data.likers.length + translateInterfaceString(" People Like This Sheet");
+				var title = data.likers.length + _(" People Like This Sheet");
 			}
 			sjs.peopleList(data.likers, title);
 		});
@@ -1409,14 +1409,14 @@ $(function() {
 			$("#addInterface").on("click", "#connectionButton", function (e) {
 
 				var ref = $("#addInterface").prev(".source").attr("data-ref");
-				$("#connectionsToAdd").text("Looking up Connections...");
+				$("#connectionsToAdd").text(_("Looking up Connections..."));
 
 				$.getJSON("/api/texts/" + ref + "?context=0&pad=0", function (data) {
 					sjs.alert.clear();
 					if ("error" in data) {
 						$("#connectionsToAdd").text(data.error)
 					} else if (data.commentary.length == 0) {
-						$("#connectionsToAdd").text("No connections known for this source.");
+						$("#connectionsToAdd").text(_("No connections known for this source."));
 					} else {
 						data.commentary = [].concat.apply([], data.commentary);
 
@@ -1425,10 +1425,11 @@ $(function() {
 						var categorySum = {};
 						for (var i = 0; i < data.commentary.length; i++) {
 							var c = data.commentary[i];
-							if (categorySum[c.collectiveTitle['en']]) {
-								categorySum[c.collectiveTitle['en']]++;
+							var key = (sjs.interfaceLang == "en" ? c.collectiveTitle['en'] : c.collectiveTitle['he']);
+							if (categorySum[key]) {
+								categorySum[key]++;
 							} else {
-								categorySum[c.collectiveTitle['en']] = 1;
+								categorySum[key] = 1;
 							}
 						}
 						var categories = [];
@@ -1449,7 +1450,8 @@ $(function() {
 
 							for (var i = 0; i < data.commentary.length; i++) {
 								var c = data.commentary[i];
-								if (categories[j] == c.collectiveTitle['en']) {
+								var key = (sjs.interfaceLang == "en" ? c.collectiveTitle['en'] : c.collectiveTitle['he']);
+								if (categories[j] == key) {
 									dataRefs = dataRefs + c.sourceRef + ";";
 									//continue;
 								}
@@ -1793,7 +1795,7 @@ $(function() {
 	// Reset Source Text 
 	$(".resetSource").live("click", function() { 
 		var options = {
-			message: translateInterfaceString("Reset text of Hebrew, English or both?")+"<br><small>"+translateInterfaceString("Any edits you have made to this source will be lost")+".</small>",
+			message: _("Reset text of Hebrew, English or both?")+"<br><small>"+_("Any edits you have made to this source will be lost")+".</small>",
 			options: ["Hebrew", "English", "Both"]
 		};
 		var $target = $(this).closest(".source");
@@ -3082,7 +3084,7 @@ function buildSheet(data){
 			$("#title").addClass("heTitle");
 		}
 	} else {
-		$("#title").html(translateInterfaceString("Untitled Source Sheet"));
+		$("#title").html(_("Untitled Source Sheet"));
 	}
 	$("#sources").css("min-height",($("#sources").css("height"))); //To prevent 'jumping' as the sheet is rebuilt when polling is triggered we temporarily set the min-height, and remove it at the end of the function.
 
@@ -3853,7 +3855,7 @@ function showShareModal(){
 
 
 function deleteSheet() {
-	if (confirm(translateInterfaceString("Are you sure you want to delete this sheet? There is no way to undo this action."))) {
+	if (confirm(_("Are you sure you want to delete this sheet? There is no way to undo this action."))) {
 		$.post("/api/sheets/" + sjs.current.id + "/delete", function (data){
 			if ("error" in data) {
 				sjs.alert.message(data.error);
@@ -4179,8 +4181,9 @@ $.extend(sjs, {
 		"Students can complete their assignment at this link:":
 			"תלמידים יכולים לבצע את המטלה שלהם בקישור הבא:",
 		"Reset text of Hebrew, English or both?": "האם לאפס את התוכן של המקור בעברית, אנגלית או הכל?",
-		"Any edits you have made to this source will be lost": "כל השינויים שנעשו במקור זה יאבדו"
-
+		"Any edits you have made to this source will be lost": "כל השינויים שנעשו במקור זה יאבדו",
+		"Looking up Connections..." : "מחפש קישורים...",
+		"No connections known for this source.": "למקור הזה אין קשרים ידועים",
 
 	}
 });
@@ -4193,3 +4196,4 @@ function translateInterfaceString(key, defaultValue){
 		return (defaultValue ? defaultValue : key);
 	}
 }
+var _ = translateInterfaceString;
