@@ -2404,10 +2404,6 @@ a.readerNavCategory {
 .basetext .segment:focus .linkCount {
   background-color: transparent;
 }
-.textColumn.connectionsOpen .basetext .segment:active,
-.textColumn.connectionsOpen .basetext .segment:focus {
-  background-color: inherit;
-}
 .dark .basetext .segment:active,
 .dark .basetext .segment:focus {
   background-color: #444;

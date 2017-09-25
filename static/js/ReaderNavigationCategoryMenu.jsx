@@ -161,7 +161,6 @@ class ReaderNavigationCategoryMenuContents extends Component {
       var contents = this.props.contentLang == "hebrew" ?
                       this.hebrewContentSort(this.props.contents) 
                       : this.props.contents;
-      console.log(contents);
       for (var i = 0; i < contents.length; i++) {
         var item = contents[i];
         if (item.category) {
