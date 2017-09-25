@@ -213,7 +213,7 @@ class TocTree(object):
 
         for cat in self.all_category_nodes():  # iterate all categories
             cat.children.sort(key=_explicit_order_and_title)
-            cat.children.sort(key=_sparseness_order)
+            # cat.children.sort(key=_sparseness_order)
             cat.children.sort(key=lambda node: 'zzz' + node.primary_title("en") if isinstance(node, TocCategory) and node.primary_title("en") in REVERSE_ORDER else 'a')
 
     def _make_index_node(self, index, old_title=None):
@@ -224,6 +224,9 @@ class TocTree(object):
         vs = self._vs_lookup.get(title, {})
         d["sparseness"] = vs.get("sparseness", 1)
         d["firstSection"] = vs.get("first_section_ref", None)
+        if title in ORDER:
+            # If this text is listed in ORDER, consder its order as its order field.
+            d["order"] = ORDER.index(title)
 
         if "base_text_titles" in d and len(d["base_text_titles"]) > 0:
             d["refs_to_base_texts"] = {btitle:

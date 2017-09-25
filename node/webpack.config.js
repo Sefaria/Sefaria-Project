@@ -67,19 +67,20 @@ function config(overrides) {
 }
 
 var clientConfig = config({
-    context: path.resolve(__dirname, 'static/js'),
+    context: path.resolve('./static/js'),
     entry: './client',
     //externals: [/^express$/, /^request$/, /^source-map-support$/],
     output: {
-        path: path.join(__dirname, buildDir + 'client'),
+        path: path.resolve(buildDir + 'client'),
         filename: 'client-[hash].js'
     },
     plugins: [
-        new BundleTracker({filename: './webpack-stats.client.json'}),
+        new BundleTracker({filename: './node/webpack-stats.client.json'}),
         new WebpackOnBuildPlugin(function (stats) {
             const newlyCreatedAssets = stats.compilation.assets;
 
             const unlinked = [];
+            console.log(path.resolve(buildDir + 'client'));
             fs.readdir(path.resolve(buildDir + 'client'), function (err, files) {
                 files.forEach(function (file) {
                     if (!newlyCreatedAssets[file]) {
@@ -99,12 +100,12 @@ var clientConfig = config({
 });
 
 var serverConfig = config({
-    context: path.resolve(__dirname, 'node'),
+    context: path.resolve('./node'),
     entry: './server',
     target: 'node',
     externals: [nodeExternals()],
     output: {
-        path: path.join(__dirname, buildDir + 'server'),
+        path: path.resolve(buildDir + 'server'),
         filename: 'server-bundle.js'
     },
     //not clear if we need this. see: https://webpack.js.org/configuration/node/#node
@@ -113,15 +114,15 @@ var serverConfig = config({
         __filename: true
     },
     plugins: [
-        new BundleTracker({filename: './webpack-stats.server.json'})
+        new BundleTracker({filename: './node/webpack-stats.server.json'})
     ]
 });
 
 var diffConfig = config({
-    context: path.resolve(__dirname, 'static/js'),
+    context: path.resolve('./static/js'),
     entry: './diff_page',
     output: {
-        path: path.join(__dirname, buildDir + 'diffPage'),
+        path: path.resolve(buildDir + 'diffPage'),
         filename: 'diffPage.js'
     }
 });

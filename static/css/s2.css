@@ -1014,7 +1014,8 @@ a.readerNavCategory {
 .readerNavCategoryMenu .content {
   padding: 100px 10px 10px;
 }
-.readerNavCategoryMenu .content .category {
+.readerNavCategoryMenu .content .category,
+.readerNavCategoryMenu .content .gridBox {
   margin-bottom: 30px;
 }
 .readerNavCategoryMenu .categoryAttribution {
@@ -1073,6 +1074,17 @@ a.readerNavCategory {
   width: 100%;
   height: 100%;
 }
+/* - visually distinguish text by sparseness
+.readerNavMenu .readerNavCategoryMenu .refLink.sparse3 {
+  opacity: 0.7;
+}
+.readerNavMenu .readerNavCategoryMenu .refLink.sparse2 {
+  opacity: 0.6;
+}
+.readerNavMenu .readerNavCategoryMenu .refLink.sparse1 {
+  opacity: 0.5;
+}
+*/
 .categoryColorLine {
   position: absolute;
   top: 0;
@@ -2628,6 +2640,9 @@ a.readerNavCategory {
 }
 .interface-hebrew .connectionsPanelHeader{
   direction: rtl;
+}
+.interface-english .connectionsPanelHeader{
+  direction: ltr;
 }
 .connectionsPanelHeader .rightButtons {
   margin-top: -4px;

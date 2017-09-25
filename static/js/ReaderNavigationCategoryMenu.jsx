@@ -83,7 +83,13 @@ class ReaderNavigationCategoryMenu extends Component {
                     </h1>) : null}
                   {toggle}
                   <CategoryAttribution categories={categories} />
-                  <ReaderNavigationCategoryMenuContents contents={catContents} categories={categories} width={this.props.width} category={this.props.category} nestLevel={nestLevel} />
+                  <ReaderNavigationCategoryMenuContents 
+                    contents={catContents} 
+                    categories={categories}
+                    width={this.props.width} 
+                    category={this.props.category}
+                    contentLang={this.props.contentLang}
+                    nestLevel={nestLevel} />
                 </div>
                 {footer}
               </div>
@@ -101,12 +107,13 @@ ReaderNavigationCategoryMenu.propTypes = {
   width:               PropTypes.number,
   compare:             PropTypes.bool,
   hideNavHeader:       PropTypes.bool,
-  interfaceLang:       PropTypes.string
+  contentLang:         PropTypes.string,
+  interfaceLang:       PropTypes.string,
 };
 
 
 class ReaderNavigationCategoryMenuContents extends Component {
-  // Inner content of Category menu (just category title and boxes of)
+  // Inner content of Category menu (just category title and boxes of texts/subcategories)
   getRenderedTextTitleString(title, heTitle){
     var whiteList = ['Midrash Mishlei', 'Midrash Tehillim', 'Midrash Tanchuma'];
     var displayCategory = this.props.category;
@@ -128,11 +135,35 @@ class ReaderNavigationCategoryMenuContents extends Component {
     }
     return [title, heTitle];
   }
+  hebrewContentSort(cats) {
+    // Sorts contents of this category by Hebrew Alphabetical
+    var heCats = cats.slice().map(function(item, indx) {
+      item.enOrder = indx;
+      return item;
+    });
+    heCats = heCats.sort(function(a, b) {
+      if ("order" in a || "order:" in b) {
+        var aOrder = "order" in a ? a.order : 9999;
+        var bOrder = "order" in b ? b.order : 9999;
+        return aOrder > bOrder ? 1 : -1;
+      
+      } else if (a.heTitle && b.heTitle) {
+        return a.heTitle > b.heTitle ? 1 : -1;
+      
+      }
+      return a.enOrder - b.enOrder;
+    });
+    return heCats; 
+  }
   render() {
       var content = [];
       var cats = this.props.categories || [];
-      for (var i = 0; i < this.props.contents.length; i++) {
-        var item = this.props.contents[i];
+      var contents = this.props.contentLang == "hebrew" ?
+                      this.hebrewContentSort(this.props.contents) 
+                      : this.props.contents;
+      console.log(contents);
+      for (var i = 0; i < contents.length; i++) {
+        var item = contents[i];
         if (item.category) {
           // Category
           var newCats = cats.concat(item.category);
@@ -164,7 +195,13 @@ class ReaderNavigationCategoryMenuContents extends Component {
                               <span className='en'>{item.category}</span>
                               <span className='he'>{item.heCategory}</span>
                             </h3>
-                            <ReaderNavigationCategoryMenuContents contents={item.contents} categories={newCats} width={this.props.width} nestLevel={this.props.nestLevel + 1} category={this.props.category}  />
+                            <ReaderNavigationCategoryMenuContents 
+                              contents={item.contents}
+                              categories={newCats}
+                              width={this.props.width}
+                              nestLevel={this.props.nestLevel + 1}
+                              category={this.props.category} 
+                              contentLang={this.props.contentLang} />
                           </div>));
           }
         } else {

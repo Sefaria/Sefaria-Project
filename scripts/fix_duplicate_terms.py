@@ -8,18 +8,10 @@ from sefaria.system.database import db
 duplicates = db.term.aggregate(
     [
         {
-            "$unwind": {
-                "path": "$titles",
-                "includeArrayIndex" : "arrayIndex",
-                "preserveNullAndEmptyArrays" : False
-            }
+            "$unwind": "$titles"
         },
         {
-            "$unwind": {
-                "path" : "$titles.text",
-                "includeArrayIndex": "arrayIndex",
-                "preserveNullAndEmptyArrays": False
-            }
+            "$unwind":"$titles.text"
         },
         {
             "$project": {"_id": '$_id', "name":'$name', "text": '$titles.text', "lang": '$titles.lang', "scheme": '$scheme'}
@@ -50,13 +42,13 @@ duplicates = db.term.aggregate(
 primary_titles = {
         u'פרשה': 'Parasha',
         'Gra': 'Gra',
-        u'רס"ג': 'Rasag',
+        u'רס"ג': 'Saadia Gaon',
         u'שער': 'Gate',
         u'פסוק': 'Verse',
         u'סעיף': 'Seif',
         u'גר"א': 'Gra',
         u'חלק': 'Section',
-        'Rasag': 'Rasag',
+        'Rasag': 'Saadia Gaon',
         u'משנה': 'Mishnah',
         'Gate': 'Gate',
         u'הלכה': 'Halakhah',
@@ -140,23 +132,50 @@ for i, dup in enumerate(duplicates['result'],1):
     print "{})====================================================".format(i)
 
 
-cats = db.category.find({})
+def get_new_primary_term(title):
+    sterm = Term().load({'name': title})
+    if not sterm:
+        sterm = Term().load_by_title(title)
+    return sterm.get_primary_title() if sterm else title
 
+
+
+cats = db.category.find({})
 for cat in cats:
     if "sharedTitle" in cat and cat['sharedTitle'] is not None:
-        cat_term = Term().load({'name': cat['sharedTitle']})
-        if not cat_term:
-            cat_term = Term().load_by_title(cat['sharedTitle'])
-            new_shared_title = cat_term.get_primary_title()
+        new_shared_title = get_new_primary_term(cat['sharedTitle'])
+        if new_shared_title != cat['sharedTitle']:
             print "normalizing category with shared title {} to {}".format(cat['sharedTitle'], new_shared_title)
             cat['sharedTitle'] = new_shared_title
             cat['lastPath'] = new_shared_title
             cat['path'][-1] = new_shared_title
-            db.category.save(cat, w=1)
+
+    for i, cpath in enumerate(cat['path']):
+        cat['path'][i] = get_new_primary_term(cpath)
+
+    db.category.save(cat, w=1)
+
+
 
 idxs = IndexSet()
 for idx in idxs:
-    pass
+    for i, cpath in enumerate(idx.categories):
+        idx.categories[i] = get_new_primary_term(cpath)
+    if getattr(idx, "collective_title", None):
+        idx.collective_title = get_new_primary_term(idx.collective_title)
+
+    leaf_nodes = idx.nodes.get_leaf_nodes()
+    for leaf in leaf_nodes:
+        if getattr(leaf, "sectionNames", None):
+            for j, section in enumerate(leaf.sectionNames):
+                new_section = get_new_primary_term(section)
+                if new_section != section:
+                    leaf.sectionNames[j]=new_section
+                    print u"Changed Index {}:{}:{} to {}".format(idx.title, leaf.primary_title(), section, new_section)
+    idx.save(override_dependencies=True)
+
+
+library.rebuild(include_toc=True)
 
 
 

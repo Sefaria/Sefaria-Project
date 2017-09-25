@@ -14,10 +14,6 @@
     	   <div class="versionLine">Version: {{ event.version }} ({{ event.language|lang_code }})</div>
 
         {% elif "text" in event.rev_type %}
-	    	
-            {% if email and single and not forloop.first %}
-	    		<div class="btn btn-mini revert" data-revert="/api/revert/{{ event.ref|url_safe }}/{{ lang }}/{{ version|url_safe }}/{{ event.revision }}">Revert to This</div>
-	    	{% endif %}
 
 	    	<span class="topline">{{ event.user|user_link }} 
     		{% if event.rev_type == "add text" and event.version == "Sefaria Community Translation" %}

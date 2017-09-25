@@ -129,6 +129,7 @@ class ReaderNavigationMenu extends Component {
                   compare={this.props.compare}
                   hideNavHeader={this.props.hideNavHeader}
                   width={this.width}
+                  contentLang={this.props.settings.language}
                   interfaceLang={this.props.interfaceLang} />
               </div>);
     } else {

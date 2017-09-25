@@ -104,7 +104,7 @@ def sheet_to_dict(sheet):
 	profile = public_user_data(sheet["owner"])
 	sheet_dict = {
 		"id": sheet["id"],
-		"title": sheet["title"] if "title" in sheet else "Untitled Sheet",
+		"title": strip_tags(sheet["title"]) if "title" in sheet else "Untitled Sheet",
 		"status": sheet["status"],
 		"author": sheet["owner"],
 		"ownerName": profile["name"],

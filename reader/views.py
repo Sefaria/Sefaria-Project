@@ -52,7 +52,7 @@ import sefaria.utils.calendars
 from sefaria.utils.util import short_to_long_lang_code
 import sefaria.tracker as tracker
 from sefaria.system.cache import django_cache_decorator
-from sefaria.settings import USE_VARNISH, USE_NODE, NODE_HOST
+from sefaria.settings import USE_VARNISH, USE_NODE, NODE_HOST, DOMAIN_LANGUAGES, REDIRECTABLE_DOMAIN_LANGUAGES
 if USE_VARNISH:
     from sefaria.system.sf_varnish import invalidate_ref, invalidate_linked
 
@@ -691,7 +691,7 @@ def s2_page(request, props, page, title="", desc=""):
     }, RequestContext(request))
 
 
-def s2_home(request):
+def mobile_home(request):
     props = s2_props(request)
     return s2_page(request, props, "home")
 
@@ -1355,10 +1355,22 @@ def interface_language_redirect(request, language):
     Set the interfaceLang cookie, saves to UserProfile (if logged in)
     and redirects to `next` url param.
     """
+    from pprint import pprint
     next = request.GET.get("next", "/?home")
     next = "/?home" if next == "undefined" else next
+    
+    pinned_domain = None
+    domains = REDIRECTABLE_DOMAIN_LANGUAGES or DOMAIN_LANGUAGES
+    for domain in domains:
+        if domains[domain] == language and not request.get_host() in domain:
+            pinned_domain = domain
+            next = domain + next
+            break
+
     response = redirect(next)
-    response.set_cookie("interfaceLang", language)
+    
+    if not pinned_domain:
+        response.set_cookie("interfaceLang", language)
     if request.user.is_authenticated():
         p = UserProfile(id=request.user.id)
         p.settings["interface_language"] = language
@@ -3004,27 +3016,22 @@ def home(request):
     Homepage
     """
     recent = request.COOKIES.get("recentlyViewed", None)
-    if recent and not "home" in request.GET and not request.COOKIES.get('s1'):
+    if recent and not "home" in request.GET:
         return redirect("/texts")
 
     if request.flavour == "mobile":
-        return s2_home(request)
+        return mobile_home(request)
 
-    today              = date.today()
-    daf_today          = sefaria.utils.calendars.daf_yomi(today)
-    daf_tomorrow       = sefaria.utils.calendars.daf_yomi(today + timedelta(1))
-    parasha            = sefaria.utils.calendars.this_weeks_parasha(datetime.now())
-    p929_chapter       = p929.Perek(date = today)
-    p929_ref           = "%s %s" % (p929_chapter.book_name, p929_chapter.book_chapter)
-    metrics            = db.metrics.find().sort("timestamp", -1).limit(1)[0]
+    today     = date.today()
+    daf_today = sefaria.utils.calendars.daf_yomi(today)
+    parasha   = sefaria.utils.calendars.this_weeks_parasha(datetime.now())
+    metrics   = db.metrics.find().sort("timestamp", -1).limit(1)[0]
 
-    return render_to_response('static/s2_home.html' if not request.COOKIES.get('s1') else 'static/home.html',
+    return render_to_response('static/home.html',
                              {
                               "metrics": metrics,
                               "daf_today": daf_today,
-                              "daf_tomorrow": daf_tomorrow,
                               "parasha": parasha,
-                              "p929": p929_ref,
                               },
                               RequestContext(request))
 

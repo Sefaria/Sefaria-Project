@@ -238,7 +238,7 @@ class Term(abst.AbstractMongoRecord, AbstractTitledObject):
         #do not allow duplicates:
         for title in self.get_titles():
             other_term = Term().load_by_title(title)
-            if other_term:
+            if other_term and not self.same_record(other_term):
                 raise InputError(u"A Term with the title {} in it already exists".format(title))
         self.title_group.validate()
         if self.name != self.get_primary_title():

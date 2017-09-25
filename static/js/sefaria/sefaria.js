@@ -1737,6 +1737,7 @@ Sefaria.unpackDataFromProps = function(props) {
     Sefaria._topicList = props.topicList;
   }
   Sefaria.util._initialPath = props.initialPath;
+  Sefaria.interfaceLang = props.interfaceLang;
 };
 
 

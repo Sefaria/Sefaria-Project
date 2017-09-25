@@ -24,6 +24,7 @@ var DJANGO_DATA_VARS = {
   notifications:       {{ notifications_json|default:'[]' }},
   notificationsHtml:   "{{ notifications_html|escape_quotes }}",
   recentlyViewed:      {{ recentlyViewed|jsonify }},
+  interfaceLang:       "{{ request.interfaceLang }}",
   globalWarningMessage: {% if GLOBAL_WARNING %}"{{ GLOBAL_WARNING_MESSAGE}}"{% else %}null{% endif %},
   interruptingMessage: {{ interrupting_message_json|default:'null' }},
   _email:              "{{ request.user.email|default:'' }}",
