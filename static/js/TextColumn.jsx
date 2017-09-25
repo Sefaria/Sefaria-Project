@@ -175,11 +175,7 @@ class TextColumn extends Component {
     var windowHeight = $node.outerHeight();
     var windowTop    = node.scrollTop;
     var windowBottom = windowTop + windowHeight;
-    if (lastTop > (windowHeight + 100) && refs.length > 1) {
-      // Remove a section scrolled out of view on bottom
-      refs = refs.slice(0,-1);
-      this.props.updateTextColumn(refs);
-    } else if (windowTop < 21 && !this.loadingContentAtTop) {
+    if (windowTop < 21 && !this.loadingContentAtTop) {
       // UP: add the previous section above then adjust scroll position so page doesn't jump
       var topRef = refs[0];
       var data   = Sefaria.ref(topRef);
