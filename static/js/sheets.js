@@ -1229,44 +1229,44 @@ $(function() {
 	// ------------- Source Controls -------------------
 
 	var ownerControls = "<div id='sourceControls'>" + 
-							"<div class='editTitle' title='Edit Source Title'><i class='fa fa-pencil'></i></div>" +
-							"<div class='addSub' title='Add Source Below'><i class='fa fa-plus-circle'></i></div>" +
-							"<div class='addSubComment' title='Add Comment'><i class='fa fa-comment'></i></div>" +
-							"<div class='addConnections' title='Add All Connections'><i class='fa fa-sitemap'></i></div>"+				
-							"<div class='resetSource' title='Reset Source Text'><i class='fa fa-rotate-left'></i></div>" +
-							"<div class='copySource' title='Copy to Sheet'><i class='fa fa-copy'></i></div>" +
-							"<div class='switchSourceLayoutLang' title='Change Source Layout/Language'><i class='fa fa-ellipsis-h'></i></div>" +						
-							"<div class='moveSourceUp' title='Move Source Up'><i class='fa fa-arrow-up '></i></div>" +
-							"<div class='moveSourceDown' title='Move Source Down'><i class='fa fa-arrow-down'></i></div>" +
-							"<div class='moveSourceLeft' title='Outdent Source'><i class='fa fa-outdent'></i></div>" +
-							"<div class='moveSourceRight' title='Indent Source'><i class='fa fa-indent'></i></div>" +
-							"<div class='removeSource' title='Remove'><i class='fa fa-times-circle'></i></div>" +
+							"<div class='editTitle' title='"+_('Edit Source Title')+"'><i class='fa fa-pencil'></i></div>" +
+							"<div class='addSub' title='"+_('Add Source Below')+"'><i class='fa fa-plus-circle'></i></div>" +
+							"<div class='addSubComment' title='"+_('Add Comment')+"'><i class='fa fa-comment'></i></div>" +
+							"<div class='addConnections' title='"+_('Add All Connections')+"'><i class='fa fa-sitemap'></i></div>"+
+							"<div class='resetSource' title='"+_('Reset Source Text')+"'><i class='fa fa-rotate-left'></i></div>" +
+							"<div class='copySource' title='"+_('Copy to Sheet')+"'><i class='fa fa-copy'></i></div>" +
+							"<div class='switchSourceLayoutLang' title='"+_('Change Source Layout/Language')+"'><i class='fa fa-ellipsis-h'></i></div>" +
+							"<div class='moveSourceUp' title='"+_('Move Source Up')+"'><i class='fa fa-arrow-up '></i></div>" +
+							"<div class='moveSourceDown' title='"+_('Move Source Down')+"'><i class='fa fa-arrow-down'></i></div>" +
+							"<div class='moveSourceLeft' title='"+_('Outdent Source')+"'><i class='fa fa-outdent'></i></div>" +
+							"<div class='moveSourceRight' title='"+_('Indent Source')+"'><i class='fa fa-indent'></i></div>" +
+							"<div class='removeSource' title='"+_('Remove')+"'><i class='fa fa-times-circle'></i></div>" +
 
 						"</div>";
 
 	var adderControls = "<div id='sourceControls'>" + 
-							"<div class='addSub' title='Add Source Below'><i class='fa fa-plus-circle'></i></div>" +
-							"<div class='addSubComment' title='Add Comment'><i class='fa fa-comment'></i></div>" +
-							"<div class='addConnections' title='Add All Connections'><i class='fa fa-sitemap'></i></div>"+				
-							"<div class='copySource' title='Copy to Sheet'><i class='fa fa-copy'></i></div>" +					
-							"<div class='moveSourceUp' title='Move Source Up'><i class='fa fa-arrow-up'></i></div>" +
-							"<div class='moveSourceDown' title='Move Source Down'><i class='fa fa-arrow-down'></i></div>" +
-							"<div class='moveSourceLeft' title='Outdent Source'><i class='fa fa-outdent'></i></div>" +
-							"<div class='moveSourceRight' title='Indent Source'><i class='fa fa-indent'></i></div>" +
+							"<div class='addSub' title='"+_('Add Source Below')+"'><i class='fa fa-plus-circle'></i></div>" +
+							"<div class='addSubComment' title='"+_('Add Comment')+"'><i class='fa fa-comment'></i></div>" +
+							"<div class='addConnections' title='"+_('Add All Connections')+"'><i class='fa fa-sitemap'></i></div>"+
+							"<div class='copySource' title='"+_('Copy to Sheet')+"'><i class='fa fa-copy'></i></div>" +
+							"<div class='moveSourceUp' title='"+_('Move Source Up')+"'><i class='fa fa-arrow-up'></i></div>" +
+							"<div class='moveSourceDown' title='"+_('Move Source Down')+"'><i class='fa fa-arrow-down'></i></div>" +
+							"<div class='moveSourceLeft' title='"+_('Outdent Source')+"'><i class='fa fa-outdent'></i></div>" +
+							"<div class='moveSourceRight' title='"+_('Indent Source')+"'><i class='fa fa-indent'></i></div>" +
 
 						"</div>";
 
 	var viewerControls = "<div id='sourceControls'>" + 
-							"<div class='copySource' title='Copy to Sheet'><i class='fa fa-copy'></i></div>" +					
+							"<div class='copySource' title='"+_('Copy to Sheet')+"'><i class='fa fa-copy'></i></div>" +
 						"</div>";
 
 	var ownerSimpleControls = "<div id='sourceControls'>" + 
-							"<div class='copySource' title='Copy to Sheet'><i class='fa fa-copy'></i></div>" +
-							"<div class='moveSourceUp' title='Move Source Up'><i class='fa fa-arrow-up'></i></div>" +
-							"<div class='moveSourceDown' title='Move Source Down'><i class='fa fa-arrow-down'></i></div>" +
-							"<div class='moveSourceLeft' title='Outdent Source'><i class='fa fa-outdent'></i></div>" +
-							"<div class='moveSourceRight' title='Indent Source'><i class='fa fa-indent'></i></div>" +
-							"<div class='removeSource' title='Remove'><i class='fa fa-times-circle'></i></div>" +
+							"<div class='copySource' title='"+_('Copy to Sheet')+"'><i class='fa fa-copy'></i></div>" +
+							"<div class='moveSourceUp' title='"+_('Move Source Up')+"'><i class='fa fa-arrow-up'></i></div>" +
+							"<div class='moveSourceDown' title='"+_('Move Source Down')+"'><i class='fa fa-arrow-down'></i></div>" +
+							"<div class='moveSourceLeft' title='"+_('Outdent Source')+"'><i class='fa fa-outdent'></i></div>" +
+							"<div class='moveSourceRight' title='"+_('Indent Source')+"'><i class='fa fa-indent'></i></div>" +
+							"<div class='removeSource' title='"+_('Remove')+"'><i class='fa fa-times-circle'></i></div>" +
 
 
 						"</div>";
@@ -1275,31 +1275,31 @@ $(function() {
 
 
 		var ownerControls = "<div id='sourceControls' class='sideControls'>" +
-								"<div class='copySource' title='Copy to Sheet'><img src='/static/img/copy.png'></div>" +
-								"<div class='removeSource' title='Remove'><img src='/static/img/remove.png'></div>" +
-								"<div class='moveSourceRight' title='Indent Source'><img src='/static/img/indent.png'></div>" +
-								"<div class='moveSourceLeft' title='Outdent Source'><img src='/static/img/outdent.png'></div>" +
-								"<div class='moveSourceUp' title='Move Source Up'><img src='/static/img/triangle-up.svg'></div>" +
-								"<div class='moveSourceDown' title='Move Source Down'><img src='/static/img/triangle-down.svg'></div>" +
+								"<div class='copySource' title='"+_('Copy to Sheet')+"'><img src='/static/img/copy.png'></div>" +
+								"<div class='removeSource' title='"+_('Remove')+"'><img src='/static/img/remove.png'></div>" +
+								"<div class='moveSourceRight' title='"+_('Indent Source')+"'><img src='/static/img/indent.png'></div>" +
+								"<div class='moveSourceLeft' title='"+_('Outdent Source')+"'><img src='/static/img/outdent.png'></div>" +
+								"<div class='moveSourceUp' title='"+_('Move Source Up')+"'><img src='/static/img/triangle-up.svg'></div>" +
+								"<div class='moveSourceDown' title='"+_('Move Source Down')+"'><img src='/static/img/triangle-down.svg'></div>" +
 							"</div>";
 
 		var adderControls = "<div id='sourceControls' class='sideControls'>" +
-								"<div class='copySource' title='Copy to Sheet'><img src='/static/img/copy.png'></div>" +
-								"<div class='moveSourceRight' title='Indent Source'><img src='/static/img/indent.png'></div>" +
-								"<div class='moveSourceLeft' title='Outdent Source'><img src='/static/img/outdent.png'></div>" +
+								"<div class='copySource' title='"+_('Copy to Sheet')+"'><img src='/static/img/copy.png'></div>" +
+								"<div class='moveSourceRight' title='"+_('Indent Source')+"'><img src='/static/img/indent.png'></div>" +
+								"<div class='moveSourceLeft' title='"+_('Outdent Source')+"'><img src='/static/img/outdent.png'></div>" +
 							"</div>";
 
 		var viewerControls = "<div id='sourceControls' class='sideControls'>" +
-								"<div class='copySource' title='Copy to Sheet'><img src='/static/img/copy.png'></div>" +
+								"<div class='copySource' title='"+_('Copy to Sheet')+"'><img src='/static/img/copy.png'></div>" +
 							"</div>";
 
 		var ownerSimpleControls = "<div id='sourceControls' class='sideControls'>" +
-								"<div class='copySource' title='Copy to Sheet'><img src='/static/img/copy.png'></div>" +
-								"<div class='removeSource' title='Remove'><img src='/static/img/remove.png'></div>" +
-								"<div class='moveSourceRight' title='Indent Source'><img src='/static/img/indent.png'></div>" +
-								"<div class='moveSourceLeft' title='Outdent Source'><img src='/static/img/outdent.png'></div>" +
-								"<div class='moveSourceUp' title='Move Source Up'><img src='/static/img/triangle-up.svg'></div>" +
-								"<div class='moveSourceDown' title='Move Source Down'><img src='/static/img/triangle-down.svg'></div>" +
+								"<div class='copySource' title='"+_('Copy to Sheet')+"'><img src='/static/img/copy.png'></div>" +
+								"<div class='removeSource' title='"+_('Remove')+"'><img src='/static/img/remove.png'></div>" +
+								"<div class='moveSourceRight' title='"+_('Indent Source')+"'><img src='/static/img/indent.png'></div>" +
+								"<div class='moveSourceLeft' title='"+_('Outdent Source')+"'><img src='/static/img/outdent.png'></div>" +
+								"<div class='moveSourceUp' title='"+_('Move Source Up')+"'><img src='/static/img/triangle-up.svg'></div>" +
+								"<div class='moveSourceDown' title='"+_('Move Source Down')+"'><img src='/static/img/triangle-down.svg'></div>" +
 							"</div>";
 
 
@@ -4184,6 +4184,18 @@ $.extend(sjs, {
 		"Any edits you have made to this source will be lost": "כל השינויים שנעשו במקור זה יאבדו",
 		"Looking up Connections..." : "מחפש קישורים...",
 		"No connections known for this source.": "למקור הזה אין קשרים ידועים",
+		"Edit Source title" : "עריכת כותרת",
+		"Add Source Below" : "הוספת מקור מתחת",
+		"Add Comment": "הוספת תגובה",
+		"Add All Connections": "הוספת כל המקורות הקשורים",
+		"Reset Source Text": "איפוס טקסט מקור",
+		"Copy to Sheet" : "העתקה לדף מקורות",
+		"Change Source Layout/Language": "שינוי שפת/עימוד מקור",
+		"Move Source Up": "הזזת מקור מעלה",
+		"Move Source Down": "הזזת מקור מטה",
+		"Outdent Source": "הזחת מקור החוצה",
+		"Indent Source": "הזחת מקור פנימה",
+		"Remove": "הסרת מקור"
 
 	}
 });
