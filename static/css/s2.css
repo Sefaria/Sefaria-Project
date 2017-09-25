@@ -1085,6 +1085,24 @@ a.readerNavCategory {
   height: 6px;
   z-index: 101;
 }
+.readerApp.interface-hebrew .readerNavMenu.noLangToggleInHebrew .en {
+  display: none;
+}
+.readerApp.interface-hebrew .readerNavMenu.noLangToggleInHebrew .he {
+  display: inline;
+}
+.interface-hebrew .readerPanel.english .noLangToggleInHebrew .readerNavSection, 
+.interface-hebrew .readerPanel.english .readerNavMenu.noLangToggleInHebrew .gridBox {
+  direction: rtl;
+}
+.interface-hebrew .english .noLangToggleInHebrew .gridBox td:first-child {
+  border-right: 0;
+  border-left: 3px solid transparent;
+}
+.interface-hebrew .english .noLangToggleInHebrew .gridBox td:last-child {
+  border-left: 0;
+  border-right: 3px solid transparent;
+}
 .bilingual .readerTextTableOfContents .he {
   display: none;
 }

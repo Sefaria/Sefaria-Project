@@ -61,7 +61,7 @@ class ReaderNavigationCategoryMenu extends Component {
     }
     var catContents    = Sefaria.tocItemsByCategories(categories);
     var nestLevel      = this.props.category == "Commentary" ? 1 : 0;
-    var navMenuClasses = classNames({readerNavCategoryMenu: 1, readerNavMenu: 1, noHeader: this.props.hideNavHeader});
+    var navMenuClasses = classNames({readerNavCategoryMenu: 1, readerNavMenu: 1, noHeader: this.props.hideNavHeader, noLangToggleInHebrew: 1});
     var navTopClasses  = classNames({readerNavTop: 1, searchOnly: 1, colorLineOnly: this.props.hideNavHeader});
     var contentClasses = classNames({content: 1, hasFooter: footer != null});
     return (<div className={navMenuClasses}>
@@ -72,12 +72,12 @@ class ReaderNavigationCategoryMenu extends Component {
                   <span className="en">{catTitle}</span>
                   <span className="he">{heCatTitle}</span>
                 </h2>)}
-                {this.props.hideNavHeader ? null : (<ReaderNavigationMenuDisplaySettingsButton onClick={this.props.openDisplaySettings} />)}
+                {this.props.hideNavHeader || this.props.interfaceLang === "hebrew" ? null : (<ReaderNavigationMenuDisplaySettingsButton onClick={this.props.openDisplaySettings} />)}
               </div>
               <div className={contentClasses}>
                 <div className="contentInner">
                   {this.props.hideNavHeader ? (<h1>
-                      <LanguageToggleButton toggleLanguage={this.props.toggleLanguage} />
+                      {this.props.interfaceLang !== "hebrew" ? <LanguageToggleButton toggleLanguage={this.props.toggleLanguage} /> : null }
                       <span className="en">{catTitle}</span>
                       <span className="he">{heCatTitle}</span>
                     </h1>) : null}
