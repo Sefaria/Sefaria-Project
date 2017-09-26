@@ -2101,6 +2101,14 @@ a.readerNavCategory {
   text-align: right;
   float: right;
 }
+/* icons need a little nudge in flipped hebrew mode */
+.interface-hebrew .rightButtons {
+  margin-left: -3px;
+}
+.interface-hebrew .leftButtons {
+  margin-right: 2px;
+}
+
 .leftButtons .readerNavMenuSearchButton,
 .leftButtons .readerNavMenuMenuButton,
 .leftButtons .readerNavMenuCloseButton,
