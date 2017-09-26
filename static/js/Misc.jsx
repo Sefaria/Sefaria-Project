@@ -377,42 +377,64 @@ class InterruptingMessage extends Component {
   constructor(props) {
     super(props);
     this.displayName = 'InterruptingMessage';
+    this.state = {
+      timesUp: false,
+      animationStarted: false
+    };
   }
   componentDidMount() {
-    $("#interruptingMessage .button").click(this.close);
+    this.delayedShow();
+  }
+  delayedShow() {
+    setTimeout(function() {
+      this.setState({timesUp: true});
+      $("#interruptingMessage .button").click(this.close);
+      $("#interruptingMessage .trackedAction").click(this.trackAction);
+      this.delayedFadeIn();
+    }.bind(this), 1000);    
+  }
+  delayedFadeIn() {
+    setTimeout(function() {
+      this.setState({animationStarted: true});
+      this.trackOpen();
+    }.bind(this), 50);    
   }
   close() {
     this.markAsRead();
     this.props.onClose();
   }
+  trackOpen() {
+    Sefaria.track.event("Interrupting Message", "open", this.props.messageName, { nonInteraction: true });
+  }
+  trackAction() {
+    Sefaria.track.event("Interrupting Message", "action", this.props.messageName, { nonInteraction: true });
+  }
   markAsRead() {
     Sefaria._api("/api/interrupting-messages/read/" + this.props.messageName, function (data) {});
-    $.cookie(this.props.messageName, true, { "path": "/" });
+    var cookieName = this.props.messageName + "_" + this.props.repetition;
+    $.cookie(cookieName, true, { path: "/", expires: 14 });
     Sefaria.track.event("Interrupting Message", "read", this.props.messageName, { nonInteraction: true });
     Sefaria.interruptingMessage = null;
   }
   render() {
-    return React.createElement(
-      'div',
-      { className: 'interruptingMessageBox' },
-      React.createElement('div', { className: 'overlay', onClick: this.close }),
-      React.createElement(
-        'div',
-        { id: 'interruptingMessage' },
-        React.createElement(
-          'div',
-          { id: 'interruptingMessageClose', onClick: this.close },
-          '×'
-        ),
-        React.createElement('div', { id: 'interruptingMessageContent', dangerouslySetInnerHTML: { __html: this.props.messageHTML } })
-      )
-    );
+    return this.state.timesUp ? 
+      <div id="interruptingMessageBox" className={this.state.animationStarted ? "" : "hidden"}>
+        <div id="interruptingMessageOverlay" onClick={this.close}></div>
+        <div id="interruptingMessage">
+          <div id="interruptingMessageContentBox">
+            <div id="interruptingMessageClose" onClick={this.close}>×</div>
+            <div id="interruptingMessageContent" dangerouslySetInnerHTML={ {__html: this.props.messageHTML} }></div>
+          </div>
+        </div>
+      </div>
+      : null;
   }
 }
 InterruptingMessage.propTypes = {
   messageName: PropTypes.string.isRequired,
   messageHTML: PropTypes.string.isRequired,
-  onClose: PropTypes.func.isRequired
+  repetition:  PropTypes.number.isRequired,
+  onClose:     PropTypes.func.isRequired
 };
 
 

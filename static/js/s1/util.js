@@ -768,7 +768,7 @@ sjs.textBrowser = {
 	show: function(options) {
 		if ($("#textBrowser").length) { return; }
 		this.options = options || this.options;
-		var target = options.target || "body";
+		var target = options.target || "#content";
 		var position  = options.position || "absolute";
 		var abs = (position === "absolute");
 		this.options.absolute = abs;
@@ -789,8 +789,14 @@ sjs.textBrowser = {
 						"</div>" +
 						"<div id='browserActions'>" +
 							"<div id='browserMessage'></div><br>" +
-							"<div id='browserOK' class='btn'>OK</div>" +
-							(abs ? "<div id='browserCancel' class='btn'>Cancel</div>" : "") +
+							"<div id='browserOK' class='button disabled'>" + 
+								"<span class='int-en'>OK</span>" + 
+								"<span class='int-he'>אישור</span>" +
+							"</div>" +
+							(abs ? "<div id='browserCancel' class='button'>" +
+									"<span class='int-en'>Cancel</span>" + 
+									"<span class='int-he'>ביטול</span>" +
+								"</div>" : "") +
 						"</div>" +
 				   "</div>";
 		$(html).appendTo(target);
@@ -814,8 +820,7 @@ sjs.textBrowser = {
 		this._currentCategories = sjs.toc;
         sjs.textBrowser.previewActive = false;
 		this.updatePath();
-		this._setPreview("<div class='empty'>Browse texts with the menu on the left.</div>");
-
+		this._setInitialMessage();
 	},
 	forward: function(to) {
 		// navigate forward to "to", a string naming a text, category or section
@@ -908,9 +913,12 @@ sjs.textBrowser = {
 		// Build the side nav for category contents
 		var html = "";
 		for (var i = 0; i < contents.length; i++) {
-			var name  = contents[i].category ? contents[i].category : contents[i].title;
+			var key   = contents[i].category ? contents[i].category : contents[i].title;
+			var name  = contents[i].category ? 
+							(sjs.interfaceLang == "he" ? contents[i].heCategory : contents[i].category)
+							: (sjs.interfaceLang == "he" ? contents[i].heTitle : contents[i].title);
 			var klass = contents[i].category ? "browserCategory" : "browserText";
-			html += "<div class='browserNavItem " + klass + "'><i class='ui-icon ui-icon-carat-1-e'></i>" + name + "</div>";
+			html += "<div class='browserNavItem " + klass + "' data-name='" + key.escapeHtml() + "'><i class='ui-icon ui-icon-carat-1-e'></i>" + name + "</div>";
 		}
 		$("#browserNav").html(html);
 	},
@@ -925,8 +933,10 @@ sjs.textBrowser = {
             if (children[i].default) {
                 html += this.getSectionPreviews(children[i], this._currentText.preview, true, (children[i].addressTypes[0] == "Talmud"));
             } else {
-                var name = children[i].title;
-    			html += "<div class='browserNavItem section'><i class='ui-icon ui-icon-carat-1-e'></i>" + name + "</div>";
+                var key = children[i].title;
+                var name = sjs.interfaceLang == "he" ? children[i].heTitle : key;
+                Sefaria._translateTerms[key] = {"en": key, "he": children[i].heTitle};
+    			html += "<div class='browserNavItem section' data-name='" + key.escapeHtml() + "'><i class='ui-icon ui-icon-carat-1-e'></i>" + name + "</div>";
             }
 		}
 
@@ -960,7 +970,6 @@ sjs.textBrowser = {
 
 		$("#browserNav").html(html);
 	},
-
     getSectionPreviews: function(node, previewSection, isComplex, isTalmud) {
         var html = "";
 		for (var i = 0; i < previewSection.length; i++) {
@@ -968,12 +977,22 @@ sjs.textBrowser = {
 				(!isArray(previewSection[i]) && !previewSection[i].he && !previewSection[i].en)) {
 				 continue;
 			} // Skip empty sections
-            var name = node.sectionNames[this._currentDepth] + " " + (isTalmud ? intToDaf(i) : i+1);
-			html += "<div class='browserNavItem section'><i class='ui-icon ui-icon-carat-1-e'></i>" + name + "</div>";
+            
+            var sectionName = node.sectionNames[this._currentDepth]
+            var sectionNumber = (isTalmud ? intToDaf(i) : i+1);
+            var key = sectionName + " " + sectionNumber;
+            if (sjs.interfaceLang == "he") {
+            	var heSectionName = Sefaria.hebrewTerm(sectionName);
+            	var heSectionNumber = (isTalmud ? Sefaria.hebrew.encodeHebrewDaf(sectionNumber) : Sefaria.hebrew.encodeHebrewNumeral(sectionNumber));
+            	var name =  heSectionName + " " + heSectionNumber;
+           		Sefaria._translateTerms[key] = {"en": key, "he": name}
+            } else {
+            	var name = key;
+            }
+			html += "<div class='browserNavItem section' data-name='" + key.escapeHtml() + "'><i class='ui-icon ui-icon-carat-1-e'></i>" + name + "</div>";
 		}
         return html;
     },
-
 	getTextInfo: function(title) {
 		// Lookup counts from the API for 'title', then build a text nav
 		$.getJSON("/api/preview/" + title, function(data) {
@@ -991,9 +1010,13 @@ sjs.textBrowser = {
 	},
 	updatePath: function() {
 		// Update the top path UI per the _path list. 
-		var html = "<span class='browserNavHome browserPathItem' data-index='0'>All Texts</span>";
+		var html = "<span class='browserNavHome browserPathItem' data-index='0'>" + 
+						"<span class='int-en'>All Texts</span>" +
+						"<span class='int-he'>כל הטקסטים</span>" + 
+					"</span>";
 		for (var i = 0; i < this._path.length; i++) {
-			html += " > <span class='browserPathItem' data-index='" + (i+1) + "'>" + this._path[i] + "</span>";
+			var name = sjs.interfaceLang == "he" ? Sefaria.hebrewTerm(this._path[i]) : this._path[i]
+			html += " > <span class='browserPathItem' data-index='" + (i+1) + "'>" + name + "</span>";
 		}
 		$("#browserPath").html(html);
 		this.updateMessage();
@@ -1004,28 +1027,31 @@ sjs.textBrowser = {
         if (ref) {
             ref = ref.replace(/_/g, " ").replace(/\./g, " ");
         }
-		$("#browserMessage").html(ref);
+        var oref = Sefaria.ref(ref);
+        var displayRef = sjs.interfaceLang == "he" ? (oref ? oref.heRef : "&nbsp;") : ref;
+		$("#browserMessage").html(displayRef);
 		if (ref) {
-			$("#browserOK").removeClass("inactive");
+			$("#browserOK").removeClass("disabled");
 		} else {
-			$("#browserOK").addClass("inactive");
+			$("#browserOK").addClass("disabled");
 		}
 	},
 	previewText: function(ref) {
 		// Ask the API for text of ref, then build a preview
-		$.getJSON("/api/texts/" + ref + "?commentary=0&pad=0", this.buildPreviewText);
+		Sefaria.text(ref, {}, this.buildPreviewText);
 	},
 	buildPreviewText: function(data) {
 		function segmentString(he, en, section) {
-			var sectionLabel = isCommentary ? section.split(":")[0] : section;
 			if (!he && !en) { return ""; }
+			var sectionLabel = isCommentary ? section.split(":")[0] : section;
+			sectionLabel = sjs.interfaceLang == "he" ? Sefaria.hebrew.encodeHebrewNumeral(sectionLabel) : sectionLabel;
 			var html = "<div class='segment' data-section='" + section + "'>" +
 							(he ? "<span class='he'>" +
-									(isTalmud ? "" : "<span class='segmentNumber'>(" + sectionLabel + ")</span> ") +
+									(isTalmud ? "" : "<span class='number'>(" + sectionLabel + ")</span> ") +
 									he + 
 								   "</span>" : "") +
-							(en ? "<span class='en'>" +
-									(isTalmud ? "" : "<span class='segmentNumber'>(" + sectionLabel + ")</span> ") +
+							(en && (sjs.interfaceLang != "he"  || !he) ? "<span class='en'>" +
+									(isTalmud ? "" : "<span class='number'>(" + sectionLabel + ")</span> ") +
 									en + 
 								   "</span>" : "") +
 						"</div>";	
@@ -1034,7 +1060,10 @@ sjs.textBrowser = {
 		var html = "";
 		var longer = data.text.length > data.he.length ? data.text : data.he;
 		if (longer.length == 0) {
-			html = "<div class='empty'>No text available.</div>";
+			html = "<div class='empty'>" + 
+						"<span class='int-en'>No text available.</span>" + 
+						"<span class='int-he'>אין טקסט זמין.</span>"
+					"</div>";
 		}
 		var isCommentary = ($.inArray("Commentary", sjs.textBrowser._currentText.categories) > -1);
 		var isTalmud = ($.inArray("Talmud", sjs.textBrowser._currentText.categories) > -1); // In this case, we can leave the old logic.  Only talmud has no line numbers displayed on preview.
@@ -1053,6 +1082,7 @@ sjs.textBrowser = {
 			}
 
 		}
+		sjs.textBrowser.updateMessage();
 		sjs.textBrowser._setPreview(html);
         sjs.textBrowser.previewActive = true;
 	},
@@ -1097,12 +1127,17 @@ sjs.textBrowser = {
 	_setPreview: function(html) {
 		$("#browserPreviewContent").html(html);
 	},
+	_setInitialMessage: function() {
+    	sjs.textBrowser._setPreview("<div class='empty'>" +
+    									"<span class='int-en'>Browse texts with the menu on the left.</span>" +
+    									"<span class='int-he'>העזרו בתפריט המקורות מימין כדי לבחור את המקור שברצונכם להוסיף</span>" +
+    								"</div>");
+	},
 	_handleNavClick: function() {
 		// Move forward on nav click
-		var to = $(this).text();
+		var to = $(this).attr("data-name");
         if (sjs.textBrowser.previewActive == true) {
     		sjs.textBrowser._path.pop();
-    		sjs.textBrowser._setPreview("<div class='empty'>Browse texts with the menu on the left.</div>");
             sjs.textBrowser.previewActive = false;
         }
 		sjs.textBrowser.forward(to);

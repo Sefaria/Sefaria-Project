@@ -51,6 +51,9 @@ body:not(.user-is-tabbing) *:focus {
   height: 100%;
   top: 0;
 }
+.readerApp.interface-hebrew{
+  direction: rtl;
+}
 .noselect {
   -webkit-touch-callout: none; /* iOS Safari */
     -webkit-user-select: none; /* Safari/Opera */
@@ -273,34 +276,55 @@ input.noselect {
   position: fixed;
   z-index: 1001;
 }
+#interruptingMessageBox {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: fixed;
+  width: 100%;
+  height: 100%;
+  left: 0;
+  right: 0;
+  z-index: 1001;
+  opacity: 1;
+  transition: opacity .3s ease-in;
+}
+#interruptingMessageBox.hidden {
+  opacity: 0;
+}
+#interruptingMessageOverlay {
+  width: 100%;
+  height: 100%;
+  background-color: white;
+  opacity: 0.7;
+  position: fixed;
+}
 #interruptingMessage {
-  width: 600px;
   max-width: 90%;
-  padding: 40px;
   box-sizing: border-box;
   position: fixed;
-  top: 15%;
-  left: 50%;
-  margin-left: -300px;
+  padding: 18px 15px;
   z-index: 1001;
-  border: 1px solid #ccc;
-  background: white;
+  border: 1px solid #E6E6E6;
+  background-color: #F9F9F7;
   text-align: center;
   color: #666;
 }
-@media (max-width: 540px) {
-  #interruptingMessage {
-    margin: 0 auto;
-    left: 5%;
-  }
+#interruptingMessageContentBox {
+  position: relative;
+  border: 1px solid #CCC;
+  background-color: white;
 }
 #interruptingMessageClose {
   position: absolute;
-  top: 12px;
-  right: 20px;
-  color: #666;
-  font-size: 24px;
+  top: 2px;
+  right: 12px;
+  color: #AAA;
+  font-size: 32px;
   cursor: pointer;
+}
+#interruptingMessageContent {
+  padding: 32px 32px 16px 32px;
 }
 #interruptingMessage h1 {
   font-style: italic;
@@ -310,6 +334,9 @@ input.noselect {
   text-align: center;
   margin: 0 0 30px;
   color: #333;
+}
+.interface-hebrew #interruptingMessage h1{
+  font-style: normal;
 }
 .testMessage {
   position: fixed;
@@ -1670,7 +1697,7 @@ a.readerNavCategory {
 
 .searchFilterBoxes .searchFilterExactBox {
   border-top: 1px solid #ccc;
-  padding: 5px 5px 5px 0;
+  padding: 5px 0px 5px 0;
 }
 
 .searchFilterExactBox.hidden {
