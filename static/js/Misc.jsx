@@ -578,7 +578,7 @@ class TestMessage extends Component {
         <div className="testMessage">
           <div className="title">The new Sefaria is still in development.<br />Thank you for helping us test and improve it.</div>
           <a href="mailto:hello@sefaria.org" target="_blank" className="button">Send Feedback</a>
-          <div className="button" onClick={backToS1} >Return to Old Sefaria</div>
+          <div className="button" onClick={null} >Return to Old Sefaria</div>
         </div>
       </div>);
   }
@@ -643,18 +643,6 @@ SheetAccessIcon.propTypes = {
 };
 
 
-var openInNewTab = function(url) {
-  var win = window.open(url, '_blank');
-  win.focus();
-};
-
-var backToS1 = function() {
-  $.cookie("s2", "", {path: "/"});
-  window.location = "/";
-};
-
-
-module.exports.backToS1                                  = backToS1;
 module.exports.BlockLink                                 = BlockLink;
 module.exports.CategoryColorLine                         = CategoryColorLine;
 module.exports.CategoryAttribution                       = CategoryAttribution;
@@ -666,7 +654,6 @@ module.exports.Link                                      = Link;
 module.exports.LoadingMessage                            = LoadingMessage;
 module.exports.LoginPrompt                               = LoginPrompt;
 module.exports.Note                                      = Note;
-module.exports.openInNewTab                              = openInNewTab;
 module.exports.ReaderNavigationMenuCloseButton           = ReaderNavigationMenuCloseButton;
 module.exports.ReaderNavigationMenuDisplaySettingsButton = ReaderNavigationMenuDisplaySettingsButton;
 module.exports.ReaderNavigationMenuMenuButton            = ReaderNavigationMenuMenuButton;

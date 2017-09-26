@@ -478,9 +478,7 @@ def s2_texts_category(request, cats):
         cat_toc    = get_or_make_summary_node(toc, cats, make_if_not_found=False)
         if cat_toc is None or len(cats) == 0:
             return s2_texts(request)
-        if request.interfaceLang == "hebrew":
-            cats = [hebrew_term(cat) for cat in cats]
-        cat_string = u", ".join(cats)
+        cat_string = u", ".join(cats) if request.interfaceLang == "english" else u", ".join([hebrew_term(cat) for cat in cats])
         title = cat_string + _(" | Sefaria")
         desc  = _("Read %(categories)s texts online with commentaries and connections.") % {'categories': cat_string}
 

@@ -632,6 +632,15 @@
 		<span class="int-en">Source Sheet by</span>
         <span class="int-he">דף מקורות מאת</span>
         {{ sheet.owner|user_link }}
+		{% if sheet.via %}
+		<div id="via">
+            <span class="int-en">Based on <a href="/sheets/{{ sheet.via }}">a sheet</a> by {{ sheet.viaOwner|user_link }}</span>
+            <span class="int-he">מבוסס על <a href="/sheets/{{ sheet.via }}">דף מקורות</a> מאת {{ sheet.viaOwner|user_link }}</span>
+        </div>
+		{% endif %}
+	</div>
+	{% endif %}
+	{% if not new_sheet %}
 	</div>
 	{% endif %}
 	{% if not new_sheet %}

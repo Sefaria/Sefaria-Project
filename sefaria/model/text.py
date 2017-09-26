@@ -749,10 +749,6 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
             firstSection = orig_ref.first_available_section_ref()
             return firstSection.section_ref().normal() if firstSection else None
 
-
-
-
-
     def text_index_map(self, tokenizer=lambda x: re.split(u'\s+',x), strict=True, lang='he', vtitle=None):
         """
         See TextChunk.text_index_map
