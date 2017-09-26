@@ -1281,8 +1281,7 @@ a.readerNavCategory {
   padding: 30px 10px 10px;
   box-sizing: border-box;
   text-align: center;
-  top: 58px;
-  height: calc(100% - 58px);
+  height: 100%;
 }
 .readerTextTableOfContents .content .sectionLink {
   display: inline-block;
