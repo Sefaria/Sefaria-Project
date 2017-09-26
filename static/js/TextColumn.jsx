@@ -130,16 +130,18 @@ class TextColumn extends Component {
       // After adding content by infinite scrolling up, scroll back to what the user was just seeing
       //console.log("loading at top");
       var $node   = this.$container;
-      var adjust  = 118; // Height of .loadingMessage.base
+      var adjust  = 120; // Height of .loadingMessage.base
       var $texts  = $node.find(".basetext");
       if ($texts.length < 2) { return; }
-      var top     = $texts.eq(1).position().top + $node.scrollTop() - adjust;
+      //console.log("scrolltop: " + $node.scrollTop());
+      var top     = $texts.eq(1).position().top + $node.scrollTop() - adjust ;
+
       if (!$texts.eq(0).hasClass("loading")) {
         this.loadingContentAtTop = false;
         this.initialScrollTopSet = true;
         this.justScrolled = true;
         ReactDOM.findDOMNode(this).scrollTop = top;
-       // console.log(top)
+        //console.log("total top: " + top)
       }
     } else if (!this.scrolledToHighlight && $(ReactDOM.findDOMNode(this)).find(".segment.highlight").length) {
       //console.log("scroll to highlighted");
@@ -149,10 +151,10 @@ class TextColumn extends Component {
       this.initialScrollTopSet = true;
       this.justScrolled        = true;
     } else if (!this.initialScrollTopSet) {
-      //console.log("initial scroll to 30");
+      //console.log("initial scroll set");
       // initial value set below 0 so you can scroll up for previous
       var node = ReactDOM.findDOMNode(this);
-      node.scrollTop = 30;
+      node.scrollTop = 88;
       this.initialScrollTopSet = true;
     }
     // This fixes loading of next content when current content is short in viewport,
@@ -174,7 +176,7 @@ class TextColumn extends Component {
     var windowHeight = $node.outerHeight();
     var windowTop    = node.scrollTop;
     var windowBottom = windowTop + windowHeight;
-    if (windowTop < 21 && !this.loadingContentAtTop) {
+    if (windowTop < 78 && !this.loadingContentAtTop) {
       // UP: add the previous section above then adjust scroll position so page doesn't jump
       var topRef = refs[0];
       var data   = Sefaria.ref(topRef);

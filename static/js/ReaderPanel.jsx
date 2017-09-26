@@ -382,8 +382,6 @@ class ReaderPanel extends Component {
     });
   }
   setCurrentlyVisibleRef(ref) {
-     console.log("scvf");
-     console.log(ref);
      this.conditionalSetState({
       currentlyVisibleRef: ref,
     });   
