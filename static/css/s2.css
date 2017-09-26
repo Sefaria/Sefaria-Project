@@ -1988,8 +1988,8 @@ a.readerNavCategory {
   direction: ltr;
 }
 .readerControls {
-  position: absolute;
-  /*direction: ltr;*/
+  /*position: absolute;
+  direction: ltr;*/
   top: 0;
   left: 0;
   width: 100%;
