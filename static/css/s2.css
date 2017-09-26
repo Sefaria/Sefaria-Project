@@ -1998,8 +1998,8 @@ a.readerNavCategory {
   direction: ltr;
 }
 .readerControls {
-  /*position: absolute;
-  direction: ltr;*/
+  position: relative;
+  /* direction: ltr;*/
   top: 0;
   left: 0;
   width: 100%;
@@ -2094,12 +2094,10 @@ a.readerNavCategory {
 .interface-english .leftButtons,
 .interface-hebrew .rightButtons {
   text-align: left;
-  float: left;
 }
 .interface-english .rightButtons,
 .interface-hebrew .leftButtons {
   text-align: right;
-  float: right;
 }
 /* icons need a little nudge in flipped hebrew mode */
 .interface-hebrew .rightButtons {
