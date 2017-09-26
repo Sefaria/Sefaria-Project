@@ -359,7 +359,7 @@
 
 					if ("title" in node[i]) {
 						// Text
-						html += "<div class='tocCat sparse" + node[i].sparseness + "' " +
+						html += "<div class='tocCat' " +
 									 "data-path='" + catPath + "'" +
 									 "data-sections='" + node[i].title.replace(/\'/g, "&apos;") +"'>" +
 									 	"<i class='tocCatCaret fa fa-angle-" +

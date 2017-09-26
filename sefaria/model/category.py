@@ -161,10 +161,9 @@ class TocTree(object):
         self._path_hash = {}
         self._library = lib
 
-        # Store sparseness data (same functionality as sefaria.summaries.get_sparseness_lookup()) and first section ref.
-        vss = db.vstate.find({}, {"title": 1, "content._en.sparseness": 1, "content._he.sparseness": 1, "first_section_ref": 1})
+        # Store first section ref.
+        vss = db.vstate.find({}, {"title": 1, "first_section_ref": 1})
         self._vs_lookup = {vs["title"]: {
-            "sparseness": max(vs["content"]["_en"]["sparseness"], vs["content"]["_he"]["sparseness"]),
             "first_section_ref": vs.get("first_section_ref")
         } for vs in vss}
 
@@ -206,14 +205,8 @@ class TocTree(object):
                 else:
                     return getattr(node, "order", title)
 
-        def _sparseness_order(node):
-            if isinstance(node, TocCategory) or hasattr(node, "order"):
-                return -4
-            return - getattr(node, "sparseness", 1)  # Least sparse to most sparse
-
         for cat in self.all_category_nodes():  # iterate all categories
             cat.children.sort(key=_explicit_order_and_title)
-            # cat.children.sort(key=_sparseness_order)
             cat.children.sort(key=lambda node: 'zzz' + node.primary_title("en") if isinstance(node, TocCategory) and node.primary_title("en") in REVERSE_ORDER else 'a')
 
     def _make_index_node(self, index, old_title=None):
@@ -222,10 +215,9 @@ class TocTree(object):
         title = old_title or d["title"]
 
         vs = self._vs_lookup.get(title, {})
-        d["sparseness"] = vs.get("sparseness", 1)
         d["firstSection"] = vs.get("first_section_ref", None)
         if title in ORDER:
-            # If this text is listed in ORDER, consder its order as its order field.
+            # If this text is listed in ORDER, consider its position in ORDER as its order field.
             d["order"] = ORDER.index(title)
 
         if "base_text_titles" in d and len(d["base_text_titles"]) > 0:
@@ -294,7 +286,6 @@ class TocTree(object):
             vs.refresh()
             sn = vs.state_node(index.nodes)
             self._vs_lookup[title] = {
-                "sparseness" : max(sn.get_sparseness("en"), sn.get_sparseness("he")),
                 "first_section_ref": vs.first_section_ref
             }
         new_node = self._make_index_node(index, title)
@@ -377,7 +368,6 @@ class TocTextIndex(TocNode):
     heTitle: "משנה עירובין"
     order: 13
     primary_category: "Mishnah"
-    sparseness: 4
     title: "Mishnah Eruvin"
     """
     def __init__(self, serial=None, **kwargs):
@@ -392,7 +382,6 @@ class TocTextIndex(TocNode):
         "dependence",
         "firstSection",
         "order",
-        "sparseness",
         "primary_category",
         "collectiveTitle",
         "base_text_titles",

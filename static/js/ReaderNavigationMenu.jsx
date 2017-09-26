@@ -218,7 +218,7 @@ class ReaderNavigationMenu extends Component {
               (<div className="readerNavTop search">
                 <CategoryColorLine category="Other" />
                 <ReaderNavigationMenuSearchButton onClick={this.navHome} />
-                <ReaderNavigationMenuDisplaySettingsButton onClick={this.props.openDisplaySettings} />
+                {this.props.interfaceLang !== "hebrew" ? <ReaderNavigationMenuDisplaySettingsButton onClick={this.props.openDisplaySettings} /> : null}
                 <div className='sefariaLogo'><img src="/static/img/sefaria.svg" alt="Sefaria Logo" /></div>
               </div>) :
               (<div className="readerNavTop search">
@@ -228,7 +228,7 @@ class ReaderNavigationMenu extends Component {
                   <ReaderNavigationMenuSearchButton onClick={this.handleSearchButtonClick} />
                   <input id="searchInput" className="readerSearch" title="Search for Texts or Keywords Here" placeholder="Search" onKeyUp={this.handleSearchKeyUp} />
                 </div>
-                <ReaderNavigationMenuDisplaySettingsButton onClick={this.props.openDisplaySettings} />
+                {this.props.interfaceLang !== "hebrew" ? <ReaderNavigationMenuDisplaySettingsButton onClick={this.props.openDisplaySettings} /> : null}
 
               </div>);
       topContent = this.props.hideNavHeader ? null : topContent;
@@ -258,7 +258,7 @@ class ReaderNavigationMenu extends Component {
       recentlyViewed = recentlyViewed.length ? <TwoOrThreeBox content={recentlyViewed} width={this.width} /> : null;
 
       var title = (<h1>
-                    { this.props.multiPanel ? <LanguageToggleButton toggleLanguage={this.props.toggleLanguage} /> : null }
+                    { this.props.multiPanel && this.props.interfaceLang !== "hebrew" ? <LanguageToggleButton toggleLanguage={this.props.toggleLanguage} /> : null }
                     <span className="int-en">The Sefaria Library</span>
                     <span className="int-he">האוסף של ספריא</span>
                   </h1>);
@@ -267,7 +267,7 @@ class ReaderNavigationMenu extends Component {
                     (<footer id="footer" className={`interface-${this.props.interfaceLang} static sans`}>
                       <Footer />
                     </footer> );
-      var classes = classNames({readerNavMenu:1, noHeader: !this.props.hideHeader, compare: this.props.compare, home: this.props.home });
+      var classes = classNames({readerNavMenu:1, noHeader: !this.props.hideHeader, compare: this.props.compare, home: this.props.home, noLangToggleInHebrew: 1 });
       var contentClasses = classNames({content: 1, hasFooter: footer != null});
       return(<div className={classes} onClick={this.handleClick} key="0">
               {topContent}
@@ -328,7 +328,7 @@ class RecentPanel extends Component {
                     </footer> );
 
 
-    var navMenuClasses = classNames({recentPanel: 1, readerNavMenu: 1, noHeader: this.props.hideNavHeader, compare:this.props.compare});
+    var navMenuClasses = classNames({recentPanel: 1, readerNavMenu: 1, noHeader: this.props.hideNavHeader, compare:this.props.compare, noLangToggleInHebrew: 1});
     var navTopClasses  = classNames({readerNavTop: 1, searchOnly: 1, colorLineOnly: this.props.hideNavHeader});
     var contentClasses = classNames({content: 1, hasFooter: footer != null});
     return (
@@ -337,7 +337,7 @@ class RecentPanel extends Component {
           <div className={navTopClasses}>
             <CategoryColorLine category={"Other"} />
             <ReaderNavigationMenuMenuButton onClick={this.props.navHome} compare={this.props.compare} interfaceLang={this.props.interfaceLang}/>
-            <ReaderNavigationMenuDisplaySettingsButton onClick={this.props.openDisplaySettings} />
+            {this.props.interfaceLang !== "hebrew" ? <ReaderNavigationMenuDisplaySettingsButton onClick={this.props.openDisplaySettings} /> : null}
             <h2>
               <span className="int-en">Recent</span>
               <span className="int-he">נצפו לאחרונה</span>
@@ -347,7 +347,7 @@ class RecentPanel extends Component {
           <div className="contentInner">
             {this.props.hideNavHeader ?
               <h1>
-              { this.props.multiPanel ? <LanguageToggleButton toggleLanguage={this.props.toggleLanguage} /> : null }
+              {this.props.interfaceLang !== "hebrew" ? <LanguageToggleButton toggleLanguage={this.props.toggleLanguage} /> : null}
               <span className="int-en">Recent</span>
               <span className="int-he">נצפו לאחרונה</span>
             </h1>

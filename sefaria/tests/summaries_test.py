@@ -57,11 +57,10 @@ class Test_Toc(object):
 
     def verify_text_node_integrity(self, node):
         global text_titles
-        expected_keys = set(('title', 'heTitle', 'sparseness'))
+        expected_keys = set(('title', 'heTitle'))
         assert set(node.keys()) >= expected_keys
         assert (node['title'] in text_titles), node['title']
         assert 'category' not in node
-        assert isinstance(node['sparseness'], int)
         #do we need to assert that the title is not equal to any category name?
 
     @pytest.mark.deep

@@ -14,14 +14,12 @@ logger = logging.getLogger(__name__)
 
 def update_table_of_contents():
     toc = []
-    sparseness_dict = get_sparesness_lookup()
     # Add an entry for every text we know about
     indices = IndexSet()
     for i in indices:
         cats = get_toc_categories(i)
         node = get_or_make_summary_node(toc, cats)
         text_dict = i.toc_contents()
-        text_dict["sparseness"] = sparseness_dict[text_dict["title"]]
         node.append(text_dict)
     # Recursively sort categories and texts
     return sort_toc_node(toc, recur=True)
@@ -29,14 +27,12 @@ def update_table_of_contents():
 
 def update_search_filter_table_of_contents():
     search_toc = []
-    sparseness_dict = get_sparesness_lookup()
     # Add an entry for every text we know about
     indices = IndexSet()
     for i in indices:
         cats = get_toc_categories(i, for_search=True)
         node = get_or_make_summary_node(search_toc, cats)
         text_dict = i.slim_toc_contents()
-        text_dict["sparseness"] = sparseness_dict[text_dict["title"]]
         node.append(text_dict)
     # Recursively sort categories and texts
     return sort_toc_node(search_toc, recur=True)
@@ -78,14 +74,13 @@ def update_title_in_toc(toc, index, old_ref=None, recount=True, for_search=False
     Update text summary docs to account for change or insertion of 'text'
     * recount - whether or not to perform a new count of available text
     """
-    indx_dict = index.toc_contents() if not for_search else index.slim_toc_contents()
+    text = index.toc_contents() if not for_search else index.slim_toc_contents()
     cats = get_toc_categories(index, for_search=for_search)
 
     if recount:
         VersionState(index.title).refresh()
 
     node = get_or_make_summary_node(toc, cats)
-    text = add_counts_to_index(indx_dict)
 
     found = False
     test_title = old_ref or text["title"]
@@ -131,20 +126,6 @@ def get_or_make_summary_node(summary, nodes, contents_only=True, make_if_not_fou
         return None
 
 
-def get_sparesness_lookup():
-    vss = db.vstate.find({}, {"title": 1, "content._en.sparseness": 1, "content._he.sparseness": 1})
-    return {vs["title"]: max(vs["content"]["_en"]["sparseness"], vs["content"]["_he"]["sparseness"]) for vs in vss}
-
-
-def add_counts_to_index(indx_dict):
-    """
-    Returns a dictionary which decorates `indx_dict` with a spareness score.
-    """
-    vs = StateNode(indx_dict["title"], meta=True)
-    indx_dict["sparseness"] = max(vs.get_sparseness("he"), vs.get_sparseness("en"))
-    return indx_dict
-
-
 def node_sort_key(a):
     """
     Sort function for texts/categories per below.
@@ -169,16 +150,6 @@ def node_sort_key(a):
     return None
 
 
-def node_sort_sparse(a):
-    if "category" in a or "order" in a:
-        # Keep categories or texts with explicit orders at top
-        score = -4
-    else:
-        score = -a.get('sparseness', 1)
-
-    return score
-
-
 def sort_toc_node(node, recur=False):
     """
     Sort the texts and categories in node according to:
@@ -189,7 +160,6 @@ def sort_toc_node(node, recur=False):
     If 'recur', call sort_toc_node on each category in 'node' as well.
     """
     node = sorted(node, key=node_sort_key)
-    node = sorted(node, key=node_sort_sparse)
     node = sorted(node, key=lambda a: 'zzz' + a["category"] if "category" in a and a["category"] in REVERSE_ORDER else 'a')
 
     if recur:

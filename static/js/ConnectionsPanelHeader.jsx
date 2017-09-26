@@ -109,7 +109,7 @@ ConnectionsPanelHeader.propTypes = {
     setConnectionsMode:     PropTypes.func.isRequired,
     setConnectionsCategory: PropTypes.func.isRequired,
     closePanel:             PropTypes.func.isRequired,
-    toggleLanguage:         PropTypes.func.isRequired,
+    toggleLanguage:         PropTypes.func,
     interfaceLang:          PropTypes.string.isRequired
 };
 
