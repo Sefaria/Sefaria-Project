@@ -257,7 +257,7 @@ class ReaderTextTableOfContents extends Component {
     }
 
     var closeClick = (this.isBookToc()) ? this.props.closePanel : this.props.close;
-    var classes = classNames({readerTextTableOfContents:1, readerNavMenu:1, narrowPanel: this.props.narrowPanel});
+    var classes = classNames({readerTextTableOfContents:1, readerNavMenu:1, narrowPanel: this.props.narrowPanel, noLangToggleInHebrew: 1});
     var categories = Sefaria.index(this.props.title).categories;
 
 
@@ -275,7 +275,7 @@ class ReaderTextTableOfContents extends Component {
                     </div>
                   </div>
                   <div className="rightButtons">
-                    <ReaderNavigationMenuDisplaySettingsButton onClick={this.props.openDisplaySettings} />
+                    {this.props.interfaceLang !== "hebrew" ? <ReaderNavigationMenuDisplaySettingsButton onClick={this.props.openDisplaySettings} /> : null}
                   </div>
                 </div>
               </div>
@@ -337,7 +337,8 @@ ReaderTextTableOfContents.propTypes = {
   close:            PropTypes.func.isRequired,
   openNav:          PropTypes.func.isRequired,
   showBaseText:     PropTypes.func.isRequired,
-  selectVersion:    PropTypes.func
+  selectVersion:    PropTypes.func,
+  interfaceLang:    PropTypes.string,
 };
 
 

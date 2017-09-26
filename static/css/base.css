@@ -854,19 +854,6 @@ body.hebrew #aboutPage .span5 {
   padding-right: 20px;
 }
 
-#textsList .text .title.sparse1 a, #textsList .text .heTitle.sparse1 a {
-    color: #bbb;
-}
-#textsList .text .title.sparse2 a, #textsList .text .heTitle.sparse2 a {
-    color: #999;
-}
-#textsList .text .title.sparse3 a, #textsList .text .heTitle.sparse3 a {
-    color: #777;
-}
-#textsList .text .title.sparse4 a, #textsList .text .heTitle.sparse4 a, #textsList .text .heTitle a {
-    color: #000;
-}
-
 #addTextRow {
   text-align: center;
 }
@@ -1089,18 +1076,6 @@ body.hebrew #aboutPage .span5 {
 #textToc .colorCodes span {
   margin: 0 5px;
   font-size: 12px;
-}
-
-#textTocCommentaries .text .title.sparse1 a {
-    color: #bbb;
-}
-#textTocCommentaries .text .title.sparse2 a {
-    color: #999;
-}
-#textTocCommentaries .text .title.sparse3 a {
-    color: #777;
-}
-#textTocCommentaries .text .title.sparse4 a {
 }
 
 #textTocPage .textLanguage {
