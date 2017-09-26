@@ -1091,7 +1091,7 @@ a.readerNavCategory {
 .readerApp.interface-hebrew .readerNavMenu.noLangToggleInHebrew .he {
   display: inline;
 }
-.interface-hebrew .readerPanel.english .noLangToggleInHebrew .readerNavSection, 
+.interface-hebrew .readerPanel.english .noLangToggleInHebrew .readerNavSection,
 .interface-hebrew .readerPanel.english .readerNavMenu.noLangToggleInHebrew .gridBox {
   direction: rtl;
 }
@@ -2090,19 +2090,17 @@ a.readerNavCategory {
 .readerControls .readerTextToc .categoryAttribution .he {
   font-style: normal;
 }
-.leftButtons,
-.rightButtons {
-  /*position: absolute;
-  top: 0;*/
-}
-/*.leftButtons {
+
+.interface-english .leftButtons,
+.interface-hebrew .rightButtons {
   text-align: left;
   float: left;
 }
-.rightButtons {
+.interface-english .rightButtons,
+.interface-hebrew .leftButtons {
   text-align: right;
   float: right;
-}*/
+}
 .leftButtons .readerNavMenuSearchButton,
 .leftButtons .readerNavMenuMenuButton,
 .leftButtons .readerNavMenuCloseButton,
