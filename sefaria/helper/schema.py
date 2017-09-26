@@ -42,24 +42,27 @@ def handle_dependant_indices(title):
         record.save()
 
 
-def insert_last_child(new_node, parent_node):
-    return attach_branch(new_node, parent_node, len(parent_node.children))
+def insert_last_child(new_node, parent_node, skip_dependencies=False):
+    return attach_branch(new_node, parent_node, len(parent_node.children), skip_dependencies)
 
 
-def insert_first_child(new_node, parent_node):
-    return attach_branch(new_node, parent_node, 0)
+def insert_first_child(new_node, parent_node, skip_dependencies=False):
+    return attach_branch(new_node, parent_node, 0, skip_dependencies)
 
 
-def attach_branch(new_node, parent_node, place=0):
+def attach_branch(new_node, parent_node, place=0, skip_dependencies=False):
     """
     :param new_node: A schema node tree to attach
     :param parent_node: The parent to attach it to
     :param place: The index of the child before which to insert, so place=0 inserts at the front of the list, and place=len(parent_node.children) inserts at the end
+    :param skip_dependencies: Usually False. Specify this to be True when you believe that after attaching new_node to parent_node, calling
+    either library.rebuild() or refresh_version_state() will result in an error.
     :return:
     """
     assert isinstance(new_node, SchemaNode)
     assert isinstance(parent_node, SchemaNode)
     assert place <= len(parent_node.children)
+
 
     index = parent_node.index
 
@@ -67,7 +70,10 @@ def attach_branch(new_node, parent_node, place=0):
     vs = [v for v in index.versionSet()]
     for v in vs:
         pc = v.content_node(parent_node)
-        pc[new_node.key] = new_node.create_skeleton()
+        if not isinstance(new_node, JaggedArrayNode) and new_node.children == []:
+            pc[new_node.key] = {}
+        else:
+            pc[new_node.key] = new_node.create_skeleton()
         v.save(override_dependencies=True)
 
     # Update Index schema and save
@@ -75,10 +81,10 @@ def attach_branch(new_node, parent_node, place=0):
     new_node.parent = parent_node
 
     index.save(override_dependencies=True)
-    library.rebuild()
-    refresh_version_state(index.title)
-
-    handle_dependant_indices(index.title)
+    if not skip_dependencies:
+        library.rebuild()
+        refresh_version_state(index.title)
+        handle_dependant_indices(index.title)
 
 
 def remove_branch(node):
@@ -219,6 +225,7 @@ def convert_jagged_array_to_schema_with_default(ja_node):
     handle_dependant_indices(index.title)
 
 
+
 def convert_simple_index_to_complex(index):
     """
     The target complex text will have a 'default' node.
@@ -259,21 +266,29 @@ def convert_simple_index_to_complex(index):
     handle_dependant_indices(index.title)
 
 
-def change_parent(node, new_parent, place=0):
+
+def change_parent(node, new_parent, place=0, index=None):
     """
     :param node:
     :param new_parent:
     :param place: The index of the child before which to insert, so place=0 inserts at the front of the list, and place=len(parent_node.children) inserts at the end
+    :param index: The Index record of new_parent. 'index' only needs to be passed in cases where new_parent was
+    just created but the library hasn't been rebuilt.  When this happens, new_parent.index is None.
     :return:
     """
+    def rewriter(string):
+        return string.replace(old_parent_title, new_parent_title)
+
+    def needs_rewrite(string, *args):
+        return string.find(old_normal_form) == 0
+
     assert isinstance(node, SchemaNode)
     assert isinstance(new_parent, SchemaNode)
     assert place <= len(new_parent.children)
     old_parent = node.parent
-    index = new_parent.index
-
     old_normal_form = node.ref().normal()
-    linkset = [l for l in node.ref().linkset()]
+    if new_parent.index:
+        index = new_parent.index
 
     vs = [v for v in index.versionSet()]
     for v in vs:
@@ -287,19 +302,17 @@ def change_parent(node, new_parent, place=0):
     old_parent.children = [n for n in old_parent.children if n.key != node.key]
     new_parent.children.insert(place, node)
     node.parent = new_parent
-    new_normal_form = node.ref().normal()
 
     index.save(override_dependencies=True)
     library.rebuild()
-
-    for link in linkset:
-        link.refs = [ref.replace(old_normal_form, new_normal_form) for ref in link.refs]
-        link.save()
-    # todo: commentary linkset
-
     refresh_version_state(index.title)
-
     handle_dependant_indices(index.title)
+
+    old_parent_title = [title['text'] for title in old_parent.get_titles() if title['lang'] == 'en' and "primary" in title and title["primary"]][0]
+    new_parent_title = [title['text'] for title in new_parent.get_titles() if title['lang'] == 'en' and "primary" in title and title["primary"]][0]
+
+    cascade(index.title, rewriter=rewriter, needs_rewrite=needs_rewrite)
+
 
 
 def refresh_version_state(title):
@@ -337,6 +350,7 @@ def change_node_title(snode, old_title, lang, new_title):
         return string.find(old_title) >= 0 and snode.index.title == Ref(string).index.title
 
     if old_title == snode.primary_title(lang=lang):
+
         snode.add_title(new_title, lang, replace_primary=True, primary=True)
         snode.index.save()
         library.refresh_index_record_in_cache(snode.index)

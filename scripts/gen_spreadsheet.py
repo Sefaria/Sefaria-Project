@@ -1,10 +1,11 @@
 __author__ = 'stevenkaplan'
 from sefaria.model import *
 import csv
+from sefaria.model.schema import AddressTalmud
 import sys
 
 class MetaDataCommentary:
-    def __init__(self, comm_title, lang):
+    def __init__(self, comm_title, lang, base_type="Talmud"):
         self.comm_title = comm_title
         self.comm = library.get_index(comm_title)
         self.comm.versionState().refresh()
@@ -16,6 +17,7 @@ class MetaDataCommentary:
         self.lang = lang
         self.tc = Ref(self.comm_title).text(self.lang)
         self.base_tc = Ref(self.base_title).text(self.lang)
+        self.base_type = base_type
 
 
     def set_word_count(self):
@@ -28,8 +30,7 @@ class MetaDataCommentary:
 
     def set_link_count(self):
         links = LinkSet(Ref(self.comm_title))
-        actual_links = [link for link in links if self.comm_title in link.refs[0] or self.comm_title in link.refs[1]]
-        self.results["link count"] = len(actual_links)
+        self.results["link count"] = len(links)
         return self.results["link count"]
 
     def calc_link_percent(self):
@@ -59,6 +60,40 @@ class MetaDataCommentary:
         return self.results["sections %"]
 
 
+    def set_sec_with_links_count(self):
+        sec_count = self.results["comm section count"]
+        ls = LinkSet(Ref(self.comm_title))
+        sec_with_links_set = set()
+        for link in ls:
+            comm_ref = link.refs[0] if self.comm_title in link.refs[0] else link.refs[1]
+            try:
+                sec = Ref(comm_ref).sections[0]
+                sec_with_links_set.add(sec)
+            except IndexError:
+                print "Problem with {}".format(comm_ref)
+        self.results["sections with links %"] = float(len(sec_with_links_set)) / float(sec_count)
+        sec_without_links = self.get_secs_without_links(list(sec_with_links_set))
+        print sec_without_links
+        return self.results["sections with links %"]
+
+
+    def get_secs_without_links(self, sections_with_links):
+        secs_without_links = []
+
+        if self.base_type == "Talmud":
+            range_base_secs = range(3, 3+self.results["base section count"])
+        else:
+            range_base_secs = range(1, 1+self.results["base section count"])
+
+        for section in range_base_secs:
+            if section not in sections_with_links:
+                if self.base_type == "Talmud":
+                    section = AddressTalmud.toStr("en", section)
+                secs_without_links.append(section)
+
+        return secs_without_links
+
+
     def calc(self):
         wc = self.set_word_count()
         seg_c = self.set_segment_count()
@@ -67,6 +102,7 @@ class MetaDataCommentary:
         comm_sec_c = self.set_comm_section_count()
         base_sec_c = self.set_base_section_count()
         sec_perc = self.calc_section_percent()
+        link_daf = self.set_sec_with_links_count()
         return [wc, seg_c, link_c, link_perc, comm_sec_c, base_sec_c, sec_perc]
 
 
@@ -88,11 +124,11 @@ if __name__ == "__main__":
     titles = library.get_indexes_in_category(collective_title, include_dependant=True)
     file = "spread.csv"
     results = {}
-    columns_order = ["title", "word count", "link count", "segment count", "link %", "comm section count", "base section count", "sections %"]
+    columns_order = ["title", "word count", "link count", "segment count", "link %", "comm section count", "base section count", "sections %", "sections with links %"]
     count = 0
     for title in titles:
         print title
-        mdc = MetaDataCommentary(title, lang='he')
+        mdc = MetaDataCommentary(title, lang='he', base_type='Talmud')
         mdc.calc()
         results[title] = mdc.results
 
