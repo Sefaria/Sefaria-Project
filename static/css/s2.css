@@ -593,24 +593,6 @@ input.noselect {
 .bilingual .loadingMessage .he {
   display: none;
 }
-.headroom {
-  transition: transform 200ms linear;
-  -webkit-transition: 200ms linear;
-  transition-property: transform;
-}
-.headroom--pinned {
-  transform: translateY(0%);
-  -webkit-transform: translateY(0%);
-}
-
-.headroom--unpinned {
-  transform: translateY(-100%);
-  -webkit-transform: translateY(-100%);
-}
-.headroomOff.headroom--unpinned {
-  transform: translateY(0%);
-  -webkit-transform: translateY(0%);
-}
 .readerPanel.light {
   background-color: white;
 }
