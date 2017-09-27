@@ -565,7 +565,199 @@ class Util {
     static subscribeToAnnouncementsList(email) {
       
     }
+
+    static RefValidator($input, $msg, $ok, $preview) {
+        /** Replacement for utils.js:sjs.checkref that uses only new tools.
+         * Instantiated as an object, and then invoked with `check` method
+         * Allows section and segment level references.
+         * $input - input element
+         * $msg - status message element
+         * $ok - Ok button element
+         * $preview - Text preview box
+
+         * example usage:
+
+         new Sefaria.util.RefValidator($("#inlineAdd"), $("#inlineAddDialogTitle"), $("#inlineAddSourceOK"), $("#preview"));
+
+         As currently designed, the object is instanciated, and sets up its own events.
+         It doesn't need to be interacted with from the outside.
+         */
+
+        this.$input = $input;
+        this.$msg = $msg;
+        this.$ok = $ok;
+        this.$preview = $preview;
+
+        // We want completion messages to be somewhat sticky.
+        // This records the string used to build the current message.
+        this.completion_message_base = undefined;
+        // And the current message
+        this.completion_message = "";
+
+        this.current_lookup_ajax = null;
+
+        this.$input
+            .on("input", this.check.bind(this))
+            .keyup(function(e) {
+                  if (e.keyCode == 13) {
+                      if (!this.$ok.hasClass('disabled')) { this.$ok.trigger("click"); }
+                  }
+                }.bind(this))
+            .autocomplete({
+                source: function(request, response) {
+                  Sefaria.lookupRef(
+                      request.term,
+                      function (d) { response(d["completions"]); }
+                  );
+                },
+                minLength: 3
+            });
+    };
 }
+
+Util.RefValidator.prototype = {
+  _sectionListString: function(arr, lang) {
+      //Put together an "A, B, and C" type string from [A,B,C]
+      //arr - array of strings
+      if (arr.length == 1) return arr[0];                            // One alone
+      var lastTwo = arr.slice(-2).join((lang=="en")?" and ":" ו");   // and together last two:
+      return arr.slice(0,-2).concat(lastTwo).join(", ");            // join the rest with a ,
+  },
+  //Too simple to merit a function, but function calls are cheap!
+  _addressListString: function(arr, lang) {
+      //Put together an "A:B:C" type string from [A,B,C]
+      //arr - array of strings
+      return arr.join((lang=="en")?":":" ");
+  },
+  _getCompletionMessage: function(inString, data, depthUp) {
+    // instring - the originally entered string
+    // data - data returned from api/names
+    // depthUp: 0 for segment.  1 for section.
+    if (!data["sectionNames"] || data["sectionNames"].length == 0) return;
+
+    var lang = data["lang"];
+    var sectionNames = (lang=="en")?data["sectionNames"]:data["heSectionNames"];
+    var addressExamples = (lang=="en")?data["addressExamples"]:data["heAddressExamples"];
+    var current = data["sections"].length;
+    var sectionListString = this._sectionListString(sectionNames.slice(current, depthUp?-depthUp:undefined), lang);
+    var addressListString = this._addressListString(addressExamples.slice(current, depthUp?-depthUp:undefined), lang);
+    var separator = (lang == "en" && !data["is_node"])?":":" ";
+    var exampleRef = inString + separator + addressListString;
+    return ((lang=="en")?
+    "Enter a " + sectionListString + ". E.g: '<b>" + exampleRef +"</b>'":
+    "הקלידו " + sectionListString + ". לדוגמא " + exampleRef)
+  },
+  _getSegmentCompletionMessage: function(inString, data) {
+      return this._getCompletionMessage(inString, data, 0);
+  },
+  _getSectionCompletionMessage: function(inString, data) {
+      return this._getCompletionMessage(inString, data, 1);
+  },
+  _getMessage: function(inString, data) {
+      // If current string contains string used for last message, and itself isn't a new state, use current message.
+      if (inString.indexOf(this.completion_message_base) == 0 && !data["is_ref"]) {
+          return this.completion_message;
+      }
+
+      var return_message = "";
+      var prompt_message = (data["lang"]=="en")?"Select a text":"נא בחרו טקסט";
+      var success_message = (data["lang"]=="en")?"OK. Click <b>add</b> to continue":("לחצו " + "<b>הוסף</b>" + " בכדי להמשיך");
+      var or_phrase = (data["lang"]=="en")?" or ":" או ";
+      var range_phrase = (data["lang"] == "en")?"enter a range.  E.g. ":"הוסיפו טווח. לדוגמא ";
+
+      if ((data["is_node"]) ||
+          (data["is_ref"] && (!(data["is_segment"] || data["is_section"])))
+      ) {
+          return_message = this._getSectionCompletionMessage(inString, data) || prompt_message;
+      } else if (data["is_section"]) {
+          return_message = success_message + or_phrase + this._getSegmentCompletionMessage(inString, data);
+      } else if (data["is_segment"] && !data["is_range"] &&  +(data["sections"].slice(-1)) > 0) {  // check that it's an int
+          var range_end = +(data["sections"].slice(-1)) + 1;
+          return_message = success_message + or_phrase + range_phrase + "<b>" + inString + "-" + range_end + "</b>";
+      } else if (data["is_segment"]) {
+          return_message = success_message + ".";
+      } else {
+          return_message = prompt_message;
+      }
+
+      this.completion_message_base = inString;
+      this.completion_message = return_message;
+      return return_message;
+  },
+  _lookupAndRoute: function(inString) {
+      if (this.current_lookup_ajax) {this.current_lookup_ajax.abort();}
+      this.current_lookup_ajax = Sefaria.lookupRef(
+        inString,
+        function(data) {
+          // If this query has been outpaced by typing, just return.
+          if (this.$input.val() != inString) { return; }
+
+          // If the query isn't recognized as a ref, but only for reasons of capitalization. Resubmit with recognizable caps.
+          if (Sefaria.isACaseVariant(inString, data)) {
+            this._lookupAndRoute(Sefaria.repairCaseVariant(inString, data));
+            return;
+          }
+
+          this.$msg.css("direction", (data["lang"]=="he"?"rtl":"ltr"))
+              .html(this._getMessage(inString, data));
+          if (data.is_ref && (data.is_section || data.is_segment)) {
+            this._allow(inString, data["ref"]);  //pass normalized ref
+            return;
+          }
+          this._disallow();
+        }.bind(this)
+      );
+  },
+  _allow: function(inString, ref) {
+    if (inString != this.$input.val()) {
+      // Ref was corrected (likely for capitalization)
+      this.$input.val(inString);
+    }
+    this.$ok.removeClass("inactive").removeClass("disabled");
+    this.$input.autocomplete("disable");
+    this._inlineAddSourcePreview(inString, ref);
+  },
+  _disallow: function() {
+    this.$ok.addClass("inactive").addClass("disabled");
+  },
+  _preview_segment_mapper: function(lang, s) {
+    return (s[lang])?
+        ("<div class='previewLine'><span class='previewNumber'>(" + (s.number) + ")</span> " + s[lang] + "</div> "):
+        "";
+  },
+  _inlineAddSourcePreview: function(inString, ref) {
+    Sefaria.text(ref, {}, function (data) {
+        if (this.$input.val() != inString) { return; }
+
+        var segments = Sefaria.makeSegments(data);
+        var en = segments.map(this._preview_segment_mapper.bind(this, "en")).filter(Boolean);
+        var he = segments.map(this._preview_segment_mapper.bind(this, "he")).filter(Boolean);
+
+        // Handle missing text cases
+        var path = parseURL(document.URL).path;
+        if (!en.length) { en.push("<div class='previewNoText'><a href='/add/" + normRef(ref) + "?after=" + path + "' class='btn'>Add English for " + ref + "</a></div>"); }
+        if (!he.length) { he.push("<div class='previewNoText'><a href='/add/" + normRef(ref) + "?after=" + path + "' class='btn'>Add Hebrew for " + ref + "</a></div>"); }
+        if (!en.length && !he.length) {this.$msg.html("<i>No text available. Click below to add this text.</i>");}
+
+        // Set it on the DOM
+        this.$input.autocomplete("disable");
+        this.$preview.show();
+        this.$preview.html("<div class='en'>" + en.join("") + "</div>" + "<div class='he'>" + he.join("") + "</div>");
+        this.$preview.position({my: "left top", at: "left bottom", of: this.$input, collision: "none" }).width('691px').css('margin-top','20px');
+    }.bind(this));
+  },
+  check: function() {
+      this.$preview.html("");
+      this.$preview.hide();
+      this.$input.autocomplete("enable");
+      var inString = this.$input.val();
+      if (inString.length < 3) {
+          this._disallow();
+          return;
+      }
+      this._lookupAndRoute(inString);
+  }
+};
 
 Util._cookies = {};
 Util._scrollbarWidth = null;
