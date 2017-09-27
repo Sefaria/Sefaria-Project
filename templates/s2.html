@@ -55,7 +55,7 @@
 
 <body>
 
-  <div id="s2">{% autoescape off %}{{ html }}{% endautoescape %}</div>
+  <div id="s2" class="interface-{{ request.interfaceLang }}">{% autoescape off %}{{ html }}{% endautoescape %}</div>
   <div id="overlay"></div>
 
   <script src="/static/js/lib/keyboard.js"></script>
