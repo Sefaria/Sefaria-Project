@@ -1711,16 +1711,13 @@ a.readerNavCategory {
   padding-left: 20px;
   padding-right: 0;
 }
-
 .searchFilterBoxes .searchFilterExactBox {
   border-top: 1px solid #ccc;
   padding: 5px 0px 5px 0;
 }
-
 .searchFilterExactBox.hidden {
   display:none;
 }
-
 .searchContent .searchSortBox {
     margin-top: 10px;
     background: white;
@@ -1732,15 +1729,12 @@ a.readerNavCategory {
     border-radius: 7px;
     border: 1px solid #ccc;
 }
-
 .interface-english .searchSortBox {
   right: 0;
 }
-
 .interface-hebrew .searchSortBox {
   left: 0;
 }
-
 .searchSortBox.hidden{
     display:none;
 }
@@ -2629,10 +2623,10 @@ a.readerNavCategory {
 .singlePanel .connectionsPanelHeader {
   justify-content: flex-start;
 }
-.interface-hebrew .connectionsPanelHeader{
+.interface-hebrew .connectionsPanelHeader {
   direction: rtl;
 }
-.interface-english .connectionsPanelHeader{
+.interface-english .connectionsPanelHeader {
   direction: ltr;
 }
 .connectionsPanelHeader .rightButtons {
@@ -4086,22 +4080,23 @@ h2.splitHeader .he {
   float: right;
 }
 /*** Interface lang - merge with static.css? ***/
-.readerApp.interface-hebrew .int-en{
+.interface-hebrew .int-en {
   display: none;
 }
-.readerApp.interface-english .int-he{
+.interface-english .int-he {
   display: none;
 }
-.readerApp.interface-hebrew .readerPanel{
+.readerApp.interface-hebrew .readerPanel {
   direction: rtl;
 }
-.readerApp.interface-english .readerPanel{
+.readerApp.interface-english .readerPanel {
   direction: ltr;
 }
-.int-he{
+.int-he {
   font-family: "Heebo", sans-serif;
+  direction: rtl;
 }
-.int-en{
+.int-en {
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
 }
 .searchBox .keyboardInputInitiator {
