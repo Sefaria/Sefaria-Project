@@ -209,6 +209,7 @@ class ReaderPanel extends Component {
       filter: filter,
       recentFilters: [],
       menuOpen: null,
+      currentlyVisibleRef: ref,
       version: version,
       versionLanguage: versionLanguage,
       settings: this.state.settings
@@ -458,6 +459,7 @@ class ReaderPanel extends Component {
           multiPanel={this.props.multiPanel}
           mode={this.state.mode}
           settings={Sefaria.util.clone(this.state.settings)}
+          hasSidebar={this.props.hasSidebar}
           interfaceLang={this.props.interfaceLang}
           setOption={this.setOption}
           showBaseText={this.showBaseText}
@@ -787,6 +789,7 @@ ReaderPanel.propTypes = {
   masterPanelLanguage:         PropTypes.string,
   panelsOpen:                  PropTypes.number,
   allOpenRefs:                 PropTypes.array,
+  hasSidebar:                  PropTypes.bool,
   layoutWidth:                 PropTypes.number,
   setTextListHighlight:        PropTypes.func,
   setSelectedWords:            PropTypes.func,
