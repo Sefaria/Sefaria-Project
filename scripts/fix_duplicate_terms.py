@@ -4,8 +4,9 @@ from sefaria.model import *
 from bson.objectid import ObjectId
 
 from sefaria.system.database import db
+from collections import defaultdict
 
-duplicates = db.term.aggregate(
+"""duplicates = db.term.aggregate(
     [
         {
             "$unwind": "$titles"
@@ -37,7 +38,8 @@ duplicates = db.term.aggregate(
             "$match": {"count" : {"$gt": 1} }
         },
     ]
-)
+)"""
+
 
 primary_titles = {
         u'פרשה': 'Parasha',
@@ -112,24 +114,23 @@ def merge_terms_into_one(primary_term, other_terms):
 
 
 
+def remove_duplicates(duplicates):
+    for title, dup in duplicates.items():
+        if title in primary_titles:
+            primary_term = Term().load({'name': primary_titles[title]})
+            if not primary_term: #one case where we want an entirely new primary.
+                primary_term = {'en': primary_titles[title], 'he': title}
+        else:
+            primary_term = Term().load_by_id(ObjectId(next(iter(dup['unique_obj_ids']))))
 
-old_ids_to_new_hash = {}
-for i, dup in enumerate(duplicates['result'],1):
-    if dup['duplicated_title'] in primary_titles:
-        primary_term = Term().load({'name': primary_titles[dup['duplicated_title']]})
-        if not primary_term: #one case where we want an entirely new primary.
-            primary_term = {'en': primary_titles[dup['duplicated_title']], 'he': dup['duplicated_title']}
-    else:
-        primary_term = Term().load_by_id(ObjectId(dup['unique_obj_ids'][0]))
-
-    terms_to_merge = [Term().load_by_id(toid) for toid in dup['unique_obj_ids']] #this will also include the primary
-    terms_to_merge = [t for t in terms_to_merge if t is not None]
-    print u"Merging terms for {}".format(dup['duplicated_title'])
-    if primary_term is not None and len(terms_to_merge) > 0: #might have been merged in already.
-        merge_terms_into_one(primary_term, terms_to_merge)
-    if len(dup['schemes']) > 1:
-        print "This term had multiple schemes: {}".format(dup["schemes"])
-    print "{})====================================================".format(i)
+        terms_to_merge = [Term().load_by_id(toid) for toid in dup['unique_obj_ids']] #this will also include the primary
+        terms_to_merge = [t for t in terms_to_merge if t is not None]
+        print u"Merging terms for {}: {}".format(title, ",".join([t.name for t in terms_to_merge]))
+        if primary_term is not None and len(terms_to_merge) > 0: #might have been merged in already.
+            merge_terms_into_one(primary_term, terms_to_merge)
+        if len(dup['schemes']) > 1:
+            print u"This term had multiple schemes: {}".format(dup["schemes"])
+        print u"===================================================="
 
 
 def get_new_primary_term(title):
@@ -139,44 +140,73 @@ def get_new_primary_term(title):
     return sterm.get_primary_title() if sterm else title
 
 
+def cascade_terms():
+    cats = db.category.find({})
+    for cat in cats:
+        if "sharedTitle" in cat and cat['sharedTitle'] is not None:
+            new_shared_title = get_new_primary_term(cat['sharedTitle'])
+            if new_shared_title != cat['sharedTitle']:
+                print "normalizing category with shared title {} to {}".format(cat['sharedTitle'], new_shared_title)
+                cat['sharedTitle'] = new_shared_title
+                cat['lastPath'] = new_shared_title
+                cat['path'][-1] = new_shared_title
 
-cats = db.category.find({})
-for cat in cats:
-    if "sharedTitle" in cat and cat['sharedTitle'] is not None:
-        new_shared_title = get_new_primary_term(cat['sharedTitle'])
-        if new_shared_title != cat['sharedTitle']:
-            print "normalizing category with shared title {} to {}".format(cat['sharedTitle'], new_shared_title)
-            cat['sharedTitle'] = new_shared_title
-            cat['lastPath'] = new_shared_title
-            cat['path'][-1] = new_shared_title
+        for i, cpath in enumerate(cat['path']):
+            cat['path'][i] = get_new_primary_term(cpath)
 
-    for i, cpath in enumerate(cat['path']):
-        cat['path'][i] = get_new_primary_term(cpath)
-
-    db.category.save(cat, w=1)
+        db.category.save(cat, w=1)
 
 
 
-idxs = IndexSet()
-for idx in idxs:
-    for i, cpath in enumerate(idx.categories):
-        idx.categories[i] = get_new_primary_term(cpath)
-    if getattr(idx, "collective_title", None):
-        idx.collective_title = get_new_primary_term(idx.collective_title)
+    idxs = IndexSet()
+    for idx in idxs:
+        for i, cpath in enumerate(idx.categories):
+            idx.categories[i] = get_new_primary_term(cpath)
+        if getattr(idx, "collective_title", None):
+            idx.collective_title = get_new_primary_term(idx.collective_title)
 
-    leaf_nodes = idx.nodes.get_leaf_nodes()
-    for leaf in leaf_nodes:
-        if getattr(leaf, "sectionNames", None):
-            for j, section in enumerate(leaf.sectionNames):
-                new_section = get_new_primary_term(section)
-                if new_section != section:
-                    leaf.sectionNames[j]=new_section
-                    print u"Changed Index {}:{}:{} to {}".format(idx.title, leaf.primary_title(), section, new_section)
-    idx.save(override_dependencies=True)
+        leaf_nodes = idx.nodes.get_leaf_nodes()
+        for leaf in leaf_nodes:
+            if getattr(leaf, "sectionNames", None):
+                for j, section in enumerate(leaf.sectionNames):
+                    new_section = get_new_primary_term(section)
+                    if new_section != section:
+                        leaf.sectionNames[j]=new_section
+                        print u"Changed Index {}:{}:{} to {}".format(idx.title, leaf.primary_title(), section, new_section)
+        idx.save(override_dependencies=True)
 
+
+results = defaultdict(lambda: {
+    "primary_term_titles": set(),
+    "unique_obj_ids": set(),
+    "schemes": set(),
+    "count": 0,
+    "lang": set()
+})
+termset = TermSet({})
+for term in termset:
+    # str(term._id)
+    for title in term.titles:
+        results[title['text']]["primary_term_titles"].add(term.name)
+        results[title['text']]["unique_obj_ids"].add(str(term._id))
+        results[title['text']]["schemes"].add(str(term.scheme))
+        results[title['text']]["count"] += 1
+        results[title['text']]["lang"].add(title['lang'])
+
+
+assert all(len(v["unique_obj_ids"]) >= 1 and v["count"] >= 1 for v in results.values())
+
+duplicates_he = {k: v for k, v in results.items() if v['count'] > 1 and v['lang'] == set(['he'])}
+duplicates_en = {k: v for k, v in results.items() if v['count'] > 1 and v['lang'] == set(['en'])}
+
+print "ready to remove duplicates"
+remove_duplicates(duplicates_he)
+remove_duplicates(duplicates_en)
+
+cascade_terms()
 
 library.rebuild(include_toc=True)
-
+library.rebuild(include_toc=True)
 
 
 
