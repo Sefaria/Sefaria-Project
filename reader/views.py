@@ -871,6 +871,7 @@ def edit_text_info(request, title=None, new_title=None):
                              'indexJSON': indexJSON,
                              'text_exists': text_exists,
                              'new': new,
+                             'toc': library.get_toc()
                              },
                              RequestContext(request))
 

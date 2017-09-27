@@ -89,7 +89,6 @@ class ReaderPanel extends Component {
   componentDidMount() {
     window.addEventListener("resize", this.setWidth);
     this.setWidth();
-    this.setHeadroom();
     if (this.props.panelPosition) {  //Focus on the first focusable element of the newly loaded panel. Mostly for a11y
       var curPanel = $(".readerPanel")[this.props.panelPosition];
       $(curPanel).find(':focusable').first().focus();
@@ -118,7 +117,6 @@ class ReaderPanel extends Component {
     }
   }
   componentDidUpdate(prevProps, prevState) {
-    this.setHeadroom();
     if (prevProps.layoutWidth !== this.props.layoutWidth) {
       this.setWidth();
     }
@@ -186,15 +184,6 @@ class ReaderPanel extends Component {
   handleTextListClick(ref) {
     this.showBaseText(ref);
   }
-  setHeadroom() {
-    if (this.props.multiPanel) { return; }
-    var $node    = $(ReactDOM.findDOMNode(this));
-    var $header  = $node.find(".readerControls");
-    if (this.state.mode !== "TextAndConnections") {
-      var scroller = $node.find(".textColumn")[0];
-      $header.headroom({scroller: scroller});
-    }
-  }
   openConnectionsInPanel(ref) {
     var refs = typeof ref == "string" ? [ref] : ref;
     this.replaceHistory = this.state.mode === "TextAndConnections"; // Don't push history for change in Connections focus
@@ -220,6 +209,7 @@ class ReaderPanel extends Component {
       filter: filter,
       recentFilters: [],
       menuOpen: null,
+      currentlyVisibleRef: ref,
       version: version,
       versionLanguage: versionLanguage,
       settings: this.state.settings
@@ -393,8 +383,6 @@ class ReaderPanel extends Component {
     });
   }
   setCurrentlyVisibleRef(ref) {
-     console.log("scvf");
-     console.log(ref);
      this.conditionalSetState({
       currentlyVisibleRef: ref,
     });   
@@ -471,6 +459,7 @@ class ReaderPanel extends Component {
           multiPanel={this.props.multiPanel}
           mode={this.state.mode}
           settings={Sefaria.util.clone(this.state.settings)}
+          hasSidebar={this.props.hasSidebar}
           interfaceLang={this.props.interfaceLang}
           setOption={this.setOption}
           showBaseText={this.showBaseText}
@@ -800,6 +789,7 @@ ReaderPanel.propTypes = {
   masterPanelLanguage:         PropTypes.string,
   panelsOpen:                  PropTypes.number,
   allOpenRefs:                 PropTypes.array,
+  hasSidebar:                  PropTypes.bool,
   layoutWidth:                 PropTypes.number,
   setTextListHighlight:        PropTypes.func,
   setSelectedWords:            PropTypes.func,
@@ -895,7 +885,7 @@ class ReaderControls extends Component {
       (<div className="rightButtons">
           <ReaderNavigationMenuDisplaySettingsButton onClick={this.props.openDisplaySettings} />
         </div>);
-    var classes = classNames({readerControls: 1, headeroom: 1, connectionsHeader: mode == "Connections", fullPanel: this.props.multiPanel});
+    var classes = classNames({readerControls: 1, connectionsHeader: mode == "Connections", fullPanel: this.props.multiPanel});
     var readerControls = hideHeader ? null :
         (<div className={classes}>
           <div className="readerControlsInner">

@@ -111,59 +111,50 @@ class TextColumn extends Component {
     }
   }
   handleTextLoad() {
-    if (this.loadingContentAtTop || !this.initialScrollTopSet) {
-      //console.log("text load, setting scroll");
-      this.setScrollPosition();
-    } else if (!this.scrolledToHighlight && $(ReactDOM.findDOMNode(this)).find(".segment.highlight").length) {
-      //console.log("scroll to highlighted")
-      this.scrollToHighlighted();
-      this.scrolledToHighlight = true;
-      this.initialScrollTopSet = true;
-    }
-
-    this.adjustInfiniteScroll();
+    this.setScrollPosition();
   }
   setScrollPosition() {
-    // console.log("ssp");
+    console.log("ssp");
     // Called on every update, checking flags on `this` to see if scroll position needs to be set
+    var node = ReactDOM.findDOMNode(this);
     if (this.loadingContentAtTop) {
       // After adding content by infinite scrolling up, scroll back to what the user was just seeing
-      //console.log("loading at top");
+      console.log("loading at top");
       var $node   = this.$container;
-      var adjust  = 118; // Height of .loadingMessage.base
+      var adjust  = 120; // Height of .loadingMessage.base
       var $texts  = $node.find(".basetext");
       if ($texts.length < 2) { return; }
-      var top     = $texts.eq(1).position().top + $node.scrollTop() - adjust;
+      //console.log("scrolltop: " + $node.scrollTop());
+      var top     = $texts.eq(1).position().top + (2*$node.scrollTop()) - adjust ;
+
       if (!$texts.eq(0).hasClass("loading")) {
         this.loadingContentAtTop = false;
         this.initialScrollTopSet = true;
         this.justScrolled = true;
-        ReactDOM.findDOMNode(this).scrollTop = top;
-       // console.log(top)
+        node.scrollTop = top;
+        //console.log("total top: " + top)
       }
-    } else if (!this.scrolledToHighlight && $(ReactDOM.findDOMNode(this)).find(".segment.highlight").length) {
-      //console.log("scroll to highlighted");
+    } else if (!this.scrolledToHighlight && $(node).find(".segment.highlight").length) {
+      console.log("scroll to highlighted");
       // scroll to highlighted segment
       this.scrollToHighlighted();
       this.scrolledToHighlight = true;
       this.initialScrollTopSet = true;
       this.justScrolled        = true;
-    } else if (!this.initialScrollTopSet) {
-      //console.log("initial scroll to 30");
+    } else if (!this.initialScrollTopSet && node.scrollHeight > node.clientHeight) {
+      console.log("initial scroll set");
       // initial value set below 0 so you can scroll up for previous
-      var node = ReactDOM.findDOMNode(this);
-      node.scrollTop = 30;
+      node.scrollTop = 90;
+      console.log(node.scrollTop);
       this.initialScrollTopSet = true;
     }
-    // This fixes loading of next content when current content is short in viewport,
-    // but breaks loading highlighted ref, jumping back up to top of section
-    // this.adjustInfiniteScroll();
   }
   adjustInfiniteScroll() {
     // Add or remove TextRanges from the top or bottom, depending on scroll position
-    // console.log("adjust Infinite Scroll");
+    console.log("adjust Infinite Scroll");
     if (!this._isMounted) { return; }
     var node         = ReactDOM.findDOMNode(this);
+    if (node.scrollHeight <= node.clientHeight) { return; }
     var $node        = $(node);
 
     var refs         = this.props.srefs;
@@ -174,12 +165,12 @@ class TextColumn extends Component {
     var windowHeight = $node.outerHeight();
     var windowTop    = node.scrollTop;
     var windowBottom = windowTop + windowHeight;
-    if (windowTop < 21 && !this.loadingContentAtTop) {
+    if (windowTop < 75 && !this.loadingContentAtTop) {
       // UP: add the previous section above then adjust scroll position so page doesn't jump
       var topRef = refs[0];
       var data   = Sefaria.ref(topRef);
       if (data && data.prev) {
-        //console.log("Up! Add previous section");
+        console.log("Up! Add previous section. Windowtop is: " + windowTop);
         refs.splice(refs, 0, data.prev);
         this.loadingContentAtTop = true;
         this.props.updateTextColumn(refs);
@@ -237,7 +228,7 @@ class TextColumn extends Component {
     this.props.setCurrentlyVisibleRef(sectionRef);
   
     // don't move around highlighted segment when scrolling a single panel,
-    var shouldHighlight = this.props.panelsOpen != 1 || this.props.mode === "TextAndConnections";
+    var shouldHighlight = this.props.hasSidebar || this.props.mode === "TextAndConnections";
 
     if (shouldHighlight) {
       var ref = $segment.attr("data-ref");
@@ -346,6 +337,7 @@ TextColumn.propTypes = {
   setSelectedWords:       PropTypes.func,
   onTextLoad:             PropTypes.func,
   panelsOpen:             PropTypes.number,
+  hasSidebar:             PropTypes.bool,
   layoutWidth:            PropTypes.number
 };
 
