@@ -604,13 +604,6 @@
 			$("#navPanel.navPanelOpen").removeClass("navPanelOpen");
 		});
 
-
-		// Show the Search instead of query modal if it's in params
-		var params = getUrlVars();
-		if ("nav_query" in params) {
-			sjs.searchInsteadOfNav(params.nav_query);
-		}
-
 		// Language Toggles
 		sjs.changeContentLang = function() {
 			var mode = this.id;

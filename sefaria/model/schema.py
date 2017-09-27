@@ -48,6 +48,8 @@ class TitleGroup(object):
         for lang in self.langs:
             if not self.primary_title(lang):
                 raise InputError("Title Group must have a {} primary title".format(lang))
+        if len(self.all_titles()) > len(list(set(self.all_titles()))):
+            raise InputError("There are duplicate titles in this object's title group")
         for title in self.titles:
             if not set(title.keys()) == set(self.required_attrs) and not set(title.keys()) <= set(self.required_attrs+self.optional_attrs):
                 raise InputError("Title Group titles must only contain the following keys: {}".format(self.required_attrs+self.optional_attrs))
@@ -218,6 +220,10 @@ class Term(abst.AbstractMongoRecord, AbstractTitledObject):
         "ref"
     ]
 
+    def load_by_title(self, title):
+        query = {'titles.text':  title}
+        return self.load(query=query)
+
     def _set_derived_attributes(self):
         self.set_titles(getattr(self, "titles", None))
 
@@ -229,9 +235,14 @@ class Term(abst.AbstractMongoRecord, AbstractTitledObject):
 
     def _validate(self):
         super(Term, self)._validate()
+        #do not allow duplicates:
+        for title in self.get_titles():
+            other_term = Term().load_by_title(title)
+            if other_term:
+                raise InputError(u"A Term with the title {} in it already exists".format(title))
         self.title_group.validate()
         if self.name != self.get_primary_title():
-            raise InputError("Term name {} does not match primary title {}".format(self.name, self.get_primary_title()))
+            raise InputError(u"Term name {} does not match primary title {}".format(self.name, self.get_primary_title()))
 
 
 class TermSet(abst.AbstractMongoSet):

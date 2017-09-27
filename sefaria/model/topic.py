@@ -167,6 +167,19 @@ class TopicsManager(object):
         else:
             return Topic(topic)
 
+    def recommend_topics(self, refs):
+        """Returns a list of topics recommended for the list of string refs"""
+        topic_count = defaultdict(int)
+        projection = {"tags": 1, "sources.ref": 1}
+        sheets = db.sheets.find({"status": "public", "sources.ref": {"$in": refs}}, projection)
+
+        for sheet in sheets:
+            for topic in sheet.get("tags", []):
+                if self.is_included(topic):
+                    topic_count[topic] += 1
+
+        return sorted(topic_count.iteritems(), key=lambda (k,v): v, reverse=True)
+
     def is_included(self, topic):
         self._lazy_load()
         return topic in self.topics

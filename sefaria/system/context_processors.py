@@ -12,6 +12,7 @@ from django.template.loader import render_to_string
 from sefaria.settings import *
 from sefaria.model import library
 from sefaria.model.user_profile import UserProfile
+from sefaria.model.interrupting_message import InterruptingMessage
 from sefaria.utils import calendars
 from sefaria.utils.util import short_to_long_lang_code
 from sefaria.utils.hebrew import hebrew_parasha_name
@@ -88,7 +89,7 @@ def embed_page(request):
 @data_only
 def user_and_notifications(request):
     """
-    Load data the comes from a user profile.
+    Load data that comes from a user profile.
     Most of this data is currently only needed view /data.js
     /texts requires `recentlyViewed` which is used for server side rendering of recent section
     (currently Node does not get access to logged in version of /data.js)
@@ -98,7 +99,8 @@ def user_and_notifications(request):
         recent = json.loads(urlparse.unquote(request.COOKIES.get("recentlyViewed", '[]')))
         recent = [] if len(recent) and isinstance(recent[0], dict) else recent # ignore old style cookies
         return {
-            "recentlyViewed": recent
+            "recentlyViewed": recent,
+            "interrupting_message_json": InterruptingMessage(attrs=GLOBAL_INTERRUPTING_MESSAGE, request=request).json()
         }
     
     profile = UserProfile(id=request.user.id)
@@ -106,13 +108,12 @@ def user_and_notifications(request):
         return {
             "recentlyViewed": profile.recentlyViewed,
         }
+
     notifications = profile.recent_notifications()
     notifications_json = "[" + ",".join([n.to_JSON() for n in notifications]) + "]"
-    interrupting_message = profile.interrupting_message()
-    if interrupting_message:
-        interrupting_message_json = json.dumps({"name": interrupting_message, "html": render_to_string("messages/%s.html" % interrupting_message)})
-    else:
-        interrupting_message_json = "null"
+    
+    interrupting_message_dict = GLOBAL_INTERRUPTING_MESSAGE or {"name": profile.interrupting_message()}
+    interrupting_message_json = InterruptingMessage(attrs=interrupting_message_dict, request=request).json()
 
     return {
         "notifications": notifications,
