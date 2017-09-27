@@ -566,20 +566,22 @@ class Util {
       
     }
 
-    static RefValidator($input, $msg, $ok, $preview) {
+    static RefValidator($input, $msg, $ok, $preview, disallow_segments) {
         /** Replacement for utils.js:sjs.checkref that uses only new tools.
          * Instantiated as an object, and then invoked with `check` method
-         * Allows section and segment level references.
          * $input - input element
          * $msg - status message element
          * $ok - Ok button element
-         * $preview - Text preview box
+         * $preview - Text preview box (optional)
+         * allow_segments - if true, only allows book and section level refs.
+                            By default, allows section and segment level references.
+
 
          * example usage:
 
          new Sefaria.util.RefValidator($("#inlineAdd"), $("#inlineAddDialogTitle"), $("#inlineAddSourceOK"), $("#preview"));
 
-         As currently designed, the object is instanciated, and sets up its own events.
+         As currently designed, the object is instantiated, and sets up its own events.
          It doesn't need to be interacted with from the outside.
          */
 
@@ -587,6 +589,7 @@ class Util {
         this.$msg = $msg;
         this.$ok = $ok;
         this.$preview = $preview;
+        this.disallow_segments = disallow_segments || false;
 
         // We want completion messages to be somewhat sticky.
         // This records the string used to build the current message.
@@ -700,7 +703,7 @@ Util.RefValidator.prototype = {
 
           this.$msg.css("direction", (data["lang"]=="he"?"rtl":"ltr"))
               .html(this._getMessage(inString, data));
-          if (data.is_ref && (data.is_section || data.is_segment)) {
+          if (data.is_ref && (data.is_section || (data.is_segment && !this.disallow_segments))) {
             this._allow(inString, data["ref"]);  //pass normalized ref
             return;
           }
@@ -728,6 +731,7 @@ Util.RefValidator.prototype = {
   _inlineAddSourcePreview: function(inString, ref) {
     Sefaria.text(ref, {}, function (data) {
         if (this.$input.val() != inString) { return; }
+        if (!this.$preview) { return; }
 
         var segments = Sefaria.makeSegments(data);
         var en = segments.map(this._preview_segment_mapper.bind(this, "en")).filter(Boolean);
@@ -747,8 +751,10 @@ Util.RefValidator.prototype = {
     }.bind(this));
   },
   check: function() {
-      this.$preview.html("");
-      this.$preview.hide();
+      if (this.$preview) {
+          this.$preview.html("");
+          this.$preview.hide();
+      }
       this.$input.autocomplete("enable");
       var inString = this.$input.val();
       if (inString.length < 3) {

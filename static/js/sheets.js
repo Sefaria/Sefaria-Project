@@ -274,7 +274,7 @@ $(function() {
 	});
 
     
-    // As currently designed, the object is instantiated and sets up its own events.
+    // This object is instantiated and sets up its own events.
     // It doesn't need to be interacted with from the outside.
     var validator = new Sefaria.util.RefValidator($("#inlineAdd"), $("#inlineAddDialogTitle"), $("#inlineAddSourceOK"), $("#inlineTextPreview"));
 
