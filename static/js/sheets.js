@@ -3598,7 +3598,12 @@ function exportToDrive() {
 			if ("error" in data) {
 				sjs.alert.message(data.error.message);
 			} else {
-				sjs.alert.message("Source Sheet exported to Google Drive.<br><br><a href='" + data.webViewLink + "' target='_blank'>Open in Google Drive &raquo;</a>");
+				sjs.alert.message("" +
+					'<span class="int-en">Source Sheet exported to Google Drive.</span><span class="int-he">ייצוא לגוגל דרייב הסתיים.</span>' +
+					"<br><br>" +
+					"<a href='" + data.webViewLink + "' target='_blank'>" +
+					'<span class="int-en">Open in Google Drive &raquo;</span><span class="int-he">לפתיחה בגוגל דרייב</span>' +
+					"</a>");
 			}
 		},
 		statusCode: {

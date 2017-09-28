@@ -247,7 +247,7 @@ sjs.alert = {
 		var classStr = msg.length > 120 ? "wide" : "";
 		var alertHtml = '<div class="alertBox ' + classStr + '">' +
 				'<div class="msg">' + msg +'</div>' +
-				'<div class="ok btn">OK</div>' +
+				'<div class="ok btn"><span class="int-en">OK</span><span class="int-he">אישור</span></div>' +
 			'</div>';
 		if (keepOverlay) {
 			this._removeOverlayAfter = false;
