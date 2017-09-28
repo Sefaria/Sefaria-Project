@@ -106,10 +106,10 @@ def merge_terms_into_one(primary_term, other_terms):
         for t in titles:
             new_term.add_title(t["text"], t["lang"]) #this step should eliminate duplicates.
 
-        print u"Deleting Term {}".format(term.get_primary_title())
+        #print u"Deleting Term {}".format(term.get_primary_title())
         term.delete()
 
-    print u"Saving Term {}".format(new_term.get_primary_title())
+    #print u"Saving Term {}".format(new_term.get_primary_title())
     new_term.save()
 
 
@@ -125,12 +125,12 @@ def remove_duplicates(duplicates):
 
         terms_to_merge = [Term().load_by_id(toid) for toid in dup['unique_obj_ids']] #this will also include the primary
         terms_to_merge = [t for t in terms_to_merge if t is not None]
-        print u"Merging terms for {}: {}".format(title, u",".join([t.name for t in terms_to_merge]))
+        #print u"Merging terms for {}: {}".format(title, u",".join([t.name for t in terms_to_merge]))
         if primary_term is not None and len(terms_to_merge) > 0: #might have been merged in already.
             merge_terms_into_one(primary_term, terms_to_merge)
         if len(dup['schemes']) > 1:
-            print u"This term had multiple schemes: {}".format(dup["schemes"])
-        print u"===================================================="
+            #print u"This term had multiple schemes: {}".format(dup["schemes"])
+        #print u"===================================================="
 
 
 def get_new_primary_term(title):
@@ -146,7 +146,7 @@ def cascade_terms():
         if "sharedTitle" in cat and cat['sharedTitle'] is not None:
             new_shared_title = get_new_primary_term(cat['sharedTitle'])
             if new_shared_title != cat['sharedTitle']:
-                print u"normalizing category with shared title {} to {}".format(cat['sharedTitle'], new_shared_title)
+                #print u"normalizing category with shared title {} to {}".format(cat['sharedTitle'], new_shared_title)
                 cat['sharedTitle'] = new_shared_title
                 cat['lastPath'] = new_shared_title
                 cat['path'][-1] = new_shared_title
@@ -172,7 +172,7 @@ def cascade_terms():
                     new_section = get_new_primary_term(section)
                     if new_section != section:
                         leaf.sectionNames[j]=new_section
-                        print u"Changed Index {}:{}:{} to {}".format(idx.title, leaf.primary_title(), section, new_section)
+                        #print u"Changed Index {}:{}:{} to {}".format(idx.title, leaf.primary_title(), section, new_section)
         idx.save(override_dependencies=True)
 
 
