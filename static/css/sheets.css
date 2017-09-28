@@ -983,6 +983,7 @@ body:not(.user-is-tabbing) #sheet .cke_editable:focus {
 	margin-top: 0;
 	height: 80px;
 	padding: 8px;
+	direction: ltr;
 }
 
 #embedSheetModal .sub {
@@ -1832,9 +1833,9 @@ line-height: normal;
 .inlineAddOr {
 	display:inline-block;
 	color: #999;
-    margin: 6px;
-
+    margin: 4px;
 }
+
 .inlineAddSourceByttons {
 	display: inline-block;
 }
