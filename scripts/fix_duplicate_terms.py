@@ -128,7 +128,7 @@ def remove_duplicates(duplicates):
         #print u"Merging terms for {}: {}".format(title, u",".join([t.name for t in terms_to_merge]))
         if primary_term is not None and len(terms_to_merge) > 0: #might have been merged in already.
             merge_terms_into_one(primary_term, terms_to_merge)
-        if len(dup['schemes']) > 1:
+        #if len(dup['schemes']) > 1:
             #print u"This term had multiple schemes: {}".format(dup["schemes"])
         #print u"===================================================="
 
