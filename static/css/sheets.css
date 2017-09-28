@@ -2032,6 +2032,10 @@ a.userLink{
 	text-align: left;
 }
 
+.interface-hebrew .s2Modal .content{
+	text-align: right;
+}
+
 .s2Modal .ok.button {
 	margin: 0 auto;
 }
