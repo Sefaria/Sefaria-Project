@@ -226,7 +226,7 @@ class ReaderNavigationMenu extends Component {
                 <div className="readerNavTopStart">
                   <ReaderNavigationMenuMenuButton onClick={this.closeNav} compare={this.props.compare} interfaceLang={this.props.interfaceLang}/>
                   <ReaderNavigationMenuSearchButton onClick={this.handleSearchButtonClick} />
-                  <input id="searchInput" className="readerSearch" title="Search for Texts or Keywords Here" placeholder="Search" onKeyUp={this.handleSearchKeyUp} />
+                  <input id="searchInput" className="readerSearch" title={Sefaria._("Search for Texts or Keywords Here")} placeholder={Sefaria._("Search")} onKeyUp={this.handleSearchKeyUp} />
                 </div>
                 {this.props.interfaceLang !== "hebrew" ? <ReaderNavigationMenuDisplaySettingsButton onClick={this.props.openDisplaySettings} /> : null}
 

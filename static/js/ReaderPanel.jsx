@@ -989,8 +989,8 @@ class ReaderDisplayOptionsMenu extends Component {
     colorToggle = this.props.multiPanel ? null : colorToggle;
 
     var sizeOptions = [
-      {name: "smaller", content: "Aa", role: "button", ariaLabel: "Decrease font size" },
-      {name: "larger", content: "Aa", role: "button", ariaLabel: "Increase font size"  }
+      {name: "smaller", content: Sefaria._("Aa"), role: "button", ariaLabel: Sefaria._("Decrease font size") },
+      {name: "larger", content: Sefaria._("Aa"), role: "button", ariaLabel: Sefaria._("Increase font size")  }
     ];
     var sizeToggle = (
         <ToggleSet

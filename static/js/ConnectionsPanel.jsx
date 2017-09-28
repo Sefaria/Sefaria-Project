@@ -638,10 +638,10 @@ class AddNoteBox extends Component {
         $(ReactDOM.findDOMNode(this)).find(".noteText").val("");
         this.props.onSave();
       } else {
-        alert("Sorry, there was a problem saving your note.");
+        alert(Sefaria._("Sorry, there was a problem saving your note."));
       }
     }.bind(this)).fail( function(xhr, textStatus, errorThrown) {
-      alert("Unfortunately, there was an error saving this note. Please try again or try reloading this page.");
+      alert(Sefaria._("Unfortunately, there was an error saving this note. Please try again or try reloading this page."));
     });
     this.setState({saving: true});
   }
@@ -652,7 +652,7 @@ class AddNoteBox extends Component {
     this.setState({isPrivate: false});
   }
   deleteNote() {
-    if (!confirm("Are you sure you want to delete this note?")) { return; }
+    if (!confirm(Sefaria._("Are you sure you want to delete this note?"))) { return; }
     var url = "/api/notes/" + this.props.noteId;
     $.ajax({
       type: "delete",
@@ -663,7 +663,7 @@ class AddNoteBox extends Component {
         this.props.onDelete();
       }.bind(this),
       error: function() {
-        alert("Something went wrong (that's all I know).");
+        alert(Sefaria._("Something went wrong (that's all I know)."));
       }
     });
   }
@@ -675,7 +675,7 @@ class AddNoteBox extends Component {
     var publicClasses  = classNames({notePublicButton: 1, active: !this.state.isPrivate});
     return (
       <div className="addNoteBox">
-        <textarea className="noteText" placeholder="Write a note..." defaultValue={this.props.noteText}></textarea>
+        <textarea className="noteText" placeholder={Sefaria._("Write a note...")} defaultValue={this.props.noteText}></textarea>
         <div className="button fillWidth" onClick={this.saveNote}>
           <span className="int-en">{this.props.noteId ? "Save" : "Add Note"}</span>
           <span className="int-he">{this.props.noteId ? "שמור": "הוסף רשומה"}</span>
