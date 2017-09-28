@@ -1081,21 +1081,22 @@ $(function() {
 						"</div>";
 
 	if ($.cookie("s2") == "true") {
-
+		var outdent_img = (sjs.interfaceLang == "en") ? '/static/img/outdent.png' : '/static/img/indent.png';
+		var indent_img = (sjs.interfaceLang == "en") ? '/static/img/indent.png' : '/static/img/outdent.png';
 
 		var ownerControls = "<div id='sourceControls' class='sideControls'>" +
 								"<div class='copySource' title='"+_('Copy to Sheet')+"'><img src='/static/img/copy.png'></div>" +
 								"<div class='removeSource' title='"+_('Remove')+"'><img src='/static/img/remove.png'></div>" +
-								"<div class='moveSourceRight' title='"+_('Indent Source')+"'><img src='/static/img/indent.png'></div>" +
-								"<div class='moveSourceLeft' title='"+_('Outdent Source')+"'><img src='/static/img/outdent.png'></div>" +
+								"<div class='moveSourceRight' title='"+_('Indent Source')+"'><img src='"+indent_img+"'></div>" +
+								"<div class='moveSourceLeft' title='"+_('Outdent Source')+"'><img src='"+outdent_img+"'></div>" +
 								"<div class='moveSourceUp' title='"+_('Move Source Up')+"'><img src='/static/img/triangle-up.svg'></div>" +
 								"<div class='moveSourceDown' title='"+_('Move Source Down')+"'><img src='/static/img/triangle-down.svg'></div>" +
 							"</div>";
 
 		var adderControls = "<div id='sourceControls' class='sideControls'>" +
 								"<div class='copySource' title='"+_('Copy to Sheet')+"'><img src='/static/img/copy.png'></div>" +
-								"<div class='moveSourceRight' title='"+_('Indent Source')+"'><img src='/static/img/indent.png'></div>" +
-								"<div class='moveSourceLeft' title='"+_('Outdent Source')+"'><img src='/static/img/outdent.png'></div>" +
+								"<div class='moveSourceRight' title='"+_('Indent Source')+"'><img src='"+indent_img+"'></div>" +
+								"<div class='moveSourceLeft' title='"+_('Outdent Source')+"'><img src='"+outdent_img+"'></div>" +
 							"</div>";
 
 		var viewerControls = "<div id='sourceControls' class='sideControls'>" +
@@ -1105,8 +1106,8 @@ $(function() {
 		var ownerSimpleControls = "<div id='sourceControls' class='sideControls'>" +
 								"<div class='copySource' title='"+_('Copy to Sheet')+"'><img src='/static/img/copy.png'></div>" +
 								"<div class='removeSource' title='"+_('Remove')+"'><img src='/static/img/remove.png'></div>" +
-								"<div class='moveSourceRight' title='"+_('Indent Source')+"'><img src='/static/img/indent.png'></div>" +
-								"<div class='moveSourceLeft' title='"+_('Outdent Source')+"'><img src='/static/img/outdent.png'></div>" +
+								"<div class='moveSourceRight' title='"+_('Indent Source')+"'><img src='"+indent_img+"'></div>" +
+								"<div class='moveSourceLeft' title='"+_('Outdent Source')+"'><img src='"+outdent_img+"'></div>" +
 								"<div class='moveSourceUp' title='"+_('Move Source Up')+"'><img src='/static/img/triangle-up.svg'></div>" +
 								"<div class='moveSourceDown' title='"+_('Move Source Down')+"'><img src='/static/img/triangle-down.svg'></div>" +
 							"</div>";
