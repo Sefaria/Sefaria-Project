@@ -1663,7 +1663,7 @@ Sefaria = extend(Sefaria, {
       "Search" : "חיפוש",
   },
   _: function(inputStr){
-    if(Sefaria.interfaceLang != "en" && inputStr in Sefaria._i18nInterfaceStrings){
+    if(Sefaria.interfaceLang != "english" && inputStr in Sefaria._i18nInterfaceStrings){
         return Sefaria._i18nInterfaceStrings[inputStr];
     }else{
         return inputStr;
