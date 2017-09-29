@@ -566,16 +566,18 @@ class Util {
       
     }
 
-    static RefValidator($input, $msg, $ok, $preview, disallow_segments) {
+    static RefValidator($input, $msg, $ok, $preview, options = {}) {
         /** Replacement for utils.js:sjs.checkref that uses only new tools.
          * Instantiated as an object, and then invoked with `check` method
          * $input - input element
          * $msg - status message element
          * $ok - Ok button element
          * $preview - Text preview box (optional)
-         * allow_segments - if true, only allows book and section level refs.
-                            By default, allows section and segment level references.
-
+         * config - a dictionary, with named arguments:
+             * disallow_segments - if true, only allows book and section level refs.
+                                By default, allows section and segment level references.
+             * allow_new_titles = if true, allows names not recognized by the system.
+                                  By default, does not allow unrecognized names.
 
          * example usage:
 
@@ -589,7 +591,7 @@ class Util {
         this.$msg = $msg;
         this.$ok = $ok;
         this.$preview = $preview;
-        this.disallow_segments = disallow_segments || false;
+        this.options = options;
 
         // We want completion messages to be somewhat sticky.
         // This records the string used to build the current message.
@@ -664,16 +666,26 @@ Util.RefValidator.prototype = {
 
       var return_message = "";
       var prompt_message = (data["lang"]=="en")?"Select a text":"נא בחרו טקסט";
+      var create_new_message = (data["lang"]=="en")?"Create a new Index record":"צור טקסט חדש";
       var success_message = (data["lang"]=="en")?"OK. Click <b>add</b> to continue":("לחצו " + "<b>הוסף</b>" + " בכדי להמשיך");
+      var no_segment_message = "Segment Level References Not Allowed Here.";
       var or_phrase = (data["lang"]=="en")?" or ":" או ";
       var range_phrase = (data["lang"] == "en")?"enter a range.  E.g. ":"הוסיפו טווח. לדוגמא ";
 
-      if ((data["is_node"]) ||
+      if (!data["is_ref"] && this.options.allow_new_titles) {
+          return_message = create_new_message + or_phrase + prompt_message;
+      } else if ((data["is_node"]) ||
           (data["is_ref"] && (!(data["is_segment"] || data["is_section"])))
       ) {
           return_message = this._getSectionCompletionMessage(inString, data) || prompt_message;
       } else if (data["is_section"]) {
-          return_message = success_message + or_phrase + this._getSegmentCompletionMessage(inString, data);
+          if (this.options.disallow_segments) {
+              return_message = success_message;
+          } else {
+              return_message = success_message + or_phrase + this._getSegmentCompletionMessage(inString, data);
+          }
+      } else if (data["is_segment"] && this.options.disallow_segments) {
+          return_message = no_segment_message;
       } else if (data["is_segment"] && !data["is_range"] &&  +(data["sections"].slice(-1)) > 0) {  // check that it's an int
           var range_end = +(data["sections"].slice(-1)) + 1;
           return_message = success_message + or_phrase + range_phrase + "<b>" + inString + "-" + range_end + "</b>";
@@ -703,7 +715,11 @@ Util.RefValidator.prototype = {
 
           this.$msg.css("direction", (data["lang"]=="he"?"rtl":"ltr"))
               .html(this._getMessage(inString, data));
-          if (data.is_ref && (data.is_section || (data.is_segment && !this.disallow_segments))) {
+          if (!data.is_ref && this.options.allow_new_titles) {
+              this._allow(inString);
+              return;
+          }
+          if (data.is_ref && (data.is_section || (data.is_segment && !this.options.disallow_segments))) {
             this._allow(inString, data["ref"]);  //pass normalized ref
             return;
           }
@@ -717,8 +733,10 @@ Util.RefValidator.prototype = {
       this.$input.val(inString);
     }
     this.$ok.removeClass("inactive").removeClass("disabled");
-    this.$input.autocomplete("disable");
-    this._inlineAddSourcePreview(inString, ref);
+    if (ref) {
+        this.$input.autocomplete("disable");
+        this._inlineAddSourcePreview(inString, ref);
+    }
   },
   _disallow: function() {
     this.$ok.addClass("inactive").addClass("disabled");

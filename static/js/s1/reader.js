@@ -3460,7 +3460,7 @@ sjs.newText = function(e) {
 
     // This object is instantiated and sets up its own events.
     // It doesn't need to be interacted with from the outside.
-    var validator = new Sefaria.util.RefValidator($("#newTextName"), $("#newTextMsg"), $("#newTextOK"), undefined, true);
+    var validator = new Sefaria.util.RefValidator($("#newTextName"), $("#newTextMsg"), $("#newTextOK"), undefined, {disallow_segments: true, allow_new_titles: true});
 };
 
 	
