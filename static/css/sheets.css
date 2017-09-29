@@ -510,6 +510,7 @@ body:not(.user-is-tabbing) #sheet .cke_editable:focus {
 }
 
 #sheetMetadata summary {
+	display: block;
 	text-align: center;
 	margin: 0 -76px;
 }
@@ -527,10 +528,17 @@ body:not(.user-is-tabbing) #sheet .cke_editable:focus {
 }
 
 #sheetMetadata summary:after {
-  	content: " ►";
+  	content: " ❯";
+}
+#sheetMetadata[open] summary span {
+	display: none;
 }
 #sheetMetadata[open] summary:after {
-  	content: " ▼";
+  	content: "✕";
+    top: 34px;
+    right: 80px;
+    position: relative;
+    float: right;
 }
 
 #sheetMetadata .metadataOpenDetails {
