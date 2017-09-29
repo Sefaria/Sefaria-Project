@@ -553,7 +553,7 @@
                     <span class="int-he">שיתוף</span>
                 </a>
                 {% else %}
-                <a id="likeButton" class="button" role="button">
+                <a id="likeButton" class="button{% if viewer_is_liker %} liked{% endif %}" role="button">
                     {% if viewer_is_liker %}
                         <span class="int-en">Unlike</span><span class="int-he">ביטול סימון "אהבתי"</span>
                     {% else %}
