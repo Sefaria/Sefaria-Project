@@ -644,7 +644,7 @@
     </summary>
         <div class="metadataOpenDetails">
             <div>
-                <span class="int-en">Created <span class="date">{{ sheet.dateCreated|date_string_to_date|date:"F j, Y" }}</span> · <span class="views">{{ sheet.views }} {% if sheet.views == 1%}View{% else %}Views{% endif %}</span> · <span class="likes">{{like_count}} {% if like_count == 1%}Like{% else %}Likes{% endif %}</span></span>
+                <span class="int-en">Created <span class="date">{{ sheet.dateCreated|date_string_to_date|date:"F j, Y" }}</span> · <span class="views">{{ sheet.views }} {% if sheet.views == 1%}View{% else %}Views{% endif %}</span> · <span class="likes" id="likeInfo"><span id="likeCount">{{like_count}}</span> {% if like_count == 1%}Like{% else %}Likes{% endif %}</span></span>
                 <span class="int-he">נוצר <span class="date">{{ sheet.dateCreated|date_string_to_date|date:"j F, Y" }}</span> · <span class="views">{{ sheet.views }} צפיות </span> · <span class="likes">{{like_count}} {% if like_count == 1%}סימוני{% else %}סימון{% endif %} אהבתי</span></span>
             </div>
             {% if sheet.via %}
@@ -672,15 +672,6 @@
 
 
     </details>
-	<div id="likes">
-		<span id="s2LikeContainer">
-            {% if viewer_is_liker %}
-                <a href="#" id="likeLink" class="liked"><span class="int-en">Unlike</span><span class="int-he">ביטול סימון "אהבתי"</span></a>
-            {% else %}
-                <a href="#" id="likeLink"><span class="int-en">Like</span><span class="int-he">אהבתי</span></a>
-            {% endif %}
-        </span>
-	</div>
 	{% endif %}
 
 	<ol id="sources">

@@ -987,7 +987,7 @@ $(function() {
 
 	// ------------- Likes -----------------------
 
-	$("#likeLink").click(function(e) {
+	$("#likeButton").click(function(e) {
 		e.preventDefault();
 		if (!sjs._uid) { return sjs.loginPrompt(); }
 		
@@ -1005,9 +1005,6 @@ $(function() {
 			$("#likeCount").text(likeCount);
     		sjs.track.sheets("Like", sjs.current.id);
 		}
-		$("#likeInfoBox").toggle(likeCount != 0);
-		$("#likePlural").toggle(likeCount != 1);
-		$("#likeSingular").toggle(likeCount == 1);
 	});
 	$("#likeInfo").click(function(e) {
 		$.getJSON("/api/sheets/" + sjs.current.id + "/likers", function(data) {
