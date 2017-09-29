@@ -508,7 +508,7 @@ def hebrew_parasha_name(value):
 			return ("-").join(map(hebrew_parasha_name, names))
 	else:
 		try:
-			term    = Term().load({"name": value, "scheme": "Parasha"})
+			term    = Term().load({"name": value})
 			parasha = term.get_titles(lang="he")[0]
 		except Exception, e:
 			print e
