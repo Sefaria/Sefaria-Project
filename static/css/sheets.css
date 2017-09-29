@@ -506,17 +506,20 @@ body:not(.user-is-tabbing) #sheet .cke_editable:focus {
 	color: #999;
 	background-color: #fafafa;
 	padding: 0 76px;
-	outline: none;
+}
+
+#sheet #sheetMetadata .button {
+	background-color: #eee;
+	border-color: #ccc;
+	color: #999;
+	font-size: 14px;
+	margin-top: 20px;
 }
 
 #sheetMetadata summary {
 	display: block;
 	text-align: center;
 	margin: 0 -76px;
-}
-
-#sheetMetadata *:focus {
-	outline: none !important;
 }
 
 #sheetMetadata summary {

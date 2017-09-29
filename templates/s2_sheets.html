@@ -668,6 +668,16 @@
             </div>
 
             {% endif %}
+
+            <div id="sheetTags">
+                {% for tag in sheet.tags %}
+                    <a class="button" role="button" href="/sheets/tags/{{ tag }}">
+                        {{ tag }}
+                    </a>
+                {% endfor %}
+
+
+            </div>
         </div>
 
 
