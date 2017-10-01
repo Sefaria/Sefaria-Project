@@ -1959,6 +1959,7 @@ a.readerNavCategory {
 .readerNavMenu .sheet .sheetTitle{
   overflow: hidden;
   font-size: 16px;
+  unicode-bidi: plaintext;
 }
 .readerNavMenu .sheet .sheetViews{
   color: #CCC;
