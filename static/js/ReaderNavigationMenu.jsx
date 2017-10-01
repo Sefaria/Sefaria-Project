@@ -218,8 +218,8 @@ class ReaderNavigationMenu extends Component {
               (<div className="readerNavTop search">
                 <CategoryColorLine category="Other" />
                 <ReaderNavigationMenuSearchButton onClick={this.navHome} />
-                {this.props.interfaceLang !== "hebrew" ? <ReaderNavigationMenuDisplaySettingsButton onClick={this.props.openDisplaySettings} /> : null}
                 <div className='sefariaLogo'><img src="/static/img/sefaria.svg" alt="Sefaria Logo" /></div>
+                {this.props.interfaceLang !== "hebrew" ? <ReaderNavigationMenuDisplaySettingsButton onClick={this.props.openDisplaySettings} /> : null}
               </div>) :
               (<div className="readerNavTop search">
                 <CategoryColorLine category="Other" />
