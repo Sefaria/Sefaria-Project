@@ -114,12 +114,12 @@ class TextColumn extends Component {
     this.setScrollPosition();
   }
   setScrollPosition() {
-    console.log("ssp");
+    //console.log("ssp");
     // Called on every update, checking flags on `this` to see if scroll position needs to be set
     var node = ReactDOM.findDOMNode(this);
     if (this.loadingContentAtTop) {
       // After adding content by infinite scrolling up, scroll back to what the user was just seeing
-      console.log("loading at top");
+      //console.log("loading at top");
       var $node   = this.$container;
       var adjust  = 120; // Height of .loadingMessage.base
       var $texts  = $node.find(".basetext");
@@ -135,23 +135,23 @@ class TextColumn extends Component {
         //console.log("total top: " + top)
       }
     } else if (!this.scrolledToHighlight && $(node).find(".segment.highlight").length) {
-      console.log("scroll to highlighted");
+      //console.log("scroll to highlighted");
       // scroll to highlighted segment
       this.scrollToHighlighted();
       this.scrolledToHighlight = true;
       this.initialScrollTopSet = true;
       this.justScrolled        = true;
     } else if (!this.initialScrollTopSet && node.scrollHeight > node.clientHeight) {
-      console.log("initial scroll set");
+      //console.log("initial scroll set");
       // initial value set below 0 so you can scroll up for previous
       node.scrollTop = 90;
-      console.log(node.scrollTop);
+      //console.log(node.scrollTop);
       this.initialScrollTopSet = true;
     }
   }
   adjustInfiniteScroll() {
     // Add or remove TextRanges from the top or bottom, depending on scroll position
-    console.log("adjust Infinite Scroll");
+    //console.log("adjust Infinite Scroll");
     if (!this._isMounted) { return; }
     var node         = ReactDOM.findDOMNode(this);
     if (node.scrollHeight <= node.clientHeight) { return; }
@@ -170,7 +170,7 @@ class TextColumn extends Component {
       var topRef = refs[0];
       var data   = Sefaria.ref(topRef);
       if (data && data.prev) {
-        console.log("Up! Add previous section. Windowtop is: " + windowTop);
+        //console.log("Up! Add previous section. Windowtop is: " + windowTop);
         refs.splice(refs, 0, data.prev);
         this.loadingContentAtTop = true;
         this.props.updateTextColumn(refs);

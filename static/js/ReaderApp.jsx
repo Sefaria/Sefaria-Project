@@ -1241,7 +1241,7 @@ class ReaderApp extends Component {
 
     var panels = [];
     var allOpenRefs = panelStates.filter( panel => panel.mode == "Text")
-                                  .map( panel => Sefaria.normRef(panel.highlightedRefs.length ? panel.highlightedRefs : panel.refs));
+                                  .map( panel => Sefaria.humanRef(panel.highlightedRefs.length ? panel.highlightedRefs : panel.refs));
 
     for (var i = 0; i < panelStates.length; i++) {
       var panel                    = this.clonePanel(panelStates[i]);
