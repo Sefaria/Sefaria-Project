@@ -3516,7 +3516,8 @@ class Ref(object):
 
         :return list: each list element is an object with keys 'versionTitle' and 'language'
         """
-        fields = ["versionTitle", "versionSource", "language", "status", "license", "versionNotes", "digitizedBySefaria", "priority"]
+        fields = ["versionTitle", "versionSource", "language", "status", "license", "versionNotes",
+                  "digitizedBySefaria", "priority", "heVersionTitle", "heVersionNotes"]
         versions = VersionSet(self.condition_query())
         version_list = []
         if self.is_book_level():
