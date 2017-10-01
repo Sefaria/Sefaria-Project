@@ -1929,7 +1929,7 @@ a.readerNavCategory {
   color: black;
 }
 .readerNavMenu .sheet:hover{
-  text-decoration: underline;
+  text-decoration: none;
 }
 .readerNavMenu .sheet:first-child {
   padding-top: 0;
@@ -1943,6 +1943,9 @@ a.readerNavCategory {
 .readerNavMenu .sheet .sheetTextInfo{
   display: flex;
   justify-content: flex-start;
+}
+.readerNavMenu .sheet:hover .sheetTextInfo{
+  text-decoration: underline;
 }
 .readerNavMenu .sheet .sheetAuthTitle{
   display: flex;
@@ -1965,7 +1968,6 @@ a.readerNavCategory {
   color: #CCC;
   font-size: 12px;
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
-  display: inline-block;
 }
 .readerNavMenu .sheet:hover .sheetViews{
   display: inline-block ;
