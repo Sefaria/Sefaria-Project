@@ -678,23 +678,16 @@ input.noselect {
   font-size: 18px;
   font-family: "adobe-garamond-pro", Georgia;
   height: 48px;
-  /*margin-top: 9px;*/
 }
 .readerNavMenu .readerSearch:focus {
   outline: 0;
 }
-.readerNavTop .readerNavMenuSearchButton {
-  margin: 0 10px;
-}
+
 .readerNavTop .readerNavMenuSearchButton,
 .readerNavTop .readerNavMenuCloseButton,
 .readerNavTop .readerNavMenuMenuButton,
 .readerNavTop .readerOptions {
   text-align: left;
-  /*width: 40px;
-  height: 48px;
-  margin-top: 5px;
-  vertical-align: middle;*/
   box-sizing: border-box;
   color: #BFBFBF;
   float: left;
@@ -710,10 +703,12 @@ input.noselect {
   display: block;
   font-size: 46px;
   padding: 0;
-  line-height: 48px;
+  margin-top: -6px;
 }
 .readerNavMenuCloseButton:hover {
   text-decoration: none;
+}
+.readerNavTop .readerNavMenuSearchButton {
 }
 .readerNavTop .readerNavMenuCloseButton .fa {
   font-size: 20px;
@@ -729,6 +724,17 @@ input.noselect {
 }
 .readerNavTop .sefariaLogo img {
   vertical-align: middle;
+}
+.readerNavTop .searchBox {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+}
+.readerNavTop .searchBox .readerNavMenuSearchButton {
+  margin: 0 10px;
+}
+.readerNavTop .searchBox .readerSearch {
+  flex: 1;
 }
 .readerNavMenu h1 {
   text-align: center;
@@ -2037,7 +2043,7 @@ a.readerNavCategory {
   padding: 0 40px 0 40px;
 }
 .singlePanel .readerControls .readerControlsInner {
-  padding: 0 30px;
+  padding: 0 10px;
 }
 .readerControls .readerTextToc {
   text-align: center;
@@ -2101,7 +2107,7 @@ a.readerNavCategory {
 }
 .leftButtons .readerNavMenuMenuButton {
   font-size: 22px;
-  margin-top: 2px;
+  margin-top: 6px;
 }
 .leftButtons .readerNavMenuCloseButton {
   font-size: 44px;
@@ -2649,8 +2655,6 @@ a.readerNavCategory {
   display: flex;
   align-items: center;
   margin: 0 15px;
-  /*text-align: center;
-  line-height: 58px;*/
 }
 .connectionsPanelHeader .languageToggle {
   margin: 0 15px;

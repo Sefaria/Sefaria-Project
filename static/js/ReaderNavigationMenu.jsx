@@ -219,14 +219,18 @@ class ReaderNavigationMenu extends Component {
                 <CategoryColorLine category="Other" />
                 <ReaderNavigationMenuSearchButton onClick={this.navHome} />
                 <div className='sefariaLogo'><img src="/static/img/sefaria.svg" alt="Sefaria Logo" /></div>
-                {this.props.interfaceLang !== "hebrew" ? <ReaderNavigationMenuDisplaySettingsButton onClick={this.props.openDisplaySettings} /> : null}
+                {this.props.interfaceLang !== "hebrew" ? 
+                  <ReaderNavigationMenuDisplaySettingsButton onClick={this.props.openDisplaySettings} /> 
+                  : <ReaderNavigationMenuDisplaySettingsButton placeholder={true} /> }
               </div>) :
               (<div className="readerNavTop search">
                 <CategoryColorLine category="Other" />
                 <div className="readerNavTopStart">
                   <ReaderNavigationMenuMenuButton onClick={this.closeNav} compare={this.props.compare} interfaceLang={this.props.interfaceLang}/>
-                  <ReaderNavigationMenuSearchButton onClick={this.handleSearchButtonClick} />
-                  <input id="searchInput" className="readerSearch" title={Sefaria._("Search for Texts or Keywords Here")} placeholder={Sefaria._("Search")} onKeyUp={this.handleSearchKeyUp} />
+                  <div className="searchBox">
+                    <ReaderNavigationMenuSearchButton onClick={this.handleSearchButtonClick} />
+                    <input id="searchInput" className="readerSearch" title={Sefaria._("Search for Texts or Keywords Here")} placeholder={Sefaria._("Search")} onKeyUp={this.handleSearchKeyUp} />
+                  </div>
                 </div>
                 {this.props.interfaceLang !== "hebrew" ? <ReaderNavigationMenuDisplaySettingsButton onClick={this.props.openDisplaySettings} /> : null}
 

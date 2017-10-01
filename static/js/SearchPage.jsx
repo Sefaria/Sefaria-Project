@@ -31,11 +31,13 @@ class SearchPage extends Component {
                   {this.props.hideNavHeader ? null :
                     (<div className="readerNavTop search">
                       <CategoryColorLine category="Other" />
-                      <ReaderNavigationMenuCloseButton onClick={this.props.close}/>
+                      <div className="readerNavTopStart">
+                        <ReaderNavigationMenuCloseButton onClick={this.props.close}/>
+                        <SearchBar
+                          initialQuery = { this.props.query }
+                          updateQuery = { this.props.onQueryChange } />
+                      </div>
                       <ReaderNavigationMenuDisplaySettingsButton onClick={this.props.openDisplaySettings} />
-                      <SearchBar
-                        initialQuery = { this.props.query }
-                        updateQuery = { this.props.onQueryChange } />
                     </div>)}
                   <div className={contentClasses}>
                     <div className="contentInner">
@@ -121,20 +123,17 @@ class SearchBar extends Component {
     }
     render () {
         return (
-            <div>
-                <div className="searchBox">
-                    <input 
-                      className="readerSearch"
-                        id="searchInput"
-                        title="Search for Texts or Keywords Here"
-                        value={this.state.query}
-                        onKeyPress={this.handleKeypress} 
-                        onChange={this.handleChange} 
-                        placeholder="Search"/>
-                    <ReaderNavigationMenuSearchButton onClick={this.updateQuery} />
-                </div>
-                <div className="description"></div>
-            </div>
+          <div className="searchBox">
+              <ReaderNavigationMenuSearchButton onClick={this.updateQuery} />
+              <input 
+                className="readerSearch"
+                  id="searchInput"
+                  title="Search for Texts or Keywords Here"
+                  value={this.state.query}
+                  onKeyPress={this.handleKeypress} 
+                  onChange={this.handleChange} 
+                  placeholder="Search"/>
+          </div>
         )
     }
 }
