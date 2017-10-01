@@ -525,7 +525,7 @@ class MySheetsPage extends Component {
                   (<div className="sheetsNewButton">
                     <a className="button white" href="/sheets/new">
                         <span className="int-en">Create a Source Sheet</span>
-                        <span className="int-he">צור דף מקורות חדש</span>
+                        <span className="int-he">דף מקורות חדש</span>
                     </a>
                   </div>) : null }
 
