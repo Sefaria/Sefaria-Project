@@ -3670,16 +3670,38 @@ h2.splitHeader .he {
   font-color: inherit;
 }
 .sheet.userSheet .sheetTitle  {
-   font-family: "adobe-garamond-pro", Georgia, serif;
-   font-size: 20px;
-   color:#333;
-   margin-bottom: 6px;
+  font-family: "adobe-garamond-pro", Georgia, serif;
+  font-size: 20px;
+  color:#333;
+  margin-bottom: 6px;
+  unicode-bidi: plaintext;
 }
 .sheet.userSheet {
-   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
-   font-size: 14px;
-   color:#999;
+  font-size: 14px;
+  color:#999;
   text-decoration: none;
+  flex-direction: column;
+}
+.interface-english .sheet.userSheet{
+  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+}
+.interface-hebrew .sheet.userSheet{
+  font-family: "Heebo", "sans-serif";
+}
+.sheet.userSheet .userSheetInfo{
+  display: flex;
+  justify-content: flex-start;
+}
+.sheet.userSheet .userSheetInfo span:before{
+  content: '·';
+  margin: auto 4px;
+}
+.sheet.userSheet .userSheetInfo span:first-child:before{
+  content: '';
+  margin: 0;
+}
+.sheet.userSheet .sheetAccess{
+  margin: auto 4px;
 }
 .filterByTag {
   cursor: pointer;

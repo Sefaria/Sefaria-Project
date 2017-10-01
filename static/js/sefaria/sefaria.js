@@ -1661,6 +1661,7 @@ Sefaria = extend(Sefaria, {
       "Increase font size": "הגדל גופן",
       "Search for Texts or Keywords Here": "חפשו ספרים או מלות מפתח כאן",
       "Search" : "חיפוש",
+      "Views": "צפיות"
   },
   _: function(inputStr){
     if(Sefaria.interfaceLang != "english" && inputStr in Sefaria._i18nInterfaceStrings){

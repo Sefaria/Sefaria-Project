@@ -572,8 +572,13 @@ class PrivateSheetListing extends Component {
     }, this);
 
    return (<div className="sheet userSheet" href={url} key={url}>
-              <a className="sheetTitle" href={url}>{title}</a>  <SheetAccessIcon sheet={sheet} />
-              <div>{sheet.views} Views · {sheet.modified} · <span className="tagString">{tagString}</span></div>
+              <div className="userSheetTitle">
+                <a className="sheetTitle" href={url}>{title}</a>
+                <span className="sheetAccess"><SheetAccessIcon sheet={sheet} /></span>
+              </div>
+              <div className="userSheetInfo">
+                <span>{sheet.views} {Sefaria._('Views')}</span><span>{sheet.modified}</span><span className="tagString">{tagString}</span>
+              </div>
           </div>);
   }
 }
