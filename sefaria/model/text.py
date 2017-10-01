@@ -950,7 +950,9 @@ class Version(abst.AbstractMongoRecord, AbstractTextRecord, AbstractSchemaConten
         "digitizedBySefaria",
         "method",
         "heversionSource",  # bad data?
-        "versionUrl"  # bad data?
+        "versionUrl",  # bad data?
+        "heVersionTitle",
+        "heVersionNotes",
     ]
 
     def __unicode__(self):
