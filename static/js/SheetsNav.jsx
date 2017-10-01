@@ -380,10 +380,14 @@ class PublicSheetListing extends Component {
     var title = sheet.title ? sheet.title.stripHtml() : "Untitled Source Sheet";
     var url = "/sheets/" + sheet.id;
     return (<a className="sheet" href={url} key={url}>
-              {sheet.ownerImageUrl ? (<img className="sheetImg" src={sheet.ownerImageUrl} alt={sheet.ownerName}/>) : null}
+              <div className="sheetTextInfo">
+                {sheet.ownerImageUrl ? (<img className="sheetImg" src={sheet.ownerImageUrl} alt={sheet.ownerName}/>) : null}
+                <div className="sheetAuthTitle">
+                  <div className="sheetAuthor">{sheet.ownerName}</div>
+                  <div className="sheetTitle">{title}</div>
+                </div>
+              </div>
               <span className="sheetViews"><i className="fa fa-eye" aria-label="Number of Sheet Views"></i> {sheet.views}</span>
-              <div className="sheetAuthor">{sheet.ownerName}</div>
-              <div className="sheetTitle">{title}</div>
             </a>);
   }
 }

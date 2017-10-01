@@ -1922,10 +1922,14 @@ a.readerNavCategory {
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
 }
 .readerNavMenu .sheet {
-  display: block;
+  display: flex;
+  justify-content: space-between;
   padding: 25px 0px;
   border-bottom: 1px solid #eee;
   color: black;
+}
+.readerNavMenu .sheet:hover{
+  text-decoration: underline;
 }
 .readerNavMenu .sheet:first-child {
   padding-top: 0;
@@ -1933,9 +1937,17 @@ a.readerNavCategory {
 .readerNavMenu .sheet .sheetImg {
   height: 40px;
   width: 40px;
-  float: left;
-  margin: 1px 14px 20px 0;
+  margin: 1px 0px 0px 0;
   border-radius: 2px;
+}
+.readerNavMenu .sheet .sheetTextInfo{
+  display: flex;
+  justify-content: flex-start;
+}
+.readerNavMenu .sheet .sheetAuthTitle{
+  display: flex;
+  flex-flow: column;
+  margin: auto 14px;
 }
 .readerNavMenu .sheet .sheetAuthor {
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
@@ -1944,15 +1956,19 @@ a.readerNavCategory {
   margin-bottom: 6px;
   letter-spacing: 1px;
 }
-.readerNavMenu .sheet .sheetTitle {
+.readerNavMenu .sheet .sheetTitle{
   overflow: hidden;
   font-size: 16px;
 }
-.readerNavMenu .sheet .sheetViews {
-  float: right;
+.readerNavMenu .sheet .sheetViews{
   color: #CCC;
   font-size: 12px;
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  display: inline-block;
+}
+.readerNavMenu .sheet:hover .sheetViews{
+  display: inline-block ;
+  text-decoration: none;
 }
 .readerSheetsNav h2 .en {
   display: inline;
