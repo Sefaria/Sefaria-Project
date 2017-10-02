@@ -1,6 +1,3 @@
-const {
-  InterruptingMessage,
-}                   = require('./Misc');
 const React         = require('react');
 const classNames    = require('classnames');
 const extend        = require('extend');
@@ -11,6 +8,9 @@ const ReaderPanel   = require('./ReaderPanel');
 const $             = require('./sefaria/sefariaJquery');
 const EditGroupPage = require('./EditGroupPage');
 const Footer        = require('./Footer');
+const {
+  InterruptingMessage,
+}                   = require('./Misc');
 import Component from 'react-class';
 
 

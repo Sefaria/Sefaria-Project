@@ -8,7 +8,7 @@ if (typeof document !== 'undefined' ) {
       window.jquery = $;
 } else {
       $         = require("cheerio");
-      $.ajax    = function() {}; // ditto
+      $.ajax    = function() {}; // fail silently if server-side code every hits one of these functions
       $.getJSON = function() {}; // ditto
 }
 
