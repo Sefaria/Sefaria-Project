@@ -524,6 +524,14 @@ body:not(.user-is-tabbing) #sheet .cke_editable:focus {
 
 #sheetMetadata summary {
 	background-color: #fff;
+    display: flex;
+	justify-content: center;
+}
+
+#sheetMetadata[open] summary {
+	background-color: #fff;
+    display: flex;
+	justify-content: flex-end;
 }
 
 #sheetMetadata summary::-webkit-details-marker {
@@ -531,7 +539,8 @@ body:not(.user-is-tabbing) #sheet .cke_editable:focus {
 }
 
 #sheetMetadata summary:after {
-  	content: " ❯";
+  	content: "❯";
+	margin: 2px 0 0 6px;
 }
 #sheetMetadata[open] summary span {
 	display: none;
@@ -541,8 +550,7 @@ body:not(.user-is-tabbing) #sheet .cke_editable:focus {
     top: 54px;
     margin: 0 80px;
     position: relative;
-    display: flex;
-    justify-content: flex-end;
+    align-self: flex-end;
 }
 
 #sheetMetadata .metadataOpenDetails {
