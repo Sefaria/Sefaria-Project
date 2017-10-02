@@ -492,6 +492,7 @@ def put_text_mapping(index_name):
                 "naive_lemmatizer": {
                     'type': 'string',
                     'analyzer': 'sefaria-naive-lemmatizer'
+                    'search_analyzer': 'sefaria-naive-lemmatizer-less-prefixes'
                 }
             }
         }
