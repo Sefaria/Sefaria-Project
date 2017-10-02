@@ -1251,7 +1251,7 @@ class ReaderApp extends Component {
                     analyticsInitialized={this.state.initialAnalyticsTracked} />) : null;
 
     var panels = [];
-    var allOpenRefs = panelStates.filter( panel => panel.mode == "Text")
+    var allOpenRefs = panelStates.filter( panel => panel.mode == "Text" && !panel.menuOpen)
                                   .map( panel => Sefaria.humanRef(panel.highlightedRefs.length ? panel.highlightedRefs : panel.refs));
 
     for (var i = 0; i < panelStates.length; i++) {
