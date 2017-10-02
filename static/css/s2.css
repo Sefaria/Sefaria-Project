@@ -1405,8 +1405,14 @@ a.readerNavCategory {
   }
 }
 .hebrew .readerTextTableOfContents .content .tocSection,
-.hebrew .readerTextTableOfContents .content .tocContent {
+.hebrew .readerTextTableOfContents .content .tocContent,
+.english .readerTextTableOfContents.noLangToggleInHebrew .content .tocContent,
+.bilingual .readerTextTableOfContents.noLangToggleInHebrew .content .tocContent{
   text-align: right;
+}
+.english .readerTextTableOfContents.noLangToggleInHebrew .content .tocContent,
+.bilingual .readerTextTableOfContents.noLangToggleInHebrew .content .tocContent{
+  direction: rtl;
 }
 .readerTextTableOfContents .versionsBox {
   padding: 20px 0;
