@@ -693,9 +693,7 @@ class ReaderPanel extends Component {
     var style = {"fontSize": this.state.settings.fontSize + "%"};
     var hideReaderControls = (
         this.state.mode === "TextAndConnections" ||
-        this.state.menuOpen === "text toc" ||
-        this.state.menuOpen === "book toc" ||
-        this.state.menuOpen === "compare" ||
+        this.state.menuOpen ||
         this.props.hideNavHeader
     );
 
@@ -730,9 +728,10 @@ class ReaderPanel extends Component {
             <div className="readerContent" style={style}>
               {items}
             </div>
-        :""}
+        : null}
 
         {menu}
+        
         {this.state.displaySettingsOpen ? (<ReaderDisplayOptionsMenu
                                               settings={this.state.settings}
                                               multiPanel={this.props.multiPanel}
