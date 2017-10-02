@@ -906,7 +906,9 @@ class VersionBlock extends Component {
       "license",
       "priority",
       "digitizedBySefaria",
-      "status"
+      "status",
+      "heVersionTitle",
+      "heVersionNotes"
     ];
     this.licenseMap = {
       "Public Domain": "https://en.wikipedia.org/wiki/Public_domain",
@@ -940,6 +942,9 @@ class VersionBlock extends Component {
   onVersionNotesChange(event) {
     this.setState({versionNotes: event.target.value, "error": null});
   }
+  onHeVersionNotesChange(event) {
+    this.setState({heVersionNotes: event.target.value, "error": null});
+  }
   onPriorityChange(event) {
     this.setState({priority: event.target.value, "error": null});
   }
@@ -951,6 +956,9 @@ class VersionBlock extends Component {
   }
   onVersionTitleChange(event) {
     this.setState({versionTitle: event.target.value, "error": null});
+  }
+  onHeVersionTitleChange(event) {
+    this.setState({heVersionTitle: event.target.value, "error": null});
   }
   saveVersionUpdate(event) {
     var v = this.props.version;
@@ -1029,6 +1037,9 @@ class VersionBlock extends Component {
             {close_icon}
             <input id="versionTitle" className="" type="text" value={this.state.versionTitle} onChange={this.onVersionTitleChange} />
 
+            <label htmlFor="heVersionTitle" className="">Hebrew Version Title</label>
+            <input id="heVersionTitle" className="" type="text" value={this.state.heVersionTitle} onChange={this.onHeVersionTitleChange} />
+
             <label htmlFor="versionSource">Version Source</label>
             <input id="versionSource" className="" type="text" value={this.state.versionSource} onChange={this.onVersionSourceChange} />
 
@@ -1048,6 +1059,9 @@ class VersionBlock extends Component {
 
             <label id="versionNotes_label" htmlFor="versionNotes">VersionNotes</label>
             <textarea id="versionNotes" placeholder="Version Notes" onChange={this.onVersionNotesChange} value={this.state.versionNotes} rows="5" cols="40"/>
+
+            <label id="heVersionNotes_label" htmlFor="versionNotes">Hebrew VersionNotes</label>
+            <textarea id="heVersionNotes" placeholder="Hebrew Version Notes" onChange={this.onHeVersionNotesChange} value={this.state.heVersionNotes} rows="5" cols="40"/>
             <div>
               <div id="delete_button" onClick={this.deleteVersion}>Delete Version</div>
               <div id="save_button" onClick={this.saveVersionUpdate}>SAVE</div>
@@ -1088,7 +1102,9 @@ class VersionBlock extends Component {
             {this.props.showHistory ? <span className="separator">-</span>: null}
             {this.props.showHistory ? <a className="versionHistoryLink" href={`/activity/${Sefaria.normRef(this.props.currentRef)}/${v.language}/${v.versionTitle && v.versionTitle.replace(/\s/g,"_")}`}>Version History&nbsp;›</a>:""}
           </div>
-          {this.props.showNotes && !!v.versionNotes ? <div className="versionNotes" dangerouslySetInnerHTML={ {__html: v.versionNotes} }></div>:""}
+          {this.props.showNotes && !!(v.versionNotes || v.heVersionNotes) ? <div className="versionNotes"
+            dangerouslySetInnerHTML={ {__html: (this.props.interfaceLang=="english" || v.heVersionNotes==="") ? v.versionNotes : v.heVersionNotes} }
+          ></div>:""}
         </div>
       );
     }

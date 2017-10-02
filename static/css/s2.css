@@ -1220,7 +1220,9 @@ a.readerNavCategory {
 }
 .readerTextTableOfContents .versionEditForm #versionTitle,
 .readerTextTableOfContents .versionEditForm #versionSource,
-.readerTextTableOfContents .versionEditForm #versionNotes
+.readerTextTableOfContents .versionEditForm #versionNotes,
+.readerTextTableOfContents .versionEditForm #heVersionTitle,
+.readerTextTableOfContents .versionEditForm #heVersionNotes
  {
   width: 98%;
 }
