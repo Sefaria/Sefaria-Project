@@ -538,10 +538,11 @@ body:not(.user-is-tabbing) #sheet .cke_editable:focus {
 }
 #sheetMetadata[open] summary:after {
   	content: "✕";
-    top: 34px;
-    right: 80px;
+    top: 54px;
+    margin: 0 80px;
     position: relative;
-    float: right;
+    display: flex;
+    justify-content: flex-end;
 }
 
 #sheetMetadata .metadataOpenDetails {
