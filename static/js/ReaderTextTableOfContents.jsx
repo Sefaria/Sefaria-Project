@@ -152,7 +152,7 @@ class ReaderTextTableOfContents extends Component {
     var index     = Sefaria.index(title);
     var heTitle   = index ? index.heTitle : title;
     var category  = this.props.category;
-    var catUrl    = "/texts/" + (category == "Commentary" ? 
+    var catUrl    = "/texts/" + (category == "Commentary" ?
                                   index.categories.slice(0, index.categories.indexOf("Commentary") + 1).join("/")
                                   : category);
 
@@ -316,7 +316,8 @@ class ReaderTextTableOfContents extends Component {
                       defaultStruct={"default_struct" in details && details.default_struct in details.alts ? details.default_struct : "default"}
                       currentRef={this.props.currentRef}
                       narrowPanel={this.props.narrowPanel}
-                      title={this.props.title} />
+                      title={this.props.title}
+                      interfaceLang={this.props.interfaceLang}/>
                   </div>
                   : <LoadingMessage />}
                   {downloadSection}
@@ -514,7 +515,8 @@ class TextTableOfContentsNavigation extends Component {
                         versionsList={this.props.versionsList}
                         openVersion={this.props.openVersion}
                         title={this.props.title}
-                        currentRef={this.props.currentRef} />;
+                        currentRef={this.props.currentRef}
+                        interfaceLang={this.props.interfaceLang}  />;
         break;
       default:
         var content = <SchemaNode
@@ -862,7 +864,8 @@ class VersionsList extends Component {
         currentRef={this.props.currentRef || this.props.title}
         firstSectionRef={"firstSectionRef" in v ? v.firstSectionRef : null}
         openVersion={this.props.openVersion}
-        key={v.versionTitle + "/" + v.language}/>
+        key={v.versionTitle + "/" + v.language}
+        interfaceLang={this.props.interfaceLang}  />
      )
     );
 
@@ -1071,7 +1074,9 @@ class VersionBlock extends Component {
       return (
         <div className = "versionBlock">
           <div className="versionTitle">
-            <a onClick={this.openVersion} href={"/" + (this.props.firstSectionRef ? this.props.firstSectionRef : this.props.version.versionTitle) + "/" + this.props.version.language + "/" + this.props.version.versionTitle}>{v.versionTitle}</a>
+            <a onClick={this.openVersion} href={"/" + (this.props.firstSectionRef ? this.props.firstSectionRef : this.props.version.versionTitle) + "/" + this.props.version.language + "/" + this.props.version.versionTitle}>
+                {(this.props.interfaceLang=="english" || v.heVersionTitle==="") ? v.versionTitle : v.heVersionTitle}
+                </a>
             {edit_icon}
           </div>
           <div className="versionDetails">
