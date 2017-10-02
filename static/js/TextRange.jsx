@@ -310,7 +310,7 @@ class TextRange extends Component {
     } else {var sidebarNum = null;}
 
     return (
-      <div className={classes} onClick={this.handleClick} onKeyPress={this.handleKeyPress}>
+      <div className={classes} onClick={this.handleClick} onKeyPress={this.handleKeyPress} data-ref={this.props.sref}>
         {sidebarNum}
         {this.props.hideTitle ? null :
         (<div className="title">

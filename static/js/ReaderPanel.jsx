@@ -89,7 +89,6 @@ class ReaderPanel extends Component {
   componentDidMount() {
     window.addEventListener("resize", this.setWidth);
     this.setWidth();
-    this.setHeadroom();
     if (this.props.panelPosition) {  //Focus on the first focusable element of the newly loaded panel. Mostly for a11y
       var curPanel = $(".readerPanel")[this.props.panelPosition];
       $(curPanel).find(':focusable').first().focus();
@@ -118,7 +117,6 @@ class ReaderPanel extends Component {
     }
   }
   componentDidUpdate(prevProps, prevState) {
-    this.setHeadroom();
     if (prevProps.layoutWidth !== this.props.layoutWidth) {
       this.setWidth();
     }
@@ -186,15 +184,6 @@ class ReaderPanel extends Component {
   handleTextListClick(ref) {
     this.showBaseText(ref);
   }
-  setHeadroom() {
-    if (this.props.multiPanel) { return; }
-    var $node    = $(ReactDOM.findDOMNode(this));
-    var $header  = $node.find(".readerControls");
-    if (this.state.mode !== "TextAndConnections") {
-      var scroller = $node.find(".textColumn")[0];
-      $header.headroom({scroller: scroller});
-    }
-  }
   openConnectionsInPanel(ref) {
     var refs = typeof ref == "string" ? [ref] : ref;
     this.replaceHistory = this.state.mode === "TextAndConnections"; // Don't push history for change in Connections focus
@@ -220,6 +209,7 @@ class ReaderPanel extends Component {
       filter: filter,
       recentFilters: [],
       menuOpen: null,
+      currentlyVisibleRef: ref,
       version: version,
       versionLanguage: versionLanguage,
       settings: this.state.settings
@@ -392,18 +382,17 @@ class ReaderPanel extends Component {
       mySheetSort: sort,
     });
   }
+  setCurrentlyVisibleRef(ref) {
+     this.conditionalSetState({
+      currentlyVisibleRef: ref,
+    });   
+  } 
   currentMode() {
     return this.state.mode;
   }
   currentRef() {
     // Returns a string of the current ref, the first if there are many
     return this.state.refs && this.state.refs.length ? this.state.refs[0] : null;
-  }
-  lastCurrentRef() {
-    // Returns a string of the current ref, the last if there are many
-    var ret = this.state.refs && this.state.refs.length ? this.state.refs.slice(-1)[0] : null;
-    if (ret && typeof ret == "object") {debugger;}
-    return ret;
   }
   currentData() {
     // Returns the data from the library of the current ref
@@ -470,6 +459,7 @@ class ReaderPanel extends Component {
           multiPanel={this.props.multiPanel}
           mode={this.state.mode}
           settings={Sefaria.util.clone(this.state.settings)}
+          hasSidebar={this.props.hasSidebar}
           interfaceLang={this.props.interfaceLang}
           setOption={this.setOption}
           showBaseText={this.showBaseText}
@@ -477,6 +467,7 @@ class ReaderPanel extends Component {
           onSegmentClick={this.handleBaseSegmentClick}
           onCitationClick={this.handleCitationClick}
           setTextListHighlight={this.setTextListHighlight}
+          setCurrentlyVisibleRef={this.setCurrentlyVisibleRef}
           setSelectedWords={this.setSelectedWords}
           selectedWords={this.state.selectedWords}
           panelsOpen={this.props.panelsOpen}
@@ -565,7 +556,7 @@ class ReaderPanel extends Component {
                     settingsLanguage={this.state.settings.language == "hebrew"?"he":"en"}
                     category={this.currentCategory()}
                     narrowPanel={!this.props.multiPanel}
-                    currentRef={this.lastCurrentRef()}
+                    currentRef={this.state.currentlyVisibleRef}
                     openNav={this.openMenu.bind(null, "navigation")}
                     openDisplaySettings={this.openDisplaySettings}
                     selectVersion={this.props.selectVersion}
@@ -643,7 +634,7 @@ class ReaderPanel extends Component {
                       toggleLanguage={this.toggleLanguage}
                       navHome={this.openMenu.bind(null, "navigation")}
                       openDisplaySettings={this.openDisplaySettings}
-                      key={"TopicPage"} />);   
+                      key={"TopicPage"} />);
       } else {
         var menu = (<TopicsPanel
                       interfaceLang={this.props.interfaceLang}
@@ -656,7 +647,7 @@ class ReaderPanel extends Component {
                       toggleLanguage={this.toggleLanguage}
                       navHome={this.openMenu.bind(null, "navigation")}
                       openDisplaySettings={this.openDisplaySettings}
-                      key={"TopicsPanel"} />);        
+                      key={"TopicsPanel"} />);
       }
 
     } else if (this.state.menuOpen === "account") {
@@ -702,9 +693,7 @@ class ReaderPanel extends Component {
     var style = {"fontSize": this.state.settings.fontSize + "%"};
     var hideReaderControls = (
         this.state.mode === "TextAndConnections" ||
-        this.state.menuOpen === "text toc" ||
-        this.state.menuOpen === "book toc" ||
-        this.state.menuOpen === "compare" ||
+        this.state.menuOpen ||
         this.props.hideNavHeader
     );
 
@@ -713,7 +702,7 @@ class ReaderPanel extends Component {
         {hideReaderControls ? null :
         (<ReaderControls
           showBaseText={this.showBaseText}
-          currentRef={this.lastCurrentRef()}
+          currentRef={this.state.currentlyVisibleRef}
           currentMode={this.currentMode.bind(this)}
           currentCategory={this.currentCategory}
           currentBook={this.currentBook.bind(this)}
@@ -739,9 +728,10 @@ class ReaderPanel extends Component {
             <div className="readerContent" style={style}>
               {items}
             </div>
-        :""}
+        : null}
 
         {menu}
+        
         {this.state.displaySettingsOpen ? (<ReaderDisplayOptionsMenu
                                               settings={this.state.settings}
                                               multiPanel={this.props.multiPanel}
@@ -798,6 +788,7 @@ ReaderPanel.propTypes = {
   masterPanelLanguage:         PropTypes.string,
   panelsOpen:                  PropTypes.number,
   allOpenRefs:                 PropTypes.array,
+  hasSidebar:                  PropTypes.bool,
   layoutWidth:                 PropTypes.number,
   setTextListHighlight:        PropTypes.func,
   setSelectedWords:            PropTypes.func,
@@ -887,19 +878,19 @@ class ReaderControls extends Component {
     var leftControls = hideHeader || connectionsHeader ? null :
       (<div className="leftButtons">
           {this.props.multiPanel ? (<ReaderNavigationMenuCloseButton onClick={this.props.closePanel} />) : null}
-          {this.props.multiPanel ? null : (<ReaderNavigationMenuMenuButton onClick={this.props.openMenu.bind(null, "navigation")} />)}
+          {this.props.multiPanel ? null : (<ReaderNavigationMenuMenuButton onClick={this.props.openMenu.bind(null, "navigation")}/>)}
         </div>);
     var rightControls = hideHeader || connectionsHeader ? null :
       (<div className="rightButtons">
           <ReaderNavigationMenuDisplaySettingsButton onClick={this.props.openDisplaySettings} />
         </div>);
-    var classes = classNames({readerControls: 1, headeroom: 1, connectionsHeader: mode == "Connections", fullPanel: this.props.multiPanel});
+    var classes = classNames({readerControls: 1, connectionsHeader: mode == "Connections", fullPanel: this.props.multiPanel});
     var readerControls = hideHeader ? null :
         (<div className={classes}>
           <div className="readerControlsInner">
             {leftControls}
-            {rightControls}
             {centerContent}
+            {rightControls}
           </div>
         </div>);
     return (
@@ -997,8 +988,8 @@ class ReaderDisplayOptionsMenu extends Component {
     colorToggle = this.props.multiPanel ? null : colorToggle;
 
     var sizeOptions = [
-      {name: "smaller", content: "Aa", role: "button", ariaLabel: "Decrease font size" },
-      {name: "larger", content: "Aa", role: "button", ariaLabel: "Increase font size"  }
+      {name: "smaller", content: Sefaria._("Aa"), role: "button", ariaLabel: Sefaria._("Decrease font size") },
+      {name: "larger", content: Sefaria._("Aa"), role: "button", ariaLabel: Sefaria._("Increase font size")  }
     ];
     var sizeToggle = (
         <ToggleSet

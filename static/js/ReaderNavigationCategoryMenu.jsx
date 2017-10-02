@@ -55,35 +55,44 @@ class ReaderNavigationCategoryMenu extends Component {
         var heCatTitle = Sefaria.hebrewTerm(this.props.categories[0]) + " " + Sefaria.hebrewTerm("Commentary"); // HEBREW NEEDED
       } else {
         var catTitle   = this.props.category;
-        var heCatTitle = Sefaria.hebrewTerm(this.props.category);        
+        var heCatTitle = Sefaria.hebrewTerm(this.props.category);
       }
 
     }
     var catContents    = Sefaria.tocItemsByCategories(categories);
     var nestLevel      = this.props.category == "Commentary" ? 1 : 0;
-    var navMenuClasses = classNames({readerNavCategoryMenu: 1, readerNavMenu: 1, noHeader: this.props.hideNavHeader});
+    var navMenuClasses = classNames({readerNavCategoryMenu: 1, readerNavMenu: 1, noHeader: this.props.hideNavHeader, noLangToggleInHebrew: 1});
     var navTopClasses  = classNames({readerNavTop: 1, searchOnly: 1, colorLineOnly: this.props.hideNavHeader});
     var contentClasses = classNames({content: 1, hasFooter: footer != null});
     return (<div className={navMenuClasses}>
               <div className={navTopClasses}>
                 <CategoryColorLine category={categories[0]} />
-                {this.props.hideNavHeader ? null : (<ReaderNavigationMenuMenuButton onClick={this.props.navHome} compare={this.props.compare} />)}
-                {this.props.hideNavHeader ? null : (<ReaderNavigationMenuDisplaySettingsButton onClick={this.props.openDisplaySettings} />)}
+                {this.props.hideNavHeader ? null : (<ReaderNavigationMenuMenuButton onClick={this.props.navHome} compare={this.props.compare} interfaceLang={this.props.interfaceLang}/>)}
                 {this.props.hideNavHeader ? null : (<h2>
                   <span className="en">{catTitle}</span>
                   <span className="he">{heCatTitle}</span>
                 </h2>)}
+                {this.props.hideNavHeader ? null : 
+                  (this.props.interfaceLang === "hebrew" ? 
+                    <ReaderNavigationMenuDisplaySettingsButton placeholder={true} /> 
+                    : <ReaderNavigationMenuDisplaySettingsButton onClick={this.props.openDisplaySettings} />)}
               </div>
               <div className={contentClasses}>
                 <div className="contentInner">
                   {this.props.hideNavHeader ? (<h1>
-                      <LanguageToggleButton toggleLanguage={this.props.toggleLanguage} />
+                      {this.props.interfaceLang !== "hebrew" ? <LanguageToggleButton toggleLanguage={this.props.toggleLanguage} /> : null }
                       <span className="en">{catTitle}</span>
                       <span className="he">{heCatTitle}</span>
                     </h1>) : null}
                   {toggle}
                   <CategoryAttribution categories={categories} />
-                  <ReaderNavigationCategoryMenuContents contents={catContents} categories={categories} width={this.props.width} category={this.props.category} nestLevel={nestLevel} />
+                  <ReaderNavigationCategoryMenuContents 
+                    contents={catContents} 
+                    categories={categories}
+                    width={this.props.width} 
+                    category={this.props.category}
+                    contentLang={this.props.contentLang}
+                    nestLevel={nestLevel} />
                 </div>
                 {footer}
               </div>
@@ -101,12 +110,13 @@ ReaderNavigationCategoryMenu.propTypes = {
   width:               PropTypes.number,
   compare:             PropTypes.bool,
   hideNavHeader:       PropTypes.bool,
-  interfaceLang:       PropTypes.string
+  contentLang:         PropTypes.string,
+  interfaceLang:       PropTypes.string,
 };
 
 
 class ReaderNavigationCategoryMenuContents extends Component {
-  // Inner content of Category menu (just category title and boxes of)
+  // Inner content of Category menu (just category title and boxes of texts/subcategories)
   getRenderedTextTitleString(title, heTitle){
     var whiteList = ['Midrash Mishlei', 'Midrash Tehillim', 'Midrash Tanchuma'];
     var displayCategory = this.props.category;
@@ -128,11 +138,34 @@ class ReaderNavigationCategoryMenuContents extends Component {
     }
     return [title, heTitle];
   }
+  hebrewContentSort(cats) {
+    // Sorts contents of this category by Hebrew Alphabetical
+    var heCats = cats.slice().map(function(item, indx) {
+      item.enOrder = indx;
+      return item;
+    });
+    heCats = heCats.sort(function(a, b) {
+      if ("order" in a || "order:" in b) {
+        var aOrder = "order" in a ? a.order : 9999;
+        var bOrder = "order" in b ? b.order : 9999;
+        return aOrder > bOrder ? 1 : -1;
+      
+      } else if (a.heTitle && b.heTitle) {
+        return a.heTitle > b.heTitle ? 1 : -1;
+      
+      }
+      return a.enOrder - b.enOrder;
+    });
+    return heCats; 
+  }
   render() {
       var content = [];
       var cats = this.props.categories || [];
-      for (var i = 0; i < this.props.contents.length; i++) {
-        var item = this.props.contents[i];
+      var contents = this.props.contentLang == "hebrew" ?
+                      this.hebrewContentSort(this.props.contents) 
+                      : this.props.contents;
+      for (var i = 0; i < contents.length; i++) {
+        var item = contents[i];
         if (item.category) {
           // Category
           var newCats = cats.concat(item.category);
@@ -143,7 +176,7 @@ class ReaderNavigationCategoryMenuContents extends Component {
                 var chItem = item.contents[0];
                 var [title, heTitle] = this.getRenderedTextTitleString(chItem.title, chItem.heTitle);
                 var url     = "/" + Sefaria.normRef(chItem.firstSection);
-                content.push((<a href={url} className={'refLink blockLink sparse' + chItem.sparseness} data-ref={chItem.firstSection} key={"text." + this.props.nestLevel + "." + i}>
+                content.push((<a href={url} className={'refLink blockLink'} data-ref={chItem.firstSection} key={"text." + this.props.nestLevel + "." + i}>
                                 <span className='en'>{title}</span>
                                 <span className='he'>{heTitle}</span>
                               </a>
@@ -164,7 +197,13 @@ class ReaderNavigationCategoryMenuContents extends Component {
                               <span className='en'>{item.category}</span>
                               <span className='he'>{item.heCategory}</span>
                             </h3>
-                            <ReaderNavigationCategoryMenuContents contents={item.contents} categories={newCats} width={this.props.width} nestLevel={this.props.nestLevel + 1} category={this.props.category}  />
+                            <ReaderNavigationCategoryMenuContents 
+                              contents={item.contents}
+                              categories={newCats}
+                              width={this.props.width}
+                              nestLevel={this.props.nestLevel + 1}
+                              category={this.props.category} 
+                              contentLang={this.props.contentLang} />
                           </div>));
           }
         } else {
@@ -172,7 +211,7 @@ class ReaderNavigationCategoryMenuContents extends Component {
           var [title, heTitle] = this.getRenderedTextTitleString(item.title, item.heTitle);
           var ref = Sefaria.recentRefForText(item.title) || item.firstSection;
           var url = "/" + Sefaria.normRef(ref);
-          content.push((<a href={url} className={'refLink blockLink sparse' + item.sparseness} data-ref={ref} key={"text." + this.props.nestLevel + "." + i}>
+          content.push((<a href={url} className={'refLink blockLink'} data-ref={ref} key={"text." + this.props.nestLevel + "." + i}>
                           <span className='en'>{title}</span>
                           <span className='he'>{heTitle}</span>
                         </a>

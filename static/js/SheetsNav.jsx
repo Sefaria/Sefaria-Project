@@ -380,10 +380,14 @@ class PublicSheetListing extends Component {
     var title = sheet.title ? sheet.title.stripHtml() : "Untitled Source Sheet";
     var url = "/sheets/" + sheet.id;
     return (<a className="sheet" href={url} key={url}>
-              {sheet.ownerImageUrl ? (<img className="sheetImg" src={sheet.ownerImageUrl} alt={sheet.ownerName}/>) : null}
+              <div className="sheetTextInfo">
+                {sheet.ownerImageUrl ? (<img className="sheetImg" src={sheet.ownerImageUrl} alt={sheet.ownerName}/>) : null}
+                <div className="sheetAuthTitle">
+                  <div className="sheetAuthor">{sheet.ownerName}</div>
+                  <div className="sheetTitle">{title}</div>
+                </div>
+              </div>
               <span className="sheetViews"><i className="fa fa-eye" aria-label="Number of Sheet Views"></i> {sheet.views}</span>
-              <div className="sheetAuthor">{sheet.ownerName}</div>
-              <div className="sheetTitle">{title}</div>
             </a>);
   }
 }
@@ -521,7 +525,7 @@ class MySheetsPage extends Component {
                   (<div className="sheetsNewButton">
                     <a className="button white" href="/sheets/new">
                         <span className="int-en">Create a Source Sheet</span>
-                        <span className="int-he">צור דף מקורות חדש</span>
+                        <span className="int-he">דף מקורות חדש</span>
                     </a>
                   </div>) : null }
 
@@ -568,8 +572,13 @@ class PrivateSheetListing extends Component {
     }, this);
 
    return (<div className="sheet userSheet" href={url} key={url}>
-              <a className="sheetTitle" href={url}>{title}</a>  <SheetAccessIcon sheet={sheet} />
-              <div>{sheet.views} Views · {sheet.modified} · <span className="tagString">{tagString}</span></div>
+              <div className="userSheetTitle">
+                <a className="sheetTitle" href={url}>{title}</a>
+                <span className="sheetAccess"><SheetAccessIcon sheet={sheet} /></span>
+              </div>
+              <div className="userSheetInfo">
+                <span>{sheet.views} {Sefaria._('Views')}</span><span>{sheet.modified}</span><span className="tagString">{tagString}</span>
+              </div>
           </div>);
   }
 }

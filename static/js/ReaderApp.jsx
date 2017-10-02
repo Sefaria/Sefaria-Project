@@ -1,6 +1,3 @@
-const {
-  InterruptingMessage,
-}                   = require('./Misc');
 const React         = require('react');
 const classNames    = require('classnames');
 const extend        = require('extend');
@@ -11,6 +8,9 @@ const ReaderPanel   = require('./ReaderPanel');
 const $             = require('./sefaria/sefariaJquery');
 const EditGroupPage = require('./EditGroupPage');
 const Footer        = require('./Footer');
+const {
+  InterruptingMessage,
+}                   = require('./Misc');
 import Component from 'react-class';
 
 
@@ -310,6 +310,7 @@ class ReaderApp extends Component {
           (next.mode === "TextAndConnections" && prev.highlightedRefs.slice(-1)[0] !== next.highlightedRefs.slice(-1)[0]) ||
           ((next.mode === "Connections" || next.mode === "TextAndConnections") && prev.filter && !prev.filter.compare(next.filter)) ||
           (next.mode === "Connections" && !prev.refs.compare(next.refs)) ||
+          (next.currentlyVisibleRef === prev.currentlyVisibleRef) ||
           (next.connectionsMode !== prev.connectionsMoade) ||
           (prev.navigationSheetTag !== next.navigationSheetTag) ||
           (prev.version !== next.version) ||
@@ -469,7 +470,7 @@ class ReaderApp extends Component {
             break;
         }
       } else if (state.mode === "Text") {
-        hist.title    = state.highlightedRefs.length ? Sefaria.normRefList(state.highlightedRefs) : Sefaria.normRefList(state.refs);
+        hist.title    = state.highlightedRefs.length ? Sefaria.normRefList(state.highlightedRefs) : state.currentlyVisibleRef;
         hist.url      = Sefaria.normRef(hist.title);
         hist.version  = state.version;
         hist.versionLanguage = state.versionLanguage;
@@ -620,6 +621,7 @@ class ReaderApp extends Component {
       version:                 state.version                 || null,
       versionLanguage:         state.versionLanguage         || null,
       highlightedRefs:         state.highlightedRefs         || [],
+      currentlyVisibleRef:     state.refs && state.refs.length ? state.refs[0] : null,
       recentFilters:           state.recentFilters           || state.filter || [],
       menuOpen:                state.menuOpen                || null, // "navigation", "text toc", "display", "search", "sheets", "home", "book toc"
       navigationCategories:    state.navigationCategories    || [],
@@ -704,12 +706,13 @@ class ReaderApp extends Component {
     // Handle a click on a text segment `ref` in from panel in position `n`
     // Update or add panel after this one to be a TextList
     this.setTextListHighlight(n, [ref]);
+    if (this.currentlyConnecting()) { return }
+    
     this.openTextListAt(n+1, [ref]);
     if ($(".readerPanel")[n+1]) { //Focus on the first focusable element of the newly loaded panel. Mostly for a11y
       var curPanel = $(".readerPanel")[n+1];
       $(curPanel).find(':focusable').first().focus();
     }
-
   }
   handleCitationClick(n, citationRef, textRef) {
     // Handle clicking on the citation `citationRef` which was found inside of `textRef` in panel `n`.
@@ -1171,6 +1174,16 @@ class ReaderApp extends Component {
       this.saveRecentlyViewed(this.state.panels[i], i);
     }
   }
+  currentlyConnecting() {
+    // returns true if there is currently an "Add Connections" Panel open
+    for (var i = 0; i < this.state.panels.length; i++) {
+      //console.log(this.state.panels[i].connectionsMode)
+      if (this.state.panels[i].connectionsMode === "Add Connection") {
+        return true;
+      }
+    }
+    return false;
+  }
   rerender() {
     this.forceUpdate();
   }
@@ -1238,8 +1251,8 @@ class ReaderApp extends Component {
                     analyticsInitialized={this.state.initialAnalyticsTracked} />) : null;
 
     var panels = [];
-    var allOpenRefs = panelStates.filter( panel => panel.mode == "Text")
-                                  .map( panel => Sefaria.normRef(panel.highlightedRefs.length ? panel.highlightedRefs : panel.refs));
+    var allOpenRefs = panelStates.filter( panel => panel.mode == "Text" && !panel.menuOpen)
+                                  .map( panel => Sefaria.humanRef(panel.highlightedRefs.length ? panel.highlightedRefs : panel.refs));
 
     for (var i = 0; i < panelStates.length; i++) {
       var panel                    = this.clonePanel(panelStates[i]);
@@ -1301,6 +1314,7 @@ class ReaderApp extends Component {
                       closePanel={closePanel}
                       panelsOpen={panelStates.length}
                       allOpenRefs={allOpenRefs}
+                      hasSidebar={panelStates.length > i+1 && panelStates[i+1].mode == "Connections"}
                       masterPanelLanguage={panel.mode === "Connections" ? panelStates[i-1].settings.language : panel.settings.language}
                       layoutWidth={width}
                       analyticsInitialized={this.state.initialAnalyticsTracked}
