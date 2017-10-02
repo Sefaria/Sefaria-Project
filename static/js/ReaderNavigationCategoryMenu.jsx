@@ -72,7 +72,10 @@ class ReaderNavigationCategoryMenu extends Component {
                   <span className="en">{catTitle}</span>
                   <span className="he">{heCatTitle}</span>
                 </h2>)}
-                {this.props.hideNavHeader || this.props.interfaceLang === "hebrew" ? null : (<ReaderNavigationMenuDisplaySettingsButton onClick={this.props.openDisplaySettings} />)}
+                {this.props.hideNavHeader ? null : 
+                  (this.props.interfaceLang === "hebrew" ? 
+                    <ReaderNavigationMenuDisplaySettingsButton placeholder={true} /> 
+                    : <ReaderNavigationMenuDisplaySettingsButton onClick={this.props.openDisplaySettings} />)}
               </div>
               <div className={contentClasses}>
                 <div className="contentInner">

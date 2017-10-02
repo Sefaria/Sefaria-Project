@@ -342,9 +342,11 @@ def index_sheet(index_name, id):
         es.index(index_name, 'sheet', doc, id)
         global doc_count
         doc_count += 1
+        return True
     except Exception, e:
         print "Error indexing sheet %d" % id
         print e
+        return False
 
 
 def make_sheet_text(sheet, pud):
@@ -537,6 +539,30 @@ def index_all_sections(index_name, skip=0, merged=False, debug=False):
 
     print "Indexed %d documents." % doc_count
 
+def index_sheets_by_timestamp(timestamp):
+    """
+    :param timestamp str: index all sheets modified after `timestamp` (in isoformat)
+    """
+
+    name_dict = get_new_and_current_index_names(merged=False, debug=False)
+    curr_index_name = name_dict['current']
+    try:
+        ids = db.sheets.find({"status": "public", "dateModified": {"$gt": timestamp}}).distinct("id")
+    except Exception, e:
+        print e
+        return str(e)
+
+    succeeded = []
+    failed = []
+
+    for id in ids:
+        did_succeed = index_sheet(curr_index_name, id)
+        if did_succeed:
+            succeeded += [id]
+        else:
+            failed += [id]
+
+    return {"succeeded": {"num": len(succeeded), "ids": succeeded}, "failed": {"num": len(failed), "ids": failed}}
 
 def index_public_sheets(index_name):
     """

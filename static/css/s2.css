@@ -470,22 +470,10 @@ input.noselect {
   overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
   position: relative;
-  padding: 0px 0 40%;
+  padding: 0 0 50%;
   box-sizing: border-box;
   background-color: inherit;
 }
-/* Adjusting for 17px scrollbars, to keep content centered
-   Only done in multiPanel mode now as a proxy for whether scrollbars take up width (on desktop they do, not on mobile)
-  Removed 12/16 -- seems to be causing problems now.
-  Restored 4/17 -- problem recurred and fixed by storing CSS, what's changing?
-*/
-.multiPanel.interface-english .textColumn {
-  padding-left: 17px;
-}
-.multiPanel.interface-hebrew .textColumn {
-  padding-right: 17px;
-}
-
 .textColumn .loadingMessage.base {
   margin: 30px 0;
   color: #999;
@@ -604,6 +592,8 @@ input.noselect {
 }
 .readerNavMenu {
   position: absolute;
+  display: flex;
+  flex-direction: column;
   top: 0;
   left: 0;
   width: 100%;
@@ -619,15 +609,10 @@ input.noselect {
   position: relative;
   box-sizing: border-box;
   padding: 30px 10px 10px;
-  height: 100%;
+  flex: 1;
   overflow-y: scroll;
   -webkit-overflow-scrolling: touch;
   font-size: 14px;
-}
-.singlePanel .readerNavMenu .content {
-  top: 58px;
-  height: calc(100% - 58px);
-  padding-top: 40px;
 }
 .interface-hebrew.multiPanel .readerNavMenu .content {
   padding-right: 40px;
@@ -693,23 +678,16 @@ input.noselect {
   font-size: 18px;
   font-family: "adobe-garamond-pro", Georgia;
   height: 48px;
-  /*margin-top: 9px;*/
 }
 .readerNavMenu .readerSearch:focus {
   outline: 0;
 }
-.readerNavTop .readerNavMenuSearchButton {
-  margin: 0 10px;
-}
+
 .readerNavTop .readerNavMenuSearchButton,
 .readerNavTop .readerNavMenuCloseButton,
 .readerNavTop .readerNavMenuMenuButton,
 .readerNavTop .readerOptions {
   text-align: left;
-  /*width: 40px;
-  height: 48px;
-  margin-top: 5px;
-  vertical-align: middle;*/
   box-sizing: border-box;
   color: #BFBFBF;
   float: left;
@@ -725,10 +703,12 @@ input.noselect {
   display: block;
   font-size: 46px;
   padding: 0;
-  line-height: 48px;
+  margin-top: -6px;
 }
 .readerNavMenuCloseButton:hover {
   text-decoration: none;
+}
+.readerNavTop .readerNavMenuSearchButton {
 }
 .readerNavTop .readerNavMenuCloseButton .fa {
   font-size: 20px;
@@ -744,6 +724,17 @@ input.noselect {
 }
 .readerNavTop .sefariaLogo img {
   vertical-align: middle;
+}
+.readerNavTop .searchBox {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+}
+.readerNavTop .searchBox .readerNavMenuSearchButton {
+  margin: 0 10px;
+}
+.readerNavTop .searchBox .readerSearch {
+  flex: 1;
 }
 .readerNavMenu h1 {
   text-align: center;
@@ -1924,10 +1915,14 @@ a.readerNavCategory {
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
 }
 .readerNavMenu .sheet {
-  display: block;
+  display: flex;
+  justify-content: space-between;
   padding: 25px 0px;
   border-bottom: 1px solid #eee;
   color: black;
+}
+.readerNavMenu .sheet:hover{
+  text-decoration: none;
 }
 .readerNavMenu .sheet:first-child {
   padding-top: 0;
@@ -1935,9 +1930,20 @@ a.readerNavCategory {
 .readerNavMenu .sheet .sheetImg {
   height: 40px;
   width: 40px;
-  float: left;
-  margin: 1px 14px 20px 0;
+  margin: 1px 0px 0px 0;
   border-radius: 2px;
+}
+.readerNavMenu .sheet .sheetTextInfo{
+  display: flex;
+  justify-content: flex-start;
+}
+.readerNavMenu .sheet:hover .sheetTextInfo{
+  text-decoration: underline;
+}
+.readerNavMenu .sheet .sheetAuthTitle{
+  display: flex;
+  flex-flow: column;
+  margin: auto 14px;
 }
 .readerNavMenu .sheet .sheetAuthor {
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
@@ -1946,15 +1952,19 @@ a.readerNavCategory {
   margin-bottom: 6px;
   letter-spacing: 1px;
 }
-.readerNavMenu .sheet .sheetTitle {
+.readerNavMenu .sheet .sheetTitle{
   overflow: hidden;
   font-size: 16px;
+  unicode-bidi: plaintext;
 }
-.readerNavMenu .sheet .sheetViews {
-  float: right;
+.readerNavMenu .sheet .sheetViews{
   color: #CCC;
   font-size: 12px;
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+}
+.readerNavMenu .sheet:hover .sheetViews{
+  display: inline-block ;
+  text-decoration: none;
 }
 .readerSheetsNav h2 .en {
   display: inline;
@@ -2035,7 +2045,7 @@ a.readerNavCategory {
   padding: 0 40px 0 40px;
 }
 .singlePanel .readerControls .readerControlsInner {
-  padding: 0 30px;
+  padding: 0 10px;
 }
 .readerControls .readerTextToc {
   text-align: center;
@@ -2099,7 +2109,7 @@ a.readerNavCategory {
 }
 .leftButtons .readerNavMenuMenuButton {
   font-size: 22px;
-  margin-top: 2px;
+  margin-top: 6px;
 }
 .leftButtons .readerNavMenuCloseButton {
   font-size: 44px;
@@ -2647,8 +2657,6 @@ a.readerNavCategory {
   display: flex;
   align-items: center;
   margin: 0 15px;
-  /*text-align: center;
-  line-height: 58px;*/
 }
 .connectionsPanelHeader .languageToggle {
   margin: 0 15px;
@@ -3653,16 +3661,38 @@ h2.splitHeader .he {
   font-color: inherit;
 }
 .sheet.userSheet .sheetTitle  {
-   font-family: "adobe-garamond-pro", Georgia, serif;
-   font-size: 20px;
-   color:#333;
-   margin-bottom: 6px;
+  font-family: "adobe-garamond-pro", Georgia, serif;
+  font-size: 20px;
+  color:#333;
+  margin-bottom: 6px;
+  unicode-bidi: plaintext;
 }
 .sheet.userSheet {
-   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
-   font-size: 14px;
-   color:#999;
+  font-size: 14px;
+  color:#999;
   text-decoration: none;
+  flex-direction: column;
+}
+.interface-english .sheet.userSheet{
+  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+}
+.interface-hebrew .sheet.userSheet{
+  font-family: "Heebo", "sans-serif";
+}
+.sheet.userSheet .userSheetInfo{
+  display: flex;
+  justify-content: flex-start;
+}
+.sheet.userSheet .userSheetInfo span:before{
+  content: '·';
+  margin: auto 4px;
+}
+.sheet.userSheet .userSheetInfo span:first-child:before{
+  content: '';
+  margin: 0;
+}
+.sheet.userSheet .sheetAccess{
+  margin: auto 4px;
 }
 .filterByTag {
   cursor: pointer;
