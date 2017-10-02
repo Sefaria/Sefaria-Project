@@ -564,6 +564,10 @@ body:not(.user-is-tabbing) #sheet .cke_editable:focus {
 	padding: 14px 0;
 }
 
+#sheetSummary {
+	margin-top: 20px;
+}
+
 #likeLink {
 	color: black;
 	text-decoration: none;
