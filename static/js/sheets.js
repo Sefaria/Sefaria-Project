@@ -1602,6 +1602,7 @@ $(function() {
 
 	$("#shareWithOthers .ok").click(function(){
 		$("#shareWithOthers, #overlay").hide();
+		$("#sheetSummary").text($("#sheetSummaryInput").val());
 		autoSave();
 	});
 
@@ -2455,6 +2456,7 @@ function readSheet() {
 	sheet.status   = "unlisted";
 	sheet.nextNode = sjs.current.nextNode;
 	sheet.tags     = sjs.sheetTagger.tags();
+	sheet.summary  = $("#sheetSummaryInput").val();
 
 	if ($("#author").hasClass("custom")) {
 		sheet.attribution = $("#author").html();

@@ -670,9 +670,7 @@
             {% endif %}
 
             <div id="sheetSummary">
-           	{% if sheet.summary %}
                 {{ sheet.summary }}
-            {% endif %}
             </div>
 
             <div id="sheetTags">
@@ -993,9 +991,25 @@
 <div id="shareWithOthers" class="modal s2Modal">
     <span class="close-button"></span>
     <div class="title">
-        <span class="int-en">Share with Others</span>
+        <span class="int-en">Share this sheet</span>
         <span class="int-he">שיתוף עם אחרים</span>
     </div>
+
+    <div class="content">
+        <div class="inputHeader">
+            <span class="int-en">Description</span>
+            <span class="int-he">תיאור</span>
+        </div>
+		<textarea id="sheetSummaryInput"
+                  placeholder=
+                          {% if request.interfaceLang == 'english' %}
+                              "Write a summary to help others understand your sheet..."
+                          {% else %}
+                              "heb_text"
+                          {% endif %}/>{{ sheet.summary }}</textarea>
+
+    </div>
+
 
     <div class="content">
         <div class="inputHeader"><img src="/static/img/shareablelink.png" alt="Sharable Link Icon">
@@ -1057,7 +1071,7 @@
 	{% endif %}
     <div id="sharingDesc"></div><span id="sharingType" data-sharing=""></span>
     <div class="ok button">
-        <span class="int-en">Save</span>
+        <span class="int-en">Save Changes</span>
         <span class="int-he">שמירה</span>
     </div>
 </div>
