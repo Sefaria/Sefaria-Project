@@ -1089,7 +1089,7 @@ class VersionBlock extends Component {
         <div className = "versionBlock">
           <div className="versionTitle">
             <a onClick={this.openVersion} href={"/" + (this.props.firstSectionRef ? this.props.firstSectionRef : this.props.version.versionTitle) + "/" + this.props.version.language + "/" + this.props.version.versionTitle}>
-                {(this.props.interfaceLang=="english" || v.heVersionTitle==="") ? v.versionTitle : v.heVersionTitle}
+                {(Sefaria.interfaceLang=="english" || v.heVersionTitle==="") ? v.versionTitle : v.heVersionTitle}
                 </a>
             {edit_icon}
           </div>
@@ -1103,7 +1103,7 @@ class VersionBlock extends Component {
             {this.props.showHistory ? <a className="versionHistoryLink" href={`/activity/${Sefaria.normRef(this.props.currentRef)}/${v.language}/${v.versionTitle && v.versionTitle.replace(/\s/g,"_")}`}>Version History&nbsp;›</a>:""}
           </div>
           {this.props.showNotes && !!(v.versionNotes || v.heVersionNotes) ? <div className="versionNotes"
-            dangerouslySetInnerHTML={ {__html: (this.props.interfaceLang=="english" || v.heVersionNotes==="") ? v.versionNotes : v.heVersionNotes} }
+            dangerouslySetInnerHTML={ {__html: (Sefaria.interfaceLang=="english" || v.heVersionNotes==="") ? v.versionNotes : v.heVersionNotes} }
           ></div>:""}
         </div>
       );
