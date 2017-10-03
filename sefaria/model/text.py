@@ -941,6 +941,11 @@ class Version(abst.AbstractMongoRecord, AbstractTextRecord, AbstractSchemaConten
         "versionTitle",
         "chapter"  # required.  change to "content"?
     ]
+
+    """
+    Regarding the strange naming of the parameters VersionTitle_in_hebrew and VersionNotes_in_hebrew: These names were
+    chosen to avoid naming conflicts and ambiguity on the TextAPI. See TextFamily for more details.
+    """
     optional_attrs = [
         "status",
         "priority",
@@ -951,8 +956,8 @@ class Version(abst.AbstractMongoRecord, AbstractTextRecord, AbstractSchemaConten
         "method",
         "heversionSource",  # bad data?
         "versionUrl",  # bad data?
-        "heVersionTitle",
-        "heVersionNotes",
+        "VersionTitle_in_hebrew",  # stores the Hebrew translation of the versionTitle
+        "VersionNotes_in_hebrew",  # stores VersionNotes in Hebrew
     ]
 
     def __unicode__(self):
@@ -1495,6 +1500,14 @@ class TextFamily(object):
     :param bool alts: Default: False.  Adds notes of where alternate structure elements begin
     """
     #Attribute maps used for generating dict format
+    """
+    A bit of a naming conflict has arisen here. The TextFamily bundles two versions - one with English text and one
+    with Hebrew text. versionTitle refers to the English title of the English version, while heVersionTitle refers to
+    the English title of the Hebrew version.
+    
+    Later on we decided to translate all of our versionTitles into Hebrew. To avoid direct conflict with the text api,
+    these got the names VersionTitle_in_hebrew and VersionNotes_in_hebrew.
+    """
     text_attr_map = {
         "en": "text",
         "he": "he"
@@ -1504,6 +1517,10 @@ class TextFamily(object):
         "versionTitle": {
             "en": "versionTitle",
             "he": "heVersionTitle"
+        },
+        "VersionTitle_in_hebrew": {
+            "en": "VersionTitle_in_hebrew",
+            "he": "heVersionTitle_in_hebrew",
         },
         "versionSource": {
             "en": "versionSource",
@@ -1522,6 +1539,10 @@ class TextFamily(object):
         "versionNotes": {
             "en": "versionNotes",
             "he": "heVersionNotes"
+        },
+        "VersionNotes_in_hebrew": {
+            "en": "versionNotes_in_hebrew",
+            "he": "heVersionNotes_in_hebrew",
         },
         "digitizedBySefaria": {
             "en": "digitizedBySefaria",
@@ -3517,7 +3538,7 @@ class Ref(object):
         :return list: each list element is an object with keys 'versionTitle' and 'language'
         """
         fields = ["versionTitle", "versionSource", "language", "status", "license", "versionNotes",
-                  "digitizedBySefaria", "priority", "heVersionTitle", "heVersionNotes"]
+                  "digitizedBySefaria", "priority", "VersionTitle_in_hebrew", "VersionNotes_in_hebrew"]
         versions = VersionSet(self.condition_query())
         version_list = []
         if self.is_book_level():

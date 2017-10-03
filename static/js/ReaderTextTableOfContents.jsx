@@ -90,14 +90,16 @@ class ReaderTextTableOfContents extends Component {
     if (currentLanguage == "he" && !d.he.length) {currentLanguage = "en"}
 
     var currentVersion = {
-      language:            currentLanguage,
-      versionTitle:        currentLanguage == "he" ? d.heVersionTitle : d.versionTitle,
-      versionSource:       currentLanguage == "he" ? d.heVersionSource : d.versionSource,
-      versionStatus:       currentLanguage == "he" ? d.heVersionStatus : d.versionStatus,
-      license:             currentLanguage == "he" ? d.heLicense : d.license,
-      sources:             currentLanguage == "he" ? d.heSources : d.sources,
-      versionNotes:        currentLanguage == "he" ? d.heVersionNotes : d.versionNotes,
-      digitizedBySefaria:  currentLanguage == "he" ? d.heDigitizedBySefaria : d.digitizedBySefaria
+      language:               currentLanguage,
+      versionTitle:           currentLanguage == "he" ? d.heVersionTitle : d.versionTitle,
+      versionSource:          currentLanguage == "he" ? d.heVersionSource : d.versionSource,
+      versionStatus:          currentLanguage == "he" ? d.heVersionStatus : d.versionStatus,
+      license:                currentLanguage == "he" ? d.heLicense : d.license,
+      sources:                currentLanguage == "he" ? d.heSources : d.sources,
+      versionNotes:           currentLanguage == "he" ? d.heVersionNotes : d.versionNotes,
+      digitizedBySefaria:     currentLanguage == "he" ? d.heDigitizedBySefaria : d.digitizedBySefaria,
+      VersionTitle_in_hebrew: currentLanguage == "he" ? d.heVersionTitle_in_hebrew : d.VersionTitle_in_hebrew,
+      VersionNotes_in_hebrew: currentLanguage == "he" ? d.heVersionNotes_in_hebrew : d.VersionNotes_in_hebrew
     };
     currentVersion.merged = !!(currentVersion.sources);
 
@@ -316,8 +318,8 @@ class ReaderTextTableOfContents extends Component {
                       defaultStruct={"default_struct" in details && details.default_struct in details.alts ? details.default_struct : "default"}
                       currentRef={this.props.currentRef}
                       narrowPanel={this.props.narrowPanel}
-                      title={this.props.title}
-                      interfaceLang={this.props.interfaceLang}/>
+                      title={this.props.title} />
+
                   </div>
                   : <LoadingMessage />}
                   {downloadSection}
@@ -515,8 +517,7 @@ class TextTableOfContentsNavigation extends Component {
                         versionsList={this.props.versionsList}
                         openVersion={this.props.openVersion}
                         title={this.props.title}
-                        currentRef={this.props.currentRef}
-                        interfaceLang={this.props.interfaceLang}  />;
+                        currentRef={this.props.currentRef} />;
         break;
       default:
         var content = <SchemaNode
@@ -864,8 +865,7 @@ class VersionsList extends Component {
         currentRef={this.props.currentRef || this.props.title}
         firstSectionRef={"firstSectionRef" in v ? v.firstSectionRef : null}
         openVersion={this.props.openVersion}
-        key={v.versionTitle + "/" + v.language}
-        interfaceLang={this.props.interfaceLang}  />
+        key={v.versionTitle + "/" + v.language}/>
      )
     );
 
@@ -907,8 +907,8 @@ class VersionBlock extends Component {
       "priority",
       "digitizedBySefaria",
       "status",
-      "heVersionTitle",
-      "heVersionNotes"
+      "VersionTitle_in_hebrew",
+      "VersionNotes_in_hebrew"
     ];
     this.licenseMap = {
       "Public Domain": "https://en.wikipedia.org/wiki/Public_domain",
@@ -942,8 +942,8 @@ class VersionBlock extends Component {
   onVersionNotesChange(event) {
     this.setState({versionNotes: event.target.value, "error": null});
   }
-  onHeVersionNotesChange(event) {
-    this.setState({heVersionNotes: event.target.value, "error": null});
+  onVersionNotesInHebrewChange(event) {
+    this.setState({VersionNotes_in_hebrew: event.target.value, "error": null});
   }
   onPriorityChange(event) {
     this.setState({priority: event.target.value, "error": null});
@@ -957,8 +957,8 @@ class VersionBlock extends Component {
   onVersionTitleChange(event) {
     this.setState({versionTitle: event.target.value, "error": null});
   }
-  onHeVersionTitleChange(event) {
-    this.setState({heVersionTitle: event.target.value, "error": null});
+  onVersionTitleInHebrewChange(event) {
+    this.setState({VersionTitle_in_hebrew: event.target.value, "error": null});
   }
   saveVersionUpdate(event) {
     var v = this.props.version;
@@ -1037,8 +1037,8 @@ class VersionBlock extends Component {
             {close_icon}
             <input id="versionTitle" className="" type="text" value={this.state.versionTitle} onChange={this.onVersionTitleChange} />
 
-            <label htmlFor="heVersionTitle" className="">Hebrew Version Title</label>
-            <input id="heVersionTitle" className="" type="text" value={this.state.heVersionTitle} onChange={this.onHeVersionTitleChange} />
+            <label htmlFor="VersionTitle_in_hebrew" className="">Hebrew Version Title</label>
+            <input id="VersionTitle_in_hebrew" className="" type="text" value={this.state.VersionTitle_in_hebrew} onChange={this.onVersionTitleInHebrewChange} />
 
             <label htmlFor="versionSource">Version Source</label>
             <input id="versionSource" className="" type="text" value={this.state.versionSource} onChange={this.onVersionSourceChange} />
@@ -1060,8 +1060,8 @@ class VersionBlock extends Component {
             <label id="versionNotes_label" htmlFor="versionNotes">VersionNotes</label>
             <textarea id="versionNotes" placeholder="Version Notes" onChange={this.onVersionNotesChange} value={this.state.versionNotes} rows="5" cols="40"/>
 
-            <label id="heVersionNotes_label" htmlFor="versionNotes">Hebrew VersionNotes</label>
-            <textarea id="heVersionNotes" placeholder="Hebrew Version Notes" onChange={this.onHeVersionNotesChange} value={this.state.heVersionNotes} rows="5" cols="40"/>
+            <label id="VersionNotes_in_hebrew_label" htmlFor="versionNotes_in_hebrew">Hebrew VersionNotes</label>
+            <textarea id="VersionNotes_in_hebrew" placeholder="Hebrew Version Notes" onChange={this.onVersionNotesInHebrewChange} value={this.state.VersionNotes_in_hebrew} rows="5" cols="40"/>
             <div>
               <div id="delete_button" onClick={this.deleteVersion}>Delete Version</div>
               <div id="save_button" onClick={this.saveVersionUpdate}>SAVE</div>
@@ -1089,7 +1089,7 @@ class VersionBlock extends Component {
         <div className = "versionBlock">
           <div className="versionTitle">
             <a onClick={this.openVersion} href={"/" + (this.props.firstSectionRef ? this.props.firstSectionRef : this.props.version.versionTitle) + "/" + this.props.version.language + "/" + this.props.version.versionTitle}>
-                {(Sefaria.interfaceLang=="english" || v.heVersionTitle==="") ? v.versionTitle : v.heVersionTitle}
+                {(Sefaria.interfaceLang=="english" || v.VersionTitle_in_hebrew==="") ? v.versionTitle : v.VersionTitle_in_hebrew}
                 </a>
             {edit_icon}
           </div>
@@ -1102,8 +1102,8 @@ class VersionBlock extends Component {
             {this.props.showHistory ? <span className="separator">-</span>: null}
             {this.props.showHistory ? <a className="versionHistoryLink" href={`/activity/${Sefaria.normRef(this.props.currentRef)}/${v.language}/${v.versionTitle && v.versionTitle.replace(/\s/g,"_")}`}>Version History&nbsp;›</a>:""}
           </div>
-          {this.props.showNotes && !!(v.versionNotes || v.heVersionNotes) ? <div className="versionNotes"
-            dangerouslySetInnerHTML={ {__html: (Sefaria.interfaceLang=="english" || v.heVersionNotes==="") ? v.versionNotes : v.heVersionNotes} }
+          {this.props.showNotes && !!(v.versionNotes || v.VersionNotes_in_hebrew) ? <div className="versionNotes"
+            dangerouslySetInnerHTML={ {__html: (Sefaria.interfaceLang=="english" || v.VersionNotes_in_hebrew==="") ? v.versionNotes : v.VersionNotes_in_hebrew} }
           ></div>:""}
         </div>
       );
