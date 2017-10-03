@@ -1085,6 +1085,16 @@ class VersionBlock extends Component {
       }
       var edit_icon = (Sefaria.is_moderator)?<i className="fa fa-pencil" aria-hidden="true" onClick={this.openEditor}/>:"";
 
+      var versionNotes = "";
+      if (this.props.showNotes) {
+        if (Sefaria.interfaceLang=="english" && !!(v.versionNotes)) {
+          versionNotes = v.versionNotes;
+        }
+        else if (Sefaria.interfaceLang=="hebrew" && !!(v.VersionNotes_in_hebrew)) {
+          versionNotes = v.VersionNotes_in_hebrew;
+        }
+      }
+
       return (
         <div className = "versionBlock">
           <div className="versionTitle">
@@ -1102,9 +1112,7 @@ class VersionBlock extends Component {
             {this.props.showHistory ? <span className="separator">-</span>: null}
             {this.props.showHistory ? <a className="versionHistoryLink" href={`/activity/${Sefaria.normRef(this.props.currentRef)}/${v.language}/${v.versionTitle && v.versionTitle.replace(/\s/g,"_")}`}>Version History&nbsp;›</a>:""}
           </div>
-          {this.props.showNotes && !!(v.versionNotes || v.VersionNotes_in_hebrew) ? <div className="versionNotes"
-            dangerouslySetInnerHTML={ {__html: (Sefaria.interfaceLang=="english" || v.VersionNotes_in_hebrew==="") ? v.versionNotes : v.VersionNotes_in_hebrew} }
-          ></div>:""}
+          {versionNotes ? <div className="versionNotes" dangerouslySetInnerHTML={ {__html: versionNotes} } ></div> : ""}
         </div>
       );
     }

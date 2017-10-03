@@ -1541,7 +1541,7 @@ class TextFamily(object):
             "he": "heVersionNotes"
         },
         "VersionNotes_in_hebrew": {
-            "en": "versionNotes_in_hebrew",
+            "en": "VersionNotes_in_hebrew",
             "he": "heVersionNotes_in_hebrew",
         },
         "digitizedBySefaria": {
