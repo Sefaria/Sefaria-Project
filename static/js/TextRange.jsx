@@ -73,13 +73,15 @@ class TextRange extends Component {
     };
     var data = Sefaria.text(this.props.sref, settings);
 
-    if (!data || "updateFromAPI" in data) { // If we don't have data yet, call again with a callback to trigger API call
+    if ((!data || "updateFromAPI" in data) && !this.textLoading) { // If we don't have data yet, call again with a callback to trigger API call
+      this.textLoading = true;
       Sefaria.text(this.props.sref, settings, this.onTextLoad);
     }
     return data;
   }
   onTextLoad(data) {
     // Initiate additional API calls when text data first loads
+    this.textLoading = false;
     if (this.props.basetext && this.props.sref !== data.ref) {
       // Replace ReaderPanel contents ref with the normalized form of the ref, if they differ.
       // Pass parameter to showBaseText to replaceHistory - normalization should't add a step to history
