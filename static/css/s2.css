@@ -450,7 +450,7 @@ input.noselect {
 }
 .readerContent {
   width: 100%;
-  height: 100%;
+  height: calc(100% - 58px);
   background-color: inherit;
 }
 .dark .readerContent {
@@ -1407,8 +1407,14 @@ a.readerNavCategory {
   }
 }
 .hebrew .readerTextTableOfContents .content .tocSection,
-.hebrew .readerTextTableOfContents .content .tocContent {
+.hebrew .readerTextTableOfContents .content .tocContent,
+.english .readerTextTableOfContents.noLangToggleInHebrew .content .tocContent,
+.bilingual .readerTextTableOfContents.noLangToggleInHebrew .content .tocContent{
   text-align: right;
+}
+.english .readerTextTableOfContents.noLangToggleInHebrew .content .tocContent,
+.bilingual .readerTextTableOfContents.noLangToggleInHebrew .content .tocContent{
+  direction: rtl;
 }
 .readerTextTableOfContents .versionsBox {
   padding: 20px 0;

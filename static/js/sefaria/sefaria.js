@@ -1774,7 +1774,6 @@ Sefaria.setup = function(data) {
         }
     }
     Sefaria.util.setupPrototypes();
-    Sefaria.util.setupJQuery();
     Sefaria.util.setupMisc();
     var cookie = Sefaria.util.handleUserCookie(Sefaria.loggedIn, Sefaria._uid, Sefaria._partner_group, Sefaria._partner_role);
     // And store current uid in analytics id

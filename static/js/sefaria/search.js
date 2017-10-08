@@ -85,9 +85,9 @@ class Search {
         var o = {
             "from": from,
             "size": size,
-            "_source": {
+            /*"_source": {
               "exclude": [ field ]
-            },
+            },*/
             "highlight": {
                 "pre_tags": ["<b>"],
                 "post_tags": ["</b>"],

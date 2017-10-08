@@ -1,6 +1,3 @@
-const {
-  InterruptingMessage,
-}                   = require('./Misc');
 const React         = require('react');
 const classNames    = require('classnames');
 const extend        = require('extend');
@@ -11,6 +8,9 @@ const ReaderPanel   = require('./ReaderPanel');
 const $             = require('./sefaria/sefariaJquery');
 const EditGroupPage = require('./EditGroupPage');
 const Footer        = require('./Footer');
+const {
+  InterruptingMessage,
+}                   = require('./Misc');
 import Component from 'react-class';
 
 
@@ -1280,7 +1280,7 @@ class ReaderApp extends Component {
 
       var ref   = panel.refs && panel.refs.length ? panel.refs[0] : null;
       var oref  = ref ? Sefaria.parseRef(ref) : null;
-      var title = oref && oref.book ? oref.book : 0;
+      var title = oref && oref.indexTitle ? oref.indexTitle : 0;
       // Keys must be constant as text scrolls, but changing as new panels open in new positions
       // Use a combination of the panel number and text title
       var key   = i + title;

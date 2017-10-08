@@ -288,6 +288,11 @@ $(function() {
 
 	// General Options 
 	$("#options .optionItem,#formatMenu .optionItem, #assignmentsModal .optionItem").click(function() {
+		if($(this).parent().hasClass('languageToggleOption')||
+			$(this).parent().hasClass('layoutToggleOption') ||
+			$(this).parent().hasClass('sideBySideToggleOption')){
+			return;
+		}
 		var $check = $(".fa-check", $(this));
 		if ($check.hasClass("hidden")) {
 			$("#sheet").addClass($(this).attr("id"));
@@ -349,7 +354,7 @@ $(function() {
 			$target.removeClass("sideBySide heLeft heRight");
 
 			$toggleTarget.find("#layoutToggleGroup div .fa-check").addClass("hidden");
-			$toggleTarget.find("#layoutToggleGroup .stacked .fa-check").removeClass("hidden")
+			$toggleTarget.find("#layoutToggleGroup .stacked .fa-check").removeClass("hidden");
 			$toggleTarget.find("#layoutToggleGroup").addClass("disabled");
 
 			$toggleTarget.find("#sideBySideToggleGroup div .fa-check").addClass("hidden");
