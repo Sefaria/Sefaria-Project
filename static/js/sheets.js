@@ -2914,6 +2914,25 @@ function buildSheet(data){
 
 	sjs.sheetTagger.init(data.id, data.tags);
 
+	var suggestedTagsLookup = [];
+
+	for (var i = 0; i < data.sources.length; i++) {
+		if (data.sources[i].ref) {
+			suggestedTagsLookup.push(data.sources[i].ref)
+		}
+	}
+
+	$.getJSON("/api/recommend/topics/" + suggestedTagsLookup.join("+"), function(data) {
+		var suggestedTags = [];
+		for (var i = 0; i < data.topics.length; i++) {
+			if (data.topics[i][1] > 1 ){ //only add tag if it's included on more than one sheet. Creates better suggestions.
+				suggestedTags.push(data.topics[i][0]);
+			}
+		}
+		console.log(suggestedTags);
+		$("#suggestedTags").text(suggestedTags.join(", "));
+	});
+
 	buildSources($("#sources"), data.sources);
 	setSourceNumbers();
 	$("#viewButtons").show();
