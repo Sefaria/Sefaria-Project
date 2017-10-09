@@ -883,7 +883,7 @@ $(function() {
 
 	// ------- Sheet Tags --------------
 	sjs.sheetTagger.init(sjs.current.id, sjs.current.tags);
-	$("#editTags").click(sjs.sheetTagger.show);
+	$("#editTags").click(showShareModal);
 
 
 	// Prevent backspace from navigating backwards
@@ -2282,21 +2282,6 @@ sjs.sheetTagger = {
 		// Clear old DOM elements and event handlers
 		$("#tagsModal .ok, #tagsModal .cancel").unbind();
 		$("#tagsModal").unbind().remove();
-
-		// Build the modal
-		var html =	'<div id="tagsModal" class="gradient modal s2Modal">' +
-					'    <span class="close-button"></span>' +
-					'	<div class="title"><span class="int-en">Tag this Sheet</span><span class="int-he">תייג את דף המקורות</span></div>' +
-					'	<ul id="tags"></ul>' +
-					'	<div class="sub"></div>' +
-					'	<div class="button ok"><span class="int-en">Save</span><span class="int-he">שמור</span></div>' +
-					'</div>';
-		if(sjs.hasOwnProperty("interfaceLangLong")) {
-            $(html).addClass("interface-" + sjs.interfaceLangLong).appendTo("body");
-        }else{
-		    $(html).appendTo("body");
-        }
-
 
 		// Init with tagit and with its tags
 		$("#tags").tagit({ allowSpaces: true });

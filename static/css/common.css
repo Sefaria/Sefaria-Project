@@ -2005,19 +2005,19 @@ ul.tagit li {
     float: left;
     margin: 2px 5px 2px 0;
 }
-ul.tagit li.tagit-choice {    
+ul.tagit li.tagit-choice {
     position: relative;
     line-height: inherit;
     color: #08c;
 }
 
-ul.tagit li.tagit-choice-read-only { 
-    padding: .2em .5em .2em .5em; 
-} 
+ul.tagit li.tagit-choice-read-only {
+    padding: .2em .5em .2em .5em;
+}
 
-ul.tagit li.tagit-choice-editable { 
-    padding: .2em 18px .2em .5em; 
-} 
+ul.tagit li.tagit-choice-editable {
+    padding: .2em 18px .2em .5em;
+}
 
 ul.tagit li.tagit-new {
     padding: .25em 4px .25em 0;
@@ -2048,7 +2048,7 @@ ul.tagit li.tagit-choice input {
     margin: 2px 5px 2px 0;
 }
 
-ul.tagit input[type="text"] {
+ul.tagit input[type="text"], #sheetsContent ul.tagit input[type="text"] {
     -moz-box-sizing:    border-box;
     -webkit-box-sizing: border-box;
     box-sizing:         border-box;
@@ -2058,7 +2058,7 @@ ul.tagit input[type="text"] {
     box-shadow: none;
 
     border: none;
-    margin: 0;
+    margin: -10px 0 0 0;
     padding: 0;
     width: inherit;
     background-color: inherit;
