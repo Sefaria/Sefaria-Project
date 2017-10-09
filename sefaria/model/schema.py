@@ -58,8 +58,6 @@ class TitleGroup(object):
         if not all(ord(c) < 128 for c in self.primary_title("en")):
             raise InputError("Primary English title may not contain non-ascii characters")
 
-
-
     def load(self, serial=None):
         if serial:
             self.titles = serial
@@ -243,6 +241,13 @@ class Term(abst.AbstractMongoRecord, AbstractTitledObject):
         self.title_group.validate()
         if self.name != self.get_primary_title():
             raise InputError(u"Term name {} does not match primary title {}".format(self.name, self.get_primary_title()))
+
+    @staticmethod
+    def normalize(term, lang="en"):
+        """ Returns the primary title for of 'term' if it exists in the terms collection
+        otherwise return 'term' unchanged """
+        t = Term().load_by_title(term)
+        return t.get_primary_title(lang=lang) if t else term
 
 
 class TermSet(abst.AbstractMongoSet):

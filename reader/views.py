@@ -591,6 +591,9 @@ def s2_sheets_by_tag(request, tag):
     Page of sheets by tag.
     Currently used to for "My Sheets" and  "All Sheets" as well.
     """
+    if tag != Term().normalize(tag):
+        return redirect("/sheets/tags/%s" % Term().normalize(tag))
+
     props = s2_props(request)
     props.update({
         "initialMenu":     "sheets",
@@ -612,6 +615,7 @@ def s2_sheets_by_tag(request, tag):
 
     else:
         props["tagSheets"]    = [sheet_to_dict(s) for s in get_sheets_by_tag(tag)]
+        tag   = Term().normalize(tag, lang=request.LANGUAGE_CODE)
         title = tag + _(" | Sefaria")
         desc  = _('Public Source Sheets on tagged with "%(tag)s", drawing from Sefaria\'s library of Jewish texts.') % {'tag': tag}
 
@@ -653,6 +657,9 @@ def s2_topic_page(request, topic):
     Page of sheets by tag.
     Currently used to for "My Sheets" and  "All Sheets" as well.
     """
+    if topic != Term().normalize(topic):
+        return redirect("/topics/%s" % Term().normalize(topic))
+
     topics = get_topics()
     props = s2_props(request)
     props.update({

@@ -11,6 +11,7 @@ from . import abstract as abst
 from sefaria.system.database import db
 from sefaria.sheets import sheet_to_dict
 from sefaria.model.text import Ref
+from sefaria.model.schema import Term
 import sefaria.system.cache as scache
 
 
@@ -68,7 +69,8 @@ class Topic(abst.AbstractMongoRecord):
                 for source in sheet.get("sources", []):
                     if "ref" in source:
                         sources_dict[source["ref"]] += 1
-                for tag in sheet.get("tags", []):
+                sheet_tags = list(set([Term().normalize(tag) for tag in sheet.get("tags", [])]))
+                for tag in sheet_tags:
                     if tag != self.topic: 
                         related_topics_dict[tag] += 1
          
@@ -132,6 +134,7 @@ class TopicsManager(object):
         sheet_list = db.sheets.find({"status": "public"}, projection)
         for sheet in sheet_list:
             sheet_tags = sheet.get("tags", [])
+            sheet_tags = list(set([Term().normalize(tag) for tag in sheet_tags]))
             for tag in sheet_tags:
                 if tag not in tags:
                     tags[tag] = {
@@ -220,7 +223,7 @@ topics_timestamp = None
 def get_topics():
     """
     Returns the TopicsManager which may already be in memory,
-    be restored from Redis or may be built from scratch.
+    may be restored from Redis or may be built from scratch.
     """
     global topics
     global topics_timestamp
@@ -228,6 +231,7 @@ def get_topics():
     # If Redis timestamp matches what we have in memory, return it
     current_timestamp = scache.get_cache_elem('topics_timestamp')
     if current_timestamp and topics_timestamp == current_timestamp:
+        print "in memory topics ok"
         return topics
     
     # If Redis timestamp differs, load data from Redis
@@ -235,16 +239,18 @@ def get_topics():
         pickled = scache.get_cache_elem('topics')
         topics = pickle.loads(pickled)
         topics_timestamp = current_timestamp
+        print "loading topics form redis"
         return topics
 
     # If there's nothing in Redis, return a new manager
     topics = TopicsManager()
     topics_timestamp = topics.timestamp()
+    print "new topics manager"
     return topics
 
 
 def update_topics():
-    topics = get_topics()
+    topics = TopicsManager()
     topics.make_data_from_sheets()
     topics.save_to_cache()
 

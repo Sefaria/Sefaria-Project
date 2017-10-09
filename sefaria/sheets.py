@@ -15,7 +15,7 @@ from sefaria.system.database import db
 from sefaria.model.notification import Notification, NotificationSet
 from sefaria.model.following import FollowersSet
 from sefaria.model.user_profile import UserProfile, annotate_user_list, public_user_data, user_link
-from sefaria.utils.util import strip_tags, string_overlap,titlecase
+from sefaria.utils.util import strip_tags, string_overlap, titlecase
 from sefaria.system.exceptions import InputError
 from history import record_sheet_publication, delete_sheet_publication
 from settings import SEARCH_INDEX_ON_SAVE
@@ -487,6 +487,7 @@ def make_tag_list(sort_by="alpha"):
 	sheet_list = db.sheets.find({"status": "public"}, projection)
 	for sheet in sheet_list:
 		sheet_tags = sheet.get("tags", [])
+		sheet_tags = list(set([model.Term.normalize(tag) for tag in sheet_tags]))
 		for tag in sheet_tags:
 			if tag not in tags:
 				tags[tag] = {"tag": tag, "count": 0}
@@ -508,7 +509,9 @@ def get_sheets_by_tag(tag, public=True, uid=None, group=None):
 	"""
 	Returns all sheets tagged with 'tag'
 	"""
-	query = {"tags": tag } if tag else {"tags": {"$exists": 0}}
+	term = model.Term().load_by_title(tag)
+	tags = term.get_titles() if term else [tag]
+	query = {"tags": {"$in": tags} } if tag else {"tags": {"$exists": 0}}
 
 	if uid:
 		query["owner"] = uid

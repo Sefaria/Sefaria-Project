@@ -1031,11 +1031,9 @@ a.readerNavCategory {
   background-color: white;
   border: 3px solid #F9F9F7;
 }
-
 .readerSheetsNav .navButton:hover {
   text-decoration: none;
 }
-
 @media (max-width: 450px) {
   .readerNavMenu .readerNavCategoryMenu td,
   .readerSheetsNav .gridBox td {
@@ -1585,12 +1583,10 @@ a.readerNavCategory {
   letter-spacing: 1px;
   cursor: pointer;
 }
-
 .searchContent .type-button .he,
 .readerSheetsNav .type-button .he {
   font-family: "Heebo", sans-serif;
 }
-
 .searchContent .type-button.active,
 .readerSheetsNav .type-button.active {
   color: #000;
@@ -1987,6 +1983,12 @@ a.readerNavCategory {
 }
 .hebrew .readerSheetsNav {
   direction: ltr;
+}
+.readerSheetsNav .tagsList .int-en {
+  font-family: "adobe-garamond-pro", Georgia, serif;
+}
+.readerSheetsNav .tagsList .int-he {
+  font-family: "Frank Ruehl Libre", "Taamey Frank", "Times New Roman", serif;
 }
 .readerControls {
   position: relative;
@@ -3939,18 +3941,16 @@ h2.splitHeader .he {
   text-align: center;
 }
 .topicsPanel .topicFilterBox {
-  position: relative;
+  display: flex;
+  align-items: center;
 }
 .topicsPanel .topicFilterIcon {
   font-size: 22px;
-  position: absolute;
-  top: 24px;
-  left: 0;
   opacity: 0.4;
 }
 .topicsPanel .topicFilterInput {
-  padding: 20px 10px 20px 34px;
-  width: 100%;
+  padding: 20px 10px 20px 10px;
+  flex: 1;
   box-sizing: border-box;
   border: none;
   background: transparent;
@@ -3972,6 +3972,12 @@ h2.splitHeader .he {
 }
 .topicsPanel .topicList {
   min-height: 500px;
+}
+.topicsPanel .content .topicList .int-en {
+  font-family: "adobe-garamond-pro", Georgia, serif;
+}
+.topicsPanel .content .topicList .int-he {
+  font-family: "Frank Ruehl Libre", "Taamey Frank", "Times New Roman", serif;
 }
 .topicPanel .topicLabel {
   text-transform: uppercase;
@@ -4002,6 +4008,12 @@ h2.splitHeader .he {
   font-size: 16px;
   line-height: 1.4;
   display: inline-block;
+}
+.topicPanel .content .relatedTopic .int-en {
+  font-family: "adobe-garamond-pro", Georgia, serif;
+}
+.topicPanel .content .relatedTopic .int-he {
+  font-family: "Frank Ruehl Libre", "Taamey Frank", "Times New Roman", serif;
 }
 .topicPanel .sourceList {
   min-height: 500px;
@@ -4042,6 +4054,9 @@ h2.splitHeader .he {
   margin: -4px 0 0 2px;
   opacity: 0.6;
 }
+.hebrew .topicPanel .topicSource .score img {
+  margin: -4px 2px 0 0;
+}  
 .note a {
   color: #333;
   text-decoration: underline;
