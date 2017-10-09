@@ -2272,6 +2272,83 @@ if( navigator.userAgent.match(/iPhone|iPad|iPod/i) ) {
 
 }); // ------------------ End DOM Ready  ------------------
 
+
+sjs.sheetTagger = {
+	init: function(id, tags, callback) {
+		this.id       = id;
+		this.initTags = tags;
+		this.callback = callback;
+
+		// Clear old DOM elements and event handlers
+		$("#tagsModal .ok, #tagsModal .cancel").unbind();
+		$("#tagsModal").unbind().remove();
+
+		// Build the modal
+		var html =	'<div id="tagsModal" class="gradient modal s2Modal">' +
+					'    <span class="close-button"></span>' +
+					'	<div class="title"><span class="int-en">Tag this Sheet</span><span class="int-he">תייג את דף המקורות</span></div>' +
+					'	<ul id="tags"></ul>' +
+					'	<div class="sub"></div>' +
+					'	<div class="button ok"><span class="int-en">Save</span><span class="int-he">שמור</span></div>' +
+					'</div>';
+		if(sjs.hasOwnProperty("interfaceLangLong")) {
+            $(html).addClass("interface-" + sjs.interfaceLangLong).appendTo("body");
+        }else{
+		    $(html).appendTo("body");
+        }
+
+
+		// Init with tagit and with its tags
+		$("#tags").tagit({ allowSpaces: true });
+		this.setTags(tags);
+
+		// OK & Cancel button hadlers
+		$("#tagsModal .cancel").click(function() {
+			sjs.sheetTagger.resetTags();
+			sjs.sheetTagger.hide();
+		});
+		$("#tagsModal .ok").click(function() {
+			sjs.sheetTagger.saveTags();
+		});
+
+	},
+	show: function() {
+		$("#tagsModal").show().position({of: window});
+		$("#tags input").focus();
+		$("#overlay").show();
+	},
+	hide: function() {
+		$("#overlay").hide();
+		$("#tagsModal").hide();
+	},
+	tags: function() {
+		return sjs.tagitTags("#tags");
+	},
+	setTags: function(tags) {
+		$("#tags").tagit("removeAll");
+		if (tags && tags.length) {
+			for (var i=0; i < tags.length; i++) {
+				$("#tags").tagit("createTag", tags[i]);
+			}
+		}
+	},
+	resetTags: function() {
+		this.setTags(this.initTags);
+	},
+	saveTags: function() {
+		var tags     = sjs.tagitTags("#tags");
+		var tagsJSON = JSON.stringify(tags);
+		$.post("/api/sheets/" + this.id + "/tags", {tags: tagsJSON}, function() {
+			sjs.sheetTagger.hide();
+			sjs.alert.flash("Tags Saved");
+			if (sjs.sheetTagger.callback) {
+				sjs.sheetTagger.callback();
+			}
+		});
+	}
+};
+
+
 function addSource(q, source, appendOrInsert, $target) {
 	// Add a new source to the DOM.
 	// Completed by loadSource on return of AJAX call.
