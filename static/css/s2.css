@@ -3829,12 +3829,16 @@ h2.splitHeader .he {
   border-bottom: 1px solid #CCC;
   padding-bottom: 20px;
 }
+.groupSheetInner {
+  display: flex;
+}
+.groupSheetInnerContent {
+  flex: 1;
+}
 .groupSheetListingPinButton {
-  float: right;
   display: none;
   opacity: 0.3;
   cursor: pointer;
-  margin-top: 7px;
 }
 .sheet:hover .groupSheetListingPinButton.active {
   display: block;
