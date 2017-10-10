@@ -1716,7 +1716,11 @@ $(function() {
 		sjs.alert.flash("Sharing settings saved.")
 	});
 
-
+	$("#suggestedTags").on('click', '.tagButton', function() {
+		$("#tags").tagit("createTag",$(this).text());
+		$(this).hide();
+	});
+	
 	$(".moveSourceUp").live("click", function() {
 		$(this).closest(".sheetItem").insertBefore($(this).closest(".sheetItem").prev());
 
@@ -2279,32 +2283,11 @@ sjs.sheetTagger = {
 		this.initTags = tags;
 		this.callback = callback;
 
-		// Clear old DOM elements and event handlers
-		$("#tagsModal .ok, #tagsModal .cancel").unbind();
-		$("#tagsModal").unbind().remove();
 
 		// Init with tagit and with its tags
 		$("#tags").tagit({ allowSpaces: true });
 		this.setTags(tags);
 
-		// OK & Cancel button hadlers
-		$("#tagsModal .cancel").click(function() {
-			sjs.sheetTagger.resetTags();
-			sjs.sheetTagger.hide();
-		});
-		$("#tagsModal .ok").click(function() {
-			sjs.sheetTagger.saveTags();
-		});
-
-	},
-	show: function() {
-		$("#tagsModal").show().position({of: window});
-		$("#tags input").focus();
-		$("#overlay").show();
-	},
-	hide: function() {
-		$("#overlay").hide();
-		$("#tagsModal").hide();
 	},
 	tags: function() {
 		return sjs.tagitTags("#tags");
@@ -2317,20 +2300,6 @@ sjs.sheetTagger = {
 			}
 		}
 	},
-	resetTags: function() {
-		this.setTags(this.initTags);
-	},
-	saveTags: function() {
-		var tags     = sjs.tagitTags("#tags");
-		var tagsJSON = JSON.stringify(tags);
-		$.post("/api/sheets/" + this.id + "/tags", {tags: tagsJSON}, function() {
-			sjs.sheetTagger.hide();
-			sjs.alert.flash("Tags Saved");
-			if (sjs.sheetTagger.callback) {
-				sjs.sheetTagger.callback();
-			}
-		});
-	}
 };
 
 
@@ -2991,8 +2960,12 @@ function buildSheet(data){
 				suggestedTags.push(data.topics[i][0]);
 			}
 		}
-		console.log(suggestedTags);
-		$("#suggestedTags").text(suggestedTags.join(", "));
+
+		for (var i = 0; i < suggestedTags.length; i++) {
+			$("#suggestedTags").append("<span class='tagButton'>"+suggestedTags[i]+"</span>");
+		}
+
+
 	});
 
 	buildSources($("#sources"), data.sources);
