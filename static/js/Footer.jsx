@@ -55,10 +55,6 @@ class Footer extends Component {
                   <span className="int-en">Help</span>
                   <span className="int-he">עזרה</span>
               </a>
-              <a href="https://blog.sefaria.org" target="_blank" className="outOfAppLink">
-                  <span className="int-en">Blog</span>
-                  <span className="int-he">בלוג</span>
-              </a>
               <a href="/faq" target="_blank" className="outOfAppLink">
                   <span className="int-en">FAQ</span>
                   <span className="int-he">שאלות נפוצות</span>
@@ -168,10 +164,25 @@ class Footer extends Component {
                   : null }
               </div>
               <LikeFollowButtons />
+              <a href="http://www.facebook.com/sefaria.org" target="_blank" className="outOfAppLink">
+                <span className="int-en">Facebook</span>
+                <span className="int-he">פייסבוק</span>
+              </a>
+              &bull;
+              <a href="http://twitter.com/SefariaProject" target="_blank" className="outOfAppLink">
+                <span className="int-en">Twitter</span>
+                <span className="int-he">טוויטר</span>
+
+              </a>
+              &bull;
               <a href="http://www.youtube.com/user/SefariaProject" target="_blank" className="outOfAppLink">
                   <span className="int-en">YouTube</span>
                   <span className="int-he">יוטיוב</span>
-
+              </a>
+              <br />
+              <a href="https://blog.sefaria.org" target="_blank" className="outOfAppLink">
+                  <span className="int-en">Blog</span>
+                  <span className="int-he">בלוג</span>
               </a>
               &bull;
               <a href="https://groups.google.com/forum/?fromgroups#!forum/sefaria" target="_blank" className="outOfAppLink">

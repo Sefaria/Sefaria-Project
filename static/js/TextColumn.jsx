@@ -14,13 +14,13 @@ import Component from 'react-class';
 class TextColumn extends Component {
   // An infinitely scrollable column of text, composed of TextRanges for each section.
   componentDidMount() {
-    this._isMounted = true;
-    this.$container = $(ReactDOM.findDOMNode(this));
+    this._isMounted          = true;
+    this.$container          = $(ReactDOM.findDOMNode(this));
     this.initialScrollTopSet = false;
     this.justTransitioned    = true;
+    this.setPaddingForScrollbar();
     this.setScrollPosition();
     this.adjustInfiniteScroll();
-    this.setPaddingForScrollbar();
     this.debouncedAdjustHighlightedAndVisible = Sefaria.util.debounce(this.adjustHighlightedAndVisible, 100);
     var node = ReactDOM.findDOMNode(this);
     node.addEventListener("scroll", this.handleScroll);
@@ -31,6 +31,7 @@ class TextColumn extends Component {
     node.removeEventListener("scroll", this.handleScroll);
   }
   componentWillReceiveProps(nextProps) {
+    //console.log(nextProps)
     if (this.props.mode === "Text" && nextProps.mode === "TextAndConnections") {
       // When moving into text and connections, scroll to highlighted
       this.justTransitioned    = true;
@@ -135,13 +136,13 @@ class TextColumn extends Component {
         //console.log("total top: " + top)
       }
     } else if (!this.scrolledToHighlight && $(node).find(".segment.highlight").length) {
-      //console.log("scroll to highlighted");
+      //console.log("scroll to highlighted call");
       // scroll to highlighted segment
       this.scrollToHighlighted();
       this.scrolledToHighlight = true;
       this.initialScrollTopSet = true;
       this.justScrolled        = true;
-    } else if (!this.initialScrollTopSet && node.scrollHeight > node.clientHeight) {
+    } else if (!this.initialScrollTopSet && (node.scrollHeight > node.clientHeight)) {
       //console.log("initial scroll set");
       // initial value set below 0 so you can scroll up for previous
       node.scrollTop = 90;
@@ -287,7 +288,7 @@ class TextColumn extends Component {
         filter={this.props.filter}
         panelsOpen={this.props.panelsOpen}
         layoutWidth={this.props.layoutWidth}
-        key={k + ref} />);
+        key={ref} />);
     }.bind(this));
 
     if (content.length) {
