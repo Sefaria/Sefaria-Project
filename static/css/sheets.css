@@ -502,6 +502,72 @@ body:not(.user-is-tabbing) #sheet .cke_editable:focus {
 	font-size: 13px;
 }
 
+#sheetMetadata {
+	color: #999;
+	background-color: #fafafa;
+	padding: 0 76px;
+}
+
+#sheet #sheetMetadata .button {
+	background-color: #eee;
+	border-color: #ccc;
+	color: #999;
+	font-size: 14px;
+	margin-top: 20px;
+}
+
+#sheetMetadata summary {
+	display: block;
+	text-align: center;
+	margin: 0 -76px;
+}
+
+#sheetMetadata summary {
+	background-color: #fff;
+    display: flex;
+	justify-content: center;
+}
+
+#sheetMetadata[open] summary {
+	background-color: #fff;
+    display: flex;
+	justify-content: flex-end;
+}
+
+#sheetMetadata summary::-webkit-details-marker {
+  	display: none;
+}
+
+#sheetMetadata summary:after {
+  	content: "❯";
+	margin: 2px 0 0 6px;
+}
+#sheetMetadata[open] summary span {
+	display: none;
+}
+#sheetMetadata[open] summary:after {
+  	content: "✕";
+    top: 54px;
+    margin: 0 80px;
+    position: relative;
+    align-self: flex-end;
+}
+
+#sheetMetadata .metadataOpenDetails {
+	font-size: 14px;
+	font-family: "proxima-nova","Helvetica Neue","Helvetica",sans-serif;
+	padding: 35px 0;
+}
+
+#sheetMetadata #via, #sheetMetadata #assignmentAttribution {
+	font-size: 14px;
+	padding: 14px 0;
+}
+
+#sheetSummary {
+	margin-top: 20px;
+}
+
 #likeLink {
 	color: black;
 	text-decoration: none;
@@ -1971,8 +2037,14 @@ a.userLink{
     height: 30px;
 }
 
+#sheetsContent textarea#sheetSummaryInput {
+	width: 100%;
+	height: 65px;
+	font-size: 16px;
+}
+
 #shareWithOthers .content .inputHeader {
-	margin: 30px 0 15px 0;
+	margin: 10px 0 10px 0;
 }
 
 #shareWithOthers .content select {
@@ -2065,8 +2137,21 @@ a.userLink{
 	border: 1px solid #aaaaaa;
 	background: #ffffff;
 	color: #222222;
-    margin-top: 30px;
-    margin-bottom: 30px;
+	margin: 0 0 5px 0;
+}
+
+#suggestedTags {
+	margin-bottom: 9px;
+}
+
+.tagButton {
+    color: #333;
+    background-color: #ddd;
+    border-radius: 2px;
+	padding: 5px;
+	margin: 2px;
+	font-size: 12px;
+	cursor: pointer;
 }
 
 .ui-widget-content {
