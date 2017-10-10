@@ -9,7 +9,7 @@
 .static .wf-loading {
   display: none;
 }
-.interface-hebrew .static.biReady{
+.interface-hebrew .static {
   direction:rtl;
 }
 .static {
@@ -1520,7 +1520,7 @@
 }
 #edPage .section a .button {
   display: block;
-  width: 240px;
+  width: 242px;
   margin-bottom: 8px;
   text-align: center;
 }
