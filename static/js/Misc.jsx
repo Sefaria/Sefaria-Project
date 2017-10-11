@@ -296,12 +296,13 @@ class ReaderNavigationMenuCloseButton extends Component {
 
 class ReaderNavigationMenuDisplaySettingsButton extends Component {
   render() {
-    var style = this.props.placeholder ? {visiblily: "hidden"} : {};
+    var style = this.props.placeholder ? {visibilily: "hidden"} : {};
     return (<div
               className="readerOptions"
               tabIndex="0"
               role="button"
               aria-haspopup="true"
+              style={style}
               onClick={this.props.onClick}
               onKeyPress={function(e) {e.charCode == 13 ? this.props.onClick(e):null}.bind(this)}>
                 <img src="/static/img/ayealeph.svg" alt="Toggle Reader Menu Display Settings" style={style} />
