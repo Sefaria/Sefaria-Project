@@ -749,14 +749,11 @@
 }
 .registrationContent a .int-he, .registrationContent button .int-he{
 }
-/*#login.registrationContent #resetLink{
-  margin: 20px 0;
-  color: #999;
-  font-size: 14px;
-  font-style: normal;
-}*/
 #visualizationsPage {
   text-align: left;
+}
+.interface-hebrew #visualizationsPage {
+  text-align: right;
 }
 #visualLibraryPage {
   padding-top: 70px;
@@ -795,8 +792,6 @@
   content: "ת)";
   font-family: "Heebo", "Helvetica Neue", Helvetica, Ariel, san-serif;
 }
-
-
 #supportersPage{
   text-align: center;
 }
