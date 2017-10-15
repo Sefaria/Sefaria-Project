@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2017-09-06 09:00-0700\n"
+"POT-Creation-Date: 2017-10-10 17:47-0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -26,71 +26,71 @@ msgstr ""
 msgid "Explore 3,000 years of Jewish texts in Hebrew and English translation."
 msgstr ""
 
-#: reader/views.py:484 reader/views.py:574 reader/views.py:617
+#: reader/views.py:482 reader/views.py:572 reader/views.py:615
 msgid " | Sefaria"
 msgstr ""
 
-#: reader/views.py:485
+#: reader/views.py:483
 #, python-format
 msgid "Read %(categories)s texts online with commentaries and connections."
 msgstr ""
 
-#: reader/views.py:488
+#: reader/views.py:486
 msgid "Recently Viewed"
 msgstr ""
 
-#: reader/views.py:489
+#: reader/views.py:487
 msgid "Texts that you've recently viewed on Sefaria."
 msgstr ""
 
-#: reader/views.py:528
+#: reader/views.py:526
 msgid "Sefaria Search"
 msgstr ""
 
-#: reader/views.py:529
+#: reader/views.py:527
 msgid "Search 3,000 years of Jewish texts in Hebrew and English translation."
 msgstr ""
 
-#: reader/views.py:545
+#: reader/views.py:543
 msgid "Sefaria Source Sheets"
 msgstr ""
 
-#: reader/views.py:546
+#: reader/views.py:544
 msgid ""
 "Explore thousands of public Source Sheets and use our Source Sheet Builder "
 "to create your own online."
 msgstr ""
 
-#: reader/views.py:604
+#: reader/views.py:602
 msgid "My Source Sheets | Sefaria"
 msgstr ""
 
-#: reader/views.py:605
+#: reader/views.py:603
 msgid "My Sources Sheets on Sefaria, both private a public."
 msgstr ""
 
-#: reader/views.py:612
+#: reader/views.py:610
 msgid "Public Source Sheets | Sefaria"
 msgstr ""
 
-#: reader/views.py:613
+#: reader/views.py:611
 msgid ""
 "Explore thousands of public Source Sheets drawing on Sefaria's library of "
 "Jewish texts."
 msgstr ""
 
-#: reader/views.py:618
+#: reader/views.py:616
 #, python-format
 msgid ""
 "Public Source Sheets on tagged with \"%(tag)s\", drawing from Sefaria's "
 "library of Jewish texts."
 msgstr ""
 
-#: reader/views.py:647
+#: reader/views.py:645
 msgid "Topics"
 msgstr ""
 
-#: reader/views.py:647 templates/person.html:6 templates/person.html.py:8
+#: reader/views.py:645 templates/person.html:6 templates/person.html.py:8
 #: templates/search.html:6
 #: templates/registration/password_reset_complete.html:3
 #: templates/registration/password_reset_confirm.html:4
@@ -102,39 +102,40 @@ msgstr ""
 msgid "Sefaria"
 msgstr ""
 
-#: reader/views.py:648
+#: reader/views.py:646
 msgid "Explore Jewish Texts by Topic on Sefaria"
 msgstr ""
 
-#: reader/views.py:703
+#: reader/views.py:701
 msgid "The Sefaria Libray"
 msgstr ""
 
-#: reader/views.py:704
+#: reader/views.py:702
 msgid ""
 "Browse 1,000s of Jewish texts in the Sefaria Library by category and title."
 msgstr ""
 
-#: reader/views.py:710
+#: reader/views.py:708
 msgid "New Additions to the Sefaria Library"
 msgstr ""
 
-#: reader/views.py:711
+#: reader/views.py:709
 msgid ""
 "See texts, translations and connections that have been recently added to "
 "Sefaria."
 msgstr ""
 
-#: reader/views.py:2838
+#: reader/views.py:2870
 msgid "You must be logged in to update your profile."
 msgstr ""
 
-#: reader/views.py:3429 reader/views.py:3432
+#: reader/views.py:3456 reader/views.py:3459
 #, python-format
 msgid "Learn about %(name)s - works written, biographies, dates and more."
 msgstr ""
 
 #: sefaria/forms.py:58 sefaria/forms.py:63 sefaria/forms.py:129
+#: templates/static/educators.html:301 templates/static/home.html:361
 msgid "Email Address"
 msgstr ""
 
@@ -170,7 +171,7 @@ msgstr ""
 msgid "Hebrew"
 msgstr ""
 
-#: sefaria/views.py:161
+#: sefaria/views.py:162
 msgid "Logged out"
 msgstr ""
 
@@ -259,6 +260,34 @@ msgid ""
 "translations."
 msgstr ""
 
+#: templates/profile.html:20
+msgid "at "
+msgstr ""
+
+#: templates/profile.html:106
+msgid "Source Sheets"
+msgstr ""
+
+#: templates/profile.html:126
+msgid "Notes"
+msgstr ""
+
+#: templates/profile.html:133
+msgid "Activity"
+msgstr ""
+
+#: templates/profile.html:183
+msgid "Send a message to "
+msgstr ""
+
+#: templates/profile.html:185
+msgid "Send"
+msgstr ""
+
+#: templates/profile.html:186
+msgid "Cancel"
+msgstr ""
+
 #: templates/s2_sheets.html:5 templates/sheets_visual.html:4
 msgid "Sefaria Source Sheet Builder"
 msgstr ""
@@ -276,6 +305,34 @@ msgstr ""
 
 #: templates/s2_sheets.html:7 templates/sheets_visual.html:6
 msgid "Create your own source sheet with Sefaria's Source Sheet Builder."
+msgstr ""
+
+#: templates/s2_sheets.html:1045
+msgid "Private"
+msgstr ""
+
+#: templates/s2_sheets.html:1048
+msgid "Listed for Sefaria Users"
+msgstr ""
+
+#: templates/s2_sheets.html:1051
+msgid "Anyone can Add"
+msgstr ""
+
+#: templates/s2_sheets.html:1054
+msgid "Anyone can Add - Unlisted"
+msgstr ""
+
+#: templates/s2_sheets.html:1057
+msgid "Anyone can Edit"
+msgstr ""
+
+#: templates/s2_sheets.html:1060
+msgid "Anyone can Edit - Unlisted"
+msgstr ""
+
+#: templates/s2_sheets.html:1073
+msgid "None"
 msgstr ""
 
 #: templates/search.html:6
@@ -440,6 +497,22 @@ msgid ""
 "Resources for educators using Sefaria in the classroom to teach Jewish texts."
 msgstr ""
 
+#: templates/static/educators.html:322 templates/static/educators.html:340
+msgid "<i>Subscribing...</i>"
+msgstr ""
+
+#: templates/static/educators.html:327 templates/static/educators.html:345
+msgid "Subscribed! Welcome to our list."
+msgstr ""
+
+#: templates/static/educators.html:330 templates/static/educators.html:348
+msgid "Sorry, there was an error."
+msgstr ""
+
+#: templates/static/educators.html:333
+msgid "Sorry, that's not a valid email address."
+msgstr ""
+
 #: templates/static/help.html:4
 msgid "Help, FAQ and Tutorials"
 msgstr ""
@@ -448,6 +521,17 @@ msgstr ""
 msgid ""
 "Watch video tutorials or read FAQs and written tutorials about how to use "
 "Sefaria."
+msgstr ""
+
+#: templates/static/home.html:4
+msgid "Sefaria: a Living Library of Jewish Texts Online"
+msgstr ""
+
+#: templates/static/home.html:6
+msgid ""
+"The largest free library of Jewish texts available to read online in Hebrew "
+"and English including Torah, Tanakh, Talmud, Mishnah, Midrash, commentaries "
+"and more."
 msgstr ""
 
 #: templates/static/ios.html:4
@@ -484,17 +568,6 @@ msgstr ""
 
 #: templates/static/privacy-policy.html:4
 msgid "Privacy Policy"
-msgstr ""
-
-#: templates/static/s2_home.html:4
-msgid "Sefaria: a Living Library of Jewish Texts Online"
-msgstr ""
-
-#: templates/static/s2_home.html:6
-msgid ""
-"The largest free library of Jewish texts available to read online in Hebrew "
-"and English including Torah, Tanakh, Talmud, Mishnah, Midrash, commentaries "
-"and more."
 msgstr ""
 
 #: templates/static/sefaria-community-translation.html:4

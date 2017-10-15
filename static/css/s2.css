@@ -221,7 +221,7 @@ input.noselect {
   background-color: #aaa;
   color: white;
   font-size: 16px;
-  margin-top: -3px;
+  margin-top: -1px;
 }
 .header .notifications.unread {
   background-color: #EFB4B6;
@@ -1181,6 +1181,9 @@ a.readerNavCategory {
   font-size: 14px;
   position: absolute;
 }
+.interface-hebrew .readerTextTableOfContents .moderatorSectionExpand {
+  margin: 7px 18px 0px;
+}
 .readerTextTableOfContents .moderatorSectionExpand:hover {
   text-decoration: underline;
 }
@@ -1245,9 +1248,14 @@ a.readerNavCategory {
 .readerTextTableOfContents .versionTitle .fa,
 .readerTextTableOfContents .versionEditForm .fa {
   font-size: 10px;
+  color: #666;
   vertical-align: super;
   margin-left: 3px;
   cursor: pointer;
+}
+.interface-hebrew .readerTextTableOfContents .versionTitle .fa,
+.interface-hebrew .readerTextTableOfContents .versionEditForm .fa {
+  margin: 0 3px 0 0 ;
 }
 .readerTextTableOfContents .versionTitle .error {
   color: red;
@@ -2317,11 +2325,7 @@ a.readerNavCategory {
 .interface-hebrew .readerPanel.english .categoryFilterGroup,
 .interface-hebrew .readerPanel.bilingual .categoryFilterGroup,
 .interface-hebrew .readerPanel.english .tocContent,
-.interface-hebrew .readerPanel.bilingual .tocContent,
-.interface-hebrew .readerPanel.english .dlVersionSelect,
-.interface-hebrew .readerPanel.bilingual .dlVersionSelect,
-.interface-hebrew .readerPanel.hebrew .dlVersionSelect
-{
+.interface-hebrew .readerPanel.bilingual .tocContent {
   direction: ltr;
 }
 .interface-english .readerPanel.hebrew .textRange,
@@ -3831,12 +3835,16 @@ h2.splitHeader .he {
   border-bottom: 1px solid #CCC;
   padding-bottom: 20px;
 }
+.groupSheetInner {
+  display: flex;
+}
+.groupSheetInnerContent {
+  flex: 1;
+}
 .groupSheetListingPinButton {
-  float: right;
   display: none;
   opacity: 0.3;
   cursor: pointer;
-  margin-top: 7px;
 }
 .sheet:hover .groupSheetListingPinButton.active {
   display: block;
