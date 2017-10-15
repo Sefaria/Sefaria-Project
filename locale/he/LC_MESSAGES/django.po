@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2017-09-28 10:23-0700\n"
+"POT-Creation-Date: 2017-10-10 17:53-0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -95,7 +95,7 @@ msgstr ""
 
 #: reader/views.py:645
 msgid "Topics"
-msgstr ""
+msgstr "נושאים"
 
 #: reader/views.py:645 templates/person.html:6 templates/person.html.py:8
 #: templates/search.html:6
@@ -144,7 +144,7 @@ msgid "Learn about %(name)s - works written, biographies, dates and more."
 msgstr ""
 
 #: sefaria/forms.py:58 sefaria/forms.py:63 sefaria/forms.py:129
-#: templates/static/home.html:361
+#: templates/static/educators.html:301 templates/static/home.html:361
 msgid "Email Address"
 msgstr "כתובת אימייל"
 
@@ -180,7 +180,7 @@ msgstr "אנגלית"
 msgid "Hebrew"
 msgstr "עברית"
 
-#: sefaria/views.py:161
+#: sefaria/views.py:162
 msgid "Logged out"
 msgstr "מנותק מהחשבון"
 
@@ -276,6 +276,38 @@ msgid ""
 "translations."
 msgstr "נמצא בספריא. עקבו אחרי פעילות שלהם בדפי מקורות, הערות ותרגומים"
 
+#: templates/profile.html:20
+msgid "at "
+msgstr "ב"
+
+#: templates/profile.html:106
+msgid "Source Sheets"
+msgstr "דפי מקורות"
+
+#: templates/profile.html:126
+msgid "Notes"
+msgstr ""
+
+#: templates/profile.html:133
+msgid "Activity"
+msgstr "פעילות"
+
+#: templates/profile.html:135
+msgid "More Activity"
+msgstr "עוד פעילות"
+
+#: templates/profile.html:183
+msgid "Send a message to "
+msgstr "שלח הודעה ל"
+
+#: templates/profile.html:185
+msgid "Send"
+msgstr "שלח"
+
+#: templates/profile.html:186
+msgid "Cancel"
+msgstr "ביטול"
+
 #: templates/s2_sheets.html:5 templates/sheets_visual.html:4
 msgid "Sefaria Source Sheet Builder"
 msgstr "בונה דפי המקורות בספריא"
@@ -296,31 +328,31 @@ msgstr ""
 msgid "Create your own source sheet with Sefaria's Source Sheet Builder."
 msgstr "צרו דף מקורות משלכם בעזרת בונה דפי המקורות של ספריא"
 
-#: templates/s2_sheets.html:996
+#: templates/s2_sheets.html:1045
 msgid "Private"
 msgstr "פרטי"
 
-#: templates/s2_sheets.html:999
+#: templates/s2_sheets.html:1048
 msgid "Listed for Sefaria Users"
 msgstr "מופיע למשתמשים רשומים"
 
-#: templates/s2_sheets.html:1002
+#: templates/s2_sheets.html:1051
 msgid "Anyone can Add"
 msgstr "כל אחד יכול להוסיף"
 
-#: templates/s2_sheets.html:1005
+#: templates/s2_sheets.html:1054
 msgid "Anyone can Add - Unlisted"
 msgstr "כל אחד יכול להוסיף - מוסתר"
 
-#: templates/s2_sheets.html:1008
+#: templates/s2_sheets.html:1057
 msgid "Anyone can Edit"
 msgstr "כל אחד יכול לערוך"
 
-#: templates/s2_sheets.html:1011
+#: templates/s2_sheets.html:1060
 msgid "Anyone can Edit - Unlisted"
 msgstr "כל אחד יכול לערוך - מוסתר"
 
-#: templates/s2_sheets.html:1024
+#: templates/s2_sheets.html:1073
 msgid "None"
 msgstr "ללא"
 
@@ -503,6 +535,22 @@ msgstr "כלים לאנשי חינוך | ספריא"
 msgid ""
 "Resources for educators using Sefaria in the classroom to teach Jewish texts."
 msgstr "משאבים למורים ומחנכים המשתמשים בספריא ככלי בכיתת הלימוד."
+
+#: templates/static/educators.html:322 templates/static/educators.html:340
+msgid "<i>Subscribing...</i>"
+msgstr ""
+
+#: templates/static/educators.html:327 templates/static/educators.html:345
+msgid "Subscribed! Welcome to our list."
+msgstr ""
+
+#: templates/static/educators.html:330 templates/static/educators.html:348
+msgid "Sorry, there was an error."
+msgstr ""
+
+#: templates/static/educators.html:333
+msgid "Sorry, that's not a valid email address."
+msgstr ""
 
 #: templates/static/help.html:4
 msgid "Help, FAQ and Tutorials"

@@ -517,15 +517,12 @@ body:not(.user-is-tabbing) #sheet .cke_editable:focus {
 }
 
 #sheetMetadata summary {
-	display: block;
 	text-align: center;
 	margin: 0 -76px;
-}
-
-#sheetMetadata summary {
 	background-color: #fff;
     display: flex;
 	justify-content: center;
+	cursor: pointer;
 }
 
 #sheetMetadata[open] summary {
@@ -2040,7 +2037,6 @@ a.userLink{
 #sheetsContent textarea#sheetSummaryInput {
 	width: 100%;
 	height: 65px;
-	font-size: 16px;
 }
 
 #shareWithOthers .content .inputHeader {
@@ -2053,7 +2049,7 @@ a.userLink{
 
 #shareWithOthers {
 	text-align: center;
-	width:400px;
+	width:480px;
 }
 
 #sharingDesc {
@@ -2152,6 +2148,7 @@ a.userLink{
 	margin: 2px;
 	font-size: 12px;
 	cursor: pointer;
+	display: inline-block;
 }
 
 .ui-widget-content {

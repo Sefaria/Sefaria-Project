@@ -196,7 +196,7 @@ class ReaderTextTableOfContents extends Component {
     // Downloading
     if (versions) {
       var dlReady = (this.state.dlVersionTitle && this.state.dlVersionFormat && this.state.dlVersionLanguage);
-      var dl_versions = [<option key="/" value="0" disabled>Version Settings</option>];
+      var dl_versions = [<option key="/" value="0" disabled>{ Sefaria.interfaceLang == "hebrew"? "הגדרות גרסה" : "Version Settings" }</option>];
       var pdVersions = versions.filter(this.isVersionPublicDomain);
       if (cv && cv.merged) {
         var other_lang = cv.language == "he" ? "en" : "he";
@@ -235,19 +235,27 @@ class ReaderTextTableOfContents extends Component {
             <span className="int-he">הורדה</span>
           </div>
         </div>;
+      var formatStrings = {
+        none: {english: "File Format", hebrew: "סוג הקובץ"},
+        txt: {english: "File Format", hebrew: "טקסט (עם תיוגים)"},
+        plaintxt: {english: "File Format", hebrew: "טקסט (ללא תיוגים)"}
+      };
       var downloadSection = (
         <div className="dlSection">
           <h2 className="dlSectionTitle">
             <span className="int-en">Download Text</span>
             <span className="int-he">הורדת הטקסט</span>
           </h2>
-          <select className="dlVersionSelect dlVersionTitleSelect" value={(this.state.dlVersionTitle && this.state.dlVersionLanguage)?this.state.dlVersionTitle + "/" + this.state.dlVersionLanguage:"0"} onChange={this.onDlVersionSelect}>
+          <select 
+            className="dlVersionSelect dlVersionTitleSelect" 
+            value={(this.state.dlVersionTitle && this.state.dlVersionLanguage) ? this.state.dlVersionTitle + "/" + this.state.dlVersionLanguage : "0"} 
+            onChange={this.onDlVersionSelect}>
             {dl_versions}
           </select>
           <select className="dlVersionSelect dlVersionFormatSelect" value={this.state.dlVersionFormat || "0"} onChange={this.onDlFormatSelect}>
-            <option key="none" value="0" disabled>File Format</option>
-            <option key="txt" value="txt" >Text (with tags)</option>
-            <option key="plain.txt" value="plain.txt" >Text (without tags)</option>
+            <option key="none" value="0" disabled>{ formatStrings.none[Sefaria.interfaceLang] }</option>
+            <option key="txt" value="txt" >{ formatStrings.txt[Sefaria.interfaceLang] }</option>
+            <option key="plain.txt" value="plain.txt" >{ formatStrings.plaintxt[Sefaria.interfaceLang] }</option>
             <option key="csv" value="csv" >CSV</option>
             <option key="json" value="json" >JSON</option>
           </select>
@@ -275,7 +283,9 @@ class ReaderTextTableOfContents extends Component {
                     </div>
                   </div>
                   <div className="rightButtons">
-                    {this.props.interfaceLang !== "hebrew" ? <ReaderNavigationMenuDisplaySettingsButton onClick={this.props.openDisplaySettings} /> : null}
+                    {this.props.interfaceLang !== "hebrew" ? 
+                      <ReaderNavigationMenuDisplaySettingsButton onClick={this.props.openDisplaySettings} /> 
+                      : <ReaderNavigationMenuDisplaySettingsButton placeholder={true} />}
                   </div>
                 </div>
               </div>

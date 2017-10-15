@@ -66,11 +66,11 @@ class TopicPage extends Component {
           <div className={navTopClasses}>
             <CategoryColorLine category={"Other"} />
             <ReaderNavigationMenuMenuButton onClick={this.props.navHome} />
-            <ReaderNavigationMenuDisplaySettingsButton onClick={this.props.openDisplaySettings} />
             <h2>
               <span className="int-en">{this.props.topic}</span>
               <span className="int-he">{this.props.topic}</span>
             </h2>
+            <ReaderNavigationMenuDisplaySettingsButton onClick={this.props.openDisplaySettings} />
         </div>}
         <div className={contentClasses} onScroll={this.onScroll} key={this.props.topic}>
           <div className="contentInner">

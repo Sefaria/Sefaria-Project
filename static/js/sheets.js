@@ -1608,6 +1608,12 @@ $(function() {
 	$("#shareWithOthers .ok").click(function(){
 		$("#shareWithOthers, #overlay").hide();
 		$("#sheetSummary").text($("#sheetSummaryInput").val());
+
+		var curTagsHTML = "";
+    for (var i = 0; i < sjs.sheetTagger.tags().length; i++) {
+    	curTagsHTML = curTagsHTML + '<a class="button" role="button" href="/sheets/tags/'+sjs.sheetTagger.tags()[i]+'">'+sjs.sheetTagger.tags()[i]+'</a>';
+    }
+		$("#sheetTags").html(curTagsHTML);
 		autoSave();
 	});
 
