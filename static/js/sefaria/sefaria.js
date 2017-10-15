@@ -1697,7 +1697,10 @@ Sefaria = extend(Sefaria, {
   },
   _r: function (inputRef) {
     if(Sefaria.interfaceLang != "english"){
-        return Sefaria.ref(inputRef).heRef;
+        var oref = Sefaria.ref(inputRef);
+        if(oref){
+            return oref.heRef;
+        }
     }else{
         return inputRef;
 	}
