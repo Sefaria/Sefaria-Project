@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2017-10-10 17:47-0700\n"
+"POT-Creation-Date: 2017-10-13 07:00-0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -26,7 +26,7 @@ msgstr ""
 msgid "Explore 3,000 years of Jewish texts in Hebrew and English translation."
 msgstr ""
 
-#: reader/views.py:482 reader/views.py:572 reader/views.py:615
+#: reader/views.py:482 reader/views.py:617
 msgid " | Sefaria"
 msgstr ""
 
@@ -61,12 +61,24 @@ msgid ""
 "to create your own online."
 msgstr ""
 
+#: reader/views.py:572
+msgid " | Sefaria Group"
+msgstr ""
+
+#: reader/views.py:580 templates/groups.html:7
+msgid "Sefaria Groups"
+msgstr ""
+
+#: reader/views.py:586
+msgid "My Notes on Sefaria"
+msgstr ""
+
 #: reader/views.py:602
-msgid "My Source Sheets | Sefaria"
+msgid "My Source Sheets | Sefaria Source Sheets"
 msgstr ""
 
 #: reader/views.py:603
-msgid "My Sources Sheets on Sefaria, both private a public."
+msgid "My Sources Sheets on Sefaria, both private and public."
 msgstr ""
 
 #: reader/views.py:610
@@ -107,7 +119,7 @@ msgid "Explore Jewish Texts by Topic on Sefaria"
 msgstr ""
 
 #: reader/views.py:701
-msgid "The Sefaria Libray"
+msgid "The Sefaria Library"
 msgstr ""
 
 #: reader/views.py:702
@@ -125,17 +137,29 @@ msgid ""
 "Sefaria."
 msgstr ""
 
-#: reader/views.py:2870
+#: reader/views.py:717
+msgid "Sefaria Account"
+msgstr ""
+
+#: reader/views.py:725
+msgid "Sefaria Notifcations"
+msgstr ""
+
+#: reader/views.py:732
+msgid "Moderator Tools"
+msgstr ""
+
+#: reader/views.py:2875
 msgid "You must be logged in to update your profile."
 msgstr ""
 
-#: reader/views.py:3456 reader/views.py:3459
+#: reader/views.py:3461 reader/views.py:3464
 #, python-format
 msgid "Learn about %(name)s - works written, biographies, dates and more."
 msgstr ""
 
 #: sefaria/forms.py:58 sefaria/forms.py:63 sefaria/forms.py:129
-#: templates/static/educators.html:301 templates/static/home.html:361
+#: templates/static/home.html:361
 msgid "Email Address"
 msgstr ""
 
@@ -226,10 +250,6 @@ msgid ""
 "in to particular books either above or below to explore deeper."
 msgstr ""
 
-#: templates/groups.html:7
-msgid "Sefaria Groups"
-msgstr ""
-
 #: templates/metrics.html:5
 msgid "Sefaria Metrics"
 msgstr ""
@@ -307,31 +327,31 @@ msgstr ""
 msgid "Create your own source sheet with Sefaria's Source Sheet Builder."
 msgstr ""
 
-#: templates/s2_sheets.html:1045
+#: templates/s2_sheets.html:994
 msgid "Private"
 msgstr ""
 
-#: templates/s2_sheets.html:1048
+#: templates/s2_sheets.html:997
 msgid "Listed for Sefaria Users"
 msgstr ""
 
-#: templates/s2_sheets.html:1051
+#: templates/s2_sheets.html:1000
 msgid "Anyone can Add"
 msgstr ""
 
-#: templates/s2_sheets.html:1054
+#: templates/s2_sheets.html:1003
 msgid "Anyone can Add - Unlisted"
 msgstr ""
 
-#: templates/s2_sheets.html:1057
+#: templates/s2_sheets.html:1006
 msgid "Anyone can Edit"
 msgstr ""
 
-#: templates/s2_sheets.html:1060
+#: templates/s2_sheets.html:1009
 msgid "Anyone can Edit - Unlisted"
 msgstr ""
 
-#: templates/s2_sheets.html:1073
+#: templates/s2_sheets.html:1022
 msgid "None"
 msgstr ""
 

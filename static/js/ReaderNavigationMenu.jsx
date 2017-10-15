@@ -198,7 +198,7 @@ class ReaderNavigationMenu extends Component {
                      (<a className="resourcesLink outOfAppLink" style={sheetsStyle} href="/visualizations">
                         <img src="/static/img/visualizations-icon.png" alt="" />
                         <span className="int-en">Visualizations</span>
-                        <span className="int-he">חזותיים</span>
+                        <span className="int-he">תרשימים גרפיים</span>
                       </a>),
                     (<a className="resourcesLink outOfAppLink" style={sheetsStyle} href="/people">
                         <img src="/static/img/authors-icon.png" alt="" />

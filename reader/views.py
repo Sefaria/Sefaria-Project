@@ -569,7 +569,7 @@ def s2_group_sheets(request, group, authenticated):
     return render_to_response('s2.html', {
         "propsJSON": propsJSON,
         "html": html,
-        "title": group[0].name + _(" | Sefaria"),
+        "title": group[0].name + _(" | Sefaria Group"),
         "desc": props["groupData"].get("description", ""),
     }, RequestContext(request))
 
@@ -577,13 +577,15 @@ def s2_group_sheets(request, group, authenticated):
 @login_required
 def s2_my_groups(request):
     props = s2_props(request)
+    title = _("Sefaria Groups")
     return s2_page(request, props, "myGroups")
 
 
 @login_required
 def s2_my_notes(request):
+    title = _("My Notes on Sefaria")
     props = s2_props(request)
-    return s2_page(request, props, "myNotes")
+    return s2_page(request, props, "myNotes", title)
 
 
 def s2_sheets_by_tag(request, tag):
@@ -599,15 +601,15 @@ def s2_sheets_by_tag(request, tag):
     if tag == "My Sheets" and request.user.is_authenticated():
         props["userSheets"] = user_sheets(request.user.id)["sheets"]
         props["userTags"]   = user_tags(request.user.id)
-        title = _("My Source Sheets | Sefaria")
-        desc  = _("My Sources Sheets on Sefaria, both private a public.")
+        title = _("My Source Sheets | Sefaria Source Sheets")
+        desc  = _("My Sources Sheets on Sefaria, both private and public.")
 
     elif tag == "My Sheets" and not request.user.is_authenticated():
         return redirect("/login?next=/sheets/private")
 
     elif tag == "All Sheets":
         props["publicSheets"] = {"offset0num50": public_sheets(limit=50)["sheets"]}
-        title = _("Public Source Sheets | Sefaria")
+        title = _("Public Source Sheets | Sefaria Source Sheets")
         desc  = _("Explore thousands of public Source Sheets drawing on Sefaria's library of Jewish texts.")
 
     else:
@@ -698,7 +700,7 @@ def mobile_home(request):
 
 def s2_texts(request):
     props = s2_props(request)
-    title = _("The Sefaria Libray")
+    title = _("The Sefaria Library")
     desc  = _("Browse 1,000s of Jewish texts in the Sefaria Library by category and title.")
     return s2_page(request, props, "navigation", title, desc)
 
@@ -712,21 +714,24 @@ def s2_updates(request):
 
 @login_required
 def s2_account(request):
+    title = _("Sefaria Account")
     props = s2_props(request)
-    return s2_page(request, props, "account")
+    return s2_page(request, props, "account", title)
 
 
 @login_required
 def s2_notifications(request):
     # Notifications content is not rendered server side
+    title = _("Sefaria Notifcations")
     props = s2_props(request)
-    return s2_page(request, props, "notifications")
+    return s2_page(request, props, "notifications", title)
 
 
 @login_required
 def s2_modtools(request):
+    title = _("Moderator Tools")
     props = s2_props(request)
-    return s2_page(request, props, "modtools")
+    return s2_page(request, props, "modtools", title)
 
 
 """
