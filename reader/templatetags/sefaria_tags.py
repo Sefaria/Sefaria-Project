@@ -16,6 +16,7 @@ from django.core.serializers import serialize
 from django.db.models.query import QuerySet
 from django.contrib.sites.models import Site
 from django.contrib.auth.models import Group
+from django.utils.translation import ugettext as _
 
 from sefaria.sheets import get_sheet
 from sefaria.model.user_profile import user_link as ulink, user_name as uname, public_user_data
@@ -212,9 +213,9 @@ def group_link(group_name):
 @register.filter(is_safe=True)
 def lang_code(code):
 	codes = {
-		"en": "English",
-		"he": "Hebrew",
-		"bi": "Bilingual",
+		"en": _("English"),
+		"he": _("Hebrew"),
+		"bi": _("Bilingual"),
 	}
 	return codes.get(code, "Unknown Language")
 
