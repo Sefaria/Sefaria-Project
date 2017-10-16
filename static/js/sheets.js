@@ -867,6 +867,7 @@ $(function() {
 			showShareModal();
 		}
 	});
+	$("#sheetMetadata span.editButton").click(showShareModal);
 
 
 	// ---------- Copy Sheet ----------------

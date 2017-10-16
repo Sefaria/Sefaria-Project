@@ -550,6 +550,25 @@ body:not(.user-is-tabbing) #sheet .cke_editable:focus {
     align-self: flex-end;
 }
 
+#sheetMetadata .editButton {
+	float: right;
+    margin: 0 26px;
+    padding: 4px 14px;
+    font-size: 12px;
+	background-color: #eee;
+    border-color: #ccc;
+    color: #999;
+	cursor: pointer;
+}
+
+#sheetMetadata .editButton:before {
+	content: "✎ ";
+}
+
+#sheetMetadata .int-he .editButton {
+	float: left;
+}
+
 #sheetMetadata .metadataOpenDetails {
 	font-size: 14px;
 	font-family: "proxima-nova","Helvetica Neue","Helvetica",sans-serif;
