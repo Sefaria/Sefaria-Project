@@ -513,7 +513,7 @@ body:not(.user-is-tabbing) #sheet .cke_editable:focus {
 	border-color: #ccc;
 	color: #999;
 	font-size: 14px;
-	margin-top: 20px;
+	margin: 4px;
 }
 
 #sheetMetadata summary {
@@ -558,11 +558,15 @@ body:not(.user-is-tabbing) #sheet .cke_editable:focus {
 
 #sheetMetadata #via, #sheetMetadata #assignmentAttribution {
 	font-size: 14px;
-	padding: 14px 0;
+	padding: 7px 0;
 }
 
 #sheetSummary {
-	margin-top: 20px;
+	margin: 14px 0;
+	font-style: italic;
+}
+#sheetSummary:empty {
+	display: none;
 }
 
 #likeLink {
