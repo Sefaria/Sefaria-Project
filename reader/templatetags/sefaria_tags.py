@@ -20,6 +20,7 @@ from django.utils.translation import ugettext as _
 
 from sefaria.sheets import get_sheet
 from sefaria.model.user_profile import user_link as ulink, user_name as uname, public_user_data
+from sefaria.model.text import Version
 from sefaria.utils.util import strip_tags as strip_tags_func
 from sefaria.utils.hebrew import hebrew_plural, hebrew_term, hebrew_parasha_name
 from sefaria.utils.hebrew import hebrew_term as translate_hebrew_term
@@ -100,6 +101,18 @@ def he_parasha(value):
 	Returns a Hebrew parsha name for the english parsha name passed in.
 	"""
 	return hebrew_parasha_name(value)
+
+
+@register.filter(is_safe=True)
+@stringfilter
+def he_version(value):
+	"""
+	Returns the Hebrew translation of a version title, if it exists.
+	"""
+	version = Version().load({"versionTitle": value})
+	if not version:
+		return value
+	return getattr(version, "versionTitleInHebrew", value)
 
 
 @register.filter(is_safe=True)

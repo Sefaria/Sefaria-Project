@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2017-10-13 06:59-0700\n"
+"POT-Creation-Date: 2017-10-16 14:22-0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -66,17 +66,11 @@ msgstr ""
 "סיירו בין אלפי דפי מקורות פומביים והשתמשו בבונה דפי המקורות בכדי ליצור דף "
 "מקורות משלכם."
 
-#: reader/views.py:572
-#, fuzzy
-msgid " | Sefaria Group"
-msgstr " | קבוצות בספריא"
-
-#: reader/views.py:580 templates/groups.html:7
+#: reader/views.py:572 reader/views.py:580 templates/groups.html:7
 msgid "Sefaria Groups"
 msgstr "קבוצות בספריא"
 
 #: reader/views.py:586
-#, fuzzy
 msgid "My Notes on Sefaria"
 msgstr "הרשומות שלי בספריא"
 
@@ -89,8 +83,9 @@ msgid "My Sources Sheets on Sefaria, both private and public."
 msgstr "דפי המקורות שלי בספריא. פרטיים ופומביים"
 
 #: reader/views.py:612
-msgid "Public Source Sheets | Sefaria"
-msgstr "דפי מקורות פומביים | ספריא"
+#, fuzzy
+msgid "Public Source Sheets | Sefaria Source Sheets"
+msgstr "דפי המקורות שלי | דפי מקורות בספריא"
 
 #: reader/views.py:613
 msgid ""
@@ -155,20 +150,32 @@ msgstr "חשבון בספריא"
 
 #: reader/views.py:725
 #, fuzzy
-msgid "Sefaria Notifcations"
+msgid "Sefaria Notifications"
 msgstr "הודעות בספריא"
 
 #: reader/views.py:732
 msgid "Moderator Tools"
 msgstr "כלי מנהלים"
 
-#: reader/views.py:2875
+#: reader/views.py:2877
 msgid "You must be logged in to update your profile."
 msgstr "הנכם צריכים להיות מחוברים כדי לערוך את הפרופיל שלכם."
 
-#: reader/views.py:3461 reader/views.py:3464
+#: reader/views.py:3463 reader/views.py:3466
 #, python-format
 msgid "Learn about %(name)s - works written, biographies, dates and more."
+msgstr ""
+
+#: reader/templatetags/sefaria_tags.py:216 sefaria/settings.py:23
+msgid "English"
+msgstr "אנגלית"
+
+#: reader/templatetags/sefaria_tags.py:217 sefaria/settings.py:24
+msgid "Hebrew"
+msgstr "עברית"
+
+#: reader/templatetags/sefaria_tags.py:218
+msgid "Bilingual"
 msgstr ""
 
 #: sefaria/forms.py:58 sefaria/forms.py:63 sefaria/forms.py:129
@@ -199,14 +206,6 @@ msgstr "אני מסכימ/ה לקבל את עלון המחנכים שלנו"
 #: sefaria/forms.py:90
 msgid "A user with that email already exists."
 msgstr "משתמש עם כתובת האימייל לעיל כבר קיים"
-
-#: sefaria/settings.py:23
-msgid "English"
-msgstr "אנגלית"
-
-#: sefaria/settings.py:24
-msgid "Hebrew"
-msgstr "עברית"
 
 #: sefaria/views.py:162
 msgid "Logged out"
@@ -244,6 +243,46 @@ msgid ""
 "source sheets, and text translations, edits or additions. "
 msgstr ""
 "צפו ברישום הכולל של פעילות פומבית בספריא כולל דפי מקורות, תרגומים ועריכות"
+
+#: templates/activity.html:52
+msgid "All Activity"
+msgstr "היסטוריית פעילות"
+
+#: templates/activity.html:53
+msgid "Translations"
+msgstr "תרגומים"
+
+#: templates/activity.html:54 templates/profile.html:106
+msgid "Source Sheets"
+msgstr "דפי מקורות"
+
+#: templates/activity.html:55
+msgid "New Texts"
+msgstr "טקסטים חדשים"
+
+#: templates/activity.html:56
+msgid "Edits"
+msgstr "עריכות"
+
+#: templates/activity.html:57 templates/profile.html:126
+msgid "Notes"
+msgstr "הערות"
+
+#: templates/activity.html:58
+msgid "Reviews"
+msgstr "ביקורות גולשים"
+
+#: templates/activity.html:59
+msgid "Text Info"
+msgstr "מידע אודות הטקסט"
+
+#: templates/activity.html:60
+msgid "Reversions"
+msgstr "שחזורים"
+
+#: templates/activity.html:61
+msgid "Flagged"
+msgstr "מסומנים"
 
 #: templates/edit_group.html:7
 msgid "Edit Group on Sefaria"
@@ -304,14 +343,6 @@ msgstr "נמצא בספריא. עקבו אחרי פעילות שלהם בדפי 
 msgid "at "
 msgstr "ב"
 
-#: templates/profile.html:106
-msgid "Source Sheets"
-msgstr "דפי מקורות"
-
-#: templates/profile.html:126
-msgid "Notes"
-msgstr ""
-
 #: templates/profile.html:133
 msgid "Activity"
 msgstr "פעילות"
@@ -352,31 +383,31 @@ msgstr ""
 msgid "Create your own source sheet with Sefaria's Source Sheet Builder."
 msgstr "צרו דף מקורות משלכם בעזרת בונה דפי המקורות של ספריא"
 
-#: templates/s2_sheets.html:994
+#: templates/s2_sheets.html:1043
 msgid "Private"
 msgstr "פרטי"
 
-#: templates/s2_sheets.html:997
+#: templates/s2_sheets.html:1046
 msgid "Listed for Sefaria Users"
 msgstr "מופיע למשתמשים רשומים"
 
-#: templates/s2_sheets.html:1000
+#: templates/s2_sheets.html:1049
 msgid "Anyone can Add"
 msgstr "כל אחד יכול להוסיף"
 
-#: templates/s2_sheets.html:1003
+#: templates/s2_sheets.html:1052
 msgid "Anyone can Add - Unlisted"
 msgstr "כל אחד יכול להוסיף - מוסתר"
 
-#: templates/s2_sheets.html:1006
+#: templates/s2_sheets.html:1055
 msgid "Anyone can Edit"
 msgstr "כל אחד יכול לערוך"
 
-#: templates/s2_sheets.html:1009
+#: templates/s2_sheets.html:1058
 msgid "Anyone can Edit - Unlisted"
 msgstr "כל אחד יכול לערוך - מוסתר"
 
-#: templates/s2_sheets.html:1022
+#: templates/s2_sheets.html:1071
 msgid "None"
 msgstr "ללא"
 
@@ -449,6 +480,130 @@ msgid ""
 msgstr ""
 "צפו כיצד רשי יוצר חיבורים בין מקומות שונים בתורה כשהוא מפרש פסוק אחד ומצטט "
 "שם פסוק אחר"
+
+#: templates/elements/activity_feed.html:7
+msgid "deleted the text"
+msgstr "מחק את הטקסט"
+
+#: templates/elements/activity_feed.html:11
+msgid "deleted a text version of"
+msgstr "מחק את גרסת הטקסט של"
+
+#: templates/elements/activity_feed.html:13
+#: templates/elements/activity_feed.html:35
+#: templates/elements/activity_feed.html:101
+msgid "Version"
+msgstr "גרסה"
+
+#: templates/elements/activity_feed.html:18
+msgid "translated"
+msgstr "תורגם"
+
+#: templates/elements/activity_feed.html:20
+msgid "added"
+msgstr "נוסף"
+
+#: templates/elements/activity_feed.html:22
+msgid "edited"
+msgstr "נערך"
+
+#: templates/elements/activity_feed.html:24
+msgid "reverted"
+msgstr "שוחזר"
+
+#: templates/elements/activity_feed.html:29
+#: templates/elements/activity_feed.html:51
+msgid "and "
+msgstr "ו"
+
+#: templates/elements/activity_feed.html:29
+msgid "others"
+msgstr "אחרים"
+
+#: templates/elements/activity_feed.html:32
+#: templates/elements/activity_feed.html:99
+msgid "history"
+msgstr "הסטוריה"
+
+#: templates/elements/activity_feed.html:44
+msgid "added a connection"
+msgstr "קישור לטקסט אחר"
+
+#: templates/elements/activity_feed.html:46
+msgid "edited a connection"
+msgstr "ערך קישור"
+
+#: templates/elements/activity_feed.html:48
+msgid "deleted a connection"
+msgstr "מחק קישור"
+
+#: templates/elements/activity_feed.html:51
+msgid "between"
+msgstr "בין"
+
+#: templates/elements/activity_feed.html:55
+msgid "automatic commentary link"
+msgstr "קישור אוטומטי לפירוש"
+
+#: templates/elements/activity_feed.html:56
+msgid "automatic citation link"
+msgstr "קישור אוטומטי לציטוט"
+
+#: templates/elements/activity_feed.html:63
+msgid "added a note to "
+msgstr "הוסיף הערה ל"
+
+#: templates/elements/activity_feed.html:65
+msgid "edited a note on "
+msgstr "ערך הערה ב"
+
+#: templates/elements/activity_feed.html:67
+msgid "deleted a note on "
+msgstr "מחק הערה ב"
+
+#: templates/elements/activity_feed.html:80
+msgid "added text info for the text"
+msgstr "הוסיף מידע אודות הטקסט"
+
+#: templates/elements/activity_feed.html:82
+msgid "edited the text info of"
+msgstr "ערך מידע אודות הטקסט"
+
+#: templates/elements/activity_feed.html:86
+msgid "details"
+msgstr "פרטים"
+
+#: templates/elements/activity_feed.html:97
+msgid "reviewed"
+msgstr "הוסיף הגהה"
+
+#: templates/elements/activity_feed.html:109
+msgid "published a new Source Sheet"
+msgstr "פרסם דף מקורות חדש"
+
+#: templates/elements/activity_feed.html:119
+msgid "related"
+msgstr "נוספים"
+
+#: templates/elements/activity_feed.html:127
+msgid "No matching public activity yet."
+msgstr "לא נמצאו פרטי פעילות גלויה תואמים"
+
+#: templates/elements/activity_feed.html:129
+msgid "No public activity yet."
+msgstr "לא נמצאה פעילות גלויה"
+
+#: templates/elements/activity_feed.html:133
+msgid "No matching public history items."
+msgstr "לא נמצאו פרטי הסטוריה גלויה תואמים"
+
+#: templates/elements/activity_feed.html:135
+msgid "No public history items."
+msgstr "לא נמצאו פרטי הסטוריה גלויה"
+
+#: templates/elements/activity_feed.html:141
+msgid "Older Activity"
+msgstr "פעילות ישנה יותר"
 
 #: templates/registration/logged_out.html:4
 msgid "Logged Out"
@@ -717,6 +872,7 @@ msgstr ""
 "ומצגות אודות מאגר הטקסטים והקישורים"
 
 #: templates/static/william-davidson-talmud.html:4
+#: templates/static/william-davidson-talmud.html:80
 msgid "The William Davidson Talmud"
 msgstr "התלמוד במהדורת וויליאם דוידסון"
 
@@ -730,3 +886,6 @@ msgstr ""
 "התלמוד במהדורת וויליאם דוידסון הוא גרסה דיגיטלית חפשית של התלמוד הבבלי עם "
 "תרגום מקביל המקושר לפרשנים מרכזיים, אזכורים מקראיים, מדרש, הלכה ועולם הולך "
 "וגדל של טקסטים יהודיים"
+
+#~ msgid "Public Source Sheets | Sefaria"
+#~ msgstr "דפי מקורות פומביים | ספריא"
