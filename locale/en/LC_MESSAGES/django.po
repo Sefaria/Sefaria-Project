@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2017-10-10 17:47-0700\n"
+"POT-Creation-Date: 2017-10-16 14:21-0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -26,7 +26,7 @@ msgstr ""
 msgid "Explore 3,000 years of Jewish texts in Hebrew and English translation."
 msgstr ""
 
-#: reader/views.py:482 reader/views.py:572 reader/views.py:615
+#: reader/views.py:482 reader/views.py:617
 msgid " | Sefaria"
 msgstr ""
 
@@ -61,36 +61,44 @@ msgid ""
 "to create your own online."
 msgstr ""
 
-#: reader/views.py:602
-msgid "My Source Sheets | Sefaria"
+#: reader/views.py:572 reader/views.py:580 templates/groups.html:7
+msgid "Sefaria Groups"
 msgstr ""
 
-#: reader/views.py:603
-msgid "My Sources Sheets on Sefaria, both private a public."
+#: reader/views.py:586
+msgid "My Notes on Sefaria"
 msgstr ""
 
-#: reader/views.py:610
-msgid "Public Source Sheets | Sefaria"
+#: reader/views.py:604
+msgid "My Source Sheets | Sefaria Source Sheets"
 msgstr ""
 
-#: reader/views.py:611
+#: reader/views.py:605
+msgid "My Sources Sheets on Sefaria, both private and public."
+msgstr ""
+
+#: reader/views.py:612
+msgid "Public Source Sheets | Sefaria Source Sheets"
+msgstr ""
+
+#: reader/views.py:613
 msgid ""
 "Explore thousands of public Source Sheets drawing on Sefaria's library of "
 "Jewish texts."
 msgstr ""
 
-#: reader/views.py:616
+#: reader/views.py:618
 #, python-format
 msgid ""
 "Public Source Sheets on tagged with \"%(tag)s\", drawing from Sefaria's "
 "library of Jewish texts."
 msgstr ""
 
-#: reader/views.py:645
+#: reader/views.py:647
 msgid "Topics"
 msgstr ""
 
-#: reader/views.py:645 templates/person.html:6 templates/person.html.py:8
+#: reader/views.py:647 templates/person.html:6 templates/person.html.py:8
 #: templates/search.html:6
 #: templates/registration/password_reset_complete.html:3
 #: templates/registration/password_reset_confirm.html:4
@@ -102,36 +110,60 @@ msgstr ""
 msgid "Sefaria"
 msgstr ""
 
-#: reader/views.py:646
+#: reader/views.py:648
 msgid "Explore Jewish Texts by Topic on Sefaria"
 msgstr ""
 
-#: reader/views.py:701
-msgid "The Sefaria Libray"
+#: reader/views.py:703
+msgid "The Sefaria Library"
 msgstr ""
 
-#: reader/views.py:702
+#: reader/views.py:704
 msgid ""
 "Browse 1,000s of Jewish texts in the Sefaria Library by category and title."
 msgstr ""
 
-#: reader/views.py:708
+#: reader/views.py:710
 msgid "New Additions to the Sefaria Library"
 msgstr ""
 
-#: reader/views.py:709
+#: reader/views.py:711
 msgid ""
 "See texts, translations and connections that have been recently added to "
 "Sefaria."
 msgstr ""
 
-#: reader/views.py:2870
+#: reader/views.py:717
+msgid "Sefaria Account"
+msgstr ""
+
+#: reader/views.py:725
+msgid "Sefaria Notifications"
+msgstr ""
+
+#: reader/views.py:732
+msgid "Moderator Tools"
+msgstr ""
+
+#: reader/views.py:2877
 msgid "You must be logged in to update your profile."
 msgstr ""
 
-#: reader/views.py:3456 reader/views.py:3459
+#: reader/views.py:3463 reader/views.py:3466
 #, python-format
 msgid "Learn about %(name)s - works written, biographies, dates and more."
+msgstr ""
+
+#: reader/templatetags/sefaria_tags.py:216 sefaria/settings.py:23
+msgid "English"
+msgstr ""
+
+#: reader/templatetags/sefaria_tags.py:217 sefaria/settings.py:24
+msgid "Hebrew"
+msgstr ""
+
+#: reader/templatetags/sefaria_tags.py:218
+msgid "Bilingual"
 msgstr ""
 
 #: sefaria/forms.py:58 sefaria/forms.py:63 sefaria/forms.py:129
@@ -161,14 +193,6 @@ msgstr ""
 
 #: sefaria/forms.py:90
 msgid "A user with that email already exists."
-msgstr ""
-
-#: sefaria/settings.py:23
-msgid "English"
-msgstr ""
-
-#: sefaria/settings.py:24
-msgid "Hebrew"
 msgstr ""
 
 #: sefaria/views.py:162
@@ -207,6 +231,46 @@ msgid ""
 "source sheets, and text translations, edits or additions. "
 msgstr ""
 
+#: templates/activity.html:52
+msgid "All Activity"
+msgstr ""
+
+#: templates/activity.html:53
+msgid "Translations"
+msgstr ""
+
+#: templates/activity.html:54 templates/profile.html:106
+msgid "Source Sheets"
+msgstr ""
+
+#: templates/activity.html:55
+msgid "New Texts"
+msgstr ""
+
+#: templates/activity.html:56
+msgid "Edits"
+msgstr ""
+
+#: templates/activity.html:57 templates/profile.html:126
+msgid "Notes"
+msgstr ""
+
+#: templates/activity.html:58
+msgid "Reviews"
+msgstr ""
+
+#: templates/activity.html:59
+msgid "Text Info"
+msgstr ""
+
+#: templates/activity.html:60
+msgid "Reversions"
+msgstr ""
+
+#: templates/activity.html:61
+msgid "Flagged"
+msgstr ""
+
 #: templates/edit_group.html:7
 msgid "Edit Group on Sefaria"
 msgstr ""
@@ -224,10 +288,6 @@ msgstr ""
 msgid ""
 "Explore over 30,000 examples of the Talmud quoting a verse from Tanakh. Zoom "
 "in to particular books either above or below to explore deeper."
-msgstr ""
-
-#: templates/groups.html:7
-msgid "Sefaria Groups"
 msgstr ""
 
 #: templates/metrics.html:5
@@ -264,16 +324,12 @@ msgstr ""
 msgid "at "
 msgstr ""
 
-#: templates/profile.html:106
-msgid "Source Sheets"
-msgstr ""
-
-#: templates/profile.html:126
-msgid "Notes"
-msgstr ""
-
 #: templates/profile.html:133
 msgid "Activity"
+msgstr ""
+
+#: templates/profile.html:135
+msgid "More Activity"
 msgstr ""
 
 #: templates/profile.html:183
@@ -307,31 +363,31 @@ msgstr ""
 msgid "Create your own source sheet with Sefaria's Source Sheet Builder."
 msgstr ""
 
-#: templates/s2_sheets.html:1045
+#: templates/s2_sheets.html:1043
 msgid "Private"
 msgstr ""
 
-#: templates/s2_sheets.html:1048
+#: templates/s2_sheets.html:1046
 msgid "Listed for Sefaria Users"
 msgstr ""
 
-#: templates/s2_sheets.html:1051
+#: templates/s2_sheets.html:1049
 msgid "Anyone can Add"
 msgstr ""
 
-#: templates/s2_sheets.html:1054
+#: templates/s2_sheets.html:1052
 msgid "Anyone can Add - Unlisted"
 msgstr ""
 
-#: templates/s2_sheets.html:1057
+#: templates/s2_sheets.html:1055
 msgid "Anyone can Edit"
 msgstr ""
 
-#: templates/s2_sheets.html:1060
+#: templates/s2_sheets.html:1058
 msgid "Anyone can Edit - Unlisted"
 msgstr ""
 
-#: templates/s2_sheets.html:1073
+#: templates/s2_sheets.html:1071
 msgid "None"
 msgstr ""
 
@@ -393,6 +449,130 @@ msgstr ""
 msgid ""
 "Explore how Rashi connects verses of Torah to one another when he quotes one "
 "verse in his commentary on another."
+msgstr ""
+
+#: templates/elements/activity_feed.html:7
+msgid "deleted the text"
+msgstr ""
+
+#: templates/elements/activity_feed.html:11
+msgid "deleted a text version of"
+msgstr ""
+
+#: templates/elements/activity_feed.html:13
+#: templates/elements/activity_feed.html:35
+#: templates/elements/activity_feed.html:101
+msgid "Version"
+msgstr ""
+
+#: templates/elements/activity_feed.html:18
+msgid "translated"
+msgstr ""
+
+#: templates/elements/activity_feed.html:20
+msgid "added"
+msgstr ""
+
+#: templates/elements/activity_feed.html:22
+msgid "edited"
+msgstr ""
+
+#: templates/elements/activity_feed.html:24
+msgid "reverted"
+msgstr ""
+
+#: templates/elements/activity_feed.html:29
+#: templates/elements/activity_feed.html:51
+msgid "and "
+msgstr ""
+
+#: templates/elements/activity_feed.html:29
+msgid "others"
+msgstr ""
+
+#: templates/elements/activity_feed.html:32
+#: templates/elements/activity_feed.html:99
+msgid "history"
+msgstr ""
+
+#: templates/elements/activity_feed.html:44
+msgid "added a connection"
+msgstr ""
+
+#: templates/elements/activity_feed.html:46
+msgid "edited a connection"
+msgstr ""
+
+#: templates/elements/activity_feed.html:48
+msgid "deleted a connection"
+msgstr ""
+
+#: templates/elements/activity_feed.html:51
+msgid "between"
+msgstr ""
+
+#: templates/elements/activity_feed.html:55
+msgid "automatic commentary link"
+msgstr ""
+
+#: templates/elements/activity_feed.html:56
+msgid "automatic citation link"
+msgstr ""
+
+#: templates/elements/activity_feed.html:63
+msgid "added a note to "
+msgstr ""
+
+#: templates/elements/activity_feed.html:65
+msgid "edited a note on "
+msgstr ""
+
+#: templates/elements/activity_feed.html:67
+msgid "deleted a note on "
+msgstr ""
+
+#: templates/elements/activity_feed.html:80
+msgid "added text info for the text"
+msgstr ""
+
+#: templates/elements/activity_feed.html:82
+msgid "edited the text info of"
+msgstr ""
+
+#: templates/elements/activity_feed.html:86
+msgid "details"
+msgstr ""
+
+#: templates/elements/activity_feed.html:97
+msgid "reviewed"
+msgstr ""
+
+#: templates/elements/activity_feed.html:109
+msgid "published a new Source Sheet"
+msgstr ""
+
+#: templates/elements/activity_feed.html:119
+msgid "related"
+msgstr ""
+
+#: templates/elements/activity_feed.html:127
+msgid "No matching public activity yet."
+msgstr ""
+
+#: templates/elements/activity_feed.html:129
+msgid "No public activity yet."
+msgstr ""
+
+#: templates/elements/activity_feed.html:133
+msgid "No matching public history items."
+msgstr ""
+
+#: templates/elements/activity_feed.html:135
+msgid "No public history items."
+msgstr ""
+
+#: templates/elements/activity_feed.html:141
+msgid "Older Activity"
 msgstr ""
 
 #: templates/registration/logged_out.html:4
@@ -639,6 +819,7 @@ msgid ""
 msgstr ""
 
 #: templates/static/william-davidson-talmud.html:4
+#: templates/static/william-davidson-talmud.html:80
 msgid "The William Davidson Talmud"
 msgstr ""
 

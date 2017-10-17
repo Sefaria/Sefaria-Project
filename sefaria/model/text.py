@@ -3829,98 +3829,97 @@ class Library(object):
             except IndexSchemaError as e:
                 logger.error(u"Error in generating title node dictionary: {}".format(e))
 
-    def _reset_index_derivative_objects(self):
+    def _reset_index_derivative_objects(self, include_auto_complete=False):
         self._full_title_lists = {}
         self._full_title_list_jsons = {}
         self._title_regex_strings = {}
         self._title_regexes = {}
-        self._full_auto_completer = {}
-        self._ref_auto_completer = {}
+        if include_auto_complete:  # This path not yet used.  Useful?
+            self.build_full_auto_completer()
+            self.build_ref_auto_completer()
         # TOC is handled separately since it can be edited in place
 
-    def _reset_toc_derivate_objects(self):
-        scache.delete_cache_elem('toc_cache')
-        scache.delete_cache_elem('toc_json_cache')
-        scache.set_cache_elem('toc_cache', self.get_toc(), 600000)
-        scache.set_cache_elem('toc_json_cache', self.get_toc_json(), 600000)
+    def rebuild(self, include_toc = False, include_auto_complete=False):
+        self._build_core_maps()
+        self._full_title_lists = {}
+        self._full_title_list_jsons = {}
+        self._title_regex_strings = {}
+        self._title_regexes = {}
+        Ref.clear_cache()
+        if include_toc:
+            self.rebuild_toc()
+        if include_auto_complete:  # This path not yet used.  Useful?
+            self.build_full_auto_completer()
+            self.build_ref_auto_completer()
 
-        scache.delete_cache_elem('search_filter_toc_cache')
-        scache.delete_cache_elem('search_filter_toc_json_cache')
-        scache.set_cache_elem('search_filter_toc_cache', self.get_search_filter_toc(), 600000)
-        scache.set_cache_elem('search_filter_toc_json_cache', self.get_search_filter_toc_json(), 600000)
+    def rebuild_toc(self, skip_toc_tree=False, skip_filter_toc=False):
+        if not skip_toc_tree:
+            self._toc_tree = self.get_toc_tree(rebuild=True)
+        self._toc = self.get_toc(rebuild=True)
+        self._toc_json = self.get_toc_json(rebuild=True)
+        if not skip_filter_toc:
+            self._search_filter_toc = self.get_search_filter_toc(rebuild=True)
+        self._search_filter_toc_json = self.get_search_filter_toc_json(rebuild=True)
 
+        self._category_id_dict = None
         scache.delete_template_cache("texts_list")
         scache.delete_template_cache("texts_dashboard")
         self._full_title_list_jsons = {}
         self._simple_term_mapping = {}
 
-    def rebuild(self, include_toc = False):
-        self._build_core_maps()
-        self._reset_index_derivative_objects()
-        Ref.clear_cache()
-        if include_toc:
-            self.rebuild_toc()
-        self.build_full_auto_completer()
-        self.build_ref_auto_completer()
-
-    def rebuild_toc(self):
-        self._toc = None
-        self._toc_json = None
-        self._toc_tree = None
-        self._search_filter_toc = None
-        self._search_filter_toc_json = None
-        self._category_id_dict = None
-        self._reset_toc_derivate_objects()
-
-    def get_toc(self):
+    def get_toc(self, rebuild=False):
         """
         Returns table of contents object from cache,
         DB or by generating it, as needed.
         """
-        if not self._toc:
-            self._toc = scache.get_cache_elem('toc_cache')
-            if not self._toc:
+        if rebuild or not self._toc:
+            if not rebuild:
+                self._toc = scache.get_cache_elem('toc_cache')
+            if rebuild or not self._toc:
                 self._toc = self.get_toc_tree().get_serialized_toc()  # update_table_of_contents()
                 scache.set_cache_elem('toc_cache', self._toc)
         return self._toc
 
-    def get_toc_json(self):
+    def get_toc_json(self, rebuild=False):
         """
         Returns JSON representation of TOC.
         """
-        if not self._toc_json:
-            self._toc_json = scache.get_cache_elem('toc_json_cache')
-            if not self._toc_json:
+        if rebuild or not self._toc_json:
+            if not rebuild:
+                self._toc_json = scache.get_cache_elem('toc_json_cache')
+            if rebuild or not self._toc_json:
                 self._toc_json = json.dumps(self.get_toc())
                 scache.set_cache_elem('toc_json_cache', self._toc_json)
         return self._toc_json
 
-    def get_toc_tree(self):
-        if not self._toc_tree:
+    def get_toc_tree(self, rebuild=False):
+        if rebuild or not self._toc_tree:
             from sefaria.model.category import TocTree
             self._toc_tree = TocTree(self)
         return self._toc_tree
 
-    def get_search_filter_toc(self):
+    def get_search_filter_toc(self, rebuild=False):
         """
         Returns table of contents object from cache,
         DB or by generating it, as needed.
         """
-        if not self._search_filter_toc:
-            self._search_filter_toc = scache.get_cache_elem('search_filter_toc_cache')
-            if not self._search_filter_toc:
+        if rebuild or not self._search_filter_toc:
+            if not rebuild:
+                self._search_filter_toc = scache.get_cache_elem('search_filter_toc_cache')
+            if rebuild or not self._search_filter_toc:
                 from sefaria.summaries import update_search_filter_table_of_contents
                 self._search_filter_toc = update_search_filter_table_of_contents()
                 scache.set_cache_elem('search_filter_toc_cache', self._search_filter_toc)
         return self._search_filter_toc
 
-    def get_search_filter_toc_json(self):
+    def get_search_filter_toc_json(self, rebuild=False):
         """
         Returns JSON representation of TOC.
         """
-        if not self._search_filter_toc_json:
-            self._search_filter_toc_json = scache.get_cache_elem('search_filter_toc_json_cache')
-            if not self._search_filter_toc_json:
+        if rebuild or not self._search_filter_toc_json:
+            if not rebuild:
+                self._search_filter_toc_json = scache.get_cache_elem('search_filter_toc_json_cache')
+            if rebuild or not self._search_filter_toc_json:
                 self._search_filter_toc_json = json.dumps(self.get_search_filter_toc())
                 scache.set_cache_elem('search_filter_toc_json_cache', self._search_filter_toc_json)
         return self._search_filter_toc_json
@@ -3959,11 +3958,8 @@ class Library(object):
         from sefaria.summaries import update_title_in_toc
         self._search_filter_toc = update_title_in_toc(self.get_search_filter_toc(), indx, recount=False, for_search=True)
 
-        self._toc = None
-        self._toc_json = None
-        self._search_filter_toc_json = None
-        self._category_id_dict = None
-        self._reset_toc_derivate_objects()
+        self.rebuild_toc(skip_toc_tree=True, skip_filter_toc=True)
+
 
     def delete_index_from_toc(self, indx):
         toc_node = self.get_toc_tree().lookup(indx.categories, indx.title)
@@ -3973,11 +3969,7 @@ class Library(object):
         from sefaria.summaries import recur_delete_element_from_toc
         self._search_filter_toc = recur_delete_element_from_toc(indx.title, self.get_search_filter_toc())
 
-        self._toc = None
-        self._toc_json = None
-        self._search_filter_toc_json = None
-        self._category_id_dict = None
-        self._reset_toc_derivate_objects()
+        self.rebuild_toc(skip_toc_tree=True, skip_filter_toc=True)
 
     def update_index_in_toc(self, indx, old_ref=None):
         """
@@ -3990,11 +3982,7 @@ class Library(object):
         from sefaria.summaries import update_title_in_toc
         self._search_filter_toc = update_title_in_toc(self.get_search_filter_toc(), indx, old_ref=old_ref, recount=False, for_search=True)
 
-        self._toc = None
-        self._toc_json = None
-        self._search_filter_toc_json = None
-        self._category_id_dict = None
-        self._reset_toc_derivate_objects()
+        self.rebuild_toc(skip_toc_tree=True, skip_filter_toc=True)
 
     def get_index(self, bookname):
         """
@@ -4619,11 +4607,6 @@ class Library(object):
         return d
 
 library = Library()
-
-# Deprecated
-def get_index(bookname):
-    logger.warning("Use of deprecated function: get_index(). Use library.get_index()")
-    return library.get_index(bookname)
 
 
 def prepare_index_regex_for_dependency_process(index_object, as_list=False):

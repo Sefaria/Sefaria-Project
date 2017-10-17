@@ -2158,6 +2158,9 @@ a.readerNavCategory {
   font-style: italic;
   color: #999;
 }
+.readerControls .readerTextToc .readerTextVersion .en{
+  unicode-bidi: bidi-override;
+}
 .readerControls .readerTextToc .fa-caret-down {
   color: #ccc;
   margin: 0 7px;

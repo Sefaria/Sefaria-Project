@@ -82,7 +82,7 @@
                                 <img src="/static/img/edittags.png" alt="Edit Sheet Tags Icon">
                                 <span class="optionItemText">
                                     <span class="int-en">Tags</span>
-                                    <span class="int-he">תוויות</span>
+                                    <span class="int-he">תיוגים</span>
                                 </span>
 
                             </div>
@@ -643,12 +643,12 @@
     <details id="sheetMetadata">
     <summary>
         <span class="int-en">More info</span>
-        <span class="int-he">עוד מידע</span>
+        <span class="int-he">מידע נוסף</span>
     </summary>
         <div class="metadataOpenDetails">
             <div>
-                <span class="int-en">Created <span class="date">{{ sheet.dateCreated|date_string_to_date|date:"F j, Y" }}</span> · <span class="views">{{ sheet.views }} {% if sheet.views == 1%}View{% else %}Views{% endif %}</span> · <span class="likes" id="likeInfo"><span id="likeCount">{{like_count}}</span> {% if like_count == 1%}Like{% else %}Likes{% endif %}</span></span>
-                <span class="int-he">נוצר <span class="date">{{ sheet.dateCreated|date_string_to_date|date:"j F, Y" }}</span> · <span class="views">{{ sheet.views }} צפיות </span> · <span class="likes">{{like_count}} {% if like_count == 1%}סימוני{% else %}סימון{% endif %} אהבתי</span></span>
+                <span class="int-en">Created <span class="date">{{ sheet.dateCreated|date_string_to_date|date:"F j, Y" }}</span> · <span class="views">{{ sheet.views }} {% if sheet.views == 1%}View{% else %}Views{% endif %}</span> · <span class="likes" id="likeInfo"><span id="likeCount">{{like_count}}</span> {% if like_count == 1%}Like{% else %}Likes{% endif %}</span>{% if can_edit %}<span class="editButton">Edit</span>{% endif %}</span>
+                <span class="int-he">נוצר <span class="date">{{ sheet.dateCreated|date_string_to_date|date:"j F, Y" }}</span> · <span class="views">{{ sheet.views }} צפיות </span> · <span class="likes">{{like_count}} {% if like_count == 1%}סימוני{% else %}סימון{% endif %} אהבתי</span>{% if can_edit %}<span class="editButton">עריכת</span>{% endif %}</span>
             </div>
             {% if sheet.via %}
             <div id="via">
@@ -672,9 +672,7 @@
 
             {% endif %}
 
-            <div id="sheetSummary">
-                {{ sheet.summary }}
-            </div>
+            <div id="sheetSummary">{{ sheet.summary }}</div>
 
             <div id="sheetTags">
                 {% for tag in sheet.tags %}
@@ -995,7 +993,7 @@
     <span class="close-button"></span>
     <div class="title">
         <span class="int-en">Share this sheet</span>
-        <span class="int-he">שיתוף עם אחרים</span>
+        <span class="int-he">שתף דף מקור זה</span>
     </div>
 
     <div class="content">
@@ -1008,7 +1006,7 @@
                           {% if request.interfaceLang == 'english' %}
                               "Write a summary to help others understand your sheet..."
                           {% else %}
-                              "heb_text"
+                              "כתוב תקציר המסביר אודות דף המקור שלך לאחרים"
                           {% endif %}/>{{ sheet.summary }}</textarea>
 
     </div>
@@ -1017,7 +1015,7 @@
     <div class="content">
         <div class="inputHeader"><img src="/static/img/edittags.png" alt="Tags Icon">
             <span class="int-en">Tags</span>
-            <span class="int-he"></span>
+            <span class="int-he">תיוגים</span>
         </div>
         <ul id="tags"></ul>
 

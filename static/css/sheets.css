@@ -513,7 +513,7 @@ body:not(.user-is-tabbing) #sheet .cke_editable:focus {
 	border-color: #ccc;
 	color: #999;
 	font-size: 14px;
-	margin-top: 20px;
+	margin: 4px;
 }
 
 #sheetMetadata summary {
@@ -550,6 +550,25 @@ body:not(.user-is-tabbing) #sheet .cke_editable:focus {
     align-self: flex-end;
 }
 
+#sheetMetadata .editButton {
+	float: right;
+    margin: 0 26px;
+    padding: 4px 14px;
+    font-size: 12px;
+	background-color: #eee;
+    border-color: #ccc;
+    color: #999;
+	cursor: pointer;
+}
+
+#sheetMetadata .editButton:before {
+	content: "✎ ";
+}
+
+#sheetMetadata .int-he .editButton {
+	float: left;
+}
+
 #sheetMetadata .metadataOpenDetails {
 	font-size: 14px;
 	font-family: "proxima-nova","Helvetica Neue","Helvetica",sans-serif;
@@ -558,11 +577,15 @@ body:not(.user-is-tabbing) #sheet .cke_editable:focus {
 
 #sheetMetadata #via, #sheetMetadata #assignmentAttribution {
 	font-size: 14px;
-	padding: 14px 0;
+	padding: 7px 0;
 }
 
 #sheetSummary {
-	margin-top: 20px;
+	margin: 14px 0;
+	font-style: italic;
+}
+#sheetSummary:empty {
+	display: none;
 }
 
 #likeLink {

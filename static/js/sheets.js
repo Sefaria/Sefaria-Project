@@ -867,6 +867,7 @@ $(function() {
 			showShareModal();
 		}
 	});
+	$("#sheetMetadata span.editButton").click(showShareModal);
 
 
 	// ---------- Copy Sheet ----------------
@@ -2973,7 +2974,9 @@ function buildSheet(data){
 		}
 
 		for (var i = 0; i < suggestedTags.length; i++) {
-			$("#suggestedTags").append("<span class='tagButton'>"+suggestedTags[i]+"</span>");
+			if ($("#suggestedTags .tagButton").length < 5 && sjs.sheetTagger.tags().indexOf(suggestedTags[i]) == -1) {
+				$("#suggestedTags").append("<span class='tagButton'>"+suggestedTags[i]+"</span>");
+			}
 		}
 
 
