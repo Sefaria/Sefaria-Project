@@ -575,6 +575,40 @@ msgstr ""
 msgid "Older Activity"
 msgstr ""
 
+#: templates/email/base.html:17
+msgid ""
+"\n"
+"            You're receiving this message because you have an account on\n"
+"        "
+msgstr ""
+
+#: templates/email/base.html:22
+#, python-format
+msgid ""
+"\n"
+"            To change your email settings, click <a href=\"%(settings_url)s"
+"\">here</a>\n"
+"        "
+msgstr ""
+
+#: templates/email/base.html:26
+#, python-format
+msgid ""
+"\n"
+"            Your feedback is welcome. Feel free to send us an <a href="
+"\"%(hello_email)s\">email</a>.\n"
+"        "
+msgstr ""
+
+#: templates/email/notifications_email.html:5
+#, python-format
+msgid " Hello %(recipient)s, "
+msgstr ""
+
+#: templates/email/notifications_email.html:9
+msgid " Here's some new activity on Sefaria that you may have missed."
+msgstr ""
+
 #: templates/registration/logged_out.html:4
 msgid "Logged Out"
 msgstr ""
@@ -599,6 +633,20 @@ msgstr ""
 
 #: templates/registration/password_reset_done.html:3
 msgid "Password Reset Link Sent"
+msgstr ""
+
+#: templates/registration/password_reset_email.html:4
+msgid ""
+"A request has been made to reset the password for this email address on "
+"Sefaria.org."
+msgstr ""
+
+#: templates/registration/password_reset_email.html:6
+msgid "Click this link, or copy it to your browser, to choose a new password:"
+msgstr ""
+
+#: templates/registration/password_reset_email.html:12
+msgid "If you did not request this reset, you can safely ignore this email."
 msgstr ""
 
 #: templates/registration/password_reset_form.html:4

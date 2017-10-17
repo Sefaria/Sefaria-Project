@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2017-10-16 14:22-0700\n"
+"POT-Creation-Date: 2017-10-13 06:59-0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -605,6 +605,49 @@ msgstr "לא נמצאו פרטי הסטוריה גלויה"
 msgid "Older Activity"
 msgstr "פעילות ישנה יותר"
 
+#: templates/email/base.html:17
+#, fuzzy
+msgid ""
+"\n"
+"            You're receiving this message because you have an account on\n"
+"        "
+msgstr "הינך מקבל הודעה זו מאחר ויש לך חשבון משתמש ב-"
+
+#: templates/email/base.html:22
+#, python-format
+msgid ""
+"\n"
+"            To change your email settings, click <a href=\"%(settings_url)s"
+"\">here</a>\n"
+"        "
+msgstr ""
+"\n"
+"            לשינוי פרטי כתובת המייל שלך, לחץ <a href=\"%(settings_url)s"
+"\">כאן</a>\n"
+"        "
+
+#: templates/email/base.html:26
+#, python-format
+msgid ""
+"\n"
+"            Your feedback is welcome. Feel free to send us an <a href="
+"\"%(hello_email)s\">email</a>.\n"
+"        "
+msgstr ""
+"\n"
+"            דעתכם חשובה לנו.   <a href="
+"\"%(hello_email)s\">ספרו</a>.\n"
+"לנו מה אתם חושבים!        "
+
+#: templates/email/notifications_email.html:5
+#, python-format
+msgid " Hello %(recipient)s, "
+msgstr " שלום %(recipient)s, "
+
+#: templates/email/notifications_email.html:9
+msgid " Here's some new activity on Sefaria that you may have missed."
+msgstr "להלן מעט מהעדכונים האחרונים שיתכן ופספסת בספריא"
+
 #: templates/registration/logged_out.html:4
 msgid "Logged Out"
 msgstr "מנותק"
@@ -632,6 +675,20 @@ msgstr "בחרו סיסמא חדשה"
 #: templates/registration/password_reset_done.html:3
 msgid "Password Reset Link Sent"
 msgstr "קישור לאיפוס סיסמא נשלח"
+
+#: templates/registration/password_reset_email.html:4
+msgid ""
+"A request has been made to reset the password for this email address on "
+"Sefaria.org."
+msgstr ""
+
+#: templates/registration/password_reset_email.html:6
+msgid "Click this link, or copy it to your browser, to choose a new password:"
+msgstr ""
+
+#: templates/registration/password_reset_email.html:12
+msgid "If you did not request this reset, you can safely ignore this email."
+msgstr ""
 
 #: templates/registration/password_reset_form.html:4
 msgid "Forgot your Password"
