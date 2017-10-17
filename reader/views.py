@@ -569,7 +569,7 @@ def s2_group_sheets(request, group, authenticated):
     return render_to_response('s2.html', {
         "propsJSON": propsJSON,
         "html": html,
-        "title": group[0].name + _(" | Sefaria Group"),
+        "title": group[0].name + " | " + _("Sefaria Groups"),
         "desc": props["groupData"].get("description", ""),
     }, RequestContext(request))
 
@@ -722,7 +722,7 @@ def s2_account(request):
 @login_required
 def s2_notifications(request):
     # Notifications content is not rendered server side
-    title = _("Sefaria Notifcations")
+    title = _("Sefaria Notifications")
     props = s2_props(request)
     return s2_page(request, props, "notifications", title)
 
@@ -2707,6 +2707,7 @@ def global_activity(request, page=1):
                                 'leaders1': top_contributors(1),
                                 'email': email,
                                 'next_page': next_page,
+                                'he': request.interfaceLang == "hebrew", # to make templates less verbose
                                 },
                              RequestContext(request))
 
@@ -2745,6 +2746,7 @@ def user_activity(request, slug, page=1):
                                 'for_user': True,
                                 'email': email,
                                 'next_page': next_page,
+                                'he': request.interfaceLang == "hebrew", # to make templates less verbose
                                 },
                              RequestContext(request))
 
@@ -2763,7 +2765,8 @@ def segment_history(request, tref, lang, version, page=1):
     nref = oref.normal()
 
     version = version.replace("_", " ")
-    if not Version().load({"title":oref.index.title, "versionTitle":version, "language":lang}):
+    version_record = Version().load({"title":oref.index.title, "versionTitle":version, "language":lang})
+    if not version_record:
         raise Http404(u"We do not have a version of {} called '{}'.  Please use the menu to find the text you are looking for.".format(oref.index.title, version))
     filter_type = request.GET.get("type", None)
     history = text_history(oref, version, lang, filter_type=filter_type, page=page)
@@ -2779,9 +2782,11 @@ def segment_history(request, tref, lang, version, page=1):
                                "ref": nref,
                                "lang": lang,
                                "version": version,
+                               "heVersion": getattr(version_record, "heVersionTitle", version_record.verstionTitle),
                                'email': email,
                                'filter_type': filter_type,
-                               'next_page': next_page
+                               'next_page': next_page,
+                               'he': request.interfaceLang == "hebrew", # to make templates less verbose
                              },
                              RequestContext(request))
 

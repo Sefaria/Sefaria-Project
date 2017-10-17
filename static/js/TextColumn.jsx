@@ -24,6 +24,7 @@ class TextColumn extends Component {
     this.debouncedAdjustHighlightedAndVisible = Sefaria.util.debounce(this.adjustHighlightedAndVisible, 100);
     var node = ReactDOM.findDOMNode(this);
     node.addEventListener("scroll", this.handleScroll);
+    this.windowMiddle = $(window).outerHeight() / 2;
   }
   componentWillUnmount() {
     this._isMounted = false;
@@ -213,9 +214,11 @@ class TextColumn extends Component {
       $segment = $(".segment:focus").eq(0);
     } else {
       var $container = this.$container;
-      var threshhold = this.getHighlightThreshhold();
+      var topThreshhold = this.getHighlightThreshhold();
       $container.find(".basetext .segment").each(function(i, segment) {
-        if ($(segment).offset().top > threshhold) {
+        var top = $(segment).offset().top;
+        var bottom = $(segment).outerHeight() + top;
+        if (bottom > this.windowMiddle || top > topThreshhold) {
           $segment = $(segment);
           return false;
         }
@@ -235,7 +238,9 @@ class TextColumn extends Component {
       var ref = $segment.attr("data-ref");
       this.props.setTextListHighlight(ref);
     } else {
-      this.props.setTextListHighlight([]);      
+      if (this.props.highlightedRefs.length != 0) {
+        this.props.setTextListHighlight([]);
+      }
     }
 
   }
@@ -259,7 +264,7 @@ class TextColumn extends Component {
   setPaddingForScrollbar() {
     // Scrollbars take up spacing, causing the centering of TextColumn to be slightly off center
     // compared to the header. This functions sets appropriate padding to compensate.
-    var width      = Sefaria.util.getScrollbarWidth();
+    var width = Sefaria.util.getScrollbarWidth();
     if (this.props.interfaceLang == "hebrew") {
       this.$container.css({paddingRight: width, paddingLeft: 0});
     } else {
