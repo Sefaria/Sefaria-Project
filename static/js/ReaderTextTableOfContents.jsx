@@ -98,8 +98,8 @@ class ReaderTextTableOfContents extends Component {
       sources:                currentLanguage == "he" ? d.heSources : d.sources,
       versionNotes:           currentLanguage == "he" ? d.heVersionNotes : d.versionNotes,
       digitizedBySefaria:     currentLanguage == "he" ? d.heDigitizedBySefaria : d.digitizedBySefaria,
-      VersionTitle_in_hebrew: currentLanguage == "he" ? d.heVersionTitle_in_hebrew : d.VersionTitle_in_hebrew,
-      VersionNotes_in_hebrew: currentLanguage == "he" ? d.heVersionNotes_in_hebrew : d.VersionNotes_in_hebrew
+      versionTitleInHebrew: currentLanguage == "he" ? d.heVersionTitleInHebrew : d.VersionTitleInHebrew,
+      versionNotesInHebrew: currentLanguage == "he" ? d.heVersionNotesInHebrew : d.VersionNotesInHebrew
     };
     currentVersion.merged = !!(currentVersion.sources);
 
@@ -917,8 +917,8 @@ class VersionBlock extends Component {
       "priority",
       "digitizedBySefaria",
       "status",
-      "VersionTitle_in_hebrew",
-      "VersionNotes_in_hebrew"
+      "versionTitleInHebrew",
+      "versionNotesInHebrew"
     ];
     this.licenseMap = {
       "Public Domain": "https://en.wikipedia.org/wiki/Public_domain",
@@ -953,7 +953,7 @@ class VersionBlock extends Component {
     this.setState({versionNotes: event.target.value, "error": null});
   }
   onVersionNotesInHebrewChange(event) {
-    this.setState({VersionNotes_in_hebrew: event.target.value, "error": null});
+    this.setState({versionNotesInHebrew: event.target.value, "error": null});
   }
   onPriorityChange(event) {
     this.setState({priority: event.target.value, "error": null});
@@ -968,7 +968,7 @@ class VersionBlock extends Component {
     this.setState({versionTitle: event.target.value, "error": null});
   }
   onVersionTitleInHebrewChange(event) {
-    this.setState({VersionTitle_in_hebrew: event.target.value, "error": null});
+    this.setState({versionTitleInHebrew: event.target.value, "error": null});
   }
   saveVersionUpdate(event) {
     var v = this.props.version;
@@ -1047,8 +1047,8 @@ class VersionBlock extends Component {
             {close_icon}
             <input id="versionTitle" className="" type="text" value={this.state.versionTitle} onChange={this.onVersionTitleChange} />
 
-            <label htmlFor="VersionTitle_in_hebrew" className="">Hebrew Version Title</label>
-            <input id="VersionTitle_in_hebrew" className="" type="text" value={this.state.VersionTitle_in_hebrew} onChange={this.onVersionTitleInHebrewChange} />
+            <label htmlFor="versionTitleInHebrew" className="">Hebrew Version Title</label>
+            <input id="versionTitleInHebrew" className="" type="text" value={this.state.versionTitleInHebrew} onChange={this.onVersionTitleInHebrewChange} />
 
             <label htmlFor="versionSource">Version Source</label>
             <input id="versionSource" className="" type="text" value={this.state.versionSource} onChange={this.onVersionSourceChange} />
@@ -1070,8 +1070,8 @@ class VersionBlock extends Component {
             <label id="versionNotes_label" htmlFor="versionNotes">VersionNotes</label>
             <textarea id="versionNotes" placeholder="Version Notes" onChange={this.onVersionNotesChange} value={this.state.versionNotes} rows="5" cols="40"/>
 
-            <label id="VersionNotes_in_hebrew_label" htmlFor="versionNotes_in_hebrew">Hebrew VersionNotes</label>
-            <textarea id="VersionNotes_in_hebrew" placeholder="Hebrew Version Notes" onChange={this.onVersionNotesInHebrewChange} value={this.state.VersionNotes_in_hebrew} rows="5" cols="40"/>
+            <label id="versionNotesInHebrew_label" htmlFor="versionNotes_in_hebrew">Hebrew VersionNotes</label>
+            <textarea id="versionNotesInHebrew" placeholder="Hebrew Version Notes" onChange={this.onVersionNotesInHebrewChange} value={this.state.versionNotesInHebrew} rows="5" cols="40"/>
             <div>
               <div id="delete_button" onClick={this.deleteVersion}>Delete Version</div>
               <div id="save_button" onClick={this.saveVersionUpdate}>SAVE</div>
@@ -1082,8 +1082,9 @@ class VersionBlock extends Component {
       );
     } else {
       // Presentation View
-      var license = this.licenseMap[v.license]?<a href={this.licenseMap[v.license]} target="_blank">{v.license}</a>:v.license;
-      var digitizedBySefaria = v.digitizedBySefaria ? <a className="versionDigitizedBySefaria" href="/digitized-by-sefaria">Digitized by Sefaria</a> : "";
+      var license = this.licenseMap[v.license]?<a href={this.licenseMap[v.license]} target="_blank">{Sefaria._(v.license)}</a>:v.license;
+      var digitizedBySefaria = v.digitizedBySefaria
+          ? <a className="versionDigitizedBySefaria" href="/digitized-by-sefaria">{Sefaria._("Digitized by Sefaria")}</a> : "";
       var licenseLine = "";
       if (v.license && v.license != "unknown") {
         licenseLine =
@@ -1100,8 +1101,8 @@ class VersionBlock extends Component {
         if (Sefaria.interfaceLang=="english" && !!(v.versionNotes)) {
           versionNotes = v.versionNotes;
         }
-        else if (Sefaria.interfaceLang=="hebrew" && !!(v.VersionNotes_in_hebrew)) {
-          versionNotes = v.VersionNotes_in_hebrew;
+        else if (Sefaria.interfaceLang=="hebrew" && !!(v.versionNotesInHebrew)) {
+          versionNotes = v.versionNotesInHebrew;
         }
       }
 
@@ -1109,7 +1110,7 @@ class VersionBlock extends Component {
         <div className = "versionBlock">
           <div className="versionTitle">
             <a onClick={this.openVersion} href={"/" + (this.props.firstSectionRef ? this.props.firstSectionRef : this.props.version.versionTitle) + "/" + this.props.version.language + "/" + this.props.version.versionTitle}>
-                {(Sefaria.interfaceLang=="english" || v.VersionTitle_in_hebrew==="") ? v.versionTitle : v.VersionTitle_in_hebrew}
+                {(Sefaria.interfaceLang=="english" || v.versionTitleInHebrew==="") ? v.versionTitle : v.versionTitleInHebrew}
                 </a>
             {edit_icon}
           </div>
@@ -1120,7 +1121,7 @@ class VersionBlock extends Component {
             {licenseLine ? <span className="separator">-</span>: null}
             {licenseLine}
             {this.props.showHistory ? <span className="separator">-</span>: null}
-            {this.props.showHistory ? <a className="versionHistoryLink" href={`/activity/${Sefaria.normRef(this.props.currentRef)}/${v.language}/${v.versionTitle && v.versionTitle.replace(/\s/g,"_")}`}>Version History&nbsp;›</a>:""}
+            {this.props.showHistory ? <a className="versionHistoryLink" href={`/activity/${Sefaria.normRef(this.props.currentRef)}/${v.language}/${v.versionTitle && v.versionTitle.replace(/\s/g,"_")}`}>{Sefaria._("Version History") + " "}›</a>:""}
           </div>
           {versionNotes ? <div className="versionNotes" dangerouslySetInnerHTML={ {__html: versionNotes} } ></div> : ""}
         </div>
