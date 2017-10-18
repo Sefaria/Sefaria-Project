@@ -196,6 +196,7 @@ class ReaderTextTableOfContents extends Component {
     var moderatorSection = Sefaria.is_moderator || Sefaria.is_editor ? (<ModeratorButtons title={title} />) : null;
 
     // Downloading
+    var languageInHebrew = {'en': 'אנגלית', 'he': 'עברית'};
     if (versions) {
       var dlReady = (this.state.dlVersionTitle && this.state.dlVersionFormat && this.state.dlVersionLanguage);
       var dl_versions = [<option key="/" value="0" disabled>{ Sefaria.interfaceLang == "hebrew"? "הגדרות גרסה" : "Version Settings" }</option>];
@@ -203,32 +204,44 @@ class ReaderTextTableOfContents extends Component {
       if (cv && cv.merged) {
         var other_lang = cv.language == "he" ? "en" : "he";
         dl_versions = dl_versions.concat([
-          <option value={"merged/" + cv.language} key={"merged/" + cv.language} data-lang={cv.language} data-version="merged">Current Merged Version ({cv.language})</option>,
-          <option value={"merged/" + other_lang} key={"merged/" + other_lang} data-lang={other_lang} data-version="merged">Merged Version ({other_lang})</option>
+          <option value={"merged/" + cv.language} key={"merged/" + cv.language} data-lang={cv.language} data-version="merged">
+              {Sefaria.interfaceLang == "hebrew" ? "גרסה משלובת נוכחית" + `(${languageInHebrew[cv.language]})` :`Current Merged Version (${cv.language})`}
+          </option>,
+          <option value={"merged/" + other_lang} key={"merged/" + other_lang} data-lang={other_lang} data-version="merged">
+              {Sefaria.interfaceLang == "hebrew" ? `גרסה משולבה` + `(${languageInHebrew[other_lang]})` : `Merged Version (${other_lang})`}
+          </option>
         ]);
         dl_versions = dl_versions.concat(pdVersions.map(v =>
-          <option value={v.versionTitle + "/" + v.language} key={v.versionTitle + "/" + v.language}>{v.versionTitle + " (" + v.language + ")"}</option>
+          <option value={v.versionTitle + "/" + v.language} key={v.versionTitle + "/" + v.language}>
+            {(Sefaria.interfaceLang == "hebrew" && v.versionTitleInHebrew) ? `${v.versionTitleInHebrew} (${languageInHebrew[v.language]})` : `${v.versionTitle} (${v.language})`}
+              </option>
         ));
       }
       else if (cv) {
         if (this.isVersionPublicDomain(cv)) {
-          dl_versions.push(<option value={cv.versionTitle + "/" + cv.language} key={cv.versionTitle + "/" + cv.language}>Current Version ({cv.versionTitle + " (" + cv.language + ")"})</option>);
+          dl_versions.push(<option value={cv.versionTitle + "/" + cv.language} key={cv.versionTitle + "/" + cv.language}>
+            {Sefaria.interfaceLang == "hebrew" ? "גרסה נוכחית" + `(${languageInHebrew[cv.language]})` :`Current Version (${cv.language})`}
+          </option>);
         }
         dl_versions = dl_versions.concat([
-          <option value="merged/he" key="merged/he">Merged Version (he)</option>,
-          <option value="merged/en" key="merged/en">Merged Version (en)</option>
+          <option value="merged/he" key="merged/he">{Sefaria.interfaceLang == "hebrew" ?"גרסה משולבת (עברית)" :"Merged Version (he)"}</option>,
+          <option value="merged/en" key="merged/en">{Sefaria.interfaceLang == "hebrew" ?"גרסה משולבת (אנגלית)" :"Merged Version (en)"}</option>
         ]);
         dl_versions = dl_versions.concat(pdVersions.filter(v => v.language != cv.language || v.versionTitle != cv.versionTitle).map(v =>
-          <option value={v.versionTitle + "/" + v.language} key={v.versionTitle + "/" + v.language}>{v.versionTitle + " (" + v.language + ")"}</option>
+          <option value={v.versionTitle + "/" + v.language} key={v.versionTitle + "/" + v.language}>
+              {(Sefaria.interfaceLang == "hebrew" && v.versionTitleInHebrew) ? `${v.versionTitleInHebrew} (${languageInHebrew[v.language]})` : `${v.versionTitle} (${v.language})`}
+              </option>
         ));
       }
       else {
         dl_versions = dl_versions.concat([
-          <option value="merged/he" key="merged/he">Merged Version (he)</option>,
-          <option value="merged/en" key="merged/en">Merged Version (en)</option>
+          <option value="merged/he" key="merged/he">{Sefaria.interfaceLang == "hebrew" ?"גרסה משולבת (עברית)" :"Merged Version (he)"}</option>,
+          <option value="merged/en" key="merged/en">{Sefaria.interfaceLang == "hebrew" ?"גרסה משולבת (אנגלית)" :"Merged Version (en)"}</option>
         ]);
         dl_versions = dl_versions.concat(pdVersions.map(v =>
-          <option value={v.versionTitle + "/" + v.language} key={v.versionTitle + "/" + v.language}>{v.versionTitle + " (" + v.language + ")"}</option>
+          <option value={v.versionTitle + "/" + v.language} key={v.versionTitle + "/" + v.language}>
+              {(Sefaria.interfaceLang == "hebrew" && v.versionTitleInHebrew) ? `${v.versionTitleInHebrew} (${languageInHebrew[v.language]})` : `${v.versionTitle} (${v.language})`}
+              </option>
         ));
       }
       var downloadButton = <div className="versionDownloadButton">
