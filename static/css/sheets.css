@@ -1945,7 +1945,7 @@ line-height: normal;
     margin-right: 67px;
 	height:30px;
 	width:160px;
-
+	direction: ltr;
 }
 
 #customTextLanguageToggle .toggleOption {
