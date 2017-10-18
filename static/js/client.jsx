@@ -10,15 +10,20 @@ $(function() {
   var component;
   DjangoCSRF.init();
   if (DJANGO_VARS.inReaderApp) {
-    Sefaria.unpackDataFromProps(DJANGO_VARS.propsJSON);
-    component = React.createElement(SefariaReact.ReaderApp, DJANGO_VARS.propsJSON);
+    // Rendering a full ReaderApp experience
+    Sefaria.unpackDataFromProps(DJANGO_VARS.props);
+    component = React.createElement(SefariaReact.ReaderApp, DJANGO_VARS.props);
     ReactDOM.render(component, container);
+  
   } else if (DJANGO_VARS.containerId && DJANGO_VARS.reactComponentName) {
+    // Rendering just a specifc component to a container
     container = document.getElementById(DJANGO_VARS.containerId);
-    component = React.createElement(SefariaReact[DJANGO_VARS.reactComponentName], DJANGO_VARS.propsJSON);
+    component = React.createElement(SefariaReact[DJANGO_VARS.reactComponentName], DJANGO_VARS.props);
     ReactDOM.render(component, container);
     ReactDOM.render(React.createElement(SefariaReact.Footer), document.getElementById('footer'));
+  
   } else {
+    // Rendering the Header & Footer only on top of a static page
     var settings = {
       language: DJANGO_VARS.contentLang,
       layoutDefault: $.cookie("layoutDefault") || "segmented",

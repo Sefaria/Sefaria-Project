@@ -58,7 +58,7 @@
     {% endif %}
 </head>
 
-<body{% if EMBED %} class="embeded"{% endif %}>
+<body class="interface-{{ request.interfaceLang }}{% if EMBED %} embeded{% endif %}">
 
     {% autoescape off %}
     {% if request.user.is_authenticated %}
@@ -95,9 +95,7 @@
 
     {% render_bundle 'main' %}
     {% include "js/jquery.html" %}
-    <script src="/static/js/lib/jquery.tooltipster.min.js"></script>
     <script>{% include "js/django-csrf.js" %}</script>
-    <script src="/static/js/lib/jquery.scrollTo.js"></script>
 
     {% block js %}{% endblock %}
 </body>

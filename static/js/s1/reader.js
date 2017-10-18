@@ -602,9 +602,9 @@ $(function() {
 	$("#editTextInfo").click(function() {
 
         if (sjs.current.isComplex) {
-            sjs.hideAbout()
-            sjs.alert.message("This text is not user editable - please email dev@sefaria.org")
-            return
+            sjs.hideAbout();
+            sjs.alert.message("This text is not user editable - please email dev@sefaria.org");
+            return;
         }
 		if (!sjs._uid) {
 			return sjs.loginPrompt();
@@ -630,22 +630,31 @@ $(function() {
 	
 
 	$("#newTextOK").click(function(){
-		if (!sjs.editing.index) {
-			// This is an unknown text
-			var title = $("#newTextName").val().replace(/ /g, "_");
-			var after = "?after=/add/" + title;
-			window.location = "/add/textinfo/" + title + after;
-		} else {
-			// this is a known text
-			$.extend(sjs.editing, parseRef($("#newTextName").val()));
-			sjs.editing.indexTitle   = sjs.editing.index.title.split(",")[0];
-			sjs.editing.sectionNames = sjs.editing.index.sectionNames;
-			sjs.editing.textDepth    = sjs.editing.sectionNames.length; 	
-			sjs.editing.text = [""];
-			sjs.current.sectionRef = sjs.editing.ref;
-			sjs.showNewText();	
-		}
-		$("#newTextCancel").trigger("click");	
+        var ref = $("#newTextName").val();
+		Sefaria.lookupRef(ref, function(q) {
+            if(!q.is_ref) {
+    			// This is an unknown text
+	    		var title = $("#newTextName").val().replace(/ /g, "_");
+		    	var after = "?after=/add/" + title;
+			    window.location = "/add/textinfo/" + title + after;
+            } else {
+                $.extend(sjs.editing, {
+                    index: Sefaria.index(q.index),
+                    indexTitle: q.index,
+                    sectionNames: q.sectionNames,
+                    textDepth: q.sectionNames.length,
+                    text: [""],
+                    book: q.book,
+                    sections: q.sections,
+                    toSections: q.toSections,
+                    ref: q.ref
+                });
+                sjs.current.sectionRef = sjs.editing.ref;
+                sjs.showNewText();
+            }
+    		$("#newTextCancel").trigger("click");
+        });
+
 	});
 	
 // --------------- Add Translation // Version  ------------------
@@ -654,7 +663,7 @@ $(function() {
 		if (!sjs._uid) {
 			return sjs.loginPrompt();
 		}
-		sjs.translateText(sjs.current)
+		sjs.translateText(sjs.current);
 		e.stopPropagation();
 	});
 
@@ -3430,13 +3439,8 @@ sjs.makePlainText = function(text) {
 	// Line breaks inside segments currently screws things up but should be allowed later. 
 	var placeholders = function(line) { return line ? line.replace(/\n/g, " ") : "..."; };
 	return text.map(placeholders).join('\n\n');
-}
-
-sjs.checkNewTextRef = function() {
-	// Check ref function for new text UI
-	checkRef($("#newTextName"), $("#newTextMsg"), $("#newTextOK"), 1, function(){}, false);
 };
-	
+
 
 sjs.newText = function(e) {
 	// Show the dialog for adding a new text
@@ -3453,26 +3457,10 @@ sjs.newText = function(e) {
 	$(".menuOpen").removeClass("menuOpen");
 	$("#overlay").show();
 	$("#newTextModal").show().position({of: $(window)});
-	$("#newTextName").focus();
-	$("#newTextOK").addClass("inactive");
-	
-	$("#newTextName").unbind()
-		.blur(sjs.checkNewTextRef)
-		.bind("textchange", function(e) {
-			if (sjs.timers.checkNewText) {
-				clearTimeout(sjs.timers.checkNewText);
-			}
-			sjs.timers.checkNewText = setTimeout(sjs.checkNewTextRef, 250);
-		})
-		.autocomplete({source: function( request, response ) {
-				var matches = $.map( sjs.books, function(tag) {
-						if ( tag.toUpperCase().indexOf(request.term.toUpperCase()) === 0 ) {
-							return tag;
-						}
-					});
-				response(matches);
-				}, minLength: 2, select: sjs.checkNewTextRef});
-	sjs.ref.tests = null;
+
+    // This object is instantiated and sets up its own events.
+    // It doesn't need to be interacted with from the outside.
+    var validator = new Sefaria.util.RefValidator($("#newTextName"), $("#newTextMsg"), $("#newTextOK"), undefined, {disallow_segments: true, allow_new_titles: true});
 };
 
 	

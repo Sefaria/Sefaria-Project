@@ -1647,6 +1647,29 @@ Sefaria = extend(Sefaria, {
         return name;
     }
   },
+    //this is here for now, we might want to move it somewhere else.
+  _i18nInterfaceStrings: {
+      "Untitled Source Sheet" : "דף מקורות ללא שם",
+      "Name New Sheet" : "כותרת לדף המקורות",
+      "Sorry, there was a problem saving your note.": "סליחה, ארעה שגיאה בזמן השמירה",
+      "Unfortunately, there was an error saving this note. Please try again or try reloading this page.": "ארעה שגיאה בזמן השמירה. אנא נסו שוב או טענו את הדף מחדש",
+      "Are you sure you want to delete this note?": "האם אתם בטוחים שברצונכם למחוק?",
+      "Something went wrong (that's all I know).":"משהו השתבש. סליחה",
+      "Write a note...":"כתוב הערות כאן...",
+      "Aa": "א",
+      "Decrease font size": "הקטן גופן",
+      "Increase font size": "הגדל גופן",
+      "Search for Texts or Keywords Here": "חפשו ספרים או מלות מפתח כאן",
+      "Search" : "חיפוש",
+      "Views": "צפיות"
+  },
+  _: function(inputStr){
+    if(Sefaria.interfaceLang != "english" && inputStr in Sefaria._i18nInterfaceStrings){
+        return Sefaria._i18nInterfaceStrings[inputStr];
+    }else{
+        return inputStr;
+	}
+  },
   _makeBooksDict: function() {
     // Transform books array into a dictionary for quick lookup
     // Which is worse: the cycles wasted in computing this on the client
@@ -1726,15 +1749,15 @@ Sefaria.unpackDataFromProps = function(props) {
     Sefaria._topicList = props.topicList;
   }
   Sefaria.util._initialPath = props.initialPath;
+  Sefaria.interfaceLang = props.interfaceLang;
 };
-
-
 
 
 Sefaria.util    = Util;
 Sefaria.hebrew  = Hebrew;
 Sefaria.palette = palette;
 Sefaria.track   = Track;
+
 
 Sefaria.setup = function(data) {
     // data parameter is optional. in the event it isn't passed, we assume that DJANGO_DATA_VARS exists as a global var
@@ -1751,7 +1774,6 @@ Sefaria.setup = function(data) {
         }
     }
     Sefaria.util.setupPrototypes();
-    Sefaria.util.setupJQuery();
     Sefaria.util.setupMisc();
     var cookie = Sefaria.util.handleUserCookie(Sefaria.loggedIn, Sefaria._uid, Sefaria._partner_group, Sefaria._partner_role);
     // And store current uid in analytics id

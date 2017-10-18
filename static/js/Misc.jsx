@@ -13,8 +13,8 @@ class Link extends Component {
     this.props.onClick();
   }
   render() {
-    return <a 
-              className={this.props.className} 
+    return <a
+              className={this.props.className}
               href={this.props.href}
               onClick={this.handleClick}
               title={this.props.title}>{this.props.children}</a>
@@ -260,9 +260,17 @@ class ReaderNavigationMenuSearchButton extends Component {
 
 class ReaderNavigationMenuMenuButton extends Component {
   render() {
-    var icon = this.props.compare ? (<i className="fa fa-chevron-left"></i>) : (<i className="fa fa-bars"></i>);
+    var isheb = this.props.interfaceLang == "hebrew";
+    var icon = this.props.compare ? (isheb ?
+      <i className="fa fa-chevron-right"></i> : <i className="fa fa-chevron-left"></i>) :
+        (<i className="fa fa-bars"></i>);
     return (<span className="readerNavMenuMenuButton" onClick={this.props.onClick}>{icon}</span>);
   }
+}
+ReaderNavigationMenuMenuButton.propTypes = {
+  onClick: PropTypes.func,
+  compare: PropTypes.bool,
+  interfaceLang: PropTypes.string
 }
 
 
@@ -288,6 +296,7 @@ class ReaderNavigationMenuCloseButton extends Component {
 
 class ReaderNavigationMenuDisplaySettingsButton extends Component {
   render() {
+    var style = this.props.placeholder ? {visiblily: "hidden"} : {};
     return (<div
               className="readerOptions"
               tabIndex="0"
@@ -295,9 +304,13 @@ class ReaderNavigationMenuDisplaySettingsButton extends Component {
               aria-haspopup="true"
               onClick={this.props.onClick}
               onKeyPress={function(e) {e.charCode == 13 ? this.props.onClick(e):null}.bind(this)}>
-                <img src="/static/img/ayealeph.svg" alt="Toggle Reader Menu Display Settings"/>
+                <img src="/static/img/ayealeph.svg" alt="Toggle Reader Menu Display Settings" style={style} />
             </div>);
   }
+}
+ReaderNavigationMenuDisplaySettingsButton.propTypes = {
+  onClick: PropTypes.func,
+  placeholder: PropTypes.bool,
 }
 
 
@@ -391,13 +404,13 @@ class InterruptingMessage extends Component {
       $("#interruptingMessage .button").click(this.close);
       $("#interruptingMessage .trackedAction").click(this.trackAction);
       this.delayedFadeIn();
-    }.bind(this), 1000);    
+    }.bind(this), 1000);
   }
   delayedFadeIn() {
     setTimeout(function() {
       this.setState({animationStarted: true});
       this.trackOpen();
-    }.bind(this), 50);    
+    }.bind(this), 50);
   }
   close() {
     this.markAsRead();
@@ -417,7 +430,7 @@ class InterruptingMessage extends Component {
     Sefaria.interruptingMessage = null;
   }
   render() {
-    return this.state.timesUp ? 
+    return this.state.timesUp ?
       <div id="interruptingMessageBox" className={this.state.animationStarted ? "" : "hidden"}>
         <div id="interruptingMessageOverlay" onClick={this.close}></div>
         <div id="interruptingMessage">

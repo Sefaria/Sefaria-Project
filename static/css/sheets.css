@@ -333,7 +333,7 @@ body:not(.user-is-tabbing) #sheet .cke_editable:focus {
 	content: "\f0da";
 }
 
-.optionGroup:hover .subMenu {
+.optionGroup:hover .subMenu, .optionGroup.open .subMenu {
 	display: block;
 }
 
@@ -615,7 +615,7 @@ body:not(.user-is-tabbing) #sheet .cke_editable:focus {
 	border-bottom:solid 1px #F2F2F2;
 }
 
-#sourceControls {
+.interface-english #sourceControls {
 	text-align: center;
 	position: absolute;
 	bottom: 7px;
@@ -623,6 +623,15 @@ body:not(.user-is-tabbing) #sheet .cke_editable:focus {
 	background-color: #eee;
 	left: 50%;
 	margin-left: -150px;
+}
+.interface-hebrew #sourceControls {
+	text-align: center;
+	position: absolute;
+	bottom: 7px;
+	width: 300px;
+	background-color: #eee;
+	right: 50%;
+	margin-right: -150px;
 }
 
 .sourceControlsTop #sourceControls {
@@ -643,14 +652,22 @@ body:not(.user-is-tabbing) #sheet .cke_editable:focus {
 	background-color: #F9F9F7 !important;
 
 }
-#sourceControls.sideControls {
+.interface-english #sourceControls.sideControls {
 	width: auto;
 	left: 23px;
 	margin-left: 0;
 	top: 32px;
 	bottom: auto;
 	background-color: inherit;
+}
 
+.interface-hebrew #sourceControls.sideControls{
+	width: auto;
+	right: 23px;
+	margin-right: 0;
+	top: 32px;
+	bottom: auto;
+	background-color: inherit;
 }
 
 #sourceControls.sideControls div:hover {
@@ -728,8 +745,6 @@ body:not(.user-is-tabbing) #sheet .cke_editable:focus {
 	position: relative;
 }
 
-
-
 .text .en,
 .text .he {
 	min-height: 20px;
@@ -737,6 +752,7 @@ body:not(.user-is-tabbing) #sheet .cke_editable:focus {
 
 #sheet .en {
 	direction: ltr;
+	text-align: left;
 }
 #sheet .he {
 	direction: rtl;
@@ -858,7 +874,6 @@ body:not(.user-is-tabbing) #sheet .cke_editable:focus {
 	padding-right: 160px !important;
 }
 
-
 .comment, .oldComment {
 	font-size: 17px;
 	min-height: 30px;
@@ -938,7 +953,7 @@ body:not(.user-is-tabbing) #sheet .cke_editable:focus {
 
 #addParashaToSheetModal li:hover span{
 	text-decoration: underline;
- }
+}
 
 #addParashaToSheetModal ol {
 	display: flex;
@@ -968,6 +983,7 @@ body:not(.user-is-tabbing) #sheet .cke_editable:focus {
 	margin-top: 0;
 	height: 80px;
 	padding: 8px;
+	direction: ltr;
 }
 
 #embedSheetModal .sub {
@@ -1608,11 +1624,11 @@ line-height: normal;
 	/*padding-left: 0;*/
 }
 
-.sheetsMenuBarItem:hover {
+.sheetsMenuBarItem:hover, .sheetsMenuBarItem.open {
 	position: relative;
 }
 
-.sheetsMenuBarItem:hover:after {
+.sheetsMenuBarItem:hover:after, .sheetsMenuBarItem.open:after {
   content: ' ';
   position: absolute;
   top: 0;
@@ -1622,14 +1638,15 @@ line-height: normal;
   z-index: 6;
 }
 
-#fileMenu:hover .optionsMenu, #formatMenu:hover .optionsMenu, #insertMenu:hover .optionsMenu, #highlightMenu:hover .optionsMenu  {
+#fileMenu:hover .optionsMenu, #formatMenu:hover .optionsMenu, #insertMenu:hover .optionsMenu, #highlightMenu:hover .optionsMenu,
+.sheetsMenuBarItem.open .optionsMenu {
 	display: block;
 	top:45px;
 	/*left:20px;*/
 	background-color: #F9F9F7;
 }
 
-#insertMenu:hover .optionsMenu {
+#insertMenu:hover .optionsMenu, .menuHeaderOpen .optionsMenu {
 	width:240px;
 }
 
@@ -1816,9 +1833,9 @@ line-height: normal;
 .inlineAddOr {
 	display:inline-block;
 	color: #999;
-    margin: 6px;
-
+    margin: 4px;
 }
+
 .inlineAddSourceByttons {
 	display: inline-block;
 }
@@ -2013,6 +2030,10 @@ a.userLink{
 .s2Modal .content {
 	color: #999;
 	text-align: left;
+}
+
+.interface-hebrew .s2Modal .content{
+	text-align: right;
 }
 
 .s2Modal .ok.button {
@@ -2294,3 +2315,7 @@ a.tagit-close {
 #sheet.hebrew .outsideWrapper .en, #sheet.english .outsideWrapper .en .outsideWrapper .he {
 	display: block;
 }  /* TODO add ability to set outside text source formatting from menu bar like real sources to remove need for this. Allow overrides to occur like real source texts */
+
+.interface-hebrew .tooltipster-default .tooltipster-content{
+	font-family: "Heebo", sans-serif;
+}

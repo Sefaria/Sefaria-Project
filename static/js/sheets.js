@@ -39,10 +39,10 @@ sjs.lastEdit = null;
 $(window).on("beforeunload", function() {
 	if (!($("#save").data("mode") == "saving")) {
 		if (sjs._uid && !(sjs.current.id) && $("#empty").length === 0) {
-			return translateInterfaceString("Your Source Sheet has unsaved changes. Before leaving the page, click Save to keep your work.");
+			return _("Your Source Sheet has unsaved changes. Before leaving the page, click Save to keep your work.");
 		}
 		else if ($("#lastSaved").text() == "Saving...") {
-			return translateInterfaceString("Your Source Sheet has unsaved changes. Please wait for the autosave to finish.");
+			return _("Your Source Sheet has unsaved changes. Please wait for the autosave to finish.");
 		}
 	}
 });
@@ -59,7 +59,7 @@ $(window).scroll(function() {
 var oldOnError = window.onerror || function(){};
 function errorWarning(errorMsg, url, lineNumber) {
 	if (sjs.can_edit || sjs.can_add) {
-		sjs.alert.message(translateInterfaceString("Unfortunately an error has occurred. If you've recently edited text on this page, you may want to copy your recent work out of this page and click reload to ensure" +
+		sjs.alert.message(_("Unfortunately an error has occurred. If you've recently edited text on this page, you may want to copy your recent work out of this page and click reload to ensure" +
 		" your work is properly saved."))
 	}
 }
@@ -170,201 +170,113 @@ $(function() {
 		}
   });
 
-    var RefValidator = function($input, $msg, $ok, $preview) {
-        /** Replacement for utils.js:sjs.checkref that uses only new tools.
-         * Instantiated as an object, and then invoked with `check` method
-         * Allows section and segment level references.
-         * $input - input element
-         * $msg - status message element
-         * $ok - Ok button element
-         * $preview - Text preview box
-
-         * example usage:
-
-         new RefValidator($("#inlineAdd"), $("#inlineAddDialogTitle"), $("#inlineAddSourceOK"), $("#preview"));
-
-         As currently designed, the object is instanciated, and sets up its own events.
-         It doesn't need to be interacted with from the outside.
-         */
-
-        this.$input = $input;
-        this.$msg = $msg;
-        this.$ok = $ok;
-        this.$preview = $preview;
-
-        // We want completion messages to be somewhat sticky.
-        // This records the string used to build the current message.
-        this.completion_message_base = undefined;
-        // And the current message
-        this.completion_message = "";
-
-        this.current_lookup_ajax = null;
-
-        this.$input
-            .on("input", this.check.bind(this))
-            .keyup(function(e) {
-                  if (e.keyCode == 13) {
-                      if (!this.$ok.hasClass('disabled')) { this.$ok.trigger("click"); }
-                  }
-                }.bind(this))
-            .autocomplete({
-                source: function(request, response) {
-                  Sefaria.lookupRef(
-                      request.term,
-                      function (d) { response(d["completions"]); }
-                  );
-                },
-                minLength: 3
-            });
-    };
-
-    RefValidator.prototype = {
-      _sectionListString: function(arr, lang) {
-          //Put together an "A, B, and C" type string from [A,B,C]
-          //arr - array of strings
-          if (arr.length == 1) return arr[0];                            // One alone
-          var lastTwo = arr.slice(-2).join((lang=="en")?" and ":" ו");   // and together last two:
-          return arr.slice(0,-2).concat(lastTwo).join(", ");            // join the rest with a ,
-      },
-      //Too simple to merit a function, but function calls are cheap!
-      _addressListString: function(arr, lang) {
-          //Put together an "A:B:C" type string from [A,B,C]
-          //arr - array of strings
-          return arr.join((lang=="en")?":":" ");
-      },
-      _getCompletionMessage: function(inString, data, depthUp) {
-        // instring - the originally entered string
-        // data - data returned from api/names
-        // depthUp: 0 for segment.  1 for section.
-        if (!data["sectionNames"] || data["sectionNames"].length == 0) return;
-
-        var lang = data["lang"];
-        var sectionNames = (lang=="en")?data["sectionNames"]:data["heSectionNames"];
-        var addressExamples = (lang=="en")?data["addressExamples"]:data["heAddressExamples"];
-        var current = data["sections"].length;
-        var sectionListString = this._sectionListString(sectionNames.slice(current, depthUp?-depthUp:undefined), lang);
-        var addressListString = this._addressListString(addressExamples.slice(current, depthUp?-depthUp:undefined), lang);
-        var separator = (lang == "en" && !data["is_node"])?":":" ";
-        var exampleRef = inString + separator + addressListString;
-        return ((lang=="en")?
-        "Enter a " + sectionListString + ". E.g: '<b>" + exampleRef +"</b>'":
-        "הקלידו " + sectionListString + ". לדוגמא " + exampleRef)
-      },
-      _getSegmentCompletionMessage: function(inString, data) {
-          return this._getCompletionMessage(inString, data, 0);
-      },
-      _getSectionCompletionMessage: function(inString, data) {
-          return this._getCompletionMessage(inString, data, 1);
-      },
-      _getMessage: function(inString, data) {
-          // If current string contains string used for last message, and itself isn't a new state, use current message.
-          if (inString.indexOf(this.completion_message_base) == 0 && !data["is_ref"]) {
-              return this.completion_message;
-          }
-
-          var return_message = "";
-          var prompt_message = (data["lang"]=="en")?"Select a text":"נא בחרו טקסט";
-          var success_message = (data["lang"]=="en")?"OK. Click <b>add</b> to continue":("לחצו " + "<b>הוסף</b>" + " בכדי להמשיך");
-          var or_phrase = (data["lang"]=="en")?" or ":" או ";
-          var range_phrase = (data["lang"] == "en")?"enter a range.  E.g. ":"הוסיפו טווח. לדוגמא ";
-
-          if ((data["is_node"]) ||
-              (data["is_ref"] && (!(data["is_segment"] || data["is_section"])))
-          ) {
-              return_message = this._getSectionCompletionMessage(inString, data) || prompt_message;
-          } else if (data["is_section"]) {
-              return_message = success_message + or_phrase + this._getSegmentCompletionMessage(inString, data);
-          } else if (data["is_segment"] && !data["is_range"] &&  +(data["sections"].slice(-1)) > 0) {  // check that it's an int
-              var range_end = +(data["sections"].slice(-1)) + 1;
-              return_message = success_message + or_phrase + range_phrase + "<b>" + inString + "-" + range_end + "</b>";
-          } else if (data["is_segment"]) {
-              return_message = success_message + ".";
-          } else {
-              return_message = prompt_message;
-          }
-
-          this.completion_message_base = inString;
-          this.completion_message = return_message;
-          return return_message;
-      },
-      _lookupAndRoute: function(inString) {
-          if (this.current_lookup_ajax) {this.current_lookup_ajax.abort();}
-          this.current_lookup_ajax = Sefaria.lookupRef(
-            inString,
-            function(data) {
-              // If this query has been outpaced by typing, just return.
-              if (this.$input.val() != inString) { return; }
-
-              // If the query isn't recognized as a ref, but only for reasons of capitalization. Resubmit with recognizable caps.
-              if (Sefaria.isACaseVariant(inString, data)) {
-                this._lookupAndRoute(Sefaria.repairCaseVariant(inString, data));
-                return;
-              }
-
-              this.$msg.css("direction", (data["lang"]=="he"?"rtl":"ltr"))
-                  .html(this._getMessage(inString, data));
-              if (data.is_ref && (data.is_section || data.is_segment)) {
-                this._allow(inString, data["ref"]);  //pass normalized ref
-                return;
-              }
-              this._disallow();
-            }.bind(this)
-          );
-      },
-      _allow: function(inString, ref) {
-        if (inString != this.$input.val()) {
-          // Ref was corrected (likely for capitalization)
-          this.$input.val(inString);
-        }
-        this.$ok.removeClass("inactive").removeClass("disabled");
-        this.$input.autocomplete("disable");
-        this._inlineAddSourcePreview(inString, ref);
-      },
-      _disallow: function() {
-        this.$ok.addClass("inactive").addClass("disabled");
-      },
-      _preview_segment_mapper: function(lang, s) {
-        return (s[lang])?
-            ("<div class='previewLine'><span class='previewNumber'>(" + (s.number) + ")</span> " + s[lang] + "</div> "):
-            "";
-      },
-      _inlineAddSourcePreview: function(inString, ref) {
-        Sefaria.text(ref, {}, function (data) {
-            if (this.$input.val() != inString) { return; }
-
-            var segments = Sefaria.makeSegments(data);
-            var en = segments.map(this._preview_segment_mapper.bind(this, "en")).filter(Boolean);
-            var he = segments.map(this._preview_segment_mapper.bind(this, "he")).filter(Boolean);
-
-            // Handle missing text cases
-            var path = parseURL(document.URL).path;
-            if (!en.length) { en.push("<div class='previewNoText'><a href='/add/" + normRef(ref) + "?after=" + path + "' class='btn'>Add English for " + ref + "</a></div>"); }
-            if (!he.length) { he.push("<div class='previewNoText'><a href='/add/" + normRef(ref) + "?after=" + path + "' class='btn'>Add Hebrew for " + ref + "</a></div>"); }
-            if (!en.length && !he.length) {this.$msg.html("<i>No text available. Click below to add this text.</i>");}
-
-            // Set it on the DOM
-            this.$input.autocomplete("disable");
-            this.$preview.show();
-            this.$preview.html("<div class='en'>" + en.join("") + "</div>" + "<div class='he'>" + he.join("") + "</div>");
-            this.$preview.position({my: "left top", at: "left bottom", of: this.$input, collision: "none" }).width('691px').css('margin-top','20px');
-        }.bind(this));
-      },
-      check: function() {
-          this.$preview.html("");
-          this.$preview.hide();
-          this.$input.autocomplete("enable");
-          var inString = this.$input.val();
-          if (inString.length < 3) {
-              this._disallow();
-              return;
-          }
-          this._lookupAndRoute(inString);
+	function toggleSheetsMenu(menu) {
+		if ($(menu).parent().hasClass("open")) {
+			$(menu).parent().removeClass("open");
+		}
+		else {
+			$(".optionGroup.open").removeClass("open");
+			if (!$(menu).hasClass("optionTitle")) {
+				$(".sheetsMenuBarItem.open").removeClass("open");
+			}
+			$(menu).parent().toggleClass("open");
+		}
+	}
+	$(".menuHeader").keydown(function(e) {
+		if (e.which == 13) {
+			toggleSheetsMenu($(this));
+		}
+		else if (e.which == 39) {
+			if ($(this).hasClass("optionTitle")) { // in case of submenu open it if it's closed otherwise focus on the first element
+				if (!$(this).parent().hasClass("open")) {
+					toggleSheetsMenu($(this));
+				}
+				$(this).next(".subMenu").find(':focusable').first().focus();
       }
-    };
+			else {
+				$target = $(this).closest(".sheetsMenuBarItem").next(".sheetsMenuBarItem").find(':focusable').first();
+				$target.focus();
+				toggleSheetsMenu($target);
+			}
+		}
+		else if (e.which == 37) {
+				$target = $(this).closest(".sheetsMenuBarItem").prev(".sheetsMenuBarItem").find(':focusable').first();
+				$target.focus();
+				toggleSheetsMenu($target);
+		}
+		else if (e.which == 38) {
+			//console.($(this).closest(".optionsMenu").find)
+				e.preventDefault();
+				if (!$(this).parent().hasClass("open")) {
+					toggleSheetsMenu($(this));
+				}
+				$(this).parent().prev(":focusable").first().focus();
+		}
+		else if (e.which == 40) {
+				e.preventDefault();
+				if ($(this).parent().hasClass("sheetsMenuBarItem")) {
+					if (!$(this).parent().hasClass("open")) {
+						toggleSheetsMenu($(this));
+					}
+					$(this).parent().find(".optionsMenu").find(".optionItem, .optionGroup").find(":focusable").addBack(":focusable").first().focus();
+				}
+				else {
+          $(this).closest(".optionItem,.optionGroup").nextAll(".optionItem,.optionGroup,#sheetLayoutLanguageMenuItems,#sourceLayoutLanguageMenuItems").find(":focusable").addBack(":focusable").first().focus();
+        }
+		}
 
-    // As currently designed, the object is instantiated and sets up its own events.
+
+		//37 <
+		//38 ^
+		//39 >
+		//40 v
+
+  });
+
+	$(".optionItem").keydown(function(e) {
+		if (e.which == 40) {
+				e.preventDefault();
+				$(this).closest(".optionItem,.optionGroup").nextAll(".optionItem,.optionGroup,#sheetLayoutLanguageMenuItems,#sourceLayoutLanguageMenuItems").find(":focusable").addBack(":focusable").first().focus();
+		}
+		else if (e.which == 38) {
+				e.preventDefault();
+				$(this).closest(".optionItem,.optionGroup").prevAll(".optionItem,.optionGroup,#sheetLayoutLanguageMenuItems,#sourceLayoutLanguageMenuItems").find(":focusable").addBack(":focusable").last().focus();
+		}
+		else if (e.which == 39) {
+				$target = $(this).closest(".sheetsMenuBarItem").next(".sheetsMenuBarItem").find(':focusable').first();
+				$target.focus();
+				toggleSheetsMenu($target);
+		}
+		else if (e.which == 37) {
+      if ($(this).parent().hasClass("subMenu")) { // in case of submenu open it if it's closed otherwise focus on the first element
+        $(this).parent().prev(".menuHeader").focus();
+        $(this).closest(".optionGroup.open").removeClass("open");
+      }
+      else {
+        $target = $(this).closest(".sheetsMenuBarItem").prev(".sheetsMenuBarItem").find(':focusable').first();
+        $target.focus();
+        toggleSheetsMenu($target);
+      }
+    }
+		else if (e.which == 13) {
+    		$(this).click();
+				$(".optionGroup.open").removeClass("open");
+				$(".sheetsMenuBarItem.open").removeClass("open");
+    }
+	});
+
+	$(".sheetsMenuBarCommands").keydown(function(e) {
+		if (e.keyCode === 27) { //27 is escape
+        e.stopPropagation();
+				$(".optionGroup.open").removeClass("open");
+				$(".sheetsMenuBarItem.open").removeClass("open");
+    }
+	});
+
+    
+    // This object is instantiated and sets up its own events.
     // It doesn't need to be interacted with from the outside.
-    var validator = new RefValidator($("#inlineAdd"), $("#inlineAddDialogTitle"), $("#inlineAddSourceOK"), $("#inlineTextPreview"));
+    var validator = new Sefaria.util.RefValidator($("#inlineAdd"), $("#inlineAddDialogTitle"), $("#inlineAddSourceOK"), $("#inlineTextPreview"));
 
 
 	// Printing
@@ -376,6 +288,11 @@ $(function() {
 
 	// General Options 
 	$("#options .optionItem,#formatMenu .optionItem, #assignmentsModal .optionItem").click(function() {
+		if($(this).parent().hasClass('languageToggleOption')||
+			$(this).parent().hasClass('layoutToggleOption') ||
+			$(this).parent().hasClass('sideBySideToggleOption')){
+			return;
+		}
 		var $check = $(".fa-check", $(this));
 		if ($check.hasClass("hidden")) {
 			$("#sheet").addClass($(this).attr("id"));
@@ -394,7 +311,7 @@ $(function() {
 		$(this).hide();
 		$("#StopCollectingAssignmentsButton").show();
 		$("#sheet").addClass('assignable');
-		$("#assignmentDirections").html(translateInterfaceString('Students can complete their assignment at this link:'));
+		$("#assignmentDirections").html(_('Students can complete their assignment at this link:'));
 		$("#assignmentURLLink").show();
 		$("#assignedSheets").show();
 		autoSave();
@@ -405,7 +322,7 @@ $(function() {
 		$(this).hide();
 		$("#makeSheetAssignableButton").show();
 		$("#sheet").removeClass('assignable');
-		$("#assignmentDirections").html(translateInterfaceString('Assignments allow you to create a template that your students can fill out on their own.'));
+		$("#assignmentDirections").html(_('Assignments allow you to create a template that your students can fill out on their own.'));
 		$("#assignmentURLLink").hide();
 		if ( $("#assignedSheets a").length > 0) {
 			$("#assignedSheets").show();
@@ -437,7 +354,7 @@ $(function() {
 			$target.removeClass("sideBySide heLeft heRight");
 
 			$toggleTarget.find("#layoutToggleGroup div .fa-check").addClass("hidden");
-			$toggleTarget.find("#layoutToggleGroup .stacked .fa-check").removeClass("hidden")
+			$toggleTarget.find("#layoutToggleGroup .stacked .fa-check").removeClass("hidden");
 			$toggleTarget.find("#layoutToggleGroup").addClass("disabled");
 
 			$toggleTarget.find("#sideBySideToggleGroup div .fa-check").addClass("hidden");
@@ -791,7 +708,7 @@ $(function() {
 				if (!text.length) {
 					// Title
 					if ($el.prop("id") === "title") {
-						$el.text(translateInterfaceString("Untitled Source Sheet"));
+						$el.text(_("Untitled Source Sheet"));
 					
 					// Comment
 					} else if ($el.hasClass("comment")) {
@@ -1012,13 +929,13 @@ $(function() {
 		
 		var likeCount = parseInt($("#likeCount").text());
 		if ($(this).hasClass("liked")) {
-			$(this).removeClass("liked").text(translateInterfaceString("Like"));
+			$(this).removeClass("liked").text(_("Like"));
 			likeCount -= 1;
 			$("#likeCount").text(likeCount);
 			$.post("/api/sheets/" + sjs.current.id + "/unlike");
     		sjs.track.sheets("Unlike", sjs.current.id);
 		} else {
-			$(this).addClass("liked").text(translateInterfaceString("Unlike"));
+			$(this).addClass("liked").text(_("Unlike"));
 			$.post("/api/sheets/" + sjs.current.id + "/like");
 			likeCount += 1;
 			$("#likeCount").text(likeCount);
@@ -1031,11 +948,11 @@ $(function() {
 	$("#likeInfo").click(function(e) {
 		$.getJSON("/api/sheets/" + sjs.current.id + "/likers", function(data) {
 			if (data.likers.length == 0) { 
-				var title = translateInterfaceString("No one has liked this sheet yet. Will you be the first?");
+				var title = _("No one has liked this sheet yet. Will you be the first?");
 			} else if (data.likers.length == 1) {
-				var title = translateInterfaceString("1 Person Likes This Sheet");
+				var title = _("1 Person Likes This Sheet");
 			} else {
-				var title = data.likers.length + translateInterfaceString(" People Like This Sheet");
+				var title = data.likers.length + _(" People Like This Sheet");
 			}
 			sjs.peopleList(data.likers, title);
 		});
@@ -1126,77 +1043,78 @@ $(function() {
 	// ------------- Source Controls -------------------
 
 	var ownerControls = "<div id='sourceControls'>" + 
-							"<div class='editTitle' title='Edit Source Title'><i class='fa fa-pencil'></i></div>" +
-							"<div class='addSub' title='Add Source Below'><i class='fa fa-plus-circle'></i></div>" +
-							"<div class='addSubComment' title='Add Comment'><i class='fa fa-comment'></i></div>" +
-							"<div class='addConnections' title='Add All Connections'><i class='fa fa-sitemap'></i></div>"+				
-							"<div class='resetSource' title='Reset Source Text'><i class='fa fa-rotate-left'></i></div>" +
-							"<div class='copySource' title='Copy to Sheet'><i class='fa fa-copy'></i></div>" +
-							"<div class='switchSourceLayoutLang' title='Change Source Layout/Language'><i class='fa fa-ellipsis-h'></i></div>" +						
-							"<div class='moveSourceUp' title='Move Source Up'><i class='fa fa-arrow-up '></i></div>" +
-							"<div class='moveSourceDown' title='Move Source Down'><i class='fa fa-arrow-down'></i></div>" +
-							"<div class='moveSourceLeft' title='Outdent Source'><i class='fa fa-outdent'></i></div>" +
-							"<div class='moveSourceRight' title='Indent Source'><i class='fa fa-indent'></i></div>" +
-							"<div class='removeSource' title='Remove'><i class='fa fa-times-circle'></i></div>" +
+							"<div class='editTitle' title='"+_('Edit Source Title')+"'><i class='fa fa-pencil'></i></div>" +
+							"<div class='addSub' title='"+_('Add Source Below')+"'><i class='fa fa-plus-circle'></i></div>" +
+							"<div class='addSubComment' title='"+_('Add Comment')+"'><i class='fa fa-comment'></i></div>" +
+							"<div class='addConnections' title='"+_('Add All Connections')+"'><i class='fa fa-sitemap'></i></div>"+
+							"<div class='resetSource' title='"+_('Reset Source Text')+"'><i class='fa fa-rotate-left'></i></div>" +
+							"<div class='copySource' title='"+_('Copy to Sheet')+"'><i class='fa fa-copy'></i></div>" +
+							"<div class='switchSourceLayoutLang' title='"+_('Change Source Layout/Language')+"'><i class='fa fa-ellipsis-h'></i></div>" +
+							"<div class='moveSourceUp' title='"+_('Move Source Up')+"'><i class='fa fa-arrow-up '></i></div>" +
+							"<div class='moveSourceDown' title='"+_('Move Source Down')+"'><i class='fa fa-arrow-down'></i></div>" +
+							"<div class='moveSourceLeft' title='"+_('Outdent Source')+"'><i class='fa fa-outdent'></i></div>" +
+							"<div class='moveSourceRight' title='"+_('Indent Source')+"'><i class='fa fa-indent'></i></div>" +
+							"<div class='removeSource' title='"+_('Remove')+"'><i class='fa fa-times-circle'></i></div>" +
 
 						"</div>";
 
 	var adderControls = "<div id='sourceControls'>" + 
-							"<div class='addSub' title='Add Source Below'><i class='fa fa-plus-circle'></i></div>" +
-							"<div class='addSubComment' title='Add Comment'><i class='fa fa-comment'></i></div>" +
-							"<div class='addConnections' title='Add All Connections'><i class='fa fa-sitemap'></i></div>"+				
-							"<div class='copySource' title='Copy to Sheet'><i class='fa fa-copy'></i></div>" +					
-							"<div class='moveSourceUp' title='Move Source Up'><i class='fa fa-arrow-up'></i></div>" +
-							"<div class='moveSourceDown' title='Move Source Down'><i class='fa fa-arrow-down'></i></div>" +
-							"<div class='moveSourceLeft' title='Outdent Source'><i class='fa fa-outdent'></i></div>" +
-							"<div class='moveSourceRight' title='Indent Source'><i class='fa fa-indent'></i></div>" +
+							"<div class='addSub' title='"+_('Add Source Below')+"'><i class='fa fa-plus-circle'></i></div>" +
+							"<div class='addSubComment' title='"+_('Add Comment')+"'><i class='fa fa-comment'></i></div>" +
+							"<div class='addConnections' title='"+_('Add All Connections')+"'><i class='fa fa-sitemap'></i></div>"+
+							"<div class='copySource' title='"+_('Copy to Sheet')+"'><i class='fa fa-copy'></i></div>" +
+							"<div class='moveSourceUp' title='"+_('Move Source Up')+"'><i class='fa fa-arrow-up'></i></div>" +
+							"<div class='moveSourceDown' title='"+_('Move Source Down')+"'><i class='fa fa-arrow-down'></i></div>" +
+							"<div class='moveSourceLeft' title='"+_('Outdent Source')+"'><i class='fa fa-outdent'></i></div>" +
+							"<div class='moveSourceRight' title='"+_('Indent Source')+"'><i class='fa fa-indent'></i></div>" +
 
 						"</div>";
 
 	var viewerControls = "<div id='sourceControls'>" + 
-							"<div class='copySource' title='Copy to Sheet'><i class='fa fa-copy'></i></div>" +					
+							"<div class='copySource' title='"+_('Copy to Sheet')+"'><i class='fa fa-copy'></i></div>" +
 						"</div>";
 
 	var ownerSimpleControls = "<div id='sourceControls'>" + 
-							"<div class='copySource' title='Copy to Sheet'><i class='fa fa-copy'></i></div>" +
-							"<div class='moveSourceUp' title='Move Source Up'><i class='fa fa-arrow-up'></i></div>" +
-							"<div class='moveSourceDown' title='Move Source Down'><i class='fa fa-arrow-down'></i></div>" +
-							"<div class='moveSourceLeft' title='Outdent Source'><i class='fa fa-outdent'></i></div>" +
-							"<div class='moveSourceRight' title='Indent Source'><i class='fa fa-indent'></i></div>" +
-							"<div class='removeSource' title='Remove'><i class='fa fa-times-circle'></i></div>" +
+							"<div class='copySource' title='"+_('Copy to Sheet')+"'><i class='fa fa-copy'></i></div>" +
+							"<div class='moveSourceUp' title='"+_('Move Source Up')+"'><i class='fa fa-arrow-up'></i></div>" +
+							"<div class='moveSourceDown' title='"+_('Move Source Down')+"'><i class='fa fa-arrow-down'></i></div>" +
+							"<div class='moveSourceLeft' title='"+_('Outdent Source')+"'><i class='fa fa-outdent'></i></div>" +
+							"<div class='moveSourceRight' title='"+_('Indent Source')+"'><i class='fa fa-indent'></i></div>" +
+							"<div class='removeSource' title='"+_('Remove')+"'><i class='fa fa-times-circle'></i></div>" +
 
 
 						"</div>";
 
 	if ($.cookie("s2") == "true") {
-
+		var outdent_img = (sjs.interfaceLang == "en") ? '/static/img/outdent.png' : '/static/img/indent.png';
+		var indent_img = (sjs.interfaceLang == "en") ? '/static/img/indent.png' : '/static/img/outdent.png';
 
 		var ownerControls = "<div id='sourceControls' class='sideControls'>" +
-								"<div class='copySource' title='Copy to Sheet'><img src='/static/img/copy.png'></div>" +
-								"<div class='removeSource' title='Remove'><img src='/static/img/remove.png'></div>" +
-								"<div class='moveSourceRight' title='Indent Source'><img src='/static/img/indent.png'></div>" +
-								"<div class='moveSourceLeft' title='Outdent Source'><img src='/static/img/outdent.png'></div>" +
-								"<div class='moveSourceUp' title='Move Source Up'><img src='/static/img/triangle-up.svg'></div>" +
-								"<div class='moveSourceDown' title='Move Source Down'><img src='/static/img/triangle-down.svg'></div>" +
+								"<div class='copySource' title='"+_('Copy to Sheet')+"'><img src='/static/img/copy.png'></div>" +
+								"<div class='removeSource' title='"+_('Remove')+"'><img src='/static/img/remove.png'></div>" +
+								"<div class='moveSourceRight' title='"+_('Indent Source')+"'><img src='"+indent_img+"'></div>" +
+								"<div class='moveSourceLeft' title='"+_('Outdent Source')+"'><img src='"+outdent_img+"'></div>" +
+								"<div class='moveSourceUp' title='"+_('Move Source Up')+"'><img src='/static/img/triangle-up.svg'></div>" +
+								"<div class='moveSourceDown' title='"+_('Move Source Down')+"'><img src='/static/img/triangle-down.svg'></div>" +
 							"</div>";
 
 		var adderControls = "<div id='sourceControls' class='sideControls'>" +
-								"<div class='copySource' title='Copy to Sheet'><img src='/static/img/copy.png'></div>" +
-								"<div class='moveSourceRight' title='Indent Source'><img src='/static/img/indent.png'></div>" +
-								"<div class='moveSourceLeft' title='Outdent Source'><img src='/static/img/outdent.png'></div>" +
+								"<div class='copySource' title='"+_('Copy to Sheet')+"'><img src='/static/img/copy.png'></div>" +
+								"<div class='moveSourceRight' title='"+_('Indent Source')+"'><img src='"+indent_img+"'></div>" +
+								"<div class='moveSourceLeft' title='"+_('Outdent Source')+"'><img src='"+outdent_img+"'></div>" +
 							"</div>";
 
 		var viewerControls = "<div id='sourceControls' class='sideControls'>" +
-								"<div class='copySource' title='Copy to Sheet'><img src='/static/img/copy.png'></div>" +
+								"<div class='copySource' title='"+_('Copy to Sheet')+"'><img src='/static/img/copy.png'></div>" +
 							"</div>";
 
 		var ownerSimpleControls = "<div id='sourceControls' class='sideControls'>" +
-								"<div class='copySource' title='Copy to Sheet'><img src='/static/img/copy.png'></div>" +
-								"<div class='removeSource' title='Remove'><img src='/static/img/remove.png'></div>" +
-								"<div class='moveSourceRight' title='Indent Source'><img src='/static/img/indent.png'></div>" +
-								"<div class='moveSourceLeft' title='Outdent Source'><img src='/static/img/outdent.png'></div>" +
-								"<div class='moveSourceUp' title='Move Source Up'><img src='/static/img/triangle-up.svg'></div>" +
-								"<div class='moveSourceDown' title='Move Source Down'><img src='/static/img/triangle-down.svg'></div>" +
+								"<div class='copySource' title='"+_('Copy to Sheet')+"'><img src='/static/img/copy.png'></div>" +
+								"<div class='removeSource' title='"+_('Remove')+"'><img src='/static/img/remove.png'></div>" +
+								"<div class='moveSourceRight' title='"+_('Indent Source')+"'><img src='"+indent_img+"'></div>" +
+								"<div class='moveSourceLeft' title='"+_('Outdent Source')+"'><img src='"+outdent_img+"'></div>" +
+								"<div class='moveSourceUp' title='"+_('Move Source Up')+"'><img src='/static/img/triangle-up.svg'></div>" +
+								"<div class='moveSourceDown' title='"+_('Move Source Down')+"'><img src='/static/img/triangle-down.svg'></div>" +
 							"</div>";
 
 
@@ -1306,14 +1224,14 @@ $(function() {
 			$("#addInterface").on("click", "#connectionButton", function (e) {
 
 				var ref = $("#addInterface").prev(".source").attr("data-ref");
-				$("#connectionsToAdd").text("Looking up Connections...");
+				$("#connectionsToAdd").text(_("Looking up Connections..."));
 
 				$.getJSON("/api/texts/" + ref + "?context=0&pad=0", function (data) {
 					sjs.alert.clear();
 					if ("error" in data) {
 						$("#connectionsToAdd").text(data.error)
 					} else if (data.commentary.length == 0) {
-						$("#connectionsToAdd").text("No connections known for this source.");
+						$("#connectionsToAdd").text(_("No connections known for this source."));
 					} else {
 						data.commentary = [].concat.apply([], data.commentary);
 
@@ -1322,10 +1240,11 @@ $(function() {
 						var categorySum = {};
 						for (var i = 0; i < data.commentary.length; i++) {
 							var c = data.commentary[i];
-							if (categorySum[c.collectiveTitle['en']]) {
-								categorySum[c.collectiveTitle['en']]++;
+							var key = (sjs.interfaceLang == "en" ? c.collectiveTitle['en'] : c.collectiveTitle['he']);
+							if (categorySum[key]) {
+								categorySum[key]++;
 							} else {
-								categorySum[c.collectiveTitle['en']] = 1;
+								categorySum[key] = 1;
 							}
 						}
 						var categories = [];
@@ -1346,7 +1265,8 @@ $(function() {
 
 							for (var i = 0; i < data.commentary.length; i++) {
 								var c = data.commentary[i];
-								if (categories[j] == c.collectiveTitle['en']) {
+								var key = (sjs.interfaceLang == "en" ? c.collectiveTitle['en'] : c.collectiveTitle['he']);
+								if (categories[j] == key) {
 									dataRefs = dataRefs + c.sourceRef + ";";
 									//continue;
 								}
@@ -1690,7 +1610,7 @@ $(function() {
 	// Reset Source Text 
 	$(".resetSource").live("click", function() { 
 		var options = {
-			message: translateInterfaceString("Reset text of Hebrew, English or both?")+"<br><small>"+translateInterfaceString("Any edits you have made to this source will be lost")+".</small>",
+			message: _("Reset text of Hebrew, English or both?")+"<br><small>"+_("Any edits you have made to this source will be lost")+".</small>",
 			options: ["Hebrew", "English", "Both"]
 		};
 		var $target = $(this).closest(".source");
@@ -2979,7 +2899,7 @@ function buildSheet(data){
 			$("#title").addClass("heTitle");
 		}
 	} else {
-		$("#title").html(translateInterfaceString("Untitled Source Sheet"));
+		$("#title").html(_("Untitled Source Sheet"));
 	}
 	$("#sources").css("min-height",($("#sources").css("height"))); //To prevent 'jumping' as the sheet is rebuilt when polling is triggered we temporarily set the min-height, and remove it at the end of the function.
 
@@ -3683,7 +3603,12 @@ function exportToDrive() {
 			if ("error" in data) {
 				sjs.alert.message(data.error.message);
 			} else {
-				sjs.alert.message("Source Sheet exported to Google Drive.<br><br><a href='" + data.webViewLink + "' target='_blank'>Open in Google Drive &raquo;</a>");
+				sjs.alert.message("" +
+					'<span class="int-en">Source Sheet exported to Google Drive.</span><span class="int-he">ייצוא לגוגל דרייב הסתיים.</span>' +
+					"<br><br>" +
+					"<a href='" + data.webViewLink + "' target='_blank'>" +
+					'<span class="int-en">Open in Google Drive &raquo;</span><span class="int-he">לפתיחה בגוגל דרייב</span>' +
+					"</a>");
 			}
 		},
 		statusCode: {
@@ -3750,7 +3675,7 @@ function showShareModal(){
 
 
 function deleteSheet() {
-	if (confirm(translateInterfaceString("Are you sure you want to delete this sheet? There is no way to undo this action."))) {
+	if (confirm(_("Are you sure you want to delete this sheet? There is no way to undo this action."))) {
 		$.post("/api/sheets/" + sjs.current.id + "/delete", function (data){
 			if ("error" in data) {
 				sjs.alert.message(data.error);
@@ -4076,8 +4001,21 @@ $.extend(sjs, {
 		"Students can complete their assignment at this link:":
 			"תלמידים יכולים לבצע את המטלה שלהם בקישור הבא:",
 		"Reset text of Hebrew, English or both?": "האם לאפס את התוכן של המקור בעברית, אנגלית או הכל?",
-		"Any edits you have made to this source will be lost": "כל השינויים שנעשו במקור זה יאבדו"
-
+		"Any edits you have made to this source will be lost": "כל השינויים שנעשו במקור זה יאבדו",
+		"Looking up Connections..." : "מחפש קישורים...",
+		"No connections known for this source.": "למקור הזה אין קשרים ידועים",
+		"Edit Source title" : "עריכת כותרת",
+		"Add Source Below" : "הוספת מקור מתחת",
+		"Add Comment": "הוספת תגובה",
+		"Add All Connections": "הוספת כל המקורות הקשורים",
+		"Reset Source Text": "איפוס טקסט מקור",
+		"Copy to Sheet" : "העתקה לדף מקורות",
+		"Change Source Layout/Language": "שינוי שפת/עימוד מקור",
+		"Move Source Up": "הזזת מקור מעלה",
+		"Move Source Down": "הזזת מקור מטה",
+		"Outdent Source": "הזחת מקור החוצה",
+		"Indent Source": "הזחת מקור פנימה",
+		"Remove": "הסרת מקור"
 
 	}
 });
@@ -4090,3 +4028,4 @@ function translateInterfaceString(key, defaultValue){
 		return (defaultValue ? defaultValue : key);
 	}
 }
+var _ = translateInterfaceString;

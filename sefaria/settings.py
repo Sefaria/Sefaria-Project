@@ -287,7 +287,7 @@ except ImportError:
 WEBPACK_LOADER = {
     'DEFAULT': {
         'BUNDLE_DIR_NAME': 'bundles/client/',  # must end with slash
-        'STATS_FILE': relative_to_abs_path('../webpack-stats.client.json'),
+        'STATS_FILE': relative_to_abs_path('../node/webpack-stats.client.json'),
         'POLL_INTERVAL': 0.1,
         'TIMEOUT': None,
         'CACHE': not DEBUG,
