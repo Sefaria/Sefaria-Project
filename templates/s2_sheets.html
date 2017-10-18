@@ -990,17 +990,7 @@
 </div>
 
 <div id="shareWithOthers" class="modal s2Modal">
-    <span class="close-button"></span>
-    <div class="title">
-        <span class="int-en">Share this sheet</span>
-        <span class="int-he">שתף דף מקור זה</span>
-    </div>
-
     <div class="content">
-        <div class="inputHeader">
-            <span class="int-en">Description</span>
-            <span class="int-he">תיאור</span>
-        </div>
 		<textarea id="sheetSummaryInput"
                   placeholder=
                           {% if request.interfaceLang == 'english' %}
@@ -1011,61 +1001,37 @@
 
     </div>
 
+    <div class="line"></div>
 
     <div class="content">
-        <div class="inputHeader"><img src="/static/img/edittags.png" alt="Tags Icon">
-            <span class="int-en">Tags</span>
-            <span class="int-he">תיוגים</span>
-        </div>
-        <ul id="tags"></ul>
+        <ul id="tags"><span class="addTagMsg"><span class="int-en">Add Tags...</span><span class="int-he">Add Tags...</span></span></ul>
 
         <div id="suggestedTags">
 
         </div>
     </div>
 
+    <div class="line"></div>
+
 
     <div class="content">
-        <div class="inputHeader"><img src="/static/img/shareablelink.png" alt="Sharable Link Icon">
-            <span class="int-en">Sharable Link</span>
-            <span class="int-he">קישור לשיתוף</span>
+        <span class="labelforOnOffSwitch"><span class="int-en">List on Sefaria</span><span class="int-he">List on Sefaria</span></span>
+        <div class="onoffswitch">
+            <input type="checkbox" name="onoffswitch" class="onoffswitch-checkbox" id="sheetPublicToggle">
+            <label class="onoffswitch-label" for="sheetPublicToggle">
+                <span class="onoffswitch-inner"></span>
+                <span class="onoffswitch-switch"></span>
+            </label>
         </div>
-        <input id="shareURL" value="{{ request.META.HTTP_HOST }}/sheets/{{sheet.id}}" readonly="readonly"/>
-    </div>
-
-    <div class="content" id="sourceSheetsAccessOptions">
-        <div class="inputHeader"><i class='fa fa-unlock-alt'></i>
-            <span class="int-en">Access</span>
-            <span class="int-he">הרשאות</span>
-        </div>
-        <select id="sourceSheetShareSelect">
-          <option value="private">
-              {% trans 'Private'  %}
-          </option>
-          <option value="public">
-              {% trans 'Listed for Sefaria Users' %}
-          </option>
-          <option value="publicAdd">
-              {% trans 'Anyone can Add' %}
-          </option>
-          <option value="privateAdd">
-              {% trans 'Anyone can Add - Unlisted' %}
-          </option>
-          <option value="publicEdit">
-              {% trans 'Anyone can Edit' %}
-          </option>
-          <option value="privateEdit">
-              {% trans 'Anyone can Edit - Unlisted' %}
-          </option>
-        </select>
     </div>
 
    {% if owner_groups %}
     <div class="content" id="sourceSheetGroupOptions">
-        <div class="inputHeader"><i class='fa fa-group'></i>
-            <span class="int-en">Group</span>
+        <label for="sourceSheetGroupSelect">
+            <span class="int-en">List in Group</span>
             <span class="int-he">קבוצה</span>
-        </div>
+        </label>
+
         <select id="sourceSheetGroupSelect">
             <option value="None">
                 {% trans 'None' %}
@@ -1083,11 +1049,36 @@
         </select>
     </div>
 	{% endif %}
-    <div id="sharingDesc"></div><span id="sharingType" data-sharing=""></span>
-    <div class="ok button">
-        <span class="int-en">Save Changes</span>
-        <span class="int-he">שמירה</span>
+
+
+    <div class="content">
+        <label for="shareURL">Share a Link</label>
+        <input id="shareURL" value="{{ request.META.HTTP_HOST }}/sheets/{{sheet.id}}" readonly="readonly"/>
     </div>
+
+    <div class="line"></div>
+
+    <div class="content">
+        <label for="sourceSheetShareSelect">Anyone with access can</label>
+        <select id="sourceSheetShareSelect">
+          <option value="view">
+              View
+          </option>
+          <option value="add">
+              Add
+          </option>
+          <option value="edit">
+              Edit
+          </option>
+        </select>
+
+        <div class="ok button">
+            <span class="int-en">Save</span>
+            <span class="int-he">שמירה</span>
+        </div>
+
+    </div>
+
 </div>
 
 <div id="addToSheetModal" class="modal s2Modal">

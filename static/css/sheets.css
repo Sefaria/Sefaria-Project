@@ -349,6 +349,11 @@ body:not(.user-is-tabbing) #sheet .cke_editable:focus {
 	margin-left:-40px;
 }
 
+#shareWithOthers .line {
+	margin-left:-30px;
+	width: 540px;
+}
+
 .optionsMenu .fa {
 	/*margin-right: 8px;*/
 	-webkit-margin-end: 5px;
@@ -2048,18 +2053,45 @@ a.userLink{
 
 }
 
-#shareURL {
+#sheetsContent #shareURL {
 	cursor: text;
 	background-color: #fff;
     font-style: italic;
-    width: 100%;
+    width: 75%;
     box-sizing: border-box;
     height: 30px;
+	margin-top: 6px;
+}
+#shareWithOthers #sourceSheetGroupSelect {
+	width: 75%;
+	margin-top: 13px;
+}
+
+label[for="shareURL"],label[for="sourceSheetGroupSelect"], .labelforOnOffSwitch {
+	width: 24%;
+    display: inline-block;
+}
+
+label[for="sourceSheetShareSelect"] {
+	width: 40%;
+    display: inline-block;
+}
+
+#shareWithOthers #sourceSheetShareSelect {
+	width: 29%;
+}
+
+#shareWithOthers .ok.button {
+	margin: 13px 27px;
 }
 
 #sheetsContent textarea#sheetSummaryInput {
 	width: 100%;
-	height: 65px;
+}
+
+#sheetsContent textarea#sheetSummaryInput::placeholder {
+	font-family: "proxima-nova","Helvetica Neue","Helvetica",sans-serif;
+	color: #999999;
 }
 
 #shareWithOthers .content .inputHeader {
@@ -2153,10 +2185,23 @@ a.userLink{
 }
 
 #tags {
-	border: 1px solid #aaaaaa;
+	border: 1px solid rgb(204, 204, 204);
 	background: #ffffff;
 	color: #222222;
-	margin: 0 0 5px 0;
+	margin: 13px 0 5px 0;
+}
+
+#tags .addTagMsg {
+	font-style: italic;
+	font-size: 14px;
+	float: left;
+	padding-top: 3px;
+    margin: 8px 3px;
+	color: #999999;
+}
+
+#tags .addTagMsg .int-he {
+	float: right;
 }
 
 #suggestedTags {
@@ -2164,8 +2209,9 @@ a.userLink{
 }
 
 .tagButton {
-    color: #333;
-    background-color: #ddd;
+    color: #999999;
+    background-color: #f2f2f2;
+	border: 1px solid #e5e5e5;
     border-radius: 2px;
 	padding: 5px;
 	margin: 2px;
@@ -2423,4 +2469,73 @@ a.tagit-close {
 
 .interface-hebrew .tooltipster-default .tooltipster-content{
 	font-family: "Heebo", sans-serif;
+}
+
+.onoffswitch {
+    position: relative;
+	width: 70px;
+	display: inline-block;
+    -webkit-user-select:none;
+	-moz-user-select:none;
+	-ms-user-select: none;
+	margin-top: 13px;
+	top: 8px;
+}
+#sheetsContent .onoffswitch-checkbox {
+    display: none;
+}
+.onoffswitch-label {
+    display: block;
+	overflow: hidden;
+	cursor: pointer;
+	border-radius: 20px;
+}
+.onoffswitch-inner {
+    display: block;
+	width: 200%;
+	margin-left: -100%;
+    transition: margin 0.3s ease-in 0s;
+}
+.onoffswitch-inner:before, .onoffswitch-inner:after {
+    display: block;
+	float: left;
+	width: 50%;
+	height: 30px;
+	padding: 0;
+	line-height: 30px;
+    font-size: 14px;
+	color: white;
+    box-sizing: border-box;
+}
+.onoffswitch-inner:before {
+    content: "Yes";
+    padding-left: 10px;
+    background-color: #212D4F;
+	color: #FFFFFF;
+}
+.onoffswitch-inner:after {
+    content: "No";
+    padding-right: 10px;
+    background-color: #fff;
+	color: #999999;
+    text-align: right;
+}
+.onoffswitch-switch {
+    display: block;
+	width: 26px;
+	margin: 1px;
+    background: #FFFFFF;
+    position: absolute;
+	top: 0;
+	bottom: 0;
+    right: 36px;
+    border: 1px solid #999999;
+	border-radius: 26px;
+    transition: all 0.3s ease-in 0s;
+}
+.onoffswitch-checkbox:checked + .onoffswitch-label .onoffswitch-inner {
+    margin-left: 0;
+}
+.onoffswitch-checkbox:checked + .onoffswitch-label .onoffswitch-switch {
+    right: 2px;
 }
