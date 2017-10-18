@@ -579,7 +579,13 @@
     </div>
 </div>
 
-<div id="sheet" class="{{ sheet_class|default:'bilingual' }}" role="main">
+<div id="sheet" class="
+    {% if request.interfaceLang == 'english' %}
+        {{ sheet_class|default:'bilingual' }}
+    {% else %}
+        {{ sheet_class|default:'hebrew' }}
+    {% endif %}
+" role="main">
     {% if not user.email %}
 	<div id="fileControls">
         <div id="fileControlMsg">
