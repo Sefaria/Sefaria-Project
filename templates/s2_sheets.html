@@ -1015,7 +1015,7 @@
 
 
     <div class="content">
-        <span class="labelforOnOffSwitch"><span class="int-en">List on Sefaria</span><span class="int-he">List on Sefaria</span></span>
+        <span class="labelforOnOffSwitch"><span class="int-en">List on Sefaria</span><span class="int-he">המפורטים בפומבי</span></span>
         <div class="onoffswitch">
             <input type="checkbox" name="onoffswitch" class="onoffswitch-checkbox" id="sheetPublicToggle">
             <label class="onoffswitch-label" for="sheetPublicToggle">
@@ -1052,14 +1052,20 @@
 
 
     <div class="content">
-        <label for="shareURL">Share a Link</label>
+        <label for="shareURL">
+            <span class="int-en">Share a link</span>
+            <span class="int-he">קישור לשיתוף</span>
+        </label>
         <input id="shareURL" value="{{ request.META.HTTP_HOST }}/sheets/{{sheet.id}}" readonly="readonly"/>
     </div>
 
     <div class="line"></div>
 
     <div class="content">
-        <label for="sourceSheetShareSelect">Anyone with access can</label>
+        <label for="sourceSheetShareSelect">
+            <span class="int-en">Anyone with access can</span>
+            <span class="int-he"> כל מי שיש לו גישה יכול </span>
+        </label>
         <select id="sourceSheetShareSelect">
           <option value="view">
               View
