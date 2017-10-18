@@ -623,8 +623,9 @@ class AddNoteBox extends Component {
       type:  "note",
       public: !this.state.isPrivate
     };
+    if (this.props.noteId) { note._id = this.props.noteId; }
     var postData = { json: JSON.stringify(note) };
-    var url = (this.props.noteId ? "/api/notes/" + this.props.noteId : "/api/notes/");
+    var url = "/api/notes/";
     $.post(url, postData, function(data) {
       if (data.error) {
         alert(data.error);
