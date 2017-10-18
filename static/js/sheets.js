@@ -2204,7 +2204,7 @@ sjs.sheetTagger = {
 		// Init with tagit and with its tags
 		$("#tags").tagit({ allowSpaces: true });
 		this.setTags(tags);
-		if (tags.length>0) {
+		if (tags && tags.length>0) {
 			$("#tags .addTagMsg").hide();
 		}
 
