@@ -205,10 +205,10 @@ class ReaderTextTableOfContents extends Component {
         var other_lang = cv.language == "he" ? "en" : "he";
         dl_versions = dl_versions.concat([
           <option dir="auto" value={"merged/" + cv.language} key={"merged/" + cv.language} data-lang={cv.language} data-version="merged">
-              {Sefaria.interfaceLang == "hebrew" ? "גרסה משלובת נוכחית" + `(${languageInHebrew[cv.language]})` :`Current Merged Version (${cv.language})`}
+              {Sefaria.interfaceLang == "hebrew" ? "גרסה משולבת נוכחית" + `(${languageInHebrew[cv.language]})` :`Current Merged Version (${cv.language})`}
           </option>,
           <option dir="auto" value={"merged/" + other_lang} key={"merged/" + other_lang} data-lang={other_lang} data-version="merged">
-              {Sefaria.interfaceLang == "hebrew" ? `גרסה משולבה` + `(${languageInHebrew[other_lang]})` : `Merged Version (${other_lang})`}
+              {Sefaria.interfaceLang == "hebrew" ? `גרסה משולבת` + `(${languageInHebrew[other_lang]})` : `Merged Version (${other_lang})`}
           </option>
         ]);
         dl_versions = dl_versions.concat(pdVersions.map(v =>
