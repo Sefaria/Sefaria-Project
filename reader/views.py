@@ -1849,6 +1849,8 @@ def notes_api(request, note_id_or_ref):
             del note["refs"]
 
         func = tracker.update if "_id" in note else tracker.add
+        if "_id" in note:
+            note["_id"] = ObjectId(note["_id"])
         if not request.user.is_authenticated():
             key = request.POST.get("apikey")
             if not key:
