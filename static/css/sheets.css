@@ -2321,6 +2321,9 @@ a.tagit-close {
     float: right;
     height: 22px;
 }
+.interface-hebrew .editCheckToggle{
+	float: left;
+}
 
 
 .tagSelectorTitle {
