@@ -1461,6 +1461,7 @@ a.readerNavCategory {
   display: block;
   font-size: 18px;
   color: #333;
+  unicode-bidi: plaintext;
 }
 .readerTextTableOfContents .versionBlock a {
   color: #999;
@@ -1522,6 +1523,11 @@ a.readerNavCategory {
     color: #333;
     font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
 }
+.modTools .dlVersionSelect option,
+.readerTextTableOfContents .content .dlVersionSelect option{
+  unicode-bidi: plaintext;
+}
+
 .modTools .versionDownloadButton,
 .readerTextTableOfContents .content .versionDownloadButton {
     width: 60%;
