@@ -1021,7 +1021,7 @@
     <div class="line"></div>
 
     <div class="content">
-        <ul id="tags"><span class="addTagMsg"><span class="int-en">Add Tags...</span><span class="int-he">Add Tags...</span></span></ul>
+        <ul id="tags"><span class="addTagMsg"><span class="int-en">Add Tags...</span><span class="int-he">הוסף תיוגים</span></span></ul>
 
         <div id="suggestedTags">
 
@@ -1032,7 +1032,7 @@
 
 
     <div class="content">
-        <span class="labelforOnOffSwitch"><span class="int-en">List on Sefaria</span><span class="int-he">המפורטים בפומבי</span></span>
+        <span class="labelforOnOffSwitch"><span class="int-en">List on Sefaria</span><span class="int-he">הצג לכלל משתמשי ספריא</span></span>
         <div class="onoffswitch">
             <input type="checkbox" name="onoffswitch" class="onoffswitch-checkbox" id="sheetPublicToggle">
             <label class="onoffswitch-label" for="sheetPublicToggle">
@@ -1046,7 +1046,7 @@
     <div class="content" id="sourceSheetGroupOptions">
         <label for="sourceSheetGroupSelect">
             <span class="int-en">List in Group</span>
-            <span class="int-he">קבוצה</span>
+            <span class="int-he">שיוך קבוצה</span>
         </label>
 
         <select id="sourceSheetGroupSelect">
@@ -1085,13 +1085,13 @@
         </label>
         <select id="sourceSheetShareSelect">
           <option value="view">
-              View
+              {% trans "View" %}
           </option>
           <option value="add">
-              Add
+              {% trans "Add" %}
           </option>
           <option value="edit">
-              Edit
+              {% trans "Edit" %}
           </option>
         </select>
 
