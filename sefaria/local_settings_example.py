@@ -96,15 +96,12 @@ NODE_TIMEOUT_MONITOR = relative_to_abs_path("../log/forever/timeouts")
 SEFARIA_DATA_PATH = '/path/to/your/Sefaria-Data' # used for Data
 SEFARIA_EXPORT_PATH = '/path/to/your/Sefaria-Data/export' # used for exporting texts
 
-# Map domain to an interface language that the domain should be pinned to
+# Map domain to an interface language that the domain should be pinned to. 
+# Leave as {} to prevent language pinning, in which case one domain can serve either Hebrew or English
 DOMAIN_LANGUAGES = {
-    "hebrew.example.org": "hebrew",
-    "english.example.org": "english",
+    "http://hebrew.example.org": "hebrew",
+    "http://english.example.org": "english",
 }
-
-# Map domains which should be allowed for language directs, same shape as DOMAIN_LANGUAGES.
-# Set if you need to redirects to behave differently.
-REDIRECTABLE_DOMAIN_LANGUAGES = DOMAIN_LANGUAGES
 
 GOOGLE_ANALYTICS_CODE = 'your google analytics code'
 MIXPANEL_CODE = 'you mixpanel code here'
