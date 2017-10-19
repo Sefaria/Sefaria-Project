@@ -1215,8 +1215,8 @@ a.readerNavCategory {
 .readerTextTableOfContents .versionEditForm #versionTitle,
 .readerTextTableOfContents .versionEditForm #versionSource,
 .readerTextTableOfContents .versionEditForm #versionNotes,
-.readerTextTableOfContents .versionEditForm #VersionTitle_in_hebrew,
-.readerTextTableOfContents .versionEditForm #VersionNotes_in_hebrew
+.readerTextTableOfContents .versionEditForm #versionTitleInHebrew,
+.readerTextTableOfContents .versionEditForm #versionNotesInHebrew
  {
   width: 98%;
 }
