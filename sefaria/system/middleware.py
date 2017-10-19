@@ -87,8 +87,10 @@ class LanguageCookieMiddleware(object):
             print "Setting Language Cookie Redirect"
             params = request.GET.copy()
             params.pop("set-language-cookie")
+            params_string = params.urlencode()
+            params_string = "?" + params_string if params_string else ""
             domain = [d for d in DOMAIN_LANGUAGES if DOMAIN_LANGUAGES[d] == lang][0]
-            response = redirect(domain + request.path + params.urlencode())
+            response = redirect(domain + request.path + params_string)
             response.set_cookie("interfaceLang", lang)
             if request.user.is_authenticated():
                 p = UserProfile(id=request.user.id)
