@@ -14,6 +14,8 @@ if not hasattr(sys, '_doc_build'):
 from sefaria.model.following import FollowersSet, FolloweesSet
 from sefaria.model.text import Ref
 from sefaria.system.database import db
+from django.utils import translation
+
 
 
 class UserProfile(object):
@@ -297,6 +299,7 @@ def email_unread_notifications(timeframe):
 		except User.DoesNotExist:
 			continue
 
+		translation.activate(profile.settings["interface_language"][0:2])
 		message_html  = render_to_string("email/notifications_email.html", {"notifications": notifications, "recipient": user.first_name})
 		#message_text = util.strip_tags(message_html)
 		actors_string = notifications.actors_string()
@@ -311,6 +314,7 @@ def email_unread_notifications(timeframe):
 		msg.send()
 
 		notifications.mark_read(via="email")
+		translation.deactivate()
 
 
 def unread_notifications_count_for_user(uid):
