@@ -2526,6 +2526,10 @@ a.tagit-close {
 	margin-left: -100%;
     transition: margin 0.3s ease-in 0s;
 }
+
+.interface-hebrew .onoffswitch-inner {
+	margin-right: -100%;
+}
 .onoffswitch-inner:before, .onoffswitch-inner:after {
     display: block;
 	float: left;
@@ -2544,7 +2548,8 @@ a.tagit-close {
 	color: #FFFFFF;
 }
 .interface-hebrew .onoffswitch-inner:before{
-    content: "כן"
+    content: "לא";
+    padding-right: 10px;
 }
 .onoffswitch-inner:after {
     content: "No";
@@ -2553,8 +2558,14 @@ a.tagit-close {
 	color: #fff;
     text-align: right;
 }
+
+.interface-hebrew .onoffswitch-inner:after {
+	text-align: left;
+	padding-left: 10px;
+}
+
 .interface-hebrew .onoffswitch-inner:after{
-    content: "לא"
+    content: "כן";
 }
 .onoffswitch-switch {
     display: block;
@@ -2572,6 +2583,10 @@ a.tagit-close {
 .onoffswitch-checkbox:checked + .onoffswitch-label .onoffswitch-inner {
     margin-left: 0;
 }
+.interface-hebrew .onoffswitch-checkbox:checked + .onoffswitch-label .onoffswitch-inner {
+    margin-right: 0;
+}
+
 .onoffswitch-checkbox:checked + .onoffswitch-label .onoffswitch-switch {
     right: 0px;
 }
