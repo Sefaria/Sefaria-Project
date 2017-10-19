@@ -18,13 +18,11 @@ class TextColumn extends Component {
     this.$container          = $(ReactDOM.findDOMNode(this));
     this.initialScrollTopSet = false;
     this.justTransitioned    = true;
+    this.windowMiddle        = $(window).outerHeight() / 2;
     this.setPaddingForScrollbar();
-    this.setScrollPosition();
-    this.adjustInfiniteScroll();
     this.debouncedAdjustHighlightedAndVisible = Sefaria.util.debounce(this.adjustHighlightedAndVisible, 100);
     var node = ReactDOM.findDOMNode(this);
     node.addEventListener("scroll", this.handleScroll);
-    this.windowMiddle = $(window).outerHeight() / 2;
   }
   componentWillUnmount() {
     this._isMounted = false;
@@ -113,10 +111,12 @@ class TextColumn extends Component {
     }
   }
   handleTextLoad() {
+    //console.log("handle text load");
     this.setScrollPosition();
+    this.adjustInfiniteScroll();
   }
   setScrollPosition() {
-    //console.log("ssp");
+    console.log("ssp");
     // Called on every update, checking flags on `this` to see if scroll position needs to be set
     var node = ReactDOM.findDOMNode(this);
     if (this.loadingContentAtTop) {
@@ -245,21 +245,19 @@ class TextColumn extends Component {
 
   }
   scrollToHighlighted() {
-    window.requestAnimationFrame(function() {
-      if (!this._isMounted) { return; }
-      //console.log("scroll to highlighted - animation frame");
-      var $container   = this.$container;
-      var $readerPanel = $container.closest(".readerPanel");
-      var $highlighted = $container.find(".segment.highlight").first();
-      if ($highlighted.length) {
-        this.justScrolled = true;
-        var offset = this.getHighlightThreshhold();
-        $container.scrollTo($highlighted, 0, {offset: -offset});
-        if ($readerPanel.attr("id") == $(".readerPanel:last").attr("id")) {
-          $highlighted.focus();
-        }
+    if (!this._isMounted) { return; }
+    //console.log("scroll to highlighted - animation frame");
+    var $container   = this.$container;
+    var $readerPanel = $container.closest(".readerPanel");
+    var $highlighted = $container.find(".segment.highlight").first();
+    if ($highlighted.length) {
+      this.justScrolled = true;
+      var offset = this.getHighlightThreshhold();
+      $container.scrollTo($highlighted, 0, {offset: -offset});
+      if ($readerPanel.attr("id") == $(".readerPanel:last").attr("id")) {
+        $highlighted.focus();
       }
-    }.bind(this));
+    }
   }
   setPaddingForScrollbar() {
     // Scrollbars take up spacing, causing the centering of TextColumn to be slightly off center

@@ -446,6 +446,8 @@ class ReaderPanel extends Component {
     }
     var items = [];
     if (this.state.mode === "Text" || this.state.mode === "TextAndConnections") {
+      var oref  = Sefaria.parseRef(this.state.refs[0]);
+      var title = oref && oref.index ? oref.index : "empty";
       items.push(<TextColumn
           panelPosition ={this.props.panelPosition}
           srefs={this.state.refs.slice()}
@@ -473,7 +475,7 @@ class ReaderPanel extends Component {
           panelsOpen={this.props.panelsOpen}
           layoutWidth={this.props.layoutWidth}
           filter={this.state.filter}
-          key="text" />);
+          key={title + "-TextColumn"} />);
     }
     if (this.state.mode === "Connections" || this.state.mode === "TextAndConnections") {
       var langMode = this.props.masterPanelLanguage || this.state.settings.language;
