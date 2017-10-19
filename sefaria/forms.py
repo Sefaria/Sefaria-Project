@@ -18,6 +18,7 @@ from captcha.fields import ReCaptchaField
 
 from sefaria.client.util import subscribe_to_list
 from sefaria.local_settings import DEBUG
+from django.utils.translation import get_language
 
 
 SEED_GROUP = "User Seeds"
@@ -67,7 +68,10 @@ class NewUserForm(EmailUserCreationForm):
     subscribe_announce = forms.BooleanField(label=_("Receive important announcements"), help_text=_("Receive important announcements"), initial=True, required=False)
     subscribe_educator = forms.BooleanField(label=_("Receive our educator newsletter"), help_text=_("Receive our educator newsletter"), initial=False, required=False)
     if not DEBUG:
-        captcha = ReCaptchaField(attrs={'theme' : 'white'})
+        attrs = {'theme': 'white'}
+        if get_language() == 'he':
+            attrs['lang'] = 'iw'
+        captcha = ReCaptchaField(attrs=attrs)
     
     class Meta:
         model = User
