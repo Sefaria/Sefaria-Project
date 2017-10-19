@@ -1947,7 +1947,7 @@ line-height: normal;
     margin-right: 67px;
 	height:30px;
 	width:160px;
-
+	direction: ltr;
 }
 
 #customTextLanguageToggle .toggleOption {
@@ -2087,8 +2087,8 @@ label[for="sourceSheetShareSelect"] {
 }
 
 #shareWithOthers #sourceSheetShareSelect {
-	width: 29%;
 	margin-bottom:0;
+	width: 25%;
 }
 
 #shareWithOthers .ok.button {
@@ -2349,6 +2349,9 @@ a.tagit-close {
     float: right;
     height: 22px;
 }
+.interface-hebrew .editCheckToggle{
+	float: left;
+}
 
 
 .tagSelectorTitle {
@@ -2540,12 +2543,18 @@ a.tagit-close {
     background-color: #212D4F;
 	color: #FFFFFF;
 }
+.interface-hebrew .onoffswitch-inner:before{
+    content: "כן"
+}
 .onoffswitch-inner:after {
     content: "No";
     padding-right: 10px;
     background-color: #212D4F;
 	color: #fff;
     text-align: right;
+}
+.interface-hebrew .onoffswitch-inner:after{
+    content: "לא"
 }
 .onoffswitch-switch {
     display: block;
