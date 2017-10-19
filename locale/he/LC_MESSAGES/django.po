@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2017-10-19 03:16-0700\n"
+"POT-Creation-Date: 2017-10-19 12:23-0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -83,9 +83,8 @@ msgid "My Sources Sheets on Sefaria, both private and public."
 msgstr "דפי המקורות שלי בספריא. פרטיים ופומביים"
 
 #: reader/views.py:612
-#, fuzzy
 msgid "Public Source Sheets | Sefaria Source Sheets"
-msgstr "דפי המקורות שלי | דפי מקורות בספריא"
+msgstr "דפי המקורות פומביים | דפי מקורות בספריא"
 
 #: reader/views.py:613
 msgid ""
@@ -144,12 +143,10 @@ msgid ""
 msgstr "הודעות לגבי טקסטים, תרגומים וקישורים חדשים שנוספו לאחרונה לספריא"
 
 #: reader/views.py:717
-#, fuzzy
 msgid "Sefaria Account"
 msgstr "חשבון בספריא"
 
 #: reader/views.py:725
-#, fuzzy
 msgid "Sefaria Notifications"
 msgstr "הודעות בספריא"
 
@@ -202,10 +199,6 @@ msgstr "אני מסכימ/ה לקבל עדכונים חשובים"
 #: sefaria/forms.py:69
 msgid "Receive our educator newsletter"
 msgstr "אני מסכימ/ה לקבל את עלון המחנכים שלנו"
-
-#: sefaria/forms.py:74
-msgid "captcha lang"
-msgstr "iw"
 
 #: sefaria/forms.py:94
 msgid "A user with that email already exists."
@@ -570,6 +563,7 @@ msgid "reviewed"
 msgstr "הוסיף הגהה"
 
 #: templates/elements/activity_feed.html:127
+#: templates/email/notification.html:20
 msgid "published a new Source Sheet"
 msgstr "פרסם דף מקורות חדש"
 
@@ -598,12 +592,14 @@ msgid "Older Activity"
 msgstr "פעילות ישנה יותר"
 
 #: templates/email/base.html:17
-#, fuzzy
 msgid ""
 "\n"
 "            You're receiving this message because you have an account on\n"
 "        "
-msgstr "הינך מקבל הודעה זו מאחר ויש לך חשבון משתמש ב-"
+msgstr ""
+"\n"
+"            הינך מקבל הודעה זו מאחר ויש לך חשבון משתמש ב-\n"
+"        "
 
 #: templates/email/base.html:22
 #, python-format
@@ -629,6 +625,38 @@ msgstr ""
 "\n"
 "            דעתכם חשובה לנו.   <a href=\"%(hello_email)s\">ספרו</a>.\n"
 "לנו מה אתם חושבים!        "
+
+#: templates/email/notification.html:8
+msgid "sent you a message:"
+msgstr "שלח לכם הודעה"
+
+#: templates/email/notification.html:13
+msgid "Reply to"
+msgstr "השיבו ל"
+
+#: templates/email/notification.html:17
+msgid "likes your Source Sheet"
+msgstr "אהבו את דף המקורות שלכם"
+
+#: templates/email/notification.html:23
+msgid "is now following you"
+msgstr "עוקבים אחריכם"
+
+#: templates/email/notification.html:26
+msgid "added you to the group"
+msgstr "הוסיפו אתכם לקבוצה"
+
+#: templates/email/notification.html:29
+msgid "added a note to a "
+msgstr "הוסיפו הערה ל"
+
+#: templates/email/notification.html:31
+msgid "discussion you follow"
+msgstr "דיון אחריו אתם עוקבים"
+
+#: templates/email/notification.html:35
+msgid "This is a notification without a type, it shouldn't exist."
+msgstr ""
 
 #: templates/email/notifications_email.html:5
 #, python-format
@@ -672,14 +700,15 @@ msgid ""
 "A request has been made to reset the password for this email address on "
 "Sefaria.org."
 msgstr ""
+"בקשה התקבלה במערכת לאיפוס ססמת משתמש בעל כתובת מייל זו באתר sefaria.org.il"
 
 #: templates/registration/password_reset_email.html:6
 msgid "Click this link, or copy it to your browser, to choose a new password:"
-msgstr ""
+msgstr "לחץ כאן, או העתק והדבק את הכתובת לדפדפך שלך, בכדי לבחור ססמה חדשה:"
 
 #: templates/registration/password_reset_email.html:12
 msgid "If you did not request this reset, you can safely ignore this email."
-msgstr ""
+msgstr "אם לא שלחת בקשה לאיפוס סיסמא, הינך מוזמן להתעלם מהודעה זו"
 
 #: templates/registration/password_reset_form.html:4
 msgid "Forgot your Password"
@@ -934,6 +963,9 @@ msgstr ""
 "התלמוד במהדורת וויליאם דוידסון הוא גרסה דיגיטלית חפשית של התלמוד הבבלי עם "
 "תרגום מקביל המקושר לפרשנים מרכזיים, אזכורים מקראיים, מדרש, הלכה ועולם הולך "
 "וגדל של טקסטים יהודיים"
+
+#~ msgid "captcha lang"
+#~ msgstr "iw"
 
 #~ msgid "Private"
 #~ msgstr "פרטי"
