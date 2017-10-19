@@ -215,7 +215,6 @@ class VersionState(abst.AbstractMongoRecord, AbstractSchemaContent):
                 "textComplete": all([contents[ckey][lkey]["textComplete"] for ckey in ckeys]),
                 'completenessPercent': sum([contents[ckey][lkey]["completenessPercent"] for ckey in ckeys]) / len(ckeys),
                 'percentAvailableInvalid': any([contents[ckey][lkey]["percentAvailableInvalid"] for ckey in ckeys]),
-                'sparseness': sum([contents[ckey][lkey]["sparseness"] for ckey in ckeys]) / len(ckeys),  # should be an int.  In Python 3 may need to int(round()) the result.
             }
 
     #todo: do we want to use an object here?
@@ -282,37 +281,6 @@ class VersionState(abst.AbstractMongoRecord, AbstractSchemaContent):
             # What percent complete? ('completenessPercent')
             # are we doing this with the zero-padded array on purpose?
             current[lkey]['completenessPercent'] = self._calc_text_structure_completeness(depth, current[lkey]["availableTexts"])
-
-            # a rating integer (from 1-4) of how sparse the text is. 1 being most sparse and 4 considered basically ok.
-            # ('sparseness') was ('isSparse')
-            if current[lkey]['percentAvailableInvalid']:
-                percentCalc = current[lkey]['completenessPercent']
-            else:
-                percentCalc = current[lkey]['percentAvailable']
-
-            lang_flag = "%sComplete" % lang
-            if getattr(self, "flags", None) and self.flags.get(lang_flag, False):  # if manually marked as complete, consider it complete
-                current[lkey]['sparseness'] = 4
-
-            # If it's a commentary, it might have many empty places, so just consider bulk amount of text
-            elif (snode.index.versions_are_sparse()
-                  and len(current[lkey]["availableCounts"])
-                  and current[lkey]["availableCounts"][-1] >= 300):
-                current[lkey]['sparseness'] = 2
-
-            # If it's basic count is under a given constant (e.g. 25) consider sparse.
-            # This will casues issues with some small texts.  We fix this with manual flags.
-            elif len(current[lkey]["availableCounts"]) and current[lkey]["availableCounts"][-1] <= 25:
-                current[lkey]['sparseness'] = 1
-
-            elif percentCalc <= 15:
-                current[lkey]['sparseness'] = 1
-            elif 15 < percentCalc <= 50:
-                current[lkey]['sparseness'] = 2
-            elif 50 < percentCalc <= 90:
-                current[lkey]['sparseness'] = 3
-            else:
-                current[lkey]['sparseness'] = 4
 
         return current
 
@@ -381,17 +349,14 @@ class StateNode(object):
     meta_proj = {'content._all.completenessPercent': 1,
          'content._all.percentAvailable': 1,
          'content._all.percentAvailableInvalid': 1,
-         'content._all.sparseness': 1,
          'content._all.textComplete': 1,
          'content._en.completenessPercent': 1,
          'content._en.percentAvailable': 1,
          'content._en.percentAvailableInvalid': 1,
-         'content._en.sparseness': 1,
          'content._en.textComplete': 1,
          'content._he.completenessPercent': 1,
          'content._he.percentAvailable': 1,
          'content._he.percentAvailableInvalid': 1,
-         'content._he.sparseness': 1,
          'content._he.textComplete': 1,
          'flags': 1,
          'linksCount': 1,
@@ -438,9 +403,6 @@ class StateNode(object):
 
     def get_percent_available(self, lang):
         return self.var(lang, "percentAvailable")
-
-    def get_sparseness(self, lang):
-        return self.var(lang, "sparseness")
 
     def get_available_counts(self, lang):
         return self.var(lang, "availableCounts")

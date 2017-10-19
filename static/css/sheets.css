@@ -349,6 +349,11 @@ body:not(.user-is-tabbing) #sheet .cke_editable:focus {
 	margin-left:-40px;
 }
 
+#shareWithOthers .line {
+	margin-left:-30px;
+	width: 540px;
+}
+
 .optionsMenu .fa {
 	/*margin-right: 8px;*/
 	-webkit-margin-end: 5px;
@@ -502,6 +507,92 @@ body:not(.user-is-tabbing) #sheet .cke_editable:focus {
 	font-size: 13px;
 }
 
+#sheetMetadata {
+	color: #999;
+	background-color: #fafafa;
+	padding: 0 76px;
+}
+
+#sheet #sheetMetadata .button {
+	background-color: #eee;
+	border-color: #ccc;
+	color: #999;
+	font-size: 14px;
+	margin: 4px;
+}
+
+#sheetMetadata summary {
+	text-align: center;
+	margin: 0 -76px;
+	background-color: #fff;
+    display: flex;
+	justify-content: center;
+	cursor: pointer;
+}
+
+#sheetMetadata[open] summary {
+	background-color: #fff;
+    display: flex;
+	justify-content: flex-end;
+}
+
+#sheetMetadata summary::-webkit-details-marker {
+  	display: none;
+}
+
+#sheetMetadata summary:after {
+  	content: "❯";
+	margin: 2px 0 0 6px;
+}
+#sheetMetadata[open] summary span {
+	display: none;
+}
+#sheetMetadata[open] summary:after {
+  	content: "✕";
+    top: 54px;
+    margin: 0 80px;
+    position: relative;
+    align-self: flex-end;
+}
+
+#sheetMetadata .editButton {
+	float: right;
+    margin: 0 26px;
+    padding: 4px 14px;
+    font-size: 12px;
+	background-color: #eee;
+    border-color: #ccc;
+    color: #999;
+	cursor: pointer;
+}
+
+#sheetMetadata .editButton:before {
+	content: "✎ ";
+}
+
+#sheetMetadata .int-he .editButton {
+	float: left;
+}
+
+#sheetMetadata .metadataOpenDetails {
+	font-size: 14px;
+	font-family: "proxima-nova","Helvetica Neue","Helvetica",sans-serif;
+	padding: 35px 0;
+}
+
+#sheetMetadata #via, #sheetMetadata #assignmentAttribution {
+	font-size: 14px;
+	padding: 7px 0;
+}
+
+#sheetSummary {
+	margin: 14px 0;
+	font-style: italic;
+}
+#sheetSummary:empty {
+	display: none;
+}
+
 #likeLink {
 	color: black;
 	text-decoration: none;
@@ -615,7 +706,7 @@ body:not(.user-is-tabbing) #sheet .cke_editable:focus {
 	border-bottom:solid 1px #F2F2F2;
 }
 
-#sourceControls {
+.interface-english #sourceControls {
 	text-align: center;
 	position: absolute;
 	bottom: 7px;
@@ -623,6 +714,15 @@ body:not(.user-is-tabbing) #sheet .cke_editable:focus {
 	background-color: #eee;
 	left: 50%;
 	margin-left: -150px;
+}
+.interface-hebrew #sourceControls {
+	text-align: center;
+	position: absolute;
+	bottom: 7px;
+	width: 300px;
+	background-color: #eee;
+	right: 50%;
+	margin-right: -150px;
 }
 
 .sourceControlsTop #sourceControls {
@@ -643,14 +743,22 @@ body:not(.user-is-tabbing) #sheet .cke_editable:focus {
 	background-color: #F9F9F7 !important;
 
 }
-#sourceControls.sideControls {
+.interface-english #sourceControls.sideControls {
 	width: auto;
 	left: 23px;
 	margin-left: 0;
 	top: 32px;
 	bottom: auto;
 	background-color: inherit;
+}
 
+.interface-hebrew #sourceControls.sideControls{
+	width: auto;
+	right: 23px;
+	margin-right: 0;
+	top: 32px;
+	bottom: auto;
+	background-color: inherit;
 }
 
 #sourceControls.sideControls div:hover {
@@ -728,8 +836,6 @@ body:not(.user-is-tabbing) #sheet .cke_editable:focus {
 	position: relative;
 }
 
-
-
 .text .en,
 .text .he {
 	min-height: 20px;
@@ -737,6 +843,7 @@ body:not(.user-is-tabbing) #sheet .cke_editable:focus {
 
 #sheet .en {
 	direction: ltr;
+	text-align: left;
 }
 #sheet .he {
 	direction: rtl;
@@ -858,7 +965,6 @@ body:not(.user-is-tabbing) #sheet .cke_editable:focus {
 	padding-right: 160px !important;
 }
 
-
 .comment, .oldComment {
 	font-size: 17px;
 	min-height: 30px;
@@ -938,7 +1044,7 @@ body:not(.user-is-tabbing) #sheet .cke_editable:focus {
 
 #addParashaToSheetModal li:hover span{
 	text-decoration: underline;
- }
+}
 
 #addParashaToSheetModal ol {
 	display: flex;
@@ -968,6 +1074,7 @@ body:not(.user-is-tabbing) #sheet .cke_editable:focus {
 	margin-top: 0;
 	height: 80px;
 	padding: 8px;
+	direction: ltr;
 }
 
 #embedSheetModal .sub {
@@ -1817,9 +1924,9 @@ line-height: normal;
 .inlineAddOr {
 	display:inline-block;
 	color: #999;
-    margin: 6px;
-
+    margin: 4px;
 }
+
 .inlineAddSourceByttons {
 	display: inline-block;
 }
@@ -1838,7 +1945,7 @@ line-height: normal;
     margin-right: 67px;
 	height:30px;
 	width:160px;
-
+	direction: ltr;
 }
 
 #customTextLanguageToggle .toggleOption {
@@ -1946,17 +2053,49 @@ a.userLink{
 
 }
 
-#shareURL {
+#sheetsContent #shareURL {
 	cursor: text;
 	background-color: #fff;
     font-style: italic;
-    width: 100%;
+    width: 75%;
     box-sizing: border-box;
     height: 30px;
+	margin-top: 6px;
+}
+#shareWithOthers #sourceSheetGroupSelect {
+	width: 75%;
+	margin-top: 13px;
+}
+
+label[for="shareURL"],label[for="sourceSheetGroupSelect"], .labelforOnOffSwitch {
+	width: 24%;
+    display: inline-block;
+}
+
+label[for="sourceSheetShareSelect"] {
+	width: 40%;
+    display: inline-block;
+}
+
+#shareWithOthers #sourceSheetShareSelect {
+	width: 25%;
+}
+
+#shareWithOthers .ok.button {
+	margin: 13px 27px;
+}
+
+#sheetsContent textarea#sheetSummaryInput {
+	width: 100%;
+}
+
+#sheetsContent textarea#sheetSummaryInput::placeholder {
+	font-family: "proxima-nova","Helvetica Neue","Helvetica",sans-serif;
+	color: #999999;
 }
 
 #shareWithOthers .content .inputHeader {
-	margin: 30px 0 15px 0;
+	margin: 10px 0 10px 0;
 }
 
 #shareWithOthers .content select {
@@ -1965,7 +2104,7 @@ a.userLink{
 
 #shareWithOthers {
 	text-align: center;
-	width:400px;
+	width:480px;
 }
 
 #sharingDesc {
@@ -2016,6 +2155,10 @@ a.userLink{
 	text-align: left;
 }
 
+.interface-hebrew .s2Modal .content{
+	text-align: right;
+}
+
 .s2Modal .ok.button {
 	margin: 0 auto;
 }
@@ -2042,11 +2185,39 @@ a.userLink{
 }
 
 #tags {
-	border: 1px solid #aaaaaa;
+	border: 1px solid rgb(204, 204, 204);
 	background: #ffffff;
 	color: #222222;
-    margin-top: 30px;
-    margin-bottom: 30px;
+	margin: 13px 0 5px 0;
+}
+
+#tags .addTagMsg {
+	font-style: italic;
+	font-size: 14px;
+	float: left;
+	padding-top: 3px;
+    margin: 8px 3px;
+	color: #999999;
+}
+
+#tags .addTagMsg .int-he {
+	float: right;
+}
+
+#suggestedTags {
+	margin-bottom: 9px;
+}
+
+.tagButton {
+    color: #999999;
+    background-color: #f2f2f2;
+	border: 1px solid #e5e5e5;
+    border-radius: 2px;
+	padding: 5px;
+	margin: 2px;
+	font-size: 12px;
+	cursor: pointer;
+	display: inline-block;
 }
 
 .ui-widget-content {
@@ -2149,6 +2320,9 @@ a.tagit-close {
     display: inline-block;
     float: right;
     height: 22px;
+}
+.interface-hebrew .editCheckToggle{
+	float: left;
 }
 
 
@@ -2295,3 +2469,82 @@ a.tagit-close {
 #sheet.hebrew .outsideWrapper .en, #sheet.english .outsideWrapper .en .outsideWrapper .he {
 	display: block;
 }  /* TODO add ability to set outside text source formatting from menu bar like real sources to remove need for this. Allow overrides to occur like real source texts */
+
+.interface-hebrew .tooltipster-default .tooltipster-content{
+	font-family: "Heebo", sans-serif;
+}
+
+.onoffswitch {
+    position: relative;
+	width: 70px;
+	display: inline-block;
+    -webkit-user-select:none;
+	-moz-user-select:none;
+	-ms-user-select: none;
+	margin-top: 13px;
+	top: 8px;
+}
+#sheetsContent .onoffswitch-checkbox {
+    display: none;
+}
+.onoffswitch-label {
+    display: block;
+	overflow: hidden;
+	cursor: pointer;
+	border-radius: 20px;
+}
+.onoffswitch-inner {
+    display: block;
+	width: 200%;
+	margin-left: -100%;
+    transition: margin 0.3s ease-in 0s;
+}
+.onoffswitch-inner:before, .onoffswitch-inner:after {
+    display: block;
+	float: left;
+	width: 50%;
+	height: 30px;
+	padding: 0;
+	line-height: 30px;
+    font-size: 14px;
+	color: white;
+    box-sizing: border-box;
+}
+.onoffswitch-inner:before {
+    content: "Yes";
+    padding-left: 10px;
+    background-color: #212D4F;
+	color: #FFFFFF;
+}
+.interface-hebrew .onoffswitch-inner:before{
+    content: "כן"
+}
+.onoffswitch-inner:after {
+    content: "No";
+    padding-right: 10px;
+    background-color: #fff;
+	color: #999999;
+    text-align: right;
+}
+.interface-hebrew .onoffswitch-inner:after{
+    content: "לא"
+}
+.onoffswitch-switch {
+    display: block;
+	width: 26px;
+	margin: 1px;
+    background: #FFFFFF;
+    position: absolute;
+	top: 0;
+	bottom: 0;
+    right: 36px;
+    border: 1px solid #999999;
+	border-radius: 26px;
+    transition: all 0.3s ease-in 0s;
+}
+.onoffswitch-checkbox:checked + .onoffswitch-label .onoffswitch-inner {
+    margin-left: 0;
+}
+.onoffswitch-checkbox:checked + .onoffswitch-label .onoffswitch-switch {
+    right: 2px;
+}

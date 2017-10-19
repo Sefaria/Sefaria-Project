@@ -18,6 +18,13 @@ ADMINS = (
      ('Your Name', 'you@example.com'),
 )
 
+# Map domain to an interface language that the domain should be pinned to
+DOMAIN_LANGUAGES = {}
+
+# Map domains which should be allowed for language directs, same shape as DOMAIN_LANGUAGES.
+# Set if you need to redirects to behave differently.
+REDIRECTABLE_DOMAIN_LANGUAGES = DOMAIN_LANGUAGES
+
 MANAGERS = ADMINS
 
 DATABASES = {

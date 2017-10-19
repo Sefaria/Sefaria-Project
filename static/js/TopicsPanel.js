@@ -69,11 +69,11 @@ class TopicsPanel extends Component {
           <div className={navTopClasses}>
             <CategoryColorLine category={"Other"} />
             <ReaderNavigationMenuMenuButton onClick={this.props.navHome} />
-            <ReaderNavigationMenuDisplaySettingsButton onClick={this.props.openDisplaySettings} />
             <h2>
               <span className="int-en">Topics</span>
               <span className="int-he">Topics</span>
             </h2>
+            <ReaderNavigationMenuDisplaySettingsButton onClick={this.props.openDisplaySettings} />
         </div>}
         <div className={contentClasses} onScroll={this.onScroll}>
           <div className="contentInner">

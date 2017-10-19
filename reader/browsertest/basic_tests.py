@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from __future__ import absolute_import
 
 from framework import AtomicTest
 from selenium.webdriver.common.by import By
@@ -7,6 +8,9 @@ from selenium.webdriver.support.expected_conditions import title_contains, stale
 
 from sefaria.model import *
 from selenium.webdriver.common.keys import Keys
+
+import time # import stand library below name collision in sefaria.model
+
 
 TEMPER = 10
 
@@ -279,23 +283,41 @@ class EditorPagesLoad(AtomicTest):
         self.load_add("Mishnah Peah 4")
 
 
-"""
-# Not complete
-
 class InfiniteScrollUp(AtomicTest):
     suite_key = "Reader"
     every_build = True
 
-    def run(self):
-        self.load_ref("Job 32").scroll_to_top()
+    def test_up(self, start_ref, prev_segment_ref):
+        self.load_ref(start_ref).scroll_reader_panel_up(100)
+        WebDriverWait(self.driver, TEMPER).until(visibility_of_element_located((By.CSS_SELECTOR, '[data-ref="%s"]' % prev_segment_ref)))
+        time.sleep(.5)
+        # Wait then check that URL has not changed as a proxy for checking that visible scroll position has not changed
+        assert Ref(start_ref).url() in self.driver.current_url, self.driver.current_url      
 
+    def run(self):
+        # Simple Text
+        self.test_up("Job 32", "Job 31:40")
+        # Complext Text
+        self.test_up("Pesach Haggadah, Magid, The Four Sons", "Pesach Haggadah, Magid, Story of the Five Rabbis 2")
+  
 
 class InfiniteScrollDown(AtomicTest):
     suite_key = "Reader"
     every_build = True
 
+    def test_down(self, start_ref, next_segment_ref):
+        self.load_ref(start_ref).scroll_reader_panel_to_bottom()
+        WebDriverWait(self.driver, TEMPER).until(visibility_of_element_located((By.CSS_SELECTOR, '[data-ref="%s"]' % next_segment_ref)))        
+
     def run(self):
-        self.load_ref("Job 32")
+        # Simple Text
+        self.test_down("Job 32", "Job 33:1")
+        # Complex Text
+        self.test_down("Pesach Haggadah, Magid, The Four Sons", "Pesach Haggadah, Magid, Yechol Me'rosh Chodesh 1")
+
+
+"""
+# Not complete
 
 class LoadRefAndOpenLexicon(AtomicTest):
     suite_key = "Reader"

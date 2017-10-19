@@ -25,7 +25,7 @@ from django.contrib.sites.models import get_current_site
 from django.contrib.admin.views.decorators import staff_member_required
 from django.views.decorators.debug import sensitive_post_parameters
 from django.views.decorators.cache import never_cache
-from django.views.decorators.csrf import csrf_protect
+from django.views.decorators.csrf import csrf_protect, csrf_exempt
 
 
 import sefaria.model as model
@@ -47,6 +47,7 @@ from sefaria.utils.hebrew import is_hebrew, strip_nikkud
 from sefaria.utils.util import strip_tags
 from sefaria.helper.text import make_versions_csv, get_library_stats, get_core_link_stats, dual_text_diff
 from sefaria.clean import remove_old_counts
+from sefaria.search import index_sheets_by_timestamp as search_index_sheets_by_timestamp
 from sefaria.model import *
 
 if USE_VARNISH:
@@ -368,12 +369,23 @@ def delete_orphaned_counts(request):
 
 @staff_member_required
 def rebuild_toc(request):
+    model.library.rebuild_toc()
+    return HttpResponseRedirect("/?m=TOC-Rebuilt")
+
+    """
     from sefaria.settings import DEBUG
     if DEBUG:
         model.library.rebuild_toc()
         return HttpResponseRedirect("/?m=TOC-Rebuilt")
     else:
         return HttpResponseRedirect("/?m=TOC-Rebuild-Not-Allowed")
+    """
+
+@staff_member_required
+def rebuild_auto_completer(request):
+    library.build_full_auto_completer()
+    library.build_ref_auto_completer()
+    return HttpResponseRedirect("/?m=auto-completer-Rebuilt")
 
 
 @staff_member_required
@@ -589,6 +601,28 @@ def untagged_sheets(request):
 def versions_csv(request):
     return HttpResponse(make_versions_csv(), content_type="text/csv")
 
+@csrf_exempt
+def index_sheets_by_timestamp(request):
+    import dateutil.parser
+    from django.contrib.auth.models import User
+
+    key = request.POST.get("apikey")
+    if not key:
+        return jsonResponse({"error": "You must be logged in or use an API key to index sheets by timestamp."})
+    apikey = db.apikeys.find_one({"key": key})
+    if not apikey:
+        return jsonResponse({"error": "Unrecognized API key."})
+    user = User.objects.get(id=apikey["uid"])
+    if not user.is_staff:
+        return jsonResponse({"error": "Only Sefaria Moderators can add or edit terms."})
+
+    timestamp = request.POST.get('timestamp')
+    try:
+        dateutil.parser.parse(timestamp)
+    except ValueError:
+        return jsonResponse({"error": "Timestamp {} not valid".format(timestamp)})
+    response_str = search_index_sheets_by_timestamp(timestamp)
+    return jsonResponse({"success": response_str})
 
 def library_stats(request):
     return HttpResponse(get_library_stats(), content_type="text/csv")

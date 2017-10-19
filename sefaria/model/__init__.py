@@ -16,7 +16,7 @@ import history, schema, text, link, note, layer, notification, queue, lock, foll
 
 from history import History, HistorySet, log_add, log_delete, log_update, log_text
 from schema import deserialize_tree, Term, TermSet, TermScheme, TermSchemeSet, TitledTreeNode, SchemaNode, ArrayMapNode, JaggedArrayNode, NumberedTitledTreeNode
-from text import library, get_index, Index, IndexSet, Version, VersionSet, TextChunk, TextFamily, Ref, merge_texts
+from text import library, Index, IndexSet, Version, VersionSet, TextChunk, TextFamily, Ref, merge_texts
 from link import Link, LinkSet, get_link_counts, get_book_link_collection, get_book_category_linkset
 from note import Note, NoteSet
 from layer import Layer, LayerSet

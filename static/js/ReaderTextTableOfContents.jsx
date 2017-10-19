@@ -196,7 +196,7 @@ class ReaderTextTableOfContents extends Component {
     // Downloading
     if (versions) {
       var dlReady = (this.state.dlVersionTitle && this.state.dlVersionFormat && this.state.dlVersionLanguage);
-      var dl_versions = [<option key="/" value="0" disabled>Version Settings</option>];
+      var dl_versions = [<option key="/" value="0" disabled>{ Sefaria.interfaceLang == "hebrew"? "הגדרות גרסה" : "Version Settings" }</option>];
       var pdVersions = versions.filter(this.isVersionPublicDomain);
       if (cv && cv.merged) {
         var other_lang = cv.language == "he" ? "en" : "he";
@@ -235,19 +235,27 @@ class ReaderTextTableOfContents extends Component {
             <span className="int-he">הורדה</span>
           </div>
         </div>;
+      var formatStrings = {
+        none: {english: "File Format", hebrew: "סוג הקובץ"},
+        txt: {english: "File Format", hebrew: "טקסט (עם תיוגים)"},
+        plaintxt: {english: "File Format", hebrew: "טקסט (ללא תיוגים)"}
+      };
       var downloadSection = (
         <div className="dlSection">
           <h2 className="dlSectionTitle">
             <span className="int-en">Download Text</span>
             <span className="int-he">הורדת הטקסט</span>
           </h2>
-          <select className="dlVersionSelect dlVersionTitleSelect" value={(this.state.dlVersionTitle && this.state.dlVersionLanguage)?this.state.dlVersionTitle + "/" + this.state.dlVersionLanguage:"0"} onChange={this.onDlVersionSelect}>
+          <select 
+            className="dlVersionSelect dlVersionTitleSelect" 
+            value={(this.state.dlVersionTitle && this.state.dlVersionLanguage) ? this.state.dlVersionTitle + "/" + this.state.dlVersionLanguage : "0"} 
+            onChange={this.onDlVersionSelect}>
             {dl_versions}
           </select>
           <select className="dlVersionSelect dlVersionFormatSelect" value={this.state.dlVersionFormat || "0"} onChange={this.onDlFormatSelect}>
-            <option key="none" value="0" disabled>File Format</option>
-            <option key="txt" value="txt" >Text (with tags)</option>
-            <option key="plain.txt" value="plain.txt" >Text (without tags)</option>
+            <option key="none" value="0" disabled>{ formatStrings.none[Sefaria.interfaceLang] }</option>
+            <option key="txt" value="txt" >{ formatStrings.txt[Sefaria.interfaceLang] }</option>
+            <option key="plain.txt" value="plain.txt" >{ formatStrings.plaintxt[Sefaria.interfaceLang] }</option>
             <option key="csv" value="csv" >CSV</option>
             <option key="json" value="json" >JSON</option>
           </select>
@@ -257,7 +265,7 @@ class ReaderTextTableOfContents extends Component {
     }
 
     var closeClick = (this.isBookToc()) ? this.props.closePanel : this.props.close;
-    var classes = classNames({readerTextTableOfContents:1, readerNavMenu:1, narrowPanel: this.props.narrowPanel});
+    var classes = classNames({readerTextTableOfContents:1, readerNavMenu:1, narrowPanel: this.props.narrowPanel, noLangToggleInHebrew: this.props.interfaceLang == 'hebrew'});
     var categories = Sefaria.index(this.props.title).categories;
 
 
@@ -275,7 +283,9 @@ class ReaderTextTableOfContents extends Component {
                     </div>
                   </div>
                   <div className="rightButtons">
-                    <ReaderNavigationMenuDisplaySettingsButton onClick={this.props.openDisplaySettings} />
+                    {this.props.interfaceLang !== "hebrew" ? 
+                      <ReaderNavigationMenuDisplaySettingsButton onClick={this.props.openDisplaySettings} /> 
+                      : <ReaderNavigationMenuDisplaySettingsButton placeholder={true} />}
                   </div>
                 </div>
               </div>
@@ -337,7 +347,8 @@ ReaderTextTableOfContents.propTypes = {
   close:            PropTypes.func.isRequired,
   openNav:          PropTypes.func.isRequired,
   showBaseText:     PropTypes.func.isRequired,
-  selectVersion:    PropTypes.func
+  selectVersion:    PropTypes.func,
+  interfaceLang:    PropTypes.string,
 };
 
 
@@ -621,7 +632,7 @@ class SchemaNode extends Component {
           // SchemaNode with children (nodes) or ArrayMapNode with depth (refs)
           return (
             <div className="schema-node-toc" key={i}>
-              <span className="schema-node-title" onClick={this.toggleCollapse.bind(null, i)} role="heading" aria-level="3">
+              <span className="schema-node-title" onClick={this.toggleCollapse.bind(null, i)} onKeyPress={function(e) {e.charCode == 13 ? this.toggleCollapse(i):null}.bind(this)} role="heading" aria-level="3" tabIndex={0}>
                 <span className="he">{node.heTitle} <i className={"schema-node-control fa fa-angle-" + (this.state.collapsed[i] ? "left" : "down")}></i></span>
                 <span className="en">{node.title} <i className={"schema-node-control fa fa-angle-" + (this.state.collapsed[i] ? "right" : "down")}></i></span>
               </span>
@@ -651,7 +662,7 @@ class SchemaNode extends Component {
           return (
             <div className="schema-node-toc" key={i}>
               { !node.default ?
-              <span className="schema-node-title" onClick={this.toggleCollapse.bind(null, i)} role="heading" aria-level="3">
+              <span className="schema-node-title" onClick={this.toggleCollapse.bind(null, i)} role="heading" aria-level="3" tabIndex={0} onKeyPress={function(e) {e.charCode == 13 ? this.toggleCollapse(i):null}.bind(this)} >
                 <span className="he">{node.heTitle} <i className={"schema-node-control fa fa-angle-" + (this.state.collapsed[i] ? "left" : "down")}></i></span>
                 <span className="en">{node.title} <i className={"schema-node-control fa fa-angle-" + (this.state.collapsed[i] ? "right" : "down")}></i></span>
               </span>

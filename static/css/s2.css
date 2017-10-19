@@ -221,7 +221,7 @@ input.noselect {
   background-color: #aaa;
   color: white;
   font-size: 16px;
-  margin-top: -3px;
+  margin-top: -1px;
 }
 .header .notifications.unread {
   background-color: #EFB4B6;
@@ -450,7 +450,7 @@ input.noselect {
 }
 .readerContent {
   width: 100%;
-  height: 100%;
+  height: calc(100% - 58px);
   background-color: inherit;
 }
 .dark .readerContent {
@@ -470,22 +470,10 @@ input.noselect {
   overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
   position: relative;
-  padding: 0px 0 40%;
+  padding: 0 0 50%;
   box-sizing: border-box;
   background-color: inherit;
 }
-/* Adjusting for 17px scrollbars, to keep content centered
-   Only done in multiPanel mode now as a proxy for whether scrollbars take up width (on desktop they do, not on mobile)
-  Removed 12/16 -- seems to be causing problems now.
-  Restored 4/17 -- problem recurred and fixed by storing CSS, what's changing?
-*/
-.multiPanel.interface-english .textColumn {
-  padding-left: 17px;
-}
-.multiPanel.interface-hebrew .textColumn {
-  padding-right: 17px;
-}
-
 .textColumn .loadingMessage.base {
   margin: 30px 0;
   color: #999;
@@ -593,24 +581,6 @@ input.noselect {
 .bilingual .loadingMessage .he {
   display: none;
 }
-.headroom {
-  transition: transform 200ms linear;
-  -webkit-transition: 200ms linear;
-  transition-property: transform;
-}
-.headroom--pinned {
-  transform: translateY(0%);
-  -webkit-transform: translateY(0%);
-}
-
-.headroom--unpinned {
-  transform: translateY(-100%);
-  -webkit-transform: translateY(-100%);
-}
-.headroomOff.headroom--unpinned {
-  transform: translateY(0%);
-  -webkit-transform: translateY(0%);
-}
 .readerPanel.light {
   background-color: white;
 }
@@ -622,6 +592,8 @@ input.noselect {
 }
 .readerNavMenu {
   position: absolute;
+  display: flex;
+  flex-direction: column;
   top: 0;
   left: 0;
   width: 100%;
@@ -637,15 +609,10 @@ input.noselect {
   position: relative;
   box-sizing: border-box;
   padding: 30px 10px 10px;
-  height: 100%;
+  flex: 1;
   overflow-y: scroll;
   -webkit-overflow-scrolling: touch;
   font-size: 14px;
-}
-.singlePanel .readerNavMenu .content {
-  top: 58px;
-  height: calc(100% - 58px);
-  padding-top: 40px;
 }
 .interface-hebrew.multiPanel .readerNavMenu .content {
   padding-right: 40px;
@@ -711,23 +678,16 @@ input.noselect {
   font-size: 18px;
   font-family: "adobe-garamond-pro", Georgia;
   height: 48px;
-  /*margin-top: 9px;*/
 }
 .readerNavMenu .readerSearch:focus {
   outline: 0;
 }
-.readerNavTop .readerNavMenuSearchButton {
-  margin: 0 10px;
-}
+
 .readerNavTop .readerNavMenuSearchButton,
 .readerNavTop .readerNavMenuCloseButton,
 .readerNavTop .readerNavMenuMenuButton,
 .readerNavTop .readerOptions {
   text-align: left;
-  /*width: 40px;
-  height: 48px;
-  margin-top: 5px;
-  vertical-align: middle;*/
   box-sizing: border-box;
   color: #BFBFBF;
   float: left;
@@ -743,10 +703,12 @@ input.noselect {
   display: block;
   font-size: 46px;
   padding: 0;
-  line-height: 48px;
+  margin-top: -6px;
 }
 .readerNavMenuCloseButton:hover {
   text-decoration: none;
+}
+.readerNavTop .readerNavMenuSearchButton {
 }
 .readerNavTop .readerNavMenuCloseButton .fa {
   font-size: 20px;
@@ -762,6 +724,17 @@ input.noselect {
 }
 .readerNavTop .sefariaLogo img {
   vertical-align: middle;
+}
+.readerNavTop .searchBox {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+}
+.readerNavTop .searchBox .readerNavMenuSearchButton {
+  margin: 0 10px;
+}
+.readerNavTop .searchBox .readerSearch {
+  flex: 1;
 }
 .readerNavMenu h1 {
   text-align: center;
@@ -1074,17 +1047,9 @@ a.readerNavCategory {
   width: 100%;
   height: 100%;
 }
-/* - visually distinguish text by sparseness
-.readerNavMenu .readerNavCategoryMenu .refLink.sparse3 {
+.readerNavMenu .readerNavCategoryMenu .refLink.incomplete {
   opacity: 0.7;
 }
-.readerNavMenu .readerNavCategoryMenu .refLink.sparse2 {
-  opacity: 0.6;
-}
-.readerNavMenu .readerNavCategoryMenu .refLink.sparse1 {
-  opacity: 0.5;
-}
-*/
 .categoryColorLine {
   position: absolute;
   top: 0;
@@ -1092,6 +1057,24 @@ a.readerNavCategory {
   width: 100%;
   height: 6px;
   z-index: 101;
+}
+.readerApp.interface-hebrew .readerNavMenu.noLangToggleInHebrew .en {
+  display: none;
+}
+.readerApp.interface-hebrew .readerNavMenu.noLangToggleInHebrew .he {
+  display: inline;
+}
+.interface-hebrew .readerPanel.english .noLangToggleInHebrew .readerNavSection,
+.interface-hebrew .readerPanel.english .readerNavMenu.noLangToggleInHebrew .gridBox {
+  direction: rtl;
+}
+.interface-hebrew .english .noLangToggleInHebrew .gridBox td:first-child {
+  border-right: 0;
+  border-left: 3px solid transparent;
+}
+.interface-hebrew .english .noLangToggleInHebrew .gridBox td:last-child {
+  border-left: 0;
+  border-right: 3px solid transparent;
 }
 .bilingual .readerTextTableOfContents .he {
   display: none;
@@ -1198,6 +1181,9 @@ a.readerNavCategory {
   font-size: 14px;
   position: absolute;
 }
+.interface-hebrew .readerTextTableOfContents .moderatorSectionExpand {
+  margin: 7px 18px 0px;
+}
 .readerTextTableOfContents .moderatorSectionExpand:hover {
   text-decoration: underline;
 }
@@ -1260,9 +1246,14 @@ a.readerNavCategory {
 .readerTextTableOfContents .versionTitle .fa,
 .readerTextTableOfContents .versionEditForm .fa {
   font-size: 10px;
+  color: #666;
   vertical-align: super;
   margin-left: 3px;
   cursor: pointer;
+}
+.interface-hebrew .readerTextTableOfContents .versionTitle .fa,
+.interface-hebrew .readerTextTableOfContents .versionEditForm .fa {
+  margin: 0 3px 0 0 ;
 }
 .readerTextTableOfContents .versionTitle .error {
   color: red;
@@ -1271,8 +1262,7 @@ a.readerNavCategory {
   padding: 30px 10px 10px;
   box-sizing: border-box;
   text-align: center;
-  top: 58px;
-  height: calc(100% - 58px);
+  height: 100%;
 }
 .readerTextTableOfContents .content .sectionLink {
   display: inline-block;
@@ -1423,8 +1413,14 @@ a.readerNavCategory {
   }
 }
 .hebrew .readerTextTableOfContents .content .tocSection,
-.hebrew .readerTextTableOfContents .content .tocContent {
+.hebrew .readerTextTableOfContents .content .tocContent,
+.english .readerTextTableOfContents.noLangToggleInHebrew .content .tocContent,
+.bilingual .readerTextTableOfContents.noLangToggleInHebrew .content .tocContent{
   text-align: right;
+}
+.english .readerTextTableOfContents.noLangToggleInHebrew .content .tocContent,
+.bilingual .readerTextTableOfContents.noLangToggleInHebrew .content .tocContent{
+  direction: rtl;
 }
 .readerTextTableOfContents .versionsBox {
   padding: 20px 0;
@@ -1720,16 +1716,13 @@ a.readerNavCategory {
   padding-left: 20px;
   padding-right: 0;
 }
-
 .searchFilterBoxes .searchFilterExactBox {
   border-top: 1px solid #ccc;
   padding: 5px 0px 5px 0;
 }
-
 .searchFilterExactBox.hidden {
   display:none;
 }
-
 .searchContent .searchSortBox {
     margin-top: 10px;
     background: white;
@@ -1741,15 +1734,12 @@ a.readerNavCategory {
     border-radius: 7px;
     border: 1px solid #ccc;
 }
-
 .interface-english .searchSortBox {
   right: 0;
 }
-
 .interface-hebrew .searchSortBox {
   left: 0;
 }
-
 .searchSortBox.hidden{
     display:none;
 }
@@ -1937,10 +1927,14 @@ a.readerNavCategory {
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
 }
 .readerNavMenu .sheet {
-  display: block;
+  display: flex;
+  justify-content: space-between;
   padding: 25px 0px;
   border-bottom: 1px solid #eee;
   color: black;
+}
+.readerNavMenu .sheet:hover{
+  text-decoration: none;
 }
 .readerNavMenu .sheet:first-child {
   padding-top: 0;
@@ -1948,9 +1942,20 @@ a.readerNavCategory {
 .readerNavMenu .sheet .sheetImg {
   height: 40px;
   width: 40px;
-  float: left;
-  margin: 1px 14px 20px 0;
+  margin: 1px 0px 0px 0;
   border-radius: 2px;
+}
+.readerNavMenu .sheet .sheetTextInfo{
+  display: flex;
+  justify-content: flex-start;
+}
+.readerNavMenu .sheet:hover .sheetTextInfo{
+  text-decoration: underline;
+}
+.readerNavMenu .sheet .sheetAuthTitle{
+  display: flex;
+  flex-flow: column;
+  margin: auto 14px;
 }
 .readerNavMenu .sheet .sheetAuthor {
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
@@ -1959,15 +1964,19 @@ a.readerNavCategory {
   margin-bottom: 6px;
   letter-spacing: 1px;
 }
-.readerNavMenu .sheet .sheetTitle {
+.readerNavMenu .sheet .sheetTitle{
   overflow: hidden;
   font-size: 16px;
+  unicode-bidi: plaintext;
 }
-.readerNavMenu .sheet .sheetViews {
-  float: right;
+.readerNavMenu .sheet .sheetViews{
   color: #CCC;
   font-size: 12px;
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+}
+.readerNavMenu .sheet:hover .sheetViews{
+  display: inline-block ;
+  text-decoration: none;
 }
 .readerSheetsNav h2 .en {
   display: inline;
@@ -1988,8 +1997,8 @@ a.readerNavCategory {
   direction: ltr;
 }
 .readerControls {
-  position: absolute;
-  /*direction: ltr;*/
+  position: relative;
+  /* direction: ltr;*/
   top: 0;
   left: 0;
   width: 100%;
@@ -2048,7 +2057,7 @@ a.readerNavCategory {
   padding: 0 40px 0 40px;
 }
 .singlePanel .readerControls .readerControlsInner {
-  padding: 0 30px;
+  padding: 0 10px;
 }
 .readerControls .readerTextToc {
   text-align: center;
@@ -2080,19 +2089,23 @@ a.readerNavCategory {
 .readerControls .readerTextToc .categoryAttribution .he {
   font-style: normal;
 }
-.leftButtons,
-.rightButtons {
-  /*position: absolute;
-  top: 0;*/
-}
-/*.leftButtons {
+
+.interface-english .leftButtons,
+.interface-hebrew .rightButtons {
   text-align: left;
-  float: left;
 }
-.rightButtons {
+.interface-english .rightButtons,
+.interface-hebrew .leftButtons {
   text-align: right;
-  float: right;
-}*/
+}
+/* icons need a little nudge in flipped hebrew mode */
+.interface-hebrew .rightButtons {
+  margin-left: -3px;
+}
+.interface-hebrew .leftButtons {
+  margin-right: 2px;
+}
+
 .leftButtons .readerNavMenuSearchButton,
 .leftButtons .readerNavMenuMenuButton,
 .leftButtons .readerNavMenuCloseButton,
@@ -2108,7 +2121,7 @@ a.readerNavCategory {
 }
 .leftButtons .readerNavMenuMenuButton {
   font-size: 22px;
-  margin-top: 2px;
+  margin-top: 6px;
 }
 .leftButtons .readerNavMenuCloseButton {
   font-size: 44px;
@@ -2142,6 +2155,9 @@ a.readerNavCategory {
 .readerControls .readerTextToc .readerTextVersion {
   font-style: italic;
   color: #999;
+}
+.readerControls .readerTextToc .readerTextVersion .en{
+  unicode-bidi: bidi-override;
 }
 .readerControls .readerTextToc .fa-caret-down {
   color: #ccc;
@@ -2310,11 +2326,7 @@ a.readerNavCategory {
 .interface-hebrew .readerPanel.english .categoryFilterGroup,
 .interface-hebrew .readerPanel.bilingual .categoryFilterGroup,
 .interface-hebrew .readerPanel.english .tocContent,
-.interface-hebrew .readerPanel.bilingual .tocContent,
-.interface-hebrew .readerPanel.english .dlVersionSelect,
-.interface-hebrew .readerPanel.bilingual .dlVersionSelect,
-.interface-hebrew .readerPanel.hebrew .dlVersionSelect
-{
+.interface-hebrew .readerPanel.bilingual .tocContent {
   direction: ltr;
 }
 .interface-english .readerPanel.hebrew .textRange,
@@ -2411,10 +2423,6 @@ a.readerNavCategory {
 .basetext .segment:active .linkCount,
 .basetext .segment:focus .linkCount {
   background-color: transparent;
-}
-.textColumn.connectionsOpen .basetext .segment:active,
-.textColumn.connectionsOpen .basetext .segment:focus {
-  background-color: inherit;
 }
 .dark .basetext .segment:active,
 .dark .basetext .segment:focus {
@@ -2638,10 +2646,10 @@ a.readerNavCategory {
 .singlePanel .connectionsPanelHeader {
   justify-content: flex-start;
 }
-.interface-hebrew .connectionsPanelHeader{
+.interface-hebrew .connectionsPanelHeader {
   direction: rtl;
 }
-.interface-english .connectionsPanelHeader{
+.interface-english .connectionsPanelHeader {
   direction: ltr;
 }
 .connectionsPanelHeader .rightButtons {
@@ -2660,8 +2668,6 @@ a.readerNavCategory {
   display: flex;
   align-items: center;
   margin: 0 15px;
-  /*text-align: center;
-  line-height: 58px;*/
 }
 .connectionsPanelHeader .languageToggle {
   margin: 0 15px;
@@ -3305,6 +3311,7 @@ a.readerNavCategory {
 }
 .connectionsPanel.textList .note {
   padding: 30px 0;
+  position: relative;
 }
 .connectionsPanel.textList .note {
   border-top: 1px solid #E6E5E6;
@@ -3313,10 +3320,13 @@ a.readerNavCategory {
   border-top: none;
 }
 .connectionsPanel .noteButtons {
-  float: right;
+  position: absolute;
+  top: 30px;
+  left: -32px;
 }
 .interface-hebrew .connectionsPanel .noteButtons {
-  float: left;
+  left: auto;
+  right: -32px;
 }
 .connectionsPanel .editNoteButton {
   visibility: hidden;
@@ -3666,16 +3676,38 @@ h2.splitHeader .he {
   font-color: inherit;
 }
 .sheet.userSheet .sheetTitle  {
-   font-family: "adobe-garamond-pro", Georgia, serif;
-   font-size: 20px;
-   color:#333;
-   margin-bottom: 6px;
+  font-family: "adobe-garamond-pro", Georgia, serif;
+  font-size: 20px;
+  color:#333;
+  margin-bottom: 6px;
+  unicode-bidi: plaintext;
 }
 .sheet.userSheet {
-   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
-   font-size: 14px;
-   color:#999;
+  font-size: 14px;
+  color:#999;
   text-decoration: none;
+  flex-direction: column;
+}
+.interface-english .sheet.userSheet{
+  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+}
+.interface-hebrew .sheet.userSheet{
+  font-family: "Heebo", "sans-serif";
+}
+.sheet.userSheet .userSheetInfo{
+  display: flex;
+  justify-content: flex-start;
+}
+.sheet.userSheet .userSheetInfo span:before{
+  content: '·';
+  margin: auto 4px;
+}
+.sheet.userSheet .userSheetInfo span:first-child:before{
+  content: '';
+  margin: 0;
+}
+.sheet.userSheet .sheetAccess{
+  margin: auto 4px;
 }
 .filterByTag {
   cursor: pointer;
@@ -3808,12 +3840,16 @@ h2.splitHeader .he {
   border-bottom: 1px solid #CCC;
   padding-bottom: 20px;
 }
+.groupSheetInner {
+  display: flex;
+}
+.groupSheetInnerContent {
+  flex: 1;
+}
 .groupSheetListingPinButton {
-  float: right;
   display: none;
   opacity: 0.3;
   cursor: pointer;
-  margin-top: 7px;
 }
 .sheet:hover .groupSheetListingPinButton.active {
   display: block;
@@ -4095,22 +4131,23 @@ h2.splitHeader .he {
   float: right;
 }
 /*** Interface lang - merge with static.css? ***/
-.readerApp.interface-hebrew .int-en{
+.interface-hebrew .int-en {
   display: none;
 }
-.readerApp.interface-english .int-he{
+.interface-english .int-he {
   display: none;
 }
-.readerApp.interface-hebrew .readerPanel{
+.readerApp.interface-hebrew .readerPanel {
   direction: rtl;
 }
-.readerApp.interface-english .readerPanel{
+.readerApp.interface-english .readerPanel {
   direction: ltr;
 }
-.int-he{
+.int-he {
   font-family: "Heebo", sans-serif;
+  direction: rtl;
 }
-.int-en{
+.int-en {
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
 }
 .searchBox .keyboardInputInitiator {

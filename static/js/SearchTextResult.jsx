@@ -34,9 +34,16 @@ class SearchTextResult extends Component {
 
         function get_snippet_markup() {
             var snippet;
-            var field = Object.keys(data.highlight)[0]; //there should only be one key
+            var field;
+            if (data.highlight) {
+              field = Object.keys(data.highlight)[0]; //there should only be one key
+              snippet = data.highlight[field].join("...");
+            } else {
+              field = "exact";
+              snippet = data._source[field];
+            }
             // if (data.highlight && data.highlight[field]) {
-            snippet = data.highlight[field].join("...");
+
             // } else {
             //     snippet = s[field];  // We're filtering out content, because it's *huge*, especially on Sheets
             // }

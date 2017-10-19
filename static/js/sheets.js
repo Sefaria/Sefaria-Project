@@ -39,10 +39,10 @@ sjs.lastEdit = null;
 $(window).on("beforeunload", function() {
 	if (!($("#save").data("mode") == "saving")) {
 		if (sjs._uid && !(sjs.current.id) && $("#empty").length === 0) {
-			return translateInterfaceString("Your Source Sheet has unsaved changes. Before leaving the page, click Save to keep your work.");
+			return _("Your Source Sheet has unsaved changes. Before leaving the page, click Save to keep your work.");
 		}
 		else if ($("#lastSaved").text() == "Saving...") {
-			return translateInterfaceString("Your Source Sheet has unsaved changes. Please wait for the autosave to finish.");
+			return _("Your Source Sheet has unsaved changes. Please wait for the autosave to finish.");
 		}
 	}
 });
@@ -59,7 +59,7 @@ $(window).scroll(function() {
 var oldOnError = window.onerror || function(){};
 function errorWarning(errorMsg, url, lineNumber) {
 	if (sjs.can_edit || sjs.can_add) {
-		sjs.alert.message(translateInterfaceString("Unfortunately an error has occurred. If you've recently edited text on this page, you may want to copy your recent work out of this page and click reload to ensure" +
+		sjs.alert.message(_("Unfortunately an error has occurred. If you've recently edited text on this page, you may want to copy your recent work out of this page and click reload to ensure" +
 		" your work is properly saved."))
 	}
 }
@@ -226,10 +226,6 @@ $(function() {
 		}
 
 
-		//37 <
-		//38 ^
-		//39 >
-		//40 v
 
   });
 
@@ -273,201 +269,10 @@ $(function() {
     }
 	});
 
-    var RefValidator = function($input, $msg, $ok, $preview) {
-        /** Replacement for utils.js:sjs.checkref that uses only new tools.
-         * Instantiated as an object, and then invoked with `check` method
-         * Allows section and segment level references.
-         * $input - input element
-         * $msg - status message element
-         * $ok - Ok button element
-         * $preview - Text preview box
 
-         * example usage:
-
-         new RefValidator($("#inlineAdd"), $("#inlineAddDialogTitle"), $("#inlineAddSourceOK"), $("#preview"));
-
-         As currently designed, the object is instanciated, and sets up its own events.
-         It doesn't need to be interacted with from the outside.
-         */
-
-        this.$input = $input;
-        this.$msg = $msg;
-        this.$ok = $ok;
-        this.$preview = $preview;
-
-        // We want completion messages to be somewhat sticky.
-        // This records the string used to build the current message.
-        this.completion_message_base = undefined;
-        // And the current message
-        this.completion_message = "";
-
-        this.current_lookup_ajax = null;
-
-        this.$input
-            .on("input", this.check.bind(this))
-            .keyup(function(e) {
-                  if (e.keyCode == 13) {
-                      if (!this.$ok.hasClass('disabled')) { this.$ok.trigger("click"); }
-                  }
-                }.bind(this))
-            .autocomplete({
-                source: function(request, response) {
-                  Sefaria.lookupRef(
-                      request.term,
-                      function (d) { response(d["completions"]); }
-                  );
-                },
-                minLength: 3
-            });
-    };
-
-    RefValidator.prototype = {
-      _sectionListString: function(arr, lang) {
-          //Put together an "A, B, and C" type string from [A,B,C]
-          //arr - array of strings
-          if (arr.length == 1) return arr[0];                            // One alone
-          var lastTwo = arr.slice(-2).join((lang=="en")?" and ":" ו");   // and together last two:
-          return arr.slice(0,-2).concat(lastTwo).join(", ");            // join the rest with a ,
-      },
-      //Too simple to merit a function, but function calls are cheap!
-      _addressListString: function(arr, lang) {
-          //Put together an "A:B:C" type string from [A,B,C]
-          //arr - array of strings
-          return arr.join((lang=="en")?":":" ");
-      },
-      _getCompletionMessage: function(inString, data, depthUp) {
-        // instring - the originally entered string
-        // data - data returned from api/names
-        // depthUp: 0 for segment.  1 for section.
-        if (!data["sectionNames"] || data["sectionNames"].length == 0) return;
-
-        var lang = data["lang"];
-        var sectionNames = (lang=="en")?data["sectionNames"]:data["heSectionNames"];
-        var addressExamples = (lang=="en")?data["addressExamples"]:data["heAddressExamples"];
-        var current = data["sections"].length;
-        var sectionListString = this._sectionListString(sectionNames.slice(current, depthUp?-depthUp:undefined), lang);
-        var addressListString = this._addressListString(addressExamples.slice(current, depthUp?-depthUp:undefined), lang);
-        var separator = (lang == "en" && !data["is_node"])?":":" ";
-        var exampleRef = inString + separator + addressListString;
-        return ((lang=="en")?
-        "Enter a " + sectionListString + ". E.g: '<b>" + exampleRef +"</b>'":
-        "הקלידו " + sectionListString + ". לדוגמא " + exampleRef)
-      },
-      _getSegmentCompletionMessage: function(inString, data) {
-          return this._getCompletionMessage(inString, data, 0);
-      },
-      _getSectionCompletionMessage: function(inString, data) {
-          return this._getCompletionMessage(inString, data, 1);
-      },
-      _getMessage: function(inString, data) {
-          // If current string contains string used for last message, and itself isn't a new state, use current message.
-          if (inString.indexOf(this.completion_message_base) == 0 && !data["is_ref"]) {
-              return this.completion_message;
-          }
-
-          var return_message = "";
-          var prompt_message = (data["lang"]=="en")?"Select a text":"נא בחרו טקסט";
-          var success_message = (data["lang"]=="en")?"OK. Click <b>add</b> to continue":("לחצו " + "<b>הוסף</b>" + " בכדי להמשיך");
-          var or_phrase = (data["lang"]=="en")?" or ":" או ";
-          var range_phrase = (data["lang"] == "en")?"enter a range.  E.g. ":"הוסיפו טווח. לדוגמא ";
-
-          if ((data["is_node"]) ||
-              (data["is_ref"] && (!(data["is_segment"] || data["is_section"])))
-          ) {
-              return_message = this._getSectionCompletionMessage(inString, data) || prompt_message;
-          } else if (data["is_section"]) {
-              return_message = success_message + or_phrase + this._getSegmentCompletionMessage(inString, data);
-          } else if (data["is_segment"] && !data["is_range"] &&  +(data["sections"].slice(-1)) > 0) {  // check that it's an int
-              var range_end = +(data["sections"].slice(-1)) + 1;
-              return_message = success_message + or_phrase + range_phrase + "<b>" + inString + "-" + range_end + "</b>";
-          } else if (data["is_segment"]) {
-              return_message = success_message + ".";
-          } else {
-              return_message = prompt_message;
-          }
-
-          this.completion_message_base = inString;
-          this.completion_message = return_message;
-          return return_message;
-      },
-      _lookupAndRoute: function(inString) {
-          if (this.current_lookup_ajax) {this.current_lookup_ajax.abort();}
-          this.current_lookup_ajax = Sefaria.lookupRef(
-            inString,
-            function(data) {
-              // If this query has been outpaced by typing, just return.
-              if (this.$input.val() != inString) { return; }
-
-              // If the query isn't recognized as a ref, but only for reasons of capitalization. Resubmit with recognizable caps.
-              if (Sefaria.isACaseVariant(inString, data)) {
-                this._lookupAndRoute(Sefaria.repairCaseVariant(inString, data));
-                return;
-              }
-
-              this.$msg.css("direction", (data["lang"]=="he"?"rtl":"ltr"))
-                  .html(this._getMessage(inString, data));
-              if (data.is_ref && (data.is_section || data.is_segment)) {
-                this._allow(inString, data["ref"]);  //pass normalized ref
-                return;
-              }
-              this._disallow();
-            }.bind(this)
-          );
-      },
-      _allow: function(inString, ref) {
-        if (inString != this.$input.val()) {
-          // Ref was corrected (likely for capitalization)
-          this.$input.val(inString);
-        }
-        this.$ok.removeClass("inactive").removeClass("disabled");
-        this.$input.autocomplete("disable");
-        this._inlineAddSourcePreview(inString, ref);
-      },
-      _disallow: function() {
-        this.$ok.addClass("inactive").addClass("disabled");
-      },
-      _preview_segment_mapper: function(lang, s) {
-        return (s[lang])?
-            ("<div class='previewLine'><span class='previewNumber'>(" + (s.number) + ")</span> " + s[lang] + "</div> "):
-            "";
-      },
-      _inlineAddSourcePreview: function(inString, ref) {
-        Sefaria.text(ref, {}, function (data) {
-            if (this.$input.val() != inString) { return; }
-
-            var segments = Sefaria.makeSegments(data);
-            var en = segments.map(this._preview_segment_mapper.bind(this, "en")).filter(Boolean);
-            var he = segments.map(this._preview_segment_mapper.bind(this, "he")).filter(Boolean);
-
-            // Handle missing text cases
-            var path = parseURL(document.URL).path;
-            if (!en.length) { en.push("<div class='previewNoText'><a href='/add/" + normRef(ref) + "?after=" + path + "' class='btn'>Add English for " + ref + "</a></div>"); }
-            if (!he.length) { he.push("<div class='previewNoText'><a href='/add/" + normRef(ref) + "?after=" + path + "' class='btn'>Add Hebrew for " + ref + "</a></div>"); }
-            if (!en.length && !he.length) {this.$msg.html("<i>No text available. Click below to add this text.</i>");}
-
-            // Set it on the DOM
-            this.$input.autocomplete("disable");
-            this.$preview.show();
-            this.$preview.html("<div class='en'>" + en.join("") + "</div>" + "<div class='he'>" + he.join("") + "</div>");
-            this.$preview.position({my: "left top", at: "left bottom", of: this.$input, collision: "none" }).width('691px').css('margin-top','20px');
-        }.bind(this));
-      },
-      check: function() {
-          this.$preview.html("");
-          this.$preview.hide();
-          this.$input.autocomplete("enable");
-          var inString = this.$input.val();
-          if (inString.length < 3) {
-              this._disallow();
-              return;
-          }
-          this._lookupAndRoute(inString);
-      }
-    };
-
-    // As currently designed, the object is instantiated and sets up its own events.
+    // This object is instantiated and sets up its own events.
     // It doesn't need to be interacted with from the outside.
-    var validator = new RefValidator($("#inlineAdd"), $("#inlineAddDialogTitle"), $("#inlineAddSourceOK"), $("#inlineTextPreview"));
+    var validator = new Sefaria.util.RefValidator($("#inlineAdd"), $("#inlineAddDialogTitle"), $("#inlineAddSourceOK"), $("#inlineTextPreview"));
 
 
 	// Printing
@@ -479,6 +284,11 @@ $(function() {
 
 	// General Options 
 	$("#options .optionItem,#formatMenu .optionItem, #assignmentsModal .optionItem").click(function() {
+		if($(this).parent().hasClass('languageToggleOption')||
+			$(this).parent().hasClass('layoutToggleOption') ||
+			$(this).parent().hasClass('sideBySideToggleOption')){
+			return;
+		}
 		var $check = $(".fa-check", $(this));
 		if ($check.hasClass("hidden")) {
 			$("#sheet").addClass($(this).attr("id"));
@@ -497,7 +307,7 @@ $(function() {
 		$(this).hide();
 		$("#StopCollectingAssignmentsButton").show();
 		$("#sheet").addClass('assignable');
-		$("#assignmentDirections").html(translateInterfaceString('Students can complete their assignment at this link:'));
+		$("#assignmentDirections").html(_('Students can complete their assignment at this link:'));
 		$("#assignmentURLLink").show();
 		$("#assignedSheets").show();
 		autoSave();
@@ -508,7 +318,7 @@ $(function() {
 		$(this).hide();
 		$("#makeSheetAssignableButton").show();
 		$("#sheet").removeClass('assignable');
-		$("#assignmentDirections").html(translateInterfaceString('Assignments allow you to create a template that your students can fill out on their own.'));
+		$("#assignmentDirections").html(_('Assignments allow you to create a template that your students can fill out on their own.'));
 		$("#assignmentURLLink").hide();
 		if ( $("#assignedSheets a").length > 0) {
 			$("#assignedSheets").show();
@@ -540,7 +350,7 @@ $(function() {
 			$target.removeClass("sideBySide heLeft heRight");
 
 			$toggleTarget.find("#layoutToggleGroup div .fa-check").addClass("hidden");
-			$toggleTarget.find("#layoutToggleGroup .stacked .fa-check").removeClass("hidden")
+			$toggleTarget.find("#layoutToggleGroup .stacked .fa-check").removeClass("hidden");
 			$toggleTarget.find("#layoutToggleGroup").addClass("disabled");
 
 			$toggleTarget.find("#sideBySideToggleGroup div .fa-check").addClass("hidden");
@@ -707,10 +517,6 @@ $(function() {
 			$(".groupName").text(group);
 			$(".individualSharing").hide();
 
-			//if sheet is unlisted but editable/addable set sheet be visible to group & editable/addable 
-			if ($("#sharingModal input[type='radio'][name='sharingOptions']:checked").val() == 'privateAdd') $("#sharingModal input[type='radio'][name='sharingOptions'][value='groupAdd']").attr('checked', 'checked')
-			else if ($("#sharingModal input[type='radio'][name='sharingOptions']:checked").val() == 'privateEdit') $("#sharingModal input[type='radio'][name='sharingOptions'][value='groupEdit']").attr('checked', 'checked')
-
 
 
 			
@@ -721,21 +527,10 @@ $(function() {
 			$(".groupSharing").hide();
 			$(".individualSharing").show();
 
-			//if sheet is private but editable/addable to group set sheet to totally private on change 
-			if ($("#sharingModal input[type='radio'][name='sharingOptions']:checked").val() == 'groupAdd' || $("#sharingModal input[type='radio'][name='sharingOptions']:checked").val() == 'groupEdit') $("#sharingModal input[type='radio'][name='sharingOptions'][value='private']").attr('checked', 'checked')
-
 		}
 		autoSave(); 
 	});
-	
-	//Alert for collaboration anyone can edit change:
-	$("#sharingModal input[type='radio'][name='sharingOptions']").change(
-    function(){
-         if(($("#sharingModal input[type='radio'][name='sharingOptions']:checked").val()).indexOf("Edit")>=0){
-    	 sjs.alert.message('Please be advised: There is no way to track or undo changes made by other editors, including deletions.<br/><br/>Consider making a copy of this source sheet before allowing anyone to edit.',true);
-  	  }
-  	  }
-);          
+;
 	
 
 	
@@ -825,11 +620,7 @@ $(function() {
 		CKEDITOR.config.startupFocus = true;
 		CKEDITOR.config.extraAllowedContent = 'small; span(segment, gemarra-regular, gemarra-italic, it-text); div(oldComment)';
 		CKEDITOR.config.removePlugins = 'magicline,resize';
-
-		if ($.cookie("s2") == "true") {
-            /*CKEDITOR.config.extraPlugins = 'sharedspace';*/
-            CKEDITOR.config.sharedSpaces = {top: 'ckeTopMenu' };
-        }
+		CKEDITOR.config.sharedSpaces = {top: 'ckeTopMenu' };
 		CKEDITOR.on('instanceReady', function(ev) {
 		  // replace &nbsp; from pasted text
 		  ev.editor.on('paste', function(evt) {
@@ -848,31 +639,16 @@ $(function() {
 			'Times New Roman/Times New Roman, Times, serif;' +
 			'Verdana/Verdana, Geneva, sans-serif;';
 
-		if ($.cookie("s2") == "true") {
-			CKEDITOR.config.toolbar = [
-				{name: 'removestyle', items: ['RemoveFormat']},
-				{name: 'basicstyles', items: ['Bold', 'Italic', 'Underline', 'Strike', 'Subscript', 'Superscript']},
-				{name: "justify", items: ['JustifyLeft', 'JustifyCenter', 'JustifyRight', 'JustifyBlock']},
-				{name: 'paragraph', items: ['NumberedList', 'BulletedList']},
-				{name: 'styles', items: ['Font', 'FontSize']},
-				{name: 'colors', items: ['TextColor', 'BGColor']},
-				{name: 'links', items: ['Link', 'Unlink']},
-				{name: 'insert', items: ['Image', 'Table', 'HorizontalRule']}
-			];
-		}
-		else {
-			CKEDITOR.config.toolbar = [
-				{name: 'removestyle', items: ['RemoveFormat']},
-				{name: 'basicstyles', items: ['Bold', 'Italic', 'Underline', 'Strike', 'Subscript', 'Superscript']},
-				{name: "justify", items: ['JustifyLeft', 'JustifyCenter', 'JustifyRight', 'JustifyBlock']},
-				{name: 'paragraph', items: ['NumberedList', 'BulletedList']},
-				'/',
-				{name: 'styles', items: ['Font', 'FontSize']},
-				{name: 'colors', items: ['TextColor', 'BGColor']},
-				{name: 'links', items: ['Link', 'Unlink']},
-				{name: 'insert', items: ['Image', 'Table', 'HorizontalRule']}
-			];
-		}
+		CKEDITOR.config.toolbar = [
+			{name: 'removestyle', items: ['RemoveFormat']},
+			{name: 'basicstyles', items: ['Bold', 'Italic', 'Underline', 'Strike', 'Subscript', 'Superscript']},
+			{name: "justify", items: ['JustifyLeft', 'JustifyCenter', 'JustifyRight', 'JustifyBlock']},
+			{name: 'paragraph', items: ['NumberedList', 'BulletedList']},
+			{name: 'styles', items: ['Font', 'FontSize']},
+			{name: 'colors', items: ['TextColor', 'BGColor']},
+			{name: 'links', items: ['Link', 'Unlink']},
+			{name: 'insert', items: ['Image', 'Table', 'HorizontalRule']}
+		];
 
 		sjs.removeCKEditor = function(e) {
 
@@ -894,7 +670,7 @@ $(function() {
 				if (!text.length) {
 					// Title
 					if ($el.prop("id") === "title") {
-						$el.text(translateInterfaceString("Untitled Source Sheet"));
+						$el.text(_("Untitled Source Sheet"));
 					
 					// Comment
 					} else if ($el.hasClass("comment")) {
@@ -1076,6 +852,7 @@ $(function() {
 			showShareModal();
 		}
 	});
+	$("#sheetMetadata span.editButton").click(showShareModal);
 
 
 	// ---------- Copy Sheet ----------------
@@ -1097,7 +874,7 @@ $(function() {
 
 	// ------- Sheet Tags --------------
 	sjs.sheetTagger.init(sjs.current.id, sjs.current.tags);
-	$("#editTags").click(sjs.sheetTagger.show);
+	$("#editTags").click(showShareModal);
 
 
 	// Prevent backspace from navigating backwards
@@ -1109,36 +886,33 @@ $(function() {
 
 	// ------------- Likes -----------------------
 
-	$("#likeLink").click(function(e) {
+	$("#likeButton").click(function(e) {
 		e.preventDefault();
 		if (!sjs._uid) { return sjs.loginPrompt(); }
 		
 		var likeCount = parseInt($("#likeCount").text());
 		if ($(this).hasClass("liked")) {
-			$(this).removeClass("liked").text(translateInterfaceString("Like"));
+			$(this).removeClass("liked").text(_("Like"));
 			likeCount -= 1;
 			$("#likeCount").text(likeCount);
 			$.post("/api/sheets/" + sjs.current.id + "/unlike");
     		sjs.track.sheets("Unlike", sjs.current.id);
 		} else {
-			$(this).addClass("liked").text(translateInterfaceString("Unlike"));
+			$(this).addClass("liked").text(_("Unlike"));
 			$.post("/api/sheets/" + sjs.current.id + "/like");
 			likeCount += 1;
 			$("#likeCount").text(likeCount);
     		sjs.track.sheets("Like", sjs.current.id);
 		}
-		$("#likeInfoBox").toggle(likeCount != 0);
-		$("#likePlural").toggle(likeCount != 1);
-		$("#likeSingular").toggle(likeCount == 1);
 	});
 	$("#likeInfo").click(function(e) {
 		$.getJSON("/api/sheets/" + sjs.current.id + "/likers", function(data) {
 			if (data.likers.length == 0) { 
-				var title = translateInterfaceString("No one has liked this sheet yet. Will you be the first?");
+				var title = _("No one has liked this sheet yet. Will you be the first?");
 			} else if (data.likers.length == 1) {
-				var title = translateInterfaceString("1 Person Likes This Sheet");
+				var title = _("1 Person Likes This Sheet");
 			} else {
-				var title = data.likers.length + translateInterfaceString(" People Like This Sheet");
+				var title = data.likers.length + _(" People Like This Sheet");
 			}
 			sjs.peopleList(data.likers, title);
 		});
@@ -1228,507 +1002,465 @@ $(function() {
 
 	// ------------- Source Controls -------------------
 
-	var ownerControls = "<div id='sourceControls'>" + 
-							"<div class='editTitle' title='Edit Source Title'><i class='fa fa-pencil'></i></div>" +
-							"<div class='addSub' title='Add Source Below'><i class='fa fa-plus-circle'></i></div>" +
-							"<div class='addSubComment' title='Add Comment'><i class='fa fa-comment'></i></div>" +
-							"<div class='addConnections' title='Add All Connections'><i class='fa fa-sitemap'></i></div>"+				
-							"<div class='resetSource' title='Reset Source Text'><i class='fa fa-rotate-left'></i></div>" +
-							"<div class='copySource' title='Copy to Sheet'><i class='fa fa-copy'></i></div>" +
-							"<div class='switchSourceLayoutLang' title='Change Source Layout/Language'><i class='fa fa-ellipsis-h'></i></div>" +						
-							"<div class='moveSourceUp' title='Move Source Up'><i class='fa fa-arrow-up '></i></div>" +
-							"<div class='moveSourceDown' title='Move Source Down'><i class='fa fa-arrow-down'></i></div>" +
-							"<div class='moveSourceLeft' title='Outdent Source'><i class='fa fa-outdent'></i></div>" +
-							"<div class='moveSourceRight' title='Indent Source'><i class='fa fa-indent'></i></div>" +
-							"<div class='removeSource' title='Remove'><i class='fa fa-times-circle'></i></div>" +
+  var outdent_img = (sjs.interfaceLang == "en") ? '/static/img/outdent.png' : '/static/img/indent.png';
+  var indent_img = (sjs.interfaceLang == "en") ? '/static/img/indent.png' : '/static/img/outdent.png';
 
-						"</div>";
+  var ownerControls = "<div id='sourceControls' class='sideControls'>" +
+              "<div class='copySource' title='"+_('Copy to Sheet')+"'><img src='/static/img/copy.png'></div>" +
+              "<div class='removeSource' title='"+_('Remove')+"'><img src='/static/img/remove.png'></div>" +
+              "<div class='moveSourceRight' title='"+_('Indent Source')+"'><img src='"+indent_img+"'></div>" +
+              "<div class='moveSourceLeft' title='"+_('Outdent Source')+"'><img src='"+outdent_img+"'></div>" +
+              "<div class='moveSourceUp' title='"+_('Move Source Up')+"'><img src='/static/img/triangle-up.svg'></div>" +
+              "<div class='moveSourceDown' title='"+_('Move Source Down')+"'><img src='/static/img/triangle-down.svg'></div>" +
+            "</div>";
 
-	var adderControls = "<div id='sourceControls'>" + 
-							"<div class='addSub' title='Add Source Below'><i class='fa fa-plus-circle'></i></div>" +
-							"<div class='addSubComment' title='Add Comment'><i class='fa fa-comment'></i></div>" +
-							"<div class='addConnections' title='Add All Connections'><i class='fa fa-sitemap'></i></div>"+				
-							"<div class='copySource' title='Copy to Sheet'><i class='fa fa-copy'></i></div>" +					
-							"<div class='moveSourceUp' title='Move Source Up'><i class='fa fa-arrow-up'></i></div>" +
-							"<div class='moveSourceDown' title='Move Source Down'><i class='fa fa-arrow-down'></i></div>" +
-							"<div class='moveSourceLeft' title='Outdent Source'><i class='fa fa-outdent'></i></div>" +
-							"<div class='moveSourceRight' title='Indent Source'><i class='fa fa-indent'></i></div>" +
+  var adderControls = "<div id='sourceControls' class='sideControls'>" +
+              "<div class='copySource' title='"+_('Copy to Sheet')+"'><img src='/static/img/copy.png'></div>" +
+              "<div class='moveSourceRight' title='"+_('Indent Source')+"'><img src='"+indent_img+"'></div>" +
+              "<div class='moveSourceLeft' title='"+_('Outdent Source')+"'><img src='"+outdent_img+"'></div>" +
+            "</div>";
 
-						"</div>";
+  var viewerControls = "<div id='sourceControls' class='sideControls'>" +
+              "<div class='copySource' title='"+_('Copy to Sheet')+"'><img src='/static/img/copy.png'></div>" +
+            "</div>";
 
-	var viewerControls = "<div id='sourceControls'>" + 
-							"<div class='copySource' title='Copy to Sheet'><i class='fa fa-copy'></i></div>" +					
-						"</div>";
-
-	var ownerSimpleControls = "<div id='sourceControls'>" + 
-							"<div class='copySource' title='Copy to Sheet'><i class='fa fa-copy'></i></div>" +
-							"<div class='moveSourceUp' title='Move Source Up'><i class='fa fa-arrow-up'></i></div>" +
-							"<div class='moveSourceDown' title='Move Source Down'><i class='fa fa-arrow-down'></i></div>" +
-							"<div class='moveSourceLeft' title='Outdent Source'><i class='fa fa-outdent'></i></div>" +
-							"<div class='moveSourceRight' title='Indent Source'><i class='fa fa-indent'></i></div>" +
-							"<div class='removeSource' title='Remove'><i class='fa fa-times-circle'></i></div>" +
-
-
-						"</div>";
-
-	if ($.cookie("s2") == "true") {
-
-
-		var ownerControls = "<div id='sourceControls' class='sideControls'>" +
-								"<div class='copySource' title='Copy to Sheet'><img src='/static/img/copy.png'></div>" +
-								"<div class='removeSource' title='Remove'><img src='/static/img/remove.png'></div>" +
-								"<div class='moveSourceRight' title='Indent Source'><img src='/static/img/indent.png'></div>" +
-								"<div class='moveSourceLeft' title='Outdent Source'><img src='/static/img/outdent.png'></div>" +
-								"<div class='moveSourceUp' title='Move Source Up'><img src='/static/img/triangle-up.svg'></div>" +
-								"<div class='moveSourceDown' title='Move Source Down'><img src='/static/img/triangle-down.svg'></div>" +
-							"</div>";
-
-		var adderControls = "<div id='sourceControls' class='sideControls'>" +
-								"<div class='copySource' title='Copy to Sheet'><img src='/static/img/copy.png'></div>" +
-								"<div class='moveSourceRight' title='Indent Source'><img src='/static/img/indent.png'></div>" +
-								"<div class='moveSourceLeft' title='Outdent Source'><img src='/static/img/outdent.png'></div>" +
-							"</div>";
-
-		var viewerControls = "<div id='sourceControls' class='sideControls'>" +
-								"<div class='copySource' title='Copy to Sheet'><img src='/static/img/copy.png'></div>" +
-							"</div>";
-
-		var ownerSimpleControls = "<div id='sourceControls' class='sideControls'>" +
-								"<div class='copySource' title='Copy to Sheet'><img src='/static/img/copy.png'></div>" +
-								"<div class='removeSource' title='Remove'><img src='/static/img/remove.png'></div>" +
-								"<div class='moveSourceRight' title='Indent Source'><img src='/static/img/indent.png'></div>" +
-								"<div class='moveSourceLeft' title='Outdent Source'><img src='/static/img/outdent.png'></div>" +
-								"<div class='moveSourceUp' title='Move Source Up'><img src='/static/img/triangle-up.svg'></div>" +
-								"<div class='moveSourceDown' title='Move Source Down'><img src='/static/img/triangle-down.svg'></div>" +
-							"</div>";
+  var ownerSimpleControls = "<div id='sourceControls' class='sideControls'>" +
+              "<div class='copySource' title='"+_('Copy to Sheet')+"'><img src='/static/img/copy.png'></div>" +
+              "<div class='removeSource' title='"+_('Remove')+"'><img src='/static/img/remove.png'></div>" +
+              "<div class='moveSourceRight' title='"+_('Indent Source')+"'><img src='"+indent_img+"'></div>" +
+              "<div class='moveSourceLeft' title='"+_('Outdent Source')+"'><img src='"+outdent_img+"'></div>" +
+              "<div class='moveSourceUp' title='"+_('Move Source Up')+"'><img src='/static/img/triangle-up.svg'></div>" +
+              "<div class='moveSourceDown' title='"+_('Move Source Down')+"'><img src='/static/img/triangle-down.svg'></div>" +
+            "</div>";
 
 
 
-		// Add Interface
+  // Add Interface
 
-		if (sjs.is_owner||sjs.can_edit||sjs.can_add) {
+  if (sjs.is_owner||sjs.can_edit||sjs.can_add) {
 
-			function toggleAddInterface(e, target, trigger) {
-				$("#addInterface .addInterfaceButton").removeClass('active');
-				$("#inlineTextPreview").html("");
-				$("#inlineTextPreview").hide();
-				target.addClass('active');
-				var divToShow = "#add" + (target.attr('id').replace('Button', '')) + "Div";
-				$(".contentDiv > div").hide();
-				$(divToShow).show();
-				if (trigger == "keyboard") {
-					var input = $(divToShow).find(':focusable').first();
-					input.focus();
-				}
-			}
-
-
-			$("#addInterface").on("click", ".buttonBar .addInterfaceButton", function (e) {
-				toggleAddInterface(e,$(this),"click");
-			});
-
-			$("#addInterface").on("keydown", ".buttonBar .addInterfaceButton", function (e) {
-				if (e.which == 13) {
-					toggleAddInterface(e,$(this),"keyboard");
-				}
-			});
+    function toggleAddInterface(e, target, trigger) {
+      $("#addInterface .addInterfaceButton").removeClass('active');
+      $("#inlineTextPreview").html("");
+      $("#inlineTextPreview").hide();
+      target.addClass('active');
+      var divToShow = "#add" + (target.attr('id').replace('Button', '')) + "Div";
+      $(".contentDiv > div").hide();
+      $(divToShow).show();
+      if (trigger == "keyboard") {
+        var input = $(divToShow).find(':focusable').first();
+        input.focus();
+      }
+    }
 
 
-			$("#connectionsToAdd").on("click", ".sourceConnection", function (e) {
-				$(this).hasClass("active") ? $(this).removeClass("active").attr("aria-checked","false"): $(this).addClass("active").attr("aria-checked","true");
-			});
+    $("#addInterface").on("click", ".buttonBar .addInterfaceButton", function(e) {
+      toggleAddInterface(e, $(this), "click");
+    });
 
-			$("#addconnectionDiv").on("keydown", ".sourceConnection", function (e) {
-				if (e.which == 13) {
-				$(this).hasClass("active") ? $(this).removeClass("active").attr("aria-checked","false"): $(this).addClass("active").attr("aria-checked","true");
-				}
+    $("#addInterface").on("keydown", ".buttonBar .addInterfaceButton", function(e) {
+      if (e.which == 13) {
+        toggleAddInterface(e, $(this), "keyboard");
+      }
+    });
+
+
+    $("#connectionsToAdd").on("click", ".sourceConnection", function(e) {
+      $(this).hasClass("active") ? $(this).removeClass("active").attr("aria-checked", "false") : $(this).addClass("active").attr("aria-checked", "true");
+    });
+
+    $("#addconnectionDiv").on("keydown", ".sourceConnection", function(e) {
+      if (e.which == 13) {
+        $(this).hasClass("active") ? $(this).removeClass("active").attr("aria-checked", "false") : $(this).addClass("active").attr("aria-checked", "true");
+      }
+    });
+
+    $("#addconnectionDiv").on("click", ".button", function(e) {
+
+      var $target = $("#addInterface").prev(".sheetItem");
+
+      $(".sourceConnection.active").each(function(index) {
+
+        var refs = $(this).data("refs").split(";");
+        refs = refs.reverse();
+
+        for (var i = 0; i < refs.length; i++) {
+          var source = {
+            ref: refs[i]
+          };
+          buildSource($target, source, "insert");
+        }
+
       });
 
-			$("#addconnectionDiv").on("click", ".button", function (e) {
-
-				var $target = $("#addInterface").prev(".sheetItem");
-
-				$(".sourceConnection.active").each(function (index) {
-
-					var refs = $(this).data("refs").split(";");
-					refs = refs.reverse();
-
-					for (var i = 0; i < refs.length; i++) {
-						var source = {
-							ref: refs[i]
-						};
-						buildSource($target, source, "insert");
-					}
-
-				});
-
-			$("#addconnectionDiv").on("keydown", ".button", function (e) {
-				if (e.which == 13) {
-					$("#addconnectionDiv .button").click();
-				}
+      $("#addconnectionDiv").on("keydown", ".button", function(e) {
+        if (e.which == 13) {
+          $("#addconnectionDiv .button").click();
+        }
       });
 
 
-				autoSave();
-				$(".sourceConnection").removeClass('active').attr("aria-checked","false");
-				$("#sheet").click();
-				$("#sourceButton").click();
+      autoSave();
+      $(".sourceConnection").removeClass('active').attr("aria-checked", "false");
+      $("#sheet").click();
+      $("#sourceButton").click();
 
 
-			});
+    });
 
-			$("#addSourceMenu").click(function () {
-				$("#sheet").click();
-				$("#sourceButton").click();
-				var top = $("#sourceButton").offset().top - 200;
-				$("html, body").animate({scrollTop: top}, 300);
-			});
+    $("#addSourceMenu").click(function() {
+      $("#sheet").click();
+      $("#sourceButton").click();
+      var top = $("#sourceButton").offset().top - 200;
+      $("html, body").animate({scrollTop: top}, 300);
+    });
 
-			$("#addCustomMenu").click(function () {
-				$("#sheet").click();
-				$("#customTextButton").click();
-				var top = $("#customTextButton").offset().top - 200;
-				$("html, body").animate({scrollTop: top}, 300);
-			});
+    $("#addCustomMenu").click(function() {
+      $("#sheet").click();
+      $("#customTextButton").click();
+      var top = $("#customTextButton").offset().top - 200;
+      $("html, body").animate({scrollTop: top}, 300);
+    });
 
-			$("#addCommentMenu").click(function () {
-				$("#sheet").click();
-				$("#commentButton").click();
-				var top = $("#commentButton").offset().top - 200;
-				$("html, body").animate({scrollTop: top}, 300);
-			});
+    $("#addCommentMenu").click(function() {
+      $("#sheet").click();
+      $("#commentButton").click();
+      var top = $("#commentButton").offset().top - 200;
+      $("html, body").animate({scrollTop: top}, 300);
+    });
 
-			$("#addMediaMenu").click(function () {
-				$("#sheet").click();
-				$("#mediaButton").click();
-				var top = $("#mediaButton").offset().top - 200;
-				$("html, body").animate({scrollTop: top}, 300);
-			});
-
-
-			$("#addInterface").on("click", "#connectionButton", function (e) {
-
-				var ref = $("#addInterface").prev(".source").attr("data-ref");
-				$("#connectionsToAdd").text("Looking up Connections...");
-
-				$.getJSON("/api/texts/" + ref + "?context=0&pad=0", function (data) {
-					sjs.alert.clear();
-					if ("error" in data) {
-						$("#connectionsToAdd").text(data.error)
-					} else if (data.commentary.length == 0) {
-						$("#connectionsToAdd").text("No connections known for this source.");
-					} else {
-						data.commentary = [].concat.apply([], data.commentary);
-
-						data.commentary = data.commentary.sort(SortBySourceRef);
-
-						var categorySum = {};
-						for (var i = 0; i < data.commentary.length; i++) {
-							var c = data.commentary[i];
-							if (categorySum[c.collectiveTitle['en']]) {
-								categorySum[c.collectiveTitle['en']]++;
-							} else {
-								categorySum[c.collectiveTitle['en']] = 1;
-							}
-						}
-						var categories = [];
-						for (var k in categorySum) {
-							categories.push(k);
-						}
-						categories.sort();
-
-						var labels = [];
-						for (var k in categorySum) {
-							labels.push(k + " (" + categorySum[k] + ")");
-						}
-						labels.sort();
-
-						var connectionsToSource = '<div>';
-						for (var j = 0; j < labels.length; j++) {
-							var dataRefs = "";
-
-							for (var i = 0; i < data.commentary.length; i++) {
-								var c = data.commentary[i];
-								if (categories[j] == c.collectiveTitle['en']) {
-									dataRefs = dataRefs + c.sourceRef + ";";
-									//continue;
-								}
-							}
-							dataRefs = dataRefs.slice(0, -1); //remove trailing ";"
-							connectionsToSource += '<div role="checkbox" aria-checked="false" tabindex="0" class="sourceConnection" data-refs="' + dataRefs + '">' + labels[j] + '</div>';
-						}
-						connectionsToSource += "</div>";
-
-						$("#connectionsToAdd").html(connectionsToSource);
-
-					}
+    $("#addMediaMenu").click(function() {
+      $("#sheet").click();
+      $("#mediaButton").click();
+      var top = $("#mediaButton").offset().top - 200;
+      $("html, body").animate({scrollTop: top}, 300);
+    });
 
 
-				});
-			});
+    $("#addInterface").on("click", "#connectionButton", function(e) {
 
-			$("#addInterface").on("keydown", "#connectionButton", function (e) {
-				if (e.which == 13) {
-					$("#connectionButton").click()
-				}
-			});
+      var ref = $("#addInterface").prev(".source").attr("data-ref");
+      $("#connectionsToAdd").text(_("Looking up Connections..."));
 
-			$("#addcommentDiv").on("click", ".button", function (e) {
-				var $target = $("#addInterface").prev(".sheetItem");
-				var source = {comment: $(this).prev(".contentToAdd").html(), isNew: true};
-				if (sjs.can_add) {
-					source.userLink = sjs._userLink;
-				}
-				$target.length == 0 ? buildSource($("#sources"), source, "append") : buildSource($target, source, "insert");
-				autoSave();
-				$("#addcommentDiv .contentToAdd").html('<br>');
-				$("#sheet").click();
-				//$target.next(".sheetItem").find(".comment").last().trigger("mouseup").focus();
+      $.getJSON("/api/texts/" + ref + "?context=0&pad=0", function(data) {
+        sjs.alert.clear();
+        if ("error" in data) {
+          $("#connectionsToAdd").text(data.error)
+        } else if (data.commentary.length == 0) {
+          $("#connectionsToAdd").text(_("No connections known for this source."));
+        } else {
+          data.commentary = [].concat.apply([], data.commentary);
 
-			});
+          data.commentary = data.commentary.sort(SortBySourceRef);
 
-			$("#addcommentDiv").on("keydown", ".button", function (e) {
-				if (e.which == 13) {
-					$("#addcommentDiv .button").click();
-				}
+          var categorySum = {};
+          for (var i = 0; i < data.commentary.length; i++) {
+            var c = data.commentary[i];
+            var key = (sjs.interfaceLang == "en" ? c.collectiveTitle['en'] : c.collectiveTitle['he']);
+            if (categorySum[key]) {
+              categorySum[key]++;
+            } else {
+              categorySum[key] = 1;
+            }
+          }
+          var categories = [];
+          for (var k in categorySum) {
+            categories.push(k);
+          }
+          categories.sort();
+
+          var labels = [];
+          for (var k in categorySum) {
+            labels.push(k + " (" + categorySum[k] + ")");
+          }
+          labels.sort();
+
+          var connectionsToSource = '<div>';
+          for (var j = 0; j < labels.length; j++) {
+            var dataRefs = "";
+
+            for (var i = 0; i < data.commentary.length; i++) {
+              var c = data.commentary[i];
+              var key = (sjs.interfaceLang == "en" ? c.collectiveTitle['en'] : c.collectiveTitle['he']);
+              if (categories[j] == key) {
+                dataRefs = dataRefs + c.sourceRef + ";";
+                //continue;
+              }
+            }
+            dataRefs = dataRefs.slice(0, -1); //remove trailing ";"
+            connectionsToSource += '<div role="checkbox" aria-checked="false" tabindex="0" class="sourceConnection" data-refs="' + dataRefs + '">' + labels[j] + '</div>';
+          }
+          connectionsToSource += "</div>";
+
+          $("#connectionsToAdd").html(connectionsToSource);
+
+        }
+
+
       });
+    });
+
+    $("#addInterface").on("keydown", "#connectionButton", function(e) {
+      if (e.which == 13) {
+        $("#connectionButton").click()
+      }
+    });
+
+    $("#addcommentDiv").on("click", ".button", function(e) {
+      var $target = $("#addInterface").prev(".sheetItem");
+      var source = {comment: $(this).prev(".contentToAdd").html(), isNew: true};
+      if (sjs.can_add) {
+        source.userLink = sjs._userLink;
+      }
+      $target.length == 0 ? buildSource($("#sources"), source, "append") : buildSource($target, source, "insert");
+      autoSave();
+      $("#addcommentDiv .contentToAdd").html('<br>');
+      $("#sheet").click();
+      //$target.next(".sheetItem").find(".comment").last().trigger("mouseup").focus();
+
+    });
+
+    $("#addcommentDiv").on("keydown", ".button", function(e) {
+      if (e.which == 13) {
+        $("#addcommentDiv .button").click();
+      }
+    });
 
 
-			$("#addcommentDiv .contentToAdd").keypress(function (e) {
-				if(isHebrew($(this).text()) && $(this).text().length > 0) {
-					$(this).addClass("he");
-				}
-				else {
-					$(this).removeClass("he");
-				}
-			});
+    $("#addcommentDiv .contentToAdd").keypress(function(e) {
+      if (isHebrew($(this).text()) && $(this).text().length > 0) {
+        $(this).addClass("he");
+      }
+      else {
+        $(this).removeClass("he");
+      }
+    });
 
-			$("#addmediaDiv").on("click", ".button", function (e) {
-				var $target = $("#addInterface").prev(".sheetItem");
-				var source = {media: "", isNew: true};
-				if (sjs.can_add) {
-					source.userLink = sjs._userLink;
-				}
-				$target.length == 0 ? buildSource($("#sources"), source, "append") : buildSource($target, source, "insert");
+    $("#addmediaDiv").on("click", ".button", function(e) {
+      var $target = $("#addInterface").prev(".sheetItem");
+      var source = {media: "", isNew: true};
+      if (sjs.can_add) {
+        source.userLink = sjs._userLink;
+      }
+      $target.length == 0 ? buildSource($("#sources"), source, "append") : buildSource($target, source, "insert");
 
-				var embedHTML = makeMediaEmbedLink($("#inlineAddMediaInput").val());
+      var embedHTML = makeMediaEmbedLink($("#inlineAddMediaInput").val());
 
-				if (embedHTML != false) {
-					var $mediaDiv = $("#sources").find(".media.new:empty").first()
-					$mediaDiv.html(embedHTML);
-					mediaCheck($mediaDiv);
-				}
-				else {
-					$target.next(".sheetItem").remove();
-					sjs.alert.flash("We couldn't understand your link.<br/>No media added.")
-				}
+      if (embedHTML != false) {
+        var $mediaDiv = $("#sources").find(".media.new:empty").first()
+        $mediaDiv.html(embedHTML);
+        mediaCheck($mediaDiv);
+      }
+      else {
+        $target.next(".sheetItem").remove();
+        sjs.alert.flash("We couldn't understand your link.<br/>No media added.")
+      }
 
-				autoSave();
-			});
+      autoSave();
+    });
 
-			$("#addmediaDiv").on("keydown", ".button", function (e) {
-				if (e.which == 13) {
-					$("#addmediaDiv .button").click();
-				}
+    $("#addmediaDiv").on("keydown", ".button", function(e) {
+      if (e.which == 13) {
+        $("#addmediaDiv .button").click();
+      }
+    });
+
+
+    $("#addmediaDiv").on("keydown", "#addmediaFileSelector", function(e) {
+      if (e.which == 13) {
+        $("#addmediaDiv #addmediaFileSelector").click();
+      }
+    });
+
+
+    $("#addcustomTextDiv").on("click", "#customTextLanguageToggle .toggleOption", function(e) {
+
+      $("#customTextLanguageToggle .toggleOption").removeClass('active');
+      $(this).addClass('active');
+      if ($(this).attr('id') == 'bilingualCustomText') {
+        $("#addcustomTextDiv").find(".contentToAdd").show();
+      }
+      else if ($(this).attr('id') == 'englishCustomText') {
+        $("#addcustomTextDiv").find(".en").show();
+        $("#addcustomTextDiv").find(".he").hide();
+      }
+      else if ($(this).attr('id') == 'hebrewCustomText') {
+        $("#addcustomTextDiv").find(".he").show();
+        $("#addcustomTextDiv").find(".en").hide();
+      }
+
+    });
+
+    $("#addcustomTextDiv").on("click", ".button", function(e) {
+      var $target = $("#addInterface").prev(".sheetItem");
+      if ($(this).prev(".flexContainer").find(".contentToAdd:visible").length == 1) {
+        source = {
+          outsideText: $(this).prev(".flexContainer").find(".contentToAdd:visible").html(),
+          isNew: true
+        };
+      }
+      else {
+        source = {
+          outsideBiText: {
+            en: $(this).prev(".flexContainer").find(".en").html(),
+            he: $(this).prev(".flexContainer").find(".he").html()
+          }, isNew: true
+        };
+      }
+
+      if (sjs.can_add) {
+        source.userLink = sjs._userLink;
+      }
+      $target.length == 0 ? buildSource($("#sources"), source, "append") : buildSource($target, source, "insert");
+      autoSave();
+      $("#customTextContainer .contentToAdd.en").html('English');
+      $("#customTextContainer .contentToAdd.he").html('עברית');
+      $("#sheet").click();
+      //	$target.next(".sheetItem").find(".comment").last().trigger("mouseup").focus();
+
+    });
+
+    $("#addcustomTextDiv").on("keydown", ".button", function(e) {
+      if (e.which == 13) {
+        $("#addcustomTextDiv .button").click();
+      }
+    });
+
+    $("html").on("click", "#content", function(e) {
+      //clicked off of a sheetitem
+      if ($(e.target).closest(".sheetItem").length || $(e.target).closest(".sheetsEditNavTop").length) {
+        return;
+      }
+      if ($(e.target).closest("#addInterface").length) return
+      $("#connectionButton").hide();
+
+      cleanupActiveSource(e.target);
+    });
+
+    $(".sheetItem").on("click", ".inlineAddButtonIcon", function(e) {
+      $("#addInterface").insertAfter($(this).parent().closest(".sheetItem"));
+      $(this).parent().closest(".sheetItem").hasClass("source") ? $("#connectionButton").css('display', 'inline-block') : $("#connectionButton").hide();
+      $(".inlineAddButtonIcon").removeClass("active");
+      $(this).addClass("active");
+      $("#sourceButton").click();
+      e.stopImmediatePropagation();
+    });
+
+
+    function cleanupActiveSource(target) {
+      $(".inlineAddButtonIcon").removeClass("active");
+      $(".activeSource").removeClass("activeSource");
+      $("#sheetLayoutLanguageMenuItems").show();
+      $("#sourceLayoutLanguageMenuItems").hide();
+      $("#resetText").hide();
+      $("#removeNikkudot").hide();
+      $(".resetHighlighter").hide();
+      $("#splitSourceToSegment").hide();
+      $("#addSourceTitle").hide();
+      if (!$(target).hasClass('inlineAddButtonIcon')) {
+        $(".inlineAddButtonIcon").last().click();
+      }
+      $(".sheetItem .inlineAddButtonIcon").off();
+      $(".sheetItem").on("click", ".inlineAddButtonIcon", function(e) {
+        $("#addInterface").insertAfter($(this).parent().closest(".sheetItem"));
+        $(this).parent().closest(".sheetItem").hasClass("source") ? $("#connectionButton").css('display', 'inline-block') : $("#connectionButton").hide();
       });
+      $("#sourceButton").click();
+    }
 
+    function setLanguageLayoutCheckBoxes(source) {
+      if (!$(source).hasClass("hebrew") && !$(source).hasClass("bilingual") && !$(source).hasClass("english")) {
+        if (sjs.current.options.language == "hebrew") {
+          $("#sourceLayoutLanguageMenuItems").find(".hebrew .fa-check").removeClass("hidden");
+        }
+        else if (sjs.current.options.language == "bilingual") {
+          $("#sourceLayoutLanguageMenuItems").find(".bilingual .fa-check").removeClass("hidden");
+          $("#sourceLayoutLanguageMenuItems").find("#layoutToggleGroup").removeClass("disabled");
+        }
+        else if (sjs.current.options.language == "english") {
+          $("#sourceLayoutLanguageMenuItems").find(".english .fa-check").removeClass("hidden");
+        }
 
-			$("#addmediaDiv").on("keydown", "#addmediaFileSelector", function(e) {
-				if (e.which == 13) {
-					$("#addmediaDiv #addmediaFileSelector").click();
-				}
-			});
+        if (sjs.current.options.layout == "stacked") {
+          $("#sourceLayoutLanguageMenuItems").find(".stacked .fa-check").removeClass("hidden")
+        }
+        else if (sjs.current.options.layout == "sideBySide") {
+          $("#sourceLayoutLanguageMenuItems").find(".sideBySide .fa-check").removeClass("hidden");
+          $("#sourceLayoutLanguageMenuItems").find("#sideBySideToggleGroup").removeClass("disabled");
+        }
 
+        if (sjs.current.options.langLayout == "heLeft") {
+          $("#sourceLayoutLanguageMenuItems").find(".heLeft .fa-check").removeClass("hidden")
+        }
+        else if (sjs.current.options.langLayout == "heRight") {
+          $("#sourceLayoutLanguageMenuItems").find(".heRight .fa-check").removeClass("hidden")
+        }
+      }
 
-			$("#addcustomTextDiv").on("click", "#customTextLanguageToggle .toggleOption", function (e) {
+      else {
+        if ($(source).hasClass("hebrew")) {
+          $("#sourceLayoutLanguageMenuItems").find(".hebrew .fa-check").removeClass("hidden");
+        }
+        else if ($(source).hasClass("bilingual")) {
+          $("#sourceLayoutLanguageMenuItems").find(".bilingual .fa-check").removeClass("hidden");
+          $("#sourceLayoutLanguageMenuItems").find("#layoutToggleGroup").removeClass("disabled");
+        }
+        else if ($(source).hasClass("english")) {
+          $("#sourceLayoutLanguageMenuItems").find(".english .fa-check").removeClass("hidden");
+        }
 
-				$("#customTextLanguageToggle .toggleOption").removeClass('active');
-				$(this).addClass('active');
-				if ($(this).attr('id') == 'bilingualCustomText') {
-					$("#addcustomTextDiv").find(".contentToAdd").show();
-				}
-				else if ($(this).attr('id') == 'englishCustomText') {
-					$("#addcustomTextDiv").find(".en").show();
-					$("#addcustomTextDiv").find(".he").hide();
-				}
-				else if ($(this).attr('id') == 'hebrewCustomText') {
-					$("#addcustomTextDiv").find(".he").show();
-					$("#addcustomTextDiv").find(".en").hide();
-				}
+        if ($(source).hasClass("stacked")) {
+          $("#sourceLayoutLanguageMenuItems").find(".stacked .fa-check").removeClass("hidden")
+        }
+        else if ($(source).hasClass("sideBySide")) {
+          $("#sourceLayoutLanguageMenuItems").find(".sideBySide .fa-check").removeClass("hidden");
+          $("#sourceLayoutLanguageMenuItems").find("#sideBySideToggleGroup").removeClass("disabled");
+        }
 
-			});
+        if ($(source).hasClass("heLeft")) {
+          $("#sourceLayoutLanguageMenuItems").find(".heLeft .fa-check").removeClass("hidden")
+        }
+        else if ($(source).hasClass("heRight")) {
+          $("#sourceLayoutLanguageMenuItems").find(".heRight .fa-check").removeClass("hidden")
+        }
+      }
 
-			$("#addcustomTextDiv").on("click", ".button", function (e) {
-				var $target = $("#addInterface").prev(".sheetItem");
-				if ($(this).prev(".flexContainer").find(".contentToAdd:visible").length == 1) {
-					source = {
-						outsideText: $(this).prev(".flexContainer").find(".contentToAdd:visible").html(),
-						isNew: true
-					};
-				}
-				else {
-					source = {
-						outsideBiText: {
-							en: $(this).prev(".flexContainer").find(".en").html(),
-							he: $(this).prev(".flexContainer").find(".he").html()
-						}, isNew: true
-					};
-				}
+    }
 
-				if (sjs.can_add) {
-					source.userLink = sjs._userLink;
-				}
-				$target.length == 0 ? buildSource($("#sources"), source, "append") : buildSource($target, source, "insert");
-				autoSave();
-				$("#customTextContainer .contentToAdd.en").html('English');
-				$("#customTextContainer .contentToAdd.he").html('עברית');
-				$("#sheet").click();
-				//	$target.next(".sheetItem").find(".comment").last().trigger("mouseup").focus();
+    $("#sheet").on("click", ".sheetItem", function(e) {
+      //clicked on a sheet item
+      if ($(e.target).hasClass("inlineAddButtonIcon")) return;
+      if (!$(".readerApp").hasClass("multiPanel")) return; //prevent active source on mobile
 
-			});
+      cleanupActiveSource(e.target);
+      $(this).addClass("activeSource");
+      $("#sheetLayoutLanguageMenuItems").hide();
+      $("#sourceLayoutLanguageMenuItems").show();
+      $("#resetText").show();
+      $("#addSourceTitle").show();
+      $("#removeNikkudot").show();
+      $(".resetHighlighter").show();
+      $("#splitSourceToSegment").show();
+      //$(this).hasClass("source") ? $("#connectionButton").css('display', 'inline-block') : $("#connectionButton").hide();
 
-			$("#addcustomTextDiv").on("keydown", ".button", function (e) {
-				if (e.which == 13) {
-					$("#addcustomTextDiv .button").click();
-				}
-      });
+      //set checkboxes for language/layout menus for active source
+      setLanguageLayoutCheckBoxes(e.target);
 
-			$("html").on("click", "#content", function (e) {
-				//clicked off of a sheetitem
-				if ($(e.target).closest(".sheetItem").length || $(e.target).closest(".sheetsEditNavTop").length ) {
-					return;
-				}
-				if ($(e.target).closest("#addInterface").length) return
-				$("#connectionButton").hide();
+      if (!($(this).hasClass("source"))) {
+        $("#resetText").hide();
+        $("#addSourceTitle").hide();
+        $("#removeNikkudot").hide();
+        $("#splitSourceToSegment").hide();
+        $("#sourceLayoutLanguageMenuItems").hide();
+      }
+    });
 
-				cleanupActiveSource(e.target);
-			});
-
-			$(".sheetItem").on("click", ".inlineAddButtonIcon", function (e) {
-				$("#addInterface").insertAfter( $(this).parent().closest(".sheetItem") );
-				$(this).parent().closest(".sheetItem").hasClass("source") ? $("#connectionButton").css('display', 'inline-block') : $("#connectionButton").hide();
-				$(".inlineAddButtonIcon").removeClass("active");
-				$(this).addClass("active");
-				$("#sourceButton").click();
-				e.stopImmediatePropagation();
-			});
-
-
-			function cleanupActiveSource(target){
-				$(".inlineAddButtonIcon").removeClass("active");
-				$(".activeSource").removeClass("activeSource");
-				$("#sheetLayoutLanguageMenuItems").show();
-				$("#sourceLayoutLanguageMenuItems").hide();
-				$("#resetText").hide();
-				$("#removeNikkudot").hide();
-				$(".resetHighlighter").hide();
-				$("#splitSourceToSegment").hide();
-				$("#addSourceTitle").hide();
-				if (!$(target).hasClass('inlineAddButtonIcon')) {
-					$(".inlineAddButtonIcon").last().click();
-				}
-				$(".sheetItem .inlineAddButtonIcon").off();
-				$(".sheetItem").on("click", ".inlineAddButtonIcon", function (e) {
-					$("#addInterface").insertAfter( $(this).parent().closest(".sheetItem") );
-					$(this).parent().closest(".sheetItem").hasClass("source") ? $("#connectionButton").css('display', 'inline-block') : $("#connectionButton").hide();
-				});
-				$("#sourceButton").click();
-			}
-
-			function setLanguageLayoutCheckBoxes(source) {
-				if (!$(source).hasClass("hebrew") && !$(source).hasClass("bilingual") && !$(source).hasClass("english")) {
-					if (sjs.current.options.language == "hebrew") {
-						$("#sourceLayoutLanguageMenuItems").find(".hebrew .fa-check").removeClass("hidden");
-					}
-					else if (sjs.current.options.language == "bilingual") {
-						$("#sourceLayoutLanguageMenuItems").find(".bilingual .fa-check").removeClass("hidden");
-						$("#sourceLayoutLanguageMenuItems").find("#layoutToggleGroup").removeClass("disabled");
-					}
-					else if (sjs.current.options.language == "english") {
-						$("#sourceLayoutLanguageMenuItems").find(".english .fa-check").removeClass("hidden");
-					}
-
-					if (sjs.current.options.layout == "stacked") {
-						$("#sourceLayoutLanguageMenuItems").find(".stacked .fa-check").removeClass("hidden")
-					}
-					else if (sjs.current.options.layout == "sideBySide") {
-						$("#sourceLayoutLanguageMenuItems").find(".sideBySide .fa-check").removeClass("hidden");
-						$("#sourceLayoutLanguageMenuItems").find("#sideBySideToggleGroup").removeClass("disabled");
-					}
-
-					if (sjs.current.options.langLayout == "heLeft") {
-						$("#sourceLayoutLanguageMenuItems").find(".heLeft .fa-check").removeClass("hidden")
-					}
-					else if (sjs.current.options.langLayout == "heRight") {
-						$("#sourceLayoutLanguageMenuItems").find(".heRight .fa-check").removeClass("hidden")
-					}
-				}
-
-				else {
-					if ($(source).hasClass("hebrew")) {
-						$("#sourceLayoutLanguageMenuItems").find(".hebrew .fa-check").removeClass("hidden");
-					}
-					else if ($(source).hasClass("bilingual")) {
-						$("#sourceLayoutLanguageMenuItems").find(".bilingual .fa-check").removeClass("hidden");
-						$("#sourceLayoutLanguageMenuItems").find("#layoutToggleGroup").removeClass("disabled");
-					}
-					else if ($(source).hasClass("english")) {
-						$("#sourceLayoutLanguageMenuItems").find(".english .fa-check").removeClass("hidden");
-					}
-
-					if ($(source).hasClass("stacked")) {
-						$("#sourceLayoutLanguageMenuItems").find(".stacked .fa-check").removeClass("hidden")
-					}
-					else if ($(source).hasClass("sideBySide")) {
-						$("#sourceLayoutLanguageMenuItems").find(".sideBySide .fa-check").removeClass("hidden");
-						$("#sourceLayoutLanguageMenuItems").find("#sideBySideToggleGroup").removeClass("disabled");
-					}
-
-					if ($(source).hasClass("heLeft")) {
-						$("#sourceLayoutLanguageMenuItems").find(".heLeft .fa-check").removeClass("hidden")
-					}
-					else if ($(source).hasClass("heRight")) {
-						$("#sourceLayoutLanguageMenuItems").find(".heRight .fa-check").removeClass("hidden")
-					}
-				}
-
-			}
-
-			$("#sheet").on("click", ".sheetItem", function (e) {
-			//clicked on a sheet item
-				if ($(e.target).hasClass("inlineAddButtonIcon")) return;
-				if (!$(".readerApp").hasClass("multiPanel")) return; //prevent active source on mobile
-
-				cleanupActiveSource(e.target);
-				$(this).addClass("activeSource");
-				$("#sheetLayoutLanguageMenuItems").hide();
-				$("#sourceLayoutLanguageMenuItems").show();
-				$("#resetText").show();
-				$("#addSourceTitle").show();
-				$("#removeNikkudot").show();
-				$(".resetHighlighter").show();
-				$("#splitSourceToSegment").show();
-				//$(this).hasClass("source") ? $("#connectionButton").css('display', 'inline-block') : $("#connectionButton").hide();
-
-				//set checkboxes for language/layout menus for active source
-				setLanguageLayoutCheckBoxes(e.target);
-
-				if (!($(this).hasClass("source"))) {
-					$("#resetText").hide();
-					$("#addSourceTitle").hide();
-					$("#removeNikkudot").hide();
-					$("#splitSourceToSegment").hide();
-					$("#sourceLayoutLanguageMenuItems").hide();
-				}
-			});
-
-			$("#sheet").click();
-		}
-	}
+    $("#sheet").click();
+  }
 
 	$("#sheet").on( "mouseenter", ".sheetItem", function(e) {
 	
-	if ($.cookie("s2") != "true") if ($(".cke_editable").length) { return; }
+	if ($(".cke_editable").length) { return; }
 		
 		var isOwner = sjs.is_owner || $(this).attr("data-added-by") == String(sjs._uid);
 		var controlsHtml = "";
@@ -1793,7 +1525,7 @@ $(function() {
 	// Reset Source Text 
 	$(".resetSource").live("click", function() { 
 		var options = {
-			message: translateInterfaceString("Reset text of Hebrew, English or both?")+"<br><small>"+translateInterfaceString("Any edits you have made to this source will be lost")+".</small>",
+			message: _("Reset text of Hebrew, English or both?")+"<br><small>"+_("Any edits you have made to this source will be lost")+".</small>",
 			options: ["Hebrew", "English", "Both"]
 		};
 		var $target = $(this).closest(".source");
@@ -1853,98 +1585,31 @@ $(function() {
 		$(".s2Modal, #overlay").hide();
 	});
 
-	$("#sharingModalTrigger").live("click", function() { 
-		$("#sharingModal").show().position({of: window}); 
-		$("#overlay").show();
-
-	});
 
 	$("#shareWithOthers .ok").click(function(){
 		$("#shareWithOthers, #overlay").hide();
+		$("#sheetSummary").text($("#sheetSummaryInput").val());
+
+		var curTagsHTML = "";
+    for (var i = 0; i < sjs.sheetTagger.tags().length; i++) {
+    	curTagsHTML = curTagsHTML + '<a class="button" role="button" href="/sheets/tags/'+sjs.sheetTagger.tags()[i]+'">'+sjs.sheetTagger.tags()[i]+'</a>';
+    }
+		$("#sheetTags").html(curTagsHTML);
 		autoSave();
 	});
 
-	function changeSharing() {
-			if ($("#sourceSheetGroupSelect").val() == "None" || ($("#sourceSheetGroupSelect").val() == null)) {
+	$("#shareWithOthers").on("change keyup keydown paste cut", "#sheetSummaryInput", function (){
+			$(this).height(0);
+			var heightToSwitch = this.scrollHeight < 26 ? 26:this.scrollHeight;
+			$(this).height(heightToSwitch);
+	}).find( "#sheetSummaryInput" ).change();
 
-				switch ($("#sourceSheetShareSelect").val()) {
-
-					case 'private':
-						$("#sharingDesc").html('Only people with the direct link can view the source sheet.');
-						$("#sharingType").data("sharing", "private");
-						break;
-
-					case 'public':
-						$("#sharingDesc").html('Anyone browsing Sefaria can find and view your source sheet.');
-						$("#sharingType").data("sharing", "public");
-						break;
-
-					case 'publicAdd':
-						$("#sharingDesc").html('Anyone browsing Sefaria can find and view and add sources & comments to your sheet.');
-						$("#sharingType").data("sharing", "publicAdd");
-						break;
-
-					case 'privateAdd':
-						$("#sharingDesc").html('Anyone with the link to your sheet can view and add sources & comments.');
-						$("#sharingType").data("sharing", "privateAdd");
-						break;
-
-					case 'publicEdit':
-						$("#sharingDesc").html('Anyone browsing Sefaria can make any change to your source sheet.<br/><br/>Please be advised: There is no way to track or undo changes made by other editors, including deletions.<br/>Consider making a copy of this source sheet before allowing anyone to edit.');
-						$("#sharingType").data("sharing", "publicEdit");
-						break;
-
-					case 'privateEdit':
-						$("#sharingDesc").html('Anyone with the link to your sheet can make any change. The sheet will not be publicly listed.<br/><br/>Please be advised: There is no way to track or undo changes made by other editors, including deletions.<br/>Consider making a copy of this source sheet before allowing anyone to edit.');
-						$("#sharingType").data("sharing", "privateEdit");
-						break;
-
-				}
-			}
-			else {
-
-				switch ($("#sourceSheetShareSelect").val()) {
-
-					case 'private':
-						$("#sharingDesc").html('Anyone in <span class="groupName">your group</span> can find and view your source sheet.');
-						$("#sharingType").data("sharing", "private");
-						break;
-
-					case 'public':
-						$("#sharingDesc").html('Anyone browsing Sefaria can find and view your source sheet.');
-						$("#sharingType").data("sharing", "public");
-						break;
-
-					case 'publicAdd':
-						$("#sharingDesc").html('Anyone browsing Sefaria can find and view and add sources & comments to your sheet.');
-						$("#sharingType").data("sharing", "publicAdd");
-						break;
-
-					case 'privateAdd':
-						$("#sharingDesc").html('Anyone in <span class="groupName">your group</span> can find and view and add sources & comments to your sheet.');
-						$("#sharingType").data("sharing", "groupAdd");
-						break;
-
-					case 'publicEdit':
-						$("#sharingDesc").html('Anyone browsing Sefaria can make any change to your source sheet.<br/><br/>Please be advised: There is no way to track or undo changes made by other editors, including deletions.<br/>Consider making a copy of this source sheet before allowing anyone to edit.');
-						$("#sharingType").data("sharing", "publicEdit");
-						break;
-
-					case 'privateEdit':
-						$("#sharingType").data("sharing", "groupEdit");
-						$("#sharingDesc").html('Anyone in <span class="groupName">your group</span> can make any change to your source sheet.<br/><br/>Please be advised: There is no way to track or undo changes made by other editors, including deletions.<br/>Consider making a copy of this source sheet before allowing anyone to edit.');
-						break;
-
-				}
-			}
-	}
-
-	$("#sourceSheetShareSelect").change(function() {
-		changeSharing();
+	$("#tags").on("focus", "input", function() {
+		$("#tags .addTagMsg").hide();
 	});
 
+
 	$("#sourceSheetGroupSelect").change(function() {
-		changeSharing();
 		if ($(this).val()!="None") {
 			var $el = $("#sourceSheetGroupSelect option:selected");
 			var groupUrl = $(this).val().replace(/ /g, "-");
@@ -1966,15 +1631,13 @@ $(function() {
 	});
 
 
-	$("#sharingModal .ok").click(function(){
 
-		$("#sharingModal, #overlay").hide();
-
-		autoSave();
-		sjs.alert.flash("Sharing settings saved.")
+	$("#suggestedTags").on('click', '.tagButton', function() {
+		$("#tags").tagit("createTag",$(this).text());
+		$("#tags .addTagMsg").hide()
+		$(this).hide();
 	});
-
-
+	
 	$(".moveSourceUp").live("click", function() {
 		$(this).closest(".sheetItem").insertBefore($(this).closest(".sheetItem").prev());
 
@@ -2530,6 +2193,36 @@ if( navigator.userAgent.match(/iPhone|iPad|iPod/i) ) {
 
 }); // ------------------ End DOM Ready  ------------------
 
+
+sjs.sheetTagger = {
+	init: function(id, tags, callback) {
+		this.id       = id;
+		this.initTags = tags;
+		this.callback = callback;
+
+
+		// Init with tagit and with its tags
+		$("#tags").tagit({ allowSpaces: true });
+		this.setTags(tags);
+		if (tags && tags.length>0) {
+			$("#tags .addTagMsg").hide();
+		}
+
+	},
+	tags: function() {
+		return sjs.tagitTags("#tags");
+	},
+	setTags: function(tags) {
+		$("#tags").tagit("removeAll");
+		if (tags && tags.length) {
+			for (var i=0; i < tags.length; i++) {
+				$("#tags").tagit("createTag", tags[i]);
+			}
+		}
+	},
+};
+
+
 function addSource(q, source, appendOrInsert, $target) {
 	// Add a new source to the DOM.
 	// Completed by loadSource on return of AJAX call.
@@ -2714,6 +2407,7 @@ function readSheet() {
 	sheet.status   = "unlisted";
 	sheet.nextNode = sjs.current.nextNode;
 	sheet.tags     = sjs.sheetTagger.tags();
+	sheet.summary  = $("#sheetSummaryInput").val();
 
 	if ($("#author").hasClass("custom")) {
 		sheet.attribution = $("#author").html();
@@ -2739,57 +2433,19 @@ function readSheet() {
 	}
 
 	if (sjs.is_owner || sjs.can_publish) {
-		switch ($("#sharingType").data("sharing") || $("#sharingModal input[type='radio'][name='sharingOptions']:checked").val() ) {
 
-			case 'private':
+		sheet["status"] = $("#sheetPublicToggle").is(':checked') ? "public" : "unlisted";
+
+		switch ($("#sourceSheetShareSelect").val()) {
+			case 'view':
 				sheet.options.collaboration = "none";
-				sheet["status"] = "unlisted";
 				break;
-
-			case 'public':
-				sheet.options.collaboration = "none";
-				sheet["status"] = "public";
-				sjs.track.sheets("Make Public Click");
+			case 'add':
+				sheet.options.collaboration = $("#sourceSheetGroupSelect").val() && $("#sourceSheetGroupSelect").val() !== "None" ? "group-can-add" : "anyone-can-add";
 				break;
-
-			case 'publicAdd':
-				sheet.options.collaboration = "anyone-can-add";
-				sheet["status"] = "public";
-				sjs.track.sheets("Make Public Click");
-				sjs.track.sheets("Anyone Can Add Click");
+			case 'edit':
+				sheet.options.collaboration = $("#sourceSheetGroupSelect").val() && $("#sourceSheetGroupSelect").val() !== "None" ? "group-can-edit" : "anyone-can-edit";
 				break;
-
-			case 'groupAdd':
-				sheet.options.collaboration = "group-can-add";
-				sheet["status"] = "unlisted";
-				sjs.track.sheets("Group Can Add Click");
-				break;
-
-			case 'privateAdd':
-				sheet.options.collaboration = "anyone-can-add";
-				sheet["status"] = "unlisted";
-				sjs.track.sheets("Anyone Can Add Click");
-				break;
-
-			case 'publicEdit':
-				sheet.options.collaboration = "anyone-can-edit";
-				sheet["status"] = "public";
-				sjs.track.sheets("Make Public Click");
-				sjs.track.sheets("Anyone Can Edit Click");
-				break;
-
-			case 'privateEdit':
-				sheet.options.collaboration = "anyone-can-edit";
-				sheet["status"] = "unlisted";
-				sjs.track.sheets("Anyone Can Edit Click");
-				break;
-
-			case 'groupEdit':
-				sheet.options.collaboration = "group-can-edit";
-				sheet["status"] = "unlisted";
-				sjs.track.sheets("Group Can Edit Click");
-				break;
-
 		}
 
 		if ($(".sheetHighlighterTags").first().children()) {
@@ -2810,7 +2466,7 @@ function readSheet() {
 		sheet["status"] = sjs.current.status;
 	}
 
-	var group = $(".groupOption .fa-check").not(".hidden").parent().attr("data-group") || $("#sourceSheetGroupSelect").val();
+	var group = $("#sourceSheetGroupSelect").val();
 
 	if (group === undefined && sjs.current && sjs.current.group !== "None") {
 		// When working on someone else's group sheet
@@ -3082,7 +2738,7 @@ function buildSheet(data){
 			$("#title").addClass("heTitle");
 		}
 	} else {
-		$("#title").html(translateInterfaceString("Untitled Source Sheet"));
+		$("#title").html(_("Untitled Source Sheet"));
 	}
 	$("#sources").css("min-height",($("#sources").css("height"))); //To prevent 'jumping' as the sheet is rebuilt when polling is triggered we temporarily set the min-height, and remove it at the end of the function.
 
@@ -3116,27 +2772,12 @@ function buildSheet(data){
 
 	if (!("collaboration" in data.options)) { data.options.collaboration = "none"}
 
-	if (data.options.collaboration == "none" && data.status == "unlisted")  $("#sharingModal input[type='radio'][name='sharingOptions'][value='private']").attr('checked', 'checked');
-	else if (data.options.collaboration == "none" && data.status == "public") $("#sharingModal input[type='radio'][name='sharingOptions'][value='public']").attr('checked', 'checked');
-	else if (data.options.collaboration == "anyone-can-add" && data.status == "public") $("#sharingModal input[type='radio'][name='sharingOptions'][value='publicAdd']").attr('checked', 'checked');
-	else if (data.options.collaboration == "anyone-can-add" && data.status == "unlisted") $("#sharingModal input[type='radio'][name='sharingOptions'][value='privateAdd']").attr('checked', 'checked');
-	else if (data.options.collaboration == "group-can-add" && data.status == "unlisted") $("#sharingModal input[type='radio'][name='sharingOptions'][value='groupAdd']").attr('checked', 'checked');
-	else if (data.options.collaboration == "anyone-can-edit" && data.status == "public") $("#sharingModal input[type='radio'][name='sharingOptions'][value='publicEdit']").attr('checked', 'checked');
-	else if (data.options.collaboration == "anyone-can-edit" && data.status == "unlisted") $("#sharingModal input[type='radio'][name='sharingOptions'][value='privateEdit']").attr('checked', 'checked');
-	else if (data.options.collaboration == "group-can-edit" && data.status == "unlisted") $("#sharingModal input[type='radio'][name='sharingOptions'][value='groupEdit']").attr('checked', 'checked');
+	if (data.options.collaboration == "none")  $("#sourceSheetShareSelect").val('view');
+	else if (data.options.collaboration == "anyone-can-add" || data.options.collaboration == "group-can-add") $("#sourceSheetShareSelect").val('add');
+	else if (data.options.collaboration == "anyone-can-edit" || data.options.collaboration == "group-can-edit") $("#sourceSheetShareSelect").val('edit');
 
-
-
-	if (data.options.collaboration == "none" && data.status == "unlisted")  $("#sourceSheetShareSelect").val('private');
-	else if (data.options.collaboration == "none" && data.status == "public") $("#sourceSheetShareSelect").val('public');
-	else if (data.options.collaboration == "anyone-can-add" && data.status == "public") $("#sourceSheetShareSelect").val('publicAdd');
-	else if (data.options.collaboration == "anyone-can-add" && data.status == "unlisted") $("#sourceSheetShareSelect").val('privateAdd');
-	else if (data.options.collaboration == "group-can-add" && data.status == "unlisted") $("#sourceSheetShareSelect").val('privateAdd');
-	else if (data.options.collaboration == "anyone-can-edit" && data.status == "public") $("#sourceSheetShareSelect").val('publicEdit');
-	else if (data.options.collaboration == "anyone-can-edit" && data.status == "unlisted") $("#sourceSheetShareSelect").val('privateEdit');
-	else if (data.options.collaboration == "group-can-edit" && data.status == "unlisted") $("#sourceSheetShareSelect").val('privateEdit');
-
-	$("#sharingType").data("sharing", $("#sourceSheetShareSelect").val());
+	if (data.status == "public") { $('#sheetPublicToggle').attr('checked', true); }
+	else { $('#sheetPublicToggle').attr('checked', false); }
 
 	// Set Sheet Group
 	if (data.group) {
@@ -3146,7 +2787,6 @@ function buildSheet(data){
 		$(".groupName").text(data.group);
 		$(".individualSharing").hide();
 		$("#sourceSheetGroupSelect").val(data.group);
-		var groupUrl = data.group.replace(/ /g, "-");
 		var $el = $("#sourceSheetGroupSelect option:selected");
 		var groupImage = $el.attr("data-image"); 
 
@@ -3170,6 +2810,31 @@ function buildSheet(data){
 
 
 	sjs.sheetTagger.init(data.id, data.tags);
+
+	var suggestedTagsLookup = [];
+
+	for (var i = 0; i < data.sources.length; i++) {
+		if (data.sources[i].ref) {
+			suggestedTagsLookup.push(data.sources[i].ref)
+		}
+	}
+
+	$.getJSON("/api/recommend/topics/" + suggestedTagsLookup.join("+"), function(data) {
+		var suggestedTags = [];
+		for (var i = 0; i < data.topics.length; i++) {
+			if (data.topics[i][1] > 1 ){ //only add tag if it's included on more than one sheet. Creates better suggestions.
+				suggestedTags.push(data.topics[i][0]);
+			}
+		}
+
+		for (var i = 0; i < suggestedTags.length; i++) {
+			if ($("#suggestedTags .tagButton").length < 5 && sjs.sheetTagger.tags().indexOf(suggestedTags[i]) == -1) {
+				$("#suggestedTags").append("<span class='tagButton'>"+suggestedTags[i]+"</span>");
+			}
+		}
+
+
+	});
 
 	buildSources($("#sources"), data.sources);
 	setSourceNumbers();
@@ -3267,19 +2932,12 @@ function buildSource($target, source, appendOrInsert) {
 
 	} else if ("comment" in source) {
 		var attributionData = attributionDataString(source.addedBy, source.isNew, "commentWrapper");
-		var commentHtml = "<div " + attributionData + " data-node='" + source.node + "'>" +
-							"<div class='comment " + (sjs.loading ? "" : "new") + "'>" + source.comment + "</div>" +
-							("userLink" in source ? "<div class='addedBy'>Added by " + source.userLink + "</div>" : "") +
-						  "</div>";
 
-		if ($.cookie("s2") == "true") {
+		var commentHtml = "<div " + attributionData + " data-node='" + source.node + "'><span class='commentIcon'><i class='fa fa-comment-o fa'></i></span>" +
+			("userLink" in source ? "<div class='addedBy s2AddedBy'>" + source.userLink + "</div>" : "")	+
+			"<div class='comment " + (isHebrew(source.comment) ? "he " : "") + (sjs.loading ? "" : "new") + " '>" + source.comment + "</div>" +
+			appendInlineAddButton() + "</div>";
 
-					var commentHtml = "<div " + attributionData + " data-node='" + source.node + "'><span class='commentIcon'><i class='fa fa-comment-o fa'></i></span>" +
-						("userLink" in source ? "<div class='addedBy s2AddedBy'>" + source.userLink + "</div>" : "")	+
-						"<div class='comment " + (isHebrew(source.comment) ? "he " : "") + (sjs.loading ? "" : "new") + " '>" + source.comment + "</div>" +
-						appendInlineAddButton() + "</div>";
-
-		}
 
 		if (appendOrInsert == "append") {
 			$target.append(commentHtml);
@@ -3786,7 +3444,12 @@ function exportToDrive() {
 			if ("error" in data) {
 				sjs.alert.message(data.error.message);
 			} else {
-				sjs.alert.message("Source Sheet exported to Google Drive.<br><br><a href='" + data.webViewLink + "' target='_blank'>Open in Google Drive &raquo;</a>");
+				sjs.alert.message("" +
+					'<span class="int-en">Source Sheet exported to Google Drive.</span><span class="int-he">ייצוא לגוגל דרייב הסתיים.</span>' +
+					"<br><br>" +
+					"<a href='" + data.webViewLink + "' target='_blank'>" +
+					'<span class="int-en">Open in Google Drive &raquo;</span><span class="int-he">לפתיחה בגוגל דרייב</span>' +
+					"</a>");
 			}
 		},
 		statusCode: {
@@ -3853,7 +3516,7 @@ function showShareModal(){
 
 
 function deleteSheet() {
-	if (confirm(translateInterfaceString("Are you sure you want to delete this sheet? There is no way to undo this action."))) {
+	if (confirm(_("Are you sure you want to delete this sheet? There is no way to undo this action."))) {
 		$.post("/api/sheets/" + sjs.current.id + "/delete", function (data){
 			if ("error" in data) {
 				sjs.alert.message(data.error);
@@ -4179,8 +3842,21 @@ $.extend(sjs, {
 		"Students can complete their assignment at this link:":
 			"תלמידים יכולים לבצע את המטלה שלהם בקישור הבא:",
 		"Reset text of Hebrew, English or both?": "האם לאפס את התוכן של המקור בעברית, אנגלית או הכל?",
-		"Any edits you have made to this source will be lost": "כל השינויים שנעשו במקור זה יאבדו"
-
+		"Any edits you have made to this source will be lost": "כל השינויים שנעשו במקור זה יאבדו",
+		"Looking up Connections..." : "מחפש קישורים...",
+		"No connections known for this source.": "למקור הזה אין קשרים ידועים",
+		"Edit Source title" : "עריכת כותרת",
+		"Add Source Below" : "הוספת מקור מתחת",
+		"Add Comment": "הוספת תגובה",
+		"Add All Connections": "הוספת כל המקורות הקשורים",
+		"Reset Source Text": "איפוס טקסט מקור",
+		"Copy to Sheet" : "העתקה לדף מקורות",
+		"Change Source Layout/Language": "שינוי שפת/עימוד מקור",
+		"Move Source Up": "הזזת מקור מעלה",
+		"Move Source Down": "הזזת מקור מטה",
+		"Outdent Source": "הזחת מקור החוצה",
+		"Indent Source": "הזחת מקור פנימה",
+		"Remove": "הסרת מקור"
 
 	}
 });
@@ -4193,3 +3869,4 @@ function translateInterfaceString(key, defaultValue){
 		return (defaultValue ? defaultValue : key);
 	}
 }
+var _ = translateInterfaceString;

@@ -1658,6 +1658,90 @@ Sefaria = extend(Sefaria, {
         return name;
     }
   },
+    //this is here for now, we might want to move it somewhere else.
+  _i18nInterfaceStrings: {
+      "Sefaria": "ספריא",
+
+      "Sefaria Group" : "קבוצות בספריא",
+      "Sefaria Groups" : "קבוצות בספריא",
+      "Sefaria Source Sheets":"דפי מקורות בספריא",
+      "Topics":"נושאים",
+      "Sefaria Notifcations": "הודעות בספריא",
+      //title meta tag
+      "Sefaria: a Living Library of Jewish Texts Online": "ספריא: ספרייה חיה של טקסטים יהודיים",
+      "Recently Viewed" : "נצפו לאחרונה",
+      "The Sefaria Library": "תוכן העניינים של ספריא",
+      "Sefaria Search": "חיפוש בספריא",
+      "Sefaria Account": "חשבון בספריא",
+      "New Additions to the Sefaria Library":"חידושים בארון הספרים של ספריא",
+      "My Notes on Sefaria": "הרשומות שלי בספריא",
+      "Moderator Tools": "כלי מנהלים",
+      " with " : " עם ",
+      "Connections" : "קשרים",
+      " & ": " | ",
+      "My Source Sheets" : "דפי המקורות שלי",
+      "Public Source Sheets":"דפי מקורות פומביים",
+
+      //sheets
+      "Untitled Source Sheet" : "דף מקורות ללא שם",
+      "Name New Sheet" : "כותרת לדף המקורות",
+      "Sorry, there was a problem saving your note.": "סליחה, ארעה שגיאה בזמן השמירה",
+      "Unfortunately, there was an error saving this note. Please try again or try reloading this page.": "ארעה שגיאה בזמן השמירה. אנא נסו שוב או טענו את הדף מחדש",
+      "Are you sure you want to delete this note?": "האם אתם בטוחים שברצונכם למחוק?",
+      "Something went wrong (that's all I know).":"משהו השתבש. סליחה",
+      "Write a note...":"כתוב הערות כאן...",
+      "Aa": "א",
+      "Decrease font size": "הקטן גופן",
+      "Increase font size": "הגדל גופן",
+      "Search for Texts or Keywords Here": "חפשו ספרים או מלות מפתח כאן",
+
+      //reader panel
+      "Search" : "חיפוש",
+      "Views": "צפיות"
+  },
+  _v: function(inputVar){
+    if(Sefaria.interfaceLang != "english"){
+        return Sefaria.hebrewTerm(inputVar);
+    }else{
+        return inputVar;
+	}
+  },
+  _r: function (inputRef) {
+    if(Sefaria.interfaceLang != "english"){
+        var oref = Sefaria.ref(inputRef);
+        if(oref){
+            return oref.heRef;
+        }
+    }else{
+        return inputRef;
+	}
+  },
+  _va: function(inputVarArr){
+    if(Sefaria.interfaceLang != "english"){
+        return inputVarArr.map(Sefaria.hebrewTerm);
+    }else{
+        return inputVarArr;
+	}
+  },
+  _: function(inputStr){
+    if(Sefaria.interfaceLang != "english"){
+        var hterm;
+        if(inputStr in Sefaria._i18nInterfaceStrings) {
+            return Sefaria._i18nInterfaceStrings[inputStr];
+        }else if((hterm = Sefaria.hebrewTerm(inputStr)) != inputStr){
+            return hterm;
+        }else{
+            if(inputStr.indexOf(" | ") !== -1) {
+                 var inputStrs = inputStr.split(" | ");
+                 return Sefaria._(inputStrs[0])+ " | " + Sefaria._(inputStrs[1]);
+            }else{
+                return inputStr;
+            }
+        }
+    }else{
+        return inputStr;
+	}
+  },
   _makeBooksDict: function() {
     // Transform books array into a dictionary for quick lookup
     // Which is worse: the cycles wasted in computing this on the client
@@ -1741,12 +1825,11 @@ Sefaria.unpackDataFromProps = function(props) {
 };
 
 
-
-
 Sefaria.util    = Util;
 Sefaria.hebrew  = Hebrew;
 Sefaria.palette = palette;
 Sefaria.track   = Track;
+
 
 Sefaria.setup = function(data) {
     // data parameter is optional. in the event it isn't passed, we assume that DJANGO_DATA_VARS exists as a global var
@@ -1763,7 +1846,6 @@ Sefaria.setup = function(data) {
         }
     }
     Sefaria.util.setupPrototypes();
-    Sefaria.util.setupJQuery();
     Sefaria.util.setupMisc();
     var cookie = Sefaria.util.handleUserCookie(Sefaria.loggedIn, Sefaria._uid, Sefaria._partner_group, Sefaria._partner_role);
     // And store current uid in analytics id
