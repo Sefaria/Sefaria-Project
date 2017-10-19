@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2017-10-16 14:22-0700\n"
+"POT-Creation-Date: 2017-10-18 14:29-0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -157,24 +157,24 @@ msgstr "הודעות בספריא"
 msgid "Moderator Tools"
 msgstr "כלי מנהלים"
 
-#: reader/views.py:2877
+#: reader/views.py:2882
 msgid "You must be logged in to update your profile."
 msgstr "הנכם צריכים להיות מחוברים כדי לערוך את הפרופיל שלכם."
 
-#: reader/views.py:3463 reader/views.py:3466
+#: reader/views.py:3468 reader/views.py:3471
 #, python-format
 msgid "Learn about %(name)s - works written, biographies, dates and more."
 msgstr ""
 
-#: reader/templatetags/sefaria_tags.py:216 sefaria/settings.py:23
+#: reader/templatetags/sefaria_tags.py:229 sefaria/settings.py:23
 msgid "English"
 msgstr "אנגלית"
 
-#: reader/templatetags/sefaria_tags.py:217 sefaria/settings.py:24
+#: reader/templatetags/sefaria_tags.py:230 sefaria/settings.py:24
 msgid "Hebrew"
 msgstr "עברית"
 
-#: reader/templatetags/sefaria_tags.py:218
+#: reader/templatetags/sefaria_tags.py:231
 msgid "Bilingual"
 msgstr ""
 
@@ -383,33 +383,21 @@ msgstr ""
 msgid "Create your own source sheet with Sefaria's Source Sheet Builder."
 msgstr "צרו דף מקורות משלכם בעזרת בונה דפי המקורות של ספריא"
 
-#: templates/s2_sheets.html:1043
-msgid "Private"
-msgstr "פרטי"
-
-#: templates/s2_sheets.html:1046
-msgid "Listed for Sefaria Users"
-msgstr "מופיע למשתמשים רשומים"
-
-#: templates/s2_sheets.html:1049
-msgid "Anyone can Add"
-msgstr "כל אחד יכול להוסיף"
-
-#: templates/s2_sheets.html:1052
-msgid "Anyone can Add - Unlisted"
-msgstr "כל אחד יכול להוסיף - מוסתר"
-
-#: templates/s2_sheets.html:1055
-msgid "Anyone can Edit"
-msgstr "כל אחד יכול לערוך"
-
-#: templates/s2_sheets.html:1058
-msgid "Anyone can Edit - Unlisted"
-msgstr "כל אחד יכול לערוך - מוסתר"
-
-#: templates/s2_sheets.html:1071
+#: templates/s2_sheets.html:1054
 msgid "None"
 msgstr "ללא"
+
+#: templates/s2_sheets.html:1088
+msgid "View"
+msgstr "לצפות"
+
+#: templates/s2_sheets.html:1091
+msgid "Add"
+msgstr "להוסיף"
+
+#: templates/s2_sheets.html:1094
+msgid "Edit"
+msgstr "לערוך"
 
 #: templates/search.html:6
 msgid "Search Jewish Texts"
@@ -485,125 +473,167 @@ msgstr ""
 msgid "deleted the text"
 msgstr "מחק את הטקסט"
 
-#: templates/elements/activity_feed.html:11
+#: templates/elements/activity_feed.html:12
 msgid "deleted a text version of"
 msgstr "מחק את גרסת הטקסט של"
 
-#: templates/elements/activity_feed.html:13
-#: templates/elements/activity_feed.html:35
-#: templates/elements/activity_feed.html:101
+#: templates/elements/activity_feed.html:14
+#: templates/elements/activity_feed.html:37
+#: templates/elements/activity_feed.html:119
 msgid "Version"
 msgstr "גרסה"
 
-#: templates/elements/activity_feed.html:18
+#: templates/elements/activity_feed.html:20
 msgid "translated"
 msgstr "תורגם"
 
-#: templates/elements/activity_feed.html:20
+#: templates/elements/activity_feed.html:22
 msgid "added"
 msgstr "נוסף"
 
-#: templates/elements/activity_feed.html:22
+#: templates/elements/activity_feed.html:24
 msgid "edited"
 msgstr "נערך"
 
-#: templates/elements/activity_feed.html:24
+#: templates/elements/activity_feed.html:26
 msgid "reverted"
 msgstr "שוחזר"
 
-#: templates/elements/activity_feed.html:29
-#: templates/elements/activity_feed.html:51
+#: templates/elements/activity_feed.html:31
+#: templates/elements/activity_feed.html:59
 msgid "and "
 msgstr "ו"
 
-#: templates/elements/activity_feed.html:29
+#: templates/elements/activity_feed.html:31
 msgid "others"
 msgstr "אחרים"
 
-#: templates/elements/activity_feed.html:32
-#: templates/elements/activity_feed.html:99
+#: templates/elements/activity_feed.html:34
+#: templates/elements/activity_feed.html:117
 msgid "history"
 msgstr "הסטוריה"
 
-#: templates/elements/activity_feed.html:44
+#: templates/elements/activity_feed.html:46
 msgid "added a connection"
 msgstr "קישור לטקסט אחר"
 
-#: templates/elements/activity_feed.html:46
+#: templates/elements/activity_feed.html:48
 msgid "edited a connection"
 msgstr "ערך קישור"
 
-#: templates/elements/activity_feed.html:48
+#: templates/elements/activity_feed.html:50
 msgid "deleted a connection"
 msgstr "מחק קישור"
 
-#: templates/elements/activity_feed.html:51
+#: templates/elements/activity_feed.html:53
 msgid "between"
 msgstr "בין"
 
-#: templates/elements/activity_feed.html:55
+#: templates/elements/activity_feed.html:68
 msgid "automatic commentary link"
 msgstr "קישור אוטומטי לפירוש"
 
-#: templates/elements/activity_feed.html:56
+#: templates/elements/activity_feed.html:69
 msgid "automatic citation link"
 msgstr "קישור אוטומטי לציטוט"
 
-#: templates/elements/activity_feed.html:63
+#: templates/elements/activity_feed.html:76
 msgid "added a note to "
 msgstr "הוסיף הערה ל"
 
-#: templates/elements/activity_feed.html:65
+#: templates/elements/activity_feed.html:78
 msgid "edited a note on "
 msgstr "ערך הערה ב"
 
-#: templates/elements/activity_feed.html:67
+#: templates/elements/activity_feed.html:80
 msgid "deleted a note on "
 msgstr "מחק הערה ב"
 
-#: templates/elements/activity_feed.html:80
+#: templates/elements/activity_feed.html:97
 msgid "added text info for the text"
 msgstr "הוסיף מידע אודות הטקסט"
 
-#: templates/elements/activity_feed.html:82
+#: templates/elements/activity_feed.html:99
 msgid "edited the text info of"
 msgstr "ערך מידע אודות הטקסט"
 
-#: templates/elements/activity_feed.html:86
+#: templates/elements/activity_feed.html:103
 msgid "details"
 msgstr "פרטים"
 
-#: templates/elements/activity_feed.html:97
+#: templates/elements/activity_feed.html:115
 msgid "reviewed"
 msgstr "הוסיף הגהה"
 
-#: templates/elements/activity_feed.html:109
+#: templates/elements/activity_feed.html:127
 msgid "published a new Source Sheet"
 msgstr "פרסם דף מקורות חדש"
 
-#: templates/elements/activity_feed.html:119
+#: templates/elements/activity_feed.html:137
 msgid "related"
 msgstr "נוספים"
 
-#: templates/elements/activity_feed.html:127
+#: templates/elements/activity_feed.html:145
 msgid "No matching public activity yet."
 msgstr "לא נמצאו פרטי פעילות גלויה תואמים"
 
-#: templates/elements/activity_feed.html:129
+#: templates/elements/activity_feed.html:147
 msgid "No public activity yet."
 msgstr "לא נמצאה פעילות גלויה"
 
-#: templates/elements/activity_feed.html:133
+#: templates/elements/activity_feed.html:151
 msgid "No matching public history items."
 msgstr "לא נמצאו פרטי הסטוריה גלויה תואמים"
 
-#: templates/elements/activity_feed.html:135
+#: templates/elements/activity_feed.html:153
 msgid "No public history items."
 msgstr "לא נמצאו פרטי הסטוריה גלויה"
 
-#: templates/elements/activity_feed.html:141
+#: templates/elements/activity_feed.html:159
 msgid "Older Activity"
 msgstr "פעילות ישנה יותר"
+
+#: templates/email/base.html:17
+#, fuzzy
+msgid ""
+"\n"
+"            You're receiving this message because you have an account on\n"
+"        "
+msgstr "הינך מקבל הודעה זו מאחר ויש לך חשבון משתמש ב-"
+
+#: templates/email/base.html:22
+#, python-format
+msgid ""
+"\n"
+"            To change your email settings, click <a href=\"%(settings_url)s"
+"\">here</a>\n"
+"        "
+msgstr ""
+"\n"
+"            לשינוי פרטי כתובת המייל שלך, לחץ <a href=\"%(settings_url)s"
+"\">כאן</a>\n"
+"        "
+
+#: templates/email/base.html:26
+#, python-format
+msgid ""
+"\n"
+"            Your feedback is welcome. Feel free to send us an <a href="
+"\"%(hello_email)s\">email</a>.\n"
+"        "
+msgstr ""
+"\n"
+"            דעתכם חשובה לנו.   <a href=\"%(hello_email)s\">ספרו</a>.\n"
+"לנו מה אתם חושבים!        "
+
+#: templates/email/notifications_email.html:5
+#, python-format
+msgid " Hello %(recipient)s, "
+msgstr " שלום %(recipient)s, "
+
+#: templates/email/notifications_email.html:9
+msgid " Here's some new activity on Sefaria that you may have missed."
+msgstr "להלן מעט מהעדכונים האחרונים שיתכן ופספסת בספריא"
 
 #: templates/registration/logged_out.html:4
 msgid "Logged Out"
@@ -632,6 +662,20 @@ msgstr "בחרו סיסמא חדשה"
 #: templates/registration/password_reset_done.html:3
 msgid "Password Reset Link Sent"
 msgstr "קישור לאיפוס סיסמא נשלח"
+
+#: templates/registration/password_reset_email.html:4
+msgid ""
+"A request has been made to reset the password for this email address on "
+"Sefaria.org."
+msgstr ""
+
+#: templates/registration/password_reset_email.html:6
+msgid "Click this link, or copy it to your browser, to choose a new password:"
+msgstr ""
+
+#: templates/registration/password_reset_email.html:12
+msgid "If you did not request this reset, you can safely ignore this email."
+msgstr ""
 
 #: templates/registration/password_reset_form.html:4
 msgid "Forgot your Password"
@@ -886,6 +930,24 @@ msgstr ""
 "התלמוד במהדורת וויליאם דוידסון הוא גרסה דיגיטלית חפשית של התלמוד הבבלי עם "
 "תרגום מקביל המקושר לפרשנים מרכזיים, אזכורים מקראיים, מדרש, הלכה ועולם הולך "
 "וגדל של טקסטים יהודיים"
+
+#~ msgid "Private"
+#~ msgstr "פרטי"
+
+#~ msgid "Listed for Sefaria Users"
+#~ msgstr "מופיע למשתמשים רשומים"
+
+#~ msgid "Anyone can Add"
+#~ msgstr "כל אחד יכול להוסיף"
+
+#~ msgid "Anyone can Add - Unlisted"
+#~ msgstr "כל אחד יכול להוסיף - מוסתר"
+
+#~ msgid "Anyone can Edit"
+#~ msgstr "כל אחד יכול לערוך"
+
+#~ msgid "Anyone can Edit - Unlisted"
+#~ msgstr "כל אחד יכול לערוך - מוסתר"
 
 #~ msgid "Public Source Sheets | Sefaria"
 #~ msgstr "דפי מקורות פומביים | ספריא"

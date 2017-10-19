@@ -22,6 +22,13 @@ for( i=visibleSources.length-1; i>=0; i--) {
 
 resizeZoomContainer();
 
+if (sjs.current.options.language == "hebrew") {
+    $(".en").hide();
+}
+else if (sjs.current.options.language == "english") {
+    $(".he").hide();
+} 
+
 
 
 function resizeZoomContainer() {

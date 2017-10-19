@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2017-10-16 14:21-0700\n"
+"POT-Creation-Date: 2017-10-18 14:30-0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -145,24 +145,24 @@ msgstr ""
 msgid "Moderator Tools"
 msgstr ""
 
-#: reader/views.py:2877
+#: reader/views.py:2882
 msgid "You must be logged in to update your profile."
 msgstr ""
 
-#: reader/views.py:3463 reader/views.py:3466
+#: reader/views.py:3468 reader/views.py:3471
 #, python-format
 msgid "Learn about %(name)s - works written, biographies, dates and more."
 msgstr ""
 
-#: reader/templatetags/sefaria_tags.py:216 sefaria/settings.py:23
+#: reader/templatetags/sefaria_tags.py:229 sefaria/settings.py:23
 msgid "English"
 msgstr ""
 
-#: reader/templatetags/sefaria_tags.py:217 sefaria/settings.py:24
+#: reader/templatetags/sefaria_tags.py:230 sefaria/settings.py:24
 msgid "Hebrew"
 msgstr ""
 
-#: reader/templatetags/sefaria_tags.py:218
+#: reader/templatetags/sefaria_tags.py:231
 msgid "Bilingual"
 msgstr ""
 
@@ -363,32 +363,20 @@ msgstr ""
 msgid "Create your own source sheet with Sefaria's Source Sheet Builder."
 msgstr ""
 
-#: templates/s2_sheets.html:1043
-msgid "Private"
-msgstr ""
-
-#: templates/s2_sheets.html:1046
-msgid "Listed for Sefaria Users"
-msgstr ""
-
-#: templates/s2_sheets.html:1049
-msgid "Anyone can Add"
-msgstr ""
-
-#: templates/s2_sheets.html:1052
-msgid "Anyone can Add - Unlisted"
-msgstr ""
-
-#: templates/s2_sheets.html:1055
-msgid "Anyone can Edit"
-msgstr ""
-
-#: templates/s2_sheets.html:1058
-msgid "Anyone can Edit - Unlisted"
-msgstr ""
-
-#: templates/s2_sheets.html:1071
+#: templates/s2_sheets.html:1054
 msgid "None"
+msgstr ""
+
+#: templates/s2_sheets.html:1088
+msgid "View"
+msgstr ""
+
+#: templates/s2_sheets.html:1091
+msgid "Add"
+msgstr ""
+
+#: templates/s2_sheets.html:1094
+msgid "Edit"
 msgstr ""
 
 #: templates/search.html:6
@@ -455,124 +443,158 @@ msgstr ""
 msgid "deleted the text"
 msgstr ""
 
-#: templates/elements/activity_feed.html:11
+#: templates/elements/activity_feed.html:12
 msgid "deleted a text version of"
 msgstr ""
 
-#: templates/elements/activity_feed.html:13
-#: templates/elements/activity_feed.html:35
-#: templates/elements/activity_feed.html:101
+#: templates/elements/activity_feed.html:14
+#: templates/elements/activity_feed.html:37
+#: templates/elements/activity_feed.html:119
 msgid "Version"
 msgstr ""
 
-#: templates/elements/activity_feed.html:18
+#: templates/elements/activity_feed.html:20
 msgid "translated"
 msgstr ""
 
-#: templates/elements/activity_feed.html:20
+#: templates/elements/activity_feed.html:22
 msgid "added"
 msgstr ""
 
-#: templates/elements/activity_feed.html:22
+#: templates/elements/activity_feed.html:24
 msgid "edited"
 msgstr ""
 
-#: templates/elements/activity_feed.html:24
+#: templates/elements/activity_feed.html:26
 msgid "reverted"
 msgstr ""
 
-#: templates/elements/activity_feed.html:29
-#: templates/elements/activity_feed.html:51
+#: templates/elements/activity_feed.html:31
+#: templates/elements/activity_feed.html:59
 msgid "and "
 msgstr ""
 
-#: templates/elements/activity_feed.html:29
+#: templates/elements/activity_feed.html:31
 msgid "others"
 msgstr ""
 
-#: templates/elements/activity_feed.html:32
-#: templates/elements/activity_feed.html:99
+#: templates/elements/activity_feed.html:34
+#: templates/elements/activity_feed.html:117
 msgid "history"
 msgstr ""
 
-#: templates/elements/activity_feed.html:44
+#: templates/elements/activity_feed.html:46
 msgid "added a connection"
 msgstr ""
 
-#: templates/elements/activity_feed.html:46
+#: templates/elements/activity_feed.html:48
 msgid "edited a connection"
 msgstr ""
 
-#: templates/elements/activity_feed.html:48
+#: templates/elements/activity_feed.html:50
 msgid "deleted a connection"
 msgstr ""
 
-#: templates/elements/activity_feed.html:51
+#: templates/elements/activity_feed.html:53
 msgid "between"
 msgstr ""
 
-#: templates/elements/activity_feed.html:55
+#: templates/elements/activity_feed.html:68
 msgid "automatic commentary link"
 msgstr ""
 
-#: templates/elements/activity_feed.html:56
+#: templates/elements/activity_feed.html:69
 msgid "automatic citation link"
 msgstr ""
 
-#: templates/elements/activity_feed.html:63
+#: templates/elements/activity_feed.html:76
 msgid "added a note to "
 msgstr ""
 
-#: templates/elements/activity_feed.html:65
+#: templates/elements/activity_feed.html:78
 msgid "edited a note on "
 msgstr ""
 
-#: templates/elements/activity_feed.html:67
+#: templates/elements/activity_feed.html:80
 msgid "deleted a note on "
 msgstr ""
 
-#: templates/elements/activity_feed.html:80
+#: templates/elements/activity_feed.html:97
 msgid "added text info for the text"
 msgstr ""
 
-#: templates/elements/activity_feed.html:82
+#: templates/elements/activity_feed.html:99
 msgid "edited the text info of"
 msgstr ""
 
-#: templates/elements/activity_feed.html:86
+#: templates/elements/activity_feed.html:103
 msgid "details"
 msgstr ""
 
-#: templates/elements/activity_feed.html:97
+#: templates/elements/activity_feed.html:115
 msgid "reviewed"
 msgstr ""
 
-#: templates/elements/activity_feed.html:109
+#: templates/elements/activity_feed.html:127
 msgid "published a new Source Sheet"
 msgstr ""
 
-#: templates/elements/activity_feed.html:119
+#: templates/elements/activity_feed.html:137
 msgid "related"
 msgstr ""
 
-#: templates/elements/activity_feed.html:127
+#: templates/elements/activity_feed.html:145
 msgid "No matching public activity yet."
 msgstr ""
 
-#: templates/elements/activity_feed.html:129
+#: templates/elements/activity_feed.html:147
 msgid "No public activity yet."
 msgstr ""
 
-#: templates/elements/activity_feed.html:133
+#: templates/elements/activity_feed.html:151
 msgid "No matching public history items."
 msgstr ""
 
-#: templates/elements/activity_feed.html:135
+#: templates/elements/activity_feed.html:153
 msgid "No public history items."
 msgstr ""
 
-#: templates/elements/activity_feed.html:141
+#: templates/elements/activity_feed.html:159
 msgid "Older Activity"
+msgstr ""
+
+#: templates/email/base.html:17
+msgid ""
+"\n"
+"            You're receiving this message because you have an account on\n"
+"        "
+msgstr ""
+
+#: templates/email/base.html:22
+#, python-format
+msgid ""
+"\n"
+"            To change your email settings, click <a href=\"%(settings_url)s"
+"\">here</a>\n"
+"        "
+msgstr ""
+
+#: templates/email/base.html:26
+#, python-format
+msgid ""
+"\n"
+"            Your feedback is welcome. Feel free to send us an <a href="
+"\"%(hello_email)s\">email</a>.\n"
+"        "
+msgstr ""
+
+#: templates/email/notifications_email.html:5
+#, python-format
+msgid " Hello %(recipient)s, "
+msgstr ""
+
+#: templates/email/notifications_email.html:9
+msgid " Here's some new activity on Sefaria that you may have missed."
 msgstr ""
 
 #: templates/registration/logged_out.html:4
@@ -599,6 +621,20 @@ msgstr ""
 
 #: templates/registration/password_reset_done.html:3
 msgid "Password Reset Link Sent"
+msgstr ""
+
+#: templates/registration/password_reset_email.html:4
+msgid ""
+"A request has been made to reset the password for this email address on "
+"Sefaria.org."
+msgstr ""
+
+#: templates/registration/password_reset_email.html:6
+msgid "Click this link, or copy it to your browser, to choose a new password:"
+msgstr ""
+
+#: templates/registration/password_reset_email.html:12
+msgid "If you did not request this reset, you can safely ignore this email."
 msgstr ""
 
 #: templates/registration/password_reset_form.html:4

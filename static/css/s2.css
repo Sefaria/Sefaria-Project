@@ -3319,6 +3319,7 @@ a.readerNavCategory {
 }
 .connectionsPanel.textList .note {
   padding: 30px 0;
+  position: relative;
 }
 .connectionsPanel.textList .note {
   border-top: 1px solid #E6E5E6;
@@ -3327,10 +3328,13 @@ a.readerNavCategory {
   border-top: none;
 }
 .connectionsPanel .noteButtons {
-  float: right;
+  position: absolute;
+  top: 30px;
+  left: -32px;
 }
 .interface-hebrew .connectionsPanel .noteButtons {
-  float: left;
+  left: auto;
+  right: -32px;
 }
 .connectionsPanel .editNoteButton {
   visibility: hidden;

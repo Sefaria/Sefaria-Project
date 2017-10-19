@@ -1763,10 +1763,10 @@ def links_api(request, link_id_or_ref=None):
         if not request.user.is_authenticated():
             key = request.POST.get("apikey")
             if not key:
-                return {"error": "You must be logged in or use an API key to add, edit or delete links."}
+                return jsonResponse({"error": "You must be logged in or use an API key to add, edit or delete links."})
             apikey = db.apikeys.find_one({"key": key})
             if not apikey:
-                return {"error": "Unrecognized API key."}
+                return jsonResponse({"error": "Unrecognized API key."})
             uid = apikey["uid"]
             kwargs = {"method": "API"}
         else:
@@ -1849,6 +1849,8 @@ def notes_api(request, note_id_or_ref):
             del note["refs"]
 
         func = tracker.update if "_id" in note else tracker.add
+        if "_id" in note:
+            note["_id"] = ObjectId(note["_id"])
         if not request.user.is_authenticated():
             key = request.POST.get("apikey")
             if not key:
@@ -2054,7 +2056,7 @@ def lock_text_api(request, title, lang, version):
     To unlock, include the URL parameter "action=unlock"
     """
     if not request.user.is_staff:
-        return {"error": "Only Sefaria Moderators can lock texts."}
+        return jsonResponse({"error": "Only Sefaria Moderators can lock texts."})
 
     title   = title.replace("_", " ")
     version = version.replace("_", " ")
@@ -2160,10 +2162,10 @@ def category_api(request, path=None):
         if not request.user.is_authenticated():
             key = request.POST.get("apikey")
             if not key:
-                return {"error": "You must be logged in or use an API key to add or delete categories."}
+                return jsonResponse({"error": "You must be logged in or use an API key to add or delete categories."})
             apikey = db.apikeys.find_one({"key": key})
             if not apikey:
-                return {"error": "Unrecognized API key."}
+                return jsonResponse({"error": "Unrecognized API key."})
             user = User.objects.get(id=apikey["uid"])
             if not user.is_staff:
                 return jsonResponse({"error": "Only Sefaria Moderators can add or delete categories."})
@@ -2224,10 +2226,10 @@ def terms_api(request, name):
         if not request.user.is_authenticated():
             key = request.POST.get("apikey")
             if not key:
-                return {"error": "You must be logged in or use an API key to add, edit or delete terms."}
+                return jsonResponse({"error": "You must be logged in or use an API key to add, edit or delete terms."})
             apikey = db.apikeys.find_one({"key": key})
             if not apikey:
-                return {"error": "Unrecognized API key."}
+                return jsonResponse({"error": "Unrecognized API key."})
             user = User.objects.get(id=apikey["uid"])
             if not user.is_staff:
                 return jsonResponse({"error": "Only Sefaria Moderators can add or edit terms."})
