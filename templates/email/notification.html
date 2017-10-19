@@ -1,34 +1,38 @@
 {% load sefaria_tags %}
+{% load i18n %}
 
 <div class="notification" style="border-top:1px solid #bbb;padding:14px 0">
 	
 	{% if notification.type == "message" %}
 		<div>
-			{{ notification.content.sender|user_link|absolute_link }} sent you a message:&nbsp;&nbsp;&nbsp;
+			{{ notification.content.sender|user_link|absolute_link }} {% trans "sent you a message:" %}&nbsp;&nbsp;&nbsp;
 			<div class="messageText" style="padding:14px 26px;font-size:16px;color:#555">
 				{% autoescape off %}{{ notification.content.message }}{% endautoescape %}
 			</div>
 		</div>
-		<div>Reply to {{ notification.content.sender|user_link|absolute_link }}.</div>
+		<div>{% trans "Reply to" %} {{ notification.content.sender|user_link|absolute_link }}.</div>
 	
 
 	{% elif notification.type == "sheet like" %}
-		{{ notification.content.liker|user_link|absolute_link }} likes your Source Sheet, {{ notification.content.sheet_id|sheet_link|absolute_link }}.
+		{{ notification.content.liker|user_link|absolute_link }} {% trans "likes your Source Sheet" %}, {{ notification.content.sheet_id|sheet_link|absolute_link }}.
 
 	{% elif notification.type == "sheet publish" %}
-		{{ notification.content.publisher|user_link|absolute_link }} published a new Source Sheet, {{ notification.content.sheet_id|sheet_link|absolute_link }}.
+		{{ notification.content.publisher|user_link|absolute_link }} {% trans "published a new Source Sheet" %}, {{ notification.content.sheet_id|sheet_link|absolute_link }}.
 
 	{% elif notification.type == "follow" %}
-		{{ notification.content.follower|user_link|absolute_link }} is now following you.
+		{{ notification.content.follower|user_link|absolute_link }} {% trans "is now following you" %}.
 	
 	{% elif notification.type == "group add" %}
-        {{ notification.content.adder|user_link|absolute_link  }} added you to the group {{ notification.content.group_name|group_link|absolute_link  }}.
+        {{ notification.content.adder|user_link|absolute_link  }} {% trans "added you to the group" %} {{ notification.content.group_name|group_link|absolute_link  }}.
 
 	{% elif notification.type == "discuss" %}
-		{{ notification.content.adder|user_link|absolute_link }} added a note to a <a href="https://www.sefaria.org{{ notification.content.discussion_path|url_safe }}">discussion you follow</a>.
+		{{ notification.content.adder|user_link|absolute_link }} {% trans "added a note to a" %}
+        <a href="https://www.sefaria.org{{ notification.content.discussion_path|url_safe }}">
+            {% trans "discussion you follow" %}
+        </a>.
 
 	{% elif notification.type == "unset" %}
-		This is a notification without a type, it shouldn't exist.
+		{% trans "This is a notification without a type, it shouldn't exist." %}
 	
 	{% endif %}
 
