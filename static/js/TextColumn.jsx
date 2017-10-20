@@ -17,14 +17,11 @@ class TextColumn extends Component {
     this._isMounted          = true;
     this.$container          = $(ReactDOM.findDOMNode(this));
     this.initialScrollTopSet = false;
-    this.justTransitioned    = true;
+    this.windowMiddle        = $(window).outerHeight() / 2;
     this.setPaddingForScrollbar();
-    this.setScrollPosition();
-    this.adjustInfiniteScroll();
     this.debouncedAdjustHighlightedAndVisible = Sefaria.util.debounce(this.adjustHighlightedAndVisible, 100);
     var node = ReactDOM.findDOMNode(this);
     node.addEventListener("scroll", this.handleScroll);
-    this.windowMiddle = $(window).outerHeight() / 2;
   }
   componentWillUnmount() {
     this._isMounted = false;
@@ -34,25 +31,17 @@ class TextColumn extends Component {
   componentWillReceiveProps(nextProps) {
     //console.log(nextProps)
     if (this.props.mode === "Text" && nextProps.mode === "TextAndConnections") {
-      // When moving into text and connections, scroll to highlighted
-      this.justTransitioned    = true;
+      // When opening mobile connections panel, scroll to highlighted
       this.scrolledToHighlight = false;
       this.initialScrollTopSet = true;
 
-    } else if (this.props.mode === "TextAndConnections" && nextProps.mode === "TextAndConnections") {
-      // Don't mess with scroll position within Text and Connections mode
-      if (this.justTransitioned) {
-        this.justTransitioned = false;
-      } else if (!this.initialScrollTopSet) {
-        this.scrolledToHighlight = true;
-      }
-
     } else if (this.props.mode === "TextAndConnections" && nextProps.mode === "Text") {
-      // Don't mess with scroll position within Text and Connections mode
+      // Don't mess with scroll position when closing mobile Connections panel
       this.scrolledToHighlight = true;
       this.initialScrollTopSet = true;
 
     } else if (this.props.panelsOpen !== nextProps.panelsOpen) {
+      // When panels are opened of closed, refocus highlighted segments
       this.scrolledToHighlight = false;
     
     } else if (nextProps.srefs.length == 1 && Sefaria.util.inArray(nextProps.srefs[0], this.props.srefs) == -1) {
@@ -71,7 +60,6 @@ class TextColumn extends Component {
         this.props.settings.language !== prevProps.settings.language) {
       //console.log("scroll to highlighted on layout change")
       this.scrollToHighlighted();
-      this.scrolledToHighlight = true;
     }
   }
   handleScroll(event) {
@@ -81,7 +69,6 @@ class TextColumn extends Component {
       this.justScrolled = false;
       return;
     }
-
     this.debouncedAdjustHighlightedAndVisible();
     this.adjustInfiniteScroll();
   }
@@ -113,7 +100,9 @@ class TextColumn extends Component {
     }
   }
   handleTextLoad() {
+    //console.log("handle text load");
     this.setScrollPosition();
+    this.adjustInfiniteScroll();
   }
   setScrollPosition() {
     //console.log("ssp");
@@ -137,10 +126,9 @@ class TextColumn extends Component {
         //console.log("total top: " + top)
       }
     } else if (!this.scrolledToHighlight && $(node).find(".segment.highlight").length) {
-      //console.log("scroll to highlighted call");
+      //console.log("scroll to highlighted");
       // scroll to highlighted segment
       this.scrollToHighlighted();
-      this.scrolledToHighlight = true;
       this.initialScrollTopSet = true;
       this.justScrolled        = true;
     } else if (!this.initialScrollTopSet && (node.scrollHeight > node.clientHeight)) {
@@ -181,7 +169,7 @@ class TextColumn extends Component {
     } else if ( lastBottom < windowHeight + 80 ) {
       // DOWN: add the next section to bottom
       if ($lastText.hasClass("loading")) {
-        // console.log("last text is loading - don't add next section");
+        //console.log("last text is loading - don't add next section");
         return;
       }
       //console.log("Down! Add next section");
@@ -192,13 +180,11 @@ class TextColumn extends Component {
         this.props.updateTextColumn(refs);
         Sefaria.track.event("Reader", "Infinite Scroll", "Down");
       }
-    }  else {
-      // nothing happens
     }
   }
   getHighlightThreshhold() {
     // Returns the distance from the top of screen that we want highlighted segments to appear below.
-    return this.props.multiPanel ? 200 : 50;
+    return this.props.multiPanel ? 200 : 70;
   }
   adjustHighlightedAndVisible() {
     //console.log("adjustHighlightedAndVisible");
@@ -216,9 +202,9 @@ class TextColumn extends Component {
       var $container = this.$container;
       var topThreshhold = this.getHighlightThreshhold();
       $container.find(".basetext .segment").each(function(i, segment) {
-        var top = $(segment).offset().top;
+        var top = $(segment).offset().top - $container.offset().top;
         var bottom = $(segment).outerHeight() + top;
-        if (bottom > this.windowMiddle || top > topThreshhold) {
+        if (bottom > this.windowMiddle || top >= topThreshhold) {
           $segment = $(segment);
           return false;
         }
@@ -242,24 +228,22 @@ class TextColumn extends Component {
         this.props.setTextListHighlight([]);
       }
     }
-
   }
   scrollToHighlighted() {
-    window.requestAnimationFrame(function() {
-      if (!this._isMounted) { return; }
-      //console.log("scroll to highlighted - animation frame");
-      var $container   = this.$container;
-      var $readerPanel = $container.closest(".readerPanel");
-      var $highlighted = $container.find(".segment.highlight").first();
-      if ($highlighted.length) {
-        this.justScrolled = true;
-        var offset = this.getHighlightThreshhold();
-        $container.scrollTo($highlighted, 0, {offset: -offset});
-        if ($readerPanel.attr("id") == $(".readerPanel:last").attr("id")) {
-          $highlighted.focus();
-        }
+    if (!this._isMounted) { return; }
+    //console.log("scroll to highlighted - animation frame");
+    var $container   = this.$container;
+    var $readerPanel = $container.closest(".readerPanel");
+    var $highlighted = $container.find(".segment.highlight").first();
+    if ($highlighted.length) {
+      this.scrolledToHighlight = true;
+      this.justScrolled = true;
+      var offset = this.getHighlightThreshhold();
+      $container.scrollTo($highlighted, 0, {offset: -offset});
+      if ($readerPanel.attr("id") == $(".readerPanel:last").attr("id")) {
+        $highlighted.focus();
       }
-    }.bind(this));
+    }
   }
   setPaddingForScrollbar() {
     // Scrollbars take up spacing, causing the centering of TextColumn to be slightly off center

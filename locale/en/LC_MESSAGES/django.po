@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2017-10-18 14:30-0700\n"
+"POT-Creation-Date: 2017-10-19 12:24-0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -166,32 +166,32 @@ msgstr ""
 msgid "Bilingual"
 msgstr ""
 
-#: sefaria/forms.py:58 sefaria/forms.py:63 sefaria/forms.py:129
+#: sefaria/forms.py:59 sefaria/forms.py:64 sefaria/forms.py:133
 #: templates/static/educators.html:301 templates/static/home.html:361
 msgid "Email Address"
 msgstr ""
 
-#: sefaria/forms.py:59 sefaria/forms.py:66
+#: sefaria/forms.py:60 sefaria/forms.py:67
 msgid "Password"
 msgstr ""
 
-#: sefaria/forms.py:64
+#: sefaria/forms.py:65
 msgid "First Name"
 msgstr ""
 
-#: sefaria/forms.py:65
+#: sefaria/forms.py:66
 msgid "Last Name"
 msgstr ""
 
-#: sefaria/forms.py:67
+#: sefaria/forms.py:68
 msgid "Receive important announcements"
 msgstr ""
 
-#: sefaria/forms.py:68
+#: sefaria/forms.py:69
 msgid "Receive our educator newsletter"
 msgstr ""
 
-#: sefaria/forms.py:90
+#: sefaria/forms.py:94
 msgid "A user with that email already exists."
 msgstr ""
 
@@ -536,6 +536,7 @@ msgid "reviewed"
 msgstr ""
 
 #: templates/elements/activity_feed.html:127
+#: templates/email/notification.html:20
 msgid "published a new Source Sheet"
 msgstr ""
 
@@ -586,6 +587,38 @@ msgid ""
 "            Your feedback is welcome. Feel free to send us an <a href="
 "\"%(hello_email)s\">email</a>.\n"
 "        "
+msgstr ""
+
+#: templates/email/notification.html:8
+msgid "sent you a message:"
+msgstr ""
+
+#: templates/email/notification.html:13
+msgid "Reply to"
+msgstr ""
+
+#: templates/email/notification.html:17
+msgid "likes your Source Sheet"
+msgstr ""
+
+#: templates/email/notification.html:23
+msgid "is now following you"
+msgstr ""
+
+#: templates/email/notification.html:26
+msgid "added you to the group"
+msgstr ""
+
+#: templates/email/notification.html:29
+msgid "added a note to a "
+msgstr ""
+
+#: templates/email/notification.html:31
+msgid "discussion you follow"
+msgstr ""
+
+#: templates/email/notification.html:35
+msgid "This is a notification without a type, it shouldn't exist."
 msgstr ""
 
 #: templates/email/notifications_email.html:5
@@ -866,3 +899,6 @@ msgid ""
 "biblical citations, Midrash, Halakhah, and an ever-growing library of Jewish "
 "texts."
 msgstr ""
+
+#~ msgid "captcha lang"
+#~ msgstr "en"

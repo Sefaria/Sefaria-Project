@@ -14,6 +14,8 @@ if not hasattr(sys, '_doc_build'):
 from sefaria.model.following import FollowersSet, FolloweesSet
 from sefaria.model.text import Ref
 from sefaria.system.database import db
+from django.utils import translation
+
 
 
 class UserProfile(object):
@@ -42,7 +44,7 @@ class UserProfile(object):
 			self.last_name         = str(id)
 			self.email             = "test@sefaria.org"
 			self.date_joined       = None
-    
+
 		self._id                   = None  # Mongo ID of profile doc
 		self.id                    = id    # user ID
 		self.slug                  = ""
@@ -68,8 +70,8 @@ class UserProfile(object):
 			"interface_language": "english",
 		}
 
-		self._name_updated      = False 
-		self._slug_updated      = False 
+		self._name_updated      = False
+		self._slug_updated      = False
 
 		# Update with saved profile doc in MongoDB
 		profile = db.profiles.find_one({"id": id})
@@ -136,7 +138,7 @@ class UserProfile(object):
 
 	def errors(self):
 		"""
-		Returns a string with any validation errors, 
+		Returns a string with any validation errors,
 		or None if the profile is valid.
 		"""
 		# Slug
@@ -297,6 +299,9 @@ def email_unread_notifications(timeframe):
 		except User.DoesNotExist:
 			continue
 
+		if "interface_language" in profile.settings:
+			translation.activate(profile.settings["interface_language"][0:2])
+
 		message_html  = render_to_string("email/notifications_email.html", {"notifications": notifications, "recipient": user.first_name})
 		#message_text = util.strip_tags(message_html)
 		actors_string = notifications.actors_string()
@@ -309,8 +314,10 @@ def email_unread_notifications(timeframe):
 		msg.content_subtype = "html"  # Main content is now text/html
 		#msg.attach_alternative(message_text, "text/plain")
 		msg.send()
-
 		notifications.mark_read(via="email")
+
+		if "interface_language" in profile.settings:
+			translation.deactivate()
 
 
 def unread_notifications_count_for_user(uid):
@@ -356,7 +363,7 @@ def user_link(uid):
 	"""Returns a string with an <a> tag linking to a users profile"""
 	if uid in user_links:
 		return user_links[uid]
-	
+
 	data = public_user_data(uid)
 	link = "<a href='" + data["profileUrl"] + "' class='userLink'>" + data["name"] + "</a>"
 	user_links[uid] = link
@@ -383,7 +390,7 @@ def user_started_text(uid, title):
 
 	This checks for the oldest matching index change record for 'title'.
 	If someone other than the initiator changed the text's title, this function
-	will incorrectly report False, but this matches our intended behavior to 
+	will incorrectly report False, but this matches our intended behavior to
 	lock name changes after an admin has stepped in.
 	"""
 	log = db.history.find({"title": title}).sort([["date", -1]]).limit(1)
@@ -395,7 +402,7 @@ def user_started_text(uid, title):
 
 def annotate_user_list(uids):
 	"""
-	Returns a list of dictionaries giving details (names, profile links) 
+	Returns a list of dictionaries giving details (names, profile links)
 	for the user ids list in uids.
 	"""
 	annotated_list = []

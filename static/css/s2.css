@@ -470,7 +470,6 @@ input.noselect {
   overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
   position: relative;
-  padding: 0 0 50%;
   box-sizing: border-box;
   background-color: inherit;
 }
@@ -491,6 +490,7 @@ input.noselect {
 }
 .textColumn .loadingMessage.base.next {
   margin: 30px 0 70px;
+  height: 50%;
 }
 .textColumn .loadingMessage.base.next.final {
 }
@@ -2645,6 +2645,8 @@ a.readerNavCategory {
 }
 .singlePanel .connectionsPanelHeader {
   justify-content: flex-start;
+  align-items: stretch;
+  height: 100%;
 }
 .interface-hebrew .connectionsPanelHeader {
   direction: rtl;
@@ -2712,8 +2714,8 @@ a.readerNavCategory {
   background-color: #333331;
 }
 .textList.fullPanel {
-  height: 100%;
   padding-top: 58px;
+  height: 100%;
   box-sizing: border-box;
 }
 .textList .texts,
@@ -2733,11 +2735,8 @@ a.readerNavCategory {
   max-width: 660px;
   margin: 0 auto;
 }
-.textList.fullPanel .texts {
-  padding: 0 48px 300px 60px;
-}
 .textList .texts {
-  padding: 80px 30px 80px 30px;
+  padding: 30px 30px 80px 30px;
 }
 .textList.fullPanel .texts {
   padding: 50px 40px 80px 40px;
@@ -2801,7 +2800,6 @@ a.readerNavCategory {
   border-right: 1px solid transparent;
 }
 .topFilters {
-  line-height: 0px;
   text-transform: none;
 }
 .sepia .topFilters {
@@ -2820,7 +2818,7 @@ a.readerNavCategory {
 .topFilters .textFilter {
   color: #999;
   display: inline-block;
-  padding: 13px 8px;
+  padding: 16px 8px;
 }
 .topFilters .textFilter.on {
   color: black;
@@ -2999,6 +2997,9 @@ a.readerNavCategory {
 }
 .dark .textList .texts .textRange .title {
   color: #ddd;
+}
+.textList.singlePanel .textListTextRangeBox:first-child {
+  margin-top: -30px;
 }
 .textRange .title {
   display: flex;
