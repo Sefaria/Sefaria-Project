@@ -470,7 +470,6 @@ input.noselect {
   overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
   position: relative;
-  padding: 0 0 50%;
   box-sizing: border-box;
   background-color: inherit;
 }
@@ -491,6 +490,7 @@ input.noselect {
 }
 .textColumn .loadingMessage.base.next {
   margin: 30px 0 70px;
+  height: 50%;
 }
 .textColumn .loadingMessage.base.next.final {
 }
