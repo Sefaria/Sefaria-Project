@@ -67,33 +67,26 @@ function switchToHebrew() { lang = "he"; }
 
 
 /*****          Initial screen construction            *****/
-/*
+/*  GLOBALS Defined in template, with attributes:
+        books: List of books loaded initially
+        interfaceLang
+*/
 
-    var GLOBALS = {   // Defined in template
-        books: {{ books|safe }},
-        interfaceLang: {{ request.interfaceLang }}
-    }
- */
+(GLOBALS.interfaceLang == "hebrew") ? switchToHebrew() : switchToEnglish();
 
-if (GLOBALS.interfaceLang == "hebrew") {
-    switchToHebrew();
-} else {
-    switchToEnglish();
-}
-
-// Load category shape data
 var tanakh = [];
 var bavli = [];
 
-
-var b = Sefaria.shape("Talmud/Bavli", function(d) {bavli = d});
-var t = Sefaria.shape("Tanakh", function(d) {tanakh = d});
+var b = Sefaria.shape("Talmud/Bavli", d => bavli = d);
+var t = Sefaria.shape("Tanakh", d => tanakh = d);
 
 $.when(b, t).then(function() {
     buildScreen(GLOBALS.books, "Tanakh");
     replaceHistory();
 });
 
+
+/*****         Methods used in screen construction      *****/
 
 function buildScreen(openBooks, colorScheme) {
     buildFrame();
@@ -781,7 +774,7 @@ function closeBook(dCloser) {
     svg.select(".axis." + closing.datum().id).transition()
             .style("display","none");
 
-    removeBrush(closing.datum())
+    removeBrush(closing.datum());
 
     //If all books closed, show book links
     if (booksFocused == 0) {
