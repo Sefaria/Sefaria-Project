@@ -351,8 +351,8 @@ body:not(.user-is-tabbing) #sheet .cke_editable:focus {
 
 #shareWithOthers .line {
 	margin-left:-30px;
-	margin-top: 13px;
-	margin-bottom: 13px;
+	margin-top: 30px;
+	margin-bottom: 30px;
 	width: 540px;
 }
 
@@ -512,7 +512,7 @@ body:not(.user-is-tabbing) #sheet .cke_editable:focus {
 #sheetMetadata {
 	color: #999;
 	background-color: #fafafa;
-	padding: 0 76px;
+	padding: 0 80px;
 }
 
 #sheet #sheetMetadata .button {
@@ -542,16 +542,20 @@ body:not(.user-is-tabbing) #sheet .cke_editable:focus {
   	display: none;
 }
 
+#sheetTags {
+	margin-left: -4px;
+}
+
 #sheetMetadata summary:after {
   	content: "❯";
-	margin: 2px 0 0 6px;
+	margin: 0 0 0 6px;
 }
 #sheetMetadata[open] summary span {
 	display: none;
 }
 #sheetMetadata[open] summary:after {
   	content: "✕";
-    top: 54px;
+    top: 56px;
     margin: 0 80px;
     position: relative;
     align-self: flex-end;
@@ -2065,7 +2069,7 @@ a.userLink{
     box-sizing: border-box;
     height: 36px;
 	margin-top: 6px;
-	padding-left: 30px;
+	padding-left: 35px;
 	color: #999;
 	/* url below is an inline copy of `/static/img/tools-add-connection.svg` it's required to change the color accordingly  */
     background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="%23999" d="M21.921 2.081c2.771 2.772 2.771 7.269 0 10.042l-3.84 3.839-2.121-2.122 3.839-3.84c1.599-1.598 1.599-4.199-.001-5.797-1.598-1.599-4.199-1.599-5.797-.001l-3.84 3.839-2.121-2.121 3.84-3.839c2.771-2.773 7.267-2.773 10.041 0zm-8.082 13.879l-3.84 3.839c-1.598 1.6-4.199 1.599-5.799 0-1.598-1.598-1.598-4.2 0-5.797l3.84-3.84-2.121-2.121-3.84 3.84c-2.771 2.772-2.772 7.268 0 10.041 2.773 2.772 7.27 2.773 10.041 0l3.84-3.84-2.121-2.122z"/></svg>') no-repeat 9px center;
@@ -2076,9 +2080,18 @@ a.userLink{
 	margin-top: 13px;
 }
 
+#sourceSheetGroupOptions {
+	margin-top: 8px;
+}
+
 label[for="shareURL"],label[for="sourceSheetGroupSelect"], .labelforOnOffSwitch {
 	width: 24%;
     display: inline-block;
+}
+
+.labelforOnOffSwitch {
+	position: relative;
+	top: -5px;
 }
 
 label[for="sourceSheetShareSelect"] {
@@ -2107,6 +2120,7 @@ label[for="sourceSheetShareSelect"] {
 	padding: 10px 15px;
     border-radius: 4px;
 	font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+	margin-bottom: 0;
 }
 
 #sheetsContent textarea#sheetSummaryInput::placeholder {
@@ -2211,7 +2225,7 @@ label[for="sourceSheetShareSelect"] {
 	border: 1px solid rgb(204, 204, 204);
 	background: #ffffff;
 	color: #222222;
-	margin: 20px 0 5px 0;
+	margin: 0 0 5px 0;
 	padding-left: 10px;
     border-radius: 4px;
 }
@@ -2260,6 +2274,11 @@ ul.tagit li.tagit-choice .tagit-close .text-icon {
 	margin-left: 5px;
 }
 
+#tags input {
+    font-size: 16px;
+    font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+}
+
 .ui-icon {
     width: 16px;
     height: 16px;
@@ -2280,7 +2299,7 @@ ul.tagit li.tagit-choice {
 	background-color: #F9F9F7;
 	border-radius: 2px;
 	padding: 5px 15px 5px 5px;
-	margin: 5px;
+	margin: 5px 0 0 5px;
 }
 
 a.tagit-close {
