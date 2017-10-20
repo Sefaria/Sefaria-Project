@@ -369,12 +369,23 @@ def delete_orphaned_counts(request):
 
 @staff_member_required
 def rebuild_toc(request):
+    model.library.rebuild_toc()
+    return HttpResponseRedirect("/?m=TOC-Rebuilt")
+
+    """
     from sefaria.settings import DEBUG
     if DEBUG:
         model.library.rebuild_toc()
         return HttpResponseRedirect("/?m=TOC-Rebuilt")
     else:
         return HttpResponseRedirect("/?m=TOC-Rebuild-Not-Allowed")
+    """
+
+@staff_member_required
+def rebuild_auto_completer(request):
+    library.build_full_auto_completer()
+    library.build_ref_auto_completer()
+    return HttpResponseRedirect("/?m=auto-completer-Rebuilt")
 
 
 @staff_member_required

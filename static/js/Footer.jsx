@@ -88,7 +88,7 @@ class Footer extends Component {
               </a>
               <a href="/visualizations" className="outOfAppLink">
                   <span className="int-en">Visualizations</span>
-                  <span className="int-he">עזרים חזותיים</span>
+                  <span className="int-he">תרשימים גרפיים</span>
               </a>
               <a href="/people" className="outOfAppLink">
                   <span className="int-en">Authors</span>
