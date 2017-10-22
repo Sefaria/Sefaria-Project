@@ -128,13 +128,13 @@ var diffConfig = config({
 });
 
 var exploreConfig = config({
-    context: path.resolve(__dirname, 'static/js'),
+    context: path.resolve('./static/js'),
     entry: './explore',
     externals: {
         d3: 'd3'
     },
     output: {
-        path: path.join(__dirname, buildDir + 'explore'),
+        path: path.resolve(buildDir + 'explore'),
         filename: 'explore.js'
     }
 });
