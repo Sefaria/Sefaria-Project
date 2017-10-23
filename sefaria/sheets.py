@@ -615,13 +615,13 @@ class Sheet(abstract.AbstractMongoRecord):
 		"sources",
 		"status",
 		"options",
-		"generatedBy",
 		"dateCreated",
 		"dateModified",
 		"owner",
 		"id"
 	]
 	optional_attrs = [
+		"generatedBy",  # this had been required, but it's not always there.
 		"included_refs",
 		"views",
 		"nextNode",
@@ -636,7 +636,8 @@ class Sheet(abstract.AbstractMongoRecord):
 		"assigner_id",
 		"likes",
 		"group",
-		"generatedBy"
+		"generatedBy",
+		"summary" # double check this one
 	]
 
 	def regenerate_contained_refs(self):
@@ -646,3 +647,17 @@ class Sheet(abstract.AbstractMongoRecord):
 	def get_contained_refs(self):
 		return [model.Ref(r) for r in self.included_refs]
 
+
+class SheetSet(abstract.AbstractMongoSet):
+	recordClass = Sheet
+
+
+def change_tag(old_tag, new_tag_or_list):
+	# new_tag_or_list can be either a string or a list of strings
+	# if a list of strings, then old_tag is replaced with all of the tags in the list
+
+	new_tag_list = [new_tag_or_list] if isinstance(new_tag_or_list, basestring) else new_tag_or_list
+
+	for sheet in SheetSet({"tags": old_tag}):
+		sheet.tags = [tag for tag in sheet.tags if tag != old_tag] + new_tag_list
+		sheet.save()
