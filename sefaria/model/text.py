@@ -749,6 +749,18 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
             firstSection = orig_ref.first_available_section_ref()
             return firstSection.section_ref().normal() if firstSection else None
 
+    def find_string(self, regex_str, cleaner=lambda x: x, strict=True, lang='he', vtitle=None):
+        """
+        See TextChunk.find_string
+        :param regex_str:
+        :param cleaner:
+        :param strict:
+        :param lang:
+        :param vtitle:
+        :return:
+        """
+        return self.nodes.find_string(regex_str, cleaner=cleaner, strict=strict, lang=lang, vtitle=vtitle)
+
     def text_index_map(self, tokenizer=lambda x: re.split(u'\s+',x), strict=True, lang='he', vtitle=None):
         """
         See TextChunk.text_index_map
@@ -1449,6 +1461,32 @@ class TextChunk(AbstractTextRecord):
                              for i, v in enumerate(ja.subarray(ne).mask().array()) if v]
 
         return ref_list
+
+
+    def find_string(self, regex_str, cleaner=lambda x: x, strict=True):
+        """
+        Regex search in TextChunk
+        :param regex_str: regex string to search for
+        :param cleaner: f(str)->str. function to clean a semgent before searching
+        :param strict: if True, throws error if len(ind_list) != len(ref_list). o/w truncates longer array to length of shorter
+        :return: list[(Ref, Match, str)] - list of tuples. each tuple has a segment ref, match object for the match, and text for the segment
+        """
+        ref_list = self.nonempty_segment_refs()
+        text_list = filter(lambda x: len(x) > 0, self.ja().flatten_to_array())
+        if len(text_list) != len(ref_list):
+            if strict:
+                raise ValueError("The number of refs doesn't match the number of starting words. len(refs)={} len(inds)={}".format(len(ref_list),len(ind_list)))
+            else:
+                print "Warning: The number of refs doesn't match the number of starting words. len(refs)={} len(inds)={} {}".format(len(ref_list),len(ind_list),str(self._oref))
+
+        matches = []
+        for r, t in zip(ref_list, text_list):
+            cleaned = cleaner(t)
+            for m in re.finditer(regex_str,cleaned):
+                matches += [(r, m, cleaned)]
+
+        return matches
+
 
     def text_index_map(self, tokenizer=lambda x: re.split(u'\s+', x), strict=True):
         """

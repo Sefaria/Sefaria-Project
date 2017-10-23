@@ -711,6 +711,13 @@
 .registrationContent input:-webkit-autofill {
   -webkit-box-shadow: 0 0 0px 1000px white inset;
 }
+.interface-hebrew input#id_email::-webkit-input-placeholder {
+  text-align: right;
+}
+input#id_email{
+  text-align: left;
+  direction: ltr;
+}
 .registrationContent button {
   all: initial; /*this is an insane hack, seems to work on chrome, firefox and opera. untested on Safari and Edge*/
   display: block;
