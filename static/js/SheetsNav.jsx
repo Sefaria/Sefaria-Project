@@ -231,7 +231,9 @@ class SheetsHomePage extends Component {
                 </h2>
                 )}
 
-                <TwoOrThreeBox content={tagList} width={this.props.width} />
+                <div className="tagsList">
+                  <TwoOrThreeBox content={tagList} width={this.props.width} />
+                </div>
               </div>
               <footer id="footer" className="static sans">
                     <Footer />
@@ -272,7 +274,7 @@ class TagSheetsPage extends Component {
                       <div className="contentInner">
                         {this.props.hideNavHeader ? (<h1>
                           <span className="int-en">{this.props.tag}</span>
-                          <span className="int-he">{this.props.tag}</span>
+                          <span className="int-he">{Sefaria.hebrewTerm(this.props.tag)}</span>
                         </h1>) : null}
                         {sheets}
                       </div>
@@ -326,10 +328,9 @@ class AllSheetsPage extends Component {
     this.createSheetList(data)
   }
   createSheetList(newSheets) {
-
-      if (newSheets) {
-        this.setState({curSheets: this.state.curSheets.concat(newSheets), loading: false});
-      }
+    if (newSheets) {
+      this.setState({curSheets: this.state.curSheets.concat(newSheets), loading: false});
+    }
   }
   getSheetsFromCache(offset) {
     if (!offset) offset=0;
@@ -402,7 +403,10 @@ class SheetTagButton extends Component {
     this.props.setSheetTag(this.props.tag);
   }
   render() {
-    return (<a href={`/sheets/tags/${this.props.tag}`} className="navButton" onClick={this.handleTagClick}>{this.props.tag} (<span className="enInHe">{this.props.count}</span>)</a>);
+    return (<a href={`/sheets/tags/${this.props.tag}`} className="navButton" onClick={this.handleTagClick}>
+              <span className="int-en">{this.props.tag} ({this.props.count})</span>
+              <span className="int-he">{Sefaria.hebrewTerm(this.props.tag)} (<span className="enInHe">{this.props.count}</span>)</span>
+            </a>);
   }
 }
 SheetTagButton.propTypes = {

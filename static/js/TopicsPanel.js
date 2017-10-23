@@ -47,7 +47,7 @@ class TopicsPanel extends Component {
     var topics = Sefaria.topicList();
     var topicList = topics ? topics.filter(function(item, i) {
       if (!this.state.filter.length) { return true }
-      var tag = item.tag.toLowerCase();
+      var tag = Sefaria.interfaceLang == "hebrew" ? Sefaria.hebrewTerm(item.tag) : item.tag.toLowerCase();
       return tag.indexOf(this.state.filter) !== -1;
       }.bind(this)).map(function(item, i) {
       var classes = classNames({navButton: 1, sheetButton: 1 });
@@ -56,7 +56,10 @@ class TopicsPanel extends Component {
                 href={"/topics/" + item.tag}
                 onClick={this.props.setTopic.bind(null, item.tag)}
                 title={"Explore sources related to '" + item.tag + "'"}
-                key={item.tag}>{item.tag} ({item.count})</Link>);
+                key={item.tag}>
+                <span className="int-en">{item.tag} ({item.count})</span>
+                <span className="int-he">{Sefaria.hebrewTerm(item.tag)} ({item.count})</span>
+              </Link>);
     }.bind(this)) : null;
 
     var classStr = classNames({topicsPanel: 1, systemPanel: 1, readerNavMenu: 1, noHeader: this.props.hideNavHeader });
@@ -71,7 +74,7 @@ class TopicsPanel extends Component {
             <ReaderNavigationMenuMenuButton onClick={this.props.navHome} />
             <h2>
               <span className="int-en">Topics</span>
-              <span className="int-he">Topics</span>
+              <span className="int-he">נושאים</span>
             </h2>
             <ReaderNavigationMenuDisplaySettingsButton onClick={this.props.openDisplaySettings} />
         </div>}
@@ -79,19 +82,18 @@ class TopicsPanel extends Component {
           <div className="contentInner">
             {this.props.hideNavHeader ?
               <h1>
-                { this.props.multiPanel ? <LanguageToggleButton toggleLanguage={this.props.toggleLanguage} /> : null }
                 <span className="int-en">Topics</span>
-                <span className="int-he">Topics</span>
+                <span className="int-he">נושאים</span>
               </h1>
               : null }
 
             <div className="topicFilterBox">
               <i className="topicFilterIcon fa fa-search"></i>
-              <input className="topicFilterInput" placeholder="Search Topics" onChange={this.handleFilterChange} />
+              <input className="topicFilterInput" placeholder={Sefaria.interfaceLang == "hebrew" ? "חפש נושאים" : "Search Topics"} onChange={this.handleFilterChange} />
               { this.state.filter.length ? 
               <div className="topicsFilterReset" onClick={this.resetFilter}>
                 <span className="int-en">Reset</span>
-                <span className="int-he">Reset</span>
+                <span className="int-he">לאתחל</span>
                 <img className="topicsFilterResetIcon" src="/static/img/circled-x.svg" />       
               </div>
               : null }
