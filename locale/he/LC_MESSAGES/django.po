@@ -651,7 +651,6 @@ msgid "added you to the group"
 msgstr "הוסיפו אתכם לקבוצה"
 
 #: templates/email/notification.html:29
-#, fuzzy
 msgid "added a note to a"
 msgstr "הוסיפו הערה ל"
 
