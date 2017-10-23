@@ -40,7 +40,7 @@ subscribe(cascade_delete(notification.GlobalNotificationSet, "content.index", "t
 # Process in ES
 # todo: handle index name change in ES
 def process_version_title_change_in_search(ver, **kwargs):
-    from local_settings import SEARCH_INDEX_ON_SAVE
+    from sefaria.local_settings import SEARCH_INDEX_ON_SAVE
     if SEARCH_INDEX_ON_SAVE:
         from sefaria.search import delete_version, index_full_version, get_new_and_current_index_names
         search_index_name = get_new_and_current_index_names()['current']
