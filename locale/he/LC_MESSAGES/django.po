@@ -161,7 +161,7 @@ msgstr "הנכם צריכים להיות מחוברים כדי לערוך את �
 #: reader/views.py:3468 reader/views.py:3471
 #, python-format
 msgid "Learn about %(name)s - works written, biographies, dates and more."
-msgstr ""
+msgstr "אודות %(name)s. יצירות שחוברו, ביוגרפיה, תאריכים ועוד"
 
 #: reader/templatetags/sefaria_tags.py:229 sefaria/settings.py:23
 msgid "English"
@@ -173,7 +173,7 @@ msgstr "עברית"
 
 #: reader/templatetags/sefaria_tags.py:231
 msgid "Bilingual"
-msgstr ""
+msgstr "דו לשוני"
 
 #: sefaria/forms.py:59 sefaria/forms.py:64 sefaria/forms.py:133
 #: templates/static/educators.html:301 templates/static/home.html:361
@@ -794,19 +794,19 @@ msgstr "משאבים למורים ומחנכים המשתמשים בספריא �
 
 #: templates/static/educators.html:322 templates/static/educators.html:340
 msgid "<i>Subscribing...</i>"
-msgstr ""
+msgstr "<i>מבצע רישום...</i>"
 
 #: templates/static/educators.html:327 templates/static/educators.html:345
 msgid "Subscribed! Welcome to our list."
-msgstr ""
+msgstr "רישום הסתיים. ברוך הבא לרשימת התפוצה של ספריא!"
 
 #: templates/static/educators.html:330 templates/static/educators.html:348
 msgid "Sorry, there was an error."
-msgstr ""
+msgstr "סליחה, אירעה שגיאה."
 
 #: templates/static/educators.html:333
 msgid "Sorry, that's not a valid email address."
-msgstr ""
+msgstr "כתובת האימייל שהוזנה אינה תקינה."
 
 #: templates/static/help.html:4
 msgid "Help, FAQ and Tutorials"
