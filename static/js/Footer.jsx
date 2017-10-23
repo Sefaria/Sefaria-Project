@@ -22,7 +22,8 @@ class Footer extends Component {
     if (Sefaria.util.isValidEmailAddress(email)) {
       Sefaria.track.event("Footer", "Subscribe from Footer", "");
       this.setState({subscribeMessage: "Subscribing..."});
-      $.post("/api/subscribe/" + email, function(data) {
+      var list = Sefaria._interfaceLang == "hebrew" ? "Announcements_General_Hebrew" : "Announcements_General"
+      $.post("/api/subscribe/" + email + "?lists=" + list, function(data) {
         if ("error" in data) {
           this.setState({subscribeMessage: data.error});
         } else {
