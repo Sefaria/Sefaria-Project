@@ -78,8 +78,6 @@ SEARCH_ADMIN = "http://search.sefaria.org:1788"
 SEARCH_INDEX_ON_SAVE = False  # Whether to send texts and source sheet to Search Host for indexing after save
 SEARCH_INDEX_NAME = 'sefaria'  # name of the ElasticSearch index to use
 
-DJANGO_HOST  = "http://localhost:8000" # Where is Django running
-
 # Node Server
 USE_NODE = False
 NODE_HOST = "http://localhost:4040"
