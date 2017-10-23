@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2017-10-19 12:24-0700\n"
+"POT-Creation-Date: 2017-10-23 08:25-0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -363,19 +363,23 @@ msgstr ""
 msgid "Create your own source sheet with Sefaria's Source Sheet Builder."
 msgstr ""
 
-#: templates/s2_sheets.html:1054
+#: templates/s2_sheets.html:1011
+msgid "Write a summary to help others understand your sheet..."
+msgstr ""
+
+#: templates/s2_sheets.html:1049
 msgid "None"
 msgstr ""
 
-#: templates/s2_sheets.html:1088
+#: templates/s2_sheets.html:1083
 msgid "View"
 msgstr ""
 
-#: templates/s2_sheets.html:1091
+#: templates/s2_sheets.html:1086
 msgid "Add"
 msgstr ""
 
-#: templates/s2_sheets.html:1094
+#: templates/s2_sheets.html:1089
 msgid "Edit"
 msgstr ""
 
@@ -610,7 +614,7 @@ msgid "added you to the group"
 msgstr ""
 
 #: templates/email/notification.html:29
-msgid "added a note to a "
+msgid "added a note to a"
 msgstr ""
 
 #: templates/email/notification.html:31

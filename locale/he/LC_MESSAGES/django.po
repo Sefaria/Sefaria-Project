@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2017-10-19 12:23-0700\n"
+"POT-Creation-Date: 2017-10-23 08:24-0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -350,11 +350,11 @@ msgstr "עוד פעילות"
 
 #: templates/profile.html:183
 msgid "Send a message to "
-msgstr "שלח הודעה ל"
+msgstr "שלחו הודעה ל"
 
 #: templates/profile.html:185
 msgid "Send"
-msgstr "שלח"
+msgstr "שליחה"
 
 #: templates/profile.html:186
 msgid "Cancel"
@@ -380,19 +380,23 @@ msgstr ""
 msgid "Create your own source sheet with Sefaria's Source Sheet Builder."
 msgstr "צרו דף מקורות משלכם בעזרת בונה דפי המקורות של ספריא"
 
-#: templates/s2_sheets.html:1054
+#: templates/s2_sheets.html:1011
+msgid "Write a summary to help others understand your sheet..."
+msgstr "כתבו תקציר המסביר אודות דף המקורות שיצרתם..."
+
+#: templates/s2_sheets.html:1049
 msgid "None"
 msgstr "ללא"
 
-#: templates/s2_sheets.html:1088
+#: templates/s2_sheets.html:1083
 msgid "View"
 msgstr "לצפות"
 
-#: templates/s2_sheets.html:1091
+#: templates/s2_sheets.html:1086
 msgid "Add"
 msgstr "להוסיף"
 
-#: templates/s2_sheets.html:1094
+#: templates/s2_sheets.html:1089
 msgid "Edit"
 msgstr "לערוך"
 
@@ -560,7 +564,7 @@ msgstr "פרטים"
 
 #: templates/elements/activity_feed.html:115
 msgid "reviewed"
-msgstr "הוסיף הגהה"
+msgstr "בחן שינויים בטקסט"
 
 #: templates/elements/activity_feed.html:127
 #: templates/email/notification.html:20
@@ -589,7 +593,7 @@ msgstr "לא נמצאו פרטי הסטוריה גלויה"
 
 #: templates/elements/activity_feed.html:159
 msgid "Older Activity"
-msgstr "פעילות ישנה יותר"
+msgstr "פעילות ישנה"
 
 #: templates/email/base.html:17
 msgid ""
@@ -628,7 +632,7 @@ msgstr ""
 
 #: templates/email/notification.html:8
 msgid "sent you a message:"
-msgstr "שלח לכם הודעה"
+msgstr "שלח לך הודעה"
 
 #: templates/email/notification.html:13
 msgid "Reply to"
@@ -647,7 +651,8 @@ msgid "added you to the group"
 msgstr "הוסיפו אתכם לקבוצה"
 
 #: templates/email/notification.html:29
-msgid "added a note to a "
+#, fuzzy
+msgid "added a note to a"
 msgstr "הוסיפו הערה ל"
 
 #: templates/email/notification.html:31
@@ -656,7 +661,7 @@ msgstr "דיון אחריו אתם עוקבים"
 
 #: templates/email/notification.html:35
 msgid "This is a notification without a type, it shouldn't exist."
-msgstr ""
+msgstr "זוהי הודעה ללא תוכן, היא לא צריכה להתקיים."
 
 #: templates/email/notifications_email.html:5
 #, python-format
@@ -704,11 +709,12 @@ msgstr ""
 
 #: templates/registration/password_reset_email.html:6
 msgid "Click this link, or copy it to your browser, to choose a new password:"
-msgstr "לחץ כאן, או העתק והדבק את הכתובת לדפדפך שלך, בכדי לבחור ססמה חדשה:"
+msgstr ""
+"לחצו כאן, או העתיקו והדביקו את הכתובת לדפדפך שלכם בכדי לבחור ססמה חדשה:"
 
 #: templates/registration/password_reset_email.html:12
 msgid "If you did not request this reset, you can safely ignore this email."
-msgstr "אם לא שלחת בקשה לאיפוס סיסמא, הינך מוזמן להתעלם מהודעה זו"
+msgstr "אם לא שלחתם בקשה לאיפוס סיסמא, הנכם מוזמנים להתעלם מהמייל הזה"
 
 #: templates/registration/password_reset_form.html:4
 msgid "Forgot your Password"
