@@ -40,13 +40,15 @@ subscribe(cascade_delete(notification.GlobalNotificationSet, "content.index", "t
 # Process in ES
 # todo: handle index name change in ES
 def process_version_title_change_in_search(ver, **kwargs):
-    from sefaria.search import delete_version, index_full_version, get_new_and_current_index_names
-    search_index_name = get_new_and_current_index_names()['current']
-    search_index_name_merged = get_new_and_current_index_names(merged=True)['current']
-    text_index = library.get_index(ver.title)
-    delete_version(text_index, kwargs.get("old"), ver.language)
-    index_full_version(search_index_name, text_index, kwargs.get("new"), ver.language)
-    index_full_version(search_index_name_merged, text_index, kwargs.get("new"), ver.language)
+    from local_settings import SEARCH_INDEX_ON_SAVE
+    if SEARCH_INDEX_ON_SAVE:
+        from sefaria.search import delete_version, index_full_version, get_new_and_current_index_names
+        search_index_name = get_new_and_current_index_names()['current']
+        search_index_name_merged = get_new_and_current_index_names(merged=True)['current']
+        text_index = library.get_index(ver.title)
+        delete_version(text_index, kwargs.get("old"), ver.language)
+        index_full_version(search_index_name, text_index, kwargs.get("new"), ver.language)
+        index_full_version(search_index_name_merged, text_index, kwargs.get("new"), ver.language)
 
 
 # Version Title Change
@@ -112,6 +114,3 @@ subscribe(text.reset_simple_term_mapping,                                   cate
 # todo: notes? reviews?
 # todo: Scheme name change in Index
 # todo: term change in nodes
-
-
-
