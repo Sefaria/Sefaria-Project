@@ -647,6 +647,14 @@ class Sheet(abstract.AbstractMongoRecord):
 	def get_contained_refs(self):
 		return [model.Ref(r) for r in self.included_refs]
 
+	def is_hebrew(self):
+		"""Returns True if this sheet appears to be in Hebrew according to its title"""
+		from sefaria.utils.hebrew import is_hebrew
+		import regex
+		title = strip_tags(self.title)
+		# Consider a sheet Hebrew if its title contains Hebrew character but no English characters
+		return is_hebrew(title) and not regex.search(u"[a-z|A-Z]", title)
+
 
 class SheetSet(abstract.AbstractMongoSet):
 	recordClass = Sheet
