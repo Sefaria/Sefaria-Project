@@ -270,6 +270,7 @@ class Header extends Component {
                            </a>
                          </div>);
     var langSearchPlaceholder = this.props.interfaceLang == 'english' ? "Search" : "חיפוש";
+    var langSearchTitle = this.props.interfaceLang == 'english' ? "Search for Texts or Keywords Here" : "חפש טקסט או מילות המפתח כאן";
     var vkClassActivator = this.props.interfaceLang == 'english' ? " keyboardInput" : "";
     return (<div className="header" role="banner">
               <div className="headerInner">
@@ -283,7 +284,7 @@ class Header extends Component {
                              onKeyUp={this.handleSearchKeyUp}
                              onFocus={this.showVirtualKeyboardIcon.bind(this, true)}
                              onBlur={this.showVirtualKeyboardIcon.bind(this, false)}
-                      title="Search for Texts or Keywords Here"/>
+                      title={langSearchTitle}/>
                     </div>
                 </div>
                 <div className="headerHomeSection">
