@@ -2784,7 +2784,7 @@ def segment_history(request, tref, lang, version, page=1):
                                "ref": nref,
                                "lang": lang,
                                "version": version,
-                               "heVersion": getattr(version_record, "heVersionTitle", version_record.verstionTitle),
+                               "versionTitleInHebrew": getattr(version_record, "versionTitleInHebrew", version_record.versionTitle),
                                'email': email,
                                'filter_type': filter_type,
                                'next_page': next_page,
