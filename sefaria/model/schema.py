@@ -169,6 +169,9 @@ class AbstractTitledObject(object):
     def get_primary_title(self, lang='en'):
         return self.title_group.primary_title(lang)
 
+    def has_title(self, title, lang="en"):
+        return title in self.get_titles(lang)
+
 
 class AbstractTitledOrTermedObject(AbstractTitledObject):
     def _init_title_defaults(self):
