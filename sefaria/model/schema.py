@@ -1204,6 +1204,27 @@ class SchemaNode(TitledTreeNode):
         d["toSections"] = sections
         return text.Ref(_obj=d)
 
+    def find_string(self, regex_str, cleaner=lambda x: x, strict=True, lang='he', vtitle=None):
+        """
+        See TextChunk.text_index_map
+        :param regex_str:
+        :param cleaner:
+        :param strict:
+        :param lang:
+        :param vtitle:
+        :return:
+        """
+        def traverse(node):
+            matches = []
+            if node.children:
+                for child in node.children:
+                    temp_matches = traverse(child)
+                    matches += temp_matches
+            else:
+                return node.ref().text(lang=lang, vtitle=vtitle).find_string(regex_str, cleaner=cleaner, strict=strict)
+
+        return traverse(self)
+
     def text_index_map(self, tokenizer=lambda x: re.split(u'\s+',x), strict=True, lang='he', vtitle=None):
         """
         See TextChunk.text_index_map

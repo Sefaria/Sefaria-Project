@@ -1670,6 +1670,15 @@ Sefaria = extend(Sefaria, {
       " & ": " | ",
       "My Source Sheets" : "דפי המקורות שלי",
       "Public Source Sheets":"דפי מקורות פומביים",
+      "Version History": "היסטוריית גרסה",
+      "Digitized by Sefaria": 'הונגש ועובד לצורה דיגיטלית על ידי ספריא',
+      "Public Domain": "רשיון בנחלת הכלל",
+      "CC-BY": "רשיון CC-BY",
+      "CC-BY-NC": "רשיון CC-BY-NC",
+      "CC-BY-SA": "רשיון CC-BY-SA",
+      "CC-BY-NC-SA": "רשיון CC-BY-NC-Sa",
+      "CC0": "רשיון CC0",
+      "Copyright: JPS, 1985": "זכויות שמורות ל-JPS, 1985",
 
       //sheets
       "Untitled Source Sheet" : "דף מקורות ללא שם",

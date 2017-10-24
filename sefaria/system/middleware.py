@@ -6,6 +6,7 @@ from cStringIO import StringIO
 
 from django.conf import settings
 from django.utils import translation
+from django.shortcuts import redirect
 
 from sefaria.settings import *
 from sefaria.model.user_profile import UserProfile
@@ -17,20 +18,13 @@ class LanguageSettingsMiddleware(object):
     Determines Interface and Content Language settings for each request.
     """
     def process_request(self, request):
-        excluded = ('/linker.js',)
-        if request.path.startswith("/api/") or request.path in excluded:
-            return # Save potentially looking up a UserProfile when not needed
+        excluded = ('/linker.js', "/api/", "/interface/", "/static/")
+        if any([request.path.startswith(start) for start in excluded]):
+            return # Save looking up a UserProfile, or redirecting when not needed
 
-        # INTERFACE
+        # INTERFACE 
+        # Our logic for setting interface lang checks (1) User profile, (2) cookie, (3) geolocation, (4) HTTP language code
         interface = None
-        domain = request.get_host()
-        try:
-            if "https://" + domain in DOMAIN_LANGUAGES:
-                interface = DOMAIN_LANGUAGES["https://" + domain]
-            elif "http://" + domain in DOMAIN_LANGUAGES:
-                interface = DOMAIN_LANGUAGES["http://" + domain]
-        except:
-            pass
         if request.user.is_authenticated() and not interface:
             profile = UserProfile(id=request.user.id)
             interface = profile.settings["interface_language"] if "interface_language" in profile.settings else interface 
@@ -40,6 +34,30 @@ class LanguageSettingsMiddleware(object):
             interface = 'hebrew' if interface in ('IL', 'he', 'he-il') else interface
             # Don't allow languages other than what we currently handle
             interface = 'english' if interface not in ('english', 'hebrew') else interface
+
+        # Check if the current domain is pinned to  particular language in settings
+        domain_lang = current_domain_lang(request)
+
+        if domain_lang and domain_lang != interface:
+            # For crawlers, don't redirect -- just return the pinned language
+            no_direct = ("Googlebot", "Bingbot", "Slurp", "DuckDuckBot", "Baiduspider", 
+                            "YandexBot", "facebot", "ia_archiver", "Sogou",
+                            "python-request", "curl", "Wget", "sefaria-node")
+            if any([bot in request.META['HTTP_USER_AGENT'] for bot in no_direct]):
+                interface = domain_lang
+            else:
+                redirect_domain = None
+                for domain in DOMAIN_LANGUAGES:
+                    if DOMAIN_LANGUAGES[domain] == interface:
+                        redirect_domain = domain
+                if redirect_domain:
+                    print "Redirecting: detecting language is %s, redirect to %s" % (interface, redirect_domain)
+                    # When detected language doesn't match current domain langauge, redirect
+                    path = request.get_full_path()
+                    path = path + ("&" if "?" in path else "?") + "set-language-cookie"
+                    return redirect(redirect_domain + path)
+                    # If no pinned domain exists for the language the user wants,
+                    # the user will stay on this domain with the detected language
 
         # CONTENT
         default_content_lang = 'hebrew' if interface == 'hebrew' else 'bilingual'
@@ -56,7 +74,44 @@ class LanguageSettingsMiddleware(object):
 
         translation.activate(request.LANGUAGE_CODE)
 
- 
+
+class LanguageCookieMiddleware(object):
+    """
+    If `set-language-cookie` param is set, set a cookie the interfaceLange of current domain, 
+    then redirect to a URL without the param (so the urls with the param don't get loose in wild).
+    Allows one domain to set a cookie on another. 
+    """
+    def process_request(self, request):
+        lang = current_domain_lang(request)
+        if "set-language-cookie" in request.GET and lang:
+            print "Setting Language Cookie Redirect"
+            params = request.GET.copy()
+            params.pop("set-language-cookie")
+            params_string = params.urlencode()
+            params_string = "?" + params_string if params_string else ""
+            domain = [d for d in DOMAIN_LANGUAGES if DOMAIN_LANGUAGES[d] == lang][0]
+            response = redirect(domain + request.path + params_string)
+            response.set_cookie("interfaceLang", lang)
+            if request.user.is_authenticated():
+                p = UserProfile(id=request.user.id)
+                p.settings["interface_language"] = lang
+                p.save()
+            return response
+
+
+def current_domain_lang(request):
+    """
+    Returns the pinned language for the current domain, or None if current domain is not pinned.
+    """
+    current_domain = request.get_host()
+    domain_lang = None
+    for protocol in ("https://", "http://"):
+        full_domain = protocol + current_domain
+        if full_domain in DOMAIN_LANGUAGES:
+            domain_lang = DOMAIN_LANGUAGES[full_domain]
+    return domain_lang
+
+
 class ProfileMiddleware(object):
     """
     Displays hotshot profiling for any view.

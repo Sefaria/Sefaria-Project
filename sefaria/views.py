@@ -186,16 +186,19 @@ def accounts(request):
 
 
 def subscribe(request, email):
-    if subscribe_to_list(["Announcements_General", "Newsletter_Sign_Up"], email, direct_sign_up=True):
+    """
+    API for subscribg is mailing lists, in `lists` url param.
+    Currently active lists are:
+    "Announcements_General", "Announcements_General_Hebrew", "Announcements_Edu", "Announcements_Edu_Hebrew"
+    """
+    lists = request.GET.get("lists", "")
+    lists = lists.split("|")
+    if len(lists) == 0:
+        return jsonResponse({"error": "Please specifiy a list."})
+    if subscribe_to_list(lists + ["Newsletter_Sign_Up"], email, direct_sign_up=True):
         return jsonResponse({"status": "ok"})
     else:
-        return jsonResponse({"error": "Sorry, there was an error."})
-
-def subscribe_educators(request, email):
-    if subscribe_to_list(["Announcements_General", "Announcements_Edu"], email, direct_sign_up=True):
-        return jsonResponse({"status": "ok"})
-    else:
-        return jsonResponse({"error": "Sorry, there was an error."})
+        return jsonResponse({"error": _("Sorry, there was an error.")})
 
 
 def data_js(request):
