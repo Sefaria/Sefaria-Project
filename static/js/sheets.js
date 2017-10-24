@@ -2819,22 +2819,23 @@ function buildSheet(data){
 		}
 	}
 
-	$.getJSON("/api/recommend/topics/" + suggestedTagsLookup.join("+"), function(data) {
-		var suggestedTags = [];
-		for (var i = 0; i < data.topics.length; i++) {
-			if (data.topics[i][1] > 1 ){ //only add tag if it's included on more than one sheet. Creates better suggestions.
-				suggestedTags.push(data.topics[i][0]);
+	if (suggestedTagsLookup.length) {
+		$.getJSON("/api/recommend/topics/" + suggestedTagsLookup.join("+"), function(data) {
+			var suggestedTags = [];
+			for (var i = 0; i < data.topics.length; i++) {
+				if (data.topics[i][1] > 1 ){ //only add tag if it's included on more than one sheet. Creates better suggestions.
+					suggestedTags.push(data.topics[i][0]);
+				}
 			}
-		}
 
-		for (var i = 0; i < suggestedTags.length; i++) {
-			if ($("#suggestedTags .tagButton").length < 5 && sjs.sheetTagger.tags().indexOf(suggestedTags[i]) == -1) {
-				$("#suggestedTags").append("<span class='tagButton'>"+suggestedTags[i]+"</span>");
+			for (var i = 0; i < suggestedTags.length; i++) {
+				if ($("#suggestedTags .tagButton").length < 5 && sjs.sheetTagger.tags().indexOf(suggestedTags[i]) == -1) {
+					$("#suggestedTags").append("<span class='tagButton'>"+suggestedTags[i]+"</span>");
+				}
 			}
-		}
+		});
+	}
 
-
-	});
 
 	buildSources($("#sources"), data.sources);
 	setSourceNumbers();
