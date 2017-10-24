@@ -69,7 +69,7 @@ class Topic(abst.AbstractMongoRecord):
                 for source in sheet.get("sources", []):
                     if "ref" in source:
                         sources_dict[source["ref"]] += 1
-                sheet_tags = list(set([Term().normalize(tag) for tag in sheet.get("tags", [])]))
+                sheet_tags = list(set([Term.normalize(tag) for tag in sheet.get("tags", [])]))
                 for tag in sheet_tags:
                     if tag != self.topic: 
                         related_topics_dict[tag] += 1
@@ -134,7 +134,7 @@ class TopicsManager(object):
         sheet_list = db.sheets.find({"status": "public"}, projection)
         for sheet in sheet_list:
             sheet_tags = sheet.get("tags", [])
-            sheet_tags = list(set([Term().normalize(tag) for tag in sheet_tags]))
+            sheet_tags = list(set([Term.normalize(tag) for tag in sheet_tags]))
             for tag in sheet_tags:
                 if tag not in tags:
                     tags[tag] = {
