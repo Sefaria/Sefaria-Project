@@ -398,6 +398,13 @@ def rebuild_counts_and_toc(request):
 
 
 @staff_member_required
+def rebuild_topics(request):
+    from sefaria.model.topic import update_topics
+    update_topics()
+    return HttpResponseRedirect("/topics?m=topics-rebuilt")
+
+
+@staff_member_required
 def reset_varnish(request, tref):
     if USE_VARNISH:
         oref = model.Ref(tref)
