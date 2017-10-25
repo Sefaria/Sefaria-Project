@@ -379,7 +379,7 @@
             var email = $("#mailingListEmail").val();
             if (Sefaria.util.isValidEmailAddress(email)) {
                 Sefaria.track.event("Home", "Subscribe from Homepage", "");
-                $("#subscribeMsg").html({% trans "<i>Subscribing...</i>" %}).show();
+                $("#subscribeMsg").html('{% trans "<i>Subscribing...</i>" %}').show();
                 var list = Sefaria.interfaceLang == "hebrew" ? "Announcements_General_Hebrew" : "Announcements_General"
                 $.post("/api/subscribe/" + email + "?lists=" + list,  function(data) {
                     if ("error" in data) {
