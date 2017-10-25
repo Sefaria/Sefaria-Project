@@ -1695,6 +1695,7 @@ Sefaria = extend(Sefaria, {
 
       //reader panel
       "Search" : "חיפוש",
+      "Search for Texts or Keywords Here": "חיפוש טקסט או מילות מפתח",
       "Views": "צפיות"
   },
   _v: function(inputVar){
