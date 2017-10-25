@@ -298,7 +298,8 @@ def test_text_helpers():
     assert u'Rashi on Bava Batra' in res
     assert u'Bartenura on Mishnah Oholot' in res
     assert u'Onkelos Leviticus' in res
-    assert u'Akeidat Yitzchak' in res
+    assert u'Chizkuni' in res
+    assert u'Akeidat Yitzchak' not in res
     assert u'Berakhot' not in res
 
     res = model.library.get_indices_by_collective_title("Rashi")
