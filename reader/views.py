@@ -2655,12 +2655,12 @@ def topics_api(request, topic):
 
 
 @catch_error_as_json
-def recommend_topics_api(request, ref_list=""):
+def recommend_topics_api(request, ref_list=None):
     """
     API to receive recommended topics for list of strings `refs`. 
     """
     if request.method == "GET":
-        refs = [Ref(ref).normal() for ref in ref_list.split("+")]
+        refs = [Ref(ref).normal() for ref in ref_list.split("+")] if ref_list else []
 
     elif request.method == "POST":
         topics = get_topics()
@@ -2784,7 +2784,7 @@ def segment_history(request, tref, lang, version, page=1):
                                "ref": nref,
                                "lang": lang,
                                "version": version,
-                               "heVersion": getattr(version_record, "heVersionTitle", version_record.verstionTitle),
+                               "versionTitleInHebrew": getattr(version_record, "versionTitleInHebrew", version_record.versionTitle),
                                'email': email,
                                'filter_type': filter_type,
                                'next_page': next_page,
