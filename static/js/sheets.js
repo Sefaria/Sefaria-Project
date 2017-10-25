@@ -2254,13 +2254,13 @@ function addSource(q, source, appendOrInsert, $target) {
 
 	var attributionLink = (source && "userLink" in source ?
 		"<div class='addedBy'>" +
-			"<span class='int-en'>Added by</span><span class='int-he'>נוסף בידי</span>"
+			"<span class='int-en'>Added by </span><span class='int-he'> נוסף בידי</span>"
 			+ source.userLink +
 		"</div>"
 		:
 		addedByMe && !source ?
 			"<div class='addedBy'>" +
-			"<span class='int-en'>Added by</span><span class='int-he'>נוסף בידי</span>"
+			"<span class='int-en'>Added by </span><span class='int-he'> נוסף בידי</span>"
 			+ sjs._userLink +
 			"</div>"
 			:
