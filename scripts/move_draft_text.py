@@ -26,6 +26,28 @@ class ServerTextCopier(object):
         self._post_index = post_index
         self._post_links = post_links
 
+    def post_terms_from_schema(self):
+
+        def retrieve_terms(node, previous_terms=None):
+            if previous_terms is None:
+                previous_terms = []
+
+            if node.sharedTitle:
+                previous_terms.append(node.sharedTitle)
+            for child in node.children:
+                retrieve_terms(child, previous_terms)
+            return set(previous_terms)
+
+        possible_terms = retrieve_terms(self._index_obj.nodes)
+        necessary_terms = []
+        for t in possible_terms:
+            response = requests.get(u'{}/api/terms/{}'.format(self._dest_server, t))
+            if response.json().get('error', '') == "Term does not exist.":
+                necessary_terms.append(t)
+        for t in necessary_terms:
+            self._upload_term(t)
+
+
     def load_objects(self):
         self._index_obj = library.get_index(self._title_to_retrieve)
         if not self._index_obj:
@@ -55,6 +77,7 @@ class ServerTextCopier(object):
         if self._post_index:
             idx_contents = self._index_obj.contents(raw=True)
             idx_title = self._index_obj.title
+            self.post_terms_from_schema()
             self._handle_categories()
             self._make_post_request_to_server(self._prepare_index_api_call(idx_title), idx_contents)
         content_nodes = self._index_obj.nodes.get_leaf_nodes()
