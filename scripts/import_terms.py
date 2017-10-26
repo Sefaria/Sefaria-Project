@@ -19,6 +19,7 @@ he_synonyms = {}  # map of He primary -> he Secondaries
 # First - clean up typos
 replacement_pairs = [("Mishneg Torah", "Mishneh Torah"),
 ("Torte Law", "Tort Law"),
+("MIddot", "Middot"),
 ("Barenness","Bareness"),
 ("Kindess","Kindness"),
 ("Altrusim","Altruism"),
