@@ -4,7 +4,7 @@ const $          = require('./sefaria/sefariaJquery');
 import Component from 'react-class';
 
 
-var fbURL = Sefaria.interfaceLang = "hebrew" ? 
+var fbURL = Sefaria.interfaceLang == "hebrew" ?
     "https://www.facebook.com/sefaria.org.il" 
     : "https://www.facebook.com/sefaria.org";
 
