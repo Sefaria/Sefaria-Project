@@ -4,6 +4,7 @@ from collections import defaultdict
 from sefaria.model import Term, TermSet
 from sefaria.utils.util import titlecase
 from sefaria.sheets import change_tag
+from sefaria.system.database import db
 from HTMLParser import HTMLParser
 h = HTMLParser()
 
@@ -16,8 +17,11 @@ name_to_term_map = {}  # Map normalized titles to Term objects
 term_list = []
 he_synonyms = {}  # map of He primary -> he Secondaries
 
-# First - clean up typos
-replacement_pairs = [("Mishneg Torah", "Mishneh Torah"),
+# First - clean up needless whitespace
+replacement_pairs = [(t, t.strip()) for t in db.sheets.distinct("tags") if t != t.strip()]
+
+# and clean up typos
+replacement_pairs += [("Mishneg Torah", "Mishneh Torah"),
 ("Torte Law", "Tort Law"),
 ("MIddot", "Middot"),
 ("Barenness","Bareness"),

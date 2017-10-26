@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 sheets.py - backend core for Sefaria Source sheets
 
@@ -487,7 +488,10 @@ def make_tag_list(sort_by="alpha"):
 	sheet_list = db.sheets.find({"status": "public"}, projection)
 	for sheet in sheet_list:
 		sheet_tags = sheet.get("tags", [])
-		sheet_tags = list(set([model.Term.normalize(tag) for tag in sheet_tags]))
+		if sort_by == "alpha-hebrew":
+			sheet_tags = list(set([model.Term.normalize(tag, "he") for tag in sheet_tags]))
+		else:
+			sheet_tags = list(set([model.Term.normalize(tag) for tag in sheet_tags]))
 		for tag in sheet_tags:
 			if tag not in tags:
 				tags[tag] = {"tag": tag, "count": 0}
@@ -499,8 +503,9 @@ def make_tag_list(sort_by="alpha"):
 	sort_keys =  {
 		"alpha": lambda x: x["tag"],
 		"count": lambda x: -x["count"],
+		"alpha-hebrew": lambda x: x["tag"] if len(x["tag"]) and x["tag"][0] in u"אבגדהוזחטיכלמנסעפצקרשת0123456789" else u"ת" + x["tag"],
 	}
-	results  = sorted(results, key=sort_keys[sort_by])
+	results = sorted(results, key=sort_keys[sort_by])
 
 	return results
 
