@@ -492,7 +492,8 @@ def public_tag_list(sort_by="alpha"):
 		tags[model.Term.normalize(tag["tag"], lang)] += tag["count"]
 
 	for tag in tags.items():
-		results.append({"tag": tag[0], "count": tag[1]})
+		if len(tag["tag"]):
+			results.append({"tag": tag[0], "count": tag[1]})
 
 	sort_keys =  {
 		"alpha": lambda x: x["tag"],

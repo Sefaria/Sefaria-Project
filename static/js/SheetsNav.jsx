@@ -219,7 +219,7 @@ class SheetsHomePage extends Component {
                       <div className="actionText">
                         <div className="type-buttons">
                           {this._type_sheet_button("Most Used", "הכי בשימוש", () => this.changeSort("count"), (this.props.tagSort == "count"))}
-                          {this._type_sheet_button("Alphabetical", "אלפביתי", () => this.changeSort((Sefaria.interfaceLang=="en")?"alpha":"alpha-hebrew"), (this.props.tagSort == "alpha" || this.props.tagSort == "alpha-hebrew"))}
+                          {this._type_sheet_button("Alphabetical", "אלפביתי", () => this.changeSort((Sefaria.interfaceLang=="hebrew")?"alpha-hebrew":"alpha"), (this.props.tagSort == "alpha" || this.props.tagSort == "alpha-hebrew"))}
                           {this._type_sheet_button("Trending", "פופולרי", () => this.changeSort("trending"), (this.props.tagSort == "trending"))}
                         </div>
                       </div>
