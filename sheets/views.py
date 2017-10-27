@@ -667,7 +667,7 @@ def sheets_tags_list(request):
 	elif not request.COOKIES.get('s1'):
 		return s2_sheets(request)
 
-	tags_list = make_tag_list(sort_by="alpha-hebrew" if request.interfaceLang == "hebrew" else "alpha")
+	tags_list = public_tag_list(sort_by="alpha-hebrew" if request.interfaceLang == "hebrew" else "alpha")
 	return render_to_response('sheet_tags.html', {"tags_list": tags_list, }, RequestContext(request))
 
 
@@ -992,7 +992,7 @@ def tag_list_api(request, sort_by="count"):
 	"""
 	API to retrieve the list of public tags ordered by count.
 	"""
-	response = make_tag_list(sort_by)
+	response = public_tag_list(sort_by)
 	response = jsonResponse(response, callback=request.GET.get("callback", None))
 	response["Cache-Control"] = "max-age=3600"
 	return response

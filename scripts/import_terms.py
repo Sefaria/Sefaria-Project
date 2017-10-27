@@ -169,3 +169,6 @@ for term in unique_terms:
     except Exception as e:
         print "ERROR saving %s" % term.get_primary_title("en")
         print getattr(e, "message").encode("utf-8")
+
+
+db.term.ensure_index("titles.text", unique=True)

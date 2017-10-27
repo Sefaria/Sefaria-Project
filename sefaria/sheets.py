@@ -18,6 +18,7 @@ from sefaria.model.following import FollowersSet
 from sefaria.model.user_profile import UserProfile, annotate_user_list, public_user_data, user_link
 from sefaria.utils.util import strip_tags, string_overlap, titlecase
 from sefaria.system.exceptions import InputError
+from sefaria.system.cache import django_cache_decorator
 from history import record_sheet_publication, delete_sheet_publication
 from settings import SEARCH_INDEX_ON_SAVE
 import search
@@ -477,28 +478,21 @@ def get_last_updated_time(sheet_id):
 	return sheet["dateModified"]
 
 
-def make_tag_list(sort_by="alpha"):
+@django_cache_decorator(time=(60 * 60))
+def public_tag_list(sort_by="alpha"):
 	"""
 	Returns a list of all public tags, sorted either alphabetically ("alpha") or by popularity ("count")
 	"""
-	tags = {}
+	tags = defaultdict(int)
 	results = []
-	projection = {"tags": 1}
 
-	sheet_list = db.sheets.find({"status": "public"}, projection)
-	for sheet in sheet_list:
-		sheet_tags = sheet.get("tags", [])
-		if sort_by == "alpha-hebrew":
-			sheet_tags = list(set([model.Term.normalize(tag, "he") for tag in sheet_tags]))
-		else:
-			sheet_tags = list(set([model.Term.normalize(tag) for tag in sheet_tags]))
-		for tag in sheet_tags:
-			if tag not in tags:
-				tags[tag] = {"tag": tag, "count": 0}
-			tags[tag]["count"] += 1
+	unnormalized_tags = sheet_tag_counts({"status": "public"})
+	lang = "he" if sort_by == "alpha-hebrew" else "en"
+	for tag in unnormalized_tags:
+		tags[model.Term.normalize(tag["tag"], lang)] += tag["count"]
 
-	for tag in tags.values():
-		results.append(tag)
+	for tag in tags.items():
+		results.append({"tag": tag[0], "count": tag[1]})
 
 	sort_keys =  {
 		"alpha": lambda x: x["tag"],
