@@ -951,6 +951,8 @@ class Version(abst.AbstractMongoRecord, AbstractTextRecord, AbstractSchemaConten
         "method",
         "heversionSource",  # bad data?
         "versionUrl"  # bad data?
+        "versionTitleInHebrew",  # stores the Hebrew translation of the versionTitle
+        "versionNotesInHebrew",  # stores VersionNotes in Hebrew
     ]
 
     def __unicode__(self):
