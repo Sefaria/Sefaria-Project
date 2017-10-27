@@ -1649,6 +1649,29 @@ Sefaria = extend(Sefaria, {
   },
     //this is here for now, we might want to move it somewhere else.
   _i18nInterfaceStrings: {
+      "Sefaria": "ספריא",
+
+      "Sefaria Group" : "קבוצות בספריא",
+      "Sefaria Groups" : "קבוצות בספריא",
+      "Sefaria Source Sheets":"דפי מקורות בספריא",
+      "Topics":"נושאים",
+      "Sefaria Notifcations": "הודעות בספריא",
+      //title meta tag
+      "Sefaria: a Living Library of Jewish Texts Online": "ספריא: ספרייה חיה של טקסטים יהודיים",
+      "Recently Viewed" : "נצפו לאחרונה",
+      "The Sefaria Library": "תוכן העניינים של ספריא",
+      "Sefaria Search": "חיפוש בספריא",
+      "Sefaria Account": "חשבון בספריא",
+      "New Additions to the Sefaria Library":"חידושים בארון הספרים של ספריא",
+      "My Notes on Sefaria": "הרשומות שלי בספריא",
+      "Moderator Tools": "כלי מנהלים",
+      " with " : " עם ",
+      "Connections" : "קשרים",
+      " & ": " | ",
+      "My Source Sheets" : "דפי המקורות שלי",
+      "Public Source Sheets":"דפי מקורות פומביים",
+
+      //sheets
       "Untitled Source Sheet" : "דף מקורות ללא שם",
       "Name New Sheet" : "כותרת לדף המקורות",
       "Sorry, there was a problem saving your note.": "סליחה, ארעה שגיאה בזמן השמירה",
@@ -1660,12 +1683,50 @@ Sefaria = extend(Sefaria, {
       "Decrease font size": "הקטן גופן",
       "Increase font size": "הגדל גופן",
       "Search for Texts or Keywords Here": "חפשו ספרים או מלות מפתח כאן",
+
+      //reader panel
       "Search" : "חיפוש",
       "Views": "צפיות"
   },
+  _v: function(inputVar){
+    if(Sefaria.interfaceLang != "english"){
+        return Sefaria.hebrewTerm(inputVar);
+    }else{
+        return inputVar;
+	}
+  },
+  _r: function (inputRef) {
+    if(Sefaria.interfaceLang != "english"){
+        var oref = Sefaria.ref(inputRef);
+        if(oref){
+            return oref.heRef;
+        }
+    }else{
+        return inputRef;
+	}
+  },
+  _va: function(inputVarArr){
+    if(Sefaria.interfaceLang != "english"){
+        return inputVarArr.map(Sefaria.hebrewTerm);
+    }else{
+        return inputVarArr;
+	}
+  },
   _: function(inputStr){
-    if(Sefaria.interfaceLang != "english" && inputStr in Sefaria._i18nInterfaceStrings){
-        return Sefaria._i18nInterfaceStrings[inputStr];
+    if(Sefaria.interfaceLang != "english"){
+        var hterm;
+        if(inputStr in Sefaria._i18nInterfaceStrings) {
+            return Sefaria._i18nInterfaceStrings[inputStr];
+        }else if((hterm = Sefaria.hebrewTerm(inputStr)) != inputStr){
+            return hterm;
+        }else{
+            if(inputStr.indexOf(" | ") !== -1) {
+                 var inputStrs = inputStr.split(" | ");
+                 return Sefaria._(inputStrs[0])+ " | " + Sefaria._(inputStrs[1]);
+            }else{
+                return inputStr;
+            }
+        }
     }else{
         return inputStr;
 	}

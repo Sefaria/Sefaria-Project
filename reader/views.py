@@ -569,7 +569,7 @@ def s2_group_sheets(request, group, authenticated):
     return render_to_response('s2.html', {
         "propsJSON": propsJSON,
         "html": html,
-        "title": group[0].name + _(" | Sefaria"),
+        "title": group[0].name + " | " + _("Sefaria Groups"),
         "desc": props["groupData"].get("description", ""),
     }, RequestContext(request))
 
@@ -577,13 +577,15 @@ def s2_group_sheets(request, group, authenticated):
 @login_required
 def s2_my_groups(request):
     props = s2_props(request)
+    title = _("Sefaria Groups")
     return s2_page(request, props, "myGroups")
 
 
 @login_required
 def s2_my_notes(request):
+    title = _("My Notes on Sefaria")
     props = s2_props(request)
-    return s2_page(request, props, "myNotes")
+    return s2_page(request, props, "myNotes", title)
 
 
 def s2_sheets_by_tag(request, tag):
@@ -599,15 +601,15 @@ def s2_sheets_by_tag(request, tag):
     if tag == "My Sheets" and request.user.is_authenticated():
         props["userSheets"] = user_sheets(request.user.id)["sheets"]
         props["userTags"]   = user_tags(request.user.id)
-        title = _("My Source Sheets | Sefaria")
-        desc  = _("My Sources Sheets on Sefaria, both private a public.")
+        title = _("My Source Sheets | Sefaria Source Sheets")
+        desc  = _("My Sources Sheets on Sefaria, both private and public.")
 
     elif tag == "My Sheets" and not request.user.is_authenticated():
         return redirect("/login?next=/sheets/private")
 
     elif tag == "All Sheets":
         props["publicSheets"] = {"offset0num50": public_sheets(limit=50)["sheets"]}
-        title = _("Public Source Sheets | Sefaria")
+        title = _("Public Source Sheets | Sefaria Source Sheets")
         desc  = _("Explore thousands of public Source Sheets drawing on Sefaria's library of Jewish texts.")
 
     else:
@@ -698,7 +700,7 @@ def mobile_home(request):
 
 def s2_texts(request):
     props = s2_props(request)
-    title = _("The Sefaria Libray")
+    title = _("The Sefaria Library")
     desc  = _("Browse 1,000s of Jewish texts in the Sefaria Library by category and title.")
     return s2_page(request, props, "navigation", title, desc)
 
@@ -712,21 +714,24 @@ def s2_updates(request):
 
 @login_required
 def s2_account(request):
+    title = _("Sefaria Account")
     props = s2_props(request)
-    return s2_page(request, props, "account")
+    return s2_page(request, props, "account", title)
 
 
 @login_required
 def s2_notifications(request):
     # Notifications content is not rendered server side
+    title = _("Sefaria Notifications")
     props = s2_props(request)
-    return s2_page(request, props, "notifications")
+    return s2_page(request, props, "notifications", title)
 
 
 @login_required
 def s2_modtools(request):
+    title = _("Moderator Tools")
     props = s2_props(request)
-    return s2_page(request, props, "modtools")
+    return s2_page(request, props, "modtools", title)
 
 
 """
@@ -1587,7 +1592,7 @@ def index_api(request, title, v2=False, raw=False):
         else:
             title = j.get("oldTitle", j.get("title"))
             try:
-                get_index(title)  # getting the index just to tell if it exists
+                library.get_index(title)  # getting the index just to tell if it exists
                 # Only allow staff and the person who submitted a text to edit
                 if not request.user.is_staff and not user_started_text(request.user.id, title):
                    return jsonResponse({"error": "{} is protected from change.<br/><br/>See a mistake?<br/>Email hello@sefaria.org.".format(title)})
@@ -1758,10 +1763,10 @@ def links_api(request, link_id_or_ref=None):
         if not request.user.is_authenticated():
             key = request.POST.get("apikey")
             if not key:
-                return {"error": "You must be logged in or use an API key to add, edit or delete links."}
+                return jsonResponse({"error": "You must be logged in or use an API key to add, edit or delete links."})
             apikey = db.apikeys.find_one({"key": key})
             if not apikey:
-                return {"error": "Unrecognized API key."}
+                return jsonResponse({"error": "Unrecognized API key."})
             uid = apikey["uid"]
             kwargs = {"method": "API"}
         else:
@@ -1844,6 +1849,8 @@ def notes_api(request, note_id_or_ref):
             del note["refs"]
 
         func = tracker.update if "_id" in note else tracker.add
+        if "_id" in note:
+            note["_id"] = ObjectId(note["_id"])
         if not request.user.is_authenticated():
             key = request.POST.get("apikey")
             if not key:
@@ -2049,7 +2056,7 @@ def lock_text_api(request, title, lang, version):
     To unlock, include the URL parameter "action=unlock"
     """
     if not request.user.is_staff:
-        return {"error": "Only Sefaria Moderators can lock texts."}
+        return jsonResponse({"error": "Only Sefaria Moderators can lock texts."})
 
     title   = title.replace("_", " ")
     version = version.replace("_", " ")
@@ -2155,10 +2162,10 @@ def category_api(request, path=None):
         if not request.user.is_authenticated():
             key = request.POST.get("apikey")
             if not key:
-                return {"error": "You must be logged in or use an API key to add or delete categories."}
+                return jsonResponse({"error": "You must be logged in or use an API key to add or delete categories."})
             apikey = db.apikeys.find_one({"key": key})
             if not apikey:
-                return {"error": "Unrecognized API key."}
+                return jsonResponse({"error": "Unrecognized API key."})
             user = User.objects.get(id=apikey["uid"])
             if not user.is_staff:
                 return jsonResponse({"error": "Only Sefaria Moderators can add or delete categories."})
@@ -2219,10 +2226,10 @@ def terms_api(request, name):
         if not request.user.is_authenticated():
             key = request.POST.get("apikey")
             if not key:
-                return {"error": "You must be logged in or use an API key to add, edit or delete terms."}
+                return jsonResponse({"error": "You must be logged in or use an API key to add, edit or delete terms."})
             apikey = db.apikeys.find_one({"key": key})
             if not apikey:
-                return {"error": "Unrecognized API key."}
+                return jsonResponse({"error": "Unrecognized API key."})
             user = User.objects.get(id=apikey["uid"])
             if not user.is_staff:
                 return jsonResponse({"error": "Only Sefaria Moderators can add or edit terms."})
@@ -2648,12 +2655,12 @@ def topics_api(request, topic):
 
 
 @catch_error_as_json
-def recommend_topics_api(request, ref_list=""):
+def recommend_topics_api(request, ref_list=None):
     """
     API to receive recommended topics for list of strings `refs`. 
     """
     if request.method == "GET":
-        refs = [Ref(ref).normal() for ref in ref_list.split("+")]
+        refs = [Ref(ref).normal() for ref in ref_list.split("+")] if ref_list else []
 
     elif request.method == "POST":
         topics = get_topics()
@@ -2702,6 +2709,7 @@ def global_activity(request, page=1):
                                 'leaders1': top_contributors(1),
                                 'email': email,
                                 'next_page': next_page,
+                                'he': request.interfaceLang == "hebrew", # to make templates less verbose
                                 },
                              RequestContext(request))
 
@@ -2740,6 +2748,7 @@ def user_activity(request, slug, page=1):
                                 'for_user': True,
                                 'email': email,
                                 'next_page': next_page,
+                                'he': request.interfaceLang == "hebrew", # to make templates less verbose
                                 },
                              RequestContext(request))
 
@@ -2758,7 +2767,8 @@ def segment_history(request, tref, lang, version, page=1):
     nref = oref.normal()
 
     version = version.replace("_", " ")
-    if not Version().load({"title":oref.index.title, "versionTitle":version, "language":lang}):
+    version_record = Version().load({"title":oref.index.title, "versionTitle":version, "language":lang})
+    if not version_record:
         raise Http404(u"We do not have a version of {} called '{}'.  Please use the menu to find the text you are looking for.".format(oref.index.title, version))
     filter_type = request.GET.get("type", None)
     history = text_history(oref, version, lang, filter_type=filter_type, page=page)
@@ -2774,9 +2784,11 @@ def segment_history(request, tref, lang, version, page=1):
                                "ref": nref,
                                "lang": lang,
                                "version": version,
+                               "versionTitleInHebrew": getattr(version_record, "versionTitleInHebrew", version_record.versionTitle),
                                'email': email,
                                'filter_type': filter_type,
-                               'next_page': next_page
+                               'next_page': next_page,
+                               'he': request.interfaceLang == "hebrew", # to make templates less verbose
                              },
                              RequestContext(request))
 

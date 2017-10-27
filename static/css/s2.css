@@ -221,7 +221,7 @@ input.noselect {
   background-color: #aaa;
   color: white;
   font-size: 16px;
-  margin-top: -3px;
+  margin-top: -1px;
 }
 .header .notifications.unread {
   background-color: #EFB4B6;
@@ -470,7 +470,6 @@ input.noselect {
   overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
   position: relative;
-  padding: 0 0 50%;
   box-sizing: border-box;
   background-color: inherit;
 }
@@ -491,6 +490,7 @@ input.noselect {
 }
 .textColumn .loadingMessage.base.next {
   margin: 30px 0 70px;
+  height: 50%;
 }
 .textColumn .loadingMessage.base.next.final {
 }
@@ -1181,6 +1181,9 @@ a.readerNavCategory {
   font-size: 14px;
   position: absolute;
 }
+.interface-hebrew .readerTextTableOfContents .moderatorSectionExpand {
+  margin: 7px 18px 0px;
+}
 .readerTextTableOfContents .moderatorSectionExpand:hover {
   text-decoration: underline;
 }
@@ -1243,9 +1246,14 @@ a.readerNavCategory {
 .readerTextTableOfContents .versionTitle .fa,
 .readerTextTableOfContents .versionEditForm .fa {
   font-size: 10px;
+  color: #666;
   vertical-align: super;
   margin-left: 3px;
   cursor: pointer;
+}
+.interface-hebrew .readerTextTableOfContents .versionTitle .fa,
+.interface-hebrew .readerTextTableOfContents .versionEditForm .fa {
+  margin: 0 3px 0 0 ;
 }
 .readerTextTableOfContents .versionTitle .error {
   color: red;
@@ -2148,6 +2156,9 @@ a.readerNavCategory {
   font-style: italic;
   color: #999;
 }
+.readerControls .readerTextToc .readerTextVersion .en{
+  unicode-bidi: bidi-override;
+}
 .readerControls .readerTextToc .fa-caret-down {
   color: #ccc;
   margin: 0 7px;
@@ -2315,11 +2326,7 @@ a.readerNavCategory {
 .interface-hebrew .readerPanel.english .categoryFilterGroup,
 .interface-hebrew .readerPanel.bilingual .categoryFilterGroup,
 .interface-hebrew .readerPanel.english .tocContent,
-.interface-hebrew .readerPanel.bilingual .tocContent,
-.interface-hebrew .readerPanel.english .dlVersionSelect,
-.interface-hebrew .readerPanel.bilingual .dlVersionSelect,
-.interface-hebrew .readerPanel.hebrew .dlVersionSelect
-{
+.interface-hebrew .readerPanel.bilingual .tocContent {
   direction: ltr;
 }
 .interface-english .readerPanel.hebrew .textRange,
@@ -2638,6 +2645,8 @@ a.readerNavCategory {
 }
 .singlePanel .connectionsPanelHeader {
   justify-content: flex-start;
+  align-items: stretch;
+  height: 100%;
 }
 .interface-hebrew .connectionsPanelHeader {
   direction: rtl;
@@ -2705,8 +2714,8 @@ a.readerNavCategory {
   background-color: #333331;
 }
 .textList.fullPanel {
-  height: 100%;
   padding-top: 58px;
+  height: 100%;
   box-sizing: border-box;
 }
 .textList .texts,
@@ -2726,11 +2735,8 @@ a.readerNavCategory {
   max-width: 660px;
   margin: 0 auto;
 }
-.textList.fullPanel .texts {
-  padding: 0 48px 300px 60px;
-}
 .textList .texts {
-  padding: 80px 30px 80px 30px;
+  padding: 30px 30px 80px 30px;
 }
 .textList.fullPanel .texts {
   padding: 50px 40px 80px 40px;
@@ -2794,7 +2800,6 @@ a.readerNavCategory {
   border-right: 1px solid transparent;
 }
 .topFilters {
-  line-height: 0px;
   text-transform: none;
 }
 .sepia .topFilters {
@@ -2813,7 +2818,7 @@ a.readerNavCategory {
 .topFilters .textFilter {
   color: #999;
   display: inline-block;
-  padding: 13px 8px;
+  padding: 16px 8px;
 }
 .topFilters .textFilter.on {
   color: black;
@@ -2992,6 +2997,9 @@ a.readerNavCategory {
 }
 .dark .textList .texts .textRange .title {
   color: #ddd;
+}
+.textList.singlePanel .textListTextRangeBox:first-child {
+  margin-top: -30px;
 }
 .textRange .title {
   display: flex;
@@ -3304,6 +3312,7 @@ a.readerNavCategory {
 }
 .connectionsPanel.textList .note {
   padding: 30px 0;
+  position: relative;
 }
 .connectionsPanel.textList .note {
   border-top: 1px solid #E6E5E6;
@@ -3312,10 +3321,13 @@ a.readerNavCategory {
   border-top: none;
 }
 .connectionsPanel .noteButtons {
-  float: right;
+  position: absolute;
+  top: 30px;
+  left: -32px;
 }
 .interface-hebrew .connectionsPanel .noteButtons {
-  float: left;
+  left: auto;
+  right: -32px;
 }
 .connectionsPanel .editNoteButton {
   visibility: hidden;

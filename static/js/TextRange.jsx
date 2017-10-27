@@ -97,13 +97,10 @@ class TextRange extends Component {
 
     this.prefetchData();
 
-    if (this.props.onTextLoad) {
-      this.props.onTextLoad();
-    }
-
     if (this._isMounted) {
       this.forceUpdate(function() {
         this.placeSegmentNumbers();
+        this.props.onTextLoad && this.props.onTextLoad(); // Don't call until the text is actually rendered
       }.bind(this));
     }
   }
@@ -161,8 +158,6 @@ class TextRange extends Component {
   }
   placeSegmentNumbers() {
     //console.log("placeSegmentNumbers", this.props.sref);
-    //debugger
-    //console.trace();
     // Set the vertical offsets for segment numbers and link counts, which are dependent
     // on the rendered height of the text of each segment.
     var $text  = $(ReactDOM.findDOMNode(this));
@@ -186,14 +181,6 @@ class TextRange extends Component {
         $elems[0].css({top: "-=" + adjust});
         $elems[1].css({top: "+=" + adjust});
       }
-      /* Sketching a general solution for any number of elements, incomplete.
-      var halfOrLess = Math.floor($elems.length / 2);
-      var above = $elems.slice(0, halfOrLess);
-      var below = $elems.slice(-halfOrLess);
-      for (var i = 0; i < halfOrLess; i++) {
-
-      }
-      */
     };
     for (var top in elemsAtPosition) {
       if (elemsAtPosition.hasOwnProperty(top)) {

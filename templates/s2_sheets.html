@@ -82,7 +82,7 @@
                                 <img src="/static/img/edittags.png" alt="Edit Sheet Tags Icon">
                                 <span class="optionItemText">
                                     <span class="int-en">Tags</span>
-                                    <span class="int-he">תוויות</span>
+                                    <span class="int-he">תיוגים</span>
                                 </span>
 
                             </div>
@@ -555,6 +555,14 @@
                     <span class="int-en">Share</span>
                     <span class="int-he">שיתוף</span>
                 </a>
+                {% else %}
+                <a id="likeButton" class="button{% if viewer_is_liker %} liked{% endif %}" role="button">
+                    {% if viewer_is_liker %}
+                        <span class="int-en">Unlike</span><span class="int-he">ביטול סימון "אהבתי"</span>
+                    {% else %}
+                        <span class="int-en">Like</span><span class="int-he">אהבתי</span>
+                    {% endif %}
+                </a>
                 {% endif %}
             </div>
             </div>
@@ -571,7 +579,13 @@
     </div>
 </div>
 
-<div id="sheet" class="{{ sheet_class|default:'bilingual' }}" role="main">
+<div id="sheet" class="
+    {% if request.interfaceLang == 'english' %}
+        {{ sheet_class|default:'bilingual' }}
+    {% else %}
+        {{ sheet_class|default:'hebrew' }}
+    {% endif %}
+" role="main">
     {% if not user.email %}
 	<div id="fileControls">
         <div id="fileControlMsg">
@@ -608,27 +622,17 @@
 	</div>
 	{% elif assigner_id %}
 	<div id="author">
-		<div id="assignmentAttribution">
-            <span class="int-en">Assignment by</span>
-            <span class="int-he">מטלה מאת</span>
-            {{ assigner_id|user_link }}
-        </div>
 		{% if author %}
-		    <span class="int-en">Completed by</span>
-            <span class="int-he">בוצעה על ידי</span>
+		    <span class="int-en">Assignment Completed by</span>
+            <span class="int-he">מטלה בוצעה על ידי</span>
             {{ sheet.owner|user_link }}
 		{% endif %}
     </div>
 	{% elif sheet.assigner_id %}
 	<div id="author">
-		<div id="assignmentAttribution">
-            <span class="int-en">Assignment by</span>
-            <span class="int-he">מטלה מאת</span>
-            {{ sheet.assigner_id|user_link }}
-        </div>
 		{% if author %}
-		    <span class="int-en">Completed by</span>
-            <span class="int-he">בוצעה על ידי</span>
+		    <span class="int-en">Assignment Completed by</span>
+            <span class="int-he">מטלה בוצעה על ידי</span>
             {{ sheet.owner|user_link }}
         {% endif %}
     </div>
@@ -637,39 +641,59 @@
 		<span class="int-en">Source Sheet by</span>
         <span class="int-he">דף מקורות מאת</span>
         {{ sheet.owner|user_link }}
-		{% if sheet.via %}
-		<div id="via">
-            <span class="int-en">Based on <a href="/sheets/{{ sheet.via }}">a sheet</a> by {{ sheet.viaOwner|user_link }}</span>
-            <span class="int-he">מבוסס על <a href="/sheets/{{ sheet.via }}">דף מקורות</a> מאת {{ sheet.viaOwner|user_link }}</span>
-        </div>
-		{% endif %}
 	</div>
 	{% endif %}
+
 	{% if not new_sheet %}
-	<div id="likes">
-		<span id="s2LikeContainer">
-            <span id="likeInfoBox" {% if like_count == 0%}style="display:none"{% endif %}>
-                <span id="likeInfo">
-                    <span class="int-en">
-                        <span id="likeCount">{{ like_count }}</span>
-                        like<span id="likePlural" {% if like_count == 1%}style="display:none"{% endif %}>s</span>
-                    </span>
-                    <span class="int-he">
-                        <span id="likeCount">{{ like_count }}</span>
-                        <span id="likePlural" {% if like_count == 1%}style="display:none"{% endif %}>סימוני</span>
-                        <span id="likeSingular" {% if like_count != 1%}style="display:none"{% endif %}>סימון</span>
-                        אהבתי
-                    </span>
-                </span>
-                 ·
-            </span>
-            {% if viewer_is_liker %}
-                <a href="#" id="likeLink" class="liked"><span class="int-en">Unlike</span><span class="int-he">ביטול סימון "אהבתי"</span></a>
-            {% else %}
-                <a href="#" id="likeLink"><span class="int-en">Like</span><span class="int-he">אהבתי</span></a>
+
+    <details id="sheetMetadata">
+    <summary>
+        <span class="int-en">More info</span>
+        <span class="int-he">מידע נוסף</span>
+    </summary>
+        <div class="metadataOpenDetails">
+            <div>
+                <span class="int-en">Created <span class="date">{{ sheet.dateCreated|date_string_to_date|date:"F j, Y" }}</span> · <span class="views">{{ sheet.views }} {% if sheet.views == 1%}View{% else %}Views{% endif %}</span> · <span class="likes" id="likeInfo"><span id="likeCount">{{like_count}}</span> {% if like_count == 1%}Like{% else %}Likes{% endif %}</span>{% if can_edit %}<span class="editButton">Edit</span>{% endif %}</span>
+                <span class="int-he">נוצר <span class="date">{{ sheet.dateCreated|date_string_to_date|date:"j F, Y" }}</span> · <span class="views">{{ sheet.views }} צפיות </span> · <span class="likes">{{like_count}}
+                    {% if like_count == 1%}סימון{% else %}סימוני{% endif %} אהבתי</span>{% if can_edit %}<span class="editButton">עריכה</span>{% endif %}</span>
+            </div>
+            {% if sheet.via %}
+            <div id="via">
+                <span class="int-en">Based on <a href="/sheets/{{ sheet.via }}">a sheet</a> by {{ sheet.viaOwner|user_link }}</span>
+                <span class="int-he">מבוסס על <a href="/sheets/{{ sheet.via }}">דף מקורות</a> מאת {{ sheet.viaOwner|user_link }}</span>
+            </div>
+
+        	{% elif assigner_id %}
+            <div id="assignmentAttribution">
+                <span class="int-en">Assigned by</span>
+                <span class="int-he">מטלה מאת</span>
+                {{ assigner_id|user_link }}
+            </div>
+
+        	{% elif sheet.assigner_id %}
+            <div id="assignmentAttribution">
+                <span class="int-en">Assigned by</span>
+                <span class="int-he">מטלה מאת</span>
+                {{ sheet.assigner_id|user_link }}
+            </div>
+
             {% endif %}
-        </span>
-	</div>
+
+            <div id="sheetSummary">{{ sheet.summary }}</div>
+
+            <div id="sheetTags">
+                {% for tag in sheet.tags %}
+                    <a class="button" role="button" href="/sheets/tags/{{ tag }}">
+                        {{ tag }}
+                    </a>
+                {% endfor %}
+
+
+            </div>
+        </div>
+
+
+    </details>
 	{% endif %}
 
 	<ol id="sources">
@@ -894,7 +918,10 @@
     <div class='highlighterTagWindow'>
         <span class="close-button"></span>
         <div class='tagSelector'>
-            <div class='tagSelectorTitle'>Add Highlight</div>
+            <div class='tagSelectorTitle'>
+                <span class="int-en">Add Highlight</span>
+                <span class="int-he">הוספת צבע להדגשה</span>
+            </div>
             <div class='sheetHighlighterTags'></div>
             <div class='createNewHighlighterTag'>
                 <div class='colorSwatch active' style='background-color: #bd9eb6'></div>
@@ -904,8 +931,15 @@
                 <div class='colorSwatch' style='background-color: #a4b7de'></div>
                 <div class='colorSwatch' style='background-color: #e8dde5'></div>
                 <div class='colorSwatch' style='background-color: #d2ddc9'></div>
-                <div class='tagName' contenteditable='true'>Create New</div></div>
-            <div class='save button'>Save</div>
+                <div class='tagName' contenteditable='true'>
+                    <span class="int-en">Create New</span>
+                    <span class="int-he">יצירת חדש</span>
+                </div>
+            </div>
+            <div class='save button'>
+                <span class="int-en">Save</span>
+                <span class="int-he">שמירה</span>
+            </div>
         </div>
     </div>
 </div>
@@ -973,53 +1007,48 @@
 </div>
 
 <div id="shareWithOthers" class="modal s2Modal">
-    <span class="close-button"></span>
-    <div class="title">
-        <span class="int-en">Share with Others</span>
-        <span class="int-he">שיתוף עם אחרים</span>
+    <div class="content">
+		<textarea id="sheetSummaryInput"
+                  placeholder=
+                          {% if request.interfaceLang == 'english' %}
+                              "Write a summary to help others understand your sheet..."
+                          {% else %}
+                              "כתוב תקציר המסביר אודות דף המקורות שלך לאחרים"
+                          {% endif %}/>{{ sheet.summary }}</textarea>
+
     </div>
+
+    <div class="line"></div>
 
     <div class="content">
-        <div class="inputHeader"><img src="/static/img/shareablelink.png" alt="Sharable Link Icon">
-            <span class="int-en">Sharable Link</span>
-            <span class="int-he">קישור לשיתוף</span>
+        <ul id="tags"><span class="addTagMsg"><span class="int-en">Add Tags...</span><span class="int-he">הוסף תיוגים</span></span></ul>
+
+        <div id="suggestedTags">
+
         </div>
-        <input id="shareURL" value="{{ request.META.HTTP_HOST }}/sheets/{{sheet.id}}" readonly="readonly"/>
     </div>
 
-    <div class="content" id="sourceSheetsAccessOptions">
-        <div class="inputHeader"><i class='fa fa-unlock-alt'></i>
-            <span class="int-en">Access</span>
-            <span class="int-he">הרשאות</span>
+    <div class="line"></div>
+
+
+    <div class="content">
+        <span class="labelforOnOffSwitch"><span class="int-en">List on Sefaria</span><span class="int-he">הצג לכלל משתמשי ספריא</span></span>
+        <div class="onoffswitch">
+            <input type="checkbox" name="onoffswitch" class="onoffswitch-checkbox" id="sheetPublicToggle">
+            <label class="onoffswitch-label" for="sheetPublicToggle">
+                <span class="onoffswitch-inner"></span>
+                <span class="onoffswitch-switch"></span>
+            </label>
         </div>
-        <select id="sourceSheetShareSelect">
-          <option value="private">
-              {% trans 'Private'  %}
-          </option>
-          <option value="public">
-              {% trans 'Listed for Sefaria Users' %}
-          </option>
-          <option value="publicAdd">
-              {% trans 'Anyone can Add' %}
-          </option>
-          <option value="privateAdd">
-              {% trans 'Anyone can Add - Unlisted' %}
-          </option>
-          <option value="publicEdit">
-              {% trans 'Anyone can Edit' %}
-          </option>
-          <option value="privateEdit">
-              {% trans 'Anyone can Edit - Unlisted' %}
-          </option>
-        </select>
     </div>
 
    {% if owner_groups %}
     <div class="content" id="sourceSheetGroupOptions">
-        <div class="inputHeader"><i class='fa fa-group'></i>
-            <span class="int-en">Group</span>
-            <span class="int-he">קבוצה</span>
-        </div>
+        <label for="sourceSheetGroupSelect">
+            <span class="int-en">List in Group</span>
+            <span class="int-he">שיוך קבוצה</span>
+        </label>
+
         <select id="sourceSheetGroupSelect">
             <option value="None">
                 {% trans 'None' %}
@@ -1037,11 +1066,40 @@
         </select>
     </div>
 	{% endif %}
-    <div id="sharingDesc"></div><span id="sharingType" data-sharing=""></span>
-    <div class="ok button">
-        <span class="int-en">Save</span>
-        <span class="int-he">שמירה</span>
+
+
+    <div class="content">
+        <label for="shareURL">
+            <span class="int-en">Share a link</span>
+            <span class="int-he">קישור לשיתוף</span>
+        </label>
+        <input id="shareURL" value="{{ request.META.HTTP_HOST }}/sheets/{{sheet.id}}" readonly="readonly"/>
     </div>
+
+    <div class="line"></div>
+
+    <div class="content">
+        <label for="sourceSheetShareSelect">
+            <span class="int-en">Anyone with access can</span>
+            <span class="int-he"> כל מי שיש לו גישה יכול </span>
+        </label>
+        <select id="sourceSheetShareSelect">
+          <option value="view">
+              {% trans "View" %}
+          </option>
+          <option value="add">
+              {% trans "Add" %}
+          </option>
+          <option value="edit">
+              {% trans "Edit" %}
+          </option>
+        </select>
+
+        <div class="ok button int-en">Save</div>
+        <div class="ok button int-he">שמירה</div>
+
+    </div>
+
 </div>
 
 <div id="addToSheetModal" class="modal s2Modal">
