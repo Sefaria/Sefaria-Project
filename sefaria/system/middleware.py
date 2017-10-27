@@ -1,4 +1,4 @@
-import sys
+import sys 
 import tempfile
 import hotshot
 import hotshot.stats
@@ -43,7 +43,7 @@ class LanguageSettingsMiddleware(object):
             no_direct = ("Googlebot", "Bingbot", "Slurp", "DuckDuckBot", "Baiduspider", 
                             "YandexBot", "facebot", "ia_archiver", "Sogou",
                             "python-request", "curl", "Wget", "sefaria-node")
-            if any([bot in request.META['HTTP_USER_AGENT'] for bot in no_direct]):
+            if any([bot in request.META.get('HTTP_USER_AGENT', '') for bot in no_direct]):
                 interface = domain_lang
             else:
                 redirect_domain = None
