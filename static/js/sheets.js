@@ -2254,13 +2254,13 @@ function addSource(q, source, appendOrInsert, $target) {
 
 	var attributionLink = (source && "userLink" in source ?
 		"<div class='addedBy'>" +
-			"<span class='int-en'>Added by</span><span class='int-he'>נוסף בידי</span>"
+			"<span class='int-en'>Added by </span><span class='int-he'> נוסף בידי</span>"
 			+ source.userLink +
 		"</div>"
 		:
 		addedByMe && !source ?
 			"<div class='addedBy'>" +
-			"<span class='int-en'>Added by</span><span class='int-he'>נוסף בידי</span>"
+			"<span class='int-en'>Added by </span><span class='int-he'> נוסף בידי</span>"
 			+ sjs._userLink +
 			"</div>"
 			:
@@ -2810,32 +2810,6 @@ function buildSheet(data){
 
 
 	sjs.sheetTagger.init(data.id, data.tags);
-
-	var suggestedTagsLookup = [];
-
-	for (var i = 0; i < data.sources.length; i++) {
-		if (data.sources[i].ref) {
-			suggestedTagsLookup.push(data.sources[i].ref)
-		}
-	}
-
-	if (suggestedTagsLookup.length) {
-		$.getJSON("/api/recommend/topics/" + suggestedTagsLookup.join("+"), function(data) {
-			var suggestedTags = [];
-			for (var i = 0; i < data.topics.length; i++) {
-				if (data.topics[i][1] > 1 ){ //only add tag if it's included on more than one sheet. Creates better suggestions.
-					suggestedTags.push(data.topics[i][0]);
-				}
-			}
-
-			for (var i = 0; i < suggestedTags.length; i++) {
-				if ($("#suggestedTags .tagButton").length < 5 && sjs.sheetTagger.tags().indexOf(suggestedTags[i]) == -1) {
-					$("#suggestedTags").append("<span class='tagButton'>"+suggestedTags[i]+"</span>");
-				}
-			}
-		});
-	}
-
 
 	buildSources($("#sources"), data.sources);
 	setSourceNumbers();
@@ -3513,6 +3487,35 @@ function showEmebed() {
 function showShareModal(){
 	$("#shareWithOthers").show().position({of: window});
 	$("#overlay").show();
+
+	var suggestedTagsLookup = [];
+
+	var sources = readSources($("#sources"));
+
+	for (var i = 0; i < sources.length; i++) {
+		if (sources[i].ref) {
+			suggestedTagsLookup.push(sources[i].ref);
+		}
+	}
+
+	if (suggestedTagsLookup.length) {
+		$.getJSON("/api/recommend/topics/" + suggestedTagsLookup.join("+"), function(data) {
+			var suggestedTags = [];
+			$("#suggestedTags").html('');
+			for (var i = 0; i < data.topics.length; i++) {
+				if (data.topics[i][1] > 1 ){ //only add tag if it's included on more than one sheet. Creates better suggestions.
+					suggestedTags.push(data.topics[i][0]);
+				}
+			}
+
+			for (var i = 0; i < suggestedTags.length; i++) {
+				if ($("#suggestedTags .tagButton").length < 5 && sjs.sheetTagger.tags().indexOf(suggestedTags[i]) == -1) {
+					$("#suggestedTags").append("<span class='tagButton'>"+suggestedTags[i]+"</span>");
+				}
+			}
+		});
+	}
+
 }
 
 
