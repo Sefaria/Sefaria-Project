@@ -26,7 +26,7 @@ def this_weeks_parasha(datetime, diaspora=True):
 	Returns the upcoming Parasha for datetime. 
 	"""
 
-	p = db.parshiot.find({"date": {"$gt": datetime}, "diaspora": diaspora}, limit=1).sort([("date", 1)])
+	p = db.parshiot.find({"date": {"$gt": datetime}, "diaspora": {'$in': [diaspora, None]}}, limit=1).sort([("date", 1)])
 	p = p.next()
 
 	return p
