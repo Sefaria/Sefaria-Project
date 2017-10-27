@@ -250,7 +250,12 @@ def get_topics():
 
 
 def update_topics():
-    topics = TopicsManager()
-    topics.make_data_from_sheets()
-    topics.save_to_cache()
+    """
+    Rebuild all Topics, save data to cache and replace existing topics in memory.
+    """
+    global topics
+    new_topics = TopicsManager()
+    new_topics.make_data_from_sheets()
+    new_topics.save_to_cache()
+    topics = new_topics
 
