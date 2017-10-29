@@ -1018,6 +1018,13 @@ a.readerNavCategory {
   text-align: center;
   unicode-bidi: plaintext;
 }
+.readerNavMenu .blockLink:active,
+.readerNavMenu .catLink:active,
+.readerNavMenu .navButton:active,
+.readerNavCategory:active,
+.readerTextTableOfContents .refLink:active {
+  background-color: #f3f3f3;
+}
 @media (max-width: 450px) {
   .readerNavMenu .refLink,
   .readerNavMenu .catLink,
