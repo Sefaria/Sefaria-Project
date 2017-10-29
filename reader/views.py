@@ -1421,7 +1421,7 @@ def texts_api(request, tref, lang=None, version=None):
 
         cb         = request.GET.get("callback", None)
         context    = int(request.GET.get("context", 1))
-        commentary = bool(int(request.GET.get("commentary", True)))
+        commentary = bool(int(request.GET.get("commentary", False)))
         pad        = bool(int(request.GET.get("pad", 1)))
         version    = version.replace("_", " ") if version else None
         layer_name = request.GET.get("layer", None)
