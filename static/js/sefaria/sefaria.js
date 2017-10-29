@@ -1394,12 +1394,12 @@ Sefaria = extend(Sefaria, {
     },
     _tagList: {},
     tagList: function(sortBy, callback) {
-      // Returns a list of all public source sheet tags, ordered by populartiy
+      // Returns a list of all public source sheet tags, ordered by popularity
       sortBy = typeof sortBy == "undefined" ? "count" : sortBy;
       var tags = this._tagList[sortBy];
       if (tags) {
         if (callback) { callback(tags); }
-      } else if ("count" in this._tagList && sortBy == "alpha") {
+      } else if ("count" in this._tagList && (sortBy == "alpha")) {
         // If we have one set of ordered tags already, we can do sorts locally.
         var tags = this._tagList["count"].slice();
         tags.sort(function(a, b) {

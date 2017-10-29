@@ -159,7 +159,7 @@ urlpatterns += patterns('sheets.views',
     (r'^api/sheets/trending-tags/?$',                              'trending_tags_api'),
     (r'^api/sheets/tag-list/?$',                                   'tag_list_api'),
     (r'^api/sheets/tag-list/user/(?P<user_id>\d+)?$',              'user_tag_list_api'),
-    (r'^api/sheets/tag-list/(?P<sort_by>\w+)$',                    'tag_list_api'),
+    (r'^api/sheets/tag-list/(?P<sort_by>[a-zA-Z\-]+)$',                    'tag_list_api'),
     (r'^api/sheets/all-sheets/(?P<limiter>\d+)/(?P<offset>\d+)$',  'all_sheets_api'),
     (r'^api/sheets/(?P<sheet_id>\d+)/export_to_drive$',            'export_to_drive'),
 )

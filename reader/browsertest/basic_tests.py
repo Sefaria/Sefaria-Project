@@ -65,7 +65,7 @@ class LoadRefAndClickSegment(AtomicTest):
         assert "with=all" in self.driver.current_url, self.driver.current_url
 
         self.click_category_filter("Commentary")
-        self.click_text_filter("Malbim")
+        self.click_text_filter("Ibn Ezra")
 
 
 class LoadRefWithCommentaryAndClickOnCommentator(AtomicTest):
