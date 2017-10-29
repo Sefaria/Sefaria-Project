@@ -2316,7 +2316,8 @@ a.readerNavCategory {
 .narrowColumn .textRange.basetext {
 }
 .textRange.basetext .title {
-  padding: 24px 28px 24px;
+  padding: 0 28px;
+  margin: 24px 0;
   color: #999;
   text-align: center;
   justify-content: center;
@@ -2352,14 +2353,31 @@ a.readerNavCategory {
   direction: rtl;
 }
 .basetext .text {
-  padding: 30px 44px;
+  padding: 0 44px;
+  margin: 30px 0;
   background-color: inherit;
 }
 .narrowColumn .basetext .text {
-  padding: 26px;
+  padding: 0 26px;
 }
 .singlePanel .basetext .text {
-  padding: 30px 34px;
+  padding: 0 34px;
+}
+.parashahHeader {
+  text-align: center;
+  color: #8e8e8e;
+  margin: 32px 0;
+  font-size: 18px;
+  letter-spacing: 1px;
+}
+.parashahHeader .en {
+  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", arial, sans-serif;
+}
+.parashahHeader .he {
+  font-family: "Heebo", sans-serif;
+}
+.bilingual .parashahHeader .en {
+  display: none;
 }
 .segment {
   cursor: pointer;
@@ -2411,7 +2429,7 @@ a.readerNavCategory {
 }
 .heLeft.bilingual .basetext .text,
 .heRight.bilingual .basetext .text {
-  padding: 30px 0;
+  padding: 0;
 }
 .heLeft.bilingual .segment > .en,
 .heLeft.bilingual .segment > .he,
