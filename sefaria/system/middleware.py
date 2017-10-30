@@ -1,4 +1,4 @@
-import sys
+import sys 
 import tempfile
 import hotshot
 import hotshot.stats
@@ -41,9 +41,9 @@ class LanguageSettingsMiddleware(object):
         if domain_lang and domain_lang != interface:
             # For crawlers, don't redirect -- just return the pinned language
             no_direct = ("Googlebot", "Bingbot", "Slurp", "DuckDuckBot", "Baiduspider", 
-                            "YandexBot", "facebot", "ia_archiver", "Sogou",
+                            "YandexBot", "Facebot", "facebookexternalhit", "ia_archiver", "Sogou",
                             "python-request", "curl", "Wget", "sefaria-node")
-            if any([bot in request.META['HTTP_USER_AGENT'] for bot in no_direct]):
+            if any([bot in request.META.get('HTTP_USER_AGENT', '') for bot in no_direct]):
                 interface = domain_lang
             else:
                 redirect_domain = None
@@ -51,7 +51,6 @@ class LanguageSettingsMiddleware(object):
                     if DOMAIN_LANGUAGES[domain] == interface:
                         redirect_domain = domain
                 if redirect_domain:
-                    print "Redirecting: detecting language is %s, redirect to %s" % (interface, redirect_domain)
                     # When detected language doesn't match current domain langauge, redirect
                     path = request.get_full_path()
                     path = path + ("&" if "?" in path else "?") + "set-language-cookie"
@@ -84,7 +83,6 @@ class LanguageCookieMiddleware(object):
     def process_request(self, request):
         lang = current_domain_lang(request)
         if "set-language-cookie" in request.GET and lang:
-            print "Setting Language Cookie Redirect"
             params = request.GET.copy()
             params.pop("set-language-cookie")
             params_string = params.urlencode()
