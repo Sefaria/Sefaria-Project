@@ -133,7 +133,6 @@ class ReaderPanel extends Component {
     // Set state either in the central app or in the local component,
     // depending on whether a setCentralState function was given.
     if (this.props.setCentralState) {
-      if (!this.replaceHistory) { console.trace(); }
       this.props.setCentralState(state, this.replaceHistory);
       this.replaceHistory = false;
     } else {
