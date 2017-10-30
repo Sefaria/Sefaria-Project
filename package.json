@@ -23,6 +23,7 @@
     "setup": "npm install -g nodemon; npm install -g babel-cli; npm install -g forever",
     "b": "npm run build",
     "w": "npm run watch",
+    "wc": "npm run watch-client",
     "t": "npm run test",
     "to": "npm run test-one"
   },
