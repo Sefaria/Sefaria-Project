@@ -1053,7 +1053,7 @@ a.readerNavCategory {
   height: 100%;
 }
 .readerNavMenu .readerNavCategoryMenu .refLink.incomplete {
-  opacity: 0.7;
+  opacity: 0.5;
 }
 .categoryColorLine {
   position: absolute;

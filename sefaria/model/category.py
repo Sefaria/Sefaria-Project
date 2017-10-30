@@ -165,8 +165,8 @@ class TocTree(object):
         vss = db.vstate.find({}, {"title": 1, "first_section_ref": 1, "flags": 1})
         self._vs_lookup = {vs["title"]: {
             "first_section_ref": vs.get("first_section_ref"),
-            "heComplete": vs.get("flags", {}).get("heComplete"),
-            "enComplete": vs.get("flags", {}).get("enComplete"),
+            "heComplete": bool(vs.get("flags", {}).get("heComplete", False)),
+            "enComplete": bool(vs.get("flags", {}).get("enComplete", False)),
         } for vs in vss}
 
         # Build Category object tree from stored Category objects
