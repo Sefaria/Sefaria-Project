@@ -25,6 +25,7 @@ class ReaderTextTableOfContents extends Component {
       versionsLoaded: false,
       currentVersion: null,
       showAllVersions: false,
+      versionsDropDownOpen: false,
       dlVersionTitle: null,
       dlVersionLanguage: null,
       dlVersionFormat: null,
@@ -122,6 +123,9 @@ class ReaderTextTableOfContents extends Component {
     this.props.selectVersion(version, language);
     this.props.close();
   }
+  toggleVersionsDropDownOpen(event) {
+    this.setState({versionsDropDownOpen: !this.state.versionsDropDownOpen});
+  }
   onDlVersionSelect(event) {
     var versionTitle, versionLang;
     [versionTitle, versionLang] = event.target.value.split("/");
@@ -161,7 +165,7 @@ class ReaderTextTableOfContents extends Component {
     var currentVersionElement = null;
     var defaultVersionString = "Default Version";
     var defaultVersionObject = null;
-    var versionBlocks = null;
+    var versionSection = null;
     var downloadSection = null;
 
     // Text Details
@@ -191,7 +195,44 @@ class ReaderTextTableOfContents extends Component {
     }
 
     // Versions List
-    var versions = this.getVersionsList();
+    let versions = this.getVersionsList();
+    if (versions) {
+      const numVersions = versions.reduce((prevVal, elem) => { prevVal[elem.language]++; return prevVal; }, {"en": 0, "he": 0});
+      versionSection = (
+        <section>
+          <h2
+            className="versionSectionHeader"
+            tabindex="0"
+            role="button"
+            aria-pressed={`${this.state.versionsDropDownOpen}`}
+            onClick={this.toggleVersionsDropDownOpen}
+            onKeyPress={(e) => {e.charCode == 13 ? this.toggleVersionsDropDownOpen(e):null}}>
+            <div className="versionSectionSummary versionSectionSummaryHidden" aria-hidden="true">
+              <span className="int-en">{`${numVersions["en"]} English, ${numVersions["he"]} Hebrew`}</span>
+              <span className="int-he">{`${numVersions["he"]} עברית, ${numVersions["en"]} אנגלית`}</span>
+            </div>
+            <div className="versionSectionTitle">
+              <span className="int-en">Versions</span>
+              <span className="int-he">גרסאות</span>
+              {(this.state.versionsDropDownOpen) ? <img src="/static/img/arrow-up.png" alt=""/> : <img src="/static/img/arrow-down.png" alt=""/>}
+            </div>
+            <div className="versionSectionSummary">
+              <span className="int-en">{`${numVersions["en"]} English, ${numVersions["he"]} Hebrew`}</span>
+              <span className="int-he">{`${numVersions["he"]} עברית, ${numVersions["en"]} אנגלית`}</span>
+            </div>
+          </h2>
+          { this.state.versionsDropDownOpen ?
+            <VersionsList
+              versionsList={versions}
+              openVersion={this.openVersion}
+              title={this.props.title}
+              currentRef={this.props.currentRef}
+            /> : null
+          }
+        </section>
+      );
+    }
+
 
     var moderatorSection = Sefaria.is_moderator || Sefaria.is_editor ? (<ModeratorButtons title={title} />) : null;
 
@@ -261,9 +302,9 @@ class ReaderTextTableOfContents extends Component {
             <span className="int-en">Download Text</span>
             <span className="int-he">הורדת הטקסט</span>
           </h2>
-          <select 
-            className="dlVersionSelect dlVersionTitleSelect" 
-            value={(this.state.dlVersionTitle && this.state.dlVersionLanguage) ? this.state.dlVersionTitle + "/" + this.state.dlVersionLanguage : "0"} 
+          <select
+            className="dlVersionSelect dlVersionTitleSelect"
+            value={(this.state.dlVersionTitle && this.state.dlVersionLanguage) ? this.state.dlVersionTitle + "/" + this.state.dlVersionLanguage : "0"}
             onChange={this.onDlVersionSelect}>
             {dl_versions}
           </select>
@@ -298,8 +339,8 @@ class ReaderTextTableOfContents extends Component {
                     </div>
                   </div>
                   <div className="rightButtons">
-                    {this.props.interfaceLang !== "hebrew" ? 
-                      <ReaderNavigationMenuDisplaySettingsButton onClick={this.props.openDisplaySettings} /> 
+                    {this.props.interfaceLang !== "hebrew" ?
+                      <ReaderNavigationMenuDisplaySettingsButton onClick={this.props.openDisplaySettings} />
                       : <ReaderNavigationMenuDisplaySettingsButton placeholder={true} />}
                   </div>
                 </div>
@@ -336,15 +377,13 @@ class ReaderTextTableOfContents extends Component {
                       schema={details.schema}
                       commentatorList={Sefaria.commentaryList(this.props.title)}
                       alts={details.alts}
-                      versionsList={versions}
-                      openVersion={this.openVersion}
                       defaultStruct={"default_struct" in details && details.default_struct in details.alts ? details.default_struct : "default"}
-                      currentRef={this.props.currentRef}
                       narrowPanel={this.props.narrowPanel}
                       title={this.props.title} />
 
                   </div>
                   : <LoadingMessage />}
+                  {versionSection}
                   {downloadSection}
                 </div>
               </div>
@@ -440,7 +479,7 @@ class TextTableOfContentsNavigation extends Component {
   }
   componentDidUpdate(prevProps, prevState) {
     if (prevState.tab != this.state.tab &&
-        this.state.tab !== "commentary" && this.state.tab != "versions") {
+        this.state.tab !== "commentary") {
       this.shrinkWrap();
     }
   }
@@ -509,13 +548,6 @@ class TextTableOfContentsNavigation extends Component {
       });
     }
 
-    options.push({
-      name: "versions",
-      text: "Versions",
-      heText: "גרסאות",
-      onPress: this.setTab.bind(null, "versions")
-    });
-
     var toggle = <TabbedToggleSet
                     options={options}
                     active={this.state.tab}
@@ -534,13 +566,6 @@ class TextTableOfContentsNavigation extends Component {
                         title={this.props.title} />;
 
 
-        break;
-      case "versions":
-        var content = <VersionsList
-                        versionsList={this.props.versionsList}
-                        openVersion={this.props.openVersion}
-                        title={this.props.title}
-                        currentRef={this.props.currentRef} />;
         break;
       default:
         var content = <SchemaNode
@@ -562,10 +587,7 @@ TextTableOfContentsNavigation.propTypes = {
   schema:          PropTypes.object.isRequired,
   commentatorList: PropTypes.array,
   alts:            PropTypes.object,
-  versionsList:    PropTypes.array,
-  openVersion:     PropTypes.func,
   defaultStruct:   PropTypes.string,
-  currentRef:      PropTypes.string,
   narrowPanel:     PropTypes.bool,
   title:           PropTypes.string.isRequired,
 };

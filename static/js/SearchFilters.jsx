@@ -200,7 +200,7 @@ class SearchFilterPanel extends Component {
   }
   render() {
     return (<div>
-      <div className="searchFilterToggle" tabIndex="0" onClick={this.props.toggleFilterView} onKeyPress={function(e) {e.charCode == 13 ? this.props.toggleFilterView(e):null}.bind(this)}>
+      <div className="searchFilterToggle" tabIndex="0" onClick={this.props.toggleFilterView} onKeyPress={(e) => {e.charCode == 13 ? this.props.toggleFilterView(e):null}}>
         <span className="int-en">Filter</span>
         <span className="int-he">סינון</span>
         {(this.props.displayFilters) ? <img src="/static/img/arrow-up.png" alt=""/> : <img src="/static/img/arrow-down.png" alt=""/>}

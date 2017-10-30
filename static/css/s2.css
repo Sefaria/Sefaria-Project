@@ -1505,6 +1505,28 @@ a.readerNavCategory {
     padding: 10px 0;
     margin-bottom: 14px;
 }
+.readerTextTableOfContents .content h2[role=button] {
+  cursor: pointer;
+}
+.readerTextTableOfContents .content h2 img {
+  opacity: 0.43;
+  padding: 0 5px;
+  height: 10px;
+  width: 10px;
+}
+.readerTextTableOfContents .versionSectionHeader {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+}
+.readerTextTableOfContents .versionSectionSummary {
+  text-transform: none;
+  color: #ccc;
+  font-size: 14px;
+}
+.readerTextTableOfContents .versionSectionSummaryHidden {
+  visibility: hidden;
+}
 .modTools .dlVersionSelect {
   display: block;
 }
@@ -4080,7 +4102,7 @@ h2.splitHeader .he {
 }
 .hebrew .topicPanel .topicSource .score img {
   margin: -4px 2px 0 0;
-}  
+}
 .note a {
   color: #333;
   text-decoration: underline;
