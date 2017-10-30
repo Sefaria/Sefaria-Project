@@ -4009,9 +4009,6 @@ h2.splitHeader .he {
   font-size: 24px;
 }
 .topicsPanel .topicsFilterReset {
-  position: absolute;
-  top: 26px;
-  right: 0;
   color: #999;
   cursor: pointer;
 }
