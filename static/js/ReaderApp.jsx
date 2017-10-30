@@ -715,7 +715,7 @@ class ReaderApp extends Component {
     if (this.currentlyConnecting()) { return }
     
     this.openTextListAt(n+1, [ref]);
-    if ($(".readerPanel")[n+1]) { //Focus on the first focusable element of the newly loaded panel. Mostly for a11y
+    if ($(".readerPanel")[n+1] && window.getSelection().isCollapsed) { //Focus on the first focusable element of the newly loaded panel if text not selected. Mostly for a11y
       var curPanel = $(".readerPanel")[n+1];
       $(curPanel).find(':focusable').first().focus();
     }
