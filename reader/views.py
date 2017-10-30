@@ -642,6 +642,7 @@ def s2_topics_page(request):
         "initialMenu":  "topics",
         "initialTopic": None,
         "topicList": topics.list(sort_by="count"),
+        "trendingTags": recent_public_tags(days=14, ntags=12),
     })
 
     propsJSON = json.dumps(props)

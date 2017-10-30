@@ -3984,7 +3984,10 @@ h2.splitHeader .he {
   color: #666;
 }
 .topicsPanel.systemPanel.readerNavMenu h1 {
-  margin-bottom: 30px;
+  margin: 0 0 30px 0;
+}
+.topicsPanel.systemPanel.readerNavMenu h3 {
+
 }
 .topicsPanel .loadingMessage {
   text-align: center;
@@ -4022,11 +4025,14 @@ h2.splitHeader .he {
 .topicsPanel .topicList {
   min-height: 500px;
 }
-.topicsPanel .content .topicList .int-en {
+.topicsPanel .content .topicList .navButton .int-en {
   font-family: "adobe-garamond-pro", Georgia, serif;
 }
-.topicsPanel .content .topicList .int-he {
+.topicsPanel .content .topicList .navButton .int-he {
   font-family: "Frank Ruehl Libre", "Taamey Frank", "Times New Roman", serif;
+}
+.topicsPanel .trendingTopics {
+  margin-bottom: 40px;
 }
 .topicPanel .topicLabel {
   text-transform: uppercase;
