@@ -160,7 +160,7 @@ urlpatterns += patterns('sheets.views',
     (r'^api/sheets/trending-tags/?$',                              'trending_tags_api'),
     (r'^api/sheets/tag-list/?$',                                   'tag_list_api'),
     (r'^api/sheets/tag-list/user/(?P<user_id>\d+)?$',              'user_tag_list_api'),
-    (r'^api/sheets/tag-list/(?P<sort_by>\w+)$',                    'tag_list_api'),
+    (r'^api/sheets/tag-list/(?P<sort_by>[a-zA-Z\-]+)$',                    'tag_list_api'),
     (r'^api/sheets/all-sheets/(?P<limiter>\d+)/(?P<offset>\d+)$',  'all_sheets_api'),
     (r'^api/sheets/(?P<sheet_id>\d+)/export_to_drive$',            'export_to_drive'),
 )
@@ -363,7 +363,6 @@ urlpatterns += patterns('sefaria.views',
 # Email Subscribe
 urlpatterns += patterns('sefaria.views',
     (r'^api/subscribe/(?P<email>.+)$', 'subscribe'),
-    (r'^api/subscribe-educator-newsletter/(?P<email>.+)$', 'subscribe_educators'),
 )
 
 # Admin
@@ -375,6 +374,7 @@ urlpatterns += patterns('',
     (r'^admin/reset/counts/(?P<title>.+)$', 'sefaria.views.reset_counts'),
     (r'^admin/reset/toc$', 'sefaria.views.rebuild_toc'),
     (r'^admin/reset/ac$', 'sefaria.views.rebuild_auto_completer'),
+    (r'^admin/reset/topics$', 'sefaria.views.rebuild_topics'),
     (r'^admin/reset/(?P<tref>.+)$', 'sefaria.views.reset_ref'),
     (r'^admin/delete/orphaned-counts', 'sefaria.views.delete_orphaned_counts'),
     (r'^admin/rebuild/auto-links/(?P<title>.+)$', 'sefaria.views.rebuild_auto_links'),

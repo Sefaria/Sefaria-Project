@@ -1405,12 +1405,12 @@ Sefaria = extend(Sefaria, {
     },
     _tagList: {},
     tagList: function(sortBy, callback) {
-      // Returns a list of all public source sheet tags, ordered by populartiy
+      // Returns a list of all public source sheet tags, ordered by popularity
       sortBy = typeof sortBy == "undefined" ? "count" : sortBy;
       var tags = this._tagList[sortBy];
       if (tags) {
         if (callback) { callback(tags); }
-      } else if ("count" in this._tagList && sortBy == "alpha") {
+      } else if ("count" in this._tagList && (sortBy == "alpha")) {
         // If we have one set of ordered tags already, we can do sorts locally.
         var tags = this._tagList["count"].slice();
         tags.sort(function(a, b) {
@@ -1681,6 +1681,15 @@ Sefaria = extend(Sefaria, {
       " & ": " | ",
       "My Source Sheets" : "דפי המקורות שלי",
       "Public Source Sheets":"דפי מקורות פומביים",
+      "Version History": "היסטוריית גרסה",
+      "Digitized by Sefaria": 'הונגש ועובד לצורה דיגיטלית על ידי ספריא',
+      "Public Domain": "רשיון בנחלת הכלל",
+      "CC-BY": "רשיון CC-BY",
+      "CC-BY-NC": "רשיון CC-BY-NC",
+      "CC-BY-SA": "רשיון CC-BY-SA",
+      "CC-BY-NC-SA": "רשיון CC-BY-NC-Sa",
+      "CC0": "רשיון CC0",
+      "Copyright: JPS, 1985": "זכויות שמורות ל-JPS, 1985",
 
       //sheets
       "Untitled Source Sheet" : "דף מקורות ללא שם",
@@ -1697,6 +1706,7 @@ Sefaria = extend(Sefaria, {
 
       //reader panel
       "Search" : "חיפוש",
+      "Search for Texts or Keywords Here": "חיפוש טקסט או מילות מפתח",
       "Views": "צפיות"
   },
   _v: function(inputVar){

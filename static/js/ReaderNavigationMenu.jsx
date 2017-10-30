@@ -324,7 +324,6 @@ class RecentPanel extends Component {
                 showSections={true}
                 recentItem={true} />)
     });
-    var recentContent = (<TwoOrThreeBox content={recentItems} width={width} />);
 
     var footer = this.props.compare ? null :
                     (<footer id="footer" className={`interface-${this.props.interfaceLang} static sans`}>
@@ -356,7 +355,7 @@ class RecentPanel extends Component {
               <span className="int-he">נצפו לאחרונה</span>
             </h1>
             : null }
-            {recentContent}
+            {recentItems}
           </div>
           {footer}
         </div>

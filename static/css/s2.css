@@ -1018,6 +1018,13 @@ a.readerNavCategory {
   text-align: center;
   unicode-bidi: plaintext;
 }
+.readerNavMenu .blockLink:active,
+.readerNavMenu .catLink:active,
+.readerNavMenu .navButton:active,
+.readerNavCategory:active,
+.readerTextTableOfContents .refLink:active {
+  background-color: #f3f3f3;
+}
 @media (max-width: 450px) {
   .readerNavMenu .refLink,
   .readerNavMenu .catLink,
@@ -1031,11 +1038,9 @@ a.readerNavCategory {
   background-color: white;
   border: 3px solid #F9F9F7;
 }
-
 .readerSheetsNav .navButton:hover {
   text-decoration: none;
 }
-
 @media (max-width: 450px) {
   .readerNavMenu .readerNavCategoryMenu td,
   .readerSheetsNav .gridBox td {
@@ -1214,7 +1219,9 @@ a.readerNavCategory {
 }
 .readerTextTableOfContents .versionEditForm #versionTitle,
 .readerTextTableOfContents .versionEditForm #versionSource,
-.readerTextTableOfContents .versionEditForm #versionNotes
+.readerTextTableOfContents .versionEditForm #versionNotes,
+.readerTextTableOfContents .versionEditForm #versionTitleInHebrew,
+.readerTextTableOfContents .versionEditForm #versionNotesInHebrew
  {
   width: 98%;
 }
@@ -1459,6 +1466,7 @@ a.readerNavCategory {
   display: block;
   font-size: 18px;
   color: #333;
+  unicode-bidi: plaintext;
 }
 .readerTextTableOfContents .versionBlock a {
   color: #999;
@@ -1520,6 +1528,11 @@ a.readerNavCategory {
     color: #333;
     font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
 }
+.modTools .dlVersionSelect option,
+.readerTextTableOfContents .content .dlVersionSelect option{
+  unicode-bidi: plaintext;
+}
+
 .modTools .versionDownloadButton,
 .readerTextTableOfContents .content .versionDownloadButton {
     width: 60%;
@@ -1593,12 +1606,10 @@ a.readerNavCategory {
   letter-spacing: 1px;
   cursor: pointer;
 }
-
 .searchContent .type-button .he,
 .readerSheetsNav .type-button .he {
   font-family: "Heebo", sans-serif;
 }
-
 .searchContent .type-button.active,
 .readerSheetsNav .type-button.active {
   color: #000;
@@ -1996,6 +2007,12 @@ a.readerNavCategory {
 .hebrew .readerSheetsNav {
   direction: ltr;
 }
+.readerSheetsNav .tagsList .int-en {
+  font-family: "adobe-garamond-pro", Georgia, serif;
+}
+.readerSheetsNav .tagsList .int-he {
+  font-family: "Frank Ruehl Libre", "Taamey Frank", "Times New Roman", serif;
+}
 .readerControls {
   position: relative;
   /* direction: ltr;*/
@@ -2299,7 +2316,8 @@ a.readerNavCategory {
 .narrowColumn .textRange.basetext {
 }
 .textRange.basetext .title {
-  padding: 24px 28px 24px;
+  padding: 0 28px;
+  margin: 24px 0;
   color: #999;
   text-align: center;
   justify-content: center;
@@ -2335,14 +2353,31 @@ a.readerNavCategory {
   direction: rtl;
 }
 .basetext .text {
-  padding: 30px 44px;
+  padding: 0 44px;
+  margin: 30px 0;
   background-color: inherit;
 }
 .narrowColumn .basetext .text {
-  padding: 26px;
+  padding: 0 26px;
 }
 .singlePanel .basetext .text {
-  padding: 30px 34px;
+  padding: 0 34px;
+}
+.parashahHeader {
+  text-align: center;
+  color: #8e8e8e;
+  margin: 32px 0;
+  font-size: 18px;
+  letter-spacing: 1px;
+}
+.parashahHeader .en {
+  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", arial, sans-serif;
+}
+.parashahHeader .he {
+  font-family: "Heebo", sans-serif;
+}
+.bilingual .parashahHeader .en {
+  display: none;
 }
 .segment {
   cursor: pointer;
@@ -2394,7 +2429,7 @@ a.readerNavCategory {
 }
 .heLeft.bilingual .basetext .text,
 .heRight.bilingual .basetext .text {
-  padding: 30px 0;
+  padding: 0;
 }
 .heLeft.bilingual .segment > .en,
 .heLeft.bilingual .segment > .he,
@@ -3949,33 +3984,31 @@ h2.splitHeader .he {
   color: #666;
 }
 .topicsPanel.systemPanel.readerNavMenu h1 {
-  margin-bottom: 30px;
+  margin: 0 0 30px 0;
+}
+.topicsPanel.systemPanel.readerNavMenu h3 {
+
 }
 .topicsPanel .loadingMessage {
   text-align: center;
 }
 .topicsPanel .topicFilterBox {
-  position: relative;
+  display: flex;
+  align-items: center;
 }
 .topicsPanel .topicFilterIcon {
   font-size: 22px;
-  position: absolute;
-  top: 24px;
-  left: 0;
   opacity: 0.4;
 }
 .topicsPanel .topicFilterInput {
-  padding: 20px 10px 20px 34px;
-  width: 100%;
+  padding: 20px 10px 20px 10px;
+  flex: 1;
   box-sizing: border-box;
   border: none;
   background: transparent;
   font-size: 24px;
 }
 .topicsPanel .topicsFilterReset {
-  position: absolute;
-  top: 26px;
-  right: 0;
   color: #999;
   cursor: pointer;
 }
@@ -3988,6 +4021,15 @@ h2.splitHeader .he {
 }
 .topicsPanel .topicList {
   min-height: 500px;
+}
+.topicsPanel .content .topicList .navButton .int-en {
+  font-family: "adobe-garamond-pro", Georgia, serif;
+}
+.topicsPanel .content .topicList .navButton .int-he {
+  font-family: "Frank Ruehl Libre", "Taamey Frank", "Times New Roman", serif;
+}
+.topicsPanel .trendingTopics {
+  margin-bottom: 40px;
 }
 .topicPanel .topicLabel {
   text-transform: uppercase;
@@ -4018,6 +4060,12 @@ h2.splitHeader .he {
   font-size: 16px;
   line-height: 1.4;
   display: inline-block;
+}
+.topicPanel .content .relatedTopic .int-en {
+  font-family: "adobe-garamond-pro", Georgia, serif;
+}
+.topicPanel .content .relatedTopic .int-he {
+  font-family: "Frank Ruehl Libre", "Taamey Frank", "Times New Roman", serif;
 }
 .topicPanel .sourceList {
   min-height: 500px;
@@ -4058,6 +4106,9 @@ h2.splitHeader .he {
   margin: -4px 0 0 2px;
   opacity: 0.6;
 }
+.hebrew .topicPanel .topicSource .score img {
+  margin: -4px 2px 0 0;
+}  
 .note a {
   color: #333;
   text-decoration: underline;

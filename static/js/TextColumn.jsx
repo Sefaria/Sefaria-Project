@@ -268,6 +268,7 @@ class TextColumn extends Component {
         withContext={true}
         loadLinks={true}
         prefetchNextPrev={true}
+        showParashahHeaders={true}
         settings={this.props.settings}
         setOption={this.props.setOption}
         showBaseText={this.props.showBaseText}

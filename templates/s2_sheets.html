@@ -1008,20 +1008,15 @@
 
 <div id="shareWithOthers" class="modal s2Modal">
     <div class="content">
-		<textarea id="sheetSummaryInput"
-                  placeholder=
-                          {% if request.interfaceLang == 'english' %}
-                              "Write a summary to help others understand your sheet..."
-                          {% else %}
-                              "כתוב תקציר המסביר אודות דף המקורות שלך לאחרים"
-                          {% endif %}/>{{ sheet.summary }}</textarea>
-
+		<textarea id="sheetSummaryInput" placeholder={% trans "Write a summary to help others understand your sheet..." %}>
+        {{ sheet.summary }}
+        </textarea>
     </div>
 
     <div class="line"></div>
 
     <div class="content">
-        <ul id="tags"><span class="addTagMsg"><span class="int-en">Add Tags...</span><span class="int-he">הוסף תיוגים</span></span></ul>
+        <ul id="tags"><span class="addTagMsg"><span class="int-en">Add Tags...</span><span class="int-he">הוספת תיוגים</span></span></ul>
 
         <div id="suggestedTags">
 
