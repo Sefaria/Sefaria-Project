@@ -2436,6 +2436,10 @@ function readSheet() {
 
 		sheet["status"] = $("#sheetPublicToggle").is(':checked') ? "public" : "unlisted";
 
+		if (sjs.current.status == "unlisted" && sheet["status"] == "public" ) {
+				sjs.track.sheets("Sheet Published");
+		}
+
 		switch ($("#sourceSheetShareSelect").val()) {
 			case 'view':
 				sheet.options.collaboration = "none";
