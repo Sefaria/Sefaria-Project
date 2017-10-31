@@ -161,7 +161,7 @@ class PresenceOfDownloadButtonOnTOC(AtomicTest):
 
 
 class LoadSearchFromURL(AtomicTest):
-    suite_key = "Search"
+    suite_key = "Reader"
     every_build = True
 
     def run(self):
@@ -169,7 +169,7 @@ class LoadSearchFromURL(AtomicTest):
 
 
 class ClickVersionedSearchResultDesktop(AtomicTest):
-    suite_key = "Search"
+    suite_key = "Reader"
     single_panel = False
 
     def run(self):
@@ -181,7 +181,7 @@ class ClickVersionedSearchResultDesktop(AtomicTest):
 
 
 class ClickVersionedSearchResultMobile(AtomicTest):
-    suite_key = "Search"
+    suite_key = "Reader"
     multi_panel = False
 
     def run(self):
@@ -244,7 +244,7 @@ class LoginOnMobile(AtomicTest):
 
 
 class SpecialCasedSearchBarNavigations(AtomicTest):
-    suite_key = "Sheets"
+    suite_key = "Reader"
     every_build = True
     single_panel = False  # This hasn't yet been implemented on mobile
 
@@ -269,9 +269,8 @@ class SpecialCasedSearchBarNavigations(AtomicTest):
         WebDriverWait(self.driver, TEMPER).until(visibility_of_element_located((By.CSS_SELECTOR, ".readerNavCategoryMenu")))
 
 
-
 class EditorPagesLoad(AtomicTest):
-    suite_key = "Editor"
+    suite_key = "Reader"
     every_build = True
     single_panel = False
 

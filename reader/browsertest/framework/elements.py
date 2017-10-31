@@ -384,18 +384,31 @@ class AtomicTest(object):
 
 
 class TestResult(object):
-    def __init__(self, test, cap, success, message=""):
-        assert isinstance(test, AtomicTest) or inspect.isclass(cap)
+    def __init__(self, test_or_suite, cap, success, message=""):
+        if isinstance(test_or_suite, AtomicTest):  # or inspect.isclass(cap) # Why?
+            self.test = test_or_suite
+            self.suite = None
+        elif isinstance(test_or_suite, list) and len(test_or_suite) and all([isinstance(x, AtomicTest) for x in test_or_suite]):
+            self.suite = test_or_suite
+            self.test = None
+        else:
+            raise Exception()
+
         assert isinstance(success, bool)
         self.cap = cap
-        self.test = test
         self.success = success
         self.message = message
+
+    def test_identifier(self):
+        if self.test:
+            return self.test.__class__.__name__
+        else:
+            return self.suite[0].suite_key
 
     def __str__(self):
         return "{} - {} on {}{}".format(
             "Pass" if self.success else "Fail",
-            self.test.__class__.__name__,
+            self.test_identifier(),
             Trial.cap_to_string(self.cap),
             ": \n{}".format(self.message) if self.message else ""
         )
@@ -418,12 +431,12 @@ class ResultSet(object):
     def _aggregate(self):
         if not self._aggregated:
             for res in self._test_results:
-                self._indexed_tests[(res.test.__class__, Trial.cap_to_short_string(res.cap))] = res.success
+                self._indexed_tests[(res.test_identifier(), Trial.cap_to_short_string(res.cap))] = res.success
             self._aggregated = True
 
     def _results_as_matrix(self):
         self._aggregate()
-        tests = list({res.test.__class__ for res in self._test_results})
+        tests = list({res.test_identifier() for res in self._test_results})
         caps = list({Trial.cap_to_short_string(res.cap) for res in self._test_results})
 
         def text_result(test, cap):
@@ -434,7 +447,7 @@ class ResultSet(object):
                 return "Fail"
             return r
 
-        results = [[test.__name__] + [text_result(test, cap) for cap in caps] for test in tests]
+        results = [[test] + [text_result(test, cap) for cap in caps] for test in tests]
         results = [[""] + caps] + results
         return results
 
