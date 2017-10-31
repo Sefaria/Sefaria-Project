@@ -385,8 +385,8 @@ class ReaderPanel extends Component {
   setCurrentlyVisibleRef(ref) {
      this.conditionalSetState({
       currentlyVisibleRef: ref,
-    });   
-  } 
+    });
+  }
   currentMode() {
     return this.state.mode;
   }
@@ -493,6 +493,7 @@ class ReaderPanel extends Component {
           connectionsCategory={this.state.connectionsCategory}
           interfaceLang={this.props.interfaceLang}
           contentLang={this.state.settings.language}
+          title={this.currentBook()}
           version={this.state.version}
           versionLanguage={this.state.versionLanguage}
           fullPanel={this.props.multiPanel}
@@ -516,6 +517,7 @@ class ReaderPanel extends Component {
           openComparePanel={this.props.openComparePanel}
           closePanel={this.props.closePanel}
           selectedWords={this.state.selectedWords}
+          getLicenseMap={this.props.getLicenseMap}
           key="connections" />
       );
     }
@@ -562,7 +564,8 @@ class ReaderPanel extends Component {
                     openNav={this.openMenu.bind(null, "navigation")}
                     openDisplaySettings={this.openDisplaySettings}
                     selectVersion={this.props.selectVersion}
-                    showBaseText={this.showBaseText}/>);
+                    showBaseText={this.showBaseText}
+                    getLicenseMap={this.props.getLicenseMap}/>);
 
     } else if (this.state.menuOpen === "book toc") {
       var menu = (<ReaderTextTableOfContents
@@ -579,7 +582,8 @@ class ReaderPanel extends Component {
                     openNav={this.openMenu.bind(null, "navigation")}
                     openDisplaySettings={this.openDisplaySettings}
                     selectVersion={this.props.selectVersion}
-                    showBaseText={this.showBaseText}/>);
+                    showBaseText={this.showBaseText}
+                    getLicenseMap={this.props.getLicenseMap}/>);
 
     } else if (this.state.menuOpen === "search" && this.state.searchQuery) {
       var menu = (<SearchPage
@@ -733,7 +737,7 @@ class ReaderPanel extends Component {
         : null}
 
         {menu}
-        
+
         {this.state.displaySettingsOpen ? (<ReaderDisplayOptionsMenu
                                               settings={this.state.settings}
                                               multiPanel={this.props.multiPanel}
@@ -794,7 +798,8 @@ ReaderPanel.propTypes = {
   layoutWidth:                 PropTypes.number,
   setTextListHighlight:        PropTypes.func,
   setSelectedWords:            PropTypes.func,
-  analyticsInitialized:        PropTypes.bool
+  analyticsInitialized:        PropTypes.bool,
+  getLicenseMap:               PropTypes.func.isRequired,
 };
 
 

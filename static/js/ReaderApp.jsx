@@ -436,11 +436,11 @@ class ReaderApp extends Component {
             if (states[i].navigationTopic) {
               hist.url   = "topics/" + state.navigationTopic;
               hist.title = state.navigationTopic + " | " + Sefaria._("Sefaria");
-              hist.mode  = "topic";                 
+              hist.mode  = "topic";
             } else {
               hist.url   = "topics";
               hist.title = Sefaria._("Topics | Sefaria");
-              hist.mode  = "topics";   
+              hist.mode  = "topics";
             }
             break;
           case "account":
@@ -713,7 +713,7 @@ class ReaderApp extends Component {
     // Update or add panel after this one to be a TextList
     this.setTextListHighlight(n, [ref]);
     if (this.currentlyConnecting()) { return }
-    
+
     this.openTextListAt(n+1, [ref]);
     if ($(".readerPanel")[n+1]) { //Focus on the first focusable element of the newly loaded panel. Mostly for a11y
       var curPanel = $(".readerPanel")[n+1];
@@ -899,6 +899,16 @@ class ReaderApp extends Component {
     var url     = "/api/sheets/" + selectedSheet + "/add";
     $.post(url, {source: JSON.stringify(source)}, confirmFunction);
 
+  }
+  getLicenseMap() {
+    const licenseMap = {
+      "Public Domain": "https://en.wikipedia.org/wiki/Public_domain",
+      "CC0": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "CC-BY": "https://creativecommons.org/licenses/by/3.0/",
+      "CC-BY-SA": "https://creativecommons.org/licenses/by-sa/3.0/",
+      "CC-BY-NC": "https://creativecommons.org/licenses/by-nc/4.0/"
+    }
+    return licenseMap;
   }
   selectVersion(n, versionName, versionLanguage) {
     // Set the version for panel `n`.
@@ -1254,7 +1264,8 @@ class ReaderApp extends Component {
                     handleInAppLinkClick={this.handleInAppLinkClick}
                     headerMode={this.props.headerMode}
                     panelsOpen={panelStates.length}
-                    analyticsInitialized={this.state.initialAnalyticsTracked} />) : null;
+                    analyticsInitialized={this.state.initialAnalyticsTracked}
+                    getLicenseMap={this.getLicenseMap} />) : null;
 
     var panels = [];
     var allOpenRefs = panelStates.filter( panel => panel.mode == "Text" && !panel.menuOpen)
@@ -1273,7 +1284,7 @@ class ReaderApp extends Component {
       var updateAvailableFiltersInPanel  = this.updateAvailableFiltersInPanel.bind(null, i);
       var updateSearchFilterInPanel      = this.updateSearchFilterInPanel.bind(null, i);
       var updateSearchOptionFieldInPanel = this.updateSearchOptionFieldInPanel.bind(null, i);
-      var updateSearchOptionSortInPanel  = this.updateSearchOptionSortInPanel.bind(null, i);     
+      var updateSearchOptionSortInPanel  = this.updateSearchOptionSortInPanel.bind(null, i);
       var onOpenConnectionsClick         = this.openTextListAt.bind(null, i+1);
       var setTextListHighlight           = this.setTextListHighlight.bind(null, i);
       var setSelectedWords               = this.setSelectedWords.bind(null, i);
@@ -1324,6 +1335,7 @@ class ReaderApp extends Component {
                       masterPanelLanguage={panel.mode === "Connections" ? panelStates[i-1].settings.language : panel.settings.language}
                       layoutWidth={width}
                       analyticsInitialized={this.state.initialAnalyticsTracked}
+                      getLicenseMap={this.getLicenseMap}
                     />
                   </div>);
     }

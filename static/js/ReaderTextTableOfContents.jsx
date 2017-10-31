@@ -190,7 +190,7 @@ class ReaderTextTableOfContents extends Component {
           defaultVersionObject = this.state.versions.find(v => (cv.language == v.language && cv.versionTitle == v.versionTitle));
           defaultVersionString += defaultVersionObject ? " (" + defaultVersionObject.versionTitle + ")" : "";
         }
-        currentVersionElement = (<VersionBlock title={title} version={cv} currentRef={this.props.currentRef} showHistory={true}/>);
+        currentVersionElement = (<VersionBlock title={title} version={cv} currentRef={this.props.currentRef} showHistory={true} getLicenseMap={this.props.getLicenseMap}/>);
       }
     }
 
@@ -202,7 +202,7 @@ class ReaderTextTableOfContents extends Component {
         <section>
           <h2
             className="versionSectionHeader"
-            tabindex="0"
+            tabIndex="0"
             role="button"
             aria-pressed={`${this.state.versionsDropDownOpen}`}
             onClick={this.toggleVersionsDropDownOpen}
@@ -227,6 +227,7 @@ class ReaderTextTableOfContents extends Component {
               openVersion={this.openVersion}
               title={this.props.title}
               currentRef={this.props.currentRef}
+              getLicenseMap={this.props.getLicenseMap}
             /> : null
           }
         </section>
@@ -402,6 +403,7 @@ ReaderTextTableOfContents.propTypes = {
   close:            PropTypes.func.isRequired,
   openNav:          PropTypes.func.isRequired,
   showBaseText:     PropTypes.func.isRequired,
+  getLicenseMap:    PropTypes.func.isRequired,
   selectVersion:    PropTypes.func,
   interfaceLang:    PropTypes.string,
 };
@@ -910,7 +912,8 @@ class VersionsList extends Component {
         currentRef={this.props.currentRef || this.props.title}
         firstSectionRef={"firstSectionRef" in v ? v.firstSectionRef : null}
         openVersion={this.props.openVersion}
-        key={v.versionTitle + "/" + v.language}/>
+        key={v.versionTitle + "/" + v.language}
+        getLicenseMap={this.props.getLicenseMap}/>
      )
     );
 
@@ -938,6 +941,7 @@ VersionsList.propTypes = {
   openVersion:  PropTypes.func.isRequired,
   title:        PropTypes.string.isRequired,
   currentRef:   PropTypes.string,
+  getLicenseMap:PropTypes.func.isRequired,
 };
 
 
@@ -955,13 +959,6 @@ class VersionBlock extends Component {
       "versionTitleInHebrew",
       "versionNotesInHebrew"
     ];
-    this.licenseMap = {
-      "Public Domain": "https://en.wikipedia.org/wiki/Public_domain",
-      "CC0": "https://creativecommons.org/publicdomain/zero/1.0/",
-      "CC-BY": "https://creativecommons.org/licenses/by/3.0/",
-      "CC-BY-SA": "https://creativecommons.org/licenses/by-sa/3.0/",
-      "CC-BY-NC": "https://creativecommons.org/licenses/by-nc/4.0/"
-    };
     var s = {
       editing: false,
       error: null,
@@ -1070,7 +1067,7 @@ class VersionBlock extends Component {
       // Editing View
       var close_icon = (Sefaria.is_moderator)?<i className="fa fa-times-circle" aria-hidden="true" onClick={this.closeEditor}/>:"";
 
-      var licenses = Object.keys(this.licenseMap);
+      var licenses = Object.keys(this.props.getLicenseMap());
       licenses = licenses.includes(v.license) ? licenses : [v.license].concat(licenses);
 
       return (
@@ -1117,7 +1114,7 @@ class VersionBlock extends Component {
       );
     } else {
       // Presentation View
-      var license = this.licenseMap[v.license]?<a href={this.licenseMap[v.license]} target="_blank">{Sefaria._(v.license)}</a>:v.license;
+      var license = this.props.getLicenseMap()[v.license]?<a href={this.props.getLicenseMap()[v.license]} target="_blank">{Sefaria._(v.license)}</a>:v.license;
       var digitizedBySefaria = v.digitizedBySefaria
           ? <a className="versionDigitizedBySefaria" href="/digitized-by-sefaria">{Sefaria._("Digitized by Sefaria")}</a> : "";
       var licenseLine = "";
@@ -1172,7 +1169,8 @@ VersionBlock.propTypes = {
   firstSectionref: PropTypes.string,
   showHistory:     PropTypes.bool,
   showNotes:       PropTypes.bool,
-  openVersion:     PropTypes.func
+  openVersion:     PropTypes.func,
+  getLicenseMap:   PropTypes.func.isRequired,
 };
 VersionBlock.defaultProps = {
   showHistory: true,

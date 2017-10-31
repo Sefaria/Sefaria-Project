@@ -246,7 +246,8 @@ class Header extends Component {
                           setUnreadNotificationsCount={this.props.setUnreadNotificationsCount}
                           handleInAppLinkClick={this.props.handleInAppLinkClick}
                           hideNavHeader={true}
-                          analyticsInitialized={this.props.analyticsInitialized}/>) : null;
+                          analyticsInitialized={this.props.analyticsInitialized}
+                          getLicenseMap={this.props.getLicenseMap}/>) : null;
 
 
     var notificationCount = Sefaria.notificationCount || 0;
@@ -322,6 +323,7 @@ Header.propTypes = {
   headerMesssage:              PropTypes.string,
   panelsOpen:                  PropTypes.number,
   analyticsInitialized:        PropTypes.bool,
+  getLicenseMap:               PropTypes.func.isRequired,
 };
 
 

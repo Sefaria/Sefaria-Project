@@ -4581,3 +4581,39 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
 .bubbleTab.active {
   color: #333;
 }
+.aboutBox h2 {
+  color: #999;
+  padding-bottom: 13px;
+  margin: 0;
+  text-align: initial;
+  text-transform: none;
+  border-bottom: solid 1px #999;
+}
+.aboutBox .aboutTitle {
+  padding: 15px 0;
+  font-size: 15px;
+}
+.aboutBox .aboutSubtitle {
+  font-style: italic;
+  font-size: 10px;
+  color: #999;
+}
+.aboutBox .aboutDesc {
+  padding: 15px 0 30px 0;
+  font-size: 12px;
+}
+.aboutBox .versionNotes {
+  padding: 15px 0;
+  font-size: 12px;
+}
+.aboutBox .versionDetails {
+  font-size: 12px;
+  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  color: #999;
+}
+.aboutBox .versionDetails .separator {
+  margin: 0 3px;
+}
+.aboutBox a {
+  color: #999;
+}
