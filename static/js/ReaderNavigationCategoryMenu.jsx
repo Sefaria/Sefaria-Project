@@ -145,10 +145,16 @@ class ReaderNavigationCategoryMenuContents extends Component {
       return item;
     });
     heCats = heCats.sort(function(a, b) {
-      if ("order" in a || "order:" in b) {
+      if ("order" in a || "order" in b) {
         var aOrder = "order" in a ? a.order : 9999;
         var bOrder = "order" in b ? b.order : 9999;
         return aOrder > bOrder ? 1 : -1;
+      
+      } else if (("category" in a) != ("category" in b)) {
+        return a.enOrder - b.enOrder;      
+      
+      } else if (a.heComplete != b.heComplete) {
+        return a.heComplete ? -1 : 1;
       
       } else if (a.heTitle && b.heTitle) {
         return a.heTitle > b.heTitle ? 1 : -1;

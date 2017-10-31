@@ -196,16 +196,21 @@ class TocTree(object):
     def _sort(self):
         def _explicit_order_and_title(node):
             title = node.primary_title("en")
+            complete = getattr(node, "enComplete", False)
+            complete_or_title_key = "0" + title if complete else "1" + title
+
             try:
+                # First sort by global order list below
                 return ORDER.index(title)
             except ValueError:
+
                 if isinstance(node, TocCategory):
                     temp_cat_name = title.replace(" Commentaries", "")
                     if temp_cat_name in TOP_CATEGORIES:
                         return ORDER.index(temp_cat_name) + 0.5
-                    return 'zz' + title
+                    return 'zz' + complete_or_title_key
                 else:
-                    return getattr(node, "order", title)
+                    return getattr(node, "order", complete_or_title_key)
 
         for cat in self.all_category_nodes():  # iterate all categories
             cat.children.sort(key=_explicit_order_and_title)
@@ -356,6 +361,10 @@ class TocCategory(TocNode):
     def __init__(self, serial=None, **kwargs):
         self._category_object = kwargs.pop("category_object", None)
         super(TocCategory, self).__init__(serial, **kwargs)
+
+    optional_param_keys = [
+        "order",
+    ]
 
     title_attrs = {
         "he": "heCategory",
