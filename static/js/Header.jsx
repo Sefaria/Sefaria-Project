@@ -269,7 +269,6 @@ class Header extends Component {
                              <span className="int-he">התחבר</span>
                            </a>
                          </div>);
-    var langSearchPlaceholder = this.props.interfaceLang == 'english' ? "Search" : "חיפוש";
     var vkClassActivator = this.props.interfaceLang == 'english' ? " keyboardInput" : "";
     return (<div className="header" role="banner">
               <div className="headerInner">
@@ -279,11 +278,11 @@ class Header extends Component {
                       <ReaderNavigationMenuSearchButton onClick={this.handleSearchButtonClick} />
                       <input className={"search"+ vkClassActivator}
                              id="searchInput"
-                             placeholder={langSearchPlaceholder}
+                             placeholder={Sefaria._("Search")}
                              onKeyUp={this.handleSearchKeyUp}
                              onFocus={this.showVirtualKeyboardIcon.bind(this, true)}
                              onBlur={this.showVirtualKeyboardIcon.bind(this, false)}
-                      title="Search for Texts or Keywords Here"/>
+                      title={Sefaria._("Search for Texts or Keywords Here")}/>
                     </div>
                 </div>
                 <div className="headerHomeSection">

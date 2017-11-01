@@ -379,18 +379,19 @@
             var email = $("#mailingListEmail").val();
             if (Sefaria.util.isValidEmailAddress(email)) {
                 Sefaria.track.event("Home", "Subscribe from Homepage", "");
-                $("#subscribeMsg").html("<i>Subscribing...</i>").show();
-                $.post("/api/subscribe/" + email, function(data) {
+                $("#subscribeMsg").html('{% trans "<i>Subscribing...</i>" %}').show();
+                var list = Sefaria.interfaceLang == "hebrew" ? "Announcements_General_Hebrew" : "Announcements_General"
+                $.post("/api/subscribe/" + email + "?lists=" + list,  function(data) {
                     if ("error" in data) {
                         $("#subscribeMsg").text(data.error).show();
                     } else {
-                        $("#subscribeMsg").text("Subscribed! Welcome to our list.").show();
+                        $("#subscribeMsg").text('{% trans "Subscribed! Welcome to our list." %}').show();
                     }
                 }).error(function(data) {
-                    $("#subscribeMsg").text("Sorry, there was an error.").show();
+                    $("#subscribeMsg").text('{% trans "Sorry, there was an error." %}').show();
                 })
             } else {
-                $("#subscribeMsg").text("Sorry, that's not a valid email address.").show();
+                $("#subscribeMsg").text('{% trans "Please enter a valid email address." %}').show();
             }
         });
         $("#mailingListEmail").keyup(function(e){

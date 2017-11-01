@@ -383,6 +383,7 @@ class ReaderPanel extends Component {
     });
   }
   setCurrentlyVisibleRef(ref) {
+     this.replaceHistory = true;
      this.conditionalSetState({
       currentlyVisibleRef: ref,
     });   

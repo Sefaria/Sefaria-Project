@@ -43,7 +43,7 @@ from sefaria.client.util import jsonResponse
 from sefaria.history import text_history, get_maximal_collapsed_activity, top_contributors, make_leaderboard, make_leaderboard_condition, text_at_revision, record_version_deletion, record_index_deletion
 from sefaria.system.decorators import catch_error_as_json
 from sefaria.summaries import get_or_make_summary_node
-from sefaria.sheets import get_sheets_for_ref, public_sheets, get_sheets_by_tag, user_sheets, user_tags, recent_public_tags, sheet_to_dict, get_top_sheets, make_tag_list, group_sheets
+from sefaria.sheets import get_sheets_for_ref, public_sheets, get_sheets_by_tag, user_sheets, user_tags, recent_public_tags, sheet_to_dict, get_top_sheets, public_tag_list, group_sheets
 from sefaria.utils.util import list_depth, text_preview
 from sefaria.utils.hebrew import hebrew_plural, hebrew_term, encode_hebrew_numeral, encode_hebrew_daf, is_hebrew, strip_cantillation, has_cantillation
 from sefaria.utils.talmud import section_to_daf, daf_to_section
@@ -52,7 +52,7 @@ import sefaria.utils.calendars
 from sefaria.utils.util import short_to_long_lang_code
 import sefaria.tracker as tracker
 from sefaria.system.cache import django_cache_decorator
-from sefaria.settings import USE_VARNISH, USE_NODE, NODE_HOST, DOMAIN_LANGUAGES, REDIRECTABLE_DOMAIN_LANGUAGES
+from sefaria.settings import USE_VARNISH, USE_NODE, NODE_HOST, DOMAIN_LANGUAGES
 if USE_VARNISH:
     from sefaria.system.sf_varnish import invalidate_ref, invalidate_linked
 
@@ -536,7 +536,7 @@ def s2_sheets(request):
     props.update({
         "initialMenu": "sheets",
         "topSheets": get_top_sheets(),
-        "tagList": make_tag_list(sort_by="count"),
+        "tagList": public_tag_list(sort_by="count"),
         "trendingTags": recent_public_tags(days=14, ntags=18)
     })
 
@@ -593,6 +593,9 @@ def s2_sheets_by_tag(request, tag):
     Page of sheets by tag.
     Currently used to for "My Sheets" and  "All Sheets" as well.
     """
+    if tag != Term.normalize(tag):
+        return redirect("/sheets/tags/%s" % Term.normalize(tag))
+
     props = s2_props(request)
     props.update({
         "initialMenu":     "sheets",
@@ -614,6 +617,7 @@ def s2_sheets_by_tag(request, tag):
 
     else:
         props["tagSheets"]    = [sheet_to_dict(s) for s in get_sheets_by_tag(tag)]
+        tag   = Term.normalize(tag, lang=request.LANGUAGE_CODE)
         title = tag + _(" | Sefaria")
         desc  = _('Public Source Sheets on tagged with "%(tag)s", drawing from Sefaria\'s library of Jewish texts.') % {'tag': tag}
 
@@ -655,6 +659,9 @@ def s2_topic_page(request, topic):
     Page of sheets by tag.
     Currently used to for "My Sheets" and  "All Sheets" as well.
     """
+    if topic != Term.normalize(topic):
+        return redirect("/topics/%s" % Term.normalize(topic))
+
     topics = get_topics()
     props = s2_props(request)
     props.update({
@@ -1361,22 +1368,18 @@ def interface_language_redirect(request, language):
     Set the interfaceLang cookie, saves to UserProfile (if logged in)
     and redirects to `next` url param.
     """
-    from pprint import pprint
     next = request.GET.get("next", "/?home")
     next = "/?home" if next == "undefined" else next
     
-    pinned_domain = None
-    domains = REDIRECTABLE_DOMAIN_LANGUAGES or DOMAIN_LANGUAGES
-    for domain in domains:
-        if domains[domain] == language and not request.get_host() in domain:
-            pinned_domain = domain
+    for domain in DOMAIN_LANGUAGES:
+        if DOMAIN_LANGUAGES[domain] == language and not request.get_host() in domain:
             next = domain + next
+            next = next + ("&" if "?" in next else "?") + "set-language-cookie"
             break
 
     response = redirect(next)
     
-    if not pinned_domain:
-        response.set_cookie("interfaceLang", language)
+    response.set_cookie("interfaceLang", language)
     if request.user.is_authenticated():
         p = UserProfile(id=request.user.id)
         p.settings["interface_language"] = language

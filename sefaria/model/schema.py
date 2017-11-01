@@ -58,8 +58,6 @@ class TitleGroup(object):
         if not all(ord(c) < 128 for c in self.primary_title("en")):
             raise InputError("Primary English title may not contain non-ascii characters")
 
-
-
     def load(self, serial=None):
         if serial:
             self.titles = serial
@@ -171,6 +169,9 @@ class AbstractTitledObject(object):
     def get_primary_title(self, lang='en'):
         return self.title_group.primary_title(lang)
 
+    def has_title(self, title, lang="en"):
+        return title in self.get_titles(lang)
+
 
 class AbstractTitledOrTermedObject(AbstractTitledObject):
     def _init_title_defaults(self):
@@ -221,7 +222,7 @@ class Term(abst.AbstractMongoRecord, AbstractTitledObject):
     ]
 
     def load_by_title(self, title):
-        query = {'titles.text':  title}
+        query = {'titles.text': title}
         return self.load(query=query)
 
     def _set_derived_attributes(self):
@@ -243,6 +244,13 @@ class Term(abst.AbstractMongoRecord, AbstractTitledObject):
         self.title_group.validate()
         if self.name != self.get_primary_title():
             raise InputError(u"Term name {} does not match primary title {}".format(self.name, self.get_primary_title()))
+
+    @staticmethod
+    def normalize(term, lang="en"):
+        """ Returns the primary title for of 'term' if it exists in the terms collection
+        otherwise return 'term' unchanged """
+        t = Term().load_by_title(term)
+        return t.get_primary_title(lang=lang) if t else term
 
 
 class TermSet(abst.AbstractMongoSet):
@@ -1195,6 +1203,27 @@ class SchemaNode(TitledTreeNode):
         d["sections"] = sections
         d["toSections"] = sections
         return text.Ref(_obj=d)
+
+    def find_string(self, regex_str, cleaner=lambda x: x, strict=True, lang='he', vtitle=None):
+        """
+        See TextChunk.text_index_map
+        :param regex_str:
+        :param cleaner:
+        :param strict:
+        :param lang:
+        :param vtitle:
+        :return:
+        """
+        def traverse(node):
+            matches = []
+            if node.children:
+                for child in node.children:
+                    temp_matches = traverse(child)
+                    matches += temp_matches
+            else:
+                return node.ref().text(lang=lang, vtitle=vtitle).find_string(regex_str, cleaner=cleaner, strict=strict)
+
+        return traverse(self)
 
     def text_index_map(self, tokenizer=lambda x: re.split(u'\s+',x), strict=True, lang='he', vtitle=None):
         """

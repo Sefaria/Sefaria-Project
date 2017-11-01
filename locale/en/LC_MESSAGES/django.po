@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2017-10-19 12:24-0700\n"
+"POT-Creation-Date: 2017-10-25 10:28-0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -26,7 +26,7 @@ msgstr ""
 msgid "Explore 3,000 years of Jewish texts in Hebrew and English translation."
 msgstr ""
 
-#: reader/views.py:482 reader/views.py:617
+#: reader/views.py:482 reader/views.py:621
 msgid " | Sefaria"
 msgstr ""
 
@@ -69,36 +69,36 @@ msgstr ""
 msgid "My Notes on Sefaria"
 msgstr ""
 
-#: reader/views.py:604
+#: reader/views.py:607
 msgid "My Source Sheets | Sefaria Source Sheets"
 msgstr ""
 
-#: reader/views.py:605
+#: reader/views.py:608
 msgid "My Sources Sheets on Sefaria, both private and public."
 msgstr ""
 
-#: reader/views.py:612
+#: reader/views.py:615
 msgid "Public Source Sheets | Sefaria Source Sheets"
 msgstr ""
 
-#: reader/views.py:613
+#: reader/views.py:616
 msgid ""
 "Explore thousands of public Source Sheets drawing on Sefaria's library of "
 "Jewish texts."
 msgstr ""
 
-#: reader/views.py:618
+#: reader/views.py:622
 #, python-format
 msgid ""
 "Public Source Sheets on tagged with \"%(tag)s\", drawing from Sefaria's "
 "library of Jewish texts."
 msgstr ""
 
-#: reader/views.py:647
+#: reader/views.py:651
 msgid "Topics"
 msgstr ""
 
-#: reader/views.py:647 templates/person.html:6 templates/person.html.py:8
+#: reader/views.py:651 templates/person.html:6 templates/person.html.py:8
 #: templates/search.html:6
 #: templates/registration/password_reset_complete.html:3
 #: templates/registration/password_reset_confirm.html:4
@@ -110,46 +110,46 @@ msgstr ""
 msgid "Sefaria"
 msgstr ""
 
-#: reader/views.py:648
+#: reader/views.py:652
 msgid "Explore Jewish Texts by Topic on Sefaria"
 msgstr ""
 
-#: reader/views.py:703
+#: reader/views.py:710
 msgid "The Sefaria Library"
 msgstr ""
 
-#: reader/views.py:704
+#: reader/views.py:711
 msgid ""
 "Browse 1,000s of Jewish texts in the Sefaria Library by category and title."
 msgstr ""
 
-#: reader/views.py:710
+#: reader/views.py:717
 msgid "New Additions to the Sefaria Library"
 msgstr ""
 
-#: reader/views.py:711
+#: reader/views.py:718
 msgid ""
 "See texts, translations and connections that have been recently added to "
 "Sefaria."
 msgstr ""
 
-#: reader/views.py:717
+#: reader/views.py:724
 msgid "Sefaria Account"
 msgstr ""
 
-#: reader/views.py:725
+#: reader/views.py:732
 msgid "Sefaria Notifications"
 msgstr ""
 
-#: reader/views.py:732
+#: reader/views.py:739
 msgid "Moderator Tools"
 msgstr ""
 
-#: reader/views.py:2882
+#: reader/views.py:2885
 msgid "You must be logged in to update your profile."
 msgstr ""
 
-#: reader/views.py:3468 reader/views.py:3471
+#: reader/views.py:3471 reader/views.py:3474
 #, python-format
 msgid "Learn about %(name)s - works written, biographies, dates and more."
 msgstr ""
@@ -166,37 +166,42 @@ msgstr ""
 msgid "Bilingual"
 msgstr ""
 
-#: sefaria/forms.py:59 sefaria/forms.py:64 sefaria/forms.py:133
+#: sefaria/forms.py:26 sefaria/forms.py:31 sefaria/forms.py:103
 #: templates/static/educators.html:301 templates/static/home.html:361
 msgid "Email Address"
 msgstr ""
 
-#: sefaria/forms.py:60 sefaria/forms.py:67
+#: sefaria/forms.py:27 sefaria/forms.py:34
 msgid "Password"
 msgstr ""
 
-#: sefaria/forms.py:65
+#: sefaria/forms.py:32
 msgid "First Name"
 msgstr ""
 
-#: sefaria/forms.py:66
+#: sefaria/forms.py:33
 msgid "Last Name"
 msgstr ""
 
-#: sefaria/forms.py:68
+#: sefaria/forms.py:35
 msgid "Receive important announcements"
 msgstr ""
 
-#: sefaria/forms.py:69
+#: sefaria/forms.py:36
 msgid "Receive our educator newsletter"
 msgstr ""
 
-#: sefaria/forms.py:94
+#: sefaria/forms.py:61
 msgid "A user with that email already exists."
 msgstr ""
 
 #: sefaria/views.py:162
 msgid "Logged out"
+msgstr ""
+
+#: sefaria/views.py:201 templates/static/educators.html:331
+#: templates/static/educators.html:353 templates/static/home.html:391
+msgid "Sorry, there was an error."
 msgstr ""
 
 #: templates/404.html:4
@@ -239,7 +244,8 @@ msgstr ""
 msgid "Translations"
 msgstr ""
 
-#: templates/activity.html:54 templates/profile.html:106
+#: templates/activity.html:54 templates/metrics.html:58
+#: templates/profile.html:106
 msgid "Source Sheets"
 msgstr ""
 
@@ -298,6 +304,51 @@ msgstr ""
 msgid ""
 "See graphs charting Sefaria's progress since 2013 across metrics including "
 "word counts, number of links and number of source sheets."
+msgstr ""
+
+#: templates/metrics.html:19
+msgid "Loading..."
+msgstr ""
+
+#: templates/metrics.html:42
+msgid "Total Words in Library"
+msgstr ""
+
+#: templates/metrics.html:43
+msgid "Words in Hebrew & Aramaic"
+msgstr ""
+
+#: templates/metrics.html:44
+msgid "Words in Translation"
+msgstr ""
+
+#: templates/metrics.html:45
+msgid "Words of Original Translation created by Sefaria Volunteers"
+msgstr ""
+
+#: templates/metrics.html:46
+msgid "Number of Public Contributors"
+msgstr ""
+
+#: templates/metrics.html:47
+msgid "Number of Intertextual Links"
+msgstr ""
+
+#: templates/metrics.html:48
+msgid "Number of Source Sheets"
+msgstr ""
+
+#: templates/metrics.html:52 templates/metrics.html.py:53
+#: templates/metrics.html:54 templates/metrics.html.py:55
+msgid "Words"
+msgstr ""
+
+#: templates/metrics.html:56
+msgid "Contributors"
+msgstr ""
+
+#: templates/metrics.html:57
+msgid "Links"
 msgstr ""
 
 #: templates/people.html:5
@@ -363,19 +414,23 @@ msgstr ""
 msgid "Create your own source sheet with Sefaria's Source Sheet Builder."
 msgstr ""
 
-#: templates/s2_sheets.html:1054
+#: templates/s2_sheets.html:1011
+msgid "Write a summary to help others understand your sheet..."
+msgstr ""
+
+#: templates/s2_sheets.html:1049
 msgid "None"
 msgstr ""
 
-#: templates/s2_sheets.html:1088
+#: templates/s2_sheets.html:1083
 msgid "View"
 msgstr ""
 
-#: templates/s2_sheets.html:1091
+#: templates/s2_sheets.html:1086
 msgid "Add"
 msgstr ""
 
-#: templates/s2_sheets.html:1094
+#: templates/s2_sheets.html:1089
 msgid "Edit"
 msgstr ""
 
@@ -610,7 +665,7 @@ msgid "added you to the group"
 msgstr ""
 
 #: templates/email/notification.html:29
-msgid "added a note to a "
+msgid "added a note to a"
 msgstr ""
 
 #: templates/email/notification.html:31
@@ -746,20 +801,18 @@ msgid ""
 "Resources for educators using Sefaria in the classroom to teach Jewish texts."
 msgstr ""
 
-#: templates/static/educators.html:322 templates/static/educators.html:340
+#: templates/static/educators.html:322 templates/static/educators.html:345
+#: templates/static/home.html:382
 msgid "<i>Subscribing...</i>"
 msgstr ""
 
-#: templates/static/educators.html:327 templates/static/educators.html:345
+#: templates/static/educators.html:328 templates/static/educators.html:350
+#: templates/static/home.html:388
 msgid "Subscribed! Welcome to our list."
 msgstr ""
 
-#: templates/static/educators.html:330 templates/static/educators.html:348
-msgid "Sorry, there was an error."
-msgstr ""
-
-#: templates/static/educators.html:333
-msgid "Sorry, that's not a valid email address."
+#: templates/static/educators.html:334 templates/static/home.html:394
+msgid "Please enter a valid email address."
 msgstr ""
 
 #: templates/static/help.html:4

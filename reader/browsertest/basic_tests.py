@@ -65,7 +65,7 @@ class LoadRefAndClickSegment(AtomicTest):
         assert "with=all" in self.driver.current_url, self.driver.current_url
 
         self.click_category_filter("Commentary")
-        self.click_text_filter("Malbim")
+        self.click_text_filter("Ibn Ezra")
 
 
 class LoadRefWithCommentaryAndClickOnCommentator(AtomicTest):
@@ -178,6 +178,32 @@ class ClickVersionedSearchResultDesktop(AtomicTest):
         versionedResult.click()
         WebDriverWait(self.driver, TEMPER).until(staleness_of(versionedResult))
         assert "Psalms.59.7/en/The_Rashi_Ketuvim_by_Rabbi_Shraga_Silverstein" in self.driver.current_url, self.driver.current_url
+
+class BrowserBackAndForward(AtomicTest):
+    suite_key = "Reader"
+    every_build = True
+    exclude = ['FF/x12', 'Sf/x11'] # Buggy handling of Back button
+
+    def run(self):
+
+        # Sidebar
+        self.load_ref("Genesis 2").click_segment("Genesis 2:2").click_category_filter("Commentary")
+        assert "Genesis.2.2" in self.driver.current_url, self.driver.current_url        
+        assert "with=Commentary" in self.driver.current_url, self.driver.current_url        
+        self.driver.back()
+        assert "Genesis.2.2" in self.driver.current_url, self.driver.current_url        
+        assert "with=all" in self.driver.current_url, self.driver.current_url        
+        self.driver.back()
+        assert "Genesis.2" in self.driver.current_url, self.driver.current_url
+        assert "with=" not in self.driver.current_url, self.driver.current_url        
+        self.driver.forward()
+        assert "Genesis.2.2" in self.driver.current_url, self.driver.current_url        
+        assert "with=all" in self.driver.current_url, self.driver.current_url  
+        self.driver.forward()
+        assert "Genesis.2.2" in self.driver.current_url, self.driver.current_url        
+        assert "with=Commentary" in self.driver.current_url, self.driver.current_url  
+
+        # Todo - infinite scroll, nav pages, display options, ref normalization
 
 
 class ClickVersionedSearchResultMobile(AtomicTest):

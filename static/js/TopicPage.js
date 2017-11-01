@@ -68,7 +68,7 @@ class TopicPage extends Component {
             <ReaderNavigationMenuMenuButton onClick={this.props.navHome} />
             <h2>
               <span className="int-en">{this.props.topic}</span>
-              <span className="int-he">{this.props.topic}</span>
+              <span className="int-he">{Sefaria.hebrewTerm(this.props.topic)}</span>
             </h2>
             <ReaderNavigationMenuDisplaySettingsButton onClick={this.props.openDisplaySettings} />
         </div>}
@@ -79,13 +79,13 @@ class TopicPage extends Component {
                 <h2 className="topicLabel">
                   <Link href="/topics" onClick={this.props.openTopics} title="Show all Topics">
                     <span className="int-en">Topic</span>
-                    <span className="int-he">Topic</span>
+                    <span className="int-he">נושא</span>
                   </Link>
                 </h2>
                 <h1>
                   { this.props.multiPanel ? <LanguageToggleButton toggleLanguage={this.props.toggleLanguage} /> : null }
                   <span className="int-en">{this.props.topic}</span>
-                  <span className="int-he">{this.props.topic}</span>
+                  <span className="int-he">{Sefaria.hebrewTerm(this.props.topic)}</span>
                 </h1>
               </div>
               : null }
@@ -97,9 +97,15 @@ class TopicPage extends Component {
                             href={"/topics/" + item[0]}
                             onClick={this.props.setTopic.bind(null, item[0])} 
                             key={item[0]} 
-                            title={item[1] + " co-occurrences"}>{item[0]}</Link>);
+                            title={item[1] + " co-occurrences"}>
+                              <span className="int-en">{item[0]}</span>
+                              <span className="int-he">{Sefaria.hebrewTerm(item[0])}</span>
+                          </Link>);
                 }.bind(this)) : null }
-                {topicData ? <Link className="relatedTopic" href="/topics" onClick={this.props.openTopics} title="Show all Topics">All Topics</Link> : null }
+                {topicData ? <Link className="relatedTopic" href="/topics" onClick={this.props.openTopics} title="Show all Topics">
+                                <span className="int-en">All Topics</span>
+                                <span className="int-he">כל הנושאים</span>
+                              </Link> : null }
             </div>
             <div className="sourceList">
               { topicData ?

@@ -749,6 +749,18 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
             firstSection = orig_ref.first_available_section_ref()
             return firstSection.section_ref().normal() if firstSection else None
 
+    def find_string(self, regex_str, cleaner=lambda x: x, strict=True, lang='he', vtitle=None):
+        """
+        See TextChunk.find_string
+        :param regex_str:
+        :param cleaner:
+        :param strict:
+        :param lang:
+        :param vtitle:
+        :return:
+        """
+        return self.nodes.find_string(regex_str, cleaner=cleaner, strict=strict, lang=lang, vtitle=vtitle)
+
     def text_index_map(self, tokenizer=lambda x: re.split(u'\s+',x), strict=True, lang='he', vtitle=None):
         """
         See TextChunk.text_index_map
@@ -941,6 +953,11 @@ class Version(abst.AbstractMongoRecord, AbstractTextRecord, AbstractSchemaConten
         "versionTitle",
         "chapter"  # required.  change to "content"?
     ]
+
+    """
+    Regarding the strange naming of the parameters versionTitleInHebrew and versionNotesInHebrew: These names were
+    chosen to avoid naming conflicts and ambiguity on the TextAPI. See TextFamily for more details.
+    """
     optional_attrs = [
         "status",
         "priority",
@@ -950,7 +967,7 @@ class Version(abst.AbstractMongoRecord, AbstractTextRecord, AbstractSchemaConten
         "digitizedBySefaria",
         "method",
         "heversionSource",  # bad data?
-        "versionUrl"  # bad data?
+        "versionUrl",  # bad data?
         "versionTitleInHebrew",  # stores the Hebrew translation of the versionTitle
         "versionNotesInHebrew",  # stores VersionNotes in Hebrew
     ]
@@ -1445,6 +1462,32 @@ class TextChunk(AbstractTextRecord):
 
         return ref_list
 
+
+    def find_string(self, regex_str, cleaner=lambda x: x, strict=True):
+        """
+        Regex search in TextChunk
+        :param regex_str: regex string to search for
+        :param cleaner: f(str)->str. function to clean a semgent before searching
+        :param strict: if True, throws error if len(ind_list) != len(ref_list). o/w truncates longer array to length of shorter
+        :return: list[(Ref, Match, str)] - list of tuples. each tuple has a segment ref, match object for the match, and text for the segment
+        """
+        ref_list = self.nonempty_segment_refs()
+        text_list = filter(lambda x: len(x) > 0, self.ja().flatten_to_array())
+        if len(text_list) != len(ref_list):
+            if strict:
+                raise ValueError("The number of refs doesn't match the number of starting words. len(refs)={} len(inds)={}".format(len(ref_list),len(ind_list)))
+            else:
+                print "Warning: The number of refs doesn't match the number of starting words. len(refs)={} len(inds)={} {}".format(len(ref_list),len(ind_list),str(self._oref))
+
+        matches = []
+        for r, t in zip(ref_list, text_list):
+            cleaned = cleaner(t)
+            for m in re.finditer(regex_str,cleaned):
+                matches += [(r, m, cleaned)]
+
+        return matches
+
+
     def text_index_map(self, tokenizer=lambda x: re.split(u'\s+', x), strict=True):
         """
         Primarily used for depth-2 texts in order to get index/ref pairs relative to the full text string
@@ -1495,6 +1538,14 @@ class TextFamily(object):
     :param bool alts: Default: False.  Adds notes of where alternate structure elements begin
     """
     #Attribute maps used for generating dict format
+    """
+    A bit of a naming conflict has arisen here. The TextFamily bundles two versions - one with English text and one
+    with Hebrew text. versionTitle refers to the English title of the English version, while heVersionTitle refers to
+    the English title of the Hebrew version.
+    
+    Later on we decided to translate all of our versionTitles into Hebrew. To avoid direct conflict with the text api,
+    these got the names versionTitleInHebrew and versionNotesInHebrew.
+    """
     text_attr_map = {
         "en": "text",
         "he": "he"
@@ -1504,6 +1555,10 @@ class TextFamily(object):
         "versionTitle": {
             "en": "versionTitle",
             "he": "heVersionTitle"
+        },
+        "versionTitleInHebrew": {
+            "en": "versionTitleInHebrew",
+            "he": "heVersionTitleInHebrew",
         },
         "versionSource": {
             "en": "versionSource",
@@ -1522,6 +1577,10 @@ class TextFamily(object):
         "versionNotes": {
             "en": "versionNotes",
             "he": "heVersionNotes"
+        },
+        "versionNotesInHebrew": {
+            "en": "versionNotesInHebrew",
+            "he": "heVersionNotesInHebrew",
         },
         "digitizedBySefaria": {
             "en": "digitizedBySefaria",
@@ -3516,7 +3575,8 @@ class Ref(object):
 
         :return list: each list element is an object with keys 'versionTitle' and 'language'
         """
-        fields = ["versionTitle", "versionSource", "language", "status", "license", "versionNotes", "digitizedBySefaria", "priority"]
+        fields = ["versionTitle", "versionSource", "language", "status", "license", "versionNotes",
+                  "digitizedBySefaria", "priority", "versionTitleInHebrew", "versionNotesInHebrew"]
         versions = VersionSet(self.condition_query())
         version_list = []
         if self.is_book_level():

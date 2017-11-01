@@ -296,7 +296,7 @@ class ReaderNavigationMenuCloseButton extends Component {
 
 class ReaderNavigationMenuDisplaySettingsButton extends Component {
   render() {
-    var style = this.props.placeholder ? {visibilily: "hidden"} : {};
+    var style = this.props.placeholder ? {visibility: "hidden"} : {};
     return (<div
               className="readerOptions"
               tabIndex="0"
