@@ -424,6 +424,7 @@ class MySheetsPage extends Component {
       page: 1,
       showYourSheetTags: false,
       sheetFilterTag: null,
+      sheetFilterTagCount: -1,
       curSheets: [],
     };
   }
@@ -484,9 +485,9 @@ class MySheetsPage extends Component {
   }
   filterYourSheetsByTag (tag) {
     if (tag.tag == this.state.sheetFilterTag) {
-       this.setState({sheetFilterTag: null, showYourSheetTags: false});
+       this.setState({sheetFilterTag: null, showYourSheetTags: false, sheetFilterTagCount: -1});
     } else {
-      this.setState({sheetFilterTag: tag.tag, showYourSheetTags: false});
+      this.setState({sheetFilterTag: tag.tag, showYourSheetTags: false, sheetFilterTagCount: tag.count});
     }
   }
   changeSortYourSheets(event) {
@@ -507,6 +508,13 @@ class MySheetsPage extends Component {
     sheets = sheets && this.state.sheetFilterTag ? sheets.filter(function(sheet) {
       return Sefaria.util.inArray(this.state.sheetFilterTag, sheet.tags) >= 0;
     }.bind(this)) : sheets;
+
+    if (sheets) {
+      if (sheets.length < this.state.sheetFilterTagCount && !this.state.loading) {
+        this.getMoreSheets();
+      }
+    }
+
     sheets = sheets ? sheets.map(function(sheet) {
       return (<PrivateSheetListing sheet={sheet} setSheetTag={this.props.setSheetTag} key={sheet.id} />);
     }.bind(this)) : (<LoadingMessage />);
