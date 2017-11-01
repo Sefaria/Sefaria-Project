@@ -37,8 +37,7 @@
   <script>
     WebFont.load({
       google: {
-        families: ['Crimson Text:400,700'],
-        text: 'ḥḤ'
+        families: ['Heebo:400,700:hebrew', 'Frank Ruhl Libre:400,700:hebrew'] 
       },
       typekit: {
         id: 'aeg8div'
@@ -46,8 +45,10 @@
     });
     WebFont.load({
       google: {
-        families: ['Heebo:400,700:hebrew', 'Frank Ruehl Libre:400,700:hebrew'] // The dotted h causes Heebo not to load.
-      }});
+        families: ['Crimson Text:400,700'],
+        text: 'ḥḤ' // The dotted h causes Heebo not to load.
+      }
+    });
   </script>
   {% endif %}
 
