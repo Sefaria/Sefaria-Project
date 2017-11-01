@@ -21,40 +21,40 @@ from selenium.webdriver.support.expected_conditions import title_contains, prese
 from selenium.webdriver.common.keys import Keys
 
 
-class AtomicTest(object):
-    """
-    Abstract Class
-    AtomicTests are designed to be composed in any order, so as to test a wide range of orders of events
-    A concrete AtomicTest implements the run method.
-    """
-    suite_key = None
+class AbstractTest(object):
+    every_build = False  # Run this test on every build?
     single_panel = True  # run this test on mobile?
     multi_panel = True  # run this test on desktop?
-
-    every_build = False  # Run this test on every build?
 
     # Only use one of the below.
     include = []  # List of platforms (using cap_to_short_string) to include.  If this is present, only these platforms are included
     exclude = []  # List of platforms (using cap_to_short_string) to exclude.
 
-    def __init__(self, driver, url):
+    def __init__(self, driver, url, cap, **kwargs):
         self.base_url = url
         self.driver = driver
-        if not self.suite_key:
-            raise Exception("Missing required variable - test_suite")
-        if not self.multi_panel and not self.single_panel:
-            raise Exception("Tests must run on at least one of mobile or desktop")
-        if len(self.include) and len(self.exclude):
-            raise Exception("Only one of the 'include' and 'exclude' parameters can be used in a given test")
+        self.cap = cap
 
-    def set_modal_cookie(self):
-        #set cookie to avoid popup interruption
-        self.driver.add_cookie({"name": "welcomeToS2LoggedOut", "value": "true"})
+    @classmethod
+    def _should_run(cls, mode, cap):
+        if (mode == "multi_panel" and not cls.multi_panel) or (mode == "single_panel" and not cls.single_panel):
+            return False
+        if len(cls.include) and Trial.cap_to_short_string(cap) not in cls.include:
+            return False
+        if len(cls.exclude) and Trial.cap_to_short_string(cap) in cls.exclude:
+            return False
+        return True
 
     def run(self):
-        raise Exception("AtomicTest.run() needs to be defined for each test.")
+        raise Exception("run() needs to be defined for each test.")
+
+    def set_modal_cookie(self):
+        # set cookie to avoid popup interruption
+        self.driver.add_cookie({"name": "welcomeToS2LoggedOut", "value": "true"})
 
     # Component methods
+    # Methods that begin with "nav_to_" assume that the site is loaded, and do not reload a page.
+    # Methods that begin with "load_" start with a page load.
 
     def login_user(self):
         password = os.environ["SEFARIA_TEST_PASS"]
@@ -69,16 +69,52 @@ class AtomicTest(object):
         return self
 
     def _login(self, user, password):
-        self.driver.get(self.base_url + "/login")
-        WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, "#id_email")))
+        if self.is_logged_in():
+            return self
+        self.nav_to_login()
         elem = self.driver.find_element_by_css_selector("#id_email")
         elem.send_keys(user)
         elem = self.driver.find_element_by_css_selector("#id_password")
         elem.send_keys(password)
         self.driver.find_element_by_css_selector("button").click()
         WebDriverWait(self.driver, TEMPER).until_not(title_contains("Log in"))
+        return self
+
+    def nav_to_account(self):
+        if self.is_logged_in():
+            self.driver.find_element_by_css_selector('.accountLinks .account').click()
+            WebDriverWait(self.driver, TEMPER).until(presence_of_element_located((By.CSS_SELECTOR, ".accountPanel")))
+        else:
+            raise Exception("Can't nav to account.  Not logged in.")
+        return self
+
+    def nav_to_sheets(self):
+        self.nav_to_account()
+        el = self.driver.find_element_by_css_selector('.sheets-link')
+        el.click()
+        WebDriverWait(self.driver, TEMPER).until(presence_of_element_located((By.CSS_SELECTOR, ".sheetsNewButton .button")))
+        el = self.driver.find_element_by_css_selector(".sheetsNewButton .button")
+        el.click()
+        WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.ID, "inlineAdd")))
+        return self
+
+    def nav_to_login(self):
+        el = self.driver.find_element_by_css_selector('.accountLinks .loginLink')
+        el.click()
+        WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, "#id_email")))
+        return self
+
+    def is_logged_in(self):
+        return self.driver.find_element_by_css_selector('.accountLinks .account')
 
     # TOC
+    def nav_to_toc(self):
+        if self.driver.current_url == self.base_url + "/texts":
+            return self
+        self.driver.find_element_by_css_selector('.headerNavSection .library').click()
+        WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, ".readerNavCategory")))
+        return self
+
     def load_toc(self):
         self.driver.get(self.base_url + "/texts")
         WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, ".readerNavCategory")))
@@ -86,16 +122,20 @@ class AtomicTest(object):
         return self
 
     def click_toc_category(self, category_name):
+        # Assume that category link is already present on screen (or soon will be)
+
+        # These CSS selectors could fail if the category is a substring of another possible category
         WebDriverWait(self.driver, TEMPER).until(
-            element_to_be_clickable((By.CSS_SELECTOR, '.readerNavCategory[data-cat="{}"]'.format(category_name)))
+            element_to_be_clickable((By.CSS_SELECTOR, '.readerNavCategory[data-cat~="{}"]'.format(category_name)))
         )
-        self.driver.find_element_by_css_selector('.readerNavCategory[data-cat="{}"]'.format(category_name)).click()
+        self.driver.find_element_by_css_selector('.readerNavCategory[data-cat~="{}"]'.format(category_name)).click()
         WebDriverWait(self.driver, TEMPER).until(
             element_to_be_clickable((By.CSS_SELECTOR, '.refLink'))
         )
         return self
 
     def click_toc_text(self, text_name):
+        # Assume that text link is already present on screen (or soon will be)
         WebDriverWait(self.driver, TEMPER).until(
             element_to_be_clickable((By.CSS_SELECTOR, '.refLink[data-ref^="{}"]'.format(text_name)))
         )
@@ -108,6 +148,7 @@ class AtomicTest(object):
         return self
 
     def click_toc_recent(self, tref):
+        # Assume that text link is already present on screen (or soon will be)
         WebDriverWait(self.driver, TEMPER).until(
             element_to_be_clickable((By.CSS_SELECTOR, '.recentItem[data-ref="{}"]'.format(tref)))
         )
@@ -116,6 +157,21 @@ class AtomicTest(object):
         WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, '.segment')))
 
     # Text Panel
+    def click_toc_from_text_panel(self):
+        self.driver.find_element_by_css_selector(".readerTextTocBox").click()
+        WebDriverWait(self.driver, TEMPER).until(
+            element_to_be_clickable((By.CSS_SELECTOR, ".tocContent > :not(.loadingMessage)")))
+
+    def nav_to_ref(self, ref, filter=None, lang=None):
+        if isinstance(ref, basestring):
+            ref = Ref(ref)
+        assert isinstance(ref, Ref)
+        self.type_in_search_box(ref.normal())
+        WebDriverWait(self.driver, TEMPER).until(
+            element_to_be_clickable((By.CSS_SELECTOR, ".textColumn .textRange .segment")))
+        WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, ".linkCountDot")))
+        return self
+
     # Todo: handle the case when the loaded page has different URL - because of scroll
     def load_ref(self, ref, filter=None, lang=None):
         """
@@ -131,7 +187,7 @@ class AtomicTest(object):
         if filter is not None:
             url += "&with={}".format(filter)
         if lang is not None:
-             url += "&lang={}".format(lang)
+            url += "&lang={}".format(lang)
         self.driver.get(url.replace("&", "?", 1))
         if filter == "all":
             WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, ".categoryFilter")))
@@ -139,10 +195,23 @@ class AtomicTest(object):
             # Filters load slower than the main page
             WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, ".filterSet > .textRange")))
         else:
-            WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, ".textColumn .textRange .segment")))
+            WebDriverWait(self.driver, TEMPER).until(
+                element_to_be_clickable((By.CSS_SELECTOR, ".textColumn .textRange .segment")))
             WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, ".linkCountDot")))
         self.set_modal_cookie()
         return self
+
+    def nav_to_text_toc(self, cats, text_title):
+        """
+        :param cats: list of categories to click before text is visible (may not be entire category path to text)
+        :param text: name of text to click
+        :return:
+        """
+        self.nav_to_toc()
+        for cat in cats:
+            self.click_toc_category(cat)
+        self.click_toc_text(text_title)
+        self.click_toc_from_text_panel()
 
     def load_text_toc(self, ref):
         if isinstance(ref, basestring):
@@ -150,7 +219,8 @@ class AtomicTest(object):
         assert isinstance(ref, Ref)
         url = self.base_url + "/" + ref.url()
         self.driver.get(url)
-        WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, ".tocContent > :not(.loadingMessage)")))
+        WebDriverWait(self.driver, TEMPER).until(
+            element_to_be_clickable((By.CSS_SELECTOR, ".tocContent > :not(.loadingMessage)")))
         self.set_modal_cookie()
         return self
 
@@ -165,7 +235,7 @@ class AtomicTest(object):
         )
         return self
 
-    #todo:
+    # todo:
     def load_refs(self):
         pass
 
@@ -207,24 +277,24 @@ class AtomicTest(object):
         return self
 
     def scroll_reader_panel_down(self, pixels):
-        #todo: untested
-        #todo: handle multiple panels
+        # todo: untested
+        # todo: handle multiple panels
         self.driver.execute_script(
             "var a = document.getElementsByClassName('textColumn')[0]; a.scrollTop = a.scrollTop() + {};".format(pixels)
         )
         return self
 
     def scroll_reader_panel_up(self, pixels):
-        #todo: untested
-        #todo: handle multiple panels
+        # todo: untested
+        # todo: handle multiple panels
         self.driver.execute_script(
             "var a = document.getElementsByClassName('textColumn')[0]; a.scrollTop = a.scrollTop - {};".format(pixels)
         )
         return self
 
     def scroll_reader_panel_to_bottom(self):
-        #todo: untested
-        #todo: handle multiple panels
+        # todo: untested
+        # todo: handle multiple panels
         self.driver.execute_script(
             "var a = document.getElementsByClassName('textColumn')[0]; a.scrollTop = a.scrollHeight;"
         )
@@ -232,14 +302,14 @@ class AtomicTest(object):
 
     def scroll_reader_panel_to_top(self):
         """Scrolls the first text panel to the top"""
-        #todo
+        # todo
         return self
 
     def scroll_to_segment(self, ref):
         if isinstance(ref, basestring):
             ref = Ref(ref)
         assert isinstance(ref, Ref)
-        #todo
+        # todo
         return self
 
     def scroll_nav_panel_to_bottom(self):
@@ -251,11 +321,13 @@ class AtomicTest(object):
 
     # Connections Panel
     def find_category_filter(self, name):
-        WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, '.categoryFilter[data-name="{}"]'.format(name))))
+        WebDriverWait(self.driver, TEMPER).until(
+            element_to_be_clickable((By.CSS_SELECTOR, '.categoryFilter[data-name="{}"]'.format(name))))
         return self.driver.find_element_by_css_selector('.categoryFilter[data-name="{}"]'.format(name))
 
     def find_text_filter(self, name):
-        WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, '.textFilter[data-name="{}"]'.format(name))))
+        WebDriverWait(self.driver, TEMPER).until(
+            element_to_be_clickable((By.CSS_SELECTOR, '.textFilter[data-name="{}"]'.format(name))))
         return self.driver.find_element_by_css_selector('.textFilter[data-name="{}"]'.format(name))
 
     def click_category_filter(self, name):
@@ -311,8 +383,10 @@ class AtomicTest(object):
 
     def load_gardens(self):
         self.driver.get(self.base_url + "/garden/jerusalem")
-        WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, "#filter-1 g.row")))  # individual filter row
-        WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, ".dc-grid-item .result-text .en"))) # individual result text
+        WebDriverWait(self.driver, TEMPER).until(
+            element_to_be_clickable((By.CSS_SELECTOR, "#filter-1 g.row")))  # individual filter row
+        WebDriverWait(self.driver, TEMPER).until(
+            element_to_be_clickable((By.CSS_SELECTOR, ".dc-grid-item .result-text .en")))  # individual result text
         return self
 
     def load_home(self):
@@ -335,7 +409,8 @@ class AtomicTest(object):
 
     def load_notifications(self):
         self.driver.get(self.base_url + "/notifications")
-        WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, ".notificationsList > .notification")))
+        WebDriverWait(self.driver, TEMPER).until(
+            element_to_be_clickable((By.CSS_SELECTOR, ".notificationsList > .notification")))
         return self
 
     def load_private_sheets(self):
@@ -376,6 +451,78 @@ class AtomicTest(object):
         WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, "#newVersion")))
         return self
 
+
+class TestSuite(AbstractTest):
+    def __init__(self, driver, url, cap, **kwargs):
+        super(TestSuite, self).__init__(driver, url, cap)
+        self.mode = kwargs.get("mode")
+        self.tests = self._get_tests_in_suite()
+
+    def _get_tests_in_suite(self):
+        tests = [t(self.driver, self.base_url, self.cap) for t in get_atomic_tests() if t.suite_class == self.__class__ and t._should_run(self.mode, self.cap)]
+        shuffle(tests)
+        return tests
+
+    def should_run(self, mode):
+        return len(self.tests)
+
+    def __str__(self):
+        return u"** {} **\n{}".format(self.__class__.__name__, u"\n".join([t.__class__.__name__ for t in self.tests]))
+
+    def setup(self):
+        pass
+
+    def teardown(self):
+        pass
+
+    def run(self):
+        sys.stdout.write(u"** Starting Test Suite **\n{}\n\n".format(str(self)))
+        sys.stdout.flush()
+
+        self.setup()
+
+        for test in self.tests:
+            test_name = u"{}:{}".format(self.__class__.__name__, test.__class__.__name__)
+            try:
+                sys.stdout.write(u" * Enter {}\n".format(test_name))
+                sys.stdout.flush()
+                test.run()
+                sys.stdout.write(u" * Exit {}\n".format(test_name))
+                sys.stdout.flush()
+            except Exception:
+                msg = traceback.format_exc()
+
+                # if self.isVerbose:
+                sys.stdout.write(u"Exception in {}\n".format(test_name))
+                sys.stdout.write(msg)
+                sys.stdout.flush()
+                # else:
+                #    sys.stdout.write("E")
+
+        self.teardown()
+
+
+class AtomicTest(AbstractTest):
+    """
+    Abstract Class
+    AtomicTests are designed to be composed in any order, so as to test a wide range of orders of events
+    A concrete AtomicTest implements the run method.
+    """
+    suite_class = None  # A subclass of TestSuite
+
+    def __init__(self, driver, url, cap, **kwargs):
+        super(AtomicTest, self).__init__(driver, url, cap)
+        if not self.suite_class:
+            raise Exception("Missing required variable - suite_class")
+        if not issubclass(self.suite_class, TestSuite):
+            raise Exception("suite_class must be a child of TestSuite")
+        if not self.multi_panel and not self.single_panel:
+            raise Exception("Tests must run on at least one of mobile or desktop")
+        if len(self.include) and len(self.exclude):
+            raise Exception("Only one of the 'include' and 'exclude' parameters can be used in a given test")
+
+    def should_run(self, mode):
+        return self._should_run(mode, self.cap)
 """
 
                     Test Running Infrastructure
@@ -384,20 +531,12 @@ class AtomicTest(object):
 
 
 class TestResult(object):
-    def __init__(self, test_or_suite, cap, success, message=""):
+    def __init__(self, test, cap, success, message=""):
         assert isinstance(success, bool)
+        assert isinstance(test, AbstractTest)
 
-        if isinstance(test_or_suite, AtomicTest):  # or inspect.isclass(cap) # Why?
-            self.test = test_or_suite
-            self.suite = None
-            self.id = self.test.__class__.__name__
-        elif isinstance(test_or_suite, list) and len(test_or_suite) and all([isinstance(x, AtomicTest) for x in test_or_suite]):
-            self.suite = test_or_suite
-            self.test = None
-            self.id = self.suite[0].suite_key
-        else:
-            raise Exception()
-
+        self.test = test
+        self.id = self.test.__class__.__name__
         self.cap = cap
         self.success = success
         self.message = message
@@ -504,27 +643,24 @@ class Trial(object):
             self.caps = caps if caps else SAUCE_CORE_CAPS
             for cap in self.caps:
                 cap["tunnelIdentifier"] = os.getenv('TRAVIS_JOB_NUMBER')
-            self.tests = get_every_build_tests(get_atomic_tests()) if tests is None else tests
             self.is_local = False
             platform = "sauce"  # After this initial setup - use the sauce platform
         elif platform == "local":
             self.is_local = True
             self.BASE_URL = LOCAL_URL
             self.caps = caps if caps else [self.default_local_driver]
-            self.tests = get_atomic_tests() if tests is None else tests
         elif platform == "sauce":
             self.is_local = False
             self.BASE_URL = LOCAL_URL
             self.caps = caps if caps else SAUCE_CORE_CAPS
-            self.tests = get_atomic_tests() if tests is None else tests
         else:
             self.is_local = False
             self.BASE_URL = REMOTE_URL
             self.caps = caps if caps else SAUCE_CAPS if platform == "sauce" else BS_CAPS
-            self.tests = get_atomic_tests() if tests is None else tests
         self.isVerbose = verbose
         self.platform = platform
         self.build = build
+        self.tests = get_every_build_tests(get_suites()) if tests is None else tests
         self._results = ResultSet()
         self.parallel = parallel if parallel is not None else False if self.is_local else True
         if self.parallel:
@@ -559,20 +695,24 @@ class Trial(object):
 
         return driver
 
-    def _run_one_atomic_test(self, driver, test_class, cap):
+    def _run_one_atomic_test(self, driver, test_class, cap, mode):
         """
         :param test_class:
         :return:
         """
+        test = test_class(driver, self.BASE_URL, cap, mode=mode)
+
+        if not test.should_run(mode):
+            return None
+
         name = "{} / {}".format(test_class.__name__, Trial.cap_to_string(cap))
         sys.stdout.write("{} - Starting\n".format(name) if self.isVerbose else "")
         sys.stdout.flush()
-        assert issubclass(test_class, AtomicTest)
-        test = test_class(driver, self.BASE_URL)
+        assert issubclass(test_class, AbstractTest)
         try:
-            driver.execute_script('"**** Enter {} ****"'.format(test))
+            driver.execute_script('"**** Enter {} ****"'.format(test_class.__name__))
             test.run()
-            driver.execute_script('"**** Exit {} ****"'.format(test))
+            driver.execute_script('"**** Exit {} ****"'.format(test_class.__name__))
         except Exception as e:
             # msg = getattr(e, "message", None) or getattr(e, "msg", None)
             msg = traceback.format_exc()
@@ -590,15 +730,6 @@ class Trial(object):
             sys.stdout.flush()
             return TestResult(test, cap, True)
 
-    def _should_test_run(self, mode, test, cap):
-        if (mode == "multi_panel" and not test.multi_panel) or (mode == "single_panel" and not test.single_panel):
-            return False
-        if len(test.include) and self.cap_to_short_string(cap) not in test.include:
-            return False
-        if len(test.exclude) and self.cap_to_short_string(cap) in test.exclude:
-            return False
-        return True
-
     def _test_one(self, test, cap):
         driver = None
         try:
@@ -611,11 +742,11 @@ class Trial(object):
                     'build': self.build,
                 })
 
-            if not self._should_test_run(mode, test, cap):
+            driver = self._get_driver(cap)
+            result = self._run_one_atomic_test(driver, test, cap, mode)
+            if result is None:  # Test not run, due to mismatched cap, mode, etc.
                 return None
 
-            driver = self._get_driver(cap)
-            result = self._run_one_atomic_test(driver, test, cap)
             if self.platform == "sauce":
                 self.set_sauce_result(driver, result.success)
             driver.quit()
@@ -731,22 +862,19 @@ def get_atomic_tests():
     return get_subclasses(AtomicTest)
 
 
-def get_test_suite_keys():
-    return list(set([t.suite_key for t in get_atomic_tests()]))
+def get_suites():
+    return get_subclasses(TestSuite)
 
 
-def get_tests_in_suite(key):
-    return [t for t in get_atomic_tests() if t.suite_key == key]
-
-
+# Not used
 def get_mobile_tests(tests):
     return [t for t in tests if t.mobile]
 
-
+# Not used
 def get_desktop_tests(tests):
     return [t for t in tests if t.desktop]
 
-
+# Not used
 def get_multiplatform_tests(tests):
     return [t for t in tests if t.desktop and t.mobile]
 

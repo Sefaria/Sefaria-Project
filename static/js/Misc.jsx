@@ -120,7 +120,8 @@ LanguageToggleButton.propTypes = {
 class BlockLink extends Component {
   render() {
     var interfaceClass = this.props.interfaceLink ? 'int-' : '';
-    var classes = classNames({blockLink: 1, inAppLink: this.props.inAppLink})
+    var linkClass = this.props.title.toLowerCase().replace(" ", "-") + "-link";
+    var classes = classNames({blockLink: 1, inAppLink: this.props.inAppLink, linkClass: 1});
     return (<a className={classes} href={this.props.target}>
               {this.props.image ? <img src={this.props.image} alt="" /> : null}
               <span className={`${interfaceClass}en`}>{this.props.title}</span>
