@@ -22,6 +22,7 @@ const {
 const ReaderTextTableOfContents = require('./ReaderTextTableOfContents');
 const SearchPage                = require('./SearchPage');
 const SheetsNav                 = require('./SheetsNav');
+const Sheet                     = require('./Sheet');
 const TopicsPanel               = require('./TopicsPanel');
 const TopicPage                 = require('./TopicPage');
 const AccountPanel              = require('./AccountPanel');
@@ -69,6 +70,7 @@ class ReaderPanel extends Component {
       navigationSheetTag:   props.initialSheetsTag || null,
       navigationTopic:      props.initialTopic || null,
       sheetsGroup:          props.initialGroup || null,
+      sheetID:              null,
       searchQuery:          props.initialQuery || null,
       appliedSearchFilters: props.initialAppliedSearchFilters || [],
       searchFieldExact:     "exact",
@@ -192,6 +194,11 @@ class ReaderPanel extends Component {
   closeConnectionsInPanel() {
     // Return to the original text in the ReaderPanel contents
     this.conditionalSetState({highlightedRefs: [], mode: "Text"});
+  }
+  handleSheetClick(e,id) {
+    e.preventDefault();
+    console.log(id);
+    this.conditionalSetState({ mode: "Sheet", sheetID: id});
   }
   showBaseText(ref, replaceHistory, version=null, versionLanguage=null, filter=[]) {
     // Set the current primary text
@@ -446,6 +453,12 @@ class ReaderPanel extends Component {
         );
     }
     var items = [];
+    if (this.state.mode === "Sheet") {
+      items.push(<Sheet
+          panelPosition ={this.props.panelPosition}
+          id={this.state.sheetID}
+      />);
+    }
     if (this.state.mode === "Text" || this.state.mode === "TextAndConnections") {
       var oref  = Sefaria.parseRef(this.state.refs[0]);
       var title = oref && oref.index ? oref.index : "empty";
@@ -505,6 +518,7 @@ class ReaderPanel extends Component {
           setConnectionsMode={this.setConnectionsMode}
           setConnectionsCategory={this.setConnectionsCategory}
           closeConectionsInPanel={this.closeConnectionsInPanel}
+          handleSheetClick={this.handleSheetClick}
           openNav={this.openMenu.bind(null, "navigation")}
           openDisplaySettings={this.openDisplaySettings}
           editNote={this.editNote}

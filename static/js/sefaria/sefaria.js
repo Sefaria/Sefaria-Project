@@ -1388,6 +1388,22 @@ Sefaria = extend(Sefaria, {
     return data;
   },
   sheets: {
+    _loadSheetByID: {},
+    loadSheetByID: function(id, callback) {
+      var sheet = this._loadSheetByID[id];
+      if (sheet) {
+        if (callback) { callback(sheet); }
+      } else {
+        var url = "/api/sheets/" + id;
+         $.getJSON(url, function(data) {
+            this._loadSheetByID[id] = data;
+            if (callback) { callback(data); }
+          }.bind(this));
+        }
+      return sheet;
+    },
+
+
     _trendingTags: null,
     trendingTags: function(callback) {
       // Returns a list of trending tags -- source sheet tags which have been used often recently.

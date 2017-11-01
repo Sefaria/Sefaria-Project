@@ -4587,3 +4587,7 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
 .bubbleTab.active {
   color: #333;
 }
+.sheetsInPanel {
+  overflow: scroll;
+  height: 100%;
+}
