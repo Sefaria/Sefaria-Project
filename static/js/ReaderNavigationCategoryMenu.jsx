@@ -189,10 +189,13 @@ class ReaderNavigationCategoryMenuContents extends Component {
                                 <span className='he'>{heTitle}</span>
                               </a>
                               ));
+            
             } else {
               // Create a link to a subcategory
-              url = "/texts/" + newCats.join("/");
-              content.push((<a href={url} className="catLink" data-cats={newCats.join("|")} key={"cat." + this.props.nestLevel + "." + i}>
+              var url = "/texts/" + newCats.join("/");
+              var incomplete = this.props.contentLang == "hebrew" ? !item.heComplete : !item.enComplete;
+              var classes = classNames({catLink: 1, incomplete: incomplete});
+              content.push((<a href={url} className={classes} data-cats={newCats.join("|")} key={"cat." + this.props.nestLevel + "." + i}>
                               <span className='en'>{item.category}</span>
                               <span className='he'>{item.heCategory}</span>
                             </a>

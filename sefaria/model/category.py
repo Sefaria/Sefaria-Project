@@ -186,6 +186,18 @@ class TocTree(object):
                 print u"Failed to find category for {}".format(i.categories)
                 continue
             cat.append(node)
+            vs = self._vs_lookup[i.title]
+            # If any text in this category is incomplete, the category itself and its parents are incomplete
+            for field in ("enComplete", "heComplete"):
+                pcat = cat
+                while True:
+                    # Start each category completeness as True, set to False whenever we hit an incomplete text below it
+                    flag = False if not vs[field] else getattr(pcat, field, True)
+                    setattr(pcat, field, flag)
+                    pcat = pcat.parent
+                    if not pcat:
+                        break
+
             self._path_hash[tuple(i.categories + [i.title])] = node
 
         self._sort()
@@ -197,20 +209,22 @@ class TocTree(object):
         def _explicit_order_and_title(node):
             title = node.primary_title("en")
             complete = getattr(node, "enComplete", False)
-            complete_or_title_key = "0" + title if complete else "1" + title
+            complete_or_title_key = "1z" + title if complete else "2z" + title
 
             try:
                 # First sort by global order list below
                 return ORDER.index(title)
-            except ValueError:
 
+            except ValueError:
+                # Sort top level Commentary categories just below theit base category
                 if isinstance(node, TocCategory):
                     temp_cat_name = title.replace(" Commentaries", "")
                     if temp_cat_name in TOP_CATEGORIES:
                         return ORDER.index(temp_cat_name) + 0.5
-                    return 'zz' + complete_or_title_key
-                else:
-                    return getattr(node, "order", complete_or_title_key)
+
+                # Sort by an eplicit `order` field if present
+                # otherwise into two alphabetical list for complete and incomplete.
+                return getattr(node, "order", complete_or_title_key)
 
         for cat in self.all_category_nodes():  # iterate all categories
             cat.children.sort(key=_explicit_order_and_title)
@@ -256,7 +270,6 @@ class TocTree(object):
         Table of Contents in order.
         """
         return [n.primary_title() for n in self._root.get_leaf_nodes() if isinstance(n, TocTextIndex)]
-
 
     #todo: Get rid of the special case for "other", by placing it in the Index's category lists
     def lookup(self, cat_path, title=None):
@@ -364,6 +377,8 @@ class TocCategory(TocNode):
 
     optional_param_keys = [
         "order",
+        "enComplete",
+        "heComplete",
     ]
 
     title_attrs = {
@@ -441,6 +456,7 @@ ORDER = [
             'Targum Jonathan on Leviticus',
             'Targum Jonathan on Numbers',
             'Targum Jonathan on Deuteronomy',
+        'Rashi',
     "Mishnah",
         "Seder Zeraim",
         "Seder Moed",
@@ -463,6 +479,7 @@ ORDER = [
                 "Seder Nezikin",
                 "Seder Kodashim",
                 "Seder Tahorot",
+        "Tosafot",
         "Rif",
     "Midrash",
         "Aggadic Midrash",
@@ -514,6 +531,7 @@ ORDER = [
     'Apocrypha',
     'Modern Works',
     'Other',
+    'Tosafot',
 ]
 
 TOP_CATEGORIES = [
