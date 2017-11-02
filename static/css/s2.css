@@ -3996,13 +3996,15 @@ h2.splitHeader .he {
 .topicsPanel .topicFilterBox {
   display: flex;
   align-items: center;
+  border-bottom: 1px solid #ccc;
+  margin-bottom: 50px
 }
 .topicsPanel .topicFilterIcon {
   font-size: 22px;
   opacity: 0.4;
 }
 .topicsPanel .topicFilterInput {
-  padding: 20px 10px 20px 10px;
+  padding: 12px 10px;
   flex: 1;
   box-sizing: border-box;
   border: none;
