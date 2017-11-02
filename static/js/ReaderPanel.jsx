@@ -518,6 +518,7 @@ class ReaderPanel extends Component {
           closePanel={this.props.closePanel}
           selectedWords={this.state.selectedWords}
           getLicenseMap={this.props.getLicenseMap}
+          masterPanelLanguage={this.props.masterPanelLanguage}
           key="connections" />
       );
     }

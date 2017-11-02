@@ -19,6 +19,7 @@ const TextList               = require('./TextList');
 const ConnectionsPanelHeader = require('./ConnectionsPanelHeader');
 const AddToSourceSheetBox    = require('./AddToSourceSheetBox');
 const LexiconBox             = require('./LexiconBox');
+const AboutBox               = require('./AboutBox');
 const classNames             = require('classnames');
 import Component             from 'react-class';
 
@@ -76,13 +77,55 @@ class ConnectionsPanel extends Component {
       this.setState({flashMessage: null});
     }.bind(this), 3000);
   }
+  getDefaultVersion(lang, versions) {
+    const filtered = versions.filter((elem) => elem.language === lang);
+    if (filtered.length > 0) {
+      return filtered.sort((a,b) => a-b)[0];
+    }  else {
+      return null;
+    }
+  }
+  getDataRef() {
+    // Returns ref to be used to looking up data
+    return Sefaria.sectionRef(this.props.srefs[0]) || this.props.srefs[0];
+  }
+  getData() {
+    // Gets data about this text from cache, which may be null.
+    return Sefaria.text(this.props.srefs[0], {context: 1, version: this.props.version, language: this.props.versionLanguage});
+  }
+  getVersionFromData(d, lang) {
+    //d - data received from this.getData()
+    //language - the language of the version
+    return {
+      language:               lang,
+      versionTitle:           lang == "he" ? d.heVersionTitle : d.versionTitle,
+      versionSource:          lang == "he" ? d.heVersionSource : d.versionSource,
+      versionStatus:          lang == "he" ? d.heVersionStatus : d.versionStatus,
+      license:                lang == "he" ? d.heLicense : d.license,
+      sources:                lang == "he" ? d.heSources : d.sources,
+      versionNotes:           lang == "he" ? d.heVersionNotes : d.versionNotes,
+      digitizedBySefaria:     lang == "he" ? d.heDigitizedBySefaria : d.digitizedBySefaria,
+      versionTitleInHebrew:   lang == "he" ? d.heVersionTitleInHebrew : d.VersionTitleInHebrew,
+      versionNotesInHebrew:   lang == "he" ? d.heVersionNotesInHebrew : d.VersionNotesInHebrew
+    }
+  }
+  getCurrentVersions() {
+    const data = this.getData();
+    console.log("Data", data);
+    if (!data) { return {currVersionEn: null, currVerionHe: null}};
+    let currentLanguage = this.props.masterPanelLanguage;
+    if (currentLanguage == "bilingual") {currentLanguage = "hebrew"}
+    if (currentLanguage == "hebrew" && !data.he.length) {currentLanguage = "english"}
+    if (currentLanguage == "english" && !data.text.length) {currentLanguage = "hebrew"}
+    return {
+      currVersionEn: (this.props.masterPanelLanguage != "hebrew" && !!data.text.length) ? this.getVersionFromData(data, "en") : null,
+      currVersionHe: (this.props.masterPanelLanguage != "english" && !!data.he.length) ? this.getVersionFromData(data, "he") : null,
+      mainVersionLanguage: currentLanguage,
+    }
+  }
   render() {
     const versions = Sefaria.versions(this.props.title);
-    let currVersionObj = null;
-    if (versions) {
-      currVersionObj = versions.filter((elem) => elem.versionTitle === this.props.version);
-      currVersionObj = currVersionObj.length > 0 ? currVersionObj[0] : null;
-    }
+    const { currVersionHe, currVersionEn, mainVersionLanguage } = this.getCurrentVersions();
     const details = Sefaria.indexDetails(this.props.title);
     var content = null;
     var loaded = !!Sefaria.related(this.sectionRef());
@@ -251,13 +294,19 @@ class ConnectionsPanel extends Component {
       content = (<LoginPrompt fullPanel={this.props.fullPanel} />);
     } else if (this.props.mode === "About") {
       content = (<AboutBox
-                  versionObj={currVersionObj}
+                  versionHe={currVersionHe}
+                  versionEn={currVersionEn}
+                  mainVersionLanguage={mainVersionLanguage}
                   details={details}
                   srefs={this.props.srefs}
                   getLicenseMap={this.props.getLicenseMap}
                 />);
     } else if (this.props.mode === "Versions") {
-      content = (<VersionsBox />);
+      content = (<VersionsBox
+                  versions={versions}
+                  version={this.props.version}
+                  srefs={this.props.srefs}
+                  getLicenseMap={this.props.getLicenseMap}/>);
     }
 
     var classes = classNames({connectionsPanel: 1, textList: 1, fullPanel: this.props.fullPanel, singlePanel: !this.props.fullPanel});
@@ -316,6 +365,7 @@ ConnectionsPanel.propTypes = {
   interfaceLang:           PropTypes.string,
   contentLang:             PropTypes.string,
   getLicenseMap:           PropTypes.func.isRequired,
+  masterPanelLanguage:     PropTypes.oneOf(["english", "bilingual", "hebrew"]),
 };
 
 
@@ -929,150 +979,30 @@ AddConnectionBox.propTypes = {
 };
 
 
-class AboutBox extends Component {
-  render() {
-    const d = this.props.details;
-    const v = this.props.versionObj;
-    let detailSection = null;
-    if (d) {
-      let authorTextEn, authorTextHe;
-      if (d.authors) {
-        const authorArrayEn = d.authors.filter((elem) => !!elem.en);
-        const authorArrayHe = d.authors.filter((elem) => !!elem.he);
-        authorTextEn = authorArrayEn.reduce((accum, curr, ind) => accum + (ind === 0 ? curr.en : `, ${curr.en}`), "");
-        authorTextHe = authorArrayHe.reduce((accum, curr, ind) => accum + (ind === 0 ? curr.he : `, ${curr.he}`), "");
-      }
-      // use compPlaceString and compDateString if available. then use compPlace o/w use pubPlace o/w nothing
-      let placeTextEn, placeTextHe;
-      if (d.compPlaceString) {
-        placeTextEn = d.compPlaceString.en;
-        placeTextHe = d.compPlaceString.he;
-      } else if (d.compPlace){
-        placeTextEn = d.compPlace;
-        placeTextHe = d.compPlace;
-      } else if (d.pubPlace) {
-        placeTextEn = d.pubPlace;
-        placeTextHe = d.pubPlace;
-      }
-
-      let dateTextEn, dateTextHe;
-      if (d.compDateString) {
-        dateTextEn = d.compDateString.en;
-        dateTextHe = d.compDateString.he
-      } else if (d.compDate) {
-        if (d.errorMargin !== 0) {
-          //I don't think there are any texts which are mixed BCE/CE
-          const lowerDate = Math.abs(d.compDate - d.errorMargin);
-          const upperDate = Math.abs(d.compDate - d.errorMargin);
-          dateTextEn = `(c.${lowerDate} - c.${upperDate} ${d.compDate < 0 ? "BCE" : "CE"})`;
-          dateTextHe = `(${lowerDate} - ${upperDate} ${d.compDate < 0 ? 'לפנה"ס בקירוב' : 'לספירה בקירוב'})`;
-        } else {
-          dateTextEn = `(${Math.abs(d.compDate)} ${d.compDate < 0 ? "BCE" : "CE"})`;
-          dateTextHe = `(${Math.abs(d.compDate)} ${d.compDate < 0 ? 'לפנה"ס בקירוב' : 'לספירה בקירוב'})`;
-        }
-      } else if (d.pubDate) {
-        dateTextEn = `(${Math.abs(d.pubDate)} ${d.pubDate < 0 ? "BCE" : "CE"})`;
-        dateTextHe = `(${Math.abs(d.pubDate)} ${d.pubDate < 0 ? 'לפנה"ס בקירוב' : 'לספירה בקירוב'})`;
-      }
-      detailSection = (
-        <div className="detailsSection">
-          <h2 className="aboutHeader">
-            <span className="int-en">About This Text</span>
-            <span className="int-he">אודות ספר זה</span>
-          </h2>
-          <div className="aboutTitle">
-            <span className="en">{d.title}</span>
-            <span className="he">{d.heTitle}</span>
-          </div>
-          { !!authorTextEn ?
-            <div className="aboutSubtitle">
-              <span className="en">{`Author: ${authorTextEn}`}</span>
-              <span className="he">{`מחברים: ${authorTextHe}`}</span>
-            </div> : null
-          }
-          { !!placeTextEn || !!dateTextEn ?
-            <div className="aboutSubtitle">
-              <span className="en">{`Composed: ${!!placeTextEn ? placeTextEn : ""} ${!!dateTextEn ? dateTextEn : ""}`}</span>
-              <span className="he">{`נוצר/נערך: ${!!placeTextHe ? placeTextHe : ""} ${!!dateTextHe ? dateTextHe : ""}`}</span>
-            </div> : null
-          }
-          <div className="aboutDesc">
-            { !!d.enDesc ? <span className="en">{d.enDesc}</span> : null}
-            { !!d.heDesc ? <span className="he">{d.heDesc}</span> : null}
-          </div>
-        </div>
-      );
-    }
-
-    let versionSection = null;
-    if (v) {
-      var license = this.props.getLicenseMap()[v.license]?<a href={this.props.getLicenseMap()[v.license]} target="_blank">{Sefaria._(v.license)}</a>:v.license;
-      var digitizedBySefaria = v.digitizedBySefaria
-          ? <a className="versionDigitizedBySefaria" href="/digitized-by-sefaria">{Sefaria._("Digitized by Sefaria")}</a> : "";
-      var licenseLine = "";
-      if (v.license && v.license != "unknown") {
-        licenseLine =
-          <span className="versionLicense">
-            {license}
-            {digitizedBySefaria?" - ":""}{digitizedBySefaria}
-          </span>
-        ;
-      }
-      let versionNotes = "";
-      if (Sefaria.interfaceLang=="english" && !!(v.versionNotes)) {
-        versionNotes = v.versionNotes;
-      }
-      else if (Sefaria.interfaceLang=="hebrew" && !!(v.versionNotesInHebrew)) {
-        versionNotes = v.versionNotesInHebrew;
-      }
-      versionSection = (
-        <div className="currVersionSection">
-          <h2>
-            <span className="int-en">Current Version</span>
-            <span className="int-he">גרסה נוכחית</span>
-          </h2>
-          <div className="aboutTitle">
-            <span className="en">{v.versionTitle}</span>
-            <span className="he">{v.versionTitleInHebrew ? v.versionTitleInHebrew : v.versionTitle}</span>
-          </div>
-          {versionNotes ? <div className="versionNotes" dangerouslySetInnerHTML={ {__html: versionNotes} } ></div> : null}
-          <div className="versionDetails">
-            <a className="versionSource" target="_blank" href={v.versionSource}>
-            { Sefaria.util.parseURL(v.versionSource).host }
-            </a>
-            {licenseLine ? <span className="separator">-</span>: null}
-            {licenseLine}
-            <span className="separator">-</span>
-            <a className="versionHistoryLink" href={`/activity/${Sefaria.normRef(this.props.srefs[0])}/${v.language}/${v.versionTitle && v.versionTitle.replace(/\s/g,"_")}`}>{Sefaria._("Version History") + " "}›</a>
-          </div>
-        </div>
-      );
-    }
-    return (
-      <section className="aboutBox">
-        {detailSection}
-        {versionSection}
-      </section>
-    );
-  }
-}
-AboutBox.propTypes = {
-  versionObj:    PropTypes.object,
-  details:       PropTypes.object,
-  srefs:         PropTypes.array.isRequired,
-  getLicenseMap: PropTypes.func.isRequired,
-};
-
-
 class VersionsBox extends Component {
   render() {
+    versionLangMap = {};
+    for (v of this.props.versions) {
+      const matches = v.match(new RegExp('\[[a-z]{2}\]')); // two-letter ISO language code
+      if (matches) {
+        versionLangMap[matches[0]] = v;
+      } else {
+        versionLangMap[v.language] = v;
+      }
+    }
+    //versionLangs = Object.keys(versionLangMap).sort((a, b) => {})
     return (
-      <div>Versions coming soon</div>
+      <div>
+        yoyo
+      </div>
     );
   }
 }
 VersionsBox.propTypes = {
-
+  versions: PropTypes.array.isRequired,
+  version:  PropTypes.string,
+  versionLanguage: PropTypes.string,
+  translateISOLanguageCode: PropTypes.func.isRequired,
 };
 
 

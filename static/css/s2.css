@@ -4617,3 +4617,6 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
 .aboutBox a {
   color: #999;
 }
+.aboutBox .currVersionSection {
+  padding-bottom: 30px;
+}

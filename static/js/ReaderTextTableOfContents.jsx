@@ -103,7 +103,6 @@ class ReaderTextTableOfContents extends Component {
       versionNotesInHebrew: currentLanguage == "he" ? d.heVersionNotesInHebrew : d.VersionNotesInHebrew
     };
     currentVersion.merged = !!(currentVersion.sources);
-
     return currentVersion;
   }
   handleClick(e) {

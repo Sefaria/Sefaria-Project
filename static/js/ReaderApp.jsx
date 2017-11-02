@@ -910,6 +910,24 @@ class ReaderApp extends Component {
     }
     return licenseMap;
   }
+  translateISOLanguageCode(code) {
+    //takes two-letter ISO 639.2 code and returns full language name
+    const codeMap = {
+      "en": "English",
+      "he": "Hebrew",
+      "yi": "Yiddish",
+      "fi": "Finnish",
+      "pt": "Portuguese",
+      "es": "Spanish",
+      "fr": "French",
+      "de": "German",
+      "ar": "Arabic",
+      "it": "Italian",
+      "pl": "Polish",
+      "ru": "Russian",
+    }
+    return codeMap[code.toLowerCase()];
+  }
   selectVersion(n, versionName, versionLanguage) {
     // Set the version for panel `n`.
     var panel = this.state.panels[n];
