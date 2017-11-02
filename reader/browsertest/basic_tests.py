@@ -81,7 +81,7 @@ class RecentInToc(AtomicTest):
     every_build = True
 
     def run(self):
-        self.nav_to_text_toc(["Tanakh"],"Psalms")
+        self.nav_to_ref("Psalms 1")
         self.nav_to_toc().click_toc_recent("Psalms 1")
 
 
@@ -91,7 +91,7 @@ class RecentInTocOnReload(AtomicTest):
     every_build = True
 
     def run(self):
-        self.load_toc().click_toc_category("Tanakh").click_toc_text("Psalms")
+        self.load_ref("Psalms 1")
         self.load_toc().click_toc_recent("Psalms 1")
 
 
@@ -437,7 +437,7 @@ class InfiniteScrollUp(AtomicTest):
     def run(self):
         # Simple Text
         self.test_up("Job 32", "Job 31:40")
-        # Complext Text
+        # Complex Text
         self.test_up("Pesach Haggadah, Magid, The Four Sons", "Pesach Haggadah, Magid, Story of the Five Rabbis 2")
   
 

@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+
 from config import *
 from sefaria.model import *
 from random import shuffle
@@ -10,16 +11,16 @@ import base64
 import json
 import traceback
 import sys
+
 from selenium import webdriver
 from appium import webdriver as appium_webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
-
-# http://selenium-python.readthedocs.io/waits.html
-# http://selenium-python.readthedocs.io/api.html#module-selenium.webdriver.support.expected_conditions
 from selenium.webdriver.support.expected_conditions import title_contains, presence_of_element_located, staleness_of, element_to_be_clickable, visibility_of_element_located
 from selenium.webdriver.common.keys import Keys
-
+from selenium.common.exceptions import NoSuchElementException
+# http://selenium-python.readthedocs.io/waits.html
+# http://selenium-python.readthedocs.io/api.html#module-selenium.webdriver.support.expected_conditions
 
 class AbstractTest(object):
     every_build = False  # Run this test on every build?
@@ -105,7 +106,11 @@ class AbstractTest(object):
         return self
 
     def is_logged_in(self):
-        return self.driver.find_element_by_css_selector('.accountLinks .account')
+        try:
+            self.driver.find_element_by_css_selector('.accountLinks .account')
+            return True
+        except NoSuchElementException:
+            return False
 
     # TOC
     def nav_to_toc(self):
@@ -126,12 +131,11 @@ class AbstractTest(object):
 
         # These CSS selectors could fail if the category is a substring of another possible category
         WebDriverWait(self.driver, TEMPER).until(
-            element_to_be_clickable((By.CSS_SELECTOR, '.readerNavCategory[data-cat~="{}"]'.format(category_name)))
+            presence_of_element_located((By.CSS_SELECTOR, '.readerNavCategory[data-cat~="{}"], .catLink[data-cat~="{}"]'.format(category_name, category_name)))
         )
-        self.driver.find_element_by_css_selector('.readerNavCategory[data-cat~="{}"]'.format(category_name)).click()
-        WebDriverWait(self.driver, TEMPER).until(
-            element_to_be_clickable((By.CSS_SELECTOR, '.refLink'))
-        )
+        e = self.driver.find_element_by_css_selector('.readerNavCategory[data-cat~="{}"], .catLink[data-cat~="{}"]'.format(category_name, category_name))
+        e.click()
+        WebDriverWait(self.driver, TEMPER).until(staleness_of(e))
         return self
 
     def click_toc_text(self, text_name):
@@ -158,7 +162,7 @@ class AbstractTest(object):
 
     # Text Panel
     def click_toc_from_text_panel(self):
-        self.driver.find_element_by_css_selector(".readerTextTocBox").click()
+        self.driver.find_element_by_css_selector(".readerTextTocBox a").click()
         WebDriverWait(self.driver, TEMPER).until(
             element_to_be_clickable((By.CSS_SELECTOR, ".tocContent > :not(.loadingMessage)")))
 
@@ -212,6 +216,7 @@ class AbstractTest(object):
             self.click_toc_category(cat)
         self.click_toc_text(text_title)
         self.click_toc_from_text_panel()
+        return self
 
     def load_text_toc(self, ref):
         if isinstance(ref, basestring):
@@ -280,7 +285,7 @@ class AbstractTest(object):
         # todo: untested
         # todo: handle multiple panels
         self.driver.execute_script(
-            "var a = document.getElementsByClassName('textColumn')[0]; a.scrollTop = a.scrollTop() + {};".format(pixels)
+            "var a = document.getElementsByClassName('textColumn')[0]; a.scrollTop = a.scrollTop + {};".format(pixels)
         )
         return self
 
