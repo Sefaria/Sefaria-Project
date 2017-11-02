@@ -843,6 +843,10 @@ a.resourcesLink {
   text-overflow: ellipsis;
   width: 100%;
 }
+.readerPanel .recentPanel .recentItem {
+  padding: 15px;
+  margin-bottom: 10px;
+}
 .readerNavCategories {
   width: 100%;
 }
