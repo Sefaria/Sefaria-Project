@@ -2,8 +2,8 @@
 
 from config import *
 from sefaria.model import *
-from random import shuffle
 from multiprocessing import Pool
+import random
 import os
 import inspect
 import httplib
@@ -21,6 +21,7 @@ from selenium.webdriver.common.keys import Keys
 from selenium.common.exceptions import NoSuchElementException
 # http://selenium-python.readthedocs.io/waits.html
 # http://selenium-python.readthedocs.io/api.html#module-selenium.webdriver.support.expected_conditions
+
 
 class AbstractTest(object):
     every_build = False  # Run this test on every build?
@@ -458,15 +459,11 @@ class AbstractTest(object):
 
 
 class TestSuite(AbstractTest):
-    def __init__(self, driver, url, cap, **kwargs):
+    def __init__(self, driver, url, cap, seed=None, mode=None, **kwargs):
         super(TestSuite, self).__init__(driver, url, cap)
-        self.mode = kwargs.get("mode")
-        self.tests = self._get_tests_in_suite()
-
-    def _get_tests_in_suite(self):
-        tests = [t(self.driver, self.base_url, self.cap) for t in get_atomic_tests() if t.suite_class == self.__class__ and t._should_run(self.mode, self.cap)]
-        shuffle(tests)
-        return tests
+        self.mode = mode
+        self.tests = [t(self.driver, self.base_url, self.cap) for t in get_atomic_tests() if t.suite_class == self.__class__ and t._should_run(self.mode, self.cap)]
+        random.shuffle(self.tests, lambda: seed)
 
     def should_run(self, mode):
         return len(self.tests)
@@ -666,6 +663,7 @@ class Trial(object):
         self.platform = platform
         self.build = build
         self.tests = get_every_build_tests(get_suites()) if tests is None else tests
+        self.seed = random.random()
         self._results = ResultSet()
         self.parallel = parallel if parallel is not None else False if self.is_local else True
         if self.parallel:
@@ -705,7 +703,7 @@ class Trial(object):
         :param test_class:
         :return:
         """
-        test = test_class(driver, self.BASE_URL, cap, mode=mode)
+        test = test_class(driver, self.BASE_URL, cap, mode=mode, seed=self.seed)
 
         if not test.should_run(mode):
             return None
