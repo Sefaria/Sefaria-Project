@@ -589,27 +589,32 @@ class ReaderApp extends Component {
     // Record current state of panel refs, and check if it has changed after some delay.  If it remains the same, track analytics.
     var intentDelay = 3000;  // Number of milliseconds to demonstrate intent
     // console.log("Setting scroll intent check");
-    window.setTimeout(function(initialRefs){
+    if (this.scrollIntentTimer) {
+      clearTimeout(this.scrollIntentTimer);
+    }
+    this.scrollIntentTimer = window.setTimeout(function(initialRefs){
       // console.log("Checking scroll intent");
       if (initialRefs.compare(this._refState())) {
         this.trackPageview();
       }
+      this.scrollIntentTimer = null;``
     }.bind(this), intentDelay, this._refState());
   }
   updateHistoryState(replace) {
     if (!this.shouldHistoryUpdate()) {
       return;
     }
-    var hist = this.makeHistoryState();
+    var currentUrl = (window.location.pathname + window.location.search);
+    var hist       = this.makeHistoryState();
     if (replace) {
       history.replaceState(hist.state, hist.title, hist.url);
-      // console.log("Replace History - " + hist.url);
-      if (this.state.initialAnalyticsTracked) { this.checkScrollIntentAndTrack(); }
+      //console.log("Replace History - " + hist.url);
+      if (currentUrl != hist.url) { this.checkScrollIntentAndTrack(); }
       //console.log(hist);
     } else {
-      if ((window.location.pathname + window.location.search) == hist.url) { return; } // Never push history with the same URL
+      if (currentUrl == hist.url) { return; } // Never push history with the same URL
       history.pushState(hist.state, hist.title, hist.url);
-      // console.log("Push History - " + hist.url);
+      //console.log("Push History - " + hist.url);
       this.trackPageview();
       //console.log(hist);
     }
@@ -715,7 +720,7 @@ class ReaderApp extends Component {
     if (this.currentlyConnecting()) { return }
 
     this.openTextListAt(n+1, [ref]);
-    if ($(".readerPanel")[n+1]) { //Focus on the first focusable element of the newly loaded panel. Mostly for a11y
+    if ($(".readerPanel")[n+1] && window.getSelection().isCollapsed) { //Focus on the first focusable element of the newly loaded panel if text not selected. Mostly for a11y
       var curPanel = $(".readerPanel")[n+1];
       $(curPanel).find(':focusable').first().focus();
     }

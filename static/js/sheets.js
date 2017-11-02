@@ -1600,9 +1600,9 @@ $(function() {
 
 	$("#shareWithOthers").on("change keyup keydown paste cut", "#sheetSummaryInput", function (){
 			$(this).height(0);
-			var heightToSwitch = this.scrollHeight < 26 ? 26:this.scrollHeight;
+			var heightToSwitch = this.scrollHeight < 40 ? 40:this.scrollHeight;
 			$(this).height(heightToSwitch);
-	}).find( "#sheetSummaryInput" ).change();
+	}).find("#sheetSummaryInput").change();
 
 	$("#tags").on("focus", "input", function() {
 		$("#tags .addTagMsg").hide();

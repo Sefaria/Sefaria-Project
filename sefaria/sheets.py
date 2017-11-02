@@ -176,11 +176,23 @@ def recent_public_tags(days=14, ntags=14):
 	"""
 	Returns list of tag/counts on public sheets modified in the last 'days'.
 	"""
-	cutoff      = datetime.now() - timedelta(days=days)
-	query       = {"status": "public", "dateModified": { "$gt": cutoff.isoformat() } }
-	tags        = sheet_tag_counts(query)[:ntags]
+	cutoff            = datetime.now() - timedelta(days=days)
+	query             = {"status": "public", "dateModified": { "$gt": cutoff.isoformat() } }
+	unnormalized_tags = sheet_tag_counts(query)[:ntags]
 
-	return tags
+	tags = defaultdict(int)
+	results = []
+
+	for tag in unnormalized_tags:
+		tags[model.Term.normalize(tag["tag"])] += tag["count"]
+
+	for tag in tags.items():
+		if len(tag[0]):
+			results.append({"tag": tag[0], "count": tag[1]})
+
+	results = sorted(results, key=lambda x: -x["count"])
+
+	return results
 
 
 def save_sheet(sheet, user_id, search_override=False):
