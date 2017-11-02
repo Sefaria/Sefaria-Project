@@ -384,6 +384,7 @@ class ReaderPanel extends Component {
   }
   setCurrentlyVisibleRef(ref) {
      this.replaceHistory = true;
+     var ref = this.state.highlightedRefs.length ? Sefaria.normRef(this.state.highlightedRefs) : ref;
      this.conditionalSetState({
       currentlyVisibleRef: ref,
     });   

@@ -269,7 +269,7 @@ def make_panel_dict(oref, version, language, filter, mode, **kwargs):
         panel = {
             "mode": mode,
             "ref": oref.normal(),
-            "refs": [oref.normal()],
+            "refs": [oref.normal()] if not oref.is_spanning() else [r.normal() for r in oref.split_spanning_ref()],
             "version": version,
             "versionLanguage": language,
             "filter": filter,

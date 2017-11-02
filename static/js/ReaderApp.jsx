@@ -475,7 +475,8 @@ class ReaderApp extends Component {
             break;
         }
       } else if (state.mode === "Text") {
-        var htitle = state.highlightedRefs.length ? Sefaria.normRefList(state.highlightedRefs) : state.currentlyVisibleRef;
+        var htitle    = state.highlightedRefs.length ? 
+                          Sefaria.normRefList(state.highlightedRefs) : state.currentlyVisibleRef;
         hist.title    = Sefaria._r(htitle);
         hist.url      = Sefaria.normRef(htitle);
         hist.version  = state.version;
