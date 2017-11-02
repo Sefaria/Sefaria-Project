@@ -247,7 +247,8 @@ class Header extends Component {
                           handleInAppLinkClick={this.props.handleInAppLinkClick}
                           hideNavHeader={true}
                           analyticsInitialized={this.props.analyticsInitialized}
-                          getLicenseMap={this.props.getLicenseMap}/>) : null;
+                          getLicenseMap={this.props.getLicenseMap}
+                          translateISOLanguageCode={this.props.translateISOLanguageCode}/>) : null;
 
 
     var notificationCount = Sefaria.notificationCount || 0;

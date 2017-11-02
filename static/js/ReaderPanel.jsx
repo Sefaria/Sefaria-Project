@@ -519,6 +519,7 @@ class ReaderPanel extends Component {
           selectedWords={this.state.selectedWords}
           getLicenseMap={this.props.getLicenseMap}
           masterPanelLanguage={this.props.masterPanelLanguage}
+          translateISOLanguageCode={this.props.translateISOLanguageCode}
           key="connections" />
       );
     }
@@ -801,6 +802,7 @@ ReaderPanel.propTypes = {
   setSelectedWords:            PropTypes.func,
   analyticsInitialized:        PropTypes.bool,
   getLicenseMap:               PropTypes.func.isRequired,
+  translateISOLanguageCode:    PropTypes.func.isRequired,
 };
 
 

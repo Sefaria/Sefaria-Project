@@ -1283,7 +1283,8 @@ class ReaderApp extends Component {
                     headerMode={this.props.headerMode}
                     panelsOpen={panelStates.length}
                     analyticsInitialized={this.state.initialAnalyticsTracked}
-                    getLicenseMap={this.getLicenseMap} />) : null;
+                    getLicenseMap={this.getLicenseMap}
+                    translateISOLanguageCode={this.translateISOLanguageCode} />) : null;
 
     var panels = [];
     var allOpenRefs = panelStates.filter( panel => panel.mode == "Text" && !panel.menuOpen)
@@ -1354,6 +1355,7 @@ class ReaderApp extends Component {
                       layoutWidth={width}
                       analyticsInitialized={this.state.initialAnalyticsTracked}
                       getLicenseMap={this.getLicenseMap}
+                      translateISOLanguageCode={this.translateISOLanguageCode}
                     />
                   </div>);
     }

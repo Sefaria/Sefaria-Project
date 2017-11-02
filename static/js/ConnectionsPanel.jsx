@@ -20,6 +20,7 @@ const ConnectionsPanelHeader = require('./ConnectionsPanelHeader');
 const AddToSourceSheetBox    = require('./AddToSourceSheetBox');
 const LexiconBox             = require('./LexiconBox');
 const AboutBox               = require('./AboutBox');
+const SidebarVersion         = require('./SidebarVersion');
 const classNames             = require('classnames');
 import Component             from 'react-class';
 
@@ -111,7 +112,6 @@ class ConnectionsPanel extends Component {
   }
   getCurrentVersions() {
     const data = this.getData();
-    console.log("Data", data);
     if (!data) { return {currVersionEn: null, currVerionHe: null}};
     let currentLanguage = this.props.masterPanelLanguage;
     if (currentLanguage == "bilingual") {currentLanguage = "hebrew"}
@@ -306,6 +306,8 @@ class ConnectionsPanel extends Component {
                   versions={versions}
                   version={this.props.version}
                   srefs={this.props.srefs}
+                  mainVersionLanguage={mainVersionLanguage}
+                  translateISOLanguageCode={this.props.translateISOLanguageCode}
                   getLicenseMap={this.props.getLicenseMap}/>);
     }
 
@@ -366,6 +368,7 @@ ConnectionsPanel.propTypes = {
   contentLang:             PropTypes.string,
   getLicenseMap:           PropTypes.func.isRequired,
   masterPanelLanguage:     PropTypes.oneOf(["english", "bilingual", "hebrew"]),
+  translateISOLanguageCode:PropTypes.func.isRequired,
 };
 
 
@@ -981,19 +984,43 @@ AddConnectionBox.propTypes = {
 
 class VersionsBox extends Component {
   render() {
-    versionLangMap = {};
-    for (v of this.props.versions) {
-      const matches = v.match(new RegExp('\[[a-z]{2}\]')); // two-letter ISO language code
-      if (matches) {
-        versionLangMap[matches[0]] = v;
-      } else {
-        versionLangMap[v.language] = v;
-      }
+    const versionLangMap = {};
+    for (let v of this.props.versions) {
+      const matches = v.versionTitle.match(new RegExp("\\[([a-z]{2})\\]$")); // two-letter ISO language code
+      const lang = matches ? matches[1] : v.language;
+      versionLangMap[lang] = !!versionLangMap[lang] ? versionLangMap[lang].concat(v) : [v];
     }
-    //versionLangs = Object.keys(versionLangMap).sort((a, b) => {})
+    const standard_langs = ["en", "he"];
+    const versionLangs = Object.keys(versionLangMap).sort(
+      (a, b) => {
+        if      (a === this.props.mainVersionLanguage.slice(0,2)) {return -1;}
+        else if (b === this.props.mainVersionLanguage.slice(0,2)) {return  1;}
+        else if (a in standard_langs && !(b in standard_langs))   {return -1;}
+        else if (b in standard_langs && !(a in standard_langs))   {return  1;}
+        else if (a < b)                                           {return -1;}
+        else if (b > a)                                           {return  1;}
+        else                                                      {return  0;}
+      }
+    );
     return (
-      <div>
-        yoyo
+      <div className="versionsBox">
+        {
+          versionLangs.map((lang) => (
+            <div key={lang}>
+              <div className="versionLanguage">{this.props.translateISOLanguageCode(lang)}<span className="versionCount">{` (${versionLangMap[lang].length})`}</span></div>
+              {
+                versionLangMap[lang].map((v) => (
+                  <SidebarVersion
+                    version={v}
+                    srefs={this.props.srefs}
+                    getLicenseMap={this.props.getLicenseMap}
+                    key={v.versionTitle + lang}
+                  />
+                ))
+              }
+            </div>
+          ))
+        }
       </div>
     );
   }
@@ -1001,7 +1028,9 @@ class VersionsBox extends Component {
 VersionsBox.propTypes = {
   versions: PropTypes.array.isRequired,
   version:  PropTypes.string,
-  versionLanguage: PropTypes.string,
+  mainVersionLanguage: PropTypes.oneOf(["english", "hebrew"]).isRequired,
+  srefs:    PropTypes.array.isRequired,
+  getLicenseMap: PropTypes.func.isRequired,
   translateISOLanguageCode: PropTypes.func.isRequired,
 };
 
