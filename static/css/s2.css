@@ -512,17 +512,18 @@ input.noselect {
   direction: ltr;
 }
 .interface-hebrew .readerPanel .readerNavMenu,
+#s2.interface-hebrew .readerPanel .readerNavMenu .gridBox,
 .readerPanel.hebrew .readerNavSection,
 .readerPanel.hebrew .readerNavMenu .gridBox {
   direction: rtl;
 }
 .interface-english .readerPanel .readerNavMenu,
 .readerPanel.english .readerNavSection,
- .readerPanel.english .readerNavMenu .gridBox{
+.readerPanel.english .readerNavMenu .gridBox{
   direction: ltr;
 }
 .readerPanel.bilingual .readerNavSection,
- .readerPanel.bilingual .readerNavMenu .gridBox{
+.readerPanel.bilingual .readerNavMenu .gridBox {
   direction: ltr;
 }
 .readerPanel.english .he {
