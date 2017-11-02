@@ -512,17 +512,18 @@ input.noselect {
   direction: ltr;
 }
 .interface-hebrew .readerPanel .readerNavMenu,
+#s2.interface-hebrew .readerPanel .readerNavMenu .gridBox,
 .readerPanel.hebrew .readerNavSection,
 .readerPanel.hebrew .readerNavMenu .gridBox {
   direction: rtl;
 }
 .interface-english .readerPanel .readerNavMenu,
 .readerPanel.english .readerNavSection,
- .readerPanel.english .readerNavMenu .gridBox{
+.readerPanel.english .readerNavMenu .gridBox{
   direction: ltr;
 }
 .readerPanel.bilingual .readerNavSection,
- .readerPanel.bilingual .readerNavMenu .gridBox{
+.readerPanel.bilingual .readerNavMenu .gridBox {
   direction: ltr;
 }
 .readerPanel.english .he {
@@ -841,6 +842,10 @@ a.resourcesLink {
   overflow: hidden;
   text-overflow: ellipsis;
   width: 100%;
+}
+.readerPanel .recentPanel .recentItem {
+  padding: 15px;
+  margin-bottom: 10px;
 }
 .readerNavCategories {
   width: 100%;
@@ -3999,13 +4004,15 @@ h2.splitHeader .he {
 .topicsPanel .topicFilterBox {
   display: flex;
   align-items: center;
+  border-bottom: 1px solid #ccc;
+  margin-bottom: 50px
 }
 .topicsPanel .topicFilterIcon {
   font-size: 22px;
   opacity: 0.4;
 }
 .topicsPanel .topicFilterInput {
-  padding: 20px 10px 20px 10px;
+  padding: 12px 10px;
   flex: 1;
   box-sizing: border-box;
   border: none;
