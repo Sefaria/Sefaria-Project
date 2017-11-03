@@ -618,6 +618,7 @@ $(function() {
 		CKEDITOR.config.language = sjs.interfaceLang;
 		CKEDITOR.disableAutoInline = true;
 		CKEDITOR.config.startupFocus = true;
+		CKEDITOR.config.extraPlugins = 'bidi';
 		CKEDITOR.config.extraAllowedContent = 'small; span(segment, gemarra-regular, gemarra-italic, it-text); div(oldComment)';
 		CKEDITOR.config.removePlugins = 'magicline,resize';
 		CKEDITOR.config.sharedSpaces = {top: 'ckeTopMenu' };
@@ -647,7 +648,8 @@ $(function() {
 			{name: 'styles', items: ['Font', 'FontSize']},
 			{name: 'colors', items: ['TextColor', 'BGColor']},
 			{name: 'links', items: ['Link', 'Unlink']},
-			{name: 'insert', items: ['Image', 'Table', 'HorizontalRule']}
+			{name: 'insert', items: ['Image', 'Table', 'HorizontalRule']},
+			{name: 'bidi', items: ['BidiLtr','BidiRtl']},
 		];
 
 		sjs.removeCKEditor = function(e) {
