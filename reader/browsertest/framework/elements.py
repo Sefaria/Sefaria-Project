@@ -744,9 +744,6 @@ class TestResultSet(AbstractTestResult):
         return ret
 
 
-
-
-
 class Trial(object):
 
     default_local_driver = webdriver.Chrome
@@ -874,7 +871,7 @@ class Trial(object):
         caps = _caps or self.caps
         self.carp(u"\n{}: ".format(test_class.__name__))
 
-        tresults = []
+        tresults = []  # list of AbstractTest instances
         if self.parallel:
             p = Pool(self.thread_count)
             l = len(caps)
@@ -888,7 +885,6 @@ class Trial(object):
             for cap in caps:
                 tresults.append(self._test_one(test_class, cap))
 
-        # tresults is a list of AbstractTests
         result_set.include([t for t in tresults if t and t.success])
         failing_results = [t for t in tresults if t and not t.success]
 
@@ -897,7 +893,8 @@ class Trial(object):
             self.carp("\nRetesting {} configurations on {}: ".format(len(failing_results), test_class.__name__), always=True)
             second_test_results = self._test_on_all(test_class, [t.cap for t in failing_results])
             result_set.include(second_test_results)
-
+        elif _caps is not None:
+            result_set.include(failing_results)
         return result_set
 
     def run(self):
