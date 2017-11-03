@@ -9,7 +9,7 @@ from selenium.webdriver.support.expected_conditions import title_contains, stale
 from sefaria.model import *
 from selenium.webdriver.common.keys import Keys
 
-import time # import stand library below name collision in sefaria.model
+import time  # import stand library below name collision in sefaria.model
 
 
 TEMPER = 10
@@ -74,6 +74,7 @@ class PagesLoad(AtomicTest):
         self.load_account()
         self.load_private_sheets()
         self.load_private_groups()
+
 
 class RecentInToc(AtomicTest):
     suite_class = ReaderSuite

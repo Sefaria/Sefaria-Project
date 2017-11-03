@@ -185,6 +185,7 @@ class AbstractTest(object):
             ref = Ref(ref)
         assert isinstance(ref, Ref)
         self.type_in_search_box(ref.normal())
+        time.sleep(.5)  # So that the old page doesn't mistakenly get selected in the next line
         WebDriverWait(self.driver, TEMPER).until(
             element_to_be_clickable((By.CSS_SELECTOR, ".textColumn .textRange .segment")))
         WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, ".linkCountDot")))
