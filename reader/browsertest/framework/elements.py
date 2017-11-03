@@ -32,10 +32,14 @@ class AbstractTest(object):
     include = []  # List of platforms (using cap_to_short_string) to include.  If this is present, only these platforms are included
     exclude = []  # List of platforms (using cap_to_short_string) to exclude.
 
-    def __init__(self, driver, url, cap, **kwargs):
+    def __init__(self, driver, url, cap, verbose=False, **kwargs):
         self.base_url = url
         self.driver = driver
         self.cap = cap
+        self.isVerbose = verbose
+
+    def name(self):
+        return self.__class__.__name__
 
     @classmethod
     def _should_run(cls, mode, cap):
@@ -47,16 +51,21 @@ class AbstractTest(object):
             return False
         return True
 
-    def run(self):
-        raise Exception("run() needs to be defined for each test.")
+    def should_run(self, mode):
+        pass
 
-    def set_modal_cookie(self):
-        # set cookie to avoid popup interruption
-        self.driver.add_cookie({"name": "welcomeToS2LoggedOut", "value": "true"})
+    def run(self):
+        pass
+
+
 
     # Component methods
     # Methods that begin with "nav_to_" assume that the site is loaded, and do not reload a page.
     # Methods that begin with "load_" start with a page load.
+
+    def set_modal_cookie(self):
+        # set cookie to avoid popup interruption
+        self.driver.add_cookie({"name": "welcomeToS2LoggedOut", "value": "true"})
 
     def login_user(self):
         password = os.environ["SEFARIA_TEST_PASS"]
@@ -132,9 +141,9 @@ class AbstractTest(object):
 
         # These CSS selectors could fail if the category is a substring of another possible category
         WebDriverWait(self.driver, TEMPER).until(
-            presence_of_element_located((By.CSS_SELECTOR, '.readerNavCategory[data-cat~="{}"], .catLink[data-cat~="{}"]'.format(category_name, category_name)))
+            presence_of_element_located((By.CSS_SELECTOR, '.readerNavCategory[data-cat~="{}"], refLink[data-ref~="{}", .catLink[data-cats~="{}"]'.format(category_name, category_name, category_name)))
         )
-        e = self.driver.find_element_by_css_selector('.readerNavCategory[data-cat~="{}"], .catLink[data-cat~="{}"]'.format(category_name, category_name))
+        e = self.driver.find_element_by_css_selector('.readerNavCategory[data-cat~="{}"], refLink[data-ref~="{}", .catLink[data-cats~="{}"]'.format(category_name, category_name, category_name))
         e.click()
         WebDriverWait(self.driver, TEMPER).until(staleness_of(e))
         return self
@@ -464,6 +473,7 @@ class TestSuite(AbstractTest):
         self.mode = mode
         self.tests = [t(self.driver, self.base_url, self.cap) for t in get_atomic_tests() if t.suite_class == self.__class__ and t._should_run(self.mode, self.cap)]
         random.shuffle(self.tests, lambda: seed)
+        self.result_set = TestResultSet()
 
     def should_run(self, mode):
         return len(self.tests)
@@ -481,27 +491,31 @@ class TestSuite(AbstractTest):
         sys.stdout.write(u"** Starting Test Suite **\n{}\n\n".format(str(self)))
         sys.stdout.flush()
 
-        self.setup()
+        try:
+            self.setup()
+        except Exception:
+            msg = traceback.format_exc()
+            sys.stdout.write(u"Exception in {}.setup()\n".format(self.name()))
+            sys.stdout.write(msg)
+            sys.stdout.flush()
+            return TestResult(self.__class__, self.cap, False, msg)
 
         for test in self.tests:
-            test_name = u"{}:{}".format(self.__class__.__name__, test.__class__.__name__)
-            try:
-                sys.stdout.write(u" * Enter {}\n".format(test_name))
-                sys.stdout.flush()
-                test.run()
-                sys.stdout.write(u" * Exit {}\n".format(test_name))
-                sys.stdout.flush()
-            except Exception:
-                msg = traceback.format_exc()
+            test_name = u"{}:{}".format(self.name(), test.name())
+            sys.stdout.write(u" * Enter {}\n".format(test_name))
+            sys.stdout.flush()
+            self.result_set.include(test.run())
 
-                # if self.isVerbose:
-                sys.stdout.write(u"Exception in {}\n".format(test_name))
-                sys.stdout.write(msg)
-                sys.stdout.flush()
-                # else:
-                #    sys.stdout.write("E")
+        try:
+            self.teardown()
+        except Exception:
+            msg = traceback.format_exc()
+            sys.stdout.write(u"Exception in {}.teardown()\n".format(self.name()))
+            sys.stdout.write(msg)
+            sys.stdout.flush()
+            self.result_set.include(TestResult(self.__class__, self.cap, False, msg))
 
-        self.teardown()
+        return self.result_set
 
 
 class AtomicTest(AbstractTest):
@@ -525,6 +539,21 @@ class AtomicTest(AbstractTest):
 
     def should_run(self, mode):
         return self._should_run(mode, self.cap)
+
+    def run(self):
+        try:
+            self.driver.execute_script('"**** Enter {} ****"'.format(self.name()))
+            self.body()
+            self.driver.execute_script('"**** Exit {} ****"'.format(self.name()))
+        except Exception:
+            msg = traceback.format_exc()
+            return TestResult(self.__class__, self.cap, False, msg)
+        else:
+            return TestResult(self.__class__, self.cap, True)
+
+    def body(self):
+        raise Exception("body() needs to be defined for each test.")
+
 """
 
                     Test Running Infrastructure
@@ -533,26 +562,32 @@ class AtomicTest(AbstractTest):
 
 
 class TestResult(object):
-    def __init__(self, test, cap, success, message=""):
+    def __init__(self, test_class, cap, success, message=""):
         assert isinstance(success, bool)
-        assert isinstance(test, AbstractTest)
+        assert issubclass(test_class, AbstractTest)
 
-        self.test = test
-        self.id = self.test.__class__.__name__
+        self.testClass = test_class
+        self.id = self.testClass.__name__
         self.cap = cap
         self.success = success
         self.message = message
 
     def __str__(self):
         return "{} - {} on {}{}".format(
-            "Pass" if self.success else "Fail",
+            self.word_status(),
             self.id,
             Trial.cap_to_string(self.cap),
             ": \n{}".format(self.message) if self.message else ""
         )
 
+    def word_status(self):
+        return "Passed" if self.success else "Failed"
 
-class ResultSet(object):
+    def letter_status(self):
+        return "." if self.success else "F"
+
+
+class TestResultSet(object):
     def __init__(self, results=None):
         """
         :param results: list of TestResult objects, or a list of lists
@@ -589,11 +624,50 @@ class ResultSet(object):
         results = [[""] + caps] + results
         return results
 
+    def word_status(self):
+        p = self.number_passed()
+        f = self.number_failed()
+        if p and f:
+            return "Mixed"
+        elif p:
+            return "Passed"
+        elif f:
+            return "Failed"
+        else:
+            return "Empty"
+
+    def letter_status(self):
+        p = self.number_passed()
+        f = self.number_failed()
+        if p and f:
+            return "/"
+        elif p:
+            return "."
+        elif f:
+            return "F"
+        else:
+            return "0"
+
     def number_passed(self):
         return len([t for t in self._test_results if t.success])
 
     def number_failed(self):
         return len([t for t in self._test_results if not t.success])
+
+    @property
+    def message(self):
+        # Hack To work w/ TestResult.message.
+        return ""
+
+    @property
+    def success(self):
+        return not bool(self.number_failed())
+
+    @property
+    def cap(self):
+        # Contained test results can have different caps, but in some contexts, they all have the same one.
+        # Use carefully
+        return self._test_results[0].cap
 
     def report(self):
         ret = "\n"
@@ -618,7 +692,10 @@ class ResultSet(object):
             self._test_results.append(result)
         elif isinstance(result, list):
             for res in result:
-                self.include(res)
+                if res is not None:
+                    self.include(res)
+        elif isinstance(result, TestResultSet):
+            self._test_results += result._test_results
 
 
 class Trial(object):
@@ -664,7 +741,7 @@ class Trial(object):
         self.build = build
         self.tests = get_every_build_tests(get_suites()) if tests is None else tests
         self.seed = random.random()
-        self._results = ResultSet()
+        self._results = TestResultSet()
         self.parallel = parallel if parallel is not None else False if self.is_local else True
         if self.parallel:
             self.thread_count = BS_MAX_THREADS if self.platform == "bstack" else SAUCE_MAX_THREADS
@@ -703,7 +780,8 @@ class Trial(object):
         :param test_class:
         :return:
         """
-        test = test_class(driver, self.BASE_URL, cap, mode=mode, seed=self.seed)
+        assert issubclass(test_class, AbstractTest)
+        test = test_class(driver, self.BASE_URL, cap, mode=mode, seed=self.seed, verbose=self.isVerbose)
 
         if not test.should_run(mode):
             return None
@@ -711,29 +789,15 @@ class Trial(object):
         name = "{} / {}".format(test_class.__name__, Trial.cap_to_string(cap))
         sys.stdout.write("{} - Starting\n".format(name) if self.isVerbose else "")
         sys.stdout.flush()
-        assert issubclass(test_class, AbstractTest)
-        try:
-            driver.execute_script('"**** Enter {} ****"'.format(test_class.__name__))
-            test.run()
-            driver.execute_script('"**** Exit {} ****"'.format(test_class.__name__))
-        except Exception as e:
-            # msg = getattr(e, "message", None) or getattr(e, "msg", None)
-            msg = traceback.format_exc()
-            if self.isVerbose:
-                sys.stdout.write("{} - Failed\n".format(name))
-                sys.stdout.write(msg)
-            else:
-                sys.stdout.write("F")
-            sys.stdout.flush()
-            #if self.platform == "sauce":
-            #    driver.execute_script("sauce: break")
-            return TestResult(test, cap, False, msg)
-        else:
-            sys.stdout.write("{} - Passed\n".format(name) if self.isVerbose else ".")
-            sys.stdout.flush()
-            return TestResult(test, cap, True)
 
-    def _test_one(self, test, cap):
+        results = test.run()
+
+        sys.stdout.write("{} - {}\n".format(name, results.word_status()) if self.isVerbose else "")
+        sys.stdout.flush()
+
+        return results
+
+    def _test_one(self, test_class, cap):
         driver = None
         try:
             if self.is_local:
@@ -741,23 +805,28 @@ class Trial(object):
             else:
                 mode = cap.get("sefaria_mode")
                 cap.update({
-                    'name': "{} on {}".format(test.__name__, self.cap_to_string(cap)),
+                    'name': "{} on {}".format(test_class.__name__, self.cap_to_string(cap)),
                     'build': self.build,
                 })
 
             driver = self._get_driver(cap)
-            result = self._run_one_atomic_test(driver, test, cap, mode)
+            result = self._run_one_atomic_test(driver, test_class, cap, mode)
             if result is None:  # Test not run, due to mismatched cap, mode, etc.
                 return None
 
             if self.platform == "sauce":
-                self.set_sauce_result(driver, result.success)
+                if isinstance(result, list):
+                    success = not any([not r.success for r in result])
+                else:
+                    success = result.success
+                self.set_sauce_result(driver, success)
             driver.quit()
             return result
+
         except Exception as e:
             if driver is not None:
                 driver.quit()
-            name = "{} / {}".format(test.__name__, Trial.cap_to_string(cap))
+            name = "{} / {}".format(test_class.__name__, Trial.cap_to_string(cap))
             msg = traceback.format_exc()
             if self.isVerbose:
                 sys.stdout.write("{} - Aborted\n".format(name))
@@ -765,47 +834,52 @@ class Trial(object):
             else:
                 sys.stdout.write("A")
             sys.stdout.flush()
-            return TestResult(test, cap, False, msg)
+            return TestResult(test_class, cap, False, msg)
 
-    def _test_on_all(self, test, _caps=None):
+    def _test_on_all(self, test_class, _caps=None):
         """
         Given a test, test it on all browsers
-        :param test:
+        :param test_class:
+        :param _caps: Used on recursive run to retest failing caps
         :return:
         """
+        result_set = TestResultSet()
         caps = _caps or self.caps
-        sys.stdout.write("\n{}: ".format(test.__name__) if not self.isVerbose else "")
+        sys.stdout.write("\n{}: ".format(test_class.__name__) if not self.isVerbose else "")
         sys.stdout.flush()
         tresults = []
         if self.parallel:
             p = Pool(self.thread_count)
             l = len(caps)
             try:
-                tresults = p.map(_test_one_worker, zip([self]*l, [test]*l, caps))
+                tresults = p.map(_test_one_worker, zip([self] * l, [test_class] * l, caps))
             except Exception as e:
                 msg = traceback.format_exc()
                 if self.isVerbose:
-                    sys.stdout.write("{} - Exception\n".format(test.__name__))
+                    sys.stdout.write("{} - Exception\n".format(test_class.__name__))
                     sys.stdout.write(msg)
                 else:
                     sys.stdout.write("E")
                 sys.stdout.flush()
-                tresults = [TestResult(test, caps[0], False, msg)]
+                tresults = [TestResult(test_class, caps[0], False, msg)]
         else:
             for cap in caps:
-                tresults.append(self._test_one(test, cap))
+                tresults.append(self._test_one(test_class, cap))
 
-        #test failures twice, in order to avoid false failures
-        failures = [tr for tr in tresults if tr is not None and tr.success is False]
+        # tresults is a list of TestResults and/or TestResultSets, which share many methods
+        # Collect caps with failures
+        result_set.include([t for t in tresults if t and t.success])
+        failing_results = [t for t in tresults if t and not t.success]
 
-        if len(failures) > 0 and _caps is None:
-            sys.stdout.write("\nRetesting {} configurations on {}: ".format(len(failures), test.__name__)
+        # test failures twice, in order to avoid false failures
+        if len(failing_results) > 0 and _caps is None:
+            sys.stdout.write("\nRetesting {} configurations on {}: ".format(len(failing_results), test_class.__name__)
                              if not self.isVerbose else "")
             sys.stdout.flush()
-            second_test_results = self._test_on_all(test, [tr.cap for tr in failures])
-            successes = [tr for tr in tresults if tr is not None and tr.success is True]
-            return successes + second_test_results
-        return [t for t in tresults if t is not None]
+            second_test_results = self._test_on_all(test_class, [t.cap for t in failing_results])
+            result_set.include(second_test_results)
+
+        return result_set
 
     def run(self):
         for test in self.tests:

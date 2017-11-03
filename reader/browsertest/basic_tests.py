@@ -47,7 +47,7 @@ class SinglePanelOnMobile(AtomicTest):
     every_build = True
     multi_panel = False
 
-    def run(self):
+    def body(self):
         self.nav_to_text_toc(["Tanakh"], "Joshua")
         elems = self.driver.find_elements_by_css_selector(".readerApp.multiPanel")
         assert len(elems) == 0
@@ -60,7 +60,7 @@ class PagesLoad(AtomicTest):
     suite_class = PageloadSuite
     every_build = True
 
-    def run(self):
+    def body(self):
         self.load_toc()
         self.click_toc_category("Midrash").click_toc_text("Midrash Tehillim")
         self.load_ref("Psalms.104")
@@ -80,7 +80,7 @@ class RecentInToc(AtomicTest):
     single_panel = False
     every_build = True
 
-    def run(self):
+    def body(self):
         self.nav_to_ref("Psalms 1")
         self.nav_to_toc().click_toc_recent("Psalms 1")
 
@@ -90,7 +90,7 @@ class RecentInTocOnReload(AtomicTest):
     single_panel = False
     every_build = True
 
-    def run(self):
+    def body(self):
         self.load_ref("Psalms 1")
         self.load_toc().click_toc_recent("Psalms 1")
 
@@ -99,7 +99,7 @@ class NavToRefAndClickSegment(AtomicTest):
     suite_class = ReaderSuite
     every_build = True
 
-    def run(self):
+    def body(self):
         self.nav_to_ref("Psalms 65:5").click_segment("Psalms 65:5")
         assert "Psalms.65.5" in self.driver.current_url, self.driver.current_url
         assert "with=all" in self.driver.current_url, self.driver.current_url
@@ -115,7 +115,7 @@ class LoadRefAndClickSegment(AtomicTest):
     suite_class = PageloadSuite
     every_build = True
 
-    def run(self):
+    def body(self):
         self.load_ref("Psalms 65:5").click_segment("Psalms 65:5")
         assert "Psalms.65.5" in self.driver.current_url, self.driver.current_url
         assert "with=all" in self.driver.current_url, self.driver.current_url
@@ -131,7 +131,7 @@ class LoadRefWithCommentaryAndClickOnCommentator(AtomicTest):
     suite_class = PageloadSuite
     every_build = True
 
-    def run(self):
+    def body(self):
         self.load_ref("Psalms 45:5", filter="all").click_category_filter("Commentary").click_text_filter("Rashi")
         assert "Psalms.45.5" in self.driver.current_url, self.driver.current_url
         assert "with=Rashi" in self.driver.current_url, self.driver.current_url
@@ -141,7 +141,7 @@ class NavAndVerifyTextTOC(AtomicTest):
     suite_class = ReaderSuite
     every_build = True
 
-    def run(self):
+    def body(self):
         navs = [
             (["Tanakh"], "Genesis"),  # Simple Text
             (["Talmud"], "Shabbat"),  # Talmud Numbering
@@ -159,7 +159,7 @@ class LoadAndVerifyIndepenedentTOC(AtomicTest):
     suite_class = PageloadSuite
     every_build = True
 
-    def run(self):
+    def body(self):
         titles = [
             "Genesis",  # Simple Text
             "Shabbat",  # Talmud Numbering
@@ -178,7 +178,7 @@ class LoadSpanningRefAndOpenConnections(AtomicTest):
     suite_class = PageloadSuite
     every_build = True
 
-    def run(self):
+    def body(self):
         self.load_ref("Shabbat 2a-2b")
         self.click_segment("Shabbat 2a:1")
 
@@ -187,7 +187,7 @@ class NavToSpanningRefAndOpenConnections(AtomicTest):
     suite_class = ReaderSuite
     every_build = True
 
-    def run(self):
+    def body(self):
         self.nav_to_ref("Shabbat 2a-2b")
         self.click_segment("Shabbat 2a:1")
 
@@ -201,7 +201,7 @@ class PermanenceOfRangedRefs(AtomicTest):
     every_build = True
     single_panel = False  # Segment clicks on mobile have different semantics  todo: write this for mobile?  It's primarily a data test.
 
-    def run(self):
+    def body(self):
         self.nav_to_ref("Shabbat 2a").click_segment("Shabbat 2a:1").click_category_filter("Mishnah")
         assert self.find_text_filter("Mishnah Shabbat")
         self.click_segment("Shabbat 2a:2")
@@ -218,7 +218,7 @@ class NavToTocAndCheckPresenceOfDownloadButton(AtomicTest):
     exclude = ['And/5.1', 'iPh5s']  # Android driver doesn't support "Select" class. Haven't found workaround.
 
     # iPhone has an unrelated bug where a screen size refresh mid-test causes this to fail.
-    def run(self):
+    def body(self):
         # Load Shabbat TOC and scroll to bottom
         self.nav_to_text_toc(["Talmud"], "Shabbat").scroll_nav_panel_to_bottom()
 
@@ -253,7 +253,7 @@ class LoadTocAndCheckPresenceOfDownloadButton(AtomicTest):
     exclude = ['And/5.1', 'iPh5s']  # Android driver doesn't support "Select" class. Haven't found workaround.
                                     # iPhone has an unrelated bug where a screen size refresh mid-test causes this to fail.
 
-    def run(self):
+    def body(self):
         # Load Shabbat TOC and scroll to bottom
         self.load_text_toc("Shabbat").scroll_nav_panel_to_bottom()
 
@@ -284,7 +284,7 @@ class LoadSearchFromURL(AtomicTest):
     suite_class = PageloadSuite
     every_build = True
 
-    def run(self):
+    def body(self):
         self.load_search_url("Passover")
 
 
@@ -292,7 +292,7 @@ class ClickVersionedSearchResultDesktop(AtomicTest):
     suite_class = DeepReaderSuite
     single_panel = False
 
-    def run(self):
+    def body(self):
         self.search_for("they howl like dogs")
         versionedResult = self.driver.find_element_by_css_selector('a[href="/Psalms.59.7/en/The_Rashi_Ketuvim_by_Rabbi_Shraga_Silverstein?qh=they howl like dogs"]')
         versionedResult.click()
@@ -305,7 +305,7 @@ class BrowserBackAndForward(AtomicTest):
     every_build = True
     exclude = ['FF/x12', 'Sf/x11'] # Buggy handling of Back button
 
-    def run(self):
+    def body(self):
         # Sidebar
         self.nav_to_ref("Genesis 2").click_segment("Genesis 2:2").click_category_filter("Commentary")
         assert "Genesis.2.2" in self.driver.current_url, self.driver.current_url        
@@ -330,7 +330,7 @@ class ClickVersionedSearchResultMobile(AtomicTest):
     suite_class = DeepReaderSuite
     multi_panel = False
 
-    def run(self):
+    def body(self):
         self.nav_to_ref("Psalms 23")
         hamburger = self.driver.find_element_by_css_selector(".readerNavMenuMenuButton")
         if hamburger:
@@ -349,7 +349,7 @@ class SaveNewSourceSheet(AtomicTest):
     every_build = True
     single_panel = False  # No source sheets on mobile
 
-    def run(self):
+    def body(self):
         self.login_user()
         self.nav_to_sheets()
 
@@ -376,7 +376,7 @@ class LoginOnMobile(AtomicTest):
     every_build = True
     multi_panel = False  # Login is tested as part of SaveNewSourceSheet on multipanel
 
-    def run(self):
+    def body(self):
         self.s2()
         self.login_user()
         WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, ".accountLinks .account")))
@@ -389,7 +389,7 @@ class SpecialCasedSearchBarNavigations(AtomicTest):
     every_build = True
     single_panel = False  # This hasn't yet been implemented on mobile
 
-    def run(self):
+    def body(self):
         self.type_in_search_box("Shabbat")
         WebDriverWait(self.driver, TEMPER).until(visibility_of_element_located((By.CSS_SELECTOR, ".readerTextTableOfContents")))
         self.type_in_search_box("Shabbat 12b")
@@ -415,7 +415,7 @@ class EditorPagesLoad(AtomicTest):
     every_build = True
     single_panel = False
 
-    def run(self):
+    def body(self):
         #logged in stuff
         self.login_user()
         self.load_translate("Shabbat 43b")
@@ -434,7 +434,7 @@ class InfiniteScrollUp(AtomicTest):
         # Wait then check that URL has not changed as a proxy for checking that visible scroll position has not changed
         assert Ref(start_ref).url() in self.driver.current_url, self.driver.current_url      
 
-    def run(self):
+    def body(self):
         # Simple Text
         self.test_up("Job 32", "Job 31:40")
         # Complex Text
@@ -449,7 +449,7 @@ class InfiniteScrollDown(AtomicTest):
         self.nav_to_ref(start_ref).scroll_reader_panel_to_bottom()
         WebDriverWait(self.driver, TEMPER).until(visibility_of_element_located((By.CSS_SELECTOR, '[data-ref="%s"]' % next_segment_ref)))        
 
-    def run(self):
+    def body(self):
         # Simple Text
         self.test_down("Job 32", "Job 33:1")
         # Complex Text
@@ -463,7 +463,7 @@ class LoadRefAndOpenLexicon(AtomicTest):
     suite_class = ReaderSuite
     single_panel = False
 
-    def run(self):
+    def body(self):
         self.load_ref("Numbers 25:5", lang="he").click_segment("Numbers 25:5")
         assert "Numbers.25.5" in self.driver.current_url, self.driver.current_url
         assert "with=all" in self.driver.current_url, self.driver.current_url
