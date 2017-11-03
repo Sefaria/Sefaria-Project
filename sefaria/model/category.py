@@ -189,14 +189,12 @@ class TocTree(object):
             vs = self._vs_lookup[i.title]
             # If any text in this category is incomplete, the category itself and its parents are incomplete
             for field in ("enComplete", "heComplete"):
-                pcat = cat
-                while True:
+                for acat in [cat] + list(reversed(cat.ancestors())):
                     # Start each category completeness as True, set to False whenever we hit an incomplete text below it
-                    flag = False if not vs[field] else getattr(pcat, field, True)
-                    setattr(pcat, field, flag)
-                    pcat = pcat.parent
-                    if not pcat:
-                        break
+                    flag = False if not vs[field] else getattr(acat, field, True)
+                    setattr(acat, field, flag)
+                    if acat.get_primary_title() == u"Commentary":
+                        break # Don't consider a category incomplete for containing incomplete commentaries
 
             self._path_hash[tuple(i.categories + [i.title])] = node
 
