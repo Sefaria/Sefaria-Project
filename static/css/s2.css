@@ -4587,32 +4587,37 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
   margin: 0;
   text-align: initial;
   text-transform: none;
-  border-bottom: solid 1px #CCC;
+  font-size: 20px;
 }
 .aboutBox .aboutTitle,
 .versionsBox .aboutTitle {
-  padding: 15px 0 8px 0;
-  font-size: 15px;
+  padding: 25px 0;
+  font-size: 20px;
+  border-top: solid 1px #CCC;
+  color: black;
+  display: inline-block;
 }
 .aboutBox .aboutSubtitle {
   font-style: italic;
-  font-size: 10px;
+  font-size: 15px;
   color: #999;
 }
 .aboutBox .aboutDesc {
   padding: 15px 0 30px 0;
-  font-size: 12px;
+  font-size: 15px;
 }
 .aboutBox .versionNotes,
 .versionsBox .versionNotes {
-  padding: 15px 0;
-  font-size: 12px;
+  padding-bottom: 15px;
+  font-size: 15px;
+  color: #666;
 }
 .aboutBox .versionDetails,
 .versionsBox .versionDetails {
-  font-size: 12px;
+  font-size: 13px;
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
   color: #999;
+  padding-bottom: 15px;
 }
 .aboutBox .versionDetails .separator,
 .versionsBox .versionDetails .separator {
@@ -4626,11 +4631,28 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
   padding-bottom: 30px;
 }
 .versionsBox .versionLanguage {
-  padding: 15px 0;
+  padding-bottom: 15px;
   text-transform: uppercase;
-  font-size: 15px;
-  border-bottom: solid 1px #CCC;
+  font-size: 20px;
+}
+.versionsBox div:not(:first-child) .versionLanguage {
+  padding-top: 25px;
 }
 .versionsBox .versionLanguage .versionCount {
   color: #999;
+}
+.versionsBox a.selectButton {
+  color: #ccc;
+  border: solid 1px #eee;
+  padding: 3px 8px;
+  margin-left: -9px; /* to account for line wrapping strangeness */
+  text-transform: uppercase;
+  background-color: white;
+  border-radius: 4px;
+  line-height: 24px;
+}
+.versionsBox a.selectButton.currSelectButton {
+  color: #666;
+  text-decoration: none;
+  cursor: default;
 }

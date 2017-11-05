@@ -304,7 +304,8 @@ class ConnectionsPanel extends Component {
     } else if (this.props.mode === "Versions") {
       content = (<VersionsBox
                   versions={versions}
-                  version={this.props.version}
+                  versionHe={currVersionHe}
+                  versionEn={currVersionEn}
                   srefs={this.props.srefs}
                   mainVersionLanguage={mainVersionLanguage}
                   translateISOLanguageCode={this.props.translateISOLanguageCode}
@@ -990,6 +991,11 @@ class VersionsBox extends Component {
       const lang = matches ? matches[1] : v.language;
       versionLangMap[lang] = !!versionLangMap[lang] ? versionLangMap[lang].concat(v) : [v];
     }
+
+    //sort versions by language so that
+    //- mainVersionLanguage shows up first
+    //- standard_langs show up second
+    //- everything else shows up in alphabetical order
     const standard_langs = ["en", "he"];
     const versionLangs = Object.keys(versionLangMap).sort(
       (a, b) => {
@@ -1015,6 +1021,9 @@ class VersionsBox extends Component {
                     srefs={this.props.srefs}
                     getLicenseMap={this.props.getLicenseMap}
                     key={v.versionTitle + lang}
+                    selectVersion={()=>{}}
+                    openVersion={()=>{}}
+                    isCurrent={this.props.versionEn.versionTitle === v.versionTitle || this.props.versionHe.versionTitle === v.versionTitle}
                   />
                 ))
               }
@@ -1027,7 +1036,8 @@ class VersionsBox extends Component {
 }
 VersionsBox.propTypes = {
   versions: PropTypes.array.isRequired,
-  version:  PropTypes.string,
+  versionEn: PropTypes.object,
+  versionHe: PropTypes.object,
   mainVersionLanguage: PropTypes.oneOf(["english", "hebrew"]).isRequired,
   srefs:    PropTypes.array.isRequired,
   getLicenseMap: PropTypes.func.isRequired,
