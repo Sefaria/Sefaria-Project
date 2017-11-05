@@ -543,8 +543,10 @@ class MySheetsPage extends Component {
 
                 {this.props.hideNavHeader ?
                  (<h2 className="splitHeader">
-                    <span className="int-en" onClick={this.toggleSheetTags}>Filter By Tag <i className="fa fa-angle-down"></i></span>
-                    <span className="int-he" onClick={this.toggleSheetTags}>סנן לפי תווית<i className="fa fa-angle-down"></i></span>
+                    <span className="filterLabel">
+                      <span className="int-en" onClick={this.toggleSheetTags}>Filter By Tag <i className="fa fa-angle-down"></i></span>
+                      <span className="int-he" onClick={this.toggleSheetTags}>סנן לפי תווית<i className="fa fa-angle-down"></i></span>
+                    </span>
                     <span className="int-en actionText">Sort By:
                       <select value={this.props.mySheetSort} onChange={this.changeSortYourSheets}>
                        <option value="date">Recent</option>
