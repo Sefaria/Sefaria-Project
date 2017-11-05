@@ -301,14 +301,16 @@ class ConnectionsPanel extends Component {
                   srefs={this.props.srefs}
                   getLicenseMap={this.props.getLicenseMap}
                 />);
-    } else if (this.props.mode === "Versions") {
+    } else if (this.props.mode === "Versions" || this.props.mode === "Version Open") {
       content = (<VersionsBox
+                  mode={this.props.mode}
                   versions={versions}
                   versionHe={currVersionHe}
                   versionEn={currVersionEn}
                   srefs={this.props.srefs}
                   mainVersionLanguage={mainVersionLanguage}
                   translateISOLanguageCode={this.props.translateISOLanguageCode}
+                  setConnectionsMode={this.props.setConnectionsMode}
                   getLicenseMap={this.props.getLicenseMap}/>);
     }
 
@@ -984,7 +986,18 @@ AddConnectionBox.propTypes = {
 
 
 class VersionsBox extends Component {
-  render() {
+  constructor(props) {
+    super(props);
+  }
+  openVersion(v) {
+    //v: version object as received from sefaria versions api
+    //request v.versionTitle for srefs
+    this.props.setConnectionsMode("Version Open");
+  }
+  selectVersion(v) {
+
+  }
+  renderModeVersions() {
     const versionLangMap = {};
     for (let v of this.props.versions) {
       const matches = v.versionTitle.match(new RegExp("\\[([a-z]{2})\\]$")); // two-letter ISO language code
@@ -1021,8 +1034,8 @@ class VersionsBox extends Component {
                     srefs={this.props.srefs}
                     getLicenseMap={this.props.getLicenseMap}
                     key={v.versionTitle + lang}
-                    selectVersion={()=>{}}
-                    openVersion={()=>{}}
+                    selectVersion={this.selectVersion}
+                    openVersion={this.openVersion}
                     isCurrent={this.props.versionEn.versionTitle === v.versionTitle || this.props.versionHe.versionTitle === v.versionTitle}
                   />
                 ))
@@ -1033,15 +1046,23 @@ class VersionsBox extends Component {
       </div>
     );
   }
+  renderModeSelected() {
+    return (<div>Sup yoy oyoyyo</div>);
+  }
+  render() {
+    return (this.props.mode === "Versions" ? this.renderModeVersions() : this.renderModeSelected());
+  }
 }
 VersionsBox.propTypes = {
-  versions: PropTypes.array.isRequired,
-  versionEn: PropTypes.object,
-  versionHe: PropTypes.object,
-  mainVersionLanguage: PropTypes.oneOf(["english", "hebrew"]).isRequired,
-  srefs:    PropTypes.array.isRequired,
-  getLicenseMap: PropTypes.func.isRequired,
+  mode:                     PropTypes.oneOf(["Versions", "Version Open"]),
+  versions:                 PropTypes.array.isRequired,
+  versionEn:                PropTypes.object,
+  versionHe:                PropTypes.object,
+  mainVersionLanguage:      PropTypes.oneOf(["english", "hebrew"]).isRequired,
+  srefs:                    PropTypes.array.isRequired,
+  getLicenseMap:            PropTypes.func.isRequired,
   translateISOLanguageCode: PropTypes.func.isRequired,
+  setConnectionsMode:   PropTypes.func.isRequired,
 };
 
 
