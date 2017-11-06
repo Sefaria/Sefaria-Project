@@ -213,7 +213,7 @@ def sefaria_js(request):
     Packaged Sefaria.js.
     """
     data_js = render_to_string("js/data.js", {}, RequestContext(request))
-    webpack_files = webpack_utils.get_files('sefaria')
+    webpack_files = webpack_utils.get_files('main', config="SEFARIA_JS")
     bundle_path = webpack_files[0]["path"]
     with open(bundle_path, 'r') as file:
         sefaria_js=file.read()
