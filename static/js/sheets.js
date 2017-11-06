@@ -1143,7 +1143,7 @@ $(function() {
       var ref = $("#addInterface").prev(".source").attr("data-ref");
       $("#connectionsToAdd").text(_("Looking up Connections..."));
 
-      $.getJSON("/api/texts/" + ref + "?context=0&pad=0", function(data) {
+      $.getJSON("/api/texts/" + ref + "?context=0&commentary=1&pad=0", function(data) {
         sjs.alert.clear();
         if ("error" in data) {
           $("#connectionsToAdd").text(data.error)
