@@ -298,6 +298,9 @@ def make_panel_dict(oref, version, language, filter, mode, **kwargs):
             text_family["prev"] = oref.prev_section_ref().normal() if oref.prev_section_ref() else None
             panel["text"] = text_family
 
+            if oref.index.categories == [u"Tanakh", u"Torah"]:
+                panel["indexDetails"] = oref.index.contents(v2=True) # Included for Torah Parashah titles rendered in text
+
             if oref.is_segment_level():
                 panel["highlightedRefs"] = [subref.normal() for subref in oref.range_list()]
 
@@ -2971,17 +2974,17 @@ def profile_api(request):
     return jsonResponse({"error": "Unsupported HTTP method."})
 
 
-def profile_redirect(request, username, page=1):
+def profile_redirect(request, uid, page=1):
+    """"
+    Redirect to the profile of the logged in user.
     """
-    Redirect to a user profile
-    """
-    return redirect("/profile/%s" % username, permanent=True)
+    return redirect("/profile/%s" % uid, permanent=True)
 
 
 @login_required
 def my_profile(request):
-    """"
-    Redirect to the profile of the logged in user.
+    """
+    Redirect to a user profile
     """
     return redirect("/profile/%s" % UserProfile(id=request.user.id).slug)
 
