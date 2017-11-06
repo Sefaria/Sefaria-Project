@@ -3666,7 +3666,7 @@ input {
 .lexicon-results .attribution {
 
 }
-.lexicon-results .attribution span {
+.lexicon-results .attribution a {
   display: block;
 }
 .lexicon-results .attribution a {
