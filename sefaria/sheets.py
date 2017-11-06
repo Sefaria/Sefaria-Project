@@ -249,6 +249,9 @@ def save_sheet(sheet, user_id, search_override=False):
 
 	db.sheets.update({"id": sheet["id"]}, sheet, True, False)
 
+	if "tags" in sheet:
+		update_sheet_tags(sheet["id"], sheet["tags"])
+
 
 	if sheet["status"] == "public" and SEARCH_INDEX_ON_SAVE and not search_override:
 		index_name = search.get_new_and_current_index_names()['current']
