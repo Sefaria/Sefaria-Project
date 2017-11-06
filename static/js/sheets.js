@@ -1711,7 +1711,9 @@ $(function() {
 			$(".highlighterFilterTags").append('<div class="optionItem highlightFilterSelection"><input type="checkbox" name="highlighterFilterTags" id ="'+newTagName+'_highlighterTag" value="' + newTagName + '" checked="checked"> <label for="'+newTagName+'_highlighterTag" style="background-color: ' + newTagColor + '">' + newTagName + '</label></div>');
 			resetSplitHighlighterSegment();
 			resetHighlighterFilterTags();
-			$(".highlighterTagWindow .save").click();
+			if (sjs.selection.startOffset !== sjs.selection.endOffset) {
+        $(".highlighterTagWindow .save").click();
+      }
 		}
 
 		$(".createNewHighlighterTag .tagName").text("Create New")
