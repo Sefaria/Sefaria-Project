@@ -39,6 +39,7 @@ class ReaderPanel extends Component {
     super(props);
     // When this component is managed by a parent, all it takes is initialState
     if (props.initialState) {
+      console.log(props.initialState);
       var state = this.clonePanel(props.initialState);
       state["initialAnalyticsTracked"] = false;
       this.state = state;
@@ -70,6 +71,7 @@ class ReaderPanel extends Component {
       navigationSheetTag:   props.initialSheetsTag || null,
       navigationTopic:      props.initialTopic || null,
       sheetsGroup:          props.initialGroup || null,
+      sheet:                props.sheet || null,
       sheetID:              null,
       searchQuery:          props.initialQuery || null,
       appliedSearchFilters: props.initialAppliedSearchFilters || [],
@@ -195,9 +197,9 @@ class ReaderPanel extends Component {
     // Return to the original text in the ReaderPanel contents
     this.conditionalSetState({highlightedRefs: [], mode: "Text"});
   }
-  handleSheetClick(e,id) {
+  handleSheetClick(e,id, title) {
     e.preventDefault();
-    this.conditionalSetState({ mode: "Sheet", sheetID: id});
+    this.conditionalSetState({ mode: "Sheet", sheet: {id: id, title: title}});
   }
   showBaseText(ref, replaceHistory, version=null, versionLanguage=null, filter=[]) {
     // Set the current primary text
@@ -455,7 +457,8 @@ class ReaderPanel extends Component {
     if (this.state.mode === "Sheet") {
       items.push(<Sheet
           panelPosition ={this.props.panelPosition}
-          id={this.state.sheetID}
+          id={this.state.sheet.id}
+          key={"sheet-"+this.state.sheet.id}
       />);
     }
     if (this.state.mode === "Text" || this.state.mode === "TextAndConnections") {

@@ -43,7 +43,7 @@ from sefaria.client.util import jsonResponse
 from sefaria.history import text_history, get_maximal_collapsed_activity, top_contributors, make_leaderboard, make_leaderboard_condition, text_at_revision, record_version_deletion, record_index_deletion
 from sefaria.system.decorators import catch_error_as_json
 from sefaria.summaries import get_or_make_summary_node
-from sefaria.sheets import get_sheets_for_ref, public_sheets, get_sheets_by_tag, user_sheets, user_tags, recent_public_tags, sheet_to_dict, get_top_sheets, public_tag_list, group_sheets
+from sefaria.sheets import get_sheets_for_ref, public_sheets, get_sheets_by_tag, user_sheets, user_tags, recent_public_tags, sheet_to_dict, get_top_sheets, public_tag_list, group_sheets, get_sheet
 from sefaria.utils.util import list_depth, text_preview
 from sefaria.utils.hebrew import hebrew_plural, hebrew_term, encode_hebrew_numeral, encode_hebrew_daf, is_hebrew, strip_cantillation, has_cantillation
 from sefaria.utils.talmud import section_to_daf, daf_to_section
@@ -318,10 +318,13 @@ def make_search_panel_dict(query, **kwargs):
 
     return panel
 
-def make_sheet_panel_dict(sheetID, **kwargs):
+def make_sheet_panel_dict(sheet_id, **kwargs):
+    sheet = get_sheet(int(sheet_id))
+
     panel = {
-        "sheetID": sheetID,
-        "mode": "Sheet"
+        "sheetID": sheet_id,
+        "mode": "Sheet",
+        "sheet" : sheet
     }
     panelDisplayLanguage = kwargs.get("panelDisplayLanguage")
     if panelDisplayLanguage:
@@ -408,9 +411,9 @@ def s2(request, ref, version=None, lang=None):
             panels += [make_search_panel_dict(query, **{"panelDisplayLanguage": panelDisplayLanguage})]
 
         elif ref == "sheet":
-            sheetID = request.GET.get("s{}".format(i))
+            sheet_id = request.GET.get("s{}".format(i))
             panelDisplayLanguage = request.GET.get("lang{}".format(i), props["initialSettings"]["language"])
-            panels += [make_sheet_panel_dict(sheetID, **{"panelDisplayLanguage": panelDisplayLanguage})]
+            panels += [make_sheet_panel_dict(sheet_id, **{"panelDisplayLanguage": panelDisplayLanguage})]
 
 
         else:

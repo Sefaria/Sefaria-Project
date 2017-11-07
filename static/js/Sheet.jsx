@@ -50,19 +50,14 @@ class Sheet extends Component {
   }
 }
 
-Sheet.propTypes = {
-  id:              PropTypes.string,
-};
-
-
 
 class SheetSources extends Component {
 
 
     render() {
-      var sources = this.props.sources.length ? this.props.sources.map(function(source) {
+      var sources = this.props.sources.length ? this.props.sources.map(function(source, i) {
         return (
-        <div>
+        <div key={i}>
           <div>{source.ref}</div>
           {source.text ? <div dangerouslySetInnerHTML={ {__html: source.text.en} }></div> : null }
           {source.text ? <div dangerouslySetInnerHTML={ {__html: source.text.he} }></div> : null }
