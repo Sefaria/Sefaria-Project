@@ -477,8 +477,7 @@ class TestSuite(AbstractTest):
     def __init__(self, driver, url, cap, seed=None, mode=None, **kwargs):
         super(TestSuite, self).__init__(driver, url, cap)
         self.mode = mode
-        self.tests = [t(self.driver, self.base_url, self.cap) for t in get_atomic_tests() if t.suite_class == self.__class__ and t._should_run(self.mode, self.cap)]
-        random.shuffle(self.tests, lambda: seed)
+        self.tests = [t(self.driver, self.base_url, self.cap) for t in get_ordered_atomic_tests(seed) if t.suite_class == self.__class__ and t._should_run(self.mode, self.cap)]
         self.result_set = TestResultSet()
 
     def should_run(self, mode):
@@ -987,6 +986,12 @@ def get_subclasses(c):
 
 def get_atomic_tests():
     return get_subclasses(AtomicTest)
+
+
+def get_ordered_atomic_tests(seed):
+    test_classes = get_atomic_tests()
+    random.shuffle(test_classes, lambda: seed)
+    return test_classes
 
 
 def get_suites():
