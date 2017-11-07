@@ -743,14 +743,14 @@ class TestResultSet(AbstractTestResult):
         caps = list({Trial.cap_to_short_string(res.cap) for res in self._test_results})
 
         def text_result(test, cap):
-            try:
-                res = self._indexed_tests.get((test, cap))
-                if res.success is True:
-                    return u"."
-                if res.success is False:
-                    return u"Fail"
-            except KeyError:
+            res = self._indexed_tests.get((test, cap))
+            if res is None:
                 return "s"
+            if res.success is True:
+                return u"."
+            if res.success is False:
+                return u"Fail"
+
 
         results = [[test.__name__] + [text_result(test, cap) for cap in caps] for test in sorted_test_classes]
         results = [[""] + caps] + results
