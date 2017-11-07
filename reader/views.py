@@ -318,6 +318,17 @@ def make_search_panel_dict(query, **kwargs):
 
     return panel
 
+def make_sheet_panel_dict(sheetID, **kwargs):
+    panel = {
+        "sheetID": sheetID,
+        "mode": "Sheet"
+    }
+    panelDisplayLanguage = kwargs.get("panelDisplayLanguage")
+    if panelDisplayLanguage:
+        panel["settings"] = {"language": short_to_long_lang_code(panelDisplayLanguage)}
+
+    return panel
+
 
 def make_panel_dicts(oref, version, language, filter, multi_panel, **kwargs):
     """
@@ -388,12 +399,19 @@ def s2(request, ref, version=None, lang=None):
     i = 2
     while True:
         ref = request.GET.get("p{}".format(i))
+
         if not ref:
             break
         if ref == "search":
             query = request.GET.get("q{}".format(i))
             panelDisplayLanguage = request.GET.get("lang{}".format(i), props["initialSettings"]["language"])
             panels += [make_search_panel_dict(query, **{"panelDisplayLanguage": panelDisplayLanguage})]
+
+        elif ref == "sheet":
+            sheetID = request.GET.get("s{}".format(i))
+            panelDisplayLanguage = request.GET.get("lang{}".format(i), props["initialSettings"]["language"])
+            panels += [make_sheet_panel_dict(sheetID, **{"panelDisplayLanguage": panelDisplayLanguage})]
+
 
         else:
             try:

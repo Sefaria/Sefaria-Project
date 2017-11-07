@@ -197,7 +197,6 @@ class ReaderPanel extends Component {
   }
   handleSheetClick(e,id) {
     e.preventDefault();
-    console.log(id);
     this.conditionalSetState({ mode: "Sheet", sheetID: id});
   }
   showBaseText(ref, replaceHistory, version=null, versionLanguage=null, filter=[]) {

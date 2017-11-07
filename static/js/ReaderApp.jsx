@@ -509,6 +509,10 @@ class ReaderApp extends Component {
           hist.url += window.location.search;
         }
         hist.mode   = "Header"
+
+      } else if (state.mode === "Sheet") {
+        hist.title = "Sheet #"+ state.sheetID;
+        hist.url = "sheet&s="+ state.sheetID;
       }
       if (state.mode !== "Header") {
         hist.lang =  state.settings.language.substring(0,2);
@@ -637,6 +641,7 @@ class ReaderApp extends Component {
       menuOpen:                state.menuOpen                || null, // "navigation", "text toc", "display", "search", "sheets", "home", "book toc"
       navigationCategories:    state.navigationCategories    || [],
       navigationSheetTag:      state.sheetsTag               || null,
+      sheetID:                 state.sheetID                 || null,
       navigationTopic:         state.navigationTopic         || null,
       sheetsGroup:             state.group                   || null,
       searchQuery:             state.searchQuery             || null,
