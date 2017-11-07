@@ -139,4 +139,13 @@ var exploreConfig = config({
     }
 });
 
-module.exports = [clientConfig, serverConfig, diffConfig, exploreConfig];
+var sefariajsConfig = config({
+    context: path.resolve('./static/js'),
+    entry: './sefaria/sefaria',
+    output: {
+        path: path.resolve(buildDir + 'sefariajs'),
+        filename: 'sefaria.js'
+    }
+});
+
+module.exports = [clientConfig, serverConfig, diffConfig, exploreConfig, sefariajsConfig];
