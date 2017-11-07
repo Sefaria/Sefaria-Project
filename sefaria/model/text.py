@@ -980,6 +980,7 @@ class Version(abst.AbstractMongoRecord, AbstractTextRecord, AbstractSchemaConten
         "versionTitleInHebrew",  # stores the Hebrew translation of the versionTitle
         "versionNotesInHebrew",  # stores VersionNotes in Hebrew
         "extendedNotes",
+        "extendedNotesHebrew",
     ]
 
     def __unicode__(self):
@@ -1591,6 +1592,10 @@ class TextFamily(object):
         "extendedNotes": {
             "en": "extendedNotes",
             "he": "heExtendedNotes"
+        },
+        "extendedNotesHebrew": {
+            "en": "extendedNotesHebrew",
+            "he": "heExtendedNotesHebrew"
         },
         "versionNotesInHebrew": {
             "en": "versionNotesInHebrew",
@@ -3590,7 +3595,8 @@ class Ref(object):
         :return list: each list element is an object with keys 'versionTitle' and 'language'
         """
         fields = ["versionTitle", "versionSource", "language", "status", "license", "versionNotes",
-                  "digitizedBySefaria", "priority", "versionTitleInHebrew", "versionNotesInHebrew", "extendedNotes"]
+                  "digitizedBySefaria", "priority", "versionTitleInHebrew", "versionNotesInHebrew", "extendedNotes",
+                  "extendedNotesHebrew"]
         versions = VersionSet(self.condition_query())
         version_list = []
         if self.is_book_level():

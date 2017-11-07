@@ -745,6 +745,32 @@ def s2_modtools(request):
     return s2_page(request, props, "modtools", title)
 
 
+def s2_extended_notes(request, tref, lang, version_title):
+    if not Ref.is_ref(tref):
+        raise Http404
+
+    version = Version().load({'title': tref, 'language': lang, 'versionTitle': version_title})
+    if version is None:
+        return reader(request, tref)
+
+    if getattr(version, 'extendedNotes') is None and getattr(version, 'extendedNotesHebrew') is None:
+        return reader(request, tref, lang, version_title)
+
+    title = _("Extended Notes")
+    props = s2_props(request)
+    panel = {
+        "mode": "extended notes",
+        "ref": tref,
+        "refs": [tref],
+        "version": version_title,
+        "versionLanguage": lang,
+        "extendedNotes": getattr(version, "extendedNotes", ""),
+        "extendedNotesHebrew": getattr(version, "extendedNotesHebrew", "")
+    }
+    props['panels'] = [panel]
+    return s2_page(request, props, "extendedNotes", title)
+
+
 """
 JSON - LD snippets for use in "rich snippets" - semantic markup.
 """
