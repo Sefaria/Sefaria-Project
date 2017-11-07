@@ -506,17 +506,24 @@ class TestSuite(AbstractTest):
             self.carp(msg, always=True)
             return SingleTestResult(self.__class__, self.cap, False, msg)
 
-        for test in self.tests:
+        max = None
+        for i, test in enumerate(self.tests):
             self.carp(u" * Enter {}:{}\n".format(self.name(), test.name()))
             result = test.run()
+            result.order = i
+            result.suite = self
             self.result_set.include(result)
+            max = i
 
         try:
             self.teardown()
         except Exception:
             msg = u"Exception in {}.teardown()\n{}".format(self.name(), traceback.format_exc())
             self.carp(msg, always=True)
-            self.result_set.include(SingleTestResult(self.__class__, self.cap, False, msg))
+            result = SingleTestResult(self.__class__, self.cap, False, msg)
+            result.order = max + 1
+            result.suite = self
+            self.result_set.include(result)
 
         return self.result_set
 
@@ -601,8 +608,10 @@ class SingleTestResult(AbstractTestResult):
         assert isinstance(success, bool)
         assert issubclass(test_class, AbstractTest)
 
-        self.testClass = test_class
-        self.id = self.testClass.__name__
+        self.test_class = test_class
+        self.className = self.test_class.__name__
+        self.order = 0  # Used to track run order on a suite
+        self.suite = None
         self._cap = cap
         self._success = success
         self._message = message
@@ -610,10 +619,17 @@ class SingleTestResult(AbstractTestResult):
     def __str__(self):
         return "{} - {} on {}{}".format(
             self.word_status(),
-            self.id,
+            self.className,
             Trial.cap_to_string(self.cap),
             ": \n{}".format(self.message) if self.message else ""
         )
+
+    def order_id(self):
+        ret = ''
+        if self.suite is not None:
+            ret += self.suite.__class__.__name__
+        ret += format(self.order, '03')
+        return ret
 
     def word_status(self):
         return u"Passed" if self.success else u"Failed"
@@ -706,23 +722,37 @@ class TestResultSet(AbstractTestResult):
     def _aggregate(self):
         if not self._aggregated:
             for res in self._test_results:
-                self._indexed_tests[(res.id, Trial.cap_to_short_string(res.cap))] = res.success
+                self._indexed_tests[(res.test_class, Trial.cap_to_short_string(res.cap))] = res
             self._aggregated = True
+
+    def _sorted_test_classes(self):
+        test_classes = {res.test_class for res in self._test_results}
+
+        # all tests for each class
+        tests_per_class = {cls: [r for r in self._test_results if r.test_class == cls] for cls in test_classes}
+
+        # map of class to rank
+        class_rank = {cls: max([t.order_id() for t in tests_per_class[cls]]) for cls in test_classes}
+        sorted_classes = sorted(test_classes, key=class_rank.get)
+        return sorted_classes
 
     def _results_as_matrix(self):
         self._aggregate()
-        tests = list({res.id for res in self._test_results})
+        sorted_test_classes = self._sorted_test_classes()
+
         caps = list({Trial.cap_to_short_string(res.cap) for res in self._test_results})
 
         def text_result(test, cap):
-            r = self._indexed_tests.get((test, cap), u"s")
-            if r is True:
-                return u"."
-            if r is False:
-                return u"Fail"
-            return r
+            try:
+                res = self._indexed_tests.get((test, cap))
+                if res.success is True:
+                    return u"."
+                if res.success is False:
+                    return u"Fail"
+            except KeyError:
+                return "s"
 
-        results = [[test] + [text_result(test, cap) for cap in caps] for test in tests]
+        results = [[test.__name__] + [text_result(test, cap) for cap in caps] for test in sorted_test_classes]
         results = [[""] + caps] + results
         return results
 
