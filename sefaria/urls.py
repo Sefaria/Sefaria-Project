@@ -411,7 +411,7 @@ urlpatterns += patterns('sefaria.gauth.views',
 
 # Catch all to send to Reader
 urlpatterns += patterns('reader.views',
-    (r'^(?P<tref>[^/]+)/(?P<lang>\w\w)/(?P<version>.*)$', 'reader'),
+    (r'^(?P<tref>[^/]+)/(?P<lang>\w\w)/(?P<version>.*)$', 'redirect_old_versions'),
     (r'^(?P<tref>[^/]+)(/)?$', 'reader')
 )
 

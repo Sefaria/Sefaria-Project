@@ -68,12 +68,10 @@ library.build_ref_auto_completer()
 #    #    #
 
 @ensure_csrf_cookie
-def reader(request, tref, lang=None, version=None):
+def reader(request, tref):
     # Redirect to standard URLs
-    def reader_redirect(uref, lang, version):
+    def reader_redirect(uref):
         url = "/" + uref
-        if lang and version:
-            url += "/%s/%s" % (lang, version)
 
         response = redirect(iri_to_uri(url), permanent=True)
         params = request.GET.urlencode()
@@ -85,13 +83,13 @@ def reader(request, tref, lang=None, version=None):
     except PartialRefInputError as e:
         logger.warning(u'{}'.format(e))
         matched_ref = Ref(e.matched_part)
-        return reader_redirect(matched_ref.url(), lang, version)
+        return reader_redirect(matched_ref.url())
     except InputError:
         raise Http404
 
     uref = oref.url()
     if uref and tref != uref:
-        return reader_redirect(uref, lang, version)
+        return reader_redirect(uref)
 
     # Return Text TOC if this is a bare text title
     if oref.sections == [] and (oref.index.title == oref.normal() or getattr(oref.index_node, "depth", 0) > 1):
@@ -101,7 +99,7 @@ def reader(request, tref, lang=None, version=None):
         return text_toc(request, oref)
 
     if not request.COOKIES.get('s1'):
-        return s2(request, ref=tref, lang=lang, version=version)
+        return s2(request, ref=tref)
 
 
     # TODO Everything below is S1 and will be removed
@@ -110,9 +108,18 @@ def reader(request, tref, lang=None, version=None):
     oref = oref.padded_ref()
     if oref.is_spanning():
         first_oref = oref.first_spanned_ref()
-        return reader_redirect(first_oref.url(), lang, version)
+        return reader_redirect(first_oref.url())
 
-    version = version.replace("_", " ") if version else None
+    version = request.GET.get("ven", None)
+    lang = None
+    if version:
+        version = version.replace("_", " ")
+        lang = "en"
+    else:
+        version = request.GET.get("vhe", None)
+        if version:
+            version = version.replace("_", " ")
+            lang = "he"
     try:
         text = TextFamily(oref, lang=lang, version=version, commentary=False, alts=True).contents()
     except NoVersionFoundError:
@@ -187,6 +194,14 @@ def reader(request, tref, lang=None, version=None):
     return render_to_response('reader.html', template_vars, RequestContext(request))
 
 
+def redirect_old_versions(request, tref, lang, version):
+    url = "/{}?v{}={}".format(tref, lang, version)
+    response = redirect(iri_to_uri(url), permanent=True)
+    params = request.GET.urlencode()
+    response['Location'] += "&{}".format(params) if params else ""
+    return response
+
+
 def esi_account_box(request):
     return render_to_response('elements/accountBox.html', {}, RequestContext(request))
 
@@ -249,7 +264,7 @@ def render_react_component(component, props):
             return render_to_string("elements/loading.html")
 
 
-def make_panel_dict(oref, version, language, filter, mode, **kwargs):
+def make_panel_dict(oref, versionEn, versionHe, filter, mode, **kwargs):
     """
     Returns a dictionary corresponding to the React panel state,
     additionally setting `text` field with textual content.
@@ -270,8 +285,8 @@ def make_panel_dict(oref, version, language, filter, mode, **kwargs):
             "mode": mode,
             "ref": oref.normal(),
             "refs": [oref.normal()],
-            "version": version,
-            "versionLanguage": language,
+            "enVersion": versionEn,
+            "heVersion": versionHe,
             "filter": filter,
         }
         if filter and len(filter):
@@ -289,7 +304,7 @@ def make_panel_dict(oref, version, language, filter, mode, **kwargs):
                 panel["versionLanguage"] = None
         if mode != "Connections":
             try:
-                text_family = TextFamily(oref, version=panel["version"], lang=panel["versionLanguage"], commentary=False,
+                text_family = TextFamily(oref, version=panel["enVersion"], lang="en", version2=panel["heVersion"], lang2="he", commentary=False,
                                   context=True, pad=True, alts=True, wrapLinks=False).contents()
             except NoVersionFoundError:
                 text_family = {}
@@ -316,7 +331,7 @@ def make_search_panel_dict(query, **kwargs):
     return panel
 
 
-def make_panel_dicts(oref, version, language, filter, multi_panel, **kwargs):
+def make_panel_dicts(oref, versionEn, versionHe, filter, multi_panel, **kwargs):
     """
     Returns an array of panel dictionaries.
     Depending on whether `multi_panel` is True, connections set in `filter` are displayed in either 1 or 2 panels.
@@ -324,12 +339,12 @@ def make_panel_dicts(oref, version, language, filter, multi_panel, **kwargs):
     panels = []
     # filter may have value [], meaning "all".  Therefore we test filter with "is not None".
     if filter is not None and multi_panel:
-        panels += [make_panel_dict(oref, version, language, filter, "Text", **kwargs)]
-        panels += [make_panel_dict(oref, version, language, filter, "Connections", **kwargs)]
+        panels += [make_panel_dict(oref, versionEn, versionHe, filter, "Text", **kwargs)]
+        panels += [make_panel_dict(oref, versionEn, versionHe, filter, "Connections", **kwargs)]
     elif filter is not None and not multi_panel:
-        panels += [make_panel_dict(oref, version, language, filter, "TextAndConnections", **kwargs)]
+        panels += [make_panel_dict(oref, versionEn, versionHe, filter, "TextAndConnections", **kwargs)]
     else:
-        panels += [make_panel_dict(oref, version, language, filter, "Text", **kwargs)]
+        panels += [make_panel_dict(oref, versionEn, versionHe, filter, "Text", **kwargs)]
 
     return panels
 
@@ -371,15 +386,23 @@ def s2(request, ref, version=None, lang=None):
 
     panels = []
     multi_panel = props["multiPanel"]
-    # Handle first panel which has a different signature in params & URL (`version` and `lang` if set come from URL).
-    version = version.replace(u"_", " ") if version else version
+    # Handle first panel which has a different signature in params
+    versionEn = request.GET.get("ven", None)
+    if versionEn:
+        versionEn = versionEn.replace("_", " ")
+    versionHe = request.GET.get("vhe", None)
+    if versionHe:
+        versionHe = versionHe.replace("_", " ")
+
     filter = request.GET.get("with").replace("_", " ").split("+") if request.GET.get("with") else None
     filter = [] if filter == ["all"] else filter
 
-    if version and not Version().load({"versionTitle": version, "language": lang}):
+    if versionEn and not Version().load({"versionTitle": versionEn, "language": "en"}):
+        raise Http404
+    if versionHe and not Version().load({"versionTitle": versionHe, "language": "he"}):
         raise Http404
 
-    panels += make_panel_dicts(oref, version, lang, filter, multi_panel, **{"panelDisplayLanguage": request.GET.get("lang", props["initialSettings"]["language"])})
+    panels += make_panel_dicts(oref, versionEn, versionHe, filter, multi_panel, **{"panelDisplayLanguage": request.GET.get("lang", props["initialSettings"]["language"])})
 
     # Handle any panels after 1 which are identified with params like `p2`, `v2`, `l2`.
     i = 2
@@ -400,18 +423,27 @@ def s2(request, ref, version=None, lang=None):
                 continue  # Stop processing all panels?
                 # raise Http404
 
-            version  = request.GET.get("v{}".format(i)).replace(u"_", u" ") if request.GET.get("v{}".format(i)) else None
-            language = request.GET.get("l{}".format(i))
+            versionEn  = request.GET.get("ven{}".format(i)).replace(u"_", u" ") if request.GET.get("ven{}".format(i)) else None
+            versionHe  = request.GET.get("vhe{}".format(i)).replace(u"_", u" ") if request.GET.get("vhe{}".format(i)) else None
+            if not versionEn and not versionHe:
+                # potential link using old version format
+                language = request.GET.get("l{}".format(i))
+                if language == "en":
+                    versionEn = request.GET.get("v{}".format(i)).replace(u"_", u" ") if request.GET.get("v{}".format(i)) else None
+                else: # he
+                    versionHe = request.GET.get("v{}".format(i)).replace(u"_", u" ") if request.GET.get("v{}".format(i)) else None
+
             filter   = request.GET.get("w{}".format(i)).replace("_", " ").split("+") if request.GET.get("w{}".format(i)) else None
             filter   = [] if filter == ["all"] else filter
             panelDisplayLanguage = request.GET.get("lang{}".format(i), props["initialSettings"]["language"])
 
-            if version and not Version().load({"versionTitle": version, "language": language}):
+            if (versionEn and not Version().load({"versionTitle": versionEn, "language": "en"})) or \
+                (versionHe and not Version().load({"versionTitle": versionHe, "language": "he"})):
                 i += 1
                 continue  # Stop processing all panels?
                 # raise Http404
 
-            panels += make_panel_dicts(oref, version, language, filter, multi_panel, **{"panelDisplayLanguage": panelDisplayLanguage})
+            panels += make_panel_dicts(oref, versionEn, versionHe, filter, multi_panel, **{"panelDisplayLanguage": panelDisplayLanguage})
         i += 1
 
     props.update({
