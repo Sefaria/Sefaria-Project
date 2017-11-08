@@ -412,7 +412,7 @@ urlpatterns += patterns('sefaria.gauth.views',
 
 # Catch all to send to Reader
 urlpatterns += patterns('reader.views',
-    (r'^(?P<tref>[^/]+)/(?P<lang>\w\w)/(?P<version>.*)$', 'reader'),
+    (r'^(?P<tref>[^/]+)/(?P<lang>\w\w)/(?P<version>[^/]*)$', 'reader'),
     (r'^(?P<tref>[^/]+)(/)?$', 'reader'),
     (r'^(?P<tref>[^/]+)/(?P<lang>\w\w)/(?P<version_title>.*)/notes$', 's2_extended_notes')
 )

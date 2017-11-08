@@ -749,11 +749,12 @@ def s2_extended_notes(request, tref, lang, version_title):
     if not Ref.is_ref(tref):
         raise Http404
 
+    version_title = version_title.replace("_", " ")
     version = Version().load({'title': tref, 'language': lang, 'versionTitle': version_title})
     if version is None:
         return reader(request, tref)
 
-    if getattr(version, 'extendedNotes') is None and getattr(version, 'extendedNotesHebrew') is None:
+    if not hasattr(version, 'extendedNotes') and not hasattr(version, 'extendedNotesHebrew'):
         return reader(request, tref, lang, version_title)
 
     title = _("Extended Notes")
@@ -768,7 +769,7 @@ def s2_extended_notes(request, tref, lang, version_title):
         "extendedNotesHebrew": getattr(version, "extendedNotesHebrew", "")
     }
     props['panels'] = [panel]
-    return s2_page(request, props, "extendedNotes", title)
+    return s2_page(request, props, "extended notes", title)
 
 
 """
