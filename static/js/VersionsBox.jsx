@@ -128,11 +128,9 @@ class VersionsTextList extends Component {
 
   }
   render() {
-    const normRef = Sefaria.humanRef(this.props.srefs);
-    console.log("Norm Ref", normRef);
     return !this.state.loaded || !this.props.vFilter.length ?
       (<LoadingMessage />) :
-      (<div>
+      (<div className="versionsTextList">
         <RecentFilterSet
           srefs={this.props.srefs}
           asHeader={false}
@@ -141,7 +139,7 @@ class VersionsTextList extends Component {
           setFilter={this.props.setFilter}/>
         <TextRange
           panelPosition ={this.props.panelPosition}
-          sref={normRef}
+          sref={Sefaria.humanRef(this.props.srefs)}
           version={this.props.vFilter[0]}
           versionLanguage={Sefaria.versionLanguage(this.props.vFilter[0])}
           useVersionLanguage={true}

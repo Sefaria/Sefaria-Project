@@ -969,6 +969,9 @@ a.readerNavCategory {
   margin: 0 8px;
   font-size: 12px;
 }
+.uppercase {
+  text-transform: uppercase;
+}
 .readerNavMenu .siteLinks .siteLink .en {
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
 }
@@ -4655,4 +4658,7 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
   color: #666;
   text-decoration: none;
   cursor: default;
+}
+.versionsTextList .topFiltersInner .uppercase {
+  text-transform: none;
 }

@@ -92,11 +92,12 @@ class TextFilter extends Component {
     var name = this.props.book == this.props.category ? this.props.book.toUpperCase() : this.props.book;
     var count = this.props.hideCounts || !this.props.count ? "" : ( <span className="enInHe connectionsCount">&nbsp;({this.props.count})</span>);
     var url = (this.props.srefs && this.props.srefs.length > 0)?"/" + Sefaria.normRef(this.props.srefs[0]) + "?with=" + name:"";
+    const upperClass = classNames({uppercase: this.props.book === this.props.category});
     return (
       <a href={url} onClick={this.handleClick}>
         <div data-name={name} className={classes} style={style} >
-            <div>
-              <span className="en">{name}{count}</span>
+            <div className={upperClass}>
+              <span className="en">{this.props.book}{count}</span>
               <span className="he">{this.props.heBook}{count}</span>
             </div>
         </div>
