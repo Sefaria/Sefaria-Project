@@ -4,17 +4,19 @@ import os
 import zipfile
 import json
 import re
+import bleach
 from datetime import datetime, timedelta
 from urlparse import urlparse
 from collections import defaultdict
 from random import choice
-import bleach
+from webpack_loader import utils as webpack_utils
 
 from django.utils.translation import ugettext as _
 from django.conf import settings
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render_to_response
 from django.template import RequestContext
+from django.template.loader import render_to_string
 from django.template.response import TemplateResponse
 from django.utils.http import is_safe_url
 from django.contrib.auth import authenticate
@@ -27,10 +29,8 @@ from django.views.decorators.debug import sensitive_post_parameters
 from django.views.decorators.cache import never_cache
 from django.views.decorators.csrf import csrf_protect, csrf_exempt
 
-
 import sefaria.model as model
 import sefaria.system.cache as scache
-
 from sefaria.client.util import jsonResponse, subscribe_to_list
 from sefaria.forms import NewUserForm
 from sefaria.settings import MAINTENANCE_MESSAGE, USE_VARNISH
@@ -212,8 +212,16 @@ def sefaria_js(request):
     """
     Packaged Sefaria.js.
     """
-    # TODO
-    attrs = {}
+    data_js = render_to_string("js/data.js", {}, RequestContext(request))
+    webpack_files = webpack_utils.get_files('main', config="SEFARIA_JS")
+    bundle_path = webpack_files[0]["path"]
+    with open(bundle_path, 'r') as file:
+        sefaria_js=file.read()
+    attrs = {
+        "data_js": data_js,
+        "sefaria_js": sefaria_js,
+    }
+
     return render_to_response("js/sefaria.js", attrs, RequestContext(request), mimetype= "text/javascript")
 
 
