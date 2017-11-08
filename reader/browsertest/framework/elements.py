@@ -34,11 +34,21 @@ class AbstractTest(object):
     include = []  # List of platforms (using cap_to_short_string) to include.  If this is present, only these platforms are included
     exclude = []  # List of platforms (using cap_to_short_string) to exclude.
 
-    def __init__(self, driver, url, cap, verbose=False, **kwargs):
+    def __init__(self, driver, url, cap, root_test=False, verbose=False, **kwargs):
+        """
+
+        :param driver:
+        :param url:
+        :param cap:
+        :param root_test: Is this test being run alone (or as a parent of others)?
+        :param verbose:
+        :param kwargs:
+        """
         self.base_url = url
         self.driver = driver
         self.cap = cap
         self.isVerbose = verbose
+        self.is_root = root_test
 
     def name(self):
         return"{} / {}".format(Trial.cap_to_string(self.cap), self.__class__.__name__)
@@ -93,7 +103,7 @@ class AbstractTest(object):
         elem.send_keys(password)
         self.driver.find_element_by_css_selector("button").click()
         WebDriverWait(self.driver, TEMPER).until_not(title_contains("Log in"))
-        time.sleep(3)    # So that the old page doesn't mistakenly get selected in the next line
+        time.sleep(3)    # Takes some time to reload, and not sure what next page is
         return self
 
     def nav_to_account(self):
@@ -181,7 +191,7 @@ class AbstractTest(object):
         WebDriverWait(self.driver, TEMPER).until(
             element_to_be_clickable((By.CSS_SELECTOR, ".tocContent > :not(.loadingMessage)")))
 
-    def nav_to_ref(self, ref, filter=None, lang=None):
+    def search_ref(self, ref):
         if isinstance(ref, basestring):
             ref = Ref(ref)
         assert isinstance(ref, Ref)
@@ -191,6 +201,51 @@ class AbstractTest(object):
         WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, ".linkCountDot")))
         time.sleep(.5)  # Something takes a moment here.  Not sure what to wait for.
         return self
+
+    def browse_to_ref(self, ref):
+        if isinstance(ref, basestring):
+            ref = Ref(ref)
+        assert isinstance(ref, Ref)
+
+        index = ref.index
+        categories = self._get_clickpath_from_categories(index.categories)
+        self.nav_to_text_toc(categories, index.title)
+
+        # Logic for what is displayed lives on SchemaNode under TextTableOfContentsNavigation
+        section_ref = ref.section_ref()
+        index_node = ref.index_node
+        assert isinstance(index_node, SchemaNode)
+
+        if index.is_complex() and index_node.parent != index.nodes:
+            ancestors = index_node.ancestors()
+            for ancestor in ancestors[1:]:
+                self.open_text_toc_menu(ancestor.ref())
+
+        self.click_text_toc_section(section_ref)
+
+        return self
+
+    @staticmethod
+    def _get_clickpath_from_categories(cats):
+        """
+        Returns the category clickpath, from TOC root, for cats as presented on an Index
+        :param cats:
+        :return:
+        """
+        # The logic that we're following here is implemented on ReaderNavigationCategoryMenuContents
+        # Cats which normally would nest, but are special cased to be subcats.
+        special_subcats = ["Mishneh Torah", "Shulchan Arukh", "Maharal"]
+
+        click_cats = []
+        for i, cat in enumerate(cats):
+            if i == 0:
+                click_cats += [cat]
+            if cat in special_subcats:
+                click_cats += [cat]
+            if cat == "Commentary":
+                click_cats += [cats[i + 1]]
+
+        return click_cats
 
     # Todo: handle the case when the loaded page has different URL - because of scroll
     def load_ref(self, ref, filter=None, lang=None):
@@ -249,11 +304,20 @@ class AbstractTest(object):
         if isinstance(ref, basestring):
             ref = Ref(ref)
         assert isinstance(ref, Ref)
-        p1 = self.driver.find_element_by_css_selector('.sectionLink[data-ref^="{}"]'.format(ref.url()))
+        p1 = self.driver.find_element_by_css_selector('.sectionLink[data-ref="{}"], .schema-node-toc[data-ref="{}"]'.format(ref.normal(), ref.normal()))
         p1.click()
         WebDriverWait(self.driver, TEMPER).until(
             element_to_be_clickable((By.CSS_SELECTOR, '.segment'))
         )
+        return self
+
+    def open_text_toc_menu(self, ref):
+        if isinstance(ref, basestring):
+            ref = Ref(ref)
+        assert isinstance(ref, Ref)
+        p1 = self.driver.find_element_by_css_selector('.schema-node-toc[data-ref="{}"]>span'.format(ref.normal()))
+        p1.click()
+        time.sleep(.5)    # Takes some time to reload, and not sure what next page is
         return self
 
     # todo:
@@ -265,7 +329,7 @@ class AbstractTest(object):
             ref = Ref(ref)
         assert isinstance(ref, Ref)
         selector = '.segment[data-ref="{}"]'.format(ref.normal())
-        WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, selector)))
+        WebDriverWait(self.driver, TEMPER).until(presence_of_element_located((By.CSS_SELECTOR, selector)))
         segment = self.driver.find_element_by_css_selector(selector)
         segment.click()
         # Todo: put a data-* attribute on .filterSet, for the multi-panel case
@@ -474,8 +538,8 @@ class AbstractTest(object):
 
 
 class TestSuite(AbstractTest):
-    def __init__(self, driver, url, cap, seed=None, mode=None, **kwargs):
-        super(TestSuite, self).__init__(driver, url, cap)
+    def __init__(self, driver, url, cap, seed=None, mode=None, root_test=True, **kwargs):
+        super(TestSuite, self).__init__(driver, url, cap, root_test=root_test, **kwargs)
         self.mode = mode
         self.tests = [t(self.driver, self.base_url, self.cap) for t in get_ordered_atomic_tests(seed) if t.suite_class == self.__class__ and t._should_run(self.mode, self.cap)]
         self.result_set = TestResultSet()
@@ -538,8 +602,8 @@ class AtomicTest(AbstractTest):
     """
     suite_class = None  # A subclass of TestSuite
 
-    def __init__(self, driver, url, cap, **kwargs):
-        super(AtomicTest, self).__init__(driver, url, cap)
+    def __init__(self, driver, url, cap, root_test=False, **kwargs):
+        super(AtomicTest, self).__init__(driver, url, cap, root_test=root_test, **kwargs)
         if not self.suite_class:
             raise Exception("Missing required variable - suite_class")
         if not issubclass(self.suite_class, TestSuite):
@@ -552,7 +616,30 @@ class AtomicTest(AbstractTest):
     def should_run(self, mode):
         return self._should_run(mode, self.cap)
 
+    def setup(self):
+        """
+        Only run when test is root.  Can be overridden at test class level.
+        :return:
+        """
+        self.load_toc()
+
+    def teardown(self):
+        """
+        Only run when test is root
+        :return:
+        """
+        pass
+
     def run(self):
+
+        if self.is_root:
+            try:
+                self.setup()
+            except Exception:
+                msg = u"Exception in {}.setup()\n{}".format(self.name(), traceback.format_exc())
+                self.carp(msg, always=True)
+                return SingleTestResult(self.__class__, self.cap, False, msg)
+
         try:
             self.carp(u"{} - Starting\n".format(self.name()))
             self.driver.execute_script('"**** Enter {} ****"'.format(self.name()))
@@ -563,6 +650,13 @@ class AtomicTest(AbstractTest):
             result = SingleTestResult(self.__class__, self.cap, False, msg)
         else:
             result = SingleTestResult(self.__class__, self.cap, True)
+
+        if self.is_root:
+            try:
+                self.teardown()
+            except Exception:
+                msg = u"Exception in {}.teardown()\n{}".format(self.name(), traceback.format_exc())
+                self.carp(msg, always=True)
 
         self.carp(u"{} - {}\n".format(self.name(), result.word_status()), result.letter_status())
 
@@ -867,7 +961,7 @@ class Trial(object):
 
         try:
             driver = self._get_driver(cap)
-            test_instance = test_class(driver, self.BASE_URL, cap, mode=mode, seed=self.seed, verbose=self.isVerbose)
+            test_instance = test_class(driver, self.BASE_URL, cap, root_test=True, mode=mode, seed=self.seed, verbose=self.isVerbose)
 
             if not test_instance.should_run(mode):
                 return None

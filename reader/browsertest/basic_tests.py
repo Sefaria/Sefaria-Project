@@ -82,8 +82,10 @@ class RecentInToc(AtomicTest):
     every_build = True
 
     def body(self):
-        self.nav_to_ref("Psalms 1")
+        self.search_ref("Psalms 1")
         self.nav_to_toc().click_toc_recent("Psalms 1")
+        self.browse_to_ref("Berakhot 23b")
+        self.nav_to_toc().click_toc_recent("Berakhot 23b")
 
 
 class RecentInTocOnReload(AtomicTest):
@@ -101,7 +103,7 @@ class NavToRefAndClickSegment(AtomicTest):
     every_build = True
 
     def body(self):
-        self.nav_to_ref("Psalms 65:5").click_segment("Psalms 65:5")
+        self.browse_to_ref("Psalms 65:5").click_segment("Psalms 65:5")
         assert "Psalms.65.5" in self.driver.current_url, self.driver.current_url
         assert "with=all" in self.driver.current_url, self.driver.current_url
 
@@ -187,9 +189,10 @@ class LoadSpanningRefAndOpenConnections(AtomicTest):
 class NavToSpanningRefAndOpenConnections(AtomicTest):
     suite_class = ReaderSuite
     every_build = True
+    single_panel = False
 
     def body(self):
-        self.nav_to_ref("Shabbat 2a-2b")
+        self.search_ref("Shabbat 2a-2b")
         self.click_segment("Shabbat 2a:1")
 
 
@@ -203,7 +206,7 @@ class PermanenceOfRangedRefs(AtomicTest):
     single_panel = False  # Segment clicks on mobile have different semantics  todo: write this for mobile?  It's primarily a data test.
 
     def body(self):
-        self.nav_to_ref("Shabbat 2a").click_segment("Shabbat 2a:1").click_category_filter("Mishnah")
+        self.search_ref("Shabbat 2a").click_segment("Shabbat 2a:1").click_category_filter("Mishnah")
         assert self.find_text_filter("Mishnah Shabbat")
         self.click_segment("Shabbat 2a:2")
         assert self.find_text_filter("Mishnah Shabbat")
@@ -308,7 +311,7 @@ class BrowserBackAndForward(AtomicTest):
 
     def body(self):
         # Sidebar
-        self.nav_to_ref("Genesis 2").click_segment("Genesis 2:2").click_category_filter("Commentary")
+        self.browse_to_ref("Genesis 2").click_segment("Genesis 2:2").click_category_filter("Commentary")
         assert "Genesis.2.2" in self.driver.current_url, self.driver.current_url        
         assert "with=Commentary" in self.driver.current_url, self.driver.current_url        
         self.driver.back()
@@ -332,7 +335,6 @@ class ClickVersionedSearchResultMobile(AtomicTest):
     multi_panel = False
 
     def body(self):
-        self.nav_to_ref("Psalms 23")
         hamburger = self.driver.find_element_by_css_selector(".readerNavMenuMenuButton")
         if hamburger:
             hamburger.click()
@@ -429,7 +431,7 @@ class InfiniteScrollUp(AtomicTest):
     every_build = True
 
     def test_up(self, start_ref, prev_segment_ref):
-        self.nav_to_ref(start_ref).scroll_reader_panel_up(100)
+        self.browse_to_ref(start_ref).scroll_reader_panel_up(100)
         WebDriverWait(self.driver, TEMPER).until(visibility_of_element_located((By.CSS_SELECTOR, '[data-ref="%s"]' % prev_segment_ref)))
         time.sleep(.5)
         # Wait then check that URL has not changed as a proxy for checking that visible scroll position has not changed
@@ -447,7 +449,7 @@ class InfiniteScrollDown(AtomicTest):
     every_build = True
 
     def test_down(self, start_ref, next_segment_ref):
-        self.nav_to_ref(start_ref).scroll_reader_panel_to_bottom()
+        self.browse_to_ref(start_ref).scroll_reader_panel_to_bottom()
         WebDriverWait(self.driver, TEMPER).until(visibility_of_element_located((By.CSS_SELECTOR, '[data-ref="%s"]' % next_segment_ref)))        
 
     def body(self):
