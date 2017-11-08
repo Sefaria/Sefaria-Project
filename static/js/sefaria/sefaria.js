@@ -6,12 +6,11 @@ var extend     = require('extend'),
     Track      = require('./track'),
     Hebrew     = require('./hebrew'),
     Util       = require('./util'),
-    ga         = require('./sefariaGa'),
     $          = require('./sefariaJquery');
 
 var INBROWSER = (typeof document !== 'undefined');
 
-
+console.log("setting default data at start of bundle")
 var Sefaria = Sefaria || {
   _dataLoaded: false,
   toc: [],
@@ -284,7 +283,7 @@ Sefaria = extend(Sefaria, {
       pad:        settings.pad,
       wrapLinks:  settings.wrapLinks
     });
-    var url = Sefaria.apiHost + "/api/texts/" + Sefaria.normRef(ref);
+    var url = "/api/texts/" + Sefaria.normRef(ref);
     if (settings.language && settings.version) {
         url += "/" + settings.language + "/" + settings.version.replace(" ","_");
     }
