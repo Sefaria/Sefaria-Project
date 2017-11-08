@@ -196,6 +196,7 @@ class AbstractTest(object):
             ref = Ref(ref)
         assert isinstance(ref, Ref)
         self.type_in_search_box(ref.normal())
+        time.sleep(.5)  # Old page may have an element that matches the selector below.  Wait for it to go away.
         WebDriverWait(self.driver, TEMPER).until(
             element_to_be_clickable((By.CSS_SELECTOR, ".textColumn .textRange .segment")))
         WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, ".linkCountDot")))
@@ -847,9 +848,15 @@ class TestResultSet(AbstractTestResult):
             if res.success is False:
                 return u"Fail"
 
+        current_suite = None
 
-        results = [[test.__name__] + [text_result(test, cap) for cap in caps] for test in sorted_test_classes]
-        results = [[""] + caps] + results
+        results = []
+        for test in sorted_test_classes:
+            if test.suite_class != current_suite:
+                results += [[""] * (len(caps) + 1)]
+                results += [[" ** " + test.suite_class.__name__] + caps]
+                current_suite = test.suite_class
+            results += [[test.__name__] + [text_result(test, cap) for cap in caps]]
         return results
 
     def report(self):

@@ -33,6 +33,7 @@ class PageloadSuite(TestSuite):
 
 
 class DeepReaderSuite(TestSuite):
+    #TODO: When do we run this?
     every_build = False
 
 '''
