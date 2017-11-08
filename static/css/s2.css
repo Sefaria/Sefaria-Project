@@ -2012,6 +2012,9 @@ a.readerNavCategory {
 .hebrew .readerSheetsNav {
   direction: ltr;
 }
+.readerSheetsNav .filterLabel {
+  cursor: pointer;
+}
 .readerSheetsNav .tagsList .int-en {
   font-family: "adobe-garamond-pro", Georgia, serif;
 }
