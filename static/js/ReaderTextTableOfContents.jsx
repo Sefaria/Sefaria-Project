@@ -1043,6 +1043,9 @@ class VersionBlock extends Component {
   closeEditor() {
     this.setState({editing:false});
   }
+  openExtendedNotes(){
+    return null;
+  }
   render() {
     var v = this.props.version;
 
@@ -1139,6 +1142,11 @@ class VersionBlock extends Component {
             {this.props.showHistory ? <a className="versionHistoryLink" href={`/activity/${Sefaria.normRef(this.props.currentRef)}/${v.language}/${v.versionTitle && v.versionTitle.replace(/\s/g,"_")}`}>{Sefaria._("Version History") + " "}›</a>:""}
           </div>
           {versionNotes ? <div className="versionNotes" dangerouslySetInnerHTML={ {__html: versionNotes} } ></div> : ""}
+            {(this.props.version.extendedNotes || this.props.version.extendedNotesHebrew) ? <div className="extendedNotesLinks">
+              <a onClick={this.openExtendedNotes} href={`/${this.props.title}/${this.props.version.language}/${this.props.version.versionTitle}/notes`}>
+                {Sefaria.interfaceLang === "english" ? "More" : "עוד"}
+              </a>
+            </div> : ""}
         </div>
       );
     }
