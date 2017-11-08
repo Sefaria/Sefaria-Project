@@ -265,6 +265,7 @@ Sefaria = extend(Sefaria, {
   },
   */
   _versions: {},
+  _translateVersions: {},
   versions: function(ref, cb) {
     // Returns a list of available text versions for `ref`.
     var versions = ref in this._versions ? this._versions[ref] : null;
@@ -274,10 +275,17 @@ Sefaria = extend(Sefaria, {
     }
     var url = "/api/texts/versions/" + Sefaria.normRef(ref);
     this._api(url, function(data) {
+      for (let v of data) {
+        Sefaria._translateVersions[v.versionTitle] = {en: v.versionTitle, he: v.versionTitleInHebrew, lang: v.language};
+      }
       if (cb) { cb(data); }
       Sefaria._versions[ref] = data;
     });
     return versions;
+  },
+  versionLanguage: function(versionTitle) {
+    // given a versionTitle, return the language of the version
+    return Sefaria._translateVersions[versionTitle]["lang"]
   },
   _textUrl: function(ref, settings) {
     // copy the parts of settings that are used as parameters, but not other
@@ -289,7 +297,7 @@ Sefaria = extend(Sefaria, {
     });
     var url = "/api/texts/" + Sefaria.normRef(ref);
     if (settings.language && settings.version) {
-        url += "/" + settings.language + "/" + settings.version.replace(" ","_");
+        url += "/" + settings.language + "/" + settings.version.replace(/ /g,"_");
     }
     return url + "?" + params;
   },
@@ -1639,6 +1647,8 @@ Sefaria = extend(Sefaria, {
     };
     if (name in Sefaria._translateTerms) {
         return Sefaria._translateTerms[name]["he"];
+    } else if (name in Sefaria._translateVersions) {
+        return Sefaria._translateVersions[name]["he"];
     } else if (name in categories) {
         return  categories[name];
     } else if (Sefaria.index(name)) {

@@ -122,9 +122,6 @@ class RecentFilterSet extends Component {
     this.setState({showAllFilters: !this.state.showAllFilters});
   }
   render() {
-
-    var topLinks = [];
-
     // Annotate filter texts with category
     var recentFilters = this.props.recentFilters.map(function(filter) {
       var filterAndSuffix = filter.split("|");
@@ -132,17 +129,18 @@ class RecentFilterSet extends Component {
       var filterSuffix    = filterAndSuffix.length == 2 ? filterAndSuffix[1] : null;
       var index           = Sefaria.index(filter);
       return {
-          book: filter,
-          filterSuffix: filterSuffix,
-          heBook: index ? index.heTitle : Sefaria.hebrewTerm(filter),
-          category: index ? index.primary_category : filter };
+        book: filter,
+        filterSuffix: filterSuffix,
+        heBook: index ? index.heTitle : Sefaria.hebrewTerm(filter),
+        category: index ? index.primary_category : filter
+      };
     });
-
+    var topLinks = [];
     // If the current filter is not already in the top set, put it first
     if (this.props.filter.length) {
-      var filter = this.props.filter[0];
+      let filter = this.props.filter[0];
       for (var i=0; i < topLinks.length; i++) {
-        if (recentFilters[i].book == filter ||
+        if (recentFilters[i].book === filter ||
             recentFilters[i].category == filter ) { break; }
       }
       if (i == recentFilters.length) {
@@ -150,7 +148,7 @@ class RecentFilterSet extends Component {
         if (index) {
           var annotatedFilter = {book: filter, heBook: index.heTitle, category: index.primary_category };
         } else {
-          var annotatedFilter = {book: filter, heBook: filter, category: "Other" };
+          var annotatedFilter = {book: filter, heBook: filter.en, category: "Other" };
         }
 
         recentFilters = [annotatedFilter].concat(topLinks).slice(0,5);
@@ -168,9 +166,9 @@ class RecentFilterSet extends Component {
                 hideCounts={true}
                 hideColors={true}
                 count={book.count}
+                filterSuffix={book.filterSuffix}
                 updateRecent={false}
                 inRecentFilters={true}
-                filterSuffix={book.filterSuffix}
                 setFilter={this.props.setFilter}
                 on={Sefaria.util.inArray(book.book, this.props.filter) !== -1} />);
     }.bind(this));
@@ -187,7 +185,6 @@ RecentFilterSet.propTypes = {
   srefs:         PropTypes.array.isRequired,
   filter:        PropTypes.array.isRequired,
   recentFilters: PropTypes.array.isRequired,
-  textCategory:  PropTypes.string.isRequired,
   inHeader:      PropTypes.bool,
   setFilter:     PropTypes.func.isRequired,
 };

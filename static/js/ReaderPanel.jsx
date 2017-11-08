@@ -51,10 +51,12 @@ class ReaderPanel extends Component {
       mode: props.initialMode, // "Text", "TextAndConnections", "Connections"
       connectionsMode: props.initialConnectionsMode,
       filter: props.initialFilter || [],
+      versionFilter: props.initialVersionFilter || [],
       version: props.initialVersion,
       versionLanguage: props.initialVersionLanguage,
       highlightedRefs: props.initialHighlightedRefs || [],
       recentFilters: [],
+      recentVersionFilters: [],
       settings: props.initialState.settings || {
         language:      "bilingual",
         layoutDefault: "segmented",
@@ -294,6 +296,20 @@ class ReaderPanel extends Component {
     }
 
   }
+  setVersionFilter(filter) {
+    if (this.props.setVersionFilter) {
+      console.log("ReaderPanel has setVerionFilter");
+      this.props.setVersionFilter(filter);
+    } else {
+      console.log("ReaderPanel hasn't setVerionFilter");
+      const filtInd = Sefaria.util.inArray(filter, this.state.recentVersionFilters);
+      if (filtInd === -1) {
+        this.state.recentVersionFilters = [filter].concat(this.state.recentVersionFilters);
+      }
+      filter = filter ? [filter] : [];
+      this.conditionalSetState({recentVersionFilters: this.state.recentVersionFilters, versionFilter: filter, connectionsMode: "Version Open"});
+    }
+  }
   setTopic(topic) {
     this.conditionalSetState({navigationTopic: topic});
   }
@@ -521,6 +537,9 @@ class ReaderPanel extends Component {
           getLicenseMap={this.props.getLicenseMap}
           masterPanelLanguage={this.props.masterPanelLanguage}
           translateISOLanguageCode={this.props.translateISOLanguageCode}
+          versionFilter={this.state.versionFilter}
+          recentVersionFilters={this.state.recentVersionFilters}
+          setVersionFilter={this.setVersionFilter}
           key="connections" />
       );
     }
@@ -804,6 +823,7 @@ ReaderPanel.propTypes = {
   analyticsInitialized:        PropTypes.bool,
   getLicenseMap:               PropTypes.func.isRequired,
   translateISOLanguageCode:    PropTypes.func.isRequired,
+  setVersionFilter:            PropTypes.func,
 };
 
 

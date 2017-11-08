@@ -36,7 +36,8 @@ class TextRange extends Component {
           prevProps.settings.biLayout !== this.props.settings.biLayout ||
           prevProps.settings.fontSize !== this.props.settings.fontSize ||
           prevProps.layoutWidth !== this.props.layoutWidth ||
-          prevProps.filter !== this.props.filter) {
+          !!prevProps.filter !== !!this.props.filter ||
+          (!!prevProps.filter && !prevProps.filter.compare(this.props.filter))) {
             // Rerender in case version has changed
             this.forceUpdate(function() {
                 this.placeSegmentNumbers();
@@ -226,8 +227,8 @@ class TextRange extends Component {
         <TextSegment
             panelPosition={this.props.panelPosition}
             sref={segment.ref}
-            en={segment.en}
-            he={segment.he}
+            en={!this.props.useVersionLanguage || this.props.versionLanguage === "en" ? segment.en : null}
+            he={!this.props.useVersionLanguage || this.props.versionLanguage === "he" ? segment.he : null}
             highlight={highlight}
             segmentNumber={showSegmentNumbers ? segment.number : 0}
             showLinkCount={this.props.basetext}
@@ -323,6 +324,7 @@ TextRange.propTypes = {
   sref:                   PropTypes.string.isRequired,
   version:                PropTypes.string,
   versionLanguage:        PropTypes.string,
+  useVersionLanguage:     PropTypes.bool,
   highlightedRefs:        PropTypes.array,
   basetext:               PropTypes.bool,
   withContext:            PropTypes.bool,
@@ -357,6 +359,8 @@ class TextSegment extends Component {
     if (!!this.props.filter !== !!nextProps.filter)           { return true; }
     if (this.props.filter && nextProps.filter &&
         !this.props.filter.compare(nextProps.filter))         { return true; }
+    if (this.props.en !== nextProps.en
+        || this.props.he !== nextProps.he)                    { return true; }
 
     return false;
   }

@@ -37,12 +37,13 @@ class ReaderApp extends Component {
       } else {
         var mode = props.initialFilter ? "TextAndConnections" : "Text";
         var initialPanel = props.initialPanels && props.initialPanels.length ? props.initialPanels[0] : {};
+
         panels[0] = {
           refs: props.initialRefs,
           mode: mode,
-          filter: initialPanel.filter || props.initialFilter,
           menuOpen: props.initialMenu,
           filter: props.initialFilter,
+          versionFilter: props.initialVersionFilter,
           menuOpen: props.initialMenu,
           connectionsMode: initialPanel.connectionsMode || "Resources",
           version: initialPanel.version || null,
@@ -86,6 +87,7 @@ class ReaderApp extends Component {
           refs: props.initialRefs,
           mode: "Text",
           filter: props.initialPanels[0].filter,
+          versionFilter: props.initialPanels[0].versionFilter,
           menuOpen: props.initialPanels[0].menuOpen,
           highlightedRefs: props.initialPanels[0].highlightedRefs || [],
           version: props.initialPanels.length ? props.initialPanels[0].version : null,
@@ -628,12 +630,14 @@ class ReaderApp extends Component {
       mode:                    state.mode,                   // "Text", "TextAndConnections", "Connections"
       refs:                    state.refs                    || [], // array of ref strings
       filter:                  state.filter                  || [],
+      versionFilter:           state.versionFilter           || [],
       connectionsMode:         state.connectionsMode         || "Resources",
       version:                 state.version                 || null,
       versionLanguage:         state.versionLanguage         || null,
       highlightedRefs:         state.highlightedRefs         || [],
       currentlyVisibleRef:     state.refs && state.refs.length ? state.refs[0] : null,
       recentFilters:           state.recentFilters           || state.filter || [],
+      recentVersionFilters:    state.recentVersionFilters    || state.versionFilter || [],
       menuOpen:                state.menuOpen                || null, // "navigation", "text toc", "display", "search", "sheets", "home", "book toc"
       navigationCategories:    state.navigationCategories    || [],
       navigationSheetTag:      state.sheetsTag               || null,
@@ -1032,6 +1036,7 @@ class ReaderApp extends Component {
       newPanels.splice(n, 0, {});
       panel = newPanels[n];
       panel.filter = [];
+      panel.versionFilter = [];
     }
     panel.refs              = refs;
     panel.menuOpen          = null;
@@ -1040,8 +1045,10 @@ class ReaderApp extends Component {
     panel.settings.language = panel.settings.language == "hebrew" ? "hebrew" : "english"; // Don't let connections panels be bilingual
     if(parentPanel) {
       panel.filter = parentPanel.filter;
+      panel.versionFilter = parentPanel.versionFilter;
       panel.connectionsMode   = parentPanel.openSidebarAsConnect ? "Add Connection" : panel.connectionsMode;
       panel.recentFilters = parentPanel.recentFilters;
+      panel.recentVersionFilters = parentPanel.recentVersionFilters;
       if (panel.settings.language.substring(0, 2) == parentPanel.versionLanguage) {
         panel.version = parentPanel.version;
         panel.versionLanguage = parentPanel.versionLanguage;
@@ -1050,7 +1057,6 @@ class ReaderApp extends Component {
         panel.versionLanguage = null;
       }
     }
-
     newPanels[n] = this.makePanelState(panel);
     this.setState({panels: newPanels});
   }
@@ -1073,8 +1079,8 @@ class ReaderApp extends Component {
     if (filter) {
       if (updateRecent) {
         if (Sefaria.util.inArray(filter, connectionsPanel.recentFilters) !== -1) {
-            connectionsPanel.recentFilters.toggle(filter);
-          }
+          connectionsPanel.recentFilters.toggle(filter);
+        }
         connectionsPanel.recentFilters = [filter].concat(connectionsPanel.recentFilters);
       }
       connectionsPanel.filter = [filter];
@@ -1086,6 +1092,25 @@ class ReaderApp extends Component {
     if (basePanel) {
       basePanel.filter        = connectionsPanel.filter;
       basePanel.recentFilters = connectionsPanel.recentFilters;
+    }
+    this.setState({panels: this.state.panels});
+  }
+  setVersionFilter(n, filter) {
+    var connectionsPanel = this.state.panels[n];
+    var basePanel        = this.state.panels[n-1];
+    if (filter) {
+      if (Sefaria.util.inArray(filter, connectionsPanel.recentVersionFilters) === -1) {
+        connectionsPanel.recentVersionFilters = [filter].concat(connectionsPanel.recentVersionFilters);
+      }
+      connectionsPanel.versionFilter = [filter];
+      connectionsPanel.connectionsMode = "Version Open";
+    } else {
+      connectionsPanel.versionFilter = [];
+      connectionsPanel.connectionsMode = "Versions";
+    }
+    if (basePanel) {
+      basePanel.versionFilter        = connectionsPanel.versionFilter;
+      basePanel.recentVersionFilters = connectionsPanel.recentVersionFilters;
     }
     this.setState({panels: this.state.panels});
   }
@@ -1316,6 +1341,7 @@ class ReaderApp extends Component {
       var closePanel                     = panel.menuOpen == "compare" ? this.convertToTextList.bind(null, i) : this.closePanel.bind(null, i);
       var setPanelState                  = this.setPanelState.bind(null, i);
       var setConnectionsFilter           = this.setConnectionsFilter.bind(this, i);
+      var setVersionFilter               = this.setVersionFilter.bind(this, i);
       var selectVersion                  = this.selectVersion.bind(null, i);
       var addToSourceSheet               = this.addToSourceSheet.bind(null, i);
 
@@ -1343,6 +1369,7 @@ class ReaderApp extends Component {
                       openComparePanel={openComparePanel}
                       setTextListHighlight={setTextListHighlight}
                       setConnectionsFilter={setConnectionsFilter}
+                      setVersionFilter={setVersionFilter}
                       setSelectedWords={setSelectedWords}
                       selectVersion={selectVersion}
                       setDefaultOption={this.setDefaultOption}

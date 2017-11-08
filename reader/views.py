@@ -1370,7 +1370,7 @@ def interface_language_redirect(request, language):
     """
     next = request.GET.get("next", "/?home")
     next = "/?home" if next == "undefined" else next
-    
+
     for domain in DOMAIN_LANGUAGES:
         if DOMAIN_LANGUAGES[domain] == language and not request.get_host() in domain:
             next = domain + next
@@ -1378,7 +1378,7 @@ def interface_language_redirect(request, language):
             break
 
     response = redirect(next)
-    
+
     response.set_cookie("interfaceLang", language)
     if request.user.is_authenticated():
         p = UserProfile(id=request.user.id)
@@ -2660,7 +2660,7 @@ def topics_api(request, topic):
 @catch_error_as_json
 def recommend_topics_api(request, ref_list=None):
     """
-    API to receive recommended topics for list of strings `refs`. 
+    API to receive recommended topics for list of strings `refs`.
     """
     if request.method == "GET":
         refs = [Ref(ref).normal() for ref in ref_list.split("+")] if ref_list else []

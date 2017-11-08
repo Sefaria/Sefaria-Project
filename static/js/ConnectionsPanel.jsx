@@ -20,7 +20,7 @@ const ConnectionsPanelHeader = require('./ConnectionsPanelHeader');
 const AddToSourceSheetBox    = require('./AddToSourceSheetBox');
 const LexiconBox             = require('./LexiconBox');
 const AboutBox               = require('./AboutBox');
-const SidebarVersion         = require('./SidebarVersion');
+const VersionsBox            = require('./VersionsBox');
 const classNames             = require('classnames');
 import Component             from 'react-class';
 
@@ -28,7 +28,9 @@ import Component             from 'react-class';
 class ConnectionsPanel extends Component {
   constructor(props) {
     super(props);
-    this.state = {flashMessage: null};
+    this.state = {
+      flashMessage: null,
+    };
   }
   componentDidMount() {
     this._isMounted = true;
@@ -77,6 +79,11 @@ class ConnectionsPanel extends Component {
     setTimeout(function() {
       this.setState({flashMessage: null});
     }.bind(this), 3000);
+  }
+  onSave() {
+    this.reloadData();
+    this.props.setConnectionsMode("Resources");
+    this.flashMessage("Success! You've created a new connection.");
   }
   getDefaultVersion(lang, versions) {
     const filtered = versions.filter((elem) => elem.language === lang);
@@ -132,8 +139,6 @@ class ConnectionsPanel extends Component {
     if (!loaded) {
       content = <LoadingMessage />;
     } else if (this.props.mode == "Resources") {
-      var sheetsCount = Sefaria.sheets.sheetsTotalCount(this.props.srefs);
-      var notesCount  = Sefaria.notesTotalCount(this.props.srefs);
       content = (<div>
                   { this.state.flashMessage ?
                     <div className="flashMessage sans">{this.state.flashMessage}</div>
@@ -151,8 +156,8 @@ class ConnectionsPanel extends Component {
                     multiPanel={this.props.multiPanel}
                     setConnectionsMode={this.props.setConnectionsMode}
                     openComparePanel={this.props.openComparePanel}
-                    sheetsCount={sheetsCount}
-                    notesCount={notesCount} />
+                    sheetsCount={Sefaria.sheets.sheetsTotalCount(this.props.srefs)}
+                    notesCount={Sefaria.notesTotalCount(this.props.srefs)} />
                   </div>);
 
     } else if (this.props.mode === "ConnectionsList") {
@@ -279,15 +284,10 @@ class ConnectionsPanel extends Component {
                     onDelete={() => this.props.setConnectionsMode("Notes")} />);
 
     } else if (this.props.mode === "Add Connection") {
-      var onSave = function() {
-        this.reloadData();
-        this.props.setConnectionsMode("Resources");
-        this.flashMessage("Success! You've created a new connection.");
-      }.bind(this);
       content = <AddConnectionBox
                     srefs={this.props.allOpenRefs}
                     openComparePanel={this.props.openComparePanel}
-                    onSave={onSave}
+                    onSave={this.onSave}
                     onCancel={() => this.props.setConnectionsMode("Resources")} />
 
     } else if (this.props.mode === "Login") {
@@ -308,12 +308,15 @@ class ConnectionsPanel extends Component {
                   versionHe={currVersionHe}
                   versionEn={currVersionEn}
                   srefs={this.props.srefs}
+                  currVersion={this.state.curr}
                   mainVersionLanguage={mainVersionLanguage}
+                  vFilter={this.props.versionFilter}
+                  recentVFilters={this.props.recentVersionFilters}
                   translateISOLanguageCode={this.props.translateISOLanguageCode}
                   setConnectionsMode={this.props.setConnectionsMode}
-                  getLicenseMap={this.props.getLicenseMap}/>);
+                  getLicenseMap={this.props.getLicenseMap}
+                  setFilter={this.props.setVersionFilter}/>);
     }
-
     var classes = classNames({connectionsPanel: 1, textList: 1, fullPanel: this.props.fullPanel, singlePanel: !this.props.fullPanel});
     return (
       <div className={classes} key={this.props.mode}>
@@ -372,6 +375,9 @@ ConnectionsPanel.propTypes = {
   getLicenseMap:           PropTypes.func.isRequired,
   masterPanelLanguage:     PropTypes.oneOf(["english", "bilingual", "hebrew"]),
   translateISOLanguageCode:PropTypes.func.isRequired,
+  versionFilter:           PropTypes.array,
+  recentVersionFilters:    PropTypes.array,
+  setVersionFilter:        PropTypes.func.isRequired,
 };
 
 
@@ -982,87 +988,6 @@ AddConnectionBox.propTypes = {
   srefs:    PropTypes.array.isRequired,
   onSave:   PropTypes.func.isRequired,
   onCancel: PropTypes.func.isRequired
-};
-
-
-class VersionsBox extends Component {
-  constructor(props) {
-    super(props);
-  }
-  openVersion(v) {
-    //v: version object as received from sefaria versions api
-    //request v.versionTitle for srefs
-    this.props.setConnectionsMode("Version Open");
-  }
-  selectVersion(v) {
-
-  }
-  renderModeVersions() {
-    const versionLangMap = {};
-    for (let v of this.props.versions) {
-      const matches = v.versionTitle.match(new RegExp("\\[([a-z]{2})\\]$")); // two-letter ISO language code
-      const lang = matches ? matches[1] : v.language;
-      versionLangMap[lang] = !!versionLangMap[lang] ? versionLangMap[lang].concat(v) : [v];
-    }
-
-    //sort versions by language so that
-    //- mainVersionLanguage shows up first
-    //- standard_langs show up second
-    //- everything else shows up in alphabetical order
-    const standard_langs = ["en", "he"];
-    const versionLangs = Object.keys(versionLangMap).sort(
-      (a, b) => {
-        if      (a === this.props.mainVersionLanguage.slice(0,2)) {return -1;}
-        else if (b === this.props.mainVersionLanguage.slice(0,2)) {return  1;}
-        else if (a in standard_langs && !(b in standard_langs))   {return -1;}
-        else if (b in standard_langs && !(a in standard_langs))   {return  1;}
-        else if (a < b)                                           {return -1;}
-        else if (b > a)                                           {return  1;}
-        else                                                      {return  0;}
-      }
-    );
-    return (
-      <div className="versionsBox">
-        {
-          versionLangs.map((lang) => (
-            <div key={lang}>
-              <div className="versionLanguage">{this.props.translateISOLanguageCode(lang)}<span className="versionCount">{` (${versionLangMap[lang].length})`}</span></div>
-              {
-                versionLangMap[lang].map((v) => (
-                  <SidebarVersion
-                    version={v}
-                    srefs={this.props.srefs}
-                    getLicenseMap={this.props.getLicenseMap}
-                    key={v.versionTitle + lang}
-                    selectVersion={this.selectVersion}
-                    openVersion={this.openVersion}
-                    isCurrent={this.props.versionEn.versionTitle === v.versionTitle || this.props.versionHe.versionTitle === v.versionTitle}
-                  />
-                ))
-              }
-            </div>
-          ))
-        }
-      </div>
-    );
-  }
-  renderModeSelected() {
-    return (<div>Sup yoy oyoyyo</div>);
-  }
-  render() {
-    return (this.props.mode === "Versions" ? this.renderModeVersions() : this.renderModeSelected());
-  }
-}
-VersionsBox.propTypes = {
-  mode:                     PropTypes.oneOf(["Versions", "Version Open"]),
-  versions:                 PropTypes.array.isRequired,
-  versionEn:                PropTypes.object,
-  versionHe:                PropTypes.object,
-  mainVersionLanguage:      PropTypes.oneOf(["english", "hebrew"]).isRequired,
-  srefs:                    PropTypes.array.isRequired,
-  getLicenseMap:            PropTypes.func.isRequired,
-  translateISOLanguageCode: PropTypes.func.isRequired,
-  setConnectionsMode:   PropTypes.func.isRequired,
 };
 
 
