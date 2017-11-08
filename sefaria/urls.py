@@ -18,7 +18,7 @@ urlpatterns = patterns('reader.views',
     (r'^api/texts/version-status/?$', 'version_status_api'),
     (r'^api/texts/parashat_hashavua$', 'parashat_hashavua_api'),
     (r'^api/texts/random?$', 'random_text_api'),
-    (r'^api/texts/(?P<tref>.+)/(?P<lang>\w\w)/(?P<version>.+)$', 'texts_api'),
+    (r'^api/texts/(?P<tref>.+)/(?P<lang>\w\w)/(?P<version>.+)$', 'old_text_versions_api_redirect'),
     (r'^api/texts/(?P<tref>.+)$', 'texts_api'),
     (r'^api/index/?$', 'table_of_contents_api'),
     (r'^api/search-filter-index/?$', 'search_filter_table_of_contents_api'),
@@ -411,7 +411,7 @@ urlpatterns += patterns('sefaria.gauth.views',
 
 # Catch all to send to Reader
 urlpatterns += patterns('reader.views',
-    (r'^(?P<tref>[^/]+)/(?P<lang>\w\w)/(?P<version>.*)$', 'redirect_old_versions'),
+    (r'^(?P<tref>[^/]+)/(?P<lang>\w\w)/(?P<version>.*)$', 'old_versions_redirect'),
     (r'^(?P<tref>[^/]+)(/)?$', 'reader')
 )
 

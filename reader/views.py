@@ -193,8 +193,8 @@ def reader(request, tref):
 
     return render_to_response('reader.html', template_vars, RequestContext(request))
 
-
-def redirect_old_versions(request, tref, lang, version):
+@ensure_csrf_cookie
+def old_versions_redirect(request, tref, lang, version):
     url = "/{}?v{}={}".format(tref, lang, version)
     response = redirect(iri_to_uri(url), permanent=True)
     params = request.GET.urlencode()
@@ -1437,15 +1437,13 @@ def count_and_index(c_oref, c_lang, vtitle, to_count=1):
 
 @catch_error_as_json
 @csrf_exempt
-def texts_api(request, tref, lang=None, version=None):
+def texts_api(request, tref):
     oref = Ref(tref)
 
     if request.method == "GET":
         uref = oref.url()
         if uref and tref != uref:    # This is very similar to reader.reader_redirect subfunction, above.
             url = "/api/texts/" + uref
-            if lang and version:
-                url += "/%s/%s" % (lang, version)
             response = redirect(iri_to_uri(url), permanent=True)
             params = request.GET.urlencode()
             response['Location'] += "?%s" % params if params else ""
@@ -1455,20 +1453,25 @@ def texts_api(request, tref, lang=None, version=None):
         context    = int(request.GET.get("context", 1))
         commentary = bool(int(request.GET.get("commentary", True)))
         pad        = bool(int(request.GET.get("pad", 1)))
-        version    = version.replace("_", " ") if version else None
+        versionEn  = request.GET.get("ven", None)
+        if versionEn:
+            versionEn = versionEn.replace("_", " ")
+        versionHe  = request.GET.get("vhe", None)
+        if versionHe:
+            versionHe = versionHe.replace("_", " ")
         layer_name = request.GET.get("layer", None)
         alts       = bool(int(request.GET.get("alts", True)))
         wrapLinks = bool(int(request.GET.get("wrapLinks", False)))
 
 
         try:
-            text = TextFamily(oref, version=version, lang=lang, commentary=commentary, context=context, pad=pad, alts=alts, wrapLinks=wrapLinks).contents()
+            text = TextFamily(oref, version=versionEn, lang="en", version2=versionHe, lang2="he", commentary=commentary, context=context, pad=pad, alts=alts, wrapLinks=wrapLinks).contents()
         except AttributeError as e:
             oref = oref.default_child_ref()
-            text = TextFamily(oref, version=version, lang=lang, commentary=commentary, context=context, pad=pad, alts=alts, wrapLinks=wrapLinks).contents()
+            text = TextFamily(oref, version=versionEn, lang="en", version2=versionHe, lang2="he", commentary=commentary, context=context, pad=pad, alts=alts, wrapLinks=wrapLinks).contents()
         except NoVersionFoundError as e:
             # Extended data is used by S2 in TextList.preloadAllCommentaryText()
-            return jsonResponse({"error": unicode(e), "ref": oref.normal(), "versionTitle": version, "lang": lang}, callback=request.GET.get("callback", None))
+            return jsonResponse({"error": unicode(e), "ref": oref.normal(), "enVersion": versionEn, "heVersion": versionHe}, callback=request.GET.get("callback", None))
 
 
         # TODO: what if pad is false and the ref is of an entire book? Should next_section_ref return None in that case?
@@ -1527,29 +1530,53 @@ def texts_api(request, tref, lang=None, version=None):
             return protected_post(request)
 
     if request.method == "DELETE":
+        versionEn = request.GET.get("ven", None)
+        versionHe = request.GET.get("vhe", None)
         if not request.user.is_staff:
             return jsonResponse({"error": "Only moderators can delete texts."})
-        if not (tref and lang and version):
+        if not (tref and (versionEn or versionHe)):
             return jsonResponse({"error": "To delete a text version please specifiy a text title, version title and language."})
 
         tref    = tref.replace("_", " ")
-        version = version.replace("_", " ")
+        if versionEn:
+            versionEn = versionEn.replace("_", " ")
+            v = Version().load({"title": tref, "versionTitle": versionEn, "language": "en"})
 
-        v = Version().load({"title": tref, "versionTitle": version, "language": lang})
+            if not v:
+                return jsonResponse({"error": "Text version not found."})
 
-        if not v:
-            return jsonResponse({"error": "Text version not found."})
+            v.delete()
+            record_version_deletion(tref, versionEn, "en", request.user.id)
 
-        v.delete()
-        record_version_deletion(tref, version, lang, request.user.id)
+            if USE_VARNISH:
+                invalidate_linked(oref)
+                invalidate_ref(oref, "en", versionEn)
+        if versionHe:
+            versionHe = versionHe.replace("_", " ")
+            v = Version().load({"title": tref, "versionTitle": versionHe, "language": "he"})
 
-        if USE_VARNISH:
-            invalidate_linked(oref)
-            invalidate_ref(oref, lang, version)
+            if not v:
+                return jsonResponse({"error": "Text version not found."})
+
+            v.delete()
+            record_version_deletion(tref, versionHe, "he", request.user.id)
+
+            if USE_VARNISH:
+                invalidate_linked(oref)
+                invalidate_ref(oref, "he", versionHe)
 
         return jsonResponse({"status": "ok"})
 
     return jsonResponse({"error": "Unsupported HTTP method."}, callback=request.GET.get("callback", None))
+
+@catch_error_as_json
+@csrf_exempt
+def old_text_versions_api_redirect(request, tref, lang, version):
+    url = "/api/texts/{}?v{}={}".format(tref, lang, version)
+    response = redirect(iri_to_uri(url), permanent=True)
+    params = request.GET.urlencode()
+    response['Location'] += "&{}".format(params) if params else ""
+    return response
 
 
 @catch_error_as_json
