@@ -93,6 +93,7 @@ class AbstractTest(object):
         elem.send_keys(password)
         self.driver.find_element_by_css_selector("button").click()
         WebDriverWait(self.driver, TEMPER).until_not(title_contains("Log in"))
+        time.sleep(3)    # So that the old page doesn't mistakenly get selected in the next line
         return self
 
     def nav_to_account(self):
@@ -185,7 +186,6 @@ class AbstractTest(object):
             ref = Ref(ref)
         assert isinstance(ref, Ref)
         self.type_in_search_box(ref.normal())
-        time.sleep(.5)  # So that the old page doesn't mistakenly get selected in the next line
         WebDriverWait(self.driver, TEMPER).until(
             element_to_be_clickable((By.CSS_SELECTOR, ".textColumn .textRange .segment")))
         WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, ".linkCountDot")))
@@ -480,10 +480,13 @@ class TestSuite(AbstractTest):
         self.tests = [t(self.driver, self.base_url, self.cap) for t in get_ordered_atomic_tests(seed) if t.suite_class == self.__class__ and t._should_run(self.mode, self.cap)]
         self.result_set = TestResultSet()
 
+    def __str__(self):
+        return self.name()
+
     def should_run(self, mode):
         return len(self.tests)
 
-    def __str__(self):
+    def long_name(self):
         return u"{}\n{}".format(self.name(), self.tests_string())
 
     def tests_string(self):
