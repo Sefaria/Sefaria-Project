@@ -1647,7 +1647,6 @@ def link_count_api(request, cat1, cat2):
     """
     if request.method == "GET":
         resp = jsonResponse(get_link_counts(cat1, cat2))
-        resp['Access-Control-Allow-Origin'] = '*'
         return resp
 
     elif request.method == "POST":

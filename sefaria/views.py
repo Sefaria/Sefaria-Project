@@ -246,7 +246,6 @@ def title_regex_api(request, titles):
         if len(errors):
             res["error"] = errors
         resp = jsonResponse(res, cb)
-        resp['Access-Control-Allow-Origin'] = '*'
         return resp
 
 
@@ -281,7 +280,6 @@ def bulktext_api(request, refs):
                 # logger.warning(u"Linker failed to parse {} from {} : {}".format(tref, referer, e))
                 res[tref] = {"error": 1}
         resp = jsonResponse(res, cb)
-        resp['Access-Control-Allow-Origin'] = '*'
         return resp
 
 
