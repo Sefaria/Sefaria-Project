@@ -139,9 +139,9 @@ class AbstractTest(object):
 
     # TOC
     def nav_to_toc(self):
-        if self.driver.current_url == self.base_url + "/texts":
+        if self.driver.current_url == self.base_url + "/texts" or self.driver.current_url.startswith(self.base_url + "/texts?"):
             return self
-        self.driver.find_element_by_css_selector('.headerNavSection .library').click()
+        self.driver.find_element_by_css_selector('.headerNavSection .library, .readerNavMenuMenuButton').click()
         WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, ".readerNavCategory")))
         return self
 
