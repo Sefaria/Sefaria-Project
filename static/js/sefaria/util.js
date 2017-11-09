@@ -1,5 +1,5 @@
-const $      = require('./sefariaJquery');
-const extend = require('extend');
+const $         = require('./sefariaJquery');
+const extend    = require('extend');
 const striptags = require('striptags');
 
 if (typeof document !== 'undefined') {

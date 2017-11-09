@@ -1180,7 +1180,7 @@ div.person_tooltip {
   background-color: #eee;
   border-radius: 3px;
   border: 1px solid #aaa;
-  position: absolute;
+  /*position: absolute;*/
   right: 21px;
   top: 10px;
 }
