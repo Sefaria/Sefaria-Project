@@ -936,6 +936,15 @@ class ReaderApp extends Component {
     }
     this.setState({panels: this.state.panels});
   }
+  viewExtendedNotes(n, versionLanguage, versionName, extendedNotes, extendedNotesHebrew) {
+    var panel = this.state.panels[n];
+    panel.versionLanguage = versionLanguage;
+    panel.version = versionName;
+    panel.extendedNotes = extendedNotes;
+    panel.extendedNotesHebrew = extendedNotesHebrew;
+    panel.menuOpen = "extended notes";
+    this.setState({panels: this.state.panels});
+  }
   // this.state.defaultVersion is a depth 2 dictionary - keyed: bookname, language
   getCachedVersion(indexTitle, language) {
     if ((!indexTitle) || (!(this.state.defaultVersions[indexTitle]))) { return null; }
@@ -1295,6 +1304,7 @@ class ReaderApp extends Component {
       var setConnectionsFilter           = this.setConnectionsFilter.bind(this, i);
       var selectVersion                  = this.selectVersion.bind(null, i);
       var addToSourceSheet               = this.addToSourceSheet.bind(null, i);
+      var viewExtendedNotes              = this.viewExtendedNotes.bind(null, i);
 
       var ref   = panel.refs && panel.refs.length ? panel.refs[0] : null;
       var oref  = ref ? Sefaria.parseRef(ref) : null;
@@ -1322,6 +1332,7 @@ class ReaderApp extends Component {
                       setConnectionsFilter={setConnectionsFilter}
                       setSelectedWords={setSelectedWords}
                       selectVersion={selectVersion}
+                      viewExtendedNotes={viewExtendedNotes}
                       setDefaultOption={this.setDefaultOption}
                       onQueryChange={updateQueryInPanel}
                       updateSearchFilter={updateSearchFilterInPanel}

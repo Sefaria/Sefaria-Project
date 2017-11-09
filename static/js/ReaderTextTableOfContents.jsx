@@ -149,6 +149,9 @@ class ReaderTextTableOfContents extends Component {
   isVersionPublicDomain(v) {
     return !(v.license && v.license.startsWith("Copyright"));
   }
+  extendedNotesBack(event){
+    return null;
+  }
   render() {
     var title     = this.props.title;
     var index     = Sefaria.index(title);
@@ -186,7 +189,7 @@ class ReaderTextTableOfContents extends Component {
           defaultVersionObject = this.state.versions.find(v => (cv.language == v.language && cv.versionTitle == v.versionTitle));
           defaultVersionString += defaultVersionObject ? " (" + defaultVersionObject.versionTitle + ")" : "";
         }
-        currentVersionElement = (<VersionBlock title={title} version={cv} currentRef={this.props.currentRef} showHistory={true}/>);
+        currentVersionElement = (<VersionBlock title={title} version={cv} currentRef={this.props.currentRef} showHistory={true} viewExtendedNotes={this.props.viewExtendedNotes}/>);
       }
     }
 
@@ -305,7 +308,16 @@ class ReaderTextTableOfContents extends Component {
                 </div>
               </div>
               <div className="content">
-                <div className="contentInner">
+                {this.props.mode === "extended notes"
+                  ? <ExtendedNotes
+                    title={this.props.title}
+                    versionLanguage={this.props.versionLanguage}
+                    versionTitle={this.props.version}
+                    extendedNotes={this.props.extendedNotes}
+                    extendedNotesHebrew={this.props.extendedNotesHebrew}
+                    goBack={this.extendedNotesBack}
+                  />
+                  :<div className="contentInner">
                   <div className="tocTop">
                     <CategoryAttribution categories={categories} />
                     <a className="tocCategory" href={catUrl}>
@@ -341,12 +353,13 @@ class ReaderTextTableOfContents extends Component {
                       defaultStruct={"default_struct" in details && details.default_struct in details.alts ? details.default_struct : "default"}
                       currentRef={this.props.currentRef}
                       narrowPanel={this.props.narrowPanel}
-                      title={this.props.title} />
+                      title={this.props.title}
+                      viewExtendedNotes={this.props.viewExtendedNotes}/>
 
                   </div>
                   : <LoadingMessage />}
                   {downloadSection}
-                </div>
+                </div>}
               </div>
             </div>);
   }
@@ -364,7 +377,10 @@ ReaderTextTableOfContents.propTypes = {
   openNav:          PropTypes.func.isRequired,
   showBaseText:     PropTypes.func.isRequired,
   selectVersion:    PropTypes.func,
+  viewExtendedNotes: PropTypes.func,
   interfaceLang:    PropTypes.string,
+  extendedNotes:    PropTypes.string,
+  extendedNotesHebrew: PropTypes.string
 };
 
 
@@ -541,7 +557,8 @@ class TextTableOfContentsNavigation extends Component {
                         versionsList={this.props.versionsList}
                         openVersion={this.props.openVersion}
                         title={this.props.title}
-                        currentRef={this.props.currentRef} />;
+                        currentRef={this.props.currentRef}
+                        viewExtendedNotes={this.props.viewExtendedNotes}/>;
         break;
       default:
         var content = <SchemaNode
@@ -566,6 +583,7 @@ TextTableOfContentsNavigation.propTypes = {
   alts:            PropTypes.object,
   versionsList:    PropTypes.array,
   openVersion:     PropTypes.func,
+  viewExtendedNotes: PropTypes.func,
   defaultStruct:   PropTypes.string,
   currentRef:      PropTypes.string,
   narrowPanel:     PropTypes.bool,
@@ -890,6 +908,7 @@ class VersionsList extends Component {
         currentRef={this.props.currentRef || this.props.title}
         firstSectionRef={"firstSectionRef" in v ? v.firstSectionRef : null}
         openVersion={this.props.openVersion}
+        viewExtendedNotes={this.props.viewExtendedNotes}
         key={v.versionTitle + "/" + v.language}/>
      )
     );
@@ -918,6 +937,7 @@ VersionsList.propTypes = {
   openVersion:  PropTypes.func.isRequired,
   title:        PropTypes.string.isRequired,
   currentRef:   PropTypes.string,
+  viewExtendedNotes: PropTypes.func
 };
 
 
@@ -1043,8 +1063,10 @@ class VersionBlock extends Component {
   closeEditor() {
     this.setState({editing:false});
   }
-  openExtendedNotes(){
-    return null;
+  openExtendedNotes(e){
+    e.preventDefault();
+    this.props.viewExtendedNotes(this.props.version.language, this.props.version.versionTitle,
+      this.props.version.extendedNotes, this.props.version.extendedNotesHebrew);
   }
   render() {
     var v = this.props.version;
@@ -1160,7 +1182,8 @@ VersionBlock.propTypes = {
   firstSectionref: PropTypes.string,
   showHistory:     PropTypes.bool,
   showNotes:       PropTypes.bool,
-  openVersion:     PropTypes.func
+  openVersion:     PropTypes.func,
+  viewExtendedNotes: PropTypes.func
 };
 VersionBlock.defaultProps = {
   showHistory: true,
@@ -1269,6 +1292,24 @@ ReadMoreText.propTypes = {
 ReadMoreText.defaultProps = {
   initialWords: 30
 };
+
+class ExtendedNotes extends Component {
+  constructor(props) {
+    super(props);
+    this.state = {'notesLanguage': Sefaria.interfaceLang}
+  }
+  goBack(event) {
+    this.props.goBack(event);
+  }
+  render() {
+      return <div className="extendedNotes">
+        <a onClick={this.goBack} href={`${this.props.title}/${this.props.versionLanguage}/${this.props.versionTitle}`}>
+          {Sefaria.interfaceLang==="hebrew" ? "חזור" : "Back"}
+        </a>
+        <div className="extendedNotesText" dangerouslySetInnerHTML={ {__html: this.props.extendedNotes} }></div>
+      </div>
+  }
+}
 
 
 module.exports = ReaderTextTableOfContents;

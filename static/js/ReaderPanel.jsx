@@ -563,6 +563,7 @@ class ReaderPanel extends Component {
                     openNav={this.openMenu.bind(null, "navigation")}
                     openDisplaySettings={this.openDisplaySettings}
                     selectVersion={this.props.selectVersion}
+                    viewExtendedNotes={this.props.viewExtendedNotes}
                     showBaseText={this.showBaseText}/>);
 
     } else if (this.state.menuOpen === "book toc") {
@@ -580,7 +581,29 @@ class ReaderPanel extends Component {
                     openNav={this.openMenu.bind(null, "navigation")}
                     openDisplaySettings={this.openDisplaySettings}
                     selectVersion={this.props.selectVersion}
-                    showBaseText={this.showBaseText}/>);
+                    showBaseText={this.showBaseText}
+                    viewExtendedNotes={this.props.viewExtendedNotes}/>);
+
+    } else if (this.state.menuOpen === "extended notes") {
+      var menu = (<ReaderTextTableOfContents
+                    mode={this.state.menuOpen}
+                    interfaceLang={this.props.interfaceLang}
+                    closePanel={this.props.closePanel}
+                    close={this.closeMenus}
+                    title={this.state.bookRef}
+                    version={this.state.version}
+                    versionLanguage={this.state.versionLanguage}
+                    settingsLanguage={this.state.settings.language == "hebrew"?"he":"en"}
+                    category={Sefaria.index(this.state.bookRef) ? Sefaria.index(this.state.bookRef).primary_category : null}
+                    currentRef={this.state.bookRef}
+                    narrowPanel={!this.props.multiPanel}
+                    key={this.state.bookRef}
+                    openNav={this.openMenu.bind(null, "navigation")}
+                    openDisplaySettings={this.openDisplaySettings}
+                    selectVersion={this.props.selectVersion}
+                    showBaseText={this.showBaseText}
+                    extendedNotes={this.state.extendedNotes}
+                    extendedNotesHebrew={this.state.extendedNotesHebrew}/>);
 
     } else if (this.state.menuOpen === "search" && this.state.searchQuery) {
       var menu = (<SearchPage
@@ -777,6 +800,7 @@ ReaderPanel.propTypes = {
   setConnectionsFilter:        PropTypes.func,
   setDefaultOption:            PropTypes.func,
   selectVersion:               PropTypes.func,
+  viewExtendedNotes:           PropTypes.func,
   onQueryChange:               PropTypes.func,
   updateSearchFilter:          PropTypes.func,
   updateSearchOptionField:     PropTypes.func,
