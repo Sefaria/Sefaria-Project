@@ -22,7 +22,7 @@ class ReaderSuite(TestSuite):
     every_build = True
 
     def setup(self):
-        self.load_toc()
+        self.load_toc(my_temper=60)
 
 
 class PageloadSuite(TestSuite):

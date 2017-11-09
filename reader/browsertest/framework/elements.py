@@ -145,9 +145,10 @@ class AbstractTest(object):
         WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, ".readerNavCategory")))
         return self
 
-    def load_toc(self):
+    def load_toc(self, my_temper=None):
+        my_temper = my_temper or TEMPER  # This is used at startup, which can be sluggish on iPhone.
         self.driver.get(self.base_url + "/texts")
-        WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, ".readerNavCategory")))
+        WebDriverWait(self.driver, my_temper).until(element_to_be_clickable((By.CSS_SELECTOR, ".readerNavCategory")))
         self.set_modal_cookie()
         return self
 
@@ -773,7 +774,10 @@ class TestResultSet(AbstractTestResult):
     def cap(self):
         # Contained test results can have different caps, but in some contexts, they all have the same one.
         # Use carefully
-        return self._test_results[0].cap
+        if len(self._test_results):
+            return self._test_results[0].cap
+        else:
+            return ""
 
     def include(self, result):
         self._aggregated = False
