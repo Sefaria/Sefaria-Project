@@ -141,19 +141,13 @@ class AbstractTest(object):
     def nav_to_toc(self):
         if self.driver.current_url == self.base_url + "/texts" or self.driver.current_url.startswith(self.base_url + "/texts?"):
             return self
-        hamburger = self.driver.find_element_by_css_selector('.headerNavSection .library, .readerNavMenuMenuButton')
-        if hamburger:
-            hamburger.click()
-        else:
+        try:
+            self.driver.find_element_by_css_selector('.headerNavSection .library, .readerNavMenuMenuButton').click()
+        except NoSuchElementException:
             # Mobile browsers could be in a state where a window needs to be closed.
-            close_button = self.driver.find_element_by_css_selector('.readerNavMenuCloseButton')
-            if close_button:
-                close_button.click()
-            hamburger = self.driver.find_element_by_css_selector('.headerNavSection .library, .readerNavMenuMenuButton')
-            if hamburger:
-                hamburger.click()
-            else:
-                raise Exception("Can't find Hamburger")
+            self.driver.find_element_by_css_selector('.readerNavMenuCloseButton').click()
+            self.driver.find_element_by_css_selector('.headerNavSection .library, .readerNavMenuMenuButton').click()
+
         WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, ".readerNavCategory")))
         return self
 
