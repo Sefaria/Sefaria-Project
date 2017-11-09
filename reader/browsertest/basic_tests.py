@@ -371,6 +371,7 @@ class SaveNewSourceSheet(AtomicTest):
         saveButton = self.driver.find_element_by_css_selector('#save')
         saveButton.click()
         WebDriverWait(self.driver, TEMPER).until(title_contains("New Source Sheet | Sefaria Source Sheet Builder"))
+        WebDriverWait(self.driver, TEMPER).until(visibility_of_element_located((By.CSS_SELECTOR, '.headerNavSection .library')))
 
 
 '''
