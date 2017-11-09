@@ -383,6 +383,7 @@ class ReaderPanel extends Component {
     });
   }
   setCurrentlyVisibleRef(ref) {
+     this.replaceHistory = true;
      this.conditionalSetState({
       currentlyVisibleRef: ref,
     });   
@@ -446,6 +447,8 @@ class ReaderPanel extends Component {
     }
     var items = [];
     if (this.state.mode === "Text" || this.state.mode === "TextAndConnections") {
+      var oref  = Sefaria.parseRef(this.state.refs[0]);
+      var title = oref && oref.index ? oref.index : "empty";
       items.push(<TextColumn
           panelPosition ={this.props.panelPosition}
           srefs={this.state.refs.slice()}
@@ -473,7 +476,7 @@ class ReaderPanel extends Component {
           panelsOpen={this.props.panelsOpen}
           layoutWidth={this.props.layoutWidth}
           filter={this.state.filter}
-          key="text" />);
+          key={title + "-TextColumn"} />);
     }
     if (this.state.mode === "Connections" || this.state.mode === "TextAndConnections") {
       var langMode = this.props.masterPanelLanguage || this.state.settings.language;
@@ -693,9 +696,7 @@ class ReaderPanel extends Component {
     var style = {"fontSize": this.state.settings.fontSize + "%"};
     var hideReaderControls = (
         this.state.mode === "TextAndConnections" ||
-        this.state.menuOpen === "text toc" ||
-        this.state.menuOpen === "book toc" ||
-        this.state.menuOpen === "compare" ||
+        this.state.menuOpen ||
         this.props.hideNavHeader
     );
 
@@ -730,9 +731,10 @@ class ReaderPanel extends Component {
             <div className="readerContent" style={style}>
               {items}
             </div>
-        :""}
+        : null}
 
         {menu}
+        
         {this.state.displaySettingsOpen ? (<ReaderDisplayOptionsMenu
                                               settings={this.state.settings}
                                               multiPanel={this.props.multiPanel}
@@ -989,8 +991,8 @@ class ReaderDisplayOptionsMenu extends Component {
     colorToggle = this.props.multiPanel ? null : colorToggle;
 
     var sizeOptions = [
-      {name: "smaller", content: "Aa", role: "button", ariaLabel: "Decrease font size" },
-      {name: "larger", content: "Aa", role: "button", ariaLabel: "Increase font size"  }
+      {name: "smaller", content: Sefaria._("Aa"), role: "button", ariaLabel: Sefaria._("Decrease font size") },
+      {name: "larger", content: Sefaria._("Aa"), role: "button", ariaLabel: Sefaria._("Increase font size")  }
     ];
     var sizeToggle = (
         <ToggleSet

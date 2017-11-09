@@ -219,7 +219,7 @@ class SheetsHomePage extends Component {
                       <div className="actionText">
                         <div className="type-buttons">
                           {this._type_sheet_button("Most Used", "הכי בשימוש", () => this.changeSort("count"), (this.props.tagSort == "count"))}
-                          {this._type_sheet_button("Alphabetical", "אלפביתי", () => this.changeSort("alpha"), (this.props.tagSort == "alpha"))}
+                          {this._type_sheet_button("Alphabetical", "אלפביתי", () => this.changeSort((Sefaria.interfaceLang=="hebrew")?"alpha-hebrew":"alpha"), (this.props.tagSort == "alpha" || this.props.tagSort == "alpha-hebrew"))}
                           {this._type_sheet_button("Trending", "פופולרי", () => this.changeSort("trending"), (this.props.tagSort == "trending"))}
                         </div>
                       </div>
@@ -231,7 +231,9 @@ class SheetsHomePage extends Component {
                 </h2>
                 )}
 
-                <TwoOrThreeBox content={tagList} width={this.props.width} />
+                <div className="tagsList">
+                  <TwoOrThreeBox content={tagList} width={this.props.width} />
+                </div>
               </div>
               <footer id="footer" className="static sans">
                     <Footer />
@@ -272,7 +274,7 @@ class TagSheetsPage extends Component {
                       <div className="contentInner">
                         {this.props.hideNavHeader ? (<h1>
                           <span className="int-en">{this.props.tag}</span>
-                          <span className="int-he">{this.props.tag}</span>
+                          <span className="int-he">{Sefaria.hebrewTerm(this.props.tag)}</span>
                         </h1>) : null}
                         {sheets}
                       </div>
@@ -326,10 +328,9 @@ class AllSheetsPage extends Component {
     this.createSheetList(data)
   }
   createSheetList(newSheets) {
-
-      if (newSheets) {
-        this.setState({curSheets: this.state.curSheets.concat(newSheets), loading: false});
-      }
+    if (newSheets) {
+      this.setState({curSheets: this.state.curSheets.concat(newSheets), loading: false});
+    }
   }
   getSheetsFromCache(offset) {
     if (!offset) offset=0;
@@ -380,10 +381,14 @@ class PublicSheetListing extends Component {
     var title = sheet.title ? sheet.title.stripHtml() : "Untitled Source Sheet";
     var url = "/sheets/" + sheet.id;
     return (<a className="sheet" href={url} key={url}>
-              {sheet.ownerImageUrl ? (<img className="sheetImg" src={sheet.ownerImageUrl} alt={sheet.ownerName}/>) : null}
+              <div className="sheetTextInfo">
+                {sheet.ownerImageUrl ? (<img className="sheetImg" src={sheet.ownerImageUrl} alt={sheet.ownerName}/>) : null}
+                <div className="sheetAuthTitle">
+                  <div className="sheetAuthor">{sheet.ownerName}</div>
+                  <div className="sheetTitle">{title}</div>
+                </div>
+              </div>
               <span className="sheetViews"><i className="fa fa-eye" aria-label="Number of Sheet Views"></i> {sheet.views}</span>
-              <div className="sheetAuthor">{sheet.ownerName}</div>
-              <div className="sheetTitle">{title}</div>
             </a>);
   }
 }
@@ -398,7 +403,10 @@ class SheetTagButton extends Component {
     this.props.setSheetTag(this.props.tag);
   }
   render() {
-    return (<a href={`/sheets/tags/${this.props.tag}`} className="navButton" onClick={this.handleTagClick}>{this.props.tag} (<span className="enInHe">{this.props.count}</span>)</a>);
+    return (<a href={`/sheets/tags/${this.props.tag}`} className="navButton" onClick={this.handleTagClick}>
+              <span className="int-en">{this.props.tag} ({this.props.count})</span>
+              <span className="int-he">{Sefaria.hebrewTerm(this.props.tag)} (<span className="enInHe">{this.props.count}</span>)</span>
+            </a>);
   }
 }
 SheetTagButton.propTypes = {
@@ -416,6 +424,7 @@ class MySheetsPage extends Component {
       page: 1,
       showYourSheetTags: false,
       sheetFilterTag: null,
+      sheetFilterTagCount: -1,
       curSheets: [],
     };
   }
@@ -476,9 +485,9 @@ class MySheetsPage extends Component {
   }
   filterYourSheetsByTag (tag) {
     if (tag.tag == this.state.sheetFilterTag) {
-       this.setState({sheetFilterTag: null, showYourSheetTags: false});
+       this.setState({sheetFilterTag: null, showYourSheetTags: false, sheetFilterTagCount: -1});
     } else {
-      this.setState({sheetFilterTag: tag.tag, showYourSheetTags: false});
+      this.setState({sheetFilterTag: tag.tag, showYourSheetTags: false, sheetFilterTagCount: tag.count});
     }
   }
   changeSortYourSheets(event) {
@@ -499,6 +508,13 @@ class MySheetsPage extends Component {
     sheets = sheets && this.state.sheetFilterTag ? sheets.filter(function(sheet) {
       return Sefaria.util.inArray(this.state.sheetFilterTag, sheet.tags) >= 0;
     }.bind(this)) : sheets;
+
+    if (sheets) {
+      if (sheets.length < this.state.sheetFilterTagCount && !this.state.loading) {
+        this.getMoreSheets();
+      }
+    }
+
     sheets = sheets ? sheets.map(function(sheet) {
       return (<PrivateSheetListing sheet={sheet} setSheetTag={this.props.setSheetTag} key={sheet.id} />);
     }.bind(this)) : (<LoadingMessage />);
@@ -521,14 +537,16 @@ class MySheetsPage extends Component {
                   (<div className="sheetsNewButton">
                     <a className="button white" href="/sheets/new">
                         <span className="int-en">Create a Source Sheet</span>
-                        <span className="int-he">צור דף מקורות חדש</span>
+                        <span className="int-he">דף מקורות חדש</span>
                     </a>
                   </div>) : null }
 
                 {this.props.hideNavHeader ?
                  (<h2 className="splitHeader">
-                    <span className="int-en" onClick={this.toggleSheetTags}>Filter By Tag <i className="fa fa-angle-down"></i></span>
-                    <span className="int-he" onClick={this.toggleSheetTags}>סנן לפי תווית<i className="fa fa-angle-down"></i></span>
+                    <span className="filterLabel">
+                      <span className="int-en" onClick={this.toggleSheetTags}>Filter By Tag <i className="fa fa-angle-down"></i></span>
+                      <span className="int-he" onClick={this.toggleSheetTags}>סנן לפי תווית<i className="fa fa-angle-down"></i></span>
+                    </span>
                     <span className="int-en actionText">Sort By:
                       <select value={this.props.mySheetSort} onChange={this.changeSortYourSheets}>
                        <option value="date">Recent</option>
@@ -568,8 +586,13 @@ class PrivateSheetListing extends Component {
     }, this);
 
    return (<div className="sheet userSheet" href={url} key={url}>
-              <a className="sheetTitle" href={url}>{title}</a>  <SheetAccessIcon sheet={sheet} />
-              <div>{sheet.views} Views · {sheet.modified} · <span className="tagString">{tagString}</span></div>
+              <div className="userSheetTitle">
+                <a className="sheetTitle" href={url}>{title}</a>
+                <span className="sheetAccess"><SheetAccessIcon sheet={sheet} /></span>
+              </div>
+              <div className="userSheetInfo">
+                <span>{sheet.views} {Sefaria._('Views')}</span><span>{sheet.modified}</span><span className="tagString">{tagString}</span>
+              </div>
           </div>);
   }
 }

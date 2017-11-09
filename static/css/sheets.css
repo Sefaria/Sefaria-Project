@@ -349,6 +349,13 @@ body:not(.user-is-tabbing) #sheet .cke_editable:focus {
 	margin-left:-40px;
 }
 
+#shareWithOthers .line {
+	margin-left:-30px;
+	margin-top: 30px;
+	margin-bottom: 30px;
+	width: 540px;
+}
+
 .optionsMenu .fa {
 	/*margin-right: 8px;*/
 	-webkit-margin-end: 5px;
@@ -502,6 +509,96 @@ body:not(.user-is-tabbing) #sheet .cke_editable:focus {
 	font-size: 13px;
 }
 
+#sheetMetadata {
+	color: #999;
+	background-color: #fafafa;
+	padding: 0 80px;
+}
+
+#sheet #sheetMetadata .button {
+	background-color: #eee;
+	border-color: #ccc;
+	color: #999;
+	font-size: 14px;
+	margin: 4px;
+}
+
+#sheetMetadata summary {
+	text-align: center;
+	margin: 0 -76px;
+	background-color: #fff;
+    display: flex;
+	justify-content: center;
+	cursor: pointer;
+}
+
+#sheetMetadata[open] summary {
+	background-color: #fff;
+    display: flex;
+	justify-content: flex-end;
+}
+
+#sheetMetadata summary::-webkit-details-marker {
+  	display: none;
+}
+
+#sheetTags {
+	margin-left: -4px;
+}
+
+#sheetMetadata summary:after {
+  	content: "❯";
+	margin: 0 0 0 6px;
+}
+#sheetMetadata[open] summary span {
+	display: none;
+}
+#sheetMetadata[open] summary:after {
+  	content: "✕";
+    top: 56px;
+    margin: 0 80px;
+    position: relative;
+    align-self: flex-end;
+}
+
+#sheetMetadata .editButton {
+	float: right;
+    margin: 0 26px;
+    padding: 4px 14px;
+    font-size: 12px;
+	background-color: #eee;
+    border-color: #ccc;
+    color: #999;
+	cursor: pointer;
+}
+
+#sheetMetadata .editButton:before {
+	content: "✎ ";
+}
+
+#sheetMetadata .int-he .editButton {
+	float: left;
+}
+
+#sheetMetadata .metadataOpenDetails {
+	font-size: 14px;
+	font-family: "proxima-nova","Helvetica Neue","Helvetica",sans-serif;
+	padding: 35px 0;
+}
+
+#sheetMetadata #via, #sheetMetadata #assignmentAttribution {
+	font-size: 14px;
+	padding: 7px 0;
+}
+
+#sheetSummary {
+	margin: 14px 0;
+	font-style: italic;
+}
+#sheetSummary:empty {
+	display: none;
+}
+
 #likeLink {
 	color: black;
 	text-decoration: none;
@@ -615,7 +712,7 @@ body:not(.user-is-tabbing) #sheet .cke_editable:focus {
 	border-bottom:solid 1px #F2F2F2;
 }
 
-#sourceControls {
+.interface-english #sourceControls {
 	text-align: center;
 	position: absolute;
 	bottom: 7px;
@@ -623,6 +720,15 @@ body:not(.user-is-tabbing) #sheet .cke_editable:focus {
 	background-color: #eee;
 	left: 50%;
 	margin-left: -150px;
+}
+.interface-hebrew #sourceControls {
+	text-align: center;
+	position: absolute;
+	bottom: 7px;
+	width: 300px;
+	background-color: #eee;
+	right: 50%;
+	margin-right: -150px;
 }
 
 .sourceControlsTop #sourceControls {
@@ -643,14 +749,22 @@ body:not(.user-is-tabbing) #sheet .cke_editable:focus {
 	background-color: #F9F9F7 !important;
 
 }
-#sourceControls.sideControls {
+.interface-english #sourceControls.sideControls {
 	width: auto;
 	left: 23px;
 	margin-left: 0;
 	top: 32px;
 	bottom: auto;
 	background-color: inherit;
+}
 
+.interface-hebrew #sourceControls.sideControls{
+	width: auto;
+	right: 23px;
+	margin-right: 0;
+	top: 32px;
+	bottom: auto;
+	background-color: inherit;
 }
 
 #sourceControls.sideControls div:hover {
@@ -966,6 +1080,7 @@ body:not(.user-is-tabbing) #sheet .cke_editable:focus {
 	margin-top: 0;
 	height: 80px;
 	padding: 8px;
+	direction: ltr;
 }
 
 #embedSheetModal .sub {
@@ -1815,9 +1930,9 @@ line-height: normal;
 .inlineAddOr {
 	display:inline-block;
 	color: #999;
-    margin: 6px;
-
+    margin: 4px;
 }
+
 .inlineAddSourceByttons {
 	display: inline-block;
 }
@@ -1836,7 +1951,7 @@ line-height: normal;
     margin-right: 67px;
 	height:30px;
 	width:160px;
-
+	direction: ltr;
 }
 
 #customTextLanguageToggle .toggleOption {
@@ -1944,26 +2059,89 @@ a.userLink{
 
 }
 
-#shareURL {
+#sheetsContent #shareURL {
 	cursor: text;
 	background-color: #fff;
+    border-radius: 4px;
     font-style: italic;
-    width: 100%;
+	font-size: 16px;
+    width: 75%;
     box-sizing: border-box;
-    height: 30px;
+    height: 36px;
+	margin-top: 6px;
+	padding-left: 35px;
+	color: #999;
+	/* url below is an inline copy of `/static/img/tools-add-connection.svg` it's required to change the color accordingly  */
+    background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="%23999" d="M21.921 2.081c2.771 2.772 2.771 7.269 0 10.042l-3.84 3.839-2.121-2.122 3.839-3.84c1.599-1.598 1.599-4.199-.001-5.797-1.598-1.599-4.199-1.599-5.797-.001l-3.84 3.839-2.121-2.121 3.84-3.839c2.771-2.773 7.267-2.773 10.041 0zm-8.082 13.879l-3.84 3.839c-1.598 1.6-4.199 1.599-5.799 0-1.598-1.598-1.598-4.2 0-5.797l3.84-3.84-2.121-2.121-3.84 3.84c-2.771 2.772-2.772 7.268 0 10.041 2.773 2.772 7.27 2.773 10.041 0l3.84-3.84-2.121-2.122z"/></svg>') no-repeat 9px center;
+	background-size: 18px 18px;
+}
+#shareWithOthers #sourceSheetGroupSelect {
+	width: 75%;
+	margin-top: 13px;
+}
+
+#sourceSheetGroupOptions {
+	margin-top: 8px;
+}
+
+label[for="shareURL"],label[for="sourceSheetGroupSelect"], .labelforOnOffSwitch {
+	width: 24%;
+    display: inline-block;
+}
+
+.labelforOnOffSwitch {
+	position: relative;
+	top: -5px;
+}
+
+label[for="sourceSheetShareSelect"] {
+	width: 40%;
+    display: inline-block;
+}
+
+#shareWithOthers #sourceSheetShareSelect {
+	margin-bottom:0;
+	width: 25%;
+}
+
+#shareWithOthers .ok.button {
+    margin-top: -5px;
+    float: right;
+}
+
+#shareWithOthers .ok.button.int-he {
+	float:left;
+}
+
+
+#sheetsContent textarea#sheetSummaryInput {
+	width: 100%;
+	font-size: 16px;
+	padding: 10px 15px;
+    border-radius: 4px;
+	font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+	margin-bottom: 0;
+}
+
+#sheetsContent textarea#sheetSummaryInput::placeholder {
+	font-family: "proxima-nova","Helvetica Neue","Helvetica",sans-serif;
+	color: #999999;
 }
 
 #shareWithOthers .content .inputHeader {
-	margin: 30px 0 15px 0;
+	margin: 10px 0 10px 0;
 }
 
 #shareWithOthers .content select {
 	width: 100%;
+	font-size: 16px;
+    height: 36px;
+	font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
 }
 
 #shareWithOthers {
 	text-align: center;
-	width:400px;
+	width:480px;
 }
 
 #sharingDesc {
@@ -2014,6 +2192,10 @@ a.userLink{
 	text-align: left;
 }
 
+.interface-hebrew .s2Modal .content{
+	text-align: right;
+}
+
 .s2Modal .ok.button {
 	margin: 0 auto;
 }
@@ -2040,11 +2222,41 @@ a.userLink{
 }
 
 #tags {
-	border: 1px solid #aaaaaa;
+	border: 1px solid rgb(204, 204, 204);
 	background: #ffffff;
 	color: #222222;
-    margin-top: 30px;
-    margin-bottom: 30px;
+	margin: 0 0 5px 0;
+	padding-left: 10px;
+    border-radius: 4px;
+}
+
+#tags .addTagMsg {
+	font-style: italic;
+	font-size: 16px;
+	float: left;
+	padding-top: 3px;
+    margin: 8px 3px;
+	color: #999999;
+}
+
+#tags .addTagMsg .int-he {
+	float: right;
+}
+
+#suggestedTags {
+	margin-bottom: 9px;
+}
+
+.tagButton {
+    color: #999999;
+    background-color: #f2f2f2;
+	border: 1px solid #e5e5e5;
+    border-radius: 2px;
+	padding: 5px;
+	margin: 2px;
+	font-size: 12px;
+	cursor: pointer;
+	display: inline-block;
 }
 
 .ui-widget-content {
@@ -2059,6 +2271,12 @@ a.userLink{
 
 ul.tagit li.tagit-choice .tagit-close .text-icon {
 	display:block;
+	margin-left: 5px;
+}
+
+#tags input {
+    font-size: 16px;
+    font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
 }
 
 .ui-icon {
@@ -2077,9 +2295,11 @@ ul.tagit li.tagit-choice .tagit-close .text-icon {
 }
 
 ul.tagit li.tagit-choice {
-    color: #333;
+    color: #666;
 	background-color: #F9F9F7;
 	border-radius: 2px;
+	padding: 5px 15px 5px 5px;
+	margin: 5px 0 0 5px;
 }
 
 a.tagit-close {
@@ -2147,6 +2367,9 @@ a.tagit-close {
     display: inline-block;
     float: right;
     height: 22px;
+}
+.interface-hebrew .editCheckToggle{
+	float: left;
 }
 
 
@@ -2216,6 +2439,10 @@ a.tagit-close {
 	color: #888;
 	background-color: #f2f2f2;
 
+}
+
+#sheet .segment {
+	display: inline;
 }
 
 #highlightToggleDeactivate,
@@ -2293,3 +2520,96 @@ a.tagit-close {
 #sheet.hebrew .outsideWrapper .en, #sheet.english .outsideWrapper .en .outsideWrapper .he {
 	display: block;
 }  /* TODO add ability to set outside text source formatting from menu bar like real sources to remove need for this. Allow overrides to occur like real source texts */
+
+.interface-hebrew .tooltipster-default .tooltipster-content{
+	font-family: "Heebo", sans-serif;
+}
+
+.onoffswitch {
+    position: relative;
+	width: 70px;
+	display: inline-block;
+    -webkit-user-select:none;
+	-moz-user-select:none;
+	-ms-user-select: none;
+	top: 8px;
+}
+#sheetsContent .onoffswitch-checkbox {
+    display: none;
+}
+.onoffswitch-label {
+    display: block;
+	overflow: hidden;
+	cursor: pointer;
+	border-radius: 20px;
+}
+.onoffswitch-inner {
+    display: block;
+	width: 200%;
+	margin-left: -100%;
+    transition: margin 0.3s ease-in 0s;
+}
+
+.interface-hebrew .onoffswitch-inner {
+	margin-right: -100%;
+}
+.onoffswitch-inner:before, .onoffswitch-inner:after {
+    display: block;
+	float: left;
+	width: 50%;
+	height: 36px;
+	padding: 0;
+	line-height: 36px;
+    font-size: 14px;
+	color: white;
+    box-sizing: border-box;
+}
+.onoffswitch-inner:before {
+    content: "Yes";
+    padding-left: 10px;
+    background-color: #212D4F;
+	color: #FFFFFF;
+}
+.interface-hebrew .onoffswitch-inner:before{
+    content: "לא";
+    padding-right: 10px;
+}
+.onoffswitch-inner:after {
+    content: "No";
+    padding-right: 10px;
+    background-color: #212D4F;
+	color: #fff;
+    text-align: right;
+}
+
+.interface-hebrew .onoffswitch-inner:after {
+	text-align: left;
+	padding-left: 10px;
+}
+
+.interface-hebrew .onoffswitch-inner:after{
+    content: "כן";
+}
+.onoffswitch-switch {
+    display: block;
+	width: 31px;
+	margin: 1px;
+    background: #FFFFFF;
+    position: absolute;
+	top: 0;
+	bottom: 0;
+    right: 36px;
+    border: 1px solid #999999;
+	border-radius: 26px;
+    transition: all 0.3s ease-in 0s;
+}
+.onoffswitch-checkbox:checked + .onoffswitch-label .onoffswitch-inner {
+    margin-left: 0;
+}
+.interface-hebrew .onoffswitch-checkbox:checked + .onoffswitch-label .onoffswitch-inner {
+    margin-right: 0;
+}
+
+.onoffswitch-checkbox:checked + .onoffswitch-label .onoffswitch-switch {
+    right: 0px;
+}

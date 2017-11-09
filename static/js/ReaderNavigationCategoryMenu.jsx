@@ -72,7 +72,10 @@ class ReaderNavigationCategoryMenu extends Component {
                   <span className="en">{catTitle}</span>
                   <span className="he">{heCatTitle}</span>
                 </h2>)}
-                {this.props.hideNavHeader || this.props.interfaceLang === "hebrew" ? null : (<ReaderNavigationMenuDisplaySettingsButton onClick={this.props.openDisplaySettings} />)}
+                {this.props.hideNavHeader ? null : 
+                  (this.props.interfaceLang === "hebrew" ? 
+                    <ReaderNavigationMenuDisplaySettingsButton placeholder={true} /> 
+                    : <ReaderNavigationMenuDisplaySettingsButton onClick={this.props.openDisplaySettings} />)}
               </div>
               <div className={contentClasses}>
                 <div className="contentInner">
@@ -169,7 +172,7 @@ class ReaderNavigationCategoryMenuContents extends Component {
           // Special Case categories which should nest but normally wouldn't given their depth
           var subcats = ["Mishneh Torah", "Shulchan Arukh", "Maharal"];
           if (Sefaria.util.inArray(item.category, subcats) > -1 || this.props.nestLevel > 0) {
-            if(item.contents.length == 1 && !("category" in item.contents[0])){
+            if(item.contents && item.contents.length == 1 && !("category" in item.contents[0])){
                 var chItem = item.contents[0];
                 var [title, heTitle] = this.getRenderedTextTitleString(chItem.title, chItem.heTitle);
                 var url     = "/" + Sefaria.normRef(chItem.firstSection);

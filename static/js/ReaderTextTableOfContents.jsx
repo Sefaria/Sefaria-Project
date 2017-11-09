@@ -90,14 +90,16 @@ class ReaderTextTableOfContents extends Component {
     if (currentLanguage == "he" && !d.he.length) {currentLanguage = "en"}
 
     var currentVersion = {
-      language:            currentLanguage,
-      versionTitle:        currentLanguage == "he" ? d.heVersionTitle : d.versionTitle,
-      versionSource:       currentLanguage == "he" ? d.heVersionSource : d.versionSource,
-      versionStatus:       currentLanguage == "he" ? d.heVersionStatus : d.versionStatus,
-      license:             currentLanguage == "he" ? d.heLicense : d.license,
-      sources:             currentLanguage == "he" ? d.heSources : d.sources,
-      versionNotes:        currentLanguage == "he" ? d.heVersionNotes : d.versionNotes,
-      digitizedBySefaria:  currentLanguage == "he" ? d.heDigitizedBySefaria : d.digitizedBySefaria
+      language:               currentLanguage,
+      versionTitle:           currentLanguage == "he" ? d.heVersionTitle : d.versionTitle,
+      versionSource:          currentLanguage == "he" ? d.heVersionSource : d.versionSource,
+      versionStatus:          currentLanguage == "he" ? d.heVersionStatus : d.versionStatus,
+      license:                currentLanguage == "he" ? d.heLicense : d.license,
+      sources:                currentLanguage == "he" ? d.heSources : d.sources,
+      versionNotes:           currentLanguage == "he" ? d.heVersionNotes : d.versionNotes,
+      digitizedBySefaria:     currentLanguage == "he" ? d.heDigitizedBySefaria : d.digitizedBySefaria,
+      versionTitleInHebrew: currentLanguage == "he" ? d.heVersionTitleInHebrew : d.VersionTitleInHebrew,
+      versionNotesInHebrew: currentLanguage == "he" ? d.heVersionNotesInHebrew : d.VersionNotesInHebrew
     };
     currentVersion.merged = !!(currentVersion.sources);
 
@@ -152,7 +154,7 @@ class ReaderTextTableOfContents extends Component {
     var index     = Sefaria.index(title);
     var heTitle   = index ? index.heTitle : title;
     var category  = this.props.category;
-    var catUrl    = "/texts/" + (category == "Commentary" ? 
+    var catUrl    = "/texts/" + (category == "Commentary" ?
                                   index.categories.slice(0, index.categories.indexOf("Commentary") + 1).join("/")
                                   : category);
 
@@ -194,39 +196,52 @@ class ReaderTextTableOfContents extends Component {
     var moderatorSection = Sefaria.is_moderator || Sefaria.is_editor ? (<ModeratorButtons title={title} />) : null;
 
     // Downloading
+    var languageInHebrew = {'en': 'אנגלית', 'he': 'עברית'};
     if (versions) {
       var dlReady = (this.state.dlVersionTitle && this.state.dlVersionFormat && this.state.dlVersionLanguage);
-      var dl_versions = [<option key="/" value="0" disabled>Version Settings</option>];
+      var dl_versions = [<option key="/" value="0" dir="auto" disabled>{ Sefaria.interfaceLang == "hebrew"? "הגדרות גרסה" : "Version Settings" }</option>];
       var pdVersions = versions.filter(this.isVersionPublicDomain);
       if (cv && cv.merged) {
         var other_lang = cv.language == "he" ? "en" : "he";
         dl_versions = dl_versions.concat([
-          <option value={"merged/" + cv.language} key={"merged/" + cv.language} data-lang={cv.language} data-version="merged">Current Merged Version ({cv.language})</option>,
-          <option value={"merged/" + other_lang} key={"merged/" + other_lang} data-lang={other_lang} data-version="merged">Merged Version ({other_lang})</option>
+          <option dir="auto" value={"merged/" + cv.language} key={"merged/" + cv.language} data-lang={cv.language} data-version="merged">
+              {Sefaria.interfaceLang == "hebrew" ? "גרסה משולבת נוכחית" + `(${languageInHebrew[cv.language]})` :`Current Merged Version (${cv.language})`}
+          </option>,
+          <option dir="auto" value={"merged/" + other_lang} key={"merged/" + other_lang} data-lang={other_lang} data-version="merged">
+              {Sefaria.interfaceLang == "hebrew" ? `גרסה משולבת` + `(${languageInHebrew[other_lang]})` : `Merged Version (${other_lang})`}
+          </option>
         ]);
         dl_versions = dl_versions.concat(pdVersions.map(v =>
-          <option value={v.versionTitle + "/" + v.language} key={v.versionTitle + "/" + v.language}>{v.versionTitle + " (" + v.language + ")"}</option>
+          <option dir="auto" value={v.versionTitle + "/" + v.language} key={v.versionTitle + "/" + v.language}>
+            {(Sefaria.interfaceLang == "hebrew" && v.versionTitleInHebrew) ? `${v.versionTitleInHebrew} (${languageInHebrew[v.language]})` : `${v.versionTitle} (${v.language})`}
+              </option>
         ));
       }
       else if (cv) {
         if (this.isVersionPublicDomain(cv)) {
-          dl_versions.push(<option value={cv.versionTitle + "/" + cv.language} key={cv.versionTitle + "/" + cv.language}>Current Version ({cv.versionTitle + " (" + cv.language + ")"})</option>);
+          dl_versions.push(<option value={cv.versionTitle + "/" + cv.language} key={cv.versionTitle + "/" + cv.language}>
+            {Sefaria.interfaceLang == "hebrew" ? "גרסה נוכחית" + `(${languageInHebrew[cv.language]})` :`Current Version (${cv.language})`}
+          </option>);
         }
         dl_versions = dl_versions.concat([
-          <option value="merged/he" key="merged/he">Merged Version (he)</option>,
-          <option value="merged/en" key="merged/en">Merged Version (en)</option>
+          <option dir="auto" value="merged/he" key="merged/he">{Sefaria.interfaceLang == "hebrew" ?"גרסה משולבת (עברית)" :"Merged Version (he)"}</option>,
+          <option dir="auto" value="merged/en" key="merged/en">{Sefaria.interfaceLang == "hebrew" ?"גרסה משולבת (אנגלית)" :"Merged Version (en)"}</option>
         ]);
         dl_versions = dl_versions.concat(pdVersions.filter(v => v.language != cv.language || v.versionTitle != cv.versionTitle).map(v =>
-          <option value={v.versionTitle + "/" + v.language} key={v.versionTitle + "/" + v.language}>{v.versionTitle + " (" + v.language + ")"}</option>
+          <option dir="auto" value={v.versionTitle + "/" + v.language} key={v.versionTitle + "/" + v.language}>
+              {(Sefaria.interfaceLang == "hebrew" && v.versionTitleInHebrew) ? `${v.versionTitleInHebrew} (${languageInHebrew[v.language]})` : `${v.versionTitle} (${v.language})`}
+              </option>
         ));
       }
       else {
         dl_versions = dl_versions.concat([
-          <option value="merged/he" key="merged/he">Merged Version (he)</option>,
-          <option value="merged/en" key="merged/en">Merged Version (en)</option>
+          <option dir="auto" value="merged/he" key="merged/he">{Sefaria.interfaceLang == "hebrew" ?"גרסה משולבת (עברית)" :"Merged Version (he)"}</option>,
+          <option dir="auto" value="merged/en" key="merged/en">{Sefaria.interfaceLang == "hebrew" ?"גרסה משולבת (אנגלית)" :"Merged Version (en)"}</option>
         ]);
         dl_versions = dl_versions.concat(pdVersions.map(v =>
-          <option value={v.versionTitle + "/" + v.language} key={v.versionTitle + "/" + v.language}>{v.versionTitle + " (" + v.language + ")"}</option>
+          <option dir="auto" value={v.versionTitle + "/" + v.language} key={v.versionTitle + "/" + v.language}>
+              {(Sefaria.interfaceLang == "hebrew" && v.versionTitleInHebrew) ? `${v.versionTitleInHebrew} (${languageInHebrew[v.language]})` : `${v.versionTitle} (${v.language})`}
+              </option>
         ));
       }
       var downloadButton = <div className="versionDownloadButton">
@@ -235,19 +250,27 @@ class ReaderTextTableOfContents extends Component {
             <span className="int-he">הורדה</span>
           </div>
         </div>;
+      var formatStrings = {
+        none: {english: "File Format", hebrew: "סוג הקובץ"},
+        txt: {english: "File Format", hebrew: "טקסט (עם תיוגים)"},
+        plaintxt: {english: "File Format", hebrew: "טקסט (ללא תיוגים)"}
+      };
       var downloadSection = (
         <div className="dlSection">
           <h2 className="dlSectionTitle">
             <span className="int-en">Download Text</span>
             <span className="int-he">הורדת הטקסט</span>
           </h2>
-          <select className="dlVersionSelect dlVersionTitleSelect" value={(this.state.dlVersionTitle && this.state.dlVersionLanguage)?this.state.dlVersionTitle + "/" + this.state.dlVersionLanguage:"0"} onChange={this.onDlVersionSelect}>
+          <select 
+            className="dlVersionSelect dlVersionTitleSelect" 
+            value={(this.state.dlVersionTitle && this.state.dlVersionLanguage) ? this.state.dlVersionTitle + "/" + this.state.dlVersionLanguage : "0"} 
+            onChange={this.onDlVersionSelect}>
             {dl_versions}
           </select>
           <select className="dlVersionSelect dlVersionFormatSelect" value={this.state.dlVersionFormat || "0"} onChange={this.onDlFormatSelect}>
-            <option key="none" value="0" disabled>File Format</option>
-            <option key="txt" value="txt" >Text (with tags)</option>
-            <option key="plain.txt" value="plain.txt" >Text (without tags)</option>
+            <option key="none" value="0" disabled>{ formatStrings.none[Sefaria.interfaceLang] }</option>
+            <option key="txt" value="txt" >{ formatStrings.txt[Sefaria.interfaceLang] }</option>
+            <option key="plain.txt" value="plain.txt" >{ formatStrings.plaintxt[Sefaria.interfaceLang] }</option>
             <option key="csv" value="csv" >CSV</option>
             <option key="json" value="json" >JSON</option>
           </select>
@@ -257,7 +280,7 @@ class ReaderTextTableOfContents extends Component {
     }
 
     var closeClick = (this.isBookToc()) ? this.props.closePanel : this.props.close;
-    var classes = classNames({readerTextTableOfContents:1, readerNavMenu:1, narrowPanel: this.props.narrowPanel, noLangToggleInHebrew: 1});
+    var classes = classNames({readerTextTableOfContents:1, readerNavMenu:1, narrowPanel: this.props.narrowPanel, noLangToggleInHebrew: this.props.interfaceLang == 'hebrew'});
     var categories = Sefaria.index(this.props.title).categories;
 
 
@@ -275,7 +298,9 @@ class ReaderTextTableOfContents extends Component {
                     </div>
                   </div>
                   <div className="rightButtons">
-                    {this.props.interfaceLang !== "hebrew" ? <ReaderNavigationMenuDisplaySettingsButton onClick={this.props.openDisplaySettings} /> : null}
+                    {this.props.interfaceLang !== "hebrew" ? 
+                      <ReaderNavigationMenuDisplaySettingsButton onClick={this.props.openDisplaySettings} /> 
+                      : <ReaderNavigationMenuDisplaySettingsButton placeholder={true} />}
                   </div>
                 </div>
               </div>
@@ -317,6 +342,7 @@ class ReaderTextTableOfContents extends Component {
                       currentRef={this.props.currentRef}
                       narrowPanel={this.props.narrowPanel}
                       title={this.props.title} />
+
                   </div>
                   : <LoadingMessage />}
                   {downloadSection}
@@ -500,7 +526,8 @@ class TextTableOfContentsNavigation extends Component {
         var content = <SchemaNode
                           schema={this.props.schema}
                           addressTypes={this.props.schema.addressTypes}
-                          refPath={this.props.title} />;
+                          refPath={this.props.title}
+                          key="default"/>;
         break;
       case "commentary":
         var content = <CommentatorList
@@ -520,7 +547,8 @@ class TextTableOfContentsNavigation extends Component {
         var content = <SchemaNode
                           schema={this.props.alts[this.state.tab]}
                           addressTypes={this.props.schema.addressTypes}
-                          refPath={this.props.title} />;
+                          refPath={this.props.title}
+                          key="alt_struct"/>;
         break;
     }
 
@@ -622,7 +650,7 @@ class SchemaNode extends Component {
           // SchemaNode with children (nodes) or ArrayMapNode with depth (refs)
           return (
             <div className="schema-node-toc" key={i}>
-              <span className="schema-node-title" onClick={this.toggleCollapse.bind(null, i)} role="heading" aria-level="3">
+              <span className="schema-node-title" onClick={this.toggleCollapse.bind(null, i)} onKeyPress={function(e) {e.charCode == 13 ? this.toggleCollapse(i):null}.bind(this)} role="heading" aria-level="3" tabIndex={0}>
                 <span className="he">{node.heTitle} <i className={"schema-node-control fa fa-angle-" + (this.state.collapsed[i] ? "left" : "down")}></i></span>
                 <span className="en">{node.title} <i className={"schema-node-control fa fa-angle-" + (this.state.collapsed[i] ? "right" : "down")}></i></span>
               </span>
@@ -652,7 +680,7 @@ class SchemaNode extends Component {
           return (
             <div className="schema-node-toc" key={i}>
               { !node.default ?
-              <span className="schema-node-title" onClick={this.toggleCollapse.bind(null, i)} role="heading" aria-level="3">
+              <span className="schema-node-title" onClick={this.toggleCollapse.bind(null, i)} role="heading" aria-level="3" tabIndex={0} onKeyPress={function(e) {e.charCode == 13 ? this.toggleCollapse(i):null}.bind(this)} >
                 <span className="he">{node.heTitle} <i className={"schema-node-control fa fa-angle-" + (this.state.collapsed[i] ? "left" : "down")}></i></span>
                 <span className="en">{node.title} <i className={"schema-node-control fa fa-angle-" + (this.state.collapsed[i] ? "right" : "down")}></i></span>
               </span>
@@ -903,7 +931,9 @@ class VersionBlock extends Component {
       "license",
       "priority",
       "digitizedBySefaria",
-      "status"
+      "status",
+      "versionTitleInHebrew",
+      "versionNotesInHebrew"
     ];
     this.licenseMap = {
       "Public Domain": "https://en.wikipedia.org/wiki/Public_domain",
@@ -937,6 +967,9 @@ class VersionBlock extends Component {
   onVersionNotesChange(event) {
     this.setState({versionNotes: event.target.value, "error": null});
   }
+  onVersionNotesInHebrewChange(event) {
+    this.setState({versionNotesInHebrew: event.target.value, "error": null});
+  }
   onPriorityChange(event) {
     this.setState({priority: event.target.value, "error": null});
   }
@@ -948,6 +981,9 @@ class VersionBlock extends Component {
   }
   onVersionTitleChange(event) {
     this.setState({versionTitle: event.target.value, "error": null});
+  }
+  onVersionTitleInHebrewChange(event) {
+    this.setState({versionTitleInHebrew: event.target.value, "error": null});
   }
   saveVersionUpdate(event) {
     var v = this.props.version;
@@ -1026,6 +1062,9 @@ class VersionBlock extends Component {
             {close_icon}
             <input id="versionTitle" className="" type="text" value={this.state.versionTitle} onChange={this.onVersionTitleChange} />
 
+            <label htmlFor="versionTitleInHebrew" className="">Hebrew Version Title</label>
+            <input id="versionTitleInHebrew" className="" type="text" value={this.state.versionTitleInHebrew} onChange={this.onVersionTitleInHebrewChange} />
+
             <label htmlFor="versionSource">Version Source</label>
             <input id="versionSource" className="" type="text" value={this.state.versionSource} onChange={this.onVersionSourceChange} />
 
@@ -1045,6 +1084,9 @@ class VersionBlock extends Component {
 
             <label id="versionNotes_label" htmlFor="versionNotes">VersionNotes</label>
             <textarea id="versionNotes" placeholder="Version Notes" onChange={this.onVersionNotesChange} value={this.state.versionNotes} rows="5" cols="40"/>
+
+            <label id="versionNotesInHebrew_label" htmlFor="versionNotes_in_hebrew">Hebrew VersionNotes</label>
+            <textarea id="versionNotesInHebrew" placeholder="Hebrew Version Notes" onChange={this.onVersionNotesInHebrewChange} value={this.state.versionNotesInHebrew} rows="5" cols="40"/>
             <div>
               <div id="delete_button" onClick={this.deleteVersion}>Delete Version</div>
               <div id="save_button" onClick={this.saveVersionUpdate}>SAVE</div>
@@ -1055,8 +1097,9 @@ class VersionBlock extends Component {
       );
     } else {
       // Presentation View
-      var license = this.licenseMap[v.license]?<a href={this.licenseMap[v.license]} target="_blank">{v.license}</a>:v.license;
-      var digitizedBySefaria = v.digitizedBySefaria ? <a className="versionDigitizedBySefaria" href="/digitized-by-sefaria">Digitized by Sefaria</a> : "";
+      var license = this.licenseMap[v.license]?<a href={this.licenseMap[v.license]} target="_blank">{Sefaria._(v.license)}</a>:v.license;
+      var digitizedBySefaria = v.digitizedBySefaria
+          ? <a className="versionDigitizedBySefaria" href="/digitized-by-sefaria">{Sefaria._("Digitized by Sefaria")}</a> : "";
       var licenseLine = "";
       if (v.license && v.license != "unknown") {
         licenseLine =
@@ -1068,10 +1111,22 @@ class VersionBlock extends Component {
       }
       var edit_icon = (Sefaria.is_moderator)?<i className="fa fa-pencil" aria-hidden="true" onClick={this.openEditor}/>:"";
 
+      var versionNotes = "";
+      if (this.props.showNotes) {
+        if (Sefaria.interfaceLang=="english" && !!(v.versionNotes)) {
+          versionNotes = v.versionNotes;
+        }
+        else if (Sefaria.interfaceLang=="hebrew" && !!(v.versionNotesInHebrew)) {
+          versionNotes = v.versionNotesInHebrew;
+        }
+      }
+
       return (
         <div className = "versionBlock">
           <div className="versionTitle">
-            <a onClick={this.openVersion} href={"/" + (this.props.firstSectionRef ? this.props.firstSectionRef : this.props.version.versionTitle) + "/" + this.props.version.language + "/" + this.props.version.versionTitle}>{v.versionTitle}</a>
+            <a onClick={this.openVersion} href={"/" + (this.props.firstSectionRef ? this.props.firstSectionRef : this.props.version.versionTitle) + "/" + this.props.version.language + "/" + this.props.version.versionTitle}>
+                {(Sefaria.interfaceLang=="english" || v.versionTitleInHebrew==="") ? v.versionTitle : v.versionTitleInHebrew}
+                </a>
             {edit_icon}
           </div>
           <div className="versionDetails">
@@ -1081,9 +1136,9 @@ class VersionBlock extends Component {
             {licenseLine ? <span className="separator">-</span>: null}
             {licenseLine}
             {this.props.showHistory ? <span className="separator">-</span>: null}
-            {this.props.showHistory ? <a className="versionHistoryLink" href={`/activity/${Sefaria.normRef(this.props.currentRef)}/${v.language}/${v.versionTitle && v.versionTitle.replace(/\s/g,"_")}`}>Version History&nbsp;›</a>:""}
+            {this.props.showHistory ? <a className="versionHistoryLink" href={`/activity/${Sefaria.normRef(this.props.currentRef)}/${v.language}/${v.versionTitle && v.versionTitle.replace(/\s/g,"_")}`}>{Sefaria._("Version History") + " "}›</a>:""}
           </div>
-          {this.props.showNotes && !!v.versionNotes ? <div className="versionNotes" dangerouslySetInnerHTML={ {__html: v.versionNotes} }></div>:""}
+          {versionNotes ? <div className="versionNotes" dangerouslySetInnerHTML={ {__html: versionNotes} } ></div> : ""}
         </div>
       );
     }

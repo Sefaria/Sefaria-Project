@@ -184,7 +184,7 @@ class ReaderNavigationMenu extends Component {
 
       var calendar = Sefaria.calendar ?
                      [(<TextBlockLink sref={Sefaria.calendar.parasha} title={Sefaria.calendar.parashaName} heTitle={Sefaria.calendar.heParashaName} category="Tanakh" />),
-                      (<TextBlockLink sref={Sefaria.calendar.haftara} title="Haftara" heTitle="הפטרה" category="Tanakh" />),
+                      (<TextBlockLink sref={Sefaria.calendar.haftara} title="Haftarah" heTitle="הפטרה" category="Tanakh" />),
                       (<TextBlockLink sref={Sefaria.calendar.daf_yomi} title="Daf Yomi" heTitle="דף יומי" category="Talmud" />)] : [];
       calendar = (<div className="readerNavCalendar"><TwoOrThreeBox content={calendar} width={this.width} /></div>);
 
@@ -198,7 +198,7 @@ class ReaderNavigationMenu extends Component {
                      (<a className="resourcesLink outOfAppLink" style={sheetsStyle} href="/visualizations">
                         <img src="/static/img/visualizations-icon.png" alt="" />
                         <span className="int-en">Visualizations</span>
-                        <span className="int-he">חזותיים</span>
+                        <span className="int-he">תרשימים גרפיים</span>
                       </a>),
                     (<a className="resourcesLink outOfAppLink" style={sheetsStyle} href="/people">
                         <img src="/static/img/authors-icon.png" alt="" />
@@ -218,15 +218,19 @@ class ReaderNavigationMenu extends Component {
               (<div className="readerNavTop search">
                 <CategoryColorLine category="Other" />
                 <ReaderNavigationMenuSearchButton onClick={this.navHome} />
-                {this.props.interfaceLang !== "hebrew" ? <ReaderNavigationMenuDisplaySettingsButton onClick={this.props.openDisplaySettings} /> : null}
                 <div className='sefariaLogo'><img src="/static/img/sefaria.svg" alt="Sefaria Logo" /></div>
+                {this.props.interfaceLang !== "hebrew" ? 
+                  <ReaderNavigationMenuDisplaySettingsButton onClick={this.props.openDisplaySettings} /> 
+                  : <ReaderNavigationMenuDisplaySettingsButton placeholder={true} /> }
               </div>) :
               (<div className="readerNavTop search">
                 <CategoryColorLine category="Other" />
                 <div className="readerNavTopStart">
                   <ReaderNavigationMenuMenuButton onClick={this.closeNav} compare={this.props.compare} interfaceLang={this.props.interfaceLang}/>
-                  <ReaderNavigationMenuSearchButton onClick={this.handleSearchButtonClick} />
-                  <input id="searchInput" className="readerSearch" title="Search for Texts or Keywords Here" placeholder="Search" onKeyUp={this.handleSearchKeyUp} />
+                  <div className="searchBox">
+                    <ReaderNavigationMenuSearchButton onClick={this.handleSearchButtonClick} />
+                    <input id="searchInput" className="readerSearch" title={Sefaria._("Search for Texts or Keywords Here")} placeholder={Sefaria._("Search")} onKeyUp={this.handleSearchKeyUp} />
+                  </div>
                 </div>
                 {this.props.interfaceLang !== "hebrew" ? <ReaderNavigationMenuDisplaySettingsButton onClick={this.props.openDisplaySettings} /> : null}
 
@@ -320,7 +324,6 @@ class RecentPanel extends Component {
                 showSections={true}
                 recentItem={true} />)
     });
-    var recentContent = (<TwoOrThreeBox content={recentItems} width={width} />);
 
     var footer = this.props.compare ? null :
                     (<footer id="footer" className={`interface-${this.props.interfaceLang} static sans`}>
@@ -352,7 +355,7 @@ class RecentPanel extends Component {
               <span className="int-he">נצפו לאחרונה</span>
             </h1>
             : null }
-            {recentContent}
+            {recentItems}
           </div>
           {footer}
         </div>

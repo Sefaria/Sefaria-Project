@@ -73,13 +73,15 @@ class TextRange extends Component {
     };
     var data = Sefaria.text(this.props.sref, settings);
 
-    if (!data || "updateFromAPI" in data) { // If we don't have data yet, call again with a callback to trigger API call
+    if ((!data || "updateFromAPI" in data) && !this.textLoading) { // If we don't have data yet, call again with a callback to trigger API call
+      this.textLoading = true;
       Sefaria.text(this.props.sref, settings, this.onTextLoad);
     }
     return data;
   }
   onTextLoad(data) {
     // Initiate additional API calls when text data first loads
+    this.textLoading = false;
     if (this.props.basetext && this.props.sref !== data.ref) {
       // Replace ReaderPanel contents ref with the normalized form of the ref, if they differ.
       // Pass parameter to showBaseText to replaceHistory - normalization should't add a step to history
@@ -95,13 +97,10 @@ class TextRange extends Component {
 
     this.prefetchData();
 
-    if (this.props.onTextLoad) {
-      this.props.onTextLoad();
-    }
-
     if (this._isMounted) {
       this.forceUpdate(function() {
         this.placeSegmentNumbers();
+        this.props.onTextLoad && this.props.onTextLoad(); // Don't call until the text is actually rendered
       }.bind(this));
     }
   }
@@ -159,8 +158,6 @@ class TextRange extends Component {
   }
   placeSegmentNumbers() {
     //console.log("placeSegmentNumbers", this.props.sref);
-    //debugger
-    //console.trace();
     // Set the vertical offsets for segment numbers and link counts, which are dependent
     // on the rendered height of the text of each segment.
     var $text  = $(ReactDOM.findDOMNode(this));
@@ -184,14 +181,6 @@ class TextRange extends Component {
         $elems[0].css({top: "-=" + adjust});
         $elems[1].css({top: "+=" + adjust});
       }
-      /* Sketching a general solution for any number of elements, incomplete.
-      var halfOrLess = Math.floor($elems.length / 2);
-      var above = $elems.slice(0, halfOrLess);
-      var below = $elems.slice(-halfOrLess);
-      for (var i = 0; i < halfOrLess; i++) {
-
-      }
-      */
     };
     for (var top in elemsAtPosition) {
       if (elemsAtPosition.hasOwnProperty(top)) {
@@ -204,6 +193,25 @@ class TextRange extends Component {
   onFootnoteClick(event) {
     $(event.target).closest("sup").next("i.footnote").toggle();
     this.placeSegmentNumbers();
+  }
+  parashahHeader(ref) {
+    // Returns the English/Hebrew title of a Parasha, if `ref` is the beginning of a new parahsah
+    // returns null otherwise. 
+    var data = this.getText();
+    if (!data) { return null; }
+    var index = Sefaria.indexDetails(data.indexTitle);
+    if (index && "alts" in index && "Parasha" in index.alts) {
+      for (var i=0; i < index.alts.Parasha.nodes.length; i++) {
+        var parashahRef = index.alts.Parasha.nodes[i].wholeRef.split("-")[0];
+        if (ref == parashahRef) {
+          return {
+            en: index.alts.Parasha.nodes[i].title,
+            he: index.alts.Parasha.nodes[i].heTitle,
+          };
+        }
+      }
+    }
+    return null;
   }
   render() {
     var data = this.getText();
@@ -233,22 +241,30 @@ class TextRange extends Component {
       var highlight     = this.props.highlightedRefs && this.props.highlightedRefs.length ?        // if highlighted refs are explicitly set
                             Sefaria.util.inArray(segment.ref, this.props.highlightedRefs) !== -1 : // highlight if this ref is in highlighted refs prop
                             this.props.basetext && segment.highlight;                              // otherwise highlight if this a basetext and the ref is specific
-      return (
-        <TextSegment
-            panelPosition={this.props.panelPosition}
-            sref={segment.ref}
-            en={segment.en}
-            he={segment.he}
-            highlight={highlight}
-            segmentNumber={showSegmentNumbers ? segment.number : 0}
-            showLinkCount={this.props.basetext}
-            linkCount={Sefaria.linkCount(segment.ref, this.props.filter)}
-            filter={this.props.filter}
-            onSegmentClick={this.props.onSegmentClick}
-            onCitationClick={this.props.onCitationClick}
-            onFootnoteClick={this.onFootnoteClick}
-            key={i + segment.ref} />
-      );
+      var parashahHeader = null;
+      if (this.props.showParashahHeaders && this.parashahHeader(segment.ref)) {
+        var parashahNames = this.parashahHeader(segment.ref);
+        var parashahHeader = <div className="parashahHeader">
+          <span className="en">{ parashahNames.en }</span>
+          <span className="he">{ parashahNames.he }</span>
+        </div>;
+      }
+      return (<div key={i + segment.ref}>
+                { parashahHeader }
+                <TextSegment
+                    sref={segment.ref}
+                    en={segment.en}
+                    he={segment.he}
+                    highlight={highlight}
+                    segmentNumber={showSegmentNumbers ? segment.number : 0}
+                    showLinkCount={this.props.basetext}
+                    linkCount={Sefaria.linkCount(segment.ref, this.props.filter)}
+                    filter={this.props.filter}
+                    panelPosition={this.props.panelPosition}
+                    onSegmentClick={this.props.onSegmentClick}
+                    onCitationClick={this.props.onCitationClick}
+                    onFootnoteClick={this.onFootnoteClick} />
+              </div>);
     }.bind(this));
     textSegments = textSegments.length ? textSegments : null;
 
@@ -345,6 +361,7 @@ TextRange.propTypes = {
   settings:               PropTypes.object,
   filter:                 PropTypes.array,
   titleButtons:           PropTypes.object,
+  showParashahHeaders:    PropTypes.bool,
   onTextLoad:             PropTypes.func,
   onRangeClick:           PropTypes.func,
   onSegmentClick:         PropTypes.func,

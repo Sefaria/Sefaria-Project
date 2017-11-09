@@ -12,6 +12,9 @@ import re
 import regex
 import math
 
+import logging
+logger = logging.getLogger(__name__)
+
 
 ### Change to all caps for constants
 GERESH = u"\u05F3"
@@ -497,7 +500,7 @@ def hebrew_parasha_name(value):
 	"""
 	Returns a Hebrew ref for the english ref passed in.
 	"""
-	from sefaria.model import Term
+	from sefaria.model import Term, library
 	if not value:
 		return ""
 	if "-" in value:
@@ -508,9 +511,8 @@ def hebrew_parasha_name(value):
 			return ("-").join(map(hebrew_parasha_name, names))
 	else:
 		try:
-			term    = Term().load({"name": value, "scheme": "Parasha"})
-			parasha = term.get_titles(lang="he")[0]
-		except Exception, e:
-			print e
-			parasha   = value
+			parasha = library.get_simple_term_mapping().get(value)["he"]
+		except Exception as e:
+			logger.error(e.message)
+			parasha = value
 		return parasha

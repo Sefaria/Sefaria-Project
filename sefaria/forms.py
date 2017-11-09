@@ -5,8 +5,6 @@ Override of Django forms for new users and password reset.
 Includes logic for subscribing to mailing list on register and for 
 "User Seeds" -- pre-creating accounts that may already be in a Group.
 """
-
-
 from django import forms
 from django.contrib.auth.models import User, Group
 from django.contrib.auth.forms import *
@@ -18,40 +16,10 @@ from captcha.fields import ReCaptchaField
 
 from sefaria.client.util import subscribe_to_list
 from sefaria.local_settings import DEBUG
+from django.utils.translation import get_language
 
 
 SEED_GROUP = "User Seeds"
-
-strings = {
-    "email_placeholder": {
-        "en": "Email Address",
-        "he": u"כתובת אימייל",
-    },
-    "password_placeholder": {
-        "en": "Password",
-        "he": u"סיסמא",    
-    },
-    "first_name_placeholder": {
-        "en": "First Name",
-        "he": u"שם פרטי",    
-    },
-    "last_name_placeholder": {
-        "en": "Last Name",
-        "he": u"שם משפחה",    
-    },
-    "receive_announcements": {
-        "en": "Receive important announcements",
-        "he": u"Receive important announcements",    
-    },
-    "receive_educator": {
-        "en": "Receive our educator newsletter",
-        "he": u"Receive our educator newsletter",    
-    },
-    "user_exists_error": {
-        "en": "A user with that email already exists.",
-        "he": u"A user with that email already exists.",    
-    },
-}
 
 
 class SefariaLoginForm(EmailAuthenticationForm):
@@ -67,7 +35,10 @@ class NewUserForm(EmailUserCreationForm):
     subscribe_announce = forms.BooleanField(label=_("Receive important announcements"), help_text=_("Receive important announcements"), initial=True, required=False)
     subscribe_educator = forms.BooleanField(label=_("Receive our educator newsletter"), help_text=_("Receive our educator newsletter"), initial=False, required=False)
     if not DEBUG:
-        captcha = ReCaptchaField(attrs={'theme' : 'white'})
+        attrs = {'theme': 'white'}
+        if get_language() == 'he':
+            attrs['lang'] = 'iw'
+        captcha = ReCaptchaField(attrs=attrs)
     
     class Meta:
         model = User
@@ -108,15 +79,18 @@ class NewUserForm(EmailUserCreationForm):
             user.save()
 
         mailingLists = []
+        language = get_language()
 
         if self.cleaned_data["subscribe_announce"]:
-            mailingLists.append("Announcements_General")
-            mailingLists.append("Signed_Up_on_Sefaria")
+            list_name = "Announcements_General_Hebrew" if language == "he" else "Announcements_General"
+            mailingLists.append(list_name)
 
         if self.cleaned_data["subscribe_educator"]:
-            mailingLists.append("Announcements_Edu")
+            list_name = "Announcements_Edu_Hebrew" if language == "he" else "Announcements_Edu"
+            mailingLists.append(list_name)
 
         if mailingLists:
+            mailingLists.append("Signed_Up_on_Sefaria")
             try:
                 subscribe_to_list(mailingLists, user.email, first_name=user.first_name, last_name=user.last_name)
             except:

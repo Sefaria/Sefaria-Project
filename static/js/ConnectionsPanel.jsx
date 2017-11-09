@@ -491,7 +491,7 @@ class ToolsList extends Component {
         var path = "/edit/" + refString;
         var nextParam = "?next=" + encodeURIComponent(currentPath);
         path += nextParam;
-        console.log(path);
+        //console.log(path);
         Sefaria.track.event("Tools", "Edit Text Click", refString,
           {hitCallback: () =>  window.location = path}
         );
@@ -623,8 +623,9 @@ class AddNoteBox extends Component {
       type:  "note",
       public: !this.state.isPrivate
     };
+    if (this.props.noteId) { note._id = this.props.noteId; }
     var postData = { json: JSON.stringify(note) };
-    var url = (this.props.noteId ? "/api/notes/" + this.props.noteId : "/api/notes/");
+    var url = "/api/notes/";
     $.post(url, postData, function(data) {
       if (data.error) {
         alert(data.error);
@@ -638,10 +639,10 @@ class AddNoteBox extends Component {
         $(ReactDOM.findDOMNode(this)).find(".noteText").val("");
         this.props.onSave();
       } else {
-        alert("Sorry, there was a problem saving your note.");
+        alert(Sefaria._("Sorry, there was a problem saving your note."));
       }
     }.bind(this)).fail( function(xhr, textStatus, errorThrown) {
-      alert("Unfortunately, there was an error saving this note. Please try again or try reloading this page.");
+      alert(Sefaria._("Unfortunately, there was an error saving this note. Please try again or try reloading this page."));
     });
     this.setState({saving: true});
   }
@@ -652,7 +653,7 @@ class AddNoteBox extends Component {
     this.setState({isPrivate: false});
   }
   deleteNote() {
-    if (!confirm("Are you sure you want to delete this note?")) { return; }
+    if (!confirm(Sefaria._("Are you sure you want to delete this note?"))) { return; }
     var url = "/api/notes/" + this.props.noteId;
     $.ajax({
       type: "delete",
@@ -663,7 +664,7 @@ class AddNoteBox extends Component {
         this.props.onDelete();
       }.bind(this),
       error: function() {
-        alert("Something went wrong (that's all I know).");
+        alert(Sefaria._("Something went wrong (that's all I know)."));
       }
     });
   }
@@ -675,7 +676,7 @@ class AddNoteBox extends Component {
     var publicClasses  = classNames({notePublicButton: 1, active: !this.state.isPrivate});
     return (
       <div className="addNoteBox">
-        <textarea className="noteText" placeholder="Write a note..." defaultValue={this.props.noteText}></textarea>
+        <textarea className="noteText" placeholder={Sefaria._("Write a note...")} defaultValue={this.props.noteText}></textarea>
         <div className="button fillWidth" onClick={this.saveNote}>
           <span className="int-en">{this.props.noteId ? "Save" : "Add Note"}</span>
           <span className="int-he">{this.props.noteId ? "שמור": "הוסף רשומה"}</span>
@@ -792,7 +793,34 @@ PublicNotes.propTypes = {
 class AddConnectionBox extends Component {
   constructor(props) {
     super(props);
-    this.state = { type: "" };
+    this.state = { 
+      refs: this.props.srefs,
+      heRefs: this.getHeRefs(this.props.srefs),
+      type: "",
+    };
+  }
+  componentWillReceiveProps(nextProps) {
+    if (!this.props.srefs.compare(nextProps.srefs)) {
+      this.setState({
+        refs: nextProps.srefs,
+        heRefs: this.getHeRefs(nextProps.srefs),
+      })
+    }
+  }
+  getHeRefs(refs) {
+    var heRefs = refs.map( ref =>  {
+      var oRef = Sefaria.ref(ref);
+      if (!oRef) { 
+        // If a range was selected, the ref cache may not have a Hebrew ref for us, so ask the API
+        Sefaria.ref(ref, this.setHeRefs);
+        return "...";
+      }
+      return oRef.heRef; 
+    });
+    return heRefs;
+  }
+  setHeRefs() {
+    this.setState({heRefs: this.getHeRefs(this.state.refs)});
   }
   setType(type) {
     this.setState({type: type});
@@ -818,10 +846,8 @@ class AddConnectionBox extends Component {
     this.setState({saving: true});
   }
   render() {
-    var heRefs = this.props.srefs.map( ref =>  {
-      var oRef = Sefaria.ref(ref);
-      var heRef = oRef ? oRef.heRef : ref; // If a range was selected, the ref cache may not have a Hebrew ref for us
-    });
+    var refs = this.state.refs;
+    var heRefs = this.state.heRefs;
     return (<div className="addConnectionBox">
 
             { this.props.srefs.length == 1 ?
@@ -847,7 +873,7 @@ class AddConnectionBox extends Component {
               <div>
 
                 <div className="addConnectionSummary">
-                  <span className="en">{ this.props.srefs[0] }<br/>&<br/>{ this.props.srefs[1]}</span>
+                  <span className="en">{ refs[0] }<br/>&<br/>{ refs[1]}</span>
                   <span className="he">{ heRefs[0] }<br/>&<br/>{ heRefs[1] }</span>
                 </div>
 

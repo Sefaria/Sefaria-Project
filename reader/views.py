@@ -43,7 +43,7 @@ from sefaria.client.util import jsonResponse
 from sefaria.history import text_history, get_maximal_collapsed_activity, top_contributors, make_leaderboard, make_leaderboard_condition, text_at_revision, record_version_deletion, record_index_deletion
 from sefaria.system.decorators import catch_error_as_json
 from sefaria.summaries import get_or_make_summary_node
-from sefaria.sheets import get_sheets_for_ref, public_sheets, get_sheets_by_tag, user_sheets, user_tags, recent_public_tags, sheet_to_dict, get_top_sheets, make_tag_list, group_sheets
+from sefaria.sheets import get_sheets_for_ref, public_sheets, get_sheets_by_tag, user_sheets, user_tags, recent_public_tags, sheet_to_dict, get_top_sheets, public_tag_list, group_sheets
 from sefaria.utils.util import list_depth, text_preview
 from sefaria.utils.hebrew import hebrew_plural, hebrew_term, encode_hebrew_numeral, encode_hebrew_daf, is_hebrew, strip_cantillation, has_cantillation
 from sefaria.utils.talmud import section_to_daf, daf_to_section
@@ -52,7 +52,7 @@ import sefaria.utils.calendars
 from sefaria.utils.util import short_to_long_lang_code
 import sefaria.tracker as tracker
 from sefaria.system.cache import django_cache_decorator
-from sefaria.settings import USE_VARNISH, USE_NODE, NODE_HOST, DOMAIN_LANGUAGES, REDIRECTABLE_DOMAIN_LANGUAGES
+from sefaria.settings import USE_VARNISH, USE_NODE, NODE_HOST, DOMAIN_LANGUAGES
 if USE_VARNISH:
     from sefaria.system.sf_varnish import invalidate_ref, invalidate_linked
 
@@ -298,6 +298,9 @@ def make_panel_dict(oref, version, language, filter, mode, **kwargs):
             text_family["prev"] = oref.prev_section_ref().normal() if oref.prev_section_ref() else None
             panel["text"] = text_family
 
+            if oref.index.categories == [u"Tanakh", u"Torah"]:
+                panel["indexDetails"] = oref.index.contents(v2=True) # Included for Torah Parashah titles rendered in text
+
             if oref.is_segment_level():
                 panel["highlightedRefs"] = [subref.normal() for subref in oref.range_list()]
 
@@ -536,7 +539,7 @@ def s2_sheets(request):
     props.update({
         "initialMenu": "sheets",
         "topSheets": get_top_sheets(),
-        "tagList": make_tag_list(sort_by="count"),
+        "tagList": public_tag_list(sort_by="count"),
         "trendingTags": recent_public_tags(days=14, ntags=18)
     })
 
@@ -569,7 +572,7 @@ def s2_group_sheets(request, group, authenticated):
     return render_to_response('s2.html', {
         "propsJSON": propsJSON,
         "html": html,
-        "title": group[0].name + _(" | Sefaria"),
+        "title": group[0].name + " | " + _("Sefaria Groups"),
         "desc": props["groupData"].get("description", ""),
     }, RequestContext(request))
 
@@ -577,13 +580,15 @@ def s2_group_sheets(request, group, authenticated):
 @login_required
 def s2_my_groups(request):
     props = s2_props(request)
+    title = _("Sefaria Groups")
     return s2_page(request, props, "myGroups")
 
 
 @login_required
 def s2_my_notes(request):
+    title = _("My Notes on Sefaria")
     props = s2_props(request)
-    return s2_page(request, props, "myNotes")
+    return s2_page(request, props, "myNotes", title)
 
 
 def s2_sheets_by_tag(request, tag):
@@ -591,6 +596,9 @@ def s2_sheets_by_tag(request, tag):
     Page of sheets by tag.
     Currently used to for "My Sheets" and  "All Sheets" as well.
     """
+    if tag != Term.normalize(tag):
+        return redirect("/sheets/tags/%s" % Term.normalize(tag))
+
     props = s2_props(request)
     props.update({
         "initialMenu":     "sheets",
@@ -599,19 +607,20 @@ def s2_sheets_by_tag(request, tag):
     if tag == "My Sheets" and request.user.is_authenticated():
         props["userSheets"] = user_sheets(request.user.id)["sheets"]
         props["userTags"]   = user_tags(request.user.id)
-        title = _("My Source Sheets | Sefaria")
-        desc  = _("My Sources Sheets on Sefaria, both private a public.")
+        title = _("My Source Sheets | Sefaria Source Sheets")
+        desc  = _("My Sources Sheets on Sefaria, both private and public.")
 
     elif tag == "My Sheets" and not request.user.is_authenticated():
         return redirect("/login?next=/sheets/private")
 
     elif tag == "All Sheets":
         props["publicSheets"] = {"offset0num50": public_sheets(limit=50)["sheets"]}
-        title = _("Public Source Sheets | Sefaria")
+        title = _("Public Source Sheets | Sefaria Source Sheets")
         desc  = _("Explore thousands of public Source Sheets drawing on Sefaria's library of Jewish texts.")
 
     else:
         props["tagSheets"]    = [sheet_to_dict(s) for s in get_sheets_by_tag(tag)]
+        tag   = Term.normalize(tag, lang=request.LANGUAGE_CODE)
         title = tag + _(" | Sefaria")
         desc  = _('Public Source Sheets on tagged with "%(tag)s", drawing from Sefaria\'s library of Jewish texts.') % {'tag': tag}
 
@@ -636,6 +645,7 @@ def s2_topics_page(request):
         "initialMenu":  "topics",
         "initialTopic": None,
         "topicList": topics.list(sort_by="count"),
+        "trendingTags": recent_public_tags(days=14, ntags=12),
     })
 
     propsJSON = json.dumps(props)
@@ -653,6 +663,9 @@ def s2_topic_page(request, topic):
     Page of sheets by tag.
     Currently used to for "My Sheets" and  "All Sheets" as well.
     """
+    if topic != Term.normalize(topic):
+        return redirect("/topics/%s" % Term.normalize(topic))
+
     topics = get_topics()
     props = s2_props(request)
     props.update({
@@ -698,7 +711,7 @@ def mobile_home(request):
 
 def s2_texts(request):
     props = s2_props(request)
-    title = _("The Sefaria Libray")
+    title = _("The Sefaria Library")
     desc  = _("Browse 1,000s of Jewish texts in the Sefaria Library by category and title.")
     return s2_page(request, props, "navigation", title, desc)
 
@@ -712,21 +725,24 @@ def s2_updates(request):
 
 @login_required
 def s2_account(request):
+    title = _("Sefaria Account")
     props = s2_props(request)
-    return s2_page(request, props, "account")
+    return s2_page(request, props, "account", title)
 
 
 @login_required
 def s2_notifications(request):
     # Notifications content is not rendered server side
+    title = _("Sefaria Notifications")
     props = s2_props(request)
-    return s2_page(request, props, "notifications")
+    return s2_page(request, props, "notifications", title)
 
 
 @login_required
 def s2_modtools(request):
+    title = _("Moderator Tools")
     props = s2_props(request)
-    return s2_page(request, props, "modtools")
+    return s2_page(request, props, "modtools", title)
 
 
 """
@@ -1356,22 +1372,18 @@ def interface_language_redirect(request, language):
     Set the interfaceLang cookie, saves to UserProfile (if logged in)
     and redirects to `next` url param.
     """
-    from pprint import pprint
     next = request.GET.get("next", "/?home")
     next = "/?home" if next == "undefined" else next
     
-    pinned_domain = None
-    domains = REDIRECTABLE_DOMAIN_LANGUAGES or DOMAIN_LANGUAGES
-    for domain in domains:
-        if domains[domain] == language and not request.get_host() in domain:
-            pinned_domain = domain
+    for domain in DOMAIN_LANGUAGES:
+        if DOMAIN_LANGUAGES[domain] == language and not request.get_host() in domain:
             next = domain + next
+            next = next + ("&" if "?" in next else "?") + "set-language-cookie"
             break
 
     response = redirect(next)
     
-    if not pinned_domain:
-        response.set_cookie("interfaceLang", language)
+    response.set_cookie("interfaceLang", language)
     if request.user.is_authenticated():
         p = UserProfile(id=request.user.id)
         p.settings["interface_language"] = language
@@ -1413,7 +1425,7 @@ def texts_api(request, tref, lang=None, version=None):
 
         cb         = request.GET.get("callback", None)
         context    = int(request.GET.get("context", 1))
-        commentary = bool(int(request.GET.get("commentary", True)))
+        commentary = bool(int(request.GET.get("commentary", False)))
         pad        = bool(int(request.GET.get("pad", 1)))
         version    = version.replace("_", " ") if version else None
         layer_name = request.GET.get("layer", None)
@@ -1587,7 +1599,7 @@ def index_api(request, title, v2=False, raw=False):
         else:
             title = j.get("oldTitle", j.get("title"))
             try:
-                get_index(title)  # getting the index just to tell if it exists
+                library.get_index(title)  # getting the index just to tell if it exists
                 # Only allow staff and the person who submitted a text to edit
                 if not request.user.is_staff and not user_started_text(request.user.id, title):
                    return jsonResponse({"error": "{} is protected from change.<br/><br/>See a mistake?<br/>Email hello@sefaria.org.".format(title)})
@@ -1635,7 +1647,6 @@ def link_count_api(request, cat1, cat2):
     """
     if request.method == "GET":
         resp = jsonResponse(get_link_counts(cat1, cat2))
-        resp['Access-Control-Allow-Origin'] = '*'
         return resp
 
     elif request.method == "POST":
@@ -1683,6 +1694,73 @@ def counts_api(request, title):
             return jsonResponse({"status": "ok"})
 
         return jsonResponse({"error": "Not implemented."})
+
+@catch_error_as_json
+def shape_api(request, title):
+    """
+    API for retrieving a shape document for a given text or category.
+    For simple texts, returns a dict with keys:
+	{
+		"section": Category immediately above book?,
+		[Perhaps, instead, "categories"]
+		"heTitle": Hebrew title of node
+		"length": Number of chapters,
+		"chapters": List of Chapter Lengths (think about depth 1 & 3)
+		"title": English title of node
+		"book": English title of Book
+	}
+    For complex texts or categories, returns a list of dicts.
+    :param title: A valid node title or a path to a category, separated by /.
+    The "depth" parameter in the query string indicates how many levels in the category tree to descend.  Default is 2.
+    If depth == 0, descends to end of tree
+    The "dependents" parameter, if true, includes dependent texts.  By default, they are filtered out.
+
+    """
+
+    def _simple_shape(snode):
+        sn = StateNode(snode=snode)
+        shape = sn.var("all", "shape")
+
+        return {
+            "section": snode.index.categories[-1],
+            "heTitle": snode.primary_title("he"),
+            "title": snode.primary_title("en"),
+            "length": len(shape) if isinstance(shape, list) else 1,  # hmmmm
+            "chapters": shape,
+            "book": snode.index.title,
+        }
+
+    title = title.replace("_", " ")
+
+    if request.method == "GET":
+        sn = library.get_schema_node(title, "en")
+
+        # Leaf Node
+        if sn and not sn.children:
+            res = _simple_shape(sn)
+
+        # Branch Node
+        elif sn and sn.children:
+            res = [_simple_shape(n) for n in sn.get_leaf_nodes()]
+
+        # Category
+        else:
+            cat = library.get_toc_tree().lookup(title.split("/"))
+
+            if not cat:
+                res = {"error": "No index or category found to match {}".format(title)}
+            else:
+                depth = request.GET.get("depth", 2)
+                include_dependents = request.GET.get("dependents", False)
+
+                leaves = cat.get_leaf_nodes() if depth == 0 else [n for n in cat.get_leaf_nodes_to_depth(depth)]
+                if not include_dependents:
+                    leaves = [n for n in leaves if not n.dependence]
+
+                res = [_simple_shape(jan) for toc_index in leaves for jan in toc_index.get_index_object().nodes.get_leaf_nodes()]
+
+        return jsonResponse(res, callback=request.GET.get("callback", None))
+
 
 
 @catch_error_as_json
@@ -1758,10 +1836,10 @@ def links_api(request, link_id_or_ref=None):
         if not request.user.is_authenticated():
             key = request.POST.get("apikey")
             if not key:
-                return {"error": "You must be logged in or use an API key to add, edit or delete links."}
+                return jsonResponse({"error": "You must be logged in or use an API key to add, edit or delete links."})
             apikey = db.apikeys.find_one({"key": key})
             if not apikey:
-                return {"error": "Unrecognized API key."}
+                return jsonResponse({"error": "Unrecognized API key."})
             uid = apikey["uid"]
             kwargs = {"method": "API"}
         else:
@@ -1844,6 +1922,8 @@ def notes_api(request, note_id_or_ref):
             del note["refs"]
 
         func = tracker.update if "_id" in note else tracker.add
+        if "_id" in note:
+            note["_id"] = ObjectId(note["_id"])
         if not request.user.is_authenticated():
             key = request.POST.get("apikey")
             if not key:
@@ -2049,7 +2129,7 @@ def lock_text_api(request, title, lang, version):
     To unlock, include the URL parameter "action=unlock"
     """
     if not request.user.is_staff:
-        return {"error": "Only Sefaria Moderators can lock texts."}
+        return jsonResponse({"error": "Only Sefaria Moderators can lock texts."})
 
     title   = title.replace("_", " ")
     version = version.replace("_", " ")
@@ -2155,10 +2235,10 @@ def category_api(request, path=None):
         if not request.user.is_authenticated():
             key = request.POST.get("apikey")
             if not key:
-                return {"error": "You must be logged in or use an API key to add or delete categories."}
+                return jsonResponse({"error": "You must be logged in or use an API key to add or delete categories."})
             apikey = db.apikeys.find_one({"key": key})
             if not apikey:
-                return {"error": "Unrecognized API key."}
+                return jsonResponse({"error": "Unrecognized API key."})
             user = User.objects.get(id=apikey["uid"])
             if not user.is_staff:
                 return jsonResponse({"error": "Only Sefaria Moderators can add or delete categories."})
@@ -2219,10 +2299,10 @@ def terms_api(request, name):
         if not request.user.is_authenticated():
             key = request.POST.get("apikey")
             if not key:
-                return {"error": "You must be logged in or use an API key to add, edit or delete terms."}
+                return jsonResponse({"error": "You must be logged in or use an API key to add, edit or delete terms."})
             apikey = db.apikeys.find_one({"key": key})
             if not apikey:
-                return {"error": "Unrecognized API key."}
+                return jsonResponse({"error": "Unrecognized API key."})
             user = User.objects.get(id=apikey["uid"])
             if not user.is_staff:
                 return jsonResponse({"error": "Only Sefaria Moderators can add or edit terms."})
@@ -2648,12 +2728,12 @@ def topics_api(request, topic):
 
 
 @catch_error_as_json
-def recommend_topics_api(request, ref_list=""):
+def recommend_topics_api(request, ref_list=None):
     """
     API to receive recommended topics for list of strings `refs`. 
     """
     if request.method == "GET":
-        refs = [Ref(ref).normal() for ref in ref_list.split("+")]
+        refs = [Ref(ref).normal() for ref in ref_list.split("+")] if ref_list else []
 
     elif request.method == "POST":
         topics = get_topics()
@@ -2702,6 +2782,7 @@ def global_activity(request, page=1):
                                 'leaders1': top_contributors(1),
                                 'email': email,
                                 'next_page': next_page,
+                                'he': request.interfaceLang == "hebrew", # to make templates less verbose
                                 },
                              RequestContext(request))
 
@@ -2740,6 +2821,7 @@ def user_activity(request, slug, page=1):
                                 'for_user': True,
                                 'email': email,
                                 'next_page': next_page,
+                                'he': request.interfaceLang == "hebrew", # to make templates less verbose
                                 },
                              RequestContext(request))
 
@@ -2758,7 +2840,8 @@ def segment_history(request, tref, lang, version, page=1):
     nref = oref.normal()
 
     version = version.replace("_", " ")
-    if not Version().load({"title":oref.index.title, "versionTitle":version, "language":lang}):
+    version_record = Version().load({"title":oref.index.title, "versionTitle":version, "language":lang})
+    if not version_record:
         raise Http404(u"We do not have a version of {} called '{}'.  Please use the menu to find the text you are looking for.".format(oref.index.title, version))
     filter_type = request.GET.get("type", None)
     history = text_history(oref, version, lang, filter_type=filter_type, page=page)
@@ -2774,9 +2857,11 @@ def segment_history(request, tref, lang, version, page=1):
                                "ref": nref,
                                "lang": lang,
                                "version": version,
+                               "versionTitleInHebrew": getattr(version_record, "versionTitleInHebrew", version_record.versionTitle),
                                'email': email,
                                'filter_type': filter_type,
-                               'next_page': next_page
+                               'next_page': next_page,
+                               'he': request.interfaceLang == "hebrew", # to make templates less verbose
                              },
                              RequestContext(request))
 
@@ -2888,17 +2973,17 @@ def profile_api(request):
     return jsonResponse({"error": "Unsupported HTTP method."})
 
 
-def profile_redirect(request, username, page=1):
+def profile_redirect(request, uid, page=1):
+    """"
+    Redirect to the profile of the logged in user.
     """
-    Redirect to a user profile
-    """
-    return redirect("/profile/%s" % username, permanent=True)
+    return redirect("/profile/%s" % uid, permanent=True)
 
 
 @login_required
 def my_profile(request):
-    """"
-    Redirect to the profile of the logged in user.
+    """
+    Redirect to a user profile
     """
     return redirect("/profile/%s" % UserProfile(id=request.user.id).slug)
 

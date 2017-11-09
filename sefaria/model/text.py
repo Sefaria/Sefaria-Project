@@ -696,9 +696,8 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
 
         return toc_contents_dict
 
-    def toc_contents(self, include_first_section=True):
+    def toc_contents(self, include_first_section=True, include_flags=True):
         """Returns to a dictionary used to represent this text in the library wide Table of Contents"""
-
         toc_contents_dict = {
             "title": self.get_title(),
             "heTitle": self.get_title("he"),
@@ -706,17 +705,26 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
             "primary_category" : self.get_primary_category(),
             "dependence" : getattr(self, "dependence", False),
         }
+
         if include_first_section:
             firstSection = Ref(self.title).first_available_section_ref()
             toc_contents_dict["firstSection"] = firstSection.normal() if firstSection else None
-        ord = self.get_toc_index_order()
+
+        if include_flags:
+            vstate = self.versionState()
+            toc_contents_dict["enComplete"] = vstate.get_flag("enComplete")
+            toc_contents_dict["heComplete"] = vstate.get_flag("heComplete")
+
+        ord = self.get_toc_index_order()        
         if ord:
             toc_contents_dict["order"] = ord
+        
         if hasattr(self, "collective_title"):
             toc_contents_dict["commentator"] = self.collective_title # todo: deprecate Only used in s1 js code
             toc_contents_dict["heCommentator"] = hebrew_term(self.collective_title) # todo: deprecate Only used in s1 js code
             toc_contents_dict["collectiveTitle"] = self.collective_title
             toc_contents_dict["heCollectiveTitle"] = hebrew_term(self.collective_title)
+        
         if hasattr(self, 'base_text_titles'):
             toc_contents_dict["base_text_titles"] = self.base_text_titles
             if include_first_section:
@@ -724,6 +732,7 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
             if "collectiveTitle" not in toc_contents_dict:
                 toc_contents_dict["collectiveTitle"] = self.title
                 toc_contents_dict["heCollectiveTitle"] = self.get_title("he")
+        
         if hasattr(self, 'base_text_mapping'):
             toc_contents_dict["base_text_mapping"] = self.base_text_mapping
 
@@ -748,6 +757,18 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
         else:
             firstSection = orig_ref.first_available_section_ref()
             return firstSection.section_ref().normal() if firstSection else None
+
+    def find_string(self, regex_str, cleaner=lambda x: x, strict=True, lang='he', vtitle=None):
+        """
+        See TextChunk.find_string
+        :param regex_str:
+        :param cleaner:
+        :param strict:
+        :param lang:
+        :param vtitle:
+        :return:
+        """
+        return self.nodes.find_string(regex_str, cleaner=cleaner, strict=strict, lang=lang, vtitle=vtitle)
 
     def text_index_map(self, tokenizer=lambda x: re.split(u'\s+',x), strict=True, lang='he', vtitle=None):
         """
@@ -941,6 +962,11 @@ class Version(abst.AbstractMongoRecord, AbstractTextRecord, AbstractSchemaConten
         "versionTitle",
         "chapter"  # required.  change to "content"?
     ]
+
+    """
+    Regarding the strange naming of the parameters versionTitleInHebrew and versionNotesInHebrew: These names were
+    chosen to avoid naming conflicts and ambiguity on the TextAPI. See TextFamily for more details.
+    """
     optional_attrs = [
         "status",
         "priority",
@@ -950,7 +976,9 @@ class Version(abst.AbstractMongoRecord, AbstractTextRecord, AbstractSchemaConten
         "digitizedBySefaria",
         "method",
         "heversionSource",  # bad data?
-        "versionUrl"  # bad data?
+        "versionUrl",  # bad data?
+        "versionTitleInHebrew",  # stores the Hebrew translation of the versionTitle
+        "versionNotesInHebrew",  # stores VersionNotes in Hebrew
     ]
 
     def __unicode__(self):
@@ -1443,6 +1471,32 @@ class TextChunk(AbstractTextRecord):
 
         return ref_list
 
+
+    def find_string(self, regex_str, cleaner=lambda x: x, strict=True):
+        """
+        Regex search in TextChunk
+        :param regex_str: regex string to search for
+        :param cleaner: f(str)->str. function to clean a semgent before searching
+        :param strict: if True, throws error if len(ind_list) != len(ref_list). o/w truncates longer array to length of shorter
+        :return: list[(Ref, Match, str)] - list of tuples. each tuple has a segment ref, match object for the match, and text for the segment
+        """
+        ref_list = self.nonempty_segment_refs()
+        text_list = filter(lambda x: len(x) > 0, self.ja().flatten_to_array())
+        if len(text_list) != len(ref_list):
+            if strict:
+                raise ValueError("The number of refs doesn't match the number of starting words. len(refs)={} len(inds)={}".format(len(ref_list),len(ind_list)))
+            else:
+                print "Warning: The number of refs doesn't match the number of starting words. len(refs)={} len(inds)={} {}".format(len(ref_list),len(ind_list),str(self._oref))
+
+        matches = []
+        for r, t in zip(ref_list, text_list):
+            cleaned = cleaner(t)
+            for m in re.finditer(regex_str,cleaned):
+                matches += [(r, m, cleaned)]
+
+        return matches
+
+
     def text_index_map(self, tokenizer=lambda x: re.split(u'\s+', x), strict=True):
         """
         Primarily used for depth-2 texts in order to get index/ref pairs relative to the full text string
@@ -1493,6 +1547,14 @@ class TextFamily(object):
     :param bool alts: Default: False.  Adds notes of where alternate structure elements begin
     """
     #Attribute maps used for generating dict format
+    """
+    A bit of a naming conflict has arisen here. The TextFamily bundles two versions - one with English text and one
+    with Hebrew text. versionTitle refers to the English title of the English version, while heVersionTitle refers to
+    the English title of the Hebrew version.
+    
+    Later on we decided to translate all of our versionTitles into Hebrew. To avoid direct conflict with the text api,
+    these got the names versionTitleInHebrew and versionNotesInHebrew.
+    """
     text_attr_map = {
         "en": "text",
         "he": "he"
@@ -1502,6 +1564,10 @@ class TextFamily(object):
         "versionTitle": {
             "en": "versionTitle",
             "he": "heVersionTitle"
+        },
+        "versionTitleInHebrew": {
+            "en": "versionTitleInHebrew",
+            "he": "heVersionTitleInHebrew",
         },
         "versionSource": {
             "en": "versionSource",
@@ -1520,6 +1586,10 @@ class TextFamily(object):
         "versionNotes": {
             "en": "versionNotes",
             "he": "heVersionNotes"
+        },
+        "versionNotesInHebrew": {
+            "en": "versionNotesInHebrew",
+            "he": "heVersionNotesInHebrew",
         },
         "digitizedBySefaria": {
             "en": "digitizedBySefaria",
@@ -3526,7 +3596,8 @@ class Ref(object):
 
         :return list: each list element is an object with keys 'versionTitle' and 'language'
         """
-        fields = ["versionTitle", "versionSource", "language", "status", "license", "versionNotes", "digitizedBySefaria", "priority"]
+        fields = ["versionTitle", "versionSource", "language", "status", "license", "versionNotes",
+                  "digitizedBySefaria", "priority", "versionTitleInHebrew", "versionNotesInHebrew"]
         versions = VersionSet(self.condition_query())
         version_list = []
         if self.is_book_level():
@@ -3817,98 +3888,97 @@ class Library(object):
             except IndexSchemaError as e:
                 logger.error(u"Error in generating title node dictionary: {}".format(e))
 
-    def _reset_index_derivative_objects(self):
+    def _reset_index_derivative_objects(self, include_auto_complete=False):
         self._full_title_lists = {}
         self._full_title_list_jsons = {}
         self._title_regex_strings = {}
         self._title_regexes = {}
-        self._full_auto_completer = {}
-        self._ref_auto_completer = {}
+        if include_auto_complete:  # This path not yet used.  Useful?
+            self.build_full_auto_completer()
+            self.build_ref_auto_completer()
         # TOC is handled separately since it can be edited in place
 
-    def _reset_toc_derivate_objects(self):
-        scache.delete_cache_elem('toc_cache')
-        scache.delete_cache_elem('toc_json_cache')
-        scache.set_cache_elem('toc_cache', self.get_toc(), 600000)
-        scache.set_cache_elem('toc_json_cache', self.get_toc_json(), 600000)
+    def rebuild(self, include_toc = False, include_auto_complete=False):
+        self._build_core_maps()
+        self._full_title_lists = {}
+        self._full_title_list_jsons = {}
+        self._title_regex_strings = {}
+        self._title_regexes = {}
+        Ref.clear_cache()
+        if include_toc:
+            self.rebuild_toc()
+        if include_auto_complete:  # This path not yet used.  Useful?
+            self.build_full_auto_completer()
+            self.build_ref_auto_completer()
 
-        scache.delete_cache_elem('search_filter_toc_cache')
-        scache.delete_cache_elem('search_filter_toc_json_cache')
-        scache.set_cache_elem('search_filter_toc_cache', self.get_search_filter_toc(), 600000)
-        scache.set_cache_elem('search_filter_toc_json_cache', self.get_search_filter_toc_json(), 600000)
+    def rebuild_toc(self, skip_toc_tree=False, skip_filter_toc=False):
+        if not skip_toc_tree:
+            self._toc_tree = self.get_toc_tree(rebuild=True)
+        self._toc = self.get_toc(rebuild=True)
+        self._toc_json = self.get_toc_json(rebuild=True)
+        if not skip_filter_toc:
+            self._search_filter_toc = self.get_search_filter_toc(rebuild=True)
+        self._search_filter_toc_json = self.get_search_filter_toc_json(rebuild=True)
 
+        self._category_id_dict = None
         scache.delete_template_cache("texts_list")
         scache.delete_template_cache("texts_dashboard")
         self._full_title_list_jsons = {}
         self._simple_term_mapping = {}
 
-    def rebuild(self, include_toc = False):
-        self._build_core_maps()
-        self._reset_index_derivative_objects()
-        Ref.clear_cache()
-        if include_toc:
-            self.rebuild_toc()
-        self.build_full_auto_completer()
-        self.build_ref_auto_completer()
-
-    def rebuild_toc(self):
-        self._toc = None
-        self._toc_json = None
-        self._toc_tree = None
-        self._search_filter_toc = None
-        self._search_filter_toc_json = None
-        self._category_id_dict = None
-        self._reset_toc_derivate_objects()
-
-    def get_toc(self):
+    def get_toc(self, rebuild=False):
         """
         Returns table of contents object from cache,
         DB or by generating it, as needed.
         """
-        if not self._toc:
-            self._toc = scache.get_cache_elem('toc_cache')
-            if not self._toc:
+        if rebuild or not self._toc:
+            if not rebuild:
+                self._toc = scache.get_cache_elem('toc_cache')
+            if rebuild or not self._toc:
                 self._toc = self.get_toc_tree().get_serialized_toc()  # update_table_of_contents()
                 scache.set_cache_elem('toc_cache', self._toc)
         return self._toc
 
-    def get_toc_json(self):
+    def get_toc_json(self, rebuild=False):
         """
         Returns JSON representation of TOC.
         """
-        if not self._toc_json:
-            self._toc_json = scache.get_cache_elem('toc_json_cache')
-            if not self._toc_json:
+        if rebuild or not self._toc_json:
+            if not rebuild:
+                self._toc_json = scache.get_cache_elem('toc_json_cache')
+            if rebuild or not self._toc_json:
                 self._toc_json = json.dumps(self.get_toc())
                 scache.set_cache_elem('toc_json_cache', self._toc_json)
         return self._toc_json
 
-    def get_toc_tree(self):
-        if not self._toc_tree:
+    def get_toc_tree(self, rebuild=False):
+        if rebuild or not self._toc_tree:
             from sefaria.model.category import TocTree
             self._toc_tree = TocTree(self)
         return self._toc_tree
 
-    def get_search_filter_toc(self):
+    def get_search_filter_toc(self, rebuild=False):
         """
         Returns table of contents object from cache,
         DB or by generating it, as needed.
         """
-        if not self._search_filter_toc:
-            self._search_filter_toc = scache.get_cache_elem('search_filter_toc_cache')
-            if not self._search_filter_toc:
+        if rebuild or not self._search_filter_toc:
+            if not rebuild:
+                self._search_filter_toc = scache.get_cache_elem('search_filter_toc_cache')
+            if rebuild or not self._search_filter_toc:
                 from sefaria.summaries import update_search_filter_table_of_contents
                 self._search_filter_toc = update_search_filter_table_of_contents()
                 scache.set_cache_elem('search_filter_toc_cache', self._search_filter_toc)
         return self._search_filter_toc
 
-    def get_search_filter_toc_json(self):
+    def get_search_filter_toc_json(self, rebuild=False):
         """
         Returns JSON representation of TOC.
         """
-        if not self._search_filter_toc_json:
-            self._search_filter_toc_json = scache.get_cache_elem('search_filter_toc_json_cache')
-            if not self._search_filter_toc_json:
+        if rebuild or not self._search_filter_toc_json:
+            if not rebuild:
+                self._search_filter_toc_json = scache.get_cache_elem('search_filter_toc_json_cache')
+            if rebuild or not self._search_filter_toc_json:
                 self._search_filter_toc_json = json.dumps(self.get_search_filter_toc())
                 scache.set_cache_elem('search_filter_toc_json_cache', self._search_filter_toc_json)
         return self._search_filter_toc_json
@@ -3947,11 +4017,8 @@ class Library(object):
         from sefaria.summaries import update_title_in_toc
         self._search_filter_toc = update_title_in_toc(self.get_search_filter_toc(), indx, recount=False, for_search=True)
 
-        self._toc = None
-        self._toc_json = None
-        self._search_filter_toc_json = None
-        self._category_id_dict = None
-        self._reset_toc_derivate_objects()
+        self.rebuild_toc(skip_toc_tree=True, skip_filter_toc=True)
+
 
     def delete_index_from_toc(self, indx):
         toc_node = self.get_toc_tree().lookup(indx.categories, indx.title)
@@ -3961,11 +4028,7 @@ class Library(object):
         from sefaria.summaries import recur_delete_element_from_toc
         self._search_filter_toc = recur_delete_element_from_toc(indx.title, self.get_search_filter_toc())
 
-        self._toc = None
-        self._toc_json = None
-        self._search_filter_toc_json = None
-        self._category_id_dict = None
-        self._reset_toc_derivate_objects()
+        self.rebuild_toc(skip_toc_tree=True, skip_filter_toc=True)
 
     def update_index_in_toc(self, indx, old_ref=None):
         """
@@ -3978,11 +4041,7 @@ class Library(object):
         from sefaria.summaries import update_title_in_toc
         self._search_filter_toc = update_title_in_toc(self.get_search_filter_toc(), indx, old_ref=old_ref, recount=False, for_search=True)
 
-        self._toc = None
-        self._toc_json = None
-        self._search_filter_toc_json = None
-        self._category_id_dict = None
-        self._reset_toc_derivate_objects()
+        self.rebuild_toc(skip_toc_tree=True, skip_filter_toc=True)
 
     def get_index(self, bookname):
         """
@@ -4607,11 +4666,6 @@ class Library(object):
         return d
 
 library = Library()
-
-# Deprecated
-def get_index(bookname):
-    logger.warning("Use of deprecated function: get_index(). Use library.get_index()")
-    return library.get_index(bookname)
 
 
 def prepare_index_regex_for_dependency_process(index_object, as_list=False):

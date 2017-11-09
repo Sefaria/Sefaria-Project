@@ -129,11 +129,12 @@ def init_pagerank_graph():
         graph[str1][str2] += 1
 
     graph = OrderedDict()
-    all_links = LinkSet().array()  # LinkSet({"type": re.compile(ur"(commentary|quotation)")}).array()
+    all_links = LinkSet()  # LinkSet({"type": re.compile(ur"(commentary|quotation)")}).array()
+    len_all_links = all_links.count()
     all_ref_strs = set()
     for i, link in enumerate(all_links):
         if i % 1000 == 0:
-            print "{}/{}".format(i,len(all_links))
+            print "{}/{}".format(i,len_all_links)
 
         try:
             #TODO pagerank segments except Talmud. Talmud is pageranked by section

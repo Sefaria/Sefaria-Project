@@ -1,27 +1,23 @@
-var extend    = require('extend'),
-    param     = require('querystring').stringify,
-    striptags = require('striptags'),
+var extend     = require('extend'),
+    param      = require('querystring').stringify,
+    striptags  = require('striptags'),
     { Search } = require('./search'),
-    palette   = require('./palette'),
-    Track     = require('./track'),
-    Hebrew    = require('./hebrew'),
-    Util      = require('./util'),
-    ga        = require('./sefariaGa'),
-    $         = require('./sefariaJquery');
+    palette    = require('./palette'),
+    Track      = require('./track'),
+    Hebrew     = require('./hebrew'),
+    Util       = require('./util'),
+    $          = require('./sefariaJquery');
 
+var INBROWSER = (typeof document !== 'undefined');
 
-if (typeof document !== 'undefined') {
-  var INBROWSER = true;
-} else {
-  var INBROWSER = false;
-}
-
+console.log("setting default data at start of bundle")
 var Sefaria = Sefaria || {
   _dataLoaded: false,
   toc: [],
   books: [],
   booksDict: {},
-  recentlyViewed: []
+  recentlyViewed: [],
+  apiHost: "" // Defaults to localhost, override to talk another server
 };
 
 if (typeof window !== 'undefined') {
@@ -249,7 +245,7 @@ Sefaria = extend(Sefaria, {
       //wrapLinks:  settings.wrapLinks  || 1
       wrapLinks: ("wrapLinks" in settings) ? settings.wrapLinks : 1
     };
-    return this._api(this._textUrl(ref, settings), function(data) {
+    return this._api(Sefaria.apiHost + this._textUrl(ref, settings), function(data) {
       this._saveText(data, settings);
       cb(data);
       //console.log("API return for " + data.ref)
@@ -272,7 +268,7 @@ Sefaria = extend(Sefaria, {
       if (cb) {cb(versions)}
       return versions
     }
-    var url = "/api/texts/versions/" + Sefaria.normRef(ref);
+    var url = Sefaria.apiHost + "/api/texts/versions/" + Sefaria.normRef(ref);
     this._api(url, function(data) {
       if (cb) { cb(data); }
       Sefaria._versions[ref] = data;
@@ -445,6 +441,17 @@ Sefaria = extend(Sefaria, {
     } else {
       this._index[text] = index;
     }
+  }, 
+  _shape: {}, // Cache for shape records
+  shape:  function(title, cb) {
+    if (title in this._shape) {
+        return this._shape[title];
+    }          
+    var url = Sefaria.apiHost + "/api/shape/" + title;
+    return this._api(url, function(data) {
+      if (cb) { cb(data); }
+      Sefaria._shape[title] = data;
+    });
   },
   _cacheIndexFromToc: function(toc) {
     // Unpacks contents of Sefaria.toc into index cache.
@@ -470,7 +477,7 @@ Sefaria = extend(Sefaria, {
       if (cb) {cb(details)}
       return details;
     }
-    var url = "/api/v2/index/" + title + "?with_content_counts=1";
+    var url = Sefaria.apiHost + "/api/v2/index/" + title + "?with_content_counts=1";
     this._api(url, function(data) {
       if (cb) { cb(data); }
       Sefaria._indexDetails[title] = data;
@@ -502,7 +509,7 @@ Sefaria = extend(Sefaria, {
           })};
         $.ajax({
           dataType: "json",
-          url: "/api/texts/" + data.url,
+          url: Sefaria._apiHost + "/api/texts/" + data.url,
           data: d,
           type: "POST",
           // Clear cache with a sledgehammer.  May need more subtlety down the road.
@@ -548,12 +555,12 @@ Sefaria = extend(Sefaria, {
   // lookupRef should work as a replacement for parseRef - it uses a callback rather than return value.  Besides that - same data.
   lookupRef: function(n, c, e)  { return this.lookup(n,c,e,true);},
   lookup: function(name, callback, onError, refOnly) {
-      /*
-        * name - string to lookup
-        * callback - callback function, takes one argument, a data object
-        * onError - callback
-        * refOnly - if True, only search for titles, otherwise search for People and Categories as well.
-       */
+    /*
+      * name - string to lookup
+      * callback - callback function, takes one argument, a data object
+      * onError - callback
+      * refOnly - if True, only search for titles, otherwise search for People and Categories as well.
+     */
     name = name.trim();
     var cache = refOnly? this._ref_lookups: this._lookups;
     onError = onError || function() {};
@@ -564,7 +571,7 @@ Sefaria = extend(Sefaria, {
     else {
         return $.ajax({
           dataType: "json",
-          url: "/api/name/" + name + (refOnly?"?ref_only=1":""),
+          url: Sefaria.apiHost + "/api/name/" + name + (refOnly?"?ref_only=1":""),
           error: onError,
           success: function(data) {
               cache[name] = data;
@@ -620,7 +627,7 @@ Sefaria = extend(Sefaria, {
         /*console.log("data from cache: ", this._lexiconLookups[cache_key]);*/
         cb(this._lexiconLookups[cache_key]);
     } else if (words.length > 0) {
-      var url = "/api/words/" + encodeURIComponent(words)+"?never_split=1";
+      var url = Sefaria.apiHost + "/api/words/" + encodeURIComponent(words)+"?never_split=1";
       if(ref){
         url+="&lookup_ref="+ref;
       }
@@ -649,7 +656,7 @@ Sefaria = extend(Sefaria, {
     if (ref in this._links) {
       cb(this._links[ref]);
     } else {
-       var url = "/api/links/" + ref + "?with_text=0";
+       var url = Sefaria.apiHost + "/api/links/" + ref + "?with_text=0";
        this._api(url, function(data) {
           if ("error" in data) {
             return;
@@ -959,7 +966,7 @@ Sefaria = extend(Sefaria, {
       };
       refs.map(function(ref) {
        if (ref in Sefaria._privateNotes) { return; } // Only make API calls for unloaded refs
-       var url = "/api/notes/" + Sefaria.normRef(ref) + "?private=1";
+       var url = Sefaria.apiHost + "/api/notes/" + Sefaria.normRef(ref) + "?private=1";
        this._api(url, function(data) {
           if ("error" in data) {
             return;
@@ -994,7 +1001,7 @@ Sefaria = extend(Sefaria, {
   allPrivateNotes: function(callback) {
     if (this._allPrivateNote || !callback) { return this._allPrivateNotes; }
 
-    var url = "/api/notes/all?private=1";
+    var url = Sefaria.apiHost + "/api/notes/all?private=1";
     this._api(url, function(data) {
       if ("error" in data) {
         return;
@@ -1031,7 +1038,7 @@ Sefaria = extend(Sefaria, {
     }
   },
   relatedApi: function(ref, callback) {
-    var url = "/api/related/" + Sefaria.normRef(ref);
+    var url = Sefaria.apiHost + "/api/related/" + Sefaria.normRef(ref);
     return this._api(url, function(data) {
       if ("error" in data) {
         return;
@@ -1075,7 +1082,7 @@ Sefaria = extend(Sefaria, {
     if (ref in this._relatedPrivate) {
       callback(this._relatedPrivate[ref]);
     } else {
-       var url = "/api/related/" + Sefaria.normRef(ref) + "?private=1";
+       var url = Sefaria.apiHost + "/api/related/" + Sefaria.normRef(ref) + "?private=1";
        this._api(url, function(data) {
           if ("error" in data) {
             return;
@@ -1311,7 +1318,7 @@ Sefaria = extend(Sefaria, {
     Sefaria.recentlyViewed = recent;
     var packedRecent = recent.map(Sefaria.packRecentItem);
     if (Sefaria._uid) {
-        $.post("/api/profile", {json: JSON.stringify({recentlyViewed: packedRecent})}, function(data) {} );
+        $.post(Sefaria.apiHost + "/api/profile", {json: JSON.stringify({recentlyViewed: packedRecent})}, function(data) {} );
     } else {
       var cookie = INBROWSER ? $.cookie : Sefaria.util.cookie;
       packedRecent = packedRecent.slice(0, 6);
@@ -1353,7 +1360,7 @@ Sefaria = extend(Sefaria, {
     if (this._topicList) {
       if (callback) { callback(this._topicList); }
     } else if (callback) {
-      var url = "/api/topics"; // TODO separate topic list API
+      var url = Sefaria.apiHost + "/api/topics"; // TODO separate topic list API
        Sefaria._api(url, function(data) {
           this._topicList = data;
            if (callback) { callback(data); }
@@ -1368,7 +1375,7 @@ Sefaria = extend(Sefaria, {
       if (callback) { callback(data); }
     } else if (callback) {
       var data = null;
-      var url = "/api/topics/" + topic;
+      var url = Sefaria.apiHost + "/api/topics/" + topic;
       Sefaria._api(url, function(data) {
         this._topics[topic] = data;
         if (callback) { callback(data); }
@@ -1384,7 +1391,7 @@ Sefaria = extend(Sefaria, {
       if (tags) {
         if (callback) { callback(tags); }
       } else {
-        var url = "/api/sheets/trending-tags";
+        var url = Sefaria.apiHost + "/api/sheets/trending-tags";
          Sefaria._api(url, function(data) {
             this._trendingTags = data;
             if (callback) { callback(data); }
@@ -1394,12 +1401,12 @@ Sefaria = extend(Sefaria, {
     },
     _tagList: {},
     tagList: function(sortBy, callback) {
-      // Returns a list of all public source sheet tags, ordered by populartiy
+      // Returns a list of all public source sheet tags, ordered by popularity
       sortBy = typeof sortBy == "undefined" ? "count" : sortBy;
       var tags = this._tagList[sortBy];
       if (tags) {
         if (callback) { callback(tags); }
-      } else if ("count" in this._tagList && sortBy == "alpha") {
+      } else if ("count" in this._tagList && (sortBy == "alpha")) {
         // If we have one set of ordered tags already, we can do sorts locally.
         var tags = this._tagList["count"].slice();
         tags.sort(function(a, b) {
@@ -1407,7 +1414,7 @@ Sefaria = extend(Sefaria, {
         });
         this._tagList["alpha"] = tags;
       } else {
-        var url = "/api/sheets/tag-list/" + sortBy;
+        var url = Sefaria.apiHost + "/api/sheets/tag-list/" + sortBy;
          Sefaria._api(url, function(data) {
             this._tagList[sortBy] = data;
             if (callback) { callback(data); }
@@ -1422,7 +1429,7 @@ Sefaria = extend(Sefaria, {
       if (tags) {
         if (callback) { callback(tags); }
       } else {
-        var url = "/api/sheets/tag-list/user/"+uid;
+        var url = Sefaria.apiHost + "/api/sheets/tag-list/user/"+uid;
          Sefaria._api(url, function(data) {
             this._userTagList = data;
              if (callback) { callback(data); }
@@ -1437,7 +1444,7 @@ Sefaria = extend(Sefaria, {
       if (sheets) {
         if (callback) { callback(sheets); }
       } else {
-        var url = "/api/sheets/tag/" + tag;
+        var url = Sefaria.apiHost + "/api/sheets/tag/" + tag;
          $.getJSON(url, function(data) {
             this._sheetsByTag[tag] = data.sheets;
             if (callback) { callback(data.sheets); }
@@ -1456,7 +1463,7 @@ Sefaria = extend(Sefaria, {
       if (sheets) {
         if (callback) { callback(sheets); }
       } else {
-        var url = "/api/sheets/user/" + uid + "/" + sortBy + "/" + numberToRetrieve + "/" + offset;
+        var url = Sefaria.apiHost + "/api/sheets/user/" + uid + "/" + sortBy + "/" + numberToRetrieve + "/" + offset;
          Sefaria._api(url, function(data) {
             this._userSheets[uid+sortBy+offset+numberToRetrieve] = data.sheets;
             if (callback) { callback(data.sheets); }
@@ -1473,7 +1480,7 @@ Sefaria = extend(Sefaria, {
       if (sheets) {
         if (callback) { callback(sheets); }
       } else {
-        var url = "/api/sheets/all-sheets/"+numberToRetrieve+"/"+offset;
+        var url = Sefaria.apiHost + "/api/sheets/all-sheets/"+numberToRetrieve+"/"+offset;
         Sefaria._api(url, function(data) {
           this._publicSheets["offset"+offset+"num"+numberToRetrieve] = data.sheets;
           if (callback) { callback(data.sheets); }
@@ -1489,7 +1496,7 @@ Sefaria = extend(Sefaria, {
       if (sheets) {
         if (callback) { callback(sheets); }
       } else {
-        var url = "/api/sheets/all-sheets/3/0";
+        var url = Sefaria.apiHost + "/api/sheets/all-sheets/3/0";
         Sefaria._api(url, function(data) {
           this._topSheets = data.sheets;
           if (callback) { callback(data.sheets); }
@@ -1579,7 +1586,7 @@ Sefaria = extend(Sefaria, {
       this._sortSheets(group, sortBy);
       if (callback) { callback(group); }
     } else if (callback) {
-      var url = "/api/groups/" + group;
+      var url = Sefaria.apiHost + "/api/groups/" + group;
        Sefaria._api(url, function(data) {
           this._groups[group] = data;
           this._sortSheets(data, sortBy);
@@ -1621,7 +1628,7 @@ Sefaria = extend(Sefaria, {
     if (this._groupsList) {
       if (callback) { callback(this._groupsList); }
     } else if (callback) {
-      var url = "/api/groups";
+      var url = Sefaria.apiHost + "/api/groups";
        Sefaria._api(url, function(data) {
           this._groupsList = data;
            if (callback) { callback(data); }
@@ -1646,6 +1653,100 @@ Sefaria = extend(Sefaria, {
     } else {
         return name;
     }
+  },
+    //this is here for now, we might want to move it somewhere else.
+  _i18nInterfaceStrings: {
+      "Sefaria": "ספריא",
+
+      "Sefaria Group" : "קבוצות בספריא",
+      "Sefaria Groups" : "קבוצות בספריא",
+      "Sefaria Source Sheets":"דפי מקורות בספריא",
+      "Topics":"נושאים",
+      "Sefaria Notifcations": "הודעות בספריא",
+      //title meta tag
+      "Sefaria: a Living Library of Jewish Texts Online": "ספריא: ספרייה חיה של טקסטים יהודיים",
+      "Recently Viewed" : "נצפו לאחרונה",
+      "The Sefaria Library": "תוכן העניינים של ספריא",
+      "Sefaria Search": "חיפוש בספריא",
+      "Sefaria Account": "חשבון בספריא",
+      "New Additions to the Sefaria Library":"חידושים בארון הספרים של ספריא",
+      "My Notes on Sefaria": "הרשומות שלי בספריא",
+      "Moderator Tools": "כלי מנהלים",
+      " with " : " עם ",
+      "Connections" : "קשרים",
+      " & ": " | ",
+      "My Source Sheets" : "דפי המקורות שלי",
+      "Public Source Sheets":"דפי מקורות פומביים",
+      "Version History": "היסטוריית גרסה",
+      "Digitized by Sefaria": 'הונגש ועובד לצורה דיגיטלית על ידי ספריא',
+      "Public Domain": "רשיון בנחלת הכלל",
+      "CC-BY": "רשיון CC-BY",
+      "CC-BY-NC": "רשיון CC-BY-NC",
+      "CC-BY-SA": "רשיון CC-BY-SA",
+      "CC-BY-NC-SA": "רשיון CC-BY-NC-Sa",
+      "CC0": "רשיון CC0",
+      "Copyright: JPS, 1985": "זכויות שמורות ל-JPS, 1985",
+
+      //sheets
+      "Untitled Source Sheet" : "דף מקורות ללא שם",
+      "Name New Sheet" : "כותרת לדף המקורות",
+      "Sorry, there was a problem saving your note.": "סליחה, ארעה שגיאה בזמן השמירה",
+      "Unfortunately, there was an error saving this note. Please try again or try reloading this page.": "ארעה שגיאה בזמן השמירה. אנא נסו שוב או טענו את הדף מחדש",
+      "Are you sure you want to delete this note?": "האם אתם בטוחים שברצונכם למחוק?",
+      "Something went wrong (that's all I know).":"משהו השתבש. סליחה",
+      "Write a note...":"כתוב הערות כאן...",
+      "Aa": "א",
+      "Decrease font size": "הקטן גופן",
+      "Increase font size": "הגדל גופן",
+      "Search for Texts or Keywords Here": "חפשו ספרים או מלות מפתח כאן",
+
+      //reader panel
+      "Search" : "חיפוש",
+      "Search for Texts or Keywords Here": "חיפוש טקסט או מילות מפתח",
+      "Views": "צפיות"
+  },
+  _v: function(inputVar){
+    if(Sefaria.interfaceLang != "english"){
+        return Sefaria.hebrewTerm(inputVar);
+    }else{
+        return inputVar;
+	}
+  },
+  _r: function (inputRef) {
+    if(Sefaria.interfaceLang != "english"){
+        var oref = Sefaria.ref(inputRef);
+        if(oref){
+            return oref.heRef;
+        }
+    }else{
+        return inputRef;
+	}
+  },
+  _va: function(inputVarArr){
+    if(Sefaria.interfaceLang != "english"){
+        return inputVarArr.map(Sefaria.hebrewTerm);
+    }else{
+        return inputVarArr;
+	}
+  },
+  _: function(inputStr){
+    if(Sefaria.interfaceLang != "english"){
+        var hterm;
+        if(inputStr in Sefaria._i18nInterfaceStrings) {
+            return Sefaria._i18nInterfaceStrings[inputStr];
+        }else if((hterm = Sefaria.hebrewTerm(inputStr)) != inputStr){
+            return hterm;
+        }else{
+            if(inputStr.indexOf(" | ") !== -1) {
+                 var inputStrs = inputStr.split(" | ");
+                 return Sefaria._(inputStrs[0])+ " | " + Sefaria._(inputStrs[1]);
+            }else{
+                return inputStr;
+            }
+        }
+    }else{
+        return inputStr;
+	}
   },
   _makeBooksDict: function() {
     // Transform books array into a dictionary for quick lookup
@@ -1730,12 +1831,11 @@ Sefaria.unpackDataFromProps = function(props) {
 };
 
 
-
-
 Sefaria.util    = Util;
 Sefaria.hebrew  = Hebrew;
 Sefaria.palette = palette;
 Sefaria.track   = Track;
+
 
 Sefaria.setup = function(data) {
     // data parameter is optional. in the event it isn't passed, we assume that DJANGO_DATA_VARS exists as a global var
@@ -1752,7 +1852,6 @@ Sefaria.setup = function(data) {
         }
     }
     Sefaria.util.setupPrototypes();
-    Sefaria.util.setupJQuery();
     Sefaria.util.setupMisc();
     var cookie = Sefaria.util.handleUserCookie(Sefaria.loggedIn, Sefaria._uid, Sefaria._partner_group, Sefaria._partner_role);
     // And store current uid in analytics id

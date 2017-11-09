@@ -4,17 +4,19 @@ import os
 import zipfile
 import json
 import re
+import bleach
 from datetime import datetime, timedelta
 from urlparse import urlparse
 from collections import defaultdict
 from random import choice
-import bleach
+from webpack_loader import utils as webpack_utils
 
 from django.utils.translation import ugettext as _
 from django.conf import settings
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render_to_response
 from django.template import RequestContext
+from django.template.loader import render_to_string
 from django.template.response import TemplateResponse
 from django.utils.http import is_safe_url
 from django.contrib.auth import authenticate
@@ -25,12 +27,10 @@ from django.contrib.sites.models import get_current_site
 from django.contrib.admin.views.decorators import staff_member_required
 from django.views.decorators.debug import sensitive_post_parameters
 from django.views.decorators.cache import never_cache
-from django.views.decorators.csrf import csrf_protect
-
+from django.views.decorators.csrf import csrf_protect, csrf_exempt
 
 import sefaria.model as model
 import sefaria.system.cache as scache
-
 from sefaria.client.util import jsonResponse, subscribe_to_list
 from sefaria.forms import NewUserForm
 from sefaria.settings import MAINTENANCE_MESSAGE, USE_VARNISH
@@ -47,6 +47,7 @@ from sefaria.utils.hebrew import is_hebrew, strip_nikkud
 from sefaria.utils.util import strip_tags
 from sefaria.helper.text import make_versions_csv, get_library_stats, get_core_link_stats, dual_text_diff
 from sefaria.clean import remove_old_counts
+from sefaria.search import index_sheets_by_timestamp as search_index_sheets_by_timestamp
 from sefaria.model import *
 
 if USE_VARNISH:
@@ -185,16 +186,19 @@ def accounts(request):
 
 
 def subscribe(request, email):
-    if subscribe_to_list(["Announcements_General", "Newsletter_Sign_Up"], email, direct_sign_up=True):
+    """
+    API for subscribg is mailing lists, in `lists` url param.
+    Currently active lists are:
+    "Announcements_General", "Announcements_General_Hebrew", "Announcements_Edu", "Announcements_Edu_Hebrew"
+    """
+    lists = request.GET.get("lists", "")
+    lists = lists.split("|")
+    if len(lists) == 0:
+        return jsonResponse({"error": "Please specifiy a list."})
+    if subscribe_to_list(lists + ["Newsletter_Sign_Up"], email, direct_sign_up=True):
         return jsonResponse({"status": "ok"})
     else:
-        return jsonResponse({"error": "Sorry, there was an error."})
-
-def subscribe_educators(request, email):
-    if subscribe_to_list(["Announcements_General", "Announcements_Edu"], email, direct_sign_up=True):
-        return jsonResponse({"status": "ok"})
-    else:
-        return jsonResponse({"error": "Sorry, there was an error."})
+        return jsonResponse({"error": _("Sorry, there was an error.")})
 
 
 def data_js(request):
@@ -208,8 +212,16 @@ def sefaria_js(request):
     """
     Packaged Sefaria.js.
     """
-    # TODO
-    attrs = {}
+    data_js = render_to_string("js/data.js", {}, RequestContext(request))
+    webpack_files = webpack_utils.get_files('main', config="SEFARIA_JS")
+    bundle_path = webpack_files[0]["path"]
+    with open(bundle_path, 'r') as file:
+        sefaria_js=file.read()
+    attrs = {
+        "data_js": data_js,
+        "sefaria_js": sefaria_js,
+    }
+
     return render_to_response("js/sefaria.js", attrs, RequestContext(request), mimetype= "text/javascript")
 
 
@@ -242,7 +254,6 @@ def title_regex_api(request, titles):
         if len(errors):
             res["error"] = errors
         resp = jsonResponse(res, cb)
-        resp['Access-Control-Allow-Origin'] = '*'
         return resp
 
 
@@ -277,7 +288,6 @@ def bulktext_api(request, refs):
                 # logger.warning(u"Linker failed to parse {} from {} : {}".format(tref, referer, e))
                 res[tref] = {"error": 1}
         resp = jsonResponse(res, cb)
-        resp['Access-Control-Allow-Origin'] = '*'
         return resp
 
 
@@ -368,18 +378,36 @@ def delete_orphaned_counts(request):
 
 @staff_member_required
 def rebuild_toc(request):
+    model.library.rebuild_toc()
+    return HttpResponseRedirect("/?m=TOC-Rebuilt")
+
+    """
     from sefaria.settings import DEBUG
     if DEBUG:
         model.library.rebuild_toc()
         return HttpResponseRedirect("/?m=TOC-Rebuilt")
     else:
         return HttpResponseRedirect("/?m=TOC-Rebuild-Not-Allowed")
+    """
+
+@staff_member_required
+def rebuild_auto_completer(request):
+    library.build_full_auto_completer()
+    library.build_ref_auto_completer()
+    return HttpResponseRedirect("/?m=auto-completer-Rebuilt")
 
 
 @staff_member_required
 def rebuild_counts_and_toc(request):
     model.refresh_all_states()
     return HttpResponseRedirect("/?m=Counts-&-TOC-Rebuilt")
+
+
+@staff_member_required
+def rebuild_topics(request):
+    from sefaria.model.topic import update_topics
+    update_topics()
+    return HttpResponseRedirect("/topics?m=topics-rebuilt")
 
 
 @staff_member_required
@@ -589,6 +617,28 @@ def untagged_sheets(request):
 def versions_csv(request):
     return HttpResponse(make_versions_csv(), content_type="text/csv")
 
+@csrf_exempt
+def index_sheets_by_timestamp(request):
+    import dateutil.parser
+    from django.contrib.auth.models import User
+
+    key = request.POST.get("apikey")
+    if not key:
+        return jsonResponse({"error": "You must be logged in or use an API key to index sheets by timestamp."})
+    apikey = db.apikeys.find_one({"key": key})
+    if not apikey:
+        return jsonResponse({"error": "Unrecognized API key."})
+    user = User.objects.get(id=apikey["uid"])
+    if not user.is_staff:
+        return jsonResponse({"error": "Only Sefaria Moderators can add or edit terms."})
+
+    timestamp = request.POST.get('timestamp')
+    try:
+        dateutil.parser.parse(timestamp)
+    except ValueError:
+        return jsonResponse({"error": "Timestamp {} not valid".format(timestamp)})
+    response_str = search_index_sheets_by_timestamp(timestamp)
+    return jsonResponse({"success": response_str})
 
 def library_stats(request):
     return HttpResponse(get_library_stats(), content_type="text/csv")

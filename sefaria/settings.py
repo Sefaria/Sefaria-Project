@@ -112,6 +112,7 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.messages.middleware.MessageMiddleware',
     'django_mobile.middleware.MobileDetectionMiddleware',
     'django_mobile.middleware.SetFlavourMiddleware',
+    'sefaria.system.middleware.LanguageCookieMiddleware',
     'sefaria.system.middleware.LanguageSettingsMiddleware',
     'sefaria.system.middleware.ProfileMiddleware',
     #'django.middleware.cache.UpdateCacheMiddleware',
@@ -291,5 +292,13 @@ WEBPACK_LOADER = {
         'POLL_INTERVAL': 0.1,
         'TIMEOUT': None,
         'CACHE': not DEBUG,
+    },
+    'SEFARIA_JS': {
+        'BUNDLE_DIR_NAME': 'bundles/sefaria/',  # must end with slash
+        'STATS_FILE': relative_to_abs_path('../node/webpack-stats.sefaria.json'),
+        'POLL_INTERVAL': 0.1,
+        'TIMEOUT': None,
+        'CACHE': not DEBUG,
     }
+
 }

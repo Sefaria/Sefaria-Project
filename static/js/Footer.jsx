@@ -4,6 +4,10 @@ const $          = require('./sefaria/sefariaJquery');
 import Component from 'react-class';
 
 
+var fbURL = Sefaria.interfaceLang == "hebrew" ?
+    "https://www.facebook.com/sefaria.org.il" 
+    : "https://www.facebook.com/sefaria.org";
+
 class Footer extends Component {
   constructor(props) {
     super(props);
@@ -22,7 +26,8 @@ class Footer extends Component {
     if (Sefaria.util.isValidEmailAddress(email)) {
       Sefaria.track.event("Footer", "Subscribe from Footer", "");
       this.setState({subscribeMessage: "Subscribing..."});
-      $.post("/api/subscribe/" + email, function(data) {
+      var list = Sefaria.interfaceLang == "hebrew" ? "Announcements_General_Hebrew" : "Announcements_General"
+      $.post("/api/subscribe/" + email + "?lists=" + list, function(data) {
         if ("error" in data) {
           this.setState({subscribeMessage: data.error});
         } else {
@@ -54,10 +59,6 @@ class Footer extends Component {
               <a href="/help" className="outOfAppLink">
                   <span className="int-en">Help</span>
                   <span className="int-he">עזרה</span>
-              </a>
-              <a href="https://blog.sefaria.org" target="_blank" className="outOfAppLink">
-                  <span className="int-en">Blog</span>
-                  <span className="int-he">בלוג</span>
               </a>
               <a href="/faq" target="_blank" className="outOfAppLink">
                   <span className="int-en">FAQ</span>
@@ -92,7 +93,7 @@ class Footer extends Component {
               </a>
               <a href="/visualizations" className="outOfAppLink">
                   <span className="int-en">Visualizations</span>
-                  <span className="int-he">עזרים חזותיים</span>
+                  <span className="int-he">תרשימים גרפיים</span>
               </a>
               <a href="/people" className="outOfAppLink">
                   <span className="int-en">Authors</span>
@@ -168,10 +169,25 @@ class Footer extends Component {
                   : null }
               </div>
               <LikeFollowButtons />
-              <a href="http://www.youtube.com/user/SefariaProject" target="_blank" className="outOfAppLink">
+              <a href={fbURL} target="_blank" className="outOfAppLink">
+                <span className="int-en">Facebook</span>
+                <span className="int-he">פייסבוק</span>
+              </a>
+              &bull;
+              <a href="https://twitter.com/SefariaProject" target="_blank" className="outOfAppLink">
+                <span className="int-en">Twitter</span>
+                <span className="int-he">טוויטר</span>
+
+              </a>
+              &bull;
+              <a href="https://www.youtube.com/user/SefariaProject" target="_blank" className="outOfAppLink">
                   <span className="int-en">YouTube</span>
                   <span className="int-he">יוטיוב</span>
-
+              </a>
+              <br />
+              <a href="https://blog.sefaria.org" target="_blank" className="outOfAppLink">
+                  <span className="int-en">Blog</span>
+                  <span className="int-he">בלוג</span>
               </a>
               &bull;
               <a href="https://groups.google.com/forum/?fromgroups#!forum/sefaria" target="_blank" className="outOfAppLink">
@@ -217,7 +233,9 @@ class LikeFollowButtons extends Component {
         var js, fjs = d.getElementsByTagName(s)[0];
         if (d.getElementById(id)) return;
         js = d.createElement(s); js.id = id;
-        js.src = "//connect.facebook.net/en_US/sdk.js#xfbml=1&version=v2.10&appId=206308089417064";
+        js.src = Sefaria.interfaceLang ==  "hebrew" ? 
+          "https://connect.facebook.net/he_IL/sdk.js#xfbml=1&version=v2.10&appId=206308089417064"
+          : "https://connect.facebook.net/en_US/sdk.js#xfbml=1&version=v2.10&appId=206308089417064";
         fjs.parentNode.insertBefore(js, fjs);
       }(document, 'script', 'facebook-jssdk'));        
     }
@@ -247,10 +265,11 @@ class LikeFollowButtons extends Component {
     }
   }
   render() {
+    var lang = Sefaria.interfaceLang.substring(0,2);
     return (<div id="socialButtons">
               <div id="facebookButton">
                 <div className="fb-like" 
-                  data-href="https://www.facebook.com/sefaria.org" 
+                  data-href={fbURL} 
                   data-layout="button" 
                   data-action="like" 
                   data-size="small" 
@@ -261,7 +280,8 @@ class LikeFollowButtons extends Component {
                 <a className="twitter-follow-button"
                   href="https://twitter.com/SefariaProject"
                   data-show-screen-name="false"
-                  data-show-count="false"></a>
+                  data-show-count="false"
+                  data-lang={lang}></a>
               </div>
             </div>);
   }

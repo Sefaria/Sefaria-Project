@@ -186,4 +186,19 @@ def get_links(tref, with_text=True):
         except NoVersionFoundError as e:
             logger.warning("Trying to get non existent text for ref '{}'. Link refs were: {}".format(top_nref, link.refs))
             continue
+
+    # Harded-coding automatic display of links to an underlying text. bound_texts = ("Rashba on ",)
+    # E.g., when requesting "Steinsaltz on X" also include links "X" as though they were connected directly to Steinsaltz.
+    bound_texts = ("Steinsaltz on ",)
+    for prefix in bound_texts:
+        if nRef.startswith(prefix):
+            base_ref = nRef[len(prefix):]
+            base_links = get_links(base_ref)
+            def add_prefix(link):
+                link["anchorRef"] = prefix + link["anchorRef"]
+                return link
+            base_links = [add_prefix(link) for link in base_links]
+            base_links = filter(lambda x: x["sourceRef"] != x["anchorRef"], base_links)
+            links += base_links
+
     return links

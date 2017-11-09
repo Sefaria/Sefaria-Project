@@ -1,4 +1,5 @@
 {% load sefaria_tags %}
+{% load i18n %}
 
 <table cellpadding="0px" cellspacing="0" border="0" align="center" style="width:100%;font-size:16px">
 	<tr>
@@ -13,9 +14,18 @@
 	</tr>
 	<tr style="font-size:13px">
 		<div style="padding:20px 0;border-top:1px solid #bbb">
-		You're receiving this message because you have an account on <a href="http://www.sefaria.org">www.sefaria.org</a>.<br>
-		To change your email settings, click {{ '<a href="/settings/account">here</a>'|absolute_link }}.<br>
-		Your feedback is welcome. Feel free to send us an <a href="mailto:hello@sefaria.org">email</a>.
+		{% blocktrans %}
+            You're receiving this message because you have an account on
+        {% endblocktrans %}
+            <a href="http://www.sefaria.org">www.sefaria.org</a>.
+            <br>
+        {% blocktrans with settings_url="/settings/account"|absolute_url %}
+            To change your email settings, click <a href="{{ settings_url }}">here</a>
+        {% endblocktrans %}
+            <br>
+        {% blocktrans with hello_email="mailto:hello@sefaria.org" %}
+            Your feedback is welcome. Feel free to send us an <a href="{{ hello_email }}">email</a>.
+        {% endblocktrans %}
 		</div>
 	<tr>
 </table> 

@@ -29,7 +29,8 @@ def data_only(view):
     """
     @wraps(view)
     def wrapper(request):
-        if request.path == "/data.js" or request.path == "/texts" or request.path.startswith("/sheets/"):
+        if (request.path in ("/data.js", "/sefaria.js", "/texts") or 
+              request.path.startswith("/sheets/")):
             return view(request)
         else:
             return {}
@@ -177,7 +178,16 @@ def footer_html(request):
 def calendar_links(request):
     if request.path != "/data.js":
         return {}
-    parasha  = calendars.this_weeks_parasha(datetime.now())
+
+    loc = request.META.get("HTTP_CF_IPCOUNTRY", None)
+    if not loc:
+        try:
+            from sefaria.settings import PINNED_IPCOUNTRY
+            loc = PINNED_IPCOUNTRY
+        except:
+            loc = "us"
+    diaspora = False if loc in ("il", "IL", "Il") else True
+    parasha  = calendars.this_weeks_parasha(datetime.now(), diaspora=diaspora)
     daf      = calendars.daf_yomi(datetime.now())
     
     parasha_link  = "<a href='/%s'>%s: %s</a>" % (parasha["ref"], parasha["parasha"], parasha["ref"])

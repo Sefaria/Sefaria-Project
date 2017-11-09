@@ -44,7 +44,7 @@ class AbstractMongoRecord(object):
             
     def load_by_id(self, _id=None):
         if _id is None:
-            raise Exception(type(self).__name__ + ".load() expects an _id as an arguemnt. None provided.")
+            raise Exception(type(self).__name__ + ".load() expects an _id as an argument. None provided.")
 
         if isinstance(_id, basestring):
             # allow _id as either string or ObjectId
