@@ -852,7 +852,7 @@ class TestResultSet(AbstractTestResult):
 
         results = []
         for test in sorted_test_classes:
-            if test.suite_class != current_suite:
+            if getattr(test, "suite_class", None) and test.suite_class != current_suite:
                 results += [[""] * (len(caps) + 1)]
                 results += [[" ** " + test.suite_class.__name__] + caps]
                 current_suite = test.suite_class
@@ -874,6 +874,11 @@ class TestResultSet(AbstractTestResult):
         passed_tests = self.number_passed()
         percentage_passed = (float(passed_tests) / total_tests) * 100
         ret += "\n\n{}/{} - {:.0f}% passed\n".format(passed_tests, total_tests, percentage_passed)
+
+        if passed_tests < total_tests:
+            for failed_test in [t for t in self._test_results if not t.success]:
+                ret += "\n\n{}\n".format(str(failed_test))
+
         return ret
 
 
