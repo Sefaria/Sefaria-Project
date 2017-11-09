@@ -501,7 +501,7 @@ class AbstractTest(object):
 
     def load_private_sheets(self):
         self.driver.get(self.base_url + "/sheets/private")
-        WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, ".sheetsNewButton")))
+        WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, ".sheet")))
         return self
 
     def load_private_groups(self):
