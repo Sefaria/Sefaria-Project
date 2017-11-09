@@ -409,6 +409,29 @@ class TextSegment extends Component {
       this.handleClick(event);
     }
   }
+  formatItag(lang, text) {
+    var $newElement = $("<div>" + text + "</div>");
+    var textValue = function(i) {
+      if ($(i).attr('data-label')) {
+        return $(i).attr('data-label');
+      } else {
+        if (lang === "he") {
+          var value = Sefaria.hebrew.encodeHebrewNumeral($(i).attr('data-order'));
+        }
+        else if (lang === "en") {
+          var value = $(i).attr('data-order');
+        }
+      }
+      if (value === undefined) {
+        value = $(i).attr('data-order');
+      }
+      return value;
+    };
+    $newElement.find('i[data-commentator="' + this.props.filter[0] + '"]').each(function () {
+      $(this).replaceWith('<sup class="itag">' + textValue(this) + "</sup>");
+    });
+    return $newElement.html();
+  }
   render() {
     var linkCountElement;
     if (this.props.showLinkCount) {
@@ -428,28 +451,14 @@ class TextSegment extends Component {
                                                       <span className="he"> <span className="segmentNumberInner">{Sefaria.hebrew.encodeHebrewNumeral(this.props.segmentNumber)}</span> </span>
                                                     </div>) : null;
     var he = this.props.he || "";
+    var en = this.props.en || "";
 
     // render itags
     if (this.props.filter && this.props.filter.length > 0) {
-      var $newElement = $("<div>" + he + "</div>");
-      var textValue = function(i) {
-        if ($(i).attr('data-label')) {
-          return $(i).attr('data-label');
-        } else {
-          var value = Sefaria.hebrew.encodeHebrewNumeral($(i).attr('data-order'));
-        }
-        if (value === undefined) {
-          value = $(i).attr('data-order');
-        }
-        return value;
-      };
-      $newElement.find('i[data-commentator="' + this.props.filter[0] + '"]').each(function () {
-        $(this).replaceWith('<sup class="itag">' + textValue(this) + "</sup>");
-      });
-      he = $newElement.html();
+      he = this.formatItag("he", he)
+      en = this.formatItag("en", en)
     }
 
-    var en = this.props.en || "";
     var classes=classNames({ segment: 1,
                      highlight: this.props.highlight,
                      heOnly: !this.props.en,
