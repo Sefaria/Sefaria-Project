@@ -112,7 +112,7 @@ class NavToRefAndClickSegment(AtomicTest):
         self.click_text_filter("Ibn Ezra")
 
         assert "Psalms.65.5" in self.driver.current_url, self.driver.current_url
-        assert "with=Ibn%20Ezra" in self.driver.current_url, self.driver.current_url
+        assert "with=Ibn%20Ezra" in self.driver.current_url or "with=Ibn Ezra" in self.driver.current_url, self.driver.current_url
 
 
 class LoadRefAndClickSegment(AtomicTest):
