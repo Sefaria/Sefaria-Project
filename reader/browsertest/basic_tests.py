@@ -63,7 +63,7 @@ class PagesLoad(AtomicTest):
 
     def body(self):
         self.load_toc()
-        self.click_toc_category("Midrash").click_toc_text("Midrash Tehillim")
+        self.click_toc_category("Midrash").click_toc_text("Ein Yaakov")
         self.load_ref("Psalms.104")
         self.load_sheets()
         self.load_gardens()
