@@ -16,7 +16,8 @@ from selenium import webdriver
 from appium import webdriver as appium_webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support.expected_conditions import title_contains, presence_of_element_located, staleness_of, element_to_be_clickable, visibility_of_element_located
+from selenium.webdriver.support.expected_conditions import title_contains, presence_of_element_located, staleness_of,\
+    element_to_be_clickable, visibility_of_element_located, text_to_be_present_in_element
 from selenium.webdriver.common.keys import Keys
 from selenium.common.exceptions import NoSuchElementException
 # http://selenium-python.readthedocs.io/waits.html
@@ -163,11 +164,11 @@ class AbstractTest(object):
 
         # These CSS selectors could fail if the category is a substring of another possible category
         WebDriverWait(self.driver, TEMPER).until(
-            presence_of_element_located((By.CSS_SELECTOR, '.readerNavCategory[data-cat*="{}"], .refLink[data-ref*="{}"], .catLink[data-cats*="{}"]'.format(category_name, category_name, category_name)))
+            presence_of_element_located((By.CSS_SELECTOR, '.readerNavCategory[data-cat*="{}"], .catLink[data-cats*="{}"]'.format(category_name, category_name)))
         )
-        e = self.driver.find_element_by_css_selector('.readerNavCategory[data-cat*="{}"], .refLink[data-ref*="{}"], .catLink[data-cats*="{}"]'.format(category_name, category_name, category_name))
+        e = self.driver.find_element_by_css_selector('.readerNavCategory[data-cat*="{}"], .catLink[data-cats*="{}"]'.format(category_name, category_name))
         e.click()
-        WebDriverWait(self.driver, TEMPER).until(staleness_of(e))
+        WebDriverWait(self.driver, TEMPER).until(text_to_be_present_in_element((By.CSS_SELECTOR, "h1 > span.en"), category_name))
         return self
 
     def click_toc_text(self, text_name):
@@ -582,7 +583,7 @@ class TestSuite(AbstractTest):
 
         max = None
         for i, test in enumerate(self.tests):
-            self.carp(u" * Enter {}:{}\n".format(self.name(), test.name()))
+            self.carp(u" * Enter {}:{}\n".format(self.name(), test.__class__.__name__))
             result = test.run()
             result.order = i
             result.suite = self
