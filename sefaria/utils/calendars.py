@@ -70,7 +70,7 @@ def parashat_hashavua_and_haftara(datetime_obj, diaspora=True):
     parasha_items = []
     db_parasha = this_weeks_parasha(datetime_obj, diaspora=diaspora)
     parasha = {
-        'title': {'en': 'Parasha', 'he': u'פרשת השבוע'},
+        'title': {'en': 'Parashat Hashavua', 'he': u'פרשת השבוע'},
         'displayValue': {'en': db_parasha["parasha"], 'he': hebrew_parasha_name(db_parasha["parasha"])},
         'url': db_parasha["ref"],
         'order': 1,
