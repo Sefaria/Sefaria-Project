@@ -927,10 +927,14 @@ a.readerNavCategory {
   opacity: 0.4;
   vertical-align: -3px;
 }
-.blockLink .blockLinkSubtitle{
+.readerNavMenu .blockLink.calendarLink{
+  line-height: 1;
+  padding: 7px 8px;
+}
+.readerNavMenu .blockLink .blockLinkSubtitle{
   display: block;
   font-size: 0.8em;
-  color: #aaaaaa;
+  color: #666666;
 }
 .gridBox {
   table-layout: fixed;
