@@ -71,6 +71,18 @@ def daily_mishnayot(datetime_obj):
     })
     return mishnah_items
 
+def daily_rambam(datetime_obj):
+    datetime_obj = datetime.datetime(datetime_obj.year,datetime_obj.month,datetime_obj.day)
+    daily_rambam = db.daily_rambam.find_one({"date": {"$eq": datetime_obj}})
+    rf = model.Ref(daily_rambam["ref"])
+    return {
+        'title': {'en': 'Daily Rambam', 'he': u'הרמב"ם היומי'},
+        'displayValue': {'en': rf.normal(), 'he': rf.he_normal()},
+        'url': rf.url(),
+        'order': 6,
+        'category': rf.index.get_primary_category()
+    }
+
 
 
 def this_weeks_parasha(datetime_obj, diaspora=True):
@@ -113,6 +125,7 @@ def get_all_calendar_items(datetime_obj, diaspora=True):
     cal_items.append(daf_yomi(datetime_obj))
     cal_items.append(daily_929(datetime_obj))
     cal_items += daily_mishnayot(datetime_obj)
+    cal_items.append(daily_rambam(datetime_obj))
     return cal_items
 
 
