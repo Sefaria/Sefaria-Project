@@ -187,13 +187,9 @@ def calendar_links(request):
         except:
             loc = "us"
     diaspora = False if loc in ("il", "IL", "Il") else True
-    parasha  = calendars.this_weeks_parasha(datetime.now(), diaspora=diaspora)
-    daf      = calendars.daf_yomi(datetime.now())
-    
-    parasha_link  = "<a href='/%s'>%s: %s</a>" % (parasha["ref"], parasha["parasha"], parasha["ref"])
-    haftara_link  = " ".join(["<a href='/%s'>%s</a>" % (h, h) for h in parasha["haftara"]])
-    daf_yomi_link = "<a href='/%s'>%s</a>" % (daf["url"], daf["name"])
+    return {"calendars": json.dumps(calendars.get_todays_calendar_items(diaspora=diaspora))}
 
+    """
     return {
                 "parasha_link":  parasha_link, 
                 "haftara_link":  haftara_link,
@@ -204,3 +200,4 @@ def calendar_links(request):
                 "haftara_ref":   parasha["haftara"][0],
                 "daf_yomi_ref":  daf["url"]
             }
+    """

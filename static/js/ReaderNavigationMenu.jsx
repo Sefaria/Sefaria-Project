@@ -181,11 +181,17 @@ class ReaderNavigationMenu extends Component {
       siteLinks = (<div className="siteLinks">
                     {siteLinks}
                   </div>);
-
-      var calendar = Sefaria.calendar ?
-                     [(<TextBlockLink sref={Sefaria.calendar.parasha} title={Sefaria.calendar.parashaName} heTitle={Sefaria.calendar.heParashaName} category="Tanakh" />),
-                      (<TextBlockLink sref={Sefaria.calendar.haftara} title="Haftarah" heTitle="הפטרה" category="Tanakh" />),
-                      (<TextBlockLink sref={Sefaria.calendar.daf_yomi} title="Daf Yomi" heTitle="דף יומי" category="Talmud" />)] : [];
+      var calendar = Sefaria.calendars.map(function(item) {
+          return (<TextBlockLink
+                    sref={item.url}
+                    title={item.title["en"]}
+                    heTitle={item.title["he"]}
+                    displayValue={item.displayValue["en"]}
+                    heDisplayValue={item.displayValue["he"]}
+                    category={item.category}
+                    showSections={false}
+                    recentItem={false} />)
+      });
       calendar = (<div className="readerNavCalendar"><TwoOrThreeBox content={calendar} width={this.width} /></div>);
 
 
