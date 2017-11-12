@@ -26,10 +26,10 @@ def daily_929(datetime_obj):
     display_en = "{} ({})".format(rf.normal(), p.number)
     display_he = u"{} ({})".format(rf.he_normal(), p.number)
     return {
-        'title' : {'en':'929 Project', 'he': u'929'},
+        'title' : {'en':'929', 'he': u'929'},
         'displayValue': {'en':display_en, 'he': display_he},
         'url': rf.url(),
-        'order': 3,
+        'order': 4,
         'category': rf.index.get_primary_category()
     }
 
@@ -51,9 +51,26 @@ def daf_yomi(datetime_obj):
         'title': {'en': 'Daf Yomi', 'he': u'דף יומי'},
         'displayValue': {'en': name, 'he': name_he},
         'url': rf.url(),
-        'order': 4,
+        'order': 3,
         'category': rf.index.get_primary_category()
     }
+
+
+def daily_mishnayot(datetime_obj):
+    mishnah_items = []
+    datetime_obj = datetime.datetime(datetime_obj.year,datetime_obj.month,datetime_obj.day)
+    daily_mishnahs = db.daily_mishnayot.find({"date": {"$eq": datetime_obj}}).sort([("date", 1)])
+    for dm in daily_mishnahs:
+        rf = model.Ref(dm["ref"])
+        mishnah_items.append({
+        'title': {'en': 'Daily Mishnah', 'he': u'משנה יומית'},
+        'displayValue': {'en': rf.normal(), 'he': rf.he_normal()},
+        'url': rf.url(),
+        'order': 5,
+        'category': rf.index.get_primary_category()
+    })
+    return mishnah_items
+
 
 
 def this_weeks_parasha(datetime_obj, diaspora=True):
@@ -93,8 +110,9 @@ def parashat_hashavua_and_haftara(datetime_obj, diaspora=True):
 def get_all_calendar_items(datetime_obj, diaspora=True):
     cal_items = []
     cal_items += parashat_hashavua_and_haftara(datetime_obj, diaspora=diaspora)
-    cal_items.append(daily_929(datetime_obj))
     cal_items.append(daf_yomi(datetime_obj))
+    cal_items.append(daily_929(datetime_obj))
+    cal_items += daily_mishnayot(datetime_obj)
     return cal_items
 
 
