@@ -75,9 +75,11 @@ def daily_rambam(datetime_obj):
     datetime_obj = datetime.datetime(datetime_obj.year,datetime_obj.month,datetime_obj.day)
     daily_rambam = db.daily_rambam.find_one({"date": {"$eq": datetime_obj}})
     rf = model.Ref(daily_rambam["ref"])
+    display_value_en = rf.normal().replace("Mishneh Torah, ","")
+    display_value_he = rf.he_normal().replace(u"משנה תורה, ", u"")
     return {
         'title': {'en': 'Daily Rambam', 'he': u'הרמב"ם היומי'},
-        'displayValue': {'en': rf.normal(), 'he': rf.he_normal()},
+        'displayValue': {'en': display_value_en, 'he': display_value_he},
         'url': rf.url(),
         'order': 6,
         'category': rf.index.get_primary_category()
