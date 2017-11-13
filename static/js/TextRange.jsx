@@ -249,7 +249,7 @@ class TextRange extends Component {
           <span className="he">{ parashahNames.he }</span>
         </div>;
       }
-      return (<div key={i + segment.ref}>
+      return (<span key={i + segment.ref}>
                 { parashahHeader }
                 <TextSegment
                     sref={segment.ref}
@@ -264,7 +264,7 @@ class TextRange extends Component {
                     onSegmentClick={this.props.onSegmentClick}
                     onCitationClick={this.props.onCitationClick}
                     onFootnoteClick={this.onFootnoteClick} />
-              </div>);
+              </span>);
     }.bind(this));
     textSegments = textSegments.length ? textSegments : null;
 
