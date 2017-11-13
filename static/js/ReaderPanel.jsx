@@ -52,8 +52,7 @@ class ReaderPanel extends Component {
       connectionsMode: props.initialConnectionsMode,
       filter: props.initialFilter || [],
       versionFilter: props.initialVersionFilter || [],
-      enVersion: props.initialEnVersion,
-      heVersion: props.initialHeVersion,
+      currVersions: props.initialCurrVersions || {en:null, he: null},
       highlightedRefs: props.initialHighlightedRefs || [],
       recentFilters: [],
       recentVersionFilters: [],
@@ -195,7 +194,7 @@ class ReaderPanel extends Component {
     // Return to the original text in the ReaderPanel contents
     this.conditionalSetState({highlightedRefs: [], mode: "Text"});
   }
-  showBaseText(ref, replaceHistory, enVersion=null, heVersion=null, filter=[]) {
+  showBaseText(ref, replaceHistory, currVersions={en:null,he:null}, filter=[]) {
     // Set the current primary text
     // `replaceHistory` - bool whether to replace browser history rather than push for this change
     if (!ref) { return; }
@@ -208,12 +207,11 @@ class ReaderPanel extends Component {
     this.conditionalSetState({
       mode: "Text",
       refs: [ref],
-      filter: filter,
+      filter,
       recentFilters: [],
       menuOpen: null,
       currentlyVisibleRef: ref,
-      enVersion: enVersion,
-      heVersion: heVersion,
+      currVersions,
       settings: this.state.settings
     });
   }
@@ -468,8 +466,7 @@ class ReaderPanel extends Component {
       items.push(<TextColumn
           panelPosition ={this.props.panelPosition}
           srefs={this.state.refs.slice()}
-          enVersion={this.state.enVersion}
-          heVersion={this.state.heVersion}
+          currVersions={this.state.currVersions}
           highlightedRefs={this.state.highlightedRefs}
           basetext={true}
           withContext={true}
@@ -511,8 +508,7 @@ class ReaderPanel extends Component {
           interfaceLang={this.props.interfaceLang}
           contentLang={this.state.settings.language}
           title={this.currentBook()}
-          enVersion={this.state.enVersion}
-          heVersion={this.state.heVersion}
+          currVersions={this.state.currVersions}
           fullPanel={this.props.multiPanel}
           multiPanel={this.props.multiPanel}
           allOpenRefs={this.props.allOpenRefs}
@@ -577,8 +573,7 @@ class ReaderPanel extends Component {
                     interfaceLang={this.props.interfaceLang}
                     close={this.closeMenus}
                     title={this.currentBook()}
-                    enVersion={this.state.enVersion}
-                    heVersion={this.state.heVersion}
+                    currVersions={this.state.currVersions}
                     settingsLanguage={this.state.settings.language == "hebrew"?"he":"en"}
                     category={this.currentCategory()}
                     narrowPanel={!this.props.multiPanel}
@@ -734,8 +729,7 @@ class ReaderPanel extends Component {
           currentMode={this.currentMode.bind(this)}
           currentCategory={this.currentCategory}
           currentBook={this.currentBook.bind(this)}
-          enVersion={this.state.enVersion}
-          heVersion={this.state.heVersion}
+          currVersions={this.state.currVersions}
           multiPanel={this.props.multiPanel}
           settings={this.state.settings}
           setOption={this.setOption}
@@ -877,8 +871,8 @@ class ReaderControls extends Component {
     var mode              = this.props.currentMode();
     var hideHeader        = !this.props.multiPanel && mode === "Connections";
     var connectionsHeader = this.props.multiPanel && mode === "Connections";
-    var showVersion = this.props.enVersion && (this.props.settings.language == "english" || this.props.settings.language == "bilingual");
-    var versionTitle = this.props.enVersion ? this.props.enVersion.replace(/_/g," ") : "";
+    var showVersion = this.props.currVersions.en && (this.props.settings.language == "english" || this.props.settings.language == "bilingual");
+    var versionTitle = this.props.currVersions.en ? this.props.currVersions.en.replace(/_/g," ") : "";
     var url = Sefaria.ref(title) ? "/" + Sefaria.normRef(Sefaria.ref(title).book) : Sefaria.normRef(title);
     var centerContent = connectionsHeader ?
       (<div className="readerTextToc">
@@ -949,8 +943,7 @@ ReaderControls.propTypes = {
   closePanel:              PropTypes.func,
   toggleLanguage:          PropTypes.func,
   currentRef:              PropTypes.string,
-  enVersion:               PropTypes.string,
-  heVersion:               PropTypes.string,
+  currVersions:            PropTypes.object,
   connectionsMode:         PropTypes.string,
   connectionsCategory:     PropTypes.string,
   multiPanel:              PropTypes.bool,

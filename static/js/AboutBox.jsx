@@ -8,8 +8,8 @@ import Component             from 'react-class';
 class AboutBox extends Component {
   render() {
     const d = this.props.details;
-    const vh = this.props.heVersion;
-    const ve = this.props.enVersion;
+    const vh = this.props.currVersions.he;
+    const ve = this.props.currVersions.en;
     let detailSection = null;
     if (d) {
       let authorTextEn, authorTextHe;
@@ -115,8 +115,7 @@ class AboutBox extends Component {
   }
 }
 AboutBox.propTypes = {
-  enVersion:           PropTypes.object,
-  heVersion:           PropTypes.object,
+  currVersions:        PropTypes.object.isRequired,
   mainVersionLanguage: PropTypes.oneOf(["english", "hebrew"]),
   details:             PropTypes.object,
   srefs:               PropTypes.array.isRequired,

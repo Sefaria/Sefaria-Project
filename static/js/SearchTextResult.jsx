@@ -24,10 +24,7 @@ class SearchTextResult extends Component {
             event.preventDefault();
             var s = this.props.data._source;
             Sefaria.track.event("Search", "Search Result Text Click", `${this.props.query} - ${s.ref}/${s.version}/${s.lang}`);
-            let enVersion = null, heVersion = null;
-            if (s.lang === "en")      { enVersion = s.version; }
-            else if (s.lang === "he") { heVersion = s.version; }
-            this.props.onResultClick(s.ref, enVersion, heVersion, {"highlight": this.props.query}); //highlight not yet handled, above in ReaderApp.handleNavigationClick()
+            this.props.onResultClick(s.ref, {[s.lang]: s.version}, {"highlight": this.props.query}); //highlight not yet handled, above in ReaderApp.handleNavigationClick()
         }
     }
     render () {

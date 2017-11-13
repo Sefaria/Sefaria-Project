@@ -27,8 +27,8 @@ class TextRange extends Component {
   componentDidUpdate(prevProps, prevState) {
     // Place segment numbers again if update affected layout
     if (this.props.basetext || this.props.segmentNumber) {
-      if (this.props.enVersion != prevProps.enVersion ||
-          this.props.heVersion != prevProps.heVersion ||
+      if (prevProps.currVersions.en !== this.props.currVersions.en ||
+          prevProps.currVersions.he !== this.props.currVersions.he ||
           prevProps.settings.language !== this.props.settings.language ||
           prevProps.settings.layoutDefault !== this.props.settings.layoutDefault ||
           prevProps.settings.layoutTanakh !== this.props.settings.layoutTanakh ||
@@ -69,8 +69,8 @@ class TextRange extends Component {
   getText() {
     var settings = {
       context: this.props.withContext ? 1 : 0,
-      enVersion: this.props.enVersion || null,
-      heVersion: this.props.heVersion || null
+      enVersion: this.props.currVersions.en || null,
+      heVersion: this.props.currVersions.he || null
     };
     var data = Sefaria.text(this.props.sref, settings);
 
@@ -86,13 +86,13 @@ class TextRange extends Component {
     if (this.props.basetext && this.props.sref !== data.ref) {
       // Replace ReaderPanel contents ref with the normalized form of the ref, if they differ.
       // Pass parameter to showBaseText to replaceHistory - normalization should't add a step to history
-      this.props.showBaseText(data.ref, true, this.props.enVersion, this.props.heVersion);
+      this.props.showBaseText(data.ref, true, this.props.currVersions);
       return;
     }
 
     // If this is a ref to a super-section, rewrite it to first available section
     if (this.props.basetext && data.textDepth - data.sections.length > 1 && data.firstAvailableSectionRef) {
-      this.props.showBaseText(data.firstAvailableSectionRef, true, this.props.enVersion, this.props.heVersion);
+      this.props.showBaseText(data.firstAvailableSectionRef, true, this.props.currVersions);
       return;
     }
 
@@ -139,15 +139,15 @@ class TextRange extends Component {
      if (data.next) {
        Sefaria.text(data.next, {
          context: 1,
-         enVersion: this.props.enVersion || null,
-         heVersion: this.props.heVersion || null
+         enVersion: this.props.currVersions.en || null,
+         heVersion: this.props.currVersions.he || null
        }, function() {});
      }
      if (data.prev) {
        Sefaria.text(data.prev, {
          context: 1,
-         enVersion: this.props.enVersion || null,
-         heVersion: this.props.heVersion || null
+         enVersion: this.props.currVersions.en || null,
+         heVersion: this.props.currVersions.he || null
        }, function() {});
      }
      if (data.indexTitle) {
@@ -227,8 +227,8 @@ class TextRange extends Component {
         <TextSegment
             panelPosition={this.props.panelPosition}
             sref={segment.ref}
-            en={!this.props.useVersionLanguage || this.props.enVersion ? segment.en : null}
-            he={!this.props.useVersionLanguage || this.props.heVersion ? segment.he : null}
+            en={!this.props.useVersionLanguage || this.props.currVersions.en ? segment.en : null}
+            he={!this.props.useVersionLanguage || this.props.currVersions.he ? segment.he : null}
             highlight={highlight}
             segmentNumber={showSegmentNumbers ? segment.number : 0}
             showLinkCount={this.props.basetext}
@@ -322,8 +322,7 @@ class TextRange extends Component {
 }
 TextRange.propTypes = {
   sref:                   PropTypes.string.isRequired,
-  enVersion:              PropTypes.string,
-  heVersion:              PropTypes.string,
+  currVersions:           PropTypes.object.isRequired,
   useVersionLanguage:     PropTypes.bool,
   highlightedRefs:        PropTypes.array,
   basetext:               PropTypes.bool,

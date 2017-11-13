@@ -261,8 +261,7 @@ class TextColumn extends Component {
       return (<TextRange
         panelPosition ={this.props.panelPosition}
         sref={ref}
-        enVersion={this.props.enVersion}
-        heVersion={this.props.heVersion}
+        currVersions={this.props.currVersions}
         highlightedRefs={this.props.highlightedRefs}
         basetext={true}
         withContext={true}
@@ -305,8 +304,7 @@ class TextColumn extends Component {
 }
 TextColumn.propTypes = {
   srefs:                  PropTypes.array.isRequired,
-  enVersion:              PropTypes.string,
-  heVersion:              PropTypes.string,
+  currVersions:           PropTypes.object.isRequired,
   highlightedRefs:        PropTypes.array,
   basetext:               PropTypes.bool,
   withContext:            PropTypes.bool,

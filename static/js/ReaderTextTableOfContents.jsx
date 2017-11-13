@@ -46,7 +46,7 @@ class ReaderTextTableOfContents extends Component {
   }
   getData() {
     // Gets data about this text from cache, which may be null.
-    var data = Sefaria.text(this.getDataRef(), {context: 1, enVersion: this.props.enVersion, heVersion: this.props.heVersion});
+    var data = Sefaria.text(this.getDataRef(), {context: 1, enVersion: this.props.currVersions.en, heVersion: this.props.currVersions.he});
     return data;
   }
   loadData() {
@@ -67,7 +67,7 @@ class ReaderTextTableOfContents extends Component {
       if (!data) {
         Sefaria.text(
           ref,
-          {context: 1, enVersion: this.props.enVersion, heVersion: this.props.heVersion},
+          {context: 1, enVersion: this.props.currVersions.en, heVersion: this.props.currVersions.he},
           () => this.forceUpdate());
       }
     }
@@ -112,7 +112,7 @@ class ReaderTextTableOfContents extends Component {
       ref = decodeURIComponent(ref);
       ref = Sefaria.humanRef(ref);
       this.props.close();
-      this.props.showBaseText(ref, false, this.props.enVersion, this.props.heVersion);
+      this.props.showBaseText(ref, false, this.props.currVersions);
       e.preventDefault();
     }
   }
@@ -396,8 +396,7 @@ ReaderTextTableOfContents.propTypes = {
   category:         PropTypes.string.isRequired,
   currentRef:       PropTypes.string.isRequired,
   settingsLanguage: PropTypes.string.isRequired,
-  enVersion:        PropTypes.string,
-  heVersion:        PropTypes.string,
+  currVersions:     PropTypes.object.isRequired,
   narrowPanel:      PropTypes.bool,
   close:            PropTypes.func.isRequired,
   openNav:          PropTypes.func.isRequired,

@@ -74,12 +74,12 @@ class ReaderNavigationMenu extends Component {
     if ($(event.target).hasClass("refLink") || $(event.target).parent().hasClass("refLink")) {
       var ref = $(event.target).attr("data-ref") || $(event.target).parent().attr("data-ref");
       var pos = $(event.target).attr("data-position") || $(event.target).parent().attr("data-position");
-      var enVersion = $(event.target).attr("data-enversion") || $(event.target).parent().attr("data-enversion");
-      var heVersion = $(event.target).attr("data-heversion") || $(event.target).parent().attr("data-heversion");
+      const enVersion = $(event.target).attr("data-ven") || $(event.target).parent().attr("data-ven");
+      const heVersion = $(event.target).attr("data-vhe") || $(event.target).parent().attr("data-vhe");
       if ($(event.target).hasClass("recentItem") || $(event.target).parent().hasClass("recentItem")) {
-        this.props.onRecentClick(parseInt(pos), ref, enVersion, heVersion);
+        this.props.onRecentClick(parseInt(pos), ref, {en: enVersion, he: heVersion});
       } else {
-        this.props.onTextClick(ref, enVersion, heVersion);
+        this.props.onTextClick(ref, {en: enVersion, he: heVersion});
       }
       if (Sefaria.site) { Sefaria.track.event("Reader", "Navigation Text Click", ref); }
     } else if ($(event.target).hasClass("catLink") || $(event.target).parent().hasClass("catLink")) {
@@ -247,8 +247,7 @@ class ReaderNavigationMenu extends Component {
                     sref={item.ref}
                     heRef={item.heRef}
                     book={item.book}
-                    enVersion={item.enVersion}
-                    heVersion={item.heVersion}
+                    currVersions={item.currVersions}
                     showSections={true}
                     recentItem={true} />)
           });
@@ -319,8 +318,7 @@ class RecentPanel extends Component {
                 sref={item.ref}
                 heRef={item.heRef}
                 book={item.book}
-                enVersion={item.enVersion}
-                heVersion={item.heVersion}
+                currVersions={item.currVersions}
                 showSections={true}
                 recentItem={true} />)
     });

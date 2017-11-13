@@ -85,7 +85,7 @@ class Header extends Component {
     if (this.props.panelsOpen == 0) {
       var recentlyViewed = Sefaria.recentlyViewed;
       if (recentlyViewed && recentlyViewed.length) {
-        this.handleRefClick(recentlyViewed[0].ref, recentlyViewed[0].enVersion, recentlyViewed[0].heVersion);
+        this.handleRefClick(recentlyViewed[0].ref, recentlyViewed[0].currVersions);
       }
     }
     this.props.setCentralState({menuOpen: null});
@@ -200,12 +200,12 @@ class Header extends Component {
     $(".wrapper").remove();
     $("#footer").remove();
   }
-  handleRefClick(ref, enVersion, heVersion) {
+  handleRefClick(ref, currVersions) {
     if (this.props.headerMode) {
       window.location.assign("/" + ref);
       return;
     }
-    this.props.onRefClick(ref, enVersion, heVersion);
+    this.props.onRefClick(ref, currVersions);
   }
   handleSearchKeyUp(event) {
     if (event.keyCode === 13) {

@@ -1327,7 +1327,7 @@ Sefaria = extend(Sefaria, {
   },
   packRecentItem: function(item) {
     // Returns an array which represents the object `item` with less overhead.
-    const packed = [item.ref, item.heRef, item.enVersion, item.heVersion];
+    const packed = [item.ref, item.heRef, item.currVersions.en, item.currVersions.he];
     return packed;
   },
   unpackRecentItem: function(item) {
@@ -1337,8 +1337,10 @@ Sefaria = extend(Sefaria, {
       ref: item[0],
       heRef: item[1],
       book: oRef.index,
-      enVersion: item[2],
-      heVersion: item[3]
+      currVersions: {
+        en: item[2],
+        he: item[3],
+      },
     };
     return unpacked;
   },

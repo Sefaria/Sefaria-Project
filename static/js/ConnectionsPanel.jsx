@@ -99,7 +99,7 @@ class ConnectionsPanel extends Component {
   }
   getData() {
     // Gets data about this text from cache, which may be null.
-    return Sefaria.text(this.props.srefs[0], {context: 1, enVersion: this.props.enVersion, heVersion: this.props.heVersion});
+    return Sefaria.text(this.props.srefs[0], {context: 1, enVersion: this.props.currVersions.en, heVersion: this.props.currVersions.he});
   }
   getVersionFromData(d, lang) {
     //d - data received from this.getData()
@@ -125,14 +125,16 @@ class ConnectionsPanel extends Component {
     if (currentLanguage == "hebrew" && !data.he.length) {currentLanguage = "english"}
     if (currentLanguage == "english" && !data.text.length) {currentLanguage = "hebrew"}
     return {
-      currVersionEn: (this.props.masterPanelLanguage != "hebrew" && !!data.text.length) ? this.getVersionFromData(data, "en") : null,
-      currVersionHe: (this.props.masterPanelLanguage != "english" && !!data.he.length) ? this.getVersionFromData(data, "he") : null,
+      currVersions: {
+        en: (this.props.masterPanelLanguage != "hebrew" && !!data.text.length) ? this.getVersionFromData(data, "en") : null,
+        he: (this.props.masterPanelLanguage != "english" && !!data.he.length) ? this.getVersionFromData(data, "he") : null,
+      },
       mainVersionLanguage: currentLanguage,
     }
   }
   render() {
     const versions = Sefaria.versions(this.props.title);
-    const { currVersionHe, currVersionEn, mainVersionLanguage } = this.getCurrentVersions();
+    const { currVersions, mainVersionLanguage } = this.getCurrentVersions();
     const details = Sefaria.indexDetails(this.props.title);
     var content = null;
     var loaded = !!Sefaria.related(this.sectionRef());
@@ -243,8 +245,7 @@ class ConnectionsPanel extends Component {
                     srefs={this.props.srefs}
                     canEditText={this.props.canEditText}
                     setConnectionsMode={this.props.setConnectionsMode}
-                    enVersion={this.props.enVersion}
-                    heVersion={this.props.heVersion}
+                    currVersions={this.props.currVersions}
                     masterPanelLanguage={this.props.masterPanelLanguage} />);
 
     } else if (this.props.mode === "Share") {
@@ -278,8 +279,7 @@ class ConnectionsPanel extends Component {
       content = (<LoginPrompt fullPanel={this.props.fullPanel} />);
     } else if (this.props.mode === "About") {
       content = (<AboutBox
-                  enVersion={currVersionEn}
-                  heVersion={currVersionHe}
+                  currVersions={currVersions}
                   mainVersionLanguage={mainVersionLanguage}
                   details={details}
                   srefs={this.props.srefs}
@@ -289,10 +289,8 @@ class ConnectionsPanel extends Component {
       content = (<VersionsBox
                   mode={this.props.mode}
                   versions={versions}
-                  enVersion={currVersionEn}
-                  heVersion={currVersionHe}
+                  currVersions={currVersions}
                   srefs={this.props.srefs}
-                  currVersion={this.state.curr}
                   mainVersionLanguage={mainVersionLanguage}
                   vFilter={this.props.versionFilter}
                   recentVFilters={this.props.recentVersionFilters}
@@ -338,8 +336,7 @@ ConnectionsPanel.propTypes = {
   openComparePanel:        PropTypes.func.isRequired,
   addToSourceSheet:        PropTypes.func.isRequired,
   title:                   PropTypes.string.isRequired,
-  enVersion:               PropTypes.string,
-  heVersion:               PropTypes.string,
+  currVersions:            PropTypes.object.isRequired,
   noteBeingEdited:         PropTypes.object,
   fullPanel:               PropTypes.bool,
   multiPanel:              PropTypes.bool,
@@ -551,10 +548,9 @@ class ToolsList extends Component {
         var refString = this.props.srefs[0];
         var currentPath = Sefaria.util.currentPath();
         var currentLangParam;
-        if (this.props.masterPanelLanguage === "english" && this.props.enVersion) {
-          refString += "/" + encodeURIComponent("en") + "/" + encodeURIComponent(this.props.enVersion);
-        } else if (this.props.masterPanelLanguage === "hebrew" && this.props.heVersion) {
-          refString += "/" + encodeURIComponent("he") + "/" + encodeURIComponent(this.props.heVersion);
+        const langCode = this.props.masterPanelLanguage.slice(0,2);
+        if (this.props.currVersions[langCode]) {
+          refString += "/" + encodeURIComponent(langCode) + "/" + encodeURIComponent(this.props.currVersions[langCode]);
         }
         var path = "/edit/" + refString;
         var nextParam = "?next=" + encodeURIComponent(currentPath);
@@ -584,8 +580,7 @@ class ToolsList extends Component {
 ToolsList.propTypes = {
   srefs:               PropTypes.array.isRequired,  // an array of ref strings
   canEditText:         PropTypes.bool,
-  enVersion:           PropTypes.string,
-  heVersion:           PropTypes.string,
+  currVersions:        PropTypes.object,
   setConnectionsMode:  PropTypes.func.isRequired,
   masterPanelLanguage: PropTypes.oneOf(["english", "hebrew", "bilingual"]),
 };
