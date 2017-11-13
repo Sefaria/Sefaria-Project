@@ -134,7 +134,6 @@ urlpatterns += patterns('sheets.views',
     (r'^sheets/tags/(?P<tag>.+)$', 'sheets_tag'),
     (r'^sheets/private/tags/(?P<tag>.+)$', 'private_sheets_tag'),
     (r'^sheets/(?P<type>(public|private))/?$', 'sheets_list'),
-    (r'^sheets/(?P<sheet_id>\d+)$', 'view_sheet'),
     (r'^sheets/visual/(?P<sheet_id>\d+)$', 'view_visual_sheet'),
 )
 
@@ -408,6 +407,11 @@ urlpatterns += patterns('',
 urlpatterns += patterns('sefaria.gauth.views',
     (r'^gauth$', 'index', {}, 'gauth_index'),
     (r'^gauth/callback$', 'auth_return', {}, 'gauth_callback'),
+)
+
+# Sheets in a reader panel
+urlpatterns += patterns('reader.views',
+    (r'^sheets/(?P<tref>\d+)$', 'reader', {'sheet': True}),
 )
 
 # Catch all to send to Reader

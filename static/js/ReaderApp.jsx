@@ -515,7 +515,7 @@ class ReaderApp extends Component {
 
       } else if (state.mode === "Sheet") {
         hist.title = state.sheet.title.stripHtml();
-        hist.url = "sheet&s="+ state.sheet.id;
+        hist.url = i == 0 ? "sheets/"+state.sheet.id : "sheet&s="+ state.sheet.id;
       }
       if (state.mode !== "Header") {
         hist.lang =  state.settings.language.substring(0,2);

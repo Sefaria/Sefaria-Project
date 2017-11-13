@@ -68,7 +68,7 @@ library.build_ref_auto_completer()
 #    #    #
 
 @ensure_csrf_cookie
-def reader(request, tref, lang=None, version=None):
+def reader(request, tref, lang=None, version=None, sheet=None):
     # Redirect to standard URLs
     def reader_redirect(uref, lang, version):
         url = "/" + uref
@@ -80,28 +80,29 @@ def reader(request, tref, lang=None, version=None):
         response['Location'] += "?%s" % params if params else ""
         return response
 
-    try:
-        oref = model.Ref(tref)
-    except PartialRefInputError as e:
-        logger.warning(u'{}'.format(e))
-        matched_ref = Ref(e.matched_part)
-        return reader_redirect(matched_ref.url(), lang, version)
-    except InputError:
-        raise Http404
+    if sheet is None:
+        try:
+            oref = model.Ref(tref)
+        except PartialRefInputError as e:
+            logger.warning(u'{}'.format(e))
+            matched_ref = Ref(e.matched_part)
+            return reader_redirect(matched_ref.url(), lang, version)
+        except InputError:
+            raise Http404
 
-    uref = oref.url()
-    if uref and tref != uref:
-        return reader_redirect(uref, lang, version)
+        uref = oref.url()
+        if uref and tref != uref:
+            return reader_redirect(uref, lang, version)
 
-    # Return Text TOC if this is a bare text title
-    if oref.sections == [] and (oref.index.title == oref.normal() or getattr(oref.index_node, "depth", 0) > 1):
-        return text_toc(request, oref)
-    # or if this is a schema node with multiple sections underneath it
-    if (not getattr(oref.index_node, "depth", None)):
-        return text_toc(request, oref)
+        # Return Text TOC if this is a bare text title
+        if oref.sections == [] and (oref.index.title == oref.normal() or getattr(oref.index_node, "depth", 0) > 1):
+            return text_toc(request, oref)
+        # or if this is a schema node with multiple sections underneath it
+        if (not getattr(oref.index_node, "depth", None)):
+            return text_toc(request, oref)
 
     if not request.COOKIES.get('s1'):
-        return s2(request, ref=tref, lang=lang, version=version)
+        return s2(request, ref=tref, lang=lang, version=version, sheet=sheet)
 
 
     # TODO Everything below is S1 and will be removed
@@ -375,14 +376,15 @@ def s2_props(request):
     }
 
 
-def s2(request, ref, version=None, lang=None):
+def s2(request, ref, version=None, lang=None, sheet=None):
     """
     Reader App.
     """
-    try:
-        primary_ref = oref = Ref(ref)
-    except InputError:
-        raise Http404
+    if sheet == None:
+        try:
+            primary_ref = oref = Ref(ref)
+        except InputError:
+            raise Http404
 
     props = s2_props(request)
 
@@ -393,10 +395,14 @@ def s2(request, ref, version=None, lang=None):
     filter = request.GET.get("with").replace("_", " ").split("+") if request.GET.get("with") else None
     filter = [] if filter == ["all"] else filter
 
-    if version and not Version().load({"versionTitle": version, "language": lang}):
-        raise Http404
+    if sheet == None:
+        if version and not Version().load({"versionTitle": version, "language": lang}):
+            raise Http404
 
-    panels += make_panel_dicts(oref, version, lang, filter, multi_panel, **{"panelDisplayLanguage": request.GET.get("lang", props["initialSettings"]["language"])})
+        panels += make_panel_dicts(oref, version, lang, filter, multi_panel, **{"panelDisplayLanguage": request.GET.get("lang", props["initialSettings"]["language"])})
+
+    elif sheet == True:
+        panels += [make_sheet_panel_dict(ref, **{"panelDisplayLanguage": lang})]
 
     # Handle any panels after 1 which are identified with params like `p2`, `v2`, `l2`.
     i = 2
@@ -450,35 +456,43 @@ def s2(request, ref, version=None, lang=None):
         "initialSheetsTag":            None,
         "initialNavigationCategories": None,
     })
-    title = primary_ref.he_normal() if request.interfaceLang == "hebrew" else primary_ref.normal()
+    if sheet == None:
+        title = primary_ref.he_normal() if request.interfaceLang == "hebrew" else primary_ref.normal()
+        breadcrumb = ld_cat_crumbs(oref=primary_ref)
 
-    if primary_ref.is_book_level():
-        if request.interfaceLang == "hebrew":
-            desc = getattr(primary_ref.index, 'heDesc', "")
-            book = primary_ref.he_normal()
+        if primary_ref.is_book_level():
+            if request.interfaceLang == "hebrew":
+                desc = getattr(primary_ref.index, 'heDesc', "")
+                book = primary_ref.he_normal()
+            else:
+                desc = getattr(primary_ref.index, 'enDesc', "")
+                book = primary_ref.normal()
+            read = _("Read the text of %(book)s online with commentaries and connections.") % {'book': book}
+            desc = desc + " " + read if desc else read
+
         else:
-            desc = getattr(primary_ref.index, 'enDesc', "")
-            book = primary_ref.normal()
-        read = _("Read the text of %(book)s online with commentaries and connections.") % {'book': book}
-        desc = desc + " " + read if desc else read
+            segmentIndex = primary_ref.sections[-1] - 1 if primary_ref.is_segment_level() else 0
+            try:
+                enText = props["initialPanels"][0]["text"].get("text",[])
+                heText = props["initialPanels"][0]["text"].get("he",[])
+                enDesc = enText[segmentIndex] if segmentIndex < len(enText) else "" # get english text for section if it exists
+                heDesc = heText[segmentIndex] if segmentIndex < len(heText) else "" # get hebrew text for section if it exists
+                if request.interfaceLang == "hebrew":
+                    desc = heDesc or enDesc # if no hebrew, fall back on hebrew
+                else:
+                    desc = enDesc or heDesc  # if no english, fall back on hebrew
+
+                desc = bleach.clean(desc, strip=True, tags=())
+                desc = desc[:160].rsplit(' ', 1)[0] + "..."  # truncate as close to 160 characters as possible while maintaining whole word. Append ellipses.
+
+            except (IndexError, KeyError):
+                desc = _("Explore 3,000 years of Jewish texts in Hebrew and English translation.")
 
     else:
-        segmentIndex = primary_ref.sections[-1] - 1 if primary_ref.is_segment_level() else 0
-        try:
-            enText = props["initialPanels"][0]["text"].get("text",[])
-            heText = props["initialPanels"][0]["text"].get("he",[])
-            enDesc = enText[segmentIndex] if segmentIndex < len(enText) else "" # get english text for section if it exists
-            heDesc = heText[segmentIndex] if segmentIndex < len(heText) else "" # get hebrew text for section if it exists
-            if request.interfaceLang == "hebrew":
-                desc = heDesc or enDesc # if no hebrew, fall back on hebrew
-            else:
-                desc = enDesc or heDesc  # if no english, fall back on hebrew
+        title = "Sheet" + str(ref)
+        breadcrumb = "/sheet/"+str(ref)
+        desc = "source sheet"
 
-            desc = bleach.clean(desc, strip=True, tags=())
-            desc = desc[:160].rsplit(' ', 1)[0] + "..."  # truncate as close to 160 characters as possible while maintaining whole word. Append ellipses.
-
-        except (IndexError, KeyError):
-            desc = _("Explore 3,000 years of Jewish texts in Hebrew and English translation.")
 
     propsJSON = json.dumps(props)
     html = render_react_component("ReaderApp", propsJSON)
@@ -487,7 +501,7 @@ def s2(request, ref, version=None, lang=None):
         "html":           html,
         "title":          title,
         "desc":           desc,
-        "ldBreadcrumbs":  ld_cat_crumbs(oref=primary_ref)
+        "ldBreadcrumbs":  breadcrumb
     }, RequestContext(request))
 
 
