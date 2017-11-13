@@ -908,7 +908,7 @@ a.readerNavCategory {
   border-top: 4px solid transparent;
   width: 100%;
   cursor: pointer;
-  height: 46px;
+  min-height: 46px;
   vertical-align: middle;
   margin: 0;
   box-sizing: border-box;
@@ -926,6 +926,15 @@ a.readerNavCategory {
   width: 16px;
   opacity: 0.4;
   vertical-align: -3px;
+}
+.readerNavMenu .blockLink.calendarLink{
+  line-height: 1;
+  padding: 7px 8px;
+}
+.readerNavMenu .blockLink .blockLinkSubtitle{
+  display: block;
+  font-size: 0.8em;
+  color: #666666;
 }
 .gridBox {
   table-layout: fixed;
