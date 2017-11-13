@@ -10,7 +10,6 @@ var extend     = require('extend'),
 
 var INBROWSER = (typeof document !== 'undefined');
 
-console.log("setting default data at start of bundle")
 var Sefaria = Sefaria || {
   _dataLoaded: false,
   toc: [],
