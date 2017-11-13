@@ -298,10 +298,6 @@ def make_panel_dict(oref, versionEn, versionHe, filter, mode, **kwargs):
                 panel["connectionsMode"] = "TextList"
         if panelDisplayLanguage:
             panel["settings"] = {"language" : short_to_long_lang_code(panelDisplayLanguage)}
-            # so the connections panel doesnt act on the version NOT currently on display
-            if mode == "Connections" and panelDisplayLanguage != language:
-                panel["version"] = None
-                panel["versionLanguage"] = None
         if mode != "Connections":
             try:
                 text_family = TextFamily(oref, version=panel["enVersion"], lang="en", version2=panel["heVersion"], lang2="he", commentary=False,

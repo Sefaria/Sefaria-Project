@@ -114,7 +114,7 @@ class VersionsTextList extends Component {
     if (filter.length) {
       this.setState({loaded: false});
       const sectionRef = this.getSectionRef();
-      const language = Sefaria.versionLanguage(version);
+      const language = Sefaria.versionLanguage(filter[0]);
       let enVersion = null, heVersion = null;
       if (language === "en") { enVersion = filter[0]; }
       else                   { heVersion = filter[0]; }

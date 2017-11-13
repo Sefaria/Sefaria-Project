@@ -1239,8 +1239,8 @@ class ReaderApp extends Component {
         ref: ref,
         heRef: oRef.heRef,
         book: oRef.indexTitle,
-        enVersion = panel.enVersion,
-        heVersion = panel.heVersion,
+        enVersion: panel.enVersion,
+        heVersion: panel.heVersion,
       };
       Sefaria.saveRecentItem(recentItem);
     });

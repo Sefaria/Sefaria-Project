@@ -587,7 +587,7 @@ ToolsList.propTypes = {
   enVersion:           PropTypes.string,
   heVersion:           PropTypes.string,
   setConnectionsMode:  PropTypes.func.isRequired,
-  masterPanelLanguage: PropTypes.oneOf(["english", "hebrew", "bilingual"]);
+  masterPanelLanguage: PropTypes.oneOf(["english", "hebrew", "bilingual"]),
 };
 
 
