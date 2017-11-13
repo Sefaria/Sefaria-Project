@@ -99,7 +99,7 @@ class ConnectionsPanel extends Component {
   }
   getData() {
     // Gets data about this text from cache, which may be null.
-    return Sefaria.text(this.props.srefs[0], {context: 1, version: this.props.version, language: this.props.versionLanguage});
+    return Sefaria.text(this.props.srefs[0], {context: 1, enVersion: this.props.enVersion, heVersion: this.props.heVersion});
   }
   getVersionFromData(d, lang) {
     //d - data received from this.getData()
@@ -199,8 +199,6 @@ class ConnectionsPanel extends Component {
                     srefs={this.props.srefs}
                     fullPanel={this.props.fullPanel}
                     setConnectionsMode={this.props.setConnectionsMode}
-                    version={this.props.version}
-                    versionLanguage={this.props.versionLanguage}
                     addToSourceSheet={this.props.addToSourceSheet} />
                   { Sefaria._uid ?
                   <a href="/sheets/private" className="allSheetsLink button transparent bordered fillWidth squareBorder">
@@ -243,25 +241,11 @@ class ConnectionsPanel extends Component {
     } else if (this.props.mode === "Tools") {
       content = (<ToolsList
                     srefs={this.props.srefs}
-                    mode={this.props.mode}
-                    filter={this.props.filter}
-                    recentFilters={this.props.recentFilters}
-                    fullPanel={this.props.fullPanel}
-                    multiPanel={this.props.multiPanel}
                     canEditText={this.props.canEditText}
-                    setFilter={this.props.setFilter}
                     setConnectionsMode={this.props.setConnectionsMode}
-                    onTextClick={this.props.onTextClick}
-                    onCitationClick={this.props.onCitationClick}
-                    onNavigationClick={this.props.onNavigationClick}
-                    onCompareClick={this.props.onCompareClick}
-                    onOpenConnectionsClick={this.props.onOpenConnectionsClick}
-                    openNav={this.props.openNav}
-                    openDisplaySettings={this.props.openDisplaySettings}
-                    openComparePanel={this.props.openComparePanel}
-                    closePanel={this.props.closePanel}
-                    version={this.props.version}
-                    versionLanguage={this.props.versionLanguage} />);
+                    enVersion={this.props.enVersion}
+                    heVersion={this.props.heVersion}
+                    masterPanelLanguage={this.props.masterPanelLanguage} />);
 
     } else if (this.props.mode === "Share") {
       content = (<ShareBox
@@ -294,8 +278,8 @@ class ConnectionsPanel extends Component {
       content = (<LoginPrompt fullPanel={this.props.fullPanel} />);
     } else if (this.props.mode === "About") {
       content = (<AboutBox
-                  versionHe={currVersionHe}
-                  versionEn={currVersionEn}
+                  enVersion={currVersionEn}
+                  heVersion={currVersionHe}
                   mainVersionLanguage={mainVersionLanguage}
                   details={details}
                   srefs={this.props.srefs}
@@ -305,8 +289,8 @@ class ConnectionsPanel extends Component {
       content = (<VersionsBox
                   mode={this.props.mode}
                   versions={versions}
-                  versionHe={currVersionHe}
-                  versionEn={currVersionEn}
+                  enVersion={currVersionEn}
+                  heVersion={currVersionHe}
                   srefs={this.props.srefs}
                   currVersion={this.state.curr}
                   mainVersionLanguage={mainVersionLanguage}
@@ -354,8 +338,8 @@ ConnectionsPanel.propTypes = {
   openComparePanel:        PropTypes.func.isRequired,
   addToSourceSheet:        PropTypes.func.isRequired,
   title:                   PropTypes.string.isRequired,
-  version:                 PropTypes.string,
-  versionLanguage:         PropTypes.string,
+  enVersion:               PropTypes.string,
+  heVersion:               PropTypes.string,
   noteBeingEdited:         PropTypes.object,
   fullPanel:               PropTypes.bool,
   multiPanel:              PropTypes.bool,
@@ -567,8 +551,10 @@ class ToolsList extends Component {
         var refString = this.props.srefs[0];
         var currentPath = Sefaria.util.currentPath();
         var currentLangParam;
-        if (this.props.version) {
-          refString += "/" + encodeURIComponent(this.props.versionLanguage) + "/" + encodeURIComponent(this.props.version);
+        if (this.props.masterPanelLanguage === "english" && this.props.enVersion) {
+          refString += "/" + encodeURIComponent("en") + "/" + encodeURIComponent(this.props.enVersion);
+        } else if (this.props.masterPanelLanguage === "hebrew" && this.props.heVersion) {
+          refString += "/" + encodeURIComponent("he") + "/" + encodeURIComponent(this.props.heVersion);
         }
         var path = "/edit/" + refString;
         var nextParam = "?next=" + encodeURIComponent(currentPath);
@@ -597,7 +583,11 @@ class ToolsList extends Component {
 }
 ToolsList.propTypes = {
   srefs:               PropTypes.array.isRequired,  // an array of ref strings
+  canEditText:         PropTypes.bool,
+  enVersion:           PropTypes.string,
+  heVersion:           PropTypes.string,
   setConnectionsMode:  PropTypes.func.isRequired,
+  masterPanelLanguage: PropTypes.oneOf(["english", "hebrew", "bilingual"]);
 };
 
 

@@ -74,12 +74,12 @@ class ReaderNavigationMenu extends Component {
     if ($(event.target).hasClass("refLink") || $(event.target).parent().hasClass("refLink")) {
       var ref = $(event.target).attr("data-ref") || $(event.target).parent().attr("data-ref");
       var pos = $(event.target).attr("data-position") || $(event.target).parent().attr("data-position");
-      var version = $(event.target).attr("data-version") || $(event.target).parent().attr("data-version");
-      var versionLanguage = $(event.target).attr("data-versionlanguage") || $(event.target).parent().attr("data-versionlanguage");
+      var enVersion = $(event.target).attr("data-enversion") || $(event.target).parent().attr("data-enversion");
+      var heVersion = $(event.target).attr("data-heversion") || $(event.target).parent().attr("data-heversion");
       if ($(event.target).hasClass("recentItem") || $(event.target).parent().hasClass("recentItem")) {
-        this.props.onRecentClick(parseInt(pos), ref, version, versionLanguage);
+        this.props.onRecentClick(parseInt(pos), ref, enVersion, heVersion);
       } else {
-        this.props.onTextClick(ref, version, versionLanguage);
+        this.props.onTextClick(ref, enVersion, heVersion);
       }
       if (Sefaria.site) { Sefaria.track.event("Reader", "Navigation Text Click", ref); }
     } else if ($(event.target).hasClass("catLink") || $(event.target).parent().hasClass("catLink")) {
@@ -219,8 +219,8 @@ class ReaderNavigationMenu extends Component {
                 <CategoryColorLine category="Other" />
                 <ReaderNavigationMenuSearchButton onClick={this.navHome} />
                 <div className='sefariaLogo'><img src="/static/img/sefaria.svg" alt="Sefaria Logo" /></div>
-                {this.props.interfaceLang !== "hebrew" ? 
-                  <ReaderNavigationMenuDisplaySettingsButton onClick={this.props.openDisplaySettings} /> 
+                {this.props.interfaceLang !== "hebrew" ?
+                  <ReaderNavigationMenuDisplaySettingsButton onClick={this.props.openDisplaySettings} />
                   : <ReaderNavigationMenuDisplaySettingsButton placeholder={true} /> }
               </div>) :
               (<div className="readerNavTop search">
@@ -247,8 +247,8 @@ class ReaderNavigationMenu extends Component {
                     sref={item.ref}
                     heRef={item.heRef}
                     book={item.book}
-                    version={item.version}
-                    versionLanguage={item.versionLanguage}
+                    enVersion={item.enVersion}
+                    heVersion={item.heVersion}
                     showSections={true}
                     recentItem={true} />)
           });
@@ -319,8 +319,8 @@ class RecentPanel extends Component {
                 sref={item.ref}
                 heRef={item.heRef}
                 book={item.book}
-                version={item.version}
-                versionLanguage={item.versionLanguage}
+                enVersion={item.enVersion}
+                heVersion={item.heVersion}
                 showSections={true}
                 recentItem={true} />)
     });

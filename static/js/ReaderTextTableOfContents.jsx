@@ -46,7 +46,7 @@ class ReaderTextTableOfContents extends Component {
   }
   getData() {
     // Gets data about this text from cache, which may be null.
-    var data = Sefaria.text(this.getDataRef(), {context: 1, version: this.props.version, language: this.props.versionLanguage});
+    var data = Sefaria.text(this.getDataRef(), {context: 1, enVersion: this.props.enVersion, heVersion: this.props.heVersion});
     return data;
   }
   loadData() {
@@ -67,7 +67,7 @@ class ReaderTextTableOfContents extends Component {
       if (!data) {
         Sefaria.text(
           ref,
-          {context: 1, version: this.props.version, language: this.props.versionLanguage},
+          {context: 1, enVersion: this.props.enVersion, heVersion: this.props.heVersion},
           () => this.forceUpdate());
       }
     }
@@ -112,7 +112,7 @@ class ReaderTextTableOfContents extends Component {
       ref = decodeURIComponent(ref);
       ref = Sefaria.humanRef(ref);
       this.props.close();
-      this.props.showBaseText(ref, false, this.props.version, this.props.versionLanguage);
+      this.props.showBaseText(ref, false, this.props.enVersion, this.props.heVersion);
       e.preventDefault();
     }
   }
@@ -162,8 +162,8 @@ class ReaderTextTableOfContents extends Component {
                                   : category);
 
     var currentVersionElement = null;
-    var defaultVersionString = "Default Version";
-    var defaultVersionObject = null;
+    var defaultVersionString = "Default Version"; // TODO. this var is currently unused. consider removing
+    var defaultVersionObject = null; // TODO also unused
     var versionSection = null;
     var downloadSection = null;
 
@@ -396,8 +396,8 @@ ReaderTextTableOfContents.propTypes = {
   category:         PropTypes.string.isRequired,
   currentRef:       PropTypes.string.isRequired,
   settingsLanguage: PropTypes.string.isRequired,
-  versionLanguage:  PropTypes.string,
-  version:          PropTypes.string,
+  enVersion:        PropTypes.string,
+  heVersion:        PropTypes.string,
   narrowPanel:      PropTypes.bool,
   close:            PropTypes.func.isRequired,
   openNav:          PropTypes.func.isRequired,
@@ -463,7 +463,7 @@ TextDetails.propTypes = {
 
 class TextTableOfContentsNavigation extends Component {
   // The content section of the text table of contents that includes links to text sections,
-  // and tabs for alternate structures, commentary and versions.
+  // and tabs for alternate structures and commentary.
   constructor(props) {
     super(props);
     this.shrinkWrap = this.shrinkWrap.bind(this);
@@ -969,7 +969,7 @@ class VersionBlock extends Component {
   openVersion(e) {
     e.preventDefault();
     if (this.props.firstSectionRef) {
-      window.location = "/" + this.props.firstSectionRef + "/" + this.props.version.language + "/" + this.props.version.versionTitle
+      window.location = `/${this.props.firstSectionRef}?v${this.props.version.language}=${this.props.version.versionTitle}`;
     } else if (this.props.openVersion) {
       this.props.openVersion(this.props.version.versionTitle, this.props.version.language);
     }

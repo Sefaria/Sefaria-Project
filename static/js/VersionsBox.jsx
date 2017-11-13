@@ -56,8 +56,8 @@ class VersionsBox extends Component {
                     key={v.versionTitle + lang}
                     selectVersion={this.selectVersion}
                     openVersion={this.openVersion}
-                    isCurrent={(this.props.versionEn && this.props.versionEn.versionTitle === v.versionTitle) ||
-                              (this.props.versionHe && this.props.versionHe.versionTitle === v.versionTitle)}
+                    isCurrent={(this.props.enVersion && this.props.enVersion.versionTitle === v.versionTitle) ||
+                              (this.props.heVersion && this.props.heVersion.versionTitle === v.versionTitle)}
                   />
                 ))
               }
@@ -84,8 +84,8 @@ class VersionsBox extends Component {
 VersionsBox.propTypes = {
   mode:                     PropTypes.oneOf(["Versions", "Version Open"]),
   versions:                 PropTypes.array.isRequired,
-  versionEn:                PropTypes.object,
-  versionHe:                PropTypes.object,
+  enVersion:                PropTypes.object,
+  heVersion:                PropTypes.object,
   mainVersionLanguage:      PropTypes.oneOf(["english", "hebrew"]).isRequired,
   vFilter:                  PropTypes.array,
   recentVFilters:           PropTypes.array,
@@ -112,11 +112,13 @@ class VersionsTextList extends Component {
   }
   preloadText(filter) {
     if (filter.length) {
-      const version = filter[0];
       this.setState({loaded: false});
       const sectionRef = this.getSectionRef();
       const language = Sefaria.versionLanguage(version);
-      Sefaria.text(sectionRef, {version, language}, () => {this.setState({loaded: true})});
+      let enVersion = null, heVersion = null;
+      if (language === "en") { enVersion = filter[0]; }
+      else                   { heVersion = filter[0]; }
+      Sefaria.text(sectionRef, {enVersion, heVersion}, () => {this.setState({loaded: true})});
     }
   }
   getSectionRef() {
@@ -128,6 +130,11 @@ class VersionsTextList extends Component {
 
   }
   render() {
+    const versionLanguage = Sefaria.versionLanguage(this.props.vFilter[0]);
+    let enVersion = null, heVersion = null;
+    if (versionLanguage === "en") { enVersion = this.props.vFilter[0]; }
+    else                          { heVersion = this.props.vFilter[0]; }
+
     return !this.state.loaded || !this.props.vFilter.length ?
       (<LoadingMessage />) :
       (<div className="versionsTextList">
@@ -140,8 +147,8 @@ class VersionsTextList extends Component {
         <TextRange
           panelPosition ={this.props.panelPosition}
           sref={Sefaria.humanRef(this.props.srefs)}
-          version={this.props.vFilter[0]}
-          versionLanguage={Sefaria.versionLanguage(this.props.vFilter[0])}
+          enVersion={enVersion}
+          heVersion={heVersion}
           useVersionLanguage={true}
           hideTitle={true}
           numberLabel={0}
