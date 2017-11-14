@@ -41,9 +41,9 @@ class Sheet extends Component {
     else {
       return (
         <div className={classes}>
-          <div dangerouslySetInnerHTML={ {__html: sheet.title} }></div>
+          <div className="title">{sheet.title.stripHtml()}</div>
 
-          <SheetSources
+          <SheetContent
               sources={sheet.sources}
               onRefClick={this.props.onRefClick}
           />
@@ -54,30 +54,50 @@ class Sheet extends Component {
 }
 
 
-class SheetSources extends Component {
+class SheetContent extends Component {
 
 
     render() {
       var sources = this.props.sources.length ? this.props.sources.map(function(source, i) {
-        return (
-        <div key={i}>
-          <div onClick={() => {this.props.onRefClick(source.ref)} } >{source.ref}</div>
-          {source.text ? <p className="en" dangerouslySetInnerHTML={ {__html: source.text.en} }></p> : null }
-          {source.text ? <p className="he" dangerouslySetInnerHTML={ {__html: source.text.he} }></p> : null }
-          <hr/>
-        </div>
-        )
+
+        if ("ref" in source) {
+          return (
+          <SheetSource
+            key={i}
+            onRefClick = {this.props.onRefClick}
+            source = {source}
+          />
+          )
+        }
+
       }, this) : null;
 
 
       return (
-          <div>
+          <div className="sheetContent">
             <div>{sources}</div>
           </div>
       )
     }
 
 }
+
+class SheetSource extends Component {
+      render() {
+        return (
+        <div>
+          <a className="ref" onClick={() => {this.props.onRefClick(this.props.source.ref)} } >{this.props.source.ref}</a>
+          {this.props.source.text ? <p className="en">{this.props.source.text.en.stripHtml()}</p> : null }
+          {this.props.source.text ? <p className="he">{this.props.source.text.he.stripHtml()}</p> : null }
+          <hr/>
+        </div>
+        )
+      }
+
+
+
+}
+
 
 
 

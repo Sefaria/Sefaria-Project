@@ -4601,3 +4601,32 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
   overflow: scroll;
   height: 100%;
 }
+.sheetContent {
+  width: 100%;
+  box-sizing: border-box;
+  font-size: 1.8em;
+  line-height: 1.6;
+  text-align: justify;
+  background-color: inherit;
+  margin: 0 auto;
+  max-width: 700px;
+  position: relative;
+  padding: 0 30px;
+}
+
+.sheetContent .ref {
+  cursor: pointer;
+  color: #333
+}
+
+.sheetsInPanel .title {
+  padding: 0 28px;
+  margin: 24px 0;
+  color: #999;
+  text-align: center;
+  justify-content: center;
+  font-weight: lighter;
+  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
