@@ -615,8 +615,7 @@ class ReaderPanel extends Component {
                     closePanel={this.props.closePanel}
                     close={this.closeMenus}
                     title={this.state.bookRef ? this.state.bookRef : this.currentBook()}
-                    version={this.state.version}
-                    versionLanguage={this.state.versionLanguage}
+                    currVersions={this.state.currVersions}
                     settingsLanguage={this.state.settings.language == "hebrew"?"he":"en"}
                     category={Sefaria.index(this.state.bookRef) ? Sefaria.index(this.state.bookRef).primary_category : this.currentCategory()}
                     currentRef={this.state.bookRef ? this.state.bookRef : this.state.currentlyVisibleRef}
@@ -627,7 +626,8 @@ class ReaderPanel extends Component {
                     showBaseText={this.showBaseText}
                     extendedNotes={this.state.extendedNotes}
                     extendedNotesHebrew={this.state.extendedNotesHebrew}
-                    backFromExtendedNotes={this.backFromExtendedNotes}/>);
+                    backFromExtendedNotes={this.backFromExtendedNotes}
+                    getLicenseMap={this.props.getLicenseMap}/>);
 
     } else if (this.state.menuOpen === "search" && this.state.searchQuery) {
       var menu = (<SearchPage

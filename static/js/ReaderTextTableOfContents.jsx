@@ -393,8 +393,7 @@ class ReaderTextTableOfContents extends Component {
                       alts={details.alts}
                       defaultStruct={"default_struct" in details && details.default_struct in details.alts ? details.default_struct : "default"}
                       narrowPanel={this.props.narrowPanel}
-                      title={this.props.title}
-                      viewExtendedNotes={this.props.viewExtendedNotes}/>
+                      title={this.props.title}/>
 
                   </div>
                   : <LoadingMessage />}
@@ -957,12 +956,12 @@ class VersionsList extends Component {
   }
 }
 VersionsList.propTypes = {
-  versionsList: PropTypes.array.isRequired,
-  openVersion:  PropTypes.func.isRequired,
-  title:        PropTypes.string.isRequired,
-  currentRef:   PropTypes.string,
-  viewExtendedNotes: PropTypes.func
-  getLicenseMap:PropTypes.func.isRequired,
+  versionsList:      PropTypes.array.isRequired,
+  openVersion:       PropTypes.func.isRequired,
+  title:             PropTypes.string.isRequired,
+  currentRef:        PropTypes.string,
+  viewExtendedNotes: PropTypes.func,
+  getLicenseMap:     PropTypes.func.isRequired,
 };
 
 
