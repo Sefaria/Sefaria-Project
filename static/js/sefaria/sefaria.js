@@ -216,8 +216,8 @@ Sefaria = extend(Sefaria, {
       commentary: settings.commentary || 0,
       context:    settings.context    || 0,
       pad:        settings.pad        || 0,
-      version:    settings.version    || null,
-      language:   settings.language   || null,
+      enVersion:  settings.enVersion  || null,
+      heVersion:  settings.heVersion  || null,
       wrapLinks:  ("wrapLinks" in settings) ? settings.wrapLinks : 1
     };
     var key = this._textKey(ref, settings);
@@ -239,8 +239,8 @@ Sefaria = extend(Sefaria, {
       commentary: settings.commentary || 0,
       context:    settings.context    || 0,
       pad:        settings.pad        || 0,
-      version:    settings.version    || null,
-      language:   settings.language   || null,
+      enVersion:  settings.enVersion  || null,
+      heVersion:  settings.heVersion  || null,
       //wrapLinks:  settings.wrapLinks  || 1
       wrapLinks: ("wrapLinks" in settings) ? settings.wrapLinks : 1
     };
@@ -260,6 +260,7 @@ Sefaria = extend(Sefaria, {
   },
   */
   _versions: {},
+  _translateVersions: {},
   versions: function(ref, cb) {
     // Returns a list of available text versions for `ref`.
     var versions = ref in this._versions ? this._versions[ref] : null;
@@ -269,10 +270,17 @@ Sefaria = extend(Sefaria, {
     }
     var url = Sefaria.apiHost + "/api/texts/versions/" + Sefaria.normRef(ref);
     this._api(url, function(data) {
+      for (let v of data) {
+        Sefaria._translateVersions[v.versionTitle] = {en: v.versionTitle, he: v.versionTitleInHebrew, lang: v.language};
+      }
       if (cb) { cb(data); }
       Sefaria._versions[ref] = data;
     });
     return versions;
+  },
+  versionLanguage: function(versionTitle) {
+    // given a versionTitle, return the language of the version
+    return Sefaria._translateVersions[versionTitle]["lang"]
   },
   _textUrl: function(ref, settings) {
     // copy the parts of settings that are used as parameters, but not other
@@ -283,17 +291,18 @@ Sefaria = extend(Sefaria, {
       wrapLinks:  settings.wrapLinks
     });
     var url = "/api/texts/" + Sefaria.normRef(ref);
-    if (settings.language && settings.version) {
-        url += "/" + settings.language + "/" + settings.version.replace(" ","_");
-    }
-    return url + "?" + params;
+    if (settings.enVersion) { url += "&ven=" + settings.enVersion.replace(/ /g,"_"); }
+    if (settings.heVersion) { url += "&vhe=" + settings.heVersion.replace(/ /g,"_"); }
+    url += "&" + params;
+    return url.replace("&","?"); // make sure first param has a '?'
   },
   _textKey: function(ref, settings) {
     // Returns a string used as a key for the cache object of `ref` given `settings`.
     if (!ref) { debugger; }
     var key = ref.toLowerCase();
     if (settings) {
-      key = (settings.language && settings.version) ? key + "/" + settings.language + "/" + settings.version : key;
+      if (settings.enVersion) { key += "&ven=" + settings.enVersion; }
+      if (settings.heVersion) { key += "&vhe=" + settings.heVersion; }
       key = settings.context ? key + "|CONTEXT" : key;
     }
     return key;
@@ -339,18 +348,17 @@ Sefaria = extend(Sefaria, {
       newData.heRef      = data.heSectionRef;
       newData.sections   = data.sections.slice(0,-1);
       newData.toSections = data.toSections.slice(0,-1);
-      var context_settings = (settings.language && settings.version) ? {
-          version: settings.version,
-          language: settings.language
-      }:{};
+      const context_settings = {};
+      if (settings.enVersion) { context_settings.enVersion = settings.enVersion; }
+      if (settings.heVersion) { context_settings.heVersion = settings.heVersion; }
+
       this._saveText(newData, context_settings);
     }
     if (data.isSpanning) {
-      var spanning_context_settings = (settings.language && settings.version) ? {
-          version: settings.version,
-          language: settings.language,
-          context: 1
-      }:{context: 1};
+      const spanning_context_settings = {context:1};
+      if (settings.enVersion) { spanning_context_settings.enVersion = settings.enVersion; }
+      if (settings.heVersion) { spanning_context_settings.heVersion = settings.heVersion; }
+
       for (var i = 0; i < data.spanningRefs.length; i++) {
         // For spanning refs, request each section ref to prime cache.
         // console.log("calling spanning prefetch " + data.spanningRefs[i])
@@ -388,11 +396,10 @@ Sefaria = extend(Sefaria, {
         nextSegment: i+start == length ? data.next + delim + 1 : data.ref + delim + (i+start+1),
         prevSegment: i+start == 1      ? null : data.ref + delim + (i+start-1)
       });
+      const context_settings = {};
+      if (settings.enVersion) { context_settings.enVersion = settings.enVersion; }
+      if (settings.heVersion) { context_settings.heVersion = settings.heVersion; }
 
-      var context_settings = (settings.version && settings.language) ? {
-          version: settings.version,
-          language: settings.language
-      } : {};
       this._saveText(segment_data, context_settings);
 
       context_settings.context = 1;
@@ -1326,10 +1333,7 @@ Sefaria = extend(Sefaria, {
   },
   packRecentItem: function(item) {
     // Returns an array which represents the object `item` with less overhead.
-    var packed = [item.ref, item.heRef];
-    if (item.version && item.versionLangauge) {
-      packed = packed.concat([item.version, item.versionLanguage]);
-    }
+    const packed = [item.ref, item.heRef, item.currVersions.en, item.currVersions.he];
     return packed;
   },
   unpackRecentItem: function(item) {
@@ -1339,8 +1343,10 @@ Sefaria = extend(Sefaria, {
       ref: item[0],
       heRef: item[1],
       book: oRef.index,
-      version: item.length > 2 ? item[2] : null,
-      versionLanguage: item.length > 3 ? item[3] : null
+      currVersions: {
+        en: item[2],
+        he: item[3],
+      },
     };
     return unpacked;
   },
@@ -1645,6 +1651,8 @@ Sefaria = extend(Sefaria, {
     };
     if (name in Sefaria._translateTerms) {
         return Sefaria._translateTerms[name]["he"];
+    } else if (name in Sefaria._translateVersions) {
+        return Sefaria._translateVersions[name]["he"];
     } else if (name in categories) {
         return  categories[name];
     } else if (Sefaria.index(name)) {
@@ -1785,7 +1793,7 @@ Sefaria.unpackDataFromProps = function(props) {
   for (var i = 0; i < initialPanels.length; i++) {
       var panel = initialPanels[i];
       if (panel.text) {
-        var settings = {context: 1, version: panel.version, language: panel.versionLanguage};
+        var settings = {context: 1, enVersion: panel.enVersion, heVersion: panel.heVersion};
         Sefaria._saveText(panel.text, settings);
       }
       if (panel.indexDetails) {

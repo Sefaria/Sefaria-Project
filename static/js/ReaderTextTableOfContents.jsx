@@ -25,6 +25,7 @@ class ReaderTextTableOfContents extends Component {
       versionsLoaded: false,
       currentVersion: null,
       showAllVersions: false,
+      versionsDropDownOpen: false,
       dlVersionTitle: null,
       dlVersionLanguage: null,
       dlVersionFormat: null,
@@ -45,7 +46,7 @@ class ReaderTextTableOfContents extends Component {
   }
   getData() {
     // Gets data about this text from cache, which may be null.
-    var data = Sefaria.text(this.getDataRef(), {context: 1, version: this.props.version, language: this.props.versionLanguage});
+    var data = Sefaria.text(this.getDataRef(), {context: 1, enVersion: this.props.currVersions.en, heVersion: this.props.currVersions.he});
     return data;
   }
   loadData() {
@@ -66,7 +67,7 @@ class ReaderTextTableOfContents extends Component {
       if (!data) {
         Sefaria.text(
           ref,
-          {context: 1, version: this.props.version, language: this.props.versionLanguage},
+          {context: 1, enVersion: this.props.currVersions.en, heVersion: this.props.currVersions.he},
           () => this.forceUpdate());
       }
     }
@@ -102,7 +103,6 @@ class ReaderTextTableOfContents extends Component {
       versionNotesInHebrew: currentLanguage == "he" ? d.heVersionNotesInHebrew : d.VersionNotesInHebrew
     };
     currentVersion.merged = !!(currentVersion.sources);
-
     return currentVersion;
   }
   handleClick(e) {
@@ -112,7 +112,7 @@ class ReaderTextTableOfContents extends Component {
       ref = decodeURIComponent(ref);
       ref = Sefaria.humanRef(ref);
       this.props.close();
-      this.props.showBaseText(ref, false, this.props.version, this.props.versionLanguage);
+      this.props.showBaseText(ref, false, this.props.currVersions);
       e.preventDefault();
     }
   }
@@ -121,6 +121,9 @@ class ReaderTextTableOfContents extends Component {
     // Calling this functon wihtout parameters resets to default
     this.props.selectVersion(version, language);
     this.props.close();
+  }
+  toggleVersionsDropDownOpen(event) {
+    this.setState({versionsDropDownOpen: !this.state.versionsDropDownOpen});
   }
   onDlVersionSelect(event) {
     var versionTitle, versionLang;
@@ -162,9 +165,9 @@ class ReaderTextTableOfContents extends Component {
                                   : category);
 
     var currentVersionElement = null;
-    var defaultVersionString = "Default Version";
-    var defaultVersionObject = null;
-    var versionBlocks = null;
+    var defaultVersionString = "Default Version"; // TODO. this var is currently unused. consider removing
+    var defaultVersionObject = null; // TODO also unused
+    var versionSection = null;
     var downloadSection = null;
 
     // Text Details
@@ -189,12 +192,52 @@ class ReaderTextTableOfContents extends Component {
           defaultVersionObject = this.state.versions.find(v => (cv.language == v.language && cv.versionTitle == v.versionTitle));
           defaultVersionString += defaultVersionObject ? " (" + defaultVersionObject.versionTitle + ")" : "";
         }
-        currentVersionElement = (<VersionBlock title={title} version={cv} currentRef={this.props.currentRef} showHistory={true} viewExtendedNotes={this.props.viewExtendedNotes}/>);
+        currentVersionElement = (<VersionBlock title={title} version={cv} currentRef={this.props.currentRef}
+                                               showHistory={true} getLicenseMap={this.props.getLicenseMap} viewExtendedNotes={this.props.viewExtendedNotes}/>);
       }
     }
 
     // Versions List
-    var versions = this.getVersionsList();
+    let versions = this.getVersionsList();
+    if (versions) {
+      const numVersions = versions.reduce((prevVal, elem) => { prevVal[elem.language]++; return prevVal; }, {"en": 0, "he": 0});
+      versionSection = (
+        <section>
+          <h2
+            className="versionSectionHeader"
+            tabIndex="0"
+            role="button"
+            aria-pressed={`${this.state.versionsDropDownOpen}`}
+            onClick={this.toggleVersionsDropDownOpen}
+            onKeyPress={(e) => {e.charCode == 13 ? this.toggleVersionsDropDownOpen(e):null}}>
+            <div className="versionSectionSummary versionSectionSummaryHidden" aria-hidden="true">
+              <span className="int-en">{`${numVersions["en"]} English, ${numVersions["he"]} Hebrew`}</span>
+              <span className="int-he">{`${numVersions["he"]} עברית, ${numVersions["en"]} אנגלית`}</span>
+            </div>
+            <div className="versionSectionTitle">
+              <span className="int-en">Versions</span>
+              <span className="int-he">גרסאות</span>
+              {(this.state.versionsDropDownOpen) ? <img src="/static/img/arrow-up.png" alt=""/> : <img src="/static/img/arrow-down.png" alt=""/>}
+            </div>
+            <div className="versionSectionSummary">
+              <span className="int-en">{`${numVersions["en"]} English, ${numVersions["he"]} Hebrew`}</span>
+              <span className="int-he">{`${numVersions["he"]} עברית, ${numVersions["en"]} אנגלית`}</span>
+            </div>
+          </h2>
+          { this.state.versionsDropDownOpen ?
+            <VersionsList
+              versionsList={versions}
+              openVersion={this.openVersion}
+              title={this.props.title}
+              currentRef={this.props.currentRef}
+              getLicenseMap={this.props.getLicenseMap}
+              viewExtendedNotes={this.props.viewExtendedNotes}
+            /> : null
+          }
+        </section>
+      );
+    }
+
 
     var moderatorSection = Sefaria.is_moderator || Sefaria.is_editor ? (<ModeratorButtons title={title} />) : null;
 
@@ -264,9 +307,9 @@ class ReaderTextTableOfContents extends Component {
             <span className="int-en">Download Text</span>
             <span className="int-he">הורדת הטקסט</span>
           </h2>
-          <select 
-            className="dlVersionSelect dlVersionTitleSelect" 
-            value={(this.state.dlVersionTitle && this.state.dlVersionLanguage) ? this.state.dlVersionTitle + "/" + this.state.dlVersionLanguage : "0"} 
+          <select
+            className="dlVersionSelect dlVersionTitleSelect"
+            value={(this.state.dlVersionTitle && this.state.dlVersionLanguage) ? this.state.dlVersionTitle + "/" + this.state.dlVersionLanguage : "0"}
             onChange={this.onDlVersionSelect}>
             {dl_versions}
           </select>
@@ -301,8 +344,8 @@ class ReaderTextTableOfContents extends Component {
                     </div>
                   </div>
                   <div className="rightButtons">
-                    {this.props.interfaceLang !== "hebrew" ? 
-                      <ReaderNavigationMenuDisplaySettingsButton onClick={this.props.openDisplaySettings} /> 
+                    {this.props.interfaceLang !== "hebrew" ?
+                      <ReaderNavigationMenuDisplaySettingsButton onClick={this.props.openDisplaySettings} />
                       : <ReaderNavigationMenuDisplaySettingsButton placeholder={true} />}
                   </div>
                 </div>
@@ -348,16 +391,14 @@ class ReaderTextTableOfContents extends Component {
                       schema={details.schema}
                       commentatorList={Sefaria.commentaryList(this.props.title)}
                       alts={details.alts}
-                      versionsList={versions}
-                      openVersion={this.openVersion}
                       defaultStruct={"default_struct" in details && details.default_struct in details.alts ? details.default_struct : "default"}
-                      currentRef={this.props.currentRef}
                       narrowPanel={this.props.narrowPanel}
                       title={this.props.title}
                       viewExtendedNotes={this.props.viewExtendedNotes}/>
 
                   </div>
                   : <LoadingMessage />}
+                  {versionSection}
                   {downloadSection}
                 </div>}
               </div>
@@ -370,12 +411,12 @@ ReaderTextTableOfContents.propTypes = {
   category:         PropTypes.string.isRequired,
   currentRef:       PropTypes.string.isRequired,
   settingsLanguage: PropTypes.string.isRequired,
-  versionLanguage:  PropTypes.string,
-  version:          PropTypes.string,
+  currVersions:     PropTypes.object.isRequired,
   narrowPanel:      PropTypes.bool,
   close:            PropTypes.func.isRequired,
   openNav:          PropTypes.func.isRequired,
   showBaseText:     PropTypes.func.isRequired,
+  getLicenseMap:    PropTypes.func.isRequired,
   selectVersion:    PropTypes.func,
   viewExtendedNotes: PropTypes.func,
   backFromExtendedNotes: PropTypes.func,
@@ -440,7 +481,7 @@ TextDetails.propTypes = {
 
 class TextTableOfContentsNavigation extends Component {
   // The content section of the text table of contents that includes links to text sections,
-  // and tabs for alternate structures, commentary and versions.
+  // and tabs for alternate structures and commentary.
   constructor(props) {
     super(props);
     this.shrinkWrap = this.shrinkWrap.bind(this);
@@ -457,7 +498,7 @@ class TextTableOfContentsNavigation extends Component {
   }
   componentDidUpdate(prevProps, prevState) {
     if (prevState.tab != this.state.tab &&
-        this.state.tab !== "commentary" && this.state.tab != "versions") {
+        this.state.tab !== "commentary") {
       this.shrinkWrap();
     }
   }
@@ -526,13 +567,6 @@ class TextTableOfContentsNavigation extends Component {
       });
     }
 
-    options.push({
-      name: "versions",
-      text: "Versions",
-      heText: "גרסאות",
-      onPress: this.setTab.bind(null, "versions")
-    });
-
     var toggle = <TabbedToggleSet
                     options={options}
                     active={this.state.tab}
@@ -552,14 +586,6 @@ class TextTableOfContentsNavigation extends Component {
                         title={this.props.title} />;
 
 
-        break;
-      case "versions":
-        var content = <VersionsList
-                        versionsList={this.props.versionsList}
-                        openVersion={this.props.openVersion}
-                        title={this.props.title}
-                        currentRef={this.props.currentRef}
-                        viewExtendedNotes={this.props.viewExtendedNotes}/>;
         break;
       default:
         var content = <SchemaNode
@@ -582,11 +608,7 @@ TextTableOfContentsNavigation.propTypes = {
   schema:          PropTypes.object.isRequired,
   commentatorList: PropTypes.array,
   alts:            PropTypes.object,
-  versionsList:    PropTypes.array,
-  openVersion:     PropTypes.func,
-  viewExtendedNotes: PropTypes.func,
   defaultStruct:   PropTypes.string,
-  currentRef:      PropTypes.string,
   narrowPanel:     PropTypes.bool,
   title:           PropTypes.string.isRequired,
 };
@@ -910,7 +932,8 @@ class VersionsList extends Component {
         firstSectionRef={"firstSectionRef" in v ? v.firstSectionRef : null}
         openVersion={this.props.openVersion}
         viewExtendedNotes={this.props.viewExtendedNotes}
-        key={v.versionTitle + "/" + v.language}/>
+        key={v.versionTitle + "/" + v.language}
+        getLicenseMap={this.props.getLicenseMap}/>
      )
     );
 
@@ -939,6 +962,7 @@ VersionsList.propTypes = {
   title:        PropTypes.string.isRequired,
   currentRef:   PropTypes.string,
   viewExtendedNotes: PropTypes.func
+  getLicenseMap:PropTypes.func.isRequired,
 };
 
 
@@ -956,13 +980,6 @@ class VersionBlock extends Component {
       "versionTitleInHebrew",
       "versionNotesInHebrew"
     ];
-    this.licenseMap = {
-      "Public Domain": "https://en.wikipedia.org/wiki/Public_domain",
-      "CC0": "https://creativecommons.org/publicdomain/zero/1.0/",
-      "CC-BY": "https://creativecommons.org/licenses/by/3.0/",
-      "CC-BY-SA": "https://creativecommons.org/licenses/by-sa/3.0/",
-      "CC-BY-NC": "https://creativecommons.org/licenses/by-nc/4.0/"
-    };
     var s = {
       editing: false,
       error: null,
@@ -974,7 +991,7 @@ class VersionBlock extends Component {
   openVersion(e) {
     e.preventDefault();
     if (this.props.firstSectionRef) {
-      window.location = "/" + this.props.firstSectionRef + "/" + this.props.version.language + "/" + this.props.version.versionTitle
+      window.location = `/${this.props.firstSectionRef}?v${this.props.version.language}=${this.props.version.versionTitle}`;
     } else if (this.props.openVersion) {
       this.props.openVersion(this.props.version.versionTitle, this.props.version.language);
     }
@@ -1076,7 +1093,7 @@ class VersionBlock extends Component {
       // Editing View
       var close_icon = (Sefaria.is_moderator)?<i className="fa fa-times-circle" aria-hidden="true" onClick={this.closeEditor}/>:"";
 
-      var licenses = Object.keys(this.licenseMap);
+      var licenses = Object.keys(this.props.getLicenseMap());
       licenses = licenses.includes(v.license) ? licenses : [v.license].concat(licenses);
 
       return (
@@ -1123,7 +1140,7 @@ class VersionBlock extends Component {
       );
     } else {
       // Presentation View
-      var license = this.licenseMap[v.license]?<a href={this.licenseMap[v.license]} target="_blank">{Sefaria._(v.license)}</a>:v.license;
+      var license = this.props.getLicenseMap()[v.license]?<a href={this.props.getLicenseMap()[v.license]} target="_blank">{Sefaria._(v.license)}</a>:v.license;
       var digitizedBySefaria = v.digitizedBySefaria
           ? <a className="versionDigitizedBySefaria" href="/digitized-by-sefaria">{Sefaria._("Digitized by Sefaria")}</a> : "";
       var licenseLine = "";
@@ -1183,6 +1200,8 @@ VersionBlock.propTypes = {
   firstSectionref: PropTypes.string,
   showHistory:     PropTypes.bool,
   showNotes:       PropTypes.bool,
+  openVersion:     PropTypes.func,
+  getLicenseMap:   PropTypes.func.isRequired,
   openVersion:     PropTypes.func,
   viewExtendedNotes: PropTypes.func
 };

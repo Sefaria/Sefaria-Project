@@ -43,7 +43,7 @@ class TextColumn extends Component {
     } else if (this.props.panelsOpen !== nextProps.panelsOpen) {
       // When panels are opened of closed, refocus highlighted segments
       this.scrolledToHighlight = false;
-    
+
     } else if (nextProps.srefs.length == 1 && Sefaria.util.inArray(nextProps.srefs[0], this.props.srefs) == -1) {
       // If we are switching to a single ref not in the current TextColumn, treat it as a fresh open.
       this.initialScrollTopSet = false;
@@ -190,7 +190,7 @@ class TextColumn extends Component {
     //console.log("adjustHighlightedAndVisible");
     // Adjust which ref is current consider visible for header and URL,
     // and while the TextList is open, update which segment should be highlighted.
-    // Keeping the highlightedRefs value in the panel ensures it will return 
+    // Keeping the highlightedRefs value in the panel ensures it will return
     // to the right location after closing other panels.
     if (!this._isMounted) { return; }
 
@@ -208,7 +208,7 @@ class TextColumn extends Component {
           $segment = $(segment);
           return false;
         }
-      }.bind(this));      
+      }.bind(this));
     }
 
     if (!$segment) { return; }
@@ -216,7 +216,7 @@ class TextColumn extends Component {
     var $section = $segment.closest(".textRange");
     var sectionRef = $section.attr("data-ref");
     this.props.setCurrentlyVisibleRef(sectionRef);
-  
+
     // don't move around highlighted segment when scrolling a single panel,
     var shouldHighlight = this.props.hasSidebar || this.props.mode === "TextAndConnections";
 
@@ -261,8 +261,7 @@ class TextColumn extends Component {
       return (<TextRange
         panelPosition ={this.props.panelPosition}
         sref={ref}
-        version={this.props.version}
-        versionLanguage={this.props.versionLanguage}
+        currVersions={this.props.currVersions}
         highlightedRefs={this.props.highlightedRefs}
         basetext={true}
         withContext={true}
@@ -306,8 +305,7 @@ class TextColumn extends Component {
 }
 TextColumn.propTypes = {
   srefs:                  PropTypes.array.isRequired,
-  version:                PropTypes.string,
-  versionLanguage:        PropTypes.string,
+  currVersions:           PropTypes.object.isRequired,
   highlightedRefs:        PropTypes.array,
   basetext:               PropTypes.bool,
   withContext:            PropTypes.bool,

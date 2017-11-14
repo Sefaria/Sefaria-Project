@@ -214,7 +214,6 @@ class TextList extends Component {
           <RecentFilterSet
             srefs={this.props.srefs}
             asHeader={false}
-            showText={this.props.showText}
             filter={this.props.filter}
             recentFilters={this.props.recentFilters}
             textCategory={oref ? oref.primary_category : null}

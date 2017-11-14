@@ -24,13 +24,13 @@ class SearchTextResult extends Component {
             event.preventDefault();
             var s = this.props.data._source;
             Sefaria.track.event("Search", "Search Result Text Click", `${this.props.query} - ${s.ref}/${s.version}/${s.lang}`);
-            this.props.onResultClick(s.ref, s.version, s.lang, {"highlight": this.props.query}); //highlight not yet handled, above in ReaderApp.handleNavigationClick()
+            this.props.onResultClick(s.ref, {[s.lang]: s.version}, {"highlight": this.props.query}); //highlight not yet handled, above in ReaderApp.handleNavigationClick()
         }
     }
     render () {
         var data = this.props.data;
         var s = this.props.data._source;
-        var href = '/' + Sefaria.normRef(s.ref) + "/" + s.lang + "/" + s.version.replace(/ +/g, "_") + '?qh=' + this.props.query;
+        const href = `/${Sefaria.normRef(s.ref)}?v${s.lang}=${s.version.replace(/ /g, "_")}&qh=${this.props.query}`;
 
         function get_snippet_markup() {
             var snippet;
