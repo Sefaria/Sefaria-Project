@@ -168,7 +168,7 @@ class AbstractTest(object):
         )
         e = self.driver.find_element_by_css_selector('.readerNavCategory[data-cat*="{}"], .catLink[data-cats*="{}"]'.format(category_name, category_name))
         e.click()
-        WebDriverWait(self.driver, TEMPER).until(text_to_be_present_in_element((By.CSS_SELECTOR, "h1 > span.en"), category_name))
+        WebDriverWait(self.driver, TEMPER).until(text_to_be_present_in_element((By.CSS_SELECTOR, "h1 > span.en, h2 > span.en"), category_name))
         return self
 
     def click_toc_text(self, text_name):
