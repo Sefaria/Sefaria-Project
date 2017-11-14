@@ -429,6 +429,10 @@ class ReaderPanel extends Component {
       this.props.closePanel(e);
     }
   }
+  backFromExtendedNotes(){
+    var bookRef = this.state.bookRef ? this.state.bookRef : this.currentBook();
+    this.props.backFromExtendedNotes(bookRef);
+  }
   render() {
     if (this.state.error) {
       return (
@@ -590,20 +594,20 @@ class ReaderPanel extends Component {
                     interfaceLang={this.props.interfaceLang}
                     closePanel={this.props.closePanel}
                     close={this.closeMenus}
-                    title={this.state.bookRef}
+                    title={this.state.bookRef ? this.state.bookRef : this.currentBook()}
                     version={this.state.version}
                     versionLanguage={this.state.versionLanguage}
                     settingsLanguage={this.state.settings.language == "hebrew"?"he":"en"}
-                    category={Sefaria.index(this.state.bookRef) ? Sefaria.index(this.state.bookRef).primary_category : null}
-                    currentRef={this.state.bookRef}
+                    category={Sefaria.index(this.state.bookRef) ? Sefaria.index(this.state.bookRef).primary_category : this.currentCategory()}
+                    currentRef={this.state.bookRef ? this.state.bookRef : this.state.currentlyVisibleRef}
                     narrowPanel={!this.props.multiPanel}
-                    key={this.state.bookRef}
                     openNav={this.openMenu.bind(null, "navigation")}
                     openDisplaySettings={this.openDisplaySettings}
                     selectVersion={this.props.selectVersion}
                     showBaseText={this.showBaseText}
                     extendedNotes={this.state.extendedNotes}
-                    extendedNotesHebrew={this.state.extendedNotesHebrew}/>);
+                    extendedNotesHebrew={this.state.extendedNotesHebrew}
+                    backFromExtendedNotes={this.backFromExtendedNotes}/>);
 
     } else if (this.state.menuOpen === "search" && this.state.searchQuery) {
       var menu = (<SearchPage
@@ -801,6 +805,7 @@ ReaderPanel.propTypes = {
   setDefaultOption:            PropTypes.func,
   selectVersion:               PropTypes.func,
   viewExtendedNotes:           PropTypes.func,
+  backFromExtendedNotes:       PropTypes.func,
   onQueryChange:               PropTypes.func,
   updateSearchFilter:          PropTypes.func,
   updateSearchOptionField:     PropTypes.func,

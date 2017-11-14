@@ -315,7 +315,7 @@ class ReaderTextTableOfContents extends Component {
                     versionTitle={this.props.version}
                     extendedNotes={this.props.extendedNotes}
                     extendedNotesHebrew={this.props.extendedNotesHebrew}
-                    goBack={this.extendedNotesBack}
+                    backFromExtendedNotes={this.props.backFromExtendedNotes}
                   />
                   :<div className="contentInner">
                   <div className="tocTop">
@@ -378,6 +378,7 @@ ReaderTextTableOfContents.propTypes = {
   showBaseText:     PropTypes.func.isRequired,
   selectVersion:    PropTypes.func,
   viewExtendedNotes: PropTypes.func,
+  backFromExtendedNotes: PropTypes.func,
   interfaceLang:    PropTypes.string,
   extendedNotes:    PropTypes.string,
   extendedNotesHebrew: PropTypes.string
@@ -1299,7 +1300,8 @@ class ExtendedNotes extends Component {
     this.state = {'notesLanguage': Sefaria.interfaceLang}
   }
   goBack(event) {
-    this.props.goBack(event);
+    event.preventDefault();
+    this.props.backFromExtendedNotes();
   }
   render() {
       return <div className="extendedNotes">
