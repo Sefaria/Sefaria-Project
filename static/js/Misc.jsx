@@ -107,7 +107,10 @@ TextBlockLink.propTypes = {
   heDisplayValue:  PropTypes.string,
   showSections:    PropTypes.bool,
   recentItem:      PropTypes.bool,
-  position:        PropTypes.number
+  position:        PropTypes.number,
+};
+TextBlockLink.defaultProps = {
+  currVersions: {en:null, he:null},
 };
 
 

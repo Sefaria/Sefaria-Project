@@ -271,7 +271,11 @@ Sefaria = extend(Sefaria, {
     var url = Sefaria.apiHost + "/api/texts/versions/" + Sefaria.normRef(ref);
     this._api(url, function(data) {
       for (let v of data) {
-        Sefaria._translateVersions[v.versionTitle] = {en: v.versionTitle, he: v.versionTitleInHebrew, lang: v.language};
+        Sefaria._translateVersions[v.versionTitle] = {
+          en: v.versionTitle,
+          he: !!v.versionTitleInHebrew ? v.versionTitleInHebrew : v.versionTitle,
+          lang: v.language,
+        };
       }
       if (cb) { cb(data); }
       Sefaria._versions[ref] = data;
@@ -1710,7 +1714,8 @@ Sefaria = extend(Sefaria, {
       //reader panel
       "Search" : "חיפוש",
       "Search for Texts or Keywords Here": "חיפוש טקסט או מילות מפתח",
-      "Views": "צפיות"
+      "Views": "צפיות",
+      "Versions": "גרסאות"
   },
   _v: function(inputVar){
     if(Sefaria.interfaceLang != "english"){
@@ -1753,7 +1758,7 @@ Sefaria = extend(Sefaria, {
         }
     }else{
         return inputStr;
-	}
+	  }
   },
   _makeBooksDict: function() {
     // Transform books array into a dictionary for quick lookup
