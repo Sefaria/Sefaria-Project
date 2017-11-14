@@ -398,8 +398,8 @@ class ReaderApp extends Component {
             var bookTitle = state.bookRef;
             hist.version = state.version;
             hist.versionLanguage = state.versionLanguage;
+            hist.url = `${bookTitle}/${hist.versionLanguage}/${hist.version}?notes=1`.replace(/ /g, "_");
             hist.mode = "extended notes";
-            hist.url = `${bookTitle}/${hist.versionLanguage}/${hist.version}/notes`.replace(/ /g, "_");
             break;
           case "search":
             var query = state.searchQuery ? encodeURIComponent(state.searchQuery) : "";
