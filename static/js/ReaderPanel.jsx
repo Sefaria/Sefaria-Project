@@ -591,6 +591,7 @@ class ReaderPanel extends Component {
                     closePanel={this.props.closePanel}
                     close={this.closeMenus}
                     title={this.state.bookRef}
+                    currVersions={this.state.currVersions}
                     settingsLanguage={this.state.settings.language == "hebrew"?"he":"en"}
                     category={Sefaria.index(this.state.bookRef) ? Sefaria.index(this.state.bookRef).primary_category : null}
                     currentRef={this.state.bookRef}
