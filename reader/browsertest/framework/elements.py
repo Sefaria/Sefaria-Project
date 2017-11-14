@@ -17,7 +17,7 @@ from appium import webdriver as appium_webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support.expected_conditions import title_contains, presence_of_element_located, staleness_of,\
-    element_to_be_clickable, visibility_of_element_located, text_to_be_present_in_element
+        element_to_be_clickable, visibility_of_element_located, text_to_be_present_in_element, _find_element, StaleElementReferenceException
 from selenium.webdriver.common.keys import Keys
 from selenium.common.exceptions import NoSuchElementException
 # http://selenium-python.readthedocs.io/waits.html
@@ -160,6 +160,24 @@ class AbstractTest(object):
         return self
 
     def click_toc_category(self, category_name):
+        class _one_of_any_text_present_in_element(object):
+            """ An expectation for checking if the given text is present in the
+            specified element.
+            locator, text
+            """
+
+            def __init__(self, locator, text_):
+                assert isinstance(text_, list)
+                self.locator = locator
+                self.text = text_
+
+            def __call__(self, driver):
+                try:
+                    element_text = _find_element(driver, self.locator).text
+                    return any([t in element_text for t in self.text])
+                except StaleElementReferenceException:
+                    return False
+
         # Assume that category link is already present on screen (or soon will be)
 
         # These CSS selectors could fail if the category is a substring of another possible category
@@ -168,7 +186,9 @@ class AbstractTest(object):
         )
         e = self.driver.find_element_by_css_selector('.readerNavCategory[data-cat*="{}"], .catLink[data-cats*="{}"]'.format(category_name, category_name))
         e.click()
-        WebDriverWait(self.driver, TEMPER).until(text_to_be_present_in_element((By.CSS_SELECTOR, "h1 > span.en, h2 > span.en"), category_name))
+        WebDriverWait(self.driver, TEMPER).until(
+            _one_of_any_text_present_in_element((By.CSS_SELECTOR, "h1 > span.en, h2 > span.en"), [category_name, category_name.upper()])
+        )
         return self
 
     def click_toc_text(self, text_name):
