@@ -189,7 +189,6 @@ class ReaderNavigationMenu extends Component {
                     displayValue={item.displayValue["en"]}
                     heDisplayValue={item.displayValue["he"]}
                     category={item.category}
-                    currVersions={{'en': null, 'he': null}}
                     showSections={false}
                     recentItem={false} />)
       });
