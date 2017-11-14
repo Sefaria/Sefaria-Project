@@ -43,7 +43,10 @@ class Sheet extends Component {
         <div className={classes}>
           <div dangerouslySetInnerHTML={ {__html: sheet.title} }></div>
 
-          <SheetSources sources={sheet.sources} />
+          <SheetSources
+              sources={sheet.sources}
+              onRefClick={this.props.onRefClick}
+          />
         </div>
       )
     }
@@ -58,9 +61,9 @@ class SheetSources extends Component {
       var sources = this.props.sources.length ? this.props.sources.map(function(source, i) {
         return (
         <div key={i}>
-          <div>{source.ref}</div>
-          {source.text ? <div dangerouslySetInnerHTML={ {__html: source.text.en} }></div> : null }
-          {source.text ? <div dangerouslySetInnerHTML={ {__html: source.text.he} }></div> : null }
+          <div onClick={() => {this.props.onRefClick(source.ref)} } >{source.ref}</div>
+          {source.text ? <p className="en" dangerouslySetInnerHTML={ {__html: source.text.en} }></p> : null }
+          {source.text ? <p className="he" dangerouslySetInnerHTML={ {__html: source.text.he} }></p> : null }
           <hr/>
         </div>
         )

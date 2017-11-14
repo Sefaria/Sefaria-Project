@@ -176,6 +176,8 @@ class ReaderPanel extends Component {
       } else {
         this.openConnectionsInPanel(ref);
       }
+    } else if (this.state.mode === "Sheet") {
+      this.props.onCitationClick(ref);
     }
   }
   handleCitationClick(citationRef, textRef) {
@@ -459,6 +461,7 @@ class ReaderPanel extends Component {
           panelPosition ={this.props.panelPosition}
           id={this.state.sheet.id}
           key={"sheet-"+this.state.sheet.id}
+          onRefClick={this.handleBaseSegmentClick}
       />);
     }
     if (this.state.mode === "Text" || this.state.mode === "TextAndConnections") {
