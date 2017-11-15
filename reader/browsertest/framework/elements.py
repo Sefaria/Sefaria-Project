@@ -145,6 +145,8 @@ class AbstractTest(object):
         try:
             self.driver.find_element_by_css_selector('.headerNavSection .library, .readerNavMenuMenuButton').click()
         except NoSuchElementException:
+            # Mobile browsers could be in a state where there's commentary open.
+            # or...
             # Mobile browsers could be in a state where a window needs to be closed.
             self.driver.find_element_by_css_selector('.readerNavMenuCloseButton').click()
             self.driver.find_element_by_css_selector('.headerNavSection .library, .readerNavMenuMenuButton').click()
@@ -357,14 +359,23 @@ class AbstractTest(object):
         if isinstance(ref, basestring):
             ref = Ref(ref)
         assert isinstance(ref, Ref)
-        selector = '.segment[data-ref="{}"]'.format(ref.normal())
-        WebDriverWait(self.driver, TEMPER).until(presence_of_element_located((By.CSS_SELECTOR, selector)))
-        segment = self.driver.find_element_by_css_selector(selector)
-        segment.click()
+        self._perform_segment_click(ref)
         # Todo: put a data-* attribute on .filterSet, for the multi-panel case
         # Note below will fail if there are no connections
         WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, ".categoryFilter")))
         return self
+
+    def click_segment_to_close_commentary(self, ref):
+        if isinstance(ref, basestring):
+            ref = Ref(ref)
+        assert isinstance(ref, Ref)
+        self._perform_segment_click(ref)
+
+    def _perform_segment_click(self, ref):
+        selector = '.segment[data-ref="{}"]'.format(ref.normal())
+        WebDriverWait(self.driver, TEMPER).until(presence_of_element_located((By.CSS_SELECTOR, selector)))
+        segment = self.driver.find_element_by_css_selector(selector)
+        segment.click()
 
     # Basic navigation
     def back(self):

@@ -56,6 +56,7 @@ class SinglePanelOnMobile(AtomicTest):
         elems = self.driver.find_elements_by_css_selector(".readerApp .readerPanelBox")
         assert len(elems) == 1
 
+        self.click_segment_to_close_commentary("Joshua 1:1")  # Close commentary window on mobile
 
 class PagesLoad(AtomicTest):
     suite_class = PageloadSuite
@@ -113,6 +114,8 @@ class NavToRefAndClickSegment(AtomicTest):
 
         assert "Psalms.65.5" in self.driver.current_url, self.driver.current_url
         assert "with=Ibn%20Ezra" in self.driver.current_url or "with=Ibn Ezra" in self.driver.current_url, self.driver.current_url
+
+        self.click_segment_to_close_commentary("Psalms 65:5")  #  This is needed on mobile, to close the commentary window
 
 
 class LoadRefAndClickSegment(AtomicTest):
@@ -326,9 +329,10 @@ class BrowserBackAndForward(AtomicTest):
         assert "with=all" in self.driver.current_url, self.driver.current_url  
         self.driver.forward()
         assert "Genesis.2.2" in self.driver.current_url, self.driver.current_url        
-        assert "with=Commentary" in self.driver.current_url, self.driver.current_url  
-
+        assert "with=Commentary" in self.driver.current_url, self.driver.current_url
         # Todo - infinite scroll, nav pages, display options, ref normalization
+
+        self.click_segment_to_close_commentary("Genesis 2:2")  # Close commentary window on mobile
 
 
 class ClickVersionedSearchResultMobile(AtomicTest):
