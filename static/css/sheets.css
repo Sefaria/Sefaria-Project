@@ -2441,6 +2441,10 @@ a.tagit-close {
 
 }
 
+#sheet .segment {
+	display: inline;
+}
+
 #highlightToggleDeactivate,
 .segmentedContinuousToggle .segmentedActive,
 #lastSaved .lastSavedConfirmed,

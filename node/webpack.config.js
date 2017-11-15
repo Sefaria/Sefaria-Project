@@ -27,7 +27,6 @@ var baseConfig = {
         },
         new webpack.optimize.ModuleConcatenationPlugin() // puts all module code in one scope which is supposed to speed up run-time
     ],
-
     module: {
         loaders: [
             //a regexp that tells webpack use the following loaders on all
@@ -46,7 +45,6 @@ var baseConfig = {
             }
         ]
     },
-
     resolve: {
         unsafeCache: true,
         //tells webpack where to look for modules
@@ -54,17 +52,17 @@ var baseConfig = {
         //extensions that should be used to resolve modules
         extensions: ['.jsx', '.js']
     },
-
     stats: {
         errorDetails: true,
         colors: true
     }
-
 }
+
 
 function config(overrides) {
     return deepmerge(baseConfig, overrides || {});
 }
+
 
 var clientConfig = config({
     context: path.resolve('./static/js'),
@@ -99,6 +97,7 @@ var clientConfig = config({
     ]
 });
 
+
 var serverConfig = config({
     context: path.resolve('./node'),
     entry: './server',
@@ -117,6 +116,7 @@ var serverConfig = config({
         new BundleTracker({filename: './node/webpack-stats.server.json'})
     ]
 });
+
 
 var diffConfig = config({
     context: path.resolve('./static/js'),
@@ -139,13 +139,18 @@ var exploreConfig = config({
     }
 });
 
+
 var sefariajsConfig = config({
     context: path.resolve('./static/js'),
     entry: './sefaria/sefaria',
     output: {
-        path: path.resolve(buildDir + 'sefariajs'),
+        path: path.resolve(buildDir + 'sefaria'),
         filename: 'sefaria.js'
-    }
+    },
+    plugins: [
+        new BundleTracker({filename: './node/webpack-stats.sefaria.json'}),
+    ]
 });
+
 
 module.exports = [clientConfig, serverConfig, diffConfig, exploreConfig, sefariajsConfig];

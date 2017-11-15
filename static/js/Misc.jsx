@@ -73,13 +73,20 @@ class TextBlockLink extends Component {
     var style    = {"borderColor": Sefaria.palette.categoryColor(category)};
     var title    = this.props.title   || (this.props.showSections ? this.props.sref : this.props.book);
     var heTitle  = this.props.heTitle || (this.props.showSections ? this.props.heRef : index.heTitle);
+    var subtitle = this.props.displayValue ? (
+        <span className="blockLinkSubtitle">
+            <span className="en">{this.props.displayValue}</span>
+            <span className="he">{this.props.heDisplayValue}</span>
+        </span>
+    ) : null;
 
     var position = this.props.position || 0;
-    var classes  = classNames({refLink: 1, blockLink: 1, recentItem: this.props.recentItem});
+    var classes  = classNames({refLink: 1, blockLink: 1, recentItem: this.props.recentItem, calendarLink: (subtitle != null)});
     var url      = "/" + Sefaria.normRef(this.props.sref) + (this.props.version?`/${this.props.versionLanguage}/${this.props.version}`:"");
     return (<a href={url} className={classes} data-ref={this.props.sref} data-version={this.props.version} data-versionlanguage={this.props.versionLanguage} data-position={position} style={style}>
               <span className="en">{title}</span>
               <span className="he">{heTitle}</span>
+                {subtitle}
              </a>);
   }
 }
@@ -92,6 +99,8 @@ TextBlockLink.propTypes = {
   category:        PropTypes.string,
   title:           PropTypes.string,
   heTitle:         PropTypes.string,
+  displayValue:    PropTypes.string,
+  heDisplayValue:  PropTypes.string,
   showSections:    PropTypes.bool,
   recentItem:      PropTypes.bool,
   position:        PropTypes.number
