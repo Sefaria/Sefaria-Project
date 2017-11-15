@@ -413,7 +413,7 @@ class ReaderApp extends Component {
             var bookTitle = state.bookRef;
             hist.version = state.version;
             hist.versionLanguage = state.versionLanguage;
-            hist.url = `${bookTitle}/${hist.versionLanguage}/${hist.version}?notes=1`.replace(/ /g, "_");
+            hist.url = `${bookTitle}&notes=1`.replace(/ /g, "_");
             hist.mode = "extended notes";
             break;
           case "search":
@@ -963,8 +963,7 @@ class ReaderApp extends Component {
   }
   viewExtendedNotes(n, versionLanguage, versionName, extendedNotes, extendedNotesHebrew) {
     var panel = this.state.panels[n];
-    panel.versionLanguage = versionLanguage;
-    panel.version = versionName;
+    panel.currVersions[versionLanguage] = versionName;
     panel.extendedNotes = extendedNotes;
     panel.extendedNotesHebrew = extendedNotesHebrew;
     panel.menuOpen = "extended notes";
