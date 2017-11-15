@@ -55,133 +55,164 @@ class Sheet extends Component {
 
 
 class SheetContent extends Component {
-    handleClick(ref,e) {
-      e.preventDefault();
-      this.props.onRefClick(ref);
-    }
+  handleClick(ref,e) {
+    e.preventDefault();
+    this.props.onRefClick(ref);
+  }
 
-    render() {
-      var sources = this.props.sources.length ? this.props.sources.map(function(source, i) {
+  render() {
+    var sources = this.props.sources.length ? this.props.sources.map(function(source, i) {
 
-        if ("ref" in source) {
-          return (
-          <SheetSource
-            key={i}
-            onRefClick = {this.props.onRefClick}
-            source = {source}
-            handleClick = {this.handleClick}
-          />
-          )
-        }
+      if ("ref" in source) {
+        return (
+        <SheetSource
+          key={i}
+          onRefClick = {this.props.onRefClick}
+          source = {source}
+          handleClick = {this.handleClick}
+        />
+        )
+      }
 
-        else if ("comment" in source) {
-          return (
-          <SheetComment
-            key={i}
-            source = {source}
-          />
-          )
-        }
+      else if ("comment" in source) {
+        return (
+        <SheetComment
+          key={i}
+          source = {source}
+        />
+        )
+      }
 
-        else if ("outsideText" in source) {
-          return (
-          <SheetOutsideText
-            key={i}
-            source = {source}
-          />
-          )
-        }
+      else if ("outsideText" in source) {
+        return (
+        <SheetOutsideText
+          key={i}
+          source = {source}
+        />
+        )
+      }
 
-        else if ("outsideBiText" in source) {
-          return (
-          <SheetOutsideBiText
-            key={i}
-            source = {source}
-          />
-          )
-        }
+      else if ("outsideBiText" in source) {
+        return (
+        <SheetOutsideBiText
+          key={i}
+          source = {source}
+        />
+        )
+      }
 
-        else if ("media" in source) {
-          return (
-          <SheetMedia
-            key={i}
-            source = {source}
-          />
-          )
-        }
+      else if ("media" in source) {
+        return (
+        <SheetMedia
+          key={i}
+          source = {source}
+        />
+        )
+      }
 
-      }, this) : null;
+    }, this) : null;
 
 
-      return (
-          <div className="sheetContent">
-            <div>{sources}</div>
-          </div>
-      )
-    }
-
+    return (
+        <div className="sheetContent">
+          <div>{sources}</div>
+        </div>
+    )
+  }
 }
 
 class SheetSource extends Component {
-      render() {
-        return (
-        <div>
-          <div className="ref"><a href={"/"+this.props.source.ref} onClick={(e) => {this.props.handleClick(this.props.source.ref, e)} } >{this.props.source.ref}</a></div>
-          {this.props.source.text ? <p className="he">{this.props.source.text.he.stripHtml()}</p> : null }
-          {this.props.source.text ? <p className="en">{this.props.source.text.en.stripHtml()}</p> : null }
-          <hr/>
-        </div>
-        )
-      }
+  render() {
+    return (
+    <div>
+      <div className="ref"><a href={"/"+this.props.source.ref} onClick={(e) => {this.props.handleClick(this.props.source.ref, e)} } >{this.props.source.ref}</a></div>
+      {this.props.source.text ? <p className="he">{this.props.source.text.he.stripHtml()}</p> : null }
+      {this.props.source.text ? <p className="en">{this.props.source.text.en.stripHtml()}</p> : null }
+      <hr/>
+    </div>
+    )
+  }
 }
 
 class SheetComment extends Component {
-      render() {
-        var lang = Sefaria.hebrew.isHebrew(this.props.source.comment.stripHtml()) ? "he" : "en";
-        return (
-        <div className={lang}>
-          {this.props.source.comment.stripHtml()}
-          <hr/>
-        </div>
-        )
-      }
+  render() {
+    var lang = Sefaria.hebrew.isHebrew(this.props.source.comment.stripHtml()) ? "he" : "en";
+    return (
+    <div className={lang}>
+      {this.props.source.comment.stripHtml()}
+      <hr/>
+    </div>
+    )
+  }
 }
 
 class SheetOutsideText extends Component {
-      render() {
-        var lang = Sefaria.hebrew.isHebrew(this.props.source.outsideText.stripHtml()) ? "he" : "en";
-        return (
-        <div className={lang}>
-          {this.props.source.outsideText.stripHtml()}
-          <hr/>
-        </div>
-        )
-      }
+  render() {
+    var lang = Sefaria.hebrew.isHebrew(this.props.source.outsideText.stripHtml()) ? "he" : "en";
+    return (
+    <div className={lang}>
+      {this.props.source.outsideText.stripHtml()}
+      <hr/>
+    </div>
+    )
+  }
 }
 
 class SheetOutsideBiText extends Component {
-      render() {
-        return (
-        <div>
-          <div className="he">{this.props.source.outsideBiText.he.stripHtml()}</div>
-          <div className="en">{this.props.source.outsideBiText.en.stripHtml()}</div>
-          <hr/>
-        </div>
-        )
-      }
+  render() {
+    return (
+    <div>
+      <div className="he">{this.props.source.outsideBiText.he.stripHtml()}</div>
+      <div className="en">{this.props.source.outsideBiText.en.stripHtml()}</div>
+      <hr/>
+    </div>
+    )
+  }
 
 }
 
 class SheetMedia extends Component {
-      render() {
-        return (
-        <div>
-          <div className="he">{this.props.source.outsideBiText.he.stripHtml()}</div>
-          <div className="en">{this.props.source.outsideBiText.en.stripHtml()}</div>
-          <hr/>
-        </div>
-        )
+  makeMediaEmbedLink(mediaURL) {
+      var re = /https?:\/\/(www\.)?(youtu(?:\.be|be\.com)\/(?:.*v(?:\/|=)|(?:.*\/)?)([\w'-]+))/i;
+      var m;
+      var embedHTML;
+
+      if ((m = re.exec(mediaURL)) !== null) {
+        if (m.index === re.lastIndex) {
+          re.lastIndex++;
+        }
+          if (m.length>0) {
+            embedHTML = '<iframe width="560" height="315" src="https://www.youtube.com/embed/'+m[m.length-1]+'?rel=0&amp;showinfo=0" frameborder="0" allowfullscreen></iframe>';
+          }
       }
+
+      else if ( (mediaURL).match(/https?:\/\/(www\.)?.+\.(jpeg|jpg|gif|png)$/i) != null ) {
+            embedHTML = '<img class="addedMedia" src="'+mediaURL+'" />';
+      }
+
+
+      else if ( (mediaURL).match(/https?:\/\/(www\.)?.+\.(mp3)$/i) != null ) {
+            embedHTML = '<audio src="'+mediaURL+'" type="audio/mpeg" controls>Your browser does not support the audio element.</audio>';
+      }
+
+      else if ( (mediaURL).match(/https?:\/\/.*clyp\.it\/.+/i) != null ) {
+            embedHTML = '<audio src="'+mediaURL+'.mp3" type="audio/mpeg" controls>Your browser does not support the audio element.</audio>';
+      }
+
+      else if ( (mediaURL).match(/^https?:\/\/(www\.|m\.)?soundcloud\.com\/[\w\-\.]+\/[\w\-\.]+\/?/i) != null ) {
+            embedHTML = '<iframe width="100%" height="166" scrolling="no" frameborder="no" src="https://w.soundcloud.com/player/?url='+ mediaURL + '&amp;color=ff5500&amp;auto_play=false&amp;hide_related=true&amp;show_comments=false&amp;show_user=true&amp;show_reposts=false"></iframe>';
+      }
+
+      else embedHTML = false;
+
+      return embedHTML
+    }
+
+  render() {
+    return (
+    <div dangerouslySetInnerHTML={ {__html: this.makeMediaEmbedLink(this.props.source.media) } }></div>
+    )
+  }
 }
 
 
