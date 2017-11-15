@@ -4616,8 +4616,14 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
 
 .sheetContent .ref {
   cursor: pointer;
-  color: #333
+  text-align: center;
+  color: #333;
 }
+.sheetContent .ref a {
+  color: #333;
+}
+
+
 
 .sheetsInPanel .title {
   padding: 0 28px;

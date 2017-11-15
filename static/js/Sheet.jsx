@@ -55,7 +55,10 @@ class Sheet extends Component {
 
 
 class SheetContent extends Component {
-
+    handleClick(ref,e) {
+      e.preventDefault();
+      this.props.onRefClick(ref);
+    }
 
     render() {
       var sources = this.props.sources.length ? this.props.sources.map(function(source, i) {
@@ -65,6 +68,43 @@ class SheetContent extends Component {
           <SheetSource
             key={i}
             onRefClick = {this.props.onRefClick}
+            source = {source}
+            handleClick = {this.handleClick}
+          />
+          )
+        }
+
+        else if ("comment" in source) {
+          return (
+          <SheetComment
+            key={i}
+            source = {source}
+          />
+          )
+        }
+
+        else if ("outsideText" in source) {
+          return (
+          <SheetOutsideText
+            key={i}
+            source = {source}
+          />
+          )
+        }
+
+        else if ("outsideBiText" in source) {
+          return (
+          <SheetOutsideBiText
+            key={i}
+            source = {source}
+          />
+          )
+        }
+
+        else if ("media" in source) {
+          return (
+          <SheetMedia
+            key={i}
             source = {source}
           />
           )
@@ -86,16 +126,62 @@ class SheetSource extends Component {
       render() {
         return (
         <div>
-          <a className="ref" onClick={() => {this.props.onRefClick(this.props.source.ref)} } >{this.props.source.ref}</a>
-          {this.props.source.text ? <p className="en">{this.props.source.text.en.stripHtml()}</p> : null }
+          <div className="ref"><a href={"/"+this.props.source.ref} onClick={(e) => {this.props.handleClick(this.props.source.ref, e)} } >{this.props.source.ref}</a></div>
           {this.props.source.text ? <p className="he">{this.props.source.text.he.stripHtml()}</p> : null }
+          {this.props.source.text ? <p className="en">{this.props.source.text.en.stripHtml()}</p> : null }
+          <hr/>
+        </div>
+        )
+      }
+}
+
+class SheetComment extends Component {
+      render() {
+        var lang = Sefaria.hebrew.isHebrew(this.props.source.comment.stripHtml()) ? "he" : "en";
+        return (
+        <div className={lang}>
+          {this.props.source.comment.stripHtml()}
+          <hr/>
+        </div>
+        )
+      }
+}
+
+class SheetOutsideText extends Component {
+      render() {
+        var lang = Sefaria.hebrew.isHebrew(this.props.source.outsideText.stripHtml()) ? "he" : "en";
+        return (
+        <div className={lang}>
+          {this.props.source.outsideText.stripHtml()}
+          <hr/>
+        </div>
+        )
+      }
+}
+
+class SheetOutsideBiText extends Component {
+      render() {
+        return (
+        <div>
+          <div className="he">{this.props.source.outsideBiText.he.stripHtml()}</div>
+          <div className="en">{this.props.source.outsideBiText.en.stripHtml()}</div>
           <hr/>
         </div>
         )
       }
 
+}
 
-
+class SheetMedia extends Component {
+      render() {
+        return (
+        <div>
+          <div className="he">{this.props.source.outsideBiText.he.stripHtml()}</div>
+          <div className="en">{this.props.source.outsideBiText.en.stripHtml()}</div>
+          <hr/>
+        </div>
+        )
+      }
 }
 
 
