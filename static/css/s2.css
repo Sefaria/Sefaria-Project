@@ -928,13 +928,16 @@ a.readerNavCategory {
   vertical-align: -3px;
 }
 .readerNavMenu .blockLink.calendarLink{
-  line-height: 1;
-  padding: 7px 8px;
+  /*line-height: 1;
+  padding: 7px 8px;*/
 }
-.readerNavMenu .blockLink .blockLinkSubtitle{
+.readerNavMenu .blockLink.calendarLink .blockLinkSubtitle{
   display: block;
   font-size: 0.8em;
-  color: #666666;
+  color: #999999;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 .gridBox {
   table-layout: fixed;
