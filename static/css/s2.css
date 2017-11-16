@@ -512,17 +512,18 @@ input.noselect {
   direction: ltr;
 }
 .interface-hebrew .readerPanel .readerNavMenu,
+#s2.interface-hebrew .readerPanel .readerNavMenu .gridBox,
 .readerPanel.hebrew .readerNavSection,
 .readerPanel.hebrew .readerNavMenu .gridBox {
   direction: rtl;
 }
 .interface-english .readerPanel .readerNavMenu,
 .readerPanel.english .readerNavSection,
- .readerPanel.english .readerNavMenu .gridBox{
+.readerPanel.english .readerNavMenu .gridBox{
   direction: ltr;
 }
 .readerPanel.bilingual .readerNavSection,
- .readerPanel.bilingual .readerNavMenu .gridBox{
+.readerPanel.bilingual .readerNavMenu .gridBox {
   direction: ltr;
 }
 .readerPanel.english .he {
@@ -842,6 +843,10 @@ a.resourcesLink {
   text-overflow: ellipsis;
   width: 100%;
 }
+.readerPanel .recentPanel .recentItem {
+  padding: 15px;
+  margin-bottom: 10px;
+}
 .readerNavCategories {
   width: 100%;
 }
@@ -903,7 +908,7 @@ a.readerNavCategory {
   border-top: 4px solid transparent;
   width: 100%;
   cursor: pointer;
-  height: 46px;
+  min-height: 46px;
   vertical-align: middle;
   margin: 0;
   box-sizing: border-box;
@@ -921,6 +926,15 @@ a.readerNavCategory {
   width: 16px;
   opacity: 0.4;
   vertical-align: -3px;
+}
+.readerNavMenu .blockLink.calendarLink{
+  line-height: 1;
+  padding: 7px 8px;
+}
+.readerNavMenu .blockLink .blockLinkSubtitle{
+  display: block;
+  font-size: 0.8em;
+  color: #666666;
 }
 .gridBox {
   table-layout: fixed;
@@ -1006,7 +1020,7 @@ a.readerNavCategory {
 }
 .readerNavMenu .blockLink,
 .readerNavMenu .catLink,
-.readerNavMenu .navButton,
+.rkeaderNavMenu .navButton,
 .readerTextTableOfContents .refLink {
   display: block;
   margin: 0px;
@@ -1020,6 +1034,13 @@ a.readerNavCategory {
   vertical-align: middle;
   text-align: center;
   unicode-bidi: plaintext;
+}
+.readerNavMenu .blockLink:active,
+.readerNavMenu .catLink:active,
+.readerNavMenu .navButton:active,
+.readerNavCategory:active,
+.readerTextTableOfContents .refLink:active {
+  background-color: #f3f3f3;
 }
 @media (max-width: 450px) {
   .readerNavMenu .refLink,
@@ -2025,6 +2046,9 @@ a.readerNavCategory {
 .hebrew .readerSheetsNav {
   direction: ltr;
 }
+.readerSheetsNav .filterLabel {
+  cursor: pointer;
+}
 .readerSheetsNav .tagsList .int-en {
   font-family: "adobe-garamond-pro", Georgia, serif;
 }
@@ -2334,7 +2358,8 @@ a.readerNavCategory {
 .narrowColumn .textRange.basetext {
 }
 .textRange.basetext .title {
-  padding: 24px 28px 24px;
+  padding: 0 28px;
+  margin: 24px 0;
   color: #999;
   text-align: center;
   justify-content: center;
@@ -2370,14 +2395,31 @@ a.readerNavCategory {
   direction: rtl;
 }
 .basetext .text {
-  padding: 30px 44px;
+  padding: 0 44px;
+  margin: 30px 0;
   background-color: inherit;
 }
 .narrowColumn .basetext .text {
-  padding: 26px;
+  padding: 0 26px;
 }
 .singlePanel .basetext .text {
-  padding: 30px 34px;
+  padding: 0 34px;
+}
+.parashahHeader {
+  text-align: center;
+  color: #8e8e8e;
+  margin: 32px 0;
+  font-size: 18px;
+  letter-spacing: 1px;
+}
+.parashahHeader .en {
+  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", arial, sans-serif;
+}
+.parashahHeader .he {
+  font-family: "Heebo", sans-serif;
+}
+.bilingual .parashahHeader .en {
+  display: none;
 }
 .segment {
   cursor: pointer;
@@ -2429,7 +2471,7 @@ a.readerNavCategory {
 }
 .heLeft.bilingual .basetext .text,
 .heRight.bilingual .basetext .text {
-  padding: 30px 0;
+  padding: 0;
 }
 .heLeft.bilingual .segment > .en,
 .heLeft.bilingual .segment > .he,
@@ -3661,7 +3703,7 @@ input {
 .lexicon-results .attribution {
 
 }
-.lexicon-results .attribution span {
+.lexicon-results .attribution a {
   display: block;
 }
 .lexicon-results .attribution a {
@@ -3984,7 +4026,10 @@ h2.splitHeader .he {
   color: #666;
 }
 .topicsPanel.systemPanel.readerNavMenu h1 {
-  margin-bottom: 30px;
+  margin: 0 0 30px 0;
+}
+.topicsPanel.systemPanel.readerNavMenu h3 {
+
 }
 .topicsPanel .loadingMessage {
   text-align: center;
@@ -3992,13 +4037,15 @@ h2.splitHeader .he {
 .topicsPanel .topicFilterBox {
   display: flex;
   align-items: center;
+  border-bottom: 1px solid #ccc;
+  margin-bottom: 50px
 }
 .topicsPanel .topicFilterIcon {
   font-size: 22px;
   opacity: 0.4;
 }
 .topicsPanel .topicFilterInput {
-  padding: 20px 10px 20px 10px;
+  padding: 12px 10px;
   flex: 1;
   box-sizing: border-box;
   border: none;
@@ -4006,9 +4053,6 @@ h2.splitHeader .he {
   font-size: 24px;
 }
 .topicsPanel .topicsFilterReset {
-  position: absolute;
-  top: 26px;
-  right: 0;
   color: #999;
   cursor: pointer;
 }
@@ -4022,11 +4066,14 @@ h2.splitHeader .he {
 .topicsPanel .topicList {
   min-height: 500px;
 }
-.topicsPanel .content .topicList .int-en {
+.topicsPanel .content .topicList .navButton .int-en {
   font-family: "adobe-garamond-pro", Georgia, serif;
 }
-.topicsPanel .content .topicList .int-he {
+.topicsPanel .content .topicList .navButton .int-he {
   font-family: "Frank Ruehl Libre", "Taamey Frank", "Times New Roman", serif;
+}
+.topicsPanel .trendingTopics {
+  margin-bottom: 40px;
 }
 .topicPanel .topicLabel {
   text-transform: uppercase;

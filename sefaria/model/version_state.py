@@ -67,6 +67,10 @@ and now self.content is:
         "_he": ...
         "_all" {
             "availableTexts":
+            "shape":
+                For depth 1: Integer - length
+                For depth 2: List of chapter lengths
+                For depth 3: List of list of chapter lengths?
         }
     }
 
@@ -237,8 +241,10 @@ class VersionState(abst.AbstractMongoRecord, AbstractSchemaContent):
         # Sum all of the languages
         ja['_all'] = reduce(lambda x, y: x + y, [ja[lkey] for lkey in self.lang_keys])
         zero_mask = ja['_all'].zero_mask()
-        current["_all"] = {"availableTexts": ja['_all'].array()}
-
+        current["_all"] = {
+            "availableTexts": ja['_all'].array(),
+            "shape": ja['_all'].shape()
+        }
         # Get derived data for all languages
         for lang, lkey in self.lang_map.items():
             # build zero-padded count ("availableTexts")

@@ -1,5 +1,10 @@
-var ga = require('./sefariaGa');
-
+var ga;
+if (typeof window !== 'undefined' && typeof window.ga === "function" ) {
+  ga = window.ga;
+} else {
+  ga = function() {}; // Fail gracefully if we reach one of these methods server side
+  ga._mock = true;
+}
 
 class Track {
     // Helper functions for event tracking (with Google Analytics and Mixpanel)

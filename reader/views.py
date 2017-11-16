@@ -309,6 +309,9 @@ def make_panel_dict(oref, versionEn, versionHe, filter, mode, **kwargs):
             text_family["prev"] = oref.prev_section_ref().normal() if oref.prev_section_ref() else None
             panel["text"] = text_family
 
+            if oref.index.categories == [u"Tanakh", u"Torah"]:
+                panel["indexDetails"] = oref.index.contents(v2=True) # Included for Torah Parashah titles rendered in text
+
             if oref.is_segment_level():
                 panel["highlightedRefs"] = [subref.normal() for subref in oref.range_list()]
 
@@ -670,6 +673,7 @@ def s2_topics_page(request):
         "initialMenu":  "topics",
         "initialTopic": None,
         "topicList": topics.list(sort_by="count"),
+        "trendingTags": recent_public_tags(days=14, ntags=12),
     })
 
     propsJSON = json.dumps(props)
@@ -1447,7 +1451,7 @@ def texts_api(request, tref):
 
         cb         = request.GET.get("callback", None)
         context    = int(request.GET.get("context", 1))
-        commentary = bool(int(request.GET.get("commentary", True)))
+        commentary = bool(int(request.GET.get("commentary", False)))
         pad        = bool(int(request.GET.get("pad", 1)))
         versionEn  = request.GET.get("ven", None)
         if versionEn:
@@ -1698,7 +1702,6 @@ def link_count_api(request, cat1, cat2):
     """
     if request.method == "GET":
         resp = jsonResponse(get_link_counts(cat1, cat2))
-        resp['Access-Control-Allow-Origin'] = '*'
         return resp
 
     elif request.method == "POST":
@@ -1746,6 +1749,73 @@ def counts_api(request, title):
             return jsonResponse({"status": "ok"})
 
         return jsonResponse({"error": "Not implemented."})
+
+@catch_error_as_json
+def shape_api(request, title):
+    """
+    API for retrieving a shape document for a given text or category.
+    For simple texts, returns a dict with keys:
+	{
+		"section": Category immediately above book?,
+		[Perhaps, instead, "categories"]
+		"heTitle": Hebrew title of node
+		"length": Number of chapters,
+		"chapters": List of Chapter Lengths (think about depth 1 & 3)
+		"title": English title of node
+		"book": English title of Book
+	}
+    For complex texts or categories, returns a list of dicts.
+    :param title: A valid node title or a path to a category, separated by /.
+    The "depth" parameter in the query string indicates how many levels in the category tree to descend.  Default is 2.
+    If depth == 0, descends to end of tree
+    The "dependents" parameter, if true, includes dependent texts.  By default, they are filtered out.
+
+    """
+
+    def _simple_shape(snode):
+        sn = StateNode(snode=snode)
+        shape = sn.var("all", "shape")
+
+        return {
+            "section": snode.index.categories[-1],
+            "heTitle": snode.primary_title("he"),
+            "title": snode.primary_title("en"),
+            "length": len(shape) if isinstance(shape, list) else 1,  # hmmmm
+            "chapters": shape,
+            "book": snode.index.title,
+        }
+
+    title = title.replace("_", " ")
+
+    if request.method == "GET":
+        sn = library.get_schema_node(title, "en")
+
+        # Leaf Node
+        if sn and not sn.children:
+            res = _simple_shape(sn)
+
+        # Branch Node
+        elif sn and sn.children:
+            res = [_simple_shape(n) for n in sn.get_leaf_nodes()]
+
+        # Category
+        else:
+            cat = library.get_toc_tree().lookup(title.split("/"))
+
+            if not cat:
+                res = {"error": "No index or category found to match {}".format(title)}
+            else:
+                depth = request.GET.get("depth", 2)
+                include_dependents = request.GET.get("dependents", False)
+
+                leaves = cat.get_leaf_nodes() if depth == 0 else [n for n in cat.get_leaf_nodes_to_depth(depth)]
+                if not include_dependents:
+                    leaves = [n for n in leaves if not n.dependence]
+
+                res = [_simple_shape(jan) for toc_index in leaves for jan in toc_index.get_index_object().nodes.get_leaf_nodes()]
+
+        return jsonResponse(res, callback=request.GET.get("callback", None))
+
 
 
 @catch_error_as_json
@@ -2958,17 +3028,17 @@ def profile_api(request):
     return jsonResponse({"error": "Unsupported HTTP method."})
 
 
-def profile_redirect(request, username, page=1):
+def profile_redirect(request, uid, page=1):
+    """"
+    Redirect to the profile of the logged in user.
     """
-    Redirect to a user profile
-    """
-    return redirect("/profile/%s" % username, permanent=True)
+    return redirect("/profile/%s" % uid, permanent=True)
 
 
 @login_required
 def my_profile(request):
-    """"
-    Redirect to the profile of the logged in user.
+    """
+    Redirect to a user profile
     """
     return redirect("/profile/%s" % UserProfile(id=request.user.id).slug)
 

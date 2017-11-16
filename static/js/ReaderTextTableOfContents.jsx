@@ -558,7 +558,8 @@ class TextTableOfContentsNavigation extends Component {
         var content = <SchemaNode
                           schema={this.props.schema}
                           addressTypes={this.props.schema.addressTypes}
-                          refPath={this.props.title} />;
+                          refPath={this.props.title}
+                          key="default"/>;
         break;
       case "commentary":
         var content = <CommentatorList
@@ -571,7 +572,8 @@ class TextTableOfContentsNavigation extends Component {
         var content = <SchemaNode
                           schema={this.props.alts[this.state.tab]}
                           addressTypes={this.props.schema.addressTypes}
-                          refPath={this.props.title} />;
+                          refPath={this.props.title}
+                          key="alt_struct"/>;
         break;
     }
 

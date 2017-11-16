@@ -696,9 +696,8 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
 
         return toc_contents_dict
 
-    def toc_contents(self, include_first_section=True):
+    def toc_contents(self, include_first_section=True, include_flags=True):
         """Returns to a dictionary used to represent this text in the library wide Table of Contents"""
-
         toc_contents_dict = {
             "title": self.get_title(),
             "heTitle": self.get_title("he"),
@@ -706,17 +705,26 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
             "primary_category" : self.get_primary_category(),
             "dependence" : getattr(self, "dependence", False),
         }
+
         if include_first_section:
             firstSection = Ref(self.title).first_available_section_ref()
             toc_contents_dict["firstSection"] = firstSection.normal() if firstSection else None
-        ord = self.get_toc_index_order()
+
+        if include_flags:
+            vstate = self.versionState()
+            toc_contents_dict["enComplete"] = vstate.get_flag("enComplete")
+            toc_contents_dict["heComplete"] = vstate.get_flag("heComplete")
+
+        ord = self.get_toc_index_order()        
         if ord:
             toc_contents_dict["order"] = ord
+        
         if hasattr(self, "collective_title"):
             toc_contents_dict["commentator"] = self.collective_title # todo: deprecate Only used in s1 js code
             toc_contents_dict["heCommentator"] = hebrew_term(self.collective_title) # todo: deprecate Only used in s1 js code
             toc_contents_dict["collectiveTitle"] = self.collective_title
             toc_contents_dict["heCollectiveTitle"] = hebrew_term(self.collective_title)
+        
         if hasattr(self, 'base_text_titles'):
             toc_contents_dict["base_text_titles"] = self.base_text_titles
             if include_first_section:
@@ -724,6 +732,7 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
             if "collectiveTitle" not in toc_contents_dict:
                 toc_contents_dict["collectiveTitle"] = self.title
                 toc_contents_dict["heCollectiveTitle"] = self.get_title("he")
+        
         if hasattr(self, 'base_text_mapping'):
             toc_contents_dict["base_text_mapping"] = self.base_text_mapping
 

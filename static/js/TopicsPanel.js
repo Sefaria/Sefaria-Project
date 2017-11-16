@@ -28,9 +28,13 @@ class TopicsPanel extends Component {
   }
   loadData() {
     var data = Sefaria.topicList();
-
     if (!data) {
       Sefaria.topicList(this.rerender);
+    }
+
+    var trending = Sefaria.sheets.trendingTags();
+    if (!trending) {
+      Sefaria.sheets.trendingTags(this.rerender);
     }
   }
   handleFilterChange(e) {
@@ -45,11 +49,8 @@ class TopicsPanel extends Component {
   }
   render() {
     var topics = Sefaria.topicList();
-    var topicList = topics ? topics.filter(function(item, i) {
-      if (!this.state.filter.length) { return true }
-      var tag = Sefaria.interfaceLang == "hebrew" ? Sefaria.hebrewTerm(item.tag) : item.tag.toLowerCase();
-      return tag.indexOf(this.state.filter) !== -1;
-      }.bind(this)).map(function(item, i) {
+    var trending = Sefaria.sheets.trendingTags();
+    var makeTopicButton = function(item, i) {
       var classes = classNames({navButton: 1, sheetButton: 1 });
       return (<Link 
                 className={classes}
@@ -60,7 +61,15 @@ class TopicsPanel extends Component {
                 <span className="int-en">{item.tag} ({item.count})</span>
                 <span className="int-he">{Sefaria.hebrewTerm(item.tag)} ({item.count})</span>
               </Link>);
-    }.bind(this)) : null;
+    }.bind(this);
+
+    var trendingList = this.state.filter.length ? [] : trending.map(makeTopicButton);
+
+    var topicList = topics ? topics.filter(function(item, i) {
+      if (!this.state.filter.length) { return true }
+      var tag = Sefaria.interfaceLang == "hebrew" ? Sefaria.hebrewTerm(item.tag) : item.tag.toLowerCase();
+      return tag.indexOf(this.state.filter) !== -1;
+    }.bind(this)).map(makeTopicButton) : null;
 
     var classStr = classNames({topicsPanel: 1, systemPanel: 1, readerNavMenu: 1, noHeader: this.props.hideNavHeader });
     var navTopClasses  = classNames({readerNavTop: 1, searchOnly: 1, colorLineOnly: this.props.hideNavHeader});
@@ -99,9 +108,26 @@ class TopicsPanel extends Component {
               : null }
             </div>
             <div className="topicList">
+              {trendingList && trendingList.length ?
+                <div className="trendingTopics">
+                  <h3>
+                    <span className="int-en">Trending</span>
+                    <span className="int-he">פופולרי</span>
+                  </h3>
+                  <TwoOrThreeBox content={trendingList} width={this.props.width} />
+                </div>
+                : null }
               { topics ?
                   (topics.length ?
-                     <TwoOrThreeBox content={topicList} width={this.props.width} /> 
+                      <div>
+                        { this.state.filter.length ? null :
+                          <h3>
+                            <span className="int-en">Most Used</span>
+                            <span className="int-he">הכי בשימוש</span>
+                          </h3>
+                        }                      
+                        <TwoOrThreeBox content={topicList} width={this.props.width} /> 
+                      </div>
                     : <LoadingMessage message="There are no topics here." heMessage="" />)
                   : <LoadingMessage />
               }

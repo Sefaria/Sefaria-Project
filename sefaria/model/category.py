@@ -162,9 +162,11 @@ class TocTree(object):
         self._library = lib
 
         # Store first section ref.
-        vss = db.vstate.find({}, {"title": 1, "first_section_ref": 1})
+        vss = db.vstate.find({}, {"title": 1, "first_section_ref": 1, "flags": 1})
         self._vs_lookup = {vs["title"]: {
-            "first_section_ref": vs.get("first_section_ref")
+            "first_section_ref": vs.get("first_section_ref"),
+            "heComplete": vs.get("flags", {}).get("heComplete"),
+            "enComplete": vs.get("flags", {}).get("enComplete"),
         } for vs in vss}
 
         # Build Category object tree from stored Category objects
@@ -210,12 +212,14 @@ class TocTree(object):
             cat.children.sort(key=lambda node: 'zzz' + node.primary_title("en") if isinstance(node, TocCategory) and node.primary_title("en") in REVERSE_ORDER else 'a')
 
     def _make_index_node(self, index, old_title=None):
-        d = index.toc_contents(include_first_section=False)
+        d = index.toc_contents(include_first_section=False, include_flags=False)
 
         title = old_title or d["title"]
 
         vs = self._vs_lookup.get(title, {})
         d["firstSection"] = vs.get("first_section_ref", None)
+        d["heComplete"]   = vs.get("heComplete", False)
+        d["enComplete"]   = vs.get("enComplete", False)
         if title in ORDER:
             # If this text is listed in ORDER, consider its position in ORDER as its order field.
             d["order"] = ORDER.index(title)
@@ -254,7 +258,7 @@ class TocTree(object):
         """
         :param cat_path: A list or tuple of the path to this category
         :param title: optional - name of text.  If present tries to return a text
-        :return:
+        :return: TocNode
         """
         path = tuple(cat_path)
         if title is not None:
@@ -286,7 +290,9 @@ class TocTree(object):
             vs.refresh()
             sn = vs.state_node(index.nodes)
             self._vs_lookup[title] = {
-                "first_section_ref": vs.first_section_ref
+                "first_section_ref": vs.first_section_ref,
+                "heComplete": vs.get_flag("heComplete"),
+                "enComplete": vs.get_flag("enComplete"),
             }
         new_node = self._make_index_node(index, title)
         if node:
@@ -369,6 +375,8 @@ class TocTextIndex(TocNode):
     order: 13
     primary_category: "Mishnah"
     title: "Mishnah Eruvin"
+    enComplete: true
+    heComplete: true
     """
     def __init__(self, serial=None, **kwargs):
         self._index_object = kwargs.pop("index_object", None)
@@ -383,6 +391,8 @@ class TocTextIndex(TocNode):
         "firstSection",
         "order",
         "primary_category",
+        "heComplete",
+        "enComplete",
         "collectiveTitle",
         "base_text_titles",
         "base_text_mapping",

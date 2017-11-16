@@ -546,7 +546,28 @@ class TreeNode(object):
     def all_children(self):
         return self.traverse_to_list(lambda n, i: [n])[1:]
 
+    def get_leaf_nodes_to_depth(self, max_depth = None):
+        """
+        :param max_depth: How many levels below this one to traverse.
+        1 returns only this node's children, 0 returns only this node.
+        """
+        assert max_depth is not None
+        leaves = []
+
+        if not self.children:
+            return [self]
+        elif max_depth > 0:
+            for node in self.children:
+                if not node.children:
+                    leaves += [node]
+                else:
+                    leaves += node.get_leaf_nodes_to_depth(max_depth=max_depth - 1)
+        return leaves
+
     def get_leaf_nodes(self):
+        """
+        :return:
+        """
         if not self._leaf_nodes:
             if not self.children:
                 self._leaf_nodes = [self]

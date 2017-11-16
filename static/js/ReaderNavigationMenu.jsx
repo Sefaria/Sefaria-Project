@@ -181,11 +181,17 @@ class ReaderNavigationMenu extends Component {
       siteLinks = (<div className="siteLinks">
                     {siteLinks}
                   </div>);
-
-      var calendar = Sefaria.calendar ?
-                     [(<TextBlockLink sref={Sefaria.calendar.parasha} title={Sefaria.calendar.parashaName} heTitle={Sefaria.calendar.heParashaName} category="Tanakh" />),
-                      (<TextBlockLink sref={Sefaria.calendar.haftara} title="Haftara" heTitle="הפטרה" category="Tanakh" />),
-                      (<TextBlockLink sref={Sefaria.calendar.daf_yomi} title="Daf Yomi" heTitle="דף יומי" category="Talmud" />)] : [];
+      var calendar = Sefaria.calendars.map(function(item) {
+          return (<TextBlockLink
+                    sref={item.url}
+                    title={item.title["en"]}
+                    heTitle={item.title["he"]}
+                    displayValue={item.displayValue["en"]}
+                    heDisplayValue={item.displayValue["he"]}
+                    category={item.category}
+                    showSections={false}
+                    recentItem={false} />)
+      });
       calendar = (<div className="readerNavCalendar"><TwoOrThreeBox content={calendar} width={this.width} /></div>);
 
 
@@ -322,7 +328,6 @@ class RecentPanel extends Component {
                 showSections={true}
                 recentItem={true} />)
     });
-    var recentContent = (<TwoOrThreeBox content={recentItems} width={width} />);
 
     var footer = this.props.compare ? null :
                     (<footer id="footer" className={`interface-${this.props.interfaceLang} static sans`}>
@@ -354,7 +359,7 @@ class RecentPanel extends Component {
               <span className="int-he">נצפו לאחרונה</span>
             </h1>
             : null }
-            {recentContent}
+            {recentItems}
           </div>
           {footer}
         </div>
