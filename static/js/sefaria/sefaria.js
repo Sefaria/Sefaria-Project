@@ -10,7 +10,6 @@ var extend     = require('extend'),
 
 var INBROWSER = (typeof document !== 'undefined');
 
-console.log("setting default data at start of bundle")
 var Sefaria = Sefaria || {
   _dataLoaded: false,
   toc: [],
@@ -509,7 +508,7 @@ Sefaria = extend(Sefaria, {
           })};
         $.ajax({
           dataType: "json",
-          url: Sefaria._apiHost + "/api/texts/" + data.url,
+          url: Sefaria.apiHost + "/api/texts/" + data.url,
           data: d,
           type: "POST",
           // Clear cache with a sledgehammer.  May need more subtlety down the road.
