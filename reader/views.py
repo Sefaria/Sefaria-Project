@@ -50,7 +50,7 @@ from sefaria.utils.talmud import section_to_daf, daf_to_section
 from sefaria.datatype.jagged_array import JaggedArray
 from sefaria.utils.calendars import get_todays_calendar_items
 import sefaria.utils.calendars
-from sefaria.utils.util import short_to_long_lang_code
+from sefaria.utils.util import short_to_long_lang_code, titlecase
 import sefaria.tracker as tracker
 from sefaria.system.cache import django_cache_decorator
 from sefaria.settings import USE_VARNISH, USE_NODE, NODE_HOST, DOMAIN_LANGUAGES
@@ -2735,6 +2735,7 @@ def topics_api(request, topic):
     API to get data for a particular topic.
     """
     topics = get_topics()
+    topic = Term.normalize(titlecase(topic))
     response = topics.get(topic).contents()
     response = jsonResponse(response, callback=request.GET.get("callback", None))
     response["Cache-Control"] = "max-age=3600"
