@@ -2347,7 +2347,7 @@ def name_api(request, name):
         return jsonResponse({"error": "Unsupported HTTP method."})
 
     # Number of results to return.  0 indicates no limit
-    LIMIT = request.GET.get("limit") or 16
+    LIMIT = int(request.GET.get("limit", 16))
     ref_only = request.GET.get("ref_only", False)
     lang = "he" if is_hebrew(name) else "en"
 

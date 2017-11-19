@@ -1596,7 +1596,15 @@ $(function() {
     	curTagsHTML = curTagsHTML + '<a class="button" role="button" href="/sheets/tags/'+sjs.sheetTagger.tags()[i]+'">'+sjs.sheetTagger.tags()[i]+'</a>';
     }
 		$("#sheetTags").html(curTagsHTML);
-		autoSave();
+
+    //save whole sheet if possible, otherwise, just save sheet tags:
+    if (sjs.can_save) {
+			autoSave();
+		}
+    else {
+    	var tags = JSON.stringify(sjs.sheetTagger.tags());
+    	$.post("/api/sheets/" + sjs.current.id + "/tags", {"tags": tags});
+    }
 	});
 
 	$("#shareWithOthers").on("change keyup keydown paste cut", "#sheetSummaryInput", function (){
