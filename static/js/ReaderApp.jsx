@@ -411,8 +411,7 @@ class ReaderApp extends Component {
             break;
           case "extended notes":
             var bookTitle = state.bookRef;
-            hist.version = state.version;
-            hist.versionLanguage = state.versionLanguage;
+            hist.currVersions = state.currVersions;
             hist.url = `${bookTitle}&notes=1`.replace(/ /g, "_");
             hist.mode = "extended notes";
             break;
