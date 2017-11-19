@@ -354,10 +354,7 @@ class ReaderTextTableOfContents extends Component {
                 {this.props.mode === "extended notes"
                   ? <ExtendedNotes
                     title={this.props.title}
-                    versionLanguage={this.props.versionLanguage}
-                    versionTitle={this.props.version}
-                    extendedNotes={this.props.extendedNotes}
-                    extendedNotesHebrew={this.props.extendedNotesHebrew}
+                    currVersions={this.props.currVersions}
                     backFromExtendedNotes={this.props.backFromExtendedNotes}
                   />
                   :<div className="contentInner">
@@ -1082,8 +1079,7 @@ class VersionBlock extends Component {
   }
   openExtendedNotes(e){
     e.preventDefault();
-    this.props.viewExtendedNotes(this.props.version.language, this.props.version.versionTitle,
-      this.props.version.extendedNotes, this.props.version.extendedNotesHebrew);
+    this.props.viewExtendedNotes(this.props.version.language, this.props.version.versionTitle);
   }
   render() {
     var v = this.props.version;
@@ -1315,7 +1311,16 @@ ReadMoreText.defaultProps = {
 class ExtendedNotes extends Component {
   constructor(props) {
     super(props);
-    this.state = {'notesLanguage': Sefaria.interfaceLang}
+    this.state = {'notesLanguage': Sefaria.interfaceLang, 'extendedNotes': ''};
+  }
+  getVersionData(versionList){
+    const versionTitle = this.props.currVersions['en'] ? this.props.currVersions['en'] : this.props.currVersions['he'];
+    const thisVersion = versionList.filter(x=>x.versionTitle===versionTitle)[0];
+    this.setState({'extendedNotes': thisVersion.extendedNotes, 'extendedNotesHebrew': thisVersion.extendedNotesHebrew});
+  }
+  componentDidMount() {
+    // use Sefaria.versions(ref, cb), where cb will invoke setState
+    Sefaria.versions(this.props.title, this.getVersionData);
   }
   goBack(event) {
     event.preventDefault();
@@ -1326,7 +1331,7 @@ class ExtendedNotes extends Component {
         <a onClick={this.goBack} href={`${this.props.title}/${this.props.versionLanguage}/${this.props.versionTitle}`}>
           {Sefaria.interfaceLang==="hebrew" ? "חזור" : "Back"}
         </a>
-        <div className="extendedNotesText" dangerouslySetInnerHTML={ {__html: this.props.extendedNotes} }></div>
+        <div className="extendedNotesText" dangerouslySetInnerHTML={ {__html: this.state.extendedNotes} }></div>
       </div>
   }
 }

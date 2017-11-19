@@ -625,8 +625,6 @@ class ReaderPanel extends Component {
                     openDisplaySettings={this.openDisplaySettings}
                     selectVersion={this.props.selectVersion}
                     showBaseText={this.showBaseText}
-                    extendedNotes={this.state.extendedNotes}
-                    extendedNotesHebrew={this.state.extendedNotesHebrew}
                     backFromExtendedNotes={this.backFromExtendedNotes}
                     getLicenseMap={this.props.getLicenseMap}/>);
 

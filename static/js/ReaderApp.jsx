@@ -960,11 +960,10 @@ class ReaderApp extends Component {
     }
     this.setState({panels: this.state.panels});
   }
-  viewExtendedNotes(n, versionLanguage, versionName, extendedNotes, extendedNotesHebrew) {
+  viewExtendedNotes(n, versionLanguage, versionName) {
     var panel = this.state.panels[n];
+    panel.currVersions = {'en': null, 'he': null}; // ensure only 1 version is set
     panel.currVersions[versionLanguage] = versionName;
-    panel.extendedNotes = extendedNotes;
-    panel.extendedNotesHebrew = extendedNotesHebrew;
     panel.menuOpen = "extended notes";
     this.setState({panels: this.state.panels});
   }
