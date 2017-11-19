@@ -412,7 +412,7 @@ class ReaderApp extends Component {
           case "extended notes":
             var bookTitle = state.bookRef;
             hist.currVersions = state.currVersions;
-            hist.url = `${bookTitle}&notes=1`.replace(/ /g, "_");
+            hist.url = `${bookTitle}&notes${i>1 ? i : ''}=1`.replace(/ /g, "_");
             hist.mode = "extended notes";
             break;
           case "search":
@@ -960,8 +960,9 @@ class ReaderApp extends Component {
     }
     this.setState({panels: this.state.panels});
   }
-  viewExtendedNotes(n, versionLanguage, versionName) {
+  viewExtendedNotes(n, title, versionLanguage, versionName) {
     var panel = this.state.panels[n];
+    panel.bookRef = title;
     panel.currVersions = {'en': null, 'he': null}; // ensure only 1 version is set
     panel.currVersions[versionLanguage] = versionName;
     panel.menuOpen = "extended notes";

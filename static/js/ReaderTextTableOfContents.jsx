@@ -1079,7 +1079,7 @@ class VersionBlock extends Component {
   }
   openExtendedNotes(e){
     e.preventDefault();
-    this.props.viewExtendedNotes(this.props.version.language, this.props.version.versionTitle);
+    this.props.viewExtendedNotes(this.props.title, this.props.version.language, this.props.version.versionTitle);
   }
   render() {
     var v = this.props.version;
