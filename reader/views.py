@@ -48,8 +48,9 @@ from sefaria.utils.util import list_depth, text_preview
 from sefaria.utils.hebrew import hebrew_plural, hebrew_term, encode_hebrew_numeral, encode_hebrew_daf, is_hebrew, strip_cantillation, has_cantillation
 from sefaria.utils.talmud import section_to_daf, daf_to_section
 from sefaria.datatype.jagged_array import JaggedArray
+from sefaria.utils.calendars import get_todays_calendar_items
 import sefaria.utils.calendars
-from sefaria.utils.util import short_to_long_lang_code
+from sefaria.utils.util import short_to_long_lang_code, titlecase
 import sefaria.tracker as tracker
 from sefaria.system.cache import django_cache_decorator
 from sefaria.settings import USE_VARNISH, USE_NODE, NODE_HOST, DOMAIN_LANGUAGES
@@ -2271,6 +2272,19 @@ def category_api(request, path=None):
 
 @catch_error_as_json
 @csrf_exempt
+def calendars_api(request):
+    if request.method == "GET":
+        diaspora = request.GET.get("diaspora", "1")
+        if diaspora not in ["0", "1"]:
+            return jsonResponse({"error": "'Diaspora' parameter must be 1 or 0."})
+        else:
+            diaspora = True if diaspora == "1" else False
+            calendars = get_todays_calendar_items(diaspora=diaspora)
+            return jsonResponse(calendars, callback=request.GET.get("callback", None))
+
+
+@catch_error_as_json
+@csrf_exempt
 def terms_api(request, name):
     """
     API for adding a Term to the Term collection.
@@ -2721,6 +2735,7 @@ def topics_api(request, topic):
     API to get data for a particular topic.
     """
     topics = get_topics()
+    topic = Term.normalize(titlecase(topic))
     response = topics.get(topic).contents()
     response = jsonResponse(response, callback=request.GET.get("callback", None))
     response["Cache-Control"] = "max-age=3600"
