@@ -201,7 +201,7 @@ class TextList extends Component {
                                     onCompareClick={this.props.onCompareClick}
                                     onOpenConnectionsClick={this.props.onOpenConnectionsClick}
                                     inlineReference={link.inline_reference}/>
-                                    {Sefaria.is_editor ?
+                                    {Sefaria.is_moderator || Sefaria.is_editor ?
                                     <EditorLinkOptions
                                       _id={link._id}
                                       onDataChange={ this.onDataChange } />
