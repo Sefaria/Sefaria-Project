@@ -3182,10 +3182,10 @@ a.readerNavCategory {
 .textListTextRangeBox {
   position: relative;
 }
-.textListTextRangeBox:hover .moderatorLinkOptions {
+.textListTextRangeBox:hover .editorLinkOptions {
   display: block;
 }
-.moderatorLinkOptions {
+.editorLinkOptions {
   display: none;
   cursor: pointer;
   font-size: 14px;
@@ -3193,11 +3193,11 @@ a.readerNavCategory {
   letter-spacing: 1px;
   margin: -20px 0 10px;
 }
-.interface-hebrew .moderatorLinkOptions {
+.interface-hebrew .editorLinkOptions {
   left: auto;
   right: 0;
 }
-.moderatorLinkOptions > div:hover {
+.editorLinkOptions > div:hover {
   text-decoration: underline;
 }
 .toolsMessage {
