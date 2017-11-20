@@ -451,12 +451,12 @@ Sefaria = extend(Sefaria, {
     } else {
       this._index[text] = index;
     }
-  }, 
+  },
   _shape: {}, // Cache for shape records
   shape:  function(title, cb) {
     if (title in this._shape) {
         return this._shape[title];
-    }          
+    }
     var url = Sefaria.apiHost + "/api/shape/" + title;
     return this._api(url, function(data) {
       if (cb) { cb(data); }
@@ -1337,7 +1337,10 @@ Sefaria = extend(Sefaria, {
   },
   packRecentItem: function(item) {
     // Returns an array which represents the object `item` with less overhead.
-    const packed = [item.ref, item.heRef, item.currVersions.en, item.currVersions.he];
+    let packed = [item.ref, item.heRef];
+    if (item.currVersions) {
+      packed = packed.concat([item.currVersions.en, item.currVersions.he]);
+    }
     return packed;
   },
   unpackRecentItem: function(item) {
