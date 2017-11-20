@@ -1319,7 +1319,7 @@ class ExtendedNotes extends Component {
     let extendedNotes = {'english': thisVersion.extendedNotes, 'hebrew': thisVersion.extendedNotesHebrew};
 
     if (extendedNotes.english || extendedNotes.hebrew){
-      this.setState({'extendedNotes': thisVersion.extendedNotes, 'extendedNotesHebrew': thisVersion.extendedNotesHebrew});
+      this.setState({'extendedNotes': extendedNotes});
     }
     else{
       this.props.backFromExtendedNotes();
@@ -1333,13 +1333,36 @@ class ExtendedNotes extends Component {
     event.preventDefault();
     this.props.backFromExtendedNotes();
   }
+  changeLanguage(event) {
+    event.preventDefault();
+    if (this.state.notesLanguage==='english') {
+      this.setState({'notesLanguage': 'hebrew'});
+    }
+    else {
+      this.setState({'notesLanguage': 'english'});
+    }
+  }
   render() {
+    let notes = '';
+    if (this.state.extendedNotes) {
+      notes = this.state.extendedNotes[this.state.notesLanguage];
+      if (this.state.notesLanguage==='hebrew' && !notes){
+        notes = 'לא קיימים רשימות מורחבות בשפה העברית עבור גרסה זו';
+      }
+      else if (this.state.notesLanguage==='english' && !notes){
+        notes = 'Extended notes in English do not exist for this version';
+      }
+    }
       return <div className="extendedNotes">
-        <a onClick={this.goBack} href={`${this.props.title}/${this.props.versionLanguage}/${this.props.versionTitle}`}>
-          {Sefaria.interfaceLang==="hebrew" ? "חזור" : "Back"}
+        <a onClick={this.goBack} href={`${this.props.title}`}>
+          {this.state.notesLanguage==="hebrew" ? "חזור" : "Back"}
         </a>
-        {this.state.extendedNotes ? <div className="extendedNotesText" dangerouslySetInnerHTML={ {__html: this.state.extendedNotes} }></div>
+        {this.state.extendedNotes
+          ? <div className="extendedNotesText" dangerouslySetInnerHTML={ {__html: notes} }></div>
         : <LoadingMessage/>}
+        <a onClick={this.changeLanguage} href={`${this.props.title}`}>
+          {this.state.notesLanguage==='english' ? 'עברית' : 'English'}
+        </a>
       </div>
   }
 }
