@@ -3527,7 +3527,8 @@ def random_by_topic_api(request):
         ref = Ref(random_source).normal()
     except Exception:
         return random_by_topic_api(request)
-    response = redirect(iri_to_uri("/api/texts/" + ref + "?commentary=0&context=0&pad=0") , permanent=False)
+    cb = request.GET.get("callback", None)
+    response = redirect(iri_to_uri("/api/texts/" + ref + "?commentary=0&context=0&pad=0{}".format("&callback=" + cb if cb else "")) , permanent=False)
     return response
 
 
