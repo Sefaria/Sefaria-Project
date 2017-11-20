@@ -1316,7 +1316,14 @@ class ExtendedNotes extends Component {
   getVersionData(versionList){
     const versionTitle = this.props.currVersions['en'] ? this.props.currVersions['en'] : this.props.currVersions['he'];
     const thisVersion = versionList.filter(x=>x.versionTitle===versionTitle)[0];
-    this.setState({'extendedNotes': thisVersion.extendedNotes, 'extendedNotesHebrew': thisVersion.extendedNotesHebrew});
+    let extendedNotes = {'english': thisVersion.extendedNotes, 'hebrew': thisVersion.extendedNotesHebrew};
+
+    if (extendedNotes.english || extendedNotes.hebrew){
+      this.setState({'extendedNotes': thisVersion.extendedNotes, 'extendedNotesHebrew': thisVersion.extendedNotesHebrew});
+    }
+    else{
+      this.props.backFromExtendedNotes();
+    }
   }
   componentDidMount() {
     // use Sefaria.versions(ref, cb), where cb will invoke setState
@@ -1331,7 +1338,8 @@ class ExtendedNotes extends Component {
         <a onClick={this.goBack} href={`${this.props.title}/${this.props.versionLanguage}/${this.props.versionTitle}`}>
           {Sefaria.interfaceLang==="hebrew" ? "חזור" : "Back"}
         </a>
-        <div className="extendedNotesText" dangerouslySetInnerHTML={ {__html: this.state.extendedNotes} }></div>
+        {this.state.extendedNotes ? <div className="extendedNotesText" dangerouslySetInnerHTML={ {__html: this.state.extendedNotes} }></div>
+        : <LoadingMessage/>}
       </div>
   }
 }
