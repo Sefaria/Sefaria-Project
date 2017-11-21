@@ -1311,15 +1311,21 @@ ReadMoreText.defaultProps = {
 class ExtendedNotes extends Component {
   constructor(props) {
     super(props);
-    this.state = {'notesLanguage': Sefaria.interfaceLang, 'extendedNotes': ''};
+    this.state = {'notesLanguage': Sefaria.interfaceLang, 'extendedNotes': '', 'langToggle': false};
   }
   getVersionData(versionList){
     const versionTitle = this.props.currVersions['en'] ? this.props.currVersions['en'] : this.props.currVersions['he'];
     const thisVersion = versionList.filter(x=>x.versionTitle===versionTitle)[0];
     let extendedNotes = {'english': thisVersion.extendedNotes, 'hebrew': thisVersion.extendedNotesHebrew};
 
-    if (extendedNotes.english || extendedNotes.hebrew){
-      this.setState({'extendedNotes': extendedNotes});
+    if (extendedNotes.english && extendedNotes.hebrew){
+      this.setState({'extendedNotes': extendedNotes, 'langToggle': true});
+    }
+    else if (extendedNotes.english && !extendedNotes.hebrew) {
+      this.setState({'extendedNotes': extendedNotes, 'notesLanguage': 'english'});
+    }
+    else if (extendedNotes.hebrew && !extendedNotes.english) {
+      this.setState({'extendedNotes': extendedNotes, 'notesLanguage': 'hebrew'});
     }
     else{
       this.props.backFromExtendedNotes();
@@ -1355,14 +1361,14 @@ class ExtendedNotes extends Component {
     }
       return <div className="extendedNotes">
         <a onClick={this.goBack} href={`${this.props.title}`}>
-          {this.state.notesLanguage==="hebrew" ? "חזור" : "Back"}
+          {Sefaria.interfaceLang==="hebrew" ? "חזור" : "Back"}
         </a>
         {this.state.extendedNotes
           ? <div className="extendedNotesText" dangerouslySetInnerHTML={ {__html: notes} }></div>
         : <LoadingMessage/>}
-        <a onClick={this.changeLanguage} href={`${this.props.title}`}>
+        {this.state.langToggle ? <a onClick={this.changeLanguage} href={`${this.props.title}`}>
           {this.state.notesLanguage==='english' ? 'עברית' : 'English'}
-        </a>
+        </a> : ''}
       </div>
   }
 }
