@@ -4637,12 +4637,12 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
   display: block;
 }
 
-.readerPanel.hebrew .sheetItem.segment .segmentNumber, .readerPanel.bilingual .sheetItem.segment .segmentNumber {
-  right: 10px;
+.readerPanel.english .sheetItem.segment .segmentNumber, .readerPanel.bilingual .sheetItem.segment .segmentNumber {
+  left: 10px;
 }
 
-.readerPanel.english .sheetItem.segment .segmentNumber {
-  left: 10px;
+.readerPanel.hebrew .sheetItem.segment .segmentNumber {
+  right: 10px;
 }
 
 .sheetsInPanel .title {
