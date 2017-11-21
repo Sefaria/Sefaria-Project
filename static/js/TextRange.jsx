@@ -253,9 +253,10 @@ class TextRange extends Component {
       return (<span key={i + segment.ref}>
                 { parashahHeader }
                 <TextSegment
+
             sref={segment.ref}
-            en={!this.props.useVersionLanguage || this.props.currVersions.en?segment.en: null}
-            he={!this.props.useVersionLanguage || this.props.currVersions.he?segment.he: null}
+            en={!this.props.useVersionLanguage || this.props.currVersions.en ? segment.en : null}
+            he={!this.props.useVersionLanguage || this.props.currVersions.he ? segment.he : null}
             highlight={highlight}
             segmentNumber={showSegmentNumbers ? segment.number : 0}
             showLinkCount={this.props.basetext}
