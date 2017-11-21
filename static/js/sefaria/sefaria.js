@@ -1326,10 +1326,12 @@ Sefaria = extend(Sefaria, {
   },
   packRecentItem: function(item) {
     // Returns an array which represents the object `item` with less overhead.
-    var packed = [item.ref, item.heRef];
-    if (item.version && item.versionLangauge) {
-      packed = packed.concat([item.version, item.versionLanguage]);
-    }
+    var fields = ["ref", "heRef", "version", "versionLanguage", "lastVisited", "bookVisitCount"];
+    var packed = [];
+    fields.map(field => {
+      var value = field in item ? item[field] : null;
+      packed.push(value);
+    });
     return packed;
   },
   unpackRecentItem: function(item) {
@@ -1340,15 +1342,17 @@ Sefaria = extend(Sefaria, {
       heRef: item[1],
       book: oRef.index,
       version: item.length > 2 ? item[2] : null,
-      versionLanguage: item.length > 3 ? item[3] : null
+      versionLanguage: item.length > 3 ? item[3] : null,
+      lastVisited: item.length > 4 ? item[4] : null,
+      bookVisitCount: item.length > 5 ? item[5] : null,
     };
     return unpacked;
   },
-  recentRefForText: function(title) {
-    // Return the most recently visited ref for text `title` or null if `title` is not present in recentlyViewed.
+  recentItemForText: function(title) {
+    // Return the most recently visited item for text `title` or null if `title` is not present in recentlyViewed.
     for (var i = 0; i < Sefaria.recentlyViewed.length; i++) {
       if (Sefaria.recentlyViewed[i].book === title) {
-        return Sefaria.recentlyViewed[i].ref;
+        return Sefaria.recentlyViewed[i];
       }
     }
     return null;
