@@ -527,15 +527,11 @@ body:not(.user-is-tabbing) #sheet .cke_editable:focus {
 	text-align: center;
 	margin: 0 -76px;
 	background-color: #fff;
-    display: flex;
-	justify-content: center;
 	cursor: pointer;
 }
 
 #sheetMetadata[open] summary {
 	background-color: #fff;
-    display: flex;
-	justify-content: flex-end;
 }
 
 #sheetMetadata summary::-webkit-details-marker {
@@ -555,10 +551,16 @@ body:not(.user-is-tabbing) #sheet .cke_editable:focus {
 }
 #sheetMetadata[open] summary:after {
   	content: "✕";
-    top: 56px;
+    top: 36px;
     margin: 0 80px;
     position: relative;
-    align-self: flex-end;
+}
+#sheetMetadata[open] summary:lang(en)::after {
+	float: right;
+}
+
+#sheetMetadata[open] summary:lang(he)::after {
+	float: left;
 }
 
 #sheetMetadata .editButton {
