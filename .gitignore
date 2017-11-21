@@ -104,7 +104,7 @@ webpack-stats.*\.json
 webpack-stats.json
 
 # PAGERANK #
-/static/pagerank.json
-/static/sheetrank.json
+static/pagerank.json
+static/sheetrank.json
 
 /random_files
