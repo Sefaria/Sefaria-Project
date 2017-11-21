@@ -197,7 +197,7 @@ class TextRange extends Component {
   }
   parashahHeader(ref) {
     // Returns the English/Hebrew title of a Parasha, if `ref` is the beginning of a new parahsah
-    // returns null otherwise. 
+    // returns null otherwise.
     var data = this.getText();
     if (!data) { return null; }
     var index = Sefaria.indexDetails(data.indexTitle);
@@ -242,24 +242,6 @@ class TextRange extends Component {
       var highlight     = this.props.highlightedRefs && this.props.highlightedRefs.length ?        // if highlighted refs are explicitly set
                             Sefaria.util.inArray(segment.ref, this.props.highlightedRefs) !== -1 : // highlight if this ref is in highlighted refs prop
                             this.props.basetext && segment.highlight;                              // otherwise highlight if this a basetext and the ref is specific
-<<<<<<< HEAD
-      return (
-        <TextSegment
-            panelPosition={this.props.panelPosition}
-            sref={segment.ref}
-            en={!this.props.useVersionLanguage || this.props.currVersions.en ? segment.en : null}
-            he={!this.props.useVersionLanguage || this.props.currVersions.he ? segment.he : null}
-            highlight={highlight}
-            segmentNumber={showSegmentNumbers ? segment.number : 0}
-            showLinkCount={this.props.basetext}
-            linkCount={Sefaria.linkCount(segment.ref, this.props.filter)}
-            filter={this.props.filter}
-            onSegmentClick={this.props.onSegmentClick}
-            onCitationClick={this.props.onCitationClick}
-            onFootnoteClick={this.onFootnoteClick}
-            key={i + segment.ref} />
-      );
-=======
       var parashahHeader = null;
       if (this.props.showParashahHeaders && this.parashahHeader(segment.ref)) {
         var parashahNames = this.parashahHeader(segment.ref);
@@ -272,8 +254,8 @@ class TextRange extends Component {
                 { parashahHeader }
                 <TextSegment
                     sref={segment.ref}
-                    en={segment.en}
-                    he={segment.he}
+                    en={!this.props.useVersionLanguage || this.props.currVersions.en ? segment.en : null}
+                    he={!this.props.useVersionLanguage || this.props.currVersions.he ? segment.he : null}
                     highlight={highlight}
                     segmentNumber={showSegmentNumbers ? segment.number : 0}
                     showLinkCount={this.props.basetext}
@@ -284,7 +266,6 @@ class TextRange extends Component {
                     onCitationClick={this.props.onCitationClick}
                     onFootnoteClick={this.onFootnoteClick} />
               </span>);
->>>>>>> test
     }.bind(this));
     textSegments = textSegments.length ? textSegments : null;
 
