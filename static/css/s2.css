@@ -4597,9 +4597,13 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
 .bubbleTab.active {
   color: #333;
 }
+
+/* Sheets */
+
 .sheetsInPanel {
   overflow: scroll;
   height: 100%;
+  padding: 0 15px;
 }
 .sheetContent {
   width: 100%;
@@ -4611,19 +4615,35 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
   margin: 0 auto;
   max-width: 700px;
   position: relative;
-  padding: 0 30px;
+  padding: 0 45px;
 }
 
 .sheetContent .ref {
   cursor: pointer;
-  text-align: center;
-  color: #333;
+  color: #999;
+  text-transform: uppercase;
+  font-size: .8em;
 }
 .sheetContent .ref a {
-  color: #333;
+  color: #999;
+}
+
+.sheetContent img {
+  max-width: 100%;
 }
 
 
+.readerPanel.hebrew .sheetItem .he {
+  display: block;
+}
+
+.readerPanel.hebrew .sheetItem.segment .segmentNumber, .readerPanel.bilingual .sheetItem.segment .segmentNumber {
+  right: 10px;
+}
+
+.readerPanel.english .sheetItem.segment .segmentNumber {
+  left: 10px;
+}
 
 .sheetsInPanel .title {
   padding: 0 28px;
