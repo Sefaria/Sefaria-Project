@@ -92,10 +92,7 @@ class UserProfile(object):
 	def full_name(self):
 		return self.first_name + " " + self.last_name
 
-	def update(self, obj):
-		"""
-		Update this object with the fields in dictionry 'obj'
-		"""
+	def _set_flags_on_update(self, obj):
 		if "first_name" in obj or "last_name" in obj:
 			if self.first_name != obj["first_name"] or self.last_name != obj["last_name"]:
 				self._name_updated = True
@@ -103,9 +100,21 @@ class UserProfile(object):
 		if "slug" in obj and obj["slug"] != self.slug:
 			self._slug_updated = True
 
+	def update(self, obj):
+		"""
+		Update this object with the fields in dictionry 'obj'
+		"""
+		self._set_flags_on_update(obj)
 		self.__dict__.update(obj)
 
 		return self
+
+	def update_empty(self, obj):
+		self._set_flags_on_update(obj)
+		for k, v in obj.items():
+			if v:
+				if k not in self.__dict__ or self.__dict__[k] == '' or self.__dict__[k] == []:
+					self.__dict__[k] = v
 
 	def save(self):
 		"""
