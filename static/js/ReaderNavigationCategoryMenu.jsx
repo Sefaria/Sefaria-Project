@@ -209,9 +209,13 @@ class ReaderNavigationCategoryMenuContents extends Component {
         } else {
           // Add a Text
           var [title, heTitle] = this.getRenderedTextTitleString(item.title, item.heTitle);
-          var ref = Sefaria.recentRefForText(item.title) || item.firstSection;
+          var recentItem = Sefaria.recentItemForText(item.title)
+          var ref =  recentItem ? recentItem.ref : item.firstSection;
           var url = "/" + Sefaria.normRef(ref);
-          content.push((<a href={url} className={'refLink blockLink'} data-ref={ref} key={"text." + this.props.nestLevel + "." + i}>
+          content.push((<a href={url} 
+                          className={'refLink blockLink'} 
+                          data-ref={ref}
+                          key={"text." + this.props.nestLevel + "." + i}>
                           <span className='en'>{title}</span>
                           <span className='he'>{heTitle}</span>
                         </a>
