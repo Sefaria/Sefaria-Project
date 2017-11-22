@@ -296,10 +296,8 @@ class ReaderPanel extends Component {
   }
   setVersionFilter(filter) {
     if (this.props.setVersionFilter) {
-      console.log("ReaderPanel has setVerionFilter");
       this.props.setVersionFilter(filter);
     } else {
-      console.log("ReaderPanel hasn't setVerionFilter");
       const filtInd = Sefaria.util.inArray(filter, this.state.recentVersionFilters);
       if (filtInd === -1) {
         this.state.recentVersionFilters = [filter].concat(this.state.recentVersionFilters);
