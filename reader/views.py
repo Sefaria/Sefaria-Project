@@ -285,8 +285,10 @@ def make_panel_dict(oref, versionEn, versionHe, filter, mode, **kwargs):
             "mode": mode,
             "ref": oref.normal(),
             "refs": [oref.normal()],
-            "enVersion": versionEn,
-            "heVersion": versionHe,
+            "currVersions": {
+                "en": versionEn,
+                "he": versionHe,
+            },
             "filter": filter,
         }
         if filter and len(filter):
@@ -300,7 +302,7 @@ def make_panel_dict(oref, versionEn, versionHe, filter, mode, **kwargs):
             panel["settings"] = {"language" : short_to_long_lang_code(panelDisplayLanguage)}
         if mode != "Connections":
             try:
-                text_family = TextFamily(oref, version=panel["enVersion"], lang="en", version2=panel["heVersion"], lang2="he", commentary=False,
+                text_family = TextFamily(oref, version=panel["currVersions"]["en"], lang="en", version2=panel["currVersions"]["he"], lang2="he", commentary=False,
                                   context=True, pad=True, alts=True, wrapLinks=False).contents()
             except NoVersionFoundError:
                 text_family = {}

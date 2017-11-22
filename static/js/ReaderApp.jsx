@@ -937,9 +937,17 @@ class ReaderApp extends Component {
     // Set the version for panel `n`.
     var panel = this.state.panels[n];
     var oRef = Sefaria.ref(panel.refs[0]);
+    let panelLang;
     if (versionName && versionLanguage) {
       panel.currVersions[versionLanguage] = versionName;
-      panel.settings.language = (versionLanguage == "he")? "hebrew": "english";
+      if ((versionLanguage === "he" && !!panel.currVersions["en"]) ||
+          (versionLanguage === "en" && !!panel.currVersions["he"])) { // if both versionLanguages are set, try to show them both
+        panelLang = "bilingual";
+      } else if (versionLanguage === "he") {
+        panelLang = "hebrew";
+      } else {
+        panelLang = "english";
+      }
 
       this.setCachedVersion(oRef.indexTitle, versionLanguage, versionName);
       Sefaria.track.event("Reader", "Choose Version", `${oRef.indexTitle} / ${versionName} / ${versionLanguage}`)
@@ -947,10 +955,20 @@ class ReaderApp extends Component {
       panel.currVersions[versionLanguage] = null;
       Sefaria.track.event("Reader", "Choose Version", `${oRef.indexTitle} / default version / ${panel.settings.language}`)
     }
-
     if((this.state.panels.length > n+1) && this.state.panels[n+1].mode == "Connections"){
       var connectionsPanel =  this.state.panels[n+1];
       connectionsPanel.currVersions = panel.currVersions;
+      if (panelLang) {
+        panel.settings.language = panelLang;
+        connectionsPanel.settings.language = panelLang !== "bilingual" ? panelLang : (versionLanguage === "he" ? "hebrew" : "english");
+      }
+    } else if (n-1 >= 0 && this.state.panels[n].mode === "Connections") {
+      const masterPanel = this.state.panels[n-1];
+      masterPanel.currVersions = panel.currVersions;
+      if (panelLang) {
+        panel.settings.language = panelLang !== "bilingual" ? panelLang : (versionLanguage === "he" ? "hebrew" : "english");
+        masterPanel.settings.language = panelLang;
+      }
     }
     this.setState({panels: this.state.panels});
   }

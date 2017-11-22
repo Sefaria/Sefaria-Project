@@ -1,25 +1,45 @@
 const React                  = require('react');
 const PropTypes              = require('prop-types');
 const Sefaria                = require('./sefaria/sefaria');
-const SidebarVersion         = require('./SidebarVersion');
+const VersionBlock           = require('./VersionBlock');
 const TextRange              = require('./TextRange');
 const { LoadingMessage }     = require('./Misc');
 const { RecentFilterSet } = require('./ConnectionFilters');
 import Component             from 'react-class';
 
 class VersionsBox extends Component {
-  openVersion(v) {
-    //v: version object as received from sefaria versions api
-    //request v.versionTitle for srefs
-    this.props.setConnectionsMode("Version Open");
-    this.props.setFilter(v.versionTitle);
+  constructor(props) {
+    super(props);
+    this.state = {
+      versions: null,
+    };
   }
-  selectVersion(v) {
-
+  componentDidMount() {
+    Sefaria.versions(this.props.getDataRef(this.props), (data)=>{
+      this.setState({versions: data});
+    });
+  }
+  componentDidUpdate(prevProps, prevState) {
+    if (this.props.getDataRef(prevProps) !== this.props.getDataRef(this.props)) {
+      Sefaria.versions(this.props.getDataRef(this.props), (data)=>{
+        this.setState({versions: data});
+      });
+    }
+  }
+  openVersionInSidebar(versionTitle, versionLanguage) {
+    this.props.setConnectionsMode("Version Open");
+    this.props.setFilter(versionTitle);
   }
   renderModeVersions() {
+    if (!this.state.versions) {
+      return (
+        <div className="versionsBox">
+          <LoadingMessage />
+        </div>
+      );
+    }
     const versionLangMap = {};
-    for (let v of this.props.versions) {
+    for (let v of this.state.versions) {
       const matches = v.versionTitle.match(new RegExp("\\[([a-z]{2})\\]$")); // two-letter ISO language code
       const lang = matches ? matches[1] : v.language;
       versionLangMap[lang] = !!versionLangMap[lang] ? versionLangMap[lang].concat(v) : [v];
@@ -41,6 +61,11 @@ class VersionsBox extends Component {
         else                                                      {return  0;}
       }
     );
+    const currVersions = {};
+    for (let vlang in this.props.currObjectVersions) {
+      const tempV = this.props.currObjectVersions[vlang];
+      currVersions[vlang] = !!tempV ? tempV.versionTitle : null;
+    }
     return (
       <div className="versionsBox">
         {
@@ -49,15 +74,17 @@ class VersionsBox extends Component {
               <div className="versionLanguage">{this.props.translateISOLanguageCode(lang)}<span className="versionCount">{` (${versionLangMap[lang].length})`}</span></div>
               {
                 versionLangMap[lang].map((v) => (
-                  <SidebarVersion
+                  <VersionBlock
                     version={v}
-                    srefs={this.props.srefs}
+                    currVersions={currVersions}
+                    currentRef={this.props.srefs[0]}
+                    firstSectionRef={"firstSectionRef" in v ? v.firstSectionRef : null}
                     getLicenseMap={this.props.getLicenseMap}
                     key={v.versionTitle + lang}
-                    selectVersion={this.selectVersion}
-                    openVersion={this.openVersion}
-                    isCurrent={(this.props.currVersions.en && this.props.currVersions.en.versionTitle === v.versionTitle) ||
-                              (this.props.currVersions.he && this.props.currVersions.he.versionTitle === v.versionTitle)}
+                    openVersionInReader={this.props.selectVersion}
+                    openVersionInSidebar={this.openVersionInSidebar}
+                    isCurrent={(this.props.currObjectVersions.en && this.props.currObjectVersions.en.versionTitle === v.versionTitle) ||
+                              (this.props.currObjectVersions.he && this.props.currObjectVersions.he.versionTitle === v.versionTitle)}
                   />
                 ))
               }
@@ -82,9 +109,8 @@ class VersionsBox extends Component {
   }
 }
 VersionsBox.propTypes = {
+  currObjectVersions:       PropTypes.object.isRequired,
   mode:                     PropTypes.oneOf(["Versions", "Version Open"]),
-  versions:                 PropTypes.array.isRequired,
-  currVersions:             PropTypes.object.isRequired,
   mainVersionLanguage:      PropTypes.oneOf(["english", "hebrew"]).isRequired,
   vFilter:                  PropTypes.array,
   recentVFilters:           PropTypes.array,
@@ -93,6 +119,8 @@ VersionsBox.propTypes = {
   translateISOLanguageCode: PropTypes.func.isRequired,
   setConnectionsMode:       PropTypes.func.isRequired,
   setFilter:                PropTypes.func.isRequired,
+  selectVersion:            PropTypes.func.isRequired,
+  getDataRef:               PropTypes.func.isRequired,
 };
 
 

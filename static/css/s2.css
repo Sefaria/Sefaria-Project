@@ -1479,28 +1479,29 @@ a.readerNavCategory {
   box-sizing: border-box;
   cursor: pointer;
 }
-.readerTextTableOfContents .versionBlock .versionTitle {
+.versionBlock .versionTitle {
   display: block;
   font-size: 18px;
   color: #333;
   unicode-bidi: plaintext;
 }
-.readerTextTableOfContents .versionBlock a {
+.versionBlock a {
   color: #999;
 }
-.readerTextTableOfContents .versionBlock .versionDetails {
+.versionBlock .versionDetails {
   display: inline-block;
   font-size: 12px;
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
   color: #999;
+  padding-top: 10px;
 }
-.readerTextTableOfContents .versionBlock .versionDetails .separator {
+.versionBlock .versionDetails .separator {
   margin: 0 3px;
 }
-.readerTextTableOfContents .versionBlocks .versionBlock .versionTitle:hover {
+.versionBlock .versionTitle:hover {
   text-decoration: underline;
 }
-.readerTextTableOfContents .versionBlock .versionNotes {
+.versionBlock .versionNotes {
   padding-top: 4px;
   color: #999;
 }
@@ -4631,19 +4632,19 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
 .bubbleTab.active {
   color: #333;
 }
-.aboutBox h2 {
+.aboutBox .aboutHeader {
   color: #999;
   padding-bottom: 13px;
   margin: 0;
+  margin-bottom: 15px;
   text-align: initial;
   text-transform: none;
   font-size: 20px;
+  border-bottom: solid 1px #CCC;
 }
-.aboutBox .aboutTitle,
-.versionsBox .aboutTitle {
-  padding: 25px 0;
+.aboutBox .aboutTitle {
+  padding: 10px 0 25px 0;
   font-size: 20px;
-  border-top: solid 1px #CCC;
   color: black;
   display: inline-block;
 }
@@ -4656,8 +4657,7 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
   padding: 15px 0 30px 0;
   font-size: 15px;
 }
-.aboutBox .versionNotes,
-.versionsBox .versionNotes {
+.aboutBox .versionNotes {
   padding-bottom: 15px;
   font-size: 15px;
   color: #666;
@@ -4684,6 +4684,8 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
   padding-bottom: 15px;
   text-transform: uppercase;
   font-size: 20px;
+  padding-left: 20px;
+  padding-right: 20px;
 }
 .versionsBox div:not(:first-child) .versionLanguage {
   padding-top: 25px;
@@ -4708,4 +4710,14 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
 }
 .versionsTextList .topFiltersInner .uppercase {
   text-transform: none;
+}
+.versionsBox .versionBlock {
+  padding: 15px 20px;
+  border-top: solid 1px #CCC;
+}
+.versionsBox .versionBlock .versionTitle a {
+  color: black;
+}
+.aboutBox .versionBlock .versionTitle:hover {
+  text-decoration: none;
 }

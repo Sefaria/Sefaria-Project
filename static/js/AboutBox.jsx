@@ -1,15 +1,26 @@
 const React                  = require('react');
 const PropTypes              = require('prop-types');
 const Sefaria                = require('./sefaria/sefaria');
-const SidebarVersion         = require('./SidebarVersion');
+const VersionBlock         = require('./VersionBlock');
 import Component             from 'react-class';
 
 
 class AboutBox extends Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      details: null,
+    }
+  }
+  componentDidMount() {
+    Sefaria.indexDetails(this.props.title, (data) => {
+      this.setState({details: data});
+    });
+  }
   render() {
-    const d = this.props.details;
-    const vh = this.props.currVersions.he;
-    const ve = this.props.currVersions.en;
+    const d = this.state.details;
+    const vh = this.props.currObjectVersions.he;
+    const ve = this.props.currObjectVersions.en;
     let detailSection = null;
     if (d) {
       let authorTextEn, authorTextHe;
@@ -80,27 +91,35 @@ class AboutBox extends Component {
         </div>
       );
     }
-
+    const currVersions = {};
+    for (let vlang in this.props.currObjectVersions) {
+      const tempV = this.props.currObjectVersions[vlang];
+      currVersions[vlang] = !!tempV ? tempV.versionTitle : null;
+    }
     const versionSectionHe =
       (!!vh ? <div className="currVersionSection">
-        <h2>
+        <h2 className="aboutHeader">
           <span className="int-en">Current Hebrew Version</span>
           <span className="int-he">גרסה עברית נוכחית</span>
         </h2>
-        <SidebarVersion
+        <VersionBlock
           version={vh}
-          srefs={this.props.srefs}
+          currVersions={currVersions}
+          currentRef={this.props.srefs[0]}
+          firstSectionRef={"firstSectionRef" in vh ? vh.firstSectionRef : null}
           getLicenseMap={this.props.getLicenseMap} />
       </div> : null );
     const versionSectionEn =
       (!!ve ? <div className="currVersionSection">
-        <h2>
+        <h2 className="aboutHeader">
           <span className="int-en">Current English Version</span>
           <span className="int-he">גרסה אנגלית נוכחית</span>
         </h2>
-        <SidebarVersion
+        <VersionBlock
           version={ve}
-          srefs={this.props.srefs}
+          currVersions={currVersions}
+          currentRef={this.props.srefs[0]}
+          firstSectionRef={"firstSectionRef" in ve ? ve.firstSectionRef : null}
           getLicenseMap={this.props.getLicenseMap} />
       </div> : null );
     return (
@@ -115,9 +134,9 @@ class AboutBox extends Component {
   }
 }
 AboutBox.propTypes = {
-  currVersions:        PropTypes.object.isRequired,
+  currObjectVersions:  PropTypes.object.isRequired,
   mainVersionLanguage: PropTypes.oneOf(["english", "hebrew"]),
-  details:             PropTypes.object,
+  title:               PropTypes.string.isRequired,
   srefs:               PropTypes.array.isRequired,
   getLicenseMap:       PropTypes.func.isRequired,
 };

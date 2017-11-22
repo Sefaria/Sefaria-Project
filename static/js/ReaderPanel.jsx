@@ -500,6 +500,7 @@ class ReaderPanel extends Component {
                         (Sefaria.is_moderator && langMode !== "bilingual"));
       items.push(<ConnectionsPanel
           panelPosition ={this.props.panelPosition}
+          selectVersion={this.props.selectVersion}
           srefs={this.state.mode === "Connections" ? this.state.refs.slice() : this.state.highlightedRefs.slice()}
           filter={this.state.filter || []}
           mode={this.state.connectionsMode || "Resources"}
