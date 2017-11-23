@@ -103,7 +103,6 @@ urlpatterns += patterns('reader.views',
     (r'^translate/(?P<ref>.+)$', 'edit_text'),
     (r'^edit/(?P<ref>.+)/(?P<lang>\w\w)/(?P<version>.+)$', 'edit_text'),
     (r'^edit/(?P<ref>.+)$', 'edit_text'),
-
 )
 
 # Texts Page
@@ -240,6 +239,12 @@ urlpatterns += patterns('reader.views',
     (r'^api/topics$', 'topics_list_api'),
     (r'^api/topics/(?P<topic>.+)$', 'topics_api'),
     (r'^api/recommend/topics(/(?P<ref_list>.+))?', 'recommend_topics_api'),
+)
+
+# Editors
+urlpatterns += patterns('reader.views',
+    (r'^edit/terms/(?P<term>.+)$', 'terms_editor'),
+    (r'^add/terms/(?P<term>.+)$', 'terms_editor'),
 )
 
 # Registration

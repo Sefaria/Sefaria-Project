@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+
+{% load sefaria_tags %}
+{% load humanize %}
+
+{% block title %}Edit Term: {{ term }}{% endblock %}
+
+{% block content %}
+
+<div id="editTerm">
+
+    <div id="jsonEditor"></div>
+
+    <script src="/static/js/bundles/json-editor/json-editor.js"></script>
+</div>
+
+{% endblock %}
