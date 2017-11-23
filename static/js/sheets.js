@@ -582,7 +582,6 @@ $(function() {
 		var $target = $(".activeSource").find(".text");
 		$($target.find(".segment")).replaceWith(function() { return '<p>'+$(this).html()+'</p>'; });
 		sjs.track.sheets("Auto Split Segments");
-		autoSave();
 	});
 
 	$("#addSourceTitle").click(function() {
@@ -618,6 +617,7 @@ $(function() {
 		CKEDITOR.config.language = sjs.interfaceLang;
 		CKEDITOR.disableAutoInline = true;
 		CKEDITOR.config.startupFocus = true;
+		CKEDITOR.config.extraPlugins = 'bidi';
 		CKEDITOR.config.extraAllowedContent = 'small; span(segment, gemarra-regular, gemarra-italic, it-text); div(oldComment)';
 		CKEDITOR.config.removePlugins = 'magicline,resize';
 		CKEDITOR.config.sharedSpaces = {top: 'ckeTopMenu' };
@@ -647,7 +647,8 @@ $(function() {
 			{name: 'styles', items: ['Font', 'FontSize']},
 			{name: 'colors', items: ['TextColor', 'BGColor']},
 			{name: 'links', items: ['Link', 'Unlink']},
-			{name: 'insert', items: ['Image', 'Table', 'HorizontalRule']}
+			{name: 'insert', items: ['Image', 'Table', 'HorizontalRule']},
+			{name: 'bidi', items: ['BidiLtr','BidiRtl']},
 		];
 
 		sjs.removeCKEditor = function(e) {
@@ -1142,7 +1143,7 @@ $(function() {
       var ref = $("#addInterface").prev(".source").attr("data-ref");
       $("#connectionsToAdd").text(_("Looking up Connections..."));
 
-      $.getJSON("/api/texts/" + ref + "?context=0&pad=0", function(data) {
+      $.getJSON("/api/texts/" + ref + "?context=0&commentary=1&pad=0", function(data) {
         sjs.alert.clear();
         if ("error" in data) {
           $("#connectionsToAdd").text(data.error)
@@ -1595,7 +1596,15 @@ $(function() {
     	curTagsHTML = curTagsHTML + '<a class="button" role="button" href="/sheets/tags/'+sjs.sheetTagger.tags()[i]+'">'+sjs.sheetTagger.tags()[i]+'</a>';
     }
 		$("#sheetTags").html(curTagsHTML);
-		autoSave();
+
+    //save whole sheet if possible, otherwise, just save sheet tags:
+    if (sjs.can_save) {
+			autoSave();
+		}
+    else {
+    	var tags = JSON.stringify(sjs.sheetTagger.tags());
+    	$.post("/api/sheets/" + sjs.current.id + "/tags", {"tags": tags});
+    }
 	});
 
 	$("#shareWithOthers").on("change keyup keydown paste cut", "#sheetSummaryInput", function (){
@@ -1692,7 +1701,7 @@ $(function() {
 
 
 	function saveNewlyCreatedTag(newTagName,newTagColor) {
-		if (newTagName !== "Create New" && newTagName !== "") {
+		if (newTagName !== _('Create New') && newTagName !== "") {
 			$(".sheetHighlighterTags").append('<div class="splitHighlighterSegment" data-tagname="' + newTagName + '"><div class="colorSwatch active" style="background-color: ' + newTagColor + '"></div><div class="tagName">' + newTagName + '</div><div class="editCheckToggle">✎</div></div>');
 			$(".highlighterFilterTags").append('<div class="optionItem highlightFilterSelection"><input type="checkbox" name="highlighterFilterTags" id ="'+newTagName+'_highlighterTag" value="' + newTagName + '" checked="checked"> <label for="'+newTagName+'_highlighterTag" style="background-color: ' + newTagColor + '">' + newTagName + '</label></div>');
 			resetSplitHighlighterSegment();
@@ -1700,19 +1709,23 @@ $(function() {
 			autoSave();
 		}
 
-		$(".createNewHighlighterTag .tagName").text("Create New")
+		$(".createNewHighlighterTag .tagName").text(_('Create New'))
 	}
 
 	function applyNewlyCreatedTag(newTagName,newTagColor) {
-		if (newTagName !== "Create New" && newTagName !== "") {
+		if (newTagName !== _('Create New') && newTagName !== "") {
 			$(".sheetHighlighterTags").append('<div class="splitHighlighterSegment active" data-tagname="' + newTagName + '"><div class="colorSwatch active" style="background-color: ' + newTagColor + '"></div><div class="tagName">' + newTagName + '</div><div class="editCheckToggle">✎</div></div>');
 			$(".highlighterFilterTags").append('<div class="optionItem highlightFilterSelection"><input type="checkbox" name="highlighterFilterTags" id ="'+newTagName+'_highlighterTag" value="' + newTagName + '" checked="checked"> <label for="'+newTagName+'_highlighterTag" style="background-color: ' + newTagColor + '">' + newTagName + '</label></div>');
 			resetSplitHighlighterSegment();
 			resetHighlighterFilterTags();
-			$(".highlighterTagWindow .save").click();
+			if (sjs.selection.startOffset !== sjs.selection.endOffset) {
+        $(".highlighterTagWindow .save").click();
+				$(".createNewHighlighterTag .tagName").text(_('Create New'))
+      }
+      else {
+				$(".createNewHighlighterTag .tagName").text("")
+			}
 		}
-
-		$(".createNewHighlighterTag .tagName").text("Create New")
 	}
 
 
@@ -1725,7 +1738,7 @@ $(function() {
 	});
 
 	$(".createNewHighlighterTag .tagName").focus(function(e){
-		if ($(this).text()=="Create New") {
+		if ($(this).text()==_('Create New')) {
 			$(this).text('');
 		}
 	});
@@ -1739,7 +1752,8 @@ $(function() {
 
 	});
 
-	$(".createNewHighlighterTag").on('click', '.colorSwatch', function() {
+	$(".createNewHighlighterTag").on('mousedown', '.colorSwatch', function() {
+		console.log('clicked')
 		if ($('.createNewHighlighterTag .colorSwatch:visible').length > 1) {
 			$(".createNewHighlighterTag .colorSwatch").removeClass('active');
 			$(this).addClass('active');
@@ -3720,6 +3734,9 @@ function resetSplitHighlighterSegment() {
 		}
 		$(".highlighterTagWindow .save").click();
 	});
+  $('.createNewHighlighterTag .colorSwatch').removeClass('active');
+	$('.createNewHighlighterTag .colorSwatch').eq($('.splitHighlighterSegment').length % 7).addClass('active'); //select the next color in the list
+
 	$(".splitHighlighterSegment").off();
 	$(".splitHighlighterSegment").on('click', '.editCheckToggle', function(e) {
 		e.stopPropagation();
@@ -3753,31 +3770,35 @@ function resetHighlighterInteractivity() {
 		$(".highlighter .he, .highlighter .en").on("mousedown", '.highlighterSegment', function() {
 			$(".highlighterSegment").removeClass("noSelect");
 			$(".highlighterSegment").not(this).addClass("noSelect");
-			closeHighlighterTagWindow();
 		});
 
 		$(".highlighter .he, .highlighter .en").on("mouseup", '.highlighterSegment', function(e) {
-			if ($(e.target).attr('data-tag') && !$(e.target).hasClass("noSelect") ) { //if clicking on a highlight that already is tagged, select whole highlight and open window.
-				var range = document.createRange();
-				range.selectNodeContents(e.currentTarget);
-				var sel = window.getSelection();
-				sel.removeAllRanges();
-				sel.addRange(range);
-				var curTagName = $(e.target).attr('data-tag');
-				$(".splitHighlighterSegment[data-tagname='" + curTagName  + "']").addClass('active');
+			if ($(".highlighterTagWindow").is(":hidden")) {
 
-			}
 
-			if (window.getSelection().anchorOffset !== window.getSelection().focusOffset) { //check if there's any selection
-				sjs.selection = saveSelection();
-				$('.createNewHighlighterTag .colorSwatch').removeClass('active');
-				$('.createNewHighlighterTag .colorSwatch').eq($('.splitHighlighterSegment').length % 7).addClass('active'); //select the next color in the list
-				$("tagSelector").show();
-				$(".highlighterTagWindow").show().css({
-					"top": e.pageY,
-					"left": $(".highlighterTagWindow").width() + e.pageX < window.innerWidth ? e.pageX : window.innerWidth - $(".highlighterTagWindow").width() - 40
-				});
-				$(".createNewHighlighterTag .tagName").attr("contenteditable", "true");
+        if ($(e.target).attr('data-tag') && !$(e.target).hasClass("noSelect")) { //if clicking on a highlight that already is tagged, select whole highlight and open window.
+          var range = document.createRange();
+          range.selectNodeContents(e.currentTarget);
+          var sel = window.getSelection();
+          sel.removeAllRanges();
+          sel.addRange(range);
+          var curTagName = $(e.target).attr('data-tag');
+          $(".splitHighlighterSegment[data-tagname='" + curTagName + "']").addClass('active');
+
+        }
+
+        sjs.selection = saveSelection();
+        $('.createNewHighlighterTag .colorSwatch').removeClass('active');
+        $('.createNewHighlighterTag .colorSwatch').eq($('.splitHighlighterSegment').length % 7).addClass('active'); //select the next color in the list
+        $("tagSelector").show();
+        $(".highlighterTagWindow").show().css({
+          "top": e.pageY,
+          "left": $(".highlighterTagWindow").width() + e.pageX < window.innerWidth ? e.pageX : window.innerWidth - $(".highlighterTagWindow").width() - 40
+        });
+        $(".createNewHighlighterTag .tagName").attr("contenteditable", "true");
+      }
+      else {
+				closeHighlighterTagWindow();
 			}
 		});
 	}
@@ -3864,7 +3885,8 @@ $.extend(sjs, {
 		"Move Source Down": "הזזת מקור מטה",
 		"Outdent Source": "הזחת מקור החוצה",
 		"Indent Source": "הזחת מקור פנימה",
-		"Remove": "הסרת מקור"
+		"Remove": "הסרת מקור",
+		"Create New" : "יצירת חדש"
 
 	}
 });

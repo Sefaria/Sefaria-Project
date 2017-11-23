@@ -29,7 +29,8 @@ def data_only(view):
     """
     @wraps(view)
     def wrapper(request):
-        if request.path == "/data.js" or request.path == "/texts" or request.path.startswith("/sheets/"):
+        if (request.path in ("/data.js", "/sefaria.js", "/texts") or 
+              request.path.startswith("/sheets/")):
             return view(request)
         else:
             return {}
@@ -175,9 +176,6 @@ def footer_html(request):
 
 @data_only
 def calendar_links(request):
-    if request.path != "/data.js":
-        return {}
-
     loc = request.META.get("HTTP_CF_IPCOUNTRY", None)
     if not loc:
         try:
@@ -186,13 +184,9 @@ def calendar_links(request):
         except:
             loc = "us"
     diaspora = False if loc in ("il", "IL", "Il") else True
-    parasha  = calendars.this_weeks_parasha(datetime.now(), diaspora=diaspora)
-    daf      = calendars.daf_yomi(datetime.now())
-    
-    parasha_link  = "<a href='/%s'>%s: %s</a>" % (parasha["ref"], parasha["parasha"], parasha["ref"])
-    haftara_link  = " ".join(["<a href='/%s'>%s</a>" % (h, h) for h in parasha["haftara"]])
-    daf_yomi_link = "<a href='/%s'>%s</a>" % (daf["url"], daf["name"])
+    return {"calendars": json.dumps(calendars.get_todays_calendar_items(diaspora=diaspora))}
 
+    """
     return {
                 "parasha_link":  parasha_link, 
                 "haftara_link":  haftara_link,
@@ -203,3 +197,4 @@ def calendar_links(request):
                 "haftara_ref":   parasha["haftara"][0],
                 "daf_yomi_ref":  daf["url"]
             }
+    """
