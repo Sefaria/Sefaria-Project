@@ -268,6 +268,7 @@ VersionBlock.propTypes = {
   openVersionInSidebar: PropTypes.func,
   openVersionInReader: PropTypes.func,
   getLicenseMap:   PropTypes.func.isRequired,
+  isCurrent:       PropTypes.bool,
 };
 VersionBlock.defaultProps = {
   showHistory: true,

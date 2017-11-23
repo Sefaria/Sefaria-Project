@@ -4656,6 +4656,9 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
   font-size: 15px;
   color: #999;
 }
+.aboutBox .aboutSubtitle .he {
+  font-style: normal;
+}
 .aboutBox .aboutDesc {
   padding: 15px 0 30px 0;
   font-size: 15px;

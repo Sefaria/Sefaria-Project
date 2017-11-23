@@ -1721,7 +1721,7 @@ Sefaria = extend(Sefaria, {
       "Versions": "גרסאות",
       "Version Open": "גרסה פתוחה",
       "About": "אודות",
-      "Current": "נוכחי",
+      "Current": "נוכחית",
       "Select": "החלפת גרסה",
 
       //languages
@@ -1826,8 +1826,8 @@ Sefaria.unpackDataFromProps = function(props) {
         Sefaria._indexDetails[panel.bookRef] = panel.indexDetails;
       }
       // versions and bookRef are located in different places, depending on if you're in book TOC or reader
-      const panelVersions = panel.versions || panel.text ? panel.text.versions : null;
-      const panelBook     = panel.bookRef || panel.text ? panel.text.book : null;
+      const panelVersions = !!panel.versions ? panel.versions : !!panel.text ? panel.text.versions : null;
+      const panelBook     = !!panel.versions ? panel.versions : !!panel.text ? panel.text.versions : null;
       if (panelVersions && panelBook) {
         Sefaria._versions[panelBook] = panelVersions;
         for (let v of panelVersions) {
