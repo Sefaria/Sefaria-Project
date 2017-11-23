@@ -165,8 +165,8 @@ class TocTree(object):
         vss = db.vstate.find({}, {"title": 1, "first_section_ref": 1, "flags": 1})
         self._vs_lookup = {vs["title"]: {
             "first_section_ref": vs.get("first_section_ref"),
-            "heComplete": vs.get("flags", {}).get("heComplete"),
-            "enComplete": vs.get("flags", {}).get("enComplete"),
+            "heComplete": bool(vs.get("flags", {}).get("heComplete", False)),
+            "enComplete": bool(vs.get("flags", {}).get("enComplete", False)),
         } for vs in vss}
 
         # Build Category object tree from stored Category objects
@@ -186,6 +186,16 @@ class TocTree(object):
                 print u"Failed to find category for {}".format(i.categories)
                 continue
             cat.append(node)
+            vs = self._vs_lookup[i.title]
+            # If any text in this category is incomplete, the category itself and its parents are incomplete
+            for field in ("enComplete", "heComplete"):
+                for acat in [cat] + list(reversed(cat.ancestors())):
+                    # Start each category completeness as True, set to False whenever we hit an incomplete text below it
+                    flag = False if not vs[field] else getattr(acat, field, True)
+                    setattr(acat, field, flag)
+                    if acat.get_primary_title() == u"Commentary":
+                        break # Don't consider a category incomplete for containing incomplete commentaries
+
             self._path_hash[tuple(i.categories + [i.title])] = node
 
         self._sort()
@@ -196,16 +206,23 @@ class TocTree(object):
     def _sort(self):
         def _explicit_order_and_title(node):
             title = node.primary_title("en")
+            complete = getattr(node, "enComplete", False)
+            complete_or_title_key = "1z" + title if complete else "2z" + title
+
             try:
+                # First sort by global order list below
                 return ORDER.index(title)
+
             except ValueError:
+                # Sort top level Commentary categories just below theit base category
                 if isinstance(node, TocCategory):
                     temp_cat_name = title.replace(" Commentaries", "")
                     if temp_cat_name in TOP_CATEGORIES:
                         return ORDER.index(temp_cat_name) + 0.5
-                    return 'zz' + title
-                else:
-                    return getattr(node, "order", title)
+
+                # Sort by an eplicit `order` field if present
+                # otherwise into two alphabetical list for complete and incomplete.
+                return getattr(node, "order", complete_or_title_key)
 
         for cat in self.all_category_nodes():  # iterate all categories
             cat.children.sort(key=_explicit_order_and_title)
@@ -251,7 +268,6 @@ class TocTree(object):
         Table of Contents in order.
         """
         return [n.primary_title() for n in self._root.get_leaf_nodes() if isinstance(n, TocTextIndex)]
-
 
     #todo: Get rid of the special case for "other", by placing it in the Index's category lists
     def lookup(self, cat_path, title=None):
@@ -357,6 +373,12 @@ class TocCategory(TocNode):
         self._category_object = kwargs.pop("category_object", None)
         super(TocCategory, self).__init__(serial, **kwargs)
 
+    optional_param_keys = [
+        "order",
+        "enComplete",
+        "heComplete",
+    ]
+
     title_attrs = {
         "he": "heCategory",
         "en": "category"
@@ -432,6 +454,7 @@ ORDER = [
             'Targum Jonathan on Leviticus',
             'Targum Jonathan on Numbers',
             'Targum Jonathan on Deuteronomy',
+        'Rashi',
     "Mishnah",
         "Seder Zeraim",
         "Seder Moed",
@@ -454,6 +477,7 @@ ORDER = [
                 "Seder Nezikin",
                 "Seder Kodashim",
                 "Seder Tahorot",
+        "Tosafot",
         "Rif",
     "Midrash",
         "Aggadic Midrash",
@@ -505,6 +529,7 @@ ORDER = [
     'Apocrypha',
     'Modern Works',
     'Other',
+    'Tosafot',
 ]
 
 TOP_CATEGORIES = [
