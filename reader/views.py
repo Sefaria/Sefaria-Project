@@ -48,8 +48,9 @@ from sefaria.utils.util import list_depth, text_preview
 from sefaria.utils.hebrew import hebrew_plural, hebrew_term, encode_hebrew_numeral, encode_hebrew_daf, is_hebrew, strip_cantillation, has_cantillation
 from sefaria.utils.talmud import section_to_daf, daf_to_section
 from sefaria.datatype.jagged_array import JaggedArray
+from sefaria.utils.calendars import get_todays_calendar_items
 import sefaria.utils.calendars
-from sefaria.utils.util import short_to_long_lang_code
+from sefaria.utils.util import short_to_long_lang_code, titlecase
 import sefaria.tracker as tracker
 from sefaria.system.cache import django_cache_decorator
 from sefaria.settings import USE_VARNISH, USE_NODE, NODE_HOST, DOMAIN_LANGUAGES
@@ -1374,7 +1375,7 @@ def interface_language_redirect(request, language):
     """
     next = request.GET.get("next", "/?home")
     next = "/?home" if next == "undefined" else next
-    
+
     for domain in DOMAIN_LANGUAGES:
         if DOMAIN_LANGUAGES[domain] == language and not request.get_host() in domain:
             next = domain + next
@@ -1382,7 +1383,7 @@ def interface_language_redirect(request, language):
             break
 
     response = redirect(next)
-    
+
     response.set_cookie("interfaceLang", language)
     if request.user.is_authenticated():
         p = UserProfile(id=request.user.id)
@@ -1647,7 +1648,6 @@ def link_count_api(request, cat1, cat2):
     """
     if request.method == "GET":
         resp = jsonResponse(get_link_counts(cat1, cat2))
-        resp['Access-Control-Allow-Origin'] = '*'
         return resp
 
     elif request.method == "POST":
@@ -2272,6 +2272,19 @@ def category_api(request, path=None):
 
 @catch_error_as_json
 @csrf_exempt
+def calendars_api(request):
+    if request.method == "GET":
+        diaspora = request.GET.get("diaspora", "1")
+        if diaspora not in ["0", "1"]:
+            return jsonResponse({"error": "'Diaspora' parameter must be 1 or 0."})
+        else:
+            diaspora = True if diaspora == "1" else False
+            calendars = get_todays_calendar_items(diaspora=diaspora)
+            return jsonResponse(calendars, callback=request.GET.get("callback", None))
+
+
+@catch_error_as_json
+@csrf_exempt
 def terms_api(request, name):
     """
     API for adding a Term to the Term collection.
@@ -2334,7 +2347,7 @@ def name_api(request, name):
         return jsonResponse({"error": "Unsupported HTTP method."})
 
     # Number of results to return.  0 indicates no limit
-    LIMIT = request.GET.get("limit") or 16
+    LIMIT = int(request.GET.get("limit", 16))
     ref_only = request.GET.get("ref_only", False)
     lang = "he" if is_hebrew(name) else "en"
 
@@ -2722,6 +2735,7 @@ def topics_api(request, topic):
     API to get data for a particular topic.
     """
     topics = get_topics()
+    topic = Term.normalize(titlecase(topic))
     response = topics.get(topic).contents()
     response = jsonResponse(response, callback=request.GET.get("callback", None))
     response["Cache-Control"] = "max-age=3600"
@@ -2731,7 +2745,7 @@ def topics_api(request, topic):
 @catch_error_as_json
 def recommend_topics_api(request, ref_list=None):
     """
-    API to receive recommended topics for list of strings `refs`. 
+    API to receive recommended topics for list of strings `refs`.
     """
     if request.method == "GET":
         refs = [Ref(ref).normal() for ref in ref_list.split("+")] if ref_list else []
@@ -3501,6 +3515,20 @@ def random_text_api(request):
     Return Texts API data for a random ref.
     """
     response = redirect(iri_to_uri("/api/texts/" + random_ref()) + "?commentary=0", permanent=False)
+    return response
+
+def random_by_topic_api(request):
+    """
+    Returns Texts API data for a random text taken from popular topic tags
+    """
+    random_topic = choice(filter(lambda x: x['count'] > 15, get_topics().list()))['tag']
+    random_source = choice(get_topics().get(random_topic).contents()['sources'])[0]
+    try:
+        ref = Ref(random_source).normal()
+    except Exception:
+        return random_by_topic_api(request)
+    cb = request.GET.get("callback", None)
+    response = redirect(iri_to_uri("/api/texts/" + ref + "?commentary=0&context=0&pad=0{}".format("&callback=" + cb if cb else "")) , permanent=False)
     return response
 
 

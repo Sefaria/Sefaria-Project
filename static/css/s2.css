@@ -908,7 +908,7 @@ a.readerNavCategory {
   border-top: 4px solid transparent;
   width: 100%;
   cursor: pointer;
-  height: 46px;
+  min-height: 46px;
   vertical-align: middle;
   margin: 0;
   box-sizing: border-box;
@@ -926,6 +926,18 @@ a.readerNavCategory {
   width: 16px;
   opacity: 0.4;
   vertical-align: -3px;
+}
+.readerNavMenu .blockLink.calendarLink{
+  /*line-height: 1;
+  padding: 7px 8px;*/
+}
+.readerNavMenu .blockLink.calendarLink .blockLinkSubtitle{
+  display: block;
+  font-size: 0.8em;
+  color: #999999;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 .gridBox {
   table-layout: fixed;
@@ -1006,6 +1018,9 @@ a.readerNavCategory {
 .readerNavCategoryMenu .categoryAttribution .he {
   font-style: normal;
 }
+.readerNavCategoryMenu .category h3 {
+  margin-top: 36px;
+}
 .readerNavMenu .blockLink,
 .readerNavMenu .catLink,
 .readerNavMenu .navButton,
@@ -1057,8 +1072,9 @@ a.readerNavCategory {
   width: 100%;
   height: 100%;
 }
-.readerNavMenu .readerNavCategoryMenu .refLink.incomplete {
-  opacity: 0.7;
+.readerNavMenu .readerNavCategoryMenu .refLink.incomplete, 
+.readerNavMenu .catLink.incomplete {
+  opacity: 0.65;
 }
 .categoryColorLine {
   position: absolute;
@@ -2011,6 +2027,9 @@ a.readerNavCategory {
 }
 .hebrew .readerSheetsNav {
   direction: ltr;
+}
+.readerSheetsNav .filterLabel {
+  cursor: pointer;
 }
 .readerSheetsNav .tagsList .int-en {
   font-family: "adobe-garamond-pro", Georgia, serif;
@@ -3167,10 +3186,10 @@ a.readerNavCategory {
 .textListTextRangeBox {
   position: relative;
 }
-.textListTextRangeBox:hover .moderatorLinkOptions {
+.textListTextRangeBox:hover .editorLinkOptions {
   display: block;
 }
-.moderatorLinkOptions {
+.editorLinkOptions {
   display: none;
   cursor: pointer;
   font-size: 14px;
@@ -3178,11 +3197,11 @@ a.readerNavCategory {
   letter-spacing: 1px;
   margin: -20px 0 10px;
 }
-.interface-hebrew .moderatorLinkOptions {
+.interface-hebrew .editorLinkOptions {
   left: auto;
   right: 0;
 }
-.moderatorLinkOptions > div:hover {
+.editorLinkOptions > div:hover {
   text-decoration: underline;
 }
 .toolsMessage {
@@ -3666,7 +3685,7 @@ input {
 .lexicon-results .attribution {
 
 }
-.lexicon-results .attribution span {
+.lexicon-results .attribution a {
   display: block;
 }
 .lexicon-results .attribution a {

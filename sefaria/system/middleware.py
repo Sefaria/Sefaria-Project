@@ -61,7 +61,7 @@ class LanguageSettingsMiddleware(object):
         # CONTENT
         default_content_lang = 'hebrew' if interface == 'hebrew' else 'bilingual'
         # Pull language setting from cookie or Accept-Lanugage header or default to english
-        content = request.COOKIES.get('contentLang') or default_content_lang
+        content = request.GET.get('lang') or request.COOKIES.get('contentLang') or default_content_lang
         content = short_to_long_lang_code(content)
         # Don't allow languages other than what we currently handle
         content = default_content_lang if content not in ('english', 'hebrew', 'bilingual') else content

@@ -931,10 +931,7 @@
                 <div class='colorSwatch' style='background-color: #a4b7de'></div>
                 <div class='colorSwatch' style='background-color: #e8dde5'></div>
                 <div class='colorSwatch' style='background-color: #d2ddc9'></div>
-                <div class='tagName' contenteditable='true'>
-                    <span class="int-en">Create New</span>
-                    <span class="int-he">יצירת חדש</span>
-                </div>
+                <div class='tagName' contenteditable='true'>{%trans "Create New" %}</div>
             </div>
             <div class='save button'>
                 <span class="int-en">Save</span>
@@ -1115,7 +1112,7 @@
         <span class="int-en">Copy and paste the embed code below. Adjust the values of width and height to best fit your design.</span>
         <span class="int-he">העתיקו והדביקו את קוד ההטמעה להלן. ניתן להתאים את ערכי הגובה והרוחב כדי להתאים לעיצוב האתר המיועד.</span>
     </div>
-	<textarea><iframe src="{{ request.build_absolute_uri }}?embed=1" width="600px" height="600px"></iframe></textarea>
+	<textarea><iframe src="https://{{ request.get_host }}{{ request.get_full_path }}?embed=1" width="600px" height="600px"></iframe></textarea>
 </div>
 
 <div id="addParashaToSheetModal" class="modal s2Modal">
