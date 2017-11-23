@@ -153,4 +153,17 @@ var sefariajsConfig = config({
 });
 
 
-module.exports = [clientConfig, serverConfig, diffConfig, exploreConfig, sefariajsConfig];
+var jsonEditorConfig = config({
+    context: path.resolve('./static/js'),
+    entry: './jsonEditor',
+    output: {
+        path: path.resolve(buildDir + 'jsonEditor'),
+        filename: 'jsonEditor.js'
+    },
+    plugins: [
+        new BundleTracker({filename: './node/webpack-stats.json-editor.json'}),
+    ]
+});
+
+
+module.exports = [clientConfig, serverConfig, diffConfig, exploreConfig, sefariajsConfig, jsonEditorConfig];
