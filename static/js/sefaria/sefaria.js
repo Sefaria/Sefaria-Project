@@ -1719,8 +1719,10 @@ Sefaria = extend(Sefaria, {
       "Search for Texts or Keywords Here": "חיפוש טקסט או מילות מפתח",
       "Views": "צפיות",
       "Versions": "גרסאות",
-      "Version Open": "גירסה פתוחה",
+      "Version Open": "גרסה פתוחה",
       "About": "אודות",
+      "Current": "נוכחי",
+      "Select": "החלפת גרסה",
 
       //languages
       "English": "אנגלית",

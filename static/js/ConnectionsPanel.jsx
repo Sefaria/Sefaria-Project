@@ -119,8 +119,8 @@ class ConnectionsPanel extends Component {
       sources:                lang == "he" ? d.heSources : d.sources,
       versionNotes:           lang == "he" ? d.heVersionNotes : d.versionNotes,
       digitizedBySefaria:     lang == "he" ? d.heDigitizedBySefaria : d.digitizedBySefaria,
-      versionTitleInHebrew:   lang == "he" ? d.heVersionTitleInHebrew : d.VersionTitleInHebrew,
-      versionNotesInHebrew:   lang == "he" ? d.heVersionNotesInHebrew : d.VersionNotesInHebrew
+      versionTitleInHebrew:   lang == "he" ? d.heVersionTitleInHebrew : d.versionTitleInHebrew,
+      versionNotesInHebrew:   lang == "he" ? d.heVersionNotesInHebrew : d.versionNotesInHebrew
     }
   }
   getCurrentVersions() {
@@ -307,7 +307,9 @@ class ConnectionsPanel extends Component {
                   setConnectionsMode={this.props.setConnectionsMode}
                   getLicenseMap={this.props.getLicenseMap}
                   setFilter={this.props.setVersionFilter}
-                  getDataRef={this.getDataRef}/>);
+                  getDataRef={this.getDataRef}
+                  onRangeClick={this.props.onTextClick}
+                  onCitationClick={this.props.onCitationClick}/>);
     }
     var classes = classNames({connectionsPanel: 1, textList: 1, fullPanel: this.props.fullPanel, singlePanel: !this.props.fullPanel});
     return (

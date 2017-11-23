@@ -71,7 +71,7 @@ class VersionsBox extends Component {
         {
           versionLangs.map((lang) => (
             <div key={lang}>
-              <div className="versionLanguage">{this.props.translateISOLanguageCode(lang)}<span className="versionCount">{` (${versionLangMap[lang].length})`}</span></div>
+              <div className="versionLanguage">{Sefaria._(this.props.translateISOLanguageCode(lang))}<span className="versionCount">{` (${versionLangMap[lang].length})`}</span></div>
               {
                 versionLangMap[lang].map((v) => (
                   <VersionBlock
@@ -95,12 +95,17 @@ class VersionsBox extends Component {
     );
   }
   renderModeSelected() {
+    // open text in versionslist with current version selected
+    const currSelectedVersions = this.props.vFilter.length ? {[Sefaria.versionLanguage(this.props.vFilter[0])]: this.props.vFilter[0]} : {en: null, he: null};
+    const onRangeClick = (sref)=>{this.props.onRangeClick(sref, false, currSelectedVersions)};
     return (
       <VersionsTextList
         srefs={this.props.srefs}
         vFilter={this.props.vFilter}
         recentVFilters={this.props.recentVFilters}
         setFilter={this.props.setFilter}
+        onRangeClick={onRangeClick}
+        onCitationClick={this.props.onCitationClick}
       />
     );
   }
@@ -121,6 +126,8 @@ VersionsBox.propTypes = {
   setFilter:                PropTypes.func.isRequired,
   selectVersion:            PropTypes.func.isRequired,
   getDataRef:               PropTypes.func.isRequired,
+  onRangeClick:             PropTypes.func.isRequired,
+  onCitationClick:          PropTypes.func.isRequired,
 };
 
 
@@ -153,9 +160,6 @@ class VersionsTextList extends Component {
     const sectionRef = Sefaria.sectionRef(ref) || ref;
     return sectionRef;
   }
-  fakeFunc() {
-
-  }
   render() {
     const vlang = Sefaria.versionLanguage(this.props.vFilter[0]);
 
@@ -176,19 +180,18 @@ class VersionsTextList extends Component {
           hideTitle={true}
           numberLabel={0}
           basetext={false}
-          onRangeClick={this.fakeFunc}
-          onCitationClick={this.fakeFunc}
-          onNavigationClick={this.fakeFunc}
-          onCompareClick={this.fakeFunc}
-          onOpenConnectionsClick={this.fakeFunc} />
+          onRangeClick={this.props.onRangeClick}
+          onCitationClick={this.props.onCitationClick} />
       </div>);
   }
 }
 VersionsTextList.propTypes = {
-  srefs: PropTypes.array,
-  vFilter: PropTypes.array,
-  recentVFilters: PropTypes.array,
-  setFilter: PropTypes.func.isRequired,
+  srefs:           PropTypes.array,
+  vFilter:         PropTypes.array,
+  recentVFilters:  PropTypes.array,
+  setFilter:       PropTypes.func.isRequired,
+  onRangeClick:    PropTypes.func.isRequired,
+  onCitationClick: PropTypes.func.isRequired,
 };
 
 module.exports = VersionsBox;

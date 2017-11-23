@@ -182,8 +182,8 @@ class ReaderPanel extends Component {
       this.showBaseText(citationRef);
     }
   }
-  handleTextListClick(ref) {
-    this.showBaseText(ref);
+  handleTextListClick(ref, replaceHistory, currVersions) {
+    this.showBaseText(ref, replaceHistory, currVersions);
   }
   openConnectionsInPanel(ref) {
     var refs = typeof ref == "string" ? [ref] : ref;

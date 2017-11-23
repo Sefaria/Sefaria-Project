@@ -239,7 +239,7 @@ class VersionBlock extends Component {
           <div className="versionDetails">
             {!!this.props.openVersionInReader ?
               <a className={selectButtonClasses} href={versionSidebarLink} onClick={this.onSelectVersionClick}>
-                {this.props.isCurrent ? "Current" : "Select"}
+                {this.props.isCurrent ? Sefaria._("Current") : Sefaria._("Select")}
               </a> : null}
             {this.props.openVersionInReader ? <span className="separator">-</span>: null}
             <a className="versionSource" target="_blank" href={v.versionSource}>
