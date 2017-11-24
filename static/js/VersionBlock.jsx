@@ -30,9 +30,13 @@ class VersionBlock extends Component {
   }
   onVersionTitleClick(e) {
     e.preventDefault();
-    const action = this.props.openVersionInSidebar ? this.props.openVersionInSidebar : this.props.openVersionInReader;
-    if (action) {
-      action(this.props.version.versionTitle, this.props.version.language);
+    if (this.props.firstSectionRef) {
+      window.location = `/${this.props.firstSectionRef}?v${this.props.version.language}=${this.props.version.versionTitle.replace(/\s/g,'_')}`;
+    } else {
+      const action = this.props.openVersionInSidebar ? this.props.openVersionInSidebar : this.props.openVersionInReader;
+      if (action) {
+        action(this.props.version.versionTitle, this.props.version.language);
+      }
     }
   }
   onSelectVersionClick(e) {
