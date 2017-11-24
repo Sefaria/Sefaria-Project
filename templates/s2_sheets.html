@@ -1450,7 +1450,6 @@
 <script type="text/javascript">
 {% autoescape off %}
 	var sjs = sjs || {};
-
 	$.extend(sjs, {
 		current: {{ sheetJSON|default:"null" }},
 		assignment_id: {{ assignment_id|default:"null" }},
@@ -1464,11 +1463,11 @@
 		loading: 0,
 		autosave: false,
 		changes: false,
+        interfaceLang: "{{ request.interfaceLang }}".substring(0,2),
+        interfaceLangLong: "{{ request.interfaceLang }}",
 		{% if user.id %}
 		_fullname: "{{ user.first_name }} {{ user.last_name }}",
 		_userLink: "{{ user.id|user_link }}",
-        interfaceLang: "{{ request.interfaceLang }}".substring(0,2),
-        interfaceLangLong: "{{ request.interfaceLang }}"
 		{% endif %}
 	});
 {% endautoescape %}
