@@ -1691,7 +1691,9 @@ Sefaria = extend(Sefaria, {
       "Copyright: JPS, 1985": "זכויות שמורות ל-JPS, 1985",
 
       //sheets
+      "Start a New Source Sheet": "התחלת דף מקורות חדש",
       "Untitled Source Sheet" : "דף מקורות ללא שם",
+      "New Source Sheet" : "דף מקורות חדש",
       "Name New Sheet" : "כותרת לדף המקורות",
       "Sorry, there was a problem saving your note.": "סליחה, ארעה שגיאה בזמן השמירה",
       "Unfortunately, there was an error saving this note. Please try again or try reloading this page.": "ארעה שגיאה בזמן השמירה. אנא נסו שוב או טענו את הדף מחדש",
@@ -1702,6 +1704,12 @@ Sefaria = extend(Sefaria, {
       "Decrease font size": "הקטן גופן",
       "Increase font size": "הגדל גופן",
       "Search for Texts or Keywords Here": "חפשו ספרים או מלות מפתח כאן",
+      "this comment":"הערה זו",
+      "this source":"מקור זה",
+      "was added to": "נוסף ל-",
+      "View sheet": "מעבר ל-דף המקורות",
+      "Please select a source sheet.": "אנא בחר דף מקורות.",
+      "New Source Sheet Name:" : "כותרת דף מקורות חדש:",
 
       //stuff moved from sheets.js
       "Loading..." : "טוען...",
@@ -1778,6 +1786,8 @@ Sefaria = extend(Sefaria, {
         var hterm;
         if(inputStr in Sefaria._i18nInterfaceStrings) {
             return Sefaria._i18nInterfaceStrings[inputStr];
+        }else if(inputStr.toLowerCase() in Sefaria._i18nInterfaceStrings){
+            return Sefaria._i18nInterfaceStrings[inputStr.toLowerCase()];
         }else if((hterm = Sefaria.hebrewTerm(inputStr)) != inputStr){
             return hterm;
         }else{
