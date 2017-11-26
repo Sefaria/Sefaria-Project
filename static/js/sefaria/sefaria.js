@@ -1751,6 +1751,7 @@ Sefaria = extend(Sefaria, {
         "Indent Source": "הזחת מקור פנימה",
         "Remove": "הסרת מקור",
         "Create New" : "יצירת חדש",
+        "Close" : "סגירה",
 
       //reader panel
       "Search" : "חיפוש",

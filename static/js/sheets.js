@@ -906,7 +906,7 @@ $(function() {
     		sjs.track.sheets("Like", sjs.current.id);
 		}
 	});
-	$("#likeInfo").click(function(e) {
+	$(".likes").click(function(e) {
 		$.getJSON("/api/sheets/" + sjs.current.id + "/likers", function(data) {
 			if (data.likers.length == 0) { 
 				var title = _("No one has liked this sheet yet. Will you be the first?");
