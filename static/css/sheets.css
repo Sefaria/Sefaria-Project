@@ -627,11 +627,11 @@ body:not(.user-is-tabbing) #sheet .cke_editable:focus {
 	display: block;
 }
 
-#likeInfo {
+#likeInfo-en, #likeInfo-he {
 	cursor: pointer;
 }
 
-#likeInfo:hover {
+.likes:hover {
 	text-decoration: underline;
 }
 
@@ -2629,4 +2629,7 @@ a.tagit-close {
 
 .onoffswitch-checkbox:checked + .onoffswitch-label .onoffswitch-switch {
     right: 0px;
+}
+#peopleListModal.interface-hebrew{
+	direction: rtl;
 }
