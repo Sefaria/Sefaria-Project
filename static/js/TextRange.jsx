@@ -200,7 +200,7 @@ class TextRange extends Component {
     var data = this.getText();
     if (!data) { return null; }
     var index = Sefaria.indexDetails(data.indexTitle);
-    if (index && "alts" in index && "Parasha" in index.alts) {
+    if (index && "alts" in index && "Parasha" in index.alts && index.categories[1] == "Torah" && !("dependence" in index)) {
       for (var i=0; i < index.alts.Parasha.nodes.length; i++) {
         var parashahRef = index.alts.Parasha.nodes[i].wholeRef.split("-")[0];
         if (ref == parashahRef) {
