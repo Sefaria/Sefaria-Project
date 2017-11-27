@@ -712,8 +712,8 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
 
         if include_flags:
             vstate = self.versionState()
-            toc_contents_dict["enComplete"] = vstate.get_flag("enComplete")
-            toc_contents_dict["heComplete"] = vstate.get_flag("heComplete")
+            toc_contents_dict["enComplete"] = bool(vstate.get_flag("enComplete"))
+            toc_contents_dict["heComplete"] = bool(vstate.get_flag("heComplete"))
 
         ord = self.get_toc_index_order()        
         if ord:

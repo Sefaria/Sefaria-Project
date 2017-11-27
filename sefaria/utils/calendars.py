@@ -132,4 +132,4 @@ def get_all_calendar_items(datetime_obj, diaspora=True):
 
 
 def get_todays_calendar_items(diaspora=True):
-    return get_all_calendar_items(datetime.datetime.now())
+    return get_all_calendar_items(datetime.datetime.now(), diaspora=diaspora)
