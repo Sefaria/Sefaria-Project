@@ -59,6 +59,7 @@ class SinglePanelOnMobile(AtomicTest):
 
         self.click_segment_to_close_commentary("Joshua 1:1")  # Close commentary window on mobile
 
+
 class PagesLoad(AtomicTest):
     suite_class = PageloadSuite
     every_build = True

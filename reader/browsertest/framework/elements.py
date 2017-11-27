@@ -1050,6 +1050,7 @@ class Trial(object):
         result_set = TestResultSet()
         caps = _caps or self.caps
         self.carp(u"\n{}: ".format(test_class.__name__))
+        exception_thrown = False
 
         tresults = []  # list of AbstractTest instances
         if self.parallel:
@@ -1059,8 +1060,9 @@ class Trial(object):
                 tresults = p.map(_test_one_worker, zip([self] * l, [test_class] * l, caps))
             except Exception:
                 msg = traceback.format_exc()
-                self.carp(u"{} - Exception\n{}\n".format(test_class.__name__, msg), u"E")
+                self.carp(u"{} - Exception\n{}\n".format(test_class.__name__, msg), always=True)
                 tresults = [SingleTestResult(test_class, caps[0], False, msg)]
+                exception_thrown = True
         else:
             for cap in caps:
                 tresults.append(self._test_one(test_class, cap))
@@ -1069,7 +1071,11 @@ class Trial(object):
         failing_results = [t for t in tresults if t and not t.success]
 
         # test failures twice, in order to avoid false failures
-        if len(failing_results) > 0 and _caps is None:
+        if exception_thrown and _caps is None:
+            self.carp("\nRetesting all configurations on {}: ".format(len(failing_results), test_class.__name__), always=True)
+            second_test_results = self._test_on_all(test_class, caps)
+            result_set.include(second_test_results)
+        elif len(failing_results) > 0 and _caps is None:
             self.carp("\nRetesting {} configurations on {}: ".format(len(failing_results), test_class.__name__), always=True)
             second_test_results = self._test_on_all(test_class, [t.cap for t in failing_results])
             result_set.include(second_test_results)
