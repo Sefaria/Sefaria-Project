@@ -50,6 +50,7 @@ class SinglePanelOnMobile(AtomicTest):
 
     def body(self):
         self.nav_to_text_toc(["Tanakh"], "Joshua")
+        self.click_text_toc_section("Joshua 1")
         elems = self.driver.find_elements_by_css_selector(".readerApp.multiPanel")
         assert len(elems) == 0
         self.click_segment("Joshua 1:1")
