@@ -182,8 +182,8 @@ class ReaderPanel extends Component {
       this.showBaseText(citationRef);
     }
   }
-  handleTextListClick(ref) {
-    this.showBaseText(ref);
+  handleTextListClick(ref, replaceHistory, currVersions) {
+    this.showBaseText(ref, replaceHistory, currVersions);
   }
   openConnectionsInPanel(ref) {
     var refs = typeof ref == "string" ? [ref] : ref;
@@ -296,10 +296,8 @@ class ReaderPanel extends Component {
   }
   setVersionFilter(filter) {
     if (this.props.setVersionFilter) {
-      console.log("ReaderPanel has setVerionFilter");
       this.props.setVersionFilter(filter);
     } else {
-      console.log("ReaderPanel hasn't setVerionFilter");
       const filtInd = Sefaria.util.inArray(filter, this.state.recentVersionFilters);
       if (filtInd === -1) {
         this.state.recentVersionFilters = [filter].concat(this.state.recentVersionFilters);
@@ -504,6 +502,7 @@ class ReaderPanel extends Component {
                         (Sefaria.is_moderator && langMode !== "bilingual"));
       items.push(<ConnectionsPanel
           panelPosition ={this.props.panelPosition}
+          selectVersion={this.props.selectVersion}
           srefs={this.state.mode === "Connections" ? this.state.refs.slice() : this.state.highlightedRefs.slice()}
           filter={this.state.filter || []}
           mode={this.state.connectionsMode || "Resources"}

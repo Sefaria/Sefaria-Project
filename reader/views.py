@@ -264,7 +264,7 @@ def render_react_component(component, props):
             return render_to_string("elements/loading.html")
 
 
-def make_panel_dict(oref, versionEn, versionHe, filter, mode, **kwargs):
+def make_panel_dict(oref, versionEn, versionHe, filter, versionFilter, mode, **kwargs):
     """
     Returns a dictionary corresponding to the React panel state,
     additionally setting `text` field with textual content.
@@ -301,22 +301,23 @@ def make_panel_dict(oref, versionEn, versionHe, filter, mode, **kwargs):
             "mode": mode,
             "ref": oref.normal(),
             "refs": [oref.normal()],
-            "enVersion": versionEn,
-            "heVersion": versionHe,
+            "currVersions": {
+                "en": versionEn,
+                "he": versionHe,
+            },
             "filter": filter,
+            "versionFilter": versionFilter,
         }
         if filter and len(filter):
-            if filter == ["Sheets"]:
-                panel["connectionsMode"] = "Sheets"
-            elif filter == ["Notes"]:
-                panel["connectionsMode"] = "Notes"
+            if filter[0] in ("Sheets", "Notes", "About", "Versions", "Version Open"):
+                panel["connectionsMode"] = filter[0]
             else:
                 panel["connectionsMode"] = "TextList"
         if panelDisplayLanguage:
             panel["settings"] = {"language" : short_to_long_lang_code(panelDisplayLanguage)}
         if mode != "Connections":
             try:
-                text_family = TextFamily(oref, version=panel["enVersion"], lang="en", version2=panel["heVersion"], lang2="he", commentary=False,
+                text_family = TextFamily(oref, version=panel["currVersions"]["en"], lang="en", version2=panel["currVersions"]["he"], lang2="he", commentary=False,
                                   context=True, pad=True, alts=True, wrapLinks=False).contents()
             except NoVersionFoundError:
                 text_family = {}
@@ -346,7 +347,7 @@ def make_search_panel_dict(query, **kwargs):
     return panel
 
 
-def make_panel_dicts(oref, versionEn, versionHe, filter, multi_panel, **kwargs):
+def make_panel_dicts(oref, versionEn, versionHe, filter, versionFilter, multi_panel, **kwargs):
     """
     Returns an array of panel dictionaries.
     Depending on whether `multi_panel` is True, connections set in `filter` are displayed in either 1 or 2 panels.
@@ -354,12 +355,12 @@ def make_panel_dicts(oref, versionEn, versionHe, filter, multi_panel, **kwargs):
     panels = []
     # filter may have value [], meaning "all".  Therefore we test filter with "is not None".
     if filter is not None and multi_panel:
-        panels += [make_panel_dict(oref, versionEn, versionHe, filter, "Text", **kwargs)]
-        panels += [make_panel_dict(oref, versionEn, versionHe, filter, "Connections", **kwargs)]
+        panels += [make_panel_dict(oref, versionEn, versionHe, filter, versionFilter, "Text", **kwargs)]
+        panels += [make_panel_dict(oref, versionEn, versionHe, filter, versionFilter, "Connections", **kwargs)]
     elif filter is not None and not multi_panel:
-        panels += [make_panel_dict(oref, versionEn, versionHe, filter, "TextAndConnections", **kwargs)]
+        panels += [make_panel_dict(oref, versionEn, versionHe, filter, versionFilter, "TextAndConnections", **kwargs)]
     else:
-        panels += [make_panel_dict(oref, versionEn, versionHe, filter, "Text", **kwargs)]
+        panels += [make_panel_dict(oref, versionEn, versionHe, filter, versionFilter, "Text", **kwargs)]
 
     return panels
 
@@ -412,12 +413,14 @@ def s2(request, ref, version=None, lang=None):
     filter = request.GET.get("with").replace("_", " ").split("+") if request.GET.get("with") else None
     filter = [] if filter == ["all"] else filter
 
+    versionFilter = [request.GET.get("vside").replace("_", " ")] if request.GET.get("vside") else []
+
     if versionEn and not Version().load({"versionTitle": versionEn, "language": "en"}):
         raise Http404
     if versionHe and not Version().load({"versionTitle": versionHe, "language": "he"}):
         raise Http404
 
-    panels += make_panel_dicts(oref, versionEn, versionHe, filter, multi_panel,
+    panels += make_panel_dicts(oref, versionEn, versionHe, filter, versionFilter, multi_panel,
                                **{"panelDisplayLanguage": request.GET.get("lang", props["initialSettings"]["language"]),
                                   'extended notes': int(request.GET.get("notes", 0))})
 
@@ -452,6 +455,7 @@ def s2(request, ref, version=None, lang=None):
 
             filter   = request.GET.get("w{}".format(i)).replace("_", " ").split("+") if request.GET.get("w{}".format(i)) else None
             filter   = [] if filter == ["all"] else filter
+            versionFilter = [request.GET.get("vside").replace("_", " ")] if request.GET.get("vside") else []
             panelDisplayLanguage = request.GET.get("lang{}".format(i), props["initialSettings"]["language"])
 
             if (versionEn and not Version().load({"versionTitle": versionEn, "language": "en"})) or \
@@ -460,7 +464,7 @@ def s2(request, ref, version=None, lang=None):
                 continue  # Stop processing all panels?
                 # raise Http404
 
-            panels += make_panel_dicts(oref, versionEn, versionHe, filter, multi_panel,
+            panels += make_panel_dicts(oref, versionEn, versionHe, filter, versionFilter, multi_panel,
                                        **{"panelDisplayLanguage": panelDisplayLanguage,
                                           'extended notes': int(request.GET.get("notes{}".format(i), 0))})
         i += 1

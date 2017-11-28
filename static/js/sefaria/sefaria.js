@@ -1717,7 +1717,25 @@ Sefaria = extend(Sefaria, {
       "Search" : "חיפוש",
       "Search for Texts or Keywords Here": "חיפוש טקסט או מילות מפתח",
       "Views": "צפיות",
-      "Versions": "גרסאות"
+      "Versions": "גרסאות",
+      "Version Open": "גרסה פתוחה",
+      "About": "אודות",
+      "Current": "נוכחית",
+      "Select": "החלפת גרסה",
+
+      //languages
+      "English": "אנגלית",
+      "Hebrew": "עברית",
+      "Yiddish": "יידיש",
+      "Finnish": "פינית",
+      "Portuguese": "פורטוגזית",
+      "Spanish": "ספרדית",
+      "French": "צרפתית",
+      "German": "גרמנית",
+      "Arabic": "ערבית",
+      "Italian": "איטלקית",
+      "Polish": "פולנית",
+      "Russian": "רוסית",
   },
   _v: function(inputVar){
     if(Sefaria.interfaceLang != "english"){
@@ -1806,8 +1824,18 @@ Sefaria.unpackDataFromProps = function(props) {
       if (panel.indexDetails) {
         Sefaria._indexDetails[panel.bookRef] = panel.indexDetails;
       }
-      if (panel.versions) {
-        Sefaria._versions[panel.bookRef] = panel.versions;
+      // versions and bookRef are located in different places, depending on if you're in book TOC or reader
+      const panelVersions = !!panel.versions ? panel.versions : !!panel.text ? panel.text.versions : null;
+      const panelBook     = !!panel.versions ? panel.versions : !!panel.text ? panel.text.versions : null;
+      if (panelVersions && panelBook) {
+        Sefaria._versions[panelBook] = panelVersions;
+        for (let v of panelVersions) {
+          Sefaria._translateVersions[v.versionTitle] = {
+            en: v.versionTitle,
+            he: !!v.versionTitleInHebrew ? v.versionTitleInHebrew : v.versionTitle,
+            lang: v.language,
+          };
+        }
       }
   }
   if (props.userSheets) {

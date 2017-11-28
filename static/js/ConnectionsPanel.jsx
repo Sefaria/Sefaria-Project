@@ -30,11 +30,14 @@ class ConnectionsPanel extends Component {
     super(props);
     this.state = {
       flashMessage: null,
+      currObjectVersions: {en: null, he: null},
+      mainVersionLanguage: props.masterPanelLanguage === "bilingual" ? "hebrew" : props.masterPanelLanguage,
     };
   }
   componentDidMount() {
     this._isMounted = true;
     this.loadData();
+    this.getCurrentVersions();
   }
   componentWillUnmount() {
     this._isMounted = false;
@@ -55,6 +58,13 @@ class ConnectionsPanel extends Component {
     // Go back to main sidebar when words are unselected
     if (prevProps.selectedWords && prevProps.mode === "Lexicon" && !this.props.selectedWords) {
       this.props.setConnectionsMode("Resources");
+    }
+
+    if (prevProps.currVersions.en     !== this.props.currVersions.en     ||
+        prevProps.currVersions.he     !== this.props.currVersions.he     ||
+        prevProps.masterPanelLanguage !== this.props.masterPanelLanguage ||
+        prevProps.srefs[0]            !== this.props.srefs[0]) {
+      this.getCurrentVersions();
     }
   }
   sectionRef() {
@@ -85,21 +95,17 @@ class ConnectionsPanel extends Component {
     this.props.setConnectionsMode("Resources");
     this.flashMessage("Success! You've created a new connection.");
   }
-  getDefaultVersion(lang, versions) {
-    const filtered = versions.filter((elem) => elem.language === lang);
-    if (filtered.length > 0) {
-      return filtered.sort((a,b) => a-b)[0];
-    }  else {
-      return null;
-    }
-  }
-  getDataRef() {
+  getDataRef(props) {
     // Returns ref to be used to looking up data
-    return Sefaria.sectionRef(this.props.srefs[0]) || this.props.srefs[0];
+    const secRef = Sefaria.sectionRef(props.srefs[0]);
+    if (!secRef) {
+      console.log("Sec ref is null for", props.srefs[0]);
+    }
+    return secRef || props.srefs[0];
   }
-  getData() {
+  getData(cb) {
     // Gets data about this text from cache, which may be null.
-    return Sefaria.text(this.props.srefs[0], {context: 1, enVersion: this.props.currVersions.en, heVersion: this.props.currVersions.he});
+    return Sefaria.text(this.props.srefs[0], {context: 1, enVersion: this.props.currVersions.en, heVersion: this.props.currVersions.he}, cb);
   }
   getVersionFromData(d, lang) {
     //d - data received from this.getData()
@@ -113,29 +119,32 @@ class ConnectionsPanel extends Component {
       sources:                lang == "he" ? d.heSources : d.sources,
       versionNotes:           lang == "he" ? d.heVersionNotes : d.versionNotes,
       digitizedBySefaria:     lang == "he" ? d.heDigitizedBySefaria : d.digitizedBySefaria,
-      versionTitleInHebrew:   lang == "he" ? d.heVersionTitleInHebrew : d.VersionTitleInHebrew,
-      versionNotesInHebrew:   lang == "he" ? d.heVersionNotesInHebrew : d.VersionNotesInHebrew
+      versionTitleInHebrew:   lang == "he" ? d.heVersionTitleInHebrew : d.versionTitleInHebrew,
+      versionNotesInHebrew:   lang == "he" ? d.heVersionNotesInHebrew : d.versionNotesInHebrew
     }
   }
   getCurrentVersions() {
-    const data = this.getData();
-    if (!data) { return {currVersionEn: null, currVerionHe: null}};
-    let currentLanguage = this.props.masterPanelLanguage;
-    if (currentLanguage == "bilingual") {currentLanguage = "hebrew"}
-    if (currentLanguage == "hebrew" && !data.he.length) {currentLanguage = "english"}
-    if (currentLanguage == "english" && !data.text.length) {currentLanguage = "hebrew"}
-    return {
-      currVersions: {
-        en: (this.props.masterPanelLanguage != "hebrew" && !!data.text.length) ? this.getVersionFromData(data, "en") : null,
-        he: (this.props.masterPanelLanguage != "english" && !!data.he.length) ? this.getVersionFromData(data, "he") : null,
-      },
-      mainVersionLanguage: currentLanguage,
-    }
+    const data = this.getData((data) => {
+      let currentLanguage = this.props.masterPanelLanguage;
+      if (currentLanguage == "bilingual") {currentLanguage = "hebrew"}
+      if (!data) {
+        this.setState({
+          currObjectVersions: {en: null, he: null},
+          mainVersionLanguage: currentLanguage,
+        });
+      }
+      if (currentLanguage == "hebrew" && !data.he.length) {currentLanguage = "english"}
+      if (currentLanguage == "english" && !data.text.length) {currentLanguage = "hebrew"}
+      this.setState({
+        currObjectVersions: {
+          en: (this.props.masterPanelLanguage != "hebrew" && !!data.text.length) ? this.getVersionFromData(data, "en") : null,
+          he: (this.props.masterPanelLanguage != "english" && !!data.he.length) ? this.getVersionFromData(data, "he") : null,
+        },
+        mainVersionLanguage: currentLanguage,
+      });
+    });
   }
   render() {
-    const versions = Sefaria.versions(this.props.title);
-    const { currVersions, mainVersionLanguage } = this.getCurrentVersions();
-    const details = Sefaria.indexDetails(this.props.title);
     var content = null;
     var loaded = !!Sefaria.related(this.sectionRef());
     if (!loaded) {
@@ -279,25 +288,28 @@ class ConnectionsPanel extends Component {
       content = (<LoginPrompt fullPanel={this.props.fullPanel} />);
     } else if (this.props.mode === "About") {
       content = (<AboutBox
-                  currVersions={currVersions}
-                  mainVersionLanguage={mainVersionLanguage}
-                  details={details}
+                  currObjectVersions={this.state.currObjectVersions}
+                  mainVersionLanguage={this.state.mainVersionLanguage}
+                  title={this.props.title}
                   srefs={this.props.srefs}
                   getLicenseMap={this.props.getLicenseMap}
                 />);
     } else if (this.props.mode === "Versions" || this.props.mode === "Version Open") {
       content = (<VersionsBox
+                  currObjectVersions={this.state.currObjectVersions}
+                  mainVersionLanguage={this.state.mainVersionLanguage}
                   mode={this.props.mode}
-                  versions={versions}
-                  currVersions={currVersions}
+                  selectVersion={this.props.selectVersion}
                   srefs={this.props.srefs}
-                  mainVersionLanguage={mainVersionLanguage}
                   vFilter={this.props.versionFilter}
                   recentVFilters={this.props.recentVersionFilters}
                   translateISOLanguageCode={this.props.translateISOLanguageCode}
                   setConnectionsMode={this.props.setConnectionsMode}
                   getLicenseMap={this.props.getLicenseMap}
-                  setFilter={this.props.setVersionFilter}/>);
+                  setFilter={this.props.setVersionFilter}
+                  getDataRef={this.getDataRef}
+                  onRangeClick={this.props.onTextClick}
+                  onCitationClick={this.props.onCitationClick}/>);
     }
     var classes = classNames({connectionsPanel: 1, textList: 1, fullPanel: this.props.fullPanel, singlePanel: !this.props.fullPanel});
     return (
@@ -337,6 +349,7 @@ ConnectionsPanel.propTypes = {
   addToSourceSheet:        PropTypes.func.isRequired,
   title:                   PropTypes.string.isRequired,
   currVersions:            PropTypes.object.isRequired,
+  selectVersion:           PropTypes.func.isRequired,
   noteBeingEdited:         PropTypes.object,
   fullPanel:               PropTypes.bool,
   multiPanel:              PropTypes.bool,

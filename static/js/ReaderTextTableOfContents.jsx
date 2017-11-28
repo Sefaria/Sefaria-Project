@@ -5,14 +5,15 @@ const {
   CategoryColorLine,
   LoadingMessage,
   TwoBox,
-}                = require('./Misc');
-const React      = require('react');
-const ReactDOM   = require('react-dom');
-const $          = require('./sefaria/sefariaJquery');
-const Sefaria    = require('./sefaria/sefaria');
-const classNames = require('classnames');
-const PropTypes  = require('prop-types');
-import Component from 'react-class';
+}                  = require('./Misc');
+const React        = require('react');
+const ReactDOM     = require('react-dom');
+const $            = require('./sefaria/sefariaJquery');
+const Sefaria      = require('./sefaria/sefaria');
+const VersionBlock = require('./VersionBlock');
+const classNames   = require('classnames');
+const PropTypes    = require('prop-types');
+import Component   from 'react-class';
 
 
 class ReaderTextTableOfContents extends Component {
@@ -192,8 +193,7 @@ class ReaderTextTableOfContents extends Component {
           defaultVersionObject = this.state.versions.find(v => (cv.language == v.language && cv.versionTitle == v.versionTitle));
           defaultVersionString += defaultVersionObject ? " (" + defaultVersionObject.versionTitle + ")" : "";
         }
-        currentVersionElement = (<VersionBlock title={title} version={cv} currentRef={this.props.currentRef}
-                                               showHistory={true} getLicenseMap={this.props.getLicenseMap} viewExtendedNotes={this.props.viewExtendedNotes}/>);
+        currentVersionElement = (<VersionBlock title={title} version={cv}currVersions={this.props.currVersions} currentRef={this.props.currentRef} showHistory={true} getLicenseMap={this.props.getLicenseMap}viewExtendedNotes={this.props.viewExtendedNotes}/>);
       }
     }
 
@@ -227,6 +227,7 @@ class ReaderTextTableOfContents extends Component {
           { this.state.versionsDropDownOpen ?
             <VersionsList
               versionsList={versions}
+              currVersions={this.props.currVersions}
               openVersion={this.openVersion}
               title={this.props.title}
               currentRef={this.props.currentRef}
@@ -924,9 +925,10 @@ class VersionsList extends Component {
       <VersionBlock
         title={this.props.title}
         version={v}
+        currVersions={this.props.currVersions}
         currentRef={this.props.currentRef || this.props.title}
         firstSectionRef={"firstSectionRef" in v ? v.firstSectionRef : null}
-        openVersion={this.props.openVersion}
+        openVersionInReader={this.props.openVersion}
         viewExtendedNotes={this.props.viewExtendedNotes}
         key={v.versionTitle + "/" + v.language}
         getLicenseMap={this.props.getLicenseMap}/>
@@ -953,256 +955,13 @@ class VersionsList extends Component {
   }
 }
 VersionsList.propTypes = {
+  currVersions: PropTypes.object.isRequired,
   versionsList:      PropTypes.array.isRequired,
   openVersion:       PropTypes.func.isRequired,
   title:             PropTypes.string.isRequired,
   currentRef:        PropTypes.string,
   viewExtendedNotes: PropTypes.func,
   getLicenseMap:     PropTypes.func.isRequired,
-};
-
-
-class VersionBlock extends Component {
-  constructor(props) {
-    super(props);
-    this.updateableVersionAttributes = [
-      "versionTitle",
-      "versionSource",
-      "versionNotes",
-      "license",
-      "priority",
-      "digitizedBySefaria",
-      "status",
-      "versionTitleInHebrew",
-      "versionNotesInHebrew"
-    ];
-    var s = {
-      editing: false,
-      error: null,
-      originalVersionTitle: props.version["versionTitle"]
-    };
-    this.updateableVersionAttributes.forEach(attr => s[attr] = props.version[attr]);
-    this.state = s;
-  }
-  openVersion(e) {
-    e.preventDefault();
-    if (this.props.firstSectionRef) {
-      window.location = `/${this.props.firstSectionRef}?v${this.props.version.language}=${this.props.version.versionTitle}`;
-    } else if (this.props.openVersion) {
-      this.props.openVersion(this.props.version.versionTitle, this.props.version.language);
-    }
-  }
-  onLicenseChange(event) {
-    this.setState({license: event.target.value, "error": null});
-  }
-  onVersionSourceChange(event) {
-    this.setState({versionSource: event.target.value, "error": null});
-  }
-  onVersionNotesChange(event) {
-    this.setState({versionNotes: event.target.value, "error": null});
-  }
-  onVersionNotesInHebrewChange(event) {
-    this.setState({versionNotesInHebrew: event.target.value, "error": null});
-  }
-  onPriorityChange(event) {
-    this.setState({priority: event.target.value, "error": null});
-  }
-  onDigitizedBySefariaChange(event) {
-    this.setState({digitizedBySefaria: event.target.checked, "error": null});
-  }
-  onLockedChange(event) {
-    this.setState({status: event.target.checked ? "locked" : null, "error": null});
-  }
-  onVersionTitleChange(event) {
-    this.setState({versionTitle: event.target.value, "error": null});
-  }
-  onVersionTitleInHebrewChange(event) {
-    this.setState({versionTitleInHebrew: event.target.value, "error": null});
-  }
-  saveVersionUpdate(event) {
-    var v = this.props.version;
-
-    var payloadVersion = {};
-    this.updateableVersionAttributes.forEach(function(attr) {
-      if (this.state[attr] || this.state[attr] != this.props.version[attr]) {
-        payloadVersion[attr] = this.state[attr];
-      }
-    }.bind(this));
-    delete payloadVersion.versionTitle;
-    if (this.state.versionTitle != this.state.originalVersionTitle) {
-      payloadVersion.newVersionTitle = this.state.versionTitle;
-    }
-    this.setState({"error": "Saving.  Page will reload on success."});
-    $.ajax({
-      url: `/api/version/flags/${this.props.title}/${v.language}/${v.versionTitle}`,
-      dataType: 'json',
-      type: 'POST',
-      data: {json: JSON.stringify(payloadVersion)},
-      success: function(data) {
-        if (data.status == "ok") {
-          document.location.reload(true);
-        } else {
-          this.setState({error: data.error});
-        }
-      }.bind(this),
-      error: function(xhr, status, err) {
-        this.setState({error: err.toString()});
-      }.bind(this)
-    });
-  }
-  deleteVersion() {
-    if (!confirm("Are you sure you want to delete this text version?")) { return; }
-
-    var title = this.props.title;
-    var url = "/api/texts/" + title + "/" + this.props.version.language + "/" + this.props.version.versionTitle;
-
-    $.ajax({
-      url: url,
-      type: "DELETE",
-      success: function(data) {
-        if ("error" in data) {
-          alert(data.error)
-        } else {
-          alert("Text Version Deleted.");
-          window.location = "/" + Sefaria.normRef(title);
-        }
-      }
-    }).fail(function() {
-      alert("Something went wrong. Sorry!");
-    });
-  }
-  openEditor() {
-    this.setState({editing:true});
-  }
-  closeEditor() {
-    this.setState({editing:false});
-  }
-  openExtendedNotes(e){
-    e.preventDefault();
-    this.props.viewExtendedNotes(this.props.title, this.props.version.language, this.props.version.versionTitle);
-  }
-  render() {
-    var v = this.props.version;
-
-    if (this.state.editing) {
-      // Editing View
-      var close_icon = (Sefaria.is_moderator)?<i className="fa fa-times-circle" aria-hidden="true" onClick={this.closeEditor}/>:"";
-
-      var licenses = Object.keys(this.props.getLicenseMap());
-      licenses = licenses.includes(v.license) ? licenses : [v.license].concat(licenses);
-
-      return (
-        <div className = "versionBlock">
-          <div className="error">{this.state.error}</div>
-          <div className="versionEditForm">
-
-            <label htmlFor="versionTitle" className="">Version Title</label>
-            {close_icon}
-            <input id="versionTitle" className="" type="text" value={this.state.versionTitle} onChange={this.onVersionTitleChange} />
-
-            <label htmlFor="versionTitleInHebrew" className="">Hebrew Version Title</label>
-            <input id="versionTitleInHebrew" className="" type="text" value={this.state.versionTitleInHebrew} onChange={this.onVersionTitleInHebrewChange} />
-
-            <label htmlFor="versionSource">Version Source</label>
-            <input id="versionSource" className="" type="text" value={this.state.versionSource} onChange={this.onVersionSourceChange} />
-
-            <label id="license_label" htmlFor="license">License</label>
-            <select id="license" className="" value={this.state.license} onChange={this.onLicenseChange}>
-              {licenses.map(v => <option key={v} value={v}>{v?v:"(None Listed)"}</option>)}
-            </select>
-
-            <label id="digitzedBySefaria_label" htmlFor="digitzedBySefaria">Digitized by Sefaria</label>
-            <input type="checkbox" id="digitzedBySefaria" checked={this.state.digitizedBySefaria} onChange={this.onDigitizedBySefariaChange}/>
-
-            <label id="priority_label" htmlFor="priority">Priority</label>
-            <input id="priority" className="" type="text" value={this.state.priority} onChange={this.onPriorityChange} />
-
-            <label id="locked_label" htmlFor="locked">Locked</label>
-            <input type="checkbox" id="locked" checked={this.state.status == "locked"} onChange={this.onLockedChange}/>
-
-            <label id="versionNotes_label" htmlFor="versionNotes">VersionNotes</label>
-            <textarea id="versionNotes" placeholder="Version Notes" onChange={this.onVersionNotesChange} value={this.state.versionNotes} rows="5" cols="40"/>
-
-            <label id="versionNotesInHebrew_label" htmlFor="versionNotes_in_hebrew">Hebrew VersionNotes</label>
-            <textarea id="versionNotesInHebrew" placeholder="Hebrew Version Notes" onChange={this.onVersionNotesInHebrewChange} value={this.state.versionNotesInHebrew} rows="5" cols="40"/>
-            <div>
-              <div id="delete_button" onClick={this.deleteVersion}>Delete Version</div>
-              <div id="save_button" onClick={this.saveVersionUpdate}>SAVE</div>
-              <div className="clearFix"></div>
-            </div>
-          </div>
-        </div>
-      );
-    } else {
-      // Presentation View
-      var license = this.props.getLicenseMap()[v.license]?<a href={this.props.getLicenseMap()[v.license]} target="_blank">{Sefaria._(v.license)}</a>:v.license;
-      var digitizedBySefaria = v.digitizedBySefaria
-          ? <a className="versionDigitizedBySefaria" href="/digitized-by-sefaria">{Sefaria._("Digitized by Sefaria")}</a> : "";
-      var licenseLine = "";
-      if (v.license && v.license != "unknown") {
-        licenseLine =
-          <span className="versionLicense">
-            {license}
-            {digitizedBySefaria?" - ":""}{digitizedBySefaria}
-          </span>
-        ;
-      }
-      var edit_icon = (Sefaria.is_moderator)?<i className="fa fa-pencil" aria-hidden="true" onClick={this.openEditor}/>:"";
-
-      var versionNotes = "";
-      if (this.props.showNotes) {
-        if (Sefaria.interfaceLang=="english" && !!(v.versionNotes)) {
-          versionNotes = v.versionNotes;
-        }
-        else if (Sefaria.interfaceLang=="hebrew" && !!(v.versionNotesInHebrew)) {
-          versionNotes = v.versionNotesInHebrew;
-        }
-      }
-
-      return (
-        <div className = "versionBlock">
-          <div className="versionTitle">
-            <a onClick={this.openVersion} href={"/" + (this.props.firstSectionRef ? this.props.firstSectionRef : this.props.version.versionTitle) + "/" + this.props.version.language + "/" + this.props.version.versionTitle}>
-                {(Sefaria.interfaceLang=="english" || v.versionTitleInHebrew==="") ? v.versionTitle : v.versionTitleInHebrew}
-                </a>
-            {edit_icon}
-          </div>
-          <div className="versionDetails">
-            <a className="versionSource" target="_blank" href={v.versionSource}>
-            { Sefaria.util.parseURL(v.versionSource).host }
-            </a>
-            {licenseLine ? <span className="separator">-</span>: null}
-            {licenseLine}
-            {this.props.showHistory ? <span className="separator">-</span>: null}
-            {this.props.showHistory ? <a className="versionHistoryLink" href={`/activity/${Sefaria.normRef(this.props.currentRef)}/${v.language}/${v.versionTitle && v.versionTitle.replace(/\s/g,"_")}`}>{Sefaria._("Version History") + " "}›</a>:""}
-          </div>
-          {versionNotes ? <div className="versionNotes" dangerouslySetInnerHTML={ {__html: versionNotes} } ></div> : ""}
-            {(this.props.version.extendedNotes || this.props.version.extendedNotesHebrew) ? <div className="extendedNotesLinks">
-              <a onClick={this.openExtendedNotes} href={`/${this.props.title}/${this.props.version.language}/${this.props.version.versionTitle}/notes`}>
-                {Sefaria.interfaceLang === "english" ? "More" : "עוד"}
-              </a>
-            </div> : ""}
-        </div>
-      );
-    }
-
-  }
-}
-VersionBlock.propTypes = {
-  title:           PropTypes.string.isRequired,
-  version:         PropTypes.object.isRequired,
-  currentRef:      PropTypes.string,
-  firstSectionref: PropTypes.string,
-  showHistory:     PropTypes.bool,
-  showNotes:       PropTypes.bool,
-  openVersion:     PropTypes.func,
-  getLicenseMap:   PropTypes.func.isRequired,
-  openVersion:     PropTypes.func,
-  viewExtendedNotes: PropTypes.func
-};
-VersionBlock.defaultProps = {
-  showHistory: true,
-  showNotes: true
 };
 
 

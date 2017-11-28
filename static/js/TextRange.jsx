@@ -377,6 +377,9 @@ TextRange.propTypes = {
   showActionLinks:        PropTypes.bool,
   inlineReference:        PropTypes.object,
 };
+TextRange.defaultProps = {
+  currVersions: {en:null,he:null},
+}
 
 
 class TextSegment extends Component {

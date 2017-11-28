@@ -176,9 +176,6 @@ def footer_html(request):
 
 @data_only
 def calendar_links(request):
-    if request.path != "/data.js":
-        return {}
-
     loc = request.META.get("HTTP_CF_IPCOUNTRY", None)
     if not loc:
         try:

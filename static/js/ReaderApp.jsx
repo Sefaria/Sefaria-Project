@@ -313,6 +313,7 @@ class ReaderApp extends Component {
           (next.mode === "Text" && !prev.highlightedRefs.compare(next.highlightedRefs)) ||
           (next.mode === "TextAndConnections" && prev.highlightedRefs.slice(-1)[0] !== next.highlightedRefs.slice(-1)[0]) ||
           ((next.mode === "Connections" || next.mode === "TextAndConnections") && prev.filter && !prev.filter.compare(next.filter)) ||
+          (next.mode === "Version Open" && prev.versionFilter && !prev.versionFilter(next.versionFilter)) ||
           (next.mode === "Connections" && !prev.refs.compare(next.refs)) ||
           (next.currentlyVisibleRef === prev.currentlyVisibleRef) ||
           (next.connectionsMode !== prev.connectionsMoade) ||
@@ -357,11 +358,11 @@ class ReaderApp extends Component {
       return Sefaria.util.clone(panel);
     }
   }
-  _getUrlVersionsParams(currVersions) {
+  _getUrlVersionsParams(currVersions, i) {
     if (currVersions) {
       return Object.keys(currVersions)
               .filter(vlang=>!!currVersions[vlang])
-              .map(vlang=>`&v${vlang}=${currVersions[vlang].replace(/\s/g,"_")}`)
+              .map(vlang=>`&v${vlang}${i > 1 ? i : ""}=${currVersions[vlang].replace(/\s/g,"_")}`)
               .join("");
     } else {
       return "";
@@ -505,8 +506,11 @@ class ReaderApp extends Component {
       } else if (state.mode === "Connections") {
         var ref       = Sefaria.normRefList(state.refs);
         var filter    = state.filter.length ? state.filter :
-                          (state.connectionsMode in {"Sheets": 1, "Notes": 1} ? [state.connectionsMode] : ["all"]);
+                          (state.connectionsMode in {"Sheets": 1, "Notes": 1, "Versions": 1, "Version Open": 1, "About": 1} ? [state.connectionsMode] : ["all"]);
         hist.sources  = filter.join("+");
+        if (state.connectionsMode === "Version Open" && state.versionFilter.length) {
+          hist.versionFilter = state.versionFilter[0];
+        }
         hist.title    = Sefaria._r(ref)  + Sefaria._(" with ") + Sefaria._(hist.sources === "all" ? "Connections" : hist.sources);
         hist.url      = Sefaria.normRef(ref); // + "?with=" + sources;
         hist.mode     = "Connections"
@@ -514,13 +518,15 @@ class ReaderApp extends Component {
       } else if (state.mode === "TextAndConnections") {
         var ref       = Sefaria.normRefList(state.highlightedRefs);
         var filter    = state.filter.length ? state.filter :
-                          (state.connectionsMode in {"Sheets": 1, "Notes": 1} ? [state.connectionsMode] : ["all"]);
+                          (state.connectionsMode in {"Sheets": 1, "Notes": 1, "Versions": 1, "Version Open": 1, "About": 1} ? [state.connectionsMode] : ["all"]);
         hist.sources  = filter.join("+");
+        if (state.connectionsMode === "Version Open" && state.versionFilter.length) {
+          hist.versionFilter = state.versionFilter[0];
+        }
         hist.title    = Sefaria._r(ref)  + Sefaria._(" with ") + Sefaria._(hist.sources === "all" ? "Connections" : hist.sources);
         hist.url      = Sefaria.normRef(ref); // + "?with=" + sources;
         hist.currVersions = state.currVersions;
         hist.mode     = "TextAndConnections";
-
       } else if (state.mode === "Header") {
         hist.title    = document.title;
         hist.url      = window.location.pathname.slice(1);
@@ -540,7 +546,7 @@ class ReaderApp extends Component {
     var title =  histories.length ? histories[0].title : "Sefaria";
 
     var url   = "/" + (histories.length ? histories[0].url : "");
-    url += this._getUrlVersionsParams(histories[0].currVersions);
+    url += this._getUrlVersionsParams(histories[0].currVersions, 0);
     if (histories[0].mode === "TextAndConnections") {
         url += "&with=" + histories[0].sources;
     }
@@ -555,19 +561,26 @@ class ReaderApp extends Component {
         if (i == 1) {
           // short form for two panels text+commentary - e.g., /Genesis.1?with=Rashi
           hist.url   = "/" + histories[1].url; // Rewrite the URL
-          hist.url += this._getUrlVersionsParams(histories[0].currVersions);
+          hist.url += this._getUrlVersionsParams(histories[0].currVersions, 0);
           if(histories[0].lang) {
             hist.url += "&lang=" + histories[0].lang;
           }
+          if(histories[1].versionFilter) {
+            hist.url += "&vside=" + histories[1].versionFilter.replace(/\s/g, '_');
+          }
           hist.url += "&with=" + histories[1].sources;
+
           hist.title = histories[1].title;
         } else {
           var replacer = "&p" + i + "=";
           hist.url    = hist.url.replace(RegExp(replacer + ".*"), "");
           hist.url   += replacer + histories[i].url;
-          hist.url += this._getUrlVersionsParams(histories[i-1].currVersions);
+          hist.url += this._getUrlVersionsParams(histories[i-1].currVersions, i);
           if(histories[i-1].lang) {
             hist.url += "&lang" + (i) + "=" + histories[i-1].lang;
+          }
+          if(histories[i].versionFilter) {
+            hist.url += "&vside" + (i) + "=" + histories[i].versionFilter.replace(/\s/g, '_');
           }
           hist.url   += "&w" + i + "=" + histories[i].sources; //.replace("with=", "with" + i + "=").replace("?", "&");
           hist.title += Sefaria._(" & ") + histories[i].title; // TODO this doesn't trim title properly
@@ -576,7 +589,7 @@ class ReaderApp extends Component {
         var next    = "&p=" + histories[i].url;
         next        = next.replace("?", "&").replace(/=/g, (i+1) + "=");
         hist.url   += next;
-        hist.url += this._getUrlVersionsParams(histories[i].currVersions);
+        hist.url += this._getUrlVersionsParams(histories[i].currVersions, i+1);
         hist.title += Sefaria._(" & ") + histories[i].title;
       }
       if(histories[i].lang) {
@@ -943,9 +956,17 @@ class ReaderApp extends Component {
     // Set the version for panel `n`.
     var panel = this.state.panels[n];
     var oRef = Sefaria.ref(panel.refs[0]);
+    let panelLang;
     if (versionName && versionLanguage) {
       panel.currVersions[versionLanguage] = versionName;
-      panel.settings.language = (versionLanguage == "he")? "hebrew": "english";
+      if ((versionLanguage === "he" && !!panel.currVersions["en"]) ||
+          (versionLanguage === "en" && !!panel.currVersions["he"])) { // if both versionLanguages are set, try to show them both
+        panelLang = "bilingual";
+      } else if (versionLanguage === "he") {
+        panelLang = "hebrew";
+      } else {
+        panelLang = "english";
+      }
 
       this.setCachedVersion(oRef.indexTitle, versionLanguage, versionName);
       Sefaria.track.event("Reader", "Choose Version", `${oRef.indexTitle} / ${versionName} / ${versionLanguage}`)
@@ -953,10 +974,20 @@ class ReaderApp extends Component {
       panel.currVersions[versionLanguage] = null;
       Sefaria.track.event("Reader", "Choose Version", `${oRef.indexTitle} / default version / ${panel.settings.language}`)
     }
-
     if((this.state.panels.length > n+1) && this.state.panels[n+1].mode == "Connections"){
       var connectionsPanel =  this.state.panels[n+1];
       connectionsPanel.currVersions = panel.currVersions;
+      if (panelLang) {
+        panel.settings.language = panelLang;
+        connectionsPanel.settings.language = panelLang !== "bilingual" ? panelLang : (versionLanguage === "he" ? "hebrew" : "english");
+      }
+    } else if (n-1 >= 0 && this.state.panels[n].mode === "Connections") {
+      const masterPanel = this.state.panels[n-1];
+      masterPanel.currVersions = panel.currVersions;
+      if (panelLang) {
+        panel.settings.language = panelLang !== "bilingual" ? panelLang : (versionLanguage === "he" ? "hebrew" : "english");
+        masterPanel.settings.language = panelLang;
+      }
     }
     this.setState({panels: this.state.panels});
   }
