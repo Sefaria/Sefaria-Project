@@ -111,6 +111,11 @@ class NavToRefAndClickSegment(AtomicTest):
         assert "Psalms.65.5" in self.driver.current_url, self.driver.current_url
         assert "with=all" in self.driver.current_url, self.driver.current_url
 
+        # If we're one level deep in a menu, go back.
+        elems = self.driver.find_elements_by_css_selector(".connectionsHeaderTitle.active")
+        if len(elems) > 0:
+            elems[0].click()
+
         self.click_category_filter("Commentary")
         self.click_text_filter("Ibn Ezra")
 

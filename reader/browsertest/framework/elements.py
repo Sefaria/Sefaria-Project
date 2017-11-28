@@ -1051,6 +1051,8 @@ class Trial(object):
         caps = _caps or self.caps
         self.carp(u"\n{}: ".format(test_class.__name__))
         exception_thrown = False
+        is_first_test = _caps is None
+        is_second_test = _caps is not None
 
         tresults = []  # list of AbstractTest instances
         if self.parallel:
@@ -1061,7 +1063,7 @@ class Trial(object):
             except Exception:
                 msg = traceback.format_exc()
                 self.carp(u"{} - Exception\n{}\n".format(test_class.__name__, msg), always=True)
-                tresults = [SingleTestResult(test_class, caps[0], False, msg)]
+                tresults += [SingleTestResult(test_class, caps[0], False, msg)]
                 exception_thrown = True
         else:
             for cap in caps:
@@ -1071,15 +1073,15 @@ class Trial(object):
         failing_results = [t for t in tresults if t and not t.success]
 
         # test failures twice, in order to avoid false failures
-        if exception_thrown and _caps is None:
+        if exception_thrown and is_first_test:
             self.carp("\nRetesting all configurations on {}: ".format(len(failing_results), test_class.__name__), always=True)
             second_test_results = self._test_on_all(test_class, caps)
             result_set.include(second_test_results)
-        elif len(failing_results) > 0 and _caps is None:
+        elif len(failing_results) > 0 and is_first_test:
             self.carp("\nRetesting {} configurations on {}: ".format(len(failing_results), test_class.__name__), always=True)
             second_test_results = self._test_on_all(test_class, [t.cap for t in failing_results])
             result_set.include(second_test_results)
-        elif _caps is not None:
+        elif is_second_test:
             result_set.include(failing_results)
         return result_set
 
