@@ -12,10 +12,12 @@ symbols are then accessed directly as, e.g.:
 import abstract
 
 # not sure why we have to do this now - it wasn't previously required
-import history, schema, text, link, note, layer, notification, queue, lock, following, user_profile, version_state, translation_request, lexicon, place, person, time, garden, group
+import history, schema, text, link, note, layer, notification, queue, lock, following, user_profile, version_state, \
+    translation_request, lexicon, place, person, time, garden, group
 
 from history import History, HistorySet, log_add, log_delete, log_update, log_text
-from schema import deserialize_tree, Term, TermSet, TermScheme, TermSchemeSet, TitledTreeNode, SchemaNode, ArrayMapNode, JaggedArrayNode, NumberedTitledTreeNode
+from schema import deserialize_tree, Term, TermSet, TermScheme, TermSchemeSet, TitledTreeNode, SchemaNode, \
+    ArrayMapNode, JaggedArrayNode, NumberedTitledTreeNode
 from text import library, Index, IndexSet, Version, VersionSet, TextChunk, TextFamily, Ref, merge_texts
 from link import Link, LinkSet, get_link_counts, get_book_link_collection, get_book_category_linkset
 from note import Note, NoteSet
@@ -37,4 +39,7 @@ from garden import Garden, GardenStop, GardenStopRelation, GardenSet, GardenStop
 from category import Category, CategorySet
 
 import dependencies
+
+library._build_index_maps()
+
 
