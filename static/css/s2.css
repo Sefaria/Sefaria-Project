@@ -933,7 +933,7 @@ a.readerNavCategory {
 }
 .readerNavMenu .blockLink.calendarLink .blockLinkSubtitle{
   display: block;
-  font-size: 0.8em;
+  font-size: 0.9em;
   color: #999999;
   overflow: hidden;
   text-overflow: ellipsis;
