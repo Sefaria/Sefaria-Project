@@ -37,7 +37,7 @@ class ConnectionsPanelHeader extends Component {
                     {this.props.interfaceLang == "hebrew" ? <div className="int-he">קישורים וכלים</div> : null }
                   </div>;
     } else if (this.props.previousCategory && this.props.connectionsMode == "TextList") {
-      // In a text list, back to Previous Categoy
+      // In a text list, back to Previous Category
 
       var url = Sefaria.util.replaceUrlParam("with", this.props.previousCategory);
       var onClick = function(e) {
