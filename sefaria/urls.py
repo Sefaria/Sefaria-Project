@@ -94,6 +94,12 @@ urlpatterns += patterns('reader.views',
     (r'^mishnah-contest-2013/?$', lambda x: HttpResponseRedirect('/contests/mishnah-contest-2013')),
 )
 
+# JSON Editors
+urlpatterns += patterns('reader.views',
+    (r'^edit/terms/(?P<term>.+)$', 'terms_editor'),
+    (r'^add/terms/(?P<term>.+)$', 'terms_editor'),
+)
+
 # Texts Add / Edit / Translate
 urlpatterns += patterns('reader.views',
     (r'^edit/textinfo/(?P<title>.+)$', 'edit_text_info'),
@@ -239,12 +245,6 @@ urlpatterns += patterns('reader.views',
     (r'^api/topics$', 'topics_list_api'),
     (r'^api/topics/(?P<topic>.+)$', 'topics_api'),
     (r'^api/recommend/topics(/(?P<ref_list>.+))?', 'recommend_topics_api'),
-)
-
-# Editors
-urlpatterns += patterns('reader.views',
-    (r'^edit/terms/(?P<term>.+)$', 'terms_editor'),
-    (r'^add/terms/(?P<term>.+)$', 'terms_editor'),
 )
 
 # Registration

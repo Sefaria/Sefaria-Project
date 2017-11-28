@@ -160,6 +160,10 @@ var jsonEditorConfig = config({
         path: path.resolve(buildDir + 'jsonEditor'),
         filename: 'jsonEditor.js'
     },
+    externals: {
+       react: 'React',
+       'react-dom': 'ReactDOM',
+       jquery: 'jQuery'},
     plugins: [
         new BundleTracker({filename: './node/webpack-stats.json-editor.json'}),
     ]

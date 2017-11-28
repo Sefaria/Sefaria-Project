@@ -7,11 +7,24 @@
 
 {% block content %}
 
-<div id="editTerm">
-
+<div id="editTerm" class="static container">
+  <div class="inner">
+    <h1>Terms Editor</h1>
     <div id="jsonEditor"></div>
-
-    <script src="/static/js/bundles/json-editor/json-editor.js"></script>
+  </div>
 </div>
 
+{% endblock %}
+
+
+{% block js %}
+  <script src="/static/bundles/jsonEditor/jsonEditor.js"></script>
+  <script>
+    {% autoescape off %}
+    var data = {{ dataJSON }};
+    {% endautoescape %}
+    $(function() {
+      SefariaJsonEditor("terms", document.getElementById("jsonEditor"));
+    });
+  </script>
 {% endblock %}
