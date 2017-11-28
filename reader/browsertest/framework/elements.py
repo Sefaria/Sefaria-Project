@@ -17,7 +17,7 @@ from appium import webdriver as appium_webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support.expected_conditions import title_contains, presence_of_element_located, staleness_of,\
-        element_to_be_clickable, visibility_of_element_located, text_to_be_present_in_element, _find_element, StaleElementReferenceException
+        element_to_be_clickable, visibility_of_element_located, invisibility_of_element_located, text_to_be_present_in_element, _find_element, StaleElementReferenceException
 from selenium.webdriver.common.keys import Keys
 from selenium.common.exceptions import NoSuchElementException
 # http://selenium-python.readthedocs.io/waits.html
@@ -119,6 +119,7 @@ class AbstractTest(object):
         self.nav_to_account()
         el = self.driver.find_element_by_css_selector('.sheets-link')
         el.click()
+        WebDriverWait(self.driver, TEMPER).until(invisibility_of_element_located((By.CSS_SELECTOR, ".loadingMessage")))
         WebDriverWait(self.driver, TEMPER).until(presence_of_element_located((By.CSS_SELECTOR, ".sheetsNewButton .button")))
         el = self.driver.find_element_by_css_selector(".sheetsNewButton .button")
         el.click()
