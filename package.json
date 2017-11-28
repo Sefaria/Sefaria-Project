@@ -55,7 +55,8 @@
     "sync-exec": "^0.6.2",
     "webpack-node-externals": "^1.6.0",
     "webpack-sources": "^1.0.1",
-    "diff-match-patch": "^1.0.0"
+    "diff-match-patch": "^1.0.0",
+    "react-json-editor": "^0.3.0"
   },
   "devDependencies": {
     "babel-cli": "^6.0.0",

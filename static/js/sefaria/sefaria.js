@@ -1317,7 +1317,9 @@ Sefaria = extend(Sefaria, {
     Sefaria.recentlyViewed = recent;
     var packedRecent = recent.map(Sefaria.packRecentItem);
     if (Sefaria._uid) {
-        $.post(Sefaria.apiHost + "/api/profile", {json: JSON.stringify({recentlyViewed: packedRecent})}, function(data) {} );
+        $.post(Sefaria.apiHost + "/api/profile", 
+              {json: JSON.stringify({recentlyViewed: packedRecent})}, 
+              function(data) {} );
     } else {
       var cookie = INBROWSER ? $.cookie : Sefaria.util.cookie;
       packedRecent = packedRecent.slice(0, 6);

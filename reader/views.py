@@ -895,40 +895,20 @@ def edit_text_info(request, title=None, new_title=None):
 @ensure_csrf_cookie
 def terms_editor(request, term=None):
     """
-    Opens a view directly to adding, editing or translating a given text.
+    Add/Editor a term using the JSON Editor.
     """
     if term is not None:
-        try:
-            oref = Ref(ref)
-            if oref.sections == []:
-                # Only text name specified, let them chose section first
-                initJSON = json.dumps({"mode": "add new", "newTitle": oref.normal()})
-                mode = "Add"
-            else:
-                # Pull a particular section to edit
-                version = version.replace("_", " ") if version else None
-                #text = get_text(ref, lang=lang, version=version)
-                text = TextFamily(Ref(ref), lang=lang, version=version).contents()
-                text["mode"] = request.path.split("/")[1]
-                mode = text["mode"].capitalize()
-                text["edit_lang"] = lang if lang is not None else request.contentLang
-                text["edit_version"] = version
-                initJSON = json.dumps(text)
-        except:
-            index = library.get_index(ref)
-            if index:
-                ref = None
-                initJSON = json.dumps({"mode": "add new", "newTitle": index.contents()['title']})
+        term = Term().load_by_title(term)
+        data = term.contents()
     else:
-        initJSON = json.dumps({"mode": "add new"})
+        data = None
 
-    titles = json.dumps(model.library.full_title_list())
-    page_title = "%s %s" % (mode, ref) if ref else "Add a New Text"
+    dataJSON = json.dumps(data)
 
     return render_to_response('edit_term.html',
-                             {'titles': titles,
-                              'initJSON': initJSON,
-                              'page_title': page_title,
+                             {
+                              'term': term,
+                              'dataJSON': dataJSON,
                              },
                              RequestContext(request))
 
