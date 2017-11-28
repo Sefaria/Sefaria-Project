@@ -39,7 +39,6 @@ class ReaderPanel extends Component {
     super(props);
     // When this component is managed by a parent, all it takes is initialState
     if (props.initialState) {
-      console.log(props.initialState);
       var state = this.clonePanel(props.initialState);
       state["initialAnalyticsTracked"] = false;
       this.state = state;
@@ -724,6 +723,7 @@ class ReaderPanel extends Component {
         {hideReaderControls ? null :
         (<ReaderControls
           showBaseText={this.showBaseText}
+          sheet={this.state.sheet}
           currentRef={this.state.currentlyVisibleRef}
           currentMode={this.currentMode.bind(this)}
           currentCategory={this.currentCategory}
@@ -852,7 +852,7 @@ class ReaderControls extends Component {
     }
   }
   render() {
-    var title     = this.props.currentRef;
+    var title  = this.props.sheet ? this.props.sheet.title.stripHtml() : this.props.currentRef;
     var heTitle, categoryAttribution;
 
     if (title) {

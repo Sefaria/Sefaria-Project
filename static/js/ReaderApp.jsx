@@ -21,7 +21,6 @@ class ReaderApp extends Component {
     // Currently these get generated in reader/views.py then regenerated again in ReaderApp.
     this.MIN_PANEL_WIDTH = 360.0;
 
-    console.log(props.initialPanels);
 
     var panels               = [];
     var header               = {};
@@ -114,7 +113,6 @@ class ReaderApp extends Component {
             panel.settings.language = (panel.versionLanguage == "he") ? "hebrew" : "english";
           }
         }
-        console.log(panel);
         panels.push(panel);
       }
     }
