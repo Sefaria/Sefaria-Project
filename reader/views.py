@@ -23,6 +23,7 @@ from django.template.loader import render_to_string
 from django.shortcuts import render_to_response, get_object_or_404, redirect
 from django.http import Http404, HttpResponse
 from django.contrib.auth.decorators import login_required
+from django.contrib.admin.views.decorators import staff_member_required
 from django.utils.http import urlquote
 from django.utils.encoding import iri_to_uri
 from django.utils.translation import ugettext as _
@@ -893,6 +894,7 @@ def edit_text_info(request, title=None, new_title=None):
                              RequestContext(request))
 
 @ensure_csrf_cookie
+@staff_member_required
 def terms_editor(request, term=None):
     """
     Add/Editor a term using the JSON Editor.
@@ -901,7 +903,7 @@ def terms_editor(request, term=None):
         term = Term().load_by_title(term)
         data = term.contents()
     else:
-        data = None
+        data = {}
 
     dataJSON = json.dumps(data)
 

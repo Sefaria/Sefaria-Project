@@ -1,13 +1,12 @@
-const React        = require('react'),
-      ReactDOM     = require('react-dom'),
-      DjangoCSRF   = require('./lib/django-csrf'),
-    $            = require('./sefaria/sefariaJquery'),
-      Form         = require('react-json-editor');
-
+const React           = require('react'),
+      ReactDOM        = require('react-dom'),
+      $               = require('jquery'),
+      {default: Form} = require('react-jsonschema-form'),
+      DjangoCSRF      = require('./lib/django-csrf');
 
 DjangoCSRF.init();
 
-window.SefariaJsonEditor = function(schemaName, container) {
+window.SefariaJsonEditor = function(schemaName, initData, container) {
 
   if (schemaName in schemas) {
     var schema = schemas[schemaName];
@@ -16,23 +15,31 @@ window.SefariaJsonEditor = function(schemaName, container) {
     return;
   }
 
-  const onSubmit = function(data, buttonValue, errors) {
-    $.post("/api/" + schemaName + "/" + data.name,
+  const onSubmit = function(form) {
+    var data = form.formData;
+    $.post("/api/" + schemaName + "/" + data.name + "?update=1",
       {"json": JSON.stringify(data)},
-      function(data) { alert("Saved.")}
+      function(data) { 
+      	if ("error" in data) {
+      		alert(data.error);
+      	} else {
+      		alert("Saved.");      		
+      	}
+      }
     );
   };
 
+  const log = data => { console.log(data); };
   ReactDOM.render(<Form 
-          			schema={schema}
-         			onSubmit={onSubmit} />,
-          		  container);
+					schema={schema}
+					formData={initData}
+					onSubmit={onSubmit}
+					onError={log} />,
+				  container);
 };
 
 const schemas = {
   "terms": {
-    "title": "Terms Form",
-    "description": "A form for editing Terms",
     "type": "object",
     "required": [
         "name",
@@ -40,8 +47,7 @@ const schemas = {
       ],
     "properties": {
       "name": {
-        "title": "Primary English Term name",
-        "description": "The primary term name in English",
+        "title": "Primary English Term",
         "type": "string",
       },
       "titles": {
@@ -54,7 +60,8 @@ const schemas = {
               "type": "string"
             },
             "lang": {
-              "type": "string"
+              "type": "string",
+              "enum": ["en", "he"]
             },
             "primary": {
                 "type": "boolean"
@@ -63,6 +70,7 @@ const schemas = {
         },
       	"required": ["text", "lang"],
       }
-    }
+    },
+    "x-ordering": ["name", "titles"]
   }
 };
