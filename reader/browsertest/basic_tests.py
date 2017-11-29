@@ -246,7 +246,7 @@ class SaveNewSourceSheet(AtomicTest):
         WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, "#save")))
         saveButton = self.driver.find_element_by_css_selector('#save')
         saveButton.click()
-        WebDriverWait(self.driver, TEMPER).until(title_contains("New Source Sheet | Sefaria Source Sheet Builder"))
+        WebDriverWait(self.driver, TEMPER).until(title_contains("New Source Sheet"))
 
         # After saving a sheet, visit pages that are login specific
         self.load_account()
