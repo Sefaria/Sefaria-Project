@@ -1,13 +1,13 @@
 const {
   LoadingMessage,
-}                            = require('./Misc');
+} = require('./Misc');
 
-const React      = require('react');
-const ReactDOM   = require('react-dom');
-const PropTypes  = require('prop-types');
+const React = require('react');
+const ReactDOM = require('react-dom');
+const PropTypes = require('prop-types');
 const classNames = require('classnames');
-const $          = require('./sefaria/sefariaJquery');
-const Sefaria    = require('./sefaria/sefaria');
+const $ = require('./sefaria/sefariaJquery');
+const Sefaria = require('./sefaria/sefaria');
 import Component from 'react-class'
 
 
@@ -23,7 +23,7 @@ class Sheet extends Component {
   }
 
   getSheetFromAPI() {
-     Sefaria.sheets.loadSheetByID(this.props.id, this.onDataLoad);
+    Sefaria.sheets.loadSheetByID(this.props.id, this.onDataLoad);
   }
 
   onDataLoad(data) {
@@ -38,7 +38,9 @@ class Sheet extends Component {
 
 
   ensureData() {
-    if (!this.getSheetFromCache()) { this.getSheetFromAPI(); }
+    if (!this.getSheetFromCache()) {
+      this.getSheetFromAPI();
+    }
   }
 
 
@@ -46,11 +48,11 @@ class Sheet extends Component {
     //console.log("placeSegmentNumbers", this.props.sref);
     // Set the vertical offsets for segment numbers and link counts, which are dependent
     // on the rendered height of the text of each segment.
-    var $text  = $(ReactDOM.findDOMNode(this));
+    var $text = $(ReactDOM.findDOMNode(this));
     var elemsAtPosition = {}; // Keyed by top position, an array of elements found there
     var setTop = function() {
       var $elem = $(this);
-      var top   = $elem.parent().position().top;
+      var top = $elem.parent().position().top;
       $elem.css({top: top});
       var list = elemsAtPosition[top] || [];
       list.push($elem);
@@ -59,9 +61,11 @@ class Sheet extends Component {
     $text.find(".linkCount").each(setTop);
     elemsAtPosition = {};  // resetting because we only want it to track segmentNumbers
     $text.find(".segmentNumber").each(setTop).show();
-    var fixCollision = function ($elems) {
+    var fixCollision = function($elems) {
       // Takes an array of jQuery elements that all currently appear at the same top position
-      if ($elems.length == 1) { return; }
+      if ($elems.length == 1) {
+        return;
+      }
       if ($elems.length == 2) {
         var adjust = 8;
         $elems[0].css({top: "-=" + adjust});
@@ -82,15 +86,17 @@ class Sheet extends Component {
     var sheet = this.getSheetFromCache();
     var classes = classNames({sheetsInPanel: 1});
 
-    if (!sheet) { return (<LoadingMessage />); }
+    if (!sheet) {
+      return (<LoadingMessage />);
+    }
     else {
       return (
         <div className={classes}>
           <div className="title">{sheet.title.stripHtml()}</div>
 
           <SheetContent
-              sources={sheet.sources}
-              onRefClick={this.props.onRefClick}
+            sources={sheet.sources}
+            onRefClick={this.props.onRefClick}
           />
         </div>
       )
@@ -100,7 +106,7 @@ class Sheet extends Component {
 
 
 class SheetContent extends Component {
-  handleClick(ref,e) {
+  handleClick(ref, e) {
     e.preventDefault();
     this.props.onRefClick(ref);
   }
@@ -110,53 +116,53 @@ class SheetContent extends Component {
 
       if ("ref" in source) {
         return (
-        <SheetSource
-          key={i}
-          onRefClick = {this.props.onRefClick}
-          source = {source}
-          sourceNum={i+1}
-          handleClick = {this.handleClick}
-        />
+          <SheetSource
+            key={i}
+            onRefClick={this.props.onRefClick}
+            source={source}
+            sourceNum={i + 1}
+            handleClick={this.handleClick}
+          />
         )
       }
 
       else if ("comment" in source) {
         return (
-        <SheetComment
-          key={i}
-          sourceNum={i+1}
-          source = {source}
-        />
+          <SheetComment
+            key={i}
+            sourceNum={i + 1}
+            source={source}
+          />
         )
       }
 
       else if ("outsideText" in source) {
         return (
-        <SheetOutsideText
-          key={i}
-          sourceNum={i+1}
-          source = {source}
-        />
+          <SheetOutsideText
+            key={i}
+            sourceNum={i + 1}
+            source={source}
+          />
         )
       }
 
       else if ("outsideBiText" in source) {
         return (
-        <SheetOutsideBiText
-          key={i}
-          sourceNum={i+1}
-          source = {source}
-        />
+          <SheetOutsideBiText
+            key={i}
+            sourceNum={i + 1}
+            source={source}
+          />
         )
       }
 
       else if ("media" in source) {
         return (
-        <SheetMedia
-          key={i}
-          sourceNum={i+1}
-          source = {source}
-        />
+          <SheetMedia
+            key={i}
+            sourceNum={i + 1}
+            source={source}
+          />
         )
       }
 
@@ -164,9 +170,9 @@ class SheetContent extends Component {
 
 
     return (
-        <div className="sheetContent">
-          <div>{sources}</div>
-        </div>
+      <div className="sheetContent">
+        <div>{sources}</div>
+      </div>
     )
   }
 }
@@ -174,25 +180,30 @@ class SheetContent extends Component {
 class SheetSource extends Component {
   render() {
     return (
-    <div className="sheetItem segment">
-      <div className="segmentNumber sans">
-        <span className="en"> <span className="segmentNumberInner">{this.props.sourceNum}</span> </span>
-        <span className="he"> <span className="segmentNumberInner">{Sefaria.hebrew.encodeHebrewNumeral(this.props.sourceNum)}</span> </span>
+      <div className="sheetItem segment">
+        <div className="segmentNumber sans">
+          <span className="en"> <span className="segmentNumberInner">{this.props.sourceNum}</span> </span>
+          <span className="he"> <span
+            className="segmentNumberInner">{Sefaria.hebrew.encodeHebrewNumeral(this.props.sourceNum)}</span> </span>
+        </div>
+
+        {this.props.source.text ?
+          <div className="en">
+            {this.props.source.text.en.stripHtml()}
+            <div className="ref"><a href={"/" + this.props.source.ref} onClick={(e) => {
+              this.props.handleClick(this.props.source.ref, e)
+            } }>{this.props.source.ref}</a></div>
+          </div> : null }
+
+        {this.props.source.text ?
+          <div className="he">
+            {this.props.source.text.he.stripHtml()}
+            <div className="ref"><a href={"/" + this.props.source.ref} onClick={(e) => {
+              this.props.handleClick(this.props.source.ref, e)
+            } }>{this.props.source.heRef}</a></div>
+          </div> : null }
+
       </div>
-
-      {this.props.source.text ?
-        <div className="en">
-          {this.props.source.text.en.stripHtml()}
-          <div className="ref"><a href={"/"+this.props.source.ref} onClick={(e) => {this.props.handleClick(this.props.source.ref, e)} } >{this.props.source.ref}</a></div>
-        </div> : null }
-
-      {this.props.source.text ?
-        <div className="he">
-          {this.props.source.text.he.stripHtml()}
-          <div className="ref"><a href={"/"+this.props.source.ref} onClick={(e) => {this.props.handleClick(this.props.source.ref, e)} } >{this.props.source.heRef}</a></div>
-        </div> : null }
-
-    </div>
     )
   }
 }
@@ -204,7 +215,8 @@ class SheetComment extends Component {
       <div className="sheetItem segment">
         <div className="segmentNumber sans">
           <span className="en"> <span className="segmentNumberInner">{this.props.sourceNum}</span> </span>
-          <span className="he"> <span className="segmentNumberInner">{Sefaria.hebrew.encodeHebrewNumeral(this.props.sourceNum)}</span> </span>
+          <span className="he"> <span
+            className="segmentNumberInner">{Sefaria.hebrew.encodeHebrewNumeral(this.props.sourceNum)}</span> </span>
         </div>
         <div className={lang}>
           {this.props.source.comment.stripHtml()}
@@ -218,10 +230,11 @@ class SheetOutsideText extends Component {
   render() {
     var lang = Sefaria.hebrew.isHebrew(this.props.source.outsideText.stripHtml()) ? "he" : "en";
     return (
-      <div  className="sheetItem segment">
+      <div className="sheetItem segment">
         <div className="segmentNumber sans">
           <span className="en"> <span className="segmentNumberInner">{this.props.sourceNum}</span> </span>
-          <span className="he"> <span className="segmentNumberInner">{Sefaria.hebrew.encodeHebrewNumeral(this.props.sourceNum)}</span> </span>
+          <span className="he"> <span
+            className="segmentNumberInner">{Sefaria.hebrew.encodeHebrewNumeral(this.props.sourceNum)}</span> </span>
         </div>
 
         <div className={lang}>
@@ -238,7 +251,8 @@ class SheetOutsideBiText extends Component {
       <div className="sheetItem segment">
         <div className="segmentNumber sans">
           <span className="en"> <span className="segmentNumberInner">{this.props.sourceNum}</span> </span>
-          <span className="he"> <span className="segmentNumberInner">{Sefaria.hebrew.encodeHebrewNumeral(this.props.sourceNum)}</span> </span>
+          <span className="he"> <span
+            className="segmentNumberInner">{Sefaria.hebrew.encodeHebrewNumeral(this.props.sourceNum)}</span> </span>
         </div>
         <div className="en">{this.props.source.outsideBiText.en.stripHtml()}</div>
         <div className="he">{this.props.source.outsideBiText.he.stripHtml()}</div>
@@ -250,56 +264,45 @@ class SheetOutsideBiText extends Component {
 
 class SheetMedia extends Component {
   makeMediaEmbedLink(mediaURL) {
-      var re = /https?:\/\/(www\.)?(youtu(?:\.be|be\.com)\/(?:.*v(?:\/|=)|(?:.*\/)?)([\w'-]+))/i;
-      var m;
-      var embedHTML;
+    var mediaLink;
 
-      if ((m = re.exec(mediaURL)) !== null) {
-        if (m.index === re.lastIndex) {
-          re.lastIndex++;
-        }
-          if (m.length>0) {
-            embedHTML = '<iframe width="560" height="315" src="https://www.youtube.com/embed/'+m[m.length-1]+'?rel=0&amp;showinfo=0" frameborder="0" allowfullscreen></iframe>';
-          }
-      }
-
-      else if ( (mediaURL).match(/https?:\/\/(www\.)?.+\.(jpeg|jpg|gif|png)$/i) != null ) {
-            embedHTML = '<img class="addedMedia" src="'+mediaURL+'" />';
-      }
-
-
-      else if ( (mediaURL).match(/https?:\/\/(www\.)?.+\.(mp3)$/i) != null ) {
-            embedHTML = '<audio src="'+mediaURL+'" type="audio/mpeg" controls>Your browser does not support the audio element.</audio>';
-      }
-
-      else if ( (mediaURL).match(/https?:\/\/.*clyp\.it\/.+/i) != null ) {
-            embedHTML = '<audio src="'+mediaURL+'.mp3" type="audio/mpeg" controls>Your browser does not support the audio element.</audio>';
-      }
-
-      else if ( (mediaURL).match(/^https?:\/\/(www\.|m\.)?soundcloud\.com\/[\w\-\.]+\/[\w\-\.]+\/?/i) != null ) {
-            embedHTML = '<iframe width="100%" height="166" scrolling="no" frameborder="no" src="https://w.soundcloud.com/player/?url='+ mediaURL + '&amp;color=ff5500&amp;auto_play=false&amp;hide_related=true&amp;show_comments=false&amp;show_user=true&amp;show_reposts=false"></iframe>';
-      }
-
-      else embedHTML = false;
-
-      return embedHTML
+    if (mediaURL.match(/\.(jpeg|jpg|gif|png)$/i) != null) {
+      mediaLink = '<img class="addedMedia" src="' + mediaURL + '" />';
     }
+
+    else if (mediaURL.toLowerCase().indexOf('youtube') > 0) {
+      mediaLink = '<iframe width="560" height="315" src=' + mediaURL + ' frameborder="0" allowfullscreen></iframe>'
+    }
+
+    else if (mediaURL.toLowerCase().indexOf('soundcloud') > 0) {
+      mediaLink = '<iframe width="100%" height="166" scrolling="no" frameborder="no" src="' + mediaURL + '"></iframe>'
+    }
+
+    else if (mediaURL.match(/\.(mp3)$/i) != null) {
+      mediaLink = '<audio src="' + mediaURL + '" type="audio/mpeg" controls>Your browser does not support the audio element.</audio>';
+    }
+
+    else {
+      mediaLink = 'Error loading media...';
+    }
+
+    return mediaLink
+  }
 
   render() {
     return (
       <div className="sheetItem segment">
         <div className="segmentNumber sans">
           <span className="en"> <span className="segmentNumberInner">{this.props.sourceNum}</span> </span>
-          <span className="he"> <span className="segmentNumberInner">{Sefaria.hebrew.encodeHebrewNumeral(this.props.sourceNum)}</span> </span>
+          <span className="he"> <span
+            className="segmentNumberInner">{Sefaria.hebrew.encodeHebrewNumeral(this.props.sourceNum)}</span> </span>
         </div>
-        <div dangerouslySetInnerHTML={ {__html: this.makeMediaEmbedLink(this.props.source.media) } }></div>
+        <div dangerouslySetInnerHTML={ {__html: this.makeMediaEmbedLink(this.props.source.media)} }></div>
       </div>
 
     )
   }
 }
-
-
 
 
 module.exports = Sheet;
