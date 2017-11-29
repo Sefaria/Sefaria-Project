@@ -282,6 +282,7 @@ class Header extends Component {
                              onKeyUp={this.handleSearchKeyUp}
                              onFocus={this.showVirtualKeyboardIcon.bind(this, true)}
                              onBlur={this.showVirtualKeyboardIcon.bind(this, false)}
+                             maxLength={75}
                       title={Sefaria._("Search for Texts or Keywords Here")}/>
                     </div>
                 </div>
