@@ -1075,7 +1075,7 @@ class Trial(object):
 
         # test failures twice, in order to avoid false failures
         if exception_thrown and is_first_test:
-            self.carp("\nRetesting all configurations on {}: ".format(len(failing_results), test_class.__name__), always=True)
+            self.carp("\nRetesting all configurations on {}: ".format(test_class.__name__), always=True)
             second_test_results = self._test_on_all(test_class, caps)
             result_set.include(second_test_results)
         elif len(failing_results) > 0 and is_first_test:
