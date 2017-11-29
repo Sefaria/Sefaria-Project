@@ -31,6 +31,7 @@ const MyNotesPanel              = require('./MyNotesPanel');
 const MyGroupsPanel             = require('./MyGroupsPanel');
 const UpdatesPanel              = require('./UpdatesPanel');
 const ModeratorToolsPanel       = require('./ModeratorToolsPanel');
+const SheetMetadata             = require('./SheetMetadata');
 import Component from 'react-class';
 
 
@@ -565,6 +566,21 @@ class ReaderPanel extends Component {
                     onRecentClick={onRecentClick}
                     hideNavHeader={this.props.hideNavHeader} />);
 
+    } else if (this.state.menuOpen === "sheet meta") {
+      var menu = (<SheetMetadata
+                    mode={this.state.menuOpen}
+                    interfaceLang={this.props.interfaceLang}
+                    close={this.closeMenus}
+                    sheet={this.state.sheet}
+                    versionLanguage={this.state.versionLanguage}
+                    settingsLanguage={this.state.settings.language == "hebrew"?"he":"en"}
+                    narrowPanel={!this.props.multiPanel}
+                    currentRef={this.state.currentlyVisibleRef}
+                    openNav={this.openMenu.bind(null, "navigation")}
+                    openDisplaySettings={this.openDisplaySettings}
+                    selectVersion={this.props.selectVersion}
+                    showBaseText={this.showBaseText}/>);
+
     }
     else if (this.state.menuOpen === "text toc") {
       var menu = (<ReaderTextTableOfContents
@@ -829,6 +845,10 @@ class ReaderControls extends Component {
     e.preventDefault();
     this.props.openMenu("text toc");
   }
+  openSheetMeta(e) {
+    e.preventDefault();
+    this.props.openMenu("sheet meta");
+  }
   componentDidMount() {
     var title     = this.props.currentRef;
     if (title) {
@@ -870,7 +890,7 @@ class ReaderControls extends Component {
     var connectionsHeader = this.props.multiPanel && mode === "Connections";
     var showVersion = this.props.versionLanguage == "en" && (this.props.settings.language == "english" || this.props.settings.language == "bilingual");
     var versionTitle = this.props.version ? this.props.version.replace(/_/g," ") : "";
-    var url = Sefaria.ref(title) ? "/" + Sefaria.normRef(Sefaria.ref(title).book) : Sefaria.normRef(title);
+    var url = this.props.sheet ? "/sheets/"+ this.props.sheet.id : Sefaria.ref(title) ? "/" + Sefaria.normRef(Sefaria.ref(title).book) : Sefaria.normRef(title);
     var centerContent = connectionsHeader ?
       (<div className="readerTextToc">
           <ConnectionsPanelHeader
@@ -883,7 +903,7 @@ class ReaderControls extends Component {
             toggleLanguage={this.props.toggleLanguage}
             interfaceLang={this.props.interfaceLang}/>
         </div>) :
-      (<div className={"readerTextToc" + (categoryAttribution ? ' attributed' : '')} onClick={this.openTextToc}>
+      (<div className={"readerTextToc" + (categoryAttribution ? ' attributed' : '')} onClick={this.props.sheet? this.openSheetMeta : this.openTextToc}>
         <div className="readerTextTocBox" role="heading" aria-level="1" aria-live="polite">
           <a href={url} aria-label={"Show table of contents for " + title} >
             { title ? (<i className="fa fa-caret-down invisible"></i>) : null }
