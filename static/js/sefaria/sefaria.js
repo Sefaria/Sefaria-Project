@@ -1,27 +1,22 @@
-var extend    = require('extend'),
-    param     = require('querystring').stringify,
-    striptags = require('striptags'),
+var extend     = require('extend'),
+    param      = require('querystring').stringify,
+    striptags  = require('striptags'),
     { Search } = require('./search'),
-    palette   = require('./palette'),
-    Track     = require('./track'),
-    Hebrew    = require('./hebrew'),
-    Util      = require('./util'),
-    ga        = require('./sefariaGa'),
-    $         = require('./sefariaJquery');
+    palette    = require('./palette'),
+    Track      = require('./track'),
+    Hebrew     = require('./hebrew'),
+    Util       = require('./util'),
+    $          = require('./sefariaJquery');
 
-
-if (typeof document !== 'undefined') {
-  var INBROWSER = true;
-} else {
-  var INBROWSER = false;
-}
+var INBROWSER = (typeof document !== 'undefined');
 
 var Sefaria = Sefaria || {
   _dataLoaded: false,
   toc: [],
   books: [],
   booksDict: {},
-  recentlyViewed: []
+  recentlyViewed: [],
+  apiHost: "" // Defaults to localhost, override to talk another server
 };
 
 if (typeof window !== 'undefined') {
@@ -249,7 +244,7 @@ Sefaria = extend(Sefaria, {
       //wrapLinks:  settings.wrapLinks  || 1
       wrapLinks: ("wrapLinks" in settings) ? settings.wrapLinks : 1
     };
-    return this._api(this._textUrl(ref, settings), function(data) {
+    return this._api(Sefaria.apiHost + this._textUrl(ref, settings), function(data) {
       this._saveText(data, settings);
       cb(data);
       //console.log("API return for " + data.ref)
@@ -272,7 +267,7 @@ Sefaria = extend(Sefaria, {
       if (cb) {cb(versions)}
       return versions
     }
-    var url = "/api/texts/versions/" + Sefaria.normRef(ref);
+    var url = Sefaria.apiHost + "/api/texts/versions/" + Sefaria.normRef(ref);
     this._api(url, function(data) {
       if (cb) { cb(data); }
       Sefaria._versions[ref] = data;
@@ -451,7 +446,7 @@ Sefaria = extend(Sefaria, {
     if (title in this._shape) {
         return this._shape[title];
     }          
-    var url = "/api/shape/" + title;
+    var url = Sefaria.apiHost + "/api/shape/" + title;
     return this._api(url, function(data) {
       if (cb) { cb(data); }
       Sefaria._shape[title] = data;
@@ -481,7 +476,7 @@ Sefaria = extend(Sefaria, {
       if (cb) {cb(details)}
       return details;
     }
-    var url = "/api/v2/index/" + title + "?with_content_counts=1";
+    var url = Sefaria.apiHost + "/api/v2/index/" + title + "?with_content_counts=1";
     this._api(url, function(data) {
       if (cb) { cb(data); }
       Sefaria._indexDetails[title] = data;
@@ -513,7 +508,7 @@ Sefaria = extend(Sefaria, {
           })};
         $.ajax({
           dataType: "json",
-          url: "/api/texts/" + data.url,
+          url: Sefaria.apiHost + "/api/texts/" + data.url,
           data: d,
           type: "POST",
           // Clear cache with a sledgehammer.  May need more subtlety down the road.
@@ -559,12 +554,12 @@ Sefaria = extend(Sefaria, {
   // lookupRef should work as a replacement for parseRef - it uses a callback rather than return value.  Besides that - same data.
   lookupRef: function(n, c, e)  { return this.lookup(n,c,e,true);},
   lookup: function(name, callback, onError, refOnly) {
-      /*
-        * name - string to lookup
-        * callback - callback function, takes one argument, a data object
-        * onError - callback
-        * refOnly - if True, only search for titles, otherwise search for People and Categories as well.
-       */
+    /*
+      * name - string to lookup
+      * callback - callback function, takes one argument, a data object
+      * onError - callback
+      * refOnly - if True, only search for titles, otherwise search for People and Categories as well.
+     */
     name = name.trim();
     var cache = refOnly? this._ref_lookups: this._lookups;
     onError = onError || function() {};
@@ -575,7 +570,7 @@ Sefaria = extend(Sefaria, {
     else {
         return $.ajax({
           dataType: "json",
-          url: "/api/name/" + name + (refOnly?"?ref_only=1":""),
+          url: Sefaria.apiHost + "/api/name/" + name + (refOnly?"?ref_only=1":""),
           error: onError,
           success: function(data) {
               cache[name] = data;
@@ -631,7 +626,7 @@ Sefaria = extend(Sefaria, {
         /*console.log("data from cache: ", this._lexiconLookups[cache_key]);*/
         cb(this._lexiconLookups[cache_key]);
     } else if (words.length > 0) {
-      var url = "/api/words/" + encodeURIComponent(words)+"?never_split=1";
+      var url = Sefaria.apiHost + "/api/words/" + encodeURIComponent(words)+"?never_split=1";
       if(ref){
         url+="&lookup_ref="+ref;
       }
@@ -660,7 +655,7 @@ Sefaria = extend(Sefaria, {
     if (ref in this._links) {
       cb(this._links[ref]);
     } else {
-       var url = "/api/links/" + ref + "?with_text=0";
+       var url = Sefaria.apiHost + "/api/links/" + ref + "?with_text=0";
        this._api(url, function(data) {
           if ("error" in data) {
             return;
@@ -970,7 +965,7 @@ Sefaria = extend(Sefaria, {
       };
       refs.map(function(ref) {
        if (ref in Sefaria._privateNotes) { return; } // Only make API calls for unloaded refs
-       var url = "/api/notes/" + Sefaria.normRef(ref) + "?private=1";
+       var url = Sefaria.apiHost + "/api/notes/" + Sefaria.normRef(ref) + "?private=1";
        this._api(url, function(data) {
           if ("error" in data) {
             return;
@@ -1005,7 +1000,7 @@ Sefaria = extend(Sefaria, {
   allPrivateNotes: function(callback) {
     if (this._allPrivateNote || !callback) { return this._allPrivateNotes; }
 
-    var url = "/api/notes/all?private=1";
+    var url = Sefaria.apiHost + "/api/notes/all?private=1";
     this._api(url, function(data) {
       if ("error" in data) {
         return;
@@ -1042,7 +1037,7 @@ Sefaria = extend(Sefaria, {
     }
   },
   relatedApi: function(ref, callback) {
-    var url = "/api/related/" + Sefaria.normRef(ref);
+    var url = Sefaria.apiHost + "/api/related/" + Sefaria.normRef(ref);
     return this._api(url, function(data) {
       if ("error" in data) {
         return;
@@ -1086,7 +1081,7 @@ Sefaria = extend(Sefaria, {
     if (ref in this._relatedPrivate) {
       callback(this._relatedPrivate[ref]);
     } else {
-       var url = "/api/related/" + Sefaria.normRef(ref) + "?private=1";
+       var url = Sefaria.apiHost + "/api/related/" + Sefaria.normRef(ref) + "?private=1";
        this._api(url, function(data) {
           if ("error" in data) {
             return;
@@ -1322,7 +1317,7 @@ Sefaria = extend(Sefaria, {
     Sefaria.recentlyViewed = recent;
     var packedRecent = recent.map(Sefaria.packRecentItem);
     if (Sefaria._uid) {
-        $.post("/api/profile", {json: JSON.stringify({recentlyViewed: packedRecent})}, function(data) {} );
+        $.post(Sefaria.apiHost + "/api/profile", {json: JSON.stringify({recentlyViewed: packedRecent})}, function(data) {} );
     } else {
       var cookie = INBROWSER ? $.cookie : Sefaria.util.cookie;
       packedRecent = packedRecent.slice(0, 6);
@@ -1364,7 +1359,7 @@ Sefaria = extend(Sefaria, {
     if (this._topicList) {
       if (callback) { callback(this._topicList); }
     } else if (callback) {
-      var url = "/api/topics"; // TODO separate topic list API
+      var url = Sefaria.apiHost + "/api/topics"; // TODO separate topic list API
        Sefaria._api(url, function(data) {
           this._topicList = data;
            if (callback) { callback(data); }
@@ -1379,7 +1374,7 @@ Sefaria = extend(Sefaria, {
       if (callback) { callback(data); }
     } else if (callback) {
       var data = null;
-      var url = "/api/topics/" + topic;
+      var url = Sefaria.apiHost + "/api/topics/" + topic;
       Sefaria._api(url, function(data) {
         this._topics[topic] = data;
         if (callback) { callback(data); }
@@ -1411,7 +1406,7 @@ Sefaria = extend(Sefaria, {
       if (tags) {
         if (callback) { callback(tags); }
       } else {
-        var url = "/api/sheets/trending-tags";
+        var url = Sefaria.apiHost + "/api/sheets/trending-tags";
          Sefaria._api(url, function(data) {
             this._trendingTags = data;
             if (callback) { callback(data); }
@@ -1434,7 +1429,7 @@ Sefaria = extend(Sefaria, {
         });
         this._tagList["alpha"] = tags;
       } else {
-        var url = "/api/sheets/tag-list/" + sortBy;
+        var url = Sefaria.apiHost + "/api/sheets/tag-list/" + sortBy;
          Sefaria._api(url, function(data) {
             this._tagList[sortBy] = data;
             if (callback) { callback(data); }
@@ -1449,7 +1444,7 @@ Sefaria = extend(Sefaria, {
       if (tags) {
         if (callback) { callback(tags); }
       } else {
-        var url = "/api/sheets/tag-list/user/"+uid;
+        var url = Sefaria.apiHost + "/api/sheets/tag-list/user/"+uid;
          Sefaria._api(url, function(data) {
             this._userTagList = data;
              if (callback) { callback(data); }
@@ -1464,7 +1459,7 @@ Sefaria = extend(Sefaria, {
       if (sheets) {
         if (callback) { callback(sheets); }
       } else {
-        var url = "/api/sheets/tag/" + tag;
+        var url = Sefaria.apiHost + "/api/sheets/tag/" + tag;
          $.getJSON(url, function(data) {
             this._sheetsByTag[tag] = data.sheets;
             if (callback) { callback(data.sheets); }
@@ -1483,7 +1478,7 @@ Sefaria = extend(Sefaria, {
       if (sheets) {
         if (callback) { callback(sheets); }
       } else {
-        var url = "/api/sheets/user/" + uid + "/" + sortBy + "/" + numberToRetrieve + "/" + offset;
+        var url = Sefaria.apiHost + "/api/sheets/user/" + uid + "/" + sortBy + "/" + numberToRetrieve + "/" + offset;
          Sefaria._api(url, function(data) {
             this._userSheets[uid+sortBy+offset+numberToRetrieve] = data.sheets;
             if (callback) { callback(data.sheets); }
@@ -1500,7 +1495,7 @@ Sefaria = extend(Sefaria, {
       if (sheets) {
         if (callback) { callback(sheets); }
       } else {
-        var url = "/api/sheets/all-sheets/"+numberToRetrieve+"/"+offset;
+        var url = Sefaria.apiHost + "/api/sheets/all-sheets/"+numberToRetrieve+"/"+offset;
         Sefaria._api(url, function(data) {
           this._publicSheets["offset"+offset+"num"+numberToRetrieve] = data.sheets;
           if (callback) { callback(data.sheets); }
@@ -1516,7 +1511,7 @@ Sefaria = extend(Sefaria, {
       if (sheets) {
         if (callback) { callback(sheets); }
       } else {
-        var url = "/api/sheets/all-sheets/3/0";
+        var url = Sefaria.apiHost + "/api/sheets/all-sheets/3/0";
         Sefaria._api(url, function(data) {
           this._topSheets = data.sheets;
           if (callback) { callback(data.sheets); }
@@ -1606,7 +1601,7 @@ Sefaria = extend(Sefaria, {
       this._sortSheets(group, sortBy);
       if (callback) { callback(group); }
     } else if (callback) {
-      var url = "/api/groups/" + group;
+      var url = Sefaria.apiHost + "/api/groups/" + group;
        Sefaria._api(url, function(data) {
           this._groups[group] = data;
           this._sortSheets(data, sortBy);
@@ -1648,7 +1643,7 @@ Sefaria = extend(Sefaria, {
     if (this._groupsList) {
       if (callback) { callback(this._groupsList); }
     } else if (callback) {
-      var url = "/api/groups";
+      var url = Sefaria.apiHost + "/api/groups";
        Sefaria._api(url, function(data) {
           this._groupsList = data;
            if (callback) { callback(data); }
