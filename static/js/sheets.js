@@ -3390,7 +3390,8 @@ $("#addToSheetModal .ok").click(function(){
 		} else {
 			var name = data.ref ? data.ref : 
 				(data.comment ? Sefaria._("This comment") : Sefaria._("This source"));
-			sjs.alert.message(`${name} ${Sefaria._("was added to")} "${title}".<br><br><a target="_blank" href="/sheets/${data.id}">${Sefaria._("View sheet")}</a>`);
+			//sjs.alert.message(`${name} ${Sefaria._("was added to")} "${title}".<br><br><a target="_blank" href="/sheets/${data.id}">${Sefaria._("View sheet")}</a>`);
+			sjs.alert.message(name + " " + Sefaria._("was added to") + " \"" + title + "\".<br><br><a target=\"_blank\" href=\"/sheets/" + data.id + "\">" + Sefaria._("View sheet") + "</a>");
 			sjs.track.sheets("Source Copied");
 		}
 	}
