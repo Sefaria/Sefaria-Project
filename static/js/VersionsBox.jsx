@@ -71,7 +71,7 @@ class VersionsBox extends Component {
         {
           versionLangs.map((lang) => (
             <div key={lang}>
-              <div className="versionLanguage">{Sefaria._(this.props.translateISOLanguageCode(lang))}<span className="versionCount">{` (${versionLangMap[lang].length})`}</span></div>
+              <div className="versionLanguage">{Sefaria._(this.props.translateISOLanguageCode(lang))}<span className="enInHe connectionsCount">{` (${versionLangMap[lang].length})`}</span></div>
               {
                 versionLangMap[lang].map((v) => (
                   <VersionBlock

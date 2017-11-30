@@ -1671,7 +1671,6 @@ Sefaria = extend(Sefaria, {
     //this is here for now, we might want to move it somewhere else.
   _i18nInterfaceStrings: {
       "Sefaria": "ספריא",
-
       "Sefaria Group" : "קבוצות בספריא",
       "Sefaria Groups" : "קבוצות בספריא",
       "Sefaria Source Sheets":"דפי מקורות בספריא",
@@ -1691,7 +1690,7 @@ Sefaria = extend(Sefaria, {
       " & ": " | ",
       "My Source Sheets" : "דפי המקורות שלי",
       "Public Source Sheets":"דפי מקורות פומביים",
-      "Version History": "היסטוריית גרסה",
+      "History": "היסטוריה",
       "Digitized by Sefaria": 'הונגש ועובד לצורה דיגיטלית על ידי ספריא',
       "Public Domain": "רשיון בנחלת הכלל",
       "CC-BY": "רשיון CC-BY",

@@ -1464,6 +1464,8 @@ a.readerNavCategory {
 }
 .readerTextTableOfContents .versionBlocks {
   text-align: center;
+  border-top: 1px solid #ccc;
+  padding-top: 20px;
 }
 .readerTextTableOfContents .versionBlocks .versionLanguageBlock {
   padding-bottom: 30px;
@@ -1491,6 +1493,9 @@ a.readerNavCategory {
 .versionBlock a {
   color: #999;
 }
+.versionBlock .versionNotes a {
+  color: #333;
+}
 .versionBlock .versionDetails {
   display: inline-block;
   font-size: 12px;
@@ -1507,6 +1512,7 @@ a.readerNavCategory {
 .versionBlock .versionNotes {
   padding-top: 4px;
   color: #999;
+  font-size: 13px;
 }
 .modTools {
   width: 50%;
@@ -4646,7 +4652,7 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
   border-bottom: solid 1px #CCC;
 }
 .aboutBox .aboutTitle {
-  padding: 10px 0 25px 0;
+  padding: 10px 0 15px 0;
   font-size: 20px;
   color: black;
   display: inline-block;
@@ -4673,7 +4679,13 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
   font-size: 13px;
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
   color: #999;
-  padding-bottom: 15px;
+  padding-bottom: 5px;
+  text-align: left;
+  line-height: 150%;
+}
+.readerApp.interface-hebrew .aboutBox .versionDetails,
+.readerApp.interface-hebrew .versionsBox .versionDetails {
+  text-align: right;
 }
 .aboutBox .versionDetails .separator,
 .versionsBox .versionDetails .separator {
@@ -4721,7 +4733,7 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
   text-transform: none;
 }
 .versionsBox .versionBlock {
-  padding: 15px 20px;
+  padding: 20px;
   border-top: solid 1px #CCC;
 }
 .versionsBox .versionBlock .versionTitle a {
