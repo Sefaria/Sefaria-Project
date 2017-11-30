@@ -35,14 +35,15 @@ class SheetStats(object):
 		If `test` is not 0, only sample 1 in every `test` sheets to count.
 		"""
 		print "Loading sheets..."
+		proj = {"sources.ref": 1, "tags": 1, "options": 1, "status": 1, "id": 1}
 		if query:
-			sheets            = db.sheets.find(query)
+			sheets            = db.sheets.find(query, proj)
 			print "%d matching query" % sheets.count()
 		else:
 			sheets            = db.sheets.find()
 			self.total        = sheets.count()
 			print "%d Total" % self.total
-			self.public_total = db.sheets.find({"status": "public"}).count()
+			self.public_total = db.sheets.find({"status": "public"}, proj).count()
 			print "%d Public" % self.public_total
 		
 		print "Processing tags..."
