@@ -12,6 +12,7 @@ calculate_sheetrank()
 # reinit pagesheetrank after calculation
 init_pagesheetrank_dicts()
 index_all(merged=False)
+index_all(merged=True)
 r = requests.post("https://www.sefaria.org/admin/index-sheets-by-timestamp", data={"timestamp": last_dump, "apikey": SEFARIA_BOT_API_KEY})
 if "error" in r.text:
     raise Exception("Error when calling admin/index-sheets-by-timestamp API: " + r.text)
