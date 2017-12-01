@@ -672,7 +672,7 @@ class AtomicTest(AbstractTest):
         pass
 
     def run(self):
-
+        err = None
         if self.is_root:
             try:
                 self.setup()
@@ -687,8 +687,8 @@ class AtomicTest(AbstractTest):
             self.body()
             self.driver.execute_script('"**** Exit {} ****"'.format(self.name()))
         except Exception:
-            msg = traceback.format_exc()
-            result = SingleTestResult(self.__class__, self.cap, False, msg)
+            err = traceback.format_exc()
+            result = SingleTestResult(self.__class__, self.cap, False, err)
         else:
             result = SingleTestResult(self.__class__, self.cap, True)
 
@@ -699,7 +699,9 @@ class AtomicTest(AbstractTest):
                 msg = u"Exception in {}.teardown()\n{}".format(self.name(), traceback.format_exc())
                 self.carp(msg, always=True)
 
-        self.carp(u"{} - {}\n".format(self.name(), result.word_status()), result.letter_status())
+        self.carp(u"{} - {}".format(self.name(), result.word_status()), always=True)
+        if err:
+            self.carp(err, always=True)
 
         return result
 
