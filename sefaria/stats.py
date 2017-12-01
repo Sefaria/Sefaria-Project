@@ -123,6 +123,27 @@ class SheetStats(object):
 		for ref in self.refs_by_category:
 			self.sorted_refs_by_category[ref] = sorted(self.refs_by_category[ref].iteritems(), key=lambda x: -x[1])
 
+	def collapse_ref_counts(self, refs):
+		"""
+		Takes and returns a list of ref, count tuples. 
+		Merge together results for refs for which one is a specification of the other.
+		E.g., if "Shabbat 21a", and "Shabbat 21:5" both appear, add their counts together and keep the mores specific ref.
+		"""
+		collapsed_refs = {}
+		for ref1 in refs:
+			matched = False
+			for ref2 in refs:
+				if ref1 == ref2:
+					continue
+				oRef1, oRef2 = Ref(ref1[0]), Ref(ref2[0])
+				if oRef2.contains(oRef1):
+					collapsed_refs[ref1[0]] = ref1[1] + ref2[1]
+				if oRef2.contains(oRef1) or oRef1.contains(oRef2):
+					matched = True
+			if not matched:
+				collapsed_refs[ref1[0]] = ref1[1]
+		return sorted(collapsed_refs.iteritems(), key=lambda x: -x[1])
+		 
 	def print_stats(self):
 		show_count = self.show_count
 		print "*********************************\n"
@@ -202,47 +223,28 @@ class SheetStats(object):
 		save_sheet(sheet, 1)
 
 	def save_top_for_category(self, cat, collapse=False):
-		"""
-		If `collapse`, merge together results for refs for which one is a specification of the other.
-		E.g., if "Shabbat 21a", and "Shabbat 21:5" both appear, add their counts together and keep the mores specific ref.
- 		"""
  		top_books_list = []
  		for book in self.sorted_books:
  			idx = library.get_index(book[0])
  			if idx.categories[0] == cat and "Commentary" not in idx.categories:
  				top_books_list.append("{} ({:,})".format(book[0], book[1]))
 		top_books = "<ol><li>" + "</li><li>".join(top_books_list[:10]) + "</li></ol>"
-		sources = [{"outsideText": "Most frequently used tractates (full list below):<br>%s" % top_books}]
+		sources = [{"comment": "Most frequently used tractates (full list below):<br>%s" % top_books}]
 
-		refs = [ref for ref in self.sorted_refs_by_category[cat][:25]]
-		if collapse:
-			collapsed_refs = {}
-			for r1 in refs:
-				matched = False
-				for r2 in refs:
-					if r1 == r2:
-						continue
-					or1, or2 = Ref(r1[0]), Ref(r2[0])
-					if or2.contains(or1):
-						collapsed_refs[r1[0]] = r1[1] + r2[1]
-					if or2.contains(or1) or or1.contains(or2):
-						matched = True
-				if not matched:
-					collapsed_refs[r1[0]] = r1[1]
-			refs = sorted(collapsed_refs.iteritems(), key=lambda x: -x[1])
+		refs = self.sorted_refs_by_category[cat][:50]
+		refs = self.collapse_ref_counts(refs)[:20] if collapse else refs[:20]
 
 		sources += [{"ref": ref[0]} for ref in refs]
 
 		all_top_books = "<ol><li>" + "</li><li>".join(top_books_list) + "</li></ol>"
-		sources += [{"outsideText": "Most frequently used tractates: %s" % all_top_books}]
+		sources += [{"comment": "Most frequently used tractates: %s" % all_top_books}]
 
 		sheet = {
 			"title": "Top Sources in %s - %s" % (cat, datetime.now().strftime("%B %Y")),
 			"sources": sources,
-			"options": {"numbered": 0, "divineNames": "noSub"}
+			"options": {"numbered": 1, "divineNames": "noSub"}
 		}
 		save_sheet(sheet, 1)
-
 
 	def save_top_sheets(self):
 		self.save_top_sources_sheet()
