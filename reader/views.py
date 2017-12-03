@@ -900,10 +900,11 @@ def terms_editor(request, term=None):
     Add/Editor a term using the JSON Editor.
     """
     if term is not None:
-        term = Term().load_by_title(term)
-        data = term.contents()
+        existing_term = Term().load_by_title(term)
+        data = existing_term.contents() if existing_term else {"name": term, "titles": []}
     else:
-        data = {}
+        generic_response = { "title": "Terms Editor", "content": "Please include the primary Term name in the URL to uses the Terms Editor." }
+        return render_to_response('static/generic.html', generic_response, RequestContext(request))
 
     dataJSON = json.dumps(data)
 
@@ -911,6 +912,7 @@ def terms_editor(request, term=None):
                              {
                               'term': term,
                               'dataJSON': dataJSON,
+                              'is_update': "true" if existing_term else "false"
                              },
                              RequestContext(request))
 
@@ -1824,12 +1826,7 @@ def links_api(request, link_id_or_ref=None):
     """
     API for textual links.
     Currently also handles post notes.
-    """
     #TODO: can we distinguish between a link_id (mongo id) for POSTs and a ref for GETs?
-    """
-    NOTE: This function is not written like the other functions with a post method.
-    It's attempting a cleaner way to distinguish between csrf proteced use and API use bu juggling some variables around
-    Rather than duplicating functionality.
     """
     if request.method == "GET":
         callback=request.GET.get("callback", None)
@@ -2231,12 +2228,6 @@ def category_api(request, path=None):
        It will also attempt to find the closest parent.  If found, it will include "closest_parent" alongside "error".
     POST takes no arguments on the URL.  Takes complete category as payload.  Category must not already exist.  Parent of category must exist.
     """
-    """
-    NOTE: This function is not written like the other functions with a post method.
-    It's attempting a cleaner way to distinguish between csrf proteced use and API use bu juggling some variables around
-    Rather than duplicating functionality.
-    """
-
     if request.method == "GET":
         if not path:
             return jsonResponse({"error": "Please provide category path."})
@@ -2312,11 +2303,6 @@ def terms_api(request, name):
     API for adding a Term to the Term collection.
     This is mainly to be used for adding hebrew internationalization language for section names, categories and commentators
     """
-    """
-    NOTE: This function is not written like the other functions with a post method.
-    It's attempting a cleaner way to distinguish between csrf proteced use and API use bu juggling some variables around
-    Rather than duplicating functionality.
-    """
     if request.method == "GET":
         term = Term().load({'name': name}) or Term().load_by_title(name)
         if term is None:
@@ -2324,13 +2310,26 @@ def terms_api(request, name):
         else:
             return jsonResponse(term.contents(), callback=request.GET.get("callback", None))
 
-    if request.method == "POST":
-        def _internal_do_post(request, term, uid, **kwargs):
+    if request.method in ("POST", "DELETE"):
+        def _internal_do_post(request, uid):
             t = Term().load({'name': name}) or Term().load_by_title(name)
-            if t and not request.GET.get("update"):
-                return {"error": "Term already exists."}
-            func = tracker.update if request.GET.get("update", False) else tracker.add
-            return func(uid, model.Term, term, **kwargs).contents()
+            if request.method == "POST":
+                term = request.POST.get("json")
+                if not term:
+                    return {"error": "Missing 'json' parameter in POST data."}
+                term = json.loads(term)
+                if t and not request.GET.get("update"):
+                    return {"error": "Term already exists."}
+                elif t and request.GET.get("update"):
+                    term["_id"] = t._id
+
+                func = tracker.update if request.GET.get("update", False) else tracker.add
+                return func(uid, model.Term, term, **kwargs).contents()
+            
+            elif request.method == "DELETE":
+                if not t:
+                    return {"error": 'Term "%s" does not exist.' % term}
+                return tracker.delete(uid, model.Term, t._id)
 
         if not request.user.is_authenticated():
             key = request.POST.get("apikey")
@@ -2351,14 +2350,7 @@ def terms_api(request, name):
         else:
             return jsonResponse({"error": "Only Sefaria Moderators can add or edit terms."})
 
-        j = request.POST.get("json")
-        if not j:
-            return jsonResponse({"error": "Missing 'json' parameter in post data."})
-        j = json.loads(j)
-        return jsonResponse(_internal_do_post(request, j, uid, **kwargs))
-
-    if request.method == "DELETE":
-        return jsonResponse({"error": "Unsupported HTTP method."})  # TODO: support this?
+        return jsonResponse(_internal_do_post(request, uid))      
 
     return jsonResponse({"error": "Unsupported HTTP method."})
 

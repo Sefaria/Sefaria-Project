@@ -3,7 +3,7 @@
 {% load sefaria_tags %}
 {% load humanize %}
 
-{% block title %}Edit Term: {{ term }}{% endblock %}
+{% block title %}Edit Term: {{ term.name }}{% endblock %}
 
 {% block css %}
 	#jsonEditor input {
@@ -35,7 +35,7 @@
 <div id="editTerm" class="static container">
   <div class="inner">
     <h1>Terms Editor</h1>
-    <div id="jsonEditor"></div>
+    <div id="jsonEditor"><i>Loading...</i></div>
   </div>
 </div>
 
@@ -50,6 +50,7 @@
   <script>
     {% autoescape off %}
     var data = {{ dataJSON }};
+    data.isUpdate = {{ is_update }};
     {% endautoescape %}
     $(function() {
       SefariaJsonEditor("terms", data, document.getElementById("jsonEditor"));

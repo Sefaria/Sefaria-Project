@@ -15,13 +15,17 @@ window.SefariaJsonEditor = function(schemaName, initData, container) {
     return;
   }
 
+  const isUpdate = initData.isUpdate;
+  delete initData.isUpdate;
+
   const onSubmit = function(form) {
     var data = form.formData;
-    $.post("/api/" + schemaName + "/" + data.name + "?update=1",
+    alert("Saving... Please wait for confirmation.");
+    $.post("/api/" + schemaName + "/" + data.name + (isUpdate ? "?update=1" : ""),
       {"json": JSON.stringify(data)},
       function(data) { 
       	if ("error" in data) {
-      		alert(data.error);
+      		alert("Error: " + data.error);
       	} else {
       		alert("Saved.");      		
       	}
@@ -29,13 +33,35 @@ window.SefariaJsonEditor = function(schemaName, initData, container) {
     );
   };
 
+  const onDelete = function() {
+    if (confirm("Are you sure you want to delete this?")) {
+      alert("Deleting... Please wait for confirmation.");
+      $.ajax({
+        url: "/api/" + schemaName + "/" + data.name,
+        method: "DELETE",
+        success: function(data) { 
+          if ("error" in data) {
+            alert("Error: " + data.error);
+          } else {
+            alert("Deleted.");
+            window.location = "/";
+          }
+        }
+      });
+    }
+  };
+
   const log = data => { console.log(data); };
-  ReactDOM.render(<Form 
-					schema={schema}
-					formData={initData}
-					onSubmit={onSubmit}
-					onError={log} />,
-				  container);
+  ReactDOM.render(
+    <div>
+      <Form 
+				schema={schema}
+				formData={initData}
+				onSubmit={onSubmit}
+				onError={log} />
+      { isUpdate ? <div className="btn btn-danger" style={{"float":"right"}} onClick={onDelete}>Delete</div> : null }
+    </div>,
+		container);
 };
 
 const schemas = {
@@ -69,8 +95,12 @@ const schemas = {
           }
         },
       	"required": ["text", "lang"],
+      },
+      "scheme": {
+        "title": "Optional name of a term scheme this term participates in.",
+        "type": "string"
       }
     },
-    "x-ordering": ["name", "titles"]
+    "x-ordering": ["name", "titles", "scheme"]
   }
 };
