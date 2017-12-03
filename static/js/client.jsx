@@ -7,6 +7,7 @@ const $            = require('./sefaria/sefariaJquery'),
 
 $(function() {
   var container = document.getElementById('s2');
+  var footerContainer = document.getElementById('footer');
   var component;
   DjangoCSRF.init();
   if (DJANGO_VARS.inReaderApp) {
@@ -20,7 +21,10 @@ $(function() {
     container = document.getElementById(DJANGO_VARS.containerId);
     component = React.createElement(SefariaReact[DJANGO_VARS.reactComponentName], DJANGO_VARS.props);
     ReactDOM.render(component, container);
-    ReactDOM.render(React.createElement(SefariaReact.Footer), document.getElementById('footer'));
+    if (footerContainer){
+      ReactDOM.render(React.createElement(SefariaReact.Footer), footerContainer);
+    }
+
   
   } else {
     // Rendering the Header & Footer only on top of a static page
@@ -47,6 +51,8 @@ $(function() {
       interfaceLang: DJANGO_VARS.interfaceLang
     });
     ReactDOM.render(component, container);
-    ReactDOM.render(React.createElement(SefariaReact.Footer), document.getElementById('footer'));
+    if (footerContainer){
+      ReactDOM.render(React.createElement(SefariaReact.Footer), footerContainer);
+    }
   }
 });

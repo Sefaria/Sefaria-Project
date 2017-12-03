@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Top Contributors | Sefefaria" %}{% endblock %}
+
+{% block description %}{% trans "See who has been contributing most to Sefaria in terms of texts, translations, and source sheet." %}{% endblock %}
+
+{% block css %}
+
+    #boards {
+        display: flex;
+    }
+    #boards div {
+        flex: 1;
+    }
+    #boards .board {
+        margin-bottom: 30px;
+        line-height: 1.6;
+        font-size: 18px;
+        padding: 0 30px;
+    }
+
+{% endblock %}
+
+
+{% block content %}
+<div id="leaderboardPage" class="static">
+    <div class="inner">
+        <h1>
+            <span class="int-en">Top Contributors</span>
+            <span class="int-he">Top Contributors</span>
+        </h1>
+
+        <div id="boards">
+            <div>
+            {% include "elements/leaderboard.html" with title="Today" leaders=leaders1 %}
+
+            {% include "elements/leaderboard.html" with title="This Week" leaders=leaders7 %}
+
+            {% include "elements/leaderboard.html" with title="This Month" leaders=leaders30 %}
+            </div>
+            <div>
+            {% include "elements/leaderboard.html" with title="All Time" leaders=leaders %}
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
