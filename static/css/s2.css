@@ -1072,7 +1072,7 @@ a.readerNavCategory {
   width: 100%;
   height: 100%;
 }
-.readerNavMenu .readerNavCategoryMenu .refLink.incomplete, 
+.readerNavMenu .readerNavCategoryMenu .refLink.incomplete,
 .readerNavMenu .catLink.incomplete {
   opacity: 0.65;
 }
@@ -2100,17 +2100,15 @@ a.readerNavCategory {
 .singlePanel .readerControls .readerControlsInner {
   padding: 0 10px;
 }
-.readerControls .readerTextToc {
-  text-align: center;
-  display: inline-block;
-  cursor: pointer;
-  vertical-align: middle;
-}
 .readerControls .readerTextToc a {
   color: inherit;
 }
 .readerControls .readerTextToc a:hover {
   text-decoration: none;
+}
+.readerControls .readerTextToc .readerTextTocBox a {
+  display: flex;
+  align-items: center;
 }
 .readerControls.connectionsHeader .readerTextToc {
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
@@ -2177,21 +2175,29 @@ a.readerNavCategory {
   box-sizing: border-box;
   display: block;
   height: 50px;
+  text-align: center;
+  display: inline-block;
+  cursor: pointer;
+  vertical-align: middle;
+  min-width: 0; /* see https://css-tricks.com/flexbox-truncated-text/ */
 }
 .readerTextTocHeader.readerTextToc {
   font-size: 14px;
 }
 .hebrew .readerControls .readerTextToc {
   direction: rtl;
+  min-width: 0;
 }
 .readerControls .readerTextToc .readerTextTocBox {
   display: inline-block;
+  vertical-align: middle;
+  color: #333;
+  max-width: 100%;
+}
+.readerControls .readerTextToc .readerTextTocBox a span {
   white-space: nowrap;
   text-overflow: ellipsis;
   overflow: hidden;
-  /*max-width: 70%;*/
-  vertical-align: middle;
-  color: #333;
 }
 .readerControls .readerTextToc .readerTextVersion {
   font-style: italic;
@@ -4134,7 +4140,7 @@ h2.splitHeader .he {
 }
 .hebrew .topicPanel .topicSource .score img {
   margin: -4px 2px 0 0;
-}  
+}
 .note a {
   color: #333;
   text-decoration: underline;
