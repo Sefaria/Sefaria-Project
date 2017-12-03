@@ -2791,10 +2791,6 @@ def global_activity(request, page=1):
     return render_to_response('activity.html',
                              {'activity': activity,
                                 'filter_type': filter_type,
-                                'leaders': top_contributors(),
-                                'leaders30': top_contributors(30),
-                                'leaders7': top_contributors(7),
-                                'leaders1': top_contributors(1),
                                 'email': email,
                                 'next_page': next_page,
                                 'he': request.interfaceLang == "hebrew", # to make templates less verbose
@@ -2901,6 +2897,16 @@ def revert_api(request, tref, lang, version, revision):
     tracker.modify_text(request.user.id, oref, version, lang, new_text, type="revert")
 
     return jsonResponse({"status": "ok"})
+
+
+def leaderboard(request):
+    return render_to_response('leaderboard.html',
+                             {'leaders': top_contributors(),
+                                'leaders30': top_contributors(30),
+                                'leaders7': top_contributors(7),
+                                'leaders1': top_contributors(1),
+                                },
+                             RequestContext(request))
 
 
 @ensure_csrf_cookie
