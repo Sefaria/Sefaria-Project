@@ -103,7 +103,6 @@ urlpatterns += patterns('reader.views',
     (r'^translate/(?P<ref>.+)$', 'edit_text'),
     (r'^edit/(?P<ref>.+)/(?P<lang>\w\w)/(?P<version>.+)$', 'edit_text'),
     (r'^edit/(?P<ref>.+)$', 'edit_text'),
-
 )
 
 # Texts Page
@@ -170,6 +169,7 @@ urlpatterns += patterns('sheets.views',
 # Activity
 urlpatterns += patterns('reader.views',
     (r'^activity/?$', 'global_activity'),
+    (r'^activity/leaderboard?$', 'leaderboard'),
     (r'^activity/(?P<page>\d+)$', 'global_activity'),
     (r'^activity/(?P<slug>[^/]+)/(?P<page>\d+)?$', 'user_activity'),
     (r'^activity/(?P<tref>[^/]+)/(?P<lang>.{2})/(?P<version>.+)/(?P<page>\d+)$', 'segment_history'),
