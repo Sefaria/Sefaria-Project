@@ -48,7 +48,8 @@ var baseConfig = {
     externals: {
        react: 'React',
        'react-dom': 'ReactDOM',
-       jquery: 'jQuery'
+       jquery: 'jQuery',
+       'jquery-ui': 'jQuery',
     },
     resolve: {
         unsafeCache: true,
