@@ -1170,12 +1170,15 @@ class ReaderApp extends Component {
     if (panel.mode == "Connections" || !panel.refs.length) { return; }
     var ref  = panel.refs.slice(-1)[0];
     Sefaria.ref(ref, function(oRef) {
+      var previousRecent = Sefaria.recentItemForText(oRef.indexTitle);
       var recentItem = {
         ref: ref,
         heRef: oRef.heRef,
         book: oRef.indexTitle,
         version: panel.version,
         versionLanguage: panel.versionLanguage,
+        lastVisited: new Date(),
+        bookVisitCount: previousRecent ? previousRecent.bookVisitCount + 1 : 1,
       };
       Sefaria.saveRecentItem(recentItem);
     });
