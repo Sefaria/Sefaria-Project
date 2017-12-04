@@ -621,6 +621,12 @@ $(function() {
 		CKEDITOR.config.extraAllowedContent = 'small; span(segment, gemarra-regular, gemarra-italic, it-text); div(oldComment)';
 		CKEDITOR.config.removePlugins = 'magicline,resize';
 		CKEDITOR.config.sharedSpaces = {top: 'ckeTopMenu' };
+		CKEDITOR.config.colorButton_colors =
+			'1ABC9C,2ECC71,3498DB,9B59B6,4E5F70,F1C40F,' +
+			'16A085,27AE60,2980B9,8E44AD,2C3E50,F39C12,' +
+			'bd9eb6,afcab8,e5dabd,bd9796,a4b7de,e8dde5,' +
+			'E67E22,E74C3C,ECF0F1,95A5A6,DDD,FFF,' +
+			'D35400,C0392B,BDC3C7,7F8C8D,999,000';
 		CKEDITOR.on('instanceReady', function(ev) {
 		  // replace &nbsp; from pasted text
 		  ev.editor.on('paste', function(evt) {

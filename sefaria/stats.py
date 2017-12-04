@@ -1,5 +1,6 @@
 from datetime import datetime
 from collections import defaultdict
+from random import randrange
 
 from sefaria.model import *
 from sefaria.system.exceptions import InputError
@@ -14,29 +15,48 @@ class SheetStats(object):
 		self.refs               = defaultdict(int)
 		self.texts              = defaultdict(int)
 		self.categories         = defaultdict(int)
-		self.untrans_texts      = defaultdict(int)
-		self.untrans_categories = defaultdict(int)
-		self.untrans_refs       = defaultdict(int)
+		self.books              = defaultdict(int)
 		self.refs_by_category   = defaultdict(lambda: defaultdict(int))
 		self.refs_by_tag        = defaultdict(lambda: defaultdict(int))
 		self.fragments          = defaultdict(list)
 		self.languages          = defaultdict(int)
+		self.untrans_texts      = defaultdict(int)
+		self.untrans_categories = defaultdict(int)
+		self.untrans_refs       = defaultdict(int)
 		self.sources_count      = 0
 		self.untrans_count      = 0
 		self.comments_count     = 0
 		self.outside_count      = 0
 		self.fragments_count    = 0
 
-	def run(self):
-		sheets            = db.sheets.find()
-		self.total        = sheets.count()
-		self.public_total = db.sheets.find({"status": "public"}).count()
+	def run(self, query=None, test=0):
+		"""
+		Builds and sorts counts across all sheets.
+		If `test` is not 0, only sample 1 in every `test` sheets to count.
+		"""
+		print "Loading sheets..."
+		proj = {"sources.ref": 1, "tags": 1, "options": 1, "status": 1, "id": 1}
+		if query:
+			sheets            = db.sheets.find(query, proj)
+			print "%d matching query" % sheets.count()
+		else:
+			sheets            = db.sheets.find()
+			self.total        = sheets.count()
+			print "%d Total" % self.total
+			self.public_total = db.sheets.find({"status": "public"}, proj).count()
+			print "%d Public" % self.public_total
+		
+		print "Processing tags..."
 		self.top_tags     = sheet_tag_counts({})
 
+		print "Processing sheets..."
 		for sheet in sheets: 
-			self.count_sheet(sheet)
+			if test == 0 or randrange(test) == 1:
+				self.count_sheet(sheet)
 
+		print "Sorting..."
 		self.sort()
+		print "Done."
 	
 	def count_sheet(self, sheet):
 		id = sheet.get("id", 1)
@@ -57,6 +77,7 @@ class SheetStats(object):
 					self.refs[oref.normal()] += 1
 					self.texts[oref.book] += 1
 					self.categories[oref.index.categories[0]] += 1
+					self.books[oref.index.title] += 1
 					self.refs_by_category[oref.index.categories[0]][oref.normal()] += 1
 					for tag in tags:
 						self.refs_by_tag[tag][oref.normal()] += 1
@@ -88,6 +109,7 @@ class SheetStats(object):
 		self.sorted_refs               = sorted(self.refs.iteritems(), key=lambda x: -x[1])
 		self.sorted_texts              = sorted(self.texts.iteritems(), key=lambda x: -x[1])
 		self.sorted_categories         = sorted(self.categories.iteritems(), key=lambda x: -x[1])
+		self.sorted_books              = sorted(self.books.iteritems(), key=lambda x: -x[1])
 		self.sorted_untrans_refs       = sorted(self.untrans_refs.iteritems(), key=lambda x: -x[1])
 		self.sorted_untrans_texts      = sorted(self.untrans_texts.iteritems(), key=lambda x: -x[1])
 		self.sorted_untrans_categories = sorted(self.untrans_categories.iteritems(), key=lambda x: -x[1])
@@ -101,6 +123,27 @@ class SheetStats(object):
 		for ref in self.refs_by_category:
 			self.sorted_refs_by_category[ref] = sorted(self.refs_by_category[ref].iteritems(), key=lambda x: -x[1])
 
+	def collapse_ref_counts(self, refs):
+		"""
+		Takes and returns a list of ref, count tuples. 
+		Merge together results for refs for which one is a specification of the other.
+		E.g., if "Shabbat 21a", and "Shabbat 21:5" both appear, add their counts together and keep the mores specific ref.
+		"""
+		collapsed_refs = {}
+		for ref1 in refs:
+			matched = False
+			for ref2 in refs:
+				if ref1 == ref2:
+					continue
+				oRef1, oRef2 = Ref(ref1[0]), Ref(ref2[0])
+				if oRef2.contains(oRef1):
+					collapsed_refs[ref1[0]] = ref1[1] + ref2[1]
+				if oRef2.contains(oRef1) or oRef1.contains(oRef2):
+					matched = True
+			if not matched:
+				collapsed_refs[ref1[0]] = ref1[1]
+		return sorted(collapsed_refs.iteritems(), key=lambda x: -x[1])
+		 
 	def print_stats(self):
 		show_count = self.show_count
 		print "*********************************\n"
@@ -176,6 +219,30 @@ class SheetStats(object):
 			"title": "Top Sources by Tag - %s" % datetime.now().strftime("%B %Y"),
 			"sources": [{"ref": self.sorted_refs_by_tag[tag["tag"]][0][0], "title": tag["tag"]} for tag in self.top_tags[:50]],
 			"options": {"numbered": 0, "divineNames": "noSub"}
+		}
+		save_sheet(sheet, 1)
+
+	def save_top_for_category(self, cat, collapse=False):
+ 		top_books_list = []
+ 		for book in self.sorted_books:
+ 			idx = library.get_index(book[0])
+ 			if idx.categories[0] == cat and "Commentary" not in idx.categories:
+ 				top_books_list.append("{} ({:,})".format(book[0], book[1]))
+		top_books = "<ol><li>" + "</li><li>".join(top_books_list[:10]) + "</li></ol>"
+		sources = [{"comment": "Most frequently used tractates (full list below):<br>%s" % top_books}]
+
+		refs = self.sorted_refs_by_category[cat][:50]
+		refs = self.collapse_ref_counts(refs)[:20] if collapse else refs[:20]
+
+		sources += [{"ref": ref[0]} for ref in refs]
+
+		all_top_books = "<ol><li>" + "</li><li>".join(top_books_list) + "</li></ol>"
+		sources += [{"comment": "Most frequently used tractates: %s" % all_top_books}]
+
+		sheet = {
+			"title": "Top Sources in %s - %s" % (cat, datetime.now().strftime("%B %Y")),
+			"sources": sources,
+			"options": {"numbered": 1, "divineNames": "noSub"}
 		}
 		save_sheet(sheet, 1)
 
