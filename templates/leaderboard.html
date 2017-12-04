@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load i18n %}
+{% load i18n cache %}
 
 {% block title %}{% trans "Top Contributors | Sefefaria" %}{% endblock %}
 
@@ -32,6 +32,7 @@
         </h1>
 
         <div id="boards">
+            {% cache 86400 leaderboards %}
             <div>
             {% include "elements/leaderboard.html" with title="Today" leaders=leaders1 %}
 
@@ -42,6 +43,7 @@
             <div>
             {% include "elements/leaderboard.html" with title="All Time" leaders=leaders %}
             </div>
+            {% endcache %}
         </div>
     </div>
 </div>
