@@ -699,7 +699,7 @@ class AtomicTest(AbstractTest):
                 msg = u"Exception in {}.teardown()\n{}".format(self.name(), traceback.format_exc())
                 self.carp(msg, always=True)
 
-        self.carp(u"{} - {}\n".format(result.word_status(), self.name()), always=True)
+        self.carp(u"{} - {}\n".format(result.word_status(), self.name()), always=not result.success)
         if err:
             self.carp(err, always=True)
 
