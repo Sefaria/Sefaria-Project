@@ -611,7 +611,9 @@
 	</div>
 	<div id="title" role="heading" aria-level="1">
 		{% autoescape off %}
-		{{ title|default:"<i><span class='int-en'>Loading...</span><span class='int-he'>טוען...</span></i>" }}
+            {% with title_t=title|default:_("Loading...") %}
+                {{ title_t }}
+            {% endwith %}
 		{% endautoescape %}
 	</div>
 	{% if sheet.attribution %}
@@ -623,24 +625,24 @@
 	{% elif assigner_id %}
 	<div id="author">
 		{% if author %}
-		    <span class="int-en">Assignment Completed by</span>
-            <span class="int-he">מטלה בוצעה על ידי</span>
-            {{ sheet.owner|user_link }}
+            {% blocktrans with owner=sheet.owner|user_link %}
+                Assignment Completed by {{ owner }}
+            {% endblocktrans %}
 		{% endif %}
     </div>
 	{% elif sheet.assigner_id %}
 	<div id="author">
 		{% if author %}
-		    <span class="int-en">Assignment Completed by</span>
-            <span class="int-he">מטלה בוצעה על ידי</span>
-            {{ sheet.owner|user_link }}
+		    {% blocktrans with owner=sheet.owner|user_link %}
+                Assignment Completed by {{ owner }}
+            {% endblocktrans %}
         {% endif %}
     </div>
 	{% elif author %}
 	<div id="author">
-		<span class="int-en">Source Sheet by</span>
-        <span class="int-he">דף מקורות מאת</span>
-        {{ sheet.owner|user_link }}
+        {% blocktrans with owner=sheet.owner|user_link %}
+            Source Sheet by {{ owner }}
+        {% endblocktrans %}
 	</div>
 	{% endif %}
 
@@ -653,8 +655,11 @@
     </summary>
         <div class="metadataOpenDetails">
             <div>
-                <span class="int-en">Created <span class="date">{{ sheet.dateCreated|date_string_to_date|date:"F j, Y" }}</span> · <span class="views">{{ sheet.views }} {% if sheet.views == 1%}View{% else %}Views{% endif %}</span> · <span class="likes" id="likeInfo"><span id="likeCount">{{like_count}}</span> {% if like_count == 1%}Like{% else %}Likes{% endif %}</span>{% if can_edit %}<span class="editButton">Edit</span>{% endif %}</span>
-                <span class="int-he">נוצר <span class="date">{{ sheet.dateCreated|date_string_to_date|date:"j F, Y" }}</span> · <span class="views">{{ sheet.views }} צפיות </span> · <span class="likes">{{like_count}}
+                <span class="int-en">Created <span class="date">{{ sheet.dateCreated|date_string_to_date|date:"F j, Y" }}</span> · <span class="views">{{ sheet.views }} {% if sheet.views == 1%}View{% else %}Views
+                {% endif %}</span> · <span class="likes" id="likeInfo-en"><span id="likeCount">{{like_count}}</span> {% if like_count == 1%}Like{% else %}Likes{% endif %}</span>{% if can_edit %}<span
+                        class="editButton">Edit</span>{% endif %}</span>
+                <span class="int-he">נוצר <span class="date">{{ sheet.dateCreated|date_string_to_date|date:"j F, Y" }}</span> · <span class="views">{% if sheet.views == 1%}צפייה אחת{% else %}{{ sheet.views }}
+                צפיות{% endif %}</span> · <span class="likes" id="likeInfo-he"><span id="likeCount">{{like_count}}</span>
                     {% if like_count == 1%}סימון{% else %}סימוני{% endif %} אהבתי</span>{% if can_edit %}<span class="editButton">עריכה</span>{% endif %}</span>
             </div>
             {% if sheet.via %}
@@ -905,11 +910,8 @@
 	<div id="printFooter">
 		<img src="/static/img/samekh.png">
 		<div>
-            {% if interfaceLang == "english" %}
-			Made with the Sefaria Source Sheet Builder<br>
-            {% else %}
-                נוצר בעזרת בונה דפי המקורות של ספאריה
-            {% endif %}
+            {% trans "Made with the Sefaria Source Sheet Builder"  %}
+			<br/>
             www.sefaria.org/sheets
 		</div>
 	</div>
@@ -1093,12 +1095,22 @@
 </div>
 
 <div id="addToSheetModal" class="modal s2Modal">
-	<div class="header">Add <span class="sourceName"></span> to a Source Sheet</div>
+	<div class="header">
+        {% blocktrans %}
+            Add <span class="sourceName"></span> to a Source Sheet
+        {% endblocktrans %}
+    </div>
 	<ul id="sheetList">
 	</ul>
 	<div class="actions">
-		<div class="btn ok">Add</div>
-		<div class="btn cancel">Cancel</div>
+		<div class="btn ok">
+            <span class="int-en">Add</span>
+            <span class="int-he">הוספה</span>
+        </div>
+		<div class="btn cancel">
+            <span class="int-en">Cancel</span>
+            <span class="int-he">ביטול</span>
+        </div>
 	</div>
 </div>
 
@@ -1450,7 +1462,6 @@
 <script type="text/javascript">
 {% autoescape off %}
 	var sjs = sjs || {};
-
 	$.extend(sjs, {
 		current: {{ sheetJSON|default:"null" }},
 		assignment_id: {{ assignment_id|default:"null" }},
@@ -1464,11 +1475,11 @@
 		loading: 0,
 		autosave: false,
 		changes: false,
+        interfaceLang: "{{ request.interfaceLang }}".substring(0,2),
+        interfaceLangLong: "{{ request.interfaceLang }}",
 		{% if user.id %}
 		_fullname: "{{ user.first_name }} {{ user.last_name }}",
 		_userLink: "{{ user.id|user_link }}",
-        interfaceLang: "{{ request.interfaceLang }}".substring(0,2),
-        interfaceLangLong: "{{ request.interfaceLang }}"
 		{% endif %}
 	});
 {% endautoescape %}
