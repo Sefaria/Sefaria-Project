@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2017-11-06 12:36-0800\n"
+"POT-Creation-Date: 2017-11-26 03:12-0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,88 +17,88 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: reader/views.py:441
+#: reader/views.py:442
 #, python-format
 msgid "Read the text of %(book)s online with commentaries and connections."
 msgstr ""
 
-#: reader/views.py:460
+#: reader/views.py:461
 msgid "Explore 3,000 years of Jewish texts in Hebrew and English translation."
 msgstr ""
 
-#: reader/views.py:485 reader/views.py:624
+#: reader/views.py:486 reader/views.py:625
 msgid " | Sefaria"
 msgstr ""
 
-#: reader/views.py:486
+#: reader/views.py:487
 #, python-format
 msgid "Read %(categories)s texts online with commentaries and connections."
 msgstr ""
 
-#: reader/views.py:489
+#: reader/views.py:490
 msgid "Recently Viewed"
 msgstr ""
 
-#: reader/views.py:490
+#: reader/views.py:491
 msgid "Texts that you've recently viewed on Sefaria."
 msgstr ""
 
-#: reader/views.py:529
+#: reader/views.py:530
 msgid "Sefaria Search"
 msgstr ""
 
-#: reader/views.py:530
+#: reader/views.py:531
 msgid "Search 3,000 years of Jewish texts in Hebrew and English translation."
 msgstr ""
 
-#: reader/views.py:546
+#: reader/views.py:547
 msgid "Sefaria Source Sheets"
 msgstr ""
 
-#: reader/views.py:547
+#: reader/views.py:548
 msgid ""
 "Explore thousands of public Source Sheets and use our Source Sheet Builder "
 "to create your own online."
 msgstr ""
 
-#: reader/views.py:575 reader/views.py:583 templates/groups.html:7
+#: reader/views.py:576 reader/views.py:584 templates/groups.html:7
 msgid "Sefaria Groups"
 msgstr ""
 
-#: reader/views.py:589
+#: reader/views.py:590
 msgid "My Notes on Sefaria"
 msgstr ""
 
-#: reader/views.py:610
+#: reader/views.py:611
 msgid "My Source Sheets | Sefaria Source Sheets"
 msgstr ""
 
-#: reader/views.py:611
+#: reader/views.py:612
 msgid "My Sources Sheets on Sefaria, both private and public."
 msgstr ""
 
-#: reader/views.py:618
+#: reader/views.py:619
 msgid "Public Source Sheets | Sefaria Source Sheets"
 msgstr ""
 
-#: reader/views.py:619
+#: reader/views.py:620
 msgid ""
 "Explore thousands of public Source Sheets drawing on Sefaria's library of "
 "Jewish texts."
 msgstr ""
 
-#: reader/views.py:625
+#: reader/views.py:626
 #, python-format
 msgid ""
 "Public Source Sheets on tagged with \"%(tag)s\", drawing from Sefaria's "
 "library of Jewish texts."
 msgstr ""
 
-#: reader/views.py:655
+#: reader/views.py:656
 msgid "Topics"
 msgstr ""
 
-#: reader/views.py:655 templates/person.html:6 templates/person.html.py:8
+#: reader/views.py:656 templates/person.html:6 templates/person.html.py:8
 #: templates/search.html:6
 #: templates/registration/password_reset_complete.html:3
 #: templates/registration/password_reset_confirm.html:4
@@ -110,46 +110,46 @@ msgstr ""
 msgid "Sefaria"
 msgstr ""
 
-#: reader/views.py:656
+#: reader/views.py:657
 msgid "Explore Jewish Texts by Topic on Sefaria"
 msgstr ""
 
-#: reader/views.py:714
+#: reader/views.py:715
 msgid "The Sefaria Library"
 msgstr ""
 
-#: reader/views.py:715
+#: reader/views.py:716
 msgid ""
 "Browse 1,000s of Jewish texts in the Sefaria Library by category and title."
 msgstr ""
 
-#: reader/views.py:721
+#: reader/views.py:722
 msgid "New Additions to the Sefaria Library"
 msgstr ""
 
-#: reader/views.py:722
+#: reader/views.py:723
 msgid ""
 "See texts, translations and connections that have been recently added to "
 "Sefaria."
 msgstr ""
 
-#: reader/views.py:728
+#: reader/views.py:729
 msgid "Sefaria Account"
 msgstr ""
 
-#: reader/views.py:736
+#: reader/views.py:737
 msgid "Sefaria Notifications"
 msgstr ""
 
-#: reader/views.py:743
+#: reader/views.py:744
 msgid "Moderator Tools"
 msgstr ""
 
-#: reader/views.py:2956
+#: reader/views.py:2970
 msgid "You must be logged in to update your profile."
 msgstr ""
 
-#: reader/views.py:3542 reader/views.py:3545
+#: reader/views.py:3570 reader/views.py:3573
 #, python-format
 msgid "Learn about %(name)s - works written, biographies, dates and more."
 msgstr ""
@@ -306,7 +306,7 @@ msgid ""
 "word counts, number of links and number of source sheets."
 msgstr ""
 
-#: templates/metrics.html:19
+#: templates/metrics.html:19 templates/s2_sheets.html:614
 msgid "Loading..."
 msgstr ""
 
@@ -414,28 +414,55 @@ msgstr ""
 msgid "Create your own source sheet with Sefaria's Source Sheet Builder."
 msgstr ""
 
-#: templates/s2_sheets.html:934
+#: templates/s2_sheets.html:628 templates/s2_sheets.html.py:636
+#, python-format
+msgid ""
+"\n"
+"                Assignment Completed by %(owner)s\n"
+"            "
+msgstr ""
+
+#: templates/s2_sheets.html:643
+#, python-format
+msgid ""
+"\n"
+"            Source Sheet by %(owner)s\n"
+"        "
+msgstr ""
+
+#: templates/s2_sheets.html:910
+msgid "Made with the Sefaria Source Sheet Builder"
+msgstr ""
+
+#: templates/s2_sheets.html:933
 msgid "Create New"
 msgstr ""
 
-#: templates/s2_sheets.html:1008
+#: templates/s2_sheets.html:1007
 msgid "Write a summary to help others understand your sheet..."
 msgstr ""
 
-#: templates/s2_sheets.html:1044
+#: templates/s2_sheets.html:1043
 msgid "None"
 msgstr ""
 
-#: templates/s2_sheets.html:1078
+#: templates/s2_sheets.html:1077
 msgid "View"
 msgstr ""
 
-#: templates/s2_sheets.html:1081
+#: templates/s2_sheets.html:1080
 msgid "Add"
 msgstr ""
 
-#: templates/s2_sheets.html:1084
+#: templates/s2_sheets.html:1083
 msgid "Edit"
+msgstr ""
+
+#: templates/s2_sheets.html:1096
+msgid ""
+"\n"
+"            Add <span class=\"sourceName\"></span> to a Source Sheet\n"
+"        "
 msgstr ""
 
 #: templates/search.html:6

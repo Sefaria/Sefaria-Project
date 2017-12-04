@@ -110,6 +110,27 @@
                 <pre>{{ event.old|pprint }}</pre>
             </div>
 
+        {% elif "term" in event.rev_type %}
+            <span class="topline">{{ event.user|user_link }}  
+            {% if event.rev_type == "add term" %}
+                {% trans "added a term" %}
+            {% elif event.rev_type == "edit term" %}
+                {% trans "edited the term" %} 
+            {% elif event.rev_type == "delete term" %}
+                {% trans "deleted the term" %} 
+            {% endif %}
+            {% if he %}{% firstof event.new.name event.old.name %}{% else %}{% firstof event.new.name event.old.name %}{% endif %}.
+            {% if event.method == "API" %} (via API) {% endif %}
+            <span class="indexDetailsLink">{% trans "details" %} &raquo;</span>
+            </span>
+
+            <div class="indexDetails" style="display:none">
+                New:
+                <pre>{{ event.new|pprint }}</pre>
+                Old:
+                <pre>{{ event.old|pprint }}</pre>
+            </div>
+
 
 	    {% elif "review" in event.rev_type %}
             <span class="topline">{{ event.user|user_link }} {% trans "reviewed" %} {% if he %}{{ event.ref|he_ref_link }}{% else %}{{ event.ref|ref_link }}{% endif %} .</span>
