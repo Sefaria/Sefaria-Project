@@ -33,10 +33,18 @@ from settings import SEARCH_ADMIN, SEARCH_INDEX_NAME, STATICFILES_DIRS
 from sefaria.utils.hebrew import hebrew_term
 import sefaria.model.queue as qu
 
-
-
-pagerank_dict = {r: v for r, v in json.load(open(STATICFILES_DIRS[0] + "pagerank.json","rb"))}
-sheetrank_dict = json.load(open(STATICFILES_DIRS[0] + "sheetrank.json", "rb"))
+def init_pagesheetrank_dicts():
+    global pagerank_dict, sheetrank_dict
+    try:
+        pagerank_dict = {r: v for r, v in json.load(open(STATICFILES_DIRS[0] + "pagerank.json","rb"))}
+    except IOError:
+        pagerank_dict = {}
+    try:
+        sheetrank_dict = json.load(open(STATICFILES_DIRS[0] + "sheetrank.json", "rb"))
+    except IOError:
+        sheetrank_dict = {}
+        
+init_pagesheetrank_dicts()
 all_gemara_indexes = library.get_indexes_in_category("Bavli")
 davidson_indexes = all_gemara_indexes[:all_gemara_indexes.index("Bava Batra") + 1]
 
