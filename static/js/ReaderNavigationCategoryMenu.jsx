@@ -140,10 +140,12 @@ class ReaderNavigationCategoryMenuContents extends Component {
   }
   hebrewContentSort(cats) {
     // Sorts contents of this category by Hebrew Alphabetical
+    console.log(cats);
     var heCats = cats.slice().map(function(item, indx) {
       item.enOrder = indx;
       return item;
     });
+    console.log(heCats.slice())
     heCats = heCats.sort(function(a, b) {
       if ("order" in a || "order" in b) {
         var aOrder = "order" in a ? a.order : 9999;
@@ -151,7 +153,7 @@ class ReaderNavigationCategoryMenuContents extends Component {
         return aOrder > bOrder ? 1 : -1;
       
       } else if (("category" in a) != ("category" in b)) {
-        return a.enOrder - b.enOrder;      
+        return a.enOrder > b.enOrder ? 1 : -1;      
       
       } else if (a.heComplete != b.heComplete) {
         return a.heComplete ? -1 : 1;
@@ -160,8 +162,9 @@ class ReaderNavigationCategoryMenuContents extends Component {
         return a.heTitle > b.heTitle ? 1 : -1;
       
       }
-      return a.enOrder - b.enOrder;
+      return a.enOrder > b.enOrder ? 1 : -1;
     });
+    console.log(heCats)
     return heCats; 
   }
   render() {
@@ -226,7 +229,7 @@ class ReaderNavigationCategoryMenuContents extends Component {
           var incomplete = this.props.contentLang == "hebrew" ? !item.heComplete : !item.enComplete;
           var classes = classNames({refLink: 1, blockLink: 1, incomplete: incomplete});
           content.push((<a href={url} 
-                          className={'refLink blockLink'} 
+                          className={classes} 
                           data-ref={ref}
                           key={"text." + this.props.nestLevel + "." + i}>
                           <span className='en'>{title}</span>
