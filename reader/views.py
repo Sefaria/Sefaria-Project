@@ -23,6 +23,7 @@ from django.template.loader import render_to_string
 from django.shortcuts import render_to_response, get_object_or_404, redirect
 from django.http import Http404, HttpResponse
 from django.contrib.auth.decorators import login_required
+from django.contrib.admin.views.decorators import staff_member_required
 from django.utils.http import urlquote
 from django.utils.encoding import iri_to_uri
 from django.utils.translation import ugettext as _
@@ -48,8 +49,9 @@ from sefaria.utils.util import list_depth, text_preview
 from sefaria.utils.hebrew import hebrew_plural, hebrew_term, encode_hebrew_numeral, encode_hebrew_daf, is_hebrew, strip_cantillation, has_cantillation
 from sefaria.utils.talmud import section_to_daf, daf_to_section
 from sefaria.datatype.jagged_array import JaggedArray
+from sefaria.utils.calendars import get_todays_calendar_items
 import sefaria.utils.calendars
-from sefaria.utils.util import short_to_long_lang_code
+from sefaria.utils.util import short_to_long_lang_code, titlecase
 import sefaria.tracker as tracker
 from sefaria.system.cache import django_cache_decorator
 from sefaria.settings import USE_VARNISH, USE_NODE, NODE_HOST, DOMAIN_LANGUAGES
@@ -891,6 +893,29 @@ def edit_text_info(request, title=None, new_title=None):
                              },
                              RequestContext(request))
 
+@ensure_csrf_cookie
+@staff_member_required
+def terms_editor(request, term=None):
+    """
+    Add/Editor a term using the JSON Editor.
+    """
+    if term is not None:
+        existing_term = Term().load_by_title(term)
+        data = existing_term.contents() if existing_term else {"name": term, "titles": []}
+    else:
+        generic_response = { "title": "Terms Editor", "content": "Please include the primary Term name in the URL to uses the Terms Editor." }
+        return render_to_response('static/generic.html', generic_response, RequestContext(request))
+
+    dataJSON = json.dumps(data)
+
+    return render_to_response('edit_term.html',
+                             {
+                              'term': term,
+                              'dataJSON': dataJSON,
+                              'is_update': "true" if existing_term else "false"
+                             },
+                             RequestContext(request))
+
 
 @django_cache_decorator(6000)
 def make_toc_html(oref, zoom=1):
@@ -1374,7 +1399,7 @@ def interface_language_redirect(request, language):
     """
     next = request.GET.get("next", "/?home")
     next = "/?home" if next == "undefined" else next
-    
+
     for domain in DOMAIN_LANGUAGES:
         if DOMAIN_LANGUAGES[domain] == language and not request.get_host() in domain:
             next = domain + next
@@ -1382,7 +1407,7 @@ def interface_language_redirect(request, language):
             break
 
     response = redirect(next)
-    
+
     response.set_cookie("interfaceLang", language)
     if request.user.is_authenticated():
         p = UserProfile(id=request.user.id)
@@ -1801,12 +1826,7 @@ def links_api(request, link_id_or_ref=None):
     """
     API for textual links.
     Currently also handles post notes.
-    """
     #TODO: can we distinguish between a link_id (mongo id) for POSTs and a ref for GETs?
-    """
-    NOTE: This function is not written like the other functions with a post method.
-    It's attempting a cleaner way to distinguish between csrf proteced use and API use bu juggling some variables around
-    Rather than duplicating functionality.
     """
     if request.method == "GET":
         callback=request.GET.get("callback", None)
@@ -2208,12 +2228,6 @@ def category_api(request, path=None):
        It will also attempt to find the closest parent.  If found, it will include "closest_parent" alongside "error".
     POST takes no arguments on the URL.  Takes complete category as payload.  Category must not already exist.  Parent of category must exist.
     """
-    """
-    NOTE: This function is not written like the other functions with a post method.
-    It's attempting a cleaner way to distinguish between csrf proteced use and API use bu juggling some variables around
-    Rather than duplicating functionality.
-    """
-
     if request.method == "GET":
         if not path:
             return jsonResponse({"error": "Please provide category path."})
@@ -2271,15 +2285,23 @@ def category_api(request, path=None):
 
 @catch_error_as_json
 @csrf_exempt
+def calendars_api(request):
+    if request.method == "GET":
+        diaspora = request.GET.get("diaspora", "1")
+        if diaspora not in ["0", "1"]:
+            return jsonResponse({"error": "'Diaspora' parameter must be 1 or 0."})
+        else:
+            diaspora = True if diaspora == "1" else False
+            calendars = get_todays_calendar_items(diaspora=diaspora)
+            return jsonResponse(calendars, callback=request.GET.get("callback", None))
+
+
+@catch_error_as_json
+@csrf_exempt
 def terms_api(request, name):
     """
     API for adding a Term to the Term collection.
     This is mainly to be used for adding hebrew internationalization language for section names, categories and commentators
-    """
-    """
-    NOTE: This function is not written like the other functions with a post method.
-    It's attempting a cleaner way to distinguish between csrf proteced use and API use bu juggling some variables around
-    Rather than duplicating functionality.
     """
     if request.method == "GET":
         term = Term().load({'name': name}) or Term().load_by_title(name)
@@ -2288,13 +2310,26 @@ def terms_api(request, name):
         else:
             return jsonResponse(term.contents(), callback=request.GET.get("callback", None))
 
-    if request.method == "POST":
-        def _internal_do_post(request, term, uid, **kwargs):
+    if request.method in ("POST", "DELETE"):
+        def _internal_do_post(request, uid):
             t = Term().load({'name': name}) or Term().load_by_title(name)
-            if t and not request.GET.get("update"):
-                return {"error": "Term already exists."}
-            func = tracker.update if request.GET.get("update", False) else tracker.add
-            return func(uid, model.Term, term, **kwargs).contents()
+            if request.method == "POST":
+                term = request.POST.get("json")
+                if not term:
+                    return {"error": "Missing 'json' parameter in POST data."}
+                term = json.loads(term)
+                if t and not request.GET.get("update"):
+                    return {"error": "Term already exists."}
+                elif t and request.GET.get("update"):
+                    term["_id"] = t._id
+
+                func = tracker.update if request.GET.get("update", False) else tracker.add
+                return func(uid, model.Term, term, **kwargs).contents()
+            
+            elif request.method == "DELETE":
+                if not t:
+                    return {"error": 'Term "%s" does not exist.' % term}
+                return tracker.delete(uid, model.Term, t._id)
 
         if not request.user.is_authenticated():
             key = request.POST.get("apikey")
@@ -2315,14 +2350,7 @@ def terms_api(request, name):
         else:
             return jsonResponse({"error": "Only Sefaria Moderators can add or edit terms."})
 
-        j = request.POST.get("json")
-        if not j:
-            return jsonResponse({"error": "Missing 'json' parameter in post data."})
-        j = json.loads(j)
-        return jsonResponse(_internal_do_post(request, j, uid, **kwargs))
-
-    if request.method == "DELETE":
-        return jsonResponse({"error": "Unsupported HTTP method."})  # TODO: support this?
+        return jsonResponse(_internal_do_post(request, uid))      
 
     return jsonResponse({"error": "Unsupported HTTP method."})
 
@@ -2333,7 +2361,7 @@ def name_api(request, name):
         return jsonResponse({"error": "Unsupported HTTP method."})
 
     # Number of results to return.  0 indicates no limit
-    LIMIT = request.GET.get("limit") or 16
+    LIMIT = int(request.GET.get("limit", 16))
     ref_only = request.GET.get("ref_only", False)
     lang = "he" if is_hebrew(name) else "en"
 
@@ -2721,6 +2749,7 @@ def topics_api(request, topic):
     API to get data for a particular topic.
     """
     topics = get_topics()
+    topic = Term.normalize(titlecase(topic))
     response = topics.get(topic).contents()
     response = jsonResponse(response, callback=request.GET.get("callback", None))
     response["Cache-Control"] = "max-age=3600"
@@ -2730,7 +2759,7 @@ def topics_api(request, topic):
 @catch_error_as_json
 def recommend_topics_api(request, ref_list=None):
     """
-    API to receive recommended topics for list of strings `refs`. 
+    API to receive recommended topics for list of strings `refs`.
     """
     if request.method == "GET":
         refs = [Ref(ref).normal() for ref in ref_list.split("+")] if ref_list else []
@@ -2776,10 +2805,6 @@ def global_activity(request, page=1):
     return render_to_response('activity.html',
                              {'activity': activity,
                                 'filter_type': filter_type,
-                                'leaders': top_contributors(),
-                                'leaders30': top_contributors(30),
-                                'leaders7': top_contributors(7),
-                                'leaders1': top_contributors(1),
                                 'email': email,
                                 'next_page': next_page,
                                 'he': request.interfaceLang == "hebrew", # to make templates less verbose
@@ -2886,6 +2911,16 @@ def revert_api(request, tref, lang, version, revision):
     tracker.modify_text(request.user.id, oref, version, lang, new_text, type="revert")
 
     return jsonResponse({"status": "ok"})
+
+
+def leaderboard(request):
+    return render_to_response('leaderboard.html',
+                             {'leaders': top_contributors(),
+                                'leaders30': top_contributors(30),
+                                'leaders7': top_contributors(7),
+                                'leaders1': top_contributors(1),
+                                },
+                             RequestContext(request))
 
 
 @ensure_csrf_cookie
@@ -3500,6 +3535,20 @@ def random_text_api(request):
     Return Texts API data for a random ref.
     """
     response = redirect(iri_to_uri("/api/texts/" + random_ref()) + "?commentary=0", permanent=False)
+    return response
+
+def random_by_topic_api(request):
+    """
+    Returns Texts API data for a random text taken from popular topic tags
+    """
+    random_topic = choice(filter(lambda x: x['count'] > 15, get_topics().list()))['tag']
+    random_source = choice(get_topics().get(random_topic).contents()['sources'])[0]
+    try:
+        ref = Ref(random_source).normal()
+    except Exception:
+        return random_by_topic_api(request)
+    cb = request.GET.get("callback", None)
+    response = redirect(iri_to_uri("/api/texts/" + ref + "?commentary=0&context=0&pad=0{}".format("&callback=" + cb if cb else "")) , permanent=False)
     return response
 
 

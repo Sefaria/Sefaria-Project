@@ -50,10 +50,17 @@ class Test_Toc(object):
                 self.verify_text_node_integrity(toc_elem)
 
     def verify_category_node_integrity(self, node):
-        assert set(node.keys()) == {'category', 'heCategory', 'contents'}
-        assert isinstance(node['category'], basestring)
-        assert isinstance(node['heCategory'], basestring)
-        assert isinstance(node['contents'], list)
+        # search toc doesn't have 'enComplete' or 'heComplete'
+        try:
+            assert set(node.keys()) <= {'category', 'heCategory', 'contents', 'enComplete', 'heComplete'}
+            assert {'category', 'heCategory', 'contents'} <= set(node.keys())
+            assert isinstance(node['category'], basestring)
+            assert isinstance(node['heCategory'], basestring)
+            assert isinstance(node['contents'], list)
+        except AssertionError as e:
+            print u"Bad category:"
+            print node
+            raise
 
     def verify_text_node_integrity(self, node):
         global text_titles

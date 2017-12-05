@@ -5,6 +5,7 @@
 <head>
     <title>{% block title %}{% endblock %}</title>
     <meta name="description" property="og:description" content="{% block description %}{% endblock %}">
+    <link rel="search" type="application/opensearchdescription+xml" title="Sefaria Search" href="/static/files/opensearch.xml" />
 
     <link rel="alternate" href="//www.sefaria.org{{ request.path }}" hreflang="en" />
     <link rel="alternate" href="//www.sefaria.org.il{{ request.path }}" hreflang="he" />
@@ -78,6 +79,11 @@
         {% include "elements/footer.html" with class=contentLang %}
     {% endblock %}
 
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/react/15.6.0/react.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/react/15.6.0/react-dom.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.2.4/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.js"></script>
 
     <script src="/static/js/lib/keyboard.js"></script>
     <script src="/data.js"></script>
