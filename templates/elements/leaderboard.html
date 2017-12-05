@@ -2,13 +2,13 @@
 {% load humanize %}
 
 {% if leaders|length > 0 %}
-	<ul class="board well" >
-		<p>{{ title }}</p>
+	<ol class="board" >
+		<h2>{{ title }}</h2>
 		{% for leader in leaders %}
 		<li>
 			<span class='leader'>{{ leader.user|user_link }}</span>
-			<span class='score'>{{ leader.count|floatformat:0|intcomma }}</span>
+			<span class='score'>({{ leader.count|floatformat:0|intcomma }})</span>
 		</li>
 		{% endfor %}
-	</ul>
+	</ol>
 {% endif %}

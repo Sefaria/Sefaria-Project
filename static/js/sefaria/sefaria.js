@@ -1317,7 +1317,9 @@ Sefaria = extend(Sefaria, {
     Sefaria.recentlyViewed = recent;
     var packedRecent = recent.map(Sefaria.packRecentItem);
     if (Sefaria._uid) {
-        $.post(Sefaria.apiHost + "/api/profile", {json: JSON.stringify({recentlyViewed: packedRecent})}, function(data) {} );
+        $.post(Sefaria.apiHost + "/api/profile", 
+              {json: JSON.stringify({recentlyViewed: packedRecent})}, 
+              function(data) {} );
     } else {
       var cookie = INBROWSER ? $.cookie : Sefaria.util.cookie;
       packedRecent = packedRecent.slice(0, 6);
@@ -1326,10 +1328,12 @@ Sefaria = extend(Sefaria, {
   },
   packRecentItem: function(item) {
     // Returns an array which represents the object `item` with less overhead.
-    var packed = [item.ref, item.heRef];
-    if (item.version && item.versionLangauge) {
-      packed = packed.concat([item.version, item.versionLanguage]);
-    }
+    var fields = ["ref", "heRef", "version", "versionLanguage", "lastVisited", "bookVisitCount"];
+    var packed = [];
+    fields.map(field => {
+      var value = field in item ? item[field] : null;
+      packed.push(value);
+    });
     return packed;
   },
   unpackRecentItem: function(item) {
@@ -1340,15 +1344,17 @@ Sefaria = extend(Sefaria, {
       heRef: item[1],
       book: oRef.index,
       version: item.length > 2 ? item[2] : null,
-      versionLanguage: item.length > 3 ? item[3] : null
+      versionLanguage: item.length > 3 ? item[3] : null,
+      lastVisited: item.length > 4 ? item[4] : null,
+      bookVisitCount: item.length > 5 ? item[5] : null,
     };
     return unpacked;
   },
-  recentRefForText: function(title) {
-    // Return the most recently visited ref for text `title` or null if `title` is not present in recentlyViewed.
+  recentItemForText: function(title) {
+    // Return the most recently visited item for text `title` or null if `title` is not present in recentlyViewed.
     for (var i = 0; i < Sefaria.recentlyViewed.length; i++) {
       if (Sefaria.recentlyViewed[i].book === title) {
-        return Sefaria.recentlyViewed[i].ref;
+        return Sefaria.recentlyViewed[i];
       }
     }
     return null;
@@ -1687,7 +1693,9 @@ Sefaria = extend(Sefaria, {
       "Copyright: JPS, 1985": "זכויות שמורות ל-JPS, 1985",
 
       //sheets
+      "Start a New Source Sheet": "התחלת דף מקורות חדש",
       "Untitled Source Sheet" : "דף מקורות ללא שם",
+      "New Source Sheet" : "דף מקורות חדש",
       "Name New Sheet" : "כותרת לדף המקורות",
       "Sorry, there was a problem saving your note.": "סליחה, ארעה שגיאה בזמן השמירה",
       "Unfortunately, there was an error saving this note. Please try again or try reloading this page.": "ארעה שגיאה בזמן השמירה. אנא נסו שוב או טענו את הדף מחדש",
@@ -1698,10 +1706,58 @@ Sefaria = extend(Sefaria, {
       "Decrease font size": "הקטן גופן",
       "Increase font size": "הגדל גופן",
       "Search for Texts or Keywords Here": "חפשו ספרים או מלות מפתח כאן",
+      "this comment":"הערה זו",
+      "this source":"מקור זה",
+      "was added to": "נוסף ל-",
+      "View sheet": "מעבר ל-דף המקורות",
+      "Please select a source sheet.": "אנא בחר דף מקורות.",
+      "New Source Sheet Name:" : "כותרת דף מקורות חדש:",
+
+      //stuff moved from sheets.js
+      "Loading..." : "טוען...",
+        "Saving..." : "שומר...",
+        "Your Source Sheet has unsaved changes. Before leaving the page, click Save to keep your work.":
+        "קיימים שינויים בלתי שמורים בדף המקורות. השתמשו בכפתור השמירה לפני עזיבת הדף.",
+        "Your Source Sheet has unsaved changes. Please wait for the autosave to finish.":
+        "קיימים שינויים בלתי שמורים בדף המקורות. אנא חכו שפעולת השמירה האוטומטית תסתיים.",
+        "Are you sure you want to delete this sheet? There is no way to undo this action.":
+        "מחיקת דף מקורות היא פעולה בלתי הפיכה. האם אתם בטוחים?",
+        "Unfortunately an error has occurred. If you've recently edited text on this page, you may want to copy your recent work out of this page and click reload to ensure your work is properly saved.":
+        "לצערנו ארעה שגיאה. אם ערכתם לאחרונה את הדף הנוכחי, ייתכן ותרצו להעתיק את השינויים למקור חיצוני ואז לטעון מחדש את הדף כדי לוודא שהשינויים נשמרו.",
+        //"Untitled Source Sheet": "דף מקורות ללא שם",
+        "Like": "אהבתי",
+        "Unlike": "ביטול סימון אהבתי",
+        "No one has liked this sheet yet. Will you be the first?":
+        "אף אחד עדיין לא אהב את דף המקורות הזה. תרצו להיות ראשונים?",
+        "1 Person Likes This Sheet": "אדם אחד אהב את דף המקורות",
+        " People Like This Sheet": " אנשים אהבו את דף המקורות",
+        "Tags Saved": "תוית נשמרה",
+        "Assignments allow you to create a template that your students can fill out on their own.":
+        "מטלות מאפשרות ליצור דף בסיס שתלמידים יכולים להשתמש בו כדי למלא וליצור את העבודה שלהם.",
+        "Students can complete their assignment at this link:":
+        "תלמידים יכולים לבצע את המטלה שלהם בקישור הבא:",
+        "Reset text of Hebrew, English or both?": "האם לאפס את התוכן של המקור בעברית, אנגלית או הכל?",
+        "Any edits you have made to this source will be lost": "כל השינויים שנעשו במקור זה יאבדו",
+        "Looking up Connections..." : "מחפש קישורים...",
+        "No connections known for this source.": "למקור הזה אין קשרים ידועים",
+        "Edit Source title" : "עריכת כותרת",
+        "Add Source Below" : "הוספת מקור מתחת",
+        "Add Comment": "הוספת תגובה",
+        "Add All Connections": "הוספת כל המקורות הקשורים",
+        "Reset Source Text": "איפוס טקסט מקור",
+        "Copy to Sheet" : "העתקה לדף מקורות",
+        "Change Source Layout/Language": "שינוי שפת/עימוד מקור",
+        "Move Source Up": "הזזת מקור מעלה",
+        "Move Source Down": "הזזת מקור מטה",
+        "Outdent Source": "הזחת מקור החוצה",
+        "Indent Source": "הזחת מקור פנימה",
+        "Remove": "הסרת מקור",
+        "Create New" : "יצירת חדש",
+        "Close" : "סגירה",
 
       //reader panel
       "Search" : "חיפוש",
-      "Search for Texts or Keywords Here": "חיפוש טקסט או מילות מפתח",
+      //"Search for Texts or Keywords Here": "חיפוש טקסט או מילות מפתח",
       "Views": "צפיות"
   },
   _v: function(inputVar){
@@ -1733,6 +1789,8 @@ Sefaria = extend(Sefaria, {
         var hterm;
         if(inputStr in Sefaria._i18nInterfaceStrings) {
             return Sefaria._i18nInterfaceStrings[inputStr];
+        }else if(inputStr.toLowerCase() in Sefaria._i18nInterfaceStrings){
+            return Sefaria._i18nInterfaceStrings[inputStr.toLowerCase()];
         }else if((hterm = Sefaria.hebrewTerm(inputStr)) != inputStr){
             return hterm;
         }else{
@@ -1825,7 +1883,7 @@ Sefaria.unpackDataFromProps = function(props) {
   if (props.topicList) {
     Sefaria._topicList = props.topicList;
   }
-  Sefaria.util._initialPath = props.initialPath;
+  Sefaria.util._initialPath = props.initialPath ? props.initialPath : "/";
   Sefaria.interfaceLang = props.interfaceLang;
 };
 
