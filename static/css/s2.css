@@ -4715,14 +4715,10 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
   color: #ccc;
   border: solid 1px #eee;
   padding: 3px 8px;
-  margin: 0 0 0 -9px; /* to account for line wrapping strangeness */
   text-transform: uppercase;
   background-color: white;
   border-radius: 4px;
   line-height: 24px;
-}
-.interface-hebrew .versionsBox a.selectButton {
-  margin: 0 -9px 0 0;
 }
 .versionsBox a.selectButton.currSelectButton {
   color: #666;
