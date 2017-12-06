@@ -30,7 +30,9 @@ class TextColumn extends Component {
   }
   componentWillReceiveProps(nextProps) {
     //console.log(nextProps)
-    if (this.props.mode === "Text" && nextProps.mode === "TextAndConnections") {
+    if ((this.props.mode === "Text" && nextProps.mode === "TextAndConnections") ||
+        (this.props.currVersions.en !== nextProps.currVersions.en) ||
+        (this.props.currVersions.he !== nextProps.currVersions.he)) {
       // When opening mobile connections panel, scroll to highlighted
       this.scrolledToHighlight = false;
       this.initialScrollTopSet = true;
