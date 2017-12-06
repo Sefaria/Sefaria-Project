@@ -78,7 +78,7 @@ def new_sheet(request):
 	hide_video    = db.sheets.find(query).count() > 2
 
 
-	return render_to_response('sheets.html' if request.COOKIES.get('s1') else 's2_sheets.html', {"can_edit": True,
+	return render_to_response('sheets.html', {"can_edit": True,
 												"new_sheet": True,
 												"is_owner": True,
 												"hide_video": hide_video,
@@ -223,7 +223,7 @@ def view_sheet(request, sheet_id):
 
 	canonical_url = request.get_full_path().replace("?embed=1", "").replace("&embed=1", "")
 
-	return render_to_response('sheets.html' if request.COOKIES.get('s1') else 's2_sheets.html', {"sheetJSON": json.dumps(sheet),
+	return render_to_response('sheets.html', {"sheetJSON": json.dumps(sheet),
 												"sheet": sheet,
 												"sheet_class": sheet_class,
 												"can_edit": can_edit_flag,
@@ -327,7 +327,7 @@ def assigned_sheet(request, assignment_id):
 	like_count      = len(likes)
 	viewer_is_liker = request.user.id in likes
 
-	return render_to_response('sheets.html' if request.COOKIES.get('s1') else 's2_sheets.html', {"sheetJSON": json.dumps(sheet),
+	return render_to_response('sheets.html', {"sheetJSON": json.dumps(sheet),
 												"sheet": sheet,
 												"assignment_id": assignment_id,
 												"assigner_id": assigner_id,
@@ -378,75 +378,18 @@ def sheets_list(request, type=None):
 	"""
 	if not type:
 		# Sheet Splash page
-
-		if request.flavour == "mobile":
-			return s2_sheets(request)
-
-		elif not request.COOKIES.get('s1'):
-			return s2_sheets(request)
-
-		query       = {"status": "public"}
-		public      = db.sheets.find(query).sort([["dateModified", -1]]).limit(32)
-		public_tags = recent_public_tags()
-
-		if request.user.is_authenticated():
-			query       = {"owner": request.user.id}
-			your        = db.sheets.find(query).sort([["dateModified", -1]]).limit(3)
-			your_tags   = sheet_tag_counts(query)
-			your_tags   = order_tags_for_user(your_tags, request.user.id)
-			collapse    = your.count() > 3
-		else:
-			your = your_tags = collapse = None
-
-		return render_to_response('sheets_splash.html',
-									{
-										"public_sheets": public,
-										"public_tags": public_tags,
-										"your_sheets": your,
-										"your_tags":   your_tags,
-										"collapse_private": collapse,
-										"groups": get_user_groups(request.user.id)
-									},
-									RequestContext(request))
+		return s2_sheets(request)
 
 	response = { "status": 0 }
 
 	if type == "public":
-		if request.flavour == "mobile":
-			return s2_sheets_by_tag(request,"All Sheets")
-
-		elif not request.COOKIES.get('s1'):
-			return s2_sheets_by_tag(request,"All Sheets")
-
-		query              = {"status": "public"}
-		response["title"]  = "Public Source Sheets"
-		response["public"] = True
-		tags               = recent_public_tags()
+		return s2_sheets_by_tag(request,"All Sheets")
 
 	elif type == "private" and request.user.is_authenticated():
-		if request.flavour == "mobile":
-			return s2_sheets_by_tag(request,"My Sheets")
-
-		elif not request.COOKIES.get('s1'):
-			return s2_sheets_by_tag(request,"My Sheets")
-
-		query              = {"owner": request.user.id or -1 }
-		response["title"]  = "Your Source Sheets"
-		response["groups"] = get_user_groups(request.user.id)
-		tags               = sheet_tag_counts(query)
-		tags               = order_tags_for_user(tags, request.user.id)
+		return s2_sheets_by_tag(request,"My Sheets")
 
 	elif type == "private" and not request.user.is_authenticated():
 		return redirect("/login?next=/sheets/private")
-
-	sheets = db.sheets.find(query).sort([["dateModified", -1]])
-	if "fragment" in request.GET:
-		return render_to_response('elements/sheet_table.html', {"sheets": sheets})
-
-	response["sheets"] = sheets
-	response["tags"]   = tags
-
-	return render_to_response('sheets_list.html', response, RequestContext(request))
 
 
 def group_page(request, group):
@@ -457,28 +400,10 @@ def group_page(request, group):
 	group = Group().load({"name": group})
 	if not group:
 		raise Http404
-
 	if request.user.is_authenticated() and group.is_member(request.user.id):
-		if not request.COOKIES.get('s1'):
-			return s2_group_sheets(request, group.name, True)
-		in_group = True
-		query = {"status": {"$in": ["unlisted","public"]}, "group": group.name}
+		return s2_group_sheets(request, group.name, True)
 	else:
-		if not request.COOKIES.get('s1'):
-			return s2_group_sheets(request, group.name, False)
-		in_group = False
-		query = {"status": "public", "group": group.name}
-
-
-	sheets = db.sheets.find(query).sort([["title", 1]])
-	tags   = sheet_tag_counts(query)
-	return render_to_response('sheets_list.html', {"sheets": sheets,
-												"tags": tags,
-												"status": "unlisted",
-												"group": group,
-												"in_group": in_group,
-												"title": "%s on Sefaria" % group.name,
-											}, RequestContext(request))
+		return s2_group_sheets(request, group.name, False)
 
 
 def my_groups_page(request):
@@ -661,60 +586,16 @@ def sheets_tags_list(request):
 	"""
 	View public sheets organized by tags.
 	"""
-	if request.flavour == "mobile":
-		return s2_sheets(request)
+	return s2_sheets(request)
 
-	elif not request.COOKIES.get('s1'):
-		return s2_sheets(request)
 
-	tags_list = public_tag_list(sort_by="alpha-hebrew" if request.interfaceLang == "hebrew" else "alpha")
-	return render_to_response('sheet_tags.html', {"tags_list": tags_list, }, RequestContext(request))
 
 
 def sheets_tag(request, tag, public=True, group=None):
-	"""
-	View sheets for a particular tag.
-	"""
-	if public:
-		if request.flavour == "mobile":
-			return s2_sheets_by_tag(request, tag)
-		elif not request.COOKIES.get('s1'):
-			return s2_sheets_by_tag(request, tag)
-		sheets = get_sheets_by_tag(tag)
-	elif group:
-		sheets = get_sheets_by_tag(tag, group=group)
-	else:
-		sheets = get_sheets_by_tag(tag, uid=request.user.id)
-
-	in_group = request.user.is_authenticated() and group in [g.name for g in get_user_groups(request.user.id)]
-	groupCover = Group().load({"name": group}).coverUrl if Group().load({"name": group}) else None
-
-	return render_to_response('tag.html', {
-											"tag": tag,
-											"sheets": sheets,
-											"public": public,
-											"group": group,
-											"groupCover": groupCover,
-											"in_group": in_group,
-										 }, RequestContext(request))
-
-	return render_to_response('sheet_tags.html', {"tags_list": tags_list, }, RequestContext(request))
+	return s2_sheets_by_tag(request, tag)
 
 
-@login_required
-def private_sheets_tag(request, tag):
-	"""
-	Wrapper for sheet_tag for user tags
-	"""
-	return sheets_tag(request, tag, public=False)
 
-
-def group_sheets_tag(request, group, tag):
-	"""
-	Wrapper for sheet_tag for group tags
-	"""
-	group = group.replace("_", " ")
-	return sheets_tag(request, tag, public=False, group=group)
 
 
 @csrf_exempt
