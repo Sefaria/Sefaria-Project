@@ -225,7 +225,7 @@ class TextColumn extends Component {
       this.props.setTextListHighlight(ref);
     } else {
       if (this.props.highlightedRefs.length != 0) {
-        this.props.setTextListHighlight([]);
+        //this.props.setTextListHighlight([]);
       }
     }
   }
