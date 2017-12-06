@@ -87,6 +87,11 @@ class TextRange extends Component {
       // Pass parameter to showBaseText to replaceHistory - normalization should't add a step to history
       this.props.showBaseText(data.ref, true, this.props.version, this.props.versionLanguage);
       return;
+    } else if (data.spanning) {
+      // Replace ReaderPanel contents with split refs if ref is spanning
+      // Pass parameter to showBaseText to replaceHistory - normalization should't add a step to history
+      this.props.showBaseText(data.spanningRefs, true, this.props.version, this.props.versionLanguage);
+      return;      
     }
 
     // If this is a ref to a super-section, rewrite it to first available section
@@ -225,9 +230,11 @@ class TextRange extends Component {
     } else if (data && !this.props.basetext) {
       var title            = data.ref;
       var heTitle          = data.heRef;
+      var ref              = data.ref;
     } else if (!data) {
       var title            = "Loading...";
       var heTitle          = "טעינה...";
+      var ref              = null;
     }
     var showNumberLabel    =  data &&
                               data.categories &&
@@ -326,7 +333,7 @@ class TextRange extends Component {
     } else {var sidebarNum = null;}
 
     return (
-      <div className={classes} onClick={this.handleClick} onKeyPress={this.handleKeyPress} data-ref={this.props.sref}>
+      <div className={classes} onClick={this.handleClick} onKeyPress={this.handleKeyPress} data-ref={ref}>
         {sidebarNum}
         {this.props.hideTitle ? null :
         (<div className="title">

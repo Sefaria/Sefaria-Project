@@ -194,7 +194,7 @@ class ReaderPanel extends Component {
     this.conditionalSetState({highlightedRefs: [], mode: "Text"});
   }
   showBaseText(ref, replaceHistory, version=null, versionLanguage=null, filter=[]) {
-    // Set the current primary text
+    // Set the current primary text `ref`, which may be either a string or an array of strings.
     // `replaceHistory` - bool whether to replace browser history rather than push for this change
     if (!ref) { return; }
     this.replaceHistory = Boolean(replaceHistory);
@@ -205,11 +205,11 @@ class ReaderPanel extends Component {
     }
     this.conditionalSetState({
       mode: "Text",
-      refs: [ref],
+      refs: ref.constructor == Array ? ref : [ref],
       filter: filter,
       recentFilters: [],
       menuOpen: null,
-      currentlyVisibleRef: ref,
+      currentlyVisibleRef: ref.constructor == Array ? Sefaria.normRef(ref) : ref,
       version: version,
       versionLanguage: versionLanguage,
       settings: this.state.settings
@@ -384,7 +384,7 @@ class ReaderPanel extends Component {
   }
   setCurrentlyVisibleRef(ref) {
      this.replaceHistory = true;
-     var ref = this.state.highlightedRefs.length ? Sefaria.normRef(this.state.highlightedRefs) : ref;
+     //var ref = this.state.highlightedRefs.length ? Sefaria.normRef(this.state.highlightedRefs) : ref;
      this.conditionalSetState({
       currentlyVisibleRef: ref,
     });   
