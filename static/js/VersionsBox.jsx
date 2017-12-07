@@ -10,39 +10,34 @@ import Component             from 'react-class';
 class VersionsBox extends Component {
   constructor(props) {
     super(props);
+    const initialCurrVersions = {};
+    for (let vlang in props.currObjectVersions) {
+      const tempV = props.currObjectVersions[vlang];
+      initialCurrVersions[vlang] = !!tempV ? tempV.versionTitle : null;
+    }
     this.state = {
-      versions: null,
+      versionLangMap: null,  // object with version languages as keys and array of versions in that lang as values
+      versionLangs: null,  // sorted list of version languages available
+      initialCurrVersions,
+      initialMainVersionLanguage: props.mainVersionLanguage,
     };
   }
   componentDidMount() {
-    Sefaria.versions(this.props.getDataRef(this.props), (data)=>{
-      this.setState({versions: data});
-    });
+    Sefaria.versions(this.props.getDataRef(this.props), this.onVersionsLoad);
   }
   componentDidUpdate(prevProps, prevState) {
     if (this.props.getDataRef(prevProps) !== this.props.getDataRef(this.props)) {
-      Sefaria.versions(this.props.getDataRef(this.props), (data)=>{
-        this.setState({versions: data});
-      });
+      Sefaria.versions(this.props.getDataRef(this.props), this.onVersionsLoad);
     }
   }
-  openVersionInSidebar(versionTitle, versionLanguage) {
-    this.props.setConnectionsMode("Version Open");
-    this.props.setFilter(versionTitle);
-  }
-  renderModeVersions() {
-    if (!this.state.versions) {
-      return (
-        <div className="versionsBox">
-          <LoadingMessage />
-        </div>
-      );
-    }
+  onVersionsLoad(versions) {
     const versionLangMap = {};
-    for (let v of this.state.versions) {
+    for (let v of versions) {
       const matches = v.versionTitle.match(new RegExp("\\[([a-z]{2})\\]$")); // two-letter ISO language code
       const lang = matches ? matches[1] : v.language;
-      versionLangMap[lang] = !!versionLangMap[lang] ? versionLangMap[lang].concat(v) : [v];
+      //if version is the initial one selected, put it first
+      versionLangMap[lang] = !!versionLangMap[lang] ?
+        (this.state.initialCurrVersions[lang] === v.versionTitle ? [v].concat(versionLangMap[lang]) : versionLangMap[lang].concat(v)) : [v];
     }
 
     //sort versions by language so that
@@ -52,8 +47,8 @@ class VersionsBox extends Component {
     const standard_langs = ["en", "he"];
     const versionLangs = Object.keys(versionLangMap).sort(
       (a, b) => {
-        if      (a === this.props.mainVersionLanguage.slice(0,2)) {return -1;}
-        else if (b === this.props.mainVersionLanguage.slice(0,2)) {return  1;}
+        if      (a === this.state.initialMainVersionLanguage.slice(0,2)) {return -1;}
+        else if (b === this.state.initialMainVersionLanguage.slice(0,2)) {return  1;}
         else if (a in standard_langs && !(b in standard_langs))   {return -1;}
         else if (b in standard_langs && !(a in standard_langs))   {return  1;}
         else if (a < b)                                           {return -1;}
@@ -61,6 +56,20 @@ class VersionsBox extends Component {
         else                                                      {return  0;}
       }
     );
+    this.setState({versionLangMap, versionLangs});
+  };
+  openVersionInSidebar(versionTitle, versionLanguage) {
+    this.props.setConnectionsMode("Version Open");
+    this.props.setFilter(versionTitle);
+  };
+  renderModeVersions() {
+    if (!this.state.versionLangMap) {
+      return (
+        <div className="versionsBox">
+          <LoadingMessage />
+        </div>
+      );
+    }
     const currVersions = {};
     for (let vlang in this.props.currObjectVersions) {
       const tempV = this.props.currObjectVersions[vlang];
@@ -69,11 +78,11 @@ class VersionsBox extends Component {
     return (
       <div className="versionsBox">
         {
-          versionLangs.map((lang) => (
+          this.state.versionLangs.map((lang) => (
             <div key={lang}>
-              <div className="versionLanguage">{Sefaria._(this.props.translateISOLanguageCode(lang))}<span className="versionCount">{` (${versionLangMap[lang].length})`}</span></div>
+              <div className="versionLanguage">{Sefaria._(this.props.translateISOLanguageCode(lang))}<span className="enInHe connectionsCount">{` (${this.state.versionLangMap[lang].length})`}</span></div>
               {
-                versionLangMap[lang].map((v) => (
+                this.state.versionLangMap[lang].map((v) => (
                   <VersionBlock
                     version={v}
                     currVersions={currVersions}

@@ -4,6 +4,59 @@ import os.path
 relative_to_abs_path = lambda *x: os.path.join(os.path.dirname(
                                os.path.realpath(__file__)), *x)
 
+#These are things you need to change!
+
+################ YOU ONLY NEED TO CHANGE "NAME" TO THE PATH OF YOUR SQLITE DATA FILE ########################################
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3', # Add 'postgresql_psycopg2', 'mysql', 'sqlite3' or 'oracle'.
+        'NAME': '/path/to/your/sefaria/data/db.sqlite', # Or path to database file if using sqlite3.
+        'USER': '',                      # Not used with sqlite3.
+        'PASSWORD': '',                  # Not used with sqlite3.
+        'HOST': '',                      # Set to empty string for localhost. Not used with sqlite3.
+        'PORT': '',                      # Set to empty string for default. Not used with sqlite3.
+    }
+}
+
+################ These are things you can change! ###########################################################################
+ADMINS = (
+     ('Your Name', 'you@example.com'),
+)
+PINNED_IPCOUNTRY = "IL" #change if you want parashat hashavua to be diaspora.
+
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.dummy.DummyCache',
+    }
+}
+""" These are some other examples of possible caches. more here: https://django.readthedocs.io/en/1.4/topics/cache.html"""
+"""CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
+        'LOCATION': '/home/ephraim/www/sefaria/django_cache/',
+    }
+}
+
+CACHES = {
+    "default": {
+        "BACKEND": "redis_cache.cache.RedisCache",
+        "LOCATION": "127.0.0.1:6379:0",
+        "OPTIONS": {
+            "CLIENT_CLASS": "redis_cache.client.DefaultClient",
+            #"PASSWORD": "secretpassword", # Optional
+        },
+        "TIMEOUT": 60 * 60 * 24 * 30,
+    }
+}"""
+
+
+
+
+
+
+
+
+################ These are things you DO NOT NEED to touch unless you know what you are doing. ##############################
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG
 OFFLINE = False
@@ -21,41 +74,20 @@ GLOBAL_INTERRUPTING_MESSAGE = {
 }
 """
 
-ADMINS = (
-     ('Your Name', 'you@example.com'),
-)
 
 MANAGERS = ADMINS
-
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3', # Add 'postgresql_psycopg2', 'mysql', 'sqlite3' or 'oracle'.
-        'NAME': '/path/to/your/sefaria/data/db.sqlite', # Or path to database file if using sqlite3.
-        'USER': '',                      # Not used with sqlite3.
-        'PASSWORD': '',                  # Not used with sqlite3.
-        'HOST': '',                      # Set to empty string for localhost. Not used with sqlite3.
-        'PORT': '',                      # Set to empty string for default. Not used with sqlite3.
-    }
-}
-
-CACHES = {
-    'default': {
-        'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
-        'LOCATION': '/path/to/your/django_cache/',  # can be any accessible path, not necessarily a path inside sefaria eg. /home/user/data/django_cache.
-    }
-}
 
 SECRET_KEY = 'insert your long random secret key here !'
 
 STATICFILES_DIRS = (
-    '/path/to/your/sefaria/static/',
+    relative_to_abs_path('../static/'),
     # Put strings here, like "/home/html/static" or "C:/www/django/static".
     # Always use forward slashes, even on Windows.
     # Don't forget to use absolute paths, not relative paths.
 )
 
 TEMPLATE_DIRS = (
-    '/path/to/your/sefaria/templates/',
+    relative_to_abs_path('../templates/'),
     # Put strings here, like "/home/html/django_templates" or "C:/www/django/templates".
     # Always use forward slashes, even on Windows.
     # Don't forget to use absolute paths, not relative paths.
@@ -76,13 +108,13 @@ MONGO_HOST = "localhost"
 # Name of the MongoDB database to use.
 SEFARIA_DB = 'sefaria'
 # Leave user and password blank if not using Mongo Auth
-SEFARIA_DB_USER = 'sefaria'
-SEFARIA_DB_PASSWORD = 'your mongo password'
+SEFARIA_DB_USER = ''
+SEFARIA_DB_PASSWORD = ''
 
 # ElasticSearch server
 SEARCH_HOST = "http://localhost:9200"
 SEARCH_ADMIN = "http://localhost:9200"
-SEARCH_INDEX_ON_SAVE = True  # Whether to send texts and source sheet to Search Host for indexing after save
+SEARCH_INDEX_ON_SAVE = False  # Whether to send texts and source sheet to Search Host for indexing after save
 SEARCH_INDEX_NAME = 'sefaria'  # name of the ElasticSearch index to use
 
 # Node Server
