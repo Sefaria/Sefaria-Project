@@ -38,7 +38,7 @@ SAUCE_CORE_CAPS = [
     {'browserName': "firefox", 'platform': "macOS 10.12", 'version': "53.0",
         'sefaria_mode': 'multi_panel', 'sefaria_short_name': 'FF/x12'},
 
-    {'browserName': "safari", 'platform': "OS X 10.11", 'version': "9.0",
+    {'browserName': "safari", 'platform': "OS X 10.11", 'version': "10.0",
         'sefaria_mode': 'multi_panel', 'sefaria_short_name': 'Sf/x11'},
 
     {'browserName': "internet explorer", 'platform': "Windows 10", 'version': "11.103",
