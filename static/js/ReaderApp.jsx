@@ -37,16 +37,16 @@ class ReaderApp extends Component {
       } else {
         var mode = props.initialFilter ? "TextAndConnections" : "Text";
         var initialPanel = props.initialPanels && props.initialPanels.length ? props.initialPanels[0] : {};
+
         panels[0] = {
           refs: props.initialRefs,
           mode: mode,
-          filter: initialPanel.filter || props.initialFilter,
           menuOpen: props.initialMenu,
           filter: props.initialFilter,
+          versionFilter: props.initialVersionFilter,
           menuOpen: props.initialMenu,
           connectionsMode: initialPanel.connectionsMode || "Resources",
-          version: initialPanel.version || null,
-          versionLanguage: initialPanel.versionLanguage || null,
+          currVersions: initialPanel.currVersions || {en:null, he:null},
           searchQuery: props.initialQuery,
           appliedSearchFilters: props.initialSearchFilters,
           navigationCategories: props.initialNavigationCategories,
@@ -57,9 +57,9 @@ class ReaderApp extends Component {
           searchSortType: props.initialSearchSortType,
           settings: Sefaria.util.clone(defaultPanelSettings)
         };
-        if (panels[0].versionLanguage) {
-          panels[0].settings.language = (panels[0].versionLanguage == "he") ? "hebrew" : "english";
-        }
+        if (panels[0].currVersions.he && panels[0].currVersions.en) { panels[0].settings.language = "bilingual"; }
+        else if (panels[0].currVersions.he)                         { panels[0].settings.language = "hebrew"; }
+        else if (panels[0].currVersions.en)                         { panels[0].settings.language = "english"; }
         if (mode === "TextAndConnections") {
           panels[0].highlightedRefs = props.initialRefs;
         }
@@ -86,14 +86,16 @@ class ReaderApp extends Component {
           refs: props.initialRefs,
           mode: "Text",
           filter: props.initialPanels[0].filter,
+          versionFilter: props.initialPanels[0].versionFilter,
           menuOpen: props.initialPanels[0].menuOpen,
           highlightedRefs: props.initialPanels[0].highlightedRefs || [],
-          version: props.initialPanels.length ? props.initialPanels[0].version : null,
-          versionLanguage: props.initialPanels.length ? props.initialPanels[0].versionLanguage : null,
+          currVersions: props.initialPanels.length ? props.initialPanels[0].currVersions : {en:null,he:null},
           settings: ("settings" in props.initialPanels[0]) ? extend(Sefaria.util.clone(defaultPanelSettings), props.initialPanels[0].settings) : Sefaria.util.clone(defaultPanelSettings)
         };
-        if (p.versionLanguage && !"settings" in props.initialPanels[0]) {
-          p.settings.language = (p.versionLanguage == "he") ? "hebrew" : "english";
+        if (!"settings" in props.initialPanels[0]) {
+          if (p.currVersions.he && p.currVersions.en) { p.settings.language = "bilingual"; }
+          else if (p.currVersions.he)                 { p.settings.language = "hebrew" }
+          else if (p.currVersions.en)                 { p.settings.language = "english" }
         }
         panels.push(p);
       }
@@ -108,8 +110,10 @@ class ReaderApp extends Component {
         } else {
           panel = this.clonePanel(props.initialPanels[i]);
           panel.settings = Sefaria.util.clone(defaultPanelSettings);
-          if (panel.versionLanguage && !"settings" in props.initialPanels[i]) {
-            panel.settings.language = (panel.versionLanguage == "he") ? "hebrew" : "english";
+          if (!"settings" in props.initialPanels[i]) {
+            if (panel.currVersions.he && p.currVersions.en) { panel.settings.language = "bilingual"; }
+            else if (panel.currVersions.he)                 { panel.settings.language = "hebrew" }
+            else if (panel.currVersions.en)                 { panel.settings.language = "english" }
           }
         }
         panels.push(panel);
@@ -255,7 +259,7 @@ class ReaderApp extends Component {
       Sefaria.track.setContentLanguage(contentLanguages.join(" | "));
 
       // Set Versions - per text panel
-      var versionTitles = textPanels.map(p => p.version?`${p.version}(${p.versionLanguage})`:"default version");
+      var versionTitles = textPanels.map(p => p.currVersions.en ? `${p.currVersions.en}(en)`: (p.currVersions.he ? `${p.currVersions.he}(he)` : 'default version'));
       Sefaria.track.setVersionTitle(versionTitles.join(" | "));
 
       // Set Sidebar usages
@@ -309,12 +313,13 @@ class ReaderApp extends Component {
           (next.mode === "Text" && !prev.highlightedRefs.compare(next.highlightedRefs)) ||
           (next.mode === "TextAndConnections" && prev.highlightedRefs.slice(-1)[0] !== next.highlightedRefs.slice(-1)[0]) ||
           ((next.mode === "Connections" || next.mode === "TextAndConnections") && prev.filter && !prev.filter.compare(next.filter)) ||
+          (next.mode === "Version Open" && prev.versionFilter && !prev.versionFilter(next.versionFilter)) ||
           (next.mode === "Connections" && !prev.refs.compare(next.refs)) ||
           (next.currentlyVisibleRef === prev.currentlyVisibleRef) ||
           (next.connectionsMode !== prev.connectionsMoade) ||
           (prev.navigationSheetTag !== next.navigationSheetTag) ||
-          (prev.version !== next.version) ||
-          (prev.versionLanguage !== next.versionLanguage) ||
+          (prev.currVersions.en !== next.currVersions.en) ||
+          (prev.currVersions.he !== next.currVersions.he) ||
           (prev.searchQuery != next.searchQuery) ||
           (prev.appliedSearchFilters && next.appliedSearchFilters && (prev.appliedSearchFilters.length !== next.appliedSearchFilters.length)) ||
           (prev.appliedSearchFilters && next.appliedSearchFilters && !(prev.appliedSearchFilters.compare(next.appliedSearchFilters))) ||
@@ -352,6 +357,17 @@ class ReaderApp extends Component {
     } else {
       return Sefaria.util.clone(panel);
     }
+  }
+  _getUrlVersionsParams(currVersions, i) {
+    if (currVersions) {
+      return Object.keys(currVersions)
+              .filter(vlang=>!!currVersions[vlang])
+              .map(vlang=>`&v${vlang}${i > 1 ? i : ""}=${currVersions[vlang].replace(/\s/g,"_")}`)
+              .join("");
+    } else {
+      return "";
+    }
+
   }
   makeHistoryState() {
     // Returns an object with state, title and url params for the current state
@@ -436,11 +452,11 @@ class ReaderApp extends Component {
             if (states[i].navigationTopic) {
               hist.url   = "topics/" + state.navigationTopic;
               hist.title = state.navigationTopic + " | " + Sefaria._("Sefaria");
-              hist.mode  = "topic";                 
+              hist.mode  = "topic";
             } else {
               hist.url   = "topics";
               hist.title = Sefaria._("Topics | Sefaria");
-              hist.mode  = "topics";   
+              hist.mode  = "topics";
             }
             break;
           case "account":
@@ -479,15 +495,17 @@ class ReaderApp extends Component {
                           Sefaria.normRefList(state.highlightedRefs) : state.currentlyVisibleRef;
         hist.title    = Sefaria._r(htitle);
         hist.url      = Sefaria.normRef(htitle);
-        hist.version  = state.version;
-        hist.versionLanguage = state.versionLanguage;
+        hist.currVersions = state.currVersions;
         hist.mode     = "Text"
 
       } else if (state.mode === "Connections") {
         var ref       = Sefaria.normRefList(state.refs);
         var filter    = state.filter.length ? state.filter :
-                          (state.connectionsMode in {"Sheets": 1, "Notes": 1} ? [state.connectionsMode] : ["all"]);
+                          (state.connectionsMode in {"Sheets": 1, "Notes": 1, "Versions": 1, "Version Open": 1, "About": 1} ? [state.connectionsMode] : ["all"]);
         hist.sources  = filter.join("+");
+        if (state.connectionsMode === "Version Open" && state.versionFilter.length) {
+          hist.versionFilter = state.versionFilter[0];
+        }
         hist.title    = Sefaria._r(ref)  + Sefaria._(" with ") + Sefaria._(hist.sources === "all" ? "Connections" : hist.sources);
         hist.url      = Sefaria.normRef(ref); // + "?with=" + sources;
         hist.mode     = "Connections"
@@ -495,14 +513,15 @@ class ReaderApp extends Component {
       } else if (state.mode === "TextAndConnections") {
         var ref       = Sefaria.normRefList(state.highlightedRefs);
         var filter    = state.filter.length ? state.filter :
-                          (state.connectionsMode in {"Sheets": 1, "Notes": 1} ? [state.connectionsMode] : ["all"]);
+                          (state.connectionsMode in {"Sheets": 1, "Notes": 1, "Versions": 1, "Version Open": 1, "About": 1} ? [state.connectionsMode] : ["all"]);
         hist.sources  = filter.join("+");
+        if (state.connectionsMode === "Version Open" && state.versionFilter.length) {
+          hist.versionFilter = state.versionFilter[0];
+        }
         hist.title    = Sefaria._r(ref)  + Sefaria._(" with ") + Sefaria._(hist.sources === "all" ? "Connections" : hist.sources);
         hist.url      = Sefaria.normRef(ref); // + "?with=" + sources;
-        hist.version  = state.version;
-        hist.versionLanguage = state.versionLanguage;
-        hist.mode     = "TextAndConnections"
-
+        hist.currVersions = state.currVersions;
+        hist.mode     = "TextAndConnections";
       } else if (state.mode === "Header") {
         hist.title    = document.title;
         hist.url      = window.location.pathname.slice(1);
@@ -522,9 +541,7 @@ class ReaderApp extends Component {
     var title =  histories.length ? histories[0].title : "Sefaria";
 
     var url   = "/" + (histories.length ? histories[0].url : "");
-    if(histories[0] && histories[0].versionLanguage && histories[0].version) {
-        url += "/" + histories[0].versionLanguage + "/" + histories[0].version.replace(/\s/g,"_");
-    }
+    url += this._getUrlVersionsParams(histories[0].currVersions, 0);
     if (histories[0].mode === "TextAndConnections") {
         url += "&with=" + histories[0].sources;
     }
@@ -539,24 +556,26 @@ class ReaderApp extends Component {
         if (i == 1) {
           // short form for two panels text+commentary - e.g., /Genesis.1?with=Rashi
           hist.url   = "/" + histories[1].url; // Rewrite the URL
-          if(histories[0].versionLanguage && histories[0].version) {
-            hist.url += "/" + histories[0].versionLanguage + "/" + histories[0].version.replace(/\s/g,"_");
-          }
+          hist.url += this._getUrlVersionsParams(histories[0].currVersions, 0);
           if(histories[0].lang) {
             hist.url += "&lang=" + histories[0].lang;
           }
+          if(histories[1].versionFilter) {
+            hist.url += "&vside=" + histories[1].versionFilter.replace(/\s/g, '_');
+          }
           hist.url += "&with=" + histories[1].sources;
+
           hist.title = histories[1].title;
         } else {
           var replacer = "&p" + i + "=";
           hist.url    = hist.url.replace(RegExp(replacer + ".*"), "");
           hist.url   += replacer + histories[i].url;
-          if(histories[i-1].versionLanguage && histories[i-1].version) {
-          hist.url += "&l" + (i) + "=" + histories[i-1].versionLanguage +
-                      "&v" + (i) + "=" + histories[i-1].version.replace(/\s/g,"_");
-          }
+          hist.url += this._getUrlVersionsParams(histories[i-1].currVersions, i);
           if(histories[i-1].lang) {
             hist.url += "&lang" + (i) + "=" + histories[i-1].lang;
+          }
+          if(histories[i].versionFilter) {
+            hist.url += "&vside" + (i) + "=" + histories[i].versionFilter.replace(/\s/g, '_');
           }
           hist.url   += "&w" + i + "=" + histories[i].sources; //.replace("with=", "with" + i + "=").replace("?", "&");
           hist.title += Sefaria._(" & ") + histories[i].title; // TODO this doesn't trim title properly
@@ -565,10 +584,7 @@ class ReaderApp extends Component {
         var next    = "&p=" + histories[i].url;
         next        = next.replace("?", "&").replace(/=/g, (i+1) + "=");
         hist.url   += next;
-        if(histories[i].versionLanguage && histories[i].version) {
-          hist.url += "&l" + (i+1) + "=" + histories[i].versionLanguage +
-                      "&v" + (i+1) + "=" + histories[i].version.replace(/\s/g,"_");
-        }
+        hist.url += this._getUrlVersionsParams(histories[i].currVersions, i+1);
         hist.title += Sefaria._(" & ") + histories[i].title;
       }
       if(histories[i].lang) {
@@ -629,12 +645,13 @@ class ReaderApp extends Component {
       mode:                    state.mode,                   // "Text", "TextAndConnections", "Connections"
       refs:                    state.refs                    || [], // array of ref strings
       filter:                  state.filter                  || [],
+      versionFilter:           state.versionFilter           || [],
       connectionsMode:         state.connectionsMode         || "Resources",
-      version:                 state.version                 || null,
-      versionLanguage:         state.versionLanguage         || null,
+      currVersions:            state.currVersions            || {en:null,he:null},
       highlightedRefs:         state.highlightedRefs         || [],
       currentlyVisibleRef:     state.refs && state.refs.length ? state.refs[0] : null,
       recentFilters:           state.recentFilters           || state.filter || [],
+      recentVersionFilters:    state.recentVersionFilters    || state.versionFilter || [],
       menuOpen:                state.menuOpen                || null, // "navigation", "text toc", "display", "search", "sheets", "home", "book toc"
       navigationCategories:    state.navigationCategories    || [],
       navigationSheetTag:      state.sheetsTag               || null,
@@ -659,14 +676,12 @@ class ReaderApp extends Component {
       initialAnalyticsTracked: state.initialAnalyticsTracked || false,
       selectedWords:           state.selectedWords           || "",
     };
-    if (this.state && panel.refs.length && !panel.version) {
+    // if version is not set for the language you're in, see if you can retrieve it from cache
+    if (this.state && panel.refs.length && ((panel.settings.language === "hebrew" && !panel.currVersions.he) || (panel.settings.language !== "hebrew" && !panel.currVersions.en ))) {
       var oRef = Sefaria.ref(panel.refs[0]);
       if (oRef) {
-        var lang = panel.versionLanguage || (panel.settings.language == "hebrew"?"he":"en");
-        panel.version = this.getCachedVersion(oRef.indexTitle, lang);
-        if (panel.version) {
-          panel.versionLanguage = lang;
-        }
+        const lang = panel.settings.language == "hebrew"?"he":"en";
+        panel.currVersions[lang] = this.getCachedVersion(oRef.indexTitle, lang);
       }
     }
     return panel;
@@ -711,15 +726,15 @@ class ReaderApp extends Component {
     // console.log("Setting window width: " + $(window).outerWidth());
     this.setState({windowWidth: $(window).outerWidth()});
   }
-  handleNavigationClick(ref, version, versionLanguage, options) {
-    this.openPanel(ref, version, versionLanguage, options);
+  handleNavigationClick(ref, currVersions, options) {
+    this.openPanel(ref, currVersions, options);
   }
   handleSegmentClick(n, ref) {
     // Handle a click on a text segment `ref` in from panel in position `n`
     // Update or add panel after this one to be a TextList
     this.setTextListHighlight(n, [ref]);
     if (this.currentlyConnecting()) { return }
-    
+
     this.openTextListAt(n+1, [ref]);
     if ($(".readerPanel")[n+1] && window.getSelection().isCollapsed) { //Focus on the first focusable element of the newly loaded panel if text not selected. Mostly for a11y
       var curPanel = $(".readerPanel")[n+1];
@@ -734,18 +749,18 @@ class ReaderApp extends Component {
     this.setTextListHighlight(n, [textRef]);
     this.openPanelAt(n, citationRef);
   }
-  handleRecentClick(pos, ref, version, versionLanguage) {
+  handleRecentClick(pos, ref, currVersions) {
     // Click on an item in your Recently Viewed
     if (this.props.multiPanel) {
-      this.openPanel(ref, version, versionLanguage);
+      this.openPanel(ref, currVersions);
     } else {
-      this.handleNavigationClick(ref, version, versionLanguage);
+      this.handleNavigationClick(ref, currVersions);
     }
   }
-  handleCompareSearchClick(n, ref, version, versionLanguage, options) {
+  handleCompareSearchClick(n, ref, currVersions, options) {
     // Handle clicking a search result in a compare panel, so that clicks don't clobber open panels
     // todo: support options.highlight, passed up from SearchTextResult.handleResultClick()
-    this.replacePanel(n, ref, version, versionLanguage);
+    this.replacePanel(n, ref, currVersions);
   }
   handleInAppLinkClick(e) {
     e.preventDefault();
@@ -852,14 +867,14 @@ class ReaderApp extends Component {
     var next        = this.state.panels[n+1];
     if (langChange && next && next.mode === "Connections" && state.settings.language !== "bilingual") {
         next.settings.language = state.settings.language;
-        if (next.settings.language.substring(0,2) != this.state.panels[n].versionLanguage){
-            next.versionLanguage = null;
-            next.version = null;
-        } else {
-            next.versionLanguage = this.state.panels[n].versionLanguage;
-            next.version = this.state.panels[n].version;
-        }
     }
+    // state is not always a full panel state. make sure it has necessary fields needed to run saveRecentlyViewed(). don't use extend() b/c it overwrites extended obj
+    const fields = ["menu", "mode", "currVersions"];
+    fields.map(field => {
+      if (!(field in state)) {
+        state[field] = this.state.panels[n][field];
+      }
+    });
     if (this.didPanelRefChange(this.state.panels[n], state)) {
       this.saveRecentlyViewed(state);
     }
@@ -872,7 +887,8 @@ class ReaderApp extends Component {
         !nextPanel.refs || nextPanel.refs.length == 0 ||
         !prevPanel.refs || prevPanel.refs.length == 0 ) { return false; }
     if (nextPanel.refs.compare(prevPanel.refs)) {
-      if (nextPanel.version !== prevPanel.version) { return true; }
+      if (nextPanel.currVersions.en !== prevPanel.currVersions.en) { return true; }
+      if (nextPanel.currVersions.he !== prevPanel.currVersions.he) { return true; }
     } else {
       return true;
     }
@@ -887,13 +903,9 @@ class ReaderApp extends Component {
     var source  = { refs: connectionsPanel.refs };
 
     // If version exists in main panel, pass it along, use that for the target language.
-    var version =  textPanel.version;
-    var versionLanguage = textPanel.versionLanguage;
-    if (version && versionLanguage) {
-      source["version"] = version;
-      source["versionLanguage"] = versionLanguage;
-    }
-
+    const { en, he } = textPanel.currVersions;
+    if (he)      { source.version = he; source.versionLanguage = "he"; }
+    else if (en) { source.version = en; source.versionLanguage = "en"; }
     // If something is highlighted and main panel language is not bilingual:
     // Use main panel language to determine which version this highlight covers.
     var language = textPanel.settings.language;
@@ -906,27 +918,70 @@ class ReaderApp extends Component {
     $.post(url, {source: JSON.stringify(source)}, confirmFunction);
 
   }
+  getLicenseMap() {
+    const licenseMap = {
+      "Public Domain": "https://en.wikipedia.org/wiki/Public_domain",
+      "CC0": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "CC-BY": "https://creativecommons.org/licenses/by/3.0/",
+      "CC-BY-SA": "https://creativecommons.org/licenses/by-sa/3.0/",
+      "CC-BY-NC": "https://creativecommons.org/licenses/by-nc/4.0/"
+    }
+    return licenseMap;
+  }
+  translateISOLanguageCode(code) {
+    //takes two-letter ISO 639.2 code and returns full language name
+    const codeMap = {
+      "en": "English",
+      "he": "Hebrew",
+      "yi": "Yiddish",
+      "fi": "Finnish",
+      "pt": "Portuguese",
+      "es": "Spanish",
+      "fr": "French",
+      "de": "German",
+      "ar": "Arabic",
+      "it": "Italian",
+      "pl": "Polish",
+      "ru": "Russian",
+    };
+    return codeMap[code.toLowerCase()];
+  }
   selectVersion(n, versionName, versionLanguage) {
     // Set the version for panel `n`.
     var panel = this.state.panels[n];
     var oRef = Sefaria.ref(panel.refs[0]);
+    let panelLang;
     if (versionName && versionLanguage) {
-      panel.version = versionName;
-      panel.versionLanguage = versionLanguage;
-      panel.settings.language = (panel.versionLanguage == "he")? "hebrew": "english";
+      panel.currVersions[versionLanguage] = versionName;
+      if ((versionLanguage === "he" && !!panel.currVersions["en"]) ||
+          (versionLanguage === "en" && !!panel.currVersions["he"])) { // if both versionLanguages are set, try to show them both
+        panelLang = "bilingual";
+      } else if (versionLanguage === "he") {
+        panelLang = "hebrew";
+      } else {
+        panelLang = "english";
+      }
 
-      this.setCachedVersion(oRef.indexTitle, panel.versionLanguage, panel.version);
-      Sefaria.track.event("Reader", "Choose Version", `${oRef.indexTitle} / ${panel.version} / ${panel.versionLanguage}`)
+      this.setCachedVersion(oRef.indexTitle, versionLanguage, versionName);
+      Sefaria.track.event("Reader", "Choose Version", `${oRef.indexTitle} / ${versionName} / ${versionLanguage}`)
     } else {
-      panel.version = null;
-      panel.versionLanguage = null;
+      panel.currVersions[versionLanguage] = null;
       Sefaria.track.event("Reader", "Choose Version", `${oRef.indexTitle} / default version / ${panel.settings.language}`)
     }
-
     if((this.state.panels.length > n+1) && this.state.panels[n+1].mode == "Connections"){
       var connectionsPanel =  this.state.panels[n+1];
-      connectionsPanel.version = panel.version;
-      connectionsPanel.versionLanguage = panel.versionLanguage;
+      connectionsPanel.currVersions = panel.currVersions;
+      if (panelLang) {
+        panel.settings.language = panelLang;
+        connectionsPanel.settings.language = panelLang !== "bilingual" ? panelLang : (versionLanguage === "he" ? "hebrew" : "english");
+      }
+    } else if (n-1 >= 0 && this.state.panels[n].mode === "Connections") {
+      const masterPanel = this.state.panels[n-1];
+      masterPanel.currVersions = panel.currVersions;
+      if (panelLang) {
+        panel.settings.language = panelLang !== "bilingual" ? panelLang : (versionLanguage === "he" ? "hebrew" : "english");
+        masterPanel.settings.language = panelLang;
+      }
     }
     this.setState({panels: this.state.panels});
   }
@@ -949,7 +1004,7 @@ class ReaderApp extends Component {
       this.setState(this.state);
     }
   }
-  openPanel(ref, version, versionLanguage, options) {
+  openPanel(ref, currVersions, options) {
     // Opens a text panel, replacing all panels currently open.
 
     //todo: support options.highlight, passed up from SearchTextResult.handleResultClick()
@@ -964,14 +1019,14 @@ class ReaderApp extends Component {
     if (index) {
       panel = this.makePanelState({"menuOpen": "book toc", "bookRef": index.title});
     } else {
-      panel = this.makePanelState({refs: [ref], version: version, versionLanguage: versionLanguage, mode: "Text"});
+      panel = this.makePanelState({refs: [ref], currVersions, mode: "Text"});
     }
 
     this.setHeaderState({menuOpen: null});
     this.setState({panels: [panel]});
     this.saveRecentlyViewed(panel);
   }
-  openPanelAt(n, ref, version, versionLanguage) {
+  openPanelAt(n, ref, currVersions) {
     // Open a new panel after `n` with the new ref
 
     // If book level, Open book toc
@@ -980,7 +1035,7 @@ class ReaderApp extends Component {
     if (index) {
       panel = this.makePanelState({"menuOpen": "book toc", "bookRef": index.title});
     } else {
-      panel = this.makePanelState({refs: [ref], version: version, versionLanguage: versionLanguage, mode: "Text"});
+      panel = this.makePanelState({refs: [ref], currVersions, mode: "Text"});
     }
 
     var newPanels = this.state.panels.slice();
@@ -989,8 +1044,8 @@ class ReaderApp extends Component {
     this.setHeaderState({menuOpen: null});
     this.saveRecentlyViewed(panel);
   }
-  openPanelAtEnd(ref, version, versionLanguage) {
-    this.openPanelAt(this.state.panels.length+1, ref, version, versionLanguage);
+  openPanelAtEnd(ref, currVersions) {
+    this.openPanelAt(this.state.panels.length+1, ref, currVersions);
   }
   openTextListAt(n, refs) {
     // Open a connections panel at position `n` for `refs`
@@ -1005,6 +1060,7 @@ class ReaderApp extends Component {
       newPanels.splice(n, 0, {});
       panel = newPanels[n];
       panel.filter = [];
+      panel.versionFilter = [];
     }
     panel.refs              = refs;
     panel.menuOpen          = null;
@@ -1013,17 +1069,12 @@ class ReaderApp extends Component {
     panel.settings.language = panel.settings.language == "hebrew" ? "hebrew" : "english"; // Don't let connections panels be bilingual
     if(parentPanel) {
       panel.filter = parentPanel.filter;
+      panel.versionFilter = parentPanel.versionFilter;
       panel.connectionsMode   = parentPanel.openSidebarAsConnect ? "Add Connection" : panel.connectionsMode;
       panel.recentFilters = parentPanel.recentFilters;
-      if (panel.settings.language.substring(0, 2) == parentPanel.versionLanguage) {
-        panel.version = parentPanel.version;
-        panel.versionLanguage = parentPanel.versionLanguage;
-      } else {
-        panel.version = null;
-        panel.versionLanguage = null;
-      }
+      panel.recentVersionFilters = parentPanel.recentVersionFilters;
+      panel.currVersions = parentPanel.currVersions;
     }
-
     newPanels[n] = this.makePanelState(panel);
     this.setState({panels: newPanels});
   }
@@ -1046,8 +1097,8 @@ class ReaderApp extends Component {
     if (filter) {
       if (updateRecent) {
         if (Sefaria.util.inArray(filter, connectionsPanel.recentFilters) !== -1) {
-            connectionsPanel.recentFilters.toggle(filter);
-          }
+          connectionsPanel.recentFilters.toggle(filter);
+        }
         connectionsPanel.recentFilters = [filter].concat(connectionsPanel.recentFilters);
       }
       connectionsPanel.filter = [filter];
@@ -1059,6 +1110,25 @@ class ReaderApp extends Component {
     if (basePanel) {
       basePanel.filter        = connectionsPanel.filter;
       basePanel.recentFilters = connectionsPanel.recentFilters;
+    }
+    this.setState({panels: this.state.panels});
+  }
+  setVersionFilter(n, filter) {
+    var connectionsPanel = this.state.panels[n];
+    var basePanel        = this.state.panels[n-1];
+    if (filter) {
+      if (Sefaria.util.inArray(filter, connectionsPanel.recentVersionFilters) === -1) {
+        connectionsPanel.recentVersionFilters = [filter].concat(connectionsPanel.recentVersionFilters);
+      }
+      connectionsPanel.versionFilter = [filter];
+      connectionsPanel.connectionsMode = "Version Open";
+    } else {
+      connectionsPanel.versionFilter = [];
+      connectionsPanel.connectionsMode = "Versions";
+    }
+    if (basePanel) {
+      basePanel.versionFilter        = connectionsPanel.versionFilter;
+      basePanel.recentVersionFilters = connectionsPanel.recentVersionFilters;
     }
     this.setState({panels: this.state.panels});
   }
@@ -1074,9 +1144,9 @@ class ReaderApp extends Component {
     Sefaria.notificationCount = n;
     this.forceUpdate();
   }
-  replacePanel(n, ref, version, versionLanguage) {
+  replacePanel(n, ref, currVersions) {
     // Opens a text in in place of the panel currently open at `n`.
-    this.state.panels[n] = this.makePanelState({refs: [ref], version: version, versionLanguage: versionLanguage, mode: "Text"});
+    this.state.panels[n] = this.makePanelState({refs: [ref], currVersions, mode: "Text"});
     this.setState({panels: this.state.panels});
     this.saveRecentlyViewed(this.state.panels[n]);
   }
@@ -1176,18 +1246,12 @@ class ReaderApp extends Component {
         ref: ref,
         heRef: oRef.heRef,
         book: oRef.indexTitle,
-        version: panel.version,
-        versionLanguage: panel.versionLanguage,
         lastVisited: new Date(),
         bookVisitCount: previousRecent ? previousRecent.bookVisitCount + 1 : 1,
+        currVersions: panel.currVersions,
       };
       Sefaria.saveRecentItem(recentItem);
     });
-  }
-  saveOpenPanelsToRecentlyViewed() {
-    for (var i = this.state.panels.length-1; i >= 0; i--) {
-      this.saveRecentlyViewed(this.state.panels[i], i);
-    }
   }
   currentlyConnecting() {
     // returns true if there is currently an "Add Connections" Panel open
@@ -1263,7 +1327,9 @@ class ReaderApp extends Component {
                     handleInAppLinkClick={this.handleInAppLinkClick}
                     headerMode={this.props.headerMode}
                     panelsOpen={panelStates.length}
-                    analyticsInitialized={this.state.initialAnalyticsTracked} />) : null;
+                    analyticsInitialized={this.state.initialAnalyticsTracked}
+                    getLicenseMap={this.getLicenseMap}
+                    translateISOLanguageCode={this.translateISOLanguageCode} />) : null;
 
     var panels = [];
     var allOpenRefs = panelStates.filter( panel => panel.mode == "Text" && !panel.menuOpen)
@@ -1282,7 +1348,7 @@ class ReaderApp extends Component {
       var updateAvailableFiltersInPanel  = this.updateAvailableFiltersInPanel.bind(null, i);
       var updateSearchFilterInPanel      = this.updateSearchFilterInPanel.bind(null, i);
       var updateSearchOptionFieldInPanel = this.updateSearchOptionFieldInPanel.bind(null, i);
-      var updateSearchOptionSortInPanel  = this.updateSearchOptionSortInPanel.bind(null, i);     
+      var updateSearchOptionSortInPanel  = this.updateSearchOptionSortInPanel.bind(null, i);
       var onOpenConnectionsClick         = this.openTextListAt.bind(null, i+1);
       var setTextListHighlight           = this.setTextListHighlight.bind(null, i);
       var setSelectedWords               = this.setSelectedWords.bind(null, i);
@@ -1290,6 +1356,7 @@ class ReaderApp extends Component {
       var closePanel                     = panel.menuOpen == "compare" ? this.convertToTextList.bind(null, i) : this.closePanel.bind(null, i);
       var setPanelState                  = this.setPanelState.bind(null, i);
       var setConnectionsFilter           = this.setConnectionsFilter.bind(this, i);
+      var setVersionFilter               = this.setVersionFilter.bind(this, i);
       var selectVersion                  = this.selectVersion.bind(null, i);
       var addToSourceSheet               = this.addToSourceSheet.bind(null, i);
 
@@ -1317,6 +1384,7 @@ class ReaderApp extends Component {
                       openComparePanel={openComparePanel}
                       setTextListHighlight={setTextListHighlight}
                       setConnectionsFilter={setConnectionsFilter}
+                      setVersionFilter={setVersionFilter}
                       setSelectedWords={setSelectedWords}
                       selectVersion={selectVersion}
                       setDefaultOption={this.setDefaultOption}
@@ -1333,6 +1401,8 @@ class ReaderApp extends Component {
                       masterPanelLanguage={panel.mode === "Connections" ? panelStates[i-1].settings.language : panel.settings.language}
                       layoutWidth={width}
                       analyticsInitialized={this.state.initialAnalyticsTracked}
+                      getLicenseMap={this.getLicenseMap}
+                      translateISOLanguageCode={this.translateISOLanguageCode}
                     />
                   </div>);
     }
