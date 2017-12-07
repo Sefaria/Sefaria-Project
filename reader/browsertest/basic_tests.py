@@ -107,8 +107,8 @@ class NavToRefAndClickSegment(AtomicTest):
     every_build = True
 
     def body(self):
-        self.browse_to_ref("Psalms 65:5").click_segment("Psalms 65:5")
-        assert "Psalms.65.5" in self.driver.current_url, self.driver.current_url
+        self.browse_to_ref("Psalms 65:4").click_segment("Psalms 65:4")
+        assert "Psalms.65.4" in self.driver.current_url, self.driver.current_url
         assert "with=all" in self.driver.current_url, self.driver.current_url
 
         # If we're one level deep in a menu, go back.
@@ -119,10 +119,10 @@ class NavToRefAndClickSegment(AtomicTest):
         self.click_category_filter("Commentary")
         self.click_text_filter("Ibn Ezra")
 
-        assert "Psalms.65.5" in self.driver.current_url, self.driver.current_url
+        assert "Psalms.65.4" in self.driver.current_url, self.driver.current_url
         assert "with=Ibn%20Ezra" in self.driver.current_url or "with=Ibn Ezra" in self.driver.current_url, self.driver.current_url
 
-        self.click_segment_to_close_commentary("Psalms 65:5")  #  This is needed on mobile, to close the commentary window
+        self.click_segment_to_close_commentary("Psalms 65:4")  #  This is needed on mobile, to close the commentary window
 
 
 class LoadRefAndClickSegment(AtomicTest):
@@ -130,14 +130,14 @@ class LoadRefAndClickSegment(AtomicTest):
     every_build = True
 
     def body(self):
-        self.load_ref("Psalms 65:5").click_segment("Psalms 65:5")
-        assert "Psalms.65.5" in self.driver.current_url, self.driver.current_url
+        self.load_ref("Psalms 65:4").click_segment("Psalms 65:4")
+        assert "Psalms.65.4" in self.driver.current_url, self.driver.current_url
         assert "with=all" in self.driver.current_url, self.driver.current_url
 
         self.click_category_filter("Commentary")
         self.click_text_filter("Ibn Ezra")
 
-        assert "Psalms.65.5" in self.driver.current_url, self.driver.current_url
+        assert "Psalms.65.4" in self.driver.current_url, self.driver.current_url
         assert "with=Ibn%20Ezra" in self.driver.current_url or "with=Ibn Ezra" in self.driver.current_url, self.driver.current_url
 
 
