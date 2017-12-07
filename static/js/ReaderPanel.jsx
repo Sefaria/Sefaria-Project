@@ -51,10 +51,11 @@ class ReaderPanel extends Component {
       mode: props.initialMode, // "Text", "TextAndConnections", "Connections"
       connectionsMode: props.initialConnectionsMode,
       filter: props.initialFilter || [],
-      version: props.initialVersion,
-      versionLanguage: props.initialVersionLanguage,
+      versionFilter: props.initialVersionFilter || [],
+      currVersions: props.initialCurrVersions || {en:null, he: null},
       highlightedRefs: props.initialHighlightedRefs || [],
       recentFilters: [],
+      recentVersionFilters: [],
       settings: props.initialState.settings || {
         language:      "bilingual",
         layoutDefault: "segmented",
@@ -181,8 +182,8 @@ class ReaderPanel extends Component {
       this.showBaseText(citationRef);
     }
   }
-  handleTextListClick(ref) {
-    this.showBaseText(ref);
+  handleTextListClick(ref, replaceHistory, currVersions) {
+    this.showBaseText(ref, replaceHistory, currVersions);
   }
   openConnectionsInPanel(ref) {
     var refs = typeof ref == "string" ? [ref] : ref;
@@ -193,7 +194,7 @@ class ReaderPanel extends Component {
     // Return to the original text in the ReaderPanel contents
     this.conditionalSetState({highlightedRefs: [], mode: "Text"});
   }
-  showBaseText(ref, replaceHistory, version=null, versionLanguage=null, filter=[]) {
+  showBaseText(ref, replaceHistory, currVersions={en:null,he:null}, filter=[]) {
     // Set the current primary text `ref`, which may be either a string or an array of strings.
     // `replaceHistory` - bool whether to replace browser history rather than push for this change
     if (!ref) { return; }
@@ -206,12 +207,11 @@ class ReaderPanel extends Component {
     this.conditionalSetState({
       mode: "Text",
       refs: ref.constructor == Array ? ref : [ref],
-      filter: filter,
+      filter,
       recentFilters: [],
       menuOpen: null,
       currentlyVisibleRef: ref.constructor == Array ? Sefaria.normRef(ref) : ref,
-      version: version,
-      versionLanguage: versionLanguage,
+      currVersions,
       settings: this.state.settings
     });
   }
@@ -293,6 +293,18 @@ class ReaderPanel extends Component {
       this.conditionalSetState({recentFilters: this.state.recentFilters, filter: filter, connectionsMode: "TextList"});
     }
 
+  }
+  setVersionFilter(filter) {
+    if (this.props.setVersionFilter) {
+      this.props.setVersionFilter(filter);
+    } else {
+      const filtInd = Sefaria.util.inArray(filter, this.state.recentVersionFilters);
+      if (filtInd === -1) {
+        this.state.recentVersionFilters = [filter].concat(this.state.recentVersionFilters);
+      }
+      filter = filter ? [filter] : [];
+      this.conditionalSetState({recentVersionFilters: this.state.recentVersionFilters, versionFilter: filter, connectionsMode: "Version Open"});
+    }
   }
   setTopic(topic) {
     this.conditionalSetState({navigationTopic: topic});
@@ -387,8 +399,8 @@ class ReaderPanel extends Component {
      //var ref = this.state.highlightedRefs.length ? Sefaria.normRef(this.state.highlightedRefs) : ref;
      this.conditionalSetState({
       currentlyVisibleRef: ref,
-    });   
-  } 
+    });
+  }
   currentMode() {
     return this.state.mode;
   }
@@ -453,8 +465,7 @@ class ReaderPanel extends Component {
       items.push(<TextColumn
           panelPosition ={this.props.panelPosition}
           srefs={this.state.refs.slice()}
-          version={this.state.version}
-          versionLanguage={this.state.versionLanguage}
+          currVersions={this.state.currVersions}
           highlightedRefs={this.state.highlightedRefs}
           basetext={true}
           withContext={true}
@@ -488,6 +499,7 @@ class ReaderPanel extends Component {
                         (Sefaria.is_moderator && langMode !== "bilingual"));
       items.push(<ConnectionsPanel
           panelPosition ={this.props.panelPosition}
+          selectVersion={this.props.selectVersion}
           srefs={this.state.mode === "Connections" ? this.state.refs.slice() : this.state.highlightedRefs.slice()}
           filter={this.state.filter || []}
           mode={this.state.connectionsMode || "Resources"}
@@ -495,8 +507,8 @@ class ReaderPanel extends Component {
           connectionsCategory={this.state.connectionsCategory}
           interfaceLang={this.props.interfaceLang}
           contentLang={this.state.settings.language}
-          version={this.state.version}
-          versionLanguage={this.state.versionLanguage}
+          title={this.currentBook()}
+          currVersions={this.state.currVersions}
           fullPanel={this.props.multiPanel}
           multiPanel={this.props.multiPanel}
           allOpenRefs={this.props.allOpenRefs}
@@ -518,6 +530,12 @@ class ReaderPanel extends Component {
           openComparePanel={this.props.openComparePanel}
           closePanel={this.props.closePanel}
           selectedWords={this.state.selectedWords}
+          getLicenseMap={this.props.getLicenseMap}
+          masterPanelLanguage={this.props.masterPanelLanguage}
+          translateISOLanguageCode={this.props.translateISOLanguageCode}
+          versionFilter={this.state.versionFilter}
+          recentVersionFilters={this.state.recentVersionFilters}
+          setVersionFilter={this.setVersionFilter}
           key="connections" />
       );
     }
@@ -555,8 +573,7 @@ class ReaderPanel extends Component {
                     interfaceLang={this.props.interfaceLang}
                     close={this.closeMenus}
                     title={this.currentBook()}
-                    version={this.state.version}
-                    versionLanguage={this.state.versionLanguage}
+                    currVersions={this.state.currVersions}
                     settingsLanguage={this.state.settings.language == "hebrew"?"he":"en"}
                     category={this.currentCategory()}
                     narrowPanel={!this.props.multiPanel}
@@ -564,7 +581,8 @@ class ReaderPanel extends Component {
                     openNav={this.openMenu.bind(null, "navigation")}
                     openDisplaySettings={this.openDisplaySettings}
                     selectVersion={this.props.selectVersion}
-                    showBaseText={this.showBaseText}/>);
+                    showBaseText={this.showBaseText}
+                    getLicenseMap={this.props.getLicenseMap}/>);
 
     } else if (this.state.menuOpen === "book toc") {
       var menu = (<ReaderTextTableOfContents
@@ -573,6 +591,7 @@ class ReaderPanel extends Component {
                     closePanel={this.props.closePanel}
                     close={this.closeMenus}
                     title={this.state.bookRef}
+                    currVersions={this.state.currVersions}
                     settingsLanguage={this.state.settings.language == "hebrew"?"he":"en"}
                     category={Sefaria.index(this.state.bookRef) ? Sefaria.index(this.state.bookRef).primary_category : null}
                     currentRef={this.state.bookRef}
@@ -581,7 +600,8 @@ class ReaderPanel extends Component {
                     openNav={this.openMenu.bind(null, "navigation")}
                     openDisplaySettings={this.openDisplaySettings}
                     selectVersion={this.props.selectVersion}
-                    showBaseText={this.showBaseText}/>);
+                    showBaseText={this.showBaseText}
+                    getLicenseMap={this.props.getLicenseMap}/>);
 
     } else if (this.state.menuOpen === "search" && this.state.searchQuery) {
       var menu = (<SearchPage
@@ -710,8 +730,7 @@ class ReaderPanel extends Component {
           currentMode={this.currentMode.bind(this)}
           currentCategory={this.currentCategory}
           currentBook={this.currentBook.bind(this)}
-          version={this.state.version}
-          versionLanguage={this.state.versionLanguage}
+          currVersions={this.state.currVersions}
           multiPanel={this.props.multiPanel}
           settings={this.state.settings}
           setOption={this.setOption}
@@ -735,7 +754,7 @@ class ReaderPanel extends Component {
         : null}
 
         {menu}
-        
+
         {this.state.displaySettingsOpen ? (<ReaderDisplayOptionsMenu
                                               settings={this.state.settings}
                                               multiPanel={this.props.multiPanel}
@@ -796,7 +815,10 @@ ReaderPanel.propTypes = {
   layoutWidth:                 PropTypes.number,
   setTextListHighlight:        PropTypes.func,
   setSelectedWords:            PropTypes.func,
-  analyticsInitialized:        PropTypes.bool
+  analyticsInitialized:        PropTypes.bool,
+  getLicenseMap:               PropTypes.func.isRequired,
+  translateISOLanguageCode:    PropTypes.func.isRequired,
+  setVersionFilter:            PropTypes.func,
 };
 
 
@@ -850,8 +872,8 @@ class ReaderControls extends Component {
     var mode              = this.props.currentMode();
     var hideHeader        = !this.props.multiPanel && mode === "Connections";
     var connectionsHeader = this.props.multiPanel && mode === "Connections";
-    var showVersion = this.props.versionLanguage == "en" && (this.props.settings.language == "english" || this.props.settings.language == "bilingual");
-    var versionTitle = this.props.version ? this.props.version.replace(/_/g," ") : "";
+    var showVersion = this.props.currVersions.en && (this.props.settings.language == "english" || this.props.settings.language == "bilingual");
+    var versionTitle = this.props.currVersions.en ? this.props.currVersions.en.replace(/_/g," ") : "";
     var url = Sefaria.ref(title) ? "/" + Sefaria.normRef(Sefaria.ref(title).book) : Sefaria.normRef(title);
     var centerContent = connectionsHeader ?
       (<div className="readerTextToc">
@@ -922,8 +944,7 @@ ReaderControls.propTypes = {
   closePanel:              PropTypes.func,
   toggleLanguage:          PropTypes.func,
   currentRef:              PropTypes.string,
-  version:                 PropTypes.string,
-  versionLanguage:         PropTypes.string,
+  currVersions:            PropTypes.object,
   connectionsMode:         PropTypes.string,
   connectionsCategory:     PropTypes.string,
   multiPanel:              PropTypes.bool,

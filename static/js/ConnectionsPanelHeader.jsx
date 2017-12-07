@@ -15,6 +15,12 @@ import Component      from 'react-class';
 
 
 class ConnectionsPanelHeader extends Component {
+  constructor(props) {
+    super(props);
+    this.previousModes = { // mapping from modes to previous modes
+      "Version Open":"Versions"
+    };
+  }
   componentDidMount() {
     this.setMarginForScrollbar();
   }
@@ -29,26 +35,32 @@ class ConnectionsPanelHeader extends Component {
       $container.css({marginRight: width, marginLeft: 0});
     }
   }
+  onClick(e) {
+    e.preventDefault();
+    const previousMode = this.previousModes[this.props.connectionsMode];
+    if (previousMode) {
+      this.props.setConnectionsMode(previousMode);
+    } else {
+      this.props.setConnectionsCategory(this.props.previousCategory);
+    }
+  }
   render() {
+    const previousMode = this.previousModes[this.props.connectionsMode];
     if (this.props.connectionsMode == "Resources") {
       // Top Level Menu
       var title = <div className="connectionsHeaderTitle">
                     {this.props.interfaceLang == "english" ? <div className="int-en">Resources</div> : null }
                     {this.props.interfaceLang == "hebrew" ? <div className="int-he">קישורים וכלים</div> : null }
                   </div>;
-    } else if (this.props.previousCategory && this.props.connectionsMode == "TextList") {
+    } else if ((this.props.previousCategory && this.props.connectionsMode == "TextList") || previousMode) {
       // In a text list, back to Previous Categoy
-
-      var url = Sefaria.util.replaceUrlParam("with", this.props.previousCategory);
-      var onClick = function(e) {
-        this.props.setConnectionsCategory(this.props.previousCategory);
-        e.preventDefault();
-      }.bind(this);
-      var title = <a href={url} className="connectionsHeaderTitle active" onClick={onClick}>
-                    {this.props.interfaceLang == "english" ? <div className="int-en"><i className="fa fa-chevron-left"></i>{this.props.multiPanel ? this.props.previousCategory : null }</div> : null }
-                    {this.props.interfaceLang == "hebrew" ? <div className="int-he"><i className="fa fa-chevron-right"></i>{this.props.multiPanel ? Sefaria.hebrewTerm(this.props.previousCategory) : null }</div> : null }
+      const prev = previousMode ? previousMode : this.props.previousCategory;
+      const prevHe = previousMode ? Sefaria._(previousMode) : Sefaria.hebrewTerm(this.props.previousCategory);
+      const url = Sefaria.util.replaceUrlParam("with", prev);
+      var title = <a href={url} className="connectionsHeaderTitle active" onClick={this.onClick}>
+                    {this.props.interfaceLang == "english" ? <div className="int-en"><i className="fa fa-chevron-left"></i>{this.props.multiPanel ? prev : null }</div> : null }
+                    {this.props.interfaceLang == "hebrew" ? <div className="int-he"><i className="fa fa-chevron-right"></i>{this.props.multiPanel ? prevHe : null }</div> : null }
                   </a>;
-
     } else {
       // Anywhere else, back to Top Level
       var url = Sefaria.util.replaceUrlParam("with", "all");
