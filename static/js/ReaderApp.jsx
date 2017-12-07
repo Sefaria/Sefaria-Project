@@ -866,15 +866,14 @@ class ReaderApp extends Component {
     var next        = this.state.panels[n+1];
     if (langChange && next && next.mode === "Connections" && state.settings.language !== "bilingual") {
         next.settings.language = state.settings.language;
-        //NOTE: pretty sure this code no longer is needed b/c versions are saved seperately in enVersion and heVersion
-        /*if (next.settings.language.substring(0,2) != this.state.panels[n].versionLanguage){
-            next.versionLanguage = null;
-            next.version = null;
-        } else {
-            next.versionLanguage = this.state.panels[n].versionLanguage;
-            next.version = this.state.panels[n].version;
-        }*/
     }
+    // state is not always a full panel state. make sure it has necessary fields needed to run saveRecentlyViewed(). don't use extend() b/c it overwrites extended obj
+    const fields = ["menu", "mode", "currVersions"];
+    fields.map(field => {
+      if (!(field in state)) {
+        state[field] = this.state.panels[n][field];
+      }
+    });
     if (this.didPanelRefChange(this.state.panels[n], state)) {
       this.saveRecentlyViewed(state);
     }
@@ -1252,11 +1251,6 @@ class ReaderApp extends Component {
       };
       Sefaria.saveRecentItem(recentItem);
     });
-  }
-  saveOpenPanelsToRecentlyViewed() {
-    for (var i = this.state.panels.length-1; i >= 0; i--) {
-      this.saveRecentlyViewed(this.state.panels[i], i);
-    }
   }
   currentlyConnecting() {
     // returns true if there is currently an "Add Connections" Panel open

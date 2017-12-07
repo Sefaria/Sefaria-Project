@@ -1359,7 +1359,7 @@ Sefaria = extend(Sefaria, {
       book: oRef.index,
       lastVisited: item.length > 2 ? item[2] : null,
       bookVisitCount: item.length > 3 ? item[3] : null,
-      currVersions: item.length > 5 ? {
+      currVersions: item.length > 4 ? {
         en: item[4],
         he: item[5],
       } : undefined,
