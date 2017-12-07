@@ -592,45 +592,10 @@ def sheets_tags_list(request):
 
 
 def sheets_tag(request, tag, public=True, group=None):
-	"""
-	View sheets for a particular tag.
-	"""
-	if public:
-		return s2_sheets_by_tag(request, tag)
-	elif group:
-		sheets = get_sheets_by_tag(tag, group=group)
-	else:
-		sheets = get_sheets_by_tag(tag, uid=request.user.id)
-
-	in_group = request.user.is_authenticated() and group in [g.name for g in get_user_groups(request.user.id)]
-	groupCover = Group().load({"name": group}).coverUrl if Group().load({"name": group}) else None
-
-	return render_to_response('tag.html', {
-											"tag": tag,
-											"sheets": sheets,
-											"public": public,
-											"group": group,
-											"groupCover": groupCover,
-											"in_group": in_group,
-										 }, RequestContext(request))
-
-	return render_to_response('sheet_tags.html', {"tags_list": tags_list, }, RequestContext(request))
+	return s2_sheets_by_tag(request, tag)
 
 
-@login_required
-def private_sheets_tag(request, tag):
-	"""
-	Wrapper for sheet_tag for user tags
-	"""
-	return sheets_tag(request, tag, public=False)
 
-
-def group_sheets_tag(request, group, tag):
-	"""
-	Wrapper for sheet_tag for group tags
-	"""
-	group = group.replace("_", " ")
-	return sheets_tag(request, tag, public=False, group=group)
 
 
 @csrf_exempt

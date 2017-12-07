@@ -82,8 +82,13 @@ class TextBlockLink extends Component {
 
     var position = this.props.position || 0;
     var classes  = classNames({refLink: 1, blockLink: 1, recentItem: this.props.recentItem, calendarLink: (subtitle != null)});
-    var url      = "/" + Sefaria.normRef(this.props.sref) + (this.props.version?`/${this.props.versionLanguage}/${this.props.version}`:"");
-    return (<a href={url} className={classes} data-ref={this.props.sref} data-version={this.props.version} data-versionlanguage={this.props.versionLanguage} data-position={position} style={style}>
+    var url = "/" + Sefaria.normRef(this.props.sref);
+    url += Object.keys(this.props.currVersions)
+            .filter(vlang=>!!this.props.currVersions[vlang])
+            .map((vlang)=>`&v${vlang}=${this.props.currVersions[vlang]}`)
+            .join("")
+            .replace("&","?");
+    return (<a href={url} className={classes} data-ref={this.props.sref} data-ven={this.props.currVersions.en} data-vhe={this.props.currVersions.he} data-position={position} style={style}>
               <span className="en">{title}</span>
               <span className="he">{heTitle}</span>
                 {subtitle}
@@ -92,8 +97,7 @@ class TextBlockLink extends Component {
 }
 TextBlockLink.propTypes = {
   sref:            PropTypes.string.isRequired,
-  version:         PropTypes.string,
-  versionLanguage: PropTypes.string,
+  currVersions:    PropTypes.object.isRequired,
   heRef:           PropTypes.string,
   book:            PropTypes.string,
   category:        PropTypes.string,
@@ -103,7 +107,10 @@ TextBlockLink.propTypes = {
   heDisplayValue:  PropTypes.string,
   showSections:    PropTypes.bool,
   recentItem:      PropTypes.bool,
-  position:        PropTypes.number
+  position:        PropTypes.number,
+};
+TextBlockLink.defaultProps = {
+  currVersions: {en:null, he:null},
 };
 
 

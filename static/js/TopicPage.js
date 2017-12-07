@@ -90,13 +90,13 @@ class TopicPage extends Component {
               </div>
               : null }
             <div className="relatedTopicsList">
-              { topicData ? 
+              { topicData ?
                 topicData.related_topics.slice(0, 26).map(function(item, i) {
-                  return (<Link 
-                            className="relatedTopic" 
+                  return (<Link
+                            className="relatedTopic"
                             href={"/topics/" + item[0]}
-                            onClick={this.props.setTopic.bind(null, item[0])} 
-                            key={item[0]} 
+                            onClick={this.props.setTopic.bind(null, item[0])}
+                            key={item[0]}
                             title={item[1] + " co-occurrences"}>
                               <span className="int-en">{item[0]}</span>
                               <span className="int-he">{Sefaria.hebrewTerm(item[0])}</span>
@@ -114,11 +114,11 @@ class TopicPage extends Component {
                       // All notes are rendered initially (so ctrl+f works on page) but text is only loaded
                       // from API as notes scroll into view.
                       if (i < this.state.numberToRender) {
-                        return <TopicSource 
-                                  sref={item[0]} 
-                                  count={item[1]} 
-                                  topic={this.props.topic} 
-                                  showBaseText={this.props.showBaseText} 
+                        return <TopicSource
+                                  sref={item[0]}
+                                  count={item[1]}
+                                  topic={this.props.topic}
+                                  showBaseText={this.props.showBaseText}
                                   key={i} />
                       } else {
                         return null;
@@ -157,14 +157,14 @@ class TopicSource extends Component {
     var openSourceWithSheets = null; //this.props.showBaseText.bind(null, this.props.sref, true, null, null, ["Sheets"])
     var title = this.props.count + " Sheets tagged " + this.props.topic + " include this source."
     var buttons = <a
-                    href={"/" + Sefaria.normRef(this.props.sref) + "?with=Sheets"} 
+                    href={"/" + Sefaria.normRef(this.props.sref) + "?with=Sheets"}
                     className="score"
                     onClick={openSourceWithSheets}
                     title={title}>+{this.props.count}<img src="/static/img/sheet.svg" /></a>
-    
+
     return (<div className="topicSource">
-              <TextRange 
-                sref={this.props.sref} 
+              <TextRange
+                sref={this.props.sref}
                 titleButtons={buttons}
                 onRangeClick={openSource} />
             </div>);  }
