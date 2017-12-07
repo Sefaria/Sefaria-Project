@@ -33,10 +33,18 @@ from settings import SEARCH_ADMIN, SEARCH_INDEX_NAME, STATICFILES_DIRS
 from sefaria.utils.hebrew import hebrew_term
 import sefaria.model.queue as qu
 
-
-
-pagerank_dict = {r: v for r, v in json.load(open(STATICFILES_DIRS[0] + "pagerank.json","rb"))}
-sheetrank_dict = json.load(open(STATICFILES_DIRS[0] + "sheetrank.json", "rb"))
+def init_pagesheetrank_dicts():
+    global pagerank_dict, sheetrank_dict
+    try:
+        pagerank_dict = {r: v for r, v in json.load(open(STATICFILES_DIRS[0] + "pagerank.json","rb"))}
+    except IOError:
+        pagerank_dict = {}
+    try:
+        sheetrank_dict = json.load(open(STATICFILES_DIRS[0] + "sheetrank.json", "rb"))
+    except IOError:
+        sheetrank_dict = {}
+        
+init_pagesheetrank_dicts()
 all_gemara_indexes = library.get_indexes_in_category("Bavli")
 davidson_indexes = all_gemara_indexes[:all_gemara_indexes.index("Bava Batra") + 1]
 
@@ -49,7 +57,7 @@ tracer.addHandler(NullHandler())
 doc_count = 0
 
 
-def index_text(index_name, oref, version=None, lang=None, bavli_amud=True, merged=False):
+def index_text(index_name, oref, version=None, lang=None, bavli_amud=True, merged=False, version_priority=None):
     """
     Index the text designated by ref.
     If no version and lang are given, this function will be called for each available version.
@@ -59,6 +67,7 @@ def index_text(index_name, oref, version=None, lang=None, bavli_amud=True, merge
     :param str lang: Language of version being indexed
     :param bool bavli_amud:  Is this Bavli? Bavli text is indexed by section, not segment.
     :param bool merged: is this a merged index?
+    :param int version_priority: priority of version compared to other versions of this ref. lower is higher priority. NOTE: zero is not necessarily the highest priority for a given language
     :return:
     """
     #TODO it seems that `bavli_amud` is never set...?
@@ -70,8 +79,8 @@ def index_text(index_name, oref, version=None, lang=None, bavli_amud=True, merge
     if merged and version:
         raise InputError("index_text() called with version title and merged flag.")
     if not merged and not (version and lang):
-        for v in oref.version_list():
-            index_text(index_name, oref, version=v["versionTitle"], lang=v["language"], bavli_amud=bavli_amud)
+        for priority, v in enumerate(oref.version_list()):
+            index_text(index_name, oref, version=v["versionTitle"], lang=v["language"], version_priority=priority, bavli_amud=bavli_amud)
         return
     elif merged and not lang:
         for l in ["he", "en"]:
@@ -95,7 +104,7 @@ def index_text(index_name, oref, version=None, lang=None, bavli_amud=True, merge
                     continue
                 elif iref == 0 and ref.prev_segment_ref() is not None:
                     ref = ref.prev_segment_ref().to(ref)
-            index_text(index_name, ref, version=version, lang=lang, bavli_amud=bavli_amud, merged=merged)
+            index_text(index_name, ref, version=version, lang=lang, bavli_amud=bavli_amud, merged=merged, version_priority=version_priority)
         return  # Returning at this level prevents indexing of full chapters
 
     '''   Can't get here after the return above
@@ -109,7 +118,13 @@ def index_text(index_name, oref, version=None, lang=None, bavli_amud=True, merge
 
     # Index this document as a whole
     try:
-        doc = make_text_index_document(oref.normal(), version, lang)
+        if version and lang and not version_priority:
+            for priority, v in oref.version_list():
+                if v['versionTitle'] == version:
+                    version_priority = priority
+                    break
+        doc = make_text_index_document(oref.normal(), version, lang, version_priority)
+        print doc
     except Exception as e:
         logger.error(u"Error making index document {} / {} / {} : {}".format(oref.normal(), version, lang, e.message))
         return
@@ -176,7 +191,7 @@ def flatten_list(l):
             yield el
 
 
-def make_text_index_document(tref, version, lang):
+def make_text_index_document(tref, version, lang, version_priority):
     from sefaria.utils.hebrew import strip_cantillation
     """
     Create a document for indexing from the text specified by ref/version/lang
@@ -257,6 +272,7 @@ def make_text_index_document(tref, version, lang):
         "heRef": oref.he_normal(),
         "version": version,
         "lang": lang,
+        "version_priority": version_priority if version_priority else 1000,
         "titleVariants": text["titleVariants"],
         "categories": categories,
         "order": oref.order_id(),

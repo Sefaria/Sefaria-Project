@@ -201,8 +201,8 @@ class TextList extends Component {
                                     onCompareClick={this.props.onCompareClick}
                                     onOpenConnectionsClick={this.props.onOpenConnectionsClick}
                                     inlineReference={link.inline_reference}/>
-                                    {Sefaria.is_moderator ?
-                                    <ModeratorLinkOptions
+                                    {Sefaria.is_moderator || Sefaria.is_editor ?
+                                    <EditorLinkOptions
                                       _id={link._id}
                                       onDataChange={ this.onDataChange } />
                                     : null}
@@ -246,7 +246,7 @@ TextList.propTypes = {
 };
 
 
-class ModeratorLinkOptions extends Component {
+class EditorLinkOptions extends Component {
   constructor(props) {
     super(props);
     this.state = {collapsed: false};
@@ -273,18 +273,18 @@ class ModeratorLinkOptions extends Component {
   }
   render () {
     if (this.state.collapsed) {
-      return <div className="moderatorLinkOptions" onClick={this.expand}><i className="fa fa-cog"></i></div>
+      return <div className="editorLinkOptions" onClick={this.expand}><i className="fa fa-cog"></i></div>
     }
 
-    return <div className="moderatorLinkOptions sans">
-      <div className="moderatorLinkOptionsDelete" onClick={this.deleteLink}>
+    return <div className="editorLinkOptions sans">
+      <div className="editorLinkOptionsDelete" onClick={this.deleteLink}>
         <span className="int-en">Remove</span>
         <span className="int-he">מחק</span>
       </div>
     </div>
   }
 }
-ModeratorLinkOptions.propTypes = {
+EditorLinkOptions.propTypes = {
   _id:          PropTypes.string.isRequired,
   onDataChange: PropTypes.func
 };

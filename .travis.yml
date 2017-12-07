@@ -64,6 +64,9 @@ before_script:
   - python manage.py syncdb --noinput
   - python manage.py createsuperuser --email $SEFARIA_SUPERUSER  --noinput
 
+  # Rebuild TOC - TEMP to pass tests involving TOC changes
+  - ./run rebuild_toc.py 
+
   # run the django server, redirecting output to log files
   - python manage.py runserver --insecure 2> server.error.log > server.log &
   - python scripts/setup_travis_users.py
