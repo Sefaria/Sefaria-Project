@@ -225,10 +225,6 @@ class TextColumn extends Component {
     if (shouldHighlight) {
       var ref = $segment.attr("data-ref");
       this.props.setTextListHighlight(ref);
-    } else {
-      if (this.props.highlightedRefs.length != 0) {
-        //this.props.setTextListHighlight([]);
-      }
     }
   }
   scrollToHighlighted() {

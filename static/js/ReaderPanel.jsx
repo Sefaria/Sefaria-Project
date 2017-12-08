@@ -204,14 +204,27 @@ class ReaderPanel extends Component {
       // allow it to return to bilingual.
       this.state.settings.language = "bilingual";
     }
+    if (ref.constructor == Array) {
+      // When called with an array, set highlight for the whole spanning range
+      var refs = ref;
+      var currentlyVisibleRef = Sefaria.normRef(ref);
+      var splitArray = refs.map(ref => Sefaria.splitRangingRef(ref));
+      var highlightedRefs = [].concat.apply([], splitArray);
+    } else {
+      var refs = [ref];
+      var currentlyVisibleRef = ref;
+      var highlightedRefs = [];
+    }
+    console.log("showBaseText, highlightedRefs: ", highlightedRefs)
     this.conditionalSetState({
       mode: "Text",
-      refs: ref.constructor == Array ? ref : [ref],
+      refs,
       filter,
+      currentlyVisibleRef,
+      currVersions,
+      highlightedRefs,
       recentFilters: [],
       menuOpen: null,
-      currentlyVisibleRef: ref.constructor == Array ? Sefaria.normRef(ref) : ref,
-      currVersions,
       settings: this.state.settings
     });
   }
