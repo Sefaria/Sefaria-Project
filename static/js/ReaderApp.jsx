@@ -1006,25 +1006,11 @@ class ReaderApp extends Component {
   }
   openPanel(ref, currVersions, options) {
     // Opens a text panel, replacing all panels currently open.
-
+    console.log("Opening a panel", ref)
     //todo: support options.highlight, passed up from SearchTextResult.handleResultClick()
-    var highlight;
-    if (options) {
-      highlight = options.highlight;
-    }
 
-    // If book level, Open book toc
-    var index = Sefaria.index(ref); // Do we have to worry about normalization, as in Header.submitSearch()?
-    var panel;
-    if (index) {
-      panel = this.makePanelState({"menuOpen": "book toc", "bookRef": index.title});
-    } else {
-      panel = this.makePanelState({refs: [ref], currVersions, mode: "Text"});
-    }
-
-    this.setHeaderState({menuOpen: null});
-    this.setState({panels: [panel]});
-    this.saveRecentlyViewed(panel);
+    this.state.panels = [] // temporarily clear panels directly in state, set properly with setState in openPanelAt
+    this.openPanelAt(0, ref, currVersions);
   }
   openPanelAt(n, ref, currVersions) {
     // Open a new panel after `n` with the new ref
@@ -1035,7 +1021,19 @@ class ReaderApp extends Component {
     if (index) {
       panel = this.makePanelState({"menuOpen": "book toc", "bookRef": index.title});
     } else {
-      panel = this.makePanelState({refs: [ref], currVersions, mode: "Text"});
+      if (ref.constructor == Array) {
+        // When called with an array, set highlight for the whole spanning range of the array
+        var refs = ref;
+        var currentlyVisibleRef = Sefaria.normRef(ref);
+        var splitArray = refs.map(ref => Sefaria.splitRangingRef(ref));
+        var highlightedRefs = [].concat.apply([], splitArray);
+      } else {
+        var refs = [ref];
+        var currentlyVisibleRef = ref;
+        var highlightedRefs = [];
+      }
+      console.log("Higlighted refs:", highlightedRefs)
+      panel = this.makePanelState({refs, currVersions, highlightedRefs, currentlyVisibleRef, mode: "Text"});
     }
 
     var newPanels = this.state.panels.slice();
@@ -1083,7 +1081,6 @@ class ReaderApp extends Component {
     refs = typeof refs === "string" ? [refs] : refs;
     this.state.panels[n].highlightedRefs = refs;
     this.setState({panels: this.state.panels});
-
     // If a connections panel is opened after n, update its refs as well.
     var next = this.state.panels[n+1];
     if (next && next.mode === "Connections" && !next.menuOpen) {

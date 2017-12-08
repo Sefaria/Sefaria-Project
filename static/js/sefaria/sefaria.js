@@ -596,18 +596,23 @@ Sefaria = extend(Sefaria, {
     var oref = this.ref(ref);
     return oref ? oref.sectionRef : null;
   },
-  splitSpanningRef: function(ref) {
-    // Returns an array of non-spanning refs which correspond to the spanning `ref`
+  splitRangingRef: function(ref) {
+    // Returns an array of segment level refs which correspond to the ranging `ref`
     // e.g. "Genesis 1:1-2" -> ["Genesis 1:1", "Genesis 1:2"]
     var oref = Sefaria.parseRef(ref);
     var isDepth1 = oref.sections.length == 1;
     if (!isDepth1 && oref.sections[oref.sections.length - 2] !== oref.toSections[oref.sections.length - 2]) {
-      // TODO handle ranging refs, which requires knowledge of the segment count of each included section
-      // i.e., in "Shabbat 2a:5-2b:8" what is the last segment of Shabbat 2a?
-      // For now, just return the first non-spanning ref.
-      var newRef = Sefaria.util.clone(oref);
-      newRef.toSections = newRef.sections;
-      return [this.humanRef(this.makeRef(newRef))];
+      var textData = Sefaria.text(ref);
+      if (!textData) {
+        // TODO handle spanning refs, when no text data is available to answer how many segments are in each include section.
+        // i.e., in "Shabbat 2a:5-2b:8" what is the last segment of Shabbat 2a?
+        // For now, just return the first non-spanning ref.
+        var newRef = Sefaria.util.clone(oref);
+        newRef.toSections = newRef.sections;
+        return [this.humanRef(this.makeRef(newRef))];        
+      } else {
+        return Sefaria.makeSegments(textData).map(segment => segment.ref); 
+      }
     } else {
       var refs  = [];
       var start = oref.sections[oref.sections.length-1];
@@ -706,7 +711,7 @@ Sefaria = extend(Sefaria, {
     var splitItems = {}; // Aggregate links by anchorRef
     for (var i = 0; i < data.length; i++) {
       var ref = data[i].anchorRef;
-      var refs = Sefaria.splitSpanningRef(ref);
+      var refs = Sefaria.splitRangingRef(ref);
       for (var j = 0; j < refs.length; j++) {
         ref = refs[j];
         if (ref in splitItems) {
