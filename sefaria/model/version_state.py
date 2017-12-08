@@ -185,8 +185,8 @@ class VersionState(abst.AbstractMongoRecord, AbstractSchemaContent):
             invalidate_counts(self.index)
 
     def get_flag(self, flag):
-        return self.flags.get(flag, None)
-
+        return self.flags.get(flag, False) # consider all flags False until set True
+        
     def set_flag(self, flag, value):
         self.flags[flag] = value  # could use mongo level $set to avoid doc load, for speedup
         delete_template_cache("texts_dashboard")

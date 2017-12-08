@@ -140,22 +140,31 @@ class ReaderNavigationCategoryMenuContents extends Component {
   }
   hebrewContentSort(cats) {
     // Sorts contents of this category by Hebrew Alphabetical
+    console.log(cats);
     var heCats = cats.slice().map(function(item, indx) {
       item.enOrder = indx;
       return item;
     });
+    console.log(heCats.slice())
     heCats = heCats.sort(function(a, b) {
-      if ("order" in a || "order:" in b) {
+      if ("order" in a || "order" in b) {
         var aOrder = "order" in a ? a.order : 9999;
         var bOrder = "order" in b ? b.order : 9999;
         return aOrder > bOrder ? 1 : -1;
+      
+      } else if (("category" in a) != ("category" in b)) {
+        return a.enOrder > b.enOrder ? 1 : -1;      
+      
+      } else if (a.heComplete != b.heComplete) {
+        return a.heComplete ? -1 : 1;
       
       } else if (a.heTitle && b.heTitle) {
         return a.heTitle > b.heTitle ? 1 : -1;
       
       }
-      return a.enOrder - b.enOrder;
+      return a.enOrder > b.enOrder ? 1 : -1;
     });
+    console.log(heCats)
     return heCats; 
   }
   render() {
@@ -176,15 +185,20 @@ class ReaderNavigationCategoryMenuContents extends Component {
                 var chItem = item.contents[0];
                 var [title, heTitle] = this.getRenderedTextTitleString(chItem.title, chItem.heTitle);
                 var url     = "/" + Sefaria.normRef(chItem.firstSection);
-                content.push((<a href={url} className={'refLink blockLink'} data-ref={chItem.firstSection} key={"text." + this.props.nestLevel + "." + i}>
+                var incomplete = this.props.contentLang == "hebrew" ? !chItem.heComplete : !chItem.enComplete;
+                var classes = classNames({refLink: 1, blockLink: 1, incomplete: incomplete});
+                content.push((<a href={url} className={classes} data-ref={chItem.firstSection} key={"text." + this.props.nestLevel + "." + i}>
                                 <span className='en'>{title}</span>
                                 <span className='he'>{heTitle}</span>
                               </a>
                               ));
+            
             } else {
               // Create a link to a subcategory
-              url = "/texts/" + newCats.join("/");
-              content.push((<a href={url} className="catLink" data-cats={newCats.join("|")} key={"cat." + this.props.nestLevel + "." + i}>
+              var url = "/texts/" + newCats.join("/");
+              var incomplete = this.props.contentLang == "hebrew" ? !item.heComplete : !item.enComplete;
+              var classes = classNames({catLink: 1, incomplete: incomplete});
+              content.push((<a href={url} className={classes} data-cats={newCats.join("|")} key={"cat." + this.props.nestLevel + "." + i}>
                               <span className='en'>{item.category}</span>
                               <span className='he'>{item.heCategory}</span>
                             </a>
@@ -209,9 +223,15 @@ class ReaderNavigationCategoryMenuContents extends Component {
         } else {
           // Add a Text
           var [title, heTitle] = this.getRenderedTextTitleString(item.title, item.heTitle);
-          var ref = Sefaria.recentRefForText(item.title) || item.firstSection;
+          var recentItem = Sefaria.recentItemForText(item.title)
+          var ref =  recentItem ? recentItem.ref : item.firstSection;
           var url = "/" + Sefaria.normRef(ref);
-          content.push((<a href={url} className={'refLink blockLink'} data-ref={ref} key={"text." + this.props.nestLevel + "." + i}>
+          var incomplete = this.props.contentLang == "hebrew" ? !item.heComplete : !item.enComplete;
+          var classes = classNames({refLink: 1, blockLink: 1, incomplete: incomplete});
+          content.push((<a href={url} 
+                          className={classes} 
+                          data-ref={ref}
+                          key={"text." + this.props.nestLevel + "." + i}>
                           <span className='en'>{title}</span>
                           <span className='he'>{heTitle}</span>
                         </a>

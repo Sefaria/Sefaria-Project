@@ -22,6 +22,12 @@ for( i=visibleSources.length-1; i>=0; i--) {
 
 resizeZoomContainer();
 
+$(".outside, .comment").each(function(){
+    if(isHebrew($(this).text().trim())){
+       $(this).addClass('he');
+    }
+});
+
 if (sjs.current.options.language == "hebrew") {
     $(".en").hide();
 }
