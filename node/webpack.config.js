@@ -153,4 +153,4 @@ var sefariajsConfig = config({
 });
 
 
-module.exports = [clientConfig, serverConfig, diffConfig, exploreConfig, sefariajsConfig];
+module.exports = [clientConfig, serverConfig, diffConfig]; //, exploreConfig, sefariajsConfig];
