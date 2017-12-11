@@ -1892,7 +1892,8 @@ Sefaria.unpackDataFromProps = function(props) {
       const panelBook     = !!panel.versions ? panel.versions : !!panel.text ? panel.text.versions : null;
       if (panelVersions && panelBook) {
         Sefaria._versions[panelBook] = panelVersions;
-        for (let v of panelVersions) {
+        for (let i = 0; i < panelVersions.length; i++) {
+          const v = panelVersions[i];
           Sefaria._translateVersions[v.versionTitle] = {
             en: v.versionTitle,
             he: !!v.versionTitleInHebrew ? v.versionTitleInHebrew : v.versionTitle,
