@@ -194,10 +194,11 @@ class ReaderPanel extends Component {
     // Return to the original text in the ReaderPanel contents
     this.conditionalSetState({highlightedRefs: [], mode: "Text"});
   }
-  showBaseText(ref, replaceHistory, currVersions={en:null,he:null}, filter=[]) {
+  showBaseText(ref, replaceHistory, currVersions={en: null, he: null}, filter=[]) {
     // Set the current primary text `ref`, which may be either a string or an array of strings.
     // `replaceHistory` - bool whether to replace browser history rather than push for this change
     if (!ref) { return; }
+    console.log("showBaseText", ref)
     this.replaceHistory = Boolean(replaceHistory);
     if (this.state.mode == "Connections" && this.props.masterPanelLanguage == "bilingual") {
       // Connections panels are forced to be mono-lingual. When opening a text from a connections panel,
@@ -215,7 +216,7 @@ class ReaderPanel extends Component {
       var currentlyVisibleRef = ref;
       var highlightedRefs = [];
     }
-    console.log("showBaseText, highlightedRefs: ", highlightedRefs)
+    console.log("- highlightedRefs: ", highlightedRefs)
     this.conditionalSetState({
       mode: "Text",
       refs,
