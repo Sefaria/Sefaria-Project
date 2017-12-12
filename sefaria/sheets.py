@@ -40,6 +40,17 @@ def get_sheet(id=None):
 	s["_id"] = str(s["_id"])
 	return s
 
+def get_sheet_for_panel(id=None):
+	sheet = get_sheet(id)
+	if "assigner_id" in sheet:
+		asignerData = public_user_data(sheet["assigner_id"])
+		sheet["assignerName"]  = asignerData["name"]
+	if "viaOwner" in sheet:
+		viaOwnerData = public_user_data(sheet["viaOwner"])
+		sheet["viaOwnerName"]  = viaOwnerData["name"]
+	ownerData = public_user_data(sheet["owner"])
+	sheet["ownerName"]  = ownerData["name"]
+	return sheet
 
 def user_sheets(user_id, sort_by="date", limit=0, skip=0):
 	query = {"owner": int(user_id)}

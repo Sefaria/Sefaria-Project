@@ -48,7 +48,24 @@ class SheetMetadata extends Component {
     }
   }
   render() {
-    var title     = this.props.sheet.title.stripHtml();
+    console.log(this.props.sheet);
+    var title = this.props.sheet.title.stripHtml();
+    var authorStatement;
+
+    if (this.props.sheet.attribution) {
+      authorStatement = this.props.sheet.attribution;
+    }
+    else if (this.props.sheet.assignerName) {
+      authorStatement = "Assigned by "+ this.props.sheet.assignerName +" Completed by " + this.props.sheet.ownerName;
+    }
+    else if (this.props.sheet.viaOwner) {
+      authorStatement = "by "+ this.props.sheet.assignerName +" based on a sheet by  " + this.props.sheet.ownerName;
+    }
+    else {
+      authorStatement = "by " + this.props.sheet.ownerName;
+    }
+
+
 
     // Text Details
     var details = this.props.sheet.summary;
@@ -85,6 +102,9 @@ class SheetMetadata extends Component {
                     </a>
                     <div className="tocTitle" role="heading" aria-level="1">
                       {title}
+                    </div>
+                    <div className="tocDetail">
+                      {authorStatement}
                     </div>
                     {details ? <div className="tocDetail description">{details} </div> : null}
                   </div>

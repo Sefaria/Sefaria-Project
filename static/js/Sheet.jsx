@@ -14,7 +14,6 @@ import Component from 'react-class'
 class Sheet extends Component {
   componentDidMount() {
     this.ensureData();
-    this.placeSegmentNumbers();
 
   }
 
@@ -28,12 +27,10 @@ class Sheet extends Component {
 
   onDataLoad(data) {
     this.forceUpdate();
-    this.placeSegmentNumbers();
 
   }
 
   componentDidUpdate(prevProps, prevState) {
-    this.placeSegmentNumbers();
   }
 
 
@@ -41,44 +38,6 @@ class Sheet extends Component {
     if (!this.getSheetFromCache()) {
       this.getSheetFromAPI();
     }
-  }
-
-
-  placeSegmentNumbers() {
-    //console.log("placeSegmentNumbers", this.props.sref);
-    // Set the vertical offsets for segment numbers and link counts, which are dependent
-    // on the rendered height of the text of each segment.
-    var $text = $(ReactDOM.findDOMNode(this));
-    var elemsAtPosition = {}; // Keyed by top position, an array of elements found there
-    var setTop = function() {
-      var $elem = $(this);
-      var top = $elem.parent().position().top;
-      $elem.css({top: top});
-      var list = elemsAtPosition[top] || [];
-      list.push($elem);
-      elemsAtPosition[top] = list;
-    };
-    $text.find(".linkCount").each(setTop);
-    elemsAtPosition = {};  // resetting because we only want it to track segmentNumbers
-    $text.find(".segmentNumber").each(setTop).show();
-    var fixCollision = function($elems) {
-      // Takes an array of jQuery elements that all currently appear at the same top position
-      if ($elems.length == 1) {
-        return;
-      }
-      if ($elems.length == 2) {
-        var adjust = 8;
-        $elems[0].css({top: "-=" + adjust});
-        $elems[1].css({top: "+=" + adjust});
-      }
-    };
-    for (var top in elemsAtPosition) {
-      if (elemsAtPosition.hasOwnProperty(top)) {
-        fixCollision(elemsAtPosition[top]);
-      }
-    }
-    $text.find(".segmentNumber").show();
-    $text.find(".linkCount").show();
   }
 
 
@@ -181,7 +140,7 @@ class SheetSource extends Component {
   render() {
     return (
       <div className="sheetItem segment">
-        <div className="segmentNumber sans">
+        <div className="segmentNumber sheetSegmentNumber sans">
           <span className="en"> <span className="segmentNumberInner">{this.props.sourceNum}</span> </span>
           <span className="he"> <span
             className="segmentNumberInner">{Sefaria.hebrew.encodeHebrewNumeral(this.props.sourceNum)}</span> </span>
@@ -213,7 +172,7 @@ class SheetComment extends Component {
     var lang = Sefaria.hebrew.isHebrew(this.props.source.comment.stripHtml()) ? "he" : "en";
     return (
       <div className="sheetItem segment">
-        <div className="segmentNumber sans">
+        <div className="segmentNumber sheetSegmentNumber sans">
           <span className="en"> <span className="segmentNumberInner">{this.props.sourceNum}</span> </span>
           <span className="he"> <span
             className="segmentNumberInner">{Sefaria.hebrew.encodeHebrewNumeral(this.props.sourceNum)}</span> </span>
@@ -231,7 +190,7 @@ class SheetOutsideText extends Component {
     var lang = Sefaria.hebrew.isHebrew(this.props.source.outsideText.stripHtml()) ? "he" : "en";
     return (
       <div className="sheetItem segment">
-        <div className="segmentNumber sans">
+        <div className="segmentNumber sheetSegmentNumber sans">
           <span className="en"> <span className="segmentNumberInner">{this.props.sourceNum}</span> </span>
           <span className="he"> <span
             className="segmentNumberInner">{Sefaria.hebrew.encodeHebrewNumeral(this.props.sourceNum)}</span> </span>
@@ -249,7 +208,7 @@ class SheetOutsideBiText extends Component {
   render() {
     return (
       <div className="sheetItem segment">
-        <div className="segmentNumber sans">
+        <div className="segmentNumber sheetSegmentNumber sans">
           <span className="en"> <span className="segmentNumberInner">{this.props.sourceNum}</span> </span>
           <span className="he"> <span
             className="segmentNumberInner">{Sefaria.hebrew.encodeHebrewNumeral(this.props.sourceNum)}</span> </span>
@@ -292,7 +251,7 @@ class SheetMedia extends Component {
   render() {
     return (
       <div className="sheetItem segment">
-        <div className="segmentNumber sans">
+        <div className="segmentNumber sheetSegmentNumber sans">
           <span className="en"> <span className="segmentNumberInner">{this.props.sourceNum}</span> </span>
           <span className="he"> <span
             className="segmentNumberInner">{Sefaria.hebrew.encodeHebrewNumeral(this.props.sourceNum)}</span> </span>

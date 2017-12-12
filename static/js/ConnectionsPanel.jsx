@@ -430,14 +430,14 @@ PublicSheetsList.propTypes = {
 
 class SheetListing extends Component {
   // A source sheet listed in the Sidebar
-  handleSheetClick(e, id, title) {
+  handleSheetClick(e, sheet) {
     //console.log("Sheet Click Handled");
     if (Sefaria._uid == this.props.sheet.owner) {
       Sefaria.track.event("Tools", "My Sheet Click", this.props.sheet.sheetUrl);
     } else {
       Sefaria.track.event("Tools", "Sheet Click", this.props.sheet.sheetUrl);
     }
-    this.props.handleSheetClick(e,id, title);
+    this.props.handleSheetClick(e,sheet);
   }
   handleSheetOwnerClick() {
     Sefaria.track.event("Tools", "Sheet Owner Click", this.props.sheet.ownerProfileUrl);
@@ -462,9 +462,10 @@ class SheetListing extends Component {
           </div>
           {viewsIcon}
         </div>
-        <a href={sheet.sheetUrl} target="_blank" className="sheetTitle" onClick={(e) => this.handleSheetClick(e,sheet.id, sheet.title)}>
+        <a href={sheet.sheetUrl} target="_blank" className="sheetTitle" onClick={(e) => this.handleSheetClick(e,sheet)}>
           <img src="/static/img/sheet.svg" className="sheetIcon"/>
           <span className="sheetTitleText">{sheet.title}</span>
+          <span className="sheetTitleText">{sheet.summary}</span>
         </a>
         <div className="sheetTags">
           {sheet.tags.map(function(tag, i) {

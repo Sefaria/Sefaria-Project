@@ -199,9 +199,10 @@ class ReaderPanel extends Component {
     // Return to the original text in the ReaderPanel contents
     this.conditionalSetState({highlightedRefs: [], mode: "Text"});
   }
-  handleSheetClick(e,id, title) {
+  handleSheetClick(e,sheet) {
+    console.log(sheet);
     e.preventDefault();
-    this.conditionalSetState({ mode: "Sheet", sheet: {id: id, title: title}});
+    this.conditionalSetState({ mode: "Sheet", sheet: sheet});
   }
   showBaseText(ref, replaceHistory, version=null, versionLanguage=null, filter=[]) {
     // Set the current primary text

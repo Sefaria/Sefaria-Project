@@ -4659,6 +4659,10 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
   display: block;
 }
 
+.readerPanel.english .sheetItem .en {
+  display: block;
+}
+
 .readerPanel.english .sheetItem.segment .segmentNumber, .readerPanel.bilingual .sheetItem.segment .segmentNumber {
   left: 10px;
 }
@@ -4677,4 +4681,27 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
   text-transform: uppercase;
   letter-spacing: 1px;
+}
+
+
+.segmentNumber.sheetSegmentNumber {
+  display: inline;
+  position: relative;
+}
+
+.readerPanel.bilingual .sheetItem.segment .segmentNumber.sheetSegmentNumber {
+  left: -50px;
+  top: 32px;
+}
+.readerPanel.english .sheetItem.segment .segmentNumber.sheetSegmentNumber {
+  left: -50px;
+  top: 27px;
+  text-align: left;
+
+}
+
+.readerPanel.hebrew .sheetItem.segment .segmentNumber.sheetSegmentNumber {
+  right: -50px;
+  top: 32px;
+  text-align: right;
 }
