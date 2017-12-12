@@ -33,6 +33,7 @@
   },
   "dependencies": {
     "body-parser": "^1.15.1",
+    "babel-polyfill": "^6.26.0",
     "cheerio": "^0.22.0",
     "classnames": "^2.2.5",
     "cookie-parser": "^1.4.2",

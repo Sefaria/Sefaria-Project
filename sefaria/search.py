@@ -43,7 +43,7 @@ def init_pagesheetrank_dicts():
         sheetrank_dict = json.load(open(STATICFILES_DIRS[0] + "sheetrank.json", "rb"))
     except IOError:
         sheetrank_dict = {}
-        
+
 init_pagesheetrank_dicts()
 all_gemara_indexes = library.get_indexes_in_category("Bavli")
 davidson_indexes = all_gemara_indexes[:all_gemara_indexes.index("Bava Batra") + 1]
@@ -420,14 +420,13 @@ def create_index(index_name, merged=False):
         "index" : {
             "analysis" : {
                 "analyzer" : {
-                    "default" : {
+                    "my_standard" : {
                         "tokenizer": "standard",
                         "filter": [
                                 "standard",
                                 "lowercase",
                                 "icu_normalizer",
                                 "icu_folding",
-                                "icu_collation",
                                 "my_snow"
                                 ]
                     }
@@ -503,7 +502,7 @@ def put_text_mapping(index_name):
                 #},
                 "exact": {
                     'type': 'string',
-                    'analyzer': 'standard'
+                    'analyzer': 'my_standard'
                 },
                 "naive_lemmatizer": {
                     'type': 'string',
