@@ -136,10 +136,13 @@ $(function() {
 		sjs.textBrowser.show({
 			callback: function(ref) {
 				if (!ref) { return; }
+				var $target = $("#addInterface").prev(".sheetItem");
 				var q = parseRef(ref);
 				$("#closeAddSource").trigger("click");
-				addSource(q);
+				addSource(q, undefined, "insert", $target);
 				sjs.track.sheets("Add Source", ref);
+        cleanupActiveSource($target);
+
 			}
 		})
 	});
@@ -1340,6 +1343,10 @@ $(function() {
       if ($(e.target).closest("#addInterface").length) return
       $("#connectionButton").hide();
 
+      if ($("#textBrowser").is(":visible")) {
+      	return
+			};
+
       cleanupActiveSource(e.target);
     });
 
@@ -1437,7 +1444,6 @@ $(function() {
       //clicked on a sheet item
       if ($(e.target).hasClass("inlineAddButtonIcon")) return;
       if (!$(".readerApp").hasClass("multiPanel")) return; //prevent active source on mobile
-
       cleanupActiveSource(e.target);
       $(this).addClass("activeSource");
       $("#sheetLayoutLanguageMenuItems").hide();
