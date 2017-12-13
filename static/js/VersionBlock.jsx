@@ -135,6 +135,9 @@ class VersionBlock extends Component {
     //otherwise, 'side' for making link for versions in sidebar
 
     // maintain all versions for languages you're not currently selecting
+    if (this.props.version.merged) {
+      return "#"; // there's no url for a merged version
+    }
     const nonSelectedVersionParams = versionParam !== "side" ? Object.keys(this.props.currVersions)
                                       .filter(vlang=>!!this.props.currVersions[vlang] && vlang !== this.props.version.language)
                                       .map(vlang=>`&v${vlang}=${this.props.currVersions[vlang].replace(/\s/g,'_')}`)
@@ -237,7 +240,7 @@ class VersionBlock extends Component {
               {edit_icon}
             </div> :
             <div className="versionTitle">
-              {versionTitle}
+              {this.props.version.merged ? `Merged from ${Array.from(new Set(this.props.version.sources)).join(", ")}` : versionTitle}
             </div>
           }
           {versionNotes ? <div className="versionNotes" dangerouslySetInnerHTML={ {__html: versionNotes} } ></div> : ""}
