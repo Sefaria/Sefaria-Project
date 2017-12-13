@@ -121,7 +121,7 @@ class ConnectionsPanel extends Component {
       digitizedBySefaria:     lang == "he" ? d.heDigitizedBySefaria : d.digitizedBySefaria,
       versionTitleInHebrew:   lang == "he" ? d.heVersionTitleInHebrew : d.versionTitleInHebrew,
       versionNotesInHebrew:   lang == "he" ? d.heVersionNotesInHebrew : d.versionNotesInHebrew,
-      merged:                 lang == "he" ? !!d.heSources : !!d.sources.length,
+      merged:                 lang == "he" ? !!d.heSources : !!d.sources,
     }
   }
   getCurrentVersions() {
