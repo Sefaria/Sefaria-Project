@@ -436,8 +436,7 @@ def get_sheets_for_ref(tref, uid=None):
 	else:
 		query["status"] = "public"
 	sheets = db.sheets.find(query,
-		{"id": 1, "title": 1, "owner": 1, "sources.ref": 1, "views": 1, "tags": 1, "status": 1}).sort([["views", -1]])
-	
+		{"id": 1, "title": 1, "owner": 1, "sources.ref": 1, "views": 1, "tags": 1, "status": 1, "summary":1, "attribution":1, "assigner_id":1}).sort([["views", -1]])
 	results = []
 	for sheet in sheets:
 		matched_refs = []
@@ -468,6 +467,8 @@ def get_sheets_for_ref(tref, uid=None):
 				"status":          sheet["status"],
 				"views":           sheet["views"],
 				"tags":            sheet.get("tags", []),
+				"summary":         sheet.get("summary", None),
+				"attribution":     sheet.get("attribution", None),
 				"commentator":     user_link(sheet["owner"]), # legacy, used in S1
 				"category":        "Sheets", # ditto
 				"type":            "sheet", # ditto
