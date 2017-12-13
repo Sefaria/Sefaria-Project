@@ -244,20 +244,22 @@ class VersionBlock extends Component {
             </div>
           }
           {versionNotes ? <div className="versionNotes" dangerouslySetInnerHTML={ {__html: versionNotes} } ></div> : ""}
-          <div className="versionDetails">
-            {!!this.props.openVersionInReader ?
-              <a className={selectButtonClasses} href={versionSidebarLink} onClick={this.onSelectVersionClick}>
-                {this.props.isCurrent ? Sefaria._("Current") : Sefaria._("Select")}
-              </a> : null}
-            {this.props.openVersionInReader ? <span className="separator">&#8226;</span>: null}
-            <a className="versionSource" target="_blank" href={v.versionSource}>
-            { Sefaria.util.parseURL(v.versionSource).host }
-            </a>
-            {licenseLine ? <span className="separator">&#8226;</span>: null}
-            {licenseLine}
-            {this.props.showHistory ? <span className="separator">&#8226;</span>: null}
-            {this.props.showHistory ? <a className="versionHistoryLink" href={`/activity/${Sefaria.normRef(this.props.currentRef)}/${v.language}/${v.versionTitle && v.versionTitle.replace(/\s/g,"_")}`}>{Sefaria._("History") + " "}›</a>:""}
-          </div>
+          { !v.merged ?
+            <div className="versionDetails">
+              {!!this.props.openVersionInReader ?
+                <a className={selectButtonClasses} href={versionSidebarLink} onClick={this.onSelectVersionClick}>
+                  {this.props.isCurrent ? Sefaria._("Current") : Sefaria._("Select")}
+                </a> : null}
+              {this.props.openVersionInReader ? <span className="separator">&#8226;</span>: null}
+              <a className="versionSource" target="_blank" href={v.versionSource}>
+              { Sefaria.util.parseURL(v.versionSource).host }
+              </a>
+              {licenseLine ? <span className="separator">&#8226;</span>: null}
+              {licenseLine}
+              {this.props.showHistory ? <span className="separator">&#8226;</span>: null}
+              {this.props.showHistory ? <a className="versionHistoryLink" href={`/activity/${Sefaria.normRef(this.props.currentRef)}/${v.language}/${v.versionTitle && v.versionTitle.replace(/\s/g,"_")}`}>{Sefaria._("History") + " "}›</a>:""}
+            </div> : null
+          }
         </div>
       );
     }
