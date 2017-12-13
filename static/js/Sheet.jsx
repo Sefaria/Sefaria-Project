@@ -162,6 +162,9 @@ class SheetSource extends Component {
             } }>{this.props.source.heRef}</a></div>
           </div> : null }
 
+
+        <div className="clearFix"></div>
+
       </div>
     )
   }
@@ -180,6 +183,7 @@ class SheetComment extends Component {
         <div className={lang}>
           {this.props.source.comment.stripHtml()}
         </div>
+        <div className="clearFix"></div>
       </div>
     )
   }
@@ -199,6 +203,8 @@ class SheetOutsideText extends Component {
         <div className={lang}>
           {this.props.source.outsideText.stripHtml()}
         </div>
+        <div className="clearFix"></div>
+
       </div>
     )
   }
@@ -215,6 +221,8 @@ class SheetOutsideBiText extends Component {
         </div>
         <div className="en">{this.props.source.outsideBiText.en.stripHtml()}</div>
         <div className="he">{this.props.source.outsideBiText.he.stripHtml()}</div>
+        <div className="clearFix"></div>
+
       </div>
     )
   }
@@ -257,6 +265,8 @@ class SheetMedia extends Component {
             className="segmentNumberInner">{Sefaria.hebrew.encodeHebrewNumeral(this.props.sourceNum)}</span> </span>
         </div>
         <div dangerouslySetInnerHTML={ {__html: this.makeMediaEmbedLink(this.props.source.media)} }></div>
+        <div className="clearFix"></div>
+
       </div>
 
     )
