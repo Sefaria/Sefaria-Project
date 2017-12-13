@@ -130,7 +130,7 @@ class SheetContent extends Component {
 
     return (
       <div className="sheetContent">
-        <div>{sources}</div>
+        <div className="textInner">{sources}</div>
       </div>
     )
   }
