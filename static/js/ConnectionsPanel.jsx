@@ -120,7 +120,8 @@ class ConnectionsPanel extends Component {
       versionNotes:           lang == "he" ? d.heVersionNotes : d.versionNotes,
       digitizedBySefaria:     lang == "he" ? d.heDigitizedBySefaria : d.digitizedBySefaria,
       versionTitleInHebrew:   lang == "he" ? d.heVersionTitleInHebrew : d.versionTitleInHebrew,
-      versionNotesInHebrew:   lang == "he" ? d.heVersionNotesInHebrew : d.versionNotesInHebrew
+      versionNotesInHebrew:   lang == "he" ? d.heVersionNotesInHebrew : d.versionNotesInHebrew,
+      merged:                 lang == "he" ? !!d.heSources : !!d.sources.length,
     }
   }
   getCurrentVersions() {
