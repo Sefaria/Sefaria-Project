@@ -541,7 +541,6 @@ class SheetListing extends Component {
         <a href={sheet.sheetUrl} target="_blank" className="sheetTitle" onClick={(e) => this.handleSheetClick(e,sheet)}>
           <img src="/static/img/sheet.svg" className="sheetIcon"/>
           <span className="sheetTitleText">{sheet.title}</span>
-          <span className="sheetTitleText">{sheet.summary}</span>
         </a>
         <div className="sheetTags">
           {sheet.tags.map(function(tag, i) {
