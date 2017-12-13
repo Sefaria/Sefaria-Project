@@ -257,7 +257,7 @@ class VersionBlock extends Component {
               {licenseLine ? <span className="separator">&#8226;</span>: null}
               {licenseLine}
               {this.props.showHistory ? <span className="separator">&#8226;</span>: null}
-              {this.props.showHistory ? <a className="versionHistoryLink" href={`/activity/${Sefaria.normRef(this.props.currentRef)}/${v.language}/${v.versionTitle && v.versionTitle.replace(/\s/g,"_")}`}>{Sefaria._("History") + " "}›</a>:""}
+              {this.props.showHistory ? <a className="versionHistoryLink" href={`/activity/${Sefaria.normRef(this.props.currentRef)}/${v.language}/${v.versionTitle && v.versionTitle.replace(/\s/g,"_")}`}>{Sefaria._("History") + " "}&#xfeff;›</a>:""}
             </div> : null
           }
         </div>
