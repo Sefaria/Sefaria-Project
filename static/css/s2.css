@@ -986,6 +986,9 @@ a.readerNavCategory {
   margin: 0 8px;
   font-size: 12px;
 }
+.uppercase {
+  text-transform: uppercase;
+}
 .readerNavMenu .siteLinks .siteLink .en {
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
 }
@@ -1465,6 +1468,8 @@ a.readerNavCategory {
 }
 .readerTextTableOfContents .versionBlocks {
   text-align: center;
+  border-top: 1px solid #ccc;
+  padding-top: 20px;
 }
 .readerTextTableOfContents .versionBlocks .versionLanguageBlock {
   padding-bottom: 30px;
@@ -1483,30 +1488,35 @@ a.readerNavCategory {
   box-sizing: border-box;
   cursor: pointer;
 }
-.readerTextTableOfContents .versionBlock .versionTitle {
+.versionBlock .versionTitle {
   display: block;
   font-size: 18px;
   color: #333;
   unicode-bidi: plaintext;
 }
-.readerTextTableOfContents .versionBlock a {
+.versionBlock a {
   color: #999;
 }
-.readerTextTableOfContents .versionBlock .versionDetails {
+.versionBlock .versionNotes a {
+  color: #333;
+}
+.versionBlock .versionDetails {
   display: inline-block;
   font-size: 12px;
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
   color: #999;
+  padding-top: 10px;
 }
-.readerTextTableOfContents .versionBlock .versionDetails .separator {
+.versionBlock .versionDetails .separator {
   margin: 0 3px;
 }
-.readerTextTableOfContents .versionBlocks .versionBlock .versionTitle:hover {
+.versionBlock .versionTitle:hover {
   text-decoration: underline;
 }
-.readerTextTableOfContents .versionBlock .versionNotes {
+.versionBlock .versionNotes {
   padding-top: 4px;
   color: #999;
+  font-size: 13px;
 }
 .modTools {
   width: 50%;
@@ -1532,6 +1542,28 @@ a.readerNavCategory {
     color: #999;
     padding: 10px 0;
     margin-bottom: 14px;
+}
+.readerTextTableOfContents .content h2[role=button] {
+  cursor: pointer;
+}
+.readerTextTableOfContents .content h2 img {
+  opacity: 0.43;
+  padding: 0 5px;
+  height: 10px;
+  width: 10px;
+}
+.readerTextTableOfContents .versionSectionHeader {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+}
+.readerTextTableOfContents .versionSectionSummary {
+  text-transform: none;
+  color: #ccc;
+  font-size: 14px;
+}
+.readerTextTableOfContents .versionSectionSummaryHidden {
+  visibility: hidden;
 }
 .modTools .dlVersionSelect {
   display: block;
@@ -4618,6 +4650,106 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
 }
 .bubbleTab.active {
   color: #333;
+}
+.aboutBox .aboutHeader {
+  color: #999;
+  padding-bottom: 13px;
+  margin: 0;
+  margin-bottom: 15px;
+  text-align: initial;
+  text-transform: none;
+  font-size: 20px;
+  border-bottom: solid 1px #CCC;
+}
+.aboutBox .aboutTitle {
+  padding: 10px 0 15px 0;
+  font-size: 20px;
+  color: black;
+  display: inline-block;
+}
+.aboutBox .aboutSubtitle {
+  font-style: italic;
+  font-size: 15px;
+  color: #999;
+}
+.aboutBox .aboutSubtitle .he {
+  font-style: normal;
+}
+.aboutBox .aboutDesc {
+  padding: 15px 0 30px 0;
+  font-size: 15px;
+}
+.aboutBox .versionNotes {
+  padding-bottom: 15px;
+  font-size: 15px;
+  color: #666;
+}
+.aboutBox .versionDetails,
+.versionsBox .versionDetails {
+  font-size: 13px;
+  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  color: #999;
+  padding-bottom: 5px;
+  text-align: left;
+  line-height: 150%;
+}
+.readerApp.interface-hebrew .aboutBox .versionDetails,
+.readerApp.interface-hebrew .versionsBox .versionDetails {
+  text-align: right;
+}
+.aboutBox .versionDetails .separator,
+.versionsBox .versionDetails .separator {
+  margin: 0 3px;
+}
+.aboutBox a,
+.versionsBox a {
+  color: #999;
+}
+.aboutBox .currVersionSection {
+  padding-bottom: 30px;
+}
+.versionsBox .versionLanguage {
+  padding-bottom: 15px;
+  text-transform: uppercase;
+  font-size: 20px;
+  padding-left: 20px;
+  padding-right: 20px;
+}
+.versionsBox div:not(:first-child) .versionLanguage {
+  padding-top: 25px;
+}
+.versionsBox .versionLanguage .versionCount {
+  color: #999;
+}
+.versionsBox a.selectButton {
+  color: #ccc;
+  border: solid 1px #eee;
+  padding: 3px 8px;
+  text-transform: uppercase;
+  background-color: white;
+  border-radius: 4px;
+  line-height: 24px;
+}
+.versionsBox a.selectButton.currSelectButton {
+  color: #666;
+  text-decoration: none;
+  cursor: default;
+}
+.versionsTextList .topFiltersInner .uppercase {
+  text-transform: none;
+}
+.versionsBox .versionBlock {
+  padding: 20px;
+  border-top: solid 1px #CCC;
+}
+.versionsBox .versionBlock .versionTitle a {
+  color: black;
+}
+.interface-hebrew .versionsBox .versionLanguage {
+  direction: rtl;
+}
+.aboutBox .versionBlock .versionTitle:hover {
+  text-decoration: none;
 }
 
 /* Sheets */

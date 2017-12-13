@@ -73,7 +73,7 @@ class Util {
       if (!haystack) { return -1 } //For parity of behavior w/ JQuery inArray
       var index = -1;
       for (var i = 0; i < haystack.length; i++) {
-        if (haystack[i] === needle) {
+        if ((needle.compare && needle.compare(haystack[i])) || haystack[i] === needle) {
           index = i;
           break;
         }
@@ -488,7 +488,7 @@ class Util {
         return Util._scrollbarWidth;
     }
     static subscribeToAnnouncementsList(email) {
-      
+
     }
 
     static RefValidator($input, $msg, $ok, $preview, options = {}) {
