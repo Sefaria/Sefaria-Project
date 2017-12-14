@@ -43,7 +43,7 @@ class TextColumn extends Component {
       this.initialScrollTopSet = true;
 
     } else if (this.props.panelsOpen !== nextProps.panelsOpen) {
-      // When panels are opened of closed, refocus highlighted segments
+      // When panels are opened or closed, refocus highlighted segments
       this.scrolledToHighlight = false;
 
     } else if (nextProps.srefs.length == 1 && Sefaria.util.inArray(nextProps.srefs[0], this.props.srefs) == -1) {
@@ -218,6 +218,8 @@ class TextColumn extends Component {
     var $section = $segment.closest(".textRange");
     var sectionRef = $section.attr("data-ref");
     this.props.setCurrentlyVisibleRef(sectionRef);
+
+    if (!this.props.hasSidebar && this.props.high)
 
     // don't move around highlighted segment when scrolling a single panel,
     var shouldHighlight = this.props.hasSidebar || this.props.mode === "TextAndConnections";

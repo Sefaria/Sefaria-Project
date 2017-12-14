@@ -153,6 +153,56 @@ Sefaria = extend(Sefaria, {
     nRef.toSections = pRefEnd.toSections;
     return Sefaria.makeRef(nRef);
   },
+  refContains: function(ref1, ref2) {
+    // Returns true is `ref1` contains `ref2`
+    var oRef1 = Sefaria.parseRef(ref1);
+    var oRef2 = Sefaria.parseRef(ref2);
+
+    for (var i = 0; i < oRef1.sections.length; i++) {
+      
+      if (oRef1.sections[i] <= oRef2.sections[i] && oRef1.toSections[i] >= oRef2.toSections[i]) {
+        return true;
+      } else if (oRef1.sections[i] > oRef2.sections[i] || oRef1.toSections[i] < oRef2.toSections[i]) {
+        return false;
+      }
+    }
+    return null;
+  },
+  sectionRef: function(ref) {
+    // Returns the section level ref for `ref` or null if no data is available
+    var oref = this.ref(ref);
+    return oref ? oref.sectionRef : null;
+  },
+  splitRangingRef: function(ref) {
+    // Returns an array of segment level refs which correspond to the ranging `ref`
+    // e.g. "Genesis 1:1-2" -> ["Genesis 1:1", "Genesis 1:2"]
+    var oRef     = Sefaria.parseRef(ref);
+    var isDepth1 = oRef.sections.length == 1;
+    var textData = Sefaria.text(ref);
+    if (textData) {
+        var refs = Sefaria.makeSegments(textData).map(segment => segment.ref); 
+        return refs;      
+    } else if (!isDepth1 && oRef.sections[oRef.sections.length - 2] !== oRef.toSections[oRef.sections.length - 2]) {
+      // TODO handle spanning refs when no text data is available to answer how many segments are in each section.
+      // e.g., in "Shabbat 2a:5-2b:8" what is the last segment of Shabbat 2a?
+      // For now, just return the split of the first non-spanning ref.
+      var newRef = Sefaria.util.clone(oRef);
+      newRef.toSections = newRef.sections;
+      return Sefaria.splitRangingRef(this.humanRef(this.makeRef(newRef)));        
+      
+    } else {
+      var refs  = [];
+      var start = oRef.sections[oRef.sections.length-1];
+      var end   = oRef.toSections[oRef.sections.length-1];
+      for (var i = start; i <= end; i++) {
+        newRef = Sefaria.util.clone(oRef);
+        newRef.sections[oRef.sections.length-1] = i;
+        newRef.toSections[oRef.sections.length-1] = i;
+        refs.push(this.humanRef(this.makeRef(newRef)));
+      }
+      return refs;
+    }
+  },
   titlesInText: function(text) {
     // Returns an array of the known book titles that appear in text.
     return Sefaria.books.filter(function(title) {
@@ -593,42 +643,6 @@ Sefaria = extend(Sefaria, {
               callback(data);
           }.bind(this)
         });
-    }
-  },
-
-  sectionRef: function(ref) {
-    // Returns the section level ref for `ref` or null if no data is available
-    var oref = this.ref(ref);
-    return oref ? oref.sectionRef : null;
-  },
-  splitRangingRef: function(ref) {
-    // Returns an array of segment level refs which correspond to the ranging `ref`
-    // e.g. "Genesis 1:1-2" -> ["Genesis 1:1", "Genesis 1:2"]
-    var oRef     = Sefaria.parseRef(ref);
-    var isDepth1 = oRef.sections.length == 1;
-    var textData = Sefaria.text(ref);
-    if (textData) {
-        var refs = Sefaria.makeSegments(textData).map(segment => segment.ref); 
-        return refs;      
-    } else if (!isDepth1 && oRef.sections[oRef.sections.length - 2] !== oRef.toSections[oRef.sections.length - 2]) {
-      // TODO handle spanning refs when no text data is available to answer how many segments are in each section.
-      // e.g., in "Shabbat 2a:5-2b:8" what is the last segment of Shabbat 2a?
-      // For now, just return the split of the first non-spanning ref.
-      var newRef = Sefaria.util.clone(oRef);
-      newRef.toSections = newRef.sections;
-      return Sefaria.splitRangingRef(this.humanRef(this.makeRef(newRef)));        
-      
-    } else {
-      var refs  = [];
-      var start = oRef.sections[oRef.sections.length-1];
-      var end   = oRef.toSections[oRef.sections.length-1];
-      for (var i = start; i <= end; i++) {
-        newRef = Sefaria.util.clone(oRef);
-        newRef.sections[oRef.sections.length-1] = i;
-        newRef.toSections[oRef.sections.length-1] = i;
-        refs.push(this.humanRef(this.makeRef(newRef)));
-      }
-      return refs;
     }
   },
   _lexiconLookups: {},
