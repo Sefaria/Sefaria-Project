@@ -23,12 +23,12 @@ class AboutBox extends Component {
     const ve = this.props.currObjectVersions.en;
     let detailSection = null;
     if (d) {
-      let authorTextEn, authorTextHe;
+      let authorsEn, authorsHe;
       if (d.authors) {
         const authorArrayEn = d.authors.filter((elem) => !!elem.en);
         const authorArrayHe = d.authors.filter((elem) => !!elem.he);
-        authorTextEn = authorArrayEn.reduce((accum, curr, ind) => accum + (ind === 0 ? curr.en : `, ${curr.en}`), "");
-        authorTextHe = authorArrayHe.reduce((accum, curr, ind) => accum + (ind === 0 ? curr.he : `, ${curr.he}`), "");
+        authorsEn = authorArrayEn.map(author => <a key={author.en} href={"/person/" + author.en}>{author.en}</a> );
+        authorsHe = authorArrayHe.map(author => <a key={author.en} href={"/person/" + author.en}>{author.he}</a> );
       }
       // use compPlaceString and compDateString if available. then use compPlace o/w use pubPlace o/w nothing
       let placeTextEn, placeTextHe;
@@ -72,10 +72,10 @@ class AboutBox extends Component {
             <span className="en">{d.title}</span>
             <span className="he">{d.heTitle}</span>
           </div>
-          { !!authorTextEn ?
+          { !!authorsEn ?
             <div className="aboutSubtitle">
-              <span className="en">{`Author: ${authorTextEn}`}</span>
-              <span className="he">{`מחברים: ${authorTextHe}`}</span>
+              <span className="en">Author: {authorsEn}</span>
+              <span className="he">מחבר: {authorsHe}</span>
             </div> : null
           }
           { !!placeTextEn || !!dateTextEn ?
