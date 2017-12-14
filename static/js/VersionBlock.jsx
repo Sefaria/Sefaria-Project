@@ -135,6 +135,9 @@ class VersionBlock extends Component {
     //otherwise, 'side' for making link for versions in sidebar
 
     // maintain all versions for languages you're not currently selecting
+    if (this.props.version.merged) {
+      return "#"; // there's no url for a merged version
+    }
     const nonSelectedVersionParams = versionParam !== "side" ? Object.keys(this.props.currVersions)
                                       .filter(vlang=>!!this.props.currVersions[vlang] && vlang !== this.props.version.language)
                                       .map(vlang=>`&v${vlang}=${this.props.currVersions[vlang].replace(/\s/g,'_')}`)
@@ -237,24 +240,26 @@ class VersionBlock extends Component {
               {edit_icon}
             </div> :
             <div className="versionTitle">
-              {versionTitle}
+              {this.props.version.merged ? `Merged from ${Array.from(new Set(this.props.version.sources)).join(", ")}` : versionTitle}
             </div>
           }
           {versionNotes ? <div className="versionNotes" dangerouslySetInnerHTML={ {__html: versionNotes} } ></div> : ""}
-          <div className="versionDetails">
-            {!!this.props.openVersionInReader ?
-              <a className={selectButtonClasses} href={versionSidebarLink} onClick={this.onSelectVersionClick}>
-                {this.props.isCurrent ? Sefaria._("Current") : Sefaria._("Select")}
-              </a> : null}
-            {this.props.openVersionInReader ? <span className="separator">&#8226;</span>: null}
-            <a className="versionSource" target="_blank" href={v.versionSource}>
-            { Sefaria.util.parseURL(v.versionSource).host }
-            </a>
-            {licenseLine ? <span className="separator">&#8226;</span>: null}
-            {licenseLine}
-            {this.props.showHistory ? <span className="separator">&#8226;</span>: null}
-            {this.props.showHistory ? <a className="versionHistoryLink" href={`/activity/${Sefaria.normRef(this.props.currentRef)}/${v.language}/${v.versionTitle && v.versionTitle.replace(/\s/g,"_")}`}>{Sefaria._("History") + " "}›</a>:""}
-          </div>
+          { !v.merged ?
+            <div className="versionDetails">
+              {!!this.props.openVersionInReader ?
+                <a className={selectButtonClasses} href={versionSidebarLink} onClick={this.onSelectVersionClick}>
+                  {this.props.isCurrent ? Sefaria._("Current") : Sefaria._("Select")}
+                </a> : null}
+              {this.props.openVersionInReader ? <span className="separator">&#8226;</span>: null}
+              <a className="versionSource" target="_blank" href={v.versionSource}>
+              { Sefaria.util.parseURL(v.versionSource).host }
+              </a>
+              {licenseLine ? <span className="separator">&#8226;</span>: null}
+              {licenseLine}
+              {this.props.showHistory ? <span className="separator">&#8226;</span>: null}
+              {this.props.showHistory ? <a className="versionHistoryLink" href={`/activity/${Sefaria.normRef(this.props.currentRef)}/${v.language}/${v.versionTitle && v.versionTitle.replace(/\s/g,"_")}`}>{Sefaria._("History") + " "}&#xfeff;›</a>:""}
+            </div> : null
+          }
         </div>
       );
     }
