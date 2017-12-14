@@ -491,12 +491,19 @@ class ReaderApp extends Component {
             break;
         }
       } else if (state.mode === "Text") {
-        var htitle    = state.highlightedRefs.length ? 
-                          Sefaria.normRefList(state.highlightedRefs) : state.currentlyVisibleRef;
-        hist.title    = Sefaria._r(htitle);
-        hist.url      = Sefaria.normRef(htitle);
+        var highlighted = state.highlightedRefs.length ? Sefaria.normRefList(state.highlightedRefs) : null;
+
+        if (highlighted && 
+            (Sefaria.refContains(highlighted, state.currentlyVisibleRef) 
+             || Sefaria.refContains(state.currentlyVisibleRef, highlighted))) {
+          var htitle = highlighted;
+        } else {
+          var htitle = state.currentlyVisibleRef;
+        }
+        hist.title        = Sefaria._r(htitle);
+        hist.url          = Sefaria.normRef(htitle);
         hist.currVersions = state.currVersions;
-        hist.mode     = "Text"
+        hist.mode         = "Text"
 
       } else if (state.mode === "Connections") {
         var ref       = Sefaria.normRefList(state.refs);
