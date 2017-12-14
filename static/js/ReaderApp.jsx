@@ -1013,7 +1013,6 @@ class ReaderApp extends Component {
   }
   openPanel(ref, currVersions, options) {
     // Opens a text panel, replacing all panels currently open.
-    console.log("Opening a panel", ref)
     //todo: support options.highlight, passed up from SearchTextResult.handleResultClick()
 
     this.state.panels = [] // temporarily clear panels directly in state, set properly with setState in openPanelAt
@@ -1039,7 +1038,7 @@ class ReaderApp extends Component {
         var currentlyVisibleRef = ref;
         var highlightedRefs = [];
       }
-      console.log("Higlighted refs:", highlightedRefs)
+      //console.log("Higlighted refs:", highlightedRefs)
       panel = this.makePanelState({refs, currVersions, highlightedRefs, currentlyVisibleRef, mode: "Text"});
     }
 
