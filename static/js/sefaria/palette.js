@@ -39,7 +39,8 @@ palette.categoryColors = {
   "Sheets":             palette.colors.raspberry,
   "Community":          palette.colors.raspberry,
   "Targum":             palette.colors.lavender,
-  "Modern Works":       palette.colors.raspberry
+  "Modern Works":       palette.colors.raspberry,
+  "Modern Commentary":  palette.colors.raspberry,
 };
 palette.categoryColor = function(cat) {
   if (cat in palette.categoryColors) {
