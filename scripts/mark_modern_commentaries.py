@@ -23,16 +23,16 @@ titles = {
 }
 
 for (title, names) in titles.iteritems():
-	term = Term().load({"name": name[0]})
+	term = Term().load({"name": names[0]})
 	if not term:
-		print "adding term for " + name[0]
+		print "adding term for " + names[0]
 		term = Term()
-		term.name = name[0]
-		term.add_primary_titles(name[0], name[1]) 
+		term.name = names[0]
+		term.add_primary_titles(names[0], names[1]) 
 		term.save()
 
 	i = Index().load({"title": title})
 	i.dependence = "Commentary"
-	i.collective_title = name
+	i.collective_title = names[0]
 	i.save()
 	print "Index updated for " + title
