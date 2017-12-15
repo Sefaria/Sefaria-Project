@@ -469,6 +469,11 @@ class ReaderApp extends Component {
             hist.url   = "notifications";
             hist.mode  = "notifications";
             break;
+          case "publicGroups":
+            hist.title = Sefaria._("Sefaria Groups");
+            hist.url = "groups";
+            hist.mode = "publicGroups";
+            break;
           case "myGroups":
             hist.title = Sefaria._("Sefaria Groups");
             hist.url = "my/groups";

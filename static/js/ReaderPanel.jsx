@@ -1,11 +1,3 @@
-const {
-  ReaderNavigationMenuCloseButton,
-  ReaderNavigationMenuMenuButton,
-  ReaderNavigationMenuDisplaySettingsButton,
-  CategoryColorLine,
-  CategoryAttribution,
-  ToggleSet,
-}                = require('./Misc');
 const React      = require('react');
 const classNames = require('classnames');
 const ReactDOM   = require('react-dom');
@@ -27,9 +19,20 @@ const TopicPage                 = require('./TopicPage');
 const AccountPanel              = require('./AccountPanel');
 const NotificationsPanel        = require('./NotificationsPanel');
 const MyNotesPanel              = require('./MyNotesPanel');
-const MyGroupsPanel             = require('./MyGroupsPanel');
 const UpdatesPanel              = require('./UpdatesPanel');
 const ModeratorToolsPanel       = require('./ModeratorToolsPanel');
+const {
+  MyGroupsPanel,
+  PublicGroupsPanel
+}                               = require('./MyGroupsPanel');
+const {
+  ReaderNavigationMenuCloseButton,
+  ReaderNavigationMenuMenuButton,
+  ReaderNavigationMenuDisplaySettingsButton,
+  CategoryColorLine,
+  CategoryAttribution,
+  ToggleSet,
+}                                = require('./Misc');
 import Component from 'react-class';
 
 
@@ -707,9 +710,11 @@ class ReaderPanel extends Component {
                     openDisplaySettings={this.openDisplaySettings}
                     toggleLanguage={this.toggleLanguage} />);
 
+    } else if (this.state.menuOpen === "publicGroups") {
+      var menu = (<PublicGroupsPanel />);
+
     } else if (this.state.menuOpen === "myGroups") {
-      var menu = (<MyGroupsPanel
-                    interfaceLang={this.props.interfaceLang} />);
+      var menu = (<MyGroupsPanel />);
 
     } else if (this.state.menuOpen === "updates") {
       var menu = (<UpdatesPanel
