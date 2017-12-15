@@ -25,7 +25,7 @@ from django.contrib.auth.models import User
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaIoBaseUpload
 
-from reader.views import s2_sheets, s2_sheets_by_tag, s2_group_sheets, s2_my_groups
+from reader.views import s2_sheets, s2_sheets_by_tag, s2_group_sheets, s2_my_groups, s2_public_groups
 
 # noinspection PyUnresolvedReferences
 from sefaria.client.util import jsonResponse, HttpResponse
@@ -426,6 +426,14 @@ def edit_group_page(request, group=None):
 def groups_page(request):
 	"""
 	Page listing all public groups
+	"""
+	return s2_public_groups(request)
+
+
+@staff_member_required
+def groups_admin_page(request):
+	"""
+	Page listing all groups for admins
 	"""
 	groups = GroupSet(sort=[["name", 1]])
 	return render_to_response("groups.html",

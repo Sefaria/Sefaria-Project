@@ -612,6 +612,13 @@ def s2_group_sheets(request, group, authenticated):
 
 
 @login_required
+def s2_public_groups(request):
+    props = s2_props(request)
+    title = _("Sefaria Groups")
+    return s2_page(request, props, "publicGroups")
+
+
+@login_required
 def s2_my_groups(request):
     props = s2_props(request)
     title = _("Sefaria Groups")
