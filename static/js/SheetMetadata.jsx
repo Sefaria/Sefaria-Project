@@ -34,6 +34,8 @@ class SheetMetadata extends Component {
   componentDidUpdate(prevProps, prevState) {
     if ((this.props.settingsLanguage != prevProps.settingsLanguage)) {
       this.forceUpdate();
+
+
     }
   }
   handleClick(e) {
@@ -53,7 +55,7 @@ class SheetMetadata extends Component {
     var authorStatement;
 
     if (this.props.sheet.attribution) {
-      authorStatement = this.props.sheet.attribution;
+      authorStatement = this.props.sheet.attribution.stripHtml();
     }
     else if (this.props.sheet.assignerName) {
       authorStatement = "Assigned by "+ this.props.sheet.assignerName +" Completed by " + this.props.sheet.ownerName;
@@ -106,7 +108,10 @@ class SheetMetadata extends Component {
                     <div className="tocDetail">
                       {authorStatement}
                     </div>
-                    {details ? <div className="tocDetail description">{details} </div> : null}
+                    <div className="tocDetail">
+                      Created {this.props.sheet.dateCreated} · {this.props.sheet.views} Views · {this.props.sheet.likes.length} Likes
+                    </div>
+                    {details ? <div className="tocDetail description"><em>{details}</em></div> : null}
                   </div>
                 </div>
               </div>

@@ -260,6 +260,16 @@ class ReaderPanel extends Component {
     };
     this.conditionalSetState(state);
   }
+  closeSheetMetaData() {
+    var state = {
+      // If there's no content to show, return to home
+      menuOpen: null,
+      navigationCategories: null,
+      navigationSheetTag: null
+    };
+    this.conditionalSetState(state);
+
+  }
   closePanelSearch() {
     // Assumption: Search in a panel is always within a "compare" panel
     var state = {
@@ -589,7 +599,7 @@ class ReaderPanel extends Component {
       var menu = (<SheetMetadata
                     mode={this.state.menuOpen}
                     interfaceLang={this.props.interfaceLang}
-                    close={this.closeMenus}
+                    close={this.closeSheetMetaData}
                     sheet={this.state.sheet}
                     versionLanguage={this.state.versionLanguage}
                     settingsLanguage={this.state.settings.language == "hebrew"?"he":"en"}

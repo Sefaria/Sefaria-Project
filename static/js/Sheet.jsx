@@ -148,18 +148,18 @@ class SheetSource extends Component {
 
         {this.props.source.text ?
           <div className="en">
-            {this.props.source.text.en.stripHtml()}
             <div className="ref"><a href={"/" + this.props.source.ref} onClick={(e) => {
               this.props.handleClick(this.props.source.ref, e)
             } }>{this.props.source.ref}</a></div>
+            {this.props.source.text.en.stripHtml()}
           </div> : null }
 
         {this.props.source.text ?
           <div className="he">
-            {this.props.source.text.he.stripHtml()}
             <div className="ref"><a href={"/" + this.props.source.ref} onClick={(e) => {
               this.props.handleClick(this.props.source.ref, e)
             } }>{this.props.source.heRef}</a></div>
+            {this.props.source.text.he.stripHtml()}
           </div> : null }
 
 
