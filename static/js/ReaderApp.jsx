@@ -470,6 +470,11 @@ class ReaderApp extends Component {
             hist.url   = "notifications";
             hist.mode  = "notifications";
             break;
+          case "publicGroups":
+            hist.title = Sefaria._("Sefaria Groups");
+            hist.url = "groups";
+            hist.mode = "publicGroups";
+            break;
           case "myGroups":
             hist.title = Sefaria._("Sefaria Groups");
             hist.url = "my/groups";
@@ -492,11 +497,19 @@ class ReaderApp extends Component {
             break;
         }
       } else if (state.mode === "Text") {
-        var htitle = state.highlightedRefs.length ? Sefaria.normRefList(state.highlightedRefs) : state.currentlyVisibleRef;
-        hist.title    = Sefaria._r(htitle);
-        hist.url      = Sefaria.normRef(htitle);
+        var highlighted = state.highlightedRefs.length ? Sefaria.normRefList(state.highlightedRefs) : null;
+
+        if (highlighted && 
+            (Sefaria.refContains(highlighted, state.currentlyVisibleRef) 
+             || Sefaria.refContains(state.currentlyVisibleRef, highlighted))) {
+          var htitle = highlighted;
+        } else {
+          var htitle = state.currentlyVisibleRef;
+        }
+        hist.title        = Sefaria._r(htitle);
+        hist.url          = Sefaria.normRef(htitle);
         hist.currVersions = state.currVersions;
-        hist.mode     = "Text"
+        hist.mode         = "Text"
 
       } else if (state.mode === "Connections") {
         var ref       = Sefaria.normRefList(state.refs);
@@ -1011,25 +1024,10 @@ class ReaderApp extends Component {
   }
   openPanel(ref, currVersions, options) {
     // Opens a text panel, replacing all panels currently open.
-
     //todo: support options.highlight, passed up from SearchTextResult.handleResultClick()
-    var highlight;
-    if (options) {
-      highlight = options.highlight;
-    }
 
-    // If book level, Open book toc
-    var index = Sefaria.index(ref); // Do we have to worry about normalization, as in Header.submitSearch()?
-    var panel;
-    if (index) {
-      panel = this.makePanelState({"menuOpen": "book toc", "bookRef": index.title});
-    } else {
-      panel = this.makePanelState({refs: [ref], currVersions, mode: "Text"});
-    }
-
-    this.setHeaderState({menuOpen: null});
-    this.setState({panels: [panel]});
-    this.saveRecentlyViewed(panel);
+    this.state.panels = [] // temporarily clear panels directly in state, set properly with setState in openPanelAt
+    this.openPanelAt(0, ref, currVersions);
   }
   openPanelAt(n, ref, currVersions) {
     // Open a new panel after `n` with the new ref
@@ -1040,7 +1038,19 @@ class ReaderApp extends Component {
     if (index) {
       panel = this.makePanelState({"menuOpen": "book toc", "bookRef": index.title});
     } else {
-      panel = this.makePanelState({refs: [ref], currVersions, mode: "Text"});
+      if (ref.constructor == Array) {
+        // When called with an array, set highlight for the whole spanning range of the array
+        var refs = ref;
+        var currentlyVisibleRef = Sefaria.normRef(ref);
+        var splitArray = refs.map(ref => Sefaria.splitRangingRef(ref));
+        var highlightedRefs = [].concat.apply([], splitArray);
+      } else {
+        var refs = [ref];
+        var currentlyVisibleRef = ref;
+        var highlightedRefs = [];
+      }
+      //console.log("Higlighted refs:", highlightedRefs)
+      panel = this.makePanelState({refs, currVersions, highlightedRefs, currentlyVisibleRef, mode: "Text"});
     }
 
     var newPanels = this.state.panels.slice();
@@ -1088,7 +1098,6 @@ class ReaderApp extends Component {
     refs = typeof refs === "string" ? [refs] : refs;
     this.state.panels[n].highlightedRefs = refs;
     this.setState({panels: this.state.panels});
-
     // If a connections panel is opened after n, update its refs as well.
     var next = this.state.panels[n+1];
     if (next && next.mode === "Connections" && !next.menuOpen) {

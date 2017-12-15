@@ -409,17 +409,24 @@ class ConnectionsSummary extends Component {
   // If `category` is present, shows a single category, otherwise all categories.
   // If `showBooks`, show specific text counts beneath each category.
   render() {
-    var refs    = this.props.srefs;
-    var summary = Sefaria.linkSummary(refs);
-    var oref    = Sefaria.ref(refs[0]);
-    var baseCat = oref ? oref["categories"][0] : null;
+    var refs       = this.props.srefs;
+    var summary    = Sefaria.linkSummary(refs);
+    var oref       = Sefaria.ref(refs[0]);
+    var isTopLevel = !this.props.category;
+    var baseCat    = oref ? oref["categories"][0] : null;
 
     if (!summary) { return (<LoadingMessage />); }
 
     if (this.props.category == "Commentary" ) {
-      // Show Quoting Commentary together with Commentary
-      summary = summary.filter(function(cat) { return cat.category == "Commentary" || cat.category == "Quoting Commentary" });
-
+      // Show Quoting Commentary & Modern Commentary together with Commentary
+      summary = summary.filter(cat => (cat.category.indexOf("Commentary") != -1));
+      summary.sort((a, b) => {
+        var order = ["Commentary", "Modern Commentary", "Quoting Commentary"];
+        var ia = order.indexOf(a.category)
+        var ib = order.indexOf(b.category)
+        return ia - ib;
+      });
+      
     } else if (this.props.category) {
       // Single Category Summary
       summary = summary.filter(function(cat) { return cat.category == this.props.category; }.bind(this));
@@ -427,13 +434,12 @@ class ConnectionsSummary extends Component {
         summary = [{category: this.props.category, books: [], count: 0}];
       }
 
-    } else if (!this.props.category) {
-      // Top Level summary, don't show Quoting Commentary
-      summary = summary.filter(function(cat) { return cat.category != "Quoting Commentary"; }.bind(this));
+    } else if (isTopLevel) {
+      // Top Level summary, don't show Quoting or Modern Commentary
+      summary = summary.filter(cat => (cat.category.indexOf("Commentary") < 1));
     }
 
     var connectionsSummary = summary.map(function(cat, i) {
-
 
       var books = this.props.contentLang == "hebrew"
                     ? cat.books.concat().sort(Sefaria.linkSummaryBookSortHebrew.bind(null, baseCat))

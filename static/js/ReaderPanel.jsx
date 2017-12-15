@@ -1,11 +1,3 @@
-const {
-  ReaderNavigationMenuCloseButton,
-  ReaderNavigationMenuMenuButton,
-  ReaderNavigationMenuDisplaySettingsButton,
-  CategoryColorLine,
-  CategoryAttribution,
-  ToggleSet,
-}                = require('./Misc');
 const React      = require('react');
 const classNames = require('classnames');
 const ReactDOM   = require('react-dom');
@@ -23,15 +15,26 @@ const ReaderTextTableOfContents = require('./ReaderTextTableOfContents');
 const SearchPage                = require('./SearchPage');
 const SheetsNav                 = require('./SheetsNav');
 const Sheet                     = require('./Sheet');
+const SheetMetadata             = require('./SheetMetadata');
 const TopicsPanel               = require('./TopicsPanel');
 const TopicPage                 = require('./TopicPage');
 const AccountPanel              = require('./AccountPanel');
 const NotificationsPanel        = require('./NotificationsPanel');
 const MyNotesPanel              = require('./MyNotesPanel');
-const MyGroupsPanel             = require('./MyGroupsPanel');
 const UpdatesPanel              = require('./UpdatesPanel');
 const ModeratorToolsPanel       = require('./ModeratorToolsPanel');
-const SheetMetadata             = require('./SheetMetadata');
+const {
+  MyGroupsPanel,
+  PublicGroupsPanel
+}                               = require('./MyGroupsPanel');
+const {
+  ReaderNavigationMenuCloseButton,
+  ReaderNavigationMenuMenuButton,
+  ReaderNavigationMenuDisplaySettingsButton,
+  CategoryColorLine,
+  CategoryAttribution,
+  ToggleSet,
+}                                = require('./Misc');
 import Component from 'react-class';
 
 
@@ -205,24 +208,38 @@ class ReaderPanel extends Component {
     e.preventDefault();
     this.conditionalSetState({ mode: "Sheet", sheet: sheet});
   }
-  showBaseText(ref, replaceHistory, currVersions={en:null,he:null}, filter=[]) {
-    // Set the current primary text
+  showBaseText(ref, replaceHistory, currVersions={en: null, he: null}, filter=[]) {
+    // Set the current primary text `ref`, which may be either a string or an array of strings.
     // `replaceHistory` - bool whether to replace browser history rather than push for this change
     if (!ref) { return; }
+    //console.log("showBaseText", ref)
     this.replaceHistory = Boolean(replaceHistory);
     if (this.state.mode == "Connections" && this.props.masterPanelLanguage == "bilingual") {
       // Connections panels are forced to be mono-lingual. When opening a text from a connections panel,
       // allow it to return to bilingual.
       this.state.settings.language = "bilingual";
     }
+    if (ref.constructor == Array) {
+      // When called with an array, set highlight for the whole spanning range
+      var refs = ref;
+      var currentlyVisibleRef = Sefaria.normRef(ref);
+      var splitArray = refs.map(ref => Sefaria.splitRangingRef(ref));
+      var highlightedRefs = [].concat.apply([], splitArray);
+    } else {
+      var refs = [ref];
+      var currentlyVisibleRef = ref;
+      var highlightedRefs = [];
+    }
+    //console.log("- highlightedRefs: ", highlightedRefs)
     this.conditionalSetState({
       mode: "Text",
-      refs: [ref],
+      refs,
       filter,
+      currentlyVisibleRef,
+      currVersions,
+      highlightedRefs,
       recentFilters: [],
       menuOpen: null,
-      currentlyVisibleRef: ref,
-      currVersions,
       settings: this.state.settings
     });
   }
@@ -417,6 +434,7 @@ class ReaderPanel extends Component {
   }
   setCurrentlyVisibleRef(ref) {
      this.replaceHistory = true;
+     //var ref = this.state.highlightedRefs.length ? Sefaria.normRef(this.state.highlightedRefs) : ref;
      this.conditionalSetState({
       currentlyVisibleRef: ref,
     });
@@ -737,9 +755,11 @@ class ReaderPanel extends Component {
                     openDisplaySettings={this.openDisplaySettings}
                     toggleLanguage={this.toggleLanguage} />);
 
+    } else if (this.state.menuOpen === "publicGroups") {
+      var menu = (<PublicGroupsPanel />);
+
     } else if (this.state.menuOpen === "myGroups") {
-      var menu = (<MyGroupsPanel
-                    interfaceLang={this.props.interfaceLang} />);
+      var menu = (<MyGroupsPanel />);
 
     } else if (this.state.menuOpen === "updates") {
       var menu = (<UpdatesPanel
