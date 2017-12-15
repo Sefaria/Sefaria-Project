@@ -4815,6 +4815,10 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
   letter-spacing: 1px;
 }
 
+.sheetsInPanel p {
+  margin: 0 0 1em 0;
+}
+
 
 .segmentNumber.sheetSegmentNumber {
   display: inline;

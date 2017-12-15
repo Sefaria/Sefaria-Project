@@ -12,6 +12,7 @@ const $          = require('./sefaria/sefariaJquery');
 const Sefaria    = require('./sefaria/sefaria');
 const classNames = require('classnames');
 const PropTypes  = require('prop-types');
+const sanitizeHtml = require('sanitize-html');
 import Component from 'react-class';
 
 
@@ -51,11 +52,11 @@ class SheetMetadata extends Component {
   }
   render() {
     console.log(this.props.sheet);
-    var title = this.props.sheet.title.stripHtml();
+    var title = this.props.sheet.title;
     var authorStatement;
 
     if (this.props.sheet.attribution) {
-      authorStatement = this.props.sheet.attribution.stripHtml();
+      authorStatement = this.props.sheet.attribution;
     }
     else if (this.props.sheet.assignerName) {
       authorStatement = "Assigned by "+ this.props.sheet.assignerName +" Completed by " + this.props.sheet.ownerName;
@@ -102,11 +103,9 @@ class SheetMetadata extends Component {
                       <span className="en">Sheet</span>
                       <span className="he">{Sefaria.hebrewTerm("Sheets")}</span>
                     </a>
-                    <div className="tocTitle" role="heading" aria-level="1">
-                      {title}
+                    <div className="tocTitle" role="heading" aria-level="1" dangerouslySetInnerHTML={ {__html: title} }>
                     </div>
-                    <div className="tocDetail">
-                      {authorStatement}
+                    <div className="tocDetail" dangerouslySetInnerHTML={ {__html: authorStatement} }>
                     </div>
                     <div className="tocDetail">
                       Created {this.props.sheet.dateCreated} · {this.props.sheet.views} Views · {this.props.sheet.likes ? this.props.sheet.likes.length : 0} Likes
