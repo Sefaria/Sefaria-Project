@@ -4342,7 +4342,7 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
   width: 100%;
   display: inline-block;
   vertical-align: top;
-  padding: 10px;
+  padding: 12px;
 }
 #editGroupPage .field.halfWidth {
   width: 50%;
