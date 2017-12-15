@@ -7,19 +7,19 @@ titles = {
 	# TODO Hebrew Names
 
 	#"Redeeming Relevance",
-	"Abraham Cohen Footnotes to the English Translation of Masechet Berakhot": ("Abraham Cohen", "אAbraham Cohen"),
-	"Daf Shevui to Ketubot": ("Daf Shevui", "אDaf Shevui"),
-	"Daf Shevui to Megillah": ("Daf Shevui", "אDaf Shevui"),
-	"Footnotes to Kohelet by Bruce Heitler": ("Bruce Heitler", "אBruce Heitler"),
-	"Daf Shevui to Sukkah": ("Daf Shevui", "אDaf Shevui"),
-	"Redeeming Relevance; Exodus": ("Francis Nataf", "אFrancis Nataf"),
-	"Redeeming Relevance; Numbers": ("Francis Nataf", "אFrancis Nataf"),
+	"Abraham Cohen Footnotes to the English Translation of Masechet Berakhot": ("Abraham Cohen", u"אברהם כהן"),
+	"Daf Shevui to Ketubot": ("Daf Shevui", u"דף שבועי"),
+	"Daf Shevui to Megillah": ("Daf Shevui", u"דף שבועי"),
+	"Footnotes to Kohelet by Bruce Heitler": ("Bruce Heitler", u"אBruce Heitler"),
+	"Daf Shevui to Sukkah": ("Daf Shevui", u"דף שבועי"),
+	#"Redeeming Relevance; Exodus": ("Francis Nataf", u"אFrancis Nataf"),
+	#"Redeeming Relevance; Numbers": ("Francis Nataf", u"אFrancis Nataf"),
 	#"Care of the Critically Ill", ),
-	"Daf Shevui to Avodah Zarah": ("Daf Shevui", "אDaf Shevui"),
-	"Redeeming Relevance; Deuteronomy":  ("Francis Nataf", "אFrancis Nataf"),
+	"Daf Shevui to Avodah Zarah": ("Daf Shevui", u"דף שבועי"),
+	#"Redeeming Relevance; Deuteronomy":  ("Francis Nataf", u"אFrancis Nataf"),
 	#"Kol HaTor", ),
-	"A New Israeli Commentary on Pirkei Avot": ("Avigdor Shinan", "אAvigdor Shinan"),
-	"Redeeming Relevance; Genesis": ("Francis Nataf", "אFrancis Nataf"),
+	"A New Israeli Commentary on Pirkei Avot": ("Avigdor Shinan", u"אביגדור שנאן"),
+	#"Redeeming Relevance; Genesis": ("Francis Nataf", u"אFrancis Nataf"),
 }
 
 for (title, names) in titles.iteritems():
