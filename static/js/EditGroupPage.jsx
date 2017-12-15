@@ -15,6 +15,7 @@ class EditGroupPage extends Component {
         websiteUrl: null,
         imageUrl: null,
         headerUrl: null,
+        listed: false
     };
   }
   componentDidMount() {
@@ -84,6 +85,9 @@ class EditGroupPage extends Component {
     state[field] = e.target.value;
     this.setState(state);
     this.changed = true;
+  }
+  handleListingChange(e) {
+    this.setState({listed: !!e.target.checked});
   }
   delete() {
     if (confirm("Are you sure you want to delete this group? This cannot be undone.")) {
@@ -170,7 +174,7 @@ class EditGroupPage extends Component {
             <span className="int-en">Description</span>
             <span className="int-he">תיאור</span>
           </label>
-          <textarea id="groupDescription" onChange={this.handleInputChange} value={this.state.description||null}></textarea>
+          <textarea id="groupDescription" onChange={this.handleInputChange} value={this.state.description||""}></textarea>
         </div>
 
         <div className="field">
@@ -213,6 +217,29 @@ class EditGroupPage extends Component {
           <div className="helperText">
             <span className="int-en">Recommended size: 1000px width to fill sheet, smaller images align right</span>
             <span className="int-he">גודל מומלץ: 1000 פיקסל כדי למלא את חלל הדף. גודל קטן יותר יתיישר לימין</span>
+          </div>
+        </div>
+
+        <div className="field">
+          <label>
+              <span className="int-en">List on Sefaria</span>
+              <span className="int-he">הצג לכלל משתמשי ספריא</span>
+          </label>
+          <div className="onoffswitch">
+            <input type="checkbox" 
+              name="onoffswitch" 
+              className="onoffswitch-checkbox" 
+              id="groupPublicToggle"
+              checked={!!this.state.listed}
+              onChange={this.handleListingChange} />
+            <label className="onoffswitch-label" htmlFor="groupPublicToggle">
+                <span className="onoffswitch-inner"></span>
+                <span className="onoffswitch-switch"></span>
+            </label>
+          </div>
+          <div className="helperText">
+            <span className="int-en">Your group will appear on the public groups page where others can find it.</span>
+            <span className="int-he">HEBREW NEEDED</span>
           </div>
         </div>
 
