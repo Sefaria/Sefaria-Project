@@ -4821,7 +4821,7 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
 
 
 .segmentNumber.sheetSegmentNumber {
-  display: inline;
+  display: block;
   position: relative;
 }
 
