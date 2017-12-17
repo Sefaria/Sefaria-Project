@@ -557,6 +557,7 @@ class ReaderPanel extends Component {
           versionFilter={this.state.versionFilter}
           recentVersionFilters={this.state.recentVersionFilters}
           setVersionFilter={this.setVersionFilter}
+          viewExtendedNotes={this.props.viewExtendedNotes}
           key="connections" />
       );
     }
@@ -642,7 +643,9 @@ class ReaderPanel extends Component {
                     openDisplaySettings={this.openDisplaySettings}
                     selectVersion={this.props.selectVersion}
                     showBaseText={this.showBaseText}
-                    backFromExtendedNotes={this.backFromExtendedNotes}
+                    backFromExtendedNotes={
+                      this.state.mode==="Connections" ? this.closeMenus : this.backFromExtendedNotes
+                    }
                     getLicenseMap={this.props.getLicenseMap}/>);
 
     } else if (this.state.menuOpen === "search" && this.state.searchQuery) {
