@@ -244,13 +244,14 @@ class VersionBlock extends Component {
               {versionTitle}
             </div>
           }
-          {versionNotes ? <div className="versionNotes" dangerouslySetInnerHTML={ {__html: versionNotes} } ></div> : ""}
-          {versionNotes ? <div className="versionNotes" dangerouslySetInnerHTML={ {__html: versionNotes} } ></div> : ""}
-          {(this.props.version.extendedNotes || this.props.version.extendedNotesHebrew) ? <div className="extendedNotesLinks">
-              <a onClick={this.openExtendedNotes} href={`/${this.props.title}/${this.props.version.language}/${this.props.version.versionTitle}/notes`}>
-                {Sefaria.interfaceLang === "english" ? "More" : "עוד"}
+          {versionNotes ? <div className="versionNotes">
+            <span dangerouslySetInnerHTML={ {__html: versionNotes} } />
+            {(this.props.version.extendedNotes || this.props.version.extendedNotesHebrew) ? <span className="extendedNotesLinks">
+              &nbsp;<a onClick={this.openExtendedNotes} href={`/${this.props.title}/${this.props.version.language}/${this.props.version.versionTitle}/notes`}>
+                {Sefaria.interfaceLang === "english" ? "Read More" : "קרא עוד"}
               </a>
-            </div> : ""}
+            </span> : ""}
+          </div> : ""}
           <div className="versionDetails">
             {!!this.props.openVersionInReader ?
               <a className={selectButtonClasses} href={versionSidebarLink} onClick={this.onSelectVersionClick}>

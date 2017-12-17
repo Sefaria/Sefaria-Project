@@ -101,7 +101,9 @@ class ReaderTextTableOfContents extends Component {
       versionNotes:           currentLanguage == "he" ? d.heVersionNotes : d.versionNotes,
       digitizedBySefaria:     currentLanguage == "he" ? d.heDigitizedBySefaria : d.digitizedBySefaria,
       versionTitleInHebrew: currentLanguage == "he" ? d.heVersionTitleInHebrew : d.VersionTitleInHebrew,
-      versionNotesInHebrew: currentLanguage == "he" ? d.heVersionNotesInHebrew : d.VersionNotesInHebrew
+      versionNotesInHebrew: currentLanguage == "he" ? d.heVersionNotesInHebrew : d.VersionNotesInHebrew,
+      extendedNotes:        currentLanguage == "he" ? d.heExtendedNotes : d.extendedNotes,
+      extendedNotesHebrew:  currentLanguage == "he" ? d.extendedNotesHebrew : d.heExtendedNotesHebrew,
     };
     currentVersion.merged = !!(currentVersion.sources);
     return currentVersion;
