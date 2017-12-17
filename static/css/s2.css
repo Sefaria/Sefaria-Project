@@ -933,7 +933,7 @@ a.readerNavCategory {
 }
 .readerNavMenu .blockLink.calendarLink .blockLinkSubtitle{
   display: block;
-  font-size: 0.8em;
+  font-size: 0.9em;
   color: #999999;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -1018,6 +1018,9 @@ a.readerNavCategory {
 .readerNavCategoryMenu .categoryAttribution .he {
   font-style: normal;
 }
+.readerNavCategoryMenu .category h3 {
+  margin-top: 36px;
+}
 .readerNavMenu .blockLink,
 .readerNavMenu .catLink,
 .readerNavMenu .navButton,
@@ -1069,8 +1072,9 @@ a.readerNavCategory {
   width: 100%;
   height: 100%;
 }
-.readerNavMenu .readerNavCategoryMenu .refLink.incomplete {
-  opacity: 0.7;
+.readerNavMenu .readerNavCategoryMenu .refLink.incomplete,
+.readerNavMenu .catLink.incomplete {
+  opacity: 0.65;
 }
 .categoryColorLine {
   position: absolute;
@@ -2096,17 +2100,15 @@ a.readerNavCategory {
 .singlePanel .readerControls .readerControlsInner {
   padding: 0 10px;
 }
-.readerControls .readerTextToc {
-  text-align: center;
-  display: inline-block;
-  cursor: pointer;
-  vertical-align: middle;
-}
 .readerControls .readerTextToc a {
   color: inherit;
 }
 .readerControls .readerTextToc a:hover {
   text-decoration: none;
+}
+.readerControls .readerTextToc .readerTextTocBox a {
+  display: flex;
+  align-items: center;
 }
 .readerControls.connectionsHeader .readerTextToc {
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
@@ -2173,21 +2175,29 @@ a.readerNavCategory {
   box-sizing: border-box;
   display: block;
   height: 50px;
+  text-align: center;
+  display: inline-block;
+  cursor: pointer;
+  vertical-align: middle;
+  min-width: 0; /* see https://css-tricks.com/flexbox-truncated-text/ */
 }
 .readerTextTocHeader.readerTextToc {
   font-size: 14px;
 }
 .hebrew .readerControls .readerTextToc {
   direction: rtl;
+  min-width: 0;
 }
 .readerControls .readerTextToc .readerTextTocBox {
   display: inline-block;
+  vertical-align: middle;
+  color: #333;
+  max-width: 100%;
+}
+.readerControls .readerTextToc .readerTextTocBox a span {
   white-space: nowrap;
   text-overflow: ellipsis;
   overflow: hidden;
-  /*max-width: 70%;*/
-  vertical-align: middle;
-  color: #333;
 }
 .readerControls .readerTextToc .readerTextVersion {
   font-style: italic;
@@ -3182,10 +3192,10 @@ a.readerNavCategory {
 .textListTextRangeBox {
   position: relative;
 }
-.textListTextRangeBox:hover .moderatorLinkOptions {
+.textListTextRangeBox:hover .editorLinkOptions {
   display: block;
 }
-.moderatorLinkOptions {
+.editorLinkOptions {
   display: none;
   cursor: pointer;
   font-size: 14px;
@@ -3193,11 +3203,11 @@ a.readerNavCategory {
   letter-spacing: 1px;
   margin: -20px 0 10px;
 }
-.interface-hebrew .moderatorLinkOptions {
+.interface-hebrew .editorLinkOptions {
   left: auto;
   right: 0;
 }
-.moderatorLinkOptions > div:hover {
+.editorLinkOptions > div:hover {
   text-decoration: underline;
 }
 .toolsMessage {
@@ -4130,7 +4140,7 @@ h2.splitHeader .he {
 }
 .hebrew .topicPanel .topicSource .score img {
   margin: -4px 2px 0 0;
-}  
+}
 .note a {
   color: #333;
   text-decoration: underline;
