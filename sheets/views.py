@@ -25,7 +25,7 @@ from django.contrib.auth.models import User
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaIoBaseUpload
 
-from reader.views import s2_sheets, s2_sheets_by_tag, s2_group_sheets, s2_my_groups
+from reader.views import s2_sheets, s2_sheets_by_tag, s2_group_sheets, s2_my_groups, s2_public_groups
 
 # noinspection PyUnresolvedReferences
 from sefaria.client.util import jsonResponse, HttpResponse
@@ -427,6 +427,14 @@ def groups_page(request):
 	"""
 	Page listing all public groups
 	"""
+	return s2_public_groups(request)
+
+
+@staff_member_required
+def groups_admin_page(request):
+	"""
+	Page listing all groups for admins
+	"""
 	groups = GroupSet(sort=[["name", 1]])
 	return render_to_response("groups.html",
 								{"groups": groups},
@@ -465,6 +473,9 @@ def groups_post_api(request, group_name=None):
 			# check poster is a group admin
 			if request.user.id not in existing.admins:
 				return jsonResponse({"error": "You do not have permission to edit this group."})
+			
+			from pprint import pprint
+			pprint(group)
 			existing.load_from_dict(group)
 			existing.save()
 		else:

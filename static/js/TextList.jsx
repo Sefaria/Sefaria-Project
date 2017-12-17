@@ -162,7 +162,7 @@ class TextList extends Component {
     var sectionLinks = Sefaria.links(sectionRef);
     var links        = Sefaria._filterLinks(sectionLinks, filter);
     links            = links.filter(function(link) {
-      if (Sefaria.splitSpanningRef(link.anchorRef).every(aref => Sefaria.util.inArray(aref, refs) === -1)) {
+      if (Sefaria.splitRangingRef(link.anchorRef).every(aref => Sefaria.util.inArray(aref, refs) === -1)) {
         // Filter out every link in this section which does not overlap with current refs.
         return false;
       }

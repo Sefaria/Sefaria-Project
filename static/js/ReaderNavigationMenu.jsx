@@ -319,14 +319,15 @@ class RecentPanel extends Component {
   render() {
     var width = typeof window !== "undefined" ? $(window).width() : 1000;
 
-    var recentItems = Sefaria.recentlyViewed.map(function(item) {
+    var recentItems = Sefaria.recentlyViewed.map(function(item, i) {
       return (<TextBlockLink
                 sref={item.ref}
                 heRef={item.heRef}
                 book={item.book}
                 currVersions={item.currVersions}
                 showSections={true}
-                recentItem={true} />)
+                recentItem={true}
+                key={i} />)
     });
 
     var footer = this.props.compare ? null :

@@ -1623,39 +1623,26 @@ input#id_email{
     margin: 70px auto;
     text-align: center;
 }
-
 #groupsPage #groups {
     margin-top: 40px;
 }
-
 #groupsPage .group {
-    width: 220px;
-    height: 220px;
     margin: 10px;
-    border: 1px solid #ddd;
-    display: inline-block;
-    position: relative;
-    text-align: center;
-    line-height: 200px;
+    padding: 10px;
+    border-bottom: 1px solid #ddd;
+    display: block;
+    text-align: left;
     overflow: hidden;
 }
-
 #groupsPage .group:hover {
     border: 1px solid #08c;
 }
-
-
 #groupsPage .groupName {
-    position: absolute;
-    width: 220px;
-    bottom: 10px;
-    font-size: 14px;
-    line-height: 14px;
+    font-size: 18px;
+    line-height: 22px;
     color: #555;
-    text-align: center;
     display: block;
 }
-
 #groupsPage .groupSettings {
     display: none;
     cursor: pointer;
@@ -1667,58 +1654,15 @@ input#id_email{
     font-size: 18px;
     color: black;
 }
-
-#groupsPage .group:hover .groupSettings {
-    display: block;
-}
-
-#groupsPage .groupSettings:hover {
-    color: #08c;
-}
-
 #groupsPage .group img.groupCover {
 }
-
 #groupsPage .group img.groupHeader {
     display: none;
 }
-
 #groupsPage .group img {
-    width: 92%;
-}
-
-#editGroupModal {
-    max-height: 70%;
-    min-width: 400px;
-    max-width: 100%;
-    overflow-y: scroll;
-    text-align: left;
-}
-
-#editGroupModal h1 {
-    margin-bottom: 15px;
-    text-align: center;
-}
-
-#editGroupModal .imageBox {
-    margin-bottom: 30px;
-}
-
-#editGroupModal .left {
-    display: block;
-}
-
-#editGroupModal input {
-    width: 92%;
-}
-
-#editGroupModal img {
-    vertical-align: top;
-    max-width: 600px;
-}
-
-#editGroupModal #saveGroup {
-    display: none;
+    width: 48px;
+    height: 48px;
+    float: left;
 }
 
 #visualGardenPage .control-results-containe{

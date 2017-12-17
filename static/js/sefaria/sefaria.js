@@ -7,6 +7,7 @@ var extend     = require('extend'),
     Hebrew     = require('./hebrew'),
     Util       = require('./util'),
     $          = require('./sefariaJquery');
+                 require('babel-polyfill');
 
 var INBROWSER = (typeof document !== 'undefined');
 
@@ -152,6 +153,56 @@ Sefaria = extend(Sefaria, {
     nRef.toSections = pRefEnd.toSections;
     return Sefaria.makeRef(nRef);
   },
+  refContains: function(ref1, ref2) {
+    // Returns true is `ref1` contains `ref2`
+    var oRef1 = Sefaria.parseRef(ref1);
+    var oRef2 = Sefaria.parseRef(ref2);
+
+    for (var i = 0; i < oRef1.sections.length; i++) {
+      
+      if (oRef1.sections[i] <= oRef2.sections[i] && oRef1.toSections[i] >= oRef2.toSections[i]) {
+        return true;
+      } else if (oRef1.sections[i] > oRef2.sections[i] || oRef1.toSections[i] < oRef2.toSections[i]) {
+        return false;
+      }
+    }
+    return null;
+  },
+  sectionRef: function(ref) {
+    // Returns the section level ref for `ref` or null if no data is available
+    var oref = this.ref(ref);
+    return oref ? oref.sectionRef : null;
+  },
+  splitRangingRef: function(ref) {
+    // Returns an array of segment level refs which correspond to the ranging `ref`
+    // e.g. "Genesis 1:1-2" -> ["Genesis 1:1", "Genesis 1:2"]
+    var oRef     = Sefaria.parseRef(ref);
+    var isDepth1 = oRef.sections.length == 1;
+    var textData = Sefaria.text(ref);
+    if (textData) {
+        var refs = Sefaria.makeSegments(textData).map(segment => segment.ref); 
+        return refs;      
+    } else if (!isDepth1 && oRef.sections[oRef.sections.length - 2] !== oRef.toSections[oRef.sections.length - 2]) {
+      // TODO handle spanning refs when no text data is available to answer how many segments are in each section.
+      // e.g., in "Shabbat 2a:5-2b:8" what is the last segment of Shabbat 2a?
+      // For now, just return the split of the first non-spanning ref.
+      var newRef = Sefaria.util.clone(oRef);
+      newRef.toSections = newRef.sections;
+      return Sefaria.splitRangingRef(this.humanRef(this.makeRef(newRef)));        
+      
+    } else {
+      var refs  = [];
+      var start = oRef.sections[oRef.sections.length-1];
+      var end   = oRef.toSections[oRef.sections.length-1];
+      for (var i = start; i <= end; i++) {
+        newRef = Sefaria.util.clone(oRef);
+        newRef.sections[oRef.sections.length-1] = i;
+        newRef.toSections[oRef.sections.length-1] = i;
+        refs.push(this.humanRef(this.makeRef(newRef)));
+      }
+      return refs;
+    }
+  },
   titlesInText: function(text) {
     // Returns an array of the known book titles that appear in text.
     return Sefaria.books.filter(function(title) {
@@ -209,7 +260,7 @@ Sefaria = extend(Sefaria, {
   },
   _texts: {},  // cache for data from /api/texts/
   _refmap: {}, // Mapping of simple ref/context keys to the (potentially) versioned key for that ref in _texts.
-  text: function(ref, settings, cb) {
+  text: function(ref, settings = null, cb = null) {
     if (!ref || typeof ref == "object" || typeof ref == "undefined") { debugger; }
     settings = settings || {};
     settings = {
@@ -230,7 +281,7 @@ Sefaria = extend(Sefaria, {
       return data;
     }
     //console.log("API Call for " + key);
-    this.textApi(ref,settings,cb);
+    this.textApi(ref, settings, cb);
     return null;
   },
   textApi: function(ref, settings, cb) {
@@ -342,37 +393,41 @@ Sefaria = extend(Sefaria, {
     var refkey           = this._refKey(data.ref, settings);
     this._refmap[refkey] = key;
 
-    var levelsUp = data.textDepth - data.sections.length;
-    if (levelsUp >= 1 && !data.isSpanning) { // Section level ref
+    var isSectionLevel = data.ref === data.sectionRef;
+    if (isSectionLevel && !data.isSpanning) {
+      // Save dat
       this._splitTextSection(data, settings);
-    } else if (settings.context && levelsUp <= 1) {  // Do we really want this to run on spanning section refs?
-      // Save a copy of the data at context level
-      var newData        = Sefaria.util.clone(data);
-      newData.ref        = data.sectionRef;
-      newData.heRef      = data.heSectionRef;
-      newData.sections   = data.sections.slice(0,-1);
-      newData.toSections = data.toSections.slice(0,-1);
-      const context_settings = {};
-      if (settings.enVersion) { context_settings.enVersion = settings.enVersion; }
-      if (settings.heVersion) { context_settings.heVersion = settings.heVersion; }
-
-      this._saveText(newData, context_settings);
     }
+
+    if (settings.context) { 
+      // Save a copy of the data at section level without context flag
+      var newData         = Sefaria.util.clone(data);
+      newData.ref         = data.sectionRef;
+      newData.heRef       = data.heSectionRef;
+      if (!isSectionLevel) {
+        newData.sections    = data.sections.slice(0,-1);
+        newData.toSections  = data.toSections.slice(0,-1);
+      }
+      const newSettings   = Sefaria.util.clone(settings);
+      newSettings.context = 0;
+      this._saveText(newData, newSettings);
+    }
+    
     if (data.isSpanning) {
-      const spanning_context_settings = {context:1};
-      if (settings.enVersion) { spanning_context_settings.enVersion = settings.enVersion; }
-      if (settings.heVersion) { spanning_context_settings.heVersion = settings.heVersion; }
+      const spanningContextSettings = Sefaria.util.clone(settings);
+      spanningContextSettings.context = 1;
 
       for (var i = 0; i < data.spanningRefs.length; i++) {
         // For spanning refs, request each section ref to prime cache.
         // console.log("calling spanning prefetch " + data.spanningRefs[i])
-        Sefaria.text(data.spanningRefs[i], spanning_context_settings, function(data) {})
+        Sefaria.text(data.spanningRefs[i], spanningContextSettings, function(data) {})
       }
     }
   },
   _splitTextSection: function(data, settings) {
     // Takes data for a section level text and populates cache with segment levels.
-    // Don't do this for Refs above section level, like "Rashi on Genesis 1", since it's impossible to correctly derive next & prev.
+    // Don't do this for Refs above section level, like "Rashi on Genesis 1", 
+    // since it's impossible to correctly derive next & prev.
     settings = settings || {};
     var en = typeof data.text == "string" ? [data.text] : data.text;
     var he = typeof data.he == "string" ? [data.he] : data.he;
@@ -590,37 +645,6 @@ Sefaria = extend(Sefaria, {
         });
     }
   },
-
-  sectionRef: function(ref) {
-    // Returns the section level ref for `ref` or null if no data is available
-    var oref = this.ref(ref);
-    return oref ? oref.sectionRef : null;
-  },
-  splitSpanningRef: function(ref) {
-    // Returns an array of non-spanning refs which correspond to the spanning `ref`
-    // e.g. "Genesis 1:1-2" -> ["Genesis 1:1", "Genesis 1:2"]
-    var oref = Sefaria.parseRef(ref);
-    var isDepth1 = oref.sections.length == 1;
-    if (!isDepth1 && oref.sections[oref.sections.length - 2] !== oref.toSections[oref.sections.length - 2]) {
-      // TODO handle ranging refs, which requires knowledge of the segment count of each included section
-      // i.e., in "Shabbat 2a:5-2b:8" what is the last segment of Shabbat 2a?
-      // For now, just return the first non-spanning ref.
-      var newRef = Sefaria.util.clone(oref);
-      newRef.toSections = newRef.sections;
-      return [this.humanRef(this.makeRef(newRef))];
-    } else {
-      var refs  = [];
-      var start = oref.sections[oref.sections.length-1];
-      var end   = oref.toSections[oref.sections.length-1];
-      for (var i = start; i <= end; i++) {
-        newRef = Sefaria.util.clone(oref);
-        newRef.sections[oref.sections.length-1] = i;
-        newRef.toSections[oref.sections.length-1] = i;
-        refs.push(this.humanRef(this.makeRef(newRef)));
-      }
-      return refs;
-    }
-  },
   _lexiconLookups: {},
   lexicon: function(words, ref, cb){
     // Returns a list of lexicon entries for the given words
@@ -706,7 +730,7 @@ Sefaria = extend(Sefaria, {
     var splitItems = {}; // Aggregate links by anchorRef
     for (var i = 0; i < data.length; i++) {
       var ref = data[i].anchorRef;
-      var refs = Sefaria.splitSpanningRef(ref);
+      var refs = Sefaria.splitRangingRef(ref);
       for (var j = 0; j < refs.length; j++) {
         ref = refs[j];
         if (ref in splitItems) {
@@ -893,7 +917,7 @@ Sefaria = extend(Sefaria, {
     // E.g. ("Rashi", "Genesis 3") -> "Rashi on Genesis 3"
     // Works by examining links available on baseRef, returns null if no links are in cache.
     if (commentator == "Abarbanel") {
-      return null; // This text is too giant, optimizing up to section level is too slow.
+      return null; // This text is too giant, optimizing up to section level is too slow. TODO: generalize.
     }
     var links = Sefaria.links(baseRef);
     links = Sefaria._filterLinks(links, [commentator]);
@@ -1891,7 +1915,8 @@ Sefaria.unpackDataFromProps = function(props) {
       const panelBook     = !!panel.versions ? panel.versions : !!panel.text ? panel.text.versions : null;
       if (panelVersions && panelBook) {
         Sefaria._versions[panelBook] = panelVersions;
-        for (let v of panelVersions) {
+        for (let i = 0; i < panelVersions.length; i++) {
+          const v = panelVersions[i];
           Sefaria._translateVersions[v.versionTitle] = {
             en: v.versionTitle,
             he: !!v.versionTitleInHebrew ? v.versionTitleInHebrew : v.versionTitle,
