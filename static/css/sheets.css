@@ -475,6 +475,7 @@ body:not(.user-is-tabbing) #sheet .cke_editable:focus {
 	font-size: 36px;
 	min-height: 40px;
 	margin-bottom: 6px;
+    padding: 0 76px;
 	text-align: center;
 	line-height: normal;
 }
@@ -527,15 +528,11 @@ body:not(.user-is-tabbing) #sheet .cke_editable:focus {
 	text-align: center;
 	margin: 0 -76px;
 	background-color: #fff;
-    display: flex;
-	justify-content: center;
 	cursor: pointer;
 }
 
 #sheetMetadata[open] summary {
 	background-color: #fff;
-    display: flex;
-	justify-content: flex-end;
 }
 
 #sheetMetadata summary::-webkit-details-marker {
@@ -555,10 +552,16 @@ body:not(.user-is-tabbing) #sheet .cke_editable:focus {
 }
 #sheetMetadata[open] summary:after {
   	content: "✕";
-    top: 56px;
+    top: 36px;
     margin: 0 80px;
     position: relative;
-    align-self: flex-end;
+}
+#sheetMetadata[open] summary:lang(en)::after {
+	float: right;
+}
+
+#sheetMetadata[open] summary:lang(he)::after {
+	float: left;
 }
 
 #sheetMetadata .editButton {
@@ -625,11 +628,11 @@ body:not(.user-is-tabbing) #sheet .cke_editable:focus {
 	display: block;
 }
 
-#likeInfo {
+#likeInfo-en, #likeInfo-he {
 	cursor: pointer;
 }
 
-#likeInfo:hover {
+.likes:hover {
 	text-decoration: underline;
 }
 
@@ -1376,6 +1379,21 @@ a:active {
 		left: 0;
 		width: 100%;
 		height: 100%;
+	}
+
+	.indented-1 {
+		padding-left: 40px !important;
+		padding-right: 40px !important;
+	}
+
+	.indented-2 {
+		padding-left: 60px !important;
+		padding-right: 60px !important;
+	}
+
+	.indented-3 {
+		padding-left: 60px !important;
+		padding-right: 60px !important;
 	}
 
 }
@@ -2612,4 +2630,7 @@ a.tagit-close {
 
 .onoffswitch-checkbox:checked + .onoffswitch-label .onoffswitch-switch {
     right: 0px;
+}
+#peopleListModal.interface-hebrew{
+	direction: rtl;
 }
