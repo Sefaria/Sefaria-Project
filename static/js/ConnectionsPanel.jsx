@@ -310,6 +310,7 @@ class ConnectionsPanel extends Component {
                   setFilter={this.props.setVersionFilter}
                   getDataRef={this.getDataRef}
                   onRangeClick={this.props.onTextClick}
+                  viewExtendedNotes={this.props.viewExtendedNotes}
                   onCitationClick={this.props.onCitationClick}/>);
     }
     var classes = classNames({connectionsPanel: 1, textList: 1, fullPanel: this.props.fullPanel, singlePanel: !this.props.fullPanel});
