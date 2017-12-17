@@ -114,7 +114,8 @@ def user_and_notifications(request):
     notifications_json = "[" + ",".join([n.to_JSON() for n in notifications]) + "]"
     
     interrupting_message_dict = GLOBAL_INTERRUPTING_MESSAGE or {"name": profile.interrupting_message()}
-    interrupting_message_json = InterruptingMessage(attrs=interrupting_message_dict, request=request).json()
+    interrupting_message      = InterruptingMessage(attrs=interrupting_message_dict, request=request)
+    interrupting_message_json = interrupting_message.json()
 
     return {
         "notifications": notifications,
