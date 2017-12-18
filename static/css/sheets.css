@@ -293,6 +293,12 @@ body:not(.user-is-tabbing) #sheet .cke_editable:focus {
 	width:100%;
 }
 
+
+#assignmentsModal {
+	max-height: 600px;
+	overflow-y: scroll;
+}
+
 #assignmentsModal .btn {
 	margin-top: 5px;
 }
