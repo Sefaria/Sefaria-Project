@@ -62,6 +62,14 @@ def format_link_object_for_client(link, with_text, ref, pos=None):
     if com["type"] != "commentary" and com["category"] == "Commentary":
             com["category"] = "Quoting Commentary"
 
+    if com["category"] == "Modern Works" and linkRef.index.dependence == "Commentary":
+        print "Transforming " + linkRef.normal()
+        com["category"] = "Modern Commentary"
+        com["collectiveTitle"] = {
+            'en': getattr(linkRef.index, 'collective_title', linkRef.index.title),
+            'he': hebrew_term(getattr(linkRef.index, 'collective_title', linkRef.index.get_title("he")))
+        }
+
     if linkRef.index_node.primary_title("he"):
         com["heTitle"] = linkRef.index_node.primary_title("he")
 

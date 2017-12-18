@@ -43,7 +43,7 @@ class TextColumn extends Component {
       this.initialScrollTopSet = true;
 
     } else if (this.props.panelsOpen !== nextProps.panelsOpen) {
-      // When panels are opened of closed, refocus highlighted segments
+      // When panels are opened or closed, refocus highlighted segments
       this.scrolledToHighlight = false;
 
     } else if (nextProps.srefs.length == 1 && Sefaria.util.inArray(nextProps.srefs[0], this.props.srefs) == -1) {
@@ -225,10 +225,6 @@ class TextColumn extends Component {
     if (shouldHighlight) {
       var ref = $segment.attr("data-ref");
       this.props.setTextListHighlight(ref);
-    } else {
-      if (this.props.highlightedRefs.length != 0) {
-        this.props.setTextListHighlight([]);
-      }
     }
   }
   scrollToHighlighted() {
