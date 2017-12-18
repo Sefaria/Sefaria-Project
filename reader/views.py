@@ -611,7 +611,6 @@ def s2_group_sheets(request, group, authenticated):
     }, RequestContext(request))
 
 
-@login_required
 def s2_public_groups(request):
     props = s2_props(request)
     title = _("Sefaria Groups")
