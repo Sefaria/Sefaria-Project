@@ -174,6 +174,8 @@ class ReaderPanel extends Component {
   handleBaseSegmentClick(ref) {
     if (this.state.mode === "TextAndConnections") {
       this.closeConnectionsInPanel();
+    } else if (this.state.mode ==="SheetAndConnections") {
+      this.closeSheetConnectionsInPanel();
     } else if (this.state.mode === "Text") {
       if (this.props.multiPanel) {
         this.props.onSegmentClick(ref);
@@ -215,7 +217,7 @@ class ReaderPanel extends Component {
   }
   openSheetConnectionsInPanel(ref) {
     var refs = typeof ref == "string" ? [ref] : ref;
-    this.replaceHistory = this.state.mode === "TextAndConnections"; // Don't push history for change in Connections focus
+    this.replaceHistory = this.state.mode === "SheetAndConnections"; // Don't push history for change in Connections focus
     this.conditionalSetState({highlightedRefs: refs, mode: "SheetAndConnections" }, this.replaceHistory);
   }
   closeSheetConnectionsInPanel() {
@@ -223,7 +225,6 @@ class ReaderPanel extends Component {
     this.conditionalSetState({highlightedRefs: [], mode: "Sheet"});
   }
   handleSheetClick(e,sheet) {
-    console.log(sheet);
     e.preventDefault();
     this.conditionalSetState({ mode: "Sheet", sheet: sheet});
   }
