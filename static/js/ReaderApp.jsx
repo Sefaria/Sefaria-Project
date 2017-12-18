@@ -1011,10 +1011,11 @@ class ReaderApp extends Component {
     panel.menuOpen = "extended notes";
     this.setState({panels: this.state.panels});
   }
-  backFromExtendedNotes(n, bookRef){
+  backFromExtendedNotes(n, bookRef, currVersions){
     var panel = this.state.panels[n];
-    panel.menuOpen = "book toc";
+    panel.menuOpen = panel.currentlyVisibleRef ? "text toc" : "book toc";
     panel.bookRef = bookRef;
+    panel.currVersions = currVersions;
     this.setState({panels: this.state.panels});
   }
   // this.state.defaultVersion is a depth 2 dictionary - keyed: bookname, language

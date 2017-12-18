@@ -460,8 +460,8 @@ class ReaderPanel extends Component {
     }
   }
   backFromExtendedNotes(){
-    var bookRef = this.state.bookRef ? this.state.bookRef : this.currentBook();
-    this.props.backFromExtendedNotes(bookRef);
+    let bookRef = this.state.bookRef ? this.state.bookRef : this.currentBook();
+    this.props.backFromExtendedNotes(bookRef, this.state.currVersions);
   }
   render() {
     if (this.state.error) {
