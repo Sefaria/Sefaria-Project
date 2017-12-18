@@ -411,7 +411,7 @@ class ReaderApp extends Component {
             hist.mode = "book toc";
             break;
           case "extended notes":
-            var bookTitle = state.bookRef;
+            var bookTitle = state.mode==="Connections" ?Sefaria.parseRef(state.currentlyVisibleRef).index : state.bookRef;
             hist.currVersions = state.currVersions;
             hist.url = `${bookTitle}&notes${i>1 ? i : ''}=1`.replace(/ /g, "_");
             hist.mode = "extended notes";
