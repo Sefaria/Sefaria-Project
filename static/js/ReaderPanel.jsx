@@ -180,10 +180,20 @@ class ReaderPanel extends Component {
       } else {
         this.openConnectionsInPanel(ref);
       }
-    } else if (this.state.mode === "Sheet") {
-      this.props.onCitationClick(ref);
+    }  else if (this.state.mode === "Sheet") {
+      if (this.props.multiPanel) {
+        this.props.onSegmentClick(ref);
+      } else {
+        this.openSheetConnectionsInPanel(ref);
+      }
     }
+
+
   }
+  handleSheetCitationClick(ref) {
+    this.props.onCitationClick(ref);
+  }
+
   handleCitationClick(citationRef, textRef) {
     if (this.props.multiPanel) {
       this.props.onCitationClick(citationRef, textRef);
@@ -202,6 +212,15 @@ class ReaderPanel extends Component {
   closeConnectionsInPanel() {
     // Return to the original text in the ReaderPanel contents
     this.conditionalSetState({highlightedRefs: [], mode: "Text"});
+  }
+  openSheetConnectionsInPanel(ref) {
+    var refs = typeof ref == "string" ? [ref] : ref;
+    this.replaceHistory = this.state.mode === "TextAndConnections"; // Don't push history for change in Connections focus
+    this.conditionalSetState({highlightedRefs: refs, mode: "SheetAndConnections" }, this.replaceHistory);
+  }
+  closeSheetConnectionsInPanel() {
+    // Return to the original text in the ReaderPanel contents
+    this.conditionalSetState({highlightedRefs: [], mode: "Sheet"});
   }
   handleSheetClick(e,sheet) {
     console.log(sheet);
@@ -497,12 +516,13 @@ class ReaderPanel extends Component {
         );
     }
     var items = [];
-    if (this.state.mode === "Sheet") {
+    if (this.state.mode === "Sheet" || this.state.mode === "SheetAndConnections" ) {
       items.push(<Sheet
           panelPosition ={this.props.panelPosition}
           id={this.state.sheet.id}
           key={"sheet-"+this.state.sheet.id}
-          onRefClick={this.handleBaseSegmentClick}
+          onRefClick={this.handleSheetCitationClick}
+          onSegmentClick={this.handleBaseSegmentClick}
       />);
     }
     if (this.state.mode === "Text" || this.state.mode === "TextAndConnections") {
@@ -536,7 +556,7 @@ class ReaderPanel extends Component {
           filter={this.state.filter}
           key={title + "-TextColumn"} />);
     }
-    if (this.state.mode === "Connections" || this.state.mode === "TextAndConnections") {
+    if (this.state.mode === "Connections" || this.state.mode === "TextAndConnections" || this.state.mode === "SheetAndConnections") {
       var langMode = this.props.masterPanelLanguage || this.state.settings.language;
       var data     = this.currentData();
       var canEditText = data &&
