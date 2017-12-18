@@ -251,7 +251,7 @@ class VersionBlock extends Component {
             <span dangerouslySetInnerHTML={ {__html: versionNotes} } />
             {(this.props.version.extendedNotes || this.props.version.extendedNotesHebrew) ? <span className="extendedNotesLinks">
               &nbsp;<a onClick={this.openExtendedNotes} href={`/${this.props.title}/${this.props.version.language}/${this.props.version.versionTitle}/notes`}>
-                {Sefaria.interfaceLang === "english" ? "Read More" : "קרא עוד"}
+              <i>{Sefaria.interfaceLang === "english" ? "Read More" : "קרא עוד"}</i>
               </a>
             </span> : ""}
           </div> : ""}
