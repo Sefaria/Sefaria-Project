@@ -219,8 +219,6 @@ class TextColumn extends Component {
     var sectionRef = $section.attr("data-ref");
     this.props.setCurrentlyVisibleRef(sectionRef);
 
-    if (!this.props.hasSidebar && this.props.high)
-
     // don't move around highlighted segment when scrolling a single panel,
     var shouldHighlight = this.props.hasSidebar || this.props.mode === "TextAndConnections";
 
