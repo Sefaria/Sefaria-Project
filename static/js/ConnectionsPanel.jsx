@@ -121,6 +121,7 @@ class ConnectionsPanel extends Component {
       digitizedBySefaria:     lang == "he" ? d.heDigitizedBySefaria : d.digitizedBySefaria,
       versionTitleInHebrew:   lang == "he" ? d.heVersionTitleInHebrew : d.versionTitleInHebrew,
       versionNotesInHebrew:   lang == "he" ? d.heVersionNotesInHebrew : d.versionNotesInHebrew,
+      extendedNotes:          lang == "he" ? d.extendedNotesHebrew : d.extendedNotes,
       merged:                 lang == "he" ? !!d.heSources : !!d.sources,
     }
   }
@@ -294,6 +295,7 @@ class ConnectionsPanel extends Component {
                   title={this.props.title}
                   srefs={this.props.srefs}
                   getLicenseMap={this.props.getLicenseMap}
+                  viewExtendedNotes={this.props.viewExtendedNotes}
                 />);
     } else if (this.props.mode === "Versions" || this.props.mode === "Version Open") {
       content = (<VersionsBox
