@@ -328,7 +328,7 @@ class ReaderTextTableOfContents extends Component {
       );
     }
 
-    var closeClick = (this.isBookToc()) ? this.props.closePanel : this.props.close;
+    var closeClick = (this.isBookToc() || this.props.mode==="extended notes") ? this.props.closePanel : this.props.close;
     var classes = classNames({readerTextTableOfContents:1, readerNavMenu:1, narrowPanel: this.props.narrowPanel, noLangToggleInHebrew: this.props.interfaceLang == 'hebrew'});
     var categories = Sefaria.index(this.props.title).categories;
 
