@@ -229,6 +229,7 @@ class ReaderPanel extends Component {
       highlightedRefs,
       recentFilters: [],
       menuOpen: null,
+      connectionsMode: "Resources",
       settings: this.state.settings
     });
   }
@@ -853,7 +854,7 @@ class ReaderControls extends Component {
     this.props.openMenu("text toc");
   }
   componentDidMount() {
-    var title     = this.props.currentRef;
+    var title = this.props.currentRef;
     if (title) {
       var oref = Sefaria.ref(title);
       if (!oref) {
