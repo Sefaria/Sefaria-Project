@@ -790,15 +790,15 @@ class ReaderApp extends Component {
     } else if (Sefaria.isRef(path)) {
       this.openPanel(Sefaria.humanRef(path));
     }
-    $( ".wrapper" ).remove();
-    $( "#footer" ).remove();
+    $(".wrapper").remove();
+    $("#footer").remove();
   }
   updateQueryInHeader(query) {
-    var updates = {searchQuery: query, searchFiltersValid:  false};
+    var updates = {searchQuery: query, searchFiltersValid: false};
     this.setHeaderState(updates);
   }
   updateQueryInPanel(n, query) {
-    var updates = {searchQuery: query, searchFiltersValid:  false};
+    var updates = {searchQuery: query, searchFiltersValid: false};
     this.setPanelState(n, updates);
   }
   updateAvailableFiltersInHeader(availableFilters, registry, orphans) {
