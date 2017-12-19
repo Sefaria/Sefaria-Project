@@ -319,8 +319,7 @@ class ConnectionsPanel extends Component {
     } else if (this.props.mode === "extended notes") {
       content = (<ExtendedNotes
                   currVersions={this.props.currVersions}
-                  title={this.props.title}
-                  backFromExtendedNotes={this.props.closePanel}/>);
+                  title={this.props.title}/>);
     }
     var classes = classNames({connectionsPanel: 1, textList: 1, fullPanel: this.props.fullPanel, singlePanel: !this.props.fullPanel});
     return (
