@@ -21,8 +21,10 @@ const AddToSourceSheetBox    = require('./AddToSourceSheetBox');
 const LexiconBox             = require('./LexiconBox');
 const AboutBox               = require('./AboutBox');
 const VersionsBox            = require('./VersionsBox');
+const ExtendedNotes          = require('./ExtendedNotes');
 const classNames             = require('classnames');
 import Component             from 'react-class';
+
 
 
 class ConnectionsPanel extends Component {
@@ -314,6 +316,11 @@ class ConnectionsPanel extends Component {
                   onRangeClick={this.props.onTextClick}
                   viewExtendedNotes={this.props.viewExtendedNotes}
                   onCitationClick={this.props.onCitationClick}/>);
+    } else if (this.props.mode === "extended notes") {
+      content = (<ExtendedNotes
+                  currVersions={this.props.currVersions}
+                  title={this.props.title}
+                  backFromExtendedNotes={this.props.closePanel}/>);
     }
     var classes = classNames({connectionsPanel: 1, textList: 1, fullPanel: this.props.fullPanel, singlePanel: !this.props.fullPanel});
     return (

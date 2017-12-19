@@ -1003,12 +1003,17 @@ class ReaderApp extends Component {
     }
     this.setState({panels: this.state.panels});
   }
-  viewExtendedNotes(n, title, versionLanguage, versionName) {
+  viewExtendedNotes(n, method, title, versionLanguage, versionName) {
     var panel = this.state.panels[n];
     panel.bookRef = title;
     panel.currVersions = {'en': null, 'he': null}; // ensure only 1 version is set
     panel.currVersions[versionLanguage] = versionName;
-    panel.menuOpen = "extended notes";
+    if (method === "toc") {
+      panel.menuOpen = "extended notes";
+    }
+    else if (method === "Connections") {
+      panel.connectionsMode = "extended notes";
+    }
     this.setState({panels: this.state.panels});
   }
   backFromExtendedNotes(n, bookRef, currVersions){
@@ -1388,8 +1393,8 @@ class ReaderApp extends Component {
       var setVersionFilter               = this.setVersionFilter.bind(this, i);
       var selectVersion                  = this.selectVersion.bind(null, i);
       var addToSourceSheet               = this.addToSourceSheet.bind(null, i);
-      var viewExtendedNotes              = this.viewExtendedNotes.bind(null, i);
-      var backFromExtendedNotes          = this.backFromExtendedNotes.bind(null, i);
+      var viewExtendedNotes              = this.viewExtendedNotes.bind(this, i);
+      var backFromExtendedNotes          = this.backFromExtendedNotes.bind(this, i);
 
       var ref   = panel.refs && panel.refs.length ? panel.refs[0] : null;
       var oref  = ref ? Sefaria.parseRef(ref) : null;

@@ -557,7 +557,7 @@ class ReaderPanel extends Component {
           versionFilter={this.state.versionFilter}
           recentVersionFilters={this.state.recentVersionFilters}
           setVersionFilter={this.setVersionFilter}
-          viewExtendedNotes={this.props.viewExtendedNotes}
+          viewExtendedNotes={this.props.viewExtendedNotes.bind(null, "Connections")}
           key="connections" />
       );
     }
@@ -603,7 +603,7 @@ class ReaderPanel extends Component {
                     openNav={this.openMenu.bind(null, "navigation")}
                     openDisplaySettings={this.openDisplaySettings}
                     selectVersion={this.props.selectVersion}
-                    viewExtendedNotes={this.props.viewExtendedNotes}
+                    viewExtendedNotes={this.props.viewExtendedNotes.bind(null, "toc")}
                     showBaseText={this.showBaseText}
                     getLicenseMap={this.props.getLicenseMap}/>);
 
@@ -625,9 +625,9 @@ class ReaderPanel extends Component {
                     selectVersion={this.props.selectVersion}
                     showBaseText={this.showBaseText}
                     getLicenseMap={this.props.getLicenseMap}
-                    viewExtendedNotes={this.props.viewExtendedNotes}/>);
+                    viewExtendedNotes={this.props.viewExtendedNotes.bind(null, "toc")}/>);
 
-    } else if (this.state.menuOpen === "extended notes") {
+    } else if (this.state.menuOpen === "extended notes" && this.state.mode !== "Connections") {
       var menu = (<ReaderTextTableOfContents
                     mode={this.state.menuOpen}
                     interfaceLang={this.props.interfaceLang}
