@@ -58,9 +58,9 @@ class ExtendedNotes extends Component {
       }
     }
       return <div className="extendedNotes">
-        <a onClick={this.goBack} href={`${this.props.title}`}>
+        {this.props.backFromExtendedNotes ?<a onClick={this.goBack} href={`${this.props.title}`}>
           {Sefaria.interfaceLang==="hebrew" ? "חזור" : "Back"}
-        </a>
+        </a> : ""}
         {this.state.extendedNotes
           ? <div className="extendedNotesText" dangerouslySetInnerHTML={ {__html: notes} }></div>
         : <LoadingMessage/>}
@@ -74,7 +74,7 @@ class ExtendedNotes extends Component {
 ExtendedNotes.PropTypes = {
   currVersions:          PropTypes.object.isRequired,
   title:                 PropTypes.string.isRequired,
-  backFromExtendedNotes: PropTypes.func.isRequired,
+  backFromExtendedNotes: PropTypes.func,
 
 };
 
