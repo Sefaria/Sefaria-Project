@@ -11,6 +11,7 @@ const ReactDOM     = require('react-dom');
 const $            = require('./sefaria/sefariaJquery');
 const Sefaria      = require('./sefaria/sefaria');
 const VersionBlock = require('./VersionBlock');
+const ExtendedNotes= require('./ExtendedNotes');
 const classNames   = require('classnames');
 const PropTypes    = require('prop-types');
 import Component   from 'react-class';
@@ -195,7 +196,14 @@ class ReaderTextTableOfContents extends Component {
           defaultVersionObject = this.state.versions.find(v => (cv.language == v.language && cv.versionTitle == v.versionTitle));
           defaultVersionString += defaultVersionObject ? " (" + defaultVersionObject.versionTitle + ")" : "";
         }
-        currentVersionElement = (<VersionBlock title={title} version={cv}currVersions={this.props.currVersions} currentRef={this.props.currentRef} showHistory={true} getLicenseMap={this.props.getLicenseMap}viewExtendedNotes={this.props.viewExtendedNotes}/>);
+        currentVersionElement = (<VersionBlock
+          title={title}
+          version={cv}
+          currVersions={this.props.currVersions}
+          currentRef={this.props.currentRef}
+          showHistory={true}
+          getLicenseMap={this.props.getLicenseMap}
+          viewExtendedNotes={this.props.viewExtendedNotes}/>);
       }
     }
 
@@ -1069,70 +1077,70 @@ ReadMoreText.defaultProps = {
   initialWords: 30
 };
 
-class ExtendedNotes extends Component {
-  constructor(props) {
-    super(props);
-    this.state = {'notesLanguage': Sefaria.interfaceLang, 'extendedNotes': '', 'langToggle': false};
-  }
-  getVersionData(versionList){
-    const versionTitle = this.props.currVersions['en'] ? this.props.currVersions['en'] : this.props.currVersions['he'];
-    const thisVersion = versionList.filter(x=>x.versionTitle===versionTitle)[0];
-    let extendedNotes = {'english': thisVersion.extendedNotes, 'hebrew': thisVersion.extendedNotesHebrew};
-
-    if (extendedNotes.english && extendedNotes.hebrew){
-      this.setState({'extendedNotes': extendedNotes, 'langToggle': true});
-    }
-    else if (extendedNotes.english && !extendedNotes.hebrew) {
-      this.setState({'extendedNotes': extendedNotes, 'notesLanguage': 'english'});
-    }
-    else if (extendedNotes.hebrew && !extendedNotes.english) {
-      this.setState({'extendedNotes': extendedNotes, 'notesLanguage': 'hebrew'});
-    }
-    else{
-      this.props.backFromExtendedNotes();
-    }
-  }
-  componentDidMount() {
-    // use Sefaria.versions(ref, cb), where cb will invoke setState
-    Sefaria.versions(this.props.title, this.getVersionData);
-  }
-  goBack(event) {
-    event.preventDefault();
-    this.props.backFromExtendedNotes();
-  }
-  changeLanguage(event) {
-    event.preventDefault();
-    if (this.state.notesLanguage==='english') {
-      this.setState({'notesLanguage': 'hebrew'});
-    }
-    else {
-      this.setState({'notesLanguage': 'english'});
-    }
-  }
-  render() {
-    let notes = '';
-    if (this.state.extendedNotes) {
-      notes = this.state.extendedNotes[this.state.notesLanguage];
-      if (this.state.notesLanguage==='hebrew' && !notes){
-        notes = 'לא קיימים רשימות מורחבות בשפה העברית עבור גרסה זו';
-      }
-      else if (this.state.notesLanguage==='english' && !notes){
-        notes = 'Extended notes in English do not exist for this version';
-      }
-    }
-      return <div className="extendedNotes">
-        <a onClick={this.goBack} href={`${this.props.title}`}>
-          {Sefaria.interfaceLang==="hebrew" ? "חזור" : "Back"}
-        </a>
-        {this.state.extendedNotes
-          ? <div className="extendedNotesText" dangerouslySetInnerHTML={ {__html: notes} }></div>
-        : <LoadingMessage/>}
-        {this.state.langToggle ? <a onClick={this.changeLanguage} href={`${this.props.title}`}>
-          {this.state.notesLanguage==='english' ? 'עברית' : 'English'}
-        </a> : ''}
-      </div>
-  }
-}
+// class ExtendedNotes extends Component {
+//   constructor(props) {
+//     super(props);
+//     this.state = {'notesLanguage': Sefaria.interfaceLang, 'extendedNotes': '', 'langToggle': false};
+//   }
+//   getVersionData(versionList){
+//     const versionTitle = this.props.currVersions['en'] ? this.props.currVersions['en'] : this.props.currVersions['he'];
+//     const thisVersion = versionList.filter(x=>x.versionTitle===versionTitle)[0];
+//     let extendedNotes = {'english': thisVersion.extendedNotes, 'hebrew': thisVersion.extendedNotesHebrew};
+//
+//     if (extendedNotes.english && extendedNotes.hebrew){
+//       this.setState({'extendedNotes': extendedNotes, 'langToggle': true});
+//     }
+//     else if (extendedNotes.english && !extendedNotes.hebrew) {
+//       this.setState({'extendedNotes': extendedNotes, 'notesLanguage': 'english'});
+//     }
+//     else if (extendedNotes.hebrew && !extendedNotes.english) {
+//       this.setState({'extendedNotes': extendedNotes, 'notesLanguage': 'hebrew'});
+//     }
+//     else{
+//       this.props.backFromExtendedNotes();
+//     }
+//   }
+//   componentDidMount() {
+//     // use Sefaria.versions(ref, cb), where cb will invoke setState
+//     Sefaria.versions(this.props.title, this.getVersionData);
+//   }
+//   goBack(event) {
+//     event.preventDefault();
+//     this.props.backFromExtendedNotes();
+//   }
+//   changeLanguage(event) {
+//     event.preventDefault();
+//     if (this.state.notesLanguage==='english') {
+//       this.setState({'notesLanguage': 'hebrew'});
+//     }
+//     else {
+//       this.setState({'notesLanguage': 'english'});
+//     }
+//   }
+//   render() {
+//     let notes = '';
+//     if (this.state.extendedNotes) {
+//       notes = this.state.extendedNotes[this.state.notesLanguage];
+//       if (this.state.notesLanguage==='hebrew' && !notes){
+//         notes = 'לא קיימים רשימות מורחבות בשפה העברית עבור גרסה זו';
+//       }
+//       else if (this.state.notesLanguage==='english' && !notes){
+//         notes = 'Extended notes in English do not exist for this version';
+//       }
+//     }
+//       return <div className="extendedNotes">
+//         <a onClick={this.goBack} href={`${this.props.title}`}>
+//           {Sefaria.interfaceLang==="hebrew" ? "חזור" : "Back"}
+//         </a>
+//         {this.state.extendedNotes
+//           ? <div className="extendedNotesText" dangerouslySetInnerHTML={ {__html: notes} }></div>
+//         : <LoadingMessage/>}
+//         {this.state.langToggle ? <a onClick={this.changeLanguage} href={`${this.props.title}`}>
+//           {this.state.notesLanguage==='english' ? 'עברית' : 'English'}
+//         </a> : ''}
+//       </div>
+//   }
+// }
 
 
 module.exports = ReaderTextTableOfContents;
