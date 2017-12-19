@@ -262,11 +262,11 @@ class Header extends Component {
                             <a href="/notifications" aria-label="See New Notifications" className={notifcationsClasses} onClick={this.showNotifications}>{notificationCount}</a>
                          </div>);
     var loggedOutLinks = (<div className="accountLinks">
-                           <a className="login" href={"/register" + nextParam}>
+                           <a className="login signupLink" href={"/register" + nextParam}>
                              <span className="int-en">Sign up</span>
                              <span className="int-he">הרשם</span>
                            </a>
-                           <a className="login" href={"/login" + nextParam}>
+                           <a className="login loginLink" href={"/login" + nextParam}>
                              <span className="int-en">Log in</span>
                              <span className="int-he">התחבר</span>
                            </a>

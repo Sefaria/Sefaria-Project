@@ -4231,7 +4231,7 @@ class Library(object):
             try:
                 section_refs += indx.all_section_refs()
             except Exception as e:
-                logger.warning(u"Failed to get section refs for {}: {}".format(getattr(indx,"title","unknown index"), e))
+                logger.warning(u"Failed to get section refs for {}: {}".format(getattr(indx, "title", "unknown index"), e))
         return section_refs
 
     def get_term_dict(self, lang="en"):
