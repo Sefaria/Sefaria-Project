@@ -1046,11 +1046,11 @@ body:not(.user-is-tabbing) #sheet .cke_editable:focus {
 }
 
 #addParashaToSheetModal .cancel {
-	padding-top: 10px;
+	margin-top: 30px;
 }
 
 #addParashaToSheetModal li {
-	width:150px;
+	width: 150px;
 	display:inline;
 	padding: 2px 0 2px 0;
 	cursor: pointer;
@@ -1960,7 +1960,7 @@ line-height: normal;
 .inlineAddSourceByttons {
 	display: inline-block;
 }
-#sheet .button, .sheetsEditNavTop .button, .modal .button {
+.sheetsEditNavTop .button {
 	background-color: #212e50;
 	border-color: #212e50;
 	padding: 12px 24px;
