@@ -48,15 +48,18 @@ SAUCE_CORE_CAPS = [
      'sefaria_mode': 'multi_panel', 'sefaria_short_name': 'Cr/w10'},
 
     {'deviceName': 'Android Emulator', 'platformName': 'Android', 'platformVersion': '6.0',
-     'browserName': 'Chrome', 'appiumVersion': '1.6.4', 'deviceOrientation': "portrait",
+     'browserName': 'Chrome', 'appiumVersion': '1.6.3', 'deviceOrientation': "portrait",
      'sefaria_mode': 'single_panel', 'sefaria_short_name': 'And/6.0'},
+
+    {'browserName': "Safari", 'platformName': "iOS", 'deviceName': "iPhone 6s Simulator",
+    'appiumVersion': "1.6.4", 'platformVersion': "10.3", 'deviceOrientation': "portrait",
+     'sefaria_mode': 'single_panel', 'sefaria_short_name': 'iPh6s'},
+
+    #{'deviceName': 'Android GoogleAPI Emulator', 'platformName': 'Android', 'platformVersion': '7.0',
+    #'browserName': '', 'appiumVersion': '1.6.4', 'deviceOrientation': "portrait",
+    # 'sefaria_mode': 'single_panel', 'sefaria_short_name': 'And/6.0'}
 ]
-"""
-# Slow!!
-{'browserName': "Safari", 'platformName': "iOS", 'deviceName': "iPhone 6s Simulator",
- 'appiumVersion': "1.6.4", 'platformVersion': "10.3", 'deviceOrientation': "portrait",
- 'sefaria_mode': 'single_panel', 'sefaria_short_name': 'iPh6s'},
-"""
+
 
 SAUCE_EXTENDED_CAPS = [  # Needs Review!
     {'browserName': "internet explorer", 'platform': "Windows 10", 'version': "11.103",
