@@ -34,7 +34,15 @@ class ReaderApp extends Component {
             //mode: "Text",
             bookRef:  props.initialPanels[0].bookRef
         };
-      } else {
+      } else if (props.initialPanels && props.initialPanels.length > 0 && props.initialPanels[0].menuOpen === "extended notes"){
+         panels[0] = {
+            settings:      Sefaria.util.clone(defaultPanelSettings),
+            menuOpen:      "extended notes",
+            currVersions:  props.initialPanels[0].currVersions,
+            bookRef:       props.initialPanels[0].bookRef
+        };
+      }
+      else {
         var mode = props.initialFilter ? "TextAndConnections" : "Text";
         var initialPanel = props.initialPanels && props.initialPanels.length ? props.initialPanels[0] : {};
 
