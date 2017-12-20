@@ -81,7 +81,9 @@ class ConnectionsPanelHeader extends Component {
       return (<div className="connectionsPanelHeader">
                 {title}
                 <div className="rightButtons">
-                  <LanguageToggleButton toggleLanguage={this.props.toggleLanguage} url={langUrl} />
+                  {Sefaria.interfaceLang !== "hebrew" ? 
+                    <LanguageToggleButton toggleLanguage={this.props.toggleLanguage} url={langUrl} />
+                    : null }
                   <ReaderNavigationMenuCloseButton icon="circledX" onClick={this.props.closePanel} url={closeUrl} />
                 </div>
               </div>);
