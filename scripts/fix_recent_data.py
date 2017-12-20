@@ -8,9 +8,12 @@ from sefaria.system.database import db
       item.currVersions.en,
       item.currVersions.he
     ];
+
+    mongorestore /Users/blocks/Dev/Sefaria-Dump/dump -c profiles
 """
 
 profiles = db.profiles.find({"recentlyViewed": {"$exists": 1}, "$where": "this.recentlyViewed.length > 0" })
+profiles = db.profiles.find({"id": 1})
 
 for profile in profiles:
 	recentlyViewed = profile["recentlyViewed"]
@@ -20,7 +23,7 @@ for profile in profiles:
 		lastVisited    = None
 		bookVisitCount = None
 		for field in recentItem[2:]:
-			if isinstance(field, str) and field.startswith("2017-"):
+			if isinstance(field, basestring) and field.startswith("2017"):
 				lastVisited = field
 				print "#%d: Found a timestamp: %s" % (profile["id"], lastVisited)
 			elif isinstance(field, int):
