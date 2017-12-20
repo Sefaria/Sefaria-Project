@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2017-11-26 03:12-0800\n"
+"POT-Creation-Date: 2017-12-05 12:01-0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,88 +17,88 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: reader/views.py:442
+#: reader/views.py:443
 #, python-format
 msgid "Read the text of %(book)s online with commentaries and connections."
 msgstr ""
 
-#: reader/views.py:461
+#: reader/views.py:462
 msgid "Explore 3,000 years of Jewish texts in Hebrew and English translation."
 msgstr ""
 
-#: reader/views.py:486 reader/views.py:625
+#: reader/views.py:487 reader/views.py:626
 msgid " | Sefaria"
 msgstr ""
 
-#: reader/views.py:487
+#: reader/views.py:488
 #, python-format
 msgid "Read %(categories)s texts online with commentaries and connections."
 msgstr ""
 
-#: reader/views.py:490
+#: reader/views.py:491
 msgid "Recently Viewed"
 msgstr ""
 
-#: reader/views.py:491
+#: reader/views.py:492
 msgid "Texts that you've recently viewed on Sefaria."
 msgstr ""
 
-#: reader/views.py:530
+#: reader/views.py:531
 msgid "Sefaria Search"
 msgstr ""
 
-#: reader/views.py:531
+#: reader/views.py:532
 msgid "Search 3,000 years of Jewish texts in Hebrew and English translation."
 msgstr ""
 
-#: reader/views.py:547
+#: reader/views.py:548
 msgid "Sefaria Source Sheets"
 msgstr ""
 
-#: reader/views.py:548
+#: reader/views.py:549
 msgid ""
 "Explore thousands of public Source Sheets and use our Source Sheet Builder "
 "to create your own online."
 msgstr ""
 
-#: reader/views.py:576 reader/views.py:584 templates/groups.html:7
+#: reader/views.py:577 reader/views.py:585 templates/groups.html:7
 msgid "Sefaria Groups"
 msgstr ""
 
-#: reader/views.py:590
+#: reader/views.py:591
 msgid "My Notes on Sefaria"
 msgstr ""
 
-#: reader/views.py:611
+#: reader/views.py:612
 msgid "My Source Sheets | Sefaria Source Sheets"
 msgstr ""
 
-#: reader/views.py:612
+#: reader/views.py:613
 msgid "My Sources Sheets on Sefaria, both private and public."
 msgstr ""
 
-#: reader/views.py:619
+#: reader/views.py:620
 msgid "Public Source Sheets | Sefaria Source Sheets"
 msgstr ""
 
-#: reader/views.py:620
+#: reader/views.py:621
 msgid ""
 "Explore thousands of public Source Sheets drawing on Sefaria's library of "
 "Jewish texts."
 msgstr ""
 
-#: reader/views.py:626
+#: reader/views.py:627
 #, python-format
 msgid ""
 "Public Source Sheets on tagged with \"%(tag)s\", drawing from Sefaria's "
 "library of Jewish texts."
 msgstr ""
 
-#: reader/views.py:656
+#: reader/views.py:657
 msgid "Topics"
 msgstr ""
 
-#: reader/views.py:656 templates/person.html:6 templates/person.html.py:8
+#: reader/views.py:657 templates/person.html:6 templates/person.html.py:8
 #: templates/search.html:6
 #: templates/registration/password_reset_complete.html:3
 #: templates/registration/password_reset_confirm.html:4
@@ -110,46 +110,46 @@ msgstr ""
 msgid "Sefaria"
 msgstr ""
 
-#: reader/views.py:657
+#: reader/views.py:658
 msgid "Explore Jewish Texts by Topic on Sefaria"
 msgstr ""
 
-#: reader/views.py:715
+#: reader/views.py:716
 msgid "The Sefaria Library"
 msgstr ""
 
-#: reader/views.py:716
+#: reader/views.py:717
 msgid ""
 "Browse 1,000s of Jewish texts in the Sefaria Library by category and title."
 msgstr ""
 
-#: reader/views.py:722
+#: reader/views.py:723
 msgid "New Additions to the Sefaria Library"
 msgstr ""
 
-#: reader/views.py:723
+#: reader/views.py:724
 msgid ""
 "See texts, translations and connections that have been recently added to "
 "Sefaria."
 msgstr ""
 
-#: reader/views.py:729
+#: reader/views.py:730
 msgid "Sefaria Account"
 msgstr ""
 
-#: reader/views.py:737
+#: reader/views.py:738
 msgid "Sefaria Notifications"
 msgstr ""
 
-#: reader/views.py:744
+#: reader/views.py:745
 msgid "Moderator Tools"
 msgstr ""
 
-#: reader/views.py:2970
+#: reader/views.py:2990
 msgid "You must be logged in to update your profile."
 msgstr ""
 
-#: reader/views.py:3570 reader/views.py:3573
+#: reader/views.py:3590 reader/views.py:3593
 #, python-format
 msgid "Learn about %(name)s - works written, biographies, dates and more."
 msgstr ""
@@ -296,6 +296,16 @@ msgid ""
 "in to particular books either above or below to explore deeper."
 msgstr ""
 
+#: templates/leaderboard.html:4
+msgid "Top Contributors | Sefefaria"
+msgstr ""
+
+#: templates/leaderboard.html:6
+msgid ""
+"See who has been contributing most to Sefaria in terms of texts, "
+"translations, and source sheet."
+msgstr ""
+
 #: templates/metrics.html:5
 msgid "Sefaria Metrics"
 msgstr ""
@@ -306,7 +316,7 @@ msgid ""
 "word counts, number of links and number of source sheets."
 msgstr ""
 
-#: templates/metrics.html:19 templates/s2_sheets.html:614
+#: templates/metrics.html:19 templates/sheets.html:614
 msgid "Loading..."
 msgstr ""
 
@@ -395,76 +405,6 @@ msgstr ""
 msgid "Cancel"
 msgstr ""
 
-#: templates/s2_sheets.html:5 templates/sheets_visual.html:4
-msgid "Sefaria Source Sheet Builder"
-msgstr ""
-
-#: templates/s2_sheets.html:5 templates/sheets_visual.html:4
-msgid "Start a New Sheet - Sefaria Source Sheet Builder"
-msgstr ""
-
-#: templates/s2_sheets.html:7
-#, python-format
-msgid ""
-"A source sheet by %(sheet.owner|user_name)s created with Sefaria's Source "
-"Sheet Builder."
-msgstr ""
-
-#: templates/s2_sheets.html:7 templates/sheets_visual.html:6
-msgid "Create your own source sheet with Sefaria's Source Sheet Builder."
-msgstr ""
-
-#: templates/s2_sheets.html:628 templates/s2_sheets.html.py:636
-#, python-format
-msgid ""
-"\n"
-"                Assignment Completed by %(owner)s\n"
-"            "
-msgstr ""
-
-#: templates/s2_sheets.html:643
-#, python-format
-msgid ""
-"\n"
-"            Source Sheet by %(owner)s\n"
-"        "
-msgstr ""
-
-#: templates/s2_sheets.html:910
-msgid "Made with the Sefaria Source Sheet Builder"
-msgstr ""
-
-#: templates/s2_sheets.html:933
-msgid "Create New"
-msgstr ""
-
-#: templates/s2_sheets.html:1007
-msgid "Write a summary to help others understand your sheet..."
-msgstr ""
-
-#: templates/s2_sheets.html:1043
-msgid "None"
-msgstr ""
-
-#: templates/s2_sheets.html:1077
-msgid "View"
-msgstr ""
-
-#: templates/s2_sheets.html:1080
-msgid "Add"
-msgstr ""
-
-#: templates/s2_sheets.html:1083
-msgid "Edit"
-msgstr ""
-
-#: templates/s2_sheets.html:1096
-msgid ""
-"\n"
-"            Add <span class=\"sourceName\"></span> to a Source Sheet\n"
-"        "
-msgstr ""
-
 #: templates/search.html:6
 msgid "Search Jewish Texts"
 msgstr ""
@@ -475,8 +415,74 @@ msgid ""
 "filter results by category or book, and read the texts online on Sefaria."
 msgstr ""
 
-#: templates/sheet_tags.html:7
-msgid "Source Sheets for Jewish Learning by Tag"
+#: templates/sheets.html:5 templates/sheets_visual.html:4
+msgid "Sefaria Source Sheet Builder"
+msgstr ""
+
+#: templates/sheets.html:5 templates/sheets_visual.html:4
+msgid "Start a New Sheet - Sefaria Source Sheet Builder"
+msgstr ""
+
+#: templates/sheets.html:7
+#, python-format
+msgid ""
+"A source sheet by %(sheet.owner|user_name)s created with Sefaria's Source "
+"Sheet Builder."
+msgstr ""
+
+#: templates/sheets.html:7 templates/sheets_visual.html:6
+msgid "Create your own source sheet with Sefaria's Source Sheet Builder."
+msgstr ""
+
+#: templates/sheets.html:628 templates/sheets.html.py:636
+#, python-format
+msgid ""
+"\n"
+"                Assignment Completed by %(owner)s\n"
+"            "
+msgstr ""
+
+#: templates/sheets.html:643
+#, python-format
+msgid ""
+"\n"
+"            Source Sheet by %(owner)s\n"
+"        "
+msgstr ""
+
+#: templates/sheets.html:913
+msgid "Made with the Sefaria Source Sheet Builder"
+msgstr ""
+
+#: templates/sheets.html:936
+msgid "Create New"
+msgstr ""
+
+#: templates/sheets.html:1010
+msgid "Write a summary to help others understand your sheet..."
+msgstr ""
+
+#: templates/sheets.html:1046
+msgid "None"
+msgstr ""
+
+#: templates/sheets.html:1080
+msgid "View"
+msgstr ""
+
+#: templates/sheets.html:1083
+msgid "Add"
+msgstr ""
+
+#: templates/sheets.html:1086
+msgid "Edit"
+msgstr ""
+
+#: templates/sheets.html:1099
+msgid ""
+"\n"
+"            Add <span class=\"sourceName\"></span> to a Source Sheet\n"
+"        "
 msgstr ""
 
 #: templates/sheets_visual.html:4
@@ -535,7 +541,7 @@ msgstr ""
 
 #: templates/elements/activity_feed.html:14
 #: templates/elements/activity_feed.html:37
-#: templates/elements/activity_feed.html:119
+#: templates/elements/activity_feed.html:140
 msgid "Version"
 msgstr ""
 
@@ -565,7 +571,7 @@ msgid "others"
 msgstr ""
 
 #: templates/elements/activity_feed.html:34
-#: templates/elements/activity_feed.html:117
+#: templates/elements/activity_feed.html:138
 msgid "history"
 msgstr ""
 
@@ -614,39 +620,52 @@ msgid "edited the text info of"
 msgstr ""
 
 #: templates/elements/activity_feed.html:103
+#: templates/elements/activity_feed.html:124
 msgid "details"
 msgstr ""
 
-#: templates/elements/activity_feed.html:115
+#: templates/elements/activity_feed.html:116
+msgid "added a term"
+msgstr ""
+
+#: templates/elements/activity_feed.html:118
+msgid "edited the term"
+msgstr ""
+
+#: templates/elements/activity_feed.html:120
+msgid "deleted the term"
+msgstr ""
+
+#: templates/elements/activity_feed.html:136
 msgid "reviewed"
 msgstr ""
 
-#: templates/elements/activity_feed.html:127
+#: templates/elements/activity_feed.html:148
 #: templates/email/notification.html:20
 msgid "published a new Source Sheet"
 msgstr ""
 
-#: templates/elements/activity_feed.html:137
+#: templates/elements/activity_feed.html:158
 msgid "related"
 msgstr ""
 
-#: templates/elements/activity_feed.html:145
+#: templates/elements/activity_feed.html:166
 msgid "No matching public activity yet."
 msgstr ""
 
-#: templates/elements/activity_feed.html:147
+#: templates/elements/activity_feed.html:168
 msgid "No public activity yet."
 msgstr ""
 
-#: templates/elements/activity_feed.html:151
+#: templates/elements/activity_feed.html:172
 msgid "No matching public history items."
 msgstr ""
 
-#: templates/elements/activity_feed.html:153
+#: templates/elements/activity_feed.html:174
 msgid "No public history items."
 msgstr ""
 
-#: templates/elements/activity_feed.html:159
+#: templates/elements/activity_feed.html:180
 msgid "Older Activity"
 msgstr ""
 

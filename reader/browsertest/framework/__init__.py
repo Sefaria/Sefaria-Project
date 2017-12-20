@@ -1,1 +1,1 @@
-from elements import AtomicTest, TestResult, Trial
+from elements import AtomicTest, SingleTestResult, Trial, TestSuite
