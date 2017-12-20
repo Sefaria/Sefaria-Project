@@ -12,12 +12,13 @@ class InterruptingMessage(object):
     self.cookie_name = "%s_%d" % (self.name, self.repetition)
 
   def check_condition(self):
-    if not self.name:
-    	return False
-
     # Always show to debug
     if self.condition.get("debug", False):
       return True
+
+    # Nameless is useless
+    if not self.name:
+    	return False
 
     # Don't show this name/repetiion pair more than once
     if self.request.COOKIES.get(self.cookie_name, False):

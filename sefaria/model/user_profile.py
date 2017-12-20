@@ -314,8 +314,13 @@ def email_unread_notifications(timeframe):
 		message_html  = render_to_string("email/notifications_email.html", {"notifications": notifications, "recipient": user.first_name})
 		#message_text = util.strip_tags(message_html)
 		actors_string = notifications.actors_string()
-		verb          = "have" if " and " in actors_string else "has"
-		subject       = "%s %s new activity on Sefaria" % (actors_string, verb)
+		# TODO Hebrew subjects
+		if actors_string:
+			verb      = "have" if " and " in actors_string else "has"
+			subject   = "%s %s new activity on Sefaria" % (actors_string, verb)
+		elif notifications.like_count() > 0:
+			noun      = "likes" if notifications.like_count() > 1 else "like"
+			subject   = "%d new %s on your Source Sheet" % (notifications.like_count(), noun)
 		from_email    = "Sefaria <hello@sefaria.org>"
 		to            = user.email
 

@@ -144,7 +144,7 @@ class AbstractIndex(object):
 
         def aggregate_available_texts(available):
             """Returns a jagged arrary of ints that counts the number of segments in each section,
-            (by throwing out the number of versions of each segment)""" 
+            (by throwing out the number of versions of each segment)"""
             if len(available) == 0 or type(available[0]) is int:
                 return len(available)
             else:
@@ -738,7 +738,7 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
 
         return toc_contents_dict
 
-    #todo: the next 3 functions seem to come at an unacceptable performance cost. Need to review performance or when they are called. 
+    #todo: the next 3 functions seem to come at an unacceptable performance cost. Need to review performance or when they are called.
     def get_base_texts_and_first_refs(self):
         return {btitle: self.get_first_ref_in_base_text(btitle) for btitle in self.base_text_titles}
 
@@ -1543,6 +1543,8 @@ class TextFamily(object):
     :param bool commentary: Default: True. Include commentary?
     :param version: optional. Name of version to use when getting text.
     :param lang: None, "en" or "he".  Default: None.  If None, included both languages.
+    :param version2: optional. Additional name of version to use.
+
     :param bool pad: Default: True.  Pads the provided ref before processing.  See :func:`Ref.padded_ref`
     :param bool alts: Default: False.  Adds notes of where alternate structure elements begin
     """
@@ -1551,7 +1553,7 @@ class TextFamily(object):
     A bit of a naming conflict has arisen here. The TextFamily bundles two versions - one with English text and one
     with Hebrew text. versionTitle refers to the English title of the English version, while heVersionTitle refers to
     the English title of the Hebrew version.
-    
+
     Later on we decided to translate all of our versionTitles into Hebrew. To avoid direct conflict with the text api,
     these got the names versionTitleInHebrew and versionNotesInHebrew.
     """
@@ -1602,13 +1604,15 @@ class TextFamily(object):
         "he": "heSources"
     }
 
-    def __init__(self, oref, context=1, commentary=True, version=None, lang=None, pad=True, alts=False, wrapLinks=False):
+    def __init__(self, oref, context=1, commentary=True, version=None, lang=None, version2=None, lang2=None, pad=True, alts=False, wrapLinks=False):
         """
         :param oref:
         :param context:
         :param commentary:
         :param version:
         :param lang:
+        :param version2:
+        :param lang2:
         :param pad:
         :param alts: Adds notes of where alt elements begin
         :param wrapLinks: whether to return the text requested with all internal citations marked up as html links <a>
@@ -1642,6 +1646,8 @@ class TextFamily(object):
         for language, attr in self.text_attr_map.items():
             if language == lang:
                 c = TextChunk(oref, language, version)
+            elif language == lang2:
+                c = TextChunk(oref, language, version2)
             else:
                 c = TextChunk(oref, language)
             self._chunks[language] = c
@@ -2856,7 +2862,7 @@ class Ref(object):
         :return: True if at least one complete version of ref is available in lang.
         """
         if self.is_section_level() or self.is_segment_level():
-            # Using mongo queries to slice and merge versions 
+            # Using mongo queries to slice and merge versions
             # is much faster than actually using the Version State doc
             text = self.text(lang=lang).text
             return bool(len(text) and all(text))
@@ -4242,7 +4248,7 @@ class Library(object):
             try:
                 section_refs += indx.all_section_refs()
             except Exception as e:
-                logger.warning(u"Failed to get section refs for {}: {}".format(getattr(indx,"title","unknown index"), e))
+                logger.warning(u"Failed to get section refs for {}: {}".format(getattr(indx, "title", "unknown index"), e))
         return section_refs
 
     def get_term_dict(self, lang="en"):

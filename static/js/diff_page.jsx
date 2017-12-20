@@ -301,14 +301,20 @@ class DiffTable extends Component {
   }
 
   LoadSection(props) {
+    let enVersion = null, heVersion = null;
+    if (props.lang === "en") { enVersion = props.v1; }
+    else                     { heVersion = props.v1; }
     Sefaria.text(props.secRef,
-      {language: props.lang, version: props.v1, wrapLinks: 0},
+      {enVersion, heVersion, wrapLinks: 0},
       data => this.setState({
         v1Length: props.lang === 'he' ? data['he'].length : data.text.length
       }));
 
+    enVersion = null, heVersion = null;
+    if (props.lang === "en") { enVersion = props.v2; }
+    else                     { heVersion = props.v2; }
     Sefaria.text(props.secRef,
-      {language: props.lang, version: props.v2, wrapLinks: 0},
+      {enVersion, heVersion, wrapLinks: 0},
       data => this.setState({
         v2Length: props.lang === 'he' ? data['he'].length : data.text.length
       }));
@@ -449,10 +455,10 @@ class DiffRow extends Component {
       }
     }
     if (this.state.v1 === null) {
-      Sefaria.text(this.props.segRef, {'version': this.props.v1, 'language': this.props.lang, 'wrapLinks': 0}, this.LoadV1);
+      Sefaria.text(this.props.segRef, {'wrapLinks': 0}, this.LoadV1);
     }
     if (this.state.v2 === null) {
-      Sefaria.text(this.props.segRef, {'version': this.props.v2, 'language': this.props.lang, 'wrapLinks': 0}, this.LoadV2);
+      Sefaria.text(this.props.segRef, {'wrapLinks': 0}, this.LoadV2);
     }
   }
 
@@ -460,15 +466,20 @@ class DiffRow extends Component {
   LoadV2 (text) {this.LoadText(text, 'v2');}
 
   componentWillMount () {
-    var settings = {'version': this.props.v1, 'language': this.props.lang};
-    Sefaria.text(this.props.segRef, {'version': this.props.v1, 'language': this.props.lang, 'wrapLinks': 0}, this.LoadV1);
-    Sefaria.text(this.props.segRef, {'version': this.props.v2, 'language': this.props.lang, 'wrapLinks': 0}, this.LoadV2);
+    let enVersion1 = null, heVersion1 = null, enVersion2 = null, heVersion2 = null;
+    if (this.props.lang === "en") { enVersion1 = this.props.v1; enVersion2 = this.props.v2; }
+    else                          { heVersion1 = this.props.v1; heVersion2 = this.props.v2; }
+    Sefaria.text(this.props.segRef, {enVersion: enVersion1, heVersion: heVersion1, 'wrapLinks': 0}, this.LoadV1);
+    Sefaria.text(this.props.segRef, {enVersion: enVersion2, heVersion: heVersion2, 'wrapLinks': 0}, this.LoadV2);
   }
 
   componentWillReceiveProps(nextProps) {
     if (this.props.segRef != nextProps.segRef) {
-      Sefaria.text(this.props.segRef, {'version': this.props.v1, 'language': this.props.lang, 'wrapLinks': 0}, this.loadV1);
-      Sefaria.text(this.props.segRef, {'version': this.props.v2, 'language': this.props.lang, 'wrapLinks': 0}, this.loadV2);
+      let enVersion1 = null, heVersion1 = null, enVersion2 = null, heVersion2 = null;
+      if (this.props.lang === "en") { enVersion1 = this.props.v1; enVersion2 = this.props.v2; }
+      else                          { heVersion1 = this.props.v1; heVersion2 = this.props.v2; }
+      Sefaria.text(this.props.segRef, {enVersion: enVersion1, heVersion: heVersion1, 'wrapLinks': 0}, this.loadV1);
+      Sefaria.text(this.props.segRef, {enVersion: enVersion2, heVersion: heVersion2, 'wrapLinks': 0}, this.loadV2);
     }
   }
 

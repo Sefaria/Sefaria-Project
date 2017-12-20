@@ -39,7 +39,7 @@ class MyGroupsPanel extends Component {
               { groupsList ?
                   (groupsList.private.length ?
                     groupsList.private.map(function(item) {
-                      return <GroupListing data={item} />
+                      return <GroupListing data={item} key={item.name} />
                     })
                     : <LoadingMessage message="You aren't a member of any groups yet." heMessage="אינך חבר כרגע באף קבוצה" />)
                   : <LoadingMessage />
@@ -47,17 +47,63 @@ class MyGroupsPanel extends Component {
             </div>
 
           </div>
-          <footer id="footer" className={`interface-${this.props.interfaceLang} static sans`}>
+          <footer id="footer" className={`interface-${Sefaria.interfaceLang} static sans`}>
             <Footer />
           </footer>
         </div>
       </div>);
   }
 }
-MyGroupsPanel.propTypes = {
-  interfaceLang: PropTypes.string,
-};
+MyGroupsPanel.propTypes = {};
 
+
+class PublicGroupsPanel extends Component {
+  componentDidMount() {
+    if (!Sefaria.groupsList()) {
+      Sefaria.groupsList(function() {
+        this.forceUpdate();
+      }.bind(this));
+    }
+  }
+  render() {
+    var groupsList = Sefaria.groupsList();
+    var classes = {myGroupsPanel: 1, systemPanel: 1, readerNavMenu: 1, noHeader: 1 };
+    var classStr = classNames(classes);
+    return (
+      <div className={classStr}>
+        <div className="content hasFooter">
+          <div className="contentInner">
+            <h1>
+              <span className="int-en">Public Groups</span>
+              <span className="int-he">הקבוצות</span>
+            </h1>
+            <center>
+              <a className="button white" href="/groups/new">
+                <span className="int-en">Create a Group</span>
+                <span className="int-he">צור קבוצה</span>
+              </a>  
+            </center>
+
+            <div className="groupsList">
+              { groupsList ?
+                  (groupsList.public.length ?
+                    groupsList.public.map(function(item) {
+                      return <GroupListing data={item} key={item.name} />
+                    })
+                    : <LoadingMessage message="You aren't a member of any groups yet." heMessage="אינך חבר כרגע באף קבוצה" />)
+                  : <LoadingMessage />
+              }
+            </div>
+
+          </div>
+          <footer id="footer" className={`interface-${Sefaria.interfaceLang} static sans`}>
+            <Footer />
+          </footer>
+        </div>
+      </div>);
+  }
+}
+PublicGroupsPanel.propTypes = {};
 
 class GroupListing extends Component {
   render() {
@@ -91,4 +137,5 @@ GroupListing.propTypes = {
 };
 
 
-module.exports = MyGroupsPanel;
+module.exports.MyGroupsPanel = MyGroupsPanel;
+module.exports.PublicGroupsPanel = PublicGroupsPanel;

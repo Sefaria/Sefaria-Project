@@ -27,8 +27,8 @@ class TextRange extends Component {
   componentDidUpdate(prevProps, prevState) {
     // Place segment numbers again if update affected layout
     if (this.props.basetext || this.props.segmentNumber) {
-      if (this.props.version != prevProps.version ||
-          this.props.versionLanguage != prevProps.versionLanguage ||
+      if (prevProps.currVersions.en !== this.props.currVersions.en ||
+          prevProps.currVersions.he !== this.props.currVersions.he ||
           prevProps.settings.language !== this.props.settings.language ||
           prevProps.settings.layoutDefault !== this.props.settings.layoutDefault ||
           prevProps.settings.layoutTanakh !== this.props.settings.layoutTanakh ||
@@ -36,7 +36,8 @@ class TextRange extends Component {
           prevProps.settings.biLayout !== this.props.settings.biLayout ||
           prevProps.settings.fontSize !== this.props.settings.fontSize ||
           prevProps.layoutWidth !== this.props.layoutWidth ||
-          prevProps.filter !== this.props.filter) {
+          !!prevProps.filter !== !!this.props.filter ||
+          (!!prevProps.filter && !prevProps.filter.compare(this.props.filter))) {
             // Rerender in case version has changed
             this.forceUpdate(function() {
                 this.placeSegmentNumbers();
@@ -68,8 +69,8 @@ class TextRange extends Component {
   getText() {
     var settings = {
       context: this.props.withContext ? 1 : 0,
-      version: this.props.version || null,
-      language: this.props.versionLanguage || null
+      enVersion: this.props.currVersions.en || null,
+      heVersion: this.props.currVersions.he || null
     };
     var data = Sefaria.text(this.props.sref, settings);
 
@@ -85,13 +86,19 @@ class TextRange extends Component {
     if (this.props.basetext && this.props.sref !== data.ref) {
       // Replace ReaderPanel contents ref with the normalized form of the ref, if they differ.
       // Pass parameter to showBaseText to replaceHistory - normalization should't add a step to history
-      this.props.showBaseText(data.ref, true, this.props.version, this.props.versionLanguage);
+      this.props.showBaseText(data.ref, true, this.props.currVersions);
       return;
+    } else if (data.spanning) {
+      // Replace ReaderPanel contents with split refs if ref is spanning
+      // Pass parameter to showBaseText to replaceHistory - normalization should't add a step to history
+      //console.log("Re-rewriting spanning ref")
+      this.props.showBaseText(data.spanningRefs, true, this.props.version, this.props.versionLanguage);
+      return;      
     }
 
     // If this is a ref to a super-section, rewrite it to first available section
     if (this.props.basetext && data.textDepth - data.sections.length > 1 && data.firstAvailableSectionRef) {
-      this.props.showBaseText(data.firstAvailableSectionRef, true, this.props.version, this.props.versionLanguage);
+      this.props.showBaseText(data.firstAvailableSectionRef, true, this.props.currVersions);
       return;
     }
 
@@ -138,15 +145,15 @@ class TextRange extends Component {
      if (data.next) {
        Sefaria.text(data.next, {
          context: 1,
-         version: this.props.version || null,
-         language: this.props.versionLanguage || null
+         enVersion: this.props.currVersions.en || null,
+         heVersion: this.props.currVersions.he || null
        }, function() {});
      }
      if (data.prev) {
        Sefaria.text(data.prev, {
          context: 1,
-         version: this.props.version || null,
-         language: this.props.versionLanguage || null
+         enVersion: this.props.currVersions.en || null,
+         heVersion: this.props.currVersions.he || null
        }, function() {});
      }
      if (data.indexTitle) {
@@ -196,7 +203,7 @@ class TextRange extends Component {
   }
   parashahHeader(ref) {
     // Returns the English/Hebrew title of a Parasha, if `ref` is the beginning of a new parahsah
-    // returns null otherwise. 
+    // returns null otherwise.
     var data = this.getText();
     if (!data) { return null; }
     var index = Sefaria.indexDetails(data.indexTitle);
@@ -225,9 +232,11 @@ class TextRange extends Component {
     } else if (data && !this.props.basetext) {
       var title            = data.ref;
       var heTitle          = data.heRef;
+      var ref              = data.ref;
     } else if (!data) {
       var title            = "Loading...";
       var heTitle          = "טעינה...";
+      var ref              = null;
     }
     var showNumberLabel    =  data &&
                               data.categories &&
@@ -253,8 +262,8 @@ class TextRange extends Component {
                 { parashahHeader }
                 <TextSegment
                     sref={segment.ref}
-                    en={segment.en}
-                    he={segment.he}
+                    en={!this.props.useVersionLanguage || this.props.currVersions.en ? segment.en : null}
+                    he={!this.props.useVersionLanguage || this.props.currVersions.he ? segment.he : null}
                     highlight={highlight}
                     segmentNumber={showSegmentNumbers ? segment.number : 0}
                     showLinkCount={this.props.basetext}
@@ -303,17 +312,20 @@ class TextRange extends Component {
     this.props.inlineReference['data-commentator'] === Sefaria.index(Sefaria.parseRef(this.props.sref).index).collectiveTitle);
     if (sidebarNumberDisplay) {
       if (this.props.inlineReference['data-label']) {
-        var displayValue = this.props.inlineReference['data-label'];
+        var enDisplayValue = this.props.inlineReference['data-label'];
+        var heDisplayValue = this.props.inlineReference['data-label'];
       }
       else {
-        var displayValue = Sefaria.hebrew.encodeHebrewNumeral(this.props.inlineReference['data-order']);
+        var enDisplayValue = this.props.inlineReference['data-order'];
+        var heDisplayValue = Sefaria.hebrew.encodeHebrewNumeral(enDisplayValue);
       }
-      if (displayValue === undefined) {
-        displayValue = this.props.inlineReference['data-order'];
+      if (heDisplayValue === undefined) {
+        heDisplayValue = enDisplayValue;
       }
       var sidebarNum = <div className="numberLabel sans itag">
         <span className="numberLabelInner">
-          <span className="he heOnly">{displayValue}</span>
+          <span className="en">{enDisplayValue}</span>
+          <span className="he">{heDisplayValue}</span>
         </span>
       </div>;
     } else if (showNumberLabel && this.props.numberLabel) {
@@ -326,7 +338,7 @@ class TextRange extends Component {
     } else {var sidebarNum = null;}
 
     return (
-      <div className={classes} onClick={this.handleClick} onKeyPress={this.handleKeyPress} data-ref={this.props.sref}>
+      <div className={classes} onClick={this.handleClick} onKeyPress={this.handleKeyPress} data-ref={ref}>
         {sidebarNum}
         {this.props.hideTitle ? null :
         (<div className="title">
@@ -348,8 +360,8 @@ class TextRange extends Component {
 }
 TextRange.propTypes = {
   sref:                   PropTypes.string.isRequired,
-  version:                PropTypes.string,
-  versionLanguage:        PropTypes.string,
+  currVersions:           PropTypes.object.isRequired,
+  useVersionLanguage:     PropTypes.bool,
   highlightedRefs:        PropTypes.array,
   basetext:               PropTypes.bool,
   withContext:            PropTypes.bool,
@@ -375,6 +387,9 @@ TextRange.propTypes = {
   showActionLinks:        PropTypes.bool,
   inlineReference:        PropTypes.object,
 };
+TextRange.defaultProps = {
+  currVersions: {en:null,he:null},
+}
 
 
 class TextSegment extends Component {
@@ -385,6 +400,8 @@ class TextSegment extends Component {
     if (!!this.props.filter !== !!nextProps.filter)           { return true; }
     if (this.props.filter && nextProps.filter &&
         !this.props.filter.compare(nextProps.filter))         { return true; }
+    if (this.props.en !== nextProps.en
+        || this.props.he !== nextProps.he)                    { return true; }
 
     return false;
   }
@@ -409,6 +426,29 @@ class TextSegment extends Component {
       this.handleClick(event);
     }
   }
+  formatItag(lang, text) {
+    var $newElement = $("<div>" + text + "</div>");
+    var textValue = function(i) {
+      if ($(i).attr('data-label')) {
+        return $(i).attr('data-label');
+      } else {
+        if (lang === "he") {
+          var value = Sefaria.hebrew.encodeHebrewNumeral($(i).attr('data-order'));
+        }
+        else if (lang === "en") {
+          var value = $(i).attr('data-order');
+        }
+      }
+      if (value === undefined) {
+        value = $(i).attr('data-order');
+      }
+      return value;
+    };
+    $newElement.find('i[data-commentator="' + this.props.filter[0] + '"]').each(function () {
+      $(this).replaceWith('<sup class="itag">' + textValue(this) + "</sup>");
+    });
+    return $newElement.html();
+  }
   render() {
     var linkCountElement;
     if (this.props.showLinkCount) {
@@ -428,28 +468,14 @@ class TextSegment extends Component {
                                                       <span className="he"> <span className="segmentNumberInner">{Sefaria.hebrew.encodeHebrewNumeral(this.props.segmentNumber)}</span> </span>
                                                     </div>) : null;
     var he = this.props.he || "";
+    var en = this.props.en || "";
 
     // render itags
     if (this.props.filter && this.props.filter.length > 0) {
-      var $newElement = $("<div>" + he + "</div>");
-      var textValue = function(i) {
-        if ($(i).attr('data-label')) {
-          return $(i).attr('data-label');
-        } else {
-          var value = Sefaria.hebrew.encodeHebrewNumeral($(i).attr('data-order'));
-        }
-        if (value === undefined) {
-          value = $(i).attr('data-order');
-        }
-        return value;
-      };
-      $newElement.find('i[data-commentator="' + this.props.filter[0] + '"]').each(function () {
-        $(this).replaceWith('<sup class="itag">' + textValue(this) + "</sup>");
-      });
-      he = $newElement.html();
+      he = this.formatItag("he", he)
+      en = this.formatItag("en", en)
     }
 
-    var en = this.props.en || "";
     var classes=classNames({ segment: 1,
                      highlight: this.props.highlight,
                      heOnly: !this.props.en,

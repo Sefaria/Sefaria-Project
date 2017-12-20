@@ -25,7 +25,7 @@ from django.contrib.auth.models import User
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaIoBaseUpload
 
-from reader.views import s2_sheets, s2_sheets_by_tag, s2_group_sheets, s2_my_groups
+from reader.views import s2_sheets, s2_sheets_by_tag, s2_group_sheets, s2_my_groups, s2_public_groups
 
 # noinspection PyUnresolvedReferences
 from sefaria.client.util import jsonResponse, HttpResponse
@@ -427,6 +427,14 @@ def groups_page(request):
 	"""
 	Page listing all public groups
 	"""
+	return s2_public_groups(request)
+
+
+@staff_member_required
+def groups_admin_page(request):
+	"""
+	Page listing all groups for admins
+	"""
 	groups = GroupSet(sort=[["name", 1]])
 	return render_to_response("groups.html",
 								{"groups": groups},
@@ -465,6 +473,9 @@ def groups_post_api(request, group_name=None):
 			# check poster is a group admin
 			if request.user.id not in existing.admins:
 				return jsonResponse({"error": "You do not have permission to edit this group."})
+			
+			from pprint import pprint
+			pprint(group)
 			existing.load_from_dict(group)
 			existing.save()
 		else:
@@ -592,45 +603,10 @@ def sheets_tags_list(request):
 
 
 def sheets_tag(request, tag, public=True, group=None):
-	"""
-	View sheets for a particular tag.
-	"""
-	if public:
-		return s2_sheets_by_tag(request, tag)
-	elif group:
-		sheets = get_sheets_by_tag(tag, group=group)
-	else:
-		sheets = get_sheets_by_tag(tag, uid=request.user.id)
-
-	in_group = request.user.is_authenticated() and group in [g.name for g in get_user_groups(request.user.id)]
-	groupCover = Group().load({"name": group}).coverUrl if Group().load({"name": group}) else None
-
-	return render_to_response('tag.html', {
-											"tag": tag,
-											"sheets": sheets,
-											"public": public,
-											"group": group,
-											"groupCover": groupCover,
-											"in_group": in_group,
-										 }, RequestContext(request))
-
-	return render_to_response('sheet_tags.html', {"tags_list": tags_list, }, RequestContext(request))
+	return s2_sheets_by_tag(request, tag)
 
 
-@login_required
-def private_sheets_tag(request, tag):
-	"""
-	Wrapper for sheet_tag for user tags
-	"""
-	return sheets_tag(request, tag, public=False)
 
-
-def group_sheets_tag(request, group, tag):
-	"""
-	Wrapper for sheet_tag for group tags
-	"""
-	group = group.replace("_", " ")
-	return sheets_tag(request, tag, public=False, group=group)
 
 
 @csrf_exempt
