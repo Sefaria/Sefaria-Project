@@ -344,7 +344,7 @@ def index_sheet(index_name, id):
 
     pud = public_user_data(sheet["owner"])
     doc = {
-        "title": sheet["title"],
+        "title": strip_tags(sheet["title"]),
         "content": make_sheet_text(sheet, pud),
         "owner_id": sheet["owner"],
         "owner_name": pud["name"],

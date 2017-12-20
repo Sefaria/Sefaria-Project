@@ -696,9 +696,10 @@ class SchemaNode extends Component {
       var content = this.props.schema.nodes.map(function(node, i) {
         if ("nodes" in node || ("refs" in node && node.refs.length)) {
           // SchemaNode with children (nodes) or ArrayMapNode with depth (refs)
+          var path = this.props.refPath + ", " + node.title;
           return (
-            <div className="schema-node-toc" key={i}>
-              <span className="schema-node-title" onClick={this.toggleCollapse.bind(null, i)} onKeyPress={function(e) {e.charCode == 13 ? this.toggleCollapse(i):null}.bind(this)} role="heading" aria-level="3" tabIndex={0}>
+            <div className="schema-node-toc" data-ref={path} key={i}>
+              <span className="schema-node-title" onClick={this.toggleCollapse.bind(null, i)} onKeyPress={function(e) {e.charCode == 13 ? this.toggleCollapse(i):null}.bind(this)} role="heading" aria-level="3" aria-hidden="true" tabIndex={0}>
                 <span className="he">{node.heTitle} <i className={"schema-node-control fa fa-angle-" + (this.state.collapsed[i] ? "left" : "down")}></i></span>
                 <span className="en">{node.title} <i className={"schema-node-control fa fa-angle-" + (this.state.collapsed[i] ? "right" : "down")}></i></span>
               </span>
