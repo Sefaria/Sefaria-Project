@@ -8,12 +8,9 @@ from sefaria.system.database import db
       item.currVersions.en,
       item.currVersions.he
     ];
-
-    mongorestore /Users/blocks/Dev/Sefaria-Dump/dump -c profiles
 """
 
 profiles = db.profiles.find({"recentlyViewed": {"$exists": 1}, "$where": "this.recentlyViewed.length > 0" })
-profiles = db.profiles.find({"id": 1})
 
 for profile in profiles:
 	recentlyViewed = profile["recentlyViewed"]
