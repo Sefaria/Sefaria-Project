@@ -46,7 +46,7 @@ def init_pagesheetrank_dicts():
 
 init_pagesheetrank_dicts()
 all_gemara_indexes = library.get_indexes_in_category("Bavli")
-davidson_indexes = all_gemara_indexes[:all_gemara_indexes.index("Bava Batra") + 1]
+davidson_indexes = all_gemara_indexes[:all_gemara_indexes.index("Horayot") + 1]
 
 es = ElasticSearch(SEARCH_ADMIN)
 tracer = logging.getLogger('elasticsearch.trace')
