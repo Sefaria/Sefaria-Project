@@ -43,10 +43,10 @@ def init_pagesheetrank_dicts():
         sheetrank_dict = json.load(open(STATICFILES_DIRS[0] + "sheetrank.json", "rb"))
     except IOError:
         sheetrank_dict = {}
-        
+
 init_pagesheetrank_dicts()
 all_gemara_indexes = library.get_indexes_in_category("Bavli")
-davidson_indexes = all_gemara_indexes[:all_gemara_indexes.index("Bava Batra") + 1]
+davidson_indexes = all_gemara_indexes[:all_gemara_indexes.index("Horayot") + 1]
 
 es = ElasticSearch(SEARCH_ADMIN)
 tracer = logging.getLogger('elasticsearch.trace')
