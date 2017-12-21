@@ -1035,13 +1035,18 @@ class Trial(object):
         except Exception as e:
             # Test errors are caught before this.
             # An exception at this level means that the infrastructure erred.
-            if driver is not None:
-                driver.quit()
+
             msg = traceback.format_exc()
             if self.isVerbose:
                 self.carp(u"{} / {} - Aborted\n{}\n".format(test_class.__name__, Trial.cap_to_string(cap), msg))
             else:
                 self.carp(u"A")
+
+            if driver is not None:
+                try:
+                    driver.quit()
+                except Exception as e2:
+                    pass
             return SingleTestResult(test_class, cap, False, msg)
 
     def _test_on_all(self, test_class, _caps=None):
