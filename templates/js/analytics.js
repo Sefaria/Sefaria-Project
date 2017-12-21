@@ -6,7 +6,7 @@
     })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
 
     ga('create', '{{ GOOGLE_ANALYTICS_CODE }}', 'auto');
-    // Send first pageview after S2 is loaded, so that more data can be added.
+    // Send first pageview after App is loaded, so that more data can be added.
     // ga('send', 'pageview');
 
 
