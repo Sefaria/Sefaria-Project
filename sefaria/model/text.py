@@ -3815,7 +3815,21 @@ class Library(object):
 
     Stewards the in-memory and in-cache objects that cover the entire collection of texts.
 
-    Exposes methods to add, remove, or register change of an index record.  These are primarily called by the dependencies mechanism on Index Create/Update/Destroy.
+    Exposes methods to add, remove, or register change of an index record.
+    These are primarily called by the dependencies mechanism on Index Create/Update/Destroy.
+
+
+    Dependencies
+
+    Initialization of the library happens in stages
+    1. On load of this file, library instance is created.
+        - Terms maps created
+    2. On load of full model with `from sefaria.model import *`
+        - Indexes are built
+    3. On load of reader/views
+        - toc tree is built (categories loaded)
+        - autocompleters are created
+
 
     """
 
@@ -3860,11 +3874,12 @@ class Library(object):
 
         # Term Mapping
         self._simple_term_mapping = {}
+        self._full_term_mapping = {}
 
         if not hasattr(sys, '_doc_build'):  # Can't build cache without DB
-            self._build_core_maps()
+            self._build_term_mappings()
 
-    def _build_core_maps(self):
+    def _build_index_maps(self):
         # Build index and title node dicts in an efficient way
 
         # self._index_title_commentary_maps if index_object.is_commentary() else self._index_title_maps
@@ -3893,7 +3908,8 @@ class Library(object):
         # TOC is handled separately since it can be edited in place
 
     def rebuild(self, include_toc = False, include_auto_complete=False):
-        self._build_core_maps()
+        self._build_term_mappings()
+        self._build_index_maps()
         self._full_title_lists = {}
         self._full_title_list_jsons = {}
         self._title_regex_strings = {}
@@ -3919,6 +3935,7 @@ class Library(object):
         scache.delete_template_cache("texts_dashboard")
         self._full_title_list_jsons = {}
         self._simple_term_mapping = {}
+        self._full_term_mapping = {}
 
     def get_toc(self, rebuild=False):
         """
@@ -4242,38 +4259,38 @@ class Library(object):
         # key = "term_dict_" + lang
         # term_dict = self.local_cache.get(key)
         term_dict = self._term_ref_maps.get(lang)
-        # if not term_dict:
-        #    term_dict = scache.get_cache_elem(key)
-        #    self.local_cache[key] = term_dict
         if not term_dict:
-            term_dict = {}
-            terms = TermSet({"$and":[{"ref": {"$exists":True}},{"ref":{"$nin":["",[]]}}]})
-            for term in terms:
-                for title in term.get_titles(lang):
-                    term_dict[title] = term.ref
-            # scache.set_cache_elem(key, term_dict)
-            # self.local_cache[key] = term_dict
-            self._term_ref_maps[lang] = term_dict
+            self._build_term_mappings()
+            term_dict = self._term_ref_maps.get(lang)
+
         return term_dict
+
+    def _build_term_mappings(self):
+        for term in TermSet():
+            self._full_term_mapping[term.name] = term
+            self._simple_term_mapping[term.name] = {"en": term.get_primary_title("en"),
+                                                    "he": term.get_primary_title("he")}
+            if hasattr(term, "ref"):
+                for lang in self.langs:
+                    for title in term.get_titles(lang):
+                        self._term_ref_maps[lang][title] = term.ref
 
     def get_simple_term_mapping(self):
         if not self._simple_term_mapping:
-            from sefaria.model import CategorySet
-
-            for term in TermSet():
-                self._simple_term_mapping[term.name] = {"en": term.get_primary_title("en"), "he": term.get_primary_title("he")}
-
-            # Note that this will clobber any overlapping terms, and use the last of identical categories.
-            # Currently, all category names are terms, this is labour lost.
-            # for cat in CategorySet():
-            #    self._simple_term_mapping[cat.lastPath] = {"en": cat.get_primary_title("en"), "he": cat.get_primary_title("he")}
-
+            self._build_term_mappings()
         return self._simple_term_mapping
 
-    def reset_simple_term_mapping(self):
-        self._simple_term_mapping = {}
+    def get_term(self, term_name):
+        if not self._full_term_mapping:
+            self._build_term_mappings()
+        return self._full_term_mapping.get(term_name)
 
-    #todo: no usages?
+    def reset_term_mappings(self):
+        self._simple_term_mapping = {}
+        self._full_term_mapping = {}
+
+    #todo: no usages
+    '''
     def get_content_nodes(self):
         """
         :return: list of all content nodes in the library
@@ -4283,8 +4300,9 @@ class Library(object):
         for tree in forest:
             nodes += tree.get_leaf_nodes()
         return nodes
-
-    #todo: used in get_content_nodes, but besides that, only bio scripts
+    '''
+    
+    #todo: only used in bio scripts
     def get_index_forest(self):
         """
         :return: list of root Index nodes.
@@ -4744,4 +4762,4 @@ def process_version_delete_in_cache(ver, **kwargs):
 
 
 def reset_simple_term_mapping(o, **kwargs):
-    library.reset_simple_term_mapping()
+    library.reset_term_mappings()
