@@ -25,8 +25,6 @@ from django.contrib.auth.models import User
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaIoBaseUpload
 
-from reader.views import s2_sheets, s2_sheets_by_tag, s2_group_sheets, s2_my_groups, s2_public_groups
-
 # noinspection PyUnresolvedReferences
 from sefaria.client.util import jsonResponse, HttpResponse
 from sefaria.model import *
@@ -370,77 +368,6 @@ def delete_sheet_api(request, sheet_id):
 	return jsonResponse({"status": "ok"})
 
 
-
-def sheets_list(request, type=None):
-	"""
-	List of all public/your/all sheets
-	either as a full page or as an HTML fragment
-	"""
-	if not type:
-		# Sheet Splash page
-		return s2_sheets(request)
-
-	response = { "status": 0 }
-
-	if type == "public":
-		return s2_sheets_by_tag(request,"All Sheets")
-
-	elif type == "private" and request.user.is_authenticated():
-		return s2_sheets_by_tag(request,"My Sheets")
-
-	elif type == "private" and not request.user.is_authenticated():
-		return redirect("/login?next=/sheets/private")
-
-
-def group_page(request, group):
-	"""
-	Main page for group `group`
-	"""
-	group = group.replace("-", " ").replace("_", " ")
-	group = Group().load({"name": group})
-	if not group:
-		raise Http404
-	if request.user.is_authenticated() and group.is_member(request.user.id):
-		return s2_group_sheets(request, group.name, True)
-	else:
-		return s2_group_sheets(request, group.name, False)
-
-
-def my_groups_page(request):
-	return s2_my_groups(request)	
-
-
-def edit_group_page(request, group=None):
-	if group:
-		group = group.replace("-", " ").replace("_", " ")
-		group = Group().load({"name": group})
-		if not group:
-			raise Http404
-		groupData = group.contents()
-	else:
-		groupData = None
-
-	return render_to_response('edit_group.html', {"groupData": groupData}, RequestContext(request))	
-
-
-def groups_page(request):
-	"""
-	Page listing all public groups
-	"""
-	return s2_public_groups(request)
-
-
-@staff_member_required
-def groups_admin_page(request):
-	"""
-	Page listing all groups for admins
-	"""
-	groups = GroupSet(sort=[["name", 1]])
-	return render_to_response("groups.html",
-								{"groups": groups},
-								RequestContext(request))
-
-
 def groups_api(request, group=None):
 	if request.method == "GET":
 		if not group:
@@ -591,22 +518,6 @@ def groups_pin_sheet_api(request, group_name, sheet_id):
 
 def sheet_stats(request):
 	pass
-
-
-def sheets_tags_list(request):
-	"""
-	View public sheets organized by tags.
-	"""
-	return s2_sheets(request)
-
-
-
-
-def sheets_tag(request, tag, public=True, group=None):
-	return s2_sheets_by_tag(request, tag)
-
-
-
 
 
 @csrf_exempt

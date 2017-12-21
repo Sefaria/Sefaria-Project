@@ -25,7 +25,7 @@ logger = logging.getLogger(__name__)
 def data_only(view):
     """
     Marks processors only need when setting the data JS.
-    S1 inserted this data on every page, so it is currently still passed in Source Sheets which rely on S1 JS.
+    Passed in Source Sheets which rely on S1 JS.
     """
     @wraps(view)
     def wrapper(request):
@@ -60,7 +60,6 @@ def global_settings(request):
         "OFFLINE":                OFFLINE,
         "GLOBAL_WARNING":         GLOBAL_WARNING,
         "GLOBAL_WARNING_MESSAGE": GLOBAL_WARNING_MESSAGE,
-        "S2":                     not request.COOKIES.get('s1', False),
         #"USE_VARNISH":            USE_VARNISH,
         #"VARNISH_ADDR":           VARNISH_ADDR,
         #"USE_VARNISH_ESI":        USE_VARNISH_ESI
@@ -146,8 +145,8 @@ def header_html(request):
         lang = request.interfaceLang
         LOGGED_OUT_HEADER = HEADER['logged_out'][lang] or render_react_component("ReaderApp", {"headerMode": True, "loggedIn": False, "interfaceLang": lang})
         LOGGED_IN_HEADER = HEADER['logged_in'][lang] or render_react_component("ReaderApp", {"headerMode": True, "loggedIn": True, "interfaceLang": lang})
-        LOGGED_OUT_HEADER = "" if "s2Loading" in LOGGED_OUT_HEADER else LOGGED_OUT_HEADER
-        LOGGED_IN_HEADER = "" if "s2Loading" in LOGGED_IN_HEADER else LOGGED_IN_HEADER
+        LOGGED_OUT_HEADER = "" if "appLoading" in LOGGED_OUT_HEADER else LOGGED_OUT_HEADER
+        LOGGED_IN_HEADER = "" if "appLoading" in LOGGED_IN_HEADER else LOGGED_IN_HEADER
         HEADER['logged_out'][lang] = LOGGED_OUT_HEADER
         HEADER['logged_in'][lang] = LOGGED_IN_HEADER
     else:
@@ -167,7 +166,7 @@ def footer_html(request):
     global FOOTER
     if USE_NODE:
         FOOTER = FOOTER or render_react_component("Footer", {})
-        FOOTER = "" if "s2Loading" in FOOTER else FOOTER
+        FOOTER = "" if "appLoading" in FOOTER else FOOTER
     else:
         FOOTER = ""
     return {
