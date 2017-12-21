@@ -303,7 +303,7 @@ msgid ""
 msgstr ""
 
 #: templates/leaderboard.html:4
-msgid "Top Contributors | Sefefaria"
+msgid "Top Contributors | Sefaria"
 msgstr ""
 
 #: templates/leaderboard.html:6

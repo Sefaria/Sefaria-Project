@@ -3,7 +3,6 @@
 # This file is distributed under the same license as the PACKAGE package.
 # FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
 #
-#, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
@@ -315,15 +314,14 @@ msgstr ""
 "ולצפות בקשרים המתייחסים לספר אחד או מסכת מסויימת."
 
 #: templates/leaderboard.html:4
-#, fuzzy
-msgid "Top Contributors | Sefefaria"
-msgstr "טקסטים שהופיעו לראשונה בספריא"
+msgid "Top Contributors | Sefaria"
+msgstr "מוסיפי טקסט מצטיינים"
 
 #: templates/leaderboard.html:6
 msgid ""
 "See who has been contributing most to Sefaria in terms of texts, "
 "translations, and source sheet."
-msgstr ""
+msgstr "רשימה של משתמשים שתרמו את הכמות הגדולה ביותר של טקסטים, תרגומים או דפי מקורות"
 
 #: templates/metrics.html:5
 msgid "Sefaria Metrics"
@@ -672,19 +670,16 @@ msgid "details"
 msgstr "פרטים"
 
 #: templates/elements/activity_feed.html:116
-#, fuzzy
 msgid "added a term"
-msgstr "הוסיף הערה ל"
+msgstr "הוסיף מונח"
 
 #: templates/elements/activity_feed.html:118
-#, fuzzy
 msgid "edited the term"
-msgstr "מחק את הטקסט"
+msgstr "ערך את המונח"
 
 #: templates/elements/activity_feed.html:120
-#, fuzzy
 msgid "deleted the term"
-msgstr "מחק את הטקסט"
+msgstr "מחק את המונח"
 
 #: templates/elements/activity_feed.html:136
 msgid "reviewed"
