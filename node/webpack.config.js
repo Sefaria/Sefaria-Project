@@ -138,7 +138,8 @@ var exploreConfig = config({
     context: path.resolve('./static/js'),
     entry: './explore',
     externals: {
-        d3: 'd3'
+        d3: 'd3',
+        sefaria: 'Sefaria',
     },
     output: {
         path: path.resolve(buildDir + 'explore'),

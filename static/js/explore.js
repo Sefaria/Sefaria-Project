@@ -1,5 +1,5 @@
 var d3 = require('d3');
-var Sefaria = require('./sefaria/sefaria');
+var Sefaria = require('sefaria');
 var SefariaD3 = require("./sefaria-d3/sefaria-d3");
 var $ = require("./sefaria/sefariaJquery");
 
