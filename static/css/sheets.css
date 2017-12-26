@@ -293,6 +293,12 @@ body:not(.user-is-tabbing) #sheet .cke_editable:focus {
 	width:100%;
 }
 
+
+#assignmentsModal {
+	max-height: 600px;
+	overflow-y: scroll;
+}
+
 #assignmentsModal .btn {
 	margin-top: 5px;
 }
@@ -475,6 +481,7 @@ body:not(.user-is-tabbing) #sheet .cke_editable:focus {
 	font-size: 36px;
 	min-height: 40px;
 	margin-bottom: 6px;
+    padding: 0 76px;
 	text-align: center;
 	line-height: normal;
 }
@@ -527,15 +534,11 @@ body:not(.user-is-tabbing) #sheet .cke_editable:focus {
 	text-align: center;
 	margin: 0 -76px;
 	background-color: #fff;
-    display: flex;
-	justify-content: center;
 	cursor: pointer;
 }
 
 #sheetMetadata[open] summary {
 	background-color: #fff;
-    display: flex;
-	justify-content: flex-end;
 }
 
 #sheetMetadata summary::-webkit-details-marker {
@@ -555,10 +558,16 @@ body:not(.user-is-tabbing) #sheet .cke_editable:focus {
 }
 #sheetMetadata[open] summary:after {
   	content: "✕";
-    top: 56px;
+    top: 36px;
     margin: 0 80px;
     position: relative;
-    align-self: flex-end;
+}
+#sheetMetadata[open] summary:lang(en)::after {
+	float: right;
+}
+
+#sheetMetadata[open] summary:lang(he)::after {
+	float: left;
 }
 
 #sheetMetadata .editButton {
@@ -625,11 +634,11 @@ body:not(.user-is-tabbing) #sheet .cke_editable:focus {
 	display: block;
 }
 
-#likeInfo {
+#likeInfo-en, #likeInfo-he {
 	cursor: pointer;
 }
 
-#likeInfo:hover {
+.likes:hover {
 	text-decoration: underline;
 }
 
@@ -1037,11 +1046,11 @@ body:not(.user-is-tabbing) #sheet .cke_editable:focus {
 }
 
 #addParashaToSheetModal .cancel {
-	padding-top: 10px;
+	margin-top: 30px;
 }
 
 #addParashaToSheetModal li {
-	width:150px;
+	width: 150px;
 	display:inline;
 	padding: 2px 0 2px 0;
 	cursor: pointer;
@@ -1376,6 +1385,21 @@ a:active {
 		left: 0;
 		width: 100%;
 		height: 100%;
+	}
+
+	.indented-1 {
+		padding-left: 40px !important;
+		padding-right: 40px !important;
+	}
+
+	.indented-2 {
+		padding-left: 60px !important;
+		padding-right: 60px !important;
+	}
+
+	.indented-3 {
+		padding-left: 60px !important;
+		padding-right: 60px !important;
 	}
 
 }
@@ -1936,7 +1960,7 @@ line-height: normal;
 .inlineAddSourceByttons {
 	display: inline-block;
 }
-#sheet .button, .sheetsEditNavTop .button, .modal .button {
+.sheetsEditNavTop .button {
 	background-color: #212e50;
 	border-color: #212e50;
 	padding: 12px 24px;
@@ -2525,91 +2549,6 @@ a.tagit-close {
 	font-family: "Heebo", sans-serif;
 }
 
-.onoffswitch {
-    position: relative;
-	width: 70px;
-	display: inline-block;
-    -webkit-user-select:none;
-	-moz-user-select:none;
-	-ms-user-select: none;
-	top: 8px;
-}
-#sheetsContent .onoffswitch-checkbox {
-    display: none;
-}
-.onoffswitch-label {
-    display: block;
-	overflow: hidden;
-	cursor: pointer;
-	border-radius: 20px;
-}
-.onoffswitch-inner {
-    display: block;
-	width: 200%;
-	margin-left: -100%;
-    transition: margin 0.3s ease-in 0s;
-}
-
-.interface-hebrew .onoffswitch-inner {
-	margin-right: -100%;
-}
-.onoffswitch-inner:before, .onoffswitch-inner:after {
-    display: block;
-	float: left;
-	width: 50%;
-	height: 36px;
-	padding: 0;
-	line-height: 36px;
-    font-size: 14px;
-	color: white;
-    box-sizing: border-box;
-}
-.onoffswitch-inner:before {
-    content: "Yes";
-    padding-left: 10px;
-    background-color: #212D4F;
-	color: #FFFFFF;
-}
-.interface-hebrew .onoffswitch-inner:before{
-    content: "לא";
-    padding-right: 10px;
-}
-.onoffswitch-inner:after {
-    content: "No";
-    padding-right: 10px;
-    background-color: #212D4F;
-	color: #fff;
-    text-align: right;
-}
-
-.interface-hebrew .onoffswitch-inner:after {
-	text-align: left;
-	padding-left: 10px;
-}
-
-.interface-hebrew .onoffswitch-inner:after{
-    content: "כן";
-}
-.onoffswitch-switch {
-    display: block;
-	width: 31px;
-	margin: 1px;
-    background: #FFFFFF;
-    position: absolute;
-	top: 0;
-	bottom: 0;
-    right: 36px;
-    border: 1px solid #999999;
-	border-radius: 26px;
-    transition: all 0.3s ease-in 0s;
-}
-.onoffswitch-checkbox:checked + .onoffswitch-label .onoffswitch-inner {
-    margin-left: 0;
-}
-.interface-hebrew .onoffswitch-checkbox:checked + .onoffswitch-label .onoffswitch-inner {
-    margin-right: 0;
-}
-
-.onoffswitch-checkbox:checked + .onoffswitch-label .onoffswitch-switch {
-    right: 0px;
+#peopleListModal.interface-hebrew{
+	direction: rtl;
 }

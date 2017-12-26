@@ -58,11 +58,14 @@ before_script:
   # Copy LC_MESSAGES to Django locale dirs -- for unknown reasons this file is missing on Travis.
   # When Django admin runs `syncdb` it tries to activate the english language from within
   # the Django core files. This is likely related to Travis using virutalenv, may be fixed by upgrading Django.
-  - cp -R ./locale/en/LC_MESSAGES/ /home/travis/virtualenv/python2.7.13/lib/python2.7/site-packages/django/conf/locale/en
+  - cp -R ./locale/en/LC_MESSAGES/ /home/travis/virtualenv/python2.7.14/lib/python2.7/site-packages/django/conf/locale/en
 
   # Create the user db
   - python manage.py syncdb --noinput
   - python manage.py createsuperuser --email $SEFARIA_SUPERUSER  --noinput
+
+  # Rebuild TOC - TEMP to pass tests involving TOC changes
+  - ./run rebuild_toc.py 
 
   # run the django server, redirecting output to log files
   - python manage.py runserver --insecure 2> server.error.log > server.log &

@@ -5,6 +5,7 @@
 <head>
     <title>{% block title %}{% endblock %}</title>
     <meta name="description" property="og:description" content="{% block description %}{% endblock %}">
+    <link rel="search" type="application/opensearchdescription+xml" title="Sefaria Search" href="/static/files/opensearch.xml" />
 
     <link rel="alternate" href="//www.sefaria.org{{ request.path }}" hreflang="en" />
     <link rel="alternate" href="//www.sefaria.org.il{{ request.path }}" hreflang="he" />
@@ -17,6 +18,16 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-itunes-app" content="app-id=1163273965">
     <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+
+    <!-- https://realfavicongenerator.net -->
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png?v=xQzLlLp7oR">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png?v=xQzLlLp7oR">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png?v=xQzLlLp7oR">
+    <link rel="manifest" href="/manifest.json?v=xQzLlLp7oR">
+    <link rel="mask-icon" href="/safari-pinned-tab.svg?v=xQzLlLp7oR" color="#273557">
+    <link rel="shortcut icon" href="/favicon.ico?v=xQzLlLp7oR">
+    <meta name="theme-color" content="#273557">
+
 
     {% block head %}{% endblock %}
 
@@ -78,6 +89,11 @@
         {% include "elements/footer.html" with class=contentLang %}
     {% endblock %}
 
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/react/15.6.1/react.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/react/15.6.1/react-dom.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.2.4/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.js"></script>
 
     <script src="/static/js/lib/keyboard.js"></script>
     <script src="/data.js"></script>

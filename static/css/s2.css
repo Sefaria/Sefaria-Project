@@ -908,7 +908,7 @@ a.readerNavCategory {
   border-top: 4px solid transparent;
   width: 100%;
   cursor: pointer;
-  height: 46px;
+  min-height: 46px;
   vertical-align: middle;
   margin: 0;
   box-sizing: border-box;
@@ -926,6 +926,18 @@ a.readerNavCategory {
   width: 16px;
   opacity: 0.4;
   vertical-align: -3px;
+}
+.readerNavMenu .blockLink.calendarLink{
+  /*line-height: 1;
+  padding: 7px 8px;*/
+}
+.readerNavMenu .blockLink.calendarLink .blockLinkSubtitle{
+  display: block;
+  font-size: 0.9em;
+  color: #999999;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 .gridBox {
   table-layout: fixed;
@@ -974,6 +986,9 @@ a.readerNavCategory {
   margin: 0 8px;
   font-size: 12px;
 }
+.uppercase {
+  text-transform: uppercase;
+}
 .readerNavMenu .siteLinks .siteLink .en {
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
 }
@@ -1006,9 +1021,12 @@ a.readerNavCategory {
 .readerNavCategoryMenu .categoryAttribution .he {
   font-style: normal;
 }
+.readerNavCategoryMenu .category h3 {
+  margin-top: 36px;
+}
 .readerNavMenu .blockLink,
 .readerNavMenu .catLink,
-.rkeaderNavMenu .navButton,
+.readerNavMenu .navButton,
 .readerTextTableOfContents .refLink {
   display: block;
   margin: 0px;
@@ -1057,8 +1075,9 @@ a.readerNavCategory {
   width: 100%;
   height: 100%;
 }
-.readerNavMenu .readerNavCategoryMenu .refLink.incomplete {
-  opacity: 0.7;
+.readerNavMenu .readerNavCategoryMenu .refLink.incomplete,
+.readerNavMenu .catLink.incomplete {
+  opacity: 0.65;
 }
 .categoryColorLine {
   position: absolute;
@@ -1449,6 +1468,8 @@ a.readerNavCategory {
 }
 .readerTextTableOfContents .versionBlocks {
   text-align: center;
+  border-top: 1px solid #ccc;
+  padding-top: 20px;
 }
 .readerTextTableOfContents .versionBlocks .versionLanguageBlock {
   padding-bottom: 30px;
@@ -1467,30 +1488,35 @@ a.readerNavCategory {
   box-sizing: border-box;
   cursor: pointer;
 }
-.readerTextTableOfContents .versionBlock .versionTitle {
+.versionBlock .versionTitle {
   display: block;
   font-size: 18px;
   color: #333;
   unicode-bidi: plaintext;
 }
-.readerTextTableOfContents .versionBlock a {
+.versionBlock a {
   color: #999;
 }
-.readerTextTableOfContents .versionBlock .versionDetails {
+.versionBlock .versionNotes a {
+  color: #333;
+}
+.versionBlock .versionDetails {
   display: inline-block;
   font-size: 12px;
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
   color: #999;
+  padding-top: 10px;
 }
-.readerTextTableOfContents .versionBlock .versionDetails .separator {
+.versionBlock .versionDetails .separator {
   margin: 0 3px;
 }
-.readerTextTableOfContents .versionBlocks .versionBlock .versionTitle:hover {
+.versionBlock .versionTitle:hover {
   text-decoration: underline;
 }
-.readerTextTableOfContents .versionBlock .versionNotes {
+.versionBlock .versionNotes {
   padding-top: 4px;
   color: #999;
+  font-size: 15px;
 }
 .modTools {
   width: 50%;
@@ -1516,6 +1542,28 @@ a.readerNavCategory {
     color: #999;
     padding: 10px 0;
     margin-bottom: 14px;
+}
+.readerTextTableOfContents .content h2[role=button] {
+  cursor: pointer;
+}
+.readerTextTableOfContents .content h2 img {
+  opacity: 0.43;
+  padding: 0 5px;
+  height: 10px;
+  width: 10px;
+}
+.readerTextTableOfContents .versionSectionHeader {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+}
+.readerTextTableOfContents .versionSectionSummary {
+  text-transform: none;
+  color: #ccc;
+  font-size: 14px;
+}
+.readerTextTableOfContents .versionSectionSummaryHidden {
+  visibility: hidden;
 }
 .modTools .dlVersionSelect {
   display: block;
@@ -2084,17 +2132,15 @@ a.readerNavCategory {
 .singlePanel .readerControls .readerControlsInner {
   padding: 0 10px;
 }
-.readerControls .readerTextToc {
-  text-align: center;
-  display: inline-block;
-  cursor: pointer;
-  vertical-align: middle;
-}
 .readerControls .readerTextToc a {
   color: inherit;
 }
 .readerControls .readerTextToc a:hover {
   text-decoration: none;
+}
+.readerControls .readerTextToc .readerTextTocBox a {
+  display: flex;
+  align-items: center;
 }
 .readerControls.connectionsHeader .readerTextToc {
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
@@ -2161,21 +2207,29 @@ a.readerNavCategory {
   box-sizing: border-box;
   display: block;
   height: 50px;
+  text-align: center;
+  display: inline-block;
+  cursor: pointer;
+  vertical-align: middle;
+  min-width: 0; /* see https://css-tricks.com/flexbox-truncated-text/ */
 }
 .readerTextTocHeader.readerTextToc {
   font-size: 14px;
 }
 .hebrew .readerControls .readerTextToc {
   direction: rtl;
+  min-width: 0;
 }
 .readerControls .readerTextToc .readerTextTocBox {
   display: inline-block;
+  vertical-align: middle;
+  color: #333;
+  max-width: 100%;
+}
+.readerControls .readerTextToc .readerTextTocBox a span {
   white-space: nowrap;
   text-overflow: ellipsis;
   overflow: hidden;
-  /*max-width: 70%;*/
-  vertical-align: middle;
-  color: #333;
 }
 .readerControls .readerTextToc .readerTextVersion {
   font-style: italic;
@@ -2330,8 +2384,6 @@ a.readerNavCategory {
   text-align: center;
   justify-content: center;
   font-weight: lighter;
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
-  text-transform: uppercase;
   letter-spacing: 1px;
 }
 .dark .textRange.basetext .title {
@@ -3170,10 +3222,10 @@ a.readerNavCategory {
 .textListTextRangeBox {
   position: relative;
 }
-.textListTextRangeBox:hover .moderatorLinkOptions {
+.textListTextRangeBox:hover .editorLinkOptions {
   display: block;
 }
-.moderatorLinkOptions {
+.editorLinkOptions {
   display: none;
   cursor: pointer;
   font-size: 14px;
@@ -3181,11 +3233,11 @@ a.readerNavCategory {
   letter-spacing: 1px;
   margin: -20px 0 10px;
 }
-.interface-hebrew .moderatorLinkOptions {
+.interface-hebrew .editorLinkOptions {
   left: auto;
   right: 0;
 }
-.moderatorLinkOptions > div:hover {
+.editorLinkOptions > div:hover {
   text-decoration: underline;
 }
 .toolsMessage {
@@ -4118,7 +4170,7 @@ h2.splitHeader .he {
 }
 .hebrew .topicPanel .topicSource .score img {
   margin: -4px 2px 0 0;
-}  
+}
 .note a {
   color: #333;
   text-decoration: underline;
@@ -4288,7 +4340,7 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
   width: 100%;
   display: inline-block;
   vertical-align: top;
-  padding: 10px;
+  padding: 12px;
 }
 #editGroupPage .field.halfWidth {
   width: 50%;
@@ -4596,4 +4648,104 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
 }
 .bubbleTab.active {
   color: #333;
+}
+.aboutBox .aboutHeader {
+  color: #999;
+  padding-bottom: 13px;
+  margin: 0;
+  margin-bottom: 15px;
+  text-align: initial;
+  text-transform: none;
+  font-size: 20px;
+  border-bottom: solid 1px #CCC;
+}
+.aboutBox .aboutTitle {
+  padding: 10px 0 15px 0;
+  font-size: 20px;
+  color: black;
+  display: inline-block;
+}
+.aboutBox .aboutSubtitle {
+  font-style: italic;
+  font-size: 15px;
+  color: #999;
+}
+.aboutBox .aboutSubtitle .he {
+  font-style: normal;
+}
+.aboutBox .aboutDesc {
+  padding: 15px 0 30px 0;
+  font-size: 15px;
+}
+.aboutBox .versionNotes {
+  padding-bottom: 15px;
+  font-size: 15px;
+  color: #666;
+}
+.aboutBox .versionDetails,
+.versionsBox .versionDetails {
+  font-size: 13px;
+  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  color: #999;
+  padding-bottom: 5px;
+  text-align: left;
+  line-height: 150%;
+}
+.readerApp.interface-hebrew .aboutBox .versionDetails,
+.readerApp.interface-hebrew .versionsBox .versionDetails {
+  text-align: right;
+}
+.aboutBox .versionDetails .separator,
+.versionsBox .versionDetails .separator {
+  margin: 0 3px;
+}
+.aboutBox a,
+.versionsBox a {
+  color: #999;
+}
+.aboutBox .currVersionSection {
+  padding-bottom: 30px;
+}
+.versionsBox .versionLanguage {
+  padding-bottom: 15px;
+  text-transform: uppercase;
+  font-size: 20px;
+  padding-left: 20px;
+  padding-right: 20px;
+}
+.versionsBox div:not(:first-child) .versionLanguage {
+  padding-top: 25px;
+}
+.versionsBox .versionLanguage .versionCount {
+  color: #999;
+}
+.versionsBox a.selectButton {
+  color: #ccc;
+  border: solid 1px #eee;
+  padding: 3px 8px;
+  text-transform: uppercase;
+  background-color: white;
+  border-radius: 4px;
+  line-height: 24px;
+}
+.versionsBox a.selectButton.currSelectButton {
+  color: #666;
+  text-decoration: none;
+  cursor: default;
+}
+.versionsTextList .topFiltersInner .uppercase {
+  text-transform: none;
+}
+.versionsBox .versionBlock {
+  padding: 20px;
+  border-top: solid 1px #CCC;
+}
+.versionsBox .versionBlock .versionTitle a {
+  color: black;
+}
+.interface-hebrew .versionsBox .versionLanguage {
+  direction: rtl;
+}
+.aboutBox .versionBlock .versionTitle:hover {
+  text-decoration: none;
 }

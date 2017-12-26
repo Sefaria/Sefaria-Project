@@ -18,7 +18,8 @@ urlpatterns = patterns('reader.views',
     (r'^api/texts/version-status/?$', 'version_status_api'),
     (r'^api/texts/parashat_hashavua$', 'parashat_hashavua_api'),
     (r'^api/texts/random?$', 'random_text_api'),
-    (r'^api/texts/(?P<tref>.+)/(?P<lang>\w\w)/(?P<version>.+)$', 'texts_api'),
+    (r'^api/texts/random-by-topic/?$', 'random_by_topic_api'),
+    (r'^api/texts/(?P<tref>.+)/(?P<lang>\w\w)/(?P<version>.+)$', 'old_text_versions_api_redirect'),
     (r'^api/texts/(?P<tref>.+)$', 'texts_api'),
     (r'^api/index/?$', 'table_of_contents_api'),
     (r'^api/search-filter-index/?$', 'search_filter_table_of_contents_api'),
@@ -38,6 +39,7 @@ urlpatterns = patterns('reader.views',
     (r'^api/shape/(?P<title>.+)$', 'shape_api'),
     (r'^api/preview/(?P<title>.+)$', 'text_preview_api'),
     (r'^api/terms/(?P<name>.+)$', 'terms_api'),
+    (r'^api/calendars/?$', 'calendars_api'),
     (r'^api/name/(?P<name>.+)$', 'name_api'),
     (r'^api/category/?(?P<path>.+)?$', 'category_api')
 )
@@ -92,6 +94,12 @@ urlpatterns += patterns('reader.views',
     (r'^mishnah-contest-2013/?$', lambda x: HttpResponseRedirect('/contests/mishnah-contest-2013')),
 )
 
+# JSON Editors
+urlpatterns += patterns('reader.views',
+    (r'^edit/terms/(?P<term>.+)$', 'terms_editor'),
+    (r'^add/terms/(?P<term>.+)$', 'terms_editor'),
+)
+
 # Texts Add / Edit / Translate
 urlpatterns += patterns('reader.views',
     (r'^edit/textinfo/(?P<title>.+)$', 'edit_text_info'),
@@ -101,7 +109,6 @@ urlpatterns += patterns('reader.views',
     (r'^translate/(?P<ref>.+)$', 'edit_text'),
     (r'^edit/(?P<ref>.+)/(?P<lang>\w\w)/(?P<version>.+)$', 'edit_text'),
     (r'^edit/(?P<ref>.+)$', 'edit_text'),
-
 )
 
 # Texts Page
@@ -132,7 +139,6 @@ urlpatterns += patterns('sheets.views',
     (r'^sheets/new/?$', 'new_sheet'),
     (r'^sheets/tags/?$', 'sheets_tags_list'),
     (r'^sheets/tags/(?P<tag>.+)$', 'sheets_tag'),
-    (r'^sheets/private/tags/(?P<tag>.+)$', 'private_sheets_tag'),
     (r'^sheets/(?P<type>(public|private))/?$', 'sheets_list'),
     (r'^sheets/(?P<sheet_id>\d+)$', 'view_sheet'),
     (r'^sheets/visual/(?P<sheet_id>\d+)$', 'view_visual_sheet'),
@@ -168,6 +174,7 @@ urlpatterns += patterns('sheets.views',
 # Activity
 urlpatterns += patterns('reader.views',
     (r'^activity/?$', 'global_activity'),
+    (r'^activity/leaderboard?$', 'leaderboard'),
     (r'^activity/(?P<page>\d+)$', 'global_activity'),
     (r'^activity/(?P<slug>[^/]+)/(?P<page>\d+)?$', 'user_activity'),
     (r'^activity/(?P<tref>[^/]+)/(?P<lang>.{2})/(?P<version>.+)/(?P<page>\d+)$', 'segment_history'),
@@ -214,13 +221,12 @@ urlpatterns += patterns('reader.views',
 # Groups
 urlpatterns += patterns('sheets.views',
     (r'^groups/?$', 'groups_page'),
+    (r'^groups/allz$', 'groups_admin_page'),
     (r'^groups/new$', 'edit_group_page'),
     (r'^groups/(?P<group>[^/]+)/settings$', 'edit_group_page'),
     (r'^groups/(?P<group>[^/]+)$', 'group_page'),
-    (r'^groups/(?P<group>[^/]+)/tags/(?P<tag>.+)$', 'group_sheets_tag'),
     (r'^my/groups$', 'my_groups_page'),
     (r'^partners/(?P<group>[^/]+)$', 'group_page'),
-    (r'^partners/(?P<group>[^/]+)/tags/(?P<tag>.+)$', 'group_sheets_tag'),
     (r'^api/groups(/(?P<group>[^/]+))?$', 'groups_api'),
     (r'^api/groups/(?P<group_name>[^/]+)/set-role/(?P<uid>\d+)/(?P<role>[^/]+)$', 'groups_role_api'),
     (r'^api/groups/(?P<group_name>[^/]+)/invite/(?P<uid_or_email>[^/]+)(?P<uninvite>\/uninvite)?$', 'groups_invite_api'),
@@ -329,6 +335,7 @@ urlpatterns += patterns('',
     (r'^forum/?$', lambda x: HttpResponseRedirect('https://groups.google.com/forum/?fromgroups#!forum/sefaria')),
     (r'^wiki/?$', lambda x: HttpResponseRedirect('https://github.com/Sefaria/Sefaria-Project/wiki')),
     (r'^developers/?$', lambda x: HttpResponseRedirect('https://github.com/Sefaria/Sefaria-Project/wiki#developers')),
+    (r'^request-a-text/?$', lambda x: HttpResponseRedirect('https://goo.gl/forms/ru33ivawo7EllQxa2')),
     (r'^contribute/?$', lambda x: HttpResponseRedirect('https://github.com/Sefaria/Sefaria-Project/wiki/Guide-to-Contributing')),
     (r'^faq/?$', lambda x: HttpResponseRedirect('https://github.com/Sefaria/Sefaria-Project/wiki#frequently-asked-questions')),
     (r'^textmap/?$', lambda x: HttpResponseRedirect('/static/files/Sefaria-Text-Map-June-2016.pdf')),
@@ -412,7 +419,7 @@ urlpatterns += patterns('sefaria.gauth.views',
 
 # Catch all to send to Reader
 urlpatterns += patterns('reader.views',
-    (r'^(?P<tref>[^/]+)/(?P<lang>\w\w)/(?P<version>.*)$', 'reader'),
+    (r'^(?P<tref>[^/]+)/(?P<lang>\w\w)/(?P<version>.*)$', 'old_versions_redirect'),
     (r'^(?P<tref>[^/]+)(/)?$', 'reader')
 )
 

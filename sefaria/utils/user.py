@@ -40,7 +40,7 @@ def delete_user_account(uid, confirm=True):
     print "User %d deleted." % uid
 
 
-def merge_user_accounts(from_uid, into_uid):
+def merge_user_accounts(from_uid, into_uid, fill_in_profile_data=True, override_profile_data=False):
     """ Moves all content of `from_uid` into `into_uid` then deletes `from_uid`"""
     from_user = model.UserProfile(id=from_uid)
     if not from_user._id:
@@ -56,7 +56,10 @@ def merge_user_accounts(from_uid, into_uid):
     if raw_input("Type 'MERGE' to confirm: ") != "MERGE":
         print "Canceled."
         return
-    
+    # Move group admins
+    db.groups.update({"admins": from_uid}, {"$set": {"admins.$": into_uid}})
+    # Move group members
+    db.groups.update({"members": from_uid}, {"$set": {"members.$": into_uid}})
     # Move Sheets
     db.sheets.update_many({"owner": from_uid}, {"$set": {"owner": into_uid}})
     # Move Notes
@@ -73,6 +76,12 @@ def merge_user_accounts(from_uid, into_uid):
     db.history.update_many({"user": from_uid}, {"$set": {"user": into_uid}})
 
     print "Content from %s moved into %s's account." % (from_user.email, into_user.email)
+    if override_profile_data:
+        into_user.update(from_user.to_DICT())
+        into_user.save()
+    elif fill_in_profile_data:
+        into_user.update_empty(from_user.to_DICT())
+        into_user.save()
 
     delete_user_account(from_uid, confirm=False)
 

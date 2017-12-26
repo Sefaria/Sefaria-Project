@@ -162,7 +162,7 @@ class TextList extends Component {
     var sectionLinks = Sefaria.links(sectionRef);
     var links        = Sefaria._filterLinks(sectionLinks, filter);
     links            = links.filter(function(link) {
-      if (Sefaria.splitSpanningRef(link.anchorRef).every(aref => Sefaria.util.inArray(aref, refs) === -1)) {
+      if (Sefaria.splitRangingRef(link.anchorRef).every(aref => Sefaria.util.inArray(aref, refs) === -1)) {
         // Filter out every link in this section which does not overlap with current refs.
         return false;
       }
@@ -201,8 +201,8 @@ class TextList extends Component {
                                     onCompareClick={this.props.onCompareClick}
                                     onOpenConnectionsClick={this.props.onOpenConnectionsClick}
                                     inlineReference={link.inline_reference}/>
-                                    {Sefaria.is_moderator ?
-                                    <ModeratorLinkOptions
+                                    {Sefaria.is_moderator || Sefaria.is_editor ?
+                                    <EditorLinkOptions
                                       _id={link._id}
                                       onDataChange={ this.onDataChange } />
                                     : null}
@@ -214,7 +214,6 @@ class TextList extends Component {
           <RecentFilterSet
             srefs={this.props.srefs}
             asHeader={false}
-            showText={this.props.showText}
             filter={this.props.filter}
             recentFilters={this.props.recentFilters}
             textCategory={oref ? oref.primary_category : null}
@@ -247,7 +246,7 @@ TextList.propTypes = {
 };
 
 
-class ModeratorLinkOptions extends Component {
+class EditorLinkOptions extends Component {
   constructor(props) {
     super(props);
     this.state = {collapsed: false};
@@ -274,18 +273,18 @@ class ModeratorLinkOptions extends Component {
   }
   render () {
     if (this.state.collapsed) {
-      return <div className="moderatorLinkOptions" onClick={this.expand}><i className="fa fa-cog"></i></div>
+      return <div className="editorLinkOptions" onClick={this.expand}><i className="fa fa-cog"></i></div>
     }
 
-    return <div className="moderatorLinkOptions sans">
-      <div className="moderatorLinkOptionsDelete" onClick={this.deleteLink}>
+    return <div className="editorLinkOptions sans">
+      <div className="editorLinkOptionsDelete" onClick={this.deleteLink}>
         <span className="int-en">Remove</span>
         <span className="int-he">מחק</span>
       </div>
     </div>
   }
 }
-ModeratorLinkOptions.propTypes = {
+EditorLinkOptions.propTypes = {
   _id:          PropTypes.string.isRequired,
   onDataChange: PropTypes.func
 };

@@ -7,10 +7,10 @@ var extend     = require('extend'),
     Hebrew     = require('./hebrew'),
     Util       = require('./util'),
     $          = require('./sefariaJquery');
+                 require('babel-polyfill');
 
 var INBROWSER = (typeof document !== 'undefined');
 
-console.log("setting default data at start of bundle")
 var Sefaria = Sefaria || {
   _dataLoaded: false,
   toc: [],
@@ -153,6 +153,56 @@ Sefaria = extend(Sefaria, {
     nRef.toSections = pRefEnd.toSections;
     return Sefaria.makeRef(nRef);
   },
+  refContains: function(ref1, ref2) {
+    // Returns true is `ref1` contains `ref2`
+    var oRef1 = Sefaria.parseRef(ref1);
+    var oRef2 = Sefaria.parseRef(ref2);
+
+    for (var i = 0; i < oRef1.sections.length; i++) {
+      
+      if (oRef1.sections[i] <= oRef2.sections[i] && oRef1.toSections[i] >= oRef2.toSections[i]) {
+        return true;
+      } else if (oRef1.sections[i] > oRef2.sections[i] || oRef1.toSections[i] < oRef2.toSections[i]) {
+        return false;
+      }
+    }
+    return null;
+  },
+  sectionRef: function(ref) {
+    // Returns the section level ref for `ref` or null if no data is available
+    var oref = this.ref(ref);
+    return oref ? oref.sectionRef : null;
+  },
+  splitRangingRef: function(ref) {
+    // Returns an array of segment level refs which correspond to the ranging `ref`
+    // e.g. "Genesis 1:1-2" -> ["Genesis 1:1", "Genesis 1:2"]
+    var oRef     = Sefaria.parseRef(ref);
+    var isDepth1 = oRef.sections.length == 1;
+    var textData = Sefaria.text(ref);
+    if (textData) {
+        var refs = Sefaria.makeSegments(textData).map(segment => segment.ref); 
+        return refs;      
+    } else if (!isDepth1 && oRef.sections[oRef.sections.length - 2] !== oRef.toSections[oRef.sections.length - 2]) {
+      // TODO handle spanning refs when no text data is available to answer how many segments are in each section.
+      // e.g., in "Shabbat 2a:5-2b:8" what is the last segment of Shabbat 2a?
+      // For now, just return the split of the first non-spanning ref.
+      var newRef = Sefaria.util.clone(oRef);
+      newRef.toSections = newRef.sections;
+      return Sefaria.splitRangingRef(this.humanRef(this.makeRef(newRef)));        
+      
+    } else {
+      var refs  = [];
+      var start = oRef.sections[oRef.sections.length-1];
+      var end   = oRef.toSections[oRef.sections.length-1];
+      for (var i = start; i <= end; i++) {
+        newRef = Sefaria.util.clone(oRef);
+        newRef.sections[oRef.sections.length-1] = i;
+        newRef.toSections[oRef.sections.length-1] = i;
+        refs.push(this.humanRef(this.makeRef(newRef)));
+      }
+      return refs;
+    }
+  },
   titlesInText: function(text) {
     // Returns an array of the known book titles that appear in text.
     return Sefaria.books.filter(function(title) {
@@ -210,15 +260,15 @@ Sefaria = extend(Sefaria, {
   },
   _texts: {},  // cache for data from /api/texts/
   _refmap: {}, // Mapping of simple ref/context keys to the (potentially) versioned key for that ref in _texts.
-  text: function(ref, settings, cb) {
+  text: function(ref, settings = null, cb = null) {
     if (!ref || typeof ref == "object" || typeof ref == "undefined") { debugger; }
     settings = settings || {};
     settings = {
       commentary: settings.commentary || 0,
       context:    settings.context    || 0,
       pad:        settings.pad        || 0,
-      version:    settings.version    || null,
-      language:   settings.language   || null,
+      enVersion:  settings.enVersion  || null,
+      heVersion:  settings.heVersion  || null,
       wrapLinks:  ("wrapLinks" in settings) ? settings.wrapLinks : 1
     };
     var key = this._textKey(ref, settings);
@@ -231,7 +281,7 @@ Sefaria = extend(Sefaria, {
       return data;
     }
     //console.log("API Call for " + key);
-    this.textApi(ref,settings,cb);
+    this.textApi(ref, settings, cb);
     return null;
   },
   textApi: function(ref, settings, cb) {
@@ -240,8 +290,8 @@ Sefaria = extend(Sefaria, {
       commentary: settings.commentary || 0,
       context:    settings.context    || 0,
       pad:        settings.pad        || 0,
-      version:    settings.version    || null,
-      language:   settings.language   || null,
+      enVersion:  settings.enVersion  || null,
+      heVersion:  settings.heVersion  || null,
       //wrapLinks:  settings.wrapLinks  || 1
       wrapLinks: ("wrapLinks" in settings) ? settings.wrapLinks : 1
     };
@@ -261,6 +311,7 @@ Sefaria = extend(Sefaria, {
   },
   */
   _versions: {},
+  _translateVersions: {},
   versions: function(ref, cb) {
     // Returns a list of available text versions for `ref`.
     var versions = ref in this._versions ? this._versions[ref] : null;
@@ -270,10 +321,21 @@ Sefaria = extend(Sefaria, {
     }
     var url = Sefaria.apiHost + "/api/texts/versions/" + Sefaria.normRef(ref);
     this._api(url, function(data) {
+      for (let v of data) {
+        Sefaria._translateVersions[v.versionTitle] = {
+          en: v.versionTitle,
+          he: !!v.versionTitleInHebrew ? v.versionTitleInHebrew : v.versionTitle,
+          lang: v.language,
+        };
+      }
       if (cb) { cb(data); }
       Sefaria._versions[ref] = data;
     });
     return versions;
+  },
+  versionLanguage: function(versionTitle) {
+    // given a versionTitle, return the language of the version
+    return Sefaria._translateVersions[versionTitle]["lang"]
   },
   _textUrl: function(ref, settings) {
     // copy the parts of settings that are used as parameters, but not other
@@ -284,17 +346,18 @@ Sefaria = extend(Sefaria, {
       wrapLinks:  settings.wrapLinks
     });
     var url = "/api/texts/" + Sefaria.normRef(ref);
-    if (settings.language && settings.version) {
-        url += "/" + settings.language + "/" + settings.version.replace(" ","_");
-    }
-    return url + "?" + params;
+    if (settings.enVersion) { url += "&ven=" + settings.enVersion.replace(/ /g,"_"); }
+    if (settings.heVersion) { url += "&vhe=" + settings.heVersion.replace(/ /g,"_"); }
+    url += "&" + params;
+    return url.replace("&","?"); // make sure first param has a '?'
   },
   _textKey: function(ref, settings) {
     // Returns a string used as a key for the cache object of `ref` given `settings`.
     if (!ref) { debugger; }
     var key = ref.toLowerCase();
     if (settings) {
-      key = (settings.language && settings.version) ? key + "/" + settings.language + "/" + settings.version : key;
+      if (settings.enVersion) { key += "&ven=" + settings.enVersion; }
+      if (settings.heVersion) { key += "&vhe=" + settings.heVersion; }
       key = settings.context ? key + "|CONTEXT" : key;
     }
     return key;
@@ -330,38 +393,41 @@ Sefaria = extend(Sefaria, {
     var refkey           = this._refKey(data.ref, settings);
     this._refmap[refkey] = key;
 
-    var levelsUp = data.textDepth - data.sections.length;
-    if (levelsUp >= 1 && !data.isSpanning) { // Section level ref
+    var isSectionLevel = data.ref === data.sectionRef;
+    if (isSectionLevel && !data.isSpanning) {
+      // Save dat
       this._splitTextSection(data, settings);
-    } else if (settings.context && levelsUp <= 1) {  // Do we really want this to run on spanning section refs?
-      // Save a copy of the data at context level
-      var newData        = Sefaria.util.clone(data);
-      newData.ref        = data.sectionRef;
-      newData.heRef      = data.heSectionRef;
-      newData.sections   = data.sections.slice(0,-1);
-      newData.toSections = data.toSections.slice(0,-1);
-      var context_settings = (settings.language && settings.version) ? {
-          version: settings.version,
-          language: settings.language
-      }:{};
-      this._saveText(newData, context_settings);
     }
+
+    if (settings.context) { 
+      // Save a copy of the data at section level without context flag
+      var newData         = Sefaria.util.clone(data);
+      newData.ref         = data.sectionRef;
+      newData.heRef       = data.heSectionRef;
+      if (!isSectionLevel) {
+        newData.sections    = data.sections.slice(0,-1);
+        newData.toSections  = data.toSections.slice(0,-1);
+      }
+      const newSettings   = Sefaria.util.clone(settings);
+      newSettings.context = 0;
+      this._saveText(newData, newSettings);
+    }
+    
     if (data.isSpanning) {
-      var spanning_context_settings = (settings.language && settings.version) ? {
-          version: settings.version,
-          language: settings.language,
-          context: 1
-      }:{context: 1};
+      const spanningContextSettings = Sefaria.util.clone(settings);
+      spanningContextSettings.context = 1;
+
       for (var i = 0; i < data.spanningRefs.length; i++) {
         // For spanning refs, request each section ref to prime cache.
         // console.log("calling spanning prefetch " + data.spanningRefs[i])
-        Sefaria.text(data.spanningRefs[i], spanning_context_settings, function(data) {})
+        Sefaria.text(data.spanningRefs[i], spanningContextSettings, function(data) {})
       }
     }
   },
   _splitTextSection: function(data, settings) {
     // Takes data for a section level text and populates cache with segment levels.
-    // Don't do this for Refs above section level, like "Rashi on Genesis 1", since it's impossible to correctly derive next & prev.
+    // Don't do this for Refs above section level, like "Rashi on Genesis 1", 
+    // since it's impossible to correctly derive next & prev.
     settings = settings || {};
     var en = typeof data.text == "string" ? [data.text] : data.text;
     var he = typeof data.he == "string" ? [data.he] : data.he;
@@ -389,11 +455,10 @@ Sefaria = extend(Sefaria, {
         nextSegment: i+start == length ? data.next + delim + 1 : data.ref + delim + (i+start+1),
         prevSegment: i+start == 1      ? null : data.ref + delim + (i+start-1)
       });
+      const context_settings = {};
+      if (settings.enVersion) { context_settings.enVersion = settings.enVersion; }
+      if (settings.heVersion) { context_settings.heVersion = settings.heVersion; }
 
-      var context_settings = (settings.version && settings.language) ? {
-          version: settings.version,
-          language: settings.language
-      } : {};
       this._saveText(segment_data, context_settings);
 
       context_settings.context = 1;
@@ -441,12 +506,12 @@ Sefaria = extend(Sefaria, {
     } else {
       this._index[text] = index;
     }
-  }, 
+  },
   _shape: {}, // Cache for shape records
   shape:  function(title, cb) {
     if (title in this._shape) {
         return this._shape[title];
-    }          
+    }
     var url = Sefaria.apiHost + "/api/shape/" + title;
     return this._api(url, function(data) {
       if (cb) { cb(data); }
@@ -509,7 +574,7 @@ Sefaria = extend(Sefaria, {
           })};
         $.ajax({
           dataType: "json",
-          url: Sefaria._apiHost + "/api/texts/" + data.url,
+          url: Sefaria.apiHost + "/api/texts/" + data.url,
           data: d,
           type: "POST",
           // Clear cache with a sledgehammer.  May need more subtlety down the road.
@@ -578,37 +643,6 @@ Sefaria = extend(Sefaria, {
               callback(data);
           }.bind(this)
         });
-    }
-  },
-
-  sectionRef: function(ref) {
-    // Returns the section level ref for `ref` or null if no data is available
-    var oref = this.ref(ref);
-    return oref ? oref.sectionRef : null;
-  },
-  splitSpanningRef: function(ref) {
-    // Returns an array of non-spanning refs which correspond to the spanning `ref`
-    // e.g. "Genesis 1:1-2" -> ["Genesis 1:1", "Genesis 1:2"]
-    var oref = Sefaria.parseRef(ref);
-    var isDepth1 = oref.sections.length == 1;
-    if (!isDepth1 && oref.sections[oref.sections.length - 2] !== oref.toSections[oref.sections.length - 2]) {
-      // TODO handle ranging refs, which requires knowledge of the segment count of each included section
-      // i.e., in "Shabbat 2a:5-2b:8" what is the last segment of Shabbat 2a?
-      // For now, just return the first non-spanning ref.
-      var newRef = Sefaria.util.clone(oref);
-      newRef.toSections = newRef.sections;
-      return [this.humanRef(this.makeRef(newRef))];
-    } else {
-      var refs  = [];
-      var start = oref.sections[oref.sections.length-1];
-      var end   = oref.toSections[oref.sections.length-1];
-      for (var i = start; i <= end; i++) {
-        newRef = Sefaria.util.clone(oref);
-        newRef.sections[oref.sections.length-1] = i;
-        newRef.toSections[oref.sections.length-1] = i;
-        refs.push(this.humanRef(this.makeRef(newRef)));
-      }
-      return refs;
     }
   },
   _lexiconLookups: {},
@@ -696,7 +730,7 @@ Sefaria = extend(Sefaria, {
     var splitItems = {}; // Aggregate links by anchorRef
     for (var i = 0; i < data.length; i++) {
       var ref = data[i].anchorRef;
-      var refs = Sefaria.splitSpanningRef(ref);
+      var refs = Sefaria.splitRangingRef(ref);
       for (var j = 0; j < refs.length; j++) {
         ref = refs[j];
         if (ref in splitItems) {
@@ -883,7 +917,7 @@ Sefaria = extend(Sefaria, {
     // E.g. ("Rashi", "Genesis 3") -> "Rashi on Genesis 3"
     // Works by examining links available on baseRef, returns null if no links are in cache.
     if (commentator == "Abarbanel") {
-      return null; // This text is too giant, optimizing up to section level is too slow.
+      return null; // This text is too giant, optimizing up to section level is too slow. TODO: generalize.
     }
     var links = Sefaria.links(baseRef);
     links = Sefaria._filterLinks(links, [commentator]);
@@ -1318,7 +1352,9 @@ Sefaria = extend(Sefaria, {
     Sefaria.recentlyViewed = recent;
     var packedRecent = recent.map(Sefaria.packRecentItem);
     if (Sefaria._uid) {
-        $.post(Sefaria.apiHost + "/api/profile", {json: JSON.stringify({recentlyViewed: packedRecent})}, function(data) {} );
+        $.post(Sefaria.apiHost + "/api/profile",
+              {json: JSON.stringify({recentlyViewed: packedRecent})},
+              function(data) {} );
     } else {
       var cookie = INBROWSER ? $.cookie : Sefaria.util.cookie;
       packedRecent = packedRecent.slice(0, 6);
@@ -1327,29 +1363,38 @@ Sefaria = extend(Sefaria, {
   },
   packRecentItem: function(item) {
     // Returns an array which represents the object `item` with less overhead.
-    var packed = [item.ref, item.heRef];
-    if (item.version && item.versionLangauge) {
-      packed = packed.concat([item.version, item.versionLanguage]);
-    }
+    let packed = [
+      item.ref,
+      item.heRef,
+      item.lastVisited,
+      item.bookVisitCount,
+      item.currVersions.en,
+      item.currVersions.he
+    ];
     return packed;
   },
   unpackRecentItem: function(item) {
     // Returns an object which preprsents the array `item` with fields expanded
     var oRef = Sefaria.parseRef(item[0]);
+    item = item.pad(6, null)
     var unpacked = {
-      ref: item[0],
-      heRef: item[1],
-      book: oRef.index,
-      version: item.length > 2 ? item[2] : null,
-      versionLanguage: item.length > 3 ? item[3] : null
+      ref:            item[0],
+      heRef:          item[1],
+      book:           oRef.index,
+      lastVisited:    item[2],
+      bookVisitCount: item[3],
+      currVersions: {
+        en:           item[4],
+        he:           item[5],
+      },
     };
     return unpacked;
   },
-  recentRefForText: function(title) {
-    // Return the most recently visited ref for text `title` or null if `title` is not present in recentlyViewed.
+  recentItemForText: function(title) {
+    // Return the most recently visited item for text `title` or null if `title` is not present in recentlyViewed.
     for (var i = 0; i < Sefaria.recentlyViewed.length; i++) {
       if (Sefaria.recentlyViewed[i].book === title) {
-        return Sefaria.recentlyViewed[i].ref;
+        return Sefaria.recentlyViewed[i];
       }
     }
     return null;
@@ -1646,6 +1691,8 @@ Sefaria = extend(Sefaria, {
     };
     if (name in Sefaria._translateTerms) {
         return Sefaria._translateTerms[name]["he"];
+    } else if (name in Sefaria._translateVersions) {
+        return Sefaria._translateVersions[name]["he"];
     } else if (name in categories) {
         return  categories[name];
     } else if (Sefaria.index(name)) {
@@ -1657,7 +1704,6 @@ Sefaria = extend(Sefaria, {
     //this is here for now, we might want to move it somewhere else.
   _i18nInterfaceStrings: {
       "Sefaria": "ספריא",
-
       "Sefaria Group" : "קבוצות בספריא",
       "Sefaria Groups" : "קבוצות בספריא",
       "Sefaria Source Sheets":"דפי מקורות בספריא",
@@ -1677,7 +1723,7 @@ Sefaria = extend(Sefaria, {
       " & ": " | ",
       "My Source Sheets" : "דפי המקורות שלי",
       "Public Source Sheets":"דפי מקורות פומביים",
-      "Version History": "היסטוריית גרסה",
+      "History": "היסטוריה",
       "Digitized by Sefaria": 'הונגש ועובד לצורה דיגיטלית על ידי ספריא',
       "Public Domain": "רשיון בנחלת הכלל",
       "CC-BY": "רשיון CC-BY",
@@ -1688,7 +1734,9 @@ Sefaria = extend(Sefaria, {
       "Copyright: JPS, 1985": "זכויות שמורות ל-JPS, 1985",
 
       //sheets
+      "Start a New Source Sheet": "התחלת דף מקורות חדש",
       "Untitled Source Sheet" : "דף מקורות ללא שם",
+      "New Source Sheet" : "דף מקורות חדש",
       "Name New Sheet" : "כותרת לדף המקורות",
       "Sorry, there was a problem saving your note.": "סליחה, ארעה שגיאה בזמן השמירה",
       "Unfortunately, there was an error saving this note. Please try again or try reloading this page.": "ארעה שגיאה בזמן השמירה. אנא נסו שוב או טענו את הדף מחדש",
@@ -1699,11 +1747,80 @@ Sefaria = extend(Sefaria, {
       "Decrease font size": "הקטן גופן",
       "Increase font size": "הגדל גופן",
       "Search for Texts or Keywords Here": "חפשו ספרים או מלות מפתח כאן",
+      "this comment":"הערה זו",
+      "this source":"מקור זה",
+      "was added to": "נוסף ל-",
+      "View sheet": "מעבר ל-דף המקורות",
+      "Please select a source sheet.": "אנא בחר דף מקורות.",
+      "New Source Sheet Name:" : "כותרת דף מקורות חדש:",
+
+      //stuff moved from sheets.js
+      "Loading..." : "טוען...",
+        "Saving..." : "שומר...",
+        "Your Source Sheet has unsaved changes. Before leaving the page, click Save to keep your work.":
+        "קיימים שינויים בלתי שמורים בדף המקורות. השתמשו בכפתור השמירה לפני עזיבת הדף.",
+        "Your Source Sheet has unsaved changes. Please wait for the autosave to finish.":
+        "קיימים שינויים בלתי שמורים בדף המקורות. אנא חכו שפעולת השמירה האוטומטית תסתיים.",
+        "Are you sure you want to delete this sheet? There is no way to undo this action.":
+        "מחיקת דף מקורות היא פעולה בלתי הפיכה. האם אתם בטוחים?",
+        "Unfortunately an error has occurred. If you've recently edited text on this page, you may want to copy your recent work out of this page and click reload to ensure your work is properly saved.":
+        "לצערנו ארעה שגיאה. אם ערכתם לאחרונה את הדף הנוכחי, ייתכן ותרצו להעתיק את השינויים למקור חיצוני ואז לטעון מחדש את הדף כדי לוודא שהשינויים נשמרו.",
+        //"Untitled Source Sheet": "דף מקורות ללא שם",
+        "Like": "אהבתי",
+        "Unlike": "ביטול סימון אהבתי",
+        "No one has liked this sheet yet. Will you be the first?":
+        "אף אחד עדיין לא אהב את דף המקורות הזה. תרצו להיות ראשונים?",
+        "1 Person Likes This Sheet": "אדם אחד אהב את דף המקורות",
+        " People Like This Sheet": " אנשים אהבו את דף המקורות",
+        "Tags Saved": "תוית נשמרה",
+        "Assignments allow you to create a template that your students can fill out on their own.":
+        "מטלות מאפשרות ליצור דף בסיס שתלמידים יכולים להשתמש בו כדי למלא וליצור את העבודה שלהם.",
+        "Students can complete their assignment at this link:":
+        "תלמידים יכולים לבצע את המטלה שלהם בקישור הבא:",
+        "Reset text of Hebrew, English or both?": "האם לאפס את התוכן של המקור בעברית, אנגלית או הכל?",
+        "Any edits you have made to this source will be lost": "כל השינויים שנעשו במקור זה יאבדו",
+        "Looking up Connections..." : "מחפש קישורים...",
+        "No connections known for this source.": "למקור הזה אין קשרים ידועים",
+        "Edit Source title" : "עריכת כותרת",
+        "Add Source Below" : "הוספת מקור מתחת",
+        "Add Comment": "הוספת תגובה",
+        "Add All Connections": "הוספת כל המקורות הקשורים",
+        "Reset Source Text": "איפוס טקסט מקור",
+        "Copy to Sheet" : "העתקה לדף מקורות",
+        "Change Source Layout/Language": "שינוי שפת/עימוד מקור",
+        "Move Source Up": "הזזת מקור מעלה",
+        "Move Source Down": "הזזת מקור מטה",
+        "Outdent Source": "הזחת מקור החוצה",
+        "Indent Source": "הזחת מקור פנימה",
+        "Remove": "הסרת מקור",
+        "Create New" : "יצירת חדש",
+        "Close" : "סגירה",
 
       //reader panel
       "Search" : "חיפוש",
+      //"Search for Texts or Keywords Here": "חיפוש טקסט או מילות מפתח",
+      "Views": "צפיות",
       "Search for Texts or Keywords Here": "חיפוש טקסט או מילות מפתח",
-      "Views": "צפיות"
+      "Views": "צפיות",
+      "Versions": "גרסאות",
+      "Version Open": "גרסה פתוחה",
+      "About": "אודות",
+      "Current": "נוכחית",
+      "Select": "החלפת גרסה",
+
+      //languages
+      "English": "אנגלית",
+      "Hebrew": "עברית",
+      "Yiddish": "יידיש",
+      "Finnish": "פינית",
+      "Portuguese": "פורטוגזית",
+      "Spanish": "ספרדית",
+      "French": "צרפתית",
+      "German": "גרמנית",
+      "Arabic": "ערבית",
+      "Italian": "איטלקית",
+      "Polish": "פולנית",
+      "Russian": "רוסית",
   },
   _v: function(inputVar){
     if(Sefaria.interfaceLang != "english"){
@@ -1734,6 +1851,8 @@ Sefaria = extend(Sefaria, {
         var hterm;
         if(inputStr in Sefaria._i18nInterfaceStrings) {
             return Sefaria._i18nInterfaceStrings[inputStr];
+        }else if(inputStr.toLowerCase() in Sefaria._i18nInterfaceStrings){
+            return Sefaria._i18nInterfaceStrings[inputStr.toLowerCase()];
         }else if((hterm = Sefaria.hebrewTerm(inputStr)) != inputStr){
             return hterm;
         }else{
@@ -1746,7 +1865,7 @@ Sefaria = extend(Sefaria, {
         }
     }else{
         return inputStr;
-	}
+	  }
   },
   _makeBooksDict: function() {
     // Transform books array into a dictionary for quick lookup
@@ -1786,14 +1905,25 @@ Sefaria.unpackDataFromProps = function(props) {
   for (var i = 0; i < initialPanels.length; i++) {
       var panel = initialPanels[i];
       if (panel.text) {
-        var settings = {context: 1, version: panel.version, language: panel.versionLanguage};
+        var settings = {context: 1, enVersion: panel.enVersion, heVersion: panel.heVersion};
         Sefaria._saveText(panel.text, settings);
       }
       if (panel.indexDetails) {
         Sefaria._indexDetails[panel.bookRef] = panel.indexDetails;
       }
-      if (panel.versions) {
-        Sefaria._versions[panel.bookRef] = panel.versions;
+      // versions and bookRef are located in different places, depending on if you're in book TOC or reader
+      const panelVersions = !!panel.versions ? panel.versions : !!panel.text ? panel.text.versions : null;
+      const panelBook     = !!panel.versions ? panel.versions : !!panel.text ? panel.text.versions : null;
+      if (panelVersions && panelBook) {
+        Sefaria._versions[panelBook] = panelVersions;
+        for (let i = 0; i < panelVersions.length; i++) {
+          const v = panelVersions[i];
+          Sefaria._translateVersions[v.versionTitle] = {
+            en: v.versionTitle,
+            he: !!v.versionTitleInHebrew ? v.versionTitleInHebrew : v.versionTitle,
+            lang: v.language,
+          };
+        }
       }
   }
   if (props.userSheets) {
@@ -1826,7 +1956,7 @@ Sefaria.unpackDataFromProps = function(props) {
   if (props.topicList) {
     Sefaria._topicList = props.topicList;
   }
-  Sefaria.util._initialPath = props.initialPath;
+  Sefaria.util._initialPath = props.initialPath ? props.initialPath : "/";
   Sefaria.interfaceLang = props.interfaceLang;
 };
 

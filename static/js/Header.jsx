@@ -85,7 +85,7 @@ class Header extends Component {
     if (this.props.panelsOpen == 0) {
       var recentlyViewed = Sefaria.recentlyViewed;
       if (recentlyViewed && recentlyViewed.length) {
-        this.handleRefClick(recentlyViewed[0].ref, recentlyViewed[0].version, recentlyViewed[0].versionLanguage);
+        this.handleRefClick(recentlyViewed[0].ref, recentlyViewed[0].currVersions);
       }
     }
     this.props.setCentralState({menuOpen: null});
@@ -200,12 +200,12 @@ class Header extends Component {
     $(".wrapper").remove();
     $("#footer").remove();
   }
-  handleRefClick(ref, version, versionLanguage) {
+  handleRefClick(ref, currVersions) {
     if (this.props.headerMode) {
       window.location.assign("/" + ref);
       return;
     }
-    this.props.onRefClick(ref, version, versionLanguage);
+    this.props.onRefClick(ref, currVersions);
   }
   handleSearchKeyUp(event) {
     if (event.keyCode === 13) {
@@ -246,7 +246,9 @@ class Header extends Component {
                           setUnreadNotificationsCount={this.props.setUnreadNotificationsCount}
                           handleInAppLinkClick={this.props.handleInAppLinkClick}
                           hideNavHeader={true}
-                          analyticsInitialized={this.props.analyticsInitialized}/>) : null;
+                          analyticsInitialized={this.props.analyticsInitialized}
+                          getLicenseMap={this.props.getLicenseMap}
+                          translateISOLanguageCode={this.props.translateISOLanguageCode}/>) : null;
 
 
     var notificationCount = Sefaria.notificationCount || 0;
@@ -260,11 +262,11 @@ class Header extends Component {
                             <a href="/notifications" aria-label="See New Notifications" className={notifcationsClasses} onClick={this.showNotifications}>{notificationCount}</a>
                          </div>);
     var loggedOutLinks = (<div className="accountLinks">
-                           <a className="login" href={"/register" + nextParam}>
+                           <a className="login signupLink" href={"/register" + nextParam}>
                              <span className="int-en">Sign up</span>
                              <span className="int-he">הרשם</span>
                            </a>
-                           <a className="login" href={"/login" + nextParam}>
+                           <a className="login loginLink" href={"/login" + nextParam}>
                              <span className="int-en">Log in</span>
                              <span className="int-he">התחבר</span>
                            </a>
@@ -282,6 +284,7 @@ class Header extends Component {
                              onKeyUp={this.handleSearchKeyUp}
                              onFocus={this.showVirtualKeyboardIcon.bind(this, true)}
                              onBlur={this.showVirtualKeyboardIcon.bind(this, false)}
+                             maxLength={75}
                       title={Sefaria._("Search for Texts or Keywords Here")}/>
                     </div>
                 </div>
@@ -322,6 +325,7 @@ Header.propTypes = {
   headerMesssage:              PropTypes.string,
   panelsOpen:                  PropTypes.number,
   analyticsInitialized:        PropTypes.bool,
+  getLicenseMap:               PropTypes.func.isRequired,
 };
 
 

@@ -136,10 +136,13 @@ $(function() {
 		sjs.textBrowser.show({
 			callback: function(ref) {
 				if (!ref) { return; }
+				var $target = $("#addInterface").prev(".sheetItem");
 				var q = parseRef(ref);
 				$("#closeAddSource").trigger("click");
-				addSource(q);
+				addSource(q, undefined, "insert", $target);
 				sjs.track.sheets("Add Source", ref);
+        cleanupActiveSource($target);
+
 			}
 		})
 	});
@@ -621,6 +624,12 @@ $(function() {
 		CKEDITOR.config.extraAllowedContent = 'small; span(segment, gemarra-regular, gemarra-italic, it-text); div(oldComment)';
 		CKEDITOR.config.removePlugins = 'magicline,resize';
 		CKEDITOR.config.sharedSpaces = {top: 'ckeTopMenu' };
+		CKEDITOR.config.colorButton_colors =
+			'1ABC9C,2ECC71,3498DB,9B59B6,4E5F70,F1C40F,' +
+			'16A085,27AE60,2980B9,8E44AD,2C3E50,F39C12,' +
+			'bd9eb6,afcab8,e5dabd,bd9796,a4b7de,e8dde5,' +
+			'E67E22,E74C3C,ECF0F1,95A5A6,DDD,FFF,' +
+			'D35400,C0392B,BDC3C7,7F8C8D,999,000';
 		CKEDITOR.on('instanceReady', function(ev) {
 		  // replace &nbsp; from pasted text
 		  ev.editor.on('paste', function(evt) {
@@ -906,7 +915,7 @@ $(function() {
     		sjs.track.sheets("Like", sjs.current.id);
 		}
 	});
-	$("#likeInfo").click(function(e) {
+	$(".likes").click(function(e) {
 		$.getJSON("/api/sheets/" + sjs.current.id + "/likers", function(data) {
 			if (data.likers.length == 0) { 
 				var title = _("No one has liked this sheet yet. Will you be the first?");
@@ -932,7 +941,7 @@ $(function() {
 		buildSheet(sjs.current);
 		afterAction();
 	} else {
-		(sjs.interfaceLang == "en") ? $("#title").html("New Source Sheet") : $("#title").html("דף מקורות חדש") ;
+		$("#title").html(Sefaria._("New Source Sheet"));
 		$("#bilingual, #enLeft, #sideBySide").trigger("click");
 		$("#viewButtons").show();
 		$("#empty").show();
@@ -1020,7 +1029,6 @@ $(function() {
               "<div class='moveSourceRight' title='"+_('Indent Source')+"'><img src='"+indent_img+"'></div>" +
               "<div class='moveSourceLeft' title='"+_('Outdent Source')+"'><img src='"+outdent_img+"'></div>" +
             "</div>";
-
   var viewerControls = "<div id='sourceControls' class='sideControls'>" +
               "<div class='copySource' title='"+_('Copy to Sheet')+"'><img src='/static/img/copy.png'></div>" +
             "</div>";
@@ -1335,6 +1343,10 @@ $(function() {
       if ($(e.target).closest("#addInterface").length) return
       $("#connectionButton").hide();
 
+      if ($("#textBrowser").is(":visible")) {
+      	return
+			};
+
       cleanupActiveSource(e.target);
     });
 
@@ -1432,7 +1444,6 @@ $(function() {
       //clicked on a sheet item
       if ($(e.target).hasClass("inlineAddButtonIcon")) return;
       if (!$(".readerApp").hasClass("multiPanel")) return; //prevent active source on mobile
-
       cleanupActiveSource(e.target);
       $(this).addClass("activeSource");
       $("#sheetLayoutLanguageMenuItems").hide();
@@ -1596,7 +1607,15 @@ $(function() {
     	curTagsHTML = curTagsHTML + '<a class="button" role="button" href="/sheets/tags/'+sjs.sheetTagger.tags()[i]+'">'+sjs.sheetTagger.tags()[i]+'</a>';
     }
 		$("#sheetTags").html(curTagsHTML);
-		autoSave();
+
+    //save whole sheet if possible, otherwise, just save sheet tags:
+    if (sjs.can_save) {
+			autoSave();
+		}
+    else {
+    	var tags = JSON.stringify(sjs.sheetTagger.tags());
+    	$.post("/api/sheets/" + sjs.current.id + "/tags", {"tags": tags});
+    }
 	});
 
 	$("#shareWithOthers").on("change keyup keydown paste cut", "#sheetSummaryInput", function (){
@@ -3303,14 +3322,14 @@ function copyToSheet(source) {
 	
 	// Get sheet list if necessary
 	if (!$("#sheetList .sheet").length) {
-		$("#sheetList").html("Loading...");
+		$("#sheetList").html(Sefaria._("Loading..."));
 		$.getJSON("/api/sheets/user/" + sjs._uid, function(data) {
 			$("#sheetList").empty();
 			var sheets = "";
-			sheets += '<li class="sheet new"><i>Start a New Source Sheet</i></li>';
+			sheets += '<li class="sheet new"><i>'+Sefaria._("Start a New Source Sheet")+'</i></li>';
 			for (i = 0; i < data.sheets.length; i++) {
 				sheets += '<li class="sheet" data-id="'+data.sheets[i].id+'">'+
-					(data.sheets[i].title === null ? "Untitled Source Sheet": data.sheets[i].title.stripHtml()) +
+					(data.sheets[i].title === null ? Sefaria._("Untitled Source Sheet"): data.sheets[i].title.stripHtml()) +
 					"</li>";
 			}
 			$("#sheetList").html(sheets);
@@ -3323,7 +3342,7 @@ function copyToSheet(source) {
 		})			
 	}
 	var name = source.ref ? source.ref :
-				(source.comment ? "this comment" : "this source"); 
+				(source.comment ? Sefaria._("this comment") : Sefaria._("this source"));
 
 	$("#addToSheetModal .sourceName").text(name);
 
@@ -3345,12 +3364,12 @@ $("#addToSheetModal .ok").click(function(){
 	if (sjs.flags.saving === true) { return false; }
 	var selected = $(".sheet.selected");
 	if (!selected.length) {
-		sjs.alert.message("Please select a source sheet.");
+		sjs.alert.message(Sefaria._("Please select a source sheet."));
 		return false;
 	}
 
 	if (selected.hasClass("new")) {
-		var title = prompt("New Source Sheet Name:", "");
+		var title = prompt(Sefaria._("New Source Sheet Name:"), "");
 		var sheet = {
 			title: title,
 			options: {numbered: 0},
@@ -3382,9 +3401,9 @@ $("#addToSheetModal .ok").click(function(){
 			sjs.alert.message(data.error)
 		} else {
 			var name = data.ref ? data.ref : 
-				(data.comment ? "This comment" : "This source"); 
-			sjs.alert.message(name + ' was added to "' + title + '".<br><br>' + 
-										'<a target="_blank" href="/sheets/' + data.id + '">View sheet.</a>');
+				(data.comment ? Sefaria._("This comment") : Sefaria._("This source"));
+			//sjs.alert.message(`${name} ${Sefaria._("was added to")} "${title}".<br><br><a target="_blank" href="/sheets/${data.id}">${Sefaria._("View sheet")}</a>`);
+			sjs.alert.message(name + " " + Sefaria._("was added to") + " \"" + title + "\".<br><br><a target=\"_blank\" href=\"/sheets/" + data.id + "\">" + Sefaria._("View sheet") + "</a>");
 			sjs.track.sheets("Source Copied");
 		}
 	}
@@ -3838,57 +3857,5 @@ function restoreSelection(range) {
 		}
 }
 
-$.extend(sjs, {
-	i18nInterfaceStrings: {
-		"Loading..." : "טוען...",
-		"Saving..." : "שומר...",
-		"Your Source Sheet has unsaved changes. Before leaving the page, click Save to keep your work.":
-			"קיימים שינויים בלתי שמורים בדף המקורות. השתמשו בכפתור השמירה לפני עזיבת הדף.",
-		"Your Source Sheet has unsaved changes. Please wait for the autosave to finish.":
-			"קיימים שינויים בלתי שמורים בדף המקורות. אנא חכו שפעולת השמירה האוטומטית תסתיים.",
-		"Are you sure you want to delete this sheet? There is no way to undo this action.":
-			"מחיקת דף מקורות היא פעולה בלתי הפיכה. האם אתם בטוחים?",
-		"Unfortunately an error has occurred. If you've recently edited text on this page, you may want to copy your recent work out of this page and click reload to ensure your work is properly saved.":
-			"לצערנו ארעה שגיאה. אם ערכתם לאחרונה את הדף הנוכחי, ייתכן ותרצו להעתיק את השינויים למקור חיצוני ואז לטעון מחדש את הדף כדי לוודא שהשינויים נשמרו.",
-		"Untitled Source Sheet": "דף מקורות ללא שם",
-		"Like": "אהבתי",
-		"Unlike": "ביטול סימון אהבתי",
-		"No one has liked this sheet yet. Will you be the first?":
-			"אף אחד עדיין לא אהב את דף המקורות הזה. תרצו להיות ראשונים?",
-		"1 Person Likes This Sheet": "אדם אחד אהב את דף המקורות",
-		" People Like This Sheet": " אנשים אהבו את דף המקורות",
-		"Tags Saved": "תוית נשמרה",
-		"Assignments allow you to create a template that your students can fill out on their own.":
-			"מטלות מאפשרות ליצור דף בסיס שתלמידים יכולים להשתמש בו כדי למלא וליצור את העבודה שלהם.",
-		"Students can complete their assignment at this link:":
-			"תלמידים יכולים לבצע את המטלה שלהם בקישור הבא:",
-		"Reset text of Hebrew, English or both?": "האם לאפס את התוכן של המקור בעברית, אנגלית או הכל?",
-		"Any edits you have made to this source will be lost": "כל השינויים שנעשו במקור זה יאבדו",
-		"Looking up Connections..." : "מחפש קישורים...",
-		"No connections known for this source.": "למקור הזה אין קשרים ידועים",
-		"Edit Source title" : "עריכת כותרת",
-		"Add Source Below" : "הוספת מקור מתחת",
-		"Add Comment": "הוספת תגובה",
-		"Add All Connections": "הוספת כל המקורות הקשורים",
-		"Reset Source Text": "איפוס טקסט מקור",
-		"Copy to Sheet" : "העתקה לדף מקורות",
-		"Change Source Layout/Language": "שינוי שפת/עימוד מקור",
-		"Move Source Up": "הזזת מקור מעלה",
-		"Move Source Down": "הזזת מקור מטה",
-		"Outdent Source": "הזחת מקור החוצה",
-		"Indent Source": "הזחת מקור פנימה",
-		"Remove": "הסרת מקור",
-		"Create New" : "יצירת חדש"
 
-	}
-});
-
-function translateInterfaceString(key, defaultValue){
-	defaultValue = typeof defaultValue === 'undefined' ? null : defaultValue;
-	if(sjs.interfaceLang != "en" && key in sjs.i18nInterfaceStrings){
-		return sjs.i18nInterfaceStrings[key];
-	}else{
-		return (defaultValue ? defaultValue : key);
-	}
-}
-var _ = translateInterfaceString;
+var _ = Sefaria._;

@@ -14,11 +14,11 @@
     {
       "@context": "http://schema.org",
       "@type": "WebSite",
-      "name": "Sefaria",
-      "url": "https://www.sefaria.org",
+      "name": {% trans "Sefaria" %},
+      "url": "https://{{ request.META.HTTP_HOST }}",
       "potentialAction": {
         "@type": "SearchAction",
-        "target": "https://www.sefaria.org/search?q={search_term_string}",
+        "target": "https://{{ request.META.HTTP_HOST }}/search?q={search_term_string}",
         "query-input": "required name=search_term_string"
       }
     }
@@ -28,9 +28,9 @@
     {
       "@context": "http://schema.org",
       "@type": "Organization",
-      "name": "Sefaria",
-      "url": "https://www.sefaria.org",
-      "logo": "https://www.sefaria.org/static/img/Sefaria_icon_360_square.jpg",
+      "name": {% trans "Sefaria" %},
+      "url": "https://{{ request.META.HTTP_HOST }}",
+      "logo": "https://{{ request.META.HTTP_HOST }}/static/img/Sefaria_icon_360_square.jpg",
       "sameAs": [
         "https://www.facebook.com/sefaria.org/",
         "https://twitter.com/sefariaproject",
@@ -60,7 +60,7 @@
             </h1>
             <div class="sub">
                 <span class="int-en">Explore 3,000 years of Jewish texts in Hebrew and English translation. <a href="/about">Learn More &rsaquo;</a></span>
-                <span class="int-he">3,000 שנה של טקסטים יהודיים בעברית ובתרגום לאנגלית פרושים לפניך. <a href="/about">קרא עוד&rsaquo;</a></span></span>
+                <span class="int-he">3,000 שנה של טקסטים יהודיים בעברית ובתרגום לאנגלית פרושים לפניך. <a href="/about">קרא עוד&rsaquo;</a></span>
             </div>
             <a href="/Genesis.1" class="inAppLink">
                 <div class="button white control-elem">

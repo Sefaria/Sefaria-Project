@@ -23,6 +23,7 @@ from django.template.loader import render_to_string
 from django.shortcuts import render_to_response, get_object_or_404, redirect
 from django.http import Http404, HttpResponse
 from django.contrib.auth.decorators import login_required
+from django.contrib.admin.views.decorators import staff_member_required
 from django.utils.http import urlquote
 from django.utils.encoding import iri_to_uri
 from django.utils.translation import ugettext as _
@@ -48,8 +49,9 @@ from sefaria.utils.util import list_depth, text_preview
 from sefaria.utils.hebrew import hebrew_plural, hebrew_term, encode_hebrew_numeral, encode_hebrew_daf, is_hebrew, strip_cantillation, has_cantillation
 from sefaria.utils.talmud import section_to_daf, daf_to_section
 from sefaria.datatype.jagged_array import JaggedArray
+from sefaria.utils.calendars import get_todays_calendar_items
 import sefaria.utils.calendars
-from sefaria.utils.util import short_to_long_lang_code
+from sefaria.utils.util import short_to_long_lang_code, titlecase
 import sefaria.tracker as tracker
 from sefaria.system.cache import django_cache_decorator
 from sefaria.settings import USE_VARNISH, USE_NODE, NODE_HOST, DOMAIN_LANGUAGES
@@ -68,12 +70,10 @@ library.build_ref_auto_completer()
 #    #    #
 
 @ensure_csrf_cookie
-def reader(request, tref, lang=None, version=None):
+def reader(request, tref):
     # Redirect to standard URLs
-    def reader_redirect(uref, lang, version):
+    def reader_redirect(uref):
         url = "/" + uref
-        if lang and version:
-            url += "/%s/%s" % (lang, version)
 
         response = redirect(iri_to_uri(url), permanent=True)
         params = request.GET.urlencode()
@@ -85,13 +85,13 @@ def reader(request, tref, lang=None, version=None):
     except PartialRefInputError as e:
         logger.warning(u'{}'.format(e))
         matched_ref = Ref(e.matched_part)
-        return reader_redirect(matched_ref.url(), lang, version)
+        return reader_redirect(matched_ref.url())
     except InputError:
         raise Http404
 
     uref = oref.url()
     if uref and tref != uref:
-        return reader_redirect(uref, lang, version)
+        return reader_redirect(uref)
 
     # Return Text TOC if this is a bare text title
     if oref.sections == [] and (oref.index.title == oref.normal() or getattr(oref.index_node, "depth", 0) > 1):
@@ -101,7 +101,7 @@ def reader(request, tref, lang=None, version=None):
         return text_toc(request, oref)
 
     if not request.COOKIES.get('s1'):
-        return s2(request, ref=tref, lang=lang, version=version)
+        return s2(request, ref=tref)
 
 
     # TODO Everything below is S1 and will be removed
@@ -110,9 +110,18 @@ def reader(request, tref, lang=None, version=None):
     oref = oref.padded_ref()
     if oref.is_spanning():
         first_oref = oref.first_spanned_ref()
-        return reader_redirect(first_oref.url(), lang, version)
+        return reader_redirect(first_oref.url())
 
-    version = version.replace("_", " ") if version else None
+    version = request.GET.get("ven", None)
+    lang = None
+    if version:
+        version = version.replace("_", " ")
+        lang = "en"
+    else:
+        version = request.GET.get("vhe", None)
+        if version:
+            version = version.replace("_", " ")
+            lang = "he"
     try:
         text = TextFamily(oref, lang=lang, version=version, commentary=False, alts=True).contents()
     except NoVersionFoundError:
@@ -186,6 +195,14 @@ def reader(request, tref, lang=None, version=None):
 
     return render_to_response('reader.html', template_vars, RequestContext(request))
 
+@ensure_csrf_cookie
+def old_versions_redirect(request, tref, lang, version):
+    url = "/{}?v{}={}".format(tref, lang, version)
+    response = redirect(iri_to_uri(url), permanent=True)
+    params = request.GET.urlencode()
+    response['Location'] += "&{}".format(params) if params else ""
+    return response
+
 
 def esi_account_box(request):
     return render_to_response('elements/accountBox.html', {}, RequestContext(request))
@@ -249,7 +266,7 @@ def render_react_component(component, props):
             return render_to_string("elements/loading.html")
 
 
-def make_panel_dict(oref, version, language, filter, mode, **kwargs):
+def make_panel_dict(oref, versionEn, versionHe, filter, versionFilter, mode, **kwargs):
     """
     Returns a dictionary corresponding to the React panel state,
     additionally setting `text` field with textual content.
@@ -269,27 +286,24 @@ def make_panel_dict(oref, version, language, filter, mode, **kwargs):
         panel = {
             "mode": mode,
             "ref": oref.normal(),
-            "refs": [oref.normal()],
-            "version": version,
-            "versionLanguage": language,
+            "refs": [oref.normal()] if not oref.is_spanning() else [r.normal() for r in oref.split_spanning_ref()],
+            "currVersions": {
+                "en": versionEn,
+                "he": versionHe,
+            },
             "filter": filter,
+            "versionFilter": versionFilter,
         }
         if filter and len(filter):
-            if filter == ["Sheets"]:
-                panel["connectionsMode"] = "Sheets"
-            elif filter == ["Notes"]:
-                panel["connectionsMode"] = "Notes"
+            if filter[0] in ("Sheets", "Notes", "About", "Versions", "Version Open"):
+                panel["connectionsMode"] = filter[0]
             else:
                 panel["connectionsMode"] = "TextList"
         if panelDisplayLanguage:
             panel["settings"] = {"language" : short_to_long_lang_code(panelDisplayLanguage)}
-            # so the connections panel doesnt act on the version NOT currently on display
-            if mode == "Connections" and panelDisplayLanguage != language:
-                panel["version"] = None
-                panel["versionLanguage"] = None
         if mode != "Connections":
             try:
-                text_family = TextFamily(oref, version=panel["version"], lang=panel["versionLanguage"], commentary=False,
+                text_family = TextFamily(oref, version=panel["currVersions"]["en"], lang="en", version2=panel["currVersions"]["he"], lang2="he", commentary=False,
                                   context=True, pad=True, alts=True, wrapLinks=False).contents()
             except NoVersionFoundError:
                 text_family = {}
@@ -301,7 +315,7 @@ def make_panel_dict(oref, version, language, filter, mode, **kwargs):
             if oref.index.categories == [u"Tanakh", u"Torah"]:
                 panel["indexDetails"] = oref.index.contents(v2=True) # Included for Torah Parashah titles rendered in text
 
-            if oref.is_segment_level():
+            if oref.is_segment_level(): # Note: a ranging or spanning ref like "Genesis 1:2-3:4" is considered segment level
                 panel["highlightedRefs"] = [subref.normal() for subref in oref.range_list()]
 
     return panel
@@ -319,7 +333,7 @@ def make_search_panel_dict(query, **kwargs):
     return panel
 
 
-def make_panel_dicts(oref, version, language, filter, multi_panel, **kwargs):
+def make_panel_dicts(oref, versionEn, versionHe, filter, versionFilter, multi_panel, **kwargs):
     """
     Returns an array of panel dictionaries.
     Depending on whether `multi_panel` is True, connections set in `filter` are displayed in either 1 or 2 panels.
@@ -327,12 +341,12 @@ def make_panel_dicts(oref, version, language, filter, multi_panel, **kwargs):
     panels = []
     # filter may have value [], meaning "all".  Therefore we test filter with "is not None".
     if filter is not None and multi_panel:
-        panels += [make_panel_dict(oref, version, language, filter, "Text", **kwargs)]
-        panels += [make_panel_dict(oref, version, language, filter, "Connections", **kwargs)]
+        panels += [make_panel_dict(oref, versionEn, versionHe, filter, versionFilter, "Text", **kwargs)]
+        panels += [make_panel_dict(oref, versionEn, versionHe, filter, versionFilter, "Connections", **kwargs)]
     elif filter is not None and not multi_panel:
-        panels += [make_panel_dict(oref, version, language, filter, "TextAndConnections", **kwargs)]
+        panels += [make_panel_dict(oref, versionEn, versionHe, filter, versionFilter, "TextAndConnections", **kwargs)]
     else:
-        panels += [make_panel_dict(oref, version, language, filter, "Text", **kwargs)]
+        panels += [make_panel_dict(oref, versionEn, versionHe, filter, versionFilter, "Text", **kwargs)]
 
     return panels
 
@@ -374,15 +388,25 @@ def s2(request, ref, version=None, lang=None):
 
     panels = []
     multi_panel = props["multiPanel"]
-    # Handle first panel which has a different signature in params & URL (`version` and `lang` if set come from URL).
-    version = version.replace(u"_", " ") if version else version
+    # Handle first panel which has a different signature in params
+    versionEn = request.GET.get("ven", None)
+    if versionEn:
+        versionEn = versionEn.replace("_", " ")
+    versionHe = request.GET.get("vhe", None)
+    if versionHe:
+        versionHe = versionHe.replace("_", " ")
+
     filter = request.GET.get("with").replace("_", " ").split("+") if request.GET.get("with") else None
     filter = [] if filter == ["all"] else filter
 
-    if version and not Version().load({"versionTitle": version, "language": lang}):
+    versionFilter = [request.GET.get("vside").replace("_", " ")] if request.GET.get("vside") else []
+
+    if versionEn and not Version().load({"versionTitle": versionEn, "language": "en"}):
+        raise Http404
+    if versionHe and not Version().load({"versionTitle": versionHe, "language": "he"}):
         raise Http404
 
-    panels += make_panel_dicts(oref, version, lang, filter, multi_panel, **{"panelDisplayLanguage": request.GET.get("lang", props["initialSettings"]["language"])})
+    panels += make_panel_dicts(oref, versionEn, versionHe, filter, versionFilter, multi_panel, **{"panelDisplayLanguage": request.GET.get("lang", props["initialSettings"]["language"])})
 
     # Handle any panels after 1 which are identified with params like `p2`, `v2`, `l2`.
     i = 2
@@ -403,18 +427,28 @@ def s2(request, ref, version=None, lang=None):
                 continue  # Stop processing all panels?
                 # raise Http404
 
-            version  = request.GET.get("v{}".format(i)).replace(u"_", u" ") if request.GET.get("v{}".format(i)) else None
-            language = request.GET.get("l{}".format(i))
+            versionEn  = request.GET.get("ven{}".format(i)).replace(u"_", u" ") if request.GET.get("ven{}".format(i)) else None
+            versionHe  = request.GET.get("vhe{}".format(i)).replace(u"_", u" ") if request.GET.get("vhe{}".format(i)) else None
+            if not versionEn and not versionHe:
+                # potential link using old version format
+                language = request.GET.get("l{}".format(i))
+                if language == "en":
+                    versionEn = request.GET.get("v{}".format(i)).replace(u"_", u" ") if request.GET.get("v{}".format(i)) else None
+                else: # he
+                    versionHe = request.GET.get("v{}".format(i)).replace(u"_", u" ") if request.GET.get("v{}".format(i)) else None
+
             filter   = request.GET.get("w{}".format(i)).replace("_", " ").split("+") if request.GET.get("w{}".format(i)) else None
             filter   = [] if filter == ["all"] else filter
+            versionFilter = [request.GET.get("vside").replace("_", " ")] if request.GET.get("vside") else []
             panelDisplayLanguage = request.GET.get("lang{}".format(i), props["initialSettings"]["language"])
 
-            if version and not Version().load({"versionTitle": version, "language": language}):
+            if (versionEn and not Version().load({"versionTitle": versionEn, "language": "en"})) or \
+                (versionHe and not Version().load({"versionTitle": versionHe, "language": "he"})):
                 i += 1
                 continue  # Stop processing all panels?
                 # raise Http404
 
-            panels += make_panel_dicts(oref, version, language, filter, multi_panel, **{"panelDisplayLanguage": panelDisplayLanguage})
+            panels += make_panel_dicts(oref, versionEn, versionHe, filter, versionFilter, multi_panel, **{"panelDisplayLanguage": panelDisplayLanguage})
         i += 1
 
     props.update({
@@ -466,7 +500,7 @@ def s2(request, ref, version=None, lang=None):
         "html":           html,
         "title":          title,
         "desc":           desc,
-        "ldBreadcrumbs":  ld_cat_crumbs(oref=primary_ref)
+        "ldBreadcrumbs":  ld_cat_crumbs(request, oref=primary_ref)
     }, RequestContext(request))
 
 
@@ -500,7 +534,7 @@ def s2_texts_category(request, cats):
         "html":             html,
         "title":            title,
         "desc":             desc,
-        "ldBreadcrumbs":    ld_cat_crumbs(cats)
+        "ldBreadcrumbs":    ld_cat_crumbs(request, cats)
     }, RequestContext(request))
 
 
@@ -575,6 +609,12 @@ def s2_group_sheets(request, group, authenticated):
         "title": group[0].name + " | " + _("Sefaria Groups"),
         "desc": props["groupData"].get("description", ""),
     }, RequestContext(request))
+
+
+def s2_public_groups(request):
+    props = s2_props(request)
+    title = _("Sefaria Groups")
+    return s2_page(request, props, "publicGroups")
 
 
 @login_required
@@ -758,7 +798,7 @@ def _crumb(pos, id, name):
         }}
 
 
-def ld_cat_crumbs(cats=None, title=None, oref=None):
+def ld_cat_crumbs(request, cats=None, title=None, oref=None):
     """
     JSON - LD breadcrumbs(https://developers.google.com/search/docs/data-types/breadcrumbs)
     :param cats: List of category names
@@ -780,32 +820,36 @@ def ld_cat_crumbs(cats=None, title=None, oref=None):
         cats = library.get_index(title).categories[:]
 
 
-    breadcrumbJsonList = [_crumb(1, "/texts", "Texts")]
+    breadcrumbJsonList = [_crumb(1, "/texts", _("Texts"))]
     nextPosition = 2
 
     for i,c in enumerate(cats):
-        breadcrumbJsonList += [_crumb(nextPosition, "/texts/" + "/".join(cats[0:i+1]), c)]
+        name = hebrew_term(c) if request.interfaceLang == "hebrew" else c
+        breadcrumbJsonList += [_crumb(nextPosition, "/texts/" + "/".join(cats[0:i+1]), name)]
         nextPosition += 1
 
     if title:
-        breadcrumbJsonList += [_crumb(nextPosition, "/" + title.replace(" ", "_"), title)]
+        name = hebrew_term(title) if request.interfaceLang == "hebrew" else title
+        breadcrumbJsonList += [_crumb(nextPosition, "/" + title.replace(" ", "_"), name)]
         nextPosition += 1
 
         if oref and oref.index_node != oref.index.nodes:
             for snode in oref.index_node.ancestors()[1:] + [oref.index_node]:
                 if snode.is_default():
                     continue
-                breadcrumbJsonList += [_crumb(nextPosition, "/" + snode.ref().url(), snode.primary_title("en"))]
+                name = snode.primary_title("he") if request.interfaceLang == "hebrew" else  snode.primary_title("en")
+                breadcrumbJsonList += [_crumb(nextPosition, "/" + snode.ref().url(), name)]
                 nextPosition += 1
 
         #todo: range?
         if oref and getattr(oref.index_node, "depth", None) and not oref.is_range():
             depth = oref.index_node.depth
             for i in range(len(oref.sections)):
-                breadcrumbJsonList += [_crumb(nextPosition,
-                                              "/" + oref.context_ref(depth - i - 1).url(),
-                                              oref.index_node.sectionNames[i] + u" " + oref.normal_section(i, "en"))
-                                       ]
+                if request.interfaceLang == "english":
+                    name = oref.index_node.sectionNames[i] + u" " + oref.normal_section(i, "en")
+                else:
+                    name = hebrew_term(oref.index_node.sectionNames[i]) + u" " + oref.normal_section(i, "he")
+                breadcrumbJsonList += [_crumb(nextPosition, "/" + oref.context_ref(depth - i - 1).url(), name)]
                 nextPosition += 1
 
     return json.dumps({
@@ -888,6 +932,29 @@ def edit_text_info(request, title=None, new_title=None):
                              'text_exists': text_exists,
                              'new': new,
                              'toc': library.get_toc()
+                             },
+                             RequestContext(request))
+
+@ensure_csrf_cookie
+@staff_member_required
+def terms_editor(request, term=None):
+    """
+    Add/Editor a term using the JSON Editor.
+    """
+    if term is not None:
+        existing_term = Term().load_by_title(term)
+        data = existing_term.contents() if existing_term else {"name": term, "titles": []}
+    else:
+        generic_response = { "title": "Terms Editor", "content": "Please include the primary Term name in the URL to uses the Terms Editor." }
+        return render_to_response('static/generic.html', generic_response, RequestContext(request))
+
+    dataJSON = json.dumps(data)
+
+    return render_to_response('edit_term.html',
+                             {
+                              'term': term,
+                              'dataJSON': dataJSON,
+                              'is_update': "true" if existing_term else "false"
                              },
                              RequestContext(request))
 
@@ -1374,7 +1441,7 @@ def interface_language_redirect(request, language):
     """
     next = request.GET.get("next", "/?home")
     next = "/?home" if next == "undefined" else next
-    
+
     for domain in DOMAIN_LANGUAGES:
         if DOMAIN_LANGUAGES[domain] == language and not request.get_host() in domain:
             next = domain + next
@@ -1382,7 +1449,7 @@ def interface_language_redirect(request, language):
             break
 
     response = redirect(next)
-    
+
     response.set_cookie("interfaceLang", language)
     if request.user.is_authenticated():
         p = UserProfile(id=request.user.id)
@@ -1409,15 +1476,13 @@ def count_and_index(c_oref, c_lang, vtitle, to_count=1):
 
 @catch_error_as_json
 @csrf_exempt
-def texts_api(request, tref, lang=None, version=None):
+def texts_api(request, tref):
     oref = Ref(tref)
 
     if request.method == "GET":
         uref = oref.url()
         if uref and tref != uref:    # This is very similar to reader.reader_redirect subfunction, above.
             url = "/api/texts/" + uref
-            if lang and version:
-                url += "/%s/%s" % (lang, version)
             response = redirect(iri_to_uri(url), permanent=True)
             params = request.GET.urlencode()
             response['Location'] += "?%s" % params if params else ""
@@ -1427,20 +1492,25 @@ def texts_api(request, tref, lang=None, version=None):
         context    = int(request.GET.get("context", 1))
         commentary = bool(int(request.GET.get("commentary", False)))
         pad        = bool(int(request.GET.get("pad", 1)))
-        version    = version.replace("_", " ") if version else None
+        versionEn  = request.GET.get("ven", None)
+        if versionEn:
+            versionEn = versionEn.replace("_", " ")
+        versionHe  = request.GET.get("vhe", None)
+        if versionHe:
+            versionHe = versionHe.replace("_", " ")
         layer_name = request.GET.get("layer", None)
         alts       = bool(int(request.GET.get("alts", True)))
         wrapLinks = bool(int(request.GET.get("wrapLinks", False)))
 
 
         try:
-            text = TextFamily(oref, version=version, lang=lang, commentary=commentary, context=context, pad=pad, alts=alts, wrapLinks=wrapLinks).contents()
+            text = TextFamily(oref, version=versionEn, lang="en", version2=versionHe, lang2="he", commentary=commentary, context=context, pad=pad, alts=alts, wrapLinks=wrapLinks).contents()
         except AttributeError as e:
             oref = oref.default_child_ref()
-            text = TextFamily(oref, version=version, lang=lang, commentary=commentary, context=context, pad=pad, alts=alts, wrapLinks=wrapLinks).contents()
+            text = TextFamily(oref, version=versionEn, lang="en", version2=versionHe, lang2="he", commentary=commentary, context=context, pad=pad, alts=alts, wrapLinks=wrapLinks).contents()
         except NoVersionFoundError as e:
             # Extended data is used by S2 in TextList.preloadAllCommentaryText()
-            return jsonResponse({"error": unicode(e), "ref": oref.normal(), "versionTitle": version, "lang": lang}, callback=request.GET.get("callback", None))
+            return jsonResponse({"error": unicode(e), "ref": oref.normal(), "enVersion": versionEn, "heVersion": versionHe}, callback=request.GET.get("callback", None))
 
 
         # TODO: what if pad is false and the ref is of an entire book? Should next_section_ref return None in that case?
@@ -1499,29 +1569,53 @@ def texts_api(request, tref, lang=None, version=None):
             return protected_post(request)
 
     if request.method == "DELETE":
+        versionEn = request.GET.get("ven", None)
+        versionHe = request.GET.get("vhe", None)
         if not request.user.is_staff:
             return jsonResponse({"error": "Only moderators can delete texts."})
-        if not (tref and lang and version):
+        if not (tref and (versionEn or versionHe)):
             return jsonResponse({"error": "To delete a text version please specifiy a text title, version title and language."})
 
         tref    = tref.replace("_", " ")
-        version = version.replace("_", " ")
+        if versionEn:
+            versionEn = versionEn.replace("_", " ")
+            v = Version().load({"title": tref, "versionTitle": versionEn, "language": "en"})
 
-        v = Version().load({"title": tref, "versionTitle": version, "language": lang})
+            if not v:
+                return jsonResponse({"error": "Text version not found."})
 
-        if not v:
-            return jsonResponse({"error": "Text version not found."})
+            v.delete()
+            record_version_deletion(tref, versionEn, "en", request.user.id)
 
-        v.delete()
-        record_version_deletion(tref, version, lang, request.user.id)
+            if USE_VARNISH:
+                invalidate_linked(oref)
+                invalidate_ref(oref, "en", versionEn)
+        if versionHe:
+            versionHe = versionHe.replace("_", " ")
+            v = Version().load({"title": tref, "versionTitle": versionHe, "language": "he"})
 
-        if USE_VARNISH:
-            invalidate_linked(oref)
-            invalidate_ref(oref, lang, version)
+            if not v:
+                return jsonResponse({"error": "Text version not found."})
+
+            v.delete()
+            record_version_deletion(tref, versionHe, "he", request.user.id)
+
+            if USE_VARNISH:
+                invalidate_linked(oref)
+                invalidate_ref(oref, "he", versionHe)
 
         return jsonResponse({"status": "ok"})
 
     return jsonResponse({"error": "Unsupported HTTP method."}, callback=request.GET.get("callback", None))
+
+@catch_error_as_json
+@csrf_exempt
+def old_text_versions_api_redirect(request, tref, lang, version):
+    url = "/api/texts/{}?v{}={}".format(tref, lang, version)
+    response = redirect(iri_to_uri(url), permanent=True)
+    params = request.GET.urlencode()
+    response['Location'] += "&{}".format(params) if params else ""
+    return response
 
 
 @catch_error_as_json
@@ -1801,12 +1895,7 @@ def links_api(request, link_id_or_ref=None):
     """
     API for textual links.
     Currently also handles post notes.
-    """
     #TODO: can we distinguish between a link_id (mongo id) for POSTs and a ref for GETs?
-    """
-    NOTE: This function is not written like the other functions with a post method.
-    It's attempting a cleaner way to distinguish between csrf proteced use and API use bu juggling some variables around
-    Rather than duplicating functionality.
     """
     if request.method == "GET":
         callback=request.GET.get("callback", None)
@@ -2208,12 +2297,6 @@ def category_api(request, path=None):
        It will also attempt to find the closest parent.  If found, it will include "closest_parent" alongside "error".
     POST takes no arguments on the URL.  Takes complete category as payload.  Category must not already exist.  Parent of category must exist.
     """
-    """
-    NOTE: This function is not written like the other functions with a post method.
-    It's attempting a cleaner way to distinguish between csrf proteced use and API use bu juggling some variables around
-    Rather than duplicating functionality.
-    """
-
     if request.method == "GET":
         if not path:
             return jsonResponse({"error": "Please provide category path."})
@@ -2271,15 +2354,23 @@ def category_api(request, path=None):
 
 @catch_error_as_json
 @csrf_exempt
+def calendars_api(request):
+    if request.method == "GET":
+        diaspora = request.GET.get("diaspora", "1")
+        if diaspora not in ["0", "1"]:
+            return jsonResponse({"error": "'Diaspora' parameter must be 1 or 0."})
+        else:
+            diaspora = True if diaspora == "1" else False
+            calendars = get_todays_calendar_items(diaspora=diaspora)
+            return jsonResponse(calendars, callback=request.GET.get("callback", None))
+
+
+@catch_error_as_json
+@csrf_exempt
 def terms_api(request, name):
     """
     API for adding a Term to the Term collection.
     This is mainly to be used for adding hebrew internationalization language for section names, categories and commentators
-    """
-    """
-    NOTE: This function is not written like the other functions with a post method.
-    It's attempting a cleaner way to distinguish between csrf proteced use and API use bu juggling some variables around
-    Rather than duplicating functionality.
     """
     if request.method == "GET":
         term = Term().load({'name': name}) or Term().load_by_title(name)
@@ -2288,13 +2379,26 @@ def terms_api(request, name):
         else:
             return jsonResponse(term.contents(), callback=request.GET.get("callback", None))
 
-    if request.method == "POST":
-        def _internal_do_post(request, term, uid, **kwargs):
+    if request.method in ("POST", "DELETE"):
+        def _internal_do_post(request, uid):
             t = Term().load({'name': name}) or Term().load_by_title(name)
-            if t and not request.GET.get("update"):
-                return {"error": "Term already exists."}
-            func = tracker.update if request.GET.get("update", False) else tracker.add
-            return func(uid, model.Term, term, **kwargs).contents()
+            if request.method == "POST":
+                term = request.POST.get("json")
+                if not term:
+                    return {"error": "Missing 'json' parameter in POST data."}
+                term = json.loads(term)
+                if t and not request.GET.get("update"):
+                    return {"error": "Term already exists."}
+                elif t and request.GET.get("update"):
+                    term["_id"] = t._id
+
+                func = tracker.update if request.GET.get("update", False) else tracker.add
+                return func(uid, model.Term, term, **kwargs).contents()
+            
+            elif request.method == "DELETE":
+                if not t:
+                    return {"error": 'Term "%s" does not exist.' % term}
+                return tracker.delete(uid, model.Term, t._id)
 
         if not request.user.is_authenticated():
             key = request.POST.get("apikey")
@@ -2315,14 +2419,7 @@ def terms_api(request, name):
         else:
             return jsonResponse({"error": "Only Sefaria Moderators can add or edit terms."})
 
-        j = request.POST.get("json")
-        if not j:
-            return jsonResponse({"error": "Missing 'json' parameter in post data."})
-        j = json.loads(j)
-        return jsonResponse(_internal_do_post(request, j, uid, **kwargs))
-
-    if request.method == "DELETE":
-        return jsonResponse({"error": "Unsupported HTTP method."})  # TODO: support this?
+        return jsonResponse(_internal_do_post(request, uid))      
 
     return jsonResponse({"error": "Unsupported HTTP method."})
 
@@ -2333,7 +2430,7 @@ def name_api(request, name):
         return jsonResponse({"error": "Unsupported HTTP method."})
 
     # Number of results to return.  0 indicates no limit
-    LIMIT = request.GET.get("limit") or 16
+    LIMIT = int(request.GET.get("limit", 16))
     ref_only = request.GET.get("ref_only", False)
     lang = "he" if is_hebrew(name) else "en"
 
@@ -2721,6 +2818,7 @@ def topics_api(request, topic):
     API to get data for a particular topic.
     """
     topics = get_topics()
+    topic = Term.normalize(titlecase(topic))
     response = topics.get(topic).contents()
     response = jsonResponse(response, callback=request.GET.get("callback", None))
     response["Cache-Control"] = "max-age=3600"
@@ -2730,7 +2828,7 @@ def topics_api(request, topic):
 @catch_error_as_json
 def recommend_topics_api(request, ref_list=None):
     """
-    API to receive recommended topics for list of strings `refs`. 
+    API to receive recommended topics for list of strings `refs`.
     """
     if request.method == "GET":
         refs = [Ref(ref).normal() for ref in ref_list.split("+")] if ref_list else []
@@ -2776,10 +2874,6 @@ def global_activity(request, page=1):
     return render_to_response('activity.html',
                              {'activity': activity,
                                 'filter_type': filter_type,
-                                'leaders': top_contributors(),
-                                'leaders30': top_contributors(30),
-                                'leaders7': top_contributors(7),
-                                'leaders1': top_contributors(1),
                                 'email': email,
                                 'next_page': next_page,
                                 'he': request.interfaceLang == "hebrew", # to make templates less verbose
@@ -2886,6 +2980,16 @@ def revert_api(request, tref, lang, version, revision):
     tracker.modify_text(request.user.id, oref, version, lang, new_text, type="revert")
 
     return jsonResponse({"status": "ok"})
+
+
+def leaderboard(request):
+    return render_to_response('leaderboard.html',
+                             {'leaders': top_contributors(),
+                                'leaders30': top_contributors(30),
+                                'leaders7': top_contributors(7),
+                                'leaders1': top_contributors(1),
+                                },
+                             RequestContext(request))
 
 
 @ensure_csrf_cookie
@@ -3502,6 +3606,20 @@ def random_text_api(request):
     response = redirect(iri_to_uri("/api/texts/" + random_ref()) + "?commentary=0", permanent=False)
     return response
 
+def random_by_topic_api(request):
+    """
+    Returns Texts API data for a random text taken from popular topic tags
+    """
+    random_topic = choice(filter(lambda x: x['count'] > 15, get_topics().list()))['tag']
+    random_source = choice(get_topics().get(random_topic).contents()['sources'])[0]
+    try:
+        ref = Ref(random_source).normal()
+    except Exception:
+        return random_by_topic_api(request)
+    cb = request.GET.get("callback", None)
+    response = redirect(iri_to_uri("/api/texts/" + ref + "?commentary=0&context=0&pad=0{}".format("&callback=" + cb if cb else "")) , permanent=False)
+    return response
+
 
 @ensure_csrf_cookie
 def serve_static(request, page):
@@ -3536,7 +3654,7 @@ def person_page(request, name):
     assert isinstance(person, Person)
 
     template_vars = person.contents()
-    if request.interfaceLang == "he":
+    if request.interfaceLang == "hebrew":
         template_vars["name"] = person.primary_name("he")
         template_vars["bio"]= getattr(person, "heBio", _("Learn about %(name)s - works written, biographies, dates and more.") % {"name": person.primary_name("he")})
     else:

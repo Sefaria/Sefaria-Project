@@ -74,12 +74,12 @@ class ReaderNavigationMenu extends Component {
     if ($(event.target).hasClass("refLink") || $(event.target).parent().hasClass("refLink")) {
       var ref = $(event.target).attr("data-ref") || $(event.target).parent().attr("data-ref");
       var pos = $(event.target).attr("data-position") || $(event.target).parent().attr("data-position");
-      var version = $(event.target).attr("data-version") || $(event.target).parent().attr("data-version");
-      var versionLanguage = $(event.target).attr("data-versionlanguage") || $(event.target).parent().attr("data-versionlanguage");
+      const enVersion = $(event.target).attr("data-ven") || $(event.target).parent().attr("data-ven");
+      const heVersion = $(event.target).attr("data-vhe") || $(event.target).parent().attr("data-vhe");
       if ($(event.target).hasClass("recentItem") || $(event.target).parent().hasClass("recentItem")) {
-        this.props.onRecentClick(parseInt(pos), ref, version, versionLanguage);
+        this.props.onRecentClick(parseInt(pos), ref, {en: enVersion, he: heVersion});
       } else {
-        this.props.onTextClick(ref, version, versionLanguage);
+        this.props.onTextClick(ref, {en: enVersion, he: heVersion});
       }
       if (Sefaria.site) { Sefaria.track.event("Reader", "Navigation Text Click", ref); }
     } else if ($(event.target).hasClass("catLink") || $(event.target).parent().hasClass("catLink")) {
@@ -181,11 +181,17 @@ class ReaderNavigationMenu extends Component {
       siteLinks = (<div className="siteLinks">
                     {siteLinks}
                   </div>);
-
-      var calendar = Sefaria.calendar ?
-                     [(<TextBlockLink sref={Sefaria.calendar.parasha} title={Sefaria.calendar.parashaName} heTitle={Sefaria.calendar.heParashaName} category="Tanakh" />),
-                      (<TextBlockLink sref={Sefaria.calendar.haftara} title="Haftarah" heTitle="הפטרה" category="Tanakh" />),
-                      (<TextBlockLink sref={Sefaria.calendar.daf_yomi} title="Daf Yomi" heTitle="דף יומי" category="Talmud" />)] : [];
+      var calendar = Sefaria.calendars.map(function(item) {
+          return (<TextBlockLink
+                    sref={item.url}
+                    title={item.title["en"]}
+                    heTitle={item.title["he"]}
+                    displayValue={item.displayValue["en"]}
+                    heDisplayValue={item.displayValue["he"]}
+                    category={item.category}
+                    showSections={false}
+                    recentItem={false} />)
+      });
       calendar = (<div className="readerNavCalendar"><TwoOrThreeBox content={calendar} width={this.width} /></div>);
 
 
@@ -219,8 +225,8 @@ class ReaderNavigationMenu extends Component {
                 <CategoryColorLine category="Other" />
                 <ReaderNavigationMenuSearchButton onClick={this.navHome} />
                 <div className='sefariaLogo'><img src="/static/img/sefaria.svg" alt="Sefaria Logo" /></div>
-                {this.props.interfaceLang !== "hebrew" ? 
-                  <ReaderNavigationMenuDisplaySettingsButton onClick={this.props.openDisplaySettings} /> 
+                {this.props.interfaceLang !== "hebrew" ?
+                  <ReaderNavigationMenuDisplaySettingsButton onClick={this.props.openDisplaySettings} />
                   : <ReaderNavigationMenuDisplaySettingsButton placeholder={true} /> }
               </div>) :
               (<div className="readerNavTop search">
@@ -247,8 +253,7 @@ class ReaderNavigationMenu extends Component {
                     sref={item.ref}
                     heRef={item.heRef}
                     book={item.book}
-                    version={item.version}
-                    versionLanguage={item.versionLanguage}
+                    currVersions={item.currVersions}
                     showSections={true}
                     recentItem={true} />)
           });
@@ -314,15 +319,15 @@ class RecentPanel extends Component {
   render() {
     var width = typeof window !== "undefined" ? $(window).width() : 1000;
 
-    var recentItems = Sefaria.recentlyViewed.map(function(item) {
+    var recentItems = Sefaria.recentlyViewed.map(function(item, i) {
       return (<TextBlockLink
                 sref={item.ref}
                 heRef={item.heRef}
                 book={item.book}
-                version={item.version}
-                versionLanguage={item.versionLanguage}
+                currVersions={item.currVersions}
                 showSections={true}
-                recentItem={true} />)
+                recentItem={true}
+                key={i} />)
     });
 
     var footer = this.props.compare ? null :

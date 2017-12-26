@@ -114,7 +114,8 @@ def user_and_notifications(request):
     notifications_json = "[" + ",".join([n.to_JSON() for n in notifications]) + "]"
     
     interrupting_message_dict = GLOBAL_INTERRUPTING_MESSAGE or {"name": profile.interrupting_message()}
-    interrupting_message_json = InterruptingMessage(attrs=interrupting_message_dict, request=request).json()
+    interrupting_message      = InterruptingMessage(attrs=interrupting_message_dict, request=request)
+    interrupting_message_json = interrupting_message.json()
 
     return {
         "notifications": notifications,
@@ -176,9 +177,6 @@ def footer_html(request):
 
 @data_only
 def calendar_links(request):
-    if request.path != "/data.js":
-        return {}
-
     loc = request.META.get("HTTP_CF_IPCOUNTRY", None)
     if not loc:
         try:
@@ -187,13 +185,9 @@ def calendar_links(request):
         except:
             loc = "us"
     diaspora = False if loc in ("il", "IL", "Il") else True
-    parasha  = calendars.this_weeks_parasha(datetime.now(), diaspora=diaspora)
-    daf      = calendars.daf_yomi(datetime.now())
-    
-    parasha_link  = "<a href='/%s'>%s: %s</a>" % (parasha["ref"], parasha["parasha"], parasha["ref"])
-    haftara_link  = " ".join(["<a href='/%s'>%s</a>" % (h, h) for h in parasha["haftara"]])
-    daf_yomi_link = "<a href='/%s'>%s</a>" % (daf["url"], daf["name"])
+    return {"calendars": json.dumps(calendars.get_todays_calendar_items(diaspora=diaspora))}
 
+    """
     return {
                 "parasha_link":  parasha_link, 
                 "haftara_link":  haftara_link,
@@ -204,3 +198,4 @@ def calendar_links(request):
                 "haftara_ref":   parasha["haftara"][0],
                 "daf_yomi_ref":  daf["url"]
             }
+    """

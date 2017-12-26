@@ -8,13 +8,7 @@ var DJANGO_DATA_VARS = {
   search_toc:          {{ search_toc_json }},
   terms:               {{ terms_json}},
   books:               {{ titlesJSON }},
-  calendar:            {
-                          parasha: "{{ parasha_ref }}",
-                          parashaName: "{{ parasha_name }}",
-                          heParashaName: "{{ he_parasha_name }}",
-                          haftara: "{{ haftara_ref }}",
-                          daf_yomi: "{{ daf_yomi_ref }}"
-                       },
+  calendars:           {{ calendars }},
   searchBaseUrl:       '{{ SEARCH_URL|default:"http://localhost:9200" }}',
   searchIndex:         '{{ SEARCH_INDEX_NAME }}',
   loggedIn:            {% if user.is_authenticated %}true{% else %}false{% endif %},

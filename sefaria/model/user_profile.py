@@ -92,10 +92,7 @@ class UserProfile(object):
 	def full_name(self):
 		return self.first_name + " " + self.last_name
 
-	def update(self, obj):
-		"""
-		Update this object with the fields in dictionry 'obj'
-		"""
+	def _set_flags_on_update(self, obj):
 		if "first_name" in obj or "last_name" in obj:
 			if self.first_name != obj["first_name"] or self.last_name != obj["last_name"]:
 				self._name_updated = True
@@ -103,9 +100,21 @@ class UserProfile(object):
 		if "slug" in obj and obj["slug"] != self.slug:
 			self._slug_updated = True
 
+	def update(self, obj):
+		"""
+		Update this object with the fields in dictionry 'obj'
+		"""
+		self._set_flags_on_update(obj)
 		self.__dict__.update(obj)
 
 		return self
+
+	def update_empty(self, obj):
+		self._set_flags_on_update(obj)
+		for k, v in obj.items():
+			if v:
+				if k not in self.__dict__ or self.__dict__[k] == '' or self.__dict__[k] == []:
+					self.__dict__[k] = v
 
 	def save(self):
 		"""
@@ -233,16 +242,6 @@ class UserProfile(object):
 			self.interrupting_messages.remove(message)
 			self.save()
 
-	def set_recent_item(tref):
-		"""
-		Save `tref` as a recently viewed text at the front of the list. Removes any previous location for that text.
-		Not used yet, need to consider if it's better to store derivable information (ref->heRef) or reprocess it often.
-		"""
-		oref = Ref(tref)
-		recent = [tref for tref in self.recent if Ref(tref).index.title != oref.index.title]
-		self.recent = [tref] + recent
-		self.save()
-
 	def to_DICT(self):
 		"""Return a json serializble dictionary this profile"""
 		dictionary = {
@@ -305,8 +304,13 @@ def email_unread_notifications(timeframe):
 		message_html  = render_to_string("email/notifications_email.html", {"notifications": notifications, "recipient": user.first_name})
 		#message_text = util.strip_tags(message_html)
 		actors_string = notifications.actors_string()
-		verb          = "have" if " and " in actors_string else "has"
-		subject       = "%s %s new activity on Sefaria" % (actors_string, verb)
+		# TODO Hebrew subjects
+		if actors_string:
+			verb      = "have" if " and " in actors_string else "has"
+			subject   = "%s %s new activity on Sefaria" % (actors_string, verb)
+		elif notifications.like_count() > 0:
+			noun      = "likes" if notifications.like_count() > 1 else "like"
+			subject   = "%d new %s on your Source Sheet" % (notifications.like_count(), noun)
 		from_email    = "Sefaria <hello@sefaria.org>"
 		to            = user.email
 

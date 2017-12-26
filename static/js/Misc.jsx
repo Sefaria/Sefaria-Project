@@ -73,28 +73,44 @@ class TextBlockLink extends Component {
     var style    = {"borderColor": Sefaria.palette.categoryColor(category)};
     var title    = this.props.title   || (this.props.showSections ? this.props.sref : this.props.book);
     var heTitle  = this.props.heTitle || (this.props.showSections ? this.props.heRef : index.heTitle);
+    var subtitle = this.props.displayValue ? (
+        <span className="blockLinkSubtitle">
+            <span className="en">{this.props.displayValue}</span>
+            <span className="he">{this.props.heDisplayValue}</span>
+        </span>
+    ) : null;
 
     var position = this.props.position || 0;
-    var classes  = classNames({refLink: 1, blockLink: 1, recentItem: this.props.recentItem});
-    var url      = "/" + Sefaria.normRef(this.props.sref) + (this.props.version?`/${this.props.versionLanguage}/${this.props.version}`:"");
-    return (<a href={url} className={classes} data-ref={this.props.sref} data-version={this.props.version} data-versionlanguage={this.props.versionLanguage} data-position={position} style={style}>
+    var classes  = classNames({refLink: 1, blockLink: 1, recentItem: this.props.recentItem, calendarLink: (subtitle != null)});
+    var url = "/" + Sefaria.normRef(this.props.sref);
+    url += Object.keys(this.props.currVersions)
+            .filter(vlang=>!!this.props.currVersions[vlang])
+            .map((vlang)=>`&v${vlang}=${this.props.currVersions[vlang]}`)
+            .join("")
+            .replace("&","?");
+    return (<a href={url} className={classes} data-ref={this.props.sref} data-ven={this.props.currVersions.en} data-vhe={this.props.currVersions.he} data-position={position} style={style}>
               <span className="en">{title}</span>
               <span className="he">{heTitle}</span>
+                {subtitle}
              </a>);
   }
 }
 TextBlockLink.propTypes = {
   sref:            PropTypes.string.isRequired,
-  version:         PropTypes.string,
-  versionLanguage: PropTypes.string,
+  currVersions:    PropTypes.object.isRequired,
   heRef:           PropTypes.string,
   book:            PropTypes.string,
   category:        PropTypes.string,
   title:           PropTypes.string,
   heTitle:         PropTypes.string,
+  displayValue:    PropTypes.string,
+  heDisplayValue:  PropTypes.string,
   showSections:    PropTypes.bool,
   recentItem:      PropTypes.bool,
-  position:        PropTypes.number
+  position:        PropTypes.number,
+};
+TextBlockLink.defaultProps = {
+  currVersions: {en:null, he:null},
 };
 
 
@@ -120,8 +136,11 @@ LanguageToggleButton.propTypes = {
 class BlockLink extends Component {
   render() {
     var interfaceClass = this.props.interfaceLink ? 'int-' : '';
-    var classes = classNames({blockLink: 1, inAppLink: this.props.inAppLink})
-    return (<a className={classes} href={this.props.target}>
+    var cn = {blockLink: 1, inAppLink: this.props.inAppLink};
+    var linkClass = this.props.title.toLowerCase().replace(" ", "-") + "-link";
+    cn[linkClass] = 1;
+    var classes = classNames(cn);
+      return (<a className={classes} href={this.props.target}>
               {this.props.image ? <img src={this.props.image} alt="" /> : null}
               <span className={`${interfaceClass}en`}>{this.props.title}</span>
               <span className={`${interfaceClass}he`}>{this.props.heTitle}</span>
