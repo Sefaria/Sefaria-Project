@@ -187,12 +187,14 @@ class AbstractTitledOrTermedObject(AbstractTitledObject):
 
     def _process_terms(self):
         # To be called after raw data load
+        from sefaria.model import library
+
         if self.sharedTitle:
+            term = library.get_term(self.sharedTitle)
             try:
-                term = Term().load({"name": self.sharedTitle})
                 self.title_group = term.title_group
-            except Exception, e:
-                raise IndexError("Failed to load term named {}. {}".format(self.sharedTitle, e))
+            except AttributeError:
+                raise IndexError(u"Failed to load term named {}.".format(self.sharedTitle))
 
     def add_shared_term(self, term):
         self.sharedTitle = term
