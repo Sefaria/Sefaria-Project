@@ -2998,7 +2998,7 @@ class Ref(object):
             l.append(self.subref(i + 1))
         return l
 
-    def all_subrefs(self, lang='all'):
+    def all_subrefs(self, lang='all', only_refs_with_text=False):
         """
         Return a list of all the valid :class:`Ref` objects one level deeper than this :class:`Ref`.
 
@@ -3022,6 +3022,9 @@ class Ref(object):
             size = 0
 
         poss_subrefs = self.subrefs(size)  # here poss_subrefs is assigned a list of both existent and non-existent subrefs.  below we filter out the non-existent subrefs.
+
+        if not only_refs_with_text:
+            return poss_subrefs
 
         sections = getattr(self, "sections", [])
         sections = [section - 1 for section in sections]

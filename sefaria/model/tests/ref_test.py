@@ -389,9 +389,9 @@ class Test_Ref(object):
     def test_all_subrefs(self):
         assert Ref("Genesis").all_subrefs()[49] == Ref("Genesis 50")
         assert Ref("Genesis 40").all_subrefs()[22] == Ref("Genesis 40:23")
-        assert Ref("Berakhot").all_subrefs()[0] == Ref("Berakhot 2a")
-        assert Ref("Tamid").all_subrefs()[0] == Ref("Tamid 25b")
-        assert Ref("Rashi on Genesis 1").all_subrefs()[2] == Ref("Rashi on Genesis 1:4")
+        assert Ref("Berakhot").all_subrefs(only_refs_with_text=True)[0] == Ref("Berakhot 2a")
+        assert Ref("Tamid").all_subrefs(only_refs_with_text=True)[0] == Ref("Tamid 25b")
+        assert Ref("Rashi on Genesis 1").all_subrefs(only_refs_with_text=True)[2] == Ref("Rashi on Genesis 1:4")
 
     def test_ref_regex(self):
         assert Ref("Exodus 15").regex() == u'^Exodus( 15$| 15:| 15 \\d)'
