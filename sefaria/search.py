@@ -119,7 +119,7 @@ def index_text(index_name, oref, version=None, lang=None, bavli_amud=True, merge
     # Index this document as a whole
     try:
         if version and lang and not version_priority:
-            for priority, v in oref.version_list():
+            for priority, v in enumerate(oref.version_list()):
                 if v['versionTitle'] == version:
                     version_priority = priority
                     break
