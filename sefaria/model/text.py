@@ -1946,6 +1946,14 @@ class Ref(object):
     """
     __metaclass__ = RefCacheType
 
+    '''
+    __slots__ = (
+        'index', 'book', 'primary_category', 'sections', 'toSections', 'index_node',
+        '_lang', 'tref', 'orig_tref', '_normal', '_he_normal', '_url', '_next', '_prev',
+        '_padded', '_context', '_first_spanned_ref', '_spanned_refs', '_ranged_refs',
+        '_range_depth', '_range_index',
+    )
+    '''
     def __init__(self, tref=None, _obj=None):
         """
         Object is generally initialized with a textual reference - ``tref``
