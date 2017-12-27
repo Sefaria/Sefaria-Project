@@ -1287,10 +1287,12 @@ input#id_email{
   font-size: 16px;
   font-weight: lighter;
 }
+#jobsPage p {
+  margin: 20px 0;
+}
 #jobsPage li {
   margin: 14px 0;
 }
-
 #helpPage .section {
   margin-bottom: 60px;
 }

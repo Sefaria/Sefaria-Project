@@ -1,5 +1,5 @@
 var d3 = require('d3');
-var Sefaria = require('../sefaria/sefaria');
+var Sefaria = require('sefaria');
 
 
 class SD3 {
@@ -15,7 +15,7 @@ class SD3 {
         */
         return this._jaggedArrayScale(direction, left_point, right_point, this._jaggedArrayDomain(chap_lengths, "talmud"));
     }
-    
+
     static integerScale(direction, left_point, right_point, chap_lengths) {
         /*  Returns a D3 scale object for the Integer:Integer addressed jagged array described by chap_lengths
 
@@ -26,7 +26,7 @@ class SD3 {
                 These are available through `api/shape`.
         */
         return this._jaggedArrayScale(direction, left_point, right_point, this._jaggedArrayDomain(chap_lengths, "integer"));
-    }        
+    }
 
     static _jaggedArrayScale(direction, left_point, right_point, domain) {
         /*  Returns a D3 scale object covering the domain given in domain
@@ -133,7 +133,7 @@ class SD3 {
         }
         return ticks;
     }
-        
+
 }
 
 module.exports = SD3;
