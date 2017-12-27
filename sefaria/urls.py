@@ -74,8 +74,8 @@ urlpatterns += patterns('reader.views',
 
 # Topics
 urlpatterns += patterns('reader.views',
-    (r'^topics$', 's2_topics_page'),
-    (r'^topics/(?P<topic>.+)$', 's2_topic_page'),
+    (r'^topics$', 'topics_page'),
+    (r'^topics/(?P<topic>.+)$', 'topic_page'),
 )
 
 # Texts Add / Edit / Translate
