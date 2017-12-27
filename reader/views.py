@@ -380,7 +380,7 @@ def text_panels(request, ref, version=None, lang=None):
 
     propsJSON = json.dumps(props)
     html = render_react_component("ReaderApp", propsJSON)
-    return render_to_response('app.html', {
+    return render_to_response('base.html', {
         "propsJSON":      propsJSON,
         "html":           html,
         "title":          title,
@@ -418,7 +418,7 @@ def texts_category_list(request, cats):
     })
     propsJSON = json.dumps(props)
     html = render_react_component("ReaderApp", propsJSON)
-    return render_to_response('app.html', {
+    return render_to_response('base.html', {
         "propsJSON":        propsJSON,
         "html":             html,
         "title":            title,
@@ -447,7 +447,7 @@ def search(request):
     })
     propsJSON = json.dumps(props)
     html = render_react_component("ReaderApp", propsJSON)
-    return render_to_response('app.html', {
+    return render_to_response('base.html', {
         "propsJSON": propsJSON,
         "html":      html,
         "title":     (initialQuery + " | " if initialQuery else "") + _("Sefaria Search"),
@@ -471,7 +471,7 @@ def sheets(request):
     desc  = _("Explore thousands of public Source Sheets and use our Source Sheet Builder to create your own online.")
     propsJSON = json.dumps(props)
     html = render_react_component("ReaderApp", propsJSON)
-    return render_to_response('app.html', {
+    return render_to_response('base.html', {
         "propsJSON":      propsJSON,
         "title":          title,
         "desc":           desc,
@@ -493,7 +493,7 @@ def group_page(request, group, authenticated):
 
     propsJSON = json.dumps(props)
     html = render_react_component("ReaderApp", propsJSON)
-    return render_to_response('app.html', {
+    return render_to_response('base.html', {
         "propsJSON": propsJSON,
         "html": html,
         "title": group[0].name + " | " + _("Sefaria Groups"),
@@ -556,7 +556,7 @@ def sheets_by_tag(request, tag):
 
     propsJSON = json.dumps(props)
     html = render_react_component("ReaderApp", propsJSON)
-    return render_to_response('app.html', {
+    return render_to_response('base.html', {
         "propsJSON":      propsJSON,
         "title":          title,
         "desc":           desc,
@@ -649,7 +649,7 @@ def topics_page(request):
 
     propsJSON = json.dumps(props)
     html = render_react_component("ReaderApp", propsJSON)
-    return render_to_response('app.html', {
+    return render_to_response('base.html', {
         "propsJSON":      propsJSON,
         "title":          _("Topics") + " | " + _("Sefaria"),
         "desc":           _("Explore Jewish Texts by Topic on Sefaria"),
@@ -678,7 +678,7 @@ def topic_page(request, topic):
 
     propsJSON = json.dumps(props)
     html = render_react_component("ReaderApp", propsJSON)
-    return render_to_response('app.html', {
+    return render_to_response('base.html', {
         "propsJSON":      propsJSON,
         "title":          title,
         "desc":           desc,
@@ -695,7 +695,7 @@ def menu_page(request, props, page, title="", desc=""):
     })
     propsJSON = json.dumps(props)
     html = render_react_component("ReaderApp", propsJSON)
-    return render_to_response('app.html', {
+    return render_to_response('base.html', {
         "propsJSON":      propsJSON,
         "title":          title,
         "desc":           desc,
