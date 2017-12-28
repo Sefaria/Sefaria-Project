@@ -21,7 +21,7 @@ class AbstractAutoLinker(object):
     This abstract class defines the interface/contract for autolinking objects.
     There are four main methods:
     1. build_links creates the links from scratch
-    2. refresh_links will update a link set by intelligently (and performace oriented) adding and deleting relevant links
+    2. refresh_links will update a link set by intelligently (and performance oriented) adding and deleting relevant links
     3. delete_links will delete all the links in the set
     4. rebuild_links will delete and then build the links from scratch
     """
@@ -99,7 +99,7 @@ class AbstractAutoLinker(object):
             else:
                 tracker.add(self._user, Link, nlink, **kwargs)
         except DuplicateRecordError as e:
-            pass
+            print e.message
         return tref
 
     def _delete_link(self, link):
@@ -114,20 +114,27 @@ class AbstractStructureAutoLinker(AbstractAutoLinker):
     This class is for general linking according to two structurally identical texts.
     """
     # TODO: as error checking there should probs be a validate that checks the structures match.
-    def __init__(self, oref, depth_up, linked_oref, **kwargs):
+    def __init__(self, oref, depth_up, linked_oref, default_only=False, **kwargs):
         self._linked_title = linked_oref.index.title
         self._depth_up = depth_up
+        self._default_only = default_only
         super(AbstractStructureAutoLinker, self).__init__(oref, **kwargs)
 
     def _generate_specific_base_tref(self, orig_ref):
+        """ This function only works with simple texts:  Rashi, Genesis
+        whereas we want
+        """
         context_ref = orig_ref.context_ref(self._depth_up)
+
+        # Replacing self._title with self._linked_title only works for simple texts
+        # and complex texts where there is one default node.  This won't work in the case
+        # where there is a complex text with a node that has a title different from the title
+        # of the book
         return context_ref.normal().replace(self._title, self._linked_title)
 
     def _build_links_internal(self, oref, text=None, **kwargs):
         tref = oref.normal()
-        #base_tref = tref[tref.find(" on ") + 4:]
         found_links = []
-
         # This is a special case, where the sections length is 0 and that means this is
         # a whole text or complex text node that has been posted. So we get each leaf node
         if not oref.sections:
@@ -135,6 +142,8 @@ class AbstractStructureAutoLinker(AbstractAutoLinker):
             if not vs.is_new_state:
                 vs.refresh()  # Needed when saving multiple nodes in a complex text.  This may be moderately inefficient.
             content_nodes = oref.index_node.get_leaf_nodes()
+            if self._default_only:
+                content_nodes = [node for node in content_nodes if node.key == "default" and getattr(node, "default", False) is True]
             for r in content_nodes:
                 cn_oref = r.ref()
                 text = TextFamily(cn_oref, commentary=0, context=0, pad=False).contents()
@@ -154,6 +163,9 @@ class AbstractStructureAutoLinker(AbstractAutoLinker):
                 except AssertionError:
                     logger.warning(u"Structure node passed to add_commentary_links: {}".format(oref.normal()))
                     return
+
+            if self._default_only and (oref.index_node.key != "default" or getattr(oref.index_node, "default", False) is False):
+                return
 
             if len(text["sectionNames"]) > len(text["sections"]) > 0:
                 # any other case where the posted ref sections do not match the length of the parent texts sections
@@ -205,7 +217,6 @@ class AbstractStructureAutoLinker(AbstractAutoLinker):
                     self._delete_link(exLink)
                 break
 
-
 class BaseStructureAutoLinker(AbstractStructureAutoLinker):
     """
     This linker will only allow a text to be linked to it's specified base text (currently assumes one base text)
@@ -218,6 +229,40 @@ class BaseStructureAutoLinker(AbstractStructureAutoLinker):
         super(BaseStructureAutoLinker, self).__init__(oref, depth_up, base_oref, **kwargs)
         """except Exception as e:
             raise Exception('Text must have a base text to link to')"""
+
+
+class CommentaryDefaultOnlyAutoLinker(AbstractStructureAutoLinker):
+    """
+    Works exactly the same as the CommentaryAutoLinker, except that only default nodes will be linked
+    and other nodes will be ignored.  "Ibn Ezra on Isaiah" is a complex text with three Jagged Arrays:
+    a Prelude, a Translator's Foreword, and a default node.
+    In this case, the default node will be linked to "Isaiah", but there will be no attempt to link to
+    "Isaiah, Prelude".
+    The only difference in implementation between this class and the CommentaryAutoLinker is that this class sets
+    AbstractStructureAutoLinker's default_only parameter to True, whereas CommentaryAutoLinker sets it to False.
+    """
+    class_key = "many_to_one_default_only"
+    _generated_by_string = 'add_commentary_links'
+    def __init__(self, oref, **kwargs):
+        if not oref.is_dependant():
+            raise Exception("Text must have a base text to link to")
+        """try:"""
+        base_oref = Ref(oref.index.base_text_titles[0])
+        super(CommentaryDefaultOnlyAutoLinker, self).__init__(oref, 1, base_oref, default_only=True, **kwargs)
+
+
+class MatchBaseTextDepthDefaultOnlyAutoLinker(AbstractStructureAutoLinker):
+    """
+    Works exactly the same as the MatchBaseTextDepthAutoLinker, except that only default nodes will be linked
+    and other nodes will be ignored.
+    """
+    class_key = "one_to_one_default_only"
+    def __init__(self, oref, **kwargs):
+        if not oref.is_dependant():
+            raise Exception("Text must have a base text to link to")
+        """try:"""
+        base_oref = Ref(oref.index.base_text_titles[0])
+        super(MatchBaseTextDepthDefaultOnlyAutoLinker, self).__init__(oref, 0, base_oref, default_only=True, **kwargs)
 
 
 class IncrementBaseTextDepthAutoLinker(BaseStructureAutoLinker):
@@ -240,8 +285,10 @@ class CommentaryAutoLinker(IncrementBaseTextDepthAutoLinker):
     _generated_by_string = 'add_commentary_links'
 
 
+
 class MatchBaseTextDepthAutoLinker(BaseStructureAutoLinker):
     class_key = 'one_to_one'
+    _generated_by_string = "add_commentary_links"
     def __init__(self, oref, **kwargs):
         super(MatchBaseTextDepthAutoLinker, self).__init__(oref, 0, **kwargs)
 
@@ -271,8 +318,10 @@ def rebuild_links_for_title(tref, user=None):
 # TODO: refactor with lexicon class map into abstract
 class AutoLinkerFactory(object):
     _class_map = {
-        CommentaryAutoLinker.class_key           : CommentaryAutoLinker,
-        MatchBaseTextDepthAutoLinker.class_key   : MatchBaseTextDepthAutoLinker
+        CommentaryAutoLinker.class_key            : CommentaryAutoLinker,
+        MatchBaseTextDepthAutoLinker.class_key    : MatchBaseTextDepthAutoLinker,
+        CommentaryDefaultOnlyAutoLinker.class_key : CommentaryDefaultOnlyAutoLinker,
+        MatchBaseTextDepthDefaultOnlyAutoLinker.class_key: MatchBaseTextDepthDefaultOnlyAutoLinker,
     }
     _key_attr = 'base_text_mapping'
     _default_class = CommentaryAutoLinker
@@ -403,7 +452,7 @@ def delete_links_from_text(title, user):
 def rebuild_links_from_text(title, user):
     """
     Deletes all of the citation generated links from text 'title'
-    then rebuilds them. 
+    then rebuilds them.
     """
     delete_links_from_text(title, user)
     index = library.get_index(title)
