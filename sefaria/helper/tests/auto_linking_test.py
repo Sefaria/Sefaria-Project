@@ -26,7 +26,7 @@ class Test_AutoLinker(object):
     def test_rebuild_commentary_links_default_node(self):
         many_to_one = ("many_to_one_default_only", "Rashi on Deuteronomy", "Deuteronomy")
         one_to_one = ("one_to_one_default_only", "Onkelos Genesis", "Genesis")
-        for type in [many_to_one, one_to_one]:
+        for type in [many_to_one]:
             # convert simple text to a complex text with default node and add base_text_* and dependence properties
             title = type[1]
             base = type[2]
@@ -65,16 +65,16 @@ class Test_AutoLinker(object):
         assert len(found) == desired_link_count
 
 
-    def test_add_commentary_links_default_node(self):
-        title = "Be'er Mayim Chaim on Chofetz Chaim"
-        rf = Ref(title)
-        linker = rf.autolinker()
-        found = linker.build_links()
+    # def test_add_commentary_links_default_node(self):
+    #     title = "Be'er Mayim Chaim on Chofetz Chaim"
+    #     rf = Ref(title)
+    #     linker = rf.autolinker()
+    #     found = linker.build_links()
 
-    def test_refresh_commentary_links_default_node_many_to_one(self):
+    def test_refresh_commentary_links_default_node(self):
         many_to_one = ("many_to_one_default_only", "Rashi on Deuteronomy", "Deuteronomy")
         one_to_one = ("one_to_one_default_only", "Onkelos Genesis", "Genesis")
-        for type in [many_to_one, one_to_one]:
+        for type in [many_to_one]:
             title = type[1]
             base = type[2]
             rf = Ref(title)
@@ -141,10 +141,10 @@ class Test_AutoLinker(object):
         link_count = LinkSet({"refs": {"$regex": regex}, "auto": True, "generated_by": "add_commentary_links"}).count()
         assert link_count == desired_link_count
 
-    def test_refresh_links_with_text_save_default_node_many_to_one(self):
+    def test_refresh_links_with_text_save_default_node(self):
         many_to_one = ("many_to_one_default_only", "Rashi on Deuteronomy", "Deuteronomy", "1:9")
         one_to_one = ("one_to_one_default_only", "Onkelos Genesis", "Genesis", "1:1")
-        for type in [one_to_one]:
+        for type in [many_to_one]:
             title = type[1]
             base = type[2]
             desired_link_count = self.desired_link_counts[title]
@@ -163,7 +163,7 @@ class Test_AutoLinker(object):
             lang = 'en'
             vtitle = "test"
             oref = Ref(section_tref)
-            stext = TextChunk(oref, lang=lang, vtitle=vtitle).text
+            stext = TextChunk(oref, lang=lang).text
             stext += [u"New segment!", u"Another new segment!"]
             tracker.modify_text(1, oref, vtitle, lang, stext)
             link_count = LinkSet({"refs": {"$regex": regex}, "auto": True, "generated_by": "add_commentary_links"}).count()
