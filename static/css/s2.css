@@ -2268,14 +2268,32 @@ a.readerNavCategory {
   z-index: 103;
 }
 .readerOptionsPanelInner {
-  max-width: 660px;
+  max-width: 530px;
   margin: 0 auto;
+  display: flex;
+  flex-flow: row wrap;
+  justify-content: space-between;
+  color: #999;
 }
 .toggleSet {
   display: inline-block;
-  width: 100%;
-  margin: 7px 0;
-  margin-left: 1px;
+  width: 48%;
+  margin: 2px auto 20px auto;
+  /*margin-left: 1px;*/
+}
+.interface-hebrew .toggleSet.aliyotTorah, .interface-hebrew .toggleSet .toggle-set-label{
+  font-family: "Heebo", sans-serif;
+}
+.interface-english .toggleSet.aliyotTorah, .interface-english .toggleSet .toggle-set-label{
+  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  text-transform: uppercase;
+}
+.toggleSet .toggle-set-label{
+  font-size: 13px;
+  display: block;
+  text-align: center;
+  margin: 10px;
+  letter-spacing: 1.5px;
 }
 .toggleOption {
   box-sizing: border-box;
@@ -2285,8 +2303,17 @@ a.readerNavCategory {
   padding: 4px;
   height: 42px;
   line-height: 34px;
-  background-color: white;
+  background-color: #f9f9f7;
   vertical-align: middle;
+}
+.toggleSet.aliyotTorah .toggleOption{
+  font-size: 14px;
+}
+.toggleSet.fontSize .toggleOption{
+  color: black;
+}
+.toggleSet.biLayout .toggleOption img, .toggleSet.layout .toggleOption img{
+  opacity: 0.5;
 }
 .toggleOption:first-child {
     border-top-left-radius: 4px;
@@ -2298,7 +2325,11 @@ a.readerNavCategory {
     border-right: 1px solid #999;
 }
 .toggleOption.on, .toggleOption:hover {
-  background-color: #eee;
+  background-color: white;
+  color: black;
+}
+.toggleSet.biLayout .toggleOption.on img, .toggleSet.layout .toggleOption:hover img{
+  opacity: 1;
 }
 .toggleSet.separated .toggleOption {
   margin-right: 3%;
@@ -2435,6 +2466,7 @@ a.readerNavCategory {
 }
 .parashahHeader.aliyah span{
   font-size: 16px;
+  text-transform: uppercase;
 }
 
 .parashahHeader .en {

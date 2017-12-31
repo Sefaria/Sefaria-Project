@@ -32,6 +32,7 @@ class TextRange extends Component {
           prevProps.settings.language !== this.props.settings.language ||
           prevProps.settings.layoutDefault !== this.props.settings.layoutDefault ||
           prevProps.settings.layoutTanakh !== this.props.settings.layoutTanakh ||
+          prevProps.settings.aliyotTorah !== this.props.settings.aliyotTorah ||
           prevProps.settings.layoutTalmud !== this.props.settings.layoutTalmud ||
           prevProps.settings.biLayout !== this.props.settings.biLayout ||
           prevProps.settings.fontSize !== this.props.settings.fontSize ||
@@ -248,7 +249,7 @@ class TextRange extends Component {
                             this.props.basetext && segment.highlight;                              // otherwise highlight if this a basetext and the ref is specific
       var parashahHeader = null;
       if (this.props.showParashahHeaders) {
-        var parashahNames = this.parashahHeader(data, segment);
+        var parashahNames = this.parashahHeader(data, segment, (this.props.settings.aliyotTorah == 'aliyotOn'));
         if (parashahNames){
           var pclasses = {
                     parashahHeader: 1,
