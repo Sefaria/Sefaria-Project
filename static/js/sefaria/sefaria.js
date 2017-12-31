@@ -1823,6 +1823,17 @@ Sefaria = extend(Sefaria, {
       "Italian": "איטלקית",
       "Polish": "פולנית",
       "Russian": "רוסית",
+
+      "On": "הצג",
+      "Off": "הסתר",
+      "Show Parasha Aliyot": "עליות לתורה מוצגות",
+      "Hide Parasha Aliyot": "עליות לתורה מוסתרות",
+      "Language": "שפה",
+      "Layout": "עימוד",
+      "Bilingual Layout" : "עימוד דו לשוני",
+      "Color": "צבע",
+      "Font Size" : "גודל גופן",
+      "Aliyot" : "עליות לתורה"
   },
   _v: function(inputVar){
     if(Sefaria.interfaceLang != "english"){
