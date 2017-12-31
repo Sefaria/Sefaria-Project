@@ -2430,6 +2430,13 @@ a.readerNavCategory {
   font-size: 18px;
   letter-spacing: 1px;
 }
+.parashahHeader.aliyah{
+  color: #bebebe;
+}
+.parashahHeader.aliyah span{
+  font-size: 16px;
+}
+
 .parashahHeader .en {
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", arial, sans-serif;
 }
