@@ -201,20 +201,16 @@ class TextRange extends Component {
     $(event.target).closest("sup").next("i.footnote").toggle();
     this.placeSegmentNumbers();
   }
-  parashahHeader(ref) {
+  parashahHeader(data, segment, includeAliyout=false) {
     // Returns the English/Hebrew title of a Parasha, if `ref` is the beginning of a new parahsah
     // returns null otherwise.
-    var data = this.getText();
+    //var data = this.getText();
     if (!data) { return null; }
-    var index = Sefaria.indexDetails(data.indexTitle);
-    if (index && "alts" in index && "Parasha" in index.alts && index.categories[1] == "Torah" && !("dependence" in index)) {
-      for (var i=0; i < index.alts.Parasha.nodes.length; i++) {
-        var parashahRef = index.alts.Parasha.nodes[i].wholeRef.split("-")[0];
-        if (ref == parashahRef) {
-          return {
-            en: index.alts.Parasha.nodes[i].title,
-            he: index.alts.Parasha.nodes[i].heTitle,
-          };
+    if ("alts" in data && data.alts.length && data.categories[1] == "Torah" && !data["isDependant"]) {
+      var curRef = segment.ref;
+      if ("alt" in segment && segment.alt != null){
+        if(includeAliyout || "whole" in segment.alt){
+          return {"en": segment.alt["en"][0], "he": segment.alt["he"][0], "parashaTitle": "whole" in segment.alt}
         }
       }
     }
@@ -251,12 +247,19 @@ class TextRange extends Component {
                             Sefaria.util.inArray(segment.ref, this.props.highlightedRefs) !== -1 : // highlight if this ref is in highlighted refs prop
                             this.props.basetext && segment.highlight;                              // otherwise highlight if this a basetext and the ref is specific
       var parashahHeader = null;
-      if (this.props.showParashahHeaders && this.parashahHeader(segment.ref)) {
-        var parashahNames = this.parashahHeader(segment.ref);
-        var parashahHeader = <div className="parashahHeader">
-          <span className="en">{ parashahNames.en }</span>
-          <span className="he">{ parashahNames.he }</span>
-        </div>;
+      if (this.props.showParashahHeaders) {
+        var parashahNames = this.parashahHeader(data, segment);
+        if (parashahNames){
+          var pclasses = {
+                    parashahHeader: 1,
+                    aliyah: !parashahNames.parashaTitle,
+                  };
+          pclasses = classNames(pclasses);
+          var parashahHeader = <div className={pclasses}>
+            <span className="en">{ parashahNames.en }</span>
+            <span className="he">{ parashahNames.he }</span>
+          </div>;
+        }
       }
       return (<span key={i + segment.ref}>
                 { parashahHeader }
