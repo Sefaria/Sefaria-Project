@@ -245,7 +245,7 @@ class TextRange extends Component {
     var nre = /[\u0591-\u05af\u05bd\u05bf\u05c0\u05c4\u05c5]/g;
     var cnre = /[\u0591-\u05bd\u05bf-\u05c5\u05c7]/g;
     var strip_text_re = null;
-    if(this.props.settings && this.props.settings.language == "hebrew" && this.props.settings.vowels !== "all"){
+    if(this.props.settings && this.props.settings.language !== "english" && this.props.settings.vowels !== "all"){
       strip_text_re = (this.props.settings.vowels == "partial") ? nre : cnre;
     }
 

@@ -1082,7 +1082,7 @@ class ReaderDisplayOptionsMenu extends Component {
       {name: "partial", content: "<span class='he'>אָ</span>", role: "radio", ariaLabel: Sefaria._("Show only vowel points")},
       {name: "none", content: "<span class='he'>א</span>", role: "radio", ariaLabel: Sefaria._("Show only consonantal text")}
     ];
-    var vowelToggle = this.props.settings.language == "hebrew" ?
+    var vowelToggle = this.props.settings.language !== "english" ?
       (<ToggleSet
           role="radiogroup"
           ariaLabel="vowels and cantillation toggle"
