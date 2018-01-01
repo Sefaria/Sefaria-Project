@@ -65,6 +65,7 @@ class ReaderPanel extends Component {
         layoutTalmud:  "continuous",
         layoutTanakh:  "segmented",
         aliyotTorah:   "aliyotOff",
+        vowels:        "all",
         biLayout:      "stacked",
         color:         "light",
         fontSize:      62.5
@@ -1076,6 +1077,22 @@ class ReaderDisplayOptionsMenu extends Component {
           setOption={this.props.setOption}
           settings={this.props.settings} />) : null;
 
+    var vowelsOptions = [
+      {name: "all", content: "<span class='he'>אָ֑</span>", role: "radio", ariaLabel: Sefaria._("Show Vowels and Cantillation")},
+      {name: "partial", content: "<span class='he'>אָ</span>", role: "radio", ariaLabel: Sefaria._("Show only vowel points")},
+      {name: "none", content: "<span class='he'>א</span>", role: "radio", ariaLabel: Sefaria._("Show only consonantal text")}
+    ];
+    var vowelToggle = this.props.settings.language == "hebrew" ?
+      (<ToggleSet
+          role="radiogroup"
+          ariaLabel="vowels and cantillation toggle"
+          label={Sefaria._("Taamim and Nikkud")}
+          name="vowels"
+          options={vowelsOptions}
+          setOption={this.props.setOption}
+          currentLayout={this.props.currentLayout}
+          settings={this.props.settings} />): null;
+
     if (this.props.menuOpen === "search") {
       return (<div className="readerOptionsPanel" role="dialog">
                 <div className="readerOptionsPanelInner">
@@ -1097,6 +1114,7 @@ class ReaderDisplayOptionsMenu extends Component {
                   {colorToggle}
                   {sizeToggle}
                   {aliyahToggle}
+                  {vowelToggle}
                 </div>
               </div>);
     }

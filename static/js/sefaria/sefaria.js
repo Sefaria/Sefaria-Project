@@ -1833,7 +1833,11 @@ Sefaria = extend(Sefaria, {
       "Bilingual Layout" : "עימוד דו לשוני",
       "Color": "צבע",
       "Font Size" : "גודל גופן",
-      "Aliyot" : "עליות לתורה"
+      "Aliyot" : "עליות לתורה",
+      "Taamim and Nikkud" : "טעמים וניקוד",
+      "Show Vowels and Cantillation": "הצג טקסט עם טעמי מקרא וניקוד",
+      "Show only vowel points": "הצג טקסט עם ניקוד",
+      "Show only consonantal text": "הצג טקסט עיצורי בלבד"
   },
   _v: function(inputVar){
     if(Sefaria.interfaceLang != "english"){

@@ -710,6 +710,7 @@ class ReaderApp extends Component {
         layoutTalmud:  "continuous",
         layoutTanakh:  "segmented",
         aliyotTorah:   "aliyotOff",
+        vowels:        "all",
         biLayout:      "stacked",
         color:         "light",
         fontSize:      62.5

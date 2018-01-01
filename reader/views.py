@@ -369,6 +369,7 @@ def s2_props(request):
             "layoutTalmud":  request.COOKIES.get("layoutTalmud", "continuous"),
             "layoutTanakh":  request.COOKIES.get("layoutTanakh", "segmented"),
             "aliyotTorah":   request.COOKIES.get("aliyotTorah", "aliyotOff"),
+            "vowels":        request.COOKIES.get("vowels", "all"),
             "biLayout":      request.COOKIES.get("biLayout", "stacked"),
             "color":         request.COOKIES.get("color", "light"),
             "fontSize":      request.COOKIES.get("fontSize", 62.5),

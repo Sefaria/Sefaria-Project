@@ -242,7 +242,17 @@ class TextRange extends Component {
 
     var showSegmentNumbers = showNumberLabel && this.props.basetext;
 
+    var nre = /[\u0591-\u05af\u05bd\u05bf\u05c0\u05c4\u05c5]/g;
+    var cnre = /[\u0591-\u05bd\u05bf-\u05c5\u05c7]/g;
+    var strip_text_re = null;
+    if(this.props.settings && this.props.settings.language == "hebrew" && this.props.settings.vowels !== "all"){
+      strip_text_re = (this.props.settings.vowels == "partial") ? nre : cnre;
+    }
+
     var segments      = Sefaria.makeSegments(data, this.props.withContext);
+    if(segments.length > 0 && strip_text_re && !strip_text_re.test(segments[0].he)){
+      strip_text_re = null; //if the first segment doesnt even match as containing vowels or cantillation- stop
+    }
     var textSegments  = segments.map(function (segment, i) {
       var highlight     = this.props.highlightedRefs && this.props.highlightedRefs.length ?        // if highlighted refs are explicitly set
                             Sefaria.util.inArray(segment.ref, this.props.highlightedRefs) !== -1 : // highlight if this ref is in highlighted refs prop
@@ -262,6 +272,7 @@ class TextRange extends Component {
           </div>;
         }
       }
+      segment.he = strip_text_re ? segment.he.replace(strip_text_re, "") : segment.he;
       return (<span key={i + segment.ref}>
                 { parashahHeader }
                 <TextSegment
