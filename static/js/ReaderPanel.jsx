@@ -788,7 +788,7 @@ class ReaderPanel extends Component {
                                               multiPanel={this.props.multiPanel}
                                               setOption={this.setOption}
                                               currentLayout={this.currentLayout}
-                                              currentBook={this.currentBook()}
+                                              currentBook={this.currentBook}
                                               width={this.state.width}
                                               menuOpen={this.state.menuOpen} />) : null}
         {this.state.displaySettingsOpen ? (<div className="mask" onClick={this.closeDisplaySettings}></div>) : null}
@@ -984,7 +984,7 @@ ReaderControls.propTypes = {
 class ReaderDisplayOptionsMenu extends Component {
   renderAliyotToggle() {
     let torah = ["Genesis", "Exodus", "Leviticus", "Numbers", "Deuteronomy"];
-    return torah.includes(this.props.currentBook);
+    return this.props.currentBook ? torah.includes(this.props.currentBook()) : false;
   }
   render() {
     var languageOptions = [
@@ -1123,7 +1123,7 @@ class ReaderDisplayOptionsMenu extends Component {
 ReaderDisplayOptionsMenu.propTypes = {
   setOption:     PropTypes.func.isRequired,
   currentLayout: PropTypes.func.isRequired,
-  currentBook:   PropTypes.string,
+  currentBook:   PropTypes.func,
   menuOpen:      PropTypes.string,
   multiPanel:    PropTypes.bool.isRequired,
   width:         PropTypes.number.isRequired,
