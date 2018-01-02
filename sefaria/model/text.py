@@ -1889,9 +1889,7 @@ class RefCacheType(type):
 
         if tref:
             if tref in cls.__tref_oref_map:
-                ref = cls.__tref_oref_map[tref]
-                ref.tref = tref
-                return ref
+                return cls.__tref_oref_map[tref]
             else:
                 result = super(RefCacheType, cls).__call__(*args, **kwargs)
                 uid = result.uid()
