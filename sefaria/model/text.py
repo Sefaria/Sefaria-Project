@@ -4281,6 +4281,8 @@ class Library(object):
         return term_dict
 
     def _build_term_mappings(self):
+        self._simple_term_mapping = {}
+        self._full_term_mapping = {}
         for term in TermSet():
             self._full_term_mapping[term.name] = term
             self._simple_term_mapping[term.name] = {"en": term.get_primary_title("en"),
@@ -4300,9 +4302,6 @@ class Library(object):
             self._build_term_mappings()
         return self._full_term_mapping.get(term_name)
 
-    def reset_term_mappings(self):
-        self._simple_term_mapping = {}
-        self._full_term_mapping = {}
     
     #todo: only used in bio scripts
     def get_index_forest(self):
@@ -4764,4 +4763,4 @@ def process_version_delete_in_cache(ver, **kwargs):
 
 
 def reset_simple_term_mapping(o, **kwargs):
-    library.reset_term_mappings()
+    library._build_term_mappings()
