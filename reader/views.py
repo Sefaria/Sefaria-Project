@@ -427,7 +427,7 @@ def s2(request, ref, version=None, lang=None, sheet=None):
         panels += make_panel_dicts(oref, versionEn, versionHe, filter, versionFilter, multi_panel, **{"panelDisplayLanguage": request.GET.get("lang", props["initialSettings"]["language"])})
 
     elif sheet == True:
-        panels += [make_sheet_panel_dict(ref, **{"panelDisplayLanguage": lang})]
+        panels += [make_sheet_panel_dict(ref, **{"panelDisplayLanguage": request.GET.get("lang", "bi")})]
 
     # Handle any panels after 1 which are identified with params like `p2`, `v2`, `l2`.
     i = 2
@@ -443,7 +443,7 @@ def s2(request, ref, version=None, lang=None, sheet=None):
 
         elif ref == "sheet":
             sheet_id = request.GET.get("s{}".format(i))
-            panelDisplayLanguage = request.GET.get("lang{}".format(i), props["initialSettings"]["language"])
+            panelDisplayLanguage = request.GET.get("lang", "bi")
             panels += [make_sheet_panel_dict(sheet_id, **{"panelDisplayLanguage": panelDisplayLanguage})]
 
 

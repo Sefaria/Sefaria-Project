@@ -53,7 +53,7 @@ class ReaderPanel extends Component {
     this.state = {
       refs: props.initialRefs || [], // array of ref strings
       bookRef: null,
-      mode: props.initialMode, // "Text", "TextAndConnections", "Connections"
+      mode: props.initialMode, // "Text", "TextAndConnections", "Connections", "Sheet", "SheetAndConnections"
       connectionsMode: props.initialConnectionsMode,
       filter: props.initialFilter || [],
       versionFilter: props.initialVersionFilter || [],

@@ -546,6 +546,16 @@ class ReaderApp extends Component {
       } else if (state.mode === "Sheet") {
         hist.title = state.sheet.title.stripHtml();
         hist.url = i == 0 ? "sheets/"+state.sheet.id : "sheet&s="+ state.sheet.id;
+      } else if (state.mode === "SheetAndConnections") {
+        var filter    = state.filter.length ? state.filter :
+                          (state.connectionsMode in {"Sheets": 1, "Notes": 1, "Versions": 1, "Version Open": 1, "About": 1} ? [state.connectionsMode] : ["all"]);
+        hist.sources  = filter.join("+");
+        if (state.connectionsMode === "Version Open" && state.versionFilter.length) {
+          hist.versionFilter = state.versionFilter[0];
+        }
+        hist.title    = state.sheet.title.stripHtml()  + Sefaria._(" with ") + Sefaria._(hist.sources === "all" ? "Connections" : hist.sources);
+        hist.url = i == 0 ? "sheets/"+state.sheet.id : "sheet&s="+ state.sheet.id + "?with=" + Sefaria._(hist.sources === "all" ? "Connections" : hist.sources);
+        hist.mode     = "SheetAndConnections";
       }
       if (state.mode !== "Header") {
         hist.lang =  state.settings.language.substring(0,2);
@@ -559,7 +569,7 @@ class ReaderApp extends Component {
 
     var url   = "/" + (histories.length ? histories[0].url : "");
     url += this._getUrlVersionsParams(histories[0].currVersions, 0);
-    if (histories[0].mode === "TextAndConnections") {
+    if (histories[0].mode === "TextAndConnections" || histories[0].mode === "SheetAndConnections") {
         url += "&with=" + histories[0].sources;
     }
     if(histories[0].lang) {
@@ -659,7 +669,7 @@ class ReaderApp extends Component {
   makePanelState(state) {
     // Return a full representation of a single panel's state, given a partial representation in `state`
     var panel = {
-      mode:                    state.mode,                   // "Text", "TextAndConnections", "Connections"
+      mode:                    state.mode,                   // "Text", "TextAndConnections", "Connections", "Sheet", "SheetAndConnection"
       refs:                    state.refs                    || [], // array of ref strings
       filter:                  state.filter                  || [],
       versionFilter:           state.versionFilter           || [],
