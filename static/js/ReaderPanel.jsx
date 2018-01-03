@@ -260,6 +260,7 @@ class ReaderPanel extends Component {
       highlightedRefs,
       recentFilters: [],
       menuOpen: null,
+      connectionsMode: "Resources",
       settings: this.state.settings
     });
   }
@@ -797,7 +798,13 @@ class ReaderPanel extends Component {
     var classes  = {readerPanel: 1, narrowColumn: this.state.width < 730};
     classes[this.currentLayout()]             = 1;
     classes[this.state.settings.color]        = 1;
-    classes[this.state.settings.language]     = 1;
+    if (this.state.mode === "Connections" && Sefaria.interfaceLang === "hebrew") {
+      // Don't allow language toggle on Connections panel in Hebrew Interface. 
+      classes["hebrew"] = 1;
+    } else {
+      classes[this.state.settings.language]   = 1;
+
+    }
     classes = classNames(classes);
     var style = {"fontSize": this.state.settings.fontSize + "%"};
     var hideReaderControls = (
@@ -924,7 +931,7 @@ class ReaderControls extends Component {
     this.props.openMenu("sheet meta");
   }
   componentDidMount() {
-    var title     = this.props.currentRef;
+    var title = this.props.currentRef;
     if (title) {
       var oref = Sefaria.ref(title);
       if (!oref) {

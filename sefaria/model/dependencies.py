@@ -108,8 +108,12 @@ subscribe(category.process_category_name_change_in_categories_and_indexes,  cate
 subscribe(category.rebuild_library_after_category_change,                   category.Category, "attributeChange", "lastPath")
 subscribe(category.rebuild_library_after_category_change,                   category.Category, "delete")
 subscribe(category.rebuild_library_after_category_change,                   category.Category, "save")
+
+'''
+# These are contained in the library rebuild, above.
 subscribe(text.reset_simple_term_mapping,                                   category.Category, "delete")
 subscribe(text.reset_simple_term_mapping,                                   category.Category, "save")
+'''
 
 # todo: notes? reviews?
 # todo: Scheme name change in Index

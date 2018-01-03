@@ -1363,30 +1363,30 @@ Sefaria = extend(Sefaria, {
   },
   packRecentItem: function(item) {
     // Returns an array which represents the object `item` with less overhead.
-    let fields = ["ref", "heRef", "lastVisited", "bookVisitCount"];
-    let packed = [];
-    fields.map(field => {
-      var value = field in item ? item[field] : null;
-      packed.push(value);
-    });
-    if (item.currVersions) {
-      packed = packed.concat([item.currVersions.en, item.currVersions.he]);
-    }
+    let packed = [
+      item.ref,
+      item.heRef,
+      item.lastVisited,
+      item.bookVisitCount,
+      item.currVersions.en,
+      item.currVersions.he
+    ];
     return packed;
   },
   unpackRecentItem: function(item) {
     // Returns an object which preprsents the array `item` with fields expanded
     var oRef = Sefaria.parseRef(item[0]);
+    item = item.pad(6, null)
     var unpacked = {
-      ref: item[0],
-      heRef: item[1],
-      book: oRef.index,
-      lastVisited: item.length > 2 ? item[2] : null,
-      bookVisitCount: item.length > 3 ? item[3] : null,
-      currVersions: item.length > 4 ? {
-        en: item[4],
-        he: item[5],
-      } : undefined,
+      ref:            item[0],
+      heRef:          item[1],
+      book:           oRef.index,
+      lastVisited:    item[2],
+      bookVisitCount: item[3],
+      currVersions: {
+        en:           item[4],
+        he:           item[5],
+      },
     };
     return unpacked;
   },

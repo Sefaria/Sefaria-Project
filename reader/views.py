@@ -536,7 +536,7 @@ def s2(request, ref, version=None, lang=None, sheet=None):
         "html":           html,
         "title":          title,
         "desc":           desc,
-        "ldBreadcrumbs":  breadcrumb
+        "ldBreadcrumbs":  ld_cat_crumbs(request, oref=primary_ref)
     }, RequestContext(request))
 
 
@@ -570,7 +570,7 @@ def s2_texts_category(request, cats):
         "html":             html,
         "title":            title,
         "desc":             desc,
-        "ldBreadcrumbs":    ld_cat_crumbs(cats)
+        "ldBreadcrumbs":    ld_cat_crumbs(request, cats)
     }, RequestContext(request))
 
 
@@ -834,7 +834,7 @@ def _crumb(pos, id, name):
         }}
 
 
-def ld_cat_crumbs(cats=None, title=None, oref=None):
+def ld_cat_crumbs(request, cats=None, title=None, oref=None):
     """
     JSON - LD breadcrumbs(https://developers.google.com/search/docs/data-types/breadcrumbs)
     :param cats: List of category names
@@ -856,32 +856,36 @@ def ld_cat_crumbs(cats=None, title=None, oref=None):
         cats = library.get_index(title).categories[:]
 
 
-    breadcrumbJsonList = [_crumb(1, "/texts", "Texts")]
+    breadcrumbJsonList = [_crumb(1, "/texts", _("Texts"))]
     nextPosition = 2
 
     for i,c in enumerate(cats):
-        breadcrumbJsonList += [_crumb(nextPosition, "/texts/" + "/".join(cats[0:i+1]), c)]
+        name = hebrew_term(c) if request.interfaceLang == "hebrew" else c
+        breadcrumbJsonList += [_crumb(nextPosition, "/texts/" + "/".join(cats[0:i+1]), name)]
         nextPosition += 1
 
     if title:
-        breadcrumbJsonList += [_crumb(nextPosition, "/" + title.replace(" ", "_"), title)]
+        name = hebrew_term(title) if request.interfaceLang == "hebrew" else title
+        breadcrumbJsonList += [_crumb(nextPosition, "/" + title.replace(" ", "_"), name)]
         nextPosition += 1
 
         if oref and oref.index_node != oref.index.nodes:
             for snode in oref.index_node.ancestors()[1:] + [oref.index_node]:
                 if snode.is_default():
                     continue
-                breadcrumbJsonList += [_crumb(nextPosition, "/" + snode.ref().url(), snode.primary_title("en"))]
+                name = snode.primary_title("he") if request.interfaceLang == "hebrew" else  snode.primary_title("en")
+                breadcrumbJsonList += [_crumb(nextPosition, "/" + snode.ref().url(), name)]
                 nextPosition += 1
 
         #todo: range?
         if oref and getattr(oref.index_node, "depth", None) and not oref.is_range():
             depth = oref.index_node.depth
             for i in range(len(oref.sections)):
-                breadcrumbJsonList += [_crumb(nextPosition,
-                                              "/" + oref.context_ref(depth - i - 1).url(),
-                                              oref.index_node.sectionNames[i] + u" " + oref.normal_section(i, "en"))
-                                       ]
+                if request.interfaceLang == "english":
+                    name = oref.index_node.sectionNames[i] + u" " + oref.normal_section(i, "en")
+                else:
+                    name = hebrew_term(oref.index_node.sectionNames[i]) + u" " + oref.normal_section(i, "he")
+                breadcrumbJsonList += [_crumb(nextPosition, "/" + oref.context_ref(depth - i - 1).url(), name)]
                 nextPosition += 1
 
     return json.dumps({
@@ -3686,7 +3690,7 @@ def person_page(request, name):
     assert isinstance(person, Person)
 
     template_vars = person.contents()
-    if request.interfaceLang == "he":
+    if request.interfaceLang == "hebrew":
         template_vars["name"] = person.primary_name("he")
         template_vars["bio"]= getattr(person, "heBio", _("Learn about %(name)s - works written, biographies, dates and more.") % {"name": person.primary_name("he")})
     else:

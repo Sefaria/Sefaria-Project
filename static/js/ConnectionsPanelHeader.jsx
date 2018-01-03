@@ -52,8 +52,9 @@ class ConnectionsPanelHeader extends Component {
                     {this.props.interfaceLang == "english" ? <div className="int-en">Resources</div> : null }
                     {this.props.interfaceLang == "hebrew" ? <div className="int-he">קישורים וכלים</div> : null }
                   </div>;
+
     } else if ((this.props.previousCategory && this.props.connectionsMode == "TextList") || previousMode) {
-      // In a text list, back to Previous Categoy
+      // In a text list, back to Previous Category
       const prev = previousMode ? previousMode : this.props.previousCategory;
       const prevHe = previousMode ? Sefaria._(previousMode) : Sefaria.hebrewTerm(this.props.previousCategory);
       const url = Sefaria.util.replaceUrlParam("with", prev);
@@ -80,7 +81,9 @@ class ConnectionsPanelHeader extends Component {
       return (<div className="connectionsPanelHeader">
                 {title}
                 <div className="rightButtons">
-                  <LanguageToggleButton toggleLanguage={this.props.toggleLanguage} url={langUrl} />
+                  {Sefaria.interfaceLang !== "hebrew" ? 
+                    <LanguageToggleButton toggleLanguage={this.props.toggleLanguage} url={langUrl} />
+                    : null }
                   <ReaderNavigationMenuCloseButton icon="circledX" onClick={this.props.closePanel} url={closeUrl} />
                 </div>
               </div>);

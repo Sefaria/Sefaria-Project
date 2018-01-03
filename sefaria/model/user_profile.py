@@ -17,7 +17,6 @@ from sefaria.system.database import db
 from django.utils import translation
 
 
-
 class UserProfile(object):
 	def __init__(self, id=None, slug=None, email=None):
 
@@ -71,7 +70,6 @@ class UserProfile(object):
 		}
 
 		self._name_updated      = False
-		self._slug_updated      = False
 
 		# Update with saved profile doc in MongoDB
 		profile = db.profiles.find_one({"id": id})
@@ -96,9 +94,6 @@ class UserProfile(object):
 		if "first_name" in obj or "last_name" in obj:
 			if self.first_name != obj["first_name"] or self.last_name != obj["last_name"]:
 				self._name_updated = True
-
-		if "slug" in obj and obj["slug"] != self.slug:
-			self._slug_updated = True
 
 	def update(self, obj):
 		"""
@@ -127,13 +122,6 @@ class UserProfile(object):
 		if self._id:
 			d["_id"] = self._id
 		db.profiles.save(d)
-
-		# invalidate user links cache if needed
-		if self._name_updated or self._slug_updated:
-			global user_links
-			if self.id in user_links:
-				del user_links[self.id]
-			self._slug_updated = False
 
 		# store name changes on Django User object
 		if self._name_updated:
@@ -242,16 +230,6 @@ class UserProfile(object):
 			self.interrupting_messages.remove(message)
 			self.save()
 
-	def set_recent_item(tref):
-		"""
-		Save `tref` as a recently viewed text at the front of the list. Removes any previous location for that text.
-		Not used yet, need to consider if it's better to store derivable information (ref->heRef) or reprocess it often.
-		"""
-		oref = Ref(tref)
-		recent = [tref for tref in self.recent if Ref(tref).index.title != oref.index.title]
-		self.recent = [tref] + recent
-		self.save()
-
 	def to_DICT(self):
 		"""Return a json serializble dictionary this profile"""
 		dictionary = {
@@ -314,8 +292,13 @@ def email_unread_notifications(timeframe):
 		message_html  = render_to_string("email/notifications_email.html", {"notifications": notifications, "recipient": user.first_name})
 		#message_text = util.strip_tags(message_html)
 		actors_string = notifications.actors_string()
-		verb          = "have" if " and " in actors_string else "has"
-		subject       = "%s %s new activity on Sefaria" % (actors_string, verb)
+		# TODO Hebrew subjects
+		if actors_string:
+			verb      = "have" if " and " in actors_string else "has"
+			subject   = "%s %s new activity on Sefaria" % (actors_string, verb)
+		elif notifications.like_count() > 0:
+			noun      = "likes" if notifications.like_count() > 1 else "like"
+			subject   = "%d new %s on your Source Sheet" % (notifications.like_count(), noun)
 		from_email    = "Sefaria <hello@sefaria.org>"
 		to            = user.email
 
@@ -366,16 +349,10 @@ def user_name(uid):
 	return data["name"]
 
 
-# Simple Cache for user links
-user_links = {}
 def user_link(uid):
 	"""Returns a string with an <a> tag linking to a users profile"""
-	if uid in user_links:
-		return user_links[uid]
-
 	data = public_user_data(uid)
 	link = "<a href='" + data["profileUrl"] + "' class='userLink'>" + data["name"] + "</a>"
-	user_links[uid] = link
 	return link
 
 

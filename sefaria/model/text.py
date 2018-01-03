@@ -1889,9 +1889,7 @@ class RefCacheType(type):
 
         if tref:
             if tref in cls.__tref_oref_map:
-                ref = cls.__tref_oref_map[tref]
-                ref.tref = tref
-                return ref
+                return cls.__tref_oref_map[tref]
             else:
                 result = super(RefCacheType, cls).__call__(*args, **kwargs)
                 uid = result.uid()
@@ -1946,6 +1944,14 @@ class Ref(object):
     """
     __metaclass__ = RefCacheType
 
+
+    __slots__ = (
+        'index', 'book', 'primary_category', 'sections', 'toSections', 'index_node',
+        '_lang', 'tref', 'orig_tref', '_normal', '_he_normal', '_url', '_next', '_prev',
+        '_padded', '_context', '_first_spanned_ref', '_spanned_refs', '_ranged_refs',
+        '_range_depth', '_range_index',
+    )
+
     def __init__(self, tref=None, _obj=None):
         """
         Object is generally initialized with a textual reference - ``tref``
@@ -1982,10 +1988,10 @@ class Ref(object):
         self._next = None
         self._prev = None
         self._padded = None
-        self._context = {}
+        self._context = None
         self._first_spanned_ref = None
-        self._spanned_refs = []
-        self._ranged_refs = []
+        self._spanned_refs = None
+        self._ranged_refs = None
         self._range_depth = None
         self._range_index = None
 
@@ -3038,6 +3044,9 @@ class Ref(object):
         if level == 0:
             return self
 
+        if self._context is None:
+            self._context = {}
+
         if not self._context.get(level) or not self._context[level]:
             if len(self.sections) <= self.index_node.depth - level:
                 return self
@@ -3222,10 +3231,10 @@ class Ref(object):
         """
         :return: list of :class:`Ref` objects corresponding to each point in the range of this :class:`Ref`
         """
-        if not self._ranged_refs:
-            results = []
+        if self._ranged_refs is None:
             if not self.is_range():
                 return [self]
+            results = []
             if self.is_spanning():
                 for oref in self.split_spanning_ref():
                     results += oref.range_list() if oref.is_range() else [oref] if oref.is_segment_level() else oref.all_subrefs()
@@ -3614,6 +3623,7 @@ class Ref(object):
     def __repr__(self):  # Wanted to use orig_tref, but repr can not include Unicode
         return self.__class__.__name__ + "('" + str(self.uid()) + "')"
 
+    '''
     def old_dict_format(self):
         """
         Outputs the ref in the old format, for code that relies heavily on that format
@@ -3629,6 +3639,7 @@ class Ref(object):
         d.update(self.index.contents())
         del d["title"]
         return d
+    '''
 
     def he_book(self):
         return self.index_node.full_title("he")
@@ -3815,7 +3826,21 @@ class Library(object):
 
     Stewards the in-memory and in-cache objects that cover the entire collection of texts.
 
-    Exposes methods to add, remove, or register change of an index record.  These are primarily called by the dependencies mechanism on Index Create/Update/Destroy.
+    Exposes methods to add, remove, or register change of an index record.
+    These are primarily called by the dependencies mechanism on Index Create/Update/Destroy.
+
+
+    Dependencies
+
+    Initialization of the library happens in stages
+    1. On load of this file, library instance is created.
+        - Terms maps created
+    2. On load of full model with `from sefaria.model import *`
+        - Indexes are built
+    3. On load of reader/views
+        - toc tree is built (categories loaded)
+        - autocompleters are created
+
 
     """
 
@@ -3860,11 +3885,12 @@ class Library(object):
 
         # Term Mapping
         self._simple_term_mapping = {}
+        self._full_term_mapping = {}
 
         if not hasattr(sys, '_doc_build'):  # Can't build cache without DB
-            self._build_core_maps()
+            self._build_term_mappings()
 
-    def _build_core_maps(self):
+    def _build_index_maps(self):
         # Build index and title node dicts in an efficient way
 
         # self._index_title_commentary_maps if index_object.is_commentary() else self._index_title_maps
@@ -3893,7 +3919,8 @@ class Library(object):
         # TOC is handled separately since it can be edited in place
 
     def rebuild(self, include_toc = False, include_auto_complete=False):
-        self._build_core_maps()
+        self._build_term_mappings()
+        self._build_index_maps()
         self._full_title_lists = {}
         self._full_title_list_jsons = {}
         self._title_regex_strings = {}
@@ -3918,7 +3945,13 @@ class Library(object):
         scache.delete_template_cache("texts_list")
         scache.delete_template_cache("texts_dashboard")
         self._full_title_list_jsons = {}
+
+        """
+        # These seem needless, and counterproductive (certainly in the rebuild(include_toc=True) case)
+
         self._simple_term_mapping = {}
+        self._full_term_mapping = {}
+        """
 
     def get_toc(self, rebuild=False):
         """
@@ -4012,7 +4045,6 @@ class Library(object):
         self._search_filter_toc = update_title_in_toc(self.get_search_filter_toc(), indx, recount=False, for_search=True)
 
         self.rebuild_toc(skip_toc_tree=True, skip_filter_toc=True)
-
 
     def delete_index_from_toc(self, indx):
         toc_node = self.get_toc_tree().lookup(indx.categories, indx.title)
@@ -4231,7 +4263,7 @@ class Library(object):
             try:
                 section_refs += indx.all_section_refs()
             except Exception as e:
-                logger.warning(u"Failed to get section refs for {}: {}".format(getattr(indx,"title","unknown index"), e))
+                logger.warning(u"Failed to get section refs for {}: {}".format(getattr(indx, "title", "unknown index"), e))
         return section_refs
 
     def get_term_dict(self, lang="en"):
@@ -4242,49 +4274,37 @@ class Library(object):
         # key = "term_dict_" + lang
         # term_dict = self.local_cache.get(key)
         term_dict = self._term_ref_maps.get(lang)
-        # if not term_dict:
-        #    term_dict = scache.get_cache_elem(key)
-        #    self.local_cache[key] = term_dict
         if not term_dict:
-            term_dict = {}
-            terms = TermSet({"$and":[{"ref": {"$exists":True}},{"ref":{"$nin":["",[]]}}]})
-            for term in terms:
-                for title in term.get_titles(lang):
-                    term_dict[title] = term.ref
-            # scache.set_cache_elem(key, term_dict)
-            # self.local_cache[key] = term_dict
-            self._term_ref_maps[lang] = term_dict
+            self._build_term_mappings()
+            term_dict = self._term_ref_maps.get(lang)
+
         return term_dict
+
+    def _build_term_mappings(self):
+        for term in TermSet():
+            self._full_term_mapping[term.name] = term
+            self._simple_term_mapping[term.name] = {"en": term.get_primary_title("en"),
+                                                    "he": term.get_primary_title("he")}
+            if hasattr(term, "ref"):
+                for lang in self.langs:
+                    for title in term.get_titles(lang):
+                        self._term_ref_maps[lang][title] = term.ref
 
     def get_simple_term_mapping(self):
         if not self._simple_term_mapping:
-            from sefaria.model import CategorySet
-
-            for term in TermSet():
-                self._simple_term_mapping[term.name] = {"en": term.get_primary_title("en"), "he": term.get_primary_title("he")}
-
-            # Note that this will clobber any overlapping terms, and use the last of identical categories.
-            # Currently, all category names are terms, this is labour lost.
-            # for cat in CategorySet():
-            #    self._simple_term_mapping[cat.lastPath] = {"en": cat.get_primary_title("en"), "he": cat.get_primary_title("he")}
-
+            self._build_term_mappings()
         return self._simple_term_mapping
 
-    def reset_simple_term_mapping(self):
+    def get_term(self, term_name):
+        if not self._full_term_mapping:
+            self._build_term_mappings()
+        return self._full_term_mapping.get(term_name)
+
+    def reset_term_mappings(self):
         self._simple_term_mapping = {}
-
-    #todo: no usages?
-    def get_content_nodes(self):
-        """
-        :return: list of all content nodes in the library
-        """
-        nodes = []
-        forest = self.get_index_forest()
-        for tree in forest:
-            nodes += tree.get_leaf_nodes()
-        return nodes
-
-    #todo: used in get_content_nodes, but besides that, only bio scripts
+        self._full_term_mapping = {}
+    
+    #todo: only used in bio scripts
     def get_index_forest(self):
         """
         :return: list of root Index nodes.
@@ -4744,4 +4764,4 @@ def process_version_delete_in_cache(ver, **kwargs):
 
 
 def reset_simple_term_mapping(o, **kwargs):
-    library.reset_simple_term_mapping()
+    library.reset_term_mappings()
