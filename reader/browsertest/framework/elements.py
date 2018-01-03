@@ -80,7 +80,9 @@ class AbstractTest(object):
 
     def set_modal_cookie(self):
         # set cookie to avoid popup interruption
-        self.driver.add_cookie({"name": "welcomeToS2LoggedOut", "value": "true"})
+        # We now longer set the welcomeToS2LoggedOut message by default.
+        # TODO is this method still needed?
+        # self.driver.add_cookie({"name": "welcomeToS2LoggedOut", "value": "true"})
 
     def login_user(self):
         password = os.environ["SEFARIA_TEST_PASS"]
