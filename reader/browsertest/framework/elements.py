@@ -82,6 +82,7 @@ class AbstractTest(object):
         # set cookie to avoid popup interruption
         # We now longer set the welcomeToS2LoggedOut message by default.
         # TODO is this method still needed?
+        pass
         # self.driver.add_cookie({"name": "welcomeToS2LoggedOut", "value": "true"})
 
     def login_user(self):
