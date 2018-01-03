@@ -25,7 +25,7 @@ import search
 
 
 # Simple cache of the last updated time for sheets
-last_updated = {}
+# last_updated = {}
 
 
 def get_sheet(id=None):
@@ -257,8 +257,10 @@ def save_sheet(sheet, user_id, search_override=False):
 		index_name = search.get_new_and_current_index_names()['current']
 		search.index_sheet(index_name, sheet["id"])
 
+	'''
 	global last_updated
 	last_updated[sheet["id"]] = sheet["dateModified"]
+	'''
 
 	return sheet
 
@@ -481,15 +483,19 @@ def get_last_updated_time(sheet_id):
 	"""
 	Returns a timestamp of the last modified date for sheet_id.
 	"""
+	'''
 	if sheet_id in last_updated:
 		return last_updated[sheet_id]
+	'''
 
 	sheet = db.sheets.find_one({"id": sheet_id}, {"dateModified": 1})
 
 	if not sheet:
 		return None
 
+	'''
 	last_updated[sheet_id] = sheet["dateModified"]
+	'''
 	return sheet["dateModified"]
 
 
