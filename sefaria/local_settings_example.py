@@ -1,10 +1,10 @@
-# An example of settings needed in a local_settings.py file which is ignored by git.
+# An example of settings needed in a local_settings.py file.
 # copy this file to sefaria/local_settings.py and provide local info to run.
 import os.path
 relative_to_abs_path = lambda *x: os.path.join(os.path.dirname(
                                os.path.realpath(__file__)), *x)
 
-#These are things you need to change!
+# These are things you need to change!
 
 ################ YOU ONLY NEED TO CHANGE "NAME" TO THE PATH OF YOUR SQLITE DATA FILE ########################################
 DATABASES = {
@@ -163,6 +163,14 @@ DISABLE_INDEX_SAVE = False
 CLOUDFLARE_ZONE = ""
 CLOUDFLARE_EMAIL = ""
 CLOUDFLARE_TOKEN = ""
+
+# Multiserver
+MULTISERVER_ENABLED = True
+MULTISERVER_REDIS_SERVER = "127.0.0.1"
+MULTISERVER_REDIS_PORT = 6379
+MULTISERVER_REDIS_DB = 0
+MULTISERVER_REDIS_CHANNEL = "msync"   # Message queue on Redis
+
 
 """ to use logging, in any module:
 # import the logging library
