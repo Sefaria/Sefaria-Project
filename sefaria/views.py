@@ -34,7 +34,7 @@ import sefaria.system.cache as scache
 from sefaria.client.util import jsonResponse, subscribe_to_list
 from sefaria.forms import NewUserForm
 from sefaria.settings import MAINTENANCE_MESSAGE, USE_VARNISH
-from sefaria.model.user_profile import UserProfile, user_links
+from sefaria.model.user_profile import UserProfile
 from sefaria.model.group import GroupSet
 from sefaria.model.translation_request import count_completed_translation_requests
 from sefaria.export import export_all as start_export_all
@@ -327,8 +327,6 @@ def file_upload(request, resize_image=True):
 @staff_member_required
 def reset_cache(request):
     model.library.rebuild()
-    global user_links
-    user_links = {}
     return HttpResponseRedirect("/?m=Cache-Reset")
 
 
