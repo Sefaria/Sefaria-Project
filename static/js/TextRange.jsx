@@ -390,7 +390,7 @@ TextRange.propTypes = {
 };
 TextRange.defaultProps = {
   currVersions: {en:null,he:null},
-}
+};
 
 
 class TextSegment extends Component {
