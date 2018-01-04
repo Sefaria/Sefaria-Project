@@ -266,5 +266,8 @@ ReaderNavigationCategoryMenuContents.propTypes = {
   nestLevel:  PropTypes.number
 };
 
+ReaderNavigationCategoryMenuContents.defaultProps = {
+  contents: []
+};
 
 module.exports = ReaderNavigationCategoryMenu;

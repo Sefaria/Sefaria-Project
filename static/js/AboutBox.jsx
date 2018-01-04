@@ -72,7 +72,7 @@ class AboutBox extends Component {
             <span className="en">{d.title}</span>
             <span className="he">{d.heTitle}</span>
           </div>
-          { !!authorsEn ?
+          { authorsEn.length ?
             <div className="aboutSubtitle">
               <span className="en">Author: {authorsEn}</span>
               <span className="he">מחבר: {authorsHe}</span>
