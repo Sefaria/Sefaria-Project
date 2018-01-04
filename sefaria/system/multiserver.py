@@ -39,7 +39,7 @@ class ServerCoordinator(object):
         payload = {
             obj: obj,
             method: method,
-            args: args
+            args: args or []
         }
         msg_data = json.dumps(payload)
         self.redis_client.publish(MULTISERVER_REDIS_CHANNEL, msg_data)
@@ -76,16 +76,15 @@ class ServerCoordinator(object):
 
         # A list of all of the objects that be referenced
         from sefaria.model import library
+        import sefaria.system.cache as scache
+        import sefaria.model.text as text
 
         data = json.loads(msg["data"])
-        o = locals()[data["obj"]]
-        m = o.getattr(data["method"])
 
-        # Does this need to be starred, or otherwise unpacked?
-        m(data["args"])
+        obj = locals()[data["obj"]]
+        method = obj.getattr(data["method"])
 
-
-server_coordinator = ServerCoordinator()
+        method(*data["args"])
 
 
 class MultiServerMiddleware(object):
@@ -106,3 +105,6 @@ class MultiServerMiddleware(object):
             self.req_counter += 1
 
         return None
+
+
+server_coordinator = ServerCoordinator() if MULTISERVER_ENABLED else None
