@@ -131,10 +131,6 @@ def process_category_name_change_in_categories_and_indexes(changed_cat, **kwargs
             i.save(override_dependencies=True)
 
 
-def rebuild_library_after_category_change(*args, **kwargs):
-    text.library.rebuild(include_toc=True)
-
-
 """ Object Oriented TOC """
 
 
