@@ -56,14 +56,17 @@ class ServerCoordinator(object):
 
     def sync(self):
         msg = self.pubsub.get_message()
-        if not msg:
+        if not msg or msg["type"] == "subscribe":
             return
+
+        if msg["type"] != "message":
+            logger.error("Surprising redis message type: {}".format(msg["type"]))
+
         self._process_message(msg)
         self.sync()  # While there are still live messages, keep processing them.
 
     def _process_message(self, msg):
         """
-
         :param msg: JSON encoded message.
          Expecting a message that looks like this:
          {'channel': 'msync',
@@ -73,6 +76,7 @@ class ServerCoordinator(object):
 
         :return:
         """
+
 
         # A list of all of the objects that be referenced
         from sefaria.model import library
