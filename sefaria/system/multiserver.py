@@ -87,7 +87,7 @@ class ServerCoordinator(object):
         data = json.loads(msg["data"])
 
         obj = locals()[data["obj"]]
-        method = obj.getattr(data["method"])
+        method = getattr(obj, data["method"])
 
         method(*data["args"])
 
