@@ -4742,13 +4742,14 @@ def process_index_title_change_in_core_cache(indx, **kwargs):
         from sefaria.system.sf_varnish import invalidate_title
         invalidate_title(old_title)
 
+    library.refresh_index_record_in_cache(indx, old_title=old_title)
     key = scache.generate_text_toc_cache_key(indx.title)
     scache.delete_cache_elem(key)
-    library.refresh_index_record_in_cache(indx, old_title=old_title)
 
     if MULTISERVER_ENABLED:
-        server_coordinator.publish_event("scache", "delete_cache_elem", [key])
         server_coordinator.publish_event("library", "refresh_index_record_in_cache", [indx.title, old_title])
+        server_coordinator.publish_event("scache", "delete_cache_elem", [key])
+
 
 def process_index_change_in_core_cache(indx, **kwargs):
     if kwargs.get("is_new"):
@@ -4758,13 +4759,13 @@ def process_index_change_in_core_cache(indx, **kwargs):
             server_coordinator.publish_event("library", "add_index_record_to_cache", [indx.title])
 
     else:
+        library.refresh_index_record_in_cache(indx)
         key = scache.generate_text_toc_cache_key(indx.title)
         scache.delete_cache_elem(key)
-        library.refresh_index_record_in_cache(indx)
 
         if MULTISERVER_ENABLED:
-            server_coordinator.publish_event("scache", "delete_cache_elem", [key])
             server_coordinator.publish_event("library", "refresh_index_record_in_cache", [indx.title])
+            server_coordinator.publish_event("scache", "delete_cache_elem", [key])
 
         ## !!! Look out for Varnish pulling a stale value!
         if USE_VARNISH:
@@ -4788,13 +4789,13 @@ def process_index_delete_in_toc(indx, **kwargs):
 
 
 def process_index_delete_in_core_cache(indx, **kwargs):
+    library.remove_index_record_from_cache(indx)
     key = scache.generate_text_toc_cache_key(indx.title)
     scache.delete_cache_elem(key)
-    library.remove_index_record_from_cache(indx)
 
     if MULTISERVER_ENABLED:
-        server_coordinator.publish_event("scache", "delete_cache_elem", [key])
         server_coordinator.publish_event("library", "remove_index_record_from_cache", [indx.title])
+        server_coordinator.publish_event("scache", "delete_cache_elem", [key])
 
     ## !!! Look out for Varnish pulling a stale value!
     if USE_VARNISH:
