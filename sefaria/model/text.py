@@ -4160,7 +4160,7 @@ class Library(object):
                         del self._index_map[key]
                     except KeyError:
                         pass
-                del self._index_title_maps[lang][index_title]
+                del self._index_title_maps[lang][index_object_title]
             else:
                 logger.warning(u"Failed to remove '{}' from {} index-title and title-node cache: nothing to remove".format(index_object_title, lang))
                 return
