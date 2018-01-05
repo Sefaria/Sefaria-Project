@@ -108,6 +108,12 @@ DISABLE_INDEX_SAVE = False
 RECAPTCHA_PUBLIC_KEY = "Dummy"
 RECAPTCHA_PRIVATE_KEY = "Dummy"
 
+# Multiserver
+MULTISERVER_ENABLED = True
+MULTISERVER_REDIS_SERVER = "127.0.0.1"
+MULTISERVER_REDIS_PORT = 6379
+MULTISERVER_REDIS_DB = 0
+MULTISERVER_REDIS_CHANNEL = "msync"   # Message queue on Redis
 
 """ to use logging, in any module:
 # import the logging library
