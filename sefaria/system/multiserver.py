@@ -95,7 +95,7 @@ class ServerCoordinator(object):
 class MultiServerMiddleware(object):
     """
     """
-    delay = 200  # Will check for library updates every X requests
+    delay = 0  # Will check for library updates every X requests.  0 means every request.
 
     def __init__(self):
         if not MULTISERVER_ENABLED:
