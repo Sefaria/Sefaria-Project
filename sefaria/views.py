@@ -340,12 +340,11 @@ def reset_index_cache_for_text(request, title):
 
     index = model.library.get_index(title)
     model.library.refresh_index_record_in_cache(index)
-    key = scache.generate_text_toc_cache_key(index.title)
-    scache.delete_cache_elem(key)
+    scache.delete_text_toc_cache(index.title)
 
     if MULTISERVER_ENABLED:
         server_coordinator.publish_event("library", "refresh_index_record_in_cache", [index.title])
-        server_coordinator.publish_event("scache", "delete_cache_elem", [key])
+        server_coordinator.publish_event("scache", "delete_text_toc_cache", [index.title])
 
     if USE_VARNISH:
         invalidate_title(title)
@@ -375,11 +374,10 @@ def reset_counts(request, title=None):
         vs = model.VersionState(index=i)
         vs.refresh()
 
-        key = scache.generate_text_toc_cache_key(i.title)
-        scache.delete_cache_elem(key)
+        scache.delete_text_toc_cache(i.title)
 
         if MULTISERVER_ENABLED:
-            server_coordinator.publish_event("scache", "delete_cache_elem", [key])
+            server_coordinator.publish_event("scache", "delete_text_toc_cache", [i.title])
 
         return HttpResponseRedirect("/%s?m=Counts-Rebuilt" % model.Ref(i.title).url())
     else:
@@ -395,6 +393,10 @@ def reset_counts(request, title=None):
 def delete_orphaned_counts(request):
     remove_old_counts()
     scache.delete_template_cache("texts_dashboard")
+
+    if MULTISERVER_ENABLED:
+        server_coordinator.publish_event("scache", "delete_template_cache", ["texts_dashboard"])
+
     return HttpResponseRedirect("/dashboard?m=Orphaned-counts-deleted")
 
 
@@ -464,13 +466,12 @@ def reset_ref(request, tref):
         vs = model.VersionState(index=oref.index)
         vs.refresh()
         model.library.update_index_in_toc(oref.index)
-        key = scache.generate_text_toc_cache_key(oref.index.title)
-        scache.delete_cache_elem(key)
+        scache.delete_text_toc_cache(oref.index.title)
 
         if MULTISERVER_ENABLED:
             server_coordinator.publish_event("library", "refresh_index_record_in_cache", [oref.index.title])
             server_coordinator.publish_event("library", "update_index_in_toc", [oref.index.title])
-            server_coordinator.publish_event("scache", "delete_cache_elem", [key])
+            server_coordinator.publish_event("scache", "delete_text_toc_cache", [oref.index.title])
 
         if USE_VARNISH:
             invalidate_index(oref.index)

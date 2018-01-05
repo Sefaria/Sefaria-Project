@@ -4732,8 +4732,10 @@ def process_index_title_change_in_dependant_records(indx, **kwargs):
         didx.base_text_titles.insert(pos, kwargs["new"])
         didx.save()
 
+
 def process_index_delete_in_versions(indx, **kwargs):
     VersionSet({"title": indx.title}).delete()
+
 
 def process_index_title_change_in_core_cache(indx, **kwargs):
     old_title = kwargs["old"]
@@ -4743,12 +4745,11 @@ def process_index_title_change_in_core_cache(indx, **kwargs):
         invalidate_title(old_title)
 
     library.refresh_index_record_in_cache(indx, old_title=old_title)
-    key = scache.generate_text_toc_cache_key(indx.title)
-    scache.delete_cache_elem(key)
+    scache.delete_text_toc_cache(indx.title)
 
     if MULTISERVER_ENABLED:
         server_coordinator.publish_event("library", "refresh_index_record_in_cache", [indx.title, old_title])
-        server_coordinator.publish_event("scache", "delete_cache_elem", [key])
+        server_coordinator.publish_event("scache", "delete_text_toc_cache", [indx.title])
 
 
 def process_index_change_in_core_cache(indx, **kwargs):
@@ -4760,12 +4761,11 @@ def process_index_change_in_core_cache(indx, **kwargs):
 
     else:
         library.refresh_index_record_in_cache(indx)
-        key = scache.generate_text_toc_cache_key(indx.title)
-        scache.delete_cache_elem(key)
+        scache.delete_text_toc_cache(indx.title)
 
         if MULTISERVER_ENABLED:
             server_coordinator.publish_event("library", "refresh_index_record_in_cache", [indx.title])
-            server_coordinator.publish_event("scache", "delete_cache_elem", [key])
+            server_coordinator.publish_event("scache", "delete_text_toc_cache", [indx.title])
 
         ## !!! Look out for Varnish pulling a stale value!
         if USE_VARNISH:
@@ -4790,12 +4790,11 @@ def process_index_delete_in_toc(indx, **kwargs):
 
 def process_index_delete_in_core_cache(indx, **kwargs):
     library.remove_index_record_from_cache(indx)
-    key = scache.generate_text_toc_cache_key(indx.title)
-    scache.delete_cache_elem(key)
+    scache.delete_text_toc_cache(indx.title)
 
     if MULTISERVER_ENABLED:
         server_coordinator.publish_event("library", "remove_index_record_from_cache", [indx.title])
-        server_coordinator.publish_event("scache", "delete_cache_elem", [key])
+        server_coordinator.publish_event("scache", "delete_text_toc_cache", [indx.title])
 
     ## !!! Look out for Varnish pulling a stale value!
     if USE_VARNISH:
@@ -4805,11 +4804,10 @@ def process_index_delete_in_core_cache(indx, **kwargs):
 
 
 def process_version_change_in_cache(ver, **kwargs):
-    key = scache.generate_text_toc_cache_key(ver.title)
-    scache.delete_cache_elem(key)
+    scache.delete_text_toc_cache(ver.title)
 
     if MULTISERVER_ENABLED:
-        server_coordinator.publish_event("scache", "delete_cache_elem", [key])
+        server_coordinator.publish_event("scache", "delete_text_toc_cache", [ver.title])
 
 
 def reset_simple_term_mapping(o, **kwargs):

@@ -37,9 +37,9 @@ class ServerCoordinator(object):
         self.sync()
 
         payload = {
-            obj: obj,
-            method: method,
-            args: args or []
+            "obj": obj,
+            "method": method,
+            "args": args or []
         }
         msg_data = json.dumps(payload)
         self.redis_client.publish(MULTISERVER_REDIS_CHANNEL, msg_data)
