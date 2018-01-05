@@ -24,7 +24,7 @@ class ServerCoordinator(object):
         }
         """
 
-    def publish_event(self, obj, method, args):
+    def publish_event(self, obj, method, args = None):
         """
 
         :param obj:
