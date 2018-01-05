@@ -4053,7 +4053,8 @@ class Library(object):
         :return:
         """
         cats = categories or indx.categories
-        title = getattr(indx, "title", indx)
+        title = indx.title if isinstance(indx, Index) else indx
+
         toc_node = self.get_toc_tree().lookup(cats, title)
         if toc_node:
             self.get_toc_tree().remove_index(toc_node)
@@ -4144,24 +4145,24 @@ class Library(object):
         :return:
         """
 
-        index_title = old_title or getattr(index_object, "title", index_object)  # in the remote call case, index_object is the title, not object
-        Ref.remove_index_from_cache(index_title)
+        index_object_title = index_object.title if isinstance(index_object, Index) else index_object
+        Ref.remove_index_from_cache(index_object_title)
 
         for lang in self.langs:
-            simple_titles = self._index_title_maps[lang].get(index_title)
+            simple_titles = self._index_title_maps[lang].get(index_object_title)
             if simple_titles:
                 for key in simple_titles:
                     try:
                         del self._title_node_maps[lang][key]
                     except KeyError:
-                        logger.warning(u"Tried to delete non-existent title '{}' of index record '{}' from title-node map".format(key, index_title))
+                        logger.warning(u"Tried to delete non-existent title '{}' of index record '{}' from title-node map".format(key, index_object_title))
                     try:
                         del self._index_map[key]
                     except KeyError:
                         pass
                 del self._index_title_maps[lang][index_title]
             else:
-                logger.warning(u"Failed to remove '{}' from {} index-title and title-node cache: nothing to remove".format(index_title, lang))
+                logger.warning(u"Failed to remove '{}' from {} index-title and title-node cache: nothing to remove".format(index_object_title, lang))
                 return
 
         if rebuild:
@@ -4174,7 +4175,7 @@ class Library(object):
         :param old_title: In the case of a title change - the old title of the Index record
         :return:
         """
-        index_object_title = getattr(index_object, "title", index_object)
+        index_object_title = index_object.title if isinstance(index_object, Index) else index_object
         self.remove_index_record_from_cache(index_object, old_title=old_title, rebuild=False)
         new_index = Index().load({"title": index_object_title})
         assert new_index, u"No Index record found for {}: {}".format(index_object.__class__.__name__, index_object_title)
