@@ -789,6 +789,7 @@ class ReaderPanel extends Component {
                                               setOption={this.setOption}
                                               currentLayout={this.currentLayout}
                                               currentBook={this.currentBook}
+                                              currentRef={this.currentRef}
                                               width={this.state.width}
                                               menuOpen={this.state.menuOpen} />) : null}
         {this.state.displaySettingsOpen ? (<div className="mask" onClick={this.closeDisplaySettings}></div>) : null}
