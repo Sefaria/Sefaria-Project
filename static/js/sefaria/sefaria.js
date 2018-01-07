@@ -1232,6 +1232,7 @@ Sefaria = extend(Sefaria, {
                         ((n == 0 && number >= data.sections.slice(-1)[0]) ||
                          (n == topLength-1 && number <= data.toSections.slice(-1)[0]) ||
                          (n > 0 && n < topLength -1))
+            alt: ("alts" in data && i < data.alts[n].length) ? data.alts[n][i] : null
           });
         }
       }
