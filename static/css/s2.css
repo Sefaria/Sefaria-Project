@@ -2309,6 +2309,11 @@ a.readerNavCategory {
 .toggleSet.aliyotTorah .toggleOption{
   font-size: 14px;
 }
+.toggleSet.vowels .toggleOption.all span span, .toggleSet.vowels .toggleOption.partial span span{
+  /*line-height: 29px;*/
+  position: relative;
+  top: -3px;
+}
 .toggleSet.fontSize .toggleOption{
   color: black;
 }
