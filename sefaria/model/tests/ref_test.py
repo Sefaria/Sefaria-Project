@@ -524,12 +524,15 @@ class Test_Cache(object):
         r2 = Ref("Ramban on Genesis 1")
         assert r1 is not r2
 
+    '''
+    # Retired.  Since we're dealing with objects, tref will either bleed one way or the other.
+    # Removed last dependencies on tref outside of object init. 
     def test_tref_bleed(self):
         # Insure that instanciating trefs are correct for this instance, and don't bleed through the cache.
         Ref(u'שבת לא')
         r = Ref("Shabbat 31a")
         assert r.tref == "Shabbat 31a"
-
+    '''
 
 class Test_normal_forms(object):
     def test_normal(self):

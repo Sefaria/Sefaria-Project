@@ -15,24 +15,26 @@ def format_link_object_for_client(link, with_text, ref, pos=None):
     """
     :param link: Link object
     :param ref: Ref object of the source of the link
-    :param pos: Optional position of the Ref in the Link.  If not passed, it will be derived from the first two arguments.
+    :param pos: Position of the Ref in the Link.  If not passed, it will be derived from the first two arguments.
     :return: Dict
     """
     com = {}
 
     # The text we're asked to get links to
-    anchorRef = Ref(link.refs[pos])
+    anchorTref = link.refs[pos]
+    anchorRef = Ref(anchorTref)
 
     # The link we found to anchorRef
-    linkRef = Ref(link.refs[(pos + 1) % 2])
+    linkTref = link.refs[(pos + 1) % 2]
+    linkRef = Ref(linkTref)
 
     com["_id"]           = str(link._id)
     com['index_title']   = linkRef.index.title
     com["category"]      = linkRef.primary_category #usually the index's categories[0] or "Commentary".
     com["type"]          = link.type
-    com["ref"]           = linkRef.tref
-    com["anchorRef"]     = anchorRef.normal()
-    com["sourceRef"]     = linkRef.normal()
+    com["ref"]           = linkTref
+    com["anchorRef"]     = anchorTref
+    com["sourceRef"]     = linkTref
     com["sourceHeRef"]   = linkRef.he_normal()
     com["anchorVerse"]   = anchorRef.sections[-1] if len(anchorRef.sections) else 0
     com["anchorText"]    = getattr(link, "anchorText", "")
