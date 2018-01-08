@@ -29,7 +29,6 @@ class InterruptingMessage(object):
     # Limit to returning visitors only
     if self.condition.get("returning_only", False):
       if not self.request.COOKIES.get("_ga", False):
-        print "not returning"
         return False
 
     # Filter mobile traffic
@@ -40,7 +39,6 @@ class InterruptingMessage(object):
     # Filter non English interface traffic
     if self.condition.get("english_only", True):
       if self.request.LANGUAGE_CODE != "en":
-        print "not english"
         return False
 
     return True
