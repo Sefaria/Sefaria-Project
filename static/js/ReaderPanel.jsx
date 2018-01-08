@@ -789,7 +789,7 @@ class ReaderPanel extends Component {
                                               setOption={this.setOption}
                                               currentLayout={this.currentLayout}
                                               currentBook={this.currentBook}
-                                              currentRef={this.currentRef}
+                                              currentData={this.currentData}
                                               width={this.state.width}
                                               menuOpen={this.state.menuOpen} />) : null}
         {this.state.displaySettingsOpen ? (<div className="mask" onClick={this.closeDisplaySettings}></div>) : null}
@@ -987,6 +987,25 @@ class ReaderDisplayOptionsMenu extends Component {
     let torah = ["Genesis", "Exodus", "Leviticus", "Numbers", "Deuteronomy"];
     return this.props.currentBook ? torah.includes(this.props.currentBook()) : false;
   }
+  vowelToggleAvailability(){
+    var data = this.props.currentData();
+    var sample = data["he"];
+    while (Array.isArray(sample)) {
+        sample = sample[0];
+    }
+    var vowels_re = /[\u05b0-\u05c3\u05c7]/g;
+    var cantillation_re = /[\u0591-\u05af]/g;
+    if(cantillation_re.test(sample)){
+      console.log("all");
+      return 0;
+    }else if(vowels_re.test(sample)){
+      console.log("partial");
+      return 1;
+    }else{
+      console.log("none");
+      return 2;
+    }
+  }
   render() {
     var languageOptions = [
       {name: "english",   content: "<span class='en'>A</span>", role: "radio", ariaLabel: "Show English Text" },
@@ -1035,7 +1054,7 @@ class ReaderDisplayOptionsMenu extends Component {
 
     var colorOptions = [
       {name: "light", content: "", role: "radio", ariaLabel: "Toggle light mode" },
-      {name: "sepia", content: "", role: "radio", ariaLabel: "Toggle sepia mode" },
+      /*{name: "sepia", content: "", role: "radio", ariaLabel: "Toggle sepia mode" },*/
       {name: "dark", content: "", role: "radio", ariaLabel: "Toggle dark mode" }
     ];
     var colorToggle = (
@@ -1077,17 +1096,17 @@ class ReaderDisplayOptionsMenu extends Component {
           options={aliyahOptions}
           setOption={this.props.setOption}
           settings={this.props.settings} />) : null;
-
     var vowelsOptions = [
       {name: "all", content: "<span class='he'>אָ֑</span>", role: "radio", ariaLabel: Sefaria._("Show Vowels and Cantillation")},
       {name: "partial", content: "<span class='he'>אָ</span>", role: "radio", ariaLabel: Sefaria._("Show only vowel points")},
       {name: "none", content: "<span class='he'>א</span>", role: "radio", ariaLabel: Sefaria._("Show only consonantal text")}
     ];
-    var vowelToggle = this.props.settings.language !== "english" ?
+    vowelsOptions = vowelsOptions.slice(this.vowelToggleAvailability());
+    var vowelToggle = (this.props.settings.language !== "english" && vowelsOptions.length > 1) ?
       (<ToggleSet
           role="radiogroup"
           ariaLabel="vowels and cantillation toggle"
-          label={Sefaria._("Taamim and Nikkud")}
+          label={Sefaria._("Vocalization")}
           name="vowels"
           options={vowelsOptions}
           setOption={this.props.setOption}
