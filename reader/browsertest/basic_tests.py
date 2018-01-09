@@ -265,8 +265,9 @@ class NavToTocAndCheckPresenceOfDownloadButton(AtomicTest):
 class LoadTocAndCheckPresenceOfDownloadButton(AtomicTest):
     suite_class = PageloadSuite
     every_build = True
-    exclude = ['And/5.1', 'iPh5s']  # Android driver doesn't support "Select" class. Haven't found workaround.
-                                    # iPhone has an unrelated bug where a screen size refresh mid-test causes this to fail.
+    exclude = ['And/5.1']           # Android driver doesn't support "Select" class. Haven't found workaround.
+                                    # iPhone 5 used to have an unrelated bug where a screen size refresh mid-test causes this to fail.
+                                    # Is this bug still on iPhone 6?
 
     def body(self):
         # Load Shabbat TOC and scroll to bottom
@@ -431,6 +432,7 @@ class EditorPagesLoad(AtomicTest):
     single_panel = False
 
     def body(self):
+        self.load_toc()
         #logged in stuff
         self.login_user()
         self.load_translate("Shabbat 43b")
