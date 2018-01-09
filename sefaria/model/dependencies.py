@@ -56,9 +56,6 @@ subscribe(history.process_version_title_change_in_history,              text.Ver
 subscribe(process_version_title_change_in_search,                       text.Version, "attributeChange", "versionTitle")
 subscribe(cascade(notification.GlobalNotificationSet, "content.version"), text.Version, "attributeChange", "versionTitle")
 
-subscribe(text.process_version_change_in_cache,                           text.Version, "save")
-
-subscribe(text.process_version_change_in_cache,                         text.Version, "delete")
 subscribe(cascade_delete(notification.GlobalNotificationSet, "content.version", "versionTitle"),   text.Version, "delete")
 
 
