@@ -1837,7 +1837,8 @@ Sefaria = extend(Sefaria, {
       "Aliyot" : "עליות לתורה",
       "Taamim and Nikkud" : "טעמים וניקוד",
       "Show Vowels and Cantillation": "הצג טקסט עם טעמי מקרא וניקוד",
-      "Vocalization": "טעמי המקרא",
+      "Vocalization": "טעמים וניקוד",
+      "Vowels": "ניקוד",
       "Show only vowel points": "הצג טקסט עם ניקוד",
       "Show only consonantal text": "הצג טקסט עיצורי בלבד"
   },
