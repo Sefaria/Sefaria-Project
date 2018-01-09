@@ -252,10 +252,10 @@ class NavToTocAndCheckPresenceOfDownloadButton(AtomicTest):
             invisibility_of_element_located((By.CSS_SELECTOR, '.dlVersionFormatSelect + a')))
 
         # Select version and format
-        s1 = Select(self.driver.find_element_by_css_selector('.dlVersionTitleSelect'))
-        s1.select_by_value("Wikisource Talmud Bavli/he")
-        s2 = Select(self.driver.find_element_by_css_selector('.dlVersionFormatSelect'))
-        s2.select_by_value("csv")
+        select1 = Select(self.driver.find_element_by_css_selector('.dlVersionTitleSelect'))
+        select1.select_by_value("Wikisource Talmud Bavli/he")
+        select2 = Select(self.driver.find_element_by_css_selector('.dlVersionFormatSelect'))
+        select2.select_by_value("csv")
 
         # Check that DL button is clickable
         WebDriverWait(self.driver, TEMPER).until(
@@ -265,8 +265,9 @@ class NavToTocAndCheckPresenceOfDownloadButton(AtomicTest):
 class LoadTocAndCheckPresenceOfDownloadButton(AtomicTest):
     suite_class = PageloadSuite
     every_build = True
-    exclude = ['And/5.1', 'iPh5s']  # Android driver doesn't support "Select" class. Haven't found workaround.
-                                    # iPhone has an unrelated bug where a screen size refresh mid-test causes this to fail.
+    exclude = ['And/5.1']           # Android driver doesn't support "Select" class. Haven't found workaround.
+                                    # iPhone 5 used to have an unrelated bug where a screen size refresh mid-test causes this to fail.
+                                    # Is this bug still on iPhone 6?
 
     def body(self):
         # Load Shabbat TOC and scroll to bottom
@@ -286,10 +287,10 @@ class LoadTocAndCheckPresenceOfDownloadButton(AtomicTest):
         WebDriverWait(self.driver, TEMPER).until(invisibility_of_element_located((By.CSS_SELECTOR, '.dlVersionFormatSelect + a')))
 
         # Select version and format
-        s1 = Select(self.driver.find_element_by_css_selector('.dlVersionTitleSelect'))
-        s1.select_by_value("Wikisource Talmud Bavli/he")
-        s2 = Select(self.driver.find_element_by_css_selector('.dlVersionFormatSelect'))
-        s2.select_by_value("csv")
+        select1 = Select(self.driver.find_element_by_css_selector('.dlVersionTitleSelect'))
+        select1.select_by_value("Wikisource Talmud Bavli/he")
+        select2 = Select(self.driver.find_element_by_css_selector('.dlVersionFormatSelect'))
+        select2.select_by_value("csv")
 
         # Check that DL button is clickable
         WebDriverWait(self.driver, TEMPER).until(visibility_of_element_located((By.CSS_SELECTOR, '.dlVersionFormatSelect + a')))
@@ -393,7 +394,6 @@ class LoginOnMobile(AtomicTest):
     multi_panel = False  # Login is tested as part of SaveNewSourceSheet on multipanel
 
     def body(self):
-        self.s2()
         self.login_user()
         WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, ".accountLinks .account")))
 
@@ -432,6 +432,7 @@ class EditorPagesLoad(AtomicTest):
     single_panel = False
 
     def body(self):
+        self.load_toc()
         #logged in stuff
         self.login_user()
         self.load_translate("Shabbat 43b")
