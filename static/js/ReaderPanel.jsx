@@ -1101,12 +1101,14 @@ class ReaderDisplayOptionsMenu extends Component {
       {name: "partial", content: "<span class='he'>אָ</span>", role: "radio", ariaLabel: Sefaria._("Show only vowel points")},
       {name: "none", content: "<span class='he'>א</span>", role: "radio", ariaLabel: Sefaria._("Show only consonantal text")}
     ];
-    vowelsOptions = vowelsOptions.slice(this.vowelToggleAvailability());
+    let vowelOptionsLength = this.vowelToggleAvailability();
+    let vowelOptionsTitle = (vowelOptionsLength == 0) ? Sefaria._("Vocalization") : Sefaria._("Vowels");
+    vowelsOptions = vowelsOptions.slice(vowelOptionsLength);
     var vowelToggle = (this.props.settings.language !== "english" && vowelsOptions.length > 1) ?
       (<ToggleSet
           role="radiogroup"
           ariaLabel="vowels and cantillation toggle"
-          label={Sefaria._("Vocalization")}
+          label={vowelOptionsTitle}
           name="vowels"
           options={vowelsOptions}
           setOption={this.props.setOption}
