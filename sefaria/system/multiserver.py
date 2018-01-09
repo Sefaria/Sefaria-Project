@@ -42,6 +42,11 @@ class ServerCoordinator(object):
             "args": args or []
         }
         msg_data = json.dumps(payload)
+
+        import socket
+        import os
+        logger.warning("publish_event from {}:{} - {}".format(socket.gethostname(), os.getpid(), msg_data))
+
         self.redis_client.publish(MULTISERVER_REDIS_CHANNEL, msg_data)
 
         # Since we are subscribed to this channel as well, throw away the message we just sent.
@@ -83,6 +88,10 @@ class ServerCoordinator(object):
         import sefaria.system.cache as scache
         import sefaria.model.text as text
         import sefaria.model.topic as topic
+
+        import socket
+        import os
+        logger.warning("_process_message in {}:{} - {}".format(socket.gethostname(), os.getpid(), msg["data"]))
 
         data = json.loads(msg["data"])
 
