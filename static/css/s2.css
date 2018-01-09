@@ -2483,6 +2483,12 @@ a.readerNavCategory {
 .bilingual .parashahHeader .en {
   display: none;
 }
+.title + .text .parashahHeader {
+    margin-top: -5px;
+}
+.title + .text {
+    margin-top: 0;
+}
 .segment {
   cursor: pointer;
   display: block;
