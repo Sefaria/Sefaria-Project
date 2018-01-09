@@ -1,3 +1,7 @@
+// NOTE this file is the legacy reader.js code, but is currently only used for the Editor
+// It ought to be rewritten entirely, short of that the reader related code out to be stripped
+// so that only editing code remains.
+
 var sjs = sjs || {};
 
 $.extend(sjs,  {

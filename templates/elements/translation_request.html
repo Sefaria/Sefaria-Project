@@ -1,6 +1,6 @@
 {% load sefaria_tags %}
 {% load humanize %}
-{%  if S2 %}
+
  <div class="translationRequest {% if trans_request.completer %}completed{% endif %}" data-ref="{{ trans_request.ref }}">
      <div class="requestRank">
         {% if not trans_request.featured %}
@@ -41,43 +41,3 @@
     </div>
 
 </div>
-{%  else %}
- <div class="translationRequest {% if trans_request.completer %}completed{% endif %}" data-ref="{{ trans_request.ref }}">
-                    
-    <span class="requestCountBox">
-        <span class="requestFeaturedBox">
-            {% if trans_request.featured %}
-                <i class="fa fa-star requestFeatured tooltipster" title="Featured until {{ trans_request.featured_until }} (PST)."></i>
-            {% elif request.user.is_staff %}
-                <i class="fa fa-star requestFeatured unfeatured"></i>
-            {% endif %}
-        </span>
-        <span class="requestRank">
-            {% if not trans_request.featured %}
-                {{ forloop.counter|add:page_offset }}.
-            {% else %}
-                {{ forloop.counter }}.
-            {% endif %}
-        </span>
-        <span class="requestButton btn btn-mini {% if request.user.id in trans_request.requesters %}btn-success{% endif %} tooltipster" title="Support this request">
-            <span class="requestCount tooltipster" title="{{ trans_request.request_count|intcomma }} people have requested this text section">
-                {{ trans_request.request_count|intcomma }}
-            </span>
-            <span class="fa fa-{% if request.user.id in trans_request.requesters %}check{% else %}plus{% endif %}"></span>
-        </span>
-    </span>
-
-    <span class="requestRef">
-        {{ trans_request.ref|ref_link }}
-        {{ trans_request.ref|he_ref_link }}
-        <div class="clear"></div>
-    </span>
-
-    {% if trans_request.completer %}
-        <div class="requestCompleter">
-            Completed by {{ trans_request.completer|user_link }}
-        </div>
-    {% endif %}
-
-</div>
-{%  endif %}

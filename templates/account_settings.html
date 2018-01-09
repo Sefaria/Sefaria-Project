@@ -58,7 +58,6 @@
 	<script>
 		$(function(){
 		    var $curLang = $("#siteLanguage .toggleOption.active").attr("data-value");
-		    console.log($curLang);
 			$(".toggleOption").click(function() {
 				$(this).closest(".toggleSet").find(".toggleOption").removeClass("active").attr("tabIndex","-1").attr("ariaChecked","false");
 				$(this).addClass("active").attr("tabIndex","0").attr("ariaChecked","true");

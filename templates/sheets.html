@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block exclude_block_on_source_sheets %}{% endblock %}
+{% block static_css %}{% endblock %}
 {% load i18n cache humanize sefaria_tags%}
 
 {% block title %}{% if title %}{{ title|striptags|strip_html_entities }} | {% trans "Sefaria Source Sheet Builder" %}{% else %}{% trans "Start a New Sheet - Sefaria Source Sheet Builder" %}{% endif %}{% endblock %}
@@ -1451,7 +1451,9 @@
 {% endblock %}
 
 {% block js  %}
-<script type="text/javascript" src="/static/js/lib/jquery.scrollTo-1.4.2-min.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.8.1/jquery.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.9.2/jquery-ui.min.js"></script>
+<script>{% include "js/django-csrf.js" %}</script>
 <script type="text/javascript" src="/static/js/lib/jquery.easing.1.3.js"></script>
 <script src="/static/js/lib/jquery.tooltipster.min.js"></script>
 <script src="/static/js/lib/jquery.tag-it.min.js"></script>
