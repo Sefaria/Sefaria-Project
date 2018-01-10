@@ -1,6 +1,6 @@
 import re
 from sefaria.model import *
-
+from sefaria.helper.schema import *
 
 def get_ftnotes(sec_ref, title):
     # get footnotes on text found in sec_ref
@@ -39,3 +39,5 @@ if __name__ == "__main__":
         tc = TextChunk(sec_ref, vtitle=vtitle, lang='en')
         tc.text = text
         tc.save()
+
+    remove_branch(library.get_index("Or Neerav").nodes.children[-1])
