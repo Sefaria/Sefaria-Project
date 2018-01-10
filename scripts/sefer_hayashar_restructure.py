@@ -169,6 +169,11 @@ if __name__ == "__main__":
     old_nodes = remove_chapter_nodes()
     add_alt_struct(old_nodes)
 
+    #change node titles
+    index = library.get_index(title)
+    change_node_title(index.nodes.children[0], "INTRODUCTION", "en", "Introduction")
+    change_node_title(index.nodes.children[2], "TRANSLATORS FOREWORD", "en", "Translator's Foreword")
+
     #still may need to remove data for Footnotes node
     ftnote_links = LinkSet({"refs": {"$regex": "^Sefer HaYashar, Footnotes"}})
     print "Removing {} 'Sefer HaYashar, Footnotes' links".format(ftnote_links.count())
