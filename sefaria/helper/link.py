@@ -195,7 +195,7 @@ class AbstractStructureAutoLinker(AbstractAutoLinker):
 
     def refresh_links(self, **kwargs):
         """
-        This functino both adds links and deletes pre existing ones that are no longer valid,
+        This function both adds links and deletes pre existing ones that are no longer valid,
         by virtue of the fact that they were not detected as commentary links while iterating over the text.
         :param tref:
         :param user:
@@ -257,6 +257,7 @@ class MatchBaseTextDepthDefaultOnlyAutoLinker(AbstractStructureAutoLinker):
     and other nodes will be ignored.
     """
     class_key = "one_to_one_default_only"
+    _generated_by_string = "add_commentary_links"
     def __init__(self, oref, **kwargs):
         if not oref.is_dependant():
             raise Exception("Text must have a base text to link to")

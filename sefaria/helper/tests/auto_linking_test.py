@@ -24,18 +24,28 @@ class Test_AutoLinker(object):
         assert len(found) == desired_link_count
 
     def test_rebuild_commentary_links_default_node(self):
-        many_to_one = ("many_to_one_default_only", "Rashi on Deuteronomy", "Deuteronomy")
-        one_to_one = ("one_to_one_default_only", "Onkelos Genesis", "Genesis")
-        for type in [many_to_one]:
-            # convert simple text to a complex text with default node and add base_text_* and dependence properties
-            title = type[1]
-            base = type[2]
+        many_to_one = ("many_to_one_default_only", "Rashi on Deuteronomy 10:10:1", "Deuteronomy 10:10")
+        one_to_one = ("one_to_one_default_only", "Onkelos Genesis 2:2", "Genesis 2:2")
+        for type in [one_to_one, many_to_one]:
+            title_ref = type[1]
+            base_ref = type[2]
+            title = Ref(title_ref).index.title
+            base = Ref(base_ref).index.title
+
+            # prepare the text for the tests:
+            # 1. convert simple text to a complex text with default node and add base_text_* and dependence properties.
+            # 2. for one_to_one, change the "generated_by" name from "MatchBaseTextDepthAutoLinker" to "add_commentary_links"
             index = library.get_index(title)
             convert_simple_index_to_complex(index)
             index.base_text_mapping = type[0]
             index.base_text_titles = [base]
             index.dependence = "Commentary"
             index.save()
+            if type[0] == "one_to_one_default_only":
+                for l in LinkSet({"refs": {"$regex": title}, "generated_by": "MatchBaseTextDepthAutoLinker"}):
+                    l.generated_by = "add_commentary_links"
+                    l.save()
+
 
             # add intro node and give it some text
             intro = JaggedArrayNode()
@@ -48,11 +58,25 @@ class Test_AutoLinker(object):
             tc.text = "Intro first segment text"
             tc.save()
 
-            # rebuild links and assert that despite adding text to the intro node, the number of links should be exactly as they before (e.g desired_link_count)
+            # lines below load an existing link, delete it, then rebuild links and
+            # assert that the link exists again
+            query = {"$and": [{"refs": {"$regex": "^{}".format(title_ref)}},
+                                  {"refs": {"$regex": "^{}".format(base_ref)}}]}
+
+            # now load the link and delete it
+            existing_link = Link().load(query)
+            existing_link.delete()
+
+            # rebuild links and assert old link successfully rebuilt
             rf = Ref(title)
             linker = rf.autolinker()
-            desired_link_count = self.desired_link_counts[title]
             found = linker.rebuild_links()
+            new_link = Link().load(query)
+            assert new_link
+
+            # assert that despite adding text to the intro node, the number of links
+            # should be exactly as they were before (e.g desired_link_count)
+            desired_link_count = self.desired_link_counts[title]
             assert len(found) == desired_link_count
 
 
@@ -74,7 +98,7 @@ class Test_AutoLinker(object):
     def test_refresh_commentary_links_default_node(self):
         many_to_one = ("many_to_one_default_only", "Rashi on Deuteronomy", "Deuteronomy")
         one_to_one = ("one_to_one_default_only", "Onkelos Genesis", "Genesis")
-        for type in [many_to_one]:
+        for type in [many_to_one, one_to_one]:
             title = type[1]
             base = type[2]
             rf = Ref(title)
@@ -83,13 +107,14 @@ class Test_AutoLinker(object):
             linker = rf.autolinker()
 
             # add a link to the intro even though there shouldn't be such a link
-            comm_ref = "{}, Introduction 1:1".format(title)
+            comm_ref = "{}, Introduction 1:2".format(title)
             base_ref = "{} 1".format(base)
-            if type[0] == "one_to_one_default_only": #If it's one to one, 1:1 should map to 1:1
-                base_ref = "{} 1:1".format(base)
+            if type[0] == "one_to_one_default_only": #If it's one to one, 1:2 should map to 1:2 not to 1
+                base_ref = "{} 1:2".format(base)
             Link({"refs": [base_ref, comm_ref], "generated_by": linker._generated_by_string, "type": "commentary", "auto": True}).save()
 
-            # test that refreshing the links causes the new link above to be deleted. the result should be the same number of links as before the link was created
+            # test that refreshing the links causes the new link above to be deleted.
+            # the result should be the same number of links as before the link was created
             linker.refresh_links()
             link_count = LinkSet({"generated_by": linker._generated_by_string, "refs": {"$regex": regex}}).count()
             assert desired_link_count == link_count
@@ -118,7 +143,6 @@ class Test_AutoLinker(object):
         link_count = LinkSet({"refs": {"$regex": regex}, "auto": True, "generated_by": "add_commentary_links"}).count()
         assert desired_link_count == link_count
 
-
     def test_refresh_links_with_text_save(self):
         title = 'Rashi on Genesis'
         section_tref = 'Rashi on Genesis 18:22'
@@ -142,27 +166,27 @@ class Test_AutoLinker(object):
         assert link_count == desired_link_count
 
     def test_refresh_links_with_text_save_default_node(self):
-        many_to_one = ("many_to_one_default_only", "Rashi on Deuteronomy", "Deuteronomy", "1:9")
-        one_to_one = ("one_to_one_default_only", "Onkelos Genesis", "Genesis", "1:1")
-        for type in [many_to_one]:
-            title = type[1]
-            base = type[2]
+        many_to_one = ("many_to_one_default_only", "Rashi on Deuteronomy 1:9")
+        one_to_one = ("one_to_one_default_only", "Onkelos Genesis 1:1")
+        for type in [one_to_one, many_to_one]:
+            title_ref = type[1]
+            title = Ref(title_ref).index.title
+            base = Ref(title_ref).index.base_text_titles[0]
             desired_link_count = self.desired_link_counts[title]
             rf = Ref(title)
             regex = rf.regex()
 
             # add another segment to intro text to show that it won't affect link count
             stext = [u"Intro first segment text", u"Intro second segment text"]
-            oref = Ref("Rashi on Deuteronomy, Introduction 1")
+            oref = Ref("{}, Introduction 1".format(title))
             tracker.modify_text(1, oref, "test", "en", stext)
             link_count = LinkSet({"refs": {"$regex": regex}, "auto": True, "generated_by": "add_commentary_links"}).count()
             assert link_count == desired_link_count
 
             # now add 2 segments to default node and check that exactly 2 more links exist than
-            section_tref = "{} {}".format(title, type[3])
             lang = 'en'
             vtitle = "test"
-            oref = Ref(section_tref)
+            oref = Ref(title_ref)
             stext = TextChunk(oref, lang=lang).text
             stext += [u"New segment!", u"Another new segment!"]
             tracker.modify_text(1, oref, vtitle, lang, stext)
