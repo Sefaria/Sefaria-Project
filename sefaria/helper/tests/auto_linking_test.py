@@ -26,7 +26,7 @@ class Test_AutoLinker(object):
     def test_rebuild_commentary_links_default_node(self):
         many_to_one = ("many_to_one_default_only", "Rashi on Deuteronomy 10:10:1", "Deuteronomy 10:10")
         one_to_one = ("one_to_one_default_only", "Onkelos Genesis 2:2", "Genesis 2:2")
-        for type in [one_to_one]:
+        for type in [one_to_one, many_to_one]:
             title_ref = type[1]
             base_ref = type[2]
             title = Ref(title_ref).index.title
@@ -38,14 +38,13 @@ class Test_AutoLinker(object):
             # 1. convert simple text to a complex text with default node and add base_text_* and dependence properties.
             # 2. for one_to_one, change the "generated_by" name from "MatchBaseTextDepthAutoLinker" to "add_commentary_links"
             index = library.get_index(title)
-            #convert_simple_index_to_complex(index)
+            convert_simple_index_to_complex(index)
             index.base_text_mapping = type[0]
             index.base_text_titles = [base]
             index.dependence = "Commentary"
             index.save()
             if type[0] == "one_to_one_default_only":
-                # switch back to MatchBaseTextDepthAutoLinker
-                for l in LinkSet({"refs": {"$regex": title}, "generated_by": "add_commentary_links"}):
+                for l in LinkSet({"refs": {"$regex": title}, "generated_by": "MatchBaseTextDepthAutoLinker"}):
                     l.generated_by = linker._generated_by_string
                     l.auto = linker._auto
                     l.type = linker._link_type
@@ -57,7 +56,7 @@ class Test_AutoLinker(object):
             intro.add_shared_term("Introduction")
             intro.key = 'intro'
             intro.add_structure(["Chapter", "Paragraph"])
-            #insert_first_child(intro, library.get_index(title).nodes)
+            insert_first_child(intro, library.get_index(title).nodes)
             comm_ref = "{}, Introduction 1:1".format(title)
             tc = TextChunk(Ref(comm_ref), vtitle="test", lang="en")
             tc.text = "Intro first segment text"
@@ -171,7 +170,7 @@ class Test_AutoLinker(object):
     def test_refresh_links_with_text_save_default_node(self):
         many_to_one = ("many_to_one_default_only", "Rashi on Deuteronomy 1:9")
         one_to_one = ("one_to_one_default_only", "Onkelos Genesis 1")
-        for type in [one_to_one]:
+        for type in [one_to_one, many_to_one]:
             title_ref = type[1]
             title = Ref(title_ref).index.title
             base = Ref(title_ref).index.base_text_titles[0]
@@ -191,7 +190,7 @@ class Test_AutoLinker(object):
             vtitle = "test"
             oref = Ref(title_ref)
             stext = TextChunk(oref, lang=lang).text
-            stext += [u"New segment!", u"Another new segment!"]
+            stext += [u"חדש", u"חדש"]
             tracker.modify_text(1, oref, vtitle, lang, stext)
             link_count = LinkSet({"refs": {"$regex": regex}, "auto": True, "generated_by": "add_commentary_links"}).count()
             assert link_count == (desired_link_count+2)
