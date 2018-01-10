@@ -493,7 +493,7 @@ def s2(request, ref, version=None, lang=None, sheet=None):
     })
     if sheet == None:
         title = primary_ref.he_normal() if request.interfaceLang == "hebrew" else primary_ref.normal()
-        breadcrumb = ld_cat_crumbs(oref=primary_ref)
+        breadcrumb = ld_cat_crumbs(request, oref=primary_ref)
 
         if primary_ref.is_book_level():
             if request.interfaceLang == "hebrew":
@@ -536,7 +536,7 @@ def s2(request, ref, version=None, lang=None, sheet=None):
         "html":           html,
         "title":          title,
         "desc":           desc,
-        "ldBreadcrumbs":  ld_cat_crumbs(request, oref=primary_ref)
+        "ldBreadcrumbs":  breadcrumb
     }, RequestContext(request))
 
 
