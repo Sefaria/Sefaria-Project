@@ -2430,7 +2430,7 @@ def terms_api(request, name):
 
                 func = tracker.update if request.GET.get("update", False) else tracker.add
                 return func(uid, model.Term, term, **kwargs).contents()
-            
+
             elif request.method == "DELETE":
                 if not t:
                     return {"error": 'Term "%s" does not exist.' % term}
@@ -2455,7 +2455,7 @@ def terms_api(request, name):
         else:
             return jsonResponse({"error": "Only Sefaria Moderators can add or edit terms."})
 
-        return jsonResponse(_internal_do_post(request, uid))      
+        return jsonResponse(_internal_do_post(request, uid))
 
     return jsonResponse({"error": "Unsupported HTTP method."})
 
@@ -3653,8 +3653,9 @@ def random_by_topic_api(request):
     except Exception:
         return random_by_topic_api(request)
     cb = request.GET.get("callback", None)
-    response = redirect(iri_to_uri("/api/texts/" + ref + "?commentary=0&context=0&pad=0{}".format("&callback=" + cb if cb else "")) , permanent=False)
-    return response
+    resp = jsonResponse({"ref": ref, "topic": random_topic}, callback=request.GET.get("callback", None))
+    resp['Content-Type'] = "application/json; charset=utf-8"
+    return resp
 
 
 @ensure_csrf_cookie
