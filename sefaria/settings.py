@@ -115,7 +115,7 @@ MIDDLEWARE_CLASSES = (
     'sefaria.system.middleware.LanguageCookieMiddleware',
     'sefaria.system.middleware.LanguageSettingsMiddleware',
     'sefaria.system.middleware.ProfileMiddleware',
-    'sefaria.system.multiserver.MultiServerMiddleware'
+    'sefaria.system.multiserver.MultiServerEventListenerMiddleware'
     #'django.middleware.cache.UpdateCacheMiddleware',
     #'django.middleware.cache.FetchFromCacheMiddleware',
 )
