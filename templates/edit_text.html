@@ -208,8 +208,8 @@
 		<div id="s2" class="headerOnly">{{ logged_out_header }}</div>
 		{% endif %}
 	{% endautoescape %}
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/react/15.6.1/react.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/react/15.6.1/react-dom.js"></script>
+    <script src="https://unpkg.com/react@16/umd/react.{% if DEBUG %}development{% else %}production.min{% endif %}.js"></script>
+    <script src="https://unpkg.com/react-dom@16/umd/react-dom.{% if DEBUG %}development{% else %}production.min{% endif %}.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/1.8.1/jquery.min.js"></script> <!-- NOTE version; jQuery 2 is currently breaking here in combination with jQuery Autosize and jQuery Raty -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.js"></script>
 	<script src="/data.js"></script>
