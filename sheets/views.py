@@ -447,7 +447,7 @@ def groups_api(request, group=None):
 		if not group:
 			return jsonResponse({
 				"private": [g.listing_contents() for g in GroupSet().for_user(request.user.id)],
-				"public": [g.listing_contents() for g in GroupSet({"listed": True, "moderationStatus": {"$ne": "nolist"}})]
+				"public": [g.listing_contents() for g in GroupSet({"listed": True, "moderationStatus": {"$ne": "nolist"}}, sort=[("name", 1)])]
 			})	
 		group = Group().load({"name": group})
 		if not group:
