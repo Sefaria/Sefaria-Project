@@ -32,7 +32,7 @@ from sefaria.utils.hebrew import is_hebrew, hebrew_term
 from sefaria.utils.util import list_depth
 from sefaria.datatype.jagged_array import JaggedTextArray, JaggedArray
 from sefaria.settings import DISABLE_INDEX_SAVE, USE_VARNISH, MULTISERVER_ENABLED
-from sefaria.system.multiserver import server_coordinator
+from sefaria.system.multiserver.coordinator import server_coordinator
 
 """
                 ----------------------------------

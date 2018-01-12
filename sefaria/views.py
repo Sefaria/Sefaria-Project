@@ -49,7 +49,7 @@ from sefaria.helper.text import make_versions_csv, get_library_stats, get_core_l
 from sefaria.clean import remove_old_counts
 from sefaria.search import index_sheets_by_timestamp as search_index_sheets_by_timestamp
 from sefaria.model import *
-from sefaria.system.multiserver import server_coordinator
+from sefaria.system.multiserver.coordinator import server_coordinator
 
 if USE_VARNISH:
     from sefaria.system.sf_varnish import invalidate_index, invalidate_title, invalidate_ref, invalidate_counts

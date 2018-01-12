@@ -1,6 +1,7 @@
 
 import redis
-from sefaria.local_settings import *
+from sefaria.local_settings import MULTISERVER_REDIS_SERVER, MULTISERVER_REDIS_PORT, MULTISERVER_REDIS_DB
+from sefaria.model import *
 
 import logging
 logger = logging.getLogger(__name__)
