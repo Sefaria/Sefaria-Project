@@ -1,32 +1,14 @@
-import redis
 import json
 import uuid
 
 from django.core.exceptions import MiddlewareNotUsed
 
-from sefaria.local_settings import MULTISERVER_ENABLED, MULTISERVER_REDIS_SERVER, \
-    MULTISERVER_REDIS_PORT, MULTISERVER_REDIS_DB, MULTISERVER_REDIS_EVENT_CHANNEL, \
-    MULTISERVER_REDIS_CONFIRM_CHANNEL
+from sefaria.local_settings import MULTISERVER_ENABLED, MULTISERVER_REDIS_EVENT_CHANNEL, MULTISERVER_REDIS_CONFIRM_CHANNEL
+
+from abstract import MessagingNode
 
 import logging
 logger = logging.getLogger(__name__)
-
-
-class MessagingNode(object):
-    subscription_channels = []
-
-    def __init__(self):
-        self.redis_client = redis.StrictRedis(host=MULTISERVER_REDIS_SERVER, port=MULTISERVER_REDIS_PORT, db=MULTISERVER_REDIS_DB)
-        self.pubsub = self.redis_client.pubsub()
-        if len(self.subscription_channels):
-            self.pubsub.subscribe(*self.subscription_channels)
-            for _ in self.subscription_channels:
-                self._pop_subscription_msg()
-
-    def _pop_subscription_msg(self):
-        m = self.pubsub.get_message()
-        if m["type"] != "subscribe":
-            logger.error("Expecting subscribe message, found: {}".format(m))
 
 
 class ServerCoordinator(MessagingNode):
@@ -103,7 +85,7 @@ class ServerCoordinator(MessagingNode):
         import os
         host = socket.gethostname()
         pid = os.getpid()
-        logger.warning("_process_message in {}:{} - {}".format(host, pid, msg["data"]))
+        logger.info("_process_message in {}:{} - {}".format(host, pid, msg["data"]))
 
         data = json.loads(msg["data"])
 
@@ -131,7 +113,7 @@ class ServerCoordinator(MessagingNode):
 
         # Send confirmation
         msg_data = json.dumps(confirm_msg)
-        logger.warning("sending confirm from {}:{} - {}".format(host, pid, msg["data"]))
+        logger.info("sending confirm from {}:{} - {}".format(host, pid, msg["data"]))
         self.redis_client.publish(MULTISERVER_REDIS_CONFIRM_CHANNEL, msg_data)
 
 
@@ -153,61 +135,5 @@ class MultiServerEventListenerMiddleware(object):
             self.req_counter += 1
 
         return None
-
-
-class MultiServerMonitor(MessagingNode):
-    subscription_channels = [MULTISERVER_REDIS_EVENT_CHANNEL, MULTISERVER_REDIS_CONFIRM_CHANNEL]
-
-    def __init__(self):
-        super(MultiServerMonitor, self).__init__()
-        self.events = {}
-        self.event_order = []
-
-    def process_messages(self):
-        msg = self.pubsub.get_message()
-
-        if msg["type"] != "message":
-            logger.error("Surprising redis message type: {}".format(msg["type"]))
-
-        elif msg["channel"] == MULTISERVER_REDIS_EVENT_CHANNEL:
-            data = json.loads(msg["data"])
-            self.process_event(data)
-        elif msg["channel"] == MULTISERVER_REDIS_CONFIRM_CHANNEL:
-            data = json.loads(msg["data"])
-            self.process_confirm(data)
-        else:
-            logger.error("Surprising redis message channel: {}".format(msg["channel"]))
-
-    def process_event(self, data):
-        event_id = data["id"]
-        (_, subscribers) = self.redis_client.execute_command('PUBSUB', 'NUMSUB', MULTISERVER_REDIS_EVENT_CHANNEL)
-
-        self.events[event_id] = {
-            "data": data,
-            "expected": int(subscribers - 1),
-            "confirmed": 0,
-            "confirmations": [],
-            "complete": False}
-        self.event_order += [event_id]
-
-    def process_confirm(self, data):
-        event_id = data["event_id"]
-        event_record = self.events.get(event_id)
-
-        if not event_record:
-            logger.error("Got confirmation of unknown event. {}".format(data))
-
-        event_record["confirmed"] += 1
-        event_record["confirmations"] += [data]
-
-        if event_record["confirmed"] == event_record["expected"]:
-            event_record["complete"] = True
-            self.process_completion(event_record["data"])
-
-    def process_completion(self, data):
-        data["obj"]
-        data["method"]
-        data["args"]
-
 
 server_coordinator = ServerCoordinator() if MULTISERVER_ENABLED else None

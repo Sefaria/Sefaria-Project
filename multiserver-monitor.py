@@ -18,5 +18,3 @@ def log_message():
 if __name__ == '__main__':
     monitor = MultiServerMonitor()
 
-    while True:
-        time.sleep(0.2)
