@@ -5,10 +5,10 @@ from django.core.exceptions import MiddlewareNotUsed
 
 from sefaria.local_settings import MULTISERVER_ENABLED, MULTISERVER_REDIS_EVENT_CHANNEL, MULTISERVER_REDIS_CONFIRM_CHANNEL
 
-from abstract import MessagingNode
+from messaging import MessagingNode
 
 import logging
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("multiserver")
 
 
 class ServerCoordinator(MessagingNode):
