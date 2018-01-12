@@ -1,6 +1,6 @@
 
 import redis
-from sefaria.local_settings import MULTISERVER_REDIS_SERVER, MULTISERVER_REDIS_PORT, MULTISERVER_REDIS_DB
+from sefaria.local_settings import *
 
 import logging
 logger = logging.getLogger(__name__)
@@ -19,5 +19,7 @@ class MessagingNode(object):
 
     def _pop_subscription_msg(self):
         m = self.pubsub.get_message()
-        if m["type"] != "subscribe":
+        if not m:
+            logger.error("No subscribe message found")
+        elif m["type"] != "subscribe":
             logger.error("Expecting subscribe message, found: {}".format(m))

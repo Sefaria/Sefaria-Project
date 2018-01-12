@@ -1,20 +1,16 @@
-import redis
-import json
-import time
 
-from sefaria.local_settings import MULTISERVER_ENABLED, MULTISERVER_REDIS_SERVER, \
-    MULTISERVER_REDIS_PORT, MULTISERVER_REDIS_DB, MULTISERVER_REDIS_EVENT_CHANNEL, \
-    MULTISERVER_REDIS_CONFIRM_CHANNEL
+from sefaria.local_settings import MULTISERVER_ENABLED
 
-from sefaria.system.multiserver import MultiServerMonitor
+from sefaria.system.multiserver.monitor import MultiServerMonitor
 
 import logging
 logger = logging.getLogger(__name__)
 
 
-def log_message():
-    pass
-
 if __name__ == '__main__':
-    monitor = MultiServerMonitor()
+    if not MULTISERVER_ENABLED:
+        logger.error("MULTISERVER_ENABLED is not set.  Exiting")
+        exit()
 
+    monitor = MultiServerMonitor()
+    monitor.listen()
