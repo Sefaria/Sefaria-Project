@@ -47,16 +47,20 @@ class MultiServerMonitor(MessagingNode):
     def _process_event(self, data):
         event_id = data["id"]
         (_, subscribers) = self.redis_client.execute_command('PUBSUB', 'NUMSUB', MULTISERVER_REDIS_EVENT_CHANNEL)
-
+        expected = int(subscribers - 1)
         self.events[event_id] = {
             "data": data,
-            "expected": int(subscribers - 1),
+            "expected": expected,
             "confirmed": 0,
             "confirmations": [],
             "complete": False}
         self.event_order += [event_id]
+        logger.info("Received new event: {} - expecting {} confirmations".format(
+            self.event_description(data), expected))
 
     def _process_confirm(self, data):
+
+        # todo: check status - success/error
         event_id = data["event_id"]
         event_record = self.events.get(event_id)
 
@@ -66,7 +70,7 @@ class MultiServerMonitor(MessagingNode):
         event_record["confirmed"] += 1
         event_record["confirmations"] += [data]
         logger.info("Received {} of {} confirmations for {}".format(
-            event_record["confirmed"], event_record["expected"], self.event_description(data)))
+            event_record["confirmed"], event_record["expected"], data["event_id"]))
 
         if event_record["confirmed"] == event_record["expected"]:
             event_record["complete"] = True
@@ -74,7 +78,7 @@ class MultiServerMonitor(MessagingNode):
 
     @staticmethod
     def event_description(data):
-        return "{}.{}({})".format(data["obj"], data["method"], ", ".join(data["args"]))
+        return "{}.{}({}) [{}]".format(data["obj"], data["method"], ", ".join(data["args"]), data["id"])
 
     def _process_completion(self, data):
         data["obj"]
