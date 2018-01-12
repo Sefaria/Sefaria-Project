@@ -47,7 +47,7 @@ class MultiServerMonitor(MessagingNode):
     def _process_event(self, data):
         event_id = data["id"]
         (_, subscribers) = self.redis_client.execute_command('PUBSUB', 'NUMSUB', MULTISERVER_REDIS_EVENT_CHANNEL)
-        expected = int(subscribers - 1)
+        expected = int(subscribers - 2)  # No confirms from the publisher or the monitor => subscribers - 2
         self.events[event_id] = {
             "data": data,
             "expected": expected,
