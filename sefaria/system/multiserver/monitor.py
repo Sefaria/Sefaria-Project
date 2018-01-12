@@ -3,10 +3,12 @@ import time
 
 from sefaria.local_settings import MULTISERVER_REDIS_EVENT_CHANNEL, MULTISERVER_REDIS_CONFIRM_CHANNEL
 
-from abstract import MessagingNode
-
 import logging
-logger = logging.getLogger(__name__)
+logging.basicConfig()
+logger = logging.getLogger("multiserver")
+logger.setLevel(logging.INFO)
+
+from messaging import MessagingNode
 
 
 class MultiServerMonitor(MessagingNode):
@@ -28,7 +30,7 @@ class MultiServerMonitor(MessagingNode):
             return
 
         if msg["type"] != "message":
-            logger.error("Surprising redis message type: {}".format(msg["type"]))
+            logger.error("Surprising redis message type: {}".format(msg))
 
         elif msg["channel"] == MULTISERVER_REDIS_EVENT_CHANNEL:
             data = json.loads(msg["data"])
