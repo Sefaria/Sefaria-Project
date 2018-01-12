@@ -30,7 +30,7 @@ class ServerCoordinator(MessagingNode):
             "obj": obj,
             "method": method,
             "args": args or [],
-            "id": uuid.uuid4()
+            "id": uuid.uuid4().get_hex()
         }
         msg_data = json.dumps(payload)
 
