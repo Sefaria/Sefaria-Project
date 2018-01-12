@@ -65,10 +65,16 @@ class MultiServerMonitor(MessagingNode):
 
         event_record["confirmed"] += 1
         event_record["confirmations"] += [data]
+        logger.info("Received {} of {} confirmations for {}".format(
+            event_record["confirmed"], event_record["expected"], self.event_description(data)))
 
         if event_record["confirmed"] == event_record["expected"]:
             event_record["complete"] = True
             self._process_completion(event_record["data"])
+
+    @staticmethod
+    def event_description(data):
+        return "{}.{}({})".format(data["obj"], data["method"], ", ".join(data["args"]))
 
     def _process_completion(self, data):
         data["obj"]
