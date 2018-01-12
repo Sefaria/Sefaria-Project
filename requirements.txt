@@ -1,7 +1,7 @@
 html5lib==0.9999999
 selenium
-django==1.4.5
-pymongo==2.9
+django
+pymongo
 django-email-as-username
 diff_match_patch
 dateutils
@@ -12,9 +12,9 @@ pyelasticsearch
 regex
 pytest
 mailchimp
-redis==2.10
-django-redis==3.8.4
-django_mobile==0.3.0
+redis
+django-redis
+django_mobile
 roman
 p929
 python-varnish
@@ -29,5 +29,5 @@ pillow
 datrie
 deepdiff
 Appium-Python-Client
-django-webpack-loader==0.5.0
+django-webpack-loader
 django-anymail
