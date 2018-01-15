@@ -176,7 +176,7 @@ LOGGING = {
 
         'null': {
             'level':'INFO',
-            'class':'django.utils.log.NullHandler',
+            'class':'logging.NullHandler',
         },
 
         'mail_admins': {
