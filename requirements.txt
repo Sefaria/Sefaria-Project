@@ -2,7 +2,7 @@ html5lib==0.9999999
 selenium
 django==1.11.*
 pymongo
-django-email-as-username
+py2-py3-django-email-as-username
 diff_match_patch
 dateutils
 BeautifulSoup
