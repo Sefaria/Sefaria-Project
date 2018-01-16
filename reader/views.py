@@ -498,8 +498,8 @@ def s2(request, ref, version=None, lang=None):
     else:
         segmentIndex = primary_ref.sections[-1] - 1 if primary_ref.is_segment_level() else 0
         try:
-            enText = props["initialPanels"][0]["text"].get("text",[])
-            heText = props["initialPanels"][0]["text"].get("he",[])
+            enText = _reduce_ranged_ref_text_to_first_section(props["initialPanels"][0]["text"].get("text",[]))
+            heText = _reduce_ranged_ref_text_to_first_section(props["initialPanels"][0]["text"].get("he",[]))
             enDesc = enText[segmentIndex] if segmentIndex < len(enText) else "" # get english text for section if it exists
             heDesc = heText[segmentIndex] if segmentIndex < len(heText) else "" # get hebrew text for section if it exists
             if request.interfaceLang == "hebrew":
@@ -523,6 +523,18 @@ def s2(request, ref, version=None, lang=None):
         "ldBreadcrumbs":  ld_cat_crumbs(request, oref=primary_ref)
     }, RequestContext(request))
 
+
+def _reduce_ranged_ref_text_to_first_section(text_list):
+    """
+    given jagged-array-like list, return only first section
+    :param text_list: list
+    :return: returns list of text representing first section
+    """
+    if len(text_list) == 0:
+        return text_list
+    while not isinstance(text_list[0], basestring):
+        text_list = text_list[0]
+    return text_list
 
 def s2_texts_category(request, cats):
     """
@@ -2441,7 +2453,7 @@ def terms_api(request, name):
 
                 func = tracker.update if request.GET.get("update", False) else tracker.add
                 return func(uid, model.Term, term, **kwargs).contents()
-            
+
             elif request.method == "DELETE":
                 if not t:
                     return {"error": 'Term "%s" does not exist.' % term}
@@ -2466,7 +2478,7 @@ def terms_api(request, name):
         else:
             return jsonResponse({"error": "Only Sefaria Moderators can add or edit terms."})
 
-        return jsonResponse(_internal_do_post(request, uid))      
+        return jsonResponse(_internal_do_post(request, uid))
 
     return jsonResponse({"error": "Unsupported HTTP method."})
 
@@ -3664,8 +3676,9 @@ def random_by_topic_api(request):
     except Exception:
         return random_by_topic_api(request)
     cb = request.GET.get("callback", None)
-    response = redirect(iri_to_uri("/api/texts/" + ref + "?commentary=0&context=0&pad=0{}".format("&callback=" + cb if cb else "")) , permanent=False)
-    return response
+    resp = jsonResponse({"ref": ref, "topic": random_topic}, callback=request.GET.get("callback", None))
+    resp['Content-Type'] = "application/json; charset=utf-8"
+    return resp
 
 
 @ensure_csrf_cookie

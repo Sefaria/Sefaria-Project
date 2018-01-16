@@ -212,8 +212,6 @@ class ReaderApp extends Component {
     // console.log("Pop - " + window.location.pathname);
     // console.log(state);
     if (state) {
-      var kind = "";
-      if (Sefaria.track) { Sefaria.track.event("Reader", "Pop State", kind); }
       this.justPopped = true;
       this.setState(state);
       this.setContainerMode();

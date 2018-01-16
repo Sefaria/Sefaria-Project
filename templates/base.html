@@ -90,8 +90,8 @@
     {% endblock %}
 
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/react/15.6.1/react.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/react/15.6.1/react-dom.js"></script>
+    <script src="https://unpkg.com/react@16/umd/react.{% if DEBUG %}development{% else %}production.min{% endif %}.js"></script>
+    <script src="https://unpkg.com/react-dom@16/umd/react-dom.{% if DEBUG %}development{% else %}production.min{% endif %}.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.2.4/jquery.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.js"></script>
 
