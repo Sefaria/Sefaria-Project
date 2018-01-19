@@ -107,7 +107,6 @@ class SheetContent extends Component {
         return (
           <SheetSource
             key={i}
-            onRefClick={this.props.onRefClick}
             source={source}
             sourceNum={i + 1}
             handleClick={this.handleClick}
@@ -172,7 +171,7 @@ class SheetContent extends Component {
 }
 
 class SheetSource extends Component {
-  handleClick(event) {
+  sheetSourceClick(event) {
     this.props.onSegmentClick(this.props.source.ref);
   }
 
@@ -191,7 +190,7 @@ class SheetSource extends Component {
             <div className="ref"><a href={"/" + this.props.source.ref} onClick={(e) => {
               this.props.handleClick(this.props.source.ref, e)
             } }>{this.props.source.ref}</a></div>
-            <span dangerouslySetInnerHTML={ {__html: (this.props.cleanHTML(this.props.source.text.en))} } onClick={this.handleClick}></span>
+            <span dangerouslySetInnerHTML={ {__html: (this.props.cleanHTML(this.props.source.text.en))} } onClick={this.sheetSourceClick}></span>
           </div> : null }
 
         {this.props.source.text ?
@@ -199,7 +198,7 @@ class SheetSource extends Component {
             <div className="ref"><a href={"/" + this.props.source.ref} onClick={(e) => {
               this.props.handleClick(this.props.source.ref, e)
             } }>{this.props.source.heRef}</a></div>
-            <span dangerouslySetInnerHTML={ {__html: (this.props.cleanHTML(this.props.source.text.he))} } onClick={this.handleClick}></span>
+            <span dangerouslySetInnerHTML={ {__html: (this.props.cleanHTML(this.props.source.text.he))} } onClick={this.sheetSourceClick}></span>
           </div> : null }
 
 

@@ -172,6 +172,9 @@ class ReaderPanel extends Component {
     }
   }
   handleBaseSegmentClick(ref) {
+    console.log(ref)
+    console.log(this.state.mode)
+    console.log(this.props.multiPanel)
     if (this.state.mode === "TextAndConnections") {
       this.closeConnectionsInPanel();
     } else if (this.state.mode ==="SheetAndConnections") {
