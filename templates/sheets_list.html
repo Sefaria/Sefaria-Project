@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+
+{% load sefaria_tags %}
+{% load humanize %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block css %}
+	html, body {
+		overflow-x: hidden;
+	}
+{% endblock %}
+
+{% block content %}
+
+	<a href="/sheets" id="textTocLink" class="white">&laquo; Source Sheets</a>
+
+	<div id="sheetListPage" class="container">
+
+		<div id="{% if public %}publicSheetsRow{% elif group %}groupSheetsRow{% else %}yourSheetsRow{% endif %}" class="row">
+			<div class="backer"></div>
+			<div class="backer right"></div>
+			<div class="span12">
+
+				<center>
+					{% if group %}
+						<img id="groupLogo" src="{{ group.coverUrl }}" alt="{{ group.name }}">
+					{% else %}
+						<h1>{{ title }}</h1>
+					{% endif %}
+				</center>
+
+				{% if public %}
+					{% include "elements/sheet_tag_list.html" with title="Trending tags" %}
+				{% elif group %}
+					{% include "elements/sheet_tag_list.html" with title="" %}
+				{% else %}
+					{% include "elements/sheet_tag_list.html" with title="" %}
+					{% if groups %}
+					<div id="groups">
+						Your Groups:
+						{% for group in groups %}
+						<a class="groupLink" href="/groups/{{ group.name|url_safe }}">{{ group.name }}</a>
+						{% endfor %}
+					</div>
+					{% endif %}
+				{% endif %}
+
+				<ul id="sheets">
+
+					{% include "elements/sheet_table.html" with sheets=sheets empty_message="There are no Source Sheets here yet." %}
+
+					{% if group and not in_group and not user.id %}
+					<span id="loginMsg">
+						If you are a member of the {{ group.name }} group, <a href="/login?next=/groups/{{ group.name|url_safe }}/tags/{{ tag }}">login</a> to view private group sheets.
+					</span>
+					<div class="clear"></div>
+					{% endif %}
+				</ul>
+
+				<div class="clear"></div>
+
+				<a href="/sheets/new">
+					<center><div id="startSheet" class="btn btn-large purple">Start a New Sheet</div></center>
+				</a>
+
+			</div>
+		</div>
+	</div>
+
+{% endblock %}
+
+{% block js %}
+	<script>{% include "js/django-csrf.js" %}</script>
+	<script src="/static/js/lib/jquery.tablesorter.js"></script>
+	<script src="/static/js/lib/jquery.tag-it.min.js"></script>
+	{% include "js/sheet_list_tags.html" %}
+	<script src="/static/js/lib/jquery.tablesorter.js"></script>
+	<script>
+		$(function() {
+			$(".sheetTable").tablesorter();
+		});
+	</script>
+{% endblock %}

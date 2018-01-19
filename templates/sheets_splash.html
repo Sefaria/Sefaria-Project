@@ -1,0 +1,152 @@
+{% extends "base.html" %}
+
+{% load sefaria_tags %}
+{% load humanize %}
+
+{% block title %}Sefaria Source Sheet Builder{% endblock %}
+
+{% block css %}
+	html, body {
+		height: auto;
+		overflow-x: hidden;
+	}
+{% endblock %}
+
+{% block content %}
+
+	<a href="/" id="textTocLink">&laquo; Home</a>
+
+
+	<div id="sheetsSplash" class="container">
+
+		<div id="titleRow" class="row">
+			<div class="span12">
+				<h2>{% include "elements/sefaria.logotype.svg" %}</h2>
+				<h1>Source Sheets</h1>
+				<div class="sub">Beautiful, interactive, bilingual source sheets, without the copy and paste.</div>
+			</div>
+		</div>
+
+		{% if not request.user.is_authenticated %}
+		<div id="videoRow" class="row">
+			<div class="span5 offset1">
+				<div id="videoBox">
+					<div id="videoImgBox">
+						<img id="videoImg" src="/static/img/sheet-medium.png" />
+						<div id="videoButton">▶</div>
+					</div>
+				</div>
+				<div id="underVideo">see how it works <i class="fa fa-arrow-circle-up"></i></div>
+
+			</div>
+			<div class="span6">
+				<ul id="sheetsBites">
+					<li>
+						<i class="fa fa-file-text-o"></i>
+						<div class="biteText">Discover, create &amp; collaborate on source sheets online, in Hebrew &amp; in English.</div>
+					</li>
+					<li>
+						<i class="fa fa-graduation-cap"></i>
+						<div class="biteText">Give students one click access to a source's context &amp; additional related texts.</div>
+					</li>
+					<li>
+						<i class="fa fa-share-alt"></i>
+						<div class="biteText">Easily share links via email, Facebook, Twitter, or embed sheets in your site.</div>
+					</li>
+					<li>
+						<i class="fa fa-print"></i>
+						<div class="biteText">Print beautifully formatted pages<br>or save to PDF.</div>
+					</li>
+
+				</ul>
+			</div>
+		</div>
+		{% endif %}
+
+		<div class="row" id="startSheetRow">
+			<div class="span10 offset1">
+				<span class="sheetLine"></span>
+				<div id="startSheetBox">
+					<a href="/sheets/new">
+						<div class="btn btn-large purple">Start a Source Sheet</div>
+					</a>
+					{% if not request.user.is_authenticated %}
+					<div>
+						<a href="/login?after=/sheets">Login</a> to view your sheets.
+					</div>
+					{% else %}
+					<div>
+						Welcome back, {{ request.user.first_name }}.
+					</div>
+					{% endif %}
+				</div>
+			</div>
+		</div>
+
+		{% if request.user.is_authenticated %}
+			<div id="yourSheetsRow" class="row">
+				<div class="backer"></div>
+				<div class="backer right"></div>
+				<div  class="span12">
+					<center>
+						<h4/><a href="/sheets/private">Your Source Sheets</a></h4>
+					</center>
+					{% include "elements/sheet_tag_list.html" with tags=your_tags public=0 title="" %}
+					{% if groups%}
+					<div id="groups">
+						Your Groups:
+						{% for group in groups %}
+						<a class="groupLink" href="/groups/{{ group.name|url_safe }}">{{ group.name }}</a>
+						{% endfor %}
+					</div>
+					{% endif %}
+
+					{% include "elements/sheet_table.html" with sheets=your_sheets public=0 %}
+					{% if collapse_private %}
+						<a class="moreSheetsLink" href="/sheets/private">All your sheets &raquo;</a>
+					{% endif %}
+				</div>
+			</div>
+		{% endif %}
+
+		<div id="publicSheetsRow" class="row">
+			<div class="backer"></div>
+			<div class="backer right"></div>
+			<div class="span12">
+				<center>
+					<h4/><a href="/sheets/public">Public Source Sheets</a></h4>
+				</center>
+				{% include "elements/sheet_tag_list.html" with tags=public_tags public=1  title="Trending tags" %}
+				{% include "elements/sheet_table.html" with sheets=public_sheets public=1 %}
+				<a class="moreSheetsLink" href="/sheets/public">All public sheets &raquo;</a>
+
+			</div>
+		</div>
+	</div>
+	<div class="clear"></div>
+{% endblock %}
+
+{% block js %}
+	<script>{% include "js/django-csrf.js" %}</script>
+	<script src="/static/js/lib/jquery.tablesorter.js"></script>
+	<script>
+		$("img").error(function () {
+		    $(this).hide().after("<h1>"+$(this).attr("alt")+"</h1>");
+		});
+		$(function() {
+			$(".sheetTable").tablesorter({
+				 sortList: [[4,1],[3,0],[2,0]]
+			});
+			$("#videoImgBox").click(function() {
+				sjs.help.open();
+				sjs.help.openVideo("sheets");
+				sjs.track.event("Sheets", "Sheet Video Start", "");
+			});
+			$(".moreSheets").click(function() {
+				$(this).closest(".sheetTable").removeClass("collapsed");
+				$(this).remove();
+			});
+		});
+	</script>
+	{% include "js/sheet_list_tags.html" %}
+{% endblock %}

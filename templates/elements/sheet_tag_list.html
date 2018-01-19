@@ -1,0 +1,31 @@
+{% load sefaria_tags %}
+{% load humanize %}
+
+{% if tags|length %}
+<div class="sheetTagList" {% if not public and not group %}id="yourSheetsList"{% endif %}>
+    <div class="title">{{ title }}</div>
+    {% for tag in tags %}
+        {% if group %}
+        <a class="sheetTag tooltipster" href="/groups/{{ group.name|url_safe }}/tags/{{ tag.tag }}" title="{{ tag.tag }}">
+        {% elif not public %}
+        <a class="sheetTag tooltipster sortable" href="/sheets/private/tags/{{ tag.tag }}" title="{{ tag.tag }}">
+        {% else %}
+        <a class="sheetTag tooltipster" href="/sheets/tags/{{ tag.tag }}" title="{{ tag.tag }}">
+        {% endif %}
+            <i class="fa fa-tag"></i>
+            <span class="tagName">{{ tag.tag }}</span>
+            {% if not tag.count %}
+            <i class="remove fa fa-times"></i>
+            {% endif %}
+            <span class="tagCount">({{ tag.count }})</span>
+        </a>
+    {% endfor %}
+    
+    {% if public %}
+    <a class="sheetTag allTagsLink" href="/sheets/tags">All Tags &raquo;</a>
+    {% elif not group %}
+    <a class="sheetTag addTag"><i class="fa fa-plus"></i> <i>Add Tag</i></a>
+    {% endif %}
+
+</div>
+{% endif %}

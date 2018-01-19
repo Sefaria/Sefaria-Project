@@ -508,8 +508,8 @@ def s2(request, ref, version=None, lang=None, sheet=None):
         else:
             segmentIndex = primary_ref.sections[-1] - 1 if primary_ref.is_segment_level() else 0
             try:
-                enText = props["initialPanels"][0]["text"].get("text",[])
-                heText = props["initialPanels"][0]["text"].get("he",[])
+                enText = _reduce_ranged_ref_text_to_first_section(props["initialPanels"][0]["text"].get("text", []))
+                heText = _reduce_ranged_ref_text_to_first_section(props["initialPanels"][0]["text"].get("he", []))
                 enDesc = enText[segmentIndex] if segmentIndex < len(enText) else "" # get english text for section if it exists
                 heDesc = heText[segmentIndex] if segmentIndex < len(heText) else "" # get hebrew text for section if it exists
                 if request.interfaceLang == "hebrew":
@@ -539,6 +539,18 @@ def s2(request, ref, version=None, lang=None, sheet=None):
         "ldBreadcrumbs":  breadcrumb
     }, RequestContext(request))
 
+
+def _reduce_ranged_ref_text_to_first_section(text_list):
+    """
+    given jagged-array-like list, return only first section
+    :param text_list: list
+    :return: returns list of text representing first section
+    """
+    if len(text_list) == 0:
+        return text_list
+    while not isinstance(text_list[0], basestring):
+        text_list = text_list[0]
+    return text_list
 
 def s2_texts_category(request, cats):
     """
