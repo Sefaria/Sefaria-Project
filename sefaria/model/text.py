@@ -4039,6 +4039,10 @@ class Library(object):
             return self._ref_auto_completer[lang]
 
     def recount_index_in_toc(self, indx):
+        # This is used in the case of a remotely triggered multiserver update
+        if isinstance(indx, basestring):
+            indx = Index().load({"title": indx})
+
         self.get_toc_tree().update_title(indx, recount=True)
 
         from sefaria.summaries import update_title_in_toc

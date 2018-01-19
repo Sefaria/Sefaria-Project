@@ -74,6 +74,8 @@ class MultiServerMonitor(MessagingNode):
 
         if event_record["confirmed"] == event_record["expected"]:
             event_record["complete"] = True
+            logger.info("Received all {} responses for {}".format(
+                event_record["confirmed"], data["event_id"]))
             self._process_completion(event_record["data"])
 
     @staticmethod
@@ -81,7 +83,14 @@ class MultiServerMonitor(MessagingNode):
         return "{}.{}({}) [{}]".format(data["obj"], data["method"], ", ".join(data["args"]), data["id"])
 
     def _process_completion(self, data):
-        data["obj"]
-        data["method"]
-        data["args"]
+        """
+
+        :param data:
+            data["obj"]
+            data["method"]
+            data["args"]
+            data["id"]
+        :return:
+        """
+
 
