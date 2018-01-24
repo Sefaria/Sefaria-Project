@@ -38,7 +38,6 @@ def daf_yomi(datetime_obj):
     """
     Returns the daf yomi for date
     """
-
     date_str = datetime_obj.strftime(" %m/ %d/%Y").replace(" 0", "").replace(" ", "")
     daf = db.dafyomi.find_one({"date": date_str})
     rf = model.Ref(daf["daf"] + "a")
@@ -71,9 +70,12 @@ def daily_mishnayot(datetime_obj):
     })
     return mishnah_items
 
+
 def daily_rambam(datetime_obj):
     datetime_obj = datetime.datetime(datetime_obj.year,datetime_obj.month,datetime_obj.day)
     daily_rambam = db.daily_rambam.find_one({"date": {"$eq": datetime_obj}})
+    if not daily_rambam:
+        return None
     rf = model.Ref(daily_rambam["ref"])
     display_value_en = rf.normal().replace("Mishneh Torah, ","")
     display_value_he = rf.he_normal().replace(u"משנה תורה, ", u"")
@@ -86,16 +88,15 @@ def daily_rambam(datetime_obj):
     }
 
 
-
 def this_weeks_parasha(datetime_obj, diaspora=True):
     """
     Returns the upcoming Parasha for datetime.
     """
-
     p = db.parshiot.find({"date": {"$gt": datetime_obj}, "diaspora": {'$in': [diaspora, None]}}, limit=1).sort([("date", 1)])
     p = p.next()
 
     return p
+
 
 def parashat_hashavua_and_haftara(datetime_obj, diaspora=True):
     parasha_items = []
@@ -122,12 +123,13 @@ def parashat_hashavua_and_haftara(datetime_obj, diaspora=True):
 
 
 def get_all_calendar_items(datetime_obj, diaspora=True):
-    cal_items = []
+    cal_items  = []
     cal_items += parashat_hashavua_and_haftara(datetime_obj, diaspora=diaspora)
-    cal_items.append(daf_yomi(datetime_obj))
-    cal_items.append(daily_929(datetime_obj))
+    cal_items += [daf_yomi(datetime_obj)]
+    cal_items += [daily_929(datetime_obj)]
     cal_items += daily_mishnayot(datetime_obj)
-    cal_items.append(daily_rambam(datetime_obj))
+    cal_items += [daily_rambam(datetime_obj)]
+    cal_items = [item for item in cal_items if item]
     return cal_items
 
 
