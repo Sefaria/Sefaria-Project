@@ -176,6 +176,8 @@ Sefaria = extend(Sefaria, {
   splitRangingRef: function(ref) {
     // Returns an array of segment level refs which correspond to the ranging `ref`
     // e.g. "Genesis 1:1-2" -> ["Genesis 1:1", "Genesis 1:2"]
+    if (!ref || typeof ref == "object" || typeof ref == "undefined") { debugger; }
+
     var oRef     = Sefaria.parseRef(ref);
     var isDepth1 = oRef.sections.length == 1;
     var textData = Sefaria.text(ref);
@@ -730,6 +732,11 @@ Sefaria = extend(Sefaria, {
     var splitItems = {}; // Aggregate links by anchorRef
     for (var i = 0; i < data.length; i++) {
       var ref = data[i].anchorRef;
+      if (!ref) { 
+        console.log("_saveItemsByRef encountered an item without a ref field:");
+        console.log(data[i]);
+        continue;
+      }
       var refs = Sefaria.splitRangingRef(ref);
       for (var j = 0; j < refs.length; j++) {
         ref = refs[j];
