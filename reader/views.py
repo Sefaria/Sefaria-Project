@@ -281,8 +281,6 @@ def make_panel_dict(oref, versionEn, versionHe, filter, versionFilter, mode, **k
     else:
         section_ref = oref.first_available_section_ref()
         oref = section_ref if section_ref else oref
-
-        panelDisplayLanguage = kwargs.get("panelDisplayLanguage")
         panel = {
             "mode": mode,
             "ref": oref.normal(),
@@ -299,8 +297,16 @@ def make_panel_dict(oref, versionEn, versionHe, filter, versionFilter, mode, **k
                 panel["connectionsMode"] = filter[0]
             else:
                 panel["connectionsMode"] = "TextList"
+
+        settings_override = {}
+        panelDisplayLanguage = kwargs.get("panelDisplayLanguage")
+        aliyotOverride = kwargs.get("aliyotOverride")
         if panelDisplayLanguage:
-            panel["settings"] = {"language" : short_to_long_lang_code(panelDisplayLanguage)}
+            settings_override.update({"language" : short_to_long_lang_code(panelDisplayLanguage)})
+        if aliyotOverride:
+            settings_override.update({"aliyotTorah": aliyotOverride})
+        if settings_override:
+            panel["settings"] = settings_override
         if mode != "Connections":
             try:
                 text_family = TextFamily(oref, version=panel["currVersions"]["en"], lang="en", version2=panel["currVersions"]["he"], lang2="he", commentary=False,
@@ -407,8 +413,12 @@ def s2(request, ref, version=None, lang=None):
         raise Http404
     if versionHe and not Version().load({"versionTitle": versionHe, "language": "he"}):
         raise Http404
-
-    panels += make_panel_dicts(oref, versionEn, versionHe, filter, versionFilter, multi_panel, **{"panelDisplayLanguage": request.GET.get("lang", props["initialSettings"]["language"])})
+    kwargs = {
+        "panelDisplayLanguage": request.GET.get("lang", props["initialSettings"]["language"])
+    }
+    if request.GET.get("aliyot", None):
+        kwargs["aliyotOverride"] = "aliyotOn" if int(request.GET.get("aliyot")) == 1 else "aliyotOff"
+    panels += make_panel_dicts(oref, versionEn, versionHe, filter, versionFilter, multi_panel, **kwargs)
 
     # Handle any panels after 1 which are identified with params like `p2`, `v2`, `l2`.
     i = 2
@@ -442,7 +452,11 @@ def s2(request, ref, version=None, lang=None):
             filter   = request.GET.get("w{}".format(i)).replace("_", " ").split("+") if request.GET.get("w{}".format(i)) else None
             filter   = [] if filter == ["all"] else filter
             versionFilter = [request.GET.get("vside").replace("_", " ")] if request.GET.get("vside") else []
-            panelDisplayLanguage = request.GET.get("lang{}".format(i), props["initialSettings"]["language"])
+            kwargs = {
+                "panelDisplayLanguage": request.GET.get("lang{}".format(i), props["initialSettings"]["language"])
+            }
+            if request.GET.get("aliyot{}".format(i), None):
+                kwargs["aliyotOverride"] = "aliyotOn" if int(request.GET.get("aliyot{}".format(i))) == 1 else "aliyotOff"
 
             if (versionEn and not Version().load({"versionTitle": versionEn, "language": "en"})) or \
                 (versionHe and not Version().load({"versionTitle": versionHe, "language": "he"})):
@@ -450,7 +464,7 @@ def s2(request, ref, version=None, lang=None):
                 continue  # Stop processing all panels?
                 # raise Http404
 
-            panels += make_panel_dicts(oref, versionEn, versionHe, filter, versionFilter, multi_panel, **{"panelDisplayLanguage": panelDisplayLanguage})
+            panels += make_panel_dicts(oref, versionEn, versionHe, filter, versionFilter, multi_panel, **kwargs)
         i += 1
 
     props.update({
