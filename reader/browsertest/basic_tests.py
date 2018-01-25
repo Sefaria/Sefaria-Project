@@ -86,8 +86,10 @@ class RecentInToc(AtomicTest):
     every_build = True
 
     def body(self):
-        self.search_ref("Psalms 1")
-        self.nav_to_toc().click_toc_recent("Psalms 1")
+        # Using a short chapter can cause the text to fail if the following section is
+        # counted as a view and saved in recent in place of the named chapter.
+        self.search_ref("Joshua 1")
+        self.nav_to_toc().click_toc_recent("Joshua 1")
         self.browse_to_ref("Berakhot 23b")
         self.nav_to_toc().click_toc_recent("Berakhot 23b")
 
