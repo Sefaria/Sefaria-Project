@@ -100,8 +100,8 @@ class RecentInTocOnReload(AtomicTest):
     every_build = True
 
     def body(self):
-        self.load_ref("Psalms 1")
-        self.load_toc().click_toc_recent("Psalms 1")
+        self.load_ref("Joshua 1")
+        self.load_toc().click_toc_recent("Joshua 1")
 
 
 class NavToRefAndClickSegment(AtomicTest):
