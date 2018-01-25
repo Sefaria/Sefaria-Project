@@ -290,6 +290,7 @@ static_pages = [
     "random-walk-through-torah",
     "educators",
     "the-sefaria-story",
+    "aramaic-translation-contest",
 ]
 
 # Static and Semi Static Content
