@@ -309,8 +309,8 @@ class ReaderTextTableOfContents extends Component {
         </div>;
       var formatStrings = {
         none: {english: "File Format", hebrew: "סוג הקובץ"},
-        txt: {english: "File Format", hebrew: "טקסט (עם תיוגים)"},
-        plaintxt: {english: "File Format", hebrew: "טקסט (ללא תיוגים)"}
+        txt: {english: "Text (with Tags)", hebrew: "טקסט (עם תיוגים)"},
+        plaintxt: {english: "Text (without Tags)", hebrew: "טקסט (ללא תיוגים)"}
       };
       var downloadSection = (
         <div className="dlSection">

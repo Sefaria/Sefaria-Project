@@ -64,6 +64,8 @@ class ReaderPanel extends Component {
         layoutDefault: "segmented",
         layoutTalmud:  "continuous",
         layoutTanakh:  "segmented",
+        aliyotTorah:   "aliyotOff",
+        vowels:        "all",
         biLayout:      "stacked",
         color:         "light",
         fontSize:      62.5
@@ -814,6 +816,8 @@ class ReaderPanel extends Component {
                                               multiPanel={this.props.multiPanel}
                                               setOption={this.setOption}
                                               currentLayout={this.currentLayout}
+                                              currentBook={this.currentBook}
+                                              currentData={this.currentData}
                                               width={this.state.width}
                                               menuOpen={this.state.menuOpen} />) : null}
         {this.state.displaySettingsOpen ? (<div className="mask" onClick={this.closeDisplaySettings}></div>) : null}
@@ -1009,6 +1013,29 @@ ReaderControls.propTypes = {
 
 
 class ReaderDisplayOptionsMenu extends Component {
+  renderAliyotToggle() {
+    let torah = ["Genesis", "Exodus", "Leviticus", "Numbers", "Deuteronomy"];
+    return this.props.currentBook ? torah.includes(this.props.currentBook()) : false;
+  }
+  vowelToggleAvailability(){
+    var data = this.props.currentData();
+    var sample = data["he"];
+    while (Array.isArray(sample)) {
+        sample = sample[0];
+    }
+    var vowels_re = /[\u05b0-\u05c3\u05c7]/g;
+    var cantillation_re = /[\u0591-\u05af]/g;
+    if(cantillation_re.test(sample)){
+      console.log("all");
+      return 0;
+    }else if(vowels_re.test(sample)){
+      console.log("partial");
+      return 1;
+    }else{
+      console.log("none");
+      return 2;
+    }
+  }
   render() {
     var languageOptions = [
       {name: "english",   content: "<span class='en'>A</span>", role: "radio", ariaLabel: "Show English Text" },
@@ -1019,6 +1046,7 @@ class ReaderDisplayOptionsMenu extends Component {
         <ToggleSet
           role="radiogroup"
           ariaLabel="Language toggle"
+          label={Sefaria._("Language")}
           name="language"
           options={languageOptions}
           setOption={this.props.setOption}
@@ -1037,6 +1065,7 @@ class ReaderDisplayOptionsMenu extends Component {
       (<ToggleSet
           role="radiogroup"
           ariaLabel="text layout toggle"
+          label={Sefaria._("Layout")}
           name="layout"
           options={layoutOptions}
           setOption={this.props.setOption}
@@ -1046,6 +1075,7 @@ class ReaderDisplayOptionsMenu extends Component {
         <ToggleSet
           role="radiogroup"
           ariaLabel="bidirectional text layout toggle"
+          label={Sefaria._("Bilingual Layout")}
           name="biLayout"
           options={biLayoutOptions}
           setOption={this.props.setOption}
@@ -1054,13 +1084,14 @@ class ReaderDisplayOptionsMenu extends Component {
 
     var colorOptions = [
       {name: "light", content: "", role: "radio", ariaLabel: "Toggle light mode" },
-      {name: "sepia", content: "", role: "radio", ariaLabel: "Toggle sepia mode" },
+      /*{name: "sepia", content: "", role: "radio", ariaLabel: "Toggle sepia mode" },*/
       {name: "dark", content: "", role: "radio", ariaLabel: "Toggle dark mode" }
     ];
     var colorToggle = (
         <ToggleSet
           role="radiogroup"
           ariaLabel="Color toggle"
+          label={Sefaria._("Color")}
           name="color"
           separated={true}
           options={colorOptions}
@@ -1076,33 +1107,66 @@ class ReaderDisplayOptionsMenu extends Component {
         <ToggleSet
           role="group"
           ariaLabel="Increase/Decrease Font Size Buttons"
+          label={Sefaria._("Font Size")}
           name="fontSize"
           options={sizeOptions}
           setOption={this.props.setOption}
           settings={this.props.settings} />);
 
+    var aliyahOptions = [
+      {name: "aliyotOn",   content: Sefaria._("On"), role: "radio", ariaLabel: Sefaria._("Show Parasha Aliyot") },
+      {name: "aliyotOff", content: Sefaria._("Off"), role: "radio", ariaLabel: Sefaria._("Hide Parasha Aliyot") },
+    ];
+    var aliyahToggle = this.renderAliyotToggle() ? (
+        <ToggleSet
+          role="radiogroup"
+          ariaLabel="Toggle Aliyot"
+          label={Sefaria._("Aliyot")}
+          name="aliyotTorah"
+          options={aliyahOptions}
+          setOption={this.props.setOption}
+          settings={this.props.settings} />) : null;
+    var vowelsOptions = [
+      {name: "all", content: "<span class='he'>אָ֑</span>", role: "radio", ariaLabel: Sefaria._("Show Vowels and Cantillation")},
+      {name: "partial", content: "<span class='he'>אָ</span>", role: "radio", ariaLabel: Sefaria._("Show only vowel points")},
+      {name: "none", content: "<span class='he'>א</span>", role: "radio", ariaLabel: Sefaria._("Show only consonantal text")}
+    ];
+    let vowelOptionsLength = this.vowelToggleAvailability();
+    let vowelOptionsTitle = (vowelOptionsLength == 0) ? Sefaria._("Vocalization") : Sefaria._("Vowels");
+    vowelsOptions = vowelsOptions.slice(vowelOptionsLength);
+    var vowelToggle = (this.props.settings.language !== "english" && vowelsOptions.length > 1) ?
+      (<ToggleSet
+          role="radiogroup"
+          ariaLabel="vowels and cantillation toggle"
+          label={vowelOptionsTitle}
+          name="vowels"
+          options={vowelsOptions}
+          setOption={this.props.setOption}
+          currentLayout={this.props.currentLayout}
+          settings={this.props.settings} />): null;
+
     if (this.props.menuOpen === "search") {
       return (<div className="readerOptionsPanel" role="dialog">
                 <div className="readerOptionsPanelInner">
                   {languageToggle}
-                  <div className="line"></div>
                   {sizeToggle}
                 </div>
             </div>);
     } else if (this.props.menuOpen) {
-      return (<div className="readerOptionsPanel"role="dialog">
+      return (<div className="readerOptionsPanel" role="dialog">
                 <div className="readerOptionsPanelInner">
                   {languageToggle}
                 </div>
             </div>);
     } else {
-      return (<div className="readerOptionsPanel"role="dialog">
+      return (<div className="readerOptionsPanel" role="dialog">
                 <div className="readerOptionsPanelInner">
                   {languageToggle}
                   {layoutToggle}
-                  <div className="line"></div>
                   {colorToggle}
                   {sizeToggle}
+                  {aliyahToggle}
+                  {vowelToggle}
                 </div>
               </div>);
     }
@@ -1111,6 +1175,7 @@ class ReaderDisplayOptionsMenu extends Component {
 ReaderDisplayOptionsMenu.propTypes = {
   setOption:     PropTypes.func.isRequired,
   currentLayout: PropTypes.func.isRequired,
+  currentBook:   PropTypes.func,
   menuOpen:      PropTypes.string,
   multiPanel:    PropTypes.bool.isRequired,
   width:         PropTypes.number.isRequired,
