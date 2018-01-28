@@ -32,6 +32,7 @@ class TextRange extends Component {
           prevProps.settings.language !== this.props.settings.language ||
           prevProps.settings.layoutDefault !== this.props.settings.layoutDefault ||
           prevProps.settings.layoutTanakh !== this.props.settings.layoutTanakh ||
+          prevProps.settings.aliyotTorah !== this.props.settings.aliyotTorah ||
           prevProps.settings.layoutTalmud !== this.props.settings.layoutTalmud ||
           prevProps.settings.biLayout !== this.props.settings.biLayout ||
           prevProps.settings.fontSize !== this.props.settings.fontSize ||
@@ -201,20 +202,16 @@ class TextRange extends Component {
     $(event.target).closest("sup").next("i.footnote").toggle();
     this.placeSegmentNumbers();
   }
-  parashahHeader(ref) {
+  parashahHeader(data, segment, includeAliyout=false) {
     // Returns the English/Hebrew title of a Parasha, if `ref` is the beginning of a new parahsah
     // returns null otherwise.
-    var data = this.getText();
+    //var data = this.getText();
     if (!data) { return null; }
-    var index = Sefaria.indexDetails(data.indexTitle);
-    if (index && "alts" in index && "Parasha" in index.alts && index.categories[1] == "Torah" && !("dependence" in index)) {
-      for (var i=0; i < index.alts.Parasha.nodes.length; i++) {
-        var parashahRef = index.alts.Parasha.nodes[i].wholeRef.split("-")[0];
-        if (ref == parashahRef) {
-          return {
-            en: index.alts.Parasha.nodes[i].title,
-            he: index.alts.Parasha.nodes[i].heTitle,
-          };
+    if ("alts" in data && data.alts.length && data.categories[1] == "Torah" && !data["isDependant"]) {
+      var curRef = segment.ref;
+      if ("alt" in segment && segment.alt != null){
+        if(includeAliyout || "whole" in segment.alt){
+          return {"en": segment.alt["en"][0], "he": segment.alt["he"][0], "parashaTitle": "whole" in segment.alt}
         }
       }
     }
@@ -245,19 +242,37 @@ class TextRange extends Component {
 
     var showSegmentNumbers = showNumberLabel && this.props.basetext;
 
+    var nre = /[\u0591-\u05af\u05bd\u05bf\u05c0\u05c4\u05c5]/g;
+    var cnre = /[\u0591-\u05bd\u05bf-\u05c5\u05c7]/g;
+    var strip_text_re = null;
+    if(this.props.settings && this.props.settings.language !== "english" && this.props.settings.vowels !== "all"){
+      strip_text_re = (this.props.settings.vowels == "partial") ? nre : cnre;
+    }
+
     var segments      = Sefaria.makeSegments(data, this.props.withContext);
+    if(segments.length > 0 && strip_text_re && !strip_text_re.test(segments[0].he)){
+      strip_text_re = null; //if the first segment doesnt even match as containing vowels or cantillation- stop
+    }
     var textSegments  = segments.map(function (segment, i) {
       var highlight     = this.props.highlightedRefs && this.props.highlightedRefs.length ?        // if highlighted refs are explicitly set
                             Sefaria.util.inArray(segment.ref, this.props.highlightedRefs) !== -1 : // highlight if this ref is in highlighted refs prop
                             this.props.basetext && segment.highlight;                              // otherwise highlight if this a basetext and the ref is specific
       var parashahHeader = null;
-        if (this.props.showParashahHeaders && this.parashahHeader(segment.ref)) {
-        var parashahNames = this.parashahHeader(segment.ref);
-        var parashahHeader = <div className="parashahHeader">
-          <span className="en">{ parashahNames.en }</span>
-          <span className="he">{ parashahNames.he }</span>
-        </div>;
+        if (this.props.showParashahHeaders) {
+        var parashahNames = this.parashahHeader(data, segment, (this.props.settings.aliyotTorah == 'aliyotOn'));
+        if (parashahNames){
+          var pclasses = {
+                    parashahHeader: 1,
+                    aliyah: !parashahNames.parashaTitle,
+                  };
+          pclasses = classNames(pclasses);
+          var parashahHeader = <div className={pclasses}>
+            <span className="en">{ parashahNames.en }</span>
+            <span className="he">{ parashahNames.he }</span>
+          </div>;
+        }
       }
+      segment.he = strip_text_re ? segment.he.replace(strip_text_re, "") : segment.he;
       return (<span key={i + segment.ref}>
                 { parashahHeader }
                 <TextSegment
