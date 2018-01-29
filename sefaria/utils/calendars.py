@@ -112,7 +112,7 @@ def parashat_hashavua_and_haftara(datetime_obj, diaspora=True):
     for h in db_parasha["haftara"]:
         rf = model.Ref(h)
         haftara = {
-            'title': {'en': 'Haftara', 'he': u'הפטרה'},
+            'title': {'en': 'Haftarah', 'he': u'הפטרה'},
             'displayValue': {'en': rf.normal(), 'he': rf.he_normal()},
             'url': rf.url(),
             'order': 2,

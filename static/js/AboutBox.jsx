@@ -120,6 +120,7 @@ class AboutBox extends Component {
           currVersions={currVersions}
           currentRef={this.props.srefs[0]}
           firstSectionRef={"firstSectionRef" in ve ? ve.firstSectionRef : null}
+          viewExtendedNotes={this.props.viewExtendedNotes}
           getLicenseMap={this.props.getLicenseMap} />
       </div> : null );
     return (
