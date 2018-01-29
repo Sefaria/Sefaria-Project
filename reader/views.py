@@ -157,17 +157,31 @@ def make_panel_dict(oref, versionEn, versionHe, filter, versionFilter, mode, **k
     additionally setting `text` field with textual content.
     """
     if oref.is_book_level():
-        panel = {
-            "menuOpen": "book toc",
-            "bookRef": oref.normal(),
-            "indexDetails": library.get_index(oref.normal()).contents_with_content_counts(),
-            "versions": oref.version_list()
-        }
+        if kwargs.get('extended notes', 0) and (versionEn is not None or versionHe is not None):
+            currVersions = {"en": versionEn, "he": versionHe}
+            if versionEn is not None and versionHe is not None:
+                curr_lang = kwargs.get("panelDisplayLanguage", "en")
+                for key in currVersions.keys():
+                    if key == curr_lang:
+                        continue
+                    else:
+                        currVersions[key] = None
+            panel = {
+                "menuOpen": "extended notes",
+                "bookRef": oref.normal(),
+                "indexDetails": library.get_index(oref.normal()).contents_with_content_counts(),
+                "currVersions": currVersions
+            }
+        else:
+            panel = {
+                "menuOpen": "book toc",
+                "bookRef": oref.normal(),
+                "indexDetails": library.get_index(oref.normal()).contents_with_content_counts(),
+                "versions": oref.version_list()
+            }
     else:
         section_ref = oref.first_available_section_ref()
         oref = section_ref if section_ref else oref
-
-        panelDisplayLanguage = kwargs.get("panelDisplayLanguage")
         panel = {
             "mode": mode,
             "ref": oref.normal(),
@@ -180,12 +194,20 @@ def make_panel_dict(oref, versionEn, versionHe, filter, versionFilter, mode, **k
             "versionFilter": versionFilter,
         }
         if filter and len(filter):
-            if filter[0] in ("Sheets", "Notes", "About", "Versions", "Version Open"):
+            if filter[0] in ("Sheets", "Notes", "About", "Versions", "Version Open", "extended notes"):
                 panel["connectionsMode"] = filter[0]
             else:
                 panel["connectionsMode"] = "TextList"
+
+        settings_override = {}
+        panelDisplayLanguage = kwargs.get("panelDisplayLanguage")
+        aliyotOverride = kwargs.get("aliyotOverride")
         if panelDisplayLanguage:
-            panel["settings"] = {"language" : short_to_long_lang_code(panelDisplayLanguage)}
+            settings_override.update({"language" : short_to_long_lang_code(panelDisplayLanguage)})
+        if aliyotOverride:
+            settings_override.update({"aliyotTorah": aliyotOverride})
+        if settings_override:
+            panel["settings"] = settings_override
         if mode != "Connections":
             try:
                 text_family = TextFamily(oref, version=panel["currVersions"]["en"], lang="en", version2=panel["currVersions"]["he"], lang2="he", commentary=False,
@@ -253,6 +275,8 @@ def base_props(request):
             "layoutDefault": request.COOKIES.get("layoutDefault", "segmented"),
             "layoutTalmud":  request.COOKIES.get("layoutTalmud", "continuous"),
             "layoutTanakh":  request.COOKIES.get("layoutTanakh", "segmented"),
+            "aliyotTorah":   request.COOKIES.get("aliyotTorah", "aliyotOff"),
+            "vowels":        request.COOKIES.get("vowels", "all"),
             "biLayout":      request.COOKIES.get("biLayout", "stacked"),
             "color":         request.COOKIES.get("color", "light"),
             "fontSize":      request.COOKIES.get("fontSize", 62.5),
@@ -290,8 +314,13 @@ def text_panels(request, ref, version=None, lang=None):
         raise Http404
     if versionHe and not Version().load({"versionTitle": versionHe, "language": "he"}):
         raise Http404
-
-    panels += make_panel_dicts(oref, versionEn, versionHe, filter, versionFilter, multi_panel, **{"panelDisplayLanguage": request.GET.get("lang", props["initialSettings"]["language"])})
+    kwargs = {
+        "panelDisplayLanguage": request.GET.get("lang", props["initialSettings"]["language"]),
+        'extended notes': int(request.GET.get("notes", 0)),
+    }
+    if request.GET.get("aliyot", None):
+        kwargs["aliyotOverride"] = "aliyotOn" if int(request.GET.get("aliyot")) == 1 else "aliyotOff"
+    panels += make_panel_dicts(oref, versionEn, versionHe, filter, versionFilter, multi_panel, **kwargs)
 
     # Handle any panels after 1 which are identified with params like `p2`, `v2`, `l2`.
     i = 2
@@ -325,7 +354,12 @@ def text_panels(request, ref, version=None, lang=None):
             filter   = request.GET.get("w{}".format(i)).replace("_", " ").split("+") if request.GET.get("w{}".format(i)) else None
             filter   = [] if filter == ["all"] else filter
             versionFilter = [request.GET.get("vside").replace("_", " ")] if request.GET.get("vside") else []
-            panelDisplayLanguage = request.GET.get("lang{}".format(i), props["initialSettings"]["language"])
+            kwargs = {
+                "panelDisplayLanguage": request.GET.get("lang{}".format(i), props["initialSettings"]["language"]),
+                'extended notes': int(request.GET.get("notes{}".format(i), 0)),
+            }
+            if request.GET.get("aliyot{}".format(i), None):
+                kwargs["aliyotOverride"] = "aliyotOn" if int(request.GET.get("aliyot{}".format(i))) == 1 else "aliyotOff"
 
             if (versionEn and not Version().load({"versionTitle": versionEn, "language": "en"})) or \
                 (versionHe and not Version().load({"versionTitle": versionHe, "language": "he"})):
@@ -333,7 +367,7 @@ def text_panels(request, ref, version=None, lang=None):
                 continue  # Stop processing all panels?
                 # raise Http404
 
-            panels += make_panel_dicts(oref, versionEn, versionHe, filter, versionFilter, multi_panel, **{"panelDisplayLanguage": panelDisplayLanguage})
+            panels += make_panel_dicts(oref, versionEn, versionHe, filter, versionFilter, multi_panel, **kwargs)
         i += 1
 
     props.update({
@@ -755,6 +789,33 @@ def modtools(request):
     title = _("Moderator Tools")
     props = base_props(request)
     return menu_page(request, props, "modtools", title)
+
+
+def s2_extended_notes(request, tref, lang, version_title):
+    if not Ref.is_ref(tref):
+        raise Http404
+
+    version_title = version_title.replace("_", " ")
+    version = Version().load({'title': tref, 'language': lang, 'versionTitle': version_title})
+    if version is None:
+        return reader(request, tref)
+
+    if not hasattr(version, 'extendedNotes') and not hasattr(version, 'extendedNotesHebrew'):
+        return reader(request, tref, lang, version_title)
+
+    title = _("Extended Notes")
+    props = s2_props(request)
+    panel = {
+        "mode": "extended notes",
+        "ref": tref,
+        "refs": [tref],
+        "version": version_title,
+        "versionLanguage": lang,
+        "extendedNotes": getattr(version, "extendedNotes", ""),
+        "extendedNotesHebrew": getattr(version, "extendedNotesHebrew", "")
+    }
+    props['panels'] = [panel]
+    return s2_page(request, props, "extended notes", title)
 
 
 """
@@ -3107,11 +3168,13 @@ def random_by_topic_api(request):
     random_topic = choice(filter(lambda x: x['count'] > 15, get_topics().list()))['tag']
     random_source = choice(get_topics().get(random_topic).contents()['sources'])[0]
     try:
-        ref = Ref(random_source).normal()
+        oref = Ref(random_source)
+        tref = oref.normal()
+        url = oref.url()
     except Exception:
         return random_by_topic_api(request)
     cb = request.GET.get("callback", None)
-    resp = jsonResponse({"ref": ref, "topic": random_topic}, callback=request.GET.get("callback", None))
+    resp = jsonResponse({"ref": tref, "topic": random_topic, "url": url}, callback=request.GET.get("callback", None))
     resp['Content-Type'] = "application/json; charset=utf-8"
     return resp
 
