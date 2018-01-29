@@ -5,10 +5,6 @@
 .container{
   width: 100%;
 }
-/* always wait for fonts to load before show text, applies to Google Web Fonts. What about Adobe? */
-.static .wf-loading {
-  display: none;
-}
 .interface-hebrew .static {
   direction:rtl;
 }
@@ -141,12 +137,12 @@
   color: #666;
 }
 .static label {
-   color: #999;
-   letter-spacing: 1px;
-   font-size: 16px;
-   height: 18px;
-   margin-bottom: 10px;
-   position: relative;
+  color: #999;
+  letter-spacing: 1px;
+  font-size: 16px;
+  height: 18px;
+  margin-bottom: 10px;
+  position: relative;
 }
 .static label .sub {
   font-size: 12px;
@@ -259,7 +255,6 @@
   text-transform: uppercase;
   padding: 16px 34px;
 }
-
 #homePage .section {
   overflow: hidden;
   padding: 100px 0;
@@ -327,10 +322,6 @@
 #homePage .section .button .fa {
   color: #ccc;
   font-size: 25px;
-  /*margin: 0 3px;
-  position: absolute;
-  left: 11px;
-  top: 10px;*/
 }
 #homePage .section.center {
   text-align: center;
@@ -339,10 +330,10 @@
   margin: 0 auto;
 }
 #homePage h1 .int-en, #homePage h2 .int-en{
-    font-family: "adobe-garamond-pro", Georgia, serif;
+  font-family: "adobe-garamond-pro", Georgia, serif;
 }
 #homePage h1 .int-he, #homePage h2 .int-he{
-    font-family: "Heebo", "Helvetica Neue", Helvetica, Ariel, san-serif;
+  font-family: "Heebo", "Helvetica Neue", Helvetica, Ariel, san-serif;
 }
 #homePage h2 {
   margin: 0 0 12px 0;
@@ -674,11 +665,9 @@
 .registrationContent #id_subscribe_announce, .registrationContent #id_subscribe_educator {
   width: auto;
 }
-
 .registrationContent .helptext {
   font-size: 16px;
 }
-
 .registrationContent ::placeholder {
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif; 
   color: #999;
@@ -748,10 +737,6 @@ input#id_email{
 .registrationContent a.registration-links{
   margin-top: 20px;
 }
-.registrationContent a .int-en, .registrationContent button .int-en{
-}
-.registrationContent a .int-he, .registrationContent button .int-he{
-}
 #visualizationsPage {
   text-align: left;
 }
@@ -768,7 +753,7 @@ input#id_email{
   text-align: center;
 }
 #donatePage #donateOptions .donateOption {
-    margin-bottom: 35px;
+  margin-bottom: 35px;
 }
 #donatePage .faq p.question {
   font-weight: bold;
@@ -942,7 +927,6 @@ input#id_email{
 #editProfilePage #contactBox,
 #editProfilePage #sheetsBox,
 #editProfilePage #aboutBox {
-  /*text-align: left;*/
   margin-bottom: 60px;
   display: flex;
   display: -webkit-flex;
@@ -958,18 +942,6 @@ input#id_email{
   border: 1px solid #bbb;
 }
 
-/*.editProfileContentLeft {
-  width: 48%;
-  min-width: 300px;
-  margin: 0 auto 0 0;
-
-}
-.editProfileContentRight {
-  width: 48%;
-  min-width: 300px;
-  margin: 0 0 0 auto;
-}*/
-
 #editProfilePage h2 {
   text-align: center;
 }
@@ -980,9 +952,6 @@ input#id_email{
 #editProfilePage input {
   padding: 15px 12px;
   border: none;
-}
-#editProfilePage #profilePictureBox {
-  /*width: 100%;*/
 }
 #editProfilePage #profilePictureBox img {
   vertical-align: top;
@@ -1299,7 +1268,6 @@ input#id_email{
 #translationRequestsPage .translationRequest{
   background-color: inherit;
   text-align: justify;
-  /*display: block;*/
   border-bottom: 1px solid #eee;
   padding: 20px 0 20px 0;
   margin: 0;
@@ -1412,18 +1380,7 @@ input#id_email{
   color: #333;
   background-color: transparent;
 }
-/*#edPage .int-en {
-  font-family: "adobe-garamond-pro", Georgia, serif;
-}
-#edPage .int-he {
-  font-family: "Heebo", "Helvetica Neue", Helvetica, Ariel, san-serif;
-}*/
-/*#edPage .button .int-en {
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
-}*/
-/*#edPage .button .int-he {
-  font-family: "Heebo", sans-serif;
-}*/
+
 #edPage .section {
   margin-bottom: 0;
 }
@@ -1440,7 +1397,6 @@ input#id_email{
   background-color: #ADA99B;
   background-position: center;
 }
-
 #edPage #edCover h1 {
   color: white;
   font-weight: normal;
@@ -1496,7 +1452,6 @@ input#id_email{
 #edPage .imageBox a .button.fullWidth {
   width: 300px;
 }
-
 @media screen and (max-width: 700px) {
   #edPage .sectionInner {
     width: 350px;
@@ -1693,7 +1648,6 @@ input#id_email{
   float: left;
   direction: ltr;
 }
-
 #visualGardenPage #top-controls {
   display: flex;
 }
@@ -1706,7 +1660,6 @@ input#id_email{
   text-align: center;
   margin: 0 0 30px 0;
 }
-
 body.interface-hebrew #visualGardenPage .reset {
   direction: rtl;
   float: right;
@@ -1715,8 +1668,6 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
   float: none;
   direction: ltr;
 }
-/* ^^ */
-
 #visualGardenPage #sort-label {
   display: inline-block;
   vertical-align: top;
@@ -1770,29 +1721,23 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
 	clear: both;
 	height: 0;
 }
-
 #visualGardenPage #sort-container {
   float: none;
   padding: 25px 0 5px;
 }
-
 #visualGardenPage .filter-title {
   margin-left: 10px;
 }
-
 #visualGardenPage .filter-title .filter-title-en {
   font-weight: bold;
 }
-
 #visualGardenPage .tags-list.dc-chart g.row text {
   fill: black;
 }
-
 #visualGardenPage .tags-list.dc-chart .axis path,
 #visualGardenPage .tags-list.dc-chart .axis line {
   stroke: none
 }
-
 #visualGardenPage #results-table .dc-table-column ._0 {
   width: 220px;
 }
@@ -1801,16 +1746,13 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
 #visualGardenPage #results-table .dc-table-column._3 {
   width: 170px;
 }
-
 #visualGardenPage #results-table .dc-table-column._4 {
   width: 30px;
 }
-
 #visualGardenPage #map-chart {
-    margin-left: 10px;
-    margin-bottom: 25px;
+  margin-left: 10px;
+  margin-bottom: 25px;
 }
-
 #visualGardenPage #map-chart path {
   stroke-width: 1;
   stroke: black;
@@ -1829,11 +1771,9 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
 #visualGardenPage .sourceSheetPanelBox .textList {
   position: static;
 }
-
 #visualGardenPage .sourceSheetPanelBox .sourceSheetSelector {
   margin: 0;
 }
-
 #visualGardenPage .sourceSheetBoxTitle i {
   padding: 0 10px 10px 0;
   cursor: pointer;

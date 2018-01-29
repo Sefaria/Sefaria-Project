@@ -104,7 +104,8 @@ def get_template_cache(fragment_name='', *args):
 def delete_template_cache(fragment_name='', *args):
     delete_cache_elem('template.cache.%s.%s' % (fragment_name, hashlib.md5(u':'.join([arg for arg in args])).hexdigest()))
 
-
+# TODO is this needed anymore? applies only to S1 text toc HTML?
+# Still seems used in dependencies to delete this cache on updates
 def generate_text_toc_cache_key(index_name):
     index_name = index_name.replace("_", " ")
     keys = []

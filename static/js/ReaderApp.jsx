@@ -155,10 +155,6 @@ class ReaderApp extends Component {
     }
     // Save all initial panels to recently viewed
     this.state.panels.map(this.saveRecentlyViewed);
-
-    // Set S2 cookie, putting user into S2 mode site wide
-
-    $.cookie("s2", true, {path: "/"});
   }
   componentWillUnmount() {
     window.removeEventListener("popstate", this.handlePopState);
@@ -730,7 +726,7 @@ class ReaderApp extends Component {
     }
   }
   setContainerMode() {
-    // Applies CSS classes to the React container so that S2 can function as a header only on top of another page.
+    // Applies CSS classes to the React container so that the App can function as a header only on top of another page.
     // todo: because headerMode CSS was messing stuff up, header links are reloads in headerMode.  So - not sure if this method is still needed.
     if (this.props.headerMode) {
       if (this.state.header.menuOpen || this.state.panels.length) {
@@ -1480,7 +1476,7 @@ class ReaderApp extends Component {
 }
 ReaderApp.propTypes = {
   multiPanel:                  PropTypes.bool,
-  headerMode:                  PropTypes.bool,  // is S2 serving only as a header on top of another page?
+  headerMode:                  PropTypes.bool,  // is the App serving only as a header on top of another page?
   loggedIn:                    PropTypes.bool,
   interfaceLang:               PropTypes.string,
   initialRefs:                 PropTypes.array,
@@ -1502,7 +1498,7 @@ ReaderApp.propTypes = {
 };
 ReaderApp.defaultProps = {
   multiPanel:                  true,
-  headerMode:                  false,  // is S2 serving only as a header on top of another page?
+  headerMode:                  false,  // is the App serving only as a header on top of another page?
   interfaceLang:               "english",
   initialRefs:                 [],
   initialFilter:               null,
