@@ -86,8 +86,10 @@ class RecentInToc(AtomicTest):
     every_build = True
 
     def body(self):
-        self.search_ref("Psalms 1")
-        self.nav_to_toc().click_toc_recent("Psalms 1")
+        # Using a short chapter can cause the text to fail if the following section is
+        # counted as a view and saved in recent in place of the named chapter.
+        self.search_ref("Joshua 1")
+        self.nav_to_toc().click_toc_recent("Joshua 1")
         self.browse_to_ref("Berakhot 23b")
         self.nav_to_toc().click_toc_recent("Berakhot 23b")
 
@@ -98,8 +100,8 @@ class RecentInTocOnReload(AtomicTest):
     every_build = True
 
     def body(self):
-        self.load_ref("Psalms 1")
-        self.load_toc().click_toc_recent("Psalms 1")
+        self.load_ref("Joshua 1")
+        self.load_toc().click_toc_recent("Joshua 1")
 
 
 class NavToRefAndClickSegment(AtomicTest):
@@ -252,10 +254,10 @@ class NavToTocAndCheckPresenceOfDownloadButton(AtomicTest):
             invisibility_of_element_located((By.CSS_SELECTOR, '.dlVersionFormatSelect + a')))
 
         # Select version and format
-        s1 = Select(self.driver.find_element_by_css_selector('.dlVersionTitleSelect'))
-        s1.select_by_value("Wikisource Talmud Bavli/he")
-        s2 = Select(self.driver.find_element_by_css_selector('.dlVersionFormatSelect'))
-        s2.select_by_value("csv")
+        select1 = Select(self.driver.find_element_by_css_selector('.dlVersionTitleSelect'))
+        select1.select_by_value("Wikisource Talmud Bavli/he")
+        select2 = Select(self.driver.find_element_by_css_selector('.dlVersionFormatSelect'))
+        select2.select_by_value("csv")
 
         # Check that DL button is clickable
         WebDriverWait(self.driver, TEMPER).until(
@@ -287,10 +289,10 @@ class LoadTocAndCheckPresenceOfDownloadButton(AtomicTest):
         WebDriverWait(self.driver, TEMPER).until(invisibility_of_element_located((By.CSS_SELECTOR, '.dlVersionFormatSelect + a')))
 
         # Select version and format
-        s1 = Select(self.driver.find_element_by_css_selector('.dlVersionTitleSelect'))
-        s1.select_by_value("Wikisource Talmud Bavli/he")
-        s2 = Select(self.driver.find_element_by_css_selector('.dlVersionFormatSelect'))
-        s2.select_by_value("csv")
+        select1 = Select(self.driver.find_element_by_css_selector('.dlVersionTitleSelect'))
+        select1.select_by_value("Wikisource Talmud Bavli/he")
+        select2 = Select(self.driver.find_element_by_css_selector('.dlVersionFormatSelect'))
+        select2.select_by_value("csv")
 
         # Check that DL button is clickable
         WebDriverWait(self.driver, TEMPER).until(visibility_of_element_located((By.CSS_SELECTOR, '.dlVersionFormatSelect + a')))
@@ -394,7 +396,6 @@ class LoginOnMobile(AtomicTest):
     multi_panel = False  # Login is tested as part of SaveNewSourceSheet on multipanel
 
     def body(self):
-        self.s2()
         self.login_user()
         WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, ".accountLinks .account")))
 

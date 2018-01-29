@@ -3016,6 +3016,8 @@ a.readerNavCategory {
   cursor: pointer;
   line-height: 18px;
   color: #333;
+  -webkit-tap-hightlight-color: rgba(0,0,0,0); /* pulled from common.css; should apply more broadly? */
+
 }
 .textFilter {
   padding: 12px 34px;
@@ -4440,6 +4442,7 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
 #editGroupPage .helperText {
   color: #999;
   font-size: 13px;
+  width: 500px;
 }
 #editGroupPage .groupHeaderBox {
   width: 100%;

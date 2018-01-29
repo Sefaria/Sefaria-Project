@@ -11,8 +11,92 @@ from sefaria.settings import DOWN_FOR_MAINTENANCE
 admin.autodiscover()
 handler500 = 'reader.views.custom_server_error'
 
-# Texts API
+
+# App Pages
 urlpatterns = patterns('reader.views',
+    (r'^texts/?$', 'texts_list'),
+    (r'^texts/(?P<cats>.+)?$', 'texts_category_list'),
+    (r'^search/?$', 'search'),
+    (r'^sheets/?$', 'sheets_list'),
+    (r'^sheets/tags/?$', 'sheets_tags_list'),
+    (r'^sheets/tags/(?P<tag>.+)$', 'sheets_by_tag'),
+    (r'^sheets/(?P<type>(public|private))/?$', 'sheets_list'),
+    (r'^groups/?$', 'public_groups'),
+    (r'^groups/allz$', 'groups_admin_page'),
+    (r'^groups/new$', 'edit_group_page'),
+    (r'^groups/(?P<group>[^/]+)/settings$', 'edit_group_page'),
+    (r'^groups/(?P<group>[^/]+)$', 'group_page'),
+    (r'^my/groups$', 'my_groups'),
+    (r'^partners/(?P<group>[^/]+)$', 'group_page'),
+    (r'^account/?$', 'account'),
+    (r'^notifications/?$', 'notifications'),
+    (r'^my/notes/?$', 'my_notes'),
+    (r'^updates/?$', 'updates'),
+    (r'^modtools/?$', 'modtools'),
+)
+
+# People Pages
+urlpatterns += patterns('reader.views',
+    (r'^person/(?P<name>.+)$', 'person_page'),
+    (r'^people/Talmud/?$', 'talmud_person_index'),
+    (r'^people/?$', 'person_index'),
+)
+
+# Visualizations / Link Explorer
+urlpatterns += patterns('reader.views',
+    (r'^explore(/(?P<book1>[A-Za-z-]+))?(/(?P<book2>[A-Za-z-]+))?/(?P<lang>\w\w)/?$', 'explore'),
+    (r'^explore(/(?P<book1>[A-Za-z-]+))?(/(?P<book2>[A-Za-z-]+))?/?$', 'explore'), 
+    (r'^visualize/library/(?P<lang>[enh]*)/?(?P<cats>.*)/?$', 'visualize_library'),
+    (r'^visualize/library/?(?P<cats>.*)/?$', 'visualize_library'),
+    (r'^visualize/toc$', 'visualize_toc'),
+    (r'^visualize/parasha-colors$', 'visualize_parasha_colors'),
+    (r'^visualize/links-through-rashi$', 'visualize_links_through_rashi'),
+)
+
+# Source Sheet Builder
+urlpatterns += patterns('sheets.views',
+    (r'^sheets/new/?$', 'new_sheet'),
+    (r'^sheets/(?P<sheet_id>\d+)$', 'view_sheet'),
+    (r'^sheets/visual/(?P<sheet_id>\d+)$', 'view_visual_sheet'),
+)
+
+# Profiles & Settings
+urlpatterns += patterns('reader.views',
+    (r'^my/profile', 'my_profile'),
+    (r'^profile/(?P<username>[^/]+)(/(?P<page>\d+))?$', 'user_profile'),
+    (r'^contributors/(?P<username>[^/]+)(/(?P<page>\d+))?$', 'profile_redirect'),
+    (r'^settings/account?$', 'account_settings'),
+    (r'^settings/profile?$', 'edit_profile'),
+    (r'^interface/(?P<language>english|hebrew)$', 'interface_language_redirect'),
+    (r'^api/profile$', 'profile_api'),
+    (r'^api/interrupting-messages/read/(?P<message>.+)$', 'interrupting_messages_read_api'),
+)
+
+# Topics
+urlpatterns += patterns('reader.views',
+    (r'^topics$', 'topics_page'),
+    (r'^topics/(?P<topic>.+)$', 'topic_page'),
+)
+
+# Texts Add / Edit / Translate
+urlpatterns += patterns('reader.views',
+    (r'^edit/textinfo/(?P<title>.+)$', 'edit_text_info'),
+    (r'^add/textinfo/(?P<new_title>.+)$', 'edit_text_info'),
+    (r'^add/new/?$', 'edit_text'),
+    (r'^add/(?P<ref>.+)$', 'edit_text'),
+    (r'^translate/(?P<ref>.+)$', 'edit_text'),
+    (r'^edit/(?P<ref>.+)/(?P<lang>\w\w)/(?P<version>.+)$', 'edit_text'),
+    (r'^edit/(?P<ref>.+)$', 'edit_text'),
+)
+
+# JSON Editors
+urlpatterns += patterns('reader.views',
+    (r'^edit/terms/(?P<term>.+)$', 'terms_editor'),
+    (r'^add/terms/(?P<term>.+)$', 'terms_editor'),
+)
+
+# Texts / Index / Links etc API
+urlpatterns += patterns('reader.views',
     (r'^api/texts/versions/(?P<tref>.+)$', 'versions_api'),
     (r'^api/texts/version-status/tree/?(?P<lang>.*)?/?$', 'version_status_tree_api'),
     (r'^api/texts/version-status/?$', 'version_status_api'),
@@ -42,6 +126,71 @@ urlpatterns = patterns('reader.views',
     (r'^api/calendars/?$', 'calendars_api'),
     (r'^api/name/(?P<name>.+)$', 'name_api'),
     (r'^api/category/?(?P<path>.+)?$', 'category_api')
+)
+
+# Source Sheets API
+urlpatterns += patterns('sheets.views',
+    (r'^api/sheets/?$',                                            'save_sheet_api'),
+    (r'^api/sheets/(?P<sheet_id>\d+)/delete$',                     'delete_sheet_api'),
+    (r'^api/sheets/(?P<sheet_id>\d+)/add$',                        'add_source_to_sheet_api'),
+    (r'^api/sheets/(?P<sheet_id>\d+)/add_ref$',                    'add_ref_to_sheet_api'),
+    (r'^api/sheets/(?P<parasha>.+)/get_aliyot$',                   'get_aliyot_by_parasha_api'),
+    (r'^api/sheets/(?P<sheet_id>\d+)/copy_source$',                'copy_source_to_sheet_api'),
+    (r'^api/sheets/(?P<sheet_id>\d+)/tags$',                       'update_sheet_tags_api'),
+    (r'^api/sheets/(?P<sheet_id>\d+)$',                            'sheet_api'),
+    (r'^api/sheets/(?P<sheet_id>\d+)/like$',                       'like_sheet_api'),
+    (r'^api/sheets/(?P<sheet_id>\d+)/visualize$',                  'visual_sheet_api'),
+    (r'^api/sheets/(?P<sheet_id>\d+)/unlike$',                     'unlike_sheet_api'),
+    (r'^api/sheets/(?P<sheet_id>\d+)/likers$',                     'sheet_likers_api'),
+    (r'^api/sheets/user/(?P<user_id>\d+)$',                        'user_sheet_list_api'),
+    (r'^api/sheets/user/(?P<user_id>\d+)/(?P<sort_by>\w+)/(?P<limiter>\d+)/(?P<offset>\d+)$',       'user_sheet_list_api_with_sort'),
+    (r'^api/sheets/modified/(?P<sheet_id>\d+)/(?P<timestamp>.+)$', 'check_sheet_modified_api'),
+    (r'^api/sheets/create/(?P<ref>[^/]+)(/(?P<sources>.+))?$',     'make_sheet_from_text_api'),
+    (r'^api/sheets/tag/(?P<tag>[^/]+)?$',                          'sheets_by_tag_api'),
+    (r'^api/sheets/trending-tags/?$',                              'trending_tags_api'),
+    (r'^api/sheets/tag-list/?$',                                   'tag_list_api'),
+    (r'^api/sheets/tag-list/user/(?P<user_id>\d+)?$',              'user_tag_list_api'),
+    (r'^api/sheets/tag-list/(?P<sort_by>[a-zA-Z\-]+)$',                    'tag_list_api'),
+    (r'^api/sheets/all-sheets/(?P<limiter>\d+)/(?P<offset>\d+)$',  'all_sheets_api'),
+    (r'^api/sheets/(?P<sheet_id>\d+)/export_to_drive$',            'export_to_drive'),
+)
+
+# Groups API
+urlpatterns += patterns('sheets.views',
+    (r'^api/groups(/(?P<group>[^/]+))?$', 'groups_api'),
+    (r'^api/groups/(?P<group_name>[^/]+)/set-role/(?P<uid>\d+)/(?P<role>[^/]+)$', 'groups_role_api'),
+    (r'^api/groups/(?P<group_name>[^/]+)/invite/(?P<uid_or_email>[^/]+)(?P<uninvite>\/uninvite)?$', 'groups_invite_api'),
+    (r'^api/groups/(?P<group_name>[^/]+)/pin-sheet/(?P<sheet_id>\d+)', 'groups_pin_sheet_api'),
+)
+
+# Dictionary API
+urlpatterns += patterns('reader.views',
+    (r'^api/words/(?P<word>.+)$', 'dictionary_api'),
+)
+ 
+# Notifications API
+urlpatterns += patterns('reader.views',
+    (r'^api/notifications/?$', 'notifications_api'),
+    (r'^api/notifications/read', 'notifications_read_api'),
+    (r'^api/updates/?(?P<gid>.+)?$', 'updates_api'),
+)
+
+# Messages API
+urlpatterns += patterns('reader.views',
+    (r'^api/messages/?$', 'messages_api'),
+)
+
+# Following API
+urlpatterns += patterns('reader.views',
+    (r'^api/(?P<action>(follow|unfollow))/(?P<uid>\d+)$', 'follow_api'),
+    (r'^api/(?P<kind>(followers|followees))/(?P<uid>\d+)$', 'follow_list_api'),
+)
+
+# Topics API
+urlpatterns += patterns('reader.views',
+    (r'^api/topics$', 'topics_list_api'),
+    (r'^api/topics/(?P<topic>.+)$', 'topics_api'),
+    (r'^api/recommend/topics(/(?P<ref_list>.+))?', 'recommend_topics_api'),
 )
 
 # Reviews API
@@ -74,16 +223,6 @@ urlpatterns += patterns('reader.views',
     (r'^api/version/flags/(?P<title>.+)/(?P<lang>\w\w)/(?P<version>.+)$', 'flag_text_api'),
 )
 
-# Dictionary API
-urlpatterns += patterns('reader.views',
-    (r'^api/words/(?P<word>.+)$', 'dictionary_api'),
-)
-
-# ESI
-urlpatterns += patterns('reader.views',
-    (r'^esi/account_box/?$', 'esi_account_box'),
-)
-
 # Campaigns
 urlpatterns += patterns('reader.views',
     (r'^translate/(?P<tref>.+)$', 'translation_flow'),
@@ -92,34 +231,6 @@ urlpatterns += patterns('reader.views',
     (r'^translation-requests/?', 'translation_requests'),
     (r'^contests/(?P<slug>.+)$', 'contest_splash'),
     (r'^mishnah-contest-2013/?$', lambda x: HttpResponseRedirect('/contests/mishnah-contest-2013')),
-)
-
-# JSON Editors
-urlpatterns += patterns('reader.views',
-    (r'^edit/terms/(?P<term>.+)$', 'terms_editor'),
-    (r'^add/terms/(?P<term>.+)$', 'terms_editor'),
-)
-
-# Texts Add / Edit / Translate
-urlpatterns += patterns('reader.views',
-    (r'^edit/textinfo/(?P<title>.+)$', 'edit_text_info'),
-    (r'^add/textinfo/(?P<new_title>.+)$', 'edit_text_info'),
-    (r'^add/new/?$', 'edit_text'),
-    (r'^add/(?P<ref>.+)$', 'edit_text'),
-    (r'^translate/(?P<ref>.+)$', 'edit_text'),
-    (r'^edit/(?P<ref>.+)/(?P<lang>\w\w)/(?P<version>.+)$', 'edit_text'),
-    (r'^edit/(?P<ref>.+)$', 'edit_text'),
-)
-
-# Texts Page
-urlpatterns += patterns('reader.views',
-    (r'^texts/?$', 'texts_list'),
-    (r'^texts/(?P<cats>.+)?$', 'texts_category_list'),
-)
-
-# Search Page
-urlpatterns += patterns('reader.views',
-    (r'^search/?$', 'search'),
 )
 
 # Discussions
@@ -133,44 +244,6 @@ urlpatterns += patterns('reader.views',
     (r'^dashboard/?$', 'dashboard'),
 )
 
-# Source Sheets
-urlpatterns += patterns('sheets.views',
-    (r'^sheets/?$', 'sheets_list'),
-    (r'^sheets/new/?$', 'new_sheet'),
-    (r'^sheets/tags/?$', 'sheets_tags_list'),
-    (r'^sheets/tags/(?P<tag>.+)$', 'sheets_tag'),
-    (r'^sheets/(?P<type>(public|private))/?$', 'sheets_list'),
-    (r'^sheets/(?P<sheet_id>\d+)$', 'view_sheet'),
-    (r'^sheets/visual/(?P<sheet_id>\d+)$', 'view_visual_sheet'),
-)
-
-# Source Sheets API
-urlpatterns += patterns('sheets.views',
-    (r'^api/sheets/?$',                                            'save_sheet_api'),
-    (r'^api/sheets/(?P<sheet_id>\d+)/delete$',                     'delete_sheet_api'),
-    (r'^api/sheets/(?P<sheet_id>\d+)/add$',                        'add_source_to_sheet_api'),
-    (r'^api/sheets/(?P<sheet_id>\d+)/add_ref$',                    'add_ref_to_sheet_api'),
-    (r'^api/sheets/(?P<parasha>.+)/get_aliyot$',                   'get_aliyot_by_parasha_api'),
-    (r'^api/sheets/(?P<sheet_id>\d+)/copy_source$',                'copy_source_to_sheet_api'),
-    (r'^api/sheets/(?P<sheet_id>\d+)/tags$',                       'update_sheet_tags_api'),
-    (r'^api/sheets/(?P<sheet_id>\d+)$',                            'sheet_api'),
-    (r'^api/sheets/(?P<sheet_id>\d+)/like$',                       'like_sheet_api'),
-    (r'^api/sheets/(?P<sheet_id>\d+)/visualize$',                  'visual_sheet_api'),
-    (r'^api/sheets/(?P<sheet_id>\d+)/unlike$',                     'unlike_sheet_api'),
-    (r'^api/sheets/(?P<sheet_id>\d+)/likers$',                     'sheet_likers_api'),
-    (r'^api/sheets/user/(?P<user_id>\d+)$',                        'user_sheet_list_api'),
-    (r'^api/sheets/user/(?P<user_id>\d+)/(?P<sort_by>\w+)/(?P<limiter>\d+)/(?P<offset>\d+)$',       'user_sheet_list_api_with_sort'),
-    (r'^api/sheets/modified/(?P<sheet_id>\d+)/(?P<timestamp>.+)$', 'check_sheet_modified_api'),
-    (r'^api/sheets/create/(?P<ref>[^/]+)(/(?P<sources>.+))?$',     'make_sheet_from_text_api'),
-    (r'^api/sheets/tag/(?P<tag>[^/]+)?$',                          'sheets_by_tag_api'),
-    (r'^api/sheets/trending-tags/?$',                              'trending_tags_api'),
-    (r'^api/sheets/tag-list/?$',                                   'tag_list_api'),
-    (r'^api/sheets/tag-list/user/(?P<user_id>\d+)?$',              'user_tag_list_api'),
-    (r'^api/sheets/tag-list/(?P<sort_by>[a-zA-Z\-]+)$',                    'tag_list_api'),
-    (r'^api/sheets/all-sheets/(?P<limiter>\d+)/(?P<offset>\d+)$',  'all_sheets_api'),
-    (r'^api/sheets/(?P<sheet_id>\d+)/export_to_drive$',            'export_to_drive'),
-)
-
 # Activity
 urlpatterns += patterns('reader.views',
     (r'^activity/?$', 'global_activity'),
@@ -182,68 +255,10 @@ urlpatterns += patterns('reader.views',
     (r'^api/revert/(?P<tref>[^/]+)/(?P<lang>.{2})/(?P<version>.+)/(?P<revision>\d+)$', 'revert_api'),
 )
 
-# Profiles & Settings
-urlpatterns += patterns('reader.views',
-    (r'^my/profile', 'my_profile'),
-    (r'^profile/(?P<username>[^/]+)(/(?P<page>\d+))?$', 'user_profile'),
-    (r'^contributors/(?P<username>[^/]+)(/(?P<page>\d+))?$', 'profile_redirect'),
-    (r'^settings/account?$', 'account_settings'),
-    (r'^settings/profile?$', 'edit_profile'),
-    (r'^interface/(?P<language>english|hebrew)$', 'interface_language_redirect'),
-    (r'^api/profile$', 'profile_api'),
-    (r'^api/interrupting-messages/read/(?P<message>.+)$', 'interrupting_messages_read_api'),
-)
-
 # Random Text
 urlpatterns += patterns('reader.views',
     (r'^random/link$',        'random_redirect'),
     (r'^random/?$',           'random_text_page'),
-)
-
-# Notifications API
-urlpatterns += patterns('reader.views',
-    (r'^api/notifications/?$', 'notifications_api'),
-    (r'^api/notifications/read', 'notifications_read_api'),
-    (r'^api/updates/?(?P<gid>.+)?$', 'updates_api'),
-)
-
-# Messages API
-urlpatterns += patterns('reader.views',
-    (r'^api/messages/?$', 'messages_api'),
-)
-
-# Following API
-urlpatterns += patterns('reader.views',
-    (r'^api/(?P<action>(follow|unfollow))/(?P<uid>\d+)$', 'follow_api'),
-    (r'^api/(?P<kind>(followers|followees))/(?P<uid>\d+)$', 'follow_list_api'),
-)
-
-# Groups
-urlpatterns += patterns('sheets.views',
-    (r'^groups/?$', 'groups_page'),
-    (r'^groups/allz$', 'groups_admin_page'),
-    (r'^groups/new$', 'edit_group_page'),
-    (r'^groups/(?P<group>[^/]+)/settings$', 'edit_group_page'),
-    (r'^groups/(?P<group>[^/]+)$', 'group_page'),
-    (r'^my/groups$', 'my_groups_page'),
-    (r'^partners/(?P<group>[^/]+)$', 'group_page'),
-    (r'^api/groups(/(?P<group>[^/]+))?$', 'groups_api'),
-    (r'^api/groups/(?P<group_name>[^/]+)/set-role/(?P<uid>\d+)/(?P<role>[^/]+)$', 'groups_role_api'),
-    (r'^api/groups/(?P<group_name>[^/]+)/invite/(?P<uid_or_email>[^/]+)(?P<uninvite>\/uninvite)?$', 'groups_invite_api'),
-    (r'^api/groups/(?P<group_name>[^/]+)/pin-sheet/(?P<sheet_id>\d+)', 'groups_pin_sheet_api'),
-)
-
-# Topics
-urlpatterns += patterns('reader.views',
-    (r'^topics$', 's2_topics_page'),
-    (r'^topics/(?P<topic>.+)$', 's2_topic_page'),
-)
-
-# Topics API
-urlpatterns += patterns('reader.views',
-    (r'^api/topics$', 'topics_list_api'),
-    (r'^api/topics/(?P<topic>.+)$', 'topics_api'),
-    (r'^api/recommend/topics(/(?P<ref_list>.+))?', 'recommend_topics_api'),
 )
 
 # Registration
@@ -260,6 +275,15 @@ urlpatterns += patterns('',
 # Compare Page
 urlpatterns += patterns('sefaria.views',
     url(r'^compare/?((?P<secRef>[^/]+)/)?((?P<lang>en|he)/)?((?P<v1>[^/]+)/)?(?P<v2>[^/]+)?$', 'compare')
+)
+
+# Gardens
+urlpatterns += patterns('reader.views',
+    #(r'^garden/sheets/(?P<key>.+)$', 'sheet_tag_garden_page'),
+    (r'^garden/(?P<key>.+)$', 'custom_visual_garden_page'),
+    (r'^garden/sheets/(?P<key>.+)$', 'sheet_tag_visual_garden_page'),
+    (r'^garden/search/(?P<q>.+)$', 'search_query_visual_garden_page'),
+    (r'^vgarden/custom/(?P<key>.*)$', 'custom_visual_garden_page'),  # legacy.  Used for "maggid" and "ecology"
 )
 
 static_pages = [
@@ -290,6 +314,7 @@ static_pages = [
     "random-walk-through-torah",
     "educators",
     "the-sefaria-story",
+    "aramaic-translation-contest",
 ]
 
 # Static and Semi Static Content
@@ -300,35 +325,6 @@ urlpatterns += patterns('reader.views',
     (r'^(%s)/?$' % "|".join(static_pages), 'serve_static'),
 )
 
-# Explore
-urlpatterns += patterns('reader.views',
-    (r'^explore(/(?P<book1>[A-Za-z-]+))?(/(?P<book2>[A-Za-z-]+))?/(?P<lang>\w\w)/?$', 'explore'),
-    (r'^explore(/(?P<book1>[A-Za-z-]+))?(/(?P<book2>[A-Za-z-]+))?/?$', 'explore')
-)
-
-# Features under Development (not generally linked publicly yet)
-urlpatterns += patterns('reader.views',
-    (r'^s1/?$', 'switch_to_s1'),
-    (r'^s2/?$', 'switch_to_s2'),
-    (r'^account/?$', 's2_account'),
-    (r'^notifications/?$', 's2_notifications'),
-    (r'^my/notes/?$', 's2_my_notes'),
-    (r'^updates/?$', 's2_updates'),
-    (r'^modtools/?$', 's2_modtools'),
-    (r'^person/(?P<name>.+)$', 'person_page'),
-    (r'^people/Talmud/?$', 'talmud_person_index'),
-    (r'^people/?$', 'person_index'),
-    #(r'^garden/sheets/(?P<key>.+)$', 'sheet_tag_garden_page'),
-    (r'^garden/(?P<key>.+)$', 'custom_visual_garden_page'),
-    (r'^garden/sheets/(?P<key>.+)$', 'sheet_tag_visual_garden_page'),
-    (r'^garden/search/(?P<q>.+)$', 'search_query_visual_garden_page'),
-    (r'^vgarden/custom/(?P<key>.*)$', 'custom_visual_garden_page'),  # legacy.  Used for "maggid" and "ecology"
-    (r'^visualize/library/(?P<lang>[enh]*)/?(?P<cats>.*)/?$', 'visualize_library'),
-    (r'^visualize/library/?(?P<cats>.*)/?$', 'visualize_library'),
-    (r'^visualize/toc$', 'visualize_toc'),
-    (r'^visualize/parasha-colors$', 'visualize_parasha_colors'),
-    (r'^visualize/links-through-rashi$', 'visualize_links_through_rashi'),
-)
 
 # Redirects to Forum, Wiki, etc
 urlpatterns += patterns('',
@@ -345,7 +341,7 @@ urlpatterns += patterns('',
     (r'^jfn?$', lambda x: HttpResponseRedirect('https://www.sefaria.org/sheets/60494')),
 )
 
-# Packaged JavaScript
+# Sefaria.js -- Packaged JavaScript
 urlpatterns += patterns('sefaria.views',
     (r'^data\.js$', 'data_js'),
     (r'^sefaria\.js$', 'sefaria_js'),
@@ -420,7 +416,7 @@ urlpatterns += patterns('sefaria.gauth.views',
 # Catch all to send to Reader
 urlpatterns += patterns('reader.views',
     (r'^(?P<tref>[^/]+)/(?P<lang>\w\w)/(?P<version>.*)$', 'old_versions_redirect'),
-    (r'^(?P<tref>[^/]+)(/)?$', 'reader')
+    (r'^(?P<tref>[^/]+)(/)?$', 'catchall')
 )
 
 if DOWN_FOR_MAINTENANCE:

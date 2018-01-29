@@ -39,7 +39,14 @@ class Group(abst.AbstractMongoRecord):
     ]
 
     def _normalize(self):
-        pass
+        website = getattr(self, "websiteUrl", False)
+        if website and not website.startswith("https://"):
+            if website.startswith("http://"):
+                # Only allow HTTPS. If you site doens't support it, deal with it!
+                self.websiteUrl = website.replace("http://", "https://")
+            else:
+                # Allows include protocol
+                self.websiteUrl = "https://" + website
 
     def _validate(self):
         assert super(Group, self)._validate()
