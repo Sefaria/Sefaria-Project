@@ -2,11 +2,11 @@
 group.py
 Writes to MongoDB Collection: groups
 """
+from django.utils.translation import ugettext as _
+
 from . import abstract as abst
 from sefaria.model.user_profile import public_user_data
-
-import logging
-logger = logging.getLogger(__name__)
+from sefaria.system.exceptions import InputError
 
 
 class Group(abst.AbstractMongoRecord):
@@ -26,21 +26,38 @@ class Group(abst.AbstractMongoRecord):
         "members",       # array of uids
     ]
     optional_attrs = [
-        "invitations",   # array of dictionaries representing outstanding invitations
-        "description",   # string text of short description
-        "websiteUrl",    # url for group website
-        "headerUrl",     # url of an image to use in header
-        "imageUrl",      # url of an image to use as icon
-        "coverUrl",      # url of an image to use as cover
-        "pinned_sheets", # list of sheet ids, pinned to top
-        "listed",        # Bool, whether to list group publicly
-        "tag_order",     # list of strings, display order for sheet tags       
+        "invitations",      # array of dictionaries representing outstanding invitations
+        "description",      # string text of short description
+        "websiteUrl",       # url for group website
+        "headerUrl",        # url of an image to use in header
+        "imageUrl",         # url of an image to use as icon
+        "coverUrl",         # url of an image to use as cover
+        "pinned_sheets",    # list of sheet ids, pinned to top
+        "listed",           # Bool, whether to list group publicly
+        "moderationStatus", # string status code for moderator-set statuses
+        "tag_order",        # list of strings, display order for sheet tags       
     ]
 
     def _normalize(self):
-        pass
+        website = getattr(self, "websiteUrl", False)
+        if website and not website.startswith("https://"):
+            if website.startswith("http://"):
+                # Only allow HTTPS. If you site doens't support it, deal with it!
+                self.websiteUrl = website.replace("http://", "https://")
+            else:
+                # Allows include protocol
+                self.websiteUrl = "https://" + website
 
     def _validate(self):
+        assert super(Group, self)._validate()
+
+        if getattr(self, "listed", False):
+            if not getattr(self, "imageUrl", False):
+                raise InputError(_("Public Groups are required to include a group image (a square image will work best)."))
+            contents = self.contents(with_content=True)
+            if len(contents["sheets"]) < 3:
+                raise InputError(_("Public Groups are required to have at least 3 public sheets."))
+
         return True
 
     def _pre_save(self):
