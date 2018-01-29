@@ -4392,6 +4392,7 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
 #editGroupPage .helperText {
   color: #999;
   font-size: 13px;
+  width: 500px;
 }
 #editGroupPage .groupHeaderBox {
   width: 100%;
