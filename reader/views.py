@@ -3686,11 +3686,13 @@ def random_by_topic_api(request):
     random_topic = choice(filter(lambda x: x['count'] > 15, get_topics().list()))['tag']
     random_source = choice(get_topics().get(random_topic).contents()['sources'])[0]
     try:
-        ref = Ref(random_source).normal()
+        oref = Ref(random_source)
+        tref = oref.normal()
+        url = oref.url()
     except Exception:
         return random_by_topic_api(request)
     cb = request.GET.get("callback", None)
-    resp = jsonResponse({"ref": ref, "topic": random_topic}, callback=request.GET.get("callback", None))
+    resp = jsonResponse({"ref": tref, "topic": random_topic, "url": url}, callback=request.GET.get("callback", None))
     resp['Content-Type'] = "application/json; charset=utf-8"
     return resp
 
