@@ -437,7 +437,6 @@ def _reduce_ranged_ref_text_to_first_section(text_list):
 
 
 def s2_texts_category(request, cats):
->>>>>>> test
     """
     List of texts in a category.
     """
