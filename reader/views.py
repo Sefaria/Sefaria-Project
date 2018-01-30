@@ -100,6 +100,8 @@ def catchall(request, tref, sheet=None):
 
         return text_panels(request, ref=tref)
 
+    return text_panels(request, ref=tref, sheet=sheet)
+
 
 @ensure_csrf_cookie
 def old_versions_redirect(request, tref, lang, version):

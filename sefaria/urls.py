@@ -56,7 +56,7 @@ urlpatterns += patterns('reader.views',
 # Source Sheet Builder
 urlpatterns += patterns('sheets.views',
     (r'^sheets/new/?$', 'new_sheet'),
-    (r'^sheets/(?P<sheet_id>\d+)$', 'view_sheet'),
+#    (r'^sheets/(?P<sheet_id>\d+)$', 'view_sheet'),
     (r'^sheets/visual/(?P<sheet_id>\d+)$', 'view_visual_sheet'),
 )
 
@@ -415,7 +415,7 @@ urlpatterns += patterns('sefaria.gauth.views',
 
 # Sheets in a reader panel
 urlpatterns += patterns('reader.views',
-    (r'^sheets/(?P<tref>\d+)$', 'reader', {'sheet': True}),
+    (r'^sheets/(?P<tref>\d+)$', 'catchall', {'sheet': True}),
 )
 
 # Catch all to send to Reader
