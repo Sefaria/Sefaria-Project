@@ -174,29 +174,34 @@ class ReaderPanel extends Component {
     }
   }
   handleBaseSegmentClick(ref) {
-    console.log(ref)
-    console.log(this.state.mode)
-    console.log(this.props.multiPanel)
     if (this.state.mode === "TextAndConnections") {
       this.closeConnectionsInPanel();
-    } else if (this.state.mode ==="SheetAndConnections") {
-      this.closeSheetConnectionsInPanel();
     } else if (this.state.mode === "Text") {
       if (this.props.multiPanel) {
         this.props.onSegmentClick(ref);
       } else {
         this.openConnectionsInPanel(ref);
       }
-    }  else if (this.state.mode === "Sheet") {
+    }
+  }
+  handleSheetSegmentClick(source) {
+    console.log(source.node)
+    if (this.state.mode ==="SheetAndConnections") {
+      this.closeSheetConnectionsInPanel();
+    }
+    else if (this.state.mode === "Sheet") {
       if (this.props.multiPanel) {
-        this.props.onSegmentClick(ref);
+        if (source.ref) {
+          this.props.onSegmentClick(source.ref);
+        }
       } else {
-        this.openSheetConnectionsInPanel(ref);
+          if (source.ref) {
+            this.openSheetConnectionsInPanel(source.ref);
+          }
       }
     }
-
-
   }
+
   handleSheetCitationClick(ref) {
     this.props.onCitationClick(ref);
   }
@@ -533,7 +538,7 @@ class ReaderPanel extends Component {
           id={this.state.sheet.id}
           key={"sheet-"+this.state.sheet.id}
           onRefClick={this.handleSheetCitationClick}
-          onSegmentClick={this.handleBaseSegmentClick}
+          onSegmentClick={this.handleSheetSegmentClick}
       />);
     }
     if (this.state.mode === "Text" || this.state.mode === "TextAndConnections") {
