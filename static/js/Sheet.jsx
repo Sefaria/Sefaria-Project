@@ -112,6 +112,7 @@ class SheetContent extends Component {
             handleClick={this.handleClick}
             cleanHTML={this.cleanHTML}
             onSegmentClick={this.props.onSegmentClick}
+            highlightedNodes={this.props.highlightedNodes}
           />
         )
       }
@@ -124,6 +125,7 @@ class SheetContent extends Component {
             source={source}
             cleanHTML={this.cleanHTML}
             onSegmentClick={this.props.onSegmentClick}
+            highlightedNodes={this.props.highlightedNodes}
           />
         )
       }
@@ -136,6 +138,7 @@ class SheetContent extends Component {
             source={source}
             cleanHTML={this.cleanHTML}
             onSegmentClick={this.props.onSegmentClick}
+            highlightedNodes={this.props.highlightedNodes}
           />
         )
       }
@@ -148,6 +151,7 @@ class SheetContent extends Component {
             source={source}
             cleanHTML={this.cleanHTML}
             onSegmentClick={this.props.onSegmentClick}
+            highlightedNodes={this.props.highlightedNodes}
           />
         )
       }
@@ -159,6 +163,7 @@ class SheetContent extends Component {
             sourceNum={i + 1}
             source={source}
             onSegmentClick={this.props.onSegmentClick}
+            highlightedNodes={this.props.highlightedNodes}
           />
         )
       }

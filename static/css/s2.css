@@ -2573,17 +2573,22 @@ a.readerNavCategory {
 .dark .basetext .segment:focus {
   background-color: #444;
 }
-.basetext .segment.highlight {
+.basetext .segment.highlight,
+.sheetContent .segment.highlight {
   background-color: #E9E9E7;
 }
 .basetext .segment.highlight .segmentNumber,
-.basetext .segment.highlight .linkCount {
+.basetext .segment.highlight .linkCount,
+.sheetContent .segment.highlight .linkCount,
+.sheetContent .segment.highlight .segmentNumber {
   background-color: transparent;
 }
-.sepia .basetext .segment.highlight {
+.sepia .basetext .segment.highlight,
+.sepia .sheetContent .segment.highlight {
   background-color: #E3E3E1;
 }
-.dark .basetext .segment.highlight {
+.dark .basetext .segment.highlight,
+.dark .sheetContent .segment.highlight {
   background-color: #444;
 }
 .textRange {

@@ -59,6 +59,7 @@ class ReaderPanel extends Component {
       versionFilter: props.initialVersionFilter || [],
       currVersions: props.initialCurrVersions || {en:null, he: null},
       highlightedRefs: props.initialHighlightedRefs || [],
+      highlightedNodes: [],
       recentFilters: [],
       recentVersionFilters: [],
       settings: props.initialState.settings || {
@@ -193,10 +194,12 @@ class ReaderPanel extends Component {
       if (this.props.multiPanel) {
         if (source.ref) {
           this.props.onSegmentClick(source.ref);
+          this.conditionalSetState({highlightedNodes: [source.node], mode: "Text"});
         }
       } else {
           if (source.ref) {
-            this.openSheetConnectionsInPanel(source.ref);
+            this.openSheetConnectionsInPanel(source.ref, source.node);
+          console.log('path b')
           }
       }
     }
@@ -225,14 +228,14 @@ class ReaderPanel extends Component {
     // Return to the original text in the ReaderPanel contents
     this.conditionalSetState({highlightedRefs: [], mode: "Text"});
   }
-  openSheetConnectionsInPanel(ref) {
+  openSheetConnectionsInPanel(ref, node) {
     var refs = typeof ref == "string" ? [ref] : ref;
     this.replaceHistory = this.state.mode === "SheetAndConnections"; // Don't push history for change in Connections focus
-    this.conditionalSetState({highlightedRefs: refs, mode: "SheetAndConnections" }, this.replaceHistory);
+    this.conditionalSetState({highlightedNodes: [node], mode: "SheetAndConnections" }, this.replaceHistory);
   }
   closeSheetConnectionsInPanel() {
     // Return to the original text in the ReaderPanel contents
-    this.conditionalSetState({highlightedRefs: [], mode: "Sheet"});
+    this.conditionalSetState({highlightedNodes: [], mode: "Sheet"});
   }
   handleSheetClick(e,sheet) {
     e.preventDefault();
@@ -537,6 +540,7 @@ class ReaderPanel extends Component {
           panelPosition ={this.props.panelPosition}
           id={this.state.sheet.id}
           key={"sheet-"+this.state.sheet.id}
+          highlightedNodes={this.state.highlightedNodes}
           onRefClick={this.handleSheetCitationClick}
           onSegmentClick={this.handleSheetSegmentClick}
       />);
