@@ -47,7 +47,6 @@ class ReaderPanel extends Component {
       state["initialAnalyticsTracked"] = false;
       this.state = state;
 
-      console.log(this.state);
       return;
 
     }
@@ -102,7 +101,6 @@ class ReaderPanel extends Component {
     }
   }
   componentDidMount() {
-    console.log(this.state)
     window.addEventListener("resize", this.setWidth);
     this.setWidth();
     if (this.props.panelPosition) {  //Focus on the first focusable element of the newly loaded panel. Mostly for a11y

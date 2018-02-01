@@ -67,6 +67,29 @@ class Sheet extends Component {
 
 
 class SheetContent extends Component {
+  componentDidMount() {
+      var node = ReactDOM.findDOMNode(this).parentNode;
+      node.addEventListener("scroll", this.handleScroll);
+  }
+
+  componentWillUnmount() {
+    var node = ReactDOM.findDOMNode(this).parentNode;
+    node.removeEventListener("scroll", this.handleScroll);
+  }
+
+  handleScroll(event) {
+    var segment = $('.sheetContent').find('.segment.highlight');
+
+    //scroll down
+    var nextSegment = segment.next();
+    var segmentBottomDistanceFromTop = segment.offset().top+segment.height()-120;
+    if (segmentBottomDistanceFromTop < 0) {
+      nextSegment.click();
+    }
+
+
+  }
+
 
   cleanHTML(html) {
     var clean = sanitizeHtml(html, {
@@ -188,11 +211,8 @@ class SheetSource extends Component {
 
 
   render() {
-      console.log(this.props.highlightedNodes)
-      console.log(this.props.source.node)
-
     return (
-      <div className={this.props.highlightedNodes == this.props.source.node ? "sheetItem segment highlight" : "sheetItem segment"}>
+      <div className={this.props.highlightedNodes == this.props.source.node ? "sheetItem segment highlight" : "sheetItem segment"} onClick={this.sheetSourceClick}>
         <div className="segmentNumber sheetSegmentNumber sans">
           <span className="en"> <span className="segmentNumberInner">{this.props.sourceNum}</span> </span>
           <span className="he"> <span
@@ -204,7 +224,7 @@ class SheetSource extends Component {
             <div className="ref"><a href={"/" + this.props.source.ref} onClick={(e) => {
               this.props.handleClick(this.props.source.ref, e)
             } }>{this.props.source.ref}</a></div>
-            <span dangerouslySetInnerHTML={ {__html: (this.props.cleanHTML(this.props.source.text.en))} } onClick={this.sheetSourceClick}></span>
+            <span dangerouslySetInnerHTML={ {__html: (this.props.cleanHTML(this.props.source.text.en))} }></span>
           </div> : null }
 
         {this.props.source.text ?
@@ -212,7 +232,7 @@ class SheetSource extends Component {
             <div className="ref"><a href={"/" + this.props.source.ref} onClick={(e) => {
               this.props.handleClick(this.props.source.ref, e)
             } }>{this.props.source.heRef}</a></div>
-            <span dangerouslySetInnerHTML={ {__html: (this.props.cleanHTML(this.props.source.text.he))} } onClick={this.sheetSourceClick}></span>
+            <span dangerouslySetInnerHTML={ {__html: (this.props.cleanHTML(this.props.source.text.he))} }></span>
           </div> : null }
 
 
