@@ -57,6 +57,7 @@ class Sheet extends Component {
             sources={sheet.sources}
             onRefClick={this.props.onRefClick}
             onSegmentClick={this.props.onSegmentClick}
+            highlightedNodes={this.props.highlightedNodes}
           />
         </div>
       )
@@ -185,9 +186,13 @@ class SheetSource extends Component {
   }
 
 
+
   render() {
+      console.log(this.props.highlightedNodes)
+      console.log(this.props.source.node)
+
     return (
-      <div className="sheetItem segment">
+      <div className={this.props.highlightedNodes == this.props.source.node ? "sheetItem segment highlight" : "sheetItem segment"}>
         <div className="segmentNumber sheetSegmentNumber sans">
           <span className="en"> <span className="segmentNumberInner">{this.props.sourceNum}</span> </span>
           <span className="he"> <span
@@ -226,7 +231,7 @@ class SheetComment extends Component {
   render() {
     var lang = Sefaria.hebrew.isHebrew(this.props.source.comment.stripHtml()) ? "he" : "en";
     return (
-      <div className="sheetItem segment" onClick={this.sheetSourceClick}>
+      <div className={this.props.highlightedNodes == this.props.source.node ? "sheetItem segment highlight" : "sheetItem segment"} onClick={this.sheetSourceClick}>
         <div className="segmentNumber sheetSegmentNumber sans">
           <span className="en"> <span className="segmentNumberInner">{this.props.sourceNum}</span> </span>
           <span className="he"> <span
@@ -249,7 +254,7 @@ class SheetOutsideText extends Component {
   render() {
     var lang = Sefaria.hebrew.isHebrew(this.props.source.outsideText.stripHtml()) ? "he" : "en";
     return (
-      <div className="sheetItem segment" onClick={this.sheetSourceClick}>
+      <div className={this.props.highlightedNodes == this.props.source.node ? "sheetItem segment highlight" : "sheetItem segment"} onClick={this.sheetSourceClick}>
         <div className="segmentNumber sheetSegmentNumber sans">
           <span className="en"> <span className="segmentNumberInner">{this.props.sourceNum}</span> </span>
           <span className="he"> <span
@@ -273,7 +278,7 @@ class SheetOutsideBiText extends Component {
 
   render() {
     return (
-      <div className="sheetItem segment" onClick={this.sheetSourceClick}>
+      <div className={this.props.highlightedNodes == this.props.source.node ? "sheetItem segment highlight" : "sheetItem segment"} onClick={this.sheetSourceClick}>
         <div className="segmentNumber sheetSegmentNumber sans">
           <span className="en"> <span className="segmentNumberInner">{this.props.sourceNum}</span> </span>
           <span className="he"> <span
@@ -323,7 +328,7 @@ class SheetMedia extends Component {
 
   render() {
     return (
-      <div className="sheetItem segment" onClick={this.sheetSourceClick}>
+      <div className={this.props.highlightedNodes == this.props.source.node ? "sheetItem segment highlight" : "sheetItem segment"} onClick={this.sheetSourceClick}>
         <div className="segmentNumber sheetSegmentNumber sans">
           <span className="en"> <span className="segmentNumberInner">{this.props.sourceNum}</span> </span>
           <span className="he"> <span

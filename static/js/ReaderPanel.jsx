@@ -46,8 +46,12 @@ class ReaderPanel extends Component {
       var state = this.clonePanel(props.initialState);
       state["initialAnalyticsTracked"] = false;
       this.state = state;
+
+      console.log(this.state);
       return;
+
     }
+
 
     // When this component is independent and manages itself, it takes individual initial state props, with defaults listed here.
     this.state = {
@@ -59,7 +63,7 @@ class ReaderPanel extends Component {
       versionFilter: props.initialVersionFilter || [],
       currVersions: props.initialCurrVersions || {en:null, he: null},
       highlightedRefs: props.initialHighlightedRefs || [],
-      highlightedNodes: [],
+      highlightedNodes: props.highlightedNodes || [],
       recentFilters: [],
       recentVersionFilters: [],
       settings: props.initialState.settings || {
@@ -98,6 +102,7 @@ class ReaderPanel extends Component {
     }
   }
   componentDidMount() {
+    console.log(this.state)
     window.addEventListener("resize", this.setWidth);
     this.setWidth();
     if (this.props.panelPosition) {  //Focus on the first focusable element of the newly loaded panel. Mostly for a11y
@@ -186,15 +191,15 @@ class ReaderPanel extends Component {
     }
   }
   handleSheetSegmentClick(source) {
-    console.log(source.node)
+    this.conditionalSetState({highlightedNodes: source.node});
+    console.log(this.state.mode)
     if (this.state.mode ==="SheetAndConnections") {
       this.closeSheetConnectionsInPanel();
     }
     else if (this.state.mode === "Sheet") {
       if (this.props.multiPanel) {
         if (source.ref) {
-          this.props.onSegmentClick(source.ref);
-          this.conditionalSetState({highlightedNodes: source.node, mode: "SheetAndConnections"});
+          this.props.onSegmentClick(source.ref, source.node);
         }
       } else {
           if (source.ref) {
@@ -576,7 +581,62 @@ class ReaderPanel extends Component {
           filter={this.state.filter}
           key={title + "-TextColumn"} />);
     }
-    if (this.state.mode === "Connections" || this.state.mode === "TextAndConnections" || this.state.mode === "SheetAndConnections") {
+    if (this.state.mode === "SheetAndConnections") {
+      var langMode = this.props.masterPanelLanguage || this.state.settings.language;
+      var data     = this.currentData();
+      var canEditText = data &&
+                        ((langMode === "hebrew" && data.heVersionStatus !== "locked") ||
+                        (langMode === "english" && data.versionStatus !== "locked") ||
+                        (Sefaria.is_moderator && langMode !== "bilingual"));
+
+      items.push(<ConnectionsPanel
+          panelPosition ={1}
+          selectVersion={this.props.selectVersion}
+          srefs={this.state.mode === "Connections" ? this.state.refs.slice() : this.state.highlightedRefs.slice()}
+          filter={this.state.filter || []}
+          mode={this.state.connectionsMode || "Resources"}
+          recentFilters={this.state.recentFilters}
+          connectionsCategory={this.state.connectionsCategory}
+          interfaceLang={this.props.interfaceLang}
+          contentLang={this.state.settings.language}
+          title="Sheet Connections"
+          currVersions={this.state.currVersions}
+          fullPanel={this.props.multiPanel}
+          multiPanel={this.props.multiPanel}
+          allOpenRefs={this.props.allOpenRefs}
+          addToSourceSheet={this.props.addToSourceSheet}
+          canEditText={canEditText}
+          setFilter={this.setFilter}
+          setConnectionsMode={this.setConnectionsMode}
+          setConnectionsCategory={this.setConnectionsCategory}
+          closeConectionsInPanel={this.closeConnectionsInPanel}
+          handleSheetClick={this.handleSheetClick}
+          openNav={this.openMenu.bind(null, "navigation")}
+          openDisplaySettings={this.openDisplaySettings}
+          editNote={this.editNote}
+          noteBeingEdited={this.state.noteBeingEdited}
+          onTextClick={this.handleTextListClick}
+          onCitationClick={this.handleCitationClick}
+          onNavigationClick={this.props.onNavigationClick}
+          onOpenConnectionsClick={this.props.onOpenConnectionsClick}
+          onCompareClick={this.showBaseText}
+          openComparePanel={this.props.openComparePanel}
+          closePanel={this.props.closePanel}
+          selectedWords={this.state.selectedWords}
+          getLicenseMap={this.props.getLicenseMap}
+          masterPanelLanguage={this.props.masterPanelLanguage}
+          translateISOLanguageCode={this.props.translateISOLanguageCode}
+          versionFilter={this.state.versionFilter}
+          recentVersionFilters={this.state.recentVersionFilters}
+          setVersionFilter={this.setVersionFilter}
+          viewExtendedNotes={this.props.viewExtendedNotes.bind(null, "Connections")}
+          key="connections" />
+      );
+
+
+    }
+
+    if (this.state.mode === "Connections" || this.state.mode === "TextAndConnections") {
       var langMode = this.props.masterPanelLanguage || this.state.settings.language;
       var data     = this.currentData();
       var canEditText = data &&

@@ -474,7 +474,7 @@ def _reduce_ranged_ref_text_to_first_section(text_list):
     return text_list
 
 
-def s2_texts_category(request, cats):
+def texts_category_list(request, cats):
     """
     List of texts in a category.
     """

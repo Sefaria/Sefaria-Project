@@ -42,6 +42,36 @@ class ReaderApp extends Component {
             currVersions:  props.initialPanels[0].currVersions,
             bookRef:       props.initialPanels[0].bookRef
         };
+      } else if (props.initialPath.indexOf("/sheets") !== -1) {
+        var mode = props.initialFilter ? "SheetAndConnections" : "Sheet";
+        var initialPanel = props.initialPanels && props.initialPanels.length ? props.initialPanels[0] : {};
+
+        panels[0] = {
+          refs: props.initialRefs,
+          mode: mode,
+          menuOpen: props.initialMenu,
+          filter: props.initialFilter,
+          versionFilter: props.initialVersionFilter,
+          menuOpen: props.initialMenu,
+          connectionsMode: initialPanel.connectionsMode || "Resources",
+          currVersions: initialPanel.currVersions || {en:null, he:null},
+          searchQuery: props.initialQuery,
+          appliedSearchFilters: props.initialSearchFilters,
+          navigationCategories: props.initialNavigationCategories,
+          navigationTopic: props.initialTopic,
+          sheetsTag: props.initialSheetsTag,
+          group: props.initialGroup,
+          searchField: props.initialSearchField,
+          searchSortType: props.initialSearchSortType,
+          settings: Sefaria.util.clone(defaultPanelSettings)
+        };
+        if (panels[0].currVersions.he && panels[0].currVersions.en) { panels[0].settings.language = "bilingual"; }
+        else if (panels[0].currVersions.he)                         { panels[0].settings.language = "hebrew"; }
+        else if (panels[0].currVersions.en)                         { panels[0].settings.language = "english"; }
+        if (mode === "SheetAndConnections") {
+          panels[0].highlightedRefs = props.initialRefs;
+        }
+
       }
       else {
         var mode = props.initialFilter ? "TextAndConnections" : "Text";
@@ -767,13 +797,20 @@ class ReaderApp extends Component {
   handleNavigationClick(ref, currVersions, options) {
     this.openPanel(ref, currVersions, options);
   }
-  handleSegmentClick(n, ref) {
+  handleSegmentClick(n, ref, sheetNode) {
     // Handle a click on a text segment `ref` in from panel in position `n`
     // Update or add panel after this one to be a TextList
-    this.setTextListHighlight(n, [ref]);
+    if (sheetNode) {
+      this.setSheetHighlight(n, sheetNode);
+    }
+    else {
+      this.setTextListHighlight(n, [ref]);
+    }
+
+
     if (this.currentlyConnecting()) { return }
 
-    this.openTextListAt(n+1, [ref]);
+    this.openTextListAt(n+1, [ref], sheetNode);
     if ($(".readerPanel")[n+1] && window.getSelection().isCollapsed) { //Focus on the first focusable element of the newly loaded panel if text not selected. Mostly for a11y
       var curPanel = $(".readerPanel")[n+1];
       $(curPanel).find(':focusable').first().focus();
@@ -1108,7 +1145,7 @@ class ReaderApp extends Component {
     // `refs` is an array of ref strings
     var newPanels = this.state.panels.slice();
     var panel = newPanels[n] || {};
-    var parentPanel = (n >= 1 && newPanels[n-1].mode == 'Text') ? newPanels[n-1] : null;
+    var parentPanel = (n >= 1 && newPanels[n-1].mode == 'Text' || n >= 1 && newPanels[n-1].mode == 'Sheet') ? newPanels[n-1] : null;
 
     if (panel.mode !== "Connections") {
       // No connections panel is open yet, splice in a new one
@@ -1144,6 +1181,16 @@ class ReaderApp extends Component {
       this.openTextListAt(n+1, refs);
     }
   }
+
+  setSheetHighlight(n, node) {
+    // Set the sheetListHighlight for panel `n` to `node`
+    node = typeof node === "string" ? [node] : node;
+    this.state.panels[n].highlightedNodes = node;
+    this.setState({panels: this.state.panels});
+    }
+
+
+
   setConnectionsFilter(n, filter, updateRecent) {
     // Set the filter for connections panel at `n`, carry data onto the panel's basetext as well.
     var connectionsPanel = this.state.panels[n];
