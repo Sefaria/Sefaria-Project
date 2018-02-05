@@ -102,13 +102,19 @@ class SheetContent extends Component {
               p: ['style'],
               span: ['style'],
               div: ['style'],
+              td: ['colspan'],
+              table: ['style']
             },
             allowedStyles: {
               '*': {
                 'color': [/^\#(0x)?[0-9a-f]+$/i, /^rgb\(\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})\s*\)$/],
                 'background-color': [/^\#(0x)?[0-9a-f]+$/i, /^rgb\(\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})\s*\)$/],
                 'text-align': [/^left$/, /^right$/, /^center$/],
+              },
+              'table': {
+                'width': [/^\d+em$/,/^\d+px$/,/^\d+\%$/]
               }
+
             },
             exclusiveFilter: function(frame) {
                 return frame.tag === 'p' && !frame.text.trim();

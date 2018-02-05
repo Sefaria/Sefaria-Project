@@ -4842,6 +4842,15 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
   max-width: 100%;
 }
 
+.sheetContent table {
+  margin: auto;
+  max-width: 100%;
+}
+.sheetContent tbody {
+  width: 100%;
+}
+
+
 
 .readerPanel.hebrew .sheetItem .he {
   display: block;
