@@ -2028,7 +2028,7 @@ class Ref(object):
                 raise InputError(u"{} is an invalid range.  Ranges must end later than they begin.".format(self.normal()))
 
     def __clean_tref(self):
-        self.tref = self.tref.strip().replace(u"–", "-").replace("_", " ")  # don't replace : in Hebrew, where it can indicate amud
+        self.tref = self.tref.strip().replace(u"–", "-").replace(u"\u2011", "-").replace("_", " ")  # don't replace : in Hebrew, where it can indicate amud
         if self._lang == "he":
             return
 
