@@ -1019,6 +1019,7 @@ class ReaderDisplayOptionsMenu extends Component {
   }
   vowelToggleAvailability(){
     var data = this.props.currentData();
+    if(!data) return 2;
     var sample = data["he"];
     while (Array.isArray(sample)) {
         sample = sample[0];
@@ -1131,20 +1132,21 @@ class ReaderDisplayOptionsMenu extends Component {
       {name: "partial", content: "<span class='he'>אָ</span>", role: "radio", ariaLabel: Sefaria._("Show only vowel points")},
       {name: "none", content: "<span class='he'>א</span>", role: "radio", ariaLabel: Sefaria._("Show only consonantal text")}
     ];
-    let vowelOptionsLength = this.vowelToggleAvailability();
-    let vowelOptionsTitle = (vowelOptionsLength == 0) ? Sefaria._("Vocalization") : Sefaria._("Vowels");
-    vowelsOptions = vowelsOptions.slice(vowelOptionsLength);
-    var vowelToggle = (this.props.settings.language !== "english" && vowelsOptions.length > 1) ?
-      (<ToggleSet
-          role="radiogroup"
-          ariaLabel="vowels and cantillation toggle"
-          label={vowelOptionsTitle}
-          name="vowels"
-          options={vowelsOptions}
-          setOption={this.props.setOption}
-          currentLayout={this.props.currentLayout}
-          settings={this.props.settings} />): null;
-
+    if(!this.props.menuOpen){
+      let vowelOptionsSlice = this.vowelToggleAvailability();
+      let vowelOptionsTitle = (vowelOptionsSlice == 0) ? Sefaria._("Vocalization") : Sefaria._("Vowels");
+      vowelsOptions = vowelsOptions.slice(vowelOptionsSlice);
+      var vowelToggle = (this.props.settings.language !== "english" && vowelsOptions.length > 1) ?
+        (<ToggleSet
+            role="radiogroup"
+            ariaLabel="vowels and cantillation toggle"
+            label={vowelOptionsTitle}
+            name="vowels"
+            options={vowelsOptions}
+            setOption={this.props.setOption}
+            currentLayout={this.props.currentLayout}
+            settings={this.props.settings} />): null;
+    }
     if (this.props.menuOpen === "search") {
       return (<div className="readerOptionsPanel" role="dialog">
                 <div className="readerOptionsPanelInner">
