@@ -13,6 +13,15 @@ import Component from 'react-class'
 
 
 class Sheet extends Component {
+  constructor(props) {
+    super(props);
+
+    this.state = {
+        scrollDir: "down"
+    }
+
+  }
+
   componentDidMount() {
     this.ensureData();
 
@@ -51,13 +60,21 @@ class Sheet extends Component {
     }
     else {
       return (
-        <div className={classes}>
+        <div className={classes} onWheel={ event => {
+   if (event.nativeEvent.wheelDelta > 0) {
+     this.setState({scrollDir: "up"});
+
+   } else {
+     this.setState({scrollDir: "down"});
+   }
+ }}>
 
           <SheetContent
             sources={sheet.sources}
             onRefClick={this.props.onRefClick}
             onSegmentClick={this.props.onSegmentClick}
             highlightedNodes={this.props.highlightedNodes}
+            scrollDir = {this.state.scrollDir}
           />
         </div>
       )
@@ -81,6 +98,10 @@ class SheetContent extends Component {
   handleScroll(event) {
     var segment = $('.sheetContent').find('.segment.highlight');
 
+    if (segment.length == 0) {
+        return
+    }
+
     //scroll down
     var nextSegment = segment.next();
     var segmentBottomDistanceFromTop = segment.offset().top+segment.height()-160;
@@ -90,7 +111,7 @@ class SheetContent extends Component {
     //scroll up
     var prevSegment = segment.prev();
     var segmentTopDistanceFromBottom = segment.offset().top;
-    if (segmentTopDistanceFromBottom > this.windowMiddle) {
+    if (segmentTopDistanceFromBottom > this.windowMiddle && this.props.scrollDir == "up") {
       prevSegment.click();
     }
 
