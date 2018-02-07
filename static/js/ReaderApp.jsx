@@ -327,7 +327,9 @@ class ReaderApp extends Component {
           (prev.appliedSearchFilters && next.appliedSearchFilters && !(prev.appliedSearchFilters.compare(next.appliedSearchFilters))) ||
           (prev.searchField !== next.searchField) ||
           (prev.searchSortType !== next.searchSortType) ||
-          (prev.settings.language != next.settings.language))
+          (prev.settings.language != next.settings.language) ||
+          (prev.settings.aliyotTorah != next.settings.aliyotTorah))
+
           {
          return true;
       } else if (prev.navigationCategories !== next.navigationCategories) {
@@ -552,6 +554,7 @@ class ReaderApp extends Component {
       }
       if (state.mode !== "Header") {
         hist.lang =  state.settings.language.substring(0,2);
+        hist.aliyot = (state.settings.aliyotTorah == "aliyotOff") ? 0 : 1;
       }
       histories.push(hist);
     }
@@ -568,6 +571,9 @@ class ReaderApp extends Component {
     if(histories[0].lang) {
         url += "&lang=" + histories[0].lang;
     }
+    if("aliyot" in histories[0]) {
+        url += "&aliyot=" + histories[0].aliyot;
+    }
     hist = (headerPanel)
         ? {state: {header: states[0]}, url: url, title: title}
         : {state: {panels: states}, url: url, title: title};
@@ -579,6 +585,9 @@ class ReaderApp extends Component {
           hist.url += this._getUrlVersionsParams(histories[0].currVersions, 0);
           if(histories[0].lang) {
             hist.url += "&lang=" + histories[0].lang;
+          }
+          if("aliyot" in histories[0]) {
+              url += "&aliyot=" + histories[0].aliyot;
           }
           if(histories[1].versionFilter) {
             hist.url += "&vside=" + histories[1].versionFilter.replace(/\s/g, '_');
@@ -593,6 +602,9 @@ class ReaderApp extends Component {
           hist.url += this._getUrlVersionsParams(histories[i-1].currVersions, i);
           if(histories[i-1].lang) {
             hist.url += "&lang" + (i) + "=" + histories[i-1].lang;
+          }
+          if("aliyot" in histories[i-1]) {
+            hist.url += "&aliyot" + (i) + "=" + histories[i-1].aliyot;
           }
           if(histories[i].versionFilter) {
             hist.url += "&vside" + (i) + "=" + histories[i].versionFilter.replace(/\s/g, '_');
