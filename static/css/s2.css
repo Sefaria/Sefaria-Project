@@ -558,7 +558,7 @@ input.noselect {
   line-height: 32px;
 }
 .languageToggle img {
-  opacity: 0.2;
+  opacity: 0.4;
   height: 18px;
 }
 .systemPanel.english .content .he {
@@ -690,7 +690,7 @@ input.noselect {
 .readerNavTop .readerOptions {
   text-align: left;
   box-sizing: border-box;
-  color: #BFBFBF;
+  color: #999;
   float: left;
   font-size: 20px;
   cursor: pointer;
@@ -1654,7 +1654,7 @@ a.readerNavCategory {
   border: 1px solid #DADADA;
   display: inline-block;
   font-size: 12px;
-  color: #999;
+  color: #666;
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
   letter-spacing: 1px;
   cursor: pointer;
@@ -1682,7 +1682,7 @@ a.readerNavCategory {
   padding-top: 5px;
 }
 .searchContent .searchFilterToggle {
-  color: #999;
+  color: #666;
   font-size: 14px;
   text-transform: uppercase;
   letter-spacing: 1px;
@@ -2239,7 +2239,7 @@ a.readerNavCategory {
   unicode-bidi: bidi-override;
 }
 .readerControls .readerTextToc .fa-caret-down {
-  color: #ccc;
+  color: #999;
   margin: 0 7px;
   vertical-align: 0px;
 }
@@ -2775,7 +2775,7 @@ a.readerNavCategory {
 }
 .connectionsHeader .readerNavMenuCloseButton.circledX img,
 .readerNavMenu.noHeader.compare .readerNavTop .readerNavMenuCloseButton.circledX img{
-  opacity: 0.2;
+  opacity: 0.4;
   height: 20px;
   width: 20px;
   vertical-align: middle;
