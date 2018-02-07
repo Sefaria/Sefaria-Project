@@ -660,7 +660,7 @@ def save_sheet_api(request):
 				# Don't allow non Group members to add a sheet to a group
 				sheet["group"] = None
 
-			if not can_publish(request.user, sheet):
+			if not can_publish(user, sheet):
 				if not existing:
 					sheet["status"] = "unlisted"
 				else: 
