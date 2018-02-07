@@ -70,6 +70,7 @@ class SheetContent extends Component {
   componentDidMount() {
       var node = ReactDOM.findDOMNode(this).parentNode;
       node.addEventListener("scroll", this.handleScroll);
+      this.windowMiddle = $(window).outerHeight() / 2;
   }
 
   componentWillUnmount() {
@@ -82,11 +83,16 @@ class SheetContent extends Component {
 
     //scroll down
     var nextSegment = segment.next();
-    var segmentBottomDistanceFromTop = segment.offset().top+segment.height()-120;
+    var segmentBottomDistanceFromTop = segment.offset().top+segment.height()-160;
     if (segmentBottomDistanceFromTop < 0) {
       nextSegment.click();
     }
-
+    //scroll up
+    var prevSegment = segment.prev();
+    var segmentTopDistanceFromBottom = segment.offset().top;
+    if (segmentTopDistanceFromBottom > this.windowMiddle) {
+      prevSegment.click();
+    }
 
   }
 
