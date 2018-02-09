@@ -3602,23 +3602,23 @@ a.readerNavCategory {
   text-transform: uppercase;
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
 }
-#s2Loading {
+#appLoading {
   text-align: center;
   background-color: #F9F9F7;
   height: 100%;
   color: #666;
 }
-#s2Loading .sefariaLogo {
+#appLoading .sefariaLogo {
   margin-top: 18px;
   margin-bottom: 2px;
 }
-#s2Loading .loadingMessage {
+#appLoading .loadingMessage {
   position: absolute;
   width: 100%;
   top: 32%;
   font-size: 18px;
 }
-#s2Loading img {
+#appLoading img {
   width: 150px;
   height: 42px;
 }

@@ -358,7 +358,9 @@ class ReaderApp extends Component {
           (prev.appliedSearchFilters && next.appliedSearchFilters && !(prev.appliedSearchFilters.compare(next.appliedSearchFilters))) ||
           (prev.searchField !== next.searchField) ||
           (prev.searchSortType !== next.searchSortType) ||
-          (prev.settings.language != next.settings.language))
+          (prev.settings.language != next.settings.language) ||
+          (prev.settings.aliyotTorah != next.settings.aliyotTorah))
+
           {
          return true;
       } else if (prev.navigationCategories !== next.navigationCategories) {
@@ -405,6 +407,7 @@ class ReaderApp extends Component {
   makeHistoryState() {
     // Returns an object with state, title and url params for the current state
     var histories = [];
+    var torah_re = /^(Genesis|Exodus|Leviticus|Numbers|Deuteronomy)/
     // When the header has a panel open, only look at its content for history
     var headerPanel = this.state.header.menuOpen || (!this.state.panels.length && this.state.header.mode === "Header");
     var panels = headerPanel ? [this.state.header] : this.state.panels;
@@ -548,7 +551,9 @@ class ReaderApp extends Component {
         hist.url          = Sefaria.normRef(htitle);
         hist.currVersions = state.currVersions;
         hist.mode         = "Text"
-
+        if(torah_re.test(hist.title)){
+          hist.aliyot = (state.settings.aliyotTorah == "aliyotOff") ? 0 : 1;
+        }
       } else if (state.mode === "Connections") {
         var ref       = Sefaria.normRefList(state.refs);
         var filter    = state.filter.length ? state.filter :
@@ -573,6 +578,9 @@ class ReaderApp extends Component {
         hist.url      = Sefaria.normRef(ref); // + "?with=" + sources;
         hist.currVersions = state.currVersions;
         hist.mode     = "TextAndConnections";
+        if(torah_re.test(hist.title)){
+          hist.aliyot = (state.settings.aliyotTorah == "aliyotOff") ? 0 : 1;
+        }
       } else if (state.mode === "Header") {
         hist.title    = document.title;
         hist.url      = window.location.pathname.slice(1);
@@ -613,6 +621,9 @@ class ReaderApp extends Component {
     if(histories[0].lang) {
         url += "&lang=" + histories[0].lang;
     }
+    if("aliyot" in histories[0]) {
+        url += "&aliyot=" + histories[0].aliyot;
+    }
     hist = (headerPanel)
         ? {state: {header: states[0]}, url: url, title: title}
         : {state: {panels: states}, url: url, title: title};
@@ -624,6 +635,9 @@ class ReaderApp extends Component {
           hist.url += this._getUrlVersionsParams(histories[0].currVersions, 0);
           if(histories[0].lang) {
             hist.url += "&lang=" + histories[0].lang;
+          }
+          if("aliyot" in histories[0]) {
+              url += "&aliyot=" + histories[0].aliyot;
           }
           if(histories[1].versionFilter) {
             hist.url += "&vside=" + histories[1].versionFilter.replace(/\s/g, '_');
@@ -638,6 +652,9 @@ class ReaderApp extends Component {
           hist.url += this._getUrlVersionsParams(histories[i-1].currVersions, i);
           if(histories[i-1].lang) {
             hist.url += "&lang" + (i) + "=" + histories[i-1].lang;
+          }
+          if("aliyot" in histories[i-1]) {
+            hist.url += "&aliyot" + (i) + "=" + histories[i-1].aliyot;
           }
           if(histories[i].versionFilter) {
             hist.url += "&vside" + (i) + "=" + histories[i].versionFilter.replace(/\s/g, '_');
