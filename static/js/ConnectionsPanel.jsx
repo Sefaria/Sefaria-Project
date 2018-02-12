@@ -148,6 +148,15 @@ class ConnectionsPanel extends Component {
       });
     });
   }
+
+  checkSrefs(srefs) {
+    // Mostly exists for properly displaying Ranging refs in TextList on page loads and on sheets
+    if (typeof(srefs) == "object" && srefs.length == 1) {
+      srefs = Sefaria.splitRangingRef(srefs[0]);
+    }
+    return(srefs)
+  }
+
   render() {
     var content = null;
     var loaded = !!Sefaria.related(this.sectionRef());
@@ -190,12 +199,12 @@ class ConnectionsPanel extends Component {
     } else if (this.props.mode === "TextList") {
       content = (<TextList
                     panelPosition ={this.props.panelPosition}
-                    srefs={this.props.srefs}
+                    srefs={this.checkSrefs(this.props.srefs)}
                     filter={this.props.filter}
                     recentFilters={this.props.recentFilters}
                     fullPanel={this.props.fullPanel}
                     multiPanel={this.props.multiPanel}
-                    contentLang={this.props.conteLang}
+                    contentLang={this.props.contentLang}
                     setFilter={this.props.setFilter}
                     setConnectionsMode={this.props.setConnectionsMode}
                     onTextClick={this.props.onTextClick}

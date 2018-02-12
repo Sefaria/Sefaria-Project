@@ -190,7 +190,6 @@ class ReaderPanel extends Component {
   }
   handleSheetSegmentClick(source) {
     this.conditionalSetState({highlightedNodes: source.node});
-    console.log(this.state.mode)
     if (this.state.mode ==="SheetAndConnections") {
       this.closeSheetConnectionsInPanel();
     }
