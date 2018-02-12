@@ -376,7 +376,6 @@ class ReaderApp extends Component {
   makeHistoryState() {
     // Returns an object with state, title and url params for the current state
     var histories = [];
-    var torah_re = /^(Genesis|Exodus|Leviticus|Numbers|Deuteronomy)/
     // When the header has a panel open, only look at its content for history
     var headerPanel = this.state.header.menuOpen || (!this.state.panels.length && this.state.header.mode === "Header");
     var panels = headerPanel ? [this.state.header] : this.state.panels;
@@ -520,7 +519,7 @@ class ReaderApp extends Component {
         hist.url          = Sefaria.normRef(htitle);
         hist.currVersions = state.currVersions;
         hist.mode         = "Text"
-        if(torah_re.test(hist.title)){
+        if(Sefaria.titleIsTorah(htitle)){
           hist.aliyot = (state.settings.aliyotTorah == "aliyotOff") ? 0 : 1;
         }
       } else if (state.mode === "Connections") {
@@ -547,7 +546,7 @@ class ReaderApp extends Component {
         hist.url      = Sefaria.normRef(ref); // + "?with=" + sources;
         hist.currVersions = state.currVersions;
         hist.mode     = "TextAndConnections";
-        if(torah_re.test(hist.title)){
+        if(Sefaria.titleIsTorah(ref)){
           hist.aliyot = (state.settings.aliyotTorah == "aliyotOff") ? 0 : 1;
         }
       } else if (state.mode === "Header") {
@@ -626,6 +625,9 @@ class ReaderApp extends Component {
       }
       if(histories[i].lang) {
         hist.url += "&lang" + (i+1) + "=" + histories[i].lang;
+      }
+      if("aliyot" in histories[i]) {
+            hist.url += "&aliyot" + (i+1) + "=" + histories[i].aliyot;
       }
     }
     // Replace the first only & with a ?
