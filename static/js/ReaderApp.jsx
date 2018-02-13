@@ -419,6 +419,8 @@ class ReaderApp extends Component {
       var state = states[i];
       var hist  = {url: ""};
 
+      console.log(state)
+
       if (state.menuOpen) {
         switch (state.menuOpen) {
           case "home":
@@ -565,6 +567,8 @@ class ReaderApp extends Component {
         hist.title    = Sefaria._r(ref)  + Sefaria._(" with ") + Sefaria._(hist.sources === "all" ? "Connections" : hist.sources);
         hist.url      = Sefaria.normRef(ref); // + "?with=" + sources;
         hist.mode     = "Connections"
+                  console.log
+
 
       } else if (state.mode === "TextAndConnections") {
         var ref       = Sefaria.normRefList(state.highlightedRefs);

@@ -521,6 +521,9 @@ class ReaderPanel extends Component {
     this.props.backFromExtendedNotes(bookRef, this.state.currVersions);
   }
   render() {
+
+    console.log(this.state.sheet)
+
     if (this.state.error) {
       return (
           <div className="readerContent">
@@ -578,62 +581,8 @@ class ReaderPanel extends Component {
           filter={this.state.filter}
           key={title + "-TextColumn"} />);
     }
-    if (this.state.mode === "SheetAndConnections") {
-      var langMode = this.props.masterPanelLanguage || this.state.settings.language;
-      var data     = this.currentData();
-      var canEditText = data &&
-                        ((langMode === "hebrew" && data.heVersionStatus !== "locked") ||
-                        (langMode === "english" && data.versionStatus !== "locked") ||
-                        (Sefaria.is_moderator && langMode !== "bilingual"));
 
-      items.push(<ConnectionsPanel
-          panelPosition ={1}
-          selectVersion={this.props.selectVersion}
-          srefs={this.state.mode === "Connections" ? this.state.refs.slice() : this.state.highlightedRefs.slice()}
-          filter={this.state.filter || []}
-          mode={this.state.connectionsMode || "Resources"}
-          recentFilters={this.state.recentFilters}
-          connectionsCategory={this.state.connectionsCategory}
-          interfaceLang={this.props.interfaceLang}
-          contentLang={this.state.settings.language}
-          title="Sheet Connections"
-          currVersions={this.state.currVersions}
-          fullPanel={this.props.multiPanel}
-          multiPanel={this.props.multiPanel}
-          allOpenRefs={this.props.allOpenRefs}
-          addToSourceSheet={this.props.addToSourceSheet}
-          canEditText={canEditText}
-          setFilter={this.setFilter}
-          setConnectionsMode={this.setConnectionsMode}
-          setConnectionsCategory={this.setConnectionsCategory}
-          closeConectionsInPanel={this.closeConnectionsInPanel}
-          handleSheetClick={this.handleSheetClick}
-          openNav={this.openMenu.bind(null, "navigation")}
-          openDisplaySettings={this.openDisplaySettings}
-          editNote={this.editNote}
-          noteBeingEdited={this.state.noteBeingEdited}
-          onTextClick={this.handleTextListClick}
-          onCitationClick={this.handleCitationClick}
-          onNavigationClick={this.props.onNavigationClick}
-          onOpenConnectionsClick={this.props.onOpenConnectionsClick}
-          onCompareClick={this.showBaseText}
-          openComparePanel={this.props.openComparePanel}
-          closePanel={this.props.closePanel}
-          selectedWords={this.state.selectedWords}
-          getLicenseMap={this.props.getLicenseMap}
-          masterPanelLanguage={this.props.masterPanelLanguage}
-          translateISOLanguageCode={this.props.translateISOLanguageCode}
-          versionFilter={this.state.versionFilter}
-          recentVersionFilters={this.state.recentVersionFilters}
-          setVersionFilter={this.setVersionFilter}
-          viewExtendedNotes={this.props.viewExtendedNotes.bind(null, "Connections")}
-          key="connections" />
-      );
-
-
-    }
-
-    if (this.state.mode === "Connections" || this.state.mode === "TextAndConnections") {
+    if (this.state.mode === "Connections" || this.state.mode === "TextAndConnections" || this.state.mode === "SheetAndConnections") {
       var langMode = this.props.masterPanelLanguage || this.state.settings.language;
       var data     = this.currentData();
       var canEditText = data &&
@@ -660,6 +609,7 @@ class ReaderPanel extends Component {
           setFilter={this.setFilter}
           setConnectionsMode={this.setConnectionsMode}
           setConnectionsCategory={this.setConnectionsCategory}
+          sheetMetaData={this.state.sheet}
           closeConectionsInPanel={this.closeConnectionsInPanel}
           handleSheetClick={this.handleSheetClick}
           openNav={this.openMenu.bind(null, "navigation")}
@@ -684,7 +634,6 @@ class ReaderPanel extends Component {
           key="connections" />
       );
     }
-
     if (this.state.menuOpen === "home" || this.state.menuOpen == "navigation" || this.state.menuOpen == "compare") {
       var openInPanel   = function(pos, ref) { this.showBaseText(ref) }.bind(this);
       var openNav       = this.state.menuOpen === "compare" ? this.openMenu.bind(null, "compare") : this.openMenu.bind(null, "navigation");

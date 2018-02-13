@@ -243,12 +243,18 @@ def make_search_panel_dict(query, **kwargs):
     return panel
 
 def make_sheet_panel_dict(sheet_id, **kwargs):
+    highlighted_node = None
+    if "." in sheet_id:
+        highlighted_node = sheet_id.split(".")[1]
+        sheet_id = sheet_id.split(".")[0]
+
     sheet = get_sheet_for_panel(int(sheet_id))
 
     panel = {
         "sheetID": sheet_id,
         "mode": "Sheet",
-        "sheet" : sheet
+        "sheet": sheet,
+        "highlightedNodes": highlighted_node
     }
     panelDisplayLanguage = kwargs.get("panelDisplayLanguage")
     if panelDisplayLanguage:

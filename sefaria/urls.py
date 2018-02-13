@@ -415,7 +415,7 @@ urlpatterns += patterns('sefaria.gauth.views',
 
 # Sheets in a reader panel
 urlpatterns += patterns('reader.views',
-    (r'^sheets/(?P<tref>\d+)$', 'catchall', {'sheet': True}),
+    (r'^sheets/(?P<tref>[\d.]+)$', 'catchall', {'sheet': True}),
 )
 
 # Catch all to send to Reader
