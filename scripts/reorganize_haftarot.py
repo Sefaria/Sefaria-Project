@@ -44,7 +44,7 @@ def add_sephardic(filename):
             parasha["haftara"]["sephardi"] = haftara_dict[parasha["parasha"]]["sephardic"]
             print parasha["date"]
             print parasha["haftara"]
-        #db.parshiot.save(parasha)
+        db.parshiot.save(parasha)
 
 
 if __name__ == '__main__':
