@@ -25,13 +25,13 @@ def daily_929(datetime_obj):
     rf = model.Ref("{} {}".format(p.book_name, p.book_chapter))
     display_en = "{} ({})".format(rf.normal(), p.number)
     display_he = u"{} ({})".format(rf.he_normal(), p.number)
-    return {
+    return [{
         'title' : {'en':'929', 'he': u'929'},
         'displayValue': {'en':display_en, 'he': display_he},
         'url': rf.url(),
         'order': 4,
         'category': rf.index.get_primary_category()
-    }
+    }]
 
 
 def daf_yomi(datetime_obj):
@@ -46,13 +46,13 @@ def daf_yomi(datetime_obj):
     daf_num_he = encode_hebrew_numeral(daf_num)
     name_he = u"{} {}".format(rf.he_book(), daf_num_he)
 
-    return {
+    return [{
         'title': {'en': 'Daf Yomi', 'he': u'דף יומי'},
         'displayValue': {'en': name, 'he': name_he},
         'url': rf.url(),
         'order': 3,
         'category': rf.index.get_primary_category()
-    }
+    }]
 
 
 def daily_mishnayot(datetime_obj):
@@ -79,13 +79,13 @@ def daily_rambam(datetime_obj):
     rf = model.Ref(daily_rambam["ref"])
     display_value_en = rf.normal().replace("Mishneh Torah, ","")
     display_value_he = rf.he_normal().replace(u"משנה תורה, ", u"")
-    return {
+    return [{
         'title': {'en': 'Daily Rambam', 'he': u'הרמב"ם היומי'},
         'displayValue': {'en': display_value_en, 'he': display_value_he},
         'url': rf.url(),
         'order': 6,
         'category': rf.index.get_primary_category()
-    }
+    }]
 
 
 def this_weeks_parasha(datetime_obj, diaspora=True):
@@ -97,10 +97,7 @@ def this_weeks_parasha(datetime_obj, diaspora=True):
 
     return p
 
-
-def parashat_hashavua_and_haftara(datetime_obj, diaspora=True):
-    parasha_items = []
-    db_parasha = this_weeks_parasha(datetime_obj, diaspora=diaspora)
+def make_parashah_response_from_calendar_entry(db_parasha):
     rf = model.Ref(db_parasha["ref"])
     parasha = {
         'title': {'en': 'Parashat Hashavua', 'he': u'פרשת השבוע'},
@@ -109,30 +106,60 @@ def parashat_hashavua_and_haftara(datetime_obj, diaspora=True):
         'order': 1,
         'category': rf.index.get_primary_category()
     }
-    parasha_items.append(parasha)
-    for h in db_parasha["haftara"]:
+    return [parasha]
+
+def make_haftarah_response_from_calendar_entry(db_parasha, custom=None):
+    haftarah_objs = []
+    if len(db_parasha["haftara"].keys()) == 1:
+        haftarah_objs += make_haftarah_by_custom_response_from_calendar_entry(db_parasha, "ashkenazi", False)
+    elif custom:
+        haftarah_objs += make_haftarah_by_custom_response_from_calendar_entry(db_parasha, custom, True)
+    else:
+        for key in db_parasha["haftara"]:
+            haftarah_objs += make_haftarah_by_custom_response_from_calendar_entry(db_parasha, key, True)
+    return haftarah_objs
+
+def make_haftarah_by_custom_response_from_calendar_entry(db_parasha, custom, add_custom_to_display):
+    shorthands = {
+        "ashkenazi" : {"en": 'A', "he": u'א'},
+        "sephardi": {"en": 'S', "he": u'ס'},
+        "edot hamizrach": {"en": 'EM', "he": u'עמ'}
+    }
+    haftarah_objs = []
+    for h in db_parasha["haftara"][custom]:
         rf = model.Ref(h)
         haftara = {
             'title': {'en': 'Haftarah', 'he': u'הפטרה'},
             'displayValue': {'en': rf.normal(), 'he': rf.he_normal()},
             'url': rf.url(),
             'order': 2,
-            'category': rf.index.get_primary_category()
+            'category': rf.index.get_primary_category(),
         }
-        parasha_items.append(haftara)
+        if add_custom_to_display:
+            for lang in haftara['title']:
+                haftara['title'][lang] = '{} ({})'.format(haftara['title'][lang], shorthands[custom][lang])
+        haftarah_objs.append(haftara)
+    return haftarah_objs
+
+def parashat_hashavua_and_haftara(datetime_obj, diaspora=True, custom=None):
+    parasha_items = []
+    db_parasha = this_weeks_parasha(datetime_obj, diaspora=diaspora)
+
+    parasha_items += make_parashah_response_from_calendar_entry(db_parasha)
+    parasha_items += make_haftarah_response_from_calendar_entry(db_parasha, custom)
     return parasha_items
 
 
-def get_all_calendar_items(datetime_obj, diaspora=True):
+def get_all_calendar_items(datetime_obj, diaspora=True, custom="sephardi"):
     cal_items  = []
     cal_items += parashat_hashavua_and_haftara(datetime_obj, diaspora=diaspora)
-    cal_items += [daf_yomi(datetime_obj)]
-    cal_items += [daily_929(datetime_obj)]
+    cal_items += daf_yomi(datetime_obj)
+    cal_items += daily_929(datetime_obj)
     cal_items += daily_mishnayot(datetime_obj)
-    cal_items += [daily_rambam(datetime_obj)]
+    cal_items += daily_rambam(datetime_obj)
     cal_items = [item for item in cal_items if item]
     return cal_items
 
 
 def get_todays_calendar_items(diaspora=True):
-    return get_all_calendar_items(datetime.datetime.now(), diaspora=diaspora)
+    return get_all_calendar_items(datetime.datetime.now(), diaspora=diaspora, custom="sephardi")
