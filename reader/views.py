@@ -242,7 +242,7 @@ def make_search_panel_dict(query, **kwargs):
 
     return panel
 
-def make_sheet_panel_dict(sheet_id, **kwargs):
+def make_sheet_panel_dict(sheet_id, filter, **kwargs):
     highlighted_node = None
     if "." in sheet_id:
         highlighted_node = sheet_id.split(".")[1]
@@ -260,7 +260,14 @@ def make_sheet_panel_dict(sheet_id, **kwargs):
     if panelDisplayLanguage:
         panel["settings"] = {"language": short_to_long_lang_code(panelDisplayLanguage)}
 
-    return panel
+    panels = []
+    panels.append(panel)
+
+    if filter is not None:
+        panels += [make_panel_dict(Ref("Gen 1.1"), None, None, filter, None, "Connections", **kwargs)]
+        return panels
+    else:
+        return panels
 
 
 def make_panel_dicts(oref, versionEn, versionHe, filter, versionFilter, multi_panel, **kwargs):
@@ -349,7 +356,7 @@ def text_panels(request, ref, version=None, lang=None, sheet=None):
         panels += make_panel_dicts(oref, versionEn, versionHe, filter, versionFilter, multi_panel, **kwargs)
 
     elif sheet == True:
-        panels += [make_sheet_panel_dict(ref, **{"panelDisplayLanguage": request.GET.get("lang", "bi")})]
+        panels += make_sheet_panel_dict(ref, filter, **{"panelDisplayLanguage": request.GET.get("lang", "bi")})
 
     # Handle any panels after 1 which are identified with params like `p2`, `v2`, `l2`.
     i = 2
@@ -366,7 +373,7 @@ def text_panels(request, ref, version=None, lang=None, sheet=None):
         elif ref == "sheet":
             sheet_id = request.GET.get("s{}".format(i))
             panelDisplayLanguage = request.GET.get("lang", "bi")
-            panels += [make_sheet_panel_dict(sheet_id, **{"panelDisplayLanguage": panelDisplayLanguage})]
+            panels += make_sheet_panel_dict(sheet_id, None, **{"panelDisplayLanguage": panelDisplayLanguage})
 
 
         else:
