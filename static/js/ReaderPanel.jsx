@@ -521,9 +521,6 @@ class ReaderPanel extends Component {
     this.props.backFromExtendedNotes(bookRef, this.state.currVersions);
   }
   render() {
-
-    console.log(this.state.sheet)
-
     if (this.state.error) {
       return (
           <div className="readerContent">

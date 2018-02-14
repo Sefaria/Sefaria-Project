@@ -21,6 +21,9 @@ class ReaderApp extends Component {
     // Currently these get generated in reader/views.py then regenerated again in ReaderApp.
     this.MIN_PANEL_WIDTH = 360.0;
 
+    console.log(props)
+      console.log(props.initialPath.indexOf("/sheets"))
+
 
     var panels               = [];
     var header               = {};
@@ -147,6 +150,7 @@ class ReaderApp extends Component {
               settings: ("settings" in props.initialPanels[i]) ? extend(Sefaria.util.clone(defaultPanelSettings), props.initialPanels[i].settings) : Sefaria.util.clone(defaultPanelSettings)
           };
         } else {
+          console.log(props.initialPanels[i])
           panel = this.clonePanel(props.initialPanels[i]);
           panel.settings = Sefaria.util.clone(defaultPanelSettings);
           if (!"settings" in props.initialPanels[i]) {
@@ -567,7 +571,6 @@ class ReaderApp extends Component {
         hist.title    = Sefaria._r(ref)  + Sefaria._(" with ") + Sefaria._(hist.sources === "all" ? "Connections" : hist.sources);
         hist.url      = Sefaria.normRef(ref); // + "?with=" + sources;
         hist.mode     = "Connections"
-                  console.log
 
 
       } else if (state.mode === "TextAndConnections") {
@@ -594,8 +597,10 @@ class ReaderApp extends Component {
         hist.mode   = "Header"
 
       } else if (state.mode === "Sheet") {
+        console.log(state)
         hist.title = state.sheet.title.stripHtml();
-        hist.url = i == 0 ? "sheets/"+state.sheet.id : "sheet&s="+ state.sheet.id;
+        var sheetURLSlug = state.highlightedNodes ? state.sheet.id + "." + state.highlightedNodes : state.sheet.id;
+        hist.url = i == 0 ? "sheets/"+ sheetURLSlug : "sheet&s="+ sheetURLSlug;
       } else if (state.mode === "SheetAndConnections") {
         var filter    = state.filter.length ? state.filter :
                           (state.connectionsMode in {"Sheets": 1, "Notes": 1, "Versions": 1, "Version Open": 1, "About": 1} ? [state.connectionsMode] : ["all"]);
@@ -735,6 +740,7 @@ class ReaderApp extends Component {
       connectionsMode:         state.connectionsMode         || "Resources",
       currVersions:            state.currVersions            || {en:null,he:null},
       highlightedRefs:         state.highlightedRefs         || [],
+      highlightedNodes:        state.highlightedNodes        || [],
       currentlyVisibleRef:     state.refs && state.refs.length ? state.refs[0] : null,
       recentFilters:           state.recentFilters           || state.filter || [],
       recentVersionFilters:    state.recentVersionFilters    || state.versionFilter || [],
