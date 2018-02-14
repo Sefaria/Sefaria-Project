@@ -21,10 +21,6 @@ class ReaderApp extends Component {
     // Currently these get generated in reader/views.py then regenerated again in ReaderApp.
     this.MIN_PANEL_WIDTH = 360.0;
 
-    console.log(props)
-      console.log(props.initialPath.indexOf("/sheets"))
-
-
     var panels               = [];
     var header               = {};
     var defaultVersions      = Sefaria.util.clone(props.initialDefaultVersions) || {};
@@ -150,7 +146,6 @@ class ReaderApp extends Component {
               settings: ("settings" in props.initialPanels[i]) ? extend(Sefaria.util.clone(defaultPanelSettings), props.initialPanels[i].settings) : Sefaria.util.clone(defaultPanelSettings)
           };
         } else {
-          console.log(props.initialPanels[i])
           panel = this.clonePanel(props.initialPanels[i]);
           panel.settings = Sefaria.util.clone(defaultPanelSettings);
           if (!"settings" in props.initialPanels[i]) {
@@ -423,8 +418,6 @@ class ReaderApp extends Component {
       var state = states[i];
       var hist  = {url: ""};
 
-      console.log(state)
-
       if (state.menuOpen) {
         switch (state.menuOpen) {
           case "home":
@@ -597,10 +590,10 @@ class ReaderApp extends Component {
         hist.mode   = "Header"
 
       } else if (state.mode === "Sheet") {
-        console.log(state)
         hist.title = state.sheet.title.stripHtml();
         var sheetURLSlug = state.highlightedNodes ? state.sheet.id + "." + state.highlightedNodes : state.sheet.id;
         hist.url = i == 0 ? "sheets/"+ sheetURLSlug : "sheet&s="+ sheetURLSlug;
+        hist.mode     = "Sheet"
       } else if (state.mode === "SheetAndConnections") {
         var filter    = state.filter.length ? state.filter :
                           (state.connectionsMode in {"Sheets": 1, "Notes": 1, "Versions": 1, "Version Open": 1, "About": 1} ? [state.connectionsMode] : ["all"]);
@@ -637,10 +630,11 @@ class ReaderApp extends Component {
         ? {state: {header: states[0]}, url: url, title: title}
         : {state: {panels: states}, url: url, title: title};
     for (var i = 1; i < histories.length; i++) {
-      if (histories[i-1].mode === "Text" && histories[i].mode === "Connections") {
+      if ((histories[i-1].mode === "Text" && histories[i].mode === "Connections") || (histories[i-1].mode === "Sheet" && histories[i].mode === "Connections")) {
         if (i == 1) {
+          var sheetAndCommentary = histories[i-1].mode === "Sheet" ? true : false;
           // short form for two panels text+commentary - e.g., /Genesis.1?with=Rashi
-          hist.url   = "/" + histories[1].url; // Rewrite the URL
+          hist.url  = sheetAndCommentary ? "/" + histories[0].url : "/" + histories[1].url; // Rewrite the URL
           hist.url += this._getUrlVersionsParams(histories[0].currVersions, 0);
           if(histories[0].lang) {
             hist.url += "&lang=" + histories[0].lang;
@@ -653,7 +647,7 @@ class ReaderApp extends Component {
           }
           hist.url += "&with=" + histories[1].sources;
 
-          hist.title = histories[1].title;
+          hist.title = sheetAndCommentary ? histories[0].title : histories[1].title;
         } else {
           var replacer = "&p" + i + "=";
           hist.url    = hist.url.replace(RegExp(replacer + ".*"), "");
