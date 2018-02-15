@@ -1867,7 +1867,12 @@ Sefaria = extend(Sefaria, {
             return oref.heRef;
         }
     }else{
-        return oref.ref;
+        if(oref){
+            return oref.ref;
+        }
+        else{
+          return inputRef;
+        }
 	}
   },
   _va: function(inputVarArr){
