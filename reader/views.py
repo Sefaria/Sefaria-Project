@@ -256,6 +256,10 @@ def make_sheet_panel_dict(sheet_id, filter, **kwargs):
         "sheet": sheet,
         "highlightedNodes": highlighted_node
     }
+
+    if highlighted_node:
+        ref = next((element["ref"] for element in sheet["sources"] if element.get("ref") and element["node"] == int(highlighted_node)), None)
+
     panelDisplayLanguage = kwargs.get("panelDisplayLanguage")
     if panelDisplayLanguage:
         panel["settings"] = {"language": short_to_long_lang_code(panelDisplayLanguage)}
@@ -264,7 +268,7 @@ def make_sheet_panel_dict(sheet_id, filter, **kwargs):
     panels.append(panel)
 
     if filter is not None:
-        panels += [make_panel_dict(Ref("Gen 1.1"), None, None, filter, None, "Connections", **kwargs)]
+        panels += [make_panel_dict(Ref(ref), None, None, filter, None, "Connections", **kwargs)]
         return panels
     else:
         return panels
