@@ -953,7 +953,7 @@ class NumberedTitledTreeNode(TitledTreeNode):
         self.depth = len(section_names)
         self.sectionNames = section_names
         if address_types is None:
-            self.addressTypes = ['Integer'] * len(section_names)
+            self.addressTypes = [sec if globals().get("Address{}".format(sec), None) else 'Integer' for sec in section_names]
         else:
             self.addressTypes = address_types
 
