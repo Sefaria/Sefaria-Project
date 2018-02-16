@@ -1002,7 +1002,8 @@ class ReaderControls extends Component {
     }
   }
   render() {
-    var title  = this.props.sheet ? this.props.sheet.title.stripHtml() : this.props.currentRef;
+    console.log(this.props.sheet)
+    var title  = this.props.sheet ? "Source Sheet by "+ this.props.sheet.ownerName : this.props.currentRef;
     var heTitle, categoryAttribution;
 
     if (title) {

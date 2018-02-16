@@ -2413,7 +2413,7 @@ a.readerNavCategory {
 }
 .narrowColumn .textRange.basetext {
 }
-.textRange.basetext .title {
+.textRange.basetext .title, .sheetContent .title{
   padding: 0 28px;
   margin: 24px 0;
   color: #999;
@@ -2422,18 +2422,18 @@ a.readerNavCategory {
   font-weight: lighter;
   letter-spacing: 1px;
 }
-.dark .textRange.basetext .title {
+.dark .textRange.basetext .title, .dark .sheetContent .title {
   color: #ccc;
 }
-.textRange.basetext .title .titleBox {
+.textRange.basetext .title .titleBox, .sheetContent .title .titleBox {
   display: inline-block;
   border-bottom: 4px solid #E6E5E6;
   padding: 0 6px 3px;
 }
-.dark .textRange.basetext .title .titleBox {
+.dark .textRange.basetext .title .titleBox, .dark .sheetContent .title .titleBox {
   border-bottom: 4px solid #666;
 }
-.bilingual .textRange.basetext .title .he {
+.bilingual .textRange.basetext .title .he, .bilingual .sheetContent .title .he {
   display: none;
 }
 .interface-hebrew .readerPanel.english .textRange,

@@ -68,9 +68,9 @@ class Sheet extends Component {
      this.setState({scrollDir: "down"});
    }
  }}>
-
           <SheetContent
             sources={sheet.sources}
+            title={sheet.title}
             onRefClick={this.props.onRefClick}
             onSegmentClick={this.props.onSegmentClick}
             highlightedNodes={this.props.highlightedNodes}
@@ -230,6 +230,8 @@ class SheetContent extends Component {
 
     return (
       <div className="sheetContent">
+        <div className="title"><div className="titleBox" role="heading" aria-level="2"><span className="en">{this.props.title.stripHtml()}</span><span className="he">{this.props.title.stripHtml()}</span></div></div>
+
         <div className="textInner">{sources}</div>
       </div>
     )
@@ -251,6 +253,9 @@ class SheetSource extends Component {
           <span className="he"> <span
             className="segmentNumberInner">{Sefaria.hebrew.encodeHebrewNumeral(this.props.sourceNum)}</span> </span>
         </div>
+
+          {this.props.source.title ? <h3 dangerouslySetInnerHTML={ {__html: (this.props.cleanHTML(this.props.source.title))} }></h3> : null}
+
 
         {this.props.source.text ?
           <div className="en">
