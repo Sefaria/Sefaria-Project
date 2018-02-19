@@ -39,9 +39,9 @@ class ServerTextCopier(object):
             return set(previous_terms)
 
         possible_terms = retrieve_terms(self._index_obj.nodes)
-        possible_terms.update(self._index_obj.categories)
+        possible_terms.add(self._index_obj.categories)
         if hasattr(self._index_obj, u'collective_title'):
-            possible_terms.update(self._index_obj.collective_title)
+            possible_terms.add(self._index_obj.collective_title)
         necessary_terms = []
         for t in possible_terms:
             response = requests.get(u'{}/api/terms/{}'.format(self._dest_server, t))
