@@ -39,7 +39,7 @@ class ServerTextCopier(object):
             return set(previous_terms)
 
         possible_terms = retrieve_terms(self._index_obj.nodes)
-        possible_terms.add(self._index_obj.categories)
+        possible_terms.update(self._index_obj.categories)
         if hasattr(self._index_obj, u'collective_title'):
             possible_terms.add(self._index_obj.collective_title)
         necessary_terms = []
