@@ -2448,15 +2448,15 @@ a.readerNavCategory {
 .interface-english .readerPanel.hebrew .tocContent{
   direction: rtl;
 }
-.basetext .text {
+.basetext .text, .sheetContent.text {
   padding: 0 44px;
   margin: 30px 0;
   background-color: inherit;
 }
-.narrowColumn .basetext .text {
+.narrowColumn .basetext .text, .narrowColumn .sheetContent.text {
   padding: 0 26px;
 }
-.singlePanel .basetext .text {
+.singlePanel .basetext .text, .singlePanel .sheetContent.text  {
   padding: 0 34px;
 }
 .parashahHeader {
@@ -2538,7 +2538,9 @@ a.readerNavCategory {
   display: inline;
 }
 .heLeft.bilingual .basetext .text,
-.heRight.bilingual .basetext .text {
+.heRight.bilingual .basetext .text,
+.heLeft.bilingual .sheetContent .text,
+.heRight.bilingual .sheetContent .text, {
   padding: 0;
 }
 .heLeft.bilingual .segment > .en,
@@ -4825,7 +4827,7 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
   margin: 0 auto;
   max-width: 700px;
   position: relative;
-  padding: 0 89px;
+  padding: 0 30px;
 }
 
 .sheetContent .ref {

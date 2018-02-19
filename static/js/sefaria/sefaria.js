@@ -1779,6 +1779,7 @@ Sefaria = extend(Sefaria, {
       "View sheet": "מעבר ל-דף המקורות",
       "Please select a source sheet.": "אנא בחר דף מקורות.",
       "New Source Sheet Name:" : "כותרת דף מקורות חדש:",
+      "Source Sheet by" : "דף מקורות מאת",
 
       //stuff moved from sheets.js
       "Loading..." : "טוען...",

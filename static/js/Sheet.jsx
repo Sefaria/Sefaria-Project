@@ -231,8 +231,9 @@ class SheetContent extends Component {
     return (
       <div className="sheetContent">
         <div className="title"><div className="titleBox" role="heading" aria-level="2"><span className="en">{this.props.title.stripHtml()}</span><span className="he">{this.props.title.stripHtml()}</span></div></div>
-
-        <div className="textInner">{sources}</div>
+        <div className="text">
+            <div className="textInner">{sources}</div>
+        </div>
       </div>
     )
   }
