@@ -17,7 +17,7 @@ import logging
 import json
 import math
 import collections
-from django.utils.log import NullHandler
+from logging import NullHandler
 logger = logging.getLogger(__name__)
 
 from pyelasticsearch import ElasticSearch
