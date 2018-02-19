@@ -26,7 +26,7 @@ urlpatterns = [
     url(r'^search/?$', reader_views.search),
     url(r'^sheets/?$', reader_views.sheets_list),
     url(r'^sheets/tags/?$', reader_views.sheets_tags_list),
-    url(r'^sheets/tags/(?P<tag>.+)$', reader_views..sheets_by_tag),
+    url(r'^sheets/tags/(?P<tag>.+)$', reader_views.sheets_by_tag),
     url(r'^sheets/(?P<type>(public|private))/?$', reader_views.sheets_list),
     url(r'^groups/?$', reader_views.public_groups),
     url(r'^groups/allz$', reader_views.groups_admin_page),
@@ -97,9 +97,9 @@ urlpatterns += [
 ]
 
 # JSON Editors
-urlpatterns += ['reader.views',
-    url(r'^edit/terms/(?P<term>.+)$', 'terms_editor),
-    url(r'^add/terms/(?P<term>.+)$', 'terms_editor),
+urlpatterns += [
+    url(r'^edit/terms/(?P<term>.+)$', reader_views.terms_editor),
+    url(r'^add/terms/(?P<term>.+)$', reader_views.terms_editor),
 ]
 
 # Texts / Index / Links etc API
@@ -381,7 +381,7 @@ urlpatterns += [
     url(r'^admin/cache/stats', sefaria_views.cache_stats),
     url(r'^admin/cache/dump', sefaria_views.cache_dump),
     url(r'^admin/run/tests', sefaria_views.run_tests),
-    url(r'^admin/export/all', sefaria_views..export_all),
+    url(r'^admin/export/all', sefaria_views.export_all),
     url(r'^admin/error', sefaria_views.cause_error),
     url(r'^admin/contest-results', sefaria_views.list_contest_results),
     url(r'^admin/translation-requests-stats', sefaria_views.translation_requests_stats),
