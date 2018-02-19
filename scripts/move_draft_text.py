@@ -155,7 +155,7 @@ class ServerTextCopier(object):
     def _upload_term(self, name):
         t = Term().load({'name': name})
         if t is None:
-            raise AttributeError("Necessary Term {} not Present on this Environment".format(t.name))
+            raise AttributeError("Necessary Term {} not Present on this Environment".format(name))
         self._make_post_request_to_server('api/terms/{}'.format(urllib.quote(name)), t.contents())
 
     def _prepare_index_api_call(self, index_title):
