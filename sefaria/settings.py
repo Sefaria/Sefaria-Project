@@ -134,7 +134,7 @@ INSTALLED_APPS = (
     'django.contrib.humanize',
     'emailusernames',
     'reader',
-    'sheets',
+    'sourcesheets',
     #'sefaria.gauth',
     'captcha',
     'django_mobile',
