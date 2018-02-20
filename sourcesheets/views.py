@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import json
 import httplib2
 from urllib3.exceptions import NewConnectionError

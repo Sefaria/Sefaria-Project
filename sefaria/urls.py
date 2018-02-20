@@ -10,7 +10,7 @@ from sefaria.settings import DOWN_FOR_MAINTENANCE
 
 import reader.views as reader_views
 import sefaria.views as sefaria_views
-import sheets.views as sheets_views
+import sourcesheets.views as sheets_views
 import sefaria.gauth.views as gauth_views
 import django.contrib.auth.views as django_auth_views
 
@@ -62,7 +62,7 @@ urlpatterns += [
 
 # Source Sheet Builder
 urlpatterns += [
-    url(r'^sheets/new/?$', sheets_views.new_sheet),
+    url(r'^sheets/new/?$', sheets.views.new_sheet),
     url(r'^sheets/(?P<sheet_id>\d+)$', sheets_views.view_sheet),
     url(r'^sheets/visual/(?P<sheet_id>\d+)$', sheets_views.view_visual_sheet),
 ]
