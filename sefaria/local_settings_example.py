@@ -29,7 +29,7 @@ CACHES = {
         'BACKEND': 'django.core.cache.backends.dummy.DummyCache',
     }
 }
-""" These are some other examples of possible caches. more here: https://django.readthedocs.io/en/1.4/topics/cache.html"""
+""" These are some other examples of possible caches. more here: https://docs.djangoproject.com/en/1.11/topics/cache/"""
 """CACHES = {
     'default': {
         'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
