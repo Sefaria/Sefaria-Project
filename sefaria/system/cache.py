@@ -9,28 +9,20 @@ except ImportError:
 
 if not hasattr(sys, '_doc_build'):
     from django.core.cache import cache
+    from django.core.cache import caches
 
 
 #functions from here: http://james.lin.net.nz/2011/09/08/python-decorator-caching-your-functions/
 #and here: https://github.com/rchrd2/django-cache-decorator
 
 # New cache instance reconnect-apparently
-cache_factory = {}
+
 
 def get_cache_factory(cache_type):
-    """
-    Helper to only return a single instance of a cache
-    As of django 1.7, may not be needed.
-    """
-    from django.core.cache import get_cache
-
     if cache_type is None:
         cache_type = 'default'
 
-    if not cache_type in cache_factory:
-        cache_factory[cache_type] = get_cache(cache_type)
-
-    return cache_factory[cache_type]
+    return caches[cache_type]
 
 
 #get the cache key for storage
@@ -49,7 +41,7 @@ def django_cache_decorator(time=300, cache_key='', cache_type=None):
     """
     Easily add caching to a function in django
     """
-    cache = get_cache_factory(cache_type)
+    cache_instance = get_cache_factory(cache_type)
     if not cache_key:
         cache_key = None
 
@@ -64,11 +56,11 @@ def django_cache_decorator(time=300, cache_key='', cache_type=None):
                 _cache_key = cache_get_key(fn.__name__, *args, **kwargs)
 
             #logger.debug(['_cach_key.......',_cache_key])
-            result = cache.get(_cache_key)
+            result = cache_instance.get(_cache_key)
 
             if not result:
                 result = fn(*args, **kwargs)
-                cache.set(_cache_key, result, time)
+                cache_instance.set(_cache_key, result, time)
 
             return result
         return wrapper
@@ -76,24 +68,27 @@ def django_cache_decorator(time=300, cache_key='', cache_type=None):
 #-------------------------------------------------------------#
 
 
-def get_cache_elem(key):
-    return cache.get(key)
+def get_cache_elem(key, cache_type=None):
+    cache_instance = get_cache_factory(cache_type)
+    return cache_instance.get(key)
 
 
-def set_cache_elem(key, value, duration = 600000):
-    return cache.set(key, value, duration)
+def set_cache_elem(key, value, duration = 600000, cache_type=None):
+    cache_instance = get_cache_factory(cache_type)
+    return cache_instance.set(key, value, duration)
 
 
-def delete_cache_elem(key):
+def delete_cache_elem(key, cache_type=None):
+    cache_instance = get_cache_factory(cache_type)
     if isinstance(key, (list, tuple)):
         try:
-            return cache.delete_many(key)
+            return cache_instance.delete_many(key)
         except (AttributeError, NameError, TypeError):
             retval = False
             for k in key:
-                retval = retval or cache.delete(key)
+                retval = retval or cache_instance.delete(k)
             return retval
-    return cache.delete(key)
+    return cache_instance.delete(key)
 
 
 def get_template_cache(fragment_name='', *args):
