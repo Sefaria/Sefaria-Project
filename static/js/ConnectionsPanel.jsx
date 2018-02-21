@@ -21,8 +21,10 @@ const AddToSourceSheetBox    = require('./AddToSourceSheetBox');
 const LexiconBox             = require('./LexiconBox');
 const AboutBox               = require('./AboutBox');
 const VersionsBox            = require('./VersionsBox');
+const ExtendedNotes          = require('./ExtendedNotes');
 const classNames             = require('classnames');
 import Component             from 'react-class';
+
 
 
 class ConnectionsPanel extends Component {
@@ -121,6 +123,7 @@ class ConnectionsPanel extends Component {
       digitizedBySefaria:     lang == "he" ? d.heDigitizedBySefaria : d.digitizedBySefaria,
       versionTitleInHebrew:   lang == "he" ? d.heVersionTitleInHebrew : d.versionTitleInHebrew,
       versionNotesInHebrew:   lang == "he" ? d.heVersionNotesInHebrew : d.versionNotesInHebrew,
+      extendedNotes:          lang == "he" ? d.extendedNotesHebrew : d.extendedNotes,
       merged:                 lang == "he" ? !!d.heSources : !!d.sources,
     }
   }
@@ -294,6 +297,7 @@ class ConnectionsPanel extends Component {
                   title={this.props.title}
                   srefs={this.props.srefs}
                   getLicenseMap={this.props.getLicenseMap}
+                  viewExtendedNotes={this.props.viewExtendedNotes}
                 />);
     } else if (this.props.mode === "Versions" || this.props.mode === "Version Open") {
       content = (<VersionsBox
@@ -310,7 +314,12 @@ class ConnectionsPanel extends Component {
                   setFilter={this.props.setVersionFilter}
                   getDataRef={this.getDataRef}
                   onRangeClick={this.props.onTextClick}
+                  viewExtendedNotes={this.props.viewExtendedNotes}
                   onCitationClick={this.props.onCitationClick}/>);
+    } else if (this.props.mode === "extended notes") {
+      content = (<ExtendedNotes
+                  currVersions={this.props.currVersions}
+                  title={this.props.title}/>);
     }
     var classes = classNames({connectionsPanel: 1, textList: 1, fullPanel: this.props.fullPanel, singlePanel: !this.props.fullPanel});
     return (

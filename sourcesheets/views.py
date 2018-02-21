@@ -33,6 +33,7 @@ from sefaria.sheets import *
 from sefaria.model.user_profile import *
 from sefaria.model.group import Group, GroupSet
 from sefaria.system.exceptions import InputError
+from sefaria.system.decorators import catch_error_as_json
 from sefaria.utils.util import strip_tags
 
 # sefaria.model.dependencies makes sure that model listeners are loaded.
@@ -374,7 +375,7 @@ def groups_api(request, group=None):
 		if not group:
 			return jsonResponse({
 				"private": [g.listing_contents() for g in GroupSet().for_user(request.user.id)],
-				"public": [g.listing_contents() for g in GroupSet({"listed": True})]
+				"public": [g.listing_contents() for g in GroupSet({"listed": True, "moderationStatus": {"$ne": "nolist"}}, sort=[("name", 1)])]
 			})	
 		group = Group().load({"name": group})
 		if not group:
@@ -387,6 +388,7 @@ def groups_api(request, group=None):
 
 
 @login_required
+@catch_error_as_json
 def groups_post_api(request, group_name=None):
 	if request.method == "POST":
 		j = request.POST.get("json")

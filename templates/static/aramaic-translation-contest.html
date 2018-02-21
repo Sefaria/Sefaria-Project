@@ -1,0 +1,171 @@
+{% extends "base.html" %}
+{% load i18n cache humanize sefaria_tags %}
+
+{% block title %}{% trans "Sefaria: a Living Library of Jewish Texts Online" %}{% endblock %}
+
+{% block description %}{% trans "The largest free library of Jewish texts available to read online in Hebrew and English including Torah, Tanakh, Talmud, Mishnah, Midrash, commentaries and more." %}{% endblock %}
+
+{% block head %}
+{% endblock %}
+
+{% block css %}
+    #homePage #homeCover {
+        height: auto;
+        padding: 200px 0 144px 0;
+    }
+{% endblock %}
+
+{% block content %}
+
+    <div id="homePage" class="static biReady">
+        <div id="homeCover">
+            <video id="homeVideo" poster="/static/img/home-video.jpg" preload="auto" autoplay="true" loop="loop" muted="muted" volume="0">
+                <source src="/static/img/home-video.webm" type="video/webm">
+                <source src="/static/img/home-video.mp4" type="video/mp4">
+                Video of sofer writing letters of the Torah
+            </video>
+            <h1>
+                <span class="int-en">Help Translate the Aramaic of Daniel &amp; Ezra</span>
+                <span class="int-he">HEBREW NEEDED</span>
+            </h1>
+            <div class="sub">
+                <span class="int-en">And earn a chance to win valuable prizes when your work is reviewed by a jury. <a href="/about">Learn More &rsaquo;</a></span>
+                <span class="int-he">HEBREW NEEDED <a href="/about">קרא עוד&rsaquo;</a></span>
+            </div>
+
+        </div>
+
+        <div id="homeLearn" class="section textLeft">
+            <div class="sectionInner">
+                <div class="textBox">
+                    <h2>
+                        <span class="int-en">Start Translating</span>
+                        <span class="int-he">HEBREW NEEDED</span>
+                    </h2>
+                    <div class="description">
+                        <span class="int-en">To get started, open one of the listed spreadsheets. Make a copy, add your translations then submit your work below.</span>
+                        <span class="int-he">HEBREW NEEDED</span>
+                    </div>
+                    <a href="/texts">
+                        <div class="button white control-elem">
+                            <span class="int-en">Submit Translations</span>
+                            <span class="int-he">HEBREW NEEDED</span>
+                        </div>
+                    </a>
+                </div>
+                <div class="imageBox">
+                    <a class="refLink blockLink" href="https://drive.google.com/open?id=10sMquHLbH1Fmw-71h63gIvgFzn8LaMF9KHGijcB16Jk" style="border-color: rgb(0, 78, 95);">
+                        <span class="int-en">Daniel 2</span>
+                        <span class="int-he">דניאל ב׳</span>
+                    </a>
+                    <a class="refLink blockLink" href="https://drive.google.com/open?id=1weISGl7YBhv_TX97I3cA2Cce-19obB3Fl-SqfCLCU8M" style="border-color: rgb(204, 180, 121);">
+                        <span class="int-en">Daniel 3</span>
+                        <span class="int-he">דניאל ג׳</span>
+                    </a>
+                    <a class="refLink blockLink" href="https://drive.google.com/open?id=1xL3ZYfBbdiJSNqgLOGQS-TI4UHssIvm82XVW_pEsf_U" style="border-color: rgb(171, 78, 102);">
+                        <span class="int-en">Daniel 4</span>
+                        <span class="int-he">דניאל</span>
+                    </a>
+                    <a class="refLink blockLink" href="https://drive.google.com/open?id=1x6hIldcNse64tZbfLUkJB7i9yMQXYDY7OxncvQzZjHg" style="border-color: rgb(90, 153, 183);">
+                        <span class="int-en">Daniel 5</span>
+                        <span class="int-he">דניאל ה׳</span>
+                    </a>
+                    <a class="refLink blockLink" href="https://drive.google.com/open?id=1O2RGXigs7YkE-cOWGDMdZ0-64lYNFEdUHydC9c67cO4" style="border-color: rgb(93, 149, 111);">
+                        <span class="int-en">Daniel 6</span>
+                        <span class="int-he">דניאל ו׳</span>
+                    </a>
+                    <a class="refLink blockLink" href="https://drive.google.com/open?id=158_jKvmPACd2mv7lM9GEgKKTKILzdqATF94sTU2P5uU" style="border-color: rgb(128, 47, 62);">
+                        <span class="int-en">Daniel 7</span>
+                        <span class="int-he">דניאל ז׳</span>
+                    </a>
+                    <a class="refLink blockLink" href="https://drive.google.com/open?id=1V9jU2_4ocvOF4_PTA59Sqh6J507UY654f3KyyzW_9zA" style="border-color: rgb(0, 78, 95);">
+                        <span class="int-en">Ezra 4</span>
+                        <span class="int-he">עזרא ד׳</span>
+                    </a>
+                    <a class="refLink blockLink" href="https://drive.google.com/open?id=14f5LV69O2GbX33ylnMUW3Xtehha43a3P4mHMGMIOEqI" style="border-color: rgb(204, 180, 121);">
+                        <span class="int-en">Ezra 5</span>
+                        <span class="int-he">עזרא ה׳</span>
+                    </a>
+                    <a class="refLink blockLink" href="https://drive.google.com/open?id=1aL1iFPf5iSAzax93fbcfDvBccFlF5MzBZm7wuAEznsY" style="border-color: rgb(171, 78, 102);">
+                        <span class="int-en">Ezra 6</span>
+                        <span class="int-he">עזרא ו׳</span>
+                    </a>
+
+                </div>
+            </div>
+        </div>
+
+        <div id="homeConnect" class="section center">
+            <div class="sectionInner">
+                <h2>
+                    <span class="int-en">Stay Connected</span>
+                    <span class="int-he">השארו מחוברים</span>
+                </h2>
+                <div id="mailingListBox">
+                    <div id="mailingListTitle" class="sans">
+                        <span class="int-en">Subscribe to our mailing list</span>
+                        <span class="int-he">הצטרפו לרשימת הדיוור שלנו</span>
+                    </div>
+                    <input id="mailingListEmail" title="Subscribe to our mailing list by entering your email here" placeholder="{% trans 'Email Address' %}">
+                    <span id="subscribe" class="button control-elem">
+                        <span class="int-en">Subscribe</span>
+                        <span class="int-he">הרשמו</span>
+                    </span>
+                    <div id="subscribeMsg">&nbsp;</div>
+                </div>
+            </div>
+        </div>
+
+        <div id="homeHelp" class="section center">
+            <div class="sectionInner">
+                <h2>
+                    <span class="int-en">We Need Your Help</span>
+                    <span class="int-he">אנו זקוקים לעזרתכם</span>
+                </h2>
+                <div class="description">
+                    <span class="int-en">Sefaria is an open source, non-profit project. Support us by making a tax-deductible donation.</span>
+                    <span class="int-he">פרויקט ספריא פתוח לקהל הרחב (open source) ללא מטרות רווח. תמכו בנו באמצעות תרומה פטורה ממס.</span>
+                </div>
+                <a href="/donate">
+                    <div class="button control-elem">
+                        <span class="int-en">Make a Donation</span>
+                        <span class="int-he">לתמיכה ע"י תרומה</span>
+                    </div>
+                </a>
+            </div>
+        </div>
+
+    </div>
+{% endblock %}
+
+{% block js  %}
+    <script>
+    $(function() {
+        // Email List
+        $("#subscribe").click(function() {
+            var email = $("#mailingListEmail").val();
+            if (Sefaria.util.isValidEmailAddress(email)) {
+                Sefaria.track.event("Home", "Subscribe from Homepage", "");
+                $("#subscribeMsg").html('{% trans "<i>Subscribing...</i>" %}').show();
+                var list = Sefaria.interfaceLang == "hebrew" ? "Announcements_General_Hebrew" : "Announcements_General"
+                $.post("/api/subscribe/" + email + "?lists=" + list,  function(data) {
+                    if ("error" in data) {
+                        $("#subscribeMsg").text(data.error).show();
+                    } else {
+                        $("#subscribeMsg").text('{% trans "Subscribed! Welcome to our list." %}').show();
+                    }
+                }).error(function(data) {
+                    $("#subscribeMsg").text('{% trans "Sorry, there was an error." %}').show();
+                })
+            } else {
+                $("#subscribeMsg").text('{% trans "Please enter a valid email address." %}').show();
+            }
+        });
+        $("#mailingListEmail").keyup(function(e){
+            if (e.keyCode === 13) {
+                $("#subscribe").trigger("click");
+            }
+        });
+    });
+    </script>
+{% endblock %}
