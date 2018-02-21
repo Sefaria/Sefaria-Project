@@ -45,6 +45,8 @@ class ConnectionsPanel extends Component {
     this._isMounted = false;
   }
   componentDidUpdate(prevProps, prevState) {
+      console.log(this.props.srefs)
+
     if (!prevProps.srefs.compare(this.props.srefs)) {
       this.loadData();
     }
@@ -73,13 +75,15 @@ class ConnectionsPanel extends Component {
     return Sefaria.sectionRef(Sefaria.humanRef(this.props.srefs)) || this.props.srefs;
   }
   loadData() {
-    var ref = this.sectionRef();
-    if (!Sefaria.related(ref)) {
-      Sefaria.related(ref, function(data) {
-        if (this._isMounted) {
-          this.forceUpdate();
+    if (this.props.srefs != "sheetRef") {
+        var ref = this.sectionRef();
+        if (!Sefaria.related(ref)) {
+            Sefaria.related(ref, function (data) {
+                if (this._isMounted) {
+                    this.forceUpdate();
+                }
+            }.bind(this));
         }
-      }.bind(this));
     }
   }
   reloadData() {
@@ -128,25 +132,34 @@ class ConnectionsPanel extends Component {
     }
   }
   getCurrentVersions() {
-    const data = this.getData((data) => {
-      let currentLanguage = this.props.masterPanelLanguage;
-      if (currentLanguage == "bilingual") {currentLanguage = "hebrew"}
-      if (!data) {
-        this.setState({
-          currObjectVersions: {en: null, he: null},
-          mainVersionLanguage: currentLanguage,
-        });
+      if (this.props.srefs != "sheetRef") {
+
+          const data = this.getData((data) => {
+              let currentLanguage = this.props.masterPanelLanguage;
+              if (currentLanguage == "bilingual") {
+                  currentLanguage = "hebrew"
+              }
+              if (!data) {
+                  this.setState({
+                      currObjectVersions: {en: null, he: null},
+                      mainVersionLanguage: currentLanguage,
+                  });
+              }
+              if (currentLanguage == "hebrew" && !data.he.length) {
+                  currentLanguage = "english"
+              }
+              if (currentLanguage == "english" && !data.text.length) {
+                  currentLanguage = "hebrew"
+              }
+              this.setState({
+                  currObjectVersions: {
+                      en: (this.props.masterPanelLanguage != "hebrew" && !!data.text.length) ? this.getVersionFromData(data, "en") : null,
+                      he: (this.props.masterPanelLanguage != "english" && !!data.he.length) ? this.getVersionFromData(data, "he") : null,
+                  },
+                  mainVersionLanguage: currentLanguage,
+              });
+          });
       }
-      if (currentLanguage == "hebrew" && !data.he.length) {currentLanguage = "english"}
-      if (currentLanguage == "english" && !data.text.length) {currentLanguage = "hebrew"}
-      this.setState({
-        currObjectVersions: {
-          en: (this.props.masterPanelLanguage != "hebrew" && !!data.text.length) ? this.getVersionFromData(data, "en") : null,
-          he: (this.props.masterPanelLanguage != "english" && !!data.he.length) ? this.getVersionFromData(data, "he") : null,
-        },
-        mainVersionLanguage: currentLanguage,
-      });
-    });
   }
 
   checkSrefs(srefs) {
@@ -159,9 +172,19 @@ class ConnectionsPanel extends Component {
 
   render() {
     var content = null;
-    var loaded = !!Sefaria.related(this.sectionRef());
+    var loaded = this.props.srefs=="sheetRef" ? true : !!Sefaria.related(this.sectionRef());
+    console.log(loaded)
     if (!loaded) {
       content = <LoadingMessage />;
+    } else if (this.props.srefs=="sheetRef") {
+      content = (<div>
+                    <ResourcesList
+                    multiPanel={this.props.multiPanel}
+                    setConnectionsMode={this.props.setConnectionsMode}
+                    openComparePanel={this.props.openComparePanel}
+                    sheetsCount={0}
+                    notesCount={0} />
+                 </div>);
     } else if (this.props.mode == "Resources") {
       content = (<div>
                   { this.state.flashMessage ?

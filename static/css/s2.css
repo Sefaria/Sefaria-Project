@@ -2540,7 +2540,7 @@ a.readerNavCategory {
 .heLeft.bilingual .basetext .text,
 .heRight.bilingual .basetext .text,
 .heLeft.bilingual .sheetContent .text,
-.heRight.bilingual .sheetContent .text, {
+.heRight.bilingual .sheetContent .text {
   padding: 0;
 }
 .heLeft.bilingual .segment > .en,

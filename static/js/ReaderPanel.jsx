@@ -198,6 +198,9 @@ class ReaderPanel extends Component {
         if (source.ref) {
           this.props.onSegmentClick(source.ref, source.node);
         }
+        else {
+          this.props.onSegmentClick("sheetRef", source.node)
+        }
       } else {
           if (source.ref) {
             this.openSheetConnectionsInPanel(source.ref, source.node);
@@ -580,6 +583,7 @@ class ReaderPanel extends Component {
     }
 
     if (this.state.mode === "Connections" || this.state.mode === "TextAndConnections" || this.state.mode === "SheetAndConnections") {
+      console.log(this.state.mode)
       var langMode = this.props.masterPanelLanguage || this.state.settings.language;
       var data     = this.currentData();
       var canEditText = data &&
@@ -1002,7 +1006,6 @@ class ReaderControls extends Component {
     }
   }
   render() {
-    console.log(this.props.sheet)
     var title  = this.props.sheet ? "Source Sheet by "+ this.props.sheet.ownerName : this.props.currentRef;
     var heTitle, categoryAttribution;
 
