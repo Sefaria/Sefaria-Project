@@ -39,7 +39,7 @@ from sefaria.utils.util import strip_tags
 # noinspection PyUnresolvedReferences
 import sefaria.model.dependencies
 
-from sefaria.gauth.decorators import gauth_required
+#from sefaria.gauth.decorators import gauth_required
 
 
 def annotate_user_links(sources):
@@ -934,33 +934,35 @@ def resolve_options_of_sources(sheet):
 	return sheet
 
 
-@gauth_required(scope='https://www.googleapis.com/auth/drive.file', ajax=True)
-def export_to_drive(request, credential, sheet_id):
-	"""
-	Export a sheet to Google Drive.
-	"""
 
-	http = credential.authorize(httplib2.Http())
-	service = build('drive', 'v3', http=http)
+# @gauth_required(scope='https://www.googleapis.com/auth/drive.file', ajax=True)
+# def export_to_drive(request, credential, sheet_id):
+# 	"""
+# 	Export a sheet to Google Drive.
+# 	"""
+#
+# 	http = credential.authorize(httplib2.Http())
+# 	service = build('drive', 'v3', http=http)
+#
+# 	sheet = get_sheet(sheet_id)
+# 	if 'error' in sheet:
+# 		return jsonResponse({'error': {'message': sheet["error"]}})
+#
+# 	file_metadata = {
+# 		'name': strip_tags(sheet['title'].strip()),
+# 		'mimeType': 'application/vnd.google-apps.document'
+# 	}
+#
+# 	html_string = sheet_to_html_string(sheet)
+#
+# 	media = MediaIoBaseUpload(
+# 		StringIO(html_string),
+# 		mimetype='text/html',
+# 		resumable=True)
+#
+# 	new_file = service.files().create(body=file_metadata,
+# 									  media_body=media,
+# 									  fields='webViewLink').execute()
+#
+# 	return jsonResponse(new_file)
 
-	sheet = get_sheet(sheet_id)
-	if 'error' in sheet:
-		return jsonResponse({'error': {'message': sheet["error"]}})
-
-	file_metadata = {
-		'name': strip_tags(sheet['title'].strip()),
-		'mimeType': 'application/vnd.google-apps.document'
-	}
-
-	html_string = sheet_to_html_string(sheet)
-
-	media = MediaIoBaseUpload(
-		StringIO(html_string),
-		mimetype='text/html',
-		resumable=True)
-
-	new_file = service.files().create(body=file_metadata,
-									  media_body=media,
-									  fields='webViewLink').execute()
-
-	return jsonResponse(new_file)

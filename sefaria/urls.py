@@ -11,7 +11,7 @@ from sefaria.settings import DOWN_FOR_MAINTENANCE
 import reader.views as reader_views
 import sefaria.views as sefaria_views
 import sourcesheets.views as sheets_views
-import sefaria.gauth.views as gauth_views
+#import sefaria.gauth.views as gauth_views
 import django.contrib.auth.views as django_auth_views
 
 
@@ -62,7 +62,7 @@ urlpatterns += [
 
 # Source Sheet Builder
 urlpatterns += [
-    url(r'^sheets/new/?$', sheets.views.new_sheet),
+    url(r'^sheets/new/?$', sheets_views.new_sheet),
     url(r'^sheets/(?P<sheet_id>\d+)$', sheets_views.view_sheet),
     url(r'^sheets/visual/(?P<sheet_id>\d+)$', sheets_views.view_visual_sheet),
 ]
@@ -137,6 +137,7 @@ urlpatterns += [
     url(r'^api/notifications/?$', reader_views.notifications_api),
     url(r'^api/notifications/read', reader_views.notifications_read_api),
     url(r'^api/updates/?(?P<gid>.+)?$', reader_views.updates_api),
+    url(r'^api/messages/?$', reader_views.messages_api),
 ]
 
 # Source Sheets API
@@ -163,8 +164,7 @@ urlpatterns += [
     url(r'^api/sheets/tag-list/user/(?P<user_id>\d+)?$',              sheets_views.user_tag_list_api),
     url(r'^api/sheets/tag-list/(?P<sort_by>[a-zA-Z\-]+)$',            sheets_views.tag_list_api),
     url(r'^api/sheets/all-sheets/(?P<limiter>\d+)/(?P<offset>\d+)$',  sheets_views.all_sheets_api),
-    url(r'^api/sheets/(?P<sheet_id>\d+)/export_to_drive$',            sheets_views.export_to_drive),
-    url(r'^api/messages/?$',                                          sheets_views.messages_api),
+    #url(r'^api/sheets/(?P<sheet_id>\d+)/export_to_drive$',            sheets_views.export_to_drive),
 ]
 
 # Groups API
@@ -399,10 +399,10 @@ urlpatterns += [
 ]
 
 # Google API OAuth 2.0
-urlpatterns += [
-    url(r'^gauth$', 'index', {}, gauth_views.gauth_index),
-    url(r'^gauth/callback$', 'auth_return', {}, gauth_views.gauth_callback),
-]
+# urlpatterns += [
+#     url(r'^gauth$', 'index', {}, gauth_views.gauth_index),
+#     url(r'^gauth/callback$', 'auth_return', {}, gauth_views.gauth_callback),
+# ]
 
 # Catch all to send to Reader
 urlpatterns += [
