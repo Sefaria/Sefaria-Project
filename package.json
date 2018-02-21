@@ -21,6 +21,7 @@
     "watch": "webpack --config ./node/webpack.config.js --progress -w --stdin",
     "watch-server": "webpack --config ./node/webpack.server.js --progress -w --stdin",
     "watch-client": "webpack --config ./node/webpack.client.js --progress -w --stdin",
+    "watch-client-server": "webpack --config ./node/webpack.client-server.js --progress -w --stdin",
     "watch-diffPage": "webpack --config ./node/webpack.diffPage.js --progress -w --stdin",
     "watch-explore": "webpack --config ./node/webpack.explore.js --progress -w --stdin",
     "watch-sefaria": "webpack --config ./node/webpack.sefaria.js --progress -w --stdin",
