@@ -155,7 +155,7 @@ class Test_Ref(object):
         assert Ref('Ephod Bad on Pesach Haggadah, Magid, In the Beginning Our Fathers Were Idol Worshipers 5').next_section_ref().normal() == 'Ephod Bad on Pesach Haggadah, Magid, First Fruits Declaration 2'
         assert Ref("Naftali Seva Ratzon on Pesach Haggadah, Kadesh 2").next_section_ref().normal() == "Naftali Seva Ratzon on Pesach Haggadah, Karpas 1"
         assert Ref("Naftali Seva Ratzon on Pesach Haggadah, Magid, Ha Lachma Anya 1").next_section_ref().normal() == "Naftali Seva Ratzon on Pesach Haggadah, Magid, Four Questions 2"
-        assert Ref("Ephod Bad on Pesach Haggadah, Magid, First Half of Hallel 4").next_section_ref().normal() == "Ephod Bad on Pesach Haggadah, Hallel, Second Half of Hallel 2"
+        assert Ref("Ephod Bad on Pesach Haggadah, Magid, First Half of Hallel 4").next_section_ref().normal() == "Ephod Bad on Pesach Haggadah, Barech, Pour Out Thy Wrath 2"
         assert Ref("Kos Shel Eliyahu on Pesach Haggadah, Magid, Second Cup of Wine 2").next_section_ref() is None
 
 
@@ -176,7 +176,7 @@ class Test_Ref(object):
         assert Ref('Ephod Bad on Pesach Haggadah, Magid, First Fruits Declaration 2').prev_section_ref().normal() == 'Ephod Bad on Pesach Haggadah, Magid, In the Beginning Our Fathers Were Idol Worshipers 5'
         assert Ref("Naftali Seva Ratzon on Pesach Haggadah, Karpas 1").prev_section_ref().normal() == "Naftali Seva Ratzon on Pesach Haggadah, Kadesh 2"
         assert Ref("Naftali Seva Ratzon on Pesach Haggadah, Magid, Four Questions 2").prev_section_ref().normal() == "Naftali Seva Ratzon on Pesach Haggadah, Magid, Ha Lachma Anya 1"
-        assert Ref("Ephod Bad on Pesach Haggadah, Hallel, Second Half of Hallel 2").prev_section_ref().normal() == "Ephod Bad on Pesach Haggadah, Magid, First Half of Hallel 4"
+        assert Ref("Ephod Bad on Pesach Haggadah, Hallel, Second Half of Hallel 2").prev_section_ref().normal() == "Ephod Bad on Pesach Haggadah, Barech, Pour Out Thy Wrath 2"
         assert Ref("Kos Shel Eliyahu on Pesach Haggadah, Magid, Ha Lachma Anya 3").prev_section_ref() is None
 
     def test_next_segment_ref(self):
