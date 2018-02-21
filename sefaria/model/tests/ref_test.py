@@ -23,6 +23,10 @@ class Test_Ref(object):
     def test_bible_range(self):
         ref = Ref(u"Job.2:3-3:1")
         assert ref.toSections == [3, 1]
+        ref = Ref(u"Jeremiah 7:17\u201318")  # test with unicode dash
+        assert ref.toSections == [7, 18]
+        ref = Ref(u"Jeremiah 7:17\u201118")  # test with unicode dash
+        assert ref.toSections == [7, 18]
 
     def test_short_bible_refs(self):  # this behavior is changed from earlier
         assert Ref(u"Exodus") != Ref(u"Exodus 1")

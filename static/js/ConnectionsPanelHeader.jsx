@@ -18,7 +18,8 @@ class ConnectionsPanelHeader extends Component {
   constructor(props) {
     super(props);
     this.previousModes = { // mapping from modes to previous modes
-      "Version Open":"Versions"
+      "Version Open":"Versions",
+      "extended notes":"Versions"
     };
   }
   componentDidMount() {

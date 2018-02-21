@@ -130,6 +130,10 @@ class VersionBlock extends Component {
   closeEditor() {
     this.setState({editing:false});
   }
+  openExtendedNotes(e){
+    e.preventDefault();
+    this.props.viewExtendedNotes(this.props.title, this.props.version.language, this.props.version.versionTitle);
+  }
   makeVersionLink(versionParam) {
     //versionParam - either version language (e.g. 'en') in the case when you're making a link for versions in reader
     //otherwise, 'side' for making link for versions in sidebar
@@ -243,7 +247,14 @@ class VersionBlock extends Component {
               {this.props.version.merged ? `Merged from ${Array.from(new Set(this.props.version.sources)).join(", ")}` : versionTitle}
             </div>
           }
-          {versionNotes ? <div className="versionNotes" dangerouslySetInnerHTML={ {__html: versionNotes} } ></div> : ""}
+          {versionNotes ? <div className="versionNotes">
+            <span dangerouslySetInnerHTML={ {__html: versionNotes} } />
+            {(this.props.version.extendedNotes || this.props.version.extendedNotesHebrew) ? <span className="extendedNotesLinks">
+              &nbsp;<a onClick={this.openExtendedNotes} href={`/${this.props.title}/${this.props.version.language}/${this.props.version.versionTitle}/notes`}>
+              <i>{Sefaria.interfaceLang === "english" ? "Read More" : "קרא עוד"}</i>
+              </a>
+            </span> : ""}
+          </div> : ""}
           { !v.merged ?
             <div className="versionDetails">
               {!!this.props.openVersionInReader ?
@@ -278,6 +289,8 @@ VersionBlock.propTypes = {
   openVersionInReader: PropTypes.func,
   getLicenseMap:   PropTypes.func.isRequired,
   isCurrent:       PropTypes.bool,
+  openVersion:     PropTypes.func,
+  viewExtendedNotes: PropTypes.func,
 };
 VersionBlock.defaultProps = {
   showHistory: true,

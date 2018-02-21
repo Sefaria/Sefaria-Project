@@ -102,7 +102,8 @@ class Person(abst.AbstractMongoRecord):
 
     def get_indexes(self):
         from . import text
-        return text.IndexSet({"authors": self.key})
+        ins = text.IndexSet({"authors": self.key})
+        return sorted(ins, key=lambda i: text.Ref(i.title).order_id())
 
     def get_era(self):
         if getattr(self, "era", False):
