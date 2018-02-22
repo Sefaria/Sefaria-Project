@@ -1,23 +1,23 @@
 steps:
   - name: "gcr.io/cloud-builders/docker"
-    args: ["build", "-t", "gcr.io/{GCP_PROJECT_ID}/multi_web:$REVISION_ID", "./build/web"]
+    args: ["build", "-t", "gcr.io/production-deployment/multi_web:$REVISION_ID", "./build/web"]
   - name: 'gcr.io/cloud-builders/docker'
-    args: ["push", "gcr.io/{GCP_PROJECT_ID}/multi_web:$REVISION_ID"]
+    args: ["push", "gcr.io/production-deployment/multi_web:$REVISION_ID"]
   - name: "gcr.io/cloud-builders/docker"
-    args: ["build", "-t", "gcr.io/{GCP_PROJECT_ID}/multi_node:$REVISION_ID", "./build/node"]
+    args: ["build", "-t", "gcr.io/production-deployment/multi_node:$REVISION_ID", "./build/node"]
   - name: 'gcr.io/cloud-builders/docker'
-    args: ["push", "gcr.io/{GCP_PROJECT_ID}/multi_node:$REVISION_ID"]
+    args: ["push", "gcr.io/production-deployment/multi_node:$REVISION_ID"]
   - name: "gcr.io/cloud-builders/docker"
-    args: ["build", "-t", "gcr.io/{GCP_PROJECT_ID}/multi_monitor:$REVISION_ID", "./build/monitor"]
+    args: ["build", "-t", "gcr.io/production-deployment/multi_monitor:$REVISION_ID", "./build/monitor"]
   - name: 'gcr.io/cloud-builders/docker'
-    args: ["push", "gcr.io/{GCP_PROJECT_ID}/multi_monitor:$REVISION_ID"]
+    args: ["push", "gcr.io/production-deployment/multi_monitor:$REVISION_ID"]
   - name: 'gcr.io/cloud-builders/kubectl'
     args:
     - set
     - image
     - deployment
     - web-deployment
-    - web=gcr.io/{GCP_PROJECT_ID}/multi_web:$REVISION_ID
+    - web=gcr.io/production-deployment/multi_web:$REVISION_ID
     env:
     - 'CLOUDSDK_COMPUTE_ZONE=us-east1-b'
     - 'CLOUDSDK_CONTAINER_CLUSTER=cluster-1'
@@ -32,7 +32,7 @@ steps:
     - image
     - deployment
     - monitor-deployment
-    - monitor=gcr.io/{GCP_PROJECT_ID}/multi_monitor:$REVISION_ID
+    - monitor=gcr.io/production-deployment/multi_monitor:$REVISION_ID
     env:
     - 'CLOUDSDK_COMPUTE_ZONE=us-east1-b'
     - 'CLOUDSDK_CONTAINER_CLUSTER=cluster-1'
@@ -47,7 +47,7 @@ steps:
     - image
     - deployment
     - node-deployment
-    - node=gcr.io/{GCP_PROJECT_ID}/multi_node:$REVISION_ID
+    - node=gcr.io/production-deployment/multi_node:$REVISION_ID
     env:
     - 'CLOUDSDK_COMPUTE_ZONE=us-east1-b'
     - 'CLOUDSDK_CONTAINER_CLUSTER=cluster-1'
@@ -59,6 +59,6 @@ steps:
 
 
 images:
-  - "gcr.io/{GCP_PROJECT_ID}/multi_monitor:$REVISION_ID"
-  - "gcr.io/{GCP_PROJECT_ID}/multi_node:$REVISION_ID"
-  - "gcr.io/{GCP_PROJECT_ID}/multi_web:$REVISION_ID"
+  - "gcr.io/production-deployment/multi_monitor:$REVISION_ID"
+  - "gcr.io/production-deployment/multi_node:$REVISION_ID"
+  - "gcr.io/production-deployment/multi_web:$REVISION_ID"
