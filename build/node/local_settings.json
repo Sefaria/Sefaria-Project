@@ -1,0 +1,5 @@
+{
+    "DJANGO_HOST": "http://web",
+    "PORT": 3000,
+    "DEBUG": true
+}
