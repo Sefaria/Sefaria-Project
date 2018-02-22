@@ -144,7 +144,7 @@ class VersionBlock extends Component {
     }
     const withParam = versionParam === 'side' ? "&with=Version Open" : "";
     const nonSelectedVersionParams = Object.keys(this.props.currVersions)
-                                      .filter(vlang=>versionParam === 'side' || (!!this.props.currVersions[vlang] && vlang !== this.props.version.language))  // in 'side' case, keep all version params
+                                      .filter(vlang=>!!this.props.currVersions[vlang] && (versionParam === 'side' || vlang !== this.props.version.language))  // in 'side' case, keep all version params
                                       .map(vlang=>`&v${vlang}=${this.props.currVersions[vlang].replace(/\s/g,'_')}`)
                                       .join("");
     const versionLink = `/${Sefaria.normRef(this.props.currentRef)}${nonSelectedVersionParams}&v${versionParam}=${this.props.version.versionTitle.replace(/\s/g,'_')}${withParam}`.replace("&","?");
