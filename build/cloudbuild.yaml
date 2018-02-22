@@ -1,0 +1,64 @@
+steps:
+  - name: "gcr.io/cloud-builders/docker"
+    args: ["build", "-t", "gcr.io/{GCP_PROJECT_ID}/multi_web:$REVISION_ID", "./build/web"]
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ["push", "gcr.io/{GCP_PROJECT_ID}/multi_web:$REVISION_ID"]
+  - name: "gcr.io/cloud-builders/docker"
+    args: ["build", "-t", "gcr.io/{GCP_PROJECT_ID}/multi_node:$REVISION_ID", "./build/node"]
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ["push", "gcr.io/{GCP_PROJECT_ID}/multi_node:$REVISION_ID"]
+  - name: "gcr.io/cloud-builders/docker"
+    args: ["build", "-t", "gcr.io/{GCP_PROJECT_ID}/multi_monitor:$REVISION_ID", "./build/monitor"]
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ["push", "gcr.io/{GCP_PROJECT_ID}/multi_monitor:$REVISION_ID"]
+  - name: 'gcr.io/cloud-builders/kubectl'
+    args:
+    - set
+    - image
+    - deployment
+    - web-deployment
+    - web=gcr.io/{GCP_PROJECT_ID}/multi_web:$REVISION_ID
+    env:
+    - 'CLOUDSDK_COMPUTE_ZONE=us-east1-b'
+    - 'CLOUDSDK_CONTAINER_CLUSTER=cluster-1'
+  - name: 'gcr.io/cloud-builders/kubectl'
+    args: ["label", "pods", '-l="app=web"', "--overwrite", "release=$TAG_NAME"]
+    env:
+    - 'CLOUDSDK_COMPUTE_ZONE=us-east1-b'
+    - 'CLOUDSDK_CONTAINER_CLUSTER=cluster-1'
+  - name: 'gcr.io/cloud-builders/kubectl'
+    args:
+    - set
+    - image
+    - deployment
+    - monitor-deployment
+    - monitor=gcr.io/{GCP_PROJECT_ID}/multi_monitor:$REVISION_ID
+    env:
+    - 'CLOUDSDK_COMPUTE_ZONE=us-east1-b'
+    - 'CLOUDSDK_CONTAINER_CLUSTER=cluster-1'
+  - name: 'gcr.io/cloud-builders/kubectl'
+    args: ["label", "pods", '-l="app=monitor"', "--overwrite", "release=$TAG_NAME"]
+    env:
+    - 'CLOUDSDK_COMPUTE_ZONE=us-east1-b'
+    - 'CLOUDSDK_CONTAINER_CLUSTER=cluster-1'
+  - name: 'gcr.io/cloud-builders/kubectl'
+    args:
+    - set
+    - image
+    - deployment
+    - node-deployment
+    - node=gcr.io/{GCP_PROJECT_ID}/multi_node:$REVISION_ID
+    env:
+    - 'CLOUDSDK_COMPUTE_ZONE=us-east1-b'
+    - 'CLOUDSDK_CONTAINER_CLUSTER=cluster-1'
+  - name: 'gcr.io/cloud-builders/kubectl'
+    args: ["label", "pods", '-l="app=node"', "--overwrite", "release=$TAG_NAME"]
+    env:
+    - 'CLOUDSDK_COMPUTE_ZONE=us-east1-b'
+    - 'CLOUDSDK_CONTAINER_CLUSTER=cluster-1'
+
+
+images:
+  - "gcr.io/{GCP_PROJECT_ID}/multi_monitor:$REVISION_ID"
+  - "gcr.io/{GCP_PROJECT_ID}/multi_node:$REVISION_ID"
+  - "gcr.io/{GCP_PROJECT_ID}/multi_web:$REVISION_ID"

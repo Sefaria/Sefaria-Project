@@ -1,0 +1,4 @@
+--url-alias /robots.txt static/robots.txt
+--url-alias /favicon.ico static/favicon.ico
+--url-alias /static/ static/
+sefaria/wsgi.py
