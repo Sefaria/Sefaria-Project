@@ -1,49 +1,34 @@
 steps:
   - name: "gcr.io/cloud-builders/docker"
-    args: ["build", "-t", "gcr.io/production-deployment/multi_web:$REVISION_ID", "./build/web"]
+    args: ["build", "-t", "gcr.io/production-deployment/multi_web:$TAG_NAME", "./build/web"]
   - name: 'gcr.io/cloud-builders/docker'
-    args: ["push", "gcr.io/production-deployment/multi_web:$REVISION_ID"]
+    args: ["push", "gcr.io/production-deployment/multi_web:$TAG_NAME"]
   - name: "gcr.io/cloud-builders/docker"
-    args: ["build", "-t", "gcr.io/production-deployment/multi_node:$REVISION_ID", "./build/node"]
+    args: ["build", "-t", "gcr.io/production-deployment/multi_node:$TAG_NAME", "./build/node"]
   - name: 'gcr.io/cloud-builders/docker'
-    args: ["push", "gcr.io/production-deployment/multi_node:$REVISION_ID"]
+    args: ["push", "gcr.io/production-deployment/multi_node:$TAG_NAME"]
   - name: "gcr.io/cloud-builders/docker"
-    args: ["build", "-t", "gcr.io/production-deployment/multi_monitor:$REVISION_ID", "./build/monitor"]
+    args: ["build", "-t", "gcr.io/production-deployment/multi_monitor:$TAG_NAME", "./build/monitor"]
   - name: 'gcr.io/cloud-builders/docker'
-    args: ["push", "gcr.io/production-deployment/multi_monitor:$REVISION_ID"]
+    args: ["push", "gcr.io/production-deployment/multi_monitor:$TAG_NAME"]
   - name: 'gcr.io/cloud-builders/kubectl'
-    args: ["set", "image", "deployment", "web-deployment", "web=gcr.io/production-deployment/multi_web:$REVISION_ID"]
+    args: ["set", "image", "deployment", "web-deployment", "web=gcr.io/production-deployment/multi_web:$TAG_NAME"]
     env:
     - 'CLOUDSDK_COMPUTE_ZONE=us-east1-b'
     - 'CLOUDSDK_CONTAINER_CLUSTER=cluster-1'
   - name: 'gcr.io/cloud-builders/kubectl'
-    args: ["label", "pods", '-l="app=web"', "--overwrite", "release=$TAG_NAME"]
+    args: ["set", "image", "deployment", "monitor-deployment", "monitor=gcr.io/production-deployment/multi_monitor:$TAG_NAME"]
     env:
     - 'CLOUDSDK_COMPUTE_ZONE=us-east1-b'
     - 'CLOUDSDK_CONTAINER_CLUSTER=cluster-1'
   - name: 'gcr.io/cloud-builders/kubectl'
-    args: ["set", "image", "deployment", "monitor-deployment", "monitor=gcr.io/production-deployment/multi_monitor:$REVISION_ID"]
-    env:
-    - 'CLOUDSDK_COMPUTE_ZONE=us-east1-b'
-    - 'CLOUDSDK_CONTAINER_CLUSTER=cluster-1'
-  - name: 'gcr.io/cloud-builders/kubectl'
-    args: ["label", "pods", '-l="app=monitor"', "--overwrite", "release=$TAG_NAME"]
-    env:
-    - 'CLOUDSDK_COMPUTE_ZONE=us-east1-b'
-    - 'CLOUDSDK_CONTAINER_CLUSTER=cluster-1'
-  - name: 'gcr.io/cloud-builders/kubectl'
-    args: ["set", "image", "deployment", "node-deployment", "node=gcr.io/production-deployment/multi_node:$REVISION_ID"]
-    env:
-    - 'CLOUDSDK_COMPUTE_ZONE=us-east1-b'
-    - 'CLOUDSDK_CONTAINER_CLUSTER=cluster-1'
-  - name: 'gcr.io/cloud-builders/kubectl'
-    args: ["label", "pods", '-l="app=node"', "--overwrite", "release=$TAG_NAME"]
+    args: ["set", "image", "deployment", "node-deployment", "node=gcr.io/production-deployment/multi_node:$TAG_NAME"]
     env:
     - 'CLOUDSDK_COMPUTE_ZONE=us-east1-b'
     - 'CLOUDSDK_CONTAINER_CLUSTER=cluster-1'
 
 
 images:
-  - "gcr.io/production-deployment/multi_monitor:$REVISION_ID"
-  - "gcr.io/production-deployment/multi_node:$REVISION_ID"
-  - "gcr.io/production-deployment/multi_web:$REVISION_ID"
+  - "gcr.io/production-deployment/multi_monitor:$TAG_NAME"
+  - "gcr.io/production-deployment/multi_node:$TAG_NAME"
+  - "gcr.io/production-deployment/multi_web:$TAG_NAME"
