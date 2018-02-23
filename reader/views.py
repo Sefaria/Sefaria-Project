@@ -267,7 +267,7 @@ def make_sheet_panel_dict(sheet_id, filter, **kwargs):
     panels = []
     panels.append(panel)
 
-    if filter is not None:
+    if filter is not None and ref is not None:
         panels += [make_panel_dict(Ref(ref), None, None, filter, None, "Connections", **kwargs)]
         return panels
     else:

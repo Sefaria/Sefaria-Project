@@ -45,7 +45,7 @@ class ConnectionsPanel extends Component {
     this._isMounted = false;
   }
   componentDidUpdate(prevProps, prevState) {
-      console.log(this.props.srefs)
+      console.log(this.props.title)
 
     if (!prevProps.srefs.compare(this.props.srefs)) {
       this.loadData();
@@ -178,12 +178,11 @@ class ConnectionsPanel extends Component {
       content = <LoadingMessage />;
     } else if (this.props.srefs=="sheetRef") {
       content = (<div>
-                    <ResourcesList
+                    <SheetNodeConnectionTools
                     multiPanel={this.props.multiPanel}
                     setConnectionsMode={this.props.setConnectionsMode}
                     openComparePanel={this.props.openComparePanel}
-                    sheetsCount={0}
-                    notesCount={0} />
+                    />
                  </div>);
     } else if (this.props.mode == "Resources") {
       content = (<div>
@@ -442,6 +441,24 @@ ResourcesList.propTypes = {
   openComparePanel:   PropTypes.func.isRequired,
   sheetsCount:        PropTypes.number.isRequired,
   notesCount:         PropTypes.number.isRequired,
+}
+
+
+class SheetNodeConnectionTools extends Component {
+  // A list of Resources in addtion to connections
+  render() {
+    return (<div className="resourcesList">
+              {this.props.multiPanel ?
+                <ToolsButton en="Other Text" he="השווה" icon="search" onClick={this.props.openComparePanel} />
+              : null }
+              <ToolsButton en="Tools" he="כלים" icon="gear" onClick={() => this.props.setConnectionsMode("Tools")} />
+            </div>);
+  }
+}
+SheetNodeConnectionTools.propTypes = {
+  multiPanel:         PropTypes.bool.isRequired,
+  setConnectionsMode: PropTypes.func.isRequired,
+  openComparePanel:   PropTypes.func.isRequired,
 }
 
 

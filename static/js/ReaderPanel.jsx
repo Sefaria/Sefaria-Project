@@ -493,6 +493,9 @@ class ReaderPanel extends Component {
     return data;
   }
   currentBook() {
+    if ("sheetRef" == this.state.refs.slice()) {
+      return "Source Sheet";
+    }
     var data = this.currentData();
     if (data) {
       return data.indexTitle;
