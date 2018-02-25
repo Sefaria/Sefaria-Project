@@ -15,8 +15,8 @@ BS_CAPS = [
     {'browser': 'Chrome', 'browser_version': '49.0', 'os': 'Windows', 'os_version': '8', 'resolution': '1920x1080',
         'sefaria_mode': 'multi_panel', 'sefaria_short_name': 'Chr/Win8'},
 
-    {'browser': 'IE', 'browser_version': '11.0', 'os': 'Windows', 'os_version': '10', 'resolution': '1024x768',
-        'sefaria_mode': 'multi_panel', 'sefaria_short_name': 'IE/Win10'},
+    # {'browser': 'IE', 'browser_version': '11.0', 'os': 'Windows', 'os_version': '10', 'resolution': '1024x768',
+    #     'sefaria_mode': 'multi_panel', 'sefaria_short_name': 'IE/Win10'},
 
     {'browser': 'Firefox', 'browser_version': '45.0', 'os': 'OS X', 'os_version': 'Yosemite', 'resolution': '1920x1080',
         'sefaria_mode': 'multi_panel', 'sefaria_short_name': 'FF/OSX'},
