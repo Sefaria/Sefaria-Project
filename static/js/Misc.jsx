@@ -169,8 +169,11 @@ class ToggleSet extends Component {
     var value = this.props.name === "layout" ? this.props.currentLayout() : this.props.settings[this.props.name];
     var width = 100.0 - (this.props.separated ? (this.props.options.length - 1) * 3 : 0);
     var style = {width: (width/this.props.options.length) + "%"};
+    var label = this.props.label ? (<span className="toggle-set-label">{this.props.label}</span>) : null;
     return (
       <div className={classes} role={this.props.role} aria-label={this.props.ariaLabel}>
+          {label}
+          <div>
         {
           this.props.options.map(function(option) {
             return (
@@ -188,11 +191,13 @@ class ToggleSet extends Component {
                 content={option.content} />);
           }.bind(this))
         }
+          </div>
       </div>);
   }
 }
 ToggleSet.propTypes = {
   name:          PropTypes.string.isRequired,
+  label:         PropTypes.string,
   setOption:     PropTypes.func.isRequired,
   currentLayout: PropTypes.func,
   settings:      PropTypes.object.isRequired,

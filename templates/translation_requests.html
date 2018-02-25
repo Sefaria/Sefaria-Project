@@ -11,7 +11,6 @@
 
 {% block content %}
 
-{% if S2 %}
 <div id="translationRequestsPage" class="biReady container static">
     <div class="inner">
         <h1>
@@ -104,93 +103,6 @@
     </div>
 </div>
 
-{% else %}
-<div class="container doc">
-    <div class="row">
-        <div class="span8 offset2">
-            <h1>
-                Translation Requests
-            </h1>
- 
-                <div id="translationRequestsTop">
-                    <div id="requestTopButtons">
-                        <div id="makeRequest" class="btn btn-primary btn-large">
-                            <i class="fa fa-plus"></i> Make Request
-                        </div>
-                    </div>
-
-                    <div id="about">
-                        This page lists the most requested text sections that Sefaria users would like to have translated. Requests are made automatically whenever you add an unstranslated source to a Source Sheet. You can add your support to an existing request, or make a new request here.
-                    </div>
- 
-
-                    <div class="count">
-                        <a href="/translation-requests">{{ request_count|intcomma }} text sections</a> have been requested.
-                    </div>
-
-                    <div class="count">
-                        <a href="/translation-requests/completed">{{ complete_count|intcomma }} requests</a> have been completed.
-                    </div>
-
-                    <div class="count">
-                        <a href="/translation-requests/featured-completed">{{ featured_complete|intcomma }} featured requests</a> have been completed.
-                    </div>
-
-                <div class="clear"></div>
-
-                </div>   
-
-            {% if show_featured %}
-            <div id="featuredRequests">
-                <h3>{{ featured_current }} Featured Requests</h3>
-                <div class='sub alert alert-success'>
-                    <a class="btn btn-info" href="http://blog.sefaria.org/contests" target="_blank">View Prizes</a> <b>Monthly Contests</b> - Help translate featured requests and you'll be automatically entered in a lottery for monthly prizes.
-                </div>
-                {% for trans_request in featured %}
-                    {% if forloop.counter0 < featured_current or request.user.is_staff %}
-                        {% if forloop.counter0 == featured_current %}
-                            <i id="futureRequests">Future Featured Requests</i>
-                        {% endif %}
-                        {% include "elements/translation_request.html" %}
-                    {% endif %}
-                {% endfor %}
-            </div>
-            {% endif %}
-
-            <div id="translationRequests">
-                <h3>
-                    {% if not completed_only and not page_offset %}
-                        All Requests
-                    {% elif not completed_only and page_offset %}
-                        Requests {{ page_offset }}-{{ page_offset|add:99 }}
-                        <a href="/translation-requests">back to top</a>
-                    {% elif complete_only and not featured_only %}
-                        Completed Requests
-                        <a href="/translation-requests">all requests</a>
-                    {% elif completed_only and featured_only % }
-                        Completed Featured Requests
-                        <a href="/translation-requests">all requests</a>
-                    {% endif %}
-                </h3>
-                {% for trans_request in requests %}
-                    {% include "elements/translation_request.html" %}
-                {% endfor %}
-            </div>
-
-
-            {% if next_page %}
-                <a id="moreRequests" href="?page={{ next_page }}">More requests &raquo;</a>
-            {% endif %}
-
-
-            {% include "elements/social_share_buttons.html" with URL="http://www.sefaria.org/translation-requests" description="The most requested text sections for translation on Sefaria." %}  
-        </div>
-
-    {% include "elements/login_prompt.html" with msg="Please log in to make requests." %}
-
-    </div>
-</div>
-{% endif %}
 {% endblock %}
 
 {% block js %}
@@ -370,4 +282,4 @@
         {% endif %}
     });
 </script>
-{% endblock %}  
+{% endblock %}

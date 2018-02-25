@@ -130,6 +130,10 @@ class VersionBlock extends Component {
   closeEditor() {
     this.setState({editing:false});
   }
+  openExtendedNotes(e){
+    e.preventDefault();
+    this.props.viewExtendedNotes(this.props.title, this.props.version.language, this.props.version.versionTitle);
+  }
   makeVersionLink(versionParam) {
     //versionParam - either version language (e.g. 'en') in the case when you're making a link for versions in reader
     //otherwise, 'side' for making link for versions in sidebar
@@ -138,11 +142,12 @@ class VersionBlock extends Component {
     if (this.props.version.merged) {
       return "#"; // there's no url for a merged version
     }
-    const nonSelectedVersionParams = versionParam !== "side" ? Object.keys(this.props.currVersions)
-                                      .filter(vlang=>!!this.props.currVersions[vlang] && vlang !== this.props.version.language)
+    const withParam = versionParam === 'side' ? "&with=Version Open" : "";
+    const nonSelectedVersionParams = Object.keys(this.props.currVersions)
+                                      .filter(vlang=>!!this.props.currVersions[vlang] && (versionParam === 'side' || vlang !== this.props.version.language))  // in 'side' case, keep all version params
                                       .map(vlang=>`&v${vlang}=${this.props.currVersions[vlang].replace(/\s/g,'_')}`)
-                                      .join("") : "";
-    const versionLink = `/${(this.props.firstSectionRef ? Sefaria.normRef(this.props.firstSectionRef) : this.props.version.versionTitle)}${nonSelectedVersionParams}&v${versionParam}=${this.props.version.versionTitle.replace(/\s/g,'_')}`.replace("&","?");
+                                      .join("");
+    const versionLink = `/${Sefaria.normRef(this.props.currentRef)}${nonSelectedVersionParams}&v${versionParam}=${this.props.version.versionTitle.replace(/\s/g,'_')}${withParam}`.replace("&","?");
     return versionLink;
   }
   render() {
@@ -226,14 +231,14 @@ class VersionBlock extends Component {
       const versionTitle = (Sefaria.interfaceLang=="english" || v.versionTitleInHebrew==="") ? v.versionTitle : v.versionTitleInHebrew;
       const selectButtonClasses = classNames({selectButton: 1, currSelectButton: this.props.isCurrent});
 
-      const versionSidebarLink = this.makeVersionLink('sel');
+      const versionSidebarLink = this.makeVersionLink('side');
       const versionReaderLink = this.makeVersionLink(this.props.version.language);
       return (
         <div className = "versionBlock">
           {!!this.props.openVersionInSidebar || !!this.props.openVersionInReader ?
             <div>
               <a className="versionTitle"
-                href={versionReaderLink}
+                href={versionSidebarLink}
                 onClick={this.onVersionTitleClick}>
                 {versionTitle}
               </a>
@@ -243,11 +248,18 @@ class VersionBlock extends Component {
               {this.props.version.merged ? `Merged from ${Array.from(new Set(this.props.version.sources)).join(", ")}` : versionTitle}
             </div>
           }
-          {versionNotes ? <div className="versionNotes" dangerouslySetInnerHTML={ {__html: versionNotes} } ></div> : ""}
+          {versionNotes ? <div className="versionNotes">
+            <span dangerouslySetInnerHTML={ {__html: versionNotes} } />
+            {(this.props.version.extendedNotes || this.props.version.extendedNotesHebrew) ? <span className="extendedNotesLinks">
+              &nbsp;<a onClick={this.openExtendedNotes} href={`/${this.props.title}/${this.props.version.language}/${this.props.version.versionTitle}/notes`}>
+              <i>{Sefaria.interfaceLang === "english" ? "Read More" : "קרא עוד"}</i>
+              </a>
+            </span> : ""}
+          </div> : ""}
           { !v.merged ?
             <div className="versionDetails">
               {!!this.props.openVersionInReader ?
-                <a className={selectButtonClasses} href={versionSidebarLink} onClick={this.onSelectVersionClick}>
+                <a className={selectButtonClasses} href={versionReaderLink} onClick={this.onSelectVersionClick}>
                   {this.props.isCurrent ? Sefaria._("Current") : Sefaria._("Select")}
                 </a> : null}
               {this.props.openVersionInReader ? <span className="separator">&#8226;</span>: null}
@@ -278,6 +290,8 @@ VersionBlock.propTypes = {
   openVersionInReader: PropTypes.func,
   getLicenseMap:   PropTypes.func.isRequired,
   isCurrent:       PropTypes.bool,
+  openVersion:     PropTypes.func,
+  viewExtendedNotes: PropTypes.func,
 };
 VersionBlock.defaultProps = {
   showHistory: true,

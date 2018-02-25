@@ -92,6 +92,7 @@ class VersionsBox extends Component {
                     key={v.versionTitle + lang}
                     openVersionInReader={this.props.selectVersion}
                     openVersionInSidebar={this.openVersionInSidebar}
+                    viewExtendedNotes={this.props.viewExtendedNotes}
                     isCurrent={(this.props.currObjectVersions.en && this.props.currObjectVersions.en.versionTitle === v.versionTitle) ||
                               (this.props.currObjectVersions.he && this.props.currObjectVersions.he.versionTitle === v.versionTitle)}
                   />
