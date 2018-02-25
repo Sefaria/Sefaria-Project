@@ -41,8 +41,8 @@ SAUCE_CORE_CAPS = [
     {'browserName': "safari", 'platform': "OS X 10.11", 'version': "9.0",
         'sefaria_mode': 'multi_panel', 'sefaria_short_name': 'Sf/x11'},
 
-    {'browserName': "internet explorer", 'platform': "Windows 10", 'version': "11.103",
-        'sefaria_mode': 'multi_panel', 'sefaria_short_name': 'IE/w10'},
+    # {'browserName': "internet explorer", 'platform': "Windows 10", 'version': "11.103",
+    #     'sefaria_mode': 'multi_panel', 'sefaria_short_name': 'IE/w10'},
 
     {'browserName': "chrome", 'platform': "Windows 10", 'version': "57.0",
      'sefaria_mode': 'multi_panel', 'sefaria_short_name': 'Cr/w10'},
@@ -62,8 +62,8 @@ SAUCE_CORE_CAPS = [
 
 
 SAUCE_EXTENDED_CAPS = [  # Needs Review!
-    {'browserName': "internet explorer", 'platform': "Windows 10", 'version': "11.103",
-     'sefaria_mode': 'multi_panel', 'sefaria_short_name': 'IE/w10'},
+    # {'browserName': "internet explorer", 'platform': "Windows 10", 'version': "11.103",
+    #  'sefaria_mode': 'multi_panel', 'sefaria_short_name': 'IE/w10'},
 
     {'browserName': "iPhone", 'platform': "OS X 10.10", 'version': "9.2", 'deviceName': "iPad Air",
      'deviceOrientation': "portrait",
