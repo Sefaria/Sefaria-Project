@@ -551,6 +551,10 @@ Sefaria = extend(Sefaria, {
     });
     return details;
   },
+  titleIsTorah: function(title){
+      let torah_re = /^(Genesis|Exodus|Leviticus|Numbers|Deuteronomy)/;
+      return torah_re.test(title)
+  },
   _titleVariants: {},
   normalizeTitle: function(title, callback) {
     if (title in this._titleVariants) {
@@ -1183,6 +1187,7 @@ Sefaria = extend(Sefaria, {
     // Returns a flat list of annotated segment objects,
     // derived from the walking the text in data
     if (!data || "error" in data) { return []; }
+    //debugger;
     var segments  = [];
     var highlight = data.sections.length === data.textDepth;
     var wrap = (typeof data.text == "string");
@@ -1205,7 +1210,8 @@ Sefaria = extend(Sefaria, {
           en: en[i],
           he: he[i],
           number: number,
-          highlight: highlight && number >= data.sections.slice(-1)[0] && number <= data.toSections.slice(-1)[0]
+          highlight: highlight && number >= data.sections.slice(-1)[0] && number <= data.toSections.slice(-1)[0],
+          alt: ("alts" in data && i < data.alts.length) ? data.alts[i] : null
         });
       }
     } else {
@@ -1236,7 +1242,8 @@ Sefaria = extend(Sefaria, {
             highlight: highlight &&
                         ((n == 0 && number >= data.sections.slice(-1)[0]) ||
                          (n == topLength-1 && number <= data.toSections.slice(-1)[0]) ||
-                         (n > 0 && n < topLength -1))
+                         (n > 0 && n < topLength -1)),
+            alt: ("alts" in data && i < data.alts[n].length) ? data.alts[n][i] : null
           });
         }
       }
@@ -1828,6 +1835,23 @@ Sefaria = extend(Sefaria, {
       "Italian": "איטלקית",
       "Polish": "פולנית",
       "Russian": "רוסית",
+
+      "On": "הצג",
+      "Off": "הסתר",
+      "Show Parasha Aliyot": "עליות לתורה מוצגות",
+      "Hide Parasha Aliyot": "עליות לתורה מוסתרות",
+      "Language": "שפה",
+      "Layout": "עימוד",
+      "Bilingual Layout" : "עימוד דו לשוני",
+      "Color": "צבע",
+      "Font Size" : "גודל גופן",
+      "Aliyot" : "עליות לתורה",
+      "Taamim and Nikkud" : "טעמים וניקוד",
+      "Show Vowels and Cantillation": "הצג טקסט עם טעמי מקרא וניקוד",
+      "Vocalization": "טעמים וניקוד",
+      "Vowels": "ניקוד",
+      "Show only vowel points": "הצג טקסט עם ניקוד",
+      "Show only consonantal text": "הצג טקסט עיצורי בלבד"
   },
   _v: function(inputVar){
     if(Sefaria.interfaceLang != "english"){
@@ -1837,13 +1861,18 @@ Sefaria = extend(Sefaria, {
 	}
   },
   _r: function (inputRef) {
+    var oref = Sefaria.ref(inputRef);
     if(Sefaria.interfaceLang != "english"){
-        var oref = Sefaria.ref(inputRef);
         if(oref){
             return oref.heRef;
         }
     }else{
-        return inputRef;
+        if(oref){
+            return oref.ref;
+        }
+        else{
+          return inputRef;
+        }
 	}
   },
   _va: function(inputVarArr){

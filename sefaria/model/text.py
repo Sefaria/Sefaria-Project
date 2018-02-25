@@ -979,6 +979,8 @@ class Version(abst.AbstractMongoRecord, AbstractTextRecord, AbstractSchemaConten
         "versionUrl",  # bad data?
         "versionTitleInHebrew",  # stores the Hebrew translation of the versionTitle
         "versionNotesInHebrew",  # stores VersionNotes in Hebrew
+        "extendedNotes",
+        "extendedNotesHebrew",
     ]
 
     def __unicode__(self):
@@ -1589,6 +1591,14 @@ class TextFamily(object):
             "en": "versionNotes",
             "he": "heVersionNotes"
         },
+        "extendedNotes": {
+            "en": "extendedNotes",
+            "he": "heExtendedNotes"
+        },
+        "extendedNotesHebrew": {
+            "en": "extendedNotesHebrew",
+            "he": "heExtendedNotesHebrew"
+        },
         "versionNotesInHebrew": {
             "en": "versionNotesInHebrew",
             "he": "heVersionNotesInHebrew",
@@ -2018,7 +2028,7 @@ class Ref(object):
                 raise InputError(u"{} is an invalid range.  Ranges must end later than they begin.".format(self.normal()))
 
     def __clean_tref(self):
-        self.tref = self.tref.strip().replace(u"–", "-").replace("_", " ")  # don't replace : in Hebrew, where it can indicate amud
+        self.tref = self.tref.strip().replace(u"–", "-").replace(u"\u2011", "-").replace("_", " ")  # don't replace : in Hebrew, where it can indicate amud
         if self._lang == "he":
             return
 
@@ -3600,7 +3610,8 @@ class Ref(object):
         :return list: each list element is an object with keys 'versionTitle' and 'language'
         """
         fields = ["versionTitle", "versionSource", "language", "status", "license", "versionNotes",
-                  "digitizedBySefaria", "priority", "versionTitleInHebrew", "versionNotesInHebrew"]
+                  "digitizedBySefaria", "priority", "versionTitleInHebrew", "versionNotesInHebrew", "extendedNotes",
+                  "extendedNotesHebrew"]
         versions = VersionSet(self.condition_query())
         version_list = []
         if self.is_book_level():
