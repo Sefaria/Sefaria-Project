@@ -567,11 +567,11 @@ def save_sheet_api(request):
 
 		if sheet.get("group", None):
 			# Quietly enforce group permissions
-			if sheet["group"] not in [g["name"] for g in get_user_groups(request.user.id)]:
+			if sheet["group"] not in [g["name"] for g in get_user_groups(user.id)]:
 				# Don't allow non Group members to add a sheet to a group
 				sheet["group"] = None
 
-			if not can_publish(request.user, sheet):
+			if not can_publish(user, sheet):
 				if not existing:
 					sheet["status"] = "unlisted"
 				else: 
