@@ -1,21 +1,26 @@
 {% extends "base.html" %}
+{% load i18n %}
 
-{% block titleEnglish %}In Memory of Rabbi Shraga Silverstein{% endblock %}
-{% block titleHebrew %}In Memory of Rabbi Shraga Silverstein{% endblock %}
+{% block title %}{% trans "In Memory of Rabbi Shraga Silverstein" %}{% endblock %}
 
-{% block descriptionEnglish %}{% endblock %}
-
-{% block descriptionHebrew %}{% endblock %}
+{% block description %}{% endblock %}
 
 {% block css %}
     #shraga h3 {
         margin-top: 24px;
     }
     #shraga .headshot {
-    float: left;
-    margin: 15px;
-    height: 300px;
-   }
+        float: left;
+        margin: 0 15px 15px 0;
+        height: 300px;
+    }
+    .interface-hebrew #shraga .headshot {
+        float: right;
+        margin: 0 0 15px 15px;        
+    }
+    #shraga p {
+        margin-bottom: 20px;
+    }
 {% endblock %}
 
 {% block content %}
@@ -23,15 +28,25 @@
 <div id="shraga" class="container static">
     <div class="inner">
         <h1>
-            Rabbi Shraga Silverstein זצ״ל
+            <span class="int-en">Rabbi Shraga Silverstein זצ״ל</span>
+            <span class="int-he">הרב שרגא סילברסטיין זצ״ל</span>
         </h1>
         <div>
             <img class="headshot" src="/static/img/shraga-silverstein.jpg" alt="Photo of Rabbi Shraga Silverstein"/>
         </div>
         <div class="section">
-            <p>Rabbi Shraga Silverstein was a Rabbi, author, and translator. He translated a number of books, including seventeen that were not published by 2014, and wrote three books himself. He lived in Jerusalem until his death in 2014.</p>
-            <p>Rabbi Shraga Silverstein graduated from Brooklyn College summa cum laude, with honours in English. He was also an alumnus of Mesivta Rabbi Chaim Berlin. He taught in universities in the United States and Israel and served as Principal of various yeshivas.</p>
-            <p>Since his untimely passing, Sefaria has been working with his family to obtain the rights to his unpublished works in order to make them widely available. Everything that is available on Sefaria is done so under the CC-BY license. We hope that this library will become a living memorial and make the works of Rabbi Silverstein as accesible as possible. What you see right now is just the beginning - we're going to keep adding his works to Sefaria and will keep this page updated as we do.</p>
+            <p>
+                <span class="int-en">Rabbi Shraga Silverstein was a Rabbi, author, and translator. He translated a number of books, including seventeen that were not published by 2014, and wrote three books himself. He lived in Jerusalem until his death in 2014.</span>
+                <span class="int-he">הרב שרגא סילברסטיין היה רב, סופר ומתרגם. סילברסטיין תרגם מספר ספרים, ביניהם שבעה עשר ספרים שהופצו רק לאחר שנת 2014, וכן כתב שלושה ספרים. הוא חי בירושלים עד למותו בשנת 2014.</span>
+            </p>
+            <p>
+                <span class="int-en">Rabbi Shraga Silverstein graduated from Brooklyn College summa cum laude, with honours in English. He was also an alumnus of Mesivta Rabbi Chaim Berlin. He taught in universities in the United States and Israel and served as Principal of various yeshivas.</span>
+                <span class="int-he">הרב שרגא סילברסטיין סיים את לימודיו בקולג׳ ברוקלין בהצטיינות כבוגר הפקולטה ללימודי ספרות אנגלית וכן היה בוגר של ישיבת רבי חיים ברלין בברוקלין. הוא לימד במספר אוניברסיטאות בארצות הברית ובישראל וכן ניהל מספר ישיבות במהלך חייו.</span>
+            </p>
+            <p>
+                <span class="int-en">Since his untimely passing, Sefaria has been working with his family to obtain the rights to his unpublished works in order to make them widely available. Everything that is available on Sefaria is done so under the CC-BY license. We hope that this library will become a living memorial and make the works of Rabbi Silverstein as accesible as possible. What you see right now is just the beginning - we're going to keep adding his works to Sefaria and will keep this page updated as we do.</span>
+                <span class="int-he">מאז לכתו בטרם עת של הרב סילברסטיין, צוות ספריא עובד עם משפחתו במטרה להשיג את הזכויות החוקיות על כתביו בכדי להנגישם לכלל הציבור. כל החיבורים הזמינים בספריא הושגו תחת רשיון CC-BY. אנחנו מקווים ומאמינים שספריה זו תהיה לזיכרון שמו ומורשתו של הרב סילברסטיין. עבודותיו הזמינות כעת הן רק ההתחלה – כתבים רבים אחרים פרי עטו של הרב סילברסטיין יתווספו לעמוד בהמשך.</span>
+            </p>
         </div>
         <div class="section">
             <h3>Available On Sefaria</h3>
@@ -96,23 +111,6 @@
                 </li>
             </ul>
         </div>
-
-<!--
-
-<h3>Translations</h3>
-<ul>
-    <li>Shmirath Halashon (by the Chofetz Chaim)</li>
-    <li>The Knowing Heart: Da'Ath Tevunoth (by Moshe Chayim Luzzatto)</li>
-    <li>Ways of the Tzaddikim: Orchos Tzaddikim</li>
-    <li>The Gates of Repentance: Sha'arei Teshuvah (by Jonah Ben Abraham Gerondi)</li>
-    <li>The Path of the Just/Mesillat Yesharim (by Moshe Chayim Luzzatto)</li>
-    <li>Derashoth HaRan / The Discourses of the Ran (by Nissim of Gerona)</li>
-    <li>The Essential Torah Temimah (by Boruch Halevi Epstein)</li>
-    <li>The Rashi Chumash (by Rashi)</li>
-    <li>Pathways to Teshuvah (by Moshe Chaim Luzzatto)</li>
-    <li>Sefer Hamitzvot (by Maimonides)</li>
-</ul>
--->
     </div>
 </div>
 {% endblock %}

@@ -1,21 +1,23 @@
 const {
   CategoryColorLine,
+  ReaderNavigationMenuMenuButton,
   ReaderNavigationMenuCloseButton,
   ReaderNavigationMenuSearchButton,
   ReaderNavigationMenuDisplaySettingsButton,
   ReaderNavigationMenuSection,
   TextBlockLink,
   TwoOrThreeBox,
+  TwoBox,
   LanguageToggleButton,
-}                = require('./Misc');
-const React      = require('react');
-const ReactDOM   = require('react-dom');
-const PropTypes  = require('prop-types');
-const classNames = require('classnames');
-const Sefaria    = require('./sefaria/sefaria');
-const $          = require('./sefaria/sefariaJquery');
+}                                  = require('./Misc');
+const React                        = require('react');
+const ReactDOM                     = require('react-dom');
+const PropTypes                    = require('prop-types');
+const classNames                   = require('classnames');
+const Sefaria                      = require('./sefaria/sefaria');
+const $                            = require('./sefaria/sefariaJquery');
 const ReaderNavigationCategoryMenu = require('./ReaderNavigationCategoryMenu');
-const Footer     = require('./Footer');
+const Footer                       = require('./Footer');
 import Component from 'react-class';
 
 
@@ -72,12 +74,12 @@ class ReaderNavigationMenu extends Component {
     if ($(event.target).hasClass("refLink") || $(event.target).parent().hasClass("refLink")) {
       var ref = $(event.target).attr("data-ref") || $(event.target).parent().attr("data-ref");
       var pos = $(event.target).attr("data-position") || $(event.target).parent().attr("data-position");
-      var version = $(event.target).attr("data-version") || $(event.target).parent().attr("data-version");
-      var versionLanguage = $(event.target).attr("data-versionlanguage") || $(event.target).parent().attr("data-versionlanguage");
+      const enVersion = $(event.target).attr("data-ven") || $(event.target).parent().attr("data-ven");
+      const heVersion = $(event.target).attr("data-vhe") || $(event.target).parent().attr("data-vhe");
       if ($(event.target).hasClass("recentItem") || $(event.target).parent().hasClass("recentItem")) {
-        this.props.onRecentClick(parseInt(pos), ref, version, versionLanguage);
+        this.props.onRecentClick(parseInt(pos), ref, {en: enVersion, he: heVersion});
       } else {
-        this.props.onTextClick(ref, version, versionLanguage);
+        this.props.onTextClick(ref, {en: enVersion, he: heVersion});
       }
       if (Sefaria.site) { Sefaria.track.event("Reader", "Navigation Text Click", ref); }
     } else if ($(event.target).hasClass("catLink") || $(event.target).parent().hasClass("catLink")) {
@@ -127,34 +129,17 @@ class ReaderNavigationMenu extends Component {
                   compare={this.props.compare}
                   hideNavHeader={this.props.hideNavHeader}
                   width={this.width}
+                  contentLang={this.props.settings.language}
                   interfaceLang={this.props.interfaceLang} />
               </div>);
     } else {
       // Root Library Menu
-      var categories = [
-        "Tanakh",
-        "Mishnah",
-        "Talmud",
-        "Midrash",
-        "Halakhah",
-        "Kabbalah",
-        "Liturgy",
-        "Philosophy",
-        "Tanaitic",
-        "Chasidut",
-        "Musar",
-        "Responsa",
-        "Apocrypha",
-        "Modern Works",
-        "Other"
-      ];
-      categories = categories.map(function(cat) {
-        var style = {"borderColor": Sefaria.palette.categoryColor(cat)};
-        var openCat = function(e) {e.preventDefault(); this.props.setCategories([cat])}.bind(this);
-        var heCat   = Sefaria.hebrewTerm(cat);
-        return (<a href={`/texts/${cat}`} className="readerNavCategory" data-cat={cat} style={style} onClick={openCat}>
-                    <span className="en">{cat}</span>
-                    <span className="he">{heCat}</span>
+      var categories = Sefaria.toc.map(function(cat) {
+        var style = {"borderColor": Sefaria.palette.categoryColor(cat.category)};
+        var openCat = function(e) {e.preventDefault(); this.props.setCategories([cat.category])}.bind(this);
+        return (<a href={`/texts/${cat.category}`} className="readerNavCategory" data-cat={cat.category} style={style} onClick={openCat}>
+                    <span className="en">{cat.category}</span>
+                    <span className="he">{cat.heCategory}</span>
                   </a>
                 );
       }.bind(this));
@@ -196,11 +181,17 @@ class ReaderNavigationMenu extends Component {
       siteLinks = (<div className="siteLinks">
                     {siteLinks}
                   </div>);
-
-      var calendar = Sefaria.calendar ?
-                     [(<TextBlockLink sref={Sefaria.calendar.parasha} title={Sefaria.calendar.parashaName} heTitle={Sefaria.calendar.heParashaName} category="Tanakh" />),
-                      (<TextBlockLink sref={Sefaria.calendar.haftara} title="Haftara" heTitle="הפטרה" category="Tanakh" />),
-                      (<TextBlockLink sref={Sefaria.calendar.daf_yomi} title="Daf Yomi" heTitle="דף יומי" category="Talmud" />)] : [];
+      var calendar = Sefaria.calendars.map(function(item) {
+          return (<TextBlockLink
+                    sref={item.url}
+                    title={item.title["en"]}
+                    heTitle={item.title["he"]}
+                    displayValue={item.displayValue["en"]}
+                    heDisplayValue={item.displayValue["he"]}
+                    category={item.category}
+                    showSections={false}
+                    recentItem={false} />)
+      });
       calendar = (<div className="readerNavCalendar"><TwoOrThreeBox content={calendar} width={this.width} /></div>);
 
 
@@ -213,29 +204,42 @@ class ReaderNavigationMenu extends Component {
                      (<a className="resourcesLink outOfAppLink" style={sheetsStyle} href="/visualizations">
                         <img src="/static/img/visualizations-icon.png" alt="" />
                         <span className="int-en">Visualizations</span>
-                        <span className="int-he">חזותיים</span>
+                        <span className="int-he">תרשימים גרפיים</span>
                       </a>),
                     (<a className="resourcesLink outOfAppLink" style={sheetsStyle} href="/people">
                         <img src="/static/img/authors-icon.png" alt="" />
                         <span className="int-en">Authors</span>
                         <span className="int-he">רשימת מחברים</span>
-                      </a>)];
-      resources = (<div className="readerNavCalendar"><TwoOrThreeBox content={resources} width={this.width} /></div>);
+                      </a>),
+                    (<a className="resourcesLink" style={sheetsStyle} href="/topics" onClick={this.props.openMenu.bind(null, "topics")}>
+                        <img src="/static/img/hashtag-icon.svg" alt="" />
+                        <span className="int-en">Topics</span>
+                        <span className="int-he">נושאים</span>
+                      </a>)
+                      ];
+      resources = (<div className="readerNavCalendar"><TwoBox content={resources} width={this.width} /></div>);
 
 
       var topContent = this.props.home ?
               (<div className="readerNavTop search">
                 <CategoryColorLine category="Other" />
                 <ReaderNavigationMenuSearchButton onClick={this.navHome} />
-                <ReaderNavigationMenuDisplaySettingsButton onClick={this.props.openDisplaySettings} />
                 <div className='sefariaLogo'><img src="/static/img/sefaria.svg" alt="Sefaria Logo" /></div>
+                {this.props.interfaceLang !== "hebrew" ?
+                  <ReaderNavigationMenuDisplaySettingsButton onClick={this.props.openDisplaySettings} />
+                  : <ReaderNavigationMenuDisplaySettingsButton placeholder={true} /> }
               </div>) :
               (<div className="readerNavTop search">
                 <CategoryColorLine category="Other" />
-                <ReaderNavigationMenuCloseButton onClick={this.closeNav} icon={this.props.compare ? "chevron" : null} />
-                <ReaderNavigationMenuSearchButton onClick={this.handleSearchButtonClick} />
-                <ReaderNavigationMenuDisplaySettingsButton onClick={this.props.openDisplaySettings} />
-                <input id="searchInput" className="readerSearch" title="Search for Texts or Keywords Here" placeholder="Search" onKeyUp={this.handleSearchKeyUp} />
+                <div className="readerNavTopStart">
+                  <ReaderNavigationMenuMenuButton onClick={this.closeNav} compare={this.props.compare} interfaceLang={this.props.interfaceLang}/>
+                  <div className="searchBox">
+                    <ReaderNavigationMenuSearchButton onClick={this.handleSearchButtonClick} />
+                    <input id="searchInput" className="readerSearch" title={Sefaria._("Search for Texts or Keywords Here")} placeholder={Sefaria._("Search")} onKeyUp={this.handleSearchKeyUp} />
+                  </div>
+                </div>
+                {this.props.interfaceLang !== "hebrew" ? <ReaderNavigationMenuDisplaySettingsButton onClick={this.props.openDisplaySettings} /> : null}
+
               </div>);
       topContent = this.props.hideNavHeader ? null : topContent;
 
@@ -249,8 +253,7 @@ class ReaderNavigationMenu extends Component {
                     sref={item.ref}
                     heRef={item.heRef}
                     book={item.book}
-                    version={item.version}
-                    versionLanguage={item.versionLanguage}
+                    currVersions={item.currVersions}
                     showSections={true}
                     recentItem={true} />)
           });
@@ -264,7 +267,7 @@ class ReaderNavigationMenu extends Component {
       recentlyViewed = recentlyViewed.length ? <TwoOrThreeBox content={recentlyViewed} width={this.width} /> : null;
 
       var title = (<h1>
-                    { this.props.multiPanel ? <LanguageToggleButton toggleLanguage={this.props.toggleLanguage} /> : null }
+                    { this.props.multiPanel && this.props.interfaceLang !== "hebrew" ? <LanguageToggleButton toggleLanguage={this.props.toggleLanguage} /> : null }
                     <span className="int-en">The Sefaria Library</span>
                     <span className="int-he">האוסף של ספריא</span>
                   </h1>);
@@ -273,7 +276,7 @@ class ReaderNavigationMenu extends Component {
                     (<footer id="footer" className={`interface-${this.props.interfaceLang} static sans`}>
                       <Footer />
                     </footer> );
-      var classes = classNames({readerNavMenu:1, noHeader: !this.props.hideHeader, compare: this.props.compare, home: this.props.home });
+      var classes = classNames({readerNavMenu:1, noHeader: !this.props.hideHeader, compare: this.props.compare, home: this.props.home, noLangToggleInHebrew: 1 });
       var contentClasses = classNames({content: 1, hasFooter: footer != null});
       return(<div className={classes} onClick={this.handleClick} key="0">
               {topContent}
@@ -307,7 +310,8 @@ ReaderNavigationMenu.propTypes = {
   hideNavHeader: PropTypes.bool,
   multiPanel:    PropTypes.bool,
   home:          PropTypes.bool,
-  compare:       PropTypes.bool
+  compare:       PropTypes.bool,
+  interfaceLang: PropTypes.string,
 };
 
 
@@ -315,17 +319,16 @@ class RecentPanel extends Component {
   render() {
     var width = typeof window !== "undefined" ? $(window).width() : 1000;
 
-    var recentItems = Sefaria.recentlyViewed.map(function(item) {
+    var recentItems = Sefaria.recentlyViewed.map(function(item, i) {
       return (<TextBlockLink
                 sref={item.ref}
                 heRef={item.heRef}
                 book={item.book}
-                version={item.version}
-                versionLanguage={item.versionLanguage}
+                currVersions={item.currVersions}
                 showSections={true}
-                recentItem={true} />)
+                recentItem={true}
+                key={i} />)
     });
-    var recentContent = (<TwoOrThreeBox content={recentItems} width={width} />);
 
     var footer = this.props.compare ? null :
                     (<footer id="footer" className={`interface-${this.props.interfaceLang} static sans`}>
@@ -333,7 +336,7 @@ class RecentPanel extends Component {
                     </footer> );
 
 
-    var navMenuClasses = classNames({recentPanel: 1, readerNavMenu: 1, noHeader: this.props.hideNavHeader, compare:this.props.compare});
+    var navMenuClasses = classNames({recentPanel: 1, readerNavMenu: 1, noHeader: this.props.hideNavHeader, compare:this.props.compare, noLangToggleInHebrew: 1});
     var navTopClasses  = classNames({readerNavTop: 1, searchOnly: 1, colorLineOnly: this.props.hideNavHeader});
     var contentClasses = classNames({content: 1, hasFooter: footer != null});
     return (
@@ -341,8 +344,8 @@ class RecentPanel extends Component {
         {this.props.hideNavHeader ? null :
           <div className={navTopClasses}>
             <CategoryColorLine category={"Other"} />
-            <ReaderNavigationMenuMenuButton onClick={this.props.navHome} compare={this.props.compare} />
-            <ReaderNavigationMenuDisplaySettingsButton onClick={this.props.openDisplaySettings} />
+            <ReaderNavigationMenuMenuButton onClick={this.props.navHome} compare={this.props.compare} interfaceLang={this.props.interfaceLang}/>
+            {this.props.interfaceLang !== "hebrew" ? <ReaderNavigationMenuDisplaySettingsButton onClick={this.props.openDisplaySettings} /> : null}
             <h2>
               <span className="int-en">Recent</span>
               <span className="int-he">נצפו לאחרונה</span>
@@ -352,12 +355,12 @@ class RecentPanel extends Component {
           <div className="contentInner">
             {this.props.hideNavHeader ?
               <h1>
-              { this.props.multiPanel ? <LanguageToggleButton toggleLanguage={this.props.toggleLanguage} /> : null }
+              {this.props.interfaceLang !== "hebrew" ? <LanguageToggleButton toggleLanguage={this.props.toggleLanguage} /> : null}
               <span className="int-en">Recent</span>
               <span className="int-he">נצפו לאחרונה</span>
             </h1>
             : null }
-            {recentContent}
+            {recentItems}
           </div>
           {footer}
         </div>

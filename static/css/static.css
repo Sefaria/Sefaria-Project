@@ -9,7 +9,7 @@
 .static .wf-loading {
   display: none;
 }
-.interface-hebrew .static.biReady{
+.interface-hebrew .static {
   direction:rtl;
 }
 .static {
@@ -51,11 +51,25 @@
 .interface-hebrew .static .int-en {
   display: none;
 }
-.static h1, .static h2, .static h3, .static h4, .static h1 .int-en, .static h2 .int-en, .static h3 .int-en, .static h4 .int-en{
-    font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+.static h1,
+.static h2,
+.static h3,
+.static h4,
+.static h1 .int-en,
+.static h2 .int-en,
+.static h3 .int-en,
+.static h4 .int-en {
+  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
 }
-.static h1 .int-he, .static h2 .int-he, .static h3 .int-he, .static h4 .int-he{
-    font-family: "Heebo", sans-serif;
+.interface-hebrew h1,
+.interface-hebrew h2,
+.interface-hebrew h3,
+.interface-hebrew h4,
+.static h1 .int-he,
+.static h2 .int-he, 
+.static h3 .int-he, 
+.static h4 .int-he {
+  font-family: "Heebo", sans-serif;
 }
 .static h1 {
   color: #333;
@@ -571,50 +585,48 @@
 #profilePage .sheet a {
   color: #333;
 }
-#activityList{
+#activityList {
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
   color: #666;
   padding: 0;
+}
+.interface-hebrew #activityList {
+  font-family: "Heebo", "Helvetica Neue", Helvetica, Ariel, san-serif;
 }
 #profileActivity a {
   color: #333;
   font-weight: normal;
 }
-/*#profilePage #moreActivity {
-  display: block;
-  margin-top: 30px;
-  font-size: 15px;
-}*/
-#profilePage  #followMe span{
+#profilePage  #followMe span {
   font-size: inherit;
 }
-#profilePage  .button span.int-en{
+#profilePage  .button span.int-en {
 }
-#profilePage  .button span.int-he{
+#profilePage  .button span.int-he {
   font-size: inherit;
 }
-#profilePage #followMe.follow span.following{
+#profilePage #followMe.follow span.following {
   display: none;
 }
-#profilePage #followMe.following span.follow{
+#profilePage #followMe.following span.follow {
   display: none;
 }
-#profilePage #followMe span.unfollow{
+#profilePage #followMe span.unfollow {
   display:none;
 }
-#profilePage #followMe.following:hover span.unfollow{
+#profilePage #followMe.following:hover span.unfollow {
   display:inherit;
 }
-#profilePage #followMe.following:hover span.following{
+#profilePage #followMe.following:hover span.following {
   display:none;
 }
 #activityList .topline {
   font-weight: normal;
 }
-#activityList .text.int-en, #activityList .text{
+#activityList .text.int-en, #activityList .text {
   font-family: "adobe-garamond-pro", Georgia, serif;
 }
-#activityList .text.int-he{
+#activityList .text.int-he {
   font-family: "Frank Ruehl Libre", "Times New Roman", serif;
 }
 #activityList .time {
@@ -633,12 +645,10 @@
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
   font-size: 14px;
 }
-
 .registrationContent {
   margin: 1% auto 0;
   width: 320px;
 }
-
 .registrationContent h1 .int-en{
   font-family: "adobe-garamond-pro", Georgia, serif;
 }
@@ -701,6 +711,13 @@
 .registrationContent input:-webkit-autofill {
   -webkit-box-shadow: 0 0 0px 1000px white inset;
 }
+.interface-hebrew input#id_email::-webkit-input-placeholder {
+  text-align: right;
+}
+input#id_email{
+  text-align: left;
+  direction: ltr;
+}
 .registrationContent button {
   all: initial; /*this is an insane hack, seems to work on chrome, firefox and opera. untested on Safari and Edge*/
   display: block;
@@ -735,75 +752,70 @@
 }
 .registrationContent a .int-he, .registrationContent button .int-he{
 }
-/*#login.registrationContent #resetLink{
-  margin: 20px 0;
-  color: #999;
-  font-size: 14px;
-  font-style: normal;
-}*/
 #visualizationsPage {
   text-align: left;
+}
+.interface-hebrew #visualizationsPage {
+  text-align: right;
 }
 #visualLibraryPage {
   padding-top: 70px;
 }
-.static div.single-button{
+.static div.single-button {
   margin: 5% 0;
 }
-.static div.single-button.center{
+.static div.single-button.center {
   text-align: center;
 }
 #donatePage #donateOptions .donateOption {
     margin-bottom: 35px;
 }
-#donatePage .faq p.question{
+#donatePage .faq p.question {
   font-weight: bold;
 }
-#donatePage .faq p.answer{
+#donatePage .faq p.answer {
   margin-left: 40px;
   text-indent: -20px;
 }
-#donatePage .faq p.question:before{
+#donatePage .faq p.question:before {
   content: "Q)";
 }
-#donatePage .faq p.answer:before{
+#donatePage .faq p.answer:before {
   content: "A)";
 }
 .interface-hebrew #donatePage .faq p.answer{
   margin-right: 40px;
   text-indent: -20px;
 }
-.interface-hebrew #donatePage .faq p.question:before{
+.interface-hebrew #donatePage .faq p.question:before {
   content: "ש)";
   font-family: "Heebo", "Helvetica Neue", Helvetica, Ariel, san-serif;
 }
-.interface-hebrew #donatePage .faq p.answer:before{
+.interface-hebrew #donatePage .faq p.answer:before {
   content: "ת)";
   font-family: "Heebo", "Helvetica Neue", Helvetica, Ariel, san-serif;
 }
-
-
 #supportersPage{
   text-align: center;
 }
-#supportersPage .leading-supporters p.tagline:first-child{
+#supportersPage .leading-supporters p.tagline:first-child {
   text-align: center;
   max-width: 500px;
   margin: auto;
 }
-#supportersPage .leading-supporters p.tagline:last-child{
+#supportersPage .leading-supporters p.tagline:last-child {
   margin-top: 20px;
 }
-#supportersPage .supporters p.tagline:first-child{
+#supportersPage .supporters p.tagline:first-child {
   margin-bottom: 20px;
 }
-#supportersPage h2{
+#supportersPage h2 {
     margin-top: 25px;
 }
-#supportersPage h2 span{
+#supportersPage h2 span {
   font-size: 1.3em;
 }
-#supportersPage .donate-link{
+#supportersPage .donate-link {
   margin-top:20px;
 }
 #aboutPage {
@@ -874,38 +886,38 @@
   display: flex;
   display: -webkit-flex
 }
-#teamPage .teamBoardMember{
+#teamPage .teamBoardMember {
   border-bottom: none;
   margin-bottom: 10px;
 }
-#teamPage .teamMember .teamMemberImage{
+#teamPage .teamMember .teamMemberImage {
   display: inline-block;
   /*float: left;*/
 }
-#teamPage .teamMember .teamMemberDetails, #teamPage .teamBoardMember .teamMemberDetails{
+#teamPage .teamMember .teamMemberDetails, #teamPage .teamBoardMember .teamMemberDetails {
   display: inline-block;
   white-space:nowrap;
   max-width: 65%;
   margin: 0 20px;
 }
-#teamPage .teamBoardMember .teamMemberDetails{
+#teamPage .teamBoardMember .teamMemberDetails {
   margin: 0;
 }
-#teamPage .teamMember .teamMemberImage img{
+#teamPage .teamMember .teamMemberImage img {
   border: 1px solid #E6E5E6;
   width: 170px;
   height: 170px;
   vertical-align:middle;
 }
-#teamPage .teamMember .teamName, #teamPage .teamBoardMember .teamName{
+#teamPage .teamMember .teamName, #teamPage .teamBoardMember .teamName {
   margin-bottom: 20px;
   font-size: 25px;
   color: #555;
 }
-#teamPage .teamMember .teamTitle, #teamPage .teamBoardMember .teamTitle{
+#teamPage .teamMember .teamTitle, #teamPage .teamBoardMember .teamTitle {
 
 }
-#teamPage .teamMember .teamEmail{
+#teamPage .teamMember .teamEmail {
   color: #999;
 }
 #teamPage .teamMember .teamBio {
@@ -1198,7 +1210,7 @@
     border-radius: 8px;
     pointer-events: none;
 }
-#activityPage h2{
+#activityPage h2 {
   font-family: "adobe-garamond-pro", Georgia, serif;
   font-size: 25px;
   font-style: italic;
@@ -1206,6 +1218,9 @@
   text-align: center;
   border: none;
   text-transform: none;
+}
+.interface-hebrew #activityPage h2 {
+  font-family: "Heebo", "Helvetica Neue", Helvetica, Ariel, san-serif;
 }
 #activityPage #activityFeed {
   color: #666;
@@ -1235,9 +1250,8 @@
   text-align: center;
   margin: 30px 0;
   padding-bottom: 30px;
-
 }
-#activityPage select{
+#activityPage select {
   min-width: 165px;
   background-color: #ffffff;
   height: 3em;
@@ -1246,12 +1260,6 @@
   border-radius: 3px;
   border-color: #ccc;
   font-size: 14px;
-  /*-webkit-appearance: none;
-  -moz-appearance: none;
-  appearance: none;
-  -webkit-box-sizing: border-box;
-  -moz-box-sizing: border-box;
-  box-sizing: border-box;*/
 }
 #iosPage p {
   margin-bottom: 30px;
@@ -1279,10 +1287,12 @@
   font-size: 16px;
   font-weight: lighter;
 }
+#jobsPage p {
+  margin: 20px 0;
+}
 #jobsPage li {
   margin: 14px 0;
 }
-
 #helpPage .section {
   margin-bottom: 60px;
 }
@@ -1520,7 +1530,7 @@
 }
 #edPage .section a .button {
   display: block;
-  width: 240px;
+  width: 242px;
   margin-bottom: 8px;
   text-align: center;
 }
@@ -1615,39 +1625,26 @@
     margin: 70px auto;
     text-align: center;
 }
-
 #groupsPage #groups {
     margin-top: 40px;
 }
-
 #groupsPage .group {
-    width: 220px;
-    height: 220px;
     margin: 10px;
-    border: 1px solid #ddd;
-    display: inline-block;
-    position: relative;
-    text-align: center;
-    line-height: 200px;
+    padding: 10px;
+    border-bottom: 1px solid #ddd;
+    display: block;
+    text-align: left;
     overflow: hidden;
 }
-
 #groupsPage .group:hover {
     border: 1px solid #08c;
 }
-
-
 #groupsPage .groupName {
-    position: absolute;
-    width: 220px;
-    bottom: 10px;
-    font-size: 14px;
-    line-height: 14px;
+    font-size: 18px;
+    line-height: 22px;
     color: #555;
-    text-align: center;
     display: block;
 }
-
 #groupsPage .groupSettings {
     display: none;
     cursor: pointer;
@@ -1659,58 +1656,15 @@
     font-size: 18px;
     color: black;
 }
-
-#groupsPage .group:hover .groupSettings {
-    display: block;
-}
-
-#groupsPage .groupSettings:hover {
-    color: #08c;
-}
-
 #groupsPage .group img.groupCover {
 }
-
 #groupsPage .group img.groupHeader {
     display: none;
 }
-
 #groupsPage .group img {
-    width: 92%;
-}
-
-#editGroupModal {
-    max-height: 70%;
-    min-width: 400px;
-    max-width: 100%;
-    overflow-y: scroll;
-    text-align: left;
-}
-
-#editGroupModal h1 {
-    margin-bottom: 15px;
-    text-align: center;
-}
-
-#editGroupModal .imageBox {
-    margin-bottom: 30px;
-}
-
-#editGroupModal .left {
-    display: block;
-}
-
-#editGroupModal input {
-    width: 92%;
-}
-
-#editGroupModal img {
-    vertical-align: top;
-    max-width: 600px;
-}
-
-#editGroupModal #saveGroup {
-    display: none;
+    width: 48px;
+    height: 48px;
+    float: left;
 }
 
 #visualGardenPage .control-results-containe{
@@ -1720,7 +1674,7 @@
   -webkit-align-items: flex-start;
 }
 #visualGardenPage #results-container .int-he {
-  font-family: 'Taamey Frank', 'Times New Roman', serif;
+  font-family: "Frank Ruehl Libre","Times New Roman",serif;
 }
 #visualGardenPage .int-en {
   font-family: "adobe-garamond-pro", Georgia, serif;

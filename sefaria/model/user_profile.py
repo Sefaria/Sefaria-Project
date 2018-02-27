@@ -14,6 +14,7 @@ if not hasattr(sys, '_doc_build'):
 from sefaria.model.following import FollowersSet, FolloweesSet
 from sefaria.model.text import Ref
 from sefaria.system.database import db
+from django.utils import translation
 
 
 class UserProfile(object):
@@ -42,7 +43,7 @@ class UserProfile(object):
 			self.last_name         = str(id)
 			self.email             = "test@sefaria.org"
 			self.date_joined       = None
-    
+
 		self._id                   = None  # Mongo ID of profile doc
 		self.id                    = id    # user ID
 		self.slug                  = ""
@@ -68,8 +69,7 @@ class UserProfile(object):
 			"interface_language": "english",
 		}
 
-		self._name_updated      = False 
-		self._slug_updated      = False 
+		self._name_updated      = False
 
 		# Update with saved profile doc in MongoDB
 		profile = db.profiles.find_one({"id": id})
@@ -90,20 +90,26 @@ class UserProfile(object):
 	def full_name(self):
 		return self.first_name + " " + self.last_name
 
-	def update(self, obj):
-		"""
-		Update this object with the fields in dictionry 'obj'
-		"""
+	def _set_flags_on_update(self, obj):
 		if "first_name" in obj or "last_name" in obj:
 			if self.first_name != obj["first_name"] or self.last_name != obj["last_name"]:
 				self._name_updated = True
 
-		if "slug" in obj and obj["slug"] != self.slug:
-			self._slug_updated = True
-
+	def update(self, obj):
+		"""
+		Update this object with the fields in dictionry 'obj'
+		"""
+		self._set_flags_on_update(obj)
 		self.__dict__.update(obj)
 
 		return self
+
+	def update_empty(self, obj):
+		self._set_flags_on_update(obj)
+		for k, v in obj.items():
+			if v:
+				if k not in self.__dict__ or self.__dict__[k] == '' or self.__dict__[k] == []:
+					self.__dict__[k] = v
 
 	def save(self):
 		"""
@@ -117,13 +123,6 @@ class UserProfile(object):
 			d["_id"] = self._id
 		db.profiles.save(d)
 
-		# invalidate user links cache if needed
-		if self._name_updated or self._slug_updated:
-			global user_links
-			if self.id in user_links:
-				del user_links[self.id]
-			self._slug_updated = False
-
 		# store name changes on Django User object
 		if self._name_updated:
 			user = User.objects.get(id=self.id)
@@ -136,7 +135,7 @@ class UserProfile(object):
 
 	def errors(self):
 		"""
-		Returns a string with any validation errors, 
+		Returns a string with any validation errors,
 		or None if the profile is valid.
 		"""
 		# Slug
@@ -227,18 +226,9 @@ class UserProfile(object):
 		"""
 		Removes `message` from the users list of queued interrupting_messages.
 		"""
-		self.interrupting_messages.remove(message)
-		self.save()
-
-	def set_recent_item(tref):
-		"""
-		Save `tref` as a recently viewed text at the front of the list. Removes any previous location for that text.
-		Not used yet, need to consider if it's better to store derivable information (ref->heRef) or reprocess it often.
-		"""
-		oref = Ref(tref)
-		recent = [tref for tref in self.recent if Ref(tref).index.title != oref.index.title]
-		self.recent = [tref] + recent
-		self.save()
+		if message in self.interrupting_messages:
+			self.interrupting_messages.remove(message)
+			self.save()
 
 	def to_DICT(self):
 		"""Return a json serializble dictionary this profile"""
@@ -296,11 +286,19 @@ def email_unread_notifications(timeframe):
 		except User.DoesNotExist:
 			continue
 
+		if "interface_language" in profile.settings:
+			translation.activate(profile.settings["interface_language"][0:2])
+
 		message_html  = render_to_string("email/notifications_email.html", {"notifications": notifications, "recipient": user.first_name})
 		#message_text = util.strip_tags(message_html)
 		actors_string = notifications.actors_string()
-		verb          = "have" if " and " in actors_string else "has"
-		subject       = "%s %s new activity on Sefaria" % (actors_string, verb)
+		# TODO Hebrew subjects
+		if actors_string:
+			verb      = "have" if " and " in actors_string else "has"
+			subject   = "%s %s new activity on Sefaria" % (actors_string, verb)
+		elif notifications.like_count() > 0:
+			noun      = "likes" if notifications.like_count() > 1 else "like"
+			subject   = "%d new %s on your Source Sheet" % (notifications.like_count(), noun)
 		from_email    = "Sefaria <hello@sefaria.org>"
 		to            = user.email
 
@@ -308,8 +306,10 @@ def email_unread_notifications(timeframe):
 		msg.content_subtype = "html"  # Main content is now text/html
 		#msg.attach_alternative(message_text, "text/plain")
 		msg.send()
-
 		notifications.mark_read(via="email")
+
+		if "interface_language" in profile.settings:
+			translation.deactivate()
 
 
 def unread_notifications_count_for_user(uid):
@@ -349,16 +349,10 @@ def user_name(uid):
 	return data["name"]
 
 
-# Simple Cache for user links
-user_links = {}
 def user_link(uid):
 	"""Returns a string with an <a> tag linking to a users profile"""
-	if uid in user_links:
-		return user_links[uid]
-	
 	data = public_user_data(uid)
 	link = "<a href='" + data["profileUrl"] + "' class='userLink'>" + data["name"] + "</a>"
-	user_links[uid] = link
 	return link
 
 
@@ -382,7 +376,7 @@ def user_started_text(uid, title):
 
 	This checks for the oldest matching index change record for 'title'.
 	If someone other than the initiator changed the text's title, this function
-	will incorrectly report False, but this matches our intended behavior to 
+	will incorrectly report False, but this matches our intended behavior to
 	lock name changes after an admin has stepped in.
 	"""
 	log = db.history.find({"title": title}).sort([["date", -1]]).limit(1)
@@ -394,7 +388,7 @@ def user_started_text(uid, title):
 
 def annotate_user_list(uids):
 	"""
-	Returns a list of dictionaries giving details (names, profile links) 
+	Returns a list of dictionaries giving details (names, profile links)
 	for the user ids list in uids.
 	"""
 	annotated_list = []

@@ -34,7 +34,7 @@ def remove_old_index_and_rename(idx_title):
 
     indx = Index().load({'title': idx_title})
     #since Index validation prevents having duplicate titles in the system, we can pnly copy the alternate titles after the old index is removed
-    old_title_variants = [x for x in indx.nodes.get_titles() if 'primary' not in x or x['primary'] is False]
+    old_title_variants = [x for x in indx.nodes.get_titles_object() if 'primary' not in x or x['primary'] is False]
     old_he_primary = indx.get_title('he')
 
     vs = VersionSet({'title': idx_title})

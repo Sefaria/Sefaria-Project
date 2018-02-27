@@ -1,4 +1,10 @@
-var ga = require('./sefariaGa');
+var ga;
+if (typeof window !== 'undefined' && typeof window.ga === "function" ) {
+  ga = window.ga;
+} else {
+  ga = function() {}; // Fail gracefully if we reach one of these methods server side
+  ga._mock = true;
+}
 
 class Track {
     // Helper functions for event tracking (with Google Analytics and Mixpanel)
@@ -11,6 +17,10 @@ class Track {
           value.hitCallback();
           // Unsure why we have param mismatch... what we call value here is treated as options.
           // A previous attempt to insert `null` for value to put `options` in the right place broke tracking.
+        }
+        else if (value && value.hitCallback) {
+            // Creates a timeout to call `hitCallback` after one second (in case of no return from ga).
+            setTimeout(value.hitCallback, 1000)
         }
     }
     static pageview(url) {

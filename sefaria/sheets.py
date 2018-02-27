@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 sheets.py - backend core for Sefaria Source sheets
 
@@ -7,6 +8,7 @@ import regex
 import dateutil.parser
 from datetime import datetime, timedelta
 from bson.son import SON
+from collections import defaultdict
 
 import sefaria.model as model
 import sefaria.model.abstract as abstract
@@ -14,15 +16,16 @@ from sefaria.system.database import db
 from sefaria.model.notification import Notification, NotificationSet
 from sefaria.model.following import FollowersSet
 from sefaria.model.user_profile import UserProfile, annotate_user_list, public_user_data, user_link
-from sefaria.utils.util import strip_tags, string_overlap,titlecase
+from sefaria.utils.util import strip_tags, string_overlap, titlecase
 from sefaria.system.exceptions import InputError
+from sefaria.system.cache import django_cache_decorator
 from history import record_sheet_publication, delete_sheet_publication
 from settings import SEARCH_INDEX_ON_SAVE
 import search
 
 
 # Simple cache of the last updated time for sheets
-last_updated = {}
+# last_updated = {}
 
 
 def get_sheet(id=None):
@@ -103,7 +106,7 @@ def sheet_to_dict(sheet):
 	profile = public_user_data(sheet["owner"])
 	sheet_dict = {
 		"id": sheet["id"],
-		"title": sheet["title"] if "title" in sheet else "Untitled Sheet",
+		"title": strip_tags(sheet["title"]) if "title" in sheet else "Untitled Sheet",
 		"status": sheet["status"],
 		"author": sheet["owner"],
 		"ownerName": profile["name"],
@@ -173,11 +176,23 @@ def recent_public_tags(days=14, ntags=14):
 	"""
 	Returns list of tag/counts on public sheets modified in the last 'days'.
 	"""
-	cutoff      = datetime.now() - timedelta(days=days)
-	query       = {"status": "public", "dateModified": { "$gt": cutoff.isoformat() } }
-	tags        = sheet_tag_counts(query)[:ntags]
+	cutoff            = datetime.now() - timedelta(days=days)
+	query             = {"status": "public", "dateModified": { "$gt": cutoff.isoformat() } }
+	unnormalized_tags = sheet_tag_counts(query)[:ntags]
 
-	return tags
+	tags = defaultdict(int)
+	results = []
+
+	for tag in unnormalized_tags:
+		tags[model.Term.normalize(tag["tag"])] += tag["count"]
+
+	for tag in tags.items():
+		if len(tag[0]):
+			results.append({"tag": tag[0], "count": tag[1]})
+
+	results = sorted(results, key=lambda x: -x["count"])
+
+	return results
 
 
 def save_sheet(sheet, user_id, search_override=False):
@@ -234,13 +249,18 @@ def save_sheet(sheet, user_id, search_override=False):
 
 	db.sheets.update({"id": sheet["id"]}, sheet, True, False)
 
+	if "tags" in sheet:
+		update_sheet_tags(sheet["id"], sheet["tags"])
+
 
 	if sheet["status"] == "public" and SEARCH_INDEX_ON_SAVE and not search_override:
 		index_name = search.get_new_and_current_index_names()['current']
 		search.index_sheet(index_name, sheet["id"])
 
+	'''
 	global last_updated
 	last_updated[sheet["id"]] = sheet["dateModified"]
+	'''
 
 	return sheet
 
@@ -463,42 +483,45 @@ def get_last_updated_time(sheet_id):
 	"""
 	Returns a timestamp of the last modified date for sheet_id.
 	"""
+	'''
 	if sheet_id in last_updated:
 		return last_updated[sheet_id]
+	'''
 
 	sheet = db.sheets.find_one({"id": sheet_id}, {"dateModified": 1})
 
 	if not sheet:
 		return None
 
+	'''
 	last_updated[sheet_id] = sheet["dateModified"]
+	'''
 	return sheet["dateModified"]
 
 
-def make_tag_list(sort_by="alpha"):
+@django_cache_decorator(time=(60 * 60))
+def public_tag_list(sort_by="alpha"):
 	"""
 	Returns a list of all public tags, sorted either alphabetically ("alpha") or by popularity ("count")
 	"""
-	tags = {}
+	tags = defaultdict(int)
 	results = []
-	projection = {"tags": 1}
 
-	sheet_list = db.sheets.find({"status": "public"}, projection)
-	for sheet in sheet_list:
-		sheet_tags = sheet.get("tags", [])
-		for tag in sheet_tags:
-			if tag not in tags:
-				tags[tag] = {"tag": tag, "count": 0}
-			tags[tag]["count"] += 1
+	unnormalized_tags = sheet_tag_counts({"status": "public"})
+	lang = "he" if sort_by == "alpha-hebrew" else "en"
+	for tag in unnormalized_tags:
+		tags[model.Term.normalize(tag["tag"], lang)] += tag["count"]
 
-	for tag in tags.values():
-		results.append(tag)
+	for tag in tags.items():
+		if len(tag[0]):
+			results.append({"tag": tag[0], "count": tag[1]})
 
 	sort_keys =  {
 		"alpha": lambda x: x["tag"],
 		"count": lambda x: -x["count"],
+		"alpha-hebrew": lambda x: x["tag"] if len(x["tag"]) and x["tag"][0] in u"אבגדהוזחטיכלמנסעפצקרשת0123456789" else u"ת" + x["tag"],
 	}
-	results  = sorted(results, key=sort_keys[sort_by])
+	results = sorted(results, key=sort_keys[sort_by])
 
 	return results
 
@@ -507,7 +530,9 @@ def get_sheets_by_tag(tag, public=True, uid=None, group=None):
 	"""
 	Returns all sheets tagged with 'tag'
 	"""
-	query = {"tags": tag } if tag else {"tags": {"$exists": 0}}
+	term = model.Term().load_by_title(tag)
+	tags = term.get_titles() if term else [tag]
+	query = {"tags": {"$in": tags} } if tag else {"tags": {"$exists": 0}}
 
 	if uid:
 		query["owner"] = uid
@@ -611,13 +636,13 @@ class Sheet(abstract.AbstractMongoRecord):
 		"sources",
 		"status",
 		"options",
-		"generatedBy",
 		"dateCreated",
 		"dateModified",
 		"owner",
 		"id"
 	]
 	optional_attrs = [
+		"generatedBy",  # this had been required, but it's not always there.
 		"included_refs",
 		"views",
 		"nextNode",
@@ -632,7 +657,8 @@ class Sheet(abstract.AbstractMongoRecord):
 		"assigner_id",
 		"likes",
 		"group",
-		"generatedBy"
+		"generatedBy",
+		"summary" # double check this one
 	]
 
 	def regenerate_contained_refs(self):
@@ -642,3 +668,25 @@ class Sheet(abstract.AbstractMongoRecord):
 	def get_contained_refs(self):
 		return [model.Ref(r) for r in self.included_refs]
 
+	def is_hebrew(self):
+		"""Returns True if this sheet appears to be in Hebrew according to its title"""
+		from sefaria.utils.hebrew import is_hebrew
+		import regex
+		title = strip_tags(self.title)
+		# Consider a sheet Hebrew if its title contains Hebrew character but no English characters
+		return is_hebrew(title) and not regex.search(u"[a-z|A-Z]", title)
+
+
+class SheetSet(abstract.AbstractMongoSet):
+	recordClass = Sheet
+
+
+def change_tag(old_tag, new_tag_or_list):
+	# new_tag_or_list can be either a string or a list of strings
+	# if a list of strings, then old_tag is replaced with all of the tags in the list
+
+	new_tag_list = [new_tag_or_list] if isinstance(new_tag_or_list, basestring) else new_tag_or_list
+
+	for sheet in SheetSet({"tags": old_tag}):
+		sheet.tags = [tag for tag in sheet.tags if tag != old_tag] + new_tag_list
+		sheet.save()

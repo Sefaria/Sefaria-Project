@@ -1,22 +1,22 @@
 {% extends "base.html" %}
+{% load i18n %}
 
-{% block titleEnglish %}Texts Contributed to Sefaria{% endblock %}
-{% block titleHebrew %}Texts Contributed to Sefaria{% endblock %}
+{% block title %}{% trans "Texts Contributed to Sefaria" %}{% endblock %}
 
-{% block descriptionEnglish %}{% endblock %}
-
-{% block descriptionHebrew %}{% endblock %}
+{% block description %}{% trans "Texts on Sefaria that list this page as their source were contributed directly to Sefaria and have not yet been published elsewhere in print or on the web." %}{% endblock %}
 
 {% block content %}
 
 <div id="contributedToSefaria" class="container static">
     <div class="inner">
-        <h1>Texts Contributed Directly to Sefaria</h1>
+        <h1>
+            <span class="int-en">Texts Contributed Directly to Sefaria</span>
+            <span class="int-he">כתבים שנתרמו ישירות לספריא</span>
+        </h1>
         <div class="section">
             <p>
-                Texts on Sefaria that list this page as their source were contributed directly to Sefaria
-                and have not yet been published elsewhere in print or on the web.
-                Generally the licenses of these texts are clarified by written agreement with the authors.
+                <span class="int-en">Texts on Sefaria that list this page as their source were contributed directly to Sefaria and have not yet been published elsewhere in print or on the web. Generally the licenses of these texts are clarified by written agreement with the authors.</span>
+                <span class="int-he">הכתבים בעמוד זה נתרמו ישירות לספריא ולא הופצו באף פלטפורמה אחרת, אלקטרונית או מודפסת, קודם לכן. ככלל, רישיונות ההפצה של עבודות אלו ניתנו באישור כתוב של יוצריהם.</span>
             </p>
         </div>
     </div>

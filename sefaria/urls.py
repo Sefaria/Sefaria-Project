@@ -18,7 +18,8 @@ urlpatterns = patterns('reader.views',
     (r'^api/texts/version-status/?$', 'version_status_api'),
     (r'^api/texts/parashat_hashavua$', 'parashat_hashavua_api'),
     (r'^api/texts/random?$', 'random_text_api'),
-    (r'^api/texts/(?P<tref>.+)/(?P<lang>\w\w)/(?P<version>.+)$', 'texts_api'),
+    (r'^api/texts/random-by-topic/?$', 'random_by_topic_api'),
+    (r'^api/texts/(?P<tref>.+)/(?P<lang>\w\w)/(?P<version>.+)$', 'old_text_versions_api_redirect'),
     (r'^api/texts/(?P<tref>.+)$', 'texts_api'),
     (r'^api/index/?$', 'table_of_contents_api'),
     (r'^api/search-filter-index/?$', 'search_filter_table_of_contents_api'),
@@ -35,9 +36,12 @@ urlpatterns = patterns('reader.views',
     (r'^api/counts/links/(?P<cat1>.+)/(?P<cat2>.+)$', 'link_count_api'),
     (r'^api/counts/words/(?P<title>.+)/(?P<version>.+)/(?P<language>.+)$', 'word_count_api'),
     (r'^api/counts/(?P<title>.+)$', 'counts_api'),
+    (r'^api/shape/(?P<title>.+)$', 'shape_api'),
     (r'^api/preview/(?P<title>.+)$', 'text_preview_api'),
     (r'^api/terms/(?P<name>.+)$', 'terms_api'),
-    (r'^api/name/(?P<name>.+)$', 'name_api')
+    (r'^api/calendars/?$', 'calendars_api'),
+    (r'^api/name/(?P<name>.+)$', 'name_api'),
+    (r'^api/category/?(?P<path>.+)?$', 'category_api')
 )
 
 # Reviews API
@@ -90,6 +94,12 @@ urlpatterns += patterns('reader.views',
     (r'^mishnah-contest-2013/?$', lambda x: HttpResponseRedirect('/contests/mishnah-contest-2013')),
 )
 
+# JSON Editors
+urlpatterns += patterns('reader.views',
+    (r'^edit/terms/(?P<term>.+)$', 'terms_editor'),
+    (r'^add/terms/(?P<term>.+)$', 'terms_editor'),
+)
+
 # Texts Add / Edit / Translate
 urlpatterns += patterns('reader.views',
     (r'^edit/textinfo/(?P<title>.+)$', 'edit_text_info'),
@@ -99,7 +109,6 @@ urlpatterns += patterns('reader.views',
     (r'^translate/(?P<ref>.+)$', 'edit_text'),
     (r'^edit/(?P<ref>.+)/(?P<lang>\w\w)/(?P<version>.+)$', 'edit_text'),
     (r'^edit/(?P<ref>.+)$', 'edit_text'),
-
 )
 
 # Texts Page
@@ -130,7 +139,6 @@ urlpatterns += patterns('sheets.views',
     (r'^sheets/new/?$', 'new_sheet'),
     (r'^sheets/tags/?$', 'sheets_tags_list'),
     (r'^sheets/tags/(?P<tag>.+)$', 'sheets_tag'),
-    (r'^sheets/private/tags/(?P<tag>.+)$', 'private_sheets_tag'),
     (r'^sheets/(?P<type>(public|private))/?$', 'sheets_list'),
     (r'^sheets/(?P<sheet_id>\d+)$', 'view_sheet'),
     (r'^sheets/visual/(?P<sheet_id>\d+)$', 'view_visual_sheet'),
@@ -151,14 +159,14 @@ urlpatterns += patterns('sheets.views',
     (r'^api/sheets/(?P<sheet_id>\d+)/unlike$',                     'unlike_sheet_api'),
     (r'^api/sheets/(?P<sheet_id>\d+)/likers$',                     'sheet_likers_api'),
     (r'^api/sheets/user/(?P<user_id>\d+)$',                        'user_sheet_list_api'),
-    (r'^api/sheets/user/(?P<user_id>\d+)/(?P<sort_by>\w+)$',       'user_sheet_list_api_with_sort'),
+    (r'^api/sheets/user/(?P<user_id>\d+)/(?P<sort_by>\w+)/(?P<limiter>\d+)/(?P<offset>\d+)$',       'user_sheet_list_api_with_sort'),
     (r'^api/sheets/modified/(?P<sheet_id>\d+)/(?P<timestamp>.+)$', 'check_sheet_modified_api'),
     (r'^api/sheets/create/(?P<ref>[^/]+)(/(?P<sources>.+))?$',     'make_sheet_from_text_api'),
     (r'^api/sheets/tag/(?P<tag>[^/]+)?$',                          'sheets_by_tag_api'),
     (r'^api/sheets/trending-tags/?$',                              'trending_tags_api'),
     (r'^api/sheets/tag-list/?$',                                   'tag_list_api'),
     (r'^api/sheets/tag-list/user/(?P<user_id>\d+)?$',              'user_tag_list_api'),
-    (r'^api/sheets/tag-list/(?P<sort_by>\w+)$',                    'tag_list_api'),
+    (r'^api/sheets/tag-list/(?P<sort_by>[a-zA-Z\-]+)$',                    'tag_list_api'),
     (r'^api/sheets/all-sheets/(?P<limiter>\d+)/(?P<offset>\d+)$',  'all_sheets_api'),
     (r'^api/sheets/(?P<sheet_id>\d+)/export_to_drive$',            'export_to_drive'),
 )
@@ -166,6 +174,7 @@ urlpatterns += patterns('sheets.views',
 # Activity
 urlpatterns += patterns('reader.views',
     (r'^activity/?$', 'global_activity'),
+    (r'^activity/leaderboard?$', 'leaderboard'),
     (r'^activity/(?P<page>\d+)$', 'global_activity'),
     (r'^activity/(?P<slug>[^/]+)/(?P<page>\d+)?$', 'user_activity'),
     (r'^activity/(?P<tref>[^/]+)/(?P<lang>.{2})/(?P<version>.+)/(?P<page>\d+)$', 'segment_history'),
@@ -212,23 +221,29 @@ urlpatterns += patterns('reader.views',
 # Groups
 urlpatterns += patterns('sheets.views',
     (r'^groups/?$', 'groups_page'),
+    (r'^groups/allz$', 'groups_admin_page'),
     (r'^groups/new$', 'edit_group_page'),
     (r'^groups/(?P<group>[^/]+)/settings$', 'edit_group_page'),
     (r'^groups/(?P<group>[^/]+)$', 'group_page'),
-    (r'^groups/(?P<group>[^/]+)/tags/(?P<tag>.+)$', 'group_sheets_tag'),
     (r'^my/groups$', 'my_groups_page'),
     (r'^partners/(?P<group>[^/]+)$', 'group_page'),
-    (r'^partners/(?P<group>[^/]+)/tags/(?P<tag>.+)$', 'group_sheets_tag'),
     (r'^api/groups(/(?P<group>[^/]+))?$', 'groups_api'),
     (r'^api/groups/(?P<group_name>[^/]+)/set-role/(?P<uid>\d+)/(?P<role>[^/]+)$', 'groups_role_api'),
     (r'^api/groups/(?P<group_name>[^/]+)/invite/(?P<uid_or_email>[^/]+)(?P<uninvite>\/uninvite)?$', 'groups_invite_api'),
     (r'^api/groups/(?P<group_name>[^/]+)/pin-sheet/(?P<sheet_id>\d+)', 'groups_pin_sheet_api'),
 )
 
-
 # Topics
-urlpatterns += patterns('sheets.views',
+urlpatterns += patterns('reader.views',
+    (r'^topics$', 's2_topics_page'),
+    (r'^topics/(?P<topic>.+)$', 's2_topic_page'),
+)
+
+# Topics API
+urlpatterns += patterns('reader.views',
+    (r'^api/topics$', 'topics_list_api'),
     (r'^api/topics/(?P<topic>.+)$', 'topics_api'),
+    (r'^api/recommend/topics(/(?P<ref_list>.+))?', 'recommend_topics_api'),
 )
 
 # Registration
@@ -244,7 +259,7 @@ urlpatterns += patterns('',
 
 # Compare Page
 urlpatterns += patterns('sefaria.views',
-    url(r'^compare/(?P<ref1>[^/]+)/(?P<ref2>[^/]+)/(?P<lang>en|he)/?(?P<v1>[^/]+)?/?(?P<v2>[^/]+)?$', 'compare')
+    url(r'^compare/?((?P<secRef>[^/]+)/)?((?P<lang>en|he)/)?((?P<v1>[^/]+)/)?(?P<v2>[^/]+)?$', 'compare')
 )
 
 static_pages = [
@@ -275,7 +290,7 @@ static_pages = [
     "random-walk-through-torah",
     "educators",
     "the-sefaria-story",
-
+    "aramaic-translation-contest",
 ]
 
 # Static and Semi Static Content
@@ -321,6 +336,8 @@ urlpatterns += patterns('',
     (r'^forum/?$', lambda x: HttpResponseRedirect('https://groups.google.com/forum/?fromgroups#!forum/sefaria')),
     (r'^wiki/?$', lambda x: HttpResponseRedirect('https://github.com/Sefaria/Sefaria-Project/wiki')),
     (r'^developers/?$', lambda x: HttpResponseRedirect('https://github.com/Sefaria/Sefaria-Project/wiki#developers')),
+    (r'^request-a-text/?$', lambda x: HttpResponseRedirect('https://goo.gl/forms/ru33ivawo7EllQxa2')),
+    (r'^request-a-training/?$', lambda x: HttpResponseRedirect(' https://docs.google.com/forms/d/1CJZHRivM2qFeF2AE2afpvE1m86AgJPCxUEFu5EG92F8/edit?usp=sharing_eil&ts=5a4dc5e0')),
     (r'^contribute/?$', lambda x: HttpResponseRedirect('https://github.com/Sefaria/Sefaria-Project/wiki/Guide-to-Contributing')),
     (r'^faq/?$', lambda x: HttpResponseRedirect('https://github.com/Sefaria/Sefaria-Project/wiki#frequently-asked-questions')),
     (r'^textmap/?$', lambda x: HttpResponseRedirect('/static/files/Sefaria-Text-Map-June-2016.pdf')),
@@ -355,7 +372,6 @@ urlpatterns += patterns('sefaria.views',
 # Email Subscribe
 urlpatterns += patterns('sefaria.views',
     (r'^api/subscribe/(?P<email>.+)$', 'subscribe'),
-    (r'^api/subscribe-educator-newsletter/(?P<email>.+)$', 'subscribe_educators'),
 )
 
 # Admin
@@ -366,6 +382,8 @@ urlpatterns += patterns('',
     (r'^admin/reset/counts/all$', 'sefaria.views.reset_counts'),
     (r'^admin/reset/counts/(?P<title>.+)$', 'sefaria.views.reset_counts'),
     (r'^admin/reset/toc$', 'sefaria.views.rebuild_toc'),
+    (r'^admin/reset/ac$', 'sefaria.views.rebuild_auto_completer'),
+    (r'^admin/reset/topics$', 'sefaria.views.rebuild_topics'),
     (r'^admin/reset/(?P<tref>.+)$', 'sefaria.views.reset_ref'),
     (r'^admin/delete/orphaned-counts', 'sefaria.views.delete_orphaned_counts'),
     (r'^admin/rebuild/auto-links/(?P<title>.+)$', 'sefaria.views.rebuild_auto_links'),
@@ -379,8 +397,10 @@ urlpatterns += patterns('',
     (r'^admin/contest-results', 'sefaria.views.list_contest_results'),
     (r'^admin/translation-requests-stats', 'sefaria.views.translation_requests_stats'),
     (r'^admin/sheet-stats', 'sefaria.views.sheet_stats'),
+    (r'^admin/untagged-sheets', 'sefaria.views.untagged_sheets'),
     (r'^admin/versions-csv', 'sefaria.views.versions_csv'),
     (r'^admin/?', include(admin.site.urls)),
+    (r'^admin/index-sheets-by-timestamp', 'sefaria.views.index_sheets_by_timestamp'),
     #(r'^admin/view/template_cache/(?P<title>.+)$', 'sefaria.views.view_cached_elem'),
     #(r'^admin/delete/template_cache/(?P<title>.+)$', 'sefaria.views.del_cached_elem'),
     #(r'^admin/rebuild/counts-toc', 'sefaria.views.rebuild_counts_and_toc'),
@@ -401,7 +421,7 @@ urlpatterns += patterns('sefaria.gauth.views',
 
 # Catch all to send to Reader
 urlpatterns += patterns('reader.views',
-    (r'^(?P<tref>[^/]+)/(?P<lang>\w\w)/(?P<version>.*)$', 'reader'),
+    (r'^(?P<tref>[^/]+)/(?P<lang>\w\w)/(?P<version>.*)$', 'old_versions_redirect'),
     (r'^(?P<tref>[^/]+)(/)?$', 'reader')
 )
 

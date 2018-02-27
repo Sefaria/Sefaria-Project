@@ -1,431 +1,404 @@
 {% extends "base.html" %}
+{% load i18n cache humanize sefaria_tags %}
 
-{% load cache %}
-{% load humanize %}
-{% load sefaria_tags %}
+{% block title %}{% trans "Sefaria: a Living Library of Jewish Texts Online" %}{% endblock %}
 
-{% block title %}Sefaria: a Living Library of Jewish Texts Online{% endblock %}
+{% block description %}{% trans "The largest free library of Jewish texts available to read online in Hebrew and English including Torah, Tanakh, Talmud, Mishnah, Midrash, commentaries and more." %}{% endblock %}
 
 {% block head %}
-    <meta property="og:title" content="Sefaria.org : a Living Library of Jewish Texts Online"/>
     <meta property="og:type" content="website"/>
-    <meta property="og:url" content="https://www.sefaria.org"/>
-    <meta property="og:image" content="https://www.sefaria.org/static/img/fb-og-image.png"/>
+    <meta property="og:url" content="https://{{ request.META.HTTP_HOST }}"/>
+    <link rel="canonical" href="https://{{ request.META.HTTP_HOST }}" />
+    {% autoescape off %}
+    <script type="application/ld+json">
+    {
+      "@context": "http://schema.org",
+      "@type": "WebSite",
+      "name": {% trans "Sefaria" %},
+      "url": "https://{{ request.META.HTTP_HOST }}",
+      "potentialAction": {
+        "@type": "SearchAction",
+        "target": "https://{{ request.META.HTTP_HOST }}/search?q={search_term_string}",
+        "query-input": "required name=search_term_string"
+      }
+    }
+    </script>
+
+    <script type="application/ld+json">
+    {
+      "@context": "http://schema.org",
+      "@type": "Organization",
+      "name": {% trans "Sefaria" %},
+      "url": "https://{{ request.META.HTTP_HOST }}",
+      "logo": "https://{{ request.META.HTTP_HOST }}/static/img/Sefaria_icon_360_square.jpg",
+      "sameAs": [
+        "https://www.facebook.com/sefaria.org/",
+        "https://twitter.com/sefariaproject",
+        "https://www.youtube.com/user/SefariaProject",
+        "https://github.com/Sefaria"
+      ]
+    }
+    </script>
+    {% endautoescape %}
 {% endblock %}
 
 {% block css %}
-    html, body {
-        height: auto;
-        overflow-x: hidden;
-        padding: 0 !important;
-    }
-    #top #languageToggle {
-        display: inline;
-    }
-    #top #languageToggle #bilingual {
-        display: none;
-    }
 {% endblock %}
 
 {% block content %}
 
-<div id="home" class='biReady'>
-
-    <div id="homeTitle">
-        <div id="underlay"></div>
-        <div id="homeTitleBox">
+    <div id="homePage" class="static biReady">
+        <div id="homeCover">
+            <video id="homeVideo" poster="/static/img/home-video.jpg" preload="auto" autoplay="true" loop="loop" muted="muted" volume="0">
+                <source src="/static/img/home-video.webm" type="video/webm">
+                <source src="/static/img/home-video.mp4" type="video/mp4">
+                Video of sofer writing letters of the Torah
+            </video>
             <h1>
-                <span class='en'>Sefaria is a living library of Jewish texts.</span>
-                <span class='he'>ספריא היא ספריה חיה של טקסטים יהודיים.</span>
+                <span class="int-en">A Living Library of Jewish Texts</span>
+                <span class="int-he">ספריה חיה של טקסטים יהודיים</span>
             </h1>
-            <div id="subBox">
-                <div id="sub">
-                    <span class="en">
-                        In a beautiful interface, fully interconnected, with parallel translations, for free.
-                    </span>
-                    <span class="he">
-                        קישורים מלאים בין הטקסטים, ממשק יפה ונוח, תרגומים מקבילים ובחינם.
-                    </span>
-                </div>
+            <div class="sub">
+                <span class="int-en">Explore 3,000 years of Jewish texts in Hebrew and English translation. <a href="/about">Learn More &rsaquo;</a></span>
+                <span class="int-he">3,000 שנה של טקסטים יהודיים בעברית ובתרגום לאנגלית פרושים לפניך. <a href="/about">קרא עוד&rsaquo;</a></span>
             </div>
+            <a href="/Genesis.1" class="inAppLink">
+                <div class="button white control-elem">
+                    <span class="int-en">Get Started</span>
+                    <span class="int-he">צא לדרך</span>
+                </div>
+            </a>
         </div>
-    </div>
 
-    <div id="homeColumns">
-        <div class="homeColumn blue">
-            <h2>
-                <span class='en'>Learn</span>
-                <span class='he'>למידה</span>
-                <div class="triangle"></div>
-            </h2>
-            <div class="columnLinks">
-                <div id="exploreTexts" class="columnLink">
-                    <i class="fa fa-compass"></i>
-                    <span class='en'>Explore Our Texts</span>
-                    <span class='he'>דפדפו בספריית הטקסטים</span>
-                </div>
-                <a class="columnLink" href="/Genesis.1">
-                    <i class="fa fa-book"></i>
-                    <span class='en'>Genesis Chapter 1</span>
-                    <span class='he'>בראשית א'</span>
-                </a>
-                <div id="textsTutorial" class="columnLink">
-                    <i class="fa fa-film"></i>
-                    <span class='en'>How-to: Texts</span>
-                    <span class='he'>סרטון הדרכה - למידה</span>
-                </div>
-            </div>
-        </div><!--
-        --><div class="homeColumn purple">
-            <h2>
-                <span class='en'>Teach</span>
-                <span class='he'>הוראה</span>
-                <div class="triangle"></div>
-            </h2>
-            <div class="columnLinks">
-                <a class="columnLink" href="/sheets">
-                    <i class="fa fa-file-text-o"></i>
-                    <span class='en'>Make a Source Sheet</span>
-                    <span class='he'>צרו דף מקורות</span>
-                </a>
-                <a class="columnLink" href="/sheets/tags">
-                    <i class="fa fa-comments-o"></i>
-                    <span class='en'>Public Source Sheets</span>
-                    <span class='he'>דפי מקורות לשימוש כללי</span>
-                </a>
-                <div id="sheetsTutorial" class="columnLink">
-                    <i class="fa fa-film"></i>
-                    <span class='en'>How-to: Source Sheets</span>
-                    <span class='he'>סרטון הדרכה - דפי מקורות</span>
-                </div>
-            </div>
-        </div><!--
-        --><div class="homeColumn grey">
-            <h2>
-                <span class='en'>Calendar</span>
-                <span class='he'>לוח יומי</span>
-                <div class="triangle"></div>
-            </h2>
-            <div id="calendar">
-                <div class="calendarSection">
-                    <span class="calendarSectionTitle">
-                        <span class='en'>Parashat HaShavua</span>
-                        <span class='he'>פרשת השבוע</span>
-                    </span>
-                    <a href="/{{ parasha.ref|url_safe }}">
-                        <span class="en">{{ parasha.parasha }}</span>
-                        <span class="he">{{ parasha.parasha|he_parasha }}</span>
-                        <div class="ref">
-                            <span class="en">{{ parasha.ref }}</span>
-                            <span class="he">{{ parasha.ref|he_ref }}</span>
+        <div id="homeLearn" class="section textLeft">
+            <div class="sectionInner">
+                <div class="textBox">
+                    <h2>
+                        <span class="int-en">Start Learning</span>
+                        <span class="int-he">למידה</span>
+                    </h2>
+                    <div class="description">
+                        <span class="int-en">Learning on Sefaria is simple, beautiful and powerful. Find commentaries, connections and translations across our free, ever-growing library of texts.</span>
+                        <span class="int-he">למידה בספריא הוא תהליך פשוט, יפיפה ורב עוצמה. מצאו פרשנויות, יחסים אינטרטקסטואליים ותרגומים ברחבי ספריית הטקסטים החינמית והמתרחבת שלנו.</span>
+                    </div>
+                    <a href="/texts">
+                        <div class="button white control-elem">
+                            <span class="int-en">Explore the Library &rsaquo;</span>
+                            <span class="int-he">גלה את הספרייה &rsaquo; </span>
                         </div>
                     </a>
-                    {% if parasha.haftara|length > 1 %}
-                        <span class="haftara">
-                            <span class="en">Haftara</span>
-                            <span class="he">הפטרה</span>
-                            <span class="ref">
-                                {% for haftara in parasha.haftara %}
-                                    <a class="haftara floatLeft"  href="/{{ haftara|url_safe }}">
-                                        <span class="en">{{ haftara }}</span>
-                                        <span class="he">{{ haftara|he_ref }}</span>
-                                    </a>
-                                {% endfor %}
-                            </span>
-                        </span>
-                        <div class="clear"></div>
-                    {% else %}
-                        <a class="haftara" href="/{{ parasha.haftara.0|url_safe }}">
-                            <span class="en">Haftara </span>
-                            <span class="he">הפטרה</span>
-                            <span class="ref">
-                                <span class="en">{{ parasha.haftara.0 }}</span>
-                                <span class="he">{{ parasha.haftara.0|he_ref }}</span>
-                            </span>
-                        </a>
-                    {% endif %}
-                    {{ parasha.shabbat_name|default:"" }}
                 </div>
-                <div class="line"></div>
-                <div class="calendarSection">
-                    <span class="calendarSectionTitle">
-                        <span class='en'>Daf Yomi</span>
-                        <span class='he'>דף יומי</span>
-                    </span>
-                    <a href="/{{ daf_today.url }}">
-                        <span class="en">{{ daf_today.name }}</span>
-                        <span class="he">{{ daf_today.name|he_ref }}</span>
+                <div class="imageBox">
+                    <a class="refLink blockLink inAppLink" href="/{{ parasha.ref|url_safe }}" style="border-color: rgb(0, 78, 95);">
+                        <span class="int-en">Parashah</span>
+                        <span class="int-he">פרשה</span>
+                    </a>
+                    <a class="refLink blockLink inAppLink" href="/{{ daf_today.url }}" style="border-color: rgb(204, 180, 121);">
+                        <span class="int-en">Daf Yomi</span>
+                        <span class="int-he">דף יומי</span>
+                    </a>
+                    <a class="refLink blockLink" href="/texts/Liturgy/Haggadah" style="border-color: rgb(171, 78, 102);">
+                        <span class="int-en">Haggadah</span>
+                        <span class="int-he">הגדה של פסח</span>
+                    </a>
+                    <a class="refLink blockLink inAppLink" href="/Pirkei_Avot.1" style="border-color: rgb(90, 153, 183);">
+                        <span class="int-en">Pirkei Avot</span>
+                        <span class="int-he">פרקי אבות</span>
+                    </a>
+                    <a class="refLink blockLink inAppLink" href="/Bereishit_Rabbah.1" style="border-color: rgb(93, 149, 111);">
+                        <span class="int-en">Midrash Rabbah</span>
+                        <span class="int-he">מדרש רבה</span>
+                    </a>
+                    <a class="refLink blockLink inAppLink" href="/Shulchan_Arukh,_Orach_Chayyim.1" style="border-color: rgb(128, 47, 62);">
+                        <span class="int-en">Shulchan Arukh</span>
+                        <span class="int-he">שולחן ערוך</span>
+                    </a>
 
+                </div>
+            </div>
+        </div>
+
+
+        <div id="homeMobile" class="section textRight">
+            <div class="sectionInner">
+                <div class="textBox">
+                    <h2>
+                        <span class="int-en">Sefaria Mobile</span>
+                        <span class="int-he">ספריא בנייד</span>
+                    </h2>
+                    <div class="description">
+                        <span class="int-en">
+                            Enjoy Sefaria's entire library and all of its links and interconnections on-the-go.
+                            Sefaria’s apps for Android and iOS available to download for free.
+                        </span>
+                        <span class="int-he">
+                            הספריה המלאה של ספריא, הכוללת את כל הלינקים והקשרים, זמינה גם בנייד.
+                            האפליקציות של ספריא לאנדרואיד ולאייפון זמינות עכשיו להורדה בחינם.
+                        </span>
+
+                    </div>
+                    <a href="https://play.google.com/store/apps/details?id=org.sefaria.sefaria" target="_blank">
+                        <div class="button white control-elem">
+                            <i class="fa fa-android"></i>
+                            <span class="int-en">Get Android App &rsaquo;</span>
+                            <span class="int-he"> הורדה לאנדרואיד &rsaquo;</span>
+                        </div>
+                    </a>
+                    <a href="https://itunes.apple.com/us/app/sefaria/id1163273965?ls=1&mt=8" id="iOSButton" target="_blank">
+                        <div class="button white control-elem">
+                            <i class="fa fa-apple"></i>
+                            <span class="int-en">Get iOS App &rsaquo;</span>
+                            <span class="int-he"> הורדה לאייפון &rsaquo;</span>
+                        </div>
                     </a>
                 </div>
-                <div class="line"></div>
-                <div class="calendarSection">
-                    <span class="calendarSectionTitle">
-                        <a href="http://www.929.org.il/" target="_blank">
-                        <span class='en'>Project 929</span>
-                        <span class='he'>פרויקט 929</span>
-                        </a>
-                    </span>
-                    <div>
-                        <span class="en">{{ p929|ref_link }}</span>
-                        <span class="he">{{ p929|he_ref_link }}</span>
-                    </div>
+                <div class="imageBox">
+                    <img src="/static/img/home-mobile.png" alt="Image of Sefaria on mobile phones" />
                 </div>
             </div>
         </div>
-    </div>
 
-    <div id="homeCards">
-        <a class="homeCard" href="/explore">
-            <h2>
-                <span class='en'>Link Explorer</span>
-                <span class='he'>מפת ציטוטים</span>
-            </h2>
-            <img src="/static/img/explorer-in-laptop.png" alt="Image of Tanakh Visualizer Tool on Laptop" />
-            <div class="description">
-                <span class="en">Visually explore connections between Talmud and Tanakh.</span>
-                <span class="he">תרשים המראה את ציטוטי המקרא בתלמוד הבבלי</span>
+
+        <div id="homeSheets" class="section textLeft">
+            <div class="sectionInner">
+                <div class="textBox">
+                    <h2>
+                        <span class="int-en">Make a Source Sheet</span>
+                        <span class="int-he">דפי מקורות</span>
+                    </h2>
+                    <div class="description">
+                        <span class="int-en">Mix and match sources from our library, as well as outside sources, along with your comments, images and videos.</span>
+                        <span class="int-he">אתם יכולים לשלב מקורות מהספריה שלנו, יחד עם מקורות חיצוניים, ולהוסיף הערות, תמונות וסרטונים.</span>
+                    </div>
+                    <a href="/sheets/new">
+                        <div class="button control-elem">
+                            <span class="int-en">Start a Sheet &rsaquo;</span>
+                            <span class="int-he">צור דף מקורות &rsaquo;</span>
+                        </div>
+                    </a>
+                    <a href="/sheets" class="inAppLink">
+                        <div class="button white control-elem">
+                            <span class="int-en">Explore Sheets &rsaquo;</span>
+                            <span class="int-he">סייר בדפי המקורות &rsaquo;</span>
+                        </div>
+                    </a>
+                </div>
+                <div class="imageBox bordered">
+                    <a href="/sheets">
+                        <img src="/static/img/home-sheets.png" alt="Image of printed Sefaria source sheets" />
+                    </a>
+                </div>
             </div>
-        </a>
-        <a id="blogCard" class="homeCard" href="http://blog.sefaria.org">
-            <h2>
-                <span class='en'>Blog</span>
-                <span class='he'>בלוג</span>
-            </h2>
-            <img src="/static/img/blog-image.png" alt=""/>
-            <div class="description">
-                <span class="en">Read the latest updates from Sefaria on our Blog.</span>
-                <span class="he">קראו את העדכונים האחרונים מספריא בבלוג שלנו.</span>
-            </div>
-        </a>
-    </div>
-
-    <div id="homeMetrics">
-        <h1>
-		<span class="en">Sefaria is building the future of Jewish learning in an open and participatory way.</span>
-		<span class="he">ספריא שואפת לבנות את עתיד לימוד המקורות היהודיים בצורה פתוחה ומשותפת</span>
-		</h1>
-
-        <p class="statsCircle grey1">
-            <span class="wordCount">{{ metrics.contributors|intcomma }}</span>
-            <span class='en'>Contributors</span>
-            <span class='he'>משתמשים שתרמו טקסטים</span>
-        </p>
-
-        <p class="statsCircle grey2">
-            <span class="wordCount">{{ metrics.sheets|intcomma }}</span>
-            <span class='en'>Source Sheets</span>
-            <span class='he'>דפי מקורות</span>
-        </p>
-
-        <p class="statsCircle grey3">
-            <span class="wordCount">{{ metrics.links|intcomma }}</span>
-            <span class='en'>Textual Connections</span>
-            <span class='he'>הפניות וקישורים</span>
-        </p>
-
-        <p class="statsCircle blue">
-            <span class="wordCount">{{ metrics.transWords|intcomma }}</span>
-            <span class='en'>Words of Translation</span>
-            <span class='he'>מלים מתורגמות</span>
-
-        </p>
-
-        <p class="statsCircle purple">
-            <span class="wordCount">{{ metrics.heWords|add:metrics.transWords|intcomma }}</span>
-            <span class='en'>Total Words</span>
-            <span class='he'>מילים במאגר</span>
-        </p>
-
-        <a href="/metrics" id="moreMetrics">
-            <span class='en'>See More Metrics</span>
-            <span class='he'>מדדים נוספים</span>
-        </a>
-
-        <p id="metricsMessage">
-            <span class="en">Our scope is Torah in the broadest sense, from Tanakh to Talmud to Zohar to modern texts and all the volumes of commentary inbetween.</span>
-            <span class="he">ספריא שואפת לכלול את התורה במובנה הרחב- מהתלמוד ועד הזוהר, מהתנ"ך ועד טקסטים בני ימינו.</span>
-        </p>
-
-        <a href="https://github.com/Sefaria/Sefaria-Project/wiki" target="_blank" class="btn btn-large grey">
-            <span class="en">Get Involved</span>
-            <span class="he">הצטרף לעשייה</span>
-        </a>
-    </div>
-
-    <div id="homeDonate">
-        <h2>
-            <span class='en'>We need your help</span>
-            <span class='he'>אנו זקוקים לעזרתכם</span>
-        </h2>
-
-        <p>
-            <span class="en">Sefaria is an open source, not-for-profit project.<br>Support us by making a tax deductibale donation.</span>
-            <span class="he">ספריא היא פרויקט ללא מטרת רווח, שפותחה בקוד פתוח <br>כל תרומה תתקבל בברכה, תרומות לספריא מוכרות לצרכי מס.</span>
-        </p>
-
-        <a href="/donate" class="btn btn-large purple bordered">
-            <span class="en">Make a Donation</span>
-            <span class="he">תרום</span>
-        </a>
-    </div>
-
-    <div id="homeConnect">
-        <div id="homeConnectBox">
-            <h1>
-                <span class="en">Stay Connected</span>
-                <span class="he">השארו מחוברים</span>
-            </h1>
-            <div id="mailingListBox">
-                <h3>
-                    <span class="en">Subscribe to our mailing list</span>
-                    <span class="he">הצטרפו לרשימת התפוצה</span>
-                </h3>
-                <input id="mailingListEmail" placeholder="Email">
-                <span id="subscribe" class="btn btn-large  purple">
-                    <span class="en">Subscribe</span>
-                    <span class="he">הרשמו</span>
-                </span>
-                <div id="subscribeMsg">&nbsp;</div>
-            </div>
-
-            <a href="http://github.com/Sefaria/Sefaria-Project" class="followButton btn btn-large lightblue bordered">
-                <i class="fa fa-github"></i>
-                <span class="en">Fork us on GitHub</span>
-                <span class="he">זלגו חופשי מגיטהאב</span>
-            </a>
-
-            <a href="http://www.twitter.com/SefariaProject" class="followButton btn btn-large lightblue bordered">
-                <i class="fa fa-twitter"></i>
-                <span class="en">Follow us on Twitter</span>
-                <span class="he">עקבו אחרינו בטוויטר</span>
-            </a>
-
-            <a href="http://www.facebook.com/sefaria.org" class="followButton btn btn-large lightblue bordered">
-                <i class="fa fa-facebook"></i>
-                <span class="en">Like us on Facebook</span>
-                <span class="he">אהבו אותנו בפייסבוק</span>
-            </a>
         </div>
+
+
+        <div id="homeExplore" class="section textRight">
+            <div class="sectionInner">
+                <div class="textBox">
+                     <h2>
+                        <span class="int-en">Link Explorer</span>
+                        <span class="int-he">קשרים אינטרטקסטואליים</span>
+                    </h2>
+                    <div class="description">
+                        <span class="int-en">Explore more than 30,000 connections between the Talmud and Tanakh in our interactive data visualization. </span>
+                        <span class="int-he">יותר מ-30,000 קשרים בין התלמוד לתנ"ך מוצגים באינפוגרפיקה דינאמית</span>
+                    </div>
+                    <a href="/explore">
+                        <div class="button white control-elem">
+                            <span class="int-en">Explore Connections &rsaquo;</span>
+                            <span class="int-he">גרף הקשרים &rsaquo;</span>
+                        </div>
+                    </a>
+                </div>
+                <div class="imageBox bordered">
+                    <a href="/explore">
+                        <img src="/static/img/home-explore.png" alt="Image of networked text" />
+                    </a>
+                </div>
+            </div>
+        </div>
+
+
+        <div id="homeEducators" class="section textLeft">
+            <div class="sectionInner">
+                <div class="textBox">
+                     <h2>
+                        <span class="int-en">Educators</span>
+                        <span class="int-he">מחנכים</span>
+                    </h2>
+                    <div class="description">
+                        <span class="int-en">Discover Sefaria’s potential in the classroom, connect with other educators and learn to integrate Sefaria into your teaching.</span>
+                        <span class="int-he">קרא עוד על יתרונות השימוש בספריא בכיתת הלימוד, צור קשר עם אנשי חינוך אחרים בתחום ולמד כיצד לשלב את ספריא בהוראה.</span>
+                    </div>
+                    <a href="/educators">
+                        <div class="button white control-elem">
+                            <span class="int-en">Learn More &rsaquo;</span>
+                            <span class="int-he">קרא עוד &rsaquo;</span>
+                        </div>
+                    </a>
+                </div>
+                <div class="imageBox bordered">
+                    <a href="/educators">
+                        <img src="/static/img/ed-groups.png" alt="Image of an educator with students" />
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!--
+        <div id="homeBlog" class="section center"/>
+            <div class="sectionInner">
+                <div class="blogTag">
+                    <span class="int-en">Blog</span>
+                    <span class="int-he">בלוג</span>
+                </div>
+                <h2>
+                    <span class="int-en">The Sefaria Blog</span>
+                    <span class="int-he"></span>
+                </h2>
+                <div class="blogText">
+                    <span class="int-en">Stay up to date with Sefaria’s latest features and get a behind-the-scenes look at product development and library expansion plans.</span>
+                    <span class="int-he"></span>
+                </div>
+                <a href="http://blog.sefaria.org">
+                    <span class="int-en">Read More &rsaquo;</span>
+                    <span class="int-he"></span>
+                </a>
+            </div>
+        </div>
+        -->
+
+        <div id="homeProgress" class="section center">
+            <div class="sectionInner">
+                <h3 class="sans">
+                    <span class="int-en">Our Progress</span>
+                    <span class="int-he">ספריא במספרים</span>
+                </h3>
+                <p class="stat">
+                    <img class="statIcon" src="/static/img/progress-contributors.png" alt="">
+                    <span class="wordCount">{{ metrics.contributors|intcomma }}</span>
+                    <span class="stat-name sans">
+                        <span class="int-en">Contributors</span>
+                        <span class="int-he">משתמשים שתרמו טקסטים</span>
+                    </span>
+                </p>
+
+                <p class="stat">
+                    <img class="statIcon" src="/static/img/progress-sheets.png" alt="">
+                    <span class="wordCount">{{ metrics.sheets|intcomma }}</span>
+                    <span class="stat-name sans">
+                        <span class="int-en">Source Sheets</span>
+                        <span class="int-he">דפי מקורות</span>
+                    </span>
+                </p>
+
+                <p class="stat">
+                    <img class="statIcon" src="/static/img/progress-connections.png" alt="">
+                    <span class="wordCount">{{ metrics.links|intcomma }}</span>
+                    <span class="stat-name sans">
+                        <span class="int-en">Connections</span>
+                        <span class="int-he">הפניות וקישורים</span>
+                    </span>
+                </p>
+
+                <p class="stat">
+                    <img class="statIcon" src="/static/img/progress-translation.png" alt="">
+                    <span class="wordCount">{{ metrics.transWords|intcomma }}</span>
+                    <span class="stat-name sans">
+                        <span class="int-en">Words of Translation</span>
+                        <span class="int-he">מלים מתורגמות</span>
+                    </span>
+                </p>
+
+                <p class="stat">
+                    <img class="statIcon" src="/static/img/progress-words.png" alt="">
+                    <span class="wordCount">{{ metrics.heWords|add:metrics.transWords|intcomma }}</span>
+                    <span class="stat-name sans">
+                        <span class="int-en">Total Words</span>
+                        <span class="int-he">מילים במאגר</span>
+                    </span>
+                </p>
+
+                <a href="/metrics" id="moreMetrics">
+                    <div class="button white control-elem">
+                        <span class="int-en">More Metrics &rsaquo;</span>
+                        <span class="int-he">מדדים נוספים &rsaquo;</span>
+                    </div>
+                </a>
+            </div>
+        </div>
+
+        <div id="homeHelp" class="section center">
+            <div class="sectionInner">
+                <h2>
+                    <span class="int-en">We Need Your Help</span>
+                    <span class="int-he">אנו זקוקים לעזרתכם</span>
+                </h2>
+                <div class="description">
+                    <span class="int-en">Sefaria is an open source, non-profit project. Support us by making a tax-deductible donation.</span>
+                    <span class="int-he">פרויקט ספריא פתוח לקהל הרחב (open source) ללא מטרות רווח. תמכו בנו באמצעות תרומה פטורה ממס.</span>
+                </div>
+                <a href="/donate">
+                    <div class="button control-elem">
+                        <span class="int-en">Make a Donation</span>
+                        <span class="int-he">לתמיכה ע"י תרומה</span>
+                    </div>
+                </a>
+            </div>
+        </div>
+
+        <div id="homeConnect" class="section center">
+            <div class="sectionInner">
+                <h2>
+                    <span class="int-en">Stay Connected</span>
+                    <span class="int-he">השארו מחוברים</span>
+                </h2>
+                <div id="mailingListBox">
+                    <div id="mailingListTitle" class="sans">
+                        <span class="int-en">Subscribe to our mailing list</span>
+                        <span class="int-he">הצטרפו לרשימת הדיוור שלנו</span>
+                    </div>
+                    <input id="mailingListEmail" title="Subscribe to our mailing list by entering your email here" placeholder="{% trans 'Email Address' %}">
+                    <span id="subscribe" class="button control-elem">
+                        <span class="int-en">Subscribe</span>
+                        <span class="int-he">הרשמו</span>
+                    </span>
+                    <div id="subscribeMsg">&nbsp;</div>
+                </div>
+            </div>
+        </div>
+
     </div>
-
-    <a id="donateButton" href="/donate">
-        <span class='en'>Donate</span>
-        <span class='he'>תרומות</span>
-    </a>
-
-    <div id="announcement" class="modal">
-        <a href="/donate" class="btn btn-large purple">
-            <span class="en"></span>
-            <span class="he"></span>
-        </a>
-        <h3>
-            <span class="en"></span>
-            <span class="he"></span>
-        </h3>
-        <p>
-            <span class="en"></span>
-            <span class="he"></span>
-        </p>
-    </div>
-
-</div>
-
 {% endblock %}
 
-{% block js %}
-    <script src="/static/js/lib/hopscotch.js"></script>
-    <link rel="stylesheet" href="/static/css/hopscotch.css">
+{% block js  %}
     <script>
-        $(function() {
-            $("#exploreTexts").click(function(e) {
-                $("#navPanel").addClass("navPanelOpen");
-                sjs.track.event("Home", "Explore Texts", "");
-                $("#overlay").show();
-                setTimeout("hopscotch.startTour(sjs.exploreTextsTour)", 200);
-                e.stopPropagation();
-            });
-            $("#textsTutorial").click(function() {
-                sjs.help.open();
-                sjs.help.openVideo("tutorial");
-                sjs.track.event("Home", "Texts Video", "");
-            });
-            $("#sheetsTutorial").click(function() {
-                sjs.help.open();
-                sjs.help.openVideo("sheets");
-                sjs.track.event("Home", "Sheets Video", "");
-            });
-
-            // Email List
-            $("#subscribe").click(function() {
-                var email = $("#mailingListEmail").val();
-                if (isValidEmailAddress(email)) {
-                    sjs.track.event("Home", "Subscribe from Homepage", "");
-                    $("#subscribeMsg").html("<i>Subscribing...</i>");
-                    $.post("/api/subscribe/" + email, function(data) {
-                        if ("error" in data) {
-                            $("#subscribeMsg").text(data.error);
-                        } else {
-                            $("#subscribeMsg").text("Subscribed! Welcome to our list.");
-                        }
-                    }).error(function(data) {
-                        $("#subscribeMsg").text("Sorry, there was an error.");
-                    })
-                } else {
-                    $("#subscribeMsg").text("Sorry, that's not a valid email address.");
-                }
-            });
-            $("#mailingListEmail").keyup(function(e){
-                if (e.keyCode === 13) {
-                    $("#subscribe").trigger("click");
-                }
-            });
-
-            // Announcement
-            if ($("#announcement p .en").text() && $(window).width() > 830) {
-                if (!$("#announcement h3 .he").text()) {
-                    $("#announcement").addClass("hideInHebrewMode");
-                }
-                $("#announcement").show()
-                    .position({my: "center top+15", at: "center bottom", of: $("#sub")})
-                    .hide()
-                    .fadeIn(1200);
+    $(function() {
+        // Email List
+        $("#subscribe").click(function() {
+            var email = $("#mailingListEmail").val();
+            if (Sefaria.util.isValidEmailAddress(email)) {
+                Sefaria.track.event("Home", "Subscribe from Homepage", "");
+                $("#subscribeMsg").html('{% trans "<i>Subscribing...</i>" %}').show();
+                var list = Sefaria.interfaceLang == "hebrew" ? "Announcements_General_Hebrew" : "Announcements_General"
+                $.post("/api/subscribe/" + email + "?lists=" + list,  function(data) {
+                    if ("error" in data) {
+                        $("#subscribeMsg").text(data.error).show();
+                    } else {
+                        $("#subscribeMsg").text('{% trans "Subscribed! Welcome to our list." %}').show();
+                    }
+                }).error(function(data) {
+                    $("#subscribeMsg").text('{% trans "Sorry, there was an error." %}').show();
+                })
+            } else {
+                $("#subscribeMsg").text('{% trans "Please enter a valid email address." %}').show();
             }
-
-            $("#overlay").click(function(){
-                $("#navPanel.navPanelOpen").removeClass("navPanelOpen");
-                hopscotch.endTour();
-            });
         });
-        var width = $(window).width();
-        sjs.exploreTextsTour = {
-          id: "hello-hopscotch",
-          onClose: function () { $("#overlay").hide(); },
-          onEnd: function () { $("#overlay").hide(); },
-          steps: [
-            {
-              title: "Browse Texts",
-              content: "Browse available texts by category here. You can look in English or in Hebrew. Turn on text previews to help find your way.",
-              target: width > 760 ? "navToc" : "moreLink",
-              placement: width > 760 ? "right" : "bottom",
-              yOffset: width > 760 ? "60" : "0",
-              yOffset: width > 760 ? "0" : "10"
-
-            },
-            {
-              title: "Navigating Sefaria",
-              content: "Click the Sefaria logo to open the navigation menu from any page.",
-              target: "sefaria",
-              placement: "bottom",
-              xOffset: "20"
-            },
-            {
-              title: "Search",
-              content: "Search texts by <b>keywords</b>, or jump directly to a text by entering <b>text titles</b> or <b>citations</b>.",
-              target: width > 500 ? "goto" : "showOptions",
-              placement: "bottom"
+        $("#mailingListEmail").keyup(function(e){
+            if (e.keyCode === 13) {
+                $("#subscribe").trigger("click");
             }
-          ]
-        };
+        });
+    });
     </script>
 {% endblock %}

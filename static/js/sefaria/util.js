@@ -1,5 +1,5 @@
-const $      = require('./sefariaJquery');
-const extend = require('extend');
+const $         = require('./sefariaJquery');
+const extend    = require('extend');
 const striptags = require('striptags');
 
 if (typeof document !== 'undefined') {
@@ -73,7 +73,7 @@ class Util {
       if (!haystack) { return -1 } //For parity of behavior w/ JQuery inArray
       var index = -1;
       for (var i = 0; i < haystack.length; i++) {
-        if (haystack[i] === needle) {
+        if ((needle.compare && needle.compare(haystack[i])) || haystack[i] === needle) {
           index = i;
           break;
         }
@@ -123,6 +123,10 @@ class Util {
       return Util._cookies[key];
      }
      Util._cookies[key] = value;
+    }
+    static openInNewTab(url) {
+      var win = window.open(url, '_blank');
+      win.focus();
     }
     static setupPrototypes() {
 
@@ -280,100 +284,54 @@ class Util {
           });
         }
 
+        // https://tc39.github.io/ecma262/#sec-array.prototype.find
+        if (!Array.prototype.find) {
+          Object.defineProperty(Array.prototype, 'find', {
+            value: function(predicate) {
+             // 1. Let O be ? ToObject(this value).
+              if (this == null) {
+                throw new TypeError('"this" is null or not defined');
+              }
+
+              var o = Object(this);
+
+              // 2. Let len be ? ToLength(? Get(O, "length")).
+              var len = o.length >>> 0;
+
+              // 3. If IsCallable(predicate) is false, throw a TypeError exception.
+              if (typeof predicate !== 'function') {
+                throw new TypeError('predicate must be a function');
+              }
+
+              // 4. If thisArg was supplied, let T be thisArg; else let T be undefined.
+              var thisArg = arguments[1];
+
+              // 5. Let k be 0.
+              var k = 0;
+
+              // 6. Repeat, while k < len
+              while (k < len) {
+                // a. Let Pk be ! ToString(k).
+                // b. Let kValue be ? Get(O, Pk).
+                // c. Let testResult be ToBoolean(? Call(predicate, T, « kValue, k, O »)).
+                // d. If testResult is true, return kValue.
+                var kValue = o[k];
+                if (predicate.call(thisArg, kValue, k, o)) {
+                  return kValue;
+                }
+                // e. Increase k by 1.
+                k++;
+              }
+
+              // 7. Return undefined.
+              return undefined;
+            }
+          });
+        }
+
         RegExp.escape = function(s) {
             return s.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
         };
-    }
-    static setupJQuery() {
-        if (!$.hasOwnProperty("fn")) { return; }
-        $.fn.serializeObject = function() {
-            var o = {};
-            var a = this.serializeArray();
-            $.each(a, function() {
-                if (o[this.name] !== undefined) {
-                    if (!o[this.name].push) {
-                        o[this.name] = [o[this.name]];
-                    }
-                    o[this.name].push(this.value || '');
-                } else {
-                    o[this.name] = this.value || '';
-                }
-            });
-            return o;
-        };
-    /*!
-         * jQuery Cookie Plugin v1.3
-         * https://github.com/carhartl/jquery-cookie
-         *
-         * Copyright 2011, Klaus Hartl
-         * Dual licensed under the MIT or GPL Version 2 licenses.
-         * http://www.opensource.org/licenses/mit-license.php
-         * http://www.opensource.org/licenses/GPL-2.0
-         */
-        (function ($, document, undefined) {
-
-            var pluses = /\+/g;
-
-            function raw(s) {
-                return s;
-            }
-
-            function decoded(s) {
-                return decodeURIComponent(s.replace(pluses, ' '));
-            }
-
-            var config = $.cookie = function (key, value, options) {
-
-                // write
-                if (value !== undefined) {
-                    options = extend({}, config.defaults, options);
-
-                    if (value === null) {
-                        options.expires = -1;
-                    }
-
-                    if (typeof options.expires === 'number') {
-                        var days = options.expires, t = options.expires = new Date();
-                        t.setDate(t.getDate() + days);
-                    }
-
-                    value = config.json ? JSON.stringify(value) : String(value);
-
-                    return (document.cookie = [
-                        encodeURIComponent(key), '=', config.raw ? value : encodeURIComponent(value),
-                        options.expires ? '; expires=' + options.expires.toUTCString() : '', // use expires attribute, max-age is not supported by IE
-                        options.path    ? '; path=' + options.path : '',
-                        options.domain  ? '; domain=' + options.domain : '',
-                        options.secure  ? '; secure' : ''
-                    ].join(''));
-                }
-
-                // read
-                var decode = config.raw ? raw : decoded;
-                var cookies = document.cookie.split('; ');
-                for (var i = 0, l = cookies.length; i < l; i++) {
-                    var parts = cookies[i].split('=');
-                    if (decode(parts.shift()) === key) {
-                        var cookie = decode(parts.join('='));
-                        return config.json ? JSON.parse(cookie) : cookie;
-                    }
-                }
-
-                return null;
-            };
-
-            config.defaults = {};
-
-            $.removeCookie = function (key, options) {
-                if ($.cookie(key) !== null) {
-                    $.cookie(key, null, options);
-                    return true;
-                }
-                return false;
-            };
-
-        })($, document);
-
     }
     static setupMisc() {
         /*
@@ -529,7 +487,226 @@ class Util {
         $("#scrollbarTestA").remove();
         return Util._scrollbarWidth;
     }
+    static subscribeToAnnouncementsList(email) {
+
+    }
+
+    static RefValidator($input, $msg, $ok, $preview, options = {}) {
+        /** Replacement for utils.js:sjs.checkref that uses only new tools.
+         * Instantiated as an object, and then invoked with `check` method
+         * $input - input element
+         * $msg - status message element
+         * $ok - Ok button element
+         * $preview - Text preview box (optional)
+         * config - a dictionary, with named arguments:
+             * disallow_segments - if true, only allows book and section level refs.
+                                By default, allows section and segment level references.
+             * allow_new_titles = if true, allows names not recognized by the system.
+                                  By default, does not allow unrecognized names.
+
+         * example usage:
+
+         new Sefaria.util.RefValidator($("#inlineAdd"), $("#inlineAddDialogTitle"), $("#inlineAddSourceOK"), $("#preview"));
+
+         As currently designed, the object is instantiated, and sets up its own events.
+         It doesn't need to be interacted with from the outside.
+         */
+
+        this.$input = $input;
+        this.$msg = $msg;
+        this.$ok = $ok;
+        this.$preview = $preview;
+        this.options = options;
+
+        // We want completion messages to be somewhat sticky.
+        // This records the string used to build the current message.
+        this.completion_message_base = undefined;
+        // And the current message
+        this.completion_message = "";
+
+        this.current_lookup_ajax = null;
+
+        this.$input
+            .on("input", this.check.bind(this))
+            .keyup(function(e) {
+                  if (e.keyCode == 13) {
+                      if (!this.$ok.hasClass('disabled')) { this.$ok.trigger("click"); }
+                  }
+                }.bind(this))
+            .autocomplete({
+                source: function(request, response) {
+                  Sefaria.lookupRef(
+                      request.term,
+                      function (d) { response(d["completions"]); }
+                  );
+                },
+                minLength: 3
+            });
+    };
 }
+
+Util.RefValidator.prototype = {
+  _sectionListString: function(arr, lang) {
+      //Put together an "A, B, and C" type string from [A,B,C]
+      //arr - array of strings
+      if (arr.length == 1) return arr[0];                            // One alone
+      var lastTwo = arr.slice(-2).join((lang=="en")?" and ":" ו");   // and together last two:
+      return arr.slice(0,-2).concat(lastTwo).join(", ");            // join the rest with a ,
+  },
+  //Too simple to merit a function, but function calls are cheap!
+  _addressListString: function(arr, lang) {
+      //Put together an "A:B:C" type string from [A,B,C]
+      //arr - array of strings
+      return arr.join((lang=="en")?":":" ");
+  },
+  _getCompletionMessage: function(inString, data, depthUp) {
+    // instring - the originally entered string
+    // data - data returned from api/names
+    // depthUp: 0 for segment.  1 for section.
+    if (!data["sectionNames"] || data["sectionNames"].length == 0) return;
+
+    var lang = data["lang"];
+    var sectionNames = (lang=="en")?data["sectionNames"]:data["heSectionNames"];
+    var addressExamples = (lang=="en")?data["addressExamples"]:data["heAddressExamples"];
+    var current = data["sections"].length;
+    var sectionListString = this._sectionListString(sectionNames.slice(current, depthUp?-depthUp:undefined), lang);
+    var addressListString = this._addressListString(addressExamples.slice(current, depthUp?-depthUp:undefined), lang);
+    var separator = (lang == "en" && !data["is_node"])?":":" ";
+    var exampleRef = inString + separator + addressListString;
+    return ((lang=="en")?
+    "Enter a " + sectionListString + ". E.g: '<b>" + exampleRef +"</b>'":
+    "הקלידו " + sectionListString + ". לדוגמא " + exampleRef)
+  },
+  _getSegmentCompletionMessage: function(inString, data) {
+      return this._getCompletionMessage(inString, data, 0);
+  },
+  _getSectionCompletionMessage: function(inString, data) {
+      return this._getCompletionMessage(inString, data, 1);
+  },
+  _getMessage: function(inString, data) {
+      // If current string contains string used for last message, and itself isn't a new state, use current message.
+      if (inString.indexOf(this.completion_message_base) == 0 && !data["is_ref"]) {
+          return this.completion_message;
+      }
+
+      var return_message = "";
+      var prompt_message = (data["lang"]=="en")?"Select a text":"נא בחרו טקסט";
+      var create_new_message = (data["lang"]=="en")?"Create a new Index record":"צור טקסט חדש";
+      var success_message = (data["lang"]=="en")?"OK. Click <b>add</b> to continue":("לחצו " + "<b>הוסף</b>" + " בכדי להמשיך");
+      var no_segment_message = "Segment Level References Not Allowed Here.";
+      var or_phrase = (data["lang"]=="en")?" or ":" או ";
+      var range_phrase = (data["lang"] == "en")?"enter a range.  E.g. ":"הוסיפו טווח. לדוגמא ";
+
+      if (!data["is_ref"] && this.options.allow_new_titles) {
+          return_message = create_new_message + or_phrase + prompt_message;
+      } else if ((data["is_node"]) ||
+          (data["is_ref"] && (!(data["is_segment"] || data["is_section"])))
+      ) {
+          return_message = this._getSectionCompletionMessage(inString, data) || prompt_message;
+      } else if (data["is_section"]) {
+          if (this.options.disallow_segments) {
+              return_message = success_message;
+          } else {
+              return_message = success_message + or_phrase + this._getSegmentCompletionMessage(inString, data);
+          }
+      } else if (data["is_segment"] && this.options.disallow_segments) {
+          return_message = no_segment_message;
+      } else if (data["is_segment"] && !data["is_range"] &&  +(data["sections"].slice(-1)) > 0) {  // check that it's an int
+          var range_end = +(data["sections"].slice(-1)) + 1;
+          return_message = success_message + or_phrase + range_phrase + "<b>" + inString + "-" + range_end + "</b>";
+      } else if (data["is_segment"]) {
+          return_message = success_message + ".";
+      } else {
+          return_message = prompt_message;
+      }
+
+      this.completion_message_base = inString;
+      this.completion_message = return_message;
+      return return_message;
+  },
+  _lookupAndRoute: function(inString) {
+      if (this.current_lookup_ajax) {this.current_lookup_ajax.abort();}
+      this.current_lookup_ajax = Sefaria.lookupRef(
+        inString,
+        function(data) {
+          // If this query has been outpaced by typing, just return.
+          if (this.$input.val() != inString) { return; }
+
+          // If the query isn't recognized as a ref, but only for reasons of capitalization. Resubmit with recognizable caps.
+          if (Sefaria.isACaseVariant(inString, data)) {
+            this._lookupAndRoute(Sefaria.repairCaseVariant(inString, data));
+            return;
+          }
+
+          this.$msg.css("direction", (data["lang"]=="he"?"rtl":"ltr"))
+              .html(this._getMessage(inString, data));
+          if (!data.is_ref && this.options.allow_new_titles) {
+              this._allow(inString);
+              return;
+          }
+          if (data.is_ref && (data.is_section || (data.is_segment && !this.options.disallow_segments))) {
+            this._allow(inString, data["ref"]);  //pass normalized ref
+            return;
+          }
+          this._disallow();
+        }.bind(this)
+      );
+  },
+  _allow: function(inString, ref) {
+    if (inString != this.$input.val()) {
+      // Ref was corrected (likely for capitalization)
+      this.$input.val(inString);
+    }
+    this.$ok.removeClass("inactive").removeClass("disabled");
+    if (ref) {
+        this.$input.autocomplete("disable");
+        this._inlineAddSourcePreview(inString, ref);
+    }
+  },
+  _disallow: function() {
+    this.$ok.addClass("inactive").addClass("disabled");
+  },
+  _preview_segment_mapper: function(lang, s) {
+    return (s[lang])?
+        ("<div class='previewLine'><span class='previewNumber'>(" + (s.number) + ")</span> " + s[lang] + "</div> "):
+        "";
+  },
+  _inlineAddSourcePreview: function(inString, ref) {
+    Sefaria.text(ref, {}, function (data) {
+        if (this.$input.val() != inString) { return; }
+        if (!this.$preview) { return; }
+
+        var segments = Sefaria.makeSegments(data);
+        var en = segments.map(this._preview_segment_mapper.bind(this, "en")).filter(Boolean);
+        var he = segments.map(this._preview_segment_mapper.bind(this, "he")).filter(Boolean);
+
+        // Handle missing text cases
+        var path = parseURL(document.URL).path;
+        if (!en.length) { en.push("<div class='previewNoText'><a href='/add/" + normRef(ref) + "?after=" + path + "' class='btn'>Add English for " + ref + "</a></div>"); }
+        if (!he.length) { he.push("<div class='previewNoText'><a href='/add/" + normRef(ref) + "?after=" + path + "' class='btn'>Add Hebrew for " + ref + "</a></div>"); }
+        if (!en.length && !he.length) {this.$msg.html("<i>No text available. Click below to add this text.</i>");}
+
+        // Set it on the DOM
+        this.$input.autocomplete("disable");
+        this.$preview.show();
+        this.$preview.html("<div class='en'>" + en.join("") + "</div>" + "<div class='he'>" + he.join("") + "</div>");
+        this.$preview.position({my: "left top", at: "left bottom", of: this.$input, collision: "none" }).width('691px').css('margin-top','20px');
+    }.bind(this));
+  },
+  check: function() {
+      if (this.$preview) {
+          this.$preview.html("");
+          this.$preview.hide();
+      }
+      this.$input.autocomplete("enable");
+      var inString = this.$input.val();
+      if (inString.length < 3) {
+          this._disallow();
+          return;
+      }
+      this._lookupAndRoute(inString);
+  }
+};
 
 Util._cookies = {};
 Util._scrollbarWidth = null;

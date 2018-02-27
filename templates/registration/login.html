@@ -1,14 +1,9 @@
 {% extends "base.html" %}
+{% load i18n %}
 
+{% block title %}{% trans "Log in to Sefaria" %}{% endblock %}
 
-{% block titleEnglish %}Log in to Sefaria{% endblock %}
-{% block titleHebrew %}Log in to Sefaria{% endblock %}
-
-{% block descriptionEnglish %}Log in to your Sefaria account.{% endblock %}
-
-{% block descriptionHebrew %}Log in to your Sefaria account.{% endblock %}
-
-
+{% block description %}{% trans "Log in to your Sefaria account to make source sheets, write notes, and follow other Sefaria users." %}{% endblock %}
 
 {% block content %}
 
@@ -33,7 +28,7 @@
         <div class="inner">
             {% if message %}<p id="message">{{ message }}</p>{% endif %}
             <h1>
-                <span class="int-en">Login to Sefaria</span>
+                <span class="int-en">Log in to Sefaria</span>
                 <span class="int-he">התחבר לספריא</span>
             </h1>
             {% if form.errors %}

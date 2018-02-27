@@ -240,9 +240,13 @@ class GroupSheetListing extends Component {
                     </div>
 
     return (<div className="sheet userSheet">
-                {pinButton}
-                <a className="sheetTitle" href={url} key={url}>{title}</a> <SheetAccessIcon sheet={sheet} />
-                <div>{sheet.ownerName} · {sheet.views} Views · {sheet.modified} · <span className="tagString">{tagString}</span></div>
+                <div className="groupSheetInner">
+                  <div className="groupSheetInnerContent"> 
+                    <span><a className="sheetTitle" href={url} key={url}>{title}</a> <SheetAccessIcon sheet={sheet} /></span>
+                    <div>{sheet.ownerName} · {sheet.views} Views · {sheet.modified} · <span className="tagString">{tagString}</span></div>
+                  </div>
+                  {pinButton}
+                </div>
               </div>);
 
   }

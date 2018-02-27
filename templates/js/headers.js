@@ -359,7 +359,7 @@
 
 					if ("title" in node[i]) {
 						// Text
-						html += "<div class='tocCat sparse" + node[i].sparseness + "' " +
+						html += "<div class='tocCat' " +
 									 "data-path='" + catPath + "'" +
 									 "data-sections='" + node[i].title.replace(/\'/g, "&apos;") +"'>" +
 									 	"<i class='tocCatCaret fa fa-angle-" +
@@ -603,13 +603,6 @@
 		$(window).click(function(){
 			$("#navPanel.navPanelOpen").removeClass("navPanelOpen");
 		});
-
-
-		// Show the Search instead of query modal if it's in params
-		var params = getUrlVars();
-		if ("nav_query" in params) {
-			sjs.searchInsteadOfNav(params.nav_query);
-		}
 
 		// Language Toggles
 		sjs.changeContentLang = function() {

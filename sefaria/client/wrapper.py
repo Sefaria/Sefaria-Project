@@ -15,24 +15,26 @@ def format_link_object_for_client(link, with_text, ref, pos=None):
     """
     :param link: Link object
     :param ref: Ref object of the source of the link
-    :param pos: Optional position of the Ref in the Link.  If not passed, it will be derived from the first two arguments.
+    :param pos: Position of the Ref in the Link.  If not passed, it will be derived from the first two arguments.
     :return: Dict
     """
     com = {}
 
     # The text we're asked to get links to
-    anchorRef = Ref(link.refs[pos])
+    anchorTref = link.refs[pos]
+    anchorRef = Ref(anchorTref)
 
     # The link we found to anchorRef
-    linkRef = Ref(link.refs[(pos + 1) % 2])
+    linkTref = link.refs[(pos + 1) % 2]
+    linkRef = Ref(linkTref)
 
     com["_id"]           = str(link._id)
     com['index_title']   = linkRef.index.title
     com["category"]      = linkRef.primary_category #usually the index's categories[0] or "Commentary".
     com["type"]          = link.type
-    com["ref"]           = linkRef.tref
-    com["anchorRef"]     = anchorRef.normal()
-    com["sourceRef"]     = linkRef.normal()
+    com["ref"]           = linkTref
+    com["anchorRef"]     = anchorTref
+    com["sourceRef"]     = linkTref
     com["sourceHeRef"]   = linkRef.he_normal()
     com["anchorVerse"]   = anchorRef.sections[-1] if len(anchorRef.sections) else 0
     com["anchorText"]    = getattr(link, "anchorText", "")
@@ -61,6 +63,14 @@ def format_link_object_for_client(link, with_text, ref, pos=None):
 
     if com["type"] != "commentary" and com["category"] == "Commentary":
             com["category"] = "Quoting Commentary"
+
+    if com["category"] == "Modern Works" and getattr(linkRef.index, "dependence", None) == "Commentary":
+        # print "Transforming " + linkRef.normal()
+        com["category"] = "Modern Commentary"
+        com["collectiveTitle"] = {
+            'en': getattr(linkRef.index, 'collective_title', linkRef.index.title),
+            'he': hebrew_term(getattr(linkRef.index, 'collective_title', linkRef.index.get_title("he")))
+        }
 
     if linkRef.index_node.primary_title("he"):
         com["heTitle"] = linkRef.index_node.primary_title("he")
@@ -186,4 +196,19 @@ def get_links(tref, with_text=True):
         except NoVersionFoundError as e:
             logger.warning("Trying to get non existent text for ref '{}'. Link refs were: {}".format(top_nref, link.refs))
             continue
+
+    # Harded-coding automatic display of links to an underlying text. bound_texts = ("Rashba on ",)
+    # E.g., when requesting "Steinsaltz on X" also include links "X" as though they were connected directly to Steinsaltz.
+    bound_texts = ("Steinsaltz on ",)
+    for prefix in bound_texts:
+        if nRef.startswith(prefix):
+            base_ref = nRef[len(prefix):]
+            base_links = get_links(base_ref)
+            def add_prefix(link):
+                link["anchorRef"] = prefix + link["anchorRef"]
+                return link
+            base_links = [add_prefix(link) for link in base_links]
+            base_links = filter(lambda x: x["sourceRef"] != x["anchorRef"], base_links)
+            links += base_links
+
     return links

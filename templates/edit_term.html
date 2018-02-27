@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+
+{% load sefaria_tags %}
+{% load humanize %}
+
+{% block title %}Edit Term: {{ term.name }}{% endblock %}
+
+{% block css %}
+	#jsonEditor input {
+		padding: 8px;
+		color: #555;
+	}
+	#jsonEditor fieldset {
+		border-color: #EEE;
+	}
+	#jsonEditor label {
+		color: #555;
+	}
+	#jsonEditor .form-group {
+		margin-top: 10px;
+	}
+	#jsonEditor .array-item {
+		margin-bottom: 20px;
+	}
+	i.glyphicon { display: none; }
+		.btn-add::after { content: 'Add'; }
+		.array-item-move-up::after { content: 'Move Up'; }
+		.array-item-move-down::after { content: 'Move Down'; }
+		.array-item-remove::after { content: 'Remove'; }
+	}
+{% endblock %}
+
+{% block content %}
+
+<div id="editTerm" class="static container">
+  <div class="inner">
+    <h1>Terms Editor</h1>
+    <div id="jsonEditor"><i>Loading...</i></div>
+  </div>
+</div>
+
+{% endblock %}
+
+
+{% block js %}
+  <script src="/static/bundles/jsonEditor/jsonEditor.js"></script>
+  <script>
+    {% autoescape off %}
+    var data = {{ dataJSON }};
+    data.isUpdate = {{ is_update }};
+    {% endautoescape %}
+    $(function() {
+      SefariaJsonEditor("terms", data, document.getElementById("jsonEditor"));
+    });
+  </script>
+{% endblock %}

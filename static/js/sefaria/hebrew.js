@@ -116,12 +116,14 @@ class Hebrew {
     return (s in known ? known[s] : s + "s");
   }
   static intToDaf(i) {
+    // Base 0 int -> daf
+    // e.g. 2 -> "2a"
     i += 1;
     var daf = Math.ceil(i/2);
     return daf + (i%2 ? "a" : "b");
   }
   static dafToInt(daf) {
-    var amud = daf.slice(-1)
+    var amud = daf.slice(-1);
     var i = parseInt(daf.slice(0, -1)) - 1;
     i = amud == "a" ? i * 2 : i*2 +1;
     return i;

@@ -126,6 +126,27 @@ class JaggedArray(object):
 
             return distance - 1  # - 1 to not include the first seg in the sequence
 
+    def shape(self, _cur=None):
+        """
+        Returns a List one level shallower than this one, whose values are the length of the lowest level arrays of this jagged array.
+        So:
+            For depth 1, returns an Integer - length
+            For depth 2, returns a List of chapter lengths
+            For depth 3, returns a List of list of chapter lengths
+        :return: List
+        """
+
+        # If the values of the array are integers, return an integer
+        # If the values of the list are lists, recur
+
+        if _cur is None:
+            _cur = self._store
+
+        if len(_cur) and isinstance(_cur[0], list):
+            return [self.shape(e) for e in _cur]
+        else:
+            return len(_cur)
+
     def sub_array_length(self, indexes=None, until_last_nonempty=False):
         """
         :param indexes:  a list of 0 based indexes, for digging len(indexes) levels into the array
@@ -191,13 +212,14 @@ class JaggedArray(object):
         else:
             return not bool(_cur)
 
-    def sections(self, _cur=[]):
+    def sections(self, _cur=None):
         """
         List of valid indexes in this object, to depth one up from bottom
         :param _cur: list of indexes
         :return:
         """
-
+        if _cur is None:
+            _cur = []
         if self.get_depth() - 1 <= len(_cur):
             return [_cur]
         return reduce(lambda a, b: a + self.sections(b), [_cur + [i] for i in range(self.sub_array_length(_cur))], [])

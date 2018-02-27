@@ -1,218 +1,425 @@
 {% extends "base.html" %}
+{% load i18n %}
 
-{% block titleEnglish %}The Sefaria Team{% endblock %}
-{% block titleHebrew %}The Sefaria Team{% endblock %}
+{% block title %}{% trans "The Sefaria Team" %}{% endblock %}
 
-{% block descriptionEnglish %}Sefaria's team is working to create the Jewish future.{% endblock %}
-
-{% block descriptionHebrew %}Sefaria's team is working to create the Jewish future.{% endblock %}
+{% block description %}{% trans "Sefaria's team is working to create the Jewish future." %}{% endblock %}
 
 {% block content %}
-<div id="teamPage" class="container static">
-    <div class="inner">
-    <h1>
-        <span class="int-en">Team</span>
-        <span class="int-he">הצוות של ספריא</span>
-    </h1>
-    <div class="row static-text">
-        <div class="main-text">
-            <div class="teamMember">
-                <div class="teamMemberImage">
-                    <img src="/static/img/headshots/daniel.png" alt="Headshot of Daniel Septimus">
-                </div>
-                <div class="teamMemberDetails">
-                    <div class="teamName sans">Daniel Septimus</div>
-                    <div class="teamTitle">Executive Director</div>
-                    <a class="teamEmail" href="mailto:ds@sefaria.org">ds@sefaria.org</a>
-                    <div class="teamBio">
+    <div id="teamPage" class="container static">
+        <div class="inner">
+            <h1>
+                <span class="int-en">Team</span>
+                <span class="int-he">הצוות של ספריא</span>
+            </h1>
+            <div class="row static-text">
+                <div class="main-text">
+                    <div class="teamMember">
+                        <div class="teamMemberImage">
+                            <img src="/static/img/headshots/daniel.png" alt="Headshot of Daniel Septimus">
+                        </div>
+                        <div class="teamMemberDetails">
+                            <div class="teamName sans">
+                                <span class="int-en">Daniel Septimus</span>
+                                <span class="int-he">דניאל ספטימוס</span>
+                            </div>
+                            <div class="teamTitle">
+                                <span class="int-en">Chief Executive Officer</span>
+                                <span class="int-he">מנכ"ל</span>
+                            </div>
+                            <a class="teamEmail" href="mailto:ds@sefaria.org">ds@sefaria.org</a>
+                            <div class="teamBio"></div>
+                        </div>
+                    </div>
+                    <div class="teamMember">
+                        <div class="teamMemberImage">
+                            <img src="/static/img/headshots/brett.png" alt="Headshot of Brett Lockspeiser">
+                        </div>
+                        <div class="teamMemberDetails">
+                            <div class="teamName sans">
+                                <span class="int-en">Brett Lockspeiser</span>
+                                <span class="int-he">ברט לקספיזר</span>
+                            </div>
+                            <div class="teamTitle">
+                                <span class="int-en">Chief Technology Officer and Co-Founder </span>
+                                <span class="int-he">ראש צוות טכנולוגי ומייסד-שותף</span>
+                            </div>
+                            <a class="teamEmail" href="mailto:brett@sefaria.org ">brett@sefaria.org</a>
+                            <div class="teamBio"></div>
+                        </div>
+                    </div>
+                    <div class="teamMember">
+                        <div class="teamMemberImage">
+                            <img src="/static/img/headshots/annie.png" alt="Headshot of Annie Lumerman">
+                        </div>
+                        <div class="teamMemberDetails">
+                            <div class="teamName sans">
+                                <span class="int-en">Annie Lumerman</span>
+                                <span class="int-he">אנני לומרמן</span>
+                            </div>
+                            <div class="teamTitle">
+                                <span class="int-en">Chief Operating Officer</span>
+                                <span class="int-he">ראש צוות הפעלה</span>
+                            </div>
+                            <a class="teamEmail" href="mailto:annie@sefaria.org">annie@sefaria.org</a>
+                            <div class="teamBio"></div>
+                        </div>
+                    </div>
+                    <div class="teamMember">
+                        <div class="teamMemberImage">
+                            <img src="/static/img/headshots/sara.png" alt="Headshot of Sara Wolkenfeld">
+                        </div>
+                        <div class="teamMemberDetails">
+                            <div class="teamName sans">
+                                <span class="int-en">Sara Wolkenfeld</span>
+                                <span class="int-he">שרה וולקנפלד</span>
+                            </div>
+                            <div class="teamTitle">
+                                <span class="int-en">Director of Education</span>
+                                <span class="int-he">מנהלת מחלקת החינוך</span>
+                            </div>
+                            <a class="teamEmail" href="mailto:sara@sefaria.org">sara@sefaria.org</a>
+                            <div class="teamBio"></div>
+                        </div>
+                    </div>
+                    <div class="teamMember">
+                        <div class="teamMemberImage">
+                            <img src="/static/img/headshots/lev.png" alt="Headshot of Lev Israel">
+                        </div>
+                        <div class="teamMemberDetails">
+                            <div class="teamName sans">
+                                <span class="int-en">Lev Israel</span>
+                                <span class="int-he">לב ישראל</span>
+                            </div>
+                            <div class="teamTitle">
+                                <span class="int-en">Chief Data Officer</span>
+                                <span class="int-he">מנהל נתונים ראשי</span>
+                            </div>
+                            <a class="teamEmail" href="mailto:lev@sefaria.org">lev@sefaria.org</a>
+                            <div class="teamBio"></div>
+                        </div>
+                    </div>
+                    <div class="teamMember">
+                        <div class="teamMemberImage">
+                            <img src="/static/img/headshots/ephraim.png" alt="Headshot of Ephraim Damboritz">
+                        </div>
+                        <div class="teamMemberDetails">
+                            <div class="teamName sans">
+                                <span class="int-en">Ephraim Damboritz</span>
+                                <span class="int-he">אפרים דמבוריץ</span>
+                            </div>
+                            <div class="teamTitle">
+                                <span class="int-en">Software Engineer</span>
+                                <span class="int-he">מהנדס תכנה</span>
+                            </div>
+                            <a class="teamEmail" href="mailto:ephraim@sefaria.org">ephraim@sefaria.org</a>
+                            <div class="teamBio"></div>
+                        </div>
+                    </div>
+                    <div class="teamMember">
+                        <div class="teamMemberImage">
+                            <img src="/static/img/headshots/russel.png" alt="Headshot of Russel Neiss">
+                        </div>
+                        <div class="teamMemberDetails">
+                            <div class="teamName sans">
+                                <span class="int-en">Russel Neiss</span>
+                                <span class="int-he">רזיאל ניס</span>
+                            </div>
+                            <div class="teamTitle">
+                                <span class="int-en">Software Engineer</span>
+                                <span class="int-he">מהנדס תכנה</span>
+                            </div>
+                            <a class="teamEmail" href="mailto:russel@sefaria.org">russel@sefaria.org</a>
+                            <div class="teamBio"></div>
+                        </div>
+                    </div>
+                    <div class="teamMember">
+                        <div class="teamMemberImage">
+                            <img src="/static/img/headshots/gabriel.png" alt="Headshot of Gabriel Winer">
+                        </div>
+                        <div class="teamMemberDetails">
+                            <div class="teamName sans">
+                                <span class="int-en">Gabriel Winer</span>
+                                <span class="int-he">גבריאל ווינר</span>
+                            </div>
+                            <div class="teamTitle">
+                                <span class="int-en">User Experience Designer</span>
+                                <span class="int-he">מעצב ממשק חווית משתמש</span>
+                            </div>
+                            <a class="teamEmail" href="mailto:gabriel@sefaria.org">gabriel@sefaria.org</a>
+                            <div class="teamBio"></div>
+                        </div>
+                    </div>
+                    <div class="teamMember">
+                        <div class="teamMemberImage">
+                            <img src="/static/img/headshots/steve.png" alt="Headshot of Steve Kaplan">
+                        </div>
+                        <div class="teamMemberDetails">
+                            <div class="teamName sans">
+                                <span class="int-en">Steve Kaplan</span>
+                                <span class="int-he">סטיב קפלן</span>
+                            </div>
+                            <div class="teamTitle">
+                                <span class="int-en">Content Engineer</span>
+                                <span class="int-he">מהנדס תוכן</span>
+                            </div>
+                            <a class="teamEmail" href="mailto:steve@sefaria.org">steve@sefaria.org</a>
+                            <div class="teamBio"></div>
+                        </div>
+                    </div>
+                    <div class="teamMember">
+                        <div class="teamMemberImage">
+                            <img src="/static/img/headshots/yoni.png" alt="Headshot of Jonathan Mosenkis">
+                        </div>
+                        <div class="teamMemberDetails">
+                            <div class="teamName sans">
+                                <span class="int-en">Jonathan Mosenkis</span>
+                                <span class="int-he">יונתן מוסנקיס</span>
+                            </div>
+                            <div class="teamTitle">
+                                <span class="int-en">Content Engineer</span>
+                                <span class="int-he">מהנדס תוכן</span>
+                            </div>
+                            <a class="teamEmail" href="mailto:jonathan@sefaria.org">jonathan@sefaria.org</a>
+                            <div class="teamBio"></div>
+                        </div>
+                    </div>
+                    <div class="teamMember">
+                        <div class="teamMemberImage">
+                            <img src="/static/img/headshots/shmuel.png" alt="Headshot of Shmuel Weissman">
+                        </div>
+                        <div class="teamMemberDetails">
+                            <div class="teamName sans">
+                                <span class="int-en">Shmuel Weissman</span>
+                                <span class="int-he">שמואל וייסמן</span>
+                            </div>
+                            <div class="teamTitle">
+                                <span class="int-en">Manager of Text Acquisition and Text Quality</span>
+                                <span class="int-he">אחראי רכש טקסטים ואיכות</span>
+                            </div>
+                            <a class="teamEmail" href="mailto:shmuel@sefaria.org">shmuel@sefaria.org</a>
+                            <div class="teamBio"></div>
+                        </div>
+                    </div>
+                    <div class="teamMember">
+                        <div class="teamMemberImage">
+                            <img src="/static/img/headshots/noah.png" alt="Headshot of Noah Santacruz">
+                        </div>
+                        <div class="teamMemberDetails">
+                            <div class="teamName sans">
+                                <span class="int-en">Noah Santacruz</span>
+                                <span class="int-he">נח סנטקרוז</span>
+                            </div>
+                            <div class="teamTitle">
+                                <span class="int-en">Software Engineer</span>
+                                <span class="int-he">מהנדס תכנה</span>
+                            </div>
+                            <a class="teamEmail" href="mailto:noah@sefaria.org">noah@sefaria.org</a>
+                            <div class="teamBio"></div>
+                        </div>
+                    </div>
+                    <div class="teamMember">
+                        <div class="teamMemberImage">
+                            <img src="/static/img/headshots/rachel.png" alt="Headshot of Rachel Buckman">
+                        </div>
+                        <div class="teamMemberDetails">
+                            <div class="teamName sans">
+                                <span class="int-en">Rachel Buckman</span>
+                                <span class="int-he">רחל בקמן</span>
+                            </div>
+                            <div class="teamTitle">
+                                <span class="int-en">Education Associate</span>
+                                <span class="int-he">רכזת חינוכית במחלקת החינוך</span>
+                            </div>
+                            <a class="teamEmail" href="mailto:rachel@sefaria.org">rachel@sefaria.org</a>
+                            <div class="teamBio"></div>
+                        </div>
+                    </div>
+                    <div class="teamMember">
+                        <div class="teamMemberImage">
+                            <img src="/static/img/headshots/amelia.png" alt="Headshot of Amelia Wolf">
+                        </div>
+                        <div class="teamMemberDetails">
+                            <div class="teamName sans">
+                                <span class="int-en">Amelia Wolf</span>
+                                <span class="int-he">אמיליה וולף</span>
+                            </div>
+                            <div class="teamTitle">
+                                <span class="int-en">Development and Communications Associate</span>
+                                <span class="int-he">רכזת במחלקת תקשורת ופיתוח</span>
+                            </div>
+                            <a class="teamEmail" href="mailto:amelia@sefaria.org">amelia@sefaria.org</a>
+                            <div class="teamBio"></div>
+                        </div>
+                    </div>
+                    <div class="teamMember">
+                        <div class="teamMemberImage">
+                            <img src="/static/img/headshots/tali.png" alt="Headshot of Tali Herenstein">
+                        </div>
+                        <div class="teamMemberDetails">
+                            <div class="teamName sans">
+                                <span class="int-en">Tali Herenstein</span>
+                                <span class="int-he">טלי הרנשטיין</span>
+                            </div>
+                            <div class="teamTitle">
+                                <span class="int-en">Strategy and Education Senior Associate</span>
+                                <span class="int-he">רכזת במחלקת חינוך ופיתוח</span>
+                            </div>
+                            <a class="teamEmail" href="mailto:tali@sefaria.org">tali@sefaria.org</a>
+                            <div class="teamBio"></div>
+                        </div>
+                    </div>
+                    <div class="teamMember">
+                        <div class="teamMemberImage">
+                            <img src="/static/img/headshots/shanee.png" alt="Headshot of Shanee Rosen">
+                        </div>
+                        <div class="teamMemberDetails">
+                            <div class="teamName sans">
+                                <span class="int-en">Shanee Rosen</span>
+                                <span class="int-he">שני רוזן</span>
+                            </div>
+                            <div class="teamTitle">
+                                <span class="int-en">Content Engineer</span>
+                                <span class="int-he">מהנדסת תוכן</span>
+                            </div>
+                            <a class="teamEmail" href="mailto:shanee@sefaria.org">shanee@sefaria.org</a>
+                            <div class="teamBio"></div>
+                        </div>
+                    </div>
+                    <div class="teamMember">
+                        <div class="teamMemberImage">
+                            <img src="/static/img/headshots/eran.jpg" alt="Headshot of Eran Shafir">
+                        </div>
+                        <div class="teamMemberDetails">
+                            <div class="teamName sans">
+                                <span class="int-en">Eran Shafir</span>
+                                <span class="int-he">ערן שפיר</span>
+                            </div>
+                            <div class="teamTitle">
+                                <span class="int-en">Israel Director</span>
+                                <span class="int-he">מנהל מחלקת ישראל</span>
+                            </div>
+                            <a class="teamEmail" href="mailto:eran@sefaria.org">eran@sefaria.org</a>
+                            <div class="teamBio"></div>
+                        </div>
+                    </div>
 
+
+                    <h2>
+                        <span class="int-en">BOARD OF DIRECTORS</span>
+                        <span class="int-he">מועצת המנהלים</span>
+                    </h2>
+                    <div class="teamBoardMember">
+                        <div class="teamMemberDetails">
+                            <div class="teamName sans">
+                                <span class="int-en">Joshua Foer</span>
+                                <span class="int-he">ג'ושוע פוייר</span>
+                            </div>
+                            <div class="teamTitle">
+                                <span class="int-en">Chairman and Co-Founder</span>
+                                <span class="int-he">יושב ראש ומייסד-שותף</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="teamBoardMember">
+                        <div class="teamMemberDetails">
+                            <div class="teamName sans">
+                                <span class="int-en">Brett Lockspeiser</span>
+                                <span class="int-he">ברט לקספיזר</span>
+                            </div>
+                            <div class="teamTitle">
+                                <span class="int-en">Co-Founder</span>
+                                <span class="int-he">מייסד-שותף</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="teamBoardMember">
+                        <div class="teamMemberDetails">
+                            <div class="teamName sans">
+                                <span class="int-en">Mo Koyfman</span>
+                                <span class="int-he">מו קויפמן</span>
+                            </div>
+                            <div class="teamTitle">
+                                <span class="int-en"></span>
+                                <span class="int-he"></span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="teamBoardMember">
+                        <div class="teamMemberDetails">
+                            <div class="teamName sans">
+                                <span class="int-en">Elana Stein Hain</span>
+                                <span class="int-he">אלנה שטיין היין</span>
+                            </div>
+                            <div class="teamTitle">
+                                <span class="int-en"></span>
+                                <span class="int-he"></span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="teamBoardMember">
+                        <div class="teamMemberDetails">
+                            <div class="teamName sans">
+                                <span class="int-en">Felicia Herman</span>
+                                <span class="int-he">פלישיה הרמן</span>
+                            </div>
+                            <div class="teamTitle">
+                                <span class="int-en"></span>
+                                <span class="int-he"></span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="teamBoardMember">
+                        <div class="teamMemberDetails">
+                            <div class="teamName sans">
+                                <span class="int-en">Jonathan Koschitzky</span>
+                                <span class="int-he">יונתן קושיצקי</span>
+                            </div>
+                            <div class="teamTitle">
+                                <span class="int-en"></span>
+                                <span class="int-he"></span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="teamBoardMember">
+                        <div class="teamMemberDetails">
+                            <div class="teamName sans">
+                                <span class="int-en">Joshua Kushner</span>
+                                <span class="int-he">יהושוע קושנר</span>
+                            </div>
+                            <div class="teamTitle">
+                                <span class="int-en"></span>
+                                <span class="int-he"></span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="teamBoardMember">
+                        <div class="teamMemberDetails">
+                            <div class="teamName sans">
+                                <span class="int-en">Raanan Agus</span>
+                                <span class="int-he">רענן אגוס</span>
+                            </div>
+                            <div class="teamTitle">
+                                <span class="int-en"></span>
+                                <span class="int-he"></span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="teamBoardMember">
+                        <div class="teamMemberDetails">
+                            <div class="teamName sans">
+                                <span class="int-en">Rona Sheramy</span>
+                                <span class="int-he">רונה שרמי</span>
+                            </div>
+                            <div class="teamTitle">
+                                <span class="int-en"></span>
+                                <span class="int-he"></span>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
-            <div class="teamMember">
-                <div class="teamMemberImage">
-                    <img src="/static/img/headshots/brett.png" alt="Headshot of Brett Lockspeiser">
-                </div>
-                <div class="teamMemberDetails">
-                    <div class="teamName sans">Brett Lockspeiser</div>
-                    <div class="teamTitle">Chief Technology Officer and Co-Founder </div>
-                    <a class="teamEmail" href="mailto:brett@sefaria.org ">brett@sefaria.org</a>
-                     <div class="teamBio">
-
-                    </div>
-                </div>
-            </div>
-            <div class="teamMember">
-                <div class="teamMemberImage">
-                    <img src="/static/img/headshots/annie.png" alt="Headshot of Annie Lumerman">
-                </div>
-                <div class="teamMemberDetails">
-                    <div class="teamName sans">Annie Lumerman</div>
-                    <div class="teamTitle">Chief Operating Officer</div>
-                    <a class="teamEmail" href="mailto:annie@sefaria.org">annie@sefaria.org</a>
-                    <div class="teamBio"></div>
-                </div>
-            </div>
-            <div class="teamMember">
-                <div class="teamMemberImage">
-                    <img src="/static/img/headshots/sara.png" alt="Headshot of Sara Wolkenfeld">
-                </div>
-                <div class="teamMemberDetails">
-                    <div class="teamName sans">Sara Wolkenfeld</div>
-                    <div class="teamTitle">Director of Education</div>
-                    <a class="teamEmail" href="mailto:sara@sefaria.org">sara@sefaria.org</a>
-                    <div class="teamBio"></div>
-                </div>
-            </div>
-            <div class="teamMember">
-                <div class="teamMemberImage">
-                    <img src="/static/img/headshots/lev.png" alt="Headshot of Lev Israel">
-                </div>
-                <div class="teamMemberDetails">
-                    <div class="teamName sans">Lev Israel</div>
-                    <div class="teamTitle">Chief Data Officer</div>
-                    <a class="teamEmail" href="mailto:lev@sefaria.org">lev@sefaria.org</a>
-                    <div class="teamBio"></div>
-                </div>
-            </div>
-            <div class="teamMember">
-                <div class="teamMemberImage">
-                    <img src="/static/img/headshots/ephraim.png" alt="Headshot of Ephraim Damboritz">
-                </div>
-                <div class="teamMemberDetails">
-                    <div class="teamName sans">Ephraim Damboritz</div>
-                    <div class="teamTitle">Software Engineer</div>
-                    <a class="teamEmail" href="mailto:ephraim@sefaria.org">ephraim@sefaria.org</a>
-                    <div class="teamBio"></div>
-                </div>
-            </div>
-            <div class="teamMember">
-                <div class="teamMemberImage">
-                    <img src="/static/img/headshots/russel.png" alt="Headshot of Russel Neiss">
-                </div>
-                <div class="teamMemberDetails">
-                    <div class="teamName sans">Russel Neiss</div>
-                    <div class="teamTitle">Software Engineer</div>
-                    <a class="teamEmail" href="mailto:russel@sefaria.org">russel@sefaria.org</a>
-                    <div class="teamBio"></div>
-                </div>
-            </div>
-            <div class="teamMember">
-                <div class="teamMemberImage">
-                    <img src="/static/img/headshots/gabriel.png" alt="Headshot of Gabriel Winer">
-                </div>
-                <div class="teamMemberDetails">
-                    <div class="teamName sans">Gabriel Winer </div>
-                    <div class="teamTitle">User Experience Designer</div>
-                    <a class="teamEmail" href="mailto:gabriel@sefaria.org">gabriel@sefaria.org</a>
-                    <div class="teamBio"></div>
-                </div>
-            </div>
-            <div class="teamMember">
-                <div class="teamMemberImage">
-                    <img src="/static/img/headshots/steve.png" alt="Headshot of Steve Kaplan">
-                </div>
-                <div class="teamMemberDetails">
-                    <div class="teamName sans">Steve Kaplan</div>
-                    <div class="teamTitle">Content Engineer</div>
-                    <a class="teamEmail" href="mailto:steve@sefaria.org">steve@sefaria.org</a>
-                    <div class="teamBio"></div>
-                </div>
-            </div>
-            <div class="teamMember">
-                <div class="teamMemberImage">
-                    <img src="/static/img/headshots/yoni.png" alt="Headshot of Jonathan Mosenkis">
-                </div>
-                <div class="teamMemberDetails">
-                    <div class="teamName sans">Jonathan Mosenkis</div>
-                    <div class="teamTitle">Content Engineer</div>
-                    <a class="teamEmail" href="mailto:jonathan@sefaria.org">jonathan@sefaria.org</a>
-                    <div class="teamBio"></div>
-                </div>
-            </div>
-            <div class="teamMember">
-                <div class="teamMemberImage">
-                    <img src="/static/img/headshots/shmuel.png" alt="Headshot of Shmuel Weissman">
-                </div>
-                <div class="teamMemberDetails">
-                    <div class="teamName sans">Shmuel Weissman</div>
-                    <div class="teamTitle">Manager of Text Acquisition and Text Quality</div>
-                    <a class="teamEmail" href="mailto:shmuel@sefaria.org">shmuel@sefaria.org</a>
-                    <div class="teamBio"></div>
-                </div>
-            </div>
-            <div class="teamMember">
-                <div class="teamMemberImage">
-                    <img src="/static/img/headshots/noah.png" alt="Headshot of Noah Santacruz">
-                </div>
-                <div class="teamMemberDetails">
-                    <div class="teamName sans">Noah Santacruz</div>
-                    <div class="teamTitle">Software Engineer</div>
-                    <a class="teamEmail" href="mailto:noah@sefaria.org">noah@sefaria.org</a>
-                    <div class="teamBio"></div>
-                </div>
-            </div>
-            <div class="teamMember">
-                <div class="teamMemberImage">
-                    <img src="/static/img/headshots/rachel.png" alt="Headshot of Rachel Buckman">
-                </div>
-                <div class="teamMemberDetails">
-                    <div class="teamName sans">Rachel Buckman</div>
-                    <div class="teamTitle">Education Associate</div>
-                    <a class="teamEmail" href="mailto:rachel@sefaria.org">rachel@sefaria.org</a>
-                    <div class="teamBio"></div>
-                </div>
-            </div>
-            <div class="teamMember">
-                <div class="teamMemberImage">
-                    <img src="/static/img/headshots/amelia.png" alt="Headshot of Amelia Wolf">
-                </div>
-                <div class="teamMemberDetails">
-                    <div class="teamName sans">Amelia Wolf</div>
-                    <div class="teamTitle">Development and Communications Associate</div>
-                    <a class="teamEmail" href="mailto:amelia@sefaria.org">amelia@sefaria.org</a>
-                    <div class="teamBio"></div>
-                </div>
-            </div>
-            <div class="teamMember">
-                <div class="teamMemberImage">
-                    <img src="/static/img/headshots/shanee.png" alt="Headshot of Shanee Rosen">
-                </div>
-                <div class="teamMemberDetails">
-                    <div class="teamName sans">Shanee Rosen</div>
-                    <div class="teamTitle">Content Engineer</div>
-                    <a class="teamEmail" href="mailto:shanee@sefaria.org">shanee@sefaria.org</a>
-                    <div class="teamBio"></div>
-                </div>
-            </div>
-            <div class="teamMember">
-                <div class="teamMemberImage">
-                    <img src="/static/img/headshots/eran.jpg" alt="Headshot of Eran Shafir">
-                </div>
-                <div class="teamMemberDetails">
-                    <div class="teamName sans">Eran Shafir</div>
-                    <div class="teamTitle">Israel Director</div>
-                    <a class="teamEmail" href="mailto:eran@sefaria.org">eran@sefaria.org</a>
-                    <div class="teamBio"></div>
-                </div>
-            </div>
-
-
-
-            <h2>
-                <span class="int-en">BOARD OF DIRECTORS</span>
-        `       <span class="int-he">מועצת המנהלים</span>
-            </h2>
-            <div class="teamBoardMember"><div class="teamMemberDetails"><div class="teamName sans">Joshua Foer</div><div class="teamTitle">Chairman and Co-Founder</div></div></div>
-            <div class="teamBoardMember"><div class="teamMemberDetails"><div class="teamName sans">Brett Lockspeiser</div><div class="teamTitle">Co-Founder</div></div></div>
-            <div class="teamBoardMember"><div class="teamMemberDetails"><div class="teamName sans">Mo Koyfman</div><div class="teamTitle"></div></div></div>
-            <div class="teamBoardMember"><div class="teamMemberDetails"><div class="teamName sans">Elana Stein Hain</div><div class="teamTitle"></div></div></div>
-            <div class="teamBoardMember"><div class="teamMemberDetails"><div class="teamName sans">Felicia Herman</div><div class="teamTitle"></div></div></div>
-            <div class="teamBoardMember"><div class="teamMemberDetails"><div class="teamName sans">Jonathan Koschitzky</div><div class="teamTitle"></div></div></div>
-            <div class="teamBoardMember"><div class="teamMemberDetails"><div class="teamName sans">Joshua Kushner </div><div class="teamTitle"></div></div></div>
         </div>
     </div>
-    </div>
-</div>
 
 {% endblock %}

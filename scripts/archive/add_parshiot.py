@@ -6,17 +6,18 @@ import os
 import csv
 from datetime import datetime
 from copy import deepcopy
-
-
-path = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-sys.path.insert(0, path)
-sys.path.insert(0, path + "/sefaria")
-
+import argparse
+import glob
 import sefaria.model as model
 from sefaria.system.database import db
 
+"""path = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+sys.path.insert(0, path)
+sys.path.insert(0, path + "/sefaria")
 parashiot_file = "/var/data/Sefaria-Data/misc/parshiot.csv"
+"""
 
+#path="/path/to/csv/parashot" #no slash at the end
 
 def parse_span(ref):
 	ref = ref.split(" | ")[0]
@@ -39,41 +40,58 @@ def parse_shabbat_name(ref):
 	return ref[1] if len(ref) > 1 else None
 
 
-p = []
-with open(parashiot_file, 'rb') as csvfile:
-	parashiot = csv.reader(csvfile)
-	parashiot.next()
-	parasha = {"date": None}
-	for row in parashiot:	
-		if not len(row): continue
-		
-		# Continuation
-		if datetime.strptime(row[0], "%d-%b-%Y") == parasha["date"]:
-			if row[2] == "Haftara":
-				parasha["haftara"] = parse_haftara(row[3])
-				parasha["shabbat_name"] = parse_shabbat_name(row[3])
+def parse_parashot(parashiot_file, diaspora=False):
+	p=[]
+	print "{}:{}".format(parashiot_file, "Diaspora" if diaspora else "Israel")
+	with open(parashiot_file, 'rb') as csvfile:
+		parashiot = csv.reader(csvfile)
+		parashiot.next()
+		parasha = {"date": None}
+		for row in parashiot:
+			if not len(row): continue
+
+			# Continuation
+			if datetime.strptime(row[0], "%d-%b-%Y") == parasha["date"]:
+				if row[2] == "Haftara":
+					parasha["haftara"] = parse_haftara(row[3])
+					parasha["shabbat_name"] = parse_shabbat_name(row[3])
+				else:
+					parasha["aliyot"].append(parse_span(row[3]))
+
+			# New Parasha
 			else:
-				parasha["aliyot"].append(parse_span(row[3]))
+				if parasha["date"] is not None and parasha["date"].weekday() == 5: #saturday:
+					# clean up last object
+					start = model.Ref(parasha["aliyot"][0])
+					end   = model.Ref(parasha["aliyot"][6])
+					if end.book != start.book:
+						end = model.Ref(parasha["aliyot"][5])
+					parsha_ref_vars = vars(start)
+					parsha_ref_vars['toSections'] = end.toSections
+					parasha["ref"] = model.Ref(_obj=parsha_ref_vars).normal()
+					p.append(deepcopy(parasha))
 
-		# New Parasha
-		else:
-			if parasha["date"] is not None:
-				# clean up last object
-				start = model.Ref(parasha["aliyot"][0])
-				end   = model.Ref(parasha["aliyot"][6])
-				parsha_ref_vars = vars(start)
-				parsha_ref_vars.toSections = end.toSections
-				parasha["ref"] = model.Ref(_obj=parsha_ref_vars).normal()
-				p.append(deepcopy(parasha))
-
-			parasha = {
-				"date": datetime.strptime(row[0], "%d-%b-%Y"),
-				"parasha": row[1],
-				"aliyot": [ parse_span(row[3]) ]
-			}
+				parasha = {
+					"date": datetime.strptime(row[0], "%d-%b-%Y"),
+					"parasha": row[1],
+					"aliyot": [ parse_span(row[3]) ],
+					"diaspora": diaspora
+				}
+	return p
 
 
-db.parshiot.remove()
-for parasha in p:
-	db.parshiot.save(parasha)
-db.parshiot.ensure_index("date")
+
+
+
+if __name__ == '__main__':
+	parser = argparse.ArgumentParser()
+	parser.add_argument("-p", "--path", help="path of data csv's")
+	args = parser.parse_args()
+	parsha_dicts = []
+	print args.path
+	for fname in glob.glob("{}/*.csv".format(args.path)):
+		parsha_dicts += parse_parashot(fname, "il" not in fname)
+	db.parshiot.remove()
+	for parasha in parsha_dicts:
+		db.parshiot.save(parasha)
+	db.parshiot.ensure_index("date")

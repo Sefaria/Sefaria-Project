@@ -33,12 +33,20 @@ from settings import SEARCH_ADMIN, SEARCH_INDEX_NAME, STATICFILES_DIRS
 from sefaria.utils.hebrew import hebrew_term
 import sefaria.model.queue as qu
 
+def init_pagesheetrank_dicts():
+    global pagerank_dict, sheetrank_dict
+    try:
+        pagerank_dict = {r: v for r, v in json.load(open(STATICFILES_DIRS[0] + "pagerank.json","rb"))}
+    except IOError:
+        pagerank_dict = {}
+    try:
+        sheetrank_dict = json.load(open(STATICFILES_DIRS[0] + "sheetrank.json", "rb"))
+    except IOError:
+        sheetrank_dict = {}
 
-
-pagerank_dict = {r: v for r, v in json.load(open(STATICFILES_DIRS[0] + "pagerank.json","rb"))}
-sheetrank_dict = json.load(open(STATICFILES_DIRS[0] + "sheetrank.json", "rb"))
+init_pagesheetrank_dicts()
 all_gemara_indexes = library.get_indexes_in_category("Bavli")
-davidson_indexes = all_gemara_indexes[:all_gemara_indexes.index("Bava Batra") + 1]
+davidson_indexes = all_gemara_indexes[:all_gemara_indexes.index("Horayot") + 1]
 
 es = ElasticSearch(SEARCH_ADMIN)
 tracer = logging.getLogger('elasticsearch.trace')
@@ -49,7 +57,7 @@ tracer.addHandler(NullHandler())
 doc_count = 0
 
 
-def index_text(index_name, oref, version=None, lang=None, bavli_amud=True, merged=False):
+def index_text(index_name, oref, version=None, lang=None, bavli_amud=True, merged=False, version_priority=None):
     """
     Index the text designated by ref.
     If no version and lang are given, this function will be called for each available version.
@@ -59,6 +67,7 @@ def index_text(index_name, oref, version=None, lang=None, bavli_amud=True, merge
     :param str lang: Language of version being indexed
     :param bool bavli_amud:  Is this Bavli? Bavli text is indexed by section, not segment.
     :param bool merged: is this a merged index?
+    :param int version_priority: priority of version compared to other versions of this ref. lower is higher priority. NOTE: zero is not necessarily the highest priority for a given language
     :return:
     """
     #TODO it seems that `bavli_amud` is never set...?
@@ -70,8 +79,8 @@ def index_text(index_name, oref, version=None, lang=None, bavli_amud=True, merge
     if merged and version:
         raise InputError("index_text() called with version title and merged flag.")
     if not merged and not (version and lang):
-        for v in oref.version_list():
-            index_text(index_name, oref, version=v["versionTitle"], lang=v["language"], bavli_amud=bavli_amud)
+        for priority, v in enumerate(oref.version_list()):
+            index_text(index_name, oref, version=v["versionTitle"], lang=v["language"], version_priority=priority, bavli_amud=bavli_amud)
         return
     elif merged and not lang:
         for l in ["he", "en"]:
@@ -95,7 +104,7 @@ def index_text(index_name, oref, version=None, lang=None, bavli_amud=True, merge
                     continue
                 elif iref == 0 and ref.prev_segment_ref() is not None:
                     ref = ref.prev_segment_ref().to(ref)
-            index_text(index_name, ref, version=version, lang=lang, bavli_amud=bavli_amud, merged=merged)
+            index_text(index_name, ref, version=version, lang=lang, bavli_amud=bavli_amud, merged=merged, version_priority=version_priority)
         return  # Returning at this level prevents indexing of full chapters
 
     '''   Can't get here after the return above
@@ -109,7 +118,13 @@ def index_text(index_name, oref, version=None, lang=None, bavli_amud=True, merge
 
     # Index this document as a whole
     try:
-        doc = make_text_index_document(oref.normal(), version, lang)
+        if version and lang and not version_priority:
+            for priority, v in enumerate(oref.version_list()):
+                if v['versionTitle'] == version:
+                    version_priority = priority
+                    break
+        doc = make_text_index_document(oref.normal(), version, lang, version_priority)
+        print doc
     except Exception as e:
         logger.error(u"Error making index document {} / {} / {} : {}".format(oref.normal(), version, lang, e.message))
         return
@@ -176,7 +191,7 @@ def flatten_list(l):
             yield el
 
 
-def make_text_index_document(tref, version, lang):
+def make_text_index_document(tref, version, lang, version_priority):
     from sefaria.utils.hebrew import strip_cantillation
     """
     Create a document for indexing from the text specified by ref/version/lang
@@ -257,6 +272,7 @@ def make_text_index_document(tref, version, lang):
         "heRef": oref.he_normal(),
         "version": version,
         "lang": lang,
+        "version_priority": version_priority if version_priority else 1000,
         "titleVariants": text["titleVariants"],
         "categories": categories,
         "order": oref.order_id(),
@@ -328,7 +344,7 @@ def index_sheet(index_name, id):
 
     pud = public_user_data(sheet["owner"])
     doc = {
-        "title": sheet["title"],
+        "title": strip_tags(sheet["title"]),
         "content": make_sheet_text(sheet, pud),
         "owner_id": sheet["owner"],
         "owner_name": pud["name"],
@@ -342,9 +358,11 @@ def index_sheet(index_name, id):
         es.index(index_name, 'sheet', doc, id)
         global doc_count
         doc_count += 1
+        return True
     except Exception, e:
         print "Error indexing sheet %d" % id
         print e
+        return False
 
 
 def make_sheet_text(sheet, pud):
@@ -402,14 +420,13 @@ def create_index(index_name, merged=False):
         "index" : {
             "analysis" : {
                 "analyzer" : {
-                    "default" : {
+                    "my_standard" : {
                         "tokenizer": "standard",
                         "filter": [
                                 "standard",
                                 "lowercase",
                                 "icu_normalizer",
                                 "icu_folding",
-                                "icu_collation",
                                 "my_snow"
                                 ]
                     }
@@ -478,6 +495,10 @@ def put_text_mapping(index_name):
                     'type': 'integer',
                     'index': 'not_analyzed'
                 },
+                "version_priority": {
+                    'type': 'integer',
+                    'index': 'not_analyzed'
+                },
                 #"hebmorph_semi_exact": {
                 #    'type': 'string',
                 #    'analyzer': 'hebrew',
@@ -485,11 +506,12 @@ def put_text_mapping(index_name):
                 #},
                 "exact": {
                     'type': 'string',
-                    'analyzer': 'standard'
+                    'analyzer': 'my_standard'
                 },
                 "naive_lemmatizer": {
                     'type': 'string',
-                    'analyzer': 'sefaria-naive-lemmatizer'
+                    'analyzer': 'sefaria-naive-lemmatizer',
+                    'search_analyzer': 'sefaria-naive-lemmatizer-less-prefixes'
                 }
             }
         }
@@ -537,6 +559,30 @@ def index_all_sections(index_name, skip=0, merged=False, debug=False):
 
     print "Indexed %d documents." % doc_count
 
+def index_sheets_by_timestamp(timestamp):
+    """
+    :param timestamp str: index all sheets modified after `timestamp` (in isoformat)
+    """
+
+    name_dict = get_new_and_current_index_names(merged=False, debug=False)
+    curr_index_name = name_dict['current']
+    try:
+        ids = db.sheets.find({"status": "public", "dateModified": {"$gt": timestamp}}).distinct("id")
+    except Exception, e:
+        print e
+        return str(e)
+
+    succeeded = []
+    failed = []
+
+    for id in ids:
+        did_succeed = index_sheet(curr_index_name, id)
+        if did_succeed:
+            succeeded += [id]
+        else:
+            failed += [id]
+
+    return {"succeeded": {"num": len(succeeded), "ids": succeeded}, "failed": {"num": len(failed), "ids": failed}}
 
 def index_public_sheets(index_name):
     """

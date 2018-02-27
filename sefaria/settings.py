@@ -1,6 +1,9 @@
 # Django settings for sefaria project.
 
 import os.path
+
+from django.utils.translation import ugettext_lazy as _
+
 relative_to_abs_path = lambda *x: os.path.join(os.path.dirname(
                                os.path.realpath(__file__)), *x)
 # Local time zone for this installation. Choices can be found here:
@@ -14,7 +17,12 @@ TIME_ZONE = 'America/Vancouver'
 
 # Language code for this installation. All choices can be found here:
 # http://www.i18nguy.com/unicode/language-identifiers.html
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = 'en'
+
+LANGUAGES = (
+    ('en', _("English")),
+    ('he', _("Hebrew")),
+)
 
 SITE_ID = 1
 
@@ -89,7 +97,6 @@ TEMPLATE_CONTEXT_PROCESSORS = (
     "sefaria.system.context_processors.toc",
     "sefaria.system.context_processors.terms",
     "sefaria.system.context_processors.embed_page",
-    "sefaria.system.context_processors.language_settings",
     "sefaria.system.context_processors.user_and_notifications",
     "sefaria.system.context_processors.calendar_links",
     "sefaria.system.context_processors.header_html",
@@ -104,8 +111,10 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django_mobile.middleware.MobileDetectionMiddleware',
-    'sefaria.system.middleware.ProfileMiddleware',
     'django_mobile.middleware.SetFlavourMiddleware',
+    'sefaria.system.middleware.LanguageCookieMiddleware',
+    'sefaria.system.middleware.LanguageSettingsMiddleware',
+    'sefaria.system.middleware.ProfileMiddleware',
     #'django.middleware.cache.UpdateCacheMiddleware',
     #'django.middleware.cache.FetchFromCacheMiddleware',
 )
@@ -130,6 +139,7 @@ INSTALLED_APPS = (
     'captcha',
     'django_mobile',
     'django.contrib.admin',
+    'anymail',
     'webpack_loader'
     # Uncomment the next line to enable admin documentation:
     # 'django.contrib.admindocs',
@@ -139,9 +149,13 @@ LOGIN_URL = '/login'
 
 LOGIN_REDIRECT_URL = '/'
 
-
 AUTHENTICATION_BACKENDS = (
     'emailusernames.backends.EmailAuthBackend',
+)
+
+
+LOCALE_PATHS = (
+    relative_to_abs_path('../locale'),
 )
 
 # A sample logging configuration. The only tangible logging
@@ -274,9 +288,17 @@ except ImportError:
 WEBPACK_LOADER = {
     'DEFAULT': {
         'BUNDLE_DIR_NAME': 'bundles/client/',  # must end with slash
-        'STATS_FILE': relative_to_abs_path('../webpack-stats.client.json'),
+        'STATS_FILE': relative_to_abs_path('../node/webpack-stats.client.json'),
+        'POLL_INTERVAL': 0.1,
+        'TIMEOUT': None,
+        'CACHE': not DEBUG,
+    },
+    'SEFARIA_JS': {
+        'BUNDLE_DIR_NAME': 'bundles/sefaria/',  # must end with slash
+        'STATS_FILE': relative_to_abs_path('../node/webpack-stats.sefaria.json'),
         'POLL_INTERVAL': 0.1,
         'TIMEOUT': None,
         'CACHE': not DEBUG,
     }
+
 }

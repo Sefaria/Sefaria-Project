@@ -51,7 +51,13 @@ server.post('/ReaderApp/:cachekey', function(req, res) {
   // var cacheKey = req.params.cachekey
   log(props.initialRefs || props.initialMenu);
   log("Time to props: %dms", timer.elapsed());
-  request(settings.DJANGO_HOST + "/data.js", function(error, response, body) {
+  var options = {
+    url: settings.DJANGO_HOST + "/data.js",
+    headers: {
+      "User-Agent": "sefaria-node"
+    }
+  };
+  request(options, function(error, response, body) {
     if (!error && response.statusCode == 200) {
       log("Time to get data.js: %dms", timer.elapsed());
       (0, eval)(body); // to understand why this is necessary, see: https://stackoverflow.com/questions/19357978/indirect-eval-call-in-strict-mode

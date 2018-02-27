@@ -3,20 +3,31 @@
 <!DOCTYPE html>
 <html>
 <head>
-    {% if interfaceLang == "english" %}
-        <title>{% block titleEnglish %}{% endblock %}</title>
-        <meta name="description" property="og:description" content="{% block descriptionEnglish %}{% endblock %}">
-    {% elif interfaceLang == "hebrew" %}
-        <title>{% block titleHebrew %}{% endblock %}</title>
-        <meta name="description" property="og:description" content="{% block descriptionHebrew %}{% endblock %}">
-    {% endif %}
+    <title>{% block title %}{% endblock %}</title>
+    <meta name="description" property="og:description" content="{% block description %}{% endblock %}">
+    <link rel="search" type="application/opensearchdescription+xml" title="Sefaria Search" href="/static/files/opensearch.xml" />
+
+    <link rel="alternate" href="//www.sefaria.org{{ request.path }}" hreflang="en" />
+    <link rel="alternate" href="//www.sefaria.org.il{{ request.path }}" hreflang="he" />
 
     {% block ogtype %}<meta property="og:type" content="website"/>{% endblock %}
-    {% block ogimage %}<meta property="og:image" content="https://www.sefaria.org/static/img/fb-og-image.png"/>{% endblock %}
+    {% block ogimage %}
+        <meta property="og:image" content="https://www.sefaria.org/static/img/locale/{{ request.interfaceLang|slice:"0:2" }}/fb-og-image.png"/>
+    {% endblock %}
 
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-itunes-app" content="app-id=1163273965">
     <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+
+    <!-- https://realfavicongenerator.net -->
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png?v=xQzLlLp7oR">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png?v=xQzLlLp7oR">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png?v=xQzLlLp7oR">
+    <link rel="manifest" href="/manifest.json?v=xQzLlLp7oR">
+    <link rel="mask-icon" href="/safari-pinned-tab.svg?v=xQzLlLp7oR" color="#273557">
+    <link rel="shortcut icon" href="/favicon.ico?v=xQzLlLp7oR">
+    <meta name="theme-color" content="#273557">
+
 
     {% block head %}{% endblock %}
 
@@ -58,7 +69,7 @@
     {% endif %}
 </head>
 
-<body{% if EMBED %} class="embeded"{% endif %}>
+<body class="interface-{{ request.interfaceLang }}{% if EMBED %} embeded{% endif %}">
 
     {% autoescape off %}
     {% if request.user.is_authenticated %}
@@ -69,7 +80,7 @@
     {% endautoescape %}
 
     <div class="wrapper">
-        <div id="content" class="interface-{{ interfaceLang }}">
+        <div id="content" class="interface-{{ request.interfaceLang }}">
             {% block content %}{% endblock %}
         </div>
     </div>
@@ -78,18 +89,20 @@
         {% include "elements/footer.html" with class=contentLang %}
     {% endblock %}
 
-    {% include "js/jquery.html" %}
-    <script src="/static/js/lib/jquery.tooltipster.min.js"></script>
-    <script>{% include "js/django-csrf.js" %}</script>
-    <script src="/static/js/lib/jquery.scrollTo.js"></script>
+
+    <script src="https://unpkg.com/react@16/umd/react.{% if DEBUG %}development{% else %}production.min{% endif %}.js"></script>
+    <script src="https://unpkg.com/react-dom@16/umd/react-dom.{% if DEBUG %}development{% else %}production.min{% endif %}.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.2.4/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.js"></script>
+
     <script src="/static/js/lib/keyboard.js"></script>
     <script src="/data.js"></script>
 
     <script>
       {% autoescape off %}
       var DJANGO_VARS = {
-        contentLang: "{{ contentLang }}",
-        interfaceLang: "{{ interfaceLang }}",
+        contentLang: "{{ request.contentLang }}",
+        interfaceLang: "{{ request.interfaceLang }}",
         inReaderApp: false,
         ga: ga
       };
@@ -97,6 +110,8 @@
     </script>
 
     {% render_bundle 'main' %}
+    {% include "js/jquery.html" %}
+    <script>{% include "js/django-csrf.js" %}</script>
 
     {% block js %}{% endblock %}
 </body>

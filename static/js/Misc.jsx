@@ -7,6 +7,26 @@ const PropTypes  = require('prop-types');
 import Component      from 'react-class';
 
 
+class Link extends Component {
+  handleClick(e) {
+    e.preventDefault();
+    this.props.onClick();
+  }
+  render() {
+    return <a
+              className={this.props.className}
+              href={this.props.href}
+              onClick={this.handleClick}
+              title={this.props.title}>{this.props.children}</a>
+  }
+}
+Link.propTypes = {
+  href:    PropTypes.string.isRequired,
+  onClick: PropTypes.func,
+  title:   PropTypes.string.isRequired,
+}
+
+
 class GlobalWarningMessage extends Component {
   close() {
     Sefaria.globalWarningMessage = null;
@@ -53,28 +73,44 @@ class TextBlockLink extends Component {
     var style    = {"borderColor": Sefaria.palette.categoryColor(category)};
     var title    = this.props.title   || (this.props.showSections ? this.props.sref : this.props.book);
     var heTitle  = this.props.heTitle || (this.props.showSections ? this.props.heRef : index.heTitle);
+    var subtitle = this.props.displayValue ? (
+        <span className="blockLinkSubtitle">
+            <span className="en">{this.props.displayValue}</span>
+            <span className="he">{this.props.heDisplayValue}</span>
+        </span>
+    ) : null;
 
     var position = this.props.position || 0;
-    var classes  = classNames({refLink: 1, blockLink: 1, recentItem: this.props.recentItem});
-    var url      = "/" + Sefaria.normRef(this.props.sref) + (this.props.version?`/${this.props.versionLanguage}/${this.props.version}`:"");
-    return (<a href={url} className={classes} data-ref={this.props.sref} data-version={this.props.version} data-versionlanguage={this.props.versionLanguage} data-position={position} style={style}>
+    var classes  = classNames({refLink: 1, blockLink: 1, recentItem: this.props.recentItem, calendarLink: (subtitle != null)});
+    var url = "/" + Sefaria.normRef(this.props.sref);
+    url += Object.keys(this.props.currVersions)
+            .filter(vlang=>!!this.props.currVersions[vlang])
+            .map((vlang)=>`&v${vlang}=${this.props.currVersions[vlang]}`)
+            .join("")
+            .replace("&","?");
+    return (<a href={url} className={classes} data-ref={this.props.sref} data-ven={this.props.currVersions.en} data-vhe={this.props.currVersions.he} data-position={position} style={style}>
               <span className="en">{title}</span>
               <span className="he">{heTitle}</span>
+                {subtitle}
              </a>);
   }
 }
 TextBlockLink.propTypes = {
   sref:            PropTypes.string.isRequired,
-  version:         PropTypes.string,
-  versionLanguage: PropTypes.string,
+  currVersions:    PropTypes.object.isRequired,
   heRef:           PropTypes.string,
   book:            PropTypes.string,
   category:        PropTypes.string,
   title:           PropTypes.string,
   heTitle:         PropTypes.string,
+  displayValue:    PropTypes.string,
+  heDisplayValue:  PropTypes.string,
   showSections:    PropTypes.bool,
   recentItem:      PropTypes.bool,
-  position:        PropTypes.number
+  position:        PropTypes.number,
+};
+TextBlockLink.defaultProps = {
+  currVersions: {en:null, he:null},
 };
 
 
@@ -100,8 +136,11 @@ LanguageToggleButton.propTypes = {
 class BlockLink extends Component {
   render() {
     var interfaceClass = this.props.interfaceLink ? 'int-' : '';
-    var classes = classNames({blockLink: 1, inAppLink: this.props.inAppLink})
-    return (<a className={classes} href={this.props.target}>
+    var cn = {blockLink: 1, inAppLink: this.props.inAppLink};
+    var linkClass = this.props.title.toLowerCase().replace(" ", "-") + "-link";
+    cn[linkClass] = 1;
+    var classes = classNames(cn);
+      return (<a className={classes} href={this.props.target}>
               {this.props.image ? <img src={this.props.image} alt="" /> : null}
               <span className={`${interfaceClass}en`}>{this.props.title}</span>
               <span className={`${interfaceClass}he`}>{this.props.heTitle}</span>
@@ -129,7 +168,7 @@ class ToggleSet extends Component {
     classes = classNames(classes);
     var value = this.props.name === "layout" ? this.props.currentLayout() : this.props.settings[this.props.name];
     var width = 100.0 - (this.props.separated ? (this.props.options.length - 1) * 3 : 0);
-    var style = {width: (width/this.props.options.length) + "%", outline: "none"};
+    var style = {width: (width/this.props.options.length) + "%"};
     return (
       <div className={classes} role={this.props.role} aria-label={this.props.ariaLabel}>
         {
@@ -171,6 +210,41 @@ class ToggleOption extends Component {
     this.props.setOption(this.props.set, this.props.name);
     if (Sefaria.site) { Sefaria.track.event("Reader", "Display Option Click", this.props.set + " - " + this.props.name); }
   }
+  checkKeyPress(e){
+    if (e.keyCode === 39  || e.keyCode === 40) { //39 is right arrow -- 40 is down
+        $(e.target).siblings(".toggleOption").attr("tabIndex","-1");
+        $(e.target).attr("tabIndex","-1");
+        $(e.target).next(".toggleOption").focus().attr("tabIndex","0");
+    }
+    else if (e.keyCode === 37 || e.keyCode === 38) { //37 is left arrow -- 38 is up
+        $(e.target).siblings(".toggleOption").attr("tabIndex","-1");
+        $(e.target).attr("tabIndex","-1");
+        $(e.target).prev(".toggleOption").focus().attr("tabIndex","0");
+    }
+    else if (e.keyCode === 13) { //13 is enter
+        $(e.target).trigger("click");
+    }
+    else if (e.keyCode === 9) { //9 is tab
+        var lastTab = $("div[role='dialog']").find(':tabbable').last();
+        var firstTab = $("div[role='dialog']").find(':tabbable').first();
+        if (e.shiftKey) {
+          if ($(e.target).is(firstTab)) {
+            $(lastTab).focus();
+            e.preventDefault();
+          }
+        }
+        else {
+          if ($(e.target).is(lastTab)) {
+            $(firstTab).focus();
+            e.preventDefault();
+          }
+        }
+    }
+    else if (e.keyCode === 27) { //27 is escape
+        e.stopPropagation();
+        $(".mask").trigger("click");
+    }
+  }
   render() {
     var classes = {toggleOption: 1, on: this.props.on };
     var tabIndexValue = this.props.on ? 0 : -1;
@@ -185,8 +259,10 @@ class ToggleOption extends Component {
         role={this.props.role}
         aria-label= {this.props.ariaLabel}
         tabIndex = {this.props.role == "radio"? tabIndexValue : "0"}
+        aria-checked={ariaCheckedValue}
         className={classes}
         style={this.props.style}
+        onKeyDown={this.checkKeyPress}
         onClick={this.handleClick}>
         {content}
       </div>);
@@ -203,9 +279,17 @@ class ReaderNavigationMenuSearchButton extends Component {
 
 class ReaderNavigationMenuMenuButton extends Component {
   render() {
-    var icon = this.props.compare ? (<i className="fa fa-chevron-left"></i>) : (<i className="fa fa-bars"></i>);
+    var isheb = this.props.interfaceLang == "hebrew";
+    var icon = this.props.compare ? (isheb ?
+      <i className="fa fa-chevron-right"></i> : <i className="fa fa-chevron-left"></i>) :
+        (<i className="fa fa-bars"></i>);
     return (<span className="readerNavMenuMenuButton" onClick={this.props.onClick}>{icon}</span>);
   }
+}
+ReaderNavigationMenuMenuButton.propTypes = {
+  onClick: PropTypes.func,
+  compare: PropTypes.bool,
+  interfaceLang: PropTypes.string
 }
 
 
@@ -231,16 +315,22 @@ class ReaderNavigationMenuCloseButton extends Component {
 
 class ReaderNavigationMenuDisplaySettingsButton extends Component {
   render() {
-    return (<a
-              href="#"
+    var style = this.props.placeholder ? {visibility: "hidden"} : {};
+    return (<div
               className="readerOptions"
+              tabIndex="0"
               role="button"
               aria-haspopup="true"
+              style={style}
               onClick={this.props.onClick}
               onKeyPress={function(e) {e.charCode == 13 ? this.props.onClick(e):null}.bind(this)}>
-                <img src="/static/img/ayealeph.svg" alt="Toggle Reader Menu Display Settings"/>
-            </a>);
+                <img src="/static/img/ayealeph.svg" alt="Toggle Reader Menu Display Settings" style={style} />
+            </div>);
   }
+}
+ReaderNavigationMenuDisplaySettingsButton.propTypes = {
+  onClick: PropTypes.func,
+  placeholder: PropTypes.bool,
 }
 
 
@@ -320,42 +410,64 @@ class InterruptingMessage extends Component {
   constructor(props) {
     super(props);
     this.displayName = 'InterruptingMessage';
+    this.state = {
+      timesUp: false,
+      animationStarted: false
+    };
   }
   componentDidMount() {
-    $("#interruptingMessage .button").click(this.close);
+    this.delayedShow();
+  }
+  delayedShow() {
+    setTimeout(function() {
+      this.setState({timesUp: true});
+      $("#interruptingMessage .button").click(this.close);
+      $("#interruptingMessage .trackedAction").click(this.trackAction);
+      this.delayedFadeIn();
+    }.bind(this), 1000);
+  }
+  delayedFadeIn() {
+    setTimeout(function() {
+      this.setState({animationStarted: true});
+      this.trackOpen();
+    }.bind(this), 50);
   }
   close() {
     this.markAsRead();
     this.props.onClose();
   }
+  trackOpen() {
+    Sefaria.track.event("Interrupting Message", "open", this.props.messageName, { nonInteraction: true });
+  }
+  trackAction() {
+    Sefaria.track.event("Interrupting Message", "action", this.props.messageName, { nonInteraction: true });
+  }
   markAsRead() {
     Sefaria._api("/api/interrupting-messages/read/" + this.props.messageName, function (data) {});
-    $.cookie(this.props.messageName, true, { "path": "/" });
+    var cookieName = this.props.messageName + "_" + this.props.repetition;
+    $.cookie(cookieName, true, { path: "/", expires: 14 });
     Sefaria.track.event("Interrupting Message", "read", this.props.messageName, { nonInteraction: true });
     Sefaria.interruptingMessage = null;
   }
   render() {
-    return React.createElement(
-      'div',
-      { className: 'interruptingMessageBox' },
-      React.createElement('div', { className: 'overlay', onClick: this.close }),
-      React.createElement(
-        'div',
-        { id: 'interruptingMessage' },
-        React.createElement(
-          'div',
-          { id: 'interruptingMessageClose', onClick: this.close },
-          '×'
-        ),
-        React.createElement('div', { id: 'interruptingMessageContent', dangerouslySetInnerHTML: { __html: this.props.messageHTML } })
-      )
-    );
+    return this.state.timesUp ?
+      <div id="interruptingMessageBox" className={this.state.animationStarted ? "" : "hidden"}>
+        <div id="interruptingMessageOverlay" onClick={this.close}></div>
+        <div id="interruptingMessage">
+          <div id="interruptingMessageContentBox">
+            <div id="interruptingMessageClose" onClick={this.close}>×</div>
+            <div id="interruptingMessageContent" dangerouslySetInnerHTML={ {__html: this.props.messageHTML} }></div>
+          </div>
+        </div>
+      </div>
+      : null;
   }
 }
 InterruptingMessage.propTypes = {
   messageName: PropTypes.string.isRequired,
   messageHTML: PropTypes.string.isRequired,
-  onClose: PropTypes.func.isRequired
+  repetition:  PropTypes.number.isRequired,
+  onClose:     PropTypes.func.isRequired
 };
 
 
@@ -521,7 +633,7 @@ class TestMessage extends Component {
         <div className="testMessage">
           <div className="title">The new Sefaria is still in development.<br />Thank you for helping us test and improve it.</div>
           <a href="mailto:hello@sefaria.org" target="_blank" className="button">Send Feedback</a>
-          <div className="button" onClick={backToS1} >Return to Old Sefaria</div>
+          <div className="button" onClick={null} >Return to Old Sefaria</div>
         </div>
       </div>);
   }
@@ -534,19 +646,27 @@ TestMessage.propTypes = {
 class CategoryAttribution extends Component {
   render() {
     var attribution = Sefaria.categoryAttribution(this.props.categories);
-    return attribution ?
-      <div className="categoryAttribution">
-        <a href={attribution.link} className="outOfAppLink">
-          <span className="en">{attribution.english}</span>
-          <span className="he">{attribution.hebrew}</span>
-        </a>
-      </div>
-      : null;
+    if (!attribution) { return null; }
+    var linkedContent = <a href={attribution.link} className="outOfAppLink">
+                          <span className="en">{attribution.english}</span>
+                          <span className="he">{attribution.hebrew}</span>
+                        </a>;
+    var unlinkedContent = <span>
+                            <span className="en">{attribution.english}</span>
+                            <span className="he">{attribution.hebrew}</span>
+                          </span>
+    return <div className="categoryAttribution">
+            {this.props.linked ? linkedContent : unlinkedContent}
+           </div>;
   }
 }
 CategoryAttribution.propTypes = {
-  categories: PropTypes.array.isRequired
+  categories: PropTypes.array.isRequired,
+  linked:     PropTypes.bool,
 };
+CategoryAttribution.defaultProps = {
+  linked:     true,
+}
 
 
 class SheetTagLink extends Component {
@@ -578,17 +698,6 @@ SheetAccessIcon.propTypes = {
 };
 
 
-var openInNewTab = function(url) {
-  var win = window.open(url, '_blank');
-  win.focus();
-};
-
-var backToS1 = function() {
-  $.cookie("s2", "", {path: "/"});
-  window.location = "/";
-};
-
-module.exports.backToS1                                  = backToS1;
 module.exports.BlockLink                                 = BlockLink;
 module.exports.CategoryColorLine                         = CategoryColorLine;
 module.exports.CategoryAttribution                       = CategoryAttribution;
@@ -596,10 +705,10 @@ module.exports.Dropdown                                  = Dropdown;
 module.exports.GlobalWarningMessage                      = GlobalWarningMessage;
 module.exports.InterruptingMessage                       = InterruptingMessage;
 module.exports.LanguageToggleButton                      = LanguageToggleButton;
+module.exports.Link                                      = Link;
 module.exports.LoadingMessage                            = LoadingMessage;
 module.exports.LoginPrompt                               = LoginPrompt;
 module.exports.Note                                      = Note;
-module.exports.openInNewTab                              = openInNewTab;
 module.exports.ReaderNavigationMenuCloseButton           = ReaderNavigationMenuCloseButton;
 module.exports.ReaderNavigationMenuDisplaySettingsButton = ReaderNavigationMenuDisplaySettingsButton;
 module.exports.ReaderNavigationMenuMenuButton            = ReaderNavigationMenuMenuButton;

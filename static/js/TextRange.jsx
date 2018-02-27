@@ -27,8 +27,8 @@ class TextRange extends Component {
   componentDidUpdate(prevProps, prevState) {
     // Place segment numbers again if update affected layout
     if (this.props.basetext || this.props.segmentNumber) {
-      if (this.props.version != prevProps.version ||
-          this.props.versionLanguage != prevProps.versionLanguage ||
+      if (prevProps.currVersions.en !== this.props.currVersions.en ||
+          prevProps.currVersions.he !== this.props.currVersions.he ||
           prevProps.settings.language !== this.props.settings.language ||
           prevProps.settings.layoutDefault !== this.props.settings.layoutDefault ||
           prevProps.settings.layoutTanakh !== this.props.settings.layoutTanakh ||
@@ -36,7 +36,8 @@ class TextRange extends Component {
           prevProps.settings.biLayout !== this.props.settings.biLayout ||
           prevProps.settings.fontSize !== this.props.settings.fontSize ||
           prevProps.layoutWidth !== this.props.layoutWidth ||
-          prevProps.filter !== this.props.filter) {
+          !!prevProps.filter !== !!this.props.filter ||
+          (!!prevProps.filter && !prevProps.filter.compare(this.props.filter))) {
             // Rerender in case version has changed
             this.forceUpdate(function() {
                 this.placeSegmentNumbers();
@@ -68,40 +69,45 @@ class TextRange extends Component {
   getText() {
     var settings = {
       context: this.props.withContext ? 1 : 0,
-      version: this.props.version || null,
-      language: this.props.versionLanguage || null
+      enVersion: this.props.currVersions.en || null,
+      heVersion: this.props.currVersions.he || null
     };
     var data = Sefaria.text(this.props.sref, settings);
 
-    if (!data || "updateFromAPI" in data) { // If we don't have data yet, call again with a callback to trigger API call
+    if ((!data || "updateFromAPI" in data) && !this.textLoading) { // If we don't have data yet, call again with a callback to trigger API call
+      this.textLoading = true;
       Sefaria.text(this.props.sref, settings, this.onTextLoad);
     }
     return data;
   }
   onTextLoad(data) {
     // Initiate additional API calls when text data first loads
+    this.textLoading = false;
     if (this.props.basetext && this.props.sref !== data.ref) {
       // Replace ReaderPanel contents ref with the normalized form of the ref, if they differ.
       // Pass parameter to showBaseText to replaceHistory - normalization should't add a step to history
-      this.props.showBaseText(data.ref, true, this.props.version, this.props.versionLanguage);
+      this.props.showBaseText(data.ref, true, this.props.currVersions);
       return;
+    } else if (data.spanning) {
+      // Replace ReaderPanel contents with split refs if ref is spanning
+      // Pass parameter to showBaseText to replaceHistory - normalization should't add a step to history
+      //console.log("Re-rewriting spanning ref")
+      this.props.showBaseText(data.spanningRefs, true, this.props.version, this.props.versionLanguage);
+      return;      
     }
 
     // If this is a ref to a super-section, rewrite it to first available section
-    if (data.textDepth - data.sections.length > 1 && data.firstAvailableSectionRef) {
-      this.props.showBaseText(data.firstAvailableSectionRef, true, this.props.version, this.props.versionLanguage);
+    if (this.props.basetext && data.textDepth - data.sections.length > 1 && data.firstAvailableSectionRef) {
+      this.props.showBaseText(data.firstAvailableSectionRef, true, this.props.currVersions);
       return;
     }
 
     this.prefetchData();
 
-    if (this.props.onTextLoad) {
-      this.props.onTextLoad();
-    }
-
     if (this._isMounted) {
       this.forceUpdate(function() {
         this.placeSegmentNumbers();
+        this.props.onTextLoad && this.props.onTextLoad(); // Don't call until the text is actually rendered
       }.bind(this));
     }
   }
@@ -139,15 +145,15 @@ class TextRange extends Component {
      if (data.next) {
        Sefaria.text(data.next, {
          context: 1,
-         version: this.props.version || null,
-         language: this.props.versionLanguage || null
+         enVersion: this.props.currVersions.en || null,
+         heVersion: this.props.currVersions.he || null
        }, function() {});
      }
      if (data.prev) {
        Sefaria.text(data.prev, {
          context: 1,
-         version: this.props.version || null,
-         language: this.props.versionLanguage || null
+         enVersion: this.props.currVersions.en || null,
+         heVersion: this.props.currVersions.he || null
        }, function() {});
      }
      if (data.indexTitle) {
@@ -159,8 +165,6 @@ class TextRange extends Component {
   }
   placeSegmentNumbers() {
     //console.log("placeSegmentNumbers", this.props.sref);
-    //debugger
-    //console.trace();
     // Set the vertical offsets for segment numbers and link counts, which are dependent
     // on the rendered height of the text of each segment.
     var $text  = $(ReactDOM.findDOMNode(this));
@@ -184,14 +188,6 @@ class TextRange extends Component {
         $elems[0].css({top: "-=" + adjust});
         $elems[1].css({top: "+=" + adjust});
       }
-      /* Sketching a general solution for any number of elements, incomplete.
-      var halfOrLess = Math.floor($elems.length / 2);
-      var above = $elems.slice(0, halfOrLess);
-      var below = $elems.slice(-halfOrLess);
-      for (var i = 0; i < halfOrLess; i++) {
-
-      }
-      */
     };
     for (var top in elemsAtPosition) {
       if (elemsAtPosition.hasOwnProperty(top)) {
@@ -205,6 +201,25 @@ class TextRange extends Component {
     $(event.target).closest("sup").next("i.footnote").toggle();
     this.placeSegmentNumbers();
   }
+  parashahHeader(ref) {
+    // Returns the English/Hebrew title of a Parasha, if `ref` is the beginning of a new parahsah
+    // returns null otherwise.
+    var data = this.getText();
+    if (!data) { return null; }
+    var index = Sefaria.indexDetails(data.indexTitle);
+    if (index && "alts" in index && "Parasha" in index.alts && index.categories[1] == "Torah" && !("dependence" in index)) {
+      for (var i=0; i < index.alts.Parasha.nodes.length; i++) {
+        var parashahRef = index.alts.Parasha.nodes[i].wholeRef.split("-")[0];
+        if (ref == parashahRef) {
+          return {
+            en: index.alts.Parasha.nodes[i].title,
+            he: index.alts.Parasha.nodes[i].heTitle,
+          };
+        }
+      }
+    }
+    return null;
+  }
   render() {
     var data = this.getText();
     if (data && this.props.basetext) {
@@ -217,9 +232,11 @@ class TextRange extends Component {
     } else if (data && !this.props.basetext) {
       var title            = data.ref;
       var heTitle          = data.heRef;
+      var ref              = data.ref;
     } else if (!data) {
       var title            = "Loading...";
       var heTitle          = "טעינה...";
+      var ref              = null;
     }
     var showNumberLabel    =  data &&
                               data.categories &&
@@ -228,26 +245,35 @@ class TextRange extends Component {
 
     var showSegmentNumbers = showNumberLabel && this.props.basetext;
 
-    var segments = Sefaria.makeSegments(data, this.props.withContext);
-    var textSegments = segments.map(function (segment, i) {
-      var highlight = this.props.highlightedRefs && this.props.highlightedRefs.length ?                                  // if highlighted refs are explicitly set
-                        Sefaria.util.inArray(segment.ref, this.props.highlightedRefs) !== -1 : // highlight if this ref is in highlighted refs prop
-                        this.props.basetext && segment.highlight;                   // otherwise highlight if this a basetext and the ref is specific
-      return (
-        <TextSegment
-            panelPosition={this.props.panelPosition}
-            sref={segment.ref}
-            en={segment.en}
-            he={segment.he}
-            highlight={highlight}
-            segmentNumber={showSegmentNumbers ? segment.number : 0}
-            showLinkCount={this.props.basetext}
-            filter={this.props.filter}
-            onSegmentClick={this.props.onSegmentClick}
-            onCitationClick={this.props.onCitationClick}
-            onFootnoteClick={this.onFootnoteClick}
-            key={i + segment.ref} />
-      );
+    var segments      = Sefaria.makeSegments(data, this.props.withContext);
+    var textSegments  = segments.map(function (segment, i) {
+      var highlight     = this.props.highlightedRefs && this.props.highlightedRefs.length ?        // if highlighted refs are explicitly set
+                            Sefaria.util.inArray(segment.ref, this.props.highlightedRefs) !== -1 : // highlight if this ref is in highlighted refs prop
+                            this.props.basetext && segment.highlight;                              // otherwise highlight if this a basetext and the ref is specific
+      var parashahHeader = null;
+      if (this.props.showParashahHeaders && this.parashahHeader(segment.ref)) {
+        var parashahNames = this.parashahHeader(segment.ref);
+        var parashahHeader = <div className="parashahHeader">
+          <span className="en">{ parashahNames.en }</span>
+          <span className="he">{ parashahNames.he }</span>
+        </div>;
+      }
+      return (<span key={i + segment.ref}>
+                { parashahHeader }
+                <TextSegment
+                    sref={segment.ref}
+                    en={!this.props.useVersionLanguage || this.props.currVersions.en ? segment.en : null}
+                    he={!this.props.useVersionLanguage || this.props.currVersions.he ? segment.he : null}
+                    highlight={highlight}
+                    segmentNumber={showSegmentNumbers ? segment.number : 0}
+                    showLinkCount={this.props.basetext}
+                    linkCount={Sefaria.linkCount(segment.ref, this.props.filter)}
+                    filter={this.props.filter}
+                    panelPosition={this.props.panelPosition}
+                    onSegmentClick={this.props.onSegmentClick}
+                    onCitationClick={this.props.onCitationClick}
+                    onFootnoteClick={this.onFootnoteClick} />
+              </span>);
     }.bind(this));
     textSegments = textSegments.length ? textSegments : null;
 
@@ -286,17 +312,20 @@ class TextRange extends Component {
     this.props.inlineReference['data-commentator'] === Sefaria.index(Sefaria.parseRef(this.props.sref).index).collectiveTitle);
     if (sidebarNumberDisplay) {
       if (this.props.inlineReference['data-label']) {
-        var displayValue = this.props.inlineReference['data-label'];
+        var enDisplayValue = this.props.inlineReference['data-label'];
+        var heDisplayValue = this.props.inlineReference['data-label'];
       }
       else {
-        var displayValue = Sefaria.hebrew.encodeHebrewNumeral(this.props.inlineReference['data-order']);
+        var enDisplayValue = this.props.inlineReference['data-order'];
+        var heDisplayValue = Sefaria.hebrew.encodeHebrewNumeral(enDisplayValue);
       }
-      if (displayValue === undefined) {
-        displayValue = this.props.inlineReference['data-order'];
+      if (heDisplayValue === undefined) {
+        heDisplayValue = enDisplayValue;
       }
       var sidebarNum = <div className="numberLabel sans itag">
         <span className="numberLabelInner">
-          <span className="he heOnly">{displayValue}</span>
+          <span className="en">{enDisplayValue}</span>
+          <span className="he">{heDisplayValue}</span>
         </span>
       </div>;
     } else if (showNumberLabel && this.props.numberLabel) {
@@ -309,15 +338,15 @@ class TextRange extends Component {
     } else {var sidebarNum = null;}
 
     return (
-      <div className={classes} onClick={this.handleClick} onKeyPress={this.handleKeyPress}>
+      <div className={classes} onClick={this.handleClick} onKeyPress={this.handleKeyPress} data-ref={ref}>
         {sidebarNum}
         {this.props.hideTitle ? null :
-
         (<div className="title">
-          <div className="titleBox">
+          <div className="titleBox" role="heading" aria-level="2">
             <span className="en" >{title}</span>
             <span className="he">{heTitle}</span>
           </div>
+          {this.props.titleButtons ? <div className="buttons" onClick={e => e.stopPropagation()}>{this.props.titleButtons}</div> : null }
         </div>)}
         <div className="text">
           <div className="textInner">
@@ -331,19 +360,20 @@ class TextRange extends Component {
 }
 TextRange.propTypes = {
   sref:                   PropTypes.string.isRequired,
-  version:                PropTypes.string,
-  versionLanguage:        PropTypes.string,
+  currVersions:           PropTypes.object.isRequired,
+  useVersionLanguage:     PropTypes.bool,
   highlightedRefs:        PropTypes.array,
   basetext:               PropTypes.bool,
   withContext:            PropTypes.bool,
   hideTitle:              PropTypes.bool,
   loadLinks:              PropTypes.bool,
   prefetchNextPrev:       PropTypes.bool,
-  openOnClick:            PropTypes.bool,
   lowlight:               PropTypes.bool,
   numberLabel:            PropTypes.number,
   settings:               PropTypes.object,
   filter:                 PropTypes.array,
+  titleButtons:           PropTypes.object,
+  showParashahHeaders:    PropTypes.bool,
   onTextLoad:             PropTypes.func,
   onRangeClick:           PropTypes.func,
   onSegmentClick:         PropTypes.func,
@@ -357,9 +387,24 @@ TextRange.propTypes = {
   showActionLinks:        PropTypes.bool,
   inlineReference:        PropTypes.object,
 };
+TextRange.defaultProps = {
+  currVersions: {en:null,he:null},
+};
 
 
 class TextSegment extends Component {
+  shouldComponentUpdate(nextProps) {
+    if (this.props.highlight !== nextProps.highlight)         { return true; }
+    if (this.props.showLinkCount !== nextProps.showLinkCount) { return true; }
+    if (this.props.linkCount !== nextProps.linkCount)         { return true; }
+    if (!!this.props.filter !== !!nextProps.filter)           { return true; }
+    if (this.props.filter && nextProps.filter &&
+        !this.props.filter.compare(nextProps.filter))         { return true; }
+    if (this.props.en !== nextProps.en
+        || this.props.he !== nextProps.he)                    { return true; }
+
+    return false;
+  }
   handleClick(event) {
     if ($(event.target).hasClass("refLink")) {
       //Click of citation
@@ -381,12 +426,35 @@ class TextSegment extends Component {
       this.handleClick(event);
     }
   }
+  formatItag(lang, text) {
+    var $newElement = $("<div>" + text + "</div>");
+    var textValue = function(i) {
+      if ($(i).attr('data-label')) {
+        return $(i).attr('data-label');
+      } else {
+        if (lang === "he") {
+          var value = Sefaria.hebrew.encodeHebrewNumeral($(i).attr('data-order'));
+        }
+        else if (lang === "en") {
+          var value = $(i).attr('data-order');
+        }
+      }
+      if (value === undefined) {
+        value = $(i).attr('data-order');
+      }
+      return value;
+    };
+    $newElement.find('i[data-commentator="' + this.props.filter[0] + '"]').each(function () {
+      $(this).replaceWith('<sup class="itag">' + textValue(this) + "</sup>");
+    });
+    return $newElement.html();
+  }
   render() {
     var linkCountElement;
     if (this.props.showLinkCount) {
-      var linkCount = Sefaria.linkCount(this.props.sref, this.props.filter);
+      var linkCount = this.props.linkCount;
       var minOpacity = 20, maxOpacity = 70;
-      var linkScore = linkCount ? Math.min(linkCount+minOpacity, maxOpacity) / 100.0 : 0;
+      var linkScore = linkCount ? Math.min(linkCount + minOpacity, maxOpacity) / 100.0 : 0;
       var style = {opacity: linkScore};
       linkCountElement = this.props.showLinkCount ? (<div className="linkCount sans" title={linkCount + " Connections Available"}>
                                                     <span className="en"><span className="linkCountDot" style={style}></span></span>
@@ -400,28 +468,14 @@ class TextSegment extends Component {
                                                       <span className="he"> <span className="segmentNumberInner">{Sefaria.hebrew.encodeHebrewNumeral(this.props.segmentNumber)}</span> </span>
                                                     </div>) : null;
     var he = this.props.he || "";
+    var en = this.props.en || "";
 
     // render itags
     if (this.props.filter && this.props.filter.length > 0) {
-      var $newElement = $("<div>" + he + "</div>");
-      var textValue = function(i) {
-        if ($(i).attr('data-label')) {
-          return $(i).attr('data-label');
-        } else {
-          var value = Sefaria.hebrew.encodeHebrewNumeral($(i).attr('data-order'));
-        }
-        if (value === undefined) {
-          value = $(i).attr('data-order');
-        }
-        return value;
-      };
-      $newElement.find('i[data-commentator="' + this.props.filter[0] + '"]').each(function () {
-        $(this).replaceWith('<sup class="itag">' + textValue(this) + "</sup>");
-      });
-      he = $newElement.html();
+      he = this.formatItag("he", he)
+      en = this.formatItag("en", en)
     }
 
-    var en = this.props.en || "";
     var classes=classNames({ segment: 1,
                      highlight: this.props.highlight,
                      heOnly: !this.props.en,
@@ -430,13 +484,13 @@ class TextSegment extends Component {
         return false;
     }
     return (
-      <span tabIndex="0" className={classes} onClick={this.handleClick} onKeyPress={this.handleKeyPress} data-ref={this.props.sref} aria-controls={"panel-"+(this.props.panelPosition+1)} aria-label={"Click to see links to "+this.props.sref}>
+      <div tabIndex="0" className={classes} onClick={this.handleClick} onKeyPress={this.handleKeyPress} data-ref={this.props.sref} aria-controls={"panel-"+(this.props.panelPosition+1)} aria-label={"Click to see links to "+this.props.sref}>
         {segmentNumber}
         {linkCountElement}
-        <span className="he" dangerouslySetInnerHTML={ {__html: he + " "} }></span>
-        <span className="en" dangerouslySetInnerHTML={ {__html: en + " "} }></span>
+        <p className="he" dangerouslySetInnerHTML={ {__html: he + " "} }></p>
+        <p className="en" dangerouslySetInnerHTML={ {__html: en + " "} }></p>
         <div className="clearFix"></div>
-      </span>
+      </div>
     );
   }
 }
@@ -447,6 +501,7 @@ TextSegment.propTypes = {
   highlight:       PropTypes.bool,
   segmentNumber:   PropTypes.number,
   showLinkCount:   PropTypes.bool,
+  linkCount:       PropTypes.number,
   filter:          PropTypes.array,
   onCitationClick: PropTypes.func,
   onSegmentClick:  PropTypes.func,

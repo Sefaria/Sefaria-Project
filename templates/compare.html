@@ -3,10 +3,17 @@
 <meta charset="UTF-8">
 <title>Compare</title>
 <head>
-    <script
-  src="https://code.jquery.com/jquery-3.2.1.min.js"
-  integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
-  crossorigin="anonymous"></script>
+{#    <script#}
+{#  src="https://code.jquery.com/jquery-3.2.1.min.js"#}
+{#  integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="#}
+{#  crossorigin="anonymous"></script>#}
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/react/15.6.1/react.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/react/15.6.1/react-dom.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.2.4/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.js"></script>
+  <script>
+      {% include "js/analytics.js" %}
+  </script>
 <style>
     th, td {
         padding: 8px;
@@ -22,6 +29,11 @@
         text-align: right;
     }
 
+    td.en{
+      direction: ltr;
+      text-align: left;
+    }
+
     span.ins{
         background: #5CEE5C;
     }
@@ -33,6 +45,30 @@
     span.filtered{
         background: none;
     }
+
+    span.change {
+        position: absolute;
+        z-index: 1;
+        background-color: #555;
+        color: #fff;
+        padding: 10px;
+        border: 2px solid lightblue;
+        direction: ltr;
+        text-align: left;
+    }
+
+    div.changeDialog {
+        display: inline-block;
+        position: absolute;
+        z-index: 1;
+        background-color: #ccc;
+        color: #000;
+        padding: 10px;
+        border: 2px solid lightblue;
+        direction: ltr;
+        text-align: left;
+    }
+
 </style></head>
 <body>
     <script>
@@ -59,36 +95,18 @@
     <div style="direction: rtl">
         <input id="filter" type="button" onclick="add_filter()" value="Update">
     </div>
-    <div>
-      <table>
-          <tr>
-              <th></th>
-              <th>
-                  {{ title1 }}
-              </th>
-              <th>
-                  {{ title2 }}
-              </th>
-          </tr>
-          {% for diff in diffs %}
-          <tr>
-            <td>
-                {{ diff.ref1 }}
-            </td>
-            <td class="{{ lang }}">
-                {% autoescape off %}{{ diff.diff1 }}{% endautoescape %}
-            </td>
-            {% if dual_ref_display %}
-              <td>
-                {{ diff.ref2 }}
-              </td>
-            {% endif %}
-            <td class="{{ lang }}">
-                {% autoescape off %}{{ diff.diff2 }}{% endautoescape %}
-            </td>
-          </tr>
-          {% endfor %}
-      </table>
-    </div>
+    <div id="DiffTable"/>
+    <script>
+        var DJANGO_VARS = {
+            ga: function () {}
+        };
+    </script>
+    <script src="/data.js"></script>
+    <script type="text/javascript">
+    {% autoescape off %}
+      var JSON_PROPS = {{ JSON_PROPS }}
+    {% endautoescape %}
+    </script>
+    <script src="/static/bundles/diffPage/diffPage.js"></script>
 </body>
 </html>

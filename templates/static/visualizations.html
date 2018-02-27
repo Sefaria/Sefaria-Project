@@ -1,11 +1,9 @@
 {% extends "base.html" %}
+{% load i18n %}
 
-{% block titleEnglish %}Visualizations | Sefaria{% endblock %}
-{% block titleHebrew %}Visualizations | Sefaria{% endblock %}
+{% block title %}{% trans "Visualizations" %} | {% trans "Sefaria" %}{% endblock %}
 
-{% block descriptionEnglish %}Projects which have been created to make interactive visualizations of the texts and connections in the Sefaria Library.{% endblock %}
-
-{% block descriptionHebrew %}Projects which have been created to make interactive visualizations of the texts and connections in the Sefaria Library.{% endblock %}
+{% block description %}{% trans "Projects which have been created to make interactive visualizations of the texts and connections in the Sefaria Library of Torah texts." %}{% endblock %}
 
 {% block content %}
 <div id="visualizationsPage" class="static">
@@ -22,7 +20,7 @@
             </h2>
             <div class="description">
                 <span class="int-en">Explore over 30,000 examples of the Talmud quoting a verse from Tanakh. Zoom in to particular books either above or below to explore deeper.</span>
-                <span class="int-he">Explore over 30,000 examples of the Talmud quoting a verse from Tanakh. Zoom in to particular books either above or below to explore deeper.</span>
+                <span class="int-he">גלו יותר מ-30,000 דוגמאות של ציטוטים תנ״כיים בתלמוד. הגדילו את תצוגת המסך כדי להתמקד בספרים מסוימים, בשורה העליונה והתחתונה.</span>
             </div>
             <a href="/explore">
                 <img src="/static/img/link-explorer.png" class="fullWidth" alt="Link to Sefaria Link Explorer">
@@ -36,7 +34,7 @@
             </h2>
             <div class="description">
                 <span class="int-en">700+ sources on Jerusalem, tagged and translated - explore by topic, geography, time period, and person.</span>
-                <span class="int-he">700+ sources on Jerusalem, tagged and translated - explore by topic, geography, time period, and person.</span>
+                <span class="int-he">יותר מ-700 מקורות על ירושלים, מתויגים ומתורגמים - סינון אפשרי לפי נושא, מיקום גאוגרפי, תקופת זמן או דמות.</span>
             </div>
             <a href="/garden/jerusalem">
                 <img src="/static/img/jerusalem-garden.png" class="fullWidth" alt="Link to Sefaria's Jerusalem Garden">
@@ -46,11 +44,11 @@
         <div class="section">
             <h2>
                <span class="int-en">Words Sunburst</span>
-               <span class="int-he">Words Sunburst</span>
+               <span class="int-he">קשת המילים של ספריא</span>
             </h2>
             <div class="description">
                 <span class="int-en">How big is Torah compared to Talmud? This sunburst diagram lets you see the number of words in the texts and categories of Sefaria's library (which is growing every day!).</span>
-                <span class="int-he">How big is Torah compared to Talmud? This sunburst diagram lets you see the number of words in the texts and categories of Sefaria's library (which is growing every day!).</span>
+                <span class="int-he">כמה רחב יריעה הטקסט בתורה לעומת זה שבתלמוד? באמצעות תרשים זה ניתן לראות את מספר המילים במקורות, לפי קטגוריות ספריית ספריא (הגדלה מיום ליום!)</span>
             </div>
             <a href="/visualize/library">
                 <img src="/static/img/words-sunburst.png" class="fullWidth" alt="Link to Words Sunburst">
@@ -60,11 +58,11 @@
         <div class="section">
             <h2>
                <span class="int-en">Responsa Anthology</span>
-               <span class="int-he">Responsa Anthology</span>
+               <span class="int-he">לקט שו״ת</span>
             </h2>
             <div class="description">
                 <span class="int-en">Explore selections from the Responsa literature by topic, location and time period.</span>
-                <span class="int-he">Explore selections from the Responsa literature by topic, location and time period.</span>
+                <span class="int-he">גלו את מגוון ספרות השו״ת הזמינה בספריא, בסינון לפי נושא, מיקום גאוגרפי או תקופת זמן.</span>
             </div>
             <a href="/garden/responsa">
                 <img src="/static/img/responsa-anthology.png" class="fullWidth" alt="Link to Responsa Anthology">
@@ -75,11 +73,11 @@
         <div class="section">
             <h2>
                <span class="int-en">Links through Rashi</span>
-               <span class="int-he">Links through Rashi</span>
+               <span class="int-he">קישורים בתנ"ך לפי רש״י</span>
             </h2>
             <div class="description">
                 <span class="int-en">Explore how Rashi connects verses of Torah to one another when he quotes one verse in his commentary on another.</span>
-                <span class="int-he">Explore how Rashi connects verses of Torah to one another when he quotes one verse in his commentary on another.</span>
+                <span class="int-he">גלו כיצד רש״י מחבר בין פסוקים בתורה בפרשנותו.</span>
             </div>
             <a href="/visualize/links-through-rashi">
                 <img src="/static/img/links-through-rashi.png" class="fullWidth">
@@ -89,12 +87,12 @@
         <div class="section">
             <h2>
                <span class="int-en">Liz Shayne's Visualizations</span>
-               <span class="int-he">Liz Shayne's Visualizations</span>
+               <span class="int-he">העזרים הויזואליים של ליז שיין</span>
                <i class="fa fa-external-link"></i>
             </h2>
             <div class="description">
                 <span class="int-en">While working as a graduate student at UCSB, Liz Shayne put her background in digital humanities to work on the Sefaria dataset, which snagged her (and us) a mention in <a target="_blank" href="http://www.wired.com/2014/07/the-network-structure-of-jewish-texts/">Wired</a>.</span>
-                <span class="int-he">While working as a graduate student at UCSB, Liz Shayne put her background in digital humanities to work on the Sefaria dataset, which snagged her (and us) a mention in <a target="_blank" href="http://www.wired.com/2014/07/the-network-structure-of-jewish-texts/">Wired</a>.</span>
+                <span class="int-he">במקביל ללימודיה במסגרת תואר שני באוניברסיטת קליפורניה בסנטה ברברה, ליז שיין השתמשה בנסיונה מעולם דיגיטציית מקורות מדעי-הרוח ויצרה עזר ויזואלי של מאגר הנתונים של ספריא (אודותיו נכתב במגזין <a target="_blank" href="http://www.wired.com/2014/07/the-network-structure-of-jewish-texts/">Wired</a>).</span>
             </div>
             <a target="_blank" href="https://lizshayne.wordpress.com/2014/06/17/sefaria_in_gephi/">
                 <img src="/static/img/liz-shayne-visualizations.png" class="fullWidth" alt="Link to Liz Shayne's Sefaria Visualization published in Wired">

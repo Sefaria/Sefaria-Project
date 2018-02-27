@@ -1,17 +1,13 @@
 {% extends "base.html" %}
+{% load i18n %}
 
-{% block titleEnglish %}Technology for Jewish Educators | Sefaria{% endblock %}
-{% block titleHebrew %}Technology for Jewish Educators | Sefaria{% endblock %}
+{% block title %}{% trans "Technology for Jewish Educators | Sefaria" %}{% endblock %}
 
-{% block descriptionEnglish %}Resources for educators using Sefaria in the classrom to teach Jewish texts.{% endblock %}
-
-{% block descriptionHebrew %}Resources for educators using Sefaria in the classrom to teach Jewish texts.{% endblock %}
+{% block description %}{% trans "Resources for educators using Sefaria in the classroom to teach Jewish texts." %}{% endblock %}
 
 {% block head %}
-    <meta property="og:title" content="Technology for Jewish Educators | Sefaria.org"/>
     <meta property="og:type" content="website"/>
     <meta property="og:url" content="https://www.sefaria.org/educators"/>
-    <meta property="og:image" content="https://www.sefaria.org/static/img/fb-og-image.png"/>
 {% endblock %}
 
 {% block css %}
@@ -22,22 +18,28 @@
     <div id="edPage" class="static">
         <div id="edCover">
             <h1>
-                Teach with Sefaria
+                <span class="int-en">Teach with Sefaria</span>
+                <span class="int-he">לָמדו עם ספריא</span>
             </h1>
             <div class="sub">
-                Make 3,000 years of Jewish texts accessible to your students.
+                <span class="int-en">Make 3,000 years of Jewish texts accessible to your students.</span>
+                <span class="int-he">הפכו מגוון כתבים יהודים בני 3,000 שנה זמינים לתלמידיך</span>
+                
             </div>
 
             {% if user.email %}
-            <div tabindex="0" role="button" id="educatorSubscribeButton" class="button control-elem" data-email="{{ user.email  }}">
-                Get the Newsletter
+            <div tabindex="0" role="button" id="educatorSubscribeButton" class="button control-elem">
+                <span class="int-en">Get the Newsletter</span>
+                <span class="int-he">הירשמו לקבלת הניוזלטר</span>
+                
             </div>
             <div id="subscribeEdMsg">&nbsp;</div>
 
             {% else %}
             <a href="/register?educator=true&next=/educators">
                 <div class="button control-elem">
-                    Sign up to get updates
+                    <span class="int-en">Sign up to get updates</span>
+                    <span class="int-he">הירשמו לקבלת עדכונים</span>
                 </div>
             </a>
 
@@ -49,20 +51,26 @@
                 <div class="textBox">
                     <h2>
                         <img src="/static/img/network-icon.svg" alt=""/>
-                        Partnership Initiative
+                        <span class="int-en">Partnership Initiative</span>
+                        <span class="int-he">מיזם שיתופי הפעולה של ספריא</span>                        
                     </h2>
                     <div class="description">
-                        Work with our team to improve pedagogy for teaching Jewish texts, and to foster a more innovative spirit within the community of Jewish educators.
+                        <span class="int-en">Work with our team to improve pedagogy for teaching Jewish texts, and to foster a more innovative spirit within the community of Jewish educators.</span>
+                        <span class="int-he">עזרו לצוות שלנו לשפר את כלי ההוראה בעולם ההטקסטים היהודים, ולטפח רוח יצירתית בקרב אנשי חינוך יהודיים.</span>
                     </div>
                     <a href="https://docs.google.com/document/d/1PpMwFAqdjMBCRYwo4SKR3HvH2VyCEsH4kKXQlxeAq7I/pub" target="_blank">
                         <div class="button white control-elem">
-                            Learn More &rsaquo;
+                            <span class="int-en">Learn More &rsaquo;</span>
+                            <span class="int-he">לִמדו עוד &rsaquo;</span>
+                            
                         </div>
                     </a>
 
                     <a href="/static/files/Sefaria_Partnership_Initiative_2017.pdf">
                         <div class="button white control-elem">
-                            Past Cohorts &rsaquo;
+                            <span class="int-en">Past Cohorts &rsaquo;</span>
+                            <span class="int-he">משתפי פעולה קודמים &rsaquo;</span>
+                            
                         </div>
                     </a>
                 </div>
@@ -72,27 +80,32 @@
             </div>
         </div>
 
-
         <div id="edNews" class="section textRight">
             <div class="sectionInner">
                 <div class="textBox">
                     <h2>
                         <img src="/static/img/newspaper-icon.svg" alt=""/>
-                        Educator News
+                        <span class="int-en">Educator News</span>
+                        <span class="int-he">חדשות למחנך ולמחנכת</span>
                     </h2>
                     <div class="description">
-                        Find out what’s new at Sefaria. Explore new ideas for using Sefaria in your classroom.
+                        <span class="int-en">Find out what’s new at Sefaria. Explore new ideas for using Sefaria in your classroom.</span>
+                        <span class="int-he">לִמדו מה חדש בספריא. גלו דרכים יצירתיות לשימוש ספריא בכיתה שלכם</span>
                         </span>
 
                     </div>
                     <a href="https://docs.google.com/spreadsheets/u/1/d/1bbyaoYqP3KwGjVLCYN5SOHMdzibsevfVJE8CIwbl7jc/pubhtml" target="_blank">
                         <div class="button white control-elem">
-                            In the Classroom &rsaquo;
+                            <span class="int-en">In the Classroom &rsaquo;</span>
+                            <span class="int-he">בכיתת הלימוד &rsaquo;</span>
+                            
                         </div>
                     </a>
                     <a href="https://blog.sefaria.org/category/education/">
                         <div class="button white control-elem">
-                            Education Blog &rsaquo;
+                            <span class="int-en">Education Blog &rsaquo;</span>
+                            <span class="int-he">בלוג חינוך &rsaquo;</span>
+                            
                         </div>
                     </a>
                 </div>
@@ -102,47 +115,54 @@
             </div>
         </div>
 
-
         <div id="edSheets" class="section textLeft">
             <div class="sectionInner">
                 <div class="textBox">
                     <h2>
                         <img src="/static/img/file-icon.svg" alt=""/>
-                        Sheets
+                        <span class="int-en">Sheets</span>
+                        <span class="int-he">דפי מקורות</span>
                     </h2>
                     <div class="description">
-                        Create, collaborate, get inspired. Browse through thousands of Sefaria sheets or start your own.
+                        <span class="int-en">Create, collaborate, get inspired. Browse through thousands of Sefaria sheets or start your own.</span>
+                        <span class="int-he">עוררו השראה, צרו ועבדו במשותף. התרשמו מאלפי דפי מקורות בספריא או צרו חדשים בעצמכם!</span>
                     </div>
                     <a href="/sheets/new">
                         <div class="button control-elem">
-                            Start a New Sheet &rsaquo;
+                            <span class="int-en">Start a New Sheet &rsaquo;</span>
+                            <span class="int-he">צרו דף מקורות חדש &rsaquo;</span>
                         </div>
                     </a>
                 </div>
                 <div class="imageBox">
                     <a  href="https://docs.google.com/document/d/1IWN3b1Njdl3GowMP51Xym8SezxqwCzqcgyoYNeIcEfc/pub" target="_blank">
                         <div class="button white control-elem fullWidth">
-                            Trending
+                            <span class="int-en">Trending</span>
+                            <span class="int-he">פופולריים כעת</span>
                         </div>
                     </a>
                     <a  href="/sheets/57235">
                         <div class="button white control-elem fullWidth">
-                            Assignments
+                            <span class="int-en">Assignments</span>
+                            <span class="int-he">מטלות</span>
                         </div>
                     </a>
                     <a  href="/sheets/64413">
                         <div class="button white control-elem fullWidth">
-                            Highlight
+                            <span class="int-en">Highlight</span>
+                            <span class="int-he">הדגשה</span>
                         </div>
                     </a>
                     <a  href="/sheets/63172">
                         <div class="button white control-elem fullWidth">
-                            Collaborative
+                            <span class="int-en">Collaborative</span>
+                            <span class="int-he">בעבודת צוות</span>
                         </div>
                     </a>
                     <a  href="/sheets/63137">
                         <div class="button white control-elem fullWidth">
-                            Visualize
+                            <span class="int-en">Visualize</span>
+                            <span class="int-he">כלי גרפי</span>
                         </div>
                     </a>
 
@@ -150,37 +170,42 @@
             </div>
         </div>
 
-
         <div id="edLibrary" class="section textRight">
             <div class="sectionInner">
                 <div class="textBox">
                     <h2>
                         <img src="/static/img/book-icon.svg" alt=""/>
-                        Library
+                        <span class="int-en">Library</span>
+                        <span class="int-he">ספריה</span>
                     </h2>
                     <div class="description">
-                        Tanakh, Talmud, Commentaries, Liturgy and more. Sefaria’s vast library puts thousands of years of Jewish wisdom, in Hebrew and in English translation, at your  ngertips.
+                        <span class="int-en">Tanakh, Talmud, Commentaries, Liturgy and more. Sefaria’s vast library puts thousands of years of Jewish wisdom, in Hebrew and in English translation, at your fingertips.</span>
+                        <span class="int-he">תנ״ך, תלמוד, פירושים, סדרי תפילות ועוד. הספריה העצומה של ספריא מציעה אלפי שנים של הגות וכתבים יהודיים, בעברית ובאנגלית, במרחק קליק עכבר</span>
                     </div>
                 </div>
                 <div class="imageBox">
                     <a  href="/sheets/63383">
                         <div class="button white control-elem fullWidth">
-                            Lexicon
+                            <span class="int-en">Lexicon</span>
+                            <span class="int-he">לקסיקון</span>
                         </div>
                     </a>
                     <a  href="/sheets/63158">
                         <div class="button white control-elem fullWidth">
-                            Connections
+                            <span class="int-en">Connections</span>
+                            <span class="int-he">חיבורים בין טקסטים</span>
                         </div>
                     </a>
                     <a  href="mailto:education@sefaria.org?subject=Text Request:">
                         <div class="button white control-elem fullWidth">
-                            Request a Text
+                            <span class="int-en">Request a Text</span>
+                            <span class="int-he">הגישו בקשה לטקסט מסוים</span>
                         </div>
                     </a>
                     <a  href="https://github.com/Sefaria/Sefaria-Project/wiki/Database-and-Source-Sheet-Tutorials" target="_blank">
                         <div class="button white control-elem fullWidth">
-                            Tutorials
+                            <span class="int-en">Tutorials</span>
+                            <span class="int-he">סרטוני הדרכה</span>
                         </div>
                     </a>
                 </div>
@@ -192,19 +217,23 @@
                 <div class="textBox">
                     <h2>
                         <img src="/static/img/share-icon.svg" alt=""/>
-                        Groups
+                        <span class="int-en">Groups</span>
+                        <span class="int-he">קבוצות</span>
                     </h2>
                     <div class="description">
-                        Enjoy your own private Sefaria! Share materials with students or colleagues from your own school or around the world.
+                        <span class="int-en">Enjoy your own private Sefaria! Share materials with students or colleagues from your own school or around the world.</span>
+                        <span class="int-he">להנות מספריא הפרטית שלכם! שתפו חומרי לימוד עם תלמידים ואנשי חינוך ממוסדות הלימוד שלכם ומרחבי העולם</span>
                     </div>
                     <a href="/my/groups">
                         <div class="button white control-elem">
-                            Your Groups &rsaquo;
+                            <span class="int-en">Your Groups &rsaquo;</span>
+                            <span class="int-he">הקבוצות שלכם &rsaquo;</span>
                         </div>
                     </a>
                     <a href="/sheets/63118">
                         <div class="button white control-elem">
-                            How to use a Group &rsaquo;
+                            <span class="int-en">How to use a Group &rsaquo;</span>
+                            <span class="int-he">כיצד להשתמש בקבוצות &rsaquo;</span>    
                         </div>
                     </a>
                 </div>
@@ -217,19 +246,23 @@
         <div id="edLearnMore" class="section center">
             <div class="sectionInner">
                 <h2>
-                    Learn More
+                    <span class="int-en">Learn More</span>
+                    <span class="int-he">לְמד עוד</span>
                 </h2>
                 <div class="description">
-                    Have more questions? Check out our tutorials or contact the Education Department.
+                    <span class="int-en">Have more questions? Check out our tutorials or contact the Education Department.</span>
+                    <span class="int-he">עוד שאלות? צפו בסרטוני ההדרכה שלנו או צרו קשר עם מחלקת החינוך של ספריא</span>
                 </div>
                 <a href="mailto:education@sefaria.org">
                     <div class="button white control-elem">
-                        Get in Touch &rsaquo;
+                        <span class="int-en">Get in Touch &rsaquo;</span>
+                        <span class="int-he">צור קשר &rsaquo;</span>
                     </div>
                 </a>
                 <a href="https://github.com/Sefaria/Sefaria-Project/wiki/Database-and-Source-Sheet-Tutorials" target="_blank">
                     <div class="button white control-elem">
-                        More How-tos &rsaquo;
+                        <span class="int-en">More How-tos &rsaquo;</span>
+                        <span class="int-he">מדריכים נוספיםgit &rsaquo;</span>
                     </div>
                 </a>
             </div>
@@ -238,14 +271,17 @@
         <div id="edHelp" class="section center">
             <div class="sectionInner">
                 <h2>
-                    We Need Your Help
+                    <span class="int-en">We Need Your Help</span>
+                    <span class="int-he">אנו זקוקים לעזרתך</span>
                 </h2>
                 <div class="description">
-                    Sefaria is an open source, non-profit project. Support us by making a tax-deductible donation.
+                    <span class="int-en">Sefaria is an open source, non-profit project. Support us by making a tax-deductible donation.</span>
+                    <span class="int-he">ספריא פועלת במתכונת מאגר פתוח, ללא מטרות רווח. תמכו בנו באמצעות תרומה.</span>
                 </div>
                 <a href="/donate">
                     <div class="button control-elem">
-                        Make a Donation
+                        <span class="int-en">Make a Donation</span>
+                        <span class="int-he">לביצוע תרומה</span>
                     </div>
                 </a>
             </div>
@@ -254,15 +290,18 @@
         <div id="edConnect" class="section center">
             <div class="sectionInner">
                 <h2>
-                    Stay Connected
+                    <span class="int-en">Stay Connected</span>
+                    <span class="int-he">הישארו מחוברים</span>
                 </h2>
                 <div id="mailingListBox">
                     <div id="mailingListTitle" class="sans">
-                        Subscribe to our mailing list
+                        <span class="int-en">Subscribe to our mailing list</span>
+                        <span class="int-he">הירשמו לרשימת התפוצה שלנו</span>
                     </div>
-                    <input id="mailingListEmail" placeholder="Email Address">
+                    <input id="mailingListEmail" placeholder='{% trans "Email Address" %}'>
                     <span id="subscribe" class="button control-elem">
-                        Subscribe
+                        <span class="int-en">Subscribe</span>
+                        <span class="int-he">הירשמו </span>
                     </span>
                     <div id="subscribeMsg">&nbsp;</div>
                 </div>
@@ -275,39 +314,44 @@
 {% block js  %}
     <script>
     $(function() {
-        // Email List
+        // General Email List sign up at end of page
         $("#subscribe").click(function() {
             var email = $("#mailingListEmail").val();
             if (Sefaria.util.isValidEmailAddress(email)) {
                 Sefaria.track.event("Educators", "Subscribe from Education Homepage", "");
-                $("#subscribeMsg").html("<i>Subscribing...</i>").show();
-                $.post("/api/subscribe/" + email, function(data) {
+                $("#subscribeMsg").html('{% trans "<i>Subscribing...</i>" %}').show();
+                var list = Sefaria.interfaceLang == "hebrew" ? "Announcements_General_Hebrew" : "Announcements_General"
+                $.post("/api/subscribe/" + email + "?lists=" + list, function(data) {
                     if ("error" in data) {
                         $("#subscribeMsg").text(data.error).show();
                     } else {
-                        $("#subscribeMsg").text("Subscribed! Welcome to our list.").show();
+                        $("#subscribeMsg").text('{% trans "Subscribed! Welcome to our list." %}').show();
                     }
                 }).error(function(data) {
-                    $("#subscribeMsg").text("Sorry, there was an error.").show();
+                    $("#subscribeMsg").text('{% trans "Sorry, there was an error." %}').show();
                 })
             } else {
-                $("#subscribeMsg").text("Sorry, that's not a valid email address.").show();
+                $("#subscribeMsg").text('{% trans "Please enter a valid email address." %}').show();
             }
         });
 
+        // "Get the Newsletter" button at top of page for logged in users  
         $("#educatorSubscribeButton").click(function() {
-            var email = $("#educatorSubscribeButton").attr("data-email");
+            var email = Sefaria._email;
+            var lists = Sefaria.interfaceLang == "hebrew" ? 
+                        "Announcements_General_Hebrew|Announcements_Edu_Hebrew" 
+                        : "Announcements_General|Announcements_Edu"
             if (Sefaria.util.isValidEmailAddress(email)) {
-                $("#subscribeEdMsg").html("<i>Subscribing...</i>").show();
-                $.post("/api/subscribe-educator-newsletter/" + email, function(data) {
+                $("#subscribeEdMsg").html('{% trans "<i>Subscribing...</i>" %}').show();
+                $.post("/api/subscribe/" + email + "?lists=" + lists, function(data) {
                     if ("error" in data) {
                         $("#subscribeEdMsg").text(data.error).show();
                     } else {
-                        $("#subscribeEdMsg").text("Subscribed! Welcome to our list.").show();
+                        $("#subscribeEdMsg").text('{% trans "Subscribed! Welcome to our list." %}').show();
                     }
                 }).error(function(data) {
-                    $("#subscribeEdMsg").text("Sorry, there was an error.").show();
-                })
+                    $("#subscribeEdMsg").text('{% trans "Sorry, there was an error." %}').show();
+                });
             }
         });
 
@@ -316,8 +360,6 @@
                 $("#educatorSubscribeButton").trigger("click");
             }
         });
-
-
 
         $("#mailingListEmail").keyup(function(e){
             if (e.keyCode === 13) {

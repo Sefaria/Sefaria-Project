@@ -26,9 +26,9 @@ class AbstractMongoRecord(object):
     "collection" attribute is set on subclass
     """
     collection = None  # name of MongoDB collection
-    id_field = "_id" # Mongo ID field
+    id_field = "_id"  # Mongo ID field
     criteria_field = "_id"  # Primary ID used to find existing records
-    criteria_override_field = None # If a record type uses a different primary key (such as 'title' for Index records), and the presence of an override field in a save indicates that the primary attribute is changing ("oldTitle" in Index records) then this class attribute has that override field name used.
+    criteria_override_field = None  # If a record type uses a different primary key (such as 'title' for Index records), and the presence of an override field in a save indicates that the primary attribute is changing ("oldTitle" in Index records) then this class attribute has that override field name used.
     required_attrs = []  # list of names of required attributes
     optional_attrs = []  # list of names of optional attributes
     track_pkeys = False
@@ -44,7 +44,7 @@ class AbstractMongoRecord(object):
             
     def load_by_id(self, _id=None):
         if _id is None:
-            raise Exception(type(self).__name__ + ".load() expects an _id as an arguemnt. None provided.")
+            raise Exception(type(self).__name__ + ".load() expects an _id as an argument. None provided.")
 
         if isinstance(_id, basestring):
             # allow _id as either string or ObjectId
@@ -135,17 +135,31 @@ class AbstractMongoRecord(object):
 
         return self
 
-    def delete(self):
+    def can_delete(self):
+        """
+        This method can raise an error or output a reason for the failure to delete.
+        :return:
+        """
+        return True
+
+    def delete(self, force=False):
+        if not self.can_delete():
+            if force:
+                logger.error(u"Forcing delete of {}.".format(str(self)))
+            else:
+                logger.error(u"Failed to delete {}.".format(str(self)))
+                return
+
         if self.is_new():
             raise InputError(u"Can not delete {} that doesn't exist in database.".format(type(self).__name__))
 
         notify(self, "delete")
         getattr(db, self.collection).remove({"_id": self._id})
 
-    def delete_by_query(self, query):
+    def delete_by_query(self, query, force=False):
         r = self.load(query)
         if r:
-            r.delete()
+            r.delete(force=force)
 
     def is_new(self):
         return getattr(self, "_id", None) is None
@@ -287,9 +301,9 @@ class AbstractMongoSet(collections.Iterable):
         for rec in self:
             rec.load_from_dict(attrs).save()
 
-    def delete(self):
+    def delete(self, force=False):
         for rec in self:
-            rec.delete()
+            rec.delete(force=force)
 
     def save(self):
         for rec in self:

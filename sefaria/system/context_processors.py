@@ -5,19 +5,51 @@ Djagno Context Processors, for decorating all HTTP requests with common data.
 """
 import json
 from datetime import datetime
+from functools import wraps
 
 from django.template.loader import render_to_string
 
 from sefaria.settings import *
 from sefaria.model import library
 from sefaria.model.user_profile import UserProfile
+from sefaria.model.interrupting_message import InterruptingMessage
 from sefaria.utils import calendars
 from sefaria.utils.util import short_to_long_lang_code
-from sefaria.utils.hebrew import hebrew_parasha_name, get_simple_term_mapping
+from sefaria.utils.hebrew import hebrew_parasha_name
 from reader.views import render_react_component
 
 import logging
 logger = logging.getLogger(__name__)
+
+
+def data_only(view):
+    """
+    Marks processors only need when setting the data JS.
+    S1 inserted this data on every page, so it is currently still passed in Source Sheets which rely on S1 JS.
+    """
+    @wraps(view)
+    def wrapper(request):
+        if (request.path in ("/data.js", "/sefaria.js", "/texts") or 
+              request.path.startswith("/sheets/")):
+            return view(request)
+        else:
+            return {}
+    return wrapper
+
+
+def user_only(view):
+    """
+    Marks processors only needed on user visible pages.
+    """
+    @wraps(view)
+    def wrapper(request):
+        exclude = ('/data.js', '/linker.js')
+        if request.path in exclude or request.path.startswith("/api/"):
+            return {}
+        else:
+            return view(request)
+    return wrapper
+
 
 def global_settings(request):
     return {
@@ -35,64 +67,41 @@ def global_settings(request):
         }
 
 
+@data_only
 def titles_json(request):
     return {"titlesJSON": library.get_text_titles_json()}
 
 
+@data_only
 def toc(request):
     return {"toc": library.get_toc(), "toc_json": library.get_toc_json(), "search_toc_json": library.get_search_filter_toc_json()}
 
 
+@data_only
 def terms(request):
-    return {"terms_json": json.dumps(get_simple_term_mapping())}
+    return {"terms_json": json.dumps(library.get_simple_term_mapping())}
 
 
+@user_only
 def embed_page(request):
     return {"EMBED": "embed" in request.GET}
 
 
-def language_settings(request):
-    # INTERFACE
-    interface = None
-    if request.user.is_authenticated():
-        profile = UserProfile(id=request.user.id)
-        interface = profile.settings["interface_language"] if "interface_language" in profile.settings else None 
-    if not interface: 
-        #logger.warn("HTTP_CF_IPCOUNTRY: {}".format(request.META.get("HTTP_CF_IPCOUNTRY")))
-        # Pull language setting from cookie or Accept-Lanugage header or default to english
-        interface = request.COOKIES.get('interfaceLang') or request.META.get("HTTP_CF_IPCOUNTRY") or request.LANGUAGE_CODE or 'english'
-        interface = 'hebrew' if interface in ('IL', 'he', 'he-il') else interface
-        # Don't allow languages other than what we currently handle
-        interface = 'english' if interface not in ('english', 'hebrew') else interface
-
-    # CONTENT
-    default_content_lang = 'hebrew' if interface == 'hebrew' else 'bilingual'
-    # Pull language setting from cookie or Accept-Lanugage header or default to english
-    content = request.COOKIES.get('contentLang') or default_content_lang
-    content = short_to_long_lang_code(content)
-    # Don't allow languages other than what we currently handle
-    content = default_content_lang if content not in ('english', 'hebrew', 'bilingual') else content
-    # Note: URL parameters may override values set her, handled in reader view.
-
-    return {"contentLang": content, "interfaceLang": interface}
-
-
+@data_only
 def user_and_notifications(request):
     """
-    Load data the comes from a user profile.
+    Load data that comes from a user profile.
     Most of this data is currently only needed view /data.js
     /texts requires `recentlyViewed` which is used for server side rendering of recent section
     (currently Node does not get access to logged in version of /data.js)
     """
-    if request.path != "/data.js" and request.path != "/texts":
-        return {}
-
     if not request.user.is_authenticated():
         import urlparse
         recent = json.loads(urlparse.unquote(request.COOKIES.get("recentlyViewed", '[]')))
         recent = [] if len(recent) and isinstance(recent[0], dict) else recent # ignore old style cookies
         return {
-            "recentlyViewed": recent
+            "recentlyViewed": recent,
+            "interrupting_message_json": InterruptingMessage(attrs=GLOBAL_INTERRUPTING_MESSAGE, request=request).json()
         }
     
     profile = UserProfile(id=request.user.id)
@@ -100,13 +109,13 @@ def user_and_notifications(request):
         return {
             "recentlyViewed": profile.recentlyViewed,
         }
+
     notifications = profile.recent_notifications()
     notifications_json = "[" + ",".join([n.to_JSON() for n in notifications]) + "]"
-    interrupting_message = profile.interrupting_message()
-    if interrupting_message:
-        interrupting_message_json = json.dumps({"name": interrupting_message, "html": render_to_string("messages/%s.html" % interrupting_message)})
-    else:
-        interrupting_message_json = "null"
+    
+    interrupting_message_dict = GLOBAL_INTERRUPTING_MESSAGE or {"name": profile.interrupting_message()}
+    interrupting_message      = InterruptingMessage(attrs=interrupting_message_dict, request=request)
+    interrupting_message_json = interrupting_message.json()
 
     return {
         "notifications": notifications,
@@ -124,6 +133,7 @@ HEADER = {
     'logged_in': {'english': None, 'hebrew': None},
     'logged_out': {'english': None, 'hebrew': None}
 }
+@user_only
 def header_html(request):
     """
     Uses React to prerender a logged in and and logged out header for use in pages that extend `base.html`.
@@ -133,7 +143,7 @@ def header_html(request):
         return {}
     global HEADER
     if USE_NODE:
-        lang = language_settings(request)["interfaceLang"]
+        lang = request.interfaceLang
         LOGGED_OUT_HEADER = HEADER['logged_out'][lang] or render_react_component("ReaderApp", {"headerMode": True, "loggedIn": False, "interfaceLang": lang})
         LOGGED_IN_HEADER = HEADER['logged_in'][lang] or render_react_component("ReaderApp", {"headerMode": True, "loggedIn": True, "interfaceLang": lang})
         LOGGED_OUT_HEADER = "" if "s2Loading" in LOGGED_OUT_HEADER else LOGGED_OUT_HEADER
@@ -150,6 +160,7 @@ def header_html(request):
 
 
 FOOTER = None
+@user_only
 def footer_html(request):
     if request.path == "/data.js":
         return {}
@@ -164,14 +175,19 @@ def footer_html(request):
     }
 
 
+@data_only
 def calendar_links(request):
-    parasha  = calendars.this_weeks_parasha(datetime.now())
-    daf      = calendars.daf_yomi(datetime.now())
-    
-    parasha_link  = "<a href='/%s'>%s: %s</a>" % (parasha["ref"], parasha["parasha"], parasha["ref"])
-    haftara_link  = " ".join(["<a href='/%s'>%s</a>" % (h, h) for h in parasha["haftara"]])
-    daf_yomi_link = "<a href='/%s'>%s</a>" % (daf["url"], daf["name"])
+    loc = request.META.get("HTTP_CF_IPCOUNTRY", None)
+    if not loc:
+        try:
+            from sefaria.settings import PINNED_IPCOUNTRY
+            loc = PINNED_IPCOUNTRY
+        except:
+            loc = "us"
+    diaspora = False if loc in ("il", "IL", "Il") else True
+    return {"calendars": json.dumps(calendars.get_todays_calendar_items(diaspora=diaspora))}
 
+    """
     return {
                 "parasha_link":  parasha_link, 
                 "haftara_link":  haftara_link,
@@ -182,3 +198,4 @@ def calendar_links(request):
                 "haftara_ref":   parasha["haftara"][0],
                 "daf_yomi_ref":  daf["url"]
             }
+    """

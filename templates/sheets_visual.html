@@ -1,41 +1,9 @@
 {% extends "base.html" %}
-{% block exclude_block_on_source_sheets %}{% endblock %}
-{% block footer %}{% endblock %}
-{% load cache %}
-{% load humanize %}
-{% load sefaria_tags %}
+{% load i18n cache humanize sefaria_tags%}
 
-{% block titleEnglish %}
-    {% if title %}
-    	{{ title|striptags|strip_html_entities }} | Visualized | Sefaria Source Sheet Builder
-    {% else %}
-    	Start a New Sheet - Sefaria Source Sheet Builder
-    {% endif %}
-{% endblock %}
+{% block title %}{% if title %}{{ title|striptags|strip_html_entities }} | {% trans "Visualized" %} | {% trans "Sefaria Source Sheet Builder" %}{% else %}{% trans "Start a New Sheet - Sefaria Source Sheet Builder" %}{% endif %}{% endblock %}
 
-{% block titleHebrew %}
-    {% if title %}
-        {{ title|striptags|strip_html_entities }} | Visualized | Sefaria Source Sheet Builder
-    {% else %}
-        Start a New Sheet - Sefaria Source Sheet Builder
-    {% endif %}
-{% endblock %}
-
-{% block descriptionEnglish %}
-    {% if sheet.owner %}
-        Visual layout of a source sheet by {{ sheet.owner|user_name }} created with Sefaria's Source Sheet Builder.
-    {% else %}
-        Create your own source sheet with Sefaria's Source Sheet Builder.
-    {% endif %}
-{% endblock %}
-
-{% block descriptionHebrew %}
-    {% if sheet.owner %}
-        Visual layout of a {{ sheet.owner|user_name }} created with Sefaria's Source Sheet Builder.
-    {% else %}
-        Create your own source sheet with Sefaria's Source Sheet Builder.
-    {% endif %}
-{% endblock %}
+{% block description %}{% if sheet.owner %}{% blocktrans %}Visual layout of a source sheet by {{ sheet.owner|user_name }} created with Sefaria's Source Sheet Builder.{% endblocktrans %}{% else %}{% trans "Create your own source sheet with Sefaria's Source Sheet Builder." %}{% endif %}{% endblock %}
 
 {% block head %}
     <link rel="stylesheet" type="text/css" href="/static/css/tooltipster.css" />
@@ -44,6 +12,8 @@
     {% endif %}
 {% endblock %}
 
+{% block exclude_block_on_source_sheets %}{% endblock %}
+{% block footer %}{% endblock %}
 
 {% block content %}
 
@@ -56,7 +26,10 @@
 
 <div id="link"></div>
 <div id="error"></div>
-<a href="/sheets/{{sheet.id}}" id="textTocLink">&laquo; Back to Sheet</a>
+<a href="/sheets/{{sheet.id}}" id="textTocLink">
+    <span class="int-en">&laquo; Back to Sheet</span>
+    <span class="int-he">&laquo; בחזרה לדף המקורות </span>
+</a>
 <div id="controls">
 	<div id="buttonBox">
 		<span id="zoomOut" class="zoomButton"><span class="fa fa-search-minus"></span></span>
@@ -112,14 +85,6 @@
 {% endif %}
 <script src="/static/js/sheets-visual.js"></script>
 
-    <script>
-    var backToS1 = function() {
-      $.cookie("s2", "", {path: "/"});
-      window.location = "/";
-    }
-    $("#backToOldSefaria").click(backToS1);
-    </script>
 {% endblock %}
 
-</body>
-</html>
+

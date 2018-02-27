@@ -111,6 +111,8 @@ def delete(user, klass, _id, **kwargs):
     :return:
     """
     obj = klass().load_by_id(_id)
+    if obj is None:
+        return {'error': 'item with id: {} not found'.format(_id)}
     if kwargs.get("callback"):
         kwargs.get("callback")(obj)
         del kwargs["callback"]

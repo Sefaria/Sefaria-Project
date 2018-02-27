@@ -67,6 +67,10 @@ and now self.content is:
         "_he": ...
         "_all" {
             "availableTexts":
+            "shape":
+                For depth 1: Integer - length
+                For depth 2: List of chapter lengths
+                For depth 3: List of list of chapter lengths?
         }
     }
 
@@ -85,8 +89,8 @@ class VersionState(abst.AbstractMongoRecord, AbstractSchemaContent):
     ]
     optional_attrs = [
         "flags",
-        "linksCount"
-        #"categories",
+        "linksCount",
+        "first_section_ref"
     ]
 
     langs = ["en", "he"]
@@ -114,6 +118,7 @@ class VersionState(abst.AbstractMongoRecord, AbstractSchemaContent):
                 index = library.get_index(index)
             except BookNameError as e:
                 logger.warning("Failed to load Index for VersionState {}: {}".format(index, e))
+                raise
 
         self.index = index
         self._versions = {}
@@ -141,12 +146,38 @@ class VersionState(abst.AbstractMongoRecord, AbstractSchemaContent):
             self._load_versions()
         return self._versions.get(lang)
 
+    def _first_section_ref(self):
+        if not getattr(self, "index", False):
+            return None
+
+        current_leaf = self.index.nodes.first_leaf()
+        new_section = None
+
+        while current_leaf:
+            r = current_leaf.ref()
+            c = self.state_node(current_leaf).ja("all")
+            new_section = c.next_index([])
+            if new_section:
+                break
+            current_leaf = current_leaf.next_leaf()
+
+        if not new_section:
+            return None
+
+        depth_up = 0 if current_leaf.depth == 1 else 1
+
+        d = r._core_dict()
+        d["toSections"] = d["sections"] = [(s + 1) for s in new_section[:-depth_up]]
+        return Ref(_obj=d)
+
     def refresh(self):
         if self.is_new_state:  # refresh done on init
             return
         self.content = self.index.nodes.visit_content(self._content_node_visitor, self.content)
         self.index.nodes.visit_structure(self._aggregate_structure_state, self)
         self.linksCount = link.LinkSet(Ref(self.index.title)).count()
+        fsr = self._first_section_ref()
+        self.first_section_ref = fsr.normal() if fsr else None
         self.save()
 
         if USE_VARNISH:
@@ -154,8 +185,8 @@ class VersionState(abst.AbstractMongoRecord, AbstractSchemaContent):
             invalidate_counts(self.index)
 
     def get_flag(self, flag):
-        return self.flags.get(flag, None)
-
+        return self.flags.get(flag, False) # consider all flags False until set True
+        
     def set_flag(self, flag, value):
         self.flags[flag] = value  # could use mongo level $set to avoid doc load, for speedup
         delete_template_cache("texts_dashboard")
@@ -184,7 +215,6 @@ class VersionState(abst.AbstractMongoRecord, AbstractSchemaContent):
                 "textComplete": all([contents[ckey][lkey]["textComplete"] for ckey in ckeys]),
                 'completenessPercent': sum([contents[ckey][lkey]["completenessPercent"] for ckey in ckeys]) / len(ckeys),
                 'percentAvailableInvalid': any([contents[ckey][lkey]["percentAvailableInvalid"] for ckey in ckeys]),
-                'sparseness': sum([contents[ckey][lkey]["sparseness"] for ckey in ckeys]) / len(ckeys),  # should be an int.  In Python 3 may need to int(round()) the result.
             }
 
     #todo: do we want to use an object here?
@@ -211,8 +241,10 @@ class VersionState(abst.AbstractMongoRecord, AbstractSchemaContent):
         # Sum all of the languages
         ja['_all'] = reduce(lambda x, y: x + y, [ja[lkey] for lkey in self.lang_keys])
         zero_mask = ja['_all'].zero_mask()
-        current["_all"] = {"availableTexts": ja['_all'].array()}
-
+        current["_all"] = {
+            "availableTexts": ja['_all'].array(),
+            "shape": ja['_all'].shape()
+        }
         # Get derived data for all languages
         for lang, lkey in self.lang_map.items():
             # build zero-padded count ("availableTexts")
@@ -249,37 +281,6 @@ class VersionState(abst.AbstractMongoRecord, AbstractSchemaContent):
             # What percent complete? ('completenessPercent')
             # are we doing this with the zero-padded array on purpose?
             current[lkey]['completenessPercent'] = self._calc_text_structure_completeness(depth, current[lkey]["availableTexts"])
-
-            # a rating integer (from 1-4) of how sparse the text is. 1 being most sparse and 4 considered basically ok.
-            # ('sparseness') was ('isSparse')
-            if current[lkey]['percentAvailableInvalid']:
-                percentCalc = current[lkey]['completenessPercent']
-            else:
-                percentCalc = current[lkey]['percentAvailable']
-
-            lang_flag = "%sComplete" % lang
-            if getattr(self, "flags", None) and self.flags.get(lang_flag, False):  # if manually marked as complete, consider it complete
-                current[lkey]['sparseness'] = 4
-
-            # If it's a commentary, it might have many empty places, so just consider bulk amount of text
-            elif (snode.index.versions_are_sparse()
-                  and len(current[lkey]["availableCounts"])
-                  and current[lkey]["availableCounts"][-1] >= 300):
-                current[lkey]['sparseness'] = 2
-
-            # If it's basic count is under a given constant (e.g. 25) consider sparse.
-            # This will casues issues with some small texts.  We fix this with manual flags.
-            elif len(current[lkey]["availableCounts"]) and current[lkey]["availableCounts"][-1] <= 25:
-                current[lkey]['sparseness'] = 1
-
-            elif percentCalc <= 15:
-                current[lkey]['sparseness'] = 1
-            elif 15 < percentCalc <= 50:
-                current[lkey]['sparseness'] = 2
-            elif 50 < percentCalc <= 90:
-                current[lkey]['sparseness'] = 3
-            else:
-                current[lkey]['sparseness'] = 4
 
         return current
 
@@ -348,21 +349,19 @@ class StateNode(object):
     meta_proj = {'content._all.completenessPercent': 1,
          'content._all.percentAvailable': 1,
          'content._all.percentAvailableInvalid': 1,
-         'content._all.sparseness': 1,
          'content._all.textComplete': 1,
          'content._en.completenessPercent': 1,
          'content._en.percentAvailable': 1,
          'content._en.percentAvailableInvalid': 1,
-         'content._en.sparseness': 1,
          'content._en.textComplete': 1,
          'content._he.completenessPercent': 1,
          'content._he.percentAvailable': 1,
          'content._he.percentAvailableInvalid': 1,
-         'content._he.sparseness': 1,
          'content._he.textComplete': 1,
          'flags': 1,
          'linksCount': 1,
-         'title': 1}
+         'title': 1,
+         'first_section_ref': 1}
     #todo: self.snode could be a SchemaNode, but get_available_counts_dict() assumes JaggedArrayNode
     def __init__(self, title=None, snode=None, _obj=None, meta=False, hint=None):
         """
@@ -404,9 +403,6 @@ class StateNode(object):
 
     def get_percent_available(self, lang):
         return self.var(lang, "percentAvailable")
-
-    def get_sparseness(self, lang):
-        return self.var(lang, "sparseness")
 
     def get_available_counts(self, lang):
         return self.var(lang, "availableCounts")

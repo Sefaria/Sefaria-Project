@@ -522,12 +522,15 @@ class Test_Cache(object):
         r2 = Ref("Ramban on Genesis 1")
         assert r1 is not r2
 
+    '''
+    # Retired.  Since we're dealing with objects, tref will either bleed one way or the other.
+    # Removed last dependencies on tref outside of object init. 
     def test_tref_bleed(self):
         # Insure that instanciating trefs are correct for this instance, and don't bleed through the cache.
         Ref(u'שבת לא')
         r = Ref("Shabbat 31a")
         assert r.tref == "Shabbat 31a"
-
+    '''
 
 class Test_normal_forms(object):
     def test_normal(self):
@@ -848,13 +851,20 @@ class Test_set_construction_from_ref(object):
 
 
 class Test_Order_Id(object):
-    def test_order_id(self):
+    def test_order_id_processes(self):
         assert Ref("Shabbat 17b").order_id()
         assert Ref("Job 15:13").order_id()
         assert Ref("Shabbat 12a:14").order_id()
         assert Ref("Rashi on Shabbat 17b:12").order_id()
         assert Ref("Tosafot on Yoma 25a:24").order_id()
 
+    def test_ordering_of_order_id(self):
+        assert Ref("Job 15:13").order_id() < Ref("Shabbat 17b").order_id()
+        assert Ref("Shabbat 12b").order_id() < Ref("Shabbat 17b").order_id()
+        assert Ref("Shabbat 12b").order_id() < Ref("Bava Kamma 17b").order_id()
+
+    def test_ordering_of_complex_texts(self):
+        assert Ref("Meshech Hochma, Vaera 2").order_id() > Ref("Meshech Hochma, Shemot 6").order_id()
 
 '''
 class Test_ref_manipulations():

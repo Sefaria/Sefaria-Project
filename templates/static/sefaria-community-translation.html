@@ -1,25 +1,23 @@
 {% extends "base.html" %}
+{% load i18n %}
 
-{% block titleEnglish %}About Sefaria Community Translations{% endblock %}
-{% block titleHebrew %}About Sefaria Community Translations{% endblock %}
+{% block title %}{% trans "About Sefaria Community Translations" %}{% endblock %}
 
-{% block descriptionEnglish %}{% endblock %}
-
-{% block descriptionHebrew %}{% endblock %}
+{% block description %}{% trans "Sefaria Community Translations are open, crowd-sourced translations of texts available in the Sefaria Library." %}{% endblock %}
 
 {% block content %}
 
 <div id="sefariaCommunityTranslation" class="container static">
     <div class="inner">
-        <h1>Sefaria Community Translations</h1>
+        <h1>
+            <span class="int-en">Sefaria Community Translations</span>
+            <span class="int-he">תרגומי קהילת ספריא</span>
+            
+        </h1>
         <div class="section">
             <p>
-                Sefaria Community Translations are crowd-sourced translations which can be done on any work
-                in the Sefaria database.
-                These crowd-sourced translations are ongoing and open to contribution,
-                so if you see an improvement that you think should be made - make it!
-                In time we hope that the wisdom of the crowds will help create a high quality free
-                translation which can be used by all.
+                <span class="int-en">Sefaria Community Translations are crowd-sourced translations which can be done on any work in the Sefaria database. These crowd-sourced translations are ongoing and open to contribution, so if you see an improvement that you think should be made - make it! In time we hope that the wisdom of the crowds will help create a high quality free translation which can be used by all.</span>
+                <span class="int-he">תרגומי קהילת ספריא נעשים במתכונת ציבורית וניתן לתרגם כל חיבור במאגר הנתונים של ספריא. מלאכת התרגום נעשית בהתנדבות וכולם מוזמנים לקחת בה חלק – נתקלתם בתרגום טעון שיפור? תקנו אותו! אנו מאמינים שבחלוף הזמן, ׳חכמת ההמונים׳ בספריא תיצור תרגומים ברמה גבוהה הזמינים לכולם.</span>
             </p>
         </div>
     </div>

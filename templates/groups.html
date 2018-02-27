@@ -1,9 +1,10 @@
 {% extends "base.html" %}
+{% load i18n %}
 
 {% load sefaria_tags %}
 {% load humanize %}
 
-{% block title %}Sefaria Groups{% endblock %}
+{% block title %}{% trans "Sefaria Groups" %}{% endblock %}
 
 {% block content %}
 
@@ -11,14 +12,13 @@
     <div class="inner">
     <h1>
         <span class='en'>Groups on Sefaria</span>
-        <span class='he'></span>
+        <span class='he'>Groups on Sefaria</span>
     </h1>
     <div class="row static-text">
         <div id="groups">
                 {% for group in groups %}
                 <a class="group" href="/groups/{{ group.name|url_safe }}">
-                    <img class="groupHeader" src="{{ group.headerUrl }}" alt="Header Image for {{ group.name }}">
-                    <img class="groupCover" src="{{ group.coverUrl }}" alt="Cover Image for {{ group.name }}">
+                    <img class="groupImage" src="{{ group.imageUrl|default:"/static/img/group.svg" }}" alt="Image for {{ group.name }}">
                     <div class="groupName">{{ group.name }}</div>
                 </a>
                 {% endfor %}
@@ -27,21 +27,16 @@
     </div>
 </div>
 
-
-
 {% endblock %}
 
 {% block js %}
     {% if request.user.is_staff %}
     <script>
-
         $(document).ready(function() {
             $("img").error(function() {
                 $(this).hide();
             });
         });
-
-
     </script>
     {% endif %}
 {% endblock %}

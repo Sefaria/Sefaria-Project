@@ -111,8 +111,8 @@ class UpdatesPanel extends Component {
             </div>
           </div>
           <footer id="footer" className={`interface-${this.props.interfaceLang} static sans`}>
-                    <Footer />
-                    </footer>
+            <Footer />
+          </footer>
         </div>
       </div>);
   }

@@ -2,7 +2,7 @@
 dependencies.py -- list cross model dependencies and subscribe listeners to changes.
 """
 
-from . import abstract, link, note, history, schema, text, layer, version_state, translation_request, time, person, garden, notification, group, library
+from . import abstract, link, note, history, schema, text, layer, version_state, translation_request, time, person, garden, notification, group, library, category
 
 from abstract import subscribe, cascade, cascade_to_list, cascade_delete, cascade_delete_to_list
 import sefaria.system.cache as scache
@@ -40,13 +40,15 @@ subscribe(cascade_delete(notification.GlobalNotificationSet, "content.index", "t
 # Process in ES
 # todo: handle index name change in ES
 def process_version_title_change_in_search(ver, **kwargs):
-    from sefaria.search import delete_version, index_full_version, get_new_and_current_index_names
-    search_index_name = get_new_and_current_index_names()['current']
-    search_index_name_merged = get_new_and_current_index_names(merged=True)['current']
-    text_index = library.get_index(ver.title)
-    delete_version(text_index, kwargs.get("old"), ver.language)
-    index_full_version(search_index_name, text_index, kwargs.get("new"), ver.language)
-    index_full_version(search_index_name_merged, text_index, kwargs.get("new"), ver.language)
+    from sefaria.local_settings import SEARCH_INDEX_ON_SAVE
+    if SEARCH_INDEX_ON_SAVE:
+        from sefaria.search import delete_version, index_full_version, get_new_and_current_index_names
+        search_index_name = get_new_and_current_index_names()['current']
+        search_index_name_merged = get_new_and_current_index_names(merged=True)['current']
+        text_index = library.get_index(ver.title)
+        delete_version(text_index, kwargs.get("old"), ver.language)
+        index_full_version(search_index_name, text_index, kwargs.get("new"), ver.language)
+        index_full_version(search_index_name_merged, text_index, kwargs.get("new"), ver.language)
 
 
 # Version Title Change
@@ -63,8 +65,10 @@ subscribe(cascade_delete(notification.GlobalNotificationSet, "content.version", 
 # Note Delete
 subscribe(layer.process_note_deletion_in_layer,                         note.Note, "delete")
 
-# Term name change
-subscribe(cascade(schema.TermSet, "scheme"),                            schema.TermScheme, "attributeChange", "name")
+# Terms
+subscribe(cascade(schema.TermSet, "scheme"),                                schema.TermScheme, "attributeChange", "name")
+subscribe(text.reset_simple_term_mapping,                                   schema.Term, "delete")
+subscribe(text.reset_simple_term_mapping,                                   schema.Term, "save")
 
 # Version State Save
 subscribe(translation_request.process_version_state_change_in_translation_requests, version_state.VersionState, "save")
@@ -99,10 +103,18 @@ subscribe(cascade_delete(notification.NotificationSet, "global_id", "_id"),  not
 subscribe(group.process_group_name_change_in_sheets,                         group.Group, "attributeChange", "name")
 subscribe(group.process_group_delete_in_sheets,                              group.Group, "delete")
 
+# Categories
+subscribe(category.process_category_name_change_in_categories_and_indexes,  category.Category, "attributeChange", "lastPath")
+subscribe(category.rebuild_library_after_category_change,                   category.Category, "attributeChange", "lastPath")
+subscribe(category.rebuild_library_after_category_change,                   category.Category, "delete")
+subscribe(category.rebuild_library_after_category_change,                   category.Category, "save")
+
+'''
+# These are contained in the library rebuild, above.
+subscribe(text.reset_simple_term_mapping,                                   category.Category, "delete")
+subscribe(text.reset_simple_term_mapping,                                   category.Category, "save")
+'''
 
 # todo: notes? reviews?
 # todo: Scheme name change in Index
 # todo: term change in nodes
-
-
-

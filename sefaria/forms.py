@@ -5,35 +5,40 @@ Override of Django forms for new users and password reset.
 Includes logic for subscribing to mailing list on register and for 
 "User Seeds" -- pre-creating accounts that may already be in a Group.
 """
-
-
 from django import forms
 from django.contrib.auth.models import User, Group
 from django.contrib.auth.forms import *
+from django.utils.translation import ugettext_lazy as _
+
 from emailusernames.forms import EmailUserCreationForm, EmailAuthenticationForm
 from emailusernames.utils import get_user, user_exists
-from sefaria.client.util import subscribe_to_list
 from captcha.fields import ReCaptchaField
+
+from sefaria.client.util import subscribe_to_list
 from sefaria.local_settings import DEBUG
+from django.utils.translation import get_language
+
 
 SEED_GROUP = "User Seeds"
 
 
 class SefariaLoginForm(EmailAuthenticationForm):
-    email = forms.EmailField(max_length=75, widget=forms.TextInput(attrs={'placeholder': u'Email Address | כתובת אימייל'}))
-    password = forms.CharField(widget=forms.PasswordInput(attrs={'placeholder': u'Password | סיסמא'}))
-
+    email = forms.EmailField(max_length=75, widget=forms.TextInput(attrs={'placeholder': _("Email Address")}))
+    password = forms.CharField(widget=forms.PasswordInput(attrs={'placeholder': _("Password")}))
 
 
 class NewUserForm(EmailUserCreationForm):
-    email = forms.EmailField(max_length=75, widget=forms.TextInput(attrs={'placeholder': u'Email Address | כתובת אימייל', 'autocomplete': 'off'}))
-    first_name = forms.CharField(widget=forms.TextInput(attrs={'placeholder': u'First Name | שם פרטי', 'autocomplete': 'off'}))
-    last_name = forms.CharField(widget=forms.TextInput(attrs={'placeholder': u'Last Name | שם משפחה', 'autocomplete': 'off'}))
-    password1 = forms.CharField(widget=forms.PasswordInput(attrs={'placeholder': u'Password | סיסמא', 'autocomplete': 'off'}))
-    subscribe_announce = forms.BooleanField(label="Receive important announcements", help_text="Receive important announcements", initial=True, required=False)
-    subscribe_educator = forms.BooleanField(label="Receive our educator newsletter", help_text="Receive our educator newsletter", initial=False, required=False)
+    email = forms.EmailField(max_length=75, widget=forms.TextInput(attrs={'placeholder': _("Email Address"), 'autocomplete': 'off'}))
+    first_name = forms.CharField(widget=forms.TextInput(attrs={'placeholder': _("First Name"), 'autocomplete': 'off'}))
+    last_name = forms.CharField(widget=forms.TextInput(attrs={'placeholder': _("Last Name"), 'autocomplete': 'off'}))
+    password1 = forms.CharField(widget=forms.PasswordInput(attrs={'placeholder': _("Password"), 'autocomplete': 'off'}))
+    subscribe_announce = forms.BooleanField(label=_("Receive important announcements"), help_text=_("Receive important announcements"), initial=True, required=False)
+    subscribe_educator = forms.BooleanField(label=_("Receive our educator newsletter"), help_text=_("Receive our educator newsletter"), initial=False, required=False)
     if not DEBUG:
-        captcha = ReCaptchaField(attrs={'theme' : 'white'})
+        attrs = {'theme': 'white'}
+        if get_language() == 'he':
+            attrs['lang'] = 'iw'
+        captcha = ReCaptchaField(attrs=attrs)
     
     class Meta:
         model = User
@@ -53,7 +58,7 @@ class NewUserForm(EmailUserCreationForm):
         if user_exists(email):
             user = get_user(email)
             if not user.groups.filter(name=SEED_GROUP).exists():
-                raise forms.ValidationError("A user with that email already exists.")
+                raise forms.ValidationError(_("A user with that email already exists."))
         return email
 
     def save(self, commit=True):
@@ -74,15 +79,18 @@ class NewUserForm(EmailUserCreationForm):
             user.save()
 
         mailingLists = []
+        language = get_language()
 
         if self.cleaned_data["subscribe_announce"]:
-            mailingLists.append("Announcements_General")
-            mailingLists.append("Signed_Up_on_Sefaria")
+            list_name = "Announcements_General_Hebrew" if language == "he" else "Announcements_General"
+            mailingLists.append(list_name)
 
         if self.cleaned_data["subscribe_educator"]:
-            mailingLists.append("Announcements_Edu")
+            list_name = "Announcements_Edu_Hebrew" if language == "he" else "Announcements_Edu"
+            mailingLists.append(list_name)
 
         if mailingLists:
+            mailingLists.append("Signed_Up_on_Sefaria")
             try:
                 subscribe_to_list(mailingLists, user.email, first_name=user.first_name, last_name=user.last_name)
             except:
@@ -92,7 +100,7 @@ class NewUserForm(EmailUserCreationForm):
 
 
 class HTMLPasswordResetForm(PasswordResetForm):
-    email = forms.EmailField(max_length=75, widget=forms.TextInput(attrs={'placeholder': u'Email Address | כתובת אימייל', 'autocomplete': 'off'}))
+    email = forms.EmailField(max_length=75, widget=forms.TextInput(attrs={'placeholder': _("Email Address"), 'autocomplete': 'off'}))
     def save(self, domain_override=None, email_template_name='registration/password_reset_email.html', subject_template_name='registration/pass_reset_subject.txt',
              use_https=False, token_generator=default_token_generator, from_email=None, request=None):
         """

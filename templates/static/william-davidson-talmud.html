@@ -1,11 +1,9 @@
 {% extends "base.html" %}
+{% load i18n %}
 
-{% block titleEnglish %}The William Davidson Talmud{% endblock %}
-{% block titleHebrew %}תלמוד מהדורת ויליאם דוידסון{% endblock %}
+{% block title %}{% trans "The William Davidson Talmud" %}{% endblock %}
 
-{% block descriptionEnglish %}The William Davidson Talmud is a free digital edition of the Babylonian Talmud with parallel translations, interlinked to major commentaries, biblical citations, Midrash, Halakhah, and an ever-growing library of Jewish texts.{% endblock %}
-
-{% block descriptionHebrew %}The William Davidson Talmud is a free digital edition of the Babylonian Talmud with parallel translations, interlinked to major commentaries, biblical citations, Midrash, Halakhah, and an ever-growing library of Jewish texts.{% endblock %}
+{% block description %}{% trans "The William Davidson Talmud is a free digital edition of the Babylonian Talmud with parallel translations, interlinked to major commentaries, biblical citations, Midrash, Halakhah, and an ever-growing library of Jewish texts." %}{% endblock %}
 
 {% block css %}
     #davidsonTalmud {
@@ -34,7 +32,6 @@
         padding-bottom: 10px;
         margin-bottom: 50px;
         font-family: inherit;
-
     }
     #cardBlock p {
         color: #666;
@@ -56,9 +53,13 @@
         float: left;
         margin: 0 22px 22px 0;
     }
-    #davidsonQuote {
+    #davidsonQuote .int-en {
         font-style: italic;
         margin-top: 10px;
+        font-family: "adobe-garamond-pro", Georgia, serif;
+    }
+    .interface-hebrew #davidsonQuote .int-he {
+        font-family: "Frank Ruehl Libre", "Taamey Frank", "Times New Roman", serif;
     }
     #davidsonLicense {
         margin-top: 60px;
@@ -74,29 +75,64 @@
 <div id="davidsonTalmud" class="container static">
     <div class="inner">
         <div id="cardBlock">
-            <center><h1>The William Davidson Talmud</h1></center>
+            <center><h1>
+                <span class="int-en">The William Davidson Talmud</span>
+                <span class="int-he">{% trans "The William Davidson Talmud" %}</span>
+            </h1></center>
 
-            <p><a href="/texts/Talmud">The William Davidson Talmud</a> is a free digital edition of the Babylonian Talmud with parallel translations, interlinked to major commentaries, biblical citations, Midrash, Halakhah, and an ever-growing library of Jewish texts. As with all of Sefaria, The William Davidson Talmud will continually evolve as we add additional translations, commentaries, and connections.</p>
-            <p>It will ultimately include Rabbi Adin Steinsaltz Even-Israel’s complete Modern Hebrew and English translations of the Talmud. Through the generous support of The William Davidson Foundation, these translations are now available with a <a href="https://creativecommons.org/licenses/by-nc/4.0/legalcode" target="_blank">Creative Commons non-commercial license</a>, making them free for use and re-use &mdash; even beyond Sefaria.</p>
+            <p>
+                <span class="int-en"><a href="/texts/Talmud">The William Davidson Talmud</a> is a free digital edition of the Babylonian Talmud with parallel translations, interlinked to major commentaries, biblical citations, Midrash, Halakhah, and an ever-growing library of Jewish texts. As with all of Sefaria, The William Davidson Talmud will continually evolve as we add additional translations, commentaries, and connections.</span>
+                <span class="int-he"><a href="/texts/Talmud">תלמוד וויליאם דייוידסון</a> הוא גרסה דיגיטלית וחינמית של התלמוד הבבלי, הכולל קטעים מתורגמים המקושרים לפירושים מובילים ומובאות מהתנ״ך, המדרש, ספרי הלכה ושאר טקסטים יהודיים מספריה שמתרחבת כל העת. כבשאר מקורות ספריא, תלמוד וויליאם דייוידסון ימשיך להתפתח ככל שנוסיף עוד תרגומים, פירושים וקישורים.</span>
+            </p>
+
+            <p>
+                <span class="int-en">It will ultimately include <a href="/adin-even-israel-steinsaltz">Rabbi Adin Even-Israel Steinsaltz</a>’s complete Modern Hebrew and English translations of the Talmud. Through the generous support of The William Davidson Foundation, these translations are now available with a <a href="https://creativecommons.org/licenses/by-nc/4.0/legalcode" target="_blank">Creative Commons non-commercial license</a>, making them free for use and re-use &mdash; even beyond Sefaria.</span>
+                <span class="int-he">בהמשך, יתעדכן העמוד בתרגומי <a href="/adin-even-israel-steinsaltz">הרב עדין אבן ישראל (שטיינזַלץ)</a> של התלמוד לעברית ואנגלית. בתמיכתם הנדיבה של אנשי עמותת וויליאם דייוידסון, תרגומים אלו זמינים במסגרת רשיון Creative Commons, וניתנים לשימוש אפילו מחוץ לספאריה. </span>
+            </p>
         </div>
 
         <img id="davidsonPhoto" src="/static/img/william-davidson.jpg" alt="Headshot of William Davidson">
-        <h2>William Davidson</h2>
-        <div id="davidsonDates">December 5, 1922 - March 13, 2009</div>
+        <h2>
+            <span class="int-en">William Davidson</span>
+            <span class="int-he">וויליאם דייוידסון</span>
+        </h2>
+        <div id="davidsonDates">
+            <span class="int-en">December 5, 1922 - March 13, 2009</span>
+            <span class="int-he">5 בדצמבר, 1922 - 13 במרץ, 2009</span>
+        </div>
 
-        <p>William Davidson was an internationally recognized businessman and lifelong philanthropist who cherished above all else his family and his Jewish heritage. Throughout his life, he supported projects and organizations that preserved and enhanced Jewish life and continuity. From his parents he learned that success in business provides the means for helping others. This family philosophy shaped his life.</p>
+        <p>
+            <span class="int-en">William Davidson was an internationally recognized businessman and lifelong philanthropist who cherished above all else his family and his Jewish heritage. Throughout his life, he supported projects and organizations that preserved and enhanced Jewish life and continuity. From his parents he learned that success in business provides the means for helping others. This family philosophy shaped his life.</span>
+            <span class="int-he">"וויליאם דייוידסון היה איש עסקים ונדבן ידוע ברחבי העולם, שהוקיר את משפחתו ומורשתו היהודית יותר מכל דבר אחר. במשך כל חייו, דייוידסון תמך בפרויקטים וארגונים ששימרו וחיזקו את עקרונות החיים היהודיים והמשכיותם. מהוריו למד שהצלחה בעסקים מעניקה לאדם את האפשרות לסייע לאחרים. פילוסופיית החיים של משפחתו עיצבה את חייו כאדם בוגר.</span>
+        </p>
          
-        <p>An expert in making troubled companies profitable, he transformed a struggling, family-owned automotive-glass fabricating firm into one of the world’s largest manufacturers of architectural and automotive glass. He also was the owner of several professional sports teams, including the Detroit Pistons basketball team. A native of Detroit, Michigan, he earned his bachelor of business degree from the University of Michigan and his law degree from Wayne State University.</p>
+        <p>
+            <span class="int-en">An expert in making troubled companies profitable, he transformed a struggling, family-owned automotive-glass fabricating firm into one of the world’s largest manufacturers of architectural and automotive glass. He also was the owner of several professional sports teams, including the Detroit Pistons basketball team. A native of Detroit, Michigan, he earned his bachelor of business degree from the University of Michigan and his law degree from Wayne State University.</span>
+            <span class="int-he">תוך ניצול מומחיותו בהפיכת חברות מפסידות לרווחיות, הוא הפך עסק משפחתי להרכבת שמשות כלי-רכב, שבתחילה לא הצליח להתרומם כלכלית, לאחת מיצרניות שמשות כלי-רכב המובילות בעולם. בנוסף, בבעלותו היו מספר קבוצות ספורט, בין היתר קבוצת הכדורסל דטרויט פיסטונס. כיליד דטרויט, מישיגן, השלים דייוידסון את לימודיו לתואר ראשון באוניברסיטת מישיגן ובהמשך למד משפטים באוניבריסטת ויין סטייט.</span>
+        </p>
          
-        <p>In 2005, he established the William Davidson Foundation, a private, family foundation to advance for future generations the economic, cultural and civic vitality of Southeast Michigan, the State of Israel and the Jewish community. “One of the secrets to a fulfilling life,” he once said, “is to be able to do things for other people.”  To commemorate his life and extend his spirit of generosity, the Talmud, as translated in English and Modern Hebrew by Rabbi Adin Steinsaltz, is now accessible to all.</p>
+        <p>
+            <span class="int-en">In 2005, he established the William Davidson Foundation, a private, family foundation to advance for future generations the economic, cultural and civic vitality of Southeast Michigan, the State of Israel and the Jewish community. “One of the secrets to a fulfilling life,” he once said, “is to be able to do things for other people.”  To commemorate his life and extend his spirit of generosity, the Talmud, as translated in English and Modern Hebrew by <a href="/adin-even-israel-steinsaltz">Rabbi Adin Even-Israel Steinsaltz</a>, is now accessible to all.</span>
+            <span class="int-he">"בשנת 2005, הקים את קרן וויליאם דייוידסון, קרן פרטית בבעלות משפחתו שמטרתה קידום וחיזוק הכלכלה, התרבות והמעורבות אזרחית בדרום-מזרח מישיגן, במדינת ישראל, ובקרב הקהילה היהודית ברחבי העולם. ״אחד הסודות להגשמה עצמית בחיים״, אמר פעם, ״הוא להיות מסוגל לעשות בעבור אחרים״. בכדי להנציח את חייו ורוח נדבנותו, התלמוד על שמו, בתרגומו לאנגלית ועברית מודרנית על ידי <a href="/adin-even-israel-steinsaltz">הרב עדין אבן ישראל (שטיינזַלץ)</a>, זמין כעת לכולם.</span>
+        </p>
 
         <p id="davidsonQuote">
+
+            <span class="int-en">
             . . . Moses charged us with the Teaching<br>
             As the heritage of the congregation of Jacob.<br>
             <a href="/Deuteronomy.33.4">Deuteronomy 33:4</a>
+            </span>
+            <span class="int-he">תּוֹרָה צִוָּה־לָנוּ מֹשֶׁה מוֹרָשָׁה קְהִלַּת יַעֲקֹב<br>
+            <a href="/Deuteronomy.33.4">דברים ל״ג:ד</a>
+            </span>            
         </p>
 
-        <div id="davidsonLicense">The William Davidson digital edition of the Koren Noé Talmud, with commentary by Rabbi Adin Steinsaltz Even-Israel, was released with a <a href="https://creativecommons.org/licenses/by-nc/4.0/legalcode" target="_blank">CC BY-NC</a> license by <a href="https://www.korenpub.com/koren_en_usd/declaration.html/" target="_blank">Koren Publishers</a>.</div>
+        <div id="davidsonLicense">
+            <span class="int-en">The William Davidson digital edition of the Koren Noé Talmud, with commentary by <a href="/adin-even-israel-steinsaltz">Rabbi Adin Even-Israel Steinsaltz</a>, was released with a <a href="https://creativecommons.org/licenses/by-nc/4.0/legalcode" target="_blank">CC BY-NC</a> license by <a href="https://www.korenpub.com/koren_en_usd/declaration.html/" target="_blank">Koren Publishers</a>.</span>
+            <span class="int-he">הגרסה הדיגיטלית של תלמוד קורן נואה על שמו של וויליאם דייוידסון, הכולל את פירושיו של <a href="/adin-even-israel-steinsaltz">הרב עדין אבן ישראל (שטיינזַלץ)</a>, יצא לאור בהוצאת <a href="https://www.korenpub.com/koren_en_usd/declaration.html/" target="_blank">קורן</a> ושוחרר תחת רשיון מסוג <a href="https://creativecommons.org/licenses/by-nc/4.0/legalcode" target="_blank">CC BY-NC</a>.
+            </span>
+        </div>
     </div>
 </div>
 

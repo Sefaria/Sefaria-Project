@@ -1,25 +1,22 @@
 {% extends "base.html" %}
+{% load i18n cache humanize sefaria_tags %}
+{% load i18n %}
 
-{% load sefaria_tags %}
-{% load humanize %}
-{% load cache %}
+{% block title %}{% trans "Sefaria Metrics" %}{% endblock %}
 
-{% block titleEnglish %}Sefaria Metrics{% endblock %}
-{% block titleHebrew %}Sefaria Metrics{% endblock %}
-
-{% block descriptionEnglish %}See graphs charting Sefaria's progress since 2013 across metrics including word counts, number of links and number of source sheets.{% endblock %}
-
-{% block descriptionHebrew %}See graphs charting Sefaria's progress since 2013 across metrics including word counts, number of links and number of source sheets.{% endblock %}
-
+{% block description %}{% trans "See graphs charting Sefaria's progress since 2013 across metrics including word counts, number of links and number of source sheets." %}{% endblock %}
 
 {% block content %}
 
 {% if S2 %}
-<div id="metricsPage" class="static">
+<div id="metricsPage" class="biReady container static">
 	<div class="inner">
-		<h1>Metrics</h1>
+        <h1>
+            <span class="int-en">Metrics</span>
+            <span class="int-he">מדדים</span>
+        </h1>
 		<div id="metricsBox">
-			Loading...
+			{% trans "Loading..." %}
 		</div>
 	</div>
 </div>
@@ -42,23 +39,23 @@
 	}
 
 	var titles = {
-			"totalWords": "Total Words in Library",
-			"heWords": "Words in Hebrew & Aramaic",
-			"transWords": "Words in Translation",
-			"sctWords": "Words of Original Translation created by Sefaria Volunteers",
-			"contributors": "Number of Public Contributors",
-			"links": "Number of Intertextual Links",
-			"sheets": "Number of Source Sheets"
+			"totalWords": "{% trans "Total Words in Library" %}",
+			"heWords": "{% trans "Words in Hebrew & Aramaic" %}",
+			"transWords": "{% trans "Words in Translation" %}",
+			"sctWords": "{% trans "Words of Original Translation created by Sefaria Volunteers" %}",
+			"contributors": "{% trans "Number of Public Contributors" %}",
+			"links": "{% trans "Number of Intertextual Links" %}",
+			"sheets": "{% trans "Number of Source Sheets" %}"
 	};
 
 	var types = {
-			"totalWords": "Words",
-			"heWords": "Words",
-			"transWords": "Words",
-			"sctWords": "Words",
-			"contributors": "Contributors",
-			"links": "Links",
-			"sheets": "Source Sheets"
+			"totalWords": "{% trans "Words" %}",
+			"heWords": "{% trans "Words" %}",
+			"transWords": "{% trans "Words" %}",
+			"sctWords": "{% trans "Words" %}",
+			"contributors": "{% trans "Contributors" %}",
+			"links": "{% trans "Links" %}",
+			"sheets": "{% trans "Source Sheets" %}"
 	};
 
 	var labels = [];

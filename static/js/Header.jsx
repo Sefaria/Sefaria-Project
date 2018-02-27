@@ -23,6 +23,11 @@ class Header extends Component {
   }
   componentDidMount() {
     this.initAutocomplete();
+    window.addEventListener('keydown', this.handleFirstTab);
+    if (this.state.menuOpen == "search" && this.state.searchQuery === null) {
+      // If this is an empty search page, comically, lazily make it full
+      this.props.showSearch("Search");
+    }
   }
   componentWillReceiveProps(nextProps) {
     if (nextProps.initialState) {
@@ -39,7 +44,7 @@ class Header extends Component {
 		return $( "<li></li>" )
 			.data( "item.autocomplete", item )
             .toggleClass("search-override", !!override)
-			.append( $( "<a></a>" ).text( item.label ) )
+			.append( $( "<a role='option'></a>" ).text( item.label ) )
 			.appendTo( ul );
 	  }.bind(this)
     });
@@ -80,7 +85,7 @@ class Header extends Component {
     if (this.props.panelsOpen == 0) {
       var recentlyViewed = Sefaria.recentlyViewed;
       if (recentlyViewed && recentlyViewed.length) {
-        this.handleRefClick(recentlyViewed[0].ref, recentlyViewed[0].version, recentlyViewed[0].versionLanguage);
+        this.handleRefClick(recentlyViewed[0].ref, recentlyViewed[0].currVersions);
       }
     }
     this.props.setCentralState({menuOpen: null});
@@ -195,12 +200,12 @@ class Header extends Component {
     $(".wrapper").remove();
     $("#footer").remove();
   }
-  handleRefClick(ref, version, versionLanguage) {
+  handleRefClick(ref, currVersions) {
     if (this.props.headerMode) {
       window.location.assign("/" + ref);
       return;
     }
-    this.props.onRefClick(ref, version, versionLanguage);
+    this.props.onRefClick(ref, currVersions);
   }
   handleSearchKeyUp(event) {
     if (event.keyCode === 13) {
@@ -214,6 +219,12 @@ class Header extends Component {
     var query = $(ReactDOM.findDOMNode(this)).find(".search").val();
     if (query) {
       this.submitSearch(query);
+    }
+  }
+  handleFirstTab(e) {
+    if (e.keyCode === 9) { // tab (i.e. I'm using a keyboard)
+      document.body.classList.add('user-is-tabbing');
+      window.removeEventListener('keydown', this.handleFirstTab);
     }
   }
   render() {
@@ -235,7 +246,9 @@ class Header extends Component {
                           setUnreadNotificationsCount={this.props.setUnreadNotificationsCount}
                           handleInAppLinkClick={this.props.handleInAppLinkClick}
                           hideNavHeader={true}
-                          analyticsInitialized={this.props.analyticsInitialized}/>) : null;
+                          analyticsInitialized={this.props.analyticsInitialized}
+                          getLicenseMap={this.props.getLicenseMap}
+                          translateISOLanguageCode={this.props.translateISOLanguageCode}/>) : null;
 
 
     var notificationCount = Sefaria.notificationCount || 0;
@@ -249,30 +262,30 @@ class Header extends Component {
                             <a href="/notifications" aria-label="See New Notifications" className={notifcationsClasses} onClick={this.showNotifications}>{notificationCount}</a>
                          </div>);
     var loggedOutLinks = (<div className="accountLinks">
-                           <a className="login" href={"/register" + nextParam}>
+                           <a className="login signupLink" href={"/register" + nextParam}>
                              <span className="int-en">Sign up</span>
                              <span className="int-he">הרשם</span>
                            </a>
-                           <a className="login" href={"/login" + nextParam}>
+                           <a className="login loginLink" href={"/login" + nextParam}>
                              <span className="int-en">Log in</span>
                              <span className="int-he">התחבר</span>
                            </a>
                          </div>);
-    var langSearchPlaceholder = this.props.interfaceLang == 'english' ? "Search" : "חיפוש";
     var vkClassActivator = this.props.interfaceLang == 'english' ? " keyboardInput" : "";
     return (<div className="header" role="banner">
               <div className="headerInner">
                 <div className="headerNavSection">
-                    <a href="/texts" aria-label="Toggle Text Table of Contents" className="library" onClick={this.handleLibraryClick}><i className="fa fa-bars"></i></a>
+                    <a href="/texts" aria-label={this.state.menuOpen === "navigation" && this.state.navigationCategories.length == 0 ? "Return to text" : "Open the Sefaria Library Table of Contents" } className="library" onClick={this.handleLibraryClick}><i className="fa fa-bars"></i></a>
                     <div  className="searchBox">
                       <ReaderNavigationMenuSearchButton onClick={this.handleSearchButtonClick} />
                       <input className={"search"+ vkClassActivator}
                              id="searchInput"
-                             placeholder={langSearchPlaceholder}
+                             placeholder={Sefaria._("Search")}
                              onKeyUp={this.handleSearchKeyUp}
                              onFocus={this.showVirtualKeyboardIcon.bind(this, true)}
                              onBlur={this.showVirtualKeyboardIcon.bind(this, false)}
-                      title="Search for Texts or Keywords Here"/>
+                             maxLength={75}
+                      title={Sefaria._("Search for Texts or Keywords Here")}/>
                     </div>
                 </div>
                 <div className="headerHomeSection">
@@ -312,6 +325,7 @@ Header.propTypes = {
   headerMesssage:              PropTypes.string,
   panelsOpen:                  PropTypes.number,
   analyticsInitialized:        PropTypes.bool,
+  getLicenseMap:               PropTypes.func.isRequired,
 };
 
 

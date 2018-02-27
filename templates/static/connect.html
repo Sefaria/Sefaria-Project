@@ -1,11 +1,9 @@
 {% extends "base.html" %}
+{% load i18n %}
 
-{% block titleEnglish %}Sefaria Newsletter, Social Media and More{% endblock %}
-{% block titleHebrew %}Sefaria Newsletter, Social Media and More{% endblock %}
+{% block title %}{% trans "Sefaria Newsletter, Social Media and More" %}{% endblock %}
 
-{% block descriptionEnglish %}Get updates on new texts and features on Sefaria by signing up for our newsletter or following us on social media.{% endblock %}
-
-{% block descriptionHebrew %}Get updates on new texts and features on Sefaria by signing up for our newsletter or following us on social media.{% endblock %}
+{% block description %}{% trans "Get updates on new texts and features on Sefaria by signing up for our newsletter or following us on social media." %}{% endblock %}
 
 {% block content %}
 <div id="connectPage" class="static">
@@ -35,16 +33,15 @@
             <a href="http://www.facebook.com/sefaria.org" target="_blank">
                 <div class="button white">
                     <i class="fa fa-facebook-official"></i>
-                    <span class='en'>Facebook</span>
-                    <span class='he'>פייסבוק</span>
+                    <span class='int-en'>Facebook</span>
+                    <span class='int-he'>פייסבוק</span>
                 </div>
-
             </a>
 
             <a href="http://twitter.com/SefariaProject" target="_blank">
                 <div class="button white">
                     <i class="fa fa-twitter"></i>
-                    <span class='en'>Twitter</span>
+                    <span class='int-en'>Twitter</span>
                     <span class="int-he">טוויטר</span>
                 </div>
             </a>

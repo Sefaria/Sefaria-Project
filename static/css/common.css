@@ -441,19 +441,6 @@ body.embeded #top {
     padding: 0;
 }
 
-.sparse1 {
-    color: #bbb;
-}
-.sparse2 {
-    color: #999;
-}
-.sparse3 {
-    color: #777;
-}
-.sparse4 {
-    color: #000;
-}
-
 #navPanelTextsMore {
   position: absolute;
   bottom: 0;
@@ -680,8 +667,11 @@ text-shadow: 0 1px 0 rgba(255, 255, 255, 0.5);
 
 #messageComposer {
   max-width: 100%;
+  border-radius: 6px;
 }
-
+#messageTextarea {
+  margin-bottom: 20px;
+}
 #messageHeader {
   font-weight: bold;
   font-size: 14px;
@@ -1190,7 +1180,7 @@ div.person_tooltip {
   background-color: #eee;
   border-radius: 3px;
   border: 1px solid #aaa;
-  position: absolute;
+  /*position: absolute;*/
   right: 21px;
   top: 10px;
 }
@@ -1838,7 +1828,10 @@ body.hebrew #talmudicPeoplePage #textTocLink {
   -o-user-select: none; 
 
 }
-
+.interface-hebrew #textBrowser {
+  text-align: right;
+  direction: rtl;
+}
 #textBrowser.absolute {
   position: absolute;
   z-index: 20;
@@ -1880,6 +1873,14 @@ body.hebrew #talmudicPeoplePage #textTocLink {
   font-size: 16px;
 }
 
+.interface-hebrew #browserNav {
+  left: auto;
+  right: 0;
+  border-right: none;
+  border-left: 1px solid #aaa;
+
+}
+
 .browserNavItem {
   padding: 8px 4px 8px 10px;
   cursor: pointer;
@@ -1911,6 +1912,10 @@ body.hebrew #talmudicPeoplePage #textTocLink {
   padding: 20px 10px 0px 200px;
 }
 
+.interface-hebrew #browserPreviewContent {
+  padding: 20px 200px 0px 10px;
+}
+
 #textBrowser.absolute #browserPreviewContent {
   width: 360px;
 }
@@ -1936,7 +1941,7 @@ body.hebrew #talmudicPeoplePage #textTocLink {
   background-color: #CFE5F8;
 }
 
-#browserPreview .segmentNumber {
+#browserPreview .number {
   font-size: 13px;
   font-weight: bold;
 }
@@ -1948,12 +1953,14 @@ body.hebrew #talmudicPeoplePage #textTocLink {
 }
 
 #browserPreview .segment .en {
-  font-family: "Georgia", serif;
+  font-family: "adobe-garamond-pro", Georgia, serif;
+  text-align: left;
+  direction: ltr;
 }
 
 #browserPreview .segment .he {
   font-size: 130%;
-  font-family: "Times New Roman", serif;
+  font-family: "Frank Ruehl Libre","Times New Roman",serif;
   text-align: right;
   direction: rtl;
 }
@@ -1987,6 +1994,92 @@ body.hebrew #talmudicPeoplePage #textTocLink {
   color: #ddd;
 }
 
+.onoffswitch {
+  position: relative;
+  width: 70px;
+  display: inline-block;
+  -webkit-user-select:none;
+  -moz-user-select:none;
+  -ms-user-select: none;
+  top: 8px;
+}
+#content .onoffswitch-checkbox {
+  display: none;
+}
+#content .onoffswitch-label {
+  display: block;
+  height: auto;
+  overflow: hidden;
+  cursor: pointer;
+  border-radius: 20px;
+}
+.onoffswitch-inner {
+  display: block;
+  width: 200%;
+  margin-left: -100%;
+  transition: margin 0.3s ease-in 0s;
+}
+.interface-hebrew .onoffswitch-inner {
+  margin-right: -100%;
+}
+.onoffswitch-inner:before, .onoffswitch-inner:after {
+  display: block;
+  float: left;
+  width: 50%;
+  height: 36px;
+  padding: 0;
+  line-height: 36px;
+  font-size: 14px;
+  color: white;
+  box-sizing: border-box;
+}
+.onoffswitch-inner:before {
+  content: "Yes";
+  padding-left: 10px;
+  background-color: #212D4F;
+  color: #FFFFFF;
+}
+.interface-hebrew .onoffswitch-inner:before{
+  content: "לא";
+  padding-right: 10px;
+}
+.onoffswitch-inner:after {
+  content: "No";
+  padding-right: 10px;
+  background-color: #212D4F;
+  color: #fff;
+  text-align: right;
+}
+.interface-hebrew .onoffswitch-inner:after {
+  text-align: left;
+  padding-left: 10px;
+}
+.interface-hebrew .onoffswitch-inner:after{
+    content: "כן";
+}
+.onoffswitch-switch {
+  display: block;
+  width: 31px;
+  margin: 1px;
+  background: #FFFFFF;
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  right: 36px;
+  border: 1px solid #999999;
+  border-radius: 26px;
+  transition: all 0.3s ease-in 0s;
+}
+.onoffswitch-checkbox:checked + .onoffswitch-label .onoffswitch-inner {
+  margin-left: 0;
+}
+.interface-hebrew .onoffswitch-checkbox:checked + .onoffswitch-label .onoffswitch-inner {
+  margin-right: 0;
+}
+.onoffswitch-checkbox:checked + .onoffswitch-label .onoffswitch-switch {
+  right: 0px;
+}
+
 ul.tagit {
     padding: 1px 5px;
     overflow: auto;
@@ -1998,19 +2091,19 @@ ul.tagit li {
     float: left;
     margin: 2px 5px 2px 0;
 }
-ul.tagit li.tagit-choice {    
+ul.tagit li.tagit-choice {
     position: relative;
     line-height: inherit;
     color: #08c;
 }
 
-ul.tagit li.tagit-choice-read-only { 
-    padding: .2em .5em .2em .5em; 
-} 
+ul.tagit li.tagit-choice-read-only {
+    padding: .2em .5em .2em .5em;
+}
 
-ul.tagit li.tagit-choice-editable { 
-    padding: .2em 18px .2em .5em; 
-} 
+ul.tagit li.tagit-choice-editable {
+    padding: .2em 18px .2em .5em;
+}
 
 ul.tagit li.tagit-new {
     padding: .25em 4px .25em 0;
@@ -2041,7 +2134,7 @@ ul.tagit li.tagit-choice input {
     margin: 2px 5px 2px 0;
 }
 
-ul.tagit input[type="text"] {
+ul.tagit input[type="text"], #sheetsContent ul.tagit input[type="text"] {
     -moz-box-sizing:    border-box;
     -webkit-box-sizing: border-box;
     box-sizing:         border-box;
@@ -2051,7 +2144,7 @@ ul.tagit input[type="text"] {
     box-shadow: none;
 
     border: none;
-    margin: 0;
+    margin: -7px 0 0 0;
     padding: 0;
     width: inherit;
     background-color: inherit;
@@ -2407,7 +2500,7 @@ line-height: 14px;
 .btn.lightblue {
   background-color: #4CC2DD;
   color: white;
-  border: 1px solid: #4CC2DD;
+  border: 1px solid #4CC2DD;
 }
 .btn.lightblue:hover {
   background-color: white;

@@ -1,34 +1,47 @@
 {% extends "base.html" %}
-{% load sefaria_tags %}
+{% load i18n sefaria_tags %}
 
-{% block titleEnglish %}Texts Digitized by Sefaria{% endblock %}
-{% block titleHebrew %}HEBREW NEEDED{% endblock %}
+{% block title %}{% trans "Texts Digitized by Sefaria" %}{% endblock %}
 
-{% block descriptionEnglish %}{% endblock %}
-
-{% block descriptionHebrew %}HEBREW NEEDED{% endblock %}
+{% block description %}{% endblock %}
 
 {% block content %}
 
 <div id="digitizedBySefaria" class="container doc static">
     <div class="inner">
 
+        <h1>
+            <span class="int-en">Texts Digitized by Sefaria</span>
+            <span class="int-he">הנגשת כתבים מקוונת בספריא</span>
+        </h1>
 
-    <h1> Texts Digitized by Sefaria</h1>
+        <p>
+            <span class="int-en">For the Jewish people, our texts are our collective treasure. They belong to everyone and we want them to be available to everyone, to use in any manner. Sefaria provides <a href="http://en.wikipedia.org/wiki/Public_domain">public domain</a> or freely licensed works. Sefaria digitizes many older books whose copyrights have expired and provides the text to the public, for free, with no use restrictions whatsoever. This is just one of the ways that Sefaria is trying to contribute to the public good – by digitizing these works and allowing anyone to use them.</span>
+            <span class="int-he">עבורנו היהודים, המקורות הכתובים הם האוצרות המשותפים לכל העם היהודי. אנחנו רוצים שגם יהיו זמינים לכולם, לשימוש בכל דרך שיחפצו. ספריא מנגישה חיבורים המצויים <a href="https://he.wikipedia.org/wiki/%D7%A8%D7%A9%D7%95%D7%AA_%D7%94%D7%A6%D7%99%D7%91%D7%95%D7%A8">בנחלת-הכלל</a> או בעלי רשיון שימוש-חופשי, באמצעות דיגיטציה של מהדורות מוקדמות, שבעבור חלקן פג תוקף זכויות יוצרים, בגרסאות דיגיטליות בחינם לציבור וללא מגבלות כלשהן. זוהי רק דרך אחת מבין רבות בהן ספריא מנסה לתרום לטובת הכלל – על ידי הנגשת כתבים מקוונת וחינמית לכולם.</span>
+        </p>
 
-    <p>For the Jewish people, our texts are our collective treasure. They belong to everyone and we want them to be available to everyone, to use in any manner. Sefaria provides <a href="http://en.wikipedia.org/wiki/Public_domain">public domain</a> or freely licensed works. Sefaria digitizes many older books whose copyrights have expired and provides the text to the public, for free, with no use restrictions whatsoever. This is just one of the ways that Sefaria is trying to contribute to the public good – by digitizing these works and allowing anyone to use them.</p>
+        <p>
+            <span class="int-en">To date, the following works have been digitized by Sefaria and are included in our system. You are welcome to copy, share, print, or adapt these works as you see fit. Source files for digitization may be available on request.</span>
+            <span class="int-he">להלן הכתבים הזמינים בספריה המקוונת של ספריא. הינך מוזמן להעתיק, לשתף, להדפיס או לעבד את הטקסטים לשימושך האישי וכראות עיניך. קבצי מקור יתכן ויהיו זמינים לבקשתך.</span>
+        </p>
 
-    <p>To date, the following works have been digitized by Sefaria and are included in our system. You are welcome to copy, share, print, or adapt these works as you see fit. Source files for digitization may be available on request.</p>
+        <ul id="texts">
+            {% for text in texts %}
+                <li>
+                    {% if request.interfaceLang == "hebrew" %}
+                    
+                    <div>{{ text.title|he_ref_link }}</div>
+                    <div class='sub'>{{ text.heVersionTitle|default:text.versionTitle }} ({{ text.language|lang_code }})</div>
 
-    <ul id="texts">
-        {% for text in texts %}
-            <li>
-                <div>{{ text.title|ref_link }}</div>
-                <div class='sub'>{{ text.versionTitle }} ({{ text.language|lang_code }})</div>
-            </li>
-        {% endfor %}
-    </ul>
+                    {% else %}
 
+                    <div>{{ text.title|ref_link }}</div>
+                    <div class='sub'>{{ text.versionTitle }} ({{ text.language|lang_code }})</div>
+
+                    {% endif %}
+                </li>
+            {% endfor %}
+        </ul>
 
     </div>
 </div>

@@ -1,11 +1,9 @@
 {% extends "base.html" %}
+{% load i18n %}
 
-{% block titleEnglish %}Donate to Sefaria{% endblock %}
-{% block titleHebrew %}Donate to Sefaria{% endblock %}
+{% block title %}{% trans "Donate to Sefaria" %}{% endblock %}
 
-{% block descriptionEnglish %}Support Sefaria by making a tax-deductible donation online or by check or wire transfer.{% endblock %}
-
-{% block descriptionHebrew %}Support Sefaria by making a tax-deductible donation online or by check or wire transfer.{% endblock %}
+{% block description %}{% trans "Support Sefaria by making a tax-deductible donation online or by check or wire transfer." %}{% endblock %}
 
 {% block content %}
 
@@ -44,9 +42,8 @@
                 </p>
 <pre>
 Sefaria
-c/o Daniel Septimus
-174 Hudson Street, Sixth Floor
-New York, NY 10013
+195 Montague St, 14th Floor
+Brooklyn, New York 11201
 </pre>
             </div>
 

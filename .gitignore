@@ -45,7 +45,7 @@ dump.rdb
 
 # Node Modules #
 ################
-/node_modules
+node_modules
 
 # PyCharm directory #
 #####################
@@ -103,5 +103,8 @@ client_secrets.json
 webpack-stats.*\.json
 webpack-stats.json
 
+# PAGERANK #
+static/pagerank.json
+static/sheetrank.json
 
 /random_files

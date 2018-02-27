@@ -1,11 +1,9 @@
 {% extends "base.html" %}
+{% load i18n %}
 
-{% block titleEnglish %}Linker Plugin | Sefaria{% endblock %}
-{% block titleHebrew %}Linker Plugin | Sefaria{% endblock %}
+{% block title %}{% trans "Linker Plugin" %} | {% trans "Sefaria" %}{% endblock %}
 
-{% block descriptionEnglish %}Automatically turn citations on your website into links or dynamic popups with the full text from Sefaria.{% endblock %}
-
-{% block descriptionHebrew %}Automatically turn citations on your website into links or dynamic popups with the full text from Sefaria.{% endblock %}
+{% block description %}{% trans "Automatically turn citations on your website into links or dynamic popups with the full text from Sefaria." %}{% endblock %}
 
 {% block content %}{% autoescape off %}
 <div id="linkerPage" class="container static">

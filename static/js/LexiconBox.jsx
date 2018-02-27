@@ -54,12 +54,13 @@ class LexiconBox extends Component {
     }
   }
   shouldActivate(selectedWords){
-    if(!selectedWords){
-      return null;
+    if(selectedWords && selectedWords.match(/[\s:\u0590-\u05ff.]+/)) {
+      var wordList = selectedWords.split(/[\s:\u05c3\u05be\u05c0.]+/);
+      var inputLength = wordList.length;
+      return (inputLength <= 3);
+    } else {
+        return null;
     }
-    var wordList = selectedWords.split(/[\s:\u05c3\u05be\u05c0.]+/);
-    var inputLength = wordList.length;
-    return (inputLength <= 3);
   }
   render() {
     if (!this.props.selectedWords) {

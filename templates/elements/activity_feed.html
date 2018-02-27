@@ -1,44 +1,40 @@
-{% load sefaria_tags %}
-{% load humanize %}
+{% load i18n humanize sefaria_tags %}
 
 <ul id="activityList">
 {% for event in activity %}
     <li>
         {% if event.rev_type == "delete index" %}
-            <span class="topline">{{ event.user|user_link }} deleted the text <i>{{ event.title }}</i>.
+            <span class="topline">{{ event.user|user_link }} {% trans "deleted the text" %} <i>{% if he %}{{ event.title|he_ref }}{% else %}{{ event.title }}{% endif %}</i>.
             </span>
+
 
         {% elif event.rev_type == "delete text" %}
-            <span class="topline">{{ event.user|user_link }} deleted a text version of <b>{{ event.title|ref_link }}</b>.
+            <span class="topline">{{ event.user|user_link }} {% trans "deleted a text version of" %} <b>{{ event.title|ref_link }}</b>.
             </span>
-    	   <div class="versionLine">Version: {{ event.version }} ({{ event.language|lang_code }})</div>
+    	   <div class="versionLine">{% trans "Version" %}: {% if he %}{{ event.version|he_version }}{% else %}{{ event.version }}{% endif %} ({{ event.language|lang_code }})</div>
+
 
         {% elif "text" in event.rev_type %}
-	    	
-            {% if email and single and not forloop.first %}
-	    		<div class="btn btn-mini revert" data-revert="/api/revert/{{ event.ref|url_safe }}/{{ lang }}/{{ version|url_safe }}/{{ event.revision }}">Revert to This</div>
-	    	{% endif %}
-
 	    	<span class="topline">{{ event.user|user_link }} 
     		{% if event.rev_type == "add text" and event.version == "Sefaria Community Translation" %}
-    			translated 
+    			{% trans "translated" %} 
             {% elif event.rev_type == "add text" %}
-                added
+                {% trans "added" %}
     		{% elif event.rev_type == "edit text" %}
-    			edited 
+    			{% trans "edited" %} 
     		{% elif event.rev_type == "revert text" %}
-    			reverted
+    			{% trans "reverted" %}
     		{% endif %}
-	    	{{ event.ref|ref_link }}
+	    	{% if he%}{{ event.ref|he_ref_link }}{% else %}{{ event.ref|ref_link }}{% endif %}
             {% if event.method == "API" %} (via API) {% endif %}
             {% if event.summary %}
-                and <a class="showAllActivity" href="{{ event.history_url }}">{{ event.updates_count }} others &raquo;</a>
+                {% trans "and " %}<a class="showAllActivity" href="{{ event.history_url }}">{{ event.updates_count }} {% trans "others" %} &raquo;</a>
 
 	    	{% elif not single %}
-	    		<a class="historyLink" href="{{ event.history_url }}">history &raquo;</a>
+	    		<a class="historyLink" href="{{ event.history_url }}">{% trans "history" %} &raquo;</a>
 	    	{% endif %}
 	    	</span>
-            <div class="versionLine">Version: {{ event.version }} ({{ event.language|lang_code }})</div>
+            <div class="versionLine">{% trans "Version" %}: {% if he %}{{ event.version|he_version }}{% else %}{{ event.version }}{% endif %} ({{ event.language|lang_code }})</div>
 	    	<div class="text ver-{{ event.language }}">
 	    		{% autoescape off %}{{ event.diff_html }}{% endautoescape %}
 	    	</div>
@@ -47,32 +43,47 @@
 	    {% elif "link" in event.rev_type %}
 	    	<span class="topline">{{ event.user|user_link }}  
     		{% if event.rev_type == "add link" %}
-    			added a connection 
+    			{% trans "added a connection" %} 
     		{% elif event.rev_type == "edit link" %}
-    			edited a connection  
+    			{% trans "edited a connection" %}  
     		{% elif event.rev_type == "delete link" %}
-    			deleted a connection  
+    			{% trans "deleted a connection" %}  
     		{% endif %}
     		{% if event.new.type %}({{ event.new.type }}){% endif %}
-	    	between {% filter ref_link %}{% firstof event.new.refs.0 event.old.refs.0 %}{% endfilter %} and {% filter ref_link %}{% firstof event.new.refs.1  event.old.refs.1 %}{% endfilter %}.
+	    	{% trans "between" %}
+            {% if he %}
+                {% filter he_ref_link %}{% firstof event.new.refs.0 event.old.refs.0 %}{% endfilter %}
+            {% else %}
+                {% filter ref_link %}{% firstof event.new.refs.0 event.old.refs.0 %}{% endfilter %}
+            {% endif %}
+            {% trans "and " %}
+            {% if he %}
+                {% filter he_ref_link %}{% firstof event.new.refs.1 event.old.refs.1 %}{% endfilter %}
+            {% else %}
+                {% filter ref_link %}{% firstof event.new.refs.1 event.old.refs.1 %}{% endfilter %}
+            {% endif %}
 	    	{% if event.method == "API" %} (via API) {% endif %}
             </span>
             <div class="versionLine">
-            {% if event.rev_type == "add link" and event.new.generated_by == "add_commentary_links" %}(automatic commentary link){% endif %}
-            {% if event.rev_type == "add link" and event.new.generated_by == "add_links_from_text" %}(automatic citation link){% endif %}
+            {% if event.rev_type == "add link" and event.new.generated_by == "add_commentary_links" %}({% trans "automatic commentary link" %}){% endif %}
+            {% if event.rev_type == "add link" and event.new.generated_by == "add_links_from_text" %}({% trans "automatic citation link" %}){% endif %}
             </div>
 
 
 	    {% elif "note" in event.rev_type %}
 	    	<span class="topline">{{ event.user|user_link }}  
     		{% if event.rev_type == "add note" %}
-    			added a note to 
+    			{% trans "added a note to " %} 
     		{% elif event.rev_type == "edit note" %}
-    			edited a note on  
+    			{% trans "edited a note on " %}  
     		{% elif event.rev_type == "delete note" %}
-    			deleted a note on 
+    			{% trans "deleted a note on " %} 
     		{% endif %}
-	    	{% filter ref_link %}{% firstof event.new.ref event.old.ref %}{% endfilter %}.
+            {% if he %}
+                {% filter he_ref_link %}{% firstof event.new.ref event.old.ref %}{% endfilter %}.
+            {% else %}
+                {% filter ref_link %}{% firstof event.new.ref event.old.ref %}{% endfilter %}.
+            {% endif %}
             {% if event.method == "API" %} (via API) {% endif %}
 	    	</span>
 	    	<div class="text">
@@ -83,13 +94,13 @@
 	   	{% elif "index" in event.rev_type %}
 	    	<span class="topline">{{ event.user|user_link }}  
     		{% if event.rev_type == "add index" %}
-    			added text info for the text 
+    			{% trans "added text info for the text" %}
     		{% elif event.rev_type == "edit index" %}
-    			edited the text info of 
+    			{% trans "edited the text info of" %} 
     		{% endif %}
-	    	{{ event.title|ref_link }}.
+	    	{% if he %}{{ event.title|he_ref_link }}{% else %}{{ event.title|ref_link }}{% endif %}.
             {% if event.method == "API" %} (via API) {% endif %}
-            <span class="indexDetailsLink">details &raquo;</span>
+            <span class="indexDetailsLink">{% trans "details" %} &raquo;</span>
 	    	</span>
 
             <div class="indexDetails" style="display:none">
@@ -99,12 +110,34 @@
                 <pre>{{ event.old|pprint }}</pre>
             </div>
 
+        {% elif "term" in event.rev_type %}
+            <span class="topline">{{ event.user|user_link }}  
+            {% if event.rev_type == "add term" %}
+                {% trans "added a term" %}
+            {% elif event.rev_type == "edit term" %}
+                {% trans "edited the term" %} 
+            {% elif event.rev_type == "delete term" %}
+                {% trans "deleted the term" %} 
+            {% endif %}
+            {% if he %}{% firstof event.new.name event.old.name %}{% else %}{% firstof event.new.name event.old.name %}{% endif %}.
+            {% if event.method == "API" %} (via API) {% endif %}
+            <span class="indexDetailsLink">{% trans "details" %} &raquo;</span>
+            </span>
+
+            <div class="indexDetails" style="display:none">
+                New:
+                <pre>{{ event.new|pprint }}</pre>
+                Old:
+                <pre>{{ event.old|pprint }}</pre>
+            </div>
+
+
 	    {% elif "review" in event.rev_type %}
-            <span class="topline">{{ event.user|user_link }} reviewed {{ event.ref|ref_link }} .</span>
+            <span class="topline">{{ event.user|user_link }} {% trans "reviewed" %} {% if he %}{{ event.ref|he_ref_link }}{% else %}{{ event.ref|ref_link }}{% endif %} .</span>
             {% if not single %}
-                <a class="historyLink" href="{{ event.history_url }}">history &raquo;</a>
+                <a class="historyLink" href="{{ event.history_url }}">{% trans "history" %} &raquo;</a>
             {% endif %} 
-            <div class="versionLine">Version: {{ event.version }} ({{ event.language|lang_code }})</div>
+            <div class="versionLine">{% trans "Version" %}: {% if he %}{{ event.version|he_version }}{% else %}{{ event.version }}{% endif %} ({{ event.language|lang_code }})</div>
             <div class="score raty" data-raty="{{ event.score }}"></div>
             <div class="text">
                 {{ event.comment|linebreaksbr }}
@@ -112,30 +145,37 @@
         
 
         {% elif event.rev_type == "publish sheet" %}
-            <span class="topline">{{ event.user|user_link }} published a new Source Sheet, {{ event.sheet|sheet_link }}.
+            <span class="topline">{{ event.user|user_link }} {% trans "published a new Source Sheet" %}, {{ event.sheet|sheet_link }}.
             </span>
 
         {% endif %}
-
 
 
     	<div class="time">
     		{{ event.date|naturaltime }}
     	</div>
         {% if event.summary %}
-            <a class="showAllActivity bottom" href="{{ event.history_url }}">{{ event.updates_count }} related &raquo;</a>
+            <a class="showAllActivity bottom" href="{{ event.history_url }}">{{ event.updates_count }} {% trans "related" %} &raquo;</a>
         {% endif %}
     </li>
 {% empty %}
     {% if empty_message %}
         <i>{{ empty_message }}</i>
     {% elif profile %}
-        <i>No {% if filter_type %}matching{% endif %} public activity yet.</i>
+        {% if filter_type %}
+        <i>{% trans "No matching public activity yet." %}</i>
+        {% else %}
+        <i>{% trans "No public activity yet." %}</i>
+        {% endif %}
     {% else %}
-	   <i>No {% if filter_type %}matching{% endif %} public history items.</i>
+        {% if filter_type %}
+        <i>{% trans "No matching public history items." %}</i>
+        {% else %}
+        <i>{% trans "No public history items." %}</i>
+        {% endif %}
     {% endif %}
 {% endfor %}
 </ul>
 {% if next_page and not hide_more_link %}
-    <a class="page-link" id="older" href="{{ next_page }}">Older Activity &raquo;</a>
+    <a class="page-link" id="older" href="{{ next_page }}">{% trans "Older Activity" %} &raquo;</a>
 {% endif %}

@@ -1,11 +1,13 @@
 {% extends "email/base.html" %}
+{% load i18n %}
 
 {% block to %}
-Hello {{ recipient }},
+{%  blocktrans %} Hello {{ recipient }}, {% endblocktrans %}
 {% endblock %}
 
 {% block body %}
-Here's some new activity on Sefaria that you may have missed.<br><br>
+{%  blocktrans %} Here's some new activity on Sefaria that you may have missed.{% endblocktrans %}
+    <br><br>
 	{% for notification in notifications %}
 		{% include "email/notification.html" with notification=notification %}
 	{% endfor %}

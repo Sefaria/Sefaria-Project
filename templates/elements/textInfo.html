@@ -4,7 +4,7 @@
 <table data-title="{{ text.title }}">
 	<tbody>
 	<tr>
-		<td class="title en sparse{{ text.sparseness }}" id="{{ text.title.split|join:'_' }}">
+		<td class="title en" id="{{ text.title.split|join:'_' }}">
 			<a href="/{{ text.title|url_safe|urlencode }}">
 				{% if commentator_only %}
 					{{ text.commentator }}
