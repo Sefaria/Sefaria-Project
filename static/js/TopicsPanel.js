@@ -63,7 +63,7 @@ class TopicsPanel extends Component {
               </Link>);
     }.bind(this);
 
-    var trendingList = this.state.filter.length ? [] : trending.map(makeTopicButton);
+    var trendingList = this.state.filter.length ? [] : trending ? trending.map(makeTopicButton) : null;
 
     var topicList = topics ? topics.filter(function(item, i) {
       if (!this.state.filter.length) { return true }
