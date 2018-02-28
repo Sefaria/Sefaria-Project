@@ -4802,3 +4802,7 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
 .aboutBox .versionBlock .versionTitle:hover {
   text-decoration: none;
 }
+span.purim-emoji img{
+  height: 25px;
+  width: 25px;
+}
