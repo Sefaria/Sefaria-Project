@@ -45,8 +45,6 @@ class ConnectionsPanel extends Component {
     this._isMounted = false;
   }
   componentDidUpdate(prevProps, prevState) {
-      console.log(this.props.title)
-
     if (!prevProps.srefs.compare(this.props.srefs)) {
       this.loadData();
     }
@@ -173,7 +171,6 @@ class ConnectionsPanel extends Component {
   render() {
     var content = null;
     var loaded = this.props.srefs=="sheetRef" ? true : !!Sefaria.related(this.sectionRef());
-    console.log(loaded)
     if (!loaded) {
       content = <LoadingMessage />;
     } else if (this.props.srefs=="sheetRef") {
@@ -289,6 +286,9 @@ class ConnectionsPanel extends Component {
                     oref={Sefaria.ref(this.props.srefs[0])} />);
 
     } else if (this.props.mode === "Tools") {
+        console.log(this.props.srefs)
+        console.log(this.props.canEditText)
+        console.log(this.props.canEditText)
       content = (<ToolsList
                     srefs={this.props.srefs}
                     canEditText={this.props.canEditText}
@@ -627,6 +627,11 @@ SheetListing.propTypes = {
 
 class ToolsList extends Component {
   render() {
+      console.log(this.props.srefs)
+      console.log(this.props.canEditText)
+      console.log(this.props.currVersions)
+      console.log(this.props.setConnectionsMode)
+      console.log(this.props.masterPanelLanguage)
     var editText  = this.props.canEditText ? function() {
         var refString = this.props.srefs[0];
         var currentPath = Sefaria.util.currentPath();

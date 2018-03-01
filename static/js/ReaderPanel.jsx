@@ -505,8 +505,13 @@ class ReaderPanel extends Component {
     }
   }
   currentCategory() {
-    var book = this.currentBook();
-    return (Sefaria.index(book) ? Sefaria.index(book)['primary_category'] : null);
+    if (this.state.mode == "Sheet") {
+      return "Sheets"
+    }
+    else {
+      var book = this.currentBook();
+      return (Sefaria.index(book) ? Sefaria.index(book)['primary_category'] : null);
+    }
   }
   currentLayout() {
     if (this.state.settings.language == "bilingual") {
@@ -586,7 +591,6 @@ class ReaderPanel extends Component {
     }
 
     if (this.state.mode === "Connections" || this.state.mode === "TextAndConnections" || this.state.mode === "SheetAndConnections") {
-      console.log(this.state.mode)
       var langMode = this.props.masterPanelLanguage || this.state.settings.language;
       var data     = this.currentData();
       var canEditText = data &&
@@ -990,7 +994,7 @@ class ReaderControls extends Component {
     var title = this.props.currentRef;
     if (title) {
       var oref = Sefaria.ref(title);
-      if (!oref) {
+      if (!oref && title != "sheetRef") {
         // If we don't have this data yet, rerender when we do so we can set the Hebrew title
         var ajaxObj = Sefaria.textApi(title, {context: 1}, function(data) {
           if ("error" in data) {
