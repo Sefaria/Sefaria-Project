@@ -171,9 +171,10 @@ class ConnectionsPanel extends Component {
   render() {
     var content = null;
     var loaded = this.props.srefs=="sheetRef" ? true : !!Sefaria.related(this.sectionRef());
+      console.log(this.props.mode )
     if (!loaded) {
       content = <LoadingMessage />;
-    } else if (this.props.srefs=="sheetRef") {
+    } else if (this.props.srefs=="sheetRef" && this.props.mode != "Share") {
       content = (<div>
                     <SheetNodeConnectionTools
                     multiPanel={this.props.multiPanel}
@@ -297,6 +298,7 @@ class ConnectionsPanel extends Component {
                     masterPanelLanguage={this.props.masterPanelLanguage} />);
 
     } else if (this.props.mode === "Share") {
+        console.log('share');
       content = (<ShareBox
                     url={window.location.href}
                     fullPanel={this.props.fullPanel}
@@ -451,7 +453,7 @@ class SheetNodeConnectionTools extends Component {
               {this.props.multiPanel ?
                 <ToolsButton en="Other Text" he="השווה" icon="search" onClick={this.props.openComparePanel} />
               : null }
-              <ToolsButton en="Tools" he="כלים" icon="gear" onClick={() => this.props.setConnectionsMode("Tools")} />
+                <ToolsButton en="Share" he="שתף" image="tools-share.svg" onClick={() => this.props.setConnectionsMode("Share")} />
             </div>);
   }
 }
