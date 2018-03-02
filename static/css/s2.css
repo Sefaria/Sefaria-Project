@@ -2565,6 +2565,10 @@ a.readerNavCategory {
 .basetext .segment:focus {
   background-color: #f4f4f4;
 }
+.sheetContent .segment:active .segmentNumber,
+.sheetContent .segment:focus .segmentNumber,
+.sheetContent .segment:active .linkCount,
+.sheetContent .segment:focus .linkCount,
 .basetext .segment:active .segmentNumber,
 .basetext .segment:focus .segmentNumber,
 .basetext .segment:active .linkCount,
@@ -2659,6 +2663,9 @@ a.readerNavCategory {
 .segment .linkCount {
   display: none;
   line-height: 1.6;
+}
+.sheetContent .segment .linkCount {
+  display: inline-block;
 }
 .segment .segmentNumber .segmentNumberInner,
 .textRange .numberLabel .numberLabelInner {

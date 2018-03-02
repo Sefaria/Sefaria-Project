@@ -161,11 +161,13 @@ class SheetContent extends Component {
     var sources = this.props.sources.length ? this.props.sources.map(function(source, i) {
 
       if ("ref" in source) {
+          console.log(source.ref + ": "+Sefaria.linkCount(source.ref))
         return (
           <SheetSource
             key={i}
             source={source}
             sourceNum={i + 1}
+            linkCount={Sefaria.linkCount(source.ref)}
             handleClick={this.handleClick}
             cleanHTML={this.cleanHTML}
             onSegmentClick={this.props.onSegmentClick}
@@ -247,6 +249,17 @@ class SheetSource extends Component {
 
 
   render() {
+    var linkCountElement;
+      var linkCount = this.props.linkCount;
+      var minOpacity = 20, maxOpacity = 70;
+      var linkScore = linkCount ? Math.min(linkCount + minOpacity, maxOpacity) / 100.0 : 0;
+      var style = {opacity: linkScore};
+      linkCountElement = (<div className="linkCount sans" title={linkCount + " Connections Available"}>
+                                                    <span className="en"><span className="linkCountDot" style={style}></span></span>
+                                                    <span className="he"><span className="linkCountDot" style={style}></span></span>
+                                                  </div>);
+
+
     return (
       <div className={this.props.highlightedNodes == this.props.source.node ? "sheetItem segment highlight" : "sheetItem segment"} onClick={this.sheetSourceClick}>
         <div className="segmentNumber sheetSegmentNumber sans">
@@ -254,6 +267,9 @@ class SheetSource extends Component {
           <span className="he"> <span
             className="segmentNumberInner">{Sefaria.hebrew.encodeHebrewNumeral(this.props.sourceNum)}</span> </span>
         </div>
+
+          {linkCountElement}
+
 
           {this.props.source.title ? <h3 dangerouslySetInnerHTML={ {__html: (this.props.cleanHTML(this.props.source.title))} }></h3> : null}
 
