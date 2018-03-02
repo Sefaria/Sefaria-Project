@@ -25,3 +25,7 @@ class MessagingNode(object):
             logger.error("No subscribe message found")
         elif m["type"] != "subscribe":
             logger.error("Expecting subscribe message, found: {}".format(m))
+
+    @staticmethod
+    def event_description(data):
+        return "{}.{}({}) [{}]".format(data["obj"], data["method"], ", ".join(data["args"]), data["id"])
