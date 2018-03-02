@@ -9,6 +9,7 @@ logger = logging.getLogger("multiserver")
 logger.setLevel(logging.INFO)
 
 from messaging import MessagingNode
+from sefaria.system.sf_varnish import invalidate_title
 
 
 class MultiServerMonitor(MessagingNode):
@@ -78,10 +79,6 @@ class MultiServerMonitor(MessagingNode):
                 event_record["confirmed"], data["event_id"]))
             self._process_completion(event_record["data"])
 
-    @staticmethod
-    def event_description(data):
-        return "{}.{}({}) [{}]".format(data["obj"], data["method"], ", ".join(data["args"]), data["id"])
-
     def _process_completion(self, data):
         """
 
@@ -92,5 +89,16 @@ class MultiServerMonitor(MessagingNode):
             data["id"]
         :return:
         """
+        if data["obj"] == "library":
+
+            if data["method"] == "refresh_index_record_in_cache":
+                title = data["args"][-1]  # Sometimes this is first arg, somethimes second.  Always last.
+                logger.info("Invalidating {} in Varnish".format(title))
+                invalidate_title(title)
+
+            if data["method"] == "remove_index_record_from_cache":
+                title = data["args"][0]
+                logger.info("Invalidating {} in Varnish".format(title))
+                invalidate_title(title)
 
 

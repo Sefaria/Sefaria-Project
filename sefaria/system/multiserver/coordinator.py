@@ -36,7 +36,7 @@ class ServerCoordinator(MessagingNode):
 
         import socket
         import os
-        logger.warning("publish_event from {}:{} - {}".format(socket.gethostname(), os.getpid(), msg_data))
+        logger.info("publish_event from {}:{} - {}".format(socket.gethostname(), os.getpid(), msg_data))
 
         self.redis_client.publish(MULTISERVER_REDIS_EVENT_CHANNEL, msg_data)
 
@@ -66,7 +66,12 @@ class ServerCoordinator(MessagingNode):
         :param msg: JSON encoded message.
          Expecting a message that looks like this:
          {'channel': 'msync',
-          'data': '!!!!!!!!!',
+          'data': {
+            "obj": obj,
+            "method": method,
+            "args": args or [],
+            "id": uuid.uuid4().get_hex()
+          }
           'pattern': None,
           'type': 'message',
          }
@@ -85,7 +90,6 @@ class ServerCoordinator(MessagingNode):
         import os
         host = socket.gethostname()
         pid = os.getpid()
-        logger.info("_process_message in {}:{} - {}".format(host, pid, msg["data"]))
 
         data = json.loads(msg["data"])
 
@@ -94,6 +98,7 @@ class ServerCoordinator(MessagingNode):
 
         try:
             method(*data["args"])
+            logger.error("Processing succeeded for {} on {}:{}".format(self.event_description(data), host, pid))
 
             confirm_msg = {
                 'event_id': data["id"],
@@ -103,6 +108,8 @@ class ServerCoordinator(MessagingNode):
             }
 
         except Exception as e:
+            logger.error("Processing failed for {} on {}:{} - {}".format(self.event_description(data), host, pid, e.message))
+
             confirm_msg = {
                 'event_id': data["id"],
                 'host': host,
@@ -113,7 +120,7 @@ class ServerCoordinator(MessagingNode):
 
         # Send confirmation
         msg_data = json.dumps(confirm_msg)
-        logger.info("sending confirm from {}:{} - {}".format(host, pid, msg["data"]))
+        logger.info("Sending confirm from {}:{} - {}".format(host, pid, msg["data"]))
         self.redis_client.publish(MULTISERVER_REDIS_CONFIRM_CHANNEL, msg_data)
 
 

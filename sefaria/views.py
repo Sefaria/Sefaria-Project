@@ -343,9 +343,8 @@ def reset_index_cache_for_text(request, title):
 
     if MULTISERVER_ENABLED:
         server_coordinator.publish_event("library", "refresh_index_record_in_cache", [index.title])
-
-    if USE_VARNISH:
-        invalidate_title(title)
+    elif USE_VARNISH:
+        invalidate_title(index.title)
 
     return HttpResponseRedirect("/%s?m=Cache-Reset" % model.Ref(title).url())
 
@@ -463,11 +462,8 @@ def reset_ref(request, tref):
         if MULTISERVER_ENABLED:
             server_coordinator.publish_event("library", "refresh_index_record_in_cache", [oref.index.title])
             server_coordinator.publish_event("library", "update_index_in_toc", [oref.index.title])
-
-        if USE_VARNISH:
-            invalidate_index(oref.index)
-            invalidate_counts(oref.index)
-            invalidate_ref(oref)
+        elif USE_VARNISH:
+            invalidate_title(oref.index.title)
 
         return HttpResponseRedirect("/{}?m=Reset-Index".format(oref.url()))
 
