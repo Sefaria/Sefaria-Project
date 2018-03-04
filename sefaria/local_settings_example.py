@@ -78,14 +78,6 @@ MANAGERS = ADMINS
 
 SECRET_KEY = 'insert your long random secret key here !'
 
-STATICFILES_DIRS = (
-    relative_to_abs_path('../static/'),
-    # Put strings here, like "/home/html/static" or "C:/www/django/static".
-    # Always use forward slashes, even on Windows.
-    # Don't forget to use absolute paths, not relative paths.
-)
-
-
 
 EMAIL_HOST = 'localhost'
 EMAIL_PORT = 1025

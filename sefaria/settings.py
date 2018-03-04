@@ -71,6 +71,10 @@ STATICFILES_FINDERS = (
     #'django.contrib.staticfiles.finders.DefaultStorageFinder',
 )
 
+STATICFILES_DIRS = [
+    relative_to_abs_path('../static/'),
+]
+
 # Make this unique, and don't share it with anybody.
 SECRET_KEY = ''
 
