@@ -11,9 +11,10 @@ from django.shortcuts import redirect
 from sefaria.settings import *
 from sefaria.model.user_profile import UserProfile
 from sefaria.utils.util import short_to_long_lang_code
+from django.utils.deprecation import MiddlewareMixin
 
 
-class LanguageSettingsMiddleware(object):
+class LanguageSettingsMiddleware(MiddlewareMixin):
     """
     Determines Interface and Content Language settings for each request.
     """
@@ -74,7 +75,7 @@ class LanguageSettingsMiddleware(object):
         translation.activate(request.LANGUAGE_CODE)
 
 
-class LanguageCookieMiddleware(object):
+class LanguageCookieMiddleware(MiddlewareMixin):
     """
     If `set-language-cookie` param is set, set a cookie the interfaceLange of current domain, 
     then redirect to a URL without the param (so the urls with the param don't get loose in wild).
@@ -110,7 +111,7 @@ def current_domain_lang(request):
     return domain_lang
 
 
-class ProfileMiddleware(object):
+class ProfileMiddleware(MiddlewareMixin):
     """
     Displays hotshot profiling for any view.
     http://yoursite.com/yourview/?prof

@@ -18,8 +18,8 @@ import socket
 import bleach
 
 from django.views.decorators.cache import cache_page
-from django.template import RequestContext, loader
-from django.template.loader import render_to_string
+from django.template import RequestContext
+from django.template.loader import render_to_string, get_template
 from django.shortcuts import render_to_response, get_object_or_404, redirect
 from django.http import Http404, HttpResponse
 from django.contrib.auth.decorators import login_required
@@ -264,7 +264,7 @@ def base_props(request):
     """
     request_context = RequestContext(request)
     return {
-        "multiPanel": request.flavour != "mobile" and not "mobile" in request.GET,
+        "multiPanel": request.user_agent.is_mobile and not "mobile" in request.GET,
         "initialPath": request.get_full_path(),
         "recentlyViewed": request_context.get("recentlyViewed"),
         "loggedIn": request.user.is_authenticated(),
@@ -2704,7 +2704,7 @@ def home(request):
     if recent and not "home" in request.GET:
         return redirect("/texts")
 
-    if request.flavour == "mobile":
+    if request.user_agent.is_mobile:
         return mobile_home(request)
 
     today     = date.today()
@@ -3361,5 +3361,5 @@ def custom_server_error(request, template_name='500.html'):
     Templates: `500.html`
     Context: RequestContext
     """
-    t = loader.get_template(template_name) # You need to create a 500.html template.
-    return http.HttpResponseServerError(t.render(RequestContext(request, {'request_path': request.path})))
+    t = get_template(template_name) # You need to create a 500.html template.
+    return http.HttpResponseServerError(t.render({'request_path': request.path}, request))

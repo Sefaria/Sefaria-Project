@@ -74,50 +74,60 @@ STATICFILES_FINDERS = (
 # Make this unique, and don't share it with anybody.
 SECRET_KEY = ''
 
-# List of callables that know how to import templates from various sources.
-TEMPLATE_LOADERS = (
-    'django_mobile.loader.Loader',
-    'django.template.loaders.filesystem.Loader',
-    'django.template.loaders.app_directories.Loader',
-#    'django.template.loaders.eggs.Loader',
-)
+TEMPLATES = [
+    {
+        'BACKEND': 'django.template.backends.django.DjangoTemplates',
+        'DIRS': [
+            relative_to_abs_path('../templates/'),
+        ],
+        'OPTIONS': {
+            'context_processors': [
+                    # Insert your TEMPLATE_CONTEXT_PROCESSORS here or use this
+                    # list if you haven't customized them:
+                    "django.contrib.auth.context_processors.auth",
+                    "django.template.context_processors.debug",
+                    "django.template.context_processors.i18n",
+                    "django.template.context_processors.media",
+                    "django.template.context_processors.static",
+                    "django.template.context_processors.tz",
+                    "django.contrib.messages.context_processors.messages",
+                    "django.template.context_processors.request",
+                    #"django_mobile.context_processors.flavour",
+                    "sefaria.system.context_processors.global_settings",
+                    "sefaria.system.context_processors.titles_json",
+                    "sefaria.system.context_processors.toc",
+                    "sefaria.system.context_processors.terms",
+                    "sefaria.system.context_processors.embed_page",
+                    "sefaria.system.context_processors.user_and_notifications",
+                    "sefaria.system.context_processors.calendar_links",
+                    "sefaria.system.context_processors.header_html",
+                    "sefaria.system.context_processors.footer_html",
+            ],
+            # 'loaders': [
+            #     #'django_mobile.loader.Loader',
+            #     'django.template.loaders.filesystem.Loader',
+            #     'django.template.loaders.app_directories.Loader',
+            # ]
+        },
+    },
+]
 
-TEMPLATE_CONTEXT_PROCESSORS = (
-    "django.contrib.auth.context_processors.auth",
-    "django.core.context_processors.debug",
-    "django.core.context_processors.i18n",
-    "django.core.context_processors.media",
-    "django.core.context_processors.static",
-    "django.core.context_processors.tz",
-    "django.contrib.messages.context_processors.messages",
-    "django.core.context_processors.request",
-    "django_mobile.context_processors.flavour",
-    "sefaria.system.context_processors.global_settings",
-    "sefaria.system.context_processors.titles_json",
-    "sefaria.system.context_processors.toc",
-    "sefaria.system.context_processors.terms",
-    "sefaria.system.context_processors.embed_page",
-    "sefaria.system.context_processors.user_and_notifications",
-    "sefaria.system.context_processors.calendar_links",
-    "sefaria.system.context_processors.header_html",
-    "sefaria.system.context_processors.footer_html",
-)
-
-MIDDLEWARE_CLASSES = (
+MIDDLEWARE = [
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.locale.LocaleMiddleware',   
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
-    'django_mobile.middleware.MobileDetectionMiddleware',
-    'django_mobile.middleware.SetFlavourMiddleware',
+    'django_user_agents.middleware.UserAgentMiddleware',
+    #'django_mobile.middleware.MobileDetectionMiddleware',
+    #'django_mobile.middleware.SetFlavourMiddleware',
     'sefaria.system.middleware.LanguageCookieMiddleware',
     'sefaria.system.middleware.LanguageSettingsMiddleware',
     'sefaria.system.middleware.ProfileMiddleware',
     #'django.middleware.cache.UpdateCacheMiddleware',
     #'django.middleware.cache.FetchFromCacheMiddleware',
-)
+]
 
 ROOT_URLCONF = 'sefaria.urls'
 
@@ -137,10 +147,11 @@ INSTALLED_APPS = (
     'sourcesheets',
     #'sefaria.gauth',
     'captcha',
-    'django_mobile',
+    #'django_mobile',
     'django.contrib.admin',
     'anymail',
-    'webpack_loader'
+    'webpack_loader',
+    'django_user_agents'
     # Uncomment the next line to enable admin documentation:
     # 'django.contrib.admindocs',
 )
