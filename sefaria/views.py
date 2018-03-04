@@ -14,7 +14,7 @@ from webpack_loader import utils as webpack_utils
 from django.utils.translation import ugettext as _
 from django.conf import settings
 from django.http import HttpResponse, HttpResponseRedirect
-from django.shortcuts import render_to_response
+from django.shortcuts import render_to_response, render
 from django.template import RequestContext
 from django.template.loader import render_to_string
 from django.template.response import TemplateResponse
@@ -205,7 +205,7 @@ def data_js(request):
     """
     Javascript populating dynamic data like book lists, toc.
     """
-    return render_to_response("js/data.js", {}, RequestContext(request), mimetype= "text/javascript")
+    return render(request, "js/data.js", content_type="text/javascript")
 
 
 def sefaria_js(request):
