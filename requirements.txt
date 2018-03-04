@@ -31,3 +31,7 @@ deepdiff
 Appium-Python-Client
 django-webpack-loader
 django-anymail
+pyyaml
+ua-parser
+user-agents
+django-user-agents

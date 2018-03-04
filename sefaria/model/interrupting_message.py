@@ -33,7 +33,7 @@ class InterruptingMessage(object):
 
     # Filter mobile traffic
     if self.condition.get("desktop_only", True):
-      if self.request.flavour == "mobile":
+      if self.request.user_agent.is_mobile:
         return False
 
     # Filter non English interface traffic

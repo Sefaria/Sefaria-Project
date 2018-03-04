@@ -58,7 +58,6 @@ CACHES = {
 
 ################ These are things you DO NOT NEED to touch unless you know what you are doing. ##############################
 DEBUG = True
-TEMPLATE_DEBUG = DEBUG
 OFFLINE = False
 DOWN_FOR_MAINTENANCE = False
 MAINTENANCE_MESSAGE = ""
@@ -86,12 +85,7 @@ STATICFILES_DIRS = (
     # Don't forget to use absolute paths, not relative paths.
 )
 
-TEMPLATE_DIRS = (
-    relative_to_abs_path('../templates/'),
-    # Put strings here, like "/home/html/django_templates" or "C:/www/django/templates".
-    # Always use forward slashes, even on Windows.
-    # Don't forget to use absolute paths, not relative paths.
-)
+
 
 EMAIL_HOST = 'localhost'
 EMAIL_PORT = 1025
