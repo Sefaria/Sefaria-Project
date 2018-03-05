@@ -36,8 +36,16 @@ class Sheet extends Component {
   }
 
   onDataLoad(data) {
+
     this.forceUpdate();
 
+    for (var i = 0; i < data.sources.length; i++) {
+      if ("ref" in data.sources[i]) {
+        Sefaria.related(data.sources[i].ref, function() {
+           { this.forceUpdate(); }
+        }.bind(this));
+      }
+    }
   }
 
   componentDidUpdate(prevProps, prevState) {
@@ -161,7 +169,6 @@ class SheetContent extends Component {
     var sources = this.props.sources.length ? this.props.sources.map(function(source, i) {
 
       if ("ref" in source) {
-          console.log(source.ref + ": "+Sefaria.linkCount(source.ref))
         return (
           <SheetSource
             key={i}
