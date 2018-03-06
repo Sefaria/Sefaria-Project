@@ -953,7 +953,7 @@ class NumberedTitledTreeNode(TitledTreeNode):
         self.depth = len(section_names)
         self.sectionNames = section_names
         if address_types is None:
-            self.addressTypes = ['Integer'] * len(section_names)
+            self.addressTypes = [sec if globals().get("Address{}".format(sec), None) else 'Integer' for sec in section_names]
         else:
             self.addressTypes = address_types
 
@@ -1279,6 +1279,29 @@ class SchemaNode(TitledTreeNode):
 
         index_list, ref_list, _ = traverse(self, callback)
         return index_list, ref_list
+
+    def nodes_missing_content(self):
+        """
+        Used to identify nodes in the tree that have no content
+        :return: (bool-> True if node is missing content, list)
+        The list is a list of nodes that represent the root of an "empty" tree. If a SchemaNode has three children where
+        all three are missing content, only the parent SchemaNode will be in the list.
+        """
+        if self.is_leaf():
+            if self.ref().text('en').is_empty() and self.ref().text('he').is_empty():
+                return True, [self]
+            else:
+                return False, []
+
+        children_results = [child.nodes_missing_content() for child in self.children]
+
+        # If all my children are empty nodes, I am an empty node. Since I am the root of an empty tree, I add myself
+        # to the list of empty nodes instead of my children
+        if all([result[0] for result in children_results]):
+            return True, [self]
+        else:
+            return False, reduce(lambda x, y: x+y, [result[1] for result in children_results])
+
 
     def __eq__(self, other):
         return self.address() == other.address()

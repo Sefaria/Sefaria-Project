@@ -551,6 +551,10 @@ Sefaria = extend(Sefaria, {
     });
     return details;
   },
+  titleIsTorah: function(title){
+      let torah_re = /^(Genesis|Exodus|Leviticus|Numbers|Deuteronomy)/;
+      return torah_re.test(title)
+  },
   _titleVariants: {},
   normalizeTitle: function(title, callback) {
     if (title in this._titleVariants) {
@@ -1874,13 +1878,18 @@ Sefaria = extend(Sefaria, {
 	}
   },
   _r: function (inputRef) {
+    var oref = Sefaria.ref(inputRef);
     if(Sefaria.interfaceLang != "english"){
-        var oref = Sefaria.ref(inputRef);
         if(oref){
             return oref.heRef;
         }
     }else{
-        return inputRef;
+        if(oref){
+            return oref.ref;
+        }
+        else{
+          return inputRef;
+        }
 	}
   },
   _va: function(inputVarArr){

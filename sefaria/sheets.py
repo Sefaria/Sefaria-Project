@@ -152,13 +152,13 @@ def sheet_tag_counts(query, sort_by="count"):
 		return []
 
 	tags = db.sheets.aggregate([
-		{"$match": query },
-		{"$unwind": "$tags"},
-		{"$group": {"_id": "$tags", "count": {"$sum": 1}}},
-		{"$sort": sort_query },
-		{"$project": { "_id": 0, "tag": "$_id", "count": "$count"}}
-	])
-	return tags["result"]
+			{"$match": query },
+			{"$unwind": "$tags"},
+			{"$group": {"_id": "$tags", "count": {"$sum": 1}}},
+			{"$sort": sort_query },
+			{"$project": { "_id": 0, "tag": "$_id", "count": "$count"}}], cursor={})
+	tags = list(tags)
+	return tags
 
 
 def order_tags_for_user(tag_counts, uid):
