@@ -1,16 +1,27 @@
 steps:
+  # Monitor doesn't need node.  Build and push that first.
   - name: "gcr.io/cloud-builders/docker"
-    args: ["build", "-t", "gcr.io/production-deployment/multi_web:$TAG_NAME", "./build/web"]
+    args: ["build", "-t", "gcr.io/production-deployment/multi_monitor:$TAG_NAME", "-f", "build/monitor/Dockerfile", "."]
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ["push", "gcr.io/production-deployment/multi_monitor:$TAG_NAME"]
+
+  # Install npm dependencies, and build bundles.
+  - name: 'gcr.io/cloud-builders/npm'
+    args: ['install']
+  - name: 'gcr.io/cloud-builders/npm'
+    args: ['run', 'build']
+
+  # Build web and node images.  
+  - name: "gcr.io/cloud-builders/docker"
+    args: ["build", "-t", "gcr.io/production-deployment/multi_web:$TAG_NAME", "-f", "build/web/Dockerfile", "."]
   - name: 'gcr.io/cloud-builders/docker'
     args: ["push", "gcr.io/production-deployment/multi_web:$TAG_NAME"]
   - name: "gcr.io/cloud-builders/docker"
-    args: ["build", "-t", "gcr.io/production-deployment/multi_node:$TAG_NAME", "./build/node"]
+    args: ["build", "-t", "gcr.io/production-deployment/multi_node:$TAG_NAME", "-f", "build/node/Dockerfile", "."]
   - name: 'gcr.io/cloud-builders/docker'
     args: ["push", "gcr.io/production-deployment/multi_node:$TAG_NAME"]
-  - name: "gcr.io/cloud-builders/docker"
-    args: ["build", "-t", "gcr.io/production-deployment/multi_monitor:$TAG_NAME", "./build/monitor"]
-  - name: 'gcr.io/cloud-builders/docker'
-    args: ["push", "gcr.io/production-deployment/multi_monitor:$TAG_NAME"]
+
+  # Update k8s.
   - name: 'gcr.io/cloud-builders/kubectl'
     args: ["set", "image", "deployment", "web-deployment", "web=gcr.io/production-deployment/multi_web:$TAG_NAME"]
     env:
