@@ -9,11 +9,11 @@ RUN mkdir /app/log \
  && chmod 777 /app/log \
  && ln -s /settings/local_settings.py /app/sefaria/local_settings.py
 
-COPY build/web/wsgi.whiskey /app/.whiskey
-
 ENV PYTHONUNBUFFERED 1
 ENV PYTHONPATH /app
 ENV DJANGO_SETTINGS_MODULE sefaria.settings
+
+COPY build/web/wsgi.whiskey /app/.whiskey
 
 # requirements are installed on wsgi-re2, this covers the case where requirements differ in this commit.
 RUN pip install -r requirements.txt \

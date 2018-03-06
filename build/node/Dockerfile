@@ -4,8 +4,6 @@ COPY . /app/
 WORKDIR /app/
 # rm -rf /app/.git
 
-COPY build/node/local_settings.json /app/node/local_settings.json
-
 RUN npm install forever -g \
  && mkdir /app/log \
  && mkdir /app/log/forever \
