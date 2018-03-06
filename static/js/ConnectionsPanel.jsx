@@ -171,7 +171,6 @@ class ConnectionsPanel extends Component {
   render() {
     var content = null;
     var loaded = this.props.srefs=="sheetRef" ? true : !!Sefaria.related(this.sectionRef());
-      console.log(this.props.mode )
     if (!loaded) {
       content = <LoadingMessage />;
     } else if (this.props.srefs=="sheetRef" && this.props.mode != "Share") {
