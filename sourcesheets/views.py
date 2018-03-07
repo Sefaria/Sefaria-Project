@@ -78,14 +78,13 @@ def new_sheet(request):
 	hide_video    = db.sheets.find(query).count() > 2
 
 
-	return render_to_response('sheets.html', {"can_edit": True,
+	return render(request,'sheets.html', {"can_edit": True,
 												"new_sheet": True,
 												"is_owner": True,
 												"hide_video": hide_video,
 												"owner_groups": owner_groups,
 												"current_url": request.get_full_path,
-												},
-												RequestContext(request))
+												})
 
 
 def can_edit(user, sheet):
@@ -223,7 +222,7 @@ def view_sheet(request, sheet_id):
 
 	canonical_url = request.get_full_path().replace("?embed=1", "").replace("&embed=1", "")
 
-	return render_to_response('sheets.html', {"sheetJSON": json.dumps(sheet),
+	return render(request,'sheets.html', {"sheetJSON": json.dumps(sheet),
 												"sheet": sheet,
 												"sheet_class": sheet_class,
 												"can_edit": can_edit_flag,
@@ -240,7 +239,7 @@ def view_sheet(request, sheet_id):
 												"current_url": request.get_full_path,
 												"canonical_url": canonical_url,
 											  	"assignments_from_sheet":assignments_from_sheet(sheet_id),
-											}, RequestContext(request))
+											})
 
 def assignments_from_sheet(sheet_id):
 	try:
@@ -281,7 +280,7 @@ def view_visual_sheet(request, sheet_id):
 	viewer_is_liker = request.user.id in likes
 
 
-	return render_to_response('sheets_visual.html',{"sheetJSON": json.dumps(sheet),
+	return render(request,'sheets_visual.html',{"sheetJSON": json.dumps(sheet),
 													"sheet": sheet,
 													"sheet_class": sheet_class,
 													"can_edit": can_edit_flag,
@@ -295,7 +294,7 @@ def view_visual_sheet(request, sheet_id):
 													"like_count": like_count,
 													"viewer_is_liker": viewer_is_liker,
 													"current_url": request.get_full_path,
-											}, RequestContext(request))
+											})
 
 
 @ensure_csrf_cookie
@@ -327,7 +326,7 @@ def assigned_sheet(request, assignment_id):
 	like_count      = len(likes)
 	viewer_is_liker = request.user.id in likes
 
-	return render_to_response('sheets.html', {"sheetJSON": json.dumps(sheet),
+	return render(request,'sheets.html', {"sheetJSON": json.dumps(sheet),
 												"sheet": sheet,
 												"assignment_id": assignment_id,
 												"assigner_id": assigner_id,
@@ -343,7 +342,7 @@ def assigned_sheet(request, assignment_id):
 												"like_count": like_count,
 												"viewer_is_liker": viewer_is_liker,
 												"current_url": request.get_full_path,
-											}, RequestContext(request))
+											})
 
 def delete_sheet_api(request, sheet_id):
 	"""

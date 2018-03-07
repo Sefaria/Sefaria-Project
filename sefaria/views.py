@@ -14,7 +14,7 @@ from webpack_loader import utils as webpack_utils
 from django.utils.translation import ugettext as _
 from django.conf import settings
 from django.http import HttpResponse, HttpResponseRedirect
-from django.shortcuts import render_to_response, render
+from django.shortcuts import render
 from django.template import RequestContext
 from django.template.loader import render_to_string
 from django.template.response import TemplateResponse
@@ -89,9 +89,8 @@ def register(request):
         else:
             form = NewUserForm()
 
-    return render_to_response("registration/register.html",
-                                {'form' : form, 'next': next},
-                                RequestContext(request))
+    return render(request,"registration/register.html",
+                                {'form' : form, 'next': next})
 
 
 @sensitive_post_parameters()
@@ -171,18 +170,16 @@ def logout(request, next_page=None,
 
 
 def maintenance_message(request):
-    resp = render_to_response("static/maintenance.html",
-                                {"message": MAINTENANCE_MESSAGE},
-                                RequestContext(request))
+    resp = render(request,"static/maintenance.html",
+                                {"message": MAINTENANCE_MESSAGE})
     resp.status_code = 503
     return resp
 
 
 def accounts(request):
-    return render_to_response("registration/accounts.html",
+    return render(request,"registration/accounts.html",
                                 {"createForm": UserCreationForm(),
-                                "loginForm": AuthenticationForm() },
-                                RequestContext(request))
+                                "loginForm": AuthenticationForm()})
 
 
 def subscribe(request, email):
@@ -212,7 +209,7 @@ def sefaria_js(request):
     """
     Packaged Sefaria.js.
     """
-    data_js = render_to_string("js/data.js", {}, RequestContext(request))
+    data_js = render_to_string("js/data.js",context={}, request=request)
     webpack_files = webpack_utils.get_files('main', config="SEFARIA_JS")
     bundle_path = webpack_files[0]["path"]
     with open(bundle_path, 'r') as file:
@@ -222,7 +219,7 @@ def sefaria_js(request):
         "sefaria_js": sefaria_js,
     }
 
-    return render_to_response("js/sefaria.js", attrs, RequestContext(request), mimetype= "text/javascript")
+    return render(request,"js/sefaria.js", attrs, content_type= "text/javascript")
 
 
 def linker_js(request):
@@ -233,7 +230,7 @@ def linker_js(request):
         "book_titles": json.dumps(model.library.full_title_list("en")
                       + model.library.full_title_list("he"))
     }
-    return render_to_response("js/linker.js", attrs, mimetype= "text/javascript")
+    return render(request,"js/linker.js", attrs, content_type= "text/javascript")
 
 
 def title_regex_api(request, titles):
@@ -794,7 +791,7 @@ def compare(request, secRef=None, lang=None, v1=None, v2=None):
     if v2:
         v2 = v2.replace(u"_", u" ")
 
-    return render_to_response('compare.html', {"JSON_PROPS": json.dumps({
+    return render(request,'compare.html', {"JSON_PROPS": json.dumps({
         'secRef': secRef,
         'v1': v1, 'v2': v2,
         'lang': lang,})})
