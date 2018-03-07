@@ -41,8 +41,13 @@ class Sheet extends Component {
 
     for (var i = 0; i < data.sources.length; i++) {
       if ("ref" in data.sources[i]) {
-        Sefaria.related(data.sources[i].ref, function() {
-           { this.forceUpdate(); }
+        Sefaria.ref(data.sources[i].ref, function(ref) {
+           {
+               Sefaria.links(ref.sectionRef, function(){
+                    this.forceUpdate();
+               }.bind(this))
+
+               }
         }.bind(this));
       }
     }
