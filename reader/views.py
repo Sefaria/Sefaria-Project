@@ -20,7 +20,7 @@ import bleach
 from django.views.decorators.cache import cache_page
 from django.template import RequestContext
 from django.template.loader import render_to_string, get_template
-from django.shortcuts import render_to_response, get_object_or_404, redirect
+from django.shortcuts import render, get_object_or_404, redirect
 from django.http import Http404, HttpResponse
 from django.contrib.auth.decorators import login_required
 from django.contrib.admin.views.decorators import staff_member_required
@@ -414,13 +414,13 @@ def text_panels(request, ref, version=None, lang=None):
 
     propsJSON = json.dumps(props)
     html = render_react_component("ReaderApp", propsJSON)
-    return render_to_response('base.html', {
+    return render(request, 'base.html', {
         "propsJSON":      propsJSON,
         "html":           html,
         "title":          title,
         "desc":           desc,
         "ldBreadcrumbs":  ld_cat_crumbs(request, oref=primary_ref)
-    }, RequestContext(request))
+    })
 
 
 def _reduce_ranged_ref_text_to_first_section(text_list):
@@ -465,13 +465,13 @@ def texts_category_list(request, cats):
     })
     propsJSON = json.dumps(props)
     html = render_react_component("ReaderApp", propsJSON)
-    return render_to_response('base.html', {
+    return render(request, 'base.html', {
         "propsJSON":        propsJSON,
         "html":             html,
         "title":            title,
         "desc":             desc,
         "ldBreadcrumbs":    ld_cat_crumbs(request, cats)
-    }, RequestContext(request))
+    })
 
 
 @ensure_csrf_cookie
@@ -494,12 +494,12 @@ def search(request):
     })
     propsJSON = json.dumps(props)
     html = render_react_component("ReaderApp", propsJSON)
-    return render_to_response('base.html', {
+    return render(request,'base.html', {
         "propsJSON": propsJSON,
         "html":      html,
         "title":     (initialQuery + " | " if initialQuery else "") + _("Sefaria Search"),
         "desc":      _("Search 3,000 years of Jewish texts in Hebrew and English translation.")
-    }, RequestContext(request))
+    })
 
 
 def sheets(request):
@@ -518,12 +518,12 @@ def sheets(request):
     desc  = _("Explore thousands of public Source Sheets and use our Source Sheet Builder to create your own online.")
     propsJSON = json.dumps(props)
     html = render_react_component("ReaderApp", propsJSON)
-    return render_to_response('base.html', {
+    return render(request, 'base.html', {
         "propsJSON":      propsJSON,
         "title":          title,
         "desc":           desc,
         "html":           html,
-    }, RequestContext(request))
+    })
 
 
 def group_page(request, group, authenticated):
@@ -540,12 +540,12 @@ def group_page(request, group, authenticated):
 
     propsJSON = json.dumps(props)
     html = render_react_component("ReaderApp", propsJSON)
-    return render_to_response('base.html', {
+    return render(request, 'base.html', {
         "propsJSON": propsJSON,
         "html": html,
         "title": group[0].name + " | " + _("Sefaria Groups"),
         "desc": props["groupData"].get("description", ""),
-    }, RequestContext(request))
+    })
 
 
 def public_groups(request):
@@ -603,12 +603,12 @@ def sheets_by_tag(request, tag):
 
     propsJSON = json.dumps(props)
     html = render_react_component("ReaderApp", propsJSON)
-    return render_to_response('base.html', {
+    return render(request,'base.html', {
         "propsJSON":      propsJSON,
         "title":          title,
         "desc":           desc,
         "html":           html,
-    }, RequestContext(request))
+    })
 
 
 ## Sheet Views
@@ -665,7 +665,7 @@ def edit_group_page(request, group=None):
     else:
         groupData = None
 
-    return render_to_response('edit_group.html', {"groupData": groupData}, RequestContext(request)) 
+    return render(request, 'edit_group.html', {"groupData": groupData})
 
 
 @staff_member_required
@@ -674,9 +674,7 @@ def groups_admin_page(request):
     Page listing all groups for admins
     """
     groups = GroupSet(sort=[["name", 1]])
-    return render_to_response("groups.html",
-                                {"groups": groups},
-                                RequestContext(request))
+    return render(request, "groups.html", {"groups": groups})
 
 
 
@@ -696,12 +694,12 @@ def topics_page(request):
 
     propsJSON = json.dumps(props)
     html = render_react_component("ReaderApp", propsJSON)
-    return render_to_response('base.html', {
+    return render(request, 'base.html', {
         "propsJSON":      propsJSON,
         "title":          _("Topics") + " | " + _("Sefaria"),
         "desc":           _("Explore Jewish Texts by Topic on Sefaria"),
         "html":           html,
-    }, RequestContext(request))
+    })
 
 
 def topic_page(request, topic):
@@ -725,12 +723,12 @@ def topic_page(request, topic):
 
     propsJSON = json.dumps(props)
     html = render_react_component("ReaderApp", propsJSON)
-    return render_to_response('base.html', {
+    return render(request,'base.html', {
         "propsJSON":      propsJSON,
         "title":          title,
         "desc":           desc,
         "html":           html,
-    }, RequestContext(request))
+    })
 
 
 def menu_page(request, props, page, title="", desc=""):
@@ -742,12 +740,12 @@ def menu_page(request, props, page, title="", desc=""):
     })
     propsJSON = json.dumps(props)
     html = render_react_component("ReaderApp", propsJSON)
-    return render_to_response('base.html', {
+    return render(request, 'base.html', {
         "propsJSON":      propsJSON,
         "title":          title,
         "desc":           desc,
         "html":           html,
-    }, RequestContext(request))
+    })
 
 
 def mobile_home(request):
@@ -924,12 +922,11 @@ def edit_text(request, ref=None, lang=None, version=None):
     titles = json.dumps(model.library.full_title_list())
     page_title = "%s %s" % (mode, ref) if ref else "Add a New Text"
 
-    return render_to_response('edit_text.html',
+    return render(request,'edit_text.html',
                              {'titles': titles,
                               'initJSON': initJSON,
                               'page_title': page_title,
-                             },
-                             RequestContext(request))
+                             })
 
 @ensure_csrf_cookie
 def edit_text_info(request, title=None, new_title=None):
@@ -941,7 +938,7 @@ def edit_text_info(request, title=None, new_title=None):
         title = title.replace("_", " ")
         i = library.get_index(title)
         if not (request.user.is_staff or user_started_text(request.user.id, title)):
-            return render_to_response('static/generic.html', {"title": "Permission Denied", "content": "The Text Info for %s is locked.<br><br>Please email hello@sefaria.org if you believe edits are needed." % title}, RequestContext(request))
+            return render(request,'static/generic.html', {"title": "Permission Denied", "content": "The Text Info for %s is locked.<br><br>Please email hello@sefaria.org if you believe edits are needed." % title})
         indexJSON = json.dumps(i.contents(v2=True) if "toc" in request.GET else i.contents(force_complex=True))
         versions = VersionSet({"title": title})
         text_exists = versions.count() > 0
@@ -958,14 +955,13 @@ def edit_text_info(request, title=None, new_title=None):
         text_exists = False
         new = True
 
-    return render_to_response('edit_text_info.html',
+    return render(request,'edit_text_info.html',
                              {'title': title,
                              'indexJSON': indexJSON,
                              'text_exists': text_exists,
                              'new': new,
                              'toc': library.get_toc()
-                             },
-                             RequestContext(request))
+                             })
 
 @ensure_csrf_cookie
 @staff_member_required
@@ -978,17 +974,16 @@ def terms_editor(request, term=None):
         data = existing_term.contents() if existing_term else {"name": term, "titles": []}
     else:
         generic_response = { "title": "Terms Editor", "content": "Please include the primary Term name in the URL to uses the Terms Editor." }
-        return render_to_response('static/generic.html', generic_response, RequestContext(request))
+        return render(request,'static/generic.html', generic_response)
 
     dataJSON = json.dumps(data)
 
-    return render_to_response('edit_term.html',
+    return render(request,'edit_term.html',
                              {
                               'term': term,
                               'dataJSON': dataJSON,
                               'is_update': "true" if existing_term else "false"
-                             },
-                             RequestContext(request))
+                             })
 
 
 
@@ -1728,21 +1723,21 @@ def visualize_library(request, lang=None, cats=None):
     template_vars = {"lang": lang or "",
                      "cats": json.dumps(cats.replace("_", " ").split("/") if cats else [])}
 
-    return render_to_response('visual_library.html', template_vars, RequestContext(request))
+    return render(request,'visual_library.html', template_vars)
 
 
 def visualize_toc(request):
-    return render_to_response('visual_toc.html', {}, RequestContext(request))
+    return render(request,'visual_toc.html', {})
 
 
 def visualize_parasha_colors(request):
-    return render_to_response('visual_parasha_colors.html', {}, RequestContext(request))
+    return render(request,'visual_parasha_colors.html', {})
 
 
 def visualize_links_through_rashi(request):
     level = request.GET.get("level", 1)
     json_file = "../static/files/torah_rashi_torah.json" if level == 1 else "../static/files/tanach_rashi_tanach.json"
-    return render_to_response('visualize_links_through_rashi.html', {"json_file": json_file}, RequestContext(request))
+    return render(request,'visualize_links_through_rashi.html', {"json_file": json_file})
 
 
 @catch_error_as_json
@@ -2418,7 +2413,7 @@ def global_activity(request, page=1):
 
     if page > 40:
         generic_response = { "title": "Activity Unavailable", "content": "You have requested a page deep in Sefaria's history.<br><br>For performance reasons, this page is unavailable. If you need access to this information, please <a href='mailto:dev@sefaria.org'>email us</a>." }
-        return render_to_response('static/generic.html', generic_response, RequestContext(request))
+        return render(request,'static/generic.html', generic_response)
 
     if "api" in request.GET:
         q = {}
@@ -2433,14 +2428,13 @@ def global_activity(request, page=1):
     next_page = "%s?type=%s" % (next_page, filter_type) if next_page and filter_type else next_page
 
     email = request.user.email if request.user.is_authenticated() else False
-    return render_to_response('activity.html',
+    return render(request,'activity.html',
                              {'activity': activity,
                                 'filter_type': filter_type,
                                 'email': email,
                                 'next_page': next_page,
                                 'he': request.interfaceLang == "hebrew", # to make templates less verbose
-                                },
-                             RequestContext(request))
+                                })
 
 
 @ensure_csrf_cookie
@@ -2459,7 +2453,7 @@ def user_activity(request, slug, page=1):
 
     if page > 40:
         generic_response = { "title": "Activity Unavailable", "content": "You have requested a page deep in Sefaria's history.<br><br>For performance reasons, this page is unavailable. If you need access to this information, please <a href='mailto:dev@sefaria.org'>email us</a>." }
-        return render_to_response('static/generic.html', generic_response, RequestContext(request))
+        return render(request,'static/generic.html', generic_response)
 
     q              = {"user": profile.id}
     filter_type    = request.GET.get("type", None)
@@ -2470,7 +2464,7 @@ def user_activity(request, slug, page=1):
     next_page = "%s?type=%s" % (next_page, filter_type) if next_page and filter_type else next_page
 
     email = request.user.email if request.user.is_authenticated() else False
-    return render_to_response('activity.html',
+    return render(request,'activity.html',
                              {'activity': activity,
                                 'filter_type': filter_type,
                                 'profile': profile,
@@ -2478,8 +2472,7 @@ def user_activity(request, slug, page=1):
                                 'email': email,
                                 'next_page': next_page,
                                 'he': request.interfaceLang == "hebrew", # to make templates less verbose
-                                },
-                             RequestContext(request))
+                                })
 
 
 @ensure_csrf_cookie
@@ -2507,7 +2500,7 @@ def segment_history(request, tref, lang, version, page=1):
     next_page = "%s?type=%s" % (next_page, filter_type) if next_page and filter_type else next_page
 
     email = request.user.email if request.user.is_authenticated() else False
-    return render_to_response('activity.html',
+    return render(request,'activity.html',
                              {'activity': history,
                                "single": True,
                                "ref": nref,
@@ -2518,8 +2511,7 @@ def segment_history(request, tref, lang, version, page=1):
                                'filter_type': filter_type,
                                'next_page': next_page,
                                'he': request.interfaceLang == "hebrew", # to make templates less verbose
-                             },
-                             RequestContext(request))
+                             })
 
 
 @catch_error_as_json
@@ -2545,13 +2537,12 @@ def revert_api(request, tref, lang, version, revision):
 
 
 def leaderboard(request):
-    return render_to_response('leaderboard.html',
+    return render(request,'leaderboard.html',
                              {'leaders': top_contributors(),
                                 'leaders30': top_contributors(30),
                                 'leaders7': top_contributors(7),
                                 'leaders1': top_contributors(1),
-                                },
-                             RequestContext(request))
+                                })
 
 
 @ensure_csrf_cookie
@@ -2577,7 +2568,7 @@ def user_profile(request, username, page=1):
     page           = int(page) if page else 1
     if page > 40:
         generic_response = { "title": "Activity Unavailable", "content": "You have requested a page deep in Sefaria's history.<br><br>For performance reasons, this page is unavailable. If you need access to this information, please <a href='mailto:dev@sefaria.org'>email us</a>." }
-        return render_to_response('static/generic.html', generic_response, RequestContext(request))
+        return render(request,'static/generic.html', generic_response)
 
     query          = {"user": profile.id}
     filter_type    = request.GET["type"] if "type" in request.GET else None
@@ -2593,7 +2584,7 @@ def user_profile(request, username, page=1):
     next_page      = apage + 1 if apage else None
     next_page      = "/profile/%s/%d" % (username, next_page) if next_page else None
 
-    return render_to_response("profile.html",
+    return render(request,"profile.html",
                              {
                                 'profile': profile,
                                 'following': following,
@@ -2608,8 +2599,7 @@ def user_profile(request, username, page=1):
                                 'filter_type': filter_type,
                                 'next_page': next_page,
                                 "single": False,
-                              },
-                             RequestContext(request))
+                              })
 
 
 @catch_error_as_json
@@ -2671,13 +2661,12 @@ def edit_profile(request):
     profile = UserProfile(id=request.user.id)
     sheets  = db.sheets.find({"owner": profile.id, "status": "public"}, {"id": 1, "datePublished": 1}).sort([["datePublished", -1]])
 
-    return render_to_response('edit_profile.html',
+    return render(request,'edit_profile.html',
                               {
                               'user': request.user,
                               'profile': profile,
                               'sheets': sheets,
-                              },
-                              RequestContext(request))
+                              })
 
 
 @login_required
@@ -2687,12 +2676,11 @@ def account_settings(request):
     Page for managing a user's account settings.
     """
     profile = UserProfile(id=request.user.id)
-    return render_to_response('account_settings.html',
+    return render(request,'account_settings.html',
                              {
                                 'user': request.user,
                                 'profile': profile,
-                              },
-                             RequestContext(request))
+                              })
 
 
 @ensure_csrf_cookie
@@ -2712,13 +2700,12 @@ def home(request):
     parasha   = sefaria.utils.calendars.this_weeks_parasha(datetime.now())
     metrics   = db.metrics.find().sort("timestamp", -1).limit(1)[0]
 
-    return render_to_response('static/home.html',
+    return render(request,'static/home.html',
                              {
                               "metrics": metrics,
                               "daf_today": daf_today,
                               "parasha": parasha,
-                              },
-                              RequestContext(request))
+                              })
 
 @ensure_csrf_cookie
 def discussions(request):
@@ -2726,11 +2713,10 @@ def discussions(request):
     Discussions page.
     """
     discussions = LayerSet({"owner": request.user.id})
-    return render_to_response('discussions.html',
+    return render(request,'discussions.html',
                                 {
                                    "discussions": discussions,
-                                },
-                                RequestContext(request))
+                                })
 
 
 @catch_error_as_json
@@ -2781,11 +2767,10 @@ def dashboard(request):
 
     states = sorted(states, key=toc_sort)
 
-    return render_to_response('dashboard.html',
+    return render(request,'dashboard.html',
                                 {
                                     "states": states,
-                                },
-                                RequestContext(request))
+                                })
 
 
 @ensure_csrf_cookie
@@ -2811,7 +2796,7 @@ def translation_requests(request, completed_only=False, featured_only=False):
     featured_current  = sum(current)
     show_featured     = not completed_only and not page and ((request.user.is_staff and featured.count()) or (featured_current))
 
-    return render_to_response('translation_requests.html',
+    return render(request,'translation_requests.html',
                                 {
                                     "featured": featured,
                                     "featured_current": featured_current,
@@ -2824,8 +2809,7 @@ def translation_requests(request, completed_only=False, featured_only=False):
                                     "featured_only": featured_only,
                                     "next_page": next_page,
                                     "page_offset": page * page_size
-                                },
-                                RequestContext(request))
+                                })
 
 
 def completed_translation_requests(request):
@@ -2916,7 +2900,7 @@ def translation_flow(request, tref):
         # Check for completion
         if oref.get_state_node().get_percent_available("en") == 100:
             generic_response["content"] = "<h3>Sefaria now has a complete translation of %s</h3>But you can still contribute in other ways.</h3> <a href='/contribute'>Learn More.</a>" % tref
-            return render_to_response('static/generic.html', generic_response, RequestContext(request))
+            return render(request,'static/generic.html', generic_response)
 
         if "random" in request.GET:
             # choose a ref from a random section within this text
@@ -2943,7 +2927,7 @@ def translation_flow(request, tref):
 
         if not assigned_ref:
             generic_response["content"] = "All remaining sections in %s are being worked on by other contributors. Work on <a href='/translate/%s'>another text</a> for now." % (oref.normal(), tref)
-            return render_to_response('static/generic.html', generic_response, RequestContext(request))
+            return render(request,'static/generic.html', generic_response)
 
     elif oref and len(oref.sections) > 0:
         # ref is a citation to a particular location in a text
@@ -2959,7 +2943,7 @@ def translation_flow(request, tref):
         # Check for completion
         if get_percent_available(cat) == 100:
             generic_response["content"] = "<h3>Sefaria now has a complete translation of %s</h3>But you can still contribute in other ways.</h3> <a href='/contribute'>Learn More.</a>" % tref
-            return render_to_response('static/generic.html', generic_response, RequestContext(request))
+            return render(request,'static/generic.html', generic_response)
 
         if "random" in request.GET:
             # choose a random text from this cateogory
@@ -2975,13 +2959,13 @@ def translation_flow(request, tref):
             next_text = text
             if oref.get_state_node().get_percent_available("en") == 100:
                 generic_response["content"] = "%s is complete! Work on <a href='/translate/%s'>another text</a>." % (text, tref)
-                return render_to_response('static/generic.html', generic_response, RequestContext(request))
+                return render(request,'static/generic.html', generic_response)
 
             try:
                 assigned_ref = next_untranslated_ref_in_text(text)
             except InputError:
                 generic_response["content"] = "All remaining sections in %s are being worked on by other contributors. Work on <a href='/translate/%s'>another text</a> for now." % (text, tref)
-                return render_to_response('static/generic.html', generic_response, RequestContext(request))
+                return render(request,'static/generic.html', generic_response)
 
         else:
             # choose the next text in order
@@ -3001,7 +2985,7 @@ def translation_flow(request, tref):
     else:
         # we don't know what this is
         generic_response["content"] = "<b>%s</b> isn't a known text or category.<br>But you can still contribute in other ways.</h3> <a href='/contribute'>Learn More.</a>" % (tref)
-        return render_to_response('static/generic.html', generic_response, RequestContext(request))
+        return render(request,'static/generic.html', generic_response)
 
     # get the assigned text
     assigned = TextFamily(Ref(assigned_ref), context=0, commentary=False).contents()
@@ -3022,7 +3006,7 @@ def translation_flow(request, tref):
     percent    = 100 * translated / float(translated + remaining)
 
 
-    return render_to_response('translate_campaign.html',
+    return render(request,'translate_campaign.html',
                                     {"title": "Help Translate %s" % tref,
                                     "base_ref": tref,
                                     "assigned_ref": assigned_ref,
@@ -3037,8 +3021,7 @@ def translation_flow(request, tref):
                                     "random_param": "&skip={}".format(assigned["sections"][0]) if request.GET.get("random") else "",
                                     "next_text": next_text,
                                     "next_section": next_section,
-                                    },
-                                    RequestContext(request))
+                                    })
 
 
 @ensure_csrf_cookie
@@ -3087,9 +3070,8 @@ def contest_splash(request, slug):
         settings["leaderboard"] = make_leaderboard(leaderboard_condition)
 
 
-    return render_to_response("contest_splash.html",
-                                settings,
-                                RequestContext(request))
+    return render(request,"contest_splash.html",
+                                settings)
 
 
 @ensure_csrf_cookie
@@ -3099,11 +3081,10 @@ def metrics(request):
     """
     metrics = db.metrics.find().sort("timestamp", 1)
     metrics_json = dumps(metrics)
-    return render_to_response('metrics.html',
+    return render(request,'metrics.html',
                                 {
                                     "metrics_json": metrics_json,
-                                },
-                                RequestContext(request))
+                                })
 
 
 @ensure_csrf_cookie
@@ -3112,11 +3093,10 @@ def digitized_by_sefaria(request):
     Metrics page. Shows graphs of core metrics.
     """
     texts = VersionSet({"digitizedBySefaria": True}, sort=[["title", 1]])
-    return render_to_response('static/digitized-by-sefaria.html',
+    return render(request,'static/digitized-by-sefaria.html',
                                 {
                                     "texts": texts,
-                                },
-                                RequestContext(request))
+                                })
 
 
 def random_ref():
@@ -3149,7 +3129,7 @@ def random_text_page(request):
     """
     Page for generating random texts.
     """
-    return render_to_response('random.html', {}, RequestContext(request))
+    return render(request,'random.html', {})
 
 
 def random_text_api(request):
@@ -3183,7 +3163,7 @@ def serve_static(request, page):
     """
     Serve a static page whose template matches the URL
     """
-    return render_to_response('static/%s.html' % page, {}, RequestContext(request))
+    return render(request,'static/%s.html' % page, {})
 
 
 @ensure_csrf_cookie
@@ -3200,7 +3180,7 @@ def explore(request, book1, book2, lang=None):
     if lang == "he": # Override language settings if 'he' is in URL
         request.contentLang = "hebrew"
 
-    return render_to_response('explore.html', template_vars, RequestContext(request))
+    return render(request,'explore.html', template_vars)
 
 
 def person_page(request, name):
@@ -3239,7 +3219,7 @@ def person_page(request, name):
     template_vars["post_talmudic"] = person.is_post_talmudic()
     template_vars["places"] = person.get_places()
 
-    return render_to_response('person.html', template_vars, RequestContext(request))
+    return render(request,'person.html', template_vars)
 
 
 def person_index(request):
@@ -3260,7 +3240,7 @@ def person_index(request):
             }
         )
 
-    return render_to_response('people.html', template_vars, RequestContext(request))
+    return render(request,'people.html', template_vars)
 
 
 def talmud_person_index(request):
@@ -3277,7 +3257,7 @@ def talmud_person_index(request):
             "years_he": gen.period_string("he"),
             "people": [p for p in people]
         })
-    return render_to_response('talmud_people.html', template_vars, RequestContext(request))
+    return render(request,'talmud_people.html', template_vars)
 
 
 def _get_sheet_tag_garden(tag):
@@ -3334,7 +3314,7 @@ def garden_page(request, g):
         'stopsByTag': g.stopsByTag()
     }
 
-    return render_to_response('garden.html', template_vars, RequestContext(request))
+    return render(request,'garden.html', template_vars)
 
 
 def visual_garden_page(request, g):
@@ -3350,7 +3330,7 @@ def visual_garden_page(request, g):
         'config': json.dumps(getattr(g, "config", {}))
     }
 
-    return render_to_response('visual_garden.html', template_vars, RequestContext(request))
+    return render(request,'visual_garden.html', template_vars)
 
 
 @requires_csrf_token
