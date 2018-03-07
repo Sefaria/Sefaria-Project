@@ -21,7 +21,7 @@ from django.views.decorators.cache import cache_page
 from django.template import RequestContext
 from django.template.loader import render_to_string, get_template
 from django.shortcuts import render, get_object_or_404, redirect
-from django.http import Http404, HttpResponse
+from django.http import Http404
 from django.contrib.auth.decorators import login_required
 from django.contrib.admin.views.decorators import staff_member_required
 from django.utils.http import urlquote

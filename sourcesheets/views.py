@@ -9,9 +9,8 @@ from StringIO import StringIO
 import logging
 logger = logging.getLogger(__name__)
 
-from django.template import RequestContext
 from django.template.loader import render_to_string
-from django.shortcuts import render_to_response, redirect
+from django.shortcuts import render, redirect
 from django.http import Http404
 
 # noinspection PyUnresolvedReferences
