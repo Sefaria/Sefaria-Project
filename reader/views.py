@@ -264,7 +264,7 @@ def base_props(request):
     """
     request_context = RequestContext(request)
     return {
-        "multiPanel": request.user_agent.is_mobile and not "mobile" in request.GET,
+        "multiPanel": not request.user_agent.is_mobile and not "mobile" in request.GET,
         "initialPath": request.get_full_path(),
         "recentlyViewed": request_context.get("recentlyViewed"),
         "loggedIn": request.user.is_authenticated(),
