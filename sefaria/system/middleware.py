@@ -26,7 +26,7 @@ class LanguageSettingsMiddleware(MiddlewareMixin):
         # INTERFACE 
         # Our logic for setting interface lang checks (1) User profile, (2) cookie, (3) geolocation, (4) HTTP language code
         interface = None
-        if request.user.is_authenticated() and not interface:
+        if request.user.is_authenticated and not interface:
             profile = UserProfile(id=request.user.id)
             interface = profile.settings["interface_language"] if "interface_language" in profile.settings else interface 
         if not interface: 
@@ -91,7 +91,7 @@ class LanguageCookieMiddleware(MiddlewareMixin):
             domain = [d for d in DOMAIN_LANGUAGES if DOMAIN_LANGUAGES[d] == lang][0]
             response = redirect(domain + request.path + params_string)
             response.set_cookie("interfaceLang", lang)
-            if request.user.is_authenticated():
+            if request.user.is_authenticated:
                 p = UserProfile(id=request.user.id)
                 p.settings["interface_language"] = lang
                 p.save()

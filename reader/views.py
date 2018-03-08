@@ -267,7 +267,7 @@ def base_props(request):
         "multiPanel": not request.user_agent.is_mobile and not "mobile" in request.GET,
         "initialPath": request.get_full_path(),
         "recentlyViewed": request_context.get("recentlyViewed"),
-        "loggedIn": request.user.is_authenticated(),
+        "loggedIn": request.user.is_authenticated,
         "_uid": request.user.id,
         "interfaceLang": request.interfaceLang,
         "initialSettings": {
@@ -581,13 +581,13 @@ def sheets_by_tag(request, tag):
         "initialMenu":     "sheets",
         "initialSheetsTag": tag,
     })
-    if tag == "My Sheets" and request.user.is_authenticated():
+    if tag == "My Sheets" and request.user.is_authenticated:
         props["userSheets"] = user_sheets(request.user.id)["sheets"]
         props["userTags"]   = user_tags(request.user.id)
         title = _("My Source Sheets | Sefaria Source Sheets")
         desc  = _("My Sources Sheets on Sefaria, both private and public.")
 
-    elif tag == "My Sheets" and not request.user.is_authenticated():
+    elif tag == "My Sheets" and not request.user.is_authenticated:
         return redirect("/login?next=/sheets/private")
 
     elif tag == "All Sheets":
@@ -626,10 +626,10 @@ def sheets_list(request, type=None):
     if type == "public":
         return sheets_by_tag(request,"All Sheets")
 
-    elif type == "private" and request.user.is_authenticated():
+    elif type == "private" and request.user.is_authenticated:
         return sheets_by_tag(request,"My Sheets")
 
-    elif type == "private" and not request.user.is_authenticated():
+    elif type == "private" and not request.user.is_authenticated:
         return redirect("/login?next=/sheets/private")
 
 
@@ -649,7 +649,7 @@ def group_page(request, group):
     group = Group().load({"name": group})
     if not group:
         raise Http404
-    if request.user.is_authenticated() and group.is_member(request.user.id):
+    if request.user.is_authenticated and group.is_member(request.user.id):
         return group_page(request, group.name, True)
     else:
         return group_page(request, group.name, False)
@@ -1005,7 +1005,7 @@ def interface_language_redirect(request, language):
     response = redirect(next)
 
     response.set_cookie("interfaceLang", language)
-    if request.user.is_authenticated():
+    if request.user.is_authenticated:
         p = UserProfile(id=request.user.id)
         p.settings["interface_language"] = language
         p.save()
@@ -1099,7 +1099,7 @@ def texts_api(request, tref):
 
         oref = oref.default_child_ref()  # Make sure we're on the textual child
         skip_links = request.GET.get("skip_links", False)
-        if not request.user.is_authenticated():
+        if not request.user.is_authenticated:
             key = request.POST.get("apikey")
             if not key:
                 return jsonResponse({"error": "You must be logged in or use an API key to save texts."})
@@ -1236,7 +1236,7 @@ def index_api(request, title, v2=False, raw=False):
         #    if j["versionTitle"] == "Sefaria Community Translation":
         #        j["license"] = "CC0"
         #        j["licenseVetter"] = True
-        if not request.user.is_authenticated():
+        if not request.user.is_authenticated:
             key = request.POST.get("apikey")
             if not key:
                 return jsonResponse({"error": "You must be logged in or use an API key to save texts."})
@@ -1478,7 +1478,7 @@ def links_api(request, link_id_or_ref=None):
             return format_object_for_client(obj)
 
         # delegate according to single/multiple objects posted
-        if not request.user.is_authenticated():
+        if not request.user.is_authenticated:
             key = request.POST.get("apikey")
             if not key:
                 return jsonResponse({"error": "You must be logged in or use an API key to add, edit or delete links."})
@@ -1569,7 +1569,7 @@ def notes_api(request, note_id_or_ref):
         func = tracker.update if "_id" in note else tracker.add
         if "_id" in note:
             note["_id"] = ObjectId(note["_id"])
-        if not request.user.is_authenticated():
+        if not request.user.is_authenticated:
             key = request.POST.get("apikey")
             if not key:
                 return jsonResponse({"error": "You must be logged in or use an API key to add, edit or delete links."})
@@ -1611,7 +1611,7 @@ def notes_api(request, note_id_or_ref):
         return jsonResponse(response)
 
     if request.method == "DELETE":
-        if not request.user.is_authenticated():
+        if not request.user.is_authenticated:
             return jsonResponse({"error": "You must be logged in to delete notes."})
         return jsonResponse(
             tracker.delete(request.user.id, model.Note, note_id_or_ref)
@@ -1745,7 +1745,7 @@ def set_lock_api(request, tref, lang, version):
     """
     API to set an edit lock on a text segment.
     """
-    user = request.user.id if request.user.is_authenticated() else 0
+    user = request.user.id if request.user.is_authenticated else 0
     model.set_lock(model.Ref(tref).normal(), lang, version.replace("_", " "), user)
     return jsonResponse({"status": "ok"})
 
@@ -1802,7 +1802,7 @@ def flag_text_api(request, title, lang, version):
 
     `language` attributes are not handled.
     """
-    if not request.user.is_authenticated():
+    if not request.user.is_authenticated:
         key = request.POST.get("apikey")
         if not key:
             return jsonResponse({"error": "You must be logged in or use an API key to perform this action."})
@@ -1872,7 +1872,7 @@ def category_api(request, path=None):
         def _internal_do_post(request, cat, uid, **kwargs):
             return tracker.add(uid, model.Category, cat, **kwargs).contents()
 
-        if not request.user.is_authenticated():
+        if not request.user.is_authenticated:
             key = request.POST.get("apikey")
             if not key:
                 return jsonResponse({"error": "You must be logged in or use an API key to add or delete categories."})
@@ -1957,7 +1957,7 @@ def terms_api(request, name):
                     return {"error": 'Term "%s" does not exist.' % term}
                 return tracker.delete(uid, model.Term, t._id)
 
-        if not request.user.is_authenticated():
+        if not request.user.is_authenticated:
             key = request.POST.get("apikey")
             if not key:
                 return jsonResponse({"error": "You must be logged in or use an API key to add, edit or delete terms."})
@@ -2101,7 +2101,7 @@ def updates_api(request, gid=None):
                             })
 
     elif request.method == "POST":
-        if not request.user.is_authenticated():
+        if not request.user.is_authenticated:
             key = request.POST.get("apikey")
             if not key:
                 return jsonResponse({"error": "You must be logged in or use an API key to perform this action."})
@@ -2152,7 +2152,7 @@ def notifications_api(request):
     """
     API for retrieving user notifications.
     """
-    if not request.user.is_authenticated():
+    if not request.user.is_authenticated:
         return jsonResponse({"error": "You must be logged in to access your notifications."})
 
     page      = int(request.GET.get("page", 0))
@@ -2202,7 +2202,7 @@ def messages_api(request):
     """
     API for posting user to user messages
     """
-    if not request.user.is_authenticated():
+    if not request.user.is_authenticated:
         return jsonResponse({"error": "You must be logged in to access your messages."})
 
     if request.method == "POST":
@@ -2226,7 +2226,7 @@ def follow_api(request, action, uid):
     if request.method != "POST":
         return jsonResponse({"error": "Unsupported HTTP method."})
 
-    if not request.user.is_authenticated():
+    if not request.user.is_authenticated:
         return jsonResponse({"error": "You must be logged in to follow."})
 
     follow = FollowRelationship(follower=request.user.id, followee=int(uid))
@@ -2337,7 +2337,7 @@ def reviews_api(request, tref=None, lang=None, version=None, review_id=None):
         return jsonResponse(response, callback)
 
     elif request.method == "POST":
-        if not request.user.is_authenticated():
+        if not request.user.is_authenticated:
             return jsonResponse({"error": "You must be logged in to write reviews."})
         j = request.POST.get("json")
         if not j:
@@ -2427,7 +2427,7 @@ def global_activity(request, page=1):
     next_page = "/activity/%d" % next_page if next_page else None
     next_page = "%s?type=%s" % (next_page, filter_type) if next_page and filter_type else next_page
 
-    email = request.user.email if request.user.is_authenticated() else False
+    email = request.user.email if request.user.is_authenticated else False
     return render(request,'activity.html',
                              {'activity': activity,
                                 'filter_type': filter_type,
@@ -2463,7 +2463,7 @@ def user_activity(request, slug, page=1):
     next_page = "/activity/%d" % next_page if next_page else None
     next_page = "%s?type=%s" % (next_page, filter_type) if next_page and filter_type else next_page
 
-    email = request.user.email if request.user.is_authenticated() else False
+    email = request.user.email if request.user.is_authenticated else False
     return render(request,'activity.html',
                              {'activity': activity,
                                 'filter_type': filter_type,
@@ -2499,7 +2499,7 @@ def segment_history(request, tref, lang, version, page=1):
     next_page = "/activity/%s/%s/%s/%d" % (nref, lang, version, next_page) if next_page else None
     next_page = "%s?type=%s" % (next_page, filter_type) if next_page and filter_type else next_page
 
-    email = request.user.email if request.user.is_authenticated() else False
+    email = request.user.email if request.user.is_authenticated else False
     return render(request,'activity.html',
                              {'activity': history,
                                "single": True,
@@ -2519,7 +2519,7 @@ def revert_api(request, tref, lang, version, revision):
     """
     API for reverting a text segment to a previous revision.
     """
-    if not request.user.is_authenticated():
+    if not request.user.is_authenticated:
         return jsonResponse({"error": "You must be logged in to revert changes."})
 
     if request.method != "POST":
@@ -2562,7 +2562,7 @@ def user_profile(request, username, page=1):
         return redirect("/profile/%s" % profile.slug, permanent=True)
 
 
-    following      = profile.followed_by(request.user.id) if request.user.is_authenticated() else False
+    following      = profile.followed_by(request.user.id) if request.user.is_authenticated else False
 
     page_size      = 20
     page           = int(page) if page else 1
@@ -2607,7 +2607,7 @@ def profile_api(request):
     """
     API for user profiles.
     """
-    if not request.user.is_authenticated():
+    if not request.user.is_authenticated:
         return jsonResponse({"error": _("You must be logged in to update your profile.")})
 
     if request.method == "POST":
@@ -2645,7 +2645,7 @@ def my_profile(request):
 
 
 def interrupting_messages_read_api(request, message):
-    if not request.user.is_authenticated():
+    if not request.user.is_authenticated:
         return jsonResponse({"error": "You must be logged in to use this API."})
     profile = UserProfile(id=request.user.id)
     profile.mark_interrupting_message_read(message)
@@ -2724,7 +2724,7 @@ def new_discussion_api(request):
     """
     API for user profiles.
     """
-    if not request.user.is_authenticated():
+    if not request.user.is_authenticated:
         return jsonResponse({"error": "You must be logged in to start a discussion."})
 
     if request.method == "POST":
@@ -2831,7 +2831,7 @@ def translation_request_api(request, tref):
     """
     API for requesting a text segment for translation.
     """
-    if not request.user.is_authenticated():
+    if not request.user.is_authenticated:
         return jsonResponse({"error": "You must be logged in to request a translation."})
 
     oref = Ref(tref)
@@ -2991,7 +2991,7 @@ def translation_flow(request, tref):
     assigned = TextFamily(Ref(assigned_ref), context=0, commentary=False).contents()
 
     # Put a lock on this assignment
-    user = request.user.id if request.user.is_authenticated() else 0
+    user = request.user.id if request.user.is_authenticated else 0
     model.set_lock(assigned_ref, "en", "Sefaria Community Translation", user)
 
     # if the assigned text is actually empty, run this request again

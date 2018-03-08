@@ -111,7 +111,7 @@ def can_add(user, sheet):
 	Returns True if user has adding persmission on sheet.
 	Returns False if user has the higher permission "can_edit"
 	"""
-	if not user.is_authenticated():
+	if not user.is_authenticated:
 		return False
 	if can_edit(user, sheet):
 		return False
@@ -208,7 +208,7 @@ def view_sheet(request, sheet_id):
 	embed_flag       = "embed" in request.GET
 	likes            = sheet.get("likes", [])
 	like_count       = len(likes)
-	if request.user.is_authenticated():
+	if request.user.is_authenticated:
 		can_edit_flag    = can_edit(request.user, sheet)
 		can_add_flag     = can_add(request.user, sheet)
 		can_publish_flag = sheet_group.can_publish(request.user.id) if sheet_group else False
@@ -378,7 +378,7 @@ def groups_api(request, group=None):
 		group = Group().load({"name": group})
 		if not group:
 			return jsonResponse({"error": "No group named '%s'" % group})
-		is_member = request.user.is_authenticated() and group.is_member(request.user.id)
+		is_member = request.user.is_authenticated and group.is_member(request.user.id)
 		group_content = group.contents(with_content=True, authenticated=is_member)
 		return jsonResponse(group_content)
 	else:
@@ -531,7 +531,7 @@ def save_sheet_api(request):
 
 	# Save a sheet
 	if request.method == "POST":
-		if not request.user.is_authenticated():
+		if not request.user.is_authenticated:
 			key = request.POST.get("apikey")
 			if not key:
 				return jsonResponse({"error": "You must be logged in or use an API key to save."})
@@ -612,7 +612,7 @@ def private_sheet_list_api(request, group):
 	group   = Group().load({"name": group})
 	if not group:
 		raise Http404
-	if request.user.is_authenticated() and group.is_member(request.user.id):
+	if request.user.is_authenticated and group.is_member(request.user.id):
 		return jsonResponse(group_sheets(group, True), callback=request.GET.get("callback", None))
 	else:
 		return jsonResponse(group_sheets(group, False), callback=request.GET.get("callback", None))
@@ -747,7 +747,7 @@ def visual_sheet_api(request, sheet_id):
 	"""
 	API for visual source sheet layout
 	"""
-	if not request.user.is_authenticated():
+	if not request.user.is_authenticated:
 		return {"error": "You must be logged in to save a sheet layout."}
 	if request.method != "POST":
 		return jsonResponse({"error": "Unsupported HTTP method."})
@@ -762,7 +762,7 @@ def like_sheet_api(request, sheet_id):
 	"""
 	API to like sheet_id.
 	"""
-	if not request.user.is_authenticated():
+	if not request.user.is_authenticated:
 		return {"error": "You must be logged in to like sheets."}
 	if request.method != "POST":
 		return jsonResponse({"error": "Unsupported HTTP method."})
@@ -775,7 +775,7 @@ def unlike_sheet_api(request, sheet_id):
 	"""
 	API to unlike sheet_id.
 	"""
-	if not request.user.is_authenticated():
+	if not request.user.is_authenticated:
 		return jsonResponse({"error": "You must be logged in to like sheets."})
 	if request.method != "POST":
 		return jsonResponse({"error": "Unsupported HTTP method."})
