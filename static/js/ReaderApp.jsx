@@ -1311,7 +1311,16 @@ class ReaderApp extends Component {
   convertToTextList(n) {
     var base = this.state.panels[n-1];
     this.closePanel(n);
-    this.openTextListAt(n, base.highlightedRefs);
+    if (base.mode == "Sheet") {
+      for(var i in base.sheet.sources){
+        if (base.sheet.sources[i].node == base.highlightedNodes) {
+          this.openTextListAt(n, [base.sheet.sources[i].ref]);
+        }
+      }
+    }
+    else {
+      this.openTextListAt(n, base.highlightedRefs);
+    }
   }
   showLibrary(categories) {
     if (this.props.multiPanel) {

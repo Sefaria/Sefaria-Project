@@ -23,7 +23,6 @@ class TextList extends Component {
   componentDidMount() {
     this._isMounted = true;
     this.loadConnections();
-    console.log('loaded')
   }
   componentWillUnmount() {
     this._isMounted = false;
@@ -34,9 +33,6 @@ class TextList extends Component {
   componentWillUpdate(nextProps) {
   }
   componentDidUpdate(prevProps, prevState) {
-
-      console.log("linkloaded; " + this.state.linksLoaded + " \ntextloaded; " + this.state.textLoaded + " \nwaitForText; " + this.state.waitForText)
-
     if (!prevProps.srefs.compare(this.props.srefs)) {
       this.loadConnections();
     }
@@ -109,7 +105,6 @@ class TextList extends Component {
       var commentators = summary[0].books.map(function(item) {
         return item.book;
       });
-    console.log(commentators)
 
       if (commentators.length) {
         var commentarySections = commentators.map(function(commentator) {
@@ -145,7 +140,6 @@ class TextList extends Component {
       // There were no commentaries to load
       this.setState({textLoaded: true});
     }
-    console.log(commentators)
   }
   getLinks() {
     var refs               = this.props.srefs;
@@ -170,9 +164,6 @@ class TextList extends Component {
     }.bind(this);
 
     var sectionLinks = Sefaria.links(sectionRef);
-    console.log("--------------------")
-    console.log("Section Links: ")
-    console.log(sectionLinks)
     var links        = Sefaria._filterLinks(sectionLinks, filter);
     links            = links.filter(function(link) {
       if (Sefaria.splitRangingRef(link.anchorRef).every(aref => Sefaria.util.inArray(aref, refs) === -1)) {
@@ -194,9 +185,6 @@ class TextList extends Component {
     var en = "No connections known" + (filter.length ? " for " + displayFilter.join(", ") + " here" : "") + ".";
     var he = "אין קשרים ידועים"        + (filter.length ? " ל"    + displayFilter.map(f => Sefaria.hebrewTerm(f)).join(", ") : "") + ".";
     var noResultsMessage = <LoadingMessage message={en} heMessage={he} />;
-      console.log("filtered links")
-      console.log(links)
-
     var message = !this.state.linksLoaded ? (<LoadingMessage />) : (links.length === 0 ? noResultsMessage : null);
     var content = links.length == 0 ? message :
                   this.state.waitForText && !this.state.textLoaded ?
