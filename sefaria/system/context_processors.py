@@ -94,7 +94,7 @@ def user_and_notifications(request):
     /texts requires `recentlyViewed` which is used for server side rendering of recent section
     (currently Node does not get access to logged in version of /data.js)
     """
-    if not request.user.is_authenticated():
+    if not request.user.is_authenticated:
         import urlparse
         recent = json.loads(urlparse.unquote(request.COOKIES.get("recentlyViewed", '[]')))
         recent = [] if len(recent) and isinstance(recent[0], dict) else recent # ignore old style cookies

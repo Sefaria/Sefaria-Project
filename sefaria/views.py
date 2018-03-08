@@ -57,7 +57,7 @@ logger = logging.getLogger(__name__)
 
 
 def register(request):
-    if request.user.is_authenticated():
+    if request.user.is_authenticated:
         return HttpResponseRedirect("/login")
 
     next = request.REQUEST.get('next', '')
