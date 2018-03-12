@@ -56,13 +56,6 @@ STATIC_ROOT = ''
 # Example: "http://media.lawrence.com/static/"
 STATIC_URL = '/static/'
 
-# Additional locations of static files
-STATICFILES_DIRS = (
-    # Put strings here, like "/home/html/static" or "C:/www/django/static".
-    # Always use forward slashes, even on Windows.
-    # Don't forget to use absolute paths, not relative paths.
-)
-
 # List of finder classes that know how to find static files in
 # various locations.
 STATICFILES_FINDERS = (
@@ -96,7 +89,6 @@ TEMPLATES = [
                     "django.template.context_processors.tz",
                     "django.contrib.messages.context_processors.messages",
                     "django.template.context_processors.request",
-                    #"django_mobile.context_processors.flavour",
                     "sefaria.system.context_processors.global_settings",
                     "sefaria.system.context_processors.titles_json",
                     "sefaria.system.context_processors.toc",
@@ -160,9 +152,11 @@ INSTALLED_APPS = (
     # 'django.contrib.admindocs',
 )
 
-LOGIN_URL = '/login'
+LOGIN_URL = 'login'
 
-LOGIN_REDIRECT_URL = '/'
+LOGIN_REDIRECT_URL = 'table_of_contents'
+
+LOGOUT_REDIRECT_URL = 'table_of_contents'
 
 AUTHENTICATION_BACKENDS = (
     'emailusernames.backends.EmailAuthBackend',
