@@ -267,7 +267,7 @@ def base_props(request):
         "multiPanel": not request.user_agent.is_mobile and not "mobile" in request.GET,
         "initialPath": request.get_full_path(),
         "recentlyViewed": request_context.get("recentlyViewed"),
-        "loggedIn": request.user.is_authenticated,
+        "loggedIn": True if request.user.is_authenticated else False, # Django 1.10 changed this to a CallableBool, so it doesnt have a direct value of True/False,
         "_uid": request.user.id,
         "interfaceLang": request.interfaceLang,
         "initialSettings": {
