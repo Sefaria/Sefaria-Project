@@ -21,7 +21,7 @@ handler500 = 'reader.views.custom_server_error'
 
 # App Pages
 urlpatterns = [
-    url(r'^texts/?$', reader_views.texts_list),
+    url(r'^texts/?$', reader_views.texts_list, name="table_of_contents"),
     url(r'^texts/(?P<cats>.+)?$', reader_views.texts_category_list),
     url(r'^search/?$', reader_views.search),
     url(r'^sheets/?$', reader_views.sheets_list),
@@ -259,13 +259,13 @@ urlpatterns += [
 
 # Registration
 urlpatterns += [
-    url(r'^login/?$', sefaria_views.login, {'authentication_form': SefariaLoginForm}, name='login'),
-    url(r'^logout/?$', django_auth_views.logout, {'next_page': '/', 'redirect_field_name': 'next'}, name='logout'),
+    url(r'^login/?$', django_auth_views.LoginView.as_view(authentication_form=SefariaLoginForm), name='login'),
     url(r'^register/?$', sefaria_views.register, name='register'),
-    url(r'^password/reset/?$', django_auth_views.password_reset, {'password_reset_form': HTMLPasswordResetForm}, name='password_reset'),
-    url(r'^password/reset/confirm/(?P<uidb36>[0-9A-Za-z]+)-(?P<token>.+)/$', django_auth_views.password_reset_confirm, name='password_reset_confirm'),
-    url(r'^password/reset/complete/$', django_auth_views.password_reset_complete, name='password_reset_complete'),
-    url(r'^password/reset/done/$', django_auth_views.password_reset_done, name='password_reset_done'),
+    url(r'^logout/?$', django_auth_views.LogoutView.as_view(), name='logout'),
+    url(r'^password/reset/?$', django_auth_views.PasswordResetView.as_view(), {'password_reset_form': HTMLPasswordResetForm}, name='password_reset'),
+    url(r'^password/reset/confirm/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})/$', django_auth_views.PasswordResetConfirmView.as_view(), name='password_reset_confirm'),
+    url(r'^password/reset/complete/$', django_auth_views.PasswordResetCompleteView.as_view(), name='password_reset_complete'),
+    url(r'^password/reset/done/$', django_auth_views.PasswordResetDoneView.as_view(), name='password_reset_done'),
 ]
 
 # Compare Page
