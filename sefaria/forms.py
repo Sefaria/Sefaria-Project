@@ -23,12 +23,12 @@ SEED_GROUP = "User Seeds"
 
 
 class SefariaLoginForm(EmailAuthenticationForm):
-    email = forms.EmailField(max_length=75, widget=forms.TextInput(attrs={'placeholder': _("Email Address")}))
+    email = forms.EmailField(max_length=75, widget=forms.EmailInput(attrs={'placeholder': _("Email Address")}))
     password = forms.CharField(widget=forms.PasswordInput(attrs={'placeholder': _("Password")}))
 
 
 class NewUserForm(EmailUserCreationForm):
-    email = forms.EmailField(max_length=75, widget=forms.TextInput(attrs={'placeholder': _("Email Address"), 'autocomplete': 'off'}))
+    email = forms.EmailField(max_length=75, widget=forms.EmailInput(attrs={'placeholder': _("Email Address"), 'autocomplete': 'off'}))
     first_name = forms.CharField(widget=forms.TextInput(attrs={'placeholder': _("First Name"), 'autocomplete': 'off'}))
     last_name = forms.CharField(widget=forms.TextInput(attrs={'placeholder': _("Last Name"), 'autocomplete': 'off'}))
     password1 = forms.CharField(widget=forms.PasswordInput(attrs={'placeholder': _("Password"), 'autocomplete': 'off'}))
