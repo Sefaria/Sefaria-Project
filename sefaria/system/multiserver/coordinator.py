@@ -2,6 +2,7 @@ import json
 import uuid
 
 from django.core.exceptions import MiddlewareNotUsed
+from django.utils.deprecation import MiddlewareMixin
 
 from sefaria.local_settings import MULTISERVER_ENABLED, MULTISERVER_REDIS_EVENT_CHANNEL, MULTISERVER_REDIS_CONFIRM_CHANNEL
 
@@ -124,12 +125,12 @@ class ServerCoordinator(MessagingNode):
         self.redis_client.publish(MULTISERVER_REDIS_CONFIRM_CHANNEL, msg_data)
 
 
-class MultiServerEventListenerMiddleware(object):
+class MultiServerEventListenerMiddleware(MiddlewareMixin):
     """
     """
     delay = 0  # Will check for library updates every X requests.  0 means every request.
 
-    def __init__(self):
+    def __init__(self, get_response=None):
         if not MULTISERVER_ENABLED:
             raise MiddlewareNotUsed
         self.req_counter = 0
