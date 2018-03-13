@@ -54,7 +54,9 @@ import sefaria.utils.calendars
 from sefaria.utils.util import short_to_long_lang_code, titlecase
 import sefaria.tracker as tracker
 from sefaria.system.cache import django_cache_decorator
-from sefaria.settings import USE_VARNISH, USE_NODE, NODE_HOST, DOMAIN_LANGUAGES
+from sefaria.settings import USE_VARNISH, USE_NODE, NODE_HOST, DOMAIN_LANGUAGES, MULTISERVER_ENABLED
+from sefaria.system.multiserver.coordinator import server_coordinator
+
 if USE_VARNISH:
     from sefaria.system.sf_varnish import invalidate_ref, invalidate_linked
 
@@ -1017,6 +1019,8 @@ def count_and_index(c_oref, c_lang, vtitle, to_count=1):
     # count available segments of text
     if to_count:
         library.recount_index_in_toc(c_oref.index)
+        if MULTISERVER_ENABLED:
+            server_coordinator.publish_event("library", "recount_index_in_toc", [c_oref.index.title])
 
     from sefaria.settings import SEARCH_INDEX_ON_SAVE
     if SEARCH_INDEX_ON_SAVE:

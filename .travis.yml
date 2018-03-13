@@ -8,6 +8,7 @@ cache: pip
 
 services:
   - mongodb
+  - redis-server
 
 addons:
   sauce_connect:

@@ -32,7 +32,7 @@ import sefaria.model as model
 import sefaria.system.cache as scache
 from sefaria.client.util import jsonResponse, subscribe_to_list
 from sefaria.forms import NewUserForm
-from sefaria.settings import MAINTENANCE_MESSAGE, USE_VARNISH
+from sefaria.settings import MAINTENANCE_MESSAGE, USE_VARNISH, MULTISERVER_ENABLED
 from sefaria.model.user_profile import UserProfile
 from sefaria.model.group import GroupSet
 from sefaria.model.translation_request import count_completed_translation_requests
@@ -48,6 +48,7 @@ from sefaria.helper.text import make_versions_csv, get_library_stats, get_core_l
 from sefaria.clean import remove_old_counts
 from sefaria.search import index_sheets_by_timestamp as search_index_sheets_by_timestamp
 from sefaria.model import *
+from sefaria.system.multiserver.coordinator import server_coordinator
 
 if USE_VARNISH:
     from sefaria.system.sf_varnish import invalidate_index, invalidate_title, invalidate_ref, invalidate_counts
@@ -323,16 +324,24 @@ def file_upload(request, resize_image=True):
 @staff_member_required
 def reset_cache(request):
     model.library.rebuild()
+
+    if MULTISERVER_ENABLED:
+        server_coordinator.publish_event("library", "rebuild")
+
     return HttpResponseRedirect("/?m=Cache-Reset")
 
 
 @staff_member_required
 def reset_index_cache_for_text(request, title):
+
     index = model.library.get_index(title)
     model.library.refresh_index_record_in_cache(index)
-    scache.delete_cache_elem(scache.generate_text_toc_cache_key(title))
-    if USE_VARNISH:
-        invalidate_title(title)
+
+    if MULTISERVER_ENABLED:
+        server_coordinator.publish_event("library", "refresh_index_record_in_cache", [index.title])
+    elif USE_VARNISH:
+        invalidate_title(index.title)
+
     return HttpResponseRedirect("/%s?m=Cache-Reset" % model.Ref(title).url())
 
 
@@ -357,9 +366,14 @@ def reset_counts(request, title=None):
             return HttpResponseRedirect("/dashboard?m=Unknown-Book")
         vs = model.VersionState(index=i)
         vs.refresh()
+
         return HttpResponseRedirect("/%s?m=Counts-Rebuilt" % model.Ref(i.title).url())
     else:
         model.refresh_all_states()
+
+        if MULTISERVER_ENABLED:
+            server_coordinator.publish_event("library", "rebuild_toc")
+
         return HttpResponseRedirect("/?m=Counts-Rebuilt")
 
 
@@ -367,40 +381,51 @@ def reset_counts(request, title=None):
 def delete_orphaned_counts(request):
     remove_old_counts()
     scache.delete_template_cache("texts_dashboard")
+
+    if MULTISERVER_ENABLED:
+        server_coordinator.publish_event("scache", "delete_template_cache", ["texts_dashboard"])
+
     return HttpResponseRedirect("/dashboard?m=Orphaned-counts-deleted")
 
 
 @staff_member_required
 def rebuild_toc(request):
     model.library.rebuild_toc()
+
+    if MULTISERVER_ENABLED:
+        server_coordinator.publish_event("library", "rebuild_toc")
+
     return HttpResponseRedirect("/?m=TOC-Rebuilt")
 
-    """
-    from sefaria.settings import DEBUG
-    if DEBUG:
-        model.library.rebuild_toc()
-        return HttpResponseRedirect("/?m=TOC-Rebuilt")
-    else:
-        return HttpResponseRedirect("/?m=TOC-Rebuild-Not-Allowed")
-    """
 
 @staff_member_required
 def rebuild_auto_completer(request):
     library.build_full_auto_completer()
     library.build_ref_auto_completer()
+
+    if MULTISERVER_ENABLED:
+        server_coordinator.publish_event("library", "build_full_auto_completer")
+        server_coordinator.publish_event("library", "build_ref_auto_completer")
+
     return HttpResponseRedirect("/?m=auto-completer-Rebuilt")
 
 
+'''
+# No usages found
 @staff_member_required
 def rebuild_counts_and_toc(request):
     model.refresh_all_states()
     return HttpResponseRedirect("/?m=Counts-&-TOC-Rebuilt")
-
+'''
 
 @staff_member_required
 def rebuild_topics(request):
     from sefaria.model.topic import update_topics
     update_topics()
+
+    if MULTISERVER_ENABLED:
+        server_coordinator.publish_event("topic", "update_topics")
+
     return HttpResponseRedirect("/topics?m=topics-rebuilt")
 
 
@@ -429,15 +454,19 @@ def reset_ref(request, tref):
         vs = model.VersionState(index=oref.index)
         vs.refresh()
         model.library.update_index_in_toc(oref.index)
-        scache.delete_cache_elem(scache.generate_text_toc_cache_key(oref.index.title))
-        if USE_VARNISH:
-            invalidate_index(oref.index)
-            invalidate_counts(oref.index)
-            invalidate_ref(oref)
+
+        if MULTISERVER_ENABLED:
+            server_coordinator.publish_event("library", "refresh_index_record_in_cache", [oref.index.title])
+            server_coordinator.publish_event("library", "update_index_in_toc", [oref.index.title])
+        elif USE_VARNISH:
+            invalidate_title(oref.index.title)
+
         return HttpResponseRedirect("/{}?m=Reset-Index".format(oref.url()))
+
     elif USE_VARNISH:
         invalidate_ref(oref)
         return HttpResponseRedirect("/{}?m=Reset-Ref".format(oref.url()))
+
     else:
         return HttpResponseRedirect("/?m=Nothing-to-Reset")
 

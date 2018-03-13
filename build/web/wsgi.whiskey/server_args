@@ -1,0 +1,6 @@
+--url-alias /robots.txt static/robots.txt
+--url-alias /favicon.ico static/favicon.ico
+--url-alias /static/ static/
+--access-log
+--access-log-name /dev/stdout
+sefaria/wsgi.py
