@@ -121,6 +121,7 @@ MIDDLEWARE = [
     'sefaria.system.middleware.LanguageCookieMiddleware',
     'sefaria.system.middleware.LanguageSettingsMiddleware',
     'sefaria.system.middleware.ProfileMiddleware',
+    'sefaria.system.multiserver.coordinator.MultiServerEventListenerMiddleware'
     #'django.middleware.cache.UpdateCacheMiddleware',
     #'django.middleware.cache.FetchFromCacheMiddleware',
 ]
