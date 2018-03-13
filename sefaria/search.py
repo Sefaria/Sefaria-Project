@@ -495,6 +495,10 @@ def put_text_mapping(index_name):
                     'type': 'integer',
                     'index': 'not_analyzed'
                 },
+                "version_priority": {
+                    'type': 'integer',
+                    'index': 'not_analyzed'
+                },
                 #"hebmorph_semi_exact": {
                 #    'type': 'string',
                 #    'analyzer': 'hebrew',
