@@ -526,7 +526,7 @@ def sheets(request):
     })
 
 
-def group_page(request, group, authenticated):
+def get_group_page(request, group, authenticated):
     props = base_props(request)
     props.update({
         "initialMenu":     "sheets",
@@ -650,9 +650,9 @@ def group_page(request, group):
     if not group:
         raise Http404
     if request.user.is_authenticated and group.is_member(request.user.id):
-        return group_page(request, group.name, True)
+        return get_group_page(request, group.name, True)
     else:
-        return group_page(request, group.name, False)
+        return get_group_page(request, group.name, False)
 
 
 def edit_group_page(request, group=None):
