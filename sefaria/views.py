@@ -61,7 +61,7 @@ def register(request):
     if request.user.is_authenticated:
         return HttpResponseRedirect("/login")
 
-    next = request.REQUEST.get('next', '')
+    next = request.GET.get('next', '')
 
     if request.method == 'POST':
         form = NewUserForm(request.POST)
@@ -84,13 +84,12 @@ def register(request):
                 next = request.POST.get("next", "/") + "?welcome=to-sefaria"
                 return HttpResponseRedirect(next)
     else:
-        if request.REQUEST.get('educator', ''):
+        if request.GET.get('educator', ''):
             form = NewUserForm(initial={'subscribe_educator': True})
         else:
             form = NewUserForm()
 
-    return render(request,"registration/register.html",
-                                {'form' : form, 'next': next})
+    return render(request, "registration/register.html", {'form': form, 'next': next})
 
 
 @sensitive_post_parameters()
@@ -103,7 +102,7 @@ def login(request, template_name='registration/login.html',
     """
     Displays the login form and handles the login action.
     """
-    redirect_to = request.REQUEST.get(redirect_field_name, '')
+    redirect_to = request.GET.get(redirect_field_name, '')
 
     if request.method == "POST":
         form = authentication_form(data=request.POST)
@@ -134,8 +133,7 @@ def login(request, template_name='registration/login.html',
     }
     if extra_context is not None:
         context.update(extra_context)
-    return TemplateResponse(request, template_name, context,
-                            current_app=current_app)
+    return TemplateResponse(request, template_name, context)
 
 
 def logout(request, next_page=None,
