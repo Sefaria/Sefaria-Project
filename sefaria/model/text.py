@@ -144,7 +144,7 @@ class AbstractIndex(object):
 
         def aggregate_available_texts(available):
             """Returns a jagged arrary of ints that counts the number of segments in each section,
-            (by throwing out the number of versions of each segment)""" 
+            (by throwing out the number of versions of each segment)"""
             if len(available) == 0 or type(available[0]) is int:
                 return len(available)
             else:
@@ -738,7 +738,7 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
 
         return toc_contents_dict
 
-    #todo: the next 3 functions seem to come at an unacceptable performance cost. Need to review performance or when they are called. 
+    #todo: the next 3 functions seem to come at an unacceptable performance cost. Need to review performance or when they are called.
     def get_base_texts_and_first_refs(self):
         return {btitle: self.get_first_ref_in_base_text(btitle) for btitle in self.base_text_titles}
 
@@ -979,6 +979,8 @@ class Version(abst.AbstractMongoRecord, AbstractTextRecord, AbstractSchemaConten
         "versionUrl",  # bad data?
         "versionTitleInHebrew",  # stores the Hebrew translation of the versionTitle
         "versionNotesInHebrew",  # stores VersionNotes in Hebrew
+        "extendedNotes",
+        "extendedNotesHebrew",
     ]
 
     def __unicode__(self):
@@ -1543,6 +1545,8 @@ class TextFamily(object):
     :param bool commentary: Default: True. Include commentary?
     :param version: optional. Name of version to use when getting text.
     :param lang: None, "en" or "he".  Default: None.  If None, included both languages.
+    :param version2: optional. Additional name of version to use.
+
     :param bool pad: Default: True.  Pads the provided ref before processing.  See :func:`Ref.padded_ref`
     :param bool alts: Default: False.  Adds notes of where alternate structure elements begin
     """
@@ -1551,7 +1555,7 @@ class TextFamily(object):
     A bit of a naming conflict has arisen here. The TextFamily bundles two versions - one with English text and one
     with Hebrew text. versionTitle refers to the English title of the English version, while heVersionTitle refers to
     the English title of the Hebrew version.
-    
+
     Later on we decided to translate all of our versionTitles into Hebrew. To avoid direct conflict with the text api,
     these got the names versionTitleInHebrew and versionNotesInHebrew.
     """
@@ -1587,6 +1591,14 @@ class TextFamily(object):
             "en": "versionNotes",
             "he": "heVersionNotes"
         },
+        "extendedNotes": {
+            "en": "extendedNotes",
+            "he": "heExtendedNotes"
+        },
+        "extendedNotesHebrew": {
+            "en": "extendedNotesHebrew",
+            "he": "heExtendedNotesHebrew"
+        },
         "versionNotesInHebrew": {
             "en": "versionNotesInHebrew",
             "he": "heVersionNotesInHebrew",
@@ -1602,13 +1614,15 @@ class TextFamily(object):
         "he": "heSources"
     }
 
-    def __init__(self, oref, context=1, commentary=True, version=None, lang=None, pad=True, alts=False, wrapLinks=False):
+    def __init__(self, oref, context=1, commentary=True, version=None, lang=None, version2=None, lang2=None, pad=True, alts=False, wrapLinks=False):
         """
         :param oref:
         :param context:
         :param commentary:
         :param version:
         :param lang:
+        :param version2:
+        :param lang2:
         :param pad:
         :param alts: Adds notes of where alt elements begin
         :param wrapLinks: whether to return the text requested with all internal citations marked up as html links <a>
@@ -1642,6 +1656,8 @@ class TextFamily(object):
         for language, attr in self.text_attr_map.items():
             if language == lang:
                 c = TextChunk(oref, language, version)
+            elif language == lang2:
+                c = TextChunk(oref, language, version2)
             else:
                 c = TextChunk(oref, language)
             self._chunks[language] = c
@@ -1883,9 +1899,7 @@ class RefCacheType(type):
 
         if tref:
             if tref in cls.__tref_oref_map:
-                ref = cls.__tref_oref_map[tref]
-                ref.tref = tref
-                return ref
+                return cls.__tref_oref_map[tref]
             else:
                 result = super(RefCacheType, cls).__call__(*args, **kwargs)
                 uid = result.uid()
@@ -1940,6 +1954,14 @@ class Ref(object):
     """
     __metaclass__ = RefCacheType
 
+
+    __slots__ = (
+        'index', 'book', 'primary_category', 'sections', 'toSections', 'index_node',
+        '_lang', 'tref', 'orig_tref', '_normal', '_he_normal', '_url', '_next', '_prev',
+        '_padded', '_context', '_first_spanned_ref', '_spanned_refs', '_ranged_refs',
+        '_range_depth', '_range_index',
+    )
+
     def __init__(self, tref=None, _obj=None):
         """
         Object is generally initialized with a textual reference - ``tref``
@@ -1976,10 +1998,10 @@ class Ref(object):
         self._next = None
         self._prev = None
         self._padded = None
-        self._context = {}
+        self._context = None
         self._first_spanned_ref = None
-        self._spanned_refs = []
-        self._ranged_refs = []
+        self._spanned_refs = None
+        self._ranged_refs = None
         self._range_depth = None
         self._range_index = None
 
@@ -2006,7 +2028,7 @@ class Ref(object):
                 raise InputError(u"{} is an invalid range.  Ranges must end later than they begin.".format(self.normal()))
 
     def __clean_tref(self):
-        self.tref = self.tref.strip().replace(u"–", "-").replace("_", " ")  # don't replace : in Hebrew, where it can indicate amud
+        self.tref = self.tref.strip().replace(u"–", "-").replace(u"\u2011", "-").replace("_", " ")  # don't replace : in Hebrew, where it can indicate amud
         if self._lang == "he":
             return
 
@@ -2856,7 +2878,7 @@ class Ref(object):
         :return: True if at least one complete version of ref is available in lang.
         """
         if self.is_section_level() or self.is_segment_level():
-            # Using mongo queries to slice and merge versions 
+            # Using mongo queries to slice and merge versions
             # is much faster than actually using the Version State doc
             text = self.text(lang=lang).text
             return bool(len(text) and all(text))
@@ -3031,6 +3053,9 @@ class Ref(object):
         """
         if level == 0:
             return self
+
+        if self._context is None:
+            self._context = {}
 
         if not self._context.get(level) or not self._context[level]:
             if len(self.sections) <= self.index_node.depth - level:
@@ -3216,10 +3241,10 @@ class Ref(object):
         """
         :return: list of :class:`Ref` objects corresponding to each point in the range of this :class:`Ref`
         """
-        if not self._ranged_refs:
-            results = []
+        if self._ranged_refs is None:
             if not self.is_range():
                 return [self]
+            results = []
             if self.is_spanning():
                 for oref in self.split_spanning_ref():
                     results += oref.range_list() if oref.is_range() else [oref] if oref.is_segment_level() else oref.all_subrefs()
@@ -3585,7 +3610,8 @@ class Ref(object):
         :return list: each list element is an object with keys 'versionTitle' and 'language'
         """
         fields = ["versionTitle", "versionSource", "language", "status", "license", "versionNotes",
-                  "digitizedBySefaria", "priority", "versionTitleInHebrew", "versionNotesInHebrew"]
+                  "digitizedBySefaria", "priority", "versionTitleInHebrew", "versionNotesInHebrew", "extendedNotes",
+                  "extendedNotesHebrew"]
         versions = VersionSet(self.condition_query())
         version_list = []
         if self.is_book_level():
@@ -3608,6 +3634,7 @@ class Ref(object):
     def __repr__(self):  # Wanted to use orig_tref, but repr can not include Unicode
         return self.__class__.__name__ + "('" + str(self.uid()) + "')"
 
+    '''
     def old_dict_format(self):
         """
         Outputs the ref in the old format, for code that relies heavily on that format
@@ -3623,6 +3650,7 @@ class Ref(object):
         d.update(self.index.contents())
         del d["title"]
         return d
+    '''
 
     def he_book(self):
         return self.index_node.full_title("he")
@@ -3809,7 +3837,21 @@ class Library(object):
 
     Stewards the in-memory and in-cache objects that cover the entire collection of texts.
 
-    Exposes methods to add, remove, or register change of an index record.  These are primarily called by the dependencies mechanism on Index Create/Update/Destroy.
+    Exposes methods to add, remove, or register change of an index record.
+    These are primarily called by the dependencies mechanism on Index Create/Update/Destroy.
+
+
+    Dependencies
+
+    Initialization of the library happens in stages
+    1. On load of this file, library instance is created.
+        - Terms maps created
+    2. On load of full model with `from sefaria.model import *`
+        - Indexes are built
+    3. On load of reader/views
+        - toc tree is built (categories loaded)
+        - autocompleters are created
+
 
     """
 
@@ -3854,11 +3896,12 @@ class Library(object):
 
         # Term Mapping
         self._simple_term_mapping = {}
+        self._full_term_mapping = {}
 
         if not hasattr(sys, '_doc_build'):  # Can't build cache without DB
-            self._build_core_maps()
+            self._build_term_mappings()
 
-    def _build_core_maps(self):
+    def _build_index_maps(self):
         # Build index and title node dicts in an efficient way
 
         # self._index_title_commentary_maps if index_object.is_commentary() else self._index_title_maps
@@ -3887,7 +3930,8 @@ class Library(object):
         # TOC is handled separately since it can be edited in place
 
     def rebuild(self, include_toc = False, include_auto_complete=False):
-        self._build_core_maps()
+        self._build_term_mappings()
+        self._build_index_maps()
         self._full_title_lists = {}
         self._full_title_list_jsons = {}
         self._title_regex_strings = {}
@@ -3912,7 +3956,13 @@ class Library(object):
         scache.delete_template_cache("texts_list")
         scache.delete_template_cache("texts_dashboard")
         self._full_title_list_jsons = {}
+
+        """
+        # These seem needless, and counterproductive (certainly in the rebuild(include_toc=True) case)
+
         self._simple_term_mapping = {}
+        self._full_term_mapping = {}
+        """
 
     def get_toc(self, rebuild=False):
         """
@@ -4006,7 +4056,6 @@ class Library(object):
         self._search_filter_toc = update_title_in_toc(self.get_search_filter_toc(), indx, recount=False, for_search=True)
 
         self.rebuild_toc(skip_toc_tree=True, skip_filter_toc=True)
-
 
     def delete_index_from_toc(self, indx):
         toc_node = self.get_toc_tree().lookup(indx.categories, indx.title)
@@ -4225,7 +4274,7 @@ class Library(object):
             try:
                 section_refs += indx.all_section_refs()
             except Exception as e:
-                logger.warning(u"Failed to get section refs for {}: {}".format(getattr(indx,"title","unknown index"), e))
+                logger.warning(u"Failed to get section refs for {}: {}".format(getattr(indx, "title", "unknown index"), e))
         return section_refs
 
     def get_term_dict(self, lang="en"):
@@ -4236,49 +4285,36 @@ class Library(object):
         # key = "term_dict_" + lang
         # term_dict = self.local_cache.get(key)
         term_dict = self._term_ref_maps.get(lang)
-        # if not term_dict:
-        #    term_dict = scache.get_cache_elem(key)
-        #    self.local_cache[key] = term_dict
         if not term_dict:
-            term_dict = {}
-            terms = TermSet({"$and":[{"ref": {"$exists":True}},{"ref":{"$nin":["",[]]}}]})
-            for term in terms:
-                for title in term.get_titles(lang):
-                    term_dict[title] = term.ref
-            # scache.set_cache_elem(key, term_dict)
-            # self.local_cache[key] = term_dict
-            self._term_ref_maps[lang] = term_dict
+            self._build_term_mappings()
+            term_dict = self._term_ref_maps.get(lang)
+
         return term_dict
+
+    def _build_term_mappings(self):
+        self._simple_term_mapping = {}
+        self._full_term_mapping = {}
+        for term in TermSet():
+            self._full_term_mapping[term.name] = term
+            self._simple_term_mapping[term.name] = {"en": term.get_primary_title("en"),
+                                                    "he": term.get_primary_title("he")}
+            if hasattr(term, "ref"):
+                for lang in self.langs:
+                    for title in term.get_titles(lang):
+                        self._term_ref_maps[lang][title] = term.ref
 
     def get_simple_term_mapping(self):
         if not self._simple_term_mapping:
-            from sefaria.model import CategorySet
-
-            for term in TermSet():
-                self._simple_term_mapping[term.name] = {"en": term.get_primary_title("en"), "he": term.get_primary_title("he")}
-
-            # Note that this will clobber any overlapping terms, and use the last of identical categories.
-            # Currently, all category names are terms, this is labour lost.
-            # for cat in CategorySet():
-            #    self._simple_term_mapping[cat.lastPath] = {"en": cat.get_primary_title("en"), "he": cat.get_primary_title("he")}
-
+            self._build_term_mappings()
         return self._simple_term_mapping
 
-    def reset_simple_term_mapping(self):
-        self._simple_term_mapping = {}
+    def get_term(self, term_name):
+        if not self._full_term_mapping:
+            self._build_term_mappings()
+        return self._full_term_mapping.get(term_name)
 
-    #todo: no usages?
-    def get_content_nodes(self):
-        """
-        :return: list of all content nodes in the library
-        """
-        nodes = []
-        forest = self.get_index_forest()
-        for tree in forest:
-            nodes += tree.get_leaf_nodes()
-        return nodes
-
-    #todo: used in get_content_nodes, but besides that, only bio scripts
+    
+    #todo: only used in bio scripts
     def get_index_forest(self):
         """
         :return: list of root Index nodes.
@@ -4738,4 +4774,4 @@ def process_version_delete_in_cache(ver, **kwargs):
 
 
 def reset_simple_term_mapping(o, **kwargs):
-    library.reset_simple_term_mapping()
+    library._build_term_mappings()

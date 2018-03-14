@@ -3,21 +3,33 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>{% block title %}{% endblock %}</title>
-    <meta name="description" property="og:description" content="{% block description %}{% endblock %}">
+    <title>{% block title %}{{ title }}{% endblock %}</title>
+    <meta name="description" property="og:description" content="{% block description %}{{ desc }}{% endblock %}">
+    
     <link rel="search" type="application/opensearchdescription+xml" title="Sefaria Search" href="/static/files/opensearch.xml" />
-
     <link rel="alternate" href="//www.sefaria.org{{ request.path }}" hreflang="en" />
     <link rel="alternate" href="//www.sefaria.org.il{{ request.path }}" hreflang="he" />
 
     {% block ogtype %}<meta property="og:type" content="website"/>{% endblock %}
-    {% block ogimage %}
-        <meta property="og:image" content="https://www.sefaria.org/static/img/locale/{{ request.interfaceLang|slice:"0:2" }}/fb-og-image.png"/>
-    {% endblock %}
+    {% block ogimage %}<meta property="og:image" content="https://www.sefaria.org/static/img/locale/{{ request.interfaceLang|slice:"0:2" }}/fb-og-image.png" />{% endblock %}
 
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-itunes-app" content="app-id=1163273965">
     <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+
+    <!-- https://realfavicongenerator.net -->
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png?v=xQzLlLp7oR">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png?v=xQzLlLp7oR">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png?v=xQzLlLp7oR">
+    <link rel="manifest" href="/manifest.json?v=xQzLlLp7oR">
+    <link rel="mask-icon" href="/safari-pinned-tab.svg?v=xQzLlLp7oR" color="#273557">
+    <link rel="shortcut icon" href="/favicon.ico?v=xQzLlLp7oR">
+    <meta name="theme-color" content="#273557">
+
+
+    {% if ldBreadcrumbs %}{% autoescape off %}
+    <script type="application/ld+json">{{ ldBreadcrumbs }}</script>
+    {% endautoescape %}{% endif %}
 
     {% block head %}{% endblock %}
 
@@ -27,25 +39,42 @@
     <link rel="stylesheet" href="/static/css/s2.css">
     <link rel="stylesheet" href="/static/css/s2-print.css" media="print" />
 
-    {% block exclude_block_on_source_sheets %}
-        <link rel="stylesheet" href="/static/css/static.css">
+    {% block static_css %}
+    {% if not html %}
+    <link rel="stylesheet" href="/static/css/static.css">
+    {% endif %}
     {% endblock %}
 
     <style>
         {% block css %}{% endblock %}
     </style>
 
-	<script>
-        {% include "js/analytics.js" %}
+    <script>
+        {% if GOOGLE_ANALYTICS_CODE %}
+            // GOOGLE ANALYTICS
+            (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+            (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+            m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+            })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+            ga('create', '{{ GOOGLE_ANALYTICS_CODE }}', 'auto');
+
+            window.onerror = function(msg, url, lineNumber) {
+                ga('send', 'event', 'Javascript Errors',  msg, url + ':' + lineNumber);
+            };
+        {% else  %}
+            var ga = function(){};
+            ga._mock = true;
+        {% endif %}
+        window.ga = ga;
     </script>
 
-    {% if not OFFLINE %}
     <script src="https://ajax.googleapis.com/ajax/libs/webfont/1.6.26/webfont.js"></script>
     <script>
         WebFont.load({
           google: {
             families: ['Crimson Text:400,700'],
-            text: 'ḥḤ'
+            text: 'ḥḤżŻ'
           },
           typekit: {
             id: 'aeg8div'
@@ -56,29 +85,37 @@
             families: ['Heebo:400,700:hebrew', 'Frank Ruehl Libre:400,700:hebrew'] // The dotted h causes Heebo not to load.
           }});
     </script>
-    {% endif %}
 </head>
 
 <body class="interface-{{ request.interfaceLang }}{% if EMBED %} embeded{% endif %}">
-
+    
     {% autoescape off %}
-    {% if request.user.is_authenticated %}
-    <div id="s2" class="headerOnly">{{ logged_in_header }}</div>
+    {% if html %}
+    <!-- React will complain about whitespace -->
+    <div id="s2">{{ html }}</div>
     {% else %}
-    <div id="s2" class="headerOnly">{{ logged_out_header }}</div>
+    <div id="s2" class="headerOnly">{% if request.user.is_authenticated %}{{ logged_in_header }}{% else %}{{ logged_out_header }}{% endif %}</div>
     {% endif %}
     {% endautoescape %}
 
+    {% if not html %}
     <div class="wrapper">
         <div id="content" class="interface-{{ request.interfaceLang }}">
             {% block content %}{% endblock %}
         </div>
     </div>
-
-    {% block footer %}
+    
+    {% block footer %} <!-- todo: sheets is overwriting this, why? -->
         {% include "elements/footer.html" with class=contentLang %}
     {% endblock %}
+    {% endif %}
 
+    <div id="overlay"></div>
+
+    <script src="https://unpkg.com/react@16/umd/react.{% if DEBUG %}development{% else %}production.min{% endif %}.js"></script>
+    <script src="https://unpkg.com/react-dom@16/umd/react-dom.{% if DEBUG %}development{% else %}production.min{% endif %}.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.2.4/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.js"></script>
 
     <script src="/static/js/lib/keyboard.js"></script>
     <script src="/data.js"></script>
@@ -86,17 +123,21 @@
     <script>
       {% autoescape off %}
       var DJANGO_VARS = {
+        props: {{ propsJSON|default:"null" }},
         contentLang: "{{ request.contentLang }}",
         interfaceLang: "{{ request.interfaceLang }}",
-        inReaderApp: false,
+        inReaderApp: {% if html %}true{% else %}false{% endif %}, 
         ga: ga
       };
       {% endautoescape %}
     </script>
 
     {% render_bundle 'main' %}
+
+    <!-- Don't think these are needed....
     {% include "js/jquery.html" %}
     <script>{% include "js/django-csrf.js" %}</script>
+    -->
 
     {% block js %}{% endblock %}
 </body>

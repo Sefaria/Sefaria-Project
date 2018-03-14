@@ -45,6 +45,12 @@ var baseConfig = {
             }
         ]
     },
+    externals: {
+       react: 'React',
+       'react-dom': 'ReactDOM',
+       jquery: 'jQuery',
+       'jquery-ui': 'jQuery',
+    },
     resolve: {
         unsafeCache: true,
         //tells webpack where to look for modules
@@ -127,11 +133,13 @@ var diffConfig = config({
     }
 });
 
+
 var exploreConfig = config({
     context: path.resolve('./static/js'),
     entry: './explore',
     externals: {
-        d3: 'd3'
+        d3: 'd3',
+        sefaria: 'Sefaria',
     },
     output: {
         path: path.resolve(buildDir + 'explore'),
@@ -160,10 +168,6 @@ var jsonEditorConfig = config({
         path: path.resolve(buildDir + 'jsonEditor'),
         filename: 'jsonEditor.js'
     },
-    externals: {
-       react: 'React',
-       'react-dom': 'ReactDOM',
-       jquery: 'jQuery'},
     plugins: [
         new BundleTracker({filename: './node/webpack-stats.json-editor.json'}),
     ]

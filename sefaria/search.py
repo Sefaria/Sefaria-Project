@@ -43,10 +43,10 @@ def init_pagesheetrank_dicts():
         sheetrank_dict = json.load(open(STATICFILES_DIRS[0] + "sheetrank.json", "rb"))
     except IOError:
         sheetrank_dict = {}
-        
+
 init_pagesheetrank_dicts()
 all_gemara_indexes = library.get_indexes_in_category("Bavli")
-davidson_indexes = all_gemara_indexes[:all_gemara_indexes.index("Bava Batra") + 1]
+davidson_indexes = all_gemara_indexes[:all_gemara_indexes.index("Horayot") + 1]
 
 es = ElasticSearch(SEARCH_ADMIN)
 tracer = logging.getLogger('elasticsearch.trace')
@@ -119,7 +119,7 @@ def index_text(index_name, oref, version=None, lang=None, bavli_amud=True, merge
     # Index this document as a whole
     try:
         if version and lang and not version_priority:
-            for priority, v in oref.version_list():
+            for priority, v in enumerate(oref.version_list()):
                 if v['versionTitle'] == version:
                     version_priority = priority
                     break
@@ -344,7 +344,7 @@ def index_sheet(index_name, id):
 
     pud = public_user_data(sheet["owner"])
     doc = {
-        "title": sheet["title"],
+        "title": strip_tags(sheet["title"]),
         "content": make_sheet_text(sheet, pud),
         "owner_id": sheet["owner"],
         "owner_name": pud["name"],
@@ -420,14 +420,13 @@ def create_index(index_name, merged=False):
         "index" : {
             "analysis" : {
                 "analyzer" : {
-                    "default" : {
+                    "my_standard" : {
                         "tokenizer": "standard",
                         "filter": [
                                 "standard",
                                 "lowercase",
                                 "icu_normalizer",
                                 "icu_folding",
-                                "icu_collation",
                                 "my_snow"
                                 ]
                     }
@@ -496,6 +495,10 @@ def put_text_mapping(index_name):
                     'type': 'integer',
                     'index': 'not_analyzed'
                 },
+                "version_priority": {
+                    'type': 'integer',
+                    'index': 'not_analyzed'
+                },
                 #"hebmorph_semi_exact": {
                 #    'type': 'string',
                 #    'analyzer': 'hebrew',
@@ -503,7 +506,7 @@ def put_text_mapping(index_name):
                 #},
                 "exact": {
                     'type': 'string',
-                    'analyzer': 'standard'
+                    'analyzer': 'my_standard'
                 },
                 "naive_lemmatizer": {
                     'type': 'string',

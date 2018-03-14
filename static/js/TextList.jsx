@@ -82,7 +82,10 @@ class TextList extends Component {
     var commentator       = filter[0];
     var basetext          = this.getSectionRef();
     var commentarySection = Sefaria.commentarySectionRef(commentator, basetext);
-    if (!commentarySection) { return; }
+    if (!commentarySection) {
+      this.setState({waitForText: false});
+      return;
+    }
 
     this.setState({waitForText: true});
     Sefaria.text(commentarySection, {}, function() {
@@ -162,7 +165,7 @@ class TextList extends Component {
     var sectionLinks = Sefaria.links(sectionRef);
     var links        = Sefaria._filterLinks(sectionLinks, filter);
     links            = links.filter(function(link) {
-      if (Sefaria.splitSpanningRef(link.anchorRef).every(aref => Sefaria.util.inArray(aref, refs) === -1)) {
+      if (Sefaria.splitRangingRef(link.anchorRef).every(aref => Sefaria.util.inArray(aref, refs) === -1)) {
         // Filter out every link in this section which does not overlap with current refs.
         return false;
       }
@@ -214,7 +217,6 @@ class TextList extends Component {
           <RecentFilterSet
             srefs={this.props.srefs}
             asHeader={false}
-            showText={this.props.showText}
             filter={this.props.filter}
             recentFilters={this.props.recentFilters}
             textCategory={oref ? oref.primary_category : null}

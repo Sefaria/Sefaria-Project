@@ -187,12 +187,14 @@ class AbstractTitledOrTermedObject(AbstractTitledObject):
 
     def _process_terms(self):
         # To be called after raw data load
+        from sefaria.model import library
+
         if self.sharedTitle:
+            term = library.get_term(self.sharedTitle)
             try:
-                term = Term().load({"name": self.sharedTitle})
                 self.title_group = term.title_group
-            except Exception, e:
-                raise IndexError("Failed to load term named {}. {}".format(self.sharedTitle, e))
+            except AttributeError:
+                raise IndexError(u"Failed to load term named {}.".format(self.sharedTitle))
 
     def add_shared_term(self, term):
         self.sharedTitle = term
@@ -918,7 +920,7 @@ class NumberedTitledTreeNode(TitledTreeNode):
             #TODO Really, the depths should be filled in the opposite order, but it's difficult to write a regex to match.
             #TODO However, most false positives will be filtered out in library._get_ref_from_match()
 
-            reg += ur"(?:\s*[-\u2013]\s*"  # maybe there's a dash (either n or m dash) and a range
+            reg += ur"(?:\s*[-\u2013\u2011]\s*"  # maybe there's a dash (either n or m dash) and a range
             reg += ur"(?=\S)"  # must be followed by something (Lookahead)
             group = "ar0" if not kwargs.get("for_js") else None
             reg += self._addressTypes[0].regex(lang, group, **kwargs)
@@ -951,7 +953,7 @@ class NumberedTitledTreeNode(TitledTreeNode):
         self.depth = len(section_names)
         self.sectionNames = section_names
         if address_types is None:
-            self.addressTypes = ['Integer'] * len(section_names)
+            self.addressTypes = [sec if globals().get("Address{}".format(sec), None) else 'Integer' for sec in section_names]
         else:
             self.addressTypes = address_types
 

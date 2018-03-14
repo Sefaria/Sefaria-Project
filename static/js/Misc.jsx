@@ -82,8 +82,13 @@ class TextBlockLink extends Component {
 
     var position = this.props.position || 0;
     var classes  = classNames({refLink: 1, blockLink: 1, recentItem: this.props.recentItem, calendarLink: (subtitle != null)});
-    var url      = "/" + Sefaria.normRef(this.props.sref) + (this.props.version?`/${this.props.versionLanguage}/${this.props.version}`:"");
-    return (<a href={url} className={classes} data-ref={this.props.sref} data-version={this.props.version} data-versionlanguage={this.props.versionLanguage} data-position={position} style={style}>
+    var url = "/" + Sefaria.normRef(this.props.sref);
+    url += Object.keys(this.props.currVersions)
+            .filter(vlang=>!!this.props.currVersions[vlang])
+            .map((vlang)=>`&v${vlang}=${this.props.currVersions[vlang]}`)
+            .join("")
+            .replace("&","?");
+    return (<a href={url} className={classes} data-ref={this.props.sref} data-ven={this.props.currVersions.en} data-vhe={this.props.currVersions.he} data-position={position} style={style}>
               <span className="en">{title}</span>
               <span className="he">{heTitle}</span>
                 {subtitle}
@@ -92,8 +97,7 @@ class TextBlockLink extends Component {
 }
 TextBlockLink.propTypes = {
   sref:            PropTypes.string.isRequired,
-  version:         PropTypes.string,
-  versionLanguage: PropTypes.string,
+  currVersions:    PropTypes.object.isRequired,
   heRef:           PropTypes.string,
   book:            PropTypes.string,
   category:        PropTypes.string,
@@ -103,7 +107,10 @@ TextBlockLink.propTypes = {
   heDisplayValue:  PropTypes.string,
   showSections:    PropTypes.bool,
   recentItem:      PropTypes.bool,
-  position:        PropTypes.number
+  position:        PropTypes.number,
+};
+TextBlockLink.defaultProps = {
+  currVersions: {en:null, he:null},
 };
 
 
@@ -129,8 +136,11 @@ LanguageToggleButton.propTypes = {
 class BlockLink extends Component {
   render() {
     var interfaceClass = this.props.interfaceLink ? 'int-' : '';
-    var classes = classNames({blockLink: 1, inAppLink: this.props.inAppLink})
-    return (<a className={classes} href={this.props.target}>
+    var cn = {blockLink: 1, inAppLink: this.props.inAppLink};
+    var linkClass = this.props.title.toLowerCase().replace(" ", "-") + "-link";
+    cn[linkClass] = 1;
+    var classes = classNames(cn);
+      return (<a className={classes} href={this.props.target}>
               {this.props.image ? <img src={this.props.image} alt="" /> : null}
               <span className={`${interfaceClass}en`}>{this.props.title}</span>
               <span className={`${interfaceClass}he`}>{this.props.heTitle}</span>
@@ -159,8 +169,11 @@ class ToggleSet extends Component {
     var value = this.props.name === "layout" ? this.props.currentLayout() : this.props.settings[this.props.name];
     var width = 100.0 - (this.props.separated ? (this.props.options.length - 1) * 3 : 0);
     var style = {width: (width/this.props.options.length) + "%"};
+    var label = this.props.label ? (<span className="toggle-set-label">{this.props.label}</span>) : null;
     return (
       <div className={classes} role={this.props.role} aria-label={this.props.ariaLabel}>
+          {label}
+          <div>
         {
           this.props.options.map(function(option) {
             return (
@@ -178,11 +191,13 @@ class ToggleSet extends Component {
                 content={option.content} />);
           }.bind(this))
         }
+          </div>
       </div>);
   }
 }
 ToggleSet.propTypes = {
   name:          PropTypes.string.isRequired,
+  label:         PropTypes.string,
   setOption:     PropTypes.func.isRequired,
   currentLayout: PropTypes.func,
   settings:      PropTypes.object.isRequired,

@@ -136,10 +136,13 @@ $(function() {
 		sjs.textBrowser.show({
 			callback: function(ref) {
 				if (!ref) { return; }
+				var $target = $("#addInterface").prev(".sheetItem");
 				var q = parseRef(ref);
 				$("#closeAddSource").trigger("click");
-				addSource(q);
+				addSource(q, undefined, "insert", $target);
 				sjs.track.sheets("Add Source", ref);
+        cleanupActiveSource($target);
+
 			}
 		})
 	});
@@ -743,7 +746,7 @@ $(function() {
 			if (sjs.flags.sorting) { return; }
 			// Don't init if the click began in another editable
 			if ($(e.target).find(".cke_editable").length) { return; }
-			// Don't init if element clicked is not on the source sheet (i.e. it's some other s2 reader element)
+			// Don't init if element clicked is not on the source sheet (i.e. it's some other app element)
 			if( !$("#sheet").has($(this)).length > 0  ) { return }
 			// Don't init if on mobile
 			if ($(".readerApp").length) {
@@ -1340,6 +1343,10 @@ $(function() {
       if ($(e.target).closest("#addInterface").length) return
       $("#connectionButton").hide();
 
+      if ($("#textBrowser").is(":visible")) {
+      	return
+			};
+
       cleanupActiveSource(e.target);
     });
 
@@ -1437,7 +1444,6 @@ $(function() {
       //clicked on a sheet item
       if ($(e.target).hasClass("inlineAddButtonIcon")) return;
       if (!$(".readerApp").hasClass("multiPanel")) return; //prevent active source on mobile
-
       cleanupActiveSource(e.target);
       $(this).addClass("activeSource");
       $("#sheetLayoutLanguageMenuItems").hide();

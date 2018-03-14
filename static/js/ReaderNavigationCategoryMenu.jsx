@@ -170,7 +170,7 @@ class ReaderNavigationCategoryMenuContents extends Component {
   render() {
       var content = [];
       var cats = this.props.categories || [];
-      var contents = this.props.contentLang == "hebrew" ?
+      var contents = this.props.contentLang == "hebrew" || Sefaria.interfaceLang == "hebrew" ?
                       this.hebrewContentSort(this.props.contents) 
                       : this.props.contents;
       for (var i = 0; i < contents.length; i++) {
@@ -185,7 +185,7 @@ class ReaderNavigationCategoryMenuContents extends Component {
                 var chItem = item.contents[0];
                 var [title, heTitle] = this.getRenderedTextTitleString(chItem.title, chItem.heTitle);
                 var url     = "/" + Sefaria.normRef(chItem.firstSection);
-                var incomplete = this.props.contentLang == "hebrew" ? !chItem.heComplete : !chItem.enComplete;
+                var incomplete = this.props.contentLang == "hebrew" || Sefaria.interfaceLang == "hebrew" ? !chItem.heComplete : !chItem.enComplete;
                 var classes = classNames({refLink: 1, blockLink: 1, incomplete: incomplete});
                 content.push((<a href={url} className={classes} data-ref={chItem.firstSection} key={"text." + this.props.nestLevel + "." + i}>
                                 <span className='en'>{title}</span>
@@ -196,7 +196,7 @@ class ReaderNavigationCategoryMenuContents extends Component {
             } else {
               // Create a link to a subcategory
               var url = "/texts/" + newCats.join("/");
-              var incomplete = this.props.contentLang == "hebrew" ? !item.heComplete : !item.enComplete;
+              var incomplete = this.props.contentLang == "hebrew" || Sefaria.interfaceLang == "hebrew" ? !item.heComplete : !item.enComplete;
               var classes = classNames({catLink: 1, incomplete: incomplete});
               content.push((<a href={url} className={classes} data-cats={newCats.join("|")} key={"cat." + this.props.nestLevel + "." + i}>
                               <span className='en'>{item.category}</span>
@@ -226,7 +226,7 @@ class ReaderNavigationCategoryMenuContents extends Component {
           var recentItem = Sefaria.recentItemForText(item.title)
           var ref =  recentItem ? recentItem.ref : item.firstSection;
           var url = "/" + Sefaria.normRef(ref);
-          var incomplete = this.props.contentLang == "hebrew" ? !item.heComplete : !item.enComplete;
+          var incomplete = this.props.contentLang == "hebrew" || Sefaria.interfaceLang == "hebrew" ? !item.heComplete : !item.enComplete;
           var classes = classNames({refLink: 1, blockLink: 1, incomplete: incomplete});
           content.push((<a href={url} 
                           className={classes} 
@@ -266,5 +266,8 @@ ReaderNavigationCategoryMenuContents.propTypes = {
   nestLevel:  PropTypes.number
 };
 
+ReaderNavigationCategoryMenuContents.defaultProps = {
+  contents: []
+};
 
 module.exports = ReaderNavigationCategoryMenu;

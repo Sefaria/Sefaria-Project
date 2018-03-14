@@ -44,7 +44,7 @@ from sefaria.client.util import jsonResponse
 from sefaria.history import text_history, get_maximal_collapsed_activity, top_contributors, make_leaderboard, make_leaderboard_condition, text_at_revision, record_version_deletion, record_index_deletion
 from sefaria.system.decorators import catch_error_as_json
 from sefaria.summaries import get_or_make_summary_node
-from sefaria.sheets import get_sheets_for_ref, public_sheets, get_sheets_by_tag, user_sheets, user_tags, recent_public_tags, sheet_to_dict, get_top_sheets, public_tag_list, group_sheets
+from sefaria.sheets import get_sheets_for_ref, public_sheets, get_sheets_by_tag, user_sheets, user_tags, recent_public_tags, sheet_to_dict, get_top_sheets, public_tag_list
 from sefaria.utils.util import list_depth, text_preview
 from sefaria.utils.hebrew import hebrew_plural, hebrew_term, encode_hebrew_numeral, encode_hebrew_daf, is_hebrew, strip_cantillation, has_cantillation
 from sefaria.utils.talmud import section_to_daf, daf_to_section
@@ -70,12 +70,14 @@ library.build_ref_auto_completer()
 #    #    #
 
 @ensure_csrf_cookie
-def reader(request, tref, lang=None, version=None):
-    # Redirect to standard URLs
-    def reader_redirect(uref, lang, version):
+def catchall(request, tref):
+    """
+    Handle any URL not explicitly covers in urls.py.
+    Catches text refs for text content and text titles for text table of contents. 
+    """
+    def reader_redirect(uref):
+        # Redirect to standard URLs
         url = "/" + uref
-        if lang and version:
-            url += "/%s/%s" % (lang, version)
 
         response = redirect(iri_to_uri(url), permanent=True)
         params = request.GET.urlencode()
@@ -87,125 +89,23 @@ def reader(request, tref, lang=None, version=None):
     except PartialRefInputError as e:
         logger.warning(u'{}'.format(e))
         matched_ref = Ref(e.matched_part)
-        return reader_redirect(matched_ref.url(), lang, version)
+        return reader_redirect(matched_ref.url())
     except InputError:
         raise Http404
 
     uref = oref.url()
     if uref and tref != uref:
-        return reader_redirect(uref, lang, version)
+        return reader_redirect(uref)
 
-    # Return Text TOC if this is a bare text title
-    if oref.sections == [] and (oref.index.title == oref.normal() or getattr(oref.index_node, "depth", 0) > 1):
-        return text_toc(request, oref)
-    # or if this is a schema node with multiple sections underneath it
-    if (not getattr(oref.index_node, "depth", None)):
-        return text_toc(request, oref)
-
-    if not request.COOKIES.get('s1'):
-        return s2(request, ref=tref, lang=lang, version=version)
+    return text_panels(request, ref=tref)
 
 
-    # TODO Everything below is S1 and will be removed
-
-    # BANDAID - for spanning refs, return the first section
-    oref = oref.padded_ref()
-    if oref.is_spanning():
-        first_oref = oref.first_spanned_ref()
-        return reader_redirect(first_oref.url(), lang, version)
-
-    version = version.replace("_", " ") if version else None
-    try:
-        text = TextFamily(oref, lang=lang, version=version, commentary=False, alts=True).contents()
-    except NoVersionFoundError:
-        raise Http404
-
-    text.update({"commentary": [], "notes": [], "sheets": [], "layer": [], "connectionsLoadNeeded": True})
-    hasSidebar = True
-
-    layer_name = request.GET.get("layer", None)
-    if layer_name and not "error" in text:
-        layer = Layer().load({"urlkey": layer_name})
-        if not layer:
-            raise InputError("Layer not found.")
-        text["layer"]        = [format_note_object_for_client(n) for n in layer.all(tref=tref)]
-        text["_loadSourcesFromDiscussion"] = True
-
-    text["next"] = oref.next_section_ref().normal() if oref.next_section_ref() else None
-    text["prev"] = oref.prev_section_ref().normal() if oref.prev_section_ref() else None
-    text["ref"] = Ref(text["ref"]).normal()
-
-    if lang and version:
-        text['new_preferred_version'] = {'lang': lang, 'version': version}
-
-    zipped_text = map(None, text["text"], text["he"]) if not "error" in text else []
-    if "error" not in text:
-        if len(text["sections"]) == text["textDepth"]:
-            section = text["sections"][-1] - 1
-            en = text["text"][section] if len(text.get("text", [])) > section else ""
-            en = "" if not isinstance(en, basestring) else en
-            he = text["he"][section] if len(text.get("he", [])) > section else ""
-            he = "" if not isinstance(he, basestring) else he
-            description_text = " ".join((en, he))
-        else:
-            en = text.get("text", []) if isinstance(text.get("text", []), list) else []
-            he = text.get("he", []) if isinstance(text.get("he", []), list) else []
-            lines = [line for line in (en+he) if isinstance(line, basestring)]
-            description_text = " ".join(lines)
-        description_text = strip_tags(description_text)[:600] + "..."
-    else:
-        description_text = "Unknown Text."
-
-    initJSON    = json.dumps(text)
-    lines       = request.GET.get("layout", None) or "lines" if "error" in text or text["type"] not in ('Tanakh', 'Talmud') or text["book"] == "Psalms" else "block"
-    layout      = request.GET.get("layout") if request.GET.get("layout") in ("heLeft", "heRight") else "heLeft"
-    sidebarLang = request.GET.get('sidebarLang', None) or request.COOKIES.get('sidebarLang', "all")
-    sidebarLang = {"all": "sidebarAll", "he": "sidebarHebrew", "en": "sidebarEnglish"}.get(sidebarLang, "sidebarAll")
-    lexicon     = request.GET.get('lexicon', 0)
-
-    template_vars = {'text': text,
-                     'hasSidebar': hasSidebar,
-                     'initJSON': initJSON,
-                     'zipped_text': zipped_text,
-                     'description_text': description_text,
-                     'page_title': oref.normal() if "error" not in text else "Unknown Text",
-                     'title_variants': "(%s)" % ", ".join(text.get("titleVariants", []) + text.get("heTitleVariants", [])),
-                     'sidebarLang': sidebarLang,
-                     'lines': lines,
-                     'layout': layout,
-                     'lexicon': lexicon,
-                    }
-
-    if "error" not in text:
-    # Override Content Language Settings if text not available in given langauge
-        if is_text_empty(text["text"]):
-            request.contentLang = "hebrew"
-        if is_text_empty(text["he"]):
-            request.contentLang = "english"
-    # Override if a specfic version was requested
-        if lang:
-            request.contentLang = {"he": "hebrew", "en": "english"}[lang]
-
-    return render_to_response('reader.html', template_vars, RequestContext(request))
-
-
-def esi_account_box(request):
-    return render_to_response('elements/accountBox.html', {}, RequestContext(request))
-
-
-def switch_to_s1(request):
-    """Set the S1 cookie then redirect to /"""
-    next = request.GET.get("next", "/")
-    response = redirect(next)
-    response.set_cookie("s1", "true")
-    return response
-
-
-def switch_to_s2(request):
-    """Set the S2 cookie then redirect to /texts"""
-    next = request.GET.get("next", "/texts")
-    response = redirect(next)
-    response.set_cookie("s1", "")
+@ensure_csrf_cookie
+def old_versions_redirect(request, tref, lang, version):
+    url = "/{}?v{}={}".format(tref, lang, version)
+    response = redirect(iri_to_uri(url), permanent=True)
+    params = request.GET.urlencode()
+    response['Location'] += "&{}".format(params) if params else ""
     return response
 
 
@@ -251,47 +151,66 @@ def render_react_component(component, props):
             return render_to_string("elements/loading.html")
 
 
-def make_panel_dict(oref, version, language, filter, mode, **kwargs):
+def make_panel_dict(oref, versionEn, versionHe, filter, versionFilter, mode, **kwargs):
     """
     Returns a dictionary corresponding to the React panel state,
     additionally setting `text` field with textual content.
     """
     if oref.is_book_level():
-        panel = {
-            "menuOpen": "book toc",
-            "bookRef": oref.normal(),
-            "indexDetails": library.get_index(oref.normal()).contents_with_content_counts(),
-            "versions": oref.version_list()
-        }
+        if kwargs.get('extended notes', 0) and (versionEn is not None or versionHe is not None):
+            currVersions = {"en": versionEn, "he": versionHe}
+            if versionEn is not None and versionHe is not None:
+                curr_lang = kwargs.get("panelDisplayLanguage", "en")
+                for key in currVersions.keys():
+                    if key == curr_lang:
+                        continue
+                    else:
+                        currVersions[key] = None
+            panel = {
+                "menuOpen": "extended notes",
+                "bookRef": oref.normal(),
+                "indexDetails": library.get_index(oref.normal()).contents_with_content_counts(),
+                "currVersions": currVersions
+            }
+        else:
+            panel = {
+                "menuOpen": "book toc",
+                "bookRef": oref.normal(),
+                "indexDetails": library.get_index(oref.normal()).contents_with_content_counts(),
+                "versions": oref.version_list()
+            }
     else:
         section_ref = oref.first_available_section_ref()
         oref = section_ref if section_ref else oref
-
-        panelDisplayLanguage = kwargs.get("panelDisplayLanguage")
         panel = {
             "mode": mode,
             "ref": oref.normal(),
-            "refs": [oref.normal()],
-            "version": version,
-            "versionLanguage": language,
+            "refs": [oref.normal()] if not oref.is_spanning() else [r.normal() for r in oref.split_spanning_ref()],
+            "currVersions": {
+                "en": versionEn,
+                "he": versionHe,
+            },
             "filter": filter,
+            "versionFilter": versionFilter,
         }
         if filter and len(filter):
-            if filter == ["Sheets"]:
-                panel["connectionsMode"] = "Sheets"
-            elif filter == ["Notes"]:
-                panel["connectionsMode"] = "Notes"
+            if filter[0] in ("Sheets", "Notes", "About", "Versions", "Version Open", "extended notes"):
+                panel["connectionsMode"] = filter[0]
             else:
                 panel["connectionsMode"] = "TextList"
+
+        settings_override = {}
+        panelDisplayLanguage = kwargs.get("panelDisplayLanguage")
+        aliyotOverride = kwargs.get("aliyotOverride")
         if panelDisplayLanguage:
-            panel["settings"] = {"language" : short_to_long_lang_code(panelDisplayLanguage)}
-            # so the connections panel doesnt act on the version NOT currently on display
-            if mode == "Connections" and panelDisplayLanguage != language:
-                panel["version"] = None
-                panel["versionLanguage"] = None
+            settings_override.update({"language" : short_to_long_lang_code(panelDisplayLanguage)})
+        if aliyotOverride:
+            settings_override.update({"aliyotTorah": aliyotOverride})
+        if settings_override:
+            panel["settings"] = settings_override
         if mode != "Connections":
             try:
-                text_family = TextFamily(oref, version=panel["version"], lang=panel["versionLanguage"], commentary=False,
+                text_family = TextFamily(oref, version=panel["currVersions"]["en"], lang="en", version2=panel["currVersions"]["he"], lang2="he", commentary=False,
                                   context=True, pad=True, alts=True, wrapLinks=False).contents()
             except NoVersionFoundError:
                 text_family = {}
@@ -303,7 +222,7 @@ def make_panel_dict(oref, version, language, filter, mode, **kwargs):
             if oref.index.categories == [u"Tanakh", u"Torah"]:
                 panel["indexDetails"] = oref.index.contents(v2=True) # Included for Torah Parashah titles rendered in text
 
-            if oref.is_segment_level():
+            if oref.is_segment_level(): # Note: a ranging or spanning ref like "Genesis 1:2-3:4" is considered segment level
                 panel["highlightedRefs"] = [subref.normal() for subref in oref.range_list()]
 
     return panel
@@ -321,7 +240,7 @@ def make_search_panel_dict(query, **kwargs):
     return panel
 
 
-def make_panel_dicts(oref, version, language, filter, multi_panel, **kwargs):
+def make_panel_dicts(oref, versionEn, versionHe, filter, versionFilter, multi_panel, **kwargs):
     """
     Returns an array of panel dictionaries.
     Depending on whether `multi_panel` is True, connections set in `filter` are displayed in either 1 or 2 panels.
@@ -329,19 +248,19 @@ def make_panel_dicts(oref, version, language, filter, multi_panel, **kwargs):
     panels = []
     # filter may have value [], meaning "all".  Therefore we test filter with "is not None".
     if filter is not None and multi_panel:
-        panels += [make_panel_dict(oref, version, language, filter, "Text", **kwargs)]
-        panels += [make_panel_dict(oref, version, language, filter, "Connections", **kwargs)]
+        panels += [make_panel_dict(oref, versionEn, versionHe, filter, versionFilter, "Text", **kwargs)]
+        panels += [make_panel_dict(oref, versionEn, versionHe, filter, versionFilter, "Connections", **kwargs)]
     elif filter is not None and not multi_panel:
-        panels += [make_panel_dict(oref, version, language, filter, "TextAndConnections", **kwargs)]
+        panels += [make_panel_dict(oref, versionEn, versionHe, filter, versionFilter, "TextAndConnections", **kwargs)]
     else:
-        panels += [make_panel_dict(oref, version, language, filter, "Text", **kwargs)]
+        panels += [make_panel_dict(oref, versionEn, versionHe, filter, versionFilter, "Text", **kwargs)]
 
     return panels
 
 
-def s2_props(request):
+def base_props(request):
     """
-    Returns a dictionary of props that all S2 pages get based on the request.
+    Returns a dictionary of props that all App pages get based on the request.
     """
     request_context = RequestContext(request)
     return {
@@ -356,6 +275,8 @@ def s2_props(request):
             "layoutDefault": request.COOKIES.get("layoutDefault", "segmented"),
             "layoutTalmud":  request.COOKIES.get("layoutTalmud", "continuous"),
             "layoutTanakh":  request.COOKIES.get("layoutTanakh", "segmented"),
+            "aliyotTorah":   request.COOKIES.get("aliyotTorah", "aliyotOff"),
+            "vowels":        request.COOKIES.get("vowels", "all"),
             "biLayout":      request.COOKIES.get("biLayout", "stacked"),
             "color":         request.COOKIES.get("color", "light"),
             "fontSize":      request.COOKIES.get("fontSize", 62.5),
@@ -363,28 +284,43 @@ def s2_props(request):
     }
 
 
-def s2(request, ref, version=None, lang=None):
+def text_panels(request, ref, version=None, lang=None):
     """
-    Reader App.
+    Handles views of ReaderApp that involve texts, connections, and text table of contents in panels. 
     """
     try:
         primary_ref = oref = Ref(ref)
     except InputError:
         raise Http404
 
-    props = s2_props(request)
+    props = base_props(request)
 
     panels = []
     multi_panel = props["multiPanel"]
-    # Handle first panel which has a different signature in params & URL (`version` and `lang` if set come from URL).
-    version = version.replace(u"_", " ") if version else version
+    # Handle first panel which has a different signature in params
+    versionEn = request.GET.get("ven", None)
+    if versionEn:
+        versionEn = versionEn.replace("_", " ")
+    versionHe = request.GET.get("vhe", None)
+    if versionHe:
+        versionHe = versionHe.replace("_", " ")
+
     filter = request.GET.get("with").replace("_", " ").split("+") if request.GET.get("with") else None
     filter = [] if filter == ["all"] else filter
 
-    if version and not Version().load({"versionTitle": version, "language": lang}):
-        raise Http404
+    versionFilter = [request.GET.get("vside").replace("_", " ")] if request.GET.get("vside") else []
 
-    panels += make_panel_dicts(oref, version, lang, filter, multi_panel, **{"panelDisplayLanguage": request.GET.get("lang", props["initialSettings"]["language"])})
+    if versionEn and not Version().load({"versionTitle": versionEn, "language": "en"}):
+        raise Http404
+    if versionHe and not Version().load({"versionTitle": versionHe, "language": "he"}):
+        raise Http404
+    kwargs = {
+        "panelDisplayLanguage": request.GET.get("lang", props["initialSettings"]["language"]),
+        'extended notes': int(request.GET.get("notes", 0)),
+    }
+    if request.GET.get("aliyot", None):
+        kwargs["aliyotOverride"] = "aliyotOn" if int(request.GET.get("aliyot")) == 1 else "aliyotOff"
+    panels += make_panel_dicts(oref, versionEn, versionHe, filter, versionFilter, multi_panel, **kwargs)
 
     # Handle any panels after 1 which are identified with params like `p2`, `v2`, `l2`.
     i = 2
@@ -405,18 +341,33 @@ def s2(request, ref, version=None, lang=None):
                 continue  # Stop processing all panels?
                 # raise Http404
 
-            version  = request.GET.get("v{}".format(i)).replace(u"_", u" ") if request.GET.get("v{}".format(i)) else None
-            language = request.GET.get("l{}".format(i))
+            versionEn  = request.GET.get("ven{}".format(i)).replace(u"_", u" ") if request.GET.get("ven{}".format(i)) else None
+            versionHe  = request.GET.get("vhe{}".format(i)).replace(u"_", u" ") if request.GET.get("vhe{}".format(i)) else None
+            if not versionEn and not versionHe:
+                # potential link using old version format
+                language = request.GET.get("l{}".format(i))
+                if language == "en":
+                    versionEn = request.GET.get("v{}".format(i)).replace(u"_", u" ") if request.GET.get("v{}".format(i)) else None
+                else: # he
+                    versionHe = request.GET.get("v{}".format(i)).replace(u"_", u" ") if request.GET.get("v{}".format(i)) else None
+
             filter   = request.GET.get("w{}".format(i)).replace("_", " ").split("+") if request.GET.get("w{}".format(i)) else None
             filter   = [] if filter == ["all"] else filter
-            panelDisplayLanguage = request.GET.get("lang{}".format(i), props["initialSettings"]["language"])
+            versionFilter = [request.GET.get("vside").replace("_", " ")] if request.GET.get("vside") else []
+            kwargs = {
+                "panelDisplayLanguage": request.GET.get("lang{}".format(i), props["initialSettings"]["language"]),
+                'extended notes': int(request.GET.get("notes{}".format(i), 0)),
+            }
+            if request.GET.get("aliyot{}".format(i), None):
+                kwargs["aliyotOverride"] = "aliyotOn" if int(request.GET.get("aliyot{}".format(i))) == 1 else "aliyotOff"
 
-            if version and not Version().load({"versionTitle": version, "language": language}):
+            if (versionEn and not Version().load({"versionTitle": versionEn, "language": "en"})) or \
+                (versionHe and not Version().load({"versionTitle": versionHe, "language": "he"})):
                 i += 1
                 continue  # Stop processing all panels?
                 # raise Http404
 
-            panels += make_panel_dicts(oref, version, language, filter, multi_panel, **{"panelDisplayLanguage": panelDisplayLanguage})
+            panels += make_panel_dicts(oref, versionEn, versionHe, filter, versionFilter, multi_panel, **kwargs)
         i += 1
 
     props.update({
@@ -446,8 +397,8 @@ def s2(request, ref, version=None, lang=None):
     else:
         segmentIndex = primary_ref.sections[-1] - 1 if primary_ref.is_segment_level() else 0
         try:
-            enText = props["initialPanels"][0]["text"].get("text",[])
-            heText = props["initialPanels"][0]["text"].get("he",[])
+            enText = _reduce_ranged_ref_text_to_first_section(props["initialPanels"][0]["text"].get("text",[]))
+            heText = _reduce_ranged_ref_text_to_first_section(props["initialPanels"][0]["text"].get("he",[]))
             enDesc = enText[segmentIndex] if segmentIndex < len(enText) else "" # get english text for section if it exists
             heDesc = heText[segmentIndex] if segmentIndex < len(heText) else "" # get hebrew text for section if it exists
             if request.interfaceLang == "hebrew":
@@ -463,26 +414,43 @@ def s2(request, ref, version=None, lang=None):
 
     propsJSON = json.dumps(props)
     html = render_react_component("ReaderApp", propsJSON)
-    return render_to_response('s2.html', {
+    return render_to_response('base.html', {
         "propsJSON":      propsJSON,
         "html":           html,
         "title":          title,
         "desc":           desc,
-        "ldBreadcrumbs":  ld_cat_crumbs(oref=primary_ref)
+        "ldBreadcrumbs":  ld_cat_crumbs(request, oref=primary_ref)
     }, RequestContext(request))
 
 
-def s2_texts_category(request, cats):
+def _reduce_ranged_ref_text_to_first_section(text_list):
+    """
+    given jagged-array-like list, return only first section
+    :param text_list: list
+    :return: returns list of text representing first section
+    """
+    if len(text_list) == 0:
+        return text_list
+    while not isinstance(text_list[0], basestring):
+        text_list = text_list[0]
+    return text_list
+
+
+def texts_category_list(request, cats):
     """
     List of texts in a category.
     """
-    props = s2_props(request)
+    if "Tanach" in cats:
+        cats = cats.replace("Tanach", "Tanakh")
+        return redirect("/texts/%s" % cats)
+  
+    props = base_props(request)
     cats  = cats.split("/")
     if cats != ["recent"]:
         toc        = library.get_toc()
         cat_toc    = get_or_make_summary_node(toc, cats, make_if_not_found=False)
         if cat_toc is None or len(cats) == 0:
-            return s2_texts(request)
+            return texts_list(request)
         cat_string = u", ".join(cats) if request.interfaceLang == "english" else u", ".join([hebrew_term(cat) for cat in cats])
         title = cat_string + _(" | Sefaria")
         desc  = _("Read %(categories)s texts online with commentaries and connections.") % {'categories': cat_string}
@@ -497,16 +465,17 @@ def s2_texts_category(request, cats):
     })
     propsJSON = json.dumps(props)
     html = render_react_component("ReaderApp", propsJSON)
-    return render_to_response('s2.html', {
+    return render_to_response('base.html', {
         "propsJSON":        propsJSON,
         "html":             html,
         "title":            title,
         "desc":             desc,
-        "ldBreadcrumbs":    ld_cat_crumbs(cats)
+        "ldBreadcrumbs":    ld_cat_crumbs(request, cats)
     }, RequestContext(request))
 
 
-def s2_search(request):
+@ensure_csrf_cookie
+def search(request):
     """
     Search or Search Results page.
     """
@@ -515,7 +484,7 @@ def s2_search(request):
     field          = ("naive_lemmatizer" if request.GET.get("var") == "1" else "exact") if request.GET.get("var") else ""
     sort           = ("chronological" if request.GET.get("sort") == "c" else "relevance") if request.GET.get("sort") else ""
 
-    props = s2_props(request)
+    props = base_props(request)
     props.update({
         "initialMenu": "search",
         "initialQuery": initialQuery,
@@ -525,7 +494,7 @@ def s2_search(request):
     })
     propsJSON = json.dumps(props)
     html = render_react_component("ReaderApp", propsJSON)
-    return render_to_response('s2.html', {
+    return render_to_response('base.html', {
         "propsJSON": propsJSON,
         "html":      html,
         "title":     (initialQuery + " | " if initialQuery else "") + _("Sefaria Search"),
@@ -533,11 +502,11 @@ def s2_search(request):
     }, RequestContext(request))
 
 
-def s2_sheets(request):
+def sheets(request):
     """
     Source Sheets Home Page.
     """
-    props = s2_props(request)
+    props = base_props(request)
     props.update({
         "initialMenu": "sheets",
         "topSheets": get_top_sheets(),
@@ -549,7 +518,7 @@ def s2_sheets(request):
     desc  = _("Explore thousands of public Source Sheets and use our Source Sheet Builder to create your own online.")
     propsJSON = json.dumps(props)
     html = render_react_component("ReaderApp", propsJSON)
-    return render_to_response('s2.html', {
+    return render_to_response('base.html', {
         "propsJSON":      propsJSON,
         "title":          title,
         "desc":           desc,
@@ -557,8 +526,8 @@ def s2_sheets(request):
     }, RequestContext(request))
 
 
-def s2_group_sheets(request, group, authenticated):
-    props = s2_props(request)
+def get_group_page(request, group, authenticated):
+    props = base_props(request)
     props.update({
         "initialMenu":     "sheets",
         "initialSheetsTag": "sefaria-groups",
@@ -571,7 +540,7 @@ def s2_group_sheets(request, group, authenticated):
 
     propsJSON = json.dumps(props)
     html = render_react_component("ReaderApp", propsJSON)
-    return render_to_response('s2.html', {
+    return render_to_response('base.html', {
         "propsJSON": propsJSON,
         "html": html,
         "title": group[0].name + " | " + _("Sefaria Groups"),
@@ -579,21 +548,27 @@ def s2_group_sheets(request, group, authenticated):
     }, RequestContext(request))
 
 
-@login_required
-def s2_my_groups(request):
-    props = s2_props(request)
+def public_groups(request):
+    props = base_props(request)
     title = _("Sefaria Groups")
-    return s2_page(request, props, "myGroups")
+    return menu_page(request, props, "publicGroups")
 
 
 @login_required
-def s2_my_notes(request):
+def my_groups(request):
+    props = base_props(request)
+    title = _("Sefaria Groups")
+    return menu_page(request, props, "myGroups")
+
+
+@login_required
+def my_notes(request):
     title = _("My Notes on Sefaria")
-    props = s2_props(request)
-    return s2_page(request, props, "myNotes", title)
+    props = base_props(request)
+    return menu_page(request, props, "myNotes", title)
 
 
-def s2_sheets_by_tag(request, tag):
+def sheets_by_tag(request, tag):
     """
     Page of sheets by tag.
     Currently used to for "My Sheets" and  "All Sheets" as well.
@@ -601,7 +576,7 @@ def s2_sheets_by_tag(request, tag):
     if tag != Term.normalize(tag):
         return redirect("/sheets/tags/%s" % Term.normalize(tag))
 
-    props = s2_props(request)
+    props = base_props(request)
     props.update({
         "initialMenu":     "sheets",
         "initialSheetsTag": tag,
@@ -628,7 +603,7 @@ def s2_sheets_by_tag(request, tag):
 
     propsJSON = json.dumps(props)
     html = render_react_component("ReaderApp", propsJSON)
-    return render_to_response('s2.html', {
+    return render_to_response('base.html', {
         "propsJSON":      propsJSON,
         "title":          title,
         "desc":           desc,
@@ -636,13 +611,82 @@ def s2_sheets_by_tag(request, tag):
     }, RequestContext(request))
 
 
-def s2_topics_page(request):
+## Sheet Views
+def sheets_list(request, type=None):
+    """
+    List of all public/your/all sheets
+    either as a full page or as an HTML fragment
+    """
+    if not type:
+        # Sheet Splash page
+        return sheets(request)
+
+    response = { "status": 0 }
+
+    if type == "public":
+        return sheets_by_tag(request,"All Sheets")
+
+    elif type == "private" and request.user.is_authenticated():
+        return sheets_by_tag(request,"My Sheets")
+
+    elif type == "private" and not request.user.is_authenticated():
+        return redirect("/login?next=/sheets/private")
+
+
+def sheets_tags_list(request):
+    """
+    Redirect to Sheets homepage which has tags list.
+    Previously: View public sheets organized by tags.
+    """
+    return redirect("/sheets")
+
+
+def group_page(request, group):
+    """
+    Main page for group `group`
+    """
+    group = group.replace("-", " ").replace("_", " ")
+    group = Group().load({"name": group})
+    if not group:
+        raise Http404
+    if request.user.is_authenticated() and group.is_member(request.user.id):
+        return get_group_page(request, group.name, True)
+    else:
+        return get_group_page(request, group.name, False)
+
+
+def edit_group_page(request, group=None):
+    if group:
+        group = group.replace("-", " ").replace("_", " ")
+        group = Group().load({"name": group})
+        if not group:
+            raise Http404
+        groupData = group.contents()
+    else:
+        groupData = None
+
+    return render_to_response('edit_group.html', {"groupData": groupData}, RequestContext(request)) 
+
+
+@staff_member_required
+def groups_admin_page(request):
+    """
+    Page listing all groups for admins
+    """
+    groups = GroupSet(sort=[["name", 1]])
+    return render_to_response("groups.html",
+                                {"groups": groups},
+                                RequestContext(request))
+
+
+
+def topics_page(request):
     """
     Page of sheets by tag.
     Currently used to for "My Sheets" and  "All Sheets" as well.
     """
     topics = get_topics()
-    props = s2_props(request)
+    props = base_props(request)
     props.update({
         "initialMenu":  "topics",
         "initialTopic": None,
@@ -652,7 +696,7 @@ def s2_topics_page(request):
 
     propsJSON = json.dumps(props)
     html = render_react_component("ReaderApp", propsJSON)
-    return render_to_response('s2.html', {
+    return render_to_response('base.html', {
         "propsJSON":      propsJSON,
         "title":          _("Topics") + " | " + _("Sefaria"),
         "desc":           _("Explore Jewish Texts by Topic on Sefaria"),
@@ -660,7 +704,7 @@ def s2_topics_page(request):
     }, RequestContext(request))
 
 
-def s2_topic_page(request, topic):
+def topic_page(request, topic):
     """
     Page of sheets by tag.
     Currently used to for "My Sheets" and  "All Sheets" as well.
@@ -669,7 +713,7 @@ def s2_topic_page(request, topic):
         return redirect("/topics/%s" % Term.normalize(topic))
 
     topics = get_topics()
-    props = s2_props(request)
+    props = base_props(request)
     props.update({
         "initialMenu":  "topics",
         "initialTopic": topic,
@@ -681,7 +725,7 @@ def s2_topic_page(request, topic):
 
     propsJSON = json.dumps(props)
     html = render_react_component("ReaderApp", propsJSON)
-    return render_to_response('s2.html', {
+    return render_to_response('base.html', {
         "propsJSON":      propsJSON,
         "title":          title,
         "desc":           desc,
@@ -689,16 +733,16 @@ def s2_topic_page(request, topic):
     }, RequestContext(request))
 
 
-def s2_page(request, props, page, title="", desc=""):
+def menu_page(request, props, page, title="", desc=""):
     """
-    View for any S2 page that can described with the `menuOpen` param in React
+    View for any App page that can described with the `menuOpen` param in React
     """
     props.update({
         "initialMenu": page,
     })
     propsJSON = json.dumps(props)
     html = render_react_component("ReaderApp", propsJSON)
-    return render_to_response('s2.html', {
+    return render_to_response('base.html', {
         "propsJSON":      propsJSON,
         "title":          title,
         "desc":           desc,
@@ -707,44 +751,70 @@ def s2_page(request, props, page, title="", desc=""):
 
 
 def mobile_home(request):
-    props = s2_props(request)
-    return s2_page(request, props, "home")
+    props = base_props(request)
+    return menu_page(request, props, "home")
 
 
-def s2_texts(request):
-    props = s2_props(request)
+def texts_list(request):
+    props = base_props(request)
     title = _("The Sefaria Library")
     desc  = _("Browse 1,000s of Jewish texts in the Sefaria Library by category and title.")
-    return s2_page(request, props, "navigation", title, desc)
+    return menu_page(request, props, "navigation", title, desc)
 
-
-def s2_updates(request):
-    props = s2_props(request)
+def updates(request):
+    props = base_props(request)
     title = _("New Additions to the Sefaria Library")
     desc  = _("See texts, translations and connections that have been recently added to Sefaria.")
-    return s2_page(request, props, "updates", title, desc)
+    return menu_page(request, props, "updates", title, desc)
 
 
 @login_required
-def s2_account(request):
+def account(request):
     title = _("Sefaria Account")
-    props = s2_props(request)
-    return s2_page(request, props, "account", title)
+    props = base_props(request)
+    return menu_page(request, props, "account", title)
 
 
 @login_required
-def s2_notifications(request):
+def notifications(request):
     # Notifications content is not rendered server side
     title = _("Sefaria Notifications")
-    props = s2_props(request)
-    return s2_page(request, props, "notifications", title)
+    props = base_props(request)
+    return menu_page(request, props, "notifications", title)
 
 
 @login_required
-def s2_modtools(request):
+def modtools(request):
     title = _("Moderator Tools")
+    props = base_props(request)
+    return menu_page(request, props, "modtools", title)
+
+
+def s2_extended_notes(request, tref, lang, version_title):
+    if not Ref.is_ref(tref):
+        raise Http404
+
+    version_title = version_title.replace("_", " ")
+    version = Version().load({'title': tref, 'language': lang, 'versionTitle': version_title})
+    if version is None:
+        return reader(request, tref)
+
+    if not hasattr(version, 'extendedNotes') and not hasattr(version, 'extendedNotesHebrew'):
+        return reader(request, tref, lang, version_title)
+
+    title = _("Extended Notes")
     props = s2_props(request)
-    return s2_page(request, props, "modtools", title)
+    panel = {
+        "mode": "extended notes",
+        "ref": tref,
+        "refs": [tref],
+        "version": version_title,
+        "versionLanguage": lang,
+        "extendedNotes": getattr(version, "extendedNotes", ""),
+        "extendedNotesHebrew": getattr(version, "extendedNotesHebrew", "")
+    }
+    props['panels'] = [panel]
+    return s2_page(request, props, "extended notes", title)
 
 
 """
@@ -760,7 +830,7 @@ def _crumb(pos, id, name):
         }}
 
 
-def ld_cat_crumbs(cats=None, title=None, oref=None):
+def ld_cat_crumbs(request, cats=None, title=None, oref=None):
     """
     JSON - LD breadcrumbs(https://developers.google.com/search/docs/data-types/breadcrumbs)
     :param cats: List of category names
@@ -782,32 +852,36 @@ def ld_cat_crumbs(cats=None, title=None, oref=None):
         cats = library.get_index(title).categories[:]
 
 
-    breadcrumbJsonList = [_crumb(1, "/texts", "Texts")]
+    breadcrumbJsonList = [_crumb(1, "/texts", _("Texts"))]
     nextPosition = 2
 
     for i,c in enumerate(cats):
-        breadcrumbJsonList += [_crumb(nextPosition, "/texts/" + "/".join(cats[0:i+1]), c)]
+        name = hebrew_term(c) if request.interfaceLang == "hebrew" else c
+        breadcrumbJsonList += [_crumb(nextPosition, "/texts/" + "/".join(cats[0:i+1]), name)]
         nextPosition += 1
 
     if title:
-        breadcrumbJsonList += [_crumb(nextPosition, "/" + title.replace(" ", "_"), title)]
+        name = hebrew_term(title) if request.interfaceLang == "hebrew" else title
+        breadcrumbJsonList += [_crumb(nextPosition, "/" + title.replace(" ", "_"), name)]
         nextPosition += 1
 
         if oref and oref.index_node != oref.index.nodes:
             for snode in oref.index_node.ancestors()[1:] + [oref.index_node]:
                 if snode.is_default():
                     continue
-                breadcrumbJsonList += [_crumb(nextPosition, "/" + snode.ref().url(), snode.primary_title("en"))]
+                name = snode.primary_title("he") if request.interfaceLang == "hebrew" else  snode.primary_title("en")
+                breadcrumbJsonList += [_crumb(nextPosition, "/" + snode.ref().url(), name)]
                 nextPosition += 1
 
         #todo: range?
         if oref and getattr(oref.index_node, "depth", None) and not oref.is_range():
             depth = oref.index_node.depth
             for i in range(len(oref.sections)):
-                breadcrumbJsonList += [_crumb(nextPosition,
-                                              "/" + oref.context_ref(depth - i - 1).url(),
-                                              oref.index_node.sectionNames[i] + u" " + oref.normal_section(i, "en"))
-                                       ]
+                if request.interfaceLang == "english":
+                    name = oref.index_node.sectionNames[i] + u" " + oref.normal_section(i, "en")
+                else:
+                    name = hebrew_term(oref.index_node.sectionNames[i]) + u" " + oref.normal_section(i, "he")
+                breadcrumbJsonList += [_crumb(nextPosition, "/" + oref.context_ref(depth - i - 1).url(), name)]
                 nextPosition += 1
 
     return json.dumps({
@@ -917,479 +991,6 @@ def terms_editor(request, term=None):
                              RequestContext(request))
 
 
-@django_cache_decorator(6000)
-def make_toc_html(oref, zoom=1):
-    """
-    Returns the HTML of a text's Table of Contents, including any alternate structures.
-    :param oref - Ref of the text to create. Ref is used instead of Index to allow
-    for a different table of contents focusing on a single node of a complex text.
-    :param zoom - integar specifying the level of granularity to show. 0 = Segment level,
-    1 = Section level etc.
-    """
-    index = oref.index
-    if index.is_complex():
-        html = make_complex_toc_html(oref)
-    else:
-        state = StateNode(index.title)
-        he_counts, en_counts = state.var("he", "availableTexts"), state.var("en", "availableTexts")
-        if getattr(index.nodes, "toc_zoom", None):
-            zoom = index.nodes.toc_zoom
-        elif index.nodes.depth == 1:
-            zoom = 0
-        html = make_simple_toc_html(he_counts, en_counts, index.nodes.sectionNames, index.nodes.addressTypes, Ref(index.title), zoom=zoom)
-
-    if index.has_alt_structures():
-        default_name   = index.nodes.sectionNames[0] if not index.is_complex() else "Contents"
-        default_struct = getattr(index, "default_struct", default_name)
-        structs        = {default_name: html}  # store HTML for each structure
-        alts           = index.get_alt_structures().items()
-        for alt in alts:
-            structs[alt[0]] = make_alt_toc_html(alt[1], index)
-
-        items  = sorted(structs.items(), key=lambda x: 0 if x[0] == default_struct else 1)
-        toggle, tocs = "", ""
-
-        for item in items:
-            toggle += "<span class='toggleDivider'>|</span>" if item[0] != default_struct else ""
-            toggle += "<div class='altStructToggle" + (" active" if item[0] == default_struct else "") + "'>"
-            toggle +=   "<span class='int-en'>" + item[0] + "</span>"
-            toggle +=   "<span class='int-he'>" + hebrew_term(item[0]) + "</span>"
-            toggle += "</div>"
-            tocs   += "<div class='altStruct' " + ("style='display:none'" if item[0] != default_struct else "") + ">" + item[1] + "</div>"
-
-        html = "<div id='structToggles'>" + toggle + "</div>" + tocs
-    return html
-
-
-def make_complex_toc_html(oref):
-    """
-    Returns the HTML of a complex text's Table of Contents.
-    :param oref - Ref of the text to create. Ref is used instead of Index to allow
-    for a different table of contents focusing on a single node.
-    """
-    index    = oref.index
-    req_node = oref.index_node
-
-    def node_line(node, depth, **kwargs):
-        if depth == 0:
-            return ""
-        linked = "linked" if node.is_leaf() and node.depth == 1 else ""
-        default = "default" if node.is_default() else ""
-        url = "/" + node.ref().url()
-        en_icon = '<i class="schema-node-control fa ' + ('fa-angle-right' if linked else 'fa-angle-down') + '"></i>'
-        he_icon = '<i class="schema-node-control fa ' + ('fa-angle-left' if linked else 'fa-angle-down') + '"></i>'
-        html = '<a href="' + urlquote(url) + '"' if linked else "<div "
-        html += ' class="schema-node-toc depth' + str(depth) + ' ' + linked + ' ' + default + '">'
-        if not default:
-            html += '<span class="schema-node-title">'
-            html +=    '<span class="en">' + node.primary_title() + en_icon + '</span>'
-            html +=    '<span class="he">' + node.primary_title(lang='he') + he_icon + '</span>'
-            html += '</span>'
-        if node.is_leaf():
-            focused = node is req_node
-            html += '<div class="schema-node-contents ' + ('open' if focused or default else 'closed') + '">'
-            node_state = kwargs["vs"].state_node(node)
-            #Todo, handle Talmud and other address types, as well as commentary
-            if getattr(node, "toc_zoom", None):
-                zoom = node.toc_zoom
-            else:
-                zoom = 0 if node.depth == 1 else 1
-            he_counts, en_counts = node_state.var("he", "availableTexts"), node_state.var("en", "availableTexts")
-            content = make_simple_toc_html(he_counts, en_counts, node.sectionNames, node.addressTypes, node.ref(), zoom=zoom)
-            content = content or "<div class='emptyMessage'>No text here.</div>"
-            html += content + '</div>'
-        html += "</a>" if linked else "</div>"
-        return html
-
-    vs = VersionState(index)
-    html = index.nodes.traverse_to_string(node_line, vs=vs)
-    return html
-
-
-def make_alt_toc_html(alt, index):
-    """
-    Returns HTML Table of Contents for an alternate structure.
-    :param alt - a TitledTreeNode representing an alternate structure.
-    """
-    def node_line(node, depth, **kwargs):
-        if depth == 0 and node.has_children():
-            return ""
-        html    = ""
-        refs            = getattr(node, "refs", False)
-        includeSections = getattr(node, "includeSections", False)
-        linked  = "linked" if (not refs and not includeSections and getattr(node, "wholeRef", None)) else ""
-        default = "default" if node.is_default() else ""
-        url     = u"/" + Ref(node.wholeRef).url() if linked else None
-        en_icon = u'<i class="schema-node-control fa ' + ('fa-angle-right' if linked else 'fa-angle-down') + u'"></i>'
-        he_icon = u'<i class="schema-node-control fa ' + ('fa-angle-left' if linked else 'fa-angle-down') + u'"></i>'
-        html   += u'<a href="' + urlquote(url) + '"' if linked else "<div "
-        html   += u' class="schema-node-toc depth' + str(depth) + ' ' + linked + ' ' + default + u'" >'
-        wrap_counts  = lambda counts: counts if list_depth(counts) >= 2 else wrap_counts([counts])
-        # wrap counts to ensure they are as though at section level, handles segment level refs
-        if not default and depth > 0:
-            html += u'<span class="schema-node-title">'
-            html +=    u'<span class="en">' + node.primary_title() + en_icon + u'</span>'
-            html +=    u'<span class="he">' + node.primary_title(lang='he') + he_icon + u'</span>'
-            html += u'</span>'
-        if refs:
-            # todo handle refs with depth > 1
-            html += u"<div class='schema-node-contents"
-            html += u" closed" if depth > 0 else ""
-            html += u"'>"
-            html +=   u"<div class='sectionName'>"
-            html +=     u"<span class='en'>" + hebrew_plural(node.sectionNames[0]) + u"</span>"
-            html +=     u"<span class='he'>" + hebrew_term(node.sectionNames[0]) + u"</span>"
-            html +=   u"</div>"
-            for i in range(len(node.refs)):
-                if not node.refs[i]:
-                    continue
-                target_ref = Ref(node.refs[i])
-                state = kwargs["vs"].state_node(target_ref.index_node)  # "Binders" would need the slower - StateNode(snode=target_ref.index_node)
-                he_counts, en_counts = state.var("he", "availableTexts"), state.var("en", "availableTexts")
-                he    = wrap_counts(JaggedArray(he_counts).subarray_with_ref(target_ref).array())
-                en    = wrap_counts(JaggedArray(en_counts).subarray_with_ref(target_ref).array())
-
-                klass = u"en{} he{}".format(toc_availability_class(en), toc_availability_class(he))
-                section_html = u"<span class='en'>{}</span><span class='he'>{}</span>".format(i + 1, encode_hebrew_numeral(i + 1, punctuation=False))
-                html += u'<a class="sectionLink {}" href="/{}">{}</a>'.format(klass, target_ref.url(), section_html)
-
-            html += u"</div>"
-        elif includeSections:
-            # Display each section included in node.wholeRef
-            # todo check case where wholeRef points to complex node
-            # todo check case where wholeRef points to book name (root of simple index)
-
-            target_ref   = Ref(node.wholeRef)
-
-            # Build up the count arrays for Hebrew and English
-            state        = kwargs["vs"].state_node(target_ref.index_node)  # "Binders" would need the slower - StateNode(snode=target_ref.index_node)
-            he_counts, en_counts = state.var("he", "availableTexts"), state.var("en", "availableTexts")
-            he           = wrap_counts(JaggedArray(he_counts).subarray_with_ref(target_ref).array())
-            en           = wrap_counts(JaggedArray(en_counts).subarray_with_ref(target_ref).array())
-
-            # Determine the depth of target text, and build section and address arrays
-            if len(target_ref.index_node.sectionNames) <= 1:    # There's only one level to the text
-                index_of_range = 0
-            elif target_ref.range_depth() < 2:                  # Either ranged at segment level or not at all
-                index_of_range = 1
-            else:                                               # Handling both section and supersection level ranges
-                index_of_range = target_ref.range_index()
-            sectionNames = target_ref.index_node.sectionNames[index_of_range:]
-            addressTypes = target_ref.index_node.addressTypes[index_of_range:]
-
-            base_oref = target_ref.context_ref(level=target_ref.range_depth())
-            content = make_simple_toc_html(he, en, sectionNames, addressTypes, base_oref, offset_oref=target_ref)
-            html += u"<div class='schema-node-contents open'>" + content + u"</div>"
-
-        html += u"</a>" if linked else u"</div>"
-        return html
-
-    vs = VersionState(index)
-    html = u"<div class='tocLevel'>" + alt.traverse_to_string(node_line, vs=vs) + u"</div>"
-    return html
-
-
-def make_simple_toc_html(he_toc, en_toc, labels, addresses, context_oref, zoom=1, offset_oref=None, offset_lines=None):
-    """
-    Returns HTML Table of Contents corresponding to jagged count arrays he_toc and en_toc.
-    Runs recursively.
-    :param he_toc - jagged int array of available counts in hebrew
-    :param en_toc - jagged int array of available counts in english
-    :param labels - list of section names for levels corresponding to toc
-    :param addresses - list of address types, from Index record
-    :param context_oref - :class:`Ref` - the context for this level of the text toc
-    :param zoom - sets how many levels of final depth to summarize
-    (e.g., 1 will hide segments and only show section level)
-    :param offset_oref - :class:`Ref` of the first segment/section #was: int to add to each listed section (in the first super-section, if depth 3)
-    :param offset_lines - tuple of strings to be appended to the URL of the first and last
-    section (allows pointing to spans inside a section).
-    """
-    he_toc = [] if isinstance(he_toc, int) else he_toc
-    en_toc = [] if isinstance(en_toc, int) else en_toc
-
-    toc_length = len(he_toc)
-    toc_depth = list_depth(he_toc, deep=True)
-
-    # sanity checks
-    assert(toc_depth == list_depth(en_toc, deep=True))
-    assert(toc_length == len(en_toc))
-    assert isinstance(context_oref, Ref)
-
-    # For first iteration of alternate tocs - derive offset lines from offset_oref
-    if offset_oref is not None and offset_lines is None:
-        refs = offset_oref.split_spanning_ref()
-        first, last = refs[0], refs[-1]
-        offset_lines = (first.normal().rsplit(":", 1)[1] if first.is_segment_level() else "",
-                        last.normal().rsplit(":", 1)[1] if last.is_segment_level() else "")
-
-    html = ""
-    if (toc_depth == zoom + 1):
-        # We're at the terminal level, generate links (for zoom = 1 this is the section level)
-
-        # offsets: list of integers for how much to offset each level of a ref sections
-        offsets = [offset_oref.sections[i] - 1 if (offset_oref and len(offset_oref.sections) > i) else 0
-                   for i in range(len(context_oref.index_node.sectionNames))]
-
-        # For each element in the toc content, determine its availability and generate a link if it's there
-        for i in range(toc_length):
-            klass = u"he%s en%s" % (toc_availability_class(he_toc[i]), toc_availability_class(en_toc[i]))
-
-            # Don't display sections with no content
-            if klass == u"heNone enNone":
-                continue
-
-            # Cover all of the edge cases to get a clean section ref
-            if context_oref.is_segment_level():
-                section_oref = context_oref.context_ref()
-            elif (context_oref.is_section_level() or toc_depth == 1) and zoom != 0:
-                section_oref = context_oref
-            else:
-                offset_index = -2 if len(offsets) > 1 else -1
-                section_oref = context_oref.subref(i + offsets[offset_index] + 1)
-
-            # Build the section number
-            section_html = u"<span class='en'>{}</span><span class='he'>{}</span>".format(
-                section_oref.normal_last_section("en"),
-                section_oref.normal_last_section("he", dotted=True, punctuation=False))
-
-            # Build up URL into `path`
-            path = section_oref.url()
-
-            # Append offset lines
-            if offset_lines and i == 0 and offset_lines[0]:
-                path += "." + offset_lines[0]
-                path = Ref(path).url()
-            elif offset_lines and (i+1) == toc_length and offset_lines[1]:
-                path += "." + offset_lines[1]
-                path = Ref(path).url()
-
-            # Make links point to first available content
-            if zoom > 1:
-                available = section_oref.first_available_section_ref()
-                path = available.url() if available else path
-
-            html += u'<a class="sectionLink %s" href="/%s">%s</a>' % (klass, path, section_html)
-
-        # Build up the html for this TOC piece
-        sectionName = u"<div class='sectionName'>"
-        sectionName += u"<span class='en'>" + hebrew_plural(labels[0]) + u"</span>"
-        sectionName += u"<span class='he'>" + hebrew_term(labels[0]) + u"</span>"
-        sectionName += u"</div>"
-        html = sectionName + html if html else ""
-
-    else:
-        # We're above the terminal level, recur into the subsections (for zoom = 1, this recurs into super-sections)
-        if offset_oref is not None:
-            # offset_refs: The starting refs for the each TOC jagged sub-arrays, including offset
-            # context_refs: The ref for each TOC sub-array, ignoring offset
-            offset_refs = offset_oref.starting_refs_of_span()
-            context_refs = [offset_refs[0].context_ref(toc_depth - 1)] + offset_refs[1:]
-            assert toc_length == len(offset_refs)
-
-        for i in range(toc_length):
-            # Pass down offset lines for first and last elements
-            section_offset_lines = None
-            if offset_lines and i == 0:
-                section_offset_lines = (offset_lines[0], None)
-            elif offset_lines and i == toc_length - 1:
-                section_offset_lines = (None, offset_lines[1])
-
-            # Get ref to identify this TOC part
-            subref = context_oref.subref(i + 1) if offset_oref is None else context_refs[i]
-
-            # Recur with subsection of TOC
-            section_html = make_simple_toc_html(
-                he_toc[i], en_toc[i], labels[1:], addresses[1:], subref,
-                zoom=zoom, offset_oref=offset_refs[i] if offset_oref is not None else None,
-                offset_lines=section_offset_lines
-            )
-
-            hide_toc_section = False
-            if section_html == "":
-                hide_toc_section = True
-
-            section = subref.normal_last_section("en")
-            he_section = subref.normal_last_section("he", dotted=True, punctuation=False)
-            html += u"<div class='tocSection{}'>".format(u" noSubLevels" if hide_toc_section else u"")
-            html += u"<div class='sectionName'>"
-            html += u"<span class='en'>" + labels[0] + u" " + section + u"</span>"
-            html += u"<span class='he'>" + hebrew_term(labels[0]) + u" " + he_section + u"</span>"
-            html += u"</div>" + section_html + u"</div>"
-
-    html = u"<div class='tocLevel'>" + html + u"</div>" if html else ""
-    return html
-
-
-def toc_availability_class(toc):
-    """
-    Returns the string of a class name in ("All", "Some", "None")
-    according to how much content is available in toc,
-    which may be either a list of ints or an int representing available counts.
-    """
-    if isinstance(toc, int):
-        return "All" if toc else "None"
-    else:
-        counts = set([toc_availability_class(x) for x in toc])
-        if counts == set(["All"]):
-            return "All"
-        elif "Some" in counts or counts == set(["All", "None"]):
-            return "Some"
-        else:
-            return "None"
-
-
-@ensure_csrf_cookie
-def text_toc(request, oref):
-    """
-    Page representing a single text, showing its Table of Contents and related info.
-    """
-    if not request.COOKIES.get('s1'):
-        return s2(request, ref=oref.normal())
-
-    index         = oref.index
-    title         = index.title
-    heTitle       = index.get_title(lang='he')
-    state         = StateNode(title)
-    versions      = VersionSet({"title": title})
-
-    categories    = index.categories[:]
-    cat_slices    = [categories[:n+1] for n in range(len(categories))]  # successive sublists of cats, for category links
-
-    c_indexes     = library.get_dependant_indices(book_title=title, dependence_type='Commentary', full_records=True)
-    commentaries  = [i.toc_contents() for i in c_indexes]
-
-    if index.is_complex():
-        zoom = 1
-    else:
-        zoom = 0 if index.nodes.depth == 1 else 2 if getattr(index, 'dependence', None) == "Commentary" else 1
-        zoom = int(request.GET.get("zoom", zoom))
-    toc_html = make_toc_html(oref, zoom=zoom)
-
-    if index.is_complex():
-        count_strings = False
-        complex = True
-        zoom = 1
-    else: # simple text
-        complex = False
-        talmud = Ref(index.title).is_talmud()
-        count_strings = {
-            "en": ", ".join([str(state.get_available_counts("en")[i]) + " " + hebrew_plural(index.nodes.sectionNames[i]) for i in range(index.nodes.depth)]),
-            "he": ", ".join([str(state.get_available_counts("he")[i]) + " " + hebrew_plural(index.nodes.sectionNames[i]) for i in range(index.nodes.depth)]),
-        } if state else None  #why the condition?
-
-        if talmud and count_strings:
-            count_strings["he"] = count_strings["he"].replace("Dappim", "Amudim")
-            count_strings["en"] = count_strings["en"].replace("Dappim", "Amudim")
-        if getattr(index, 'dependence', None) == "Commentary"  and state.get_flag("heComplete"):
-            # Because commentary text is sparse, the code in make_toc_hmtl doens't work for completeness
-            # Trust a flag if its set instead
-            toc_html = toc_html.replace("heSome", "heAll")
-
-    auths = index.author_objects()
-    index_contents = index.contents(v2=True)
-
-
-    template_vars = {
-         "index":         index_contents,
-         "authors":       auths,
-         "versions":      versions,
-         "commentaries":  commentaries,
-         "heComplete":    state.get_flag("heComplete"),
-         "enComplete":    state.get_flag("enComplete"),
-         "count_strings": count_strings,
-         "zoom":          zoom,
-         "toc_html":      toc_html,
-         "cat_slices":    cat_slices,
-         "complex":       complex,
-    }
-
-    composition_time_period = index.composition_time_period()
-    publication_time_period = index.publication_time_period()
-    composition_place = index.composition_place()
-    publication_place = index.publication_place()
-
-    if composition_time_period:
-        template_vars["comp_time_string"] = {
-            "en": composition_time_period.period_string("en"),
-            "he": composition_time_period.period_string("he"),
-        }
-    if publication_time_period:
-        template_vars["pub_time_string"] = {
-            "en": publication_time_period.period_string("en"),
-            "he": publication_time_period.period_string("he"),
-        }
-    if composition_place:
-        template_vars["comp_place"] = {
-            "en": composition_place.primary_name("en"),
-            "he": composition_place.primary_name("he"),
-        }
-    if publication_place:
-        template_vars["pub_place"] = {
-            "en": publication_place.primary_name("en"),
-            "he": publication_place.primary_name("he"),
-        }
-
-    return render_to_response('text_toc.html',
-                             template_vars,
-                             RequestContext(request))
-
-
-@ensure_csrf_cookie
-def texts_list(request):
-    """
-    Page listing every text in the library.
-    """
-    if not request.COOKIES.get('s1'):
-        return s2_texts(request)
-
-    return render_to_response('texts.html',
-                             {},
-                             RequestContext(request))
-
-
-def texts_category_list(request, cats):
-    """
-    Page listing every text in category
-    """
-    if "Tanach" in cats:
-        cats = cats.replace("Tanach", "Tanakh")
-        return redirect("/texts/%s" % cats)
-
-    if not request.COOKIES.get('s1'):
-        return s2_texts_category(request, cats)
-
-    cats       = cats.split("/")
-    toc        = library.get_toc()
-    cat_toc    = get_or_make_summary_node(toc, cats, make_if_not_found=False)
-
-    if cat_toc is None:
-        raise Http404
-
-    category   = cats[-1]
-    heCategory = hebrew_term(category)
-
-    if category in ("Bavli", "Yerushalmi"):
-        category = "Talmud " + category
-        heCategory = hebrew_term("Talmud") + " " + heCategory
-
-    return render_to_response('text_category.html',
-                             {
-                             "categories": cats,
-                             "category":   category,
-                             "heCategory": heCategory,
-                             "cat_toc": cat_toc,
-                             "cat_path": "/" + "/".join(cats),
-                             },
-                             RequestContext(request))
-
-@ensure_csrf_cookie
-def search(request):
-    if not request.COOKIES.get('s1'):
-        return s2_search(request)
-
-    return render_to_response('search.html',
-                             {},
-                             RequestContext(request))
 
 
 def interface_language_redirect(request, language):
@@ -1434,15 +1035,13 @@ def count_and_index(c_oref, c_lang, vtitle, to_count=1):
 
 @catch_error_as_json
 @csrf_exempt
-def texts_api(request, tref, lang=None, version=None):
+def texts_api(request, tref):
     oref = Ref(tref)
 
     if request.method == "GET":
         uref = oref.url()
         if uref and tref != uref:    # This is very similar to reader.reader_redirect subfunction, above.
             url = "/api/texts/" + uref
-            if lang and version:
-                url += "/%s/%s" % (lang, version)
             response = redirect(iri_to_uri(url), permanent=True)
             params = request.GET.urlencode()
             response['Location'] += "?%s" % params if params else ""
@@ -1452,20 +1051,24 @@ def texts_api(request, tref, lang=None, version=None):
         context    = int(request.GET.get("context", 1))
         commentary = bool(int(request.GET.get("commentary", False)))
         pad        = bool(int(request.GET.get("pad", 1)))
-        version    = version.replace("_", " ") if version else None
+        versionEn  = request.GET.get("ven", None)
+        if versionEn:
+            versionEn = versionEn.replace("_", " ")
+        versionHe  = request.GET.get("vhe", None)
+        if versionHe:
+            versionHe = versionHe.replace("_", " ")
         layer_name = request.GET.get("layer", None)
         alts       = bool(int(request.GET.get("alts", True)))
         wrapLinks = bool(int(request.GET.get("wrapLinks", False)))
 
 
         try:
-            text = TextFamily(oref, version=version, lang=lang, commentary=commentary, context=context, pad=pad, alts=alts, wrapLinks=wrapLinks).contents()
+            text = TextFamily(oref, version=versionEn, lang="en", version2=versionHe, lang2="he", commentary=commentary, context=context, pad=pad, alts=alts, wrapLinks=wrapLinks).contents()
         except AttributeError as e:
             oref = oref.default_child_ref()
-            text = TextFamily(oref, version=version, lang=lang, commentary=commentary, context=context, pad=pad, alts=alts, wrapLinks=wrapLinks).contents()
+            text = TextFamily(oref, version=versionEn, lang="en", version2=versionHe, lang2="he", commentary=commentary, context=context, pad=pad, alts=alts, wrapLinks=wrapLinks).contents()
         except NoVersionFoundError as e:
-            # Extended data is used by S2 in TextList.preloadAllCommentaryText()
-            return jsonResponse({"error": unicode(e), "ref": oref.normal(), "versionTitle": version, "lang": lang}, callback=request.GET.get("callback", None))
+            return jsonResponse({"error": unicode(e), "ref": oref.normal(), "enVersion": versionEn, "heVersion": versionHe}, callback=request.GET.get("callback", None))
 
 
         # TODO: what if pad is false and the ref is of an entire book? Should next_section_ref return None in that case?
@@ -1524,29 +1127,54 @@ def texts_api(request, tref, lang=None, version=None):
             return protected_post(request)
 
     if request.method == "DELETE":
+        versionEn = request.GET.get("ven", None)
+        versionHe = request.GET.get("vhe", None)
         if not request.user.is_staff:
             return jsonResponse({"error": "Only moderators can delete texts."})
-        if not (tref and lang and version):
+        if not (tref and (versionEn or versionHe)):
             return jsonResponse({"error": "To delete a text version please specifiy a text title, version title and language."})
 
         tref    = tref.replace("_", " ")
-        version = version.replace("_", " ")
+        if versionEn:
+            versionEn = versionEn.replace("_", " ")
+            v = Version().load({"title": tref, "versionTitle": versionEn, "language": "en"})
 
-        v = Version().load({"title": tref, "versionTitle": version, "language": lang})
+            if not v:
+                return jsonResponse({"error": "Text version not found."})
 
-        if not v:
-            return jsonResponse({"error": "Text version not found."})
+            v.delete()
+            record_version_deletion(tref, versionEn, "en", request.user.id)
 
-        v.delete()
-        record_version_deletion(tref, version, lang, request.user.id)
+            if USE_VARNISH:
+                invalidate_linked(oref)
+                invalidate_ref(oref, "en", versionEn)
+        if versionHe:
+            versionHe = versionHe.replace("_", " ")
+            v = Version().load({"title": tref, "versionTitle": versionHe, "language": "he"})
 
-        if USE_VARNISH:
-            invalidate_linked(oref)
-            invalidate_ref(oref, lang, version)
+            if not v:
+                return jsonResponse({"error": "Text version not found."})
+
+            v.delete()
+            record_version_deletion(tref, versionHe, "he", request.user.id)
+
+            if USE_VARNISH:
+                invalidate_linked(oref)
+                invalidate_ref(oref, "he", versionHe)
 
         return jsonResponse({"status": "ok"})
 
     return jsonResponse({"error": "Unsupported HTTP method."}, callback=request.GET.get("callback", None))
+
+
+@catch_error_as_json
+@csrf_exempt
+def old_text_versions_api_redirect(request, tref, lang, version):
+    url = "/api/texts/{}?v{}={}".format(tref, lang, version)
+    response = redirect(iri_to_uri(url), permanent=True)
+    params = request.GET.urlencode()
+    response['Location'] += "&{}".format(params) if params else ""
+    return response
 
 
 @catch_error_as_json
@@ -1815,10 +1443,12 @@ def text_preview_api(request, title):
 
     return jsonResponse(response, callback=request.GET.get("callback", None))
 
+
 def revarnish_link(link):
     if USE_VARNISH:
         for ref in link.refs:
             invalidate_ref(Ref(ref), purge=True)
+
 
 @catch_error_as_json
 @csrf_exempt
@@ -2040,6 +1670,7 @@ def versions_api(request, tref):
     versions = oref.version_list()
 
     return jsonResponse(versions, callback=request.GET.get("callback", None))
+
 
 @catch_error_as_json
 def version_status_api(request):
@@ -2325,7 +1956,7 @@ def terms_api(request, name):
 
                 func = tracker.update if request.GET.get("update", False) else tracker.add
                 return func(uid, model.Term, term, **kwargs).contents()
-            
+
             elif request.method == "DELETE":
                 if not t:
                     return {"error": 'Term "%s" does not exist.' % term}
@@ -2350,7 +1981,7 @@ def terms_api(request, name):
         else:
             return jsonResponse({"error": "Only Sefaria Moderators can add or edit terms."})
 
-        return jsonResponse(_internal_do_post(request, uid))      
+        return jsonResponse(_internal_do_post(request, uid))
 
     return jsonResponse({"error": "Unsupported HTTP method."})
 
@@ -3476,15 +3107,6 @@ def metrics(request):
 
 
 @ensure_csrf_cookie
-def connectPage(request):
-    """
-    Connect page - mailing list sign up, social media etc
-    """
-    # TODO update this for S2
-    return redirect(iri_to_uri("/#homeConnect"), permanent=False)
-
-
-@ensure_csrf_cookie
 def digitized_by_sefaria(request):
     """
     Metrics page. Shows graphs of core metrics.
@@ -3537,6 +3159,7 @@ def random_text_api(request):
     response = redirect(iri_to_uri("/api/texts/" + random_ref()) + "?commentary=0", permanent=False)
     return response
 
+
 def random_by_topic_api(request):
     """
     Returns Texts API data for a random text taken from popular topic tags
@@ -3544,12 +3167,15 @@ def random_by_topic_api(request):
     random_topic = choice(filter(lambda x: x['count'] > 15, get_topics().list()))['tag']
     random_source = choice(get_topics().get(random_topic).contents()['sources'])[0]
     try:
-        ref = Ref(random_source).normal()
+        oref = Ref(random_source)
+        tref = oref.normal()
+        url = oref.url()
     except Exception:
         return random_by_topic_api(request)
     cb = request.GET.get("callback", None)
-    response = redirect(iri_to_uri("/api/texts/" + ref + "?commentary=0&context=0&pad=0{}".format("&callback=" + cb if cb else "")) , permanent=False)
-    return response
+    resp = jsonResponse({"ref": tref, "topic": random_topic, "url": url}, callback=request.GET.get("callback", None))
+    resp['Content-Type'] = "application/json; charset=utf-8"
+    return resp
 
 
 @ensure_csrf_cookie
@@ -3585,7 +3211,7 @@ def person_page(request, name):
     assert isinstance(person, Person)
 
     template_vars = person.contents()
-    if request.interfaceLang == "he":
+    if request.interfaceLang == "hebrew":
         template_vars["name"] = person.primary_name("he")
         template_vars["bio"]= getattr(person, "heBio", _("Learn about %(name)s - works written, biographies, dates and more.") % {"name": person.primary_name("he")})
     else:
