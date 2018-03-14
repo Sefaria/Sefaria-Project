@@ -1603,10 +1603,10 @@ class AddressAliyah(AddressInteger):
 
 class AddressPerek(AddressInteger):
     section_patterns = {
-        "en": ur"""(?:(?:Chapter|chapter|Perek|perek)?\s*)""",  #  the internal ? is a hack to allow a non match, even if 'strict'
+        "en": ur"""(?:(?:Chapter|chapter|Perek|perek)?\s*)""",  # the internal ? is a hack to allow a non match, even if 'strict'
         "he": ur"""(?:
-            \u05e4(?:"|\u05f4|'')?                  # Peh (for 'perek') maybe followed by a quote of some sort
-            |\u05e4\u05e8\u05e7\s*                  # or 'perek' spelled out, followed by space
+            \u05e4(?:"|\u05f4|''|'\s)?                  # Peh (for 'perek') maybe followed by a quote of some sort
+            |\u05e4\u05e8\u05e7(?:\u05d9\u05dd)?\s*                  # or 'perek(ym)' spelled out, followed by space
         )"""
     }
 
@@ -1654,8 +1654,8 @@ class AddressHalakhah(AddressInteger):
     section_patterns = {
         "en": ur"""(?:(?:Halakhah|halakhah)?\s*)""",  #  the internal ? is a hack to allow a non match, even if 'strict'
         "he": ur"""(?:
-            (?:\u05d4\u05dc\u05db\u05d4\s+)			# Halakhah spelled out, with a space after
-            |(?:\u05d4\u05dc?(?:"|\u05f4|['\u05f3](?:['\u05f3]|\s+)))		# or Haeh and possible Lamed(for 'halakhah') maybe followed by a quote of some sort
+            (?:\u05d4\u05dc\u05db(?:\u05d4|\u05d5\u05ea)\s+)			# Halakhah spelled out, with a space after
+            |(?:\u05d4\u05dc?(?:"|\u05f4|['\u05f3](?:['\u05f3]|\u05db|\s+)))		# or Haeh and possible Lamed(for 'halakhah') maybe followed by a quote of some sort
         )"""
     }
 
