@@ -1,6 +1,6 @@
 # encoding=utf-8
-
-from sefaria.helper.schema import *
+from sefaria.model import *
+from sefaria.helper.schema import change_node_structure
 
 def change_mishneh_torah():
     '''
@@ -14,6 +14,7 @@ def change_mishneh_torah():
         schema_yad_dict[title] = library.get_schema_node(title)
 
     for node in schema_yad_dict.values():
+        # excluding depth one ['Integer'] address types (ex, in category introduction)
         if len(node.sectionNames) != 2:
             continue
         change_node_structure(node, node.sectionNames, address_types=['Perek', 'Halakhah'])
