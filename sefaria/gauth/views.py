@@ -28,7 +28,7 @@ def index(request):
     FLOW = flow_from_clientsecrets(
         CLIENT_SECRETS,
         scope=request.session.get('gauth_scope', ''),
-        redirect_uri=request.build_absolute_uri(reverse(auth_return)))
+        redirect_uri=request.build_absolute_uri(reverse('gauth_callback')))
 
     FLOW.params['access_type'] = 'offline'
     FLOW.params['approval_prompt'] = 'force'  # Properly gets refresh token
