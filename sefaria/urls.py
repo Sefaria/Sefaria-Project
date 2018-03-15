@@ -402,8 +402,8 @@ urlpatterns += [
 
 # Google API OAuth 2.0
 urlpatterns += [
-    url(r'^gauth$', gauth_views.index),
-    url(r'^gauth/callback$', gauth_views.auth_return),
+    url(r'^gauth$', gauth_views.index, name="gauth_index"),
+    url(r'^gauth/callback$', gauth_views.auth_return, name="gauth_callback"),
 ]
 
 # Catch all to send to Reader
