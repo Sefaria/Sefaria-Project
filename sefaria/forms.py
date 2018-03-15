@@ -101,8 +101,13 @@ class NewUserForm(EmailUserCreationForm):
 
 class HTMLPasswordResetForm(PasswordResetForm):
     email = forms.EmailField(max_length=75, widget=forms.TextInput(attrs={'placeholder': _("Email Address"), 'autocomplete': 'off'}))
-    def save(self, domain_override=None, email_template_name='registration/password_reset_email.html', subject_template_name='registration/pass_reset_subject.txt',
-             use_https=False, token_generator=default_token_generator, from_email=None, request=None):
+
+    def save(self, domain_override=None, subject_template_name='registration/pass_reset_subject.txt',
+             email_template_name='registration/password_reset_email.html',
+             use_https=False, token_generator=default_token_generator, from_email=None, request=None,
+             html_email_template_name=None,
+             extra_email_context=None
+             ):
         """
         Generates a one-use only link for resetting password and sends to the user
         """

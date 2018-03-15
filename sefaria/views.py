@@ -14,7 +14,7 @@ from webpack_loader import utils as webpack_utils
 from django.utils.translation import ugettext as _
 from django.conf import settings
 from django.http import HttpResponse, HttpResponseRedirect
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.template.loader import render_to_string
 from django.template.response import TemplateResponse
 from django.utils.http import is_safe_url
@@ -59,7 +59,7 @@ logger = logging.getLogger(__name__)
 
 def register(request):
     if request.user.is_authenticated:
-        return HttpResponseRedirect("/login")
+        return redirect("login")
 
     next = request.GET.get('next', '')
 
@@ -90,81 +90,6 @@ def register(request):
             form = NewUserForm()
 
     return render(request, "registration/register.html", {'form': form, 'next': next})
-
-
-@sensitive_post_parameters()
-@csrf_protect
-@never_cache
-def login(request, template_name='registration/login.html',
-          redirect_field_name=REDIRECT_FIELD_NAME,
-          authentication_form=AuthenticationForm,
-          current_app=None, extra_context=None):
-    """
-    Displays the login form and handles the login action.
-    """
-    redirect_to = request.GET.get(redirect_field_name, '')
-
-    if request.method == "POST":
-        form = authentication_form(data=request.POST)
-        if form.is_valid():
-            # Ensure the user-originating redirection url is safe.
-            if not is_safe_url(url=redirect_to, host=request.get_host()):
-                redirect_to = settings.LOGIN_REDIRECT_URL
-
-            # Okay, security check complete. Log the user in.
-            auth_login(request, form.get_user())
-
-            if request.session.test_cookie_worked():
-                request.session.delete_test_cookie()
-
-            return HttpResponseRedirect(redirect_to)
-    else:
-        form = authentication_form(request)
-
-    request.session.set_test_cookie()
-
-    current_site = get_current_site(request)
-
-    context = {
-        'form': form,
-        redirect_field_name: redirect_to,
-        'site': current_site,
-        'site_name': current_site.name,
-    }
-    if extra_context is not None:
-        context.update(extra_context)
-    return TemplateResponse(request, template_name, context)
-
-
-def logout(request, next_page=None,
-           template_name='registration/logged_out.html',
-           redirect_field_name='next',
-           current_app=None, extra_context=None):
-    """
-    Logs out the user and displays 'You are logged out' message.
-    """
-    auth_logout(request)
-    redirect_to = request.REQUEST.get(redirect_field_name, '')
-    if redirect_to:
-        netloc = urlparse(redirect_to)[1]
-        # Security check -- don't allow redirection to a different host.
-        if not (netloc and netloc != request.get_host()):
-            return HttpResponseRedirect(redirect_to)
-
-    if next_page is None:
-        current_site = get_current_site(request)
-        context = {
-            'site': current_site,
-            'site_name': current_site.name,
-            'title': _('Logged out')
-        }
-        if extra_context is not None:
-            context.update(extra_context)
-        return TemplateResponse(request, template_name, context,
-                                current_app=current_app)
-    else:
-        # Redirect to this page until the session has been cleared.
-        return HttpResponseRedirect(next_page or request.path)
 
 
 def maintenance_message(request):
