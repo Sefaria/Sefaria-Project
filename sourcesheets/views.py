@@ -39,7 +39,7 @@ from sefaria.utils.util import strip_tags
 # noinspection PyUnresolvedReferences
 import sefaria.model.dependencies
 
-#from sefaria.gauth.decorators import gauth_required
+from sefaria.gauth.decorators import gauth_required
 
 
 def annotate_user_links(sources):
@@ -154,9 +154,9 @@ def get_user_groups(uid):
 	groups = GroupSet().for_user(uid)
 	groups = [ {
 					"name": group.name,
-					"headerUrl": getattr(group, "headerUrl", ""), 
+					"headerUrl": getattr(group, "headerUrl", ""),
 					"canPublish": group.can_publish(uid),
-				} 
+				}
 				for group in groups]
 	return groups
 
@@ -374,7 +374,7 @@ def groups_api(request, group=None):
 			return jsonResponse({
 				"private": [g.listing_contents() for g in GroupSet().for_user(request.user.id)],
 				"public": [g.listing_contents() for g in GroupSet({"listed": True, "moderationStatus": {"$ne": "nolist"}}, sort=[("name", 1)])]
-			})	
+			})
 		group = Group().load({"name": group})
 		if not group:
 			return jsonResponse({"error": "No group named '%s'" % group})
@@ -401,7 +401,7 @@ def groups_post_api(request, group_name=None):
 			# check poster is a group admin
 			if request.user.id not in existing.admins:
 				return jsonResponse({"error": "You do not have permission to edit this group."})
-			
+
 			from pprint import pprint
 			pprint(group)
 			existing.load_from_dict(group)
@@ -475,7 +475,7 @@ def groups_invite_api(request, group_name, uid_or_email, uninvite=False):
 		return jsonResponse({"error": "No group named %s." % group_name})
 	if request.user.id not in group.admins:
 		return jsonResponse({"error": "You must be a group admin to invite new members."})
-	
+
 	user = UserProfile(email=uid_or_email)
 	if not user.exists():
 		if uninvite:
@@ -501,7 +501,7 @@ def groups_invite_api(request, group_name, uid_or_email, uninvite=False):
 	return jsonResponse({"group": group_content, "message": message})
 
 
-@login_required 
+@login_required
 def groups_pin_sheet_api(request, group_name, sheet_id):
 	if request.method != "POST":
 		return jsonResponse({"error": "Unsupported HTTP method."})
@@ -561,7 +561,7 @@ def save_sheet_api(request):
 				not can_publish(request.user, existing):
 
 				return jsonResponse({"error": "You don't have permission to edit this sheet."})
-		else: 
+		else:
 			existing = None
 
 		if sheet.get("group", None):
@@ -573,7 +573,7 @@ def save_sheet_api(request):
 			if not can_publish(user, sheet):
 				if not existing:
 					sheet["status"] = "unlisted"
-				else: 
+				else:
 					if existing.get("group", None) != sheet["group"]:
 						# Don't allow non Group publishers to add a new public sheet
 						sheet["status"] = "unlisted"
@@ -707,7 +707,7 @@ def add_source_to_sheet_api(request, sheet_id):
 			source["text"] = text
 
 
-	note = request.POST.get("note", None) 
+	note = request.POST.get("note", None)
 	response = add_source_to_sheet(int(sheet_id), source, note=note)
 
 	return jsonResponse(response)
@@ -879,7 +879,7 @@ def make_sheet_from_text_api(request, ref, sources=None):
 	sources = sources.replace("_", " ").split("+") if sources else None
 	sheet = make_sheet_from_text(ref, sources=sources, uid=request.user.id, generatedBy=None, title=None)
 	return redirect("/sheets/%d" % sheet["id"])
-	
+
 
 def sheet_to_html_string(sheet):
 	"""
@@ -935,34 +935,33 @@ def resolve_options_of_sources(sheet):
 
 
 
-# @gauth_required(scope='https://www.googleapis.com/auth/drive.file', ajax=True)
-# def export_to_drive(request, credential, sheet_id):
-# 	"""
-# 	Export a sheet to Google Drive.
-# 	"""
-#
-# 	http = credential.authorize(httplib2.Http())
-# 	service = build('drive', 'v3', http=http)
-#
-# 	sheet = get_sheet(sheet_id)
-# 	if 'error' in sheet:
-# 		return jsonResponse({'error': {'message': sheet["error"]}})
-#
-# 	file_metadata = {
-# 		'name': strip_tags(sheet['title'].strip()),
-# 		'mimeType': 'application/vnd.google-apps.document'
-# 	}
-#
-# 	html_string = sheet_to_html_string(sheet)
-#
-# 	media = MediaIoBaseUpload(
-# 		StringIO(html_string),
-# 		mimetype='text/html',
-# 		resumable=True)
-#
-# 	new_file = service.files().create(body=file_metadata,
-# 									  media_body=media,
-# 									  fields='webViewLink').execute()
-#
-# 	return jsonResponse(new_file)
+@gauth_required(scope='https://www.googleapis.com/auth/drive.file', ajax=True)
+def export_to_drive(request, credential, sheet_id):
+	"""
+	Export a sheet to Google Drive.
+	"""
 
+	http = credential.authorize(httplib2.Http())
+	service = build('drive', 'v3', http=http)
+
+	sheet = get_sheet(sheet_id)
+	if 'error' in sheet:
+		return jsonResponse({'error': {'message': sheet["error"]}})
+
+	file_metadata = {
+		'name': strip_tags(sheet['title'].strip()),
+		'mimeType': 'application/vnd.google-apps.document'
+	}
+
+	html_string = sheet_to_html_string(sheet)
+
+	media = MediaIoBaseUpload(
+		StringIO(html_string),
+		mimetype='text/html',
+		resumable=True)
+
+	new_file = service.files().create(body=file_metadata,
+									  media_body=media,
+									  fields='webViewLink').execute()
+
+	return jsonResponse(new_file)
