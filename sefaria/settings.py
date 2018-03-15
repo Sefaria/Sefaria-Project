@@ -110,7 +110,7 @@ TEMPLATES = [
 
 MIDDLEWARE = [
     'django.contrib.sessions.middleware.SessionMiddleware',
-    'django.middleware.locale.LocaleMiddleware',   
+    'django.middleware.locale.LocaleMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -142,7 +142,7 @@ INSTALLED_APPS = (
     'emailusernames',
     'reader',
     'sourcesheets',
-    #'sefaria.gauth',
+    'sefaria.gauth',
     'captcha',
     #'django_mobile',
     'django.contrib.admin',
@@ -312,3 +312,5 @@ WEBPACK_LOADER = {
     }
 
 }
+
+GOOGLE_OAUTH2_CLIENT_SECRETS_JSON = relative_to_abs_path('gauth/client_secrets.json')

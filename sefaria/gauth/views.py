@@ -5,7 +5,7 @@ from django.core.urlresolvers import reverse
 from django.http import HttpResponseBadRequest
 from django.shortcuts import redirect
 from oauth2client.contrib import xsrfutil
-from oauth2client.contrib.django_orm import Storage
+from oauth2client.contrib.django_util.storage import DjangoORMStorage
 from oauth2client.client import flow_from_clientsecrets
 
 from models import (CredentialsModel,
@@ -28,7 +28,7 @@ def index(request):
     FLOW = flow_from_clientsecrets(
         CLIENT_SECRETS,
         scope=request.session.get('gauth_scope', ''),
-        redirect_uri=request.build_absolute_uri(reverse('gauth_callback')))
+        redirect_uri=request.build_absolute_uri(reverse(auth_return)))
 
     FLOW.params['access_type'] = 'offline'
     FLOW.params['approval_prompt'] = 'force'  # Properly gets refresh token
@@ -37,7 +37,7 @@ def index(request):
                                                    request.user)
 
     authorize_url = FLOW.step1_get_authorize_url()
-    flow_storage = Storage(FlowModel, 'id', request.user, 'flow')
+    flow_storage = DjangoORMStorage(FlowModel, 'id', request.user, 'flow')
     flow_storage.put(FLOW)
 
     # Don't worry if a next parameter is not set. `auth_return` will use the
@@ -55,20 +55,20 @@ def auth_return(request):
     """
     Step 2 of Google OAuth 2.0 flow.
     """
-    if 'state' not in request.REQUEST:
+    if 'state' not in request.GET:
         return redirect('gauth_index')
 
     if not xsrfutil.validate_token(settings.SECRET_KEY,
-                                   str(request.REQUEST['state']),
+                                   str(request.GET['state']),
                                    request.user):
         return HttpResponseBadRequest()
 
-    FLOW = Storage(FlowModel, 'id', request.user, 'flow').get()
+    FLOW = DjangoORMStorage(FlowModel, 'id', request.user, 'flow').get()
     if FLOW is None:
         return redirect('gauth_index')
 
-    credential = FLOW.step2_exchange(request.REQUEST)
-    cred_storage = Storage(CredentialsModel, 'id', request.user, 'credential')
+    credential = FLOW.step2_exchange(request.GET)
+    cred_storage = DjangoORMStorage(CredentialsModel, 'id', request.user, 'credential')
     cred_storage.put(credential)
 
     return redirect(request.session.get('next_view', '/'))
