@@ -312,5 +312,3 @@ WEBPACK_LOADER = {
     }
 
 }
-
-GOOGLE_OAUTH2_CLIENT_SECRETS_JSON = relative_to_abs_path('gauth/client_secrets.json')
