@@ -18,11 +18,15 @@
 
 	{% if request.user.is_staff %}
 	<div id="moderatorMsg">
-	You are logged in as a moderator. <br>
-	You can edit text flags by clicking a cell. <br>
-	<a class="btn btn-mini" id="rebuildCount" href="#">Rebuild Text Count</a>
-	<a class="btn btn-mini" href="/admin/delete/orphaned-counts">Delete Orphaned Counts</a>
+		You are logged in as a moderator. <br>
+		You can edit text flags by clicking a cell. <br>
+		<div class="actions">
+			<a class="button" id="rebuildCount" href="#">Rebuild Text Count</a>
+			<a class="button" href="/admin/delete/orphaned-counts">Delete Orphaned Counts</a>
+		</div>
 	</div>
+	{% else %}
+	<h1 id="loggedOutMsg">Texts Dashboard</h1>
 	{% endif %}
 
 	{% cache 600000 texts_dashboard %}
@@ -111,8 +115,8 @@
 {% endblock %}
 
 {% block js %}
-<script src="//cdn.datatables.net/1.10.0/js/jquery.dataTables.js"></script>
-<link rel="stylesheet" href="//cdn.datatables.net/1.10.0/css/jquery.dataTables.css" />
+<script src="//cdn.datatables.net/1.10.16/js/jquery.dataTables.min.js"></script>
+<link rel="stylesheet" href="//cdn.datatables.net/1.10.16/css/jquery.dataTables.min.css" />
 <style>
 	table.dataTable.hover tbody tr:hover,
 	table.dataTable.hover tbody tr.odd:hover,
@@ -142,9 +146,13 @@
 
 $(document).ready(function() 
     { 
+    	$("loggedOutMsg").html("Loading...");
+
         $("#dashboard").dataTable({
         	paging: false
-        }).show(); 
+        }).show();
+
+        $("#loggedOutMsg").html("Texts Dashboard");
 
         $(".editCell").mouseenter(function(e) {
         	var text = $(this).closest("tr").attr("data-title")
