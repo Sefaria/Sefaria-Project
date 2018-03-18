@@ -674,7 +674,7 @@ def cascade(ref_identifier, rewriter=lambda x: x, needs_rewrite=lambda x: True, 
         generic_rewrite(HistorySet(construct_query('old.refs', identifier), sort=[('old.refs', 1)]), attr_name='old', sub_attr_name='refs')
 
 
-def generate_segment_mapping(title, mapping, output_file=None):
+def generate_segment_mapping(title, mapping, output_file=None, mapped_title=lambda x: "Complex {}".format(x)):
     '''
     :param title: title of Index record
     :param mapping: mapping is a dict where each key is a reference in the original simple Index and each value is a reference in the new complex Index
@@ -725,7 +725,7 @@ def generate_segment_mapping(title, mapping, output_file=None):
             refs += [orig_ref]
 
         #segment_value is the value of the mapping that the user inputted
-        segment_value = "Complex {}".format(mapping[orig_ref_str])
+        segment_value = mapped_title(mapping[orig_ref_str])
 
         #now iterate over the refs and create the key/value pairs to put into segment_map
         for each_ref in refs:

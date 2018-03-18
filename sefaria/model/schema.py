@@ -1280,6 +1280,29 @@ class SchemaNode(TitledTreeNode):
         index_list, ref_list, _ = traverse(self, callback)
         return index_list, ref_list
 
+    def nodes_missing_content(self):
+        """
+        Used to identify nodes in the tree that have no content
+        :return: (bool-> True if node is missing content, list)
+        The list is a list of nodes that represent the root of an "empty" tree. If a SchemaNode has three children where
+        all three are missing content, only the parent SchemaNode will be in the list.
+        """
+        if self.is_leaf():
+            if self.ref().text('en').is_empty() and self.ref().text('he').is_empty():
+                return True, [self]
+            else:
+                return False, []
+
+        children_results = [child.nodes_missing_content() for child in self.children]
+
+        # If all my children are empty nodes, I am an empty node. Since I am the root of an empty tree, I add myself
+        # to the list of empty nodes instead of my children
+        if all([result[0] for result in children_results]):
+            return True, [self]
+        else:
+            return False, reduce(lambda x, y: x+y, [result[1] for result in children_results])
+
+
     def __eq__(self, other):
         return self.address() == other.address()
 
@@ -1580,10 +1603,10 @@ class AddressAliyah(AddressInteger):
 
 class AddressPerek(AddressInteger):
     section_patterns = {
-        "en": ur"""(?:(?:Chapter|chapter|Perek|perek)?\s*)""",  #  the internal ? is a hack to allow a non match, even if 'strict'
+        "en": ur"""(?:(?:Chapter|chapter|Perek|perek)?\s*)""",  # the internal ? is a hack to allow a non match, even if 'strict'
         "he": ur"""(?:
-            \u05e4(?:"|\u05f4|'')?                  # Peh (for 'perek') maybe followed by a quote of some sort
-            |\u05e4\u05e8\u05e7\s*                  # or 'perek' spelled out, followed by space
+            \u05e4(?:"|\u05f4|''|'\s)?                  # Peh (for 'perek') maybe followed by a quote of some sort
+            |\u05e4\u05e8\u05e7(?:\u05d9\u05dd)?\s*                  # or 'perek(ym)' spelled out, followed by space
         )"""
     }
 
@@ -1631,8 +1654,8 @@ class AddressHalakhah(AddressInteger):
     section_patterns = {
         "en": ur"""(?:(?:Halakhah|halakhah)?\s*)""",  #  the internal ? is a hack to allow a non match, even if 'strict'
         "he": ur"""(?:
-            (?:\u05d4\u05dc\u05db\u05d4\s+)			# Halakhah spelled out, with a space after
-            |(?:\u05d4\u05dc?(?:"|\u05f4|['\u05f3](?:['\u05f3]|\s+)))		# or Haeh and possible Lamed(for 'halakhah') maybe followed by a quote of some sort
+            (?:\u05d4\u05dc\u05db(?:\u05d4|\u05d5\u05ea)\s+)			# Halakhah spelled out, with a space after
+            |(?:\u05d4\u05dc?(?:"|\u05f4|['\u05f3](?:['\u05f3]|\u05db|\s+)))		# or Haeh and possible Lamed(for 'halakhah') maybe followed by a quote of some sort
         )"""
     }
 
