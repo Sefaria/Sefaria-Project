@@ -18,6 +18,19 @@ DATABASES = {
     }
 }
 
+"""
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'name of db table here',
+        'USER': 'name of db user here',
+        'PASSWORD': 'password here',
+        'HOST': '127.0.0.1',
+        'PORT': '',
+    }
+}"""
+
+
 ################ These are things you can change! ###########################################################################
 ADMINS = (
      ('Your Name', 'you@example.com'),
