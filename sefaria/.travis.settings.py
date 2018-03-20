@@ -5,7 +5,6 @@ relative_to_abs_path = lambda *x: os.path.join(os.path.dirname(
                                os.path.realpath(__file__)), *x)
 
 DEBUG = False
-TEMPLATE_DEBUG = DEBUG
 OFFLINE = False
 DOWN_FOR_MAINTENANCE = False
 MAINTENANCE_MESSAGE = ""
@@ -47,19 +46,6 @@ CACHES = {
 
 SECRET_KEY = 'insert your long random secret key here !'
 
-STATICFILES_DIRS = (
-    '{}/static/'.format(HOME_DIR),
-    # Put strings here, like "/home/html/static" or "C:/www/django/static".
-    # Always use forward slashes, even on Windows.
-    # Don't forget to use absolute paths, not relative paths.
-)
-
-TEMPLATE_DIRS = (
-    '{}/templates/'.format(HOME_DIR),
-    # Put strings here, like "/home/html/django_templates" or "C:/www/django/templates".
-    # Always use forward slashes, even on Windows.
-    # Don't forget to use absolute paths, not relative paths.
-)
 
 EMAIL_HOST = 'localhost'
 EMAIL_PORT = 1025
@@ -115,6 +101,10 @@ MULTISERVER_REDIS_PORT = 6379
 MULTISERVER_REDIS_DB = 0
 MULTISERVER_REDIS_EVENT_CHANNEL = "msync"   # Message queue on Redis
 MULTISERVER_REDIS_CONFIRM_CHANNEL = "mconfirm"   # Message queue on Redis
+
+# OAUTH these fields dont need to be filled in. they are only required for oauth2client to __init__ successfully
+GOOGLE_OAUTH2_CLIENT_ID = ""
+GOOGLE_OAUTH2_CLIENT_SECRET = ""
 
 """ to use logging, in any module:
 # import the logging library
