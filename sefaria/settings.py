@@ -99,11 +99,11 @@ TEMPLATES = [
                     "sefaria.system.context_processors.header_html",
                     "sefaria.system.context_processors.footer_html",
             ],
-            # 'loaders': [
-            #     #'django_mobile.loader.Loader',
-            #     'django.template.loaders.filesystem.Loader',
-            #     'django.template.loaders.app_directories.Loader',
-            # ]
+            'loaders': [
+                #'django_mobile.loader.Loader',
+                'django.template.loaders.filesystem.Loader',
+                'django.template.loaders.app_directories.Loader',
+            ]
         },
     },
 ]
