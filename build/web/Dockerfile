@@ -17,5 +17,5 @@ COPY build/web/wsgi.whiskey /app/.whiskey
 
 # requirements are installed on wsgi-re2, this covers the case where requirements differ in this commit.
 RUN pip install -r requirements.txt \
-  && cp -R ./locale/en/LC_MESSAGES/ /usr/local/python/lib/python2.7/site-packages/django/conf/locale/en \
+  # && cp -R ./locale/en/LC_MESSAGES/ /usr/local/python/lib/python2.7/site-packages/django/conf/locale/en \
   && chown -R whiskey /app
