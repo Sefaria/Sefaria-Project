@@ -1,3 +1,5 @@
+import django
+django.setup()
 
 from sefaria.local_settings import MULTISERVER_ENABLED
 
