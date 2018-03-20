@@ -2470,10 +2470,10 @@ function readSheet() {
 				sheet.options.collaboration = "none";
 				break;
 			case 'add':
-				sheet.options.collaboration = ($("#sourceSheetGroupSelect").val() && $("#sourceSheetGroupSelect").val() !== "None") || (sjs.current.group && sjs.current.group !== "") ? "group-can-add" : "anyone-can-add";
+				sheet.options.collaboration = ($("#sourceSheetGroupSelect").val() && $("#sourceSheetGroupSelect").val() !== "None") || (sjs.current.group && sjs.current.group !== "" && !sjs.is_owner) ? "group-can-add" : "anyone-can-add";
 				break;
 			case 'edit':
-				sheet.options.collaboration = ($("#sourceSheetGroupSelect").val() && $("#sourceSheetGroupSelect").val() !== "None") || (sjs.current.group && sjs.current.group !== "") ? "group-can-edit" : "anyone-can-edit";
+				sheet.options.collaboration = ($("#sourceSheetGroupSelect").val() && $("#sourceSheetGroupSelect").val() !== "None") || (sjs.current.group && sjs.current.group !== "" && !sjs.is_owner) ? "group-can-edit" : "anyone-can-edit";
 				break;
 		}
 		
