@@ -62,7 +62,7 @@ before_script:
   - cp -R ./locale/en/LC_MESSAGES/ /home/travis/virtualenv/python2.7.14/lib/python2.7/site-packages/django/conf/locale/en
 
   # Create the user db
-  - python manage.py syncdb --noinput
+  - python manage.py migrate --noinput
   - python manage.py createsuperuser --email $SEFARIA_SUPERUSER  --noinput
 
   # Rebuild TOC - TEMP to pass tests involving TOC changes
