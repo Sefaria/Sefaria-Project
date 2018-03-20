@@ -3,4 +3,6 @@
 --url-alias /static/ static/
 --access-log
 --access-log-name /dev/stdout
-sefaria/wsgi.py
+--application-type module
+--working-directory /app
+sefaria.wsgi
