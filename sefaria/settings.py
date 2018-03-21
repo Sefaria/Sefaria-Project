@@ -71,8 +71,6 @@ STATICFILES_DIRS = [
 # Make this unique, and don't share it with anybody.
 SECRET_KEY = ''
 
-ALLOWED_HOSTS = [".sefaria.org", ".sefaria.org.il"]
-
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
