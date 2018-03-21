@@ -125,23 +125,22 @@ class ServerCoordinator(MessagingNode):
         self.redis_client.publish(MULTISERVER_REDIS_CONFIRM_CHANNEL, msg_data)
 
 
-class MultiServerEventListenerMiddleware(MiddlewareMixin):
-    """
-    """
-    delay = 0  # Will check for library updates every X requests.  0 means every request.
+class MultiServerEventListenerMiddleware(object):
+    def __init__(self, get_response):
+        self.get_response = get_response
 
-    def __init__(self, get_response=None):
         if not MULTISERVER_ENABLED:
             raise MiddlewareNotUsed
         self.req_counter = 0
-
-    def process_request(self, request):
+        
+    def __call__(self, request):
         if self.req_counter == self.delay:
             server_coordinator.sync()
             self.req_counter = 0
         else:
             self.req_counter += 1
 
-        return None
+        response = self.get_response(request)
+        return response
 
 server_coordinator = ServerCoordinator() if MULTISERVER_ENABLED else None
