@@ -28,7 +28,7 @@ steps:
     args: ['clone', 'https://source.developers.google.com/p/production-deployment/r/k8s-admin']
   - name: 'debian'
     dir: "k8s-admin"
-    args: ["./generate_release_configs.sh $TAG_NAME"]
+    args: ["bash", "-c", "./generate_release_configs.sh $TAG_NAME"]
   #- name: "gcr.io/cloud-builders/git"
   #  args: ["config", "--global", "user.email", "dev@sefaria.org"]
   #- name: "gcr.io/cloud-builders/git"
