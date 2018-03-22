@@ -29,10 +29,10 @@ steps:
   - name: 'debian'
     dir: "k8s-admin"
     args: ["bash", "-c", "./generate_release_configs.sh $TAG_NAME"]
-  #- name: "gcr.io/cloud-builders/git"
-  #  args: ["config", "--global", "user.email", "dev@sefaria.org"]
-  #- name: "gcr.io/cloud-builders/git"
-  #  args: ["config", "--global", "user.name", "Automated Build"]
+  - name: "gcr.io/cloud-builders/git"
+    args: ["config", "--global", "user.email", "dev@sefaria.org"]
+  - name: "gcr.io/cloud-builders/git"
+    args: ["config", "--global", "user.name", "Automated Build"]
   - name: "gcr.io/cloud-builders/git"
     dir: "k8s-admin"
     args: ['commit', "-a", "-m", "Automatic update for $TAG_NAME"]
@@ -40,7 +40,7 @@ steps:
     dir: "k8s-admin"
     args: ["push", "origin", "master"]
   - name: 'gcr.io/cloud-builders/kubectl'
-    args: ["apply", "-f", "k8s-admin/k8s/_build/latest"]
+    args: ["apply", "-f", "k8s-admin/k8s/_build/latest/"]
 
 #  # Update k8s.
 #  - name: 'gcr.io/cloud-builders/kubectl'
