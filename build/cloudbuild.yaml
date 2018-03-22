@@ -30,7 +30,8 @@ steps:
     args: ["bash", "-c", "cd k8s-admin && ./generate_release_configs.sh && ./apply_release_configs.sh"]
   - name: "gcr.io/cloud-builders/git"
     args: ['commit', "-a", "-m", "Automatic update for $TAG_NAME"]
-
+  - name: "gcr.io/cloud-builders/git"
+    args: ["push", "origin", "master"]
 
 #  # Update k8s.
 #  - name: 'gcr.io/cloud-builders/kubectl'
